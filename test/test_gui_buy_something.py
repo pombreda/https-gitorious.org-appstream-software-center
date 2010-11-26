@@ -21,6 +21,9 @@ from softwarecenter.db.application import Application
 
 from softwarecenter.backend import get_install_backend
 
+#import softwarecenter.log
+#softwarecenter.log.root.setLevel(logging.DEBUG)
+
 class SCBuySomething(unittest.TestCase):
     
     def setUp(self):
@@ -31,12 +34,13 @@ class SCBuySomething(unittest.TestCase):
             subprocess.call(["dpkg", "-r", "hellox", "hello"])
         # get the software from staging
         os.environ["SOFTWARE_CENTER_BUY_HOST"]="https://sc.staging.ubuntu.com"
-        os.environ["PYTHONPATH="]=os.path.abspath("..")
+        os.environ["PYTHONPATH"]=os.path.abspath("..")
         if os.getuid() == 0:
             cmd = ["sudo", "-E", "-u", os.environ["SUDO_USER"]]
         else:
             cmd = []
-        cmd += ["/usr/share/software-center/update-software-center-agent"]
+        cmd += ["../utils/update-software-center-agent",
+                "--ignore-etag"]
         res = subprocess.call(cmd, env=os.environ)
         print cmd, res
 

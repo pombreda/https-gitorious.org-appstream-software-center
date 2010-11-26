@@ -39,6 +39,7 @@ class MockAvailableForMeItem(object):
     def __init__(self, entry_dict):
         for key, value in entry_dict.iteritems():
             setattr(self, key, value)
+        self.MimeType = ""
             
 class MockAvailableForMeList(list):
 

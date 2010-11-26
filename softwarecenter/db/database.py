@@ -115,6 +115,14 @@ class StoreDatabase(gobject.GObject):
     def del_database(self, database):
         self._additional_databases.remove(database)
 
+    def schema_version(self):
+        """Return the version of the database layout
+        
+           This is useful to ensure we force a rebuild if its
+           older than what we expect
+        """
+        return self.xapiandb.get_metadata("db-schema-version")
+
     def reopen(self):
         " reopen the database "
         self.open()
@@ -201,6 +209,9 @@ class StoreDatabase(gobject.GObject):
         pkg_query = _add_category_to_query(pkg_query)
 
         # get a search query
+        if not ':' in search_term: # ie, not a mimetype query
+            # we need this to work around xapian oddness
+            search_term = search_term.replace('-','_')
         fuzzy_query = self.xapian_parser.parse_query(search_term, 
                                                xapian.QueryParser.FLAG_PARTIAL|
                                                xapian.QueryParser.FLAG_BOOLEAN)
@@ -254,8 +265,6 @@ class StoreDatabase(gobject.GObject):
             elif channel:
                 # FIXME: print something if available for our arch
                 pass
-            else:
-                return _("Sorry, '%s' is not available for this type of computer (%s).") % (pkgname, get_current_arch())
         return summary
 
     def get_pkgname(self, doc):

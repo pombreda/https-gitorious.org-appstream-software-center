@@ -1,22 +1,56 @@
 #!/usr/bin/env python
 
-from distutils.core import setup
-from DistUtilsExtra.command import *
-
-import re
+import distutils
+import fnmatch
 import glob
 import os
+import re
 from subprocess import Popen, PIPE, call
 import sys
+
+from distutils.core import setup
+from DistUtilsExtra.command import (build_extra, build_i18n, build_help,
+                                    build_icons)
+
+
+class PocketLint(distutils.cmd.Command):
+    """ command class that runs pocketlint """
+    user_options = []
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def binary_in_path(self, binary):
+        return any([os.path.exists(os.path.join(p, binary))
+                    for p in os.environ["PATH"].split(":")])
+
+    def run(self):
+        if not self.binary_in_path("pocketlint"):
+            sys.stderr.write("No pocketlint found in path\n"
+                             "Use python-pocket-lint in natty or from "
+                             "ppa:sinzui\n")
+            return
+        py_files = []
+        for root, dirs, files in os.walk("."):
+            pyl = fnmatch.filter(files, "*.py")
+            py_files.extend([os.path.join(root, f) for f in pyl
+                             if os.path.exists(os.path.join(root, f))])
+        call(["pocketlint"]+py_files)
+
 
 # update version.py
 line = open("debian/changelog").readline()
 m = re.match("^[\w-]+ \(([\w\.~]+)\) ([\w-]+);", line)
 VERSION = m.group(1)
 CODENAME = m.group(2)
-DISTRO = Popen(["lsb_release", "-s", "-i"], stdout=PIPE).communicate()[0].strip()
-RELEASE = Popen(["lsb_release", "-s", "-r"], stdout=PIPE).communicate()[0].strip()
-open("softwarecenter/version.py","w").write("""
+DISTRO = Popen(
+    ["lsb_release", "-s", "-i"], stdout=PIPE).communicate()[0].strip()
+RELEASE = Popen(
+    ["lsb_release", "-s", "-r"], stdout=PIPE).communicate()[0].strip()
+open("softwarecenter/version.py", "w").write("""
 VERSION='%s'
 CODENAME='%s'
 DISTRO='%s'
@@ -50,23 +84,22 @@ setup(name="software-center", version=VERSION,
                    ["data/com.ubuntu.SoftwareCenter.conf"]),
                   ('share/software-center/images/',
                    glob.glob("data/images/*.png")+
-                   glob.glob("data/images/*.gif")
-                   ),
+                   glob.glob("data/images/*.gif")),
                   ('share/software-center/icons/',
                    glob.glob("data/emblems/*.png")),
                   ('share/apt-xapian-index/plugins',
                    glob.glob("apt-xapian-index-plugin/*.py")),
                   ('share/application-registry',
-		           ["data/software-center.applications"]),
+                   ["data/software-center.applications"]),
                   ('../etc/firefox/pref/',
                    ["data/software-center.js"]),
 #                  ('share/kde4/services/',
 #                   ["data/apt.protocol"]),
                   ],
-      cmdclass = { "build" : build_extra.build_extra,
-                   "build_i18n" :  build_i18n.build_i18n,
-                   "build_help" : build_help.build_help,
-                   "build_icons" : build_icons.build_icons}
+      cmdclass = {"build": build_extra.build_extra,
+                  "build_i18n": build_i18n.build_i18n,
+                  "build_help": build_help.build_help,
+                  "build_icons": build_icons.build_icons,
+                  "lint": PocketLint,
+                 },
       )
-
-

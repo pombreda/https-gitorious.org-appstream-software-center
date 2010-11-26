@@ -25,7 +25,7 @@ import gobject
 from softwarecenter.db.application import AppDetails
 from softwarecenter.backend import get_install_backend
 from softwarecenter.enums import *
-from softwarecenter.utils import get_current_arch
+from softwarecenter.utils import get_current_arch, get_default_language
 
 from purchasedialog import PurchaseDialog
 
@@ -41,13 +41,12 @@ class AppDetailsViewBase(object):
                                        ),
     }
 
-    def __init__(self, db, distro, icons, cache, history, datadir):
+    def __init__(self, db, distro, icons, cache, datadir):
         self.db = db
         self.distro = distro
         self.icons = icons
         self.cache = cache
         self.cache.connect("cache-ready", self._on_cache_ready)
-        self.history = history
         self.datadir = datadir
         self.app = None
         self.appdetails = None
@@ -94,7 +93,8 @@ class AppDetailsViewBase(object):
 
     def buy_app(self):
         """ initiate the purchase transaction """
-        url = self.distro.PURCHASE_APP_URL % (urllib.urlencode({
+        lang = get_default_language()
+        url = self.distro.PURCHASE_APP_URL % (lang, urllib.urlencode({
                     'archive_id' : self.appdetails.ppaname, 
                     'arch' : get_current_arch() ,
                     }))

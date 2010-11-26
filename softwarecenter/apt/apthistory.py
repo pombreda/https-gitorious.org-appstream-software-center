@@ -25,16 +25,12 @@ import glib
 import glob
 import gzip
 import os.path
+import re
 import logging
 import string
 import datetime
 
 from datetime import datetime
-
-try:
-    from debian import deb822
-except ImportError:
-    from debian_bundle import deb822
 
 LOG = logging.getLogger(__name__)
 
@@ -66,7 +62,7 @@ o    Attributes:
             # we use ascii_lower for issues described in LP: #581207
             attr = ascii_lower(k)
             if k in sec:
-                value = map(string.strip, sec[k].split("),"))
+                value = map(self._fixup_history_item, sec[k].split("),"))
             else:
                 value = []
             setattr(self, attr, value)
@@ -77,25 +73,40 @@ o    Attributes:
         return count
     def __repr__(self):
         return ('<Transaction: start_date:%s install:%s upgrade:%s downgrade:%s remove:%s purge:%s' % (self.start_date, self.install, self.upgrade, self.downgrade, self.remove, self.purge))
+    def __cmp__(self, other):
+        return cmp(self.start_date, other.start_date)
+    @staticmethod
+    def _fixup_history_item(s):
+        """ strip history item string and add missing ")" if needed """
+        s=s.strip()
+        # remove the infomation about the architecture
+        s = re.sub(":\w+", "", s)
+        if "(" in s and not s.endswith(")"):
+            s+=")"
+        return s
                
 class AptHistory(object):
 
     def __init__(self):
+        logging.debug("AptHistory.__init__()")
         self.main_context = glib.main_context_default()
         self.history_file = apt_pkg.config.find_file("Dir::Log::History")
-        with ExecutionTime("apt history rescan"):
-            self.rescan()
         #Copy monitoring of history file changes from historypane.py
         self.logfile = gio.File(self.history_file)
         self.monitor = self.logfile.monitor_file()
         self.monitor.connect("changed", self._on_apt_history_changed)
         self.update_callback = None
         LOG.debug("init history")
+        # this takes a long time, run it in the idle handler
+        self.transactions = []
+        self.history_ready = False
+        glib.idle_add(self.rescan)
 
     def _mtime_cmp(self, a, b):
         return cmp(os.path.getmtime(a), os.path.getmtime(b))
 
     def rescan(self):
+        self.history_ready = False
         self.transactions = []
         p = os.path.join(SOFTWARE_CENTER_CACHE_DIR, "apthistory.p")
         cachetime = 0
@@ -111,17 +122,15 @@ class AptHistory(object):
             self._scan(history_gz_file)
         self._scan(self.history_file)
         cPickle.dump(self.transactions, open(p, "w"))
-
+        self.history_ready = True
+    
     def _scan(self, history_file, rescan = False):
         try:
-            if history_file.endswith(".gz"):
-                f = gzip.open(history_file)
-            else:
-                f = open(history_file)
-        except IOError, ioe:
+            tagfile = apt_pkg.TagFile(open(history_file))
+        except (IOError, SystemError), ioe:
             LOG.debug(ioe)
             return
-        for stanza in deb822.Deb822.iter_paragraphs(f):
+        for stanza in tagfile:
             # keep the UI alive
             while self.main_context.pending():
                 self.main_context.iteration()
@@ -194,3 +203,4 @@ def get_apt_history():
     if apt_history is None:
         apt_history = AptHistory()
     return apt_history
+

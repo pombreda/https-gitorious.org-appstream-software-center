@@ -31,7 +31,7 @@ import time
 import xml.sax.saxutils
 import gtk
 
-from enums import USER_AGENT, IMAGE_LOADING_INSTALLED
+from enums import USER_AGENT
 
 # define additional entities for the unescape method, needed
 # because only '&amp;', '&lt;', and '&gt;' are included by default
@@ -187,6 +187,15 @@ def release_filename_in_lists_from_deb_line(debline):
     name = "%s_dists_%s_Release" % (uri_to_filename(entry.uri), entry.dist)
     return name
     
+def get_default_language():
+    import locale
+    locale = locale.getdefaultlocale()
+    if not locale:
+        return "en"
+    if locale[0] == "C":
+        return "en"
+    return locale[0]
+
 # FIXME: why not call it a generic downloader?
 class ImageDownloader(gobject.GObject):
 
@@ -276,10 +285,14 @@ class GMenuSearcher(object):
                         return
 
                 
-    def get_main_menu_path(self, desktop_file):
+    def get_main_menu_path(self, desktop_file, menu_files_list=None):
         if not desktop_file:
             return None
-        for n in ["applications.menu", "settings.menu"]:
+        # use the system ones by default, but allow override for
+        # easier testing
+        if menu_files_list is None:
+            menu_files_list = ["applications.menu", "settings.menu"]
+        for n in menu_files_list:
             tree = gmenu.lookup_tree(n)
             self._search_gmenu_dir([tree.get_root_directory()], 
                                    os.path.basename(desktop_file))
@@ -287,24 +300,6 @@ class GMenuSearcher(object):
                 return self._found
         return None
         
-class AlternaSpinner(gtk.VBox):
-    """
-    an alternative spinner that uses an animated gif for use when
-    gtk.Spinner is not available
-    (see LP: #637422, LP: #624204)
-    """
-    def __init__(self):
-        gtk.VBox.__init__(self)
-        self.image = gtk.Image()
-        self.image.set_from_file(IMAGE_LOADING_INSTALLED)
-        self.image.set_size_request(160, 100)
-        self.add(self.image)
-        
-    def start(self):
-        pass
-    def stop(self):
-        pass
-
 if __name__ == "__main__":
     s = decode_xml_char_reference('Search&#x2026;')
     print s

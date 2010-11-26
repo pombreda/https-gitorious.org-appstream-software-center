@@ -15,17 +15,23 @@ class TestSCAddons(unittest.TestCase):
 
     def test_get_addons_simple(self):
         # 7zip
-        res = self.cache.get_addons("p7zip-full")
+        res = self.cache.get_addons("p7zip-full", ignore_installed=False)
         self.assertEqual(res, ([], ["p7zip-rar"]))
-        # apt has no relevant ones
-        res = self.cache.get_addons("apt")
-        self.assertEqual(res, ([], ["apt-doc", "wajig"]))
+        # apt 
+        (recommends, suggests) = self.cache.get_addons(
+            "apt", ignore_installed=False)
+        self.assertEqual(set(recommends), set(['ubuntu-keyring']))
+        self.assertEqual(set(suggests), set(
+                ['lzma', 'bzip2', 'apt-doc', 'wajig', 'aptitude', 'dpkg-dev', 
+                 'python-apt', 'synaptic']))
         # synaptic
-        res = self.cache.get_addons("synaptic")
-        # FIXME: kdebase?!?!?! that is rather unneeded
-        self.assertEqual(res, (
-                ["kdebase-bin", 'libgnome2-perl', 'rarian-compat', 'software-properties-gtk'],
-                ["dwww", "deborphan", "menu"]))
+        (recommends, suggests) = self.cache.get_addons(
+            "synaptic", ignore_installed=False)
+        # FIXME: kdebase?!?!?! that is rather unneeded (kdesu brings that in)
+        self.assertEqual(set(recommends), set(
+                ["kdebase-bin", "apt-xapian-index", "gksu", "kdebase-bin", 
+                 'libgnome2-perl', 'rarian-compat', 'software-properties-gtk']))
+        self.assertEqual(set(suggests), set(["dwww", "deborphan", "menu"]))
 
 
     def test_enhances(self):

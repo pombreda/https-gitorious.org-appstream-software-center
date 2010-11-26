@@ -79,6 +79,13 @@ class OriginPlugin:
             document.add_term("XOO"+origin.origin)
             document.add_term("XOS"+origin.site)
 
+        # FIXME: this doesn't really belong in this file, but we can put it in
+        #        here until we get a display_name/display_summary plugin which
+        #        is being prepared in the experimental-fastlist branch.
+        if '-' in pkg.name:
+            # we need this to work around xapian oddness
+            document.add_term(pkg.name.replace('-','_'))
+
     def indexDeb822(self, document, pkg):
         """
         Update the document with the information from this data source.

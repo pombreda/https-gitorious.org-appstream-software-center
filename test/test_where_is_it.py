@@ -45,7 +45,9 @@ class TestWhereIsit(unittest.TestCase):
                          "/usr/share/app-install/desktop/gcalctool.desktop")
         # search the settings menu
         searcher = GMenuSearcher()
-        found = searcher.get_main_menu_path(details.desktop_file)
+        found = searcher.get_main_menu_path(
+            details.desktop_file,
+            [os.path.abspath("./data/fake-applications.menu")])
         self.assertEqual(found[0].get_name(), "Applications")
         self.assertEqual(found[0].get_icon(), "applications-other")
         self.assertEqual(found[1].get_name(), "Accessories")
@@ -58,7 +60,9 @@ class TestWhereIsit(unittest.TestCase):
                          "/usr/share/app-install/desktop/kde4_ark.desktop")
         # search the settings menu
         searcher = GMenuSearcher()
-        found = searcher.get_main_menu_path(details.desktop_file)
+        found = searcher.get_main_menu_path(
+            details.desktop_file,
+            [os.path.abspath("./data/fake-applications.menu")])
         self.assertEqual(found[0].get_name(), "Applications")
         self.assertEqual(found[0].get_icon(), "applications-other")
         self.assertEqual(found[1].get_name(), "Accessories")

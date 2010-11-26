@@ -220,7 +220,6 @@ class PackageStatusBar(StatusBar):
                 app_details.pkgname, state, app_details.pkg_state))
         self.pkg_state = state
         self.app_details = app_details
-        self.progress.hide()
 
         self.fill_color = COLOR_GREEN_FILL
         self.line_color = COLOR_GREEN_OUTLINE
@@ -243,6 +242,7 @@ class PackageStatusBar(StatusBar):
             self.button.set_sensitive(True)
             self.button.show()
             self.show()
+            self.progress.hide()
 
         # FIXME:  Use a gtk.Action for the Install/Remove/Buy/Add Source/Update Now action
         #         so that all UI controls (menu item, applist view button and appdetails
@@ -251,7 +251,6 @@ class PackageStatusBar(StatusBar):
         if state == PKG_STATE_INSTALLING:
             self.set_label(_('Installing...'))
             self.button.set_sensitive(False)
-            self.progress.set_fraction(0)
         elif state == PKG_STATE_INSTALLING_PURCHASED:
             self.set_label(_(u'Installing purchase\u2026'))
             self.button.hide()
@@ -259,11 +258,9 @@ class PackageStatusBar(StatusBar):
         elif state == PKG_STATE_REMOVING:
             self.set_label(_('Removing...'))
             self.button.set_sensitive(False)
-            self.progress.set_fraction(0.0)
         elif state == PKG_STATE_UPGRADING:
             self.set_label(_('Upgrading...'))
             self.button.set_sensitive(False)
-            self.progress.set_fraction(0)
         elif state == PKG_STATE_INSTALLED or state == PKG_STATE_REINSTALLABLE:
             if app_details.purchase_date:
                 purchase_date = str(app_details.purchase_date).split()[0]
@@ -301,7 +298,6 @@ class PackageStatusBar(StatusBar):
         elif state == APP_ACTION_APPLY:
             self.set_label(_(u'Changing Add-ons\u2026'))
             self.button.set_sensitive(False)
-            self.progress.set_fraction(0)
         elif state == PKG_STATE_UNKNOWN:
             self.set_button_label("")
             self.set_label(_("Error"))
@@ -323,9 +319,12 @@ class PackageStatusBar(StatusBar):
                 self.set_button_label(_("Use This Source"))
             # check if it comes from a non-enabled component
             elif self.app_details._unavailable_component():
-                # FIXME: use a proper message here, but we are in string freeze
                 self.set_button_label(_("Use This Source"))
-            elif self.app_details._available_for_our_arch():
+            else:
+                # FIXME: This will currently not be displayed,
+                #        because we don't differenciate between
+                #        components that are not enabled or that just
+                #        lack the "Packages" files (but are in sources.list)
                 self.set_button_label(_("Update Now"))
             self.fill_color = COLOR_YELLOW_FILL
             self.line_color = COLOR_YELLOW_OUTLINE
@@ -1024,8 +1023,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                     }
 
 
-    def __init__(self, db, distro, icons, cache, history, datadir):
-        AppDetailsViewBase.__init__(self, db, distro, icons, cache, history, datadir)
+    def __init__(self, db, distro, icons, cache, datadir):
+        AppDetailsViewBase.__init__(self, db, distro, icons, cache, datadir)
         gtk.Viewport.__init__(self)
         self.set_shadow_type(gtk.SHADOW_NONE)
         self.adjustment_value = None
@@ -1416,6 +1415,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         return
 
     def _update_all(self, app_details):
+        pkg_ambiguous_error = app_details.pkg_state in (PKG_STATE_NOT_FOUND, PKG_STATE_NEEDS_SOURCE)
+
         appname = gobject.markup_escape_text(app_details.display_name)
 
         if app_details.pkg_state == PKG_STATE_NOT_FOUND:
@@ -1424,8 +1425,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             summary = app_details.display_summary
         if not summary:
             summary = ""
-
-        pkg_ambiguous_error = app_details.pkg_state in (PKG_STATE_NOT_FOUND, PKG_STATE_NEEDS_SOURCE)
 
         self._update_title_markup(appname, summary)
         self._update_app_icon(app_details)
@@ -1443,11 +1442,24 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self._configure_where_is_it()
         return
 
-    def _update_minimal(self, app_details, old_details):
+    def _update_minimal(self, app_details):
         pkg_ambiguous_error = app_details.pkg_state in (PKG_STATE_NOT_FOUND, PKG_STATE_NEEDS_SOURCE)
 
+        appname = gobject.markup_escape_text(app_details.display_name)
+
+        if app_details.pkg_state == PKG_STATE_NOT_FOUND:
+            summary = app_details._error_not_found
+        else:
+            summary = app_details.display_summary
+        if not summary:
+            summary = ""
+
+        self._update_title_markup(appname, summary)
         self._update_app_icon(app_details)
         self._update_layout_error_status(pkg_ambiguous_error)
+        if not self.app_desc.description.order:
+            self._update_app_description(app_details, appname)
+            self._update_description_footer_links(app_details)
         self._update_pkg_info_table(app_details)
         self._update_addons(app_details)
 
@@ -1529,9 +1541,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # reset view to top left
         self.get_vadjustment().set_value(0)
         self.get_hadjustment().set_value(0)
-
-        if (self.app and self.app.pkgname and self.app.pkgname == app.pkgname):
-            return
 
         # set button sensitive again
         self.action_bar.button.set_sensitive(True)
@@ -1644,7 +1653,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                 self.action_bar.progress.show()
             if pkgname in backend.pending_transactions:
                 self.action_bar.progress.set_fraction(progress/100.0)
-            if progress == 100:
+            if progress >= 100:
                 self.action_bar.progress.set_fraction(1)
                 self.adjustment_value = self.get_vadjustment().get_value()
         return
@@ -1892,12 +1901,9 @@ if __name__ == "__main__":
     import softwarecenter.distro
     distro = softwarecenter.distro.get_distro()
 
-    from softwarecenter.apt.apthistory import get_apt_history
-    history = get_apt_history()
-
     # gui
     scroll = gtk.ScrolledWindow()
-    view = AppDetailsViewGtk(db, distro, icons, cache, history, datadir)
+    view = AppDetailsViewGtk(db, distro, icons, cache, datadir)
     from softwarecenter.db.application import Application
     #view.show_app(Application("Pay App Example", "pay-app"))
     #view.show_app(Application("3D Chess", "3dchess"))
