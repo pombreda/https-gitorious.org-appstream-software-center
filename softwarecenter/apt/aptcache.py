@@ -102,17 +102,14 @@ class AptCache(gobject.GObject):
         """ (re)open the cache, this sends cache-invalid, cache-ready signals
         """
         self._ready = False
+        self.emit("cache-invalid")
         with ExecutionTime("open the apt cache (in event loop)"):
-            # do not send cache-ready/invalid signal when we create
-            # the cache initially, otherwise it will trigger a unneeded
-            # refresh() of the applists on startup
             if self._cache == None:
                 self._cache = apt.Cache(GtkMainIterationProgress())
             else:
-                self.emit("cache-invalid")
                 self._cache.open(GtkMainIterationProgress())
-                self.emit("cache-ready")
         self._ready = True
+        self.emit("cache-ready")
         if self._cache.broken_count > 0:
             self.emit("cache-broken")
     def __getitem__(self, key):

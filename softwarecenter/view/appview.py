@@ -177,7 +177,8 @@ class AppStore(gtk.GenericTreeModel):
         self.search_query = search_query
         with ExecutionTime("populate model from query: '%s'" % " ; ".join([
                 q.get_description() for q in search_query])):
-            log_traceback("creating a AppStore")
+            #useful only for debugging
+            #log_traceback("creating a AppStore")
             self._perform_search()
 
     def _get_estimate_nr_apps_and_nr_pkgs(self, enquire, q, xfilter):
