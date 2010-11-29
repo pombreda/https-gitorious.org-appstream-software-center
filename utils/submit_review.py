@@ -204,6 +204,18 @@ class BaseApp(SimpleGtkbuilderApp):
         """ callback when the login was successful """
         pass
 
+    def _add_spellcheck_to_textview(self, textview):
+        """ adds a spellchecker (if available) to the given gtk.textview """
+        try:
+            import gtkspell
+            # mvo: gtkspell.get_from_text_view() is broken, so we use this
+            #      method instead, the second argument is the language to
+            #      use (that is directly passed to pspell)
+            spell = gtkspell.Spell(textview, None)
+        except ImportError:
+            return None
+        return spell
+
     def _maybe_login_successful(self, sso, oauth_result):
         """ called after we have the token, then we go and figure out our name """
         self.token = oauth_result
@@ -266,12 +278,7 @@ class SubmitReviewsApp(BaseApp):
         self.icons.append_search_path("/usr/share/app-install/icons/")
         self.dialog_main = self.dialog_review_app
         self.dialog_main.connect("destroy", self.on_button_cancel_clicked)
-
-        try:
-            import gtkspell
-            self.spell = gtkspell.get_from_text_view(self.textview_review)
-        except ImportError:
-            pass
+        self._add_spellcheck_to_textview(self.textview_review)
 
         # interactive star rating
         self.star_rating = StarRatingSelector(0, star_size=self.STAR_SIZE)
@@ -406,12 +413,7 @@ class ReportReviewApp(BaseApp):
         self.report_login_hbox.pack_start(self.status_spinner, False)
         self.report_login_hbox.reorder_child(self.status_spinner, 0)
         self.status_spinner.show()
-
-        try:
-            import gtkspell
-            self.spell = gtkspell.get_from_text_view(self.textview_report)
-        except ImportError:
-            pass
+        self._add_spellcheck_to_textview(self.textview_report)
 
         ## make button sensitive when textview has content
         #self.textview_report_text.get_buffer().connect(
