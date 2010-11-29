@@ -13,8 +13,10 @@ data/unbranded-software-center.desktop.in
 softwarecenter/app.py
 softwarecenter/backend/aptd.py
 softwarecenter/backend/channel.py
+softwarecenter/backend/login_sso.py
 softwarecenter/db/application.py
 softwarecenter/db/database.py
+softwarecenter/db/update.py
 softwarecenter/distro/Debian.py
 softwarecenter/distro/__init__.py
 softwarecenter/distro/Ubuntu.py
@@ -25,6 +27,7 @@ softwarecenter/view/availablepane.py
 softwarecenter/view/catview_gtk.py
 softwarecenter/view/catview_webkit.py
 softwarecenter/view/channelpane.py
+softwarecenter/view/dependency_dialogs.py
 softwarecenter/view/dialogs.py
 softwarecenter/view/historypane.py
 softwarecenter/view/installedpane.py
