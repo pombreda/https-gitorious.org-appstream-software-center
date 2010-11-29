@@ -19,6 +19,7 @@
 
 import apt
 import apt_pkg
+import cPickle
 import gio
 import glib
 import glob
@@ -29,10 +30,12 @@ import logging
 import string
 import datetime
 
-
 from datetime import datetime
 
 LOG = logging.getLogger(__name__)
+
+from softwarecenter.paths import SOFTWARE_CENTER_CACHE_DIR
+from softwarecenter.utils import ExecutionTime
 
 def ascii_lower(key):
     ascii_trans_table = string.maketrans(string.ascii_uppercase,
@@ -85,7 +88,7 @@ o    Attributes:
 class AptHistory(object):
 
     def __init__(self):
-        logging.debug("AptHistory.__init__()")
+        LOG.debug("AptHistory.__init__()")
         self.main_context = glib.main_context_default()
         self.history_file = apt_pkg.config.find_file("Dir::Log::History")
         #Copy monitoring of history file changes from historypane.py
@@ -105,10 +108,20 @@ class AptHistory(object):
     def rescan(self):
         self.history_ready = False
         self.transactions = []
+        p = os.path.join(SOFTWARE_CENTER_CACHE_DIR, "apthistory.p")
+        cachetime = 0
+        if os.path.exists(p):
+            with ExecutionTime("loading pickle cache"):
+                self.transactions = cPickle.load(open(p))
+            cachetime = os.path.getmtime(p)
         for history_gz_file in sorted(glob.glob(self.history_file+".*.gz"),
                                       cmp=self._mtime_cmp):
+            if os.path.getmtime(history_gz_file) < cachetime:
+                LOG.info("skipping already cached '%s'" % history_gz_file)
+                continue
             self._scan(history_gz_file)
         self._scan(self.history_file)
+        cPickle.dump(self.transactions, open(p, "w"))
         self.history_ready = True
     
     def _scan(self, history_file, rescan = False):
@@ -132,7 +145,10 @@ class AptHistory(object):
                 trans.start_date < self.transactions[0].start_date):
                 break
             # add it
-            self.transactions.insert(0, trans)
+            # FIXME: this is a list, so potentially slow, but its sorted
+            #        so we could (and should) do a binary search
+            if not trans in self.transactions:
+                self.transactions.insert(0, trans)
             
     def _on_apt_history_changed(self, monitor, afile, other_file, event):
         if event == gio.FILE_MONITOR_EVENT_CHANGES_DONE_HINT:
