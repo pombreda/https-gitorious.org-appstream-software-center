@@ -35,7 +35,8 @@ class ViewManager(object):
             page_id = self.all_views[view_id]
             self.notebook_view.set_current_page(page_id)
         active_view_widget = self.get_view_widget(view_id)
-        active_view_widget.init_view()
+        if active_view_widget:
+            active_view_widget.init_view()
 
     def get_active_view(self):
         page_id = self.notebook_view.get_current_page()
