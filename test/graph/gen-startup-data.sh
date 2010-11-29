@@ -1,9 +1,15 @@
 #/bin/sh
 
+LOGFILE=startup-times.dat
 BASE_BZR=lp:software-center
 FIRST_BZR_REV=1277
-#LAST_BZR_REV=$(bzr revno)
-LAST_BZR_REV=1278
+LAST_BZR_REV=$(bzr revno)
+#LAST_BZR_REV=1278
+
+if [ ! -e "$LOGFILE" ]; then 
+    echo "# statup time log" > $LOGFILE
+    echo "#revno    startup-time" >> $LOGFILE
+fi
 
 i=$FIRST_BZR_REV
 while [ $i -lt $LAST_BZR_REV ]; do
@@ -13,11 +19,14 @@ while [ $i -lt $LAST_BZR_REV ]; do
     cd rev-$i
     # first run is to warm up the cache and rebuild the DB (if needed)
     PYTHONPATH=. ./software-center --measure-startup-time
-    # 5 runs with the given revision
+    # 3 runs with the given revision
     for testrun in 1 2 3 4 5; do
-        PYTHONPATH=. ./software-center --measure-startup-time >> startup_time.log
+        echo -n "$i   " >> ../$LOGFILE
+        PYTHONPATH=. ./software-center --measure-startup-time >> ../$LOGFILE
     done
     cd ..
     i=$((i+1))
 done
 
+# plot it
+gnuplot startup-times.plot
