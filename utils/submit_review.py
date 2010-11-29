@@ -267,6 +267,12 @@ class SubmitReviewsApp(BaseApp):
         self.dialog_main = self.dialog_review_app
         self.dialog_main.connect("destroy", self.on_button_cancel_clicked)
 
+        try:
+            import gtkspell
+            self.spell = gtkspell.get_from_text_view(self.textview_review)
+        except ImportError:
+            pass
+
         # interactive star rating
         self.star_rating = StarRatingSelector(0, star_size=self.STAR_SIZE)
         self.star_caption = StarCaption()
@@ -401,6 +407,12 @@ class ReportReviewApp(BaseApp):
         self.report_login_hbox.reorder_child(self.status_spinner, 0)
         self.status_spinner.show()
 
+        try:
+            import gtkspell
+            self.spell = gtkspell.get_from_text_view(self.textview_report)
+        except ImportError:
+            pass
+
         ## make button sensitive when textview has content
         #self.textview_report_text.get_buffer().connect(
             #"changed", self._enable_or_disable_report_button)
@@ -479,7 +491,7 @@ class ReportReviewApp(BaseApp):
         if res == gtk.RESPONSE_OK:
             logging.debug("report_abuse ok button")
             report_summary = self.combobox_report_summary.get_active_text()
-            text_buffer = self.textview_report_text.get_buffer()
+            text_buffer = self.textview_report.get_buffer()
             report_text = text_buffer.get_text(text_buffer.get_start_iter(),
                                                text_buffer.get_end_iter())
             worker_thread.queue_report((self.review_id,

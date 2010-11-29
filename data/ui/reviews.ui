@@ -180,7 +180,7 @@
                         <property name="vscrollbar_policy">automatic</property>
                         <property name="shadow_type">in</property>
                         <child>
-                          <object class="GtkTextView" id="review_textview">
+                          <object class="GtkTextView" id="textview_review">
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="pixels_above_lines">2</property>
@@ -443,7 +443,7 @@
                         <property name="vscrollbar_policy">automatic</property>
                         <property name="shadow_type">in</property>
                         <child>
-                          <object class="GtkTextView" id="report_textview">
+                          <object class="GtkTextView" id="textview_report">
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="pixels_above_lines">2</property>
