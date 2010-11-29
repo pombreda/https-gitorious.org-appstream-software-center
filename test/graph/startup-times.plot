@@ -6,4 +6,4 @@ set out 'startup-times.png'
 # start with y-xais on 0
 set yrange [0:]
 set grid
-plot "startup-times.dat" with linespoint using 1:2 
+plot "startup-times.dat" using 1:2 with linespoint

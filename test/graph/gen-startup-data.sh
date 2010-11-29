@@ -29,4 +29,4 @@ while [ $i -lt $LAST_BZR_REV ]; do
 done
 
 # plot it
-gnuplot startup-times.plot
+gnuplot test/graph/startup-times.plot
