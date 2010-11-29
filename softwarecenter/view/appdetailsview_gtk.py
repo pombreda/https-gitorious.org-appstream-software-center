@@ -606,7 +606,10 @@ class ScreenshotView(gtk.Alignment):
 
     def _on_key_press(self, widget, event):
         # react to spacebar, enter, numpad-enter
-        if event.keyval in (32, 65293, 65421) and self.get_is_actionable():
+        if (event.keyval in (gtk.keysyms.space, 
+                             gtk.keysyms.Return, 
+                             gtk.keysyms.KP_Enter) and 
+            self.get_is_actionable()):
             self.set_state(gtk.STATE_ACTIVE)
         return
 
