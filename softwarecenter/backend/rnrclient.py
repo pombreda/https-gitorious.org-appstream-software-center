@@ -81,7 +81,8 @@ class RatingsAndReviewsAPI(PistonAPI):
         data = {'reason':reason,
             'text': text,
         }
-        return self._post('%s/report-review' % review_id, data=data),
+        return self._post('%s/report-review' % review_id, data=data,
+                          content_type='application/x-www-form-urlencoded')
 
 if __name__ == "__main__":
     rnr = RatingsAndReviewsAPI()
