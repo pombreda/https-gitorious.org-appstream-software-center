@@ -25,44 +25,34 @@ import gobject
 gobject.threads_init()
 
 import datetime
-import gettext
-import glib
 import gtk
 import locale
 import logging
 import os
-import subprocess
 import sys
 import time
 import threading
 import urllib
-import urllib2
 
 from gettext import gettext as _
-from launchpadlib.launchpad import Launchpad
-from launchpadlib.credentials import RequestTokenAuthorizationEngine
-from launchpadlib.uris import EDGE_SERVICE_ROOT, STAGING_SERVICE_ROOT
 from Queue import Queue
 from optparse import OptionParser
-from urlparse import urljoin
 
+from softwarecenter.backend.restfulclient import RestfulClientWorker, UBUNTU_SSO_SERVICE
 from lazr.restfulclient.authorize.oauth import OAuthAuthorizer
-from oauth.oauth import OAuthConsumer, OAuthToken
-
-import softwarecenter.view.dialogs
+from oauth.oauth import OAuthToken
 
 from softwarecenter.paths import *
 from softwarecenter.enums import MISSING_APP_ICON
 from softwarecenter.backend.login_sso import LoginBackendDbusSSO
-from softwarecenter.backend.restfulclient import RestfulClientWorker, UBUNTU_SSO_SERVICE
 from softwarecenter.db.database import Application
 from softwarecenter.db.reviews import Review
 from softwarecenter.utils import *
 from softwarecenter.SimpleGtkbuilderApp import SimpleGtkbuilderApp
 from softwarecenter.distro import get_distro
 from softwarecenter.view.widgets.reviews import StarRatingSelector, StarCaption
-from softwarecenter.view.widgets.mkit import ShapeRoundedRectangle
 
+from softwarecenter.backend.rnrclient import RatingsAndReviewsAPI, ReviewRequest
 
 #import httplib2
 #httplib2.debuglevel = 1
@@ -90,7 +80,8 @@ class Worker(threading.Thread):
         self.pending_reviews = Queue()
         self.pending_reports = Queue()
         self._shutdown = False
-        self.display_name = "No display namee"
+        self.display_name = "No display name"
+        self.rnrclient = RatingsAndReviewsAPI()
 
     def run(self):
         """Main thread run interface, logs into launchpad and waits
@@ -107,12 +98,12 @@ class Worker(threading.Thread):
     def queue_review(self, review):
         """ queue a new review for sending to LP """
         logging.debug("queue_review %s" % review)
-        self.pending_reviews.put(review, token)
+        self.pending_reviews.put(review)
 
     def queue_report(self, report):
         """ queue a new report for sending to LP """
-        logging.debug("queue_report")
-        self.pending_reports.put(report, token)
+        logging.debug("queue_report %s %s %s" % report)
+        self.pending_reports.put(report)
 
     def _wait_for_commands(self):
         """internal helper that waits for commands"""
@@ -128,12 +119,21 @@ class Worker(threading.Thread):
 
     def _submit_reports(self):
         """ the actual report function """
-        self._submit_report_POST()
+        self._submit_report_PISTON()
+
+    def _submit_report_PISTON(self):
+        while not self.pending_reports.empty():
+            logging.debug("POST report")
+            (review_id, summary, text) = self.pending_reports.get()
+            self.rnrclient.report_abuse(review_id=review_id,
+                                        reason=summary,
+                                        text=text)
+            self.pending_reports.task_done()
 
     def _submit_report_POST(self):
         while not self.pending_reports.empty():
             logging.debug("POST report")
-            (review_id, summary, text, token) = self.pending_reports.get()
+            (review_id, summary, text) = self.pending_reports.get()
             data = { 'reason' : summary,
                      'text' : text,
                      'token' : self.token.key,
@@ -148,29 +148,55 @@ class Worker(threading.Thread):
 
     def _submit_reviews(self):
         """ the actual submit function """
-        self._submit_reviews_POST()
+        self._submit_reviews_PISTON()
             
+    def _submit_reviews_PISTON(self):
+        """ use piston to submit """
+        while not self.pending_reviews.empty():
+            logging.debug("_submit_review")
+            review = self.pending_reviews.get()
+            piston_review = ReviewRequest()
+            piston_review.package_name = review.app.pkgname
+            piston_review.app_name = review.app.appname
+            piston_review.summary = review.summary
+            piston_review.package_version = review.package_version
+            piston_review.review_text = review.text
+            piston_review.date = str(review.date)
+            piston_review.rating = review.rating
+            res = self.rnrclient.submit_review(
+                language=review.language,
+                #FIXME: not hardcode
+                origin="ubuntu",
+                distroseries=distro.get_codename(),
+                review=piston_review)
+            print res
+            self.pending_reviews.task_done()
+
+    def _urlencode_review(self, review):
+        data = { 'package_name' : review.app.pkgname,
+                 'app_name' : review.app.appname,
+                 'summary' : review.summary,
+                 'package_version' : review.package_version,
+                 'text' : review.text,
+                 'date' : review.date,
+                 'rating': review.rating,
+                 'name' : review.person,
+                 # send the token, ideally we would not send
+                 # it but instead send a pre-made request
+                 # that uses  "3.4.2.  HMAC-SHA1" - but it
+                 # seems that LP does not support that at this
+                 # point 
+                 #'token' : token.key,
+                 #'token-secret' : token.secret,
+                 }
+        return data
+
     def _submit_reviews_POST(self):
         """ http POST based submit """
         while not self.pending_reviews.empty():
             logging.debug("_submit_review")
-            review, token = self.pending_reviews.get()
-            data = { 'package_name' : review.app.pkgname,
-                     'app_name' : review.app.appname,
-                     'summary' : review.summary,
-                     'package_version' : review.package_version,
-                     'text' : review.text,
-                     'date' : review.date,
-                     'rating': review.rating,
-                     'name' : review.person,
-                     # send the token, ideally we would not send
-                     # it but instead send a pre-made request
-                     # that uses  "3.4.2.  HMAC-SHA1" - but it
-                     # seems that LP does not support that at this
-                     # point 
-                     'token' : token.key,
-                     'token-secret' : token.secret,
-                     }
+            review = self.pending_reviews.get()
+            data = self._urlencode_review(review)
             f = urllib.urlopen(SUBMIT_POST_URL, urllib.urlencode(data))
             res = f.read()
             print res
@@ -199,6 +225,9 @@ class BaseApp(SimpleGtkbuilderApp):
         SimpleGtkbuilderApp.__init__(self, datadir+"/ui/reviews.ui", "software-center")
         self.token = None
         self.display_name = None
+
+    def quit(self):
+        sys.exit(0)
 
     def login_successful(self, display_name):
         """ callback when the login was successful """
@@ -248,20 +277,13 @@ class BaseApp(SimpleGtkbuilderApp):
         self.sso.connect("login-successful", self._maybe_login_successful)
         self.sso.login_or_register()
 
-    def run_loop(self):
-        # do the io stuff async
-        #worker_thread.start()
-        # login and run
-        self.login()
-        res = SimpleGtkbuilderApp.run(self)
-
     def on_button_cancel_clicked(self, button=None):
         # bring it down gracefully
         worker_thread.shutdown()
         self.dialog_main.hide()
         while gtk.events_pending():
             gtk.main_iteration()
-        gtk.main_quit()
+        sys.exit(0)
 
 class SubmitReviewsApp(BaseApp):
     """ review a given application or package """
@@ -362,6 +384,7 @@ class SubmitReviewsApp(BaseApp):
             self.review_post.set_sensitive(False)
 
     def submit_review(self):
+        print "submit_review"
         res = self.dialog_review_app.run()
         self.dialog_review_app.hide()
         if res == gtk.RESPONSE_OK:
@@ -370,7 +393,7 @@ class SubmitReviewsApp(BaseApp):
             text_buffer = self.textview_review.get_buffer()
             review.text = text_buffer.get_text(text_buffer.get_start_iter(),
                                                text_buffer.get_end_iter())
-            review.summary = self.entry_summary.get_text()
+            review.summary = self.review_summary_entry.get_text()
             review.date = datetime.datetime.now()
             review.language = get_language()
             review.rating = self.rating
@@ -388,7 +411,8 @@ class SubmitReviewsApp(BaseApp):
         self.status_spinner.start()
         self.dialog_review_app.show()
         # now run the loop
-        res = self.run_loop()
+        self.login()
+        self.submit_review()
 
     def login_successful(self, display_name):
         self.review_main_notebook.set_current_page(1)
@@ -416,8 +440,8 @@ class ReportReviewApp(BaseApp):
         self._add_spellcheck_to_textview(self.textview_report)
 
         ## make button sensitive when textview has content
-        #self.textview_report_text.get_buffer().connect(
-            #"changed", self._enable_or_disable_report_button)
+        self.textview_report.get_buffer().connect(
+            "changed", self._enable_or_disable_report_button)
 
         # data
         self.review_id = review_id
@@ -427,11 +451,11 @@ class ReportReviewApp(BaseApp):
 
 
         # parent xid
-        #~ if parent_xid:
-            #~ win = gtk.gdk.window_foreign_new(int(parent_xid))
-            #~ if win:
-                #~ self.dialog_report_app.realize()
-                #~ self.dialog_report_app.window.set_transient_for(win)
+        if parent_xid:
+            win = gtk.gdk.window_foreign_new(int(parent_xid))
+            if win:
+                self.dialog_report_app.realize()
+                self.dialog_report_app.window.set_transient_for(win)
         #~ self.dialog_report_app.set_position(gtk.WIN_POS_MOUSE)
         #~ # set pw dialog transient for main window
         #self.dialog_review_login.set_transient_for(self.dialog_report_app)
@@ -442,20 +466,19 @@ class ReportReviewApp(BaseApp):
         self.report_body_vbox.reorder_child(self.combobox_report_summary, 2)
         self.combobox_report_summary.show()
         for term in [ _("Unspecified"), 
-                    _("Offensive language"), 
-                    _("Infringes copyright"), 
-                    _("Contains inaccuracies"),
-                    _("Other") ]:
-
+                      _("Offensive language"), 
+                      _("Infringes copyright"), 
+                      _("Contains inaccuracies"),
+                      _("Other") ]:
             self.combobox_report_summary.append_text(term)
         self.combobox_report_summary.set_active(0)
 
 
     def _enable_or_disable_report_button(self, buf):
         if buf.get_char_count() > 0:
-            self.button_post_report.set_sensitive(True)
+            self.report_post.set_sensitive(True)
         else:
-            self.button_post_report.set_sensitive(False)
+            self.report_post.set_sensitive(False)
 
     def _setup_details(self, widget, display_name):
         # icon shazam
@@ -486,8 +509,6 @@ class ReportReviewApp(BaseApp):
         return
 
     def report_abuse(self):
-        self.hbox_report_status.hide()
-        self.vbox_report_main.set_sensitive(True)
         res = self.dialog_report_app.run()
         self.dialog_report_app.hide()
         if res == gtk.RESPONSE_OK:
@@ -496,34 +517,34 @@ class ReportReviewApp(BaseApp):
             text_buffer = self.textview_report.get_buffer()
             report_text = text_buffer.get_text(text_buffer.get_start_iter(),
                                                text_buffer.get_end_iter())
-            worker_thread.queue_report((self.review_id,
-                                           report_summary, 
-                                           report_text))
+            worker_thread.queue_report(
+                (int(self.review_id), report_summary, report_text))
         # signal thread to finish
         worker_thread.shutdown()
         self.quit()
         
     def run(self):
         # show main dialog insensitive until we are logged in
-        #self.vbox_report_main.set_sensitive(False)
         self.report_login_status_label.set_text(_("Signing In..."))
         self.report_main_notebook.set_current_page(0)
         self.status_spinner.start()
         self.dialog_main.show()
         # start the async loop
-        self.run_loop()
+        self.login()
+        self.report_abuse()
 
     def login_successful(self, display_name):
         #self.label_reporter.set_text(display_name)
         self.report_main_notebook.set_current_page(1)
-        self._setup_details(self.dialog_main, display_name)
+        #self._setup_details(self.dialog_main, display_name)
         #self.report_abuse()
 
     
 # IMPORTANT: create one (module) global LP worker thread here
 worker_thread = Worker()
+worker_thread.start()
 # daemon threads make it crash on cancel
-#lp_worker_thread.daemon = True
+#worker_thread.daemon = True
 
 if __name__ == "__main__":
     locale.setlocale(locale.LC_ALL, "")
