@@ -42,6 +42,9 @@ from softwarecenter.backend.restfulclient import RestfulClientWorker, UBUNTU_SSO
 from lazr.restfulclient.authorize.oauth import OAuthAuthorizer
 from oauth.oauth import OAuthToken
 
+
+import pistonclient.auth
+
 from softwarecenter.paths import *
 from softwarecenter.enums import MISSING_APP_ICON
 from softwarecenter.backend.login_sso import LoginBackendDbusSSO
@@ -74,14 +77,18 @@ class UserCancelException(Exception):
 
 class Worker(threading.Thread):
     
-    def __init__(self):
+    def __init__(self, token):
         # init parent
         threading.Thread.__init__(self)
         self.pending_reviews = Queue()
         self.pending_reports = Queue()
         self._shutdown = False
         self.display_name = "No display name"
-        self.rnrclient = RatingsAndReviewsAPI()
+        auth = pistonclient.auth.OAuthAuthorizer(token["token"],
+                                                 token["token_secret"],
+                                                 token["consumer_key"],
+                                                 token["consumer_secret"])
+        self.rnrclient = RatingsAndReviewsAPI(auth=auth)
 
     def run(self):
         """Main thread run interface, logs into launchpad and waits
@@ -259,7 +266,9 @@ class BaseApp(SimpleGtkbuilderApp):
         self.restful_worker_thread.queue_request("accounts.me", (), {},
                                                  self._thread_whoami_done,
                                                  self._thread_whoami_error)
-
+        # piston worker thread
+        self.worker_thread = Worker(self.token)
+        self.worker_thread.start()
 
     def _thread_whoami_done(self, result):
         self.display_name = result["displayname"]
@@ -279,7 +288,7 @@ class BaseApp(SimpleGtkbuilderApp):
 
     def on_button_cancel_clicked(self, button=None):
         # bring it down gracefully
-        worker_thread.shutdown()
+        self.worker_thread.shutdown()
         self.dialog_main.hide()
         while gtk.events_pending():
             gtk.main_iteration()
@@ -398,10 +407,10 @@ class SubmitReviewsApp(BaseApp):
             review.language = get_language()
             review.rating = self.rating
             review.package_version = self.version
-            worker_thread.queue_review(review)
+            self.worker_thread.queue_review(review)
 
         # signal thread to finish
-        worker_thread.shutdown()
+        self.worker_thread.shutdown()
         self.quit()
 
     def run(self):
@@ -517,10 +526,10 @@ class ReportReviewApp(BaseApp):
             text_buffer = self.textview_report.get_buffer()
             report_text = text_buffer.get_text(text_buffer.get_start_iter(),
                                                text_buffer.get_end_iter())
-            worker_thread.queue_report(
+            self.worker_thread.queue_report(
                 (int(self.review_id), report_summary, report_text))
         # signal thread to finish
-        worker_thread.shutdown()
+        self.worker_thread.shutdown()
         self.quit()
         
     def run(self):
@@ -540,12 +549,6 @@ class ReportReviewApp(BaseApp):
         #self.report_abuse()
 
     
-# IMPORTANT: create one (module) global LP worker thread here
-worker_thread = Worker()
-worker_thread.start()
-# daemon threads make it crash on cancel
-#worker_thread.daemon = True
-
 if __name__ == "__main__":
     locale.setlocale(locale.LC_ALL, "")
 
