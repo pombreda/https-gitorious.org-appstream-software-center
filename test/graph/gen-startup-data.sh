@@ -3,8 +3,7 @@
 LOGFILE=startup-times.dat
 BASE_BZR=lp:software-center
 FIRST_BZR_REV=1277
-LAST_BZR_REV=$(bzr revno)
-#LAST_BZR_REV=1278
+LAST_BZR_REV=$(bzr revno $BASE_BZR)
 
 if [ ! -e "$LOGFILE" ]; then 
     echo "# statup time log" > $LOGFILE
@@ -29,4 +28,4 @@ while [ $i -lt $LAST_BZR_REV ]; do
 done
 
 # plot it
-gnuplot test/graph/startup-times.plot
+./plot-startup-date.py
