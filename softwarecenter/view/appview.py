@@ -205,7 +205,6 @@ class AppStore(gtk.GenericTreeModel):
     def _perform_search(self):
         # performance only: this is only needed to avoid the 
         # python __call__ overhead for each item if we can avoid it
-        print "called AppStore perform_search"
         if self.filter and self.filter.required:
             xfilter = self.filter
         else:
