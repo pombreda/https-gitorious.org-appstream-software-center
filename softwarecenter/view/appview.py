@@ -123,6 +123,9 @@ class AppStore(gtk.GenericTreeModel):
                              /NONAPPS_NEVER_VISIBLE
                              (NONAPPS_MAYBE_VISIBLE will return non apps result
                               if no matching apps is found)
+        - `nonblocking_load`: set to False to execute the query inside the current
+                              thread.  Defaults to True to allow the search to be
+                              performed without blocking the UI. 
         """
         gtk.GenericTreeModel.__init__(self)
         self._logger = logging.getLogger("softwarecenter.view.appstore")
