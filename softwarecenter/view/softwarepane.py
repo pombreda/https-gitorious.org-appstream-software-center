@@ -207,6 +207,13 @@ class SoftwarePane(gtk.VBox, BasePane):
     def on_cache_ready(self, cache):
         " refresh the application list when the cache is re-opened "
         LOG.debug("on_cache_ready")
+        # it only makes sense to refresh if there is something to
+        # refresh, otherwise we create a bunch of (not yet needed)
+        # AppStore objects on startup when the cache sends its 
+        # initial "cache-ready" signal
+        model = self.app_view.get_model()
+        if model is None:
+            return
         # FIXME: preserve selection too
         # get previous vadjustment and reapply it
         vadj = self.scroll_app_list.get_vadjustment()

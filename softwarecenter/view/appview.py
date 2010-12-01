@@ -177,11 +177,10 @@ class AppStore(gtk.GenericTreeModel):
         if isinstance(search_query, xapian.Query):
             search_query = [search_query]
         self.search_query = search_query
-        
 #        with ExecutionTime("populate model from query: '%s'" % " ; ".join([
 #                q.get_description() for q in search_query])):
-#            self._perform_search()
-        if self.nonblocking_load:
+#        if self.nonblocking_load:
+        if True:
             self._perform_search_complete = False
             t = threading.Thread(target=self._perform_search)
             t.start()
@@ -190,8 +189,6 @@ class AppStore(gtk.GenericTreeModel):
                 time.sleep(0.1)
                 while gtk.events_pending():
                     gtk.main_iteration()
-        else:
-            self._perform_search()
 
     def _get_estimate_nr_apps_and_nr_pkgs(self, enquire, q, xfilter):
         # filter out docs of pkgs of which there exists a doc of the app
@@ -212,17 +209,24 @@ class AppStore(gtk.GenericTreeModel):
             xfilter = self.filter
         else:
             xfilter = None
-        # go over the querries
+        # go over the queries
         for q in self.search_query:
             enquire = xapian.Enquire(self.db.xapiandb)
             self._logger.debug("initial query: '%s'" % q)
 
+            # TODO: Cleanup this commentary
             # is it slow? takes 0.03s on my (fast) system
             # perhaps we can get rid of show/hide alltogether?
             # if we need to keep it - then put this counting stuff into a 
             # thread
 
             # little side case not working - rest works quite precisely
+
+            # in the installed view it would seem to take 1.4s
+            # in the system cat of available view only 0.13s
+
+            # for searches we may want to disable show/hide
+
             with ExecutionTime("calculate nr_apps and nr_pkgs: "):
                 self.nr_apps, self.nr_pkgs = self._get_estimate_nr_apps_and_nr_pkgs(enquire, q, xfilter)
 
@@ -1612,8 +1616,10 @@ class AppViewFilter(xapian.MatchDecider):
         #    "filter: supported_only: %s installed_only: %s '%s'" % (
         #        self.supported_only, self.installed_only, pkgname))
         if self.installed_only:
-            if (not pkgname in self.cache or
-                not self.cache[pkgname].is_installed):
+            # use the lowlevel cache here, twice as fast
+            lowlevel_cache = self.cache._cache._cache
+            if (not pkgname in lowlevel_cache or
+                not lowlevel_cache[pkgname].current_ver):
                 return False
         if self.not_installed_only:
             if (pkgname in self.cache and

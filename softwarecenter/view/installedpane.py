@@ -101,10 +101,15 @@ class InstalledPane(SoftwarePane):
         if old_model is not None:
             old_model.active = False
         # get a new store and attach it to the view
+        if self.searchentry.get_text():
+            sort_mode = SORT_BY_SEARCH_RANKING
+        else:
+            sort_mode = SORT_BY_ALPHABET
         new_model = AppStore(self.cache,
                              self.db, 
                              self.icons, 
                              query,
+                             sortmode=sort_mode,
                              nonapps_visible = self.nonapps_visible,
                              filter=self.apps_filter)
         self.app_view.set_model(new_model)

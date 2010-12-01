@@ -27,6 +27,7 @@ import os
 import re
 import urllib
 import tempfile
+import traceback
 import time
 import xml.sax.saxutils
 import gtk
@@ -52,6 +53,15 @@ class ExecutionTime(object):
     def __exit__(self, type, value, stack):
         logger = logging.getLogger("softwarecenter.performance")
         logger.debug("%s: %s" % (self.info, time.time() - self.now))
+
+def log_traceback(info):
+    """
+    Helper that can be used as a debug helper to show what called
+    the code at this place. Logs to softwarecenter.traceback
+    """
+    logger = logging.getLogger("softwarecenter.traceback")
+    logger.debug("%s: %s" % (info, "".join(traceback.format_stack())))
+    
 
 class GnomeProxyURLopener(urllib.FancyURLopener):
     """A urllib.URLOpener that honors the gnome proxy settings"""

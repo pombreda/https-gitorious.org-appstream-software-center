@@ -132,12 +132,16 @@ class ChannelPane(SoftwarePane):
         # get a new store and attach it to the view
         if self.scroll_app_list.window:
             self.scroll_app_list.window.set_cursor(self.busy_cursor)
+        if self.searchentry.get_text():
+            sort_mode = SORT_BY_SEARCH_RANKING
+        else:
+            sort_mode = self.channel.sort_mode
         new_model = AppStore(self.cache,
                              self.db, 
                              self.icons, 
                              query, 
                              limit=0,
-                             sortmode=self.channel.sort_mode,
+                             sortmode=sort_mode,
                              nonapps_visible=self.nonapps_visible,
                              filter=self.apps_filter)
         # between request of the new model and actual delivery other

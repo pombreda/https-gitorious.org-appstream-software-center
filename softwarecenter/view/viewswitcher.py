@@ -56,6 +56,7 @@ class ViewSwitcher(gtk.TreeView):
         self.view_manager = view_manager
         self.datadir = datadir
         self.icons = icons
+        self.cache = cache
         if not store:
             store = ViewSwitcherList(view_manager, datadir, db, cache, icons)
             # FIXME: this is just set here for app.py, make the
@@ -209,6 +210,7 @@ class ViewSwitcher(gtk.TreeView):
         else:
             self.window.set_cursor(self.cursor_hand)
             
+    @wait_for_apt_cache_ready
     def expand_available_node(self):
         """ expand the available pane node in the viewswitcher pane """
         model = self.get_model()
@@ -216,13 +218,16 @@ class ViewSwitcher(gtk.TreeView):
             self.expand_row(model.get_path(model.available_iter), False)
             
     def is_available_node_expanded(self):
-        """ return True if the available pane node in the viewswitcher pane is expanded """
+        """ return True if the available pane node in the viewswitcher pane 
+            is expanded 
+        """
         model = self.get_model()
         expanded = False
         if model:
             expanded = self.row_expanded(model.get_path(model.available_iter))
         return expanded
         
+    @wait_for_apt_cache_ready
     def expand_installed_node(self):
         """ expand the installed pane node in the viewswitcher pane """
         model = self.get_model()
@@ -230,7 +235,9 @@ class ViewSwitcher(gtk.TreeView):
             self.expand_row(model.get_path(model.installed_iter), False)
             
     def is_installed_node_expanded(self):
-        """ return True if the installed pane node in the viewswitcher pane is expanded """
+        """ return True if the installed pane node in the viewswitcher pane 
+            is expanded 
+        """
         model = self.get_model()
         expanded = False
         if model:
@@ -241,8 +248,8 @@ class ViewSwitcher(gtk.TreeView):
         """ select the specified channel node """
         model = self.get_model()
         if model:
-            channel_iter_to_select = model.get_channel_iter_for_name(channel_name,
-                                                                     installed_only)
+            channel_iter_to_select = model.get_channel_iter_for_name(
+                channel_name, installed_only)
             if channel_iter_to_select:
                 self.set_cursor(model.get_path(channel_iter_to_select))
 
