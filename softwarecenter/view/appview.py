@@ -179,8 +179,7 @@ class AppStore(gtk.GenericTreeModel):
         self.search_query = search_query
 #        with ExecutionTime("populate model from query: '%s'" % " ; ".join([
 #                q.get_description() for q in search_query])):
-#        if self.nonblocking_load:
-        if True:
+        if self.nonblocking_load:
             self._perform_search_complete = False
             t = threading.Thread(target=self._perform_search)
             t.start()
@@ -189,6 +188,8 @@ class AppStore(gtk.GenericTreeModel):
                 time.sleep(0.1)
                 while gtk.events_pending():
                     gtk.main_iteration()
+        else:
+            self._perform_search()
 
     def _get_estimate_nr_apps_and_nr_pkgs(self, enquire, q, xfilter):
         # filter out docs of pkgs of which there exists a doc of the app
