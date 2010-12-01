@@ -1,4 +1,4 @@
-software-center (3.1.3) UNRELEASED; urgency=low
+software-center (3.1.3) natty; urgency=low
 
   [ Michael Vogt ]
   * daily-build.recipe:
@@ -33,8 +33,11 @@ software-center (3.1.3) UNRELEASED; urgency=low
   * softwarecenter/app.py:
     - remove unused code; we don't lazy-load entire history pane, rather
       we create the pane UI but then load/parse apthistory on demand
+  * po/POTFILES.in:
+    - mark login_sso.py, update.py, dependency_dialogs.py and
+      purchasedialog.py for translation
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 24 Nov 2010 17:28:24 -0500
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 30 Nov 2010 14:40:59 +0100
 
 software-center (3.1.2) natty; urgency=low
 
