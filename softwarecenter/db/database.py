@@ -103,6 +103,8 @@ class StoreDatabase(gobject.GObject):
         self.xapian_parser.add_boolean_prefix("pkg", "XP")
         self.xapian_parser.add_boolean_prefix("pkg", "AP")
         self.xapian_parser.add_boolean_prefix("mime", "AM")
+        self.xapian_parser.add_boolean_prefix("section", "XS")
+        self.xapian_parser.add_boolean_prefix("origin", "XOC")
         self.xapian_parser.add_prefix("pkg_wildcard", "XP")
         self.xapian_parser.add_prefix("pkg_wildcard", "AP")
         self.xapian_parser.set_default_op(xapian.Query.OP_AND)
