@@ -6,6 +6,9 @@ software-center (3.1.4) UNRELEASED; urgency=low
       Matthew McGowan!
 
   [ Kiwinote ]
+  * softwarecenter/backend/channel.py:
+    - only show installed packages in the 'for purchase' channel of the
+      installed pane (LP: #684356)
   * softwarecenter/view/widgets/searchentry.py:
     - reverse the 'clear' icon for rtl as requested in (LP: #666519)
 
