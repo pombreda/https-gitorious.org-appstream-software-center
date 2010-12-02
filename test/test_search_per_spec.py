@@ -46,7 +46,7 @@ class SCGUITest(unittest.TestCase):
         return self.app.available_pane.app_view.get_model()
         
     def _debug(self, model, needle):
-        print "Excpected '%s' first, but search results in model: " % needle
+        print "Expected '%s' first, but search results in model: " % needle
         for it in model:
             print " %s" % it[AppStore.COL_PKGNAME]
 
