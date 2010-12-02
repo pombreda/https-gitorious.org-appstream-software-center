@@ -41,7 +41,7 @@ class SCGUITest(unittest.TestCase):
         self.app.available_pane.searchentry.delete_text(0, -1)
         self.app.available_pane.searchentry.insert_text(search_text)
         self._p()
-        time.sleep(1)
+        time.sleep(2)
         self._p()
         return self.app.available_pane.app_view.get_model()
         
