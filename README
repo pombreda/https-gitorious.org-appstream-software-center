@@ -7,6 +7,12 @@ the computer easy and consistent.
 
 All non UI code must come with tests in the test/ subdirectoy.
 
+== query parser ==
+
+The query parser understands :
+ "pkg:2vcard", "mime:text/html", "section:web", "origin:main"
+prefixes.
+
 == aptdaemon ==
  * the dbus limits for the system bus are rather low, this means that
    adding  <limit name="max_match_rules_per_connection">512</limit> 
