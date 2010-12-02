@@ -81,22 +81,26 @@ class StoreDatabase(gobject.GObject):
         # add the apt-xapian-database for here (we don't do this
         # for now as we do not have a good way to integrate non-apps
         # with the UI)
+        self.nr_databases = 0
         if use_axi:
             try:
                 axi = xapian.Database("/var/lib/apt-xapian-index/index")
                 self.xapiandb.add_database(axi)
                 self._axi_values = parse_axi_values_file()
+                self.nr_databases += 1
             except:
                 self._logger.exception("failed to add apt-xapian-index")
         if use_agent:
             try:
                 sca = xapian.Database(XAPIAN_BASE_PATH_SOFTWARE_CENTER_AGENT)
                 self.xapiandb.add_database(sca)
+                self.nr_databases += 1
             except Exception as e:
                 logging.warn("failed to add sca db %s" % e)
         # additional dbs
         for db in self._additional_databases:
             self.xapiandb.add_database(db)
+            self.nr_databases += 1
         # parser etc
         self.xapian_parser = xapian.QueryParser()
         self.xapian_parser.set_database(self.xapiandb)
