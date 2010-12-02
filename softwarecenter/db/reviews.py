@@ -137,7 +137,7 @@ class ReviewLoaderJsonAsync(ReviewLoader):
             review.id = review_json["id"]
             review.date = review_json["date"]
             review.rating = review_json["rating"]
-            review.person = review_json["reviewer_name"]
+            review.person = review_json["reviewer_username"]
             review.language = review_json["language"]
             review.summary =  review_json["summary"]
             review.text = review_json["review_text"]
@@ -169,14 +169,16 @@ class ReviewLoaderJsonAsync(ReviewLoader):
         # FIXME: get this from the app details
         origin = "ubuntu"
         distroseries = self.distro.get_codename()
+        distroseries = "maverick"
         url = self.distro.REVIEWS_URL % { 'pkgname' : app.pkgname,
                                           'appname' : app.appname,
                                           'language' : self.language,
                                           'origin' : origin,
                                           'distroseries' : distroseries,
                                          }
-        #if app.appname:
-        #    url += "/%s" % app.appname
+        # FIXME: hack until the the server is smarter
+        if not app.appname:
+            url = url[:-1]
         logging.debug("looking for review at '%s'" % url)
         f=gio.File(url)
         f.read_async(self._gio_review_read_callback)
@@ -198,12 +200,12 @@ class ReviewLoaderJsonAsync(ReviewLoader):
         review_stats_json = simplejson.loads(json_str)
         review_stats = {}
         for review_stat_json in review_stats_json:
-            appname = review_stats_json["app_name"]
-            pkgname = review_stats_json["package_name"]
+            appname = review_stat_json["softwareitem__app_name"]
+            pkgname = review_stat_json["softwareitem__package_name"]
             app = Application(appname, pkgname)
             stats = ReviewStats(app)
-            stats.nr_reviews = int(review_stats_json["count"])
-            stats.avg_rating = float(review_stats_json["average"])
+            stats.nr_reviews = int(review_stat_json["count"])
+            stats.avg_rating = float(review_stat_json["average"])
             review_stats[app] = stats
         # update review_stats dict
         self.REVIEW_STATS_CACHE = review_stats
@@ -228,6 +230,7 @@ class ReviewLoaderJsonAsync(ReviewLoader):
         """ get the review statists and call callback when its there """
         origin = "ubuntu"
         distroseries = self.distro.get_codename()
+        distroseries = "maverick"
         url = self.distro.REVIEW_STATS_URL % { 'language' : self.language,
                                                'origin' : origin,
                                                'distroseries' : distroseries,
@@ -441,7 +444,7 @@ if __name__ == "__main__":
     #loader = ReviewLoaderIpsum()
     #print loader.get_reviews(app, callback)
     #print loader.get_review_stats(app)
-    app = Application("totem","totem")
+    app = Application("","ezchess")
     loader = ReviewLoaderJsonAsync()
     loader.refresh_review_stats(stats_callback)
     loader.get_reviews(app, callback)
