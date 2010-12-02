@@ -125,6 +125,10 @@ class SearchEntry(gtk.Entry):
         """
         if self.get_text() != "":
             self.set_icon_from_stock(gtk.ENTRY_ICON_SECONDARY, gtk.STOCK_CLEAR)
+            # reverse the icon if we are in an rtl environment
+            if self.get_direction() == gtk.TEXT_DIR_RTL:
+                pb = self.get_icon_pixbuf(gtk.ENTRY_ICON_SECONDARY).flip(True)
+                self.set_icon_from_pixbuf(gtk.ENTRY_ICON_SECONDARY, pb)
         else:
             self.set_icon_from_stock(gtk.ENTRY_ICON_SECONDARY, None)
 
