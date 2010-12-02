@@ -273,7 +273,8 @@ class ChannelsManager(object):
         for_purchase_channel = SoftwareChannel(self.icons, 
                                                "For Purchase", None, None, 
                                                channel_icon=None,   # FIXME:  need an icon
-                                               channel_query=for_purchase_query)
+                                               channel_query=for_purchase_query,
+                                               installed_only=installed_only)
         
         # set them in order
         channels = []

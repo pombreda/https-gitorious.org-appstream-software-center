@@ -37,7 +37,7 @@ from widgets.spinner import SpinnerView
 
 from softwarecenter.backend import get_install_backend
 from softwarecenter.view.basepane import BasePane
-from softwarecenter.utils import wait_for_apt_cache_ready
+from softwarecenter.utils import wait_for_apt_cache_ready, ExecutionTime
 
 from appview import AppView, AppStore
 
@@ -241,11 +241,21 @@ class SoftwarePane(gtk.VBox, BasePane):
         """
         model = self.app_view.get_model()
         current_app = self.get_current_app()
-        
-        if model and current_app in model.app_index_map:
-            index =  model.app_index_map.get(current_app)
-            LOG.debug("found app: %s at index %s" % (current_app.pkgname, index))
-            self.app_view.set_cursor(index)
+        if model and current_app:
+            with ExecutionTime("reapply"):
+                self._reapply_selected_app(model, current_app)
+
+    def _reapply_selected_app(self, model, app):
+        """ take the app and select in the model """
+        doc = self.db.get_xapian_document(app.appname, app.pkgname)
+        if doc:
+            docid = doc.get_docid()
+            for (i, m) in enumerate(model.matches):
+                # we search over multiple databasee so we need to
+                # apply http://trac.xapian.org/wiki/FAQ/MultiDatabaseDocumentID
+                m_docid_sub = (m.docid-1)/self.db.nr_databases +1
+                if m_docid_sub == docid:
+                    self.app_view.set_cursor(i)
             
     def show_appview_spinner(self):
         """ display the spinner in the appview panel """

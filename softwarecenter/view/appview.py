@@ -1,4 +1,4 @@
-# Copyright (C) 2009 Canonical
+# Copyright (C) 2009,2010 Canonical
 #
 # Authors:
 #  Michael Vogt
@@ -219,11 +219,7 @@ class AppStore(gtk.GenericTreeModel):
 
             # TODO: Cleanup this commentary
             # is it slow? takes 0.03s on my (fast) system
-            # perhaps we can get rid of show/hide alltogether?
-            # if we need to keep it - then put this counting stuff into a 
-            # thread
 
-            # little side case not working - rest works quite precisely
 
             # in the installed view it would seem to take 1.4s
             # in the system cat of available view only 0.13s
@@ -288,7 +284,6 @@ class AppStore(gtk.GenericTreeModel):
             self._perform_search()
             
         self._perform_search_complete = True
-
         return
         
     def _rebuild_index_maps(self):
