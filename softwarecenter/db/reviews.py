@@ -209,7 +209,7 @@ class ReviewLoaderJsonAsync(ReviewLoader):
         self.REVIEW_STATS_CACHE = review_stats
         self.save_review_stats_cache_file()
         # run callback
-        callback()
+        callback(review_stats)
 
     def _gio_review_stats_read_callback(self, source, result):
         callback = source.get_data("callback")
@@ -226,8 +226,9 @@ class ReviewLoaderJsonAsync(ReviewLoader):
 
     def refresh_review_stats(self, callback):
         """ get the review statists and call callback when its there """
+        origin = "ubuntu"
         distroseries = self.distro.get_codename()
-        url = self.distro.REVIEW_STATS_URL % { 'language' : language,
+        url = self.distro.REVIEW_STATS_URL % { 'language' : self.language,
                                                'origin' : origin,
                                                'distroseries' : distroseries,
                                              }
@@ -442,7 +443,7 @@ if __name__ == "__main__":
     #print loader.get_review_stats(app)
     app = Application("totem","totem")
     loader = ReviewLoaderJsonAsync()
-    loader.get_review_stats(stats_callback)
+    loader.refresh_review_stats(stats_callback)
     loader.get_reviews(app, callback)
     import gtk
     gtk.main()
