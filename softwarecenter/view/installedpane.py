@@ -53,9 +53,6 @@ class InstalledPane(SoftwarePane):
         self._build_ui()
         self.connect("app-list-changed", self._on_app_list_changed)
         
-    def init_view(self):
-        print "called InstalledPane.init_view()"
-        
     def _build_ui(self):
         self.navigation_bar.set_size_request(26, -1)
         self.notebook.append_page(self.scroll_app_list, gtk.Label("installed"))
