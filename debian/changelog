@@ -12,6 +12,9 @@ software-center (3.1.4) UNRELEASED; urgency=low
   * softwarecenter/backend/channel.py:
     - only show installed packages in the 'for purchase' channel of the
       installed pane (LP: #684356)
+  * softwarecenter/view/channelpane.py:
+    - don't explicitly show all pkgs for the partner channel, this is no
+      longer needed because all apps now have app-install-data desktop files
   * softwarecenter/view/widgets/searchentry.py:
     - reverse the 'clear' icon for rtl as requested in (LP: #666519)
 
