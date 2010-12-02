@@ -37,6 +37,7 @@ from widgets.spinner import SpinnerView
 
 from softwarecenter.backend import get_install_backend
 from softwarecenter.view.basepane import BasePane
+from softwarecenter.utils import wait_for_apt_cache_ready, ExecutionTime
 
 from appview import AppView, AppStore
 
@@ -48,26 +49,6 @@ else:
 from softwarecenter.db.database import Application
 
 LOG = logging.getLogger(__name__)
-
-def wait_for_apt_cache_ready(f):
-    """ decorator that ensures that the cache is ready using a
-        gtk idle_add - needs a cache as argument
-    """
-    def wrapper(*args, **kwargs):
-        self = args[0]
-        # check if the cache is ready and 
-        if not self.cache.ready:
-            if self.app_view.window:
-                self.app_view.window.set_cursor(self.busy_cursor)
-            glib.timeout_add(500, lambda: wrapper(*args, **kwargs))
-            return False
-        # cache ready now
-        if self.app_view.window:
-            self.app_view.window.set_cursor(None)
-        f(*args, **kwargs)
-        return False
-    return wrapper
-
 
 MASK_SURFACE_CACHE = {}
 
@@ -260,11 +241,21 @@ class SoftwarePane(gtk.VBox, BasePane):
         """
         model = self.app_view.get_model()
         current_app = self.get_current_app()
-        
-        if model and current_app in model.app_index_map:
-            index =  model.app_index_map.get(current_app)
-            LOG.debug("found app: %s at index %s" % (current_app.pkgname, index))
-            self.app_view.set_cursor(index)
+        if model and current_app:
+            with ExecutionTime("reapply"):
+                self._reapply_selected_app(model, current_app)
+
+    def _reapply_selected_app(self, model, app):
+        """ take the app and select in the model """
+        doc = self.db.get_xapian_document(app.appname, app.pkgname)
+        if doc:
+            docid = doc.get_docid()
+            for (i, m) in enumerate(model.matches):
+                # we search over multiple databasee so we need to
+                # apply http://trac.xapian.org/wiki/FAQ/MultiDatabaseDocumentID
+                m_docid_sub = (m.docid-1)/self.db.nr_databases +1
+                if m_docid_sub == docid:
+                    self.app_view.set_cursor(i)
             
     def show_appview_spinner(self):
         """ display the spinner in the appview panel """
@@ -312,23 +303,12 @@ class SoftwarePane(gtk.VBox, BasePane):
         pkgs = 0
         apps = 0
         if appstore.active:
-            if appstore.nonapps_visible == AppStore.NONAPPS_ALWAYS_VISIBLE:
-                pkgs = appstore.nonapp_pkgs
-                apps = len(appstore) - pkgs
+            if appstore.limit > 0 and appstore.limit < appstore.nr_pkgs:
+                apps = min(appstore.limit, appstore.nr_apps)
+                pkgs = min(appstore.limit - apps, appstore.nr_pkgs)
             else:
-                if showing_installed:
-                    # estimate by using the installed apps count when generating
-                    # the pkgs value
-                    # FIXME:  for smaller appstores, we should be able to count the
-                    #         number of installed non-apps for an accurate count
-                    apps = len(appstore)
-                    pkgs = min(self.cache.installed_count, appstore.nonapp_pkgs) - apps
-                else:
-                    apps = len(appstore)
-                    if appstore.limit and appstore.limit < appstore.nonapp_pkgs:
-                        pkgs = appstore.limit - apps
-                    else:
-                        pkgs = appstore.nonapp_pkgs - apps
+                apps = appstore.nr_apps
+                pkgs = appstore.nr_pkgs
 
         self.action_bar.unset_label()
         

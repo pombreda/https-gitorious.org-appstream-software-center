@@ -27,6 +27,7 @@ import os
 import re
 import urllib
 import tempfile
+import traceback
 import time
 import xml.sax.saxutils
 import gtk
@@ -53,6 +54,15 @@ class ExecutionTime(object):
         logger = logging.getLogger("softwarecenter.performance")
         logger.debug("%s: %s" % (self.info, time.time() - self.now))
 
+def log_traceback(info):
+    """
+    Helper that can be used as a debug helper to show what called
+    the code at this place. Logs to softwarecenter.traceback
+    """
+    logger = logging.getLogger("softwarecenter.traceback")
+    logger.debug("%s: %s" % (info, "".join(traceback.format_stack())))
+    
+
 class GnomeProxyURLopener(urllib.FancyURLopener):
     """A urllib.URLOpener that honors the gnome proxy settings"""
     def __init__(self, user_agent=USER_AGENT):
@@ -68,6 +78,26 @@ class GnomeProxyURLopener(urllib.FancyURLopener):
     def http_error_403(self, url, fp, errcode, errmsg, headers):
         logging.debug("http_error_403: %s %s %s" % (url, errcode, errmsg))
         raise Url403Error, "403 %s" % url
+
+def wait_for_apt_cache_ready(f):
+    """ decorator that ensures that self.cache is ready using a
+        gtk idle_add - needs a cache as argument
+    """
+    def wrapper(*args, **kwargs):
+        self = args[0]
+        # check if the cache is ready and 
+        if not self.cache.ready:
+            if hasattr(self, "app_view") and self.app_view.window:
+                self.app_view.window.set_cursor(self.busy_cursor)
+            glib.timeout_add(500, lambda: wrapper(*args, **kwargs))
+            return False
+        # cache ready now
+        if hasattr(self, "app_view") and self.app_view.window:
+            self.app_view.window.set_cursor(None)
+        f(*args, **kwargs)
+        return False
+    return wrapper
+
 
 def htmlize_package_desc(desc):
     def _is_bullet(line):

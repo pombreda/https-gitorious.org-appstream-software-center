@@ -225,14 +225,12 @@ class ChannelsManager(object):
                                                 distro_channel_name,
                                                 channel_origin,
                                                 None,
-                                                only_packages_without_applications=True,
                                                 installed_only=installed_only))
             elif channel_name == "Partner archive":
                 partner_channel = SoftwareChannel(self.icons, 
                                                   channel_name,
                                                   channel_origin,
                                                   "partner", 
-                                                  only_packages_without_applications=True,
                                                   installed_only=installed_only)
             elif channel_name == "notdownloadable":
                 if installed_only:
@@ -268,7 +266,6 @@ class ChannelsManager(object):
                                               "Partner archive",
                                               "Canonical",
                                               "partner", 
-                                              only_packages_without_applications=True,
                                               installed_only=installed_only)
         
         # create a "magic" channel to display items available for purchase                                              
@@ -313,7 +310,6 @@ class SoftwareChannel(object):
     ICON_SIZE = 24
     
     def __init__(self, icons, channel_name, channel_origin, channel_component,
-                 only_packages_without_applications=False,
                  source_entry=None, installed_only=False,
                  channel_icon=None, channel_query=None,
                  channel_sort_mode=SORT_BY_ALPHABET):
@@ -327,8 +323,6 @@ class SoftwareChannel(object):
         self._channel_component = channel_component
         self._channel_color = None
         self._channel_image_id = None
-
-        self.only_packages_without_applications = only_packages_without_applications
         self.installed_only = installed_only
         self.icons = icons
         self._channel_sort_mode = channel_sort_mode
@@ -480,7 +474,6 @@ class SoftwareChannel(object):
         details.append("  icon: %s" % self.icon)
         details.append("  query: %s" % self.query)
         details.append("  sort_mode: %s" % self.sort_mode)
-        details.append("  only_packages_without_applications: %s" % self.only_packages_without_applications)
         details.append("  installed_only: %s" % self.installed_only)
         return '\n'.join(details)
         
@@ -492,7 +485,7 @@ if __name__ == "__main__":
     icons.append_search_path(SOFTWARE_CENTER_ICON_PATH)
     distro = get_distro()
     channel = SoftwareChannel(icons, distro.get_distro_channel_name(), 
-                              None, None, only_packages_without_applications=True)
+                              None, None)
     print channel
     channel = SoftwareChannel(icons, distro.get_distro_channel_name(), None, "partner")
     print channel
