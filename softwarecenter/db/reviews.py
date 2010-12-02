@@ -31,7 +31,7 @@ import subprocess
 import time
 import urllib
 import weakref
-import xml.dom.minidom
+import simplejson
 
 import softwarecenter.distro
 
@@ -63,13 +63,6 @@ class Review(object):
         self.person = None
     def __repr__(self):
         return "[Review id=%s text='%s' person='%s']" % (self.id, self.text, self.person)
-    def to_xml(self):
-        return """<review app_name="%s" package_name="%s" id="%s" language="%s" 
-data="%s" rating="%s" reviewer_name="%s">
-<summary>%s</summary><text>%s</text></review>""" % (
-            self.app.appname, self.app.pkgname,
-            self.id, self.language, self.date, self.rating, 
-            self.person, self.summary, self.text)
 
 class ReviewLoader(object):
     """A loader that returns a review object list"""
@@ -82,6 +75,7 @@ class ReviewLoader(object):
         self.distro = distro
         if not self.distro:
             self.distro = softwarecenter.distro.get_distro()
+        self.language = get_language()
         if os.path.exists(self.REVIEW_STATS_CACHE_FILE):
             try:
                 self.REVIEW_STATS_CACHE = cPickle.load(open(self.REVIEW_STATS_CACHE_FILE))
@@ -118,39 +112,35 @@ class ReviewLoader(object):
         cPickle.dump(self.REVIEW_STATS_CACHE,
                       open(self.REVIEW_STATS_CACHE_FILE, "w"))
 
-class ReviewLoaderXMLAsync(ReviewLoader):
-    """ get xml (or gzip compressed xml) """
+class ReviewLoaderJsonAsync(ReviewLoader):
+    """ get json (or gzip compressed json) """
 
     def _gio_review_input_callback(self, source, result):
         app = source.get_data("app")
         callback = source.get_data("callback")
         try:
-            xml_str = source.read_finish(result)
+            json_str = source.read_finish(result)
         except glib.GError, e:
             # ignore read errors, most likely transient
             return callback(app, [])
         # check for gzip header
-        if xml_str.startswith("\37\213"):
-            gz=gzip.GzipFile(fileobj=StringIO.StringIO(xml_str))
-            xml_str = gz.read()
-        dom = xml.dom.minidom.parseString(xml_str)
+        if json_str.startswith("\37\213"):
+            gz=gzip.GzipFile(fileobj=StringIO.StringIO(json_str))
+            json_str = gz.read()
+        reviews_json = simplejson.loads(json_str)
         reviews = []
-        for review_xml in dom.getElementsByTagName("review"):
-            appname = review_xml.getAttribute("app_name")
-            pkgname = review_xml.getAttribute("package_name")
+        for review_json in reviews_json:
+            appname = review_json["app_name"]
+            pkgname = review_json["package_name"]
             app = Application(appname, pkgname)
             review = Review(app)
-            review.id = review_xml.getAttribute("id")
-            review.date = review_xml.getAttribute("date")
-            review.rating = review_xml.getAttribute("rating")
-            review.person = review_xml.getAttribute("reviewer_name")
-            review.language = review_xml.getAttribute("language")
-            summary_elements = review_xml.getElementsByTagName("summary")
-            if summary_elements and summary_elements[0].childNodes:
-                review.summary = summary_elements[0].childNodes[0].data
-            review_elements = review_xml.getElementsByTagName("text")
-            if review_elements and review_elements[0].childNodes:
-                review.text = review_elements[0].childNodes[0].data
+            review.id = review_json["id"]
+            review.date = review_json["date"]
+            review.rating = review_json["rating"]
+            review.person = review_json["reviewer_username"]
+            review.language = review_json["language"]
+            review.summary =  review_json["summary"]
+            review.text = review_json["review_text"]
             reviews.append(review)
         # run callback
         callback(app, reviews)
@@ -176,9 +166,19 @@ class ReviewLoaderXMLAsync(ReviewLoader):
 
     def get_reviews(self, app, callback):
         """ get a specific review and call callback when its available"""
-        url = self.distro.REVIEWS_URL % app.pkgname
-        if app.appname:
-            url += "/%s" % app.appname
+        # FIXME: get this from the app details
+        origin = "ubuntu"
+        distroseries = self.distro.get_codename()
+        distroseries = "maverick"
+        url = self.distro.REVIEWS_URL % { 'pkgname' : app.pkgname,
+                                          'appname' : app.appname,
+                                          'language' : self.language,
+                                          'origin' : origin,
+                                          'distroseries' : distroseries,
+                                         }
+        # FIXME: hack until the the server is smarter
+        if not app.appname:
+            url = url[:-1]
         logging.debug("looking for review at '%s'" % url)
         f=gio.File(url)
         f.read_async(self._gio_review_read_callback)
@@ -189,32 +189,29 @@ class ReviewLoaderXMLAsync(ReviewLoader):
     def _gio_review_stats_input_callback(self, source, result):
         callback = source.get_data("callback")
         try:
-            xml_str = source.read_finish(result)
+            json_str = source.read_finish(result)
         except glib.GError, e:
             # ignore read errors, most likely transient
             return
         # check for gzip header
-        if xml_str.startswith("\37\213"):
-            gz=gzip.GzipFile(fileobj=StringIO.StringIO(xml_str))
-            xml_str = gz.read()
-        dom = xml.dom.minidom.parseString(xml_str)
+        if json_str.startswith("\37\213"):
+            gz=gzip.GzipFile(fileobj=StringIO.StringIO(json_str))
+            json_str = gz.read()
+        review_stats_json = simplejson.loads(json_str)
         review_stats = {}
-        # FIXME: look at root element like:
-        #  "<review-statistics origin="ubuntu" distroseries="lucid" language="en">"
-        # to verify we got the data we expected
-        for review_stats_xml in dom.getElementsByTagName("review"):
-            appname = review_stats_xml.getAttribute("app_name")
-            pkgname = review_stats_xml.getAttribute("package_name")
+        for review_stat_json in review_stats_json:
+            appname = review_stat_json["softwareitem__app_name"]
+            pkgname = review_stat_json["softwareitem__package_name"]
             app = Application(appname, pkgname)
             stats = ReviewStats(app)
-            stats.nr_reviews = int(review_stats_xml.getAttribute("count"))
-            stats.avg_rating = float(review_stats_xml.getAttribute("average"))
+            stats.nr_reviews = int(review_stat_json["count"])
+            stats.avg_rating = float(review_stat_json["average"])
             review_stats[app] = stats
         # update review_stats dict
         self.REVIEW_STATS_CACHE = review_stats
         self.save_review_stats_cache_file()
         # run callback
-        callback()
+        callback(review_stats)
 
     def _gio_review_stats_read_callback(self, source, result):
         callback = source.get_data("callback")
@@ -231,7 +228,13 @@ class ReviewLoaderXMLAsync(ReviewLoader):
 
     def refresh_review_stats(self, callback):
         """ get the review statists and call callback when its there """
-        url = self.distro.REVIEW_STATS_URL
+        origin = "ubuntu"
+        distroseries = self.distro.get_codename()
+        distroseries = "maverick"
+        url = self.distro.REVIEW_STATS_URL % { 'language' : self.language,
+                                               'origin' : origin,
+                                               'distroseries' : distroseries,
+                                             }
         f=gio.File(url)
         f.set_data("callback", callback)
         f.read_async(self._gio_review_stats_read_callback)
@@ -426,7 +429,7 @@ def get_review_loader():
         elif "SOFTWARE_CENTER_TECHSPEAK_REVIEWS" in os.environ:
             review_loader = ReviewLoaderTechspeak()
         else:
-            review_loader = ReviewLoaderXMLAsync()
+            review_loader = ReviewLoaderJsonAsync()
     return review_loader
 
 if __name__ == "__main__":
@@ -437,13 +440,13 @@ if __name__ == "__main__":
         print "stats:"
         print stats
     from softwarecenter.db.database import Application
-    app = Application("7zip",None)
+    app = Application(None, "7zip")
     #loader = ReviewLoaderIpsum()
     #print loader.get_reviews(app, callback)
     #print loader.get_review_stats(app)
-    app = Application("totem","totem")
-    loader = ReviewLoaderXMLAsync()
-    loader.get_review_stats(stats_callback)
+    app = Application("","ezchess")
+    loader = ReviewLoaderJsonAsync()
+    loader.refresh_review_stats(stats_callback)
     loader.get_reviews(app, callback)
     import gtk
     gtk.main()
