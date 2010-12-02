@@ -1,37 +1,25 @@
 import gtk
-import atk
 import gobject
 import cairo
 import pango
 import pangocairo
-import logging
 import gettext
 import glib
-import glob
-import locale
 import random
 import os
 import xapian
 
+from gettext import gettext as _
+
 from widgets import mkit
-from widgets.backforward import BackForwardButton
 from appview import AppStore
 from softwarecenter.db.database import Application
-
-from ConfigParser import ConfigParser
-from gettext import gettext as _
-from xml.etree import ElementTree as ET
-
-from xml.sax.saxutils import escape as xml_escape
-from xml.sax.saxutils import unescape as xml_unescape
-
-from softwarecenter.utils import *
-from softwarecenter.enums import *
-from softwarecenter.distro import get_distro
-
+from softwarecenter.utils import wait_for_apt_cache_ready
 from softwarecenter.backend.zeitgeist_simple import zeitgeist_singleton
 
-from catview import *
+from softwarecenter.enums import SORT_BY_SEARCH_RANKING
+from catview import (Category, CategoriesView, get_category_by_name,
+                     categories_sorted_by_name)
 
 # global cairo surface caches
 SURFACE_CACHE = {}
@@ -328,6 +316,7 @@ class LobbyViewGtk(CategoriesViewGtk):
         self._append_recommendations()
         return
 
+    @wait_for_apt_cache_ready
     def _append_recommendations(self):
         """ get recommendations from zeitgeist and add to the view """
 

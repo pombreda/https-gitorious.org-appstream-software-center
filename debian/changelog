@@ -1,8 +1,19 @@
 software-center (3.1.4) UNRELEASED; urgency=low
 
+  [ Michael Vogt ]
   * softwarecenter/db/database.py:
     - add section and origin query parser prefixes, thanks to
       Matthew McGowan!
+  * merged lp:~mvo/software-center/experimental-fastlist and
+    lp:~kiwinote/software-center/experimental-fastlist, this should
+    speed up the list rendering quite a lot
+
+  [ Kiwinote ]
+  * softwarecenter/backend/channel.py:
+    - only show installed packages in the 'for purchase' channel of the
+      installed pane (LP: #684356)
+  * softwarecenter/view/widgets/searchentry.py:
+    - reverse the 'clear' icon for rtl as requested in (LP: #666519)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 02 Dec 2010 10:51:33 +0100
 
