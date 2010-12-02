@@ -78,8 +78,10 @@ class AptCache(gobject.GObject):
         self._cache = None
         self._ready = False
         self._timeout_id = None
-        # async open cache
-        glib.timeout_add(10, self.open)
+        # async open cache 
+        # FIXME: measure if idle_add() or timeout_add(100, self.open)
+        #        make a difference on slow hardware
+        glib.idle_add(self.open)
         # setup monitor watch for install/remove changes
         self.apt_finished_stamp=gio.File(self.APT_FINISHED_STAMP)
         self.apt_finished_monitor = self.apt_finished_stamp.monitor_file(
@@ -99,6 +101,8 @@ class AptCache(gobject.GObject):
     def ready(self):
         return self._ready
     def open(self):
+        """ (re)open the cache, this sends cache-invalid, cache-ready signals
+        """
         self._ready = False
         self.emit("cache-invalid")
         with ExecutionTime("open the apt cache (in event loop)"):
@@ -106,17 +110,6 @@ class AptCache(gobject.GObject):
                 self._cache = apt.Cache(GtkMainIterationProgress())
             else:
                 self._cache.open(GtkMainIterationProgress())
-        # installed_count stats
-        with ExecutionTime("installed_count stats"):
-            self.installed_count = 0
-            # use the low-level cache here to calculcate the stats,
-            # its twice as fast as the highlevel one
-            for lowlevel_pkg in self._cache._cache.packages:
-                if lowlevel_pkg.current_ver:
-                    self.installed_count += 1
-                while gtk.events_pending():
-                    gtk.main_iteration()
-        LOG.debug("installed_count: %s" % self.installed_count)
         self._ready = True
         self.emit("cache-ready")
         if self._cache.broken_count > 0:

@@ -28,6 +28,9 @@ BUY_SOMETHING_HOST_ANONYMOUS = os.environ.get("SOFTWARE_CENTER_BUY_HOST") or "ht
 # terms for mime-type) increase this (but keep as a string!)
 DB_SCHEMA_VERSION = "2"
 
+# the default limit for a search
+DEFAULT_SEARCH_LIMIT = 10000
+
 # xapian pathes
 XAPIAN_BASE_PATH = "/var/cache/software-center"
 XAPIAN_BASE_PATH_SOFTWARE_CENTER_AGENT = os.path.join(

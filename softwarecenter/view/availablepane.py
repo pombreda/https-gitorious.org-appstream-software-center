@@ -47,8 +47,6 @@ class AvailablePane(SoftwarePane):
        It contains a search entry and navigation buttons
     """
 
-    DEFAULT_SEARCH_APPS_LIMIT = 200
-
     (PAGE_CATEGORY,
      PAGE_SUBCATEGORY,
      PAGE_APPLIST,
@@ -84,7 +82,6 @@ class AvailablePane(SoftwarePane):
         self.apps_search_term = ""
         self.apps_limit = 0
         self.apps_filter = AppViewFilter(db, cache)
-        self.apps_filter.set_only_packages_without_applications(True)
         # the spec says we mix installed/not installed
         #self.apps_filter.set_not_installed_only(True)
         self._status_text = ""
@@ -363,15 +360,20 @@ class AvailablePane(SoftwarePane):
         """
         # SPECIAL CASE: in category page show all items in the DB
         if self.notebook.get_current_page() == self.PAGE_CATEGORY:
+            distro = get_distro()
             if self.apps_filter.get_supported_only():
-                distro = get_distro()
                 query = distro.get_supported_query()
-                enquire = xapian.Enquire(self.db.xapiandb)
-                enquire.set_query(query)
-                matches = enquire.get_mset(0, len(self.db))
-                length = len(matches)
             else:
-                length = len(self.db)
+                query = xapian.Query('')
+            enquire = xapian.Enquire(self.db.xapiandb)
+            # XD is the term for pkgs that have a desktop file
+            enquire.set_query(xapian.Query(xapian.Query.OP_AND_NOT, 
+                                           query,
+                                           xapian.Query("XD"),
+                                           )
+                             )
+            matches = enquire.get_mset(0, len(self.db))
+            length = len(matches)
 
         if self.custom_list_mode:
             appstore = self.app_view.get_model()
@@ -452,7 +454,7 @@ class AvailablePane(SoftwarePane):
 
     def _get_item_limit(self):
         if self.apps_search_term:
-            return self.DEFAULT_SEARCH_APPS_LIMIT
+            return DEFAULT_SEARCH_LIMIT
         elif self.apps_category and self.apps_category.item_limit > 0:
             return self.apps_category.item_limit
         return 0
@@ -538,7 +540,7 @@ class AvailablePane(SoftwarePane):
             self._clear_search()
         else:
             self.apps_search_term = new_text
-            self.apps_limit = self.DEFAULT_SEARCH_APPS_LIMIT
+            self.apps_limit = DEFAULT_SEARCH_LIMIT
             # enter custom list mode if search has non-trailing
             # comma per custom list spec.
             self.custom_list_mode = "," in new_text.rstrip(',')

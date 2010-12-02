@@ -131,12 +131,16 @@ class ChannelPane(SoftwarePane):
         # get a new store and attach it to the view
         if self.scroll_app_list.window:
             self.scroll_app_list.window.set_cursor(self.busy_cursor)
+        if self.searchentry.get_text():
+            sort_mode = SORT_BY_SEARCH_RANKING
+        else:
+            sort_mode = self.channel.sort_mode
         new_model = AppStore(self.cache,
                              self.db, 
                              self.icons, 
                              query, 
                              limit=0,
-                             sortmode=self.channel.sort_mode,
+                             sortmode=sort_mode,
                              nonapps_visible=self.nonapps_visible,
                              filter=self.apps_filter)
         # between request of the new model and actual delivery other
@@ -196,9 +200,6 @@ class ChannelPane(SoftwarePane):
             self.nonapps_visible = AppStore.NONAPPS_MAYBE_VISIBLE
             self.disable_show_hide_nonapps = False
         self.apps_filter = None
-        if self.channel.only_packages_without_applications:
-            self.apps_filter = AppViewFilter(self.db, self.cache)
-            self.apps_filter.set_only_packages_without_applications(True)
         if self.channel.installed_only:
             if self.apps_filter is None:
                 self.apps_filter = AppViewFilter(self.db, self.cache)

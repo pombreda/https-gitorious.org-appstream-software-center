@@ -4,6 +4,9 @@ software-center (3.1.4) UNRELEASED; urgency=low
   * softwarecenter/db/database.py:
     - add section and origin query parser prefixes, thanks to
       Matthew McGowan!
+  * merged lp:~mvo/software-center/experimental-fastlist and
+    lp:~kiwinote/software-center/experimental-fastlist, this should
+    speed up the list rendering quite a lot
 
   [ Kiwinote ]
   * softwarecenter/backend/channel.py:
