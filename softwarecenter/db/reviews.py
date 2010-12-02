@@ -82,6 +82,7 @@ class ReviewLoader(object):
         self.distro = distro
         if not self.distro:
             self.distro = softwarecenter.distro.get_distro()
+        self.language = get_language()
         if os.path.exists(self.REVIEW_STATS_CACHE_FILE):
             try:
                 self.REVIEW_STATS_CACHE = cPickle.load(open(self.REVIEW_STATS_CACHE_FILE))
@@ -176,9 +177,18 @@ class ReviewLoaderXMLAsync(ReviewLoader):
 
     def get_reviews(self, app, callback):
         """ get a specific review and call callback when its available"""
-        url = self.distro.REVIEWS_URL % app.pkgname
-        if app.appname:
-            url += "/%s" % app.appname
+        # FIXME: get this from the app details
+        origin = "ubuntu"
+        distroseries = self.distro.get_codename()
+        url = self.distro.REVIEWS_URL % { 'pkgname' : app.pkgname,
+                                          'appname' : app.appname,
+                                          'language' : self.language,
+                                          'origin' : origin,
+                                          'distroseries' : distroseries,
+                                         }
+        print url
+        #if app.appname:
+        #    url += "/%s" % app.appname
         logging.debug("looking for review at '%s'" % url)
         f=gio.File(url)
         f.read_async(self._gio_review_read_callback)
@@ -231,7 +241,11 @@ class ReviewLoaderXMLAsync(ReviewLoader):
 
     def refresh_review_stats(self, callback):
         """ get the review statists and call callback when its there """
-        url = self.distro.REVIEW_STATS_URL
+        distroseries = self.distro.get_codename()
+        url = self.distro.REVIEW_STATS_URL % { 'language' : language,
+                                               'origin' : origin,
+                                               'distroseries' : distroseries,
+                                             }
         f=gio.File(url)
         f.set_data("callback", callback)
         f.read_async(self._gio_review_stats_read_callback)
@@ -437,7 +451,7 @@ if __name__ == "__main__":
         print "stats:"
         print stats
     from softwarecenter.db.database import Application
-    app = Application("7zip",None)
+    app = Application(None, "7zip")
     #loader = ReviewLoaderIpsum()
     #print loader.get_reviews(app, callback)
     #print loader.get_review_stats(app)

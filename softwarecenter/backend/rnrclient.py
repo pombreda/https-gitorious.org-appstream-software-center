@@ -87,3 +87,10 @@ class RatingsAndReviewsAPI(PistonAPI):
 if __name__ == "__main__":
     rnr = RatingsAndReviewsAPI()
     print rnr.server_status()
+    print rnr.review_stats(language="en",origin="ubuntu",distroseries="lucid")
+    print rnr.get_reviews(language="en",origin="ubuntu",distroseries="lucid",
+                          packagename="2vcard")
+    # FIXME: not working yet
+    #print rnr.get_reviews(language="en",origin="ubuntu",distroseries="lucid",
+    #                      packagename="software-center", 
+    #                      appname="Ubuntu%20Software%20Center")
