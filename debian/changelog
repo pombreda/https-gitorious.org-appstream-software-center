@@ -1,8 +1,13 @@
 software-center (3.1.4) UNRELEASED; urgency=low
 
+  [ Michael Vogt ]
   * softwarecenter/db/database.py:
     - add section and origin query parser prefixes, thanks to
       Matthew McGowan!
+
+  [ Kiwinote ]
+  * softwarecenter/view/widgets/searchentry.py:
+    - reverse the 'clear' icon for rtl as requested in (LP: #666519)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 02 Dec 2010 10:51:33 +0100
 
