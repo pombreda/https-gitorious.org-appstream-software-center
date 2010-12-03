@@ -15,6 +15,10 @@ software-center (3.1.4) UNRELEASED; urgency=low
   * softwarecenter/view/widgets/searchentry.py:
     - reverse the 'clear' icon for rtl as requested in (LP: #666519)
 
+  [ Matthew Paul Thomas ]
+  * data/ui/SoftwareCenter.ui:
+    - improved text for software catalog update window (LP: #678355)
+
   [ Gary Lasker ]
   * softwarecenter/view/appview.py,
     softwarecenter/view/catview_gtk.py:
@@ -27,7 +31,7 @@ software-center (3.1.4) UNRELEASED; urgency=low
     softwarecenter/view/installedpane.py:
     - cleanup imports for wait_for_apt_cache_ready 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 02 Dec 2010 16:47:00 -0500
+ -- Gary Lasker <gary.lasker@canonical.com>  Fri, 03 Dec 2010 11:44:35 -0500
 
 software-center (3.1.3) natty; urgency=low
 
