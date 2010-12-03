@@ -15,7 +15,11 @@ software-center (3.1.4) UNRELEASED; urgency=low
   * softwarecenter/view/widgets/searchentry.py:
     - reverse the 'clear' icon for rtl as requested in (LP: #666519)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 02 Dec 2010 10:51:33 +0100
+  [ Matthew Paul Thomas ]
+  * data/ui/SoftwareCenter.ui:
+    - improved text for software catalog update window (LP: #678355)
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Fri, 03 Dec 2010 11:08:03 -0500
 
 software-center (3.1.3) natty; urgency=low
 

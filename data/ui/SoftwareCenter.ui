@@ -447,7 +447,7 @@
         <child>
           <object class="GtkLabel" id="label_rebuilding">
             <property name="visible">True</property>
-            <property name="label" translatable="yes">Rebuilding software catalog…</property>
+            <property name="label" translatable="yes">Updating software catalog…</property>
             <attributes>
               <attribute name="weight" value="bold"/>
             </attributes>
