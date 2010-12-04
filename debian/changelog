@@ -15,6 +15,9 @@ software-center (3.1.4) UNRELEASED; urgency=low
   * softwarecenter/utils.py:
     - don't return a http proxy string if it contains no host (LP: #675186)
       thanks to Marius Gedminas
+  * softwarecenter/view/appview.py:
+    - don't crash in natty due to seemingly deprecated xapian.query attribute
+      get_description (LP: #684887)
   * softwarecenter/view/channelpane.py:
     - don't explicitly show all pkgs for the partner channel, this is no
       longer needed because all apps now have app-install-data desktop files
