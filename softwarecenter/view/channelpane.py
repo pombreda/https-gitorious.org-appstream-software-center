@@ -192,14 +192,8 @@ class ChannelPane(SoftwarePane):
                 backend.reload()
             return
         # normal operation
-        # always show all packages in the partner repository
-        # FIXME:  remove this special case code in favor of a more general solution
-        if channel.component == "partner":
-            self.nonapps_visible = AppStore.NONAPPS_ALWAYS_VISIBLE
-            self.disable_show_hide_nonapps = True
-        else:
-            self.nonapps_visible = AppStore.NONAPPS_MAYBE_VISIBLE
-            self.disable_show_hide_nonapps = False
+        self.nonapps_visible = AppStore.NONAPPS_MAYBE_VISIBLE
+        self.disable_show_hide_nonapps = False
         self.apps_filter = None
         if self.channel.installed_only:
             if self.apps_filter is None:

@@ -323,10 +323,12 @@ class LobbyViewGtk(CategoriesViewGtk):
         def _show_recommended_apps_widget(query, r_apps): 
             # build UI
             self.hbox = gtk.HBox()
+            # Translators: full sentence will be: Welcome back! There is/are %(len)i new recommendation/s for you.
             welcome = gettext.ngettext("Welcome back! There is",
                                       "Welcome back! There are",
                                       len(r_apps))
             self.hbox.pack_start(gtk.Label(welcome), False, False)
+            # Translators: full sentence will be: Welcome back! There is/are %(len)i new recommendation/s for you.
             label = gettext.ngettext("%(len)i new recommendation",
                                      "%(len)i new recommendations",
                                      len(r_apps)) % { 'len' : len(r_apps) }
@@ -334,7 +336,8 @@ class LobbyViewGtk(CategoriesViewGtk):
             linkbutton.set_underline(True)
             linkbutton.set_subdued(True)
             self.hbox.pack_start(linkbutton, False, False)
-            self.hbox.pack_start(gtk.Label("for you."), False, False)
+            # Translators: full sentence will be: Welcome back! There is/are %(len)i new recommendation/s for you.
+            self.hbox.pack_start(gtk.Label(_("for you.")), False, False)
             self.vbox.pack_start(self.hbox, False, False)
             self.vbox.reorder_child(self.hbox, 0)
             # build category
@@ -1219,7 +1222,7 @@ class PagingDot(mkit.LinkButton):
         # a11y for page selector
         self.set_property("can-focus", True)
         self.a11y = self.get_accessible()
-        self.a11y.set_name("Go to page " + str(self.page_number + 1))
+        self.a11y.set_name(_("Go to page %d") % (self.page_number + 1))
         return
 
     def calc_width(self):

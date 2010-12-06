@@ -159,7 +159,8 @@ def get_http_proxy_string_from_gconf():
             host = client.get_string("/system/http_proxy/host")
             port = client.get_int("/system/http_proxy/port")
             http_proxy = "http://%s%s:%s/" %  (authentication, host, port)
-            return http_proxy
+            if host:
+                return http_proxy
     except Exception:
         logging.exception("failed to get proxy from gconf")
     return None
