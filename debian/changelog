@@ -7,6 +7,7 @@ software-center (3.1.4) UNRELEASED; urgency=low
   * merged lp:~mvo/software-center/experimental-fastlist and
     lp:~kiwinote/software-center/experimental-fastlist, this should
     speed up the list rendering quite a lot
+  * merged lp:~kelemeng/software-center/bug685467, many thanks!
 
   [ Kiwinote ]
   * softwarecenter/backend/channel.py:
