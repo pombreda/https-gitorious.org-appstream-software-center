@@ -176,7 +176,7 @@ class AppStore(gtk.GenericTreeModel):
             search_query = [search_query]
         self.search_query = search_query
         with ExecutionTime("populate model from query: '%s'" % " ; ".join([
-                q.get_description() for q in search_query])):
+                str(q) for q in search_query])):
             #useful only for debugging
             #log_traceback("creating a AppStore")
             self._perform_search()

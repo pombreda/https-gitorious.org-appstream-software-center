@@ -12,8 +12,20 @@ software-center (3.1.4) UNRELEASED; urgency=low
   * softwarecenter/backend/channel.py:
     - only show installed packages in the 'for purchase' channel of the
       installed pane (LP: #684356)
+  * softwarecenter/utils.py:
+    - don't return a http proxy string if it contains no host (LP: #675186)
+      thanks to Marius Gedminas
+  * softwarecenter/view/appview.py:
+    - don't crash in natty due to seemingly deprecated xapian.query attribute
+      get_description (LP: #684887)
+  * softwarecenter/view/channelpane.py:
+    - don't explicitly show all pkgs for the partner channel, this is no
+      longer needed because all apps now have app-install-data desktop files
   * softwarecenter/view/widgets/searchentry.py:
     - reverse the 'clear' icon for rtl as requested in (LP: #666519)
+  * softwarecenter/app.py:
+    - do not crash when showing a already installed package and the apt
+      cache is not loaded yet
 
   [ Matthew Paul Thomas ]
   * data/ui/SoftwareCenter.ui:

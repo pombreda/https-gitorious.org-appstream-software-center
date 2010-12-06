@@ -473,6 +473,7 @@ class AvailablePane(SoftwarePane):
         self.custom_list_mode = False
         self.navigation_bar.remove_id(self.NAV_BUTTON_ID_SEARCH)
 
+    @wait_for_apt_cache_ready
     def show_app(self, app):
         """ Display an application in the available_pane """
         cat_of_app = None
