@@ -40,7 +40,7 @@ LOG = logging.getLogger(__name__)
 
 class GtkMainIterationProgress(apt.progress.base.OpProgress):
     """Progress that just runs the main loop"""
-    def update(self, percent):
+    def update(self, percent=0):
         while gtk.events_pending():
             gtk.main_iteration()
 
