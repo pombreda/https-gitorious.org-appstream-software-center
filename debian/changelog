@@ -8,6 +8,11 @@ software-center (3.1.4) UNRELEASED; urgency=low
     lp:~kiwinote/software-center/experimental-fastlist, this should
     speed up the list rendering quite a lot
   * merged lp:~kelemeng/software-center/bug685467, many thanks!
+    (LP: #685467)
+  * softwarecenter/backend/aptd.py:
+    - ported to the aptdaemon 0.40 API
+  * debian/control: 
+    - depend on aptdaemon 0.40
 
   [ Kiwinote ]
   * softwarecenter/backend/channel.py:

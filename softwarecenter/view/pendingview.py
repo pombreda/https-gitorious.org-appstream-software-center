@@ -126,12 +126,13 @@ class PendingStore(gtk.ListStore, TransactionsWatcher):
         """
         logging.debug("_append_transaction %s (%s)" % (trans.tid, trans))
         self._signals.append(
-            trans.connect("progress-changed", self._on_progress_changed))
+            trans.connect(
+                "progress-details-changed", self._on_progress_details_changed))
         self._signals.append(
             trans.connect("status-changed", self._on_status_changed))
         self._signals.append(
-            trans.connect("cancellable-changed",
-                          self._on_cancellable_changed))
+            trans.connect(
+                "cancellable-changed",self._on_cancellable_changed))
 
         if "sc_appname" in trans.meta_data:
             appname = trans.meta_data["sc_appname"]
@@ -175,17 +176,20 @@ class PendingStore(gtk.ListStore, TransactionsWatcher):
             if row[self.COL_TID] == trans.tid:
                 row[self.COL_NAME] = get_role_localised_present_from_enum(role)
 
-    def _on_progress_changed(self, trans, progress):
-        #print "_on_progress_changed: ", trans, progress
+    def _on_progress_details_changed(self, trans, current_items, total_items,
+                                     current_bytes, total_bytes, current_cps,
+                                     eta):
+        #print "_on_progress_details_changed: ", trans, progress
         for row in self:
             if row[self.COL_TID] == trans.tid:
-                row[self.COL_PROGRESS] = progress
+                if total_bytes:
+                    row[self.COL_PROGRESS] = current_bytes/(total_bytes*100.0)
                 if trans.status == STATUS_DOWNLOADING:
                     name = row[self.COL_NAME]
-                    current_bytes = apt_pkg.size_to_str(trans.progress_details[2])
-                    total_bytes = apt_pkg.size_to_str(trans.progress_details[3])
+                    current_bytes_str = apt_pkg.size_to_str(current_bytes)
+                    total_bytes_str = apt_pkg.size_to_str(total_bytes)
                     status = _("Downloaded %sB of %sB") % \
-                             (current_bytes, total_bytes)
+                             (current_bytes_str, total_bytes_str)
                     row[self.COL_STATUS] = self._render_status_text(name, status)
 
     def _on_status_changed(self, trans, status):
