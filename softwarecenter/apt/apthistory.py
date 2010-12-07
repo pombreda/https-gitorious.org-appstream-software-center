@@ -117,7 +117,7 @@ class AptHistory(object):
         for history_gz_file in sorted(glob.glob(self.history_file+".*.gz"),
                                       cmp=self._mtime_cmp):
             if os.path.getmtime(history_gz_file) < cachetime:
-                LOG.info("skipping already cached '%s'" % history_gz_file)
+                LOG.debug("skipping already cached '%s'" % history_gz_file)
                 continue
             self._scan(history_gz_file)
         self._scan(self.history_file)
