@@ -24,12 +24,9 @@ from gettext import gettext as _
 
 from dialogs import SimpleGtkbuilderDialog
 
-from softwarecenter.backend import get_install_backend
 from softwarecenter.db.application import Application
 from softwarecenter.distro import get_distro
 from softwarecenter.enums import MISSING_APP_ICON
-
-from aptdaemon.defer import inline_callbacks
 
 LOG = logging.getLogger(__name__)
 

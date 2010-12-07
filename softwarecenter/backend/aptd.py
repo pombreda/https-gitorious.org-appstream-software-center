@@ -36,7 +36,7 @@ from aptsources.sourceslist import SourceEntry
 from aptdaemon import policykit1
 
 try:
-    from aptdaemon.defer import inline_callbacks, return_value
+    from defer import inline_callbacks, return_value
 except ImportError:
     logging.getLogger("softwarecenter.backend").exception("aptdaemon import failed")
     print 'Need the latest aptdaemon, try "sudo apt-add-repository ppa:software-store-developers/ppa" to get the PPA'
