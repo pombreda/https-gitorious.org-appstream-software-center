@@ -208,11 +208,18 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         self.emit("transaction-started")
         try:
             if filename:
-                trans = yield self.aptd_client.install_file(filename,
-                                                            defer=True)
+                # force means on lintian failure
+                trans = yield self.aptd_client.install_file(
+                    filename, force=False, defer=True)
             else:
-                trans = yield self.aptd_client.commit_packages([pkgname] + addons_install, [], addons_remove, [], [], defer=True)
-            yield self._run_transaction(trans, pkgname, appname, iconname, metadata)
+                install = [pkgname] + addons_install
+                remove = addons_remove
+                reinstall = remove = purge = upgrade =downgrade = []
+                trans = yield self.aptd_client.commit_packages(
+                    install, reinstall, remove, purge, upgrade, downgrade, 
+                    defer=True)
+            yield self._run_transaction(
+                trans, pkgname, appname, iconname, metadata)
         except Exception, error:
             self._on_trans_error(error, pkgname)
 
@@ -231,7 +238,12 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         """ install and remove add-ons """
         self.emit("transaction-started")
         try:
-            trans = yield self.aptd_client.commit_packages(addons_install, [], addons_remove, [], [], defer=True)
+            install = addons_install
+            remove = addons_remove
+            reinstall = remove = purge = upgrade =downgrade = []
+            trans = yield self.aptd_client.commit_packages(
+                install, reinstall, remove, purge, upgrade, downgrade, 
+                defer=True)
             yield self._run_transaction(trans, pkgname, appname, iconname)
         except Exception, error:
             self._on_trans_error(error)
