@@ -1,4 +1,4 @@
-software-center (3.1.4) UNRELEASED; urgency=low
+software-center (3.1.4) natty; urgency=low
 
   [ Michael Vogt ]
   * softwarecenter/db/database.py:
@@ -37,7 +37,7 @@ software-center (3.1.4) UNRELEASED; urgency=low
   * data/ui/SoftwareCenter.ui:
     - improved text for software catalog update window (LP: #678355)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Fri, 03 Dec 2010 11:08:03 -0500
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 07 Dec 2010 15:02:40 +0100
 
 software-center (3.1.3) natty; urgency=low
 
