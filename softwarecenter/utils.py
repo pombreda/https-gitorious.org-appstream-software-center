@@ -237,9 +237,8 @@ def is_unity_running():
         bus = dbus.SessionBus()
         unity_running = bus.name_has_owner("com.canonical.Unity.Panel.Service")
     except:
-        # TODO: log this
+        # FIXME: log this
         print "could not check for Unity dbus service"
-    print "unity_running", unity_running
     return unity_running
 
 # FIXME: why not call it a generic downloader?
