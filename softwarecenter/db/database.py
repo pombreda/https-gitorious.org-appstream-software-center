@@ -245,7 +245,7 @@ class StoreDatabase(gobject.GObject):
         matches = enquire.get_mset(0, 100)
         apps = []
         for match in matches:
-            doc = match.get_document()
+            doc = match.document
             app = Application(self.get_appname(doc),self.get_pkgname(doc),
                               popcon=self.get_popcon(doc))
             if only_uninstalled:
