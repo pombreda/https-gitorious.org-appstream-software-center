@@ -138,11 +138,15 @@ class SoftwarePane(gtk.VBox, BasePane):
         # common UI elements (applist and appdetails) 
         # its the job of the Child class to put it into a good location
         # list
+        self.label_app_list_header = gtk.Label()
+        self.box_app_list = gtk.VBox()
+        self.box_app_list.pack_start(self.label_app_list_header)
         self.app_view = AppView(show_ratings)
-        self.scroll_app_list = gtk.ScrolledWindow()
-        self.scroll_app_list.set_policy(gtk.POLICY_AUTOMATIC, 
+        scroll_app_list = gtk.ScrolledWindow()
+        scroll_app_list.set_policy(gtk.POLICY_AUTOMATIC, 
                                         gtk.POLICY_AUTOMATIC)
-        self.scroll_app_list.add(self.app_view)
+        scroll_app_list.add(self.app_view)
+        self.box_app_list.pack_start(scroll_app_list)
         self.app_view.connect("application-selected", 
                               self.on_application_selected)
         self.app_view.connect("application-activated", 
@@ -330,6 +334,22 @@ class SoftwarePane(gtk.VBox, BasePane):
                                          "_Show %(amount)i technical items_",
                                          pkgs) % { 'amount': pkgs, }
                 self.action_bar.set_label(label, self._show_nonapp_pkgs)
+
+        self.update_search_help()
+
+    def update_search_help(self):
+        appstore = self.app_view.get_model()
+        if appstore is not None and len(appstore) == 0:
+            # FIXME: if in category/subcategory suggest expanding
+            #        the search
+            search = self.searchentry.get_text()
+            correction = self.db.get_spelling_correction(search)
+            if search and correction:
+                s = _("Search term not found, did you mean: %s") % correction
+                self.label_app_list_header.set_text(s)
+                self.label_app_list_header.set_visible(True)
+        else:
+            self.label_app_list_header.set_visible(False)
             
     def _show_nonapp_pkgs(self):
         self.nonapps_visible = AppStore.NONAPPS_ALWAYS_VISIBLE
