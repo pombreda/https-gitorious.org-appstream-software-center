@@ -99,12 +99,13 @@ class AppDetailsViewBase(object):
                     'arch' : get_current_arch() ,
                     }))
         appdetails = self.app.get_details(self.db)
-        self.purchase_dialog = PurchaseDialog(url=url, 
-                                              app=self.app,
-                                              iconname=appdetails.icon)
-        res = self.purchase_dialog.run()
-        self.purchase_dialog.destroy()
-        del self.purchase_dialog
+        print "creating the PurchasePane"
+#        self.purchase_dialog = PurchaseDialog(url=url, 
+#                                              app=self.app,
+#                                              iconname=appdetails.icon)
+#        res = self.purchase_dialog.run()
+#        self.purchase_dialog.destroy()
+#        del self.purchase_dialog
         # re-init view if user canceled, otherwise the transactions 
         # will finish it after some time
         if res != gtk.RESPONSE_OK:
