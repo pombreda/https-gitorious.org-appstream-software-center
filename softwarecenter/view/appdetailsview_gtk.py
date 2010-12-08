@@ -41,7 +41,7 @@ from softwarecenter.db.application import AppDetails, Application
 from softwarecenter.backend.zeitgeist_simple import zeitgeist_singleton
 from softwarecenter.enums import *
 from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
-from softwarecenter.utils import ImageDownloader, GMenuSearcher, uri_to_filename
+from softwarecenter.utils import ImageDownloader, GMenuSearcher, uri_to_filename, is_unity_running
 from softwarecenter.gwibber_helper import GWIBBER_SERVICE_AVAILABLE
 
 from appdetailsview import AppDetailsViewBase
@@ -1474,6 +1474,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         return
 
     def _configure_where_is_it(self):
+        # disable where-is-it under Unity as it does not apply there
+        if is_unity_running():
+            return
         # remove old content
         self.desc_installed_where.foreach(lambda c: c.destroy())
         self.desc_installed_where.set_property("can-focus", False)
