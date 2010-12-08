@@ -39,6 +39,8 @@ from enums import USER_AGENT
 # because only '&amp;', '&lt;', and '&gt;' are included by default
 ESCAPE_ENTITIES = {"&apos;":"'",
                    '&quot;':'"'}
+                   
+LOG = logging.getLogger("softwarecenter.utils")
 
 class ExecutionTime(object):
     """
@@ -237,8 +239,7 @@ def is_unity_running():
         bus = dbus.SessionBus()
         unity_running = bus.name_has_owner("com.canonical.Unity.Panel.Service")
     except:
-        # FIXME: log this
-        print "could not check for Unity dbus service"
+        LOG.exception("could not check for Unity dbus service")
     return unity_running
 
 # FIXME: why not call it a generic downloader?
