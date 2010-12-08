@@ -150,7 +150,7 @@ class AvailablePane(SoftwarePane):
                                                  self.navhistory_forward_action)
 
         # app list
-        self.notebook.append_page(self.scroll_app_list,
+        self.notebook.append_page(self.box_app_list,
                                     gtk.Label(self.NAV_BUTTON_ID_LIST))
 
         self.cat_view.connect("category-selected", self.on_category_activated)
@@ -218,8 +218,8 @@ class AvailablePane(SoftwarePane):
         self.show_appview_spinner()
         if self.subcategories_view.window:
             self.subcategories_view.window.set_cursor(self.busy_cursor)
-        if self.scroll_app_list.window:
-            self.scroll_app_list.window.set_cursor(self.busy_cursor)
+        if self.box_app_list.window:
+            self.box_app_list.window.set_cursor(self.busy_cursor)
         self._refresh_apps_with_apt_cache()
 
     @wait_for_apt_cache_ready
@@ -294,8 +294,8 @@ class AvailablePane(SoftwarePane):
             self.cat_view.window.set_cursor(None)
         if self.app_details.window:
             self.cat_view.window.set_cursor(None)
-        if self.scroll_app_list.window:
-            self.scroll_app_list.window.set_cursor(None)
+        if self.box_app_list.window:
+            self.box_app_list.window.set_cursor(None)
 
         return False
 

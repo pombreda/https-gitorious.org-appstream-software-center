@@ -230,6 +230,15 @@ class StoreDatabase(gobject.GObject):
         fuzzy_query = _add_category_to_query(fuzzy_query)
         return [pkg_query,fuzzy_query]
 
+    def get_spelling_correction(self, search_term):
+        # get a search query
+        if not ':' in search_term: # ie, not a mimetype query
+            # we need this to work around xapian oddness
+            search_term = search_term.replace('-','_')
+        query = self.xapian_parser.parse_query(
+            search_term, xapian.QueryParser.FLAG_SPELLING_CORRECTION)
+        return self.xapian_parser.get_corrected_query_string()
+
     def get_most_popular_applications_for_mimetype(self, mimetype, 
                                                   only_uninstalled=True, num=3):
         """ return a list of the most popular applications for the given
@@ -245,7 +254,7 @@ class StoreDatabase(gobject.GObject):
         matches = enquire.get_mset(0, 100)
         apps = []
         for match in matches:
-            doc = match.get_document()
+            doc = match.document
             app = Application(self.get_appname(doc),self.get_pkgname(doc),
                               popcon=self.get_popcon(doc))
             if only_uninstalled:

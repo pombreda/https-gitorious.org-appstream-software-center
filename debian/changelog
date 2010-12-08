@@ -1,12 +1,9 @@
-software-center (3.1.5) UNRELEASED; urgency=low
-
-  [ Michael Vogt ]
-  * softwarecenter/app.py:
-    - on a invalid locale, reset the locale to "C" to avoid
-      later crashes in the apthistory that uses strptime 
-      (lp: #630248)
+software-center (3.1.6) UNRELEASED; urgency=low
 
   [ Gary Lasker ]
+  * softwarecenter/utils.py,
+    softwarecenter/view/appdetailsview_gtk.py:
+    - disable find-it-in-the-menu under Unity (LP: #639701)
   * softwarecenter/view/appview.py,
     softwarecenter/view/catview_gtk.py:
     - thread listview refreshes to restore UI feedback with new
@@ -17,8 +14,23 @@ software-center (3.1.5) UNRELEASED; urgency=low
     softwarecenter/view/channelpane.py,
     softwarecenter/view/installedpane.py:
     - cleanup imports for wait_for_apt_cache_ready
+  
+  [ Michael Vogt ]
+  * merged lp:~mvo/software-center/no-search-results-help that 
+    brings search suggestions for spelling corrections
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 08 Dec 2010 10:54:37 -0500
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 08 Dec 2010 16:05:23 -0500
+
+software-center (3.1.5) natty; urgency=low
+
+  * softwarecenter/app.py:
+    - on a invalid locale, reset the locale to "C" to avoid
+      later crashes in the apthistory that uses strptime 
+      (lp: #630248)
+  * softwarecenter/view/appview.py:
+    - fix crash with the latest python-xapian (LP: #687399)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 08 Dec 2010 18:05:05 +0100
 
 software-center (3.1.4) natty; urgency=low
 

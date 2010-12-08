@@ -605,10 +605,10 @@ class AppStore(gtk.GenericTreeModel):
     def on_iter_parent(self, child):
         return None
 
-class LocaleSorter(xapian.Sorter):
+class LocaleSorter(xapian.KeyMaker):
     """ Sort in a locale friendly way by using locale.xtrxfrm """
     def __init__(self, db):
-        xapian.Sorter.__init__(self)
+        xapian.KeyMaker.__init__(self)
         self.db = db
     def __call__(self, doc):
         return locale.strxfrm(doc.get_value(self.db._axi_values["display_name"]))

@@ -63,7 +63,7 @@ class ChannelPane(SoftwarePane):
         self.connect("app-list-changed", self._on_app_list_changed)
 
     def _build_ui(self):
-        self.notebook.append_page(self.scroll_app_list, gtk.Label("channel"))
+        self.notebook.append_page(self.box_app_list, gtk.Label("channel"))
         # details
         self.notebook.append_page(self.scroll_details, gtk.Label("details"))
 
@@ -130,8 +130,8 @@ class ChannelPane(SoftwarePane):
             LOG.warn("early discarding new model (%s != %s)" % (seq_nr, self.refresh_seq_nr))
             return False
         # get a new store and attach it to the view
-        if self.scroll_app_list.window:
-            self.scroll_app_list.window.set_cursor(self.busy_cursor)
+        if self.box_app_list.window:
+            self.box_app_list.window.set_cursor(self.busy_cursor)
         if self.searchentry.get_text():
             sort_mode = SORT_BY_SEARCH_RANKING
         else:
@@ -147,8 +147,8 @@ class ChannelPane(SoftwarePane):
         # between request of the new model and actual delivery other
         # events may have happend
         self.hide_appview_spinner()
-        if self.scroll_app_list.window:
-            self.scroll_app_list.window.set_cursor(None)
+        if self.box_app_list.window:
+            self.box_app_list.window.set_cursor(None)
         if seq_nr == self.refresh_seq_nr:
             self.app_view.set_model(new_model)
             self.app_view.get_model().active = True
