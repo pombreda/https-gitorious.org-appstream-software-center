@@ -110,18 +110,14 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         try:
             locale.setlocale(locale.LC_ALL, "")
         except:
-            self._logger.exception("setlocale failed")
+            self._logger.exception("setlocale failed, reseting to C")
+            locale.setlocale(locale.LC_ALL, "C")
 
         # setup dbus and exit if there is another instance already
         # running
         self.setup_dbus_or_bring_other_instance_to_front(args)
         self.setup_database_rebuilding_listener()
         
-        try:
-            locale.setlocale(locale.LC_ALL, "")
-        except Exception, e:
-            self._logger.exception("setlocale failed")
-
         # distro specific stuff
         self.distro = get_distro()
 
