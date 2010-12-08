@@ -1474,6 +1474,11 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         return
 
     def _configure_where_is_it(self):
+        # disable where-is-it under Unity as it does not apply there
+        # FIXME: do this generically, preferably by checking directly
+        # that the menu is actually there
+        if os.environ.get("COMPIZ_CONFIG_PROFILE") == "ubuntu":
+            return
         # remove old content
         self.desc_installed_where.foreach(lambda c: c.destroy())
         self.desc_installed_where.set_property("can-focus", False)
