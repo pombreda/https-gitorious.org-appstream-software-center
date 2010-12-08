@@ -31,6 +31,7 @@ import traceback
 import time
 import xml.sax.saxutils
 import gtk
+import dbus
 
 from enums import USER_AGENT
 
@@ -226,6 +227,20 @@ def get_default_language():
     if locale[0] == "C":
         return "en"
     return locale[0]
+    
+def is_unity_running():
+    """
+    return True if Unity is currently running
+    """
+    unity_running = False
+    try:
+        bus = dbus.SessionBus()
+        unity_running = bus.name_has_owner("com.canonical.Unity.Panel.Service")
+    except:
+        # TODO: log this
+        print "could not check for Unity dbus service"
+    print "unity_running", unity_running
+    return unity_running
 
 # FIXME: why not call it a generic downloader?
 class ImageDownloader(gobject.GObject):
