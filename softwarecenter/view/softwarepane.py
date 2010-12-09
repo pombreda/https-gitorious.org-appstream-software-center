@@ -342,27 +342,34 @@ class SoftwarePane(gtk.VBox, BasePane):
         self.update_search_help()
 
     def update_search_help(self):
+        search = self.searchentry.get_text()
         appstore = self.app_view.get_model()
-        if appstore is not None and len(appstore) == 0:
-            # FIXME: if in category/subcategory suggest expanding
-            #        the search
-            search = self.searchentry.get_text()
+        if (search and appstore is not None and len(appstore) == 0):
+            category = self.get_current_category()
             correction = self.db.get_spelling_correction(search)
-            if search and correction:
+            if category:
+                text = _("Search term not found in current category, "
+                         "do you want to search "
+                         "<a href=\"search-all:\">all categories</a> instead ?")
+                self.label_app_list_header.set_markup(text)
+                self.label_app_list_header.set_visible(True)
+                return
+            elif correction:
                 ref = "<a href=\"search:%s\">%s</a>" % (correction, correction)
                 text = _("Search term not found, did you mean: %s ?") % ref
                 self.label_app_list_header.set_markup(text)
                 self.label_app_list_header.set_visible(True)
-                self.label_app_list_header.connect(
-                    "activate-link", self._on_label_app_list_header_activate_link)
-
-        else:
-            self.label_app_list_header.set_visible(False)
+                return
+        # catchall, hide if we don't have anything useful to suggest
+        self.label_app_list_header.set_visible(False)
             
     def _on_label_app_list_header_activate_link(self, link, uri):
         #print "actiavte: ", link, uri
         if uri.startswith("search:"):
             self.searchentry.set_text(uri[len("search:"):])
+        elif uri.startswith("search-all:"):
+            self.unset_current_category()
+            self.refresh_apps()
         # FIXME: add ability to remove categories restriction here
         # True stops event propergation
         return True
@@ -407,3 +414,10 @@ class SoftwarePane(gtk.VBox, BasePane):
         " stub implementation "
         pass
 
+    def get_current_category(self):
+        " stub implementation "
+        pass
+
+    def unset_current_category(self):
+        " stub implementation "
+        pass

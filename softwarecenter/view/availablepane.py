@@ -339,6 +339,23 @@ class AvailablePane(SoftwarePane):
             else:
                 return self.current_app_by_category.get(self.apps_category)
 
+    def get_current_category(self):
+        """ return the current category that is in use or None """
+        if self.apps_subcategory:
+            return self.apps_subcategory
+        elif self.apps_category:
+            return self.apps_category
+        return None
+
+    def unset_current_category(self):
+        """ unset the current showing category, but keep e.g. the current 
+            search 
+        """
+        self.apps_category = None
+        self.apps_subcategory = None
+        self.navigation_bar.remove_all(do_callback=False, animate=False)
+        self.update_navigation_button()
+
     def _on_transactions_changed(self, *args):
         """internal helper that keeps the action bar up-to-date by
            keeping track of the transaction-started signals
