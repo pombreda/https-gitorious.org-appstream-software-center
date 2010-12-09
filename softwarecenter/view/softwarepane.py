@@ -345,17 +345,19 @@ class SoftwarePane(gtk.VBox, BasePane):
         search = self.searchentry.get_text()
         appstore = self.app_view.get_model()
         if (search and appstore is not None and len(appstore) == 0):
+            category = self.get_current_category()
             correction = self.db.get_spelling_correction(search)
-            if correction:
-                ref = "<a href=\"search:%s\">%s</a>" % (correction, correction)
-                text = _("Search term not found, did you mean: %s ?") % ref
+            if category:
+                text = _("Search term not found in current category, "
+                         "do you want to search "
+                         "<a href=\"search-all:\">all categories</a> instead ?")
                 self.label_app_list_header.set_markup(text)
                 self.label_app_list_header.set_visible(True)
                 return
-            elif self.get_current_category():
-                text = _("Search term not found in current category, do you want to search all categories instead ?")
-                ref = "<a href=\"search-all:\">%s</a>" % text
-                self.label_app_list_header.set_markup(ref)
+            elif correction:
+                ref = "<a href=\"search:%s\">%s</a>" % (correction, correction)
+                text = _("Search term not found, did you mean: %s ?") % ref
+                self.label_app_list_header.set_markup(text)
                 self.label_app_list_header.set_visible(True)
                 return
         # catchall, hide if we don't have anything useful to suggest
