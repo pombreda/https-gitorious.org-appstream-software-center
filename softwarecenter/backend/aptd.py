@@ -35,15 +35,19 @@ from aptdaemon.gtkwidgets import AptMediumRequiredDialog, \
 from aptsources.sourceslist import SourceEntry
 from aptdaemon import policykit1
 
+# natty uses python-defer
 try:
     from defer import inline_callbacks, return_value
 except ImportError:
-    logging.getLogger("softwarecenter.backend").exception("aptdaemon import failed")
-    print 'Need the latest aptdaemon, try "sudo apt-add-repository ppa:software-store-developers/ppa" to get the PPA'
-    sys.exit(1)
+    # compat with maverick
+    try:
+        from aptdaemon.defer import inline_callbacks, return_value
+    except ImportError:
+        logging.getLogger("softwarecenter.backend").exception("aptdaemon import failed")
+        print 'Need the latest aptdaemon, try "sudo apt-add-repository ppa:software-store-developers/ppa" to get the PPA'
+        sys.exit(1)
 
 import gtk
-
 from softwarecenter.backend.transactionswatcher import TransactionsWatcher
 from softwarecenter.utils import get_http_proxy_string_from_gconf
 from softwarecenter.view import dialogs
