@@ -1,11 +1,26 @@
-software-center (3.1.5) UNRELEASED; urgency=low
+software-center (3.1.6) UNRELEASED; urgency=low
+
+  [ Gary Lasker ]
+  * softwarecenter/utils.py,
+    softwarecenter/view/appdetailsview_gtk.py:
+    - disable find-it-in-the-menu under Unity (LP: #639701)
+  
+  [ Michael Vogt ]
+  * merged lp:~mvo/software-center/no-search-results-help that 
+    brings search suggestions for spelling corrections
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 08 Dec 2010 19:31:38 +0100
+
+software-center (3.1.5) natty; urgency=low
 
   * softwarecenter/app.py:
     - on a invalid locale, reset the locale to "C" to avoid
       later crashes in the apthistory that uses strptime 
       (lp: #630248)
+  * softwarecenter/view/appview.py:
+    - fix crash with the latest python-xapian (LP: #687399)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 08 Dec 2010 11:36:37 +0100
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 08 Dec 2010 18:05:05 +0100
 
 software-center (3.1.4) natty; urgency=low
 
