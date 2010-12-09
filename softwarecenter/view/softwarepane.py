@@ -364,6 +364,8 @@ class SoftwarePane(gtk.VBox, BasePane):
         if uri.startswith("search:"):
             self.searchentry.set_text(uri[len("search:"):])
         # FIXME: add ability to remove categories restriction here
+        # True stops event propergation
+        return True
 
     def _show_nonapp_pkgs(self):
         self.nonapps_visible = AppStore.NONAPPS_ALWAYS_VISIBLE

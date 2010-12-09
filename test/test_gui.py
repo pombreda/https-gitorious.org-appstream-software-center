@@ -36,7 +36,7 @@ mock_options.enable_buy = True
 app = SoftwareCenterApp("../data", XAPIAN_BASE_PATH, mock_options)
 app.window_main.show_all()
 
-class SCTestGUI(unittest.TestCase):
+class TestGUI(unittest.TestCase):
 
     def setUp(self):
         self.app = app
@@ -123,6 +123,17 @@ class SCTestGUI(unittest.TestCase):
         self.assertEqual(self.app.available_pane.notebook.get_current_page(),
                          AvailablePane.PAGE_APP_DETAILS)
 
+
+    def test_search_suggestions(self):
+        self._reset_ui()
+        # correct search
+        self._run_search("apt")
+        self.assertFalse(self.app.available_pane.label_app_list_header.flags() & gtk.VISIBLE)
+        # mispelled
+        self._run_search("aptz")
+        self.assertTrue(self.app.available_pane.label_app_list_header.flags() & gtk.VISIBLE)
+        
+        
 
     def test_install_the_4g8_package(self):
         self._reset_ui()
