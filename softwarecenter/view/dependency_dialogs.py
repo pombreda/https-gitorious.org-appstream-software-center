@@ -26,8 +26,6 @@ from softwarecenter.backend import get_install_backend
 from softwarecenter.distro import get_distro
 from softwarecenter.enums import MISSING_APP_ICON
 
-from aptdaemon.defer import inline_callbacks
-
 def confirm_install(parent, datadir, app, db, icons):
     """Confirm install of the given app
        
