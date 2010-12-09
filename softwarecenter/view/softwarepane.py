@@ -349,13 +349,18 @@ class SoftwarePane(gtk.VBox, BasePane):
             search = self.searchentry.get_text()
             correction = self.db.get_spelling_correction(search)
             if search and correction:
-                s = _("Search term not found, did you mean: <a href=\"search:%s\">%s</a>") % (correction, correction)
-                self.label_app_list_header.set_markup(s)
+                ref = "<a href=\"search:%s\">%s</a>" % (correction, correction)
+                text = _("Search term not found, did you mean: %s ?") % ref
+                self.label_app_list_header.set_markup(text)
                 self.label_app_list_header.set_visible(True)
+                self.label_app_list_header.connect(
+                    "activate-link", self._on_label_app_list_header_activate_link)
+
         else:
             self.label_app_list_header.set_visible(False)
             
     def _on_label_app_list_header_activate_link(self, link, uri):
+        #print "actiavte: ", link, uri
         if uri.startswith("search:"):
             self.searchentry.set_text(uri[len("search:"):])
         # FIXME: add ability to remove categories restriction here
