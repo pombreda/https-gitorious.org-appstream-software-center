@@ -332,6 +332,8 @@ class LobbyViewGtk(CategoriesViewGtk):
             label = gettext.ngettext("%(len)i new recommendation",
                                      "%(len)i new recommendations",
                                      len(r_apps)) % { 'len' : len(r_apps) }
+            # FIXME: use a gtk.Label() with <a href> instead and put it
+            #        all into one label to make it more i18n friendly
             linkbutton = mkit.HLinkButton(label)
             linkbutton.set_underline(True)
             linkbutton.set_subdued(True)
