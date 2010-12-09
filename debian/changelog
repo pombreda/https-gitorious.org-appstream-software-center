@@ -1,4 +1,4 @@
-software-center (3.1.6) UNRELEASED; urgency=low
+software-center (3.1.6) natty; urgency=low
 
   [ Gary Lasker ]
   * softwarecenter/utils.py,
@@ -8,8 +8,10 @@ software-center (3.1.6) UNRELEASED; urgency=low
   [ Michael Vogt ]
   * merged lp:~mvo/software-center/no-search-results-help that 
     brings search suggestions for spelling corrections
+  * add compat mode so that the current code can still be run on 
+    maverick for now
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 08 Dec 2010 19:31:38 +0100
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 09 Dec 2010 16:51:07 +0100
 
 software-center (3.1.5) natty; urgency=low
 
