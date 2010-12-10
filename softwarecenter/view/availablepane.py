@@ -279,9 +279,9 @@ class AvailablePane(SoftwarePane):
            signals
         """
         super(AvailablePane, self).on_app_list_changed(pane, length)
+        self._show_hide_subcategories()
         self._update_status_text(length)
         self._update_action_bar()
-        self._show_hide_subcategories()
 
     def _update_status_text(self, length):
         """
