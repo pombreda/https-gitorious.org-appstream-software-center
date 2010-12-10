@@ -401,7 +401,6 @@ class SoftwarePane(gtk.VBox, BasePane):
         
     def refresh_apps(self, query=None):
         """refresh the applist and update the navigation bar """
-        logging.debug("refresh_apps")
         LOG.debug("refresh_apps")
 
         # FIXME: make this available for all panes
@@ -410,7 +409,8 @@ class SoftwarePane(gtk.VBox, BasePane):
         # exactly the same model, nothing to do
         if (old_model and 
             query == old_model.search_query and
-            self.apps_filter == old_model.filter):
+            self.apps_filter == old_model.filter and
+            self.nonapps_visible == old_model.nonapps_visible):
             # emit the signal to ensure that the ui updates status bar
             # and all (name is misleading :/
             self.emit("app-list-changed", len(self.app_view.get_model()))
