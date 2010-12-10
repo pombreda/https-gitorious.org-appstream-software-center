@@ -19,6 +19,7 @@
 
 import gobject
 import gtk
+import logging
 import xapian
 
 from gettext import gettext as _
@@ -30,6 +31,8 @@ from softwarecenter.enums import *
 from softwarecenter.utils import wait_for_apt_cache_ready
 
 from softwarecenter.view.widgets.animatedimage import CellRendererAnimatedImage, AnimatedImage
+
+LOG = logging.getLogger(__name__)
 
 class ViewSwitcherList(gtk.TreeStore):
     
