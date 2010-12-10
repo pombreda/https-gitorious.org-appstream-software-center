@@ -208,7 +208,6 @@ class AvailablePane(SoftwarePane):
             self.notebook.set_current_page(self.PAGE_SUBCATEGORY)
         else:
             self.notebook.set_current_page(self.PAGE_APPLIST)
-            self.update_app_view()
 
     def update_navigation_button(self):
         """Update the navigation button"""

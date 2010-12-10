@@ -147,11 +147,11 @@ class SoftwarePane(gtk.VBox, BasePane):
         self.box_app_list.pack_start(
             self.label_app_list_header, expand=False, fill=False, padding=12)
         self.app_view = AppView(show_ratings)
-        scroll_app_list = gtk.ScrolledWindow()
-        scroll_app_list.set_policy(gtk.POLICY_AUTOMATIC, 
+        self.scroll_app_list = gtk.ScrolledWindow()
+        self.scroll_app_list.set_policy(gtk.POLICY_AUTOMATIC, 
                                         gtk.POLICY_AUTOMATIC)
-        scroll_app_list.add(self.app_view)
-        self.box_app_list.pack_start(scroll_app_list)
+        self.scroll_app_list.add(self.app_view)
+        self.box_app_list.pack_start(self.scroll_app_list)
         self.app_view.connect("application-selected", 
                               self.on_application_selected)
         self.app_view.connect("application-activated", 
@@ -250,31 +250,6 @@ class SoftwarePane(gtk.VBox, BasePane):
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
         self.app_details.show_app(app)
 
-    def update_app_view(self):
-        """
-        Update the app_view.  If no row is selected, then the previously
-        selected app is reselected if it is found in the model, else the
-        first app in the list is selected.  If a row is already selected,
-        nothing is done.
-        """
-        model = self.app_view.get_model()
-        current_app = self.get_current_app()
-        if model and current_app:
-            with ExecutionTime("reapply"):
-                self._reapply_selected_app(model, current_app)
-
-    def _reapply_selected_app(self, model, app):
-        """ take the app and select in the model """
-        doc = self.db.get_xapian_document(app.appname, app.pkgname)
-        if doc:
-            docid = doc.get_docid()
-            for (i, m) in enumerate(model.matches):
-                # we search over multiple databasee so we need to
-                # apply http://trac.xapian.org/wiki/FAQ/MultiDatabaseDocumentID
-                m_docid_sub = (m.docid-1)/self.db.nr_databases +1
-                if m_docid_sub == docid:
-                    self.app_view.set_cursor(i)
-            
     def show_appview_spinner(self):
         """ display the spinner in the appview panel """
         self.action_bar.clear()

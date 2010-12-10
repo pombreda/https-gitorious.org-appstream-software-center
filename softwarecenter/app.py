@@ -818,7 +818,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self._logger.debug("on_channels_changed %s" % res)
         if res:
             # reopen the database, this will ensure that the right signals
-            # are send and triggers "refresh_apps", "update_app_view"
+            # are send and triggers "refresh_apps"
             # and refresh the displayed app in the details as well
             self.db.reopen()
             self.update_status_bar()
