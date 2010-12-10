@@ -104,7 +104,7 @@ class SoftwareSection(object):
 
 
 class SoftwarePane(gtk.VBox, BasePane):
-    """ Common base class for InstalledPane and AvailablePane """
+    """ Common base class for InstalledPane, AvailablePane and ChannelPane"""
 
     __gsignals__ = {
         "app-list-changed" : (gobject.SIGNAL_RUN_LAST,
@@ -447,7 +447,7 @@ class SoftwarePane(gtk.VBox, BasePane):
     @wait_for_apt_cache_ready
     def _refresh_apps_with_apt_cache(self, query):
         self.refresh_seq_nr += 1
-        LOG.debug("availablepane query: %s" % query)
+        LOG.debug("softwarepane query: %s" % query)
 
         old_model = self.app_view.get_model()
         if old_model is not None:
@@ -458,7 +458,7 @@ class SoftwarePane(gtk.VBox, BasePane):
             while gtk.events_pending():
                 gtk.main_iteration()
 
-        LOG.debug("availablepane query: %s" % query)
+        LOG.debug("softwarepane query: %s" % query)
         # create new model and attach it
         seq_nr = self.refresh_seq_nr
         # special case to disable show/hide nonapps for the "Featured" category
