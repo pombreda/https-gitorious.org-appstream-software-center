@@ -215,10 +215,10 @@ class StoreDatabase(gobject.GObject):
         # empty query returns a query that matches nothing (for performance
         # reasons)
         if search_term == "" and category_query is None:
-            return xapian.Query()
+            return SearchQuery(xapian.Query())
         # we cheat and return a match-all query for single letter searches
         if len(search_term) < 2:
-            return _add_category_to_query(xapian.Query(""))
+            return SearchQuery(_add_category_to_query(xapian.Query("")))
 
         # check if there is a ":" in the search, if so, it means the user
         # is using a xapian prefix like "pkg:" or "mime:" and in this case
@@ -240,7 +240,7 @@ class StoreDatabase(gobject.GObject):
         # query
         queries = self._comma_expansion(search_term)
         if queries:
-            return map(_add_category_to_query, queries)
+            return SearchQuery(map(_add_category_to_query, queries))
 
         # get a pkg query
         pkg_query = xapian.Query()
@@ -264,7 +264,7 @@ class StoreDatabase(gobject.GObject):
                                             xapian.QueryParser.FLAG_BOOLEAN)
         # now add categories
         fuzzy_query = _add_category_to_query(fuzzy_query)
-        return [pkg_query,fuzzy_query]
+        return SearchQuery([pkg_query,fuzzy_query])
 
     def get_spelling_correction(self, search_term):
         # get a search query
