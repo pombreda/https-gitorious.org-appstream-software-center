@@ -38,16 +38,22 @@ class SearchQuery(list):
     def __init__(self, query_string_or_list):
         if query_string_or_list is None:
             pass
+        # turn single querries into a single item list
         elif isinstance(query_string_or_list, xapian.Query):
             self.append(query_string_or_list)
         else:
             self.extend(query_string_or_list)
     def __eq__(self, other):
+        # turn single querries into a single item list
+        if  isinstance(other, xapian.Query):
+            other = [other]
         q1 = [str(q) for q in self]
         q2 = [str(q) for q in other]
         return q1 == q2
     def __ne__(self, other):
         return not self.__eq__(other)
+    def __repr__(self):
+        return "[%s]" % ",".join([str(q) for q in self])
 
 # class LocaleSorter(xapian.KeyMaker)
 #   ubuntu maverick does not have the KeyMakter yet, maintain compatibility
