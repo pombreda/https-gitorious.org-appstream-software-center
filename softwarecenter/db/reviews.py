@@ -129,13 +129,14 @@ class ReviewLoaderJsonAsync(ReviewLoader):
             json_str = gz.read()
         reviews_json = simplejson.loads(json_str)
         reviews = []
+        print json_str
         for review_json in reviews_json:
             appname = review_json["app_name"]
             pkgname = review_json["package_name"]
             app = Application(appname, pkgname)
             review = Review(app)
             review.id = review_json["id"]
-            review.date = review_json["date"]
+            review.date = review_json["date_created"]
             review.rating = review_json["rating"]
             review.person = review_json["reviewer_username"]
             review.language = review_json["language"]
@@ -167,7 +168,7 @@ class ReviewLoaderJsonAsync(ReviewLoader):
     def get_reviews(self, app, callback):
         """ get a specific review and call callback when its available"""
         # FIXME: get this from the app details
-        origin = "ubuntu"
+        origin = "Ubuntu"
         distroseries = self.distro.get_codename()
         distroseries = "maverick"
         url = self.distro.REVIEWS_URL % { 'pkgname' : app.pkgname,
