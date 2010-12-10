@@ -140,6 +140,8 @@ class AppStore(gtk.GenericTreeModel):
         # this is used to find the in-progress rows
         self.pkgname_index_map = {}
         self.sortmode = sortmode
+        # we need a copy of the filter here because otherwise comparing
+        # two models will not work
         self.filter = copy.copy(filter)
         self.exact = exact
         self.active = True
@@ -161,14 +163,14 @@ class AppStore(gtk.GenericTreeModel):
         self.limit = limit
         # no search query means "all"
         if not search_query:
-            search_query = xapian.Query("")
+            self.search_query = SearchQuery(xapian.Query(""))
             self.sortmode = SORT_BY_ALPHABET
             self.limit = 0
 
         # we support single and list search_queries,
         # if list we append them one by one
         with ExecutionTime("populate model from query: '%s'" % " ; ".join([
-                str(q) for q in search_query])):
+                str(q) for q in self.search_query])):
             #useful only for debugging
             #log_traceback("creating a AppStore")
             self._perform_search()
