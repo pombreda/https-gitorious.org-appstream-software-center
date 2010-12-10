@@ -20,8 +20,7 @@ from __future__ import with_statement
 
 
 import __builtin__
-import apt
-import gettext
+import copy
 import glib
 import gobject
 import gtk
@@ -29,20 +28,16 @@ import locale
 import logging
 import math
 import os
-import pango
-import string
-import sys
-import time
-import xapian
-import cairo
 import pangocairo
-
+import pango
+import sys
+import xapian
 
 if os.path.exists("./softwarecenter/enums.py"):
     sys.path.insert(0, ".")
 from softwarecenter.enums import *
 from softwarecenter.utils import *
-from softwarecenter.db.database import StoreDatabase, Application
+from softwarecenter.db.database import StoreDatabase, Application, SearchQuery, LocaleSorter
 from softwarecenter.backend import get_install_backend
 from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
 from softwarecenter.distro import get_distro
@@ -51,21 +46,7 @@ from gtk import gdk
 
 from gettext import gettext as _
 
-# ubuntu maverick does not have the KeyMakter yet, maintain compatibility
-# for now by falling back to the old xapian.Sorter
-try:
-    parentClass = xapian.KeyMaker
-except AttributeError:
-    parentClass = xapian.Sorter
-class LocaleSorter(parentClass):
-    """ Sort in a locale friendly way by using locale.xtrxfrm """
-    def __init__(self, db):
-        super(LocaleSorter, self).__init__()
-        self.db = db
-    def __call__(self, doc):
-        return locale.strxfrm(doc.get_value(self.db._axi_values["display_name"]))
-
-# cache icons to speed up rendering
+# global cache icons to speed up rendering
 _app_icon_cache = {}
 
 class AppStore(gtk.GenericTreeModel):
@@ -139,7 +120,7 @@ class AppStore(gtk.GenericTreeModel):
         """
         gtk.GenericTreeModel.__init__(self)
         self._logger = logging.getLogger("softwarecenter.view.appstore")
-        self.search_query = search_query
+        self.search_query = SearchQuery(search_query)
         self.cache = cache
         self.db = db
         self.distro = get_distro()
@@ -159,7 +140,7 @@ class AppStore(gtk.GenericTreeModel):
         # this is used to find the in-progress rows
         self.pkgname_index_map = {}
         self.sortmode = sortmode
-        self.filter = filter
+        self.filter = copy.copy(filter)
         self.exact = exact
         self.active = True
         # These track if technical (non-applications) are being displayed
@@ -186,9 +167,6 @@ class AppStore(gtk.GenericTreeModel):
 
         # we support single and list search_queries,
         # if list we append them one by one
-        if isinstance(search_query, xapian.Query):
-            search_query = [search_query]
-        self.search_query = search_query
         with ExecutionTime("populate model from query: '%s'" % " ; ".join([
                 str(q) for q in search_query])):
             #useful only for debugging
@@ -214,6 +192,7 @@ class AppStore(gtk.GenericTreeModel):
         else:
             xfilter = None
         # go over the queries
+        self.matches = []
         for q in self.search_query:
             enquire = xapian.Enquire(self.db.xapiandb)
             self._logger.debug("initial query: '%s'" % q)
@@ -277,7 +256,8 @@ class AppStore(gtk.GenericTreeModel):
             self.matches = matches
 
         # if we have no results, try forcing pkgs to be displayed
-        if not matches and self.nonapps_visible != self.NONAPPS_ALWAYS_VISIBLE:
+        if (not self.matches and
+            self.nonapps_visible != self.NONAPPS_ALWAYS_VISIBLE):
             self.nonapps_visible = self.NONAPPS_ALWAYS_VISIBLE
             self._perform_search()
 
@@ -1234,10 +1214,6 @@ class AppView(gtk.TreeView):
         # Only allow use of an AppStore model
         if type(new_model) != AppStore:
             return
-        model = self.get_model()
-        # If there is no current model, simply set the new one.
-        if not model:
-            return super(AppView, self).set_model(new_model)
         return super(AppView, self).set_model(new_model)
         
     def clear_model(self):
@@ -1587,7 +1563,7 @@ class AppViewFilter(xapian.MatchDecider):
         """ True if the filter is in a state that it should be part of a query """
         return (self.supported_only or
                 self.installed_only or 
-                self.installed_only)
+                self.not_installed_only)
     def set_supported_only(self, v):
         self.supported_only = v
     def set_installed_only(self, v):
@@ -1596,6 +1572,12 @@ class AppViewFilter(xapian.MatchDecider):
         self.not_installed_only = v
     def get_supported_only(self):
         return self.supported_only
+    def __eq__(self, other):
+        return (self.supported_only == other.supported_only and
+                self.installed_only == other.installed_only and
+                self.not_installed_only == other.not_installed_only)
+    def __ne__(self, other):
+        return not self.__eq__(other)
     def __call__(self, doc):
         """return True if the package should be displayed"""
         pkgname =  doc.get_value(XAPIAN_VALUE_PKGNAME)  or doc.get_value(self.db._axi_values["pkgname"])

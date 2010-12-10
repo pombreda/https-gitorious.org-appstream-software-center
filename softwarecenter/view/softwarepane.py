@@ -385,7 +385,7 @@ class SoftwarePane(gtk.VBox, BasePane):
     def get_status_text(self):
         """return user readable status text suitable for a status bar"""
         raise NotImplementedError
-        
+
     @wait_for_apt_cache_ready
     def refresh_apps(self):
         " stub implementation "

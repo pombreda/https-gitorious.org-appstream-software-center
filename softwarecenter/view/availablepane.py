@@ -28,10 +28,10 @@ from gettext import gettext as _
 
 from softwarecenter.enums import *
 from softwarecenter.utils import *
+from softwarecenter.db.database import SearchQuery
 from softwarecenter.distro import get_distro
 
 from appview import AppView, AppStore, AppViewFilter
-
 #from catview_webkit import CategoriesViewWebkit as CategoriesView
 from catview_gtk import LobbyViewGtk, SubCategoryViewGtk
 from catview import Category, CategoriesView
@@ -210,33 +210,32 @@ class AvailablePane(SoftwarePane):
             self.update_app_view()
 
     def refresh_apps(self, query=None):
-        """refresh the applist and update the navigation bar
-        """
+        """refresh the applist and update the navigation bar """
         logging.debug("refresh_apps")
         self._logger.debug("refresh_apps")
+
+        # FIXME: make this available for all panes
+        query = SearchQuery(self._get_query())
+        old_model = self.app_view.get_model()
+        # exactly the same model, nothing to do
+        if (old_model and 
+            query == old_model.search_query and
+            self.apps_filter == old_model.filter):
+            return
 
         self.show_appview_spinner()
         if self.subcategories_view.window:
             self.subcategories_view.window.set_cursor(self.busy_cursor)
         if self.box_app_list.window:
             self.box_app_list.window.set_cursor(self.busy_cursor)
-        self._refresh_apps_with_apt_cache()
+        self._refresh_apps_with_apt_cache(query)
 
     @wait_for_apt_cache_ready
-    def _refresh_apps_with_apt_cache(self, query=None):
+    def _refresh_apps_with_apt_cache(self, query):
         self.refresh_seq_nr += 1
-        # build query
-        query = self._get_query()
         self._logger.debug("availablepane query: %s" % query)
 
         old_model = self.app_view.get_model()
-
-        # if a search is not in progress, clear the current model to
-        # display an empty list while the full list is generated; this
-        # prevents a visual glitch when a list is replaced
-        if not self.apps_search_term:
-            self.app_view.clear_model()
-        
         if old_model is not None:
             # *ugh* deactivate the old model because otherwise it keeps
             # getting progress_changed events and eats CPU time until its

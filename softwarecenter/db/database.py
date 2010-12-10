@@ -29,6 +29,42 @@ from softwarecenter.utils import *
 from softwarecenter.enums import *
 from gettext import gettext as _
 
+class SearchQuery(list):
+    """ a list wrapper for a search query. it can take a search string
+        or a list of search strings
+
+        It provides __eq__ to easily compare two search query lists
+    """
+    def __init__(self, query_string_or_list):
+        if query_string_or_list is None:
+            pass
+        elif isinstance(query_string_or_list, xapian.Query):
+            self.append(query_string_or_list)
+        else:
+            self.extend(query_string_or_list)
+    def __eq__(self, other):
+        q1 = [str(q) for q in self]
+        q2 = [str(q) for q in other]
+        return q1 == q2
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+# class LocaleSorter(xapian.KeyMaker)
+#   ubuntu maverick does not have the KeyMakter yet, maintain compatibility
+#   for now by falling back to the old xapian.Sorter
+try:
+    parentClass = xapian.KeyMaker
+except AttributeError:
+    parentClass = xapian.Sorter
+class LocaleSorter(parentClass):
+    """ Sort in a locale friendly way by using locale.xtrxfrm """
+    def __init__(self, db):
+        super(LocaleSorter, self).__init__()
+        self.db = db
+    def __call__(self, doc):
+        return locale.strxfrm(doc.get_value(self.db._axi_values["display_name"]))
+
+
 def parse_axi_values_file(filename="/var/lib/apt-xapian-index/values"):
     """ parse the apt-xapian-index "values" file and provide the 
     information in the self._axi_values dict

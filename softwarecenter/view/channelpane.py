@@ -112,8 +112,8 @@ class ChannelPane(SoftwarePane):
         # an empty list while the full list is generated; 
         #  this prevents a visual glitch when
         # the list is replaced
-        if ((self.channel.name == self.distro.get_distro_channel_name() and not 
-             self.search_terms)):
+        if ((self.channel.name == self.distro.get_distro_channel_name() and 
+             not self.search_terms)):
             self.app_view.clear_model()
         
         if old_model is not None:
