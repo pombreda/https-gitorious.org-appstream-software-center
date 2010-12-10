@@ -436,6 +436,9 @@ class SoftwarePane(gtk.VBox, BasePane):
         if (old_model and 
             query == old_model.search_query and
             self.apps_filter == old_model.filter):
+            # emit the signal to ensure that the ui updates status bar
+            # and all (name is misleading :/
+            self.emit("app-list-changed", len(self.app_view.get_model()))
             return
 
         self.show_appview_spinner()
