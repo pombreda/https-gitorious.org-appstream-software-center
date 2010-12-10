@@ -166,16 +166,16 @@ class Worker(threading.Thread):
             piston_review.package_name = review.app.pkgname
             piston_review.app_name = review.app.appname
             piston_review.summary = review.summary
-            piston_review.package_version = review.package_version
+            piston_review.version = review.package_version
             piston_review.review_text = review.text
             piston_review.date = str(review.date)
             piston_review.rating = review.rating
-            res = self.rnrclient.submit_review(
-                language=review.language,
-                #FIXME: not hardcode
-                origin="ubuntu",
-                distroseries=distro.get_codename(),
-                review=piston_review)
+            piston_review.language = review.language
+            piston_review.arch_tag = get_current_arch()
+            #FIXME: not hardcode
+            piston_review.origin = "ubuntu"
+            piston_review.distroseries=distro.get_codename()
+            res = self.rnrclient.submit_review(review=piston_review)
             print res
             self.pending_reviews.task_done()
 
