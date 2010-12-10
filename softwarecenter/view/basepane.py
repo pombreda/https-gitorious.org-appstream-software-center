@@ -30,9 +30,6 @@ class BasePane(object):
     def is_category_view_showing(self):
         return False
 
-    def update_app_view(self):
-        pass
-
     def get_status_text(self):
         return ""
 

@@ -54,12 +54,12 @@ class ChannelPane(SoftwarePane):
                               show_ratings=False)
         self.channel = None
         self.apps_filter = None
-        self.search_terms = ""
+        self.apps_search_term = ""
         self.current_appview_selection = None
         self.distro = get_distro()
+        self.pane_name = _("Software Channels")
         # UI
         self._build_ui()
-        self.connect("app-list-changed", self._on_app_list_changed)
 
     def _build_ui(self):
         self.notebook.append_page(self.box_app_list, gtk.Label("channel"))
@@ -76,87 +76,6 @@ class ChannelPane(SoftwarePane):
         # remove the details and clear the search
         self.searchentry.clear()
         self.navigation_bar.remove_id("search")
-
-    @wait_for_apt_cache_ready
-    def refresh_apps(self):
-        """refresh the applist after search changes and update the 
-           navigation bar
-        """
-        LOG.debug("refresh_apps")
-        self.show_appview_spinner()
-        if not self.channel:
-            return
-        self.refresh_seq_nr += 1
-        channel_query = self.channel.query
-        if self.search_terms:
-            query = self.db.get_query_list_from_search_entry(self.search_terms,
-                                                             channel_query)
-            self.navigation_bar.add_with_id(_("Search Results"),
-                                            self.on_navigation_search, 
-                                            "search", do_callback=False)
-        else:
-            self.navigation_bar.add_with_id(
-                self.channel.display_name,
-                self.on_navigation_list,
-                "list", do_callback=False)
-            query = xapian.Query(channel_query)
-
-        LOG.debug("channelpane query: %s" % query)
-        # *ugh* deactivate the old model because otherwise it keeps
-        # getting progress_changed events and eats CPU time until its
-        # garbage collected
-        old_model = self.app_view.get_model()
-        
-        # if the list is expected to contain many items, 
-        #  clear the current model to display
-        # an empty list while the full list is generated; 
-        #  this prevents a visual glitch when
-        # the list is replaced
-        if ((self.channel.name == self.distro.get_distro_channel_name() and not 
-             self.search_terms)):
-            self.app_view.clear_model()
-        
-        if old_model is not None:
-            old_model.active = False
-            while gtk.events_pending():
-                gtk.main_iteration()
-        self._make_new_model(query, self.refresh_seq_nr)
-        return False
-
-    def _make_new_model(self, query, seq_nr):
-        # something changed already
-        if self.refresh_seq_nr != seq_nr:
-            LOG.warn("early discarding new model (%s != %s)" % (seq_nr, self.refresh_seq_nr))
-            return False
-        # get a new store and attach it to the view
-        if self.box_app_list.window:
-            self.box_app_list.window.set_cursor(self.busy_cursor)
-        if self.searchentry.get_text():
-            sort_mode = SORT_BY_SEARCH_RANKING
-        else:
-            sort_mode = self.channel.sort_mode
-        new_model = AppStore(self.cache,
-                             self.db, 
-                             self.icons, 
-                             query, 
-                             limit=0,
-                             sortmode=sort_mode,
-                             nonapps_visible=self.nonapps_visible,
-                             filter=self.apps_filter)
-        # between request of the new model and actual delivery other
-        # events may have happend
-        self.hide_appview_spinner()
-        if self.box_app_list.window:
-            self.box_app_list.window.set_cursor(None)
-        if seq_nr == self.refresh_seq_nr:
-            self.app_view.set_model(new_model)
-            self.app_view.get_model().active = True
-            # we can not use "new_model" here, because set_model may actually
-            # discard new_model and just update the previous one
-            self.emit("app-list-changed", len(self.app_view.get_model()))
-        else:
-            LOG.debug("discarding new model (%s != %s)" % (seq_nr, self.refresh_seq_nr))
-        return False
 
     def set_channel(self, channel):
         """
@@ -204,8 +123,8 @@ class ChannelPane(SoftwarePane):
     def on_search_terms_changed(self, searchentry, terms):
         """callback when the search entry widget changes"""
         LOG.debug("on_search_terms_changed: '%s'" % terms)
-        self.search_terms = terms
-        if not self.search_terms:
+        self.apps_search_term = terms
+        if not self.apps_search_term:
             self._clear_search()
         self.refresh_apps()
         self.notebook.set_current_page(self.PAGE_APPLIST)
@@ -248,12 +167,6 @@ class ChannelPane(SoftwarePane):
         """callback when an app is selected"""
         LOG.debug("on_application_selected: '%s'" % app)
         self.current_appview_selection = app
-
-    def _on_app_list_changed(self, pane, length):
-        """internal helper that keeps the the action bar up-to-date by
-           keeping track of the app-list-changed signals
-        """
-        self.update_show_hide_nonapps()
 
     def display_search(self):
         self.navigation_bar.remove_id("details")

@@ -1,3 +1,12 @@
+software-center (3.1.7) UNRELEASED; urgency=low
+
+  [ Michael Vogt ]
+  * refactor "SoftwarePane.refresh_apps()" code, this ensures
+    the app lists are only ever (re)created if something changes
+    and so avoiding nasty UI flashes (code is simpler now as well)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 10 Dec 2010 18:08:35 +0100
+
 software-center (3.1.6) natty; urgency=low
 
   [ Gary Lasker ]
