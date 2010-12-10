@@ -36,6 +36,7 @@ from widgets.actionbar import ActionBar
 from widgets.spinner import SpinnerView
 
 from softwarecenter.backend import get_install_backend
+from softwarecenter.enums import SORT_BY_SEARCH_RANKING, SORT_BY_ALPHABET
 from softwarecenter.view.basepane import BasePane
 from softwarecenter.utils import wait_for_apt_cache_ready, ExecutionTime
 
@@ -195,11 +196,20 @@ class SoftwarePane(gtk.VBox, BasePane):
         self.spinner_notebook.append_page(self.notebook)
         self.spinner_notebook.append_page(self.spinner_view)
         
+        # app-list
+        self.connect("app-list-changed", self.on_app_list_changed)
+
         self.pack_start(self.spinner_notebook)
         # a bar at the bottom (hidden by default) for contextual actions
         self.action_bar = ActionBar()
         self.pack_start(self.action_bar, expand=False)
         self.top_hbox.connect('expose-event', self._on_expose)
+        # data for the refresh_apps()
+        self.channel = None
+        self.apps_category = None
+        self.apps_subcategory = None
+        self.apps_search_term = None
+        self.custom_list_mode = False
 
     def _on_expose(self, widget, event):
         """ Draw a horizontal line that separates the top hbox from the page content """
@@ -290,6 +300,13 @@ class SoftwarePane(gtk.VBox, BasePane):
     def section_sync(self):
         self.app_details.set_section(self.section)
         return
+
+    def on_app_list_changed(self, pane, length):
+        """internal helper that keeps the the action bar up-to-date by
+           keeping track of the app-list-changed signals
+        """
+        self.update_show_hide_nonapps()
+        self.update_search_help()
         
     def update_show_hide_nonapps(self):
         """
@@ -339,8 +356,6 @@ class SoftwarePane(gtk.VBox, BasePane):
                                          pkgs) % { 'amount': pkgs, }
                 self.action_bar.set_label(label, self._show_nonapp_pkgs)
 
-        self.update_search_help()
-
     def update_search_help(self):
         search = self.searchentry.get_text()
         appstore = self.app_view.get_model()
@@ -386,11 +401,112 @@ class SoftwarePane(gtk.VBox, BasePane):
         """return user readable status text suitable for a status bar"""
         raise NotImplementedError
 
+    def get_query(self):
+        channel_query = None
+        name = self.pane_name
+        if self.channel:
+            channel_query = self.channel.query
+            name = self.channel.display_name
+        # search terms
+        if self.apps_search_term:
+            query = self.db.get_query_list_from_search_entry(
+                self.apps_search_term, channel_query)
+            self.navigation_bar.add_with_id(
+                _("Search Results"), self.on_navigation_search, 
+                "search", do_callback=False)
+            return query
+        # overview list
+        self.navigation_bar.add_with_id(
+            name, self.on_navigation_list, "list", do_callback=False)
+        # if we are in a channel, limit to that
+        if channel_query:
+            return channel_query
+        # ... otherwise show all
+        return xapian.Query("")
+        
+    def refresh_apps(self, query=None):
+        """refresh the applist and update the navigation bar """
+        logging.debug("refresh_apps")
+        LOG.debug("refresh_apps")
+
+        # FIXME: make this available for all panes
+        query = self.get_query()
+        old_model = self.app_view.get_model()
+        # exactly the same model, nothing to do
+        if (old_model and 
+            query == old_model.search_query and
+            self.apps_filter == old_model.filter):
+            return
+
+        self.show_appview_spinner()
+        self._refresh_apps_with_apt_cache(query)
+
     @wait_for_apt_cache_ready
-    def refresh_apps(self):
+    def _refresh_apps_with_apt_cache(self, query):
+        self.refresh_seq_nr += 1
+        LOG.debug("availablepane query: %s" % query)
+
+        old_model = self.app_view.get_model()
+        if old_model is not None:
+            # *ugh* deactivate the old model because otherwise it keeps
+            # getting progress_changed events and eats CPU time until its
+            # garbage collected
+            old_model.active = False
+            while gtk.events_pending():
+                gtk.main_iteration()
+
+        LOG.debug("availablepane query: %s" % query)
+        # create new model and attach it
+        seq_nr = self.refresh_seq_nr
+        # special case to disable show/hide nonapps for the "Featured" category
+        # we do the same for the "System" category (LP: #636854)
+        if (self.apps_category and 
+            # FIXME: this should be a property of the category, not
+            #        something we hardcode here
+           (self.apps_category.untranslated_name == "Featured" or
+            self.apps_category.untranslated_name == "System")):
+            self.nonapps_visible = AppStore.NONAPPS_ALWAYS_VISIBLE
+            self.disable_show_hide_nonapps = True
+        else:
+            self.disable_show_hide_nonapps = False
+        # In custom list mode, search should yield the exact package name.
+        new_model = AppStore(self.cache,
+                             self.db,
+                             self.icons,
+                             query,
+                             limit=self.get_app_items_limit(),
+                             sortmode=self.get_sort_mode(),
+                             exact=self.custom_list_mode,
+                             nonapps_visible = self.nonapps_visible,
+                             filter=self.apps_filter)
+        #print "new_model", new_model, len(new_model), seq_nr
+        # between request of the new model and actual delivery other
+        # events may have happend
+        if seq_nr != self.refresh_seq_nr:
+            LOG.info("discarding new model (%s != %s)" % (seq_nr, self.refresh_seq_nr))
+            return False
+
+        # set model
+        self.app_view.set_model(new_model)
+        self.app_view.get_model().active = True
+
+        self.hide_appview_spinner()
+        # we can not use "new_model" here, because set_model may actually
+        # discard new_model and just update the previous one
+        self.emit("app-list-changed", len(self.app_view.get_model()))
+        return False
+
+    def get_app_items_limit(self):
         " stub implementation "
-        pass
-    
+        return 0
+
+    def get_sort_mode(self):
+        if self.apps_search_term:
+            return SORT_BY_SEARCH_RANKING
+        elif self.apps_category:
+            return self.apps_category.sortmode
+        return SORT_BY_ALPHABET
+
     def on_search_terms_changed(self, terms):
         " stub implementation "
         pass
@@ -398,7 +514,7 @@ class SoftwarePane(gtk.VBox, BasePane):
     def on_db_reopen(self):
         " stub implementation "
         pass
-        
+
     def is_category_view_showing(self):
         " stub implementation "
         pass
