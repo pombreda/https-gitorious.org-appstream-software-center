@@ -43,7 +43,7 @@ from lazr.restfulclient.authorize.oauth import OAuthAuthorizer
 from oauth.oauth import OAuthToken
 
 
-import pistonclient.auth
+import piston_mini_client.auth
 
 from softwarecenter.paths import *
 from softwarecenter.enums import MISSING_APP_ICON
@@ -84,10 +84,10 @@ class Worker(threading.Thread):
         self.pending_reports = Queue()
         self._shutdown = False
         self.display_name = "No display name"
-        auth = pistonclient.auth.OAuthAuthorizer(token["token"],
-                                                 token["token_secret"],
-                                                 token["consumer_key"],
-                                                 token["consumer_secret"])
+        auth = piston_mini_client.auth.OAuthAuthorizer(token["token"],
+                                                       token["token_secret"],
+                                                       token["consumer_key"],
+                                                       token["consumer_secret"])
         self.rnrclient = RatingsAndReviewsAPI(auth=auth)
 
     def run(self):
