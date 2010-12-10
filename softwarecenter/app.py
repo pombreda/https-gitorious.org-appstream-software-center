@@ -181,7 +181,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
         # misc state
         self._block_menuitem_view = False
-        self._available_items_for_page = {}
         
         # for use when viewing previous purchases
         self.scagent = None
@@ -414,9 +413,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.update_status_bar()
 
     def on_app_list_changed(self, pane, new_len, page):
-        self._available_items_for_page[page] = new_len
         if self.view_manager.get_active_view() == page:
-            self.update_app_list_view()
             self.update_status_bar()
 
     def on_window_main_delete_event(self, widget, event):
@@ -842,8 +839,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.label_status.set_text(s)
         
     def update_app_list_view(self, channel=None):
-        """Helper that updates the app view list.
-        """
+        """Helper that updates the app view list """
         if self.active_pane is None:
             return
         if channel is None and self.active_pane.is_category_view_showing():
@@ -851,7 +847,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         if channel:
             self.channel_pane.set_channel(channel)
             self.active_pane.refresh_apps()
-        self.active_pane.update_app_view()
 
     def _on_database_rebuilding_handler(self, is_rebuilding):
         self._logger.debug("_on_database_rebuilding_handler %s" % is_rebuilding)
