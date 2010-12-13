@@ -410,6 +410,8 @@ class SubmitReviewsApp(BaseApp):
             self.worker_thread.queue_review(review)
 
         # signal thread to finish
+        while gtk.events_pending():
+            gtk.main_iteration()
         self.worker_thread.shutdown()
         self.quit()
 
@@ -529,6 +531,8 @@ class ReportReviewApp(BaseApp):
             self.worker_thread.queue_report(
                 (int(self.review_id), report_summary, report_text))
         # signal thread to finish
+        while gtk.events_pending():
+            gtk.main_iteration()
         self.worker_thread.shutdown()
         self.quit()
         

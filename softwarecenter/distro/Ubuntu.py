@@ -20,6 +20,7 @@ import datetime
 import gettext
 import locale
 import re
+import urllib
 import subprocess
 
 from apt.utils import *
@@ -40,9 +41,9 @@ class Ubuntu(Distro):
     PURCHASE_APP_URL = BUY_SOMETHING_HOST+"/subscriptions/%s/ubuntu/maverick/+new/?%s"
 
     # reviews
-    REVIEWS_SERVER = "http://127.0.0.1:8000"
+    REVIEWS_SERVER = os.environ.get("SOFTWARE_CENTER_REVIEWS_HOST") or "http://127.0.0.1:8000"
     #REVIEWS_SERVER = "http://ec2-75-101-220-128.compute-1.amazonaws.com"
-    REVIEWS_URL = REVIEWS_SERVER+"/reviews/api/1.0/%(language)s/%(origin)s/%(distroseries)s/%(pkgname)s/%(appname)s/"
+    REVIEWS_URL = urllib.basejoin(REVIEWS_SERVER, "/reviews/api/1.0/%(language)s/%(origin)s/%(distroseries)s/%(pkgname)s/%(appname)s/")
     REVIEW_STATS_URL = REVIEWS_SERVER+"/reviews/api/1.0/%(language)s/%(origin)s/%(distroseries)s/review-stats/"
 
     def get_app_name(self):
