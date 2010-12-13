@@ -21,6 +21,10 @@ from piston_mini_client import (PistonAPI, PistonResponseObject,
     PistonSerializable, returns_json, returns_list_of)
 from piston_mini_client.validators import validate_pattern, validate
 
+# get the server
+from softwarecenter.distro import get_distro
+distro = get_distro()
+SERVER_ROOT=distro.REVIEWS_SERVER
 
 class ReviewRequest(PistonSerializable):
     _atts = ('package_name', 'summary', 'version', 'review_text',
@@ -35,9 +39,8 @@ class ReviewDetails(PistonResponseObject):
     """This class will be populated with the retrieved JSON"""
     pass
 
-
 class RatingsAndReviewsAPI(PistonAPI):
-    default_service_root = 'http://localhost:8000/reviews/api/1.0'
+    default_service_root = SERVER_ROOT+'/reviews/api/1.0'
     default_content_type = 'application/x-www-form-urlencoded'
 
     @returns_json
