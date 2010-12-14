@@ -1,9 +1,19 @@
 software-center (3.1.7) UNRELEASED; urgency=low
 
-  * softwarecenter/view/appview.py,
+  [ Michael Vogt ]
+  * refactor "SoftwarePane.refresh_apps()" code, this ensures
+    the app lists are only ever (re)created if something changes
+    and so avoiding nasty UI flashes (code is simpler now as well)
+  
+  [ Matthew McGowan ]
+  * merged lp:~mmcg069/software-center/bubbles, this gives us
+    pretty bubbles in the viewswitcher
+
+  [ Gary Lasker ]
+  * softwarecenter/models/appstore.py,
     softwarecenter/view/catview_gtk.py:
-    - thread listview refreshes to restore UI feedback with new
-      experimental-fastlist improvements 
+    - thread listview refreshes to restore UI feedback with
+      recent experimental-fastlist improvements 
   * test/test_search_per_spec.py:
     - tweak test for threaded listview refreshes
   * softwarecenter/view/availablepane.py,
@@ -11,7 +21,7 @@ software-center (3.1.7) UNRELEASED; urgency=low
     softwarecenter/view/installedpane.py:
     - cleanup imports for wait_for_apt_cache_ready
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 09 Dec 2010 14:10:51 -0500
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 14 Dec 2010 13:55:34 -0500
 
 software-center (3.1.6) natty; urgency=low
 

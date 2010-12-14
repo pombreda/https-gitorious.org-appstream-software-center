@@ -28,10 +28,10 @@ from gettext import gettext as _
 
 from softwarecenter.enums import *
 from softwarecenter.utils import *
+from softwarecenter.db.database import SearchQuery
 from softwarecenter.distro import get_distro
 
 from appview import AppView, AppStore, AppViewFilter
-
 #from catview_webkit import CategoriesViewWebkit as CategoriesView
 from catview_gtk import LobbyViewGtk, SubCategoryViewGtk
 from catview import Category, CategoriesView
@@ -41,6 +41,8 @@ from softwarepane import SoftwarePane
 from widgets.backforward import BackForwardButton
 
 from navhistory import *
+
+LOG = logging.getLogger(__name__)
 
 class AvailablePane(SoftwarePane):
     """Widget that represents the available panel in software-center
@@ -72,7 +74,6 @@ class AvailablePane(SoftwarePane):
                  navhistory_forward_action):
         # parent
         SoftwarePane.__init__(self, cache, db, distro, icons, datadir)
-        self._logger = logging.getLogger(__name__)
         # navigation history actions
         self.navhistory_back_action = navhistory_back_action
         self.navhistory_forward_action = navhistory_forward_action
@@ -85,9 +86,9 @@ class AvailablePane(SoftwarePane):
         # the spec says we mix installed/not installed
         #self.apps_filter.set_not_installed_only(True)
         self._status_text = ""
-        self.connect("app-list-changed", self._on_app_list_changed)
         self.current_app_by_category = {}
         self.current_app_by_subcategory = {}
+        self.pane_name = _("Get Software")
         # search mode
         self.custom_list_mode = False
         # install backend
@@ -164,13 +165,13 @@ class AvailablePane(SoftwarePane):
         self._update_status_text(len(self.db))
 
         # home button
-        self.navigation_bar.add_with_id(_("Get Software"),
+        self.navigation_bar.add_with_id(self.pane_name,
                                         self.on_navigation_category,
                                         self.NAV_BUTTON_ID_CATEGORY,
                                         do_callback=True,
                                         animate=False)
 
-    def _get_query(self):
+    def get_query(self):
         """helper that gets the query for the current category/search mode"""
         # NoDisplay is a specal case
         if self._in_no_display_category():
@@ -207,97 +208,6 @@ class AvailablePane(SoftwarePane):
             self.notebook.set_current_page(self.PAGE_SUBCATEGORY)
         else:
             self.notebook.set_current_page(self.PAGE_APPLIST)
-            self.update_app_view()
-
-    def refresh_apps(self, query=None):
-        """refresh the applist and update the navigation bar
-        """
-        logging.debug("refresh_apps")
-        self._logger.debug("refresh_apps")
-
-        self.show_appview_spinner()
-        if self.subcategories_view.window:
-            self.subcategories_view.window.set_cursor(self.busy_cursor)
-        if self.box_app_list.window:
-            self.box_app_list.window.set_cursor(self.busy_cursor)
-        self._refresh_apps_with_apt_cache()
-
-    @wait_for_apt_cache_ready
-    def _refresh_apps_with_apt_cache(self, query=None):
-        self.refresh_seq_nr += 1
-        # build query
-        query = self._get_query()
-        self._logger.debug("availablepane query: %s" % query)
-
-        old_model = self.app_view.get_model()
-
-        # if a search is not in progress, clear the current model to
-        # display an empty list while the full list is generated; this
-        # prevents a visual glitch when a list is replaced
-        if not self.apps_search_term:
-            self.app_view.clear_model()
-        
-        if old_model is not None:
-            # *ugh* deactivate the old model because otherwise it keeps
-            # getting progress_changed events and eats CPU time until its
-            # garbage collected
-            old_model.active = False
-            while gtk.events_pending():
-                gtk.main_iteration()
-
-        self._logger.debug("availablepane query: %s" % query)
-        # create new model and attach it
-        seq_nr = self.refresh_seq_nr
-        # special case to disable show/hide nonapps for the "Featured" category
-        # we do the same for the "System" category (LP: #636854)
-        if (self.apps_category and 
-            # FIXME: this should be a property of the category, not
-            #        something we hardcode here
-           (self.apps_category.untranslated_name == "Featured" or
-            self.apps_category.untranslated_name == "System")):
-            self.nonapps_visible = AppStore.NONAPPS_ALWAYS_VISIBLE
-            self.disable_show_hide_nonapps = True
-        else:
-            self.disable_show_hide_nonapps = False
-        # In custom list mode, search should yield the exact package name.
-        new_model = AppStore(self.cache,
-                             self.db,
-                             self.icons,
-                             query,
-                             limit=self._get_item_limit(),
-                             sortmode=self._get_sort_mode(),
-                             exact=self.custom_list_mode,
-                             nonapps_visible = self.nonapps_visible,
-                             filter=self.apps_filter)
-        #print "new_model", new_model, len(new_model), seq_nr
-        # between request of the new model and actual delivery other
-        # events may have happend
-        if seq_nr != self.refresh_seq_nr:
-            self._logger.info("discarding new model (%s != %s)" % (seq_nr, self.refresh_seq_nr))
-            return False
-
-        # set model
-        self.app_view.set_model(new_model)
-        self.app_view.get_model().active = True
-
-        # check if we show subcategory
-        self._show_hide_subcategories()
-        self.hide_appview_spinner()
-        # we can not use "new_model" here, because set_model may actually
-        # discard new_model and just update the previous one
-        self.emit("app-list-changed", len(self.app_view.get_model()))
-        if self.app_view.window:
-            self.app_view.window.set_cursor(None)
-        if self.subcategories_view.window:
-            self.subcategories_view.window.set_cursor(None)
-        if self.cat_view.window:
-            self.cat_view.window.set_cursor(None)
-        if self.app_details.window:
-            self.cat_view.window.set_cursor(None)
-        if self.box_app_list.window:
-            self.box_app_list.window.set_cursor(None)
-
-        return False
 
     def update_navigation_button(self):
         """Update the navigation button"""
@@ -363,11 +273,13 @@ class AvailablePane(SoftwarePane):
         if self.custom_list_mode:
             self._update_action_bar()
 
-    def _on_app_list_changed(self, pane, length):
+    def on_app_list_changed(self, pane, length):
         """internal helper that keeps the status text and the action
            bar up-to-date by keeping track of the app-list-changed
            signals
         """
+        super(AvailablePane, self).on_app_list_changed(pane, length)
+        self._show_hide_subcategories()
         self._update_status_text(length)
         self._update_action_bar()
 
@@ -469,7 +381,7 @@ class AvailablePane(SoftwarePane):
         self.emit("app-list-changed", len(self.db))
         self.searchentry.show()
 
-    def _get_item_limit(self):
+    def get_app_items_limit(self):
         if self.apps_search_term:
             return DEFAULT_SEARCH_LIMIT
         elif self.apps_category and self.apps_category.item_limit > 0:
@@ -531,7 +443,7 @@ class AvailablePane(SoftwarePane):
 
     def on_search_terms_changed(self, widget, new_text):
         """callback when the search entry widget changes"""
-        self._logger.debug("on_search_terms_changed: %s" % new_text)
+        LOG.debug("on_search_terms_changed: %s" % new_text)
 
         # we got the signal after we already switched to a details
         # page, ignore it
@@ -660,7 +572,7 @@ class AvailablePane(SoftwarePane):
 
     def on_subcategory_activated(self, cat_view, category):
         #print cat_view, name, query
-        self._logger.debug("on_subcategory_activated: %s %s" % (
+        LOG.debug("on_subcategory_activated: %s %s" % (
                 category.name, category))
         self.apps_subcategory = category
         self.navigation_bar.add_with_id(
@@ -669,14 +581,14 @@ class AvailablePane(SoftwarePane):
     def on_category_activated(self, cat_view, category):
         """ callback when a category is selected """
         #print cat_view, name, query
-        self._logger.debug("on_category_activated: %s %s" % (
+        LOG.debug("on_category_activated: %s %s" % (
                 category.name, category))
         self.apps_category = category
         self.update_navigation_button()
 
     def on_application_selected(self, appview, app):
         """callback when an app is selected"""
-        self._logger.debug("on_application_selected: '%s'" % app)
+        LOG.debug("on_application_selected: '%s'" % app)
 
         if self.apps_subcategory:
             self.current_app_by_subcategory[self.apps_subcategory] = app

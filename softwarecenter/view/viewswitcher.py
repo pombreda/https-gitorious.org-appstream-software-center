@@ -17,29 +17,146 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import apt
-import dbus
-import glib
 import gobject
 import gtk
-import logging
 import pango
+import logging
 import os
-import time
-import xapian
+import cairo
 
-import aptdaemon.client
 from gettext import gettext as _
 
-from softwarecenter.backend.channel import ChannelsManager
 from softwarecenter.backend import get_install_backend
-from softwarecenter.distro import get_distro
 from softwarecenter.db.database import StoreDatabase
+from softwarecenter.models.viewswitcherlist import ViewSwitcherList
 from softwarecenter.enums import *
 from softwarecenter.utils import wait_for_apt_cache_ready
 
 from widgets.animatedimage import CellRendererAnimatedImage, AnimatedImage
+from widgets.mkit import ShapeRoundedRectangle, floats_from_gdkcolor
 
 LOG = logging.getLogger(__name__)
+
+
+class ViewItemCellRenderer(gtk.CellRendererText):
+
+    """ A cell renderer that displays text and an action count bubble that
+        displays if the item has an action occuring.
+    """
+
+    __gproperties__ = {
+        
+        'bubble_text': (str, 'Bubble text',
+                        'Text to be label inside row bubble',
+                        '', gobject.PARAM_READWRITE),
+        }
+
+    def __init__(self):
+        gtk.CellRendererText.__init__(self) 
+        self._rr = ShapeRoundedRectangle()
+        self._layout = None
+        return
+
+    def do_set_property(self, pspec, value):
+        setattr(self, pspec.name, value)
+
+    def do_get_property(self, pspec):
+        return getattr(self, pspec.name)
+
+    def do_render(self, window, widget, background_area, cell_area,
+                  expose_area, flags):
+
+        # important! ensures correct text rendering, esp. when using hicolor theme
+        if (flags & gtk.CELL_RENDERER_SELECTED) != 0:
+            # this follows the behaviour that gtk+ uses for states in treeviews
+            if widget.has_focus():
+                state = gtk.STATE_SELECTED
+            else:
+                state = gtk.STATE_ACTIVE
+        else:
+            state = gtk.STATE_NORMAL
+
+        text = self.get_property('bubble_text')
+
+        if text:
+
+            if not self._layout:
+                self._layout = widget.create_pango_layout('')
+
+            # setup layout and determine layout extents
+            color = widget.style.black.to_string()
+            self._layout.set_markup('<span color="%s"><small><b>%s</b></small></span>' % (color, text))
+            lw, lh = self._layout.get_pixel_extents()[1][2:]
+
+            w = max(16, lw+8)
+            h = min(cell_area.height-8, lh+8)
+
+            # shrink text area width to make room for the bubble
+            area = gtk.gdk.Rectangle(cell_area.x, cell_area.y,
+                                     cell_area.width-w-9,
+                                     cell_area.height)
+        else:
+            area = cell_area
+
+        # draw text
+        gtk.CellRendererText.do_render(self,
+                                       window,
+                                       widget,
+                                       background_area,
+                                       area,
+                                       expose_area,
+                                       state)
+
+        # draw bubble
+        if not text: return
+
+        cr = window.cairo_create()
+
+        # draw action bubble background
+        x = max(3, cell_area.x + cell_area.width - w)
+        y = cell_area.y + (cell_area.height-h)/2
+
+        self._rr.layout(cr, x, y, x+w, y+h, radius=7)
+        cr.set_source_rgb(*floats_from_gdkcolor(widget.style.dark[state]))
+        cr.fill_preserve()
+
+        lin = cairo.LinearGradient(0, y, 0, y+h)
+        lin.add_color_stop_rgba(0.0, 0, 0, 0, 0.0)
+        lin.add_color_stop_rgba(1.0, 0, 0, 0, 0.25)
+        cr.set_source(lin)
+        cr.fill_preserve()
+
+        x, y = int(x+(w-lw)*0.5+0.5), int(y+(h-lh)*0.5+0.5),
+                                  
+
+        # bubble number shadow
+        widget.style.paint_layout(window,
+                                  gtk.STATE_NORMAL,
+                                  False,
+                                  cell_area,
+                                  widget,
+                                  None,
+                                  x, y+1,
+                                  self._layout)
+
+
+        # bubble number
+        color = widget.style.white.to_string()
+        self._layout.set_markup('<span color="%s"><small><b>%s</b></small></span>' % (color, text))
+
+        widget.style.paint_layout(window,
+                                  gtk.STATE_NORMAL,
+                                  False,
+                                  cell_area,
+                                  widget,
+                                  None,
+                                  x, y,
+                                  self._layout)
+
+        del cr
+        return
+
+
 
 class ViewSwitcher(gtk.TreeView):
 
@@ -70,10 +187,10 @@ class ViewSwitcher(gtk.TreeView):
         column = gtk.TreeViewColumn("Icon")
         column.pack_start(tp, expand=False)
         column.set_attributes(tp, image=store.COL_ICON)
-        tr = gtk.CellRendererText()
+        tr = ViewItemCellRenderer()
         tr.set_property("ellipsize", pango.ELLIPSIZE_END)
         column.pack_start(tr, expand=True)
-        column.set_attributes(tr, markup=store.COL_NAME)
+        column.set_attributes(tr, markup=store.COL_NAME, bubble_text=store.COL_BUBBLE_TEXT)
         self.append_column(column)
 
         # Remember the previously selected permanent view
@@ -276,201 +393,6 @@ class ViewSwitcher(gtk.TreeView):
             # the previously selected permanent view.
             if self._previous_permanent_view is not None:
                 self.set_cursor(self._previous_permanent_view)
-
-class ViewSwitcherList(gtk.TreeStore):
-    
-    # columns
-    (COL_ICON,
-     COL_NAME,
-     COL_ACTION,
-     COL_CHANNEL,
-     ) = range(4)
-
-    ICON_SIZE = 24
-
-    ANIMATION_PATH = "/usr/share/icons/hicolor/24x24/status/softwarecenter-progress.png"
-
-    __gsignals__ = {'channels-refreshed':(gobject.SIGNAL_RUN_FIRST,
-                                          gobject.TYPE_NONE,
-                                          ())}
-
-
-    def __init__(self, view_manager, datadir, db, cache, icons):
-        gtk.TreeStore.__init__(self, 
-                               AnimatedImage, 
-                               str, 
-                               gobject.TYPE_PYOBJECT, 
-                               gobject.TYPE_PYOBJECT,
-                               ) # must match columns above
-        self.view_manager = view_manager
-        self.icons = icons
-        self.datadir = datadir
-        self.backend = get_install_backend()
-        self.backend.connect("transactions-changed", self.on_transactions_changed)
-        self.backend.connect("transaction-finished", self.on_transaction_finished)
-        self.db = db
-        self.cache = cache
-        self.distro = get_distro()
-        # pending transactions
-        self._pending = 0
-        # setup the normal stuff
-
-        # first, the availablepane items
-        available_icon = self._get_icon("softwarecenter")
-        self.available_iter = self.append(None, [available_icon, _("Get Software"), VIEW_PAGE_AVAILABLE, None])
-
-        # the installedpane items
-        icon = AnimatedImage(self.icons.load_icon("computer", self.ICON_SIZE, 0))
-        self.installed_iter = self.append(None, [icon, _("Installed Software"), VIEW_PAGE_INSTALLED, None])
-        
-        # the channelpane 
-        self.channel_manager = ChannelsManager(db, icons)
-        # do initial channel list update
-        self._update_channel_list()
-        
-        # the historypane item
-        icon = self._get_icon("clock")
-        history_iter = self.append(None, [icon, _("History"), VIEW_PAGE_HISTORY, None])
-        icon = AnimatedImage(None)
-        self.append(None, [icon, "<span size='1'> </span>", VIEW_PAGE_SEPARATOR_1, None])
-        
-        # the progress pane is build on demand
-
-        # emit a transactions-changed signal to ensure that we display any
-        # pending transactions
-        self.backend.emit("transactions-changed", self.backend.pending_transactions)
-
-    def on_transactions_changed(self, backend, total_transactions):
-        LOG.debug("on_transactions_changed '%s'" % total_transactions)
-        pending = len(total_transactions)
-        if pending > 0:
-            for row in self:
-                if row[self.COL_ACTION] == VIEW_PAGE_PENDING:
-                    row[self.COL_NAME] = _("In Progress (%i)") % pending
-                    break
-            else:
-                icon = AnimatedImage(self.ANIMATION_PATH)
-                icon.start()
-                self.append(None, [icon, _("In Progress (%i)") % pending, 
-                             VIEW_PAGE_PENDING, None])
-        else:
-            for (i, row) in enumerate(self):
-                if row[self.COL_ACTION] == VIEW_PAGE_PENDING:
-                    del self[(i,)]
-                    
-    def on_transaction_finished(self, backend, result):
-        if result.success:
-            self._update_channel_list_installed_view()
-            self.emit("channels-refreshed")
-
-    def get_channel_iter_for_name(self, channel_name, installed_only):
-        """ get the liststore iterator for the given name, consider
-            installed-only too because channel names may be duplicated
-        """ 
-        LOG.debug("get_channel_iter_for_name %s %s" % (channel_name,
-                                                       installed_only))
-        def _get_iter_for_channel_name(it):
-            """ internal helper """
-            while it:
-                if self.get_value(it, self.COL_NAME) == channel_name:
-                    return it
-                it = self.iter_next(it)
-            return None
-
-        # check root iter first
-        channel_iter_for_name = _get_iter_for_channel_name(self.get_iter_root())
-        if channel_iter_for_name:
-            LOG.debug("found '%s' on root level" % channel_name)
-            return channel_iter_for_name
-
-        # check children
-        if installed_only:
-            parent_iter = self.installed_iter
-        else:
-            parent_iter = self.available_iter
-        LOG.debug("looking at path '%s'" % self.get_path(parent_iter))
-        child = self.iter_children(parent_iter)
-        channel_iter_for_name = _get_iter_for_channel_name(child)
-        return channel_iter_for_name
-                    
-    def _get_icon(self, icon_name):
-        if self.icons.lookup_icon(icon_name, self.ICON_SIZE, 0):
-            icon = AnimatedImage(self.icons.load_icon(icon_name, self.ICON_SIZE, 0))
-        else:
-            # icon not present in theme, probably because running uninstalled
-            icon = AnimatedImage(self.icons.load_icon("gtk-missing-image", 
-                                                      self.ICON_SIZE, 0))
-        return icon
-
-    @wait_for_apt_cache_ready
-    def _update_channel_list(self):
-        self._update_channel_list_available_view()
-        self._update_channel_list_installed_view()
-        self.emit("channels-refreshed")
-        
-    # FIXME: this way of updating is really not ideal because it
-    #        will trigger set_cursor signals and that causes the
-    #        UI to behave funny if the user is in a channel view
-    #        and the backend sends a channels-changed signal
-    def _update_channel_list_available_view(self):
-        # check what needs to be cleared. we need to append first, kill
-        # afterward because otherwise a row without children is collapsed
-        # by the view.
-        # 
-        # normally GtkTreeIters have a limited life-cycle and are no
-        # longer valid after the model changed, fortunately with the
-        # gtk.TreeStore (that we use) they are persisent
-        child = self.iter_children(self.available_iter)
-        iters_to_kill = set()
-        while child:
-            iters_to_kill.add(child)
-            child = self.iter_next(child)
-        # iterate the channels and add as subnodes of the available node
-        for channel in self.channel_manager.channels:
-            self.append(self.available_iter, [
-                        channel.icon,
-                        channel.display_name,
-                        VIEW_PAGE_CHANNEL,
-                        channel])
-        # delete the old ones
-        for child in iters_to_kill:
-            self.remove(child)
-    
-    def _update_channel_list_installed_view(self):
-        # see comments for _update_channel_list_available_view() method above
-        child = self.iter_children(self.installed_iter)
-        iters_to_kill = set()
-        while child:
-            iters_to_kill.add(child)
-            child = self.iter_next(child)
-        # iterate the channels and add as subnodes of the installed node
-        for channel in self.channel_manager.channels_installed_only:
-            # check for no installed items for each channel and do not
-            # append the channel item in this case
-            enquire = xapian.Enquire(self.db.xapiandb)
-            query = channel.query
-            enquire.set_query(query)
-            matches = enquire.get_mset(0, len(self.db))
-            # only check channels that have a small number of items
-            add_channel_item = True
-            if len(matches) < 200:
-                add_channel_item = False
-                for m in matches:
-                    doc = m.document
-                    pkgname = self.db.get_pkgname(doc)
-                    if (pkgname in self.cache and
-                        self.cache[pkgname].is_installed):
-                        add_channel_item = True
-                        break
-            if add_channel_item:
-                self.append(self.installed_iter, [
-                            channel.icon,
-                            channel.display_name,
-                            VIEW_PAGE_CHANNEL,
-                            channel])
-        # delete the old ones
-        for child in iters_to_kill:
-            self.remove(child)
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)

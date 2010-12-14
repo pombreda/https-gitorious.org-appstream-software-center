@@ -51,7 +51,7 @@ class InstalledPane(SoftwarePane):
         self.loaded = False
         # UI
         self._build_ui()
-        self.connect("app-list-changed", self._on_app_list_changed)
+        self.pane_name = _("Installed Software")
         
     def _build_ui(self):
         self.navigation_bar.set_size_request(26, -1)
@@ -59,7 +59,7 @@ class InstalledPane(SoftwarePane):
         # details
         self.notebook.append_page(self.scroll_details, gtk.Label("details"))
         # initial refresh
-        self.search_terms = ""
+        self.apps_search_term = ""
 
     def _show_installed_overview(self):
         " helper that goes back to the overview page "
@@ -72,53 +72,11 @@ class InstalledPane(SoftwarePane):
         self.searchentry.clear()
         self.navigation_bar.remove_id("search")
 
-    @wait_for_apt_cache_ready
-    def refresh_apps(self):
-        """refresh the applist after search changes and update the 
-           navigation bar
-        """
-        self.loaded = True
-        self.show_appview_spinner()
-        if self.search_terms:
-            query = self.db.get_query_list_from_search_entry(self.search_terms)
-            self.navigation_bar.add_with_id(_("Search Results"),
-                                            self.on_navigation_search, 
-                                            "search")
-        else:
-            # None will default to match all documents (see AppStore code)
-            query = None
-        self.navigation_bar.add_with_id(_("Installed Software"), 
-                                        self.on_navigation_list,
-                                        "list",
-                                        animate=False)
-        # *ugh* deactivate the old model because otherwise it keeps
-        # getting progress_changed events and eats CPU time until it's
-        # garbage collected
-        old_model = self.app_view.get_model()
-        if old_model is not None:
-            old_model.active = False
-        # get a new store and attach it to the view
-        if self.searchentry.get_text():
-            sort_mode = SORT_BY_SEARCH_RANKING
-        else:
-            sort_mode = SORT_BY_ALPHABET
-        new_model = AppStore(self.cache,
-                             self.db, 
-                             self.icons, 
-                             query,
-                             sortmode=sort_mode,
-                             nonapps_visible = self.nonapps_visible,
-                             filter=self.apps_filter)
-        self.app_view.set_model(new_model)
-        self.app_view.get_model().active = True
-        self.hide_appview_spinner()
-        self.emit("app-list-changed", len(new_model))
-        return False
     def on_search_terms_changed(self, searchentry, terms):
         """callback when the search entry widget changes"""
         logging.debug("on_search_terms_changed: '%s'" % terms)
-        self.search_terms = terms
-        if not self.search_terms:
+        self.apps_search_term = terms
+        if not self.apps_search_term:
             self._clear_search()
         self.refresh_apps()
         self.notebook.set_current_page(self.PAGE_APPLIST)
@@ -156,12 +114,6 @@ class InstalledPane(SoftwarePane):
         logging.debug("on_application_selected: '%s'" % app)
         self.current_appview_selection = app
         
-    def _on_app_list_changed(self, pane, length):
-        """internal helper that keeps the the action bar up-to-date by
-           keeping track of the app-list-changed signals
-        """
-        self.update_show_hide_nonapps()
-
     def display_search(self):
         self.navigation_bar.remove_id("details")
         self.notebook.set_current_page(self.PAGE_APPLIST)
@@ -204,7 +156,7 @@ class InstalledPane(SoftwarePane):
 
     def show_app(self, app):
         """ Display an application in the installed_pane """
-        self.navigation_bar.add_with_id(_("Installed Software"), self.on_navigation_list, "list", do_callback=False, animate=False)
+        self.navigation_bar.add_with_id(self.pane_name, self.on_navigation_list, "list", do_callback=False, animate=False)
         self.navigation_bar.remove_all(do_callback=False, animate=False) # do_callback and animate *must* both be false here
         details = app.get_details(self.db)
         self.navigation_bar.add_with_id(details.display_name,
