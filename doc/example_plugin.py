@@ -33,6 +33,9 @@ class ExamplePlugin(softwarecenter.plugin.Plugin):
         icon = None
         parent_iter = None
         channel = None
-        model.append(parent_iter, [icon, _("Example Plugin"), 
-                                   self.VIEW_PAGE_EXAMPLE_PLUGIN, channel])
+        model.append(parent_iter, [icon,
+                                   _("Example Plugin"), 
+                                   self.VIEW_PAGE_EXAMPLE_PLUGIN, 
+                                   channel, 
+                                   None])
                      

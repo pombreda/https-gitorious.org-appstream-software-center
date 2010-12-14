@@ -33,6 +33,8 @@ from softwarecenter.db.database import Application, SearchQuery, LocaleSorter
 from softwarecenter.distro import get_distro
 from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
 
+from gettext import gettext as _
+
 # global cache icons to speed up rendering
 _app_icon_cache = {}
 
@@ -182,6 +184,7 @@ class AppStore(gtk.GenericTreeModel):
             xfilter = None
         # go over the queries
         self.matches = []
+        self.match_docids = set()
         for q in self.search_query:
             enquire = xapian.Enquire(self.db.xapiandb)
             self._logger.debug("initial query: '%s'" % q)
@@ -192,12 +195,18 @@ class AppStore(gtk.GenericTreeModel):
             # in the system cat of available view only 0.13s
 
             # for searches we may want to disable show/hide
+            #terms = [term for term in q]
+            #exact_pkgname_query = (len(terms) == 1 and terms[0].startswith("XP"))
 
             with ExecutionTime("calculate nr_apps and nr_pkgs: "):
                 self.nr_apps, self.nr_pkgs = self._get_estimate_nr_apps_and_nr_pkgs(enquire, q, xfilter)
 
             # only show apps by default
             if self.nonapps_visible != self.NONAPPS_ALWAYS_VISIBLE:
+                # FIXME: we should allow technical items here for exact
+                #        pkgname matches? 
+                # try with: search:unity and search:apt and search:nautilus
+                #if exact_pkgname_query:
                 q = xapian.Query(xapian.Query.OP_AND, 
                                  xapian.Query("ATapplication"),
                                  q)
@@ -241,8 +250,13 @@ class AppStore(gtk.GenericTreeModel):
             else:
                 matches = enquire.get_mset(0, self.limit, None, xfilter)
             self._logger.debug("found ~%i matches" % matches.get_matches_estimated())
-
-            self.matches = matches
+            
+            # add matches, but don't duplicate docids
+            with ExecutionTime("append new matches to existing ones:"):
+                for match in matches:
+                    if not match.docid in self.match_docids:
+                        self.matches.append(match)
+                        self.match_docids.add(match.docid)
 
         # if we have no results, try forcing pkgs to be displayed
         if (not self.matches and
