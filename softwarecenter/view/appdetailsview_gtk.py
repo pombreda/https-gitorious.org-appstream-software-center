@@ -1338,6 +1338,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.review_stats_widget.set_avg_rating(stats.avg_rating)
             self.review_stats_widget.set_nr_reviews(stats.nr_reviews)
             self.review_stats_widget.show()
+        else:
+            self.review_stats_widget.hide()
 
         # individual reviews is slow and async
         reviews = self.review_loader.get_reviews(self.app,
