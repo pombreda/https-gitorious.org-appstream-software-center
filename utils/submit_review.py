@@ -334,7 +334,6 @@ class SubmitReviewsApp(BaseApp):
         self.app = app
         self.version = version
         self.iconname = iconname
-        self.rating = 0
         
         # title
         self.dialog_review_app.set_title(_("Review %s" % self.app.name))
@@ -405,7 +404,7 @@ class SubmitReviewsApp(BaseApp):
             review.summary = self.review_summary_entry.get_text()
             review.date = datetime.datetime.now()
             review.language = get_language()
-            review.rating = self.rating
+            review.rating = self.star_rating.get_rating()
             review.package_version = self.version
             self.worker_thread.queue_review(review)
 
