@@ -104,8 +104,9 @@ class RatingsAndReviewsAPI(PistonAPI):
 if __name__ == "__main__":
     rnr = RatingsAndReviewsAPI()
     print rnr.server_status()
-    print rnr.review_stats()
-    print rnr.get_reviews(language="en",origin="Ubuntu",distroseries="maverick",
+    for stat in rnr.review_stats():
+        print stat.package_name, stat.ratings_average, stat.ratings_total
+    print rnr.get_reviews(language="en",origin="ubuntu",distroseries="natty",
                           packagename="2vcard")
     # FIXME: not working yet
     #print rnr.get_reviews(language="en",origin="ubuntu",distroseries="lucid",
