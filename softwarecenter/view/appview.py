@@ -1008,9 +1008,10 @@ class CellRendererAppView2(gtk.CellRendererText):
         for i in range(1,self.MAX_STARS+1):
             x = cell_area.x + cell_area.width - xpad - i*(w+3)
             y = cell_area.y + ypad
-            if i < int(self.rating):
+            if i < math.ceil(self.rating):
                 self._star_painter.set_fill(StarPainter.FILL_EMPTY)
-            elif i == int(self.rating) and self.rating-int(self.rating) > 0:
+            elif (i == math.ceil(self.rating) and 
+                  math.ceil(self.rating) != math.floor(self.rating)):
                 self._star_painter.set_fill(StarPainter.FILL_HALF)
             else:
                 self._star_painter.set_fill(StarPainter.FILL_FULL)
