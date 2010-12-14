@@ -484,12 +484,6 @@
             <child type="tab">
               <placeholder/>
             </child>
-            <child>
-              <placeholder/>
-            </child>
-            <child type="tab">
-              <placeholder/>
-            </child>
           </object>
           <packing>
             <property name="position">1</property>

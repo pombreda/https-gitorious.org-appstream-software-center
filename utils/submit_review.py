@@ -232,6 +232,8 @@ class BaseApp(SimpleGtkbuilderApp):
         SimpleGtkbuilderApp.__init__(self, datadir+"/ui/reviews.ui", "software-center")
         self.token = None
         self.display_name = None
+        self._login_successful = False
+        glib.timeout_add(500, self._glib_whoami_done)
 
     def quit(self):
         sys.exit(0)
@@ -272,7 +274,13 @@ class BaseApp(SimpleGtkbuilderApp):
 
     def _thread_whoami_done(self, result):
         self.display_name = result["displayname"]
-        self.login_successful(self.display_name)
+        self._login_successful = True
+
+    def _glib_whoami_done(self):
+        if self._login_successful:
+            self.login_successful(self.display_name)
+            return False
+        return True
 
     def _thread_whoami_error(self, e):
         print "error: ", e
@@ -459,7 +467,6 @@ class ReportReviewApp(BaseApp):
         # title
         self.dialog_report_app.set_title(_("Report an infringment"))
 
-
         # parent xid
         if parent_xid:
             win = gtk.gdk.window_foreign_new(int(parent_xid))
@@ -482,7 +489,6 @@ class ReportReviewApp(BaseApp):
                       _("Other") ]:
             self.combobox_report_summary.append_text(term)
         self.combobox_report_summary.set_active(0)
-
 
     def _enable_or_disable_report_button(self, buf):
         if buf.get_char_count() > 0:
@@ -547,7 +553,9 @@ class ReportReviewApp(BaseApp):
 
     def login_successful(self, display_name):
         #self.label_reporter.set_text(display_name)
+        print "lala"
         self.report_main_notebook.set_current_page(1)
+        print "lala2"
         #self._setup_details(self.dialog_main, display_name)
         #self.report_abuse()
 

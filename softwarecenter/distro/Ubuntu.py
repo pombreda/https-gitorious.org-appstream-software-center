@@ -46,7 +46,7 @@ class Ubuntu(Distro):
 
     #REVIEW_STATS_URL = REVIEWS_SERVER+"/reviews/api/1.0/%(language)s/%(origin)s/%(distroseries)s/review-stats/"
     # FIXME: does that make sense?!?
-    REVIEW_STATS_URL = REVIEWS_SERVER+"/reviews/api/1.0/review-stats/"
+    REVIEW_STATS_URL = REVIEWS_SERVER+"/reviews/api/1.0/review-stats"
 
     def get_app_name(self):
         return _("Ubuntu Software Center")
