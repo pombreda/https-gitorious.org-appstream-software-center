@@ -999,7 +999,7 @@ class Reviews(gtk.VBox):
         self.expander = gtk.Expander()
         self.expander.set_label_widget(label)
 
-        self.new_review = mkit.VLinkButton('placeholder')
+        self.new_review = mkit.VLinkButton(_("Write your own review"))
         self.new_review.set_internal_spacing(mkit.SPACING_MED)
         self.new_review.set_underline(True)
 
@@ -1015,6 +1015,7 @@ class Reviews(gtk.VBox):
 
         self._update = True
         self.expander.connect('notify::expanded', self._on_expand)
+        self.expander.set_expanded(True)
         self.new_review.connect('clicked', lambda w: self.emit('new-review'))
         return
 
@@ -1038,9 +1039,10 @@ class Reviews(gtk.VBox):
         self.emit("new-review")
 
     def _fill(self):
-        for r in self.reviews:
-            review = Review(r)
-            self.vbox.pack_start(review)
+        if self.reviews:
+            for r in self.reviews:
+                review = Review(r)
+                self.vbox.pack_start(review)
         else:
             # TRANSLATORS: displayed if there are no reviews
             self.vbox.pack_start(NoReviewYet())
@@ -1052,19 +1054,13 @@ class Reviews(gtk.VBox):
         return
 
     def finished(self):
-        print 'Review count: %s' % len(self.reviews)
-
+        #print 'Review count: %s' % len(self.reviews)
         if not self.reviews:
             self._be_the_first_to_review()
         else:
             if self.expander.get_expanded():
                 self._fill()
                 self.vbox.show_all()
-        return
-
-    def set_appname(self, appname):
-        label = _('Review %s')
-        self.new_review.set_label(label % appname)
         return
 
     def set_width(self, w):
@@ -1157,8 +1153,8 @@ class Review(gtk.VBox):
         text.set_selectable(True)
         text.set_alignment(0, 0)
 
-        self.header.pack_start(summary, False)
         self.header.pack_start(StarRating(rating), False)
+        self.header.pack_start(summary, False)
         self.header.pack_end(who_what_when, False)
         #self.header.pack_end(gtk.Label(self.rating), False)
         self.body.pack_start(text, False)
@@ -1359,22 +1355,15 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                                                  self._reviews_ready_callback)
 
     def _reviews_ready_callback(self, app, reviews):
+        logging.info("_review_ready_callback: %s" % app)
         # avoid possible race if we already moved to a new app when
         # the reviews become ready 
         # (we only check for pkgname currently to avoid breaking on
         #  software-center totem)
-        logging.info("_review_ready_callback: %s" % app)
         if self.app.pkgname != app.pkgname:
             return
-        if not reviews:
-            no_review = _("This software item has no reviews yet.")
-            s='document.getElementById("reviews").innerHTML="%s"' % no_review
-            print s
         for review in reviews:
-            # use json.dumps() here to let it deal with all the escaping
-            # of ", \, \n etc
             self.reviews.add_review(review)
-
         self.reviews.finished()
 
     def _on_allocate(self, widget, allocation):
@@ -1780,7 +1769,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
     def _update_reviews(self, app_details):
         self.reviews.clear()
-        self.reviews.set_appname(app_details.name)
 
     def _update_all(self, app_details):
         if not self.loaded:
