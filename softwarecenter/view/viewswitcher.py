@@ -22,6 +22,7 @@ import gtk
 import pango
 import logging
 import os
+import cairo
 
 from gettext import gettext as _
 
@@ -32,8 +33,130 @@ from softwarecenter.enums import *
 from softwarecenter.utils import wait_for_apt_cache_ready
 
 from widgets.animatedimage import CellRendererAnimatedImage, AnimatedImage
+from widgets.mkit import ShapeRoundedRectangle, floats_from_gdkcolor
 
 LOG = logging.getLogger(__name__)
+
+
+class ViewItemCellRenderer(gtk.CellRendererText):
+
+    """ A cell renderer that displays text and an action count bubble that
+        displays if the item has an action occuring.
+    """
+
+    __gproperties__ = {
+        
+        'bubble_text': (str, 'Bubble text',
+                        'Text to be label inside row bubble',
+                        '', gobject.PARAM_READWRITE),
+        }
+
+    def __init__(self):
+        gtk.CellRendererText.__init__(self) 
+        self._rr = ShapeRoundedRectangle()
+        self._layout = None
+        return
+
+    def do_set_property(self, pspec, value):
+        setattr(self, pspec.name, value)
+
+    def do_get_property(self, pspec):
+        return getattr(self, pspec.name)
+
+    def do_render(self, window, widget, background_area, cell_area,
+                  expose_area, flags):
+
+        # important! ensures correct text rendering, esp. when using hicolor theme
+        if (flags & gtk.CELL_RENDERER_SELECTED) != 0:
+            # this follows the behaviour that gtk+ uses for states in treeviews
+            if widget.has_focus():
+                state = gtk.STATE_SELECTED
+            else:
+                state = gtk.STATE_ACTIVE
+        else:
+            state = gtk.STATE_NORMAL
+
+        text = self.get_property('bubble_text')
+
+        if text:
+
+            if not self._layout:
+                self._layout = widget.create_pango_layout('')
+
+            # setup layout and determine layout extents
+            color = widget.style.black.to_string()
+            self._layout.set_markup('<span color="%s"><small><b>%s</b></small></span>' % (color, text))
+            lw, lh = self._layout.get_pixel_extents()[1][2:]
+
+            w = max(16, lw+8)
+            h = min(cell_area.height-8, lh+8)
+
+            # shrink text area width to make room for the bubble
+            area = gtk.gdk.Rectangle(cell_area.x, cell_area.y,
+                                     cell_area.width-w-9,
+                                     cell_area.height)
+        else:
+            area = cell_area
+
+        # draw text
+        gtk.CellRendererText.do_render(self,
+                                       window,
+                                       widget,
+                                       background_area,
+                                       area,
+                                       expose_area,
+                                       state)
+
+        # draw bubble
+        if not text: return
+
+        cr = window.cairo_create()
+
+        # draw action bubble background
+        x = max(3, cell_area.x + cell_area.width - w)
+        y = cell_area.y + (cell_area.height-h)/2
+
+        self._rr.layout(cr, x, y, x+w, y+h, radius=7)
+        cr.set_source_rgb(*floats_from_gdkcolor(widget.style.dark[state]))
+        cr.fill_preserve()
+
+        lin = cairo.LinearGradient(0, y, 0, y+h)
+        lin.add_color_stop_rgba(0.0, 0, 0, 0, 0.0)
+        lin.add_color_stop_rgba(1.0, 0, 0, 0, 0.25)
+        cr.set_source(lin)
+        cr.fill_preserve()
+
+        x, y = int(x+(w-lw)*0.5+0.5), int(y+(h-lh)*0.5+0.5),
+                                  
+
+        # bubble number shadow
+        widget.style.paint_layout(window,
+                                  gtk.STATE_NORMAL,
+                                  False,
+                                  cell_area,
+                                  widget,
+                                  None,
+                                  x, y+1,
+                                  self._layout)
+
+
+        # bubble number
+        color = widget.style.white.to_string()
+        self._layout.set_markup('<span color="%s"><small><b>%s</b></small></span>' % (color, text))
+
+        widget.style.paint_layout(window,
+                                  gtk.STATE_NORMAL,
+                                  False,
+                                  cell_area,
+                                  widget,
+                                  None,
+                                  x, y,
+                                  self._layout)
+
+        del cr
+        return
+
+
 
 class ViewSwitcher(gtk.TreeView):
 
@@ -64,10 +187,10 @@ class ViewSwitcher(gtk.TreeView):
         column = gtk.TreeViewColumn("Icon")
         column.pack_start(tp, expand=False)
         column.set_attributes(tp, image=store.COL_ICON)
-        tr = gtk.CellRendererText()
+        tr = ViewItemCellRenderer()
         tr.set_property("ellipsize", pango.ELLIPSIZE_END)
         column.pack_start(tr, expand=True)
-        column.set_attributes(tr, markup=store.COL_NAME)
+        column.set_attributes(tr, markup=store.COL_NAME, bubble_text=store.COL_BUBBLE_TEXT)
         self.append_column(column)
 
         # Remember the previously selected permanent view
