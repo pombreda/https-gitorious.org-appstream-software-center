@@ -54,12 +54,12 @@ class ViewSwitcherList(gtk.TreeStore):
 
 
     def __init__(self, view_manager, datadir, db, cache, icons):
-        gtk.TreeStore.__init__(self, 
-                               AnimatedImage, 
-                               str, 
-                               gobject.TYPE_PYOBJECT, 
-                               gobject.TYPE_PYOBJECT,
-                               str,
+        gtk.TreeStore.__init__(self,
+                               AnimatedImage,         # COL_ICON
+                               str,                   # COL_NAME
+                               gobject.TYPE_PYOBJECT, # COL_ACTION
+                               gobject.TYPE_PYOBJECT, # COL_CHANNEL
+                               str,                   # COL_BUBBLE_TEXT
                                ) # must match columns above
         self.view_manager = view_manager
         self.icons = icons
