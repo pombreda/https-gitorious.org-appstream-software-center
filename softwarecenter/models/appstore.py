@@ -184,6 +184,7 @@ class AppStore(gtk.GenericTreeModel):
             xfilter = None
         # go over the queries
         self.matches = []
+        self.match_docids = set()
         for q in self.search_query:
             enquire = xapian.Enquire(self.db.xapiandb)
             self._logger.debug("initial query: '%s'" % q)
@@ -243,8 +244,13 @@ class AppStore(gtk.GenericTreeModel):
             else:
                 matches = enquire.get_mset(0, self.limit, None, xfilter)
             self._logger.debug("found ~%i matches" % matches.get_matches_estimated())
-
-            self.matches = matches
+            
+            # add matches, but don't duplicate docids
+            with ExecutionTime("append new matches to existing ones:"):
+                for match in matches:
+                    if not match.docid in self.match_docids:
+                        self.matches.append(match)
+                        self.match_docids.add(match.docid)
 
         # if we have no results, try forcing pkgs to be displayed
         if (not self.matches and

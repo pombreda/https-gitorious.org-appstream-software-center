@@ -4,6 +4,9 @@ software-center (3.1.7) UNRELEASED; urgency=low
   * refactor "SoftwarePane.refresh_apps()" code, this ensures
     the app lists are only ever (re)created if something changes
     and so avoiding nasty UI flashes (code is simpler now as well)
+  * softwarecenter/models/appstore.py:
+    - fix search ranking for exact package name matches (thanks to
+      seb128)
   
   [ Matthew McGowan ]
   * merged lp:~mmcg069/software-center/bubbles, this gives us
