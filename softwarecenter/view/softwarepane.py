@@ -114,6 +114,7 @@ class SoftwarePane(gtk.VBox, BasePane):
     }
     PADDING = 6
     
+    # pages for the spinner notebook
     (PAGE_APPVIEW,
      PAGE_SPINNER) = range(2)
 
@@ -164,12 +165,13 @@ class SoftwarePane(gtk.VBox, BasePane):
         self.scroll_details = gtk.ScrolledWindow()
         self.scroll_details.set_policy(gtk.POLICY_AUTOMATIC, 
                                         gtk.POLICY_AUTOMATIC)
-        self.app_details = AppDetailsView(self.db, 
-                                          self.distro,
-                                          self.icons, 
-                                          self.cache, 
-                                          self.datadir)
-        self.scroll_details.add(self.app_details)
+        self.app_details_view = AppDetailsView(self.db, 
+                                               self.distro,
+                                               self.icons, 
+                                               self.cache, 
+                                               self.datadir)
+        self.app_details_view.connect("app-purchase-initiated", self.on_app_purchase_initiated)
+        self.scroll_details.add(self.app_details_view)
         # cursor
         self.busy_cursor = gtk.gdk.Cursor(gtk.gdk.WATCH)
         # when the cache changes, refresh the app list
@@ -248,7 +250,14 @@ class SoftwarePane(gtk.VBox, BasePane):
                                        self.on_navigation_details,
                                        "details")
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
-        self.app_details.show_app(app)
+        self.app_details_view.show_app(app)
+        
+    def on_app_purchase_initiated(self, widget, app, purchase_url):
+        print "CALLBACK for on_app_purchase_initiated()"
+        details = app.get_details(self.db)
+        self.navigation_bar.add_with_id(_("Buy"),
+                                       self.on_navigation_details,  ## FIXME
+                                       "purchase")
 
     def show_appview_spinner(self):
         """ display the spinner in the appview panel """
@@ -269,11 +278,11 @@ class SoftwarePane(gtk.VBox, BasePane):
 
     def set_section(self, section):
         self.section = section
-        self.app_details.set_section(section)
+        self.app_details_view.set_section(section)
         return
 
     def section_sync(self):
-        self.app_details.set_section(self.section)
+        self.app_details_view.set_section(self.section)
         return
 
     def on_app_list_changed(self, pane, length):

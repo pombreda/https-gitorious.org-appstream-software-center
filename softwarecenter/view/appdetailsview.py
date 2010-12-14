@@ -27,8 +27,6 @@ from softwarecenter.backend import get_install_backend
 from softwarecenter.enums import *
 from softwarecenter.utils import get_current_arch, get_default_language
 
-from purchasedialog import PurchaseDialog
-
 class AppDetailsViewBase(object):
 
     __gsignals__ = {
@@ -37,8 +35,11 @@ class AppDetailsViewBase(object):
                                         (gobject.TYPE_PYOBJECT, 
                                          gobject.TYPE_PYOBJECT, 
                                          gobject.TYPE_PYOBJECT, 
-                                         str),
-                                       ),
+                                         str,)),
+         "app-purchase-initiated" : (gobject.SIGNAL_RUN_LAST,
+                                gobject.TYPE_NONE,
+                                (gobject.TYPE_PYOBJECT,
+                                 str,)),
     }
 
     def __init__(self, db, distro, icons, cache, datadir):
@@ -98,8 +99,11 @@ class AppDetailsViewBase(object):
                     'archive_id' : self.appdetails.ppaname, 
                     'arch' : get_current_arch() ,
                     }))
-        appdetails = self.app.get_details(self.db)
-        print "creating the PurchasePane"
+        
+#        appdetails = self.app.get_details(self.db)
+        print "initiating purchase"
+        self.emit("app-purchase-initiated", self.app, url)
+        
 #        self.purchase_dialog = PurchaseDialog(url=url, 
 #                                              app=self.app,
 #                                              iconname=appdetails.icon)
@@ -108,8 +112,8 @@ class AppDetailsViewBase(object):
 #        del self.purchase_dialog
         # re-init view if user canceled, otherwise the transactions 
         # will finish it after some time
-        if res != gtk.RESPONSE_OK:
-            self.show_app(self.app)
+#        if res != gtk.RESPONSE_OK:
+#            self.show_app(self.app)
 
     def reinstall_purchased(self):
         """ reinstall a purchased app """

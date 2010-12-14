@@ -81,7 +81,7 @@ class InstalledPane(SoftwarePane):
         self.notebook.set_current_page(self.PAGE_APPLIST)
     def on_db_reopen(self, db):
         self.refresh_apps()
-        self.app_details.refresh_app()
+        self.app_details_view.refresh_app()
         
     def on_navigation_search(self, pathbar, part):
         """ callback when the navigation button with id 'search' is clicked"""
@@ -162,7 +162,7 @@ class InstalledPane(SoftwarePane):
                                         self.on_navigation_details,
                                         "details",
                                         animate=False)
-        self.app_details.show_app(app)
+        self.app_details_view.show_app(app)
         self.app_view.emit("application-selected", app)
 
 if __name__ == "__main__":

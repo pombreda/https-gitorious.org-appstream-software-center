@@ -117,19 +117,20 @@ h1 {
 
     def _on_create_webview_request(self, view, frame, parent=None):
         logging.debug("_on_create_webview_request")
-        popup = gtk.Dialog()
-        popup.set_size_request(750,400)
-        popup.set_title("")
-        popup.set_modal(True)
-        popup.set_transient_for(self)
+        print "_on_create_webview_request"
+#        popup = gtk.Dialog()
+#        popup.set_size_request(750,400)
+#        popup.set_title("")
+#        popup.set_modal(True)
+#        popup.set_transient_for(self)
         wk = ScrolledWebkitWindow()
         wk.show()
-        popup.vbox.pack_start(wk)
-        popup.show()
+#        popup.vbox.pack_start(wk)
+#        popup.show()
         return wk.webkit
 
-    def run(self):
-        return gtk.Dialog.run(self)
+#    def run(self):
+#        return gtk.Dialog.run(self)
 
     def _on_script_alert(self, view, frame, message):
         print "on_script_alert", view, frame, message

@@ -52,7 +52,8 @@ class AvailablePane(SoftwarePane):
     (PAGE_CATEGORY,
      PAGE_SUBCATEGORY,
      PAGE_APPLIST,
-     PAGE_APP_DETAILS) = range(4)
+     PAGE_APP_DETAILS,
+     PAGE_APP_PURCHASE) = range(5)
 
     # define ID values for the various buttons found in the navigation bar
     NAV_BUTTON_ID_CATEGORY = "category"
@@ -430,7 +431,7 @@ class AvailablePane(SoftwarePane):
                                         self.on_navigation_details,
                                         "details",
                                         animate=True)
-        self.app_details.show_app(app)
+        self.app_details_view.show_app(app)
         self.display_details()
 
     # callbacks
@@ -482,7 +483,7 @@ class AvailablePane(SoftwarePane):
         " called when the database is reopened"
         #print "on_db_open"
         self.refresh_apps()
-        self.app_details.refresh_app()
+        self.app_details_view.refresh_app()
 
     def display_category(self):
         self._clear_search()

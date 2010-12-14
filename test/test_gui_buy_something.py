@@ -84,14 +84,14 @@ class SCBuySomething(unittest.TestCase):
                                treeview.get_column(0))
         self._p()
         self.assertEqual(
-            self.app.available_pane.app_details.action_bar.button.get_label(),
+            self.app.available_pane.app_details_view.action_bar.button.get_label(),
             u"Buy\u2026")
         self._p()
         # close the purchase dialog again after 2s
-        glib.timeout_add_seconds(2, lambda: self.app.available_pane.app_details.purchase_dialog.response(gtk.RESPONSE_OK))
+        glib.timeout_add_seconds(2, lambda: self.app.available_pane.app_details_view.purchase_dialog.response(gtk.RESPONSE_OK))
         # now simulate a click, the UI will block until the glib timeout 
         # from the previous line hits
-        self.app.available_pane.app_details.action_bar.button.clicked()
+        self.app.available_pane.app_details_view.action_bar.button.clicked()
         self._p()
         # done with the simulated purchase process, now pretend we install
         # something

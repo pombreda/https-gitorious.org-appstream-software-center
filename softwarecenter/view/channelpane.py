@@ -46,7 +46,8 @@ class ChannelPane(SoftwarePane):
     """
 
     (PAGE_APPLIST,
-     PAGE_APP_DETAILS) = range(2)
+     PAGE_APP_DETAILS,
+     PAGE_APP_PURCHASE) = range(3)
 
     def __init__(self, cache, db, distro, icons, datadir):
         # parent
@@ -132,7 +133,7 @@ class ChannelPane(SoftwarePane):
     def on_db_reopen(self, db):
         LOG.debug("got db-reopen signal")
         self.refresh_apps()
-        self.app_details.refresh_app()
+        self.app_details_view.refresh_app()
 
     def on_navigation_search(self, button, part):
         """ callback when the navigation button with id 'search' is clicked"""
