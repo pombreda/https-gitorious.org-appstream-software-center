@@ -914,6 +914,7 @@ class CellRendererAppView2(gtk.CellRendererText):
 
         # cache a layout
         self._layout = None
+        self._nr_reviews_layout = None
         self._star_painter = StarPainter()
 
         # icon/overlay jazz
@@ -1019,16 +1020,17 @@ class CellRendererAppView2(gtk.CellRendererText):
         # and nr-reviews below
         x = cell_area.x + cell_area.width - xpad - self.MAX_STARS*(w+3)
         y = cell_area.y + 2*ypad+h
-        pc = widget.get_pango_context()
-        # FIXME: the layout is expensive, cache it
-        layout = pango.Layout(pc)
+        if not self._nr_reviews_layout:
+            pc = widget.get_pango_context()
+            self._nr_reviews_layout = pango.Layout(pc)
         s = gettext.ngettext(
             "%(nr_ratings)i Rating",
             "%(nr_ratings)i Ratings",
             self.nreviews) % { 'nr_ratings' : self.nreviews, }
-        layout.set_markup("<small>%s</small>" % s)
+        self._nr_reviews_layout.set_markup("<small>%s</small>" % s)
+        # FIXME: improve w, h area calculation
         w = 6*self.STAR_SIZE
-        h = layout.get_size()[1]
+        h = self._nr_reviews_layout.get_size()[1]
         clip_area = (x, y, w, h)
         widget.style.paint_layout(window, 
                                   state,
@@ -1038,7 +1040,7 @@ class CellRendererAppView2(gtk.CellRendererText):
                                   None, 
                                   x, 
                                   y, 
-                                  layout)
+                                  self._nr_reviews_layout)
         return
 
     def _render_progress(self, window, widget, cell_area, ypad, direction):
