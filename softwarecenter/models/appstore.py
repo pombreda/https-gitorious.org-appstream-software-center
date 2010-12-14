@@ -33,6 +33,8 @@ from softwarecenter.db.database import Application, SearchQuery, LocaleSorter
 from softwarecenter.distro import get_distro
 from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
 
+from gettext import gettext as _
+
 # global cache icons to speed up rendering
 _app_icon_cache = {}
 
