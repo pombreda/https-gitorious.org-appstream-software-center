@@ -73,7 +73,7 @@ class AppStore(gtk.GenericTreeModel):
      COL_AVAILABLE,
      COL_PKGNAME,
      COL_RATING,
-     COL_REVIEWS,
+     COL_NR_REVIEWS,
      COL_IS_ACTIVE,
      COL_ACTION_IN_PROGRESS,
      COL_EXISTS,
@@ -430,11 +430,6 @@ class AppStore(gtk.GenericTreeModel):
         self._prev_active_app = path
         self.row_changed(path, self.get_iter(path))
 
-    def _calc_normalized_rating(self, raw_rating):
-        if raw_rating:
-            return int(self.MAX_STARS * math.log(raw_rating)/math.log(self.db.popcon_max+1))
-        return 0
-
     def _on_transaction_progress_changed(self, backend, pkgname, progress):
         if (not self.apps or
             not self.active or
@@ -605,7 +600,7 @@ class AppStore(gtk.GenericTreeModel):
             if stats:
                 return stats.avg_rating
             return 0
-        elif column == self.COL_REVIEWS:
+        elif column == self.COL_NR_REVIEWS:
             stats = self.review_loader.get_review_stats(self.apps[rowref])
             if stats:
                 return stats.nr_reviews
@@ -870,7 +865,7 @@ class CellRendererAppView2(gtk.CellRendererText):
         'rating': (gobject.TYPE_FLOAT, 'Rating', 'Avg rating', 0.0, 5.0, 0.0,
             gobject.PARAM_READWRITE),
 
-        'reviews': (gobject.TYPE_INT, 'Reviews', 'Number of reviews', 0, 100, 0,
+        'nreviews': (gobject.TYPE_INT, 'Reviews', 'Number of reviews', 0, 100, 0,
             gobject.PARAM_READWRITE),
 
         'isactive': (bool, 'IsActive', 'Is active?', False,
@@ -1005,14 +1000,14 @@ class CellRendererAppView2(gtk.CellRendererText):
                                   x, y, layout)
         return
 
-    def _render_rating(self, window, widget, cell_area, xpad, ypad, direction):
+    def _render_rating(self, window, widget, state, cell_area, xpad, ypad, direction):
         # draw stars on the top right
         cr = window.cairo_create()
         w = self.STAR_SIZE
         h = self.STAR_SIZE
         for i in range(1,self.MAX_STARS+1):
             x = cell_area.x + cell_area.width - xpad - i*(w+3)
-            y = cell_area.y + h
+            y = cell_area.y + ypad
             if i < int(self.rating):
                 self._star_painter.set_fill(StarPainter.FILL_EMPTY)
             elif i == int(self.rating) and self.rating-int(self.rating) > 0:
@@ -1020,6 +1015,29 @@ class CellRendererAppView2(gtk.CellRendererText):
             else:
                 self._star_painter.set_fill(StarPainter.FILL_FULL)
             self._star_painter.paint_star(cr, x, y, w, h)
+        # and nr-reviews below
+        x = cell_area.x + cell_area.width - xpad - self.MAX_STARS*(w+3)
+        y = cell_area.y + 2*ypad+h
+        pc = widget.get_pango_context()
+        # FIXME: the layout is expensive, cache it
+        layout = pango.Layout(pc)
+        s = gettext.ngettext(
+            "%(nr_ratings)i Rating",
+            "%(nr_ratings)i Ratings",
+            self.nreviews) % { 'nr_ratings' : self.nreviews, }
+        layout.set_markup("<small>%s</small>" % s)
+        w = 6*self.STAR_SIZE
+        h = layout.get_size()[1]
+        clip_area = (x, y, w, h)
+        widget.style.paint_layout(window, 
+                                  state,
+                                  True, 
+                                  clip_area,
+                                  widget,
+                                  None, 
+                                  x, 
+                                  y, 
+                                  layout)
         return
 
     def _render_progress(self, window, widget, cell_area, ypad, direction):
@@ -1144,7 +1162,7 @@ class CellRendererAppView2(gtk.CellRendererText):
 
         # only show ratings if we have one
         if  self.rating > 0 and self.props.action_in_progress < 0:
-            self._render_rating(window, widget, cell_area, xpad, ypad, direction)
+            self._render_rating(window, widget, state, cell_area, xpad, ypad, direction)
 
         # below is the stuff that is only done for the active cell
         if not self.isactive:
@@ -1268,7 +1286,7 @@ class AppView(gtk.TreeView):
                                     text=AppStore.COL_ACCESSIBLE,
                                     markup=AppStore.COL_MARKUP,
                                     rating=AppStore.COL_RATING,
-                                    reviews=AppStore.COL_REVIEWS,
+                                    nreviews=AppStore.COL_NR_REVIEWS,
                                     isactive=AppStore.COL_IS_ACTIVE,
                                     installed=AppStore.COL_INSTALLED, 
                                     available=AppStore.COL_AVAILABLE,
@@ -1705,11 +1723,7 @@ def get_query_from_search_entry(search_term):
     # now build a query
     parser = xapian.QueryParser()
     user_query = parser.parse_query(search_term)
-    # ensure that we only search for applicatins here, even
-    # when a-x-i is loaded
-    app_query =  xapian.Query("ATapplication")
-    query = xapian.Query(xapian.Query.OP_AND, app_query, user_query)
-    return query
+    return user_query
 
 def on_entry_changed(widget, data):
     new_text = widget.get_text()
@@ -1751,7 +1765,11 @@ if __name__ == "__main__":
 
     entry = gtk.Entry()
     entry.connect("changed", on_entry_changed, (cache, db, view))
-    entry.set_text("f")
+    if len(sys.argv) > 1:
+        search_term = sys.argv[1]
+    else:
+        search_term = "f"
+    entry.set_text(search_term)
 
     box = gtk.VBox()
     box.pack_start(entry, expand=False)
@@ -1760,7 +1778,7 @@ if __name__ == "__main__":
     win = gtk.Window()
     scroll.add(view)
     win.add(box)
-    win.set_size_request(400, 400)
+    win.set_size_request(600, 400)
     win.show_all()
 
     gtk.main()

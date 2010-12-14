@@ -23,6 +23,7 @@ import pygtk
 pygtk.require ("2.0")
 import gobject
 import cairo
+import gettext
 import gtk
 import os
 
@@ -355,7 +356,11 @@ class ReviewStatsContainer(gtk.VBox):
         self._update_nr_reviews()
     # internal stuff
     def _update_nr_reviews(self):
-        self.label.set_markup(_("%i Ratings") % self.nr_reviews)
+        s = gettext.ngettext(
+            "%(nr_ratings)i Rating",
+            "%(nr_ratings)i Ratings",
+            self.nr_reviews) % { 'nr_ratings' : self.nr_reviews, }
+        self.label.set_markup(s)
 
 if __name__ == "__main__":
     w = ReviewStatsContainer()
