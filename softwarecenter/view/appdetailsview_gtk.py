@@ -993,7 +993,7 @@ class Reviews(gtk.VBox):
         label = mkit.EtchedLabel()
         label.set_use_markup(True)
         label.set_alignment(0, 0.5)
-        markup = "<b><big>%s</big></b>" % _("User Reviews")
+        markup = "<b><big>%s</big></b>" % _("Reviews")
         label.set_markup(markup)
 
         self.expander = gtk.Expander()
@@ -1041,9 +1041,14 @@ class Reviews(gtk.VBox):
         for r in self.reviews:
             review = Review(r)
             self.vbox.pack_start(review)
+        else:
+            # TRANSLATORS: displayed if there are no reviews
+            self.vbox.pack_start(NoReviewYet())
         return
 
     def _be_the_first_to_review(self):
+        s = _('Be the first to review it')
+        self.new_review.set_label(s)
         return
 
     def finished(self):
@@ -1104,10 +1109,9 @@ class Reviews(gtk.VBox):
             r.draw(cr, r.allocation)
         return
 
-
 class Review(gtk.VBox):
     
-    def __init__(self, review_data):
+    def __init__(self, review_data=None):
         gtk.VBox.__init__(self, spacing=mkit.SPACING_LARGE)
 
         self.header = gtk.HBox(spacing=mkit.SPACING_MED)
@@ -1118,14 +1122,14 @@ class Review(gtk.VBox):
         self.pack_start(self.body, False)
         self.pack_start(self.footer, False)
 
-        self.id = review_data.id
-        rating = review_data.rating 
-        person = glib.markup_escape_text(review_data.person)
-        summary = glib.markup_escape_text(review_data.summary)
-        text = glib.markup_escape_text(review_data.text)
-        date = glib.markup_escape_text(review_data.date)
-
-        self._build(rating, person, summary, text, date)
+        if review_data:
+            self.id = review_data.id
+            rating = review_data.rating 
+            person = glib.markup_escape_text(review_data.person)
+            summary = glib.markup_escape_text(review_data.summary)
+            text = glib.markup_escape_text(review_data.text)
+            date = glib.markup_escape_text(review_data.date)
+            self._build(rating, person, summary, text, date)
 
         self.body.connect('size-allocate', self._on_allocate)
         return
@@ -1180,6 +1184,15 @@ class Review(gtk.VBox):
         cr.set_line_width(1)
         cr.stroke()
         cr.restore()
+
+class NoReviewYet(Review):
+    """ represents if there are no reviews yet """
+    def __init__(self, *args, **kwargs):
+        super(NoReviewYet, self).__init__(*args, **kwargs)
+        # TRANSLATORS: displayed if there are no reviews yet
+        self.body.pack_start(gtk.Label(_("None yet")))
+    #def draw(self, cr, a):
+    #    pass
 
 
 class AddonsStatusBar(StatusBar):
