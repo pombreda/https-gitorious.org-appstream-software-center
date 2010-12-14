@@ -168,9 +168,8 @@ class ReviewLoaderJsonAsync(ReviewLoader):
     def get_reviews(self, app, callback):
         """ get a specific review and call callback when its available"""
         # FIXME: get this from the app details
-        origin = "Ubuntu"
+        origin = "ubuntu"
         distroseries = self.distro.get_codename()
-        distroseries = "maverick"
         url = self.distro.REVIEWS_URL % { 'pkgname' : app.pkgname,
                                           'appname' : app.appname,
                                           'language' : self.language,
@@ -201,15 +200,16 @@ class ReviewLoaderJsonAsync(ReviewLoader):
         review_stats_json = simplejson.loads(json_str)
         review_stats = {}
         for review_stat_json in review_stats_json:
-            appname = review_stat_json["softwareitem__app_name"]
-            pkgname = review_stat_json["softwareitem__package_name"]
+            appname = review_stat_json["app_name"]
+            pkgname = review_stat_json["package_name"]
             app = Application(appname, pkgname)
             stats = ReviewStats(app)
-            stats.nr_reviews = int(review_stat_json["count"])
-            stats.avg_rating = float(review_stat_json["average"])
+            stats.nr_reviews = int(review_stat_json["ratings_total"])
+            stats.avg_rating = float(review_stat_json["ratings_average"])
             review_stats[app] = stats
         # update review_stats dict
         self.REVIEW_STATS_CACHE = review_stats
+        print review_stats
         self.save_review_stats_cache_file()
         # run callback
         callback(review_stats)
@@ -231,7 +231,6 @@ class ReviewLoaderJsonAsync(ReviewLoader):
         """ get the review statists and call callback when its there """
         origin = "ubuntu"
         distroseries = self.distro.get_codename()
-        distroseries = "maverick"
         url = self.distro.REVIEW_STATS_URL % { 'language' : self.language,
                                                'origin' : origin,
                                                'distroseries' : distroseries,
@@ -445,7 +444,7 @@ if __name__ == "__main__":
     #loader = ReviewLoaderIpsum()
     #print loader.get_reviews(app, callback)
     #print loader.get_review_stats(app)
-    app = Application("","ezchess")
+    app = Application("","2vcard")
     loader = ReviewLoaderJsonAsync()
     loader.refresh_review_stats(stats_callback)
     loader.get_reviews(app, callback)

@@ -42,9 +42,11 @@ class Ubuntu(Distro):
 
     # reviews
     REVIEWS_SERVER = os.environ.get("SOFTWARE_CENTER_REVIEWS_HOST") or "http://127.0.0.1:8000"
-    #REVIEWS_SERVER = "http://ec2-75-101-220-128.compute-1.amazonaws.com"
     REVIEWS_URL = urllib.basejoin(REVIEWS_SERVER, "/reviews/api/1.0/%(language)s/%(origin)s/%(distroseries)s/%(pkgname)s/%(appname)s/")
-    REVIEW_STATS_URL = REVIEWS_SERVER+"/reviews/api/1.0/%(language)s/%(origin)s/%(distroseries)s/review-stats/"
+
+    #REVIEW_STATS_URL = REVIEWS_SERVER+"/reviews/api/1.0/%(language)s/%(origin)s/%(distroseries)s/review-stats/"
+    # FIXME: does that make sense?!?
+    REVIEW_STATS_URL = REVIEWS_SERVER+"/reviews/api/1.0/review-stats/"
 
     def get_app_name(self):
         return _("Ubuntu Software Center")
