@@ -518,10 +518,10 @@ class ReportReviewApp(BaseApp):
         self.report_title.set_markup(m % (_('Review Infringment'), _('Reported by'), display_name))
 
         # report label
-        self.report_label.set_markup('<b><span color="%s">%s</span></b>' % (dark, _('Report')))
+        self.report_label.set_markup('<b><span color="%s">%s</span></b>' % (dark, _('Please give details:')))
 
         # review summary label
-        self.report_summary_label.set_markup('<b><span color="%s">%s</span></b>' % (dark, _('Reason')))
+        self.report_summary_label.set_markup('<b><span color="%s">%s</span></b>' % (dark, _('Why is this review inappropriate?')))
         return
 
     def report_abuse(self):
@@ -552,12 +552,10 @@ class ReportReviewApp(BaseApp):
         self.report_abuse()
 
     def login_successful(self, display_name):
-        #self.label_reporter.set_text(display_name)
-        print "lala"
         self.report_main_notebook.set_current_page(1)
-        print "lala2"
-        #self._setup_details(self.dialog_main, display_name)
-        #self.report_abuse()
+        #self.label_reporter.set_text(display_name)
+        self._setup_details(self.dialog_main, display_name)
+        self.report_abuse()
 
     
 if __name__ == "__main__":
