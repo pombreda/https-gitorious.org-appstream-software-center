@@ -195,12 +195,18 @@ class AppStore(gtk.GenericTreeModel):
             # in the system cat of available view only 0.13s
 
             # for searches we may want to disable show/hide
+            #terms = [term for term in q]
+            #exact_pkgname_query = (len(terms) == 1 and terms[0].startswith("XP"))
 
             with ExecutionTime("calculate nr_apps and nr_pkgs: "):
                 self.nr_apps, self.nr_pkgs = self._get_estimate_nr_apps_and_nr_pkgs(enquire, q, xfilter)
 
             # only show apps by default
             if self.nonapps_visible != self.NONAPPS_ALWAYS_VISIBLE:
+                # FIXME: we should allow technical items here for exact
+                #        pkgname matches? 
+                # try with: search:unity and search:apt and search:nautilus
+                #if exact_pkgname_query:
                 q = xapian.Query(xapian.Query.OP_AND, 
                                  xapian.Query("ATapplication"),
                                  q)
