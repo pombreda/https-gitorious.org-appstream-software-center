@@ -167,7 +167,7 @@ class AppStore(gtk.GenericTreeModel):
         with ExecutionTime("populate model from query: '%s' (threaded: %s)" % (
                 " ; ".join([str(q) for q in self.search_query]),
                 self.nonblocking_load)):
-            if self.nonblocking_load and False:
+            if self.nonblocking_load:
                 self._threaded_perform_search()
             else:
                 self._blocking_perform_search()
