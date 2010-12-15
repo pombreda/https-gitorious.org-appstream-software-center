@@ -220,21 +220,20 @@ class AppStore(gtk.GenericTreeModel):
             # in the system cat of available view only 0.13s
 
             # for searches we may want to disable show/hide
-            #terms = [term for term in q]
-            #exact_pkgname_query = (len(terms) == 1 and terms[0].startswith("XP"))
+            terms = [term for term in q]
+            exact_pkgname_query = (len(terms) == 1 and terms[0].startswith("XP"))
 
             with ExecutionTime("calculate nr_apps and nr_pkgs: "):
-                self.nr_apps, self.nr_pkgs = self._get_estimate_nr_apps_and_nr_pkgs(enquire, q, xfilter)
+                nr_apps, nr_pkgs = self._get_estimate_nr_apps_and_nr_pkgs(enquire, q, xfilter)
+                self.nr_apps += nr_apps
+                self.nr_pkgs += nr_pkgs
 
-            # only show apps by default
+            # only show apps by default (unless we 
             if self.nonapps_visible != self.NONAPPS_ALWAYS_VISIBLE:
-                # FIXME: we should allow technical items here for exact
-                #        pkgname matches? 
-                # try with: search:unity and search:apt and search:nautilus
-                #if exact_pkgname_query:
-                q = xapian.Query(xapian.Query.OP_AND, 
-                                 xapian.Query("ATapplication"),
-                                 q)
+                if not exact_pkgname_query:
+                    q = xapian.Query(xapian.Query.OP_AND, 
+                                     xapian.Query("ATapplication"),
+                                     q)
 
             self._logger.debug("nearly completely filtered query: '%s'" % q)
 
@@ -276,6 +275,12 @@ class AppStore(gtk.GenericTreeModel):
                 matches = enquire.get_mset(0, self.limit, None, xfilter)
             self._logger.debug("found ~%i matches" % matches.get_matches_estimated())
             
+            # promote exact matches to a "app", this will make the 
+            # show/hide technical items work correctly
+            if exact_pkgname_query and len(matches) == 1:
+                self.nr_apps += 1
+                self.nr_pkgs -= 1
+
             # add matches, but don't duplicate docids
             with ExecutionTime("append new matches to existing ones:"):
                 for match in matches:
