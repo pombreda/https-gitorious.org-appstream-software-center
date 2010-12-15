@@ -116,8 +116,11 @@ class PluginManager(object):
                     module = self._load_module(filename)
                     for plugin in self._find_plugins(module):
                         plugin.app = self._app
-                        plugin.init_plugin()
-                        self._plugins.append(plugin)
+                        try:
+                            plugin.init_plugin()
+                            self._plugins.append(plugin)
+                        except:
+                            LOG.exception("failed to init plugin: %s" % module)
         # get the matching plugins
         plugins = [p for p in self._plugins]
         LOG.debug("plugins are '%s'" % plugins)

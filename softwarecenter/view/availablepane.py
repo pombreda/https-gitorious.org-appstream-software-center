@@ -36,7 +36,7 @@ from appview import AppView, AppStore, AppViewFilter
 from catview_gtk import LobbyViewGtk, SubCategoryViewGtk
 from catview import Category, CategoriesView
 
-from softwarepane import SoftwarePane, wait_for_apt_cache_ready
+from softwarepane import SoftwarePane
 
 from widgets.backforward import BackForwardButton
 

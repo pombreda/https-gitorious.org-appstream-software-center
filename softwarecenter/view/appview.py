@@ -1033,14 +1033,24 @@ class AppViewFilter(xapian.MatchDecider):
     def get_supported_only(self):
         return self.supported_only
     def __eq__(self, other):
-        return (self.supported_only == other.supported_only and
+        return (other and
+                self.supported_only == other.supported_only and
                 self.installed_only == other.installed_only and
                 self.not_installed_only == other.not_installed_only)
     def __ne__(self, other):
         return not self.__eq__(other)
     def __call__(self, doc):
         """return True if the package should be displayed"""
-        pkgname =  doc.get_value(XAPIAN_VALUE_PKGNAME)  or doc.get_value(self.db._axi_values["pkgname"])
+        # get pkgname from document
+        pkgname =  doc.get_value(XAPIAN_VALUE_PKGNAME)
+        if not pkgname:
+            # the doc says that get_value() is quicker than get_data()
+            # so we use that if we have a updated DB, otherwise
+            # fallback to the old way (the xapian DB may not yet be rebuild)
+            if "pkgname" in self.db._axi_values:
+                pkgname = doc.get_value(self.db._axi_values["pkgname"])
+            else:
+                pkgname = doc.get_data()
         #logging.debug(
         #    "filter: supported_only: %s installed_only: %s '%s'" % (
         #        self.supported_only, self.installed_only, pkgname))
