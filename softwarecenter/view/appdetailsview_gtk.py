@@ -1116,7 +1116,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self._draw_icon_frame(cr)
 
         self.app_desc.description.draw(widget, event)
-
+        
         if self.action_bar.get_property('visible'):
             self.action_bar.draw(cr,
                                  self.action_bar.allocation,
@@ -1708,6 +1708,20 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         #cr.restore()
         #return
+
+    def _get_xy_icon_position_on_screen(self):
+        """ helper for unity dbus support to get the x,y position of
+            the appicon on the screen
+        """
+        # find toplevel parent
+        parent = self
+        while parent.get_parent():
+            parent = parent.get_parent()
+        # get x, y relative to toplevel
+        (x,y) = self.app_info.image.translate_coordinates(parent, 0, 0)
+        # get toplevel window position
+        (px, py) = parent.get_position()
+        return (px+x, py+y)
 
     def _draw_icon_frame(self, cr):
         # draw small or no icon background

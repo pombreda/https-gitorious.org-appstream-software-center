@@ -4,6 +4,8 @@ software-center (3.1.8) UNRELEASED; urgency=low
     - honor UBUNTU_SSO_SERVICE
   * softwarecenter/plugin.py:
     - ignore plugin init failures
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - add helper to obtain xy position of the appicon in the view
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 15 Dec 2010 15:27:11 +0100
 
