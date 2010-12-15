@@ -1,5 +1,6 @@
 software-center (3.1.8) UNRELEASED; urgency=low
 
+  [ Michael Vogt ]
   * softwarecenter/backend/restfulclient.py:
     - honor UBUNTU_SSO_SERVICE
   * softwarecenter/plugin.py:
@@ -7,7 +8,14 @@ software-center (3.1.8) UNRELEASED; urgency=low
   * softwarecenter/view/appdetailsview_gtk.py:
     - add helper to obtain xy position of the appicon in the view
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 15 Dec 2010 15:27:11 +0100
+  [ Gary Lasker ]
+  * softwarecenter/view/appview.py:
+    - fix crash in refresh_apps if previous model did
+      not have a filter (LP: #690706)
+  * softwarecenter/models/appstore.py:
+    - enable threaded listviews 
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 15 Dec 2010 11:34:28 -0500
 
 software-center (3.1.7) natty; urgency=low
 
