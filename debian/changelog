@@ -15,6 +15,8 @@ software-center (3.1.7) UNRELEASED; urgency=low
       for reporting this problem)
   * softwarecenter/apt/apthistory.py, test/test_apthistory.py:
     - fix apthistory test by allowing noncached operations
+  * softwarecenter/models/appstore.py:
+    - fix potential crash in tests
   
   [ Matthew McGowan ]
   * merged lp:~mmcg069/software-center/bubbles, this gives us

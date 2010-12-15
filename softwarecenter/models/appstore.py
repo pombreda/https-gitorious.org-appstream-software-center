@@ -165,7 +165,7 @@ class AppStore(gtk.GenericTreeModel):
         # we support single and list search_queries,
         # if list we append them one by one
         with ExecutionTime("populate model from query: '%s' (threaded: %s)" % (
-                " ; ".join([str(q) for q in search_query]),
+                " ; ".join([str(q) for q in self.search_query]),
                 self.nonblocking_load)):
             if self.nonblocking_load and False:
                 self._threaded_perform_search()
