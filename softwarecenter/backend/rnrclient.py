@@ -27,7 +27,7 @@ distro = get_distro()
 SERVER_ROOT=distro.REVIEWS_SERVER
 
 class ReviewRequest(PistonSerializable):
-    _atts = ('package_name', 'summary', 'version', 'review_text',
+    _atts = ('app_name', 'package_name', 'summary', 'version', 'review_text',
         'rating', 'language', 'origin', 'distroseries', 'arch_tag')
 
 class ReviewsStats(PistonResponseObject):
