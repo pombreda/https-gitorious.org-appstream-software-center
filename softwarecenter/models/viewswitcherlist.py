@@ -41,7 +41,8 @@ class ViewSwitcherList(gtk.TreeStore):
      COL_NAME,
      COL_ACTION,
      COL_CHANNEL,
-     ) = range(4)
+     COL_BUBBLE_TEXT,
+     ) = range(5)
 
     ICON_SIZE = 24
 
@@ -53,11 +54,12 @@ class ViewSwitcherList(gtk.TreeStore):
 
 
     def __init__(self, view_manager, datadir, db, cache, icons):
-        gtk.TreeStore.__init__(self, 
-                               AnimatedImage, 
-                               str, 
-                               gobject.TYPE_PYOBJECT, 
-                               gobject.TYPE_PYOBJECT,
+        gtk.TreeStore.__init__(self,
+                               AnimatedImage,         # COL_ICON
+                               str,                   # COL_NAME
+                               gobject.TYPE_PYOBJECT, # COL_ACTION
+                               gobject.TYPE_PYOBJECT, # COL_CHANNEL
+                               str,                   # COL_BUBBLE_TEXT
                                ) # must match columns above
         self.view_manager = view_manager
         self.icons = icons
@@ -74,22 +76,22 @@ class ViewSwitcherList(gtk.TreeStore):
 
         # first, the availablepane items
         available_icon = self._get_icon("softwarecenter")
-        self.available_iter = self.append(None, [available_icon, _("Get Software"), VIEW_PAGE_AVAILABLE, None])
+        self.available_iter = self.append(None, [available_icon, _("Get Software"), VIEW_PAGE_AVAILABLE, None, None])
 
         # the installedpane items
         icon = AnimatedImage(self.icons.load_icon("computer", self.ICON_SIZE, 0))
-        self.installed_iter = self.append(None, [icon, _("Installed Software"), VIEW_PAGE_INSTALLED, None])
+        self.installed_iter = self.append(None, [icon, _("Installed Software"), VIEW_PAGE_INSTALLED, None, None])
         
         # the channelpane 
         self.channel_manager = ChannelsManager(db, icons)
         # do initial channel list update
         self._update_channel_list()
-        
+
         # the historypane item
         icon = self._get_icon("clock")
-        history_iter = self.append(None, [icon, _("History"), VIEW_PAGE_HISTORY, None])
+        history_iter = self.append(None, [icon, _("History"), VIEW_PAGE_HISTORY, None, None])
         icon = AnimatedImage(None)
-        self.append(None, [icon, "<span size='1'> </span>", VIEW_PAGE_SEPARATOR_1, None])
+        self.append(None, [icon, "<span size='1'> </span>", VIEW_PAGE_SEPARATOR_1, None, None])
         
         # the progress pane is build on demand
 
@@ -103,13 +105,13 @@ class ViewSwitcherList(gtk.TreeStore):
         if pending > 0:
             for row in self:
                 if row[self.COL_ACTION] == VIEW_PAGE_PENDING:
-                    row[self.COL_NAME] = _("In Progress (%i)") % pending
+                    row[self.COL_BUBBLE_TEXT] = str(pending)
                     break
             else:
                 icon = AnimatedImage(self.ANIMATION_PATH)
                 icon.start()
-                self.append(None, [icon, _("In Progress (%i)") % pending, 
-                             VIEW_PAGE_PENDING, None])
+                self.append(None, [icon, "In Progress...", 
+                             VIEW_PAGE_PENDING, None, str(pending)])
         else:
             for (i, row) in enumerate(self):
                 if row[self.COL_ACTION] == VIEW_PAGE_PENDING:
@@ -188,7 +190,8 @@ class ViewSwitcherList(gtk.TreeStore):
                         channel.icon,
                         channel.display_name,
                         VIEW_PAGE_CHANNEL,
-                        channel])
+                        channel,
+                        None])
         # delete the old ones
         for child in iters_to_kill:
             self.remove(child)
@@ -224,7 +227,8 @@ class ViewSwitcherList(gtk.TreeStore):
                             channel.icon,
                             channel.display_name,
                             VIEW_PAGE_CHANNEL,
-                            channel])
+                            channel,
+                            None])
         # delete the old ones
         for child in iters_to_kill:
             self.remove(child)
