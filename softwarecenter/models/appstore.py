@@ -194,9 +194,6 @@ class AppStore(gtk.GenericTreeModel):
         return (nr_apps, nr_pkgs)
 
     def _blocking_perform_search(self):
-            self.__perform_search()
-
-    def _blocking_perform_search(self):
         # WARNING this call may run in a thread, so its *not* 
         #         allowed to touch gtk, otherwise hell breaks loose
 
