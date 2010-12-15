@@ -23,6 +23,7 @@ import logging
 import os
 import sys
 import xapian
+import gobject
 
 from gettext import gettext as _
 
@@ -40,6 +41,10 @@ class InstalledPane(SoftwarePane):
 
     (PAGE_APPLIST,
      PAGE_APP_DETAILS) = range(2)
+     
+    __gsignals__ = {'installed-pane-created':(gobject.SIGNAL_RUN_FIRST,
+                                              gobject.TYPE_NONE,
+                                              ())}
 
     def __init__(self, cache, db, distro, icons, datadir):
         # parent
@@ -49,17 +54,21 @@ class InstalledPane(SoftwarePane):
         self.apps_filter.set_installed_only(True)
         self.current_appview_selection = None
         self.loaded = False
-        # UI
-        self._build_ui()
         self.pane_name = _("Installed Software")
         
-    def _build_ui(self):
-        self.navigation_bar.set_size_request(26, -1)
-        self.notebook.append_page(self.box_app_list, gtk.Label("installed"))
-        # details
-        self.notebook.append_page(self.scroll_details, gtk.Label("details"))
-        # initial refresh
-        self.apps_search_term = ""
+    def init_view(self):
+        if not self.view_initialized:
+            SoftwarePane.init_view(self)
+            self.navigation_bar.set_size_request(26, -1)
+            self.notebook.append_page(self.box_app_list, gtk.Label("installed"))
+            # details
+            self.notebook.append_page(self.scroll_details, gtk.Label("details"))
+            # initial refresh
+            self.apps_search_term = ""
+            # now we are initialized
+            self.emit("installed-pane-created")
+            self.show_all()
+            self.view_initialized = True
 
     def _show_installed_overview(self):
         " helper that goes back to the overview page "
@@ -221,6 +230,7 @@ if __name__ == "__main__":
 
     win = gtk.Window()
     win.add(w)
+    w.init_view()
     win.set_size_request(400, 600)
     win.show_all()
 

@@ -127,6 +127,7 @@ class SoftwarePane(gtk.VBox, BasePane):
         self.db.connect("reopen", self.on_db_reopen)
         self.icons = icons
         self.datadir = datadir
+        self.show_ratings = show_ratings
         self.backend = get_install_backend()
         self.nonapps_visible = AppStore.NONAPPS_MAYBE_VISIBLE
         self.disable_show_hide_nonapps = False
@@ -136,6 +137,19 @@ class SoftwarePane(gtk.VBox, BasePane):
         # request (e.g. people click on ubuntu channel, get impatient, click
         # on partner channel)
         self.refresh_seq_nr = 0
+        # data for the refresh_apps()
+        self.channel = None
+        self.apps_category = None
+        self.apps_subcategory = None
+        self.apps_search_term = None
+        self.custom_list_mode = False
+        
+    def init_view(self):
+        """
+        Initialize those UI components that are common to all subclasses of
+        SoftwarePane.  Note that this method is intended to be called by
+        the subclass itself at the start of its own init_view() implementation.
+        """
         # common UI elements (applist and appdetails) 
         # its the job of the Child class to put it into a good location
         # list
@@ -146,7 +160,7 @@ class SoftwarePane(gtk.VBox, BasePane):
         self.box_app_list = gtk.VBox()
         self.box_app_list.pack_start(
             self.label_app_list_header, expand=False, fill=False, padding=12)
-        self.app_view = AppView(show_ratings)
+        self.app_view = AppView(self.show_ratings)
         self.scroll_app_list = gtk.ScrolledWindow()
         self.scroll_app_list.set_policy(gtk.POLICY_AUTOMATIC, 
                                         gtk.POLICY_AUTOMATIC)
@@ -204,13 +218,7 @@ class SoftwarePane(gtk.VBox, BasePane):
         self.action_bar = ActionBar()
         self.pack_start(self.action_bar, expand=False)
         self.top_hbox.connect('expose-event', self._on_expose)
-        # data for the refresh_apps()
-        self.channel = None
-        self.apps_category = None
-        self.apps_subcategory = None
-        self.apps_search_term = None
-        self.custom_list_mode = False
-
+            
     def _on_expose(self, widget, event):
         """ Draw a horizontal line that separates the top hbox from the page content """
         a = widget.allocation

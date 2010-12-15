@@ -26,6 +26,8 @@ class BasePane(object):
         # stuff that is queried by app.py
         self.apps_filter = None
         self.searchentry = None
+        # flag to indicate that the pane's view has been fully initialized
+        self.view_initialized = False
 
     def is_category_view_showing(self):
         return False
