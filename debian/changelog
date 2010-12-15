@@ -17,6 +17,9 @@ software-center (3.1.7) UNRELEASED; urgency=low
     - fix apthistory test by allowing noncached operations
   * softwarecenter/models/appstore.py:
     - fix potential crash in tests
+  * softwarecenter/db/update.py:
+    - test if the db support spelling suggestions before enabling
+      them to ensure its not crashing for the inmemory DB
   
   [ Matthew McGowan ]
   * merged lp:~mmcg069/software-center/bubbles, this gives us

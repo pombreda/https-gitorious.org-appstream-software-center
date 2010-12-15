@@ -410,7 +410,18 @@ def update_from_software_center_agent(db, cache, ignore_etag=False):
 def index_app_info_from_parser(parser, db, cache):
         term_generator = xapian.TermGenerator()
         term_generator.set_database(db)
-        term_generator.set_flags(xapian.TermGenerator.FLAG_SPELLING)
+        try:
+            # this tests if we have spelling suggestions (there must be
+            # a better way?!?) - this is needed as inmemory does not have
+            # spelling corrections, but it allows setting the flag and will
+            # raise a exception much later
+            db.add_spelling("test")
+            db.remove_spelling("test")
+            # this enables the flag for it (we only reach this line if
+            # the db supports spelling suggestions)
+            term_generator.set_flags(xapian.TermGenerator.FLAG_SPELLING)
+        except xapian.UnimplementedError:
+            pass
         doc = xapian.Document()
         term_generator.set_document(doc)
         # app name is the data
