@@ -87,7 +87,7 @@ o    Attributes:
                
 class AptHistory(object):
 
-    def __init__(self):
+    def __init__(self, use_cache=True):
         LOG.debug("AptHistory.__init__()")
         self.main_context = glib.main_context_default()
         self.history_file = apt_pkg.config.find_file("Dir::Log::History")
@@ -100,17 +100,17 @@ class AptHistory(object):
         # this takes a long time, run it in the idle handler
         self.transactions = []
         self.history_ready = False
-        glib.idle_add(self.rescan)
+        glib.idle_add(self.rescan, use_cache)
 
     def _mtime_cmp(self, a, b):
         return cmp(os.path.getmtime(a), os.path.getmtime(b))
 
-    def rescan(self):
+    def rescan(self, use_cache=True):
         self.history_ready = False
         self.transactions = []
         p = os.path.join(SOFTWARE_CENTER_CACHE_DIR, "apthistory.p")
         cachetime = 0
-        if os.path.exists(p):
+        if os.path.exists(p) and use_cache:
             with ExecutionTime("loading pickle cache"):
                 self.transactions = cPickle.load(open(p))
             cachetime = os.path.getmtime(p)
@@ -121,10 +121,12 @@ class AptHistory(object):
                 continue
             self._scan(history_gz_file)
         self._scan(self.history_file)
-        cPickle.dump(self.transactions, open(p, "w"))
+        if use_cache:
+            cPickle.dump(self.transactions, open(p, "w"))
         self.history_ready = True
     
     def _scan(self, history_file, rescan = False):
+        LOG.debug("_scan: %s (%s)" % (history_file, rescan))
         try:
             tagfile = apt_pkg.TagFile(open(history_file))
         except (IOError, SystemError), ioe:

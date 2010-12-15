@@ -13,6 +13,8 @@ software-center (3.1.7) UNRELEASED; urgency=low
     - fallback to previous (slower) method to obtain the pkgname
       from xapian if the DB is not yet rebuild (thanks to seb128
       for reporting this problem)
+  * softwarecenter/apt/apthistory.py, test/test_apthistory.py:
+    - fix apthistory test by allowing noncached operations
   
   [ Matthew McGowan ]
   * merged lp:~mmcg069/software-center/bubbles, this gives us
