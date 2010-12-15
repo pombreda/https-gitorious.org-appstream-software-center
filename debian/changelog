@@ -1,3 +1,12 @@
+software-center (3.1.8) UNRELEASED; urgency=low
+
+  * softwarecenter/backend/restfulclient.py:
+    - honor UBUNTU_SSO_SERVICE
+  * softwarecenter/plugin.py:
+    - ignore plugin init failures
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 15 Dec 2010 15:27:11 +0100
+
 software-center (3.1.7) natty; urgency=low
 
   [ Michael Vogt ]

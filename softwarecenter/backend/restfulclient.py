@@ -47,7 +47,8 @@ from Queue import Queue
 
 from login import LoginBackend
 
-UBUNTU_SSO_SERVICE = "https://login.ubuntu.com/api/1.0"
+UBUNTU_SSO_SERVICE = os.environ.get(
+    "USSOC_SERVICE_URL", "https://login.ubuntu.com/api/1.0")
 UBUNTU_SOFTWARE_CENTER_AGENT_SERVICE = BUY_SOMETHING_HOST+"/api/1.0"
 
 class EmptyObject(object):
