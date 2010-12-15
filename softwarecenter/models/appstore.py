@@ -25,6 +25,7 @@ import logging
 import math
 import os
 import xapian
+import threading
 
 from softwarecenter.enums import *
 from softwarecenter.utils import *
@@ -85,7 +86,8 @@ class AppStore(gtk.GenericTreeModel):
                  limit=DEFAULT_SEARCH_LIMIT,
                  sortmode=SORT_UNSORTED, filter=None, exact=False,
                  icon_size=ICON_SIZE, global_icon_cache=True, 
-                 nonapps_visible=NONAPPS_MAYBE_VISIBLE):
+                 nonapps_visible=NONAPPS_MAYBE_VISIBLE,
+                 nonblocking_load=True):
         """
         Initalize a AppStore.
 
@@ -106,6 +108,9 @@ class AppStore(gtk.GenericTreeModel):
                              /NONAPPS_NEVER_VISIBLE
                              (NONAPPS_MAYBE_VISIBLE will return non apps result
                               if no matching apps is found)
+        - `nonblocking_load`: set to False to execute the query inside the current
+                              thread.  Defaults to True to allow the search to be
+                              performed without blocking the UI. 
         """
         gtk.GenericTreeModel.__init__(self)
         self._logger = logging.getLogger("softwarecenter.view.appstore")
@@ -119,6 +124,7 @@ class AppStore(gtk.GenericTreeModel):
             self.icon_cache = _app_icon_cache
         else:
             self.icon_cache = {}
+        self.nonblocking_load = nonblocking_load
 
         # invalidate the cache on icon theme changes
         self.icons.connect("changed", self._clear_app_icon_cache)
@@ -158,11 +164,23 @@ class AppStore(gtk.GenericTreeModel):
 
         # we support single and list search_queries,
         # if list we append them one by one
-        with ExecutionTime("populate model from query: '%s'" % " ; ".join([
-                str(q) for q in self.search_query])):
-            #useful only for debugging
-            #log_traceback("creating a AppStore")
-            self._perform_search()
+        with ExecutionTime("populate model from query: '%s' (threaded: %s)" % (
+                " ; ".join([str(q) for q in search_query]),
+                self.nonblocking_load)):
+            if self.nonblocking_load and False:
+                self._threaded_perform_search()
+            else:
+                self._blocking_perform_search()
+
+    def _threaded_perform_search(self):
+        self._perform_search_complete = False
+        t = threading.Thread(target=self._blocking_perform_search)
+        t.start()
+        # don't block the UI while the thread is running
+        while not self._perform_search_complete:
+            time.sleep(0.02) # 50 fps
+            while gtk.events_pending():
+                gtk.main_iteration()
 
     def _get_estimate_nr_apps_and_nr_pkgs(self, enquire, q, xfilter):
         # filter out docs of pkgs of which there exists a doc of the app
@@ -175,7 +193,10 @@ class AppStore(gtk.GenericTreeModel):
         nr_pkgs = tmp_matches.get_matches_estimated() - 2*nr_apps
         return (nr_apps, nr_pkgs)
 
-    def _perform_search(self):
+    def _blocking_perform_search(self):
+            self.__perform_search()
+
+    def _blocking_perform_search(self):
         # performance only: this is only needed to avoid the 
         # python __call__ overhead for each item if we can avoid it
         if self.filter and self.filter.required:
@@ -189,6 +210,7 @@ class AppStore(gtk.GenericTreeModel):
             enquire = xapian.Enquire(self.db.xapiandb)
             self._logger.debug("initial query: '%s'" % q)
 
+            # TODO: Cleanup this commentary
             # is it slow? takes 0.03s on my (fast) system
 
             # in the installed view it would seem to take 1.4s
@@ -262,8 +284,10 @@ class AppStore(gtk.GenericTreeModel):
         if (not self.matches and
             self.nonapps_visible != self.NONAPPS_ALWAYS_VISIBLE):
             self.nonapps_visible = self.NONAPPS_ALWAYS_VISIBLE
-            self._perform_search()
-
+            self._blocking_perform_search()
+            
+        # wake up the UI if run in a search thread
+        self._perform_search_complete = True
         return
         
     def _rebuild_index_maps(self):
