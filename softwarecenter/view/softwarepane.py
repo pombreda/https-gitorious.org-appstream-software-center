@@ -257,7 +257,7 @@ class SoftwarePane(gtk.VBox, BasePane):
         self.spinner_notebook.set_current_page(self.PAGE_SPINNER)
         # "mask" the spinner view momentarily to prevent it from flashing into
         # view in the case of short delays where it isn't actually needed
-        gobject.timeout_add(200, self._unmask_appview_spinner)
+        gobject.timeout_add(100, self._unmask_appview_spinner)
         
     def _unmask_appview_spinner(self):
         self.spinner_view.start()
