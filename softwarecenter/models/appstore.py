@@ -197,6 +197,9 @@ class AppStore(gtk.GenericTreeModel):
             self.__perform_search()
 
     def _blocking_perform_search(self):
+        # WARNING this call may run in a thread, so its *not* 
+        #         allowed to touch gtk, otherwise hell breaks loose
+
         # performance only: this is only needed to avoid the 
         # python __call__ overhead for each item if we can avoid it
         if self.filter and self.filter.required:
