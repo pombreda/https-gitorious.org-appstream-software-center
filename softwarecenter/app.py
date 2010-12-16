@@ -210,7 +210,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self.available_pane.init_view()
 
         available_section = SoftwareSection()
-        # FIXME: A quick cheat to register the VIEW_PAGE_INSTALLED image in the SoftwareSection global, fix this
+        # FIXME: This line is a quick cheat to register the VIEW_PAGE_INSTALLED image in the SoftwareSection global, fix this
         available_section.set_image(VIEW_PAGE_INSTALLED, os.path.join(datadir, 'images/arrows.png'))
         available_section.set_image(VIEW_PAGE_AVAILABLE, os.path.join(self.datadir, 'images/clouds.png'))
         available_section.set_color('#0769BC')
