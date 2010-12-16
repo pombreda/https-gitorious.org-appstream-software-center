@@ -168,6 +168,10 @@ class ChannelPane(SoftwarePane):
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
         self.searchentry.hide()
         self.action_bar.clear()
+        # we want to re-enable the buy button if this is an app for purchase
+        # FIXME:  hacky, find a better approach
+        if self.app_details_view.action_bar.button.get_label() == _(u'Buy\u2026'):
+            self.app_details_view.action_bar.button.set_sensitive(True)
         
     def on_navigation_purchase(self, button, part):
         """callback when the navigation button with id 'purchase' is clicked"""
