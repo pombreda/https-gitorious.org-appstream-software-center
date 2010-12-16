@@ -154,7 +154,10 @@ class AvailablePane(SoftwarePane):
         self.cat_view.connect("application-activated", self.on_application_activated)
 
         # details
-        self.notebook.append_page(self.scroll_details, gtk.Label(NAV_BUTTON_ID_DETAILS))
+        self.notebook.append_page(self.scroll_details, gtk.Label("details"))
+        
+        # purchase view
+        self.notebook.append_page(self.purchase_view, gtk.Label("purchase"))
 
         # set status text
         self._update_status_text(len(self.db))

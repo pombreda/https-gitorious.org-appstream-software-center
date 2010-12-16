@@ -176,11 +176,6 @@ class SoftwarePane(gtk.VBox, BasePane):
         self.scroll_details.add(self.app_details_view)
         # purchase view
         self.purchase_view = PurchaseView()
-        
-        
-        
-        
-        
         # cursor
         self.busy_cursor = gtk.gdk.Cursor(gtk.gdk.WATCH)
         # when the cache changes, refresh the app list
