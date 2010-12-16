@@ -1033,7 +1033,7 @@ class AppViewFilter(xapian.MatchDecider):
     def get_supported_only(self):
         return self.supported_only
     def __eq__(self, other):
-        return (other and
+        return (other is not None and
                 self.supported_only == other.supported_only and
                 self.installed_only == other.installed_only and
                 self.not_installed_only == other.not_installed_only)
