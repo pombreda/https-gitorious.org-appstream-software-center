@@ -67,11 +67,13 @@ class ChannelPane(SoftwarePane):
         self.notebook.append_page(self.box_app_list, gtk.Label("channel"))
         # details
         self.notebook.append_page(self.scroll_details, gtk.Label("details"))
+        # purchase view
         self.notebook.append_page(self.purchase_view, gtk.Label("purchase"))
 
     def _show_channel_overview(self):
         " helper that goes back to the overview page "
         self.navigation_bar.remove_id(NAV_BUTTON_ID_DETAILS)
+        self.navigation_bar.remove_id(NAV_BUTTON_ID_PURCHASE)
         self.notebook.set_current_page(self.PAGE_APPLIST)
         self.searchentry.show()
         
@@ -162,6 +164,7 @@ class ChannelPane(SoftwarePane):
         self.display_details()
     
     def display_details(self):
+        self.navigation_bar.remove_id(NAV_BUTTON_ID_PURCHASE)
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
         self.searchentry.hide()
         self.action_bar.clear()
@@ -184,6 +187,7 @@ class ChannelPane(SoftwarePane):
 
     def display_search(self):
         self.navigation_bar.remove_id(NAV_BUTTON_ID_DETAILS)
+        self.navigation_bar.remove_id(NAV_BUTTON_ID_PURCHASE)
         self.notebook.set_current_page(self.PAGE_APPLIST)
         model = self.app_view.get_model()
         if model:
