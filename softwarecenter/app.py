@@ -202,12 +202,19 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                             self.datadir,
                                             self.navhistory_back_action,
                                             self.navhistory_forward_action)
-        self.available_pane.init_view()
-
+                                            
+        # this is about .2 seconds (20% of startup) on my machine
+        # next to try: thread the available pane init and show a spinner in its place
+        #              while it loads
+        with ExecutionTime("creating the available_pane view"):
+            self.available_pane.init_view()
 
         available_section = SoftwareSection()
+        # FIXME: A quick cheat to register the VIEW_PAGE_INSTALLED image in the SoftwareSection global, fix this
+        available_section.set_image(VIEW_PAGE_INSTALLED, os.path.join(datadir, 'images/arrows.png'))
         available_section.set_image(VIEW_PAGE_AVAILABLE, os.path.join(self.datadir, 'images/clouds.png'))
         available_section.set_color('#0769BC')
+        
         self.available_pane.set_section(available_section)
 
         self.available_pane.app_details.connect("selected", 
@@ -246,7 +253,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                     self.on_app_list_changed,
                                     VIEW_PAGE_INSTALLED)
         self.view_manager.register(self.installed_pane, VIEW_PAGE_INSTALLED)
-
+        
         # history pane (not fully loaded at this point)
         self.history_pane = HistoryPane(self.cache,
                                         self.db,
