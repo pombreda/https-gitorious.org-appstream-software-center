@@ -34,10 +34,11 @@ import thread
 import weakref
 import simplejson
 
-import softwarecenter.distro
+from multiprocessing import Process, Queue
 
 from softwarecenter.backend.rnrclient import RatingsAndReviewsAPI
 from softwarecenter.db.database import Application
+import softwarecenter.distro
 from softwarecenter.utils import *
 from softwarecenter.paths import *
 
@@ -117,6 +118,8 @@ class ReviewLoader(object):
         cPickle.dump(self.REVIEW_STATS_CACHE,
                       open(self.REVIEW_STATS_CACHE_FILE, "w"))
 
+# using multiprocessing here because threading interface was terrible
+# slow and full of latency
 class ReviewLoaderThreadedRNRClient(ReviewLoader):
 
     def __init__(self, distro=None):
@@ -124,20 +127,21 @@ class ReviewLoaderThreadedRNRClient(ReviewLoader):
         self.rnrclient = RatingsAndReviewsAPI()
         self._review_stats = []
         self._reviews = {}
+        # this is a dict of queue objects
         self._new_reviews = {}
-        self._new_review_stats = []
+        self._new_review_stats = Queue()
 
     def _reviews_timeout_watcher(self, app, callback):
-        if app in self._new_reviews:
-            self._reviews[app] = self._new_reviews[app]
+        if not self._new_reviews[app].empty():
+            self._reviews[app] = self._new_reviews[app].get()
             del self._new_reviews[app]
             callback(app, self._reviews[app])
             return False
         return True
 
     def _review_stats_timeout_watcher(self, callback):
-        if self._new_review_stats:
-            self._review_stats = self._new_review_stats
+        if not self._new_review_stats.empty():
+            self._review_stats = self._new_review_stats.get()
             self._new_review_stats = []
             # FIXME: self._review_stats can go
             self.REVIEW_STATS_CACHE = self._review_stats
@@ -146,11 +150,14 @@ class ReviewLoaderThreadedRNRClient(ReviewLoader):
         return True
 
     def get_reviews(self, app, callback):
-        thread.start_new_thread(self._get_reviews_threaded, (app, ))
+        self._new_reviews[app] = Queue()
+        p = Process(target=self._get_reviews_threaded, args=(app, ))
+        p.start()
         glib.timeout_add(500, self._reviews_timeout_watcher, app, callback)
 
     def refresh_review_stats(self, callback):
-        thread.start_new_thread(self._refresh_review_stats_threaded, ())
+        p = Process(target=self._refresh_review_stats_threaded, args=())
+        p.start()
         glib.timeout_add(500, self._review_stats_timeout_watcher, callback)
 
     def _get_reviews_threaded(self, app):
@@ -168,14 +175,16 @@ class ReviewLoaderThreadedRNRClient(ReviewLoader):
         except:
             logging.exception("get_reviews")
             reviews = None
-        self._new_reviews[app] = reviews
+        # push into the queue
+        self._new_reviews[app].put(reviews)
 
     def _refresh_review_stats_threaded(self):
         try:
             review_stats = self.rnrclient.review_stats()
         except:
             logging.exception("refresh_review_stats")
-        self._new_review_stats = review_stats
+        # push into the queue in one 
+        self._new_review_stats.put(review_stats)
 
 class ReviewLoaderJsonAsync(ReviewLoader):
     """ get json (or gzip compressed json) """
@@ -526,11 +535,11 @@ if __name__ == "__main__":
         print "app callback:"
         print app, reviews
     def stats_callback(stats):
-        print "stats:"
+        print "stats callback:"
         print stats
     # rnrclient loader
-    #app = Application("ACE", "unace")
-    app = Application("", "2vcard")
+    app = Application("ACE", "unace")
+    #app = Application("", "2vcard")
     loader = ReviewLoaderThreadedRNRClient()
     print loader.refresh_review_stats(stats_callback)
     print loader.get_reviews(app, callback)
