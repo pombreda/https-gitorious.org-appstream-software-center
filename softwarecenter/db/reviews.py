@@ -118,11 +118,18 @@ class ReviewLoaderJsonAsync(ReviewLoader):
     def _gio_review_input_callback(self, source, result):
         app = source.get_data("app")
         callback = source.get_data("callback")
+        data = source.get_data("data")
         try:
-            json_str = source.read_finish(result)
+            s = source.read_finish(result)
+            if s:
+                data += s
+                source.set_data("data", data)
+                source.read_async(128*1024, self._gio_review_input_callback)
+                return
         except glib.GError, e:
             # ignore read errors, most likely transient
             return callback(app, [])
+        json_str = data
         # check for gzip header
         if json_str.startswith("\37\213"):
             gz=gzip.GzipFile(fileobj=StringIO.StringIO(json_str))
@@ -160,6 +167,7 @@ class ReviewLoaderJsonAsync(ReviewLoader):
             raise
         stream.set_data("app", app)
         stream.set_data("callback", callback)
+        stream.set_data("data", "")
         # FIXME: static size here as first argument sucks, but it seems
         #        like there is a bug in the python bindings, I can not pass
         #        -1 or anything like this
@@ -203,7 +211,6 @@ class ReviewLoaderJsonAsync(ReviewLoader):
         except glib.GError, e:
             # ignore read errors, most likely transient
             return
-        print data
         json_str = data
         # check for gzip header
         if json_str.startswith("\37\213"):
