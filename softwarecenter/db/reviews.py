@@ -30,14 +30,18 @@ import StringIO
 import subprocess
 import time
 import urllib
+import thread
 import weakref
 import simplejson
 
 import softwarecenter.distro
 
+from softwarecenter.backend.rnrclient import RatingsAndReviewsAPI
 from softwarecenter.db.database import Application
 from softwarecenter.utils import *
 from softwarecenter.paths import *
+
+
 
 class ReviewStats(object):
     def __init__(self, app):
@@ -69,7 +73,8 @@ class ReviewLoader(object):
 
     # cache the ReviewStats
     REVIEW_STATS_CACHE = {}
-    REVIEW_STATS_CACHE_FILE = SOFTWARE_CENTER_CACHE_DIR+"/review-stats.p"
+    REVIEW_STATS_CACHE_FILE = os.path.join(SOFTWARE_CENTER_CACHE_DIR,
+                                           "/review-stats.p")
 
     def __init__(self, distro=None):
         self.distro = distro
@@ -111,6 +116,56 @@ class ReviewLoader(object):
             os.makedirs(cachedir)
         cPickle.dump(self.REVIEW_STATS_CACHE,
                       open(self.REVIEW_STATS_CACHE_FILE, "w"))
+
+class ReviewLoaderThreadedRNRClient(ReviewLoader):
+
+    def __init__(self, distro=None):
+        super(ReviewLoaderThreadedRNRClient, self).__init__(distro)
+        self.rnrclient = RatingsAndReviewsAPI()
+        self._review_stats = []
+        self._reviews = {}
+        self._new_reviews = {}
+        self._new_review_stats = []
+
+    def _reviews_timeout_watcher(self, app, callback):
+        if app in self._new_reviews:
+            self._reviews[app] = self._new_reviews[app]
+            del self._new_reviews[app]
+            callback(app, self._reviews[app])
+            return False
+        return True
+
+    def _review_stats_timeout_watcher(self, callback):
+        if self._new_review_stats:
+            self._review_stats = self._new_review_stats
+            self._new_review_stats = []
+            # FIXME: self._review_stats can go
+            self.REVIEW_STATS_CACHE = self._review_stats
+            callback(self._review_stats)
+            return False
+        return True
+
+    def get_reviews(self, app, callback):
+        thread.start_new_thread(self._get_reviews_threaded, (app, ))
+        glib.timeout_add(500, self._reviews_timeout_watcher, app, callback)
+
+    def refresh_review_stats(self, callback):
+        thread.start_new_thread(self._refresh_review_stats_threaded, ())
+        glib.timeout_add(500, self._review_stats_timeout_watcher, callback)
+
+    def _get_reviews_threaded(self, app):
+        origin = "ubuntu"
+        distroseries = self.distro.get_codename()
+        reviews = self.rnrclient.get_reviews(language=self.language, 
+                                             origin=origin,
+                                             distroseries=distroseries,
+                                             appname=app.appname,
+                                             packagename=app.pkgname)
+        self._new_reviews[app] = reviews
+
+    def _refresh_review_stats_threaded(self):
+        review_stats = self.rnrclient.review_stats()
+        self._new_review_stats = review_stats
 
 class ReviewLoaderJsonAsync(ReviewLoader):
     """ get json (or gzip compressed json) """
@@ -448,6 +503,10 @@ def get_review_loader():
             review_loader = ReviewLoaderFortune()
         elif "SOFTWARE_CENTER_TECHSPEAK_REVIEWS" in os.environ:
             review_loader = ReviewLoaderTechspeak()
+        #elif "SOFTWARE_CENTER_GIO" in os.environ:
+        #    review_loader = ReviewLoaderJsonAsync()
+        #else:
+        #    review_loader = ReviewLoaderThreadedRNRClient()
         else:
             review_loader = ReviewLoaderJsonAsync()
     return review_loader
@@ -460,12 +519,14 @@ if __name__ == "__main__":
         print "stats:"
         print stats
     from softwarecenter.db.database import Application
-    app = Application(None, "7zip")
-    #loader = ReviewLoaderIpsum()
-    #print loader.get_reviews(app, callback)
-    #print loader.get_review_stats(app)
+    # rnrclient loader
+    app = Application("ACE", "unace")
+    loader = ReviewLoaderThreadedRNRClient()
+    print loader.refresh_review_stats(stats_callback)
+    print loader.get_reviews(app, callback)
+    # default loader
     app = Application("","2vcard")
-    loader = ReviewLoaderJsonAsync()
+    loader = get_review_loader()
     loader.refresh_review_stats(stats_callback)
     loader.get_reviews(app, callback)
     import gtk
