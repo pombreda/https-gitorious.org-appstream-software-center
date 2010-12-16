@@ -183,8 +183,10 @@ class ReviewLoaderThreadedRNRClient(ReviewLoader):
             review_stats = self.rnrclient.review_stats()
         except:
             logging.exception("refresh_review_stats")
-        # push into the queue in one 
-        self._new_review_stats.put(review_stats)
+        # push into the queue in one, for all practical purposes there
+        # is no limit for the queue size, even millions of review stats
+        # are ok
+        self._new_review_stats.put(review_stats*1000000)
 
 class ReviewLoaderJsonAsync(ReviewLoader):
     """ get json (or gzip compressed json) """
