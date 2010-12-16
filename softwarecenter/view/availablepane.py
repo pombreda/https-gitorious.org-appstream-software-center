@@ -494,6 +494,7 @@ class AvailablePane(SoftwarePane):
 
     def display_search(self):
         self.navigation_bar.remove_id(NAV_BUTTON_ID_DETAILS)
+        self.navigation_bar.remove_id(NAV_BUTTON_ID_PURCHASE)
         self.notebook.set_current_page(self.PAGE_APPLIST)
         if self.app_view.get_model():
             list_length = len(self.app_view.get_model())
@@ -504,6 +505,7 @@ class AvailablePane(SoftwarePane):
     def display_list(self):
         self.navigation_bar.remove_id(NAV_BUTTON_ID_SUBCAT)
         self.navigation_bar.remove_id(NAV_BUTTON_ID_DETAILS)
+        self.navigation_bar.remove_id(NAV_BUTTON_ID_PURCHASE)
 
         if self.apps_subcategory:
             self.apps_subcategory = None
@@ -527,6 +529,7 @@ class AvailablePane(SoftwarePane):
             self.refresh_apps()
         self.set_category(self.apps_subcategory)
         self.navigation_bar.remove_id(NAV_BUTTON_ID_DETAILS)
+        self.navigation_bar.remove_id(NAV_BUTTON_ID_PURCHASE)
         self.notebook.set_current_page(self.PAGE_SUBCATEGORY)
         # do not emit app-list-changed here, this is done async when
         # the new model is ready
@@ -536,6 +539,7 @@ class AvailablePane(SoftwarePane):
         return
 
     def display_details(self):
+        self.navigation_bar.remove_id(NAV_BUTTON_ID_PURCHASE)
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
         self.searchentry.hide()
         self.action_bar.clear()
