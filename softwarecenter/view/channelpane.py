@@ -70,14 +70,14 @@ class ChannelPane(SoftwarePane):
 
     def _show_channel_overview(self):
         " helper that goes back to the overview page "
-        self.navigation_bar.remove_id("details")
+        self.navigation_bar.remove_id(NAV_BUTTON_ID_DETAILS)
         self.notebook.set_current_page(self.PAGE_APPLIST)
         self.searchentry.show()
         
     def _clear_search(self):
         # remove the details and clear the search
         self.searchentry.clear()
-        self.navigation_bar.remove_id("search")
+        self.navigation_bar.remove_id(NAV_BUTTON_ID_SEARCH)
 
     def set_channel(self, channel):
         """
@@ -171,7 +171,7 @@ class ChannelPane(SoftwarePane):
         self.current_appview_selection = app
 
     def display_search(self):
-        self.navigation_bar.remove_id("details")
+        self.navigation_bar.remove_id(NAV_BUTTON_ID_DETAILS)
         self.notebook.set_current_page(self.PAGE_APPLIST)
         model = self.app_view.get_model()
         if model:

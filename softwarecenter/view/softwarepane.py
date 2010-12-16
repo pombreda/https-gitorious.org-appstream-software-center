@@ -36,7 +36,7 @@ from widgets.actionbar import ActionBar
 from widgets.spinner import SpinnerView
 
 from softwarecenter.backend import get_install_backend
-from softwarecenter.enums import SORT_BY_SEARCH_RANKING, SORT_BY_ALPHABET
+from softwarecenter.enums import *
 from softwarecenter.view.basepane import BasePane
 from softwarecenter.utils import wait_for_apt_cache_ready, ExecutionTime
 
@@ -248,16 +248,19 @@ class SoftwarePane(gtk.VBox, BasePane):
         details = app.get_details(self.db)
         self.navigation_bar.add_with_id(details.display_name,
                                        self.on_navigation_details,
-                                       "details")
+                                       NAV_BUTTON_ID_DETAILS)
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
         self.app_details_view.show_app(app)
         
     def on_app_purchase_initiated(self, widget, app, purchase_url):
-        print "CALLBACK for on_app_purchase_initiated()"
+        print "FINISH-IMPL: on_app_purchase_initiated()"
         details = app.get_details(self.db)
         self.navigation_bar.add_with_id(_("Buy"),
-                                       self.on_navigation_details,  ## FIXME
-                                       "purchase")
+                                       self.on_navigation_purchase,
+                                       NAV_BUTTON_ID_PURCHASE)
+                                       
+    def on_navigation_purchase(self, button, part):
+        print "IMPLEMENT-ME: on_navigation_purchase"
 
     def show_appview_spinner(self):
         """ display the spinner in the appview panel """
@@ -395,13 +398,16 @@ class SoftwarePane(gtk.VBox, BasePane):
         if self.apps_search_term:
             query = self.db.get_query_list_from_search_entry(
                 self.apps_search_term, channel_query)
-            self.navigation_bar.add_with_id(
-                _("Search Results"), self.on_navigation_search, 
-                "search", do_callback=False)
+            self.navigation_bar.add_with_id(_("Search Results"),
+                                              self.on_navigation_search, 
+                                              NAV_BUTTON_ID_SEARCH,
+                                              do_callback=False)
             return query
         # overview list
-        self.navigation_bar.add_with_id(
-            name, self.on_navigation_list, "list", do_callback=False)
+        self.navigation_bar.add_with_id(name,
+                                        self.on_navigation_list,
+                                        NAV_BUTTON_ID_LIST,
+                                        do_callback=False)
         # if we are in a channel, limit to that
         if channel_query:
             return channel_query

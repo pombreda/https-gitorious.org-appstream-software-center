@@ -62,6 +62,14 @@ PERMANENT_VIEWS = [VIEW_PAGE_AVAILABLE,
                    VIEW_PAGE_CHANNEL,
                    VIEW_PAGE_HISTORY,
                   ]
+                  
+# define ID values for the various buttons found in the navigation bar
+NAV_BUTTON_ID_CATEGORY = "category"
+NAV_BUTTON_ID_LIST     = "list"
+NAV_BUTTON_ID_SUBCAT   = "subcat"
+NAV_BUTTON_ID_DETAILS  = "details"
+NAV_BUTTON_ID_SEARCH   = "search"
+NAV_BUTTON_ID_PURCHASE = "purchase"
 
 # icons
 MISSING_APP_ICON = "applications-other"
