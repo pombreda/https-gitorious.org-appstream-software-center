@@ -538,6 +538,13 @@ class AvailablePane(SoftwarePane):
         self.action_bar.clear()
         self.cat_view.stop_carousels()
         return
+        
+    def display_purchase(self):
+        self.notebook.set_current_page(self.PAGE_APP_PURCHASE)
+        self.searchentry.hide()
+        self.action_bar.clear()
+        self.cat_view.stop_carousels()
+        return
 
     def on_navigation_category(self, pathbar, part):
         """callback when the navigation button with id 'category' is clicked"""
@@ -567,6 +574,12 @@ class AvailablePane(SoftwarePane):
         """callback when the navigation button with id 'details' is clicked"""
         self.display_details()
         nav_item = NavigationItem(self, self.display_details)
+        self.nav_history.navigate(nav_item)
+        
+    def on_navigation_purchase(self, pathbar, part):
+        """callback when the navigation button with id 'purchase' is clicked"""
+        self.display_purchase()
+        nav_item = NavigationItem(self, self.display_purchase)
         self.nav_history.navigate(nav_item)
 
     def on_subcategory_activated(self, cat_view, category):

@@ -41,6 +41,7 @@ from softwarecenter.view.basepane import BasePane
 from softwarecenter.utils import wait_for_apt_cache_ready, ExecutionTime
 
 from appview import AppView, AppStore
+from purchaseview import PurchaseView
 
 if "SOFTWARE_CENTER_APPDETAILS_WEBKIT" in os.environ:
     from appdetailsview_webkit import AppDetailsViewWebkit as AppDetailsView
@@ -170,8 +171,16 @@ class SoftwarePane(gtk.VBox, BasePane):
                                                self.icons, 
                                                self.cache, 
                                                self.datadir)
-        self.app_details_view.connect("app-purchase-initiated", self.on_app_purchase_initiated)
+        self.app_details_view.connect("purchase-requested",
+                                      self.on_purchase_requested)
         self.scroll_details.add(self.app_details_view)
+        # purchase view
+        self.purchase_view = PurchaseView()
+        
+        
+        
+        
+        
         # cursor
         self.busy_cursor = gtk.gdk.Cursor(gtk.gdk.WATCH)
         # when the cache changes, refresh the app list
@@ -252,16 +261,14 @@ class SoftwarePane(gtk.VBox, BasePane):
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
         self.app_details_view.show_app(app)
         
-    def on_app_purchase_initiated(self, widget, app, purchase_url):
-        print "FINISH-IMPL: on_app_purchase_initiated()"
-        details = app.get_details(self.db)
+    def on_purchase_requested(self, widget, app, url):
         self.navigation_bar.add_with_id(_("Buy"),
                                        self.on_navigation_purchase,
                                        NAV_BUTTON_ID_PURCHASE)
+        self.appdetails = app.get_details(self.db)
+        iconname = self.appdetails.icon
+        self.purchase_view.initiate_purchase(app, iconname, url)
                                        
-    def on_navigation_purchase(self, button, part):
-        print "IMPLEMENT-ME: on_navigation_purchase"
-
     def show_appview_spinner(self):
         """ display the spinner in the appview panel """
         self.action_bar.clear()

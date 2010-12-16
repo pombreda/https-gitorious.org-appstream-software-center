@@ -26,8 +26,6 @@ import sys
 import urllib
 import webkit
 
-from softwarecenter.view.basepane import BasePane
-
 from gettext import gettext as _
 
 class ScrolledWebkitWindow(gtk.ScrolledWindow):
@@ -42,9 +40,9 @@ class ScrolledWebkitWindow(gtk.ScrolledWindow):
         self.add(self.webkit)
         self.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
 
-class PurchasePane(gtk.VBox, BasePane):
+class PurchaseView(gtk.VBox):
     """ 
-    Pane that displays the UI for purchasing an item. 
+    View that displays the webkit-based UI for purchasing an item. 
     """
     
     LOADING_HTML = """
@@ -83,17 +81,24 @@ h1 {
 </html>
 """ % _("Connecting to payment service...")
 
-    def __init__(self, app, iconname, url=None, html=None):
+    def __init__(self):
         gtk.VBox.__init__(self)
-        self.set_title("")
-        self.app = app
-        self.iconname = iconname
         self.wk = ScrolledWebkitWindow()
         self.wk.webkit.connect("create-web-view", 
                                self._on_create_webview_request)
         # a possible way to do IPC (script or title change)
         self.wk.webkit.connect("script-alert", self._on_script_alert)
         self.wk.webkit.connect("title-changed", self._on_title_changed)
+            
+    def initiate_purchase(self, app, iconname, url=None, html=None):
+        """
+        initiates the purchase workflow inside the embedded webkit window
+        for the item specified       
+        """
+        print "called initiate_purchase with app: ", app
+        print "                          and url: ", url
+        self.app = app
+        self.iconname = iconname
         self.wk.webkit.load_html_string(self.LOADING_HTML, "file:///")
         self.wk.show()
         while gtk.events_pending():
@@ -108,29 +113,13 @@ h1 {
         # only for debugging
         if os.environ.get("SOFTWARE_CENTER_DEBUG_BUY"):
             glib.timeout_add_seconds(1, _generate_events, self)
-            
-    def init_view(self):
-        print "called PurchasePane.init_view.  TODO:  Implement or remove this."
         
-    def set_title(self, title):
-        print "called PurchasePane.set_title to '%s'.  TODO:  Implement.", title
-
     def _on_create_webview_request(self, view, frame, parent=None):
         logging.debug("_on_create_webview_request")
         print "_on_create_webview_request"
-#        popup = gtk.Dialog()
-#        popup.set_size_request(750,400)
-#        popup.set_title("")
-#        popup.set_modal(True)
-#        popup.set_transient_for(self)
         wk = ScrolledWebkitWindow()
         wk.show()
-#        popup.vbox.pack_start(wk)
-#        popup.show()
         return wk.webkit
-
-#    def run(self):
-#        return gtk.Dialog.run(self)
 
     def _on_script_alert(self, view, frame, message):
         print "on_script_alert", view, frame, message
@@ -216,7 +205,7 @@ DUMMY_HTML = """
     """
 
 # synthetic key event generation
-def _send_keys(dialog, s):
+def _send_keys(view, s):
     print "_send_keys", s
     MAPPING = { '@'     : 'at',
                 '.'     : 'period',
@@ -230,7 +219,7 @@ def _send_keys(dialog, s):
     
     for key in s:
         event = gtk.gdk.Event(gtk.gdk.KEY_PRESS)
-        event.window = dialog.window
+        event.window = view.window
         if key.isdigit():
             key = "_"+key
         if hasattr(gtk.keysyms, key):
@@ -253,23 +242,24 @@ STATES = [ ('login', 'Log in', LOGIN+"\t"),
            ('confirm-payment', 'title-the-same-as-before', '\t\n'),
            ('end-state', 'no-title', ''),
          ]
-def _generate_events(dialog):
+def _generate_events(view):
     global STATES
 
     (state, title, keys) = STATES[0]
 
     print "_generate_events: in state", state
 
-    current_title = dialog.wk.webkit.get_property("title")
+    current_title = view.wk.webkit.get_property("title")
     if current_title and current_title.startswith(title):
         print "found state", state
-        _send_keys(dialog, keys)
+        _send_keys(view, keys)
         STATES.pop(0)
 
     return True
 
-def _on_key_press(dialog, event):
-    print event, event.keyval
+#     # for debugging only    
+#    def _on_key_press(dialog, event):
+#        print event, event.keyval
 
 if __name__ == "__main__":
     #url = "http://www.animiertegifs.de/java-scripts/alertbox.php"
@@ -289,15 +279,14 @@ if __name__ == "__main__":
     #d.connect("key-press-event", _on_key_press)
     #glib.timeout_add_seconds(1, _generate_events, d)
     
-    widget = PurchasePane(app=None, iconname=None, html=DUMMY_HTML)
-    widget.show()
+    widget = PurchaseView()
+    widget.initiate_purchase(app=None, iconname=None, html=DUMMY_HTML)
 
     window = gtk.Window()
     window.add(widget)
     window.set_size_request(600, 500)
     window.set_position(gtk.WIN_POS_CENTER)
     window.show_all()
-    widget.init_view()
     window.connect('destroy', gtk.main_quit)
 
     gtk.main()

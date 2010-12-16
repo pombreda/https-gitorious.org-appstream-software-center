@@ -36,10 +36,10 @@ class AppDetailsViewBase(object):
                                          gobject.TYPE_PYOBJECT, 
                                          gobject.TYPE_PYOBJECT, 
                                          str,)),
-         "app-purchase-initiated" : (gobject.SIGNAL_RUN_LAST,
-                                gobject.TYPE_NONE,
-                                (gobject.TYPE_PYOBJECT,
-                                 str,)),
+         "purchase-requested" : (gobject.SIGNAL_RUN_LAST,
+                                 gobject.TYPE_NONE,
+                                 (gobject.TYPE_PYOBJECT,
+                                  str,)),
     }
 
     def __init__(self, db, distro, icons, cache, datadir):
@@ -100,18 +100,9 @@ class AppDetailsViewBase(object):
                     'arch' : get_current_arch() ,
                     }))
         
-#        appdetails = self.app.get_details(self.db)
-        print "initiating purchase"
-        self.emit("app-purchase-initiated", self.app, url)
+        print "requesting purchase"
+        self.emit("purchase-requested", self.app, url)
         
-#        self.purchase_dialog = PurchaseDialog(url=url, 
-#                                              app=self.app,
-#                                              iconname=appdetails.icon)
-#        res = self.purchase_dialog.run()
-#        self.purchase_dialog.destroy()
-#        del self.purchase_dialog
-        # re-init view if user canceled, otherwise the transactions 
-        # will finish it after some time
 #        if res != gtk.RESPONSE_OK:
 #            self.show_app(self.app)
 

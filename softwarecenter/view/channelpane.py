@@ -165,6 +165,17 @@ class ChannelPane(SoftwarePane):
         self.searchentry.hide()
         self.action_bar.clear()
         
+    def on_navigation_purchase(self, button, part):
+        """callback when the navigation button with id 'purchase' is clicked"""
+        if not button.get_active():
+            return
+        self.display_purchase()
+        
+    def display_purchase(self):
+        self.notebook.set_current_page(self.PAGE_APP_PURCHASE)
+        self.searchentry.hide()
+        self.action_bar.clear()
+        
     def on_application_selected(self, appview, app):
         """callback when an app is selected"""
         LOG.debug("on_application_selected: '%s'" % app)
