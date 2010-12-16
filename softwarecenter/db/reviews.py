@@ -170,15 +170,16 @@ class ReviewLoaderJsonAsync(ReviewLoader):
         # FIXME: get this from the app details
         origin = "ubuntu"
         distroseries = self.distro.get_codename()
+        if app.appname:
+            appname = "%2F"+app.appname
+        else:
+            appname = ""
         url = self.distro.REVIEWS_URL % { 'pkgname' : app.pkgname,
-                                          'appname' : app.appname,
+                                          'appname' : appname,
                                           'language' : self.language,
                                           'origin' : origin,
                                           'distroseries' : distroseries,
                                          }
-        # FIXME: hack until the the server is smarter
-        if not app.appname:
-            url = url[:-1]
         logging.debug("looking for review at '%s'" % url)
         f=gio.File(url)
         f.read_async(self._gio_review_read_callback)
