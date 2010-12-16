@@ -10,4 +10,4 @@ python /usr/lib/ubuntu-sso-client/ubuntu-sso-login &
 
 # s-c
 export PYTHONPATH=$(pwd)
-./software-center
+./software-center $@

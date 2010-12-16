@@ -171,7 +171,7 @@ class ReviewLoaderJsonAsync(ReviewLoader):
         origin = "ubuntu"
         distroseries = self.distro.get_codename()
         if app.appname:
-            appname = "%2F"+app.appname
+            appname = ";"+app.appname
         else:
             appname = ""
         url = self.distro.REVIEWS_URL % { 'pkgname' : app.pkgname,
@@ -185,12 +185,20 @@ class ReviewLoaderJsonAsync(ReviewLoader):
         f.read_async(self._gio_review_read_callback)
         f.set_data("app", app)
         f.set_data("callback", callback)
+        f.read_async(self._gio_review_read_callback)
+        f.set_data("app", app)
+        f.set_data("callback", callback)
 
     # review stats code
     def _gio_review_stats_input_callback(self, source, result):
         callback = source.get_data("callback")
+        data = source.get_data("data")
         try:
-            json_str = source.read_finish(result)
+            s = source.read_finish(result)
+            if s:
+                data += s
+                source.read_.read_async(128*1024, self._gio_review_stats_input_callback)
+                return
         except glib.GError, e:
             # ignore read errors, most likely transient
             return
@@ -223,6 +231,7 @@ class ReviewLoaderJsonAsync(ReviewLoader):
             print e, source, result
             raise
         stream.set_data("callback", callback)
+        stream.set_data("data", "")
         # FIXME: static size here as first argument sucks, but it seems
         #        like there is a bug in the python bindings, I can not pass
         #        -1 or anything like this
