@@ -197,11 +197,14 @@ class ReviewLoaderJsonAsync(ReviewLoader):
             s = source.read_finish(result)
             if s:
                 data += s
-                source.read_.read_async(128*1024, self._gio_review_stats_input_callback)
+                source.set_data("data", data)
+                source.read_async(128*1024, self._gio_review_stats_input_callback)
                 return
         except glib.GError, e:
             # ignore read errors, most likely transient
             return
+        print data
+        json_str = data
         # check for gzip header
         if json_str.startswith("\37\213"):
             gz=gzip.GzipFile(fileobj=StringIO.StringIO(json_str))
