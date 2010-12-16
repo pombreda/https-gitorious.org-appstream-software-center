@@ -74,7 +74,7 @@ class ReviewLoader(object):
     # cache the ReviewStats
     REVIEW_STATS_CACHE = {}
     REVIEW_STATS_CACHE_FILE = os.path.join(SOFTWARE_CENTER_CACHE_DIR,
-                                           "/review-stats.p")
+                                           "review-stats.p")
 
     def __init__(self, distro=None):
         self.distro = distro
@@ -156,15 +156,25 @@ class ReviewLoaderThreadedRNRClient(ReviewLoader):
     def _get_reviews_threaded(self, app):
         origin = "ubuntu"
         distroseries = self.distro.get_codename()
-        reviews = self.rnrclient.get_reviews(language=self.language, 
-                                             origin=origin,
-                                             distroseries=distroseries,
-                                             appname=app.appname,
-                                             packagename=app.pkgname)
+        try:
+            kwargs = {"language":self.language, 
+                      "origin":origin,
+                      "distroseries":distroseries,
+                      "packagename":app.pkgname,
+                      }
+            if app.appname:
+                kwargs["appname"] = app.appname
+            reviews = self.rnrclient.get_reviews(**kwargs)
+        except:
+            logging.exception("get_reviews")
+            reviews = None
         self._new_reviews[app] = reviews
 
     def _refresh_review_stats_threaded(self):
-        review_stats = self.rnrclient.review_stats()
+        try:
+            review_stats = self.rnrclient.review_stats()
+        except:
+            logging.exception("refresh_review_stats")
         self._new_review_stats = review_stats
 
 class ReviewLoaderJsonAsync(ReviewLoader):
@@ -518,12 +528,16 @@ if __name__ == "__main__":
     def stats_callback(stats):
         print "stats:"
         print stats
-    from softwarecenter.db.database import Application
     # rnrclient loader
-    app = Application("ACE", "unace")
+    #app = Application("ACE", "unace")
+    app = Application("", "2vcard")
     loader = ReviewLoaderThreadedRNRClient()
     print loader.refresh_review_stats(stats_callback)
     print loader.get_reviews(app, callback)
+    
+    print "default loader, press ctrl-c for next loader"
+    gtk.main()
+
     # default loader
     app = Application("","2vcard")
     loader = get_review_loader()

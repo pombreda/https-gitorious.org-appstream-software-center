@@ -5,8 +5,9 @@ from piston_mini_client.validators import validate_pattern, validate
 
 
 class ReviewRequest(PistonSerializable):
-    _atts = ('package_name', 'summary', 'version', 'review_text',
+    _atts = ('app_name', 'package_name', 'summary', 'version', 'review_text',
         'rating', 'language', 'origin', 'distroseries', 'arch_tag')
+    app_name = ''
 
 class ReviewsStats(PistonResponseObject):
     """This class will be populated with the retrieved JSON"""
@@ -39,7 +40,7 @@ class RatingsAndReviewsAPI(PistonAPI):
     @validate_pattern('language', r'\w+')
     @validate_pattern('origin', r'\w+')
     @validate_pattern('distroseries', r'\w+')
-    @validate_pattern('packagename', r'[\w-]+')
+    @validate_pattern('packagename', r'[a-z0-9.+-]+')
     @validate_pattern('appname', r'\w+', required=False)
     @validate('page', int, required=False)
     @returns_list_of(ReviewDetails)
@@ -51,7 +52,7 @@ class RatingsAndReviewsAPI(PistonAPI):
         the whole package.
         """
         if appname:
-            appname = quote_plus('/' + appname)
+            appname = quote_plus(';' + appname)
         return self._get('%s/%s/%s/%s%s/page/%s/' % (language, origin,
             distroseries, packagename, appname, page))
 
@@ -77,6 +78,6 @@ class RatingsAndReviewsAPI(PistonAPI):
     @returns_json
     def submit_usefulness(self, review_id, useful):
         """Submit a usefulness vote."""
-        return self._post('/reviews/%s/usefulness/%s' % (review_id, useful),
+        return self._post('/reviews/%s/usefulness/%s/' % (review_id, useful),
             data={})
 
