@@ -14,8 +14,10 @@ software-center (3.1.8) UNRELEASED; urgency=low
       not have a filter (LP: #690706)
   * softwarecenter/models/appstore.py:
     - enable threaded listviews 
+  * <many>:
+    - implement inline purchase flow (LP: #618817, LP: #625418) 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 15 Dec 2010 11:34:28 -0500
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 16 Dec 2010 20:41:09 -0500
 
 software-center (3.1.7) natty; urgency=low
 
