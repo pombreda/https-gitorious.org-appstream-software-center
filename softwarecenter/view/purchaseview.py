@@ -29,6 +29,8 @@ import gobject
 
 from gettext import gettext as _
 
+from softwarecenter.backend import get_install_backend
+
 class ScrolledWebkitWindow(gtk.ScrolledWindow):
 
     def __init__(self):
