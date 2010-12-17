@@ -215,21 +215,14 @@ class ReviewLoaderThreadedRNRClient(ReviewLoader):
 class ReviewLoaderJsonAsync(ReviewLoader):
     """ get json (or gzip compressed json) """
 
-    def _gio_review_input_callback(self, source, result):
+    def _gio_review_download_complete_callback(self, source, result):
         app = source.get_data("app")
         callback = source.get_data("callback")
-        data = source.get_data("data")
         try:
-            s = source.read_finish(result)
-            if s:
-                data += s
-                source.set_data("data", data)
-                source.read_async(128*1024, self._gio_review_input_callback)
-                return
+            (json_str, length, etag) = source.load_contents_finish(result)
         except glib.GError, e:
             # ignore read errors, most likely transient
             return callback(app, [])
-        json_str = data
         # check for gzip header
         if json_str.startswith("\37\213"):
             gz=gzip.GzipFile(fileobj=StringIO.StringIO(json_str))
@@ -250,28 +243,7 @@ class ReviewLoaderJsonAsync(ReviewLoader):
             review.review_text = review_json["review_text"]
             reviews.append(review)
         # run callback
-        print "**********************", reviews
         callback(app, reviews)
-
-    def _gio_review_read_callback(self, source, result):
-        app = source.get_data("app")
-        callback = source.get_data("callback")
-        try:
-            stream=source.read_finish(result)
-        except glib.GError, e:
-            print e, source, result
-            # 404 means no review
-            if e.code == 404:
-                return callback(app, [])
-            # raise other errors
-            raise
-        stream.set_data("app", app)
-        stream.set_data("callback", callback)
-        stream.set_data("data", "")
-        # FIXME: static size here as first argument sucks, but it seems
-        #        like there is a bug in the python bindings, I can not pass
-        #        -1 or anything like this
-        stream.read_async(128*1024, self._gio_review_input_callback)
 
     def get_reviews(self, app, callback):
         """ get a specific review and call callback when its available"""
@@ -290,28 +262,18 @@ class ReviewLoaderJsonAsync(ReviewLoader):
                                          }
         logging.debug("looking for review at '%s'" % url)
         f=gio.File(url)
-        f.read_async(self._gio_review_read_callback)
         f.set_data("app", app)
         f.set_data("callback", callback)
-        f.read_async(self._gio_review_read_callback)
-        f.set_data("app", app)
-        f.set_data("callback", callback)
+        f.load_contents_async(self._gio_review_download_complete_callback)
 
     # review stats code
-    def _gio_review_stats_input_callback(self, source, result):
+    def _gio_review_stats_download_finished_callback(self, source, result):
         callback = source.get_data("callback")
-        data = source.get_data("data")
         try:
-            s = source.read_finish(result)
-            if s:
-                data += s
-                source.set_data("data", data)
-                source.read_async(128*1024, self._gio_review_stats_input_callback)
-                return
+            (json_str, length, etag) = source.load_contents_finish(result)
         except glib.GError, e:
             # ignore read errors, most likely transient
             return
-        json_str = data
         # check for gzip header
         if json_str.startswith("\37\213"):
             gz=gzip.GzipFile(fileobj=StringIO.StringIO(json_str))
@@ -328,24 +290,9 @@ class ReviewLoaderJsonAsync(ReviewLoader):
             review_stats[app] = stats
         # update review_stats dict
         self.REVIEW_STATS_CACHE = review_stats
-        print review_stats
         self.save_review_stats_cache_file()
         # run callback
         callback(review_stats)
-
-    def _gio_review_stats_read_callback(self, source, result):
-        callback = source.get_data("callback")
-        try:
-            stream=source.read_finish(result)
-        except glib.GError, e:
-            print e, source, result
-            raise
-        stream.set_data("callback", callback)
-        stream.set_data("data", "")
-        # FIXME: static size here as first argument sucks, but it seems
-        #        like there is a bug in the python bindings, I can not pass
-        #        -1 or anything like this
-        stream.read_async(128*1024, self._gio_review_stats_input_callback)
 
     def refresh_review_stats(self, callback):
         """ get the review statists and call callback when its there """
@@ -357,7 +304,7 @@ class ReviewLoaderJsonAsync(ReviewLoader):
                                              }
         f=gio.File(url)
         f.set_data("callback", callback)
-        f.read_async(self._gio_review_stats_read_callback)
+        f.load_contents_async(self._gio_review_stats_download_finished_callback)
 
 class ReviewLoaderFake(ReviewLoader):
 
