@@ -102,9 +102,6 @@ class AppDetailsViewBase(object):
         
         print "requesting purchase"
         self.emit("purchase-requested", self.app, url)
-        
-#        if res != gtk.RESPONSE_OK:
-#            self.show_app(self.app)
 
     def reinstall_purchased(self):
         """ reinstall a purchased app """

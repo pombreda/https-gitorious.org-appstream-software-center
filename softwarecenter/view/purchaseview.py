@@ -25,6 +25,7 @@ import simplejson
 import sys
 import urllib
 import webkit
+import gobject
 
 from gettext import gettext as _
 
@@ -81,6 +82,18 @@ h1 {
 </html>
 """ % _("Connecting to payment service...")
 
+    __gsignals__ = {
+         'purchase-succeeded' : (gobject.SIGNAL_RUN_LAST,
+                                 gobject.TYPE_NONE,
+                                 ()),
+         'purchase-failed'    : (gobject.SIGNAL_RUN_LAST,
+                                 gobject.TYPE_NONE,
+                                 ()),
+         'purchase-cancelled-by-user' : (gobject.SIGNAL_RUN_LAST,
+                                         gobject.TYPE_NONE,
+                                         ()),
+    }
+
     def __init__(self):
         gtk.VBox.__init__(self)
         self.wk = ScrolledWebkitWindow()
@@ -133,6 +146,9 @@ h1 {
         self._process_json(title)
 
     def _process_json(self, json_string):
+        print "process_json ---------"
+        print json_string
+        print "----------------------"
         try:
             res = simplejson.loads(json_string)
             #print res
@@ -140,32 +156,30 @@ h1 {
             logging.debug("error processing json: '%s'" % json_string)
             return
         if res["successful"] == False:
-            self.hide()
             if res.get("user_canceled", False):
-                # no need to show anything, the user did the
-                # cancel
-                pass
+                self.emit("purchase-cancelled-by-user")
+                return
             # this is what the agent implements
             elif "failures" in res:
                 logging.error("the server returned a error: '%s'" % res["failures"])
             # show a generic error, the "failures" string we get from the
             # server is way too technical to show, but we do log it
-            dialogs.error(self,
-                          _("Failure in the purchase process."),
-                          _("Sorry, something went wrong. Your payment "
-                            "has been cancelled."))
-            self.response(gtk.RESPONSE_CANCEL)
+            self.emit("purchase-failed")
+#            dialogs.error(self,
+#                          _("Failure in the purchase process."),
+#                          _("Sorry, something went wrong. Your payment "
+#                            "has been cancelled."))
             return
-
-        self.response(gtk.RESPONSE_OK)
-        # gather data from response
-        deb_line = res["deb_line"]
-        signing_key_id = res["signing_key_id"]
-        # add repo and key
-        get_install_backend().add_repo_add_key_and_install_app(deb_line,
-                                                               signing_key_id,
-                                                               self.app,
-                                                               self.iconname)
+        else:
+            self.emit("purchase-succeeded")
+            # gather data from response
+            deb_line = res["deb_line"]
+            signing_key_id = res["signing_key_id"]
+            # add repo and key
+            get_install_backend().add_repo_add_key_and_install_app(deb_line,
+                                                                   signing_key_id,
+                                                                   self.app,
+                                                                   self.iconname)
 
 # just used for testing --------------------------------------------
 DUMMY_HTML = """

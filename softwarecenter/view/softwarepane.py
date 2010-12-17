@@ -26,6 +26,7 @@ import os
 import xapian
 import cairo
 import gettext
+import dialogs
 
 from gettext import gettext as _
 
@@ -176,6 +177,9 @@ class SoftwarePane(gtk.VBox, BasePane):
         self.scroll_details.add(self.app_details_view)
         # purchase view
         self.purchase_view = PurchaseView()
+        self.purchase_view.connect("purchase-succeeded", self.on_purchase_succeeded)
+        self.purchase_view.connect("purchase-failed", self.on_purchase_failed)
+        self.purchase_view.connect("purchase-cancelled-by-user", self.on_purchase_cancelled_by_user)
         # cursor
         self.busy_cursor = gtk.gdk.Cursor(gtk.gdk.WATCH)
         # when the cache changes, refresh the app list
@@ -263,6 +267,30 @@ class SoftwarePane(gtk.VBox, BasePane):
         self.appdetails = app.get_details(self.db)
         iconname = self.appdetails.icon
         self.purchase_view.initiate_purchase(app, iconname, url)
+        
+    def on_purchase_succeeded(self, widget):
+        print "on_purchase_succeeded"
+        # switch to the details page to display the transaction is in progress
+        self.notebook.set_current_page(self.PAGE_APP_DETAILS)
+        
+    def on_purchase_failed(self, widget):
+        print "on_purchase_failed"
+        # return to the the appdetails view via the button to reset it
+        self._click_appdetails_view()
+        dialogs.error(None,
+                      _("Failure in the purchase process."),
+                      _("Sorry, something went wrong. Your payment "
+                        "has been cancelled."))
+        
+    def on_purchase_cancelled_by_user(self, widget):
+        print "on_purchase_cancelled_by_user"
+        # return to the the appdetails view via the button to reset it
+        self._click_appdetails_view()
+            
+    def _click_appdetails_view(self):
+        details_button = self.navigation_bar.get_button_from_id(NAV_BUTTON_ID_DETAILS)
+        if details_button:
+            self.navigation_bar.set_active(details_button)
                                        
     def show_appview_spinner(self):
         """ display the spinner in the appview panel """
