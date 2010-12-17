@@ -81,17 +81,67 @@ TRANSMIT_STATE_INPROGRESS="transmit-state-inprogress"
 TRANSMIT_STATE_DONE="transmit-state-done"
 TRANSMIT_STATE_ERROR="transmit-state-error"
 
+class GRatingsAndReviews(gobject.GObject):
+    """ Access ratings&reviews API as a gobject """
+
+    __gsignals__ = {
+        # send when a transmit is started
+        "transmit-start" : (gobject.SIGNAL_RUN_LAST,
+                            gobject.TYPE_NONE, 
+                            (gobject.TYPE_PYOBJECT, ),
+                            ),
+        # send when a transmit was successful
+        "transmit-success" : (gobject.SIGNAL_RUN_LAST,
+                              gobject.TYPE_NONE, 
+                              (gobject.TYPE_PYOBJECT, ),
+                              ),
+        # send when a transmit failed
+        "transmit-failure" : (gobject.SIGNAL_RUN_LAST,
+                              gobject.TYPE_NONE, 
+                              (gobject.TYPE_PYOBJECT, str),
+                              ),
+    }
+
+    def __init__(self, token):
+        super(GRatingsAndReviews, self).__init__()
+        # piston worker thread
+        self.worker_thread = Worker(token)
+        self.worker_thread.start()
+        glib.timeout_add(500, self._check_thread_status)
+    def submit_review(self, review):
+        self.emit("transmit-start", review)
+        self.worker_thread.pending_reviews.put(review)
+    def report_abuse(self, review_id, summary, text):
+        self.emit("transmit-start", review_id)
+        self.worker_thread.pending_reports.put((int(review_id), summary, text))
+    def server_status(self):
+        self.worker_thread.pending_server_status()
+    def shutdown(self):
+        self.worker_thread.shutdown()
+    # internal
+    def _check_thread_status(self):
+        if self.worker_thread._transmit_state == TRANSMIT_STATE_DONE:
+            self.emit("transmit-success", "")
+            self.worker_thread._transmit_state = TRANSMIT_STATE_NONE
+        elif self.worker_thread._transmit_state == TRANSMIT_STATE_ERROR:
+            self.emit("transmit-failure", "", 
+                      self.worker_thread._transmit_error_str)
+            self.worker_thread._transmit_state = TRANSMIT_STATE_NONE
+        return True
+
 class Worker(threading.Thread):
-    
+
     def __init__(self, token):
         # init parent
         threading.Thread.__init__(self)
         self.pending_reviews = Queue()
         self.pending_reports = Queue()
+        self.pending_server_status = Queue()
         self._shutdown = False
         # FIXME: instead of a binary value we need the state associated
         #        with each request from the queue
         self._transmit_state = TRANSMIT_STATE_NONE
+        self._transmit_error_str = ""
         self.display_name = "No display name"
         auth = piston_mini_client.auth.OAuthAuthorizer(token["token"],
                                                        token["token_secret"],
@@ -146,6 +196,7 @@ class Worker(threading.Thread):
             except:
                 logging.exception("report_abuse failed")
                 self._transmit_state = TRANSMIT_STATE_ERROR
+                self._transmit_error_str = _("Failed to submit report")
             self.pending_reports.task_done()
 
     # reviews
@@ -183,6 +234,7 @@ class Worker(threading.Thread):
             except:
                 logging.exception("submit_review")
                 self._transmit_state = TRANSMIT_STATE_ERROR
+                self._transmit_error_str = _("Failed to submit review")
             self._transmit_state
             self.pending_reviews.task_done()
 
@@ -243,16 +295,34 @@ class BaseApp(SimpleGtkbuilderApp):
         self.restful_worker_thread.queue_request("accounts.me", (), {},
                                                  self._thread_whoami_done,
                                                  self._thread_whoami_error)
-        # piston worker thread
-        self.worker_thread = Worker(self.token)
-        self.worker_thread.start()
 
     def _thread_whoami_done(self, result):
         self.display_name = result["displayname"]
         self._login_successful = True
 
+    def _create_gratings_api(self):
+        self.api = GRatingsAndReviews(self.token)
+        self.api.connect("transmit-start", self._on_transmit_start)
+        self.api.connect("transmit-success", self._on_transmit_success)
+        self.api.connect("transmit-failure", self._on_transmit_failure)
+
+    def _on_transmit_start(self, api, trans):
+        self.review_action_area.set_sensitive(False)
+        self.label_transmit_status.set_text(_("submitting review..."))
+        self.label_report_transmit_status.set_text(_("submitting review..."))
+
+    def _on_transmit_success(self, api, trans):
+        self.api.shutdown()
+        self.quit()
+
+    def _on_transmit_failure(self, api, trans, error):
+        self.label_transmit_status.set_text(error)
+        self.label_report_transmit_status.set_text(error)
+        self.review_action_area.set_sensitive(True)
+
     def _glib_whoami_done(self):
         if self._login_successful:
+            self._create_gratings_api()
             self.login_successful(self.display_name)
             return False
         return True
@@ -271,8 +341,7 @@ class BaseApp(SimpleGtkbuilderApp):
 
     def on_button_cancel_clicked(self, button=None):
         # bring it down gracefully
-        self.worker_thread.shutdown()
-        self.dialog_main.hide()
+        self.api.shutdown()
         while gtk.events_pending():
             gtk.main_iteration()
         sys.exit(0)
@@ -377,7 +446,7 @@ class SubmitReviewsApp(BaseApp):
     def on_review_cancel_clicked(self, button):
         while gtk.events_pending():
             gtk.main_iteration()
-        self.worker_thread.shutdown()
+        self.api.shutdown()
         self.quit()
 
     def on_review_post_clicked(self, button):
@@ -391,20 +460,7 @@ class SubmitReviewsApp(BaseApp):
         review.language = get_language()
         review.rating = self.star_rating.get_rating()
         review.package_version = self.version
-        glib.timeout_add(500, self._wait_for_submit)
-        self.worker_thread.queue_review(review)
-
-    def _wait_for_submit(self):
-        if self.worker_thread._transmit_state == TRANSMIT_STATE_INPROGRESS:
-            self.review_action_area.set_sensitive(False)
-            self.label_transmit_status.set_text(_("submitting review..."))
-        elif self.worker_thread._transmit_state == TRANSMIT_STATE_DONE:
-            self.worker_thread.shutdown()
-            self.quit()
-        elif self.worker_thread._transmit_state == TRANSMIT_STATE_ERROR:
-            self.label_transmit_status.set_text(_("Error submitting the review"))
-            return False
-        return True
+        self.api.submit_review(review)
 
     def run(self):
         # initially display a 'Connecting...' page
@@ -508,21 +564,17 @@ class ReportReviewApp(BaseApp):
         return
 
     def on_report_post_clicked(self, button):
-        res = self.dialog_report_app.run()
-        self.dialog_report_app.hide()
-        if res == gtk.RESPONSE_OK:
-            logging.debug("report_abuse ok button")
-            report_summary = self.combobox_report_summary.get_active_text()
-            text_buffer = self.textview_report.get_buffer()
-            report_text = text_buffer.get_text(text_buffer.get_start_iter(),
-                                               text_buffer.get_end_iter())
-            self.worker_thread.queue_report(
-                (int(self.review_id), report_summary, report_text))
+        logging.debug("report_abuse ok button")
+        report_summary = self.combobox_report_summary.get_active_text()
+        text_buffer = self.textview_report.get_buffer()
+        report_text = text_buffer.get_text(text_buffer.get_start_iter(),
+                                           text_buffer.get_end_iter())
+        self.api.report_abuse(self.review_id, report_summary, report_text)
 
     def on_report_cancel_clicked(self, button):
         while gtk.events_pending():
             gtk.main_iteration()
-        self.worker_thread.shutdown()
+        self.api.shutdown()
         self.quit()
         
     def run(self):
@@ -538,8 +590,6 @@ class ReportReviewApp(BaseApp):
         self.report_main_notebook.set_current_page(1)
         #self.label_reporter.set_text(display_name)
         self._setup_details(self.dialog_main, display_name)
-        self.report_abuse()
-
     
 if __name__ == "__main__":
     locale.setlocale(locale.LC_ALL, "")
