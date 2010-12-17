@@ -598,12 +598,12 @@ class AppStore(gtk.GenericTreeModel):
         elif column == self.COL_RATING:
             stats = self.review_loader.get_review_stats(self.apps[rowref])
             if stats:
-                return stats.avg_rating
+                return stats.ratings_average
             return 0
         elif column == self.COL_NR_REVIEWS:
             stats = self.review_loader.get_review_stats(self.apps[rowref])
             if stats:
-                return stats.nr_reviews
+                return stats.ratings_total
             return 0
         elif column == self.COL_IS_ACTIVE:
             return (rowref == self.active_app)

@@ -47,10 +47,10 @@ from softwarecenter.paths import *
 class ReviewStats(object):
     def __init__(self, app):
         self.app = app
-        self.avg_rating = None
-        self.nr_reviews = 0
+        self.ratings_average = None
+        self.ratings_total = 0
     def __repr__(self):
-        return "[ReviewStats '%s' rating='%s' nr_reviews='%s']" % (self.app, self.avg_rating, self.nr_reviews)
+        return "[ReviewStats '%s' ratings_average='%s' ratings_total='%s']" % (self.app, self.ratings_average, self.ratings_total)
 
 class Review(object):
     """A individual review object """
@@ -61,13 +61,14 @@ class Review(object):
         self.id = None
         self.language = None
         self.summary = ""
-        self.text = ""
+        self.review_text = ""
         self.package_version = None
-        self.date = None
+        self.date_created = None
         self.rating = None
-        self.person = None
+        self.reviewer_username = None
     def __repr__(self):
-        return "[Review id=%s text='%s' person='%s']" % (self.id, self.text, self.person)
+        return "[Review id=%s review_text='%s' reviewer_username='%s']" % (
+            self.id, self.review_text, self.reviewer_username)
 
 class ReviewLoader(object):
     """A loader that returns a review object list"""
@@ -121,17 +122,31 @@ class ReviewLoader(object):
 # using multiprocessing here because threading interface was terrible
 # slow and full of latency
 class ReviewLoaderThreadedRNRClient(ReviewLoader):
+    """ loader that uses multiprocessing to call rnrclient and
+        a glib timeout watcher that polls periodically for the
+        data 
+    """
 
     def __init__(self, distro=None):
         super(ReviewLoaderThreadedRNRClient, self).__init__(distro)
         self.rnrclient = RatingsAndReviewsAPI()
-        self._review_stats = []
         self._reviews = {}
         # this is a dict of queue objects
         self._new_reviews = {}
         self._new_review_stats = Queue()
 
+    # reviews
+    def get_reviews(self, app, callback):
+        """ public api, triggers fetching a review and calls callback
+            when its ready
+        """
+        self._new_reviews[app] = Queue()
+        p = Process(target=self._get_reviews_threaded, args=(app, ))
+        p.start()
+        glib.timeout_add(500, self._reviews_timeout_watcher, app, callback)
+
     def _reviews_timeout_watcher(self, app, callback):
+        """ watcher function in parent using glib """
         if not self._new_reviews[app].empty():
             self._reviews[app] = self._new_reviews[app].get()
             del self._new_reviews[app]
@@ -139,28 +154,9 @@ class ReviewLoaderThreadedRNRClient(ReviewLoader):
             return False
         return True
 
-    def _review_stats_timeout_watcher(self, callback):
-        if not self._new_review_stats.empty():
-            self._review_stats = self._new_review_stats.get()
-            self._new_review_stats = []
-            # FIXME: self._review_stats can go
-            self.REVIEW_STATS_CACHE = self._review_stats
-            callback(self._review_stats)
-            return False
-        return True
-
-    def get_reviews(self, app, callback):
-        self._new_reviews[app] = Queue()
-        p = Process(target=self._get_reviews_threaded, args=(app, ))
-        p.start()
-        glib.timeout_add(500, self._reviews_timeout_watcher, app, callback)
-
-    def refresh_review_stats(self, callback):
-        p = Process(target=self._refresh_review_stats_threaded, args=())
-        p.start()
-        glib.timeout_add(500, self._review_stats_timeout_watcher, callback)
-
     def _get_reviews_threaded(self, app):
+        """ threaded part of the fetching """
+        # FIXME: select correct origin
         origin = "ubuntu"
         distroseries = self.distro.get_codename()
         try:
@@ -174,19 +170,47 @@ class ReviewLoaderThreadedRNRClient(ReviewLoader):
             reviews = self.rnrclient.get_reviews(**kwargs)
         except:
             logging.exception("get_reviews")
-            reviews = None
+            reviews = []
+        # add "app" attribute
+        for r in reviews:
+            r.app = Application(r.app_name, r.package_name)
         # push into the queue
         self._new_reviews[app].put(reviews)
 
+    # stats
+    def refresh_review_stats(self, callback):
+        """ public api, refresh the available statistics """
+        p = Process(target=self._refresh_review_stats_threaded, args=())
+        p.start()
+        glib.timeout_add(500, self._review_stats_timeout_watcher, callback)
+
+    def _review_stats_timeout_watcher(self, callback):
+        """ glib timeout that waits for the process that gets the data
+            to finish and emits callback then """
+        if not self._new_review_stats.empty():
+            review_stats = self._new_review_stats.get()
+            self.REVIEW_STATS_CACHE = review_stats
+            callback(review_stats)
+            return False
+        return True
+
     def _refresh_review_stats_threaded(self):
+        """ process that actually fetches the statistics """
         try:
-            review_stats = self.rnrclient.review_stats()
+            piston_review_stats = self.rnrclient.review_stats()
         except:
             logging.exception("refresh_review_stats")
+        # convert to the format that s-c uses
+        review_stats = {}
+        for r in piston_review_stats:
+            s = ReviewStats(Application(r.app_name, r.package_name))
+            s.ratings_average = float(r.ratings_average)
+            s.ratings_total = float(r.ratings_total)
+            review_stats[s.app] = s
         # push into the queue in one, for all practical purposes there
         # is no limit for the queue size, even millions of review stats
         # are ok
-        self._new_review_stats.put(review_stats*1000000)
+        self._new_review_stats.put(review_stats)
 
 class ReviewLoaderJsonAsync(ReviewLoader):
     """ get json (or gzip compressed json) """
@@ -212,21 +236,21 @@ class ReviewLoaderJsonAsync(ReviewLoader):
             json_str = gz.read()
         reviews_json = simplejson.loads(json_str)
         reviews = []
-        print json_str
         for review_json in reviews_json:
             appname = review_json["app_name"]
             pkgname = review_json["package_name"]
             app = Application(appname, pkgname)
             review = Review(app)
             review.id = review_json["id"]
-            review.date = review_json["date_created"]
+            review.date_created = review_json["date_created"]
             review.rating = review_json["rating"]
-            review.person = review_json["reviewer_username"]
+            review.reviewer_username = review_json["reviewer_username"]
             review.language = review_json["language"]
             review.summary =  review_json["summary"]
-            review.text = review_json["review_text"]
+            review.review_text = review_json["review_text"]
             reviews.append(review)
         # run callback
+        print "**********************", reviews
         callback(app, reviews)
 
     def _gio_review_read_callback(self, source, result):
@@ -299,8 +323,8 @@ class ReviewLoaderJsonAsync(ReviewLoader):
             pkgname = review_stat_json["package_name"]
             app = Application(appname, pkgname)
             stats = ReviewStats(app)
-            stats.nr_reviews = int(review_stat_json["ratings_total"])
-            stats.avg_rating = float(review_stat_json["ratings_average"])
+            stats.ratings_total = int(review_stat_json["ratings_total"])
+            stats.ratings_average = float(review_stat_json["ratings_average"])
             review_stats[app] = stats
         # update review_stats dict
         self.REVIEW_STATS_CACHE = review_stats
@@ -356,15 +380,15 @@ class ReviewLoaderFake(ReviewLoader):
         stats = self._review_stats_cache[application]
         if not application in self._reviews_cache:
             reviews = []
-            for i in range(0, stats.nr_reviews):
+            for i in range(0, stats.ratings_total):
                 review = Review(application)
                 review.id = random.randint(1,50000)
                 # FIXME: instead of random, try to match the avg_rating
                 review.rating = random.randint(1,5)
                 review.summary = self._random_summary()
-                review.date = time.ctime(time.time())
-                review.person = self._random_person()
-                review.text = self._random_text().replace("\n","")
+                review.date_created = time.ctime(time.time())
+                review.reviewer_username = self._random_person()
+                review.review_text = self._random_text().replace("\n","")
                 reviews.append(review)
             self._reviews_cache[application] = reviews
         reviews = self._reviews_cache[application]
@@ -372,8 +396,8 @@ class ReviewLoaderFake(ReviewLoader):
     def get_review_stats(self, application):
         if not application in self._review_stats_cache:
             stat = ReviewStats(application)
-            stat.avg_rating = random.randint(1,5)
-            stat.nr_reviews = random.randint(1,20)
+            stat.ratings_average = random.randint(1,5)
+            stat.ratings_total = random.randint(1,20)
             self._review_stats_cache[application] = stat
         return self._review_stats_cache[application]
     def refresh_review_stats(self, callback):
@@ -524,12 +548,10 @@ def get_review_loader():
             review_loader = ReviewLoaderFortune()
         elif "SOFTWARE_CENTER_TECHSPEAK_REVIEWS" in os.environ:
             review_loader = ReviewLoaderTechspeak()
-        #elif "SOFTWARE_CENTER_GIO" in os.environ:
-        #    review_loader = ReviewLoaderJsonAsync()
-        #else:
-        #    review_loader = ReviewLoaderThreadedRNRClient()
-        else:
+        elif "SOFTWARE_CENTER_GIO_REVIEWS" in os.environ:
             review_loader = ReviewLoaderJsonAsync()
+        else:
+            review_loader = ReviewLoaderThreadedRNRClient()
     return review_loader
 
 if __name__ == "__main__":

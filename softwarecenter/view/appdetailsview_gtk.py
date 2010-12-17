@@ -1121,10 +1121,10 @@ class Review(gtk.VBox):
         if review_data:
             self.id = review_data.id
             rating = review_data.rating 
-            person = glib.markup_escape_text(review_data.person)
+            person = glib.markup_escape_text(review_data.reviewer_username)
             summary = glib.markup_escape_text(review_data.summary)
-            text = glib.markup_escape_text(review_data.text)
-            date = glib.markup_escape_text(review_data.date)
+            text = glib.markup_escape_text(review_data.review_text)
+            date = glib.markup_escape_text(review_data.date_created)
             self._build(rating, person, summary, text, date)
 
         self.body.connect('size-allocate', self._on_allocate)
@@ -1344,8 +1344,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # review stats is fast and syncronous
         stats = self.review_loader.get_review_stats(self.app)
         if stats:
-            self.review_stats_widget.set_avg_rating(stats.avg_rating)
-            self.review_stats_widget.set_nr_reviews(stats.nr_reviews)
+            self.review_stats_widget.set_avg_rating(stats.ratings_average)
+            self.review_stats_widget.set_nr_reviews(stats.ratings_total)
             self.review_stats_widget.show()
         else:
             self.review_stats_widget.hide()

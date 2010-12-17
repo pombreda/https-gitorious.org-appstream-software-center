@@ -27,7 +27,7 @@ SERVER_ROOT=distro.REVIEWS_SERVER
 
 # patch default_service_root
 try:
-    from rnrclient_pristine import RatingsAndReviewsAPI
+    from rnrclient_pristine import RatingsAndReviewsAPI, ReviewRequest
     RatingsAndReviewsAPI.default_service_root = SERVER_ROOT+'/reviews/api/1.0'
 except:
     logging.error("need python-piston-mini client\n"
@@ -41,8 +41,9 @@ if __name__ == "__main__":
     for stat in rnr.review_stats():
         print "stats for (pkg='%s', app: '%s'):  avg=%s total=%s" % (
             stat.package_name, stat.app_name, stat.ratings_average, stat.ratings_total)
-    print rnr.get_reviews(language="en",origin="ubuntu",distroseries="natty",
-                          packagename="2vcard")
+    reviews= rnr.get_reviews(language="en",origin="ubuntu",distroseries="natty",
+                             packagename="unace", appname="ACE")
+    print reviews, reviews[0], dir(reviews[0])
     #print rnr.get_reviews(language="en",origin="ubuntu",distroseries="natty",
     #                      packagename="aclock.app")
     # FIXME: not working yet
