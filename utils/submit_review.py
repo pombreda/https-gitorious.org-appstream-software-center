@@ -28,6 +28,7 @@ import datetime
 import gtk
 import locale
 import logging
+import multiprocessing
 import os
 import sys
 import time
@@ -75,6 +76,11 @@ class UserCancelException(Exception):
     """ user pressed cancel """
     pass
 
+TRANSMIT_STATE_NONE="transmit-state-none"
+TRANSMIT_STATE_INPROGRESS="transmit-state-inprogress"
+TRANSMIT_STATE_DONE="transmit-state-done"
+TRANSMIT_STATE_ERROR="transmit-state-error"
+
 class Worker(threading.Thread):
     
     def __init__(self, token):
@@ -83,6 +89,9 @@ class Worker(threading.Thread):
         self.pending_reviews = Queue()
         self.pending_reports = Queue()
         self._shutdown = False
+        # FIXME: instead of a binary value we need the state associated
+        #        with each request from the queue
+        self._transmit_state = TRANSMIT_STATE_NONE
         self.display_name = "No display name"
         auth = piston_mini_client.auth.OAuthAuthorizer(token["token"],
                                                        token["token_secret"],
@@ -102,58 +111,50 @@ class Worker(threading.Thread):
         """Request shutdown"""
         self._shutdown = True
 
-    def queue_review(self, review):
-        """ queue a new review for sending to LP """
-        logging.debug("queue_review %s" % review)
-        self.pending_reviews.put(review)
-
-    def queue_report(self, report):
-        """ queue a new report for sending to LP """
-        logging.debug("queue_report %s %s %s" % report)
-        self.pending_reports.put(report)
-
     def _wait_for_commands(self):
         """internal helper that waits for commands"""
         while True:
-            #logging.debug("worker: _wait_for_commands %s" % self.login_state)
-            self._submit_reviews()
-            self._submit_reports()
+            #logging.debug("worker: _wait_for_commands")
+            self._submit_reviews_if_pending()
+            self._submit_reports_if_pending()
             time.sleep(0.2)
             if (self._shutdown and
                 self.pending_reviews.empty() and
                 self.pending_reports.empty()):
                 return
 
-    def _submit_reports(self):
+    # reports
+    def queue_report(self, report):
+        """ queue a new report for sending to LP """
+        logging.debug("queue_report %s %s %s" % report)
+        self.pending_reports.put(report)
+
+    def _submit_reports_if_pending(self):
         """ the actual report function """
         self._submit_report_PISTON()
 
     def _submit_report_PISTON(self):
         while not self.pending_reports.empty():
             logging.debug("POST report")
+            self._transmit_state = TRANSMIT_STATE_INPROGRESS
             (review_id, summary, text) = self.pending_reports.get()
-            self.rnrclient.report_abuse(review_id=review_id,
-                                        reason=summary,
-                                        text=text)
+            try:
+                self.rnrclient.report_abuse(review_id=review_id,
+                                            reason=summary,
+                                            text=text)
+                self._transmit_state = TRANSMIT_STATE_DONE
+            except:
+                logging.exception("report_abuse failed")
+                self._transmit_state = TRANSMIT_STATE_ERROR
             self.pending_reports.task_done()
 
-    def _submit_report_POST(self):
-        while not self.pending_reports.empty():
-            logging.debug("POST report")
-            (review_id, summary, text) = self.pending_reports.get()
-            data = { 'reason' : summary,
-                     'text' : text,
-                     'token' : self.token.key,
-                     'token-secret' : token.secret,
-                     }
-            url = REPORT_POST_URL % review_id
-            f = urllib.urlopen(url, urllib.urlencode(data))
-            res = f.read()
-            print res
-            f.close()
-            self.pending_reports.task_done()
+    # reviews
+    def queue_review(self, review):
+        """ queue a new review for sending to LP """
+        logging.debug("queue_review %s" % review)
+        self.pending_reviews.put(review)
 
-    def _submit_reviews(self):
+    def _submit_reviews_if_pending(self):
         """ the actual submit function """
         self._submit_reviews_PISTON()
             
@@ -161,6 +162,7 @@ class Worker(threading.Thread):
         """ use piston to submit """
         while not self.pending_reviews.empty():
             logging.debug("_submit_review")
+            self._transmit_state = TRANSMIT_STATE_INPROGRESS
             review = self.pending_reviews.get()
             piston_review = ReviewRequest()
             piston_review.package_name = review.app.pkgname
@@ -175,41 +177,14 @@ class Worker(threading.Thread):
             #FIXME: not hardcode
             piston_review.origin = "ubuntu"
             piston_review.distroseries=distro.get_codename()
-            res = self.rnrclient.submit_review(review=piston_review)
-            print res
+            try:
+                self.rnrclient.submit_review(review=piston_review)
+                self._transmit_state = TRANSMIT_STATE_DONE
+            except:
+                logging.exception("submit_review")
+                self._transmit_state = TRANSMIT_STATE_ERROR
+            self._transmit_state
             self.pending_reviews.task_done()
-
-    def _urlencode_review(self, review):
-        data = { 'package_name' : review.app.pkgname,
-                 'app_name' : review.app.appname,
-                 'summary' : review.summary,
-                 'package_version' : review.package_version,
-                 'text' : review.text,
-                 'date' : review.date,
-                 'rating': review.rating,
-                 'name' : review.person,
-                 # send the token, ideally we would not send
-                 # it but instead send a pre-made request
-                 # that uses  "3.4.2.  HMAC-SHA1" - but it
-                 # seems that LP does not support that at this
-                 # point 
-                 #'token' : token.key,
-                 #'token-secret' : token.secret,
-                 }
-        return data
-
-    def _submit_reviews_POST(self):
-        """ http POST based submit """
-        while not self.pending_reviews.empty():
-            logging.debug("_submit_review")
-            review = self.pending_reviews.get()
-            data = self._urlencode_review(review)
-            f = urllib.urlopen(SUBMIT_POST_URL, urllib.urlencode(data))
-            res = f.read()
-            print res
-            f.close()
-            self.pending_reviews.task_done()
-        
 
     def verify_server_status(self):
         """ verify that the server we want to talk to can be reached
@@ -399,28 +374,37 @@ class SubmitReviewsApp(BaseApp):
         else:
             self.review_post.set_sensitive(False)
 
-    def submit_review(self):
-        print "submit_review"
-        res = self.dialog_review_app.run()
-        self.dialog_review_app.hide()
-        if res == gtk.RESPONSE_OK:
-            logging.debug("enter_review ok button")
-            review = Review(self.app)
-            text_buffer = self.textview_review.get_buffer()
-            review.text = text_buffer.get_text(text_buffer.get_start_iter(),
-                                               text_buffer.get_end_iter())
-            review.summary = self.review_summary_entry.get_text()
-            review.date = datetime.datetime.now()
-            review.language = get_language()
-            review.rating = self.star_rating.get_rating()
-            review.package_version = self.version
-            self.worker_thread.queue_review(review)
-
-        # signal thread to finish
+    def on_review_cancel_clicked(self, button):
         while gtk.events_pending():
             gtk.main_iteration()
         self.worker_thread.shutdown()
         self.quit()
+
+    def on_review_post_clicked(self, button):
+        logging.debug("enter_review ok button")
+        review = Review(self.app)
+        text_buffer = self.textview_review.get_buffer()
+        review.text = text_buffer.get_text(text_buffer.get_start_iter(),
+                                           text_buffer.get_end_iter())
+        review.summary = self.review_summary_entry.get_text()
+        review.date = datetime.datetime.now()
+        review.language = get_language()
+        review.rating = self.star_rating.get_rating()
+        review.package_version = self.version
+        glib.timeout_add(500, self._wait_for_submit)
+        self.worker_thread.queue_review(review)
+
+    def _wait_for_submit(self):
+        if self.worker_thread._transmit_state == TRANSMIT_STATE_INPROGRESS:
+            self.review_action_area.set_sensitive(False)
+            self.label_transmit_status.set_text(_("submitting review..."))
+        elif self.worker_thread._transmit_state == TRANSMIT_STATE_DONE:
+            self.worker_thread.shutdown()
+            self.quit()
+        elif self.worker_thread._transmit_state == TRANSMIT_STATE_ERROR:
+            self.label_transmit_status.set_text(_("Error submitting the review"))
+            return False
+        return True
 
     def run(self):
         # initially display a 'Connecting...' page
@@ -430,7 +414,6 @@ class SubmitReviewsApp(BaseApp):
         self.dialog_review_app.show()
         # now run the loop
         self.login()
-        self.submit_review()
 
     def login_successful(self, display_name):
         self.review_main_notebook.set_current_page(1)
@@ -524,7 +507,7 @@ class ReportReviewApp(BaseApp):
         self.report_summary_label.set_markup('<b><span color="%s">%s</span></b>' % (dark, _('Why is this review inappropriate?')))
         return
 
-    def report_abuse(self):
+    def on_report_post_clicked(self, button):
         res = self.dialog_report_app.run()
         self.dialog_report_app.hide()
         if res == gtk.RESPONSE_OK:
@@ -535,7 +518,8 @@ class ReportReviewApp(BaseApp):
                                                text_buffer.get_end_iter())
             self.worker_thread.queue_report(
                 (int(self.review_id), report_summary, report_text))
-        # signal thread to finish
+
+    def on_report_cancel_clicked(self, button):
         while gtk.events_pending():
             gtk.main_iteration()
         self.worker_thread.shutdown()
@@ -549,7 +533,6 @@ class ReportReviewApp(BaseApp):
         self.dialog_main.show()
         # start the async loop
         self.login()
-        self.report_abuse()
 
     def login_successful(self, display_name):
         self.report_main_notebook.set_current_page(1)
@@ -621,3 +604,6 @@ if __name__ == "__main__":
                                       review_id=options.review_id, 
                                       parent_xid=options.parent_xid)
         report_app.run()
+
+    # main
+    gtk.main()
