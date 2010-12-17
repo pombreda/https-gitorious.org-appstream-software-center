@@ -269,12 +269,10 @@ class SoftwarePane(gtk.VBox, BasePane):
         self.purchase_view.initiate_purchase(app, iconname, url)
         
     def on_purchase_succeeded(self, widget):
-        print "on_purchase_succeeded"
         # switch to the details page to display the transaction is in progress
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
         
     def on_purchase_failed(self, widget):
-        print "on_purchase_failed"
         # return to the the appdetails view via the button to reset it
         self._click_appdetails_view()
         dialogs.error(None,
@@ -283,7 +281,6 @@ class SoftwarePane(gtk.VBox, BasePane):
                         "has been cancelled."))
         
     def on_purchase_cancelled_by_user(self, widget):
-        print "on_purchase_cancelled_by_user"
         # return to the the appdetails view via the button to reset it
         self._click_appdetails_view()
             

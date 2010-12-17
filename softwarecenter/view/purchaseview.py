@@ -110,8 +110,6 @@ h1 {
         initiates the purchase workflow inside the embedded webkit window
         for the item specified       
         """
-        print "called initiate_purchase with app: ", app
-        print "                          and url: ", url
         self.app = app
         self.iconname = iconname
         self.wk.webkit.load_html_string(self.LOADING_HTML, "file:///")
@@ -131,13 +129,11 @@ h1 {
         
     def _on_create_webview_request(self, view, frame, parent=None):
         logging.debug("_on_create_webview_request")
-        print "_on_create_webview_request"
         wk = ScrolledWebkitWindow()
         wk.show()
         return wk.webkit
 
     def _on_script_alert(self, view, frame, message):
-        print "on_script_alert", view, frame, message
         self._process_json(message)
         # stop further processing to avoid actually showing the alter
         return True
@@ -148,9 +144,6 @@ h1 {
         self._process_json(title)
 
     def _process_json(self, json_string):
-        print "process_json ---------"
-        print json_string
-        print "----------------------"
         try:
             res = simplejson.loads(json_string)
             #print res
