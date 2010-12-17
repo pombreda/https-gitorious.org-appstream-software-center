@@ -100,7 +100,6 @@ class AppDetailsViewBase(object):
                     'arch' : get_current_arch() ,
                     }))
         
-        print "requesting purchase"
         self.emit("purchase-requested", self.app, url)
 
     def reinstall_purchased(self):
