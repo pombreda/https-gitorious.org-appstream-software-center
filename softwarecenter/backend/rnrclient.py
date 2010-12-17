@@ -14,12 +14,11 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 #
 #
-# taken from lp:~rnr-developers/rnr-server/rnrclient
+# taken from lp:~rnr-developers/rnr-server/rnrclient and put into
+# rnrclient_pristine.py
 
-from urllib import quote_plus
-from piston_mini_client import (PistonAPI, PistonResponseObject,
-    PistonSerializable, returns_json, returns_list_of)
-from piston_mini_client.validators import validate_pattern, validate
+import logging
+import sys
 
 # get the server to use
 from softwarecenter.distro import get_distro
@@ -27,9 +26,14 @@ distro = get_distro()
 SERVER_ROOT=distro.REVIEWS_SERVER
 
 # patch default_service_root
-from rnrclient_pristine import RatingsAndReviewsAPI
-RatingsAndReviewsAPI.default_service_root = SERVER_ROOT+'/reviews/api/1.0'
-
+try:
+    from rnrclient_pristine import RatingsAndReviewsAPI
+    RatingsAndReviewsAPI.default_service_root = SERVER_ROOT+'/reviews/api/1.0'
+except:
+    logging.error("need python-piston-mini client\n"
+                  "available in natty or from:\n"
+                  "   ppa:software-store-developers/daily-build ")
+    sys.exit(1)
 
 if __name__ == "__main__":
     rnr = RatingsAndReviewsAPI()
