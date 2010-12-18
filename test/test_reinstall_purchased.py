@@ -30,7 +30,9 @@ AVAILABLE_FOR_ME_JSON = """
         "description": "One of the best strategy games you\'ll ever play!",
         "package_name": "hellox",
         "signing_key_id": "1024R/0EB12F05",
-        "series": {"maverick": ["i386"], "lucid": ["i386", "amd64"]}
+        "series": {"natty": ["i386", "amd64"], 
+                   "maverick": ["i386", "amd64"], 
+                   "lucid": ["i386", "amd64"]}
     }
 ]
 """
@@ -48,7 +50,7 @@ class MockAvailableForMeList(list):
         for entry_dict in alist:
             self.append(MockAvailableForMeItem(entry_dict))
 
-class testPurchased(unittest.TestCase):
+class TestPurchased(unittest.TestCase):
     """ tests the store database """
 
     def setUp(self):
@@ -71,8 +73,8 @@ class testPurchased(unittest.TestCase):
         # now create purchased debs xapian index (in memory because
         # we store the repository passwords in here)
         old_db_len = len(db)
-        query = add_from_purchased_but_needs_reinstall_data(self.available_to_me,
-                                                           db, self.cache)
+        query = add_from_purchased_but_needs_reinstall_data(
+            self.available_to_me, db, self.cache)
         # ensure we have a new item (the available for reinstall one)
         self.assertEqual(len(db), old_db_len+1)
         # query
@@ -89,4 +91,5 @@ class testPurchased(unittest.TestCase):
             break # only one match
         
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.DEBUG)
     unittest.main()

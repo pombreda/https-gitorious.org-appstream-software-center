@@ -27,10 +27,11 @@ import xapian
 from gettext import gettext as _
 
 from softwarecenter.enums import *
+from softwarecenter.utils import wait_for_apt_cache_ready
 
 from appview import AppView, AppStore, AppViewFilter
 
-from softwarepane import SoftwarePane, wait_for_apt_cache_ready
+from softwarepane import SoftwarePane
 
 class InstalledPane(SoftwarePane):
     """Widget that represents the installed panel in software-center

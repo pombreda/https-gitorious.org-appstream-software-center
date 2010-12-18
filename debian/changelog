@@ -1,4 +1,23 @@
-software-center (3.1.7) UNRELEASED; urgency=low
+software-center (3.1.8) UNRELEASED; urgency=low
+
+  [ Michael Vogt ]
+  * softwarecenter/backend/restfulclient.py:
+    - honor UBUNTU_SSO_SERVICE
+  * softwarecenter/plugin.py:
+    - ignore plugin init failures
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - add helper to obtain xy position of the appicon in the view
+
+  [ Gary Lasker ]
+  * softwarecenter/view/appview.py:
+    - fix crash in refresh_apps if previous model did
+      not have a filter (LP: #690706)
+  * softwarecenter/models/appstore.py:
+    - enable threaded listviews 
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 15 Dec 2010 11:34:28 -0500
+
+software-center (3.1.7) natty; urgency=low
 
   [ Michael Vogt ]
   * refactor "SoftwarePane.refresh_apps()" code, this ensures
@@ -7,12 +26,37 @@ software-center (3.1.7) UNRELEASED; urgency=low
   * softwarecenter/models/appstore.py:
     - fix search ranking for exact package name matches (thanks to
       seb128)
+    - display exact pkgname matches even if they are a technical
+      item (e.g. nautilus)
+  * softwarecenter/view/appview.py:
+    - fallback to previous (slower) method to obtain the pkgname
+      from xapian if the DB is not yet rebuild (thanks to seb128
+      for reporting this problem)
+  * softwarecenter/apt/apthistory.py, test/test_apthistory.py:
+    - fix apthistory test by allowing noncached operations
+  * softwarecenter/models/appstore.py:
+    - fix potential crash in tests
+  * softwarecenter/db/update.py:
+    - test if the db support spelling suggestions before enabling
+      them to ensure its not crashing for the inmemory DB
   
   [ Matthew McGowan ]
   * merged lp:~mmcg069/software-center/bubbles, this gives us
     pretty bubbles in the viewswitcher
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 10 Dec 2010 18:08:35 +0100
+  [ Gary Lasker ]
+  * softwarecenter/models/appstore.py,
+    softwarecenter/view/catview_gtk.py:
+    - thread listview refreshes to restore UI feedback with
+      recent experimental-fastlist improvements 
+  * test/test_search_per_spec.py:
+    - tweak test for threaded listview refreshes
+  * softwarecenter/view/availablepane.py,
+    softwarecenter/view/channelpane.py,
+    softwarecenter/view/installedpane.py:
+    - cleanup imports for wait_for_apt_cache_ready
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 15 Dec 2010 15:06:38 +0100
 
 software-center (3.1.6) natty; urgency=low
 

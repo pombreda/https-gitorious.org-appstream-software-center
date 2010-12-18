@@ -16,10 +16,10 @@ import unittest
 from softwarecenter.apt.apthistory import AptHistory
 from softwarecenter.utils import ExecutionTime
 
-class testAptHistory(unittest.TestCase):
+class TestAptHistory(unittest.TestCase):
 
     def _get_apt_history(self):
-        history = AptHistory()
+        history = AptHistory(use_cache=False)
         main_loop = glib.main_context_default()
         while main_loop.pending():
            main_loop.iteration()
@@ -50,6 +50,18 @@ class testAptHistory(unittest.TestCase):
         self._timeouts.append(time.time())
         return True
 
+    def _generate_big_history_file(self, new_history):
+        # needs to ensure the date is decreasing, otherwise the rescan
+        # code is too clever and skips it
+        f = open(new_history,"w")
+        date=datetime.date(2009, 8, 2)
+        for i in range(1000):
+            date -= datetime.timedelta(days=i)
+            s="Start-Date: %s 14:00:00\nInstall: 2vcard\nEnd-Date: %s 14:01:00\n\n" % (date, date)
+            f.write(s)
+        f.close()
+        subprocess.call(["gzip", new_history])
+
     def test_apthistory_rescan_big(self):
         """ create big history file and ensure that on rescan the
             events are still processed
@@ -62,15 +74,10 @@ class testAptHistory(unittest.TestCase):
             pass
         history = self._get_apt_history()
         self.assertEqual(len(history.transactions), 186)
-        s = open(os.path.join(self.basedir,"history.log")).read()
-        f = open(new_history,"w")
-        for i in range(100):
-            f.write(s)
-        f.close()
-        subprocess.call(["gzip", new_history])
+        self._generate_big_history_file(new_history)
         timer_id = glib.timeout_add(100, self._glib_timeout)
         with ExecutionTime("rescan %s byte file" % os.path.getsize(new_history+".gz")):
-            history.rescan()
+            history.rescan(use_cache=False)
         glib.source_remove(timer_id)
         # verify rescan
         self.assertTrue(len(history.transactions) > 186)

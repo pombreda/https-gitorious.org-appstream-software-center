@@ -51,7 +51,7 @@ class testXapian(unittest.TestCase):
         self.assertTrue(len(matches) > 5)
         pkgs = set()
         for match in matches:
-            doc = match.get_document()
+            doc = match.document
             pkgs.add(doc.get_value(XAPIAN_VALUE_PKGNAME))
         self.assertTrue("firefox" in pkgs)
 
