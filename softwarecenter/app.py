@@ -134,6 +134,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.backend.connect("channels-changed", self.on_channels_changed)
         # xapian
         pathname = os.path.join(xapian_base_path, "xapian")
+
         try:
             self.db = StoreDatabase(pathname, self.cache)
             self.db.open()
@@ -851,25 +852,12 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
     def _on_database_rebuilding_handler(self, is_rebuilding):
         self._logger.debug("_on_database_rebuilding_handler %s" % is_rebuilding)
         self._database_is_rebuilding = is_rebuilding
-        self.window_rebuilding.set_transient_for(self.window_main)
 
-        # set a11y text
-        try:
-            text = self.window_rebuilding.get_children()[0]
-            text.set_property("can-focus", True)
-            text.a11y = text.get_accessible()
-            text.a11y.set_name(text.get_children()[0].get_text())
-        except IndexError:
-            pass
-
-        self.window_main.set_sensitive(not is_rebuilding)
-        # show dialog about the rebuilding status
         if is_rebuilding:
-            self.window_rebuilding.show()
+            pass
         else:
             # we need to reopen when the database finished updating
             self.db.reopen()
-            self.window_rebuilding.hide()
 
     def setup_database_rebuilding_listener(self):
         """
