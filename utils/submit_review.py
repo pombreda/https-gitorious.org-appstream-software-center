@@ -256,11 +256,26 @@ class Worker(threading.Thread):
 class BaseApp(SimpleGtkbuilderApp):
 
     def __init__(self, datadir, uifile):
-        SimpleGtkbuilderApp.__init__(self, os.path.join(datadir,"ui",uifile), "software-center")
+        SimpleGtkbuilderApp.__init__(
+            self, os.path.join(datadir,"ui",uifile), "software-center")
         self.token = None
         self.display_name = None
         self._login_successful = False
+        # status spinner
+        self.status_spinner = gtk.Spinner()
+        self.login_hbox.pack_start(self.status_spinner, False)
+        self.login_hbox.reorder_child(self.status_spinner, 0)
+        self.status_spinner.show()
         glib.timeout_add(500, self._glib_whoami_done)
+
+    def run(self):
+        # initially display a 'Connecting...' page
+        self.main_notebook.set_current_page(0)
+        self.login_status_label.set_markup('<big>%s</big>' % _("Signing in..."))
+        self.status_spinner.start()
+        self.dialog_main.show()
+        # now run the loop
+        self.login()
 
     def quit(self):
         sys.exit(0)
@@ -358,7 +373,6 @@ class SubmitReviewsApp(BaseApp):
         # additional icons come from app-install-data
         self.icons = gtk.icon_theme_get_default()
         self.icons.append_search_path("/usr/share/app-install/icons/")
-        self.dialog_main = self.dialog_review_app
         self.dialog_main.connect("destroy", self.on_button_cancel_clicked)
         self._add_spellcheck_to_textview(self.textview_review)
 
@@ -375,19 +389,13 @@ class SubmitReviewsApp(BaseApp):
         self.review_summary_vbox.pack_start(self.star_caption, False, False)
         self.review_summary_vbox.reorder_child(self.star_caption, 1)
 
-        # status
-        self.status_spinner = gtk.Spinner()
-        self.review_login_hbox.pack_start(self.status_spinner, False)
-        self.review_login_hbox.reorder_child(self.status_spinner, 0)
-        self.status_spinner.show()
-
         # data
         self.app = app
         self.version = version
         self.iconname = iconname
         
         # title
-        self.dialog_review_app.set_title(_("Review %s" % self.app.name))
+        self.dialog_main.set_title(_("Review %s" % self.app.name))
 
         self.review_summary_entry.connect('changed', self._on_mandatory_fields_changed)
         self.star_rating.connect('changed', self._on_mandatory_fields_changed)
@@ -396,13 +404,10 @@ class SubmitReviewsApp(BaseApp):
         if parent_xid:
             win = gtk.gdk.window_foreign_new(int(parent_xid))
             if win:
-                self.dialog_review_app.realize()
-                self.dialog_review_app.window.set_transient_for(win)
+                self.dialog_main.realize()
+                self.dialog_main.window.set_transient_for(win)
 
-        #self.dialog_review_app.set_position(gtk.WIN_POS_MOUSE)
-        # set pw dialog transient for main window
-        #self.dialog_review_login.set_transient_for(self.dialog_review_app)
-        #self.dialog_review_login.set_modal(True)
+        self.dialog_main.set_position(gtk.WIN_POS_MOUSE)
 
     def _setup_details(self, widget, app, iconname, version, display_name):
         # icon shazam
@@ -461,17 +466,8 @@ class SubmitReviewsApp(BaseApp):
         review.package_version = self.version
         self.api.submit_review(review)
 
-    def run(self):
-        # initially display a 'Connecting...' page
-        self.review_main_notebook.set_current_page(0)
-        self.review_login_status_label.set_markup('<big>%s</big>' % _("Signing in..."))
-        self.status_spinner.start()
-        self.dialog_review_app.show()
-        # now run the loop
-        self.login()
-
     def login_successful(self, display_name):
-        self.review_main_notebook.set_current_page(1)
+        self.main_notebook.set_current_page(1)
         self._setup_details(self.dialog_main, self.app, self.iconname, self.version, display_name)
         return
 
@@ -485,14 +481,9 @@ class ReportReviewApp(BaseApp):
 
     def __init__(self, review_id, parent_xid, datadir):
         BaseApp.__init__(self, datadir, "report_abuse.ui")
-        self.dialog_main = self.dialog_report_app
         self.dialog_main.connect("destroy", self.on_button_cancel_clicked)
 
         # status
-        self.status_spinner = gtk.Spinner()
-        self.login_hbox.pack_start(self.status_spinner, False)
-        self.login_hbox.reorder_child(self.status_spinner, 0)
-        self.status_spinner.show()
         self._add_spellcheck_to_textview(self.textview_report)
 
         ## make button sensitive when textview has content
@@ -503,18 +494,16 @@ class ReportReviewApp(BaseApp):
         self.review_id = review_id
 
         # title
-        self.dialog_report_app.set_title(_("Report an infringment"))
+        self.dialog_main.set_title(_("Report an infringment"))
 
         # parent xid
         if parent_xid:
             win = gtk.gdk.window_foreign_new(int(parent_xid))
             if win:
-                self.dialog_report_app.realize()
-                self.dialog_report_app.window.set_transient_for(win)
-        #~ self.dialog_report_app.set_position(gtk.WIN_POS_MOUSE)
-        #~ # set pw dialog transient for main window
-        #self.dialog_review_login.set_transient_for(self.dialog_report_app)
-        #self.dialog_review_login.set_modal(True)
+                self.dialog_main.realize()
+                self.dialog_main.window.set_transient_for(win)
+        # mousepos
+        self.dialog_report_app.set_position(gtk.WIN_POS_MOUSE)
         # simple APIs ftw!
         self.combobox_report_summary = gtk.combo_box_new_text()
         self.report_body_vbox.pack_start(self.combobox_report_summary, False)
@@ -563,15 +552,6 @@ class ReportReviewApp(BaseApp):
         self.api.shutdown()
         self.quit()
         
-    def run(self):
-        # show main dialog insensitive until we are logged in
-        self.login_status_label.set_text(_("Signing In..."))
-        self.main_notebook.set_current_page(0)
-        self.status_spinner.start()
-        self.dialog_main.show()
-        # start the async loop
-        self.login()
-
     def login_successful(self, display_name):
         self.main_notebook.set_current_page(1)
         #self.label_reporter.set_text(display_name)

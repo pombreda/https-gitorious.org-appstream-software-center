@@ -2,7 +2,7 @@
 <interface>
   <requires lib="gtk+" version="2.16"/>
   <!-- interface-naming-policy project-wide -->
-  <object class="GtkDialog" id="dialog_report_app">
+  <object class="GtkDialog" id="dialog_main">
     <property name="width_request">400</property>
     <property name="height_request">500</property>
     <property name="border_width">5</property>
