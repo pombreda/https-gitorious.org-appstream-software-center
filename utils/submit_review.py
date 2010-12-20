@@ -317,20 +317,21 @@ class BaseApp(SimpleGtkbuilderApp):
 
     def _create_gratings_api(self):
         self.api = GRatingsAndReviews(self.token)
-        self.api.connect("transmit-start", self._on_transmit_start)
-        self.api.connect("transmit-success", self._on_transmit_success)
-        self.api.connect("transmit-failure", self._on_transmit_failure)
+        self.api.connect("transmit-start", self.on_transmit_start)
+        self.api.connect("transmit-success", self.on_transmit_success)
+        self.api.connect("transmit-failure", self.on_transmit_failure)
 
-    def _on_transmit_start(self, api, trans):
+    def on_transmit_start(self, api, trans):
         self.action_area.set_sensitive(False)
+        # FIXME: add little spinner here
         self.label_transmit_status.set_text(_("submitting review..."))
 
-    def _on_transmit_success(self, api, trans):
+    def on_transmit_success(self, api, trans):
         self.api.shutdown()
         self.quit()
 
-    def _on_transmit_failure(self, api, trans, error):
-        self.label_transmit_status.set_text(error)
+    def on_transmit_failure(self, api, trans, error):
+        # FIXME: show little error symbol here
         self.label_transmit_status.set_text(error)
         self.action_area.set_sensitive(True)
 
@@ -503,7 +504,7 @@ class ReportReviewApp(BaseApp):
                 self.dialog_main.realize()
                 self.dialog_main.window.set_transient_for(win)
         # mousepos
-        self.dialog_report_app.set_position(gtk.WIN_POS_MOUSE)
+        self.dialog_main.set_position(gtk.WIN_POS_MOUSE)
         # simple APIs ftw!
         self.combobox_report_summary = gtk.combo_box_new_text()
         self.report_body_vbox.pack_start(self.combobox_report_summary, False)
