@@ -232,7 +232,7 @@ class Worker(threading.Thread):
             try:
                 self.rnrclient.submit_review(review=piston_review)
                 self._transmit_state = TRANSMIT_STATE_DONE
-            except:
+            except Exception as e:
                 logging.exception("submit_review")
                 self._write_exception_html_log_if_needed(e)
                 self._transmit_state = TRANSMIT_STATE_ERROR
