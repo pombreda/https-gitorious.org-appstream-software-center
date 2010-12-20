@@ -113,7 +113,9 @@ class AppDetailsViewBase(object):
                "--pkgname", self.app.pkgname,
                "--iconname", self.appdetails.icon,
                "--parent-xid", "%s" % get_parent_xid(self),
-               "--version", version]
+               "--version", version,
+               "--datadir", self.datadir,
+               ]
         if self.app.appname:
             cmd += ["--appname", self.app.appname]
         p = subprocess.Popen(cmd)
@@ -122,7 +124,8 @@ class AppDetailsViewBase(object):
     def _review_report_abuse(self, review_id):
         cmd = [os.path.join(self.datadir, REPORT_REVIEW_APP), 
                "--review-id", review_id,
-               "--parent-xid", "%s" % get_parent_xid(self)
+               "--parent-xid", "%s" % get_parent_xid(self),
+               "--datadir", self.datadir,
               ]
         p = subprocess.Popen(cmd)
         glib.child_watch_add(p.pid, self.on_submit_finished)
