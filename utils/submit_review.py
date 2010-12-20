@@ -255,8 +255,8 @@ class Worker(threading.Thread):
 
 class BaseApp(SimpleGtkbuilderApp):
 
-    def __init__(self, datadir):
-        SimpleGtkbuilderApp.__init__(self, datadir+"/ui/reviews.ui", "software-center")
+    def __init__(self, datadir, uifile):
+        SimpleGtkbuilderApp.__init__(self, os.path.join(datadir,"ui",uifile), "software-center")
         self.token = None
         self.display_name = None
         self._login_successful = False
@@ -307,9 +307,8 @@ class BaseApp(SimpleGtkbuilderApp):
         self.api.connect("transmit-failure", self._on_transmit_failure)
 
     def _on_transmit_start(self, api, trans):
-        self.review_action_area.set_sensitive(False)
+        self.action_area.set_sensitive(False)
         self.label_transmit_status.set_text(_("submitting review..."))
-        self.label_report_transmit_status.set_text(_("submitting review..."))
 
     def _on_transmit_success(self, api, trans):
         self.api.shutdown()
@@ -317,8 +316,8 @@ class BaseApp(SimpleGtkbuilderApp):
 
     def _on_transmit_failure(self, api, trans, error):
         self.label_transmit_status.set_text(error)
-        self.label_report_transmit_status.set_text(error)
-        self.review_action_area.set_sensitive(True)
+        self.label_transmit_status.set_text(error)
+        self.action_area.set_sensitive(True)
 
     def _glib_whoami_done(self):
         if self._login_successful:
@@ -354,7 +353,7 @@ class SubmitReviewsApp(BaseApp):
     APP_ICON_SIZE = 48
 
     def __init__(self, app, version, iconname, parent_xid, datadir):
-        BaseApp.__init__(self, datadir)
+        BaseApp.__init__(self, datadir, "submit_review.ui")
 
         # additional icons come from app-install-data
         self.icons = gtk.icon_theme_get_default()
@@ -485,14 +484,14 @@ class ReportReviewApp(BaseApp):
     APP_ICON_SIZE = 48
 
     def __init__(self, review_id, parent_xid, datadir):
-        BaseApp.__init__(self, datadir)
+        BaseApp.__init__(self, datadir, "report_abuse.ui")
         self.dialog_main = self.dialog_report_app
         self.dialog_main.connect("destroy", self.on_button_cancel_clicked)
 
         # status
         self.status_spinner = gtk.Spinner()
-        self.report_login_hbox.pack_start(self.status_spinner, False)
-        self.report_login_hbox.reorder_child(self.status_spinner, 0)
+        self.login_hbox.pack_start(self.status_spinner, False)
+        self.login_hbox.reorder_child(self.status_spinner, 0)
         self.status_spinner.show()
         self._add_spellcheck_to_textview(self.textview_report)
 
@@ -536,19 +535,6 @@ class ReportReviewApp(BaseApp):
             self.report_post.set_sensitive(False)
 
     def _setup_details(self, widget, display_name):
-        # icon shazam
-        #~ if iconname:
-            #~ icon = None
-            #~ try:
-                #~ icon = self.icons.load_icon(iconname, self.APP_ICON_SIZE, 0)
-            #~ except:
-                #~ pass
-            #~ if icon:
-                #~ self.review_appicon.set_from_pixbuf(icon)
-            #~ else:
-                #~ # set a fallback icon here
-                #~ pass
-
         # dark color
         dark = widget.style.dark[0].to_string()
 
@@ -579,15 +565,15 @@ class ReportReviewApp(BaseApp):
         
     def run(self):
         # show main dialog insensitive until we are logged in
-        self.report_login_status_label.set_text(_("Signing In..."))
-        self.report_main_notebook.set_current_page(0)
+        self.login_status_label.set_text(_("Signing In..."))
+        self.main_notebook.set_current_page(0)
         self.status_spinner.start()
         self.dialog_main.show()
         # start the async loop
         self.login()
 
     def login_successful(self, display_name):
-        self.report_main_notebook.set_current_page(1)
+        self.main_notebook.set_current_page(1)
         #self.label_reporter.set_text(display_name)
         self._setup_details(self.dialog_main, display_name)
     
