@@ -31,6 +31,7 @@ import logging
 import multiprocessing
 import os
 import sys
+import tempfile
 import time
 import threading
 import urllib
@@ -43,8 +44,7 @@ from softwarecenter.backend.restfulclient import RestfulClientWorker, UBUNTU_SSO
 from lazr.restfulclient.authorize.oauth import OAuthAuthorizer
 from oauth.oauth import OAuthToken
 
-
-import piston_mini_client.auth
+import piston_mini_client
 
 from softwarecenter.paths import *
 from softwarecenter.enums import MISSING_APP_ICON
@@ -181,9 +181,6 @@ class Worker(threading.Thread):
 
     def _submit_reports_if_pending(self):
         """ the actual report function """
-        self._submit_report_PISTON()
-
-    def _submit_report_PISTON(self):
         while not self.pending_reports.empty():
             logging.debug("POST report")
             self._transmit_state = TRANSMIT_STATE_INPROGRESS
@@ -193,11 +190,19 @@ class Worker(threading.Thread):
                                             reason=summary,
                                             text=text)
                 self._transmit_state = TRANSMIT_STATE_DONE
-            except:
+            except Exception as e:
                 logging.exception("report_abuse failed")
+                self._write_exception_html_log_if_needed(e)
                 self._transmit_state = TRANSMIT_STATE_ERROR
                 self._transmit_error_str = _("Failed to submit report")
             self.pending_reports.task_done()
+
+    def _write_exception_html_log_if_needed(self, e):
+        # write out a "oops.html" 
+        if type(e) is piston_mini_client.APIError:
+            f=tempfile.NamedTemporaryFile(
+                prefix="sc_submit_oops_", suffix=".html", delete=False)
+            f.write(str(e))
 
     # reviews
     def queue_review(self, review):
@@ -207,10 +212,6 @@ class Worker(threading.Thread):
 
     def _submit_reviews_if_pending(self):
         """ the actual submit function """
-        self._submit_reviews_PISTON()
-            
-    def _submit_reviews_PISTON(self):
-        """ use piston to submit """
         while not self.pending_reviews.empty():
             logging.debug("_submit_review")
             self._transmit_state = TRANSMIT_STATE_INPROGRESS
@@ -233,6 +234,7 @@ class Worker(threading.Thread):
                 self._transmit_state = TRANSMIT_STATE_DONE
             except:
                 logging.exception("submit_review")
+                self._write_exception_html_log_if_needed(e)
                 self._transmit_state = TRANSMIT_STATE_ERROR
                 self._transmit_error_str = _("Failed to submit review")
             self._transmit_state
