@@ -191,17 +191,30 @@ class ReviewLoaderThreadedRNRClient(ReviewLoader):
             review_stats = self._new_review_stats.get()
             self.REVIEW_STATS_CACHE = review_stats
             callback(review_stats)
+            self.save_review_stats_cache_file()
             return False
         return True
 
     def _refresh_review_stats_threaded(self):
         """ process that actually fetches the statistics """
         try:
-            piston_review_stats = self.rnrclient.review_stats()
+            mtime = os.path.getmtime(self.REVIEW_STATS_CACHE_FILE)
+            days_delta = int((time.time() - mtime) // (24*60*60))
+            days_delta += 1
+        except OSError:
+            days_delta = 0
+        logging.info("refresh with days_delta: %s" % days_delta)
+        try:
+            # depending on the time delta, use a different call
+            if days_delta:
+                piston_review_stats = self.rnrclient.review_stats(days_delta)
+            else:
+                piston_review_stats = self.rnrclient.review_stats()
         except:
             logging.exception("refresh_review_stats")
+            return
         # convert to the format that s-c uses
-        review_stats = {}
+        review_stats = self.REVIEW_STATS_CACHE
         for r in piston_review_stats:
             s = ReviewStats(Application(r.app_name, r.package_name))
             s.ratings_average = float(r.ratings_average)
