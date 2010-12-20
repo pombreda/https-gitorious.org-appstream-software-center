@@ -202,7 +202,12 @@ class Worker(threading.Thread):
         if type(e) is piston_mini_client.APIError:
             f=tempfile.NamedTemporaryFile(
                 prefix="sc_submit_oops_", suffix=".html", delete=False)
-            f.write(str(e))
+            # new piston-mini-client has only the body of the returned data
+            # older just pushes it into a big string
+            if hasattr(e, "body"):
+                f.write(e.body)
+            else:
+                f.write(str(e))
 
     # reviews
     def queue_review(self, review):

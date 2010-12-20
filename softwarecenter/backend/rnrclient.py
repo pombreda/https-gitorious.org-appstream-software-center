@@ -20,6 +20,10 @@
 import logging
 import sys
 
+# useful for debugging
+#import httplib2
+#httplib2.debuglevel = 1
+
 # get the server to use
 from softwarecenter.distro import get_distro
 distro = get_distro()
