@@ -129,7 +129,8 @@ class ReviewLoaderThreadedRNRClient(ReviewLoader):
 
     def __init__(self, distro=None):
         super(ReviewLoaderThreadedRNRClient, self).__init__(distro)
-        self.rnrclient = RatingsAndReviewsAPI()
+        cachedir = os.path.join(SOFTWARE_CENTER_CACHE_DIR, "rnrclient")
+        self.rnrclient = RatingsAndReviewsAPI(cachedir=cachedir)
         self._reviews = {}
         # this is a dict of queue objects
         self._new_reviews = {}
