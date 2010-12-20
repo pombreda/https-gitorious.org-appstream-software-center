@@ -41,11 +41,10 @@ if __name__ == "__main__":
     for stat in rnr.review_stats():
         print "stats for (pkg='%s', app: '%s'):  avg=%s total=%s" % (
             stat.package_name, stat.app_name, stat.ratings_average, stat.ratings_total)
-    reviews= rnr.get_reviews(language="en",origin="ubuntu",distroseries="natty",
+    reviews= rnr.get_reviews(language="en",origin="ubuntu",distroseries="maverick",
                              packagename="unace", appname="ACE")
-    print reviews, reviews[0], dir(reviews[0])
-    #print rnr.get_reviews(language="en",origin="ubuntu",distroseries="natty",
-    #                      packagename="aclock.app")
-    # FIXME: not working yet
+    print reviews
+    print rnr.get_reviews(language="en",origin="ubuntu",distroseries="natty",
+                          packagename="aclock.app")
     print rnr.get_reviews(language="en", origin="ubuntu", distroseries="natty",
                           packagename="unace", appname="ACE")
