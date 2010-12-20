@@ -271,6 +271,7 @@ class SoftwarePane(gtk.VBox, BasePane):
     def on_purchase_succeeded(self, widget):
         # switch to the details page to display the transaction is in progress
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
+        self.navigation_bar.remove_id(NAV_BUTTON_ID_PURCHASE)
         
     def on_purchase_failed(self, widget):
         # return to the the appdetails view via the button to reset it

@@ -82,17 +82,26 @@ class SCBuySomething(unittest.TestCase):
         self.assertFirstPkgInModel(model, "hellox")
         treeview.row_activated(model.get_path(model.get_iter_root()),
                                treeview.get_column(0))
-        self._p()
         self.assertEqual(
             self.app.available_pane.app_details_view.action_bar.button.get_label(),
             u"Buy\u2026")
-        self._p()
-        # close the purchase dialog again after 2s
-        glib.timeout_add_seconds(2, lambda: self.app.available_pane.app_details_view.purchase_dialog.response(gtk.RESPONSE_OK))
-        # now simulate a click, the UI will block until the glib timeout 
-        # from the previous line hits
+        # click the "Buy" button to initiate a purchase
         self.app.available_pane.app_details_view.action_bar.button.clicked()
+        # check that the purchase pane is displayed
+        self.assertEqual(str(self.app.available_pane.navigation_bar.get_parts()),
+                         "[Get Software, Search Results, Hello X Adventure, Buy]")
         self._p()
+        time.sleep(3)
+        self._p()
+        # simulate a successful purchase in the UI by firing a purchase-succeeded
+        self.app.available_pane.purchase_view.emit("purchase-succeeded")
+        self._p()
+        time.sleep(3)
+        self._p()
+        # check that the purchase pane is removed
+        self.assertEqual(str(self.app.available_pane.navigation_bar.get_parts()),
+                         "[Get Software, Search Results, Hello X Adventure]")
+        
         # done with the simulated purchase process, now pretend we install
         # something
         deb_line = "deb https://mvo:nopassyet@private-ppa.launchpad.net/mvo/private-test/ubuntu maverick main"
