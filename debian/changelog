@@ -18,6 +18,9 @@ software-center (3.1.8) UNRELEASED; urgency=low
     - implement inline purchase flow (LP: #618817, LP: #625418) 
 
   [ Kiwinote ]
+  * softwarecenter/view/appview.py:
+    - fix crash when switching from a specific channel in the available pane
+      to the same channel in the installed pane
   * softwarecenter/view/historypane.py:
     - use named arguments for history entries - thanks to dpm (LP: #690283)
   * softwarecenter/view/pendingview.py:
