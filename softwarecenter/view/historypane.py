@@ -306,12 +306,13 @@ class HistoryPane(gtk.VBox, BasePane):
         if isinstance(when, datetime.datetime):
             action = store.get_value(iter, self.COL_ACTION)
             pkg = store.get_value(iter, self.COL_PKG)
+            subs = {'pkgname': pkg, 'time': when.time().strftime('%X')}
             if action == self.INSTALLED:
-                text = _('%s installed %s') % (pkg, when.time().strftime('%X'))
+                text = _('%(pkgname)s installed %(time)s') % subs
             elif action == self.REMOVED:
-                text = _('%s removed %s') % (pkg, when.time().strftime('%X'))
+                text = _('%(pkgname)s removed %(time)s') % subs
             elif action == self.UPGRADED:
-                text = _('%s updated %s') % (pkg, when.time().strftime('%X'))
+                text = _('%(pkgname)s updated %(time)s') % subs
         elif isinstance(when, datetime.date):
             today = datetime.date.today()
             monday = today - datetime.timedelta(days=today.weekday())

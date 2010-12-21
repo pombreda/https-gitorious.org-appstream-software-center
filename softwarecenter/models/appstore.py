@@ -266,12 +266,16 @@ class AppStore(gtk.GenericTreeModel):
                     XAPIAN_VALUE_PKGNAME, False)
                     
             # set limit
-            if self.limit == 0:
-                matches = enquire.get_mset(0, len(self.db), None, xfilter)
-            else:
-                matches = enquire.get_mset(0, self.limit, None, xfilter)
-            self._logger.debug("found ~%i matches" % matches.get_matches_estimated())
-            
+            try:
+                if self.limit == 0:
+                    matches = enquire.get_mset(0, len(self.db), None, xfilter)
+                else:
+                    matches = enquire.get_mset(0, self.limit, None, xfilter)
+                self._logger.debug("found ~%i matches" % matches.get_matches_estimated())
+            except:
+                logging.exception("get_mset")
+                matches = []
+                
             # promote exact matches to a "app", this will make the 
             # show/hide technical items work correctly
             if exact_pkgname_query and len(matches) == 1:

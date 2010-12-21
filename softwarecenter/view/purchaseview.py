@@ -31,6 +31,8 @@ from gettext import gettext as _
 
 from softwarecenter.backend import get_install_backend
 
+LOG = logging.getLogger(__name__)
+
 class ScrolledWebkitWindow(gtk.ScrolledWindow):
 
     def __init__(self):
@@ -98,18 +100,23 @@ h1 {
 
     def __init__(self):
         gtk.VBox.__init__(self)
-        self.wk = ScrolledWebkitWindow()
-        self.wk.webkit.connect("create-web-view", 
-                               self._on_create_webview_request)
-        # a possible way to do IPC (script or title change)
-        self.wk.webkit.connect("script-alert", self._on_script_alert)
-        self.wk.webkit.connect("title-changed", self._on_title_changed)
+        self.wk = None
+
+    def init_view(self):
+        if self.wk is None:
+            self.wk = ScrolledWebkitWindow()
+            self.wk.webkit.connect("create-web-view", 
+                                   self._on_create_webview_request)
+            # a possible way to do IPC (script or title change)
+            self.wk.webkit.connect("script-alert", self._on_script_alert)
+            self.wk.webkit.connect("title-changed", self._on_title_changed)
             
     def initiate_purchase(self, app, iconname, url=None, html=None):
         """
         initiates the purchase workflow inside the embedded webkit window
         for the item specified       
         """
+        self.init_view()
         self.app = app
         self.iconname = iconname
         self.wk.webkit.load_html_string(self.LOADING_HTML, "file:///")
@@ -128,9 +135,16 @@ h1 {
             glib.timeout_add_seconds(1, _generate_events, self)
         
     def _on_create_webview_request(self, view, frame, parent=None):
-        logging.debug("_on_create_webview_request")
+        LOG.debug("_on_create_webview_request")
+        popup = gtk.Dialog()
+        popup.set_size_request(750,400)
+        popup.set_title("")
+        popup.set_modal(True)
+        popup.set_transient_for(None)
         wk = ScrolledWebkitWindow()
         wk.show()
+        popup.vbox.pack_start(wk)
+        popup.show()
         return wk.webkit
 
     def _on_script_alert(self, view, frame, message):
@@ -145,10 +159,11 @@ h1 {
 
     def _process_json(self, json_string):
         try:
+            LOG.debug("server returned: '%s'" % json_string)
             res = simplejson.loads(json_string)
             #print res
         except:
-            logging.debug("error processing json: '%s'" % json_string)
+            LOG.debug("error processing json: '%s'" % json_string)
             return
         if res["successful"] == False:
             if res.get("user_canceled", False):
@@ -156,14 +171,10 @@ h1 {
                 return
             # this is what the agent implements
             elif "failures" in res:
-                logging.error("the server returned a error: '%s'" % res["failures"])
+                LOG.error("the server returned a error: '%s'" % res["failures"])
             # show a generic error, the "failures" string we get from the
             # server is way too technical to show, but we do log it
             self.emit("purchase-failed")
-#            dialogs.error(self,
-#                          _("Failure in the purchase process."),
-#                          _("Sorry, something went wrong. Your payment "
-#                            "has been cancelled."))
             return
         else:
             self.emit("purchase-succeeded")

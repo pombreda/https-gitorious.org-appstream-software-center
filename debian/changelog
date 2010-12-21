@@ -1,4 +1,11 @@
-software-center (3.1.8) UNRELEASED; urgency=low
+software-center (3.1.9) UNRELEASED; urgency=low
+
+  * softwarecenter/view/purchaseview.py:
+    - restore terms of service popup window
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 21 Dec 2010 10:32:33 -0500
+
+software-center (3.1.8) natty; urgency=low
 
   [ Michael Vogt ]
   * softwarecenter/backend/restfulclient.py:
@@ -17,7 +24,23 @@ software-center (3.1.8) UNRELEASED; urgency=low
   * <many>:
     - implement inline purchase flow (LP: #618817, LP: #625418) 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 16 Dec 2010 20:41:09 -0500
+  [ Kiwinote ]
+  * softwarecenter/view/appview.py:
+    - fix crash when switching from a specific channel in the available pane
+      to the same channel in the installed pane
+  * softwarecenter/view/historypane.py:
+    - use named arguments for history entries - thanks to dpm (LP: #690283)
+  * softwarecenter/view/pendingview.py:
+    - use a scrollbar when we have many transactions (LP: #642299)
+    - display progress for transactions
+  * po/POTFILES.in:
+    - mark softwarecenter/models/viewswitcherlist.py for translation
+  * data/ui/dialogs.py:
+    - don't mark " " strings as translatable (LP: #691082)
+  * debian/control:
+    - use correct Vcs-Bzr url (LP: #690906)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 21 Dec 2010 16:09:37 +0100
 
 software-center (3.1.7) natty; urgency=low
 
