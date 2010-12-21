@@ -133,7 +133,6 @@ class TestGUI(unittest.TestCase):
         self._run_search("aptz")
         self.assertTrue(self.app.available_pane.label_app_list_header.flags() & gtk.VISIBLE)
         
-        
 
     def test_install_the_4g8_package(self):
         self._reset_ui()
@@ -193,6 +192,8 @@ class TestGUI(unittest.TestCase):
             
     def _reset_ui(self):
         self.app.available_pane.navigation_bar.remove_all(animate=False)
+        self._p()
+        time.sleep(0.5)
         self._p()
 
     def assertFirstPkgInModel(self, model, needle):
