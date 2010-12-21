@@ -361,11 +361,15 @@ class ViewSwitcher(gtk.TreeView):
             expanded = self.row_expanded(model.get_path(model.installed_iter))
         return expanded
         
-    def select_get_software_node(self):
-        """ select the top level Get Software node """
+    def select_available_node(self):
+        """ select the top level available (Get Software) node """
         model = self.get_model()
         if model is not None:
-            self.set_cursor(model.get_path(model.available_iter))
+            (current_path, column) = self.get_cursor()
+            available_node_path = model.get_path(model.available_iter)
+            if current_path != available_node_path:
+                print "SELECT available node"
+                self.set_cursor(model.get_path(model.available_iter))
         
     def select_channel_node(self, channel_name, installed_only):
         """ select the specified channel node """

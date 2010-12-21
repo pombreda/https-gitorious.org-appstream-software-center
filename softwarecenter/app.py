@@ -487,7 +487,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                                                              self.cache)
         
         # show a busy cursor here ---
-        self.view_switcher.select_get_software_node()
+        self.view_switcher.select_available_node()
         self.available_pane.on_previous_purchases_activated(available_for_me_query) 
         
     def on_application_request_action(self, widget, app, addons_install, addons_remove, action):
