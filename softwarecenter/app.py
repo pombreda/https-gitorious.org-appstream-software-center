@@ -185,7 +185,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         # for use when viewing previous purchases
         self.scagent = None
         self.sso = None
-        self.previous_purchases_channel = None
  
         # hackery, paint viewport borders around notebook
         self.notebook_view.set_border_width(1)
@@ -483,20 +482,14 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
     def _available_for_me_result(self, scagent, result_list):
         #print "available_for_me_result", result_list
         from db.update import add_from_purchased_but_needs_reinstall_data
-        channel_display_name = _("Previous Purchases")
-        # first check if the Previous Purchases channel is already created
-        if not self.previous_purchases_channel:
-            query = add_from_purchased_but_needs_reinstall_data(result_list, 
-                                                           self.db,
-                                                           self.cache)
-            channel_manager = self.view_switcher.get_model().channel_manager
-            self.previous_purchases_channel = channel_manager.add_channel(channel_display_name, 
-                                                                          icon=None,
-                                                                          query=query)
-        if not self.view_switcher.is_available_node_expanded():
-            self.view_switcher.expand_available_node()
-        self.view_switcher.select_channel_node(channel_display_name, False)
-            
+        available_for_me_query = add_from_purchased_but_needs_reinstall_data(result_list, 
+                                                                             self.db,
+                                                                             self.cache)
+        
+        # show a busy cursor here ---
+        
+        self.available_pane.on_previous_purchases_activated(available_for_me_query) 
+        
     def on_application_request_action(self, widget, app, addons_install, addons_remove, action):
         """callback when an app action is requested from the appview,
            if action is "remove", must check if other dependencies have to be

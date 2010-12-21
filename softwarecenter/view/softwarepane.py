@@ -447,7 +447,8 @@ class SoftwarePane(gtk.VBox, BasePane):
         LOG.debug("refresh_apps")
 
         # FIXME: make this available for all panes
-        query = self.get_query()
+        if query is None:
+            query = self.get_query()
         old_model = self.app_view.get_model()
         # exactly the same model, nothing to do
         if (old_model and 
