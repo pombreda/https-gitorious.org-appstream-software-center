@@ -127,7 +127,6 @@ class SoftwarePane(gtk.VBox, BasePane):
         self.cache = cache
         self.db = db
         self.distro = distro
-        self.db.connect("reopen", self.on_db_reopen)
         self.icons = icons
         self.datadir = datadir
         self.show_ratings = show_ratings
@@ -222,6 +221,9 @@ class SoftwarePane(gtk.VBox, BasePane):
         
         # app-list
         self.connect("app-list-changed", self.on_app_list_changed)
+        
+        # db reopen
+        self.db.connect("reopen", self.on_db_reopen)
 
         self.pack_start(self.spinner_notebook)
         # a bar at the bottom (hidden by default) for contextual actions
