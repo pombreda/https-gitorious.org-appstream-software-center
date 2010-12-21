@@ -368,7 +368,6 @@ class ViewSwitcher(gtk.TreeView):
             (current_path, column) = self.get_cursor()
             available_node_path = model.get_path(model.available_iter)
             if current_path != available_node_path:
-                print "SELECT available node"
                 self.set_cursor(model.get_path(model.available_iter))
         
     def select_channel_node(self, channel_name, installed_only):
