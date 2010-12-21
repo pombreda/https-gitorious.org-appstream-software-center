@@ -64,9 +64,10 @@ class testAppStore(unittest.TestCase):
         db = xapian.Database("/var/lib/apt-xapian-index/index")
         query = xapian.Query("")
         enquire = xapian.Enquire(db)
-        enquire.set_query(query)
+        # deduplicate (kill off) pkgs with desktop files
+        enquire.set_query(xapian.Query(xapian.Query.OP_AND_NOT, 
+                                       query, xapian.Query("XD")))
         valueno = self.db._axi_values["catalogedtime"]
-        
         sorter = xapian.MultiValueKeyMaker()
         # second arg is forward-sort
         sorter.add_value(int(valueno), False)
