@@ -135,9 +135,16 @@ h1 {
             glib.timeout_add_seconds(1, _generate_events, self)
         
     def _on_create_webview_request(self, view, frame, parent=None):
-        LOG.debug("_on_create_webview_request")
+        logging.debug("_on_create_webview_request")
+        popup = gtk.Dialog()
+        popup.set_size_request(750,400)
+        popup.set_title("")
+        popup.set_modal(True)
+        popup.set_transient_for(None)
         wk = ScrolledWebkitWindow()
         wk.show()
+        popup.vbox.pack_start(wk)
+        popup.show()
         return wk.webkit
 
     def _on_script_alert(self, view, frame, message):
