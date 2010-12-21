@@ -1,4 +1,4 @@
-software-center (3.1.8) UNRELEASED; urgency=low
+software-center (3.1.8) natty; urgency=low
 
   [ Michael Vogt ]
   * softwarecenter/backend/restfulclient.py:
@@ -33,7 +33,7 @@ software-center (3.1.8) UNRELEASED; urgency=low
   * debian/control:
     - use correct Vcs-Bzr url (LP: #690906)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 15 Dec 2010 11:34:28 -0500
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 21 Dec 2010 16:09:37 +0100
 
 software-center (3.1.7) natty; urgency=low
 
