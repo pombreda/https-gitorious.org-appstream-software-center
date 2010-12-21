@@ -1,3 +1,10 @@
+software-center (3.1.9) UNRELEASED; urgency=low
+
+  * softwarecenter/view/purchaseview.py:
+    - restore terms of service popup window
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 21 Dec 2010 10:32:33 -0500
+
 software-center (3.1.8) natty; urgency=low
 
   [ Michael Vogt ]
