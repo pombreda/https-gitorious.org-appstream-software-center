@@ -485,9 +485,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         available_for_me_query = add_from_purchased_but_needs_reinstall_data(result_list, 
                                                                              self.db,
                                                                              self.cache)
-        
-        # show a busy cursor here ---
-        self.view_switcher.select_available_node()
         self.available_pane.on_previous_purchases_activated(available_for_me_query) 
         
     def on_application_request_action(self, widget, app, addons_install, addons_remove, action):
@@ -618,6 +615,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.sso.login()
 
     def on_menuitem_reinstall_purchases_activate(self, menuitem):
+        self.view_switcher.select_available_node()
+        self.active_pane.show_appview_spinner()
         if not self.scagent:
             from backend.restfulclient import SoftwareCenterAgent
             self.scagent = SoftwareCenterAgent()

@@ -627,16 +627,6 @@ class AvailablePane(SoftwarePane):
                 category.name, category))
         self.apps_category = category
         self.update_navigation_button()
-        
-    def on_previous_purchases_activated(self, query):
-        """ callback when the previous purchases view is activated """
-        #print cat_view, name, query
-        LOG.debug("on_previous_purchases with query: %s" % query)
-        self.previous_purchases_query = query
-        self.navigation_bar.remove_all(do_callback=False, animate=False)
-        self.navigation_bar.add_with_id(_("Previous Purchases"),
-                                          self.on_navigation_previous_purchases,
-                                          NAV_BUTTON_ID_PREV_PURCHASES)
 
     def on_application_selected(self, appview, app):
         """callback when an app is selected"""
@@ -655,6 +645,17 @@ class AvailablePane(SoftwarePane):
         
     def on_show_category_applist(self, widget):
         self._show_hide_subcategories(show_category_applist=True)
+        
+    def on_previous_purchases_activated(self, query):
+        """ called to activate the previous purchases view """
+        #print cat_view, name, query
+        LOG.debug("on_previous_purchases_activated with query: %s" % query)
+        self.hide_appview_spinner()
+        self.previous_purchases_query = query
+        self.navigation_bar.remove_all(do_callback=False, animate=False)
+        self.navigation_bar.add_with_id(_("Previous Purchases"),
+                                          self.on_navigation_previous_purchases,
+                                          NAV_BUTTON_ID_PREV_PURCHASES)
 
     def is_category_view_showing(self):
         """ Return True if we are in the category page or if we display a
