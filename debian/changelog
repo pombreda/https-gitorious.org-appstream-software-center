@@ -26,8 +26,10 @@ software-center (3.1.8) UNRELEASED; urgency=low
   * softwarecenter/view/pendingview.py:
     - use a scrollbar when we have many transactions (LP: #642299)
     - display progress for transactions
+  * po/POTFILES.in:
+    - mark softwarecenter/models/viewswitcherlist.py for translation
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 21 Dec 2010 15:45:42 +0100
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 21 Dec 2010 15:48:48 +0100
 
 software-center (3.1.7) natty; urgency=low
 
