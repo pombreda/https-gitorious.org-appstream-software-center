@@ -209,11 +209,11 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         available_section.set_color('#0769BC')
         self.available_pane.set_section(available_section)
 
-        self.available_pane.app_details.connect("selected", 
-                                                self.on_app_details_changed,
-                                                VIEW_PAGE_AVAILABLE)
-        self.available_pane.app_details.connect("application-request-action", 
-                                                self.on_application_request_action)
+        self.available_pane.app_details_view.connect("selected", 
+                                                     self.on_app_details_changed,
+                                                     VIEW_PAGE_AVAILABLE)
+        self.available_pane.app_details_view.connect("application-request-action", 
+                                                     self.on_application_request_action)
         self.available_pane.app_view.connect("application-request-action", 
                                              self.on_application_request_action)
         self.available_pane.connect("app-list-changed", 
@@ -233,11 +233,11 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         channel_section.set_color('#aea79f')
         self.channel_pane.set_section(channel_section)
 
-        self.channel_pane.app_details.connect("selected", 
-                                                self.on_app_details_changed,
-                                                VIEW_PAGE_CHANNEL)
-        self.channel_pane.app_details.connect("application-request-action", 
-                                              self.on_application_request_action)
+        self.channel_pane.app_details_view.connect("selected", 
+                                                   self.on_app_details_changed,
+                                                   VIEW_PAGE_CHANNEL)
+        self.channel_pane.app_details_view.connect("application-request-action", 
+                                                   self.on_application_request_action)
         self.channel_pane.app_view.connect("application-request-action", 
                                            self.on_application_request_action)
         self.channel_pane.connect("app-list-changed", 
@@ -257,11 +257,11 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         installed_section.set_color('#aea79f')
         self.installed_pane.set_section(installed_section)
         
-        self.installed_pane.app_details.connect("selected", 
-                                                self.on_app_details_changed,
-                                                VIEW_PAGE_INSTALLED)
-        self.installed_pane.app_details.connect("application-request-action", 
-                                                self.on_application_request_action)
+        self.installed_pane.app_details_view.connect("selected", 
+                                                     self.on_app_details_changed,
+                                                     VIEW_PAGE_INSTALLED)
+        self.installed_pane.app_details_view.connect("application-request-action", 
+                                                     self.on_application_request_action)
         self.installed_pane.app_view.connect("application-request-action", 
                                              self.on_application_request_action)
         self.installed_pane.connect("app-list-changed", 

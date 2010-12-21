@@ -63,14 +63,14 @@ class InstalledPane(SoftwarePane):
 
     def _show_installed_overview(self):
         " helper that goes back to the overview page "
-        self.navigation_bar.remove_id("details")
+        self.navigation_bar.remove_id(NAV_BUTTON_ID_DETAILS)
         self.notebook.set_current_page(self.PAGE_APPLIST)
         self.searchentry.show()
         
     def _clear_search(self):
         # remove the details and clear the search
         self.searchentry.clear()
-        self.navigation_bar.remove_id("search")
+        self.navigation_bar.remove_id(NAV_BUTTON_ID_SEARCH)
 
     def on_search_terms_changed(self, searchentry, terms):
         """callback when the search entry widget changes"""
@@ -82,7 +82,7 @@ class InstalledPane(SoftwarePane):
         self.notebook.set_current_page(self.PAGE_APPLIST)
     def on_db_reopen(self, db):
         self.refresh_apps()
-        self.app_details.refresh_app()
+        self.app_details_view.refresh_app()
         
     def on_navigation_search(self, pathbar, part):
         """ callback when the navigation button with id 'search' is clicked"""
@@ -115,7 +115,7 @@ class InstalledPane(SoftwarePane):
         self.current_appview_selection = app
         
     def display_search(self):
-        self.navigation_bar.remove_id("details")
+        self.navigation_bar.remove_id(NAV_BUTTON_ID_DETAILS)
         self.notebook.set_current_page(self.PAGE_APPLIST)
         model = self.app_view.get_model()
         if model:
@@ -156,14 +156,18 @@ class InstalledPane(SoftwarePane):
 
     def show_app(self, app):
         """ Display an application in the installed_pane """
-        self.navigation_bar.add_with_id(self.pane_name, self.on_navigation_list, "list", do_callback=False, animate=False)
+        self.navigation_bar.add_with_id(self.pane_name, 
+                                        self.on_navigation_list, 
+                                        NAV_BUTTON_ID_LIST, 
+                                        do_callback=False, 
+                                        animate=False)
         self.navigation_bar.remove_all(do_callback=False, animate=False) # do_callback and animate *must* both be false here
         details = app.get_details(self.db)
         self.navigation_bar.add_with_id(details.display_name,
                                         self.on_navigation_details,
-                                        "details",
+                                        NAV_BUTTON_ID_DETAILS,
                                         animate=False)
-        self.app_details.show_app(app)
+        self.app_details_view.show_app(app)
         self.app_view.emit("application-selected", app)
 
 if __name__ == "__main__":
