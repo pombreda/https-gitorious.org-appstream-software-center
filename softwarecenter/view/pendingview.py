@@ -129,6 +129,8 @@ class PendingStore(gtk.ListStore, TransactionsWatcher):
             trans.connect(
                 "progress-details-changed", self._on_progress_details_changed))
         self._signals.append(
+            trans.connect("progress-changed", self._on_progress_changed))
+        self._signals.append(
             trans.connect("status-changed", self._on_status_changed))
         self._signals.append(
             trans.connect(
@@ -182,8 +184,6 @@ class PendingStore(gtk.ListStore, TransactionsWatcher):
         #print "_on_progress_details_changed: ", trans, progress
         for row in self:
             if row[self.COL_TID] == trans.tid:
-                if total_bytes:
-                    row[self.COL_PROGRESS] = current_bytes/(total_bytes*100.0)
                 if trans.status == STATUS_DOWNLOADING:
                     name = row[self.COL_NAME]
                     current_bytes_str = apt_pkg.size_to_str(current_bytes)
@@ -191,6 +191,13 @@ class PendingStore(gtk.ListStore, TransactionsWatcher):
                     status = _("Downloaded %sB of %sB") % \
                              (current_bytes_str, total_bytes_str)
                     row[self.COL_STATUS] = self._render_status_text(name, status)
+
+    def _on_progress_changed(self, trans, progress):
+        # print "_on_progress_changed: ", trans, progress
+        for row in self:
+            if row[self.COL_TID] == trans.tid:
+                if progress:
+                    row[self.COL_PROGRESS] = progress
 
     def _on_status_changed(self, trans, status):
         #print "_on_progress_changed: ", trans, status

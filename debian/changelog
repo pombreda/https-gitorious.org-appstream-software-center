@@ -25,8 +25,9 @@ software-center (3.1.8) UNRELEASED; urgency=low
     - use named arguments for history entries - thanks to dpm (LP: #690283)
   * softwarecenter/view/pendingview.py:
     - use a scrollbar when we have many transactions (LP: #642299)
-  
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 16 Dec 2010 20:41:09 -0500
+    - display progress for transactions
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 21 Dec 2010 15:45:42 +0100
 
 software-center (3.1.7) natty; urgency=low
 
