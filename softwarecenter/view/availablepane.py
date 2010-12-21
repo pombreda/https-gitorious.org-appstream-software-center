@@ -650,7 +650,6 @@ class AvailablePane(SoftwarePane):
         """ called to activate the previous purchases view """
         #print cat_view, name, query
         LOG.debug("on_previous_purchases_activated with query: %s" % query)
-        self.hide_appview_spinner()
         self.previous_purchases_query = query
         self.navigation_bar.remove_all(do_callback=False, animate=False)
         self.navigation_bar.add_with_id(_("Previous Purchases"),

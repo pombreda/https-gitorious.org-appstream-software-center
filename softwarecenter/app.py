@@ -616,7 +616,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
     def on_menuitem_reinstall_purchases_activate(self, menuitem):
         self.view_switcher.select_available_node()
-        self.active_pane.show_appview_spinner()
         if not self.scagent:
             from backend.restfulclient import SoftwareCenterAgent
             self.scagent = SoftwareCenterAgent()
