@@ -17,6 +17,10 @@ software-center (3.1.8) UNRELEASED; urgency=low
   * <many>:
     - implement inline purchase flow (LP: #618817, LP: #625418) 
 
+  [ Kiwinote ]
+  * softwarecenter/view/historypane.py:
+    - use named arguments for history entries - thanks to dpm (LP: #690283)
+  
  -- Gary Lasker <gary.lasker@canonical.com>  Thu, 16 Dec 2010 20:41:09 -0500
 
 software-center (3.1.7) natty; urgency=low
