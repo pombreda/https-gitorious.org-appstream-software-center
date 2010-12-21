@@ -100,18 +100,23 @@ h1 {
 
     def __init__(self):
         gtk.VBox.__init__(self)
-        self.wk = ScrolledWebkitWindow()
-        self.wk.webkit.connect("create-web-view", 
-                               self._on_create_webview_request)
-        # a possible way to do IPC (script or title change)
-        self.wk.webkit.connect("script-alert", self._on_script_alert)
-        self.wk.webkit.connect("title-changed", self._on_title_changed)
+        self.wk = None
+
+    def init_view(self):
+        if self.wk is None:
+            self.wk = ScrolledWebkitWindow()
+            self.wk.webkit.connect("create-web-view", 
+                                   self._on_create_webview_request)
+            # a possible way to do IPC (script or title change)
+            self.wk.webkit.connect("script-alert", self._on_script_alert)
+            self.wk.webkit.connect("title-changed", self._on_title_changed)
             
     def initiate_purchase(self, app, iconname, url=None, html=None):
         """
         initiates the purchase workflow inside the embedded webkit window
         for the item specified       
         """
+        self.init_view()
         self.app = app
         self.iconname = iconname
         self.wk.webkit.load_html_string(self.LOADING_HTML, "file:///")
