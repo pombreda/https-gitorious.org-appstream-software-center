@@ -30,7 +30,7 @@ class TestSCAddons(unittest.TestCase):
         # FIXME: kdebase?!?!?! that is rather unneeded (kdesu brings that in)
         self.assertEqual(set(recommends), set(
                 ["kdebase-bin", "apt-xapian-index", "gksu", "kdebase-bin", 
-                 'libgnome2-perl', 'rarian-compat', 'software-properties-gtk']))
+                 'libgtk2-perl', 'rarian-compat', 'software-properties-gtk']))
         self.assertEqual(set(suggests), set(["dwww", "deborphan", "menu"]))
 
 

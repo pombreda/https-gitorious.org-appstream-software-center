@@ -26,6 +26,7 @@ import os
 import xapian
 import cairo
 import gettext
+import dialogs
 
 from gettext import gettext as _
 
@@ -36,11 +37,12 @@ from widgets.actionbar import ActionBar
 from widgets.spinner import SpinnerView
 
 from softwarecenter.backend import get_install_backend
-from softwarecenter.enums import SORT_BY_SEARCH_RANKING, SORT_BY_ALPHABET
+from softwarecenter.enums import *
 from softwarecenter.view.basepane import BasePane
 from softwarecenter.utils import wait_for_apt_cache_ready, ExecutionTime
 
 from appview import AppView, AppStore
+from purchaseview import PurchaseView
 
 if "SOFTWARE_CENTER_APPDETAILS_WEBKIT" in os.environ:
     from appdetailsview_webkit import AppDetailsViewWebkit as AppDetailsView
@@ -114,6 +116,7 @@ class SoftwarePane(gtk.VBox, BasePane):
     }
     PADDING = 6
     
+    # pages for the spinner notebook
     (PAGE_APPVIEW,
      PAGE_SPINNER) = range(2)
 
@@ -178,12 +181,19 @@ class SoftwarePane(gtk.VBox, BasePane):
         self.scroll_details = gtk.ScrolledWindow()
         self.scroll_details.set_policy(gtk.POLICY_AUTOMATIC, 
                                         gtk.POLICY_AUTOMATIC)
-        self.app_details = AppDetailsView(self.db, 
-                                          self.distro,
-                                          self.icons, 
-                                          self.cache, 
-                                          self.datadir)
-        self.scroll_details.add(self.app_details)
+        self.app_details_view = AppDetailsView(self.db, 
+                                               self.distro,
+                                               self.icons, 
+                                               self.cache, 
+                                               self.datadir)
+        self.app_details_view.connect("purchase-requested",
+                                      self.on_purchase_requested)
+        self.scroll_details.add(self.app_details_view)
+        # purchase view
+        self.purchase_view = PurchaseView()
+        self.purchase_view.connect("purchase-succeeded", self.on_purchase_succeeded)
+        self.purchase_view.connect("purchase-failed", self.on_purchase_failed)
+        self.purchase_view.connect("purchase-cancelled-by-user", self.on_purchase_cancelled_by_user)
         # cursor
         self.busy_cursor = gtk.gdk.Cursor(gtk.gdk.WATCH)
         # when the cache changes, refresh the app list
@@ -254,10 +264,41 @@ class SoftwarePane(gtk.VBox, BasePane):
         details = app.get_details(self.db)
         self.navigation_bar.add_with_id(details.display_name,
                                        self.on_navigation_details,
-                                       "details")
+                                       NAV_BUTTON_ID_DETAILS)
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
-        self.app_details.show_app(app)
-
+        self.app_details_view.show_app(app)
+        
+    def on_purchase_requested(self, widget, app, url):
+        print "on_purchase_requested"
+        self.navigation_bar.add_with_id(_("Buy"),
+                                       self.on_navigation_purchase,
+                                       NAV_BUTTON_ID_PURCHASE)
+        self.appdetails = app.get_details(self.db)
+        iconname = self.appdetails.icon
+        self.purchase_view.initiate_purchase(app, iconname, url)
+        
+    def on_purchase_succeeded(self, widget):
+        # switch to the details page to display the transaction is in progress
+        self.notebook.set_current_page(self.PAGE_APP_DETAILS)
+        self.navigation_bar.remove_id(NAV_BUTTON_ID_PURCHASE)
+        
+    def on_purchase_failed(self, widget):
+        # return to the the appdetails view via the button to reset it
+        self._click_appdetails_view()
+        dialogs.error(None,
+                      _("Failure in the purchase process."),
+                      _("Sorry, something went wrong. Your payment "
+                        "has been cancelled."))
+        
+    def on_purchase_cancelled_by_user(self, widget):
+        # return to the the appdetails view via the button to reset it
+        self._click_appdetails_view()
+            
+    def _click_appdetails_view(self):
+        details_button = self.navigation_bar.get_button_from_id(NAV_BUTTON_ID_DETAILS)
+        if details_button:
+            self.navigation_bar.set_active(details_button)
+                                       
     def show_appview_spinner(self):
         """ display the spinner in the appview panel """
         self.action_bar.clear()
@@ -277,11 +318,11 @@ class SoftwarePane(gtk.VBox, BasePane):
 
     def set_section(self, section):
         self.section = section
-        self.app_details.set_section(section)
+        self.app_details_view.set_section(section)
         return
 
     def section_sync(self):
-        self.app_details.set_section(self.section)
+        self.app_details_view.set_section(self.section)
         return
 
     def on_app_list_changed(self, pane, length):
@@ -394,13 +435,16 @@ class SoftwarePane(gtk.VBox, BasePane):
         if self.apps_search_term:
             query = self.db.get_query_list_from_search_entry(
                 self.apps_search_term, channel_query)
-            self.navigation_bar.add_with_id(
-                _("Search Results"), self.on_navigation_search, 
-                "search", do_callback=False)
+            self.navigation_bar.add_with_id(_("Search Results"),
+                                              self.on_navigation_search, 
+                                              NAV_BUTTON_ID_SEARCH,
+                                              do_callback=False)
             return query
         # overview list
-        self.navigation_bar.add_with_id(
-            name, self.on_navigation_list, "list", do_callback=False)
+        self.navigation_bar.add_with_id(name,
+                                        self.on_navigation_list,
+                                        NAV_BUTTON_ID_LIST,
+                                        do_callback=False)
         # if we are in a channel, limit to that
         if channel_query:
             return channel_query

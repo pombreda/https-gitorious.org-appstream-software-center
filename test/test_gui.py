@@ -133,7 +133,6 @@ class TestGUI(unittest.TestCase):
         self._run_search("aptz")
         self.assertTrue(self.app.available_pane.label_app_list_header.flags() & gtk.VISIBLE)
         
-        
 
     def test_install_the_4g8_package(self):
         self._reset_ui()
@@ -146,7 +145,7 @@ class TestGUI(unittest.TestCase):
                                treeview.get_column(0))
         self._p()
         self.assertEqual(
-            self.app.available_pane.app_details.action_bar.button.get_label(),
+            self.app.available_pane.app_details_view.action_bar.button.get_label(),
             "Install")
         self._p()
         # install only when runnig as root, as we require polkit promtps
@@ -159,11 +158,11 @@ class TestGUI(unittest.TestCase):
             self._install_done = False
             # now simulate a click, the UI will block until the glib timeout 
             # from the previous line hits
-            self.app.available_pane.app_details.action_bar.button.clicked()
+            self.app.available_pane.app_details_view.action_bar.button.clicked()
             self._p()
-            self.assertEqual(self.app.available_pane.app_details.action_bar.label.get_text(),
+            self.assertEqual(self.app.available_pane.app_details_view.action_bar.label.get_text(),
                              "Installing...")
-            self.assertFalse(self.app.available_pane.app_details.action_bar.button.get_property("visible"))
+            self.assertFalse(self.app.available_pane.app_details_view.action_bar.button.get_property("visible"))
             glib.timeout_add_seconds(2, self._test_for_progress)
             while not self._install_done:
                 while gtk.events_pending():
@@ -176,11 +175,11 @@ class TestGUI(unittest.TestCase):
         # packages that are not available
         self.app.show_available_packages(["i-dont-exit"])
         self._p()
-        self.assertFalse(self.app.available_pane.app_details.screenshot.get_property("visible"))
-        self.assertFalse(self.app.available_pane.app_details.version_info.get_property("visible"))
-        self.assertFalse(self.app.available_pane.app_details.license_info.get_property("visible"))
-        self.assertFalse(self.app.available_pane.app_details.support_info.get_property("visible"))
-        self.assertEqual(self.app.available_pane.app_details.app_desc.description.order, [])
+        self.assertFalse(self.app.available_pane.app_details_view.screenshot.get_property("visible"))
+        self.assertFalse(self.app.available_pane.app_details_view.version_info.get_property("visible"))
+        self.assertFalse(self.app.available_pane.app_details_view.license_info.get_property("visible"))
+        self.assertFalse(self.app.available_pane.app_details_view.support_info.get_property("visible"))
+        self.assertEqual(self.app.available_pane.app_details_view.app_desc.description.order, [])
 
     # helper stuff
     def _p(self):
@@ -193,6 +192,8 @@ class TestGUI(unittest.TestCase):
             
     def _reset_ui(self):
         self.app.available_pane.navigation_bar.remove_all(animate=False)
+        self._p()
+        time.sleep(0.5)
         self._p()
 
     def assertFirstPkgInModel(self, model, needle):
@@ -211,7 +212,7 @@ class TestGUI(unittest.TestCase):
         return self.app.available_pane.app_view.get_model()
 
     def _test_for_progress(self):
-        self.assertTrue(self.app.available_pane.app_details.action_bar.progress.get_property("visible"))
+        self.assertTrue(self.app.available_pane.app_details_view.action_bar.progress.get_property("visible"))
         return False
 
     def _on_transaction_finished(self, *args, **kwargs):

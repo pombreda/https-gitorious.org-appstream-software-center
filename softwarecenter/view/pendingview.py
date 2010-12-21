@@ -129,6 +129,8 @@ class PendingStore(gtk.ListStore, TransactionsWatcher):
             trans.connect(
                 "progress-details-changed", self._on_progress_details_changed))
         self._signals.append(
+            trans.connect("progress-changed", self._on_progress_changed))
+        self._signals.append(
             trans.connect("status-changed", self._on_status_changed))
         self._signals.append(
             trans.connect(
@@ -182,8 +184,6 @@ class PendingStore(gtk.ListStore, TransactionsWatcher):
         #print "_on_progress_details_changed: ", trans, progress
         for row in self:
             if row[self.COL_TID] == trans.tid:
-                if total_bytes:
-                    row[self.COL_PROGRESS] = current_bytes/(total_bytes*100.0)
                 if trans.status == STATUS_DOWNLOADING:
                     name = row[self.COL_NAME]
                     current_bytes_str = apt_pkg.size_to_str(current_bytes)
@@ -191,6 +191,13 @@ class PendingStore(gtk.ListStore, TransactionsWatcher):
                     status = _("Downloaded %sB of %sB") % \
                              (current_bytes_str, total_bytes_str)
                     row[self.COL_STATUS] = self._render_status_text(name, status)
+
+    def _on_progress_changed(self, trans, progress):
+        # print "_on_progress_changed: ", trans, progress
+        for row in self:
+            if row[self.COL_TID] == trans.tid:
+                if progress:
+                    row[self.COL_PROGRESS] = progress
 
     def _on_status_changed(self, trans, status):
         #print "_on_progress_changed: ", trans, status
@@ -211,30 +218,33 @@ class PendingStore(gtk.ListStore, TransactionsWatcher):
         return "%s\n<small>%s</small>" % (name, status)
 
 
-class PendingView(gtk.TreeView, BasePane):
+class PendingView(gtk.ScrolledWindow, BasePane):
     
     CANCEL_XPAD = 6
     CANCEL_YPAD = 6
 
     def __init__(self, icons):
-        gtk.TreeView.__init__(self)
+        gtk.ScrolledWindow.__init__(self)
         BasePane.__init__(self)
+        self.tv = gtk.TreeView()
         # customization
-        self.set_headers_visible(False)
-        self.connect("button-press-event", self._on_button_pressed)
+        self.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+        self.add(self.tv)
+        self.tv.set_headers_visible(False)
+        self.tv.connect("button-press-event", self._on_button_pressed)
         # icon
         self.icons = icons
         tp = gtk.CellRendererPixbuf()
         tp.set_property("xpad", self.CANCEL_XPAD)
         tp.set_property("ypad", self.CANCEL_YPAD)
         column = gtk.TreeViewColumn("Icon", tp, pixbuf=PendingStore.COL_ICON)
-        self.append_column(column)
+        self.tv.append_column(column)
         # name
         tr = gtk.CellRendererText()
         column = gtk.TreeViewColumn("Name", tr, markup=PendingStore.COL_STATUS)
         column.set_min_width(200)
         column.set_expand(True)
-        self.append_column(column)
+        self.tv.append_column(column)
         # progress
         tp = gtk.CellRendererProgress()
         tp.set_property("xpad", self.CANCEL_XPAD)
@@ -244,25 +254,25 @@ class PendingView(gtk.TreeView, BasePane):
                                     value=PendingStore.COL_PROGRESS,
                                     pulse=PendingStore.COL_PULSE)
         column.set_min_width(200)
-        self.append_column(column)
+        self.tv.append_column(column)
         # cancel icon
         tpix = gtk.CellRendererPixbuf()
         column = gtk.TreeViewColumn("Cancel", tpix, 
                                     stock_id=PendingStore.COL_CANCEL)
-        self.append_column(column)
+        self.tv.append_column(column)
         # fake columns that eats the extra space at the end
         tt = gtk.CellRendererText()
         column = gtk.TreeViewColumn("Cancel", tt)
-        self.append_column(column)
+        self.tv.append_column(column)
         # add it
         store = PendingStore(icons)
-        self.set_model(store)
+        self.tv.set_model(store)
     def _on_button_pressed(self, widget, event):
         """button press handler to capture clicks on the cancel button"""
         #print "_on_clicked: ", event
         if event == None or event.button != 1:
             return
-        res = self.get_path_at_pos(int(event.x), int(event.y))
+        res = self.tv.get_path_at_pos(int(event.x), int(event.y))
         if not res:
             return
         (path, column, wx, wy) = res
@@ -273,7 +283,7 @@ class PendingView(gtk.TreeView, BasePane):
         if column.get_title() != "Cancel":
             return
         # not cancelable (no icon)
-        model = self.get_model()
+        model = self.tv.get_model()
         if model[path][PendingStore.COL_CANCEL] == "":
             return 
         # get tid

@@ -1,4 +1,19 @@
-software-center (3.1.8) UNRELEASED; urgency=low
+software-center (3.1.9) UNRELEASED; urgency=low
+
+  * softwarecenter/view/purchaseview.py:
+    - restore popup window functionality for terms of service, etc.
+      in the purchase view webkit pane
+  * softwarecenter/app.py,
+    softwarecenter/view/availablepane.py,
+    softwarecenter/view/basepane.py,
+    softwarecenter/view/channelpane.py,
+    softwarecenter/view/installedpane.py:
+    - use init_view to defer loading of the channel and installed
+      pane views, provides further startup time improvement
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 21 Dec 2010 12:29:36 -0500
+
+software-center (3.1.8) natty; urgency=low
 
   [ Michael Vogt ]
   * softwarecenter/backend/restfulclient.py:
@@ -14,15 +29,26 @@ software-center (3.1.8) UNRELEASED; urgency=low
       not have a filter (LP: #690706)
   * softwarecenter/models/appstore.py:
     - enable threaded listviews 
-  * softwarecenter/app.py,
-    softwarecenter/view/availablepane.py,
-    softwarecenter/view/basepane.py,
-    softwarecenter/view/channelpane.py,
-    softwarecenter/view/installedpane.py:
-    - additional deferred loading of views using the init_view
-      approach, provides further startup time improvement
+  * <many>:
+    - implement inline purchase flow (LP: #618817, LP: #625418) 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 20 Dec 2010 15:01:57 -0500
+  [ Kiwinote ]
+  * softwarecenter/view/appview.py:
+    - fix crash when switching from a specific channel in the available pane
+      to the same channel in the installed pane
+  * softwarecenter/view/historypane.py:
+    - use named arguments for history entries - thanks to dpm (LP: #690283)
+  * softwarecenter/view/pendingview.py:
+    - use a scrollbar when we have many transactions (LP: #642299)
+    - display progress for transactions
+  * po/POTFILES.in:
+    - mark softwarecenter/models/viewswitcherlist.py for translation
+  * data/ui/dialogs.py:
+    - don't mark " " strings as translatable (LP: #691082)
+  * debian/control:
+    - use correct Vcs-Bzr url (LP: #690906)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 21 Dec 2010 16:09:37 +0100
 
 software-center (3.1.7) natty; urgency=low
 
