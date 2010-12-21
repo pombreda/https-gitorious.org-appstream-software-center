@@ -20,6 +20,8 @@ software-center (3.1.8) UNRELEASED; urgency=low
   [ Kiwinote ]
   * softwarecenter/view/historypane.py:
     - use named arguments for history entries - thanks to dpm (LP: #690283)
+  * softwarecenter/view/pendingview.py:
+    - use a scrollbar when we have many transactions (LP: #642299)
   
  -- Gary Lasker <gary.lasker@canonical.com>  Thu, 16 Dec 2010 20:41:09 -0500
 
