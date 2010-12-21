@@ -269,7 +269,6 @@ class SoftwarePane(gtk.VBox, BasePane):
         self.app_details_view.show_app(app)
         
     def on_purchase_requested(self, widget, app, url):
-        print "on_purchase_requested"
         self.navigation_bar.add_with_id(_("Buy"),
                                        self.on_navigation_purchase,
                                        NAV_BUTTON_ID_PURCHASE)
