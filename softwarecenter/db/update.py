@@ -594,8 +594,8 @@ def index_app_info_from_parser(parser, db, cache):
 
 def rebuild_database(pathname):
     cache = apt.Cache(memonly=True)
-    old_path = os.path.join(XAPIAN_BASE_PATH, "xapian_old")
-    rebuild_path = os.path.join(XAPIAN_BASE_PATH, "xapian_rb")
+    old_path = pathname+"_old"
+    rebuild_path = pathname+"_rb"
     
     if not os.path.exists(rebuild_path):
         try:
@@ -616,7 +616,7 @@ def rebuild_database(pathname):
         LOG.warn("Existing xapian old db was not previously cleaned: '%s'." % old_path)
         if os.access(old_path, os.W_OK):
             #remove old unrequired db before beginning
-            shutil.rmtree(old_path, False, None)
+            shutil.rmtree(old_path)
         else:
             LOG.warn("Cannot write to '%s'." % old_path)
             LOG.warn("Please check you have the relevant permissions.")
@@ -637,6 +637,6 @@ def rebuild_database(pathname):
  
     os.rename(pathname, old_path)
     os.rename(rebuild_path, pathname)
-    shutil.rmtree(old_path, False, None)
+    shutil.rmtree(old_path)
     return True
 
