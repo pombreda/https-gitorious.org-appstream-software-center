@@ -28,7 +28,6 @@ import datetime
 import gtk
 import locale
 import logging
-import multiprocessing
 import os
 import sys
 import tempfile
@@ -40,9 +39,7 @@ from gettext import gettext as _
 from Queue import Queue
 from optparse import OptionParser
 
-from softwarecenter.backend.restfulclient import RestfulClientWorker, UBUNTU_SSO_SERVICE
-from lazr.restfulclient.authorize.oauth import OAuthAuthorizer
-from oauth.oauth import OAuthToken
+from softwarecenter.backend.restfulclient import UbuntuSSOAPI
 
 import piston_mini_client
 
@@ -204,7 +201,7 @@ class Worker(threading.Thread):
                 prefix="sc_submit_oops_", suffix=".html", delete=False)
             # new piston-mini-client has only the body of the returned data
             # older just pushes it into a big string
-            if hasattr(e, "body"):
+            if hasattr(e, "body") and e.body:
                 f.write(e.body)
             else:
                 f.write(str(e))
@@ -273,7 +270,6 @@ class BaseApp(SimpleGtkbuilderApp):
         self.login_hbox.pack_start(self.status_spinner, False)
         self.login_hbox.reorder_child(self.status_spinner, 0)
         self.status_spinner.show()
-        glib.timeout_add(500, self._glib_whoami_done)
 
     def run(self):
         # initially display a 'Connecting...' page
@@ -287,10 +283,6 @@ class BaseApp(SimpleGtkbuilderApp):
     def quit(self):
         sys.exit(0)
 
-    def login_successful(self, display_name):
-        """ callback when the login was successful """
-        pass
-
     def _add_spellcheck_to_textview(self, textview):
         """ adds a spellchecker (if available) to the given gtk.textview """
         try:
@@ -303,24 +295,41 @@ class BaseApp(SimpleGtkbuilderApp):
             return None
         return spell
 
+    def login(self):
+        appname = _("Ubuntu Software Center")
+        login_text = _("To review software or to report abuse you need to "
+                       "sign in to a Ubuntu Single Sign-On account.")
+        self.sso = LoginBackendDbusSSO(self.dialog_main.window.xid, appname,
+                                       login_text)
+        self.sso.connect("login-successful", self._maybe_login_successful)
+        self.sso.login_or_register()
+
     def _maybe_login_successful(self, sso, oauth_result):
         """ called after we have the token, then we go and figure out our name """
         self.token = oauth_result
-        # now get the user name
-        token = OAuthToken(self.token["token"], self.token["token_secret"])
-        authorizer = OAuthAuthorizer(self.token["consumer_key"],
-                                     self.token["consumer_secret"],
-                                     access_token=token)
-        self.restful_worker_thread = RestfulClientWorker(authorizer, UBUNTU_SSO_SERVICE)
-        self.restful_worker_thread.start()
-        # now get "me"
-        self.restful_worker_thread.queue_request("accounts.me", (), {},
-                                                 self._thread_whoami_done,
-                                                 self._thread_whoami_error)
+        self.ssoapi = UbuntuSSOAPI(self.token)
+        self.ssoapi.connect("whoami", self._whoami_done)
+        self.ssoapi.connect("error", self._whoami_error)
+        self.ssoapi.whoami()
 
-    def _thread_whoami_done(self, result):
+    def _whoami_done(self, ssologin, result):
         self.display_name = result["displayname"]
-        self._login_successful = True
+        self._create_gratings_api()
+        self.login_successful(self.display_name)
+
+    def _whoami_error(self, ssologin, e):
+        print "error: ", e
+
+    def login_successful(self, display_name):
+        """ callback when the login was successful """
+        pass
+
+    def on_button_cancel_clicked(self, button=None):
+        # bring it down gracefully
+        self.api.shutdown()
+        while gtk.events_pending():
+            gtk.main_iteration()
+        sys.exit(0)
 
     def _create_gratings_api(self):
         self.api = GRatingsAndReviews(self.token)
@@ -342,31 +351,6 @@ class BaseApp(SimpleGtkbuilderApp):
         self.label_transmit_status.set_text(error)
         self.action_area.set_sensitive(True)
 
-    def _glib_whoami_done(self):
-        if self._login_successful:
-            self._create_gratings_api()
-            self.login_successful(self.display_name)
-            return False
-        return True
-
-    def _thread_whoami_error(self, e):
-        print "error: ", e
-
-    def login(self):
-        appname = _("Ubuntu Software Center")
-        login_text = _("To review software or to report abuse you need to "
-                       "sign in to a Ubuntu Single Sign-On account.")
-        self.sso = LoginBackendDbusSSO(self.dialog_main.window.xid, appname,
-                                       login_text)
-        self.sso.connect("login-successful", self._maybe_login_successful)
-        self.sso.login_or_register()
-
-    def on_button_cancel_clicked(self, button=None):
-        # bring it down gracefully
-        self.api.shutdown()
-        while gtk.events_pending():
-            gtk.main_iteration()
-        sys.exit(0)
 
 class SubmitReviewsApp(BaseApp):
     """ review a given application or package """

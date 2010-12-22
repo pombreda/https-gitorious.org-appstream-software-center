@@ -30,18 +30,24 @@ class RatingsAndReviewsAPI(PistonAPI):
 
     @validate('days', int, required=False)
     @returns_list_of(ReviewsStats)
-    def review_stats(self, days=None):
+    def review_stats(self, days=None, valid_days=(1,3,7)):
         """Fetch ratings for a particular distroseries"""
         url = 'review-stats/'
         if days is not None:
-            url += 'updates-last-{0}-days/'.format(days)
+            # the server only knows valid_days (1,3,7) currently
+            for valid_day in valid_days:
+                # pick the day from valid_days that is the next bigger than
+                # days
+                if days <= valid_day:
+                    url += 'updates-last-{0}-days/'.format(valid_day)
+                    break
         return self._get(url)
 
     @validate_pattern('language', r'\w+')
-    @validate_pattern('origin', r'\w+')
+    @validate_pattern('origin', r'[0-9a-z+-.:/]+')
     @validate_pattern('distroseries', r'\w+')
     @validate_pattern('packagename', r'[a-z0-9.+-]+')
-    @validate_pattern('appname', r'\w+', required=False)
+    @validate('appname', str, required=False)
     @validate('page', int, required=False)
     @returns_list_of(ReviewDetails)
     def get_reviews(self, language, origin, distroseries, packagename,
