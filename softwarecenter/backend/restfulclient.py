@@ -133,6 +133,54 @@ class RestfulClientWorker(threading.Thread):
                 self._pending_requests.empty()):
                 return
 
+class UbuntuSSOAPI(gobject.GObject):
+
+    __gsignals__ = {
+        "whoami" : (gobject.SIGNAL_RUN_LAST,
+                    gobject.TYPE_NONE, 
+                    (gobject.TYPE_PYOBJECT,),
+                    ),
+        "error" : (gobject.SIGNAL_RUN_LAST,
+                    gobject.TYPE_NONE, 
+                    (gobject.TYPE_PYOBJECT,),
+                    ),
+
+        }
+       
+    def __init__(self, token):
+        gobject.GObject.__init__(self)
+        self._whoami = None
+        self.service = UBUNTU_SSO_SERVICE
+        self.token = token
+        token = OAuthToken(self.token["token"], self.token["token_secret"])
+        authorizer = OAuthAuthorizer(self.token["consumer_key"],
+                                     self.token["consumer_secret"],
+                                     access_token=token)
+        self.worker_thread =  RestfulClientWorker(authorizer, self.service)
+        self.worker_thread.start()
+        glib.timeout_add(200, self._monitor_thread)
+
+    def _monitor_thread(self):
+        # glib bit of the threading, runs in the main thread
+        if self._whoami is not None:
+            self.emit("whoami", self._whoami)
+            self._whoami = None
+        if self.worker_thread.error:
+            self.emit("error", self.worker_thread.error)
+        return True
+
+    def _thread_whoami_done(self, result):
+        self._whoami = result
+
+    def _thread_whoami_error(self, e):
+        self.emit("error", e)
+
+    def whoami(self):
+        self.worker_thread.queue_request("accounts.me", (), {},
+                                         self._thread_whoami_done,
+                                         self._thread_whoami_error)
+
+
 class SoftwareCenterAgent(gobject.GObject):
 
     __gsignals__ = {
@@ -413,6 +461,8 @@ def _available(scagent, result):
     print "_available: ", [x.name for x in result]
 def _error(scaagent, errormsg):
     print "_error:", errormsg
+def _whoami(sso, whoami):
+    print "whoami: ", whoami
 
 # interactive test code
 if __name__ == "__main__":
@@ -432,11 +482,22 @@ if __name__ == "__main__":
         scagent.query_available_for_me("dummy_oauth", "dummy openid")
 
     elif sys.argv[1] == "sso":
-        sso = UbuntuSSOlogin()
-        sso.connect("login-successful", _login_success)
-        sso.connect("login-failed", _login_failed)
-        sso.connect("need-username-password", _login_need_user_and_password)
-        sso.login()
+        def _dbus_maybe_login_successful(ssologin, oauth_result):
+            sso = UbuntuSSOAPI(oauth_result)
+            sso.connect("whoami", _whoami)
+            sso.connect("error", _error)
+            sso.whoami()
+        from login_sso import LoginBackendDbusSSO
+        backend = LoginBackendDbusSSO("", "appname", "login_text")
+        backend.connect("login-successful", _dbus_maybe_login_successful)
+        backend.login_or_register()
+
+    elif sys.argv[1] == "ssologin":
+        ssologin = UbuntuSSOlogin()
+        ssologin.connect("login-successful", _login_success)
+        ssologin.connect("login-failed", _login_failed)
+        ssologin.connect("need-username-password", _login_need_user_and_password)
+        ssologin.login()
         
     elif sys.argv[1] == "agent-anon":
         anon_agent = SoftwareCenterAgentAnonymous()
