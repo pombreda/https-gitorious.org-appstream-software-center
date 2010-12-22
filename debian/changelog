@@ -2,8 +2,15 @@ software-center (3.1.9) UNRELEASED; urgency=low
 
   * softwarecenter/view/purchaseview.py:
     - restore terms of service popup window
+  * softwarecenter/app.py,
+    softwarecenter/enums.py,
+    softwarecenter/view/availablepane.py,
+    softwarecenter/view/softwarepane.py,
+    softwarecenter/view/viewswitcher.py:
+    - re-implement reinstall previous purchases view as a subview
+      of the top-level Get Software view (LP: #628404) 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Tue, 21 Dec 2010 10:32:33 -0500
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 21 Dec 2010 18:30:00 -0500
 
 software-center (3.1.8) natty; urgency=low
 

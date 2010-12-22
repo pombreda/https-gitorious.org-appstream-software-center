@@ -75,6 +75,7 @@ class AvailablePane(SoftwarePane):
         # state
         self.apps_category = None
         self.apps_subcategory = None
+        self.previous_purchases_query = None
         self.apps_search_term = ""
         self.apps_limit = 0
         self.apps_filter = AppViewFilter(db, cache)
@@ -556,6 +557,18 @@ class AvailablePane(SoftwarePane):
         self.action_bar.clear()
         self.cat_view.stop_carousels()
         return
+        
+    def display_previous_purchases(self):
+        self.nonapps_visible = AppStore.NONAPPS_ALWAYS_VISIBLE
+        self.navigation_bar.remove_id(NAV_BUTTON_ID_DETAILS)
+        self.notebook.set_current_page(self.PAGE_APPLIST)
+        # do not emit app-list-changed here, this is done async when
+        # the new model is ready
+        self.refresh_apps(query=self.previous_purchases_query)
+        self.searchentry.hide()
+        self.action_bar.clear()
+        self.cat_view.stop_carousels()
+        return
 
     def on_navigation_category(self, pathbar, part):
         """callback when the navigation button with id 'category' is clicked"""
@@ -592,6 +605,12 @@ class AvailablePane(SoftwarePane):
         self.display_purchase()
         nav_item = NavigationItem(self, self.display_purchase)
         self.nav_history.navigate(nav_item)
+        
+    def on_navigation_previous_purchases(self, pathbar, part):
+        """callback when the navigation button with id 'prev-purchases' is clicked"""
+        self.display_previous_purchases()
+        nav_item = NavigationItem(self, self.display_previous_purchases)
+        self.nav_history.navigate(nav_item)
 
     def on_subcategory_activated(self, cat_view, category):
         #print cat_view, name, query
@@ -626,6 +645,16 @@ class AvailablePane(SoftwarePane):
         
     def on_show_category_applist(self, widget):
         self._show_hide_subcategories(show_category_applist=True)
+        
+    def on_previous_purchases_activated(self, query):
+        """ called to activate the previous purchases view """
+        #print cat_view, name, query
+        LOG.debug("on_previous_purchases_activated with query: %s" % query)
+        self.previous_purchases_query = query
+        self.navigation_bar.remove_all(do_callback=False, animate=False)
+        self.navigation_bar.add_with_id(_("Previous Purchases"),
+                                          self.on_navigation_previous_purchases,
+                                          NAV_BUTTON_ID_PREV_PURCHASES)
 
     def is_category_view_showing(self):
         """ Return True if we are in the category page or if we display a

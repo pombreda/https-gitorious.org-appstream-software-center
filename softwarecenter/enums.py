@@ -70,6 +70,7 @@ NAV_BUTTON_ID_SUBCAT   = "subcat"
 NAV_BUTTON_ID_DETAILS  = "details"
 NAV_BUTTON_ID_SEARCH   = "search"
 NAV_BUTTON_ID_PURCHASE = "purchase"
+NAV_BUTTON_ID_PREV_PURCHASES = "prev-purchases"
 
 # icons
 MISSING_APP_ICON = "applications-other"
