@@ -181,6 +181,39 @@ class TestGUI(unittest.TestCase):
         self.assertFalse(self.app.available_pane.app_details_view.support_info.get_property("visible"))
         self.assertEqual(self.app.available_pane.app_details_view.app_desc.description.order, [])
 
+    def _monkey_sso_login(self):
+        #print "monkey_sso_login"
+        token = { "token": "the_token",
+                  "consumer_key":"the_consumer_key" }
+        self.app.sso.emit("login-successful", token)
+
+    def _monkey_query_available_for_me(self, t, c):
+        #print "_monkey_query_available_for_me(self, t, c)", t,c
+        class MockApp():
+            name = "FooApp"
+            package_name = "foopkg"
+            description = "foodescr\n long desc"
+            price = "1.0"
+        self.app.scagent.emit("available-for-me", [MockApp()])
+
+    def test_previous_purchase(self):
+        self._reset_ui()
+        # monkey patch stuff
+        from softwarecenter.backend.login_sso import LoginBackendDbusSSO
+        self.app._create_dbus_sso_if_needed()
+        self.app.sso.login = self._monkey_sso_login
+        from softwarecenter.backend.restfulclient import SoftwareCenterAgent
+        self.app._create_scagent_if_needed()
+        self.app.scagent.query_available_for_me = self._monkey_query_available_for_me
+        self.app.on_menuitem_reinstall_purchases_activate(None)
+        self._p()
+        # ensure we are at the right place and show the right stuff
+        self.assertTrue(self.app.available_pane.get_visible())
+        self.assertTrue(self.app.available_pane.get_visible())
+        self.assertEqual(self.app.available_pane.navigation_bar.get_active().label, "Previous Purchases")
+        model = self.app.available_pane.app_view.get_model()
+        self.assertFirstPkgInModel(model, "foopkg")
+
     # helper stuff
     def _p(self):
         """ process gtk events """

@@ -477,11 +477,12 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
     def _on_sso_login(self, sso, oauth_result):
         self._sso_login_successful = True
         # consumer key is the openid identifier
+        print "query"
         self.scagent.query_available_for_me(oauth_result["token"],
                                             oauth_result["consumer_key"])
 
     def _available_for_me_result(self, scagent, result_list):
-        #print "available_for_me_result", result_list
+        print "available_for_me_result", result_list
         from db.update import add_from_purchased_but_needs_reinstall_data
         available_for_me_query = add_from_purchased_but_needs_reinstall_data(
             result_list, self.db, self.cache)
@@ -595,11 +596,13 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         d = LoginDialog(self.glaunchpad, self.datadir, parent=self.window_main)
         d.login()
 
-    def _login_via_buildin_sso(self):
+    def _create_buildin_sso_if_needed(self):
         if not self.sso:
             from backend.restfulclient import UbuntuSSOlogin
             self.sso = UbuntuSSOlogin()
             self.sso.connect("login-successful", self._on_sso_login)
+    def _login_via_buildin_sso(self):
+        self._create_buildin_sso_if_needed()
         if "SOFTWARE_CENTER_TEST_REINSTALL_PURCHASED" in os.environ:
             self.scagent.query_available_for_me("dummy", "mvo")
         else:
@@ -607,19 +610,22 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             d = LoginDialog(self.sso, self.datadir, parent=self.window_main)
             d.login()
 
-    def _login_via_dbus_sso(self):
+    def _create_dbus_sso_if_needed(self):
         if not self.sso:
             from backend.login_sso import LoginBackendDbusSSO
             self.sso = LoginBackendDbusSSO(self.window_main.window.xid)
             self.sso.connect("login-successful", self._on_sso_login)
+    def _login_via_dbus_sso(self):
+        self._create_dbus_sso_if_needed()
         self.sso.login()
-
-    def on_menuitem_reinstall_purchases_activate(self, menuitem):
-        self.view_switcher.select_available_node()
+    def _create_scagent_if_needed(self):
         if not self.scagent:
             from backend.restfulclient import SoftwareCenterAgent
             self.scagent = SoftwareCenterAgent()
             self.scagent.connect("available-for-me", self._available_for_me_result)
+    def on_menuitem_reinstall_purchases_activate(self, menuitem):
+        self.view_switcher.select_available_node()
+        self._create_scagent_if_needed()
         # support both buildin or ubuntu-sso-login
         if "SOFTWARE_CENTER_USE_BUILTIN_LOGIN" in os.environ:
             self._login_via_buildin_sso()

@@ -17,6 +17,8 @@ software-center (3.1.9) UNRELEASED; urgency=low
     xapian db is being updated on detecting an externally changed cache.
     Instead, updates a new copy of the xapian db, then once finished,
     renamed to be the new xapian db.
+  * test/test_gui.py:
+    - add test for reinstall previous purchase UI
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 22 Dec 2010 11:50:36 +0100
 
