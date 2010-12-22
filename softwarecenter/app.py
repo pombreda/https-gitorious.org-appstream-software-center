@@ -162,10 +162,10 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         # additional icons come from app-install-data
         self.icons = gtk.icon_theme_get_default()
         self.icons.append_search_path(ICON_PATH)
-        self.icons.append_search_path(os.path.join(datadir,"icons"))
-        self.icons.append_search_path(os.path.join(datadir,"emblems"))
+        self.icons.append_search_path(os.path.join(self.datadir,"icons"))
+        self.icons.append_search_path(os.path.join(self.datadir,"emblems"))
         # HACK: make it more friendly for local installs (for mpt)
-        self.icons.append_search_path(datadir+"/icons/32x32/status")
+        self.icons.append_search_path(self.datadir+"/icons/32x32/status")
         # add the humanity icon theme to the iconpath, as not all icon 
         # themes contain all the icons we need
         # this *shouldn't* lead to any performance regressions
@@ -199,14 +199,20 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                             self.db,
                                             self.distro,
                                             self.icons,
-                                            datadir,
+                                            self.datadir,
                                             self.navhistory_back_action,
                                             self.navhistory_forward_action)
-
+                                            
+        # this is about .2 seconds (20% of startup) on my machine
+        # next to try: thread the available pane init and show a spinner in its place
+        #              while it loads
+        with ExecutionTime("creating the available_pane view"):
+            self.available_pane.init_view()
 
         available_section = SoftwareSection()
-        available_section.set_image(VIEW_PAGE_AVAILABLE, os.path.join(datadir, 'images/clouds.png'))
+        available_section.set_image(VIEW_PAGE_AVAILABLE, os.path.join(self.datadir, 'images/clouds.png'))
         available_section.set_color('#0769BC')
+        
         self.available_pane.set_section(available_section)
 
         self.available_pane.app_details_view.connect("selected", 
@@ -221,60 +227,36 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                     VIEW_PAGE_AVAILABLE)
         self.view_manager.register(self.available_pane, VIEW_PAGE_AVAILABLE)
 
-        # channel pane
+        # channel pane (view not fully initialized at this point)
         self.channel_pane = ChannelPane(self.cache,
                                         self.db,
                                         self.distro,
                                         self.icons,
-                                        datadir)
-
-        channel_section = SoftwareSection()
-        channel_section.set_image(VIEW_PAGE_CHANNEL, os.path.join(datadir, 'images/arrows.png'))
-        channel_section.set_color('#aea79f')
-        self.channel_pane.set_section(channel_section)
-
-        self.channel_pane.app_details_view.connect("selected", 
-                                                   self.on_app_details_changed,
-                                                   VIEW_PAGE_CHANNEL)
-        self.channel_pane.app_details_view.connect("application-request-action", 
-                                                   self.on_application_request_action)
-        self.channel_pane.app_view.connect("application-request-action", 
-                                           self.on_application_request_action)
+                                        self.datadir)
+        self.channel_pane.connect("channel-pane-created", self.on_channel_pane_created)
         self.channel_pane.connect("app-list-changed", 
                                     self.on_app_list_changed,
                                     VIEW_PAGE_CHANNEL)
         self.view_manager.register(self.channel_pane, VIEW_PAGE_CHANNEL)
         
-        # installed pane
+        # installed pane (view not fully initialized at this point)
         self.installed_pane = InstalledPane(self.cache,
                                             self.db, 
                                             self.distro,
                                             self.icons,
-                                            datadir)
-        
-        installed_section = SoftwareSection()
-        installed_section.set_image(VIEW_PAGE_INSTALLED, os.path.join(datadir, 'images/arrows.png'))
-        installed_section.set_color('#aea79f')
-        self.installed_pane.set_section(installed_section)
-        
-        self.installed_pane.app_details_view.connect("selected", 
-                                                     self.on_app_details_changed,
-                                                     VIEW_PAGE_INSTALLED)
-        self.installed_pane.app_details_view.connect("application-request-action", 
-                                                     self.on_application_request_action)
-        self.installed_pane.app_view.connect("application-request-action", 
-                                             self.on_application_request_action)
+                                            self.datadir)
+        self.installed_pane.connect("installed-pane-created", self.on_installed_pane_created)
         self.installed_pane.connect("app-list-changed", 
                                     self.on_app_list_changed,
                                     VIEW_PAGE_INSTALLED)
         self.view_manager.register(self.installed_pane, VIEW_PAGE_INSTALLED)
-
+        
         # history pane (not fully loaded at this point)
         self.history_pane = HistoryPane(self.cache,
                                         self.db,
                                         self.distro,
                                         self.icons,
-                                        datadir)
+                                        self.datadir)
         self.history_pane.connect("app-list-changed", 
                                   self.on_app_list_changed,
                                   VIEW_PAGE_HISTORY)
@@ -288,7 +270,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.active_pane = self.available_pane
 
         # view switcher
-        self.view_switcher = ViewSwitcher(self.view_manager, datadir, self.db, self.cache, self.icons)
+        self.view_switcher = ViewSwitcher(self.view_manager, self.datadir, self.db, self.cache, self.icons)
         self.scrolledwindow_viewswitcher.add(self.view_switcher)
         self.view_switcher.show()
         self.view_switcher.connect("view-changed", 
@@ -378,7 +360,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             file_menu.remove(self.builder.get_object("menuitem_reinstall_purchases"))
         else:
             sc_agent_update = os.path.join(
-                datadir, "update-software-center-agent")
+                self.datadir, "update-software-center-agent")
             (pid, stdin, stdout, stderr) = glib.spawn_async(
                 [sc_agent_update], flags=glib.SPAWN_DO_NOT_REAP_CHILD)
             glib.child_watch_add(
@@ -404,6 +386,34 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.db.open()
 
     # callbacks
+    def on_channel_pane_created(self, widget):
+        channel_section = SoftwareSection()
+        channel_section.set_image(VIEW_PAGE_CHANNEL, os.path.join(self.datadir, 'images/arrows.png'))
+        channel_section.set_color('#aea79f')
+        self.channel_pane.set_section(channel_section)
+
+        self.channel_pane.app_details_view.connect("selected", 
+                                                   self.on_app_details_changed,
+                                                   VIEW_PAGE_CHANNEL)
+        self.channel_pane.app_details_view.connect("application-request-action", 
+                                                   self.on_application_request_action)
+        self.channel_pane.app_view.connect("application-request-action", 
+                                           self.on_application_request_action)
+                                           
+    def on_installed_pane_created(self, widget):
+        installed_section = SoftwareSection()
+        installed_section.set_image(VIEW_PAGE_INSTALLED, os.path.join(self.datadir, 'images/arrows.png'))
+        installed_section.set_color('#aea79f')
+        self.installed_pane.set_section(installed_section)
+        
+        self.installed_pane.app_details_view.connect("selected", 
+                                                     self.on_app_details_changed,
+                                                     VIEW_PAGE_INSTALLED)
+        self.installed_pane.app_details_view.connect("application-request-action", 
+                                                     self.on_application_request_action)
+        self.installed_pane.app_view.connect("application-request-action", 
+                                             self.on_application_request_action)
+    
     def _on_update_software_center_agent_finished(self, pid, condition):
         self._logger.info("software-center-agent finished with status %i" % os.WEXITSTATUS(condition))
         if os.WEXITSTATUS(condition) == 0:
@@ -456,12 +466,12 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         else:
             self.menuitem_go_back.set_sensitive(False)
             self.menuitem_go_forward.set_sensitive(False)
+         # switch to new page
+        self.view_manager.set_active_view(view_id)
         if (view_id == VIEW_PAGE_INSTALLED and
             not self.installed_pane.loaded and
             not self.installed_pane.get_current_app()):
             self.installed_pane.refresh_apps()
-        # switch to new page
-        self.view_manager.set_active_view(view_id)
         self.update_app_list_view(channel)
         self.update_status_bar()
 

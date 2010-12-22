@@ -53,10 +53,11 @@ from softwarecenter.db.database import Application
 
 LOG = logging.getLogger(__name__)
 
-MASK_SURFACE_CACHE = {}
 
 
 class SoftwareSection(object):
+    
+    MASK_SURFACE_CACHE = {}
 
     def __init__(self):
         self._image_id = 0
@@ -76,7 +77,7 @@ class SoftwareSection(object):
         cr.fill()
 
         # clouds
-        s = MASK_SURFACE_CACHE[self._image_id]
+        s = self.MASK_SURFACE_CACHE[self._image_id]
         cr.set_source_surface(s, a.width-s.get_width(), 0)
         cr.paint()
         return
@@ -88,8 +89,7 @@ class SoftwareSection(object):
     def set_image(self, id, path):
         image = cairo.ImageSurface.create_from_png(path)
         self._image_id = id
-        global MASK_SURFACE_CACHE
-        MASK_SURFACE_CACHE[id] = image
+        self.MASK_SURFACE_CACHE[id] = image
         return
 
     def set_image_id(self, id):
@@ -102,7 +102,7 @@ class SoftwareSection(object):
         return
 
     def get_image(self):
-        return MASK_SURFACE_CACHE[self._image_id]
+        return self.MASK_SURFACE_CACHE[self._image_id]
 
 
 class SoftwarePane(gtk.VBox, BasePane):
@@ -127,9 +127,9 @@ class SoftwarePane(gtk.VBox, BasePane):
         self.cache = cache
         self.db = db
         self.distro = distro
-        self.db.connect("reopen", self.on_db_reopen)
         self.icons = icons
         self.datadir = datadir
+        self.show_ratings = show_ratings
         self.backend = get_install_backend()
         self.nonapps_visible = AppStore.NONAPPS_MAYBE_VISIBLE
         self.disable_show_hide_nonapps = False
@@ -139,6 +139,19 @@ class SoftwarePane(gtk.VBox, BasePane):
         # request (e.g. people click on ubuntu channel, get impatient, click
         # on partner channel)
         self.refresh_seq_nr = 0
+        # data for the refresh_apps()
+        self.channel = None
+        self.apps_category = None
+        self.apps_subcategory = None
+        self.apps_search_term = None
+        self.custom_list_mode = False
+        
+    def init_view(self):
+        """
+        Initialize those UI components that are common to all subclasses of
+        SoftwarePane.  Note that this method is intended to be called by
+        the subclass itself at the start of its own init_view() implementation.
+        """
         # common UI elements (applist and appdetails) 
         # its the job of the Child class to put it into a good location
         # list
@@ -149,7 +162,7 @@ class SoftwarePane(gtk.VBox, BasePane):
         self.box_app_list = gtk.VBox()
         self.box_app_list.pack_start(
             self.label_app_list_header, expand=False, fill=False, padding=12)
-        self.app_view = AppView(show_ratings)
+        self.app_view = AppView(self.show_ratings)
         self.scroll_app_list = gtk.ScrolledWindow()
         self.scroll_app_list.set_policy(gtk.POLICY_AUTOMATIC, 
                                         gtk.POLICY_AUTOMATIC)
@@ -208,19 +221,16 @@ class SoftwarePane(gtk.VBox, BasePane):
         
         # app-list
         self.connect("app-list-changed", self.on_app_list_changed)
+        
+        # db reopen
+        self.db.connect("reopen", self.on_db_reopen)
 
         self.pack_start(self.spinner_notebook)
         # a bar at the bottom (hidden by default) for contextual actions
         self.action_bar = ActionBar()
         self.pack_start(self.action_bar, expand=False)
         self.top_hbox.connect('expose-event', self._on_expose)
-        # data for the refresh_apps()
-        self.channel = None
-        self.apps_category = None
-        self.apps_subcategory = None
-        self.apps_search_term = None
-        self.custom_list_mode = False
-
+            
     def _on_expose(self, widget, event):
         """ Draw a horizontal line that separates the top hbox from the page content """
         a = widget.allocation

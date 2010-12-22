@@ -49,6 +49,10 @@ class ChannelPane(SoftwarePane):
     (PAGE_APPLIST,
      PAGE_APP_DETAILS,
      PAGE_APP_PURCHASE) = range(3)
+     
+    __gsignals__ = {'channel-pane-created':(gobject.SIGNAL_RUN_FIRST,
+                                            gobject.TYPE_NONE,
+                                            ())}
 
     def __init__(self, cache, db, distro, icons, datadir):
         # parent
@@ -60,15 +64,19 @@ class ChannelPane(SoftwarePane):
         self.current_appview_selection = None
         self.distro = get_distro()
         self.pane_name = _("Software Channels")
-        # UI
-        self._build_ui()
 
-    def _build_ui(self):
-        self.notebook.append_page(self.box_app_list, gtk.Label("channel"))
-        # details
-        self.notebook.append_page(self.scroll_details, gtk.Label("details"))
-        # purchase view
-        self.notebook.append_page(self.purchase_view, gtk.Label("purchase"))
+    def init_view(self):
+        if not self.view_initialized:
+            SoftwarePane.init_view(self)
+            self.notebook.append_page(self.box_app_list, gtk.Label("channel"))
+            # details
+            self.notebook.append_page(self.scroll_details, gtk.Label("details"))
+            # purchase view
+            self.notebook.append_page(self.purchase_view, gtk.Label("purchase"))
+            # now we are initialized
+            self.emit("channel-pane-created")
+            self.show_all()
+            self.view_initialized = True
 
     def _show_channel_overview(self):
         " helper that goes back to the overview page "
@@ -264,6 +272,7 @@ if __name__ == "__main__":
 
     win = gtk.Window()
     win.add(w)
+    w.init_view()
     win.set_size_request(400, 600)
     win.show_all()
 
