@@ -1,4 +1,4 @@
-software-center (3.1.9) UNRELEASED; urgency=low
+software-center (3.1.9) natty; urgency=low
 
   [ Gary Lasker ]
   * softwarecenter/view/purchaseview.py:
@@ -25,7 +25,7 @@ software-center (3.1.9) UNRELEASED; urgency=low
   * test/test_gui.py:
     - add test for reinstall previous purchase UI
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 22 Dec 2010 11:50:36 +0100
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 22 Dec 2010 14:08:46 +0100
 
 software-center (3.1.8) natty; urgency=low
 
