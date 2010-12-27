@@ -272,6 +272,7 @@ class BaseApp(SimpleGtkbuilderApp):
         self.status_spinner.show()
         #submit status spinner
         self.submit_spinner = gtk.Spinner()
+        self.submit_spinner.set_size_request(gtk.icon_size_lookup(gtk.ICON_SIZE_SMALL_TOOLBAR)[0], gtk.icon_size_lookup(gtk.ICON_SIZE_SMALL_TOOLBAR)[1])
         #submit error image
         self.submit_error_img = gtk.Image()
         self.submit_error_img.set_from_stock(gtk.STOCK_DIALOG_ERROR, gtk.ICON_SIZE_SMALL_TOOLBAR)
