@@ -202,6 +202,7 @@
                 <child>
                   <object class="GtkLabel" id="review_rules_label">
                     <property name="visible">True</property>
+                    <property name="xalign">0</property>
                     <property name="xpad">1</property>
                     <property name="label" translatable="yes">&lt;small&gt;Be brief and informative. Do not post bug reports&lt;/small&gt;</property>
                     <property name="use_markup">True</property>
@@ -232,7 +233,7 @@
           </packing>
         </child>
         <child>
-          <object class="GtkHBox" id="hbox1">
+          <object class="GtkHBox" id="status_hbox">
             <property name="visible">True</property>
             <child>
               <placeholder/>
@@ -240,6 +241,8 @@
             <child>
               <object class="GtkLabel" id="label_transmit_status">
                 <property name="visible">True</property>
+                <property name="xalign">0</property>
+                <property name="xpad">1</property>
               </object>
               <packing>
                 <property name="position">1</property>

@@ -270,6 +270,12 @@ class BaseApp(SimpleGtkbuilderApp):
         self.login_hbox.pack_start(self.status_spinner, False)
         self.login_hbox.reorder_child(self.status_spinner, 0)
         self.status_spinner.show()
+        #submit status spinner
+        self.submit_spinner = gtk.Spinner()
+        #submit error image
+        self.submit_error_img = gtk.Image()
+        self.submit_error_img.set_from_stock(gtk.STOCK_DIALOG_ERROR, gtk.ICON_SIZE_SMALL_TOOLBAR)
+                
 
     def run(self):
         # initially display a 'Connecting...' page
@@ -339,18 +345,43 @@ class BaseApp(SimpleGtkbuilderApp):
 
     def on_transmit_start(self, api, trans):
         self.action_area.set_sensitive(False)
-        # FIXME: add little spinner here
-        self.label_transmit_status.set_text(_("submitting review..."))
+        if (self._clear_status_imagery()):
+            self.status_hbox.pack_start(self.submit_spinner, False)
+            self.status_hbox.reorder_child(self.submit_spinner, 0)
+            self.submit_spinner.show()
+            self.submit_spinner.start()
+            self.label_transmit_status.set_text(_("Submitting Review..."))
 
     def on_transmit_success(self, api, trans):
         self.api.shutdown()
         self.quit()
 
     def on_transmit_failure(self, api, trans, error):
-        # FIXME: show little error symbol here
-        self.label_transmit_status.set_text(error)
-        self.action_area.set_sensitive(True)
+        if (self._clear_status_imagery()):
+            self.status_hbox.pack_start(self.submit_error_img, False)
+            self.status_hbox.reorder_child(self.submit_error_img, 0)
+            self.submit_error_img.show()
+            self.label_transmit_status.set_text(error)
+            self.action_area.set_sensitive(True)
 
+    def _clear_status_imagery(self):
+        #clears spinner or error image from dialog submission label before trying to display one or the other
+        try: 
+            result = self.status_hbox.query_child_packing(self.submit_spinner)
+            self.status_hbox.remove(self.submit_spinner)
+        except TypeError:
+            pass
+        
+        try: 
+            result = self.status_hbox.query_child_packing(self.submit_error_img)
+            self.status_hbox.remove(self.submit_error_img)
+        except TypeError:
+            pass
+        
+        return True
+        
+            
+            
 
 class SubmitReviewsApp(BaseApp):
     """ review a given application or package """
