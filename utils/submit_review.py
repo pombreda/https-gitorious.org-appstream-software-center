@@ -276,6 +276,8 @@ class BaseApp(SimpleGtkbuilderApp):
         #submit error image
         self.submit_error_img = gtk.Image()
         self.submit_error_img.set_from_stock(gtk.STOCK_DIALOG_ERROR, gtk.ICON_SIZE_SMALL_TOOLBAR)
+        #label size to prevent image or spinner from resizing
+        self.label_transmit_status.set_size_request(-1, gtk.icon_size_lookup(gtk.ICON_SIZE_SMALL_TOOLBAR)[1])
                 
 
     def run(self):
