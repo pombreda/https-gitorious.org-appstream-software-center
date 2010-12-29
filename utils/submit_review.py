@@ -393,6 +393,13 @@ class SubmitReviewsApp(BaseApp):
 
     STAR_SIZE = (32, 32)
     APP_ICON_SIZE = 48
+    #limits for text boxes and hurdles for indicator changes = (overall limit, limit to display warning, limit to change colour)
+    SUMMARY_CHAR_LIMITS = (80, 60, 70)
+    REVIEW_CHAR_LIMITS = (5000, 4900, 4950)
+    #alert label colours
+    REG_ALERT = gtk.gdk.color_parse("black")
+    WARN_ALERT = gtk.gdk.color_parse("orange")
+    ERR_ALERT = gtk.gdk.color_parse("red")
 
     def __init__(self, app, version, iconname, parent_xid, datadir):
         BaseApp.__init__(self, datadir, "submit_review.ui")
@@ -424,8 +431,9 @@ class SubmitReviewsApp(BaseApp):
         # title
         self.dialog_main.set_title(_("Review %s" % self.app.name))
 
-        self.review_summary_entry.connect('changed', self._on_mandatory_fields_changed)
+        self.review_summary_entry.connect('changed', self._on_mandatory_text_entry_changed)
         self.star_rating.connect('changed', self._on_mandatory_fields_changed)
+        
 
         # parent xid
         if parent_xid:
@@ -467,12 +475,38 @@ class SubmitReviewsApp(BaseApp):
 
     def _on_mandatory_fields_changed(self, widget):
         self._enable_or_disable_post_button()
+    
+    def _on_mandatory_text_entry_changed(self, widget):
+        self._check_character_count()
+        self._on_mandatory_fields_changed(widget)
+    
+    def _on_text_entry_changed(self, widget):
+        #FIXME: yet to build functionality to handle character counting in textview
+        pass
 
     def _enable_or_disable_post_button(self):
         if self.review_summary_entry.get_text() and self.star_rating.get_rating():
             self.review_post.set_sensitive(True)
         else:
             self.review_post.set_sensitive(False)
+    
+    def _check_character_count(self):
+        summary_chars = self.review_summary_entry.get_text_length()
+        
+        #decision whether to display char count warning label for summary
+        if summary_chars > self.SUMMARY_CHAR_LIMITS[1] - 1:
+            self.summary_char_label.set_text(str(self.SUMMARY_CHAR_LIMITS[0]-summary_chars))
+        else:
+            self.summary_char_label.set_text('')
+           
+        #decision whether to change warning label colour for summary
+        if summary_chars > self.SUMMARY_CHAR_LIMITS[0]:
+            self.summary_char_label.modify_fg(gtk.STATE_NORMAL, self.ERR_ALERT)
+        elif summary_chars > self.SUMMARY_CHAR_LIMITS[2]:
+            self.summary_char_label.modify_fg(gtk.STATE_NORMAL, self.WARN_ALERT)
+        else:
+            self.summary_char_label.modify_fg(gtk.STATE_NORMAL, self.REG_ALERT)
+
 
     def on_review_cancel_clicked(self, button):
         while gtk.events_pending():
