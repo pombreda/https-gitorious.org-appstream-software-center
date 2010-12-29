@@ -267,8 +267,9 @@ class BaseApp(SimpleGtkbuilderApp):
         self._login_successful = False
         # status spinner
         self.status_spinner = gtk.Spinner()
-        self.login_hbox.pack_start(self.status_spinner, False)
-        self.login_hbox.reorder_child(self.status_spinner, 0)
+        self.status_spinner.set_size_request(32,32)
+        self.login_spinner_vbox.pack_start(self.status_spinner, False)
+        self.login_spinner_vbox.reorder_child(self.status_spinner, 0)
         self.status_spinner.show()
         #submit status spinner
         self.submit_spinner = gtk.Spinner()
@@ -283,7 +284,7 @@ class BaseApp(SimpleGtkbuilderApp):
     def run(self):
         # initially display a 'Connecting...' page
         self.main_notebook.set_current_page(0)
-        self.login_status_label.set_markup('<big>%s</big>' % _("Signing in..."))
+        self.login_status_label.set_markup('<b><big>%s</big></b>' % _("Signing In"))
         self.status_spinner.start()
         self.dialog_main.show()
         # now run the loop

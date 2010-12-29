@@ -32,7 +32,7 @@
                     <property name="xscale">0</property>
                     <property name="yscale">0</property>
                     <child>
-                      <object class="GtkHBox" id="login_hbox">
+                      <object class="GtkVBox" id="login_spinner_vbox">
                         <property name="visible">True</property>
                         <child>
                           <placeholder/>
@@ -157,11 +157,7 @@
                   <object class="GtkLabel" id="summary_char_label">
                     <property name="visible">True</property>
                     <property name="xalign">1</property>
-                    <property name="label" translatable="yes">80</property>
                     <property name="single_line_mode">True</property>
-                    <attributes>
-                      <attribute name="foreground" value="#ffff00000000"/>
-                    </attributes>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -232,10 +228,6 @@
                       <object class="GtkLabel" id="review_char_label">
                         <property name="visible">True</property>
                         <property name="xalign">1</property>
-                        <property name="label" translatable="yes">5000</property>
-                        <attributes>
-                          <attribute name="foreground" value="#ffff00000000"/>
-                        </attributes>
                       </object>
                       <packing>
                         <property name="position">1</property>
@@ -306,7 +298,7 @@
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="use_stock">True</property>
-                <signal name="clicked" handler="on_button_cancel_clicked"/>
+                <signal name="clicked" handler="on_button_cancel_clicked" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -321,7 +313,7 @@
                 <property name="sensitive">False</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <signal name="clicked" handler="on_review_post_clicked"/>
+                <signal name="clicked" handler="on_review_post_clicked" swapped="no"/>
               </object>
               <packing>
                 <property name="expand">False</property>
