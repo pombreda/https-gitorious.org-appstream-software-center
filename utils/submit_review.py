@@ -394,12 +394,13 @@ class SubmitReviewsApp(BaseApp):
 
     STAR_SIZE = (32, 32)
     APP_ICON_SIZE = 48
-    #limits for text boxes and hurdles for indicator changes = (overall limit, limit to display warning, limit to change colour)
+    #character limits for text boxes and hurdles for indicator changes 
+    #   (overall field maximum, limit to display warning, limit to change colour)
     SUMMARY_CHAR_LIMITS = (80, 60, 70)
     REVIEW_CHAR_LIMITS = (5000, 4900, 4950)
-    REG_ALERT = gtk.gdk.color_parse("black")
-    WARN_ALERT = gtk.gdk.color_parse("orange")
-    ERR_ALERT = gtk.gdk.color_parse("red")
+    #alert colours for character warning labels
+    NORMAL_COLOUR = "000000"
+    ERROR_COLOUR = "FF0000"
 
     def __init__(self, app, version, iconname, parent_xid, datadir):
         BaseApp.__init__(self, datadir, "submit_review.ui")
@@ -498,14 +499,10 @@ class SubmitReviewsApp(BaseApp):
             self.summary_char_label.set_text(str(self.SUMMARY_CHAR_LIMITS[0]-summary_chars))
         else:
             self.summary_char_label.set_text('')
-           
-        #decision whether to change warning label colour for summary
-        if summary_chars > self.SUMMARY_CHAR_LIMITS[0]:
-            self.summary_char_label.modify_fg(gtk.STATE_NORMAL, self.ERR_ALERT)
-        elif summary_chars > self.SUMMARY_CHAR_LIMITS[2]:
-            self.summary_char_label.modify_fg(gtk.STATE_NORMAL, self.WARN_ALERT)
-        else:
-            self.summary_char_label.modify_fg(gtk.STATE_NORMAL, self.REG_ALERT)
+        
+        #call method to set label colour based on number of characters remaining
+        label_colour = self._get_fade_colour(self.NORMAL_COLOUR, self.ERROR_COLOUR, self.SUMMARY_CHAR_LIMITS[2], self.SUMMARY_CHAR_LIMITS[0], summary_chars)
+        self.summary_char_label.modify_fg(gtk.STATE_NORMAL, label_colour)
     
     def _check_review_character_count(self): 
         review_chars = self.review_buffer.get_char_count()
@@ -514,14 +511,56 @@ class SubmitReviewsApp(BaseApp):
             self.review_char_label.set_text(str(self.REVIEW_CHAR_LIMITS[0]-review_chars))
         else:
             self.review_char_label.set_text('')
-           
-        if review_chars > self.REVIEW_CHAR_LIMITS[0]:
-            self.review_char_label.modify_fg(gtk.STATE_NORMAL, self.ERR_ALERT)
-        elif review_chars > self.REVIEW_CHAR_LIMITS[2]:
-            self.review_char_label.modify_fg(gtk.STATE_NORMAL, self.WARN_ALERT)
+        
+        label_colour = self._get_fade_colour(self.NORMAL_COLOUR, self.ERROR_COLOUR, self.REVIEW_CHAR_LIMITS[2], self.REVIEW_CHAR_LIMITS[0], review_chars)
+        self.review_char_label.modify_fg(gtk.STATE_NORMAL, label_colour)
+        
+    #method takes two colours as well as a minimum and maximum value then fades one colour into the other based
+    #on the proportion of the current value between the min and max
+    def _get_fade_colour(self, full_col, empty_col, min, max, curr):
+        if curr > max:
+            return gtk.gdk.Color("#"+empty_col)
+        elif curr < min:
+            return gtk.gdk.Color("#"+full_col)
+        elif max == min:  #saves division by 0 later if same value was passed as min and max
+            return gtk.gdk.Color("#"+full_col)
         else:
-            self.review_char_label.modify_fg(gtk.STATE_NORMAL, self.REG_ALERT)
+            #distance between min and max values to fade colours
+            scale = max - min
+            #percentage to fade colour by, based on current number of chars
+            percentage = (curr - min) / float(scale)
+            
+            full_rgb = self._convert_html_to_rgb(full_col)
+            empty_rgb = self._convert_html_to_rgb(empty_col)
+            
+            #calc changes to each of the r g b values to get the faded colour
+            red_change = full_rgb[0] - empty_rgb[0]
+            green_change = full_rgb[1] - empty_rgb[1]
+            blue_change = full_rgb[2] - empty_rgb[2]
+            
+            new_red = int(full_rgb[0] - (percentage * red_change))
+            new_green = int(full_rgb[1] - (percentage * green_change))
+            new_blue = int(full_rgb[2] - (percentage * blue_change))
+
+            return_color = self._convert_rgb_to_html(new_red, new_green, new_blue)
+            
+            return gtk.gdk.Color("#"+return_color)
     
+    def _convert_html_to_rgb(self, html):
+        r = html[0:2]
+        g = html[2:4]
+        b = html[4:6]
+        return (int(r,16), int(g,16), int(b,16))
+    
+    def _convert_rgb_to_html(self, r, g, b):
+        html_r = "%X" % r
+        html_g = "%X" % g
+        html_b = "%X" % b
+        
+        if html_r == "0": html_r = "00"
+        if html_g == "0": html_g = "00"
+        if html_b == "0": html_b = "00"
+        return html_r + html_g + html_b
 
 
     def on_review_cancel_clicked(self, button):
