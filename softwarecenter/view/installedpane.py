@@ -23,6 +23,7 @@ import logging
 import os
 import sys
 import xapian
+import gobject
 
 from gettext import gettext as _
 
@@ -40,6 +41,10 @@ class InstalledPane(SoftwarePane):
 
     (PAGE_APPLIST,
      PAGE_APP_DETAILS) = range(2)
+     
+    __gsignals__ = {'installed-pane-created':(gobject.SIGNAL_RUN_FIRST,
+                                              gobject.TYPE_NONE,
+                                              ())}
 
     def __init__(self, cache, db, distro, icons, datadir):
         # parent
@@ -49,28 +54,32 @@ class InstalledPane(SoftwarePane):
         self.apps_filter.set_installed_only(True)
         self.current_appview_selection = None
         self.loaded = False
-        # UI
-        self._build_ui()
         self.pane_name = _("Installed Software")
         
-    def _build_ui(self):
-        self.navigation_bar.set_size_request(26, -1)
-        self.notebook.append_page(self.box_app_list, gtk.Label("installed"))
-        # details
-        self.notebook.append_page(self.scroll_details, gtk.Label("details"))
-        # initial refresh
-        self.apps_search_term = ""
+    def init_view(self):
+        if not self.view_initialized:
+            SoftwarePane.init_view(self)
+            self.navigation_bar.set_size_request(26, -1)
+            self.notebook.append_page(self.box_app_list, gtk.Label("installed"))
+            # details
+            self.notebook.append_page(self.scroll_details, gtk.Label("details"))
+            # initial refresh
+            self.apps_search_term = ""
+            # now we are initialized
+            self.emit("installed-pane-created")
+            self.show_all()
+            self.view_initialized = True
 
     def _show_installed_overview(self):
         " helper that goes back to the overview page "
-        self.navigation_bar.remove_id("details")
+        self.navigation_bar.remove_id(NAV_BUTTON_ID_DETAILS)
         self.notebook.set_current_page(self.PAGE_APPLIST)
         self.searchentry.show()
         
     def _clear_search(self):
         # remove the details and clear the search
         self.searchentry.clear()
-        self.navigation_bar.remove_id("search")
+        self.navigation_bar.remove_id(NAV_BUTTON_ID_SEARCH)
 
     def on_search_terms_changed(self, searchentry, terms):
         """callback when the search entry widget changes"""
@@ -82,7 +91,7 @@ class InstalledPane(SoftwarePane):
         self.notebook.set_current_page(self.PAGE_APPLIST)
     def on_db_reopen(self, db):
         self.refresh_apps()
-        self.app_details.refresh_app()
+        self.app_details_view.refresh_app()
         
     def on_navigation_search(self, pathbar, part):
         """ callback when the navigation button with id 'search' is clicked"""
@@ -115,7 +124,7 @@ class InstalledPane(SoftwarePane):
         self.current_appview_selection = app
         
     def display_search(self):
-        self.navigation_bar.remove_id("details")
+        self.navigation_bar.remove_id(NAV_BUTTON_ID_DETAILS)
         self.notebook.set_current_page(self.PAGE_APPLIST)
         model = self.app_view.get_model()
         if model:
@@ -156,14 +165,18 @@ class InstalledPane(SoftwarePane):
 
     def show_app(self, app):
         """ Display an application in the installed_pane """
-        self.navigation_bar.add_with_id(self.pane_name, self.on_navigation_list, "list", do_callback=False, animate=False)
+        self.navigation_bar.add_with_id(self.pane_name, 
+                                        self.on_navigation_list, 
+                                        NAV_BUTTON_ID_LIST, 
+                                        do_callback=False, 
+                                        animate=False)
         self.navigation_bar.remove_all(do_callback=False, animate=False) # do_callback and animate *must* both be false here
         details = app.get_details(self.db)
         self.navigation_bar.add_with_id(details.display_name,
                                         self.on_navigation_details,
-                                        "details",
+                                        NAV_BUTTON_ID_DETAILS,
                                         animate=False)
-        self.app_details.show_app(app)
+        self.app_details_view.show_app(app)
         self.app_view.emit("application-selected", app)
 
 if __name__ == "__main__":
@@ -221,6 +234,7 @@ if __name__ == "__main__":
 
     win = gtk.Window()
     win.add(w)
+    w.init_view()
     win.set_size_request(400, 600)
     win.show_all()
 

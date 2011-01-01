@@ -49,17 +49,12 @@ class AvailablePane(SoftwarePane):
        It contains a search entry and navigation buttons
     """
 
+    # notebook pages
     (PAGE_CATEGORY,
      PAGE_SUBCATEGORY,
      PAGE_APPLIST,
-     PAGE_APP_DETAILS) = range(4)
-
-    # define ID values for the various buttons found in the navigation bar
-    NAV_BUTTON_ID_CATEGORY = "category"
-    NAV_BUTTON_ID_LIST     = "list"
-    NAV_BUTTON_ID_SUBCAT   = "subcat"
-    NAV_BUTTON_ID_DETAILS  = "details"
-    NAV_BUTTON_ID_SEARCH   = "search"
+     PAGE_APP_DETAILS,
+     PAGE_APP_PURCHASE) = range(5)
 
     # constant for use in action bar (see _update_action_bar)
     _INSTALL_BTN_ID = 0
@@ -80,6 +75,7 @@ class AvailablePane(SoftwarePane):
         # state
         self.apps_category = None
         self.apps_subcategory = None
+        self.previous_purchases_query = None
         self.apps_search_term = ""
         self.apps_limit = 0
         self.apps_filter = AppViewFilter(db, cache)
@@ -94,82 +90,87 @@ class AvailablePane(SoftwarePane):
         # install backend
         self.backend.connect("transactions-changed",
                              self._on_transactions_changed)
-        # UI
-        self._build_ui()
 
-    def _build_ui(self):
-        # categories, appview and details into the notebook in the bottom
-        self.scroll_categories = gtk.ScrolledWindow()
-        self.scroll_categories.set_policy(gtk.POLICY_AUTOMATIC, 
-                                        gtk.POLICY_AUTOMATIC)
-        self.cat_view = LobbyViewGtk(self.datadir, APP_INSTALL_PATH,
-                                       self.cache,
-                                       self.db,
-                                       self.icons,
-                                       self.apps_filter)
-        self.scroll_categories.add(self.cat_view)
-        self.notebook.append_page(self.scroll_categories, gtk.Label("categories"))
+    def init_view(self):
+        if not self.view_initialized:
+            SoftwarePane.init_view(self)
+            # categories, appview and details into the notebook in the bottom
+            self.scroll_categories = gtk.ScrolledWindow()
+            self.scroll_categories.set_policy(gtk.POLICY_AUTOMATIC, 
+                                            gtk.POLICY_AUTOMATIC)
+            self.cat_view = LobbyViewGtk(self.datadir, APP_INSTALL_PATH,
+                                           self.cache,
+                                           self.db,
+                                           self.icons,
+                                           self.apps_filter)
+            self.scroll_categories.add(self.cat_view)
+            self.notebook.append_page(self.scroll_categories, gtk.Label("categories"))
 
-        # sub-categories view
-        self.subcategories_view = SubCategoryViewGtk(self.datadir,
-                                                 APP_INSTALL_PATH,
-                                                 self.cache,
-                                                 self.db,
-                                                 self.icons,
-                                                 self.apps_filter,
-                                                 root_category=self.cat_view.categories[0])
-        self.subcategories_view.connect(
-            "category-selected", self.on_subcategory_activated)
-        self.subcategories_view.connect(
-            "show-category-applist", self.on_show_category_applist)
-        self.scroll_subcategories = gtk.ScrolledWindow()
-        self.scroll_subcategories.set_policy(
-            gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-        self.scroll_subcategories.add(self.subcategories_view)
-        self.notebook.append_page(self.scroll_subcategories,
-                                    gtk.Label(self.NAV_BUTTON_ID_SUBCAT))
+            # sub-categories view
+            self.subcategories_view = SubCategoryViewGtk(self.datadir,
+                                                     APP_INSTALL_PATH,
+                                                     self.cache,
+                                                     self.db,
+                                                     self.icons,
+                                                     self.apps_filter,
+                                                     root_category=self.cat_view.categories[0])
+            self.subcategories_view.connect(
+                "category-selected", self.on_subcategory_activated)
+            self.subcategories_view.connect(
+                "show-category-applist", self.on_show_category_applist)
+            self.scroll_subcategories = gtk.ScrolledWindow()
+            self.scroll_subcategories.set_policy(
+                gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+            self.scroll_subcategories.add(self.subcategories_view)
+            self.notebook.append_page(self.scroll_subcategories,
+                                        gtk.Label(NAV_BUTTON_ID_SUBCAT))
 
-        # add nav history back/forward buttons
-        if self.navhistory_back_action:
-            self.navhistory_back_action.set_sensitive(False)
-        if self.navhistory_forward_action:
-            self.navhistory_forward_action.set_sensitive(False)
-        # note:  this is hacky, would be much nicer to make the custom self/right
-        # buttons in BackForwardButton to be gtk.Activatable/gtk.Widgets, then wire in the
-        # actions using e.g. self.navhistory_back_action.connect_proxy(self.back_forward.left),
-        # but couldn't seem to get this to work..so just wire things up directly
-        self.back_forward = BackForwardButton()
-        self.back_forward.connect("left-clicked", self.on_nav_back_clicked)
-        self.back_forward.connect("right-clicked", self.on_nav_forward_clicked)
-        self.top_hbox.pack_start(self.back_forward, expand=False)
-        # nav buttons first in the panel
-        self.top_hbox.reorder_child(self.back_forward, 0)
-        if self.navhistory_back_action and self.navhistory_forward_action:
-            self.nav_history = NavigationHistory(self,
-                                                 self.back_forward,
-                                                 self.navhistory_back_action,
-                                                 self.navhistory_forward_action)
+            # add nav history back/forward buttons
+            if self.navhistory_back_action:
+                self.navhistory_back_action.set_sensitive(False)
+            if self.navhistory_forward_action:
+                self.navhistory_forward_action.set_sensitive(False)
+            # note:  this is hacky, would be much nicer to make the custom self/right
+            # buttons in BackForwardButton to be gtk.Activatable/gtk.Widgets, then wire in the
+            # actions using e.g. self.navhistory_back_action.connect_proxy(self.back_forward.left),
+            # but couldn't seem to get this to work..so just wire things up directly
+            self.back_forward = BackForwardButton()
+            self.back_forward.connect("left-clicked", self.on_nav_back_clicked)
+            self.back_forward.connect("right-clicked", self.on_nav_forward_clicked)
+            self.top_hbox.pack_start(self.back_forward, expand=False)
+            # nav buttons first in the panel
+            self.top_hbox.reorder_child(self.back_forward, 0)
+            if self.navhistory_back_action and self.navhistory_forward_action:
+                self.nav_history = NavigationHistory(self,
+                                                     self.back_forward,
+                                                     self.navhistory_back_action,
+                                                     self.navhistory_forward_action)
 
-        # app list
-        self.notebook.append_page(self.box_app_list,
-                                    gtk.Label(self.NAV_BUTTON_ID_LIST))
+            # app list
+            self.notebook.append_page(self.box_app_list,
+                                        gtk.Label(NAV_BUTTON_ID_LIST))
 
-        self.cat_view.connect("category-selected", self.on_category_activated)
-        self.cat_view.connect("application-selected", self.on_application_selected)
-        self.cat_view.connect("application-activated", self.on_application_activated)
+            self.cat_view.connect("category-selected", self.on_category_activated)
+            self.cat_view.connect("application-selected", self.on_application_selected)
+            self.cat_view.connect("application-activated", self.on_application_activated)
 
-        # details
-        self.notebook.append_page(self.scroll_details, gtk.Label(self.NAV_BUTTON_ID_DETAILS))
+            # details
+            self.notebook.append_page(self.scroll_details, gtk.Label(NAV_BUTTON_ID_DETAILS))
 
-        # set status text
-        self._update_status_text(len(self.db))
+            # purchase view
+            self.notebook.append_page(self.purchase_view, gtk.Label(NAV_BUTTON_ID_PURCHASE))
+        
+            # set status text
+            self._update_status_text(len(self.db))
 
-        # home button
-        self.navigation_bar.add_with_id(self.pane_name,
-                                        self.on_navigation_category,
-                                        self.NAV_BUTTON_ID_CATEGORY,
-                                        do_callback=True,
-                                        animate=False)
+            # home button
+            self.navigation_bar.add_with_id(self.pane_name,
+                                            self.on_navigation_category,
+                                            NAV_BUTTON_ID_CATEGORY,
+                                            do_callback=True,
+                                            animate=False)
+            # now we are initialized
+            self.view_initialized = True
 
     def get_query(self):
         """helper that gets the query for the current category/search mode"""
@@ -215,7 +216,7 @@ class AvailablePane(SoftwarePane):
             cat =  self.apps_category.name
             self.navigation_bar.add_with_id(cat,
                                             self.on_navigation_list,
-                                            self.NAV_BUTTON_ID_LIST, 
+                                            NAV_BUTTON_ID_LIST, 
                                             do_callback=True, 
                                             animate=True)
 
@@ -226,7 +227,7 @@ class AvailablePane(SoftwarePane):
                 tail_label = _("Search Results")
             self.navigation_bar.add_with_id(tail_label,
                                             self.on_navigation_search,
-                                            self.NAV_BUTTON_ID_SEARCH, 
+                                            NAV_BUTTON_ID_SEARCH, 
                                             do_callback=True,
                                             animate=True)
 
@@ -400,7 +401,7 @@ class AvailablePane(SoftwarePane):
         self.apps_limit = 0
         self.apps_search_term = ""
         self.custom_list_mode = False
-        self.navigation_bar.remove_id(self.NAV_BUTTON_ID_SEARCH)
+        self.navigation_bar.remove_id(NAV_BUTTON_ID_SEARCH)
 
     @wait_for_apt_cache_ready
     def show_app(self, app):
@@ -421,16 +422,20 @@ class AvailablePane(SoftwarePane):
         self.navigation_bar.remove_all(animate=False) # animate *must* be false here
         if cat_of_app:
             self.apps_category = cat_of_app
-            self.navigation_bar.add_with_id(cat_of_app.name, self.on_navigation_list, "list", do_callback=False, animate=True)
+            self.navigation_bar.add_with_id(cat_of_app.name, 
+                                            self.on_navigation_list,
+                                            NAV_BUTTON_ID_LIST,
+                                            do_callback=False,
+                                            animate=True)
         else:
             self.apps_category = Category("deb", "deb", None, None, False, True, None)
         self.current_app_by_category[self.apps_category] = app
         details = app.get_details(self.db)
         self.navigation_bar.add_with_id(details.display_name,
                                         self.on_navigation_details,
-                                        "details",
+                                        NAV_BUTTON_ID_DETAILS,
                                         animate=True)
-        self.app_details.show_app(app)
+        self.app_details_view.show_app(app)
         self.display_details()
 
     # callbacks
@@ -482,7 +487,7 @@ class AvailablePane(SoftwarePane):
         " called when the database is reopened"
         #print "on_db_open"
         self.refresh_apps()
-        self.app_details.refresh_app()
+        self.app_details_view.refresh_app()
 
     def display_category(self):
         self._clear_search()
@@ -491,7 +496,8 @@ class AvailablePane(SoftwarePane):
         return
 
     def display_search(self):
-        self.navigation_bar.remove_id(self.NAV_BUTTON_ID_DETAILS)
+        self.navigation_bar.remove_id(NAV_BUTTON_ID_DETAILS)
+        self.navigation_bar.remove_id(NAV_BUTTON_ID_PURCHASE)
         self.notebook.set_current_page(self.PAGE_APPLIST)
         if self.app_view.get_model():
             list_length = len(self.app_view.get_model())
@@ -500,8 +506,9 @@ class AvailablePane(SoftwarePane):
         return
 
     def display_list(self):
-        self.navigation_bar.remove_id(self.NAV_BUTTON_ID_SUBCAT)
-        self.navigation_bar.remove_id(self.NAV_BUTTON_ID_DETAILS)
+        self.navigation_bar.remove_id(NAV_BUTTON_ID_SUBCAT)
+        self.navigation_bar.remove_id(NAV_BUTTON_ID_DETAILS)
+        self.navigation_bar.remove_id(NAV_BUTTON_ID_PURCHASE)
 
         if self.apps_subcategory:
             self.apps_subcategory = None
@@ -524,7 +531,8 @@ class AvailablePane(SoftwarePane):
             self._clear_search()
             self.refresh_apps()
         self.set_category(self.apps_subcategory)
-        self.navigation_bar.remove_id(self.NAV_BUTTON_ID_DETAILS)
+        self.navigation_bar.remove_id(NAV_BUTTON_ID_DETAILS)
+        self.navigation_bar.remove_id(NAV_BUTTON_ID_PURCHASE)
         self.notebook.set_current_page(self.PAGE_SUBCATEGORY)
         # do not emit app-list-changed here, this is done async when
         # the new model is ready
@@ -534,7 +542,31 @@ class AvailablePane(SoftwarePane):
         return
 
     def display_details(self):
+        self.navigation_bar.remove_id(NAV_BUTTON_ID_PURCHASE)
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
+        self.searchentry.hide()
+        self.action_bar.clear()
+        self.cat_view.stop_carousels()
+        # we want to re-enable the buy button if this is an app for purchase
+        # FIXME:  hacky, find a better approach
+        if self.app_details_view.action_bar.button.get_label() == _(u'Buy\u2026'):
+            self.app_details_view.action_bar.button.set_sensitive(True)
+        return
+        
+    def display_purchase(self):
+        self.notebook.set_current_page(self.PAGE_APP_PURCHASE)
+        self.searchentry.hide()
+        self.action_bar.clear()
+        self.cat_view.stop_carousels()
+        return
+        
+    def display_previous_purchases(self):
+        self.nonapps_visible = AppStore.NONAPPS_ALWAYS_VISIBLE
+        self.navigation_bar.remove_id(NAV_BUTTON_ID_DETAILS)
+        self.notebook.set_current_page(self.PAGE_APPLIST)
+        # do not emit app-list-changed here, this is done async when
+        # the new model is ready
+        self.refresh_apps(query=self.previous_purchases_query)
         self.searchentry.hide()
         self.action_bar.clear()
         self.cat_view.stop_carousels()
@@ -569,6 +601,18 @@ class AvailablePane(SoftwarePane):
         self.display_details()
         nav_item = NavigationItem(self, self.display_details)
         self.nav_history.navigate(nav_item)
+        
+    def on_navigation_purchase(self, pathbar, part):
+        """callback when the navigation button with id 'purchase' is clicked"""
+        self.display_purchase()
+        nav_item = NavigationItem(self, self.display_purchase)
+        self.nav_history.navigate(nav_item)
+        
+    def on_navigation_previous_purchases(self, pathbar, part):
+        """callback when the navigation button with id 'prev-purchases' is clicked"""
+        self.display_previous_purchases()
+        nav_item = NavigationItem(self, self.display_previous_purchases)
+        self.nav_history.navigate(nav_item)
 
     def on_subcategory_activated(self, cat_view, category):
         #print cat_view, name, query
@@ -576,7 +620,7 @@ class AvailablePane(SoftwarePane):
                 category.name, category))
         self.apps_subcategory = category
         self.navigation_bar.add_with_id(
-            category.name, self.on_navigation_subcategory, self.NAV_BUTTON_ID_SUBCAT)
+            category.name, self.on_navigation_subcategory, NAV_BUTTON_ID_SUBCAT)
 
     def on_category_activated(self, cat_view, category):
         """ callback when a category is selected """
@@ -603,6 +647,16 @@ class AvailablePane(SoftwarePane):
         
     def on_show_category_applist(self, widget):
         self._show_hide_subcategories(show_category_applist=True)
+        
+    def on_previous_purchases_activated(self, query):
+        """ called to activate the previous purchases view """
+        #print cat_view, name, query
+        LOG.debug("on_previous_purchases_activated with query: %s" % query)
+        self.previous_purchases_query = query
+        self.navigation_bar.remove_all(do_callback=False, animate=False)
+        self.navigation_bar.add_with_id(_("Previous Purchases"),
+                                          self.on_navigation_previous_purchases,
+                                          NAV_BUTTON_ID_PREV_PURCHASES)
 
     def is_category_view_showing(self):
         """ Return True if we are in the category page or if we display a
@@ -690,6 +744,7 @@ if __name__ == "__main__":
 
     win = gtk.Window()
     win.add(w)
+    w.init_view()
     win.set_size_request(500,400)
     win.show_all()
 

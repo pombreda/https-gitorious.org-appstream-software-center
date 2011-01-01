@@ -47,7 +47,12 @@ class ChannelPane(SoftwarePane):
     """
 
     (PAGE_APPLIST,
-     PAGE_APP_DETAILS) = range(2)
+     PAGE_APP_DETAILS,
+     PAGE_APP_PURCHASE) = range(3)
+     
+    __gsignals__ = {'channel-pane-created':(gobject.SIGNAL_RUN_FIRST,
+                                            gobject.TYPE_NONE,
+                                            ())}
 
     def __init__(self, cache, db, distro, icons, datadir):
         # parent
@@ -59,24 +64,31 @@ class ChannelPane(SoftwarePane):
         self.current_appview_selection = None
         self.distro = get_distro()
         self.pane_name = _("Software Channels")
-        # UI
-        self._build_ui()
 
-    def _build_ui(self):
-        self.notebook.append_page(self.box_app_list, gtk.Label("channel"))
-        # details
-        self.notebook.append_page(self.scroll_details, gtk.Label("details"))
+    def init_view(self):
+        if not self.view_initialized:
+            SoftwarePane.init_view(self)
+            self.notebook.append_page(self.box_app_list, gtk.Label("channel"))
+            # details
+            self.notebook.append_page(self.scroll_details, gtk.Label("details"))
+            # purchase view
+            self.notebook.append_page(self.purchase_view, gtk.Label("purchase"))
+            # now we are initialized
+            self.emit("channel-pane-created")
+            self.show_all()
+            self.view_initialized = True
 
     def _show_channel_overview(self):
         " helper that goes back to the overview page "
-        self.navigation_bar.remove_id("details")
+        self.navigation_bar.remove_id(NAV_BUTTON_ID_DETAILS)
+        self.navigation_bar.remove_id(NAV_BUTTON_ID_PURCHASE)
         self.notebook.set_current_page(self.PAGE_APPLIST)
         self.searchentry.show()
         
     def _clear_search(self):
         # remove the details and clear the search
         self.searchentry.clear()
-        self.navigation_bar.remove_id("search")
+        self.navigation_bar.remove_id(NAV_BUTTON_ID_SEARCH)
 
     def set_channel(self, channel):
         """
@@ -133,7 +145,7 @@ class ChannelPane(SoftwarePane):
     def on_db_reopen(self, db):
         LOG.debug("got db-reopen signal")
         self.refresh_apps()
-        self.app_details.refresh_app()
+        self.app_details_view.refresh_app()
 
     def on_navigation_search(self, button, part):
         """ callback when the navigation button with id 'search' is clicked"""
@@ -160,7 +172,23 @@ class ChannelPane(SoftwarePane):
         self.display_details()
     
     def display_details(self):
+        self.navigation_bar.remove_id(NAV_BUTTON_ID_PURCHASE)
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
+        self.searchentry.hide()
+        self.action_bar.clear()
+        # we want to re-enable the buy button if this is an app for purchase
+        # FIXME:  hacky, find a better approach
+        if self.app_details_view.action_bar.button.get_label() == _(u'Buy\u2026'):
+            self.app_details_view.action_bar.button.set_sensitive(True)
+        
+    def on_navigation_purchase(self, button, part):
+        """callback when the navigation button with id 'purchase' is clicked"""
+        if not button.get_active():
+            return
+        self.display_purchase()
+        
+    def display_purchase(self):
+        self.notebook.set_current_page(self.PAGE_APP_PURCHASE)
         self.searchentry.hide()
         self.action_bar.clear()
         
@@ -170,7 +198,8 @@ class ChannelPane(SoftwarePane):
         self.current_appview_selection = app
 
     def display_search(self):
-        self.navigation_bar.remove_id("details")
+        self.navigation_bar.remove_id(NAV_BUTTON_ID_DETAILS)
+        self.navigation_bar.remove_id(NAV_BUTTON_ID_PURCHASE)
         self.notebook.set_current_page(self.PAGE_APPLIST)
         model = self.app_view.get_model()
         if model:
@@ -243,6 +272,7 @@ if __name__ == "__main__":
 
     win = gtk.Window()
     win.add(w)
+    w.init_view()
     win.set_size_request(400, 600)
     win.show_all()
 

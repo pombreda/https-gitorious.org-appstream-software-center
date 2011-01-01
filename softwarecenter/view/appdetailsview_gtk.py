@@ -620,6 +620,10 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                                         gobject.TYPE_NONE,
                                         (gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT, str),
                                        ),
+                    'purchase-requested' : (gobject.SIGNAL_RUN_LAST,
+                                            gobject.TYPE_NONE,
+                                            (gobject.TYPE_PYOBJECT,
+                                             str,)),
                     }
 
 

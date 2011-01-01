@@ -1,4 +1,33 @@
-software-center (3.1.8) UNRELEASED; urgency=low
+software-center (3.1.9) natty; urgency=low
+
+  [ Gary Lasker ]
+  * softwarecenter/view/purchaseview.py:
+    - restore terms of service popup window
+  * softwarecenter/app.py,
+    softwarecenter/enums.py,
+    softwarecenter/view/availablepane.py,
+    softwarecenter/view/basepane.py,
+    softwarecenter/view/softwarepane.py,
+    softwarecenter/view/viewswitcher.py:
+    softwarecenter/view/channelpane.py,
+    softwarecenter/view/installedpane.py:
+    - re-implement reinstall previous purchases view as a subview
+      of the top-level Get Software view (LP: #628404) 
+    - use init_view to defer loading of the channel and installed
+      pane views, provides further startup time improvement
+
+  [ Michael Vogt ]
+  * merged lp:~aaronp/software-center/usc-605048:
+    Alters db update behaviour to stop 'rebuilding' window appearing while
+    xapian db is being updated on detecting an externally changed cache.
+    Instead, updates a new copy of the xapian db, then once finished,
+    renamed to be the new xapian db.
+  * test/test_gui.py:
+    - add test for reinstall previous purchase UI
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 22 Dec 2010 14:08:46 +0100
+
+software-center (3.1.8) natty; urgency=low
 
   [ Michael Vogt ]
   * softwarecenter/backend/restfulclient.py:
@@ -14,8 +43,26 @@ software-center (3.1.8) UNRELEASED; urgency=low
       not have a filter (LP: #690706)
   * softwarecenter/models/appstore.py:
     - enable threaded listviews 
+  * <many>:
+    - implement inline purchase flow (LP: #618817, LP: #625418) 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 15 Dec 2010 11:34:28 -0500
+  [ Kiwinote ]
+  * softwarecenter/view/appview.py:
+    - fix crash when switching from a specific channel in the available pane
+      to the same channel in the installed pane
+  * softwarecenter/view/historypane.py:
+    - use named arguments for history entries - thanks to dpm (LP: #690283)
+  * softwarecenter/view/pendingview.py:
+    - use a scrollbar when we have many transactions (LP: #642299)
+    - display progress for transactions
+  * po/POTFILES.in:
+    - mark softwarecenter/models/viewswitcherlist.py for translation
+  * data/ui/dialogs.py:
+    - don't mark " " strings as translatable (LP: #691082)
+  * debian/control:
+    - use correct Vcs-Bzr url (LP: #690906)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 21 Dec 2010 16:09:37 +0100
 
 software-center (3.1.7) natty; urgency=low
 

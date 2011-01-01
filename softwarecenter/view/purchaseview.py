@@ -2,6 +2,7 @@
 #
 # Authors:
 #  Michael Vogt
+#  Gary Lasker
 #
 # This program is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
@@ -24,13 +25,13 @@ import simplejson
 import sys
 import urllib
 import webkit
+import gobject
 
 from gettext import gettext as _
 
 from softwarecenter.backend import get_install_backend
-from softwarecenter.distro import get_distro
 
-import dialogs
+LOG = logging.getLogger(__name__)
 
 class ScrolledWebkitWindow(gtk.ScrolledWindow):
 
@@ -40,12 +41,15 @@ class ScrolledWebkitWindow(gtk.ScrolledWindow):
         settings = self.webkit.get_settings()
         settings.set_property("enable-plugins", False)
         self.webkit.show()
-        # put a scrolled arond it
+        # embed the webkit view in a scrolled window
         self.add(self.webkit)
         self.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
 
-class PurchaseDialog(gtk.Dialog):
-
+class PurchaseView(gtk.VBox):
+    """ 
+    View that displays the webkit-based UI for purchasing an item. 
+    """
+    
     LOADING_HTML = """
 <html>
 <head>
@@ -82,19 +86,39 @@ h1 {
 </html>
 """ % _("Connecting to payment service...")
 
-    def __init__(self, app, iconname, url=None, html=None):
-        gtk.Dialog.__init__(self)
-        self.set_title("")
+    __gsignals__ = {
+         'purchase-succeeded' : (gobject.SIGNAL_RUN_LAST,
+                                 gobject.TYPE_NONE,
+                                 ()),
+         'purchase-failed'    : (gobject.SIGNAL_RUN_LAST,
+                                 gobject.TYPE_NONE,
+                                 ()),
+         'purchase-cancelled-by-user' : (gobject.SIGNAL_RUN_LAST,
+                                         gobject.TYPE_NONE,
+                                         ()),
+    }
+
+    def __init__(self):
+        gtk.VBox.__init__(self)
+        self.wk = None
+
+    def init_view(self):
+        if self.wk is None:
+            self.wk = ScrolledWebkitWindow()
+            self.wk.webkit.connect("create-web-view", 
+                                   self._on_create_webview_request)
+            # a possible way to do IPC (script or title change)
+            self.wk.webkit.connect("script-alert", self._on_script_alert)
+            self.wk.webkit.connect("title-changed", self._on_title_changed)
+            
+    def initiate_purchase(self, app, iconname, url=None, html=None):
+        """
+        initiates the purchase workflow inside the embedded webkit window
+        for the item specified       
+        """
+        self.init_view()
         self.app = app
         self.iconname = iconname
-        self.set_property('skip-taskbar-hint', True)
-        self.set_size_request(640, 400)
-        self.wk = ScrolledWebkitWindow()
-        self.wk.webkit.connect("create-web-view", 
-                               self._on_create_webview_request)
-        # a possible way to do IPC (script or title change)
-        self.wk.webkit.connect("script-alert", self._on_script_alert)
-        self.wk.webkit.connect("title-changed", self._on_title_changed)
         self.wk.webkit.load_html_string(self.LOADING_HTML, "file:///")
         self.wk.show()
         while gtk.events_pending():
@@ -105,30 +129,25 @@ h1 {
             self.wk.webkit.load_html_string(html, "file:///")
         else:
             self.wk.webkit.load_html_string(DUMMY_HTML, "file:///")
-        self.vbox.pack_start(self.wk)
-        self.distro = get_distro()
+        self.pack_start(self.wk)
         # only for debugging
         if os.environ.get("SOFTWARE_CENTER_DEBUG_BUY"):
             glib.timeout_add_seconds(1, _generate_events, self)
-
+        
     def _on_create_webview_request(self, view, frame, parent=None):
-        logging.debug("_on_create_webview_request")
+        LOG.debug("_on_create_webview_request")
         popup = gtk.Dialog()
         popup.set_size_request(750,400)
         popup.set_title("")
         popup.set_modal(True)
-        popup.set_transient_for(self)
+        popup.set_transient_for(None)
         wk = ScrolledWebkitWindow()
         wk.show()
         popup.vbox.pack_start(wk)
         popup.show()
         return wk.webkit
 
-    def run(self):
-        return gtk.Dialog.run(self)
-
     def _on_script_alert(self, view, frame, message):
-        print "on_script_alert", view, frame, message
         self._process_json(message)
         # stop further processing to avoid actually showing the alter
         return True
@@ -140,38 +159,33 @@ h1 {
 
     def _process_json(self, json_string):
         try:
+            LOG.debug("server returned: '%s'" % json_string)
             res = simplejson.loads(json_string)
             #print res
         except:
-            logging.debug("error processing json: '%s'" % json_string)
+            LOG.debug("error processing json: '%s'" % json_string)
             return
         if res["successful"] == False:
-            self.hide()
             if res.get("user_canceled", False):
-                # no need to show anything, the user did the
-                # cancel
-                pass
+                self.emit("purchase-cancelled-by-user")
+                return
             # this is what the agent implements
             elif "failures" in res:
-                logging.error("the server returned a error: '%s'" % res["failures"])
+                LOG.error("the server returned a error: '%s'" % res["failures"])
             # show a generic error, the "failures" string we get from the
             # server is way too technical to show, but we do log it
-            dialogs.error(self,
-                          _("Failure in the purchase process."),
-                          _("Sorry, something went wrong. Your payment "
-                            "has been canceled."))
-            self.response(gtk.RESPONSE_CANCEL)
+            self.emit("purchase-failed")
             return
-
-        self.response(gtk.RESPONSE_OK)
-        # gather data from response
-        deb_line = res["deb_line"]
-        signing_key_id = res["signing_key_id"]
-        # add repo and key
-        get_install_backend().add_repo_add_key_and_install_app(deb_line,
-                                                               signing_key_id,
-                                                               self.app,
-                                                               self.iconname)
+        else:
+            self.emit("purchase-succeeded")
+            # gather data from response
+            deb_line = res["deb_line"]
+            signing_key_id = res["signing_key_id"]
+            # add repo and key
+            get_install_backend().add_repo_add_key_and_install_app(deb_line,
+                                                                   signing_key_id,
+                                                                   self.app,
+                                                                   self.iconname)
 
 # just used for testing --------------------------------------------
 DUMMY_HTML = """
@@ -211,7 +225,7 @@ DUMMY_HTML = """
     """
 
 # synthetic key event generation
-def _send_keys(dialog, s):
+def _send_keys(view, s):
     print "_send_keys", s
     MAPPING = { '@'     : 'at',
                 '.'     : 'period',
@@ -225,7 +239,7 @@ def _send_keys(dialog, s):
     
     for key in s:
         event = gtk.gdk.Event(gtk.gdk.KEY_PRESS)
-        event.window = dialog.window
+        event.window = view.window
         if key.isdigit():
             key = "_"+key
         if hasattr(gtk.keysyms, key):
@@ -248,23 +262,24 @@ STATES = [ ('login', 'Log in', LOGIN+"\t"),
            ('confirm-payment', 'title-the-same-as-before', '\t\n'),
            ('end-state', 'no-title', ''),
          ]
-def _generate_events(dialog):
+def _generate_events(view):
     global STATES
 
     (state, title, keys) = STATES[0]
 
     print "_generate_events: in state", state
 
-    current_title = dialog.wk.webkit.get_property("title")
+    current_title = view.wk.webkit.get_property("title")
     if current_title and current_title.startswith(title):
         print "found state", state
-        _send_keys(dialog, keys)
+        _send_keys(view, keys)
         STATES.pop(0)
 
     return True
 
-def _on_key_press(dialog, event):
-    print event, event.keyval
+#     # for debugging only    
+#    def _on_key_press(dialog, event):
+#        print event, event.keyval
 
 if __name__ == "__main__":
     #url = "http://www.animiertegifs.de/java-scripts/alertbox.php"
@@ -280,9 +295,19 @@ if __name__ == "__main__":
     # use cmdline if available
     if len(sys.argv) > 1:
         url = sys.argv[1]
-    d = PurchaseDialog(app=None, iconname=None, url=url)
     # useful for debugging
     #d.connect("key-press-event", _on_key_press)
     #glib.timeout_add_seconds(1, _generate_events, d)
-    d.run()
     
+    widget = PurchaseView()
+    widget.initiate_purchase(app=None, iconname=None, html=DUMMY_HTML)
+
+    window = gtk.Window()
+    window.add(widget)
+    window.set_size_request(600, 500)
+    window.set_position(gtk.WIN_POS_CENTER)
+    window.show_all()
+    window.connect('destroy', gtk.main_quit)
+
+    gtk.main()
+

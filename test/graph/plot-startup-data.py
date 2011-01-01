@@ -17,7 +17,12 @@ revno_to_times = {}
 for line in map(string.strip, open(fname)):
     if line.startswith("#") or line == "":
         continue
-    (revno, time) = line.split()
+    try:
+        (revno, time) = line.split()
+        time = float(time)
+    except:
+        #print "invalid line: '%s'" % line
+        continue
     if not revno in revno_to_times:
         revno_to_times[revno] = []
     revno_to_times[revno].append(float(time))

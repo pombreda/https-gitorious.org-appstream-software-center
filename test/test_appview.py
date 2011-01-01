@@ -64,15 +64,14 @@ class testAppStore(unittest.TestCase):
         db = xapian.Database("/var/lib/apt-xapian-index/index")
         query = xapian.Query("")
         enquire = xapian.Enquire(db)
-        enquire.set_query(query)
+        # deduplicate (kill off) pkgs with desktop files
+        enquire.set_query(xapian.Query(xapian.Query.OP_AND_NOT, 
+                                       query, xapian.Query("XD")))
         valueno = self.db._axi_values["catalogedtime"]
-        
-        # FIXME: use MultiValueKeyMaker instead once we have python
-        #        bindings, sort by newness first and then by pkgname
-        sorter = xapian.MultiValueSorter()
+        sorter = xapian.MultiValueKeyMaker()
         # second arg is forward-sort
-        sorter.add(int(valueno), True)
-        sorter.add(XAPIAN_VALUE_PKGNAME)
+        sorter.add_value(int(valueno), False)
+        sorter.add_value(XAPIAN_VALUE_PKGNAME, True)
         enquire.set_sort_by_key(sorter)
 
         matches = enquire.get_mset(0, 20)
