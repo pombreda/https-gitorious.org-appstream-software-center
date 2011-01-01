@@ -25,10 +25,12 @@ import logging
 import os
 import simplejson
 import string
+import shutil
 import sys
 import time
 import urllib
 import xapian
+
 
 from ConfigParser import RawConfigParser, NoOptionError
 from gettext import gettext as _
@@ -592,15 +594,39 @@ def index_app_info_from_parser(parser, db, cache):
 
 def rebuild_database(pathname):
     cache = apt.Cache(memonly=True)
+    old_path = pathname+"_old"
+    rebuild_path = pathname+"_rb"
+    
+    if not os.path.exists(rebuild_path):
+        try:
+            os.makedirs(rebuild_path)
+        except:
+            LOG.warn("Problem creating rebuild path '%s'." % rebuild_path)
+            LOG.warn("Please check you have the relevant permissions.")
+            return False
+    
     # check permission
     if not os.access(pathname, os.W_OK):
         LOG.warn("Cannot write to '%s'." % pathname)
         LOG.warn("Please check you have the relevant permissions.")
         return False
+    
+    #check if old unrequired version of db still exists on filesystem
+    if os.path.exists(old_path):
+        LOG.warn("Existing xapian old db was not previously cleaned: '%s'." % old_path)
+        if os.access(old_path, os.W_OK):
+            #remove old unrequired db before beginning
+            shutil.rmtree(old_path)
+        else:
+            LOG.warn("Cannot write to '%s'." % old_path)
+            LOG.warn("Please check you have the relevant permissions.")
+            return False
+
+            
     # write it
-    db = xapian.WritableDatabase(pathname, xapian.DB_CREATE_OR_OVERWRITE)
+    db = xapian.WritableDatabase(rebuild_path, xapian.DB_CREATE_OR_OVERWRITE)
     update(db, cache)
-    # write the database version into the file
+    # write the database version into the filep
     db.set_metadata("db-schema-version", DB_SCHEMA_VERSION)
     # update the mo file stamp for the langpack checks
     mofile = gettext.find("app-install-data")
@@ -608,5 +634,9 @@ def rebuild_database(pathname):
         mo_time = os.path.getctime(mofile)
         db.set_metadata("app-install-mo-time", str(mo_time))
     db.flush()
+ 
+    os.rename(pathname, old_path)
+    os.rename(rebuild_path, pathname)
+    shutil.rmtree(old_path)
     return True
 

@@ -28,4 +28,4 @@ while [ $i -lt $LAST_BZR_REV ]; do
 done
 
 # plot it
-./plot-startup-date.py
+./plot-startup-data.py

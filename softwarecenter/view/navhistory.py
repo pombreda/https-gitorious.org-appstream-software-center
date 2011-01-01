@@ -145,7 +145,7 @@ class NavigationItem(object):
         available_pane.apps_search_term = self.apps_search_term
         available_pane.searchentry.set_text(self.apps_search_term)
         available_pane.searchentry.set_position(-1)
-        available_pane.app_details.show_app(self.current_app)
+        available_pane.app_details_view.show_app(self.current_app)
 
         nav_bar = self.available_pane.navigation_bar
         nav_bar.remove_all(do_callback=False, animate=False)
