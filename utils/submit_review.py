@@ -484,9 +484,10 @@ class SubmitReviewsApp(BaseApp):
     
     def _on_text_entry_changed(self, widget):
         self._check_review_character_count()
+        self._on_mandatory_fields_changed(widget)
         
     def _enable_or_disable_post_button(self):
-        if self.review_summary_entry.get_text() and self.star_rating.get_rating():
+        if self.review_summary_entry.get_text() and self.star_rating.get_rating() and self.review_buffer.get_char_count():
             self.review_post.set_sensitive(True)
         else:
             self.review_post.set_sensitive(False)
