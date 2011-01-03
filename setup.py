@@ -41,6 +41,17 @@ class PocketLint(distutils.cmd.Command):
         call(["pocketlint"]+py_files)
 
 
+def merge_authors_into_about_dialog():
+    fname="./data/ui/SoftwareCenter.ui"
+    authors = open("AUTHORS").read()
+    gtkbuilder = open(fname).read()
+    gtkbuilder = re.sub(r'<property name="authors">.*</property>',
+                        r'<property name="authors">%s</property>' % authors,
+                        gtkbuilder)
+    open(fname, "w").write(gtkbuilder)
+    
+
+
 # update version.py
 line = open("debian/changelog").readline()
 m = re.match("^[\w-]+ \(([\w\.~]+)\) ([\w-]+);", line)
@@ -59,6 +70,7 @@ RELEASE='%s'
 
 # update po4a
 if sys.argv[1] == "build":
+    merge_authors_into_about_dialog()
     call(["po4a", "po/help/po4a.conf"])
 
 # real setup
