@@ -4,6 +4,9 @@ software-center (3.1.10) UNRELEASED; urgency=low
   * include full AUTHORS info into the about dialog,
     based on the lp:~adnane002/software-center/fix.632770
     branch (LP: #632770)
+  * data/ui/SoftwareCenter.ui:
+    - add translator_credits (LP: #632770), thanks to 
+      Adnane Belmadiaf 
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 03 Jan 2011 14:15:47 +0100
 

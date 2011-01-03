@@ -411,6 +411,7 @@ Stuart Langridge - Javascript magic
 Tomeu Vizoso  - i18n fixes
 Zygmunt Krynicki - Coding, Fixes
 </property>
+    <property name="translator_credits" translatable="yes">translator-credits</property>
     <property name="logo_icon_name">softwarecenter</property>
     <child internal-child="vbox">
       <object class="GtkVBox" id="dialog-vbox1">
