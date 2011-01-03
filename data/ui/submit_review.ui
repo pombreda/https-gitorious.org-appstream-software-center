@@ -32,7 +32,7 @@
                     <property name="xscale">0</property>
                     <property name="yscale">0</property>
                     <child>
-                      <object class="GtkHBox" id="login_hbox">
+                      <object class="GtkVBox" id="login_spinner_vbox">
                         <property name="visible">True</property>
                         <child>
                           <placeholder/>
@@ -47,6 +47,7 @@
                             <property name="track_visited_links">False</property>
                           </object>
                           <packing>
+                            <property name="padding">8</property>
                             <property name="position">1</property>
                           </packing>
                         </child>
@@ -112,15 +113,12 @@
                   </packing>
                 </child>
                 <child>
-                  <placeholder/>
-                </child>
-                <child>
                   <object class="GtkLabel" id="review_whois_label">
                     <property name="xalign">0</property>
                     <property name="label" translatable="yes">label</property>
                   </object>
                   <packing>
-                    <property name="position">2</property>
+                    <property name="position">1</property>
                   </packing>
                 </child>
                 <child>
@@ -150,6 +148,17 @@
                         <property name="position">1</property>
                       </packing>
                     </child>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="position">2</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="summary_char_label">
+                    <property name="visible">True</property>
+                    <property name="xalign">1</property>
+                    <property name="single_line_mode">True</property>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -200,12 +209,31 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkLabel" id="review_rules_label">
+                  <object class="GtkHBox" id="under_textarea_hbox">
                     <property name="visible">True</property>
-                    <property name="xpad">1</property>
-                    <property name="label" translatable="yes">&lt;small&gt;Be brief and informative. Do not post bug reports&lt;/small&gt;</property>
-                    <property name="use_markup">True</property>
-                    <property name="wrap">True</property>
+                    <child>
+                      <object class="GtkLabel" id="review_rules_label">
+                        <property name="visible">True</property>
+                        <property name="xalign">0</property>
+                        <property name="xpad">1</property>
+                        <property name="label" translatable="yes">&lt;small&gt;Be brief and informative. Do not post bug reports&lt;/small&gt;</property>
+                        <property name="use_markup">True</property>
+                        <property name="wrap">True</property>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="review_char_label">
+                        <property name="visible">True</property>
+                        <property name="xalign">1</property>
+                      </object>
+                      <packing>
+                        <property name="position">1</property>
+                      </packing>
+                    </child>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -232,7 +260,7 @@
           </packing>
         </child>
         <child>
-          <object class="GtkHBox" id="hbox1">
+          <object class="GtkHBox" id="status_hbox">
             <property name="visible">True</property>
             <child>
               <placeholder/>
@@ -240,6 +268,11 @@
             <child>
               <object class="GtkLabel" id="label_transmit_status">
                 <property name="visible">True</property>
+                <property name="xalign">0</property>
+                <property name="xpad">5</property>
+                <attributes>
+                  <attribute name="weight" value="semibold"/>
+                </attributes>
               </object>
               <packing>
                 <property name="position">1</property>
