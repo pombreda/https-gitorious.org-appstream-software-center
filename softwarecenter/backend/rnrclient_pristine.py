@@ -77,7 +77,7 @@ class RatingsAndReviewsAPI(PistonAPI):
         data = {'reason': reason,
             'text': text,
         }
-        return self._post('%s/report-review/' % review_id, data=data),
+        return self._post('reviews/%s/report-review/' % review_id, data=data),
 
     @validate('review_id', int)
     @validate_pattern('useful', 'True|False')

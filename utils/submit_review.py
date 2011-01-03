@@ -273,7 +273,7 @@ class BaseApp(SimpleGtkbuilderApp):
         self.status_spinner.show()
         #submit status spinner
         self.submit_spinner = gtk.Spinner()
-        self.submit_spinner.set_size_request(gtk.icon_size_lookup(gtk.ICON_SIZE_SMALL_TOOLBAR)[0], gtk.icon_size_lookup(gtk.ICON_SIZE_SMALL_TOOLBAR)[1])
+        self.submit_spinner.set_size_request(*gtk.icon_size_lookup(gtk.ICON_SIZE_SMALL_TOOLBAR))
         #submit error image
         self.submit_error_img = gtk.Image()
         self.submit_error_img.set_from_stock(gtk.STOCK_DIALOG_ERROR, gtk.ICON_SIZE_SMALL_TOOLBAR)
@@ -350,7 +350,7 @@ class BaseApp(SimpleGtkbuilderApp):
 
     def on_transmit_start(self, api, trans):
         self.action_area.set_sensitive(False)
-        if (self._clear_status_imagery()):
+        if self._clear_status_imagery():
             self.status_hbox.pack_start(self.submit_spinner, False)
             self.status_hbox.reorder_child(self.submit_spinner, 0)
             self.submit_spinner.show()
@@ -362,7 +362,7 @@ class BaseApp(SimpleGtkbuilderApp):
         self.quit()
 
     def on_transmit_failure(self, api, trans, error):
-        if (self._clear_status_imagery()):
+        if self._clear_status_imagery():
             self.status_hbox.pack_start(self.submit_error_img, False)
             self.status_hbox.reorder_child(self.submit_error_img, 0)
             self.submit_error_img.show()
@@ -494,42 +494,44 @@ class SubmitReviewsApp(BaseApp):
     
     def _check_summary_character_count(self):
         summary_chars = self.review_summary_entry.get_text_length()
-        
-        #decision whether to display char count warning label for summary
         if summary_chars > self.SUMMARY_CHAR_LIMITS[1] - 1:
-            self.summary_char_label.set_text(str(self.SUMMARY_CHAR_LIMITS[0]-summary_chars))
+            markup = self._get_fade_colour_markup(
+                self.NORMAL_COLOUR, self.ERROR_COLOUR, 
+                self.SUMMARY_CHAR_LIMITS[2], self.SUMMARY_CHAR_LIMITS[0], 
+                summary_chars)
+            self.summary_char_label.set_markup(markup)
         else:
             self.summary_char_label.set_text('')
-        
-        #call method to set label colour based on number of characters remaining
-        label_colour = self._get_fade_colour(self.NORMAL_COLOUR, self.ERROR_COLOUR, self.SUMMARY_CHAR_LIMITS[2], self.SUMMARY_CHAR_LIMITS[0], summary_chars)
-        self.summary_char_label.modify_fg(gtk.STATE_NORMAL, label_colour)
     
     def _check_review_character_count(self): 
         review_chars = self.review_buffer.get_char_count()
-        
         if review_chars > self.REVIEW_CHAR_LIMITS[1] - 1:
-            self.review_char_label.set_text(str(self.REVIEW_CHAR_LIMITS[0]-review_chars))
+            markup = self._get_fade_colour_markup(
+                self.NORMAL_COLOUR, self.ERROR_COLOUR, 
+                self.REVIEW_CHAR_LIMITS[2], self.REVIEW_CHAR_LIMITS[0], 
+                review_chars) 
+            self.review_char_label.set_markup(markup)
         else:
             self.review_char_label.set_text('')
         
-        label_colour = self._get_fade_colour(self.NORMAL_COLOUR, self.ERROR_COLOUR, self.REVIEW_CHAR_LIMITS[2], self.REVIEW_CHAR_LIMITS[0], review_chars)
-        self.review_char_label.modify_fg(gtk.STATE_NORMAL, label_colour)
-        
-    #method takes two colours as well as a minimum and maximum value then fades one colour into the other based
-    #on the proportion of the current value between the min and max
-    def _get_fade_colour(self, full_col, empty_col, min, max, curr):
-        if curr > max:
-            return gtk.gdk.Color("#"+empty_col)
-        elif curr < min:
-            return gtk.gdk.Color("#"+full_col)
-        elif max == min:  #saves division by 0 later if same value was passed as min and max
-            return gtk.gdk.Color("#"+full_col)
+    def _get_fade_colour_markup(self, full_col, empty_col, cmin, cmax, curr):
+        """takes two colours as well as a minimum and maximum value then
+           fades one colour into the other based on the proportion of the
+           current value between the min and max
+           returns a pango color string
+        """
+        markup = '<span fgcolor="#%s">%s</span>'
+        if curr > cmax:
+            return markup % (empty_col, str(cmax-curr))
+        elif curr < cmin:
+            return markup % (full_col, str(cmax-curr))
+        elif cmax == cmin:  #saves division by 0 later if same value was passed as min and max
+            return markup % (full_col, str(cmax-curr))
         else:
             #distance between min and max values to fade colours
-            scale = max - min
+            scale = cmax - cmin
             #percentage to fade colour by, based on current number of chars
-            percentage = (curr - min) / float(scale)
+            percentage = (curr - cmin) / float(scale)
             
             full_rgb = self._convert_html_to_rgb(full_col)
             empty_rgb = self._convert_html_to_rgb(empty_col)
@@ -545,7 +547,7 @@ class SubmitReviewsApp(BaseApp):
 
             return_color = self._convert_rgb_to_html(new_red, new_green, new_blue)
             
-            return gtk.gdk.Color("#"+return_color)
+            return markup % (return_color, str(cmax-curr))
     
     def _convert_html_to_rgb(self, html):
         r = html[0:2]
