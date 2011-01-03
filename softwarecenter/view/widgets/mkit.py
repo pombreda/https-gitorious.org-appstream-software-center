@@ -1269,6 +1269,9 @@ class EtchedLabel(gtk.Label):
         if lh < a.height:
             y += int((a.height-lh)*ay)
 
+        xp, yp = self.get_padding()
+        x += xp
+
         pc.move_to(x, y)
         pc.layout_path(l)
         r,g,b = floats_from_gdkcolor(self.style.light[self.state])

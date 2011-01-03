@@ -966,8 +966,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
     #            self.installed_pane.loaded = False
      #           self.installed_pane.show_app(app)
       #      else:
-            self.view_switcher.set_view(VIEW_PAGE_AVAILABLE)
             self.available_pane.show_app(app)
+            self.view_switcher.set_view(VIEW_PAGE_AVAILABLE)
 
         if len(packages) > 1:
             # turn multiple packages into a search with ","

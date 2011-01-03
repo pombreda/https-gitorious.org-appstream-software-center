@@ -328,6 +328,7 @@ class AvailablePane(SoftwarePane):
         '''
         update buttons in the action bar
         '''
+        return
         appstore = self.app_view.get_model()
         if (appstore and
             self.custom_list_mode and 
@@ -412,8 +413,8 @@ class AvailablePane(SoftwarePane):
         #        as well
         for cat in CategoriesView.parse_applications_menu(self.cat_view, APP_INSTALL_PATH):
             if (not cat_of_app and 
-                cat.untranslated_name != "New Applications" and 
-                cat.untranslated_name != "Featured Applications"):
+                cat.flags != "lobby_only" and 
+                cat.flags != "lobby_only"):
                 if self.db.pkg_in_category(app.pkgname, cat.query):
                     cat_of_app = cat
                     continue

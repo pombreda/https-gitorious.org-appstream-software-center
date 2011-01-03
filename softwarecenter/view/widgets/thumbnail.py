@@ -134,16 +134,17 @@ class ScreenshotThumbnail(gtk.Alignment):
 
     def _on_key_press(self, widget, event):
         # react to spacebar, enter, numpad-enter
-        if (event.keyval in (gtk.keysyms.space, 
-                             gtk.keysyms.Return, 
-                             gtk.keysyms.KP_Enter) and 
-            self.get_is_actionable()):
+        if event.keyval in (gtk.keysyms.space, 
+                            gtk.keysyms.Return, 
+                            gtk.keysyms.KP_Enter) and self.get_is_actionable():
             self.set_state(gtk.STATE_ACTIVE)
         return
 
     def _on_key_release(self, widget, event):
         # react to spacebar, enter, numpad-enter
-        if event.keyval in (gtk.keysyms.space, gtk.keysyms.Enter, 65421) and self.get_is_actionable():
+        if event.keyval in (gtk.keysyms.space,
+                            gtk.keysyms.Return, 
+                            gtk.keysyms.KP_Enter) and self.get_is_actionable():
             self.set_state(gtk.STATE_NORMAL)
             self._show_image_dialog()
         return
@@ -177,7 +178,7 @@ class ScreenshotThumbnail(gtk.Alignment):
         else:
             # tip is image width
             tw = a.width
-            self._tip_layout.set_width(1024*tw-2*self._tip_xpadding)
+            self._tip_layout.set_width(1024*(tw-2*self._tip_xpadding))
 
         tx, ty = a.x+a.width-tw, a.y+a.height-th
 

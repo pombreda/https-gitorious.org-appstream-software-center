@@ -259,7 +259,7 @@ class SelectionCursor(Cursor):
 
 class TextBlock(gtk.EventBox):
 
-    PAINT_PRIMARY_CURSOR = True
+    PAINT_PRIMARY_CURSOR = False
     BULLET_POINT = u'  \u2022  '
 
     INFOCUS_NORM = 0
@@ -285,7 +285,7 @@ class TextBlock(gtk.EventBox):
         self._bullet.set_font_description(font_desc)
 
         self._xy = 0,0
-        self._max_width = 900
+#        self._max_width = 900
 
         self.indent, self.line_height = self._bullet.get_pixel_extents()[1][2:]
         self.order = []
@@ -332,7 +332,7 @@ class TextBlock(gtk.EventBox):
         width = self.allocation.width
         height = self.allocation.height
 
-        size = self.height_from_width(min(width, self._max_width))
+        size = self.height_from_width(width)
 
         if size != (width, height) or (x,y) != self._xy:
             self.set_size_request(*size)
@@ -832,8 +832,12 @@ class TextBlock(gtk.EventBox):
     def render(self, cr, a, expose_area):
         if not self.order: return
 
+
         for layout in self.order:
             la = layout.allocation
+            if not la.x or not la.y:
+                print 'Skipping draw'
+                return
 
             self._selection_highlight(layout,
                                       self.selection,
