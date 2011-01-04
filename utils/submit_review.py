@@ -287,7 +287,7 @@ class BaseApp(SimpleGtkbuilderApp):
         self.main_notebook.set_current_page(0)
         self.login_status_label.set_markup('<b><big>%s</big></b>' % _("Signing In"))
         self.status_spinner.start()
-        self.dialog_main.show()
+        self.submit_window.show()
         # now run the loop
         self.login()
 
@@ -310,7 +310,7 @@ class BaseApp(SimpleGtkbuilderApp):
         appname = _("Ubuntu Software Center")
         login_text = _("To review software or to report abuse you need to "
                        "sign in to a Ubuntu Single Sign-On account.")
-        self.sso = LoginBackendDbusSSO(self.dialog_main.window.xid, appname,
+        self.sso = LoginBackendDbusSSO(self.submit_window.window.xid, appname,
                                        login_text)
         self.sso.connect("login-successful", self._maybe_login_successful)
         self.sso.login_or_register()
@@ -349,7 +349,8 @@ class BaseApp(SimpleGtkbuilderApp):
         self.api.connect("transmit-failure", self.on_transmit_failure)
 
     def on_transmit_start(self, api, trans):
-        self.action_area.set_sensitive(False)
+        self.review_post.set_sensitive(False)
+        self.review_cancel.set_sensitive(False)
         if self._clear_status_imagery():
             self.status_hbox.pack_start(self.submit_spinner, False)
             self.status_hbox.reorder_child(self.submit_spinner, 0)
@@ -367,7 +368,8 @@ class BaseApp(SimpleGtkbuilderApp):
             self.status_hbox.reorder_child(self.submit_error_img, 0)
             self.submit_error_img.show()
             self.label_transmit_status.set_text(error)
-            self.action_area.set_sensitive(True)
+            self.review_post.set_sensitive(True)
+            self.review_cancel.set_sensitive(True)
 
     def _clear_status_imagery(self):
         #clears spinner or error image from dialog submission label before trying to display one or the other
@@ -408,7 +410,7 @@ class SubmitReviewsApp(BaseApp):
         # additional icons come from app-install-data
         self.icons = gtk.icon_theme_get_default()
         self.icons.append_search_path("/usr/share/app-install/icons/")
-        self.dialog_main.connect("destroy", self.on_button_cancel_clicked)
+        self.submit_window.connect("destroy", self.on_button_cancel_clicked)
         self._add_spellcheck_to_textview(self.textview_review)
 
         # interactive star rating
@@ -430,7 +432,7 @@ class SubmitReviewsApp(BaseApp):
         self.iconname = iconname
         
         # title
-        self.dialog_main.set_title(_("Review %s" % self.app.name))
+        self.submit_window.set_title(_("Review %s" % self.app.name))
 
         self.review_summary_entry.connect('changed', self._on_mandatory_text_entry_changed)
         self.star_rating.connect('changed', self._on_mandatory_fields_changed)
@@ -441,10 +443,10 @@ class SubmitReviewsApp(BaseApp):
         if parent_xid:
             win = gtk.gdk.window_foreign_new(int(parent_xid))
             if win:
-                self.dialog_main.realize()
-                self.dialog_main.window.set_transient_for(win)
+                self.submit_window.realize()
+                self.submit_window.window.set_transient_for(win)
 
-        self.dialog_main.set_position(gtk.WIN_POS_MOUSE)
+        self.submit_window.set_position(gtk.WIN_POS_MOUSE)
 
     def _setup_details(self, widget, app, iconname, version, display_name):
         # icon shazam
@@ -487,7 +489,11 @@ class SubmitReviewsApp(BaseApp):
         self._on_mandatory_fields_changed(widget)
         
     def _enable_or_disable_post_button(self):
-        if self.review_summary_entry.get_text() and self.star_rating.get_rating() and self.review_buffer.get_char_count():
+        summary_chars = self.review_summary_entry.get_text_length()
+        review_chars = self.review_buffer.get_char_count()
+        if (summary_chars and summary_chars < self.SUMMARY_CHAR_LIMITS[0] and
+            review_chars and review_chars < self.REVIEW_CHAR_LIMITS[0] and
+            self.star_rating.get_rating()):
             self.review_post.set_sensitive(True)
         else:
             self.review_post.set_sensitive(False)
@@ -587,7 +593,7 @@ class SubmitReviewsApp(BaseApp):
 
     def login_successful(self, display_name):
         self.main_notebook.set_current_page(1)
-        self._setup_details(self.dialog_main, self.app, self.iconname, self.version, display_name)
+        self._setup_details(self.submit_window, self.app, self.iconname, self.version, display_name)
         return
 
 
@@ -600,7 +606,7 @@ class ReportReviewApp(BaseApp):
 
     def __init__(self, review_id, parent_xid, datadir):
         BaseApp.__init__(self, datadir, "report_abuse.ui")
-        self.dialog_main.connect("destroy", self.on_button_cancel_clicked)
+        self.submit_window.connect("destroy", self.on_button_cancel_clicked)
 
         # status
         self._add_spellcheck_to_textview(self.textview_report)
@@ -613,16 +619,16 @@ class ReportReviewApp(BaseApp):
         self.review_id = review_id
 
         # title
-        self.dialog_main.set_title(_("Report an infringment"))
+        self.submit_window.set_title(_("Report an infringment"))
 
         # parent xid
         if parent_xid:
             win = gtk.gdk.window_foreign_new(int(parent_xid))
             if win:
-                self.dialog_main.realize()
-                self.dialog_main.window.set_transient_for(win)
+                self.submit_window.realize()
+                self.submit_window.window.set_transient_for(win)
         # mousepos
-        self.dialog_main.set_position(gtk.WIN_POS_MOUSE)
+        self.submit_window.set_position(gtk.WIN_POS_MOUSE)
         # simple APIs ftw!
         self.combobox_report_summary = gtk.combo_box_new_text()
         self.report_body_vbox.pack_start(self.combobox_report_summary, False)
@@ -674,7 +680,7 @@ class ReportReviewApp(BaseApp):
     def login_successful(self, display_name):
         self.main_notebook.set_current_page(1)
         #self.label_reporter.set_text(display_name)
-        self._setup_details(self.dialog_main, display_name)
+        self._setup_details(self.submit_window, display_name)
     
 if __name__ == "__main__":
     locale.setlocale(locale.LC_ALL, "")
