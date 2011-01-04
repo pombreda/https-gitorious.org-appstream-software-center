@@ -283,13 +283,13 @@
                 <property name="spacing">6</property>
                 <property name="layout_style">end</property>
                 <child>
-                  <object class="GtkButton" id="review_cancel">
+                  <object class="GtkButton" id="button_cancel">
                     <property name="label">gtk-cancel</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
                     <property name="use_stock">True</property>
-                    <signal name="clicked" handler="on_review_cancel_clicked" swapped="no"/>
+                    <signal name="clicked" handler="on_button_cancel_clicked" swapped="no"/>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -299,13 +299,13 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkButton" id="review_post">
+                  <object class="GtkButton" id="button_post">
                     <property name="label" translatable="yes">Publish</property>
                     <property name="visible">True</property>
                     <property name="sensitive">False</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
-                    <signal name="clicked" handler="on_review_post_clicked" swapped="no"/>
+                    <signal name="clicked" handler="on_button_post_clicked" swapped="no"/>
                   </object>
                   <packing>
                     <property name="expand">False</property>

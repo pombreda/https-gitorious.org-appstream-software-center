@@ -185,10 +185,11 @@ class Worker(threading.Thread):
             self._transmit_state = TRANSMIT_STATE_INPROGRESS
             (review_id, summary, text) = self.pending_reports.get()
             try:
-                self.rnrclient.flag_review(review_id=review_id,
-                                           reason=summary,
-                                           text=text)
+                res = self.rnrclient.flag_review(review_id=review_id,
+                                                 reason=summary,
+                                                 text=text)
                 self._transmit_state = TRANSMIT_STATE_DONE
+                sys.stdout.write(simplejson.dumps(res))
             except Exception as e:
                 logging.exception("flag_review failed")
                 self._write_exception_html_log_if_needed(e)
@@ -351,8 +352,8 @@ class BaseApp(SimpleGtkbuilderApp):
         self.api.connect("transmit-failure", self.on_transmit_failure)
 
     def on_transmit_start(self, api, trans):
-        self.review_post.set_sensitive(False)
-        self.review_cancel.set_sensitive(False)
+        self.button_post.set_sensitive(False)
+        self.button_cancel.set_sensitive(False)
         if self._clear_status_imagery():
             self.status_hbox.pack_start(self.submit_spinner, False)
             self.status_hbox.reorder_child(self.submit_spinner, 0)
@@ -370,8 +371,8 @@ class BaseApp(SimpleGtkbuilderApp):
             self.status_hbox.reorder_child(self.submit_error_img, 0)
             self.submit_error_img.show()
             self.label_transmit_status.set_text(error)
-            self.review_post.set_sensitive(True)
-            self.review_cancel.set_sensitive(True)
+            self.button_post.set_sensitive(True)
+            self.button_cancel.set_sensitive(True)
 
     def _clear_status_imagery(self):
         #clears spinner or error image from dialog submission label before trying to display one or the other
@@ -498,9 +499,9 @@ class SubmitReviewsApp(BaseApp):
         if (summary_chars and summary_chars < self.SUMMARY_CHAR_LIMITS[0] and
             review_chars and review_chars < self.REVIEW_CHAR_LIMITS[0] and
             self.star_rating.get_rating()):
-            self.review_post.set_sensitive(True)
+            self.button_post.set_sensitive(True)
         else:
-            self.review_post.set_sensitive(False)
+            self.button_post.set_sensitive(False)
     
     def _check_summary_character_count(self):
         summary_chars = self.review_summary_entry.get_text_length()
@@ -576,13 +577,13 @@ class SubmitReviewsApp(BaseApp):
         return html_r + html_g + html_b
 
 
-    def on_review_cancel_clicked(self, button):
+    def on_button_cancel_clicked(self, button):
         while gtk.events_pending():
             gtk.main_iteration()
         self.api.shutdown()
         self.quit()
 
-    def on_review_post_clicked(self, button):
+    def on_button_post_clicked(self, button):
         logging.debug("enter_review ok button")
         review = Review(self.app)
         text_buffer = self.textview_review.get_buffer()
@@ -646,9 +647,9 @@ class ReportReviewApp(BaseApp):
 
     def _enable_or_disable_report_button(self, buf):
         if buf.get_char_count() > 0:
-            self.report_post.set_sensitive(True)
+            self.button_post.set_sensitive(True)
         else:
-            self.report_post.set_sensitive(False)
+            self.button_post.set_sensitive(False)
 
     def _setup_details(self, widget, display_name):
         # dark color
@@ -665,7 +666,7 @@ class ReportReviewApp(BaseApp):
         self.report_summary_label.set_markup('<b><span color="%s">%s</span></b>' % (dark, _('Why is this review inappropriate?')))
         return
 
-    def on_report_post_clicked(self, button):
+    def on_button_post_clicked(self, button):
         logging.debug("report_abuse ok button")
         report_summary = self.combobox_report_summary.get_active_text()
         text_buffer = self.textview_report.get_buffer()
@@ -673,7 +674,7 @@ class ReportReviewApp(BaseApp):
                                            text_buffer.get_end_iter())
         self.api.report_abuse(self.review_id, report_summary, report_text)
 
-    def on_report_cancel_clicked(self, button):
+    def on_button_cancel_clicked(self, button):
         while gtk.events_pending():
             gtk.main_iteration()
         self.api.shutdown()

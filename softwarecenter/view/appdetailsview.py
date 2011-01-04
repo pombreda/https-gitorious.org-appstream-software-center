@@ -133,16 +133,13 @@ class AppDetailsViewBase(object):
               ]
         (pid, stdin, stdout, stderr) = glib.spawn_async(
             cmd, flags=glib.SPAWN_DO_NOT_REAP_CHILD, standard_output=True)
-        glib.child_watch_add(pid, self.on_report_abuse_finished, stdout)
+        glib.child_watch_add(pid, self.on_report_abuse_finished, review_id)
 
-    def on_report_abuse_finished(self, pid, status, stdout_fd):
+    def on_report_abuse_finished(self, pid, status, review_id):
         """ called when report_absuse finished """
-        stdout = ""
-        while True:
-            s = os.read(stdout_fd, 1024)
-            if not s: break
-            stdout += s
-        LOG.debug("stdout from report_abuse: '%s'" % stdout)
+        if os.WEXITSTATUS(status) == 0:
+            LOG.debug("hide id %s " % review_id)
+        
 
     def on_submit_review_finished(self, pid, status, stdout_fd):
         """ called when submit_review finished """
