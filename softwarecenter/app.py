@@ -435,6 +435,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
     def on_window_main_key_press_event(self, widget, event):
         if (event.keyval == gtk.gdk.keyval_from_name("BackSpace") and 
             self.active_pane and
+            hasattr(self.active_pane, 'navigation_bar') and
             not self.active_pane.searchentry.is_focus()):
             self.active_pane.navigation_bar.navigate_up()
         
