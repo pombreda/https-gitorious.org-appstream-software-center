@@ -36,13 +36,14 @@ import simplejson
 
 from multiprocessing import Process, Queue
 
-from softwarecenter.backend.rnrclient import RatingsAndReviewsAPI
+from softwarecenter.backend.rnrclient import RatingsAndReviewsAPI, ReviewDetails
 from softwarecenter.db.database import Application
 import softwarecenter.distro
 from softwarecenter.utils import *
 from softwarecenter.paths import *
+from softwarecenter.enums import *
 
-
+LOG = logging.getLogger(__name__)
 
 class ReviewStats(object):
     def __init__(self, app):
@@ -118,6 +119,46 @@ class ReviewLoader(object):
             os.makedirs(cachedir)
         cPickle.dump(self.REVIEW_STATS_CACHE,
                       open(self.REVIEW_STATS_CACHE_FILE, "w"))
+
+    # writing new reviews spawns external helper
+    # FIXME: instead of the callback we should add proper gobject signals
+    def spawn_write_new_review_ui(self, app, version, iconname, parent_xid, datadir, callback):
+        """ this spawns the UI for writing a new review and
+            adds it automatically to the reviews DB """
+        cmd = [os.path.join(datadir, SUBMIT_REVIEW_APP), 
+               "--pkgname", app.pkgname,
+               "--iconname", iconname,
+               "--parent-xid", "%s" % parent_xid,
+               "--version", version,
+               "--datadir", datadir,
+               ]
+        if app.appname:
+            cmd += ["--appname", app.appname]
+        (pid, stdin, stdout, stderr) = glib.spawn_async(
+            cmd, flags=glib.SPAWN_DO_NOT_REAP_CHILD, standard_output=True)
+        glib.child_watch_add(pid, self._on_submit_review_finished, (app, stdout, callback))
+
+    # internal callbacks
+    def _on_submit_review_finished(self, pid, status, (app, stdout_fd, callback)):
+        """ called when submit_review finished, when the review was send
+            successfully the callback is triggered with the new reviews
+        """
+        LOG.debug("_on_submit_review_finished")
+        # read stdout from submit_review
+        stdout = ""
+        while True:
+            s = os.read(stdout_fd, 1024)
+            if not s: break
+            stdout += s
+        LOG.debug("stdout from submit_review: '%s'" % stdout)
+        if os.WEXITSTATUS(status) == 0:
+            review_json = simplejson.loads(stdout)
+            review = ReviewDetails.from_dict(review_json)
+            if not app in self._reviews: 
+                self._reviews[app] = []
+            self._reviews[app].insert(0, review)
+            callback(app, self._reviews[app])
+
 
 # using multiprocessing here because threading interface was terrible
 # slow and full of latency

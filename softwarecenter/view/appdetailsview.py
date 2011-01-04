@@ -41,8 +41,6 @@ from softwarecenter.backend import get_install_backend
 from softwarecenter.enums import *
 from softwarecenter.utils import get_current_arch, get_parent_xid, get_default_language
 
-from softwarecenter.backend.rnrclient import RatingsAndReviewsAPI, ReviewRequest, ReviewDetails
-
 from purchasedialog import PurchaseDialog
 
 LOG=logging.getLogger(__name__)
@@ -107,23 +105,16 @@ class AppDetailsViewBase(object):
                             "be detected. Entering a review is not "
                             "possible."))
             return
-        # call out
+        # gather data
         pkg = self.cache[self.app.pkgname]
         version = pkg.candidate.version
         if pkg.installed:
             version = pkg.installed.version
-        cmd = [os.path.join(self.datadir, SUBMIT_REVIEW_APP), 
-               "--pkgname", self.app.pkgname,
-               "--iconname", self.appdetails.icon,
-               "--parent-xid", "%s" % get_parent_xid(self),
-               "--version", version,
-               "--datadir", self.datadir,
-               ]
-        if self.app.appname:
-            cmd += ["--appname", self.app.appname]
-        (pid, stdin, stdout, stderr) = glib.spawn_async(
-            cmd, flags=glib.SPAWN_DO_NOT_REAP_CHILD, standard_output=True)
-        glib.child_watch_add(pid, self.on_submit_review_finished, stdout)
+        # call the loader to do call out the right helper and collect the result
+        parent_xid = get_parent_xid(self)
+        self.review_loader.spawn_write_new_review_ui(
+            self.app, version, self.appdetails.icon, parent_xid, self.datadir,
+            self._reviews_ready_callback)
                          
     def _review_report_abuse(self, review_id):
         cmd = [os.path.join(self.datadir, REPORT_REVIEW_APP), 
@@ -139,23 +130,7 @@ class AppDetailsViewBase(object):
         """ called when report_absuse finished """
         if os.WEXITSTATUS(status) == 0:
             LOG.debug("hide id %s " % review_id)
-        
 
-    def on_submit_review_finished(self, pid, status, stdout_fd):
-        """ called when submit_review finished """
-        #print"on_submit_finished",  pid, os.WEXITSTATUS(status)
-        # read stdout from submit_review
-        stdout = ""
-        while True:
-            s = os.read(stdout_fd, 1024)
-            if not s: break
-            stdout += s
-        LOG.debug("stdout from submit_review: '%s'" % stdout)
-        if os.WEXITSTATUS(status) == 0:
-            review = simplejson.loads(stdout)
-            if hasattr(self, "reviews"):
-                self.reviews.add_review(ReviewDetails.from_dict(review))
-                self.reviews.finished()
 
     # public interface
     def reload(self):

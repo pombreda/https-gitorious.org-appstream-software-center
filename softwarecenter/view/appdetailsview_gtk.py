@@ -1355,6 +1355,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                                                  self._reviews_ready_callback)
 
     def _reviews_ready_callback(self, app, reviews):
+        """ callback when new reviews are ready, cleans out the
+            old ones
+        """
         logging.info("_review_ready_callback: %s" % app)
         # avoid possible race if we already moved to a new app when
         # the reviews become ready 
@@ -1362,6 +1365,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         #  software-center totem)
         if self.app.pkgname != app.pkgname:
             return
+        # clear out the old ones ...
+        self.reviews.clear()
+        # then add the new ones ...
         for review in reviews:
             self.reviews.add_review(review)
         self.reviews.finished()
