@@ -138,7 +138,22 @@ class ReviewLoader(object):
             cmd, flags=glib.SPAWN_DO_NOT_REAP_CHILD, standard_output=True)
         glib.child_watch_add(pid, self._on_submit_review_finished, (app, stdout, callback))
 
-    # internal callbacks
+    def spawn_report_abuse_ui(self, review_id, parent_xid, datadir, callback):
+        """ this spawns the UI for reporting a review as inappropriate
+            and adds the review-id to the internal hide list. once the
+            operation is complete it will call callback with the updated
+            review list
+        """
+        cmd = [os.path.join(datadir, REPORT_REVIEW_APP), 
+               "--review-id", review_id,
+               "--parent-xid", "%s" % parent_xid,
+               "--datadir", datadir,
+              ]
+        (pid, stdin, stdout, stderr) = glib.spawn_async(
+            cmd, flags=glib.SPAWN_DO_NOT_REAP_CHILD, standard_output=True)
+        glib.child_watch_add(pid, self._on_report_abuse_finished, (review_id, callback))
+
+    # internal callbacks/helpers
     def _on_submit_review_finished(self, pid, status, (app, stdout_fd, callback)):
         """ called when submit_review finished, when the review was send
             successfully the callback is triggered with the new reviews
@@ -158,6 +173,17 @@ class ReviewLoader(object):
                 self._reviews[app] = []
             self._reviews[app].insert(0, review)
             callback(app, self._reviews[app])
+
+    def _on_report_abuse_finished(self, pid, status, (review_id, callback)):
+        """ called when report_absuse finished """
+        if os.WEXITSTATUS(status) == 0:
+            LOG.debug("hide id %s " % review_id)
+            for (app, reviews) in self._reviews.iteritems():
+                for review in reviews:
+                    if str(review.id) == str(review_id):
+                        # remove the one we don't want to see anymore
+                        self._reviews[app].remove(review)
+                        callback(app, self._reviews[app])
 
 
 # using multiprocessing here because threading interface was terrible

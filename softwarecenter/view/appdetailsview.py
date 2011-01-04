@@ -117,20 +117,9 @@ class AppDetailsViewBase(object):
             self._reviews_ready_callback)
                          
     def _review_report_abuse(self, review_id):
-        cmd = [os.path.join(self.datadir, REPORT_REVIEW_APP), 
-               "--review-id", review_id,
-               "--parent-xid", "%s" % get_parent_xid(self),
-               "--datadir", self.datadir,
-              ]
-        (pid, stdin, stdout, stderr) = glib.spawn_async(
-            cmd, flags=glib.SPAWN_DO_NOT_REAP_CHILD, standard_output=True)
-        glib.child_watch_add(pid, self.on_report_abuse_finished, review_id)
-
-    def on_report_abuse_finished(self, pid, status, review_id):
-        """ called when report_absuse finished """
-        if os.WEXITSTATUS(status) == 0:
-            LOG.debug("hide id %s " % review_id)
-
+        parent_xid = get_parent_xid(self)
+        self.review_loader.spawn_report_abuse_ui(
+            review_id, parent_xid, self.datadir, self._reviews_ready_callback)
 
     # public interface
     def reload(self):
