@@ -279,8 +279,6 @@ class BaseApp(SimpleGtkbuilderApp):
         self.submit_error_img.set_from_stock(gtk.STOCK_DIALOG_ERROR, gtk.ICON_SIZE_SMALL_TOOLBAR)
         #label size to prevent image or spinner from resizing
         self.label_transmit_status.set_size_request(-1, gtk.icon_size_lookup(gtk.ICON_SIZE_SMALL_TOOLBAR)[1])
-        self.review_buffer = self.textview_review.get_buffer()
-                        
 
     def run(self):
         # initially display a 'Connecting...' page
@@ -425,6 +423,8 @@ class SubmitReviewsApp(BaseApp):
         self.review_summary_vbox.reorder_child(self.star_rating, 0)
         self.review_summary_vbox.pack_start(self.star_caption, False, False)
         self.review_summary_vbox.reorder_child(self.star_caption, 1)
+
+        self.review_buffer = self.textview_review.get_buffer()
 
         # data
         self.app = app
@@ -606,8 +606,6 @@ class ReportReviewApp(BaseApp):
 
     def __init__(self, review_id, parent_xid, datadir):
         BaseApp.__init__(self, datadir, "report_abuse.ui")
-        self.submit_window.connect("destroy", self.on_button_cancel_clicked)
-
         # status
         self._add_spellcheck_to_textview(self.textview_report)
 
