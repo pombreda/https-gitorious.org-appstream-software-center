@@ -183,12 +183,12 @@ class Worker(threading.Thread):
             self._transmit_state = TRANSMIT_STATE_INPROGRESS
             (review_id, summary, text) = self.pending_reports.get()
             try:
-                self.rnrclient.report_abuse(review_id=review_id,
-                                            reason=summary,
-                                            text=text)
+                self.rnrclient.flag_review(review_id=review_id,
+                                           reason=summary,
+                                           text=text)
                 self._transmit_state = TRANSMIT_STATE_DONE
             except Exception as e:
-                logging.exception("report_abuse failed")
+                logging.exception("flag_review failed")
                 self._write_exception_html_log_if_needed(e)
                 self._transmit_state = TRANSMIT_STATE_ERROR
                 self._transmit_error_str = _("Failed to submit report")

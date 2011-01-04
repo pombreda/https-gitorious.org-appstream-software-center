@@ -66,24 +66,25 @@ class RatingsAndReviewsAPI(PistonAPI):
     @returns_json
     def submit_review(self, review):
         """Submit a rating/review."""
-        return self._post('reviews/create/', data=review,
+        return self._post('reviews/', data=review,
             content_type='application/json')
 
     @validate('review_id', int)
     @validate_pattern('reason', r'[^\n]+')
     @validate_pattern('text', r'[^\n]+')
-    def report_abuse(self, review_id, reason, text):
+    @returns_json
+    def flag_review(self, review_id, reason, text):
         """Flag a review as being inappropriate"""
         data = {'reason': reason,
             'text': text,
         }
-        return self._post('reviews/%s/report-review/' % review_id, data=data),
+        return self._post('reviews/%s/flags/' % review_id, data=data)
 
     @validate('review_id', int)
     @validate_pattern('useful', 'True|False')
     @returns_json
     def submit_usefulness(self, review_id, useful):
         """Submit a usefulness vote."""
-        return self._post('/reviews/%s/usefulness/%s/' % (review_id, useful),
-            data={})
+        return self._post('/reviews/%s/recommendations/' % review_id,
+            data={'useful': useful})
 
