@@ -29,6 +29,8 @@ import gtk
 import locale
 import logging
 import os
+import pickle
+import simplejson
 import sys
 import tempfile
 import time
@@ -232,8 +234,10 @@ class Worker(threading.Thread):
             piston_review.origin = "ubuntu"
             piston_review.distroseries=distro.get_codename()
             try:
-                self.rnrclient.submit_review(review=piston_review)
+                res = self.rnrclient.submit_review(review=piston_review)
                 self._transmit_state = TRANSMIT_STATE_DONE
+                # output the resulting json so that the parent can read it
+                sys.stdout.write(simplejson.dumps(res))
             except Exception as e:
                 logging.exception("submit_review")
                 self._write_exception_html_log_if_needed(e)
@@ -696,7 +700,6 @@ if __name__ == "__main__":
 
     # run review personality
     if "submit_review" in sys.argv[0]:
-        print "submit_review mode"
         # check options
         parser.add_option("-a", "--appname")
         parser.add_option("-p", "--pkgname")
@@ -712,6 +715,9 @@ if __name__ == "__main__":
     
         if options.debug:
             logging.basicConfig(level=logging.DEBUG)                        
+
+        # personality
+        logging.debug("submit_review mode")
 
         # initialize and run
         theapp = Application(options.appname, options.pkgname)
@@ -737,6 +743,9 @@ if __name__ == "__main__":
     
         if options.debug:
             logging.basicConfig(level=logging.DEBUG)                        
+
+        # personality
+        logging.debug("report_abuse mode")
 
         # initialize and run
         report_app = ReportReviewApp(datadir=options.datadir,

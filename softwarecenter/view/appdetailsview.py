@@ -25,6 +25,7 @@ import logging
 import os
 import re
 import glib
+import simplejson
 import socket
 import string
 import subprocess
@@ -40,8 +41,11 @@ from softwarecenter.backend import get_install_backend
 from softwarecenter.enums import *
 from softwarecenter.utils import get_current_arch, get_parent_xid, get_default_language
 
+from softwarecenter.backend.rnrclient import RatingsAndReviewsAPI, ReviewRequest, ReviewDetails
 
 from purchasedialog import PurchaseDialog
+
+LOG=logging.getLogger(__name__)
 
 class AppDetailsViewBase(object):
 
@@ -71,7 +75,6 @@ class AppDetailsViewBase(object):
         self.review_loader = get_review_loader()
         # aptdaemon
         self.backend = get_install_backend()
-        self._logger = logging.getLogger(__name__)
         
     def _draw(self):
         """ draw the current app into the window, maybe the function
@@ -118,8 +121,9 @@ class AppDetailsViewBase(object):
                ]
         if self.app.appname:
             cmd += ["--appname", self.app.appname]
-        p = subprocess.Popen(cmd)
-        glib.child_watch_add(p.pid, self.on_submit_finished)
+        (pid, stdin, stdout, stderr) = glib.spawn_async(
+            cmd, flags=glib.SPAWN_DO_NOT_REAP_CHILD, standard_output=True)
+        glib.child_watch_add(pid, self.on_submit_review_finished, stdout)
                          
     def _review_report_abuse(self, review_id):
         cmd = [os.path.join(self.datadir, REPORT_REVIEW_APP), 
@@ -127,14 +131,34 @@ class AppDetailsViewBase(object):
                "--parent-xid", "%s" % get_parent_xid(self),
                "--datadir", self.datadir,
               ]
-        p = subprocess.Popen(cmd)
-        glib.child_watch_add(p.pid, self.on_submit_finished)
+        (pid, stdin, stdout, stderr) = glib.spawn_async(
+            cmd, flags=glib.SPAWN_DO_NOT_REAP_CHILD, standard_output=True)
+        glib.child_watch_add(pid, self.on_report_abuse_finished, stdout)
 
-    def on_submit_finished(self, pid, status):
-        """ called when submit_review or report_review finished """
-        print pid, os.WEXITSTATUS(status)
+    def on_report_abuse_finished(self, pid, status, stdout_fd):
+        """ called when report_absuse finished """
+        stdout = ""
+        while True:
+            s = os.read(stdout_fd, 1024)
+            if not s: break
+            stdout += s
+        LOG.debug("stdout from report_abuse: '%s'" % stdout)
+
+    def on_submit_review_finished(self, pid, status, stdout_fd):
+        """ called when submit_review finished """
+        #print"on_submit_finished",  pid, os.WEXITSTATUS(status)
+        # read stdout from submit_review
+        stdout = ""
+        while True:
+            s = os.read(stdout_fd, 1024)
+            if not s: break
+            stdout += s
+        LOG.debug("stdout from submit_review: '%s'" % stdout)
         if os.WEXITSTATUS(status) == 0:
-            self.refresh_app()
+            review = simplejson.loads(stdout)
+            if hasattr(self, "reviews"):
+                self.reviews.add_review(ReviewDetails.from_dict(review))
+                self.reviews.finished()
 
     # public interface
     def reload(self):
@@ -174,7 +198,7 @@ class AppDetailsViewBase(object):
 
     def reinstall_purchased(self):
         """ reinstall a purchased app """
-        self._logger.debug("reinstall_purchased %s" % self.app)
+        LOG.debug("reinstall_purchased %s" % self.app)
         appdetails = self.app.get_details(self.db)
         iconname = appdetails.icon
         deb_line = appdetails.deb_line
@@ -188,7 +212,7 @@ class AppDetailsViewBase(object):
     def _on_cache_ready(self, cache):
         # re-show the application if the cache changes, it may affect the
         # current application
-        self._logger.debug("on_cache_ready")
+        LOG.debug("on_cache_ready")
         self.show_app(self.app)
 
 
