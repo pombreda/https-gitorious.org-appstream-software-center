@@ -183,12 +183,12 @@ class Worker(threading.Thread):
             self._transmit_state = TRANSMIT_STATE_INPROGRESS
             (review_id, summary, text) = self.pending_reports.get()
             try:
-                self.rnrclient.report_abuse(review_id=review_id,
-                                            reason=summary,
-                                            text=text)
+                self.rnrclient.flag_review(review_id=review_id,
+                                           reason=summary,
+                                           text=text)
                 self._transmit_state = TRANSMIT_STATE_DONE
             except Exception as e:
-                logging.exception("report_abuse failed")
+                logging.exception("flag_review failed")
                 self._write_exception_html_log_if_needed(e)
                 self._transmit_state = TRANSMIT_STATE_ERROR
                 self._transmit_error_str = _("Failed to submit report")
@@ -489,13 +489,12 @@ class SubmitReviewsApp(BaseApp):
         self._on_mandatory_fields_changed(widget)
         
     def _enable_or_disable_post_button(self):
-        if self.review_summary_entry.get_text() and self.star_rating.get_rating() and self.review_buffer.get_char_count():
-            summary_chars = self.review_summary_entry.get_text_length()
-            review_chars = self.review_buffer.get_char_count()
-            if (self.SUMMARY_CHAR_LIMITS[0] >= summary_chars) and (self.REVIEW_CHAR_LIMITS[0] >= review_chars):
-                self.review_post.set_sensitive(True)
-            else:
-                self.review_post.set_sensitive(False)
+        summary_chars = self.review_summary_entry.get_text_length()
+        review_chars = self.review_buffer.get_char_count()
+        if (summary_chars and summary_chars < self.SUMMARY_CHAR_LIMITS[0] and
+            review_chars and review_chars < self.REVIEW_CHAR_LIMITS[0] and
+            self.star_rating.get_rating()):
+            self.review_post.set_sensitive(True)
         else:
             self.review_post.set_sensitive(False)
     
