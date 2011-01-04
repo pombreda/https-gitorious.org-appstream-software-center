@@ -28,6 +28,7 @@ SOFTWARE_CENTER_APPDETAILS_WEBKIT - use the webkit appdetails instead of gtk
 APPVIEW_DEBUG_TERMS - show debug output for the terms in a search
 SOFTWARE_CENTER_BUY_HOST - use a alternative hosts to query for pay software
 SOFTWARE_CENTER_REVIEWS_HOST - a alternative host for the ratings&reviews
+SOFTWARE_CENTER_DEBUG_HTTP - enable httplib2 debuging
 
 == applications.menu ==
 

@@ -18,11 +18,13 @@
 # rnrclient_pristine.py
 
 import logging
+import os
 import sys
 
 # useful for debugging
-#import httplib2
-#httplib2.debuglevel = 1
+if "SOFTWARE_CENTER_DEBUG_HTTP" in os.environ:
+    import httplib2
+    httplib2.debuglevel = 1
 
 # get the server to use
 from softwarecenter.distro import get_distro
