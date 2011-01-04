@@ -1166,7 +1166,7 @@ class Review(gtk.VBox):
         #like.set_underline(True)
         #self.footer.pack_start(like, False)
 
-        complain = mkit.VLinkButton('<small>%s</small>' % _('Report as inapropriate'))
+        complain = mkit.VLinkButton('<small>%s</small>' % _('Report as inappropriate'))
         complain.set_underline(True)
         self.footer.pack_end(complain, False)
         complain.connect('clicked', self._on_report_abuse_clicked)
