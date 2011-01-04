@@ -267,6 +267,7 @@ class BaseApp(SimpleGtkbuilderApp):
     def __init__(self, datadir, uifile):
         SimpleGtkbuilderApp.__init__(
             self, os.path.join(datadir,"ui",uifile), "software-center")
+        self.appname = _("Ubuntu Software Center")
         self.token = None
         self.display_name = None
         self._login_successful = False
@@ -310,11 +311,10 @@ class BaseApp(SimpleGtkbuilderApp):
         return spell
 
     def login(self):
-        appname = _("Ubuntu Software Center")
         login_text = _("To review software or to report abuse you need to "
                        "sign in to a Ubuntu Single Sign-On account.")
-        self.sso = LoginBackendDbusSSO(self.submit_window.window.xid, appname,
-                                       login_text)
+        self.sso = LoginBackendDbusSSO(self.submit_window.window.xid, 
+                                       self.appname, login_text)
         self.sso.connect("login-successful", self._maybe_login_successful)
         self.sso.login_or_register()
 
@@ -333,6 +333,25 @@ class BaseApp(SimpleGtkbuilderApp):
 
     def _whoami_error(self, ssologin, e):
         print "error: ", e
+        import lazr.restfulclient.errors
+        if type(e) == lazr.restfulclient.errors.Unauthorized:
+            # HACK: kill not working token from the keyring
+            if self._delete_token_from_gnome_keyring():
+                self.ssoapi.whoami()
+
+    def _delete_token_from_gnome_keyring(self):
+        import gnomekeyring as gk
+        if not gk.is_available():
+            return False
+        # *sign* this really should be done by ubuntu-sso-client
+        hostname = socket.gethostname()
+        search_attr = { 'token-name' : "%s @ %s" % (self.appname, hostname),
+                      }
+        matches = gk.find_items_sync(gk.ITEM_GENERIC_SECRET,
+                                     search_attr)
+        for match in matches:
+            gk.item_delete_sync(match.keyring, match.item_id)
+        return True
 
     def login_successful(self, display_name):
         """ callback when the login was successful """
