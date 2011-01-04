@@ -1061,6 +1061,7 @@ class Reviews(gtk.VBox):
             if self.expander.get_expanded():
                 self._fill()
                 self.vbox.show_all()
+                self._update = False
         return
 
     def set_width(self, w):
