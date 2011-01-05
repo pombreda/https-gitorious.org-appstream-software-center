@@ -8,6 +8,12 @@ software-center (3.1.10) UNRELEASED; urgency=low
     - add translator_credits (LP: #632770), thanks to 
       Adnane Belmadiaf 
 
+  [ Kiwinote ]
+  * softwarecenter/app.py:
+    - don't crash on pressing backspace in the history pane (LP: #696639)
+  * softwarecenter/db/application.py:
+    - display correct version number for installed packages (LP: #695026)
+
  -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 03 Jan 2011 14:15:47 +0100
 
 software-center (3.1.9) natty; urgency=low
