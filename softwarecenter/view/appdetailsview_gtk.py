@@ -412,7 +412,6 @@ class PackageStatusBar(StatusBar):
         return
 
 
-
 class PackageInfo(gtk.HBox):
 
     def __init__(self, key, info_keys):
@@ -486,8 +485,6 @@ class Addon(gtk.HBox):
     def __init__(self, db, icons, pkgname):
         gtk.HBox.__init__(self, spacing=6)
 
-#        self.connect("realize", self._on_realize)
-
         # data
         self.app = Application("", pkgname)
         self.app_details = self.app.get_details(db)
@@ -498,7 +495,7 @@ class Addon(gtk.HBox):
         self.pack_start(self.checkbutton, False, padding=12)
 
         # icon
-        hbox = gtk.HBox(spacing=mkit.SPACING_MED)
+        hbox = gtk.HBox(spacing=6)
         self.icon = gtk.Image()
         proposed_icon = self.app_details.icon
         if not proposed_icon or not icons.has_icon(proposed_icon):
@@ -521,6 +518,8 @@ class Addon(gtk.HBox):
         hbox.pack_start(self.title)
         self.checkbutton.add(hbox)
 
+        self.connect('size-allocate', self._on_allocate, self.title)
+
 #        # pkgname
 #        self.pkgname = gtk.Label()
 #        hbox.pack_start(self.pkgname, False)
@@ -529,10 +528,10 @@ class Addon(gtk.HBox):
         self.a11y = self.checkbutton.get_accessible()
         self.a11y.set_name(_("Add-on") + ': ' + title + '(' + pkgname + ')')
 
-    def _on_realize(self, widget):
-        dark = self.style.dark[self.state].to_string()
-        key_markup = '<span color="%s">(%s)</span>'
-        self.pkgname.set_markup(key_markup  % (dark, self.checkbutton.pkgname))
+    def _on_allocate(self, widget, allocation, title):
+#        print 'AddonWidth:', allocation.width
+        title.set_size_request(allocation.width-100, -1)
+        return
 
     def get_active(self):
         return self.checkbutton.get_active()
@@ -695,83 +694,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         # page elements are packed into our very own lovely viewport
         self._layout_page()
-#        self.connect('size-allocate', self._on_allocate)
-#        self.vbox.connect('expose-event', self._on_expose)
-        #self.app_info.image.connect_after('expose-event', self._on_icon_expose)
-        
         return
-
-#    def _on_allocate(self, widget, allocation):
-#        w = allocation.width
-#        l = self.app_info.label.get_layout()
-#        if l.get_pixel_extents()[1][2] > w-84-4*mkit.EM:
-#            self.app_info.label.set_size_request(w-84-4*mkit.EM, -1)
-#        else:
-#            self.app_info.label.set_size_request(-1, -1)
-
-#        desc = self.app_desc.description
-#        size = desc.height_from_width(w-6*mkit.EM-166)
-#        if size:
-#            desc.set_size_request(*size)
-
-#        self.version_info.set_width(w-6*mkit.EM)
-#        self.license_info.set_width(w-6*mkit.EM)
-#        self.support_info.set_width(w-6*mkit.EM)
-
-#        self._full_redraw()   #  ewww
-#        return
-
-#    def _on_expose(self, widget, event):
-#        expose_area = event.area
-#        a = widget.allocation
-#        cr = widget.window.cairo_create()
-#        cr.rectangle(expose_area)
-#        cr.clip_preserve()
-#        #cr.clip()
-
-#        # base color
-#        cr.set_source_rgb(*mkit.floats_from_gdkcolor(self.style.base[self.state]))
-#        cr.fill()
-
-#        if self.section:
-#            self.section.render(cr, a)
-
-#        # if the appicon is not that big draw a rectangle behind it
-#        # https://wiki.ubuntu.com/SoftwareCenter#software-icon-view
-#        if self.app_info.image.get_storage_type() == gtk.IMAGE_PIXBUF:
-#            pb = self.app_info.image.get_pixbuf()
-#            if pb.get_width() < 64 or pb.get_height() < 64:
-#                # draw icon frame
-#                self._draw_icon_frame(cr)
-#        else:
-#            # draw icon frame as well...
-#            self._draw_icon_frame(cr)
-
-#        self.app_desc.description.draw(widget, event)
-#        
-#        if self.action_bar.get_property('visible'):
-#            self.action_bar.draw(cr,
-#                                 self.action_bar.allocation,
-#                                 event.area)
-
-#        if self.addons_bar.get_property('visible'):
-#            self.addons_bar.draw(cr,
-#                                 self.addons_bar.allocation,
-#                                 event.area)
-
-#        if self.screenshot.get_property('visible'):
-#            self.screenshot.draw(cr, self.screenshot.allocation, expose_area)
-
-#        if self.homepage_btn.get_property('visible'):
-#            self.homepage_btn.draw(cr, self.homepage_btn.allocation, expose_area)
-#        if self.share_btn.get_property('visible'):
-#            self.share_btn.draw(cr, self.share_btn.allocation, expose_area)
-
-#        if self.usage.get_property('visible'):
-#            self.usage.draw(cr, self.usage.allocation)
-
-#        del cr
-#        return
 
     def _on_homepage_clicked(self, button):
         import webbrowser
@@ -896,11 +819,11 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
     def _on_allocate(self, viewport, allocation, vbox):
         w = min(allocation.width-2, 900)
 
-        if w <= 400 or w == self._prev_width: return True
+        if w <= 500 or w == self._prev_width: return True
         self._prev_width = w
 
         vbox.set_size_request(w, -1)
-        self.queue_draw()
+        gobject.idle_add(self.queue_draw)
         return True
 
     def _on_key_press(self, widget, event):
@@ -1003,7 +926,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 #        # a11y for description
 #        self.app_desc.description.set_property("can-focus", True)
 #        self.app_desc.description.a11y = self.app_desc.description.get_accessible()
-
 
         self.info_vb = info_vb = gtk.VBox(spacing=12)
         vb.pack_start(info_vb, False)
@@ -1293,8 +1215,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.get_vadjustment().set_value(0)
         self.get_hadjustment().set_value(0)
 
-        print 'ShowApp'
-
 #        # set button sensitive again
         self.action_bar.button.set_sensitive(True)
 
@@ -1310,6 +1230,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         #print self.appdetails
 
         if self._same_app: return
+        print 'ShowApp'
+
         self._update_all(self.app_details)
 #        else:
 #            self._update_all(self.app_details)
