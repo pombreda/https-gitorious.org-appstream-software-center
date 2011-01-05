@@ -48,7 +48,7 @@ from appdetailsview import AppDetailsViewBase
 #from actions import get_install_actions
 
 from widgets import mkit
-from widgets.description import AppDescription
+from widgets.description import AppDescription, TextBlock
 from widgets.thumbnail import ScreenshotThumbnail
 from softwarecenter.distro import get_distro
 
@@ -424,6 +424,7 @@ class PackageInfo(gtk.HBox):
         self.value_label.set_selectable(True)
         self.a11y = self.get_accessible()
         self.connect('realize', self._on_realize)
+        self.connect('size-allocate', self._on_allocate, self.value_label)
         return
 
     def _on_realize(self, widget):
@@ -432,7 +433,8 @@ class PackageInfo(gtk.HBox):
         dark = self.style.dark[self.state].to_string()
         key_markup = '<b><span color="%s">%s</span></b>'
         k.set_markup(key_markup  % (dark, self.key))
-        a = gtk.Alignment(1.0, 0.0)
+        k.set_alignment(1, 0.5)
+
         # determine max width of all keys
         max_lw = 0
         for key in self.info_keys:
@@ -440,17 +442,16 @@ class PackageInfo(gtk.HBox):
             tmp.set_markup(key_markup  % (dark, key))
             max_lw = max(max_lw, tmp.get_layout().get_pixel_extents()[1][2])
             del tmp
-        a.set_size_request(max_lw+12, -1)
-        a.add(k)
-        self.pack_start(a, False)
+
+        k.set_size_request(max_lw+12, -1)
+        self.pack_start(k, False)
 
         # value
         v = self.value_label
         v.set_line_wrap(True)
         v.set_selectable(True)
-        b = gtk.Alignment(0.0, 0.0)
-        b.add(v)
-        self.pack_start(b, False)
+        v.set_alignment(0, 0.5)
+        self.pack_start(v, False)
 
         # a11y
         kacc = k.get_accessible()
@@ -459,8 +460,11 @@ class PackageInfo(gtk.HBox):
         vacc.add_relationship(atk.RELATION_LABELLED_BY, kacc)
 
         self.set_property("can-focus", True)
-
         self.show_all()
+        return
+
+    def _on_allocate(self, widget, allocation, value_label):
+        value_label.set_size_request(max(10, allocation.width-100), -1)
         return
 
     def set_width(self, width):
@@ -890,8 +894,11 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
     def _on_allocate(self, viewport, allocation, vbox):
         w = min(allocation.width-2, 900)
+
+        if w <= 400 or w == self._prev_width: return True
+        self._prev_width = w
+
         vbox.set_size_request(w, -1)
-        self.support_info.value_label.set_size_request(w-200, -1)
         self.queue_draw()
         return True
 
@@ -924,6 +931,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         vb = gtk.VBox(spacing=18)
         vb.set_border_width(20)
         vb.set_redraw_on_allocate(False)
+        self.set_redraw_on_allocate(False)
         hb.pack_start(vb, False)
 
         # header

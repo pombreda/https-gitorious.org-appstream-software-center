@@ -296,6 +296,12 @@ class ScreenshotThumbnail(gtk.Alignment):
 
             self.image.set_size_request(-1, -1)
             self.image.set_from_pixbuf(pb)
+
+            # queue parent redraw if height of new pb is less than idle height
+            if pb.get_height() < self.IDLE_SIZE[1]:
+                if self.parent:
+                    self.parent.queue_draw()
+
             # start the fade in
             gobject.timeout_add(50, self._fade_in)
             self.ready = True
