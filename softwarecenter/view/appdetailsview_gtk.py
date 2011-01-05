@@ -433,7 +433,7 @@ class PackageInfo(gtk.HBox):
         dark = self.style.dark[self.state].to_string()
         key_markup = '<b><span color="%s">%s</span></b>'
         k.set_markup(key_markup  % (dark, self.key))
-        k.set_alignment(1, 0.5)
+        k.set_alignment(1, 0)
 
         # determine max width of all keys
         max_lw = 0
