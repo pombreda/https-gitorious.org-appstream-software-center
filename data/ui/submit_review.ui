@@ -238,6 +238,19 @@
                     <property name="position">5</property>
                   </packing>
                 </child>
+                <child>
+                  <object class="GtkLabel" id="label_legal_fineprint">
+                    <property name="visible">True</property>
+                    <property name="xalign">0</property>
+                    <property name="wrap">True</property>
+                    <property name="wrap_mode">word-char</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">False</property>
+                    <property name="position">6</property>
+                  </packing>
+                </child>
               </object>
               <packing>
                 <property name="position">1</property>
@@ -290,7 +303,7 @@
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
                     <property name="use_stock">True</property>
-                    <signal name="clicked" handler="on_button_cancel_clicked"/>
+                    <signal name="clicked" handler="on_button_cancel_clicked" swapped="no"/>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -306,7 +319,7 @@
                     <property name="sensitive">False</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
-                    <signal name="clicked" handler="on_button_post_clicked"/>
+                    <signal name="clicked" handler="on_button_post_clicked" swapped="no"/>
                   </object>
                   <packing>
                     <property name="expand">False</property>

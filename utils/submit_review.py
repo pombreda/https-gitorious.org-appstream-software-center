@@ -434,6 +434,10 @@ class SubmitReviewsApp(BaseApp):
     def __init__(self, app, version, iconname, parent_xid, datadir):
         BaseApp.__init__(self, datadir, "submit_review.ui")
 
+        # legal fineprint, do not change without consulting a lawyer
+        msg = _("By submitting this review, you agree not to include anything defamatory, infringing, or illegal. Canonical may, at its discretion, publish your name and review in Ubuntu Software Center and elsewhere, and allow the software or content author to publish it too.")
+        self.label_legal_fineprint.set_markup('<span size="x-small">%s</span>' % msg)
+
         # additional icons come from app-install-data
         self.icons = gtk.icon_theme_get_default()
         self.icons.append_search_path("/usr/share/app-install/icons/")
