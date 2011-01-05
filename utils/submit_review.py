@@ -317,10 +317,15 @@ class BaseApp(SimpleGtkbuilderApp):
         self.sso = LoginBackendDbusSSO(self.submit_window.window.xid, 
                                        self.appname, login_text)
         self.sso.connect("login-successful", self._maybe_login_successful)
+        self.sso.connect("login-canceled", self._login_canceled)
         if show_register:
             self.sso.login_or_register()
         else:
             self.sso.login()
+
+    def _login_canceled(self, sso):
+        self.status_spinner.hide()
+        self.login_status_label.set_markup('<b><big>%s</big></b>' % _("Login was canceled"))
 
     def _maybe_login_successful(self, sso, oauth_result):
         """ called after we have the token, then we go and figure out our name """
@@ -347,6 +352,10 @@ class BaseApp(SimpleGtkbuilderApp):
             clear_token_from_ubuntu_sso(self.appname)
             self._whoami_token_reset_nr += 1
             self.login(show_register=False)
+            return
+        # show error
+        self.status_spinner.hide()
+        self.login_status_label.set_markup('<b><big>%s</big></b>' % _("Failed to log in"))
 
     def login_successful(self, display_name):
         """ callback when the login was successful """
