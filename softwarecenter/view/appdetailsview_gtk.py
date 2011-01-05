@@ -515,6 +515,8 @@ class Addon(gtk.HBox):
         self.a11y = self.checkbutton.get_accessible()
         self.a11y.set_name(_("Add-on") + ': ' + title + '(' + pkgname + ')')
 
+        self.show_all()
+
     def _on_allocate(self, widget, allocation, title):
 #        print 'AddonWidth:', allocation.width
         title.set_size_request(allocation.width-100, -1)
