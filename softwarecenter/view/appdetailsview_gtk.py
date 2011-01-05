@@ -507,6 +507,7 @@ class Addon(gtk.HBox):
         self.title.set_markup(title+pkgname)
         self.title.set_line_wrap(True)
         hbox.pack_start(self.title)
+
         self.checkbutton.add(hbox)
 
         self.connect('size-allocate', self._on_allocate, self.title)
@@ -519,7 +520,8 @@ class Addon(gtk.HBox):
 
     def _on_allocate(self, widget, allocation, title):
 #        print 'AddonWidth:', allocation.width
-        title.set_size_request(allocation.width-100, -1)
+        width = self.allocation.width-title.allocation.x
+        title.set_size_request(width, -1)
         return
 
     def get_active(self):
@@ -684,6 +686,12 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         # page elements are packed into our very own lovely viewport
         self._layout_page()
+
+        self.connect('realize', self._on_realize)
+        return
+
+    def _on_realize(self, widget):
+        self.addons_bar.hide_all()
         return
 
     def _on_homepage_clicked(self, button):
@@ -1083,6 +1091,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         if not summary:
             summary = ""
 
+        # depending on pkg install state set action labels
+        self.action_bar.configure(app_details, app_details.pkg_state)
+
         self._update_title_markup(appname, summary)
         self._update_app_icon(app_details)
         self._update_layout_error_status(pkg_ambiguous_error)
@@ -1092,8 +1103,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self._update_pkg_info_table(app_details)
         self._update_addons(app_details)
 
-        # depending on pkg install state set action labels
-        self.action_bar.configure(app_details, app_details.pkg_state)
 
 #        # show where it is
 #        self._configure_where_is_it()
