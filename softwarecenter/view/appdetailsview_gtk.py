@@ -114,26 +114,6 @@ COLOR_BLACK         = '#323232'
 
 
 
-class Separator(gtk.HBox):
-
-    def __init__(self, height=6):
-        gtk.HBox.__init__(self)
-        self.set_size_request(-1, height)
-        self.connect("expose-event", self._on_expose)
-
-    def _on_expose(self, widget, event):
-        a = widget.allocation
-        cr = widget.window.cairo_create()
-        cr.set_dash((1.0, 2.0))
-        cr.set_line_width(1)
-        cr.move_to(a.x, a.y+0.5)
-        cr.rel_line_to(a.width, 0)
-        cr.stroke()
-
-        del cr
-        return
-
-
 class StatusBar(gtk.Alignment):
     
     def __init__(self, view):
@@ -423,7 +403,6 @@ class PackageInfo(gtk.HBox):
         self.value_label.set_selectable(True)
         self.a11y = self.get_accessible()
         self.connect('realize', self._on_realize)
-        self.connect('size-allocate', self._on_allocate, self.value_label)
         return
 
     def _on_realize(self, widget):
@@ -461,10 +440,13 @@ class PackageInfo(gtk.HBox):
 
         self.set_property("can-focus", True)
         self.show_all()
+
+        self.connect('size-allocate', self._on_allocate,
+                     v, max_lw+24+self.get_spacing())
         return
 
-    def _on_allocate(self, widget, allocation, value_label):
-        value_label.set_size_request(max(10, allocation.width-100), -1)
+    def _on_allocate(self, widget, allocation, value_label, space_consumed):
+        value_label.set_size_request(max(10, allocation.width-space_consumed), -1)
         return
 
     def set_width(self, width):
@@ -494,6 +476,10 @@ class Addon(gtk.HBox):
         self.checkbutton.pkgname = self.app.pkgname
         self.pack_start(self.checkbutton, False, padding=12)
 
+        self.connect('realize', self._on_realize, icons, pkgname)
+        return
+
+    def _on_realize(self, widget, icons, pkgname):
         # icon
         hbox = gtk.HBox(spacing=6)
         self.icon = gtk.Image()
@@ -513,16 +499,17 @@ class Addon(gtk.HBox):
         title = self.app_details.display_name
         if len(title) >= 2:
             title = title[0].upper() + title[1:]
-        self.title = gtk.Label(title)
+
+        m = ' <span color="%s"> (%s)</span>'
+        pkgname = m%(self.style.dark[0].to_string(), pkgname)
+
+        self.title = gtk.Label()
+        self.title.set_markup(title+pkgname)
         self.title.set_line_wrap(True)
         hbox.pack_start(self.title)
         self.checkbutton.add(hbox)
 
         self.connect('size-allocate', self._on_allocate, self.title)
-
-#        # pkgname
-#        self.pkgname = gtk.Label()
-#        hbox.pack_start(self.pkgname, False)
 
         # a11y
         self.a11y = self.checkbutton.get_accessible()
@@ -538,6 +525,7 @@ class Addon(gtk.HBox):
 
     def set_active(self, is_active):
         self.checkbutton.set_active(is_active)    
+
 
 class AddonsTable(gtk.VBox):
     """ Widget to display a table of addons. """
@@ -817,13 +805,14 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         return
 
     def _on_allocate(self, viewport, allocation, vbox):
+        gobject.idle_add(self.queue_draw)
+
         w = min(allocation.width-2, 900)
 
-        if w <= 500 or w == self._prev_width: return True
+        if w <= 400 or w == self._prev_width: return True
         self._prev_width = w
 
         vbox.set_size_request(w, -1)
-        gobject.idle_add(self.queue_draw)
         return True
 
     def _on_key_press(self, widget, event):
@@ -838,10 +827,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             if event.keyval == gtk.keysyms.s:
                 entry.set_position(-1)
                 entry.grab_focus()
-        return
-
-    def _on_pkg_catalogue_changed(self, watcher, pkgs):
-        self.update_ui()
         return
 
     def _layout_page(self):
@@ -1331,51 +1316,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                 self.action_bar.progress.set_fraction(1)
                 self.adjustment_value = self.get_vadjustment().get_value()
         return
-
-    #def _draw_icon_inset_frame(self, cr):
-        ## draw small or no icon background
-        #a = self.app_info.image.allocation
-
-        #rr = mkit.ShapeRoundedRectangle()
-
-        #cr.save()
-        #r,g,b = mkit.floats_from_gdkcolor(self.style.dark[self.state])
-        #rr.layout(cr, a.x, a.y, a.x+a.width, a.y+a.height, radius=3)
-
-        #lin = cairo.LinearGradient(0, a.y, 0, a.y+a.height)
-        #lin.add_color_stop_rgba(0.0, r, g, b, 0.3)
-        #lin.add_color_stop_rgba(1.0, r, g, b, 0.1)
-        #cr.set_source(lin)
-        #cr.fill()
-
-        ## line width should be 0.05em, as per spec
-        #line_width = max(1, int(mkit.EM*0.05+0.5))
-        ## if line_width an odd number we need to align to the pixel grid
-        #if line_width % 2:
-            #cr.translate(0.5, 0.5)
-        #cr.set_line_width(line_width)
-
-        #cr.set_source_rgba(*mkit.floats_from_gdkcolor_with_alpha(self.style.light[self.state], 0.55))
-        #rr.layout(cr, a.x, a.y, a.x+a.width, a.y+a.height+1, radius=3)
-        #cr.stroke()
-
-        #cr.set_source_rgb(r, g, b)
-        #rr.layout(cr, a.x, a.y, a.x+a.width, a.y+a.height, radius=3)
-        #cr.stroke_preserve()
-        #cr.stroke_preserve()
-
-        #cr.clip()
-
-        #rr.layout(cr, a.x+1, a.y+1, a.x+a.width-1, a.y+a.height-1, radius=2.5)
-        #cr.set_source_rgba(r, g, b, 0.35)
-        #cr.stroke()
-
-        #rr.layout(cr, a.x+2, a.y+2, a.x+a.width-2, a.y+a.height-2, radius=2)
-        #cr.set_source_rgba(r, g, b, 0.1)
-        #cr.stroke()
-
-        #cr.restore()
-        #return
 
     def _get_xy_icon_position_on_screen(self):
         """ helper for unity dbus support to get the x,y position of
