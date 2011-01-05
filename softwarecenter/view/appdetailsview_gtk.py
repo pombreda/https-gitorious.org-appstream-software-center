@@ -33,6 +33,7 @@ import sys
 import tempfile
 import xapian
 import cairo
+import pangocairo
 
 from gettext import gettext as _
 import apt_pkg
@@ -111,6 +112,7 @@ COLOR_GREEN_OUTLINE = '#8AE234'
 
 # fixed black for action bar label, taken from Ambiance gtk-theme
 COLOR_BLACK         = '#323232'
+
 
 
 
@@ -457,7 +459,7 @@ class PackageInfo(gtk.HBox):
         return
 
     def set_value(self, value):
-        self.value_label.set_text(value)
+        self.value_label.set_markup(value)
         self.a11y.set_name(self.key + ' ' + value)
 
 
@@ -1397,7 +1399,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         if not self.totalsize_info.get_property('visible'):
             return False
         elif hide:
-            self.totalsize_info.set_value(_("Calculating..."))
+            pass
+#            self.totalsize_info.set_value(_("Calculating..."))
         while gtk.events_pending():
             gtk.main_iteration()
         
@@ -1410,7 +1413,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         try:
             pkg = self.cache[self.app_details.pkgname]
         except KeyError:
-            self.totalsize_info.set_value(_("Could not determine total size"))
+            self.totalsize_info.set_value(_("Unknown"))
             return False
         version = pkg.installed
         if version == None:
@@ -1483,10 +1486,10 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             label_string += _("%sB to be freed") % (remove_size)
         
         if label_string == "":
-            self.totalsize_info.set_value(_("Could not determine total size"))
+            self.totalsize_info.set_value(_("Unknown"))
         else:
             self.totalsize_info.set_value(label_string)
-            self.totalsize_info.show_all()
+#            self.totalsize_info.show_all()
         return False
 
     def set_section(self, section):
