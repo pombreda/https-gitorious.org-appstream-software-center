@@ -354,10 +354,11 @@ class BaseApp(SimpleGtkbuilderApp):
 
     def on_button_cancel_clicked(self, button=None):
         # bring it down gracefully
-        self.api.shutdown()
+        if hasattr(self, "api"):
+            self.api.shutdown()
         while gtk.events_pending():
             gtk.main_iteration()
-        sys.exit(0)
+        self.quit()
 
     def _create_gratings_api(self):
         self.api = GRatingsAndReviews(self.token)
@@ -591,12 +592,6 @@ class SubmitReviewsApp(BaseApp):
         return html_r + html_g + html_b
 
 
-    def on_button_cancel_clicked(self, button):
-        while gtk.events_pending():
-            gtk.main_iteration()
-        self.api.shutdown()
-        self.quit()
-
     def on_button_post_clicked(self, button):
         logging.debug("enter_review ok button")
         review = Review(self.app)
@@ -688,12 +683,6 @@ class ReportReviewApp(BaseApp):
                                            text_buffer.get_end_iter())
         self.api.report_abuse(self.review_id, report_summary, report_text)
 
-    def on_button_cancel_clicked(self, button):
-        while gtk.events_pending():
-            gtk.main_iteration()
-        self.api.shutdown()
-        self.quit()
-        
     def login_successful(self, display_name):
         self.main_notebook.set_current_page(1)
         #self.label_reporter.set_text(display_name)
