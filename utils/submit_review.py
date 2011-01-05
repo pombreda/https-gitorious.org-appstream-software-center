@@ -342,11 +342,16 @@ class BaseApp(SimpleGtkbuilderApp):
 
     def _whoami_error(self, ssologin, e):
         logging.error("whoami error '%s'" % e)
-        import lazr.restfulclient.errors
         # HACK: clear the token from the keyring assuming that it expired
         #       or got deauthorized by the user on the website
         # this really should be done by ubuntu-sso-client itself
-        if (type(e) == lazr.restfulclient.errors.Unauthorized and
+        import lazr.restfulclient.errors
+        # compat  with maverick, it does not have Unauthorized yet
+        if hasattr(lazr.restfulclient.errors, "Unauthorized"):
+	    errortype = lazr.restfulclient.errors.Unauthorized
+        else:
+            errortype = lazr.restfulclient.errors.HTTPError
+        if (type(e) == errortype and
             self._whoami_token_reset_nr == 0):
             logging.warn("authentication error, reseting token and retrying")
             clear_token_from_ubuntu_sso(self.appname)
