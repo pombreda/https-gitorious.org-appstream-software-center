@@ -515,8 +515,8 @@ class SubmitReviewsApp(BaseApp):
     def _enable_or_disable_post_button(self):
         summary_chars = self.review_summary_entry.get_text_length()
         review_chars = self.review_buffer.get_char_count()
-        if (summary_chars and summary_chars < self.SUMMARY_CHAR_LIMITS[0] and
-            review_chars and review_chars < self.REVIEW_CHAR_LIMITS[0] and
+        if (summary_chars and summary_chars <= self.SUMMARY_CHAR_LIMITS[0] and
+            review_chars and review_chars <= self.REVIEW_CHAR_LIMITS[0] and
             self.star_rating.get_rating()):
             self.button_post.set_sensitive(True)
         else:
