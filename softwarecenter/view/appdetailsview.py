@@ -25,6 +25,7 @@ import logging
 import os
 import re
 import glib
+import simplejson
 import socket
 import string
 import subprocess
@@ -40,8 +41,9 @@ from softwarecenter.backend import get_install_backend
 from softwarecenter.enums import *
 from softwarecenter.utils import get_current_arch, get_parent_xid, get_default_language
 
-
 from purchasedialog import PurchaseDialog
+
+LOG=logging.getLogger(__name__)
 
 class AppDetailsViewBase(object):
 
@@ -71,7 +73,6 @@ class AppDetailsViewBase(object):
         self.review_loader = get_review_loader()
         # aptdaemon
         self.backend = get_install_backend()
-        self._logger = logging.getLogger(__name__)
         
     def _draw(self):
         """ draw the current app into the window, maybe the function
@@ -104,37 +105,21 @@ class AppDetailsViewBase(object):
                             "be detected. Entering a review is not "
                             "possible."))
             return
-        # call out
+        # gather data
         pkg = self.cache[self.app.pkgname]
         version = pkg.candidate.version
         if pkg.installed:
             version = pkg.installed.version
-        cmd = [os.path.join(self.datadir, SUBMIT_REVIEW_APP), 
-               "--pkgname", self.app.pkgname,
-               "--iconname", self.appdetails.icon,
-               "--parent-xid", "%s" % get_parent_xid(self),
-               "--version", version,
-               "--datadir", self.datadir,
-               ]
-        if self.app.appname:
-            cmd += ["--appname", self.app.appname]
-        p = subprocess.Popen(cmd)
-        glib.child_watch_add(p.pid, self.on_submit_finished)
+        # call the loader to do call out the right helper and collect the result
+        parent_xid = get_parent_xid(self)
+        self.review_loader.spawn_write_new_review_ui(
+            self.app, version, self.appdetails.icon, parent_xid, self.datadir,
+            self._reviews_ready_callback)
                          
     def _review_report_abuse(self, review_id):
-        cmd = [os.path.join(self.datadir, REPORT_REVIEW_APP), 
-               "--review-id", review_id,
-               "--parent-xid", "%s" % get_parent_xid(self),
-               "--datadir", self.datadir,
-              ]
-        p = subprocess.Popen(cmd)
-        glib.child_watch_add(p.pid, self.on_submit_finished)
-
-    def on_submit_finished(self, pid, status):
-        """ called when submit_review or report_review finished """
-        print pid, os.WEXITSTATUS(status)
-        if os.WEXITSTATUS(status) == 0:
-            self.refresh_app()
+        parent_xid = get_parent_xid(self)
+        self.review_loader.spawn_report_abuse_ui(
+            review_id, parent_xid, self.datadir, self._reviews_ready_callback)
 
     # public interface
     def reload(self):
@@ -174,7 +159,7 @@ class AppDetailsViewBase(object):
 
     def reinstall_purchased(self):
         """ reinstall a purchased app """
-        self._logger.debug("reinstall_purchased %s" % self.app)
+        LOG.debug("reinstall_purchased %s" % self.app)
         appdetails = self.app.get_details(self.db)
         iconname = appdetails.icon
         deb_line = appdetails.deb_line
@@ -188,7 +173,7 @@ class AppDetailsViewBase(object):
     def _on_cache_ready(self, cache):
         # re-show the application if the cache changes, it may affect the
         # current application
-        self._logger.debug("on_cache_ready")
+        LOG.debug("on_cache_ready")
         self.show_app(self.app)
 
 

@@ -1006,16 +1006,16 @@ class CellRendererAppView2(gtk.CellRendererText):
         cr = window.cairo_create()
         w = self.STAR_SIZE
         h = self.STAR_SIZE
-        for i in range(1,self.MAX_STARS+1):
-            x = cell_area.x + cell_area.width - xpad - i*(w+3)
+        for i in range(0, self.MAX_STARS):
+            x = cell_area.x + cell_area.width - xpad - (self.MAX_STARS-i)*(w+3)
             y = cell_area.y + ypad
-            if i < math.ceil(self.rating):
-                self._star_painter.set_fill(StarPainter.FILL_EMPTY)
-            elif (i == math.ceil(self.rating) and 
-                  math.ceil(self.rating) != math.floor(self.rating)):
+            if i < int(self.rating):
+                self._star_painter.set_fill(StarPainter.FILL_FULL)
+            elif (i == int(self.rating) and 
+                  self.rating - int(self.rating) > 0):
                 self._star_painter.set_fill(StarPainter.FILL_HALF)
             else:
-                self._star_painter.set_fill(StarPainter.FILL_FULL)
+                self._star_painter.set_fill(StarPainter.FILL_EMPTY)
             self._star_painter.paint_star(cr, x, y, w, h)
         # and nr-reviews below
         x = cell_area.x + cell_area.width - xpad - self.MAX_STARS*(w+3)

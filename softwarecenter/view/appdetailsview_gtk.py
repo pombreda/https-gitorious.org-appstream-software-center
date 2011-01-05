@@ -1061,6 +1061,7 @@ class Reviews(gtk.VBox):
             if self.expander.get_expanded():
                 self._fill()
                 self.vbox.show_all()
+                self._update = False
         return
 
     def set_width(self, w):
@@ -1121,10 +1122,10 @@ class Review(gtk.VBox):
         if review_data:
             self.id = review_data.id
             rating = review_data.rating 
-            person = glib.markup_escape_text(review_data.reviewer_username)
-            summary = glib.markup_escape_text(review_data.summary)
-            text = glib.markup_escape_text(review_data.review_text)
-            date = glib.markup_escape_text(review_data.date_created)
+            person = review_data.reviewer_username
+            summary = review_data.summary
+            text = review_data.review_text
+            date = review_data.date_created
             self._build(rating, person, summary, text, date)
 
         self.body.connect('size-allocate', self._on_allocate)
@@ -1141,11 +1142,14 @@ class Review(gtk.VBox):
             reviews.emit("report-abuse", self.id)
 
     def _build(self, rating, person, summary, text, date):
-        m = "<b>%s</b>, %s" % (person.capitalize(), date)
+        # all the arguments are may need markup escape, depening on if
+        # they are used as text or markup
+        m = "<b>%s</b>, %s" % (glib.markup_escape_text(person.capitalize()),
+                               glib.markup_escape_text(date))
         who_what_when = gtk.Label(m)
         who_what_when.set_use_markup(True)
 
-        summary = gtk.Label('<b>%s</b>' % summary)        
+        summary = gtk.Label('<b>%s</b>' % glib.markup_escape_text(summary))
         summary.set_use_markup(True)
 
         text = gtk.Label(text)
@@ -1163,7 +1167,7 @@ class Review(gtk.VBox):
         #like.set_underline(True)
         #self.footer.pack_start(like, False)
 
-        complain = mkit.VLinkButton('<small>%s</small>' % _('Report as inapropriate'))
+        complain = mkit.VLinkButton('<small>%s</small>' % _('Report as inappropriate'))
         complain.set_underline(True)
         self.footer.pack_end(complain, False)
         complain.connect('clicked', self._on_report_abuse_clicked)
@@ -1355,6 +1359,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                                                  self._reviews_ready_callback)
 
     def _reviews_ready_callback(self, app, reviews):
+        """ callback when new reviews are ready, cleans out the
+            old ones
+        """
         logging.info("_review_ready_callback: %s" % app)
         # avoid possible race if we already moved to a new app when
         # the reviews become ready 
@@ -1362,6 +1369,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         #  software-center totem)
         if self.app.pkgname != app.pkgname:
             return
+        # clear out the old ones ...
+        self.reviews.clear()
+        # then add the new ones ...
         for review in reviews:
             self.reviews.add_review(review)
         self.reviews.finished()

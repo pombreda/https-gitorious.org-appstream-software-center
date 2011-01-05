@@ -29,6 +29,8 @@ import gtk
 import locale
 import logging
 import os
+import pickle
+import simplejson
 import sys
 import tempfile
 import time
@@ -183,10 +185,11 @@ class Worker(threading.Thread):
             self._transmit_state = TRANSMIT_STATE_INPROGRESS
             (review_id, summary, text) = self.pending_reports.get()
             try:
-                self.rnrclient.flag_review(review_id=review_id,
-                                           reason=summary,
-                                           text=text)
+                res = self.rnrclient.flag_review(review_id=review_id,
+                                                 reason=summary,
+                                                 text=text)
                 self._transmit_state = TRANSMIT_STATE_DONE
+                sys.stdout.write(simplejson.dumps(res))
             except Exception as e:
                 logging.exception("flag_review failed")
                 self._write_exception_html_log_if_needed(e)
@@ -232,8 +235,10 @@ class Worker(threading.Thread):
             piston_review.origin = "ubuntu"
             piston_review.distroseries=distro.get_codename()
             try:
-                self.rnrclient.submit_review(review=piston_review)
+                res = self.rnrclient.submit_review(review=piston_review)
                 self._transmit_state = TRANSMIT_STATE_DONE
+                # output the resulting json so that the parent can read it
+                sys.stdout.write(simplejson.dumps(res))
             except Exception as e:
                 logging.exception("submit_review")
                 self._write_exception_html_log_if_needed(e)
@@ -262,6 +267,7 @@ class BaseApp(SimpleGtkbuilderApp):
     def __init__(self, datadir, uifile):
         SimpleGtkbuilderApp.__init__(
             self, os.path.join(datadir,"ui",uifile), "software-center")
+        self.appname = _("Ubuntu Software Center")
         self.token = None
         self.display_name = None
         self._login_successful = False
@@ -279,8 +285,6 @@ class BaseApp(SimpleGtkbuilderApp):
         self.submit_error_img.set_from_stock(gtk.STOCK_DIALOG_ERROR, gtk.ICON_SIZE_SMALL_TOOLBAR)
         #label size to prevent image or spinner from resizing
         self.label_transmit_status.set_size_request(-1, gtk.icon_size_lookup(gtk.ICON_SIZE_SMALL_TOOLBAR)[1])
-        self.review_buffer = self.textview_review.get_buffer()
-                        
 
     def run(self):
         # initially display a 'Connecting...' page
@@ -307,11 +311,10 @@ class BaseApp(SimpleGtkbuilderApp):
         return spell
 
     def login(self):
-        appname = _("Ubuntu Software Center")
         login_text = _("To review software or to report abuse you need to "
                        "sign in to a Ubuntu Single Sign-On account.")
-        self.sso = LoginBackendDbusSSO(self.submit_window.window.xid, appname,
-                                       login_text)
+        self.sso = LoginBackendDbusSSO(self.submit_window.window.xid, 
+                                       self.appname, login_text)
         self.sso.connect("login-successful", self._maybe_login_successful)
         self.sso.login_or_register()
 
@@ -330,6 +333,25 @@ class BaseApp(SimpleGtkbuilderApp):
 
     def _whoami_error(self, ssologin, e):
         print "error: ", e
+        import lazr.restfulclient.errors
+        if type(e) == lazr.restfulclient.errors.Unauthorized:
+            # HACK: kill not working token from the keyring
+            if self._delete_token_from_gnome_keyring():
+                self.ssoapi.whoami()
+
+    def _delete_token_from_gnome_keyring(self):
+        import gnomekeyring as gk
+        if not gk.is_available():
+            return False
+        # *sign* this really should be done by ubuntu-sso-client
+        hostname = socket.gethostname()
+        search_attr = { 'token-name' : "%s @ %s" % (self.appname, hostname),
+                      }
+        matches = gk.find_items_sync(gk.ITEM_GENERIC_SECRET,
+                                     search_attr)
+        for match in matches:
+            gk.item_delete_sync(match.keyring, match.item_id)
+        return True
 
     def login_successful(self, display_name):
         """ callback when the login was successful """
@@ -349,8 +371,8 @@ class BaseApp(SimpleGtkbuilderApp):
         self.api.connect("transmit-failure", self.on_transmit_failure)
 
     def on_transmit_start(self, api, trans):
-        self.review_post.set_sensitive(False)
-        self.review_cancel.set_sensitive(False)
+        self.button_post.set_sensitive(False)
+        self.button_cancel.set_sensitive(False)
         if self._clear_status_imagery():
             self.status_hbox.pack_start(self.submit_spinner, False)
             self.status_hbox.reorder_child(self.submit_spinner, 0)
@@ -368,8 +390,8 @@ class BaseApp(SimpleGtkbuilderApp):
             self.status_hbox.reorder_child(self.submit_error_img, 0)
             self.submit_error_img.show()
             self.label_transmit_status.set_text(error)
-            self.review_post.set_sensitive(True)
-            self.review_cancel.set_sensitive(True)
+            self.button_post.set_sensitive(True)
+            self.button_cancel.set_sensitive(True)
 
     def _clear_status_imagery(self):
         #clears spinner or error image from dialog submission label before trying to display one or the other
@@ -425,6 +447,8 @@ class SubmitReviewsApp(BaseApp):
         self.review_summary_vbox.reorder_child(self.star_rating, 0)
         self.review_summary_vbox.pack_start(self.star_caption, False, False)
         self.review_summary_vbox.reorder_child(self.star_caption, 1)
+
+        self.review_buffer = self.textview_review.get_buffer()
 
         # data
         self.app = app
@@ -494,9 +518,9 @@ class SubmitReviewsApp(BaseApp):
         if (summary_chars and summary_chars < self.SUMMARY_CHAR_LIMITS[0] and
             review_chars and review_chars < self.REVIEW_CHAR_LIMITS[0] and
             self.star_rating.get_rating()):
-            self.review_post.set_sensitive(True)
+            self.button_post.set_sensitive(True)
         else:
-            self.review_post.set_sensitive(False)
+            self.button_post.set_sensitive(False)
     
     def _check_summary_character_count(self):
         summary_chars = self.review_summary_entry.get_text_length()
@@ -572,13 +596,13 @@ class SubmitReviewsApp(BaseApp):
         return html_r + html_g + html_b
 
 
-    def on_review_cancel_clicked(self, button):
+    def on_button_cancel_clicked(self, button):
         while gtk.events_pending():
             gtk.main_iteration()
         self.api.shutdown()
         self.quit()
 
-    def on_review_post_clicked(self, button):
+    def on_button_post_clicked(self, button):
         logging.debug("enter_review ok button")
         review = Review(self.app)
         text_buffer = self.textview_review.get_buffer()
@@ -606,8 +630,6 @@ class ReportReviewApp(BaseApp):
 
     def __init__(self, review_id, parent_xid, datadir):
         BaseApp.__init__(self, datadir, "report_abuse.ui")
-        self.submit_window.connect("destroy", self.on_button_cancel_clicked)
-
         # status
         self._add_spellcheck_to_textview(self.textview_report)
 
@@ -644,9 +666,9 @@ class ReportReviewApp(BaseApp):
 
     def _enable_or_disable_report_button(self, buf):
         if buf.get_char_count() > 0:
-            self.report_post.set_sensitive(True)
+            self.button_post.set_sensitive(True)
         else:
-            self.report_post.set_sensitive(False)
+            self.button_post.set_sensitive(False)
 
     def _setup_details(self, widget, display_name):
         # dark color
@@ -663,7 +685,7 @@ class ReportReviewApp(BaseApp):
         self.report_summary_label.set_markup('<b><span color="%s">%s</span></b>' % (dark, _('Why is this review inappropriate?')))
         return
 
-    def on_report_post_clicked(self, button):
+    def on_button_post_clicked(self, button):
         logging.debug("report_abuse ok button")
         report_summary = self.combobox_report_summary.get_active_text()
         text_buffer = self.textview_report.get_buffer()
@@ -671,7 +693,7 @@ class ReportReviewApp(BaseApp):
                                            text_buffer.get_end_iter())
         self.api.report_abuse(self.review_id, report_summary, report_text)
 
-    def on_report_cancel_clicked(self, button):
+    def on_button_cancel_clicked(self, button):
         while gtk.events_pending():
             gtk.main_iteration()
         self.api.shutdown()
@@ -698,7 +720,6 @@ if __name__ == "__main__":
 
     # run review personality
     if "submit_review" in sys.argv[0]:
-        print "submit_review mode"
         # check options
         parser.add_option("-a", "--appname")
         parser.add_option("-p", "--pkgname")
@@ -714,6 +735,9 @@ if __name__ == "__main__":
     
         if options.debug:
             logging.basicConfig(level=logging.DEBUG)                        
+
+        # personality
+        logging.debug("submit_review mode")
 
         # initialize and run
         theapp = Application(options.appname, options.pkgname)
@@ -739,6 +763,9 @@ if __name__ == "__main__":
     
         if options.debug:
             logging.basicConfig(level=logging.DEBUG)                        
+
+        # personality
+        logging.debug("report_abuse mode")
 
         # initialize and run
         report_app = ReportReviewApp(datadir=options.datadir,

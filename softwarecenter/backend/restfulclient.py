@@ -47,7 +47,9 @@ from Queue import Queue
 
 from login import LoginBackend
 
-UBUNTU_SSO_SERVICE = "https://login.ubuntu.com/api/1.0"
+UBUNTU_SSO_SERVICE = os.environ.get(
+    "USSOC_SERVICE_URL", "https://login.ubuntu.com/api/1.0")
+
 UBUNTU_SOFTWARE_CENTER_AGENT_SERVICE = BUY_SOMETHING_HOST+"/api/1.0"
 
 class EmptyObject(object):
@@ -150,6 +152,7 @@ class UbuntuSSOAPI(gobject.GObject):
     def __init__(self, token):
         gobject.GObject.__init__(self)
         self._whoami = None
+        self._error = None
         self.service = UBUNTU_SSO_SERVICE
         self.token = token
         token = OAuthToken(self.token["token"], self.token["token_secret"])
@@ -165,15 +168,16 @@ class UbuntuSSOAPI(gobject.GObject):
         if self._whoami is not None:
             self.emit("whoami", self._whoami)
             self._whoami = None
-        if self.worker_thread.error:
-            self.emit("error", self.worker_thread.error)
+        if self._error is not None:
+            self.emit("error", self._error)
+            self._error = None
         return True
 
     def _thread_whoami_done(self, result):
         self._whoami = result
 
     def _thread_whoami_error(self, e):
-        self.emit("error", e)
+        self._error = e
 
     def whoami(self):
         self.worker_thread.queue_request("accounts.me", (), {},
