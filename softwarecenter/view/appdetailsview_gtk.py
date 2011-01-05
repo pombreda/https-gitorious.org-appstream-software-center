@@ -437,11 +437,12 @@ class PackageInfo(gtk.HBox):
 
         # determine max width of all keys
         max_lw = 0
+
         for key in self.info_keys:
-            tmp = gtk.Label()
-            tmp.set_markup(key_markup  % (dark, key))
-            max_lw = max(max_lw, tmp.get_layout().get_pixel_extents()[1][2])
-            del tmp
+            l = self.create_pango_layout("")
+            l.set_markup(key_markup % (dark, key))
+            max_lw = max(max_lw, l.get_pixel_extents()[1][2])
+            del l
 
         k.set_size_request(max_lw+12, -1)
         self.pack_start(k, False)
