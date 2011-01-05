@@ -378,7 +378,7 @@ class BaseApp(SimpleGtkbuilderApp):
             self.status_hbox.reorder_child(self.submit_spinner, 0)
             self.submit_spinner.show()
             self.submit_spinner.start()
-            self.label_transmit_status.set_text(_("Submitting Review..."))
+            self.label_transmit_status.set_text(_("Submitting Review"))
 
     def on_transmit_success(self, api, trans):
         self.api.shutdown()
