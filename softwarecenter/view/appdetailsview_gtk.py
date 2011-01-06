@@ -1058,6 +1058,7 @@ class Reviews(gtk.VBox):
         if not self.reviews:
             self._be_the_first_to_review()
         else:
+            self.new_review.set_label(_("Write your own review"))
             if self.expander.get_expanded():
                 self._fill()
                 self.vbox.show_all()

@@ -76,13 +76,15 @@ class ReviewLoader(object):
 
     # cache the ReviewStats
     REVIEW_STATS_CACHE = {}
-    REVIEW_STATS_CACHE_FILE = os.path.join(SOFTWARE_CENTER_CACHE_DIR,
-                                           "review-stats.p")
 
     def __init__(self, distro=None):
         self.distro = distro
         if not self.distro:
             self.distro = softwarecenter.distro.get_distro()
+        fname = "%s_%s" % (uri_to_filename(self.distro.REVIEWS_SERVER),
+                           "review-stats.p")
+        self.REVIEW_STATS_CACHE_FILE = os.path.join(SOFTWARE_CENTER_CACHE_DIR,
+                                                    fname)
         self.language = get_language()
         if os.path.exists(self.REVIEW_STATS_CACHE_FILE):
             try:

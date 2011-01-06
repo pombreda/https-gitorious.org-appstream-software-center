@@ -271,6 +271,7 @@ class BaseApp(SimpleGtkbuilderApp):
         self.token = None
         self.display_name = None
         self._login_successful = False
+        self._whoami_token_reset_nr = 0
         # status spinner
         self.status_spinner = gtk.Spinner()
         self.status_spinner.set_size_request(32,32)
@@ -310,13 +311,21 @@ class BaseApp(SimpleGtkbuilderApp):
             return None
         return spell
 
-    def login(self):
+    def login(self, show_register=True):
         login_text = _("To review software or to report abuse you need to "
                        "sign in to a Ubuntu Single Sign-On account.")
         self.sso = LoginBackendDbusSSO(self.submit_window.window.xid, 
                                        self.appname, login_text)
         self.sso.connect("login-successful", self._maybe_login_successful)
-        self.sso.login_or_register()
+        self.sso.connect("login-canceled", self._login_canceled)
+        if show_register:
+            self.sso.login_or_register()
+        else:
+            self.sso.login()
+
+    def _login_canceled(self, sso):
+        self.status_spinner.hide()
+        self.login_status_label.set_markup('<b><big>%s</big></b>' % _("Login was canceled"))
 
     def _maybe_login_successful(self, sso, oauth_result):
         """ called after we have the token, then we go and figure out our name """
@@ -332,26 +341,26 @@ class BaseApp(SimpleGtkbuilderApp):
         self.login_successful(self.display_name)
 
     def _whoami_error(self, ssologin, e):
-        print "error: ", e
+        logging.error("whoami error '%s'" % e)
+        # HACK: clear the token from the keyring assuming that it expired
+        #       or got deauthorized by the user on the website
+        # this really should be done by ubuntu-sso-client itself
         import lazr.restfulclient.errors
-        if type(e) == lazr.restfulclient.errors.Unauthorized:
-            # HACK: kill not working token from the keyring
-            if self._delete_token_from_gnome_keyring():
-                self.ssoapi.whoami()
-
-    def _delete_token_from_gnome_keyring(self):
-        import gnomekeyring as gk
-        if not gk.is_available():
-            return False
-        # *sign* this really should be done by ubuntu-sso-client
-        hostname = socket.gethostname()
-        search_attr = { 'token-name' : "%s @ %s" % (self.appname, hostname),
-                      }
-        matches = gk.find_items_sync(gk.ITEM_GENERIC_SECRET,
-                                     search_attr)
-        for match in matches:
-            gk.item_delete_sync(match.keyring, match.item_id)
-        return True
+        # compat  with maverick, it does not have Unauthorized yet
+        if hasattr(lazr.restfulclient.errors, "Unauthorized"):
+	    errortype = lazr.restfulclient.errors.Unauthorized
+        else:
+            errortype = lazr.restfulclient.errors.HTTPError
+        if (type(e) == errortype and
+            self._whoami_token_reset_nr == 0):
+            logging.warn("authentication error, reseting token and retrying")
+            clear_token_from_ubuntu_sso(self.appname)
+            self._whoami_token_reset_nr += 1
+            self.login(show_register=False)
+            return
+        # show error
+        self.status_spinner.hide()
+        self.login_status_label.set_markup('<b><big>%s</big></b>' % _("Failed to log in"))
 
     def login_successful(self, display_name):
         """ callback when the login was successful """
@@ -359,10 +368,11 @@ class BaseApp(SimpleGtkbuilderApp):
 
     def on_button_cancel_clicked(self, button=None):
         # bring it down gracefully
-        self.api.shutdown()
+        if hasattr(self, "api"):
+            self.api.shutdown()
         while gtk.events_pending():
             gtk.main_iteration()
-        sys.exit(0)
+        self.quit()
 
     def _create_gratings_api(self):
         self.api = GRatingsAndReviews(self.token)
@@ -428,6 +438,10 @@ class SubmitReviewsApp(BaseApp):
 
     def __init__(self, app, version, iconname, parent_xid, datadir):
         BaseApp.__init__(self, datadir, "submit_review.ui")
+
+        # legal fineprint, do not change without consulting a lawyer
+        msg = _("By submitting this review, you agree not to include anything defamatory, infringing, or illegal. Canonical may, at its discretion, publish your name and review in Ubuntu Software Center and elsewhere, and allow the software or content author to publish it too.")
+        self.label_legal_fineprint.set_markup('<span size="x-small">%s</span>' % msg)
 
         # additional icons come from app-install-data
         self.icons = gtk.icon_theme_get_default()
@@ -596,12 +610,6 @@ class SubmitReviewsApp(BaseApp):
         return html_r + html_g + html_b
 
 
-    def on_button_cancel_clicked(self, button):
-        while gtk.events_pending():
-            gtk.main_iteration()
-        self.api.shutdown()
-        self.quit()
-
     def on_button_post_clicked(self, button):
         logging.debug("enter_review ok button")
         review = Review(self.app)
@@ -693,12 +701,6 @@ class ReportReviewApp(BaseApp):
                                            text_buffer.get_end_iter())
         self.api.report_abuse(self.review_id, report_summary, report_text)
 
-    def on_button_cancel_clicked(self, button):
-        while gtk.events_pending():
-            gtk.main_iteration()
-        self.api.shutdown()
-        self.quit()
-        
     def login_successful(self, display_name):
         self.main_notebook.set_current_page(1)
         #self.label_reporter.set_text(display_name)
