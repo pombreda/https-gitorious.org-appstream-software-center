@@ -348,7 +348,7 @@ class BaseApp(SimpleGtkbuilderApp):
         import lazr.restfulclient.errors
         # compat  with maverick, it does not have Unauthorized yet
         if hasattr(lazr.restfulclient.errors, "Unauthorized"):
-	    errortype = lazr.restfulclient.errors.Unauthorized
+            errortype = lazr.restfulclient.errors.Unauthorized
         else:
             errortype = lazr.restfulclient.errors.HTTPError
         if (type(e) == errortype and
@@ -388,7 +388,7 @@ class BaseApp(SimpleGtkbuilderApp):
             self.status_hbox.reorder_child(self.submit_spinner, 0)
             self.submit_spinner.show()
             self.submit_spinner.start()
-            self.label_transmit_status.set_text(_("Submitting Review"))
+            self.label_transmit_status.set_text(self.SUBMIT_MESSAGE)
 
     def on_transmit_success(self, api, trans):
         self.api.shutdown()
@@ -435,6 +435,7 @@ class SubmitReviewsApp(BaseApp):
     #alert colours for character warning labels
     NORMAL_COLOUR = "000000"
     ERROR_COLOUR = "FF0000"
+    SUBMIT_MESSAGE = "Submitting Review"
 
     def __init__(self, app, version, iconname, parent_xid, datadir):
         BaseApp.__init__(self, datadir, "submit_review.ui")
@@ -635,6 +636,8 @@ class ReportReviewApp(BaseApp):
     LOGIN_IMAGE = "/usr/share/software-center/images/ubuntu-cof.png"
 
     APP_ICON_SIZE = 48
+    
+    SUBMIT_MESSAGE = "Sending Report"
 
     def __init__(self, review_id, parent_xid, datadir):
         BaseApp.__init__(self, datadir, "report_abuse.ui")
