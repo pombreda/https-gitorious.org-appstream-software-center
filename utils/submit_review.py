@@ -435,7 +435,7 @@ class SubmitReviewsApp(BaseApp):
     #alert colours for character warning labels
     NORMAL_COLOUR = "000000"
     ERROR_COLOUR = "FF0000"
-    SUBMIT_MESSAGE = "Submitting Review"
+    SUBMIT_MESSAGE = _("Submitting Review")
 
     def __init__(self, app, version, iconname, parent_xid, datadir):
         BaseApp.__init__(self, datadir, "submit_review.ui")
@@ -637,7 +637,7 @@ class ReportReviewApp(BaseApp):
 
     APP_ICON_SIZE = 48
     
-    SUBMIT_MESSAGE = "Sending Report"
+    SUBMIT_MESSAGE = _("Sending Report")
 
     def __init__(self, review_id, parent_xid, datadir):
         BaseApp.__init__(self, datadir, "report_abuse.ui")
