@@ -242,17 +242,15 @@ def is_unity_running():
         LOG.exception("could not check for Unity dbus service")
     return unity_running
 
-# FIXME: why not call it a generic downloader?
-class ImageDownloader(gobject.GObject):
 
-    LOG = logging.getLogger("softwarecenter.imagedownloader")
+class SimpleFileDownloader(gobject.GObject):
 
     __gsignals__ = {
-        "image-url-reachable"     : (gobject.SIGNAL_RUN_LAST,
+        "url-reachable"     : (gobject.SIGNAL_RUN_LAST,
                                      gobject.TYPE_NONE,
                                      (bool,),),
 
-        "image-download-complete" : (gobject.SIGNAL_RUN_LAST,
+        "download-complete" : (gobject.SIGNAL_RUN_LAST,
                                      gobject.TYPE_NONE,
                                      (str,),),
         }
@@ -261,8 +259,7 @@ class ImageDownloader(gobject.GObject):
         gobject.GObject.__init__(self)
         self.tmpdir = None
 
-    def download_image(self, url, dest_file_path=None):
-        self.LOG.debug("download_image: %s %s" % (url, dest_file_path))
+    def begin_download(self, url, dest_file_path=None):
         if dest_file_path is None:
             if self.tmpdir is None:
                 self.tmpdir = tempfile.mkdtemp(prefix="software-center-")
@@ -271,8 +268,8 @@ class ImageDownloader(gobject.GObject):
         self.dest_file_path = dest_file_path
         
         if os.path.exists(self.dest_file_path):
-            self.emit('image-url-reachable', True)
-            self.emit("image-download-complete", self.dest_file_path)
+            self.emit('url-reachable', True)
+            self.emit("download-complete", self.dest_file_path)
             return
         
         f = gio.File(url)
@@ -283,17 +280,14 @@ class ImageDownloader(gobject.GObject):
     def _check_url_reachable_and_then_download_cb(self, f, result):
         try:
             result = f.query_info_finish(result)
-            self.emit('image-url-reachable', True)
-            self.LOG.debug("image reachablee %s" % self.url)
+            self.emit('url-reachable', True)
             # url is reachable, now download the icon file
-            f.load_contents_async(self._icon_download_complete_cb)
+            f.load_contents_async(self._download_complete_cb)
         except glib.GError, e:
-            self.LOG.debug("image *not* reachable %s" % self.url)
-            self.emit('image-url-reachable', False)
+            self.emit('url-reachable', False)
         del f
 
-    def _icon_download_complete_cb(self, f, result, path=None):
-        self.LOG.debug("icon download completed %s" % self.dest_file_path)
+    def _download_complete_cb(self, f, result, path=None):
         # The result from the download is actually a tuple with three 
         # elements (content, size, etag?)
         # The first element is the actual content so let's grab that
@@ -301,7 +295,7 @@ class ImageDownloader(gobject.GObject):
         outputfile = open(self.dest_file_path, "w")
         outputfile.write(content)
         outputfile.close()
-        self.emit('image-download-complete', self.dest_file_path)
+        self.emit('download-complete', self.dest_file_path)
 
 
 class GMenuSearcher(object):
