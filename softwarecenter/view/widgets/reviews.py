@@ -337,7 +337,7 @@ class StarCaption(gtk.Label):
         #return
 
     def set_markup(self, markup):
-        gtk.Label.set_markup(self, '<small>%s</small>' % markup)
+        gtk.Label.set_markup(self, '<small><b>%s</b></small>' % markup)
         return
 
 

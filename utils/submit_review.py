@@ -458,10 +458,10 @@ class SubmitReviewsApp(BaseApp):
         self.star_rating.set_padding(3, 3, 3, 0)
         self.star_caption.show()
 
-        self.review_summary_vbox.pack_start(self.star_rating, False)
-        self.review_summary_vbox.reorder_child(self.star_rating, 0)
-        self.review_summary_vbox.pack_start(self.star_caption, False, False)
-        self.review_summary_vbox.reorder_child(self.star_caption, 1)
+        self.rating_hbox.pack_start(self.star_rating, False)
+        self.rating_hbox.reorder_child(self.star_rating, 0)
+        self.rating_hbox.pack_start(self.star_caption, False, False)
+        self.rating_hbox.reorder_child(self.star_caption, 1)
 
         self.review_buffer = self.textview_review.get_buffer()
 
