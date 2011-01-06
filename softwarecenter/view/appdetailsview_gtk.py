@@ -1213,7 +1213,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         # for compat with the base class
         self.appdetails = self.app_details
-        # stop here if its the same app
+        # stop here if its the same apph
         if self._same_app: 
             return
         # update all if not the same app
