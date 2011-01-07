@@ -146,7 +146,11 @@ class Worker(threading.Thread):
                                                        token["token_secret"],
                                                        token["consumer_key"],
                                                        token["consumer_secret"])
-        self.rnrclient = RatingsAndReviewsAPI(auth=auth)
+        # change default server to the SSL one
+        distro = get_distro()
+        service_root = distro.REVIEWS_SERVER_SSL
+        self.rnrclient = RatingsAndReviewsAPI(service_root=service_root,
+                                              auth=auth)
 
     def run(self):
         """Main thread run interface, logs into launchpad and waits
@@ -601,15 +605,9 @@ class SubmitReviewsApp(BaseApp):
         return (int(r,16), int(g,16), int(b,16))
     
     def _convert_rgb_to_html(self, r, g, b):
-        html_r = "%X" % r
-        html_g = "%X" % g
-        html_b = "%X" % b
-        
-        if html_r == "0": html_r = "00"
-        if html_g == "0": html_g = "00"
-        if html_b == "0": html_b = "00"
-        return html_r + html_g + html_b
-
+        return "%s%s%s" % ("%02X" % r,
+                           "%02X" % g,
+                           "%02X" % b)
 
     def on_button_post_clicked(self, button):
         logging.debug("enter_review ok button")
