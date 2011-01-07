@@ -146,7 +146,11 @@ class Worker(threading.Thread):
                                                        token["token_secret"],
                                                        token["consumer_key"],
                                                        token["consumer_secret"])
-        self.rnrclient = RatingsAndReviewsAPI(auth=auth)
+        # change default server to the SSL one
+        distro = get_distro()
+        service_root = distro.REVIEWS_SERVER_SSL
+        self.rnrclient = RatingsAndReviewsAPI(service_root=service_root,
+                                              auth=auth)
 
     def run(self):
         """Main thread run interface, logs into launchpad and waits
