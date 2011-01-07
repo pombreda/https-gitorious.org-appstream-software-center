@@ -26,6 +26,8 @@ import pango
 import gobject
 import pangocairo
 
+from math import sin, cos
+
 from mkit_themes import Color, ColorArray, ThemeRegistry
 
 import logging
@@ -237,6 +239,8 @@ def get_mkit_theme():
 
     return CACHED_THEME
 
+def radian(deg):
+    return PI_OVER_180 * deg
 
 
 
@@ -468,6 +472,38 @@ class ShapeCircle(Shape):
         cr.arc(r+x, r+y, r, 0, 360*PI_OVER_180)
         cr.close_path()
         return
+
+
+class ShapeStar(Shape):
+
+    def __init__(self, points, indent=0.61, direction=gtk.TEXT_DIR_LTR):
+        self.coords = self._calc_coords(points, 1-indent)
+
+    def _calc_coords(self, points, indent):
+        coords = []
+        step = radian(180.0/points)
+
+        for i in range(2*points):
+            if i%2:
+                x = (sin(step*i)+1)*0.5
+                y = (cos(step*i)+1)*0.5
+            else:
+                x = (sin(step*i)*indent+1)*0.5
+                y = (cos(step*i)*indent+1)*0.5
+
+            coords.append((x,y))
+        return coords
+
+    def layout(self, cr, x, y, w, h):
+        points = map(lambda (sx,sy): (sx*w+x,sy*h+y), self.coords)
+        cr.move_to(*points[0])
+
+        for p in points[1:]:
+            cr.line_to(*p)
+
+        cr.close_path()
+        return
+
 
 
 class Style:
@@ -875,6 +911,77 @@ class FramedSection(gtk.VBox):
         return
 
 
+class LayoutView2(gtk.HBox):
+
+    def __init__(self, xspacing=4, yspacing=8):
+        gtk.HBox.__init__(self, spacing=xspacing)
+        self.set_homogeneous(True)
+
+        self.min_col_width = 128
+
+
+        self._prev_width = -1
+        self._non_col_children = []
+
+        self.connect('size-allocate', self._on_allocate, yspacing)
+#        self.connect('expose-event', self._on_expose_debug)
+        return
+
+    def _on_allocate(self, widget, allocation, yspacing):
+        w = allocation.width
+        if self._prev_width == w: return True
+        self._prev_width = w
+
+        old_n_cols = len(self.get_children())
+        n_cols = max(1, w / (self.min_col_width + self.get_spacing()))
+
+        if old_n_cols == n_cols: return True
+
+        for i, col in enumerate(self.get_children()):
+            for child in col.get_children():
+                col.remove(child)
+
+            if i >= n_cols:
+                col.destroy()
+
+        if n_cols > old_n_cols:
+            for i in range(old_n_cols, n_cols):
+                col = gtk.VBox(spacing=yspacing)
+                col.set_resize_mode(gtk.RESIZE_IMMEDIATE)
+                self.pack_start(col)
+
+        cols = self.get_children()
+        for i, child in enumerate(self._non_col_children):
+            cols[i%n_cols].pack_start(child, False)
+
+#        print 'ColumnCount:', len(self.get_children())
+        self.show_all()
+        return True
+
+    def _on_expose_debug(self, widget, event):
+        cr = widget.window.cairo_create()
+
+        for i, child in enumerate(self.get_children()):
+            a = child.allocation
+            cr.rectangle(a)
+
+            if i%2:
+                cr.set_dash((2,2))
+                cr.set_source_rgb(1,0,0)
+            else:
+                cr.set_dash((2,2), 2)
+                cr.set_source_rgb(0,1,0)
+
+            cr.stroke()
+
+        del cr
+        return
+
+    def add(self, child):
+        self._non_col_children.append(child)
+        return
+
+
 class LayoutView(FramedSection):
 
     def __init__(self):
@@ -1263,13 +1370,14 @@ class EtchedLabel(gtk.Label):
         x, y = a.x, a.y+1
         lw, lh = l.get_pixel_extents()[1][2:]
         ax, ay = self.get_alignment()
+        px = self.get_padding()[0]
 
         if lw < a.width:
             x += int((a.width-lw)*ax)
         if lh < a.height:
             y += int((a.height-lh)*ay)
 
-        pc.move_to(x, y)
+        pc.move_to(x+px, y)
         pc.layout_path(l)
         r,g,b = floats_from_gdkcolor(self.style.light[self.state])
         pc.set_source_rgba(r,g,b,self.alpha)
@@ -1284,6 +1392,7 @@ class HLinkButton(LinkButton):
         LinkButton.__init__(self, markup, icon_name, icon_size)
 
         self.box = gtk.HBox()
+        self.box.set_resize_mode(gtk.RESIZE_IMMEDIATE)
         self.alignment.add(self.box)
 
         if not self.image.get_storage_type() == gtk.IMAGE_EMPTY:
