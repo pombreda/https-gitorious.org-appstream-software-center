@@ -167,6 +167,13 @@ def decode_xml_char_reference(s):
     p = re.compile("\&\#x(\d\d\d\d);")
     return p.sub(r"\u\1", s).decode("unicode-escape")
     
+def version_compare(a, b):
+    return apt_pkg.version_compare(a, b)
+
+def upstream_version_compare(a, b):
+    return apt_pkg.version_compare(apt_pkg.upstream_version(a),
+                                   apt_pkg.upstream_version(b))
+
 def unescape(text):
     """
     unescapes the given text
