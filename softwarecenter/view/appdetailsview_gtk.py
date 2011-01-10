@@ -1041,7 +1041,7 @@ class Reviews(gtk.VBox):
     def _fill(self):
         if self.reviews:
             for r in self.reviews:
-                review = Review(r)
+                review = Review(r, self._parent.app_details.version)
                 self.vbox.pack_start(review)
         else:
             # TRANSLATORS: displayed if there are no reviews
@@ -1109,7 +1109,7 @@ class Reviews(gtk.VBox):
 
 class Review(gtk.VBox):
     
-    def __init__(self, review_data=None):
+    def __init__(self, review_data=None, app_version=None):
         gtk.VBox.__init__(self, spacing=mkit.SPACING_LARGE)
 
         self.header = gtk.HBox(spacing=mkit.SPACING_MED)
@@ -1127,7 +1127,13 @@ class Review(gtk.VBox):
             summary = review_data.summary
             text = review_data.review_text
             date = review_data.date_created
-            self._build(rating, person, summary, text, date)
+            app_name = review_data.app_name
+            # FIXME: need ReviewDetails json to retrieve package_version for reviews
+            #current variable assignment means review_version always equals app_version
+            #should become something like 'review_version = review_data.package_version' when json is amended
+            #change this to review_version = "something else" to test version alert functionality in the meantime
+            review_version = app_version
+            self._build(rating, person, summary, text, date, app_name, review_version, app_version)
 
         self.body.connect('size-allocate', self._on_allocate)
         return
@@ -1142,7 +1148,7 @@ class Review(gtk.VBox):
         if reviews:
             reviews.emit("report-abuse", self.id)
 
-    def _build(self, rating, person, summary, text, date):
+    def _build(self, rating, person, summary, text, date, app_name, review_version, app_version):
         # all the arguments are may need markup escape, depening on if
         # they are used as text or markup
         m = "<b>%s</b>, %s" % (glib.markup_escape_text(person.capitalize()),
@@ -1157,13 +1163,23 @@ class Review(gtk.VBox):
         text.set_line_wrap(True)
         text.set_selectable(True)
         text.set_alignment(0, 0)
+        
+         
 
         self.header.pack_start(StarRating(rating), False)
         self.header.pack_start(summary, False)
         self.header.pack_end(who_what_when, False)
         #self.header.pack_end(gtk.Label(self.rating), False)
         self.body.pack_start(text, False)
-
+        
+        #if review version is different to version of app being displayed, alert user
+        if not self._compare_versions(review_version, app_version):
+            version_string = _("This review was written for a different version of")
+            version_lbl = gtk.Label("<small><i>%s %s (%s %s)</i></small>" % (version_string, app_name, _("Version"), glib.markup_escape_text(review_version)))
+            version_lbl.set_use_markup(True)
+            version_lbl.set_padding(0,3)
+            self.footer.pack_start(version_lbl, False)
+        
         #like = mkit.VLinkButton('<small>%s</small>' % _('This review was useful'))
         #like.set_underline(True)
         #self.footer.pack_start(like, False)
@@ -1173,6 +1189,13 @@ class Review(gtk.VBox):
         self.footer.pack_end(complain, False)
         complain.connect('clicked', self._on_report_abuse_clicked)
         return
+
+    def _compare_versions(self, review_version, app_version):
+        if app_version and review_version == app_version:
+            return True
+        else:
+            return False
+            
 
     def draw(self, cr, a):
         cr.save()
