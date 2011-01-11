@@ -16,7 +16,13 @@ software-center (3.1.10) UNRELEASED; urgency=low
   * softwarecenter/db/application.py:
     - display correct version number for installed packages (LP: #695026)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 03 Jan 2011 14:15:47 +0100
+  [ Gary Lasker ]
+  * softwarecenter/models/appstore.py:
+    - restore progress bar feedback when installing/removing software
+      from within the applist view (LP: #701589)
+    - clean up unused code
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 11 Jan 2011 12:32:48 -0600
 
 software-center (3.1.9) natty; urgency=low
 
