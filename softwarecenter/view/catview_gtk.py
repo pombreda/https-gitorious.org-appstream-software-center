@@ -40,10 +40,10 @@ CAROUSEL_POSTER_MIN_HEIGHT =     min(64, 4*mkit.EM) + 5*mkit.EM
 CAROUSEL_PAGING_DOT_SIZE =       max(8, int(0.6*mkit.EM+0.5))
 
 # as per spec transition timeout should be 15000 (15 seconds)
-CAROUSEL_TRANSITION_TIMEOUT =    15000
+CAROUSEL_TRANSITION_TIMEOUT =    2000
 
 # spec says the fade duration should be 1 second, these values suffice:
-CAROUSEL_FADE_INTERVAL =         25 # msec
+CAROUSEL_FADE_INTERVAL =         50 # msec
 CAROUSEL_FADE_STEP =             0.1 # value between 0.0 and 1.0
 
 H1 = '<big><b>%s<b></big>'
@@ -265,6 +265,8 @@ class LobbyViewGtk(CategoriesViewGtk):
         self.whatsnew_carousel.set_width(w)
 
         vbox.set_size_request(w, -1)
+
+        self._cleanup_poster_sigs()
         return True
 
     def _on_expose(self, widget, event):
@@ -390,8 +392,8 @@ class LobbyViewGtk(CategoriesViewGtk):
         if self.featured_carousel:
             for poster in self.featured_carousel.posters:
                 self._poster_sigs.append(poster.connect('clicked', self._on_app_clicked))
-        if self.newapps_carousel:
-            for poster in self.newapps_carousel.posters:
+        if self.whatsnew_carousel:
+            for poster in self.whatsnew_carousel.posters:
                 self._poster_sigs.append(poster.connect('clicked', self._on_app_clicked))
         return
 
@@ -717,7 +719,9 @@ class SubCategoryViewGtk(CategoriesViewGtk):
 class CarouselView(gtk.VBox):
 
     def __init__(self, carousel_apps, title, icons, start_random=True):
-        gtk.VBox.__init__(self)
+        gtk.VBox.__init__(self, spacing=6)
+
+        self.cache = carousel_apps.cache
 
         self.header = gtk.HBox(spacing=12)
         self.pack_start(self.header)
@@ -729,7 +733,8 @@ class CarouselView(gtk.VBox):
 
         self.icons = icons
 
-        self.hbox = gtk.HBox(spacing=mkit.SPACING_SMALL)
+        self.hbox = gtk.HBox()
+        self.hbox.set_border_width(6)
         self.hbox.set_homogeneous(True)
         self.pack_start(self.hbox, False)
 
@@ -809,6 +814,8 @@ class CarouselView(gtk.VBox):
                                             #overlay_size, 0)
         #return
 
+
+    @wait_for_apt_cache_ready
     def _build_view(self, width):
         if not self.carousel_apps or len(self.carousel_apps) == 0:
             return
@@ -846,6 +853,8 @@ class CarouselView(gtk.VBox):
                                          self.carousel_apps.cache,
                                          icon_size=self._icon_size,
                                          icons=self.icons)
+
+                
                 self.posters.append(poster)
                 self.hbox.pack_start(poster)
                 poster.show()
@@ -912,18 +921,6 @@ class CarouselView(gtk.VBox):
         else:
             self._alpha = 1.0
             self.queue_draw()
-        return
-
-    def _on_left_clicked(self, btn, event):
-        if event.button != 1: return
-        self.previous()
-        self.restart()
-        return
-
-    def _on_right_clicked(self, btn, event):
-        if event.button != 1: return
-        self.next()
-        self.restart()
         return
 
     def stop(self):
@@ -1024,10 +1021,41 @@ class CarouselView(gtk.VBox):
         return
 
 
-class CategoryButton(gtk.EventBox):
+class BubbleLabel(gtk.Label):
 
-    SPACING = 6
-    ICON_SIZE = gtk.ICON_SIZE_LARGE_TOOLBAR
+    def __init__(self, *args, **kwargs):
+        gtk.Label.__init__(self, *args, **kwargs)
+
+        self.connect('expose-event', self._on_expose)
+        return
+
+    def _on_expose(self, w, e):
+        a = w.allocation
+        l = w.get_layout()
+        lw, lh = l.get_pixel_extents()[1][2:]
+        ax, ay = w.get_alignment()
+        px, py = w.get_padding()
+
+        x = int(a.x + (a.width - lw - 2*px) * ax)
+        y = int(a.y + (a.height - lh - 2*py) * ay)
+
+        cr = w.window.cairo_create()
+
+        # draw action bubble background
+        rounded_rect(cr, x, y, lw+2*px, lh+2*py, 5)
+        color = w.style.dark[w.state].to_string()
+        cr.set_source_rgb(*color_floats(color))
+        cr.fill()
+
+        # bubble number
+        color = w.style.white.to_string()
+        l.set_markup('<span color="%s">%s</span>' % (color, w.get_label()))
+
+        del cr
+        return
+
+
+class Button(gtk.EventBox):
 
     __gsignals__ = {
         "clicked" : (gobject.SIGNAL_RUN_LAST,
@@ -1035,7 +1063,7 @@ class CategoryButton(gtk.EventBox):
                      (),)
         }
 
-    def __init__(self, label, iconname, estimate):
+    def __init__(self):
         gtk.EventBox.__init__(self)
         self.set_visible_window(False)
 
@@ -1050,61 +1078,10 @@ class CategoryButton(gtk.EventBox):
         self._button_press_origin = None
         self._cursor = gtk.gdk.Cursor(cursor_type=gtk.gdk.HAND2)
 
-        hb = gtk.HBox(spacing=self.SPACING)
-        self.add(hb)
-
-        hb.pack_start(gtk.image_new_from_icon_name(iconname, self.ICON_SIZE), False)
-        label = mkit.EtchedLabel(label)
-        label.set_alignment(0, 0.5)
-        label.set_padding(0, 6)
-        hb.pack_start(label, False)
-
-        if estimate / 1000 >= 1:
-            e = estimate / 1000
-            elabel = gtk.Label('<small>%s%s</small>' % (e, _('K')))
-        else:
-            elabel = gtk.Label('<small>%s</small>' % estimate)
-
-        elabel.set_padding(4, 0)
-        elabel.set_use_markup(True)
-        hb.pack_start(elabel, False)
-
         self.connect("button-press-event", self._on_button_press)
         self.connect("button-release-event", self._on_button_release)
         self.connect('enter-notify-event', self._on_enter)
         self.connect('leave-notify-event', self._on_leave)
-
-        elabel.connect('expose-event', self._on_expose)
-        return
-
-    def _on_expose(self, w, e):
-        a = w.allocation
-        l = w.get_layout()
-        lw, lh = l.get_pixel_extents()[1][2:]
-
-        cr = w.window.cairo_create()
-
-        # draw action bubble background
-        y = a.y + (a.height-lh)/2
-        rounded_rect(cr, a.x, y, a.width, lh, 5)
-        cr.set_source_rgb(*color_floats(w.style.dark[w.state]))
-        cr.fill()
-#        cr.fill_preserve()
-
-#        lin = cairo.LinearGradient(0, a.y, 0, a.y+a.height)
-#        lin.add_color_stop_rgba(0.0, 0, 0, 0, 0.0)
-#        lin.add_color_stop_rgba(1.0, 0, 0, 0, 0.25)
-#        cr.set_source(lin)
-#        cr.fill_preserve()
-
-        x, y = int(a.x+(a.width-lw)*0.5+0.5), int(a.y+(a.height-lh)*0.5+0.5)
-                                  
-
-        # bubble number
-        color = w.style.white.to_string()
-        l.set_markup('<span color="%s"><small>%s</small></span>' % (color, w.get_text()))
-
-        del cr
         return
 
     def _on_button_press(self, btn, event):
@@ -1148,6 +1125,36 @@ class CategoryButton(gtk.EventBox):
         return
 
 
+class CategoryButton(Button):
+
+    SPACING = 6
+    ICON_SIZE = gtk.ICON_SIZE_LARGE_TOOLBAR
+
+    def __init__(self, label, iconname, estimate):
+        Button.__init__(self)
+
+        hb = gtk.HBox(spacing=self.SPACING)
+        self.add(hb)
+
+        hb.pack_start(gtk.image_new_from_icon_name(iconname, self.ICON_SIZE), False)
+        label = mkit.EtchedLabel(label)
+        label.set_alignment(0, 0.5)
+        label.set_padding(0, 6)
+        hb.pack_start(label, False)
+
+        if estimate / 1000 >= 1:
+            e = estimate / 1000
+            elabel = BubbleLabel('<small>%s%s</small>' % (e, _('K')))
+        else:
+            elabel = BubbleLabel('<small>%s</small>' % estimate)
+
+        elabel.set_padding(4, 0)
+        elabel.set_use_markup(True)
+        hb.pack_start(elabel, False)
+
+        return
+
+
 class SubcategoryButton(mkit.VLinkButton):
 
     ICON_SIZE = 48
@@ -1162,41 +1169,48 @@ class SubcategoryButton(mkit.VLinkButton):
         return
 
 
-class CarouselPoster2(gtk.HBox):
+class CarouselPoster2(Button):
 
     def __init__(self, db, cache, icon_size=48, icons=None):
-        gtk.HBox.__init__(self, spacing=12)
-        self.set_border_width(12)
+        Button.__init__(self)
+
+        self.hbox = gtk.HBox(spacing=8)
+        self.add(self.hbox)
 
         self.db = db
         self.cache = cache
         self.icon_size = icon_size
         self.icons = icons
 
-        self.image = gtk.Image()
-        self.image.set_size_request(-1, icon_size)
+        self.app = None
 
-        self.price = gtk.Label('Free')
+        self._build_ui(icon_size)
+
+        self.connect('expose-event', self._on_expose)
+        return
+
+    def _build_ui(self, icon_size):
+        self.image = gtk.Image()
+        self.image.set_size_request(icon_size, icon_size)
 
         self.label = gtk.Label()
         self.label.set_alignment(0, 0.5)
         self.label.set_line_wrap(True)
 
+        self.price = gtk.Label()
         self.price.set_alignment(0, 0.5)
 
         self.rating = StarRating()
         self.rating.set(0, 0.5, 0, 0)
 
-        self.app = None
-
-        self.pack_start(self.image, False)
+        self.hbox.pack_start(self.image, False)
 
         inner_vbox = gtk.VBox(spacing=3)
 
         a = gtk.Alignment(0, 0.5)
         a.add(inner_vbox)
 
-        self.pack_start(a, False)
+        self.hbox.pack_start(a, False)
 
         inner_vbox.pack_start(self.label, False)
         inner_vbox.pack_start(self.price, False)
@@ -1208,14 +1222,67 @@ class CarouselPoster2(gtk.HBox):
         return
 
     def _on_allocate(self, w, allocation, label):
-        label.set_size_request(allocation.width - self.icon_size - self.get_spacing(),
-                               -1)
+        w = allocation.width - self.icon_size - self.hbox.get_spacing() - 2*self.hbox.get_border_width()
+        label.set_size_request(max(1, w), -1)
+
+        # cache an ImageSurface for transitions
+        self._surf_cache = self._cache_surf()
         return
 
-    @wait_for_apt_cache_ready
+    def _on_expose(self, w, e):
+        if self.alpha >= 1.0: return
+
+        a = w.allocation
+        cr = w.window.cairo_create()
+        cr.set_source_surface(self._surf_cache, a.x, a.y)
+
+        cr.paint_with_alpha(self.alpha)
+        return True
+
+    def _cache_surf(self):
+        if not self.app: return
+        
+        a = self.allocation
+
+        surf = cairo.ImageSurface(cairo.FORMAT_ARGB32,
+                                  a.width,
+                                  a.height)
+
+        cr = cairo.Context(surf)
+        cr = gtk.gdk.CairoContext(pangocairo.CairoContext(cr))
+
+        _a = self.image.allocation
+        pb = self.image.get_pixbuf()
+        w, h = pb.get_width(), pb.get_height()
+
+        cr.set_source_pixbuf(self.image.get_pixbuf(),
+                             a.x - _a.x + (_a.width - w)/2,
+                             a.y - _a.y + (_a.height - h)/2)
+        cr.paint()
+
+        cr.set_source_color(self.style.text[self.state])
+        cr.move_to(self.label.allocation.x - a.x, self.label.allocation.y - a.y)
+        cr.layout_path(self.label.get_layout())
+        cr.fill()
+
+        cr.move_to(self.price.allocation.x - a.x, self.price.allocation.y - a.y)
+        cr.layout_path(self.price.get_layout())
+        cr.fill()
+
+        for star in self.rating.get_stars():
+            sa = star.allocation
+            _a = gtk.gdk.Rectangle(sa.x - a.x, sa.y - a.y, sa.width, sa.height)
+            star.draw(cr, _a)
+
+        del cr
+        return surf
+
     def set_application(self, app):
         self.app = app
-        a = Application(pkgname=app[AppStore.COL_PKGNAME])
+
+        a = Application(appname=app[AppStore.COL_APP_NAME],
+                        pkgname=app[AppStore.COL_PKGNAME],
+                        popcon=app[AppStore.COL_POPCON])
         d = a.get_details(self.db)
 
         name = app[AppStore.COL_APP_NAME]
@@ -1227,17 +1294,18 @@ class CarouselPoster2(gtk.HBox):
         if pb.get_width() < tw:
             pb = pb.scale_simple(tw, tw, gtk.gdk.INTERP_TILES)
 
-        self.price.set_markup(d.price or _('Free'))
-        self.label.set_markup('<span font_desc="9">%s</span>' % markup)
         self.image.set_from_pixbuf(pb)
+        self.label.set_markup('<span font_desc="9">%s</span>' % markup)
+        self.price.set_markup('<span font_desc="9">%s</span>' % (d.price or _('Free')))
+        self.rating.set_rating(a.popcon)
 
         # set a11y text
-#        self.a11y.set_name(name)
+        self.get_accessible().set_name(name)
         return
 
     def draw(self, cr, a, event_area, alpha):
+        self.alpha = alpha
         return
-
 
 class CarouselPoster(mkit.VLinkButton):
 
