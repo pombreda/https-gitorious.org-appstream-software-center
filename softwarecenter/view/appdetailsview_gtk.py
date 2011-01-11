@@ -42,7 +42,7 @@ from softwarecenter.db.application import AppDetails, Application, NoneTypeAppli
 from softwarecenter.backend.zeitgeist_simple import zeitgeist_singleton
 from softwarecenter.enums import *
 from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
-from softwarecenter.utils import ImageDownloader, GMenuSearcher, uri_to_filename
+from softwarecenter.utils import ImageDownloader, GMenuSearcher, uri_to_filename, upstream_version_compare
 from softwarecenter.gwibber_helper import GWIBBER_SERVICE_AVAILABLE
 
 from appdetailsview import AppDetailsViewBase
@@ -1128,11 +1128,7 @@ class Review(gtk.VBox):
             text = review_data.review_text
             date = review_data.date_created
             app_name = review_data.app_name
-            # FIXME: need ReviewDetails json to retrieve package_version for reviews
-            #current variable assignment means review_version always equals app_version
-            #should become something like 'review_version = review_data.package_version' when json is amended
-            #change this to review_version = "something else" to test version alert functionality in the meantime
-            review_version = app_version
+            review_version = review_data.version
             self._build(rating, person, summary, text, date, app_name, review_version, app_version)
 
         self.body.connect('size-allocate', self._on_allocate)
@@ -1164,18 +1160,20 @@ class Review(gtk.VBox):
         text.set_selectable(True)
         text.set_alignment(0, 0)
         
-         
-
         self.header.pack_start(StarRating(rating), False)
         self.header.pack_start(summary, False)
         self.header.pack_end(who_what_when, False)
         #self.header.pack_end(gtk.Label(self.rating), False)
         self.body.pack_start(text, False)
         
-        #if review version is different to version of app being displayed, alert user
-        if not self._compare_versions(review_version, app_version):
-            version_string = _("This review was written for a different version of")
-            version_lbl = gtk.Label("<small><i>%s %s (%s %s)</i></small>" % (version_string, app_name, _("Version"), glib.markup_escape_text(review_version)))
+        #if review version is different to version of app being displayed, 
+        # alert user
+        if upstream_version_compare(review_version, app_version) != 0:
+            version_string = _("This review was written for a different version of %(app_name)s (Version: %(version)s)") % { 
+                'app_name' : app_name,
+                'version' : glib.markup_escape_text(review_version) 
+                }
+            version_lbl = gtk.Label("<small><i>%s</i></small>" % version_string)
             version_lbl.set_use_markup(True)
             version_lbl.set_padding(0,3)
             self.footer.pack_start(version_lbl, False)
@@ -1189,13 +1187,6 @@ class Review(gtk.VBox):
         self.footer.pack_end(complain, False)
         complain.connect('clicked', self._on_report_abuse_clicked)
         return
-
-    def _compare_versions(self, review_version, app_version):
-        if app_version and review_version == app_version:
-            return True
-        else:
-            return False
-            
 
     def draw(self, cr, a):
         cr.save()
