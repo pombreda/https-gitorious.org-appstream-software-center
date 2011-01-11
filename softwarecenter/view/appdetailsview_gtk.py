@@ -1041,7 +1041,7 @@ class Reviews(gtk.VBox):
     def _fill(self):
         if self.reviews:
             for r in self.reviews:
-                pkgversion = getattr(self._parent.app_details, "version", None)
+                pkgversion = self._parent.app_details.version
                 review = Review(r, pkgversion)
                 self.vbox.pack_start(review)
         else:
@@ -1129,7 +1129,8 @@ class Review(gtk.VBox):
             text = review_data.review_text
             date = review_data.date_created
             app_name = review_data.app_name
-            review_version = review_data.version
+            # some older version of the server do not set the version
+            review_version = getattr(review_data, "version", None)
             self._build(rating, person, summary, text, date, app_name, review_version, app_version)
 
         self.body.connect('size-allocate', self._on_allocate)
