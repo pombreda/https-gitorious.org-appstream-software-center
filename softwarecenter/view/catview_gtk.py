@@ -40,7 +40,7 @@ CAROUSEL_POSTER_MIN_HEIGHT =     min(64, 4*mkit.EM) + 5*mkit.EM
 CAROUSEL_PAGING_DOT_SIZE =       max(8, int(0.6*mkit.EM+0.5))
 
 # as per spec transition timeout should be 15000 (15 seconds)
-CAROUSEL_TRANSITION_TIMEOUT =    2000
+CAROUSEL_TRANSITION_TIMEOUT =    10000
 
 # spec says the fade duration should be 1 second, these values suffice:
 CAROUSEL_FADE_INTERVAL =         50 # msec
@@ -734,6 +734,7 @@ class CarouselView(gtk.VBox):
         self.icons = icons
 
         self.hbox = gtk.HBox()
+        self.hbox.set_spacing(6)
         self.hbox.set_border_width(6)
         self.hbox.set_homogeneous(True)
         self.pack_start(self.hbox, False)
@@ -1184,6 +1185,8 @@ class CarouselPoster2(Button):
 
         self.app = None
 
+        self._height = 1
+
         self._build_ui(icon_size)
 
         self.connect('expose-event', self._on_expose)
@@ -1230,10 +1233,10 @@ class CarouselPoster2(Button):
         return
 
     def _on_expose(self, w, e):
-        if self.alpha >= 1.0: return
-
+        if self.alpha >= 1.0 and not self._surf_cache: return
         a = w.allocation
-        cr = w.window.cairo_create()
+        cr = w.window.cairo_create()        
+
         cr.set_source_surface(self._surf_cache, a.x, a.y)
 
         cr.paint_with_alpha(self.alpha)
