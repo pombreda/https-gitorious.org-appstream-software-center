@@ -470,6 +470,12 @@ class LobbyViewGtk(CategoriesViewGtk):
         
 
     def _append_featured(self):
+
+        # add some filler...
+        padding = gtk.VBox()
+        padding.set_size_request(-1, 6)
+        self.vbox.pack_start(padding, False)
+
         featured_cat = get_category_by_name(self.categories,
                                             'Featured')    # untranslated name
 
