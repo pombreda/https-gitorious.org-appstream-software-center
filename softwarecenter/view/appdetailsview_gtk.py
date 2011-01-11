@@ -1130,7 +1130,7 @@ class Review(gtk.VBox):
             date = review_data.date_created
             app_name = review_data.app_name
             # some older version of the server do not set the version
-            review_version = getattr(review_data, "version", None)
+            review_version = getattr(review_data, "version", "")
             self._build(rating, person, summary, text, date, app_name, review_version, app_version)
 
         self.body.connect('size-allocate', self._on_allocate)
