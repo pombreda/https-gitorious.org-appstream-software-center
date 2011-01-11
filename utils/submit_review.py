@@ -518,6 +518,9 @@ class SubmitReviewsApp(BaseApp):
 
         # review summary label
         self.review_summary_label.set_markup('<b><span color="%s">%s</span></b>' % (dark, _('Summary')))
+        
+        #rating label
+        self.rating_label.set_markup('<b><span color="%s">%s</span></b>' % (dark, _('Rating')))
         return
 
     def _on_mandatory_fields_changed(self, widget):
