@@ -23,6 +23,14 @@ import os.path
 import simplejson
 
 class GwibberHelper(object):
+    """ A helper class for gwibber. ideally we would just use 
+        from gi.repository import Gwibber
+        accounts = Gwibbers.Accounts()
+        accounts.list()
+        ...
+        instead of the dbus iface, but the gi stuff fails
+        to export "Accounts.list()" (and possible more) currently
+    """"
 
     def __init__(self):
         bus = dbus.SessionBus()
