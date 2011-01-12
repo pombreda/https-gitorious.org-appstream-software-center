@@ -152,8 +152,8 @@ class AppStore(gtk.GenericTreeModel):
         self.active_app = None
         self._prev_active_app = 0
         self.limit = limit
-        # keep track of the index for a transaction in progress
-        self.transaction_index = None
+        # keep track of indicies for transactions in progress
+        self.transaction_index_map = {}
         # no search query means "all"
         if not search_query:
             self.search_query = SearchQuery(xapian.Query(""))
@@ -341,8 +341,8 @@ class AppStore(gtk.GenericTreeModel):
         return 0
 
     def _on_transaction_progress_changed(self, backend, pkgname, progress):
-        if self.transaction_index is not None:
-            row = self[self.transaction_index]
+        if pkgname in self.transaction_index_map:
+            row = self[self.transaction_index_map[pkgname]]
             self.row_changed(row.path, row.iter)
             
     # the following methods ensure that the contents data is refreshed
@@ -351,21 +351,21 @@ class AppStore(gtk.GenericTreeModel):
     def _on_transaction_started(self, backend, pkgname):
         self._existing_apps = None
         self._installable_apps = None
-        from softwarecenter.utils import ExecutionTime
-        with ExecutionTime("TIME get_index_for_pkgname"):
-            self.transaction_index = self._get_index_for_pkgname(pkgname)
+        gobject.idle_add(self._register_transaction_index_for_pkgname, pkgname)
 
-    def _get_index_for_pkgname(self, pkgname_to_match):
+    def _register_transaction_index_for_pkgname(self, pkgname_to_match):
         for index in range(len(self.matches)):
             doc = self.matches[index].document
             pkgname = self.db.get_pkgname(doc)
             if pkgname == pkgname_to_match:
-                return index
+                self.transaction_index_map[pkgname] = index
+                return
                 
-    def _on_transaction_finished(self, *args, **kwargs):
+    def _on_transaction_finished(self, backend, result):
         self._existing_apps = None
         self._installable_apps = None
-        self.transaction_index = None
+        if result.pkgname in self.transaction_index_map:
+            del self.transaction_index_map[result.pkgname]
 
     def _download_icon_and_show_when_ready(self, cache, pkgname, icon_file_name):
         self._logger.debug("did not find the icon locally, must download %s" % icon_file_name)
