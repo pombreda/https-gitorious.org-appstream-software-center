@@ -30,7 +30,7 @@ class GwibberHelper(object):
         ...
         instead of the dbus iface, but the gi stuff fails
         to export "Accounts.list()" (and possible more) currently
-    """"
+    """
 
     def __init__(self):
         bus = dbus.SessionBus()
@@ -51,7 +51,7 @@ class GwibberHelper(object):
                 accounts.append(account)
         return accounts
 
-    def send_message(self, message):
+    def send_message(self, message, account_id=None):
         """ send message to all accounts with send_enabled """
         self.service_iface.SendMessage(message)
 
