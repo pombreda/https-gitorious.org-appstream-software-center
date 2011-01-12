@@ -152,6 +152,8 @@ class AppStore(gtk.GenericTreeModel):
         self.active_app = None
         self._prev_active_app = 0
         self.limit = limit
+        # keep track of the index for a transaction in progress
+        self.transaction_index = None
         # no search query means "all"
         if not search_query:
             self.search_query = SearchQuery(xapian.Query(""))
@@ -339,28 +341,31 @@ class AppStore(gtk.GenericTreeModel):
         return 0
 
     def _on_transaction_progress_changed(self, backend, pkgname, progress):
-        index = self._get_index_for_pkgname(pkgname)
-        if index:
-            row = self[index]
+        if self.transaction_index is not None:
+            row = self[self.transaction_index]
             self.row_changed(row.path, row.iter)
             
+    # the following methods ensure that the contents data is refreshed
+    # whenever a transaction potentially changes it: see _refresh_contents.
+
+    def _on_transaction_started(self, backend, pkgname):
+        self._existing_apps = None
+        self._installable_apps = None
+        from softwarecenter.utils import ExecutionTime
+        with ExecutionTime("TIME get_index_for_pkgname"):
+            self.transaction_index = self._get_index_for_pkgname(pkgname)
+
     def _get_index_for_pkgname(self, pkgname_to_match):
         for index in range(len(self.matches)):
             doc = self.matches[index].document
             pkgname = self.db.get_pkgname(doc)
             if pkgname == pkgname_to_match:
                 return index
-
-    # the following methods ensure that the contents data is refreshed
-    # whenever a transaction potentially changes it: see _refresh_contents.
-
-    def _on_transaction_started(self, *args, **kwargs):
-        self._existing_apps = None
-        self._installable_apps = None
-
+                
     def _on_transaction_finished(self, *args, **kwargs):
         self._existing_apps = None
         self._installable_apps = None
+        self.transaction_index = None
 
     def _download_icon_and_show_when_ready(self, cache, pkgname, icon_file_name):
         self._logger.debug("did not find the icon locally, must download %s" % icon_file_name)

@@ -1624,7 +1624,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         return False
 
 
-    def _on_transaction_started(self, backend):
+    def _on_transaction_started(self, backend, pkgname):
         if self.addons_bar.get_applying():
             self.action_bar.configure(self.app_details, APP_ACTION_APPLY)
             return

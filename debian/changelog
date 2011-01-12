@@ -17,12 +17,17 @@ software-center (3.1.10) UNRELEASED; urgency=low
     - display correct version number for installed packages (LP: #695026)
 
   [ Gary Lasker ]
-  * softwarecenter/models/appstore.py:
+  * softwarecenter/models/appstore.py,
+    softwarecenter/backend/aptd.py,
+    softwarecenter/models/appstore.py,
+    softwarecenter/view/appdetailsview_gtk.py,
+    softwarecenter/view/appdetailsview_webkit.py,
+    softwarecenter/view/appview.py:
     - restore progress bar feedback when installing/removing software
       from within the applist view (LP: #701589)
     - clean up unused code
 
- -- Gary Lasker <gary.lasker@canonical.com>  Tue, 11 Jan 2011 12:32:48 -0600
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 11 Jan 2011 18:02:02 -0600
 
 software-center (3.1.9) natty; urgency=low
 
