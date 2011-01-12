@@ -42,7 +42,7 @@ from softwarecenter.db.application import AppDetails, Application, NoneTypeAppli
 from softwarecenter.backend.zeitgeist_simple import zeitgeist_singleton
 from softwarecenter.enums import *
 from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
-from softwarecenter.utils import ImageDownloader, GMenuSearcher, uri_to_filename, upstream_version_compare
+from softwarecenter.utils import ImageDownloader, GMenuSearcher, uri_to_filename, upstream_version_compare, upstream_version
 from softwarecenter.gwibber_helper import GWIBBER_SERVICE_AVAILABLE
 
 from appdetailsview import AppDetailsViewBase
@@ -1041,7 +1041,8 @@ class Reviews(gtk.VBox):
     def _fill(self):
         if self.reviews:
             for r in self.reviews:
-                review = Review(r, self._parent.app_details.version)
+                pkgversion = self._parent.app_details.version
+                review = Review(r, pkgversion)
                 self.vbox.pack_start(review)
         else:
             # TRANSLATORS: displayed if there are no reviews
@@ -1128,7 +1129,8 @@ class Review(gtk.VBox):
             text = review_data.review_text
             date = review_data.date_created
             app_name = review_data.app_name
-            review_version = review_data.version
+            # some older version of the server do not set the version
+            review_version = getattr(review_data, "version", "")
             self._build(rating, person, summary, text, date, app_name, review_version, app_version)
 
         self.body.connect('size-allocate', self._on_allocate)
@@ -1171,7 +1173,7 @@ class Review(gtk.VBox):
         if upstream_version_compare(review_version, app_version) != 0:
             version_string = _("This review was written for a different version of %(app_name)s (Version: %(version)s)") % { 
                 'app_name' : app_name,
-                'version' : glib.markup_escape_text(review_version) 
+                'version' : glib.markup_escape_text(upstream_version(review_version))
                 }
             version_lbl = gtk.Label("<small><i>%s</i></small>" % version_string)
             version_lbl.set_use_markup(True)

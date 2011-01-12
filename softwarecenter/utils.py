@@ -174,6 +174,9 @@ def upstream_version_compare(a, b):
     return apt_pkg.version_compare(apt_pkg.upstream_version(a),
                                    apt_pkg.upstream_version(b))
 
+def upstream_version(v):
+    return apt_pkg.upstream_version(v)
+
 def unescape(text):
     """
     unescapes the given text
