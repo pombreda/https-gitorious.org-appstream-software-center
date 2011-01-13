@@ -12,6 +12,7 @@ All non UI code must come with tests in the test/ subdirectoy.
 SOFTWARE_CENTER_IPSUM_REVIEWS - geneate random reviews
 SOFTWARE_CENTER_OLD_PATHBAR - use old pathbar code
 SOFTWARE_CENTER_SEARCHES_SORT_MODE={popcon,alphabetic,xapian}
+SOFTWARE_CENTER_GWIBBER_MOCK_USERS=2 - use mock gwibber service
 
 == aptdaemon ==
  * the dbus limits for the system bus are rather low, this means that

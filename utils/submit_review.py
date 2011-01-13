@@ -54,6 +54,7 @@ from softwarecenter.utils import *
 from softwarecenter.SimpleGtkbuilderApp import SimpleGtkbuilderApp
 from softwarecenter.distro import get_distro
 from softwarecenter.view.widgets.reviews import StarRatingSelector, StarCaption
+from softwarecenter.gwibber_helper import GwibberHelper, GwibberHelperMock
 
 from softwarecenter.backend.rnrclient import RatingsAndReviewsAPI, ReviewRequest
 
@@ -440,6 +441,7 @@ class SubmitReviewsApp(BaseApp):
     NORMAL_COLOUR = "000000"
     ERROR_COLOUR = "FF0000"
     SUBMIT_MESSAGE = _("Submitting Review")
+    
 
     def __init__(self, app, version, iconname, parent_xid, datadir):
         BaseApp.__init__(self, datadir, "submit_review.ui")
@@ -453,6 +455,14 @@ class SubmitReviewsApp(BaseApp):
         self.icons.append_search_path("/usr/share/app-install/icons/")
         self.submit_window.connect("destroy", self.on_button_cancel_clicked)
         self._add_spellcheck_to_textview(self.textview_review)
+
+        # gwibber stuff
+        self.gwibber_combo = gtk.combo_box_new_text()
+        self.gwibber_hbox.pack_start(self.gwibber_combo, False)
+        if "SOFTWARE_CENTER_GWIBBER_MOCK_USERS" in os.environ:
+            self.gwibber_helper = GwibberHelperMock()
+        else:
+            self.gwibber_helper = GwibberHelper()
 
         # interactive star rating
         self.star_rating = StarRatingSelector(0, star_size=self.STAR_SIZE)
@@ -476,6 +486,9 @@ class SubmitReviewsApp(BaseApp):
         
         # title
         self.submit_window.set_title(_("Review %s" % self.app.name))
+
+        # gwibber accounts
+        self.gwibber_accounts = []
 
         self.review_summary_entry.connect('changed', self._on_mandatory_text_entry_changed)
         self.star_rating.connect('changed', self._on_mandatory_fields_changed)
@@ -521,6 +534,9 @@ class SubmitReviewsApp(BaseApp):
         
         #rating label
         self.rating_label.set_markup('<b><span color="%s">%s</span></b>' % (dark, _('Rating')))
+        
+        self._setup_gwibber_gui()
+        
         return
 
     def _on_mandatory_fields_changed(self, widget):
@@ -629,6 +645,45 @@ class SubmitReviewsApp(BaseApp):
         self.main_notebook.set_current_page(1)
         self._setup_details(self.submit_window, self.app, self.iconname, self.version, display_name)
         return
+    
+    def _get_gwibber_accounts(self):
+        '''calls gwibber helper and gets a list of dicts, each referring to a gwibber account enabled for sending'''
+        self.gwibber_accounts = self.gwibber_helper.accounts()
+        return True
+    
+    def _setup_gwibber_gui(self):
+        if self._get_gwibber_accounts():
+            list_length = len(self.gwibber_accounts)
+        
+            if list_length == 0:
+                self._on_no_gwibber_accounts()
+            elif list_length == 1:
+                self._on_one_gwibber_account()
+            else:
+                self._on_multiple_gwibber_accounts()
+    
+    def _on_no_gwibber_accounts(self):
+        self.gwibber_hbox.hide()
+        self.gwibber_checkbutton.set_active(False)
+    
+    def _on_one_gwibber_account(self):
+        account = self.gwibber_accounts[0]
+        self.gwibber_hbox.show()
+        self.gwibber_combo.hide()
+        acct_text = _("Also post this review to (%s@%s)")  % (
+            account['service'].capitalize(), account['username'])
+        self.gwibber_checkbutton.set_label(acct_text)
+    
+    def _on_multiple_gwibber_accounts(self):
+        self.gwibber_hbox.show()
+        self.gwibber_combo.show()
+
+        self.gwibber_checkbutton.set_label(_("Also post this review to: "))
+        for account in self.gwibber_accounts:
+            acct_text =  "%s@%s"  % (
+                account['service'].capitalize(), account['username'])
+            self.gwibber_combo.append_text(acct_text)
+        self.gwibber_combo.set_active(0)
 
 
 class ReportReviewApp(BaseApp):
