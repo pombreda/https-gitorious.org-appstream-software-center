@@ -536,6 +536,7 @@ class SubmitReviewsApp(BaseApp):
         self.rating_label.set_markup('<b><span color="%s">%s</span></b>' % (dark, _('Rating')))
         
         self._setup_gwibber_gui()
+        
         return
 
     def _on_mandatory_fields_changed(self, widget):
@@ -647,19 +648,24 @@ class SubmitReviewsApp(BaseApp):
     
     def _get_gwibber_accounts(self):
         '''calls gwibber helper and gets a list of dicts, each referring to a gwibber account enabled for sending'''
-        self.gwibber_accounts = self.gwibber_helper.accounts()
-        return True
+        try:
+            self.gwibber_accounts = self.gwibber_helper.accounts()
+            return True
+        except:
+            self.gwibber_accounts = []
+            return False
     
     def _setup_gwibber_gui(self):
         if self._get_gwibber_accounts():
             list_length = len(self.gwibber_accounts)
-        
             if list_length == 0:
                 self._on_no_gwibber_accounts()
             elif list_length == 1:
                 self._on_one_gwibber_account()
             else:
                 self._on_multiple_gwibber_accounts()
+        else:
+            self._on_no_gwibber_accounts()
     
     def _on_no_gwibber_accounts(self):
         self.gwibber_hbox.hide()
@@ -690,6 +696,8 @@ class SubmitReviewsApp(BaseApp):
     def on_transmit_success(self, api, trans):
         if self.gwibber_checkbutton.get_active():
             i = self.gwibber_combo.get_active()
+            status_text = "Sending to %s" % (str.capitalize(self.gwibber_accounts[i]['service']))
+            self.label_transmit_status.set_text(status_text)
             account_id = self.gwibber_accounts[i]['id']
             # FIXME: this needs to follow the spec properly
             msg = _("I just reviewed 'apt:%s'") % self.app.pkgname
