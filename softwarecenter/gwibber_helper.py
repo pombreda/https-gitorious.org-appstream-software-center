@@ -21,6 +21,7 @@ import dbus
 from xdg import BaseDirectory as xdg
 import os.path
 import simplejson
+import sys
 
 class GwibberHelper(object):
     """ A helper class for gwibber. ideally we would just use 
@@ -68,8 +69,8 @@ class GwibberHelper(object):
 
 class GwibberHelperMock(object):
         
-    fake_gwibber_accounts_one = [{u'username': u'randomuser', u'user_id': u'2323434224', u'service': u'twitter', u'secret_token': u':some-token', u'color': u'#729FCF', u'receive_enabled': True, u'access_token': u'some_access_token', u'send_enabled': True, u'id': u'600eafsdsf12c61a2111e095e90015af8bddb6'}]
-    fake_gwibber_accounts_multiple = [{u'username': u'random1', u'user_id': u'2342342313', u'service': u'twitter', u'secret_token': u':some-token', u'color': u'#729FCF', u'receive_enabled': True, u'access_token': u'some_access_token', u'send_enabled': True, u'id': u'600e12c61a21sdfdsaf8bddb6'}, {u'username': u'mpt', u'user_id': u'23safdsaf5', u'service': u'twitter', u'secret_token': u':some_otken', u'color': u'#729FCF', u'receive_enabled': True, u'access_token': u'some_access_token', u'send_enabled': True, u'id': u'afsdfdsa32fafsdfsa'}]
+    fake_gwibber_accounts_one = [{u'username': u'randomuser', u'user_id': u'2323434224', u'service': u'twitter', u'secret_token': u':some-token', u'color': u'#729FCF', u'receive_enabled': True, u'access_token': u'some_access_token', u'send_enabled': True, u'id': u'twitter-id-random-15af8bddb6'}]
+    fake_gwibber_accounts_multiple = [{u'username': u'random1', u'user_id': u'2342342313', u'service': u'twitter', u'secret_token': u':some-token', u'color': u'#729FCF', u'receive_enabled': True, u'access_token': u'some_access_token', u'send_enabled': True, u'id': u'twitter-id-rnadomuser-radfsdf'}, {u'username': u'mpt', u'user_id': u'23safdsaf5', u'service': u'twitter', u'secret_token': u':some_otken', u'color': u'#729FCF', u'receive_enabled': True, u'access_token': u'some_access_token', u'send_enabled': True, u'id': u'twitter-id-mpt-afsdfsa'}]
 
     def accounts(self):
         num = os.environ["SOFTWARE_CENTER_GWIBBER_MOCK_USERS"]
@@ -81,7 +82,7 @@ class GwibberHelperMock(object):
             return self.fake_gwibber_accounts_multiple
 
     def send_message(self, message, account_id):
-        sys.stderr.write("sending '%s' to '%s'" % (message, account_id))
+        sys.stderr.write("sending '%s' to '%s'\n" % (message, account_id))
     
     def has_accounts_in_sqlite():
         return True

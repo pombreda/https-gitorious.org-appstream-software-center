@@ -536,7 +536,6 @@ class SubmitReviewsApp(BaseApp):
         self.rating_label.set_markup('<b><span color="%s">%s</span></b>' % (dark, _('Rating')))
         
         self._setup_gwibber_gui()
-        
         return
 
     def _on_mandatory_fields_changed(self, widget):
@@ -671,8 +670,11 @@ class SubmitReviewsApp(BaseApp):
         self.gwibber_hbox.show()
         self.gwibber_combo.hide()
         acct_text = _("Also post this review to (%s@%s)")  % (
-            account['service'].capitalize(), account['username'])
+            account['username'], account['service'].capitalize())
         self.gwibber_checkbutton.set_label(acct_text)
+        # simplifies on_transmit_successful later
+        self.gwibber_combo.append_text(acct_text)
+        self.gwibber_combox.set_active(0)
     
     def _on_multiple_gwibber_accounts(self):
         self.gwibber_hbox.show()
@@ -681,10 +683,19 @@ class SubmitReviewsApp(BaseApp):
         self.gwibber_checkbutton.set_label(_("Also post this review to: "))
         for account in self.gwibber_accounts:
             acct_text =  "%s@%s"  % (
-                account['service'].capitalize(), account['username'])
+                account['username'], account['service'].capitalize())
             self.gwibber_combo.append_text(acct_text)
         self.gwibber_combo.set_active(0)
 
+    def on_transmit_success(self, api, trans):
+        if self.gwibber_checkbutton.get_active():
+            i = self.gwibber_combo.get_active()
+            account_id = self.gwibber_accounts[i]['id']
+            # FIXME: this needs to follow the spec properly
+            msg = _("I just reviewed 'apt:%s'") % self.app.pkgname
+            self.gwibber_helper.send_message(msg, account_id)
+        # run parent handler
+        BaseApp.on_transmit_success(self, api, trans)
 
 class ReportReviewApp(BaseApp):
     """ report a given application or package """
