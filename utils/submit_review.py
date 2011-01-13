@@ -300,8 +300,8 @@ class BaseApp(SimpleGtkbuilderApp):
         # now run the loop
         self.login()
 
-    def quit(self):
-        sys.exit(0)
+    def quit(self, exitcode=0):
+        sys.exit(exitcode)
 
     def _add_spellcheck_to_textview(self, textview):
         """ adds a spellchecker (if available) to the given gtk.textview """
@@ -376,7 +376,7 @@ class BaseApp(SimpleGtkbuilderApp):
             self.api.shutdown()
         while gtk.events_pending():
             gtk.main_iteration()
-        self.quit()
+        self.quit(1)
 
     def _create_gratings_api(self):
         self.api = GRatingsAndReviews(self.token)
