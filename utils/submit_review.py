@@ -696,7 +696,7 @@ class SubmitReviewsApp(BaseApp):
     def on_transmit_success(self, api, trans):
         if self.gwibber_checkbutton.get_active():
             i = self.gwibber_combo.get_active()
-            status_text = "Sending to %s" % (str.capitalize(self.gwibber_accounts[i]['service']))
+            status_text = "Posting to %s" % (str.capitalize(self.gwibber_accounts[i]['service']))
             self.label_transmit_status.set_text(status_text)
             account_id = self.gwibber_accounts[i]['id']
             # FIXME: this needs to follow the spec properly
