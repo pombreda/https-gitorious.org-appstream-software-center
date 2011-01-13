@@ -675,8 +675,8 @@ class SubmitReviewsApp(BaseApp):
         account = self.gwibber_accounts[0]
         self.gwibber_hbox.show()
         self.gwibber_combo.hide()
-        acct_text = _("Also post this review to (%s@%s)")  % (
-            account['username'], account['service'].capitalize())
+        acct_text = _("Also post this review to %s (@%s)")  % (
+            account['service'].capitalize(), account['username'] )
         self.gwibber_checkbutton.set_label(acct_text)
         # simplifies on_transmit_successful later
         self.gwibber_combo.append_text(acct_text)
@@ -688,8 +688,8 @@ class SubmitReviewsApp(BaseApp):
 
         self.gwibber_checkbutton.set_label(_("Also post this review to: "))
         for account in self.gwibber_accounts:
-            acct_text =  "%s@%s"  % (
-                account['username'], account['service'].capitalize())
+            acct_text =  "%s (@%s)"  % (
+                account['service'].capitalize(), account['username'] )
             self.gwibber_combo.append_text(acct_text)
         self.gwibber_combo.set_active(0)
 
