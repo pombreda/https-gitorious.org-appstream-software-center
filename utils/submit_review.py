@@ -403,11 +403,16 @@ class BaseApp(SimpleGtkbuilderApp):
             self.status_hbox.pack_start(self.submit_error_img, False)
             self.status_hbox.reorder_child(self.submit_error_img, 0)
             self.submit_error_img.show()
-            self.label_transmit_status.set_text(error)
+            self.label_transmit_status.set_text(self.FAILURE_MESSAGE)
+            self.error_textview.get_buffer().set_text(_(error))  
+            self.detail_expander.show()
             self.button_post.set_sensitive(True)
             self.button_cancel.set_sensitive(True)
 
     def _clear_status_imagery(self):
+        self.detail_expander.hide()
+        self.detail_expander.set_expanded(False)
+        
         #clears spinner or error image from dialog submission label before trying to display one or the other
         try: 
             result = self.status_hbox.query_child_packing(self.submit_spinner)
@@ -440,6 +445,7 @@ class SubmitReviewsApp(BaseApp):
     NORMAL_COLOUR = "000000"
     ERROR_COLOUR = "FF0000"
     SUBMIT_MESSAGE = _("Submitting Review")
+    FAILURE_MESSAGE = _("Failed to submit review")
 
     def __init__(self, app, version, iconname, parent_xid, datadir):
         BaseApp.__init__(self, datadir, "submit_review.ui")
@@ -468,6 +474,8 @@ class SubmitReviewsApp(BaseApp):
         self.rating_hbox.reorder_child(self.star_caption, 1)
 
         self.review_buffer = self.textview_review.get_buffer()
+        
+        self.detail_expander.hide()
 
         # data
         self.app = app
@@ -521,6 +529,10 @@ class SubmitReviewsApp(BaseApp):
         
         #rating label
         self.rating_label.set_markup('<b><span color="%s">%s</span></b>' % (dark, _('Rating')))
+        
+        #error detail link label
+        self.label_expander.set_markup('<small><u>%s</u></small>' % (_('Error Details')))
+        
         return
 
     def _on_mandatory_fields_changed(self, widget):
