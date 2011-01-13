@@ -674,7 +674,7 @@ class SubmitReviewsApp(BaseApp):
         self.gwibber_checkbutton.set_label(acct_text)
         # simplifies on_transmit_successful later
         self.gwibber_combo.append_text(acct_text)
-        self.gwibber_combox.set_active(0)
+        self.gwibber_combo.set_active(0)
     
     def _on_multiple_gwibber_accounts(self):
         self.gwibber_hbox.show()
