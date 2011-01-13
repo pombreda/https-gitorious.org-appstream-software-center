@@ -54,6 +54,7 @@ from softwarecenter.utils import *
 from softwarecenter.SimpleGtkbuilderApp import SimpleGtkbuilderApp
 from softwarecenter.distro import get_distro
 from softwarecenter.view.widgets.reviews import StarRatingSelector, StarCaption
+from softwarecenter.gwibber_helper import GwibberHelper
 
 from softwarecenter.backend.rnrclient import RatingsAndReviewsAPI, ReviewRequest
 
@@ -440,6 +441,7 @@ class SubmitReviewsApp(BaseApp):
     NORMAL_COLOUR = "000000"
     ERROR_COLOUR = "FF0000"
     SUBMIT_MESSAGE = _("Submitting Review")
+    
 
     def __init__(self, app, version, iconname, parent_xid, datadir):
         BaseApp.__init__(self, datadir, "submit_review.ui")
@@ -476,6 +478,9 @@ class SubmitReviewsApp(BaseApp):
         
         # title
         self.submit_window.set_title(_("Review %s" % self.app.name))
+
+        # gwibber accounts
+        self.gwibber_accounts = []
 
         self.review_summary_entry.connect('changed', self._on_mandatory_text_entry_changed)
         self.star_rating.connect('changed', self._on_mandatory_fields_changed)
@@ -521,6 +526,9 @@ class SubmitReviewsApp(BaseApp):
         
         #rating label
         self.rating_label.set_markup('<b><span color="%s">%s</span></b>' % (dark, _('Rating')))
+        
+        self._setup_gwibber_gui()
+        
         return
 
     def _on_mandatory_fields_changed(self, widget):
@@ -629,6 +637,56 @@ class SubmitReviewsApp(BaseApp):
         self.main_notebook.set_current_page(1)
         self._setup_details(self.submit_window, self.app, self.iconname, self.version, display_name)
         return
+    
+    def _get_gwibber_accounts(self):
+        '''calls gwibber helper and gets a list of dicts, each referring to a gwibber account enabled for sending'''
+        gh = GwibberHelper()
+        self.gwibber_accounts = gh.accounts()
+        
+        #hardcodes for GUI testing below
+        #comment above two lines and uncomment one of the three following lines to test scenario (no accounts / 1 account / 2+ accounts)
+        #self.gwibber_accounts = []
+        #self.gwibber_accounts = [{u'username': u'jsmith98761', u'user_id': u'235037074', u'service': u'twitter', u'secret_token': u':KEYRING:5', u'color': u'#729FCF', u'receive_enabled': True, u'access_token': u'235037074-jkldsfjlksdfjklsfdkljfsdjklfdsklj', u'send_enabled': True, u'id': u'600e12c61a2111e095e90015af8bddb6'}]
+        #self.gwibber_accounts = [{u'username': u'jsmith98761', u'user_id': u'235037074', u'service': u'twitter', u'secret_token': u':KEYRING:5', u'color': u'#729FCF', u'receive_enabled': True, u'access_token': u'235037074-safdjkdsfjlksdfjlksdfjlkdsfjklfds', u'send_enabled': True, u'id': u'600e12c61a2111e095e90015af8bddb6'}, {u'username': u'mpt', u'user_id': u'235037075', u'service': u'twitter', u'secret_token': u':KEYRING:5', u'color': u'#729FCF', u'receive_enabled': True, u'access_token': u'235037074-TwSWCsdfjklsdfjksdfjkdsfjkmMCpK', u'send_enabled': True, u'id': u'600e12c61a2111e095e90015af8bddb6'}]
+    
+        return True
+    
+    def _setup_gwibber_gui(self):
+        if self._get_gwibber_accounts():
+            list_length = len(self.gwibber_accounts)
+        
+            if list_length == 0:
+                self._on_no_gwibber_accounts()
+            elif list_length == 1:
+                self._on_one_gwibber_account()
+            else:
+                self._on_multiple_gwibber_accounts()
+    
+    def _on_no_gwibber_accounts(self):
+        self.gwibber_hbox.hide()
+        self.gwibber_checkbutton.set_active(False)
+    
+    def _on_one_gwibber_account(self):
+        account = self.gwibber_accounts[0]
+        acct_text = str.capitalize(str(account['service'])) + " (@" + str(account['username']) + ")"
+        self.gwibber_hbox.show()
+        gwibber_label = gtk.Label(acct_text)
+        self.gwibber_hbox.pack_start(gwibber_label, False)
+        self.gwibber_hbox.reorder_child(gwibber_label, 1)
+        gwibber_label.show()
+    
+    def _on_multiple_gwibber_accounts(self):
+        self.gwibber_hbox.show()
+        gwibber_combo = gtk.combo_box_new_text()
+
+        for account in self.gwibber_accounts:
+            acct_text = str.capitalize(str(account['service'])) + " (@" + str(account['username']) + ")"
+            gwibber_combo.append_text(acct_text)
+        
+        gwibber_combo.set_active(0)
+        self.gwibber_hbox.pack_start(gwibber_combo, False)
+        self.gwibber_hbox.reorder_child(gwibber_combo, 1)
+        gwibber_combo.show()
 
 
 class ReportReviewApp(BaseApp):
