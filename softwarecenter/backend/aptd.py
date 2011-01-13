@@ -655,6 +655,8 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
                 # setup debconf only if we have a pkg
                 yield trans.set_debconf_frontend("gnome", defer=True)
                 trans.set_remove_obsoleted_depends(True, defer=True)
+                self._progress_signal = trans.connect("progress-changed", self._on_progress_changed)
+                self.pending_transactions[pkgname] = TransactionProgress(trans)
             # generic metadata
             if metadata:
                 yield trans.set_meta_data(defer=True, **metadata)

@@ -26,8 +26,11 @@ software-center (3.1.10) UNRELEASED; urgency=low
     - restore progress bar feedback when installing/removing software
       from within the applist view (LP: #701589)
     - clean up unused code
+  * softwarecenter/backend/aptd.py:
+    - attach the aptdaemon progress-changed listener earlier in the
+      transaction to allow for more instant progress feedback in the UI
 
- -- Gary Lasker <gary.lasker@canonical.com>  Tue, 11 Jan 2011 18:02:02 -0600
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 13 Jan 2011 12:34:02 -0600
 
 software-center (3.1.9) natty; urgency=low
 
