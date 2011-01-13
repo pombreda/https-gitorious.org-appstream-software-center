@@ -634,9 +634,14 @@ def rebuild_database(pathname):
         mo_time = os.path.getctime(mofile)
         db.set_metadata("app-install-mo-time", str(mo_time))
     db.flush()
- 
-    os.rename(pathname, old_path)
-    os.rename(rebuild_path, pathname)
-    shutil.rmtree(old_path)
-    return True
-
+    
+    # use shutil.move() instead of os.rename() as this will automatically
+    # figure out if it can use os.rename or needs to do the move "manually"
+    try:
+        shutil.move(pathname, old_path)
+        shutil.move(rebuild_path, pathname)
+        shutil.rmtree(old_path)
+        return True
+    except:
+        LOG.warn("Cannot copy refreshed database to correct location: '%s'." % pathname)
+        return False

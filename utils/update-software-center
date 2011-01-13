@@ -128,7 +128,11 @@ if __name__ == "__main__":
             os.makedirs(pathname)
         # rebuild the database, the default context is run to ensure
         # dbus querries are processed
-        rebuild_database(pathname)
+        print "Updating software catalog...this may take a moment."
+        if rebuild_database(pathname):
+            print "Software catalog update was successful."
+        else:
+            print "There was a problem updating the software catalog. Please try again or check the log."
     finally:
         # signal that the xapian db is valid again
         if dbus_controller:

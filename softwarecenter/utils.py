@@ -237,7 +237,7 @@ def is_unity_running():
     unity_running = False
     try:
         bus = dbus.SessionBus()
-        unity_running = bus.name_has_owner("com.canonical.Unity.Panel.Service")
+        unity_running = bus.name_has_owner("com.canonical.Unity")
     except:
         LOG.exception("could not check for Unity dbus service")
     return unity_running

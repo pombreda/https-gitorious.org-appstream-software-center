@@ -473,7 +473,10 @@ class AppDetails(object):
     @property
     def version(self):
         if self._pkg:
-            return self._pkg.candidate.version
+            if self._pkg.installed:
+                return self._pkg.installed.version
+            else:
+                return self._pkg.candidate.version
 
     @property
     def warning(self):
