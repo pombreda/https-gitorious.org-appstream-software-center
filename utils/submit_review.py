@@ -54,7 +54,7 @@ from softwarecenter.utils import *
 from softwarecenter.SimpleGtkbuilderApp import SimpleGtkbuilderApp
 from softwarecenter.distro import get_distro
 from softwarecenter.view.widgets.reviews import StarRatingSelector, StarCaption
-from softwarecenter.gwibber_helper import GwibberHelper
+from softwarecenter.gwibber_helper import GwibberHelper, GwibberHelperMock
 
 from softwarecenter.backend.rnrclient import RatingsAndReviewsAPI, ReviewRequest
 
@@ -301,8 +301,8 @@ class BaseApp(SimpleGtkbuilderApp):
         # now run the loop
         self.login()
 
-    def quit(self):
-        sys.exit(0)
+    def quit(self, exitcode=0):
+        sys.exit(exitcode)
 
     def _add_spellcheck_to_textview(self, textview):
         """ adds a spellchecker (if available) to the given gtk.textview """
@@ -377,7 +377,7 @@ class BaseApp(SimpleGtkbuilderApp):
             self.api.shutdown()
         while gtk.events_pending():
             gtk.main_iteration()
-        self.quit()
+        self.quit(1)
 
     def _create_gratings_api(self):
         self.api = GRatingsAndReviews(self.token)
@@ -456,6 +456,14 @@ class SubmitReviewsApp(BaseApp):
         self.submit_window.connect("destroy", self.on_button_cancel_clicked)
         self._add_spellcheck_to_textview(self.textview_review)
 
+        # gwibber stuff
+        self.gwibber_combo = gtk.combo_box_new_text()
+        self.gwibber_hbox.pack_start(self.gwibber_combo, False)
+        if "SOFTWARE_CENTER_GWIBBER_MOCK_USERS" in os.environ:
+            self.gwibber_helper = GwibberHelperMock()
+        else:
+            self.gwibber_helper = GwibberHelper()
+
         # interactive star rating
         self.star_rating = StarRatingSelector(0, star_size=self.STAR_SIZE)
         self.star_caption = StarCaption()
@@ -528,7 +536,6 @@ class SubmitReviewsApp(BaseApp):
         self.rating_label.set_markup('<b><span color="%s">%s</span></b>' % (dark, _('Rating')))
         
         self._setup_gwibber_gui()
-        
         return
 
     def _on_mandatory_fields_changed(self, widget):
@@ -640,15 +647,7 @@ class SubmitReviewsApp(BaseApp):
     
     def _get_gwibber_accounts(self):
         '''calls gwibber helper and gets a list of dicts, each referring to a gwibber account enabled for sending'''
-        gh = GwibberHelper()
-        self.gwibber_accounts = gh.accounts()
-        
-        #hardcodes for GUI testing below
-        #comment above two lines and uncomment one of the three following lines to test scenario (no accounts / 1 account / 2+ accounts)
-        #self.gwibber_accounts = []
-        #self.gwibber_accounts = [{u'username': u'jsmith98761', u'user_id': u'235037074', u'service': u'twitter', u'secret_token': u':KEYRING:5', u'color': u'#729FCF', u'receive_enabled': True, u'access_token': u'235037074-jkldsfjlksdfjklsfdkljfsdjklfdsklj', u'send_enabled': True, u'id': u'600e12c61a2111e095e90015af8bddb6'}]
-        #self.gwibber_accounts = [{u'username': u'jsmith98761', u'user_id': u'235037074', u'service': u'twitter', u'secret_token': u':KEYRING:5', u'color': u'#729FCF', u'receive_enabled': True, u'access_token': u'235037074-safdjkdsfjlksdfjlksdfjlkdsfjklfds', u'send_enabled': True, u'id': u'600e12c61a2111e095e90015af8bddb6'}, {u'username': u'mpt', u'user_id': u'235037075', u'service': u'twitter', u'secret_token': u':KEYRING:5', u'color': u'#729FCF', u'receive_enabled': True, u'access_token': u'235037074-TwSWCsdfjklsdfjksdfjkdsfjkmMCpK', u'send_enabled': True, u'id': u'600e12c61a2111e095e90015af8bddb6'}]
-    
+        self.gwibber_accounts = self.gwibber_helper.accounts()
         return True
     
     def _setup_gwibber_gui(self):
@@ -668,26 +667,35 @@ class SubmitReviewsApp(BaseApp):
     
     def _on_one_gwibber_account(self):
         account = self.gwibber_accounts[0]
-        acct_text = str.capitalize(str(account['service'])) + " (@" + str(account['username']) + ")"
         self.gwibber_hbox.show()
-        gwibber_label = gtk.Label(acct_text)
-        self.gwibber_hbox.pack_start(gwibber_label, False)
-        self.gwibber_hbox.reorder_child(gwibber_label, 1)
-        gwibber_label.show()
+        self.gwibber_combo.hide()
+        acct_text = _("Also post this review to (%s@%s)")  % (
+            account['username'], account['service'].capitalize())
+        self.gwibber_checkbutton.set_label(acct_text)
+        # simplifies on_transmit_successful later
+        self.gwibber_combo.append_text(acct_text)
+        self.gwibber_combox.set_active(0)
     
     def _on_multiple_gwibber_accounts(self):
         self.gwibber_hbox.show()
-        gwibber_combo = gtk.combo_box_new_text()
+        self.gwibber_combo.show()
 
+        self.gwibber_checkbutton.set_label(_("Also post this review to: "))
         for account in self.gwibber_accounts:
-            acct_text = str.capitalize(str(account['service'])) + " (@" + str(account['username']) + ")"
-            gwibber_combo.append_text(acct_text)
-        
-        gwibber_combo.set_active(0)
-        self.gwibber_hbox.pack_start(gwibber_combo, False)
-        self.gwibber_hbox.reorder_child(gwibber_combo, 1)
-        gwibber_combo.show()
+            acct_text =  "%s@%s"  % (
+                account['username'], account['service'].capitalize())
+            self.gwibber_combo.append_text(acct_text)
+        self.gwibber_combo.set_active(0)
 
+    def on_transmit_success(self, api, trans):
+        if self.gwibber_checkbutton.get_active():
+            i = self.gwibber_combo.get_active()
+            account_id = self.gwibber_accounts[i]['id']
+            # FIXME: this needs to follow the spec properly
+            msg = _("I just reviewed 'apt:%s'") % self.app.pkgname
+            self.gwibber_helper.send_message(msg, account_id)
+        # run parent handler
+        BaseApp.on_transmit_success(self, api, trans)
 
 class ReportReviewApp(BaseApp):
     """ report a given application or package """
