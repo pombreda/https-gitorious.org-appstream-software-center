@@ -539,7 +539,6 @@ class LobbyViewGtk(CategoriesViewGtk):
         self.departments = mkit.LayoutView2(xspacing=20, yspacing=20)
 
 #        # set the departments section to use the label markup we have just defined
-
         label = mkit.EtchedLabel("<b>%s</b>" % H2 % self.header)
         label.set_use_markup(True)
         label.set_alignment(0, 0.5)
@@ -1123,6 +1122,7 @@ class Button(gtk.EventBox):
             self.set_state(gtk.STATE_ACTIVE)
         else:
             self.set_state(gtk.STATE_PRELIGHT)
+
         self.window.set_cursor(self._cursor)
         return
 
@@ -1144,7 +1144,7 @@ class CategoryButton(Button):
         self.add(hb)
 
         hb.pack_start(gtk.image_new_from_icon_name(iconname, self.ICON_SIZE), False)
-        label = mkit.EtchedLabel(label)
+        self.label = label = mkit.EtchedLabel(label)
         label.set_alignment(0, 0.5)
         label.set_padding(0, 6)
         hb.pack_start(label, False)
@@ -1158,7 +1158,6 @@ class CategoryButton(Button):
         elabel.set_padding(4, 0)
         elabel.set_use_markup(True)
         hb.pack_start(elabel, False)
-
         return
 
 
@@ -1239,7 +1238,7 @@ class CarouselPoster2(Button):
         return
 
     def _on_expose(self, w, e):
-        if self.alpha >= 1.0 and not self._surf_cache: return
+        if self.alpha >= 1.0 or not self._surf_cache: return
         a = w.allocation
         cr = w.window.cairo_create()        
 
