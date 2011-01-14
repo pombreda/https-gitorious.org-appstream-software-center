@@ -13,6 +13,8 @@ software-center (3.1.10) UNRELEASED; urgency=low
   [ Kiwinote ]
   * softwarecenter/app.py:
     - don't crash on pressing backspace in the history pane (LP: #696639)
+  * softwarecenter/backend/aptd.py:
+    - play nicely after cancelling policykit dialog
   * softwarecenter/db/application.py:
     - display correct version number for installed packages (LP: #695026)
 
