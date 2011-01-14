@@ -16,7 +16,21 @@ software-center (3.1.10) UNRELEASED; urgency=low
   * softwarecenter/db/application.py:
     - display correct version number for installed packages (LP: #695026)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 03 Jan 2011 14:15:47 +0100
+  [ Gary Lasker ]
+  * softwarecenter/models/appstore.py,
+    softwarecenter/backend/aptd.py,
+    softwarecenter/models/appstore.py,
+    softwarecenter/view/appdetailsview_gtk.py,
+    softwarecenter/view/appdetailsview_webkit.py,
+    softwarecenter/view/appview.py:
+    - restore progress bar feedback when installing/removing software
+      from within the applist view (LP: #701589)
+    - clean up unused code
+  * softwarecenter/backend/aptd.py:
+    - attach the aptdaemon progress-changed listener earlier in the
+      transaction to allow for more instant progress feedback in the UI
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 13 Jan 2011 12:34:02 -0600
 
 software-center (3.1.9) natty; urgency=low
 
