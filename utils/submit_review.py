@@ -487,13 +487,12 @@ class SubmitReviewsApp(BaseApp):
         # title
         self.submit_window.set_title(_("Review %s" % self.app.name))
 
-        # gwibber accounts
-        self.gwibber_accounts = []
-
         self.review_summary_entry.connect('changed', self._on_mandatory_text_entry_changed)
         self.star_rating.connect('changed', self._on_mandatory_fields_changed)
         self.review_buffer.connect('changed', self._on_text_entry_changed)
         
+        # gwibber stuff
+        self._setup_gwibber_gui()
 
         # parent xid
         if parent_xid:
@@ -534,8 +533,6 @@ class SubmitReviewsApp(BaseApp):
         
         #rating label
         self.rating_label.set_markup('<b><span color="%s">%s</span></b>' % (dark, _('Rating')))
-        
-        self._setup_gwibber_gui()
         return
 
     def _on_mandatory_fields_changed(self, widget):
@@ -645,21 +642,15 @@ class SubmitReviewsApp(BaseApp):
         self._setup_details(self.submit_window, self.app, self.iconname, self.version, display_name)
         return
     
-    def _get_gwibber_accounts(self):
-        '''calls gwibber helper and gets a list of dicts, each referring to a gwibber account enabled for sending'''
-        self.gwibber_accounts = self.gwibber_helper.accounts()
-        return True
-    
     def _setup_gwibber_gui(self):
-        if self._get_gwibber_accounts():
-            list_length = len(self.gwibber_accounts)
-        
-            if list_length == 0:
-                self._on_no_gwibber_accounts()
-            elif list_length == 1:
-                self._on_one_gwibber_account()
-            else:
-                self._on_multiple_gwibber_accounts()
+        self.gwibber_accounts = self.gwibber_helper.accounts()
+        list_length = len(self.gwibber_accounts)
+        if list_length == 0:
+            self._on_no_gwibber_accounts()
+        elif list_length == 1:
+            self._on_one_gwibber_account()
+        else:
+            self._on_multiple_gwibber_accounts()
     
     def _on_no_gwibber_accounts(self):
         self.gwibber_hbox.hide()
@@ -669,12 +660,12 @@ class SubmitReviewsApp(BaseApp):
         account = self.gwibber_accounts[0]
         self.gwibber_hbox.show()
         self.gwibber_combo.hide()
-        acct_text = _("Also post this review to (%s@%s)")  % (
-            account['username'], account['service'].capitalize())
+        acct_text = _("Also post this review to %s (@%s)")  % (
+            account['service'].capitalize(), account['username'] )
         self.gwibber_checkbutton.set_label(acct_text)
         # simplifies on_transmit_successful later
         self.gwibber_combo.append_text(acct_text)
-        self.gwibber_combox.set_active(0)
+        self.gwibber_combo.set_active(0)
     
     def _on_multiple_gwibber_accounts(self):
         self.gwibber_hbox.show()
@@ -682,20 +673,49 @@ class SubmitReviewsApp(BaseApp):
 
         self.gwibber_checkbutton.set_label(_("Also post this review to: "))
         for account in self.gwibber_accounts:
-            acct_text =  "%s@%s"  % (
-                account['username'], account['service'].capitalize())
+            acct_text =  "%s (@%s)"  % (
+                account['service'].capitalize(), account['username'] )
             self.gwibber_combo.append_text(acct_text)
         self.gwibber_combo.set_active(0)
 
     def on_transmit_success(self, api, trans):
         if self.gwibber_checkbutton.get_active():
             i = self.gwibber_combo.get_active()
+            status_text = _("Posting to %s") % self.gwibber_accounts[i]['service'].capitalize()
+            self.label_transmit_status.set_text(status_text)
             account_id = self.gwibber_accounts[i]['id']
-            # FIXME: this needs to follow the spec properly
-            msg = _("I just reviewed 'apt:%s'") % self.app.pkgname
+            msg = _(self._gwibber_message())
             self.gwibber_helper.send_message(msg, account_id)
         # run parent handler
         BaseApp.on_transmit_success(self, api, trans)
+    
+    def _gwibber_message(self):
+        rating = self.star_rating.get_rating()
+        rating_string = ''
+        
+        #fill star ratings for string
+        for i in range(1,6):
+            if i <= rating:
+                rating_string = rating_string + u"\u2605"
+            else:
+                rating_string = rating_string + u"\u2606"
+                
+        review_summary_text = self.review_summary_entry.get_text()
+        app_link = "http://apt.ubuntu.com/p/%s" % self.app.pkgname
+        gwib_msg = _("reviewed %(appname)s: %(rating)s %(summary)s %(link)s") % { 
+                'appname' : self.app.appname, 
+                'rating'  : rating_string, 
+                'summary'  : review_summary_text,
+                'link'    : app_link }
+        
+        #check char count and ellipsize review summary if larger than 140 chars
+        if len(gwib_msg) > 140:
+            chars_to_reduce = len(gwib_msg) - 139
+            new_char_count = len(review_summary_text) - chars_to_reduce
+            review_summary_text = review_summary_text[:new_char_count] + u"\u2026"
+            gwib_msg = "reviewed %s: %s %s %s" % (self.app.appname, rating_string, review_summary_text, app_link)
+        
+        return gwib_msg
 
 class ReportReviewApp(BaseApp):
     """ report a given application or package """
