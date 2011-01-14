@@ -699,11 +699,34 @@ class SubmitReviewsApp(BaseApp):
             status_text = "Posting to %s" % (str.capitalize(self.gwibber_accounts[i]['service']))
             self.label_transmit_status.set_text(status_text)
             account_id = self.gwibber_accounts[i]['id']
-            # FIXME: this needs to follow the spec properly
-            msg = _("I just reviewed 'apt:%s'") % self.app.pkgname
+            msg = _(self._gwibber_message())
             self.gwibber_helper.send_message(msg, account_id)
         # run parent handler
         BaseApp.on_transmit_success(self, api, trans)
+    
+    def _gwibber_message(self):
+        rating = self.star_rating.get_rating()
+        rating_string = ''
+        
+        #fill star ratings for string
+        for i in range(1,6):
+            if i <= rating:
+                rating_string = rating_string + u"\u2605"
+            else:
+                rating_string = rating_string + u"\u2606"
+                
+        review_summary_text = self.review_summary_entry.get_text()
+        app_link = "http://apt.ubuntu.com/p/%s" % self.app.pkgname
+        gwib_msg = "reviewed %s: %s %s %s" % (self.app.appname, rating_string, review_summary_text, app_link)
+        
+        #check char count and ellipsize review summary if larger than 140 chars
+        if len(gwib_msg) > 140:
+            chars_to_reduce = -139 + len(gwib_msg)
+            new_char_count = len(review_summary_text) - chars_to_reduce
+            review_summary_text = review_summary_text[:new_char_count] + u"\u2026"
+            gwib_msg = "reviewed %s: %s %s %s" % (self.app.appname, rating_string, review_summary_text, app_link)
+        
+        return gwib_msg
 
 class ReportReviewApp(BaseApp):
     """ report a given application or package """
