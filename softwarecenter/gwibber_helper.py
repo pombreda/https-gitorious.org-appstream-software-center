@@ -35,15 +35,19 @@ class GwibberHelper(object):
 
     def accounts(self):
         """ returns accounts that are send_enabled """
-        bus = dbus.SessionBus()
-        proxy_obj = bus.get_object("com.Gwibber.Accounts",
-                                   "/com/gwibber/Accounts")
-        accounts_iface = dbus.Interface(proxy_obj, "com.Gwibber.Accounts")
         accounts = []
-        for account in simplejson.loads(accounts_iface.List()):
-            if account["send_enabled"]:
-                accounts.append(account)
-        return accounts
+        try:
+            bus = dbus.SessionBus()
+            proxy_obj = bus.get_object("com.Gwibber.Accounts",
+                                       "/com/gwibber/Accounts")
+            accounts_iface = dbus.Interface(proxy_obj, "com.Gwibber.Accounts")
+            for account in simplejson.loads(accounts_iface.List()):
+                if account["send_enabled"]:
+                    accounts.append(account)
+            return accounts
+        except:
+            logging.exception("GwibberHelper.accounts() failed")
+            return accounts
 
     def send_message(self, message, account_id=None):
         """ send message to all accounts with send_enabled """
