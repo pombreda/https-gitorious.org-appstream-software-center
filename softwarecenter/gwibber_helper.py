@@ -18,6 +18,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import dbus
+import logging
 from xdg import BaseDirectory as xdg
 import os.path
 import simplejson
@@ -42,7 +43,7 @@ class GwibberHelper(object):
                                        "/com/gwibber/Accounts")
             accounts_iface = dbus.Interface(proxy_obj, "com.Gwibber.Accounts")
             for account in simplejson.loads(accounts_iface.List()):
-                if account["send_enabled"]:
+                if account.has_key('send_enabled') and account["send_enabled"]:
                     accounts.append(account)
             return accounts
         except:
