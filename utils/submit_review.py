@@ -712,11 +712,9 @@ class SubmitReviewsApp(BaseApp):
         
         gwibber_active_account = 0
         
-        i = 0
         for account in self.gwibber_accounts:
             if account['id'] == self.gwibber_prefs['account_id']:
-                gwibber_active_account = i
-            i = i+1
+                gwibber_active_account = self.gwibber_accounts.index(account)
         self.gwibber_combo.set_active(gwibber_active_account)
 
     def on_transmit_success(self, api, trans):
