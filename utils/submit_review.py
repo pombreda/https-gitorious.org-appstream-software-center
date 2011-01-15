@@ -52,6 +52,7 @@ from softwarecenter.db.database import Application
 from softwarecenter.db.reviews import Review
 from softwarecenter.utils import *
 from softwarecenter.SimpleGtkbuilderApp import SimpleGtkbuilderApp
+from softwarecenter.view.dialogs import SimpleGtkbuilderDialog
 from softwarecenter.distro import get_distro
 from softwarecenter.view.widgets.reviews import StarRatingSelector, StarCaption
 from softwarecenter.gwibber_helper import GwibberHelper, GwibberHelperMock
@@ -450,6 +451,8 @@ class SubmitReviewsApp(BaseApp):
     def __init__(self, app, version, iconname, parent_xid, datadir):
         BaseApp.__init__(self, datadir, "submit_review.ui")
 
+        self.datadir = datadir
+
         # legal fineprint, do not change without consulting a lawyer
         msg = _("By submitting this review, you agree not to include anything defamatory, infringing, or illegal. Canonical may, at its discretion, publish your name and review in Ubuntu Software Center and elsewhere, and allow the software or content author to publish it too.")
         self.label_legal_fineprint.set_markup('<span size="x-small">%s</span>' % msg)
@@ -726,12 +729,30 @@ class SubmitReviewsApp(BaseApp):
             #save prefs
             self._save_gwibber_state(True, account_id)
             msg = _(self._gwibber_message())
-            self.gwibber_helper.send_message(msg, account_id)
+            if self.gwibber_helper.send_message(msg, account_id):
+                BaseApp.on_transmit_success(self, api, trans)
+            else:
+                #FIXME: send an error string to this method instead of empty string
+                self._on_gwibber_fail(api, trans, self.gwibber_accounts[i]['service'].capitalize(), "")
         else:
             #prevent _save_gwibber_state from overwriting the account id in config if the checkbutton was not selected    
             self._save_gwibber_state(False, False)
-        # run parent handler
-        BaseApp.on_transmit_success(self, api, trans)
+            BaseApp.on_transmit_success(self, api, trans)
+    
+    def _on_gwibber_fail(self, api, trans, service, error):
+        glade_dialog = SimpleGtkbuilderDialog(self.datadir, domain="software-center")
+        dialog = glade_dialog.dialog_gwibber_error
+        #FIXME: popup message dialog is currently appearing undecorated
+        dialog.set_decorated(True)
+        dialog.set_transient_for(self.submit_window)
+        dialog.set_markup("There was a problem posting this review to %s." % service)
+        dialog.format_secondary_text(error)
+        result = dialog.run()
+        dialog.destroy()
+        if result == gtk.RESPONSE_ACCEPT:
+            self.on_transmit_success(api, trans)
+        else:
+            BaseApp.on_transmit_success(self, api, trans)
     
     def _save_gwibber_state(self, gwibber_send, account_id):
         if not self.config.has_section("reviews"):
