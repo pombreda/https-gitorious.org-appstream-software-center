@@ -167,6 +167,16 @@ def decode_xml_char_reference(s):
     p = re.compile("\&\#x(\d\d\d\d);")
     return p.sub(r"\u\1", s).decode("unicode-escape")
     
+def version_compare(a, b):
+    return apt_pkg.version_compare(a, b)
+
+def upstream_version_compare(a, b):
+    return apt_pkg.version_compare(apt_pkg.upstream_version(a),
+                                   apt_pkg.upstream_version(b))
+
+def upstream_version(v):
+    return apt_pkg.upstream_version(v)
+
 def unescape(text):
     """
     unescapes the given text
@@ -342,6 +352,15 @@ def hash_pkgname_for_changelogs(pkgname):
     if pkgname.startswith("lib"):
         return pkgname[0:4]
     return pkgname[0:1]
+
+def clear_token_from_ubuntu_sso(appname):
+    """ send a dbus signal to the com.ubuntu.sso service to clear 
+        the credentials for the given appname
+    """
+    import dbus
+    bus = dbus.SessionBus()
+    proxy = bus.get_object('com.ubuntu.sso', '/credentials')
+    proxy.clear_token(appname)
 
 if __name__ == "__main__":
     s = decode_xml_char_reference('Search&#x2026;')

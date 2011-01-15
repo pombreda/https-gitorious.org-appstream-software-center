@@ -42,7 +42,7 @@ from softwarecenter.db.application import AppDetails, Application, NoneTypeAppli
 from softwarecenter.backend.zeitgeist_simple import zeitgeist_singleton
 from softwarecenter.enums import *
 from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
-from softwarecenter.utils import ImageDownloader, GMenuSearcher, uri_to_filename
+from softwarecenter.utils import ImageDownloader, GMenuSearcher, uri_to_filename, upstream_version_compare, upstream_version
 from softwarecenter.gwibber_helper import GWIBBER_SERVICE_AVAILABLE
 
 from appdetailsview import AppDetailsViewBase
@@ -1041,7 +1041,8 @@ class Reviews(gtk.VBox):
     def _fill(self):
         if self.reviews:
             for r in self.reviews:
-                review = Review(r)
+                pkgversion = self._parent.app_details.version
+                review = Review(r, pkgversion)
                 self.vbox.pack_start(review)
         else:
             # TRANSLATORS: displayed if there are no reviews
@@ -1058,9 +1059,11 @@ class Reviews(gtk.VBox):
         if not self.reviews:
             self._be_the_first_to_review()
         else:
+            self.new_review.set_label(_("Write your own review"))
             if self.expander.get_expanded():
                 self._fill()
                 self.vbox.show_all()
+                self._update = False
         return
 
     def set_width(self, w):
@@ -1107,7 +1110,7 @@ class Reviews(gtk.VBox):
 
 class Review(gtk.VBox):
     
-    def __init__(self, review_data=None):
+    def __init__(self, review_data=None, app_version=None):
         gtk.VBox.__init__(self, spacing=mkit.SPACING_LARGE)
 
         self.header = gtk.HBox(spacing=mkit.SPACING_MED)
@@ -1121,11 +1124,14 @@ class Review(gtk.VBox):
         if review_data:
             self.id = review_data.id
             rating = review_data.rating 
-            person = glib.markup_escape_text(review_data.reviewer_username)
-            summary = glib.markup_escape_text(review_data.summary)
-            text = glib.markup_escape_text(review_data.review_text)
-            date = glib.markup_escape_text(review_data.date_created)
-            self._build(rating, person, summary, text, date)
+            person = review_data.reviewer_username
+            summary = review_data.summary
+            text = review_data.review_text
+            date = review_data.date_created
+            app_name = review_data.app_name
+            # some older version of the server do not set the version
+            review_version = getattr(review_data, "version", "")
+            self._build(rating, person, summary, text, date, app_name, review_version, app_version)
 
         self.body.connect('size-allocate', self._on_allocate)
         return
@@ -1140,30 +1146,47 @@ class Review(gtk.VBox):
         if reviews:
             reviews.emit("report-abuse", self.id)
 
-    def _build(self, rating, person, summary, text, date):
-        m = "<b>%s</b>, %s" % (person.capitalize(), date)
+    def _build(self, rating, person, summary, text, date, app_name, review_version, app_version):
+        # all the arguments are may need markup escape, depening on if
+        # they are used as text or markup
+        m = "<b>%s</b>, %s" % (glib.markup_escape_text(person.capitalize()),
+                               glib.markup_escape_text(date))
         who_what_when = gtk.Label(m)
         who_what_when.set_use_markup(True)
 
-        summary = gtk.Label('<b>%s</b>' % summary)        
+        summary = gtk.Label('<b>%s</b>' % glib.markup_escape_text(summary))
         summary.set_use_markup(True)
 
         text = gtk.Label(text)
         text.set_line_wrap(True)
         text.set_selectable(True)
         text.set_alignment(0, 0)
-
+        
         self.header.pack_start(StarRating(rating), False)
         self.header.pack_start(summary, False)
         self.header.pack_end(who_what_when, False)
         #self.header.pack_end(gtk.Label(self.rating), False)
         self.body.pack_start(text, False)
-
+        
+        #if review version is different to version of app being displayed, 
+        # alert user
+        if upstream_version_compare(review_version, app_version) != 0:
+            version_string = _("This review was written for a different version of %(app_name)s (Version: %(version)s)") % { 
+                'app_name' : app_name,
+                'version' : glib.markup_escape_text(upstream_version(review_version))
+                }
+            version_lbl = gtk.Label("<small><i>%s</i></small>" % version_string)
+            version_lbl.set_use_markup(True)
+            version_lbl.set_padding(0,3)
+            self.footer.pack_start(version_lbl, False)
+        
         #like = mkit.VLinkButton('<small>%s</small>' % _('This review was useful'))
         #like.set_underline(True)
         #self.footer.pack_start(like, False)
 
-        complain = mkit.VLinkButton('<small>%s</small>' % _('Report as inapropriate'))
+        # Translators: Flags should be translated in the sense of
+        #  "Report as inappropriate"
+        complain = mkit.VLinkButton('<small>%s</small>' % _('Flag'))
         complain.set_underline(True)
         self.footer.pack_end(complain, False)
         complain.connect('clicked', self._on_report_abuse_clicked)

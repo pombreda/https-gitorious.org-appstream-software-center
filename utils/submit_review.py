@@ -54,6 +54,7 @@ from softwarecenter.utils import *
 from softwarecenter.SimpleGtkbuilderApp import SimpleGtkbuilderApp
 from softwarecenter.distro import get_distro
 from softwarecenter.view.widgets.reviews import StarRatingSelector, StarCaption
+from softwarecenter.gwibber_helper import GwibberHelper, GwibberHelperMock
 
 from softwarecenter.backend.rnrclient import RatingsAndReviewsAPI, ReviewRequest
 
@@ -146,7 +147,11 @@ class Worker(threading.Thread):
                                                        token["token_secret"],
                                                        token["consumer_key"],
                                                        token["consumer_secret"])
-        self.rnrclient = RatingsAndReviewsAPI(auth=auth)
+        # change default server to the SSL one
+        distro = get_distro()
+        service_root = distro.REVIEWS_SERVER_SSL
+        self.rnrclient = RatingsAndReviewsAPI(service_root=service_root,
+                                              auth=auth)
 
     def run(self):
         """Main thread run interface, logs into launchpad and waits
@@ -267,9 +272,11 @@ class BaseApp(SimpleGtkbuilderApp):
     def __init__(self, datadir, uifile):
         SimpleGtkbuilderApp.__init__(
             self, os.path.join(datadir,"ui",uifile), "software-center")
+        self.appname = _("Ubuntu Software Center")
         self.token = None
         self.display_name = None
         self._login_successful = False
+        self._whoami_token_reset_nr = 0
         # status spinner
         self.status_spinner = gtk.Spinner()
         self.status_spinner.set_size_request(32,32)
@@ -294,8 +301,8 @@ class BaseApp(SimpleGtkbuilderApp):
         # now run the loop
         self.login()
 
-    def quit(self):
-        sys.exit(0)
+    def quit(self, exitcode=0):
+        sys.exit(exitcode)
 
     def _add_spellcheck_to_textview(self, textview):
         """ adds a spellchecker (if available) to the given gtk.textview """
@@ -309,14 +316,21 @@ class BaseApp(SimpleGtkbuilderApp):
             return None
         return spell
 
-    def login(self):
-        appname = _("Ubuntu Software Center")
+    def login(self, show_register=True):
         login_text = _("To review software or to report abuse you need to "
                        "sign in to a Ubuntu Single Sign-On account.")
-        self.sso = LoginBackendDbusSSO(self.submit_window.window.xid, appname,
-                                       login_text)
+        self.sso = LoginBackendDbusSSO(self.submit_window.window.xid, 
+                                       self.appname, login_text)
         self.sso.connect("login-successful", self._maybe_login_successful)
-        self.sso.login_or_register()
+        self.sso.connect("login-canceled", self._login_canceled)
+        if show_register:
+            self.sso.login_or_register()
+        else:
+            self.sso.login()
+
+    def _login_canceled(self, sso):
+        self.status_spinner.hide()
+        self.login_status_label.set_markup('<b><big>%s</big></b>' % _("Login was canceled"))
 
     def _maybe_login_successful(self, sso, oauth_result):
         """ called after we have the token, then we go and figure out our name """
@@ -332,7 +346,26 @@ class BaseApp(SimpleGtkbuilderApp):
         self.login_successful(self.display_name)
 
     def _whoami_error(self, ssologin, e):
-        print "error: ", e
+        logging.error("whoami error '%s'" % e)
+        # HACK: clear the token from the keyring assuming that it expired
+        #       or got deauthorized by the user on the website
+        # this really should be done by ubuntu-sso-client itself
+        import lazr.restfulclient.errors
+        # compat  with maverick, it does not have Unauthorized yet
+        if hasattr(lazr.restfulclient.errors, "Unauthorized"):
+            errortype = lazr.restfulclient.errors.Unauthorized
+        else:
+            errortype = lazr.restfulclient.errors.HTTPError
+        if (type(e) == errortype and
+            self._whoami_token_reset_nr == 0):
+            logging.warn("authentication error, reseting token and retrying")
+            clear_token_from_ubuntu_sso(self.appname)
+            self._whoami_token_reset_nr += 1
+            self.login(show_register=False)
+            return
+        # show error
+        self.status_spinner.hide()
+        self.login_status_label.set_markup('<b><big>%s</big></b>' % _("Failed to log in"))
 
     def login_successful(self, display_name):
         """ callback when the login was successful """
@@ -340,10 +373,11 @@ class BaseApp(SimpleGtkbuilderApp):
 
     def on_button_cancel_clicked(self, button=None):
         # bring it down gracefully
-        self.api.shutdown()
+        if hasattr(self, "api"):
+            self.api.shutdown()
         while gtk.events_pending():
             gtk.main_iteration()
-        sys.exit(0)
+        self.quit(1)
 
     def _create_gratings_api(self):
         self.api = GRatingsAndReviews(self.token)
@@ -359,7 +393,7 @@ class BaseApp(SimpleGtkbuilderApp):
             self.status_hbox.reorder_child(self.submit_spinner, 0)
             self.submit_spinner.show()
             self.submit_spinner.start()
-            self.label_transmit_status.set_text(_("Submitting Review..."))
+            self.label_transmit_status.set_text(self.SUBMIT_MESSAGE)
 
     def on_transmit_success(self, api, trans):
         self.api.shutdown()
@@ -406,15 +440,29 @@ class SubmitReviewsApp(BaseApp):
     #alert colours for character warning labels
     NORMAL_COLOUR = "000000"
     ERROR_COLOUR = "FF0000"
+    SUBMIT_MESSAGE = _("Submitting Review")
+    
 
     def __init__(self, app, version, iconname, parent_xid, datadir):
         BaseApp.__init__(self, datadir, "submit_review.ui")
+
+        # legal fineprint, do not change without consulting a lawyer
+        msg = _("By submitting this review, you agree not to include anything defamatory, infringing, or illegal. Canonical may, at its discretion, publish your name and review in Ubuntu Software Center and elsewhere, and allow the software or content author to publish it too.")
+        self.label_legal_fineprint.set_markup('<span size="x-small">%s</span>' % msg)
 
         # additional icons come from app-install-data
         self.icons = gtk.icon_theme_get_default()
         self.icons.append_search_path("/usr/share/app-install/icons/")
         self.submit_window.connect("destroy", self.on_button_cancel_clicked)
         self._add_spellcheck_to_textview(self.textview_review)
+
+        # gwibber stuff
+        self.gwibber_combo = gtk.combo_box_new_text()
+        self.gwibber_hbox.pack_start(self.gwibber_combo, False)
+        if "SOFTWARE_CENTER_GWIBBER_MOCK_USERS" in os.environ:
+            self.gwibber_helper = GwibberHelperMock()
+        else:
+            self.gwibber_helper = GwibberHelper()
 
         # interactive star rating
         self.star_rating = StarRatingSelector(0, star_size=self.STAR_SIZE)
@@ -424,10 +472,10 @@ class SubmitReviewsApp(BaseApp):
         self.star_rating.set_padding(3, 3, 3, 0)
         self.star_caption.show()
 
-        self.review_summary_vbox.pack_start(self.star_rating, False)
-        self.review_summary_vbox.reorder_child(self.star_rating, 0)
-        self.review_summary_vbox.pack_start(self.star_caption, False, False)
-        self.review_summary_vbox.reorder_child(self.star_caption, 1)
+        self.rating_hbox.pack_start(self.star_rating, False)
+        self.rating_hbox.reorder_child(self.star_rating, 0)
+        self.rating_hbox.pack_start(self.star_caption, False, False)
+        self.rating_hbox.reorder_child(self.star_caption, 1)
 
         self.review_buffer = self.textview_review.get_buffer()
 
@@ -443,6 +491,8 @@ class SubmitReviewsApp(BaseApp):
         self.star_rating.connect('changed', self._on_mandatory_fields_changed)
         self.review_buffer.connect('changed', self._on_text_entry_changed)
         
+        # gwibber stuff
+        self._setup_gwibber_gui()
 
         # parent xid
         if parent_xid:
@@ -480,6 +530,9 @@ class SubmitReviewsApp(BaseApp):
 
         # review summary label
         self.review_summary_label.set_markup('<b><span color="%s">%s</span></b>' % (dark, _('Summary')))
+        
+        #rating label
+        self.rating_label.set_markup('<b><span color="%s">%s</span></b>' % (dark, _('Rating')))
         return
 
     def _on_mandatory_fields_changed(self, widget):
@@ -496,8 +549,8 @@ class SubmitReviewsApp(BaseApp):
     def _enable_or_disable_post_button(self):
         summary_chars = self.review_summary_entry.get_text_length()
         review_chars = self.review_buffer.get_char_count()
-        if (summary_chars and summary_chars < self.SUMMARY_CHAR_LIMITS[0] and
-            review_chars and review_chars < self.REVIEW_CHAR_LIMITS[0] and
+        if (summary_chars and summary_chars <= self.SUMMARY_CHAR_LIMITS[0] and
+            review_chars and review_chars <= self.REVIEW_CHAR_LIMITS[0] and
             self.star_rating.get_rating()):
             self.button_post.set_sensitive(True)
         else:
@@ -567,21 +620,9 @@ class SubmitReviewsApp(BaseApp):
         return (int(r,16), int(g,16), int(b,16))
     
     def _convert_rgb_to_html(self, r, g, b):
-        html_r = "%X" % r
-        html_g = "%X" % g
-        html_b = "%X" % b
-        
-        if html_r == "0": html_r = "00"
-        if html_g == "0": html_g = "00"
-        if html_b == "0": html_b = "00"
-        return html_r + html_g + html_b
-
-
-    def on_button_cancel_clicked(self, button):
-        while gtk.events_pending():
-            gtk.main_iteration()
-        self.api.shutdown()
-        self.quit()
+        return "%s%s%s" % ("%02X" % r,
+                           "%02X" % g,
+                           "%02X" % b)
 
     def on_button_post_clicked(self, button):
         logging.debug("enter_review ok button")
@@ -600,7 +641,81 @@ class SubmitReviewsApp(BaseApp):
         self.main_notebook.set_current_page(1)
         self._setup_details(self.submit_window, self.app, self.iconname, self.version, display_name)
         return
+    
+    def _setup_gwibber_gui(self):
+        self.gwibber_accounts = self.gwibber_helper.accounts()
+        list_length = len(self.gwibber_accounts)
+        if list_length == 0:
+            self._on_no_gwibber_accounts()
+        elif list_length == 1:
+            self._on_one_gwibber_account()
+        else:
+            self._on_multiple_gwibber_accounts()
+    
+    def _on_no_gwibber_accounts(self):
+        self.gwibber_hbox.hide()
+        self.gwibber_checkbutton.set_active(False)
+    
+    def _on_one_gwibber_account(self):
+        account = self.gwibber_accounts[0]
+        self.gwibber_hbox.show()
+        self.gwibber_combo.hide()
+        acct_text = _("Also post this review to %s (@%s)")  % (
+            account['service'].capitalize(), account['username'] )
+        self.gwibber_checkbutton.set_label(acct_text)
+        # simplifies on_transmit_successful later
+        self.gwibber_combo.append_text(acct_text)
+        self.gwibber_combo.set_active(0)
+    
+    def _on_multiple_gwibber_accounts(self):
+        self.gwibber_hbox.show()
+        self.gwibber_combo.show()
 
+        self.gwibber_checkbutton.set_label(_("Also post this review to: "))
+        for account in self.gwibber_accounts:
+            acct_text =  "%s (@%s)"  % (
+                account['service'].capitalize(), account['username'] )
+            self.gwibber_combo.append_text(acct_text)
+        self.gwibber_combo.set_active(0)
+
+    def on_transmit_success(self, api, trans):
+        if self.gwibber_checkbutton.get_active():
+            i = self.gwibber_combo.get_active()
+            status_text = _("Posting to %s") % self.gwibber_accounts[i]['service'].capitalize()
+            self.label_transmit_status.set_text(status_text)
+            account_id = self.gwibber_accounts[i]['id']
+            msg = _(self._gwibber_message())
+            self.gwibber_helper.send_message(msg, account_id)
+        # run parent handler
+        BaseApp.on_transmit_success(self, api, trans)
+    
+    def _gwibber_message(self):
+        rating = self.star_rating.get_rating()
+        rating_string = ''
+        
+        #fill star ratings for string
+        for i in range(1,6):
+            if i <= rating:
+                rating_string = rating_string + u"\u2605"
+            else:
+                rating_string = rating_string + u"\u2606"
+                
+        review_summary_text = self.review_summary_entry.get_text()
+        app_link = "http://apt.ubuntu.com/p/%s" % self.app.pkgname
+        gwib_msg = _("reviewed %(appname)s: %(rating)s %(summary)s %(link)s") % { 
+                'appname' : self.app.appname, 
+                'rating'  : rating_string, 
+                'summary'  : review_summary_text,
+                'link'    : app_link }
+        
+        #check char count and ellipsize review summary if larger than 140 chars
+        if len(gwib_msg) > 140:
+            chars_to_reduce = len(gwib_msg) - 139
+            new_char_count = len(review_summary_text) - chars_to_reduce
+            review_summary_text = review_summary_text[:new_char_count] + u"\u2026"
+            gwib_msg = "reviewed %s: %s %s %s" % (self.app.appname, rating_string, review_summary_text, app_link)
+        
+        return gwib_msg
 
 class ReportReviewApp(BaseApp):
     """ report a given application or package """
@@ -608,6 +723,8 @@ class ReportReviewApp(BaseApp):
     LOGIN_IMAGE = "/usr/share/software-center/images/ubuntu-cof.png"
 
     APP_ICON_SIZE = 48
+    
+    SUBMIT_MESSAGE = _("Sending Report")
 
     def __init__(self, review_id, parent_xid, datadir):
         BaseApp.__init__(self, datadir, "report_abuse.ui")
@@ -674,12 +791,6 @@ class ReportReviewApp(BaseApp):
                                            text_buffer.get_end_iter())
         self.api.report_abuse(self.review_id, report_summary, report_text)
 
-    def on_button_cancel_clicked(self, button):
-        while gtk.events_pending():
-            gtk.main_iteration()
-        self.api.shutdown()
-        self.quit()
-        
     def login_successful(self, display_name):
         self.main_notebook.set_current_page(1)
         #self.label_reporter.set_text(display_name)

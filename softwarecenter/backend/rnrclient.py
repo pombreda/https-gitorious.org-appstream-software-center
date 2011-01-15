@@ -18,11 +18,13 @@
 # rnrclient_pristine.py
 
 import logging
+import os
 import sys
 
 # useful for debugging
-#import httplib2
-#httplib2.debuglevel = 1
+if "SOFTWARE_CENTER_DEBUG_HTTP" in os.environ:
+    import httplib2
+    httplib2.debuglevel = 1
 
 # get the server to use
 from softwarecenter.distro import get_distro
@@ -32,7 +34,7 @@ SERVER_ROOT=distro.REVIEWS_SERVER
 # patch default_service_root
 try:
     from rnrclient_pristine import RatingsAndReviewsAPI, ReviewRequest, ReviewDetails
-    RatingsAndReviewsAPI.default_service_root = SERVER_ROOT+'/reviews/api/1.0'
+    RatingsAndReviewsAPI.default_service_root = SERVER_ROOT
 except:
     logging.error("need python-piston-mini client\n"
                   "available in natty or from:\n"

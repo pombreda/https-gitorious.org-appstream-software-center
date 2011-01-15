@@ -35,6 +35,10 @@ class LoginBackend(gobject.GObject):
                           gobject.TYPE_NONE, 
                           (),
                          ),
+        "login-canceled" : (gobject.SIGNAL_RUN_LAST,
+                          gobject.TYPE_NONE, 
+                          (),
+                         ),
         "need-username-password" : (gobject.SIGNAL_RUN_LAST,
                                     gobject.TYPE_NONE, 
                                     (),
@@ -44,7 +48,7 @@ class LoginBackend(gobject.GObject):
     def login(self, username=None, password=None):
         raise NotImplemented
     def cancel_login(self):
-        pass
+        self.emit("login-canceled")
     @property
     def new_account_url(self):
         return self.NEW_ACCOUNT_URL
