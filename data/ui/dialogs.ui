@@ -395,7 +395,6 @@ until the package catalog is repaired. Do you want to repair it now?&lt;/span&gt
   </object>
   <object class="GtkMessageDialog" id="dialog_gwibber_error">
     <property name="border_width">5</property>
-    <property name="type">popup</property>
     <property name="modal">True</property>
     <property name="window_position">center-on-parent</property>
     <property name="destroy_with_parent">True</property>

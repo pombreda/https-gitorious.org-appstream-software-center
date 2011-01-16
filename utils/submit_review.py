@@ -742,8 +742,6 @@ class SubmitReviewsApp(BaseApp):
     def _on_gwibber_fail(self, api, trans, service, error):
         glade_dialog = SimpleGtkbuilderDialog(self.datadir, domain="software-center")
         dialog = glade_dialog.dialog_gwibber_error
-        #FIXME: popup message dialog is currently appearing undecorated
-        dialog.set_decorated(True)
         dialog.set_transient_for(self.submit_window)
         dialog.set_markup("There was a problem posting this review to %s." % service)
         dialog.format_secondary_text(error)
