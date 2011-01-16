@@ -17,6 +17,8 @@ software-center (3.1.10) UNRELEASED; urgency=low
     - play nicely after cancelling policykit dialog
   * softwarecenter/db/application.py:
     - display correct version number for installed packages (LP: #695026)
+  * softwarecenter/distro/*.py:
+    - fix broken translations (LP: #703610)
 
   [ Gary Lasker ]
   * softwarecenter/models/appstore.py,
