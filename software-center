@@ -115,7 +115,6 @@ if __name__ == "__main__":
             while gtk.events_pending():
                 # test visible area
                 if (app.window_main.flags() & gtk.VISIBLE and
-                    app.available_pane.cat_view.flags() & gtk.VISIBLE and
                     app.available_pane.searchentry.flags() & gtk.VISIBLE):
                     break
                 gtk.main_iteration()

@@ -55,6 +55,10 @@ class AvailablePane(SoftwarePane):
      PAGE_APPLIST,
      PAGE_APP_DETAILS,
      PAGE_APP_PURCHASE) = range(5)
+     
+    __gsignals__ = {'available-pane-created':(gobject.SIGNAL_RUN_FIRST,
+                                              gobject.TYPE_NONE,
+                                              ())}
 
     # constant for use in action bar (see _update_action_bar)
     _INSTALL_BTN_ID = 0
@@ -87,12 +91,13 @@ class AvailablePane(SoftwarePane):
         self.pane_name = _("Get Software")
         # search mode
         self.custom_list_mode = False
-        # install backend
-        self.backend.connect("transactions-changed",
-                             self._on_transactions_changed)
 
     def init_view(self):
         if not self.view_initialized:
+            self.spinner_view.start()
+            self.spinner_notebook.set_current_page(self.PAGE_SPINNER)
+#            self.window.set_cursor(self.busy_cursor)
+            # initialize the superclass
             SoftwarePane.init_view(self)
             # categories, appview and details into the notebook in the bottom
             self.scroll_categories = gtk.ScrolledWindow()
@@ -167,9 +172,17 @@ class AvailablePane(SoftwarePane):
             self.navigation_bar.add_with_id(self.pane_name,
                                             self.on_navigation_category,
                                             NAV_BUTTON_ID_CATEGORY,
-                                            do_callback=True,
+                                            do_callback=False,   ########################### was True
                                             animate=False)
+                                            
+            # install backend
+            self.backend.connect("transactions-changed", self._on_transactions_changed)
             # now we are initialized
+            self.emit("available-pane-created")
+            self.show_all()
+            self.spinner_view.stop()
+            self.spinner_notebook.set_current_page(self.PAGE_APPVIEW)
+#            self.window.set_cursor(None)
             self.view_initialized = True
 
     def get_query(self):
@@ -745,7 +758,7 @@ if __name__ == "__main__":
     win = gtk.Window()
     win.add(w)
     w.init_view()
-    win.set_size_request(500,400)
+    win.set_size_request(700,500)
     win.show_all()
 
     gtk.main()

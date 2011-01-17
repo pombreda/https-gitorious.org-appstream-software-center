@@ -202,26 +202,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                             self.datadir,
                                             self.navhistory_back_action,
                                             self.navhistory_forward_action)
-                                            
-        # this is about .2 seconds (20% of startup) on my machine
-        # next to try: thread the available pane init and show a spinner in its place
-        #              while it loads
-        with ExecutionTime("creating the available_pane view"):
-            self.available_pane.init_view()
-
-        available_section = SoftwareSection()
-        available_section.set_image(VIEW_PAGE_AVAILABLE, os.path.join(self.datadir, 'images/clouds.png'))
-        available_section.set_color('#0769BC')
-        
-        self.available_pane.set_section(available_section)
-
-        self.available_pane.app_details_view.connect("selected", 
-                                                     self.on_app_details_changed,
-                                                     VIEW_PAGE_AVAILABLE)
-        self.available_pane.app_details_view.connect("application-request-action", 
-                                                     self.on_application_request_action)
-        self.available_pane.app_view.connect("application-request-action", 
-                                             self.on_application_request_action)
+        self.available_pane.connect("available-pane-created", self.on_available_pane_created)
         self.available_pane.connect("app-list-changed", 
                                     self.on_app_list_changed,
                                     VIEW_PAGE_AVAILABLE)
@@ -322,7 +303,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                                  gtk.ACCEL_VISIBLE)
 
         # default focus
-        self.available_pane.searchentry.grab_focus()
         self.window_main.set_size_request(600, 400)
 
         # setup window name and about information (needs branding)
@@ -386,6 +366,22 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.db.open()
 
     # callbacks
+    def on_available_pane_created(self, widget):
+        available_section = SoftwareSection()
+        available_section.set_image(VIEW_PAGE_AVAILABLE, os.path.join(self.datadir, 'images/clouds.png'))
+        available_section.set_color('#0769BC')
+        
+        self.available_pane.set_section(available_section)
+
+        self.available_pane.app_details_view.connect("selected", 
+                                                     self.on_app_details_changed,
+                                                     VIEW_PAGE_AVAILABLE)
+        self.available_pane.app_details_view.connect("application-request-action", 
+                                                     self.on_application_request_action)
+        self.available_pane.app_view.connect("application-request-action", 
+                                             self.on_application_request_action)
+        self.available_pane.searchentry.grab_focus()
+    
     def on_channel_pane_created(self, widget):
         channel_section = SoftwareSection()
         channel_section.set_image(VIEW_PAGE_CHANNEL, os.path.join(self.datadir, 'images/arrows.png'))
@@ -441,6 +437,11 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         
     def on_view_switcher_changed(self, view_switcher, view_id, channel):
         self._logger.debug("view_switcher_activated: %s %s" % (view_switcher, view_id))
+        print ">>> view_switcher_activated: %s %s" % (view_switcher, view_id)
+        import traceback
+        print "----- traceback -----"
+        traceback.print_stack()
+        print "---------------------"
 
         # set active pane
         self.active_pane = self.view_manager.get_view_widget(view_id)
