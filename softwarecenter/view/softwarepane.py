@@ -149,7 +149,6 @@ class SoftwarePane(gtk.VBox, BasePane):
         # navigation bar and search on top in a hbox
         self.navigation_bar = NavigationBar()
         self.searchentry = SearchEntry()
-        self.searchentry.set_sensitive(False)
         self.top_hbox = gtk.HBox(spacing=self.PADDING)
         self.top_hbox.set_border_width(self.PADDING)
         self.top_hbox.pack_start(self.navigation_bar)

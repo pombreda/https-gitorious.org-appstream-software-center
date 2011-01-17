@@ -73,6 +73,7 @@ class AvailablePane(SoftwarePane):
                  navhistory_forward_action):
         # parent
         SoftwarePane.__init__(self, cache, db, distro, icons, datadir)
+        self.searchentry.set_sensitive(False)
         # navigation history actions
         self.navhistory_back_action = navhistory_back_action
         self.navhistory_forward_action = navhistory_forward_action
@@ -180,6 +181,7 @@ class AvailablePane(SoftwarePane):
             # install backend
             self.backend.connect("transactions-changed", self._on_transactions_changed)
             # now we are initialized
+            self.searchentry.set_sensitive(True)
             self.emit("available-pane-created")
             self.show_all()
             self.spinner_view.stop()
