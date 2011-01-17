@@ -52,11 +52,14 @@ from softwarecenter.db.database import Application
 from softwarecenter.db.reviews import Review
 from softwarecenter.utils import *
 from softwarecenter.SimpleGtkbuilderApp import SimpleGtkbuilderApp
+from softwarecenter.view.dialogs import SimpleGtkbuilderDialog
 from softwarecenter.distro import get_distro
 from softwarecenter.view.widgets.reviews import StarRatingSelector, StarCaption
 from softwarecenter.gwibber_helper import GwibberHelper, GwibberHelperMock
 
 from softwarecenter.backend.rnrclient import RatingsAndReviewsAPI, ReviewRequest
+
+from softwarecenter.backend.config import get_config
 
 #import httplib2
 #httplib2.debuglevel = 1
@@ -291,6 +294,10 @@ class BaseApp(SimpleGtkbuilderApp):
         self.submit_error_img.set_from_stock(gtk.STOCK_DIALOG_ERROR, gtk.ICON_SIZE_SMALL_TOOLBAR)
         #label size to prevent image or spinner from resizing
         self.label_transmit_status.set_size_request(-1, gtk.icon_size_lookup(gtk.ICON_SIZE_SMALL_TOOLBAR)[1])
+        #persistent config
+        configfile = os.path.join(
+            SOFTWARE_CENTER_CONFIG_DIR, "submit_reviews.cfg")
+        self.config = get_config(configfile)
 
     def run(self):
         # initially display a 'Connecting...' page
@@ -445,7 +452,7 @@ class SubmitReviewsApp(BaseApp):
 
     def __init__(self, app, version, iconname, parent_xid, datadir):
         BaseApp.__init__(self, datadir, "submit_review.ui")
-
+        self.datadir = datadir
         # legal fineprint, do not change without consulting a lawyer
         msg = _("By submitting this review, you agree not to include anything defamatory, infringing, or illegal. Canonical may, at its discretion, publish your name and review in Ubuntu Software Center and elsewhere, and allow the software or content author to publish it too.")
         self.label_legal_fineprint.set_markup('<span size="x-small">%s</span>' % msg)
@@ -463,6 +470,9 @@ class SubmitReviewsApp(BaseApp):
             self.gwibber_helper = GwibberHelperMock()
         else:
             self.gwibber_helper = GwibberHelper()
+        
+        #get a dict with a saved gwibber_send (boolean) and gwibber account_id for persistent state
+        self.gwibber_prefs = self._get_gwibber_prefs()
 
         # interactive star rating
         self.star_rating = StarRatingSelector(0, star_size=self.STAR_SIZE)
@@ -636,6 +646,7 @@ class SubmitReviewsApp(BaseApp):
         review.rating = self.star_rating.get_rating()
         review.package_version = self.version
         self.api.submit_review(review)
+        
 
     def login_successful(self, display_name):
         self.main_notebook.set_current_page(1)
@@ -652,6 +663,22 @@ class SubmitReviewsApp(BaseApp):
         else:
             self._on_multiple_gwibber_accounts()
     
+    def _get_gwibber_prefs(self):
+        if self.config.has_option("reviews", "gwibber_send"): 
+            send = self.config.getboolean("reviews", "gwibber_send")
+        else:
+            send = False
+        
+        if self.config.has_option("reviews", "account_id"):
+            account_id = self.config.get("reviews", "account_id")
+        else:
+            account_id = False
+        
+        return { "gwibber_send" : send, 
+                 "account_id" : account_id }
+            
+        
+    
     def _on_no_gwibber_accounts(self):
         self.gwibber_hbox.hide()
         self.gwibber_checkbutton.set_active(False)
@@ -666,6 +693,8 @@ class SubmitReviewsApp(BaseApp):
         # simplifies on_transmit_successful later
         self.gwibber_combo.append_text(acct_text)
         self.gwibber_combo.set_active(0)
+        # auto select submit via gwibber checkbutton if saved prefs say True
+        self.gwibber_checkbutton.set_active(self.gwibber_prefs['gwibber_send'])
     
     def _on_multiple_gwibber_accounts(self):
         self.gwibber_hbox.show()
@@ -676,18 +705,63 @@ class SubmitReviewsApp(BaseApp):
             acct_text =  "%s (@%s)"  % (
                 account['service'].capitalize(), account['username'] )
             self.gwibber_combo.append_text(acct_text)
-        self.gwibber_combo.set_active(0)
+        
+        self.gwibber_checkbutton.set_active(self.gwibber_prefs['gwibber_send'])
+        gwibber_active_account = 0
+        
+        for account in self.gwibber_accounts:
+            if account['id'] == self.gwibber_prefs['account_id']:
+                gwibber_active_account = self.gwibber_accounts.index(account)
+        self.gwibber_combo.set_active(gwibber_active_account)
 
     def on_transmit_success(self, api, trans):
+        gwibber_success = True
         if self.gwibber_checkbutton.get_active():
+            self._submit_via_gwibber()
             i = self.gwibber_combo.get_active()
             status_text = _("Posting to %s") % self.gwibber_accounts[i]['service'].capitalize()
             self.label_transmit_status.set_text(status_text)
             account_id = self.gwibber_accounts[i]['id']
+            #save prefs
+            self._save_gwibber_state(True, account_id)
             msg = _(self._gwibber_message())
-            self.gwibber_helper.send_message(msg, account_id)
-        # run parent handler
-        BaseApp.on_transmit_success(self, api, trans)
+            gwibber_success = self.gwibber_helper.send_message(msg, account_id)
+            if not gwibber_success:
+                #FIXME: send an error string to this method instead of empty string
+                self._on_gwibber_fail(api, trans, self.gwibber_accounts[i]['service'].capitalize(), "")
+        else:
+            # prevent _save_gwibber_state from overwriting the account id
+            # in config if the checkbutton was not selected    
+            self._save_gwibber_state(False, None)
+        # run parent handler on gwibber success, otherwise this will be dealt
+        # with in _on_gwibber_fail
+        if gwibber_success:
+            BaseApp.on_transmit_success(self, api, trans)
+    
+    def _on_gwibber_fail(self, api, trans, service, error):
+        glade_dialog = SimpleGtkbuilderDialog(self.datadir, domain="software-center")
+        dialog = glade_dialog.dialog_gwibber_error
+        dialog.set_transient_for(self.submit_window)
+        dialog.set_markup("There was a problem posting this review to %s." % service)
+        dialog.format_secondary_text(error)
+        result = dialog.run()
+        dialog.destroy()
+        if result == gtk.RESPONSE_ACCEPT:
+            self.on_transmit_success(api, trans)
+        else:
+            BaseApp.on_transmit_success(self, api, trans)
+    
+    def _save_gwibber_state(self, gwibber_send, account_id):
+        if not self.config.has_section("reviews"):
+            self.config.add_section("reviews")
+        
+        self.config.set("reviews", "gwibber_send", str(gwibber_send))
+        if account_id:
+            self.config.set("reviews", "account_id", account_id)
+        
+        self.config.write()
+        return
+        
     
     def _gwibber_message(self):
         rating = self.star_rating.get_rating()

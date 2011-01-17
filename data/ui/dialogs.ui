@@ -395,7 +395,6 @@ until the package catalog is repaired. Do you want to repair it now?&lt;/span&gt
   </object>
   <object class="GtkMessageDialog" id="dialog_gwibber_error">
     <property name="border_width">5</property>
-    <property name="type">popup</property>
     <property name="modal">True</property>
     <property name="window_position">center-on-parent</property>
     <property name="destroy_with_parent">True</property>
@@ -449,8 +448,8 @@ until the package catalog is repaired. Do you want to repair it now?&lt;/span&gt
       </object>
     </child>
     <action-widgets>
-      <action-widget response="0">gwib_err_cancel_button</action-widget>
-      <action-widget response="0">gwib_err_retry_button</action-widget>
+      <action-widget response="-2">gwib_err_cancel_button</action-widget>
+      <action-widget response="-3">gwib_err_retry_button</action-widget>
     </action-widgets>
   </object>
 </interface>

@@ -87,6 +87,7 @@ class GwibberHelperMock(object):
 
     def send_message(self, message, account_id):
         sys.stderr.write("sending '%s' to '%s'\n" % (message, account_id))
+        return True
     
     def has_accounts_in_sqlite():
         return True
