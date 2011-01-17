@@ -515,18 +515,11 @@ class SubmitReviewsApp(BaseApp):
 
     def _setup_details(self, widget, app, iconname, version, display_name):
         # icon shazam
-        if iconname:
-            icon = None
-            try:
-                icon = self.icons.load_icon(iconname, self.APP_ICON_SIZE, 0)
-            except:
-                pass
-
-            if not icon:
-                icon = self.icons.load_icon(MISSING_APP_ICON,
-                                            self.APP_ICON_SIZE, 0)
-
-            self.review_appicon.set_from_pixbuf(icon)
+        try:
+            icon = self.icons.load_icon(iconname, self.APP_ICON_SIZE, 0)
+        except:
+            icon = self.icons.load_icon(MISSING_APP_ICON, self.APP_ICON_SIZE, 0)
+        self.review_appicon.set_from_pixbuf(icon)
 
         # dark color
         dark = widget.style.dark[0].to_string()
