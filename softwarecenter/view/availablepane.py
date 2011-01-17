@@ -174,7 +174,7 @@ class AvailablePane(SoftwarePane):
             self.navigation_bar.add_with_id(self.pane_name,
                                             self.on_navigation_category,
                                             NAV_BUTTON_ID_CATEGORY,
-                                            do_callback=False,   ########################### was True
+                                            do_callback=True,
                                             animate=False)
                                             
             # install backend
