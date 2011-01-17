@@ -1,4 +1,4 @@
-software-center (3.1.10) UNRELEASED; urgency=low
+software-center (3.1.10) natty; urgency=low
 
   [ Michael Vogt ]
   * include full AUTHORS info into the about dialog,
@@ -34,7 +34,7 @@ software-center (3.1.10) UNRELEASED; urgency=low
     - attach the aptdaemon progress-changed listener earlier in the
       transaction to allow for more instant progress feedback in the UI
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 13 Jan 2011 12:34:02 -0600
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 17 Jan 2011 13:46:48 +0100
 
 software-center (3.1.9) natty; urgency=low
 
