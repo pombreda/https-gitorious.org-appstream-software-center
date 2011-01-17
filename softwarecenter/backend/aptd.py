@@ -667,7 +667,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
                     trans.set_http_proxy(http_proxy, defer=True)
             yield trans.run(defer=True)
         except Exception, error:
-            self._on_trans_error(pkgname, error)
+            self._on_trans_error(error, pkgname)
             # on error we need to clean the pending purchases
             self._clean_pending_purchases(pkgname)
         # on success the pending purchase is cleaned when the package
@@ -684,6 +684,13 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         # re-enable the action button again if anything went wrong
         result = TransactionFinishedResult(None, enums.EXIT_FAILED)
         result.pkgname = pkgname
+
+        # clean up pending transactions
+        try:
+            del self.pending_transactions[pkgname]
+        except:
+            pass
+
         self.emit("transaction-stopped", result)
         if isinstance(error, dbus.DBusException):
             name = error.get_dbus_name()
