@@ -175,6 +175,9 @@ class SoftwarePane(gtk.VBox, BasePane):
         self.pack_start(self.action_bar, expand=False)
         self.top_hbox.connect('expose-event', self._on_expose)
         
+        # cursor
+        self.busy_cursor = gtk.gdk.Cursor(gtk.gdk.WATCH)
+        
     def init_view(self):
         """
         Initialize those UI components that are common to all subclasses of
@@ -219,8 +222,6 @@ class SoftwarePane(gtk.VBox, BasePane):
         self.purchase_view.connect("purchase-succeeded", self.on_purchase_succeeded)
         self.purchase_view.connect("purchase-failed", self.on_purchase_failed)
         self.purchase_view.connect("purchase-cancelled-by-user", self.on_purchase_cancelled_by_user)
-        # cursor
-        self.busy_cursor = gtk.gdk.Cursor(gtk.gdk.WATCH)
         # when the cache changes, refresh the app list
         self.cache.connect("cache-ready", self.on_cache_ready)
         
