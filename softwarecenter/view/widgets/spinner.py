@@ -85,7 +85,7 @@ class SpinnerView(gtk.Viewport):
         self.spinner.stop()
         self.spinner.hide()
         
-    def set_spinner_text(self, spinner_text = ""):
+    def set_text(self, spinner_text = ""):
         """
         useful for adding/removing/changing the label text after the spinner instance has been created
         """
@@ -102,6 +102,6 @@ if __name__ == "__main__":
     window.show_all()    
     window.connect('destroy', gtk.main_quit)
     
-    spinner_view.set_spinner_text("Loading...")
+    spinner_view.set_text("Loading...")
     
     gtk.main()

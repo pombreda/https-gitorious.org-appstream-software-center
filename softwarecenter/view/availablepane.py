@@ -91,97 +91,98 @@ class AvailablePane(SoftwarePane):
         self.pane_name = _("Get Software")
         # search mode
         self.custom_list_mode = False
+        # add nav history back/forward buttons
+        if self.navhistory_back_action:
+            self.navhistory_back_action.set_sensitive(False)
+        if self.navhistory_forward_action:
+            self.navhistory_forward_action.set_sensitive(False)
+        # note:  this is hacky, would be much nicer to make the custom self/right
+        # buttons in BackForwardButton to be gtk.Activatable/gtk.Widgets, then wire in the
+        # actions using e.g. self.navhistory_back_action.connect_proxy(self.back_forward.left),
+        # but couldn't seem to get this to work..so just wire things up directly
+        self.back_forward = BackForwardButton()
+        self.back_forward.connect("left-clicked", self.on_nav_back_clicked)
+        self.back_forward.connect("right-clicked", self.on_nav_forward_clicked)
+        self.top_hbox.pack_start(self.back_forward, expand=False)
+        # nav buttons first in the panel
+        self.top_hbox.reorder_child(self.back_forward, 0)
+        if self.navhistory_back_action and self.navhistory_forward_action:
+            self.nav_history = NavigationHistory(self,
+                                                 self.back_forward,
+                                                 self.navhistory_back_action,
+                                                 self.navhistory_forward_action)
 
     def init_view(self):
         if not self.view_initialized:
+            self.spinner_view.set_text(_('Loading Categories'))
             self.spinner_view.start()
+            self.spinner_view.show()
             self.spinner_notebook.set_current_page(self.PAGE_SPINNER)
 #            self.window.set_cursor(self.busy_cursor)
             # initialize the superclass
-            SoftwarePane.init_view(self)
-            # categories, appview and details into the notebook in the bottom
-            self.scroll_categories = gtk.ScrolledWindow()
-            self.scroll_categories.set_policy(gtk.POLICY_AUTOMATIC, 
-                                            gtk.POLICY_AUTOMATIC)
-            self.cat_view = LobbyViewGtk(self.datadir, APP_INSTALL_PATH,
-                                           self.cache,
-                                           self.db,
-                                           self.icons,
-                                           self.apps_filter)
-            self.scroll_categories.add(self.cat_view)
-            self.notebook.append_page(self.scroll_categories, gtk.Label("categories"))
+#            SoftwarePane.init_view(self)
+#            # categories, appview and details into the notebook in the bottom
+#            self.scroll_categories = gtk.ScrolledWindow()
+#            self.scroll_categories.set_policy(gtk.POLICY_AUTOMATIC, 
+#                                            gtk.POLICY_AUTOMATIC)
+#            self.cat_view = LobbyViewGtk(self.datadir, APP_INSTALL_PATH,
+#                                           self.cache,
+#                                           self.db,
+#                                           self.icons,
+#                                           self.apps_filter)
+#            self.scroll_categories.add(self.cat_view)
+#            self.notebook.append_page(self.scroll_categories, gtk.Label("categories"))
 
-            # sub-categories view
-            self.subcategories_view = SubCategoryViewGtk(self.datadir,
-                                                     APP_INSTALL_PATH,
-                                                     self.cache,
-                                                     self.db,
-                                                     self.icons,
-                                                     self.apps_filter,
-                                                     root_category=self.cat_view.categories[0])
-            self.subcategories_view.connect(
-                "category-selected", self.on_subcategory_activated)
-            self.subcategories_view.connect(
-                "show-category-applist", self.on_show_category_applist)
-            self.scroll_subcategories = gtk.ScrolledWindow()
-            self.scroll_subcategories.set_policy(
-                gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-            self.scroll_subcategories.add(self.subcategories_view)
-            self.notebook.append_page(self.scroll_subcategories,
-                                        gtk.Label(NAV_BUTTON_ID_SUBCAT))
+#            # sub-categories view
+#            self.subcategories_view = SubCategoryViewGtk(self.datadir,
+#                                                     APP_INSTALL_PATH,
+#                                                     self.cache,
+#                                                     self.db,
+#                                                     self.icons,
+#                                                     self.apps_filter,
+#                                                     root_category=self.cat_view.categories[0])
+#            self.subcategories_view.connect(
+#                "category-selected", self.on_subcategory_activated)
+#            self.subcategories_view.connect(
+#                "show-category-applist", self.on_show_category_applist)
+#            self.scroll_subcategories = gtk.ScrolledWindow()
+#            self.scroll_subcategories.set_policy(
+#                gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+#            self.scroll_subcategories.add(self.subcategories_view)
+#            self.notebook.append_page(self.scroll_subcategories,
+#                                        gtk.Label(NAV_BUTTON_ID_SUBCAT))
 
-            # add nav history back/forward buttons
-            if self.navhistory_back_action:
-                self.navhistory_back_action.set_sensitive(False)
-            if self.navhistory_forward_action:
-                self.navhistory_forward_action.set_sensitive(False)
-            # note:  this is hacky, would be much nicer to make the custom self/right
-            # buttons in BackForwardButton to be gtk.Activatable/gtk.Widgets, then wire in the
-            # actions using e.g. self.navhistory_back_action.connect_proxy(self.back_forward.left),
-            # but couldn't seem to get this to work..so just wire things up directly
-            self.back_forward = BackForwardButton()
-            self.back_forward.connect("left-clicked", self.on_nav_back_clicked)
-            self.back_forward.connect("right-clicked", self.on_nav_forward_clicked)
-            self.top_hbox.pack_start(self.back_forward, expand=False)
-            # nav buttons first in the panel
-            self.top_hbox.reorder_child(self.back_forward, 0)
-            if self.navhistory_back_action and self.navhistory_forward_action:
-                self.nav_history = NavigationHistory(self,
-                                                     self.back_forward,
-                                                     self.navhistory_back_action,
-                                                     self.navhistory_forward_action)
+#            # app list
+#            self.notebook.append_page(self.box_app_list,
+#                                        gtk.Label(NAV_BUTTON_ID_LIST))
 
-            # app list
-            self.notebook.append_page(self.box_app_list,
-                                        gtk.Label(NAV_BUTTON_ID_LIST))
+#            self.cat_view.connect("category-selected", self.on_category_activated)
+#            self.cat_view.connect("application-selected", self.on_application_selected)
+#            self.cat_view.connect("application-activated", self.on_application_activated)
 
-            self.cat_view.connect("category-selected", self.on_category_activated)
-            self.cat_view.connect("application-selected", self.on_application_selected)
-            self.cat_view.connect("application-activated", self.on_application_activated)
+#            # details
+#            self.notebook.append_page(self.scroll_details, gtk.Label(NAV_BUTTON_ID_DETAILS))
 
-            # details
-            self.notebook.append_page(self.scroll_details, gtk.Label(NAV_BUTTON_ID_DETAILS))
+#            # purchase view
+#            self.notebook.append_page(self.purchase_view, gtk.Label(NAV_BUTTON_ID_PURCHASE))
+#        
+#            # set status text
+#            self._update_status_text(len(self.db))
 
-            # purchase view
-            self.notebook.append_page(self.purchase_view, gtk.Label(NAV_BUTTON_ID_PURCHASE))
-        
-            # set status text
-            self._update_status_text(len(self.db))
-
-            # home button
-            self.navigation_bar.add_with_id(self.pane_name,
-                                            self.on_navigation_category,
-                                            NAV_BUTTON_ID_CATEGORY,
-                                            do_callback=False,   ########################### was True
-                                            animate=False)
-                                            
-            # install backend
-            self.backend.connect("transactions-changed", self._on_transactions_changed)
-            # now we are initialized
-            self.emit("available-pane-created")
-            self.show_all()
-            self.spinner_view.stop()
-            self.spinner_notebook.set_current_page(self.PAGE_APPVIEW)
+#            # home button
+#            self.navigation_bar.add_with_id(self.pane_name,
+#                                            self.on_navigation_category,
+#                                            NAV_BUTTON_ID_CATEGORY,
+#                                            do_callback=False,   ########################### was True
+#                                            animate=False)
+#                                            
+#            # install backend
+#            self.backend.connect("transactions-changed", self._on_transactions_changed)
+#            # now we are initialized
+#            self.emit("available-pane-created")
+#            self.show_all()
+#            self.spinner_view.stop()
+#            self.spinner_notebook.set_current_page(self.PAGE_APPVIEW)
 #            self.window.set_cursor(None)
             self.view_initialized = True
 

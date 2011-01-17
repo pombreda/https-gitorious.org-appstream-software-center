@@ -258,7 +258,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                    self.on_view_switcher_changed)
         self.view_switcher.width = self.scrolledwindow_viewswitcher.get_property('width-request')
         self.view_switcher.connect('size-allocate', self.on_viewswitcher_resized)
-        self.view_switcher.set_view(VIEW_PAGE_AVAILABLE)
 
         # launchpad integration help, its ok if that fails
         try:
@@ -437,11 +436,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         
     def on_view_switcher_changed(self, view_switcher, view_id, channel):
         self._logger.debug("view_switcher_activated: %s %s" % (view_switcher, view_id))
-        print ">>> view_switcher_activated: %s %s" % (view_switcher, view_id)
-        import traceback
-        print "----- traceback -----"
-        traceback.print_stack()
-        print "---------------------"
 
         # set active pane
         self.active_pane = self.view_manager.get_view_widget(view_id)
