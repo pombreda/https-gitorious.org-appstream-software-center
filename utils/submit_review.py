@@ -295,7 +295,9 @@ class BaseApp(SimpleGtkbuilderApp):
         #label size to prevent image or spinner from resizing
         self.label_transmit_status.set_size_request(-1, gtk.icon_size_lookup(gtk.ICON_SIZE_SMALL_TOOLBAR)[1])
         #persistent config
-        self.config = get_config()
+        configfile = os.path.join(
+            SOFTWARE_CENTER_CONFIG_DIR, "submit_reviews.cfg")
+        self.config = get_config(configfile)
 
     def run(self):
         # initially display a 'Connecting...' page
@@ -450,9 +452,7 @@ class SubmitReviewsApp(BaseApp):
 
     def __init__(self, app, version, iconname, parent_xid, datadir):
         BaseApp.__init__(self, datadir, "submit_review.ui")
-
         self.datadir = datadir
-
         # legal fineprint, do not change without consulting a lawyer
         msg = _("By submitting this review, you agree not to include anything defamatory, infringing, or illegal. Canonical may, at its discretion, publish your name and review in Ubuntu Software Center and elsewhere, and allow the software or content author to publish it too.")
         self.label_legal_fineprint.set_markup('<span size="x-small">%s</span>' % msg)
@@ -515,18 +515,11 @@ class SubmitReviewsApp(BaseApp):
 
     def _setup_details(self, widget, app, iconname, version, display_name):
         # icon shazam
-        if iconname:
-            icon = None
-            try:
-                icon = self.icons.load_icon(iconname, self.APP_ICON_SIZE, 0)
-            except:
-                pass
-
-            if not icon:
-                icon = self.icons.load_icon(MISSING_APP_ICON,
-                                            self.APP_ICON_SIZE, 0)
-
-            self.review_appicon.set_from_pixbuf(icon)
+        try:
+            icon = self.icons.load_icon(iconname, self.APP_ICON_SIZE, 0)
+        except:
+            icon = self.icons.load_icon(MISSING_APP_ICON, self.APP_ICON_SIZE, 0)
+        self.review_appicon.set_from_pixbuf(icon)
 
         # dark color
         dark = widget.style.dark[0].to_string()
@@ -674,7 +667,8 @@ class SubmitReviewsApp(BaseApp):
         else:
             account_id = False
         
-        return {"gwibber_send":send, "account_id":account_id}
+        return { "gwibber_send" : send, 
+                 "account_id" : account_id }
             
         
     
@@ -693,10 +687,7 @@ class SubmitReviewsApp(BaseApp):
         self.gwibber_combo.append_text(acct_text)
         self.gwibber_combo.set_active(0)
         # auto select submit via gwibber checkbutton if saved prefs say True
-        if self.gwibber_prefs['gwibber_send']:
-            self.gwibber_checkbutton.set_active(True)
-        else:
-            self.gwibber_checkbutton.set_active(False)
+        self.gwibber_checkbutton.set_active(self.gwibber_prefs['gwibber_send'])
     
     def _on_multiple_gwibber_accounts(self):
         self.gwibber_hbox.show()
@@ -708,11 +699,7 @@ class SubmitReviewsApp(BaseApp):
                 account['service'].capitalize(), account['username'] )
             self.gwibber_combo.append_text(acct_text)
         
-        if self.gwibber_prefs['gwibber_send']:
-            self.gwibber_checkbutton.set_active(True)
-        else:
-            self.gwibber_checkbutton.set_active(False)
-        
+        self.gwibber_checkbutton.set_active(self.gwibber_prefs['gwibber_send'])
         gwibber_active_account = 0
         
         for account in self.gwibber_accounts:
@@ -721,7 +708,9 @@ class SubmitReviewsApp(BaseApp):
         self.gwibber_combo.set_active(gwibber_active_account)
 
     def on_transmit_success(self, api, trans):
+        gwibber_success = True
         if self.gwibber_checkbutton.get_active():
+            self._submit_via_gwibber()
             i = self.gwibber_combo.get_active()
             status_text = _("Posting to %s") % self.gwibber_accounts[i]['service'].capitalize()
             self.label_transmit_status.set_text(status_text)
@@ -729,14 +718,17 @@ class SubmitReviewsApp(BaseApp):
             #save prefs
             self._save_gwibber_state(True, account_id)
             msg = _(self._gwibber_message())
-            if self.gwibber_helper.send_message(msg, account_id):
-                BaseApp.on_transmit_success(self, api, trans)
-            else:
+            gwibber_success = self.gwibber_helper.send_message(msg, account_id)
+            if not gwibber_success:
                 #FIXME: send an error string to this method instead of empty string
                 self._on_gwibber_fail(api, trans, self.gwibber_accounts[i]['service'].capitalize(), "")
         else:
-            #prevent _save_gwibber_state from overwriting the account id in config if the checkbutton was not selected    
-            self._save_gwibber_state(False, False)
+            # prevent _save_gwibber_state from overwriting the account id
+            # in config if the checkbutton was not selected    
+            self._save_gwibber_state(False, None)
+        # run parent handler on gwibber success, otherwise this will be dealt
+        # with in _on_gwibber_fail
+        if gwibber_success:
             BaseApp.on_transmit_success(self, api, trans)
     
     def _on_gwibber_fail(self, api, trans, service, error):
@@ -756,11 +748,7 @@ class SubmitReviewsApp(BaseApp):
         if not self.config.has_section("reviews"):
             self.config.add_section("reviews")
         
-        if gwibber_send:
-            self.config.set("reviews", "gwibber_send", "True")
-        else:
-            self.config.set("reviews", "gwibber_send", "False")
-        
+        self.config.set("reviews", "gwibber_send", str(gwibber_send))
         if account_id:
             self.config.set("reviews", "account_id", account_id)
         
