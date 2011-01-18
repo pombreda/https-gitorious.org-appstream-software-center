@@ -58,6 +58,8 @@ class Review(object):
     def __init__(self, app):
         # a softwarecenter.db.database.Application object
         self.app = app
+        self.app_name = app.appname
+        self.package_name = app.pkgname
         # the review items that the object fills in
         self.id = None
         self.language = None
