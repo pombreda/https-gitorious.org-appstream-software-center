@@ -18,7 +18,7 @@
 
 from __future__ import with_statement
 
-
+import gettext
 import glib
 import gobject
 import gtk
@@ -36,11 +36,11 @@ from softwarecenter.db.database import StoreDatabase, Application
 from softwarecenter.distro import get_distro
 from softwarecenter.models.appstore import AppStore
 
-from widgets.mkit import get_em_value, get_mkit_theme, floats_from_gdkcolor_with_alpha
+from widgets.mkit import get_em_value, get_mkit_theme, floats_from_gdkcolor_with_alpha, EM
+from widgets.reviews import StarPainter
 from gtk import gdk
 
 from gettext import gettext as _
-
 
 class CellRendererButton2:
 
@@ -239,6 +239,10 @@ class CellRendererAppView2(gtk.CellRendererText):
 
     # size of the install overlay icon
     OVERLAY_SIZE = 16
+    
+    # ratings
+    MAX_STARS = 5
+    STAR_SIZE = EM-1
 
     __gproperties__ = {
         'overlay' : (bool, 'overlay', 'show an overlay icon', False,
@@ -248,7 +252,10 @@ class CellRendererAppView2(gtk.CellRendererText):
                     "Application icon pixbuf image", gobject.PARAM_READWRITE),
 
         # numbers mean: min: 0, max: 5, default: 0
-        'rating': (gobject.TYPE_INT, 'Rating', 'Popcon rating', 0, 5, 0,
+        'rating': (gobject.TYPE_FLOAT, 'Rating', 'Avg rating', 0.0, 5.0, 0.0,
+            gobject.PARAM_READWRITE),
+
+        'nreviews': (gobject.TYPE_INT, 'Reviews', 'Number of reviews', 0, 100, 0,
             gobject.PARAM_READWRITE),
 
         'isactive': (bool, 'IsActive', 'Is active?', False,
@@ -297,6 +304,8 @@ class CellRendererAppView2(gtk.CellRendererText):
 
         # cache a layout
         self._layout = None
+        self._nr_reviews_layout = None
+        self._star_painter = StarPainter()
 
         # icon/overlay jazz
         icons = gtk.icon_theme_get_default()
@@ -353,7 +362,7 @@ class CellRendererAppView2(gtk.CellRendererText):
 
         # work out max allowable layout width
         lw = self._layout_get_pixel_width(layout)
-        max_layout_width = cell_area.width - self.pixbuf_width - 3*xpad
+        max_layout_width = cell_area.width - self.pixbuf_width - 3*xpad - self.MAX_STARS*self.STAR_SIZE
 
         if self.isactive and self.props.action_in_progress > 0:
             action_btn = self.get_button_by_name('action0')
@@ -380,6 +389,48 @@ class CellRendererAppView2(gtk.CellRendererText):
                                   (x, y, w, h),
                                   widget, None,
                                   x, y, layout)
+        return
+
+    def _render_rating(self, window, widget, state, cell_area, xpad, ypad, direction):
+        # draw stars on the top right
+        cr = window.cairo_create()
+        w = self.STAR_SIZE
+        h = self.STAR_SIZE
+        for i in range(0, self.MAX_STARS):
+            x = cell_area.x + cell_area.width - xpad - (self.MAX_STARS-i)*(w+3)
+            y = cell_area.y + ypad
+            if i < int(self.rating):
+                self._star_painter.set_fill(StarPainter.FILL_FULL)
+            elif (i == int(self.rating) and 
+                  self.rating - int(self.rating) > 0):
+                self._star_painter.set_fill(StarPainter.FILL_HALF)
+            else:
+                self._star_painter.set_fill(StarPainter.FILL_EMPTY)
+            self._star_painter.paint_star(cr, x, y, w, h)
+        # and nr-reviews below
+        x = cell_area.x + cell_area.width - xpad - self.MAX_STARS*(w+3)
+        y = cell_area.y + 2*ypad+h
+        if not self._nr_reviews_layout:
+            pc = widget.get_pango_context()
+            self._nr_reviews_layout = pango.Layout(pc)
+        s = gettext.ngettext(
+            "%(nr_ratings)i Rating",
+            "%(nr_ratings)i Ratings",
+            self.nreviews) % { 'nr_ratings' : self.nreviews, }
+        self._nr_reviews_layout.set_markup("<small>%s</small>" % s)
+        # FIXME: improve w, h area calculation
+        w = 6*self.STAR_SIZE
+        h = self._nr_reviews_layout.get_size()[1]
+        clip_area = (x, y, w, h)
+        widget.style.paint_layout(window, 
+                                  state,
+                                  True, 
+                                  clip_area,
+                                  widget,
+                                  None, 
+                                  x, 
+                                  y, 
+                                  self._nr_reviews_layout)
         return
 
     def _render_progress(self, window, widget, cell_area, ypad, direction):
@@ -502,15 +553,16 @@ class CellRendererAppView2(gtk.CellRendererText):
                                 xpad, ypad,
                                 direction)
 
+        # only show ratings if we have one
+        if  self.rating > 0 and self.props.action_in_progress < 0:
+            self._render_rating(window, widget, state, cell_area, xpad, ypad, direction)
+
+        # below is the stuff that is only done for the active cell
         if not self.isactive:
             return
 
         if self.props.action_in_progress > 0:
-            self._render_progress(window,
-                                  widget,
-                                  cell_area,
-                                  ypad,
-                                  direction)
+            self._render_progress(window, widget, cell_area, ypad, direction)
 
         # layout buttons and paint
         y = cell_area.y+cell_area.height-ypad
@@ -631,7 +683,8 @@ class AppView(gtk.TreeView):
                                     overlay=AppStore.COL_INSTALLED,
                                     text=AppStore.COL_ACCESSIBLE,
                                     markup=AppStore.COL_MARKUP,
-                                    rating=AppStore.COL_POPCON,
+                                    rating=AppStore.COL_RATING,
+                                    nreviews=AppStore.COL_NR_REVIEWS,
                                     isactive=AppStore.COL_IS_ACTIVE,
                                     installed=AppStore.COL_INSTALLED, 
                                     available=AppStore.COL_AVAILABLE,
@@ -787,8 +840,7 @@ class AppView(gtk.TreeView):
         name = model[row][AppStore.COL_APP_NAME]
         pkgname = model[row][AppStore.COL_PKGNAME]
         request = model[row][AppStore.COL_REQUEST]
-        popcon = model[row][AppStore.COL_POPCON]
-        self.emit("application-selected", Application(name, pkgname, request, popcon))
+        self.emit("application-selected", Application(name, pkgname, request))
         return False
 
     def _on_row_activated(self, view, path, column, tr):
@@ -804,9 +856,7 @@ class AppView(gtk.TreeView):
             name = model[path][AppStore.COL_APP_NAME]
             pkgname = model[path][AppStore.COL_PKGNAME]
             request = model[path][AppStore.COL_REQUEST]
-            popcon = model[path][AppStore.COL_POPCON]
-            self.emit("application-activated", 
-                      Application(name, pkgname, request, popcon))
+            self.emit("application-activated", Application(name, pkgname, request))
 
     def _on_button_press_event(self, view, event, tr):
         if event.button != 1:
@@ -914,7 +964,6 @@ class AppView(gtk.TreeView):
         pkgname = model[path][AppStore.COL_PKGNAME]
         request = model[path][AppStore.COL_REQUEST]
         installed = model[path][AppStore.COL_INSTALLED]
-        popcon = model[path][AppStore.COL_POPCON]
 
         s = gtk.settings_get_default()
         gobject.timeout_add(s.get_property("gtk-timeout-initial"),
@@ -924,15 +973,14 @@ class AppView(gtk.TreeView):
                             appname,
                             pkgname,
                             request,
-                            popcon,
                             installed,
                             model,
                             path)
         return
 
-    def _app_activated_cb(self, btn, btn_id, appname, pkgname, request, popcon, installed, store, path):
+    def _app_activated_cb(self, btn, btn_id, appname, pkgname, request, installed, store, path):
         if btn_id == 'info':
-            self.emit("application-activated", Application(appname, pkgname, request, popcon))
+            self.emit("application-activated", Application(appname, pkgname, request))
         elif btn_id == 'action0':
             btn.set_sensitive(False)
             store.row_changed(path[0], store.get_iter(path[0]))
@@ -945,7 +993,7 @@ class AppView(gtk.TreeView):
                 perform_action = APP_ACTION_REMOVE
             else:
                 perform_action = APP_ACTION_INSTALL
-            self.emit("application-request-action", Application(appname, pkgname, request, popcon), [], [], perform_action)
+            self.emit("application-request-action", Application(appname, pkgname, request), [], [], perform_action)
         return False
 
     def _set_cursor(self, btn, cursor):
@@ -1133,7 +1181,7 @@ if __name__ == "__main__":
     win = gtk.Window()
     scroll.add(view)
     win.add(box)
-    win.set_size_request(400, 400)
+    win.set_size_request(600, 400)
     win.show_all()
 
     gtk.main()

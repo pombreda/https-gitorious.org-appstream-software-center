@@ -29,10 +29,6 @@ MASK_SURFACE_CACHE = {}
 CAROUSEL_MAX_POSTER_COUNT =      8
 CAROUSEL_MIN_POSTER_COUNT =      1
 CAROUSEL_ICON_SIZE =             4*mkit.EM
-#CAROUSEL_POSTER_CORNER_RADIUS =  int(0.8*mkit.EM)    
-CAROUSEL_POSTER_MIN_WIDTH =      11*mkit.EM
-CAROUSEL_POSTER_MIN_HEIGHT =     min(64, 4*mkit.EM) + 5*mkit.EM
-CAROUSEL_PAGING_DOT_SIZE =       max(8, int(0.6*mkit.EM+0.5))
 
 # as per spec transition timeout should be 15000 (15 seconds)
 CAROUSEL_TRANSITION_TIMEOUT =    15000
@@ -198,9 +194,9 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
         app = btn.app
         appname = app[AppStore.COL_APP_NAME]
         pkgname = app[AppStore.COL_PKGNAME]
-        popcon = app[AppStore.COL_POPCON]
-        self.emit("application-selected", Application(appname, pkgname, "", popcon))
-        self.emit("application-activated", Application(appname, pkgname, "", popcon))
+        rating = app[AppStore.COL_RATING]
+        self.emit("application-selected", Application(appname, pkgname, "", rating))
+        self.emit("application-activated", Application(appname, pkgname, "", rating))
         return False
 
     def _on_category_clicked(self, cat_btn, cat):
@@ -336,7 +332,7 @@ class LobbyViewGtk(CategoriesViewGtk):
             #        all into one label to make it more i18n friendly
             linkbutton = mkit.HLinkButton(label)
             linkbutton.set_underline(True)
-            linkbutton.set_subdued(True)
+            #linkbutton.set_subdued(True)
             self.hbox.pack_start(linkbutton, False, False)
             # Translators: full sentence will be: Welcome back! There is/are %(len)i new recommendation/s for you.
             self.hbox.pack_start(gtk.Label(_("for you.")), False, False)
@@ -454,8 +450,7 @@ class LobbyViewGtk(CategoriesViewGtk):
         sorted_cats = categories_sorted_by_name(self.categories)
 
         for cat in sorted_cats:
-            if cat.untranslated_name not in ('Featured',
-                                             u"What\u2019s New"):
+            if 'carousel-only' not in cat.flags:
                 #enquirer.set_query(cat.query)
                 ## limiting the size here does not make it faster
                 #matches = enquirer.get_mset(0, len(self.db))
@@ -519,7 +514,6 @@ class SubCategoryViewGtk(CategoriesViewGtk):
 
         # sections
         self.departments = None
-        self.build(desktopdir)
         return
 
     def _on_allocate(self, widget, allocation):
@@ -614,10 +608,10 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         self._build_subcat_view(root_category, num_items)
         return
 
-    def build(self, desktopdir):
-        self.in_subsection = True
-        self.set_subcategory(self.root_category)
-        return
+    #def build(self, desktopdir):
+        #self.in_subsection = True
+        #self.set_subcategory(self.root_category)
+        #return
 
 
 class CarouselView(mkit.FramedSection):
@@ -711,8 +705,8 @@ class CarouselView(mkit.FramedSection):
             return
 
         # number of posters we should have given available space
-        n = width / CAROUSEL_POSTER_MIN_WIDTH
-        n = (width - n*self.hbox.get_spacing()) / CAROUSEL_POSTER_MIN_WIDTH
+        n = width / CarouselPoster.WIDTH
+        n = (width - n*self.hbox.get_spacing()) / CarouselPoster.WIDTH
         n = max(CAROUSEL_MIN_POSTER_COUNT, n)
         n = min(CAROUSEL_MAX_POSTER_COUNT, n)
 
@@ -973,46 +967,42 @@ class CategoryButton(mkit.HLinkButton):
 class SubcategoryButton(mkit.VLinkButton):
 
     ICON_SIZE = 48
-    MAX_WIDTH  = None#9*mkit.EM
-    MAX_HEIGHT = None#11*mkit.EM
+    MAX_WIDTH  = 12*mkit.EM
+    MAX_HEIGHT = 9*mkit.EM
 
     def __init__(self, markup, icon_name, icons):
         mkit.VLinkButton.__init__(self, markup, icon_name, self.ICON_SIZE, icons)
-        self.set_border_width(mkit.BORDER_WIDTH_MED)
-        self.set_size_request(self.get_size_request()[0],
-                              self.MAX_HEIGHT or self.get_size_request()[1])
+        self.set_border_width(mkit.BORDER_WIDTH_SMALL)
+        self.set_max_width(self.MAX_WIDTH)
+        #self.set_max_width(self.MAX_HEIGHT)
+        self.box.set_size_request(self.MAX_WIDTH, self.MAX_HEIGHT)
         return
 
 
 class CarouselPoster(mkit.VLinkButton):
 
+    WIDTH = 11*mkit.EM
+    HEIGHT = 10*mkit.EM
+
     def __init__(self, markup='None', icon_name='None', icon_size=48, icons=None):
         mkit.VLinkButton.__init__(self, markup, icon_name, icon_size, icons)
 
-        self.set_border_width(mkit.BORDER_WIDTH_LARGE)
+        self.set_border_width(mkit.BORDER_WIDTH_SMALL)
         self.set_internal_spacing(mkit.SPACING_SMALL)
+        self.box.set_size_request(self.WIDTH, self.HEIGHT)
 
         self.label.set_justify(gtk.JUSTIFY_CENTER)
         self.image.set_size_request(icon_size, icon_size)
-        self.box.set_size_request(-1, CAROUSEL_POSTER_MIN_HEIGHT)
 
         self.app = None
         self._target_icon_size = icon_size
 
         # we inhibit the native gtk drawing for both the Image and Label
         self.connect('expose-event', lambda w, e: True)
-        self.connect('size-allocate', self._on_allocate)
 
         # a11y for poster
-#        self.set_property("can-focus", True)
+        self.set_property("can-focus", True)
         self.a11y = self.get_accessible()
-        return
-
-    def _on_allocate(self, widget, allocation):
-        ia = self.label.allocation  # label allocation
-        layout = self.label.get_layout()
-        layout.set_width(ia.width*pango.SCALE)
-        layout.set_wrap(pango.WRAP_WORD)
         return
 
     def set_application(self, app):
@@ -1031,6 +1021,7 @@ class CarouselPoster(mkit.VLinkButton):
 
         if not self.image.window:
             self.box.pack_start(self.image, False)
+            self.box.reorder_child(self.image, 0)
             self.image.show()
         return
 
@@ -1172,7 +1163,7 @@ class PageSelector(gtk.Alignment):
         #print max_w, self.vbox.allocation.width
         w = 0
         for i in range(int(n_pages)):
-            w += CAROUSEL_PAGING_DOT_SIZE + mkit.SPACING_MED
+            w += PagingDot.DOT_SIZE + mkit.SPACING_MED
 
             if w > max_w:
                 rowbox = gtk.HBox(spacing=mkit.SPACING_MED)
@@ -1180,7 +1171,7 @@ class PageSelector(gtk.Alignment):
                 row.add(rowbox)
 
                 self.vbox.pack_start(row, expand=True)
-                w = CAROUSEL_PAGING_DOT_SIZE + mkit.SPACING_MED
+                w = PagingDot.DOT_SIZE + mkit.SPACING_MED
 
             dot = PagingDot(i)
             rowbox.pack_start(dot, False)
@@ -1215,9 +1206,11 @@ class PageSelector(gtk.Alignment):
 
 class PagingDot(mkit.LinkButton):
 
+    DOT_SIZE =       max(8, int(0.6*mkit.EM+0.5))
+
     def __init__(self, page_number):
         mkit.LinkButton.__init__(self, None, None, None)
-        self.set_size_request(-1, CAROUSEL_PAGING_DOT_SIZE)
+        self.set_size_request(-1, self.DOT_SIZE)
         self.is_selected = False
         self.page_number = page_number
 
@@ -1228,7 +1221,7 @@ class PagingDot(mkit.LinkButton):
         return
 
     def calc_width(self):
-        return CAROUSEL_PAGING_DOT_SIZE
+        return self.DOT_SIZE
 
     def draw(self, cr, a, expose_area, alpha):
         cr.save()

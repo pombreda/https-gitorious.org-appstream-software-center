@@ -30,6 +30,7 @@ import threading
 from softwarecenter.enums import *
 from softwarecenter.utils import *
 from softwarecenter.backend import get_install_backend
+from softwarecenter.db.reviews import get_review_loader
 from softwarecenter.db.database import Application, SearchQuery, LocaleSorter
 from softwarecenter.distro import get_distro
 from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
@@ -54,12 +55,13 @@ class AppStore(gtk.GenericTreeModel):
      COL_INSTALLED,
      COL_AVAILABLE,
      COL_PKGNAME,
-     COL_POPCON,
+     COL_RATING,
+     COL_NR_REVIEWS,
      COL_IS_ACTIVE,
      COL_ACTION_IN_PROGRESS,
      COL_EXISTS,
      COL_ACCESSIBLE,
-     COL_REQUEST) = range(13)
+     COL_REQUEST) = range(14)
 
     column_type = (str,
                    str,
@@ -68,6 +70,7 @@ class AppStore(gtk.GenericTreeModel):
                    bool,
                    bool,
                    str,
+                   int,
                    int,
                    bool,
                    int,
@@ -143,6 +146,8 @@ class AppStore(gtk.GenericTreeModel):
         # new goodness
         self.nr_pkgs = 0
         self.nr_apps = 0
+        # reviews
+        self.review_loader = get_review_loader()
         # backend stuff
         self.backend = get_install_backend()
         self.backend.connect("transaction-progress-changed", self._on_transaction_progress_changed)
@@ -445,6 +450,8 @@ class AppStore(gtk.GenericTreeModel):
                 return app.pkgname
             elif column == self.COL_POPCON:
                 return 0
+            elif column == self.COL_RATING:
+                return 0
             elif column == self.COL_IS_ACTIVE:
                 if app.request:
                     # this may be wrong, but we don't want to do any checks at this moment
@@ -515,8 +522,16 @@ class AppStore(gtk.GenericTreeModel):
         elif column == self.COL_PKGNAME:
             pkgname = app.pkgname
             return pkgname
-        elif column == self.COL_POPCON:
-            return self._calc_normalized_rating(app.popcon)
+        elif column == self.COL_RATING:
+            stats = self.review_loader.get_review_stats(app)
+            if stats:
+                return stats.ratings_average
+            return 0
+        elif column == self.COL_NR_REVIEWS:
+            stats = self.review_loader.get_review_stats(app)
+            if stats:
+                return stats.ratings_total
+            return 0
         elif column == self.COL_IS_ACTIVE:
             return (rowref == self.active_app)
         elif column == self.COL_ACTION_IN_PROGRESS:

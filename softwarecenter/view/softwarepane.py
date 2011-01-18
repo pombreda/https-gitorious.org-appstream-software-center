@@ -115,7 +115,7 @@ class SoftwarePane(gtk.VBox, BasePane):
                              ),
     }
     PADDING = 6
-    
+
     # pages for the spinner notebook
     (PAGE_APPVIEW,
      PAGE_SPINNER) = range(2)

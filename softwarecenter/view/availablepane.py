@@ -549,8 +549,8 @@ class AvailablePane(SoftwarePane):
         self.cat_view.stop_carousels()
         # we want to re-enable the buy button if this is an app for purchase
         # FIXME:  hacky, find a better approach
-        if self.app_details_view.action_bar.button.get_label() == _(u'Buy\u2026'):
-            self.app_details_view.action_bar.button.set_sensitive(True)
+        if self.app_details_view.pkg_statusbar.button.get_label() == _(u'Buy\u2026'):
+            self.app_details_view.pkg_statusbar.button.set_sensitive(True)
         return
         
     def display_purchase(self):
