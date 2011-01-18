@@ -120,8 +120,10 @@ class AvailablePane(SoftwarePane):
             self.spinner_view.show()
             self.spinner_notebook.set_current_page(self.PAGE_SPINNER)
             self.window.set_cursor(self.busy_cursor)
+            
             while gtk.events_pending():
                 gtk.main_iteration()
+                
             SoftwarePane.init_view(self)
             # categories, appview and details into the notebook in the bottom
             self.scroll_categories = gtk.ScrolledWindow()

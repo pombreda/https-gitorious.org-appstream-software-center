@@ -111,11 +111,12 @@ if __name__ == "__main__":
     # DEBUG/PROFILE mode 
     if options.measure_startup_time:
         with ExecutionTime("show() & gtk events until visible"):
-            app.window_main.show_all()
+#            app.window_main.show_all()
             while gtk.events_pending():
                 # test visible area
                 if (app.window_main.flags() & gtk.VISIBLE and
-                    app.available_pane.searchentry.flags() & gtk.VISIBLE):
+                    app.available_pane.searchentry.flags() & gtk.VISIBLE and
+                    app.available_pane.back_forward.flags() & gtk.VISIBLE):
                     break
                 gtk.main_iteration()
         time_to_visible = time.time() - time_entering_main
