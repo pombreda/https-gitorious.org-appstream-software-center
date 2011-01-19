@@ -52,11 +52,15 @@ class GwibberHelper(object):
 
     def send_message(self, message, account_id=None):
         """ send message to all accounts with send_enabled """
-        bus = dbus.SessionBus()
-        proxy_obj = bus.get_object("com.Gwibber.Service",
+        try:
+            bus = dbus.SessionBus()
+            proxy_obj = bus.get_object("com.Gwibber.Service",
                                    "/com/gwibber/Service")
-        service_iface = dbus.Interface(proxy_obj, "com.Gwibber.Service")
-        service_iface.SendMessage(message)
+            service_iface = dbus.Interface(proxy_obj, "com.Gwibber.Service")
+            service_iface.SendMessage(message)
+            return True
+        except:
+            return False
 
     @staticmethod
     def has_accounts_in_sqlite():

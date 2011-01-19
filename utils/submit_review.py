@@ -690,22 +690,25 @@ class SubmitReviewsApp(BaseApp):
         self.gwibber_checkbutton.set_active(self.gwibber_prefs['gwibber_send'])
     
     def _on_multiple_gwibber_accounts(self):
-        self.gwibber_hbox.show()
-        self.gwibber_combo.show()
+        self._on_no_gwibber_accounts()
+        #FIXME: delete the above call and uncomment the rest of this method once gwibber can send by account_id
+        
+        #self.gwibber_hbox.show()
+        #self.gwibber_combo.show()
 
-        self.gwibber_checkbutton.set_label(_("Also post this review to: "))
-        for account in self.gwibber_accounts:
-            acct_text =  "%s (@%s)"  % (
-                account['service'].capitalize(), account['username'] )
-            self.gwibber_combo.append_text(acct_text)
+        #self.gwibber_checkbutton.set_label(_("Also post this review to: "))
+        #for account in self.gwibber_accounts:
+        #    acct_text =  "%s (@%s)"  % (
+        #        account['service'].capitalize(), account['username'] )
+        #    self.gwibber_combo.append_text(acct_text)
         
-        self.gwibber_checkbutton.set_active(self.gwibber_prefs['gwibber_send'])
-        gwibber_active_account = 0
+        #self.gwibber_checkbutton.set_active(self.gwibber_prefs['gwibber_send'])
+        #gwibber_active_account = 0
         
-        for account in self.gwibber_accounts:
-            if account['id'] == self.gwibber_prefs['account_id']:
-                gwibber_active_account = self.gwibber_accounts.index(account)
-        self.gwibber_combo.set_active(gwibber_active_account)
+        #for account in self.gwibber_accounts:
+        #    if account['id'] == self.gwibber_prefs['account_id']:
+        #        gwibber_active_account = self.gwibber_accounts.index(account)
+        #self.gwibber_combo.set_active(gwibber_active_account)
 
     def on_transmit_success(self, api, trans):
         gwibber_success = True
