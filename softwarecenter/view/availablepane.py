@@ -55,6 +55,10 @@ class AvailablePane(SoftwarePane):
      PAGE_APPLIST,
      PAGE_APP_DETAILS,
      PAGE_APP_PURCHASE) = range(5)
+     
+    __gsignals__ = {'available-pane-created':(gobject.SIGNAL_RUN_FIRST,
+                                              gobject.TYPE_NONE,
+                                              ())}
 
     # constant for use in action bar (see _update_action_bar)
     _INSTALL_BTN_ID = 0
@@ -69,6 +73,7 @@ class AvailablePane(SoftwarePane):
                  navhistory_forward_action):
         # parent
         SoftwarePane.__init__(self, cache, db, distro, icons, datadir)
+        self.searchentry.set_sensitive(False)
         # navigation history actions
         self.navhistory_back_action = navhistory_back_action
         self.navhistory_forward_action = navhistory_forward_action
@@ -87,12 +92,38 @@ class AvailablePane(SoftwarePane):
         self.pane_name = _("Get Software")
         # search mode
         self.custom_list_mode = False
-        # install backend
-        self.backend.connect("transactions-changed",
-                             self._on_transactions_changed)
+        # add nav history back/forward buttons
+        if self.navhistory_back_action:
+            self.navhistory_back_action.set_sensitive(False)
+        if self.navhistory_forward_action:
+            self.navhistory_forward_action.set_sensitive(False)
+        # note:  this is hacky, would be much nicer to make the custom self/right
+        # buttons in BackForwardButton to be gtk.Activatable/gtk.Widgets, then wire in the
+        # actions using e.g. self.navhistory_back_action.connect_proxy(self.back_forward.left),
+        # but couldn't seem to get this to work..so just wire things up directly
+        self.back_forward = BackForwardButton()
+        self.back_forward.connect("left-clicked", self.on_nav_back_clicked)
+        self.back_forward.connect("right-clicked", self.on_nav_forward_clicked)
+        self.top_hbox.pack_start(self.back_forward, expand=False)
+        # nav buttons first in the panel
+        self.top_hbox.reorder_child(self.back_forward, 0)
+        if self.navhistory_back_action and self.navhistory_forward_action:
+            self.nav_history = NavigationHistory(self,
+                                                 self.back_forward,
+                                                 self.navhistory_back_action,
+                                                 self.navhistory_forward_action)
 
     def init_view(self):
         if not self.view_initialized:
+            self.spinner_view.set_text(_('Loading Categories'))
+            self.spinner_view.start()
+            self.spinner_view.show()
+            self.spinner_notebook.set_current_page(self.PAGE_SPINNER)
+            self.window.set_cursor(self.busy_cursor)
+            
+            while gtk.events_pending():
+                gtk.main_iteration()
+                
             SoftwarePane.init_view(self)
             # categories, appview and details into the notebook in the bottom
             self.scroll_categories = gtk.ScrolledWindow()
@@ -125,27 +156,6 @@ class AvailablePane(SoftwarePane):
             self.notebook.append_page(self.scroll_subcategories,
                                         gtk.Label(NAV_BUTTON_ID_SUBCAT))
 
-            # add nav history back/forward buttons
-            if self.navhistory_back_action:
-                self.navhistory_back_action.set_sensitive(False)
-            if self.navhistory_forward_action:
-                self.navhistory_forward_action.set_sensitive(False)
-            # note:  this is hacky, would be much nicer to make the custom self/right
-            # buttons in BackForwardButton to be gtk.Activatable/gtk.Widgets, then wire in the
-            # actions using e.g. self.navhistory_back_action.connect_proxy(self.back_forward.left),
-            # but couldn't seem to get this to work..so just wire things up directly
-            self.back_forward = BackForwardButton()
-            self.back_forward.connect("left-clicked", self.on_nav_back_clicked)
-            self.back_forward.connect("right-clicked", self.on_nav_forward_clicked)
-            self.top_hbox.pack_start(self.back_forward, expand=False)
-            # nav buttons first in the panel
-            self.top_hbox.reorder_child(self.back_forward, 0)
-            if self.navhistory_back_action and self.navhistory_forward_action:
-                self.nav_history = NavigationHistory(self,
-                                                     self.back_forward,
-                                                     self.navhistory_back_action,
-                                                     self.navhistory_forward_action)
-
             # app list
             self.notebook.append_page(self.box_app_list,
                                         gtk.Label(NAV_BUTTON_ID_LIST))
@@ -169,7 +179,17 @@ class AvailablePane(SoftwarePane):
                                             NAV_BUTTON_ID_CATEGORY,
                                             do_callback=True,
                                             animate=False)
+                                            
+            # install backend
+            self.backend.connect("transactions-changed", self._on_transactions_changed)
             # now we are initialized
+            self.searchentry.set_sensitive(True)
+            self.emit("available-pane-created")
+            self.show_all()
+            self.spinner_view.stop()
+            self.spinner_notebook.set_current_page(self.PAGE_APPVIEW)
+            self.window.set_cursor(None)
+            self.spinner_view.set_text()
             self.view_initialized = True
 
     def get_query(self):
@@ -186,7 +206,7 @@ class AvailablePane(SoftwarePane):
         # mix category with the search terms and return query
         return self.db.get_query_list_from_search_entry(self.apps_search_term,
                                                         cat_query)
-
+                                                        
     def _in_no_display_category(self):
         """return True if we are in a category with NoDisplay set in the XML"""
         return (self.apps_category and
@@ -745,7 +765,7 @@ if __name__ == "__main__":
     win = gtk.Window()
     win.add(w)
     w.init_view()
-    win.set_size_request(500,400)
+    win.set_size_request(700,500)
     win.show_all()
 
     gtk.main()

@@ -1,3 +1,17 @@
+software-center (3.1.11) UNRELEASED; urgency=low
+
+  * softwarecenter/view/widgets/spinner.py:
+    - modify to allow updating spinner label text on the fly
+  * software-center,
+    softwarecenter/app.py,
+    softwarecenter/view/availablepane.py,
+    softwarecenter/view/softwarepane.py:
+    - defer loading the categories pane in the main view and display
+      a spinner while it's loading, provides further startup time
+      improvement
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 18 Jan 2011 12:11:18 -0500
+
 software-center (3.1.10) natty; urgency=low
 
   [ Michael Vogt ]
