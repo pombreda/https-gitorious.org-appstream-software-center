@@ -72,6 +72,9 @@ NAV_BUTTON_ID_SEARCH   = "search"
 NAV_BUTTON_ID_PURCHASE = "purchase"
 NAV_BUTTON_ID_PREV_PURCHASES = "prev-purchases"
 
+# define ID values for the action bar buttons
+ACTION_BUTTON_ID_INSTALL = "install"
+
 # icons
 MISSING_APP_ICON = "applications-other"
 MISSING_PKG_ICON = "dialog-question"
