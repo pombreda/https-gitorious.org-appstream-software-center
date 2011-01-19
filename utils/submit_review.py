@@ -710,7 +710,7 @@ class SubmitReviewsApp(BaseApp):
     def on_transmit_success(self, api, trans):
         gwibber_success = True
         if self.gwibber_checkbutton.get_active():
-            self._submit_via_gwibber()
+            #self._submit_via_gwibber()
             i = self.gwibber_combo.get_active()
             status_text = _("Posting to %s") % self.gwibber_accounts[i]['service'].capitalize()
             self.label_transmit_status.set_text(status_text)
