@@ -9,8 +9,10 @@ software-center (3.1.11) UNRELEASED; urgency=low
     - defer loading the categories pane in the main view and display
       a spinner while it's loading, provides further startup time
       improvement
+  * test/test_gui_buy_something.py:
+    - fix test case
 
- -- Gary Lasker <gary.lasker@canonical.com>  Tue, 18 Jan 2011 12:11:18 -0500
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 19 Jan 2011 16:53:21 -0500
 
 software-center (3.1.10) natty; urgency=low
 
