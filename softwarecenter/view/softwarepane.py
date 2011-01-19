@@ -145,6 +145,37 @@ class SoftwarePane(gtk.VBox, BasePane):
         self.apps_subcategory = None
         self.apps_search_term = None
         self.custom_list_mode = False
+        # Create the basic frame for the common view
+        # navigation bar and search on top in a hbox
+        self.navigation_bar = NavigationBar()
+        self.searchentry = SearchEntry()
+        self.top_hbox = gtk.HBox(spacing=self.PADDING)
+        self.top_hbox.set_border_width(self.PADDING)
+        self.top_hbox.pack_start(self.navigation_bar)
+        self.top_hbox.pack_start(self.searchentry, expand=False)
+        self.pack_start(self.top_hbox, expand=False)
+        #self.pack_start(gtk.HSeparator(), expand=False)
+        # a notebook below
+        self.notebook = gtk.Notebook()
+        self.notebook.set_show_tabs(False)
+        self.notebook.set_show_border(False)
+        
+        # make a spinner view to display while the applist is loading
+        self.spinner_view = SpinnerView()
+        self.spinner_notebook = gtk.Notebook()
+        self.spinner_notebook.set_show_tabs(False)
+        self.spinner_notebook.set_show_border(False)
+        self.spinner_notebook.append_page(self.notebook)
+        self.spinner_notebook.append_page(self.spinner_view)
+        
+        self.pack_start(self.spinner_notebook)
+        # a bar at the bottom (hidden by default) for contextual actions
+        self.action_bar = ActionBar()
+        self.pack_start(self.action_bar, expand=False)
+        self.top_hbox.connect('expose-event', self._on_expose)
+        
+        # cursor
+        self.busy_cursor = gtk.gdk.Cursor(gtk.gdk.WATCH)
         
     def init_view(self):
         """
@@ -172,10 +203,7 @@ class SoftwarePane(gtk.VBox, BasePane):
                               self.on_application_selected)
         self.app_view.connect("application-activated", 
                               self.on_application_activated)
-                             
-        # make a spinner view to display while the applist is loading
-        self.spinner_view = SpinnerView()
-                
+                                             
         # details
         self.scroll_details = gtk.ScrolledWindow()
         self.scroll_details.set_policy(gtk.POLICY_AUTOMATIC, 
@@ -193,44 +221,16 @@ class SoftwarePane(gtk.VBox, BasePane):
         self.purchase_view.connect("purchase-succeeded", self.on_purchase_succeeded)
         self.purchase_view.connect("purchase-failed", self.on_purchase_failed)
         self.purchase_view.connect("purchase-cancelled-by-user", self.on_purchase_cancelled_by_user)
-        # cursor
-        self.busy_cursor = gtk.gdk.Cursor(gtk.gdk.WATCH)
         # when the cache changes, refresh the app list
         self.cache.connect("cache-ready", self.on_cache_ready)
-        # COMMON UI elements
-        # navigation bar and search on top in a hbox
-        self.navigation_bar = NavigationBar()
-        self.searchentry = SearchEntry()
+        
+        # connect signals
         self.searchentry.connect("terms-changed", self.on_search_terms_changed)
-        self.top_hbox = gtk.HBox(spacing=self.PADDING)
-        self.top_hbox.set_border_width(self.PADDING)
-        self.top_hbox.pack_start(self.navigation_bar)
-        self.top_hbox.pack_start(self.searchentry, expand=False)
-        self.pack_start(self.top_hbox, expand=False)
-        #self.pack_start(gtk.HSeparator(), expand=False)
-        # a notebook below
-        self.notebook = gtk.Notebook()
-        self.notebook.set_show_tabs(False)
-        self.notebook.set_show_border(False)
-        
-        self.spinner_notebook = gtk.Notebook()
-        self.spinner_notebook.set_show_tabs(False)
-        self.spinner_notebook.set_show_border(False)
-        self.spinner_notebook.append_page(self.notebook)
-        self.spinner_notebook.append_page(self.spinner_view)
-        
-        # app-list
         self.connect("app-list-changed", self.on_app_list_changed)
         
         # db reopen
         self.db.connect("reopen", self.on_db_reopen)
 
-        self.pack_start(self.spinner_notebook)
-        # a bar at the bottom (hidden by default) for contextual actions
-        self.action_bar = ActionBar()
-        self.pack_start(self.action_bar, expand=False)
-        self.top_hbox.connect('expose-event', self._on_expose)
-            
     def _on_expose(self, widget, event):
         """ Draw a horizontal line that separates the top hbox from the page content """
         a = widget.allocation
