@@ -434,10 +434,17 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         gtk.main_quit()
         
     def on_window_main_key_press_event(self, widget, event):
+        """
+        Implement the backspace key as a hotkey to back up one level in
+        the navigation heirarchy.  This works everywhere except when
+        purchasing software in the purchase_view where backspace works
+        as expected in the webkit text fields.
+        """
         if (event.keyval == gtk.gdk.keyval_from_name("BackSpace") and 
             self.active_pane and
             hasattr(self.active_pane, 'navigation_bar') and
-            not self.active_pane.searchentry.is_focus()):
+            not self.active_pane.searchentry.is_focus() and
+            not self.active_pane.navigation_bar.has_id(NAV_BUTTON_ID_PURCHASE)):
             self.active_pane.navigation_bar.navigate_up()
         
     def on_view_switcher_changed(self, view_switcher, view_id, channel):

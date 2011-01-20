@@ -16,8 +16,12 @@ software-center (3.1.11) UNRELEASED; urgency=low
     - connect app-list-changed signal handlers after each pane's
       view is fully initialized to insure correct status bar
       updating (fixes failure in test_supported_only test case)
+  * softwarecenter/app.py:
+    - don't back up one level in the navigation hierarchy if the
+      backspace key is pressed while entering information during
+      the purchase process (LP: #705676) 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 20 Jan 2011 00:29:19 -0500
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 20 Jan 2011 18:47:32 -0500
 
 software-center (3.1.10) natty; urgency=low
 
