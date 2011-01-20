@@ -203,9 +203,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                             self.navhistory_back_action,
                                             self.navhistory_forward_action)
         self.available_pane.connect("available-pane-created", self.on_available_pane_created)
-        self.available_pane.connect("app-list-changed", 
-                                    self.on_app_list_changed,
-                                    VIEW_PAGE_AVAILABLE)
         self.view_manager.register(self.available_pane, VIEW_PAGE_AVAILABLE)
 
         # channel pane (view not fully initialized at this point)
@@ -372,6 +369,9 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         
         self.available_pane.set_section(available_section)
 
+        self.available_pane.connect("app-list-changed", 
+                                    self.on_app_list_changed,
+                                    VIEW_PAGE_AVAILABLE)
         self.available_pane.app_details_view.connect("selected", 
                                                      self.on_app_details_changed,
                                                      VIEW_PAGE_AVAILABLE)
