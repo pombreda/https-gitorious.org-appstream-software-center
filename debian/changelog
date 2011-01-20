@@ -15,9 +15,9 @@ software-center (3.1.11) UNRELEASED; urgency=low
     softwarecenter/view/historypane.py:
     - connect app-list-changed signal handlers after each pane's
       view is fully initialized to insure correct status bar
-      updating
+      updating (fixes failure in test_supported_only test case)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 20 Jan 2011 00:24:41 -0500
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 20 Jan 2011 00:29:19 -0500
 
 software-center (3.1.10) natty; urgency=low
 
