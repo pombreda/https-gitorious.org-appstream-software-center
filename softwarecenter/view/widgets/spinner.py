@@ -53,22 +53,19 @@ class SpinnerView(gtk.Viewport):
     a panel that contains a spinner preset to a standard size and centered
     an optional label_text value can be specified for display with the spinner
     """
-    def __init__(self, label_text=None):
+    def __init__(self, label_text=""):
         gtk.Viewport.__init__(self)
         self.spinner = Spinner()
         self.spinner.set_size_request(48, 48)
         
         # use a table for the spinner (otherwise the spinner is massive!)
         spinner_table = gtk.Table(3, 3, False)
-        if label_text:
-            spinner_label = gtk.Label()
-            spinner_label.set_markup('<big>%s</big>' % label_text)
-            spinner_vbox = gtk.VBox()
-            spinner_vbox.pack_start(self.spinner, expand=False)
-            spinner_vbox.pack_start(spinner_label, expand=True, padding=10)
-            spinner_table.attach(spinner_vbox, 1, 2, 1, 2, gtk.EXPAND, gtk.EXPAND)
-        else:
-            spinner_table.attach(self.spinner, 1, 2, 1, 2, gtk.EXPAND, gtk.EXPAND)
+        self.spinner_label = gtk.Label()
+        self.spinner_label.set_markup('<big>%s</big>' % label_text)
+        spinner_vbox = gtk.VBox()
+        spinner_vbox.pack_start(self.spinner, expand=False)
+        spinner_vbox.pack_start(self.spinner_label, expand=True, padding=10)
+        spinner_table.attach(spinner_vbox, 1, 2, 1, 2, gtk.EXPAND, gtk.EXPAND)
         
         self.modify_bg(gtk.STATE_NORMAL, gtk.gdk.Color(1.0, 1.0, 1.0))
         self.add(spinner_table)
@@ -87,16 +84,24 @@ class SpinnerView(gtk.Viewport):
         """
         self.spinner.stop()
         self.spinner.hide()
-
+        
+    def set_text(self, spinner_text = ""):
+        """
+        useful for adding/removing/changing the label text after the spinner instance has been created
+        """
+        self.spinner_label.set_markup('<big>%s</big>' % spinner_text)
+        
 if __name__ == "__main__":
-    spinner_view = SpinnerView(label_text="Connecting to payment service...")
+    spinner_view = SpinnerView()
     spinner_view.start()
     
     window = gtk.Window()
     window.add(spinner_view)
     window.set_size_request(600, 500)
     window.set_position(gtk.WIN_POS_CENTER)
-    window.show_all()
+    window.show_all()    
     window.connect('destroy', gtk.main_quit)
-
+    
+    spinner_view.set_text("Loading...")
+    
     gtk.main()

@@ -335,7 +335,7 @@ class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
         self.install()
 
     # internal callback
-    def _on_transaction_started(self, backend):
+    def _on_transaction_started(self, backend, pkgname):
         self._set_action_button_sensitive(False)
     def _on_transaction_stopped(self, backend):
         self._set_action_button_sensitive(True)

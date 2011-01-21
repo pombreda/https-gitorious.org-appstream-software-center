@@ -130,10 +130,6 @@ class AppStore(gtk.GenericTreeModel):
         self.icons.connect("changed", self._clear_app_icon_cache)
         self._appicon_missing_icon = self.icons.load_icon(MISSING_APP_ICON, self.icon_size, 0)
         self.apps = []
-        # this is used to re-set the cursor
-        self.app_index_map = {}
-        # this is used to find the in-progress rows
-        self.pkgname_index_map = {}
         self.sortmode = sortmode
         # we need a copy of the filter here because otherwise comparing
         # two models will not work
@@ -156,6 +152,8 @@ class AppStore(gtk.GenericTreeModel):
         self.active_app = None
         self._prev_active_app = 0
         self.limit = limit
+        # keep track of indicies for transactions in progress
+        self.transaction_index_map = {}
         # no search query means "all"
         if not search_query:
             self.search_query = SearchQuery(xapian.Query(""))
@@ -298,70 +296,9 @@ class AppStore(gtk.GenericTreeModel):
         # wake up the UI if run in a search thread
         self._perform_search_complete = True
         return
-        
-    def _rebuild_index_maps(self):
-        self.app_index_map.clear()
-        self.pkgname_index_map.clear()
-        app = None
-        for i in range(len(self.apps)):
-            app = self.apps[i]
-            self.app_index_map[app] = i
-            if not app.pkgname in self.pkgname_index_map:
-                self.pkgname_index_map[app.pkgname] = []
-            self.pkgname_index_map[app.pkgname].append(i)
 
     def _clear_app_icon_cache(self, theme):
         self.icon_cache.clear()
-
-    # external API
-    def clear(self):
-        """Clear the store and disconnect all callbacks to allow it to be
-        deleted."""
-        self.backend.disconnect_by_func(self._on_transaction_finished)
-        self.backend.disconnect_by_func(self._on_transaction_started)
-        self.backend.disconnect_by_func(self._on_transaction_progress_changed)
-        self.icons.disconnect_by_func(self._clear_app_icon_cache)
-        self.apps = []
-        self.app_index_map.clear()
-        self.pkgname_index_map.clear()
-
-    def update(self, appstore):
-        """ update this appstore to match data from another """
-        # Updating instead of replacing prevents a distracting white
-        # flash. First, match list of apps.
-        to_update = min(len(self), len(appstore))
-        for i in range(to_update):
-            self.apps[i] = appstore.apps[i]
-            self.row_changed(i, self.get_iter(i))
-
-        to_remove = max(0, len(self) - len(appstore))
-        for i in range(to_remove):
-            self.apps.pop()
-            self.row_deleted(len(self))
-
-        to_add = max(0, len(appstore) - len(self))
-        apps_to_add = appstore.apps[len(appstore) - to_add:]
-        for app in apps_to_add:
-            path = len(self)
-            self.apps.append(app)
-            self.row_inserted(path, self.get_iter(path))
-            
-        self._rebuild_index_maps()
-
-        # Next, match data about the store.
-        self.cache = appstore.cache
-        self.db = appstore.db
-        self.icons = appstore.icons
-        self.search_query = appstore.search_query
-        self.sortmode = appstore.sortmode
-        self.filter = appstore.filter
-        self.exact = appstore.exact
-        self.nonapps_visible = appstore.nonapps_visible
-        self._existing_apps = appstore._existing_apps
-        self._installable_apps = appstore._installable_apps
-
-        # Re-claim the memory used by the new appstore
-        appstore.clear()
 
     def _refresh_contents_data(self):
         # Quantitative data on stored packages. This generates the information.
@@ -404,25 +341,33 @@ class AppStore(gtk.GenericTreeModel):
         return 0
 
     def _on_transaction_progress_changed(self, backend, pkgname, progress):
-        if (not self.apps or
-            not self.active or
-            not pkgname in self.pkgname_index_map):
-            return
-        for index in self.pkgname_index_map[pkgname]:
-            row = self[index]
+        if pkgname in self.transaction_index_map:
+            row = self[self.transaction_index_map[pkgname]]
             self.row_changed(row.path, row.iter)
-
+            
     # the following methods ensure that the contents data is refreshed
     # whenever a transaction potentially changes it: see _refresh_contents.
 
-    def _on_transaction_started(self, *args, **kwargs):
+    def _on_transaction_started(self, backend, pkgname):
         self._existing_apps = None
         self._installable_apps = None
+        self._register_transaction_index_for_pkgname(pkgname)
 
-    def _on_transaction_finished(self, *args, **kwargs):
+    def _register_transaction_index_for_pkgname(self, pkgname_to_match):
+        for index in range(len(self.matches)):
+            doc = self.matches[index].document
+            pkgname = self.db.get_pkgname(doc)
+            if pkgname == pkgname_to_match:
+                self.transaction_index_map[pkgname] = index
+                return
+            # process one event 
+            gtk.main_iteration(block=False)
+                
+    def _on_transaction_finished(self, backend, result):
         self._existing_apps = None
         self._installable_apps = None
-
+        if result.pkgname in self.transaction_index_map:
+            del self.transaction_index_map[result.pkgname]
 
     def _download_icon_and_show_when_ready(self, cache, pkgname, icon_file_name):
         self._logger.debug("did not find the icon locally, must download %s" % icon_file_name)
