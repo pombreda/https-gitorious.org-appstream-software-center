@@ -46,6 +46,9 @@ class HistoryPane(gtk.VBox, BasePane):
                               gobject.TYPE_NONE, 
                               (int, ),
                              ),
+        "history-pane-created" : (gobject.SIGNAL_RUN_FIRST,
+                                  gobject.TYPE_NONE,
+                                  ()),
     }
 
     (COL_WHEN, COL_ACTION, COL_PKG) = range(3)
@@ -177,6 +180,7 @@ class HistoryPane(gtk.VBox, BasePane):
             self.spinner_view.stop()
             self._set_actions_sensitive(True)
             self.window.set_cursor(None)
+            self.emit("history-pane-created")
             
     def _set_actions_sensitive(self, sensitive):
         for action in self._actions_list:

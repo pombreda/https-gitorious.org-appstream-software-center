@@ -1,4 +1,29 @@
-software-center (3.1.10) UNRELEASED; urgency=low
+software-center (3.1.11) UNRELEASED; urgency=low
+
+  * softwarecenter/view/widgets/spinner.py:
+    - modify to allow updating spinner label text on the fly
+  * software-center,
+    softwarecenter/app.py,
+    softwarecenter/view/availablepane.py,
+    softwarecenter/view/softwarepane.py:
+    - defer loading the categories pane in the main view and display
+      a spinner while it's loading, provides further startup time
+      improvement
+  * test/test_gui_buy_something.py:
+    - fix test case
+  * softwarecenter/app.py,
+    softwarecenter/view/historypane.py:
+    - connect app-list-changed signal handlers after each pane's
+      view is fully initialized to insure correct status bar
+      updating (fixes failure in test_supported_only test case)
+  * softwarecenter/app.py:
+    - don't back up one level in the navigation hierarchy if the
+      backspace key is pressed while entering information during
+      the purchase process (LP: #705676) 
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 20 Jan 2011 18:47:32 -0500
+
+software-center (3.1.10) natty; urgency=low
 
   [ Michael Vogt ]
   * include full AUTHORS info into the about dialog,
@@ -34,7 +59,7 @@ software-center (3.1.10) UNRELEASED; urgency=low
     - attach the aptdaemon progress-changed listener earlier in the
       transaction to allow for more instant progress feedback in the UI
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 13 Jan 2011 12:34:02 -0600
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 17 Jan 2011 13:46:48 +0100
 
 software-center (3.1.9) natty; urgency=low
 
