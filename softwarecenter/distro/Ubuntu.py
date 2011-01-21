@@ -55,7 +55,7 @@ class Ubuntu(Distro):
 
     def get_removal_warning_text(self, cache, pkg, appname, depends):
         primary = _("To remove %s, these items must be removed "
-                    "as well:" % appname)
+                    "as well:") % appname
         button_text = _("Remove All")
 
         # alter it if a meta-package is affected
