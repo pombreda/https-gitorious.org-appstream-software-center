@@ -40,6 +40,7 @@ from softwarecenter.utils import *
 from softwarecenter.version import *
 from softwarecenter.db.database import StoreDatabase
 import softwarecenter.view.dependency_dialogs as dependency_dialogs
+from softwarecenter.view.softwarepane import wait_for_apt_cache_ready
 from softwarecenter.view.widgets.mkit import floats_from_string
 
 import view.dialogs
@@ -966,17 +967,22 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                 # e.g. unity
                 (pkgname, sep, appname) = packages[0].partition("/")
                 app = Application(appname, pkgname)
-            # FIXME: this needs a wait_for_apt_cache_ready decorator
-            # if the pkg is installed, show it in the installed pane
-#            if (app.pkgname in self.cache and 
- #               self.cache[app.pkgname].installed):
-  #              self.installed_pane.loaded = True
-   #             self.view_switcher.set_view(VIEW_PAGE_INSTALLED)
-    #            self.installed_pane.loaded = False
-     #           self.installed_pane.show_app(app)
-      #      else:
-            self.view_switcher.set_view(VIEW_PAGE_AVAILABLE)
-            self.available_pane.show_app(app)
+
+            @wait_for_apt_cache_ready
+            def show_app(self, app):
+                # if the pkg is installed, show it in the installed pane
+                if (app.pkgname in self.cache and 
+                    self.cache[app.pkgname].installed):
+                    self.installed_pane.loaded = True
+                    self.view_switcher.set_view(VIEW_PAGE_INSTALLED)
+                    self.installed_pane.loaded = False
+                    self.available_pane.bypassed = True
+                    self.installed_pane.show_app(app)
+                else:
+                    self.view_switcher.set_view(VIEW_PAGE_AVAILABLE)
+                    self.available_pane.show_app(app)
+
+            show_app(self, app)
 
         if len(packages) > 1:
             # turn multiple packages into a search with ","
