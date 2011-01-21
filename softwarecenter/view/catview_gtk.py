@@ -40,11 +40,11 @@ CAROUSEL_POSTER_MIN_HEIGHT =     min(64, 4*mkit.EM) + 5*mkit.EM
 CAROUSEL_PAGING_DOT_SIZE =       max(8, int(0.6*mkit.EM+0.5))
 
 # as per spec transition timeout should be 15000 (15 seconds)
-CAROUSEL_TRANSITION_TIMEOUT =    10000
+CAROUSEL_TRANSITION_TIMEOUT =    15000
 
 # spec says the fade duration should be 1 second, these values suffice:
-CAROUSEL_FADE_INTERVAL =         50 # msec
-CAROUSEL_FADE_STEP =             0.1 # value between 0.0 and 1.0
+CAROUSEL_FADE_INTERVAL =         25 # msec
+CAROUSEL_FADE_STEP =             0.05 # value between 0.0 and 1.0
 
 H1 = '<big><b>%s<b></big>'
 H2 = '<big>%s</big>'
@@ -253,13 +253,19 @@ class LobbyViewGtk(CategoriesViewGtk):
         self.featured_carousel = None
         self.whatsnew_carousel = None
         self.departments = None
+
+        self._prev_width = -1
+
         self.build(desktopdir)
         return
 
     def _on_allocate(self, viewport, allocation, vbox):
-        self.queue_draw()
+        gobject.idle_add(self.queue_draw)
+
         w = min(allocation.width-2, 900)
-        if w < 400: return True
+
+        if w <= 400 or w == self._prev_width: return True
+        self._prev_width = w
 
         self.featured_carousel.set_width(w)
         self.whatsnew_carousel.set_width(w)
@@ -1313,128 +1319,6 @@ class CarouselPoster2(Button):
 
     def draw(self, cr, a, event_area, alpha):
         self.alpha = alpha
-        return
-
-class CarouselPoster(mkit.VLinkButton):
-
-    def __init__(self, markup='None', icon_name='None', icon_size=48, icons=None):
-        mkit.VLinkButton.__init__(self, markup, icon_name, icon_size, icons)
-
-        self.set_border_width(mkit.BORDER_WIDTH_LARGE)
-        self.set_internal_spacing(mkit.SPACING_SMALL)
-
-        self.label.set_justify(gtk.JUSTIFY_CENTER)
-        self.image.set_size_request(icon_size, icon_size)
-        self.box.set_size_request(-1, CAROUSEL_POSTER_MIN_HEIGHT)
-
-        self.app = None
-        self._target_icon_size = icon_size
-
-        # we inhibit the native gtk drawing for both the Image and Label
-        self.connect('expose-event', lambda w, e: True)
-        self.connect('size-allocate', self._on_allocate)
-
-        # a11y for poster
-#        self.set_property("can-focus", True)
-        self.a11y = self.get_accessible()
-        return
-
-    def _on_allocate(self, widget, allocation):
-        ia = self.label.allocation  # label allocation
-        layout = self.label.get_layout()
-        layout.set_width(ia.width*pango.SCALE)
-        layout.set_wrap(pango.WRAP_WORD)
-        return
-
-    def set_application(self, data):
-        appname = data[AppStore.COL_APPNAME]
-        pkgname = data[AppStore.COL_PKGNAME]
-
-        self.app = Application(appanem=appname, pkgname=pkgname)
-
-        markup = '%s' % glib.markup_escape_text(appname)
-        pb = app[AppStore.COL_ICON]
-
-        tw = 48    # target width
-        if pb.get_width() < tw:
-            pb = pb.scale_simple(tw, tw, gtk.gdk.INTERP_TILES)
-
-        self.set_label(markup)
-        self.set_image_from_pixbuf(pb)
-
-        # set a11y text
-        self.a11y.set_name(name)
-
-        if not self.image.window:
-            self.box.pack_start(self.image, False)
-            self.image.show()
-        return
-
-    def draw(self, cr, a, expose_area, alpha=1.0):
-        if mkit.not_overlapping(a, expose_area): return
-
-        cr.save()
-        cr.rectangle(a)
-        cr.clip()
-
-        la = self.label.allocation  # label allocation
-        ia = self.image.allocation
-        layout = self.label.get_layout()
-
-        #x = ia.x + (ia.width-96)/2
-        #y = ia.y + (ia.height-96)/2 + 5
-        #cr.set_source_surface(MASK_SURFACE_CACHE['bloom'], x, y)
-        #cr.paint_with_alpha(0.7)
-
-        self.alpha = alpha
-        if ia.x > -1:
-            self._on_image_expose(self.image, gtk.gdk.Event(gtk.gdk.EXPOSE))
-
-        if alpha < 1.0:
-            # text colour from gtk.Style
-            rgba = mkit.floats_from_gdkcolor_with_alpha(self.style.text[self.state], alpha)
-
-            pcr = pangocairo.CairoContext(cr)
-            pcr.save()
-            pcr.move_to(ia.x, la.y)
-            pcr.set_source_rgba(*rgba)
-            pcr.layout_path(layout)
-            pcr.fill()
-            pcr.restore()
-            del pcr
-        else:
-            pcr = pangocairo.CairoContext(cr)
-            pcr.save()
-            pcr.move_to(ia.x, la.y+1)
-            pcr.set_source_rgba(*mkit.floats_from_gdkcolor_with_alpha(self.style.light[0],0.85))
-            pcr.layout_path(layout)
-            pcr.fill()
-            pcr.restore()
-            del pcr
-
-            self.style.paint_layout(self.window,
-                                    self.state,
-                                    True,
-                                    a,
-                                    self,
-                                    None,
-                                    la.x, la.y,
-                                    layout)
-        cr.restore()
-
-        # custom focus draw
-        if self.has_focus():
-            a = self.label.allocation
-            #x, y, w, h = a.x, a.y, a.width, a.height
-            x, y, w, h = layout.get_pixel_extents()[1] 
-            x += a.x
-            y += a.y
-            self.style.paint_focus(self.window,
-                                   self.state,
-                                   (x-2, y-1, w+4, h+2),
-                                   self,
-                                   'expander',
-                                   x-2, y-1, w+4, h+2)
         return
 
 
