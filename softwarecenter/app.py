@@ -202,29 +202,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                             self.datadir,
                                             self.navhistory_back_action,
                                             self.navhistory_forward_action)
-                                            
-        # this is about .2 seconds (20% of startup) on my machine
-        # next to try: thread the available pane init and show a spinner in its place
-        #              while it loads
-        with ExecutionTime("creating the available_pane view"):
-            self.available_pane.init_view()
-
-        available_section = SoftwareSection()
-        available_section.set_image(VIEW_PAGE_AVAILABLE, os.path.join(self.datadir, 'images/clouds.png'))
-        available_section.set_color('#0769BC')
-        
-        self.available_pane.set_section(available_section)
-
-        self.available_pane.app_details_view.connect("selected", 
-                                                     self.on_app_details_changed,
-                                                     VIEW_PAGE_AVAILABLE)
-        self.available_pane.app_details_view.connect("application-request-action", 
-                                                     self.on_application_request_action)
-        self.available_pane.app_view.connect("application-request-action", 
-                                             self.on_application_request_action)
-        self.available_pane.connect("app-list-changed", 
-                                    self.on_app_list_changed,
-                                    VIEW_PAGE_AVAILABLE)
+        self.available_pane.connect("available-pane-created", self.on_available_pane_created)
         self.view_manager.register(self.available_pane, VIEW_PAGE_AVAILABLE)
 
         # channel pane (view not fully initialized at this point)
@@ -234,9 +212,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                         self.icons,
                                         self.datadir)
         self.channel_pane.connect("channel-pane-created", self.on_channel_pane_created)
-        self.channel_pane.connect("app-list-changed", 
-                                    self.on_app_list_changed,
-                                    VIEW_PAGE_CHANNEL)
         self.view_manager.register(self.channel_pane, VIEW_PAGE_CHANNEL)
         
         # installed pane (view not fully initialized at this point)
@@ -246,9 +221,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                             self.icons,
                                             self.datadir)
         self.installed_pane.connect("installed-pane-created", self.on_installed_pane_created)
-        self.installed_pane.connect("app-list-changed", 
-                                    self.on_app_list_changed,
-                                    VIEW_PAGE_INSTALLED)
         self.view_manager.register(self.installed_pane, VIEW_PAGE_INSTALLED)
         
         # history pane (not fully loaded at this point)
@@ -257,9 +229,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                         self.distro,
                                         self.icons,
                                         self.datadir)
-        self.history_pane.connect("app-list-changed", 
-                                  self.on_app_list_changed,
-                                  VIEW_PAGE_HISTORY)
+        self.history_pane.connect("history-pane-created", self.on_history_pane_created)
         self.view_manager.register(self.history_pane, VIEW_PAGE_HISTORY)
 
         # pending view
@@ -277,7 +247,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                    self.on_view_switcher_changed)
         self.view_switcher.width = self.scrolledwindow_viewswitcher.get_property('width-request')
         self.view_switcher.connect('size-allocate', self.on_viewswitcher_resized)
-        self.view_switcher.set_view(VIEW_PAGE_AVAILABLE)
 
         # launchpad integration help, its ok if that fails
         try:
@@ -322,7 +291,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                                  gtk.ACCEL_VISIBLE)
 
         # default focus
-        self.available_pane.searchentry.grab_focus()
         self.window_main.set_size_request(600, 400)
 
         # setup window name and about information (needs branding)
@@ -386,12 +354,35 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.db.open()
 
     # callbacks
+    def on_available_pane_created(self, widget):
+        available_section = SoftwareSection()
+        available_section.set_image(VIEW_PAGE_AVAILABLE, os.path.join(self.datadir, 'images/clouds.png'))
+        available_section.set_color('#0769BC')
+        self.available_pane.set_section(available_section)
+
+        # connect signals
+        self.available_pane.connect("app-list-changed", 
+                                    self.on_app_list_changed,
+                                    VIEW_PAGE_AVAILABLE)
+        self.available_pane.app_details_view.connect("selected", 
+                                                     self.on_app_details_changed,
+                                                     VIEW_PAGE_AVAILABLE)
+        self.available_pane.app_details_view.connect("application-request-action", 
+                                                     self.on_application_request_action)
+        self.available_pane.app_view.connect("application-request-action", 
+                                             self.on_application_request_action)
+        self.available_pane.searchentry.grab_focus()
+    
     def on_channel_pane_created(self, widget):
         channel_section = SoftwareSection()
         channel_section.set_image(VIEW_PAGE_CHANNEL, os.path.join(self.datadir, 'images/arrows.png'))
         channel_section.set_color('#aea79f')
         self.channel_pane.set_section(channel_section)
 
+        # connect signals
+        self.channel_pane.connect("app-list-changed", 
+                                    self.on_app_list_changed,
+                                    VIEW_PAGE_CHANNEL)
         self.channel_pane.app_details_view.connect("selected", 
                                                    self.on_app_details_changed,
                                                    VIEW_PAGE_CHANNEL)
@@ -406,6 +397,10 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         installed_section.set_color('#aea79f')
         self.installed_pane.set_section(installed_section)
         
+        # connect signals
+        self.installed_pane.connect("app-list-changed", 
+                                    self.on_app_list_changed,
+                                    VIEW_PAGE_INSTALLED)
         self.installed_pane.app_details_view.connect("selected", 
                                                      self.on_app_details_changed,
                                                      VIEW_PAGE_INSTALLED)
@@ -413,6 +408,12 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                                      self.on_application_request_action)
         self.installed_pane.app_view.connect("application-request-action", 
                                              self.on_application_request_action)
+                                             
+    def on_history_pane_created(self, widget):
+        # connect signal
+        self.history_pane.connect("app-list-changed", 
+                                  self.on_app_list_changed,
+                                  VIEW_PAGE_HISTORY)
     
     def _on_update_software_center_agent_finished(self, pid, condition):
         self._logger.info("software-center-agent finished with status %i" % os.WEXITSTATUS(condition))
@@ -433,10 +434,17 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         gtk.main_quit()
         
     def on_window_main_key_press_event(self, widget, event):
+        """
+        Implement the backspace key as a hotkey to back up one level in
+        the navigation heirarchy.  This works everywhere except when
+        purchasing software in the purchase_view where backspace works
+        as expected in the webkit text fields.
+        """
         if (event.keyval == gtk.gdk.keyval_from_name("BackSpace") and 
             self.active_pane and
             hasattr(self.active_pane, 'navigation_bar') and
-            not self.active_pane.searchentry.is_focus()):
+            not self.active_pane.searchentry.is_focus() and
+            not self.active_pane.navigation_bar.has_id(NAV_BUTTON_ID_PURCHASE)):
             self.active_pane.navigation_bar.navigate_up()
         
     def on_view_switcher_changed(self, view_switcher, view_id, channel):
