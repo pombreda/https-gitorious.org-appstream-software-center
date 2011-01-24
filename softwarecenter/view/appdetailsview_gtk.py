@@ -1694,18 +1694,10 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
     def _update_app_icon(self, app_details):
 
-        def get_avg_color(pb):
-            avg = pb.scale_simple(1, 1, gtk.gdk.INTERP_BILINEAR)
-            rgb = Image.fromstring("RGB", (1,1), avg.get_pixels()).getpixel((0,0))
-            return map(lambda x: x/255.0, rgb) # rgb to floats
-
         pb = self._get_icon_as_pixbuf(app_details)
         # should we show the green tick?
         #self._show_overlay = app_details.pkg_state == PKG_STATE_INSTALLED
         self.main_frame.set_icon_from_pixbuf(pb)
-
-        # sample avg color of icon
-        self.avg_icon_rgb = get_avg_color(pb)
         return
 
     def _update_layout_error_status(self, pkg_error):
@@ -2081,24 +2073,22 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         rr = mkit.ShapeRoundedRectangle()
 
         cr.save()
-        rr.layout(cr, a.x, a.y, a.x+a.width, a.y+a.height, radius=6)
-        r, g, b = self.avg_icon_rgb
-        cr.set_source_rgb(r, g, b)
-        cr.fill_preserve()
+        cr.set_line_width(1)
+        cr.translate(0.5, 0.5)
 
-        lin = cairo.LinearGradient(0, a.y, 0, a.y+a.height)
-        lin.add_color_stop_rgba(0, 1,1,1, 0.6)
-        lin.add_color_stop_rgba(1, 1,1,1, 0.7)
+        #rr.layout(cr, a.x, a.y, a.x+a.width, a.y+a.height, radius=3)
+        #cr.set_source_rgb(*mkit.floats_from_gdkcolor(self.style.base[0]))
+        # line width should be 0.05em but for the sake of simplicity
+        # make it 0.25 pixels
 
-        cr.set_source(lin)
-        cr.fill_preserve()
-
-        cr.set_source_rgba(r, g, b, 0.75)
+        r,g,b = mkit.floats_from_gdkcolor(self.style.mid[self.state])
+        rr.layout(cr, a.x, a.y, a.x+a.width, a.y+a.height, radius=3)
+        cr.set_source_rgb(r, g, b)   # for strong corners
         cr.stroke()
 
         cr.restore()
         return
-        
+
     def _get_icon_as_pixbuf(self, app_details):
         icon = None
         if app_details.icon:
