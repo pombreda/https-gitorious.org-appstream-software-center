@@ -852,7 +852,7 @@ class CellRendererAppView2(gtk.CellRendererText):
     
     # ratings
     MAX_STARS = 5
-    STAR_SIZE = EM-1
+    STAR_SIZE = int(1.3*EM)
 
     __gproperties__ = {
         'overlay' : (bool, 'overlay', 'show an overlay icon', False,
@@ -1002,12 +1002,16 @@ class CellRendererAppView2(gtk.CellRendererText):
         return
 
     def _render_rating(self, window, widget, state, cell_area, xpad, ypad, direction):
+        self._star_painter.set_colors(widget.style.mid[state].to_string(),
+                                      widget.style.text[state].to_string(),
+                                      None)
+
         # draw stars on the top right
         cr = window.cairo_create()
         w = self.STAR_SIZE
         h = self.STAR_SIZE
         for i in range(0, self.MAX_STARS):
-            x = cell_area.x + cell_area.width - xpad - (self.MAX_STARS-i)*(w+3)
+            x = cell_area.x + cell_area.width - xpad - (self.MAX_STARS-i)*w
             y = cell_area.y + ypad
             if i < int(self.rating):
                 self._star_painter.set_fill(StarPainter.FILL_FULL)
@@ -1018,20 +1022,25 @@ class CellRendererAppView2(gtk.CellRendererText):
                 self._star_painter.set_fill(StarPainter.FILL_EMPTY)
             self._star_painter.paint_star(cr, x, y, w, h)
         # and nr-reviews below
-        x = cell_area.x + cell_area.width - xpad - self.MAX_STARS*(w+3)
-        y = cell_area.y + 2*ypad+h
         if not self._nr_reviews_layout:
-            pc = widget.get_pango_context()
-            self._nr_reviews_layout = pango.Layout(pc)
+            self._nr_reviews_layout = widget.create_pango_layout('')
         s = gettext.ngettext(
             "%(nr_ratings)i Rating",
             "%(nr_ratings)i Ratings",
             self.nreviews) % { 'nr_ratings' : self.nreviews, }
+        print s
         self._nr_reviews_layout.set_markup("<small>%s</small>" % s)
         # FIXME: improve w, h area calculation
-        w = 6*self.STAR_SIZE
-        h = self._nr_reviews_layout.get_size()[1]
-        clip_area = (x, y, w, h)
+        y = cell_area.y + 2*ypad+h
+
+        w = 5*self.STAR_SIZE
+        lw, lh = self._nr_reviews_layout.get_pixel_extents()[1][2:]
+
+        print lw
+
+        x = cell_area.x + cell_area.width - xpad - w + (w-lw)/2
+
+        clip_area = None#(x, y, w, h)
         widget.style.paint_layout(window, 
                                   state,
                                   True, 
