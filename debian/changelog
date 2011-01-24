@@ -1,5 +1,6 @@
 software-center (3.1.11) UNRELEASED; urgency=low
 
+  [ Gary Lasker ]
   * softwarecenter/view/widgets/spinner.py:
     - modify to allow updating spinner label text on the fly
   * software-center,
@@ -20,6 +21,10 @@ software-center (3.1.11) UNRELEASED; urgency=low
     - don't back up one level in the navigation hierarchy if the
       backspace key is pressed while entering information during
       the purchase process (LP: #705676) 
+
+  [ Kiwinote ]
+  * softwarecenter/app.py:
+    - display pkgs in correct pane when passing arguments (LP: #689407)
 
  -- Gary Lasker <gary.lasker@canonical.com>  Thu, 20 Jan 2011 18:47:32 -0500
 
