@@ -45,23 +45,6 @@ class StarPainter(object):
         self.shape = ShapeStar(5, 0.61)
         self.fill = self.FILL_EMPTY
         self.glow = self.GLOW_NORMAL
-        # fallback colors
-        self.bg_color = floats_from_string('#989898')     # gray
-        self.fg_color = floats_from_string('#D70707')     # crimson red
-        self.glow_color = floats_from_string('#FFB500')   # gold
-        return
-
-    def set_colors(self, bg=None, fg=None, glow=None):
-        if bg:
-            self.bg_color = floats_from_string(bg)
-        if fg:
-            self.fg_color = floats_from_string(fg)
-        if glow:
-            self.glow_color = floats_from_string(glow)
-
-        if hasattr(self, "style"):
-            self.queue_draw()
-#        if isinstance(self, gtk.Widget) and bg or fg or glow: self.queue_draw()
         return
 
     def set_fill(self, fill):
@@ -106,9 +89,9 @@ class StarPainter(object):
         cr.restore()
         return
 
-    def paint_star(self, cr, x, y, w, h, widget=None):
+    def paint_star(self, cr, widget, state, x, y, w, h):
         if self.fill == self.FILL_HALF:
-            self.paint_half_star(cr, x, y, w, h)
+            self.paint_half_star(cr, widget, state, x, y, w, h)
             return
 
         cr.save()
@@ -121,9 +104,9 @@ class StarPainter(object):
 #        cr.set_line_width(2)
 
         if self.fill == self.FILL_EMPTY:
-            cr.set_source_rgb(*self.bg_color)
+            cr.set_source_color(widget.style.mid[state])
         else:
-            cr.set_source_rgb(*self.fg_color)
+            cr.set_source_color(widget.style.text[state])
 
         #cr.stroke_preserve()
 #        cr.fill_preserve()
