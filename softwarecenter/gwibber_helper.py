@@ -57,6 +57,7 @@ class GwibberHelper(object):
                                    "/com/gwibber/Service")
         service_iface = dbus.Interface(proxy_obj, "com.Gwibber.Service")
         service_iface.SendMessage(message)
+        return True
 
     @staticmethod
     def has_accounts_in_sqlite():
