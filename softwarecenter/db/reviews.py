@@ -124,7 +124,7 @@ class ReviewLoader(object):
 
     # writing new reviews spawns external helper
     # FIXME: instead of the callback we should add proper gobject signals
-    def spawn_write_new_review_ui(self, app, version, iconname, parent_xid, datadir, callback):
+    def spawn_write_new_review_ui(self, app, version, iconname, origin, parent_xid, datadir, callback):
         """ this spawns the UI for writing a new review and
             adds it automatically to the reviews DB """
         cmd = [os.path.join(datadir, SUBMIT_REVIEW_APP), 
@@ -132,6 +132,7 @@ class ReviewLoader(object):
                "--iconname", iconname,
                "--parent-xid", "%s" % parent_xid,
                "--version", version,
+               "--origin", origin,
                "--datadir", datadir,
                ]
         if app.appname:

@@ -190,6 +190,19 @@ class AptCache(gobject.GObject):
                     origins.add(item.origin)
         return origins
 
+    def get_origin(self, pkgname):
+        """
+        return a uniqe origin for the given package name. currently
+        this will use 
+        """
+        origins = set()
+        for origin in self._cache[pkgname].candidate.origins:
+            if origin.origin:
+                origins.add(origin.origin)
+        if len(origins) > 1:
+            raise Exception("Error, more than one origin '%s'" % origins)
+        return origins.pop()
+
     def component_available(self, distro_codename, component):
         """ check if the given component is enabled """
         # FIXME: test for more properties here?

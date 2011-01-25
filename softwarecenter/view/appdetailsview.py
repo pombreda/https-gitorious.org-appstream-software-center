@@ -19,18 +19,7 @@
 
 import logging
 import gtk
-
-import json
-import logging
-import os
-import re
-import glib
-import simplejson
-import socket
-import string
-import subprocess
-import sys
-import tempfile
+import dialogs
 
 import urllib
 import gobject
@@ -108,12 +97,14 @@ class AppDetailsViewBase(object):
         # gather data
         pkg = self.cache[self.app.pkgname]
         version = pkg.candidate.version
+        origin = self.cache.get_origin(self.app.pkgname)
         if pkg.installed:
             version = pkg.installed.version
         # call the loader to do call out the right helper and collect the result
         parent_xid = get_parent_xid(self)
         self.review_loader.spawn_write_new_review_ui(
-            self.app, version, self.appdetails.icon, parent_xid, self.datadir,
+            self.app, version, self.appdetails.icon, origin,
+            parent_xid, self.datadir,
             self._reviews_ready_callback)
                          
     def _review_report_abuse(self, review_id):
