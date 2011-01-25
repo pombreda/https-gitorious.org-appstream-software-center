@@ -21,12 +21,16 @@ software-center (3.1.11) UNRELEASED; urgency=low
     - don't back up one level in the navigation hierarchy if the
       backspace key is pressed while entering information during
       the purchase process (LP: #705676) 
+  * softwarecenter/apt/aptcache.py,
+    softwarecenter/view/availablepane.py:
+    - defer opening the cache until we initialize the availablepane
+      view, provides a nice startup time boost
 
   [ Kiwinote ]
   * softwarecenter/app.py:
     - display pkgs in correct pane when passing arguments (LP: #689407)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 20 Jan 2011 18:47:32 -0500
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 24 Jan 2011 20:21:11 -0500
 
 software-center (3.1.10) natty; urgency=low
 
