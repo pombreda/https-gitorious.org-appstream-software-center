@@ -145,6 +145,18 @@ def htmlize_package_desc(desc):
     if inside_p:
         yield "</p>"
 
+def get_http_proxy_string_from_libproxy(url):
+    """Helper that uses libproxy to get the http proxy for the given url """
+    import libproxy
+    pf = libproxy.ProxyFactory()
+    proxies = pf.getProxies(url)
+    # FIXME: how to deal with multiple proxies?
+    proxy = proxies[0]
+    if proxy == "direct://":
+        return ""
+    else:
+        return proxy
+
 def get_http_proxy_string_from_gconf():
     """Helper that gets the http proxy from gconf
 

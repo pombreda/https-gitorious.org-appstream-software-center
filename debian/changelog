@@ -29,6 +29,9 @@ software-center (3.1.11) UNRELEASED; urgency=low
     test/test_software_channels.py:
     - update test cases for deferred apt cache open
 
+  [ Michael Vogt ]
+  * add support for libproxy 
+  
   [ Kiwinote ]
   * softwarecenter/app.py:
     - display pkgs in correct pane when passing arguments (LP: #689407)
