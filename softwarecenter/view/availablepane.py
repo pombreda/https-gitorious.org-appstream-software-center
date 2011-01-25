@@ -123,7 +123,10 @@ class AvailablePane(SoftwarePane):
             
             while gtk.events_pending():
                 gtk.main_iteration()
-                
+
+            # open the cache since we are initializing the UI for the first time    
+            glib.idle_add(self.cache.open)
+            
             SoftwarePane.init_view(self)
             # categories, appview and details into the notebook in the bottom
             self.scroll_categories = gtk.ScrolledWindow()
