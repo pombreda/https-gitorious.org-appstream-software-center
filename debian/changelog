@@ -30,7 +30,9 @@ software-center (3.1.11) UNRELEASED; urgency=low
     - update test cases for deferred apt cache open
 
   [ Michael Vogt ]
-  * add support for libproxy 
+  * add support for libproxy
+  * softwarecenter/view/widgets/imagedialog.py:
+    - eliminate use of urllib, use ImageDownloader (gio) instead
   
   [ Kiwinote ]
   * softwarecenter/app.py:

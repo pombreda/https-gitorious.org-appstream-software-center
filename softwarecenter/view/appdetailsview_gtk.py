@@ -48,7 +48,7 @@ from appdetailsview import AppDetailsViewBase
 
 from widgets import mkit
 from widgets.label import IndentLabel
-from widgets.imagedialog import ShowImageDialog, GnomeProxyURLopener, Url404Error, Url403Error
+from widgets.imagedialog import ShowImageDialog
 
 if os.path.exists("./softwarecenter/enums.py"):
     sys.path.insert(0, ".")
