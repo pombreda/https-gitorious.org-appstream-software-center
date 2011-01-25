@@ -1,10 +1,9 @@
-# Add origin tags to the index
-
 import apt
-import re
-import os
+import apt_pkg
+import xapian
+import os, os.path
 
-class OriginPlugin:
+class DisplayNames:
     def info(self):
         """
         Return general information about the plugin.
@@ -23,10 +22,34 @@ class OriginPlugin:
         the timestamp shows that this plugin is currently not needed, then the
         long initialisation can just be skipped.
         """
-        file = apt.apt_pkg.config.find_file("Dir::Cache::pkgcache")
+        file = apt_pkg.config.find_file("Dir::Cache::pkgcache")
         if not os.path.exists(file):
             return dict(timestamp = 0)
-        return dict(timestamp = os.path.getmtime(file))
+        return dict(
+                timestamp = os.path.getmtime(file),
+                values = [
+                    dict(name = "display_name", desc = "display name"),
+                    dict(name = "pkgname", desc = "Pkgname as value"),
+                ])
+
+    def doc(self):
+        """
+        Return documentation information for this data source.
+
+        The documentation information is a dictionary with these keys:
+          name: the name for this data source
+          shortDesc: a short description
+          fullDoc: the full description as a chapter in ReST format
+        """
+        return dict(
+            name = "DisplayNames",
+            shortDesc = "pkgname and package display names indexed as values",
+            fullDoc = """
+            The DisplayNames data source indexes the display name as the
+            ``display_name`` Xapian value.
+            ``pkgname`` Xapian value.
+            """
+        )
 
     def init(self, info, progress):
         """
@@ -39,26 +62,10 @@ class OriginPlugin:
 
         The progress indicator can be used to report progress.
         """
-        pass
-
-    def doc(self):
-        """
-        Return documentation information for this data source.
-
-        The documentation information is a dictionary with these keys:
-          name: the name for this data source
-          shortDesc: a short description
-          fullDoc: the full description as a chapter in ReST format
-        """
-        return dict(
-            name = "Origin",
-            shortDesc = "Origin information",
-            fullDoc = """
-            The Origin data source indexes origin information
-            It uses the prefix XO
-            """
-        )
-
+        # Read the value indexes we will use
+        values = info['values']
+        self.val_display_name = values.get("display_name", -1)
+        self.val_pkgname = values.get("pkgname", -1)
 
     def index(self, document, pkg):
         """
@@ -70,21 +77,11 @@ class OriginPlugin:
         ver = pkg.candidate
         if ver is None: 
             return
-        if not ver.downloadable:
-            document.add_term("XOL"+"notdownloadable")
-        for origin in ver.origins:
-            document.add_term("XOA"+origin.archive)
-            document.add_term("XOC"+origin.component)
-            document.add_term("XOL"+origin.label)
-            document.add_term("XOO"+origin.origin)
-            document.add_term("XOS"+origin.site)
-
-        # FIXME: this doesn't really belong in this file, but we can put it in
-        #        here until we get a display_name/display_summary plugin which
-        #        is being prepared in the experimental-fastlist branch.
-        if '-' in pkg.name:
-            # we need this to work around xapian oddness
-            document.add_term(pkg.name.replace('-','_'))
+        if self.val_display_name != -1:
+            name = ver.summary
+            document.add_value(self.val_display_name, name)
+        if self.val_pkgname != -1:
+            document.add_value(self.val_pkgname, pkg.name)
 
     def indexDeb822(self, document, pkg):
         """
@@ -96,12 +93,10 @@ class OriginPlugin:
         document  is the document to update
         pkg       is the Deb822 object for this package
         """
-        # NOTHING here, does not make sense for non-downloadable data
         return
-
 
 def init():
     """
     Create and return the plugin object.
     """
-    return OriginPlugin()
+    return DisplayNames()

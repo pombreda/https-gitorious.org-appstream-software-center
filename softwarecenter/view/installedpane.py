@@ -23,14 +23,16 @@ import logging
 import os
 import sys
 import xapian
+import gobject
 
 from gettext import gettext as _
 
 from softwarecenter.enums import *
+from softwarecenter.utils import wait_for_apt_cache_ready
 
 from appview import AppView, AppStore, AppViewFilter
 
-from softwarepane import SoftwarePane, wait_for_apt_cache_ready
+from softwarepane import SoftwarePane
 
 class InstalledPane(SoftwarePane):
     """Widget that represents the installed panel in software-center
@@ -39,86 +41,57 @@ class InstalledPane(SoftwarePane):
 
     (PAGE_APPLIST,
      PAGE_APP_DETAILS) = range(2)
+     
+    __gsignals__ = {'installed-pane-created':(gobject.SIGNAL_RUN_FIRST,
+                                              gobject.TYPE_NONE,
+                                              ())}
 
-    def __init__(self, cache, history, db, distro, icons, datadir):
+    def __init__(self, cache, db, distro, icons, datadir):
         # parent
-        SoftwarePane.__init__(self, cache, history, db, distro, icons, datadir, show_ratings=False)
+        SoftwarePane.__init__(self, cache, db, distro, icons, datadir, show_ratings=False)
         # state
         self.apps_filter = AppViewFilter(db, cache)
         self.apps_filter.set_installed_only(True)
         self.current_appview_selection = None
         self.loaded = False
-        # UI
-        self._build_ui()
-        self.connect("app-list-changed", self._on_app_list_changed)
+        self.pane_name = _("Installed Software")
         
-    def _build_ui(self):
-        self.navigation_bar.set_size_request(26, -1)
-        self.notebook.append_page(self.scroll_app_list, gtk.Label("installed"))
-        # details
-        self.notebook.append_page(self.scroll_details, gtk.Label("details"))
-        # initial refresh
-        self.search_terms = ""
+    def init_view(self):
+        if not self.view_initialized:
+            SoftwarePane.init_view(self)
+            self.navigation_bar.set_size_request(26, -1)
+            self.notebook.append_page(self.box_app_list, gtk.Label("installed"))
+            # details
+            self.notebook.append_page(self.scroll_details, gtk.Label("details"))
+            # initial refresh
+            self.apps_search_term = ""
+            # now we are initialized
+            self.emit("installed-pane-created")
+            self.show_all()
+            self.view_initialized = True
 
     def _show_installed_overview(self):
         " helper that goes back to the overview page "
-        self.navigation_bar.remove_id("details")
+        self.navigation_bar.remove_id(NAV_BUTTON_ID_DETAILS)
         self.notebook.set_current_page(self.PAGE_APPLIST)
         self.searchentry.show()
         
     def _clear_search(self):
         # remove the details and clear the search
         self.searchentry.clear()
-        self.navigation_bar.remove_id("search")
+        self.navigation_bar.remove_id(NAV_BUTTON_ID_SEARCH)
 
-    @wait_for_apt_cache_ready
-    def refresh_apps(self):
-        """refresh the applist after search changes and update the 
-           navigation bar
-        """
-        self.loaded = True
-        self.show_appview_spinner()
-        if self.search_terms:
-            query = self.db.get_query_list_from_search_entry(self.search_terms)
-            self.navigation_bar.add_with_id(_("Search Results"),
-                                            self.on_navigation_search, 
-                                            "search")
-        else:
-            # None will default to match all documents (see AppStore code)
-            query = None
-        self.navigation_bar.add_with_id(_("Installed Software"), 
-                                        self.on_navigation_list,
-                                        "list",
-                                        animate=False)
-        # *ugh* deactivate the old model because otherwise it keeps
-        # getting progress_changed events and eats CPU time until it's
-        # garbage collected
-        old_model = self.app_view.get_model()
-        if old_model is not None:
-            old_model.active = False
-        # get a new store and attach it to the view
-        new_model = AppStore(self.cache,
-                             self.db, 
-                             self.icons, 
-                             query,
-                             nonapps_visible = self.nonapps_visible,
-                             filter=self.apps_filter)
-        self.app_view.set_model(new_model)
-        self.app_view.get_model().active = True
-        self.hide_appview_spinner()
-        self.emit("app-list-changed", len(new_model))
-        return False
     def on_search_terms_changed(self, searchentry, terms):
         """callback when the search entry widget changes"""
         logging.debug("on_search_terms_changed: '%s'" % terms)
-        self.search_terms = terms
-        if not self.search_terms:
+        self.apps_search_term = terms
+        if not self.apps_search_term:
             self._clear_search()
         self.refresh_apps()
         self.notebook.set_current_page(self.PAGE_APPLIST)
     def on_db_reopen(self, db):
         self.refresh_apps()
-        self.app_details.refresh_app()
+        self.app_details_view.refresh_app()
         
     def on_navigation_search(self, pathbar, part):
         """ callback when the navigation button with id 'search' is clicked"""
@@ -150,14 +123,8 @@ class InstalledPane(SoftwarePane):
         logging.debug("on_application_selected: '%s'" % app)
         self.current_appview_selection = app
         
-    def _on_app_list_changed(self, pane, length):
-        """internal helper that keeps the the action bar up-to-date by
-           keeping track of the app-list-changed signals
-        """
-        self.update_show_hide_nonapps()
-
     def display_search(self):
-        self.navigation_bar.remove_id("details")
+        self.navigation_bar.remove_id(NAV_BUTTON_ID_DETAILS)
         self.notebook.set_current_page(self.PAGE_APPLIST)
         model = self.app_view.get_model()
         if model:
@@ -198,19 +165,22 @@ class InstalledPane(SoftwarePane):
 
     def show_app(self, app):
         """ Display an application in the installed_pane """
-        self.navigation_bar.add_with_id(_("Installed Software"), self.on_navigation_list, "list", do_callback=False, animate=False)
+        self.navigation_bar.add_with_id(self.pane_name, 
+                                        self.on_navigation_list, 
+                                        NAV_BUTTON_ID_LIST, 
+                                        do_callback=False, 
+                                        animate=False)
         self.navigation_bar.remove_all(do_callback=False, animate=False) # do_callback and animate *must* both be false here
         details = app.get_details(self.db)
         self.navigation_bar.add_with_id(details.display_name,
                                         self.on_navigation_details,
-                                        "details",
+                                        NAV_BUTTON_ID_DETAILS,
                                         animate=False)
-        self.app_details.show_app(app)
+        self.app_details_view.show_app(app)
         self.app_view.emit("application-selected", app)
 
 if __name__ == "__main__":
 
-    from softwarecenter.apt.apthistory import get_apt_history
     from softwarecenter.db.database import StoreDatabase
 
     #logging.basicConfig(level=logging.DEBUG)
@@ -233,8 +203,6 @@ if __name__ == "__main__":
     cache = apt.Cache(apt.progress.text.OpProgress())
     cache.ready = True
 
-    #apt history
-    history = get_apt_history()
     # xapian
     xapian_base_path = XAPIAN_BASE_PATH
     pathname = os.path.join(xapian_base_path, "xapian")
@@ -261,11 +229,12 @@ if __name__ == "__main__":
         # FIXME: force rebuild by providing a dbus service for this
         sys.exit(1)
 
-    w = InstalledPane(cache, history, db, 'Ubuntu', icons, datadir)
+    w = InstalledPane(cache, db, 'Ubuntu', icons, datadir)
     w.show()
 
     win = gtk.Window()
     win.add(w)
+    w.init_view()
     win.set_size_request(400, 600)
     win.show_all()
 

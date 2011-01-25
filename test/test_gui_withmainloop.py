@@ -49,6 +49,7 @@ class TestGUIWithMainLoop(unittest.TestCase):
         # we just add bools here and do the asserts in the test_ function,
         # otherwise unittest gets confused
         # make sure we stay on the same page
+        print 
         self._on_the_right_page = (self.app.available_pane.notebook.get_current_page() == self.app.available_pane.PAGE_APP_DETAILS)
         # there was a bug that makes the actionbar appear in the details
         # view, make sure this does not happen again
@@ -66,9 +67,12 @@ class TestGUIWithMainLoop(unittest.TestCase):
         # reset
         self.app.available_pane.on_navigation_category(None, None)
         self._p()
-        # go to the second channel
+        # ensure its expanded
+        self.app.view_switcher.expand_all()
+        self._p()
+        # go to the first channel
         column = self.app.view_switcher.get_column(0)
-        self.app.view_switcher.set_cursor((0,1), column)
+        self.app.view_switcher.set_cursor((0,0), column)
         self._p()
         # activate first app
         column = self.app.channel_pane.app_view.get_column(0)

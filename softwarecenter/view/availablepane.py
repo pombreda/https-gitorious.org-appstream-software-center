@@ -28,45 +28,43 @@ from gettext import gettext as _
 
 from softwarecenter.enums import *
 from softwarecenter.utils import *
+from softwarecenter.db.database import SearchQuery
 from softwarecenter.distro import get_distro
 
 from appview import AppView, AppStore, AppViewFilter
-
 #from catview_webkit import CategoriesViewWebkit as CategoriesView
 from catview_gtk import LobbyViewGtk, SubCategoryViewGtk
 from catview import Category, CategoriesView
 
-from softwarepane import SoftwarePane, wait_for_apt_cache_ready
+from softwarepane import SoftwarePane
 
 from widgets.backforward import BackForwardButton
 
 from navhistory import *
+
+LOG = logging.getLogger(__name__)
 
 class AvailablePane(SoftwarePane):
     """Widget that represents the available panel in software-center
        It contains a search entry and navigation buttons
     """
 
-    DEFAULT_SEARCH_APPS_LIMIT = 200
-
+    # notebook pages
     (PAGE_CATEGORY,
      PAGE_SUBCATEGORY,
      PAGE_APPLIST,
-     PAGE_APP_DETAILS) = range(4)
-
-    # define ID values for the various buttons found in the navigation bar
-    NAV_BUTTON_ID_CATEGORY = "category"
-    NAV_BUTTON_ID_LIST     = "list"
-    NAV_BUTTON_ID_SUBCAT   = "subcat"
-    NAV_BUTTON_ID_DETAILS  = "details"
-    NAV_BUTTON_ID_SEARCH   = "search"
+     PAGE_APP_DETAILS,
+     PAGE_APP_PURCHASE) = range(5)
+     
+    __gsignals__ = {'available-pane-created':(gobject.SIGNAL_RUN_FIRST,
+                                              gobject.TYPE_NONE,
+                                              ())}
 
     # constant for use in action bar (see _update_action_bar)
     _INSTALL_BTN_ID = 0
 
     def __init__(self, 
                  cache,
-                 history,
                  db, 
                  distro, 
                  icons, 
@@ -74,64 +72,26 @@ class AvailablePane(SoftwarePane):
                  navhistory_back_action, 
                  navhistory_forward_action):
         # parent
-        SoftwarePane.__init__(self, cache, history, db, distro, icons, datadir)
-        self._logger = logging.getLogger(__name__)
+        SoftwarePane.__init__(self, cache, db, distro, icons, datadir)
+        self.searchentry.set_sensitive(False)
         # navigation history actions
         self.navhistory_back_action = navhistory_back_action
         self.navhistory_forward_action = navhistory_forward_action
         # state
         self.apps_category = None
         self.apps_subcategory = None
+        self.previous_purchases_query = None
         self.apps_search_term = ""
         self.apps_limit = 0
         self.apps_filter = AppViewFilter(db, cache)
-        self.apps_filter.set_only_packages_without_applications(True)
         # the spec says we mix installed/not installed
         #self.apps_filter.set_not_installed_only(True)
         self._status_text = ""
-        self.connect("app-list-changed", self._on_app_list_changed)
         self.current_app_by_category = {}
         self.current_app_by_subcategory = {}
+        self.pane_name = _("Get Software")
         # search mode
         self.custom_list_mode = False
-        # install backend
-        self.backend.connect("transactions-changed",
-                             self._on_transactions_changed)
-        # UI
-        self._build_ui()
-
-    def _build_ui(self):
-        # categories, appview and details into the notebook in the bottom
-        self.scroll_categories = gtk.ScrolledWindow()
-        self.scroll_categories.set_policy(gtk.POLICY_AUTOMATIC, 
-                                        gtk.POLICY_AUTOMATIC)
-        self.cat_view = LobbyViewGtk(self.datadir, APP_INSTALL_PATH,
-                                       self.cache,
-                                       self.db,
-                                       self.icons,
-                                       self.apps_filter)
-        self.scroll_categories.add(self.cat_view)
-        self.notebook.append_page(self.scroll_categories, gtk.Label("categories"))
-
-        # sub-categories view
-        self.subcategories_view = SubCategoryViewGtk(self.datadir,
-                                                 APP_INSTALL_PATH,
-                                                 self.cache,
-                                                 self.db,
-                                                 self.icons,
-                                                 self.apps_filter,
-                                                 root_category=self.cat_view.categories[0])
-        self.subcategories_view.connect(
-            "category-selected", self.on_subcategory_activated)
-        self.subcategories_view.connect(
-            "show-category-applist", self.on_show_category_applist)
-        self.scroll_subcategories = gtk.ScrolledWindow()
-        self.scroll_subcategories.set_policy(
-            gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-        self.scroll_subcategories.add(self.subcategories_view)
-        self.notebook.append_page(self.scroll_subcategories,
-                                    gtk.Label(self.NAV_BUTTON_ID_SUBCAT))
-
         # add nav history back/forward buttons
         if self.navhistory_back_action:
             self.navhistory_back_action.set_sensitive(False)
@@ -153,28 +113,86 @@ class AvailablePane(SoftwarePane):
                                                  self.navhistory_back_action,
                                                  self.navhistory_forward_action)
 
-        # app list
-        self.notebook.append_page(self.scroll_app_list,
-                                    gtk.Label(self.NAV_BUTTON_ID_LIST))
+    def init_view(self):
+        if not self.view_initialized:
+            self.spinner_view.set_text(_('Loading Categories'))
+            self.spinner_view.start()
+            self.spinner_view.show()
+            self.spinner_notebook.set_current_page(self.PAGE_SPINNER)
+            self.window.set_cursor(self.busy_cursor)
+            
+            while gtk.events_pending():
+                gtk.main_iteration()
+                
+            SoftwarePane.init_view(self)
+            # categories, appview and details into the notebook in the bottom
+            self.scroll_categories = gtk.ScrolledWindow()
+            self.scroll_categories.set_policy(gtk.POLICY_AUTOMATIC, 
+                                            gtk.POLICY_AUTOMATIC)
+            self.cat_view = LobbyViewGtk(self.datadir, APP_INSTALL_PATH,
+                                           self.cache,
+                                           self.db,
+                                           self.icons,
+                                           self.apps_filter)
+            self.scroll_categories.add(self.cat_view)
+            self.notebook.append_page(self.scroll_categories, gtk.Label("categories"))
 
-        self.cat_view.connect("category-selected", self.on_category_activated)
-        self.cat_view.connect("application-selected", self.on_application_selected)
-        self.cat_view.connect("application-activated", self.on_application_activated)
+            # sub-categories view
+            self.subcategories_view = SubCategoryViewGtk(self.datadir,
+                                                     APP_INSTALL_PATH,
+                                                     self.cache,
+                                                     self.db,
+                                                     self.icons,
+                                                     self.apps_filter,
+                                                     root_category=self.cat_view.categories[0])
+            self.subcategories_view.connect(
+                "category-selected", self.on_subcategory_activated)
+            self.subcategories_view.connect(
+                "show-category-applist", self.on_show_category_applist)
+            self.scroll_subcategories = gtk.ScrolledWindow()
+            self.scroll_subcategories.set_policy(
+                gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+            self.scroll_subcategories.add(self.subcategories_view)
+            self.notebook.append_page(self.scroll_subcategories,
+                                        gtk.Label(NAV_BUTTON_ID_SUBCAT))
 
-        # details
-        self.notebook.append_page(self.scroll_details, gtk.Label(self.NAV_BUTTON_ID_DETAILS))
+            # app list
+            self.notebook.append_page(self.box_app_list,
+                                        gtk.Label(NAV_BUTTON_ID_LIST))
 
-        # set status text
-        self._update_status_text(len(self.db))
+            self.cat_view.connect("category-selected", self.on_category_activated)
+            self.cat_view.connect("application-selected", self.on_application_selected)
+            self.cat_view.connect("application-activated", self.on_application_activated)
 
-        # home button
-        self.navigation_bar.add_with_id(_("Get Software"),
-                                        self.on_navigation_category,
-                                        self.NAV_BUTTON_ID_CATEGORY,
-                                        do_callback=True,
-                                        animate=False)
+            # details
+            self.notebook.append_page(self.scroll_details, gtk.Label(NAV_BUTTON_ID_DETAILS))
 
-    def _get_query(self):
+            # purchase view
+            self.notebook.append_page(self.purchase_view, gtk.Label(NAV_BUTTON_ID_PURCHASE))
+        
+            # set status text
+            self._update_status_text(len(self.db))
+
+            # home button
+            self.navigation_bar.add_with_id(self.pane_name,
+                                            self.on_navigation_category,
+                                            NAV_BUTTON_ID_CATEGORY,
+                                            do_callback=True,
+                                            animate=False)
+                                            
+            # install backend
+            self.backend.connect("transactions-changed", self._on_transactions_changed)
+            # now we are initialized
+            self.searchentry.set_sensitive(True)
+            self.emit("available-pane-created")
+            self.show_all()
+            self.spinner_view.stop()
+            self.spinner_notebook.set_current_page(self.PAGE_APPVIEW)
+            self.window.set_cursor(None)
+            self.spinner_view.set_text()
+            self.view_initialized = True
+
+    def get_query(self):
         """helper that gets the query for the current category/search mode"""
         # NoDisplay is a specal case
         if self._in_no_display_category():
@@ -188,7 +206,7 @@ class AvailablePane(SoftwarePane):
         # mix category with the search terms and return query
         return self.db.get_query_list_from_search_entry(self.apps_search_term,
                                                         cat_query)
-
+                                                        
     def _in_no_display_category(self):
         """return True if we are in a category with NoDisplay set in the XML"""
         return (self.apps_category and
@@ -211,93 +229,96 @@ class AvailablePane(SoftwarePane):
             self.notebook.set_current_page(self.PAGE_SUBCATEGORY)
         else:
             self.notebook.set_current_page(self.PAGE_APPLIST)
-            self.update_app_view()
+#<<<<<<< TREE
+#            self.update_app_view()
 
-    def refresh_apps(self, query=None):
-        """refresh the applist and update the navigation bar
-        """
-        logging.debug("refresh_apps")
-        self._logger.debug("refresh_apps")
+#    def refresh_apps(self, query=None):
+#        """refresh the applist and update the navigation bar
+#        """
+#        logging.debug("refresh_apps")
+#        self._logger.debug("refresh_apps")
 
-        self.show_appview_spinner()
-        if self.subcategories_view.window:
-            self.subcategories_view.window.set_cursor(self.busy_cursor)
-        if self.scroll_app_list.window:
-            self.scroll_app_list.window.set_cursor(self.busy_cursor)
-        self._refresh_apps_with_apt_cache()
+#        self.show_appview_spinner()
+#        if self.subcategories_view.window:
+#            self.subcategories_view.window.set_cursor(self.busy_cursor)
+#        if self.scroll_app_list.window:
+#            self.scroll_app_list.window.set_cursor(self.busy_cursor)
+#        self._refresh_apps_with_apt_cache()
 
-    @wait_for_apt_cache_ready
-    def _refresh_apps_with_apt_cache(self, query=None):
-        self.refresh_seq_nr += 1
-        # build query
-        query = self._get_query()
-        self._logger.debug("availablepane query: %s" % query)
+#    @wait_for_apt_cache_ready
+#    def _refresh_apps_with_apt_cache(self, query=None):
+#        self.refresh_seq_nr += 1
+#        # build query
+#        query = self._get_query()
+#        self._logger.debug("availablepane query: %s" % query)
 
-        old_model = self.app_view.get_model()
+#        old_model = self.app_view.get_model()
 
-        # if a search is not in progress, clear the current model to
-        # display an empty list while the full list is generated; this
-        # prevents a visual glitch when a list is replaced
-        if not self.apps_search_term:
-            self.app_view.clear_model()
-        
-        if old_model is not None:
-            # *ugh* deactivate the old model because otherwise it keeps
-            # getting progress_changed events and eats CPU time until its
-            # garbage collected
-            old_model.active = False
-            while gtk.events_pending():
-                gtk.main_iteration()
+#        # if a search is not in progress, clear the current model to
+#        # display an empty list while the full list is generated; this
+#        # prevents a visual glitch when a list is replaced
+#        if not self.apps_search_term:
+#            self.app_view.clear_model()
+#        
+#        if old_model is not None:
+#            # *ugh* deactivate the old model because otherwise it keeps
+#            # getting progress_changed events and eats CPU time until its
+#            # garbage collected
+#            old_model.active = False
+#            while gtk.events_pending():
+#                gtk.main_iteration()
 
-        self._logger.debug("availablepane query: %s" % query)
-        # create new model and attach it
-        seq_nr = self.refresh_seq_nr
-        # special case to disable show/hide nonapps for the "Featured" category
-        # we do the same for the "System" category (LP: #636854)
-        if (self.apps_category and 'carousel-only' not in self.apps_category.flags):
-            self.nonapps_visible = AppStore.NONAPPS_ALWAYS_VISIBLE
-            self.disable_show_hide_nonapps = True
-        else:
-            self.disable_show_hide_nonapps = False
-        # In custom list mode, search should yield the exact package name.
-        new_model = AppStore(self.cache,
-                             self.db,
-                             self.icons,
-                             query,
-                             limit=self._get_item_limit(),
-                             sortmode=self._get_sort_mode(),
-                             exact=self.custom_list_mode,
-                             nonapps_visible = self.nonapps_visible,
-                             filter=self.apps_filter)
-        #print "new_model", new_model, len(new_model), seq_nr
-        # between request of the new model and actual delivery other
-        # events may have happend
-        if seq_nr != self.refresh_seq_nr:
-            self._logger.info("discarding new model (%s != %s)" % (seq_nr, self.refresh_seq_nr))
-            return False
+#        self._logger.debug("availablepane query: %s" % query)
+#        # create new model and attach it
+#        seq_nr = self.refresh_seq_nr
+#        # special case to disable show/hide nonapps for the "Featured" category
+#        # we do the same for the "System" category (LP: #636854)
+#        if (self.apps_category and 'carousel-only' not in self.apps_category.flags):
+#            self.nonapps_visible = AppStore.NONAPPS_ALWAYS_VISIBLE
+#            self.disable_show_hide_nonapps = True
+#        else:
+#            self.disable_show_hide_nonapps = False
+#        # In custom list mode, search should yield the exact package name.
+#        new_model = AppStore(self.cache,
+#                             self.db,
+#                             self.icons,
+#                             query,
+#                             limit=self._get_item_limit(),
+#                             sortmode=self._get_sort_mode(),
+#                             exact=self.custom_list_mode,
+#                             nonapps_visible = self.nonapps_visible,
+#                             filter=self.apps_filter)
+#        #print "new_model", new_model, len(new_model), seq_nr
+#        # between request of the new model and actual delivery other
+#        # events may have happend
+#        if seq_nr != self.refresh_seq_nr:
+#            self._logger.info("discarding new model (%s != %s)" % (seq_nr, self.refresh_seq_nr))
+#            return False
 
-        # set model
-        self.app_view.set_model(new_model)
-        self.app_view.get_model().active = True
+#        # set model
+#        self.app_view.set_model(new_model)
+#        self.app_view.get_model().active = True
 
-        # check if we show subcategory
-        self._show_hide_subcategories()
-        self.hide_appview_spinner()
-        # we can not use "new_model" here, because set_model may actually
-        # discard new_model and just update the previous one
-        self.emit("app-list-changed", len(self.app_view.get_model()))
-        if self.app_view.window:
-            self.app_view.window.set_cursor(None)
-        if self.subcategories_view.window:
-            self.subcategories_view.window.set_cursor(None)
-        if self.cat_view.window:
-            self.cat_view.window.set_cursor(None)
-        if self.app_details.window:
-            self.cat_view.window.set_cursor(None)
-        if self.scroll_app_list.window:
-            self.scroll_app_list.window.set_cursor(None)
+#        # check if we show subcategory
+#        self._show_hide_subcategories()
+#        self.hide_appview_spinner()
+#        # we can not use "new_model" here, because set_model may actually
+#        # discard new_model and just update the previous one
+#        self.emit("app-list-changed", len(self.app_view.get_model()))
+#        if self.app_view.window:
+#            self.app_view.window.set_cursor(None)
+#        if self.subcategories_view.window:
+#            self.subcategories_view.window.set_cursor(None)
+#        if self.cat_view.window:
+#            self.cat_view.window.set_cursor(None)
+#        if self.app_details.window:
+#            self.cat_view.window.set_cursor(None)
+#        if self.scroll_app_list.window:
+#            self.scroll_app_list.window.set_cursor(None)
 
-        return False
+#        return False
+#=======
+#>>>>>>> MERGE-SOURCE
 
     def update_navigation_button(self):
         """Update the navigation button"""
@@ -305,7 +326,7 @@ class AvailablePane(SoftwarePane):
             cat =  self.apps_category.name
             self.navigation_bar.add_with_id(cat,
                                             self.on_navigation_list,
-                                            self.NAV_BUTTON_ID_LIST, 
+                                            NAV_BUTTON_ID_LIST, 
                                             do_callback=True, 
                                             animate=True)
 
@@ -316,7 +337,7 @@ class AvailablePane(SoftwarePane):
                 tail_label = _("Search Results")
             self.navigation_bar.add_with_id(tail_label,
                                             self.on_navigation_search,
-                                            self.NAV_BUTTON_ID_SEARCH, 
+                                            NAV_BUTTON_ID_SEARCH, 
                                             do_callback=True,
                                             animate=True)
 
@@ -339,6 +360,23 @@ class AvailablePane(SoftwarePane):
             else:
                 return self.current_app_by_category.get(self.apps_category)
 
+    def get_current_category(self):
+        """ return the current category that is in use or None """
+        if self.apps_subcategory:
+            return self.apps_subcategory
+        elif self.apps_category:
+            return self.apps_category
+        return None
+
+    def unset_current_category(self):
+        """ unset the current showing category, but keep e.g. the current 
+            search 
+        """
+        self.apps_category = None
+        self.apps_subcategory = None
+        self.navigation_bar.remove_all(do_callback=False, animate=False)
+        self.update_navigation_button()
+
     def _on_transactions_changed(self, *args):
         """internal helper that keeps the action bar up-to-date by
            keeping track of the transaction-started signals
@@ -346,11 +384,13 @@ class AvailablePane(SoftwarePane):
         if self.custom_list_mode:
             self._update_action_bar()
 
-    def _on_app_list_changed(self, pane, length):
+    def on_app_list_changed(self, pane, length):
         """internal helper that keeps the status text and the action
            bar up-to-date by keeping track of the app-list-changed
            signals
         """
+        super(AvailablePane, self).on_app_list_changed(pane, length)
+        self._show_hide_subcategories()
         self._update_status_text(length)
         self._update_action_bar()
 
@@ -360,15 +400,20 @@ class AvailablePane(SoftwarePane):
         """
         # SPECIAL CASE: in category page show all items in the DB
         if self.notebook.get_current_page() == self.PAGE_CATEGORY:
+            distro = get_distro()
             if self.apps_filter.get_supported_only():
-                distro = get_distro()
                 query = distro.get_supported_query()
-                enquire = xapian.Enquire(self.db.xapiandb)
-                enquire.set_query(query)
-                matches = enquire.get_mset(0, len(self.db))
-                length = len(matches)
             else:
-                length = len(self.db)
+                query = xapian.Query('')
+            enquire = xapian.Enquire(self.db.xapiandb)
+            # XD is the term for pkgs that have a desktop file
+            enquire.set_query(xapian.Query(xapian.Query.OP_AND_NOT, 
+                                           query,
+                                           xapian.Query("XD"),
+                                           )
+                             )
+            matches = enquire.get_mset(0, len(self.db))
+            length = len(matches)
 
         if self.custom_list_mode:
             appstore = self.app_view.get_model()
@@ -399,9 +444,9 @@ class AvailablePane(SoftwarePane):
             self.apps_search_term):
             appstore = self.app_view.get_model()
             installable = appstore.installable_apps
-            button_text = gettext.ngettext("Install %s Item",
-                                           "Install %s Items",
-                                           len(installable)) % len(installable)
+            button_text = gettext.ngettext("Install %(amount)s Item",
+                                           "Install %(amount)s Items",
+                                            len(installable)) % { 'amount': len(installable), }
             button = self.action_bar.get_button(self._INSTALL_BTN_ID)
             if button and installable:
                 # Install all already offered. Update offer.
@@ -447,9 +492,9 @@ class AvailablePane(SoftwarePane):
         self.emit("app-list-changed", len(self.db))
         self.searchentry.show()
 
-    def _get_item_limit(self):
+    def get_app_items_limit(self):
         if self.apps_search_term:
-            return self.DEFAULT_SEARCH_APPS_LIMIT
+            return DEFAULT_SEARCH_LIMIT
         elif self.apps_category and self.apps_category.item_limit > 0:
             return self.apps_category.item_limit
         return 0
@@ -466,8 +511,9 @@ class AvailablePane(SoftwarePane):
         self.apps_limit = 0
         self.apps_search_term = ""
         self.custom_list_mode = False
-        self.navigation_bar.remove_id(self.NAV_BUTTON_ID_SEARCH)
+        self.navigation_bar.remove_id(NAV_BUTTON_ID_SEARCH)
 
+    @wait_for_apt_cache_ready
     def show_app(self, app):
         """ Display an application in the available_pane """
         cat_of_app = None
@@ -486,16 +532,20 @@ class AvailablePane(SoftwarePane):
         self.navigation_bar.remove_all(animate=False) # animate *must* be false here
         if cat_of_app:
             self.apps_category = cat_of_app
-            self.navigation_bar.add_with_id(cat_of_app.name, self.on_navigation_list, "list", do_callback=False, animate=True)
+            self.navigation_bar.add_with_id(cat_of_app.name, 
+                                            self.on_navigation_list,
+                                            NAV_BUTTON_ID_LIST,
+                                            do_callback=False,
+                                            animate=True)
         else:
             self.apps_category = Category("deb", "deb", None, None, False, True, None)
         self.current_app_by_category[self.apps_category] = app
         details = app.get_details(self.db)
         self.navigation_bar.add_with_id(details.display_name,
                                         self.on_navigation_details,
-                                        "details",
+                                        NAV_BUTTON_ID_DETAILS,
                                         animate=True)
-        self.app_details.show_app(app)
+        self.app_details_view.show_app(app)
         self.display_details()
 
     # callbacks
@@ -508,7 +558,7 @@ class AvailablePane(SoftwarePane):
 
     def on_search_terms_changed(self, widget, new_text):
         """callback when the search entry widget changes"""
-        self._logger.debug("on_search_terms_changed: %s" % new_text)
+        LOG.debug("on_search_terms_changed: %s" % new_text)
 
         # we got the signal after we already switched to a details
         # page, ignore it
@@ -535,7 +585,7 @@ class AvailablePane(SoftwarePane):
             self._clear_search()
         else:
             self.apps_search_term = new_text
-            self.apps_limit = self.DEFAULT_SEARCH_APPS_LIMIT
+            self.apps_limit = DEFAULT_SEARCH_LIMIT
             # enter custom list mode if search has non-trailing
             # comma per custom list spec.
             self.custom_list_mode = "," in new_text.rstrip(',')
@@ -547,7 +597,7 @@ class AvailablePane(SoftwarePane):
         " called when the database is reopened"
         #print "on_db_open"
         self.refresh_apps()
-        self.app_details.refresh_app()
+        self.app_details_view.refresh_app()
 
     def display_category(self):
         self._clear_search()
@@ -556,7 +606,8 @@ class AvailablePane(SoftwarePane):
         return
 
     def display_search(self):
-        self.navigation_bar.remove_id(self.NAV_BUTTON_ID_DETAILS)
+        self.navigation_bar.remove_id(NAV_BUTTON_ID_DETAILS)
+        self.navigation_bar.remove_id(NAV_BUTTON_ID_PURCHASE)
         self.notebook.set_current_page(self.PAGE_APPLIST)
         if self.app_view.get_model():
             list_length = len(self.app_view.get_model())
@@ -565,8 +616,9 @@ class AvailablePane(SoftwarePane):
         return
 
     def display_list(self):
-        self.navigation_bar.remove_id(self.NAV_BUTTON_ID_SUBCAT)
-        self.navigation_bar.remove_id(self.NAV_BUTTON_ID_DETAILS)
+        self.navigation_bar.remove_id(NAV_BUTTON_ID_SUBCAT)
+        self.navigation_bar.remove_id(NAV_BUTTON_ID_DETAILS)
+        self.navigation_bar.remove_id(NAV_BUTTON_ID_PURCHASE)
 
         if self.apps_subcategory:
             self.apps_subcategory = None
@@ -589,7 +641,8 @@ class AvailablePane(SoftwarePane):
             self._clear_search()
             self.refresh_apps()
         self.set_category(self.apps_subcategory)
-        self.navigation_bar.remove_id(self.NAV_BUTTON_ID_DETAILS)
+        self.navigation_bar.remove_id(NAV_BUTTON_ID_DETAILS)
+        self.navigation_bar.remove_id(NAV_BUTTON_ID_PURCHASE)
         self.notebook.set_current_page(self.PAGE_SUBCATEGORY)
         # do not emit app-list-changed here, this is done async when
         # the new model is ready
@@ -599,7 +652,31 @@ class AvailablePane(SoftwarePane):
         return
 
     def display_details(self):
+        self.navigation_bar.remove_id(NAV_BUTTON_ID_PURCHASE)
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
+        self.searchentry.hide()
+        self.action_bar.clear()
+        self.cat_view.stop_carousels()
+        # we want to re-enable the buy button if this is an app for purchase
+        # FIXME:  hacky, find a better approach
+        if self.app_details_view.action_bar.button.get_label() == _(u'Buy\u2026'):
+            self.app_details_view.action_bar.button.set_sensitive(True)
+        return
+        
+    def display_purchase(self):
+        self.notebook.set_current_page(self.PAGE_APP_PURCHASE)
+        self.searchentry.hide()
+        self.action_bar.clear()
+        self.cat_view.stop_carousels()
+        return
+        
+    def display_previous_purchases(self):
+        self.nonapps_visible = AppStore.NONAPPS_ALWAYS_VISIBLE
+        self.navigation_bar.remove_id(NAV_BUTTON_ID_DETAILS)
+        self.notebook.set_current_page(self.PAGE_APPLIST)
+        # do not emit app-list-changed here, this is done async when
+        # the new model is ready
+        self.refresh_apps(query=self.previous_purchases_query)
         self.searchentry.hide()
         self.action_bar.clear()
         self.cat_view.stop_carousels()
@@ -634,26 +711,38 @@ class AvailablePane(SoftwarePane):
         self.display_details()
         nav_item = NavigationItem(self, self.display_details)
         self.nav_history.navigate(nav_item)
+        
+    def on_navigation_purchase(self, pathbar, part):
+        """callback when the navigation button with id 'purchase' is clicked"""
+        self.display_purchase()
+        nav_item = NavigationItem(self, self.display_purchase)
+        self.nav_history.navigate(nav_item)
+        
+    def on_navigation_previous_purchases(self, pathbar, part):
+        """callback when the navigation button with id 'prev-purchases' is clicked"""
+        self.display_previous_purchases()
+        nav_item = NavigationItem(self, self.display_previous_purchases)
+        self.nav_history.navigate(nav_item)
 
     def on_subcategory_activated(self, cat_view, category):
         #print cat_view, name, query
-        self._logger.debug("on_subcategory_activated: %s %s" % (
+        LOG.debug("on_subcategory_activated: %s %s" % (
                 category.name, category))
         self.apps_subcategory = category
         self.navigation_bar.add_with_id(
-            category.name, self.on_navigation_subcategory, self.NAV_BUTTON_ID_SUBCAT)
+            category.name, self.on_navigation_subcategory, NAV_BUTTON_ID_SUBCAT)
 
     def on_category_activated(self, cat_view, category):
         """ callback when a category is selected """
         #print cat_view, name, query
-        self._logger.debug("on_category_activated: %s %s" % (
+        LOG.debug("on_category_activated: %s %s" % (
                 category.name, category))
         self.apps_category = category
         self.update_navigation_button()
 
     def on_application_selected(self, appview, app):
         """callback when an app is selected"""
-        self._logger.debug("on_application_selected: '%s'" % app)
+        LOG.debug("on_application_selected: '%s'" % app)
 
         if self.apps_subcategory:
             self.current_app_by_subcategory[self.apps_subcategory] = app
@@ -668,6 +757,16 @@ class AvailablePane(SoftwarePane):
         
     def on_show_category_applist(self, widget):
         self._show_hide_subcategories(show_category_applist=True)
+        
+    def on_previous_purchases_activated(self, query):
+        """ called to activate the previous purchases view """
+        #print cat_view, name, query
+        LOG.debug("on_previous_purchases_activated with query: %s" % query)
+        self.previous_purchases_query = query
+        self.navigation_bar.remove_all(do_callback=False, animate=False)
+        self.navigation_bar.add_with_id(_("Previous Purchases"),
+                                          self.on_navigation_previous_purchases,
+                                          NAV_BUTTON_ID_PREV_PURCHASES)
 
     def is_category_view_showing(self):
         """ Return True if we are in the category page or if we display a
@@ -701,7 +800,6 @@ class AvailablePane(SoftwarePane):
 
 if __name__ == "__main__":
 
-    from softwarecenter.apt.apthistory import get_apt_history
     from softwarecenter.db.database import StoreDatabase
 
     #logging.basicConfig(level=logging.DEBUG)
@@ -725,8 +823,6 @@ if __name__ == "__main__":
     cache = apt.Cache(apt.progress.text.OpProgress())
     cache.ready = True
 
-    #apt history
-    history = get_apt_history()
     # xapian
     xapian_base_path = XAPIAN_BASE_PATH
     pathname = os.path.join(xapian_base_path, "xapian")
@@ -753,12 +849,13 @@ if __name__ == "__main__":
         # FIXME: force rebuild by providing a dbus service for this
         sys.exit(1)
 
-    w = AvailablePane(cache, history, db, 'Ubuntu', icons, datadir, None, None)
+    w = AvailablePane(cache, db, 'Ubuntu', icons, datadir, None, None)
     w.show()
 
     win = gtk.Window()
     win.add(w)
-    win.set_size_request(500,400)
+    w.init_view()
+    win.set_size_request(700,500)
     win.show_all()
 
     gtk.main()

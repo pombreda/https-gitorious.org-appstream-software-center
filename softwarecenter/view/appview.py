@@ -1,4 +1,4 @@
-# Copyright (C) 2009 Canonical
+# Copyright (C) 2009,2010 Canonical
 #
 # Authors:
 #  Michael Vogt
@@ -19,637 +19,34 @@
 from __future__ import with_statement
 
 
-import __builtin__
-import apt
-import gettext
 import glib
 import gobject
 import gtk
-import locale
 import logging
-import math
 import os
-import pango
-import string
-import sys
-import time
-import xapian
-import cairo
 import pangocairo
+import pango
+import sys
+import xapian
+import gettext
 
-
-if os.path.exists("./softwarecenter/enums.py"):
-    sys.path.insert(0, ".")
 from softwarecenter.enums import *
 from softwarecenter.utils import *
+from softwarecenter.backend import get_install_backend
 from softwarecenter.db.database import StoreDatabase, Application
+
 from softwarecenter.db.reviews import get_review_loader
 from softwarecenter.backend import get_install_backend
 from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
+
 from softwarecenter.distro import get_distro
 from widgets.mkit import get_em_value, get_mkit_theme, floats_from_gdkcolor_with_alpha, EM
 from widgets.reviews import StarPainter
+
+from softwarecenter.models.appstore import AppStore
 from gtk import gdk
 
 from gettext import gettext as _
-
-# cache icons to speed up rendering
-_app_icon_cache = {}
-
-
-class AppStore(gtk.GenericTreeModel):
-    """
-    A subclass GenericTreeModel that reads its data from a xapian
-    database. It can combined with any xapian querry and with
-    a generic filter function (that can filter on data not
-    available in xapian)
-    """
-
-    (COL_APP_NAME,
-     COL_TEXT,
-     COL_MARKUP,
-     COL_ICON,
-     COL_INSTALLED,
-     COL_AVAILABLE,
-     COL_PKGNAME,
-     COL_RATING,
-     COL_NR_REVIEWS,
-     COL_IS_ACTIVE,
-     COL_ACTION_IN_PROGRESS,
-     COL_EXISTS,
-     COL_ACCESSIBLE,
-     COL_REQUEST) = range(14)
-
-    column_type = (str,
-                   str,
-                   str,
-                   gtk.gdk.Pixbuf,
-                   bool,
-                   bool,
-                   str,
-                   float,
-                   int,
-                   bool,
-                   int,
-                   bool,
-                   str,
-                   str)
-
-    ICON_SIZE = 24
-    MAX_STARS = 5
-
-    # the default result size for a search
-    DEFAULT_SEARCH_LIMIT = 200
-
-    (NONAPPS_ALWAYS_VISIBLE,
-     NONAPPS_MAYBE_VISIBLE,
-     NONAPPS_NEVER_VISIBLE) = range (3)
-
-    def __init__(self, cache, db, icons, search_query=None, 
-                 limit=DEFAULT_SEARCH_LIMIT,
-                 sortmode=SORT_UNSORTED, filter=None, exact=False,
-                 icon_size=ICON_SIZE, global_icon_cache=True, 
-                 nonapps_visible=NONAPPS_MAYBE_VISIBLE):
-        """
-        Initalize a AppStore.
-
-        :Parameters:
-        - `cache`: apt cache (for stuff like the overlay icon)
-        - `db`: a xapian.Database that contians the applications
-        - `icons`: a gtk.IconTheme that contains the icons
-        - `search_query`: a single search as a xapian.Query or a list
-        - `limit`: how many items the search should return (0 == unlimited)
-        - `sortmode`: sort the result
-        - `filter`: filter functions that can be used to filter the
-                    data further. A python function that gets a pkgname
-        - `exact`: If true, indexes of queries without matches will be
-                    maintained in the store (useful to show e.g. a row
-                    with "??? not found")
-        - `nonapps_visible`: decide whether adding non apps in the model or not.
-                             Can be NONAPPS_ALWAYS_VISIBLE/NONAPPS_MAYBE_VISIBLE
-                             /NONAPPS_NEVER_VISIBLE
-                             (NONAPPS_MAYBE_VISIBLE will return non apps result
-                              if no matching apps is found)
-        """
-        gtk.GenericTreeModel.__init__(self)
-        self._logger = logging.getLogger("softwarecenter.view.appstore")
-        self.search_query = search_query
-        self.cache = cache
-        self.db = db
-        self.icons = icons
-        self.icon_size = icon_size
-        if global_icon_cache:
-            self.icon_cache = _app_icon_cache
-        else:
-            self.icon_cache = {}
-
-        # invalidate the cache on icon theme changes
-        self.icons.connect("changed", self._clear_app_icon_cache)
-        self._appicon_missing_icon = self.icons.load_icon(MISSING_APP_ICON, self.icon_size, 0)
-        self.apps = []
-        # this is used to re-set the cursor
-        self.app_index_map = {}
-        # this is used to find the in-progress rows
-        self.pkgname_index_map = {}
-        self.sortmode = sortmode
-        self.filter = filter
-        self.exact = exact
-        self.active = True
-        # These track if technical (non-applications) are being displayed
-        # and if the user explicitly requested they be.
-        self.nonapps_visible = nonapps_visible
-        self.nonapp_pkgs = 0
-        self._explicit_nonapp_visibility = False
-        # reviews
-        self.review_loader = get_review_loader()
-        # backend stuff
-        self.backend = get_install_backend()
-        self.backend.connect("transaction-progress-changed", self._on_transaction_progress_changed)
-        self.backend.connect("transaction-started", self._on_transaction_started)
-        self.backend.connect("transaction-finished", self._on_transaction_finished)
-        # rowref of the active app and last active app
-        self.active_app = None
-        self._prev_active_app = 0
-        self.limit = limit
-        # no search query means "all"
-        if not search_query:
-            search_query = xapian.Query("")
-            self.sortmode = SORT_BY_ALPHABET
-            self.limit = 0
-
-        # we support single and list search_queries,
-        # if list we append them one by one
-        if isinstance(search_query, xapian.Query):
-            search_query = [search_query]
-        self.search_query = search_query
-        with ExecutionTime("populate model from query"):
-            self._perform_search()
-
-    def _perform_search(self):
-        already_added = set()
-        self.nonapp_pkgs = 0
-        for q in self.search_query:
-            self._logger.debug("using query: '%s'" % q)
-            enquire = xapian.Enquire(self.db.xapiandb)
-            if self.nonapps_visible != self.NONAPPS_ALWAYS_VISIBLE:
-                enquire.set_query(xapian.Query(xapian.Query.OP_AND_NOT, 
-                                 q, xapian.Query("ATapplication")))
-
-                matches = enquire.get_mset(0, len(self.db))
-                # FIXME: estimates aren't really good enough..
-                self.nonapp_pkgs = matches.get_matches_estimated()
-                q = xapian.Query(xapian.Query.OP_AND, 
-                                 xapian.Query("ATapplication"), q)
-            enquire.set_query(q)
-
-            # set sort order
-            if self.sortmode == SORT_BY_CATALOGED_TIME:
-                if (self.db._axi_values and 
-                    "catalogedtime" in self.db._axi_values):
-                    enquire.set_sort_by_value(
-                        self.db._axi_values["catalogedtime"], reverse=True)
-                else:
-                    logging.warning("no catelogedtime in axi")
-            elif self.sortmode == SORT_BY_SEARCH_RANKING:
-                # the default is to sort by popcon
-                k = "SOFTWARE_CENTER_SEARCHES_SORT_MODE"
-                if k in os.environ and os.environ[k] != "popcon":
-                    pass
-                else:
-                    enquire.set_sort_by_value_then_relevance(XAPIAN_VALUE_POPCON)
-                    
-            # set limit
-            if self.limit == 0:
-                matches = enquire.get_mset(0, len(self.db))
-            else:
-                matches = enquire.get_mset(0, self.limit)
-            self._logger.debug("found ~%i matches" % matches.get_matches_estimated())
-            app_index = 0
-            for m in matches:
-                doc = m.document
-                if "APPVIEW_DEBUG_TERMS" in os.environ:
-                    print doc.get_value(XAPIAN_VALUE_APPNAME)
-                    for t in doc.termlist():
-                        print "'%s': %s (%s); " % (t.term, t.wdf, t.termfreq),
-                    print "\n"
-                appname = doc.get_value(XAPIAN_VALUE_APPNAME)
-                pkgname = self.db.get_pkgname(doc)
-                if self.filter and self.is_filtered_out(self.filter, doc):
-                    continue
-                # when doing multiple queries we need to ensure
-                # we don't add duplicates
-                popcon = self.db.get_popcon(doc)
-                app = Application(appname, pkgname, "", popcon)
-                # FIXME: falsely assuming that apps come before nonapps
-                if not appname:
-                    added = pkgname in already_added
-                    if self.nonapps_visible == self.NONAPPS_ALWAYS_VISIBLE and not added:
-                        self.nonapp_pkgs += 1
-                if appname or not added:
-                    if self.sortmode == SORT_BY_ALPHABET:
-                        self._insert_app_sorted(app)
-                    else:
-                        self._append_app(app)
-                    already_added.add(pkgname)
-                # keep the UI going
-                while gtk.events_pending():
-                    gtk.main_iteration()
-            if len(matches) == 0 and self.exact:
-                # Find and remove a AP search prefix to get the
-                # original package name of the xapian query.
-                pkgname = ""
-                for term in q:
-                    if term.startswith("AP"):
-                        pkgname = term[2:]
-                        break
-                if pkgname:
-                    app = Application("", pkgname)
-                    self.apps.append(app)
-                
-        # if we only have nonapps to be displayed, and nonapps is set as
-        # NONAPPS_MAYBE_VISIBLE don't hide them
-        if (self.nonapps_visible == self.NONAPPS_MAYBE_VISIBLE and
-            self.nonapp_pkgs > 0 and
-            len(self.apps) == 0):
-            self.nonapps_visible = self.NONAPPS_ALWAYS_VISIBLE
-            self._perform_search()
-            
-        # in the case where the app list is sorted, we must rebuild
-        # the app_index_map and app_package_maps after the app list
-        # has been fully populated (since only now will be know the
-        # actual final indices)
-        if self.sortmode == SORT_BY_ALPHABET:
-            self._rebuild_index_maps()
-        
-        # This is data for store contents that will be generated
-        # when called for externally. (see _refresh_contents_data)
-        self._existing_apps = None
-        self._installable_apps = None
-        
-    def _rebuild_index_maps(self):
-        self.app_index_map.clear()
-        self.pkgname_index_map.clear()
-        app = None
-        for i in range(len(self.apps)):
-            app = self.apps[i]
-            self.app_index_map[app] = i
-            if not app.pkgname in self.pkgname_index_map:
-                self.pkgname_index_map[app.pkgname] = []
-            self.pkgname_index_map[app.pkgname].append(i)
-
-    def _clear_app_icon_cache(self, theme):
-        self.icon_cache.clear()
-
-    # internal API
-    def _append_app(self, app):
-        """ append a application to the current store, keep 
-            index maps up-to-date
-        """
-        self.apps.append(app)
-        i = len(self.apps) - 1
-        self.app_index_map[app] = i
-        if not app.pkgname in self.pkgname_index_map:
-            self.pkgname_index_map[app.pkgname] = []
-        self.pkgname_index_map[app.pkgname].append(i)
-        self.row_inserted(i, self.get_iter(i))
-
-    def _insert_app_sorted(self, app):
-        """ insert a application into a already sorted store
-            at the right place
-        """
-        #print "adding: ", app
-        l = 0
-        r = len(self.apps) - 1
-        while r >= l:
-            m = (r+l) / 2
-            #print "it: ", l, r, m
-            if app < self.apps[m]:
-                r = m - 1
-            else:
-                l = m + 1
-        # we have a element 
-        #print "found at ", l, r, m
-        self._insert_app(app, l)
-
-    def _insert_app(self, app, i):
-        """ insert application at the given position and update
-            the index maps
-        """
-        #print "old: ", [x.pkgname for x in self.apps]
-        self.apps.insert(i, app)
-        self.row_inserted(i, self.get_iter(i))
-        #print "new: ", [x.pkgname for x in self.apps]
-
-    # external API
-    def clear(self):
-        """Clear the store and disconnect all callbacks to allow it to be
-        deleted."""
-        self.backend.disconnect_by_func(self._on_transaction_finished)
-        self.backend.disconnect_by_func(self._on_transaction_started)
-        self.backend.disconnect_by_func(self._on_transaction_progress_changed)
-        self.icons.disconnect_by_func(self._clear_app_icon_cache)
-        self.apps = []
-        self.app_index_map.clear()
-        self.pkgname_index_map.clear()
-
-    def update(self, appstore):
-        """ update this appstore to match data from another """
-        # Updating instead of replacing prevents a distracting white
-        # flash. First, match list of apps.
-        to_update = min(len(self), len(appstore))
-        for i in range(to_update):
-            self.apps[i] = appstore.apps[i]
-            self.row_changed(i, self.get_iter(i))
-
-        to_remove = max(0, len(self) - len(appstore))
-        for i in range(to_remove):
-            self.apps.pop()
-            self.row_deleted(len(self))
-
-        to_add = max(0, len(appstore) - len(self))
-        apps_to_add = appstore.apps[len(appstore) - to_add:]
-        for app in apps_to_add:
-            path = len(self)
-            self.apps.append(app)
-            self.row_inserted(path, self.get_iter(path))
-            
-        self._rebuild_index_maps()
-
-        # Next, match data about the store.
-        self.cache = appstore.cache
-        self.db = appstore.db
-        self.icons = appstore.icons
-        self.search_query = appstore.search_query
-        self.sortmode = appstore.sortmode
-        self.filter = appstore.filter
-        self.exact = appstore.exact
-        self.nonapps_visible = appstore.nonapps_visible
-        self.nonapp_pkgs = appstore.nonapp_pkgs
-        self._existing_apps = appstore._existing_apps
-        self._installable_apps = appstore._installable_apps
-
-        # Re-claim the memory used by the new appstore
-        appstore.clear()
-
-    def _refresh_contents_data(self):
-        # Quantitative data on stored packages. This generates the information.
-        exists = lambda app: app.pkgname in self.cache
-        installable = lambda app: (not self.cache[app.pkgname].is_installed
-                                   and app.pkgname not in
-                                   self.backend.pending_transactions)
-        self._existing_apps = __builtin__.filter(exists, self.apps)
-        self._installable_apps = __builtin__.filter(installable,
-                                                    self.existing_apps)
-
-    def _get_existing_apps(self):
-        if self._existing_apps == None:
-            self._refresh_contents_data()
-        return self._existing_apps
-
-    def _get_installable_apps(self):
-        if self._installable_apps == None:
-            self._refresh_contents_data()
-        return self._installable_apps
-
-    # data about the visible contents of the store, generated on call.
-    existing_apps = property(_get_existing_apps)
-    installable_apps = property(_get_installable_apps)
-
-    def is_filtered_out(self, filter, doc):
-        """ apply filter and return True if the package is filtered out """
-        pkgname = self.db.get_pkgname(doc)
-        return not filter.filter(doc, pkgname)
-    # internal helper
-    def _set_active_app(self, path):
-        """ helper that emits row_changed signals for the new
-            and previous selected app
-        """
-        self.active_app = path
-        self.row_changed(self._prev_active_app,
-                         self.get_iter(self._prev_active_app))
-        self._prev_active_app = path
-        self.row_changed(path, self.get_iter(path))
-
-    def _on_transaction_progress_changed(self, backend, pkgname, progress):
-        if (not self.apps or
-            not self.active or
-            not pkgname in self.pkgname_index_map):
-            return
-        for index in self.pkgname_index_map[pkgname]:
-            row = self[index]
-            self.row_changed(row.path, row.iter)
-
-    # the following methods ensure that the contents data is refreshed
-    # whenever a transaction potentially changes it: see _refresh_contents.
-
-    def _on_transaction_started(self, *args, **kwargs):
-        self._existing_apps = None
-        self._installable_apps = None
-
-    def _on_transaction_finished(self, *args, **kwargs):
-        self._existing_apps = None
-        self._installable_apps = None
-
-
-    def _download_icon_and_show_when_ready(self, cache, pkgname, icon_file_name):
-        self._logger.debug("did not find the icon locally, must download %s" % icon_file_name)
-        def on_image_download_complete(downloader, image_file_path):
-            pb = gtk.gdk.pixbuf_new_from_file_at_size(icon_file_path,
-                                                      self.icon_size,
-                                                      self.icon_size)
-            # replace the icon in the icon_cache now that we've got the real one
-            icon_file = os.path.splitext(os.path.basename(image_file_path))[0]
-            self.icon_cache[icon_file] = pb
-        
-        url = get_distro().get_downloadable_icon_url(cache, pkgname, icon_file_name)
-        icon_file_path = os.path.join(SOFTWARE_CENTER_ICON_CACHE_DIR, icon_file_name)
-        image_downloader = ImageDownloader()
-        image_downloader.connect('image-download-complete', on_image_download_complete)
-        image_downloader.download_image(url, icon_file_path)
-
-    # GtkTreeModel functions
-    def on_get_flags(self):
-        return (gtk.TREE_MODEL_LIST_ONLY|
-                gtk.TREE_MODEL_ITERS_PERSIST)
-    def on_get_n_columns(self):
-        return len(self.column_type)
-    def on_get_column_type(self, index):
-        return self.column_type[index]
-    def on_get_iter(self, path):
-        #self._logger.debug("on_get_iter: %s" % path)
-        if len(self.apps) == 0:
-            return None
-        index = path[0]
-        return index
-    def on_get_path(self, rowref):
-        self._logger.debug("on_get_path: %s" % rowref)
-        return rowref
-    def on_get_value(self, rowref, column):
-        #self._logger.debug("on_get_value: %s %s" % (rowref, column))
-        try:
-            app = self.apps[rowref]
-        except IndexError:
-            self._logger.exception("on_get_value: rowref=%s apps=%s" % (rowref, self.apps))
-            return
-        try:
-            doc = self.db.get_xapian_document(app.appname, app.pkgname)
-        except IndexError:
-            # This occurs when using custom lists, which keep missing package
-            # names in the record. In this case a "Not found" cell should be
-            # rendered, with all data but package name absent and the text
-            # markup colored gray.
-            if column == self.COL_APP_NAME:
-                if app.request:
-                    return app.name
-                return _("Not found")
-            elif column == self.COL_TEXT:
-                return "%s\n" % app.pkgname
-            elif column == self.COL_MARKUP:
-                if app.request:
-                    s = "%s\n<small>%s</small>" % (
-                        gobject.markup_escape_text(app.name),
-                        gobject.markup_escape_text(_("Not Found")))
-                    return s
-                s = "<span foreground='#666'>%s\n<small>%s</small></span>" % (
-                    gobject.markup_escape_text(_("Not found")),
-                    gobject.markup_escape_text(app.pkgname))
-                return s
-            elif column == self.COL_ICON:
-                return self.icons.load_icon('application-default-icon',
-                                            self.icon_size, 0)
-            elif column == self.COL_INSTALLED:
-                return False
-            elif column == self.COL_AVAILABLE:
-                return False
-            elif column == self.COL_PKGNAME:
-                return app.pkgname
-            elif column == self.COL_RATING:
-                return 0
-            elif column == self.COL_IS_ACTIVE:
-                if app.request:
-                    # this may be wrong, but we don't want to do any checks at this moment
-                    return (rowref == self.active_app)
-                # This ensures the missing package will not expand
-                return False
-            elif column == self.COL_EXISTS:
-                if app.request:
-                    return True
-                return False
-            elif column == self.COL_ACTION_IN_PROGRESS:
-                return -1
-            elif column == self.COL_ACCESSIBLE:
-                return '%s\n%s' % (app.pkgname, _('Package state unknown'))
-            elif column == self.COL_REQUEST:
-                return app.request
-
-        # Otherwise the app should return app data normally.
-        if column == self.COL_APP_NAME:
-            return app.appname
-        elif column == self.COL_TEXT:
-            appname = app.appname
-            summary = self.db.get_summary(doc)
-            return "%s\n%s" % (appname, summary)
-        elif column == self.COL_MARKUP:
-            appname = Application.get_display_name(self.db, doc)
-            summary = Application.get_display_summary(self.db, doc)
-            if self.db.is_appname_duplicated(appname):
-                appname = "%s (%s)" % (appname, app.pkgname)
-            s = "%s\n<small>%s</small>" % (
-                gobject.markup_escape_text(appname),
-                gobject.markup_escape_text(summary))
-            return s
-        elif column == self.COL_ICON:
-            try:
-                icon_file_name = self.db.get_iconname(doc)
-                if icon_file_name:
-                    icon_name = os.path.splitext(icon_file_name)[0]
-                    if icon_name in self.icon_cache:
-                        return self.icon_cache[icon_name]
-                    # icons.load_icon takes between 0.001 to 0.01s on my
-                    # machine, this is a significant burden because get_value
-                    # is called *a lot*. caching is the only option
-                    
-                    # look for the icon on the iconpath
-                    if self.icons.has_icon(icon_name):
-                        icon = self.icons.load_icon(icon_name, self.icon_size, 0)
-                        if icon:
-                            self.icon_cache[icon_name] = icon
-                            return icon
-                    elif self.db.get_icon_needs_download(doc):
-                        self._download_icon_and_show_when_ready(self.cache, 
-                                                                app.pkgname,
-                                                                icon_file_name)
-                        # display the missing icon while the real one downloads
-                        self.icon_cache[icon_name] = self._appicon_missing_icon
-            except glib.GError, e:
-                self._logger.debug("get_icon returned '%s'" % e)
-            return self._appicon_missing_icon
-        elif column == self.COL_INSTALLED:
-            pkgname = app.pkgname
-            if pkgname in self.cache and self.cache[pkgname].is_installed:
-                return True
-            return False
-        elif column == self.COL_AVAILABLE:
-            pkgname = app.pkgname
-            return pkgname in self.cache
-        elif column == self.COL_PKGNAME:
-            pkgname = app.pkgname
-            return pkgname
-        elif column == self.COL_RATING:
-            stats = self.review_loader.get_review_stats(self.apps[rowref])
-            if stats:
-                return stats.ratings_average
-            return 0
-        elif column == self.COL_NR_REVIEWS:
-            stats = self.review_loader.get_review_stats(self.apps[rowref])
-            if stats:
-                return stats.ratings_total
-            return 0
-        elif column == self.COL_IS_ACTIVE:
-            return (rowref == self.active_app)
-        elif column == self.COL_ACTION_IN_PROGRESS:
-            if app.pkgname in self.backend.pending_transactions:
-                return self.backend.pending_transactions[app.pkgname].progress
-            else:
-                return -1
-        elif column == self.COL_EXISTS:
-            return True
-        elif column == self.COL_ACCESSIBLE:
-            pkgname = app.pkgname
-            appname = app.appname
-            summary = self.db.get_summary(doc)
-            if pkgname in self.cache and self.cache[pkgname].is_installed:
-                return "%s\n%s\n%s" % (appname, _('Installed'), summary)
-            return "%s\n%s\n%s" % (appname, _('Not Installed'), summary) 
-        elif column == self.COL_REQUEST:
-            return app.request
-    def on_iter_next(self, rowref):
-        #self._logger.debug("on_iter_next: %s" % rowref)
-        new_rowref = int(rowref) + 1
-        if new_rowref >= len(self.apps):
-            return None
-        return new_rowref
-    def on_iter_children(self, parent):
-        if parent:
-            return None
-        # rowref of the first element, so we return zero here
-        return 0
-    def on_iter_has_child(self, rowref):
-        return False
-    def on_iter_n_children(self, rowref):
-        #self._logger.debug("on_iter_n_children: %s (%i)" % (rowref, len(self.apps)))
-        if rowref:
-            return 0
-        return len(self.apps)
-    def on_iter_nth_child(self, parent, n):
-        #self._logger.debug("on_iter_nth_child: %s %i" % (parent, n))
-        if parent:
-            return 0
-        if n >= len(self.apps):
-            return None
-        return n
-    def on_iter_parent(self, child):
-        return None
 
 
 class CellRendererButton2:
@@ -1255,6 +652,11 @@ class AppView(gtk.TreeView):
 
         self.set_headers_visible(False)
 
+        # disable search that works by typing, it will be super slow
+        # the way that its done by gtk and we have much faster searching
+        self.set_enable_search(False)
+        #self.set_search_column(AppStore.COL_PKGNAME)
+
         # a11y: this is a cell renderer that only displays a icon, but still
         #       has a markup property for orca and friends
         # we use it so that orca and other a11y tools get proper text to read
@@ -1332,16 +734,7 @@ class AppView(gtk.TreeView):
         # Only allow use of an AppStore model
         if type(new_model) != AppStore:
             return
-        model = self.get_model()
-        # If there is no current model, simply set the new one.
-        if not model:
-            return super(AppView, self).set_model(new_model)
-        # if the changes are too big set a new model instead of using
-        # "update" - the rational is that GtkTreeView is really slow
-        # if thousands of rows are added at once on a "connected" model
-        if abs(len(new_model)-len(model)) > AppStore.DEFAULT_SEARCH_LIMIT:
-            return super(AppView, self).set_model(new_model)
-        return model.update(new_model)
+        return super(AppView, self).set_model(new_model)
         
     def clear_model(self):
         self.set_model(None)
@@ -1618,7 +1011,7 @@ class AppView(gtk.TreeView):
             if btn.point_in(int(x), int(y)):
                 self.window.set_cursor(cursor)
 
-    def _on_transaction_started(self, backend, tr):
+    def _on_transaction_started(self, backend, pkgname, tr):
         """ callback when an application install/remove transaction has started """
         action_btn = tr.get_button_by_name('action0')
         if action_btn:
@@ -1666,21 +1059,26 @@ class AppView(gtk.TreeView):
         return self.get_path_at_pos(x, y)[0] == self.get_cursor()[0]
 
 
-# XXX should we use a xapian.MatchDecider instead?
-class AppViewFilter(object):
+class AppViewFilter(xapian.MatchDecider):
     """
-    Filter that can be hooked into AppStore to filter for criteria that
+    Filter that can be hooked into xapian get_mset to filter for criteria that
     are based around the package details that are not listed in xapian
     (like installed_only) or archive section
     """
     def __init__(self, db, cache):
+        xapian.MatchDecider.__init__(self)
         self.distro = get_distro()
         self.db = db
         self.cache = cache
         self.supported_only = False
         self.installed_only = False
         self.not_installed_only = False
-        self.only_packages_without_applications = False
+    @property
+    def required(self):
+        """ True if the filter is in a state that it should be part of a query """
+        return (self.supported_only or
+                self.installed_only or 
+                self.not_installed_only)
     def set_supported_only(self, v):
         self.supported_only = v
     def set_installed_only(self, v):
@@ -1689,29 +1087,35 @@ class AppViewFilter(object):
         self.not_installed_only = v
     def get_supported_only(self):
         return self.supported_only
-    def set_only_packages_without_applications(self, v):
-        """
-        only show packages that are not displayed as applications
-
-        e.g. abiword (the package document) will not be displayed
-             because there is a abiword application already
-        """
-        self.only_packages_without_applications = v
-    def get_only_packages_without_applications(self, v):
-        return self.only_packages_without_applications
-    def filter(self, doc, pkgname):
+    def __eq__(self, other):
+        if self is None and other is not None: 
+            return True
+        if self is None or other is None: 
+            return False
+        return (self.installed_only == other.installed_only and
+                self.not_installed_only == other.not_installed_only)
+    def __ne__(self, other):
+        return not self.__eq__(other)
+    def __call__(self, doc):
         """return True if the package should be displayed"""
-        #self._logger.debug("filter: supported_only: %s installed_only: %s '%s'" % (
+        # get pkgname from document
+        pkgname =  doc.get_value(XAPIAN_VALUE_PKGNAME)
+        if not pkgname:
+            # the doc says that get_value() is quicker than get_data()
+            # so we use that if we have a updated DB, otherwise
+            # fallback to the old way (the xapian DB may not yet be rebuild)
+            if "pkgname" in self.db._axi_values:
+                pkgname = doc.get_value(self.db._axi_values["pkgname"])
+            else:
+                pkgname = doc.get_data()
+        #logging.debug(
+        #    "filter: supported_only: %s installed_only: %s '%s'" % (
         #        self.supported_only, self.installed_only, pkgname))
-        if self.only_packages_without_applications:
-            if not doc.get_value(XAPIAN_VALUE_PKGNAME):
-                # "if not self.db.xapiandb.postlist("AP"+pkgname):"
-                # does not work for some reason
-                for m in self.db.xapiandb.postlist("AP"+pkgname):
-                    return False
         if self.installed_only:
-            if (not pkgname in self.cache or
-                not self.cache[pkgname].is_installed):
+            # use the lowlevel cache here, twice as fast
+            lowlevel_cache = self.cache._cache._cache
+            if (not pkgname in lowlevel_cache or
+                not lowlevel_cache[pkgname].current_ver):
                 return False
         if self.not_installed_only:
             if (pkgname in self.cache and
@@ -1723,7 +1127,8 @@ class AppViewFilter(object):
         return True
 
 def get_query_from_search_entry(search_term):
-    # now build a query
+    if not search_term:
+        return xapian.Query("")
     parser = xapian.QueryParser()
     user_query = parser.parse_query(search_term)
     return user_query
@@ -1732,12 +1137,17 @@ def on_entry_changed(widget, data):
     new_text = widget.get_text()
     #if len(new_text) < 3:
     #    return
-    (cache, db, view) = data
+    (cache, db, view, filter) = data
     query = get_query_from_search_entry(new_text)
-    view.set_model(AppStore(cache, db, icons, query))
+    view.set_model(_get_model_from_query(filter, query))
     with ExecutionTime("model settle"):
         while gtk.events_pending():
             gtk.main_iteration()
+
+def _get_model_from_query(filter, query):
+    return AppStore(cache, db, icons, query,
+                    filter=filter, limit=0,
+                    nonapps_visible=AppStore.NONAPPS_ALWAYS_VISIBLE)
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
@@ -1748,6 +1158,8 @@ if __name__ == "__main__":
     # the store
     from softwarecenter.apt.aptcache import AptCache
     cache = AptCache()
+    cache.open()
+
     db = StoreDatabase(pathname, cache)
     db.open()
 
@@ -1756,23 +1168,18 @@ if __name__ == "__main__":
     icons.prepend_search_path("/usr/share/app-install/icons/")
     icons.prepend_search_path("/usr/share/software-center/icons/")
 
-    # now the store
+    # create a filter
     filter = AppViewFilter(db, cache)
     filter.set_supported_only(False)
-    filter.set_installed_only(False)
-    store = AppStore(cache, db, icons, filter=filter)
+    filter.set_installed_only(True)
 
     # gui
     scroll = gtk.ScrolledWindow()
-    view = AppView(store=store, show_ratings=True)
+    view = AppView(_get_model_from_query(filter, xapian.Query("")))
 
     entry = gtk.Entry()
-    entry.connect("changed", on_entry_changed, (cache, db, view))
-    if len(sys.argv) > 1:
-        search_term = sys.argv[1]
-    else:
-        search_term = "f"
-    entry.set_text(search_term)
+    entry.connect("changed", on_entry_changed, (cache, db, view, filter))
+    entry.set_text("a")
 
     box = gtk.VBox()
     box.pack_start(entry, expand=False)

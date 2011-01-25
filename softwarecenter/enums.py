@@ -24,6 +24,12 @@ import xdg.BaseDirectory
 BUY_SOMETHING_HOST = os.environ.get("SOFTWARE_CENTER_BUY_HOST") or "https://software-center.ubuntu.com"
 BUY_SOMETHING_HOST_ANONYMOUS = os.environ.get("SOFTWARE_CENTER_BUY_HOST") or "http://software-center.ubuntu.com"
 
+# version of the database, every time something gets added (like 
+# terms for mime-type) increase this (but keep as a string!)
+DB_SCHEMA_VERSION = "2"
+
+# the default limit for a search
+DEFAULT_SEARCH_LIMIT = 10000
 
 # xapian pathes
 XAPIAN_BASE_PATH = "/var/cache/software-center"
@@ -62,6 +68,15 @@ PERMANENT_VIEWS = [VIEW_PAGE_AVAILABLE,
                    VIEW_PAGE_CHANNEL,
                    VIEW_PAGE_HISTORY,
                   ]
+                  
+# define ID values for the various buttons found in the navigation bar
+NAV_BUTTON_ID_CATEGORY = "category"
+NAV_BUTTON_ID_LIST     = "list"
+NAV_BUTTON_ID_SUBCAT   = "subcat"
+NAV_BUTTON_ID_DETAILS  = "details"
+NAV_BUTTON_ID_SEARCH   = "search"
+NAV_BUTTON_ID_PURCHASE = "purchase"
+NAV_BUTTON_ID_PREV_PURCHASES = "prev-purchases"
 
 # icon
 MISSING_APP_ICON = "applications-other"

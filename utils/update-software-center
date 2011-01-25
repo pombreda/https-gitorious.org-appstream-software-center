@@ -52,6 +52,8 @@ APP_CATCHUP_DELAY = 2
 # the language pack directory that we need for the triggers checking
 LANGPACKDIR = "/usr/share/locale-langpack"
 
+LOG = logging.getLogger(__name__)
+
 class UpdateSoftwarecenterDbus(dbus.service.Object):
     """ 
     This is a helper to provide the UpdateSoftwarecenterIFace
@@ -66,14 +68,14 @@ class UpdateSoftwarecenterDbus(dbus.service.Object):
     @dbus.service.signal(dbus_interface='com.ubuntu.Softwarecenter',
                          signature='b')
     def DatabaseRebuilding(self, isRebuilding):
-        logging.debug("Sending DatabaseRebuilding signal '%s'" % isRebuilding)
+        LOG.debug("Sending DatabaseRebuilding signal '%s'" % isRebuilding)
 
 
 if __name__ == "__main__":
     try:
         locale.setlocale(locale.LC_ALL, "")
     except Exception, e:
-        logging.warn("setlocale failed with '%s'" % e) 
+        LOG.warn("setlocale failed with '%s'" % e) 
 
     # parser
     parser = OptionParser()
@@ -85,25 +87,25 @@ if __name__ == "__main__":
 
     #logging.basicConfig(level=logging.INFO)
     if options.debug:
-        logging.basicConfig(level=logging.DEBUG)
+        LOG.set_level(logging.DEBUG)
 
     # check if we are dpkg triggered because of langpack change
     # and avoid unneeded database rebuilds by checking the timestamp
     # of the app-install-data mo file
     if options.triggered and options.triggered == LANGPACKDIR:
-        logging.debug("triggered with '%s'" % options.triggered)
+        LOG.debug("triggered with '%s'" % options.triggered)
         mofile = gettext.find("app-install-data")
         if not mofile:
-            logging.info("no translation information in database needed")
+            LOG.info("no translation information in database needed")
             sys.exit(0)
         mo_time = os.path.getctime(mofile)
         pathname = os.path.join(XAPIAN_BASE_PATH, "xapian")
         if os.path.exists(pathname):
             db = xapian.Database(pathname)
             mo_db_time = db.get_metadata("app-install-mo-time")
-            logging.debug("mo_time: %s db_mo_time: %s" % (mo_time, mo_db_time))
+            LOG.debug("mo_time: %s db_mo_time: %s" % (mo_time, mo_db_time))
             if str(mo_time) == mo_db_time:
-                logging.info("translation information in database is up-to-date")
+                LOG.info("translation information in database is up-to-date")
                 sys.exit(0)
 
     # setup dbus
@@ -116,7 +118,7 @@ if __name__ == "__main__":
         dbus_controller.DatabaseRebuilding(True)
         time.sleep(APP_CATCHUP_DELAY)
     except:
-        logging.warn("Failed to setup dbus (ignoring)")
+        LOG.warn("Failed to setup dbus (ignoring)")
 
     # rebuild and send signal when done
     try:
@@ -126,7 +128,11 @@ if __name__ == "__main__":
             os.makedirs(pathname)
         # rebuild the database, the default context is run to ensure
         # dbus querries are processed
-        rebuild_database(pathname)
+        print "Updating software catalog...this may take a moment."
+        if rebuild_database(pathname):
+            print "Software catalog update was successful."
+        else:
+            print "There was a problem updating the software catalog. Please try again or check the log."
     finally:
         # signal that the xapian db is valid again
         if dbus_controller:

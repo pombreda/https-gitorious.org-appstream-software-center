@@ -1,5 +1,6 @@
 
 import gtk
+import sys
 
 import softwarecenter.plugin
 from softwarecenter.view.basepane import BasePane
@@ -19,7 +20,7 @@ class ExamplePlugin(softwarecenter.plugin.Plugin):
     VIEW_PAGE_EXAMPLE_PLUGIN = "view-page-example-plugin"
 
     def init_plugin(self):
-        print "init_plugin"
+        sys.stderr.write("init_plugin\n")
         self.plugin_view = ExamplePluginPane()
         self.app.view_manager.register(self.plugin_view, 
                                        self.VIEW_PAGE_EXAMPLE_PLUGIN)
@@ -32,6 +33,9 @@ class ExamplePlugin(softwarecenter.plugin.Plugin):
         icon = None
         parent_iter = None
         channel = None
-        model.append(parent_iter, [icon, _("Example Plugin"), 
-                                   self.VIEW_PAGE_EXAMPLE_PLUGIN, channel])
+        model.append(parent_iter, [icon,
+                                   _("Example Plugin"), 
+                                   self.VIEW_PAGE_EXAMPLE_PLUGIN, 
+                                   channel, 
+                                   None])
                      

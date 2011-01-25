@@ -25,25 +25,25 @@ import logging
 import os
 import simplejson
 import string
+import shutil
 import sys
 import time
 import urllib
 import xapian
 
+
 from ConfigParser import RawConfigParser, NoOptionError
 from gettext import gettext as _
 from glob import glob
 
-
 from softwarecenter.enums import *
+from softwarecenter.enums import DB_SCHEMA_VERSION
 from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
-from softwarecenter.utils import GnomeProxyURLopener
 from softwarecenter.db.database import parse_axi_values_file
 
 from locale import getdefaultlocale
 import gettext
 import cPickle
-
 
 # weights for the different fields
 WEIGHT_DESKTOP_NAME = 10
@@ -90,6 +90,8 @@ class AppInfoParserBase(object):
     def get_desktop_categories(self):
         return self._get_desktop_list("Categories")
     def get_desktop_mimetypes(self):
+        if not self.has_option_desktop("MimeType"):
+            return []
         return self._get_desktop_list("MimeType")
     @property
     def desktopf(self):
@@ -357,26 +359,26 @@ def add_from_purchased_but_needs_reinstall_data(purchased_but_may_need_reinstall
             parser = SoftwareCenterAgentParser(item)
             index_app_info_from_parser(parser, db_purchased, cache)
         except Exception, e:
-            logging.exception("error processing: %s " % e)
+            LOG.exception("error processing: %s " % e)
     # add new in memory db to the main db
     db.add_database(db_purchased)
     # return a query
     query = xapian.Query("AH"+PURCHASED_NEEDS_REINSTALL_MAGIC_CHANNEL_NAME)
     return query
 
-def update_from_software_center_agent(db, cache):
+def update_from_software_center_agent(db, cache, ignore_etag=False):
     """ update index based on the software-center-agent data """
     def _available_cb(sca, available):
         # print "available: ", available
-        logging.debug("available: '%s'" % available)
+        LOG.debug("available: '%s'" % available)
         sca.available = available
     def _error_cb(sca, error):
-        logging.warn("error: %s" % error)
+        LOG.warn("error: %s" % error)
         sca.available = []
     # use the anonymous interface to s-c-agent, scales much better and is
     # much cache friendlier
     from softwarecenter.backend.restfulclient import SoftwareCenterAgentAnonymous
-    sca = SoftwareCenterAgentAnonymous()
+    sca = SoftwareCenterAgentAnonymous(ignore_etag)
     sca.connect("available", _available_cb)
     sca.connect("error", _error_cb)
     sca.available = None
@@ -403,12 +405,25 @@ def update_from_software_center_agent(db, cache):
             parser = SoftwareCenterAgentParser(entry)
             index_app_info_from_parser(parser, db, cache)
         except Exception, e:
-            logging.warning("error processing: %s " % e)
+            LOG.warning("error processing: %s " % e)
     # return true if we have data entries
     return len(sca.available) > 0
         
 def index_app_info_from_parser(parser, db, cache):
         term_generator = xapian.TermGenerator()
+        term_generator.set_database(db)
+        try:
+            # this tests if we have spelling suggestions (there must be
+            # a better way?!?) - this is needed as inmemory does not have
+            # spelling corrections, but it allows setting the flag and will
+            # raise a exception much later
+            db.add_spelling("test")
+            db.remove_spelling("test")
+            # this enables the flag for it (we only reach this line if
+            # the db supports spelling suggestions)
+            term_generator.set_flags(xapian.TermGenerator.FLAG_SPELLING)
+        except xapian.UnimplementedError:
+            pass
         doc = xapian.Document()
         term_generator.set_document(doc)
         # app name is the data
@@ -430,8 +445,14 @@ def index_app_info_from_parser(parser, db, cache):
         # package name
         pkgname = parser.get_desktop("X-AppInstall-Package")
         doc.add_term("AP"+pkgname)
+        if '-' in pkgname:
+            # we need this to work around xapian oddness
+            doc.add_term(pkgname.replace('-','_'))
         doc.add_value(XAPIAN_VALUE_PKGNAME, pkgname)
         doc.add_value(XAPIAN_VALUE_DESKTOP_FILE, parser.desktopf)
+        # display name
+        if "display_name" in axi_values:
+            doc.add_value(axi_values["display_name"], name)
         # cataloged_times
         if pkgname in cataloged_times and "catalogedtime" in axi_values:
             doc.add_value(axi_values["catalogedtime"], 
@@ -501,6 +522,8 @@ def index_app_info_from_parser(parser, db, cache):
         if parser.has_option_desktop("X-AppInstall-Architectures"):
             arches = parser.get_desktop("X-AppInstall-Architectures")
             doc.add_value(XAPIAN_VALUE_ARCHIVE_ARCH, arches)
+            if apt_pkg.config.find("Apt::Architecture") not in arches:
+                return
         # Description (software-center extension)
         if parser.has_option_desktop("X-AppInstall-Description"):
             descr = parser.get_desktop("X-AppInstall-Description")
@@ -544,7 +567,7 @@ def index_app_info_from_parser(parser, db, cache):
             if k in globals():
                 w = globals()[k]
             else:
-                logging.debug("WEIGHT %s not found" % k)
+                LOG.debug("WEIGHT %s not found" % k)
                 w = 1
             term_generator.index_text_without_positions(s, w)
         # add data from the apt cache
@@ -571,19 +594,54 @@ def index_app_info_from_parser(parser, db, cache):
 
 def rebuild_database(pathname):
     cache = apt.Cache(memonly=True)
+    old_path = pathname+"_old"
+    rebuild_path = pathname+"_rb"
+    
+    if not os.path.exists(rebuild_path):
+        try:
+            os.makedirs(rebuild_path)
+        except:
+            LOG.warn("Problem creating rebuild path '%s'." % rebuild_path)
+            LOG.warn("Please check you have the relevant permissions.")
+            return False
+    
     # check permission
     if not os.access(pathname, os.W_OK):
         LOG.warn("Cannot write to '%s'." % pathname)
         LOG.warn("Please check you have the relevant permissions.")
         return False
+    
+    #check if old unrequired version of db still exists on filesystem
+    if os.path.exists(old_path):
+        LOG.warn("Existing xapian old db was not previously cleaned: '%s'." % old_path)
+        if os.access(old_path, os.W_OK):
+            #remove old unrequired db before beginning
+            shutil.rmtree(old_path)
+        else:
+            LOG.warn("Cannot write to '%s'." % old_path)
+            LOG.warn("Please check you have the relevant permissions.")
+            return False
+
+            
     # write it
-    db = xapian.WritableDatabase(pathname, xapian.DB_CREATE_OR_OVERWRITE)
+    db = xapian.WritableDatabase(rebuild_path, xapian.DB_CREATE_OR_OVERWRITE)
     update(db, cache)
+    # write the database version into the filep
+    db.set_metadata("db-schema-version", DB_SCHEMA_VERSION)
     # update the mo file stamp for the langpack checks
     mofile = gettext.find("app-install-data")
     if mofile:
         mo_time = os.path.getctime(mofile)
         db.set_metadata("app-install-mo-time", str(mo_time))
     db.flush()
-    return True
-
+    
+    # use shutil.move() instead of os.rename() as this will automatically
+    # figure out if it can use os.rename or needs to do the move "manually"
+    try:
+        shutil.move(pathname, old_path)
+        shutil.move(rebuild_path, pathname)
+        shutil.rmtree(old_path)
+        return True
+    except:
+        LOG.warn("Cannot copy refreshed database to correct location: '%s'." % pathname)
+        return False

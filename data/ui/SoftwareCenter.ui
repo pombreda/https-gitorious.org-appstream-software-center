@@ -1,4 +1,4 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <requires lib="gtk+" version="2.16"/>
   <!-- interface-naming-policy project-wide -->
@@ -20,6 +20,7 @@
                 <property name="visible">True</property>
                 <property name="label" translatable="yes">_File</property>
                 <property name="use_underline">True</property>
+                <signal name="activate" handler="on_menu_file_activate"/>
                 <child type="submenu">
                   <object class="GtkMenu" id="menu1">
                     <property name="visible">True</property>
@@ -204,8 +205,8 @@
                     </child>
                     <child>
                       <object class="GtkMenuItem" id="menuitem_software_sources">
-                        <property name="label" translatable="yes">_Software Sources…</property>
                         <property name="visible">True</property>
+                        <property name="label" translatable="yes">_Software Sources…</property>
                         <property name="use_underline">True</property>
                         <signal name="activate" handler="on_menuitem_software_sources_activate"/>
                       </object>
@@ -383,7 +384,34 @@
     <property name="version">0.3.4</property>
     <property name="copyright" translatable="yes">©2009-2010 Canonical</property>
     <property name="website">http://launchpad.net/software-center</property>
-    <property name="authors">Michael Vogt</property>
+    <property name="authors">Michael Vogt - Coding, Fixes
+Matthew Paul Thomas - UI Design
+Sebastian Heinlein - Coding, Fixes, Widgets
+Matthew McGowan - Pathbar, Widgets, Fixes, Coding
+Andrew Higginson - Coding, Artwork, Bughelp, Design
+K.Vishnoo Charan Reddy - Artwork, Bughelp, Design
+Gary Lasker - Coding, Fixes
+Peter Gardenier - Coding, Fixes
+Mohamed Amine IL Idrissi - Coding, Fixes
+Didier Roche - Coding, Fixes
+Andrea Cimitan - Coding, Fixes
+Ara Pulido - Coding, Fixes, Mago
+Ben Weissmann - Coding, Fixes
+Colin Watson - Coding, Fixes
+Geliy Sokolov - Coding, Fixes
+Jacob Johan Edwards - Coding, Fixes
+Olivier Tilloy - Coding, Fixesa
+Julian Andres Klode - Coding, Fixes, Packaging
+Ken VanDine - Coding, Gwibber
+Loïc Minier - Packaging Fixes
+Michael Forrest  - UI work
+Luke Symes - Fixes
+Seif Lotfy - Zeitgeist
+Stuart Langridge - Javascript magic
+Tomeu Vizoso  - i18n fixes
+Zygmunt Krynicki - Coding, Fixes
+</property>
+    <property name="translator_credits" translatable="yes">translator-credits</property>
     <property name="logo_icon_name">softwarecenter</property>
     <child internal-child="vbox">
       <object class="GtkVBox" id="dialog-vbox1">
@@ -446,7 +474,7 @@
         <child>
           <object class="GtkLabel" id="label_rebuilding">
             <property name="visible">True</property>
-            <property name="label" translatable="yes">Rebuilding software catalog…</property>
+            <property name="label" translatable="yes">Updating software catalog…</property>
             <attributes>
               <attribute name="weight" value="bold"/>
             </attributes>

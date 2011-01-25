@@ -29,6 +29,48 @@ from softwarecenter.utils import *
 from softwarecenter.enums import *
 from gettext import gettext as _
 
+class SearchQuery(list):
+    """ a list wrapper for a search query. it can take a search string
+        or a list of search strings
+
+        It provides __eq__ to easily compare two search query lists
+    """
+    def __init__(self, query_string_or_list):
+        if query_string_or_list is None:
+            pass
+        # turn single querries into a single item list
+        elif isinstance(query_string_or_list, xapian.Query):
+            self.append(query_string_or_list)
+        else:
+            self.extend(query_string_or_list)
+    def __eq__(self, other):
+        # turn single querries into a single item list
+        if  isinstance(other, xapian.Query):
+            other = [other]
+        q1 = [str(q) for q in self]
+        q2 = [str(q) for q in other]
+        return q1 == q2
+    def __ne__(self, other):
+        return not self.__eq__(other)
+    def __repr__(self):
+        return "[%s]" % ",".join([str(q) for q in self])
+
+# class LocaleSorter(xapian.KeyMaker)
+#   ubuntu maverick does not have the KeyMakter yet, maintain compatibility
+#   for now by falling back to the old xapian.Sorter
+try:
+    parentClass = xapian.KeyMaker
+except AttributeError:
+    parentClass = xapian.Sorter
+class LocaleSorter(parentClass):
+    """ Sort in a locale friendly way by using locale.xtrxfrm """
+    def __init__(self, db):
+        super(LocaleSorter, self).__init__()
+        self.db = db
+    def __call__(self, doc):
+        return locale.strxfrm(doc.get_value(self.db._axi_values["display_name"]))
+
+
 def parse_axi_values_file(filename="/var/lib/apt-xapian-index/values"):
     """ parse the apt-xapian-index "values" file and provide the 
     information in the self._axi_values dict
@@ -81,28 +123,34 @@ class StoreDatabase(gobject.GObject):
         # add the apt-xapian-database for here (we don't do this
         # for now as we do not have a good way to integrate non-apps
         # with the UI)
+        self.nr_databases = 0
         if use_axi:
             try:
                 axi = xapian.Database("/var/lib/apt-xapian-index/index")
                 self.xapiandb.add_database(axi)
                 self._axi_values = parse_axi_values_file()
+                self.nr_databases += 1
             except:
                 self._logger.exception("failed to add apt-xapian-index")
         if use_agent:
             try:
                 sca = xapian.Database(XAPIAN_BASE_PATH_SOFTWARE_CENTER_AGENT)
                 self.xapiandb.add_database(sca)
+                self.nr_databases += 1
             except Exception as e:
                 logging.warn("failed to add sca db %s" % e)
         # additional dbs
         for db in self._additional_databases:
             self.xapiandb.add_database(db)
+            self.nr_databases += 1
         # parser etc
         self.xapian_parser = xapian.QueryParser()
         self.xapian_parser.set_database(self.xapiandb)
         self.xapian_parser.add_boolean_prefix("pkg", "XP")
         self.xapian_parser.add_boolean_prefix("pkg", "AP")
         self.xapian_parser.add_boolean_prefix("mime", "AM")
+        self.xapian_parser.add_boolean_prefix("section", "XS")
+        self.xapian_parser.add_boolean_prefix("origin", "XOC")
         self.xapian_parser.add_prefix("pkg_wildcard", "XP")
         self.xapian_parser.add_prefix("pkg_wildcard", "AP")
         self.xapian_parser.set_default_op(xapian.Query.OP_AND)
@@ -114,6 +162,14 @@ class StoreDatabase(gobject.GObject):
 
     def del_database(self, database):
         self._additional_databases.remove(database)
+
+    def schema_version(self):
+        """Return the version of the database layout
+        
+           This is useful to ensure we force a rebuild if its
+           older than what we expect
+        """
+        return self.xapiandb.get_metadata("db-schema-version")
 
     def reopen(self):
         " reopen the database "
@@ -165,10 +221,10 @@ class StoreDatabase(gobject.GObject):
         # empty query returns a query that matches nothing (for performance
         # reasons)
         if search_term == "" and category_query is None:
-            return xapian.Query()
+            return SearchQuery(xapian.Query())
         # we cheat and return a match-all query for single letter searches
         if len(search_term) < 2:
-            return _add_category_to_query(xapian.Query(""))
+            return SearchQuery(_add_category_to_query(xapian.Query("")))
 
         # check if there is a ":" in the search, if so, it means the user
         # is using a xapian prefix like "pkg:" or "mime:" and in this case
@@ -190,7 +246,7 @@ class StoreDatabase(gobject.GObject):
         # query
         queries = self._comma_expansion(search_term)
         if queries:
-            return map(_add_category_to_query, queries)
+            return SearchQuery(map(_add_category_to_query, queries))
 
         # get a pkg query
         pkg_query = xapian.Query()
@@ -201,6 +257,9 @@ class StoreDatabase(gobject.GObject):
         pkg_query = _add_category_to_query(pkg_query)
 
         # get a search query
+        if not ':' in search_term: # ie, not a mimetype query
+            # we need this to work around xapian oddness
+            search_term = search_term.replace('-','_')
         fuzzy_query = self.xapian_parser.parse_query(search_term, 
                                                xapian.QueryParser.FLAG_PARTIAL|
                                                xapian.QueryParser.FLAG_BOOLEAN)
@@ -211,7 +270,16 @@ class StoreDatabase(gobject.GObject):
                                             xapian.QueryParser.FLAG_BOOLEAN)
         # now add categories
         fuzzy_query = _add_category_to_query(fuzzy_query)
-        return [pkg_query,fuzzy_query]
+        return SearchQuery([pkg_query,fuzzy_query])
+
+    def get_spelling_correction(self, search_term):
+        # get a search query
+        if not ':' in search_term: # ie, not a mimetype query
+            # we need this to work around xapian oddness
+            search_term = search_term.replace('-','_')
+        query = self.xapian_parser.parse_query(
+            search_term, xapian.QueryParser.FLAG_SPELLING_CORRECTION)
+        return self.xapian_parser.get_corrected_query_string()
 
     def get_most_popular_applications_for_mimetype(self, mimetype, 
                                                   only_uninstalled=True, num=3):
@@ -228,7 +296,7 @@ class StoreDatabase(gobject.GObject):
         matches = enquire.get_mset(0, 100)
         apps = []
         for match in matches:
-            doc = match.get_document()
+            doc = match.document
             app = Application(self.get_appname(doc),self.get_pkgname(doc),
                               popcon=self.get_popcon(doc))
             if only_uninstalled:
@@ -254,8 +322,6 @@ class StoreDatabase(gobject.GObject):
             elif channel:
                 # FIXME: print something if available for our arch
                 pass
-            else:
-                return _("Sorry, '%s' is not available for this type of computer (%s).") % (pkgname, get_current_arch())
         return summary
 
     def get_pkgname(self, doc):

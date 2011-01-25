@@ -11,10 +11,11 @@ Build-Depends: debhelper (>= 7.0.50),
                python,
                python-central,
                python-distutils-extra,
-               python-setuptools
+               python-setuptools,
+               python-scour
 Standards-Version: 3.8.4
 XS-Python-Version: current
-Vcs-Bzr: https://code.launchpad.net/~software-center-developers/software-center/3.0
+Vcs-Bzr: https://code.launchpad.net/~software-store-developers/software-center/trunk
 Homepage: https://launchpad.net/software-center
 
 Package: software-center
@@ -26,10 +27,10 @@ Depends: ${python:Depends},
          gnome-menus,
          python-xapian,
          python-apt (>= 0.7.93.1),
-         python-aptdaemon (>= 0.31+bzr493),
+         python-aptdaemon (>= 0.40),
          python-aptdaemon-gtk,
-         python-debian (>= 0.1.15),
          python-dbus,
+         python-defer,
          policykit-1,
          policykit-1-gnome | policykit-1-kde,
          python-gtk2,
@@ -37,7 +38,7 @@ Depends: ${python:Depends},
          python-xdg,
          python-gconf,
          python-gmenu,
-         aptdaemon (>= 0.31),
+         aptdaemon (>= 0.40),
 	 python-lazr.restfulclient,
          ubuntu-sso-client (>= 0.99.6),
          python-piston-mini-client

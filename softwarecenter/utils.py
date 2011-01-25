@@ -27,16 +27,20 @@ import os
 import re
 import urllib
 import tempfile
+import traceback
 import time
 import xml.sax.saxutils
 import gtk
+import dbus
 
-from enums import USER_AGENT, IMAGE_LOADING_INSTALLED
+from enums import USER_AGENT
 
 # define additional entities for the unescape method, needed
 # because only '&amp;', '&lt;', and '&gt;' are included by default
 ESCAPE_ENTITIES = {"&apos;":"'",
                    '&quot;':'"'}
+                   
+LOG = logging.getLogger("softwarecenter.utils")
 
 
 class ExecutionTime(object):
@@ -54,6 +58,15 @@ class ExecutionTime(object):
         logger = logging.getLogger("softwarecenter.performance")
         logger.debug("%s: %s" % (self.info, time.time() - self.now))
 
+def log_traceback(info):
+    """
+    Helper that can be used as a debug helper to show what called
+    the code at this place. Logs to softwarecenter.traceback
+    """
+    logger = logging.getLogger("softwarecenter.traceback")
+    logger.debug("%s: %s" % (info, "".join(traceback.format_stack())))
+    
+
 class GnomeProxyURLopener(urllib.FancyURLopener):
     """A urllib.URLOpener that honors the gnome proxy settings"""
     def __init__(self, user_agent=USER_AGENT):
@@ -69,6 +82,26 @@ class GnomeProxyURLopener(urllib.FancyURLopener):
     def http_error_403(self, url, fp, errcode, errmsg, headers):
         logging.debug("http_error_403: %s %s %s" % (url, errcode, errmsg))
         raise Url403Error, "403 %s" % url
+
+def wait_for_apt_cache_ready(f):
+    """ decorator that ensures that self.cache is ready using a
+        gtk idle_add - needs a cache as argument
+    """
+    def wrapper(*args, **kwargs):
+        self = args[0]
+        # check if the cache is ready and 
+        if not self.cache.ready:
+            if hasattr(self, "app_view") and self.app_view.window:
+                self.app_view.window.set_cursor(self.busy_cursor)
+            glib.timeout_add(500, lambda: wrapper(*args, **kwargs))
+            return False
+        # cache ready now
+        if hasattr(self, "app_view") and self.app_view.window:
+            self.app_view.window.set_cursor(None)
+        f(*args, **kwargs)
+        return False
+    return wrapper
+
 
 def htmlize_package_desc(desc):
     def _is_bullet(line):
@@ -148,7 +181,8 @@ def get_http_proxy_string_from_gconf():
             host = client.get_string("/system/http_proxy/host")
             port = client.get_int("/system/http_proxy/port")
             http_proxy = "http://%s%s:%s/" %  (authentication, host, port)
-            return http_proxy
+            if host:
+                return http_proxy
     except Exception:
         logging.exception("failed to get proxy from gconf")
     return None
@@ -224,6 +258,18 @@ def get_default_language():
     if locale[0] == "C":
         return "en"
     return locale[0]
+    
+def is_unity_running():
+    """
+    return True if Unity is currently running
+    """
+    unity_running = False
+    try:
+        bus = dbus.SessionBus()
+        unity_running = bus.name_has_owner("com.canonical.Unity")
+    except:
+        LOG.exception("could not check for Unity dbus service")
+    return unity_running
 
 # FIXME: why not call it a generic downloader?
 class ImageDownloader(gobject.GObject):
@@ -315,52 +361,20 @@ class GMenuSearcher(object):
                         return
 
                 
-    def get_main_menu_path(self, desktop_file):
+    def get_main_menu_path(self, desktop_file, menu_files_list=None):
         if not desktop_file:
             return None
-        for n in ["applications.menu", "settings.menu"]:
+        # use the system ones by default, but allow override for
+        # easier testing
+        if menu_files_list is None:
+            menu_files_list = ["applications.menu", "settings.menu"]
+        for n in menu_files_list:
             tree = gmenu.lookup_tree(n)
             self._search_gmenu_dir([tree.get_root_directory()], 
                                    os.path.basename(desktop_file))
             if self._found:
                 return self._found
         return None
-        
-class AlternaSpinner(gtk.VBox):
-    """
-    an alternative spinner that uses an animated gif for use when
-    gtk.Spinner is not available
-    (see LP: #637422, LP: #624204)
-    """
-    def __init__(self):
-        gtk.VBox.__init__(self)
-        self.image = gtk.Image()
-        self.image.set_from_file(IMAGE_LOADING_INSTALLED)
-        self.image.set_size_request(160, 100)
-        self.add(self.image)
-        
-    def start(self):
-        pass
-    def stop(self):
-        pass
-
-def hash_pkgname_for_changelogs(pkgname):
-    """ hash pkgname for changelogs.ubuntu.com 
-        returns  "a" for "abcd"
-                 "liba" for "libabcd"
-    """
-    if pkgname.startswith("lib"):
-        return pkgname[0:4]
-    return pkgname[0:1]
-
-def clear_token_from_ubuntu_sso(appname):
-    """ send a dbus signal to the com.ubuntu.sso service to clear 
-        the credentials for the given appname
-    """
-    import dbus
-    bus = dbus.SessionBus()
-    proxy = bus.get_object('com.ubuntu.sso', '/credentials')
-    proxy.clear_token(appname)
 
 if __name__ == "__main__":
     s = decode_xml_char_reference('Search&#x2026;')

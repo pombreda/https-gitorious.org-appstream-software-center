@@ -31,10 +31,11 @@ from gettext import gettext as _
 from softwarecenter.backend import get_install_backend
 from softwarecenter.distro import get_distro
 from softwarecenter.enums import *
+from softwarecenter.utils import wait_for_apt_cache_ready
 
 from appview import AppView, AppStore, AppViewFilter
 
-from softwarepane import SoftwarePane, wait_for_apt_cache_ready
+from softwarepane import SoftwarePane
 
 LOG = logging.getLogger(__name__)
 
@@ -46,113 +47,48 @@ class ChannelPane(SoftwarePane):
     """
 
     (PAGE_APPLIST,
-     PAGE_APP_DETAILS) = range(2)
+     PAGE_APP_DETAILS,
+     PAGE_APP_PURCHASE) = range(3)
+     
+    __gsignals__ = {'channel-pane-created':(gobject.SIGNAL_RUN_FIRST,
+                                            gobject.TYPE_NONE,
+                                            ())}
 
-    def __init__(self, cache, history, db, distro, icons, datadir):
+    def __init__(self, cache, db, distro, icons, datadir):
         # parent
-        SoftwarePane.__init__(self, cache, history, db, distro, icons, datadir,
+        SoftwarePane.__init__(self, cache, db, distro, icons, datadir,
                               show_ratings=False)
         self.channel = None
         self.apps_filter = None
-        self.search_terms = ""
+        self.apps_search_term = ""
         self.current_appview_selection = None
         self.distro = get_distro()
-        # UI
-        self._build_ui()
-        self.connect("app-list-changed", self._on_app_list_changed)
+        self.pane_name = _("Software Channels")
 
-    def _build_ui(self):
-        self.notebook.append_page(self.scroll_app_list, gtk.Label("channel"))
-        # details
-        self.notebook.append_page(self.scroll_details, gtk.Label("details"))
+    def init_view(self):
+        if not self.view_initialized:
+            SoftwarePane.init_view(self)
+            self.notebook.append_page(self.box_app_list, gtk.Label("channel"))
+            # details
+            self.notebook.append_page(self.scroll_details, gtk.Label("details"))
+            # purchase view
+            self.notebook.append_page(self.purchase_view, gtk.Label("purchase"))
+            # now we are initialized
+            self.emit("channel-pane-created")
+            self.show_all()
+            self.view_initialized = True
 
     def _show_channel_overview(self):
         " helper that goes back to the overview page "
-        self.navigation_bar.remove_id("details")
+        self.navigation_bar.remove_id(NAV_BUTTON_ID_DETAILS)
+        self.navigation_bar.remove_id(NAV_BUTTON_ID_PURCHASE)
         self.notebook.set_current_page(self.PAGE_APPLIST)
         self.searchentry.show()
         
     def _clear_search(self):
         # remove the details and clear the search
         self.searchentry.clear()
-        self.navigation_bar.remove_id("search")
-
-    @wait_for_apt_cache_ready
-    def refresh_apps(self):
-        """refresh the applist after search changes and update the 
-           navigation bar
-        """
-        LOG.debug("refresh_apps")
-        self.show_appview_spinner()
-        if not self.channel:
-            return
-        self.refresh_seq_nr += 1
-        channel_query = self.channel.get_channel_query()
-        if self.search_terms:
-            query = self.db.get_query_list_from_search_entry(self.search_terms,
-                                                             channel_query)
-            self.navigation_bar.add_with_id(_("Search Results"),
-                                            self.on_navigation_search, 
-                                            "search", do_callback=False)
-        else:
-            self.navigation_bar.add_with_id(
-                self.channel.get_channel_display_name(),
-                self.on_navigation_list,
-                "list", do_callback=False)
-            query = xapian.Query(channel_query)
-
-        LOG.debug("channelpane query: %s" % query)
-        # *ugh* deactivate the old model because otherwise it keeps
-        # getting progress_changed events and eats CPU time until its
-        # garbage collected
-        old_model = self.app_view.get_model()
-        
-        # if the list is expected to contain many items, 
-        #  clear the current model to display
-        # an empty list while the full list is generated; 
-        #  this prevents a visual glitch when
-        # the list is replaced
-        if ((self.channel.get_channel_name() == self.distro.get_distro_channel_name() and not 
-             self.search_terms)):
-            self.app_view.clear_model()
-        
-        if old_model is not None:
-            old_model.active = False
-            while gtk.events_pending():
-                gtk.main_iteration()
-        self._make_new_model(query, self.refresh_seq_nr)
-        return False
-
-    def _make_new_model(self, query, seq_nr):
-        # something changed already
-        if self.refresh_seq_nr != seq_nr:
-            LOG.warn("early discarding new model (%s != %s)" % (seq_nr, self.refresh_seq_nr))
-            return False
-        # get a new store and attach it to the view
-        if self.scroll_app_list.window:
-            self.scroll_app_list.window.set_cursor(self.busy_cursor)
-        new_model = AppStore(self.cache,
-                             self.db, 
-                             self.icons, 
-                             query, 
-                             limit=0,
-                             sortmode=self.channel.get_channel_sort_mode(),
-                             nonapps_visible = self.nonapps_visible,
-                             filter=self.apps_filter)
-        # between request of the new model and actual delivery other
-        # events may have happend
-        self.hide_appview_spinner()
-        if self.scroll_app_list.window:
-            self.scroll_app_list.window.set_cursor(None)
-        if seq_nr == self.refresh_seq_nr:
-            self.app_view.set_model(new_model)
-            self.app_view.get_model().active = True
-            # we can not use "new_model" here, because set_model may actually
-            # discard new_model and just update the previous one
-            self.emit("app-list-changed", len(self.app_view.get_model()))
-        else:
-            LOG.debug("discarding new model (%s != %s)" % (seq_nr, self.refresh_seq_nr))
-        return False
+        self.navigation_bar.remove_id(NAV_BUTTON_ID_SEARCH)
 
     def set_channel(self, channel):
         """
@@ -187,18 +123,9 @@ class ChannelPane(SoftwarePane):
                 backend.reload()
             return
         # normal operation
-        # always show all packages in the partner repository
-        # FIXME:  remove this special case code in favor of a more general solution
-        if channel.get_channel_component() == "partner":
-            self.nonapps_visible = AppStore.NONAPPS_ALWAYS_VISIBLE
-            self.disable_show_hide_nonapps = True
-        else:
-            self.nonapps_visible = AppStore.NONAPPS_MAYBE_VISIBLE
-            self.disable_show_hide_nonapps = False
+        self.nonapps_visible = AppStore.NONAPPS_MAYBE_VISIBLE
+        self.disable_show_hide_nonapps = False
         self.apps_filter = None
-        if self.channel.only_packages_without_applications:
-            self.apps_filter = AppViewFilter(self.db, self.cache)
-            self.apps_filter.set_only_packages_without_applications(True)
         if self.channel.installed_only:
             if self.apps_filter is None:
                 self.apps_filter = AppViewFilter(self.db, self.cache)
@@ -209,8 +136,8 @@ class ChannelPane(SoftwarePane):
     def on_search_terms_changed(self, searchentry, terms):
         """callback when the search entry widget changes"""
         LOG.debug("on_search_terms_changed: '%s'" % terms)
-        self.search_terms = terms
-        if not self.search_terms:
+        self.apps_search_term = terms
+        if not self.apps_search_term:
             self._clear_search()
         self.refresh_apps()
         self.notebook.set_current_page(self.PAGE_APPLIST)
@@ -218,7 +145,7 @@ class ChannelPane(SoftwarePane):
     def on_db_reopen(self, db):
         LOG.debug("got db-reopen signal")
         self.refresh_apps()
-        self.app_details.refresh_app()
+        self.app_details_view.refresh_app()
 
     def on_navigation_search(self, button, part):
         """ callback when the navigation button with id 'search' is clicked"""
@@ -245,7 +172,23 @@ class ChannelPane(SoftwarePane):
         self.display_details()
     
     def display_details(self):
+        self.navigation_bar.remove_id(NAV_BUTTON_ID_PURCHASE)
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
+        self.searchentry.hide()
+        self.action_bar.clear()
+        # we want to re-enable the buy button if this is an app for purchase
+        # FIXME:  hacky, find a better approach
+        if self.app_details_view.action_bar.button.get_label() == _(u'Buy\u2026'):
+            self.app_details_view.action_bar.button.set_sensitive(True)
+        
+    def on_navigation_purchase(self, button, part):
+        """callback when the navigation button with id 'purchase' is clicked"""
+        if not button.get_active():
+            return
+        self.display_purchase()
+        
+    def display_purchase(self):
+        self.notebook.set_current_page(self.PAGE_APP_PURCHASE)
         self.searchentry.hide()
         self.action_bar.clear()
         
@@ -254,14 +197,9 @@ class ChannelPane(SoftwarePane):
         LOG.debug("on_application_selected: '%s'" % app)
         self.current_appview_selection = app
 
-    def _on_app_list_changed(self, pane, length):
-        """internal helper that keeps the the action bar up-to-date by
-           keeping track of the app-list-changed signals
-        """
-        self.update_show_hide_nonapps()
-
     def display_search(self):
-        self.navigation_bar.remove_id("details")
+        self.navigation_bar.remove_id(NAV_BUTTON_ID_DETAILS)
+        self.navigation_bar.remove_id(NAV_BUTTON_ID_PURCHASE)
         self.notebook.set_current_page(self.PAGE_APPLIST)
         model = self.app_view.get_model()
         if model:
@@ -334,6 +272,7 @@ if __name__ == "__main__":
 
     win = gtk.Window()
     win.add(w)
+    w.init_view()
     win.set_size_request(400, 600)
     win.show_all()
 

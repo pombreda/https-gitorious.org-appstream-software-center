@@ -21,6 +21,9 @@ from softwarecenter.db.application import Application
 
 from softwarecenter.backend import get_install_backend
 
+#import softwarecenter.log
+#softwarecenter.log.root.setLevel(logging.DEBUG)
+
 class SCBuySomething(unittest.TestCase):
     
     def setUp(self):
@@ -31,12 +34,13 @@ class SCBuySomething(unittest.TestCase):
             subprocess.call(["dpkg", "-r", "hellox", "hello"])
         # get the software from staging
         os.environ["SOFTWARE_CENTER_BUY_HOST"]="https://sc.staging.ubuntu.com"
-        os.environ["PYTHONPATH="]=os.path.abspath("..")
+        os.environ["PYTHONPATH"]=os.path.abspath("..")
         if os.getuid() == 0:
             cmd = ["sudo", "-E", "-u", os.environ["SUDO_USER"]]
         else:
             cmd = []
-        cmd += ["/usr/share/software-center/update-software-center-agent"]
+        cmd += ["../utils/update-software-center-agent",
+                "--ignore-etag"]
         res = subprocess.call(cmd, env=os.environ)
         print cmd, res
 
@@ -78,17 +82,28 @@ class SCBuySomething(unittest.TestCase):
         self.assertFirstPkgInModel(model, "hellox")
         treeview.row_activated(model.get_path(model.get_iter_root()),
                                treeview.get_column(0))
-        self._p()
         self.assertEqual(
-            self.app.available_pane.app_details.action_bar.button.get_label(),
+            self.app.available_pane.app_details_view.action_bar.button.get_label(),
             u"Buy\u2026")
+        # click the "Buy" button to initiate a purchase
+        self.app.available_pane.app_details_view.action_bar.button.clicked()
         self._p()
-        # close the purchase dialog again after 2s
-        glib.timeout_add_seconds(2, lambda: self.app.available_pane.app_details.purchase_dialog.response(gtk.RESPONSE_OK))
-        # now simulate a click, the UI will block until the glib timeout 
-        # from the previous line hits
-        self.app.available_pane.app_details.action_bar.button.clicked()
+        time.sleep(1)
+        # check that the purchase pane is displayed
+        self.assertEqual(str(self.app.available_pane.navigation_bar.get_parts()),
+                         "[Get Software, Search Results, Hello X Adventure, Buy]")
         self._p()
+        time.sleep(1)
+        self._p()
+        # simulate a successful purchase in the UI by firing a purchase-succeeded
+        self.app.available_pane.purchase_view.emit("purchase-succeeded")
+        time.sleep(1)
+        self._p()
+        time.sleep(1)
+        # check that the purchase pane is removed
+        self.assertEqual(str(self.app.available_pane.navigation_bar.get_parts()),
+                         "[Get Software, Search Results, Hello X Adventure]")
+        
         # done with the simulated purchase process, now pretend we install
         # something
         deb_line = "deb https://mvo:nopassyet@private-ppa.launchpad.net/mvo/private-test/ubuntu maverick main"

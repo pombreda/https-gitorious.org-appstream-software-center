@@ -27,7 +27,6 @@ from apt import Cache
 from apt import debfile
 from gettext import gettext as _
 from mimetypes import guess_type
-from softwarecenter.apt.apthistory import get_apt_history
 from softwarecenter.distro import get_distro
 from softwarecenter.enums import *
 from softwarecenter.utils import *
@@ -129,8 +128,8 @@ class NoneTypeApplication(Application):
 class DebFileApplication(Application):
     def __init__(self, debfile):
         # deb overrides this
-        if not debfile.endswith(".deb") and not debfile.count('/') >= 2:
-            raise ValueError("Need a deb file, got '%s'" % debfile)
+#        if not debfile.endswith(".deb") and not debfile.count('/') >= 2:
+ #           raise ValueError("Need a deb file, got '%s'" % debfile)
         debname = os.path.splitext(os.path.basename(debfile))[0]
         self.appname = ""
         self.pkgname = debname.split('_')[0].lower()
@@ -154,7 +153,7 @@ class AppDetails(object):
         self._db = db
         self._cache = self._db._aptcache
         self._distro = get_distro()
-        self._history = get_apt_history()
+        self._history = None
         # import here (intead of global) to avoid dbus dependency
         # in update-software-center (that imports application, but
         # never uses AppDetails) LP: #620011
@@ -205,11 +204,6 @@ class AppDetails(object):
 
     def same_app(self, other):
         return self.pkgname == other.pkgname
-
-    @property
-    def architecture(self):
-        if self._doc:
-            return self._doc.get_value(XAPIAN_VALUE_ARCHIVE_ARCH)
 
     @property
     def channelname(self):
@@ -301,6 +295,8 @@ class AppDetails(object):
 
     @property
     def icon(self):
+        if self.pkg_state == PKG_STATE_NOT_FOUND:
+            return MISSING_PKG_ICON
         if self._doc:
             return os.path.splitext(self._db.get_iconname(self._doc))[0]
         if not self.summary:
@@ -322,6 +318,8 @@ class AppDetails(object):
 
     @property
     def installation_date(self):
+        from softwarecenter.apt.apthistory import get_apt_history
+        self._history = get_apt_history()
         return self._history.get_installed_date(self.pkgname)
         
     @property
@@ -385,9 +383,11 @@ class AppDetails(object):
             return PKG_STATE_INSTALLING_PURCHASED
 
         # via the pending transactions dict
-        if self._pkg and self.pkgname in self._backend.pending_transactions:
+        if self.pkgname in self._backend.pending_transactions:
             # FIXME: we don't handle upgrades yet
-            if self._pkg.installed:
+            # if there is no self._pkg yet, that means this is a INSTALL
+            # from a previously not-enabled source (like a purchase)
+            if self._pkg and self._pkg.installed:
                 return PKG_STATE_REMOVING
             else:
                 return PKG_STATE_INSTALLING
@@ -410,7 +410,6 @@ class AppDetails(object):
         #  - the repository information is missing (/var/lib/apt/lists empty)
         #  - its a failure in our meta-data (e.g. typo in the pkgname in
         #    the metadata)
-        #  - not available for our architecture
         if not self._pkg:
             if self.channelname:
                 if self._unavailable_channel():
@@ -420,7 +419,7 @@ class AppDetails(object):
                     self._error_not_found = _("There isn't a software package called \"%s\" in your current software sources.") % self.pkgname.capitalize()
                     return PKG_STATE_NOT_FOUND
             else:
-                if self.price and self._available_for_our_arch():
+                if self.price:
                     return PKG_STATE_NEEDS_PURCHASE
                 if (self.purchase_date and
                     self._doc.get_value(XAPIAN_VALUE_ARCHIVE_DEB_LINE)):
@@ -428,15 +427,11 @@ class AppDetails(object):
                 if self.component:
                     components = self.component.split('&')
                     for component in components:
-                        if (component and (self._unavailable_component(component_to_check=component) or self._available_for_our_arch())):
+                        if component and self._unavailable_component(component_to_check=component):
                             return PKG_STATE_NEEDS_SOURCE
-                        if component and not self._available_for_our_arch():
-                            self._error_not_found = _("Not available for this type of computer (%s).") % get_current_arch()
-                            return PKG_STATE_NOT_FOUND
-                else:
-                    self._error =  _("Not Found")
-                    self._error_not_found = _("There isn't a software package called \"%s\" in your current software sources.") % self.pkgname.capitalize()
-                    return PKG_STATE_NOT_FOUND
+                self._error =  _("Not Found")
+                self._error_not_found = _("There isn't a software package called \"%s\" in your current software sources.") % self.pkgname.capitalize()
+                return PKG_STATE_NOT_FOUND
         return PKG_STATE_UNKNOWN
 
     @property
@@ -489,7 +484,10 @@ class AppDetails(object):
     @property
     def version(self):
         if self._pkg:
-            return self._pkg.candidate.version
+            if self._pkg.installed:
+                return self._pkg.installed.version
+            else:
+                return self._pkg.candidate.version
 
     @property
     def warning(self):
@@ -550,24 +548,6 @@ class AppDetails(object):
         available = self._cache.component_available(distro_codename, component)
         return (not available)
 
-    def _available_for_our_arch(self):
-        """ check if the given package is available for our arch """
-        arches = self.architecture
-        # if we don't have a arch entry in the document its available
-        # on all architectures we know about
-        if not arches:
-            return True
-        # check the arch field and support both "," and ";"
-        sep = ","
-        if ";" in arches:
-            sep = ";"
-        elif "," in arches:
-            sep = ","
-        for arch in map(string.strip, arches.split(sep)):
-            if arch == get_current_arch():
-                return True
-        return False
-
     def __str__(self):
         details = []
         details.append("* AppDetails")
@@ -575,7 +555,6 @@ class AppDetails(object):
         details.append("        display_name: %s" % self.display_name)
         details.append("                 pkg: %s" % self.pkg)
         details.append("             pkgname: %s" % self.pkgname)
-        details.append("        architecture: %s" % self.architecture)
         details.append("         channelname: %s" % self.channelname)
         details.append("                 ppa: %s" % self.ppaname)
         details.append("         channelfile: %s" % self.channelfile)
@@ -649,11 +628,6 @@ class AppDetailsDebFile(AppDetails):
         # check deb and set failure state on error
         if not self._deb.check():
             self._error = self._deb._failure_string
-
-    @property
-    def architecture(self):
-        if self._deb:
-            return self._deb._sections["Architecture"]
 
     @property
     def description(self):

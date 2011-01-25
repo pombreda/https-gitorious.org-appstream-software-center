@@ -27,7 +27,11 @@ class SoftwareCenterConfig(ConfigParser.SafeConfigParser):
         if not os.path.exists(os.path.dirname(config)):
             os.makedirs(os.path.dirname(config))
         self.configfile = config
-        self.read(self.configfile)
+        try:
+            self.read(self.configfile)
+        except:
+            # don't crash on a corrupted config file
+            pass
     def write(self):
         tmpname = self.configfile+".new"
         f=open(tmpname, "w")

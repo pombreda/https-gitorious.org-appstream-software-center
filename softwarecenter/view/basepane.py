@@ -26,17 +26,26 @@ class BasePane(object):
         # stuff that is queried by app.py
         self.apps_filter = None
         self.searchentry = None
+        # flag to indicate that the pane's view has been fully initialized
+        self.view_initialized = False
 
     def is_category_view_showing(self):
         return False
-
-    def update_app_view(self):
-        pass
 
     def get_status_text(self):
         return ""
 
     def get_current_app(self):
         return None
+        
+    def init_view(self):
+        """
+        A callback that is made at the time the pane is selected in the
+        viewswitcher.  This method can be used to delay initialization
+        and/or setup of a BasePane subclass' view until it is actually
+        to be displayed (aka lazy-loading).  The primary purpose of this
+        is to optimize startup time performance.
+        """
+        pass
 
 

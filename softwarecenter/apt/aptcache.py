@@ -40,7 +40,7 @@ LOG = logging.getLogger(__name__)
 
 class GtkMainIterationProgress(apt.progress.base.OpProgress):
     """Progress that just runs the main loop"""
-    def update(self, percent):
+    def update(self, percent=0):
         while gtk.events_pending():
             gtk.main_iteration()
 
@@ -78,8 +78,10 @@ class AptCache(gobject.GObject):
         self._cache = None
         self._ready = False
         self._timeout_id = None
-        # async open cache
-        glib.timeout_add(10, self.open)
+        # async open cache 
+        # FIXME: measure if idle_add() or timeout_add(100, self.open)
+        #        make a difference on slow hardware
+        glib.idle_add(self.open)
         # setup monitor watch for install/remove changes
         self.apt_finished_stamp=gio.File(self.APT_FINISHED_STAMP)
         self.apt_finished_monitor = self.apt_finished_stamp.monitor_file(
@@ -99,23 +101,15 @@ class AptCache(gobject.GObject):
     def ready(self):
         return self._ready
     def open(self):
+        """ (re)open the cache, this sends cache-invalid, cache-ready signals
+        """
         self._ready = False
         self.emit("cache-invalid")
-        if self._cache == None:
-            self._cache = apt.Cache(GtkMainIterationProgress())
-        else:
-            self._cache.open(GtkMainIterationProgress())
-        # installed_count stats
-        with ExecutionTime("installed_count stats"):
-            self.installed_count = 0
-            # use the low-level cache here to calculcate the stats,
-            # its twice as fast as the highlevel one
-            for lowlevel_pkg in self._cache._cache.packages:
-                if lowlevel_pkg.current_ver:
-                    self.installed_count += 1
-                while gtk.events_pending():
-                    gtk.main_iteration()
-        LOG.debug("installed_count: %s" % self.installed_count)
+        with ExecutionTime("open the apt cache (in event loop)"):
+            if self._cache == None:
+                self._cache = apt.Cache(GtkMainIterationProgress())
+            else:
+                self._cache.open(GtkMainIterationProgress())
         self._ready = True
         self.emit("cache-ready")
         if self._cache.broken_count > 0:
@@ -345,10 +339,16 @@ class AptCache(gobject.GObject):
         return upgrading_deps
 
     # determine the addons for a given package
-    def get_addons(self, pkgname):
+    def get_addons(self, pkgname, ignore_installed=True):
         """ get the list of addons for the given pkgname
+
+            The optional parameter "ignore_installed" controls if the output
+            should be filtered and pkgs already installed should be ignored
+            in the output (e.g. useful for testing).
+
             :return: a tuple of pkgnames (recommends, suggests)
         """
+        logging.debug("get_addons for '%s'" % pkgname)
         def _addons_filter(addon):
             """ helper for get_addons that filters out unneeded ones """
             # we don't know about this one (prefectly legal for suggests)
@@ -381,7 +381,7 @@ class AptCache(gobject.GObject):
                 return False
             # something on the system depends on it
             rdeps = self.get_installed_rdepends(addon_pkg)
-            if rdeps:
+            if rdeps and ignore_installed:
                 LOG.debug("already has a installed rdepends %s" % addon)
                 return False
             # looks good

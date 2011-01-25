@@ -1,37 +1,25 @@
 import gtk
-import atk
 import gobject
 import cairo
 import pango
 import pangocairo
-import logging
 import gettext
 import glib
-import glob
-import locale
 import random
 import os
 import xapian
 
+from gettext import gettext as _
+
 from widgets import mkit
-from widgets.backforward import BackForwardButton
 from appview import AppStore
 from softwarecenter.db.database import Application
-
-from ConfigParser import ConfigParser
-from gettext import gettext as _
-from xml.etree import ElementTree as ET
-
-from xml.sax.saxutils import escape as xml_escape
-from xml.sax.saxutils import unescape as xml_unescape
-
-from softwarecenter.utils import *
-from softwarecenter.enums import *
-from softwarecenter.distro import get_distro
-
+from softwarecenter.utils import wait_for_apt_cache_ready
 from softwarecenter.backend.zeitgeist_simple import zeitgeist_singleton
 
-from catview import *
+from softwarecenter.enums import SORT_BY_SEARCH_RANKING
+from catview import (Category, CategoriesView, get_category_by_name,
+                     categories_sorted_by_name)
 
 # global cairo surface caches
 SURFACE_CACHE = {}
@@ -324,33 +312,34 @@ class LobbyViewGtk(CategoriesViewGtk):
         self._append_recommendations()
         return
 
+    @wait_for_apt_cache_ready
     def _append_recommendations(self):
         """ get recommendations from zeitgeist and add to the view """
 
         def _show_recommended_apps_widget(query, r_apps): 
             # build UI
             self.hbox = gtk.HBox()
+            # Translators: full sentence will be: Welcome back! There is/are %(len)i new recommendation/s for you.
             welcome = gettext.ngettext("Welcome back! There is",
                                       "Welcome back! There are",
                                       len(r_apps))
-            self.hbox.pack_start(gtk.Label(welcome + ' '), False, False)
+            self.hbox.pack_start(gtk.Label(welcome), False, False)
+            # Translators: full sentence will be: Welcome back! There is/are %(len)i new recommendation/s for you.
             label = gettext.ngettext("%(len)i new recommendation",
                                      "%(len)i new recommendations",
                                      len(r_apps)) % { 'len' : len(r_apps) }
+            # FIXME: use a gtk.Label() with <a href> instead and put it
+            #        all into one label to make it more i18n friendly
             linkbutton = mkit.VLinkButton(label)
             linkbutton.set_underline(True)
             #linkbutton.set_subdued(True)
             self.hbox.pack_start(linkbutton, False, False)
+            # Translators: full sentence will be: Welcome back! There is/are %(len)i new recommendation/s for you.
             self.hbox.pack_start(gtk.Label(' %s' % _("for you")), False, False)
             self.vbox.pack_start(self.hbox, False, False)
             self.vbox.reorder_child(self.hbox, 0)
-            # build fake category
-            name = gobject.markup_escape_text(_("Recommendations"))
-            rec_btn = CategoryButton(name, "category-recommendations", self.icons)
+            # build category
             rec_cat = Category("Recommendations", _("Recommendations"), "category-recommendations", query, sortmode=SORT_BY_SEARCH_RANKING)
-            rec_btn.connect('clicked', self._on_category_clicked, rec_cat)
-            self.departments.append(rec_btn)
-            
             linkbutton.connect('clicked', self._on_category_clicked, rec_cat)
 
             self.show_all() 
@@ -410,7 +399,8 @@ class LobbyViewGtk(CategoriesViewGtk):
                                      filter=self.apps_filter,
                                      icon_size=best_stock_size,
                                      global_icon_cache=False,
-                                     nonapps_visible=AppStore.NONAPPS_ALWAYS_VISIBLE)
+                                     nonapps_visible=AppStore.NONAPPS_ALWAYS_VISIBLE,
+                                     nonblocking_load=False)
 
             self.featured_carousel = CarouselView(featured_apps, _('Featured'), self.icons)
             self.featured_carousel.more_btn.connect('clicked',
@@ -432,7 +422,8 @@ class LobbyViewGtk(CategoriesViewGtk):
                                 self.apps_filter,
                                 icon_size=best_stock_size,
                                 global_icon_cache=False,
-                                nonapps_visible=AppStore.NONAPPS_MAYBE_VISIBLE)
+                                nonapps_visible=AppStore.NONAPPS_MAYBE_VISIBLE,
+                                nonblocking_load=False)
             self.newapps_carousel = CarouselView(
                 new_apps, _(u"What\u2019s New"), self.icons,
                 start_random=False)
@@ -1226,7 +1217,7 @@ class PagingDot(mkit.LinkButton):
         # a11y for page selector
         self.set_property("can-focus", True)
         self.a11y = self.get_accessible()
-        self.a11y.set_name("Go to page " + str(self.page_number + 1))
+        self.a11y.set_name(_("Go to page %d") % (self.page_number + 1))
         return
 
     def calc_width(self):

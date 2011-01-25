@@ -49,7 +49,6 @@ from login import LoginBackend
 
 UBUNTU_SSO_SERVICE = os.environ.get(
     "USSOC_SERVICE_URL", "https://login.ubuntu.com/api/1.0")
-
 UBUNTU_SOFTWARE_CENTER_AGENT_SERVICE = BUY_SOMETHING_HOST+"/api/1.0"
 
 class EmptyObject(object):
@@ -355,8 +354,9 @@ class SoftwareCenterAgentAnonymous(gobject.GObject):
                   ),
         }
     
-    def __init__(self):
+    def __init__(self, ignore_etag=False):
         gobject.GObject.__init__(self)
+        self.ignore_etag = ignore_etag
         self.distro = get_distro()
         self.log = logging.getLogger("softwarecenter.backend.scagent")
         # make sure we have the cachdir
@@ -369,7 +369,7 @@ class SoftwareCenterAgentAnonymous(gobject.GObject):
             for that host. If there is none, return a invalid etag (no
             quote) that will never match
         """
-        if os.path.exists(etagfile):
+        if os.path.exists(etagfile) and not self.ignore_etag:
             return open(etagfile).read()
         else:
             return "invalid-etag"

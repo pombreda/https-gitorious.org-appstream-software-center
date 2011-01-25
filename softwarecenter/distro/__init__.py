@@ -105,7 +105,7 @@ class Distro(object):
             if m in depends:
                 primary = _("Installing %s may cause core applications to "
                             "be removed. "
-                            "Are you sure you want to continue?" % appname)
+                            "Are you sure you want to continue?") % appname
                 button_text = _("Install Anyway")
                 depends = None
                 break

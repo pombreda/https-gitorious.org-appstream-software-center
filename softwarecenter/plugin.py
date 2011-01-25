@@ -24,6 +24,8 @@ import os
 import logging
 LOG = logging.getLogger(__name__)
 
+from utils import ExecutionTime
+
 class Plugin(object):
 
     """Base class for plugins.
@@ -110,11 +112,15 @@ class PluginManager(object):
                 if not os.path.exists(filename):
                     LOG.warn("plugin '%s' does not exists, dangling symlink?" % filename)
                     continue
-                module = self._load_module(filename)
-                for plugin in self._find_plugins(module):
-                    plugin.app = self._app
-                    plugin.init_plugin()
-                    self._plugins.append(plugin)
+                with ExecutionTime("loading plugin: '%s'" % filename):
+                    module = self._load_module(filename)
+                    for plugin in self._find_plugins(module):
+                        plugin.app = self._app
+                        try:
+                            plugin.init_plugin()
+                            self._plugins.append(plugin)
+                        except:
+                            LOG.exception("failed to init plugin: %s" % module)
         # get the matching plugins
         plugins = [p for p in self._plugins]
         LOG.debug("plugins are '%s'" % plugins)

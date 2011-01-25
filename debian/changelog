@@ -1,3 +1,415 @@
+software-center (3.1.11) UNRELEASED; urgency=low
+
+  * softwarecenter/view/widgets/spinner.py:
+    - modify to allow updating spinner label text on the fly
+  * software-center,
+    softwarecenter/app.py,
+    softwarecenter/view/availablepane.py,
+    softwarecenter/view/softwarepane.py:
+    - defer loading the categories pane in the main view and display
+      a spinner while it's loading, provides further startup time
+      improvement
+  * test/test_gui_buy_something.py:
+    - fix test case
+  * softwarecenter/app.py,
+    softwarecenter/view/historypane.py:
+    - connect app-list-changed signal handlers after each pane's
+      view is fully initialized to insure correct status bar
+      updating (fixes failure in test_supported_only test case)
+  * softwarecenter/app.py:
+    - don't back up one level in the navigation hierarchy if the
+      backspace key is pressed while entering information during
+      the purchase process (LP: #705676) 
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 20 Jan 2011 18:47:32 -0500
+
+software-center (3.1.10) natty; urgency=low
+
+  [ Michael Vogt ]
+  * include full AUTHORS info into the about dialog,
+    based on the lp:~adnane002/software-center/fix.632770
+    branch (LP: #632770)
+  * data/ui/SoftwareCenter.ui:
+    - add translator_credits (LP: #632770), thanks to 
+      Adnane Belmadiaf 
+  * merged lp:~aaronp/software-center/fix-699898, many thanks
+    to Aaron Peachey (LP: #699898)
+
+  [ Kiwinote ]
+  * softwarecenter/app.py:
+    - don't crash on pressing backspace in the history pane (LP: #696639)
+  * softwarecenter/backend/aptd.py:
+    - play nicely after cancelling policykit dialog
+  * softwarecenter/db/application.py:
+    - display correct version number for installed packages (LP: #695026)
+  * softwarecenter/distro/*.py:
+    - fix broken translations (LP: #703610)
+
+  [ Gary Lasker ]
+  * softwarecenter/models/appstore.py,
+    softwarecenter/backend/aptd.py,
+    softwarecenter/models/appstore.py,
+    softwarecenter/view/appdetailsview_gtk.py,
+    softwarecenter/view/appdetailsview_webkit.py,
+    softwarecenter/view/appview.py:
+    - restore progress bar feedback when installing/removing software
+      from within the applist view (LP: #701589)
+    - clean up unused code
+  * softwarecenter/backend/aptd.py:
+    - attach the aptdaemon progress-changed listener earlier in the
+      transaction to allow for more instant progress feedback in the UI
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 17 Jan 2011 13:46:48 +0100
+
+software-center (3.1.9) natty; urgency=low
+
+  [ Gary Lasker ]
+  * softwarecenter/view/purchaseview.py:
+    - restore terms of service popup window
+  * softwarecenter/app.py,
+    softwarecenter/enums.py,
+    softwarecenter/view/availablepane.py,
+    softwarecenter/view/basepane.py,
+    softwarecenter/view/softwarepane.py,
+    softwarecenter/view/viewswitcher.py:
+    softwarecenter/view/channelpane.py,
+    softwarecenter/view/installedpane.py:
+    - re-implement reinstall previous purchases view as a subview
+      of the top-level Get Software view (LP: #628404) 
+    - use init_view to defer loading of the channel and installed
+      pane views, provides further startup time improvement
+
+  [ Michael Vogt ]
+  * merged lp:~aaronp/software-center/usc-605048:
+    Alters db update behaviour to stop 'rebuilding' window appearing while
+    xapian db is being updated on detecting an externally changed cache.
+    Instead, updates a new copy of the xapian db, then once finished,
+    renamed to be the new xapian db.
+  * test/test_gui.py:
+    - add test for reinstall previous purchase UI
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 22 Dec 2010 14:08:46 +0100
+
+software-center (3.1.8) natty; urgency=low
+
+  [ Michael Vogt ]
+  * softwarecenter/backend/restfulclient.py:
+    - honor UBUNTU_SSO_SERVICE
+  * softwarecenter/plugin.py:
+    - ignore plugin init failures
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - add helper to obtain xy position of the appicon in the view
+
+  [ Gary Lasker ]
+  * softwarecenter/view/appview.py:
+    - fix crash in refresh_apps if previous model did
+      not have a filter (LP: #690706)
+  * softwarecenter/models/appstore.py:
+    - enable threaded listviews 
+  * <many>:
+    - implement inline purchase flow (LP: #618817, LP: #625418) 
+
+  [ Kiwinote ]
+  * softwarecenter/view/appview.py:
+    - fix crash when switching from a specific channel in the available pane
+      to the same channel in the installed pane
+  * softwarecenter/view/historypane.py:
+    - use named arguments for history entries - thanks to dpm (LP: #690283)
+  * softwarecenter/view/pendingview.py:
+    - use a scrollbar when we have many transactions (LP: #642299)
+    - display progress for transactions
+  * po/POTFILES.in:
+    - mark softwarecenter/models/viewswitcherlist.py for translation
+  * data/ui/dialogs.py:
+    - don't mark " " strings as translatable (LP: #691082)
+  * debian/control:
+    - use correct Vcs-Bzr url (LP: #690906)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 21 Dec 2010 16:09:37 +0100
+
+software-center (3.1.7) natty; urgency=low
+
+  [ Michael Vogt ]
+  * refactor "SoftwarePane.refresh_apps()" code, this ensures
+    the app lists are only ever (re)created if something changes
+    and so avoiding nasty UI flashes (code is simpler now as well)
+  * softwarecenter/models/appstore.py:
+    - fix search ranking for exact package name matches (thanks to
+      seb128)
+    - display exact pkgname matches even if they are a technical
+      item (e.g. nautilus)
+  * softwarecenter/view/appview.py:
+    - fallback to previous (slower) method to obtain the pkgname
+      from xapian if the DB is not yet rebuild (thanks to seb128
+      for reporting this problem)
+  * softwarecenter/apt/apthistory.py, test/test_apthistory.py:
+    - fix apthistory test by allowing noncached operations
+  * softwarecenter/models/appstore.py:
+    - fix potential crash in tests
+  * softwarecenter/db/update.py:
+    - test if the db support spelling suggestions before enabling
+      them to ensure its not crashing for the inmemory DB
+  
+  [ Matthew McGowan ]
+  * merged lp:~mmcg069/software-center/bubbles, this gives us
+    pretty bubbles in the viewswitcher
+
+  [ Gary Lasker ]
+  * softwarecenter/models/appstore.py,
+    softwarecenter/view/catview_gtk.py:
+    - thread listview refreshes to restore UI feedback with
+      recent experimental-fastlist improvements 
+  * test/test_search_per_spec.py:
+    - tweak test for threaded listview refreshes
+  * softwarecenter/view/availablepane.py,
+    softwarecenter/view/channelpane.py,
+    softwarecenter/view/installedpane.py:
+    - cleanup imports for wait_for_apt_cache_ready
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 15 Dec 2010 15:06:38 +0100
+
+software-center (3.1.6) natty; urgency=low
+
+  [ Gary Lasker ]
+  * softwarecenter/utils.py,
+    softwarecenter/view/appdetailsview_gtk.py:
+    - disable find-it-in-the-menu under Unity (LP: #639701)
+  
+  [ Michael Vogt ]
+  * merged lp:~mvo/software-center/no-search-results-help that 
+    brings search suggestions for spelling corrections
+  * add compat mode so that the current code can still be run on 
+    maverick for now
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 09 Dec 2010 16:51:07 +0100
+
+software-center (3.1.5) natty; urgency=low
+
+  * softwarecenter/app.py:
+    - on a invalid locale, reset the locale to "C" to avoid
+      later crashes in the apthistory that uses strptime 
+      (lp: #630248)
+  * softwarecenter/view/appview.py:
+    - fix crash with the latest python-xapian (LP: #687399)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 08 Dec 2010 18:05:05 +0100
+
+software-center (3.1.4) natty; urgency=low
+
+  [ Michael Vogt ]
+  * softwarecenter/db/database.py:
+    - add section and origin query parser prefixes, thanks to
+      Matthew McGowan!
+  * merged lp:~mvo/software-center/experimental-fastlist and
+    lp:~kiwinote/software-center/experimental-fastlist, this should
+    speed up the list rendering quite a lot
+  * merged lp:~kelemeng/software-center/bug685467, many thanks!
+    (LP: #685467)
+  * softwarecenter/backend/aptd.py:
+    - ported to the aptdaemon 0.40 API
+  * debian/control: 
+    - depend on aptdaemon 0.40
+
+  [ Kiwinote ]
+  * softwarecenter/backend/channel.py:
+    - only show installed packages in the 'for purchase' channel of the
+      installed pane (LP: #684356)
+  * softwarecenter/utils.py:
+    - don't return a http proxy string if it contains no host (LP: #675186)
+      thanks to Marius Gedminas
+  * softwarecenter/view/appview.py:
+    - don't crash in natty due to seemingly deprecated xapian.query attribute
+      get_description (LP: #684887)
+  * softwarecenter/view/channelpane.py:
+    - don't explicitly show all pkgs for the partner channel, this is no
+      longer needed because all apps now have app-install-data desktop files
+  * softwarecenter/view/widgets/searchentry.py:
+    - reverse the 'clear' icon for rtl as requested in (LP: #666519)
+  * softwarecenter/app.py:
+    - do not crash when showing a already installed package and the apt
+      cache is not loaded yet
+
+  [ Matthew Paul Thomas ]
+  * data/ui/SoftwareCenter.ui:
+    - improved text for software catalog update window (LP: #678355)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 07 Dec 2010 15:02:40 +0100
+
+software-center (3.1.3) natty; urgency=low
+
+  [ Michael Vogt ]
+  * daily-build.recipe:
+    - add daily build recipe
+  * test/test_xapian.py:
+    - add lowlevel test for "find more similar apps" DB query
+  * softwarecenter/db/update.py:
+    - generate spell checking data
+  * softwarecenter/enums.py:
+    - increase DB version (because we now have spell checking in the DB)
+  * test/test_xapian.py:
+    - add lowlevel test for spell checking feature
+  * merged lp:~mvo/software-center/apthistory-pickle-cache to avoid
+    (re)parsing most of the apthistory
+
+  [ Kiwinote ]
+  * apt-xapian-index-plugin/origin.py (tmp location),
+    softwarecenter/db/database.py,
+    softwarecenter/db/update.py:
+    - make search queries containing '-' work (LP: #497708)
+  * po/POTFILES.in:
+    mark softwarecenter/view/softwarepane.py for translation (LP: #659955)
+
+  [ Mohamed Amine IL Idrissi ]
+  * softwarecenter/view/availablepane.py,
+    softwarecenter/view/softwarepane.py:
+    - use named arguments for translatable plural strings (LP: #630955)
+  * softwarecenter/view/historypane.py:
+    - use 'updated' instead of 'upgraded' (LP: #635196)
+
+  [ Gary Lasker ]
+  * softwarecenter/app.py:
+    - remove unused code; we don't lazy-load entire history pane, rather
+      we create the pane UI but then load/parse apthistory on demand
+  * po/POTFILES.in:
+    - mark login_sso.py, update.py, dependency_dialogs.py and
+      purchasedialog.py for translation
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 30 Nov 2010 14:40:59 +0100
+
+software-center (3.1.2) natty; urgency=low
+
+  [ Michael Vogt ]
+  * merged lp:~kiwinote/software-center/getting-the-small-things-right,
+    many thanks!
+  * test/test_where_is_it.py, test/data/fake-applications.menu:
+    use test/data/fake-applications.menu in the test_where_is_it.py
+    that points to  <LegacyDir>/usr/share/app-install/desktop</LegacyDir>
+    to ensure the "where-is-it" tests work on all machines
+  * test/test_appdetails_view.py:
+    - add better message on missing python-mock
+  * softwarecenter/enums.py:
+    - add DB_SCHEMA_VERSION as metadata to the DB and ensure we rebuild
+      the local DB on mismatch (the systemwide one is handlded already)
+  * softwarecenter/db/update.py, utils/update-software-center:
+    - do no longer log to the root logger but instead to a db.update logger
+  * test/test_mime.py:
+    - use the local DB in the test and build it if needed
+  * setup.py:
+    - add "lint" target that runs pocketlint
+  * softwarecenter/apt/apthistory.py, softwarecenter/db/application.py:
+    - do lazy loading in the constructor in a idle_add() function
+  * test/test_database.py:
+    - update test for lazy loading
+  * softwarecenter/view/historypane.py:
+    - ensure the lazy loaded history is ready before displaying it
+  * test/Makefile, .bzr-builddeb/default.conf:
+    - add clean target and run it on bzr-buildpackage
+
+  [ Kiwinote ]
+  * softwarecenter/app.py:
+    - don't delete about dialog upon closing the window (LP: #658678)
+  * softwarecenter/db/application.py:
+    - icon should return '?' icon if pkg is not found
+    - fix logic in determining when the source is available, ie don't show
+      'use this source' if source is already enabled
+  * softwarecenter/db/update.py:
+    - don't index desktop files not available for our arch (LP: #629434)
+      (most visible example in partners channel on maverick amd64)
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - pkg_state must be queried before querying the title in order to get the
+      correct 'not found' title
+    - _update_minimal must update title in order to enable source based on
+      app-install-data info, but then realise that the pkg isn't available
+      due to outdated app-install-data info (4pkgs for maverick final)
+    - _update_minimal must update description when we have just enabled a
+      source instead of continuing to display an empty description
+  * softwarecenter/view/catview_gtk.py:
+    - don't append the recommended category to self.departments - this causes
+      the recommended category button to be displayed on maximising window
+  * clean up some 'is it available for our architecture' code that is not
+    needed anymore (idealy we don't need the info in the db either)
+  * <all>:
+    - don't pass the history object throughout the panes, but load on demand
+  * softwarecenter/app.py:
+    - update the file menu on demand
+    - import & load history_pane on demand
+    - import login related stuff on demand to save startup time
+  * softwarecenter/db/application.py:
+    - don't show the installation date immediately if it means taking 9s
+      to determine it
+
+  [ Gary Lasker ]
+  * softwarecenter/view/basepane.py,
+    softwarecenter/view/historypane.py,
+    softwarecenter/view/viewmanager.py,
+    - add a generic mechanism to support initializing a view
+      upon selection with viewswitcher
+    - lazy-load/parse history only when HistoryPane is
+      selected, improves startup time
+    - display a spinner and set all buttons insensitive
+      while the history is loaded and parsed
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 23 Nov 2010 14:29:13 +0100
+
+software-center (3.1.1) natty; urgency=low
+
+  [ Kiwinote ]
+  * softwarecenter/app.py:
+    - don't require '.deb' extentions for deb files (LP: #656967)
+    - don't require absolute paths for deb files (LP: #669398)
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - correctly reload appdetailsview after a transaction has run
+    - _update_minimal() only gets two args
+
+  [ Gary Lasker ]
+  * softwarecenter/backend/channel.py,
+    softwarecenter/view/channelpane.py,
+    softwarecenter/view/viewswitcher.py:
+    - convert channel getters to properties
+  * softwarecenter/backend/config.py:
+    - don't crash on a corrupted config file (LP: #662414) 
+  * softwarecenter/view/dependency_dialogs.py:
+    - fix TypeError crash in remove dependency dialog
+      (LP: #669161)
+  * softwarecenter/utils.py,
+    softwarecenter/view/softwarepane.py,
+    softwarecenter/view/widgets/imagedialog.py,
+    softwarecenter/view/widgets/spinner.py:
+    - refactor spinner code
+    - make a spinner panel widget and add label support
+  * softwarecenter/backend/aptd.py:
+    - fix crash during reload (LP: #673991)
+  
+  [ Michael Vogt ]
+  * softwarecenter/view/purchasedialog.py:
+    - show generic error on purchase failure and log the error
+       (LP: #632361)
+  * test/test_startup.py:
+    - add startup speed baseline/regression test
+  * software-center:
+    - add --measure-startup-time commandline to allow external apps
+      to drive statup performance measuring
+  * utils/update-software-center-agent:
+    - add --ignore-etag to force reload even if we have a cached version
+  * softwarecenter/db/update.py:
+    - do not fail if "MimeType" is missing from a desktop file
+  * softwarecenter/apt/apthistory.py:
+    - use python-apt tagfile parser instead of python-debian
+  * debian/control:
+    - drop python-debian dependency
+  * test/test_gui_buy_something.py: 
+    - run test with --ignore-etag
+  * softwarecenter/apt/aptcache.py, test/test_addons.py:
+    - make the addons test more robust
+
+  [ Martin Pitt ]
+  * debian/rules: Supply dh --with option after $@, for compatibility with
+    current debhelper.
+  * debian/control: Build with scour for SVG optimization. Add python-scour
+    build dependency.
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 18 Nov 2010 16:58:02 +0100
+
 software-center (3.1.0) natty; urgency=low
 
   [ Michael Vogt ]
@@ -66,6 +478,15 @@ software-center (3.1.0) natty; urgency=low
     - fix intermittent crash in _set_cursor (LP: #617004) 
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 15 Oct 2010 17:31:30 +0200
+
+software-center (3.0.6) maverick-proposed; urgency=low
+
+  * softwarecenter/backend/aptd.py:
+    - when enabling a channel like "Canonical Partner", ensure
+      that the initial reload of the package data works 
+      (LP: #666956)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 26 Oct 2010 15:25:43 -0400
 
 software-center (3.0.5) maverick-proposed; urgency=low
 
