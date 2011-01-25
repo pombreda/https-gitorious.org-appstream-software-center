@@ -23,14 +23,18 @@ software-center (3.1.11) UNRELEASED; urgency=low
       the purchase process (LP: #705676) 
   * softwarecenter/apt/aptcache.py,
     softwarecenter/view/availablepane.py:
-    - defer opening the cache until we initialize the availablepane
+    - defer opening the apt cache until we initialize the availablepane
       view, provides a nice startup time boost
+  * test/test_appview.py,
+    test/test_gui_buy_something.py,
+    test/test_software_channels.py:
+    - update test cases for deferred apt cache open
 
   [ Kiwinote ]
   * softwarecenter/app.py:
     - display pkgs in correct pane when passing arguments (LP: #689407)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 24 Jan 2011 20:21:11 -0500
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 24 Jan 2011 20:25:12 -0500
 
 software-center (3.1.10) natty; urgency=low
 
