@@ -18,9 +18,8 @@ software-center (3.1.11) UNRELEASED; urgency=low
       view is fully initialized to insure correct status bar
       updating (fixes failure in test_supported_only test case)
   * softwarecenter/app.py:
-    - don't back up one level in the navigation hierarchy if the
-      backspace key is pressed while entering information during
-      the purchase process (LP: #705676) 
+    - fix unexpected switch back to the details view if the backspace
+      key is pressed during the purchase process (LP: #705676)
   * softwarecenter/apt/aptcache.py,
     softwarecenter/view/availablepane.py:
     - defer opening the apt cache until we initialize the availablepane
@@ -34,7 +33,7 @@ software-center (3.1.11) UNRELEASED; urgency=low
   * softwarecenter/app.py:
     - display pkgs in correct pane when passing arguments (LP: #689407)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 24 Jan 2011 20:25:12 -0500
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 24 Jan 2011 20:31:59 -0500
 
 software-center (3.1.10) natty; urgency=low
 
