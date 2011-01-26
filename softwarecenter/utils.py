@@ -67,22 +67,6 @@ def log_traceback(info):
     logger.debug("%s: %s" % (info, "".join(traceback.format_stack())))
     
 
-class GnomeProxyURLopener(urllib.FancyURLopener):
-    """A urllib.URLOpener that honors the gnome proxy settings"""
-    def __init__(self, user_agent=USER_AGENT):
-        proxies = {}
-        http_proxy = get_http_proxy_string_from_gconf()
-        if http_proxy:
-            proxies = { "http" : http_proxy }
-        urllib.FancyURLopener.__init__(self, proxies)
-        self.version = user_agent
-    def http_error_404(self, url, fp, errcode, errmsg, headers):
-        logging.debug("http_error_404: %s %s %s" % (url, errcode, errmsg))
-        raise Url404Error, "404 %s" % url
-    def http_error_403(self, url, fp, errcode, errmsg, headers):
-        logging.debug("http_error_403: %s %s %s" % (url, errcode, errmsg))
-        raise Url403Error, "403 %s" % url
-
 def wait_for_apt_cache_ready(f):
     """ decorator that ensures that self.cache is ready using a
         gtk idle_add - needs a cache as argument
@@ -163,6 +147,18 @@ def get_language():
     if language in FULL:
         return language
     return language.split("_")[0]
+
+def get_http_proxy_string_from_libproxy(url):
+    """Helper that uses libproxy to get the http proxy for the given url """
+    import libproxy
+    pf = libproxy.ProxyFactory()
+    proxies = pf.getProxies(url)
+    # FIXME: how to deal with multiple proxies?
+    proxy = proxies[0]
+    if proxy == "direct://":
+        return ""
+    else:
+        return proxy
 
 def get_http_proxy_string_from_gconf():
     """Helper that gets the http proxy from gconf

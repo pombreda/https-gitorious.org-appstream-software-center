@@ -78,10 +78,6 @@ class AptCache(gobject.GObject):
         self._cache = None
         self._ready = False
         self._timeout_id = None
-        # async open cache 
-        # FIXME: measure if idle_add() or timeout_add(100, self.open)
-        #        make a difference on slow hardware
-        glib.idle_add(self.open)
         # setup monitor watch for install/remove changes
         self.apt_finished_stamp=gio.File(self.APT_FINISHED_STAMP)
         self.apt_finished_monitor = self.apt_finished_stamp.monitor_file(
@@ -90,6 +86,7 @@ class AptCache(gobject.GObject):
             "changed", self._on_apt_finished_stamp_changed)
         # this is fast, so ok
         self._language_packages = self._read_language_pkgs()
+        
     def _on_apt_finished_stamp_changed(self, monitor, afile, other_file, event):
         if not event == gio.FILE_MONITOR_EVENT_CHANGES_DONE_HINT:
             return 

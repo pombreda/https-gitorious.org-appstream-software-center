@@ -87,11 +87,13 @@ class SCBuySomething(unittest.TestCase):
             u"Buy\u2026")
         # click the "Buy" button to initiate a purchase
         self.app.available_pane.app_details_view.action_bar.button.clicked()
+        self._p()
+        time.sleep(1)
         # check that the purchase pane is displayed
         self.assertEqual(str(self.app.available_pane.navigation_bar.get_parts()),
                          "[Get Software, Search Results, Hello X Adventure, Buy]")
         self._p()
-        time.sleep(3)
+        time.sleep(1)
         self._p()
         # simulate a successful purchase in the UI by firing a purchase-succeeded
         self.app.available_pane.purchase_view.emit("purchase-succeeded")

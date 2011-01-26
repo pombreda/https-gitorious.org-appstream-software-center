@@ -425,7 +425,7 @@ class SoftwareCenterAgentAnonymous(gobject.GObject):
             self.log.debug("etags match (%s == %s), doing nothing" % (
                     etag, self.latest_etag))
             self.emit("available", [])
-    def query_available(self):
+    def query_available(self, include_approved_but_unpublished=False):
         """ query what software is available for the current codename/arch 
             Note that this function is async and emits "available" or "error"
             signals when done
@@ -438,6 +438,9 @@ class SoftwareCenterAgentAnonymous(gobject.GObject):
             'lang' : lang,
             'series' : series_name,
             'arch' : arch_tag, }
+        # include not yet-published items (if asked for)
+        if include_approved_but_unpublished:
+            url += "?include_approved=True"
         # load latest etag if available
         self.latest_etag = self._load_etag(self.etagfile, url)
         f = gio.File(url)

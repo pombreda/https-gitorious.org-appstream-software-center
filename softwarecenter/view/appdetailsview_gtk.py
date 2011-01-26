@@ -46,6 +46,7 @@ from widgets import mkit
 from widgets.mkit import EM
 from widgets.label import IndentLabel
 from widgets.imagedialog import ShowImageDialog
+
 from widgets.reviews import ReviewStatsContainer, StarRating
 
 if os.path.exists("./softwarecenter/enums.py"):
