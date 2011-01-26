@@ -1,5 +1,6 @@
 [type: python] software-center
 [type: python] utils/submit_review.py
+[type: python] utils/report_abuse.py
 [type. python] utils/update-software-center
 [type: gettext/glade] data/ui/SoftwareCenter.ui
 [type: gettext/glade] data/ui/dialogs.ui
@@ -18,7 +19,6 @@ softwarecenter/backend/aptd.py
 softwarecenter/backend/channel.py
 softwarecenter/backend/login_sso.py
 softwarecenter/db/application.py
-softwarecenter/db/reviews.py
 softwarecenter/db/database.py
 softwarecenter/db/update.py
 softwarecenter/distro/Debian.py
@@ -43,4 +43,5 @@ softwarecenter/view/softwarepane.py
 softwarecenter/view/viewswitcher.py
 softwarecenter/view/widgets/backforward.py
 softwarecenter/view/widgets/pathbar_gtk_atk.py
+softwarecenter/view/widgets/reviews.py
 softwarecenter/view/widgets/searchentry.py
