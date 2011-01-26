@@ -33,6 +33,8 @@ software-center (3.1.11) UNRELEASED; urgency=low
   * add support for libproxy
   * softwarecenter/view/widgets/imagedialog.py:
     - eliminate use of urllib, use ImageDownloader (gio) instead
+  * support SOFTWARE_CENTER_AGENT_INCLUDE_APPROVED_BUT_UNPUBLISHED
+    for QA (LP: #681935)
   
   [ Kiwinote ]
   * softwarecenter/app.py:
