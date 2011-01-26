@@ -1404,7 +1404,10 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # wrong
         stats = ReviewStats(app)
         stats.ratings_total = len(reviews)
-        stats.ratings_average = sum([x.rating for x in reviews]) / float(stats.ratings_total)
+        if stats.ratings_total == 0:
+            stats.ratings_average = 0
+        else:
+            stats.ratings_average = sum([x.rating for x in reviews]) / float(stats.ratings_total)
         self._update_review_stats_widget(stats)
         self.reviews.finished()
 
