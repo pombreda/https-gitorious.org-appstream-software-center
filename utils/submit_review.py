@@ -239,8 +239,7 @@ class Worker(threading.Thread):
             piston_review.rating = review.rating
             piston_review.language = review.language
             piston_review.arch_tag = get_current_arch()
-            #FIXME: not hardcode
-            piston_review.origin = "ubuntu"
+            piston_review.origin = review.origin
             piston_review.distroseries=distro.get_codename()
             try:
                 res = self.rnrclient.submit_review(review=piston_review)
@@ -450,7 +449,7 @@ class SubmitReviewsApp(BaseApp):
     SUBMIT_MESSAGE = _("Submitting Review")
     
 
-    def __init__(self, app, version, iconname, parent_xid, datadir):
+    def __init__(self, app, version, iconname, origin, parent_xid, datadir):
         BaseApp.__init__(self, datadir, "submit_review.ui")
         self.datadir = datadir
         # legal fineprint, do not change without consulting a lawyer
@@ -492,6 +491,7 @@ class SubmitReviewsApp(BaseApp):
         # data
         self.app = app
         self.version = version
+        self.origin = origin
         self.iconname = iconname
         
         # title
@@ -638,6 +638,7 @@ class SubmitReviewsApp(BaseApp):
         review.language = get_language()
         review.rating = self.star_rating.get_rating()
         review.package_version = self.version
+        review.origin = self.origin
         self.api.submit_review(review)
         
 
@@ -883,6 +884,7 @@ if __name__ == "__main__":
         parser.add_option("-p", "--pkgname")
         parser.add_option("-i", "--iconname")
         parser.add_option("-V", "--version")
+        parser.add_option("-O", "--origin")
         parser.add_option("", "--parent-xid")
         parser.add_option("", "--debug",
                           action="store_true", default=False)
@@ -903,6 +905,7 @@ if __name__ == "__main__":
                                       app=theapp, 
                                       parent_xid=options.parent_xid,
                                       iconname=options.iconname,
+                                      origin=options.origin,
                                       version=options.version)
         review_app.run()
 
