@@ -161,7 +161,7 @@ class AppStore(gtk.GenericTreeModel):
         self.nonapp_pkgs = 0
         self._explicit_nonapp_visibility = False
         # reviews
-        self.review_loader = get_review_loader()
+        self.review_loader = get_review_loader(self.cache)
         # backend stuff
         self.backend = get_install_backend()
         self.backend.connect("transaction-progress-changed", self._on_transaction_progress_changed)
