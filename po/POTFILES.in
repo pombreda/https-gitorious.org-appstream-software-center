@@ -1,6 +1,5 @@
 [type: python] software-center
 [type: python] utils/submit_review.py
-[type: python] utils/report_abuse.py
 [type. python] utils/update-software-center
 [type: gettext/glade] data/ui/SoftwareCenter.ui
 [type: gettext/glade] data/ui/dialogs.ui
