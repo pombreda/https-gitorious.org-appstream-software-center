@@ -4,7 +4,8 @@
 [type: gettext/glade] data/ui/SoftwareCenter.ui
 [type: gettext/glade] data/ui/dialogs.ui
 [type: gettext/glade] data/ui/login.ui
-[type: gettext/glade] data/ui/reviews.ui
+[type: gettext/glade] data/ui/submit_review.ui
+[type: gettext/glade] data/ui/report_abuse.ui
 data/ubuntu-software-center.desktop.in
 data/unbranded-software-center.desktop.in
 [type: gettext/xml] data/featured.menu.in
