@@ -538,6 +538,16 @@ class SubmitReviewsApp(BaseApp):
         self.rating_label.set_markup('<b><span color="%s">%s</span></b>' % (dark, _('Rating')))
         return
 
+    # force resize of the legal label when the app resizes, if not
+    # done it looks really bad, thanks gtk for not doing this for me
+    def on_submit_window_size_allocate(self, *args):
+        self._resize_legal_label()
+    def on_submit_window_state_changed(self, *args):
+        self._resize_legal_label()
+    def _resize_legal_label(self):
+        width, height = self.submit_window.get_size()
+        self.label_legal_fineprint.set_size_request(width, -1)
+
     def _on_mandatory_fields_changed(self, widget):
         self._enable_or_disable_post_button()
     

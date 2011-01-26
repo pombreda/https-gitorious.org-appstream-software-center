@@ -33,6 +33,7 @@ from PIL import Image
 from gettext import gettext as _
 import apt_pkg
 from softwarecenter.db.application import Application
+from softwarecenter.db.reviews import ReviewStats
 from softwarecenter.backend.zeitgeist_simple import zeitgeist_singleton
 from softwarecenter.enums import *
 from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
@@ -1369,16 +1370,18 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
     def _check_for_reviews(self):
         # review stats is fast and syncronous
         stats = self.review_loader.get_review_stats(self.app)
+        self._update_review_stats_widget(stats)
+        # individual reviews is slow and async so we just queue it here
+        reviews = self.review_loader.get_reviews(self.app,
+                                                 self._reviews_ready_callback)
+
+    def _update_review_stats_widget(self, stats):
         if stats:
             self.review_stats_widget.set_avg_rating(stats.ratings_average)
             self.review_stats_widget.set_nr_reviews(stats.ratings_total)
             self.review_stats_widget.show()
         else:
             self.review_stats_widget.hide()
-
-        # individual reviews is slow and async
-        reviews = self.review_loader.get_reviews(self.app,
-                                                 self._reviews_ready_callback)
 
     def _reviews_ready_callback(self, app, reviews):
         """ callback when new reviews are ready, cleans out the
@@ -1396,6 +1399,12 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # then add the new ones ...
         for review in reviews:
             self.reviews.add_review(review)
+        # then update the stats (if needed). the caching can make them
+        # wrong
+        stats = ReviewStats(app)
+        stats.ratings_total = len(reviews)
+        stats.ratings_average = sum([x.rating for x in reviews]) / float(stats.ratings_total)
+        self._update_review_stats_widget(stats)
         self.reviews.finished()
 
     def _on_allocate(self, widget, allocation):
