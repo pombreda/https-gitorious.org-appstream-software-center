@@ -681,8 +681,6 @@ class SubmitReviewsApp(BaseApp):
         return { "gwibber_send" : send, 
                  "account_id" : account_id }
             
-        
-    
     def _on_no_gwibber_accounts(self):
         self.gwibber_hbox.hide()
         self.gwibber_checkbutton.set_active(False)
@@ -778,9 +776,12 @@ class SubmitReviewsApp(BaseApp):
                 rating_string = rating_string + u"\u2606"
                 
         review_summary_text = self.review_summary_entry.get_text()
-        app_link = "http://apt.ubuntu.com/p/%s" % self.app.pkgname
-        gwib_msg = _("reviewed %(appname)s: %(rating)s %(summary)s %(link)s") % { 
-                'appname' : self.app.appname, 
+        # FIXME: currently the link is not useful (at all) for most
+        #        people not runnig ubuntu
+        #app_link = "http://apt.ubuntu.com/p/%s" % self.app.pkgname
+        app_link = ""
+        gwib_msg = _("reviewed %(appname)s in Ubuntu: %(rating)s %(summary)s %(link)s") % { 
+                'appname' : self.app.name,
                 'rating'  : rating_string, 
                 'summary'  : review_summary_text,
                 'link'    : app_link }
