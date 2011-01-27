@@ -27,6 +27,13 @@ SOFTWARE_CENTER_USE_BUILTIN_LOGIN - use built-in login instead of ubuntu-sso-cli
 SOFTWARE_CENTER_APPDETAILS_WEBKIT - use the webkit appdetails instead of gtk
 APPVIEW_DEBUG_TERMS - show debug output for the terms in a search
 SOFTWARE_CENTER_BUY_HOST - use a alternative hosts to query for pay software
+SOFTWARE_CENTER_REVIEWS_HOST - a alternative host for the ratings&reviews
+SOFTWARE_CENTER_DEBUG_HTTP - enable httplib2 debuging
+
+SOFTWARE_CENTER_IPSUM_REVIEWS - geneate random reviews
+SOFTWARE_CENTER_OLD_PATHBAR - use old pathbar code
+SOFTWARE_CENTER_SEARCHES_SORT_MODE={popcon,alphabetic,xapian}
+SOFTWARE_CENTER_GWIBBER_MOCK_USERS=2 - use mock gwibber service
 SOFTWARE_CENTER_AGENT_INCLUDE_APPROVED_BUT_UNPUBLISHED - show not yet QA apps available from the agent
 
 == applications.menu ==

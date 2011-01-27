@@ -59,6 +59,8 @@ from paths import SOFTWARE_CENTER_ICON_CACHE_DIR
 
 from plugin import PluginManager
 
+from db.reviews import get_review_loader
+
 from distro import get_distro
 
 from apt.aptcache import AptCache
@@ -130,6 +132,13 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         # a main iteration friendly apt cache
         self.cache = AptCache()
         self.cache.connect("cache-broken", self._on_apt_cache_broken)
+
+        # reviews
+        self.review_loader = get_review_loader(self.cache)
+        # FIXME: add some kind of throttle, I-M-S here
+        self.review_loader.refresh_review_stats(self.on_review_stats_loaded)
+
+        # backend
         self.backend = get_install_backend()
         self.backend.connect("transaction-finished", self._on_transaction_finished)
         self.backend.connect("channels-changed", self.on_channels_changed)
@@ -420,6 +429,9 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self._logger.info("software-center-agent finished with status %i" % os.WEXITSTATUS(condition))
         if os.WEXITSTATUS(condition) == 0:
             self.db.reopen()
+
+    def on_review_stats_loaded(self, reviews):
+        print "*** on_review_stats_loaded ***"
 
     def on_app_details_changed(self, widget, app, page):
         self.update_status_bar()

@@ -42,6 +42,7 @@ ESCAPE_ENTITIES = {"&apos;":"'",
                    
 LOG = logging.getLogger("softwarecenter.utils")
 
+
 class ExecutionTime(object):
     """
     Helper that can be used in with statements to have a simple
@@ -129,6 +130,24 @@ def htmlize_package_desc(desc):
     if inside_p:
         yield "</p>"
 
+def get_parent_xid(widget):
+    while widget.get_parent():
+        widget = widget.get_parent()
+    return widget.window.xid
+
+def get_language():
+    """Helper that returns the current language
+    """
+    import locale
+    # those languages need the full language-code, the other ones
+    # can be abbreved
+    FULL = ["pt_BR", 
+            "zh_CN", "zh_TW"]
+    (language, encoding) = locale.getlocale()
+    if language in FULL:
+        return language
+    return language.split("_")[0]
+
 def get_http_proxy_string_from_libproxy(url):
     """Helper that uses libproxy to get the http proxy for the given url """
     import libproxy
@@ -178,6 +197,16 @@ def decode_xml_char_reference(s):
     p = re.compile("\&\#x(\d\d\d\d);")
     return p.sub(r"\u\1", s).decode("unicode-escape")
     
+def version_compare(a, b):
+    return apt_pkg.version_compare(a, b)
+
+def upstream_version_compare(a, b):
+    return apt_pkg.version_compare(apt_pkg.upstream_version(a),
+                                   apt_pkg.upstream_version(b))
+
+def upstream_version(v):
+    return apt_pkg.upstream_version(v)
+
 def unescape(text):
     """
     unescapes the given text
@@ -263,6 +292,7 @@ class ImageDownloader(gobject.GObject):
             if self.tmpdir is None:
                 self.tmpdir = tempfile.mkdtemp(prefix="software-center-")
             dest_file_path = os.path.join(self.tmpdir, uri_to_filename(url))
+
         self.url = url
         self.dest_file_path = dest_file_path
         
@@ -280,7 +310,7 @@ class ImageDownloader(gobject.GObject):
         try:
             result = f.query_info_finish(result)
             self.emit('image-url-reachable', True)
-            self.LOG.debug("image reachablee %s" % self.url)
+            self.LOG.debug("image reachable %s" % self.url)
             # url is reachable, now download the icon file
             f.load_contents_async(self._icon_download_complete_cb)
         except glib.GError, e:

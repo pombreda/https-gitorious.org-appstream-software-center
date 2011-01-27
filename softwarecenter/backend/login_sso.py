@@ -31,10 +31,10 @@ from login import LoginBackend
 
 class LoginBackendDbusSSO(LoginBackend):
 
-    APPNAME = _("Ubuntu Software Center Store")
-    
-    def __init__(self, window_id=0):
+    def __init__(self, window_id, appname, login_text):
         super(LoginBackendDbusSSO, self).__init__()
+        self.appname = appname
+        self.login_text = login_text
         self.bus = dbus.SessionBus()
         self.proxy = self.bus.get_object('com.ubuntu.sso', '/credentials')
         self.proxy.connect_to_signal("CredentialsFound", 
@@ -49,24 +49,27 @@ class LoginBackendDbusSSO(LoginBackend):
         # alternatively use:
         #  login_or_register_to_get_credentials(appname, tc, help, xid)
         self.proxy.login_to_get_credentials(
-            self.APPNAME,
-             _("To reinstall previous purchases, sign in to the "
-               "Ubuntu Single Sign-On account you used to pay for them."),
+            self.appname, self.login_text,
             self._window_id)
         
+    def login_or_register(self):
+        self.proxy.login_or_register_to_get_credentials(
+            self.appname, "", self.login_text,
+            self._window_id)
+
     def _on_credentials_found(self, app_name, credentials):
-        if app_name != self.APPNAME:
+        if app_name != self.appname:
             return
         self.emit("login-successful", credentials)
 
     def _on_credentials_error(self, app_name, error, detailed_error):
-        if app_name != self.APPNAME:
+        if app_name != self.appname:
             return
         # FIXME: do something useful with the error
         self.emit("login-failed")
 
     def _on_authorization_denied(self, app_name):
-        if app_name != self.APPNAME:
+        if app_name != self.appname:
             return
         self.cancel_login()
     

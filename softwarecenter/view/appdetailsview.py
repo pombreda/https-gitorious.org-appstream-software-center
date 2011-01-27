@@ -19,13 +19,18 @@
 
 import logging
 import gtk
+import dialogs
+
 import urllib
 import gobject
 
 from softwarecenter.db.application import AppDetails
+from softwarecenter.db.reviews import get_review_loader
 from softwarecenter.backend import get_install_backend
 from softwarecenter.enums import *
-from softwarecenter.utils import get_current_arch, get_default_language
+from softwarecenter.utils import get_current_arch, get_parent_xid, get_default_language
+
+LOG=logging.getLogger(__name__)
 
 class AppDetailsViewBase(object):
 
@@ -53,9 +58,10 @@ class AppDetailsViewBase(object):
         self.appdetails = None
         self.addons_to_install = []
         self.addons_to_remove = []
+        # reviews
+        self.review_loader = get_review_loader(self.cache)
         # aptdaemon
         self.backend = get_install_backend()
-        self._logger = logging.getLogger(__name__)
         
     def _draw(self):
         """ draw the current app into the window, maybe the function
@@ -72,9 +78,40 @@ class AppDetailsViewBase(object):
         #print "AppDetailsViewWebkit:"
         #print self.appdetails
         self._draw()
+        self._check_for_reviews()
         self.emit("selected", self.app)
     def refresh_app(self):
         self.show_app(self.app)
+
+    # common code
+    def _review_write_new(self):
+        if (not self.app or
+            not self.app.pkgname in self.cache or
+            not self.cache[self.app.pkgname].candidate):
+            dialogs.error(None, 
+                          _("Version unknown"),
+                          _("The version of the application can not "
+                            "be detected. Entering a review is not "
+                            "possible."))
+            return
+        # gather data
+        pkg = self.cache[self.app.pkgname]
+        version = pkg.candidate.version
+        origin = self.cache.get_origin(self.app.pkgname)
+        if pkg.installed:
+            version = pkg.installed.version
+        # call the loader to do call out the right helper and collect the result
+        parent_xid = get_parent_xid(self)
+        self.review_loader.spawn_write_new_review_ui(
+            self.app, version, self.appdetails.icon, origin,
+            parent_xid, self.datadir,
+            self._reviews_ready_callback)
+                         
+    def _review_report_abuse(self, review_id):
+        parent_xid = get_parent_xid(self)
+        self.review_loader.spawn_report_abuse_ui(
+            review_id, parent_xid, self.datadir, self._reviews_ready_callback)
+
     # public interface
     def reload(self):
         """ reload the package cache, this goes straight to the backend """
@@ -104,7 +141,7 @@ class AppDetailsViewBase(object):
 
     def reinstall_purchased(self):
         """ reinstall a purchased app """
-        self._logger.debug("reinstall_purchased %s" % self.app)
+        LOG.debug("reinstall_purchased %s" % self.app)
         appdetails = self.app.get_details(self.db)
         iconname = appdetails.icon
         deb_line = appdetails.deb_line
@@ -118,5 +155,7 @@ class AppDetailsViewBase(object):
     def _on_cache_ready(self, cache):
         # re-show the application if the cache changes, it may affect the
         # current application
-        self._logger.debug("on_cache_ready")
+        LOG.debug("on_cache_ready")
         self.show_app(self.app)
+
+
