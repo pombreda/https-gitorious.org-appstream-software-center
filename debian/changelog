@@ -1,9 +1,9 @@
-software-center (3.1.12) UNRELEASED; urgency=low
+software-center (3.1.12) natty; urgency=low
 
   * merged lp:~mvo/software-center/trunk-reviews, this adds ratings
     and reviews
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 27 Jan 2011 14:25:10 +0100
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 27 Jan 2011 20:48:06 +0100
 
 software-center (3.1.11) natty; urgency=low
 
