@@ -56,7 +56,13 @@ class GwibberHelper(object):
         proxy_obj = bus.get_object("com.Gwibber.Service",
                                    "/com/gwibber/Service")
         service_iface = dbus.Interface(proxy_obj, "com.Gwibber.Service")
-        service_iface.SendMessage(message)
+        if account_id:
+            json = simplejson.dumps({'message' : message,
+                                     'accounts' : [account_id],
+                                     })
+            service_iface.Send(json)
+        else:
+            service.SendMessage(message)
         return True
 
     @staticmethod
