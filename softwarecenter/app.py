@@ -435,7 +435,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self.db.reopen()
 
     def on_review_stats_loaded(self, reviews):
-        print "*** on_review_stats_loaded ***"
+        self._logger.debug("on_review_stats_loaded: '%s'" % len(reviews))
 
     def on_app_details_changed(self, widget, app, page):
         self.update_app_status_menu()
