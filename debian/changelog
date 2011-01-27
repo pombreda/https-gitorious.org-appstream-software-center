@@ -1,4 +1,4 @@
-software-center (3.1.11) UNRELEASED; urgency=low
+software-center (3.1.11) natty; urgency=low
 
   [ Gary Lasker ]
   * softwarecenter/view/widgets/spinner.py:
@@ -40,7 +40,7 @@ software-center (3.1.11) UNRELEASED; urgency=low
   * softwarecenter/app.py:
     - display pkgs in correct pane when passing arguments (LP: #689407)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 24 Jan 2011 20:31:59 -0500
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 27 Jan 2011 14:11:32 +0100
 
 software-center (3.1.10) natty; urgency=low
 
