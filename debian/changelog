@@ -1,3 +1,11 @@
+software-center (3.1.13) UNRELEASED; urgency=low
+
+  [ Kiwinote ]
+  * softwarecenter/view/appdetailsview_gtk:
+    - don't eat description characters (LP: #708684)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 27 Jan 2011 20:48:06 +0100
+
 software-center (3.1.12) natty; urgency=low
 
   * merged lp:~mvo/software-center/trunk-reviews, this adds ratings
