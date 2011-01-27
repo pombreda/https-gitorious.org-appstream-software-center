@@ -4,6 +4,7 @@
 # Copyright (C) 2010 Canonical
 #
 # Authors:
+#  Matthew McGowan
 #  Michael Vogt
 #
 # This program is free software; you can redistribute it and/or modify it under
