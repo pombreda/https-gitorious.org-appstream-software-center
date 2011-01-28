@@ -17,23 +17,23 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 from softwarecenter.utils import ExecutionTime
-with ExecutionTime("TIME loading app.py imports"):
-    import atexit
-    import atk
-    import locale
-    import dbus
-    import dbus.service
-    import gettext
-    import locale
-    import logging
-    import glib
-    import gtk
-    import os
-    import subprocess
-    import sys
-    import xapian
-    import cairo
+import atexit
+import atk
+import locale
+import dbus
+import dbus.service
+import gettext
+import locale
+import logging
+import glib
+import gtk
+import os
+import subprocess
+import sys
+import xapian
+import cairo
 
+with ExecutionTime("TIME loading app.py imports"):
     from SimpleGtkbuilderApp import SimpleGtkbuilderApp
 
     from softwarecenter.db.application import Application, DebFileApplication
