@@ -40,7 +40,8 @@ Depends: ${python:Depends},
          python-gmenu,
          aptdaemon (>= 0.40),
 	 python-lazr.restfulclient,
-         ubuntu-sso-client (>= 0.99.6)
+         ubuntu-sso-client (>= 0.99.6),
+         python-piston-mini-client,
 Recommends: lsb-release, 
             python-launchpad-integration, 
             apt-xapian-index (>= 0.38ubuntu1), 
@@ -48,7 +49,6 @@ Recommends: lsb-release,
             software-properties-gtk,
             sessioninstaller, 
             zeitgeist-core, 
-            python-piston-mini-client
 Conflicts: gnome-app-install (<< 1)
 Replaces: gnome-app-install
 Provides: gnome-app-install
