@@ -236,6 +236,8 @@ class ReviewLoaderThreadedRNRClient(ReviewLoader):
         """ threaded part of the fetching """
         # FIXME: select correct origin
         origin = self.cache.get_origin(app.pkgname)
+        if not origin:
+            return
         distroseries = self.distro.get_codename()
         try:
             kwargs = {"language":self.language, 
@@ -247,7 +249,7 @@ class ReviewLoaderThreadedRNRClient(ReviewLoader):
                 # FIXME: the appname will get quote_plus() later again,
                 #        but it appears the server has currently a bug
                 #        so it expects it this way
-                kwargs["appname"] = urllib.quote_plus(app.appname)
+                kwargs["appname"] = urllib.quote_plus(app.appname.encode("utf-8"))
             reviews = self.rnrclient.get_reviews(**kwargs)
         except:
             logging.exception("get_reviews")
