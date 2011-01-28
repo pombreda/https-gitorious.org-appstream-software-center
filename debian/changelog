@@ -1,12 +1,21 @@
 software-center (3.1.13) UNRELEASED; urgency=low
 
+  [ Gary Lasker ]
   * softwarecenter/view/appdetailsview_gtk.py:
     - fix crash in _on_transaction_started (LP: #708974)
   * softwarecenter/view/widgets/mkit.py:
     - handle case where the pango layout has no attributes,
       fixes broken carousel paging dots (LP: #708919)
+  
+  [ Michael Vogt ]
+  * debian/control:
+    - make python-piston-mini-client a recommends until the MIR for
+      it is approved (this unblocks CD builds)
+    - cleanup old conflict against software-store
+  * softwarecenter/view/catview_gtk.py:
+    - fix spacing for the recommends message
 
- -- Gary Lasker <gary.lasker@canonical.com>  Fri, 28 Jan 2011 00:28:56 -0500
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 28 Jan 2011 09:25:26 +0100
 
 software-center (3.1.12) natty; urgency=low
 
