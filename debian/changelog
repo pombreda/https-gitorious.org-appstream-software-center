@@ -1,3 +1,10 @@
+software-center (3.1.13) UNRELEASED; urgency=low
+
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - fix crash in _on_transaction_started (LP: #708974)
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 27 Jan 2011 23:42:21 -0500
+
 software-center (3.1.12) natty; urgency=low
 
   * merged lp:~mvo/software-center/trunk-reviews, this adds ratings
