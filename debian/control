@@ -41,13 +41,17 @@ Depends: ${python:Depends},
          aptdaemon (>= 0.40),
 	 python-lazr.restfulclient,
          ubuntu-sso-client (>= 0.99.6),
-         python-piston-mini-client
-Recommends: lsb-release, python-launchpad-integration, 
-            apt-xapian-index (>= 0.38ubuntu1), update-notifier,
-            software-properties-gtk, sessioninstaller, zeitgeist-core
-Conflicts: software-store, gnome-app-install (<< 1)
-Replaces: software-store, gnome-app-install
-Provides: software-store, gnome-app-install
+         python-piston-mini-client,
+Recommends: lsb-release, 
+            python-launchpad-integration, 
+            apt-xapian-index (>= 0.38ubuntu1), 
+            update-notifier, 
+            software-properties-gtk,
+            sessioninstaller, 
+            zeitgeist-core, 
+Conflicts: gnome-app-install (<< 1)
+Replaces: gnome-app-install
+Provides: gnome-app-install
 Suggests: python-launchpadlib
 XB-Python-Version: ${python:Versions}
 Description: Utility for browsing, installing, and removing applications
