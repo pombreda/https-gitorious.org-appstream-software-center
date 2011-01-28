@@ -23,6 +23,7 @@ import pygtk
 pygtk.require ("2.0")
 import gobject
 gobject.threads_init()
+import pango
 
 import datetime
 import gtk
@@ -239,8 +240,7 @@ class Worker(threading.Thread):
             piston_review.rating = review.rating
             piston_review.language = review.language
             piston_review.arch_tag = get_current_arch()
-            #FIXME: not hardcode
-            piston_review.origin = "ubuntu"
+            piston_review.origin = review.origin
             piston_review.distroseries=distro.get_codename()
             try:
                 res = self.rnrclient.submit_review(review=piston_review)
@@ -450,7 +450,7 @@ class SubmitReviewsApp(BaseApp):
     SUBMIT_MESSAGE = _("Submitting Review")
     
 
-    def __init__(self, app, version, iconname, parent_xid, datadir):
+    def __init__(self, app, version, iconname, origin, parent_xid, datadir):
         BaseApp.__init__(self, datadir, "submit_review.ui")
         self.datadir = datadir
         # legal fineprint, do not change without consulting a lawyer
@@ -465,7 +465,9 @@ class SubmitReviewsApp(BaseApp):
 
         # gwibber stuff
         self.gwibber_combo = gtk.combo_box_new_text()
-        self.gwibber_hbox.pack_start(self.gwibber_combo, False)
+        #cells = self.gwibber_combo.get_cells()
+        #cells[0].set_property("ellipsize", pango.ELLIPSIZE_END)
+        self.gwibber_hbox.pack_start(self.gwibber_combo, True)
         if "SOFTWARE_CENTER_GWIBBER_MOCK_USERS" in os.environ:
             self.gwibber_helper = GwibberHelperMock()
         else:
@@ -492,6 +494,7 @@ class SubmitReviewsApp(BaseApp):
         # data
         self.app = app
         self.version = version
+        self.origin = origin
         self.iconname = iconname
         
         # title
@@ -537,6 +540,16 @@ class SubmitReviewsApp(BaseApp):
         #rating label
         self.rating_label.set_markup('<b><span color="%s">%s</span></b>' % (dark, _('Rating')))
         return
+
+    # force resize of the legal label when the app resizes, if not
+    # done it looks really bad, thanks gtk for not doing this for me
+    def on_submit_window_size_allocate(self, *args):
+        self._resize_legal_label()
+    def on_submit_window_state_changed(self, *args):
+        self._resize_legal_label()
+    def _resize_legal_label(self):
+        width, height = self.submit_window.get_size()
+        self.label_legal_fineprint.set_size_request(width, -1)
 
     def _on_mandatory_fields_changed(self, widget):
         self._enable_or_disable_post_button()
@@ -638,6 +651,7 @@ class SubmitReviewsApp(BaseApp):
         review.language = get_language()
         review.rating = self.star_rating.get_rating()
         review.package_version = self.version
+        review.origin = self.origin
         self.api.submit_review(review)
         
 
@@ -670,8 +684,6 @@ class SubmitReviewsApp(BaseApp):
         return { "gwibber_send" : send, 
                  "account_id" : account_id }
             
-        
-    
     def _on_no_gwibber_accounts(self):
         self.gwibber_hbox.hide()
         self.gwibber_checkbutton.set_active(False)
@@ -690,30 +702,26 @@ class SubmitReviewsApp(BaseApp):
         self.gwibber_checkbutton.set_active(self.gwibber_prefs['gwibber_send'])
     
     def _on_multiple_gwibber_accounts(self):
-        self._on_no_gwibber_accounts()
-        #FIXME: delete the above call and uncomment the rest of this method once gwibber can send by account_id
-        
-        #self.gwibber_hbox.show()
-        #self.gwibber_combo.show()
+        self.gwibber_hbox.show()
+        self.gwibber_combo.show()
 
-        #self.gwibber_checkbutton.set_label(_("Also post this review to: "))
-        #for account in self.gwibber_accounts:
-        #    acct_text =  "%s (@%s)"  % (
-        #        account['service'].capitalize(), account['username'] )
-        #    self.gwibber_combo.append_text(acct_text)
+        self.gwibber_checkbutton.set_label(_("Also post this review to: "))
+        for account in self.gwibber_accounts:
+            acct_text =  "%s (@%s)"  % (
+                account['service'].capitalize(), account['username'] )
+            self.gwibber_combo.append_text(acct_text)
         
-        #self.gwibber_checkbutton.set_active(self.gwibber_prefs['gwibber_send'])
-        #gwibber_active_account = 0
+        self.gwibber_checkbutton.set_active(self.gwibber_prefs['gwibber_send'])
+        gwibber_active_account = 0
         
-        #for account in self.gwibber_accounts:
-        #    if account['id'] == self.gwibber_prefs['account_id']:
-        #        gwibber_active_account = self.gwibber_accounts.index(account)
-        #self.gwibber_combo.set_active(gwibber_active_account)
+        for account in self.gwibber_accounts:
+            if account['id'] == self.gwibber_prefs['account_id']:
+                gwibber_active_account = self.gwibber_accounts.index(account)
+        self.gwibber_combo.set_active(gwibber_active_account)
 
     def on_transmit_success(self, api, trans):
         gwibber_success = True
         if self.gwibber_checkbutton.get_active():
-            #self._submit_via_gwibber()
             i = self.gwibber_combo.get_active()
             status_text = _("Posting to %s") % self.gwibber_accounts[i]['service'].capitalize()
             self.label_transmit_status.set_text(status_text)
@@ -771,9 +779,12 @@ class SubmitReviewsApp(BaseApp):
                 rating_string = rating_string + u"\u2606"
                 
         review_summary_text = self.review_summary_entry.get_text()
-        app_link = "http://apt.ubuntu.com/p/%s" % self.app.pkgname
-        gwib_msg = _("reviewed %(appname)s: %(rating)s %(summary)s %(link)s") % { 
-                'appname' : self.app.appname, 
+        # FIXME: currently the link is not useful (at all) for most
+        #        people not runnig ubuntu
+        #app_link = "http://apt.ubuntu.com/p/%s" % self.app.pkgname
+        app_link = ""
+        gwib_msg = _("reviewed %(appname)s in Ubuntu: %(rating)s %(summary)s %(link)s") % { 
+                'appname' : self.app.name,
                 'rating'  : rating_string, 
                 'summary'  : review_summary_text,
                 'link'    : app_link }
@@ -887,6 +898,7 @@ if __name__ == "__main__":
         parser.add_option("-p", "--pkgname")
         parser.add_option("-i", "--iconname")
         parser.add_option("-V", "--version")
+        parser.add_option("-O", "--origin")
         parser.add_option("", "--parent-xid")
         parser.add_option("", "--debug",
                           action="store_true", default=False)
@@ -907,6 +919,7 @@ if __name__ == "__main__":
                                       app=theapp, 
                                       parent_xid=options.parent_xid,
                                       iconname=options.iconname,
+                                      origin=options.origin,
                                       version=options.version)
         review_app.run()
 

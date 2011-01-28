@@ -58,6 +58,8 @@ class Review(object):
     def __init__(self, app):
         # a softwarecenter.db.database.Application object
         self.app = app
+        self.app_name = app.appname
+        self.package_name = app.pkgname
         # the review items that the object fills in
         self.id = None
         self.language = None
@@ -77,7 +79,8 @@ class ReviewLoader(object):
     # cache the ReviewStats
     REVIEW_STATS_CACHE = {}
 
-    def __init__(self, distro=None):
+    def __init__(self, cache, distro=None):
+        self.cache = cache
         self.distro = distro
         if not self.distro:
             self.distro = softwarecenter.distro.get_distro()
@@ -124,7 +127,7 @@ class ReviewLoader(object):
 
     # writing new reviews spawns external helper
     # FIXME: instead of the callback we should add proper gobject signals
-    def spawn_write_new_review_ui(self, app, version, iconname, parent_xid, datadir, callback):
+    def spawn_write_new_review_ui(self, app, version, iconname, origin, parent_xid, datadir, callback):
         """ this spawns the UI for writing a new review and
             adds it automatically to the reviews DB """
         cmd = [os.path.join(datadir, SUBMIT_REVIEW_APP), 
@@ -132,6 +135,7 @@ class ReviewLoader(object):
                "--iconname", iconname,
                "--parent-xid", "%s" % parent_xid,
                "--version", version,
+               "--origin", origin,
                "--datadir", datadir,
                ]
         if app.appname:
@@ -169,7 +173,11 @@ class ReviewLoader(object):
             stdout += s
         LOG.debug("stdout from submit_review: '%s'" % stdout)
         if os.WEXITSTATUS(status) == 0:
-            review_json = simplejson.loads(stdout)
+            try:
+                review_json = simplejson.loads(stdout)
+            except simplejson.decoder.JSONDecodeError:
+                logging.error("failed to parse '%s'" % stdout)
+                return
             review = ReviewDetails.from_dict(review_json)
             if not app in self._reviews: 
                 self._reviews[app] = []
@@ -196,8 +204,8 @@ class ReviewLoaderThreadedRNRClient(ReviewLoader):
         data 
     """
 
-    def __init__(self, distro=None):
-        super(ReviewLoaderThreadedRNRClient, self).__init__(distro)
+    def __init__(self, cache, distro=None):
+        super(ReviewLoaderThreadedRNRClient, self).__init__(cache, distro)
         cachedir = os.path.join(SOFTWARE_CENTER_CACHE_DIR, "rnrclient")
         self.rnrclient = RatingsAndReviewsAPI(cachedir=cachedir)
         self._reviews = {}
@@ -227,7 +235,7 @@ class ReviewLoaderThreadedRNRClient(ReviewLoader):
     def _get_reviews_threaded(self, app):
         """ threaded part of the fetching """
         # FIXME: select correct origin
-        origin = "ubuntu"
+        origin = self.cache.get_origin(app.pkgname)
         distroseries = self.distro.get_codename()
         try:
             kwargs = {"language":self.language, 
@@ -331,7 +339,7 @@ class ReviewLoaderJsonAsync(ReviewLoader):
     def get_reviews(self, app, callback):
         """ get a specific review and call callback when its available"""
         # FIXME: get this from the app details
-        origin = "ubuntu"
+        origin = self.cache.get_origin(app.pkgname)
         distroseries = self.distro.get_codename()
         if app.appname:
             appname = ";"+app.appname
@@ -379,7 +387,7 @@ class ReviewLoaderJsonAsync(ReviewLoader):
 
     def refresh_review_stats(self, callback):
         """ get the review statists and call callback when its there """
-        origin = "ubuntu"
+        origin = self.cache.get_origin(app.pkgname)
         distroseries = self.distro.get_codename()
         url = self.distro.REVIEW_STATS_URL % { 'language' : self.language,
                                                'origin' : origin,
@@ -395,7 +403,7 @@ class ReviewLoaderFake(ReviewLoader):
     SUMMARIES = ["Cool", "Medium", "Bad", "Too difficult"]
     IPSUM = "no ipsum\n\nstill no ipsum"
 
-    def __init__(self):
+    def __init__(self, cache):
         self._review_stats_cache = {}
         self._reviews_cache = {}
     def _random_person(self):
@@ -435,8 +443,8 @@ class ReviewLoaderFake(ReviewLoader):
         callback(review_stats)
 
 class ReviewLoaderFortune(ReviewLoaderFake):
-    def __init__(self):
-        ReviewLoaderFake.__init__(self)
+    def __init__(self, cache):
+        ReviewLoaderFake.__init__(self, cache)
         self.LOREM = ""
         for i in range(10):
             out = subprocess.Popen(["fortune"], stdout=subprocess.PIPE).communicate()[0]
@@ -566,22 +574,22 @@ et ea rebum stet clita kasd gubergren no sea takimata sanctus est lorem
 ipsum dolor sit amet"""
 
 review_loader = None
-def get_review_loader():
+def get_review_loader(cache):
     """ 
     factory that returns a reviews loader singelton
     """
     global review_loader
     if not review_loader:
         if "SOFTWARE_CENTER_IPSUM_REVIEWS" in os.environ:
-            review_loader = ReviewLoaderIpsum()
+            review_loader = ReviewLoaderIpsum(cache)
         elif "SOFTWARE_CENTER_FORTUNE_REVIEWS" in os.environ:
-            review_loader = ReviewLoaderFortune()
+            review_loader = ReviewLoaderFortune(cache)
         elif "SOFTWARE_CENTER_TECHSPEAK_REVIEWS" in os.environ:
-            review_loader = ReviewLoaderTechspeak()
+            review_loader = ReviewLoaderTechspeak(cache)
         elif "SOFTWARE_CENTER_GIO_REVIEWS" in os.environ:
-            review_loader = ReviewLoaderJsonAsync()
+            review_loader = ReviewLoaderJsonAsync(cache)
         else:
-            review_loader = ReviewLoaderThreadedRNRClient()
+            review_loader = ReviewLoaderThreadedRNRClient(cache)
     return review_loader
 
 if __name__ == "__main__":
@@ -591,10 +599,14 @@ if __name__ == "__main__":
     def stats_callback(stats):
         print "stats callback:"
         print stats
+    # cache
+    from softwarecenter.apt.aptcache import AptCache
+    cache = AptCache()
+    cache.open()
     # rnrclient loader
     app = Application("ACE", "unace")
     #app = Application("", "2vcard")
-    loader = ReviewLoaderThreadedRNRClient()
+    loader = ReviewLoaderThreadedRNRClient(cache)
     print loader.refresh_review_stats(stats_callback)
     print loader.get_reviews(app, callback)
     
@@ -603,7 +615,7 @@ if __name__ == "__main__":
 
     # default loader
     app = Application("","2vcard")
-    loader = get_review_loader()
+    loader = get_review_loader(cache)
     loader.refresh_review_stats(stats_callback)
     loader.get_reviews(app, callback)
     import gtk

@@ -190,6 +190,22 @@ class AptCache(gobject.GObject):
                     origins.add(item.origin)
         return origins
 
+    def get_origin(self, pkgname):
+        """
+        return a uniqe origin for the given package name. currently
+        this will use 
+        """
+        origins = set()
+        for origin in self._cache[pkgname].candidate.origins:
+            if origin.origin:
+                origins.add(origin.origin)
+        if len(origins) > 1:
+            raise Exception("Error, more than one origin '%s'" % origins)
+        # we support only a single origin (but its fine if that is available
+        # on multiple mirrors). lowercase as the server excepts it this way
+        origin_str = origins.pop()
+        return origin_str.lower()
+
     def component_available(self, distro_codename, component):
         """ check if the given component is enabled """
         # FIXME: test for more properties here?

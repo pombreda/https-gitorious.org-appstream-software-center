@@ -134,9 +134,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
         # distro specific stuff
         self.distro = get_distro()
-        self.review_loader = get_review_loader()
-        # FIXME: add some kind of throttle, I-M-S here
-        self.review_loader.refresh_review_stats(self.on_review_stats_loaded)
 
         # Disable software-properties if it does not exist
         if not os.path.exists("/usr/bin/software-properties-gtk"):
@@ -146,6 +143,13 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         # a main iteration friendly apt cache
         self.cache = AptCache()
         self.cache.connect("cache-broken", self._on_apt_cache_broken)
+
+        # reviews
+        self.review_loader = get_review_loader(self.cache)
+        # FIXME: add some kind of throttle, I-M-S here
+        self.review_loader.refresh_review_stats(self.on_review_stats_loaded)
+
+        # backend
         self.backend = get_install_backend()
         self.backend.connect("transaction-started", self._on_transaction_started)
         self.backend.connect("transaction-finished", self._on_transaction_finished)
@@ -431,7 +435,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self.db.reopen()
 
     def on_review_stats_loaded(self, reviews):
-        print "*** on_review_stats_loaded ***"
+        self._logger.debug("on_review_stats_loaded: '%s'" % len(reviews))
 
     def on_app_details_changed(self, widget, app, page):
         self.update_app_status_menu()
