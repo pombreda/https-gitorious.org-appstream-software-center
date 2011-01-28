@@ -11,6 +11,10 @@ software-center (3.1.14) UNRELEASED; urgency=low
       is fully created (thanks to seb128)
 
   [ Kiwinote ]
+  * softwarecenter/apt/aptcache.py,
+    softwarecenter/db/reviews.py,
+    softwarecenter/view/appdetailsview.py:
+    - don't allow to review pkgs without origins
   * softwarecenter/view/appdetailsview_gtk:
     - don't eat description characters (LP: #708684)
 

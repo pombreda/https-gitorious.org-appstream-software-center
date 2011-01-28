@@ -236,6 +236,8 @@ class ReviewLoaderThreadedRNRClient(ReviewLoader):
         """ threaded part of the fetching """
         # FIXME: select correct origin
         origin = self.cache.get_origin(app.pkgname)
+        if not origin:
+            return
         distroseries = self.distro.get_codename()
         try:
             kwargs = {"language":self.language, 
