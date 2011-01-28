@@ -1398,7 +1398,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # wrong, so if the reviews we have in the list are more than the
         # stats we update manually
         old_stats = self.review_loader.get_review_stats(self.app)
-        if old_stats is None or old_stats.ratings_total < len(reviews):
+        if ((old_stats is None and len(reviews) > 0) or
+            (old_stats is not None and old_stats.ratings_total < len(reviews))):
             # generate new stats
             stats = ReviewStats(app)
             stats.ratings_total = len(reviews)
