@@ -711,28 +711,50 @@ class SubmitReviewsApp(BaseApp):
                 account['service'].capitalize(), account['username'] )
             self.gwibber_combo.append_text(acct_text)
         
+        self.gwibber_combo.append_text("All my Gwibber services")
+        
         self.gwibber_checkbutton.set_active(self.gwibber_prefs['gwibber_send'])
         gwibber_active_account = 0
         
         for account in self.gwibber_accounts:
             if account['id'] == self.gwibber_prefs['account_id']:
                 gwibber_active_account = self.gwibber_accounts.index(account)
+        if self.gwibber_prefs['account_id'] == "All":
+                gwibber_active_account = len(self.gwibber_accounts)
         self.gwibber_combo.set_active(gwibber_active_account)
+
+
+    def _post_to_one_gwibber_account(self, msg, account):
+        status_text = _("Posting to %s") % account['service'].capitalize()
+        self.label_transmit_status.set_text(status_text)
+        return self.gwibber_helper.send_message(msg,account['id'])
 
     def on_transmit_success(self, api, trans):
         gwibber_success = True
+        #list of gwibber accounts that failed to submit, used later to allow selective re-send if user desires
+        failed_accounts = []
+        
         if self.gwibber_checkbutton.get_active():
             i = self.gwibber_combo.get_active()
-            status_text = _("Posting to %s") % self.gwibber_accounts[i]['service'].capitalize()
-            self.label_transmit_status.set_text(status_text)
-            account_id = self.gwibber_accounts[i]['id']
-            #save prefs
-            self._save_gwibber_state(True, account_id)
-            msg = _(self._gwibber_message())
-            gwibber_success = self.gwibber_helper.send_message(msg, account_id)
+            msg = (self._gwibber_message())
+            
+            if i == len(self.gwibber_accounts):
+                self._save_gwibber_state(True, "All")
+                for account in self.gwibber_accounts:
+                    if not self._post_to_one_gwibber_account(msg, account):
+                        failed_accounts.append(account['id'])
+                        gwibber_success = False
+            else:
+                account = self.gwibber_accounts[i]
+                #save prefs
+                self._save_gwibber_state(True, account['id'])
+                gwibber_success = self._post_to_one_gwibber_account(msg, account)
+                if not gwibber_success:
+                    failed_accounts.append(account['id'])
+            
             if not gwibber_success:
                 #FIXME: send an error string to this method instead of empty string
-                self._on_gwibber_fail(api, trans, self.gwibber_accounts[i]['service'].capitalize(), "")
+                self._on_gwibber_fail(api, trans, failed_accounts, "")
         else:
             # prevent _save_gwibber_state from overwriting the account id
             # in config if the checkbutton was not selected    
@@ -742,18 +764,22 @@ class SubmitReviewsApp(BaseApp):
         if gwibber_success:
             BaseApp.on_transmit_success(self, api, trans)
     
-    def _on_gwibber_fail(self, api, trans, service, error):
-        glade_dialog = SimpleGtkbuilderDialog(self.datadir, domain="software-center")
-        dialog = glade_dialog.dialog_gwibber_error
-        dialog.set_transient_for(self.submit_window)
-        dialog.set_markup("There was a problem posting this review to %s." % service)
-        dialog.format_secondary_text(error)
-        result = dialog.run()
-        dialog.destroy()
-        if result == gtk.RESPONSE_ACCEPT:
-            self.on_transmit_success(api, trans)
-        else:
-            BaseApp.on_transmit_success(self, api, trans)
+    def _on_gwibber_fail(self, api, trans, failed_accounts, error):
+        #FIXME: implement ability to selectively retry only those gwibber that failed
+        
+        #glade_dialog = SimpleGtkbuilderDialog(self.datadir, domain="software-center")
+        #dialog = glade_dialog.dialog_gwibber_error
+        #dialog.set_transient_for(self.submit_window)
+        #if len(failed_accounts) == 1:
+        #    service = self.gwibber_accounts
+        #dialog.set_markup("There was a problem posting this review to %s." % service)
+        #dialog.format_secondary_text(error)
+        #result = dialog.run()
+        #dialog.destroy()
+        #if result == gtk.RESPONSE_ACCEPT:
+        #    self.on_transmit_success(api, trans)
+        #else:
+        BaseApp.on_transmit_success(self, api, trans)
     
     def _save_gwibber_state(self, gwibber_send, account_id):
         if not self.config.has_section("reviews"):
