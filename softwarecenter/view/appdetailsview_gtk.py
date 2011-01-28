@@ -2004,13 +2004,14 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # addons modified
         elif self.addons_statusbar.applying:
             self.pkg_statusbar.configure(self.app_details, PKG_STATE_INSTALLED)
+            self.addons_manager.configure(self.app_details.name, False)
+            self.addons_statusbar.configure()
 
         self.adjustment_value = None
         
         if self.addons_statusbar.applying:
             self.addons_statusbar.applying = False
 
-        self.addons_manager.configure(self.app_details.name, False)
         return False
 
     def _on_transaction_started(self, backend, pkgname):
