@@ -42,6 +42,7 @@ except:
     sys.exit(1)
 
 if __name__ == "__main__":
+    import urllib
     rnr = RatingsAndReviewsAPI()
     print rnr.server_status()
     # dump all reviews
@@ -51,11 +52,11 @@ if __name__ == "__main__":
         reviews = rnr.get_reviews(
             language="en", origin="ubuntu", distroseries="natty",
             packagename=stat.package_name,
-            appname=stat.app_name.encode("utf-8"))
+            appname=urllib.quote_plus(stat.app_name.encode("utf-8")))
         for review in reviews:
             print "rating: %s  user=%s" % (review.rating, review.reviewer_username)
             print review.summary
-            print review.review_text
+            print unicode(review.review_text)
             print
         
     # get individual ones
