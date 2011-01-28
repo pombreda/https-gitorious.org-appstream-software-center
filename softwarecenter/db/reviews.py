@@ -246,7 +246,7 @@ class ReviewLoaderThreadedRNRClient(ReviewLoader):
                       "packagename":app.pkgname,
                       }
             if app.appname:
-                kwargs["appname"] = app.appname
+                kwargs["appname"] = urllib.quote_plus(app.appname.encode("utf-8"))
             reviews = self.rnrclient.get_reviews(**kwargs)
         except:
             logging.exception("get_reviews")

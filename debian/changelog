@@ -15,6 +15,8 @@ software-center (3.1.14) UNRELEASED; urgency=low
     softwarecenter/db/reviews.py,
     softwarecenter/view/appdetailsview.py:
     - don't allow to review pkgs without origins
+  * softwarecenter/db/reviews.py:
+    - show Blender reviews (courtesy of mvo)
   * softwarecenter/view/appdetailsview_gtk:
     - don't eat description characters (LP: #708684)
 
