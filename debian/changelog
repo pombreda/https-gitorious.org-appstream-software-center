@@ -2,8 +2,11 @@ software-center (3.1.13) UNRELEASED; urgency=low
 
   * softwarecenter/view/appdetailsview_gtk.py:
     - fix crash in _on_transaction_started (LP: #708974)
+  * softwarecenter/view/widgets/mkit.py:
+    - handle case where the pango layout has no attributes,
+      fixes broken carousel paging dots (LP: #708919)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 27 Jan 2011 23:42:21 -0500
+ -- Gary Lasker <gary.lasker@canonical.com>  Fri, 28 Jan 2011 00:28:56 -0500
 
 software-center (3.1.12) natty; urgency=low
 
