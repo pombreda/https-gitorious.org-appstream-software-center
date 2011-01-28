@@ -82,7 +82,7 @@ class GwibberHelper(object):
 class GwibberHelperMock(object):
         
     fake_gwibber_accounts_one = [{u'username': u'randomuser', u'user_id': u'2323434224', u'service': u'twitter', u'secret_token': u':some-token', u'color': u'#729FCF', u'receive_enabled': True, u'access_token': u'some_access_token', u'send_enabled': True, u'id': u'twitter-id-random-15af8bddb6'}]
-    fake_gwibber_accounts_multiple = [{u'username': u'random1', u'user_id': u'2342342313', u'service': u'twitter', u'secret_token': u':some-token', u'color': u'#729FCF', u'receive_enabled': True, u'access_token': u'some_access_token', u'send_enabled': True, u'id': u'twitter-id-rnadomuser-radfsdf'}, {u'username': u'mpt', u'user_id': u'23safdsaf5', u'service': u'twitter', u'secret_token': u':some_otken', u'color': u'#729FCF', u'receive_enabled': True, u'access_token': u'some_access_token', u'send_enabled': True, u'id': u'twitter-id-mpt-afsdfsa'}]
+    fake_gwibber_accounts_multiple = [{u'username': u'random1 with a very long name', u'user_id': u'2342342313', u'service': u'twitter', u'secret_token': u':some-token', u'color': u'#729FCF', u'receive_enabled': True, u'access_token': u'some_access_token', u'send_enabled': True, u'id': u'twitter-id-rnadomuser-radfsdf'}, {u'username': u'mpt', u'user_id': u'23safdsaf5', u'service': u'twitter', u'secret_token': u':some_otken', u'color': u'#729FCF', u'receive_enabled': True, u'access_token': u'some_access_token', u'send_enabled': True, u'id': u'twitter-id-mpt-afsdfsa'}]
 
     def accounts(self):
         num = os.environ["SOFTWARE_CENTER_GWIBBER_MOCK_USERS"]

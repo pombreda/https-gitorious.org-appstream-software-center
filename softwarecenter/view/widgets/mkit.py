@@ -1194,8 +1194,9 @@ class LinkButton(gtk.EventBox):
 
         layout = self.label.get_layout()
         attrs = layout.get_attributes()
-        attrs.change(attr)
-        layout.set_attributes(attrs)
+        if attrs:
+            attrs.change(attr)
+            layout.set_attributes(attrs)
         return
 
     def _colorise_label_normal(self):
@@ -1212,8 +1213,9 @@ class LinkButton(gtk.EventBox):
 
         layout = self.label.get_layout()
         attrs = layout.get_attributes()
-        attrs.change(attr)
-        layout.set_attributes(attrs)
+        if attrs:
+            attrs.change(attr)
+            layout.set_attributes(attrs)
         return
 
     def _cache_image_surface(self, pb):
