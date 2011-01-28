@@ -2020,10 +2020,10 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         return False
 
     def _on_transaction_started(self, backend, pkgname):
-        if self.addons_bar.get_applying():
+        if self.addons_manager.status_bar.get_applying():
             self.pkg_statusbar.configure(self.app_details, APP_ACTION_APPLY)
             return
-        
+
         state = self.pkg_statusbar.pkg_state
         LOG.debug("_on_transaction_stated %s" % state)
         if state == PKG_STATE_NEEDS_PURCHASE:
