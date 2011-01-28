@@ -1244,12 +1244,6 @@ class AddonsStatusBar(StatusBar):
             self.button_cancel.set_sensitive(True)
             self.show()
     
-    def get_applying(self):
-        return self.applying
-
-    def set_applying(self, applying):
-        self.applying = applying
-    
     def _on_button_apply_clicked(self, button):
         self.applying = True
         self.button_apply.set_sensitive(False)
@@ -2020,12 +2014,12 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         return False
 
     def _on_transaction_started(self, backend, pkgname):
-        if self.addons_statusbar.get_applying():
+        if self.addons_statusbar.applying:
             self.pkg_statusbar.configure(self.app_details, APP_ACTION_APPLY)
             return
 
         state = self.pkg_statusbar.pkg_state
-        LOG.debug("_on_transaction_stated %s" % state)
+        LOG.debug("_on_transaction_started %s" % state)
         if state == PKG_STATE_NEEDS_PURCHASE:
             self.pkg_statusbar.configure(self.app_details, PKG_STATE_INSTALLING_PURCHASED)
         elif state == PKG_STATE_UNINSTALLED:
