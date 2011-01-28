@@ -6,6 +6,9 @@ software-center (3.1.14) UNRELEASED; urgency=low
       (thanks to davmor2 for reporting)
   * debian/control:
     - make python-piston-mini-client a hard depenency again
+  * softwarecenter/view/softwarepane.py:
+    - fix race if details page is clicked before the installed pane
+      is fully created (thanks to seb128)
 
   [ Kiwinote ]
   * softwarecenter/view/appdetailsview_gtk:
