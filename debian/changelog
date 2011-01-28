@@ -1,4 +1,4 @@
-software-center (3.1.13) UNRELEASED; urgency=low
+software-center (3.1.13) natty; urgency=low
 
   [ Gary Lasker ]
   * softwarecenter/view/appdetailsview_gtk.py:
@@ -15,7 +15,7 @@ software-center (3.1.13) UNRELEASED; urgency=low
   * softwarecenter/view/catview_gtk.py:
     - fix spacing for the recommends message
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 28 Jan 2011 09:25:26 +0100
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 28 Jan 2011 09:41:43 +0100
 
 software-center (3.1.12) natty; urgency=low
 
