@@ -383,10 +383,9 @@ class AppDescription(gtk.VBox):
             processed_frag += part
 
             # ends with a terminator or the following fragment starts with a capital letter
-            if part[-1] in ('.', '!', '?', ':') or \
-                (i+1 < l and len(parts[i+1]) > 1 and \
-                    parts[i+1][0].isupper()):
-
+            if (part[-1] in ('.', '!', '?', ':') or
+               (i+1 < l and len(parts[i+1]) > 1 and parts[i+1][0].isupper()) or
+               (i+1 < l and parts[i+1] == '')):
                 # not in a bullet list, so normal paragraph
                 if not in_blist:
                     # if not final text block, append newline
@@ -1398,7 +1397,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # wrong, so if the reviews we have in the list are more than the
         # stats we update manually
         old_stats = self.review_loader.get_review_stats(self.app)
-        if old_stats is None or old_stats.ratings_total < len(reviews):
+        if ((old_stats is None and len(reviews) > 0) or
+            (old_stats is not None and old_stats.ratings_total < len(reviews))):
             # generate new stats
             stats = ReviewStats(app)
             stats.ratings_total = len(reviews)

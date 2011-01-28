@@ -1,12 +1,49 @@
-software-center (3.1.13) UNRELEASED; urgency=low
+software-center (3.1.14) natty; urgency=low
 
+  [ Michael Vogt ]
+  * utils/submit_review.py:
+    - fix visual glitch with the gwibber combo on long usernames
+      (thanks to davmor2 for reporting)
+  * debian/control:
+    - make python-piston-mini-client a hard depenency again
+  * softwarecenter/view/softwarepane.py:
+    - fix race if details page is clicked before the installed pane
+      is fully created (thanks to seb128)
+
+  [ Kiwinote ]
+  * data/ui/report_abuse.ui,
+    data/ui/submit_review.ui,
+    utils/submit_review.py:
+    - use a consistent 12px padding around all sides of the dialogs
+  * softwarecenter/apt/aptcache.py,
+    softwarecenter/db/reviews.py,
+    softwarecenter/view/appdetailsview.py:
+    - don't allow to review pkgs without origins
+  * softwarecenter/db/reviews.py:
+    - show Blender reviews (courtesy of mvo)
+  * softwarecenter/view/appdetailsview_gtk:
+    - don't eat description characters (LP: #708684)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 28 Jan 2011 20:13:00 +0100
+
+software-center (3.1.13) natty; urgency=low
+
+  [ Gary Lasker ]
   * softwarecenter/view/appdetailsview_gtk.py:
     - fix crash in _on_transaction_started (LP: #708974)
   * softwarecenter/view/widgets/mkit.py:
     - handle case where the pango layout has no attributes,
       fixes broken carousel paging dots (LP: #708919)
+  
+  [ Michael Vogt ]
+  * debian/control:
+    - make python-piston-mini-client a recommends until the MIR for
+      it is approved (this unblocks CD builds)
+    - cleanup old conflict against software-store
+  * softwarecenter/view/catview_gtk.py:
+    - fix spacing for the recommends message
 
- -- Gary Lasker <gary.lasker@canonical.com>  Fri, 28 Jan 2011 00:28:56 -0500
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 28 Jan 2011 09:41:43 +0100
 
 software-center (3.1.12) natty; urgency=low
 
