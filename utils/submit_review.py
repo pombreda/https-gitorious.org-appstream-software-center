@@ -23,6 +23,7 @@ import pygtk
 pygtk.require ("2.0")
 import gobject
 gobject.threads_init()
+import pango
 
 import datetime
 import gtk
@@ -464,7 +465,9 @@ class SubmitReviewsApp(BaseApp):
 
         # gwibber stuff
         self.gwibber_combo = gtk.combo_box_new_text()
-        self.gwibber_hbox.pack_start(self.gwibber_combo, False)
+        #cells = self.gwibber_combo.get_cells()
+        #cells[0].set_property("ellipsize", pango.ELLIPSIZE_END)
+        self.gwibber_hbox.pack_start(self.gwibber_combo, True)
         if "SOFTWARE_CENTER_GWIBBER_MOCK_USERS" in os.environ:
             self.gwibber_helper = GwibberHelperMock()
         else:
