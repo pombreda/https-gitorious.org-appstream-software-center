@@ -1,4 +1,14 @@
-software-center (3.1.14) UNRELEASED; urgency=low
+software-center (3.1.15) UNRELEASED; urgency=low
+
+  [ Kiwinote ]
+  * softwarecenter/apt/aptcache.py:
+    - don't crash if pkg not in cache (deb files)
+  * softwarecenter/view/appdetailsview_gtk:
+    - correctly hide addons/reviews from interface when we have an error
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 28 Jan 2011 20:13:00 +0100
+
+software-center (3.1.14) natty; urgency=low
 
   [ Michael Vogt ]
   * utils/submit_review.py:
@@ -15,8 +25,6 @@ software-center (3.1.14) UNRELEASED; urgency=low
     data/ui/submit_review.ui,
     utils/submit_review.py:
     - use a consistent 12px padding around all sides of the dialogs
-  * softwarecenter/apt/aptcache.py:
-    - don't crash if pkg not in cache (deb files)
   * softwarecenter/apt/aptcache.py,
     softwarecenter/db/reviews.py,
     softwarecenter/view/appdetailsview.py:
@@ -25,9 +33,8 @@ software-center (3.1.14) UNRELEASED; urgency=low
     - show Blender reviews (courtesy of mvo)
   * softwarecenter/view/appdetailsview_gtk:
     - don't eat description characters (LP: #708684)
-    - correctly hide addons/reviews from interface when we have an error
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 28 Jan 2011 09:54:16 +0100
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 28 Jan 2011 20:13:00 +0100
 
 software-center (3.1.13) natty; urgency=low
 
