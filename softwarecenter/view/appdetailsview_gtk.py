@@ -383,10 +383,9 @@ class AppDescription(gtk.VBox):
             processed_frag += part
 
             # ends with a terminator or the following fragment starts with a capital letter
-            if part[-1] in ('.', '!', '?', ':') or \
-                (i+1 < l and len(parts[i+1]) > 1 and \
-                    parts[i+1][0].isupper()):
-
+            if (part[-1] in ('.', '!', '?', ':') or
+               (i+1 < l and len(parts[i+1]) > 1 and parts[i+1][0].isupper()) or
+               (i+1 < l and parts[i+1] == '')):
                 # not in a bullet list, so normal paragraph
                 if not in_blist:
                     # if not final text block, append newline
