@@ -1285,10 +1285,11 @@ class CarouselPoster2(Button):
         cr.layout_path(self.price.get_layout())
         cr.fill()
 
-        for star in self.rating.get_stars():
-            sa = star.allocation
-            _a = gtk.gdk.Rectangle(sa.x - a.x, sa.y - a.y, sa.width, sa.height)
-            star.draw(cr, _a)
+        if self.rating.get_property('visible'):
+            for star in self.rating.get_stars():
+                sa = star.allocation
+                _a = gtk.gdk.Rectangle(sa.x - a.x, sa.y - a.y, sa.width, sa.height)
+                star.draw(cr, _a)
 
         del cr
         return surf
@@ -1313,7 +1314,12 @@ class CarouselPoster2(Button):
         self.image.set_from_pixbuf(pb)
         self.label.set_markup('<span font_desc="9">%s</span>' % markup)
         self.price.set_markup('<span font_desc="9">%s</span>' % (d.price or _('Free')))
+
+#        if a.popcon:
+#            if not self.rating.get_property('visible'): self.rating.show_all()
         self.rating.set_rating(a.popcon)
+#        else:
+#            if self.rating.get_property('visible'): self.rating.hide_all()
 
         # set a11y text
         self.get_accessible().set_name(name)
