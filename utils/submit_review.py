@@ -653,7 +653,6 @@ class SubmitReviewsApp(BaseApp):
         review.package_version = self.version
         review.origin = self.origin
         self.api.submit_review(review)
-        
 
     def login_successful(self, display_name):
         self.main_notebook.set_current_page(1)
@@ -742,7 +741,7 @@ class SubmitReviewsApp(BaseApp):
                 self._save_gwibber_state(True, "All")
                 for account in self.gwibber_accounts:
                     if not self._post_to_one_gwibber_account(msg, account):
-                        failed_accounts.append(account['id'])
+                        failed_accounts.append(account)
                         gwibber_success = False
             else:
                 account = self.gwibber_accounts[i]
@@ -750,7 +749,7 @@ class SubmitReviewsApp(BaseApp):
                 self._save_gwibber_state(True, account['id'])
                 gwibber_success = self._post_to_one_gwibber_account(msg, account)
                 if not gwibber_success:
-                    failed_accounts.append(account['id'])
+                    failed_accounts.append(account)
             
             if not gwibber_success:
                 #FIXME: send an error string to this method instead of empty string
@@ -764,22 +763,42 @@ class SubmitReviewsApp(BaseApp):
         if gwibber_success:
             BaseApp.on_transmit_success(self, api, trans)
     
+    #stub function to retry failed gwibber attempts where user wants to retry.
+    def _gwibber_retry_some(self, api, trans, accounts):
+        pass
+    
     def _on_gwibber_fail(self, api, trans, failed_accounts, error):
-        #FIXME: implement ability to selectively retry only those gwibber that failed
         
-        #glade_dialog = SimpleGtkbuilderDialog(self.datadir, domain="software-center")
-        #dialog = glade_dialog.dialog_gwibber_error
-        #dialog.set_transient_for(self.submit_window)
-        #if len(failed_accounts) == 1:
-        #    service = self.gwibber_accounts
-        #dialog.set_markup("There was a problem posting this review to %s." % service)
-        #dialog.format_secondary_text(error)
-        #result = dialog.run()
-        #dialog.destroy()
-        #if result == gtk.RESPONSE_ACCEPT:
-        #    self.on_transmit_success(api, trans)
-        #else:
-        BaseApp.on_transmit_success(self, api, trans)
+        #list to hold service strings in the format: "Service (@username)"
+        failed_services = []
+        for account in failed_accounts:
+            failed_services.append("%s (@%s)" % (account['service'].capitalize(), account['username']))
+        
+        failed = len(failed_services)
+        
+        #sets first part of failed services string to first account in list
+        failed_services_string = failed_services[0]
+        
+        #if more than 1 failed account in list, continues to add service strings to the failed_service_string
+        if failed > 1:
+            #comma separates services for all accounts in list up to the last one, if there is 3 or more
+            if failed > 2:
+                for i in range(1,failed-1):
+                    failed_services_string = failed_services_string + (", %s" % failed_services[i])
+            #final account in list is added to end of string with 'and'
+            failed_services_string = failed_services_string + (" and %s" % failed_services[failed-1])
+            
+        glade_dialog = SimpleGtkbuilderDialog(self.datadir, domain="software-center")
+        dialog = glade_dialog.dialog_gwibber_error
+        dialog.set_transient_for(self.submit_window)
+        dialog.set_markup("There was a problem posting this review to %s." % failed_services_string)
+        dialog.format_secondary_text(error)
+        result = dialog.run()
+        dialog.destroy()
+        if result == gtk.RESPONSE_ACCEPT:
+            self._gwibber_retry_some(api, trans, failed_accounts)
+        else:
+            BaseApp.on_transmit_success(self, api, trans)
     
     def _save_gwibber_state(self, gwibber_send, account_id):
         if not self.config.has_section("reviews"):
