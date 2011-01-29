@@ -68,14 +68,14 @@ class SoftwareSection(object):
     def render(self, cr, a):
         # sky
         r,g,b = self._section_color
-        lin = cairo.LinearGradient(0,a.y,0,a.y+200)
+        lin = cairo.LinearGradient(0,a.y,0,a.y+150)
         lin.add_color_stop_rgba(0, r,g,b, 0.3)
-        lin.add_color_stop_rgba(1, r,g,b,0)
+        lin.add_color_stop_rgba(1, r,g,b, 0)
         cr.set_source(lin)
         cr.rectangle(a.x-1,
                      a.y,
                      a.width+2,
-                     200)
+                     150)
         cr.fill()
 
         # clouds

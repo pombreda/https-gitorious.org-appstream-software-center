@@ -161,51 +161,6 @@ class StatusBar(gtk.Alignment):
         cr.restore()
         return
 
-class AddonsStatusBar(StatusBar):
-
-    def __init__(self, addons_manager):
-        StatusBar.__init__(self, addons_manager.view)
-        self.addons_manager = addons_manager
-        self.addons_table = self.addons_manager.table
-        self.cache = self.addons_manager.view.cache
-
-        self.applying = False
-        
-        self.label_price = mkit.EtchedLabel(_("Free"))
-        self.hbox.pack_start(self.label_price, False)
-        
-        self.hbuttonbox = gtk.HButtonBox()
-        self.hbuttonbox.set_layout(gtk.BUTTONBOX_END)
-        self.button_apply = gtk.Button(_("Apply Changes"))
-        self.button_apply.connect("clicked", self._on_button_apply_clicked)
-        self.button_cancel = gtk.Button(_("Cancel"))
-        self.button_cancel.connect("clicked", self.addons_manager.restore)
-        self.hbox.pack_end(self.button_apply, False)
-        self.hbox.pack_end(self.button_cancel, False)
-        #self.hbox.pack_start(self.hbuttonbox, False)
-
-    def configure(self):
-        # FIXME: addons are not always free, but the old implementation of determining price was buggy
-        if not self.addons_manager.addons_to_install and not self.addons_manager.addons_to_remove:
-            self.hide()
-        else:
-            self.show_all()
-    
-    def get_applying(self):
-        return self.applying
-
-    def set_applying(self, applying):
-        self.applying = applying
-    
-    def _on_button_apply_clicked(self, button):
-        self.applying = True
-        self.button_apply.set_sensitive(False)
-        self.button_cancel.set_sensitive(False)
-        # these two lines are the magic that make it work
-        self.view.addons_to_install = self.addons_manager.addons_to_install
-        self.view.addons_to_remove = self.addons_manager.addons_to_remove
-        AppDetailsViewBase.apply_changes(self.view)
-
 
 class PackageStatusBar(StatusBar):
 
@@ -486,11 +441,6 @@ class Addon(gtk.HBox):
             LOG.warning("cant set icon for '%s' " % pkgname)
         hbox.pack_start(self.icon, False, False)
 
-        self.more = mkit.HLinkButton("More Info")
-        self.more.set_underline(True)
-        self.pack_end(self.more, False)
-        self.more.connect("clicked", self._on_more_clicked)
-
         # name
         title = self.app_details.display_name
         if len(title) >= 2:
@@ -558,11 +508,6 @@ class AddonsTable(gtk.VBox):
         self.label.set_markup(markup)
         self.pack_start(self.label, False, False)
 
-    def _on_realize(self, widget):
-        markup = _('<b><span color="%s">Add-ons</span></b>')
-        color = self.label.style.dark[self.label.state].to_string()
-        self.label.set_markup(markup % color)
-    
     def set_addons(self, addons):
         # FIXME: sort the addons in alphabetical order
         self.recommended_addons = addons[0]
@@ -612,15 +557,16 @@ class Reviews(gtk.VBox):
 
         label = mkit.EtchedLabel()
         label.set_use_markup(True)
-        label.set_alignment(0, 0.5)
+        label.set_alignment(0, 0)
         markup = "<b><big>%s</big></b>" % _("Reviews")
+#        markup = _("Reviews")
         label.set_markup(markup)
 
         self.expander = gtk.Expander()
         self.expander.set_label_widget(label)
 
         self.new_review = mkit.VLinkButton(_("Write your own review"))
-        self.new_review.set_internal_spacing(mkit.SPACING_MED)
+#        self.new_review.set_internal_spacing(mkit.SPACING_MED)
         self.new_review.set_underline(True)
 
         expander_hb = gtk.HBox(spacing=mkit.SPACING_MED)
@@ -859,11 +805,11 @@ class AddonsStatusBar(StatusBar):
     def configure(self):
         # FIXME: addons are not always free, but the old implementation of determining price was buggy
         if not self.addons_manager.addons_to_install and not self.addons_manager.addons_to_remove:
-            self.hide()
+            self.hide_all()
         else:
             self.button_apply.set_sensitive(True)
             self.button_cancel.set_sensitive(True)
-            self.show()
+            self.show_all()
     
     def get_applying(self):
         return self.applying
@@ -960,6 +906,10 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.app_details = self.app.get_details(self.db)
 
         self.action_bar = PackageStatusBar(self)
+
+        self.addons_manager = AddonsManager(self)
+        self.addons_statusbar = AddonsStatusBar(self.addons_manager)
+
         self.review_stats_widget = ReviewStatsContainer()
         self.reviews = Reviews(self)
 
@@ -968,7 +918,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
     def _init_ondemand(self):
         self.adjustment_value = None
-        self.addons_manager = AddonsManager(self)
 
         # atk
         self.a11y = self.get_accessible()
@@ -985,12 +934,13 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self._gwibber_is_available = GWIBBER_SERVICE_AVAILABLE
         #self._gwibber_is_available = os.path.exists("/usr/bin/gwibber-poster")        
         self._show_overlay = False
-        self._overlay = gtk.gdk.pixbuf_new_from_file(INSTALLED_ICON)
+#        self._overlay = gtk.gdk.pixbuf_new_from_file(INSTALLED_ICON)
 
         # page elements are packed into our very own lovely viewport
         self._layout_page()
 #        self.connect('size-allocate', self._on_allocate)
 #        self.vbox.connect('expose-event', self._on_expose)
+
         self.connect('realize', self._on_realize)
 
         #self.main_frame.image.connect_after('expose-event', self._on_icon_expose)
@@ -1130,7 +1080,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.action_bar.draw(cr, self.action_bar.allocation, event.area)
         self.screenshot.draw(cr, self.screenshot.allocation, event.area)
         self.addons_bar.draw(cr, self.addons_bar.allocation, event.area)
-
+        self.reviews.draw(cr, self.reviews.allocation)
         del cr
         return
 
@@ -1218,10 +1168,12 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.title = mkit.EtchedLabel('<span font_desc="bold 20">Title</span>\nSummary')
         self.title.set_alignment(0, 0.5)
         vb_inner=gtk.VBox(spacing=6)
-        vb_inner.pack_start(self.title, False)
+        vb_inner.pack_start(self.title)
 
         # star rating widget
-        vb_inner.pack_start(self.review_stats_widget, False)
+        a = gtk.Alignment()
+        a.add(self.review_stats_widget)
+        hb.pack_end(a, False)
 
 #        # a11y for name/summary
 #        self.main_frame.header.set_property("can-focus", True)
@@ -1441,6 +1393,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
     def _update_addons(self, app_details):
         # refresh addons interface
+        self.addon_view.hide_all()
+
         if not app_details.error:
             self.addons_manager.configure(self.app_details.pkgname)
 
@@ -1449,7 +1403,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         gobject.timeout_add(500, self.update_totalsize, True)
         
         # Update addons state bar
-        self.addons_statusbar.configure()
+        self.addons_bar.configure()
         return
 
     def _update_reviews(self, app_details):
@@ -1487,7 +1441,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self._update_app_screenshot(app_details)
         self._update_pkg_info_table(app_details)
         self._update_addons(app_details)
-        self._update_usage_counter()
+#        self._update_usage_counter()
 
 #        # show where it is
 #        self._configure_where_is_it()
@@ -1512,7 +1466,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self._update_app_screenshot(app_details)
         self._update_description_footer_links(app_details)
         self._update_pkg_info_table(app_details)
-        gobject.timeout_add(500, self._update_addons, app_details)
+#        gobject.timeout_add(500, self._update_addons, app_details)
 
         # depending on pkg install state set action labels
         self.action_bar.configure(app_details, app_details.pkg_state)
@@ -1592,10 +1546,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             LOG.debug("no app selected")
             return
 
-
-        if not self.loaded:
-            self._init_ondemand()
-
         same_app = (self.app and self.app.pkgname and self.app.pkgname == app.pkgname)
         if same_app:
             if not self.loaded:
@@ -1620,6 +1570,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         # set button sensitive again
         self.action_bar.button.set_sensitive(True)
+
+        # update content
+        self._update_all(self.app_details)
 
 #        self.get_usage_counter()
         self._check_for_reviews()

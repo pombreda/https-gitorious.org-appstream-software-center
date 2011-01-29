@@ -1316,8 +1316,12 @@ class EtchedLabel(gtk.Label):
     def _on_expose(self, widget, event):
         l = self.get_layout()
         a = widget.allocation
-        pc = pangocairo.CairoContext(widget.window.cairo_create())
 
+        cr = widget.window.cairo_create()
+        cr.rectangle(event.area)
+        cr.clip()
+
+        pc = pangocairo.CairoContext(cr)
 
         x, y = a.x, a.y+1
         lw, lh = l.get_pixel_extents()[1][2:]
@@ -1337,6 +1341,9 @@ class EtchedLabel(gtk.Label):
         pc.set_source_rgba(r,g,b,self.alpha)
         pc.fill()
         del pc
+        return
+
+    def set_max_line_count(self, *args):
         return
 
 
@@ -1479,99 +1486,3 @@ class BubbleLabel(gtk.Label):
         return
 
 
-class EtchedLabel(gtk.Label):
-
-    def __init__(self, *args, **kwargs):
-        gtk.Label.__init__(self, *args, **kwargs)
-        self.alpha = 0.55
-
-        self._max_line_count = -1
-        self._allocation = None
-
-        self.connect('expose-event', self._on_expose)
-        self.connect('size-allocate', self._on_allocate)
-        return
-
-    def _on_allocate(self, label, allocation):
-
-        layout = label.get_layout()
-        layout.set_width(label.allocation.width*pango.SCALE)
-        layout.set_wrap(pango.WRAP_WORD)
-
-        if self._allocation == allocation: return
-
-        if layout.get_line_count() > 2:
-            l = self.get_text()
-            attrs = layout.get_attributes()
-            line = layout.get_line(2)
-            if line:
-                i = line.start_index
-                l = gobject.markup_escape_text(l[:i-1] + u"\u2026")
-                layout.set_markup(l)
-                layout.set_attributes(attrs)
-
-        w, h = layout.get_pixel_extents()[1][2:]
-        self.set_size_request(self.get_size_request()[0], h)
-        self._allocation = allocation
-        return
-
-    def set_text(self, t):
-        gtk.Label.set_text(self, t)
-        self._allocation = None
-
-    def set_markup(self, m):
-        gtk.Label.set_markup(self, m)
-        self._allocation = None
-
-    def set_label(self, l):
-        gtk.Label.set_label(self, l)
-        self._allocation = None
-
-    def set_etching_alpha(self, a):
-        self.alpha = a
-        return
-
-    def set_max_line_count(self, n):
-        self._max_line_count = n
-
-    def _vis_debug(self):
-        cr = self.window.cairo_create()
-        cr.rectangle(self.allocation)
-        cr.set_source_rgb(1, 0, 0)
-        cr.stroke()
-        del cr
-        return
-
-    def _on_expose(self, widget, event):
-        if not widget.window: return True
-        #self._vis_debug()
-        l = widget.get_layout()
-        e = l.get_pixel_extents()[1]
-
-        a = widget.allocation
-        ah, av = self.get_alignment()
-        pc = pangocairo.CairoContext(widget.window.cairo_create())
-
-        x,y = a.x, a.y
-        if e[2] < a.width and e[0] == 0:
-            x += int((a.width-e[2])*ah)
-        if e[3] < a.height and e[1] == 0:
-            y += int((a.height-e[3])*av)
-
-        pc.move_to(x, y+1)
-        pc.layout_path(l)
-        r,g,b = floats_from_gdkcolor(self.style.light[self.state])
-        pc.set_source_rgba(r,g,b,self.alpha)
-        pc.fill()
-        del pc
-
-        self.style.paint_layout(widget.parent.window,
-                                self.state,
-                                True,
-                                None,
-                                widget,
-                                None,
-                                x, y,
-                                l)
-
-        return True
