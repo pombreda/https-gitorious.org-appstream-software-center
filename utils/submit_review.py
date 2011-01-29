@@ -763,7 +763,7 @@ class SubmitReviewsApp(BaseApp):
         if gwibber_success:
             BaseApp.on_transmit_success(self, api, trans)
     
-    #stub function to retry failed gwibber attempts where user wants to retry.
+    #FIXME: stub function to retry failed gwibber attempts where user wants to retry.
     def _gwibber_retry_some(self, api, trans, accounts):
         pass
     
