@@ -24,7 +24,6 @@ import pygtk
 pygtk.require ("2.0")
 import gobject
 import cairo
-import gettext
 import gtk
 import os
 
@@ -44,13 +43,9 @@ class StarPainter(object):
     GLOW_PRELIGHT   = 4
 
     def __init__(self):
-        self.shape = ShapeStar(5, 0.45)
+        self.shape = ShapeStar(5, 0.61)
         self.fill = self.FILL_EMPTY
         self.glow = self.GLOW_NORMAL
-
-        self.bg_color = floats_from_string('#989898')     # gray
-        self.fg_color = floats_from_string('#D70707')     # crimson red
-        self.glow_color = floats_from_string('#FFB500')   # gold
         return
 
     def set_fill(self, fill):
@@ -61,100 +56,104 @@ class StarPainter(object):
         self.glow = glow
         return
 
-    def paint_half_star(self, cr, x, y, w, h):
-        # TODO: some rtl switch will be needed here
+    def paint_half_star(self, cr, widget, state, x, y, w, h):
         cr.save()
-        cr.set_line_join(cairo.LINE_CAP_ROUND)
-
-        self.shape.layout(cr, x, y, w, h)
-        self._setup_glow(cr)
-        cr.stroke()
-        cr.set_line_width(2)
+        #cr.set_line_join(cairo.LINE_CAP_ROUND)
 
         cr.rectangle(x+w*0.5, y-1, w/2+2, h+2)
         cr.clip()
 
+        if widget.get_direction() != gtk.TEXT_DIR_RTL:
+            color1 = widget.style.mid[state]
+            color2 = widget.style.text[state]
+        else:
+            color1 = widget.style.text[state]
+            color2 = widget.style.mid[state]
+
         self.shape.layout(cr, x, y, w, h)
-        cr.set_source_rgb(*self.bg_color)
-        cr.stroke_preserve()
+        cr.set_source_color(color1)
         cr.fill()
         cairo.Context.reset_clip(cr)
 
         cr.rectangle(x-1, y-1, w*0.5+1, h+2)
         cr.clip()
-        
-        self.shape.layout(cr, x, y, w, h)
-        cr.set_source_rgb(*self.fg_color)
-        cr.stroke_preserve()
-        cr.fill_preserve()
-        cairo.Context.reset_clip(cr)
 
-        self._setup_gradient(cr, y, h)
+        self.shape.layout(cr, x, y, w, h)
+        cr.set_source_color(color2)
         cr.fill()
+        cairo.Context.reset_clip(cr)
 
         cr.restore()
         return
 
-    def paint_star(self, cr, x, y, w, h):
+    def paint_star(self, cr, widget, state, x, y, w, h):
         if self.fill == self.FILL_HALF:
-            self.paint_half_star(cr, x, y, w, h)
+            self.paint_half_star(cr, widget, state, x, y, w, h)
             return
 
         cr.save()
-        cr.set_line_join(cairo.LINE_CAP_ROUND)
 
         self.shape.layout(cr, x, y, w, h)
-
-        self._setup_glow(cr)
-        cr.stroke_preserve()
-        cr.set_line_width(2)
-
         if self.fill == self.FILL_EMPTY:
-            cr.set_source_rgb(*self.bg_color)
+            cr.set_source_color(widget.style.mid[state])
         else:
-            cr.set_source_rgb(*self.fg_color)
+            cr.set_source_color(widget.style.text[state])
 
-        cr.stroke_preserve()
-        cr.fill_preserve()
-
-        self._setup_gradient(cr, y, h)
         cr.fill()
 
         cr.restore()
         return
 
     def _setup_glow(self, cr):
-        if not hasattr(self, "style"):
-            return
-        if self.glow == self.GLOW_NORMAL:
-            white = self.style.white
-            cr.set_source_rgba(white.red_float,
-                               white.green_float,
-                               white.blue_float, 0.4)
-            cr.set_line_width(5)
-        else:
-            cr.set_source_rgba(*self.glow_color+(0.6,))
-            cr.set_line_width(6)
-        return
-
-    def _setup_gradient(self, cr, y, h):
-        lin = cairo.LinearGradient(0, y, 0, y+h)
-        lin.add_color_stop_rgba(0, 1,1,1, 0.5)
-        lin.add_color_stop_rgba(1, 1,1,1, 0.05)
-        cr.set_source(lin)
+#        if not hasattr(self, "style"):
+#            return
+#        if self.glow == self.GLOW_NORMAL:
+#            white = self.style.white
+#            cr.set_source_rgba(white.red_float,
+#                               white.green_float,
+#                               white.blue_float, 0.4)
+#            cr.set_line_width(5)
+#        else:
+#            cr.set_source_rgba(*self.glow_color+(0.6,))
+#            cr.set_line_width(6)
         return
 
 
-class StarWidget(gtk.EventBox, StarPainter):
+class StarWidget(gtk.HBox, StarPainter):
+
+    def __init__(self, size, is_interactive):
+        gtk.HBox.__init__(self)
+        StarPainter.__init__(self)
+
+        self.set_size_request(*size)
+
+        self.connect('expose-event', self._on_expose)
+        return
+
+    def _on_expose(self, widget, event):
+        cr = widget.window.cairo_create()
+        self.draw(cr, self.allocation)
+        del cr
+        return
+
+    def draw(self, cr, a):
+        w, h = self.get_size_request()
+        x = a.x + (a.width-w)/2
+        y = a.y + (a.height-h)/2
+        self.paint_star(cr, self, self.state, x, y, w, h)
+        return
+
+
+class InteractiveStarWidget(gtk.EventBox, StarPainter):
 
     def __init__(self, size, is_interactive):
         gtk.EventBox.__init__(self)
         StarPainter.__init__(self)
+
         self.set_visible_window(False)
         self.set_size_request(*size)
 
-        if is_interactive:
-            self._init_event_handling()
+        self._init_event_handling()
 
         self.connect('expose-event', self._on_expose)
         return
@@ -285,19 +284,6 @@ class StarRatingSelector(StarRating):
         kv = event.keyval
         if kv == gtk.keysyms.space or kv == gtk.keysyms.Return:
             self.set_rating(star.position+1)
-        elif kv == gtk.keysyms._1:
-            self.set_rating(1)
-        elif kv == gtk.keysyms._2:
-            self.set_rating(2)
-        elif kv == gtk.keysyms._3:
-            self.set_rating(3)
-        elif kv == gtk.keysyms._4:
-            self.set_rating(4)
-        elif kv == gtk.keysyms._5:
-            self.set_rating(5)
-        
-        if self.caption:
-            self.caption.set_markup(self.RATING_WORDS[self.rating])
         return
 
     def _connect_signals(self, star):
@@ -351,7 +337,7 @@ class StarCaption(gtk.Label):
         #return
 
     def set_markup(self, markup):
-        gtk.Label.set_markup(self, '<small><b>%s</b></small>' % markup)
+        gtk.Label.set_markup(self, '<small>%s</small>' % markup)
         return
 
 
@@ -370,11 +356,7 @@ class ReviewStatsContainer(gtk.VBox):
         self._update_nr_reviews()
     # internal stuff
     def _update_nr_reviews(self):
-        s = gettext.ngettext(
-            "%(nr_ratings)i Rating",
-            "%(nr_ratings)i Ratings",
-            self.nr_reviews) % { 'nr_ratings' : self.nr_reviews, }
-        self.label.set_markup(s)
+        self.label.set_markup(_("%i Ratings") % self.nr_reviews)
 
 if __name__ == "__main__":
     w = ReviewStatsContainer()
