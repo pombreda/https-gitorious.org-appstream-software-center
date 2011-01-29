@@ -774,7 +774,8 @@ class IndentLabel(gtk.EventBox):
 
             if layout.is_bullet:
                 if self.get_direction() != gtk.TEXT_DIR_RTL:
-                    self._paint_bullet_point(self.allocation.x, la.y)
+                    self._paint_bullet_point(self.allocation.x, la.y,
+                                             layout.indent-self.indent)
                 else:
                     self._paint_bullet_point(self.allocation.x+self.allocation.width-layout.indent, la.y)
 
@@ -794,7 +795,7 @@ class IndentLabel(gtk.EventBox):
             self.cursor.draw(cr, self._get_layout(self.cursor), self.allocation)
         return
 
-    def _paint_bullet_point(self, x, y):
+    def _paint_bullet_point(self, x, y, xoffset):
         # draw the layout
         self.style.paint_layout(self.window,    # gdk window
                                 self.state,     # state
@@ -802,7 +803,7 @@ class IndentLabel(gtk.EventBox):
                                 None,           # clip rectangle
                                 self,           # some gtk widget
                                 '',             # detail hint
-                                x,              # x coord
+                                x+xoffset,      # x coord
                                 y,              # y coord
                                 self._bullet)   # a pango.Layout()
 
@@ -832,10 +833,10 @@ class IndentLabel(gtk.EventBox):
         self.order.append(l)
         return
 
-    def append_bullet(self, point, vspacing=None):
+    def append_bullet(self, point, indent_level, vspacing=None):
         l = self._new_layout()
         l.index = len(self.order)
-        l.indent = self.indent
+        l.indent = self.indent*indent_level
         l.vspacing = vspacing
         l.is_bullet = True
 

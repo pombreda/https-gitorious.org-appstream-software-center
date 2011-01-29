@@ -76,6 +76,8 @@ if sys.argv[1] == "build":
 # real setup
 setup(name="software-center", version=VERSION,
       scripts=["software-center",
+               "utils/submit_review.py",
+               "utils/report_review.py",
                "utils/update-software-center",
                "utils/update-software-center-agent",
                ],

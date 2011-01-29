@@ -40,10 +40,10 @@ class SoftwareCenterConfig(ConfigParser.SafeConfigParser):
         os.rename(tmpname, self.configfile)
     
 _software_center_config = None    
-def get_config():
+def get_config(filename=SOFTWARE_CENTER_CONFIG_FILE):
     """ get the global config class """
     global _software_center_config
     if not _software_center_config:
-        _software_center_config = SoftwareCenterConfig(SOFTWARE_CENTER_CONFIG_FILE)
+        _software_center_config = SoftwareCenterConfig(filename)
     return _software_center_config
 

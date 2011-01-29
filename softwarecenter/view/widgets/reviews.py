@@ -4,6 +4,7 @@
 # Copyright (C) 2010 Canonical
 #
 # Authors:
+#  Matthew McGowan
 #  Michael Vogt
 #
 # This program is free software; you can redistribute it and/or modify it under
@@ -23,6 +24,7 @@ import pygtk
 pygtk.require ("2.0")
 import gobject
 import cairo
+import gettext
 import gtk
 import os
 
@@ -42,24 +44,13 @@ class StarPainter(object):
     GLOW_PRELIGHT   = 4
 
     def __init__(self):
-        self.shape = ShapeStar(5, 0.61)
+        self.shape = ShapeStar(5, 0.45)
         self.fill = self.FILL_EMPTY
         self.glow = self.GLOW_NORMAL
-        # fallback colors
+
         self.bg_color = floats_from_string('#989898')     # gray
         self.fg_color = floats_from_string('#D70707')     # crimson red
         self.glow_color = floats_from_string('#FFB500')   # gold
-        return
-
-    def set_colors(self, bg=None, fg=None, glow=None):
-        if bg:
-            self.bg_color = floats_from_string(bg)
-        if fg:
-            self.fg_color = floats_from_string(fg)
-        if glow:
-            self.glow_color = floats_from_string(glow)
-
-        if bg or fg or glow: self.queue_draw()
         return
 
     def set_fill(self, fill):
@@ -73,7 +64,7 @@ class StarPainter(object):
     def paint_half_star(self, cr, x, y, w, h):
         # TODO: some rtl switch will be needed here
         cr.save()
-        #cr.set_line_join(cairo.LINE_CAP_ROUND)
+        cr.set_line_join(cairo.LINE_CAP_ROUND)
 
         self.shape.layout(cr, x, y, w, h)
         self._setup_glow(cr)
@@ -110,23 +101,23 @@ class StarPainter(object):
             return
 
         cr.save()
-        #cr.set_line_join(cairo.LINE_CAP_ROUND)
+        cr.set_line_join(cairo.LINE_CAP_ROUND)
 
         self.shape.layout(cr, x, y, w, h)
 
-#        self._setup_glow(cr)
-#        cr.stroke_preserve()
-#        cr.set_line_width(2)
+        self._setup_glow(cr)
+        cr.stroke_preserve()
+        cr.set_line_width(2)
 
         if self.fill == self.FILL_EMPTY:
             cr.set_source_rgb(*self.bg_color)
         else:
             cr.set_source_rgb(*self.fg_color)
 
-        #cr.stroke_preserve()
-#        cr.fill_preserve()
+        cr.stroke_preserve()
+        cr.fill_preserve()
 
-#        self._setup_gradient(cr, y, h)
+        self._setup_gradient(cr, y, h)
         cr.fill()
 
         cr.restore()
@@ -154,57 +145,18 @@ class StarPainter(object):
         return
 
 
-class StarWidget(gtk.HBox, StarPainter):
-
-    def __init__(self, size, is_interactive):
-        gtk.HBox.__init__(self)
-        StarPainter.__init__(self)
-
-        self.set_size_request(*size)
-
-        self.connect('style-set', self._on_style_set)
-        self.connect('expose-event', self._on_expose)
-        return
-
-    def _on_style_set(self, *args):
-        StarPainter.set_colors(self,
-                               self.style.mid[gtk.STATE_NORMAL].to_string(),
-                               self.style.dark[gtk.STATE_ACTIVE].to_string())
-        return
-
-    def _on_expose(self, widget, event):
-        cr = widget.window.cairo_create()
-        self.draw(cr, self.allocation)
-        del cr
-        return
-
-    def draw(self, cr, a):
-        w, h = self.get_size_request()
-        x = a.x + (a.width-w)/2
-        y = a.y + (a.height-h)/2
-        self.paint_star(cr, x, y, w, h)
-        return
-
-
-class InteractiveStarWidget(gtk.EventBox, StarPainter):
+class StarWidget(gtk.EventBox, StarPainter):
 
     def __init__(self, size, is_interactive):
         gtk.EventBox.__init__(self)
         StarPainter.__init__(self)
-
         self.set_visible_window(False)
         self.set_size_request(*size)
 
-        self._init_event_handling()
+        if is_interactive:
+            self._init_event_handling()
 
-        self.connect('style-set', self._on_style_set)
         self.connect('expose-event', self._on_expose)
-        return
-
-    def _on_style_set(self, *args):
-        StarPainter.set_colors(self,
-                               self.style.mid[gtk.STATE_NORMAL].to_string(),
-                               self.style.dark[gtk.STATE_ACTIVE].to_string())
         return
 
     def _init_event_handling(self):
@@ -333,6 +285,19 @@ class StarRatingSelector(StarRating):
         kv = event.keyval
         if kv == gtk.keysyms.space or kv == gtk.keysyms.Return:
             self.set_rating(star.position+1)
+        elif kv == gtk.keysyms._1:
+            self.set_rating(1)
+        elif kv == gtk.keysyms._2:
+            self.set_rating(2)
+        elif kv == gtk.keysyms._3:
+            self.set_rating(3)
+        elif kv == gtk.keysyms._4:
+            self.set_rating(4)
+        elif kv == gtk.keysyms._5:
+            self.set_rating(5)
+        
+        if self.caption:
+            self.caption.set_markup(self.RATING_WORDS[self.rating])
         return
 
     def _connect_signals(self, star):
@@ -386,7 +351,7 @@ class StarCaption(gtk.Label):
         #return
 
     def set_markup(self, markup):
-        gtk.Label.set_markup(self, '<small>%s</small>' % markup)
+        gtk.Label.set_markup(self, '<small><b>%s</b></small>' % markup)
         return
 
 
@@ -405,7 +370,11 @@ class ReviewStatsContainer(gtk.VBox):
         self._update_nr_reviews()
     # internal stuff
     def _update_nr_reviews(self):
-        self.label.set_markup(_("%i Ratings") % self.nr_reviews)
+        s = gettext.ngettext(
+            "%(nr_ratings)i Rating",
+            "%(nr_ratings)i Ratings",
+            self.nr_reviews) % { 'nr_ratings' : self.nr_reviews, }
+        self.label.set_markup(s)
 
 if __name__ == "__main__":
     w = ReviewStatsContainer()

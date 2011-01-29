@@ -283,6 +283,12 @@ class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
 
 
     # callbacks
+    def on_write_new_review_clicked(self):
+        self._review_write_new()
+                         
+    def on_report_abuse_clicked(self, review_id):
+        self._review_report_abuse(review_id)
+
     def on_button_buy_app_clicked(self):
         logging.debug("on_button_buy_app_clicked")
         self.buy_app()
@@ -368,6 +374,37 @@ class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
         return 0
 
     # internal helpers
+    # internal helpers
+    def _check_for_reviews(self):
+        logging.debug("_check_for_reviews")
+        reviews = self.review_loader.get_reviews(self.app, 
+                                                 self._reviews_ready_callback)
+
+    def _reviews_ready_callback(self, app, reviews):
+        # avoid possible race if we already moved to a new app when
+        # the reviews become ready 
+        # (we only check for pkgname currently to avoid breaking on
+        #  software-center totem)
+        logging.info("_review_ready_callback: %s" % app)
+        if self.app.pkgname != app.pkgname:
+            return
+        if not reviews:
+            no_review = _("This software item has no reviews yet.")
+            s='document.getElementById("reviews").innerHTML="%s"' % no_review
+            self.execute_script(s)
+        for review in reviews:
+            # use json.dumps() here to let it deal with all the escaping
+            # of ", \, \n etc
+            s = 'addReview(%s, %s,%s,%s,%s,%s);' % (json.dumps(review.summary),
+                                                    json.dumps(review.text),
+                                                    json.dumps(review.id), 
+                                                    json.dumps(review.date), 
+                                                    json.dumps(review.rating), 
+                                                    json.dumps(review.person))
+            #logging.debug("running '%s'" % s)
+            # FIXME: ensure webkit is in WEBKIT_LOAD_FINISHED state
+            self.execute_script(s)
+
     def _check_thumb_available(self):
         """ check for 404 on the given thumbnail image and run
             JS thumbMissing() if the thumb is not available

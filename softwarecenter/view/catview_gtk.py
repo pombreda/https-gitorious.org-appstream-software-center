@@ -34,6 +34,7 @@ MASK_SURFACE_CACHE = {}
 CAROUSEL_MAX_POSTER_COUNT =      8
 CAROUSEL_MIN_POSTER_COUNT =      1
 CAROUSEL_ICON_SIZE =             4*mkit.EM
+
 #CAROUSEL_POSTER_CORNER_RADIUS =  int(0.8*mkit.EM)    
 CAROUSEL_POSTER_MIN_WIDTH =      14*mkit.EM
 CAROUSEL_POSTER_MIN_HEIGHT =     min(64, 4*mkit.EM) + 5*mkit.EM
@@ -210,9 +211,9 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
         app = btn.app
         appname = app[AppStore.COL_APP_NAME]
         pkgname = app[AppStore.COL_PKGNAME]
-        popcon = app[AppStore.COL_POPCON]
-        self.emit("application-selected", Application(appname, pkgname, "", popcon))
-        self.emit("application-activated", Application(appname, pkgname, "", popcon))
+        rating = app[AppStore.COL_RATING]
+        self.emit("application-selected", Application(appname, pkgname, "", rating))
+        self.emit("application-activated", Application(appname, pkgname, "", rating))
         return False
 
     def _on_category_clicked(self, cat_btn, cat):
@@ -432,7 +433,7 @@ class LobbyViewGtk(CategoriesViewGtk):
             #        all into one label to make it more i18n friendly
             linkbutton = mkit.HLinkButton(label)
             linkbutton.set_underline(True)
-            linkbutton.set_subdued(True)
+            #linkbutton.set_subdued(True)
             self.hbox.pack_start(linkbutton, False, False)
             # Translators: full sentence will be: Welcome back! There is/are %(len)i new recommendation/s for you.
             self.hbox.pack_start(gtk.Label(_("for you.")), False, False)
@@ -626,7 +627,6 @@ class SubCategoryViewGtk(CategoriesViewGtk):
 
         # sections
         self.departments = None
-        self.build(desktopdir)
         return
 
     def _on_allocate(self, widget, allocation, *args):
@@ -721,10 +721,10 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         self._build_subcat_view(root_category, num_items)
         return
 
-    def build(self, desktopdir):
-        self.in_subsection = True
-        self.set_subcategory(self.root_category)
-        return
+    #def build(self, desktopdir):
+        #self.in_subsection = True
+        #self.set_subcategory(self.root_category)
+        #return
 
 
 class CarouselView(gtk.VBox):
@@ -1170,14 +1170,15 @@ class CategoryButton(Button):
 class SubcategoryButton(mkit.VLinkButton):
 
     ICON_SIZE = 48
-    MAX_WIDTH  = None#9*mkit.EM
-    MAX_HEIGHT = None#11*mkit.EM
+    MAX_WIDTH  = 12*mkit.EM
+    MAX_HEIGHT = 9*mkit.EM
 
     def __init__(self, markup, icon_name, icons):
         mkit.VLinkButton.__init__(self, markup, icon_name, self.ICON_SIZE, icons)
-        self.set_border_width(mkit.BORDER_WIDTH_MED)
-        self.set_size_request(self.get_size_request()[0],
-                              self.MAX_HEIGHT or self.get_size_request()[1])
+        self.set_border_width(mkit.BORDER_WIDTH_SMALL)
+        self.set_max_width(self.MAX_WIDTH)
+        #self.set_max_width(self.MAX_HEIGHT)
+        self.box.set_size_request(self.MAX_WIDTH, self.MAX_HEIGHT)
         return
 
 
@@ -1195,6 +1196,7 @@ class CarouselPoster2(Button):
         self.icons = icons
 
         self.app = None
+        self.alpha = 1.0
 
         self._height = 1
 
@@ -1296,7 +1298,7 @@ class CarouselPoster2(Button):
 
         a = Application(appname=app[AppStore.COL_APP_NAME],
                         pkgname=app[AppStore.COL_PKGNAME],
-                        popcon=app[AppStore.COL_POPCON])
+                        popcon=app[AppStore.COL_RATING])
         d = a.get_details(self.db)
 
         name = app[AppStore.COL_APP_NAME]
@@ -1392,7 +1394,7 @@ class PageSelector(gtk.Alignment):
         #print max_w, self.vbox.allocation.width
         w = 0
         for i in range(int(n_pages)):
-            w += CAROUSEL_PAGING_DOT_SIZE + mkit.SPACING_MED
+            w += PagingDot.DOT_SIZE + mkit.SPACING_MED
 
             if w > max_w:
                 rowbox = gtk.HBox(spacing=mkit.SPACING_MED)
@@ -1400,7 +1402,7 @@ class PageSelector(gtk.Alignment):
                 row.add(rowbox)
 
                 self.vbox.pack_start(row, expand=True)
-                w = CAROUSEL_PAGING_DOT_SIZE + mkit.SPACING_MED
+                w = PagingDot.DOT_SIZE + mkit.SPACING_MED
 
             dot = PagingDot(i)
             rowbox.pack_start(dot, False)
@@ -1435,9 +1437,11 @@ class PageSelector(gtk.Alignment):
 
 class PagingDot(mkit.LinkButton):
 
+    DOT_SIZE =       max(8, int(0.6*mkit.EM+0.5))
+
     def __init__(self, page_number):
         mkit.LinkButton.__init__(self, None, None, None)
-        self.set_size_request(-1, CAROUSEL_PAGING_DOT_SIZE)
+        self.set_size_request(-1, self.DOT_SIZE)
         self.is_selected = False
         self.page_number = page_number
 
@@ -1448,7 +1452,7 @@ class PagingDot(mkit.LinkButton):
         return
 
     def calc_width(self):
-        return CAROUSEL_PAGING_DOT_SIZE
+        return self.DOT_SIZE
 
     def draw(self, cr, a, expose_area, alpha):
         cr.save()

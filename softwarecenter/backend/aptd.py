@@ -660,7 +660,9 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             # generic metadata
             if metadata:
                 yield trans.set_meta_data(defer=True, **metadata)
-            # do not set the http proxy by default
+            # FIXME: either use get_http_proxy_string_from_libproxy 
+            #        (with target url) or eliminate entirely
+            # do not set the http proxy by default (#628823)
             if os.environ.get("SOFTWARE_CENTER_USE_GCONF_PROXY"):
                 http_proxy = get_http_proxy_string_from_gconf()
                 if http_proxy:

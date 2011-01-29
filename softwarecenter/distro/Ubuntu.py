@@ -20,6 +20,7 @@ import datetime
 import gettext
 import locale
 import re
+import urllib
 import subprocess
 
 from apt.utils import *
@@ -38,6 +39,15 @@ class Ubuntu(Distro):
 
     # purchase subscription
     PURCHASE_APP_URL = BUY_SOMETHING_HOST+"/subscriptions/%s/ubuntu/maverick/+new/?%s"
+
+    # reviews
+    REVIEWS_SERVER = os.environ.get("SOFTWARE_CENTER_REVIEWS_HOST") or "http://reviews.staging.ubuntu.com/reviews/api/1.0"
+    REVIEWS_SERVER_SSL = REVIEWS_SERVER.replace("http://", "https://")
+    REVIEWS_URL = urllib.basejoin(REVIEWS_SERVER, "/reviews/api/1.0/%(language)s/%(origin)s/%(distroseries)s/%(pkgname)s%(appname)s/")
+
+    #REVIEW_STATS_URL = REVIEWS_SERVER+"/reviews/api/1.0/%(language)s/%(origin)s/%(distroseries)s/review-stats/"
+    # FIXME: does that make sense?!?
+    REVIEW_STATS_URL = REVIEWS_SERVER+"/reviews/api/1.0/review-stats"
 
     def get_app_name(self):
         return _("Ubuntu Software Center")

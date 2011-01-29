@@ -1,5 +1,13 @@
-software-center (3.1.11) UNRELEASED; urgency=low
+software-center (3.1.12) natty; urgency=low
 
+  * merged lp:~mvo/software-center/trunk-reviews, this adds ratings
+    and reviews
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 27 Jan 2011 20:48:06 +0100
+
+software-center (3.1.11) natty; urgency=low
+
+  [ Gary Lasker ]
   * softwarecenter/view/widgets/spinner.py:
     - modify to allow updating spinner label text on the fly
   * software-center,
@@ -17,11 +25,29 @@ software-center (3.1.11) UNRELEASED; urgency=low
       view is fully initialized to insure correct status bar
       updating (fixes failure in test_supported_only test case)
   * softwarecenter/app.py:
-    - don't back up one level in the navigation hierarchy if the
-      backspace key is pressed while entering information during
-      the purchase process (LP: #705676) 
+    - fix unexpected switch back to the details view if the backspace
+      key is pressed during the purchase process (LP: #705676)
+  * softwarecenter/apt/aptcache.py,
+    softwarecenter/view/availablepane.py:
+    - defer opening the apt cache until we initialize the availablepane
+      view, provides a nice startup time boost
+  * test/test_appview.py,
+    test/test_gui_buy_something.py,
+    test/test_software_channels.py:
+    - update test cases for deferred apt cache open
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 20 Jan 2011 18:47:32 -0500
+  [ Michael Vogt ]
+  * add support for libproxy
+  * softwarecenter/view/widgets/imagedialog.py:
+    - eliminate use of urllib, use ImageDownloader (gio) instead
+  * support SOFTWARE_CENTER_AGENT_INCLUDE_APPROVED_BUT_UNPUBLISHED
+    for QA (LP: #681935)
+  
+  [ Kiwinote ]
+  * softwarecenter/app.py:
+    - display pkgs in correct pane when passing arguments (LP: #689407)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 27 Jan 2011 14:11:32 +0100
 
 software-center (3.1.10) natty; urgency=low
 
@@ -2226,6 +2252,20 @@ software-center (1.1.18) lucid; urgency=low
       images in categories view (LP: #530163)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 23 Mar 2010 10:13:26 +0100
+
+software-center (1.1.18~reviews2) lucid; urgency=low
+
+  * updated to track latest changes in rnr-server
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 16 Mar 2010 14:31:45 +0100
+
+software-center (1.1.18~reviews1) lucid; urgency=low
+
+  * data/templates/AppDetailsView.html:
+    - cherry pick progress nice bar improvements from 
+      Michael Forrest (many thanks)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 12 Mar 2010 16:33:32 +0100
 
 software-center (1.1.17) lucid; urgency=low
 
