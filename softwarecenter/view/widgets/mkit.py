@@ -1301,6 +1301,45 @@ class LinkButton(gtk.EventBox):
         return
 
 
+class EtchedLabel(gtk.Label):
+    
+    def __init__(self, *args, **kwargs):
+        gtk.Label.__init__(self, *args, **kwargs)
+        self.alpha = 0.5
+        self.connect('expose-event', self._on_expose)
+        return
+
+    def set_etching_alpha(self, a):
+        self.alpha = a
+        return
+
+    def _on_expose(self, widget, event):
+        l = self.get_layout()
+        a = widget.allocation
+        pc = pangocairo.CairoContext(widget.window.cairo_create())
+
+
+        x, y = a.x, a.y+1
+        lw, lh = l.get_pixel_extents()[1][2:]
+        ax, ay = self.get_alignment()
+
+        if lw < a.width:
+            x += int((a.width-lw)*ax)
+        if lh < a.height:
+            y += int((a.height-lh)*ay)
+
+        xp, yp = self.get_padding()
+        x += xp
+
+        pc.move_to(x, y)
+        pc.layout_path(l)
+        r,g,b = floats_from_gdkcolor(self.style.light[self.state])
+        pc.set_source_rgba(r,g,b,self.alpha)
+        pc.fill()
+        del pc
+        return
+
+
 class HLinkButton(LinkButton):
 
     def __init__(self, markup=None, icon_name=None, icon_size=20, icons=None):

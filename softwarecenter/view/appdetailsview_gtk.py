@@ -33,6 +33,7 @@ import sys
 import tempfile
 import xapian
 import cairo
+import pangocairo
 
 from PIL import Image
 from gettext import gettext as _
@@ -42,26 +43,51 @@ from softwarecenter.db.application import AppDetails, Application, NoneTypeAppli
 from softwarecenter.backend.zeitgeist_simple import zeitgeist_singleton
 from softwarecenter.enums import *
 from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
-#<<<<<<< TREE
-#from softwarecenter.utils import ImageDownloader, GMenuSearcher, uri_to_filename, upstream_version_compare, upstream_version
-#=======
-from softwarecenter.utils import ImageDownloader, GMenuSearcher, uri_to_filename, upstream_version_compare, upstream_version, is_unity_running
+
+from softwarecenter.utils import SimpleFileDownloader, GMenuSearcher, uri_to_filename, upstream_version_compare, upstream_version, is_unity_running
 
 from softwarecenter.gwibber_helper import GWIBBER_SERVICE_AVAILABLE
 
 from appdetailsview import AppDetailsViewBase
+#from actions import get_install_actions
 
 from widgets import mkit
+
 from widgets.mkit import EM
-from widgets.label import IndentLabel
-from widgets.imagedialog import ShowImageDialog, GnomeProxyURLopener, Url404Error, Url403Error
+#from widgets.imagedialog import ShowImageDialog, GnomeProxyURLopener, Url404Error, Url403Error
 from widgets.reviews import ReviewStatsContainer, StarRating
+
+from widgets.description import AppDescription, TextBlock
+from widgets.thumbnail import ScreenshotThumbnail
+from softwarecenter.distro import get_distro
+
+#from widgets.imagedialog import ShowImageDialog, GnomeProxyURLopener, Url404Error, Url403Error
+from softwarecenter.drawing import color_floats, rounded_rect2, rounded_rect
 
 if os.path.exists("./softwarecenter/enums.py"):
     sys.path.insert(0, ".")
 
 # default socket timeout to deal with unreachable screenshot site
 DEFAULT_SOCKET_TIMEOUT=4
+
+LOG = logging.getLogger("softwarecenter.view.appdetailsview")
+
+
+
+class PackageUsageCounter(gtk.Label):
+
+    def __init__(self, view):
+        gtk.Label.__init__(self)
+        self.set_alignment(0,0)
+        self.set_padding(4, 0)
+        self.view = view
+        self.shape = mkit.ShapeRoundedRectangle()
+        return
+
+    def set_text(self, text):
+        m = '<span bgcolor="darkgray" fgcolor="white"><b><small>%s</small></b></span>' % text
+        gtk.Label.set_markup(self, m)
+        return
 
 
 # action colours, taken from synaptic
@@ -76,7 +102,7 @@ COLOR_YELLOW_OUTLINE = '#FCE94F'
 # fixed black for action bar label, taken from Ambiance gtk-theme
 COLOR_BLACK         = '#323232'
 
-LOG = logging.getLogger("softwarecenter.view.appdetailsview")
+
 
 
 class StatusBar(gtk.Alignment):
@@ -114,6 +140,7 @@ class StatusBar(gtk.Alignment):
         return
         
     def draw(self, cr, a, expose_area):
+        if not self.get_property('visible'): return
         if mkit.not_overlapping(a, expose_area): return
 
         cr.save()
@@ -124,7 +151,6 @@ class StatusBar(gtk.Alignment):
 
         cr.rectangle(a)
         cr.set_source_rgba(r,g,b,0.333)
-#        cr.set_source_rgb(*mkit.floats_from_string(self.line_color))
         cr.fill()
 
         cr.set_line_width(1)
@@ -134,6 +160,51 @@ class StatusBar(gtk.Alignment):
         cr.stroke()
         cr.restore()
         return
+
+class AddonsStatusBar(StatusBar):
+
+    def __init__(self, addons_manager):
+        StatusBar.__init__(self, addons_manager.view)
+        self.addons_manager = addons_manager
+        self.addons_table = self.addons_manager.table
+        self.cache = self.addons_manager.view.cache
+
+        self.applying = False
+        
+        self.label_price = mkit.EtchedLabel(_("Free"))
+        self.hbox.pack_start(self.label_price, False)
+        
+        self.hbuttonbox = gtk.HButtonBox()
+        self.hbuttonbox.set_layout(gtk.BUTTONBOX_END)
+        self.button_apply = gtk.Button(_("Apply Changes"))
+        self.button_apply.connect("clicked", self._on_button_apply_clicked)
+        self.button_cancel = gtk.Button(_("Cancel"))
+        self.button_cancel.connect("clicked", self.addons_manager.restore)
+        self.hbox.pack_end(self.button_apply, False)
+        self.hbox.pack_end(self.button_cancel, False)
+        #self.hbox.pack_start(self.hbuttonbox, False)
+
+    def configure(self):
+        # FIXME: addons are not always free, but the old implementation of determining price was buggy
+        if not self.addons_manager.addons_to_install and not self.addons_manager.addons_to_remove:
+            self.hide()
+        else:
+            self.show_all()
+    
+    def get_applying(self):
+        return self.applying
+
+    def set_applying(self, applying):
+        self.applying = applying
+    
+    def _on_button_apply_clicked(self, button):
+        self.applying = True
+        self.button_apply.set_sensitive(False)
+        self.button_cancel.set_sensitive(False)
+        # these two lines are the magic that make it work
+        self.view.addons_to_install = self.addons_manager.addons_to_install
+        self.view.addons_to_remove = self.addons_manager.addons_to_remove
+        AppDetailsViewBase.apply_changes(self.view)
 
 
 class PackageStatusBar(StatusBar):
@@ -311,120 +382,6 @@ class PackageStatusBar(StatusBar):
         return
 
 
-class AppDescription(gtk.VBox):
-
-    # chars that server as bullets in the description
-    BULLETS = ('- ', '* ', 'o ')
-    TYPE_PARAGRAPH = 0
-    TYPE_BULLET    = 1
-
-    def __init__(self):
-        gtk.VBox.__init__(self, spacing=mkit.SPACING_LARGE)
-        self.set_resize_mode(gtk.RESIZE_IMMEDIATE)
-
-        self.description = IndentLabel()
-        self.footer = gtk.HBox(spacing=mkit.SPACING_MED)
-
-        self.pack_start(self.description, False)
-        self.pack_start(self.footer, False)
-        self.show_all()
-
-        self._prev_type = None
-        return
-
-    def clear(self):
-        self.description.clear()
-        return
-
-    def append_paragraph(self, p):
-        self.description.append_paragraph(p.strip())
-        self._prev_type = self.TYPE_PARAGRAPH
-        return
-
-    def append_bullet(self, point, indent_level):
-        vspacing=None
-        if self._prev_type == self.TYPE_BULLET:
-            vspacing = 5
-
-        self.description.append_bullet(point[2:].strip(),
-                                       indent_level+1,
-                                       vspacing)
-        self._prev_type = self.TYPE_BULLET
-        return
-
-    def set_description(self, desc, appname):
-        """ Attempt to maintain original fixed width layout, while 
-            reconstructing the description into text blocks 
-            (either paragraphs or bullets) which are line-wrap friendly.
-        """
-
-        LOG.debug("description: '%s' " % desc)
-        self.clear()
-        desc = gobject.markup_escape_text(desc)
-
-        parts = desc.split('\n')
-        l = len(parts)
-
-        in_blist = False
-        processed_frag = ''
-        prev_indent = 0
-        indent = 0
-
-        for i, raw_part in enumerate(parts):
-            part = raw_part.strip()
-            #indent = 0#len(raw_part) - len(part)
-#            print len(raw_part) - len(part), part
-
-            if not part:
-                # if empty, do the void
-                continue
-
-            # frag looks like its a bullet point
-            if part[:2] in self.BULLETS:
-                # if there's an existing bullet, append it and start anew
-                if in_blist:
-                    self.append_bullet(processed_frag, prev_indent)
-                    processed_frag = ''
-
-                in_blist = True
-
-            processed_frag += part
-
-            # ends with a terminator or the following fragment starts with a capital letter
-            if part[-1] in ('.', '!', '?', ':') or \
-                (i+1 < l and len(parts[i+1]) > 1 and \
-                    parts[i+1][0].isupper()):
-
-                # not in a bullet list, so normal paragraph
-                if not in_blist:
-                    # if not final text block, append newline
-                    # append text block
-                    self.append_paragraph(processed_frag)
-                    # reset
-                    processed_frag = ''
-
-                # we are in a bullet list
-                else:
-                    # append a bullet point
-                    self.append_bullet(processed_frag, indent)
-                    # reset
-                    processed_frag = ''
-                    in_blist = False
-
-            else:
-                processed_frag += ' '
-
-            #prev_indent = indent
-
-        if processed_frag:
-            if processed_frag[:2] in self.BULLETS:
-                self.append_bullet(processed_frag, indent)
-            else:
-                self.append_paragraph(processed_frag)
-
-        return
-
-
 class PackageInfo(gtk.HBox):
 
     def __init__(self, key, info_keys):
@@ -444,26 +401,26 @@ class PackageInfo(gtk.HBox):
         dark = self.style.dark[self.state].to_string()
         key_markup = '<b><span color="%s">%s</span></b>'
         k.set_markup(key_markup  % (dark, self.key))
-        a = gtk.Alignment(1.0, 0.0)
+        k.set_alignment(1, 0)
+
         # determine max width of all keys
         max_lw = 0
-        for key in self.info_keys:
-            tmp = gtk.Label()
-            tmp.set_markup(key_markup  % (dark, key))
-            max_lw = max(max_lw, tmp.get_layout().get_pixel_extents()[1][2])
-            del tmp
 
-        a.set_size_request(max_lw+3*EM, -1)
-        a.add(k)
-        self.pack_start(a, False)
+        for key in self.info_keys:
+            l = self.create_pango_layout("")
+            l.set_markup(key_markup % (dark, key))
+            max_lw = max(max_lw, l.get_pixel_extents()[1][2])
+            del l
+
+        k.set_size_request(max_lw+12, -1)
+        self.pack_start(k, False)
 
         # value
         v = self.value_label
         v.set_line_wrap(True)
         v.set_selectable(True)
-        b = gtk.Alignment(0.0, 0.0)
-        b.add(v)
-        self.pack_start(b, False)
+        v.set_alignment(0, 0.5)
+        self.pack_start(v, False)
 
         # a11y
         kacc = k.get_accessible()
@@ -472,8 +429,14 @@ class PackageInfo(gtk.HBox):
         vacc.add_relationship(atk.RELATION_LABELLED_BY, kacc)
 
         self.set_property("can-focus", True)
-
         self.show_all()
+
+        self.connect('size-allocate', self._on_allocate,
+                     v, max_lw+24+self.get_spacing())
+        return
+
+    def _on_allocate(self, widget, allocation, value_label, space_consumed):
+        value_label.set_size_request(max(10, allocation.width-space_consumed), -1)
         return
 
     def set_width(self, width):
@@ -485,311 +448,7 @@ class PackageInfo(gtk.HBox):
 
     def set_value(self, value):
         self.value_label.set_markup(value)
-        self.a11y.set_name(self.key + ' ' + self.value_label.get_text())
-
-
-class ScreenshotView(gtk.Alignment):
-
-    """ Widget that displays screenshot availability, download prrogress,
-        and eventually the screenshot itself.
-    """
-
-    def __init__(self, distro, icons):
-        # center child widgets in the available horizontal space (0.5)
-        # 0.0 == left/top margin, 0.5 == center, 1.0 == right/bottom margin
-        gtk.Alignment.__init__(self, 0.5, 0.0)
-        self.set_redraw_on_allocate(False)
-
-        # the frame around the screenshot (placeholder)
-        self.set_border_width(3)
-
-        # eventbox so we can connect to event signals
-        event = gtk.EventBox()
-        event.set_visible_window(False)
-        self.add(event)
-
-        # the image
-        self.image = gtk.Image()
-        self.image.set_redraw_on_allocate(False)
-        event.add(self.image)
-        self.eventbox = event
-
-        # connect the image to our custom draw func for fading in
-        self.image.connect('expose-event', self._on_image_expose)
-
-        # unavailable layout
-        l = gtk.Label(_('No screenshot'))
-        # force the label state to INSENSITIVE so we get the nice subtle etched in look
-        l.set_state(gtk.STATE_INSENSITIVE)
-        # center children both horizontally and vertically
-        # 0.0 == left/top margin, 0.5 == center, 1.0 == right/bottom margin
-        self.unavailable = gtk.Alignment(0.5, 0.5)
-        self.unavailable.add(l)
-
-        # set the widget to be reactive to events
-        self.set_flags(gtk.CAN_FOCUS)
-        event.set_events(gtk.gdk.BUTTON_PRESS_MASK|
-                         gtk.gdk.BUTTON_RELEASE_MASK|
-                         gtk.gdk.KEY_RELEASE_MASK|
-                         gtk.gdk.KEY_PRESS_MASK|
-                         gtk.gdk.ENTER_NOTIFY_MASK|
-                         gtk.gdk.LEAVE_NOTIFY_MASK)
-
-        # connect events to signal handlers
-        event.connect('enter-notify-event', self._on_enter)
-        event.connect('leave-notify-event', self._on_leave)
-        event.connect('button-press-event', self._on_press)
-        event.connect('button-release-event', self._on_release)
-        self.connect("key-press-event", self._on_key_press)
-        self.connect("key-release-event", self._on_key_release)
-
-        # data 
-        self.distro = distro
-        self.icons = icons
-
-        self.appname = None
-        self.thumb_url = None
-        self.large_url = None
-
-        # state tracking
-        self.ready = False
-        self.screenshot_available = False
-        self.alpha = 0.0
-
-        # convienience class for handling the downloading (or not) of any screenshot
-        self.loader = ImageDownloader()
-        self.loader.connect('image-url-reachable', self._on_screenshot_query_complete)
-        self.loader.connect('image-download-complete', self._on_screenshot_download_complete)
-
-    # signal handlers
-    def _on_enter(self, widget, event):
-        if self.get_is_actionable():
-            self.window.set_cursor(gtk.gdk.Cursor(gtk.gdk.HAND2))
-        return
-
-    def _on_leave(self, widget, event):
-        self.window.set_cursor(None)
-        return
-
-    def _on_press(self, widget, event):
-        if event.button != 1 or not self.get_is_actionable(): return
-        self.set_state(gtk.STATE_ACTIVE)
-        return
-
-    def _on_release(self, widget, event):
-        if event.button != 1 or not self.get_is_actionable(): return
-        self.set_state(gtk.STATE_NORMAL)
-        self._show_image_dialog()
-        return
-
-    def _on_key_press(self, widget, event):
-        # react to spacebar, enter, numpad-enter
-        if (event.keyval in (gtk.keysyms.space, 
-                             gtk.keysyms.Return, 
-                             gtk.keysyms.KP_Enter) and 
-            self.get_is_actionable()):
-            self.set_state(gtk.STATE_ACTIVE)
-        return
-
-    def _on_key_release(self, widget, event):
-        # react to spacebar, enter, numpad-enter
-        if event.keyval in (32, 65293, 65421) and self.get_is_actionable():
-            self.set_state(gtk.STATE_NORMAL)
-            self._show_image_dialog()
-        return
-
-    def _on_image_expose(self, widget, event):
-        """ If the alpha value is less than 1, we override the normal draw
-            for the GtkImage so we can draw with transparencey.
-        """
-
-        if widget.get_storage_type() != gtk.IMAGE_PIXBUF:
-            return
-
-        pb = widget.get_pixbuf()
-        if not pb: return True
-
-        a = widget.allocation
-        cr = widget.window.cairo_create()
-
-        cr.rectangle(a)
-        cr.clip()
-
-        # draw the pixbuf with the current alpha value
-        cr.set_source_pixbuf(pb, a.x, a.y)
-        cr.paint_with_alpha(self.alpha)
-        return True
-
-    def _fade_in(self):
-        """ This callback increments the alpha value from zero to 1,
-            stopping once 1 is reached or exceeded.
-        """
-
-        self.alpha += 0.05
-        if self.alpha >= 1.0:
-            self.alpha = 1.0
-            self.queue_draw()
-            return False
-        self.queue_draw()
-        return True
-
-    def _show_image_dialog(self):
-        """ Displays the large screenshot in a seperate dialog window """
-
-        url = self.large_url
-        title = _("%s - Screenshot") % self.appname
-        d = ShowImageDialog(
-            title, url,
-            self.distro.IMAGE_FULL_MISSING,
-            os.path.join(self.loader.tmpdir, uri_to_filename(url)))
-        d.run()
-        d.destroy()
-        return
-
-    def _on_screenshot_query_complete(self, loader, reachable):
-        self.set_screenshot_available(reachable)
-        if not reachable: self.ready = True
-        return
-
-    def _on_screenshot_download_complete(self, loader, screenshot_path):
-
-        def setter_cb(path):
-            try:
-                pb = gtk.gdk.pixbuf_new_from_file(path)
-            except:
-                LOG.warn('Screenshot downloaded but the file could not be opened.')
-                return False
-
-            self.image.set_size_request(-1, -1)
-            self.image.set_from_pixbuf(pb)
-            # start the fade in
-            gobject.timeout_add(50, self._fade_in)
-            self.ready = True
-            return False
-
-        gobject.idle_add(setter_cb, screenshot_path)
-        return
-
-    def get_is_actionable(self):
-        """ Returns true if there is a screenshot available and the download has completed """
-        return self.screenshot_available and self.ready
-
-    def set_screenshot_available(self, available):
-
-        """ Configures the ScreenshotView depending on whether there is a screenshot available. """
-
-        if not available:
-            if self.image.parent:
-                self.eventbox.remove(self.image)
-                self.eventbox.add(self.unavailable)
-                # set the size of the unavailable placeholder
-                # 160 pixels is the fixed width of the thumbnails
-                self.unavailable.set_size_request(160, 100)
-                self.unavailable.show_all()
-                acc = self.get_accessible()
-                acc.set_name(_('%s - No screenshot available') % self.appname)
-        else:
-            if self.unavailable.parent:
-                self.eventbox.remove(self.unavailable)
-                self.eventbox.add(self.image)
-                self.image.show()
-                acc = self.get_accessible()
-                acc.set_name(_('%s - Screenshot') % self.appname)
-
-        self.screenshot_available = available
-        return
- 
-    def configure(self, app_details):
-
-        """ Called to configure the screenshotview for a new application.
-            The existing screenshot is cleared and the process of fetching a
-            new screenshot is instigated.
-        """
-
-        acc = self.get_accessible()
-        acc.set_name(_('Fetching screenshot ...'))
-
-        self.clear()
-        self.appname = app_details.display_name
-        self.pkgname = app_details.pkgname
-        self.thumbnail_url = app_details.thumbnail
-        self.large_url = app_details.screenshot
-        return
-
-    def clear(self):
-
-        """ All state trackers are set to their intitial states, and
-            the old screenshot is cleared from the view.
-        """
-
-        self.screenshot_available = True
-        self.ready = False
-        self.alpha = 0.0
-
-        if self.unavailable.parent:
-            self.eventbox.remove(self.unavailable)
-            self.eventbox.add(self.image)
-            self.image.show()
-
-        # set the loading animation (its a .gif so a our GtkImage happily renders the animation
-        # without any fuss, NOTE this gif has a white background, i.e. it has no transparency
-        # TODO: use a generic gtk.Spinner instead of this icon
-        self.image.set_from_file(IMAGE_LOADING_INSTALLED)
-        self.image.set_size_request(160, 100)
-        return
-
-    def download_and_display(self):
-        """ Download then displays the screenshot.
-            This actually does a query on the URL first to check if its 
-            reachable, if so it downloads the thumbnail.
-            If not, it emits "image-url-reachable" False, then exits.
-        """
-        
-        self.loader.download_image(self.thumbnail_url)
-        return
-
-    def draw(self, cr, a, expose_area):
-        """ Draws the thumbnail frame """
-
-        if mkit.not_overlapping(a, expose_area): return
-
-        if self.image.parent:
-            ia = self.image.allocation
-        else:
-            ia = self.unavailable.allocation
-
-        x = a.x + (a.width - ia.width)/2
-        y = ia.y
-
-        if self.has_focus() or self.state == gtk.STATE_ACTIVE:
-            cr.rectangle(x-2, y-2, ia.width+4, ia.height+4)
-            cr.set_source_rgb(1,1,1)
-            cr.fill_preserve()
-            if self.state == gtk.STATE_ACTIVE:
-                color = mkit.floats_from_gdkcolor(self.style.mid[self.state])
-            else:
-                color = mkit.floats_from_gdkcolor(self.style.dark[gtk.STATE_SELECTED])
-            cr.set_source_rgb(*color)
-            cr.stroke()
-        else:
-            cr.rectangle(x-3, y-3, ia.width+6, ia.height+6)
-            cr.set_source_rgb(1,1,1)
-            cr.fill()
-            cr.save()
-            cr.translate(0.5, 0.5)
-            cr.set_line_width(1)
-            cr.rectangle(x-3, y-3, ia.width+5, ia.height+5)
-
-            dark = mkit.floats_from_gdkcolor(self.style.dark[self.state])
-            cr.set_source_rgb(*dark)
-            cr.stroke()
-            cr.restore()
-
-        if not self.screenshot_available:
-            cr.rectangle(x, y, ia.width, ia.height)
-            cr.set_source_rgb(*mkit.floats_from_gdkcolor(self.style.bg[self.state]))
-            cr.fill()
-        return
+        self.a11y.set_name(self.key + ' ' + value)
 
 
 class Addon(gtk.HBox):
@@ -798,7 +457,6 @@ class Addon(gtk.HBox):
     def __init__(self, db, icons, pkgname):
         gtk.HBox.__init__(self, spacing=mkit.SPACING_SMALL)
         #self.set_resize_mode(gtk.RESIZE_IMMEDIATE)
-        self.connect("realize", self._on_realize)
 
         # data
         self.app = Application("", pkgname)
@@ -807,10 +465,14 @@ class Addon(gtk.HBox):
         # checkbutton
         self.checkbutton = gtk.CheckButton()
         self.checkbutton.pkgname = self.app.pkgname
-        self.pack_start(self.checkbutton, False)
+        self.pack_start(self.checkbutton, False, padding=12)
 
+        self.connect('realize', self._on_realize, icons, pkgname)
+        return
+
+    def _on_realize(self, widget, icons, pkgname):
         # icon
-        hbox = gtk.HBox(spacing=mkit.SPACING_MED)
+        hbox = gtk.HBox(spacing=6)
         self.icon = gtk.Image()
         proposed_icon = self.app_details.icon
         if not proposed_icon or not icons.has_icon(proposed_icon):
@@ -833,26 +495,30 @@ class Addon(gtk.HBox):
         title = self.app_details.display_name
         if len(title) >= 2:
             title = title[0].upper() + title[1:]
-        a = gtk.Alignment()
-        self.title = gtk.Label(title)
-        self.title.set_alignment(0, 0.5)
-        #self.title.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
-        #self.title.set_line_wrap(True)
-        hbox.pack_start(self.title, False)
+
+        m = ' <span color="%s"> (%s)</span>'
+        pkgname = m%(self.style.dark[0].to_string(), pkgname)
+
+        self.title = gtk.Label()
+        self.title.set_markup(title+pkgname)
+        self.title.set_line_wrap(True)
+        hbox.pack_start(self.title)
+
         self.checkbutton.add(hbox)
 
-        # pkgname
-        self.pkgname = gtk.Label()
-        hbox.pack_start(self.pkgname, False)
+        self.connect('size-allocate', self._on_allocate, self.title)
 
         # a11y
         self.a11y = self.checkbutton.get_accessible()
         self.a11y.set_name(_("Add-on") + ':' + title + '(' + pkgname + ')')
 
-    def _on_realize(self, widget):
-        dark = self.style.dark[self.state].to_string()
-        key_markup = '<span color="%s">(%s)</span>'
-        self.pkgname.set_markup(key_markup  % (dark, self.checkbutton.pkgname))
+        self.show_all()
+
+    def _on_allocate(self, widget, allocation, title):
+#        print 'AddonWidth:', allocation.width
+        width = self.allocation.width-title.allocation.x
+        title.set_size_request(width, -1)
+        return
 
     def _on_more_clicked(self, more_btn):
         a = self.get_ancestor(AppDetailsViewGtk)
@@ -875,8 +541,8 @@ class AddonsTable(gtk.VBox):
     """ Widget to display a table of addons. """
     
     def __init__(self, addons_manager):
-        gtk.VBox.__init__(self)
-        self.set_border_width(6)
+        gtk.VBox.__init__(self, False, 12)
+        self.set_resize_mode(gtk.RESIZE_QUEUE)
         self.addons_manager = addons_manager
         self.cache = self.addons_manager.view.cache
         self.db = self.addons_manager.view.db
@@ -884,47 +550,31 @@ class AddonsTable(gtk.VBox):
         self.recommended_addons = None
         self.suggested_addons = None
 
-        self.label = gtk.Label()
-        self.label.set_use_markup(True)
+        self.label = mkit.EtchedLabel()
         self.label.set_alignment(0, 0.5)
-        markup = _('<b><big>Add-ons</big></b>')
+        self.label.set_padding(6, 6)
+
+        markup = _('Add-ons')
         self.label.set_markup(markup)
+        self.pack_start(self.label, False, False)
 
-        self.expander = gtk.Expander()
-        self.expander.set_label_widget(self.label)
-        self.pack_start(self.expander, False)
+    def _on_realize(self, widget):
+        markup = _('<b><span color="%s">Add-ons</span></b>')
+        color = self.label.style.dark[self.label.state].to_string()
+        self.label.set_markup(markup % color)
+    
+    def set_addons(self, addons):
+        # FIXME: sort the addons in alphabetical order
+        self.recommended_addons = addons[0]
+        self.suggested_addons = addons[1]
 
-        self.vbox = gtk.VBox(spacing=mkit.SPACING_SMALL)
-        self.vbox.set_no_show_all(True)
-        self.vbox.set_border_width(6)
-        self.pack_start(self.vbox)
-
-        self._reload = True
-        self.expander.connect('notify::expanded', self._on_expand)
-        return
-
-    def _on_expand(self, expander, param):
-        if not self.expander.get_expanded():
-            self.vbox.hide_all()
-        else:
-            if self.vbox.get_no_show_all():
-                self.vbox.set_no_show_all(False)
-            self._fill()
-        return
-
-    def _fill(self):
         if not self.recommended_addons and not self.suggested_addons:
             return
 
-        if not self._reload:
-            self.vbox.show_all()
-            return
-
-        view_width = self.addons_manager.view.allocation.width
-
         # clear any existing addons
-        for addon in self.vbox:
-            self.vbox.remove(addon)
+        for widget in self:
+            if widget != self.label:
+                self.remove(widget)
 
         # set the new addons
         for addon_name in self.recommended_addons + self.suggested_addons:
@@ -932,50 +582,14 @@ class AddonsTable(gtk.VBox):
                 pkg = self.cache[addon_name]
             except KeyError:
                 continue
-
             addon = Addon(self.db, self.icons, addon_name)
             #addon.pkgname.connect("clicked", not yet suitable for use)
             addon.set_active(pkg.installed != None)
-            addon.checkbutton.connect("toggled", self.addons_manager.mark_changes)
-            self.vbox.pack_start(addon, False)
-            addon.set_width(view_width)
-
-        self._reload = False
-        self.vbox.show_all()
-        return
-
-    def set_addons(self, addons):
-        # FIXME: sort the addons in alphabetical order
-        self.recommended_addons = addons[0]
-        self.suggested_addons = addons[1]
-        self._reload = True
-
-        if not self.recommended_addons and not self.suggested_addons:
-            self.hide()
-        else:
-            self.show()
-            if self.expander.get_expanded():
-                self._fill()
+            addon.checkbutton.connect("toggled",
+                                      self.addons_manager.mark_changes)
+            self.pack_start(addon, False)
+        self.show_all()
         return False
-
-    def set_width(self, width):
-        for child in self.vbox:
-            child.set_width(width)
-        return
-
-    def draw(self, cr, a):
-        if a.width <= 0: return
-        cr.save()
-        rr= mkit.ShapeRoundedRectangle()
-        rr.layout(cr, a.x,a.y, a.x+a.width, a.y+a.height, radius=4)
-        cr.set_source_rgba(*mkit.floats_from_gdkcolor_with_alpha(self.style.mid[0], 0.175))
-        cr.fill()
-        cr.set_line_width(1)
-        rr.layout(cr, a.x+0.5,a.y+0.5, a.x+a.width-0.5, a.y+a.height-0.5, radius=4)
-        cr.set_source_rgb(*mkit.floats_from_gdkcolor(self.style.dark[0]))
-        cr.stroke()
-        cr.restore()
-        return
 
 
 class Reviews(gtk.VBox):
@@ -1313,7 +927,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
     """ The view that shows the application details """
 
     # the size of the icon on the left side
-    APP_ICON_SIZE = 48 # gtk.ICON_SIZE_DIALOG ?
+    APP_ICON_SIZE = 84 # gtk.ICON_SIZE_DIALOG ?
 
     # need to include application-request-action here also since we are multiple-inheriting
     __gsignals__ = {'selected':(gobject.SIGNAL_RUN_FIRST,
@@ -1337,12 +951,17 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         AppDetailsViewBase.__init__(self, db, distro, icons, cache, datadir)
         gtk.Viewport.__init__(self)
         self.set_shadow_type(gtk.SHADOW_NONE)
+        self.adjustment_value = None
+        self._prev_width = 0
+
         self.section = None
         # app specific data
         self.app = NoneTypeApplication()
         self.app_details = self.app.get_details(self.db)
 
         self.action_bar = PackageStatusBar(self)
+        self.review_stats_widget = ReviewStatsContainer()
+        self.reviews = Reviews(self)
 
         self.loaded = False
         return
@@ -1369,9 +988,11 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self._overlay = gtk.gdk.pixbuf_new_from_file(INSTALLED_ICON)
 
         # page elements are packed into our very own lovely viewport
-        self._layout_all()
-        self.connect('size-allocate', self._on_allocate)
-        self.vbox.connect('expose-event', self._on_expose)
+        self._layout_page()
+#        self.connect('size-allocate', self._on_allocate)
+#        self.vbox.connect('expose-event', self._on_expose)
+        self.connect('realize', self._on_realize)
+
         #self.main_frame.image.connect_after('expose-event', self._on_icon_expose)
         self.loaded = True
         return
@@ -1408,84 +1029,134 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.reviews.add_review(review)
         self.reviews.finished()
 
-    def _on_allocate(self, widget, allocation):
-        w = allocation.width
-
-        max_title_width = w-84-self.review_stats_widget.allocation.width-5*EM
-        self.main_frame.title.set_size_request(max_title_width, -1)
-        self.main_frame.summary.set_size_request(max_title_width, -1)
-
-        desc = self.app_desc.description
-        size = desc.height_from_width(w-4*EM-166)
-        if size:
-            desc.set_size_request(*size)
-
-        self.addon_view.set_width(w-4*EM)
-
-        self.version_info.set_width(w-4*EM)
-        self.license_info.set_width(w-4*EM)
-        self.support_info.set_width(w-4*EM)
-
-        self.reviews.set_width(w-5*EM)
-
-        self._full_redraw()   #  ewww
-        return
-
     def _on_expose(self, widget, event):
-        expose_area = event.area
         a = widget.allocation
-        cr = widget.window.cairo_create()
-        cr.rectangle(expose_area)
-        cr.clip_preserve()
-        #cr.clip()
 
-        # base color
-        cr.set_source_rgb(*mkit.floats_from_gdkcolor(self.style.base[self.state]))
+        cr = widget.window.cairo_create()
+        cr.rectangle(a.x-5, a.y, a.width+10, a.height)
+        cr.clip()
+
+        color = color_floats(widget.style.light[0])
+
+        cr.rectangle(widget.allocation)
+        cr.set_source_rgba(*color+(0.6,))
         cr.fill()
 
-        if self.section:
-            self.section.render(cr, a)
+        # paint the section backdrop
+        if self.section: self.section.render(cr, a)
 
-        # if the appicon is not that big draw a rectangle behind it
-        # https://wiki.ubuntu.com/SoftwareCenter#software-icon-view
-        if self.main_frame.image.get_storage_type() == gtk.IMAGE_PIXBUF:
-            pb = self.main_frame.image.get_pixbuf()
-            if pb.get_width() < 64 or pb.get_height() < 64:
-                # draw icon frame
-                self._draw_icon_frame(cr)
+        # only draw shadows when viewport is sufficiently wide...
+        if a.width >= 900:
+            # shadow on the right side
+            lin = cairo.LinearGradient(a.x+a.width, a.y, a.x+a.width+5, a.y)
+            lin.add_color_stop_rgba(0, 0,0,0, 0.175)
+            lin.add_color_stop_rgba(1, 0,0,0, 0.000)
+
+            cr.rectangle(a.x+a.width, a.y, 5, a.height)
+            cr.set_source(lin)
+            cr.fill()
+
+            cr.set_line_width(1)
+
+            # right side
+            # outer vertical strong line
+            cr.move_to(a.x+a.width+0.5, a.y)
+            cr.rel_line_to(0, a.height)
+            cr.set_source_rgb(*color_floats(widget.style.dark[self.state]))
+            cr.stroke()
+
+            # inner vertical highlight
+            cr.move_to(a.x+a.width-0.5, a.y)
+            cr.rel_line_to(0, a.height)
+            cr.set_source_rgba(1,1,1,0.3)
+            cr.stroke()
+
+            # shadow on the left side
+            lin = cairo.LinearGradient(a.x-5, a.y, a.x, a.y)
+            lin.add_color_stop_rgba(1, 0,0,0, 0.175)
+            lin.add_color_stop_rgba(0, 0,0,0, 0.000)
+
+            cr.rectangle(a.x-5, a.y, 5, a.height)
+            cr.set_source(lin)
+            cr.fill()
+
+            # left side
+            # outer vertical strong line
+            cr.move_to(a.x-0.5, a.y)
+            cr.rel_line_to(0, a.height)
+            cr.set_source_rgb(*color_floats(widget.style.dark[self.state]))
+            cr.stroke()
+
+            # inner vertical highlight
+            cr.move_to(a.x+0.5, a.y)
+            cr.rel_line_to(0, a.height)
+            cr.set_source_rgba(1,1,1,0.3)
+            cr.stroke()
+
+
+        # draw the info vbox bg
+        a = self.info_vb.allocation
+        rounded_rect(cr, a.x, a.y, a.width, a.height, 5)
+        cr.set_source_rgba(*color_floats("#F7F7F7")+(0.75,))
+        cr.fill()
+
+        # draw the info header bg
+        a = self.addon_view.label.allocation
+        # hack: the > 200 is so we dont get premature drawing of the add-ons bg
+        if self.addon_view.get_property("visible") and a.y > 200:
+            rounded_rect2(cr, a.x, a.y, a.width, a.height, (5, 5, 0, 0))
+            cr.set_source_rgb(*color_floats("#DAD7D3"))
+            cr.fill()
+
+        # draw the info header bg
+        if self.addon_view.get_property("visible"):
+            cr.rectangle(self.info_header.allocation)
         else:
-            # draw icon frame as well...
-            self._draw_icon_frame(cr)
+            a = self.info_header.allocation
+            rounded_rect2(cr, a.x, a.y, a.width, a.height, (5, 5, 0, 0))
 
-        self.app_desc.description.draw(widget, event)
-        
-        if self.action_bar.get_property('visible'):
-            self.action_bar.draw(cr,
-                                 self.action_bar.allocation,
-                                 event.area)
+        cr.set_source_rgb(*color_floats("#DAD7D3"))
+        cr.fill()
 
-        if self.addons_statusbar.get_property('visible'):
-            self.addons_statusbar.draw(cr,
-                                 self.addons_statusbar.allocation,
-                                 event.area)
+        a = self.info_vb.allocation
+        cr.save()
+        rounded_rect(cr, a.x+0.5, a.y+0.5, a.width-1, a.height-1, 5)
+        cr.set_source_rgba(*color_floats("#DAD7D3")+(0.3,))
+        cr.set_line_width(1)
+        cr.stroke()
+        cr.restore()
 
-        if self.screenshot.get_property('visible'):
-            self.screenshot.draw(cr, self.screenshot.allocation, expose_area)
-
-        if self.homepage_btn.get_property('visible'):
-            self.homepage_btn.draw(cr, self.homepage_btn.allocation, expose_area)
-        if self.share_btn.get_property('visible'):
-            self.share_btn.draw(cr, self.share_btn.allocation, expose_area)
-
-        if self.usage.get_property('visible'):
-            self.usage.draw(cr, self.usage.allocation)
-
-        if self.addon_view.get_property('visible'):
-            self.addon_view.draw(cr, self.addon_view.allocation)
-
-        self.reviews.draw(cr, self.reviews.allocation)
+        # draw subwidgets
+        self.action_bar.draw(cr, self.action_bar.allocation, event.area)
+        self.screenshot.draw(cr, self.screenshot.allocation, event.area)
+        self.addons_bar.draw(cr, self.addons_bar.allocation, event.area)
 
         del cr
+        return
+
+    def _on_allocate(self, viewport, allocation, vbox):
+        gobject.idle_add(self.queue_draw)
+
+        w = min(allocation.width-2, 900)
+
+        if w <= 400 or w == self._prev_width: return True
+        self._prev_width = w
+
+        vbox.set_size_request(w, -1)
+        return True
+
+    def _on_key_press(self, widget, event):
+        kv = gtk.keysyms
+        if event.keyval == kv.BackSpace:
+            self.back.emit('clicked')
+        return
+
+    def _on_key_release(self, widget, event, entry):
+        ctrl = event.state & gtk.gdk.CONTROL_MASK
+        if ctrl:
+            if event.keyval == gtk.keysyms.s:
+                entry.set_position(-1)
+                entry.grab_focus()
         return
 
     def _on_icon_expose(self, widget, event):
@@ -1498,6 +1169,10 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                              a.y+a.height-pb.get_height())
         cr.paint()
         del cr
+        return
+
+    def _on_realize(self, widget):
+        self.addons_bar.hide_all()
         return
 
     def _on_homepage_clicked(self, button):
@@ -1515,170 +1190,144 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         glib.timeout_add_seconds(1, lambda p: p.poll() is None, p)
         return
 
-    def _full_redraw_cb(self):
-        self.queue_draw()
-        if self.adjustment_value is not None \
-        and self.adjustment_value >= self.get_vadjustment().lower \
-        and self.adjustment_value <= self.get_vadjustment().upper:
-            self.get_vadjustment().set_value(self.adjustment_value)
-        return False
+    def _layout_page(self):
+        # setup widgets
+        a = gtk.Alignment(0.5, 0.0, yscale=1.0)
+        self.add(a)
 
-    def _full_redraw(self):
-        # If we relied on a single queue_draw newly exposed (previously
-        # clipped) regions of the Viewport are blighted with
-        # visual artefacts, so...
+        self.hbox = gtk.HBox()
+        a.add(self.hbox)
 
-        # Two draws are queued; one immediately and one as an idle process
+        vb = gtk.VBox(spacing=18)
+        vb.set_border_width(20)
+        vb.set_redraw_on_allocate(False)
+        self.set_redraw_on_allocate(False)
+        self.hbox.pack_start(vb, False)
 
-        # The immediate draw results in visual artefacts
-        # but without which the resize feels 'laggy'.
-        # The idle redraw cleans up the regions affected by 
-        # visual artefacts.
+        # header
+        hb = gtk.HBox(spacing=12)
+        vb.pack_start(hb)
 
-        # This all seems to happen fast enough such that the user will
-        # not to notice the temporary visual artefacts.  Peace out.
+        # the app icon
+        self.icon = gtk.Image()
+        self.icon.set_size_request(84,-1)
+        self.icon.set_from_icon_name(MISSING_APP_ICON, gtk.ICON_SIZE_DIALOG)
+        hb.pack_start(self.icon, False)
 
-        self.queue_draw()
-        if self.adjustment_value is not None \
-        and self.adjustment_value >= self.get_vadjustment().lower \
-        and self.adjustment_value <= self.get_vadjustment().upper:
-            self.get_vadjustment().set_value(self.adjustment_value)
-        gobject.idle_add(self._full_redraw_cb)
-        return
+        # the app title/summary
+        self.title = mkit.EtchedLabel('<span font_desc="bold 20">Title</span>\nSummary')
+        self.title.set_alignment(0, 0.5)
+        vb_inner=gtk.VBox(spacing=6)
+        vb_inner.pack_start(self.title, False)
 
-    def _layout_main_frame_header(self):
-        # root vbox
-        self.vbox = gtk.VBox()
-        self.add(self.vbox)
-        self.vbox.set_border_width(mkit.BORDER_WIDTH_XLARGE)
-        # we have our own viewport so we know when the viewport grows/shrinks
-        self.vbox.set_redraw_on_allocate(False)
+        # star rating widget
+        vb_inner.pack_start(self.review_stats_widget, False)
 
-        # main framed section that contains all app details
-        self.main_frame = mkit.FramedSectionAlt()
-        self.main_frame.image.set_size_request(84, 84)
-        self.main_frame.set_spacing(mkit.SPACING_LARGE)
-        self.main_frame.header.set_spacing(mkit.SPACING_LARGE)
-        self.main_frame.header_alignment.set_padding(mkit.SPACING_SMALL,
-                                                   mkit.SPACING_SMALL,
-                                                   0, 0)
+#        # a11y for name/summary
+#        self.main_frame.header.set_property("can-focus", True)
+#        self.main_frame.header.a11y = self.main_frame.header.get_accessible()   
+#        self.usage = PackageUsageCounter(self)
 
-        self.review_stats_widget = ReviewStatsContainer()
-        align = gtk.Alignment(1, 0.5)
-        align.add(self.review_stats_widget)
-        self.main_frame.header.pack_start(align, False, False)
+#        vb_inner.pack_start(self.usage, False)
+        hb.pack_start(vb_inner)
 
-        self.main_frame.body.set_spacing(mkit.SPACING_XLARGE)
-        self.vbox.pack_start(self.main_frame, False)
+        # the package status bar
+        self.action_bar = PackageStatusBar(self)
+        vb.pack_start(self.action_bar, False)
 
-        # a11y for name/summary
-        self.main_frame.header.set_property("can-focus", True)
-        self.main_frame.header.a11y = self.main_frame.header.get_accessible()
-        return
+        # the hbox that hold the description on the left and the screenshot 
+        # thumbnail on the right
+        body_hb = gtk.HBox(spacing=12)
+        vb.pack_start(body_hb, False)
 
-    def _layout_usage_counter(self):
-        # if zeitgeist is installed,
-        # the amount of times it was used
-        self.usage = mkit.BubbleLabel()
-        self.main_frame.header_vbox.pack_start(self.usage, False, padding=2)
-        return
+        # append the description widget, hold the formatted long description
+        self.desc = AppDescription(viewport=self)
+        body_hb.pack_start(self.desc)
 
-    def _layout_pkg_status_actions(self):
-        # controls which are displayed if the app is installed
-        self.main_frame.body.pack_start(self.action_bar, False)
-
-        # the location of the app (if its installed)
-        self.installed_where_hbox = gtk.HBox(spacing=mkit.SPACING_MED)
-        self.main_frame.body.pack_start(self.installed_where_hbox)
-        self.installed_where_hbox.a11y = self.installed_where_hbox.get_accessible()
-        return
-
-    def _layout_app_description(self):
-        # framed section which contains the app description
-        #self.app_desc_frame = mkit.FramedSection(xpadding=mkit.SPACING_XLARGE)
-        #self.app_desc_frame.header_alignment.set_padding(0,0,0,0)
-        #self.main_frame.body.pack_start(self.app_desc_frame, False)
-
-        # the app desc hboc contains both the app desc on the left and the 
-        # screenshot on the right
-        app_desc_hb = gtk.HBox(spacing=mkit.SPACING_LARGE)
-        self.main_frame.body.pack_start(app_desc_hb)
-
-        # application description wigdets
-        self.app_desc = AppDescription()
-        app_desc_hb.pack_start(self.app_desc, False)
-
-        # a11y for description
-        self.app_desc.description.set_property("can-focus", True)
-        self.app_desc.description.a11y = self.app_desc.description.get_accessible()
-
-        # screenshot
-        self.screenshot = ScreenshotView(self.distro, self.icons)
-        app_desc_hb.pack_end(self.screenshot)
+        # the thumbnail/screenshot
+        self.screenshot = ScreenshotThumbnail(get_distro(), self.icons)
+        body_hb.pack_start(self.screenshot, False)
 
         # homepage link button
         self.homepage_btn = mkit.HLinkButton(_('Website'))
         self.homepage_btn.connect('clicked', self._on_homepage_clicked)
         self.homepage_btn.set_underline(True)
-        self.app_desc.footer.pack_start(self.homepage_btn, False)
+        self.homepage_btn.set_xmargin(0)
 
         # share app with microbloggers button
         self.share_btn = mkit.HLinkButton(_('Share...'))
         self.share_btn.set_underline(True)
         self.share_btn.set_tooltip_text(_('Share via a micro-blogging service...'))
         self.share_btn.connect('clicked', self._on_share_clicked)
-        self.app_desc.footer.pack_start(self.share_btn, False)
-        return
 
-    def _layout_pkg_info(self):
+        # add the links footer to the description widget
+        footer_hb = gtk.HBox(spacing=6)
+        footer_hb.pack_start(self.homepage_btn, False)
+        footer_hb.pack_start(self.share_btn, False)
+        self.desc.pack_start(footer_hb, False)
+
+#        # a11y for name/summary
+#        self.app_info.header.set_property("can-focus", True)
+#        self.app_info.header.a11y = self.app_info.header.get_accessible()
+
+#        # the location of the app (if its installed)
+#        self.desc_installed_where = gtk.HBox(spacing=mkit.SPACING_MED)
+#        self.app_info.body.pack_start(self.desc_installed_where)
+#        self.desc_installed_where.a11y = self.desc_installed_where.get_accessible()
+
+#        # a11y for description
+#        self.app_desc.description.set_property("can-focus", True)
+#        self.app_desc.description.a11y = self.app_desc.description.get_accessible()
+
+        self.info_vb = info_vb = gtk.VBox(spacing=12)
+        vb.pack_start(info_vb, False)
+
+        # add-on handling
+        self.addon_view = self.addons_manager.table
+        info_vb.pack_start(self.addon_view, False)
+
+        self.addons_bar = self.addons_manager.status_bar
+        info_vb.pack_start(self.addons_bar, False)
+
         # package info
         self.info_keys = []
 
-        info_table_vbox = gtk.VBox(spacing=mkit.SPACING_MED)
-        self.main_frame.body.pack_start(info_table_vbox, False)
+        # info header
+        self.info_header = mkit.EtchedLabel("Details")
+        self.info_header.set_alignment(0, 0.5)
+        self.info_header.set_padding(6, 6)
+        self.info_header.set_use_markup(True)
+        info_vb.pack_start(self.info_header, False)
 
         self.totalsize_info = PackageInfo(_("Total size:"), self.info_keys)
-        info_table_vbox.pack_start(self.totalsize_info, False)
-
-        self.addons_statusbar = self.addons_manager.status_bar
-        info_table_vbox.pack_start(self.addons_statusbar, False, padding=3)
+        info_vb.pack_start(self.totalsize_info, False)
 
         self.version_info = PackageInfo(_("Version:"), self.info_keys)
-        info_table_vbox.pack_start(self.version_info, False)
+        info_vb.pack_start(self.version_info, False)
 
         self.license_info = PackageInfo(_("License:"), self.info_keys)
-        info_table_vbox.pack_start(self.license_info, False)
+        info_vb.pack_start(self.license_info, False)
 
         self.support_info = PackageInfo(_("Updates:"), self.info_keys)
-        info_table_vbox.pack_start(self.support_info, False)
-        return
+        info_vb.pack_start(self.support_info, False)
 
-    def _layout_pkg_addons_actions(self):
-        # addons manager
-        self.addons_to_install = self.addons_manager.addons_to_install
-        self.addons_to_remove = self.addons_manager.addons_to_remove
-        self.addon_view = self.addons_manager.table
-        self.main_frame.body.pack_start(self.addon_view, False)
-        return
+        padding = gtk.VBox()
+        padding.set_size_request(-1, 6)
+        info_vb.pack_end(padding, False)
 
-    def _layout_reviews(self):
-        # reviews
-        self.reviews = Reviews(self)
+        # reviews cascade
         self.reviews.connect("new-review", self._on_review_new)
         self.reviews.connect("report-abuse", self._on_review_report_abuse)
-        self.main_frame.body.pack_start(self.reviews)
-        return
 
-    def _layout_all(self):
-        # setup widgets
-        self._layout_main_frame_header()
-        self._layout_usage_counter()
-        self._layout_pkg_status_actions()
-        self._layout_app_description()
-        self._layout_pkg_addons_actions()
-        self._layout_pkg_info()
-        self._layout_reviews()
+        vb.pack_start(self.reviews, False)
+
         self.show_all()
+
+        # signals!
+        self.connect('key-press-event', self._on_key_press)
+#        self.connect('key-release-event', self._on_key_release, entry)
+        vb.connect('expose-event', self._on_expose)
+        self.connect('size-allocate', self._on_allocate, vb)
         return
 
     def _on_review_new(self, button):
@@ -1690,18 +1339,15 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
     def _update_title_markup(self, appname, summary):
         # make title font size fixed as they should look good compared to the 
         # icon (also fixed).
-        big = 20*pango.SCALE
-        title = '<b><span size="%s">%s</span></b>' % (big, appname)
-        #summary = '<small>%s</small>' % summary
+        markup = '<span font_desc="bold 20">%s</span>\n<span font_desc="9">%s</span>'
+        markup = markup % (appname, gobject.markup_escape_text(summary))
 
-        # set app- icon, name and summary in the header
-        self.main_frame.set_title(markup=title)
-        self.main_frame.set_summary(markup=summary)
+        self.title.set_markup(markup)
 
-        # a11y for name/summary
-        self.main_frame.header.a11y.set_name("Application: " + appname + ". Summary: " + summary)
-        self.main_frame.header.a11y.set_role(atk.ROLE_PANEL)
-        self.main_frame.header.grab_focus()
+#        # a11y for name/summary
+#        self.app_info.header.a11y.set_name("Application: " + appname + ". Summary: " + summary)
+#        self.app_info.header.a11y.set_role(atk.ROLE_PANEL)
+#        self.app_info.header.grab_focus()
         return
 
     def _update_app_icon(self, app_details):
@@ -1713,11 +1359,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         pb = self._get_icon_as_pixbuf(app_details)
         # should we show the green tick?
-        #self._show_overlay = app_details.pkg_state == PKG_STATE_INSTALLED
-        self.main_frame.set_icon_from_pixbuf(pb)
-
-        # sample avg color of icon
-        self.avg_icon_rgb = get_avg_color(pb)
+#        self._show_overlay = app_details.pkg_state == PKG_STATE_INSTALLED
+        self.icon.set_from_pixbuf(pb)
         return
 
     def _update_layout_error_status(self, pkg_error):
@@ -1736,7 +1379,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.screenshot.show()
         return
 
-    def _update_app_description(self, app_details, appname):
+    def _update_app_description(self, app_details, pkgname):
         # format new app description
         if app_details.pkg_state == PKG_STATE_ERROR:
             description = app_details.error
@@ -1744,7 +1387,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             description = app_details.description
         if not description:
             description = " "
-        self.app_desc.set_description(description, appname)
+        self.desc.set_description(description, pkgname)
         # a11y for description
         #self.app_desc.body.a11y.set_name("Description: " + description)
         return
@@ -1770,7 +1413,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         if app_details.thumbnail and app_details.screenshot:
             self.screenshot.configure(app_details)
 
-            # then begin screenshot download and display sequence
+            # inititate the download and display series of callbacks
             self.screenshot.download_and_display()
         return
 
@@ -1790,6 +1433,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             support = app_details.maintenance_status
         else:
             support = _("Unknown")
+
         self.version_info.set_value(version)
         self.license_info.set_value(license)
         self.support_info.set_value(support)
@@ -1797,11 +1441,11 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
     def _update_addons(self, app_details):
         # refresh addons interface
-        #self.addon_view.hide_all()
         if not app_details.error:
             self.addons_manager.configure(self.app_details.pkgname)
 
         # Update total size label
+        self.totalsize_info.set_value(_("Calculating..."))
         gobject.timeout_add(500, self.update_totalsize, True)
         
         # Update addons state bar
@@ -1832,6 +1476,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         if not summary:
             summary = ""
 
+        # depending on pkg install state set action labels
+        self.action_bar.configure(app_details, app_details.pkg_state)
+
         self._update_title_markup(appname, summary)
         self._update_app_icon(app_details)
         self._update_layout_error_status(pkg_ambiguous_error)
@@ -1840,13 +1487,10 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self._update_app_screenshot(app_details)
         self._update_pkg_info_table(app_details)
         self._update_addons(app_details)
-        self._update_reviews(app_details)
+        self._update_usage_counter()
 
-        # depending on pkg install state set action labels
-        self.action_bar.configure(app_details, app_details.pkg_state)
-
-        # show where it is
-        self._configure_where_is_it()
+#        # show where it is
+#        self._configure_where_is_it()
         return
 
     def _update_minimal(self, app_details):
@@ -1863,18 +1507,18 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         self._update_title_markup(appname, summary)
         self._update_app_icon(app_details)
-        self._update_layout_error_status(pkg_ambiguous_error)
-        if not self.app_desc.description.order:
-            self._update_app_description(app_details, appname)
-            self._update_description_footer_links(app_details)
+#        self._update_layout_error_status(pkg_ambiguous_error)
+        self._update_app_description(app_details, app_details.pkgname)
+        self._update_app_screenshot(app_details)
+        self._update_description_footer_links(app_details)
         self._update_pkg_info_table(app_details)
-        self._update_addons(app_details)
+        gobject.timeout_add(500, self._update_addons, app_details)
 
         # depending on pkg install state set action labels
         self.action_bar.configure(app_details, app_details.pkg_state)
 
-        # show where it is
-        self._configure_where_is_it()
+#        # show where it is
+#        self._configure_where_is_it()
         return
 
     def _configure_where_is_it(self):
@@ -1948,6 +1592,10 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             LOG.debug("no app selected")
             return
 
+
+        if not self.loaded:
+            self._init_ondemand()
+
         same_app = (self.app and self.app.pkgname and self.app.pkgname == app.pkgname)
         if same_app:
             if not self.loaded:
@@ -1960,7 +1608,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.get_vadjustment().set_value(0)
         self.get_hadjustment().set_value(0)
 
-        # set button sensitive again
+#        # set button sensitive again
         self.action_bar.button.set_sensitive(True)
 
         # init data
@@ -1970,11 +1618,10 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # for compat with the base class
         self.appdetails = self.app_details
 
-        self._update_all(self.app_details)
         # set button sensitive again
         self.action_bar.button.set_sensitive(True)
 
-        self.get_usage_counter()
+#        self.get_usage_counter()
         self._check_for_reviews()
 
         self.emit("selected", self.app)
@@ -2064,51 +1711,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                 self.adjustment_value = self.get_vadjustment().get_value()
         return
 
-    #def _draw_icon_inset_frame(self, cr):
-        ## draw small or no icon background
-        #a = self.main_frame.image.allocation
-
-        #rr = mkit.ShapeRoundedRectangle()
-
-        #cr.save()
-        #r,g,b = mkit.floats_from_gdkcolor(self.style.dark[self.state])
-        #rr.layout(cr, a.x, a.y, a.x+a.width, a.y+a.height, radius=3)
-
-        #lin = cairo.LinearGradient(0, a.y, 0, a.y+a.height)
-        #lin.add_color_stop_rgba(0.0, r, g, b, 0.3)
-        #lin.add_color_stop_rgba(1.0, r, g, b, 0.1)
-        #cr.set_source(lin)
-        #cr.fill()
-
-        ## line width should be 0.05em, as per spec
-        #line_width = max(1, int(EM*0.05+0.5))
-        ## if line_width an odd number we need to align to the pixel grid
-        #if line_width % 2:
-            #cr.translate(0.5, 0.5)
-        #cr.set_line_width(line_width)
-
-        #cr.set_source_rgba(*mkit.floats_from_gdkcolor_with_alpha(self.style.light[self.state], 0.55))
-        #rr.layout(cr, a.x, a.y, a.x+a.width, a.y+a.height+1, radius=3)
-        #cr.stroke()
-
-        #cr.set_source_rgb(r, g, b)
-        #rr.layout(cr, a.x, a.y, a.x+a.width, a.y+a.height, radius=3)
-        #cr.stroke_preserve()
-        #cr.stroke_preserve()
-
-        #cr.clip()
-
-        #rr.layout(cr, a.x+1, a.y+1, a.x+a.width-1, a.y+a.height-1, radius=2.5)
-        #cr.set_source_rgba(r, g, b, 0.35)
-        #cr.stroke()
-
-        #rr.layout(cr, a.x+2, a.y+2, a.x+a.width-2, a.y+a.height-2, radius=2)
-        #cr.set_source_rgba(r, g, b, 0.1)
-        #cr.stroke()
-
-        #cr.restore()
-        #return
-
     def _get_xy_icon_position_on_screen(self):
         """ helper for unity dbus support to get the x,y position of
             the appicon on the screen
@@ -2165,8 +1767,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                     self.main_frame.set_icon_from_pixbuf(pb)
                     
                 icon_file_path = os.path.join(SOFTWARE_CENTER_ICON_CACHE_DIR, app_details.icon_file_name)
-                image_downloader = ImageDownloader()
-                image_downloader.connect('image-download-complete', on_image_download_complete)
+                image_downloader = SimpleFileDownloader()
+                image_downloader.connect('download-complete', on_image_download_complete)
                 image_downloader.download_image(app_details.icon_url, icon_file_path)
                 
         return self.icons.load_icon(MISSING_APP_ICON, 84, 0)
@@ -2180,7 +1782,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         if not self.totalsize_info.get_property('visible'):
             return False
         elif hide:
-            self.totalsize_info.hide_all()
+            pass
+#            self.totalsize_info.set_value(_("Calculating..."))
         while gtk.events_pending():
             gtk.main_iteration()
         
@@ -2193,7 +1796,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         try:
             pkg = self.cache[self.app_details.pkgname]
         except KeyError:
-            self.totalsize_info.hide_all()
+            self.totalsize_info.set_value(_("Unknown"))
             return False
         version = pkg.installed
         if version == None:
@@ -2266,17 +1869,17 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             label_string += _("%sB to be freed") % (remove_size)
         
         if label_string == "":
-            self.totalsize_info.hide_all()
+            self.totalsize_info.set_value(_("Unknown"))
         else:
             self.totalsize_info.set_value(label_string)
-            self.totalsize_info.show_all()
+#            self.totalsize_info.show_all()
         return False
 
     def set_section(self, section):
         self.section = section
         return
         
-    def get_usage_counter(self):
+    def _update_usage_counter(self):
         """ try to get the usage counter from zeitgeist """
         def _zeitgeist_callback(counter):
             LOG.debug("zeitgeist usage: %s" % counter)
@@ -2297,6 +1900,27 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         zeitgeist_singleton.get_usage_counter(
             self.app_details.desktop_file, _zeitgeist_callback)
 
+#    def get_usage_counter(self):
+#        """ try to get the usage counter from zeitgeist """
+#        def _zeitgeist_callback(counter):
+#            LOG.debug("zeitgeist usage: %s" % counter)
+#            if counter == 0:
+#                # this probably means we just have no idea about it,
+#                # so instead of saying "Used: never" we just return 
+#                # this can go away when zeitgeist captures more events
+#                # --there are still cases when we really do want to hide this
+#                self.usage.hide()
+#                return
+#            label_string = gettext.ngettext("Used: one time",
+#                                            "Used: %(amount)s times",
+#                                            counter) % { 'amount' : counter, }
+#            self.usage.set_text('<small>%s</small>' % label_string)
+#            self.usage.show()
+
+#        # try to get it
+#        zeitgeist_singleton.get_usage_counter(
+#            self.app_details.desktop_file, _zeitgeist_callback)
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
@@ -2312,6 +1936,7 @@ if __name__ == "__main__":
     pathname = os.path.join(xapian_base_path, "xapian")
     from softwarecenter.apt.aptcache import AptCache
     cache = AptCache()
+    cache.open()
 
     from softwarecenter.db.database import StoreDatabase
     db = StoreDatabase(pathname, cache)
