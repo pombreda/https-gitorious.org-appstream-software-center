@@ -722,7 +722,7 @@ class SubmitReviewsApp(BaseApp):
                 gwibber_active_account = len(self.gwibber_accounts)
         self.gwibber_combo.set_active(gwibber_active_account)
 
-
+    #little helper to facilitate posting message to twitter account passed in
     def _post_to_one_gwibber_account(self, msg, account):
         status_text = _("Posting to %s") % account['service'].capitalize()
         self.label_transmit_status.set_text(status_text)
@@ -763,9 +763,23 @@ class SubmitReviewsApp(BaseApp):
         if gwibber_success:
             BaseApp.on_transmit_success(self, api, trans)
     
-    #FIXME: stub function to retry failed gwibber attempts where user wants to retry.
+    #perform selective retrying of gwibber posting, using only accounts passed in
     def _gwibber_retry_some(self, api, trans, accounts):
-        pass
+        gwibber_success = True
+        failed_accounts = []
+        msg = (self._gwibber_message())
+        
+        for account in accounts:
+            if not self._post_to_one_gwibber_account(msg, account):
+                failed_accounts.append(account)
+                gwibber_success = False
+        
+        if not gwibber_success:
+            #FIXME: send an error string to this method instead of empty string
+            self._on_gwibber_fail(api, trans, failed_accounts, "")
+        else:
+            BaseApp.on_transmit_success(self, api, trans)
+        
     
     def _on_gwibber_fail(self, api, trans, failed_accounts, error):
         
