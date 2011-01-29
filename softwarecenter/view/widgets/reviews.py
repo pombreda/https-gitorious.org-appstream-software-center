@@ -97,8 +97,10 @@ class StarPainter(object):
         if self.fill == self.FILL_EMPTY:
             cr.set_source_color(widget.style.mid[state])
         else:
-            cr.set_source_color(widget.style.text[state])
-
+            if state != gtk.STATE_SELECTED:
+                cr.set_source_color(widget.style.base[gtk.STATE_SELECTED])
+            else:
+                cr.set_source_color(widget.style.base[gtk.STATE_NORMAL])
         cr.fill()
 
         cr.restore()
@@ -119,32 +121,7 @@ class StarPainter(object):
         return
 
 
-class StarWidget(gtk.HBox, StarPainter):
-
-    def __init__(self, size, is_interactive):
-        gtk.HBox.__init__(self)
-        StarPainter.__init__(self)
-
-        self.set_size_request(*size)
-
-        self.connect('expose-event', self._on_expose)
-        return
-
-    def _on_expose(self, widget, event):
-        cr = widget.window.cairo_create()
-        self.draw(cr, self.allocation)
-        del cr
-        return
-
-    def draw(self, cr, a):
-        w, h = self.get_size_request()
-        x = a.x + (a.width-w)/2
-        y = a.y + (a.height-h)/2
-        self.paint_star(cr, self, self.state, x, y, w, h)
-        return
-
-
-class InteractiveStarWidget(gtk.EventBox, StarPainter):
+class StarWidget(gtk.EventBox, StarPainter):
 
     def __init__(self, size, is_interactive):
         gtk.EventBox.__init__(self)
@@ -153,7 +130,8 @@ class InteractiveStarWidget(gtk.EventBox, StarPainter):
         self.set_visible_window(False)
         self.set_size_request(*size)
 
-        self._init_event_handling()
+        if is_interactive:
+            self._init_event_handling()
 
         self.connect('expose-event', self._on_expose)
         return
@@ -178,7 +156,7 @@ class InteractiveStarWidget(gtk.EventBox, StarPainter):
         w, h = self.get_size_request()
         x = a.x + (a.width-w)/2
         y = a.y + (a.height-h)/2
-        self.paint_star(cr, x, y, w, h)
+        self.paint_star(cr, self, self.state, x, y, w, h)
         return
 
 

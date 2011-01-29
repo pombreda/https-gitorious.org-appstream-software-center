@@ -212,6 +212,7 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
         appname = app[AppStore.COL_APP_NAME]
         pkgname = app[AppStore.COL_PKGNAME]
         rating = app[AppStore.COL_RATING]
+        print app
         self.emit("application-selected", Application(appname, pkgname, "", rating))
         self.emit("application-activated", Application(appname, pkgname, "", rating))
         return False
@@ -272,8 +273,6 @@ class LobbyViewGtk(CategoriesViewGtk):
         self.whatsnew_carousel.set_width(w)
 
         vbox.set_size_request(w, -1)
-
-        self._cleanup_poster_sigs()
         return True
 
     def _on_expose(self, widget, event):
@@ -391,17 +390,18 @@ class LobbyViewGtk(CategoriesViewGtk):
     def _on_show_all_clicked(self, show_all_btn):
         self.emit("show-category-applist")
 
-    def _cleanup_poster_sigs(self):
+    def _cleanup_poster_sigs(self, *args):
         # clean-up and connect signal handlers
         for sig_id in self._poster_sigs:
             gobject.source_remove(sig_id)
         self._poster_sigs = []
-        if self.featured_carousel:
-            for poster in self.featured_carousel.posters:
-                self._poster_sigs.append(poster.connect('clicked', self._on_app_clicked))
-        if self.whatsnew_carousel:
-            for poster in self.whatsnew_carousel.posters:
-                self._poster_sigs.append(poster.connect('clicked', self._on_app_clicked))
+        for poster in self.featured_carousel.posters:
+            print poster
+            self._poster_sigs.append(poster.connect('clicked', self._on_app_clicked))
+        for poster in self.whatsnew_carousel.posters:
+            self._poster_sigs.append(poster.connect('clicked', self._on_app_clicked))
+
+        print self._poster_sigs
         return
 
     def _build_homepage_view(self):
@@ -852,7 +852,6 @@ class CarouselView(gtk.VBox):
             for i in range(n_remove):
                 poster = self.posters[i]
                 # leave no traces remaining (of the poster)
-                self.hbox.remove(poster)
                 poster.destroy()
                 del self.posters[i]
 
@@ -882,6 +881,7 @@ class CarouselView(gtk.VBox):
         self.n_posters = n
 
         self._update_pagesel()
+        self.get_ancestor(LobbyViewGtk)._cleanup_poster_sigs()
         return
 
     def _fade_in(self):
@@ -987,6 +987,9 @@ class CarouselView(gtk.VBox):
         self.page_sel.set_width(width)
         self._build_view(width)
         return
+
+    def get_posters(self):
+        return self.posters
 
     def show_carousel(self, show_carousel):
         self._show_carousel = show_carousel
@@ -1100,13 +1103,17 @@ class Button(gtk.EventBox):
         if event.button != 1: return
         self._button_press_origin = btn
         self.set_state(gtk.STATE_ACTIVE)
+
+        if hasattr(self, 'label_list'):
+            for v in self.label_list:
+                l = getattr(self, v)
+                self._label_colorise_active(l)
         return
 
     def _on_button_release(self, btn, event):
 
-        def clicked():
-            self.emit('clicked')
-            return False
+        def clicked(w):
+            w.emit('clicked')
 
         if event.button != 1:
             self.queue_draw()
@@ -1120,7 +1127,13 @@ class Button(gtk.EventBox):
 
         self._button_press_origin = None
         self.set_state(gtk.STATE_PRELIGHT)
-        gobject.timeout_add(50, clicked)
+
+        if hasattr(self, 'label_list'):
+            for v in self.label_list:
+                l = getattr(self, v)
+                self._label_colorise_normal(l)
+
+        gobject.timeout_add(50, clicked, btn)
         return
 
     def _on_enter(self, btn, event):
@@ -1136,6 +1149,46 @@ class Button(gtk.EventBox):
         self.set_state(gtk.STATE_NORMAL)
         self.window.set_cursor(None)
         return
+
+    def _label_colorise_active(self, label):
+        c = self.style.base[gtk.STATE_SELECTED]
+        attr = pango.AttrForeground(c.red,
+                                    c.green,
+                                    c.blue,
+                                    0, -1)
+
+        layout = label.get_layout()
+        attrs = layout.get_attributes()
+
+        if not attrs:
+            attrs = pango.AttrList()
+
+        attrs.change(attr)
+        layout.set_attributes(attrs)
+        return
+
+    def _label_colorise_normal(self, label):
+        if self.state == gtk.STATE_PRELIGHT or \
+            self.has_focus():
+            c = self.style.text[self.state]
+        else:
+            c = self.style.dark[self.state]
+
+        attr = pango.AttrForeground(c.red,
+                                    c.green,
+                                    c.blue,
+                                    0, -1)
+
+        layout = label.get_layout()
+        attrs = layout.get_attributes()
+
+        if not attrs:
+            attrs = pango.AttrList()
+
+        attrs.change(attr)
+        layout.set_attributes(attrs)
+        return
+
 
 
 class CategoryButton(Button):
@@ -1213,8 +1266,8 @@ class CarouselPoster2(Button):
         self.label.set_alignment(0, 0.5)
         self.label.set_line_wrap(True)
 
-        self.price = gtk.Label()
-        self.price.set_alignment(0, 0.5)
+        self.nrreviews = gtk.Label()
+        self.nrreviews.set_alignment(0, 0.5)
 
         self.rating = StarRating()
         self.rating.set(0, 0.5, 0, 0)
@@ -1223,14 +1276,18 @@ class CarouselPoster2(Button):
 
         inner_vbox = gtk.VBox(spacing=3)
 
-        a = gtk.Alignment(0, 0.5)
+        a = gtk.Alignment(0, 0)
+        a.set_padding(12, 0, 0, 0)
         a.add(inner_vbox)
 
         self.hbox.pack_start(a, False)
 
         inner_vbox.pack_start(self.label, False)
-        inner_vbox.pack_start(self.price, False)
         inner_vbox.pack_start(self.rating, False)
+        inner_vbox.pack_start(self.nrreviews, False)
+
+        self.label_list = ('label', 'nrreviews')
+
 
         self.show_all()
 
@@ -1281,9 +1338,11 @@ class CarouselPoster2(Button):
         cr.layout_path(self.label.get_layout())
         cr.fill()
 
-        cr.move_to(self.price.allocation.x - a.x, self.price.allocation.y - a.y)
-        cr.layout_path(self.price.get_layout())
-        cr.fill()
+        if self.nrreviews.get_property('visible'):
+            cr.move_to(self.nrreviews.allocation.x - a.x,
+                       self.nrreviews.allocation.y - a.y)
+            cr.layout_path(self.nrreviews.get_layout())
+            cr.fill()
 
         if self.rating.get_property('visible'):
             for star in self.rating.get_stars():
@@ -1300,6 +1359,9 @@ class CarouselPoster2(Button):
         a = Application(appname=app[AppStore.COL_APP_NAME],
                         pkgname=app[AppStore.COL_PKGNAME],
                         popcon=app[AppStore.COL_RATING])
+
+        nr_reviews = app[AppStore.COL_NR_REVIEWS]
+
         d = a.get_details(self.db)
 
         name = app[AppStore.COL_APP_NAME]
@@ -1313,7 +1375,18 @@ class CarouselPoster2(Button):
 
         self.image.set_from_pixbuf(pb)
         self.label.set_markup('<span font_desc="9">%s</span>' % markup)
-        self.price.set_markup('<span font_desc="9">%s</span>' % (d.price or _('Free')))
+
+        if not a.popcon:
+            self.nrreviews.hide()
+        else:
+            self.nrreviews.show()
+
+            s = gettext.ngettext(
+                "%(nr_ratings)i Rating",
+                "%(nr_ratings)i Ratings",
+                nr_reviews) % { 'nr_ratings' : nr_reviews, }
+
+            self.nrreviews.set_markup('<small>%s</small>' % s)
 
 #        if a.popcon:
 #            if not self.rating.get_property('visible'): self.rating.show_all()
