@@ -878,7 +878,11 @@ class ReportReviewApp(BaseApp):
         self._setup_details(self.submit_window, display_name)
     
 if __name__ == "__main__":
-    locale.setlocale(locale.LC_ALL, "")
+    try:
+        locale.setlocale(locale.LC_ALL, "")
+    except:
+        logging.exception("setlocale failed, resetting to C")
+        locale.setlocale(locale.LC_ALL, "C")
 
     if os.path.exists("./data/ui/reviews.ui"):
         default_datadir = "./data"

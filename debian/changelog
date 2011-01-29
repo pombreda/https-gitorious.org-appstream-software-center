@@ -3,6 +3,9 @@ software-center (3.1.15) UNRELEASED; urgency=low
   [ Kiwinote ]
   * softwarecenter/apt/aptcache.py:
     - don't crash if pkg not in cache (deb files)
+  * softwarecenter/utils.py,
+    utils/submit_review.py:
+    - play slightly nicer with locales (LP: #709671)
   * softwarecenter/view/appdetailsview_gtk:
     - correctly hide addons/reviews from interface when we have an error
 
