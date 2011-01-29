@@ -52,7 +52,43 @@
   function disable_action_button() {
     document.getElementById("button_$action_button_value").disabled = true;
   }
- 
+  function on_report_abuse_clicked(review_id) {
+    changeTitle("call:on_report_abuse_clicked:"+review_id);
+  }
+  function on_write_new_review_clicked(appname, pkgname) {
+    changeTitle("call:on_write_new_review_clicked");
+  }
+  function addReview(review_summary, review_text, review_id, review_date, review_rating, review_person) {
+    parent = document.getElementById("reviews");
+    elm = document.createElement("p");
+    elm.setAttribute("class", "review");
+    summary = document.createElement("div");
+    summary_img = document.createElement("img");
+    summary_img.setAttribute("src","file:${review_summary_stars_base_path}"+review_rating+".png");
+    summary_l = document.createElement("span");
+    summary_l.setAttribute("class", "review_summary");
+    summary_l.appendChild(document.createTextNode(review_summary));
+    summary_r = document.createElement("span");
+    summary_r.setAttribute("class", "review_summary_right");
+    summary_r.appendChild(document.createTextNode(review_person+", "+review_date));
+    summary.appendChild(summary_img);
+    summary.appendChild(summary_l);
+    summary.appendChild(summary_r);
+    elm.appendChild(summary);
+    text = document.createTextNode(review_text);
+    elm.appendChild(text);
+    parent.appendChild(elm);
+    a = document.createElement("a");
+    a.setAttribute("href", "#");
+    a.setAttribute("class", "report_abuse_link");
+    a.appendChild(document.createTextNode("$report_abuse_label"));
+    a.setAttribute("OnClick", "on_report_abuse_clicked("+review_id+");return false;");
+    elm.appendChild(a);
+  }
+  window.onload = function() {
+    initElement('screenshot_thumbnail_img');
+    initElement('$screenshot_installed')
+  }
  </script>
 
   <style type="text/css">
@@ -196,9 +232,59 @@
       margin-top:0.2em;
       visibility:${action_button_visible}; 
     }
+    .reviews_area {
+      visibility:${show_if_package_available};
+    }
+    .add_review_link {
+      font-size:80%; 
+      text-align:right;
+      visibility:${show_if_package_available};
+    }
+    .report_abuse_link {
+      font-size:80%; 
+      text-align:right;
+      float: right;
+      clear: both;
+    }
+    .review {
+      clear:both;
+      margin-bottom: 3em;
+    }
+    .review_summary {
+      font-weight:bold;
+      margin-left: 0.5em;
+    }
+    .review_summary_right {
+      float:right;
+      font-size:80%;
+      font-weight:normal;
+    }
+
     #meta{ color: #AAA; width:100%;}
     #meta td{width:50%}
     #package_information{ text-align:right; }
+    #reviews-wrapper h2{
+      padding:-15px;
+      color: #4a4a4a;
+      font-weight:normal;
+      font-size:1em;      
+      padding:0.2em  0.8em;
+      margin: .25em 0;
+     
+      background-color:#dad7d3;
+       -webkit-border-top-left-radius: 5px;
+       -webkit-border-top-right-radius: 5px;
+    }
+    #reviews-wrapper{
+        margin-top:1em;
+        clear:both;
+        border-radius: 5px;
+        background-color:#f7f7f7;
+        -webkit-box-shadow: rgba(0, 0, 0, 0.2) -1px 1px 4px;
+    }
+    #reviews-inner{
+      padding:15px;
+    }
  </style>
 
  </head>
@@ -246,6 +332,23 @@
        <td tabindex="0" id="package_information">$package_information</td>
      </td>
    </table>
+
+   <div id="reviews-wrapper">
+     <h2 class="reviews_area">Reviews</h2>
+     <div id="reviews-inner">
+       <a class="add_review_link"
+	        id="add_review_link_id"
+	        href="#" 
+	        OnClick="javascript:on_write_new_review_clicked();return false;"
+       >
+         $new_review_label_text
+       </a>
+       <p id="reviews">
+         <!-- reviews go here via addReview() -->
+       </p>
+      </div> 
+   </div>
+  
   </div>
 
 </body>

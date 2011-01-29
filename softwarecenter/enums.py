@@ -43,8 +43,14 @@ APP_INSTALL_PATH = "/usr/share/app-install"
 APP_INSTALL_DESKTOP_PATH = APP_INSTALL_PATH+"/desktop/"
 APP_INSTALL_CHANNELS_PATH = APP_INSTALL_PATH+"/channels/"
 ICON_PATH = APP_INSTALL_PATH+"/icons/"
+
 SOFTWARE_CENTER_BASE = "/usr/share/software-center"
 SOFTWARE_CENTER_PLUGIN_DIR = os.path.join(SOFTWARE_CENTER_BASE, "plugins")
+
+# ratings&review
+# relative to datadir
+SUBMIT_REVIEW_APP = "submit_review.py"
+REPORT_REVIEW_APP = "report_review.py"
 
 # the various "views" that the app has
 VIEW_PAGE_AVAILABLE = "view-page-available"
@@ -72,7 +78,7 @@ NAV_BUTTON_ID_SEARCH   = "search"
 NAV_BUTTON_ID_PURCHASE = "purchase"
 NAV_BUTTON_ID_PREV_PURCHASES = "prev-purchases"
 
-# icons
+# icon
 MISSING_APP_ICON = "applications-other"
 MISSING_PKG_ICON = "dialog-question"
 

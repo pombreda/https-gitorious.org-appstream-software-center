@@ -97,9 +97,9 @@ class SCBuySomething(unittest.TestCase):
         self._p()
         # simulate a successful purchase in the UI by firing a purchase-succeeded
         self.app.available_pane.purchase_view.emit("purchase-succeeded")
-        time.sleep(1)
         self._p()
-        time.sleep(1)
+        time.sleep(3)
+        self._p()
         # check that the purchase pane is removed
         self.assertEqual(str(self.app.available_pane.navigation_bar.get_parts()),
                          "[Get Software, Search Results, Hello X Adventure]")

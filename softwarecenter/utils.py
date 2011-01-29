@@ -42,6 +42,7 @@ ESCAPE_ENTITIES = {"&apos;":"'",
                    
 LOG = logging.getLogger("softwarecenter.utils")
 
+
 class ExecutionTime(object):
     """
     Helper that can be used in with statements to have a simple
@@ -65,22 +66,6 @@ def log_traceback(info):
     logger = logging.getLogger("softwarecenter.traceback")
     logger.debug("%s: %s" % (info, "".join(traceback.format_stack())))
     
-
-class GnomeProxyURLopener(urllib.FancyURLopener):
-    """A urllib.URLOpener that honors the gnome proxy settings"""
-    def __init__(self, user_agent=USER_AGENT):
-        proxies = {}
-        http_proxy = get_http_proxy_string_from_gconf()
-        if http_proxy:
-            proxies = { "http" : http_proxy }
-        urllib.FancyURLopener.__init__(self, proxies)
-        self.version = user_agent
-    def http_error_404(self, url, fp, errcode, errmsg, headers):
-        logging.debug("http_error_404: %s %s %s" % (url, errcode, errmsg))
-        raise Url404Error, "404 %s" % url
-    def http_error_403(self, url, fp, errcode, errmsg, headers):
-        logging.debug("http_error_403: %s %s %s" % (url, errcode, errmsg))
-        raise Url403Error, "403 %s" % url
 
 def wait_for_apt_cache_ready(f):
     """ decorator that ensures that self.cache is ready using a
@@ -145,6 +130,36 @@ def htmlize_package_desc(desc):
     if inside_p:
         yield "</p>"
 
+def get_parent_xid(widget):
+    while widget.get_parent():
+        widget = widget.get_parent()
+    return widget.window.xid
+
+def get_language():
+    """Helper that returns the current language
+    """
+    import locale
+    # those languages need the full language-code, the other ones
+    # can be abbreved
+    FULL = ["pt_BR", 
+            "zh_CN", "zh_TW"]
+    (language, encoding) = locale.getlocale()
+    if language in FULL:
+        return language
+    return language.split("_")[0]
+
+def get_http_proxy_string_from_libproxy(url):
+    """Helper that uses libproxy to get the http proxy for the given url """
+    import libproxy
+    pf = libproxy.ProxyFactory()
+    proxies = pf.getProxies(url)
+    # FIXME: how to deal with multiple proxies?
+    proxy = proxies[0]
+    if proxy == "direct://":
+        return ""
+    else:
+        return proxy
+
 def get_http_proxy_string_from_gconf():
     """Helper that gets the http proxy from gconf
 
@@ -182,6 +197,16 @@ def decode_xml_char_reference(s):
     p = re.compile("\&\#x(\d\d\d\d);")
     return p.sub(r"\u\1", s).decode("unicode-escape")
     
+def version_compare(a, b):
+    return apt_pkg.version_compare(a, b)
+
+def upstream_version_compare(a, b):
+    return apt_pkg.version_compare(apt_pkg.upstream_version(a),
+                                   apt_pkg.upstream_version(b))
+
+def upstream_version(v):
+    return apt_pkg.upstream_version(v)
+
 def unescape(text):
     """
     unescapes the given text
@@ -267,6 +292,7 @@ class ImageDownloader(gobject.GObject):
             if self.tmpdir is None:
                 self.tmpdir = tempfile.mkdtemp(prefix="software-center-")
             dest_file_path = os.path.join(self.tmpdir, uri_to_filename(url))
+
         self.url = url
         self.dest_file_path = dest_file_path
         
@@ -284,7 +310,7 @@ class ImageDownloader(gobject.GObject):
         try:
             result = f.query_info_finish(result)
             self.emit('image-url-reachable', True)
-            self.LOG.debug("image reachablee %s" % self.url)
+            self.LOG.debug("image reachable %s" % self.url)
             # url is reachable, now download the icon file
             f.load_contents_async(self._icon_download_complete_cb)
         except glib.GError, e:

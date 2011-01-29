@@ -16,7 +16,7 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-
+import glib
 import gobject
 import gtk
 import logging
@@ -72,6 +72,29 @@ class WebkitWidget(webkit.WebView):
 
     def refresh_html(self):
         self._show(None)
+
+    def execute_script(self, script):
+        """ execute script when the page is ready
+        """
+        if self._is_load_finished():
+            self._execute_script_no_wait(script)
+            return
+        glib.timeout_add(50, self._execute_script_when_page_is_ready, script)
+
+    def _is_load_finished(self):
+        # 2 == WEBKIT_LOAD_FINISHED - the enums is not exposed via python
+        return self.get_load_status() == 2
+
+    def _execute_script_no_wait(self, script):
+        webkit.WebView.execute_script(self, script)
+
+    def _execute_script_when_page_is_ready(self, script):
+        logging.debug("_execute_script_when_page_is_ready")
+        # wait until its ready for JS injection
+        if self._is_load_finished():
+            self._execute_script_no_wait(script)
+            return False
+        return True
 
     # internal helpers
     def _show(self, widget):

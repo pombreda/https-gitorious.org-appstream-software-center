@@ -36,6 +36,7 @@ class testAppStore(unittest.TestCase):
         xapian_base_path = XAPIAN_BASE_PATH
         pathname = os.path.join(xapian_base_path, "xapian")
         self.cache = AptCache()
+        self.cache.open()
         self.db = StoreDatabase(pathname, self.cache)
         self.db.open()
         self.mock_icons = MockIconCache()

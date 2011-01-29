@@ -25,12 +25,13 @@ class MockIconCache(object):
     def lookup_icon(self, name, size, flags):
         return None
 
-class testSoftwareChannels(unittest.TestCase):
+class TestSoftwareChannels(unittest.TestCase):
 
     def setUp(self):
         xapian_base_path = XAPIAN_BASE_PATH
         pathname = os.path.join(xapian_base_path, "xapian")
         self.cache = AptCache()
+        self.cache.open()
         self.db = StoreDatabase(pathname, self.cache)
         self.db.open()
         self.mock_icons = MockIconCache()
@@ -42,6 +43,10 @@ class testSoftwareChannels(unittest.TestCase):
         # data
         self.repo_from_lp = "deb https://user:pw@private-ppa.launchpad.net/user/private-test/ubuntu lucid main"
 
+    def test_origin(self):
+        origin = self.cache.get_origin("apt")
+        self.assertEqual(origin, "Ubuntu")
+        
     def test_channels(self):
         cm = ChannelsManager(self.db, self.mock_icons)
         # ensure we have channels
