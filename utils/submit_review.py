@@ -319,7 +319,7 @@ class BaseApp(SimpleGtkbuilderApp):
             #      method instead, the second argument is the language to
             #      use (that is directly passed to pspell)
             spell = gtkspell.Spell(textview, None)
-        except ImportError:
+        except:
             return None
         return spell
 
