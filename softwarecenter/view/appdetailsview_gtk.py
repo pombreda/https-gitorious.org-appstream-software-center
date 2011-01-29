@@ -557,49 +557,44 @@ class Reviews(gtk.VBox):
 
         label = mkit.EtchedLabel()
         label.set_use_markup(True)
-        label.set_alignment(0, 0)
-        markup = "<b><big>%s</big></b>" % _("Reviews")
-#        markup = _("Reviews")
+        label.set_alignment(0, 0.5)
+#        markup = "<b><big>%s</big></b>" % _("Reviews")
+        markup = _("Reviews")
         label.set_markup(markup)
 
-        self.expander = gtk.Expander()
-        self.expander.set_label_widget(label)
-
         self.new_review = mkit.VLinkButton(_("Write your own review"))
-#        self.new_review.set_internal_spacing(mkit.SPACING_MED)
         self.new_review.set_underline(True)
 
-        expander_hb = gtk.HBox(spacing=mkit.SPACING_MED)
-        self.pack_start(expander_hb, False)
-        expander_hb.pack_start(self.expander, False)
-        expander_hb.pack_end(self.new_review, False)
+        hb = gtk.HBox(spacing=mkit.SPACING_MED)
+        self.pack_start(hb, False)
+        hb.pack_start(label, False)
+        hb.pack_end(self.new_review, False)
 
         self.vbox = gtk.VBox(spacing=mkit.SPACING_XLARGE)
-        self.vbox.set_no_show_all(True)
         self.vbox.set_border_width(6)
         self.pack_start(self.vbox, padding=6)
 
-        self._update = True
-        self.expander.connect('notify::expanded', self._on_expand)
-        self.expander.set_expanded(True)
+#        self.expander.connect('notify::expanded', self._on_expand)
+#        self.expander.set_expanded(True)
         self.new_review.connect('clicked', lambda w: self.emit('new-review'))
+        self.show_all()
         return
 
-    def _on_expand(self, expander, param):
-        if not self.expander.get_expanded():
-            self.vbox.hide_all()
-        else:
-            if self.vbox.get_no_show_all():
-                self.vbox.set_no_show_all(False)
+#    def _on_expand(self, expander, param):
+#        if not self.expander.get_expanded():
+#            self.vbox.hide_all()
+#        else:
+#            if self.vbox.get_no_show_all():
+#                self.vbox.set_no_show_all(False)
 
-            if self._update:
-                self._fill()
-                self.vbox.show_all()
-                self._update = False
-                return
-            else:
-                self.vbox.show_all()
-        return
+#            if self._update:
+#                self._fill()
+#                self.vbox.show_all()
+#                self._update = False
+#                return
+#            else:
+#                self.vbox.show_all()
+#        return
 
     def _on_button_new_clicked(self, button):
         self.emit("new-review")
@@ -621,15 +616,15 @@ class Reviews(gtk.VBox):
         return
 
     def finished(self):
-        #print 'Review count: %s' % len(self.reviews)
+        print 'Review count: %s' % len(self.reviews)
         if not self.reviews:
             self._be_the_first_to_review()
         else:
             self.new_review.set_label(_("Write your own review"))
-            if self.expander.get_expanded():
-                self._fill()
-                self.vbox.show_all()
-                self._update = False
+#            if self.expander.get_expanded():
+            self._fill()
+            self.show_all()
+            self._update = False
         return
 
     def set_width(self, w):
@@ -668,7 +663,7 @@ class Reviews(gtk.VBox):
         cr.stroke()
         cr.restore()
 
-        if not self.expander.get_expanded(): return
+#        if not self.expander.get_expanded(): return
 
         for r in self.vbox:
             r.draw(cr, r.allocation)
@@ -693,18 +688,55 @@ class Review(gtk.VBox):
             person = review_data.reviewer_username
             summary = review_data.summary
             text = review_data.review_text
-            date = review_data.date_created
+            date = self._date_parse(review_data.date_created)
             app_name = review_data.app_name
             # some older version of the server do not set the version
             review_version = getattr(review_data, "version", "")
             self._build(rating, person, summary, text, date, app_name, review_version, app_version)
-
-        self.body.connect('size-allocate', self._on_allocate)
         return
 
-    def _on_allocate(self, widget, allocation):
+    def _date_parse(self, raw_date):
+        import datetime
+        # example raw_date str format: 2011-01-28 19:15:21
+        t = datetime.datetime.strptime(raw_date, '%Y-%m-%d %H:%M:%S')
+        dt = datetime.datetime.utcnow() - t
+
+        days = dt.days
+        secs = dt.seconds
+
+        if days < 1:
+
+            if secs < 120:   # less than 2 minute ago
+                s = _('a minute ago')   # dont be fussy
+
+            elif secs < 3600:   # less than an hour ago
+                s = gettext.ngettext("%(secs)i minute ago",
+                                     "%(secs)i minutes ago",
+                                     (secs/60)) % { 'secs' : (secs/60) }
+
+            else:   # less than a day ago
+                s = gettext.ngettext("%(hours)i hour ago",
+                                     "%(hours)i hours ago",
+                                     (secs/3600)) % { 'hours' : (secs/3600) }
+
+        elif days <= 3: # less than a few days
+            s = gettext.ngettext("%(days)i day ago",
+                                 "%(days)i days ago",
+                                 days) % { 'days' : days }
+
+        else:   # any timedelta greater than 3 days old
+            # YYYY-MM-DD
+            s = t.isoformat.split('T')[0]
+
+        return s
+
+    def _on_allocate(self, widget, allocation, stars, summary, who_when):
         for child in self.body:
             child.set_size_request(allocation.width, -1)
+
+        summary.set_size_request(allocation.width - \
+                                 stars.allocation.width - \
+                                 who_when.allocation.width - 20, -1)
         return
 
     def _on_report_abuse_clicked(self, button):
@@ -717,21 +749,25 @@ class Review(gtk.VBox):
         # they are used as text or markup
         m = "<b>%s</b>, %s" % (glib.markup_escape_text(person.capitalize()),
                                glib.markup_escape_text(date))
-        who_what_when = gtk.Label(m)
-        who_what_when.set_use_markup(True)
+        who_when = gtk.Label(m)
+        who_when.set_use_markup(True)
 
         summary = gtk.Label('<b>%s</b>' % glib.markup_escape_text(summary))
         summary.set_use_markup(True)
+        summary.set_ellipsize(pango.ELLIPSIZE_END)
+        summary.set_alignment(0, 0.5)
 
         text = gtk.Label(text)
         text.set_line_wrap(True)
         text.set_selectable(True)
         text.set_alignment(0, 0)
-        
-        self.header.pack_start(StarRating(rating), False)
+
+        stars = StarRating(rating)
+
+        self.header.pack_start(stars, False)
         self.header.pack_start(summary, False)
-        self.header.pack_end(who_what_when, False)
-        #self.header.pack_end(gtk.Label(self.rating), False)
+        self.header.pack_end(who_when, False)
+
         self.body.pack_start(text, False)
         
         #if review version is different to version of app being displayed, 
@@ -756,6 +792,8 @@ class Review(gtk.VBox):
         complain.set_underline(True)
         self.footer.pack_end(complain, False)
         complain.connect('clicked', self._on_report_abuse_clicked)
+
+        self.body.connect('size-allocate', self._on_allocate, stars, summary, who_when)
         return
 
     def draw(self, cr, a):
@@ -932,14 +970,12 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # switches
         # Bug #628714 check not only that gwibber is installed but that service accounts exist
         self._gwibber_is_available = GWIBBER_SERVICE_AVAILABLE
-        #self._gwibber_is_available = os.path.exists("/usr/bin/gwibber-poster")        
         self._show_overlay = False
+
 #        self._overlay = gtk.gdk.pixbuf_new_from_file(INSTALLED_ICON)
 
         # page elements are packed into our very own lovely viewport
         self._layout_page()
-#        self.connect('size-allocate', self._on_allocate)
-#        self.vbox.connect('expose-event', self._on_expose)
 
         self.connect('realize', self._on_realize)
 
@@ -1170,8 +1206,11 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         vb_inner=gtk.VBox(spacing=6)
         vb_inner.pack_start(self.title)
 
+        # usage
+        self.usage = PackageUsageCounter(self)
+
         # star rating widget
-        a = gtk.Alignment()
+        a = gtk.Alignment(0.5, 0.5)
         a.add(self.review_stats_widget)
         hb.pack_end(a, False)
 
@@ -1441,7 +1480,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self._update_app_screenshot(app_details)
         self._update_pkg_info_table(app_details)
         self._update_addons(app_details)
-#        self._update_usage_counter()
+        self._update_usage_counter()
 
 #        # show where it is
 #        self._configure_where_is_it()
