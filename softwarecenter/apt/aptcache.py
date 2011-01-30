@@ -192,6 +192,8 @@ class AptCache(gobject.GObject):
                 origins.add(origin.origin)
         if len(origins) > 1:
             raise Exception("Error, more than one origin '%s'" % origins)
+        if not origins:
+            return
         # we support only a single origin (but its fine if that is available
         # on multiple mirrors). lowercase as the server excepts it this way
         origin_str = origins.pop()

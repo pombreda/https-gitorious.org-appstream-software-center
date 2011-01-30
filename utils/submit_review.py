@@ -549,7 +549,7 @@ class SubmitReviewsApp(BaseApp):
         self._resize_legal_label()
     def _resize_legal_label(self):
         width, height = self.submit_window.get_size()
-        self.label_legal_fineprint.set_size_request(width, -1)
+        self.label_legal_fineprint.set_size_request(width-24, -1)
 
     def _on_mandatory_fields_changed(self, widget):
         self._enable_or_disable_post_button()
