@@ -1146,7 +1146,7 @@ class Review(gtk.VBox):
     def _build(self, rating, person, summary, text, date, app_name, review_version, app_version):
         # all the arguments are may need markup escape, depening on if
         # they are used as text or markup
-        m = "<b>%s</b>, %s" % (glib.markup_escape_text(person.capitalize()),
+        m = "<b>%s</b>, %s" % (glib.markup_escape_text(person),
                                glib.markup_escape_text(date))
         who_what_when = gtk.Label(m)
         who_what_when.set_use_markup(True)
