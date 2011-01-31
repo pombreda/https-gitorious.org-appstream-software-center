@@ -37,7 +37,7 @@ from softwarecenter.distro import get_distro
 from softwarecenter.models.appstore import AppStore
 
 from widgets.mkit import get_em_value, get_mkit_theme, floats_from_gdkcolor_with_alpha, EM
-from widgets.reviews import StarPainter
+from widgets.reviews import StarPainterFlat
 from gtk import gdk
 
 from gettext import gettext as _
@@ -305,7 +305,7 @@ class CellRendererAppView2(gtk.CellRendererText):
         # cache a layout
         self._layout = None
         self._nr_reviews_layout = None
-        self._star_painter = StarPainter()
+        self._star_painter = StarPainterFlat()
 
         # icon/overlay jazz
         icons = gtk.icon_theme_get_default()
@@ -391,7 +391,7 @@ class CellRendererAppView2(gtk.CellRendererText):
                                   x, y, layout)
         return
 
-    def _render_rating(self, window, widget, state, cell_area, xpad, ypad, direction):
+    def _render_rating(self, window, widget, state, cell_area, xpad, ypad, direction, spacing=3):
         # draw stars on the top right
         cr = window.cairo_create()
 
@@ -403,12 +403,12 @@ class CellRendererAppView2(gtk.CellRendererText):
             x = cell_area.x + cell_area.width - xpad - (self.MAX_STARS-i)*sw
             y = cell_area.y + ypad
             if i < int(self.rating):
-                self._star_painter.set_fill(StarPainter.FILL_FULL)
+                self._star_painter.set_fill(StarPainterFlat.FILL_FULL)
             elif (i == int(self.rating) and 
                   self.rating - int(self.rating) > 0):
-                self._star_painter.set_fill(StarPainter.FILL_HALF)
+                self._star_painter.set_fill(StarPainterFlat.FILL_HALF)
             else:
-                self._star_painter.set_fill(StarPainter.FILL_EMPTY)
+                self._star_painter.set_fill(StarPainterFlat.FILL_EMPTY)
             self._star_painter.paint_star(cr, widget, state, x, y, sw, sh)
 
         # and nr-reviews below

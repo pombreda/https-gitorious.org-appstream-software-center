@@ -33,7 +33,7 @@ from gettext import gettext as _
 from mkit import EM, ShapeStar, ShapeRoundedRectangle, VLinkButton, floats_from_string
 
 
-class StarPainter(object):
+class IStarPainter:
 
     FILL_EMPTY      = 0
     FILL_HALF       = 1
@@ -43,7 +43,7 @@ class StarPainter(object):
     GLOW_PRELIGHT   = 4
 
     def __init__(self):
-        self.shape = ShapeStar(5, 0.61)
+        self.shape = ShapeStar(5, 0.575)
         self.fill = self.FILL_EMPTY
         self.glow = self.GLOW_NORMAL
         return
@@ -55,6 +55,15 @@ class StarPainter(object):
     def set_glow(self, glow):
         self.glow = glow
         return
+
+    def paint_half_star(self, cr, widget, state, x, y, w, h):
+        raise NotImplemented
+
+    def paint_star(self, cr, widget, state, x, y, w, h):
+        raise NotImplemented
+
+
+class StarPainterFlat(IStarPainter):
 
     def paint_half_star(self, cr, widget, state, x, y, w, h):
         cr.save()
@@ -106,18 +115,91 @@ class StarPainter(object):
         cr.restore()
         return
 
-    def _setup_glow(self, cr):
-#        if not hasattr(self, "style"):
-#            return
-#        if self.glow == self.GLOW_NORMAL:
-#            white = self.style.white
-#            cr.set_source_rgba(white.red_float,
-#                               white.green_float,
-#                               white.blue_float, 0.4)
-#            cr.set_line_width(5)
-#        else:
-#            cr.set_source_rgba(*self.glow_color+(0.6,))
-#            cr.set_line_width(6)
+
+class StarPainter(IStarPainter):
+
+    def paint_half_star(self, cr, widget, state, x, y, w, h):
+        # TODO: some rtl switch will be needed here
+        cr.save()
+        cr.set_line_join(cairo.LINE_CAP_ROUND)
+
+        self.shape.layout(cr, x, y, w, h)
+        self._setup_glow(cr, widget)
+        cr.stroke()
+        cr.set_line_width(2)
+
+        cr.rectangle(x+w*0.5, y-1, w/2+2, h+2)
+        cr.clip()
+
+        self.shape.layout(cr, x, y, w, h)
+        cr.set_source_color(widget.style.mid[state])
+        cr.stroke_preserve()
+        cr.fill()
+        cairo.Context.reset_clip(cr)
+
+        cr.rectangle(x-1, y-1, w*0.5+1, h+2)
+        cr.clip()
+        
+        self.shape.layout(cr, x, y, w, h)
+        cr.set_source_color(widget.style.base[gtk.STATE_SELECTED])
+        cr.stroke_preserve()
+        cr.fill_preserve()
+        cairo.Context.reset_clip(cr)
+
+        self._setup_gradient(cr, y, h)
+        cr.fill()
+
+        cr.restore()
+        return
+
+    def paint_star(self, cr, widget, state, x, y, w, h):
+        if self.fill == self.FILL_HALF:
+            self.paint_half_star(cr, widget, state, x, y, w, h)
+            return
+
+        cr.save()
+        cr.set_line_join(cairo.LINE_CAP_ROUND)
+
+        self.shape.layout(cr, x, y, w, h)
+
+        self._setup_glow(cr, widget)
+        cr.stroke_preserve()
+        cr.set_line_width(2)
+
+        if self.fill == self.FILL_EMPTY:
+            cr.set_source_color(widget.style.mid[state])
+        else:
+            cr.set_source_color(widget.style.base[gtk.STATE_SELECTED])
+
+        cr.stroke_preserve()
+        cr.fill_preserve()
+
+        self._setup_gradient(cr, y, h)
+        cr.fill()
+
+        cr.restore()
+        return
+
+    def _setup_glow(self, cr, widget):
+        if self.glow == self.GLOW_NORMAL:
+            white = widget.style.white
+            cr.set_source_rgba(white.red_float,
+                               white.green_float,
+                               white.blue_float, 0.33)
+            cr.set_line_width(5)
+        else:
+            glow = widget.style.base[gtk.STATE_SELECTED]
+            cr.set_source_rgba(glow.red_float,
+                               glow.green_float,
+                               glow.blue_float, 0.6)
+            cr.set_line_width(6)
+        return
+
+    def _setup_gradient(self, cr, y, h):
+        lin = cairo.LinearGradient(0, y, 0, y+h)
+        lin.add_color_stop_rgba(0, 1,1,1, 0.3)
+        lin.add_color_stop_rgba(1, 1,1,1, 0.02)
+        cr.set_source(lin)
         return
 
 

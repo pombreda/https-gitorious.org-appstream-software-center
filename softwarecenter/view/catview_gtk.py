@@ -761,9 +761,9 @@ class CarouselView(gtk.VBox):
         self.carousel_apps = carousel_apps  # an AppStore
 
         label = _('All')
-        self.more_btn = mkit.HLinkButton(label)
-        self.more_btn.set_underline(True)
-        self.more_btn.set_subdued(True)
+        self.more_btn = LinkButton()
+        self.more_btn.set_label(label)
+#        self.more_btn.set_subdued()
 
         self.more_btn.a11y = self.more_btn.get_accessible()
         self.more_btn.a11y.set_name(_("%s section: show all") % title )
@@ -1190,6 +1190,28 @@ class Button(gtk.EventBox):
         return
 
 
+class LinkButton(Button):
+
+    def __init__(self):
+        Button.__init__(self)
+        self.label = mkit.EtchedLabel()
+        self.add(self.label)
+        self.show_all()
+
+        self.label_list = ('label',)
+        return
+
+    def set_label(self, label):
+        self.label.set_markup('<u>%s</u>' % label)
+        return
+
+#    def set_subdued(self, is_subdued):
+#        self.subdued = is_subdued
+#        return
+
+    def draw(self, *args):
+        return
+
 
 class CategoryButton(Button):
 
@@ -1217,6 +1239,8 @@ class CategoryButton(Button):
         elabel.set_padding(4, 0)
         elabel.set_use_markup(True)
         hb.pack_start(elabel, False)
+
+        self.label_list = ('label',)
         return
 
 
