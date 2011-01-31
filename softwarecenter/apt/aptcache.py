@@ -195,6 +195,7 @@ class AptCache(gobject.GObject):
         return a uniqe origin for the given package name. currently
         this will use 
         """
+        if not pkgname in self._cache: return
         origins = set()
         for origin in self._cache[pkgname].candidate.origins:
             if origin.origin:

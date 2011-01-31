@@ -1483,7 +1483,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         if self.addon_view.get_property('visible'):
             self.addon_view.draw(cr, self.addon_view.allocation)
 
-        self.reviews.draw(cr, self.reviews.allocation)
+        if self.reviews.get_property('visible'):
+            self.reviews.draw(cr, self.reviews.allocation)
 
         del cr
         return
@@ -1724,12 +1725,16 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
     def _update_layout_error_status(self, pkg_error):
         # if we have an error or if we need to enable a source, then hide everything else
         if pkg_error:
+            self.addon_view.hide()
+            self.reviews.hide()
             self.screenshot.hide()
             self.version_info.hide()
             self.license_info.hide()
             self.support_info.hide()
             self.totalsize_info.hide()
         else:
+            self.addon_view.show()
+            self.reviews.show()
             self.version_info.show()
             self.license_info.show()
             self.support_info.show()
