@@ -383,10 +383,9 @@ class AppDescription(gtk.VBox):
             processed_frag += part
 
             # ends with a terminator or the following fragment starts with a capital letter
-            if part[-1] in ('.', '!', '?', ':') or \
-                (i+1 < l and len(parts[i+1]) > 1 and \
-                    parts[i+1][0].isupper()):
-
+            if (part[-1] in ('.', '!', '?', ':') or
+               (i+1 < l and len(parts[i+1]) > 1 and parts[i+1][0].isupper()) or
+               (i+1 < l and parts[i+1] == '')):
                 # not in a bullet list, so normal paragraph
                 if not in_blist:
                     # if not final text block, append newline
@@ -1147,7 +1146,7 @@ class Review(gtk.VBox):
     def _build(self, rating, person, summary, text, date, app_name, review_version, app_version):
         # all the arguments are may need markup escape, depening on if
         # they are used as text or markup
-        m = "<b>%s</b>, %s" % (glib.markup_escape_text(person.capitalize()),
+        m = "<b>%s</b>, %s" % (glib.markup_escape_text(person),
                                glib.markup_escape_text(date))
         who_what_when = gtk.Label(m)
         who_what_when.set_use_markup(True)
@@ -1243,12 +1242,6 @@ class AddonsStatusBar(StatusBar):
             self.button_apply.set_sensitive(True)
             self.button_cancel.set_sensitive(True)
             self.show()
-    
-    def get_applying(self):
-        return self.applying
-
-    def set_applying(self, applying):
-        self.applying = applying
     
     def _on_button_apply_clicked(self, button):
         self.applying = True
@@ -1404,7 +1397,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # wrong, so if the reviews we have in the list are more than the
         # stats we update manually
         old_stats = self.review_loader.get_review_stats(self.app)
-        if old_stats is None or old_stats.ratings_total < len(reviews):
+        if ((old_stats is None and len(reviews) > 0) or
+            (old_stats is not None and old_stats.ratings_total < len(reviews))):
             # generate new stats
             stats = ReviewStats(app)
             stats.ratings_total = len(reviews)
@@ -1492,7 +1486,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         if self.addon_view.get_property('visible'):
             self.addon_view.draw(cr, self.addon_view.allocation)
 
-        self.reviews.draw(cr, self.reviews.allocation)
+        if self.reviews.get_property('visible'):
+            self.reviews.draw(cr, self.reviews.allocation)
 
         del cr
         return
@@ -1733,12 +1728,16 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
     def _update_layout_error_status(self, pkg_error):
         # if we have an error or if we need to enable a source, then hide everything else
         if pkg_error:
+            self.addon_view.hide()
+            self.reviews.hide()
             self.screenshot.hide()
             self.version_info.hide()
             self.license_info.hide()
             self.support_info.hide()
             self.totalsize_info.hide()
         else:
+            self.addon_view.show()
+            self.reviews.show()
             self.version_info.show()
             self.license_info.show()
             self.support_info.show()
@@ -2010,22 +2009,23 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # addons modified
         elif self.addons_statusbar.applying:
             self.pkg_statusbar.configure(self.app_details, PKG_STATE_INSTALLED)
+            self.addons_manager.configure(self.app_details.name, False)
+            self.addons_statusbar.configure()
 
         self.adjustment_value = None
         
         if self.addons_statusbar.applying:
             self.addons_statusbar.applying = False
 
-        self.addons_manager.configure(self.app_details.name, False)
         return False
 
     def _on_transaction_started(self, backend, pkgname):
-        if self.addons_bar.get_applying():
+        if self.addons_statusbar.applying:
             self.pkg_statusbar.configure(self.app_details, APP_ACTION_APPLY)
             return
-        
+
         state = self.pkg_statusbar.pkg_state
-        LOG.debug("_on_transaction_stated %s" % state)
+        LOG.debug("_on_transaction_started %s" % state)
         if state == PKG_STATE_NEEDS_PURCHASE:
             self.pkg_statusbar.configure(self.app_details, PKG_STATE_INSTALLING_PURCHASED)
         elif state == PKG_STATE_UNINSTALLED:

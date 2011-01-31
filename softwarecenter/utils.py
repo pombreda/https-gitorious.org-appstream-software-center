@@ -143,7 +143,7 @@ def get_language():
     # can be abbreved
     FULL = ["pt_BR", 
             "zh_CN", "zh_TW"]
-    (language, encoding) = locale.getlocale()
+    language = locale.getdefaultlocale(('LANGUAGE','LANG','LC_CTYPE','LC_ALL'))[0]
     if language in FULL:
         return language
     return language.split("_")[0]

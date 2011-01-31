@@ -186,12 +186,16 @@ class AptCache(gobject.GObject):
         return a uniqe origin for the given package name. currently
         this will use 
         """
+        if not pkgname in self._cache: 
+            return
         origins = set()
         for origin in self._cache[pkgname].candidate.origins:
             if origin.origin:
                 origins.add(origin.origin)
         if len(origins) > 1:
             raise Exception("Error, more than one origin '%s'" % origins)
+        if not origins:
+            return
         # we support only a single origin (but its fine if that is available
         # on multiple mirrors). lowercase as the server excepts it this way
         origin_str = origins.pop()

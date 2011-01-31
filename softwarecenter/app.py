@@ -16,6 +16,7 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+from softwarecenter.utils import ExecutionTime
 import atexit
 import atk
 import locale
@@ -32,39 +33,39 @@ import sys
 import xapian
 import cairo
 
-from SimpleGtkbuilderApp import SimpleGtkbuilderApp
+with ExecutionTime("TIME loading app.py imports"):
+    from SimpleGtkbuilderApp import SimpleGtkbuilderApp
 
-from softwarecenter.db.application import Application, DebFileApplication
-from softwarecenter.enums import *
-from softwarecenter.utils import *
-from softwarecenter.version import *
-from softwarecenter.db.database import StoreDatabase
-import softwarecenter.view.dependency_dialogs as dependency_dialogs
-from softwarecenter.view.softwarepane import wait_for_apt_cache_ready
-from softwarecenter.view.widgets.mkit import floats_from_string
+    from softwarecenter.db.application import Application, DebFileApplication
+    from softwarecenter.enums import *
+    from softwarecenter.utils import *
+    from softwarecenter.version import *
+    from softwarecenter.db.database import StoreDatabase
+    import softwarecenter.view.dependency_dialogs as dependency_dialogs
+    from softwarecenter.view.widgets.mkit import floats_from_string
 
-import view.dialogs
-from view.viewswitcher import ViewSwitcher, ViewSwitcherList
-from view.pendingview import PendingView
-from view.installedpane import InstalledPane
-from view.channelpane import ChannelPane
-from view.availablepane import AvailablePane
-from view.softwarepane import SoftwarePane, SoftwareSection
-from view.historypane import HistoryPane
-from view.viewmanager import ViewManager
+    import view.dialogs
+    from view.viewswitcher import ViewSwitcher, ViewSwitcherList
+    from view.pendingview import PendingView
+    from view.installedpane import InstalledPane
+    from view.channelpane import ChannelPane
+    from view.availablepane import AvailablePane
+    from view.softwarepane import SoftwarePane, SoftwareSection
+    from view.historypane import HistoryPane
+    from view.viewmanager import ViewManager
 
-from backend.config import get_config
-from backend import get_install_backend
-from paths import SOFTWARE_CENTER_ICON_CACHE_DIR
+    from backend.config import get_config
+    from backend import get_install_backend
+    from paths import SOFTWARE_CENTER_ICON_CACHE_DIR
 
-from plugin import PluginManager
+    from plugin import PluginManager
 
-from db.reviews import get_review_loader
+    from db.reviews import get_review_loader
 
-from distro import get_distro
+    from distro import get_distro
 
-from apt.aptcache import AptCache
-from gettext import gettext as _
+    from apt.aptcache import AptCache
+    from gettext import gettext as _
 
 class SoftwarecenterDbusController(dbus.service.Object):
     """ 

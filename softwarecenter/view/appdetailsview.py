@@ -98,6 +98,16 @@ class AppDetailsViewBase(object):
         pkg = self.cache[self.app.pkgname]
         version = pkg.candidate.version
         origin = self.cache.get_origin(self.app.pkgname)
+
+        # FIXME: probably want to not display the ui if we can't review it
+        if not origin:
+            dialogs.error(None, 
+                        _("Origin unknown"),
+                        _("The origin of the application can not "
+                          "be detected. Entering a review is not "
+                          "possible."))
+            return
+
         if pkg.installed:
             version = pkg.installed.version
         # call the loader to do call out the right helper and collect the result
