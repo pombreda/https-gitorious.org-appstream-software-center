@@ -26,6 +26,7 @@ class testGnomeKeyringUsage(unittest.TestCase):
         secret = 'consumer_secret=xxx&token=xxx&consumer_key=xxx&token_secret=xxx&name=s-c'
 
         keyring_names = gk.list_keyring_names_sync()
+        print keyring_names
         self.assertFalse(self.KEYRING_NAME in keyring_names)
         gk.create_sync(self.KEYRING_NAME, "")
         keyring_names = gk.list_keyring_names_sync()

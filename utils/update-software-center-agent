@@ -75,7 +75,8 @@ if __name__ == "__main__":
 
     # the following requires a http connection, so we do it in a 
     # seperate database
-    if not update_from_software_center_agent(db, cache, options.ignore_etag):
+    include_approved_but_unpublished = "SOFTWARE_CENTER_AGENT_INCLUDE_APPROVED_BUT_UNPUBLISHED" in os.environ
+    if not update_from_software_center_agent(db, cache, options.ignore_etag, include_approved_but_unpublished):
         logging.debug("no updates from update-software-center-agent")
         sys.exit(1)
 

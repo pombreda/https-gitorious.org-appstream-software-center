@@ -16,6 +16,7 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+from softwarecenter.utils import ExecutionTime
 import atexit
 import atk
 import locale
@@ -32,36 +33,39 @@ import sys
 import xapian
 import cairo
 
-from SimpleGtkbuilderApp import SimpleGtkbuilderApp
+with ExecutionTime("TIME loading app.py imports"):
+    from SimpleGtkbuilderApp import SimpleGtkbuilderApp
 
-from softwarecenter.db.application import Application, DebFileApplication
-from softwarecenter.enums import *
-from softwarecenter.utils import *
-from softwarecenter.version import *
-from softwarecenter.db.database import StoreDatabase
-import softwarecenter.view.dependency_dialogs as dependency_dialogs
-from softwarecenter.view.widgets.mkit import floats_from_string
+    from softwarecenter.db.application import Application, DebFileApplication
+    from softwarecenter.enums import *
+    from softwarecenter.utils import *
+    from softwarecenter.version import *
+    from softwarecenter.db.database import StoreDatabase
+    import softwarecenter.view.dependency_dialogs as dependency_dialogs
+    from softwarecenter.view.widgets.mkit import floats_from_string
 
-import view.dialogs
-from view.viewswitcher import ViewSwitcher, ViewSwitcherList
-from view.pendingview import PendingView
-from view.installedpane import InstalledPane
-from view.channelpane import ChannelPane
-from view.availablepane import AvailablePane
-from view.softwarepane import SoftwarePane, SoftwareSection
-from view.historypane import HistoryPane
-from view.viewmanager import ViewManager
+    import view.dialogs
+    from view.viewswitcher import ViewSwitcher, ViewSwitcherList
+    from view.pendingview import PendingView
+    from view.installedpane import InstalledPane
+    from view.channelpane import ChannelPane
+    from view.availablepane import AvailablePane
+    from view.softwarepane import SoftwarePane, SoftwareSection
+    from view.historypane import HistoryPane
+    from view.viewmanager import ViewManager
 
-from backend.config import get_config
-from backend import get_install_backend
-from paths import SOFTWARE_CENTER_ICON_CACHE_DIR
+    from backend.config import get_config
+    from backend import get_install_backend
+    from paths import SOFTWARE_CENTER_ICON_CACHE_DIR
 
-from plugin import PluginManager
+    from plugin import PluginManager
 
-from distro import get_distro
+    from db.reviews import get_review_loader
 
-from apt.aptcache import AptCache
-from gettext import gettext as _
+    from distro import get_distro
+
+    from apt.aptcache import AptCache
+    from gettext import gettext as _
 
 class SoftwarecenterDbusController(dbus.service.Object):
     """ 
@@ -129,6 +133,13 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         # a main iteration friendly apt cache
         self.cache = AptCache()
         self.cache.connect("cache-broken", self._on_apt_cache_broken)
+
+        # reviews
+        self.review_loader = get_review_loader(self.cache)
+        # FIXME: add some kind of throttle, I-M-S here
+        self.review_loader.refresh_review_stats(self.on_review_stats_loaded)
+
+        # backend
         self.backend = get_install_backend()
         self.backend.connect("transaction-finished", self._on_transaction_finished)
         self.backend.connect("channels-changed", self.on_channels_changed)
@@ -203,9 +214,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                             self.navhistory_back_action,
                                             self.navhistory_forward_action)
         self.available_pane.connect("available-pane-created", self.on_available_pane_created)
-        self.available_pane.connect("app-list-changed", 
-                                    self.on_app_list_changed,
-                                    VIEW_PAGE_AVAILABLE)
         self.view_manager.register(self.available_pane, VIEW_PAGE_AVAILABLE)
 
         # channel pane (view not fully initialized at this point)
@@ -215,9 +223,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                         self.icons,
                                         self.datadir)
         self.channel_pane.connect("channel-pane-created", self.on_channel_pane_created)
-        self.channel_pane.connect("app-list-changed", 
-                                    self.on_app_list_changed,
-                                    VIEW_PAGE_CHANNEL)
         self.view_manager.register(self.channel_pane, VIEW_PAGE_CHANNEL)
         
         # installed pane (view not fully initialized at this point)
@@ -227,9 +232,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                             self.icons,
                                             self.datadir)
         self.installed_pane.connect("installed-pane-created", self.on_installed_pane_created)
-        self.installed_pane.connect("app-list-changed", 
-                                    self.on_app_list_changed,
-                                    VIEW_PAGE_INSTALLED)
         self.view_manager.register(self.installed_pane, VIEW_PAGE_INSTALLED)
         
         # history pane (not fully loaded at this point)
@@ -238,9 +240,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                         self.distro,
                                         self.icons,
                                         self.datadir)
-        self.history_pane.connect("app-list-changed", 
-                                  self.on_app_list_changed,
-                                  VIEW_PAGE_HISTORY)
+        self.history_pane.connect("history-pane-created", self.on_history_pane_created)
         self.view_manager.register(self.history_pane, VIEW_PAGE_HISTORY)
 
         # pending view
@@ -369,9 +369,12 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         available_section = SoftwareSection()
         available_section.set_image(VIEW_PAGE_AVAILABLE, os.path.join(self.datadir, 'images/clouds.png'))
         available_section.set_color('#0769BC')
-        
         self.available_pane.set_section(available_section)
 
+        # connect signals
+        self.available_pane.connect("app-list-changed", 
+                                    self.on_app_list_changed,
+                                    VIEW_PAGE_AVAILABLE)
         self.available_pane.app_details_view.connect("selected", 
                                                      self.on_app_details_changed,
                                                      VIEW_PAGE_AVAILABLE)
@@ -387,6 +390,10 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         channel_section.set_color('#aea79f')
         self.channel_pane.set_section(channel_section)
 
+        # connect signals
+        self.channel_pane.connect("app-list-changed", 
+                                    self.on_app_list_changed,
+                                    VIEW_PAGE_CHANNEL)
         self.channel_pane.app_details_view.connect("selected", 
                                                    self.on_app_details_changed,
                                                    VIEW_PAGE_CHANNEL)
@@ -401,6 +408,10 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         installed_section.set_color('#aea79f')
         self.installed_pane.set_section(installed_section)
         
+        # connect signals
+        self.installed_pane.connect("app-list-changed", 
+                                    self.on_app_list_changed,
+                                    VIEW_PAGE_INSTALLED)
         self.installed_pane.app_details_view.connect("selected", 
                                                      self.on_app_details_changed,
                                                      VIEW_PAGE_INSTALLED)
@@ -408,11 +419,20 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                                      self.on_application_request_action)
         self.installed_pane.app_view.connect("application-request-action", 
                                              self.on_application_request_action)
+                                             
+    def on_history_pane_created(self, widget):
+        # connect signal
+        self.history_pane.connect("app-list-changed", 
+                                  self.on_app_list_changed,
+                                  VIEW_PAGE_HISTORY)
     
     def _on_update_software_center_agent_finished(self, pid, condition):
         self._logger.info("software-center-agent finished with status %i" % os.WEXITSTATUS(condition))
         if os.WEXITSTATUS(condition) == 0:
             self.db.reopen()
+
+    def on_review_stats_loaded(self, reviews):
+        self._logger.debug("on_review_stats_loaded: '%s'" % len(reviews))
 
     def on_app_details_changed(self, widget, app, page):
         self.update_status_bar()
@@ -428,10 +448,17 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         gtk.main_quit()
         
     def on_window_main_key_press_event(self, widget, event):
+        """
+        Implement the backspace key as a hotkey to back up one level in
+        the navigation heirarchy.  This works everywhere except when
+        purchasing software in the purchase_view where backspace works
+        as expected in the webkit text fields.
+        """
         if (event.keyval == gtk.gdk.keyval_from_name("BackSpace") and 
             self.active_pane and
             hasattr(self.active_pane, 'navigation_bar') and
-            not self.active_pane.searchentry.is_focus()):
+            not self.active_pane.searchentry.is_focus() and
+            not self.active_pane.navigation_bar.has_id(NAV_BUTTON_ID_PURCHASE)):
             self.active_pane.navigation_bar.navigate_up()
         
     def on_view_switcher_changed(self, view_switcher, view_id, channel):
@@ -953,17 +980,22 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                 # e.g. unity
                 (pkgname, sep, appname) = packages[0].partition("/")
                 app = Application(appname, pkgname)
-            # FIXME: this needs a wait_for_apt_cache_ready decorator
-            # if the pkg is installed, show it in the installed pane
-#            if (app.pkgname in self.cache and 
- #               self.cache[app.pkgname].installed):
-  #              self.installed_pane.loaded = True
-   #             self.view_switcher.set_view(VIEW_PAGE_INSTALLED)
-    #            self.installed_pane.loaded = False
-     #           self.installed_pane.show_app(app)
-      #      else:
-            self.view_switcher.set_view(VIEW_PAGE_AVAILABLE)
-            self.available_pane.show_app(app)
+
+            @wait_for_apt_cache_ready
+            def show_app(self, app):
+                # if the pkg is installed, show it in the installed pane
+                if (app.pkgname in self.cache and 
+                    self.cache[app.pkgname].installed):
+                    self.installed_pane.loaded = True
+                    self.view_switcher.set_view(VIEW_PAGE_INSTALLED)
+                    self.installed_pane.loaded = False
+                    self.available_pane.bypassed = True
+                    self.installed_pane.show_app(app)
+                else:
+                    self.view_switcher.set_view(VIEW_PAGE_AVAILABLE)
+                    self.available_pane.show_app(app)
+
+            show_app(self, app)
 
         if len(packages) > 1:
             # turn multiple packages into a search with ","
