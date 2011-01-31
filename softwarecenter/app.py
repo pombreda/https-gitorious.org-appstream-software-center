@@ -32,9 +32,13 @@ import sys
 import xapian
 import cairo
 
+# purely to initialize the netstatus
+import softwarecenter.netstatus
+
 from SimpleGtkbuilderApp import SimpleGtkbuilderApp
 
 from softwarecenter.db.application import Application, DebFileApplication
+
 from softwarecenter.enums import *
 from softwarecenter.utils import *
 from softwarecenter.version import *
@@ -65,6 +69,7 @@ from distro import get_distro
 
 from apt.aptcache import AptCache
 from gettext import gettext as _
+
 
 class SoftwarecenterDbusController(dbus.service.Object):
     """ 
