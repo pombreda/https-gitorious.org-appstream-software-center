@@ -605,26 +605,25 @@ class Reviews(gtk.VBox):
                 pkgversion = self._parent.app_details.version
                 review = Review(r, pkgversion)
                 self.vbox.pack_start(review)
-        else:
-            # TRANSLATORS: displayed if there are no reviews
-            self.vbox.pack_start(NoReviewYet())
         return
 
     def _be_the_first_to_review(self):
         s = _('Be the first to review it')
         self.new_review.set_label(s)
+        self.vbox.pack_start(NoReviewYet())
+        self.vbox.show_all()
         return
 
     def finished(self):
-        print 'Review count: %s' % len(self.reviews)
+#        print 'Review count: %s' % len(self.reviews)
         if not self.reviews:
             self._be_the_first_to_review()
         else:
+            self.hide_spinner()
             self.new_review.set_label(_("Write your own review"))
 #            if self.expander.get_expanded():
             self._fill()
             self.show_all()
-            self._update = False
         return
 
     def set_width(self, w):
@@ -634,13 +633,33 @@ class Reviews(gtk.VBox):
 
     def add_review(self, review):
         self.reviews.append(review)
-        self._update = True
         return
 
     def clear(self):
         self.reviews = []
         for review in self.vbox:
             review.destroy()
+
+    def show_spinner_with_message(self, message):
+        a = gtk.Alignment(0.5, 0.5)
+
+        hb = gtk.HBox(spacing=12)
+        a.add(hb)
+
+        spinner = gtk.Spinner()
+        spinner.start()
+        hb.pack_start(spinner, False)
+        hb.pack_start(gtk.Label(message), False)
+
+        self.vbox.pack_start(a, False)
+        self.vbox.show_all()
+        return
+
+    def hide_spinner(self):
+        for child in self.vbox.get_children():
+            if isinstance(child, gtk.Alignment):
+                child.destroy()
+        return
 
     def draw(self, cr, a):
         cr.save()
@@ -666,7 +685,8 @@ class Reviews(gtk.VBox):
 #        if not self.expander.get_expanded(): return
 
         for r in self.vbox:
-            r.draw(cr, r.allocation)
+            if isinstance(r, (Review, NoReviewYet)):
+                r.draw(cr, r.allocation)
         return
 
 class Review(gtk.VBox):
@@ -726,7 +746,7 @@ class Review(gtk.VBox):
 
         else:   # any timedelta greater than 3 days old
             # YYYY-MM-DD
-            s = t.isoformat.split('T')[0]
+            s = t.isoformat().split('T')[0]
 
         return s
 
@@ -808,14 +828,29 @@ class Review(gtk.VBox):
         cr.stroke()
         cr.restore()
 
-class NoReviewYet(Review):
+class NoReviewYet(gtk.Alignment):
     """ represents if there are no reviews yet """
     def __init__(self, *args, **kwargs):
-        super(NoReviewYet, self).__init__(*args, **kwargs)
+        gtk.Alignment.__init__(self, 0.5, 0.5)
+        self.set_padding(12, 12, 0, 0)
+
+        hb = gtk.HBox(spacing=12)
+        self.add(hb)
+
+        i = gtk.image_new_from_icon_name('face-glasses', gtk.ICON_SIZE_DIALOG)
+        hb.pack_start(i, False)
+
+        m = "<big><b>%s</b></big>\n%s"
         # TRANSLATORS: displayed if there are no reviews yet
-        self.body.pack_start(gtk.Label(_("None yet")))
-    #def draw(self, cr, a):
-    #    pass
+        m = m % (_('Want to be awesome?'), _('Be the first to contribute a review for this application'))
+        l = gtk.Label(m)
+        l.set_alignment(0, 0.5)
+        l.set_use_markup(True)
+
+        hb.pack_start(l, False)
+        self.show_all()
+    def draw(self, cr, a):
+        pass
 
 
 class AddonsStatusBar(StatusBar):
@@ -1447,6 +1482,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
     def _update_reviews(self, app_details):
         self.reviews.clear()
+        self.reviews.show_spinner_with_message(_('Checking for reviews...'))
+        return
 
     def _update_all(self, app_details):
         if not self.loaded:
@@ -1480,6 +1517,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self._update_app_screenshot(app_details)
         self._update_pkg_info_table(app_details)
         self._update_addons(app_details)
+        self._update_reviews(app_details)
         self._update_usage_counter()
 
 #        # show where it is
