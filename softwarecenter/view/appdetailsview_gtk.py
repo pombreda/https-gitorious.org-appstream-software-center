@@ -601,6 +601,8 @@ class Reviews(gtk.VBox):
 
     def _fill(self):
         if self.reviews:
+            self.reviews.reverse()  # XXX: sort so that reviews are ordered recent to oldest
+                                    # XXX: prob should be done somewhere else
             for r in self.reviews:
                 pkgversion = self._parent.app_details.version
                 review = Review(r, pkgversion)
