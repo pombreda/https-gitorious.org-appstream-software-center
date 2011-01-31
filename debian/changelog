@@ -1,3 +1,18 @@
+software-center (3.1.15) UNRELEASED; urgency=low
+
+  [ Kiwinote ]
+  * softwarecenter/apt/aptcache.py:
+    - don't crash if pkg not in cache (deb files)
+  * softwarecenter/utils.py,
+    utils/submit_review.py:
+    - play slightly nicer with locales (LP: #709671)
+  * softwarecenter/view/appdetailsview_gtk:
+    - correctly hide addons/reviews from interface when we have an error
+  * utils/submit_review.py:
+    - allow us to review when spell check isn't available (LP: #709155)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 28 Jan 2011 20:13:00 +0100
+
 software-center (3.1.14) natty; urgency=low
 
   [ Michael Vogt ]
