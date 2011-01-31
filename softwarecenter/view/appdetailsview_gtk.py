@@ -1401,7 +1401,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         if state == NetState.NM_STATE_DISCONNECTED:
             self._update_reviews_inactive_network()
         elif state == NetState.NM_STATE_CONNECTED:
-            gobject.timeout_add(1000, self._update_reviews_active_network)
+            gobject.timeout_add(500, self._update_reviews_active_network)
         return
 
     def _check_for_reviews(self):
