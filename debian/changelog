@@ -10,6 +10,10 @@ software-center (3.1.15) UNRELEASED; urgency=low
     - correctly hide addons/reviews from interface when we have an error
   * utils/submit_review.py:
     - allow us to review when spell check isn't available (LP: #709155)
+  
+  [ Michael Vogt ]
+  * softwarecenter/db/reviews.py:
+    - fix race in review downloaded watcher (LP: #709548)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 28 Jan 2011 20:13:00 +0100
 

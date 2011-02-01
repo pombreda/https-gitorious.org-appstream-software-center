@@ -225,6 +225,11 @@ class ReviewLoaderThreadedRNRClient(ReviewLoader):
 
     def _reviews_timeout_watcher(self, app, callback):
         """ watcher function in parent using glib """
+        # another watcher collected the result already, nothing to do for
+        # us (LP: #709548)
+        if not app in self._new_reviews:
+            return False
+        # check if we have data waiting
         if not self._new_reviews[app].empty():
             self._reviews[app] = self._new_reviews[app].get()
             del self._new_reviews[app]
