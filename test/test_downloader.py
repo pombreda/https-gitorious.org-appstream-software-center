@@ -31,7 +31,7 @@ class TestImageDownloader(unittest.TestCase):
         self._image_downloaded_filename = filename
 
     def test_download_unreachable(self):
-        self.downloader.download_image("http://example.com/not-there",
+        self.downloader.download_image("http://examplex.com/not-there",
                                        self.DOWNLOAD_FILENAME)
         main_loop = glib.main_context_default()
         while self._image_is_reachable is None:
