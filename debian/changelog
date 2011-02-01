@@ -14,6 +14,8 @@ software-center (3.1.15) UNRELEASED; urgency=low
   [ Michael Vogt ]
   * softwarecenter/db/reviews.py:
     - fix race in review downloaded watcher (LP: #709548)
+  * test/test_utils.py:
+    - add test for get_language()
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 28 Jan 2011 20:13:00 +0100
 
