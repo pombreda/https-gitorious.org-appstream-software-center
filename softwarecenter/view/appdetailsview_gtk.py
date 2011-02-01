@@ -2147,7 +2147,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         return
         
     def _get_icon_as_pixbuf(self, app_details):
-        icon = None
         if app_details.icon:
             if self.icons.has_icon(app_details.icon):
                 try:
@@ -2155,8 +2154,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                 except glib.GError, e:
                     logging.warn("failed to load '%s'" % app_details.icon)
                     return self.icons.load_icon(MISSING_APP_ICON, 84, 0)
-            elif app_details.icon_needs_download:
-                self._logger.debug("did not find the icon locally, must download it")
+            elif app_details.icon_needs_download and app_details.icon_url:
+                LOG.debug("did not find the icon locally, must download it")
 
                 def on_image_download_complete(downloader, image_file_path):
                     # when the download is complete, replace the icon in the view with the downloaded one
@@ -2167,7 +2166,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                 image_downloader = ImageDownloader()
                 image_downloader.connect('image-download-complete', on_image_download_complete)
                 image_downloader.download_image(app_details.icon_url, icon_file_path)
-                
         return self.icons.load_icon(MISSING_APP_ICON, 84, 0)
     
     def update_totalsize(self, hide=False):
