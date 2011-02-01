@@ -523,10 +523,6 @@ class AddonsTable(gtk.VBox):
         if not self.recommended_addons and not self.suggested_addons:
             return
 
-        if not self._reload:
-            self.vbox.show_all()
-            return
-
         view_width = self.addons_manager.view.allocation.width
 
         # clear any existing addons
@@ -839,7 +835,7 @@ class NoReviewYet(gtk.Alignment):
 
         m = "<big><b>%s</b></big>\n%s"
         # TRANSLATORS: displayed if there are no reviews yet
-        m = m % (_('Want to be awesome?'), _('Be the first to contribute a review for this application'))
+        m = m % (_('Propaganda Alert:- Want to be awesome?'), _('Be the first to contribute a review for this application'))
         l = gtk.Label(m)
         l.set_alignment(0, 0.5)
         l.set_use_markup(True)
