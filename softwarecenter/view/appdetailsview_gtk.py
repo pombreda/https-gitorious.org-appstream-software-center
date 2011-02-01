@@ -438,10 +438,10 @@ class Addon(gtk.HBox):
             LOG.warning("cant set icon for '%s' " % pkgname)
         hbox.pack_start(self.icon, False, False)
 
-        self.more = mkit.HLinkButton("More Info")
-        self.more.set_underline(True)
-        self.pack_end(self.more, False)
-        self.more.connect("clicked", self._on_more_clicked)
+#        self.more = mkit.HLinkButton("More Info")
+#        self.more.set_underline(True)
+#        self.pack_end(self.more, False)
+#        self.more.connect("clicked", self._on_more_clicked)
 
         # name
         title = self.app_details.display_name
@@ -511,6 +511,12 @@ class AddonsTable(gtk.VBox):
         self.label.set_alignment(0, 0.5)
         self.label.set_padding(6, 6)
 
+        self.vbox = gtk.VBox(spacing=mkit.SPACING_SMALL)
+        self.vbox.set_no_show_all(True)
+        self.vbox.set_border_width(6)
+        self.pack_start(self.vbox)
+
+
         markup = _('Add-ons')
         self.label.set_markup(markup)
         self.pack_start(self.label, False, False)
@@ -522,6 +528,10 @@ class AddonsTable(gtk.VBox):
 
         if not self.recommended_addons and not self.suggested_addons:
             return
+
+#        if not self._reload:
+#            self.vbox.show_all()
+#            return
 
         view_width = self.addons_manager.view.allocation.width
 
