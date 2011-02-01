@@ -9,15 +9,18 @@ except ImportError:
 import gtk
 import os
 import sys
+import time
 import unittest
 
 sys.path.insert(0,"../")
+import softwarecenter.netstatus
+
 from softwarecenter.apt.aptcache import AptCache
 from softwarecenter.db.database import StoreDatabase
 from softwarecenter.db.application import Application, AppDetails
 from softwarecenter.distro import get_distro
 from softwarecenter.enums import *
-from softwarecenter.view.appdetailsview_gtk import AppDetailsViewGtk
+from softwarecenter.view.appdetailsview_gtk import AppDetailsViewGtk, EmbeddedMessage
 
 
 class testAppDetailsView(unittest.TestCase):
@@ -41,6 +44,35 @@ class testAppDetailsView(unittest.TestCase):
     def test_show_app_simple(self):
         app = Application("7zip","p7zip-full")
         self.appdetails.show_app(app)
+
+    def test_show_app_simple_no_network(self):
+        softwarecenter.netstatus.NETWORK_STATE = softwarecenter.netstatus.NetState.NM_STATE_DISCONNECTED
+        app = Application("7zip","p7zip-full")
+        self.appdetails.show_app(app)
+        # check that we have the embedded message
+        for r in self.appdetails.reviews.vbox:
+            if isinstance(r, EmbeddedMessage):
+                break
+        else:
+            raise Exception("can not find embedded message") 
+
+    def test_show_app_simple_with_network(self):
+        softwarecenter.netstatus.NETWORK_STATE = softwarecenter.netstatus.NetState.NM_STATE_CONNECTED
+        app = Application("7zip","p7zip-full")
+        self.appdetails.show_app(app)
+        # check that we do *not* have the embedded message
+        for r in self.appdetails.reviews.vbox:
+            self.assertFalse(isinstance(r, EmbeddedMessage))
+
+    def test_show_app_simple_network_unknown(self):
+        # if we don't know about the network state (or have no network
+        # manager running) assume connected 
+        softwarecenter.netstatus.NETWORK_STATE = softwarecenter.netstatus.NetState.NM_STATE_UNKNOWN
+        app = Application("7zip","p7zip-full")
+        self.appdetails.show_app(app)
+        # check that we do *not* have the embedded message
+        for r in self.appdetails.reviews.vbox:
+            self.assertFalse(isinstance(r, EmbeddedMessage))
 
     def _get_mock_app_details(self):
         mock_app_details = mock.Mock(AppDetails)
@@ -81,6 +113,12 @@ class testAppDetailsView(unittest.TestCase):
         app = Application("Web browser", "firefox")
         mock_app_details = self._get_mock_app_details()
         self.appdetails.show_app(app)
+
+    # helper
+    def _p(self):
+        """ process gtk events """
+        while gtk.events_pending():
+            gtk.main_iteration()
 
 if __name__ == "__main__":
     import logging

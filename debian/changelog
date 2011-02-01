@@ -2,6 +2,8 @@ software-center (3.1.16) UNRELEASED; urgency=low
 
   * merged lp:~mmcg069/software-center/reviews-and-netstatus
     many thanks to Matthew McGowan
+  * test/test_appdetails_view.py:
+    - add appdetails netstatus tests
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 01 Feb 2011 14:40:07 +0100
 
