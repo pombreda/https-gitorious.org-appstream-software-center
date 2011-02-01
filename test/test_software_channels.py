@@ -45,7 +45,7 @@ class TestSoftwareChannels(unittest.TestCase):
 
     def test_origin(self):
         origin = self.cache.get_origin("apt")
-        self.assertEqual(origin, "Ubuntu")
+        self.assertEqual(origin, "ubuntu")
         
     def test_channels(self):
         cm = ChannelsManager(self.db, self.mock_icons)
