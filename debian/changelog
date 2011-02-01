@@ -18,6 +18,8 @@ software-center (3.1.15) UNRELEASED; urgency=low
     - add test for get_language()
   * softwarecenter/backend/zeitgeist_simple.py:
     - don't raise a exception if zeitgeist is not available (LP: #709718)
+  * softwarecenter/app.py:
+    - fix sso login creation on reinstall-previous purchase (LP: #709856)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 28 Jan 2011 20:13:00 +0100
 
