@@ -536,8 +536,8 @@ class AddonsTable(gtk.VBox):
         view_width = self.addons_manager.view.allocation.width
 
         # clear any existing addons
-        for addon in self.vbox:
-            self.vbox.remove(addon)
+        for addon in self:
+            self.remove(addon)
 
         # set the new addons
         for addon_name in self.recommended_addons + self.suggested_addons:
