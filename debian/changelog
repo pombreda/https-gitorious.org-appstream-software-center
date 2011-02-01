@@ -22,8 +22,10 @@ software-center (3.1.15) UNRELEASED; urgency=low
     - fix sso login creation on reinstall-previous purchase (LP: #709856)
   * softwarecenter/view/widgets/reviews.py:
     - change ratings star color (LP: #711030)
+  * tests/*:
+    - fix test invocation at build time and fix test failures
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 28 Jan 2011 20:13:00 +0100
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 01 Feb 2011 11:34:30 +0100
 
 software-center (3.1.14) natty; urgency=low
 
