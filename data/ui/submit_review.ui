@@ -5,10 +5,12 @@
   <object class="GtkWindow" id="submit_window">
     <property name="width_request">400</property>
     <property name="height_request">500</property>
-    <property name="border_width">5</property>
+    <property name="border_width">12</property>
     <property name="default_width">400</property>
     <property name="default_height">500</property>
     <property name="destroy_with_parent">True</property>
+    <signal name="size-allocate" handler="on_submit_window_size_allocate" swapped="no"/>
+    <signal name="state-changed" handler="on_submit_window_state_changed" swapped="no"/>
     <child>
       <object class="GtkVBox" id="dialog-vbox4">
         <property name="visible">True</property>
@@ -304,6 +306,7 @@
                     <property name="visible">True</property>
                     <property name="xalign">0</property>
                     <property name="wrap">True</property>
+                    <property name="justify">fill</property>
                     <property name="wrap_mode">word-char</property>
                   </object>
                   <packing>
@@ -398,7 +401,7 @@
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
                         <property name="use_stock">True</property>
-                        <signal name="clicked" handler="on_button_cancel_clicked"/>
+                        <signal name="clicked" handler="on_button_cancel_clicked" swapped="no"/>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -414,7 +417,7 @@
                         <property name="sensitive">False</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
-                        <signal name="clicked" handler="on_button_post_clicked"/>
+                        <signal name="clicked" handler="on_button_post_clicked" swapped="no"/>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -434,6 +437,7 @@
             </child>
           </object>
           <packing>
+            <property name="expand">False</property>
             <property name="position">1</property>
           </packing>
         </child>

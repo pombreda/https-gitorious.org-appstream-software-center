@@ -30,8 +30,9 @@ import threading
 from softwarecenter.enums import *
 from softwarecenter.utils import *
 from softwarecenter.backend import get_install_backend
-from softwarecenter.db.database import Application, SearchQuery, LocaleSorter
 from softwarecenter.db.reviews import get_review_loader
+from softwarecenter.db.database import Application, SearchQuery, LocaleSorter
+
 from softwarecenter.distro import get_distro
 from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
 
@@ -70,7 +71,7 @@ class AppStore(gtk.GenericTreeModel):
                    bool,
                    bool,
                    str,
-                   float,
+                   int,
                    int,
                    bool,
                    int,
@@ -132,7 +133,7 @@ class AppStore(gtk.GenericTreeModel):
         # invalidate the cache on icon theme changes
         self.icons.connect("changed", self._clear_app_icon_cache)
         self._appicon_missing_icon = self.icons.load_icon(MISSING_APP_ICON, self.icon_size, 0)
-#        self.apps = []
+        self.apps = []  # XXX: does this actually get used anymore???
         self.sortmode = sortmode
         # we need a copy of the filter here because otherwise comparing
         # two models will not work
@@ -143,11 +144,11 @@ class AppStore(gtk.GenericTreeModel):
         # and if the user explicitly requested they be.
         self.nonapps_visible = nonapps_visible
         self._explicit_nonapp_visibility = False
-        # reviews
-        self.review_loader = get_review_loader()
         # new goodness
         self.nr_pkgs = 0
         self.nr_apps = 0
+        # reviews
+        self.review_loader = get_review_loader(self.cache)
         # backend stuff
         self.backend = get_install_backend()
         self.backend.connect("transaction-progress-changed", self._on_transaction_progress_changed)
@@ -311,7 +312,7 @@ class AppStore(gtk.GenericTreeModel):
         installable = lambda app: (not self.cache[app.pkgname].is_installed
                                    and app.pkgname not in
                                    self.backend.pending_transactions)
-        self._existing_apps = __builtin__.filter(exists, [])    # XXX: [] == self.apps - not used?
+        self._existing_apps = __builtin__.filter(exists, self.apps)
         self._installable_apps = __builtin__.filter(installable,
                                                     self.existing_apps)
 
@@ -448,6 +449,11 @@ class AppStore(gtk.GenericTreeModel):
                 return False
             elif column == self.COL_PKGNAME:
                 return app.pkgname
+#<<<<<<< TREE
+#=======
+#            elif column == self.COL_POPCON:
+#                return 0
+#>>>>>>> MERGE-SOURCE
             elif column == self.COL_RATING:
                 return 0
             elif column == self.COL_IS_ACTIVE:
@@ -524,6 +530,11 @@ class AppStore(gtk.GenericTreeModel):
             stats = self.review_loader.get_review_stats(app)
             if stats:
                 return stats.ratings_average
+            return 0
+        elif column == self.COL_NR_REVIEWS:
+            stats = self.review_loader.get_review_stats(app)
+            if stats:
+                return stats.ratings_total
             return 0
         elif column == self.COL_IS_ACTIVE:
             return (rowref == self.active_app)

@@ -17,9 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import atk
-import dialogs
 import gettext
-import gio
 import glib
 import gmenu
 import gobject
@@ -27,19 +25,20 @@ import gtk
 import logging
 import os
 import pango
-import string
 import subprocess
 import sys
-import tempfile
-import xapian
 import cairo
 import pangocairo
 
 from PIL import Image
 from gettext import gettext as _
 import apt_pkg
+
 from softwarecenter.backend import get_install_backend
-from softwarecenter.db.application import AppDetails, Application, NoneTypeApplication
+
+from softwarecenter.db.application import Application
+from softwarecenter.db.reviews import ReviewStats
+
 from softwarecenter.backend.zeitgeist_simple import zeitgeist_singleton
 from softwarecenter.enums import *
 from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
@@ -52,9 +51,7 @@ from appdetailsview import AppDetailsViewBase
 #from actions import get_install_actions
 
 from widgets import mkit
-
 from widgets.mkit import EM
-#from widgets.imagedialog import ShowImageDialog, GnomeProxyURLopener, Url404Error, Url403Error
 from widgets.reviews import ReviewStatsContainer, StarRating
 
 from widgets.description import AppDescription, TextBlock
@@ -441,6 +438,11 @@ class Addon(gtk.HBox):
             LOG.warning("cant set icon for '%s' " % pkgname)
         hbox.pack_start(self.icon, False, False)
 
+        self.more = mkit.HLinkButton("More Info")
+        self.more.set_underline(True)
+        self.pack_end(self.more, False)
+        self.more.connect("clicked", self._on_more_clicked)
+
         # name
         title = self.app_details.display_name
         if len(title) >= 2:
@@ -476,6 +478,12 @@ class Addon(gtk.HBox):
         a.show_app(self.app)
         return
 
+    def _on_more_clicked(self, more_btn):
+        a = self.get_ancestor(AppDetailsViewGtk)
+        if not a: return
+        a.show_app(self.app)
+        return
+
     def get_active(self):
         return self.checkbutton.get_active()
 
@@ -483,7 +491,6 @@ class Addon(gtk.HBox):
         self.checkbutton.set_active(is_active)
 
     def set_width(self, width):
-        print width
         return
 
 
@@ -516,10 +523,15 @@ class AddonsTable(gtk.VBox):
         if not self.recommended_addons and not self.suggested_addons:
             return
 
+        if not self._reload:
+            self.vbox.show_all()
+            return
+
+        view_width = self.addons_manager.view.allocation.width
+
         # clear any existing addons
-        for widget in self:
-            if widget != self.label:
-                self.remove(widget)
+        for addon in self.vbox:
+            self.vbox.remove(addon)
 
         # set the new addons
         for addon_name in self.recommended_addons + self.suggested_addons:
@@ -527,6 +539,7 @@ class AddonsTable(gtk.VBox):
                 pkg = self.cache[addon_name]
             except KeyError:
                 continue
+
             addon = Addon(self.db, self.icons, addon_name)
             #addon.pkgname.connect("clicked", not yet suitable for use)
             addon.set_active(pkg.installed != None)
@@ -574,27 +587,10 @@ class Reviews(gtk.VBox):
         self.vbox.set_border_width(6)
         self.pack_start(self.vbox, padding=6)
 
-#        self.expander.connect('notify::expanded', self._on_expand)
-#        self.expander.set_expanded(True)
         self.new_review.connect('clicked', lambda w: self.emit('new-review'))
         self.show_all()
         return
 
-#    def _on_expand(self, expander, param):
-#        if not self.expander.get_expanded():
-#            self.vbox.hide_all()
-#        else:
-#            if self.vbox.get_no_show_all():
-#                self.vbox.set_no_show_all(False)
-
-#            if self._update:
-#                self._fill()
-#                self.vbox.show_all()
-#                self._update = False
-#                return
-#            else:
-#                self.vbox.show_all()
-#        return
 
     def _on_button_new_clicked(self, button):
         self.emit("new-review")
@@ -617,7 +613,7 @@ class Reviews(gtk.VBox):
         return
 
     def finished(self):
-#        print 'Review count: %s' % len(self.reviews)
+        #print 'Review count: %s' % len(self.reviews)
         if not self.reviews:
             self._be_the_first_to_review()
         else:
@@ -683,8 +679,6 @@ class Reviews(gtk.VBox):
         cr.set_line_width(1)
         cr.stroke()
         cr.restore()
-
-#        if not self.expander.get_expanded(): return
 
         for r in self.vbox:
             if isinstance(r, (Review, NoReviewYet)):
@@ -794,7 +788,8 @@ class Review(gtk.VBox):
         
         #if review version is different to version of app being displayed, 
         # alert user
-        if upstream_version_compare(review_version, app_version) != 0:
+        if (review_version and 
+            upstream_version_compare(review_version, app_version) != 0):
             version_string = _("This review was written for a different version of %(app_name)s (Version: %(version)s)") % { 
                 'app_name' : app_name,
                 'version' : glib.markup_escape_text(upstream_version(review_version))
@@ -886,12 +881,6 @@ class AddonsStatusBar(StatusBar):
             self.button_cancel.set_sensitive(True)
             self.show_all()
     
-    def get_applying(self):
-        return self.applying
-
-    def set_applying(self, applying):
-        self.applying = applying
-    
     def _on_button_apply_clicked(self, button):
         self.applying = True
         self.button_apply.set_sensitive(False)
@@ -972,15 +961,14 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         AppDetailsViewBase.__init__(self, db, distro, icons, cache, datadir)
         gtk.Viewport.__init__(self)
         self.set_shadow_type(gtk.SHADOW_NONE)
-        self.adjustment_value = None
-        self._prev_width = 0
+
+        self._prev_width = -1
 
         self.section = None
         # app specific data
-        self.app = NoneTypeApplication()
-        self.app_details = self.app.get_details(self.db)
+#        self.app_details = self.app.get_details(self.db)
 
-        self.action_bar = PackageStatusBar(self)
+        self.pkg_statusbar = PackageStatusBar(self)
 
         self.addons_manager = AddonsManager(self)
         self.addons_statusbar = AddonsStatusBar(self.addons_manager)
@@ -1023,16 +1011,18 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
     def _check_for_reviews(self):
         # review stats is fast and syncronous
         stats = self.review_loader.get_review_stats(self.app)
+        self._update_review_stats_widget(stats)
+        # individual reviews is slow and async so we just queue it here
+        reviews = self.review_loader.get_reviews(self.app,
+                                                 self._reviews_ready_callback)
+
+    def _update_review_stats_widget(self, stats):
         if stats:
             self.review_stats_widget.set_avg_rating(stats.ratings_average)
             self.review_stats_widget.set_nr_reviews(stats.ratings_total)
             self.review_stats_widget.show()
         else:
             self.review_stats_widget.hide()
-
-        # individual reviews is slow and async
-        reviews = self.review_loader.get_reviews(self.app,
-                                                 self._reviews_ready_callback)
 
     def _reviews_ready_callback(self, app, reviews):
         """ callback when new reviews are ready, cleans out the
@@ -1050,6 +1040,23 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # then add the new ones ...
         for review in reviews:
             self.reviews.add_review(review)
+        # then update the stats (if needed). the caching can make them
+        # wrong, so if the reviews we have in the list are more than the
+        # stats we update manually
+        old_stats = self.review_loader.get_review_stats(self.app)
+        if ((old_stats is None and len(reviews) > 0) or
+            (old_stats is not None and old_stats.ratings_total < len(reviews))):
+            # generate new stats
+            stats = ReviewStats(app)
+            stats.ratings_total = len(reviews)
+            if stats.ratings_total == 0:
+                stats.ratings_average = 0
+            else:
+                stats.ratings_average = sum([x.rating for x in reviews]) / float(stats.ratings_total)
+            # update UI
+            self._update_review_stats_widget(stats)
+            # update global stats cache as well
+            self.review_loader.REVIEW_STATS_CACHE[app] = stats
         self.reviews.finished()
 
     def _on_expose(self, widget, event):
@@ -1150,7 +1157,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         cr.restore()
 
         # draw subwidgets
-        self.action_bar.draw(cr, self.action_bar.allocation, event.area)
+        self.pkg_statusbar.draw(cr, self.pkg_statusbar.allocation, event.area)
         self.screenshot.draw(cr, self.screenshot.allocation, event.area)
         self.addons_bar.draw(cr, self.addons_bar.allocation, event.area)
         self.reviews.draw(cr, self.reviews.allocation)
@@ -1260,8 +1267,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         hb.pack_start(vb_inner)
 
         # the package status bar
-        self.action_bar = PackageStatusBar(self)
-        vb.pack_start(self.action_bar, False)
+        self.pkg_statusbar = PackageStatusBar(self)
+        vb.pack_start(self.pkg_statusbar, False)
 
         # the hbox that hold the description on the left and the screenshot 
         # thumbnail on the right
@@ -1380,11 +1387,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
     def _update_app_icon(self, app_details):
 
-        def get_avg_color(pb):
-            avg = pb.scale_simple(1, 1, gtk.gdk.INTERP_BILINEAR)
-            rgb = Image.fromstring("RGB", (1,1), avg.get_pixels()).getpixel((0,0))
-            return map(lambda x: x/255.0, rgb) # rgb to floats
-
         pb = self._get_icon_as_pixbuf(app_details)
         # should we show the green tick?
 #        self._show_overlay = app_details.pkg_state == PKG_STATE_INSTALLED
@@ -1394,12 +1396,16 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
     def _update_layout_error_status(self, pkg_error):
         # if we have an error or if we need to enable a source, then hide everything else
         if pkg_error:
+            self.addon_view.hide()
+            self.reviews.hide()
             self.screenshot.hide()
             self.version_info.hide()
             self.license_info.hide()
             self.support_info.hide()
             self.totalsize_info.hide()
         else:
+            self.addon_view.show()
+            self.reviews.show()
             self.version_info.show()
             self.license_info.show()
             self.support_info.show()
@@ -1479,7 +1485,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         gobject.timeout_add(500, self.update_totalsize, True)
         
         # Update addons state bar
-        self.addons_bar.configure()
+        self.addons_statusbar.configure()
         return
 
     def _update_reviews(self, app_details):
@@ -1509,7 +1515,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             summary = ""
 
         # depending on pkg install state set action labels
-        self.action_bar.configure(app_details, app_details.pkg_state)
+        self.pkg_statusbar.configure(app_details, app_details.pkg_state)
 
         self._update_title_markup(appname, summary)
         self._update_app_icon(app_details)
@@ -1548,7 +1554,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 #        gobject.timeout_add(500, self._update_addons, app_details)
 
         # depending on pkg install state set action labels
-        self.action_bar.configure(app_details, app_details.pkg_state)
+        self.pkg_statusbar.configure(app_details, app_details.pkg_state)
 
 #        # show where it is
 #        self._configure_where_is_it()
@@ -1638,7 +1644,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.get_hadjustment().set_value(0)
 
 #        # set button sensitive again
-        self.action_bar.button.set_sensitive(True)
+        self.pkg_statusbar.button.set_sensitive(True)
 
         # init data
         self.app = app
@@ -1648,13 +1654,18 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.appdetails = self.app_details
 
         # set button sensitive again
-        self.action_bar.button.set_sensitive(True)
+        self.pkg_statusbar.button.set_sensitive(True)
 
         # update content
-        self._update_all(self.app_details)
+        # layout page
+        if same_app:
+            self._update_minimal(self.app_details)
+        else:
+            # async query zeitgeist and rnr
+#            self.get_usage_counter()
+            self._check_for_reviews()
 
-#        self.get_usage_counter()
-        self._check_for_reviews()
+            self._update_all(self.app_details)
 
         self.emit("selected", self.app)
         return
@@ -1670,76 +1681,79 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
     # internal callback
     def _update_interface_on_trans_ended(self, result):
-        state = self.action_bar.pkg_state
+        state = self.pkg_statusbar.pkg_state
 
         # handle purchase: install purchased has multiple steps
         if (state == PKG_STATE_INSTALLING_PURCHASED and 
             result and
             not result.pkgname):
-            self.action_bar.configure(self.app_details, PKG_STATE_INSTALLING_PURCHASED)
+            self.pkg_statusbar.configure(self.app_details, PKG_STATE_INSTALLING_PURCHASED)
         elif (state == PKG_STATE_INSTALLING_PURCHASED and 
               result and
               result.pkgname):
-            self.action_bar.configure(self.app_details, PKG_STATE_INSTALLED)
+            self.pkg_statusbar.configure(self.app_details, PKG_STATE_INSTALLED)
         # normal states
         elif state == PKG_STATE_REMOVING:
-            self.action_bar.configure(self.app_details, PKG_STATE_UNINSTALLED)
+            self.pkg_statusbar.configure(self.app_details, PKG_STATE_UNINSTALLED)
         elif state == PKG_STATE_INSTALLING:
-            self.action_bar.configure(self.app_details, PKG_STATE_INSTALLED)
+            self.pkg_statusbar.configure(self.app_details, PKG_STATE_INSTALLED)
         elif state == PKG_STATE_UPGRADING:
-            self.action_bar.configure(self.app_details, PKG_STATE_INSTALLED)
+            self.pkg_statusbar.configure(self.app_details, PKG_STATE_INSTALLED)
         # addons modified
         elif self.addons_statusbar.applying:
-            self.action_bar.configure(self.app_details, PKG_STATE_INSTALLED)
+            self.pkg_statusbar.configure(self.app_details, PKG_STATE_INSTALLED)
+            self.pkg_statusbar.configure(self.app_details, PKG_STATE_INSTALLED)
+            self.addons_manager.configure(self.app_details.name, False)
+            self.addons_statusbar.configure()
 
         self.adjustment_value = None
         
         if self.addons_statusbar.applying:
             self.addons_statusbar.applying = False
 
-        self.addons_manager.configure(self.app_details.name, False)
+#        self.addons_manager.configure(self.app_details.name, False)
         return False
 
     def _on_transaction_started(self, backend):
         if self.addons_statusbar.get_applying():
-            self.action_bar.configure(self.app_details, APP_ACTION_APPLY)
+            self.pkg_statusbar.configure(self.app_details, APP_ACTION_APPLY)
         
-        state = self.action_bar.pkg_state
+        state = self.pkg_statusbar.pkg_state
         LOG.debug("_on_transaction_stated %s" % state)
         if state == PKG_STATE_NEEDS_PURCHASE:
-            self.action_bar.configure(self.app_details, PKG_STATE_INSTALLING_PURCHASED)
+            self.pkg_statusbar.configure(self.app_details, PKG_STATE_INSTALLING_PURCHASED)
         elif state == PKG_STATE_UNINSTALLED:
-            self.action_bar.configure(self.app_details, PKG_STATE_INSTALLING)
+            self.pkg_statusbar.configure(self.app_details, PKG_STATE_INSTALLING)
         elif state == PKG_STATE_INSTALLED:
-            self.action_bar.configure(self.app_details, PKG_STATE_REMOVING)
+            self.pkg_statusbar.configure(self.app_details, PKG_STATE_REMOVING)
         elif state == PKG_STATE_UPGRADABLE:
-            self.action_bar.configure(self.app_details, PKG_STATE_UPGRADING)
+            self.pkg_statusbar.configure(self.app_details, PKG_STATE_UPGRADING)
         elif state == PKG_STATE_REINSTALLABLE:
-            self.action_bar.configure(self.app_details, PKG_STATE_INSTALLING)
+            self.pkg_statusbar.configure(self.app_details, PKG_STATE_INSTALLING)
             # FIXME: is there a way to tell if we are installing/removing?
             # we will assume that it is being installed, but this means that during removals we get the text "Installing.."
-            # self.action_bar.configure(self.app_details, PKG_STATE_REMOVING)
+            # self.pkg_statusbar.configure(self.app_details, PKG_STATE_REMOVING)
         return
 
     def _on_transaction_stopped(self, backend, result):
-        self.action_bar.progress.hide()
+        self.pkg_statusbar.progress.hide()
         self._update_interface_on_trans_ended(result)
         return
 
     def _on_transaction_finished(self, backend, result):
-        self.action_bar.progress.hide()
+        self.pkg_statusbar.progress.hide()
         self._update_interface_on_trans_ended(result)
         return
 
     def _on_transaction_progress_changed(self, backend, pkgname, progress):
         if self.app_details and self.app_details.pkgname and self.app_details.pkgname == pkgname:
-            if not self.action_bar.progress.get_property('visible'):
-                self.action_bar.button.hide()
-                self.action_bar.progress.show()
+            if not self.pkg_statusbar.progress.get_property('visible'):
+                self.pkg_statusbar.button.hide()
+                self.pkg_statusbar.progress.show()
             if pkgname in backend.pending_transactions:
-                self.action_bar.progress.set_fraction(progress/100.0)
+                self.pkg_statusbar.progress.set_fraction(progress/100.0)
             if progress >= 100:
-                self.action_bar.progress.set_fraction(1)
+                self.pkg_statusbar.progress.set_fraction(1)
                 self.adjustment_value = self.get_vadjustment().get_value()
         return
 

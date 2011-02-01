@@ -24,11 +24,10 @@ import logging
 import tempfile
 import time
 import threading
-import urllib
 import gobject
 
 from softwarecenter.enums import *
-from softwarecenter.utils import GnomeProxyURLopener
+from softwarecenter.utils import SimpleFileDownloader
 from spinner import SpinnerView
 
 ICON_EXCEPTIONS = ["gnome"]
@@ -39,7 +38,6 @@ class Url404Error(IOError):
 class Url403Error(IOError):
     pass
 
-# FIXME: use the utils.py:ImageDownloader here instead of a thread
 class ShowImageDialog(gtk.Dialog):
     """A dialog that shows a image """
 
@@ -61,6 +59,11 @@ class ShowImageDialog(gtk.Dialog):
         # screenshot
         self.img = gtk.Image()
 
+        # downloader
+        self.loader = ImageDownloader()
+        self.loader.connect('image-download-complete', self._on_screenshot_download_complete)
+        self.loader.connect('image-url-reachable', self._on_screenshot_query_complete)
+
         # scolled window for screenshot
         viewport = gtk.Viewport()
         viewport.add(self.img)
@@ -78,11 +81,9 @@ class ShowImageDialog(gtk.Dialog):
         self.set_default_size(850,650)
         self.set_title(title)
         self.connect("response", self._response)
-        # install urlopener
-        urllib._urlopener = GnomeProxyURLopener()
         # destination
         if not path:
-            tmpfile.mkdtemp(prefix="sc-screenshot")
+            tempfile.mkdtemp(prefix="sc-screenshot")
         self.path = path
         # data
         self.url = url
@@ -99,8 +100,7 @@ class ShowImageDialog(gtk.Dialog):
         self._abort = False
         self._fetched = 0.0
         self._percent = 0.0
-        t = threading.Thread(target=self._fetch)
-        t.start()
+        self.loader.download_image(self.url, self.path)
         # wait for download to finish or for abort
         while not self._finished:
             time.sleep(0.1)
@@ -132,24 +132,14 @@ class ShowImageDialog(gtk.Dialog):
         # and run the real thing
         gtk.Dialog.run(self)
 
-    def _fetch(self):
-        "fetcher thread"
-        logging.debug("_fetch: %s" % self.url)
-        if os.path.exists(self.path):
-            self.image_filename = self.path
-        else:
-            self.location = open(self.path, 'w')
-            try:
-                (screenshot, info) = urllib.urlretrieve(self.url, 
-                                                        self.location.name, 
-                                                        self._progress)
-                self.image_filename = self.location.name
-            except (Url403Error, Url404Error), e:
-                self.image_filename = self._missing_img
-                self.location.close()
-                os.remove(self.location.name)
-            except Exception, e:
-                logging.exception("urlopen error")
+    def _on_screenshot_query_complete(self, loader, reachable):
+        # show generic image if missing
+        if not reachable:
+            self.image_filename = self._missing_img
+            self._finished = True
+
+    def _on_screenshot_download_complete(self, loader, screenshot_path):
+        self.image_filename = screenshot_path
         self._finished = True
 
     def _progress(self, count, block, total):
@@ -161,7 +151,11 @@ class ShowImageDialog(gtk.Dialog):
         self._percent = min(self._fetched/total, 1.0)
 
 if __name__ == "__main__":
-    pkgname = "synaptic"
+    # invalid url
+    d = ShowImageDialog("Synaptic Screenshot", "http://not-htere", "/usr/share/software-center/images/dummy-screenshot-ubuntu.png")
+    d.run()
+
+    # valid url
     url = "http://screenshots.ubuntu.com/screenshot/synaptic"
     d = ShowImageDialog("Synaptic Screenshot", url, "/usr/share/software-center/images/dummy-screenshot-ubuntu.png")
     d.run()

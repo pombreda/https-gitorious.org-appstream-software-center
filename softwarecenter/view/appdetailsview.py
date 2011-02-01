@@ -19,18 +19,21 @@
 
 import logging
 import gtk
+#<<<<<<< TREE
 
-import json
-import logging
-import os
-import re
-import glib
-import simplejson
-import socket
-import string
-import subprocess
-import sys
-import tempfile
+#import json
+#import logging
+#import os
+#import re
+#import glib
+#import simplejson
+#import socket
+#import string
+#import subprocess
+#import sys
+#import tempfile
+#=======
+import dialogs
 
 import urllib
 import gobject
@@ -41,7 +44,7 @@ from softwarecenter.backend import get_install_backend
 from softwarecenter.enums import *
 from softwarecenter.utils import get_current_arch, get_parent_xid, get_default_language
 
-from purchasedialog import PurchaseDialog
+LOG=logging.getLogger(__name__)
 
 LOG=logging.getLogger(__name__)
 
@@ -72,7 +75,8 @@ class AppDetailsViewBase(object):
         self.addons_to_install = []
         self.addons_to_remove = []
         # reviews
-        self.review_loader = get_review_loader()
+#        self.review_loader = get_review_loader()
+        self.review_loader = get_review_loader(self.cache)
         # aptdaemon
         self.backend = get_install_backend()
         
@@ -110,12 +114,24 @@ class AppDetailsViewBase(object):
         # gather data
         pkg = self.cache[self.app.pkgname]
         version = pkg.candidate.version
+        origin = self.cache.get_origin(self.app.pkgname)
+
+        # FIXME: probably want to not display the ui if we can't review it
+        if not origin:
+            dialogs.error(None, 
+                        _("Origin unknown"),
+                        _("The origin of the application can not "
+                          "be detected. Entering a review is not "
+                          "possible."))
+            return
+
         if pkg.installed:
             version = pkg.installed.version
         # call the loader to do call out the right helper and collect the result
         parent_xid = get_parent_xid(self)
         self.review_loader.spawn_write_new_review_ui(
-            self.app, version, self.appdetails.icon, parent_xid, self.datadir,
+            self.app, version, self.appdetails.icon, origin,
+            parent_xid, self.datadir,
             self._reviews_ready_callback)
                          
     def _review_report_abuse(self, review_id):

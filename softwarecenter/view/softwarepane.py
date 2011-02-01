@@ -78,8 +78,13 @@ class SoftwareSection(object):
                      150)
         cr.fill()
 
-        # clouds
-        s = self.MASK_SURFACE_CACHE[self._image_id]
+        # there is a race here because we create e.g. the installed-page
+        # delayed. if its not created yet, we just do not show a image
+        # until its available
+        if self._image_id in self.MASK_SURFACE_CACHE:
+            s = self.MASK_SURFACE_CACHE[self._image_id]
+        else:
+            s = cairo.ImageSurface(0, 64, 64)
         cr.set_source_surface(s, a.width-s.get_width(), 0)
         cr.paint()
 
@@ -128,7 +133,6 @@ class SoftwarePane(gtk.VBox, BasePane):
                              ),
     }
     PADDING = 6
-    
     # pages for the spinner notebook
     (PAGE_APPVIEW,
      PAGE_SPINNER) = range(2)
@@ -152,56 +156,6 @@ class SoftwarePane(gtk.VBox, BasePane):
         # request (e.g. people click on ubuntu channel, get impatient, click
         # on partner channel)
         self.refresh_seq_nr = 0
-#<<<<<<< TREE
-#        # common UI elements (applist and appdetails) 
-#        # its the job of the Child class to put it into a good location
-#        # list
-#        self.app_view = AppView(show_ratings)
-#        self.app_view.connect("application-selected", 
-#                              self.on_application_selected)
-#        self.scroll_app_list = gtk.ScrolledWindow()
-#        self.scroll_app_list.set_policy(gtk.POLICY_AUTOMATIC, 
-#                                        gtk.POLICY_AUTOMATIC)
-#                             
-#        # make a spinner to display while the applist is loading           
-#        try:
-#            self.spinner = gtk.Spinner()
-#        except AttributeError:
-#            # worarkound for archlinux: see LP: #624204, LP: #637422
-#            self.spinner = AlternaSpinner()
-#        self.spinner.set_size_request(48, 48)
-#        
-#        # use a table for the spinner (otherwise the spinner is massive!)
-#        self.spinner_table = gtk.Table(3, 3, False)
-#        self.spinner_table.attach(self.spinner, 1, 2, 1, 2, gtk.EXPAND, gtk.EXPAND)
-#        
-#        self.spinner_view = gtk.Viewport()
-#        self.spinner_view.modify_bg(gtk.STATE_NORMAL, gtk.gdk.Color(1.0, 1.0, 1.0))
-#        self.spinner_view.add(self.spinner_table)
-#        self.spinner_view.set_shadow_type(gtk.SHADOW_NONE)
-#        self.scroll_app_list.add(self.app_view)
-#                
-#        self.app_view.connect("application-activated", 
-#                              self.on_application_activated)
-#        # details
-#        self.scroll_details = gtk.ScrolledWindow()
-#        self.scroll_details.set_policy(gtk.POLICY_AUTOMATIC, 
-#                                        gtk.POLICY_AUTOMATIC)
-#        self.app_details = AppDetailsView(self.db, 
-#                                          self.distro,
-#                                          self.icons, 
-#                                          self.cache, 
-#                                          self.history,
-#                                          self.datadir)
-#        self.app_details.connect("application-selected", 
-#                                 self.on_application_selected)
-#        self.scroll_details.add(self.app_details)
-#        # cursor
-#        self.busy_cursor = gtk.gdk.Cursor(gtk.gdk.WATCH)
-#        # when the cache changes, refresh the app list
-#        self.cache.connect("cache-ready", self.on_cache_ready)
-#        # COMMON UI elements
-#=======
         # data for the refresh_apps()
         self.channel = None
         self.apps_category = None

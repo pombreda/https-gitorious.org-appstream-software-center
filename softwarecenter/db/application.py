@@ -116,15 +116,6 @@ class Application(object):
             return cmp(x.pkgname, y.pkgname)
 
 
-class NoneTypeApplication(Application):
-
-    """ A placeholder Application """
-
-    def __init__(self):
-        Application.__init__(self, pkgname='_NoneTypeApplication_')
-        return
-
-
 class DebFileApplication(Application):
     def __init__(self, debfile):
         # deb overrides this

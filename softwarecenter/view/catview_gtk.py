@@ -320,8 +320,8 @@ class LobbyViewGtk(CategoriesViewGtk):
             # build UI
             self.hbox = gtk.HBox()
             # Translators: full sentence will be: Welcome back! There is/are %(len)i new recommendation/s for you.
-            welcome = gettext.ngettext("Welcome back! There is",
-                                      "Welcome back! There are",
+            welcome = gettext.ngettext("Welcome back! There is ",
+                                      "Welcome back! There are ",
                                       len(r_apps))
             self.hbox.pack_start(gtk.Label(welcome), False, False)
             # Translators: full sentence will be: Welcome back! There is/are %(len)i new recommendation/s for you.
@@ -330,12 +330,12 @@ class LobbyViewGtk(CategoriesViewGtk):
                                      len(r_apps)) % { 'len' : len(r_apps) }
             # FIXME: use a gtk.Label() with <a href> instead and put it
             #        all into one label to make it more i18n friendly
-            linkbutton = mkit.VLinkButton(label)
+            linkbutton = mkit.HLinkButton(label)
             linkbutton.set_underline(True)
             #linkbutton.set_subdued(True)
             self.hbox.pack_start(linkbutton, False, False)
             # Translators: full sentence will be: Welcome back! There is/are %(len)i new recommendation/s for you.
-            self.hbox.pack_start(gtk.Label(' %s' % _("for you")), False, False)
+            self.hbox.pack_start(gtk.Label(_(" for you.")), False, False)
             self.vbox.pack_start(self.hbox, False, False)
             self.vbox.reorder_child(self.hbox, 0)
             # build category

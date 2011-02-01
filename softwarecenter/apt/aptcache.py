@@ -78,10 +78,13 @@ class AptCache(gobject.GObject):
         self._cache = None
         self._ready = False
         self._timeout_id = None
-        # async open cache 
-        # FIXME: measure if idle_add() or timeout_add(100, self.open)
-        #        make a difference on slow hardware
-        glib.idle_add(self.open)
+#<<<<<<< TREE
+#        # async open cache 
+#        # FIXME: measure if idle_add() or timeout_add(100, self.open)
+#        #        make a difference on slow hardware
+#        glib.idle_add(self.open)
+#=======
+#>>>>>>> MERGE-SOURCE
         # setup monitor watch for install/remove changes
         self.apt_finished_stamp=gio.File(self.APT_FINISHED_STAMP)
         self.apt_finished_monitor = self.apt_finished_stamp.monitor_file(
@@ -90,6 +93,7 @@ class AptCache(gobject.GObject):
             "changed", self._on_apt_finished_stamp_changed)
         # this is fast, so ok
         self._language_packages = self._read_language_pkgs()
+        
     def _on_apt_finished_stamp_changed(self, monitor, afile, other_file, event):
         if not event == gio.FILE_MONITOR_EVENT_CHANGES_DONE_HINT:
             return 
@@ -162,7 +166,13 @@ class AptCache(gobject.GObject):
         for dep_name in deps:
             try:
                 pkg = self._cache[dep_name]
-            except KeyError:
+            except KeyError:#<<<<<<< TREE
+#        # async open cache 
+#        # FIXME: measure if idle_add() or timeout_add(100, self.open)
+#        #        make a difference on slow hardware
+#        glib.idle_add(self.open)
+#=======
+#>>>>>>> MERGE-SOURCE
                 continue
             else:
                 if (pkg.is_installed and 
@@ -183,6 +193,26 @@ class AptCache(gobject.GObject):
                 if item.origin:
                     origins.add(item.origin)
         return origins
+
+    def get_origin(self, pkgname):
+        """
+        return a uniqe origin for the given package name. currently
+        this will use 
+        """
+        if not pkgname in self._cache: 
+            return
+        origins = set()
+        for origin in self._cache[pkgname].candidate.origins:
+            if origin.origin:
+                origins.add(origin.origin)
+        if len(origins) > 1:
+            raise Exception("Error, more than one origin '%s'" % origins)
+        if not origins:
+            return
+        # we support only a single origin (but its fine if that is available
+        # on multiple mirrors). lowercase as the server excepts it this way
+        origin_str = origins.pop()
+        return origin_str.lower()
 
     def component_available(self, distro_codename, component):
         """ check if the given component is enabled """

@@ -16,6 +16,7 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+from softwarecenter.utils import ExecutionTime
 import atexit
 import atk
 import locale
@@ -32,44 +33,39 @@ import sys
 import xapian
 import cairo
 
-from SimpleGtkbuilderApp import SimpleGtkbuilderApp
+with ExecutionTime("TIME loading app.py imports"):
+    from SimpleGtkbuilderApp import SimpleGtkbuilderApp
 
-from softwarecenter.db.application import Application, DebFileApplication
-from softwarecenter.enums import *
-from softwarecenter.utils import *
-from softwarecenter.version import *
-from softwarecenter.db.database import StoreDatabase
-import softwarecenter.view.dependency_dialogs as dependency_dialogs
-from softwarecenter.view.widgets.mkit import floats_from_string
+    from softwarecenter.db.application import Application, DebFileApplication
+    from softwarecenter.enums import *
+    from softwarecenter.utils import *
+    from softwarecenter.version import *
+    from softwarecenter.db.database import StoreDatabase
+    import softwarecenter.view.dependency_dialogs as dependency_dialogs
+    from softwarecenter.view.widgets.mkit import floats_from_string
 
-import view.dialogs
-from view.viewswitcher import ViewSwitcher, ViewSwitcherList
-from view.pendingview import PendingView
-from view.installedpane import InstalledPane
-from view.channelpane import ChannelPane
-from view.availablepane import AvailablePane
-from view.softwarepane import SoftwarePane, SoftwareSection
-from view.historypane import HistoryPane
-from view.viewmanager import ViewManager
+    import view.dialogs
+    from view.viewswitcher import ViewSwitcher, ViewSwitcherList
+    from view.pendingview import PendingView
+    from view.installedpane import InstalledPane
+    from view.channelpane import ChannelPane
+    from view.availablepane import AvailablePane
+    from view.softwarepane import SoftwarePane, SoftwareSection
+    from view.historypane import HistoryPane
+    from view.viewmanager import ViewManager
 
-from backend.config import get_config
-from backend import get_install_backend
-from paths import SOFTWARE_CENTER_ICON_CACHE_DIR
+    from backend.config import get_config
+    from backend import get_install_backend
+    from paths import SOFTWARE_CENTER_ICON_CACHE_DIR
 
-from plugin import PluginManager
+    from plugin import PluginManager
 
-# launchpad stuff
-from view.logindialog import LoginDialog
-from backend.launchpad import GLaunchpad
-from backend.restfulclient import UbuntuSSOlogin, SoftwareCenterAgent
-from backend.login_sso import LoginBackendDbusSSO
+    from db.reviews import get_review_loader
 
-from db.reviews import get_review_loader
+    from distro import get_distro
 
-from distro import get_distro
-
-from apt.aptcache import AptCache
-from gettext import gettext as _
+    from apt.aptcache import AptCache
+    from gettext import gettext as _
 
 class SoftwarecenterDbusController(dbus.service.Object):
     """ 
@@ -128,9 +124,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         
         # distro specific stuff
         self.distro = get_distro()
-        self.review_loader = get_review_loader()
-        # FIXME: add some kind of throttle, I-M-S here
-        self.review_loader.refresh_review_stats(self.on_review_stats_loaded)
 
         # Disable software-properties if it does not exist
         if not os.path.exists("/usr/bin/software-properties-gtk"):
@@ -140,6 +133,13 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         # a main iteration friendly apt cache
         self.cache = AptCache()
         self.cache.connect("cache-broken", self._on_apt_cache_broken)
+
+        # reviews
+        self.review_loader = get_review_loader(self.cache)
+        # FIXME: add some kind of throttle, I-M-S here
+        self.review_loader.refresh_review_stats(self.on_review_stats_loaded)
+
+        # backend
         self.backend = get_install_backend()
         self.backend.connect("transaction-finished", self._on_transaction_finished)
         self.backend.connect("channels-changed", self.on_channels_changed)
@@ -432,7 +432,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self.db.reopen()
 
     def on_review_stats_loaded(self, reviews):
-        print "*** on_review_stats_loaded ***"
+        self._logger.debug("on_review_stats_loaded: '%s'" % len(reviews))
 
     def on_app_details_changed(self, widget, app, page):
         self.update_status_bar()
@@ -980,17 +980,22 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                 # e.g. unity
                 (pkgname, sep, appname) = packages[0].partition("/")
                 app = Application(appname, pkgname)
-            # FIXME: this needs a wait_for_apt_cache_ready decorator
-            # if the pkg is installed, show it in the installed pane
-#            if (app.pkgname in self.cache and 
- #               self.cache[app.pkgname].installed):
-  #              self.installed_pane.loaded = True
-   #             self.view_switcher.set_view(VIEW_PAGE_INSTALLED)
-    #            self.installed_pane.loaded = False
-     #           self.installed_pane.show_app(app)
-      #      else:
-            self.view_switcher.set_view(VIEW_PAGE_AVAILABLE)
-            self.available_pane.show_app(app)
+
+            @wait_for_apt_cache_ready
+            def show_app(self, app):
+                # if the pkg is installed, show it in the installed pane
+                if (app.pkgname in self.cache and 
+                    self.cache[app.pkgname].installed):
+                    self.installed_pane.loaded = True
+                    self.view_switcher.set_view(VIEW_PAGE_INSTALLED)
+                    self.installed_pane.loaded = False
+                    self.available_pane.bypassed = True
+                    self.installed_pane.show_app(app)
+                else:
+                    self.view_switcher.set_view(VIEW_PAGE_AVAILABLE)
+                    self.available_pane.show_app(app)
+
+            show_app(self, app)
 
         if len(packages) > 1:
             # turn multiple packages into a search with ","

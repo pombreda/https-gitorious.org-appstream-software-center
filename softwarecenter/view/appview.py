@@ -18,7 +18,7 @@
 
 from __future__ import with_statement
 
-
+import gettext
 import glib
 import gobject
 import gtk
@@ -28,22 +28,22 @@ import pangocairo
 import pango
 import sys
 import xapian
-import gettext
 
 from softwarecenter.enums import *
 from softwarecenter.utils import *
 from softwarecenter.backend import get_install_backend
 from softwarecenter.db.database import StoreDatabase, Application
 
-from softwarecenter.db.reviews import get_review_loader
-from softwarecenter.backend import get_install_backend
-from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
+#from softwarecenter.db.reviews import get_review_loader
+#from softwarecenter.backend import get_install_backend
+#from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
 
 from softwarecenter.distro import get_distro
+from softwarecenter.models.appstore import AppStore
+
 from widgets.mkit import get_em_value, get_mkit_theme, floats_from_gdkcolor_with_alpha, EM
 from widgets.reviews import StarPainter
 
-from softwarecenter.models.appstore import AppStore
 from gtk import gdk
 
 from gettext import gettext as _

@@ -23,6 +23,7 @@ import pygtk
 pygtk.require ("2.0")
 import gobject
 gobject.threads_init()
+import pango
 
 import datetime
 import gtk
@@ -239,8 +240,7 @@ class Worker(threading.Thread):
             piston_review.rating = review.rating
             piston_review.language = review.language
             piston_review.arch_tag = get_current_arch()
-            #FIXME: not hardcode
-            piston_review.origin = "ubuntu"
+            piston_review.origin = review.origin
             piston_review.distroseries=distro.get_codename()
             try:
                 res = self.rnrclient.submit_review(review=piston_review)
@@ -319,7 +319,7 @@ class BaseApp(SimpleGtkbuilderApp):
             #      method instead, the second argument is the language to
             #      use (that is directly passed to pspell)
             spell = gtkspell.Spell(textview, None)
-        except ImportError:
+        except:
             return None
         return spell
 
@@ -450,7 +450,7 @@ class SubmitReviewsApp(BaseApp):
     SUBMIT_MESSAGE = _("Submitting Review")
     
 
-    def __init__(self, app, version, iconname, parent_xid, datadir):
+    def __init__(self, app, version, iconname, origin, parent_xid, datadir):
         BaseApp.__init__(self, datadir, "submit_review.ui")
         self.datadir = datadir
         # legal fineprint, do not change without consulting a lawyer
@@ -465,7 +465,9 @@ class SubmitReviewsApp(BaseApp):
 
         # gwibber stuff
         self.gwibber_combo = gtk.combo_box_new_text()
-        self.gwibber_hbox.pack_start(self.gwibber_combo, False)
+        #cells = self.gwibber_combo.get_cells()
+        #cells[0].set_property("ellipsize", pango.ELLIPSIZE_END)
+        self.gwibber_hbox.pack_start(self.gwibber_combo, True)
         if "SOFTWARE_CENTER_GWIBBER_MOCK_USERS" in os.environ:
             self.gwibber_helper = GwibberHelperMock()
         else:
@@ -492,6 +494,7 @@ class SubmitReviewsApp(BaseApp):
         # data
         self.app = app
         self.version = version
+        self.origin = origin
         self.iconname = iconname
         
         # title
@@ -537,6 +540,16 @@ class SubmitReviewsApp(BaseApp):
         #rating label
         self.rating_label.set_markup('<b><span color="%s">%s</span></b>' % (dark, _('Rating')))
         return
+
+    # force resize of the legal label when the app resizes, if not
+    # done it looks really bad, thanks gtk for not doing this for me
+    def on_submit_window_size_allocate(self, *args):
+        self._resize_legal_label()
+    def on_submit_window_state_changed(self, *args):
+        self._resize_legal_label()
+    def _resize_legal_label(self):
+        width, height = self.submit_window.get_size()
+        self.label_legal_fineprint.set_size_request(width-24, -1)
 
     def _on_mandatory_fields_changed(self, widget):
         self._enable_or_disable_post_button()
@@ -638,8 +651,8 @@ class SubmitReviewsApp(BaseApp):
         review.language = get_language()
         review.rating = self.star_rating.get_rating()
         review.package_version = self.version
+        review.origin = self.origin
         self.api.submit_review(review)
-        
 
     def login_successful(self, display_name):
         self.main_notebook.set_current_page(1)
@@ -670,8 +683,6 @@ class SubmitReviewsApp(BaseApp):
         return { "gwibber_send" : send, 
                  "account_id" : account_id }
             
-        
-    
     def _on_no_gwibber_accounts(self):
         self.gwibber_hbox.hide()
         self.gwibber_checkbutton.set_active(False)
@@ -693,35 +704,59 @@ class SubmitReviewsApp(BaseApp):
         self.gwibber_hbox.show()
         self.gwibber_combo.show()
 
+        # setup accounts combo
         self.gwibber_checkbutton.set_label(_("Also post this review to: "))
         for account in self.gwibber_accounts:
             acct_text =  "%s (@%s)"  % (
                 account['service'].capitalize(), account['username'] )
             self.gwibber_combo.append_text(acct_text)
-        
+
+        # add "all" to both combo and accounts (the later is only pseudo)
+        self.gwibber_combo.append_text("All my Gwibber services")
+        self.gwibber_accounts.append({ "id" : "pseudo-sc-all",
+                                     })
+
+        # reapply preferences
         self.gwibber_checkbutton.set_active(self.gwibber_prefs['gwibber_send'])
         gwibber_active_account = 0
-        
         for account in self.gwibber_accounts:
             if account['id'] == self.gwibber_prefs['account_id']:
                 gwibber_active_account = self.gwibber_accounts.index(account)
         self.gwibber_combo.set_active(gwibber_active_account)
 
+    def _post_to_one_gwibber_account(self, msg, account):
+        """ little helper to facilitate posting message to twitter account
+            passed in
+        """
+        status_text = _("Posting to %s") % account['service'].capitalize()
+        self.label_transmit_status.set_text(status_text)
+        return self.gwibber_helper.send_message(msg,account['id'])
+
     def on_transmit_success(self, api, trans):
         gwibber_success = True
+        #list of gwibber accounts that failed to submit, used later to allow selective re-send if user desires
+        failed_accounts = []
+
+        # FIXME: factor this out into a method
         if self.gwibber_checkbutton.get_active():
-            self._submit_via_gwibber()
             i = self.gwibber_combo.get_active()
-            status_text = _("Posting to %s") % self.gwibber_accounts[i]['service'].capitalize()
-            self.label_transmit_status.set_text(status_text)
-            account_id = self.gwibber_accounts[i]['id']
-            #save prefs
-            self._save_gwibber_state(True, account_id)
-            msg = _(self._gwibber_message())
-            gwibber_success = self.gwibber_helper.send_message(msg, account_id)
+            msg = (self._gwibber_message())
+
+            # either send to selected account or all
+            if self.gwibber_accounts[i]["id"] == "pseudo-sc-all":
+                send_accounts = self.gwibber_accounts
+            else:
+                send_accounts = [self.gwibber_accounts[i]]
+            self._save_gwibber_state(True, self.gwibber_accounts[i]['id'])
+            # submit to gwibber
+            for account in send_accounts:
+                if account["id"] != "pseudo-sc-all":
+                    if not self._post_to_one_gwibber_account(msg, account):
+                        failed_accounts.append(account)
+                        gwibber_success = False
             if not gwibber_success:
                 #FIXME: send an error string to this method instead of empty string
-                self._on_gwibber_fail(api, trans, self.gwibber_accounts[i]['service'].capitalize(), "")
+                self._on_gwibber_fail(api, trans, failed_accounts, "")
         else:
             # prevent _save_gwibber_state from overwriting the account id
             # in config if the checkbutton was not selected    
@@ -731,16 +766,56 @@ class SubmitReviewsApp(BaseApp):
         if gwibber_success:
             BaseApp.on_transmit_success(self, api, trans)
     
-    def _on_gwibber_fail(self, api, trans, service, error):
+    def _gwibber_retry_some(self, api, trans, accounts):
+        """ perform selective retrying of gwibber posting, using only
+            accounts passed in
+        """
+        gwibber_success = True
+        failed_accounts = []
+        msg = (self._gwibber_message())
+        
+        for account in accounts:
+            if not self._post_to_one_gwibber_account(msg, account):
+                failed_accounts.append(account)
+                gwibber_success = False
+        
+        if not gwibber_success:
+            #FIXME: send an error string to this method instead of empty string
+            self._on_gwibber_fail(api, trans, failed_accounts, "")
+        else:
+            BaseApp.on_transmit_success(self, api, trans)
+        
+    
+    def _on_gwibber_fail(self, api, trans, failed_accounts, error):
+        
+        #list to hold service strings in the format: "Service (@username)"
+        failed_services = []
+        for account in failed_accounts:
+            failed_services.append("%s (@%s)" % (account['service'].capitalize(), account['username']))
+        
+        failed = len(failed_services)
+        
+        #sets first part of failed services string to first account in list
+        failed_services_string = failed_services[0]
+        
+        #if more than 1 failed account in list, continues to add service strings to the failed_service_string
+        if failed > 1:
+            #comma separates services for all accounts in list up to the last one, if there is 3 or more
+            if failed > 2:
+                for i in range(1,failed-1):
+                    failed_services_string = failed_services_string + (", %s" % failed_services[i])
+            #final account in list is added to end of string with 'and'
+            failed_services_string = failed_services_string + (" and %s" % failed_services[failed-1])
+            
         glade_dialog = SimpleGtkbuilderDialog(self.datadir, domain="software-center")
         dialog = glade_dialog.dialog_gwibber_error
         dialog.set_transient_for(self.submit_window)
-        dialog.set_markup("There was a problem posting this review to %s." % service)
+        dialog.set_markup("There was a problem posting this review to %s." % failed_services_string)
         dialog.format_secondary_text(error)
         result = dialog.run()
         dialog.destroy()
         if result == gtk.RESPONSE_ACCEPT:
-            self.on_transmit_success(api, trans)
+            self._gwibber_retry_some(api, trans, failed_accounts)
         else:
             BaseApp.on_transmit_success(self, api, trans)
     
@@ -756,7 +831,17 @@ class SubmitReviewsApp(BaseApp):
         return
         
     
-    def _gwibber_message(self):
+    def _gwibber_message(self, max_len=140):
+        """ build a gwibber message of max_len"""
+        def _gwibber_message_string_from_data(appname, rating, summary, link):
+            """ helper so that we do not duplicate the "reviewed..." string """
+            return _("reviewed %(appname)s in Ubuntu: %(rating)s "
+                       "%(summary)s %(link)s") % {
+                'appname' : appname,
+                'rating'  : rating,
+                'summary' : summary,
+                'link'    : link }
+        
         rating = self.star_rating.get_rating()
         rating_string = ''
         
@@ -768,19 +853,20 @@ class SubmitReviewsApp(BaseApp):
                 rating_string = rating_string + u"\u2606"
                 
         review_summary_text = self.review_summary_entry.get_text()
-        app_link = "http://apt.ubuntu.com/p/%s" % self.app.pkgname
-        gwib_msg = _("reviewed %(appname)s: %(rating)s %(summary)s %(link)s") % { 
-                'appname' : self.app.appname, 
-                'rating'  : rating_string, 
-                'summary'  : review_summary_text,
-                'link'    : app_link }
+        # FIXME: currently the link is not useful (at all) for most
+        #        people not runnig ubuntu
+        #app_link = "http://apt.ubuntu.com/p/%s" % self.app.pkgname
+        app_link = ""
+        gwib_msg = _gwibber_message_string_from_data(
+            self.app.name, rating_string, review_summary_text, app_link)
         
         #check char count and ellipsize review summary if larger than 140 chars
-        if len(gwib_msg) > 140:
-            chars_to_reduce = len(gwib_msg) - 139
+        if len(gwib_msg) > max_len:
+            chars_to_reduce = len(gwib_msg) - (max_len-1)
             new_char_count = len(review_summary_text) - chars_to_reduce
             review_summary_text = review_summary_text[:new_char_count] + u"\u2026"
-            gwib_msg = "reviewed %s: %s %s %s" % (self.app.appname, rating_string, review_summary_text, app_link)
+            gwib_msg = _gwibber_message_string_from_data(
+            self.app.name, rating_string, review_summary_text, app_link)
         
         return gwib_msg
 
@@ -864,7 +950,11 @@ class ReportReviewApp(BaseApp):
         self._setup_details(self.submit_window, display_name)
     
 if __name__ == "__main__":
-    locale.setlocale(locale.LC_ALL, "")
+    try:
+        locale.setlocale(locale.LC_ALL, "")
+    except:
+        logging.exception("setlocale failed, resetting to C")
+        locale.setlocale(locale.LC_ALL, "C")
 
     if os.path.exists("./data/ui/reviews.ui"):
         default_datadir = "./data"
@@ -884,6 +974,7 @@ if __name__ == "__main__":
         parser.add_option("-p", "--pkgname")
         parser.add_option("-i", "--iconname")
         parser.add_option("-V", "--version")
+        parser.add_option("-O", "--origin")
         parser.add_option("", "--parent-xid")
         parser.add_option("", "--debug",
                           action="store_true", default=False)
@@ -904,6 +995,7 @@ if __name__ == "__main__":
                                       app=theapp, 
                                       parent_xid=options.parent_xid,
                                       iconname=options.iconname,
+                                      origin=options.origin,
                                       version=options.version)
         review_app.run()
 

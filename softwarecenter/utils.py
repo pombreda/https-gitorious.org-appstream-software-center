@@ -67,21 +67,23 @@ def log_traceback(info):
     logger.debug("%s: %s" % (info, "".join(traceback.format_stack())))
     
 
-class GnomeProxyURLopener(urllib.FancyURLopener):
-    """A urllib.URLOpener that honors the gnome proxy settings"""
-    def __init__(self, user_agent=USER_AGENT):
-        proxies = {}
-        http_proxy = get_http_proxy_string_from_gconf()
-        if http_proxy:
-            proxies = { "http" : http_proxy }
-        urllib.FancyURLopener.__init__(self, proxies)
-        self.version = user_agent
-    def http_error_404(self, url, fp, errcode, errmsg, headers):
-        logging.debug("http_error_404: %s %s %s" % (url, errcode, errmsg))
-        raise Url404Error, "404 %s" % url
-    def http_error_403(self, url, fp, errcode, errmsg, headers):
-        logging.debug("http_error_403: %s %s %s" % (url, errcode, errmsg))
-        raise Url403Error, "403 %s" % url
+#<<<<<<< TREE
+#class GnomeProxyURLopener(urllib.FancyURLopener):
+#    """A urllib.URLOpener that honors the gnome proxy settings"""
+#    def __init__(self, user_agent=USER_AGENT):
+#        proxies = {}
+#        http_proxy = get_http_proxy_string_from_gconf()
+#        if http_proxy:
+#            proxies = { "http" : http_proxy }
+#        urllib.FancyURLopener.__init__(self, proxies)
+#        self.version = user_agent
+#    def http_error_404(self, url, fp, errcode, errmsg, headers):
+#        logging.debug("http_error_404: %s %s %s" % (url, errcode, errmsg))
+#        raise Url404Error, "404 %s" % url
+#    def http_error_403(self, url, fp, errcode, errmsg, headers):
+#        logging.debug("http_error_403: %s %s %s" % (url, errcode, errmsg))
+#        raise Url403Error, "403 %s" % url
+#=======
 
 def wait_for_apt_cache_ready(f):
     """ decorator that ensures that self.cache is ready using a
@@ -159,11 +161,26 @@ def get_language():
     # can be abbreved
     FULL = ["pt_BR", 
             "zh_CN", "zh_TW"]
-    (language, encoding) = locale.getlocale()
+    language = locale.getdefaultlocale(('LANGUAGE','LANG','LC_CTYPE','LC_ALL'))[0]
     if language in FULL:
         return language
     return language.split("_")[0]
 
+#<<<<<<< TREE
+#=======
+#def get_http_proxy_string_from_libproxy(url):
+#    """Helper that uses libproxy to get the http proxy for the given url """
+#    import libproxy
+#    pf = libproxy.ProxyFactory()
+#    proxies = pf.getProxies(url)
+#    # FIXME: how to deal with multiple proxies?
+#    proxy = proxies[0]
+#    if proxy == "direct://":
+#        return ""
+#    else:
+#        return proxy
+
+#>>>>>>> MERGE-SOURCE
 def get_http_proxy_string_from_gconf():
     """Helper that gets the http proxy from gconf
 
@@ -270,9 +287,8 @@ def is_unity_running():
     except:
         LOG.exception("could not check for Unity dbus service")
     return unity_running
-
-
 class SimpleFileDownloader(gobject.GObject):
+    LOG = logging.getLogger("softwarecenter.simplefiledownloader")
 
     __gsignals__ = {
         "url-reachable"     : (gobject.SIGNAL_RUN_LAST,
@@ -311,6 +327,7 @@ class SimpleFileDownloader(gobject.GObject):
         try:
             result = f.query_info_finish(result)
             self.emit('url-reachable', True)
+            self.LOG.debug("url reachable %s" % self.url)
             # url is reachable, now download the icon file
             f.load_contents_async(self._download_complete_cb)
         except glib.GError, e:
@@ -369,6 +386,7 @@ class GMenuSearcher(object):
             if self._found:
                 return self._found
         return None
+
 
 if __name__ == "__main__":
     s = decode_xml_char_reference('Search&#x2026;')
