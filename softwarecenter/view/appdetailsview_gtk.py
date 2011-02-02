@@ -621,7 +621,7 @@ class Reviews(gtk.VBox):
         return
 
     def finished(self):
-        #print 'Review count: %s' % len(self.reviews)
+        print 'Review count: %s' % len(self.reviews)
         if not self.reviews:
             self._be_the_first_to_review()
         else:
@@ -654,8 +654,13 @@ class Reviews(gtk.VBox):
 
         spinner = gtk.Spinner()
         spinner.start()
+
         hb.pack_start(spinner, False)
-        hb.pack_start(gtk.Label(message), False)
+
+        l = mkit.EtchedLabel(message)
+        l.set_use_markup(True)
+
+        hb.pack_start(l, False)
 
         self.vbox.pack_start(a, False)
         self.vbox.show_all()
@@ -836,50 +841,39 @@ class Review(gtk.VBox):
         cr.stroke()
         cr.restore()
 
-class NoReviewYet(gtk.Alignment):
-    """ represents if there are no reviews yet """
-    def __init__(self, *args, **kwargs):
+
+class EmbeddedMessage(gtk.Alignment):
+
+    def __init__(self, title, message, icon_name):
         gtk.Alignment.__init__(self, 0.5, 0.5)
-        self.set_padding(12, 12, 0, 0)
 
         hb = gtk.HBox(spacing=12)
         self.add(hb)
-
-        i = gtk.image_new_from_icon_name('face-glasses', gtk.ICON_SIZE_DIALOG)
-        hb.pack_start(i, False)
-
-        m = "<big><b>%s</b></big>\n%s"
-        # TRANSLATORS: displayed if there are no reviews yet
-        m = m % (_('Propaganda Alert:- Want to be awesome?'), _('Be the first to contribute a review for this application'))
-        l = gtk.Label(m)
-        l.set_alignment(0, 0.5)
-        l.set_use_markup(True)
-
-        hb.pack_start(l, False)
-        self.show_all()
-    def draw(self, cr, a):
-        pass
-
-
-class EmbeddedMessage(Review):
-
-    def __init__(self, label, icon_name):
-        Review.__init__(self)
-
-        a = gtk.Alignment(0.5, 0.5)
-        self.body.pack_start(a, False)
-
-        hb = gtk.HBox(spacing=12)
-        a.add(hb)
 
         i = gtk.image_new_from_icon_name(icon_name, gtk.ICON_SIZE_DIALOG)
         hb.pack_start(i)
 
         l = gtk.Label()
-        l.set_markup(label)
+        l.set_markup('<b><big>%s</big></b>\n%s' % (title, message))
+
         hb.pack_start(l)
 
         self.show_all()
+        return
+
+    def draw(self, *args, **kwargs):
+        return
+
+
+class NoReviewYet(EmbeddedMessage):
+    """ represents if there are no reviews yet """
+    def __init__(self, *args, **kwargs):
+
+        # TRANSLATORS: displayed if there are no reviews yet
+        title = _('Want to be awesome?')
+        msg = _('Be the first to contribute a review for this application')
+
+        EmbeddedMessage.__init__(self, title, msg, 'face-glasses')
         return
 
 
@@ -1543,9 +1537,13 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.addons_statusbar.configure()
         return
 
-#    def _update_reviews(self, app_details):
-#        self.reviews.clear()
-#        return
+    def _update_reviews(self, app_details):
+        self.reviews.clear()
+        if get_network_state() == NetState.NM_STATE_DISCONNECTED:
+            self._update_reviews_inactive_network()
+        else:
+            self._update_reviews_active_network()
+        return
 
     def _update_reviews_inactive_network(self):
         if self.reviews.get_reviews():
@@ -1556,17 +1554,20 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                 elif hasattr(r, 'complain'):
                     r.complain.set_sensitive(False)
             if not msg_exists:
-                s = '<big><b>%s</b></big>\n%s' % ('No Network Connection',
-                                                  'Only cached reviews can be displayed')
-                m = EmbeddedMessage(s, 'network-offline')
+
+                title = _('No Network Connection'),
+                msg = _('Only cached reviews can be displayed')
+
+                m = EmbeddedMessage(title, msg, 'network-offline')
 
                 self.reviews.vbox.pack_start(m)
                 self.reviews.vbox.reorder_child(m, 0)
         else:
             self.reviews.clear()
-            s = '<big><b>%s</b></big>\n%s' % ('No Network Connection',
-                                              'Unable to download application reviews')
-            m = EmbeddedMessage(s, 'network-offline')
+            title = _('No Network Connection'),
+            msg = _('Unable to download application reviews')
+
+            m = EmbeddedMessage(title, msg, 'network-offline')
             self.reviews.vbox.pack_start(m)
 
         self.reviews.new_review.set_sensitive(False)
@@ -1621,7 +1622,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self._update_app_screenshot(app_details)
         self._update_pkg_info_table(app_details)
         self._update_addons(app_details)
-#        self._update_reviews(app_details)
+        self._update_reviews(app_details)
 
         # depending on pkg install state set action labels
         self.pkg_statusbar.configure(app_details, app_details.pkg_state)
@@ -1632,12 +1633,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # async query zeitgeist and rnr
 #        self.get_usage_counter()
 
-        self.reviews.clear()
-        if get_network_state() == NetState.NM_STATE_DISCONNECTED:
-            self._update_reviews_inactive_network()
-        else:
-            self._update_reviews_active_network()
-        return
 
     def _update_minimal(self, app_details):
         pkg_ambiguous_error = app_details.pkg_state in (PKG_STATE_NOT_FOUND, PKG_STATE_NEEDS_SOURCE)
