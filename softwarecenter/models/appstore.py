@@ -386,7 +386,6 @@ class AppStore(gtk.GenericTreeModel):
         
         url = get_distro().get_downloadable_icon_url(cache, pkgname, icon_file_name)
         if url is not None:
-            print ">>> downloading icon from URL: ", url
             icon_file_path = os.path.join(SOFTWARE_CENTER_ICON_CACHE_DIR, icon_file_name)
             image_downloader = ImageDownloader()
             image_downloader.connect('image-download-complete', on_image_download_complete)
