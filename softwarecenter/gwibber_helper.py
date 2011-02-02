@@ -62,7 +62,7 @@ class GwibberHelper(object):
                                      })
             service_iface.Send(json)
         else:
-            service.SendMessage(message)
+            service_iface.SendMessage(message)
         return True
 
     @staticmethod
@@ -94,7 +94,7 @@ class GwibberHelperMock(object):
         else:
             return copy.copy(self.fake_gwibber_accounts_multiple)
 
-    def send_message(self, message, account_id):
+    def send_message(self, message, account_id="all"):
         sys.stderr.write("sending '%s' to '%s'\n" % (message, account_id))
         return True
     

@@ -49,7 +49,7 @@ class StarPainter(object):
         self.glow = self.GLOW_NORMAL
 
         self.bg_color = floats_from_string('#989898')     # gray
-        self.fg_color = floats_from_string('#D70707')     # crimson red
+        self.fg_color = floats_from_string('#FFa000')     # yellow
         self.glow_color = floats_from_string('#FFB500')   # gold
         return
 

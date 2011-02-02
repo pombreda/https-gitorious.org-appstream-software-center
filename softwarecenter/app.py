@@ -23,7 +23,6 @@ import locale
 import dbus
 import dbus.service
 import gettext
-import locale
 import logging
 import glib
 import gtk
@@ -31,26 +30,27 @@ import os
 import subprocess
 import sys
 import xapian
-import cairo
 
 with ExecutionTime("TIME loading app.py imports"):
-    from SimpleGtkbuilderApp import SimpleGtkbuilderApp
+    # purely to initialize the netstatus
+    import softwarecenter.netstatus
 
+    from SimpleGtkbuilderApp import SimpleGtkbuilderApp
     from softwarecenter.db.application import Application, DebFileApplication
     from softwarecenter.enums import *
     from softwarecenter.utils import *
     from softwarecenter.version import *
     from softwarecenter.db.database import StoreDatabase
     import softwarecenter.view.dependency_dialogs as dependency_dialogs
-    from softwarecenter.view.widgets.mkit import floats_from_string
+    from softwarecenter.view.softwarepane import wait_for_apt_cache_ready
 
     import view.dialogs
-    from view.viewswitcher import ViewSwitcher, ViewSwitcherList
+    from view.viewswitcher import ViewSwitcher
     from view.pendingview import PendingView
     from view.installedpane import InstalledPane
     from view.channelpane import ChannelPane
     from view.availablepane import AvailablePane
-    from view.softwarepane import SoftwarePane, SoftwareSection
+    from view.softwarepane import SoftwareSection
     from view.historypane import HistoryPane
     from view.viewmanager import ViewManager
 
@@ -59,13 +59,12 @@ with ExecutionTime("TIME loading app.py imports"):
     from paths import SOFTWARE_CENTER_ICON_CACHE_DIR
 
     from plugin import PluginManager
-
     from db.reviews import get_review_loader
-
     from distro import get_distro
-
     from apt.aptcache import AptCache
     from gettext import gettext as _
+
+
 
 class SoftwarecenterDbusController(dbus.service.Object):
     """ 
@@ -646,7 +645,11 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
     def _create_dbus_sso_if_needed(self):
         if not self.sso:
             from backend.login_sso import LoginBackendDbusSSO
-            self.sso = LoginBackendDbusSSO(self.window_main.window.xid)
+            appname = _("Ubuntu Software Center Store")
+            login_text = _("To reinstall previous purchases, sign in to the "
+                           "Ubuntu Single Sign-On account you used to pay for them.")
+            self.sso = LoginBackendDbusSSO(self.window_main.window.xid,
+                                           appname, login_text)
             self.sso.connect("login-successful", self._on_sso_login)
     def _login_via_dbus_sso(self):
         self._create_dbus_sso_if_needed()
