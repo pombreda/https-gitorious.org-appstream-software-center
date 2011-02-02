@@ -935,11 +935,16 @@ class LayoutView2(gtk.HBox):
         self._non_col_children = []
 
         self.connect('size-allocate', self._on_allocate, yspacing)
-#        self.connect('expose-event', self._on_expose_debug)
+        self.connect('expose-event', self._on_expose_debug)
         return
 
     def _on_allocate(self, widget, allocation, yspacing):
-        self.layout(allocation, yspacing)
+        w = allocation.width
+
+        if self._prev_width == w: return True
+        self._prev_width = w
+
+        self.layout(w, yspacing, force=False)
         return True
 
     def _on_expose_debug(self, widget, event):
@@ -966,21 +971,18 @@ class LayoutView2(gtk.HBox):
         return
 
     def clear(self):
-        for col in self:
-            for child in col:
-                child.destroy()
-            col.destroy()
+        for w in self._non_col_children:
+            w.destroy()
+
+        self._non_col_children = []
         return
 
-    def layout(self, allocation, yspacing):
-        w = allocation.width
-        if self._prev_width == w: return True
-        self._prev_width = w
+    def layout(self, width, yspacing, force=True):
 
         old_n_cols = len(self.get_children())
-        n_cols = max(1, w / (self.min_col_width + self.get_spacing()))
+        n_cols = max(1, width / (self.min_col_width + self.get_spacing()))
 
-        if old_n_cols == n_cols: return True
+        if old_n_cols == n_cols and not force: return True
 
         for i, col in enumerate(self.get_children()):
             for child in col.get_children():
@@ -995,6 +997,7 @@ class LayoutView2(gtk.HBox):
                 col.set_resize_mode(gtk.RESIZE_IMMEDIATE)
                 self.pack_start(col)
 
+        print 'Children:', len(self._non_col_children)
         cols = self.get_children()
         for i, child in enumerate(self._non_col_children):
             cols[i%n_cols].pack_start(child, False)

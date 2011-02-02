@@ -714,7 +714,7 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         if not self.departments:
             self.departments = mkit.LayoutView2()
             # append the departments section to the page
-            self.vbox.pack_start(self.departments, False)
+            self.vbox.pack_start(self.departments)
         else:
             self.departments.clear()
 
@@ -747,7 +747,8 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         show_all_btn.connect('clicked', self._on_category_clicked, all_cat)
         self.departments.add(show_all_btn)
 
-        self.departments.layout(self.departments.allocation,
+        print 'append_subcat_departments...'
+        self.departments.layout(self.departments.allocation.width,
                                 self.departments.yspacing)
         return
 
@@ -763,9 +764,10 @@ class SubCategoryViewGtk(CategoriesViewGtk):
             return
         self.header = root_category.name
 
-        ico_inf = self.icons.lookup_icon(root_category.iconname, 150, 0)
+#        ico_inf = self.icons.lookup_icon(root_category.iconname, 150, 0)
         self.categories = root_category.subcategories
         self._build_subcat_view(root_category, num_items)
+        self.queue_draw()
         return
 
     #def build(self, desktopdir):
