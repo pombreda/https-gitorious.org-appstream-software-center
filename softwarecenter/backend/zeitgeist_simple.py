@@ -34,7 +34,11 @@ class SoftwareCenterZeitgeist():
     """ simple wrapper around zeitgeist """
 
     def __init__(self):
-        self.zg_client = ZeitgeistClient()
+        try:
+            self.zg_client = ZeitgeistClient()
+        except Exception as e:
+            logging.warn("can not get zeitgeist client: '%s'" % e)
+            self.zg_client = None
         
     def get_usage_counter(self, application, callback, timerange=None):
         """Request the usage count as integer for the given application.
@@ -42,10 +46,11 @@ class SoftwareCenterZeitgeist():
            timerange like [time.time(), time.time() - 30*24*60*60] can
            also be specified
         """
+        # helper
         def _callback(event_ids):
             callback(len(event_ids))
-        # empty query, empty result
-        if not application:
+        # no client or empty query -> empty result
+        if not self.zg_client or not application:
             callback(0)
             return
         # the app we are looking for
@@ -83,6 +88,9 @@ class SoftwareCenterZeitgeist():
             results.sort(reverse = True)
             # tell the client about it
             callback(results[:num])
+        # no zeitgeist
+        if not self.zg_client:
+            return
         # trigger event (actual processing is done in _callback)
         # FIXME: investigate how result_type MostRecentEvents or
         #        MostRecentSubjects would affect the results

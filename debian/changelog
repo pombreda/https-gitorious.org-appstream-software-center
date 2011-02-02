@@ -1,4 +1,20 @@
-software-center (3.1.15) UNRELEASED; urgency=low
+software-center (3.1.16) UNRELEASED; urgency=low
+
+  [ Michael Vogt ]
+  * merged lp:~mmcg069/software-center/reviews-and-netstatus
+    many thanks to Matthew McGowan
+  * test/test_appdetails_view.py:
+    - add appdetails netstatus tests
+
+  [ Gary Lasker ]
+  * softwarecenter/distro/Ubuntu.py,
+    softwarecenter/models/appstore.py:
+    - fix crash if attempting to download a remote icon before
+      the cache is ready (LP: #688991)
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 02 Feb 2011 13:59:55 -0500
+
+software-center (3.1.15) natty; urgency=low
 
   [ Kiwinote ]
   * softwarecenter/apt/aptcache.py:
@@ -10,8 +26,22 @@ software-center (3.1.15) UNRELEASED; urgency=low
     - correctly hide addons/reviews from interface when we have an error
   * utils/submit_review.py:
     - allow us to review when spell check isn't available (LP: #709155)
+  
+  [ Michael Vogt ]
+  * softwarecenter/db/reviews.py:
+    - fix race in review downloaded watcher (LP: #709548)
+  * test/test_utils.py:
+    - add test for get_language()
+  * softwarecenter/backend/zeitgeist_simple.py:
+    - don't raise a exception if zeitgeist is not available (LP: #709718)
+  * softwarecenter/app.py:
+    - fix sso login creation on reinstall-previous purchase (LP: #709856)
+  * softwarecenter/view/widgets/reviews.py:
+    - change ratings star color (LP: #711030)
+  * tests/*:
+    - fix test invocation at build time and fix test failures
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 28 Jan 2011 20:13:00 +0100
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 01 Feb 2011 11:34:30 +0100
 
 software-center (3.1.14) natty; urgency=low
 
