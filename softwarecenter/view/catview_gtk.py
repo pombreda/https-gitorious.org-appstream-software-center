@@ -373,12 +373,11 @@ class LobbyViewGtk(CategoriesViewGtk):
             gobject.source_remove(sig_id)
         self._poster_sigs = []
         for poster in self.featured_carousel.posters:
-            print poster
             self._poster_sigs.append(poster.connect('clicked', self._on_app_clicked))
         for poster in self.whatsnew_carousel.posters:
             self._poster_sigs.append(poster.connect('clicked', self._on_app_clicked))
 
-        print self._poster_sigs
+#        print self._poster_sigs
         return
 
     def _build_homepage_view(self):
@@ -872,7 +871,7 @@ class CarouselView(gtk.VBox):
         # then we remove just the right number of posters from the carousel
         if n < self.n_posters:
             n_remove = self.n_posters - n
-            self._offset -= n_remove
+#            self._offset -= n_remove
             for i in range(n_remove):
                 poster = self.posters[i]
                 # leave no traces remaining (of the poster)
