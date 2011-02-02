@@ -44,7 +44,7 @@ class StarPainter(object):
     GLOW_PRELIGHT   = 4
 
     def __init__(self):
-        self.shape = ShapeStar(5, 0.45)
+        self.shape = ShapeStar(5, 0.55)
         self.fill = self.FILL_EMPTY
         self.glow = self.GLOW_NORMAL
 
