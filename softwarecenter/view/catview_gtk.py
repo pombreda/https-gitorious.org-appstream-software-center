@@ -161,29 +161,6 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
         global MASK_SURFACE_CACHE
         MASK_SURFACE_CACHE['bloom'] = cairo.ImageSurface.create_from_png(os.path.join(datadir, 'images/bloom.png'))
 
-    def _full_redraw_cb(self):
-        self.queue_draw()
-        return False
-
-    def _full_redraw(self):
-        # If we relied on a single queue_draw newly exposed (previously
-        # clipped) regions of the Viewport are blighted with
-        # visual artefacts, so...
-
-        # Two draws are queued; one immediately and one as an idle process
-
-        # The immediate draw results in visual artefacts
-        # but without which the resize feels 'laggy'.
-        # The idle redraw cleans up the regions affected by 
-        # visual artefacts.
-
-        # This all seems to happen fast enough such that the user will
-        # not to notice the temporary visual artefacts.  Peace out.
-
-        self.queue_draw()
-        gobject.idle_add(self._full_redraw_cb)
-        return
-
     def _get_best_fit_width(self):
         if not self.parent: return 1
         # parent alllocation less the sum of all border widths
@@ -262,7 +239,7 @@ class LobbyViewGtk(CategoriesViewGtk):
         return
 
     def _on_allocate(self, viewport, allocation, vbox):
-        gobject.idle_add(self.queue_draw)
+        self.queue_draw()
 
         w = min(allocation.width-2, 900)
 
@@ -630,7 +607,7 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         return
 
     def _on_allocate(self, viewport, allocation, vbox):
-        gobject.idle_add(self.queue_draw)
+        self.queue_draw()
 
         w = min(allocation.width-2, 900)
 

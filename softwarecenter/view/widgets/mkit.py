@@ -935,7 +935,7 @@ class LayoutView2(gtk.HBox):
         self._non_col_children = []
 
         self.connect('size-allocate', self._on_allocate, yspacing)
-        self.connect('expose-event', self._on_expose_debug)
+#        self.connect('expose-event', self._on_expose_debug)
         return
 
     def _on_allocate(self, widget, allocation, yspacing):
