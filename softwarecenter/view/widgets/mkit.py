@@ -1329,17 +1329,18 @@ class EtchedLabel(gtk.Label):
 
         pc = pangocairo.CairoContext(cr)
 
-        x, y = a.x, a.y+1
+        xp, yp = self.get_padding()
+
+        x, y = a.x+xp, a.y+1+yp
+        w, h = a.width, a.height
+
         lw, lh = l.get_pixel_extents()[1][2:]
         ax, ay = self.get_alignment()
 
-        if lw < a.width:
-            x += int((a.width-lw)*ax)
-        if lh < a.height:
-            y += int((a.height-lh)*ay)
-
-        xp, yp = self.get_padding()
-        x += xp
+        if lw < w:
+            x += int((w-2*xp-lw)*ax)
+        if lh < h:
+            y += int((h-2*yp-lh)*ay)
 
         pc.move_to(x, y)
         pc.layout_path(l)

@@ -53,7 +53,7 @@ from appdetailsview import AppDetailsViewBase
 #from actions import get_install_actions
 
 from widgets import mkit
-from widgets.mkit import EM
+from widgets.mkit import EM, ShapeStar
 from widgets.reviews import ReviewStatsContainer, StarRating
 
 from widgets.description import AppDescription, TextBlock
@@ -71,6 +71,69 @@ DEFAULT_SOCKET_TIMEOUT=4
 
 LOG = logging.getLogger("softwarecenter.view.appdetailsview")
 
+class PriceyStar(gtk.VBox, ShapeStar):
+
+    def __init__(self):
+        gtk.VBox.__init__(self)
+        ShapeStar.__init__(self, 18, indent=0.15)
+
+        self.price = mkit.EtchedLabel()
+        self.price.alpha = 0.3
+        self.price.set_use_markup(True)
+        self.price.set_padding(8, 0)
+        self.price.set_alignment(0.5, 0.5)
+
+        self.pack_start(self.price)
+
+#        self.connect('expose-event', self.on_expose)
+        return
+
+    def draw(self, cr, a, expose_area):
+
+        cr.save()
+        cr.set_line_join(cairo.LINE_CAP_ROUND)
+        
+        stride = max(a.width, a.height)
+        x = a.x + (a.width - stride)/2
+        y = a.y + (a.height - stride)/2
+
+        self.layout(cr, x, y, stride, stride)
+
+        # shadow
+        cr.set_source_rgba(0,0,0,0.15)
+        cr.set_line_width(5)
+        cr.stroke_preserve()
+
+        cr.set_source_color(self.style.base[gtk.STATE_SELECTED])
+        cr.fill_preserve()
+
+        light = gtk.gdk.Color('#FFD363')
+        dark = gtk.gdk.Color('#AA0000')
+
+        cr.set_source_color(dark)
+        cr.set_line_width(2)
+        cr.stroke_preserve()
+
+        cx0 = cx1 = a.x + a.width/2
+        cy0 = cy1 = a.y + stride
+
+        radius0 = 0; radius1 = int(1.5*stride)
+
+        rad = cairo.RadialGradient(cx0, cy0, radius0, cx1, cy1, radius1)
+        rad.add_color_stop_rgba(0, dark.red_float, dark.green_float, dark.blue_float, 0.6)
+        rad.add_color_stop_rgba(1, light.red_float, light.green_float, light.blue_float, 0.3)
+
+        cr.set_source(rad)
+        cr.fill()
+
+        self.layout(cr, x+0.5, y+0.5, stride-1, stride-1)
+
+        cr.set_line_width(1)
+        cr.set_source_color(light)
+        cr.stroke()
+
+        cr.restore()
+        return
 
 
 class PackageUsageCounter(gtk.Label):
@@ -171,10 +234,15 @@ class PackageStatusBar(StatusBar):
 
         self.pkg_state = None
 
+        self.price = PriceyStar()
+        self.price.set_size_request(5*EM, -1)
+
+        self.hbox.pack_start(self.price, False)
         self.hbox.pack_start(self.label, False)
         self.hbox.pack_end(self.button, False)
         self.hbox.pack_end(self.progress, False)
         self.show_all()
+        self.price.hide()
 
         self.button.connect('clicked', self._on_button_clicked)
         glib.timeout_add(500, self._pulse_helper)
@@ -275,13 +343,19 @@ class PackageStatusBar(StatusBar):
                 self.set_button_label(_('Reinstall'))
             elif state == PKG_STATE_INSTALLED:
                 self.set_button_label(_('Remove'))
+            self.label.show()
+            self.price.hide()
         elif state == PKG_STATE_NEEDS_PURCHASE:
             # FIXME:  need to determine the currency dynamically once we can
             #         get that info from the software-center-agent/payments service.
             # NOTE:  the currency string for this label is purposely not translatable
             #        when hardcoded, since it (currently) won't vary based on locale
             #        and as such we don't want it translated
-            self.set_label("US$ %s" % app_details.price)
+            self.price.price.set_markup("$%s" % app_details.price)
+            self.label.hide()
+            self.price.show()
+
+#            self.set_label("US$ %s" % app_details.price)
             self.set_button_label(_(u'Buy\u2026'))
         elif state == PKG_STATE_PURCHASED_BUT_REPO_MUST_BE_ENABLED:
             purchase_date = str(app_details.purchase_date).split()[0]
@@ -289,8 +363,12 @@ class PackageStatusBar(StatusBar):
             self.set_button_label(_('Install'))
         elif state == PKG_STATE_UNINSTALLED:
             if app_details.price:
-                self.set_label(app_details.price)
+                self.price.price.set_markup("$%s" % app_details.price)
+                self.label.hide()
+                self.price.show()
             else:
+                self.label.show()
+                self.price.hide()
                 self.set_label(_("Free"))
             self.set_button_label(_('Install'))
         elif state == PKG_STATE_UPGRADABLE:
@@ -333,6 +411,14 @@ class PackageStatusBar(StatusBar):
            not state in (PKG_STATE_INSTALLING, PKG_STATE_INSTALLING_PURCHASED,
            PKG_STATE_REMOVING, PKG_STATE_UPGRADING, APP_ACTION_APPLY)):
             self.set_label(self.app_details.warning)
+        return
+
+    def draw(self, cr, a, expose_area):
+        StatusBar.draw(self, cr, a, expose_area)
+
+        if self.price.get_property('visible'):
+            self.price.draw(cr, self.price.allocation, expose_area)
+
         return
 
 
@@ -854,6 +940,10 @@ class EmbeddedMessage(gtk.Alignment):
         hb.pack_start(i)
 
         l = gtk.Label()
+        l.set_size_request(250, -1)
+        l.set_line_wrap(True)
+        l.set_alignment(0, 0.5)
+
         l.set_markup('<b><big>%s</big></b>\n%s' % (title, message))
 
         hb.pack_start(l)
@@ -1555,7 +1645,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                     r.complain.set_sensitive(False)
             if not msg_exists:
 
-                title = _('No Network Connection'),
+                title = _('No Network Connection')
                 msg = _('Only cached reviews can be displayed')
 
                 m = EmbeddedMessage(title, msg, 'network-offline')
@@ -1564,7 +1654,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                 self.reviews.vbox.reorder_child(m, 0)
         else:
             self.reviews.clear()
-            title = _('No Network Connection'),
+            title = _('No Network Connection')
             msg = _('Unable to download application reviews')
 
             m = EmbeddedMessage(title, msg, 'network-offline')
@@ -1635,31 +1725,31 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
 
     def _update_minimal(self, app_details):
-        pkg_ambiguous_error = app_details.pkg_state in (PKG_STATE_NOT_FOUND, PKG_STATE_NEEDS_SOURCE)
+#        pkg_ambiguous_error = app_details.pkg_state in (PKG_STATE_NOT_FOUND, PKG_STATE_NEEDS_SOURCE)
 
-        appname = gobject.markup_escape_text(app_details.display_name)
+#        appname = gobject.markup_escape_text(app_details.display_name)
 
-        if app_details.pkg_state == PKG_STATE_NOT_FOUND:
-            summary = app_details._error_not_found
-        else:
-            summary = app_details.display_summary
-        if not summary:
-            summary = ""
+#        if app_details.pkg_state == PKG_STATE_NOT_FOUND:
+#            summary = app_details._error_not_found
+#        else:
+#            summary = app_details.display_summary
+#        if not summary:
+#            summary = ""
 
-        self._update_title_markup(appname, summary)
+#        self._update_title_markup(appname, summary)
         self._update_app_icon(app_details)
 #        self._update_layout_error_status(pkg_ambiguous_error)
-        self._update_app_description(app_details, app_details.pkgname)
-        self._update_app_screenshot(app_details)
-        self._update_description_footer_links(app_details)
+#        self._update_app_description(app_details, app_details.pkgname)
+#        self._update_app_screenshot(app_details)
+#        self._update_description_footer_links(app_details)
         self._update_pkg_info_table(app_details)
-#        gobject.timeout_add(500, self._update_addons, app_details)
+        gobject.timeout_add(500, self._update_addons, app_details)
 
         # depending on pkg install state set action labels
         self.pkg_statusbar.configure(app_details, app_details.pkg_state)
 
 #        # show where it is
-#        self._configure_where_is_it()
+        self._configure_where_is_it()
         return
 
     def _configure_where_is_it(self):
