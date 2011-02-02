@@ -997,7 +997,6 @@ class LayoutView2(gtk.HBox):
                 col.set_resize_mode(gtk.RESIZE_IMMEDIATE)
                 self.pack_start(col)
 
-        print 'Children:', len(self._non_col_children)
         cols = self.get_children()
         for i, child in enumerate(self._non_col_children):
             cols[i%n_cols].pack_start(child, False)
