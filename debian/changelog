@@ -9,10 +9,10 @@ software-center (3.1.16) UNRELEASED; urgency=low
   [ Gary Lasker ]
   * softwarecenter/distro/Ubuntu.py,
     softwarecenter/models/appstore.py:
-    - fix crash if downloading a remote icon before the cache is
-      ready (LP: #688991)
+    - fix crash if attempting to download a remote icon before
+      the cache is ready (LP: #688991)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Tue, 01 Feb 2011 19:58:25 -0500
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 02 Feb 2011 13:59:55 -0500
 
 software-center (3.1.15) natty; urgency=low
 
