@@ -76,8 +76,13 @@ class SoftwareSection(object):
                      a.width, 200)
         cr.fill()
 
-        # clouds
-        s = self.MASK_SURFACE_CACHE[self._image_id]
+        # there is a race here because we create e.g. the installed-page
+        # delayed. if its not created yet, we just do not show a image
+        # until its available
+        if self._image_id in self.MASK_SURFACE_CACHE:
+            s = self.MASK_SURFACE_CACHE[self._image_id]
+        else:
+            s = cairo.ImageSurface(0, 64, 64)
         cr.set_source_surface(s, a.width-s.get_width(), 0)
         cr.paint()
         return

@@ -1,10 +1,9 @@
 #!/usr/bin/python
 
+import os
 import sys
 import unittest
 sys.path.insert(0,"../")
-
-from gi.repository import Gwibber
 
 class TestGwibber(unittest.TestCase):
     """ tests the "where is it in the menu" code """
@@ -12,14 +11,28 @@ class TestGwibber(unittest.TestCase):
     def setUp(self):
         pass
 
+    def test_gwibber_helper_mock(self):
+        from softwarecenter.gwibber_helper import GwibberHelperMock
+        os.environ["SOFTWARE_CENTER_GWIBBER_MOCK_USERS"] = "2"
+        gh = GwibberHelperMock()
+        accounts = gh.accounts()
+        self.assertEqual(len(accounts), 2)
+        #print accounts
+        # we can not test the real gwibber here, otherwise it will
+        # post our test data to real services
+        self.assertEqual(gh.send_message ("test"), True)
+
     def test_gwibber_helper(self):
         from softwarecenter.gwibber_helper import GwibberHelper
+        # readonly test as there maybe be real accounts
         gh = GwibberHelper()
+        have_accounts = gh.has_accounts_in_sqlite()
+        self.assertTrue(isinstance(have_accounts, bool))
         accounts = gh.accounts()
-        print accounts
-        gh.send_message ("test")
+        self.assertTrue(isinstance(accounts, list))
 
     def not_working_because_gi_does_not_provide_list_test_gwibber(self):
+        from gi.repository import Gwibber
         #service = Gwibber.Service()
         #service.quit()
         # get account data

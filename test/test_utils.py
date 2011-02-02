@@ -21,6 +21,21 @@ class TestSCUtils(unittest.TestCase):
         self.assertEqual(release_filename_in_lists_from_deb_line(debline),
                          "security.ubuntu.com_ubuntu_dists_maverick-security_Release")
 
+    def test_locale(self):
+        # needs lang + country code
+        os.environ["LANGUAGE"] = "zh_TW"
+        self.assertEqual(get_language(), "zh_TW")
+        # language only
+        os.environ["LANGUAGE"] = "fr_FR"
+        self.assertEqual(get_language(), "fr")
+        # not existing one
+        os.environ["LANGUAGE"] = "xx_XX"
+        self.assertEqual(get_language(), "en")
+        # LC_ALL, no language
+        del os.environ["LANGUAGE"]
+        os.environ["LC_ALL"] = "C"
+        self.assertEqual(get_language(), "en")
+
     def test_get_http_proxy_from_libproxy(self):
         # test url
         url = "http://archive.ubuntu.com"

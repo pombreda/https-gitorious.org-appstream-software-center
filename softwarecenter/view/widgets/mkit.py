@@ -929,7 +929,7 @@ class LayoutView2(gtk.HBox):
         self.set_homogeneous(True)
 
         self.min_col_width = 128
-
+        self.yspacing = yspacing
 
         self._prev_width = -1
         self._non_col_children = []
@@ -939,6 +939,40 @@ class LayoutView2(gtk.HBox):
         return
 
     def _on_allocate(self, widget, allocation, yspacing):
+        self.layout(allocation, yspacing)
+        return True
+
+    def _on_expose_debug(self, widget, event):
+        cr = widget.window.cairo_create()
+
+        for i, child in enumerate(self.get_children()):
+            a = child.allocation
+            cr.rectangle(a)
+
+            if i%2:
+                cr.set_dash((2,2))
+                cr.set_source_rgb(1,0,0)
+            else:
+                cr.set_dash((2,2), 2)
+                cr.set_source_rgb(0,1,0)
+
+            cr.stroke()
+
+        del cr
+        return
+
+    def add(self, child):
+        self._non_col_children.append(child)
+        return
+
+    def clear(self):
+        for col in self:
+            for child in col:
+                child.destroy()
+            col.destroy()
+        return
+
+    def layout(self, allocation, yspacing):
         w = allocation.width
         if self._prev_width == w: return True
         self._prev_width = w
@@ -967,29 +1001,6 @@ class LayoutView2(gtk.HBox):
 
 #        print 'ColumnCount:', len(self.get_children())
         self.show_all()
-        return True
-
-    def _on_expose_debug(self, widget, event):
-        cr = widget.window.cairo_create()
-
-        for i, child in enumerate(self.get_children()):
-            a = child.allocation
-            cr.rectangle(a)
-
-            if i%2:
-                cr.set_dash((2,2))
-                cr.set_source_rgb(1,0,0)
-            else:
-                cr.set_dash((2,2), 2)
-                cr.set_source_rgb(0,1,0)
-
-            cr.stroke()
-
-        del cr
-        return
-
-    def add(self, child):
-        self._non_col_children.append(child)
         return
 
 
@@ -1263,8 +1274,9 @@ class LinkButton(gtk.EventBox):
 
         layout = self.label.get_layout()
         attrs = layout.get_attributes()
-        attrs.change(attr)
-        layout.set_attributes(attrs)
+        if attrs:
+            attrs.change(attr)
+            layout.set_attributes(attrs)
         return
 
     def _colorise_label_normal(self):
@@ -1281,8 +1293,9 @@ class LinkButton(gtk.EventBox):
 
         layout = self.label.get_layout()
         attrs = layout.get_attributes()
-        attrs.change(attr)
-        layout.set_attributes(attrs)
+        if attrs:
+            attrs.change(attr)
+            layout.set_attributes(attrs)
         return
 
     def _cache_image_surface(self, pb):

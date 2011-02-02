@@ -421,8 +421,8 @@ class LobbyViewGtk(CategoriesViewGtk):
             # build UI
             self.hbox = gtk.HBox()
             # Translators: full sentence will be: Welcome back! There is/are %(len)i new recommendation/s for you.
-            welcome = gettext.ngettext("Welcome back! There is",
-                                      "Welcome back! There are",
+            welcome = gettext.ngettext("Welcome back! There is ",
+                                      "Welcome back! There are ",
                                       len(r_apps))
             self.hbox.pack_start(gtk.Label(welcome), False, False)
             # Translators: full sentence will be: Welcome back! There is/are %(len)i new recommendation/s for you.
@@ -436,7 +436,7 @@ class LobbyViewGtk(CategoriesViewGtk):
             #linkbutton.set_subdued(True)
             self.hbox.pack_start(linkbutton, False, False)
             # Translators: full sentence will be: Welcome back! There is/are %(len)i new recommendation/s for you.
-            self.hbox.pack_start(gtk.Label(_("for you.")), False, False)
+            self.hbox.pack_start(gtk.Label(_(" for you.")), False, False)
             self.vbox.pack_start(self.hbox, False, False)
             self.vbox.reorder_child(self.hbox, 0)
             # build category
@@ -629,50 +629,98 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         self.departments = None
         return
 
-    def _on_allocate(self, widget, allocation, *args):
-        if self._prev_width != widget.parent.allocation.width and \
-            self.departments:
-            self._prev_width = widget.parent.allocation.width
-            best_fit = self._get_best_fit_width()
-            self.departments.set_width(best_fit)
-            self._full_redraw()
-        else:
-            self.queue_draw()
-        return
+    def _on_allocate(self, viewport, allocation, vbox):
+        gobject.idle_add(self.queue_draw)
+
+        w = min(allocation.width-2, 900)
+
+        if w <= 400 or w == self._prev_width: return True
+        self._prev_width = w
+
+#        self.featured_carousel.set_width(w)
+#        self.whatsnew_carousel.set_width(w)
+
+        vbox.set_size_request(w, -1)
+        return True
 
     def _on_expose(self, widget, event):
-        # context setup
-        expose_area = event.area
         a = widget.allocation
-        cr = widget.window.cairo_create()
-        cr.rectangle(expose_area)
-        cr.clip_preserve()
 
-        # base color
-        cr.set_source_rgb(*mkit.floats_from_gdkcolor(self.style.base[self.state]))
+        cr = widget.window.cairo_create()
+        cr.rectangle(a.x-5, a.y, a.width+10, a.height)
+        cr.clip()
+
+        color = color_floats(widget.style.light[0])
+
+        cr.rectangle(widget.allocation)
+        cr.set_source_rgba(*color+(0.6,))
         cr.fill()
 
-        if self.section:
-            self.section.render(cr, a)
+        # paint the section backdrop
+        if self.section: self.section.render(cr, a)
 
-        # draw departments
-        self.departments.draw(cr, self.departments.allocation, expose_area)
+        # only draw shadows when viewport is sufficiently wide...
+        if a.width >= 900:
+            # shadow on the right side
+            lin = cairo.LinearGradient(a.x+a.width, a.y, a.x+a.width+5, a.y)
+            lin.add_color_stop_rgba(0, 0,0,0, 0.175)
+            lin.add_color_stop_rgba(1, 0,0,0, 0.000)
+
+            cr.rectangle(a.x+a.width, a.y, 5, a.height)
+            cr.set_source(lin)
+            cr.fill()
+
+            cr.set_line_width(1)
+
+            # right side
+            # outer vertical strong line
+            cr.move_to(a.x+a.width+0.5, a.y)
+            cr.rel_line_to(0, a.height)
+            cr.set_source_rgb(*color_floats(widget.style.dark[self.state]))
+            cr.stroke()
+
+            # inner vertical highlight
+            cr.move_to(a.x+a.width-0.5, a.y)
+            cr.rel_line_to(0, a.height)
+            cr.set_source_rgba(1,1,1,0.3)
+            cr.stroke()
+
+            # shadow on the left side
+            lin = cairo.LinearGradient(a.x-5, a.y, a.x, a.y)
+            lin.add_color_stop_rgba(1, 0,0,0, 0.175)
+            lin.add_color_stop_rgba(0, 0,0,0, 0.000)
+
+            cr.rectangle(a.x-5, a.y, 5, a.height)
+            cr.set_source(lin)
+            cr.fill()
+
+            # left side
+            # outer vertical strong line
+            cr.move_to(a.x-0.5, a.y)
+            cr.rel_line_to(0, a.height)
+            cr.set_source_rgb(*color_floats(widget.style.dark[self.state]))
+            cr.stroke()
+
+            # inner vertical highlight
+            cr.move_to(a.x+0.5, a.y)
+            cr.rel_line_to(0, a.height)
+            cr.set_source_rgba(1,1,1,0.3)
+            cr.stroke()
         del cr
-        return
+
 
     def _append_subcat_departments(self, root_category, num_items):
         # create departments widget
         if not self.departments:
-            self.departments = mkit.LayoutView()
+            self.departments = mkit.LayoutView2()
             # append the departments section to the page
             self.vbox.pack_start(self.departments, False)
-            self.departments.show_all()
         else:
-            self.departments.clear_all()
+            self.departments.clear()
 
         # set the departments section to use the label
         header = gobject.markup_escape_text(self.header)
-        self.departments.set_label(H2 % header)
+#        self.departments.set_label(H2 % header)
 
         # sort Category.name's alphabetically
         sorted_cats = categories_sorted_by_name(self.categories)
@@ -690,18 +738,17 @@ class SubCategoryViewGtk(CategoriesViewGtk):
 
             cat_btn.connect('clicked', self._on_category_clicked, cat)
             # append the department to the departments widget
-            self.departments.append(cat_btn)
+            self.departments.add(cat_btn)
 
         # append an additional button to show all of the items in the category
         name = gobject.markup_escape_text(_("All %s") % num_items)
         show_all_btn = SubcategoryButton(name, "category-show-all", self.icons)
         all_cat = Category("All", _("All"), "category-show-all", root_category.query)
         show_all_btn.connect('clicked', self._on_category_clicked, all_cat)
-        self.departments.append(show_all_btn)
+        self.departments.add(show_all_btn)
 
-        # kinda hacky doing this here...
-        best_fit = self._get_best_fit_width()
-        self.departments.set_width(best_fit)
+        self.departments.layout(self.departments.allocation,
+                                self.departments.yspacing)
         return
 
     def _build_subcat_view(self, root_category, num_items):

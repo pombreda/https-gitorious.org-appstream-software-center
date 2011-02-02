@@ -225,6 +225,11 @@ class ReviewLoaderThreadedRNRClient(ReviewLoader):
 
     def _reviews_timeout_watcher(self, app, callback):
         """ watcher function in parent using glib """
+        # another watcher collected the result already, nothing to do for
+        # us (LP: #709548)
+        if not app in self._new_reviews:
+            return False
+        # check if we have data waiting
         if not self._new_reviews[app].empty():
             self._reviews[app] = self._new_reviews[app].get()
             del self._new_reviews[app]
@@ -236,6 +241,8 @@ class ReviewLoaderThreadedRNRClient(ReviewLoader):
         """ threaded part of the fetching """
         # FIXME: select correct origin
         origin = self.cache.get_origin(app.pkgname)
+        if not origin:
+            return
         distroseries = self.distro.get_codename()
         try:
             kwargs = {"language":self.language, 
@@ -244,7 +251,10 @@ class ReviewLoaderThreadedRNRClient(ReviewLoader):
                       "packagename":app.pkgname,
                       }
             if app.appname:
-                kwargs["appname"] = app.appname
+                # FIXME: the appname will get quote_plus() later again,
+                #        but it appears the server has currently a bug
+                #        so it expects it this way
+                kwargs["appname"] = urllib.quote_plus(app.appname.encode("utf-8"))
             reviews = self.rnrclient.get_reviews(**kwargs)
         except:
             logging.exception("get_reviews")

@@ -43,9 +43,13 @@ class IStarPainter:
     GLOW_PRELIGHT   = 4
 
     def __init__(self):
-        self.shape = ShapeStar(5, 0.575)
+        self.shape = ShapeStar(5, 0.55)
         self.fill = self.FILL_EMPTY
         self.glow = self.GLOW_NORMAL
+
+        self.bg_color = floats_from_string('#989898')     # gray
+        self.fg_color = floats_from_string('#FFa000')     # yellow
+        self.glow_color = floats_from_string('#FFB500')   # gold
         return
 
     def set_fill(self, fill):
@@ -73,14 +77,20 @@ class StarPainterFlat(IStarPainter):
         cr.clip()
 
         if widget.get_direction() != gtk.TEXT_DIR_RTL:
-            color1 = widget.style.mid[state]
-            color2 = widget.style.text[state]
+#            color1 = widget.style.mid[state]
+#            color2 = widget.style.text[state]
+            color1 = self.bg_color
+            color2 = self.fg_color
+
         else:
-            color1 = widget.style.text[state]
-            color2 = widget.style.mid[state]
+#            color1 = widget.style.text[state]
+#            color2 = widget.style.mid[state]
+            color1 = self.fg_color
+            color2 = self.bg_color
 
         self.shape.layout(cr, x, y, w, h)
-        cr.set_source_color(color1)
+#        cr.set_source_color(color1)
+        cr.set_source_rgb(*color1)
         cr.fill()
         cairo.Context.reset_clip(cr)
 
@@ -88,7 +98,8 @@ class StarPainterFlat(IStarPainter):
         cr.clip()
 
         self.shape.layout(cr, x, y, w, h)
-        cr.set_source_color(color2)
+#        cr.set_source_color(color2)
+        cr.set_source_rgb(*color2)
         cr.fill()
         cairo.Context.reset_clip(cr)
 
@@ -107,9 +118,12 @@ class StarPainterFlat(IStarPainter):
             cr.set_source_color(widget.style.mid[state])
         else:
             if state != gtk.STATE_SELECTED:
-                cr.set_source_color(widget.style.base[gtk.STATE_SELECTED])
+#                cr.set_source_color(widget.style.base[gtk.STATE_SELECTED])
+                cr.set_source_rgb(*self.fg_color)
             else:
-                cr.set_source_color(widget.style.base[gtk.STATE_NORMAL])
+#                cr.set_source_color(widget.style.base[gtk.STATE_NORMAL])
+                cr.set_source_rgb(*self.bg_color)
+
         cr.fill()
 
         cr.restore()
@@ -123,6 +137,18 @@ class StarPainter(IStarPainter):
         cr.save()
         cr.set_line_join(cairo.LINE_CAP_ROUND)
 
+        if widget.get_direction() != gtk.TEXT_DIR_RTL:
+#            color1 = widget.style.mid[state]
+#            color2 = widget.style.text[state]
+            color1 = self.bg_color
+            color2 = self.fg_color
+
+        else:
+#            color1 = widget.style.text[state]
+#            color2 = widget.style.mid[state]
+            color1 = self.fg_color
+            color2 = self.bg_color
+
         self.shape.layout(cr, x, y, w, h)
         self._setup_glow(cr, widget)
         cr.stroke()
@@ -132,7 +158,8 @@ class StarPainter(IStarPainter):
         cr.clip()
 
         self.shape.layout(cr, x, y, w, h)
-        cr.set_source_color(widget.style.mid[state])
+#        cr.set_source_color(widget.style.mid[state])
+        cr.set_source_rgb(*color1)
         cr.stroke_preserve()
         cr.fill()
         cairo.Context.reset_clip(cr)
@@ -141,7 +168,8 @@ class StarPainter(IStarPainter):
         cr.clip()
         
         self.shape.layout(cr, x, y, w, h)
-        cr.set_source_color(widget.style.base[gtk.STATE_SELECTED])
+#        cr.set_source_color(widget.style.base[gtk.STATE_SELECTED])
+        cr.set_source_rgb(*color2)
         cr.stroke_preserve()
         cr.fill_preserve()
         cairo.Context.reset_clip(cr)
@@ -167,9 +195,11 @@ class StarPainter(IStarPainter):
         cr.set_line_width(2)
 
         if self.fill == self.FILL_EMPTY:
-            cr.set_source_color(widget.style.mid[state])
+#            cr.set_source_color(widget.style.mid[state])
+            cr.set_source_rgb(*self.bg_color)
         else:
-            cr.set_source_color(widget.style.base[gtk.STATE_SELECTED])
+#            cr.set_source_color(widget.style.base[gtk.STATE_SELECTED])
+            cr.set_source_rgb(*self.fg_color)
 
         cr.stroke_preserve()
         cr.fill_preserve()
