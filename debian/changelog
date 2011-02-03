@@ -5,6 +5,8 @@ software-center (3.1.16) UNRELEASED; urgency=low
     many thanks to Matthew McGowan
   * test/test_appdetails_view.py:
     - add appdetails netstatus tests
+  * merged lp:~aaronp/software-center/fix-694836, many thanks
+    (LP: #694836)
 
   [ Gary Lasker ]
   * softwarecenter/distro/Ubuntu.py,
