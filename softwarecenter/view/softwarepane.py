@@ -246,7 +246,8 @@ class SoftwarePane(gtk.VBox, BasePane):
         self.connect("app-list-changed", self.on_app_list_changed)
         
         # db reopen
-        self.db.connect("reopen", self.on_db_reopen)
+        if self.db:
+            self.db.connect("reopen", self.on_db_reopen)
 
     def _on_expose(self, widget, event):
         """ Draw a horizontal line that separates the top hbox from the page content """

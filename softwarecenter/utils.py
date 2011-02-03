@@ -396,6 +396,14 @@ class GMenuSearcher(object):
                 return self._found
         return None
 
+def clear_token_from_ubuntu_sso(appname):
+    """ send a dbus signal to the com.ubuntu.sso service to clear 
+        the credentials for the given appname
+    """
+    import dbus
+    bus = dbus.SessionBus()
+    proxy = bus.get_object('com.ubuntu.sso', '/credentials')
+    proxy.clear_token(appname)
 
 if __name__ == "__main__":
     s = decode_xml_char_reference('Search&#x2026;')

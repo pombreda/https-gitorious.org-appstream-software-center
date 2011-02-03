@@ -386,10 +386,11 @@ class AppStore(gtk.GenericTreeModel):
             self.icon_cache[icon_file] = pb
         
         url = get_distro().get_downloadable_icon_url(cache, pkgname, icon_file_name)
-        icon_file_path = os.path.join(SOFTWARE_CENTER_ICON_CACHE_DIR, icon_file_name)
-        image_downloader = ImageDownloader()
-        image_downloader.connect('image-download-complete', on_image_download_complete)
-        image_downloader.download_image(url, icon_file_path)
+        if url is not None:
+            icon_file_path = os.path.join(SOFTWARE_CENTER_ICON_CACHE_DIR, icon_file_name)
+            image_downloader = ImageDownloader()
+            image_downloader.connect('image-download-complete', on_image_download_complete)
+            image_downloader.download_image(url, icon_file_path)
 
     # GtkTreeModel functions
     def on_get_flags(self):
