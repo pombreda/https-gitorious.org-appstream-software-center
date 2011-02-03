@@ -449,8 +449,6 @@ class AppStore(gtk.GenericTreeModel):
                 return False
             elif column == self.COL_PKGNAME:
                 return app.pkgname
-            elif column == self.COL_POPCON:
-                return 0
             elif column == self.COL_RATING:
                 return 0
             elif column == self.COL_IS_ACTIVE:
