@@ -11,8 +11,10 @@ software-center (3.1.16) UNRELEASED; urgency=low
     softwarecenter/models/appstore.py:
     - fix crash if attempting to download a remote icon before
       the cache is ready (LP: #688991)
+  * softwarecenter/models/appstore.py:
+    - fix intermittent AttributeError in on_get_value (LP: #712170) 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 02 Feb 2011 13:59:55 -0500
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 03 Feb 2011 11:22:12 -0500
 
 software-center (3.1.15) natty; urgency=low
 
