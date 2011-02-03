@@ -777,7 +777,11 @@ class CarouselView(mkit.FramedSection):
         if self._offset >= len(self.carousel_apps):
             self._offset = 0
 #        print 'BW:', width, self.page_sel.allocation.width
-        page = self._offset / self.n_posters
+        #temporary fix for crash in bug 694836
+        if self.n_posters == 0:
+            page = self._offset / 1
+        else:
+            page = self._offset / self.n_posters
         self.page_sel.set_selected_page(int(page))
         return
 
