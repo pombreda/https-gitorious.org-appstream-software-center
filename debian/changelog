@@ -1,11 +1,18 @@
 software-center (3.1.16) UNRELEASED; urgency=low
 
+  [ Michael Vogt ]
   * merged lp:~mmcg069/software-center/reviews-and-netstatus
     many thanks to Matthew McGowan
   * test/test_appdetails_view.py:
     - add appdetails netstatus tests
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 01 Feb 2011 14:40:07 +0100
+  [ Gary Lasker ]
+  * softwarecenter/distro/Ubuntu.py,
+    softwarecenter/models/appstore.py:
+    - fix crash if attempting to download a remote icon before
+      the cache is ready (LP: #688991)
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 02 Feb 2011 13:59:55 -0500
 
 software-center (3.1.15) natty; urgency=low
 
