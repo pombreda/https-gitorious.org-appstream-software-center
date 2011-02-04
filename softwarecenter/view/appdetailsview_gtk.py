@@ -51,6 +51,8 @@ from widgets.imagedialog import ShowImageDialog
 
 from widgets.reviews import ReviewStatsContainer, StarRating
 
+from softwarecenter.backend.config import get_config
+
 if os.path.exists("./softwarecenter/enums.py"):
     sys.path.insert(0, ".")
 
@@ -1018,6 +1020,12 @@ class Reviews(gtk.VBox):
         self.new_review.connect('clicked', lambda w: self.emit('new-review'))
         return
 
+    def _get_person_from_config(self):
+        cfg = get_config()
+        if cfg.has_option("reviews", "username"):
+            return cfg.get("reviews", "username")
+        return None
+
     def _on_expand(self, expander, param):
         if not self.expander.get_expanded():
             self.vbox.hide_all()
@@ -1036,10 +1044,11 @@ class Reviews(gtk.VBox):
         self.emit("new-review")
 
     def _fill(self):
+        self.logged_in_person = self._get_person_from_config()
         if self.reviews:
             for r in self.reviews:
                 pkgversion = self._parent.app_details.version
-                review = Review(r, pkgversion)
+                review = Review(r, pkgversion, self.logged_in_person)
                 self.vbox.pack_start(review)
         elif get_network_state() == NetState.NM_STATE_CONNECTED:
             self.vbox.pack_start(NoReviewYet())
@@ -1049,13 +1058,22 @@ class Reviews(gtk.VBox):
         s = _('Be the first to review it')
         self.new_review.set_label(s)
         return
+    
+    def _any_reviews_current_user(self):
+        for review in self.reviews:
+            if self.logged_in_person == review.reviewer_username:
+                return True
+        return False
 
     def finished(self):
         #print 'Review count: %s' % len(self.reviews)
         if not self.reviews:
             self._be_the_first_to_review()
         else:
-            self.new_review.set_label(_("Write your own review"))
+            if self._any_reviews_current_user():
+                self.new_review.set_label(_("Write another review"))
+            else:
+                self.new_review.set_label(_("Write your own review"))
             if self.expander.get_expanded():
                 self._fill()
                 self.vbox.show_all()
@@ -1109,7 +1127,7 @@ class Reviews(gtk.VBox):
 
 class Review(gtk.VBox):
     
-    def __init__(self, review_data=None, app_version=None):
+    def __init__(self, review_data=None, app_version=None, logged_in_person=None):
         gtk.VBox.__init__(self, spacing=mkit.SPACING_LARGE)
 
         self.header = gtk.HBox(spacing=mkit.SPACING_MED)
@@ -1119,18 +1137,20 @@ class Review(gtk.VBox):
         self.pack_start(self.header, False)
         self.pack_start(self.body, False)
         self.pack_start(self.footer, False)
+        
+        self.logged_in_person = logged_in_person
 
         if review_data:
             self.id = review_data.id
             rating = review_data.rating 
-            person = review_data.reviewer_username
+            self.person = review_data.reviewer_username
             summary = review_data.summary
             text = review_data.review_text
             date = review_data.date_created
             app_name = review_data.app_name
             # some older version of the server do not set the version
             review_version = getattr(review_data, "version", "")
-            self._build(rating, person, summary, text, date, app_name, review_version, app_version)
+            self._build(rating, self.person, summary, text, date, app_name, review_version, app_version)
 
         self.body.connect('size-allocate', self._on_allocate)
         return
@@ -1148,8 +1168,12 @@ class Review(gtk.VBox):
     def _build(self, rating, person, summary, text, date, app_name, review_version, app_version):
         # all the arguments are may need markup escape, depening on if
         # they are used as text or markup
-        m = "<b>%s</b>, %s" % (glib.markup_escape_text(person),
-                               glib.markup_escape_text(date))
+        if person == self.logged_in_person:
+            m = "%s %s" % (_("This is your review, submitted on"),
+                                glib.markup_escape_text(date))
+        else:
+            m = "<b>%s</b>, %s" % (glib.markup_escape_text(person),
+                                glib.markup_escape_text(date))
         who_what_when = gtk.Label(m)
         who_what_when.set_use_markup(True)
 
@@ -1196,7 +1220,10 @@ class Review(gtk.VBox):
         cr.save()
         rr = mkit.ShapeRoundedRectangle()
         rr.layout(cr, a.x-6, a.y-5, a.x+a.width+6, a.y+a.height+5, radius=3)
-        cr.set_source_rgba(1,1,1,0.7)
+        if self.person == self.logged_in_person:
+            cr.set_source_rgba(0.8,0.8,0.8,0.5)
+        else:
+            cr.set_source_rgba(1,1,1,0.7)
         cr.fill()
         cr.set_source_rgb(*mkit.floats_from_string('#E6BC26'))
         rr.layout(cr, a.x-5.5, a.y-4.5, a.x+a.width+5.5, a.y+a.height+4.5, radius=3)
