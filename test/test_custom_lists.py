@@ -53,11 +53,24 @@ class TestCustomLists(unittest.TestCase):
                          needle, self._debug(index, model, needle))
 
     def test_custom_lists(self):
-        # assert we find the right package
+        # assert we generate the correct custom list
         model = self._run_search("ark,artha,software-center")
         self.assertPkgInListAtIndex(0, model, "ark")
         self.assertPkgInListAtIndex(1, model, "artha")
         self.assertPkgInListAtIndex(2, model, "software-center")
+        
+        # check that the "Custom List" button appears in the navigation bar
+        self.assertEqual(
+            str(self.app.available_pane.navigation_bar.get_parts()),
+            "[Get Software, Custom List]")
+        
+        # check that the status bar indicates the correct number of packages
+        # in the list
+        status_bar_text = self.app.label_status.get_text()
+        # TODO: the following is commented temporarily as this test currently fails
+        # self.assertTrue(status_bar_text.startswith("3"))
+        
+        # TODO: test action bar functionality
 
 if __name__ == "__main__":
     unittest.main()
