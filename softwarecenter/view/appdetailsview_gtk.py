@@ -39,6 +39,7 @@ from softwarecenter.db.reviews import ReviewStats
 from softwarecenter.backend.zeitgeist_simple import zeitgeist_singleton
 from softwarecenter.enums import *
 from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
+from softwarecenter.paths import SOFTWARE_CENTER_CONFIG_DIR
 from softwarecenter.utils import ImageDownloader, GMenuSearcher, uri_to_filename, is_unity_running, upstream_version_compare, upstream_version
 from softwarecenter.gwibber_helper import GWIBBER_SERVICE_AVAILABLE
 
@@ -51,7 +52,7 @@ from widgets.imagedialog import ShowImageDialog
 
 from widgets.reviews import ReviewStatsContainer, StarRating
 
-from softwarecenter.backend.restfulclient import UbuntuSSOAPI
+from softwarecenter.backend.config import SoftwareCenterConfig
 
 if os.path.exists("./softwarecenter/enums.py"):
     sys.path.insert(0, ".")
@@ -984,12 +985,13 @@ class Reviews(gtk.VBox):
                     (gobject.TYPE_PYOBJECT,)),
     }
 
-    def __init__(self, parent, logged_in_person=None):
+    def __init__(self, parent):
         gtk.VBox.__init__(self)
         self.set_border_width(6)
 
         self._parent = parent
-        self.logged_in_person = logged_in_person
+        
+        self.logged_in_person = self._get_person_from_config()
         self.reviews = []
 
         label = mkit.EtchedLabel()
@@ -1020,6 +1022,13 @@ class Reviews(gtk.VBox):
         self.expander.set_expanded(True)
         self.new_review.connect('clicked', lambda w: self.emit('new-review'))
         return
+
+    def _get_person_from_config(self):
+        cfgfile = os.path.join(SOFTWARE_CENTER_CONFIG_DIR, "submit_reviews.cfg")
+        cfg = SoftwareCenterConfig(cfgfile)
+        if cfg.has_option("reviews", "person"):
+            return cfg.get("reviews", "person")
+        return None
 
     def _on_expand(self, expander, param):
         if not self.expander.get_expanded():
@@ -1366,8 +1375,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.a11y = self.get_accessible()
         self.a11y.set_name("app_details pane")
         
-        #FIXME: hardcoded. Set this to user name that comes from whoami()
-        self.logged_in_person = "aaronp"
 
         # aptdaemon
         self.backend.connect("transaction-started", self._on_transaction_started)
@@ -1388,6 +1395,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.addons_manager = AddonsManager(self)
         self.addons_to_install = self.addons_manager.addons_to_install
         self.addons_to_remove = self.addons_manager.addons_to_remove
+        
 
         # switches
         # Bug #628714 check not only that gwibber is installed but that service accounts exist
@@ -1403,7 +1411,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         #self.main_frame.image.connect_after('expose-event', self._on_icon_expose)
         self.loaded = True
         return
-
+        
     def _on_net_state_changed(self, watcher, state):
         if state == NetState.NM_STATE_DISCONNECTED:
             self._update_reviews_inactive_network()
@@ -1718,7 +1726,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
     def _layout_reviews(self):
         # reviews
-        self.reviews = Reviews(self, self.logged_in_person)
+        self.reviews = Reviews(self)
         self.reviews.connect("new-review", self._on_review_new)
         self.reviews.connect("report-abuse", self._on_review_report_abuse)
         self.main_frame.body.pack_start(self.reviews)
