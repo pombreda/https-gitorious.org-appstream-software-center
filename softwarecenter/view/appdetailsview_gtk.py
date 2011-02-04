@@ -1061,13 +1061,22 @@ class Reviews(gtk.VBox):
         s = _('Be the first to review it')
         self.new_review.set_label(s)
         return
+    
+    def _any_reviews_current_user(self):
+        for review in self.reviews:
+            if self.logged_in_person == review.reviewer_username:
+                return True
+        return False
 
     def finished(self):
         #print 'Review count: %s' % len(self.reviews)
         if not self.reviews:
             self._be_the_first_to_review()
         else:
-            self.new_review.set_label(_("Write your own review"))
+            if self._any_reviews_current_user():
+                self.new_review.set_label(_("Write another review"))
+            else:
+                self.new_review.set_label(_("Write your own review"))
             if self.expander.get_expanded():
                 self._fill()
                 self.vbox.show_all()
