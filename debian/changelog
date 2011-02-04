@@ -15,8 +15,9 @@ software-center (3.1.16) UNRELEASED; urgency=low
       the cache is ready (LP: #688991)
   * softwarecenter/models/appstore.py:
     - fix intermittent AttributeError in on_get_value (LP: #712170) 
+    - fix attribute error when building a custom list (LP: #712888)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 03 Feb 2011 11:22:12 -0500
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 03 Feb 2011 21:56:32 -0500
 
 software-center (3.1.15) natty; urgency=low
 
