@@ -19,6 +19,12 @@ software-center (3.1.16) UNRELEASED; urgency=low
   * test/test_custom_lists.py:
     - add unit test for custom lists 
 
+  [ Aaron Peachey ]
+  * view/appdetailsview_gtk.py: 
+     - change label to click to write a review if user already has
+       a review for that package LP: #709738
+     - alter review look if it belongs to current user LP: #710396
+  
  -- Gary Lasker <gary.lasker@canonical.com>  Thu, 03 Feb 2011 22:41:34 -0500
 
 software-center (3.1.15) natty; urgency=low
