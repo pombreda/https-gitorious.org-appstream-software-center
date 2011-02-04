@@ -157,6 +157,7 @@ class AppStore(gtk.GenericTreeModel):
         self.active_app = None
         self._prev_active_app = 0
         self.limit = limit
+        self._existing_apps = None
         # keep track of indicies for transactions in progress
         self.transaction_index_map = {}
         # no search query means "all"
