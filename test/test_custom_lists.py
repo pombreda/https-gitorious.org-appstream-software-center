@@ -68,6 +68,8 @@ class TestCustomLists(unittest.TestCase):
         # in the list
         status_bar_text = self.app.label_status.get_text()
         self.assertTrue(status_bar_text.startswith("3"))
+        
+        # TODO: test action bar functionality
 
 if __name__ == "__main__":
     unittest.main()
