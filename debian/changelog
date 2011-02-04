@@ -16,8 +16,10 @@ software-center (3.1.16) UNRELEASED; urgency=low
   * softwarecenter/models/appstore.py:
     - fix intermittent AttributeError in on_get_value (LP: #712170) 
     - fix attribute error when building a custom list (LP: #712888)
+  * test/test_custom_lists.py:
+    - add unit test for custom lists 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 03 Feb 2011 21:56:32 -0500
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 03 Feb 2011 22:41:34 -0500
 
 software-center (3.1.15) natty; urgency=low
 
