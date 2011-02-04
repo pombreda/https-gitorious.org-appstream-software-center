@@ -2401,6 +2401,13 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
 
 if __name__ == "__main__":
+    def _show_app(view):
+        if view.app.pkgname == "totem":
+            view.show_app(Application("Pithos", "pithos"))
+        else:
+            view.show_app(Application("Movie Player", "totem"))
+        return True
+    
     logging.basicConfig(level=logging.DEBUG)
 
     if len(sys.argv) > 1:
@@ -2448,6 +2455,6 @@ if __name__ == "__main__":
     win.set_size_request(600,400)
     win.show_all()
 
-    #view._config_file_prompt(None, "/etc/fstab", "/tmp/lala")
-
+    # keep it spinning to test for re-draw issues and memleaks
+    glib.timeout_add_seconds(1, _show_app, view)
     gtk.main()
