@@ -59,6 +59,11 @@ class TestCustomLists(unittest.TestCase):
         self.assertPkgInListAtIndex(1, model, "artha")
         self.assertPkgInListAtIndex(2, model, "software-center")
         
+        # check that the "Custom List" button appears in the navigation bar
+        self.assertEqual(
+            str(self.app.available_pane.navigation_bar.get_parts()),
+            "[Get Software, Custom List]")
+        
         # check that the status bar indicates the correct number of packages
         # in the list
         status_bar_text = self.app.label_status.get_text()
