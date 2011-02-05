@@ -39,7 +39,7 @@ from widgets.spinner import SpinnerView
 from softwarecenter.backend import get_install_backend
 from softwarecenter.enums import *
 from softwarecenter.view.basepane import BasePane
-from softwarecenter.utils import wait_for_apt_cache_ready, ExecutionTime
+from softwarecenter.utils import wait_for_apt_cache_ready, ExecutionTime, is_unity_running
 
 from appview import AppView, AppStore
 from purchaseview import PurchaseView
@@ -275,6 +275,31 @@ class SoftwarePane(gtk.VBox, BasePane):
                                        NAV_BUTTON_ID_DETAILS)
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
         self.app_details_view.show_app(app)
+        self.show_add_to_launcher_panel(app)
+        
+    def show_add_to_launcher_panel(self, app):
+        """
+        if Unity is currently running, display a panel to allow the user
+        the choose whether to add a newly-installed application to the
+        launcher
+        """
+        if not is_unity_running():
+            return
+        self.action_bar.set_label(_("Add this to the launcher?"))
+        self.action_bar.add_button("cancel_add_to_launcher_button",
+                                    _("Don't add to launcher"), 
+                                    self.on_cancel_add_to_launcher, 
+                                    None)
+        self.action_bar.add_button("add_to_launcher_button",
+                                   _("Add to launcher"),
+                                   self.on_add_to_launcher,
+                                   app)        
+        
+    def on_add_to_launcher(self, args):
+        print "callback:  on_add_to_launcher with args: ", args
+        
+    def on_cancel_add_to_launcher(self, args):
+        self.action_bar.clear()
         
     def on_purchase_requested(self, widget, app, url):
         self.navigation_bar.add_with_id(_("Buy"),
