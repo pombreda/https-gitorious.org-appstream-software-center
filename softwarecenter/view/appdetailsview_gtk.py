@@ -50,10 +50,10 @@ from softwarecenter.utils import SimpleFileDownloader, GMenuSearcher, uri_to_fil
 from softwarecenter.gwibber_helper import GWIBBER_SERVICE_AVAILABLE
 
 from appdetailsview import AppDetailsViewBase
-#from actions import get_install_actions
 
 from widgets import mkit
 from widgets.mkit import EM, ShapeStar
+from widgets.pathbar_gtk_atk import PathPart
 from widgets.reviews import ReviewStatsContainer, StarRating
 
 from widgets.description import AppDescription, TextBlock
@@ -70,6 +70,7 @@ if os.path.exists("./softwarecenter/enums.py"):
 DEFAULT_SOCKET_TIMEOUT=4
 
 LOG = logging.getLogger("softwarecenter.view.appdetailsview")
+
 
 class PriceyStar(gtk.VBox, ShapeStar):
 
@@ -496,7 +497,7 @@ class Addon(gtk.HBox):
 
     def __init__(self, db, icons, pkgname):
         gtk.HBox.__init__(self, spacing=mkit.SPACING_SMALL)
-        #self.set_resize_mode(gtk.RESIZE_IMMEDIATE)
+        self.set_border_width(2)
 
         # data
         self.app = Application("", pkgname)
@@ -509,6 +510,19 @@ class Addon(gtk.HBox):
 
         self.connect('realize', self._on_realize, icons, pkgname)
         return
+
+    def _on_press(self, w, e, more):
+        x, y = e.x, e.y
+
+        mr = gtk.gdk.region_rectangle(more.allocation)
+        if mr.point_in(int(x+w.allocation.x), int(w.allocation.y+y)):
+            more.set_state(gtk.STATE_ACTIVE)
+            more.queue_draw()
+            return True
+
+    def _on_release(self, w, e, more):
+        more.set_state(gtk.STATE_NORMAL)
+        gobject.timeout_add(50, self._on_more_clicked, more)
 
     def _on_realize(self, widget, icons, pkgname):
         # icon
@@ -526,11 +540,6 @@ class Addon(gtk.HBox):
             LOG.warning("cant set icon for '%s' " % pkgname)
         hbox.pack_start(self.icon, False, False)
 
-#        self.more = mkit.HLinkButton("More Info")
-#        self.more.set_underline(True)
-#        self.pack_end(self.more, False)
-#        self.more.connect("clicked", self._on_more_clicked)
-
         # name
         title = self.app_details.display_name
         if len(title) >= 2:
@@ -541,12 +550,31 @@ class Addon(gtk.HBox):
 
         self.title = gtk.Label()
         self.title.set_markup(title+pkgname)
-        self.title.set_line_wrap(True)
+        self.title.set_alignment(0.0, 0.5)
+        self.title.set_ellipsize(pango.ELLIPSIZE_END)
         hbox.pack_start(self.title)
+
+        more = mkit.MoreLabel()
+        more.set_markup(_('More Info'))
+
+        a = gtk.Alignment(0.5, 0.5)
+        a.add(more)
+        hbox.pack_end(a)
+
+        loader = self.get_ancestor(AppDetailsViewGtk).review_loader
+        stats = loader.get_review_stats(self.app)
+        if stats != None:
+            rating = StarRating()
+            hbox.pack_end(rating, False)
+            rating.set_rating(stats.ratings_average)
 
         self.checkbutton.add(hbox)
 
+        more.connect('expose-event', self._on_more_expose)
         self.connect('size-allocate', self._on_allocate, self.title)
+
+        self.checkbutton.connect('button-press-event', self._on_press, more)
+        self.checkbutton.connect('button-release-event', self._on_release, more)
 
         # a11y
         self.a11y = self.checkbutton.get_accessible()
@@ -555,21 +583,24 @@ class Addon(gtk.HBox):
         self.show_all()
 
     def _on_allocate(self, widget, allocation, title):
-#        print 'AddonWidth:', allocation.width
-        width = self.allocation.width-title.allocation.x
+        hw = widget.allocation.width
+        cw = self.checkbutton.allocation.width
+        tw = title.allocation.width
+
+        width = max(10, hw - (cw - tw) - 24)
         title.set_size_request(width, -1)
         return
 
-    def _on_more_clicked(self, more_btn):
-        a = self.get_ancestor(AppDetailsViewGtk)
-        if not a: return
-        a.show_app(self.app)
+    def _on_more_expose(self, w, e):
+        if self.checkbutton.state not in (gtk.STATE_PRELIGHT,):
+            return True
+        cr = w.window.cairo_create()
+        w.draw(cr, w.allocation, e.area)
         return
 
     def _on_more_clicked(self, more_btn):
-        a = self.get_ancestor(AppDetailsViewGtk)
-        if not a: return
-        a.show_app(self.app)
+        pane = self.get_ancestor(AppDetailsViewGtk)._pane
+        pane.show_app(self.app)
         return
 
     def get_active(self):
@@ -604,7 +635,6 @@ class AddonsTable(gtk.VBox):
         self.vbox.set_border_width(6)
         self.pack_start(self.vbox)
 
-
         markup = _('Add-ons')
         self.label.set_markup(markup)
         self.pack_start(self.label, False, False)
@@ -617,21 +647,18 @@ class AddonsTable(gtk.VBox):
         if not self.recommended_addons and not self.suggested_addons:
             return
 
-#        if not self._reload:
-#            self.vbox.show_all()
-#            return
-
-        view_width = self.addons_manager.view.allocation.width
-
         # clear any existing addons
+        exists = []
         for w in self:
             if isinstance(w, Addon):
-                self.remove(w)
+                print w.app.pkgname, w.app.pkgname in addons[0], w.app.pkgname in addons[1]
+                w.destroy()
 
         # set the new addons
         for addon_name in self.recommended_addons + self.suggested_addons:
             try:
                 pkg = self.cache[addon_name]
+                if pkg in exists: continue
             except KeyError:
                 continue
 
@@ -1074,12 +1101,13 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                     }
 
 
-    def __init__(self, db, distro, icons, cache, datadir):
+    def __init__(self, db, distro, icons, cache, datadir, pane):
         AppDetailsViewBase.__init__(self, db, distro, icons, cache, datadir)
         gtk.Viewport.__init__(self)
         self.set_shadow_type(gtk.SHADOW_NONE)
 
         self._prev_width = -1
+        self._pane = pane
 
         self.section = None
         # app specific data
@@ -1124,14 +1152,11 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self._gwibber_is_available = GWIBBER_SERVICE_AVAILABLE
         self._show_overlay = False
 
-#        self._overlay = gtk.gdk.pixbuf_new_from_file(INSTALLED_ICON)
-
         # page elements are packed into our very own lovely viewport
         self._layout_page()
 
         self.connect('realize', self._on_realize)
 
-        #self.main_frame.image.connect_after('expose-event', self._on_icon_expose)
         self.loaded = True
         return
 
@@ -1291,6 +1316,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         cr.restore()
 
         # draw subwidgets
+        self.usage.draw(cr, self.usage.allocation, event.area)
         self.pkg_statusbar.draw(cr, self.pkg_statusbar.allocation, event.area)
         self.screenshot.draw(cr, self.screenshot.allocation, event.area)
         self.addons_bar.draw(cr, self.addons_bar.allocation, event.area)
@@ -1374,7 +1400,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         # the app icon
         self.icon = gtk.Image()
-        self.icon.set_size_request(84,-1)
+        self.icon.set_size_request(84,84)
         self.icon.set_from_icon_name(MISSING_APP_ICON, gtk.ICON_SIZE_DIALOG)
         hb.pack_start(self.icon, False)
 
@@ -1385,7 +1411,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         vb_inner.pack_start(self.title)
 
         # usage
-        self.usage = PackageUsageCounter(self)
+        self.usage = mkit.BubbleLabel()
+        vb_inner.pack_start(self.usage)
 
         # star rating widget
         a = gtk.Alignment(0.5, 0.5)
@@ -1461,7 +1488,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         info_vb.pack_start(self.addon_view, False)
 
         self.addons_bar = self.addons_manager.status_bar
-        info_vb.pack_start(self.addons_bar, False)
+        self.addon_view.pack_start(self.addons_bar, False)
+
 
         # package info
         self.info_keys = []
@@ -1714,15 +1742,12 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self._update_addons(app_details)
         self._update_reviews(app_details)
 
-        # depending on pkg install state set action labels
-        self.pkg_statusbar.configure(app_details, app_details.pkg_state)
-
         # show where it is
         self._configure_where_is_it()
 
         # async query zeitgeist and rnr
-#        self.get_usage_counter()
-
+        self._update_usage_counter()
+        return
 
     def _update_minimal(self, app_details):
 #        pkg_ambiguous_error = app_details.pkg_state in (PKG_STATE_NOT_FOUND, PKG_STATE_NEEDS_SOURCE)
@@ -1743,7 +1768,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 #        self._update_app_screenshot(app_details)
 #        self._update_description_footer_links(app_details)
         self._update_pkg_info_table(app_details)
-        gobject.timeout_add(500, self._update_addons, app_details)
+#        gobject.timeout_add(500, self._update_addons, app_details)
 
         # depending on pkg install state set action labels
         self.pkg_statusbar.configure(app_details, app_details.pkg_state)
@@ -1824,6 +1849,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             return
 
         same_app = (self.app and self.app.pkgname and self.app.pkgname == app.pkgname)
+        print 'SameApp:', same_app
 
         # init data
         self.app = app
@@ -2115,27 +2141,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # try to get it
         zeitgeist_singleton.get_usage_counter(
             self.app_details.desktop_file, _zeitgeist_callback)
-
-#    def get_usage_counter(self):
-#        """ try to get the usage counter from zeitgeist """
-#        def _zeitgeist_callback(counter):
-#            LOG.debug("zeitgeist usage: %s" % counter)
-#            if counter == 0:
-#                # this probably means we just have no idea about it,
-#                # so instead of saying "Used: never" we just return 
-#                # this can go away when zeitgeist captures more events
-#                # --there are still cases when we really do want to hide this
-#                self.usage.hide()
-#                return
-#            label_string = gettext.ngettext("Used: one time",
-#                                            "Used: %(amount)s times",
-#                                            counter) % { 'amount' : counter, }
-#            self.usage.set_text('<small>%s</small>' % label_string)
-#            self.usage.show()
-
-#        # try to get it
-#        zeitgeist_singleton.get_usage_counter(
-#            self.app_details.desktop_file, _zeitgeist_callback)
 
 
 if __name__ == "__main__":

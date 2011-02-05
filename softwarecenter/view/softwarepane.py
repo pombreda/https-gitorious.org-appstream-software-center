@@ -224,12 +224,13 @@ class SoftwarePane(gtk.VBox, BasePane):
         # details
         self.scroll_details = gtk.ScrolledWindow()
         self.scroll_details.set_policy(gtk.POLICY_AUTOMATIC, 
-                                        gtk.POLICY_AUTOMATIC)
+                                        gtk.POLICY_ALWAYS)
         self.app_details_view = AppDetailsView(self.db, 
                                                self.distro,
                                                self.icons, 
                                                self.cache, 
-                                               self.datadir)
+                                               self.datadir,
+                                               self)
         self.app_details_view.connect("purchase-requested",
                                       self.on_purchase_requested)
         self.scroll_details.add(self.app_details_view)

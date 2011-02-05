@@ -1472,14 +1472,16 @@ class BubbleLabel(gtk.Label):
         return
 
     def set_text(self, markup):
-        gtk.Label.set_markup(self, '<span color="white"><b>%s</b></span>' % markup)
+        gtk.Label.set_markup(self, '<span color="white">%s</span>' % markup)
         return
 
     def set_markup(self, markup):
-        gtk.Label.set_markup(self, '<span color="white"><b>%s</b></span>' % markup)
+        gtk.Label.set_markup(self, '<span color="white">%s</span>' % markup)
         return
 
-    def draw(self, cr, a):
+    def draw(self, cr, a, event_area):
+        if not self.get_property('visible'): return
+
         cr.save()
         xp = self.get_padding()[0]
         ax, ay = self.get_alignment()
@@ -1490,6 +1492,41 @@ class BubbleLabel(gtk.Label):
         cr.set_source_rgba(0, 0, 0, 0.55)
         cr.fill()
         cr.restore()
+        return
+
+
+class MoreLabel(gtk.EventBox):
+
+    def __init__(self):
+        gtk.EventBox.__init__(self)
+        self.set_visible_window(False)
+
+        self.label = l = EtchedLabel()
+        l.set_alignment(0,0.5)
+        l.set_padding(6, 4)
+
+        self.add(l)
+
+        self.theme = get_mkit_theme()
+        self.shape = SHAPE_RECTANGLE
+
+        self.ishover = False
+        return
+
+    def set_text(self, markup):
+        gtk.Label.set_markup(self.label, '<small>%s</small>' % markup)
+        return
+
+    def set_markup(self, markup):
+        gtk.Label.set_markup(self.label, '<small>%s</small>' % markup)
+        return
+
+    def draw(self, cr, a, event_area):
+        if not self.get_property('visible'): return True
+
+        if self.state == gtk.STATE_PRELIGHT:
+            self.set_state(gtk.STATE_NORMAL)
+        self.theme.paint_bg(cr, self, a.x, a.y+2, a.width, a.height-4)
         return
 
 

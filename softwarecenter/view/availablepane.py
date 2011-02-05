@@ -517,38 +517,45 @@ class AvailablePane(SoftwarePane):
         self.custom_list_mode = False
         self.navigation_bar.remove_id(NAV_BUTTON_ID_SEARCH)
 
-    @wait_for_apt_cache_ready
-    def show_app(self, app):
-        """ Display an application in the available_pane """
-        cat_of_app = None
+    def _find_app_categorisation(self, app):
         # FIXME: it would be great to extract this code so that
         #        we can use it to show the category in search hits
         #        as well
+
+        category = None
+        subcategory = None
+
         for cat in CategoriesView.parse_applications_menu(self.cat_view, APP_INSTALL_PATH):
-            if (not cat_of_app and 
-                cat.flags != "lobby_only" and 
-                cat.flags != "lobby_only"):
-                if self.db.pkg_in_category(app.pkgname, cat.query):
-                    cat_of_app = cat
-                    continue
-        # FIXME: we need to figure out why it does not work with animate=True
-        #        - race ?
-        self.navigation_bar.remove_all(animate=False) # animate *must* be false here
-        if cat_of_app:
-            self.apps_category = cat_of_app
-            self.navigation_bar.add_with_id(cat_of_app.name, 
-                                            self.on_navigation_list,
-                                            NAV_BUTTON_ID_LIST,
-                                            do_callback=False,
-                                            animate=True)
+            if "lobby_only" in cat.flags: continue
+
+            # check toplevel category
+            if self.db.pkg_in_category(app.pkgname, cat.query):
+                category = cat
+                break
+
+        # check if package exists in any subcategory
+        if cat and cat.subcategories:
+            for subcat in cat.subcategories:
+                if self.db.pkg_in_category(app.pkgname, subcat.query):
+                    subcategory = subcat
+                    break
+
+        return category, subcategory
+
+    @wait_for_apt_cache_ready
+    def show_app(self, app):
+        """ Display an application in the available_pane """
+        cat, subcat = self._find_app_categorisation(app)
+        print app.pkgname, cat, subcat
+
+        self.apps_category = cat
+        self.apps_subcategory = subcat
+
+        if self.apps_subcategory:
+            self.current_app_by_subcategory[self.apps_subcategory] = app
         else:
-            self.apps_category = Category("deb", "deb", None, None, False, True, None)
-        self.current_app_by_category[self.apps_category] = app
-        details = app.get_details(self.db)
-        self.navigation_bar.add_with_id(details.display_name,
-                                        self.on_navigation_details,
-                                        NAV_BUTTON_ID_DETAILS,
-                                        animate=True)
+            self.current_app_by_category[self.apps_category] = app
+
         self.app_details_view.show_app(app)
         self.display_details()
 
