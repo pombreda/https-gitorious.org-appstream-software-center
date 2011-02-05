@@ -285,7 +285,7 @@ class SoftwarePane(gtk.VBox, BasePane):
         """
         if not is_unity_running():
             return
-        self.action_bar.set_label(_("Add this to the launcher?"))
+        self.action_bar.set_label(_("Add %s to the launcher?" % app.name))
         self.action_bar.add_button(ACTION_BUTTON_CANCEL_ADD_TO_LAUNCHER,
                                     _("Not Now"), 
                                     self.on_cancel_add_to_launcher, 
