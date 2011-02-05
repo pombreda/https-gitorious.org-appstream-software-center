@@ -41,9 +41,9 @@ class ActionBar(gtk.HBox):
 
     def __init__(self):
         super(ActionBar, self).__init__()
-        self.set_border_width(4)
         self._btns = gtk.HBox()
         self._label = gtk.HBox()
+        self._label.set_border_width(4)
         # So that all buttons children right align
         self._btn_bin = gtk.Alignment(xalign=1)
         self._btn_bin.add(self._btns)
@@ -71,6 +71,7 @@ class ActionBar(gtk.HBox):
         if overwrite:
             self._btns.remove(overwrite)
         btn = HLinkButton(label)
+        btn.set_border_width(4)
         btn.set_underline(True)
         btn.connect("clicked", self._callback(result, result_args))
         btn.id = id
