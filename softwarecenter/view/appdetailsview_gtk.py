@@ -2452,7 +2452,7 @@ if __name__ == "__main__":
     win = gtk.Window()
     scroll.add(view)
     win.add(scroll)
-    win.set_size_request(600,400)
+    win.set_size_request(800,600)
     win.show_all()
 
     # keep it spinning to test for re-draw issues and memleaks
