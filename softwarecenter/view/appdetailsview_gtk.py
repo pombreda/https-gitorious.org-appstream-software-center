@@ -39,7 +39,6 @@ from softwarecenter.db.reviews import ReviewStats
 from softwarecenter.backend.zeitgeist_simple import zeitgeist_singleton
 from softwarecenter.enums import *
 from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
-from softwarecenter.paths import SOFTWARE_CENTER_CONFIG_DIR
 from softwarecenter.utils import ImageDownloader, GMenuSearcher, uri_to_filename, is_unity_running, upstream_version_compare, upstream_version
 from softwarecenter.gwibber_helper import GWIBBER_SERVICE_AVAILABLE
 
@@ -52,7 +51,7 @@ from widgets.imagedialog import ShowImageDialog
 
 from widgets.reviews import ReviewStatsContainer, StarRating
 
-from softwarecenter.backend.config import SoftwareCenterConfig
+from softwarecenter.backend.config import get_config
 
 if os.path.exists("./softwarecenter/enums.py"):
     sys.path.insert(0, ".")
@@ -990,8 +989,6 @@ class Reviews(gtk.VBox):
         self.set_border_width(6)
 
         self._parent = parent
-        
-        self.logged_in_person = self._get_person_from_config()
         self.reviews = []
 
         label = mkit.EtchedLabel()
@@ -1024,10 +1021,9 @@ class Reviews(gtk.VBox):
         return
 
     def _get_person_from_config(self):
-        cfgfile = os.path.join(SOFTWARE_CENTER_CONFIG_DIR, "submit_reviews.cfg")
-        cfg = SoftwareCenterConfig(cfgfile)
-        if cfg.has_option("reviews", "person"):
-            return cfg.get("reviews", "person")
+        cfg = get_config()
+        if cfg.has_option("reviews", "username"):
+            return cfg.get("reviews", "username")
         return None
 
     def _on_expand(self, expander, param):
@@ -1048,6 +1044,7 @@ class Reviews(gtk.VBox):
         self.emit("new-review")
 
     def _fill(self):
+        self.logged_in_person = self._get_person_from_config()
         if self.reviews:
             for r in self.reviews:
                 pkgversion = self._parent.app_details.version
@@ -1383,7 +1380,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # atk
         self.a11y = self.get_accessible()
         self.a11y.set_name("app_details pane")
-        
 
         # aptdaemon
         self.backend.connect("transaction-started", self._on_transaction_started)
@@ -1404,7 +1400,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.addons_manager = AddonsManager(self)
         self.addons_to_install = self.addons_manager.addons_to_install
         self.addons_to_remove = self.addons_manager.addons_to_remove
-        
 
         # switches
         # Bug #628714 check not only that gwibber is installed but that service accounts exist
@@ -1420,7 +1415,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         #self.main_frame.image.connect_after('expose-event', self._on_icon_expose)
         self.loaded = True
         return
-        
+
     def _on_net_state_changed(self, watcher, state):
         if state == NetState.NM_STATE_DISCONNECTED:
             self._update_reviews_inactive_network()
@@ -2406,6 +2401,13 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
 
 if __name__ == "__main__":
+    def _show_app(view):
+        if view.app.pkgname == "totem":
+            view.show_app(Application("Pithos", "pithos"))
+        else:
+            view.show_app(Application("Movie Player", "totem"))
+        return True
+    
     logging.basicConfig(level=logging.DEBUG)
 
     if len(sys.argv) > 1:
@@ -2453,6 +2455,6 @@ if __name__ == "__main__":
     win.set_size_request(600,400)
     win.show_all()
 
-    #view._config_file_prompt(None, "/etc/fstab", "/tmp/lala")
-
+    # keep it spinning to test for re-draw issues and memleaks
+    glib.timeout_add_seconds(1, _show_app, view)
     gtk.main()

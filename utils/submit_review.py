@@ -348,19 +348,9 @@ class BaseApp(SimpleGtkbuilderApp):
         self.ssoapi.whoami()
 
     def _whoami_done(self, ssologin, result):
-        self._save_person_to_config(result)  #save username to persistent config
         self.display_name = result["displayname"]
         self._create_gratings_api()
         self.login_successful(self.display_name)
-    
-    #method to get username and save to config for use in other parts of the app where required
-    def _save_person_to_config(self, result):
-        if result["username"]:
-            if not self.config.has_section("reviews"):
-                self.config.add_section("reviews")
-            self.config.set("reviews", "person", str(result["username"]))
-            self.config.write()
-        return
 
     def _whoami_error(self, ssologin, e):
         logging.error("whoami error '%s'" % e)
