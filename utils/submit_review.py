@@ -733,33 +733,45 @@ class SubmitReviewsApp(BaseApp):
         return self.gwibber_helper.send_message(msg,account['id'])
 
     def on_transmit_success(self, api, trans):
-        gwibber_success = True
+        """on successful submission of a review, try to send to gwibber as well"""
+        self._run_gwibber_submits(api,trans)
+    
+    def _get_send_accounts(self, sel_index):
+        """return the account referenced by the passed in index, or all accounts
+            if the index of the combo points to the pseudo-sc-all string"""
+        if self.gwibber_accounts[sel_index]["id"] == "pseudo-sc-all":
+            return self.gwibber_accounts
+        else:
+            return [self.gwibber_accounts[i]]
+            
+    def _submit_to_gwibber(self,msg,send_accounts):
+        """for each send_account passed in, try to submit to gwibber
+            then return a list of accounts that failed to submit (empty list if all succeeded"""
         #list of gwibber accounts that failed to submit, used later to allow selective re-send if user desires
-        failed_accounts = []
+        failed_accounts=[]
+        for account in send_accounts:
+            if account["id"]!= "pseudo-sc-all":
+                if not self._post_to_one_gwibber_account(msg, account):
+                    failed_accounts.append(account)
+        return failed_accounts
 
-        # FIXME: factor this out into a method
+    def _run_gwibber_submits(self, api, trans):
+        """check if gwibber send should occur and send via gwibber if so"""
+        gwibber_success = True
         if self.gwibber_checkbutton.get_active():
             i = self.gwibber_combo.get_active()
             msg = (self._gwibber_message())
-
-            # either send to selected account or all
-            if self.gwibber_accounts[i]["id"] == "pseudo-sc-all":
-                send_accounts = self.gwibber_accounts
-            else:
-                send_accounts = [self.gwibber_accounts[i]]
+            send_accounts = self._get_send_accounts(i)
             self._save_gwibber_state(True, self.gwibber_accounts[i]['id'])
-            # submit to gwibber
-            for account in send_accounts:
-                if account["id"] != "pseudo-sc-all":
-                    if not self._post_to_one_gwibber_account(msg, account):
-                        failed_accounts.append(account)
-                        gwibber_success = False
-            if not gwibber_success:
+            #tries to send to gwibber, and gets back any failed accounts
+            failed_accounts = self._submit_to_gwibber(msg,send_accounts)
+            if len(failed_accounts) > 0:
+                gwibber_success = False
                 #FIXME: send an error string to this method instead of empty string
                 self._on_gwibber_fail(api, trans, failed_accounts, "")
         else:
             # prevent _save_gwibber_state from overwriting the account id
-            # in config if the checkbutton was not selected    
+            # in config if the checkbutton was not selected
             self._save_gwibber_state(False, None)
         # run parent handler on gwibber success, otherwise this will be dealt
         # with in _on_gwibber_fail
