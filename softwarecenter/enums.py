@@ -80,6 +80,8 @@ NAV_BUTTON_ID_PREV_PURCHASES = "prev-purchases"
 
 # define ID values for the action bar buttons
 ACTION_BUTTON_ID_INSTALL = "install"
+ACTION_BUTTON_ADD_TO_LAUNCHER = "add_to_launcher"
+ACTION_BUTTON_CANCEL_ADD_TO_LAUNCHER = "cancel_add_to_launcher"
 
 # icons
 MISSING_APP_ICON = "applications-other"
