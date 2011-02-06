@@ -598,8 +598,8 @@ class Addon(gtk.HBox):
         return
 
     def _on_more_clicked(self, more_btn):
-        pane = self.get_ancestor(AppDetailsViewGtk)._pane
-        pane.show_app(self.app)
+        view = self.get_ancestor(AppDetailsViewGtk)
+        view._pane.show_app(self.app)
         return
 
     def get_active(self):

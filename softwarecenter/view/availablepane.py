@@ -551,11 +551,6 @@ class AvailablePane(SoftwarePane):
         self.apps_category = cat
         self.apps_subcategory = subcat
 
-        if self.apps_subcategory:
-            self.current_app_by_subcategory[self.apps_subcategory] = app
-        else:
-            self.current_app_by_category[self.apps_category] = app
-
         self.app_details_view.show_app(app)
         self.display_details()
 
@@ -754,7 +749,7 @@ class AvailablePane(SoftwarePane):
     def on_application_selected(self, appview, app):
         """callback when an app is selected"""
         LOG.debug("on_application_selected: '%s'" % app)
-
+        print 'app selected', app
         if self.apps_subcategory:
             self.current_app_by_subcategory[self.apps_subcategory] = app
         else:
