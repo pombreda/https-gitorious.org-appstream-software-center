@@ -229,6 +229,9 @@ class SoftwarePane(gtk.VBox, BasePane):
         # when the cache changes, refresh the app list
         self.cache.connect("cache-ready", self.on_cache_ready)
         
+        # aptdaemon
+        self.backend.connect("transaction-started", self.on_transaction_started)
+        
         # connect signals
         self.searchentry.connect("terms-changed", self.on_search_terms_changed)
         self.connect("app-list-changed", self.on_app_list_changed)
@@ -275,31 +278,6 @@ class SoftwarePane(gtk.VBox, BasePane):
                                        NAV_BUTTON_ID_DETAILS)
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
         self.app_details_view.show_app(app)
-        self.show_add_to_launcher_panel(app)
-        
-    def show_add_to_launcher_panel(self, app):
-        """
-        if Unity is currently running, display a panel to allow the user
-        the choose whether to add a newly-installed application to the
-        launcher
-        """
-        if not is_unity_running():
-            return
-        self.action_bar.set_label(_("Add %s to the launcher?" % app.name))
-        self.action_bar.add_button(ACTION_BUTTON_CANCEL_ADD_TO_LAUNCHER,
-                                    _("Not Now"), 
-                                    self.on_cancel_add_to_launcher, 
-                                    None)
-        self.action_bar.add_button(ACTION_BUTTON_ADD_TO_LAUNCHER,
-                                   _("Add to Launcher"),
-                                   self.on_add_to_launcher,
-                                   app)        
-        
-    def on_add_to_launcher(self, args):
-        print "callback:  on_add_to_launcher with args: ", args
-        
-    def on_cancel_add_to_launcher(self, args):
-        self.action_bar.clear()
         
     def on_purchase_requested(self, widget, app, url):
         self.navigation_bar.add_with_id(_("Buy"),
@@ -325,6 +303,41 @@ class SoftwarePane(gtk.VBox, BasePane):
     def on_purchase_cancelled_by_user(self, widget):
         # return to the the appdetails view via the button to reset it
         self._click_appdetails_view()
+        
+    def on_transaction_started(self, backend, pkgname):
+        self.query_add_to_launcher(backend, pkgname)
+        
+    def query_add_to_launcher(self, backend, pkgname):
+        """
+        if Unity is currently running, display a panel to allow the user
+        the choose whether to add a newly-installed application to the
+        launcher
+        """
+        if not is_unity_running():
+            return
+        app = Application(pkgname=pkgname)
+        self.action_bar.set_label(_("Add %s to the launcher?" % app.name))
+        self.action_bar.add_button(ACTION_BUTTON_CANCEL_ADD_TO_LAUNCHER,
+                                    _("Not Now"), 
+                                    self.on_cancel_add_to_launcher, 
+                                    None)
+        self.action_bar.add_button(ACTION_BUTTON_ADD_TO_LAUNCHER,
+                                   _("Add to Launcher"),
+                                   self.on_add_to_launcher,
+                                   app)        
+        
+    def on_add_to_launcher(self, args):
+        """
+        callback indicating the user has chosen to add the indicated application
+        to the launcher
+        """
+        print "callback:  on_add_to_launcher with args: ", args
+        # per the spec, we want to send a dbus signal:
+        # com.canonical.Unity.Launcher AddLauncherItemFromPosition (icon, title, icon_x, icon_y, icon_size, desktop_file, aptdaemon_task)
+        self.action_bar.clear()
+        
+    def on_cancel_add_to_launcher(self, args):
+        self.action_bar.clear()
             
     def _click_appdetails_view(self):
         details_button = self.navigation_bar.get_button_from_id(NAV_BUTTON_ID_DETAILS)
