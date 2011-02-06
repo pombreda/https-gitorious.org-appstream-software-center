@@ -292,6 +292,9 @@ class BaseApp(SimpleGtkbuilderApp):
         #submit error image
         self.submit_error_img = gtk.Image()
         self.submit_error_img.set_from_stock(gtk.STOCK_DIALOG_ERROR, gtk.ICON_SIZE_SMALL_TOOLBAR)
+        #submit success image
+        self.submit_success_img = gtk.Image()
+        self.submit_success_img.set_from_stock(gtk.STOCK_APPLY,  gtk.ICON_SIZE_SMALL_TOOLBAR)
         #label size to prevent image or spinner from resizing
         self.label_transmit_status.set_size_request(-1, gtk.icon_size_lookup(gtk.ICON_SIZE_SMALL_TOOLBAR)[1])
         #persistent config
@@ -395,41 +398,60 @@ class BaseApp(SimpleGtkbuilderApp):
     def on_transmit_start(self, api, trans):
         self.button_post.set_sensitive(False)
         self.button_cancel.set_sensitive(False)
-        if self._clear_status_imagery():
-            self.status_hbox.pack_start(self.submit_spinner, False)
-            self.status_hbox.reorder_child(self.submit_spinner, 0)
-            self.submit_spinner.show()
-            self.submit_spinner.start()
-            self.label_transmit_status.set_text(self.SUBMIT_MESSAGE)
+        self._change_status("progress",  self.SUBMIT_MESSAGE)
 
     def on_transmit_success(self, api, trans):
         self.api.shutdown()
         self.quit()
 
     def on_transmit_failure(self, api, trans, error):
-        if self._clear_status_imagery():
-            self.status_hbox.pack_start(self.submit_error_img, False)
-            self.status_hbox.reorder_child(self.submit_error_img, 0)
-            self.submit_error_img.show()
-            self.label_transmit_status.set_text(error)
-            self.button_post.set_sensitive(True)
-            self.button_cancel.set_sensitive(True)
+        self._change_status("success",  error)
+        self.button_post.set_sensitive(True)
+        self.button_cancel.set_sensitive(True)
+            
+    def _change_status(self, type,  message):
+      """"method to separate the updating of status icon/spinner and message in the submit review window,
+         takes a type (progress, fail, success) as a string and a message string then updates status area accordingly
+      """
+      self._clear_status_imagery()
+      if type == "progress":
+         self.status_hbox.pack_start(self.submit_spinner, False)
+         self.status_hbox.reorder_child(self.submit_spinner, 0)
+         self.submit_spinner.show()
+         self.submit_spinner.start()
+         self.label_transmit_status.set_text(message)
+      elif type == "fail":
+         self.status_hbox.pack_start(self.submit_error_img, False)
+         self.status_hbox.reorder_child(self.submit_error_img, 0)
+         self.submit_error_img.show()
+         self.label_transmit_status.set_text(message)
+      elif type == "success":
+         self.status_hbox.pack_start(self.submit_success_img, False)
+         self.status_hbox.reorder_child(self.submit_success_img, 0)
+         self.submit_success_img.show()
+         self.label_transmit_status.set_text(message)
 
     def _clear_status_imagery(self):
         #clears spinner or error image from dialog submission label before trying to display one or the other
-        try: 
+         try: 
             result = self.status_hbox.query_child_packing(self.submit_spinner)
             self.status_hbox.remove(self.submit_spinner)
-        except TypeError:
+         except TypeError:
             pass
         
-        try: 
+         try: 
             result = self.status_hbox.query_child_packing(self.submit_error_img)
             self.status_hbox.remove(self.submit_error_img)
-        except TypeError:
+         except TypeError:
+            pass
+            
+         try: 
+            result = self.status_hbox.query_child_packing(self.submit_success_img)
+            self.status_hbox.remove(self.submit_success_img)
+         except TypeError:
             pass
         
-        return True
+         return
         
             
             
