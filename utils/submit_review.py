@@ -751,7 +751,7 @@ class SubmitReviewsApp(BaseApp):
             passed in
         """
         status_text = _("Posting to %s") % account['service'].capitalize()
-        self.label_transmit_status.set_text(status_text)
+        self._change_status("progress", status_text)
         return self.gwibber_helper.send_message(msg,account['id'])
 
     def on_transmit_success(self, api, trans):
@@ -821,7 +821,7 @@ class SubmitReviewsApp(BaseApp):
         
     
     def _on_gwibber_fail(self, api, trans, failed_accounts, error):
-        
+        self._change_status("fail",_("Problems posting to Gwibber"))
         #list to hold service strings in the format: "Service (@username)"
         failed_services = []
         for account in failed_accounts:
