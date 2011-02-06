@@ -53,15 +53,14 @@ from appdetailsview import AppDetailsViewBase
 
 from widgets import mkit
 from widgets.mkit import EM, ShapeStar
-from widgets.pathbar_gtk_atk import PathPart
 from widgets.reviews import ReviewStatsContainer, StarRating
 
 from widgets.description import AppDescription, TextBlock
 from widgets.thumbnail import ScreenshotThumbnail
 from softwarecenter.distro import get_distro
 
-#from widgets.imagedialog import ShowImageDialog, GnomeProxyURLopener, Url404Error, Url403Error
 from softwarecenter.drawing import color_floats, rounded_rect2, rounded_rect
+from softwarecenter.backend.config import get_config
 
 if os.path.exists("./softwarecenter/enums.py"):
     sys.path.insert(0, ".")
@@ -687,6 +686,8 @@ class Reviews(gtk.VBox):
         gtk.VBox.__init__(self)
         self.set_border_width(6)
 
+        self.logged_in_person = self._get_person_from_config()
+
         self._parent = parent
         self.reviews = []
 
@@ -713,17 +714,28 @@ class Reviews(gtk.VBox):
         self.show_all()
         return
 
+    def _get_person_from_config(self):
+        cfg = get_config()
+        if cfg.has_option("reviews", "username"):
+            return cfg.get("reviews", "username")
+        return None
+
     def _on_button_new_clicked(self, button):
         self.emit("new-review")
 
     def _fill(self):
+
         if self.reviews:
             self.reviews.reverse()  # XXX: sort so that reviews are ordered recent to oldest
                                     # XXX: prob should be done somewhere else
+
             for r in self.reviews:
                 pkgversion = self._parent.app_details.version
-                review = Review(r, pkgversion)
+                review = Review(r, pkgversion, self.logged_in_person)
                 self.vbox.pack_start(review)
+
+        elif get_network_state() == NetState.NM_STATE_CONNECTED:
+            self.vbox.pack_start(NoReviewYet())
         return
 
     def _be_the_first_to_review(self):
@@ -732,6 +744,12 @@ class Reviews(gtk.VBox):
         self.vbox.pack_start(NoReviewYet())
         self.vbox.show_all()
         return
+    
+    def _any_reviews_current_user(self):
+        for review in self.reviews:
+            if self.logged_in_person == review.reviewer_username:
+                return True
+        return False
 
     def finished(self):
         print 'Review count: %s' % len(self.reviews)
@@ -739,8 +757,12 @@ class Reviews(gtk.VBox):
             self._be_the_first_to_review()
         else:
             self.hide_spinner()
-            self.new_review.set_label(_("Write your own review"))
-#            if self.expander.get_expanded():
+
+            if self._any_reviews_current_user():
+                self.new_review.set_label(_("Write another review"))
+            else:
+                self.new_review.set_label(_("Write your own review"))
+
             self._fill()
             self.show_all()
         return
@@ -816,7 +838,7 @@ class Reviews(gtk.VBox):
 
 class Review(gtk.VBox):
     
-    def __init__(self, review_data=None, app_version=None):
+    def __init__(self, review_data=None, app_version=None, logged_in_person=None):
         gtk.VBox.__init__(self, spacing=mkit.SPACING_LARGE)
 
         self.header = gtk.HBox(spacing=mkit.SPACING_MED)
@@ -826,18 +848,20 @@ class Review(gtk.VBox):
         self.pack_start(self.header, False)
         self.pack_start(self.body, False)
         self.pack_start(self.footer, False)
+        
+        self.logged_in_person = logged_in_person
 
         if review_data:
             self.id = review_data.id
             rating = review_data.rating 
-            person = review_data.reviewer_username
+            self.person = review_data.reviewer_username
             summary = review_data.summary
             text = review_data.review_text
             date = self._date_parse(review_data.date_created)
             app_name = review_data.app_name
             # some older version of the server do not set the version
             review_version = getattr(review_data, "version", "")
-            self._build(rating, person, summary, text, date, app_name, review_version, app_version)
+            self._build(rating, self.person, summary, text, date, app_name, review_version, app_version)
         return
 
     def _date_parse(self, raw_date):
@@ -875,13 +899,16 @@ class Review(gtk.VBox):
 
         return s
 
-    def _on_allocate(self, widget, allocation, stars, summary, who_when):
+    def _on_allocate(self, widget, allocation, stars, summary, who_what_when, version_lbl):
         for child in self.body:
             child.set_size_request(allocation.width, -1)
 
         summary.set_size_request(allocation.width - \
                                  stars.allocation.width - \
-                                 who_when.allocation.width - 20, -1)
+                                 who_what_when.allocation.width - 20, -1)
+
+        if version_lbl:
+            version_lbl.set_size_request(int(allocation.width*0.7), -1)
         return
 
     def _on_report_abuse_clicked(self, button):
@@ -890,12 +917,16 @@ class Review(gtk.VBox):
             reviews.emit("report-abuse", self.id)
 
     def _build(self, rating, person, summary, text, date, app_name, review_version, app_version):
-        # all the arguments are may need markup escape, depening on if
+        # all the arguments may need markup escape, depening on if
         # they are used as text or markup
-        m = "<b>%s</b>, %s" % (glib.markup_escape_text(person.capitalize()),
-                               glib.markup_escape_text(date))
-        who_when = gtk.Label(m)
-        who_when.set_use_markup(True)
+        if person == self.logged_in_person:
+            m = "%s %s" % (_("This is your review, submitted on"),
+                                glib.markup_escape_text(date))
+        else:
+            m = "<b>%s</b>, %s" % (glib.markup_escape_text(person),
+                                glib.markup_escape_text(date))
+        who_what_when = gtk.Label(m)
+        who_what_when.set_use_markup(True)
 
         summary = gtk.Label('<b>%s</b>' % glib.markup_escape_text(summary))
         summary.set_use_markup(True)
@@ -911,12 +942,13 @@ class Review(gtk.VBox):
 
         self.header.pack_start(stars, False)
         self.header.pack_start(summary, False)
-        self.header.pack_end(who_when, False)
+        self.header.pack_end(who_what_when, False)
 
         self.body.pack_start(text, False)
         
         #if review version is different to version of app being displayed, 
         # alert user
+        version_lbl = None
         if (review_version and 
             upstream_version_compare(review_version, app_version) != 0):
             version_string = _("This review was written for a different version of %(app_name)s (Version: %(version)s)") % { 
@@ -939,14 +971,17 @@ class Review(gtk.VBox):
         self.footer.pack_end(self.complain, False)
         self.complain.connect('clicked', self._on_report_abuse_clicked)
 
-        self.body.connect('size-allocate', self._on_allocate, stars, summary, who_when)
+        self.body.connect('size-allocate', self._on_allocate, stars, summary, who_what_when, version_lbl)
         return
 
     def draw(self, cr, a):
         cr.save()
         rr = mkit.ShapeRoundedRectangle()
         rr.layout(cr, a.x-6, a.y-5, a.x+a.width+6, a.y+a.height+5, radius=3)
-        cr.set_source_rgba(1,1,1,0.7)
+        if self.person == self.logged_in_person:
+            cr.set_source_rgba(0.8,0.8,0.8,0.5)
+        else:
+            cr.set_source_rgba(1,1,1,0.7)
         cr.fill()
         cr.set_source_rgb(*mkit.floats_from_string('#E6BC26'))
         rr.layout(cr, a.x-5.5, a.y-4.5, a.x+a.width+5.5, a.y+a.height+4.5, radius=3)
@@ -2144,6 +2179,13 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
 
 if __name__ == "__main__":
+    def _show_app(view):
+        if view.app.pkgname == "totem":
+            view.show_app(Application("Pithos", "pithos"))
+        else:
+            view.show_app(Application("Movie Player", "totem"))
+        return True
+    
     logging.basicConfig(level=logging.DEBUG)
 
     if len(sys.argv) > 1:
@@ -2191,6 +2233,6 @@ if __name__ == "__main__":
     win.set_size_request(600,400)
     win.show_all()
 
-    #view._config_file_prompt(None, "/etc/fstab", "/tmp/lala")
-
+    # keep it spinning to test for re-draw issues and memleaks
+    glib.timeout_add_seconds(1, _show_app, view)
     gtk.main()

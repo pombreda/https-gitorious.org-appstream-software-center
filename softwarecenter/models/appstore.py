@@ -158,6 +158,7 @@ class AppStore(gtk.GenericTreeModel):
         self.active_app = None
         self._prev_active_app = 0
         self.limit = limit
+        self._existing_apps = None
         # keep track of indicies for transactions in progress
         self.transaction_index_map = {}
         # no search query means "all"
@@ -450,11 +451,6 @@ class AppStore(gtk.GenericTreeModel):
                 return False
             elif column == self.COL_PKGNAME:
                 return app.pkgname
-#<<<<<<< TREE
-#=======
-#            elif column == self.COL_POPCON:
-#                return 0
-#>>>>>>> MERGE-SOURCE
             elif column == self.COL_RATING:
                 return 0
             elif column == self.COL_IS_ACTIVE:
