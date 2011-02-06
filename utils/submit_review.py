@@ -405,7 +405,7 @@ class BaseApp(SimpleGtkbuilderApp):
         self.quit()
 
     def on_transmit_failure(self, api, trans, error):
-        self._change_status("success",  error)
+        self._change_status("fail",  error)
         self.button_post.set_sensitive(True)
         self.button_cancel.set_sensitive(True)
             
