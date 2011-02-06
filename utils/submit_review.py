@@ -410,26 +410,25 @@ class BaseApp(SimpleGtkbuilderApp):
         self.button_cancel.set_sensitive(True)
             
     def _change_status(self, type,  message):
-      """"method to separate the updating of status icon/spinner and message in the submit review window,
-         takes a type (progress, fail, success) as a string and a message string then updates status area accordingly
-      """
-      self._clear_status_imagery()
-      if type == "progress":
-         self.status_hbox.pack_start(self.submit_spinner, False)
-         self.status_hbox.reorder_child(self.submit_spinner, 0)
-         self.submit_spinner.show()
-         self.submit_spinner.start()
-         self.label_transmit_status.set_text(message)
-      elif type == "fail":
-         self.status_hbox.pack_start(self.submit_error_img, False)
-         self.status_hbox.reorder_child(self.submit_error_img, 0)
-         self.submit_error_img.show()
-         self.label_transmit_status.set_text(message)
-      elif type == "success":
-         self.status_hbox.pack_start(self.submit_success_img, False)
-         self.status_hbox.reorder_child(self.submit_success_img, 0)
-         self.submit_success_img.show()
-         self.label_transmit_status.set_text(message)
+        """method to separate the updating of status icon/spinner and message in the submit review window,
+         takes a type (progress, fail, success) as a string and a message string then updates status area accordingly"""
+        self._clear_status_imagery()
+        if type == "progress":
+            self.status_hbox.pack_start(self.submit_spinner, False)
+            self.status_hbox.reorder_child(self.submit_spinner, 0)
+            self.submit_spinner.show()
+            self.submit_spinner.start()
+            self.label_transmit_status.set_text(message)
+        elif type == "fail":
+            self.status_hbox.pack_start(self.submit_error_img, False)
+            self.status_hbox.reorder_child(self.submit_error_img, 0)
+            self.submit_error_img.show()
+            self.label_transmit_status.set_text(message)
+        elif type == "success":
+            self.status_hbox.pack_start(self.submit_success_img, False)
+            self.status_hbox.reorder_child(self.submit_success_img, 0)
+            self.submit_success_img.show()
+            self.label_transmit_status.set_text(message)
 
     def _clear_status_imagery(self):
         #clears spinner or error image from dialog submission label before trying to display one or the other
@@ -798,6 +797,7 @@ class SubmitReviewsApp(BaseApp):
         # run parent handler on gwibber success, otherwise this will be dealt
         # with in _on_gwibber_fail
         if gwibber_success:
+            self._gwibber_success_status()
             BaseApp.on_transmit_success(self, api, trans)
     
     def _gwibber_retry_some(self, api, trans, accounts):
@@ -817,8 +817,15 @@ class SubmitReviewsApp(BaseApp):
             #FIXME: send an error string to this method instead of empty string
             self._on_gwibber_fail(api, trans, failed_accounts, "")
         else:
+            self._gwibber_success_status()
             BaseApp.on_transmit_success(self, api, trans)
-        
+    
+    def _gwibber_success_status(self):
+        """Updates status area to show Gwibber success for 2 seconds then allows window to proceed"""
+        self._change_status("success", _("Successfully posted via Gwibber"))
+        while gtk.events_pending():
+            gtk.main_iteration(False)
+        time.sleep(2)
     
     def _on_gwibber_fail(self, api, trans, failed_accounts, error):
         self._change_status("fail",_("Problems posting to Gwibber"))
