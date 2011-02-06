@@ -929,6 +929,7 @@ class Review(gtk.VBox):
             version_lbl = gtk.Label("<small><i>%s</i></small>" % version_string)
             version_lbl.set_use_markup(True)
             version_lbl.set_padding(0,3)
+            version_lbl.set_alignment(0, 0.5)
             self.footer.pack_start(version_lbl, False)
         
         #like = mkit.VLinkButton('<small>%s</small>' % _('This review was useful'))
