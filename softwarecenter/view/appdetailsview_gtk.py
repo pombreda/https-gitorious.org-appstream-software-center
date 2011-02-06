@@ -510,19 +510,6 @@ class Addon(gtk.HBox):
         self.connect('realize', self._on_realize, icons, pkgname)
         return
 
-    def _on_press(self, w, e, more):
-        x, y = e.x, e.y
-
-        mr = gtk.gdk.region_rectangle(more.allocation)
-        if mr.point_in(int(x+w.allocation.x), int(w.allocation.y+y)):
-            more.set_state(gtk.STATE_ACTIVE)
-            more.queue_draw()
-            return True
-
-    def _on_release(self, w, e, more):
-        more.set_state(gtk.STATE_NORMAL)
-        gobject.timeout_add(50, self._on_more_clicked, more)
-
     def _on_realize(self, widget, icons, pkgname):
         # icon
         hbox = gtk.HBox(spacing=6)
@@ -553,13 +540,6 @@ class Addon(gtk.HBox):
         self.title.set_ellipsize(pango.ELLIPSIZE_END)
         hbox.pack_start(self.title)
 
-        more = mkit.MoreLabel()
-        more.set_markup(_('More Info'))
-
-        a = gtk.Alignment(0.5, 0.5)
-        a.add(more)
-        hbox.pack_end(a)
-
         loader = self.get_ancestor(AppDetailsViewGtk).review_loader
         stats = loader.get_review_stats(self.app)
         if stats != None:
@@ -569,11 +549,7 @@ class Addon(gtk.HBox):
 
         self.checkbutton.add(hbox)
 
-        more.connect('expose-event', self._on_more_expose)
         self.connect('size-allocate', self._on_allocate, self.title)
-
-        self.checkbutton.connect('button-press-event', self._on_press, more)
-        self.checkbutton.connect('button-release-event', self._on_release, more)
 
         # a11y
         self.a11y = self.checkbutton.get_accessible()
@@ -595,11 +571,6 @@ class Addon(gtk.HBox):
             return True
         cr = w.window.cairo_create()
         w.draw(cr, w.allocation, e.area)
-        return
-
-    def _on_more_clicked(self, more_btn):
-        view = self.get_ancestor(AppDetailsViewGtk)
-        view._pane.show_app(self.app)
         return
 
     def get_active(self):
