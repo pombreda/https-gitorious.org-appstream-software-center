@@ -742,7 +742,7 @@ class SubmitReviewsApp(BaseApp):
         if self.gwibber_accounts[sel_index]["id"] == "pseudo-sc-all":
             return self.gwibber_accounts
         else:
-            return [self.gwibber_accounts[i]]
+            return [self.gwibber_accounts[sel_index]]
             
     def _submit_to_gwibber(self,msg,send_accounts):
         """for each send_account passed in, try to submit to gwibber
