@@ -870,7 +870,7 @@ class Review(gtk.VBox):
 
         return s
 
-    def _on_allocate(self, widget, allocation, stars, summary, who_what_when, version_lbl):
+    def _on_allocate(self, widget, allocation, stars, summary, who_what_when, version_lbl, flag):
         for child in self.body:
             child.set_size_request(allocation.width, -1)
 
@@ -879,7 +879,7 @@ class Review(gtk.VBox):
                                  who_what_when.allocation.width - 20, -1)
 
         if version_lbl:
-            version_lbl.set_size_request(int(allocation.width*0.7), -1)
+            version_lbl.set_size_request(allocation.width-flag.allocation.width-20, -1)
         return
 
     def _on_report_abuse_clicked(self, button):
@@ -929,6 +929,7 @@ class Review(gtk.VBox):
             version_lbl = gtk.Label("<small><i>%s</i></small>" % version_string)
             version_lbl.set_use_markup(True)
             version_lbl.set_padding(0,3)
+            version_lbl.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
             version_lbl.set_alignment(0, 0.5)
             self.footer.pack_start(version_lbl, False)
         
@@ -943,7 +944,7 @@ class Review(gtk.VBox):
         self.footer.pack_end(self.complain, False)
         self.complain.connect('clicked', self._on_report_abuse_clicked)
 
-        self.body.connect('size-allocate', self._on_allocate, stars, summary, who_what_when, version_lbl)
+        self.body.connect('size-allocate', self._on_allocate, stars, summary, who_what_when, version_lbl, self.complain)
         return
 
     def draw(self, cr, a):
