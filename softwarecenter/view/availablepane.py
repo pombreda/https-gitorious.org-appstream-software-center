@@ -467,6 +467,7 @@ class AvailablePane(SoftwarePane):
         # just re-draw in the available pane, nothing but the
         # "is-installed" overlay icon will change when something
         # is installed or removed in the available pane
+        print 'OnCacheReady'
         self.app_view.queue_draw()
 
     def on_search_terms_changed(self, widget, new_text):
@@ -508,7 +509,7 @@ class AvailablePane(SoftwarePane):
 
     def on_db_reopen(self, db):
         " called when the database is reopened"
-        #print "on_db_open"
+        print "on_db_open"
         self.refresh_apps()
         self.app_details_view.refresh_app()
 

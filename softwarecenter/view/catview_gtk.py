@@ -32,7 +32,7 @@ MASK_SURFACE_CACHE = {}
 
 # MAX_POSTER_COUNT should be a number less than the number of featured apps
 CAROUSEL_MAX_POSTER_COUNT =      8
-CAROUSEL_MIN_POSTER_COUNT =      1
+CAROUSEL_MIN_POSTER_COUNT =      2
 CAROUSEL_ICON_SIZE =             4*mkit.EM
 
 #CAROUSEL_POSTER_CORNER_RADIUS =  int(0.8*mkit.EM)    
@@ -574,6 +574,7 @@ class LobbyViewGtk(CategoriesViewGtk):
     def build(self, desktopdir):
         self.categories = self.parse_applications_menu(desktopdir)
         self.header = _('Departments')
+        print 'Build'
         self._build_homepage_view()
         return
 

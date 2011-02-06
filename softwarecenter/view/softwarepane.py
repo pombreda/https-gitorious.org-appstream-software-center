@@ -476,7 +476,8 @@ class SoftwarePane(gtk.VBox, BasePane):
             self.emit("app-list-changed", len(self.app_view.get_model()))
             return
 
-        self.show_appview_spinner()
+        if not self.is_category_view_showing():
+            self.show_appview_spinner()
         self._refresh_apps_with_apt_cache(query)
 
     @wait_for_apt_cache_ready
