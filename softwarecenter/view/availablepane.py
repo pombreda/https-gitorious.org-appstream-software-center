@@ -232,6 +232,96 @@ class AvailablePane(SoftwarePane):
             self.notebook.set_current_page(self.PAGE_SUBCATEGORY)
         else:
             self.notebook.set_current_page(self.PAGE_APPLIST)
+#<<<<<<< TREE
+#            self.update_app_view()
+
+#    def refresh_apps(self, query=None):
+#        """refresh the applist and update the navigation bar
+#        """
+#        logging.debug("refresh_apps")
+#        self._logger.debug("refresh_apps")
+
+#        self.show_appview_spinner()
+#        if self.subcategories_view.window:
+#            self.subcategories_view.window.set_cursor(self.busy_cursor)
+#        if self.scroll_app_list.window:
+#            self.scroll_app_list.window.set_cursor(self.busy_cursor)
+#        self._refresh_apps_with_apt_cache()
+
+#    @wait_for_apt_cache_ready
+#    def _refresh_apps_with_apt_cache(self, query=None):
+#        self.refresh_seq_nr += 1
+#        # build query
+#        query = self._get_query()
+#        self._logger.debug("availablepane query: %s" % query)
+
+#        old_model = self.app_view.get_model()
+
+#        # if a search is not in progress, clear the current model to
+#        # display an empty list while the full list is generated; this
+#        # prevents a visual glitch when a list is replaced
+#        if not self.apps_search_term:
+#            self.app_view.clear_model()
+#        
+#        if old_model is not None:
+#            # *ugh* deactivate the old model because otherwise it keeps
+#            # getting progress_changed events and eats CPU time until its
+#            # garbage collected
+#            old_model.active = False
+#            while gtk.events_pending():
+#                gtk.main_iteration()
+
+#        self._logger.debug("availablepane query: %s" % query)
+#        # create new model and attach it
+#        seq_nr = self.refresh_seq_nr
+#        # special case to disable show/hide nonapps for the "Featured" category
+#        # we do the same for the "System" category (LP: #636854)
+#        if (self.apps_category and 'carousel-only' not in self.apps_category.flags):
+#            self.nonapps_visible = AppStore.NONAPPS_ALWAYS_VISIBLE
+#            self.disable_show_hide_nonapps = True
+#        else:
+#            self.disable_show_hide_nonapps = False
+#        # In custom list mode, search should yield the exact package name.
+#        new_model = AppStore(self.cache,
+#                             self.db,
+#                             self.icons,
+#                             query,
+#                             limit=self._get_item_limit(),
+#                             sortmode=self._get_sort_mode(),
+#                             exact=self.custom_list_mode,
+#                             nonapps_visible = self.nonapps_visible,
+#                             filter=self.apps_filter)
+#        #print "new_model", new_model, len(new_model), seq_nr
+#        # between request of the new model and actual delivery other
+#        # events may have happend
+#        if seq_nr != self.refresh_seq_nr:
+#            self._logger.info("discarding new model (%s != %s)" % (seq_nr, self.refresh_seq_nr))
+#            return False
+
+#        # set model
+#        self.app_view.set_model(new_model)
+#        self.app_view.get_model().active = True
+
+#        # check if we show subcategory
+#        self._show_hide_subcategories()
+#        self.hide_appview_spinner()
+#        # we can not use "new_model" here, because set_model may actually
+#        # discard new_model and just update the previous one
+#        self.emit("app-list-changed", len(self.app_view.get_model()))
+#        if self.app_view.window:
+#            self.app_view.window.set_cursor(None)
+#        if self.subcategories_view.window:
+#            self.subcategories_view.window.set_cursor(None)
+#        if self.cat_view.window:
+#            self.cat_view.window.set_cursor(None)
+#        if self.app_details.window:
+#            self.cat_view.window.set_cursor(None)
+#        if self.scroll_app_list.window:
+#            self.scroll_app_list.window.set_cursor(None)
+
+#        return False
+#=======
+#>>>>>>> MERGE-SOURCE
 
     def update_navigation_button(self):
         """Update the navigation button"""
@@ -351,6 +441,7 @@ class AvailablePane(SoftwarePane):
         '''
         update buttons in the action bar
         '''
+        return
         appstore = self.app_view.get_model()
         if (appstore and
             self.custom_list_mode and 
@@ -426,38 +517,40 @@ class AvailablePane(SoftwarePane):
         self.custom_list_mode = False
         self.navigation_bar.remove_id(NAV_BUTTON_ID_SEARCH)
 
-    @wait_for_apt_cache_ready
-    def show_app(self, app):
-        """ Display an application in the available_pane """
-        cat_of_app = None
+    def _find_app_categorisation(self, app):
         # FIXME: it would be great to extract this code so that
         #        we can use it to show the category in search hits
         #        as well
+
+        category = None
+        subcategory = None
+
         for cat in CategoriesView.parse_applications_menu(self.cat_view, APP_INSTALL_PATH):
-            if (not cat_of_app and 
-                cat.untranslated_name != "New Applications" and 
-                cat.untranslated_name != "Featured Applications"):
-                if self.db.pkg_in_category(app.pkgname, cat.query):
-                    cat_of_app = cat
-                    continue
-        # FIXME: we need to figure out why it does not work with animate=True
-        #        - race ?
-        self.navigation_bar.remove_all(animate=False) # animate *must* be false here
-        if cat_of_app:
-            self.apps_category = cat_of_app
-            self.navigation_bar.add_with_id(cat_of_app.name, 
-                                            self.on_navigation_list,
-                                            NAV_BUTTON_ID_LIST,
-                                            do_callback=False,
-                                            animate=True)
-        else:
-            self.apps_category = Category("deb", "deb", None, None, False, True, None)
-        self.current_app_by_category[self.apps_category] = app
-        details = app.get_details(self.db)
-        self.navigation_bar.add_with_id(details.display_name,
-                                        self.on_navigation_details,
-                                        NAV_BUTTON_ID_DETAILS,
-                                        animate=True)
+            if "lobby_only" in cat.flags: continue
+
+            # check toplevel category
+            if self.db.pkg_in_category(app.pkgname, cat.query):
+                category = cat
+                break
+
+        # check if package exists in any subcategory
+        if cat and cat.subcategories:
+            for subcat in cat.subcategories:
+                if self.db.pkg_in_category(app.pkgname, subcat.query):
+                    subcategory = subcat
+                    break
+
+        return category, subcategory
+
+    @wait_for_apt_cache_ready
+    def show_app(self, app):
+        """ Display an application in the available_pane """
+        cat, subcat = self._find_app_categorisation(app)
+        print app.pkgname, cat, subcat
+
+        self.apps_category = cat
+        self.apps_subcategory = subcat
+
         self.app_details_view.show_app(app)
         self.display_details()
 
@@ -657,7 +750,7 @@ class AvailablePane(SoftwarePane):
     def on_application_selected(self, appview, app):
         """callback when an app is selected"""
         LOG.debug("on_application_selected: '%s'" % app)
-
+        print 'app selected', app
         if self.apps_subcategory:
             self.current_app_by_subcategory[self.apps_subcategory] = app
         else:

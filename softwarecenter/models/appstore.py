@@ -32,6 +32,7 @@ from softwarecenter.utils import *
 from softwarecenter.backend import get_install_backend
 from softwarecenter.db.reviews import get_review_loader
 from softwarecenter.db.database import Application, SearchQuery, LocaleSorter
+
 from softwarecenter.distro import get_distro
 from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
 
@@ -132,7 +133,7 @@ class AppStore(gtk.GenericTreeModel):
         # invalidate the cache on icon theme changes
         self.icons.connect("changed", self._clear_app_icon_cache)
         self._appicon_missing_icon = self.icons.load_icon(MISSING_APP_ICON, self.icon_size, 0)
-        self.apps = []
+        self.apps = []  # XXX: does this actually get used anymore???
         self.sortmode = sortmode
         # we need a copy of the filter here because otherwise comparing
         # two models will not work

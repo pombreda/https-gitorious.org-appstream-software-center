@@ -33,14 +33,21 @@ from softwarecenter.enums import *
 from softwarecenter.utils import *
 from softwarecenter.backend import get_install_backend
 from softwarecenter.db.database import StoreDatabase, Application
+
+#from softwarecenter.db.reviews import get_review_loader
+#from softwarecenter.backend import get_install_backend
+#from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
+
 from softwarecenter.distro import get_distro
 from softwarecenter.models.appstore import AppStore
 
 from widgets.mkit import get_em_value, get_mkit_theme, floats_from_gdkcolor_with_alpha, EM
-from widgets.reviews import StarPainterFlat
+from widgets.reviews import StarPainter
+
 from gtk import gdk
 
 from gettext import gettext as _
+
 
 class CellRendererButton2:
 
@@ -305,7 +312,7 @@ class CellRendererAppView2(gtk.CellRendererText):
         # cache a layout
         self._layout = None
         self._nr_reviews_layout = None
-        self._star_painter = StarPainterFlat()
+        self._star_painter = StarPainter()
 
         # icon/overlay jazz
         icons = gtk.icon_theme_get_default()

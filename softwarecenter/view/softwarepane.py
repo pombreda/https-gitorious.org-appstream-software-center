@@ -68,12 +68,14 @@ class SoftwareSection(object):
     def render(self, cr, a):
         # sky
         r,g,b = self._section_color
-        lin = cairo.LinearGradient(a.x,a.y,a.x,a.y+200)
+        lin = cairo.LinearGradient(a.x,a.y,a.x,a.y+150)
         lin.add_color_stop_rgba(0, r,g,b, 0.3)
-        lin.add_color_stop_rgba(1, r,g,b,0)
+        lin.add_color_stop_rgba(1, r,g,b, 0)
         cr.set_source(lin)
-        cr.rectangle(a.x,a.y,
-                     a.width, 200)
+        cr.rectangle(a.x-1,
+                     a.y,
+                     a.width+2,
+                     150)
         cr.fill()
 
         # there is a race here because we create e.g. the installed-page
@@ -85,6 +87,17 @@ class SoftwareSection(object):
             s = cairo.ImageSurface(0, 64, 64)
         cr.set_source_surface(s, a.width-s.get_width(), 0)
         cr.paint()
+
+#        lin = cairo.LinearGradient(0,a.y+a.height-150, 0,a.y+a.height)
+#        lin.add_color_stop_rgba(1, r,g,b, 0.15)
+#        lin.add_color_stop_rgba(0, r,g,b,0)
+#        cr.set_source(lin)
+#        cr.rectangle(a.x-2,
+#                     a.y+a.height-150,
+#                     a.width+4,
+#                     a.y+a.height)
+#        cr.fill()
+
         return
 
     def set_icon(self, icon):
@@ -120,7 +133,6 @@ class SoftwarePane(gtk.VBox, BasePane):
                              ),
     }
     PADDING = 6
-
     # pages for the spinner notebook
     (PAGE_APPVIEW,
      PAGE_SPINNER) = range(2)
@@ -212,12 +224,13 @@ class SoftwarePane(gtk.VBox, BasePane):
         # details
         self.scroll_details = gtk.ScrolledWindow()
         self.scroll_details.set_policy(gtk.POLICY_AUTOMATIC, 
-                                        gtk.POLICY_AUTOMATIC)
+                                        gtk.POLICY_ALWAYS)
         self.app_details_view = AppDetailsView(self.db, 
                                                self.distro,
                                                self.icons, 
                                                self.cache, 
-                                               self.datadir)
+                                               self.datadir,
+                                               self)
         self.app_details_view.connect("purchase-requested",
                                       self.on_purchase_requested)
         self.scroll_details.add(self.app_details_view)

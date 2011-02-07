@@ -1276,9 +1276,11 @@ class LinkButton(gtk.EventBox):
 
         layout = self.label.get_layout()
         attrs = layout.get_attributes()
-        if attrs:
-            attrs.change(attr)
-            layout.set_attributes(attrs)
+        if not attrs:
+            attrs = pango.AttrList()
+
+        attrs.change(attr)
+        layout.set_attributes(attrs)
         return
 
     def _colorise_label_normal(self):
@@ -1295,9 +1297,11 @@ class LinkButton(gtk.EventBox):
 
         layout = self.label.get_layout()
         attrs = layout.get_attributes()
-        if attrs:
-            attrs.change(attr)
-            layout.set_attributes(attrs)
+        if not attrs:
+            attrs = pango.AttrList()
+
+        attrs.change(attr)
+        layout.set_attributes(attrs)
         return
 
     def _cache_image_surface(self, pb):
@@ -1407,17 +1411,18 @@ class EtchedLabel(gtk.Label):
 
         pc = pangocairo.CairoContext(cr)
 
-        x, y = a.x, a.y+1
+        xp, yp = self.get_padding()
+
+        x, y = a.x+xp, a.y+1+yp
+        w, h = a.width, a.height
+
         lw, lh = l.get_pixel_extents()[1][2:]
         ax, ay = self.get_alignment()
 
-        if lw < a.width:
-            x += int((a.width-lw)*ax)
-        if lh < a.height:
-            y += int((a.height-lh)*ay)
-
-        xp, yp = self.get_padding()
-        x += xp
+        if lw < w:
+            x += int((w-2*xp-lw)*ax)
+        if lh < h:
+            y += int((h-2*yp-lh)*ay)
 
         pc.move_to(x, y)
         pc.layout_path(l)
@@ -1549,14 +1554,16 @@ class BubbleLabel(gtk.Label):
         return
 
     def set_text(self, markup):
-        gtk.Label.set_markup(self, '<span color="white"><b>%s</b></span>' % markup)
+        gtk.Label.set_markup(self, '<span color="white">%s</span>' % markup)
         return
 
     def set_markup(self, markup):
-        gtk.Label.set_markup(self, '<span color="white"><b>%s</b></span>' % markup)
+        gtk.Label.set_markup(self, '<span color="white">%s</span>' % markup)
         return
 
-    def draw(self, cr, a):
+    def draw(self, cr, a, event_area):
+        if not self.get_property('visible'): return
+
         cr.save()
         xp = self.get_padding()[0]
         ax, ay = self.get_alignment()
@@ -1568,3 +1575,39 @@ class BubbleLabel(gtk.Label):
         cr.fill()
         cr.restore()
         return
+
+
+class MoreLabel(gtk.EventBox):
+
+    def __init__(self):
+        gtk.EventBox.__init__(self)
+        self.set_visible_window(False)
+
+        self.label = l = EtchedLabel()
+        l.set_alignment(0,0.5)
+        l.set_padding(6, 4)
+
+        self.add(l)
+
+        self.theme = get_mkit_theme()
+        self.shape = SHAPE_RECTANGLE
+
+        self.ishover = False
+        return
+
+    def set_text(self, markup):
+        gtk.Label.set_markup(self.label, '<small>%s</small>' % markup)
+        return
+
+    def set_markup(self, markup):
+        gtk.Label.set_markup(self.label, '<small>%s</small>' % markup)
+        return
+
+    def draw(self, cr, a, event_area):
+        if not self.get_property('visible'): return True
+
+        if self.state == gtk.STATE_PRELIGHT:
+            self.set_state(gtk.STATE_NORMAL)
+        self.theme.paint_bg(cr, self, a.x, a.y+2, a.width, a.height-4)
+        return
+
