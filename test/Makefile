@@ -1,6 +1,6 @@
 #!/usr/bin/make
 
-all: check # mago_test
+all: check  mago_test
 
 check:
 	set -e; \
@@ -16,7 +16,9 @@ clean:
 	set -e; \
 	rm -rf ../data/xapian
 
+
+# mago tests
+MAGO="/home/egon/devel/mago/trunk/bin/mago"
 mago_test:
-	MAGO_SHARE=./mago/ mago -f basic.xml
-	#MAGO_SHARE=./mago/ mago --log-level=debug -f basic.xml
+	PYTHONPATH=.. $(MAGO) mago/test_with_mago.py
 

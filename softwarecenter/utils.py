@@ -18,6 +18,7 @@
 
 import apt
 import apt_pkg
+import atk
 import gmenu
 import gobject
 import gio
@@ -57,6 +58,7 @@ class ExecutionTime(object):
     def __exit__(self, type, value, stack):
         logger = logging.getLogger("softwarecenter.performance")
         logger.debug("%s: %s" % (self.info, time.time() - self.now))
+
 
 def log_traceback(info):
     """

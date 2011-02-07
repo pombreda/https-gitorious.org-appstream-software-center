@@ -7,6 +7,10 @@ software-center (3.1.16) UNRELEASED; urgency=low
     - add appdetails netstatus tests
   * merged lp:~aaronp/software-center/fix-694836, many thanks
     (LP: #694836)
+  * softwarecenter/view/softwarepane.py:
+    - add helper to init atk names so that mago can pick them up
+  * tests/Makefile, test/mago/test_with_mago.py:
+    - use new style mago for search tests and enable in auto-tests
 
   [ Gary Lasker ]
   * softwarecenter/distro/Ubuntu.py,
