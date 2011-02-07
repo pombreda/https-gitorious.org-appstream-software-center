@@ -359,6 +359,7 @@ class SoftwarePane(gtk.VBox, BasePane):
                                       iconname=appdetails.icon_file_name)
         print ">>> icon: ", icon
         print ">>> trans_id: ", trans_id
+        print ">>> appdetails.desktop_file: ", appdetails.desktop_file
         # per the spec, we want to send a dbus signal:
         # com.canonical.Unity.Launcher AddLauncherItemFromPosition (icon, title, icon_x, icon_y, icon_size, desktop_file, aptdaemon_task)
         self.action_bar.clear()
