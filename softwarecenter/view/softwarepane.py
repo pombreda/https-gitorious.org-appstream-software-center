@@ -315,10 +315,10 @@ class SoftwarePane(gtk.VBox, BasePane):
         # return to the the appdetails view via the button to reset it
         self._click_appdetails_view()
         
-    def on_transaction_started(self, backend, pkgname, appname, trans_type):
-        self.show_add_to_launcher_panel(backend, pkgname, appname, trans_type)
+    def on_transaction_started(self, backend, pkgname, appname, trans_id, trans_type):
+        self.show_add_to_launcher_panel(backend, pkgname, appname, trans_id, trans_type)
         
-    def show_add_to_launcher_panel(self, backend, pkgname, appname, trans_type):
+    def show_add_to_launcher_panel(self, backend, pkgname, appname, trans_id, trans_type):
         """
         if Unity is currently running, display a panel to allow the user
         the choose whether to add a newly-installed application to the
@@ -345,9 +345,10 @@ class SoftwarePane(gtk.VBox, BasePane):
                                    _("Add to Launcher"),
                                    self.on_add_to_launcher,
                                    app,
-                                   appdetails)        
+                                   appdetails,
+                                   trans_id)        
         
-    def on_add_to_launcher(self, app, appdetails):
+    def on_add_to_launcher(self, app, appdetails, trans_id):
         """
         callback indicating the user has chosen to add the indicated application
         to the launcher
@@ -357,6 +358,7 @@ class SoftwarePane(gtk.VBox, BasePane):
         icon = get_icon_from_iconname(self.icons,
                                       iconname=appdetails.icon_file_name)
         print ">>> icon: ", icon
+        print ">>> trans_id: ", trans_id
         # per the spec, we want to send a dbus signal:
         # com.canonical.Unity.Launcher AddLauncherItemFromPosition (icon, title, icon_x, icon_y, icon_size, desktop_file, aptdaemon_task)
         self.action_bar.clear()
