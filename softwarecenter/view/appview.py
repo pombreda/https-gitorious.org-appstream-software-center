@@ -410,12 +410,12 @@ class CellRendererAppView2(gtk.CellRendererText):
             x = cell_area.x + cell_area.width - xpad - (self.MAX_STARS-i)*sw
             y = cell_area.y + ypad
             if i < int(self.rating):
-                self._star_painter.set_fill(StarPainterFlat.FILL_FULL)
+                self._star_painter.set_fill(StarPainter.FILL_FULL)
             elif (i == int(self.rating) and 
                   self.rating - int(self.rating) > 0):
-                self._star_painter.set_fill(StarPainterFlat.FILL_HALF)
+                self._star_painter.set_fill(StarPainter.FILL_HALF)
             else:
-                self._star_painter.set_fill(StarPainterFlat.FILL_EMPTY)
+                self._star_painter.set_fill(StarPainter.FILL_EMPTY)
             self._star_painter.paint_star(cr, widget, state, x, y, sw, sh)
 
         # and nr-reviews below

@@ -994,7 +994,6 @@ class LayoutView2(gtk.HBox):
         if n_cols > old_n_cols:
             for i in range(old_n_cols, n_cols):
                 col = gtk.VBox(spacing=yspacing)
-                col.set_resize_mode(gtk.RESIZE_IMMEDIATE)
                 self.pack_start(col)
 
         cols = self.get_children()

@@ -36,7 +36,7 @@ CAROUSEL_MIN_POSTER_COUNT =      2
 CAROUSEL_ICON_SIZE =             4*mkit.EM
 
 #CAROUSEL_POSTER_CORNER_RADIUS =  int(0.8*mkit.EM)    
-CAROUSEL_POSTER_MIN_WIDTH =      14*mkit.EM
+CAROUSEL_POSTER_MIN_WIDTH =      18*mkit.EM
 CAROUSEL_POSTER_MIN_HEIGHT =     min(64, 4*mkit.EM) + 5*mkit.EM
 CAROUSEL_PAGING_DOT_SIZE =       max(8, int(0.6*mkit.EM+0.5))
 
@@ -817,61 +817,33 @@ class CarouselView(gtk.VBox):
         self._alpha = 1.0
         self._fader = 0
         self._layout = None
+        self._height = -1
 
         self.show_all()
 
         self.page_sel.connect('page-selected', self._on_page_clicked)
-        self.connect('style-set', self._on_style_set)
-        return
-
-    def _on_style_set(self, widget, old_style):
-        self.more_btn.label.realize()
-        self.more_btn.label.modify_text(gtk.STATE_NORMAL, self.style.dark[gtk.STATE_NORMAL])
         return
 
     def _on_page_clicked(self, page_sel, page):
         self._offset = page*self.n_posters
         self.stop(); self.start()
         self.transition()
-#        self._update_poster_content()
-#        self._alpha = 1.0
-#        self.queue_draw()
-#        self.start()
         return
-
-    #def _cache_overlay_image(self, overlay_icon_name, overlay_size=16):
-        #icons = gtk.icon_theme_get_default()
-        #try:
-            #self._overlay = icons.load_icon(overlay_icon_name,
-                                            #overlay_size, 0)
-        #except glib.GError:
-            ## icon not present in theme, probably because running uninstalled
-            #self._overlay = icons.load_icon('emblem-system',
-                                            #overlay_size, 0)
-        #return
-
 
     @wait_for_apt_cache_ready
     def _build_view(self, width):
         if not self.carousel_apps or len(self.carousel_apps) == 0:
             return
 
-        # number of posters we should have given available space
-        n = width / CAROUSEL_POSTER_MIN_WIDTH - 1
-        n = max(CAROUSEL_MIN_POSTER_COUNT, n)
-        n = min(CAROUSEL_MAX_POSTER_COUNT, n)
+        old_n_cols = len(self.hbox.get_children())
+        n_cols = max(2, width / (CAROUSEL_POSTER_MIN_WIDTH + self.hbox.get_spacing()))
 
-        # do nothing if the the new number of posters matches the
-        # old number of posters
-        if n == self.n_posters: return
+        if old_n_cols == n_cols: return True
 
-        # repack appropriate number of new posters (and make sure
-        # we do not try to show more than we have)
-        
-        # if n is smaller than our previous number of posters,
+        # if n_cols is smaller than our previous number of posters,
         # then we remove just the right number of posters from the carousel
-        if n < self.n_posters:
-            n_remove = self.n_posters - n
+        if n_cols < self.n_posters:
+            n_remove = self.n_posters - n_cols
 #            self._offset -= n_remove
             for i in range(n_remove):
                 poster = self.posters[i]
@@ -882,27 +854,26 @@ class CarouselView(gtk.VBox):
         # if n is greater than our previous number of posters,
         # we need to pack in extra posters
         else:
-            n_add = n - self.n_posters
+            n_add = n_cols - self.n_posters
             for i in range(n_add):
                 poster = CarouselPoster2(self.carousel_apps.db,
                                          self.carousel_apps.cache,
                                          icon_size=self._icon_size,
                                          icons=self.icons)
 
-                
                 self.posters.append(poster)
                 self.hbox.pack_start(poster)
                 poster.show()
 
         # set how many PagingDot's the PageSelector should display
-        pages = float(len(self.carousel_apps)) / n
+        pages = float(len(self.carousel_apps)) / n_cols
         #print "pages: ", pages
         if pages - int(pages) > 0.0:
             pages += 1
 
         #print len(self.carousel_apps), n, pages
         self.page_sel.set_n_pages(int(pages))
-        self.n_posters = n
+        self.n_posters = n_cols
 
         self._update_pagesel()
         self.get_ancestor(LobbyViewGtk)._cleanup_poster_sigs()
@@ -1301,6 +1272,8 @@ class CarouselPoster2(Button):
         self.app = None
         self.alpha = 1.0
         self._cacher = 0
+        
+        self._height = 0
 
         self._surf_cache = None
 
@@ -1348,6 +1321,10 @@ class CarouselPoster2(Button):
     def _on_allocate(self, w, allocation, label):
         w = allocation.width - self.icon_size - self.hbox.get_spacing() - 2*self.hbox.get_border_width()
         label.set_size_request(max(1, w), -1)
+
+        if allocation.height > self._height:
+            self.set_size_request(-1, allocation.height)
+            self._height = allocation.height
 
         # cache an ImageSurface for transitions
         self._cache_surf()
