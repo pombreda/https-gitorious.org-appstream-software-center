@@ -20,5 +20,6 @@ clean:
 # mago tests
 MAGO="/home/egon/devel/mago/trunk/bin/mago"
 mago_test:
-	PYTHONPATH=.. $(MAGO) mago/test_with_mago.py
+	# -sv makes mago not buffer output
+	PYTHONPATH=.. $(MAGO) -sv mago/test_with_mago.py
 

@@ -57,16 +57,21 @@ class TestSoftwareCenter(TestCase):
     btnForwardButton = "btnForwardButton"
 
     # available pane
-    availableViewAppView = "AvailablePane.app_view"
-    availableViewSearchEntry = "AvailablePane.searchentry"
+    availablePaneAppView = "AvailablePane.app_view"
+    availablePaneSearchEntry = "AvailablePane.searchentry"
     
     def test_search_simple(self):
         context = ooldtp.context(self.window_name)
-        context.enterstring(self.availableViewSearchEntry, "apt")
+        context.enterstring(self.availablePaneSearchEntry, "apt")
         ldtp.wait(1)
-        row_count = context.getrowcount(self.availableViewAppView)
-        # ensure we get hits
+        row_count = context.getrowcount(self.availablePaneAppView)
+        # ensure we get enough hits
         self.assertTrue(row_count > 10)
+        # ensure apt is the first hit
+        row = 0
+        column = 0
+        text = context.getcellvalue(self.availablePaneAppView, row, column)
+        self.assertEqual(text, "\nInstalled\nAdvanced front-end for dpkg")
 
     def xxx_test_TEMPLATE(self):
         """This a test template

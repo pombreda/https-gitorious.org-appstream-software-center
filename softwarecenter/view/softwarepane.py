@@ -258,7 +258,6 @@ class SoftwarePane(gtk.VBox, BasePane):
         """
         name =  self.__class__.__name__ + "." + name
         atk.Object.set_name(widget.get_accessible(), name)
-        print name
 
     def on_cache_ready(self, cache):
         " refresh the application list when the cache is re-opened "
