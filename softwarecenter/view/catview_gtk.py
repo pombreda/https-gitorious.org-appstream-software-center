@@ -41,11 +41,11 @@ CAROUSEL_POSTER_MIN_HEIGHT =     min(64, 4*mkit.EM) + 5*mkit.EM
 CAROUSEL_PAGING_DOT_SIZE =       max(8, int(0.6*mkit.EM+0.5))
 
 # as per spec transition timeout should be 15000 (15 seconds)
-CAROUSEL_TRANSITION_TIMEOUT =    15000
+CAROUSEL_TRANSITION_TIMEOUT =    6000
 
 # spec says the fade duration should be 1 second, these values suffice:
 CAROUSEL_FADE_INTERVAL =         25 # msec
-CAROUSEL_FADE_STEP =             0.05 # value between 0.0 and 1.0
+CAROUSEL_FADE_STEP =             0.075 # value between 0.0 and 1.0
 
 H1 = '<big><b>%s<b></big>'
 H2 = '<big>%s</big>'
@@ -1300,8 +1300,9 @@ class CarouselPoster2(Button):
 
         self.app = None
         self.alpha = 1.0
+        self._cacher = 0
 
-        self._height = 1
+        self._surf_cache = None
 
         self._build_ui(icon_size)
 
@@ -1349,61 +1350,81 @@ class CarouselPoster2(Button):
         label.set_size_request(max(1, w), -1)
 
         # cache an ImageSurface for transitions
-        self._surf_cache = self._cache_surf()
+        self._cache_surf()
         return
 
     def _on_expose(self, w, e):
         if self.alpha >= 1.0 or not self._surf_cache: return
+
         a = w.allocation
-        cr = w.window.cairo_create()        
+        cr = w.window.cairo_create()
 
         cr.set_source_surface(self._surf_cache, a.x, a.y)
 
         cr.paint_with_alpha(self.alpha)
         return True
 
-    def _cache_surf(self):
-        if not self.app: return
-        
-        a = self.allocation
+    def _cache_surf(self, force=False):
 
-        surf = cairo.ImageSurface(cairo.FORMAT_ARGB32,
-                                  a.width,
-                                  a.height)
+        def _cache_surf():
+            if not self.app: return
 
-        cr = cairo.Context(surf)
-        cr = gtk.gdk.CairoContext(pangocairo.CairoContext(cr))
+            a = self.allocation
 
-        _a = self.image.allocation
-        pb = self.image.get_pixbuf()
-        w, h = pb.get_width(), pb.get_height()
+#            print 'CacheSurf', self.app[0]
 
-        cr.set_source_pixbuf(self.image.get_pixbuf(),
-                             a.x - _a.x + (_a.width - w)/2,
-                             a.y - _a.y + (_a.height - h)/2)
-        cr.paint()
+            surf = cairo.ImageSurface(cairo.FORMAT_ARGB32,
+                                      a.width,
+                                      a.height)
 
-        cr.set_source_color(self.style.text[self.state])
-        cr.move_to(self.label.allocation.x - a.x, self.label.allocation.y - a.y)
-        cr.layout_path(self.label.get_layout())
-        cr.fill()
+            cr = cairo.Context(surf)
+            cr = gtk.gdk.CairoContext(pangocairo.CairoContext(cr))
 
-        if self.nrreviews.get_property('visible'):
-            cr.move_to(self.nrreviews.allocation.x - a.x,
-                       self.nrreviews.allocation.y - a.y)
-            cr.layout_path(self.nrreviews.get_layout())
+            _a = self.image.allocation
+            pb = self.image.get_pixbuf()
+
+            if pb:
+                w, h = pb.get_width(), pb.get_height()
+
+                cr.set_source_pixbuf(self.image.get_pixbuf(),
+                                     a.x - _a.x + (_a.width - w)/2,
+                                     a.y - _a.y + (_a.height - h)/2)
+                cr.paint()
+
+            cr.set_source_color(self.style.text[self.state])
+            cr.move_to(self.label.allocation.x - a.x, self.label.allocation.y - a.y)
+            cr.layout_path(self.label.get_layout())
             cr.fill()
 
-        if self.rating.get_property('visible'):
-            for star in self.rating.get_stars():
-                sa = star.allocation
-                _a = gtk.gdk.Rectangle(sa.x - a.x, sa.y - a.y, sa.width, sa.height)
-                star.draw(cr, _a)
+            if self.nrreviews.get_property('visible'):
+                cr.move_to(self.nrreviews.allocation.x - a.x,
+                           self.nrreviews.allocation.y - a.y)
+                cr.layout_path(self.nrreviews.get_layout())
+                cr.fill()
 
-        del cr
-        return surf
+            if self.rating.get_property('visible'):
+                for star in self.rating.get_stars():
+                    sa = star.allocation
+                    _a = gtk.gdk.Rectangle(sa.x - a.x, sa.y - a.y, sa.width, sa.height)
+                    star.draw(cr, _a)
+
+            del cr
+
+            self._surf_cache = surf
+            return False
+
+        if self._cacher:
+            gobject.source_remove(self._cacher)
+            self._cacher = 0
+
+        if not force:
+            self._cacher = gobject.idle_add(_cache_surf)
+        else:
+            _cache_surf()
+        return
 
     def set_application(self, app):
+#        print 'NewApplication', app[0]
         self.app = app
 
         a = Application(appname=app[AppStore.COL_APP_NAME],
@@ -1438,14 +1459,12 @@ class CarouselPoster2(Button):
 
             self.nrreviews.set_markup('<small>%s</small>' % s)
 
-#        if a.popcon:
-#            if not self.rating.get_property('visible'): self.rating.show_all()
         self.rating.set_rating(a.popcon)
-#        else:
-#            if self.rating.get_property('visible'): self.rating.hide_all()
 
         # set a11y text
         self.get_accessible().set_name(name)
+
+        self._cache_surf(force=True)
         return
 
     def draw(self, cr, a, event_area, alpha):
