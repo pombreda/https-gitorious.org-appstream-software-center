@@ -40,7 +40,7 @@ from widgets.spinner import SpinnerView
 from softwarecenter.backend import get_install_backend
 from softwarecenter.enums import *
 from softwarecenter.view.basepane import BasePane
-from softwarecenter.utils import wait_for_apt_cache_ready, ExecutionTime, is_unity_running
+from softwarecenter.utils import *
 
 from appview import AppView, AppStore
 from purchaseview import PurchaseView
@@ -331,7 +331,7 @@ class SoftwarePane(gtk.VBox, BasePane):
         appdetails = app.get_details(self.db)
         print ">>> app: ", app
         print ">>> appdetails: \n", appdetails
-        # only prompt for apps with a desktop file
+        # we only show the prompt for apps with a desktop file
         if not appdetails.desktop_file:
             return
         self.action_bar.set_label(_("Add %s to the launcher?" % app.name))
@@ -352,6 +352,9 @@ class SoftwarePane(gtk.VBox, BasePane):
         """
         print ">>> callback:  on_add_to_launcher with app: ", app
         print ">>>                             appdetails: \n", appdetails
+        icon = get_icon_from_iconname(self.icons,
+                                      iconname=appdetails.icon_file_name)
+        print ">>> icon: ", icon
         # per the spec, we want to send a dbus signal:
         # com.canonical.Unity.Launcher AddLauncherItemFromPosition (icon, title, icon_x, icon_y, icon_size, desktop_file, aptdaemon_task)
         self.action_bar.clear()

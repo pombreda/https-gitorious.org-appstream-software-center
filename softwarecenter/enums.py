@@ -86,6 +86,7 @@ ACTION_BUTTON_CANCEL_ADD_TO_LAUNCHER = "cancel_add_to_launcher"
 # icons
 MISSING_APP_ICON = "applications-other"
 MISSING_PKG_ICON = "dialog-question"
+APP_ICON_SIZE = 48
 
 # sorting
 (SORT_UNSORTED,
