@@ -324,15 +324,15 @@ class SoftwarePane(gtk.VBox, BasePane):
         the choose whether to add a newly-installed application to the
         launcher
         """
+        # TODO: handle local deb install case
         if not is_unity_running():
             return
         app = Application(pkgname=pkgname, appname=appname)
         appdetails = app.get_details(self.db)
         print ">>> app: ", app
-        print ">>> appdetails: ", appdetails
+        print ">>> appdetails: \n", appdetails
         # only prompt for apps with a desktop file
         if not appdetails.desktop_file:
-            print ">>> no desktop file for app: ", app
             return
         self.action_bar.set_label(_("Add %s to the launcher?" % app.name))
         self.action_bar.add_button(ACTION_BUTTON_CANCEL_ADD_TO_LAUNCHER,
@@ -351,7 +351,7 @@ class SoftwarePane(gtk.VBox, BasePane):
         to the launcher
         """
         print ">>> callback:  on_add_to_launcher with app: ", app
-        print ">>>                             appdetails: ", appdetails
+        print ">>>                             appdetails: \n", appdetails
         # per the spec, we want to send a dbus signal:
         # com.canonical.Unity.Launcher AddLauncherItemFromPosition (icon, title, icon_x, icon_y, icon_size, desktop_file, aptdaemon_task)
         self.action_bar.clear()
