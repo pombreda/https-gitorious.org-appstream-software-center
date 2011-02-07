@@ -159,6 +159,13 @@ APP_ACTION_REMOVE = "remove"
 APP_ACTION_UPGRADE = "upgrade"
 APP_ACTION_APPLY = "apply_changes"
 
+# transaction types
+TRANSACTION_TYPE_INSTALL = "install"
+TRANSACTION_TYPE_REMOVE = "remove"
+TRANSACTION_TYPE_UPGRADE = "upgrade"
+TRANSACTION_TYPE_APPLY = "apply_changes"
+
+
 from version import *
 USER_AGENT="Software Center/%s (N;) %s/%s (%s)" % (VERSION, 
                                                    DISTRO, 

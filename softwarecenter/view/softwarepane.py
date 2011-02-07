@@ -315,17 +315,19 @@ class SoftwarePane(gtk.VBox, BasePane):
         # return to the the appdetails view via the button to reset it
         self._click_appdetails_view()
         
-    def on_transaction_started(self, backend, pkgname, appname):
-        self.show_add_to_launcher_panel(backend, pkgname, appname)
+    def on_transaction_started(self, backend, pkgname, appname, trans_type):
+        self.show_add_to_launcher_panel(backend, pkgname, appname, trans_type)
         
-    def show_add_to_launcher_panel(self, backend, pkgname, appname):
+    def show_add_to_launcher_panel(self, backend, pkgname, appname, trans_type):
         """
         if Unity is currently running, display a panel to allow the user
         the choose whether to add a newly-installed application to the
         launcher
         """
         # TODO: handle local deb install case
-        if not is_unity_running():
+        # only show the panel if unity is running and this is a package install
+        if (not is_unity_running() or
+           not trans_type == TRANSACTION_TYPE_INSTALL):
             return
         app = Application(pkgname=pkgname, appname=appname)
         appdetails = app.get_details(self.db)
