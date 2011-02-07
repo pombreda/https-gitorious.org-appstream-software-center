@@ -24,8 +24,13 @@ software-center (3.1.16) UNRELEASED; urgency=low
      - change label to click to write a review if user already has
        a review for that package LP: #709738
      - alter review look if it belongs to current user LP: #710396
-  
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 03 Feb 2011 22:41:34 -0500
+
+  [ Matthew McGowan ]
+  * lp:~mmcg069/software-center/tiny-back-forward-tweak:
+    - a small tweak to make the arrow in the back-forward button pick 
+      a better size across a wider range of gtk themes.
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 07 Feb 2011 10:06:57 +0100
 
 software-center (3.1.15) natty; urgency=low
 
