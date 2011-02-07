@@ -315,10 +315,10 @@ class SoftwarePane(gtk.VBox, BasePane):
         # return to the the appdetails view via the button to reset it
         self._click_appdetails_view()
         
-    def on_transaction_started(self, backend, pkgname):
-        self.query_add_to_launcher(backend, pkgname)
+    def on_transaction_started(self, backend, pkgname, appname):
+        self.show_add_to_launcher_panel(backend, pkgname, appname)
         
-    def query_add_to_launcher(self, backend, pkgname):
+    def show_add_to_launcher_panel(self, backend, pkgname, appname):
         """
         if Unity is currently running, display a panel to allow the user
         the choose whether to add a newly-installed application to the
@@ -326,7 +326,14 @@ class SoftwarePane(gtk.VBox, BasePane):
         """
         if not is_unity_running():
             return
-        app = Application(pkgname=pkgname)
+        app = Application(pkgname=pkgname, appname=appname)
+        appdetails = app.get_details(self.db)
+        print ">>> app: ", app
+        print ">>> appdetails: ", appdetails
+        # only prompt for apps with a desktop file
+        if not appdetails.desktop_file:
+            print ">>> no desktop file for app: ", app
+            return
         self.action_bar.set_label(_("Add %s to the launcher?" % app.name))
         self.action_bar.add_button(ACTION_BUTTON_CANCEL_ADD_TO_LAUNCHER,
                                     _("Not Now"), 
@@ -335,14 +342,16 @@ class SoftwarePane(gtk.VBox, BasePane):
         self.action_bar.add_button(ACTION_BUTTON_ADD_TO_LAUNCHER,
                                    _("Add to Launcher"),
                                    self.on_add_to_launcher,
-                                   app)        
+                                   app,
+                                   appdetails)        
         
-    def on_add_to_launcher(self, args):
+    def on_add_to_launcher(self, app, appdetails):
         """
         callback indicating the user has chosen to add the indicated application
         to the launcher
         """
-        print "callback:  on_add_to_launcher with args: ", args
+        print ">>> callback:  on_add_to_launcher with app: ", app
+        print ">>>                             appdetails: ", appdetails
         # per the spec, we want to send a dbus signal:
         # com.canonical.Unity.Launcher AddLauncherItemFromPosition (icon, title, icon_x, icon_y, icon_size, desktop_file, aptdaemon_task)
         self.action_bar.clear()

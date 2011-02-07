@@ -354,7 +354,7 @@ class AppStore(gtk.GenericTreeModel):
     # the following methods ensure that the contents data is refreshed
     # whenever a transaction potentially changes it: see _refresh_contents.
 
-    def _on_transaction_started(self, backend, pkgname):
+    def _on_transaction_started(self, backend, pkgname, appname):
         self._existing_apps = None
         self._installable_apps = None
         self._register_transaction_index_for_pkgname(pkgname)
