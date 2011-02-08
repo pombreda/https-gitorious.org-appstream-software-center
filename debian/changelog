@@ -5,8 +5,6 @@ software-center (3.1.17) UNRELEASED; urgency=low
       we need now
   * test/mago/test_with_mago.py:
     - add scrolldown test
-  * merged lp:~didrocks/software-center/fix-count-tech-items, many
-    thanks to Didier Roche
   * merged lp:~didrocks/software-center/fix-never-visible-tech-items,
     many thanks to Didier Roche
   * softwarecenter/paths.py:

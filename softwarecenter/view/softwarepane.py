@@ -383,19 +383,20 @@ class SoftwarePane(gtk.VBox, BasePane):
         if (appstore and 
             appstore.active and
             self.is_applist_view_showing() and
-            (pkgs - apps) > 0 and
+            pkgs > 0 and 
+            apps > 0 and
             not self.disable_show_hide_nonapps):
             if appstore.nonapps_visible == AppStore.NONAPPS_ALWAYS_VISIBLE:
                 # TRANSLATORS: the text inbetween the underscores acts as a link
                 # In most/all languages you will want the whole string as a link
                 label = gettext.ngettext("_Hide %(amount)i technical item_",
                                          "_Hide %(amount)i technical items_",
-                                         pkgs) % { 'amount': (pkgs - apps), }
+                                         pkgs) % { 'amount': pkgs, }
                 self.action_bar.set_label(label, self._hide_nonapp_pkgs) 
             else:
                 label = gettext.ngettext("_Show %(amount)i technical item_",
                                          "_Show %(amount)i technical items_",
-                                         pkgs) % { 'amount': (pkgs - apps), }
+                                         pkgs) % { 'amount': pkgs, }
                 self.action_bar.set_label(label, self._show_nonapp_pkgs)
 
     def update_search_help(self):
