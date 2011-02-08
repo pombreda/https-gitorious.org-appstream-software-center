@@ -2213,7 +2213,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         #cr.restore()
         #return
 
-    def _get_xy_icon_position_on_screen(self):
+    def get_xy_icon_position_on_screen(self):
         """ helper for unity dbus support to get the x,y position of
             the appicon on the screen
         """
@@ -2222,10 +2222,27 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         while parent.get_parent():
             parent = parent.get_parent()
         # get x, y relative to toplevel
-        (x,y) = self.app_info.image.translate_coordinates(parent, 0, 0)
+        (x,y) = self.main_frame.image.translate_coordinates(parent, 0, 0)
         # get toplevel window position
         (px, py) = parent.get_position()
         return (px+x, py+y)
+        
+    def get_icon_size(self):
+        """
+        helper for unity dbus support to get the size of the largest
+        side of the icon
+        """
+        # TODO: could actually provide all icon information from a single place,
+        #       including the icon pixbuf itself (we get it below)
+        # TODO: is it correct to use this for the default?
+        icon_size = self.APP_ICON_SIZE
+        if self.main_frame.image.get_storage_type() == gtk.IMAGE_PIXBUF:
+            pb = self.main_frame.image.get_pixbuf()
+            if pb.get_width() > pb.get_height():
+                icon_size = pb.get_width()
+            else:
+                icon_size = pb.get_height()
+        return icon_size
 
     def _draw_icon_frame(self, cr):
         # draw small or no icon background

@@ -316,6 +316,11 @@ class SoftwarePane(gtk.VBox, BasePane):
         # return to the the appdetails view via the button to reset it
         self._click_appdetails_view()
         
+    def _click_appdetails_view(self):
+        details_button = self.navigation_bar.get_button_from_id(NAV_BUTTON_ID_DETAILS)
+        if details_button:
+            self.navigation_bar.set_active(details_button)
+        
     def on_transaction_started(self, backend, pkgname, appname, trans_id, trans_type):
         self.show_add_to_launcher_panel(backend, pkgname, appname, trans_id, trans_type)
         
@@ -330,7 +335,7 @@ class SoftwarePane(gtk.VBox, BasePane):
         # only show the panel if unity is running and this is a package install
         if (not is_unity_running() or
             not trans_type == TRANSACTION_TYPE_INSTALL or
-            self.is_applist_view_showing()):
+            not self.is_app_details_view_showing()):
             return
         app = Application(pkgname=pkgname, appname=appname)
         appdetails = app.get_details(self.db)
@@ -354,19 +359,17 @@ class SoftwarePane(gtk.VBox, BasePane):
         callback indicating the user has chosen to add the indicated application
         to the launcher
         """
+        (icon, icon_x, icon_y, icon_size) = self._get_icon_details_for_launcher_service(app,
+                                                                                        appdetails)
         print ">>> callback:  on_add_to_launcher with app: ", app
         print ">>>                             appdetails: \n", appdetails
-        icon = get_icon_from_iconname(self.icons,
-                                      iconname=appdetails.icon_file_name)
         print "icon: ", icon
         print "appdetails.appname: ", app.name
-#        print ">>> icon_x: ", icon_x
-#        print ">>> icon_y: ", icon_y
-#        print ">>> icon_size: ", icon_size
+        print "icon_x: ", icon_x
+        print "icon_y: ", icon_y
+        print "icon_size: ", icon_size
         print "trans_id: ", trans_id
         print "appdetails.desktop_file: ", appdetails.desktop_file
-        # per the spec, we want to send a dbus signal:
-        # com.canonical.Unity.Launcher AddLauncherItemFromPosition (icon, title, icon_x, icon_y, icon_size, desktop_file, aptdaemon_task)
         try:
             bus = dbus.SessionBus()
             launcher_obj = bus.get_object('com.canonical.Unity.Launcher', '/com/canonical/Unity/Launcher')
@@ -382,15 +385,23 @@ class SoftwarePane(gtk.VBox, BasePane):
             LOG.warn("could not connect to launcher via dbus (%s)", e)
         
         self.action_bar.clear()
-        
+
+    def _get_icon_details_for_launcher_service(self, app, appdetails):
+        icon = get_icon_from_iconname(self.icons,
+                                      iconname=appdetails.icon_file_name)
+        if self.is_app_details_view_showing():
+            (icon_x, icon_y) = self.app_details_view.get_xy_icon_position_on_screen()
+            icon_size = self.app_details_view.get_icon_size()
+        elif self.is_applist_view_showing():
+            # TODO: implement this case when it is specified
+            icon_x = None
+            icon_y = None
+            icon_size = None
+        return (icon, icon_x, icon_y, icon_size)
+                                              
     def on_cancel_add_to_launcher(self, args):
         self.action_bar.clear()
-            
-    def _click_appdetails_view(self):
-        details_button = self.navigation_bar.get_button_from_id(NAV_BUTTON_ID_DETAILS)
-        if details_button:
-            self.navigation_bar.set_active(details_button)
-                                       
+                                               
     def show_appview_spinner(self):
         """ display the spinner in the appview panel """
         self.action_bar.clear()
@@ -643,6 +654,11 @@ class SoftwarePane(gtk.VBox, BasePane):
         
     def is_applist_view_showing(self):
         " stub implementation "
+        pass
+        
+    def is_app_details_view_showing(self):
+        " stub implementation "
+        pass
         
     def get_current_app(self):
         " stub implementation "
