@@ -7,6 +7,8 @@ software-center (3.1.17) UNRELEASED; urgency=low
     - add scrolldown test
   * merged lp:~didrocks/software-center/fix-count-tech-items, many
     thanks to Didier Roche
+  * merged lp:~didrocks/software-center/fix-never-visible-tech-items,
+    many thanks to Didier Roche
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 08 Feb 2011 14:23:16 +0100
 
