@@ -36,7 +36,6 @@ import unittest
 
 from mago import TestCase
 
-
 class TestSoftwareCenter(TestCase):
     """The minimal test that can be written with mago
     """
@@ -61,6 +60,7 @@ class TestSoftwareCenter(TestCase):
     availablePaneSearchEntry = "AvailablePane.searchentry"
     
     def test_search_simple(self):
+        """ perform a basic search test """
         context = ooldtp.context(self.window_name)
         context.enterstring(self.availablePaneSearchEntry, "apt")
         ldtp.wait(1)
@@ -72,6 +72,36 @@ class TestSoftwareCenter(TestCase):
         column = 0
         text = context.getcellvalue(self.availablePaneAppView, row, column)
         self.assertEqual(text, "\nInstalled\nAdvanced front-end for dpkg")
+
+    def test_search_scroll_down_hang(self):
+        context = ooldtp.context(self.window_name)
+        ldtp.wait(2)
+        context.enterstring(self.availablePaneSearchEntry, "a")
+        ldtp.wait(1)
+        row_count = context.getrowcount(self.availablePaneAppView)
+        # ensure we get enough hits
+        self.assertTrue(row_count > 10)
+        ldtp.generatekeyevent("<tab>")
+        # repeating this 100 times will eventually hang s-c, its
+        # currently unclear why
+        for i in range(100):
+            self.generate_page_down()
+            ldtp.wait(1)
+            ldtp.generatekeyevent("<enter>")
+            ldtp.wait(1)
+            ldtp.generatekeyevent("<backspace>")
+            ldtp.wait(1)
+            
+    def generate_page_down(self):
+        # FIXME: currently broken
+        #ldtp.generatekeyevent("<pagedown>")
+        import pyatspi
+        key_code=117 # pagedown
+        pyatspi.Registry.generateKeyboardEvent(
+            key_code, None, pyatspi.KEY_PRESS)
+        pyatspi.Registry.generateKeyboardEvent(
+            key_code, None, pyatspi.KEY_RELEASE)
+
 
     def xxx_test_TEMPLATE(self):
         """This a test template

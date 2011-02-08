@@ -18,8 +18,7 @@ clean:
 
 
 # mago tests
-MAGO="/home/egon/devel/mago/trunk/bin/mago"
 mago_test:
 	# -sv makes mago not buffer output
-	PYTHONPATH=.. $(MAGO) -sv mago/test_with_mago.py
+	PYTHONPATH=.. mago -sv mago/test_with_mago.py
 
