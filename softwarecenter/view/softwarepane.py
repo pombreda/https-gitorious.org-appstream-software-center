@@ -326,14 +326,14 @@ class SoftwarePane(gtk.VBox, BasePane):
         launcher
         """
         # TODO: handle local deb install case
+        # TODO: initially, only show for details view
+        # TODO: implement the list view case (once it is specified)
         # only show the panel if unity is running and this is a package install
         if (not is_unity_running() or
-           not trans_type == TRANSACTION_TYPE_INSTALL):
+            not trans_type == TRANSACTION_TYPE_INSTALL):
             return
         app = Application(pkgname=pkgname, appname=appname)
         appdetails = app.get_details(self.db)
-        print ">>> app: ", app
-        print ">>> appdetails: \n", appdetails
         # we only show the prompt for apps with a desktop file
         if not appdetails.desktop_file:
             return
@@ -359,10 +359,28 @@ class SoftwarePane(gtk.VBox, BasePane):
         icon = get_icon_from_iconname(self.icons,
                                       iconname=appdetails.icon_file_name)
         print ">>> icon: ", icon
+        print ">>> appdetails.appname: ", app.name
+#        print ">>> icon_x: ", icon_x
+#        print ">>> icon_y: ", icon_y
+#        print ">>> icon_size: ", icon_size
         print ">>> trans_id: ", trans_id
         print ">>> appdetails.desktop_file: ", appdetails.desktop_file
         # per the spec, we want to send a dbus signal:
         # com.canonical.Unity.Launcher AddLauncherItemFromPosition (icon, title, icon_x, icon_y, icon_size, desktop_file, aptdaemon_task)
+        try:
+            bus = dbus.SessionBus()
+            launcher_obj = bus.get_object('com.canonical.Unity.Launcher', '/com/canonical/Unity/Launcher')
+            launcher_iface = dbus.Interface(launcher_obj, 'com.canonical.Unity.Launcher')
+            launcher_iface.AddLauncherItemFromPosition(icon,
+                                                       title,
+                                                       icon_x,
+                                                       icon_y,
+                                                       icon_size,
+                                                       appdetails.desktop_file,
+                                                       trans_id)
+        except Exception, e:
+            LOG.warn("could not connect to launcher via dbus (%s)", e)
+        
         self.action_bar.clear()
         
     def on_cancel_add_to_launcher(self, args):
