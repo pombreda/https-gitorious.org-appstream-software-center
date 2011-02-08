@@ -34,6 +34,7 @@ import xdg.BaseDirectory
 from optparse import OptionParser
 
 from softwarecenter.enums import *
+from softwarecenter.paths import *
 from softwarecenter.db.update import update_from_software_center_agent
 import softwarecenter.log
 

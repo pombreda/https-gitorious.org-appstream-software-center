@@ -27,6 +27,7 @@ from softwarecenter.db.application import Application
 
 from softwarecenter.utils import *
 from softwarecenter.enums import *
+from softwarecenter.paths import XAPIAN_BASE_PATH_SOFTWARE_CENTER_AGENT
 from gettext import gettext as _
 
 class SearchQuery(list):

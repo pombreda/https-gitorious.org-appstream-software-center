@@ -1,4 +1,59 @@
-software-center (3.1.15) UNRELEASED; urgency=low
+software-center (3.1.17) UNRELEASED; urgency=low
+
+  * test/Makefile:
+    - do no longer depend on mago checkout, natty has the version
+      we need now
+  * test/mago/test_with_mago.py:
+    - add scrolldown test
+  * merged lp:~didrocks/software-center/fix-count-tech-items, many
+    thanks to Didier Roche
+  * merged lp:~didrocks/software-center/fix-never-visible-tech-items,
+    many thanks to Didier Roche
+  * softwarecenter/paths.py:
+    - consolidate all pathes in this file and update the code to use
+      it
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 08 Feb 2011 14:23:16 +0100
+
+software-center (3.1.16) natty; urgency=low
+
+  [ Michael Vogt ]
+  * merged lp:~mmcg069/software-center/reviews-and-netstatus
+    many thanks to Matthew McGowan
+  * test/test_appdetails_view.py:
+    - add appdetails netstatus tests
+  * merged lp:~aaronp/software-center/fix-694836, many thanks
+    (LP: #694836)
+  * softwarecenter/view/softwarepane.py:
+    - add helper to init atk names so that mago can pick them up
+  * tests/Makefile, test/mago/test_with_mago.py:
+    - use new style mago for search tests and enable in auto-tests
+
+  [ Gary Lasker ]
+  * softwarecenter/distro/Ubuntu.py,
+    softwarecenter/models/appstore.py:
+    - fix crash if attempting to download a remote icon before
+      the cache is ready (LP: #688991)
+  * softwarecenter/models/appstore.py:
+    - fix intermittent AttributeError in on_get_value (LP: #712170) 
+    - fix attribute error when building a custom list (LP: #712888)
+  * test/test_custom_lists.py:
+    - add unit test for custom lists 
+
+  [ Aaron Peachey ]
+  * view/appdetailsview_gtk.py: 
+     - change label to click to write a review if user already has
+       a review for that package LP: #709738
+     - alter review look if it belongs to current user LP: #710396
+
+  [ Matthew McGowan ]
+  * lp:~mmcg069/software-center/tiny-back-forward-tweak:
+    - a small tweak to make the arrow in the back-forward button pick 
+      a better size across a wider range of gtk themes.
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 08 Feb 2011 11:58:53 +0100
+
+software-center (3.1.15) natty; urgency=low
 
   [ Kiwinote ]
   * softwarecenter/apt/aptcache.py:
@@ -10,8 +65,22 @@ software-center (3.1.15) UNRELEASED; urgency=low
     - correctly hide addons/reviews from interface when we have an error
   * utils/submit_review.py:
     - allow us to review when spell check isn't available (LP: #709155)
+  
+  [ Michael Vogt ]
+  * softwarecenter/db/reviews.py:
+    - fix race in review downloaded watcher (LP: #709548)
+  * test/test_utils.py:
+    - add test for get_language()
+  * softwarecenter/backend/zeitgeist_simple.py:
+    - don't raise a exception if zeitgeist is not available (LP: #709718)
+  * softwarecenter/app.py:
+    - fix sso login creation on reinstall-previous purchase (LP: #709856)
+  * softwarecenter/view/widgets/reviews.py:
+    - change ratings star color (LP: #711030)
+  * tests/*:
+    - fix test invocation at build time and fix test failures
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 28 Jan 2011 20:13:00 +0100
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 01 Feb 2011 11:34:30 +0100
 
 software-center (3.1.14) natty; urgency=low
 

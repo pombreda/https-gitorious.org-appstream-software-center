@@ -157,6 +157,7 @@ class AppStore(gtk.GenericTreeModel):
         self.active_app = None
         self._prev_active_app = 0
         self.limit = limit
+        self._existing_apps = None
         # keep track of indicies for transactions in progress
         self.transaction_index_map = {}
         # no search query means "all"
@@ -293,8 +294,10 @@ class AppStore(gtk.GenericTreeModel):
                         self.match_docids.add(match.docid)
 
         # if we have no results, try forcing pkgs to be displayed
+        # if not NONAPPS_NEVER_VISIBLE is set
         if (not self.matches and
-            self.nonapps_visible != self.NONAPPS_ALWAYS_VISIBLE):
+            self.nonapps_visible != self.NONAPPS_ALWAYS_VISIBLE and
+            self.nonapps_visible != self.NONAPPS_NEVER_VISIBLE):
             self.nonapps_visible = self.NONAPPS_ALWAYS_VISIBLE
             self._blocking_perform_search()
             
@@ -385,10 +388,11 @@ class AppStore(gtk.GenericTreeModel):
             self.icon_cache[icon_file] = pb
         
         url = get_distro().get_downloadable_icon_url(cache, pkgname, icon_file_name)
-        icon_file_path = os.path.join(SOFTWARE_CENTER_ICON_CACHE_DIR, icon_file_name)
-        image_downloader = ImageDownloader()
-        image_downloader.connect('image-download-complete', on_image_download_complete)
-        image_downloader.download_image(url, icon_file_path)
+        if url is not None:
+            icon_file_path = os.path.join(SOFTWARE_CENTER_ICON_CACHE_DIR, icon_file_name)
+            image_downloader = ImageDownloader()
+            image_downloader.connect('image-download-complete', on_image_download_complete)
+            image_downloader.download_image(url, icon_file_path)
 
     # GtkTreeModel functions
     def on_get_flags(self):
@@ -448,8 +452,6 @@ class AppStore(gtk.GenericTreeModel):
                 return False
             elif column == self.COL_PKGNAME:
                 return app.pkgname
-            elif column == self.COL_POPCON:
-                return 0
             elif column == self.COL_RATING:
                 return 0
             elif column == self.COL_IS_ACTIVE:

@@ -29,6 +29,8 @@ import subprocess
 import sys
 import cairo
 
+from softwarecenter.netstatus import NetState, get_network_state, get_network_watcher
+
 from PIL import Image
 from gettext import gettext as _
 import apt_pkg
@@ -36,7 +38,7 @@ from softwarecenter.db.application import Application
 from softwarecenter.db.reviews import ReviewStats
 from softwarecenter.backend.zeitgeist_simple import zeitgeist_singleton
 from softwarecenter.enums import *
-from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
+from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR, INSTALLED_ICON, IMAGE_LOADING_INSTALLED
 from softwarecenter.utils import ImageDownloader, GMenuSearcher, uri_to_filename, is_unity_running, upstream_version_compare, upstream_version
 from softwarecenter.gwibber_helper import GWIBBER_SERVICE_AVAILABLE
 
@@ -48,6 +50,8 @@ from widgets.label import IndentLabel
 from widgets.imagedialog import ShowImageDialog
 
 from widgets.reviews import ReviewStatsContainer, StarRating
+
+from softwarecenter.backend.config import get_config
 
 if os.path.exists("./softwarecenter/enums.py"):
     sys.path.insert(0, ".")
@@ -1016,6 +1020,12 @@ class Reviews(gtk.VBox):
         self.new_review.connect('clicked', lambda w: self.emit('new-review'))
         return
 
+    def _get_person_from_config(self):
+        cfg = get_config()
+        if cfg.has_option("reviews", "username"):
+            return cfg.get("reviews", "username")
+        return None
+
     def _on_expand(self, expander, param):
         if not self.expander.get_expanded():
             self.vbox.hide_all()
@@ -1025,24 +1035,22 @@ class Reviews(gtk.VBox):
 
             if self._update:
                 self._fill()
-                self.vbox.show_all()
                 self._update = False
                 return
-            else:
-                self.vbox.show_all()
+            self.vbox.show_all()
         return
 
     def _on_button_new_clicked(self, button):
         self.emit("new-review")
 
     def _fill(self):
+        self.logged_in_person = self._get_person_from_config()
         if self.reviews:
             for r in self.reviews:
                 pkgversion = self._parent.app_details.version
-                review = Review(r, pkgversion)
+                review = Review(r, pkgversion, self.logged_in_person)
                 self.vbox.pack_start(review)
-        else:
-            # TRANSLATORS: displayed if there are no reviews
+        elif get_network_state() == NetState.NM_STATE_CONNECTED:
             self.vbox.pack_start(NoReviewYet())
         return
 
@@ -1050,13 +1058,22 @@ class Reviews(gtk.VBox):
         s = _('Be the first to review it')
         self.new_review.set_label(s)
         return
+    
+    def _any_reviews_current_user(self):
+        for review in self.reviews:
+            if self.logged_in_person == review.reviewer_username:
+                return True
+        return False
 
     def finished(self):
         #print 'Review count: %s' % len(self.reviews)
         if not self.reviews:
             self._be_the_first_to_review()
         else:
-            self.new_review.set_label(_("Write your own review"))
+            if self._any_reviews_current_user():
+                self.new_review.set_label(_("Write another review"))
+            else:
+                self.new_review.set_label(_("Write your own review"))
             if self.expander.get_expanded():
                 self._fill()
                 self.vbox.show_all()
@@ -1083,17 +1100,17 @@ class Reviews(gtk.VBox):
         rr = mkit.ShapeRoundedRectangle()
         r, g, b = mkit.floats_from_string('#FFE879')
         rr.layout(cr, a.x, a.y, a.x+a.width, a.y+a.height, radius=4)
-        cr.set_source_rgba(r,g,b,0.25)
+        cr.set_source_rgba(r,g,b,0.2)
         cr.fill_preserve()
 
         lin = cairo.LinearGradient(0, a.y, 0, a.y+150)
-        lin.add_color_stop_rgba(0, r,g,b, 0.6)
+        lin.add_color_stop_rgba(0, r,g,b, 0.3)
         lin.add_color_stop_rgba(1, r,g,b, 0.0)
         
         cr.set_source(lin)
         cr.fill()
 
-        cr.set_source_rgb(*mkit.floats_from_string('#E6BC26'))
+        cr.set_source_rgba(*mkit.floats_from_string('#E6BC26')+(0.5,))
         rr.layout(cr, a.x+0.5, a.y+0.5, a.x+a.width-0.5, a.y+a.height-0.5, radius=4)
         cr.set_line_width(1)
         cr.stroke()
@@ -1105,9 +1122,12 @@ class Reviews(gtk.VBox):
             r.draw(cr, r.allocation)
         return
 
+    def get_reviews(self):
+        return filter(lambda r: not isinstance(r, (EmbeddedMessage, NoReviewYet)) and isinstance(r, Review), self.vbox.get_children())
+
 class Review(gtk.VBox):
     
-    def __init__(self, review_data=None, app_version=None):
+    def __init__(self, review_data=None, app_version=None, logged_in_person=None):
         gtk.VBox.__init__(self, spacing=mkit.SPACING_LARGE)
 
         self.header = gtk.HBox(spacing=mkit.SPACING_MED)
@@ -1117,18 +1137,20 @@ class Review(gtk.VBox):
         self.pack_start(self.header, False)
         self.pack_start(self.body, False)
         self.pack_start(self.footer, False)
+        
+        self.logged_in_person = logged_in_person
 
         if review_data:
             self.id = review_data.id
             rating = review_data.rating 
-            person = review_data.reviewer_username
+            self.person = review_data.reviewer_username
             summary = review_data.summary
             text = review_data.review_text
             date = review_data.date_created
             app_name = review_data.app_name
             # some older version of the server do not set the version
             review_version = getattr(review_data, "version", "")
-            self._build(rating, person, summary, text, date, app_name, review_version, app_version)
+            self._build(rating, self.person, summary, text, date, app_name, review_version, app_version)
 
         self.body.connect('size-allocate', self._on_allocate)
         return
@@ -1146,8 +1168,12 @@ class Review(gtk.VBox):
     def _build(self, rating, person, summary, text, date, app_name, review_version, app_version):
         # all the arguments are may need markup escape, depening on if
         # they are used as text or markup
-        m = "<b>%s</b>, %s" % (glib.markup_escape_text(person.capitalize()),
-                               glib.markup_escape_text(date))
+        if person == self.logged_in_person:
+            m = "%s %s" % (_("This is your review, submitted on"),
+                                glib.markup_escape_text(date))
+        else:
+            m = "<b>%s</b>, %s" % (glib.markup_escape_text(person),
+                                glib.markup_escape_text(date))
         who_what_when = gtk.Label(m)
         who_what_when.set_use_markup(True)
 
@@ -1184,17 +1210,20 @@ class Review(gtk.VBox):
 
         # Translators: Flags should be translated in the sense of
         #  "Report as inappropriate"
-        complain = mkit.VLinkButton('<small>%s</small>' % _('Flag'))
-        complain.set_underline(True)
-        self.footer.pack_end(complain, False)
-        complain.connect('clicked', self._on_report_abuse_clicked)
+        self.complain = mkit.VLinkButton('<small>%s</small>' % _('Flag'))
+        self.complain.set_underline(True)
+        self.footer.pack_end(self.complain, False)
+        self.complain.connect('clicked', self._on_report_abuse_clicked)
         return
 
     def draw(self, cr, a):
         cr.save()
         rr = mkit.ShapeRoundedRectangle()
         rr.layout(cr, a.x-6, a.y-5, a.x+a.width+6, a.y+a.height+5, radius=3)
-        cr.set_source_rgba(1,1,1,0.7)
+        if self.person == self.logged_in_person:
+            cr.set_source_rgba(0.8,0.8,0.8,0.5)
+        else:
+            cr.set_source_rgba(1,1,1,0.7)
         cr.fill()
         cr.set_source_rgb(*mkit.floats_from_string('#E6BC26'))
         rr.layout(cr, a.x-5.5, a.y-4.5, a.x+a.width+5.5, a.y+a.height+4.5, radius=3)
@@ -1210,6 +1239,28 @@ class NoReviewYet(Review):
         self.body.pack_start(gtk.Label(_("None yet")))
     #def draw(self, cr, a):
     #    pass
+
+
+class EmbeddedMessage(Review):
+
+    def __init__(self, label, icon_name):
+        Review.__init__(self)
+
+        a = gtk.Alignment(0.5, 0.5)
+        self.body.pack_start(a, False)
+
+        hb = gtk.HBox(spacing=12)
+        a.add(hb)
+
+        i = gtk.image_new_from_icon_name(icon_name, gtk.ICON_SIZE_DIALOG)
+        hb.pack_start(i)
+
+        l = gtk.Label()
+        l.set_markup(label)
+        hb.pack_start(l)
+
+        self.show_all()
+        return
 
 
 class AddonsStatusBar(StatusBar):
@@ -1336,6 +1387,10 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.backend.connect("transaction-finished", self._on_transaction_finished)
         self.backend.connect("transaction-progress-changed", self._on_transaction_progress_changed)
 
+        # network status watcher
+        watcher = get_network_watcher()
+        watcher.connect("changed", self._on_net_state_changed)
+
         # app specific data
         self._same_app = False
         self.app = None
@@ -1360,7 +1415,14 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         #self.main_frame.image.connect_after('expose-event', self._on_icon_expose)
         self.loaded = True
         return
-    
+
+    def _on_net_state_changed(self, watcher, state):
+        if state == NetState.NM_STATE_DISCONNECTED:
+            self._update_reviews_inactive_network()
+        elif state == NetState.NM_STATE_CONNECTED:
+            gobject.timeout_add(500, self._update_reviews_active_network)
+        return
+
     def _check_for_reviews(self):
         # review stats is fast and syncronous
         stats = self.review_loader.get_review_stats(self.app)
@@ -1820,6 +1882,44 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
     def _update_reviews(self, app_details):
         self.reviews.clear()
 
+    def _update_reviews_inactive_network(self):
+        if self.reviews.get_reviews():
+            msg_exists = False
+            for r in self.reviews.vbox:
+                if isinstance(r, EmbeddedMessage):
+                    msg_exists = True
+                elif hasattr(r, 'complain'):
+                    r.complain.set_sensitive(False)
+            if not msg_exists:
+                s = '<big><b>%s</b></big>\n%s' % ('No Network Connection',
+                                                  'Only cached reviews can be displayed')
+                m = EmbeddedMessage(s, 'network-offline')
+
+                self.reviews.vbox.pack_start(m)
+                self.reviews.vbox.reorder_child(m, 0)
+        else:
+            self.reviews.clear()
+            s = '<big><b>%s</b></big>\n%s' % ('No Network Connection',
+                                              'Unable to download application reviews')
+            m = EmbeddedMessage(s, 'network-offline')
+            self.reviews.vbox.pack_start(m)
+
+        self.reviews.new_review.set_sensitive(False)
+        return
+
+    def _update_reviews_active_network(self):
+        for r in self.reviews.vbox:
+            if isinstance(r, (EmbeddedMessage, NoReviewYet)):
+                r.destroy()
+            if hasattr(r, 'complain'):
+                r.complain.set_sensitive(True)
+
+        if not self.reviews.get_reviews():
+            self._check_for_reviews()
+
+        self.reviews.new_review.set_sensitive(True)
+        return
+
     def _update_all(self, app_details):
         pkg_ambiguous_error = app_details.pkg_state in (PKG_STATE_NOT_FOUND, PKG_STATE_NEEDS_SOURCE)
 
@@ -1840,13 +1940,22 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self._update_app_screenshot(app_details)
         self._update_pkg_info_table(app_details)
         self._update_addons(app_details)
-        self._update_reviews(app_details)
+#        self._update_reviews(app_details)
 
         # depending on pkg install state set action labels
         self.pkg_statusbar.configure(app_details, app_details.pkg_state)
 
         # show where it is
         self._configure_where_is_it()
+
+        # async query zeitgeist and rnr
+        self.get_usage_counter()
+
+        self.reviews.clear()
+        if get_network_state() == NetState.NM_STATE_DISCONNECTED:
+            self._update_reviews_inactive_network()
+        else:
+            self._update_reviews_active_network()
         return
 
     def _update_minimal(self, app_details):
@@ -1948,10 +2057,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             LOG.debug("no app selected")
             return
 
-        # reset view to top left
-        self.get_vadjustment().set_value(0)
-        self.get_hadjustment().set_value(0)
-
         # set button sensitive again
         self.pkg_statusbar.button.set_sensitive(True)
 
@@ -1968,11 +2073,11 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         if self._same_app:
             self._update_minimal(self.app_details)
         else:
-            self._update_all(self.app_details)
+            # reset view to top left
+            self.get_vadjustment().set_value(0)
+            self.get_hadjustment().set_value(0)
 
-        # async query zeitgeist and rnr
-        self.get_usage_counter()
-        self._check_for_reviews()
+            self._update_all(self.app_details)
 
         self.emit("selected", self.app)
         return
@@ -2147,7 +2252,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         return
         
     def _get_icon_as_pixbuf(self, app_details):
-        icon = None
         if app_details.icon:
             if self.icons.has_icon(app_details.icon):
                 try:
@@ -2155,8 +2259,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                 except glib.GError, e:
                     logging.warn("failed to load '%s'" % app_details.icon)
                     return self.icons.load_icon(MISSING_APP_ICON, 84, 0)
-            elif app_details.icon_needs_download:
-                self._logger.debug("did not find the icon locally, must download it")
+            elif app_details.icon_needs_download and app_details.icon_url:
+                LOG.debug("did not find the icon locally, must download it")
 
                 def on_image_download_complete(downloader, image_file_path):
                     # when the download is complete, replace the icon in the view with the downloaded one
@@ -2167,7 +2271,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                 image_downloader = ImageDownloader()
                 image_downloader.connect('image-download-complete', on_image_download_complete)
                 image_downloader.download_image(app_details.icon_url, icon_file_path)
-                
         return self.icons.load_icon(MISSING_APP_ICON, 84, 0)
     
     def update_totalsize(self, hide=False):
@@ -2298,6 +2401,13 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
 
 if __name__ == "__main__":
+    def _show_app(view):
+        if view.app.pkgname == "totem":
+            view.show_app(Application("Pithos", "pithos"))
+        else:
+            view.show_app(Application("Movie Player", "totem"))
+        return True
+    
     logging.basicConfig(level=logging.DEBUG)
 
     if len(sys.argv) > 1:
@@ -2345,6 +2455,6 @@ if __name__ == "__main__":
     win.set_size_request(600,400)
     win.show_all()
 
-    #view._config_file_prompt(None, "/etc/fstab", "/tmp/lala")
-
+    # keep it spinning to test for re-draw issues and memleaks
+    glib.timeout_add_seconds(1, _show_app, view)
     gtk.main()

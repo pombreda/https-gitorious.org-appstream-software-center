@@ -15,7 +15,7 @@ from mock import Mock
 sys.path.insert(0, "..")
 
 from softwarecenter.app import SoftwareCenterApp
-from softwarecenter.enums import XAPIAN_BASE_PATH
+from softwarecenter.paths import XAPIAN_BASE_PATH
 from softwarecenter.view.appview import AppStore
 from softwarecenter.db.application import Application
 
@@ -83,10 +83,10 @@ class SCBuySomething(unittest.TestCase):
         treeview.row_activated(model.get_path(model.get_iter_root()),
                                treeview.get_column(0))
         self.assertEqual(
-            self.app.available_pane.app_details_view.action_bar.button.get_label(),
+            self.app.available_pane.app_details_view.pkg_statusbar.button.get_label(),
             u"Buy\u2026")
         # click the "Buy" button to initiate a purchase
-        self.app.available_pane.app_details_view.action_bar.button.clicked()
+        self.app.available_pane.app_details_view.pkg_statusbar.button.clicked()
         self._p()
         time.sleep(1)
         # check that the purchase pane is displayed
@@ -98,11 +98,14 @@ class SCBuySomething(unittest.TestCase):
         # simulate a successful purchase in the UI by firing a purchase-succeeded
         self.app.available_pane.purchase_view.emit("purchase-succeeded")
         self._p()
-        time.sleep(3)
+        time.sleep(1)
+        self._p()
+        time.sleep(1)
         self._p()
         # check that the purchase pane is removed
-        self.assertEqual(str(self.app.available_pane.navigation_bar.get_parts()),
-                         "[Get Software, Search Results, Hello X Adventure]")
+        self.assertEqual(
+            str(self.app.available_pane.navigation_bar.get_parts()),
+            "[Get Software, Search Results, Hello X Adventure]")
         
         # done with the simulated purchase process, now pretend we install
         # something

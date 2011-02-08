@@ -19,7 +19,7 @@
 
 import gtk
 
-from softwarecenter.enums import IMAGE_LOADING_INSTALLED
+from softwarecenter.paths import IMAGE_LOADING_INSTALLED
 
 class Spinner(object):
     """

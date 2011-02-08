@@ -13,6 +13,7 @@ from softwarecenter.db.application import Application
 from softwarecenter.db.database import StoreDatabase
 from softwarecenter.view.appview import AppStore
 from softwarecenter.enums import *
+from softwarecenter.paths import *
 
 import xapian
 

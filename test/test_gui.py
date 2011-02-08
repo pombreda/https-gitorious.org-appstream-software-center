@@ -14,7 +14,7 @@ import unittest
 sys.path.insert(0, "..")
 
 from softwarecenter.app import SoftwareCenterApp
-from softwarecenter.enums import XAPIAN_BASE_PATH
+from softwarecenter.paths import XAPIAN_BASE_PATH
 from softwarecenter.view.appview import AppStore
 from softwarecenter.view.availablepane import AvailablePane
 from softwarecenter.db.application import Application
@@ -145,7 +145,7 @@ class TestGUI(unittest.TestCase):
                                treeview.get_column(0))
         self._p()
         self.assertEqual(
-            self.app.available_pane.app_details_view.action_bar.button.get_label(),
+            self.app.available_pane.app_details_view.pkg_statusbar.button.get_label(),
             "Install")
         self._p()
         # install only when runnig as root, as we require polkit promtps
@@ -158,11 +158,11 @@ class TestGUI(unittest.TestCase):
             self._install_done = False
             # now simulate a click, the UI will block until the glib timeout 
             # from the previous line hits
-            self.app.available_pane.app_details_view.action_bar.button.clicked()
+            self.app.available_pane.app_details_view.pkgstatus_bar.button.clicked()
             self._p()
-            self.assertEqual(self.app.available_pane.app_details_view.action_bar.label.get_text(),
+            self.assertEqual(self.app.available_pane.app_details_view.pkgstatus_bar.label.get_text(),
                              "Installing...")
-            self.assertFalse(self.app.available_pane.app_details_view.action_bar.button.get_property("visible"))
+            self.assertFalse(self.app.available_pane.app_details_view.pkgstatus_bar.button.get_property("visible"))
             glib.timeout_add_seconds(2, self._test_for_progress)
             while not self._install_done:
                 while gtk.events_pending():
@@ -245,7 +245,7 @@ class TestGUI(unittest.TestCase):
         return self.app.available_pane.app_view.get_model()
 
     def _test_for_progress(self):
-        self.assertTrue(self.app.available_pane.app_details_view.action_bar.progress.get_property("visible"))
+        self.assertTrue(self.app.available_pane.app_details_view.pkgstatus_bar.progress.get_property("visible"))
         return False
 
     def _on_transaction_finished(self, *args, **kwargs):

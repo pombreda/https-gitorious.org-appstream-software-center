@@ -5,6 +5,7 @@ import unittest
 sys.path.insert(0,"../")
 
 from softwarecenter.enums import *
+from softwarecenter.paths import *
 from softwarecenter.utils import *
 
 from softwarecenter.apt.aptcache import AptCache

@@ -17,6 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import apt
+import atk
 import bisect
 import glib
 import gobject
@@ -38,6 +39,7 @@ from widgets.spinner import SpinnerView
 
 from softwarecenter.backend import get_install_backend
 from softwarecenter.enums import *
+from softwarecenter.paths import *
 from softwarecenter.view.basepane import BasePane
 from softwarecenter.utils import wait_for_apt_cache_ready, ExecutionTime
 
@@ -154,6 +156,7 @@ class SoftwarePane(gtk.VBox, BasePane):
         # navigation bar and search on top in a hbox
         self.navigation_bar = NavigationBar()
         self.searchentry = SearchEntry()
+        self.init_atk_name(self.searchentry, "searchentry")
         self.top_hbox = gtk.HBox(spacing=self.PADDING)
         self.top_hbox.set_border_width(self.PADDING)
         self.top_hbox.pack_start(self.navigation_bar)
@@ -199,6 +202,7 @@ class SoftwarePane(gtk.VBox, BasePane):
         self.box_app_list.pack_start(
             self.label_app_list_header, expand=False, fill=False, padding=12)
         self.app_view = AppView(self.show_ratings)
+        self.init_atk_name(self.app_view, "app_view")
         self.scroll_app_list = gtk.ScrolledWindow()
         self.scroll_app_list.set_policy(gtk.POLICY_AUTOMATIC, 
                                         gtk.POLICY_AUTOMATIC)
@@ -234,7 +238,8 @@ class SoftwarePane(gtk.VBox, BasePane):
         self.connect("app-list-changed", self.on_app_list_changed)
         
         # db reopen
-        self.db.connect("reopen", self.on_db_reopen)
+        if self.db:
+            self.db.connect("reopen", self.on_db_reopen)
 
     def _on_expose(self, widget, event):
         """ Draw a horizontal line that separates the top hbox from the page content """
@@ -246,6 +251,14 @@ class SoftwarePane(gtk.VBox, BasePane):
                                 a.x, a.y+a.height-1,
                                 a.width, a.y+a.height-1)
         return
+
+
+    def init_atk_name(self, widget, name):
+        """ init the atk name for a given gtk widget based on parent-pane
+            and variable name (used for the mago tests)
+        """
+        name =  self.__class__.__name__ + "." + name
+        atk.Object.set_name(widget.get_accessible(), name)
 
     def on_cache_ready(self, cache):
         " refresh the application list when the cache is re-opened "
@@ -370,20 +383,19 @@ class SoftwarePane(gtk.VBox, BasePane):
         if (appstore and 
             appstore.active and
             self.is_applist_view_showing() and
-            pkgs > 0 and 
-            apps > 0 and
+            (pkgs - apps) > 0 and
             not self.disable_show_hide_nonapps):
             if appstore.nonapps_visible == AppStore.NONAPPS_ALWAYS_VISIBLE:
                 # TRANSLATORS: the text inbetween the underscores acts as a link
                 # In most/all languages you will want the whole string as a link
                 label = gettext.ngettext("_Hide %(amount)i technical item_",
                                          "_Hide %(amount)i technical items_",
-                                         pkgs) % { 'amount': pkgs, }
+                                         pkgs) % { 'amount': (pkgs - apps), }
                 self.action_bar.set_label(label, self._hide_nonapp_pkgs) 
             else:
                 label = gettext.ngettext("_Show %(amount)i technical item_",
                                          "_Show %(amount)i technical items_",
-                                         pkgs) % { 'amount': pkgs, }
+                                         pkgs) % { 'amount': (pkgs - apps), }
                 self.action_bar.set_label(label, self._show_nonapp_pkgs)
 
     def update_search_help(self):
