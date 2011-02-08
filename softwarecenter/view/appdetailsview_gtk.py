@@ -2227,13 +2227,11 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         (px, py) = parent.get_position()
         return (px+x, py+y)
         
-    def get_app_icon_size(self):
+    def get_app_icon_and_size(self):
         """
-        helper for unity dbus support to get the size of the largest
-        side of the icon
+        helper for unity dbus support to get the app icon being displayed
+        (as a pixbuf) along with the size of the icon's longest side
         """
-        # TODO: could actually provide all icon information from a single place,
-        #       including the icon pixbuf itself (we get it below)
         icon_size = self.APP_ICON_SIZE
         if self.main_frame.image.get_storage_type() == gtk.IMAGE_PIXBUF:
             pb = self.main_frame.image.get_pixbuf()
@@ -2241,7 +2239,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                 icon_size = pb.get_width()
             else:
                 icon_size = pb.get_height()
-        return icon_size
+        return (pb, icon_size)
 
     def _draw_icon_frame(self, cr):
         # draw small or no icon background
