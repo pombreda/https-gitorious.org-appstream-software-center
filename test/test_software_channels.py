@@ -15,6 +15,7 @@ from softwarecenter.apt.aptcache import AptCache
 from softwarecenter.backend.channel import SoftwareChannel, ChannelsManager
 from softwarecenter.db.database import StoreDatabase
 from softwarecenter.enums import *
+from softwarecenter.paths import XAPIAN_BASE_PATH
 from softwarecenter.utils import ExecutionTime
 
 class MockIconCache(object):

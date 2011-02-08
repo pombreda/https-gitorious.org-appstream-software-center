@@ -15,7 +15,7 @@ from mock import Mock
 sys.path.insert(0, "..")
 
 from softwarecenter.app import SoftwareCenterApp
-from softwarecenter.enums import XAPIAN_BASE_PATH
+from softwarecenter.paths import XAPIAN_BASE_PATH
 from softwarecenter.view.appview import AppStore
 from softwarecenter.db.application import Application
 
