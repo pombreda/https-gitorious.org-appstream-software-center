@@ -20,6 +20,7 @@ from softwarecenter.db.database import StoreDatabase
 from softwarecenter.db.application import Application, AppDetails
 from softwarecenter.distro import get_distro
 from softwarecenter.enums import *
+from softwarecenter.paths import XAPIAN_BASE_PATH
 from softwarecenter.view.appdetailsview_gtk import AppDetailsViewGtk, EmbeddedMessage
 
 

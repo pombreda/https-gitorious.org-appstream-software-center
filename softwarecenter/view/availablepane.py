@@ -27,6 +27,7 @@ import xapian
 from gettext import gettext as _
 
 from softwarecenter.enums import *
+from softwarecenter.paths import *
 from softwarecenter.utils import *
 from softwarecenter.db.database import SearchQuery
 from softwarecenter.distro import get_distro

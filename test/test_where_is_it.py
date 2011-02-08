@@ -6,6 +6,7 @@ sys.path.insert(0,"../")
 
 from softwarecenter.enums import *
 from softwarecenter.utils import *
+from softwarecenter.paths import XAPIAN_BASE_PATH
 
 from softwarecenter.apt.aptcache import AptCache
 from softwarecenter.db.database import StoreDatabase

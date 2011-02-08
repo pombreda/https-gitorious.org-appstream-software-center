@@ -38,7 +38,7 @@ from softwarecenter.db.application import Application
 from softwarecenter.db.reviews import ReviewStats
 from softwarecenter.backend.zeitgeist_simple import zeitgeist_singleton
 from softwarecenter.enums import *
-from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
+from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR, INSTALLED_ICON, IMAGE_LOADING_INSTALLED
 from softwarecenter.utils import ImageDownloader, GMenuSearcher, uri_to_filename, is_unity_running, upstream_version_compare, upstream_version
 from softwarecenter.gwibber_helper import GWIBBER_SERVICE_AVAILABLE
 
