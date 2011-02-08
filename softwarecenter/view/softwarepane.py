@@ -390,8 +390,8 @@ class SoftwarePane(gtk.VBox, BasePane):
         icon = get_icon_from_iconname(self.icons,
                                       iconname=appdetails.icon_file_name)
         if self.is_app_details_view_showing():
-            (icon_x, icon_y) = self.app_details_view.get_xy_icon_position_on_screen()
-            icon_size = self.app_details_view.get_icon_size()
+            (icon_x, icon_y) = self.app_details_view.get_app_icon_xy_position_on_screen()
+            icon_size = self.app_details_view.get_app_icon_size()
         elif self.is_applist_view_showing():
             # TODO: implement this case when it is specified
             icon_x = None

@@ -2213,7 +2213,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         #cr.restore()
         #return
 
-    def get_xy_icon_position_on_screen(self):
+    def get_app_icon_xy_position_on_screen(self):
         """ helper for unity dbus support to get the x,y position of
             the appicon on the screen
         """
@@ -2227,7 +2227,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         (px, py) = parent.get_position()
         return (px+x, py+y)
         
-    def get_icon_size(self):
+    def get_app_icon_size(self):
         """
         helper for unity dbus support to get the size of the largest
         side of the icon
