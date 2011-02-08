@@ -1,4 +1,4 @@
-software-center (3.1.16) UNRELEASED; urgency=low
+software-center (3.1.16) natty; urgency=low
 
   [ Michael Vogt ]
   * merged lp:~mmcg069/software-center/reviews-and-netstatus
@@ -34,7 +34,7 @@ software-center (3.1.16) UNRELEASED; urgency=low
     - a small tweak to make the arrow in the back-forward button pick 
       a better size across a wider range of gtk themes.
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 07 Feb 2011 10:06:57 +0100
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 08 Feb 2011 11:58:53 +0100
 
 software-center (3.1.15) natty; urgency=low
 

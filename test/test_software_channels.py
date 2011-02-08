@@ -44,7 +44,7 @@ class TestSoftwareChannels(unittest.TestCase):
         self.repo_from_lp = "deb https://user:pw@private-ppa.launchpad.net/user/private-test/ubuntu lucid main"
 
     def test_origin(self):
-        origin = self.cache.get_origin("apt")
+        origin = self.cache.get_origin("libc6")
         self.assertEqual(origin, "ubuntu")
         
     def test_channels(self):
