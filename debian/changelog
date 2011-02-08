@@ -7,6 +7,10 @@ software-center (3.1.16) UNRELEASED; urgency=low
     - add appdetails netstatus tests
   * merged lp:~aaronp/software-center/fix-694836, many thanks
     (LP: #694836)
+  * softwarecenter/view/softwarepane.py:
+    - add helper to init atk names so that mago can pick them up
+  * tests/Makefile, test/mago/test_with_mago.py:
+    - use new style mago for search tests and enable in auto-tests
 
   [ Gary Lasker ]
   * softwarecenter/distro/Ubuntu.py,
@@ -24,8 +28,13 @@ software-center (3.1.16) UNRELEASED; urgency=low
      - change label to click to write a review if user already has
        a review for that package LP: #709738
      - alter review look if it belongs to current user LP: #710396
-  
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 03 Feb 2011 22:41:34 -0500
+
+  [ Matthew McGowan ]
+  * lp:~mmcg069/software-center/tiny-back-forward-tweak:
+    - a small tweak to make the arrow in the back-forward button pick 
+      a better size across a wider range of gtk themes.
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 07 Feb 2011 10:06:57 +0100
 
 software-center (3.1.15) natty; urgency=low
 

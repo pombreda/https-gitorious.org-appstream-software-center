@@ -17,6 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import apt
+import atk
 import bisect
 import glib
 import gobject
@@ -154,6 +155,7 @@ class SoftwarePane(gtk.VBox, BasePane):
         # navigation bar and search on top in a hbox
         self.navigation_bar = NavigationBar()
         self.searchentry = SearchEntry()
+        self.init_atk_name(self.searchentry, "searchentry")
         self.top_hbox = gtk.HBox(spacing=self.PADDING)
         self.top_hbox.set_border_width(self.PADDING)
         self.top_hbox.pack_start(self.navigation_bar)
@@ -199,6 +201,7 @@ class SoftwarePane(gtk.VBox, BasePane):
         self.box_app_list.pack_start(
             self.label_app_list_header, expand=False, fill=False, padding=12)
         self.app_view = AppView(self.show_ratings)
+        self.init_atk_name(self.app_view, "app_view")
         self.scroll_app_list = gtk.ScrolledWindow()
         self.scroll_app_list.set_policy(gtk.POLICY_AUTOMATIC, 
                                         gtk.POLICY_AUTOMATIC)
@@ -247,6 +250,14 @@ class SoftwarePane(gtk.VBox, BasePane):
                                 a.x, a.y+a.height-1,
                                 a.width, a.y+a.height-1)
         return
+
+
+    def init_atk_name(self, widget, name):
+        """ init the atk name for a given gtk widget based on parent-pane
+            and variable name (used for the mago tests)
+        """
+        name =  self.__class__.__name__ + "." + name
+        atk.Object.set_name(widget.get_accessible(), name)
 
     def on_cache_ready(self, cache):
         " refresh the application list when the cache is re-opened "
