@@ -2234,7 +2234,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         """
         # TODO: could actually provide all icon information from a single place,
         #       including the icon pixbuf itself (we get it below)
-        # TODO: is it correct to use this for the default?
         icon_size = self.APP_ICON_SIZE
         if self.main_frame.image.get_storage_type() == gtk.IMAGE_PIXBUF:
             pb = self.main_frame.image.get_pixbuf()
