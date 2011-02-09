@@ -124,7 +124,6 @@ class ChannelPane(SoftwarePane):
             return
         # normal operation
         self.nonapps_visible = AppStore.NONAPPS_MAYBE_VISIBLE
-        self.disable_show_hide_nonapps = False
         self.apps_filter = None
         if self.channel.installed_only:
             if self.apps_filter is None:
