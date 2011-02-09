@@ -987,7 +987,6 @@ class Reviews(gtk.VBox):
 
     def __init__(self, parent):
         gtk.VBox.__init__(self)
-        self.set_border_width(6)
 
         self._parent = parent
         self.reviews = []
@@ -1052,7 +1051,7 @@ class Reviews(gtk.VBox):
             for r in self.reviews:
                 pkgversion = self._parent.app_details.version
                 review = Review(r, pkgversion, self.logged_in_person)
-                self.vbox.pack_start(review)
+                self.vbox.pack_start(review, padding=mkit.SPACING_LARGE)
         else:
             # TRANSLATORS: displayed if there are no reviews
             self.vbox.pack_start(NoReviewYet())
@@ -1102,20 +1101,16 @@ class Reviews(gtk.VBox):
     def draw(self, cr, a):
         cr.save()
         rr = mkit.ShapeRoundedRectangle()
-        r, g, b = mkit.floats_from_string('#FFE879')
-        rr.layout(cr, a.x, a.y, a.x+a.width, a.y+a.height, radius=4)
+        r, g, b = mkit.floats_from_string('#fff')
+        # XXX this should be transparent instead
+        rr.layout(cr, a.x, a.y, a.x+a.width, a.y+a.height, radius=0)
         cr.set_source_rgba(r,g,b,0.25)
         cr.fill_preserve()
 
-        lin = cairo.LinearGradient(0, a.y, 0, a.y+150)
-        lin.add_color_stop_rgba(0, r,g,b, 0.6)
-        lin.add_color_stop_rgba(1, r,g,b, 0.0)
-        
-        cr.set_source(lin)
-        cr.fill()
-
-        cr.set_source_rgb(*mkit.floats_from_string('#E6BC26'))
-        rr.layout(cr, a.x+0.5, a.y+0.5, a.x+a.width-0.5, a.y+a.height-0.5, radius=4)
+        cr.set_source_rgb(*mkit.floats_from_string('#fff'))
+        # XXX this should be transparent instead
+        rr.layout(cr, a.x+0.5, a.y+0.5, a.x+a.width-0.5, a.y+a.height-0.5, radius=0)
+        # XXX Without any color, doesn't need to be ShapeRoundedRectangle
         cr.set_line_width(1)
         cr.stroke()
         cr.restore()
@@ -1129,7 +1124,7 @@ class Reviews(gtk.VBox):
 class Review(gtk.VBox):
     
     def __init__(self, review_data=None, app_version=None, logged_in_person=None):
-        gtk.VBox.__init__(self, spacing=mkit.SPACING_LARGE)
+        gtk.VBox.__init__(self, spacing=mkit.SPACING_MED)
 
         self.header = gtk.HBox(spacing=mkit.SPACING_MED)
         self.body = gtk.VBox()
@@ -1167,7 +1162,7 @@ class Review(gtk.VBox):
             reviews.emit("report-abuse", self.id)
 
     def _build(self, rating, person, summary, text, date, app_name, review_version, app_version):
-        # all the arguments are may need markup escape, depening on if
+        # all the arguments may need markup escaping, depending on whether
         # they are used as text or markup
         if person == self.logged_in_person:
             m = "%s %s" % (_("This is your review, submitted on"),
@@ -1208,9 +1203,10 @@ class Review(gtk.VBox):
         #like.set_underline(True)
         #self.footer.pack_start(like, False)
 
-        # Translators: Flags should be translated in the sense of
-        #  "Report as inappropriate"
-        complain = mkit.VLinkButton('<small>%s</small>' % _('Flag'))
+        # Translators: This link is for flagging a review as inappropriate.
+        # To minimize repetition, if at all possible, keep it to a single word.
+        # If your language has an obvious verb, it won't need a question mark.
+        complain = mkit.VLinkButton('<small>%s</small>' % _('Inappropriate?'))
         complain.set_underline(True)
         self.footer.pack_end(complain, False)
         complain.connect('clicked', self._on_report_abuse_clicked)
@@ -1225,8 +1221,10 @@ class Review(gtk.VBox):
         else:
             cr.set_source_rgba(1,1,1,0.7)
         cr.fill()
-        cr.set_source_rgb(*mkit.floats_from_string('#E6BC26'))
-        rr.layout(cr, a.x-5.5, a.y-4.5, a.x+a.width+5.5, a.y+a.height+4.5, radius=3)
+        cr.set_source_rgb(*mkit.floats_from_string('#fff'))
+        # should be transparent instead
+        rr.layout(cr, a.x-5.5, a.y-4.5, a.x+a.width+5.5, a.y+a.height+4.5, radius=0)
+        # XXX doesn't need to be ShapeRoundedRectangle
         cr.set_line_width(1)
         cr.stroke()
         cr.restore()
