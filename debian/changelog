@@ -11,6 +11,7 @@ software-center (3.1.17) UNRELEASED; urgency=low
   * softwarecenter/paths.py:
     - consolidate all pathes in this file and update the code to use
       it
+  * merged lp:~mpt/software-center/3.0-rnr-cleanup, many thanks
 
   [ Kiwinote ]
   * softwarecenter/models/appstore.py:
