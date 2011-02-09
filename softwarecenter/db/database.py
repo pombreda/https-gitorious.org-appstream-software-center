@@ -329,9 +329,15 @@ class StoreDatabase(gobject.GObject):
         """ Return a packagename from a xapian document """
         pkgname = doc.get_value(XAPIAN_VALUE_PKGNAME)
         # if there is no value it means we use the apt-xapian-index 
-        # that stores the pkgname in the data field directly
+        # that stores the pkgname in the data field or as a value
         if not pkgname:
-            pkgname = doc.get_data()
+            # the doc says that get_value() is quicker than get_data()
+            # so we use that if we have a updated DB, otherwise
+            # fallback to the old way (the xapian DB may not yet be rebuild)
+            if "pkgname" in self._axi_values:
+                pkgname = doc.get_value(self._axi_values["pkgname"])
+            else:
+                pkgname = doc.get_data()
         return pkgname
 
     def get_appname(self, doc):
