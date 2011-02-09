@@ -15,6 +15,7 @@ from softwarecenter.apt.aptcache import AptCache
 from softwarecenter.backend.channel import SoftwareChannel, ChannelsManager
 from softwarecenter.db.database import StoreDatabase
 from softwarecenter.enums import *
+from softwarecenter.paths import XAPIAN_BASE_PATH
 from softwarecenter.utils import ExecutionTime
 
 class MockIconCache(object):
@@ -44,7 +45,7 @@ class TestSoftwareChannels(unittest.TestCase):
         self.repo_from_lp = "deb https://user:pw@private-ppa.launchpad.net/user/private-test/ubuntu lucid main"
 
     def test_origin(self):
-        origin = self.cache.get_origin("apt")
+        origin = self.cache.get_origin("libc6")
         self.assertEqual(origin, "ubuntu")
         
     def test_channels(self):

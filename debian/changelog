@@ -1,4 +1,31 @@
-software-center (3.1.16) UNRELEASED; urgency=low
+software-center (3.1.17) UNRELEASED; urgency=low
+
+  [ Michael Vogt ]
+  * test/Makefile:
+    - do no longer depend on mago checkout, natty has the version
+      we need now
+  * test/mago/test_with_mago.py:
+    - add scrolldown test
+  * merged lp:~didrocks/software-center/fix-never-visible-tech-items,
+    many thanks to Didier Roche
+  * softwarecenter/paths.py:
+    - consolidate all pathes in this file and update the code to use
+      it
+  * merged lp:~mpt/software-center/3.0-rnr-cleanup, many thanks
+  * softwarecenter/db/database.py, test/test_database.py:
+    - add API to get applications for a given pkgname
+
+  [ Kiwinote ]
+  * softwarecenter/models/appstore.py:
+    - fix _get_estimate_nr_apps_and_nr_pkgs() to return precise numbers
+    - fix handling of nr_apps, nr_pkgs in _blocking_perform_search()
+  * softwarecenter/view/softwarepane.py:
+    - clean up 'disable_show_hide_nonapps' special casing, as our numbers are
+      now so precise we don't need special casing
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 08 Feb 2011 14:23:16 +0100
+
+software-center (3.1.16) natty; urgency=low
 
   [ Michael Vogt ]
   * merged lp:~mmcg069/software-center/reviews-and-netstatus
@@ -7,6 +34,10 @@ software-center (3.1.16) UNRELEASED; urgency=low
     - add appdetails netstatus tests
   * merged lp:~aaronp/software-center/fix-694836, many thanks
     (LP: #694836)
+  * softwarecenter/view/softwarepane.py:
+    - add helper to init atk names so that mago can pick them up
+  * tests/Makefile, test/mago/test_with_mago.py:
+    - use new style mago for search tests and enable in auto-tests
 
   [ Gary Lasker ]
   * softwarecenter/distro/Ubuntu.py,
@@ -24,8 +55,13 @@ software-center (3.1.16) UNRELEASED; urgency=low
      - change label to click to write a review if user already has
        a review for that package LP: #709738
      - alter review look if it belongs to current user LP: #710396
-  
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 03 Feb 2011 22:41:34 -0500
+
+  [ Matthew McGowan ]
+  * lp:~mmcg069/software-center/tiny-back-forward-tweak:
+    - a small tweak to make the arrow in the back-forward button pick 
+      a better size across a wider range of gtk themes.
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 08 Feb 2011 11:58:53 +0100
 
 software-center (3.1.15) natty; urgency=low
 

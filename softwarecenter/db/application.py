@@ -29,6 +29,7 @@ from gettext import gettext as _
 from mimetypes import guess_type
 from softwarecenter.distro import get_distro
 from softwarecenter.enums import *
+from softwarecenter.paths import *
 from softwarecenter.utils import *
 
 

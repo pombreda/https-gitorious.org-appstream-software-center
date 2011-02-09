@@ -9,8 +9,8 @@
     <property name="default_width">400</property>
     <property name="default_height">500</property>
     <property name="destroy_with_parent">True</property>
-    <signal name="size-allocate" handler="on_submit_window_size_allocate" swapped="no"/>
-    <signal name="state-changed" handler="on_submit_window_state_changed" swapped="no"/>
+    <signal name="size_allocate" handler="on_submit_window_size_allocate" swapped="no"/>
+    <signal name="state_changed" handler="on_submit_window_state_changed" swapped="no"/>
     <child>
       <object class="GtkVBox" id="dialog-vbox4">
         <property name="visible">True</property>
@@ -69,7 +69,6 @@
             <child>
               <object class="GtkVBox" id="review_body_vbox">
                 <property name="visible">True</property>
-                <property name="spacing">6</property>
                 <child>
                   <object class="GtkAlignment" id="review_header_alignment">
                     <property name="visible">True</property>
