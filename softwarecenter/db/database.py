@@ -364,6 +364,13 @@ class StoreDatabase(gobject.GObject):
             return True
         return False
 
+    def get_apps_for_pkgname(self, pkgname):
+        """ Return set of docids with the matching applications for the
+            given pkgname """
+        result = set()
+        for m in self.xapiandb.postlist("AP"+pkgname):
+            result.add(m.docid)
+        return result
         
     def get_icon_needs_download(self, doc):
         """ Return a value if the icon needs to be downloaded """

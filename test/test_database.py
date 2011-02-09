@@ -225,6 +225,13 @@ class TestDatabase(unittest.TestCase):
         appdetails = app.get_details(db)
         self.assertEqual(appdetails.pkg_state, PKG_STATE_NOT_FOUND)
 
+    def test_packagename_is_application(self):
+        db = StoreDatabase("/var/cache/software-center/xapian", self.cache)
+        db.open()
+        # apt has no app
+        self.assertEqual(db.get_apps_for_pkgname("apt"), set())
+        # but software-center has
+        self.assertEqual(len(db.get_apps_for_pkgname("software-center")), 1)
 
     def test_whats_new(self):
         db = StoreDatabase("/var/cache/software-center/xapian", self.cache)

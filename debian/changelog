@@ -12,6 +12,8 @@ software-center (3.1.17) UNRELEASED; urgency=low
     - consolidate all pathes in this file and update the code to use
       it
   * merged lp:~mpt/software-center/3.0-rnr-cleanup, many thanks
+  * softwarecenter/db/database.py, test/test_database.py:
+    - add API to get applications for a given pkgname
 
   [ Kiwinote ]
   * softwarecenter/models/appstore.py:
