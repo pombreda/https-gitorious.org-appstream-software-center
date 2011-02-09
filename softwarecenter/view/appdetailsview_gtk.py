@@ -2212,9 +2212,34 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         #cr.restore()
         #return
 
-    def get_app_icon_xy_position_on_screen(self):
+    def get_app_icon_details(self):
+        """ helper for unity dbus support to provide details about the application
+            icon as it is displayed on-screen
+        """
+        icon_name = self.appdetails.icon
+        icon_file = ""
+        if self.appdetails.icon_needs_download:
+            icon_file = self.appdetails.icon_file_path
+        icon_size = self._get_app_icon_size_on_screen()
+        (icon_x, icon_y) = self._get_app_icon_xy_position_on_screen()
+        return (icon_name, icon_file, icon_size, icon_x, icon_y)
+        
+    def _get_app_icon_size_on_screen(self):
+        """ helper for unity dbus support to get the size of the maximum side
+            for the application icon as it is displayed on-screen
+        """
+        icon_size = self.APP_ICON_SIZE
+        if self.main_frame.image.get_storage_type() == gtk.IMAGE_PIXBUF:
+            pb = self.main_frame.image.get_pixbuf()
+            if pb.get_width() > pb.get_height():
+                icon_size = pb.get_width()
+            else:
+                icon_size = pb.get_height()
+        return icon_size
+                
+    def _get_app_icon_xy_position_on_screen(self):
         """ helper for unity dbus support to get the x,y position of
-            the appicon on the screen
+            the application icon as it is displayed on-screen
         """
         # find toplevel parent
         parent = self
@@ -2226,20 +2251,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         (px, py) = parent.get_position()
         return (px+x, py+y)
         
-    def get_app_icon_and_size(self):
-        """
-        helper for unity dbus support to get the app icon being displayed
-        (as a pixbuf) along with the size of the icon's longest side
-        """
-        icon_size = self.APP_ICON_SIZE
-        if self.main_frame.image.get_storage_type() == gtk.IMAGE_PIXBUF:
-            pb = self.main_frame.image.get_pixbuf()
-            if pb.get_width() > pb.get_height():
-                icon_size = pb.get_width()
-            else:
-                icon_size = pb.get_height()
-        return (pb, icon_size)
-
     def _draw_icon_frame(self, cr):
         # draw small or no icon background
         a = self.main_frame.image.allocation
@@ -2280,10 +2291,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                     pb = gtk.gdk.pixbuf_new_from_file(image_file_path)
                     self.main_frame.set_icon_from_pixbuf(pb)
                     
-                icon_file_path = os.path.join(SOFTWARE_CENTER_ICON_CACHE_DIR, app_details.icon_file_name)
                 image_downloader = ImageDownloader()
                 image_downloader.connect('image-download-complete', on_image_download_complete)
-                image_downloader.download_image(app_details.icon_url, icon_file_path)
+                image_downloader.download_image(app_details.icon_url, appdetails.icon_file_path)
         return self.icons.load_icon(MISSING_APP_ICON, 84, 0)
     
     def update_totalsize(self, hide=False):

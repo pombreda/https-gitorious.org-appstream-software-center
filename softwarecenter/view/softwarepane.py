@@ -358,24 +358,27 @@ class SoftwarePane(gtk.VBox, BasePane):
         callback indicating the user has chosen to add the indicated application
         to the launcher
         """
-        (icon, icon_x, icon_y, icon_size) = self._get_icon_details_for_launcher_service(app)
+        (icon_name, icon_file, icon_size, icon_x, icon_y) = self._get_icon_details_for_launcher_service(app)
         print "values for use in the unity launcher dbus call:"
-        print "   icon: ", icon
-        print "   appdetails.appname: ", app.name
+        print "   app.name: ", app.name
+        print "   icon_name: ", icon_name
+        print "   icon_file: ", icon_file
+        print "   icon_size: ", icon_size
         print "   icon_x: ", icon_x
         print "   icon_y: ", icon_y
-        print "   icon_size: ", icon_size
-        print "   trans_id: ", trans_id
         print "   appdetails.desktop_file: ", appdetails.desktop_file
+        print "   trans_id: ", trans_id
         try:
             bus = dbus.SessionBus()
             launcher_obj = bus.get_object('com.canonical.Unity.Launcher', '/com/canonical/Unity/Launcher')
             launcher_iface = dbus.Interface(launcher_obj, 'com.canonical.Unity.Launcher')
-            launcher_iface.AddLauncherItemFromPosition(icon,
-                                                       title,
+            # TODO: finalize this interface
+            launcher_iface.AddLauncherItemFromPosition(app.name,
+                                                       icon_name,
+                                                       icon_file,
+                                                       icon_size,
                                                        icon_x,
                                                        icon_y,
-                                                       icon_size,
                                                        appdetails.desktop_file,
                                                        trans_id)
         except Exception, e:
@@ -384,18 +387,11 @@ class SoftwarePane(gtk.VBox, BasePane):
         self.action_bar.clear()
 
     def _get_icon_details_for_launcher_service(self, app):
-        # icon = get_icon_from_iconname(self.icons,
-        #                               iconname=appdetails.icon_file_name)
         if self.is_app_details_view_showing():
-            (icon, icon_size) = self.app_details_view.get_app_icon_and_size()
-            (icon_x, icon_y) = self.app_details_view.get_app_icon_xy_position_on_screen()
+            return self.app_details_view.get_app_icon_details()
         elif self.is_applist_view_showing():
-            # TODO: implement the app details view case when it is specified
-            icon = None
-            icon_x = None
-            icon_y = None
-            icon_size = None
-        return (icon, icon_x, icon_y, icon_size)
+            # TODO: implement the app list view case once it has been specified
+            return ("", "", None, None, None)
                                               
     def on_cancel_add_to_launcher(self, args):
         self.action_bar.clear()
