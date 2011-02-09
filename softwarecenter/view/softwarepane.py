@@ -330,6 +330,7 @@ class SoftwarePane(gtk.VBox, BasePane):
         launcher
         """
         # TODO: handle local deb install case
+        # TODO: handle apps in PPAs and in extras.ubuntu.com
         # TODO: implement the list view case (once it is specified)
         # only show the panel if unity is running and this is a package install
         if (not is_unity_running() or
