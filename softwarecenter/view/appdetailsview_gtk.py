@@ -2219,7 +2219,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         icon_name = self.appdetails.icon
         icon_file = ""
         if self.appdetails.icon_needs_download:
-            icon_file = self.appdetails.icon_file_path
+            icon_file = self.appdetails.cached_icon_file_path
         icon_size = self._get_app_icon_size_on_screen()
         (icon_x, icon_y) = self._get_app_icon_xy_position_on_screen()
         return (icon_name, icon_file, icon_size, icon_x, icon_y)
@@ -2293,7 +2293,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                     
                 image_downloader = ImageDownloader()
                 image_downloader.connect('image-download-complete', on_image_download_complete)
-                image_downloader.download_image(app_details.icon_url, appdetails.icon_file_path)
+                image_downloader.download_image(app_details.icon_url, appdetails.cached_icon_file_path)
         return self.icons.load_icon(MISSING_APP_ICON, 84, 0)
     
     def update_totalsize(self, hide=False):

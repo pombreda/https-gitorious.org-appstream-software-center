@@ -309,7 +309,7 @@ class AppDetails(object):
         return self._distro.get_downloadable_icon_url(self._cache, self.pkgname, self.icon_file_name)
 
     @property
-    def icon_file_path(self):
+    def cached_icon_file_path(self):
         if self._doc:
             return os.path.join(SOFTWARE_CENTER_ICON_CACHE_DIR, self._db.get_iconname(self._doc))
 
