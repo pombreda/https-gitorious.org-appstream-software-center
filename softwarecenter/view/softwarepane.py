@@ -361,12 +361,12 @@ class SoftwarePane(gtk.VBox, BasePane):
         """
         (icon_name, icon_file, icon_size, icon_x, icon_y) = self._get_icon_details_for_launcher_service(app)
         print "values for use in the unity launcher dbus call:"
-        print "   app.name: ", app.name
         print "   icon_name: ", icon_name
+        print "   app.name: ", app.name
         print "   icon_file: ", icon_file
-        print "   icon_size: ", icon_size
         print "   icon_x: ", icon_x
         print "   icon_y: ", icon_y
+        print "   icon_size: ", icon_size
         print "   appdetails.desktop_file: ", appdetails.desktop_file
         print "   trans_id: ", trans_id
         try:
@@ -376,10 +376,9 @@ class SoftwarePane(gtk.VBox, BasePane):
             # TODO: finalize this interface
             launcher_iface.AddLauncherItemFromPosition(app.name,
                                                        icon_name,
-                                                       icon_file,
-                                                       icon_size,
                                                        icon_x,
                                                        icon_y,
+                                                       icon_size,
                                                        appdetails.desktop_file,
                                                        trans_id)
         except Exception, e:
