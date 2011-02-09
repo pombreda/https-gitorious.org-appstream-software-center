@@ -295,7 +295,8 @@ def get_icon_file_path_from_iconname(icons, iconsize=APP_ICON_SIZE, iconname=Non
     return the file path of the icon in the theme that corresponds to the
     given iconname, or None if it cannot be determined
     """
-    if not iconname:
+    if (not iconname or
+        not icons.has_icon(iconname)):
         iconname = MISSING_APP_ICON
     try:
         icon_info = icons.lookup_icon(iconname, iconsize, 0)
