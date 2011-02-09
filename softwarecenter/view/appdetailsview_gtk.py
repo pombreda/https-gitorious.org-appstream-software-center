@@ -1052,9 +1052,8 @@ class Reviews(gtk.VBox):
                 pkgversion = self._parent.app_details.version
                 review = Review(r, pkgversion, self.logged_in_person)
                 self.vbox.pack_start(review, padding=mkit.SPACING_LARGE)
-        else:
-            # TRANSLATORS: displayed if there are no reviews
-            self.vbox.pack_start(NoReviewYet())
+        elif get_network_state() == NetState.NM_STATE_CONNECTED:
+            self.vbox.pack_start(NoReviewYet(), padding=mkit.SPACING_LARGE)
         return
 
     def _be_the_first_to_review(self):
@@ -1135,6 +1134,7 @@ class Review(gtk.VBox):
         self.pack_start(self.footer, False)
         
         self.logged_in_person = logged_in_person
+        self.person = None
 
         if review_data:
             self.id = review_data.id
