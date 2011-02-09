@@ -39,7 +39,7 @@ from softwarecenter.db.reviews import ReviewStats
 from softwarecenter.backend.zeitgeist_simple import zeitgeist_singleton
 from softwarecenter.enums import *
 from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR, INSTALLED_ICON, IMAGE_LOADING_INSTALLED
-from softwarecenter.utils import ImageDownloader, GMenuSearcher, uri_to_filename, is_unity_running, upstream_version_compare, upstream_version
+from softwarecenter.utils import *
 from softwarecenter.gwibber_helper import GWIBBER_SERVICE_AVAILABLE
 
 from appdetailsview import AppDetailsViewBase
@@ -2217,12 +2217,14 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             icon as it is displayed on-screen
         """
         icon_name = self.appdetails.icon
-        icon_file = ""
         if self.appdetails.icon_needs_download:
             icon_file = self.appdetails.cached_icon_file_path
         icon_size = self._get_app_icon_size_on_screen()
+        icon_file_path = get_icon_file_path_from_iconname(self.icons,
+                                                          iconsize=icon_size,
+                                                          iconname=icon_name)
         (icon_x, icon_y) = self._get_app_icon_xy_position_on_screen()
-        return (icon_name, icon_file, icon_size, icon_x, icon_y)
+        return (icon_name, icon_file_path, icon_size, icon_x, icon_y)
         
     def _get_app_icon_size_on_screen(self):
         """ helper for unity dbus support to get the size of the maximum side

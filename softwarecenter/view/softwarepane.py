@@ -359,11 +359,11 @@ class SoftwarePane(gtk.VBox, BasePane):
         callback indicating the user has chosen to add the indicated application
         to the launcher
         """
-        (icon_name, icon_file, icon_size, icon_x, icon_y) = self._get_icon_details_for_launcher_service(app)
+        (icon_name, icon_file_path, icon_size, icon_x, icon_y) = self._get_icon_details_for_launcher_service(app)
         print "values for use in the unity launcher dbus call:"
         print "   icon_name: ", icon_name
+        print "   (icon_file_path): ", icon_file_path
         print "   app.name: ", app.name
-        print "   icon_file: ", icon_file
         print "   icon_x: ", icon_x
         print "   icon_y: ", icon_y
         print "   icon_size: ", icon_size
