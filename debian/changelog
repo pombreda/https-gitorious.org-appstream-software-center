@@ -23,6 +23,9 @@ software-center (3.1.17) UNRELEASED; urgency=low
   [ Kiwinote ]
   * softwarecenter/apt/aptcache.py:
     - don't crash if we have pkg in cache, but no candidate (LP: #713878)
+  * softwarecenter/db/application.py:
+    - only return the component listed in a desktop file if the package is not
+      available in the apt cache (LP: #707615)
   * softwarecenter/models/appstore.py:
     - fix _get_estimate_nr_apps_and_nr_pkgs() to return precise numbers
     - fix handling of nr_apps, nr_pkgs in _blocking_perform_search()
