@@ -19,6 +19,8 @@ software-center (3.1.17) UNRELEASED; urgency=low
   * softwarecenter/db/update.py:
     - add basic appinfo xml parser
   * merged lp:~aaronp/software-center/misc-stuff, many thanks
+  * merged lp:~bilalakhtar/software-center/write-review-installed-only,
+    thanks to Bilal Akhtar
 
   [ Aaron Peachey ]
   * implemented https://wiki.ubuntu.com/SoftwareCenter/#Self-awareness
