@@ -14,6 +14,11 @@ software-center (3.1.17) UNRELEASED; urgency=low
   * merged lp:~mpt/software-center/3.0-rnr-cleanup, many thanks
   * softwarecenter/db/database.py, test/test_database.py:
     - add API to get applications for a given pkgname
+  * merged lp:~aaronp/software-center/reviews-tweaks
+    This branch improve the feedback for the gwibber sending,
+    many thanks to Aaron Peachey
+  * softwarecenter/db/update.py:
+    - add basic appinfo xml parser
 
   [ Kiwinote ]
   * softwarecenter/models/appstore.py:
