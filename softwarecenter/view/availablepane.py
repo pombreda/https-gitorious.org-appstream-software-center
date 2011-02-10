@@ -27,6 +27,7 @@ import xapian
 from gettext import gettext as _
 
 from softwarecenter.enums import *
+from softwarecenter.paths import *
 from softwarecenter.utils import *
 from softwarecenter.db.database import SearchQuery
 from softwarecenter.distro import get_distro
@@ -449,7 +450,7 @@ class AvailablePane(SoftwarePane):
                                             self.on_navigation_list,
                                             NAV_BUTTON_ID_LIST,
                                             do_callback=False,
-                                            animate=True)
+                                            animate=False)
         else:
             self.apps_category = Category("deb", "deb", None, None, False, True, None)
         self.current_app_by_category[self.apps_category] = app
@@ -457,7 +458,7 @@ class AvailablePane(SoftwarePane):
         self.navigation_bar.add_with_id(details.display_name,
                                         self.on_navigation_details,
                                         NAV_BUTTON_ID_DETAILS,
-                                        animate=True)
+                                        animate=False)
         self.app_details_view.show_app(app)
         self.display_details()
 
@@ -762,14 +763,16 @@ if __name__ == "__main__":
         # FIXME: force rebuild by providing a dbus service for this
         sys.exit(1)
 
-    w = AvailablePane(cache, db, 'Ubuntu', icons, datadir, None, None)
+    navhistory_back_action = gtk.Action("navhistory_back_action", "Back", "Back", None)
+    navhistory_forward_action = gtk.Action("navhistory_forward_action", "Forward", "Forward", None)
+    w = AvailablePane(cache, db, 'Ubuntu', icons, datadir, navhistory_back_action, navhistory_forward_action)
     w.show()
 
     win = gtk.Window()
     win.add(w)
-    w.init_view()
-    win.set_size_request(700,500)
+    win.set_size_request(800,600)
     win.show_all()
+    glib.idle_add(w.init_view)
 
     gtk.main()
 

@@ -43,6 +43,12 @@ except:
 
 if __name__ == "__main__":
     import urllib
+
+    # force stdout to be utf-8
+    import codecs
+    sys.stdout = codecs.getwriter('utf8')(sys.stdout)
+
+    # dump all reviews
     rnr = RatingsAndReviewsAPI()
     print rnr.server_status()
     # dump all reviews
@@ -56,7 +62,7 @@ if __name__ == "__main__":
         for review in reviews:
             print "rating: %s  user=%s" % (review.rating, review.reviewer_username)
             print review.summary
-            print unicode(review.review_text)
+            print review.review_text
             print
         
     # get individual ones

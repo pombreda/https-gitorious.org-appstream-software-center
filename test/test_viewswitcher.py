@@ -16,6 +16,7 @@ from softwarecenter.db.database import StoreDatabase
 from softwarecenter.view.viewmanager import ViewManager
 from softwarecenter.view.viewswitcher import ViewSwitcher, ViewSwitcherList
 from softwarecenter.enums import *
+from softwarecenter.paths import XAPIAN_BASE_PATH
 
 import xapian
 

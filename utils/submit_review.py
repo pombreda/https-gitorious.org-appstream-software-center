@@ -305,7 +305,7 @@ class BaseApp(SimpleGtkbuilderApp):
     def run(self):
         # initially display a 'Connecting...' page
         self.main_notebook.set_current_page(0)
-        self.login_status_label.set_markup('<b><big>%s</big></b>' % _("Signing In"))
+        self.login_status_label.set_markup(_(u"Signing in\u2026"))
         self.status_spinner.start()
         self.submit_window.show()
         # now run the loop
@@ -545,21 +545,18 @@ class SubmitReviewsApp(BaseApp):
             icon = self.icons.load_icon(MISSING_APP_ICON, self.APP_ICON_SIZE, 0)
         self.review_appicon.set_from_pixbuf(icon)
 
-        # dark color
-        dark = widget.style.dark[0].to_string()
-
         # title
-        m = '<b><span size="x-large">%s</span></b>\n%s %s'
-        self.review_title.set_markup(m % (app.name, _('Reviewed by'), display_name))
+        m = '<b><span size="x-large">%s</span></b>\n%s'
+        self.review_title.set_markup(m % (app.name, version))
 
         # review label
-        self.review_label.set_markup('<b><span color="%s">%s</span></b>' % (dark, _('Review')))
+        self.review_label.set_markup(_('Review by: %s') % display_name)
 
         # review summary label
-        self.review_summary_label.set_markup('<b><span color="%s">%s</span></b>' % (dark, _('Summary')))
+        self.review_summary_label.set_markup(_('Summary:'))
         
         #rating label
-        self.rating_label.set_markup('<b><span color="%s">%s</span></b>' % (dark, _('Rating')))
+        self.rating_label.set_markup(_('Rating:'))
         return
 
     # force resize of the legal label when the app resizes, if not
@@ -918,7 +915,7 @@ class ReportReviewApp(BaseApp):
 
     APP_ICON_SIZE = 48
     
-    SUBMIT_MESSAGE = _("Sending Report")
+    SUBMIT_MESSAGE = _(u"Sending report\u2026")
 
     def __init__(self, review_id, parent_xid, datadir):
         BaseApp.__init__(self, datadir, "report_abuse.ui")
@@ -933,7 +930,7 @@ class ReportReviewApp(BaseApp):
         self.review_id = review_id
 
         # title
-        self.submit_window.set_title(_("Report an infringment"))
+        self.submit_window.set_title(_("Flag as Inappropriate"))
 
         # parent xid
         if parent_xid:
@@ -963,18 +960,16 @@ class ReportReviewApp(BaseApp):
             self.button_post.set_sensitive(False)
 
     def _setup_details(self, widget, display_name):
-        # dark color
-        dark = widget.style.dark[0].to_string()
 
         # title
         m = '<b><span size="x-large">%s</span></b>\n%s %s'
         self.report_title.set_markup(m % (_('Review Infringment'), _('Reported by'), display_name))
 
         # report label
-        self.report_label.set_markup('<b><span color="%s">%s</span></b>' % (dark, _('Please give details:')))
+        self.report_label.set_markup(_('Please give details:'))
 
         # review summary label
-        self.report_summary_label.set_markup('<b><span color="%s">%s</span></b>' % (dark, _('Why is this review inappropriate?')))
+        self.report_summary_label.set_markup(_('Why is this review inappropriate?'))
         return
 
     def on_button_post_clicked(self, button):
