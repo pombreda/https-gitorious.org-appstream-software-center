@@ -447,7 +447,7 @@ class AvailablePane(SoftwarePane):
                                             self.on_navigation_list,
                                             NAV_BUTTON_ID_LIST,
                                             do_callback=False,
-                                            animate=True)
+                                            animate=False)
         else:
             self.apps_category = Category("deb", "deb", None, None, False, True, None)
         self.current_app_by_category[self.apps_category] = app
@@ -455,7 +455,7 @@ class AvailablePane(SoftwarePane):
         self.navigation_bar.add_with_id(details.display_name,
                                         self.on_navigation_details,
                                         NAV_BUTTON_ID_DETAILS,
-                                        animate=True)
+                                        animate=False)
         self.app_details_view.show_app(app)
         self.display_details()
 

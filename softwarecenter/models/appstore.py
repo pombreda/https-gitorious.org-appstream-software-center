@@ -292,8 +292,8 @@ class AppStore(gtk.GenericTreeModel):
         # if we have no results, try forcing pkgs to be displayed
         # if not NONAPPS_NEVER_VISIBLE is set
         if (not self.matches and
-            self.nonapps_visible != self.NONAPPS_ALWAYS_VISIBLE and
-            self.nonapps_visible != self.NONAPPS_NEVER_VISIBLE):
+            self.nonapps_visible not in (self.NONAPPS_ALWAYS_VISIBLE,
+                                         self.NONAPPS_NEVER_VISIBLE)):
             self.nonapps_visible = self.NONAPPS_ALWAYS_VISIBLE
             self._blocking_perform_search()
             

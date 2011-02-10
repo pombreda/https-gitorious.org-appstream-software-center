@@ -241,11 +241,11 @@ class AppDetails(object):
                 if (origin.origin == "Ubuntu" and origin.trusted and origin.component):
                     return origin.component
         # then xapian
-        if self._doc:
+        elif self._doc:
             comp = self._doc.get_value(XAPIAN_VALUE_ARCHIVE_SECTION)
             return comp
         # then apturl requests
-        if not self._doc:
+        else:
             section_matches = re.findall(r'section=([a-z]+)', self._app.request)
             if section_matches:
                 valid_section_matches = []

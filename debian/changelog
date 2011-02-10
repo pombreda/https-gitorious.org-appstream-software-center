@@ -27,14 +27,26 @@ software-center (3.1.17) UNRELEASED; urgency=low
   * improve the feedback for the gwibber interaction
 
   [ Kiwinote ]
+  * softwarecenter/apt/aptcache.py:
+    - don't crash if we have pkg in cache, but no candidate (LP: #713878)
+  * softwarecenter/db/application.py:
+    - only return the component listed in a desktop file if the package is not
+      available in the apt cache (LP: #707615)
   * softwarecenter/models/appstore.py:
     - fix _get_estimate_nr_apps_and_nr_pkgs() to return precise numbers
     - fix handling of nr_apps, nr_pkgs in _blocking_perform_search()
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - hide progress bar on error
+  * softwarecenter/view/availablepane.py:
+    - don't animate pathbar elements in order to avoid breakage (LP: #713878)
   * softwarecenter/view/softwarepane.py:
     - clean up 'disable_show_hide_nonapps' special casing, as our numbers are
       now so precise we don't need special casing
 
   [ Gary Lasker ]
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - don't show the "write a review" link until we have the correct
+      text and show/hide status, avoids a delayed update in the UI
   * softwarecenter/backend/aptd.py,
     softwarecenter/models/appstore.py,
     softwarecenter/view/appdetailsview_webkit.py,
@@ -56,9 +68,14 @@ software-center (3.1.17) UNRELEASED; urgency=low
     softwarecenter/view/softwarepane.py,
     softwarecenter/enums.py:
     - implement the software-center side of unity launcher
-      integration per the specification (LP: #670403) 
-
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 10 Feb 2011 10:16:07 -0500
+      integration per the specification (LP: #670403)
+  
+  [ Matthew McGowan ]
+  * lp:~mmcg069/software-center/small-rnr-tweaks:
+    - add nice human readable time delta string to the review
+    - tweak review UI
+  
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 10 Feb 2011 17:09:23 -0500
 
 software-center (3.1.16) natty; urgency=low
 
