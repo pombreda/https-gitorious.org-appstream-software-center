@@ -1014,9 +1014,7 @@ class Reviews(gtk.VBox):
         expander_hb = gtk.HBox(spacing=mkit.SPACING_MED)
         self.pack_start(expander_hb, False)
         expander_hb.pack_start(self.expander, False)
-        # only add "write new" if the app is installed
-        if self.app_details.pkg_state == PKG_STATE_INSTALLED:
-           expander_hb.pack_end(self.new_review, False)
+        expander_hb.pack_end(self.new_review, False)
 
         self.vbox = gtk.VBox(spacing=mkit.SPACING_XLARGE)
         self.vbox.set_no_show_all(True)
@@ -1076,6 +1074,13 @@ class Reviews(gtk.VBox):
 
     def finished(self):
         #print 'Review count: %s' % len(self.reviews)
+        # only display "write new" if the app is installed
+        if (self._parent.app_details and
+            not self._parent.app_details.pkg_state == PKG_STATE_INSTALLED):
+            self.new_review.hide()
+            return
+        else:
+            self.new_review.show()
         if not self.reviews:
             self._be_the_first_to_review()
         else:
