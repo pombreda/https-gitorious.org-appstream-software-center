@@ -195,7 +195,7 @@ class PackageStatusBar(StatusBar):
 
         #~ self.fill_color = COLOR_BLACK
         #~ self.line_color = COLOR_GREEN_OUTLINE
-
+        
         if state in (PKG_STATE_INSTALLING,
                      PKG_STATE_INSTALLING_PURCHASED,
                      PKG_STATE_REMOVING,
@@ -234,14 +234,18 @@ class PackageStatusBar(StatusBar):
             self.set_label(_('Upgrading...'))
             self.button.set_sensitive(False)
         elif state == PKG_STATE_INSTALLED or state == PKG_STATE_REINSTALLABLE:
-            if app_details.purchase_date:
-                purchase_date = str(app_details.purchase_date).split()[0]
-                self.set_label(_('Purchased on %s') % purchase_date)
-            elif app_details.installation_date:
-                installation_date = str(app_details.installation_date).split()[0]
-                self.set_label(_('Installed on %s') % installation_date)
+            #special label only if the app being viewed is software centre itself
+            if app_details.pkgname== SOFTWARE_CENTER_PKGNAME:
+                self.set_label(_("Installed (you're using it right now)"))
             else:
-                self.set_label(_('Installed'))
+                if app_details.purchase_date:
+                    purchase_date = str(app_details.purchase_date).split()[0]
+                    self.set_label(_('Purchased on %s') % purchase_date)
+                elif app_details.installation_date:
+                    installation_date = str(app_details.installation_date).split()[0]
+                    self.set_label(_('Installed on %s') % installation_date)
+                else:
+                    self.set_label(_('Installed'))
             if state == PKG_STATE_REINSTALLABLE: # only deb files atm
                 self.set_button_label(_('Reinstall'))
             elif state == PKG_STATE_INSTALLED:
@@ -259,10 +263,14 @@ class PackageStatusBar(StatusBar):
             self.set_label(_('Purchased on %s') % purchase_date)
             self.set_button_label(_('Install'))
         elif state == PKG_STATE_UNINSTALLED:
-            if app_details.price:
-                self.set_label(app_details.price)
+            #special label only if the app being viewed is software centre itself
+            if app_details.pkgname== SOFTWARE_CENTER_PKGNAME:
+                self.set_label(_("Removed (close it and it'll be gone)"))
             else:
-                self.set_label(_("Free"))
+                if app_details.price:
+                    self.set_label(app_details.price)
+                else:
+                    self.set_label(_("Free"))
             self.set_button_label(_('Install'))
         elif state == PKG_STATE_UPGRADABLE:
             self.set_label(_('Upgrade Available'))
