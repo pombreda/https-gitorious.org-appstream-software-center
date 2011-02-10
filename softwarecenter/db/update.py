@@ -73,6 +73,8 @@ del CF
 class AppInfoParserBase(object):
     """ base class for reading AppInfo meta-data """
 
+    MAPPING = {}
+
     def get_desktop(self, key):
         """ get a AppInfo entry for the given key """
     def has_option_desktop(self, key):
@@ -87,6 +89,13 @@ class AppInfoParserBase(object):
         except (NoOptionError, KeyError):
             pass
         return result
+    def _apply_mapping(self, key):
+        # strip away bogus prefixes
+        if key.startswith("X-AppInstall-"):
+            key = key[len("X-AppInstall-"):]
+        if key in self.MAPPING:
+            return self.MAPPING[key]
+        return key
     def get_desktop_categories(self):
         return self._get_desktop_list("Categories")
     def get_desktop_mimetypes(self):
@@ -132,13 +141,6 @@ class SoftwareCenterAgentParser(AppInfoParserBase):
         if hasattr(self.sca_entry, "description"):
             self.sca_entry.Comment = self.sca_entry.description.split("\n")[0]
             self.sca_entry.Description = "\n".join(self.sca_entry.description.split("\n")[1:])
-    def _apply_mapping(self, key):
-        # strip away bogus prefixes
-        if key.startswith("X-AppInstall-"):
-            key = key[len("X-AppInstall-"):]
-        if key in self.MAPPING:
-            return self.MAPPING[key]
-        return key
     def get_desktop(self, key):
         if key in self.STATIC_DATA:
             return self.STATIC_DATA[key]
@@ -163,13 +165,6 @@ class JsonTagSectionParser(AppInfoParserBase):
     def __init__(self, tag_section, url):
         self.tag_section = tag_section
         self.url = url
-    def _apply_mapping(self, key):
-        # strip away bogus prefixes
-        if key.startswith("X-AppInstall-"):
-            key = key[len("X-AppInstall-"):]
-        if key in self.MAPPING:
-            return self.MAPPING[key]
-        return key
     def get_desktop(self, key):
         return self.tag_section[self._apply_mapping(key)]
     def has_option_desktop(self, key):
@@ -177,6 +172,54 @@ class JsonTagSectionParser(AppInfoParserBase):
     @property
     def desktopf(self):
         return self.url
+
+class AppStreamXMLParser(AppInfoParserBase):
+
+    MAPPING = { 'Name'       : 'name',
+                'Comment'    : 'summary',
+                'Package'    : 'pkgname',
+                'Categories' : 'appcategories',
+                'Keywords'   : 'keywords',
+                'MimeType'   : 'mimetypes',
+                'Icon'       : 'icon',
+              } 
+
+    LISTS = { "appcategories" : "appcategory",
+              "keywords"  : "keyword",
+              "mimetypes" : "mimetype",
+            }
+    
+    def __init__(self, appinfo_xml, xmlfile):
+        self.appinfo_xml = appinfo_xml
+        self.xmlfile = xmlfile
+    def get_desktop(self, key):
+        from lxml import etree
+        key = self._apply_mapping(key)
+        if key in self.LISTS:
+            return self._parse_with_lists(key)
+        else:
+            return self._parse_value(key)
+    def _parse_value(self, key):
+        for child in self.appinfo_xml.iter(key):
+            # FIXME: deal with the i18n
+            if child.get("lang"):
+                continue
+            return child.text
+        return None
+    def _parse_with_lists(self, key):
+        l=[]
+        for listroot in self.appinfo_xml.iter(key):
+            for child in listroot.iter(self.LISTS[key]):
+                l.append(child.text)
+        return ",".join(l)
+    def has_option_desktop(self, key):
+        from lxml import etree
+        key = self._apply_mapping(key)
+        return not self.appinfo_xml.find(key) is None
+    @property
+    def desktopf(self):
+        subelm = self.appinfo_xml.find("id")
+        return subelm.text
 
 class DesktopTagSectionParser(AppInfoParserBase):
     def __init__(self, tag_section, tagfile):
@@ -305,6 +348,24 @@ def update_from_var_lib_apt_lists(db, cache, listsdir=None):
             index_app_info_from_parser(parser, db, cache)
     return True
 
+def update_from_appstream_xml(db, cache, xmldir):
+    from lxml import etree
+    context = glib.main_context_default()
+    for appstream_xml in glob(os.path.join(xmldir, "*.xml")):
+        LOG.debug("processing %s" % appstream_xml)
+        # process events
+        while context.pending():
+            context.iteration()
+        tree = etree.parse(open(appstream_xml))
+        root = tree.getroot()
+        if not root.tag == "applications":
+            logging.error("failed to read '%s' excepected Applications root tag" % appstream_xml)
+            continue
+        for appinfo in root.iter("application"):
+            parser = AppStreamXMLParser(appinfo, appstream_xml)
+            index_app_info_from_parser(parser, db, cache)
+    return True
+        
 def update_from_app_install_data(db, cache, datadir=APP_INSTALL_PATH):
     """ index the desktop files in $datadir/desktop/*.desktop """
     context = glib.main_context_default()
