@@ -206,6 +206,7 @@ class PackageStatusBar(StatusBar):
         elif state == PKG_STATE_NOT_FOUND:
             self.hide()
         elif state == PKG_STATE_ERROR:
+            self.progress.hide()
             self.button.set_sensitive(False)
             self.button.show()
             self.show()
