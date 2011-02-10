@@ -34,7 +34,12 @@ software-center (3.1.17) UNRELEASED; urgency=low
     - clean up 'disable_show_hide_nonapps' special casing, as our numbers are
       now so precise we don't need special casing
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 08 Feb 2011 14:23:16 +0100
+  [ Gary Lasker ]
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - don't show the "write a review" link until we have the correct
+      text and show/hide status, avoids a delayed update in the UI
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 10 Feb 2011 12:54:10 -0500
 
 software-center (3.1.16) natty; urgency=low
 
