@@ -15,10 +15,16 @@ software-center (3.1.17) UNRELEASED; urgency=low
   * softwarecenter/db/database.py, test/test_database.py:
     - add API to get applications for a given pkgname
   * merged lp:~aaronp/software-center/reviews-tweaks
-    This branch improve the feedback for the gwibber sending,
     many thanks to Aaron Peachey
   * softwarecenter/db/update.py:
     - add basic appinfo xml parser
+  * merged lp:~aaronp/software-center/misc-stuff, many thanks
+  * merged lp:~bilalakhtar/software-center/write-review-installed-only,
+    thanks to Bilal Akhtar
+
+  [ Aaron Peachey ]
+  * implemented https://wiki.ubuntu.com/SoftwareCenter/#Self-awareness
+  * improve the feedback for the gwibber interaction
 
   [ Kiwinote ]
   * softwarecenter/apt/aptcache.py:
@@ -37,7 +43,17 @@ software-center (3.1.17) UNRELEASED; urgency=low
     - clean up 'disable_show_hide_nonapps' special casing, as our numbers are
       now so precise we don't need special casing
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 08 Feb 2011 14:23:16 +0100
+  [ Gary Lasker ]
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - don't show the "write a review" link until we have the correct
+      text and show/hide status, avoids a delayed update in the UI
+  
+  [ Matthew McGowan ]
+  * lp:~mmcg069/software-center/small-rnr-tweaks:
+    - add nice human readable time delta string to the review
+    - tweak review UI
+  
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 10 Feb 2011 22:11:26 +0100
 
 software-center (3.1.16) natty; urgency=low
 
