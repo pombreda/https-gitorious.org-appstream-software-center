@@ -23,7 +23,6 @@ class TestDatabase(unittest.TestCase):
     """ tests the store database """
 
     def setUp(self):
-        apt_pkg.config.set("APT::Architecture", "i386")
         apt_pkg.config.set("Dir::State::status",
                            "./data/appdetails/var/lib/dpkg/status")
         self.cache = AptCache()
