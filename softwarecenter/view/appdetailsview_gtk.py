@@ -1078,7 +1078,6 @@ class Reviews(gtk.VBox):
         if (self._parent.app_details and
             not self._parent.app_details.pkg_state == PKG_STATE_INSTALLED):
             self.new_review.hide()
-            return
         else:
             self.new_review.show()
         if not self.reviews:
