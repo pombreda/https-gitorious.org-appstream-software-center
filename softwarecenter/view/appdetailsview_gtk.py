@@ -2073,6 +2073,10 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         # set button sensitive again
         self.pkg_statusbar.button.set_sensitive(True)
+        
+        # hide the "write a review" button initially until we are ready
+        # to display it
+        self.reviews.new_review.hide()
 
         # init data
         old_details = self.app_details
