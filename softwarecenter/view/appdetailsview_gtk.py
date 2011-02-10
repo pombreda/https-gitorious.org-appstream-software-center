@@ -1006,7 +1006,8 @@ class Reviews(gtk.VBox):
         expander_hb = gtk.HBox(spacing=mkit.SPACING_MED)
         self.pack_start(expander_hb, False)
         expander_hb.pack_start(self.expander, False)
-        expander_hb.pack_end(self.new_review, False)
+        if self.app_details.pkg_state == PKG_STATE_INSTALLED:
+           expander_hb.pack_end(self.new_review, False)
 
         self.vbox = gtk.VBox(spacing=mkit.SPACING_XLARGE)
         self.vbox.set_no_show_all(True)
