@@ -19,6 +19,9 @@
 import os
 import xdg.BaseDirectory
 
+# pkgname of this app itself (used for "self-awareness", see spec)
+SOFTWARE_CENTER_PKGNAME = 'software-center'
+
 # buy-something base url
 #BUY_SOMETHING_HOST = "http://localhost:8000/"
 BUY_SOMETHING_HOST = os.environ.get("SOFTWARE_CENTER_BUY_HOST") or "https://software-center.ubuntu.com"
