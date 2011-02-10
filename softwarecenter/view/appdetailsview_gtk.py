@@ -1045,6 +1045,10 @@ class Reviews(gtk.VBox):
     def _fill(self):
         self.logged_in_person = self._get_person_from_config()
         if self.reviews:
+
+            self.reviews.reverse()  # XXX: sort so that reviews are ordered recent to oldest
+                                    # XXX: prob should be done somewhere else, perhaps in the review fetcher?
+
             for r in self.reviews:
                 pkgversion = self._parent.app_details.version
                 review = Review(r, pkgversion, self.logged_in_person)
@@ -1137,23 +1141,49 @@ class Review(gtk.VBox):
         self.person = None
 
         if review_data:
-            self.id = review_data.id
-            rating = review_data.rating 
-            self.person = review_data.reviewer_username
-            summary = review_data.summary
-            text = review_data.review_text
-            date = review_data.date_created
-            app_name = review_data.app_name
-            # some older version of the server do not set the version
-            review_version = getattr(review_data, "version", "")
-            self._build(rating, self.person, summary, text, date, app_name, review_version, app_version)
-
-        self.body.connect('size-allocate', self._on_allocate)
+            self.connect('realize',
+                         self._on_realize,
+                         review_data,
+                         app_version,
+                         logged_in_person)
         return
 
     def _on_allocate(self, widget, allocation):
         for child in self.body:
             child.set_size_request(allocation.width, -1)
+        return
+
+    def _on_realize(self, w, review_data, app_version, logged_in_person):
+        self.id = review_data.id
+        rating = review_data.rating 
+        self.person = review_data.reviewer_username
+        summary = review_data.summary
+        text = review_data.review_text
+        date = review_data.date_created
+        app_name = review_data.app_name
+        # some older version of the server do not set the version
+        review_version = getattr(review_data, "version", "")
+
+        self._build(rating,
+                    self.person,
+                    summary,
+                    text,
+                    date,
+                    app_name,
+                    review_version,
+                    app_version)
+        return
+
+    def _on_allocate(self, widget, allocation, stars, summary, who_when, version_lbl, flag):
+        for child in self.body:
+            child.set_size_request(allocation.width, -1)
+
+        summary.set_size_request(allocation.width - \
+                                 stars.allocation.width - \
+                                 who_when.allocation.width - 20, -1)
+
+        if version_lbl:
+            version_lbl.set_size_request(allocation.width-flag.allocation.width-20, -1)
         return
 
     def _on_report_abuse_clicked(self, button):
@@ -1162,56 +1192,123 @@ class Review(gtk.VBox):
             reviews.emit("report-abuse", self.id)
 
     def _build(self, rating, person, summary, text, date, app_name, review_version, app_version):
-        # all the arguments may need markup escaping, depending on whether
+        # all the arguments may need markup escape, depening on if
         # they are used as text or markup
-        if person == self.logged_in_person:
-            m = "%s %s" % (_("This is your review, submitted on"),
-                                glib.markup_escape_text(date))
-        else:
-            m = "<b>%s</b>, %s" % (glib.markup_escape_text(person),
-                                glib.markup_escape_text(date))
-        who_what_when = gtk.Label(m)
-        who_what_when.set_use_markup(True)
 
-        summary = gtk.Label('<b>%s</b>' % glib.markup_escape_text(summary))
+        cur_t, dt = self._get_timedelta(date)
+
+        dark_color = self.style.dark[gtk.STATE_NORMAL]
+        m = self._whom_when_markup(person, cur_t, dt, dark_color)
+
+        who_when = mkit.EtchedLabel(m)
+        who_when.set_use_markup(True)
+
+        summary = mkit.EtchedLabel('<b>%s</b>' % glib.markup_escape_text(summary))
         summary.set_use_markup(True)
+        summary.set_ellipsize(pango.ELLIPSIZE_END)
+        summary.set_alignment(0, 0.5)
 
         text = gtk.Label(text)
         text.set_line_wrap(True)
         text.set_selectable(True)
         text.set_alignment(0, 0)
-        
-        self.header.pack_start(StarRating(rating), False)
+
+        stars = StarRating(rating)
+
+        self.header.pack_start(stars, False)
         self.header.pack_start(summary, False)
-        self.header.pack_end(who_what_when, False)
-        #self.header.pack_end(gtk.Label(self.rating), False)
+        self.header.pack_end(who_when, False)
+
         self.body.pack_start(text, False)
         
         #if review version is different to version of app being displayed, 
         # alert user
+        version_lbl = None
         if (review_version and 
             upstream_version_compare(review_version, app_version) != 0):
             version_string = _("This review was written for a different version of %(app_name)s (Version: %(version)s)") % { 
                 'app_name' : app_name,
                 'version' : glib.markup_escape_text(upstream_version(review_version))
                 }
-            version_lbl = gtk.Label("<small><i>%s</i></small>" % version_string)
+            version_lbl = gtk.Label('<small><i><span color="%s">%s</span></i></small>' % (dark_color.to_string(), version_string))
             version_lbl.set_use_markup(True)
             version_lbl.set_padding(0,3)
+            version_lbl.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
+            version_lbl.set_alignment(0, 0.5)
             self.footer.pack_start(version_lbl, False)
         
         #like = mkit.VLinkButton('<small>%s</small>' % _('This review was useful'))
         #like.set_underline(True)
         #self.footer.pack_start(like, False)
 
-        # Translators: This link is for flagging a review as inappropriate.
-        # To minimize repetition, if at all possible, keep it to a single word.
-        # If your language has an obvious verb, it won't need a question mark.
-        complain = mkit.VLinkButton('<small>%s</small>' % _('Inappropriate?'))
-        complain.set_underline(True)
-        self.footer.pack_end(complain, False)
-        complain.connect('clicked', self._on_report_abuse_clicked)
+        # Translators: Flags should be translated in the sense of
+        #  "Report as inappropriate"
+        self.complain = mkit.VLinkButton('<small>%s</small>' % _('Flag'))
+        self.complain.set_underline(True)
+        self.footer.pack_end(self.complain, False)
+        self.complain.connect('clicked', self._on_report_abuse_clicked)
+
+        self.body.connect('size-allocate', self._on_allocate, stars, summary, who_when, version_lbl, self.complain)
         return
+
+    def _get_timedelta(self, raw_date):
+        import datetime
+        # example raw_date str format: 2011-01-28 19:15:21
+        cur_t = datetime.datetime.strptime(raw_date, '%Y-%m-%d %H:%M:%S')
+        dt = datetime.datetime.utcnow() - cur_t
+        return cur_t, dt
+
+    def _whom_when_markup(self, person, cur_t, dt, dark_color):
+        nice_date = self._nice_date(cur_t, dt)
+
+        if person == self.logged_in_person:
+            m = '<span color="%s">%s %s</span>'
+
+            if dt.days <= 5:
+                m = m % (dark_color.to_string(),
+                         _("This is your review, submitted"),
+                         glib.markup_escape_text(nice_date))
+            else:
+                m = m % (dark_color.to_string(),
+                         _("This is your review, submitted on"),
+                         glib.markup_escape_text(nice_date))
+
+        else:
+            m = '<span color="%s"><b>%s</b>, %s</span>' % (dark_color.to_string(),
+                                                           glib.markup_escape_text(person),
+                                                           glib.markup_escape_text(nice_date))
+
+        return m
+
+    def _nice_date(self, cur_t, dt):
+        days = dt.days
+        secs = dt.seconds
+
+        if days < 1:
+
+            if secs < 120:   # less than 2 minute ago
+                s = _('a few minutes ago')   # dont be fussy
+
+            elif secs < 3600:   # less than an hour ago
+                s = gettext.ngettext("%(min)i minute ago",
+                                     "%(min)i minutes ago",
+                                     (secs/60)) % { 'min' : (secs/60) }
+
+            else:   # less than a day ago
+                s = gettext.ngettext("%(hours)i hour ago",
+                                     "%(hours)i hours ago",
+                                     (secs/3600)) % { 'hours' : (secs/3600) }
+
+        elif days <= 5: # less than a week ago
+            s = gettext.ngettext("%(days)i day ago",
+                                 "%(days)i days ago",
+                                 days) % { 'days' : days }
+
+        else:   # any timedelta greater than 3 days old
+            # YYYY-MM-DD
+            s = cur_t.isoformat().split('T')[0]
+
+        return s
 
     def draw(self, cr, a):
         cr.save()
