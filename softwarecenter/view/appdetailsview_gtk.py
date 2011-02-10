@@ -1015,8 +1015,8 @@ class Reviews(gtk.VBox):
         self.pack_start(expander_hb, False)
         expander_hb.pack_start(self.expander, False)
         # only add "write new" if the app is installed
-        if self.app_details.pkg_state == PKG_STATE_INSTALLED:
-           expander_hb.pack_end(self.new_review, False)
+#        if self.app_details.pkg_state == PKG_STATE_INSTALLED:
+        expander_hb.pack_end(self.new_review, False)
 
         self.vbox = gtk.VBox(spacing=mkit.SPACING_XLARGE)
         self.vbox.set_no_show_all(True)
@@ -1028,6 +1028,12 @@ class Reviews(gtk.VBox):
         self.expander.set_expanded(True)
         self.new_review.connect('clicked', lambda w: self.emit('new-review'))
         return
+
+    @property
+    def app_details(self):
+        if self._parent:
+            return self._parent.app_details
+        return None
 
     def _get_person_from_config(self):
         cfg = get_config()
@@ -1109,21 +1115,9 @@ class Reviews(gtk.VBox):
             review.destroy()
 
     def draw(self, cr, a):
-        cr.save()
-        rr = mkit.ShapeRoundedRectangle()
-        r, g, b = mkit.floats_from_string('#fff')
-        # XXX this should be transparent instead
-        rr.layout(cr, a.x, a.y, a.x+a.width, a.y+a.height, radius=0)
-        cr.set_source_rgba(r,g,b,0.25)
-        cr.fill_preserve()
+#        cr.save()
 
-        cr.set_source_rgb(*mkit.floats_from_string('#fff'))
-        # XXX this should be transparent instead
-        rr.layout(cr, a.x+0.5, a.y+0.5, a.x+a.width-0.5, a.y+a.height-0.5, radius=0)
-        # XXX Without any color, doesn't need to be ShapeRoundedRectangle
-        cr.set_line_width(1)
-        cr.stroke()
-        cr.restore()
+#        cr.restore()
 
         if not self.expander.get_expanded(): return
 
@@ -1322,19 +1316,15 @@ class Review(gtk.VBox):
 
     def draw(self, cr, a):
         cr.save()
-        rr = mkit.ShapeRoundedRectangle()
-        rr.layout(cr, a.x-6, a.y-5, a.x+a.width+6, a.y+a.height+5, radius=3)
-        if self.person == self.logged_in_person:
-            cr.set_source_rgba(0.8,0.8,0.8,0.5)
-        else:
-            cr.set_source_rgba(1,1,1,0.7)
+        if not self.person == self.logged_in_person: return
+
+        cr.rectangle(a)
+
+        color = mkit.floats_from_gdkcolor(self.style.base[gtk.STATE_SELECTED])
+        cr.set_source_rgba(*color+(0.2,))
+
         cr.fill()
-        cr.set_source_rgb(*mkit.floats_from_string('#fff'))
-        # should be transparent instead
-        rr.layout(cr, a.x-5.5, a.y-4.5, a.x+a.width+5.5, a.y+a.height+4.5, radius=0)
-        # XXX doesn't need to be ShapeRoundedRectangle
-        cr.set_line_width(1)
-        cr.stroke()
+
         cr.restore()
 
 class NoReviewYet(Review):
