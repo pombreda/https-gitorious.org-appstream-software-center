@@ -189,12 +189,13 @@ class AppStore(gtk.GenericTreeModel):
     def _get_estimate_nr_apps_and_nr_pkgs(self, enquire, q, xfilter):
         # filter out docs of pkgs of which there exists a doc of the app
         enquire.set_query(xapian.Query(xapian.Query.OP_AND, 
-                                       q, xapian.Query("XD")))
+                                       q, xapian.Query("ATapplication")))
         tmp_matches = enquire.get_mset(0, len(self.db), None, xfilter)
         nr_apps = tmp_matches.get_matches_estimated()
-        enquire.set_query(q)
+        enquire.set_query(xapian.Query(xapian.Query.OP_AND_NOT, 
+                                       q, xapian.Query("XD")))
         tmp_matches = enquire.get_mset(0, len(self.db), None, xfilter)
-        nr_pkgs = tmp_matches.get_matches_estimated() - 2*nr_apps
+        nr_pkgs = tmp_matches.get_matches_estimated() - nr_apps
         return (nr_apps, nr_pkgs)
 
     def _blocking_perform_search(self):
@@ -208,17 +209,12 @@ class AppStore(gtk.GenericTreeModel):
         else:
             xfilter = None
         # go over the queries
+        self.nr_apps, self.nr_pkgs = 0, 0
         self.matches = []
         self.match_docids = set()
         for q in self.search_query:
             enquire = xapian.Enquire(self.db.xapiandb)
             self._logger.debug("initial query: '%s'" % q)
-
-            # TODO: Cleanup this commentary
-            # is it slow? takes 0.03s on my (fast) system
-
-            # in the installed view it would seem to take 1.4s
-            # in the system cat of available view only 0.13s
 
             # for searches we may want to disable show/hide
             terms = [term for term in q]
@@ -284,7 +280,7 @@ class AppStore(gtk.GenericTreeModel):
             # show/hide technical items work correctly
             if exact_pkgname_query and len(matches) == 1:
                 self.nr_apps += 1
-                self.nr_pkgs -= 1
+                self.nr_pkgs -= 2
 
             # add matches, but don't duplicate docids
             with ExecutionTime("append new matches to existing ones:"):
@@ -294,8 +290,10 @@ class AppStore(gtk.GenericTreeModel):
                         self.match_docids.add(match.docid)
 
         # if we have no results, try forcing pkgs to be displayed
+        # if not NONAPPS_NEVER_VISIBLE is set
         if (not self.matches and
-            self.nonapps_visible != self.NONAPPS_ALWAYS_VISIBLE):
+            self.nonapps_visible != self.NONAPPS_ALWAYS_VISIBLE and
+            self.nonapps_visible != self.NONAPPS_NEVER_VISIBLE):
             self.nonapps_visible = self.NONAPPS_ALWAYS_VISIBLE
             self._blocking_perform_search()
             

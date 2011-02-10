@@ -39,6 +39,7 @@ from widgets.spinner import SpinnerView
 
 from softwarecenter.backend import get_install_backend
 from softwarecenter.enums import *
+from softwarecenter.paths import *
 from softwarecenter.view.basepane import BasePane
 from softwarecenter.utils import wait_for_apt_cache_ready, ExecutionTime
 
@@ -138,7 +139,6 @@ class SoftwarePane(gtk.VBox, BasePane):
         self.show_ratings = show_ratings
         self.backend = get_install_backend()
         self.nonapps_visible = AppStore.NONAPPS_MAYBE_VISIBLE
-        self.disable_show_hide_nonapps = False
         # refreshes can happen out-of-bound so we need to be sure
         # that we only set the new model (when its available) if
         # the refresh_seq_nr of the ready model matches that of the
@@ -383,8 +383,7 @@ class SoftwarePane(gtk.VBox, BasePane):
             appstore.active and
             self.is_applist_view_showing() and
             pkgs > 0 and 
-            apps > 0 and
-            not self.disable_show_hide_nonapps):
+            apps > 0):
             if appstore.nonapps_visible == AppStore.NONAPPS_ALWAYS_VISIBLE:
                 # TRANSLATORS: the text inbetween the underscores acts as a link
                 # In most/all languages you will want the whole string as a link
@@ -507,17 +506,6 @@ class SoftwarePane(gtk.VBox, BasePane):
         LOG.debug("softwarepane query: %s" % query)
         # create new model and attach it
         seq_nr = self.refresh_seq_nr
-        # special case to disable show/hide nonapps for the "Featured" category
-        # we do the same for the "System" category (LP: #636854)
-        if (self.apps_category and 
-            # FIXME: this should be a property of the category, not
-            #        something we hardcode here
-           (self.apps_category.untranslated_name == "Featured" or
-            self.apps_category.untranslated_name == "System")):
-            self.nonapps_visible = AppStore.NONAPPS_ALWAYS_VISIBLE
-            self.disable_show_hide_nonapps = True
-        else:
-            self.disable_show_hide_nonapps = False
         # In custom list mode, search should yield the exact package name.
         new_model = AppStore(self.cache,
                              self.db,

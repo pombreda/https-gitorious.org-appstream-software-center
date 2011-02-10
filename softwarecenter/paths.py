@@ -18,8 +18,35 @@
 
 import logging
 import os
-
 from xdg import BaseDirectory as xdg
+
+# system pathes
+APP_INSTALL_PATH = "/usr/share/app-install"
+APP_INSTALL_DESKTOP_PATH = APP_INSTALL_PATH+"/desktop/"
+APP_INSTALL_CHANNELS_PATH = APP_INSTALL_PATH+"/channels/"
+ICON_PATH = APP_INSTALL_PATH+"/icons/"
+
+SOFTWARE_CENTER_BASE = "/usr/share/software-center"
+SOFTWARE_CENTER_PLUGIN_DIR = os.environ.get(
+    "SOFTWARE_CENTER_PLUGINS_DIR",
+    os.path.join(SOFTWARE_CENTER_BASE, "plugins"))
+
+# FIXME: use relative paths here
+INSTALLED_ICON = "/usr/share/software-center/icons/software-center-installed.png"
+IMAGE_LOADING = "/usr/share/icons/hicolor/32x32/animations/softwarecenter-loading.gif"
+IMAGE_LOADING_INSTALLED = "/usr/share/icons/hicolor/32x32/animations/softwarecenter-loading-installed.gif"
+
+# xapian pathes
+XAPIAN_BASE_PATH = "/var/cache/software-center"
+XAPIAN_BASE_PATH_SOFTWARE_CENTER_AGENT = os.path.join(
+    xdg.xdg_cache_home,
+    "software-center", 
+    "software-center-agent.db")
+
+# ratings&review
+# relative to datadir
+SUBMIT_REVIEW_APP = "submit_review.py"
+REPORT_REVIEW_APP = "report_review.py"
 
 # there was a bug in maverick 3.0.3 (#652151) that could lead to a empty
 # root owned directory in ~/.cache/software-center - we remove it here

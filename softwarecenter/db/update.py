@@ -36,8 +36,8 @@ from ConfigParser import RawConfigParser, NoOptionError
 from gettext import gettext as _
 from glob import glob
 
+from softwarecenter.paths import *
 from softwarecenter.enums import *
-from softwarecenter.enums import DB_SCHEMA_VERSION
 from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
 from softwarecenter.db.database import parse_axi_values_file
 
