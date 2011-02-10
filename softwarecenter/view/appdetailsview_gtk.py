@@ -1152,11 +1152,6 @@ class Review(gtk.VBox):
                          logged_in_person)
         return
 
-    def _on_allocate(self, widget, allocation):
-        for child in self.body:
-            child.set_size_request(allocation.width, -1)
-        return
-
     def _on_realize(self, w, review_data, app_version, logged_in_person):
         self.id = review_data.id
         rating = review_data.rating 
@@ -1320,7 +1315,7 @@ class Review(gtk.VBox):
 
         cr.rectangle(a)
 
-        color = mkit.floats_from_gdkcolor(self.style.base[gtk.STATE_SELECTED])
+        color = mkit.floats_from_gdkcolor(self.style.mid[self.state])
         cr.set_source_rgba(*color+(0.2,))
 
         cr.fill()
