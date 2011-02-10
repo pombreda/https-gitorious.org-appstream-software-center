@@ -23,7 +23,31 @@ software-center (3.1.17) UNRELEASED; urgency=low
     - clean up 'disable_show_hide_nonapps' special casing, as our numbers are
       now so precise we don't need special casing
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 08 Feb 2011 14:23:16 +0100
+  [ Gary Lasker ]
+  * softwarecenter/backend/aptd.py,
+    softwarecenter/models/appstore.py,
+    softwarecenter/view/appdetailsview_webkit.py,
+    softwarecenter/view/appview.py,
+    softwarecenter/enums.py:
+    - include additional details about the transaction when
+      firing a transaction-started signal, wire to handlers
+  * softwarecenter/view/pendingview.py,
+    softwarecenter/utils.py:
+    - generalize get_icon_from_iconname method, add new
+      get_icon_file_path_from_iconname method
+  * softwarecenter/view/widgets/actionbar.py:
+    - tweak spacings for action bar
+  * softwarecenter/db/application.py,
+    softwarecenter/view/appdetailsview_gtk.py,
+    softwarecenter/view/availablepane.py,
+    softwarecenter/view/channelpane.py,
+    softwarecenter/view/installedpane.py,
+    softwarecenter/view/softwarepane.py,
+    softwarecenter/enums.py:
+    - implement unity launcher integration per the software
+      center spec
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 09 Feb 2011 20:16:59 -0500
 
 software-center (3.1.16) natty; urgency=low
 
