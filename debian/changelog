@@ -17,6 +17,8 @@ software-center (3.1.17) UNRELEASED; urgency=low
   * merged lp:~aaronp/software-center/reviews-tweaks
     This branch improve the feedback for the gwibber sending,
     many thanks to Aaron Peachey
+  * softwarecenter/db/update.py:
+    - add basic appinfo xml parser
 
   [ Kiwinote ]
   * softwarecenter/models/appstore.py:
