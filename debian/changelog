@@ -24,6 +24,8 @@ software-center (3.1.17) UNRELEASED; urgency=low
   * softwarecenter/models/appstore.py:
     - fix _get_estimate_nr_apps_and_nr_pkgs() to return precise numbers
     - fix handling of nr_apps, nr_pkgs in _blocking_perform_search()
+  * softwarecenter/view/availablepane.py:
+    - don't animate pathbar elements in order to avoid breakage (LP: #713878)
   * softwarecenter/view/softwarepane.py:
     - clean up 'disable_show_hide_nonapps' special casing, as our numbers are
       now so precise we don't need special casing
