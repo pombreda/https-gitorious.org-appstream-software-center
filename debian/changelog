@@ -38,8 +38,13 @@ software-center (3.1.17) UNRELEASED; urgency=low
   * softwarecenter/view/appdetailsview_gtk.py:
     - don't show the "write a review" link until we have the correct
       text and show/hide status, avoids a delayed update in the UI
-
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 10 Feb 2011 12:54:10 -0500
+  
+  [ Matthew McGowan ]
+  * lp:~mmcg069/software-center/small-rnr-tweaks:
+    - add nice human readable time delta string to the review
+    - tweak review UI
+  
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 10 Feb 2011 22:11:26 +0100
 
 software-center (3.1.16) natty; urgency=low
 
