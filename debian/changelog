@@ -45,9 +45,9 @@ software-center (3.1.17) UNRELEASED; urgency=low
     softwarecenter/view/softwarepane.py,
     softwarecenter/enums.py:
     - implement the software-center side of unity launcher
-      integration per the specification
+      integration per the specification (LP: #670403)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 09 Feb 2011 21:01:14 -0500
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 09 Feb 2011 22:52:07 -0500
 
 software-center (3.1.16) natty; urgency=low
 
