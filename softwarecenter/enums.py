@@ -45,6 +45,7 @@ SOFTWARE_CENTER_PLUGIN_DIR = os.path.join(SOFTWARE_CENTER_BASE, "plugins")
 # relative to datadir
 SUBMIT_REVIEW_APP = "submit_review.py"
 REPORT_REVIEW_APP = "report_review.py"
+SUBMIT_USEFULNESS_APP = "submit_usefulness.py"
 
 # the various "views" that the app has
 VIEW_PAGE_AVAILABLE = "view-page-available"

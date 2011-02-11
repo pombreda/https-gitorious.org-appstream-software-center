@@ -112,6 +112,12 @@ class AppDetailsViewBase(object):
         self.review_loader.spawn_report_abuse_ui(
             review_id, parent_xid, self.datadir, self._reviews_ready_callback)
 
+    def _review_submit_usefulness(self, review_id, is_useful):
+        parent_xid = get_parent_xid(self)
+        self.review_loader.spawn_submit_usefulness_ui(
+            review_id, is_useful, parent_xid, self.datadir,
+            self._reviews_ready_callback)
+
     # public interface
     def reload(self):
         """ reload the package cache, this goes straight to the backend """

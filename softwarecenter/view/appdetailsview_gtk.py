@@ -983,6 +983,9 @@ class Reviews(gtk.VBox):
         'report-abuse':(gobject.SIGNAL_RUN_FIRST,
                     gobject.TYPE_NONE,
                     (gobject.TYPE_PYOBJECT,)),
+        'submit-usefulness':(gobject.SIGNAL_RUN_FIRST,
+                    gobject.TYPE_NONE,
+                    (gobject.TYPE_PYOBJECT, bool)),
     }
 
     def __init__(self, parent):
@@ -1148,8 +1151,8 @@ class Review(gtk.VBox):
             # some older version of the server do not set the version
             review_version = getattr(review_data, "version", "")
             # old versions of the server do not expose usefulness
-            useful_total = getattr(review_data, "useful_total", 0)
-            useful_favorable = getattr(review_data, "useful_favorable", 0)
+            useful_total = getattr(review_data, "usefulness_total", 0)
+            useful_favorable = getattr(review_data, "usefulness_favorable", 0)
             self._build(rating, self.person, summary, text, date, app_name, review_version, app_version, useful_total, useful_favorable)
 
         self.body.connect('size-allocate', self._on_allocate)
@@ -1165,19 +1168,11 @@ class Review(gtk.VBox):
         if reviews:
             reviews.emit("report-abuse", self.id)
     
-    def _on_useful_clicked(self, btn):
-        self._submit_usefulness(True)
-    
-    def _on_not_useful_clicked(self, btn):
-        self._submit_usefulness(False)
-    
-    #FIXME: does nothing for now
-    def _submit_usefulness(self, useful):
-        if useful:
-            LOG.warn("_on_useful_clicked called")
-        else:
-            LOG.warn("_on_not_useful_clicked called")
-    
+    def _on_useful_clicked(self, btn, is_useful):
+        reviews = self.get_ancestor(Reviews)
+        if reviews:
+            reviews.emit("submit-usefulness", self.id, is_useful)
+
     def _build(self, rating, person, summary, text, date, app_name, review_version, app_version, useful_total, useful_favorable):
         # all the arguments may need markup escaping, depending on whether
         # they are used as text or markup
@@ -1251,8 +1246,8 @@ class Review(gtk.VBox):
         self.footer.pack_start(yes_like, False)
         self.footer.pack_start(no_like, False)
         #connect signals
-        yes_like.connect('clicked', self._on_useful_clicked)
-        no_like.connect('clicked', self._on_not_useful_clicked)
+        yes_like.connect('clicked', self._on_useful_clicked, True)
+        no_like.connect('clicked', self._on_useful_clicked, False)
 
         # Translators: This link is for flagging a review as inappropriate.
         # To minimize repetition, if at all possible, keep it to a single word.
@@ -1744,6 +1739,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.reviews = Reviews(self)
         self.reviews.connect("new-review", self._on_review_new)
         self.reviews.connect("report-abuse", self._on_review_report_abuse)
+        self.reviews.connect("submit-usefulness", self._on_review_submit_usefulness)
         self.main_frame.body.pack_start(self.reviews)
         return
 
@@ -1762,6 +1758,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
     def _on_review_new(self, button):
         self._review_write_new()
 
+    def _on_review_submit_usefulness(self, button, review_id, is_useful):
+        self._review_submit_usefulness(review_id, is_useful)
+    
     def _on_review_report_abuse(self, button, review_id):
         self._review_report_abuse(str(review_id))
 
