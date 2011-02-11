@@ -40,6 +40,7 @@ import time
 import sys
 
 from softwarecenter.enums import *
+from softwarecenter.paths import XAPIAN_BASE_PATH
 from softwarecenter.utils import ExecutionTime
 from softwarecenter.version import *
 
