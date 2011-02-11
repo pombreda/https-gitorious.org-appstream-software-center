@@ -1,3 +1,9 @@
+software-center (3.1.18) UNRELEASED; urgency=low
+
+  * added "Was this review useful" feature
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 11 Feb 2011 15:40:03 +0100
+
 software-center (3.1.17.1) natty; urgency=low
 
   * utils/update-software-center:
