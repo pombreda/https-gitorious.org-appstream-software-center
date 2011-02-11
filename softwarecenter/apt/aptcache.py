@@ -437,6 +437,8 @@ class AptCache(gobject.GObject):
             renhances = self.get_renhances_lowlevel_apt_pkg(virtual_aptpkg_pkg)
             LOG.debug("renhances of %s: %s" % (provide, renhances))
             addons_sug += renhances
+            while gtk.events_pending():
+                gtk.main_iteration()
 
         # get more addons, the idea is that if a package foo-data
         # just depends on foo we want to get the info about
@@ -465,6 +467,9 @@ class AptCache(gobject.GObject):
                     LOG.debug("renhances from lonley dependency %s: %s" % (
                             pkgdep, pkgdep_enh))
                     addons_sug += pkgdep_enh
+
+            while gtk.events_pending():
+                gtk.main_iteration()
 
         # remove duplicates from suggests (sets are great!)
         addons_sug = list(set(addons_sug)-set(addons_rec))

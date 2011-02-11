@@ -280,7 +280,7 @@ def is_unity_running():
     return unity_running
 
 # FIXME: why not call it a generic downloader?
-class ImageDownloader(gobject.GObject):
+class SimpleFileDownloader(gobject.GObject):
 
     LOG = logging.getLogger("softwarecenter.imagedownloader")
 
@@ -420,7 +420,7 @@ def get_nice_date_string(cur_t):
                              "%(days)i days ago",
                              days) % { 'days' : days }
 
-    else:   # any timedelta greater than 3 days old
+    else:   # any timedelta greater than 5 days old
         # YYYY-MM-DD
         s = cur_t.isoformat().split('T')[0]
 

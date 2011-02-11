@@ -40,7 +40,7 @@ from softwarecenter.db.reviews import ReviewStats
 from softwarecenter.backend.zeitgeist_simple import zeitgeist_singleton
 from softwarecenter.enums import *
 from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR, INSTALLED_ICON, IMAGE_LOADING_INSTALLED
-from softwarecenter.utils import ImageDownloader, GMenuSearcher, uri_to_filename, is_unity_running, upstream_version_compare, upstream_version, get_nice_date_string
+from softwarecenter.utils import SimpleFileDownloader, GMenuSearcher, uri_to_filename, is_unity_running, upstream_version_compare, upstream_version, get_nice_date_string
 from softwarecenter.gwibber_helper import GWIBBER_SERVICE_AVAILABLE
 
 from appdetailsview import AppDetailsViewBase
@@ -562,7 +562,7 @@ class ScreenshotView(gtk.Alignment):
         self.alpha = 0.0
 
         # convienience class for handling the downloading (or not) of any screenshot
-        self.loader = ImageDownloader()
+        self.loader = SimpleFileDownloader()
         self.loader.connect('image-url-reachable', self._on_screenshot_query_complete)
         self.loader.connect('image-download-complete', self._on_screenshot_download_complete)
 
@@ -1659,7 +1659,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.share_btn.draw(cr, self.share_btn.allocation, expose_area)
 
         if self.usage.get_property('visible'):
-            self.usage.draw(cr, self.usage.allocation)
+            self.usage.draw(cr, self.usage.allocation, expose_area)
 
         if self.addon_view.get_property('visible'):
             self.addon_view.draw(cr, self.addon_view.allocation)
@@ -2392,7 +2392,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                     self.main_frame.set_icon_from_pixbuf(pb)
                     
                 icon_file_path = os.path.join(SOFTWARE_CENTER_ICON_CACHE_DIR, app_details.icon_file_name)
-                image_downloader = ImageDownloader()
+                image_downloader = SimpleFileDownloader()
                 image_downloader.connect('image-download-complete', on_image_download_complete)
                 image_downloader.download_image(app_details.icon_url, icon_file_path)
         return self.icons.load_icon(MISSING_APP_ICON, 84, 0)
