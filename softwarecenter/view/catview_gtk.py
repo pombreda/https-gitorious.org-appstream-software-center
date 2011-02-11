@@ -36,12 +36,12 @@ CAROUSEL_MIN_POSTER_COUNT =      2
 CAROUSEL_ICON_SIZE =             4*mkit.EM
 
 #CAROUSEL_POSTER_CORNER_RADIUS =  int(0.8*mkit.EM)    
-CAROUSEL_POSTER_MIN_WIDTH =      18*mkit.EM
+CAROUSEL_POSTER_MIN_WIDTH =      15*mkit.EM
 CAROUSEL_POSTER_MIN_HEIGHT =     min(64, 4*mkit.EM) + 5*mkit.EM
 CAROUSEL_PAGING_DOT_SIZE =       max(8, int(0.6*mkit.EM+0.5))
 
 # as per spec transition timeout should be 15000 (15 seconds)
-CAROUSEL_TRANSITION_TIMEOUT =    6000
+CAROUSEL_TRANSITION_TIMEOUT =    15000
 
 # spec says the fade duration should be 1 second, these values suffice:
 CAROUSEL_FADE_INTERVAL =         25 # msec
@@ -268,53 +268,53 @@ class LobbyViewGtk(CategoriesViewGtk):
         # paint the section backdrop
         if self.section: self.section.render(cr, a)
 
-        # only draw shadows when viewport is sufficiently wide...
-        if a.width >= 900:
-            # shadow on the right side
-            lin = cairo.LinearGradient(a.x+a.width, a.y, a.x+a.width+5, a.y)
-            lin.add_color_stop_rgba(0, 0,0,0, 0.175)
-            lin.add_color_stop_rgba(1, 0,0,0, 0.000)
+#        # only draw shadows when viewport is sufficiently wide...
+#        if a.width >= 900:
+#            # shadow on the right side
+#            lin = cairo.LinearGradient(a.x+a.width, a.y, a.x+a.width+5, a.y)
+#            lin.add_color_stop_rgba(0, 0,0,0, 0.175)
+#            lin.add_color_stop_rgba(1, 0,0,0, 0.000)
 
-            cr.rectangle(a.x+a.width, a.y, 5, a.height)
-            cr.set_source(lin)
-            cr.fill()
+#            cr.rectangle(a.x+a.width, a.y, 5, a.height)
+#            cr.set_source(lin)
+#            cr.fill()
 
-            cr.set_line_width(1)
+#            cr.set_line_width(1)
 
-            # right side
-            # outer vertical strong line
-            cr.move_to(a.x+a.width+0.5, a.y)
-            cr.rel_line_to(0, a.height)
-            cr.set_source_rgb(*color_floats(widget.style.dark[self.state]))
-            cr.stroke()
+#            # right side
+#            # outer vertical strong line
+#            cr.move_to(a.x+a.width+0.5, a.y)
+#            cr.rel_line_to(0, a.height)
+#            cr.set_source_rgb(*color_floats(widget.style.dark[self.state]))
+#            cr.stroke()
 
-            # inner vertical highlight
-            cr.move_to(a.x+a.width-0.5, a.y)
-            cr.rel_line_to(0, a.height)
-            cr.set_source_rgba(1,1,1,0.3)
-            cr.stroke()
+#            # inner vertical highlight
+#            cr.move_to(a.x+a.width-0.5, a.y)
+#            cr.rel_line_to(0, a.height)
+#            cr.set_source_rgba(1,1,1,0.3)
+#            cr.stroke()
 
-            # shadow on the left side
-            lin = cairo.LinearGradient(a.x-5, a.y, a.x, a.y)
-            lin.add_color_stop_rgba(1, 0,0,0, 0.175)
-            lin.add_color_stop_rgba(0, 0,0,0, 0.000)
+#            # shadow on the left side
+#            lin = cairo.LinearGradient(a.x-5, a.y, a.x, a.y)
+#            lin.add_color_stop_rgba(1, 0,0,0, 0.175)
+#            lin.add_color_stop_rgba(0, 0,0,0, 0.000)
 
-            cr.rectangle(a.x-5, a.y, 5, a.height)
-            cr.set_source(lin)
-            cr.fill()
+#            cr.rectangle(a.x-5, a.y, 5, a.height)
+#            cr.set_source(lin)
+#            cr.fill()
 
-            # left side
-            # outer vertical strong line
-            cr.move_to(a.x-0.5, a.y)
-            cr.rel_line_to(0, a.height)
-            cr.set_source_rgb(*color_floats(widget.style.dark[self.state]))
-            cr.stroke()
+#            # left side
+#            # outer vertical strong line
+#            cr.move_to(a.x-0.5, a.y)
+#            cr.rel_line_to(0, a.height)
+#            cr.set_source_rgb(*color_floats(widget.style.dark[self.state]))
+#            cr.stroke()
 
-            # inner vertical highlight
-            cr.move_to(a.x+0.5, a.y)
-            cr.rel_line_to(0, a.height)
-            cr.set_source_rgba(1,1,1,0.3)
-            cr.stroke()
+#            # inner vertical highlight
+#            cr.move_to(a.x+0.5, a.y)
+#            cr.rel_line_to(0, a.height)
+#            cr.set_source_rgba(1,1,1,0.3)
+#            cr.stroke()
 
         # featured carousel
         # draw the info vbox bg
@@ -532,21 +532,21 @@ class LobbyViewGtk(CategoriesViewGtk):
         layout = self.create_pango_layout('')
 
         max_w = 200
-        e = self.enquire
+#        e = self.enquire
 
         for cat in sorted_cats:
             if 'carousel-only' not in cat.flags:
                 layout.set_text(cat.name)
                 w = layout.get_pixel_extents()[1][2] + 40
 
-                e.set_query(cat.query)
-                # limiting the size here does not make it faster
-                matches = e.get_mset(0, len(self.db))
-                estimate = matches.get_matches_estimated()
+#                e.set_query(cat.query)
+#                # limiting the size here does not make it faster
+#                matches = e.get_mset(0, len(self.db))
+#                estimate = matches.get_matches_estimated()
 
                 max_w = max(w, max_w)
 
-                cat_btn = CategoryButton(cat.name, cat.iconname, estimate)
+                cat_btn = CategoryButton(cat.name, cat.iconname)
                 cat_btn.connect('clicked', self._on_category_clicked, cat)
                 # append the department to the departments widget
                 self.departments.add(cat_btn)
@@ -1215,7 +1215,7 @@ class CategoryButton(Button):
     SPACING = 6
     ICON_SIZE = gtk.ICON_SIZE_LARGE_TOOLBAR
 
-    def __init__(self, label, iconname, estimate):
+    def __init__(self, label, iconname):
         Button.__init__(self)
 
         hb = gtk.HBox(spacing=self.SPACING)
@@ -1227,15 +1227,15 @@ class CategoryButton(Button):
         label.set_padding(0, 6)
         hb.pack_start(label, False)
 
-        if estimate / 1000 >= 1:
-            e = estimate / 1000
-            elabel = BubbleLabel('<small>%s%s</small>' % (e, _('K')))
-        else:
-            elabel = BubbleLabel('<small>%s</small>' % estimate)
+#        if estimate / 1000 >= 1:
+#            e = estimate / 1000
+#            elabel = BubbleLabel('<small>%s%s</small>' % (e, _('K')))
+#        else:
+#            elabel = BubbleLabel('<small>%s</small>' % estimate)
 
-        elabel.set_padding(4, 0)
-        elabel.set_use_markup(True)
-        hb.pack_start(elabel, False)
+#        elabel.set_padding(4, 0)
+#        elabel.set_use_markup(True)
+#        hb.pack_start(elabel, False)
 
         self.label_list = ('label',)
         return
