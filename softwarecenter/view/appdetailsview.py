@@ -59,7 +59,6 @@ class AppDetailsViewBase(object):
         self.addons_to_install = []
         self.addons_to_remove = []
         # reviews
-#        self.review_loader = get_review_loader()
         self.review_loader = get_review_loader(self.cache)
         # aptdaemon
         self.backend = get_install_backend()

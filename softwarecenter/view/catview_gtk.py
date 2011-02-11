@@ -136,7 +136,6 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
         self.apps_limit = apps_limit
 
         # create the cairo caches
-#        self._create_surface_cache(datadir)
         self._create_mask_surface_cache(datadir)
 
         # more stuff
@@ -150,12 +149,6 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
 
     def build(self, desktopdir):
         pass
-
-#    def _create_surface_cache(self, datadir):
-#        global SURFACE_CACHE
-#        SURFACE_CACHE['n'] = cairo.ImageSurface.create_from_png(os.path.join(datadir, 'images/rshadow-n.png'))
-#        SURFACE_CACHE['w'] = cairo.ImageSurface.create_from_png(os.path.join(datadir, 'images/rshadow-w.png'))
-#        SURFACE_CACHE['e'] = cairo.ImageSurface.create_from_png(os.path.join(datadir, 'images/rshadow-e.png'))
 
     def _create_mask_surface_cache(self, datadir):
         global MASK_SURFACE_CACHE
@@ -189,7 +182,6 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
         appname = app[AppStore.COL_APP_NAME]
         pkgname = app[AppStore.COL_PKGNAME]
         rating = app[AppStore.COL_RATING]
-        print app
         self.emit("application-selected", Application(appname, pkgname, "", rating))
         self.emit("application-activated", Application(appname, pkgname, "", rating))
         return False
@@ -386,7 +378,7 @@ class LobbyViewGtk(CategoriesViewGtk):
         self._append_departments()
         self._append_featured()
         self._append_whatsnew()
-        #self._append_recommendations()
+        self._append_recommendations()
         return
 
     @wait_for_apt_cache_ready
