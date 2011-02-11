@@ -1,3 +1,10 @@
+software-center (3.1.17.1) natty; urgency=low
+
+  * utils/update-software-center:
+    - fix crash in postinst
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 11 Feb 2011 13:23:10 +0100
+
 software-center (3.1.17) natty; urgency=low
 
   [ Michael Vogt ]
