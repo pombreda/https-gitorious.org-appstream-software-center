@@ -287,6 +287,9 @@ class ReviewLoaderThreadedRNRClient(ReviewLoader):
                 #        so it expects it this way
                 kwargs["appname"] = urllib.quote_plus(app.appname.encode("utf-8"))
             reviews = self.rnrclient.get_reviews(**kwargs)
+        except simplejson.decoder.JSONDecodeError, e:
+            logging.error("failed to parse '%s'" % e.doc)
+            reviews = []
         except:
             logging.exception("get_reviews")
             reviews = []
