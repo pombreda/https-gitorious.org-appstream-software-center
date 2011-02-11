@@ -1260,11 +1260,6 @@ class Review(gtk.VBox):
             version_lbl.set_padding(0,3)
             version_lbl.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
             version_lbl.set_alignment(0, 0.5)
-            self.footer.pack_start(version_lbl, False)
-        
-        #like = mkit.VLinkButton('<small>%s</small>' % _('This review was useful'))
-        #like.set_underline(True)
-        #self.footer.pack_start(like, False)
             self.footer_split.pack_start(version_lbl, False)
             
         self.footer_split.pack_start(self.footer, False)
