@@ -1,4 +1,4 @@
-software-center (3.1.17) UNRELEASED; urgency=low
+software-center (3.1.17) natty; urgency=low
 
   [ Michael Vogt ]
   * test/Makefile:
@@ -55,7 +55,7 @@ software-center (3.1.17) UNRELEASED; urgency=low
   * lp:~mmcg069/software-center/rnr-bitesize-tweaks:
     - subdue the inappropriate link
   
- -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 10 Feb 2011 22:11:26 +0100
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 11 Feb 2011 10:31:57 +0100
 
 software-center (3.1.16) natty; urgency=low
 
