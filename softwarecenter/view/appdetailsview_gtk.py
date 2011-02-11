@@ -1127,11 +1127,12 @@ class Review(gtk.VBox):
 
         self.header = gtk.HBox(spacing=mkit.SPACING_MED)
         self.body = gtk.VBox()
+        self.footer_split = gtk.VBox()
         self.footer = gtk.HBox()
 
         self.pack_start(self.header, False)
         self.pack_start(self.body, False)
-        self.pack_start(self.footer, False)
+        self.pack_start(self.footer_split, False)
         
         self.logged_in_person = logged_in_person
         self.person = None
@@ -1146,7 +1147,10 @@ class Review(gtk.VBox):
             app_name = review_data.app_name
             # some older version of the server do not set the version
             review_version = getattr(review_data, "version", "")
-            self._build(rating, self.person, summary, text, date, app_name, review_version, app_version)
+            # old versions of the server do not expose usefulness
+            useful_total = getattr(review_data, "useful_total", 0)
+            useful_favorable = getattr(review_data, "useful_favorable", 0)
+            self._build(rating, self.person, summary, text, date, app_name, review_version, app_version, useful_total, useful_favorable)
 
         self.body.connect('size-allocate', self._on_allocate)
         return
@@ -1160,8 +1164,21 @@ class Review(gtk.VBox):
         reviews = self.get_ancestor(Reviews)
         if reviews:
             reviews.emit("report-abuse", self.id)
-
-    def _build(self, rating, person, summary, text, date, app_name, review_version, app_version):
+    
+    def _on_useful_clicked(self, btn):
+        self._submit_usefulness(True)
+    
+    def _on_not_useful_clicked(self, btn):
+        self._submit_usefulness(False)
+    
+    #FIXME: does nothing for now
+    def _submit_usefulness(self, useful):
+        if useful:
+            LOG.warn("_on_useful_clicked called")
+        else:
+            LOG.warn("_on_not_useful_clicked called")
+    
+    def _build(self, rating, person, summary, text, date, app_name, review_version, app_version, useful_total, useful_favorable):
         # all the arguments may need markup escaping, depending on whether
         # they are used as text or markup
         if person == self.logged_in_person:
@@ -1189,19 +1206,53 @@ class Review(gtk.VBox):
         
         #if review version is different to version of app being displayed, 
         # alert user
-        if upstream_version_compare(review_version, app_version) != 0:
+        if (review_version and 
+            upstream_version_compare(review_version, app_version) != 0):
             version_string = _("This review was written for a different version of %(app_name)s (Version: %(version)s)") % { 
                 'app_name' : app_name,
                 'version' : glib.markup_escape_text(upstream_version(review_version))
                 }
             version_lbl = gtk.Label("<small><i>%s</i></small>" % version_string)
             version_lbl.set_use_markup(True)
-            version_lbl.set_padding(0,3)
-            self.footer.pack_start(version_lbl, False)
+            version_lbl.set_padding(0, 3)
+            version_lbl.set_alignment(0, 0.5)
+            self.footer_split.pack_start(version_lbl, False)
+            
+        self.footer_split.pack_start(self.footer, False)
         
-        #like = mkit.VLinkButton('<small>%s</small>' % _('This review was useful'))
-        #like.set_underline(True)
-        #self.footer.pack_start(like, False)
+        #if no usefulness has been submitted, simply ask if
+        # user found it useful (i.e. don't say 0 out of 0 found this...)
+        if useful_total == 0:
+            useful = gtk.Label('<small>%s</small>' % \
+                               _("Did you find this review useful?"))
+        else:
+            s = gettext.ngettext(
+                "%(useful_favorable)s out of %(useful_total)s person "
+                "found this review useful. Did you?",
+                "%(useful_favorable)s out of %(useful_total)s people "
+                "found this review useful. Did you?",
+                useful_total) % { 'useful_total' : useful_total,
+                                  'useful_favorable' : useful_favorable,
+                                }
+            useful = gtk.Label('<small>%s </small>' % s)
+        
+        useful.set_use_markup(True)
+        #vertically centre so it lines up with the Yes and No buttons
+        useful.set_alignment(0, 0.5)
+        
+        yes_like = mkit.VLinkButton('<small>Yes</small>')
+        no_like = mkit.VLinkButton('<small>No</small>')
+        yes_like.set_underline(True)
+        no_like.set_underline(True)
+        yes_like.set_subdued(True)
+        no_like.set_subdued(True)
+        
+        self.footer.pack_start(useful, False)
+        self.footer.pack_start(yes_like, False)
+        self.footer.pack_start(no_like, False)
+        #connect signals
+        yes_like.connect('clicked', self._on_useful_clicked)
+        no_like.connect('clicked', self._on_not_useful_clicked)
 
         # Translators: This link is for flagging a review as inappropriate.
         # To minimize repetition, if at all possible, keep it to a single word.
