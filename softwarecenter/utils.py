@@ -18,7 +18,9 @@
 
 import apt
 import apt_pkg
+import atk
 import gmenu
+import gettext
 import gobject
 import gio
 import glib
@@ -58,6 +60,7 @@ class ExecutionTime(object):
         logger = logging.getLogger("softwarecenter.performance")
         logger.debug("%s: %s" % (self.info, time.time() - self.now))
 
+
 def log_traceback(info):
     """
     Helper that can be used as a debug helper to show what called
@@ -66,24 +69,6 @@ def log_traceback(info):
     logger = logging.getLogger("softwarecenter.traceback")
     logger.debug("%s: %s" % (info, "".join(traceback.format_stack())))
     
-
-#<<<<<<< TREE
-#class GnomeProxyURLopener(urllib.FancyURLopener):
-#    """A urllib.URLOpener that honors the gnome proxy settings"""
-#    def __init__(self, user_agent=USER_AGENT):
-#        proxies = {}
-#        http_proxy = get_http_proxy_string_from_gconf()
-#        if http_proxy:
-#            proxies = { "http" : http_proxy }
-#        urllib.FancyURLopener.__init__(self, proxies)
-#        self.version = user_agent
-#    def http_error_404(self, url, fp, errcode, errmsg, headers):
-#        logging.debug("http_error_404: %s %s %s" % (url, errcode, errmsg))
-#        raise Url404Error, "404 %s" % url
-#    def http_error_403(self, url, fp, errcode, errmsg, headers):
-#        logging.debug("http_error_403: %s %s %s" % (url, errcode, errmsg))
-#        raise Url403Error, "403 %s" % url
-#=======
 
 def wait_for_apt_cache_ready(f):
     """ decorator that ensures that self.cache is ready using a
@@ -175,21 +160,18 @@ def get_language():
         return language
     return language.split("_")[0]
 
-#<<<<<<< TREE
-#=======
-#def get_http_proxy_string_from_libproxy(url):
-#    """Helper that uses libproxy to get the http proxy for the given url """
-#    import libproxy
-#    pf = libproxy.ProxyFactory()
-#    proxies = pf.getProxies(url)
-#    # FIXME: how to deal with multiple proxies?
-#    proxy = proxies[0]
-#    if proxy == "direct://":
-#        return ""
-#    else:
-#        return proxy
+def get_http_proxy_string_from_libproxy(url):
+    """Helper that uses libproxy to get the http proxy for the given url """
+    import libproxy
+    pf = libproxy.ProxyFactory()
+    proxies = pf.getProxies(url)
+    # FIXME: how to deal with multiple proxies?
+    proxy = proxies[0]
+    if proxy == "direct://":
+        return ""
+    else:
+        return proxy
 
-#>>>>>>> MERGE-SOURCE
 def get_http_proxy_string_from_gconf():
     """Helper that gets the http proxy from gconf
 
@@ -296,15 +278,18 @@ def is_unity_running():
     except:
         LOG.exception("could not check for Unity dbus service")
     return unity_running
-class SimpleFileDownloader(gobject.GObject):
-    LOG = logging.getLogger("softwarecenter.simplefiledownloader")
+
+# FIXME: why not call it a generic downloader?
+class ImageDownloader(gobject.GObject):
+
+    LOG = logging.getLogger("softwarecenter.imagedownloader")
 
     __gsignals__ = {
-        "url-reachable"     : (gobject.SIGNAL_RUN_LAST,
+        "image-url-reachable"     : (gobject.SIGNAL_RUN_LAST,
                                      gobject.TYPE_NONE,
                                      (bool,),),
 
-        "download-complete" : (gobject.SIGNAL_RUN_LAST,
+        "image-download-complete" : (gobject.SIGNAL_RUN_LAST,
                                      gobject.TYPE_NONE,
                                      (str,),),
         }
@@ -313,7 +298,8 @@ class SimpleFileDownloader(gobject.GObject):
         gobject.GObject.__init__(self)
         self.tmpdir = None
 
-    def begin_download(self, url, dest_file_path=None):
+    def download_image(self, url, dest_file_path=None):
+        self.LOG.debug("download_image: %s %s" % (url, dest_file_path))
         if dest_file_path is None:
             if self.tmpdir is None:
                 self.tmpdir = tempfile.mkdtemp(prefix="software-center-")
@@ -323,8 +309,8 @@ class SimpleFileDownloader(gobject.GObject):
         self.dest_file_path = dest_file_path
         
         if os.path.exists(self.dest_file_path):
-            self.emit('url-reachable', True)
-            self.emit("download-complete", self.dest_file_path)
+            self.emit('image-url-reachable', True)
+            self.emit("image-download-complete", self.dest_file_path)
             return
         
         f = gio.File(url)
@@ -335,15 +321,17 @@ class SimpleFileDownloader(gobject.GObject):
     def _check_url_reachable_and_then_download_cb(self, f, result):
         try:
             result = f.query_info_finish(result)
-            self.emit('url-reachable', True)
-            self.LOG.debug("url reachable %s" % self.url)
+            self.emit('image-url-reachable', True)
+            self.LOG.debug("image reachable %s" % self.url)
             # url is reachable, now download the icon file
-            f.load_contents_async(self._download_complete_cb)
+            f.load_contents_async(self._icon_download_complete_cb)
         except glib.GError, e:
-            self.emit('url-reachable', False)
+            self.LOG.debug("image *not* reachable %s" % self.url)
+            self.emit('image-url-reachable', False)
         del f
 
-    def _download_complete_cb(self, f, result, path=None):
+    def _icon_download_complete_cb(self, f, result, path=None):
+        self.LOG.debug("icon download completed %s" % self.dest_file_path)
         # The result from the download is actually a tuple with three 
         # elements (content, size, etag?)
         # The first element is the actual content so let's grab that
@@ -351,7 +339,7 @@ class SimpleFileDownloader(gobject.GObject):
         outputfile = open(self.dest_file_path, "w")
         outputfile.write(content)
         outputfile.close()
-        self.emit('download-complete', self.dest_file_path)
+        self.emit('image-download-complete', self.dest_file_path)
 
 
 class GMenuSearcher(object):
@@ -405,6 +393,39 @@ def clear_token_from_ubuntu_sso(appname):
     proxy = bus.get_object('com.ubuntu.sso', '/credentials')
     proxy.clear_token(appname)
 
+def get_nice_date_string(cur_t):
+    """ return a "nice" human readable date, like "2 minutes ago"  """
+    import datetime
+    dt = datetime.datetime.utcnow() - cur_t
+    days = dt.days
+    secs = dt.seconds
+
+    if days < 1:
+
+        if secs < 120:   # less than 2 minute ago
+            s = _('a few minutes ago')   # dont be fussy
+
+        elif secs < 3600:   # less than an hour ago
+            s = gettext.ngettext("%(min)i minute ago",
+                                 "%(min)i minutes ago",
+                                 (secs/60)) % { 'min' : (secs/60) }
+
+        else:   # less than a day ago
+            s = gettext.ngettext("%(hours)i hour ago",
+                                 "%(hours)i hours ago",
+                                 (secs/3600)) % { 'hours' : (secs/3600) }
+
+    elif days <= 5: # less than a week ago
+        s = gettext.ngettext("%(days)i day ago",
+                             "%(days)i days ago",
+                             days) % { 'days' : days }
+
+    else:   # any timedelta greater than 5 days old
+        # YYYY-MM-DD
+        s = cur_t.isoformat().split('T')[0]
+
+    return s
+        
 if __name__ == "__main__":
     s = decode_xml_char_reference('Search&#x2026;')
     print s

@@ -135,7 +135,6 @@ class StarPainter(IStarPainter):
     def paint_half_star(self, cr, widget, state, x, y, w, h):
         # TODO: some rtl switch will be needed here
         cr.save()
-        cr.set_line_join(cairo.LINE_CAP_ROUND)
 
         if widget.get_direction() != gtk.TEXT_DIR_RTL:
 #            color1 = widget.style.mid[state]
@@ -186,7 +185,6 @@ class StarPainter(IStarPainter):
             return
 
         cr.save()
-        cr.set_line_join(cairo.LINE_CAP_ROUND)
 
         self.shape.layout(cr, x, y, w, h)
 
@@ -330,11 +328,11 @@ class StarRating(gtk.Alignment):
 class StarRatingSelector(StarRating):
 
     RATING_WORDS = [_('Hint: Click a star to rate this app'),   # unrated caption
-                    _('Unusable'),      # 1 star rating
+                    _('Awful'),         # 1 star rating
                     _('Poor'),          # 2 star rating
-                    _('Satisfactory'),  # 3 star rating
+                    _('Adequate'),      # 3 star rating
                     _('Good'),          # 4 star rating
-                    _('Exceptional!')]  # 5 star rating
+                    _('Excellent')]     # 5 star rating
 
 
     def __init__(self, n_stars=None, spacing=4, star_size=(EM-1,EM-1)):
@@ -446,7 +444,11 @@ class ReviewStatsContainer(gtk.VBox):
         self._update_nr_reviews()
     # internal stuff
     def _update_nr_reviews(self):
-        self.label.set_markup(_("%i Ratings") % self.nr_reviews)
+        s = gettext.ngettext(
+            "%(nr_ratings)i rating",
+            "%(nr_ratings)i ratings",
+            self.nr_reviews) % { 'nr_ratings' : self.nr_reviews, }
+        self.label.set_markup(s)
 
 if __name__ == "__main__":
     w = ReviewStatsContainer()

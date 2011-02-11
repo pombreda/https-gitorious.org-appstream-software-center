@@ -14,15 +14,15 @@ import xapian
 from softwarecenter.db.application import Application, AppDetails
 from softwarecenter.db.database import StoreDatabase
 from softwarecenter.db.database import parse_axi_values_file
-from softwarecenter.db.update import update_from_app_install_data, update_from_var_lib_apt_lists
+from softwarecenter.db.update import update_from_app_install_data, update_from_var_lib_apt_lists, update_from_appstream_xml
 from softwarecenter.apt.aptcache import AptCache
+from softwarecenter.paths import *
 from softwarecenter.enums import *
 
 class TestDatabase(unittest.TestCase):
     """ tests the store database """
 
     def setUp(self):
-        apt_pkg.config.set("APT::Architecture", "i386")
         apt_pkg.config.set("Dir::State::status",
                            "./data/appdetails/var/lib/dpkg/status")
         self.cache = AptCache()
@@ -58,6 +58,20 @@ class TestDatabase(unittest.TestCase):
         for it in db.postlist("AAUbuntu Software Zentrum"):
             i+=1
         self.assertEqual(i, 1)
+
+    def test_update_from_appstream_xml(self):
+        db = xapian.WritableDatabase("./data/test.db", 
+                                     xapian.DB_CREATE_OR_OVERWRITE)
+        res = update_from_appstream_xml(db, self.cache, "./data/app-info/")
+        self.assertTrue(res)
+        self.assertEqual(db.get_doccount(), 1)
+        # FIXME: improve tests
+        for p in db.postlist(""):
+            doc = db.get_document(p.docid)
+            for term in doc.termlist():
+                print term, term.term
+            for value in doc.values():
+                print value, value.num, value.value
 
     def test_update_from_var_lib_apt_lists(self):
         # ensure we index with german locales to test i18n
@@ -224,6 +238,13 @@ class TestDatabase(unittest.TestCase):
         appdetails = app.get_details(db)
         self.assertEqual(appdetails.pkg_state, PKG_STATE_NOT_FOUND)
 
+    def test_packagename_is_application(self):
+        db = StoreDatabase("/var/cache/software-center/xapian", self.cache)
+        db.open()
+        # apt has no app
+        self.assertEqual(db.get_apps_for_pkgname("apt"), set())
+        # but software-center has
+        self.assertEqual(len(db.get_apps_for_pkgname("software-center")), 1)
 
     def test_whats_new(self):
         db = StoreDatabase("/var/cache/software-center/xapian", self.cache)

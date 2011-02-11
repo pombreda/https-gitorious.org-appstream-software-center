@@ -19,6 +19,9 @@
 import os
 import xdg.BaseDirectory
 
+# pkgname of this app itself (used for "self-awareness", see spec)
+SOFTWARE_CENTER_PKGNAME = 'software-center'
+
 # buy-something base url
 #BUY_SOMETHING_HOST = "http://localhost:8000/"
 BUY_SOMETHING_HOST = os.environ.get("SOFTWARE_CENTER_BUY_HOST") or "https://software-center.ubuntu.com"
@@ -30,27 +33,6 @@ DB_SCHEMA_VERSION = "2"
 
 # the default limit for a search
 DEFAULT_SEARCH_LIMIT = 10000
-
-# xapian pathes
-XAPIAN_BASE_PATH = "/var/cache/software-center"
-XAPIAN_BASE_PATH_SOFTWARE_CENTER_AGENT = os.path.join(
-    xdg.BaseDirectory.xdg_cache_home,
-    "software-center", 
-    "software-center-agent.db")
-
-# system pathes
-APP_INSTALL_PATH = "/usr/share/app-install"
-APP_INSTALL_DESKTOP_PATH = APP_INSTALL_PATH+"/desktop/"
-APP_INSTALL_CHANNELS_PATH = APP_INSTALL_PATH+"/channels/"
-ICON_PATH = APP_INSTALL_PATH+"/icons/"
-
-SOFTWARE_CENTER_BASE = "/usr/share/software-center"
-SOFTWARE_CENTER_PLUGIN_DIR = os.path.join(SOFTWARE_CENTER_BASE, "plugins")
-
-# ratings&review
-# relative to datadir
-SUBMIT_REVIEW_APP = "submit_review.py"
-REPORT_REVIEW_APP = "report_review.py"
 
 # the various "views" that the app has
 VIEW_PAGE_AVAILABLE = "view-page-available"
@@ -159,8 +141,4 @@ USER_AGENT="Software Center/%s (N;) %s/%s (%s)" % (VERSION,
                                                    RELEASE,
                                                    CODENAME)
                                                    
-# FIXME: use relative paths here
-INSTALLED_ICON = "/usr/share/software-center/icons/software-center-installed.png"
-IMAGE_LOADING = "/usr/share/icons/hicolor/32x32/animations/softwarecenter-loading.gif"
-IMAGE_LOADING_INSTALLED = "/usr/share/icons/hicolor/32x32/animations/softwarecenter-loading-installed.gif"
 

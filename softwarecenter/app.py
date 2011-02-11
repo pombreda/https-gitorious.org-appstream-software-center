@@ -38,6 +38,7 @@ with ExecutionTime("TIME loading app.py imports"):
     from SimpleGtkbuilderApp import SimpleGtkbuilderApp
     from softwarecenter.db.application import Application, DebFileApplication
     from softwarecenter.enums import *
+    from softwarecenter.paths import *
     from softwarecenter.utils import *
     from softwarecenter.version import *
     from softwarecenter.db.database import StoreDatabase

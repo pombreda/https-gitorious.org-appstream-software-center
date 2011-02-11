@@ -27,7 +27,7 @@ import threading
 import gobject
 
 from softwarecenter.enums import *
-from softwarecenter.utils import SimpleFileDownloader
+from softwarecenter.utils import ImageDownloader
 from spinner import SpinnerView
 
 ICON_EXCEPTIONS = ["gnome"]
@@ -61,8 +61,8 @@ class ShowImageDialog(gtk.Dialog):
 
         # downloader
         self.loader = SimpleFileDownloader()
-        self.loader.connect('download-complete', self._on_screenshot_download_complete)
-        self.loader.connect('url-reachable', self._on_screenshot_query_complete)
+        self.loader.connect('image-download-complete', self._on_screenshot_download_complete)
+        self.loader.connect('image-url-reachable', self._on_screenshot_query_complete)
 
         # scolled window for screenshot
         viewport = gtk.Viewport()
