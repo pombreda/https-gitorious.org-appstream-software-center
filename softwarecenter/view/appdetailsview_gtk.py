@@ -17,6 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import atk
+import datetime
 import gettext
 import glib
 import gmenu
@@ -39,7 +40,7 @@ from softwarecenter.db.reviews import ReviewStats
 from softwarecenter.backend.zeitgeist_simple import zeitgeist_singleton
 from softwarecenter.enums import *
 from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR, INSTALLED_ICON, IMAGE_LOADING_INSTALLED
-from softwarecenter.utils import ImageDownloader, GMenuSearcher, uri_to_filename, is_unity_running, upstream_version_compare, upstream_version
+from softwarecenter.utils import ImageDownloader, GMenuSearcher, uri_to_filename, is_unity_running, upstream_version_compare, upstream_version, get_nice_date_string
 from softwarecenter.gwibber_helper import GWIBBER_SERVICE_AVAILABLE
 
 from appdetailsview import AppDetailsViewBase
@@ -205,6 +206,7 @@ class PackageStatusBar(StatusBar):
         elif state == PKG_STATE_NOT_FOUND:
             self.hide()
         elif state == PKG_STATE_ERROR:
+            self.progress.hide()
             self.button.set_sensitive(False)
             self.button.show()
             self.show()
@@ -1014,8 +1016,6 @@ class Reviews(gtk.VBox):
         expander_hb = gtk.HBox(spacing=mkit.SPACING_MED)
         self.pack_start(expander_hb, False)
         expander_hb.pack_start(self.expander, False)
-        # only add "write new" if the app is installed
-#        if self.app_details.pkg_state == PKG_STATE_INSTALLED:
         expander_hb.pack_end(self.new_review, False)
 
         self.vbox = gtk.VBox(spacing=mkit.SPACING_XLARGE)
@@ -1064,6 +1064,7 @@ class Reviews(gtk.VBox):
 
             self.reviews.reverse()  # XXX: sort so that reviews are ordered recent to oldest
                                     # XXX: prob should be done somewhere else, perhaps in the review fetcher?
+                                    # mvo: the server will eventually sort for us (hopefully) by usefulness/version/date, but for now looks like we need to do it
 
             for r in self.reviews:
                 pkgversion = self._parent.app_details.version
@@ -1086,6 +1087,12 @@ class Reviews(gtk.VBox):
 
     def finished(self):
         #print 'Review count: %s' % len(self.reviews)
+        # only display "write new" if the app is installed
+        if (self._parent.app_details and
+            not self._parent.app_details.pkg_state == PKG_STATE_INSTALLED):
+            self.new_review.hide()
+        else:
+            self.new_review.show()
         if not self.reviews:
             self._be_the_first_to_review()
         else:
@@ -1190,14 +1197,19 @@ class Review(gtk.VBox):
         if reviews:
             reviews.emit("report-abuse", self.id)
 
+    def _get_datetime_from_review_date(self, raw_date):
+        # example raw_date str format: 2011-01-28 19:15:21
+        return datetime.datetime.strptime(raw_date, '%Y-%m-%d %H:%M:%S')
+    
     def _build(self, rating, person, summary, text, date, app_name, review_version, app_version):
         # all the arguments may need markup escape, depening on if
         # they are used as text or markup
 
-        cur_t, dt = self._get_timedelta(date)
+        # example raw_date str format: 2011-01-28 19:15:21
+        cur_t = self._get_datetime_from_review_date(date)
 
         dark_color = self.style.dark[gtk.STATE_NORMAL]
-        m = self._whom_when_markup(person, cur_t, dt, dark_color)
+        m = self._whom_when_markup(person, cur_t, dark_color)
 
         who_when = mkit.EtchedLabel(m)
         who_when.set_use_markup(True)
@@ -1240,9 +1252,10 @@ class Review(gtk.VBox):
         #like.set_underline(True)
         #self.footer.pack_start(like, False)
 
-        # Translators: Flags should be translated in the sense of
-        #  "Report as inappropriate"
-        self.complain = mkit.VLinkButton('<small>%s</small>' % _('Flag'))
+        # Translators: This link is for flagging a review as inappropriate.
+        # To minimize repetition, if at all possible, keep it to a single word.
+        # If your language has an obvious verb, it won't need a question mark.
+        self.complain = mkit.VLinkButton('<small>%s</small>' % _('Inappropriate?'))
         self.complain.set_underline(True)
         self.footer.pack_end(self.complain, False)
         self.complain.connect('clicked', self._on_report_abuse_clicked)
@@ -1250,27 +1263,21 @@ class Review(gtk.VBox):
         self.body.connect('size-allocate', self._on_allocate, stars, summary, who_when, version_lbl, self.complain)
         return
 
-    def _get_timedelta(self, raw_date):
-        import datetime
-        # example raw_date str format: 2011-01-28 19:15:21
-        cur_t = datetime.datetime.strptime(raw_date, '%Y-%m-%d %H:%M:%S')
+    def _whom_when_markup(self, person, cur_t, dark_color):
+        nice_date = get_nice_date_string(cur_t)
         dt = datetime.datetime.utcnow() - cur_t
-        return cur_t, dt
-
-    def _whom_when_markup(self, person, cur_t, dt, dark_color):
-        nice_date = self._nice_date(cur_t, dt)
 
         if person == self.logged_in_person:
-            m = '<span color="%s">%s %s</span>'
+            m = '<span color="%s">%s</span>'
 
             if dt.days <= 5:
                 m = m % (dark_color.to_string(),
-                         _("This is your review, submitted"),
-                         glib.markup_escape_text(nice_date))
+                         # TRANSLATORS: this will add the submit date as a string like "5 
+                         _("This is your review, submitted %s") % glib.markup_escape_text(nice_date))
             else:
                 m = m % (dark_color.to_string(),
-                         _("This is your review, submitted on"),
-                         glib.markup_escape_text(nice_date))
+                         # TRANSLATORS: this will add the submit date in the form "2011-02-24"
+                         _("This is your review, submitted on %s") % glib.markup_escape_text(nice_date))
 
         else:
             m = '<span color="%s"><b>%s</b>, %s</span>' % (dark_color.to_string(),
@@ -1279,39 +1286,10 @@ class Review(gtk.VBox):
 
         return m
 
-    def _nice_date(self, cur_t, dt):
-        days = dt.days
-        secs = dt.seconds
-
-        if days < 1:
-
-            if secs < 120:   # less than 2 minute ago
-                s = _('a few minutes ago')   # dont be fussy
-
-            elif secs < 3600:   # less than an hour ago
-                s = gettext.ngettext("%(min)i minute ago",
-                                     "%(min)i minutes ago",
-                                     (secs/60)) % { 'min' : (secs/60) }
-
-            else:   # less than a day ago
-                s = gettext.ngettext("%(hours)i hour ago",
-                                     "%(hours)i hours ago",
-                                     (secs/3600)) % { 'hours' : (secs/3600) }
-
-        elif days <= 5: # less than a week ago
-            s = gettext.ngettext("%(days)i day ago",
-                                 "%(days)i days ago",
-                                 days) % { 'days' : days }
-
-        else:   # any timedelta greater than 3 days old
-            # YYYY-MM-DD
-            s = cur_t.isoformat().split('T')[0]
-
-        return s
-
     def draw(self, cr, a):
         cr.save()
-        if not self.person == self.logged_in_person: return
+        if not self.person == self.logged_in_person:
+            return
 
         cr.rectangle(a)
 
@@ -2150,6 +2128,10 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         # set button sensitive again
         self.pkg_statusbar.button.set_sensitive(True)
+        
+        # hide the "write a review" button initially until we are ready
+        # to display it
+        self.reviews.new_review.hide()
 
         # init data
         old_details = self.app_details
