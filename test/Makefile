@@ -1,6 +1,6 @@
 #!/usr/bin/make
 
-all: check  mago_test
+all: check mago_test
 
 check:
 	set -e; \
