@@ -327,6 +327,9 @@ class BaseApp(SimpleGtkbuilderApp):
         #submit error image
         self.submit_error_img = gtk.Image()
         self.submit_error_img.set_from_stock(gtk.STOCK_DIALOG_ERROR, gtk.ICON_SIZE_SMALL_TOOLBAR)
+        #submit success image
+        self.submit_success_img = gtk.Image()
+        self.submit_success_img.set_from_stock(gtk.STOCK_APPLY,  gtk.ICON_SIZE_SMALL_TOOLBAR)
         #label size to prevent image or spinner from resizing
         self.label_transmit_status.set_size_request(-1, gtk.icon_size_lookup(gtk.ICON_SIZE_SMALL_TOOLBAR)[1])
 
@@ -426,41 +429,59 @@ class BaseApp(SimpleGtkbuilderApp):
     def on_transmit_start(self, api, trans):
         self.button_post.set_sensitive(False)
         self.button_cancel.set_sensitive(False)
-        if self._clear_status_imagery():
-            self.status_hbox.pack_start(self.submit_spinner, False)
-            self.status_hbox.reorder_child(self.submit_spinner, 0)
-            self.submit_spinner.show()
-            self.submit_spinner.start()
-            self.label_transmit_status.set_text(self.SUBMIT_MESSAGE)
+        self._change_status("progress",  self.SUBMIT_MESSAGE)
 
     def on_transmit_success(self, api, trans):
         self.api.shutdown()
         self.quit()
 
     def on_transmit_failure(self, api, trans, error):
-        if self._clear_status_imagery():
+        self._change_status("fail",  error)
+        self.button_post.set_sensitive(True)
+        self.button_cancel.set_sensitive(True)
+            
+    def _change_status(self, type,  message):
+        """method to separate the updating of status icon/spinner and message in the submit review window,
+         takes a type (progress, fail, success) as a string and a message string then updates status area accordingly"""
+        self._clear_status_imagery()
+        if type == "progress":
+            self.status_hbox.pack_start(self.submit_spinner, False)
+            self.status_hbox.reorder_child(self.submit_spinner, 0)
+            self.submit_spinner.show()
+            self.submit_spinner.start()
+            self.label_transmit_status.set_text(message)
+        elif type == "fail":
             self.status_hbox.pack_start(self.submit_error_img, False)
             self.status_hbox.reorder_child(self.submit_error_img, 0)
             self.submit_error_img.show()
-            self.label_transmit_status.set_text(error)
-            self.button_post.set_sensitive(True)
-            self.button_cancel.set_sensitive(True)
+            self.label_transmit_status.set_text(message)
+        elif type == "success":
+            self.status_hbox.pack_start(self.submit_success_img, False)
+            self.status_hbox.reorder_child(self.submit_success_img, 0)
+            self.submit_success_img.show()
+            self.label_transmit_status.set_text(message)
 
     def _clear_status_imagery(self):
         #clears spinner or error image from dialog submission label before trying to display one or the other
-        try: 
+         try: 
             result = self.status_hbox.query_child_packing(self.submit_spinner)
             self.status_hbox.remove(self.submit_spinner)
-        except TypeError:
+         except TypeError:
             pass
         
-        try: 
+         try: 
             result = self.status_hbox.query_child_packing(self.submit_error_img)
             self.status_hbox.remove(self.submit_error_img)
-        except TypeError:
+         except TypeError:
+            pass
+            
+         try: 
+            result = self.status_hbox.query_child_packing(self.submit_success_img)
+            self.status_hbox.remove(self.submit_success_img)
+         except TypeError:
             pass
         
-        return True
+         return
         
             
             
@@ -757,41 +778,54 @@ class SubmitReviewsApp(BaseApp):
             passed in
         """
         status_text = _("Posting to %s") % account['service'].capitalize()
-        self.label_transmit_status.set_text(status_text)
+        self._change_status("progress", status_text)
         return self.gwibber_helper.send_message(msg,account['id'])
 
     def on_transmit_success(self, api, trans):
-        gwibber_success = True
+        """on successful submission of a review, try to send to gwibber as well"""
+        self._run_gwibber_submits(api,trans)
+    
+    def _get_send_accounts(self, sel_index):
+        """return the account referenced by the passed in index, or all accounts
+            if the index of the combo points to the pseudo-sc-all string"""
+        if self.gwibber_accounts[sel_index]["id"] == "pseudo-sc-all":
+            return self.gwibber_accounts
+        else:
+            return [self.gwibber_accounts[sel_index]]
+            
+    def _submit_to_gwibber(self,msg,send_accounts):
+        """for each send_account passed in, try to submit to gwibber
+            then return a list of accounts that failed to submit (empty list if all succeeded"""
         #list of gwibber accounts that failed to submit, used later to allow selective re-send if user desires
-        failed_accounts = []
+        failed_accounts=[]
+        for account in send_accounts:
+            if account["id"]!= "pseudo-sc-all":
+                if not self._post_to_one_gwibber_account(msg, account):
+                    failed_accounts.append(account)
+        return failed_accounts
 
-        # FIXME: factor this out into a method
+    def _run_gwibber_submits(self, api, trans):
+        """check if gwibber send should occur and send via gwibber if so"""
+        gwibber_success = True
         if self.gwibber_checkbutton.get_active():
             i = self.gwibber_combo.get_active()
             msg = (self._gwibber_message())
-
-            # either send to selected account or all
-            if self.gwibber_accounts[i]["id"] == "pseudo-sc-all":
-                send_accounts = self.gwibber_accounts
-            else:
-                send_accounts = [self.gwibber_accounts[i]]
+            send_accounts = self._get_send_accounts(i)
             self._save_gwibber_state(True, self.gwibber_accounts[i]['id'])
-            # submit to gwibber
-            for account in send_accounts:
-                if account["id"] != "pseudo-sc-all":
-                    if not self._post_to_one_gwibber_account(msg, account):
-                        failed_accounts.append(account)
-                        gwibber_success = False
-            if not gwibber_success:
+            #tries to send to gwibber, and gets back any failed accounts
+            failed_accounts = self._submit_to_gwibber(msg,send_accounts)
+            if len(failed_accounts) > 0:
+                gwibber_success = False
                 #FIXME: send an error string to this method instead of empty string
                 self._on_gwibber_fail(api, trans, failed_accounts, "")
         else:
             # prevent _save_gwibber_state from overwriting the account id
-            # in config if the checkbutton was not selected    
+            # in config if the checkbutton was not selected
             self._save_gwibber_state(False, None)
         # run parent handler on gwibber success, otherwise this will be dealt
         # with in _on_gwibber_fail
         if gwibber_success:
+            self._gwibber_success_status()
             BaseApp.on_transmit_success(self, api, trans)
     
     def _gwibber_retry_some(self, api, trans, accounts):
@@ -811,11 +845,18 @@ class SubmitReviewsApp(BaseApp):
             #FIXME: send an error string to this method instead of empty string
             self._on_gwibber_fail(api, trans, failed_accounts, "")
         else:
+            self._gwibber_success_status()
             BaseApp.on_transmit_success(self, api, trans)
-        
+    
+    def _gwibber_success_status(self):
+        """Updates status area to show Gwibber success for 2 seconds then allows window to proceed"""
+        self._change_status("success", _("Successfully posted via Gwibber"))
+        while gtk.events_pending():
+            gtk.main_iteration(False)
+        time.sleep(2)
     
     def _on_gwibber_fail(self, api, trans, failed_accounts, error):
-        
+        self._change_status("fail",_("Problems posting to Gwibber"))
         #list to hold service strings in the format: "Service (@username)"
         failed_services = []
         for account in failed_accounts:

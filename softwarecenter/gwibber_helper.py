@@ -23,6 +23,7 @@ from xdg import BaseDirectory as xdg
 import os.path
 import simplejson
 import sys
+from random import random
 
 class GwibberHelper(object):
     """ A helper class for gwibber. ideally we would just use 
@@ -96,6 +97,10 @@ class GwibberHelperMock(object):
 
     def send_message(self, message, account_id):
         sys.stderr.write("sending '%s' to '%s'\n" % (message, account_id))
+        #used for testing purposes, to emulate a gwibber failure for ~1 out of every 5 attempts
+        r = random()
+        if r < 0.2:
+            return False
         return True
     
     def has_accounts_in_sqlite():
