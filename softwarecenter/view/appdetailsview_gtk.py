@@ -1612,7 +1612,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.share_btn.draw(cr, self.share_btn.allocation, expose_area)
 
         if self.usage.get_property('visible'):
-            self.usage.draw(cr, self.usage.allocation)
+            self.usage.draw(cr, self.usage.allocation, expose_area)
 
         if self.addon_view.get_property('visible'):
             self.addon_view.draw(cr, self.addon_view.allocation)

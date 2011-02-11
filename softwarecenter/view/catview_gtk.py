@@ -1167,7 +1167,10 @@ class Button(gtk.EventBox):
     def _label_colorise_normal(self, label):
         if self.state == gtk.STATE_PRELIGHT or \
             self.has_focus():
-            c = self.style.text[self.state]
+            if hasattr(label, 'is_subtle') and label.is_subtle:
+                c = self.style.dark[self.state]
+            else:
+                c = self.style.text[self.state]
         else:
             c = self.style.dark[self.state]
 
@@ -1291,6 +1294,7 @@ class CarouselPoster2(Button):
         self.label.set_line_wrap(True)
 
         self.nrreviews = gtk.Label()
+        self.nrreviews.is_subtle = True
         self.nrreviews.set_alignment(0, 0.5)
 
         self.rating = StarRating()
@@ -1377,6 +1381,7 @@ class CarouselPoster2(Button):
                 cr.move_to(self.nrreviews.allocation.x - a.x,
                            self.nrreviews.allocation.y - a.y)
                 cr.layout_path(self.nrreviews.get_layout())
+                cr.set_source_color(self.style.dark[self.state])
                 cr.fill()
 
             if self.rating.get_property('visible'):
@@ -1434,7 +1439,8 @@ class CarouselPoster2(Button):
                 "%(nr_ratings)i Ratings",
                 nr_reviews) % { 'nr_ratings' : nr_reviews, }
 
-            self.nrreviews.set_markup('<small>%s</small>' % s)
+            m = '<span color="%s"><small>%s</small></span>'
+            self.nrreviews.set_markup(m % (self.style.dark[gtk.STATE_NORMAL], s))
 
         self.rating.set_rating(a.popcon)
 

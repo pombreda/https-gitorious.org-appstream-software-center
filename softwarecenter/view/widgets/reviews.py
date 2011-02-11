@@ -29,6 +29,7 @@ import os
 
 import pangocairo
 
+import gettext
 from gettext import gettext as _
 from mkit import EM, ShapeStar, ShapeRoundedRectangle, VLinkButton, floats_from_string
 
