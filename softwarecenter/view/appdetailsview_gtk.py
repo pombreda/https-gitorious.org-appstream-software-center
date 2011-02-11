@@ -17,6 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import atk
+import datetime
 import gettext
 import glib
 import gmenu
@@ -39,7 +40,7 @@ from softwarecenter.db.reviews import ReviewStats
 from softwarecenter.backend.zeitgeist_simple import zeitgeist_singleton
 from softwarecenter.enums import *
 from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR, INSTALLED_ICON, IMAGE_LOADING_INSTALLED
-from softwarecenter.utils import ImageDownloader, GMenuSearcher, uri_to_filename, is_unity_running, upstream_version_compare, upstream_version
+from softwarecenter.utils import ImageDownloader, GMenuSearcher, uri_to_filename, is_unity_running, upstream_version_compare, upstream_version, get_nice_date_string
 from softwarecenter.gwibber_helper import GWIBBER_SERVICE_AVAILABLE
 
 from appdetailsview import AppDetailsViewBase
@@ -196,11 +197,6 @@ class PackageStatusBar(StatusBar):
         #~ self.fill_color = COLOR_BLACK
         #~ self.line_color = COLOR_GREEN_OUTLINE
         
-        #check if the app being viewed is software centre itself, for self-aware behaviour
-        self_aware = False
-        if app_details.pkgname== 'software-center':
-            self_aware = True
-
         if state in (PKG_STATE_INSTALLING,
                      PKG_STATE_INSTALLING_PURCHASED,
                      PKG_STATE_REMOVING,
@@ -210,6 +206,7 @@ class PackageStatusBar(StatusBar):
         elif state == PKG_STATE_NOT_FOUND:
             self.hide()
         elif state == PKG_STATE_ERROR:
+            self.progress.hide()
             self.button.set_sensitive(False)
             self.button.show()
             self.show()
@@ -240,7 +237,8 @@ class PackageStatusBar(StatusBar):
             self.button.set_sensitive(False)
         elif state == PKG_STATE_INSTALLED or state == PKG_STATE_REINSTALLABLE:
             #special label only if the app being viewed is software centre itself
-            if self_aware: self.set_label(_("Installed (you're using it right now)"))
+            if app_details.pkgname== SOFTWARE_CENTER_PKGNAME:
+                self.set_label(_("Installed (you're using it right now)"))
             else:
                 if app_details.purchase_date:
                     purchase_date = str(app_details.purchase_date).split()[0]
@@ -268,7 +266,8 @@ class PackageStatusBar(StatusBar):
             self.set_button_label(_('Install'))
         elif state == PKG_STATE_UNINSTALLED:
             #special label only if the app being viewed is software centre itself
-            if self_aware: self.set_label(_("Removed (close it and it'll be gone)"))
+            if app_details.pkgname== SOFTWARE_CENTER_PKGNAME:
+                self.set_label(_("Removed (close it and it'll be gone)"))
             else:
                 if app_details.price:
                     self.set_label(app_details.price)
@@ -1030,6 +1029,12 @@ class Reviews(gtk.VBox):
         self.new_review.connect('clicked', lambda w: self.emit('new-review'))
         return
 
+    @property
+    def app_details(self):
+        if self._parent:
+            return self._parent.app_details
+        return None
+
     def _get_person_from_config(self):
         cfg = get_config()
         if cfg.has_option("reviews", "username"):
@@ -1056,6 +1061,11 @@ class Reviews(gtk.VBox):
     def _fill(self):
         self.logged_in_person = self._get_person_from_config()
         if self.reviews:
+
+            self.reviews.reverse()  # XXX: sort so that reviews are ordered recent to oldest
+                                    # XXX: prob should be done somewhere else, perhaps in the review fetcher?
+                                    # mvo: the server will eventually sort for us (hopefully) by usefulness/version/date, but for now looks like we need to do it
+
             for r in self.reviews:
                 pkgversion = self._parent.app_details.version
                 review = Review(r, pkgversion, self.logged_in_person)
@@ -1077,6 +1087,12 @@ class Reviews(gtk.VBox):
 
     def finished(self):
         #print 'Review count: %s' % len(self.reviews)
+        # only display "write new" if the app is installed
+        if (self._parent.app_details and
+            not self._parent.app_details.pkg_state == PKG_STATE_INSTALLED):
+            self.new_review.hide()
+        else:
+            self.new_review.show()
         if not self.reviews:
             self._be_the_first_to_review()
         else:
@@ -1106,21 +1122,9 @@ class Reviews(gtk.VBox):
             review.destroy()
 
     def draw(self, cr, a):
-        cr.save()
-        rr = mkit.ShapeRoundedRectangle()
-        r, g, b = mkit.floats_from_string('#fff')
-        # XXX this should be transparent instead
-        rr.layout(cr, a.x, a.y, a.x+a.width, a.y+a.height, radius=0)
-        cr.set_source_rgba(r,g,b,0.25)
-        cr.fill_preserve()
+#        cr.save()
 
-        cr.set_source_rgb(*mkit.floats_from_string('#fff'))
-        # XXX this should be transparent instead
-        rr.layout(cr, a.x+0.5, a.y+0.5, a.x+a.width-0.5, a.y+a.height-0.5, radius=0)
-        # XXX Without any color, doesn't need to be ShapeRoundedRectangle
-        cr.set_line_width(1)
-        cr.stroke()
-        cr.restore()
+#        cr.restore()
 
         if not self.expander.get_expanded(): return
 
@@ -1148,23 +1152,44 @@ class Review(gtk.VBox):
         self.person = None
 
         if review_data:
-            self.id = review_data.id
-            rating = review_data.rating 
-            self.person = review_data.reviewer_username
-            summary = review_data.summary
-            text = review_data.review_text
-            date = review_data.date_created
-            app_name = review_data.app_name
-            # some older version of the server do not set the version
-            review_version = getattr(review_data, "version", "")
-            self._build(rating, self.person, summary, text, date, app_name, review_version, app_version)
-
-        self.body.connect('size-allocate', self._on_allocate)
+            self.connect('realize',
+                         self._on_realize,
+                         review_data,
+                         app_version,
+                         logged_in_person)
         return
 
-    def _on_allocate(self, widget, allocation):
+    def _on_realize(self, w, review_data, app_version, logged_in_person):
+        self.id = review_data.id
+        rating = review_data.rating 
+        self.person = review_data.reviewer_username
+        summary = review_data.summary
+        text = review_data.review_text
+        date = review_data.date_created
+        app_name = review_data.app_name
+        # some older version of the server do not set the version
+        review_version = getattr(review_data, "version", "")
+
+        self._build(rating,
+                    self.person,
+                    summary,
+                    text,
+                    date,
+                    app_name,
+                    review_version,
+                    app_version)
+        return
+
+    def _on_allocate(self, widget, allocation, stars, summary, who_when, version_lbl, flag):
         for child in self.body:
             child.set_size_request(allocation.width, -1)
+
+        summary.set_size_request(allocation.width - \
+                                 stars.allocation.width - \
+                                 who_when.allocation.width - 20, -1)
+
+        if version_lbl:
+            version_lbl.set_size_request(allocation.width-flag.allocation.width-20, -1)
         return
 
     def _on_report_abuse_clicked(self, button):
@@ -1172,43 +1197,55 @@ class Review(gtk.VBox):
         if reviews:
             reviews.emit("report-abuse", self.id)
 
+    def _get_datetime_from_review_date(self, raw_date):
+        # example raw_date str format: 2011-01-28 19:15:21
+        return datetime.datetime.strptime(raw_date, '%Y-%m-%d %H:%M:%S')
+    
     def _build(self, rating, person, summary, text, date, app_name, review_version, app_version):
-        # all the arguments may need markup escaping, depending on whether
+        # all the arguments may need markup escape, depening on if
         # they are used as text or markup
-        if person == self.logged_in_person:
-            m = "%s %s" % (_("This is your review, submitted on"),
-                                glib.markup_escape_text(date))
-        else:
-            m = "<b>%s</b>, %s" % (glib.markup_escape_text(person),
-                                glib.markup_escape_text(date))
-        who_what_when = gtk.Label(m)
-        who_what_when.set_use_markup(True)
 
-        summary = gtk.Label('<b>%s</b>' % glib.markup_escape_text(summary))
+        # example raw_date str format: 2011-01-28 19:15:21
+        cur_t = self._get_datetime_from_review_date(date)
+
+        dark_color = self.style.dark[gtk.STATE_NORMAL]
+        m = self._whom_when_markup(person, cur_t, dark_color)
+
+        who_when = mkit.EtchedLabel(m)
+        who_when.set_use_markup(True)
+
+        summary = mkit.EtchedLabel('<b>%s</b>' % glib.markup_escape_text(summary))
         summary.set_use_markup(True)
+        summary.set_ellipsize(pango.ELLIPSIZE_END)
+        summary.set_alignment(0, 0.5)
 
         text = gtk.Label(text)
         text.set_line_wrap(True)
         text.set_selectable(True)
         text.set_alignment(0, 0)
-        
-        self.header.pack_start(StarRating(rating), False)
+
+        stars = StarRating(rating)
+
+        self.header.pack_start(stars, False)
         self.header.pack_start(summary, False)
-        self.header.pack_end(who_what_when, False)
-        #self.header.pack_end(gtk.Label(self.rating), False)
+        self.header.pack_end(who_when, False)
+
         self.body.pack_start(text, False)
         
         #if review version is different to version of app being displayed, 
         # alert user
+        version_lbl = None
         if (review_version and 
             upstream_version_compare(review_version, app_version) != 0):
             version_string = _("This review was written for a different version of %(app_name)s (Version: %(version)s)") % { 
                 'app_name' : app_name,
                 'version' : glib.markup_escape_text(upstream_version(review_version))
                 }
-            version_lbl = gtk.Label("<small><i>%s</i></small>" % version_string)
+            version_lbl = gtk.Label('<small><i><span color="%s">%s</span></i></small>' % (dark_color.to_string(), version_string))
             version_lbl.set_use_markup(True)
             version_lbl.set_padding(0,3)
+            version_lbl.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
+            version_lbl.set_alignment(0, 0.5)
             self.footer.pack_start(version_lbl, False)
         
         #like = mkit.VLinkButton('<small>%s</small>' % _('This review was useful'))
@@ -1218,27 +1255,49 @@ class Review(gtk.VBox):
         # Translators: This link is for flagging a review as inappropriate.
         # To minimize repetition, if at all possible, keep it to a single word.
         # If your language has an obvious verb, it won't need a question mark.
-        complain = mkit.VLinkButton('<small>%s</small>' % _('Inappropriate?'))
-        complain.set_underline(True)
-        self.footer.pack_end(complain, False)
-        complain.connect('clicked', self._on_report_abuse_clicked)
+        self.complain = mkit.VLinkButton('<small>%s</small>' % _('Inappropriate?'))
+        self.complain.set_underline(True)
+        self.footer.pack_end(self.complain, False)
+        self.complain.connect('clicked', self._on_report_abuse_clicked)
+
+        self.body.connect('size-allocate', self._on_allocate, stars, summary, who_when, version_lbl, self.complain)
         return
+
+    def _whom_when_markup(self, person, cur_t, dark_color):
+        nice_date = get_nice_date_string(cur_t)
+        dt = datetime.datetime.utcnow() - cur_t
+
+        if person == self.logged_in_person:
+            m = '<span color="%s">%s</span>'
+
+            if dt.days <= 5:
+                m = m % (dark_color.to_string(),
+                         # TRANSLATORS: this will add the submit date as a string like "5 
+                         _("This is your review, submitted %s") % glib.markup_escape_text(nice_date))
+            else:
+                m = m % (dark_color.to_string(),
+                         # TRANSLATORS: this will add the submit date in the form "2011-02-24"
+                         _("This is your review, submitted on %s") % glib.markup_escape_text(nice_date))
+
+        else:
+            m = '<span color="%s"><b>%s</b>, %s</span>' % (dark_color.to_string(),
+                                                           glib.markup_escape_text(person),
+                                                           glib.markup_escape_text(nice_date))
+
+        return m
 
     def draw(self, cr, a):
         cr.save()
-        rr = mkit.ShapeRoundedRectangle()
-        rr.layout(cr, a.x-6, a.y-5, a.x+a.width+6, a.y+a.height+5, radius=3)
-        if self.person == self.logged_in_person:
-            cr.set_source_rgba(0.8,0.8,0.8,0.5)
-        else:
-            cr.set_source_rgba(1,1,1,0.7)
+        if not self.person == self.logged_in_person:
+            return
+
+        cr.rectangle(a)
+
+        color = mkit.floats_from_gdkcolor(self.style.mid[self.state])
+        cr.set_source_rgba(*color+(0.2,))
+
         cr.fill()
-        cr.set_source_rgb(*mkit.floats_from_string('#fff'))
-        # should be transparent instead
-        rr.layout(cr, a.x-5.5, a.y-4.5, a.x+a.width+5.5, a.y+a.height+4.5, radius=0)
-        # XXX doesn't need to be ShapeRoundedRectangle
-        cr.set_line_width(1)
-        cr.stroke()
+
         cr.restore()
 
 class NoReviewYet(Review):
@@ -2069,6 +2128,10 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         # set button sensitive again
         self.pkg_statusbar.button.set_sensitive(True)
+        
+        # hide the "write a review" button initially until we are ready
+        # to display it
+        self.reviews.new_review.hide()
 
         # init data
         old_details = self.app_details
