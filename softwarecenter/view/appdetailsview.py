@@ -19,20 +19,6 @@
 
 import logging
 import gtk
-#<<<<<<< TREE
-
-#import json
-#import logging
-#import os
-#import re
-#import glib
-#import simplejson
-#import socket
-#import string
-#import subprocess
-#import sys
-#import tempfile
-#=======
 import dialogs
 
 import urllib
@@ -43,8 +29,6 @@ from softwarecenter.db.reviews import get_review_loader
 from softwarecenter.backend import get_install_backend
 from softwarecenter.enums import *
 from softwarecenter.utils import get_current_arch, get_parent_xid, get_default_language
-
-LOG=logging.getLogger(__name__)
 
 LOG=logging.getLogger(__name__)
 
@@ -75,7 +59,6 @@ class AppDetailsViewBase(object):
         self.addons_to_install = []
         self.addons_to_remove = []
         # reviews
-#        self.review_loader = get_review_loader()
         self.review_loader = get_review_loader(self.cache)
         # aptdaemon
         self.backend = get_install_backend()
@@ -138,6 +121,12 @@ class AppDetailsViewBase(object):
         parent_xid = get_parent_xid(self)
         self.review_loader.spawn_report_abuse_ui(
             review_id, parent_xid, self.datadir, self._reviews_ready_callback)
+
+    def _review_submit_usefulness(self, review_id, is_useful):
+        parent_xid = get_parent_xid(self)
+        self.review_loader.spawn_submit_usefulness_ui(
+            review_id, is_useful, parent_xid, self.datadir,
+            self._reviews_ready_callback)
 
     # public interface
     def reload(self):

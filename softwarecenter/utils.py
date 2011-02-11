@@ -280,7 +280,7 @@ def is_unity_running():
     return unity_running
 
 # FIXME: why not call it a generic downloader?
-class ImageDownloader(gobject.GObject):
+class SimpleFileDownloader(gobject.GObject):
 
     LOG = logging.getLogger("softwarecenter.imagedownloader")
 

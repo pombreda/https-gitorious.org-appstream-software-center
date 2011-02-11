@@ -373,6 +373,18 @@ class StarRatingSelector(StarRating):
         kv = event.keyval
         if kv == gtk.keysyms.space or kv == gtk.keysyms.Return:
             self.set_rating(star.position+1)
+        elif kv == gtk.keysyms._1:
+            self.set_rating(1)
+        elif kv == gtk.keysyms._2:
+            self.set_rating(2)
+        elif kv == gtk.keysyms._3:
+            self.set_rating(3)
+        elif kv == gtk.keysyms._4:
+            self.set_rating(4)
+        elif kv == gtk.keysyms._5:
+            self.set_rating(5)
+        if self.caption:
+            self.caption.set_markup(self.RATING_WORDS[self.rating])
         return
 
     def _connect_signals(self, star):

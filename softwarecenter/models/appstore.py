@@ -387,7 +387,7 @@ class AppStore(gtk.GenericTreeModel):
         url = get_distro().get_downloadable_icon_url(cache, pkgname, icon_file_name)
         if url is not None:
             icon_file_path = os.path.join(SOFTWARE_CENTER_ICON_CACHE_DIR, icon_file_name)
-            image_downloader = ImageDownloader()
+            image_downloader = SimpleFileDownloader()
             image_downloader.connect('image-download-complete', on_image_download_complete)
             image_downloader.download_image(url, icon_file_path)
 
@@ -563,7 +563,6 @@ class AppStore(gtk.GenericTreeModel):
     def on_iter_has_child(self, rowref):
         return False
     def on_iter_n_children(self, rowref):
-        #self._logger.debug("on_iter_n_children: %s (%i)" % (rowref, len(self.apps)))
         if rowref:
             return 0
         return len(self.matches)
