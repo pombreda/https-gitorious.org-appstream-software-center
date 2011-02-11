@@ -1,6 +1,6 @@
 #!/usr/bin/make
 
-all: check mago_test
+all: check #mago_test
 
 check:
 	set -e; \
@@ -20,5 +20,5 @@ clean:
 # mago tests
 mago_test:
 	# -sv makes mago not buffer output
-	PYTHONPATH=.. mago -sv mago/test_with_mago.py
+	PYTHONPATH=.. mago -sv mago/mago_simple.py
 
