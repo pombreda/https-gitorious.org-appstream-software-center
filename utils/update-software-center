@@ -31,6 +31,7 @@ import xapian
 from optparse import OptionParser
 
 from softwarecenter.enums import *
+from softwarecenter.paths import XAPIAN_BASE_PATH
 from softwarecenter.db.update import rebuild_database
 
 # dbus may not be available during a upgrade so we 

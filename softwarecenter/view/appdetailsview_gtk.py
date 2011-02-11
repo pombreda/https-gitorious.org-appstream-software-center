@@ -992,6 +992,9 @@ class Reviews(gtk.VBox):
         'report-abuse':(gobject.SIGNAL_RUN_FIRST,
                     gobject.TYPE_NONE,
                     (gobject.TYPE_PYOBJECT,)),
+        'submit-usefulness':(gobject.SIGNAL_RUN_FIRST,
+                    gobject.TYPE_NONE,
+                    (gobject.TYPE_PYOBJECT, bool)),
     }
 
     def __init__(self, parent):
@@ -1170,6 +1173,9 @@ class Review(gtk.VBox):
         app_name = review_data.app_name
         # some older version of the server do not set the version
         review_version = getattr(review_data, "version", "")
+        # old versions of the server do not expose usefulness
+        useful_total = getattr(review_data, "usefulness_total", 0)
+        useful_favorable = getattr(review_data, "usefulness_favorable", 0)
 
         self._build(rating,
                     self.person,
@@ -1178,7 +1184,9 @@ class Review(gtk.VBox):
                     date,
                     app_name,
                     review_version,
-                    app_version)
+                    app_version,
+                    useful_total,
+                    useful_favorable)
         return
 
     def _on_allocate(self, widget, allocation, stars, summary, who_when, version_lbl, flag):
@@ -1198,28 +1206,16 @@ class Review(gtk.VBox):
         if reviews:
             reviews.emit("report-abuse", self.id)
     
-    def _on_useful_clicked(self, btn):
-        self._submit_usefulness(True)
-    
-    def _on_not_useful_clicked(self, btn):
-        self._submit_usefulness(False)
-    
-    #FIXME: does nothing for now
-    def _submit_usefulness(self, useful):
-        if useful:
-            LOG.warn("_on_useful_clicked called")
-        else:
-            LOG.warn("_on_not_useful_clicked called")
-    
-    #FIXME: hardcoded for now
-    def _get_useful_stats(self):
-        return (17,21)
+    def _on_useful_clicked(self, btn, is_useful):
+        reviews = self.get_ancestor(Reviews)
+        if reviews:
+            reviews.emit("submit-usefulness", self.id, is_useful)
 
     def _get_datetime_from_review_date(self, raw_date):
         # example raw_date str format: 2011-01-28 19:15:21
         return datetime.datetime.strptime(raw_date, '%Y-%m-%d %H:%M:%S')
     
-    def _build(self, rating, person, summary, text, date, app_name, review_version, app_version):
+    def _build(self, rating, person, summary, text, date, app_name, review_version, app_version, useful_total, useful_favorable):
         # all the arguments may need markup escape, depening on if
         # they are used as text or markup
 
@@ -1253,7 +1249,6 @@ class Review(gtk.VBox):
         #if review version is different to version of app being displayed, 
         # alert user
         version_lbl = None
-
         if (review_version and 
             upstream_version_compare(review_version, app_version) != 0):
             version_string = _("This review was written for a different version of %(app_name)s (Version: %(version)s)") % { 
@@ -1269,30 +1264,39 @@ class Review(gtk.VBox):
             
         self.footer_split.pack_start(self.footer, False)
         
-        #if no usefulness has been submitted, simply ask if user found it useful (i.e. don't say 0 out of 0 found this...)
-        useful_stats = self._get_useful_stats()
-        if useful_stats[1] == 0:
-            useful = gtk.Label('<small>Did you find this review useful? </small>')
+        #if no usefulness has been submitted, simply ask if
+        # user found it useful (i.e. don't say 0 out of 0 found this...)
+        if useful_total == 0:
+            useful = gtk.Label('<small>%s</small>' % \
+                               _("Did you find this review useful?"))
         else:
-            useful = gtk.Label('<small>%s out of %s people found this review useful. Did you? </small>' % (str(useful_stats[0]), str(useful_stats[1])))
+            s = gettext.ngettext(
+                "%(useful_favorable)s out of %(useful_total)s person "
+                "found this review useful. Did you?",
+                "%(useful_favorable)s out of %(useful_total)s people "
+                "found this review useful. Did you?",
+                useful_total) % { 'useful_total' : useful_total,
+                                  'useful_favorable' : useful_favorable,
+                                }
+            useful = gtk.Label('<small>%s </small>' % s)
         
         useful.set_use_markup(True)
         #vertically centre so it lines up with the Yes and No buttons
-        useful.set_alignment(0,0.5)
+        useful.set_alignment(0, 0.5)
         
-        self.yes_like = mkit.VLinkButton('<small>Yes</small>')
-        self.no_like = mkit.VLinkButton('<small>No</small>')
-        self.yes_like.set_underline(True)
-        self.no_like.set_underline(True)
-        self.yes_like.set_subdued(True)
-        self.no_like.set_subdued(True)
+        yes_like = mkit.VLinkButton('<small>Yes</small>')
+        no_like = mkit.VLinkButton('<small>No</small>')
+        yes_like.set_underline(True)
+        no_like.set_underline(True)
+        yes_like.set_subdued(True)
+        no_like.set_subdued(True)
         
         self.footer.pack_start(useful, False)
-        self.footer.pack_start(self.yes_like, False)
-        self.footer.pack_start(self.no_like, False)
+        self.footer.pack_start(yes_like, False)
+        self.footer.pack_start(no_like, False)
         #connect signals
-        self.yes_like.connect('clicked', self._on_useful_clicked)
-        self.no_like.connect('clicked', self._on_not_useful_clicked)
+        yes_like.connect('clicked', self._on_useful_clicked, True)
+        no_like.connect('clicked', self._on_useful_clicked, False)
 
         # Translators: This link is for flagging a review as inappropriate.
         # To minimize repetition, if at all possible, keep it to a single word.
@@ -1845,6 +1849,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.reviews = Reviews(self)
         self.reviews.connect("new-review", self._on_review_new)
         self.reviews.connect("report-abuse", self._on_review_report_abuse)
+        self.reviews.connect("submit-usefulness", self._on_review_submit_usefulness)
         self.main_frame.body.pack_start(self.reviews)
         return
 
@@ -1863,6 +1868,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
     def _on_review_new(self, button):
         self._review_write_new()
 
+    def _on_review_submit_usefulness(self, button, review_id, is_useful):
+        self._review_submit_usefulness(review_id, is_useful)
+    
     def _on_review_report_abuse(self, button, review_id):
         self._review_report_abuse(str(review_id))
 
