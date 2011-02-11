@@ -118,6 +118,9 @@ class GRatingsAndReviews(gobject.GObject):
     def report_abuse(self, review_id, summary, text):
         self.emit("transmit-start", review_id)
         self.worker_thread.pending_reports.put((int(review_id), summary, text))
+    def submit_usefulness(self, review_id, is_useful):
+        self.emit("transmit-start", review_id)
+        self.worker_thread.pending_usefulness.put((int(review_id), is_useful))
     def server_status(self):
         self.worker_thread.pending_server_status()
     def shutdown(self):
@@ -140,6 +143,7 @@ class Worker(threading.Thread):
         threading.Thread.__init__(self)
         self.pending_reviews = Queue()
         self.pending_reports = Queue()
+        self.pending_usefulness = Queue()
         self.pending_server_status = Queue()
         self._shutdown = False
         # FIXME: instead of a binary value we need the state associated
@@ -175,11 +179,37 @@ class Worker(threading.Thread):
             #logging.debug("worker: _wait_for_commands")
             self._submit_reviews_if_pending()
             self._submit_reports_if_pending()
+            self._submit_usefulness_if_pending()
             time.sleep(0.2)
             if (self._shutdown and
                 self.pending_reviews.empty() and
+                self.pending_usefulness.empty() and
                 self.pending_reports.empty()):
                 return
+
+    # usefulness
+    def queue_usefulness(self, usefulness):
+        """ queue a new usefulness report for sending to LP """
+        logging.debug("queue_usefulness %s %s %s" % usefulness)
+        self.pending_usefulness.put(usefulness)
+
+    def _submit_usefulness_if_pending(self):
+        """ the actual usefulness function """
+        while not self.pending_usefulness.empty():
+            logging.debug("POST usefulness")
+            self._transmit_state = TRANSMIT_STATE_INPROGRESS
+            (review_id, is_useful) = self.pending_usefulness.get()
+            try:
+                res = self.rnrclient.submit_usefulness(
+                    review_id=review_id, useful=str(is_useful))
+                self._transmit_state = TRANSMIT_STATE_DONE
+                sys.stdout.write(simplejson.dumps(res))
+            except Exception as e:
+                logging.exception("submit_usefulness failed")
+                self._write_exception_html_log_if_needed(e)
+                self._transmit_state = TRANSMIT_STATE_ERROR
+                self._transmit_error_str = _("Failed to submit usefulness")
+            self.pending_usefulness.task_done()
 
     # reports
     def queue_report(self, report):
@@ -275,11 +305,16 @@ class BaseApp(SimpleGtkbuilderApp):
     def __init__(self, datadir, uifile):
         SimpleGtkbuilderApp.__init__(
             self, os.path.join(datadir,"ui",uifile), "software-center")
+        # generic data
         self.appname = _("Ubuntu Software Center")
         self.token = None
         self.display_name = None
         self._login_successful = False
         self._whoami_token_reset_nr = 0
+        #persistent config
+        configfile = os.path.join(
+            SOFTWARE_CENTER_CONFIG_DIR, "submit_reviews.cfg")
+        self.config = get_config(configfile)
         # status spinner
         self.status_spinner = gtk.Spinner()
         self.status_spinner.set_size_request(32,32)
@@ -297,10 +332,6 @@ class BaseApp(SimpleGtkbuilderApp):
         self.submit_success_img.set_from_stock(gtk.STOCK_APPLY,  gtk.ICON_SIZE_SMALL_TOOLBAR)
         #label size to prevent image or spinner from resizing
         self.label_transmit_status.set_size_request(-1, gtk.icon_size_lookup(gtk.ICON_SIZE_SMALL_TOOLBAR)[1])
-        #persistent config
-        configfile = os.path.join(
-            SOFTWARE_CENTER_CONFIG_DIR, "submit_reviews.cfg")
-        self.config = get_config(configfile)
 
     def run(self):
         # initially display a 'Connecting...' page
@@ -984,7 +1015,24 @@ class ReportReviewApp(BaseApp):
         self.main_notebook.set_current_page(1)
         #self.label_reporter.set_text(display_name)
         self._setup_details(self.submit_window, display_name)
+
+class SubmitUsefulnessApp(BaseApp):
+    SUBMIT_MESSAGE = _(u"Sending usefulness\u2026")
     
+    def __init__(self, review_id, parent_xid, is_useful, datadir):
+        BaseApp.__init__(self, datadir, "submit_usefulness.ui")
+        # data
+        self.review_id = review_id
+        self.is_useful = bool(is_useful)
+        # no UI except for error conditions
+        self.parent_xid = parent_xid
+
+    def login_successful(self, display_name):
+        logging.debug("submit usefulness")
+        self.main_notebook.set_current_page(1)
+        self.api.submit_usefulness(self.review_id, self.is_useful)
+
+
 if __name__ == "__main__":
     try:
         locale.setlocale(locale.LC_ALL, "")
@@ -1059,6 +1107,31 @@ if __name__ == "__main__":
                                       review_id=options.review_id, 
                                       parent_xid=options.parent_xid)
         report_app.run()
+
+    if "submit_usefulness" in sys.argv[0]:
+        # check options
+        parser.add_option("", "--review-id") 
+        parser.add_option("", "--parent-xid")
+        parser.add_option("", "--is-useful")
+        parser.add_option("", "--debug",
+                          action="store_true", default=False)
+        (options, args) = parser.parse_args()
+
+        if not (options.review_id):
+            parser.error(_("Missing review-id arguments"))
+    
+        if options.debug:
+            logging.basicConfig(level=logging.DEBUG)                        
+
+        # personality
+        logging.debug("report_abuse mode")
+
+        # initialize and run
+        usefulness_app = SubmitUsefulnessApp(datadir=options.datadir,
+                                         review_id=options.review_id, 
+                                         parent_xid=options.parent_xid,
+                                         is_useful=int(options.is_useful))
+        usefulness_app.run()
 
     # main
     gtk.main()
