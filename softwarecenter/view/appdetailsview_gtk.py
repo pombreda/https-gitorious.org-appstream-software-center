@@ -1142,11 +1142,12 @@ class Review(gtk.VBox):
 
         self.header = gtk.HBox(spacing=mkit.SPACING_MED)
         self.body = gtk.VBox()
+        self.footer_split = gtk.VBox()
         self.footer = gtk.HBox()
 
         self.pack_start(self.header, False)
         self.pack_start(self.body, False)
-        self.pack_start(self.footer, False)
+        self.pack_start(self.footer_split, False)
         
         self.logged_in_person = logged_in_person
         self.person = None
@@ -1196,6 +1197,23 @@ class Review(gtk.VBox):
         reviews = self.get_ancestor(Reviews)
         if reviews:
             reviews.emit("report-abuse", self.id)
+    
+    def _on_useful_clicked(self, btn):
+        self._submit_usefulness(True)
+    
+    def _on_not_useful_clicked(self, btn):
+        self._submit_usefulness(False)
+    
+    #FIXME: does nothing for now
+    def _submit_usefulness(self, useful):
+        if useful:
+            LOG.warn("_on_useful_clicked called")
+        else:
+            LOG.warn("_on_not_useful_clicked called")
+    
+    #FIXME: hardcoded for now
+    def _get_useful_stats(self):
+        return (17,21)
 
     def _get_datetime_from_review_date(self, raw_date):
         # example raw_date str format: 2011-01-28 19:15:21
@@ -1235,6 +1253,7 @@ class Review(gtk.VBox):
         #if review version is different to version of app being displayed, 
         # alert user
         version_lbl = None
+
         if (review_version and 
             upstream_version_compare(review_version, app_version) != 0):
             version_string = _("This review was written for a different version of %(app_name)s (Version: %(version)s)") % { 
@@ -1246,11 +1265,34 @@ class Review(gtk.VBox):
             version_lbl.set_padding(0,3)
             version_lbl.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
             version_lbl.set_alignment(0, 0.5)
-            self.footer.pack_start(version_lbl, False)
+            self.footer_split.pack_start(version_lbl, False)
+            
+        self.footer_split.pack_start(self.footer, False)
         
-        #like = mkit.VLinkButton('<small>%s</small>' % _('This review was useful'))
-        #like.set_underline(True)
-        #self.footer.pack_start(like, False)
+        #if no usefulness has been submitted, simply ask if user found it useful (i.e. don't say 0 out of 0 found this...)
+        useful_stats = self._get_useful_stats()
+        if useful_stats[1] == 0:
+            useful = gtk.Label('<small>Did you find this review useful? </small>')
+        else:
+            useful = gtk.Label('<small>%s out of %s people found this review useful. Did you? </small>' % (str(useful_stats[0]), str(useful_stats[1])))
+        
+        useful.set_use_markup(True)
+        #vertically centre so it lines up with the Yes and No buttons
+        useful.set_alignment(0,0.5)
+        
+        self.yes_like = mkit.VLinkButton('<small>Yes</small>')
+        self.no_like = mkit.VLinkButton('<small>No</small>')
+        self.yes_like.set_underline(True)
+        self.no_like.set_underline(True)
+        self.yes_like.set_subdued(True)
+        self.no_like.set_subdued(True)
+        
+        self.footer.pack_start(useful, False)
+        self.footer.pack_start(self.yes_like, False)
+        self.footer.pack_start(self.no_like, False)
+        #connect signals
+        self.yes_like.connect('clicked', self._on_useful_clicked)
+        self.no_like.connect('clicked', self._on_not_useful_clicked)
 
         # Translators: This link is for flagging a review as inappropriate.
         # To minimize repetition, if at all possible, keep it to a single word.
