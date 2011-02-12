@@ -995,10 +995,10 @@ class Button(gtk.EventBox):
         self._button_press_origin = btn
         self.set_state(gtk.STATE_ACTIVE)
 
-        if hasattr(self, 'label_list'):
-            for v in self.label_list:
-                l = getattr(self, v)
-                self._label_colorise_active(l)
+#        if hasattr(self, 'label_list'):
+#            for v in self.label_list:
+#                l = getattr(self, v)
+#                self._label_colorise_active(l)
         return
 
     def _on_button_release(self, btn, event):
@@ -1019,10 +1019,10 @@ class Button(gtk.EventBox):
         self._button_press_origin = None
         self.set_state(gtk.STATE_PRELIGHT)
 
-        if hasattr(self, 'label_list'):
-            for v in self.label_list:
-                l = getattr(self, v)
-                self._label_colorise_normal(l)
+#        if hasattr(self, 'label_list'):
+#            for v in self.label_list:
+#                l = getattr(self, v)
+#                self._label_colorise_normal(l)
 
         gobject.timeout_add(50, clicked, btn)
         return
@@ -1041,33 +1041,22 @@ class Button(gtk.EventBox):
         self.window.set_cursor(None)
         return
 
-    def _cache_image_surface(self, pb):
-        surf = cairo.ImageSurface(cairo.FORMAT_ARGB32,
-                                  pb.get_width(),
-                                  pb.get_height())
-        cr = cairo.Context(surf)
-        cr = gtk.gdk.CairoContext(pangocairo.CairoContext(cr))
-        cr.set_source_pixbuf(pb, 0,0)
-        cr.paint()
-        self._image_surface = surf
-        del cr
-        return
-
     def _label_colorise_active(self, label):
-        c = self.style.base[gtk.STATE_SELECTED]
-        attr = pango.AttrForeground(c.red,
-                                    c.green,
-                                    c.blue,
-                                    0, -1)
+#        c = self.style.base[gtk.STATE_SELECTED]
 
-        layout = label.get_layout()
-        attrs = layout.get_attributes()
+#        attr = pango.AttrForeground(c.red,
+#                                    c.green,
+#                                    c.blue,
+#                                    0, -1)
 
-        if not attrs:
-            attrs = pango.AttrList()
+#        layout = label.get_layout()
+#        attrs = layout.get_attributes()
 
-        attrs.change(attr)
-        layout.set_attributes(attrs)
+#        if not attrs:
+#            attrs = pango.AttrList()
+
+#        attrs.change(attr)
+#        layout.set_attributes(attrs)
         return
 
     def _label_colorise_normal(self, label):
@@ -1241,14 +1230,32 @@ class CarouselPoster2(Button):
         return
 
     def _on_expose(self, w, e):
-        if self.alpha >= 1.0 or not self._surf_cache: return
+        if self.alpha >= 1.0 or not self._surf_cache:
+
+            if (w.state == gtk.STATE_ACTIVE):
+                for child in w:
+                    w.propagate_expose(child, e)
+
+                a = w.allocation
+                cr = w.window.cairo_create()
+
+                c = w.style.base[gtk.STATE_SELECTED]
+                cr.set_source_rgba(c.red_float,
+                                   c.green_float,
+                                   c.blue_float,
+                                   0.3)
+
+                cr.mask_surface(self._surf_cache, a.x, a.y)
+            else:
+                return False
+            return True
 
         a = w.allocation
         cr = w.window.cairo_create()
 
         cr.set_source_surface(self._surf_cache, a.x, a.y)
-
         cr.paint_with_alpha(self.alpha)
+
         return True
 
     def _cache_surf(self, force=False):

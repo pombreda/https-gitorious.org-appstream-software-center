@@ -935,7 +935,7 @@ class LayoutView2(gtk.HBox):
         self._non_col_children = []
 
         self.connect('size-allocate', self._on_allocate, yspacing)
-        self.connect('expose-event', self._on_expose_debug)
+#        self.connect('expose-event', self._on_expose_debug)
         return
 
     def _on_allocate(self, widget, allocation, yspacing):
@@ -1002,7 +1002,6 @@ class LayoutView2(gtk.HBox):
         for i, child in enumerate(self._non_col_children):
             cols[i%n_cols].pack_start(child, False)
 
-#        print 'ColumnCount:', len(self.get_children())
         self.show_all()
         return
 
