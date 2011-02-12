@@ -1292,35 +1292,8 @@ class Review(gtk.VBox):
         if person == self.logged_in_person:
             current_user_reviewer = True
         
-        #if no usefulness has been submitted, simply ask if
-        # user found it useful (i.e. don't say 0 out of 0 found this...)
-        if useful_total == 0 and current_user_reviewer:
-            self.useful = gtk.Label('<small>%s</small>' % \
-                               _("No one has flagged your review's usefulness yet."))
-        elif useful_total == 0:
-            self.useful = gtk.Label('<small>%s</small>' % \
-                               _("Did you find this review useful?"))
-        elif current_user_reviewer:
-            s = gettext.ngettext(
-                "%(useful_favorable)s out of %(useful_total)s person "
-                "found your review useful.",
-                "%(useful_favorable)s out of %(useful_total)s people "
-                "found your review useful.",
-                useful_total) % { 'useful_total' : useful_total,
-                                  'useful_favorable' : useful_favorable,
-                                }
-            self.useful = gtk.Label('<small>%s </small>' % s)
-        else:
-            s = gettext.ngettext(
-                "%(useful_favorable)s out of %(useful_total)s person "
-                "found this review useful. Did you?",
-                "%(useful_favorable)s out of %(useful_total)s people "
-                "found this review useful. Did you?",
-                useful_total) % { 'useful_total' : useful_total,
-                                  'useful_favorable' : useful_favorable,
-                                }
-            self.useful = gtk.Label('<small>%s </small>' % s)
-        
+        #get correct label based on retrieved usefulness totals and if user is reviewer
+        self.useful = self._get_usefulness_label(current_user_reviewer, useful_total, useful_favorable)
         self.useful.set_use_markup(True)
         #vertically centre so it lines up with the Yes and No buttons
         self.useful.set_alignment(0, 0.5)
@@ -1352,6 +1325,38 @@ class Review(gtk.VBox):
 
         self.body.connect('size-allocate', self._on_allocate, stars, summary, who_when, version_lbl, self.complain)
         return
+    
+    
+    def _get_usefulness_label(self, current_user_reviewer, useful_total, useful_favorable):
+        '''returns gtk.Label() to be used as usefulness label depending on passed in parameters'''
+        if useful_total == 0 and current_user_reviewer:
+            usefulness_label = gtk.Label('<small>%s</small>' % \
+                               _("No one has flagged your review's usefulness yet."))
+        elif useful_total == 0:
+            usefulness_label = gtk.Label('<small>%s</small>' % \
+                               _("Did you find this review useful?"))
+        elif current_user_reviewer:
+            s = gettext.ngettext(
+                "%(useful_favorable)s out of %(useful_total)s person "
+                "found your review useful.",
+                "%(useful_favorable)s out of %(useful_total)s people "
+                "found your review useful.",
+                useful_total) % { 'useful_total' : useful_total,
+                                  'useful_favorable' : useful_favorable,
+                                }
+            usefulness_label = gtk.Label('<small>%s </small>' % s)
+        else:
+            s = gettext.ngettext(
+                "%(useful_favorable)s out of %(useful_total)s person "
+                "found this review useful. Did you?",
+                "%(useful_favorable)s out of %(useful_total)s people "
+                "found this review useful. Did you?",
+                useful_total) % { 'useful_total' : useful_total,
+                                  'useful_favorable' : useful_favorable,
+                                }
+            usefulness_label = gtk.Label('<small>%s </small>' % s)
+        
+        return usefulness_label
 
     def _whom_when_markup(self, person, cur_t, dark_color):
         nice_date = get_nice_date_string(cur_t)
