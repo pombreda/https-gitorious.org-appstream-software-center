@@ -6,6 +6,8 @@ software-center (3.1.18) UNRELEASED; urgency=low
   [ Kiwinote ]
   * softwarecenter/view/purchaseview.py:
     - open external links in default browser (LP: #640520)
+  * softwarecenter/view/softwarepane.py:
+    - play nicely if we click on an app before the cache is ready (LP: #691321)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 11 Feb 2011 15:40:03 +0100
 

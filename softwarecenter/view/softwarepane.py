@@ -277,6 +277,7 @@ class SoftwarePane(gtk.VBox, BasePane):
         if vadj:
             vadj.value_changed()
 
+    @wait_for_apt_cache_ready
     def on_application_activated(self, appview, app):
         """callback when an app is clicked"""
         LOG.debug("on_application_activated: '%s'" % app)
