@@ -7,6 +7,8 @@ software-center (3.1.18) UNRELEASED; urgency=low
   * softwarecenter/distro/Ubuntu.py:
     - we can't download an icon for a featured application if the cache is not
       ready (LP: #711857, LP: #717337)
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - don't crash if app_details has no desktop_file (LP: #716245)
   * softwarecenter/view/purchaseview.py:
     - open external links in default browser (LP: #640520)
   * softwarecenter/view/softwarepane.py:
