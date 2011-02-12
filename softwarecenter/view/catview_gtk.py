@@ -142,7 +142,7 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
         self._prev_width = 0
         self._poster_sigs = []
 
-        self.vbox.connect('expose-event', self._on_expose)
+        self.vbox.connect('expose-event', self._on_expose, a)
         self.connect('size-allocate', self._on_allocate, vb)
         self.connect('style-set', self._on_style_set)
         return
@@ -244,69 +244,17 @@ class LobbyViewGtk(CategoriesViewGtk):
         vbox.set_size_request(w, -1)
         return True
 
-    def _on_expose(self, widget, event):
-        a = widget.allocation
-
+    def _on_expose(self, widget, event, alignment):
         cr = widget.window.cairo_create()
-        cr.rectangle(a.x-5, a.y, a.width+10, a.height)
-        cr.clip()
+        cr.rectangle(alignment.allocation)
+        cr.clip_preserve()
 
         color = color_floats(widget.style.light[0])
-
-        cr.rectangle(widget.allocation)
         cr.set_source_rgba(*color+(0.6,))
         cr.fill()
 
         # paint the section backdrop
-        if self.section: self.section.render(cr, a)
-
-#        # only draw shadows when viewport is sufficiently wide...
-#        if a.width >= 900:
-#            # shadow on the right side
-#            lin = cairo.LinearGradient(a.x+a.width, a.y, a.x+a.width+5, a.y)
-#            lin.add_color_stop_rgba(0, 0,0,0, 0.175)
-#            lin.add_color_stop_rgba(1, 0,0,0, 0.000)
-
-#            cr.rectangle(a.x+a.width, a.y, 5, a.height)
-#            cr.set_source(lin)
-#            cr.fill()
-
-#            cr.set_line_width(1)
-
-#            # right side
-#            # outer vertical strong line
-#            cr.move_to(a.x+a.width+0.5, a.y)
-#            cr.rel_line_to(0, a.height)
-#            cr.set_source_rgb(*color_floats(widget.style.dark[self.state]))
-#            cr.stroke()
-
-#            # inner vertical highlight
-#            cr.move_to(a.x+a.width-0.5, a.y)
-#            cr.rel_line_to(0, a.height)
-#            cr.set_source_rgba(1,1,1,0.3)
-#            cr.stroke()
-
-#            # shadow on the left side
-#            lin = cairo.LinearGradient(a.x-5, a.y, a.x, a.y)
-#            lin.add_color_stop_rgba(1, 0,0,0, 0.175)
-#            lin.add_color_stop_rgba(0, 0,0,0, 0.000)
-
-#            cr.rectangle(a.x-5, a.y, 5, a.height)
-#            cr.set_source(lin)
-#            cr.fill()
-
-#            # left side
-#            # outer vertical strong line
-#            cr.move_to(a.x-0.5, a.y)
-#            cr.rel_line_to(0, a.height)
-#            cr.set_source_rgb(*color_floats(widget.style.dark[self.state]))
-#            cr.stroke()
-
-#            # inner vertical highlight
-#            cr.move_to(a.x+0.5, a.y)
-#            cr.rel_line_to(0, a.height)
-#            cr.set_source_rgba(1,1,1,0.3)
-#            cr.stroke()
+        if self.section: self.section.render(cr, alignment.allocation)
 
         # featured carousel
         # draw the info vbox bg
@@ -529,7 +477,7 @@ class LobbyViewGtk(CategoriesViewGtk):
         for cat in sorted_cats:
             if 'carousel-only' not in cat.flags:
                 layout.set_text(cat.name)
-                w = layout.get_pixel_extents()[1][2] + 40
+                w = layout.get_pixel_extents()[1][2]
 
 #                e.set_query(cat.query)
 #                # limiting the size here does not make it faster
