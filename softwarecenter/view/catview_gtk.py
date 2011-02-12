@@ -716,9 +716,12 @@ class CarouselView(gtk.VBox):
         return
 
     def _on_page_clicked(self, page_sel, page):
+        self.stop()
         self._offset = page*self.n_posters
-        self.stop(); self.start()
-        self.transition()
+        self._update_poster_content()
+        self._alpha = 1.0
+        self.queue_draw()
+        self.start()
         return
 
     @wait_for_apt_cache_ready
