@@ -1,6 +1,11 @@
 software-center (3.1.18) UNRELEASED; urgency=low
 
+  [ Michael Vogt ]
   * added "Was this review useful" feature
+
+  [ Kiwinote ]
+  * softwarecenter/view/purchaseview.py:
+    - open external links in default browser (LP: #640520)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 11 Feb 2011 15:40:03 +0100
 
