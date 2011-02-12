@@ -995,10 +995,10 @@ class Button(gtk.EventBox):
         self._button_press_origin = btn
         self.set_state(gtk.STATE_ACTIVE)
 
-#        if hasattr(self, 'label_list'):
-#            for v in self.label_list:
-#                l = getattr(self, v)
-#                self._label_colorise_active(l)
+        if hasattr(self, 'label_list'):
+            for v in self.label_list:
+                l = getattr(self, v)
+                self._label_colorise_active(l)
         return
 
     def _on_button_release(self, btn, event):
@@ -1019,10 +1019,10 @@ class Button(gtk.EventBox):
         self._button_press_origin = None
         self.set_state(gtk.STATE_PRELIGHT)
 
-#        if hasattr(self, 'label_list'):
-#            for v in self.label_list:
-#                l = getattr(self, v)
-#                self._label_colorise_normal(l)
+        if hasattr(self, 'label_list'):
+            for v in self.label_list:
+                l = getattr(self, v)
+                self._label_colorise_normal(l)
 
         gobject.timeout_add(50, clicked, btn)
         return
@@ -1042,21 +1042,21 @@ class Button(gtk.EventBox):
         return
 
     def _label_colorise_active(self, label):
-#        c = self.style.base[gtk.STATE_SELECTED]
+        c = self.style.base[gtk.STATE_SELECTED]
 
-#        attr = pango.AttrForeground(c.red,
-#                                    c.green,
-#                                    c.blue,
-#                                    0, -1)
+        attr = pango.AttrForeground(c.red,
+                                    c.green,
+                                    c.blue,
+                                    0, -1)
 
-#        layout = label.get_layout()
-#        attrs = layout.get_attributes()
+        layout = label.get_layout()
+        attrs = layout.get_attributes()
 
-#        if not attrs:
-#            attrs = pango.AttrList()
+        if not attrs:
+            attrs = pango.AttrList()
 
-#        attrs.change(attr)
-#        layout.set_attributes(attrs)
+        attrs.change(attr)
+        layout.set_attributes(attrs)
         return
 
     def _label_colorise_normal(self, label):
@@ -1100,10 +1100,6 @@ class LinkButton(Button):
         self.label.set_markup('<u>%s</u>' % label)
         return
 
-#    def set_subdued(self, is_subdued):
-#        self.subdued = is_subdued
-#        return
-
     def draw(self, *args):
         return
 
@@ -1124,16 +1120,6 @@ class CategoryButton(Button):
         label.set_alignment(0, 0.5)
         label.set_padding(0, 6)
         hb.pack_start(label, False)
-
-#        if estimate / 1000 >= 1:
-#            e = estimate / 1000
-#            elabel = BubbleLabel('<small>%s%s</small>' % (e, _('K')))
-#        else:
-#            elabel = BubbleLabel('<small>%s</small>' % estimate)
-
-#        elabel.set_padding(4, 0)
-#        elabel.set_use_markup(True)
-#        hb.pack_start(elabel, False)
 
         self.label_list = ('label',)
         return
@@ -1243,7 +1229,7 @@ class CarouselPoster2(Button):
                 cr.set_source_rgba(c.red_float,
                                    c.green_float,
                                    c.blue_float,
-                                   0.3)
+                                   0.25)
 
                 cr.mask_surface(self._surf_cache, a.x, a.y)
             else:
@@ -1264,9 +1250,6 @@ class CarouselPoster2(Button):
             if not self.app: return
 
             a = self.allocation
-
-#            print 'CacheSurf', self.app[0]
-
             surf = cairo.ImageSurface(cairo.FORMAT_ARGB32,
                                       a.width,
                                       a.height)
