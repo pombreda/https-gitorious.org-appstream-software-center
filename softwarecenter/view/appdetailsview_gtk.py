@@ -1214,18 +1214,18 @@ class Review(gtk.VBox):
     
     def _usefulness_ui_in_progress(self):
         self.spinner_box = gtk.HBox()
-        self.spinner_box.set_spacing(2)
         self.useful.hide()
         self.yes_like.hide()
         self.no_like.hide()
         
         self.spinner = gtk.Spinner()
+        self.spinner.set_size_request(12,12)
         self.spinner.start()
         self.spinner.show()
         
-        self.status_label = gtk.Label("<small>%s</small>" % _('Submitting now...'))
+        self.status_label = gtk.Label("<small><b>%s</b></small>" % _('Submitting now...'))
         self.status_label.set_use_markup(True)
-        self.status_label.set_padding(0,2)
+        self.status_label.set_padding(2,0)
         
         self.spinner_box.pack_start(self.spinner, False)
         self.spinner_box.pack_start(self.status_label,False)
