@@ -1209,7 +1209,31 @@ class Review(gtk.VBox):
     def _on_useful_clicked(self, btn, is_useful):
         reviews = self.get_ancestor(Reviews)
         if reviews:
+            self._usefulness_ui_in_progress()
             reviews.emit("submit-usefulness", self.id, is_useful)
+    
+    def _usefulness_ui_in_progress(self):
+        self.spinner_box = gtk.HBox()
+        self.spinner_box.set_spacing(2)
+        self.useful.hide()
+        self.yes_like.hide()
+        self.no_like.hide()
+        
+        self.spinner = gtk.Spinner()
+        self.spinner.start()
+        self.spinner.show()
+        
+        self.status_label = gtk.Label("<small>%s</small>" % _('Submitting now...'))
+        self.status_label.set_use_markup(True)
+        self.status_label.set_padding(0,2)
+        
+        self.spinner_box.pack_start(self.spinner, False)
+        self.spinner_box.pack_start(self.status_label,False)
+        self.status_label.show()
+        self.spinner_box.show()
+        
+        self.footer.pack_start(self.spinner_box, False)
+        
 
     def _get_datetime_from_review_date(self, raw_date):
         # example raw_date str format: 2011-01-28 19:15:21
@@ -1267,7 +1291,7 @@ class Review(gtk.VBox):
         #if no usefulness has been submitted, simply ask if
         # user found it useful (i.e. don't say 0 out of 0 found this...)
         if useful_total == 0:
-            useful = gtk.Label('<small>%s</small>' % \
+            self.useful = gtk.Label('<small>%s</small>' % \
                                _("Did you find this review useful?"))
         else:
             s = gettext.ngettext(
@@ -1278,25 +1302,25 @@ class Review(gtk.VBox):
                 useful_total) % { 'useful_total' : useful_total,
                                   'useful_favorable' : useful_favorable,
                                 }
-            useful = gtk.Label('<small>%s </small>' % s)
+            self.useful = gtk.Label('<small>%s </small>' % s)
         
-        useful.set_use_markup(True)
+        self.useful.set_use_markup(True)
         #vertically centre so it lines up with the Yes and No buttons
-        useful.set_alignment(0, 0.5)
+        self.useful.set_alignment(0, 0.5)
         
-        yes_like = mkit.VLinkButton('<small>Yes</small>')
-        no_like = mkit.VLinkButton('<small>No</small>')
-        yes_like.set_underline(True)
-        no_like.set_underline(True)
-        yes_like.set_subdued(True)
-        no_like.set_subdued(True)
+        self.yes_like = mkit.VLinkButton('<small>Yes</small>')
+        self.no_like = mkit.VLinkButton('<small>No</small>')
+        self.yes_like.set_underline(True)
+        self.no_like.set_underline(True)
+        self.yes_like.set_subdued(True)
+        self.no_like.set_subdued(True)
         
-        self.footer.pack_start(useful, False)
-        self.footer.pack_start(yes_like, False)
-        self.footer.pack_start(no_like, False)
+        self.footer.pack_start(self.useful, False)
+        self.footer.pack_start(self.yes_like, False)
+        self.footer.pack_start(self.no_like, False)
         #connect signals
-        yes_like.connect('clicked', self._on_useful_clicked, True)
-        no_like.connect('clicked', self._on_useful_clicked, False)
+        self.yes_like.connect('clicked', self._on_useful_clicked, True)
+        self.no_like.connect('clicked', self._on_useful_clicked, False)
 
         # Translators: This link is for flagging a review as inappropriate.
         # To minimize repetition, if at all possible, keep it to a single word.
