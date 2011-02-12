@@ -1223,7 +1223,7 @@ class Review(gtk.VBox):
         self.spinner.start()
         self.spinner.show()
         
-        self.status_label = gtk.Label("<small><b>%s</b></small>" % _('Submitting now...'))
+        self.status_label = gtk.Label("<small><b>%s</b></small>" % _(u"Submitting now\u2026"))
         self.status_label.set_use_markup(True)
         self.status_label.set_padding(2,0)
         
