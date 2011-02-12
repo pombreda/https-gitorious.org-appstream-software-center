@@ -1287,12 +1287,29 @@ class Review(gtk.VBox):
             self.footer_split.pack_start(version_lbl, False)
             
         self.footer_split.pack_start(self.footer, False)
+
+        current_user_reviewer = False
+        if person == self.logged_in_person:
+            current_user_reviewer = True
         
         #if no usefulness has been submitted, simply ask if
         # user found it useful (i.e. don't say 0 out of 0 found this...)
-        if useful_total == 0:
+        if useful_total == 0 and current_user_reviewer:
+            self.useful = gtk.Label('<small>%s</small>' % \
+                               _("No one has flagged your review's usefulness yet."))
+        elif useful_total == 0:
             self.useful = gtk.Label('<small>%s</small>' % \
                                _("Did you find this review useful?"))
+        elif current_user_reviewer:
+            s = gettext.ngettext(
+                "%(useful_favorable)s out of %(useful_total)s person "
+                "found your review useful.",
+                "%(useful_favorable)s out of %(useful_total)s people "
+                "found your review useful.",
+                useful_total) % { 'useful_total' : useful_total,
+                                  'useful_favorable' : useful_favorable,
+                                }
+            self.useful = gtk.Label('<small>%s </small>' % s)
         else:
             s = gettext.ngettext(
                 "%(useful_favorable)s out of %(useful_total)s person "
@@ -1308,19 +1325,21 @@ class Review(gtk.VBox):
         #vertically centre so it lines up with the Yes and No buttons
         self.useful.set_alignment(0, 0.5)
         
-        self.yes_like = mkit.VLinkButton('<small>Yes</small>')
-        self.no_like = mkit.VLinkButton('<small>No</small>')
-        self.yes_like.set_underline(True)
-        self.no_like.set_underline(True)
-        self.yes_like.set_subdued(True)
-        self.no_like.set_subdued(True)
-        
         self.footer.pack_start(self.useful, False)
-        self.footer.pack_start(self.yes_like, False)
-        self.footer.pack_start(self.no_like, False)
-        #connect signals
-        self.yes_like.connect('clicked', self._on_useful_clicked, True)
-        self.no_like.connect('clicked', self._on_useful_clicked, False)
+        
+        if not current_user_reviewer:
+            self.yes_like = mkit.VLinkButton('<small>Yes</small>')
+            self.no_like = mkit.VLinkButton('<small>No</small>')
+            self.yes_like.set_underline(True)
+            self.no_like.set_underline(True)
+            self.yes_like.set_subdued(True)
+            self.no_like.set_subdued(True)
+            
+            self.footer.pack_start(self.yes_like, False)
+            self.footer.pack_start(self.no_like, False)
+            #connect signals
+            self.yes_like.connect('clicked', self._on_useful_clicked, True)
+            self.no_like.connect('clicked', self._on_useful_clicked, False)
 
         # Translators: This link is for flagging a review as inappropriate.
         # To minimize repetition, if at all possible, keep it to a single word.
