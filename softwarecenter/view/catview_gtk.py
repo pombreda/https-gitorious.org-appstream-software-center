@@ -233,9 +233,9 @@ class LobbyViewGtk(CategoriesViewGtk):
     def _on_allocate(self, viewport, allocation, vbox):
         self.queue_draw()
 
-        w = min(allocation.width-2, 900)
+        w = min(allocation.width-2, 75*mkit.EM)
 
-        if w <= 400 or w == self._prev_width: return True
+        if w <= 35*mkit.EM or w == self._prev_width: return True
         self._prev_width = w
 
         self.featured_carousel.set_width(w)
@@ -1036,6 +1036,18 @@ class Button(gtk.EventBox):
     def _on_leave(self, btn, event):
         self.set_state(gtk.STATE_NORMAL)
         self.window.set_cursor(None)
+        return
+
+    def _cache_image_surface(self, pb):
+        surf = cairo.ImageSurface(cairo.FORMAT_ARGB32,
+                                  pb.get_width(),
+                                  pb.get_height())
+        cr = cairo.Context(surf)
+        cr = gtk.gdk.CairoContext(pangocairo.CairoContext(cr))
+        cr.set_source_pixbuf(pb, 0,0)
+        cr.paint()
+        self._image_surface = surf
+        del cr
         return
 
     def _label_colorise_active(self, label):

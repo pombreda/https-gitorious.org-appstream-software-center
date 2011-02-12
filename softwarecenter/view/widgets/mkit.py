@@ -935,7 +935,7 @@ class LayoutView2(gtk.HBox):
         self._non_col_children = []
 
         self.connect('size-allocate', self._on_allocate, yspacing)
-#        self.connect('expose-event', self._on_expose_debug)
+        self.connect('expose-event', self._on_expose_debug)
         return
 
     def _on_allocate(self, widget, allocation, yspacing):
@@ -981,6 +981,8 @@ class LayoutView2(gtk.HBox):
 
         old_n_cols = len(self.get_children())
         n_cols = max(1, width / (self.min_col_width + self.get_spacing()))
+
+        n_cols = min(len(self._non_col_children), n_cols)
 
         if old_n_cols == n_cols and not force: return True
 
