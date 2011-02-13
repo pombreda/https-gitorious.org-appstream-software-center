@@ -1107,12 +1107,14 @@ class LinkButton(Button):
 class CategoryButton(Button):
 
     SPACING = 6
+    BORDER_WIDTH = 2
     ICON_SIZE = gtk.ICON_SIZE_LARGE_TOOLBAR
 
     def __init__(self, label, iconname):
         Button.__init__(self)
 
         hb = gtk.HBox(spacing=self.SPACING)
+        hb.set_border_width(self.BORDER_WIDTH)
         self.add(hb)
 
         hb.pack_start(gtk.image_new_from_icon_name(iconname, self.ICON_SIZE), False)
@@ -1122,6 +1124,21 @@ class CategoryButton(Button):
         hb.pack_start(label, False)
 
         self.label_list = ('label',)
+
+        self.connect('expose-event', self._on_expose)
+        return
+
+    def _on_expose(self, w, e):
+        a = w.allocation
+
+        if self.has_focus():
+            w.style.paint_focus(w.window,
+                                w.state,
+                                w.allocation,
+                                w,
+                                'expander',
+                                a.x, a.y,
+                                a.width, a.height)
         return
 
 
@@ -1207,25 +1224,30 @@ class CarouselPoster2(Button):
         w = allocation.width - self.icon_size - self.hbox.get_spacing() - 2*self.hbox.get_border_width()
         label.set_size_request(max(1, w), -1)
 
-        if allocation.height > self._height:
-            self.set_size_request(-1, allocation.height)
-            self._height = allocation.height
-
         # cache an ImageSurface for transitions
         self._cache_surf()
         return
 
     def _on_expose(self, w, e):
+        a = w.allocation
+
+        if self.has_focus():
+            w.style.paint_focus(w.window,
+                                w.state,
+                                w.allocation,
+                                w,
+                                'expander',
+                                a.x, a.y,
+                                a.width, a.height)
+
         if self.alpha >= 1.0 or not self._surf_cache:
 
             if (w.state == gtk.STATE_ACTIVE):
                 for child in w:
                     w.propagate_expose(child, e)
 
-                a = w.allocation
-                cr = w.window.cairo_create()
-
                 c = w.style.base[gtk.STATE_SELECTED]
+                cr = w.window.cairo_create()
                 cr.set_source_rgba(c.red_float,
                                    c.green_float,
                                    c.blue_float,
@@ -1236,9 +1258,7 @@ class CarouselPoster2(Button):
                 return False
             return True
 
-        a = w.allocation
         cr = w.window.cairo_create()
-
         cr.set_source_surface(self._surf_cache, a.x, a.y)
         cr.paint_with_alpha(self.alpha)
 
