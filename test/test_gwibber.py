@@ -14,6 +14,7 @@ class TestGwibber(unittest.TestCase):
     def test_gwibber_helper_mock(self):
         from softwarecenter.gwibber_helper import GwibberHelperMock
         os.environ["SOFTWARE_CENTER_GWIBBER_MOCK_USERS"] = "2"
+        os.environ["SOFTWARE_CENTER_GWIBBER_MOCK_NO_FAIL"] = "1"
         gh = GwibberHelperMock()
         accounts = gh.accounts()
         self.assertEqual(len(accounts), 2)

@@ -280,6 +280,7 @@ class SoftwarePane(gtk.VBox, BasePane):
         if vadj:
             vadj.value_changed()
 
+    @wait_for_apt_cache_ready
     def on_application_activated(self, appview, app):
         """callback when an app is clicked"""
         LOG.debug("on_application_activated: '%s'" % app)
@@ -482,15 +483,15 @@ class SoftwarePane(gtk.VBox, BasePane):
             category = self.get_current_category()
             correction = self.db.get_spelling_correction(search)
             if category:
-                text = _("Search term not found in current category, "
-                         "do you want to search "
+                text = _("Search term not found in current category. "
+                         "Do you want to search "
                          "<a href=\"search-all:\">all categories</a> instead ?")
                 self.label_app_list_header.set_markup(text)
                 self.label_app_list_header.set_visible(True)
                 return
             elif correction:
                 ref = "<a href=\"search:%s\">%s</a>" % (correction, correction)
-                text = _("Search term not found, did you mean: %s ?") % ref
+                text = _("Search term not found. Did you mean: %s ?") % ref
                 self.label_app_list_header.set_markup(text)
                 self.label_app_list_header.set_visible(True)
                 return

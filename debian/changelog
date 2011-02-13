@@ -1,4 +1,54 @@
-software-center (3.1.17) UNRELEASED; urgency=low
+software-center (3.1.18) UNRELEASED; urgency=low
+
+  [ Michael Vogt ]
+  * added "Was this review useful" feature
+
+  [ Kiwinote ]
+  * softwarecenter/distro/Ubuntu.py:
+    - we can't download an icon for a featured application if the cache is not
+      ready (LP: #711857, LP: #717337)
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - don't crash if app_details has no desktop_file (LP: #716245)
+  * softwarecenter/view/purchaseview.py:
+    - open external links in default browser (LP: #640520)
+  * softwarecenter/view/softwarepane.py:
+    - play nicely if we click on an app before the cache is ready (LP: #691321)
+    - minor grammar tweak for Dylan McCall (LP: #717410)
+
+  [ Gary Lasker ]
+  * softwarecenter/backend/aptd.py,
+    softwarecenter/models/appstore.py,
+    softwarecenter/view/appdetailsview_webkit.py,
+    softwarecenter/view/appview.py,
+    softwarecenter/enums.py:
+    - include additional details about the transaction when
+      firing a transaction-started signal, wire to handlers
+  * softwarecenter/view/pendingview.py,
+    softwarecenter/utils.py:
+    - generalize get_icon_from_iconname method, add new
+      get_icon_file_path_from_iconname method
+  * softwarecenter/view/widgets/actionbar.py:
+    - tweak spacings for action bar
+  * softwarecenter/db/application.py,
+    softwarecenter/view/appdetailsview_gtk.py,
+    softwarecenter/view/availablepane.py,
+    softwarecenter/view/channelpane.py,
+    softwarecenter/view/installedpane.py,
+    softwarecenter/view/softwarepane.py,
+    softwarecenter/enums.py:
+    - implement the software-center side of unity launcher
+      integration per the specification (LP: #670403) 
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Sun, 13 Feb 2011 13:56:28 -0500
+
+software-center (3.1.17.1) natty; urgency=low
+
+  * utils/update-software-center:
+    - fix crash in postinst
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 11 Feb 2011 13:23:10 +0100
+
+software-center (3.1.17) natty; urgency=low
 
   [ Michael Vogt ]
   * test/Makefile:
@@ -47,35 +97,15 @@ software-center (3.1.17) UNRELEASED; urgency=low
   * softwarecenter/view/appdetailsview_gtk.py:
     - don't show the "write a review" link until we have the correct
       text and show/hide status, avoids a delayed update in the UI
-  * softwarecenter/backend/aptd.py,
-    softwarecenter/models/appstore.py,
-    softwarecenter/view/appdetailsview_webkit.py,
-    softwarecenter/view/appview.py,
-    softwarecenter/enums.py:
-    - include additional details about the transaction when
-      firing a transaction-started signal, wire to handlers
-  * softwarecenter/view/pendingview.py,
-    softwarecenter/utils.py:
-    - generalize get_icon_from_iconname method, add new
-      get_icon_file_path_from_iconname method
-  * softwarecenter/view/widgets/actionbar.py:
-    - tweak spacings for action bar
-  * softwarecenter/db/application.py,
-    softwarecenter/view/appdetailsview_gtk.py,
-    softwarecenter/view/availablepane.py,
-    softwarecenter/view/channelpane.py,
-    softwarecenter/view/installedpane.py,
-    softwarecenter/view/softwarepane.py,
-    softwarecenter/enums.py:
-    - implement the software-center side of unity launcher
-      integration per the specification (LP: #670403)
   
   [ Matthew McGowan ]
   * lp:~mmcg069/software-center/small-rnr-tweaks:
     - add nice human readable time delta string to the review
     - tweak review UI
+  * lp:~mmcg069/software-center/rnr-bitesize-tweaks:
+    - subdue the inappropriate link
   
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 10 Feb 2011 17:09:23 -0500
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 11 Feb 2011 10:31:57 +0100
 
 software-center (3.1.16) natty; urgency=low
 
