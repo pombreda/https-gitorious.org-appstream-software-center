@@ -1071,7 +1071,7 @@ class Reviews(gtk.VBox):
 
             for r in self.reviews:
                 pkgversion = self._parent.app_details.version
-                review = Review(r, pkgversion, self.logged_in_person)
+                review = Review(r, pkgversion, self.logged_in_person, self._parent.datadir)
                 self.vbox.pack_start(review, padding=mkit.SPACING_LARGE)
         elif get_network_state() == NetState.NM_STATE_CONNECTED:
             self.vbox.pack_start(NoReviewYet(), padding=mkit.SPACING_LARGE)
@@ -1140,7 +1140,7 @@ class Reviews(gtk.VBox):
 
 class Review(gtk.VBox):
     
-    def __init__(self, review_data=None, app_version=None, logged_in_person=None):
+    def __init__(self, review_data=None, app_version=None, logged_in_person=None, datadir=None):
         gtk.VBox.__init__(self, spacing=mkit.SPACING_MED)
 
         self.header = gtk.HBox(spacing=mkit.SPACING_MED)
@@ -1154,6 +1154,8 @@ class Review(gtk.VBox):
         
         self.logged_in_person = logged_in_person
         self.person = None
+        
+        self.datadir = datadir
 
         if review_data:
             self.connect('realize',
@@ -1206,7 +1208,7 @@ class Review(gtk.VBox):
         if reviews:
             reviews.emit("report-abuse", self.id)
     
-    def _on_useful_clicked(self, btn, is_useful):
+    def _on_useful_clicked(self, btn, signal, is_useful):
         reviews = self.get_ancestor(Reviews)
         if reviews:
             self._usefulness_ui_in_progress()
@@ -1238,6 +1240,23 @@ class Review(gtk.VBox):
     def _get_datetime_from_review_date(self, raw_date):
         # example raw_date str format: 2011-01-28 19:15:21
         return datetime.datetime.strptime(raw_date, '%Y-%m-%d %H:%M:%S')
+    
+    def _like_image_eventbox(self, datadir, image_type):
+            if image_type == 'like':
+                image_file = 'images/agree-disagree.png'
+            else:
+                image_file = 'images/disagree.png'
+                
+            box = gtk.EventBox()
+            image = gtk.Image()
+            pixbuf = gtk.gdk.pixbuf_new_from_file(os.path.join(datadir, image_file))
+            scaled = pixbuf.scale_simple(12,12,gtk.gdk.INTERP_BILINEAR)
+            image.set_from_pixbuf(scaled)
+            image.set_padding(3,3)
+            image.show()
+            box.add(image)
+            box.set_visible_window(False)
+            return box
     
     def _build(self, rating, person, summary, text, date, app_name, review_version, app_version, useful_total, useful_favorable):
         # all the arguments may need markup escape, depening on if
@@ -1301,18 +1320,15 @@ class Review(gtk.VBox):
         self.footer.pack_start(self.useful, False)
         
         if not current_user_reviewer:
-            self.yes_like = mkit.VLinkButton('<small>Yes</small>')
-            self.no_like = mkit.VLinkButton('<small>No</small>')
-            self.yes_like.set_underline(True)
-            self.no_like.set_underline(True)
-            self.yes_like.set_subdued(True)
-            self.no_like.set_subdued(True)
-            
+            self.yes_like = self._like_image_eventbox(self.datadir, 'like')
+            self.no_like = self._like_image_eventbox(self.datadir, 'dislike')
+            self.yes_like.show()
+            self.no_like.show()
             self.footer.pack_start(self.yes_like, False)
             self.footer.pack_start(self.no_like, False)
             #connect signals
-            self.yes_like.connect('clicked', self._on_useful_clicked, True)
-            self.no_like.connect('clicked', self._on_useful_clicked, False)
+            self.yes_like.connect('button_release_event', self._on_useful_clicked, True)
+            self.no_like.connect('button_release_event', self._on_useful_clicked, False)
 
         # Translators: This link is for flagging a review as inappropriate.
         # To minimize repetition, if at all possible, keep it to a single word.
