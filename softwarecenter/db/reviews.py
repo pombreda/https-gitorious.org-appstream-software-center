@@ -256,6 +256,9 @@ class ReviewLoaderThreadedRNRClient(ReviewLoader):
         """ public api, triggers fetching a review and calls callback
             when its ready
         """
+        if not isinstance(app, Application):
+            return
+
         self._new_reviews[app] = Queue()
         p = Process(target=self._get_reviews_threaded, args=(app, ))
         p.start()
