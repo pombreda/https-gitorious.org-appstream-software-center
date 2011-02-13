@@ -1241,15 +1241,10 @@ class Review(gtk.VBox):
         # example raw_date str format: 2011-01-28 19:15:21
         return datetime.datetime.strptime(raw_date, '%Y-%m-%d %H:%M:%S')
     
-    def _like_image_eventbox(self, datadir, image_type):
-            if image_type == 'like':
-                image_file = 'images/agree-disagree.png'
-            else:
-                image_file = 'images/disagree.png'
-                
+    def _like_image_eventbox(self, datapath):
             box = gtk.EventBox()
             image = gtk.Image()
-            pixbuf = gtk.gdk.pixbuf_new_from_file(os.path.join(datadir, image_file))
+            pixbuf = gtk.gdk.pixbuf_new_from_file(datapath)
             scaled = pixbuf.scale_simple(12,12,gtk.gdk.INTERP_BILINEAR)
             image.set_from_pixbuf(scaled)
             image.set_padding(3,3)
@@ -1320,8 +1315,10 @@ class Review(gtk.VBox):
         self.footer.pack_start(self.useful, False)
         
         if not current_user_reviewer:
-            self.yes_like = self._like_image_eventbox(self.datadir, 'like')
-            self.no_like = self._like_image_eventbox(self.datadir, 'dislike')
+            yes_image_path = os.path.join(self.datadir, 'images/agree-disagree.png')
+            no_image_path = os.path.join(self.datadir, 'images/disagree.png')
+            self.yes_like = self._like_image_eventbox(yes_image_path)
+            self.no_like = self._like_image_eventbox(no_image_path)
             self.yes_like.show()
             self.no_like.show()
             self.footer.pack_start(self.yes_like, False)
