@@ -1317,16 +1317,26 @@ class Review(gtk.VBox):
         if not current_user_reviewer:
             yes_image_path = os.path.join(self.datadir, 'images/agree-disagree.png')
             no_image_path = os.path.join(self.datadir, 'images/disagree.png')
-            self.yes_like = self._like_image_eventbox(yes_image_path)
-            self.no_like = self._like_image_eventbox(no_image_path)
+            if os.path.exists(yes_image_path) and os.path.exists(no_image_path):
+                self.yes_like = self._like_image_eventbox(yes_image_path)
+                self.no_like = self._like_image_eventbox(no_image_path)
+                self.yes_like.connect('button_release_event', self._on_useful_clicked, True)
+                self.no_like.connect('button_release_event', self._on_useful_clicked, False)
+            else:
+                self.yes_like = mkit.VLinkButton('<small>Yes</small>')
+                self.no_like = mkit.VLinkButton('<small>No</small>')
+                self.yes_like.set_underline(True)
+                self.no_like.set_underline(True)
+                self.yes_like.set_subdued(True)
+                self.no_like.set_subdued(True)
+                self.yes_like.connect('clicked', self._on_useful_clicked, None, True)
+                self.no_like.connect('clicked', self._on_useful_clicked, None, False)
+                
             self.yes_like.show()
             self.no_like.show()
             self.footer.pack_start(self.yes_like, False)
             self.footer.pack_start(self.no_like, False)
-            #connect signals
-            self.yes_like.connect('button_release_event', self._on_useful_clicked, True)
-            self.no_like.connect('button_release_event', self._on_useful_clicked, False)
-
+            
         # Translators: This link is for flagging a review as inappropriate.
         # To minimize repetition, if at all possible, keep it to a single word.
         # If your language has an obvious verb, it won't need a question mark.
