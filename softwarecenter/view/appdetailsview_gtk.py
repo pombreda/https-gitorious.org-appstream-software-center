@@ -805,7 +805,7 @@ class ThumbButton(gtk.EventBox):
         pixbuf = gtk.gdk.pixbuf_new_from_file(datapath)
         scaled = pixbuf.scale_simple(12,12,gtk.gdk.INTERP_BILINEAR)
         image.set_from_pixbuf(scaled)
-        image.set_padding(3,3)
+        image.set_padding(1,1)
         image.show()
         self.add(image)
         self.set_visible_window(False)
@@ -1269,18 +1269,6 @@ class Review(gtk.VBox):
         # example raw_date str format: 2011-01-28 19:15:21
         return datetime.datetime.strptime(raw_date, '%Y-%m-%d %H:%M:%S')
     
-    def _like_image_eventbox(self, datapath):
-            box = gtk.EventBox()
-            image = gtk.Image()
-            pixbuf = gtk.gdk.pixbuf_new_from_file(datapath)
-            scaled = pixbuf.scale_simple(12,12,gtk.gdk.INTERP_BILINEAR)
-            image.set_from_pixbuf(scaled)
-            image.set_padding(3,3)
-            image.show()
-            box.add(image)
-            box.set_visible_window(False)
-            return box
-    
     def _build(self, rating, person, summary, text, date, app_name, review_version, app_version, useful_total, useful_favorable):
         # all the arguments may need markup escape, depening on if
         # they are used as text or markup
@@ -1340,7 +1328,7 @@ class Review(gtk.VBox):
         #vertically centre so it lines up with the Yes and No buttons
         self.useful.set_alignment(0, 0.5)
         
-        self.footer.pack_start(self.useful, False)
+        self.footer.pack_start(self.useful, False, padding=3)
         
         if not current_user_reviewer:
             yes_image_path = os.path.join(self.datadir, 'images/agree-disagree.png')
@@ -1362,8 +1350,11 @@ class Review(gtk.VBox):
                 
             self.yes_like.show()
             self.no_like.show()
-            self.footer.pack_start(self.yes_like, False)
-            self.footer.pack_start(self.no_like, False)
+            self.likebox = gtk.HBox()
+            self.likebox.set_spacing(3)
+            self.likebox.pack_start(self.yes_like, False)
+            self.likebox.pack_start(self.no_like, False)
+            self.footer.pack_start(self.likebox, False)
             
         # Translators: This link is for flagging a review as inappropriate.
         # To minimize repetition, if at all possible, keep it to a single word.
