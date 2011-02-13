@@ -2124,7 +2124,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             pkgname = self.app_details.pkgname
             for p in [self.app_details.desktop_file,
                       "/usr/share/applications/%s.desktop" % pkgname]:
-                if os.path.exists(p):
+                if p and os.path.exists(p):
                     desktop_file = p
                     break
             where = searcher.get_main_menu_path(desktop_file)
