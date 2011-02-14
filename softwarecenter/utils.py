@@ -287,7 +287,8 @@ def get_icon_from_iconname(icons, iconname=None, iconsize=APP_ICON_SIZE, missing
         iconname = missingicon
     try:
         icon = icons.load_icon(iconname, iconsize, 0)
-    except Exception:
+    except Exception, e:
+        LOG.warning("could not load icon '%s', displaying missing icon instead: %s " % (iconname, e))
         icon = icons.load_icon(missingicon, iconsize, 0)
     return icon
 
