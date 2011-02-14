@@ -1191,9 +1191,9 @@ class CarouselPoster2(Button):
         self.label.set_alignment(0, 0.5)
         self.label.set_line_wrap(True)
 
-        self.nrreviews = gtk.Label()
-        self.nrreviews.is_subtle = True
-        self.nrreviews.set_alignment(0, 0.5)
+#        self.nrreviews = gtk.Label()
+#        self.nrreviews.is_subtle = True
+#        self.nrreviews.set_alignment(0, 0.5)
 
         self.rating = StarRating()
         self.rating.set(0, 0.5, 0, 0)
@@ -1210,7 +1210,7 @@ class CarouselPoster2(Button):
 
         inner_vbox.pack_start(self.label, False)
         inner_vbox.pack_start(self.rating, False)
-        inner_vbox.pack_start(self.nrreviews, False)
+#        inner_vbox.pack_start(self.nrreviews, False)
 
         self.label_list = ('label', 'nrreviews')
 
@@ -1294,12 +1294,12 @@ class CarouselPoster2(Button):
         cr.layout_path(self.label.get_layout())
         cr.fill()
 
-        if self.nrreviews.get_property('visible'):
-            cr.move_to(self.nrreviews.allocation.x - a.x,
-                       self.nrreviews.allocation.y - a.y)
-            cr.layout_path(self.nrreviews.get_layout())
-            cr.set_source_color(self.style.dark[self.state])
-            cr.fill()
+#        if self.nrreviews.get_property('visible'):
+#            cr.move_to(self.nrreviews.allocation.x - a.x,
+#                       self.nrreviews.allocation.y - a.y)
+#            cr.layout_path(self.nrreviews.get_layout())
+#            cr.set_source_color(self.style.dark[self.state])
+#            cr.fill()
 
         if self.rating.get_property('visible'):
             for star in self.rating.get_stars():
@@ -1336,18 +1336,18 @@ class CarouselPoster2(Button):
         self.image.set_from_pixbuf(pb)
         self.label.set_markup('<span font_desc="9">%s</span>' % markup)
 
-        if not a.popcon:
-            self.nrreviews.hide()
-        else:
-            self.nrreviews.show()
+#        if not a.popcon:
+#            self.nrreviews.hide()
+#        else:
+#            self.nrreviews.show()
 
-            s = gettext.ngettext(
-                "%(nr_ratings)i Rating",
-                "%(nr_ratings)i Ratings",
-                nr_reviews) % { 'nr_ratings' : nr_reviews, }
+#            s = gettext.ngettext(
+#                "%(nr_ratings)i Rating",
+#                "%(nr_ratings)i Ratings",
+#                nr_reviews) % { 'nr_ratings' : nr_reviews, }
 
-            m = '<span color="%s"><small>%s</small></span>'
-            self.nrreviews.set_markup(m % (self.style.dark[gtk.STATE_NORMAL], s))
+#            m = '<span color="%s"><small>%s</small></span>'
+#            self.nrreviews.set_markup(m % (self.style.dark[gtk.STATE_NORMAL], s))
 
         self.rating.set_rating(a.popcon)
 
