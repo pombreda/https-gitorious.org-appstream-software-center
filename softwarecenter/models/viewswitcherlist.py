@@ -28,7 +28,7 @@ from softwarecenter.backend.channel import ChannelsManager
 from softwarecenter.backend import get_install_backend
 from softwarecenter.distro import get_distro
 from softwarecenter.enums import *
-from softwarecenter.utils import wait_for_apt_cache_ready
+from softwarecenter.utils import wait_for_apt_cache_ready, get_icon_from_iconname
 
 from softwarecenter.view.widgets.animatedimage import CellRendererAnimatedImage, AnimatedImage
 
@@ -79,7 +79,10 @@ class ViewSwitcherList(gtk.TreeStore):
         self.available_iter = self.append(None, [available_icon, _("Get Software"), VIEW_PAGE_AVAILABLE, None, None])
 
         # the installedpane items
-        icon = AnimatedImage(self.icons.load_icon("computer", self.ICON_SIZE, 0))
+        icon = AnimatedImage(get_icon_from_iconname(self.icons, 
+                                                    iconname="computer", 
+                                                    iconsize=self.ICON_SIZE,
+                                                    missingicon="gtk-missing-image"))
         self.installed_iter = self.append(None, [icon, _("Installed Software"), VIEW_PAGE_INSTALLED, None, None])
         
         # the channelpane 
@@ -88,7 +91,7 @@ class ViewSwitcherList(gtk.TreeStore):
         self._update_channel_list()
 
         # the historypane item
-        icon = self._get_icon("clock")
+        icon = self._get_icon("document-open-recent")
         history_iter = self.append(None, [icon, _("History"), VIEW_PAGE_HISTORY, None, None])
         icon = AnimatedImage(None)
         self.append(None, [icon, "<span size='1'> </span>", VIEW_PAGE_SEPARATOR_1, None, None])
@@ -153,13 +156,10 @@ class ViewSwitcherList(gtk.TreeStore):
         return channel_iter_for_name
                     
     def _get_icon(self, icon_name):
-        if self.icons.lookup_icon(icon_name, self.ICON_SIZE, 0):
-            icon = AnimatedImage(self.icons.load_icon(icon_name, self.ICON_SIZE, 0))
-        else:
-            # icon not present in theme, probably because running uninstalled
-            icon = AnimatedImage(self.icons.load_icon("gtk-missing-image", 
-                                                      self.ICON_SIZE, 0))
-        return icon
+            return AnimatedImage(get_icon_from_iconname(self.icons, 
+                                                        iconname=icon_name, 
+                                                        iconsize=self.ICON_SIZE,
+                                                        missingicon="gtk-missing-image"))
 
     @wait_for_apt_cache_ready
     def _update_channel_list(self):
