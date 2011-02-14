@@ -80,8 +80,16 @@ def get_network_watcher():
 
 # simply query
 def get_network_state():
+    """ get the NetState state """
     global NETWORK_STATE
     return NETWORK_STATE
+
+# simply query even more
+def network_state_is_connected():
+    """ get bool if we are connected """
+    # unkown because in doubt, just assume we have network
+    return get_network_state() in (NetState.NM_STATE_UNKNOWN,
+                                   NetState.NM_STATE_CONNECTED)
 
 # init it once
 __init_network_state()
