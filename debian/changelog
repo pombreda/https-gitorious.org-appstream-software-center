@@ -2,6 +2,10 @@ software-center (3.1.18) UNRELEASED; urgency=low
 
   [ Michael Vogt ]
   * added "Was this review useful" feature
+  * added "Offline cache for reviews" feature 
+    (needs latest python-piston-mini-client to work)
+  * debian/control:
+    - depend on latest python-piston-mini-client
 
   [ Kiwinote ]
   * softwarecenter/distro/Ubuntu.py:
