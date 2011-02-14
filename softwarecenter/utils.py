@@ -35,7 +35,7 @@ import xml.sax.saxutils
 import gtk
 import dbus
 
-from enums import USER_AGENT
+from enums import USER_AGENT, MISSING_APP_ICON, APP_ICON_SIZE
 
 # define additional entities for the unescape method, needed
 # because only '&amp;', '&lt;', and '&gt;' are included by default
@@ -278,6 +278,18 @@ def is_unity_running():
     except:
         LOG.exception("could not check for Unity dbus service")
     return unity_running
+    
+def get_icon_from_iconname(icons, iconname=None, iconsize=APP_ICON_SIZE, missingicon=MISSING_APP_ICON):
+    """
+    return the icon in the theme that corresponds to the given iconname
+    """    
+    if not iconname:
+        iconname = missingicon
+    try:
+        icon = icons.load_icon(iconname, iconsize, 0)
+    except Exception:
+        icon = icons.load_icon(missingicon, iconsize, 0)
+    return icon
 
 # FIXME: why not call it a generic downloader?
 class ImageDownloader(gobject.GObject):
