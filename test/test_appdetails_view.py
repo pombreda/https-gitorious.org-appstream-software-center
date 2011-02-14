@@ -24,7 +24,7 @@ from softwarecenter.paths import XAPIAN_BASE_PATH
 from softwarecenter.view.appdetailsview_gtk import AppDetailsViewGtk, EmbeddedMessage
 
 
-class testAppDetailsView(unittest.TestCase):
+class TestAppDetailsView(unittest.TestCase):
     """ tests the AppDetailsView """
 
     def setUp(self):
@@ -48,8 +48,12 @@ class testAppDetailsView(unittest.TestCase):
 
     def test_show_app_simple_no_network(self):
         softwarecenter.netstatus.NETWORK_STATE = softwarecenter.netstatus.NetState.NM_STATE_DISCONNECTED
-        app = Application("7zip","p7zip-full")
+        app = Application("Freeciv", "freeciv-client-gtk")
         self.appdetails.show_app(app)
+        # this is async so we need to give it a bit of time
+        self._p()
+        time.sleep(1)
+        self._p()
         # check that we have the embedded message
         for r in self.appdetails.reviews.vbox:
             if isinstance(r, EmbeddedMessage):

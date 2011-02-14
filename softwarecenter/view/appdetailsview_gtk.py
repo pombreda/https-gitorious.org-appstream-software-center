@@ -30,7 +30,7 @@ import subprocess
 import sys
 import cairo
 
-from softwarecenter.netstatus import NetState, get_network_state, get_network_watcher
+from softwarecenter.netstatus import NetState, get_network_state, network_state_is_connected, get_network_watcher
 
 from PIL import Image
 from gettext import gettext as _
@@ -1114,6 +1114,9 @@ class Reviews(gtk.VBox):
             r.body.set_size_request(w, -1)
         return
 
+    def add_embedded_message(self, m):
+        self.vbox.pack_start(m)
+
     def add_review(self, review):
         self.reviews.append(review)
         self._update = True
@@ -1304,6 +1307,7 @@ class Review(gtk.VBox):
         self.complain = mkit.VLinkButton('<small>%s</small>' % _('Inappropriate?'))
         self.complain.set_subdued(True)
         self.complain.set_underline(True)
+        self.complain.set_sensitive(network_state_is_connected())
         self.footer.pack_end(self.complain, False)
         self.complain.connect('clicked', self._on_report_abuse_clicked)
 
@@ -1532,11 +1536,12 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.loaded = True
         return
 
+    # review display releated stuff
     def _on_net_state_changed(self, watcher, state):
         if state == NetState.NM_STATE_DISCONNECTED:
-            self._update_reviews_inactive_network()
+            self._check_for_reviews()
         elif state == NetState.NM_STATE_CONNECTED:
-            gobject.timeout_add(500, self._update_reviews_active_network)
+            gobject.timeout_add(500, self._check_for_reviews)
         return
 
     def _check_for_reviews(self):
@@ -1568,6 +1573,15 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             return
         # clear out the old ones ...
         self.reviews.clear()
+
+        # add network message if needed
+        if not network_state_is_connected():
+            s = '<big><b>%s</b></big>\n%s' % (
+                _('No Network Connection'),
+                _('Only cached reviews can be displayed'))
+            m = EmbeddedMessage(s, 'network-offline')
+            self.reviews.add_embedded_message(m)
+            
         # then add the new ones ...
         for review in reviews:
             self.reviews.add_review(review)
@@ -2001,43 +2015,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
     def _update_reviews(self, app_details):
         self.reviews.clear()
-
-    def _update_reviews_inactive_network(self):
-        if self.reviews.get_reviews():
-            msg_exists = False
-            for r in self.reviews.vbox:
-                if isinstance(r, EmbeddedMessage):
-                    msg_exists = True
-                elif hasattr(r, 'complain'):
-                    r.complain.set_sensitive(False)
-            if not msg_exists:
-                s = '<big><b>%s</b></big>\n%s' % ('No Network Connection',
-                                                  'Only cached reviews can be displayed')
-                m = EmbeddedMessage(s, 'network-offline')
-
-                self.reviews.vbox.pack_start(m)
-                self.reviews.vbox.reorder_child(m, 0)
-        else:
-            self.reviews.clear()
-            s = '<big><b>%s</b></big>\n%s' % ('No Network Connection',
-                                              'Unable to download application reviews')
-            m = EmbeddedMessage(s, 'network-offline')
-            self.reviews.vbox.pack_start(m)
-
-        self.reviews.new_review.set_sensitive(False)
-        return
-
-    def _update_reviews_active_network(self):
-        for r in self.reviews.vbox:
-            if isinstance(r, (EmbeddedMessage, NoReviewYet)):
-                r.destroy()
-            if hasattr(r, 'complain'):
-                r.complain.set_sensitive(True)
-
-        if not self.reviews.get_reviews():
-            self._check_for_reviews()
-
-        self.reviews.new_review.set_sensitive(True)
+        self._check_for_reviews()
         return
 
     def _update_all(self, app_details):
@@ -2060,7 +2038,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self._update_app_screenshot(app_details)
         self._update_pkg_info_table(app_details)
         self._update_addons(app_details)
-#        self._update_reviews(app_details)
+        self._update_reviews(app_details)
 
         # depending on pkg install state set action labels
         self.pkg_statusbar.configure(app_details, app_details.pkg_state)
@@ -2070,13 +2048,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         # async query zeitgeist and rnr
         self.get_usage_counter()
-
-        self.reviews.clear()
-        if get_network_state() == NetState.NM_STATE_DISCONNECTED:
-            self._update_reviews_inactive_network()
-        else:
-            self._update_reviews_active_network()
-        return
 
     def _update_minimal(self, app_details):
         pkg_ambiguous_error = app_details.pkg_state in (PKG_STATE_NOT_FOUND, PKG_STATE_NEEDS_SOURCE)
