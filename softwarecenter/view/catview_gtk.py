@@ -1224,11 +1224,12 @@ class CarouselPoster2(Button):
         w = allocation.width - self.icon_size - self.hbox.get_spacing() - 2*self.hbox.get_border_width()
         label.set_size_request(max(1, w), -1)
 
-        # cache an ImageSurface for transitions
-        self._cache_surf()
+        self._surf_cache = None
         return
 
     def _on_expose(self, w, e):
+        if not self._surf_cache: self._cache_surf()
+
         a = w.allocation
 
         if self.has_focus():
@@ -1240,7 +1241,7 @@ class CarouselPoster2(Button):
                                 a.x, a.y,
                                 a.width, a.height)
 
-        if self.alpha >= 1.0 or not self._surf_cache:
+        if self.alpha >= 1.0:
 
             if (w.state == gtk.STATE_ACTIVE):
                 for child in w:
@@ -1264,66 +1265,56 @@ class CarouselPoster2(Button):
 
         return True
 
-    def _cache_surf(self, force=False):
+    def _cache_surf(self):
+        if not self.app: return
 
-        def _cache_surf():
-            if not self.app: return
+        print 'CacheSurf'
 
-            a = self.allocation
-            surf = cairo.ImageSurface(cairo.FORMAT_ARGB32,
-                                      a.width,
-                                      a.height)
+        a = self.allocation
+        surf = cairo.ImageSurface(cairo.FORMAT_ARGB32,
+                                  a.width,
+                                  a.height)
 
-            cr = cairo.Context(surf)
-            cr = gtk.gdk.CairoContext(pangocairo.CairoContext(cr))
+        cr = cairo.Context(surf)
+        cr = gtk.gdk.CairoContext(pangocairo.CairoContext(cr))
 
-            _a = self.image.allocation
-            pb = self.image.get_pixbuf()
+        _a = self.image.allocation
+        pb = self.image.get_pixbuf()
 
-            if pb:
-                w, h = pb.get_width(), pb.get_height()
+        if pb:
+            w, h = pb.get_width(), pb.get_height()
 
-                cr.set_source_pixbuf(self.image.get_pixbuf(),
-                                     a.x - _a.x + (_a.width - w)/2,
-                                     a.y - _a.y + (_a.height - h)/2)
-                cr.paint()
+            cr.set_source_pixbuf(self.image.get_pixbuf(),
+                                 a.x - _a.x + (_a.width - w)/2,
+                                 a.y - _a.y + (_a.height - h)/2)
+            cr.paint()
 
-            cr.set_source_color(self.style.text[self.state])
-            cr.move_to(self.label.allocation.x - a.x, self.label.allocation.y - a.y)
-            cr.layout_path(self.label.get_layout())
+        cr.set_source_color(self.style.text[self.state])
+        cr.move_to(self.label.allocation.x - a.x, self.label.allocation.y - a.y)
+        cr.layout_path(self.label.get_layout())
+        cr.fill()
+
+        if self.nrreviews.get_property('visible'):
+            cr.move_to(self.nrreviews.allocation.x - a.x,
+                       self.nrreviews.allocation.y - a.y)
+            cr.layout_path(self.nrreviews.get_layout())
+            cr.set_source_color(self.style.dark[self.state])
             cr.fill()
 
-            if self.nrreviews.get_property('visible'):
-                cr.move_to(self.nrreviews.allocation.x - a.x,
-                           self.nrreviews.allocation.y - a.y)
-                cr.layout_path(self.nrreviews.get_layout())
-                cr.set_source_color(self.style.dark[self.state])
-                cr.fill()
+        if self.rating.get_property('visible'):
+            for star in self.rating.get_stars():
+                sa = star.allocation
+                _a = gtk.gdk.Rectangle(sa.x - a.x, sa.y - a.y, sa.width, sa.height)
+                star.draw(cr, _a)
 
-            if self.rating.get_property('visible'):
-                for star in self.rating.get_stars():
-                    sa = star.allocation
-                    _a = gtk.gdk.Rectangle(sa.x - a.x, sa.y - a.y, sa.width, sa.height)
-                    star.draw(cr, _a)
+        del cr
 
-            del cr
-
-            self._surf_cache = surf
-            return False
-
-        if self._cacher:
-            gobject.source_remove(self._cacher)
-            self._cacher = 0
-
-        if not force:
-            self._cacher = gobject.idle_add(_cache_surf)
-        else:
-            _cache_surf()
+        self._surf_cache = surf
         return
 
     def set_application(self, app):
-#        print 'NewApplication', app[0]
         self.app = app
+        self._surf_cache = None
 
         a = Application(appname=app[AppStore.COL_APP_NAME],
                         pkgname=app[AppStore.COL_PKGNAME],
@@ -1363,7 +1354,7 @@ class CarouselPoster2(Button):
         # set a11y text
         self.get_accessible().set_name(name)
 
-        self._cache_surf(force=True)
+        self._cache_surf()
         return
 
     def draw(self, cr, a, event_area, alpha):
