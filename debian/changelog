@@ -2,6 +2,10 @@ software-center (3.1.18) UNRELEASED; urgency=low
 
   [ Michael Vogt ]
   * added "Was this review useful" feature
+  * added "Offline cache for reviews" feature 
+    (needs latest python-piston-mini-client to work)
+  * debian/control:
+    - depend on latest python-piston-mini-client
 
   [ Kiwinote ]
   * softwarecenter/distro/Ubuntu.py:
@@ -39,7 +43,7 @@ software-center (3.1.18) UNRELEASED; urgency=low
     - implement the software-center side of unity launcher
       integration per the specification (LP: #670403) 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Sun, 13 Feb 2011 13:56:28 -0500
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 14 Feb 2011 11:55:12 -0500
 
 software-center (3.1.17.1) natty; urgency=low
 
