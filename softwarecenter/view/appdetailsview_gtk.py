@@ -1339,8 +1339,8 @@ class Review(gtk.VBox):
                 self.yes_like.connect('button_release_event', self._on_useful_clicked, True)
                 self.no_like.connect('button_release_event', self._on_useful_clicked, False)
             else:
-                self.yes_like = mkit.VLinkButton('<small>Yes</small>')
-                self.no_like = mkit.VLinkButton('<small>No</small>')
+                self.yes_like = mkit.VLinkButton('<small>%s</small>' % _('Yes'))
+                self.no_like = mkit.VLinkButton('<small>%s</small>' % _('No'))
                 self.yes_like.set_underline(True)
                 self.no_like.set_underline(True)
                 self.yes_like.set_subdued(True)
