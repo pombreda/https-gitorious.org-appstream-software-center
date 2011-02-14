@@ -41,7 +41,7 @@ class Ubuntu(Distro):
     PURCHASE_APP_URL = BUY_SOMETHING_HOST+"/subscriptions/%s/ubuntu/maverick/+new/?%s"
 
     # reviews
-    REVIEWS_SERVER = os.environ.get("SOFTWARE_CENTER_REVIEWS_HOST") or "https://reviews.staging.ubuntu.com/reviews/api/1.0"
+    REVIEWS_SERVER = os.environ.get("SOFTWARE_CENTER_REVIEWS_HOST") or "http://reviews.staging.ubuntu.com/reviews/api/1.0"
     REVIEWS_SERVER_SSL = REVIEWS_SERVER.replace("http://", "https://")
     REVIEWS_URL = urllib.basejoin(REVIEWS_SERVER, "/reviews/api/1.0/%(language)s/%(origin)s/%(distroseries)s/%(pkgname)s%(appname)s/")
 
