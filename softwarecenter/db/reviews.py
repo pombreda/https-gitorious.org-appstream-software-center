@@ -44,6 +44,8 @@ from softwarecenter.utils import *
 from softwarecenter.paths import *
 from softwarecenter.enums import *
 
+from softwarecenter.netstatus import network_state_is_connected
+
 LOG = logging.getLogger(__name__)
 
 class ReviewStats(object):
@@ -251,14 +253,16 @@ class ReviewLoaderThreadedRNRClient(ReviewLoader):
         self._new_reviews = {}
         self._new_review_stats = Queue()
 
+    def _update_rnrclient_offline_state(self):
+        # this needs the lp:~mvo/piston-mini-client/offline-mode branch
+        self.rnrclient._offline_mode = not network_state_is_connected()
+
     # reviews
     def get_reviews(self, app, callback):
         """ public api, triggers fetching a review and calls callback
             when its ready
         """
-        if not isinstance(app, Application):
-            return
-
+        self._update_rnrclient_offline_state()
         self._new_reviews[app] = Queue()
         p = Process(target=self._get_reviews_threaded, args=(app, ))
         p.start()

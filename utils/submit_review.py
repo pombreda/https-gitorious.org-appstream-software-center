@@ -333,6 +333,9 @@ class BaseApp(SimpleGtkbuilderApp):
         #label size to prevent image or spinner from resizing
         self.label_transmit_status.set_size_request(-1, gtk.icon_size_lookup(gtk.ICON_SIZE_SMALL_TOOLBAR)[1])
 
+    def _get_parent_xid_for_login_window(self):
+        return self.submit_window.window.xid
+
     def run(self):
         # initially display a 'Connecting...' page
         self.main_notebook.set_current_page(0)
@@ -358,9 +361,11 @@ class BaseApp(SimpleGtkbuilderApp):
         return spell
 
     def login(self, show_register=True):
+        # either
+        login_window_xid = self._get_parent_xid_for_login_window()
         login_text = _("To review software or to report abuse you need to "
                        "sign in to a Ubuntu Single Sign-On account.")
-        self.sso = LoginBackendDbusSSO(self.submit_window.window.xid, 
+        self.sso = LoginBackendDbusSSO(login_window_xid,
                                        self.appname, login_text)
         self.sso.connect("login-successful", self._maybe_login_successful)
         self.sso.connect("login-canceled", self._login_canceled)
@@ -1027,10 +1032,21 @@ class SubmitUsefulnessApp(BaseApp):
         # no UI except for error conditions
         self.parent_xid = parent_xid
 
+    # override behavior of baseapp here as we don't actually
+    # have a UI by default
+    def _get_parent_xid_for_login_window(self):
+        return self.parent_xid
+
     def login_successful(self, display_name):
         logging.debug("submit usefulness")
         self.main_notebook.set_current_page(1)
         self.api.submit_usefulness(self.review_id, self.is_useful)
+
+    # override parents run to only trigger login (and subsequent
+    # events) but no UI, if this is commented out, there is some
+    # stub ui that can be useful for testing
+    def run(self):
+        self.login()
 
 
 if __name__ == "__main__":
