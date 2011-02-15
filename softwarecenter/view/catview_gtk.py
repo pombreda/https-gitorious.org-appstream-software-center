@@ -16,39 +16,17 @@ from appview import AppStore
 from softwarecenter.db.database import Application
 from softwarecenter.utils import wait_for_apt_cache_ready
 from softwarecenter.backend.zeitgeist_simple import zeitgeist_singleton
-from softwarecenter.drawing import color_floats
+from softwarecenter.enums import SORT_BY_SEARCH_RANKING
+
 from widgets.reviews import StarRating
 from widgets.carousel import CarouselView
+from widgets.buttons import CategoryButton, SubcategoryButton
 
-from softwarecenter.enums import SORT_BY_SEARCH_RANKING
 from catview import (Category, CategoriesView, get_category_by_name,
                      categories_sorted_by_name)
 
 
 from softwarecenter.drawing import color_floats, rounded_rect, rounded_rect2
-
-# global cairo surface caches
-SURFACE_CACHE = {}
-MASK_SURFACE_CACHE = {}
-
-# MAX_POSTER_COUNT should be a number less than the number of featured apps
-CAROUSEL_MAX_POSTER_COUNT =      8
-CAROUSEL_MIN_POSTER_COUNT =      2
-CAROUSEL_ICON_SIZE =             4*mkit.EM
-
-#CAROUSEL_POSTER_CORNER_RADIUS =  int(0.8*mkit.EM)    
-CAROUSEL_POSTER_MIN_WIDTH =      15*mkit.EM
-CAROUSEL_POSTER_MIN_HEIGHT =     min(64, 4*mkit.EM) + 5*mkit.EM
-CAROUSEL_PAGING_DOT_SIZE =       max(8, int(0.6*mkit.EM+0.5))
-
-H1 = '<big><b>%s<b></big>'
-H2 = '<big>%s</big>'
-H3 = '<b>%s</b>'
-H4 = '%s'
-H5 = '<small><b>%s</b></small>'
-
-P =  '%s'
-P_SMALL = '<small>%s</small>'
 
 
 class CategoriesViewGtk(gtk.Viewport, CategoriesView):
@@ -129,49 +107,17 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
         self.apps_filter = apps_filter
         self.apps_limit = apps_limit
 
-        # create the cairo caches
-        self._create_mask_surface_cache(datadir)
-
         # more stuff
         self._prev_width = 0
         self._poster_sigs = []
 
         self.vbox.connect('expose-event', self._on_expose, a)
         self.connect('size-allocate', self._on_allocate, vb)
-        self.connect('style-set', self._on_style_set)
+#        self.connect('style-set', self._on_style_set)
         return
 
     def build(self, desktopdir):
         pass
-
-    def _create_mask_surface_cache(self, datadir):
-        return
-#        global MASK_SURFACE_CACHE
-#        MASK_SURFACE_CACHE['bloom'] = cairo.ImageSurface.create_from_png(os.path.join(datadir, 'images/bloom.png'))
-
-    def _get_best_fit_width(self):
-        return
-#        if not self.parent: return 1
-#        # parent alllocation less the sum of all border widths
-#        return self.parent.allocation.width - 4*mkit.BORDER_WIDTH_LARGE
-
-    def _on_style_set(self, widget, old_style):
-#        mkit.update_em_metrics()
-
-        global MASK_SURFACE_CACHE
-        # cache masked versions of the cached surfaces
-        for id, surf in MASK_SURFACE_CACHE.iteritems():
-            new_surf = cairo.ImageSurface(cairo.FORMAT_ARGB32,
-                                          surf.get_width(),
-                                          surf.get_height())
-            cr = cairo.Context(new_surf)
-            cr.set_source_rgb(*mkit.floats_from_gdkcolor(self.style.light[0]))
-            cr.mask_surface(surf,0,0)
-            MASK_SURFACE_CACHE[id] = new_surf
-            del cr
-
-        self.queue_draw()
-        return
 
     def _on_app_clicked(self, btn):
         app = btn.app
@@ -464,7 +410,7 @@ class LobbyViewGtk(CategoriesViewGtk):
         self.departments = mkit.LayoutView2(xspacing=20, yspacing=12)
 
 #        # set the departments section to use the label markup we have just defined
-        label = mkit.EtchedLabel("<b>%s</b>" % H2 % self.header)
+        label = mkit.EtchedLabel("<b><big>%s</big></b>" % self.header)
         label.set_use_markup(True)
         label.set_alignment(0, 0.5)
         self.vbox.pack_start(label, False)
@@ -754,60 +700,4 @@ class Button(gtk.EventBox):
 
         attrs.change(attr)
         layout.set_attributes(attrs)
-        return
-
-
-class CategoryButton(Button):
-
-    SPACING = 6
-    BORDER_WIDTH = 2
-    ICON_SIZE = gtk.ICON_SIZE_LARGE_TOOLBAR
-
-    def __init__(self, label, iconname):
-        Button.__init__(self)
-
-        hb = gtk.HBox(spacing=CategoryButton.SPACING)
-        hb.set_border_width(CategoryButton.BORDER_WIDTH)
-        self.add(hb)
-
-        hb.pack_start(gtk.image_new_from_icon_name(iconname,
-                                                   CategoryButton.ICON_SIZE),
-                                                   False)
-
-        self.label = label = mkit.EtchedLabel(label)
-        label.set_alignment(0, 0.5)
-        label.set_padding(0, 6)
-        hb.pack_start(label, False)
-
-        self.label_list = ('label',)
-
-        self.connect('expose-event', self._on_expose)
-        return
-
-    def _on_expose(self, w, e):
-        a = w.allocation
-
-        if self.has_focus():
-            w.style.paint_focus(w.window,
-                                w.state,
-                                w.allocation,
-                                w,
-                                'expander',
-                                a.x, a.y,
-                                a.width, a.height)
-        return
-
-
-class SubcategoryButton(mkit.VLinkButton):
-
-    ICON_SIZE = 48
-    MAX_WIDTH  = 12*mkit.EM
-    MAX_HEIGHT = 9*mkit.EM
-
-    def __init__(self, markup, icon_name, icons):
-        mkit.VLinkButton.__init__(self, markup, icon_name, self.ICON_SIZE, icons)
-        self.set_border_width(mkit.BORDER_WIDTH_SMALL)
-        self.set_max_width(self.MAX_WIDTH)
-        #self.set_max_width(self.MAX_HEIGHT)
-        self.box.set_size_request(self.MAX_WIDTH, self.MAX_HEIGHT)
         return
