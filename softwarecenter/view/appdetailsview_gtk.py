@@ -1261,7 +1261,7 @@ class Review(gtk.VBox):
         if reviews:
             reviews.emit("report-abuse", self.id)
     
-    def _on_useful_clicked(self, btn, signal, is_useful):
+    def _on_useful_clicked(self, btn, is_useful):
         reviews = self.get_ancestor(Reviews)
         if reviews:
             self._usefulness_ui_update('progress')
@@ -1430,22 +1430,14 @@ class Review(gtk.VBox):
             self.useful.show()
             self.footer.pack_start(self.useful, False, padding=3)
             if not current_user_reviewer:
-                yes_image_path = os.path.join(self.datadir, 'images/agree-disagree.png')
-                no_image_path = os.path.join(self.datadir, 'images/disagree.png')
-                if os.path.exists(yes_image_path) and os.path.exists(no_image_path):
-                    self.yes_like = ThumbButton(yes_image_path)
-                    self.no_like = ThumbButton(no_image_path)
-                    self.yes_like.connect('button_release_event', self._on_useful_clicked, True)
-                    self.no_like.connect('button_release_event', self._on_useful_clicked, False)
-                else:
-                    self.yes_like = mkit.VLinkButton('<small>%s</small>' % _('Yes'))
-                    self.no_like = mkit.VLinkButton('<small>%s</small>' % _('No'))
-                    self.yes_like.set_underline(True)
-                    self.no_like.set_underline(True)
-                    self.yes_like.set_subdued(True)
-                    self.no_like.set_subdued(True)
-                    self.yes_like.connect('clicked', self._on_useful_clicked, None, True)
-                    self.no_like.connect('clicked', self._on_useful_clicked, None, False)
+                self.yes_like = mkit.VLinkButton('<small>%s</small>' % _('Yes'))
+                self.no_like = mkit.VLinkButton('<small>%s</small>' % _('No'))
+                self.yes_like.set_underline(True)
+                self.no_like.set_underline(True)
+                self.yes_like.set_subdued(True)
+                self.no_like.set_subdued(True)
+                self.yes_like.connect('clicked', self._on_useful_clicked, True)
+                self.no_like.connect('clicked', self._on_useful_clicked, False)
                 
                 self.yes_like.show()
                 self.no_like.show()
@@ -1454,7 +1446,7 @@ class Review(gtk.VBox):
                 self.likebox.pack_start(self.yes_like, False)
                 self.likebox.pack_start(self.no_like, False)
                 self.likebox.show()
-                self.footer.pack_start(self.likebox, False)            
+                self.footer.pack_start(self.likebox, False)
         return
 
     
