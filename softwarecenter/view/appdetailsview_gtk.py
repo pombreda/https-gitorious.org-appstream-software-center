@@ -1294,11 +1294,9 @@ class Review(gtk.VBox):
         yes_like.set_subdued(True)
         no_like.set_subdued(True)
 
-        # FIXME: Uncomment the following to re-enable the reviews usefulness feature
-        #        It it temporarily hidden pending rollout of server support
-#        self.footer.pack_start(useful, False)
-#        self.footer.pack_start(yes_like, False)
-#        self.footer.pack_start(no_like, False)
+        self.footer.pack_start(useful, False)
+        self.footer.pack_start(yes_like, False)
+        self.footer.pack_start(no_like, False)
         #connect signals
         yes_like.connect('clicked', self._on_useful_clicked, True)
         no_like.connect('clicked', self._on_useful_clicked, False)
