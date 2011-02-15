@@ -31,6 +31,7 @@ import aptdaemon.client
 from aptdaemon.enums import *
 
 from softwarecenter.enums import *
+from softwarecenter.utils import get_icon_from_iconname
 from softwarecenter.backend import get_install_backend
 from softwarecenter.backend.transactionswatcher import TransactionsWatcher
 from softwarecenter.view.basepane import BasePane
@@ -99,20 +100,11 @@ class PendingStore(gtk.ListStore, TransactionsWatcher):
         # add pending purchases as pseudo transactions
         for pkgname in self.backend.pending_purchases:
             iconname = self.backend.pending_purchases[pkgname].iconname
-            icon = self._get_icon_from_iconname(iconname)
+            icon = get_icon_from_iconname(self.icons, iconname=iconname, iconsize=self.ICON_SIZE)
             appname = self.backend.pending_purchases[pkgname].appname
             status_text = self._render_status_text(
                 appname or pkgname, _(u'Installing purchase\u2026'))
             self.append([pkgname, icon, pkgname, status_text, 0, 1, None])
-
-    def _get_icon_from_iconname(self, iconname=None):
-        if not iconname:
-            iconname = MISSING_APP_ICON
-        try:
-            icon = self.icons.load_icon(iconname, self.ICON_SIZE, 0)
-        except Exception:
-            icon = self.icons.load_icon(MISSING_APP_ICON, self.ICON_SIZE, 0)
-        return icon
 
     def _pulse_purchase_helper(self):
         for item in self:
@@ -148,9 +140,9 @@ class PendingStore(gtk.ListStore, TransactionsWatcher):
         try:
             iconname = trans.meta_data["sc_iconname"]
         except KeyError:
-            icon = self._get_icon_from_iconname()
+            icon = icon = get_icon_from_iconname(self.icons, iconsize=self.ICON_SIZE)
         else:
-            icon = self._get_icon_from_iconname(iconname)
+            icon = get_icon_from_iconname(self.icons, iconname=iconname, iconsize=self.ICON_SIZE)
         if trans.status == STATUS_WAITING_LOCK:
             status = trans.status_details
         else:
