@@ -20,6 +20,15 @@ software-center (3.1.18) UNRELEASED; urgency=low
     - minor grammar tweak for Dylan McCall (LP: #717410)
 
   [ Gary Lasker ]
+  * softwarecenter/enums.py,
+    softwarecenter/utils.py,
+    softwarecenter/models/viewswitcherlist.py,
+    softwarecenter/view/pendingview.py:
+    - generalize get_icon_from_iconname method, wire it up
+    - add new get_icon_file_path_from_iconname method
+    - fix crash if an icon can't be found (LP: #716111)
+    - try a different, subjectively better-suited icon for the history item
+      (one that is also included in gnome-icon-theme)
   * softwarecenter/backend/aptd.py,
     softwarecenter/models/appstore.py,
     softwarecenter/view/appdetailsview_webkit.py,
@@ -27,10 +36,6 @@ software-center (3.1.18) UNRELEASED; urgency=low
     softwarecenter/enums.py:
     - include additional details about the transaction when
       firing a transaction-started signal, wire to handlers
-  * softwarecenter/view/pendingview.py,
-    softwarecenter/utils.py:
-    - generalize get_icon_from_iconname method, add new
-      get_icon_file_path_from_iconname method
   * softwarecenter/view/widgets/actionbar.py:
     - tweak spacings for action bar
   * softwarecenter/db/application.py,
@@ -43,7 +48,7 @@ software-center (3.1.18) UNRELEASED; urgency=low
     - implement the software-center side of unity launcher
       integration per the specification (LP: #670403) 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 14 Feb 2011 11:55:12 -0500
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 14 Feb 2011 22:17:37 -0500
 
 software-center (3.1.17.1) natty; urgency=low
 

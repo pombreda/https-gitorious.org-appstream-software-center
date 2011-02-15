@@ -279,19 +279,20 @@ def is_unity_running():
         LOG.exception("could not check for Unity dbus service")
     return unity_running
     
-def get_icon_from_iconname(icons, iconsize=APP_ICON_SIZE, iconname=None):
+def get_icon_from_iconname(icons, iconname=None, iconsize=APP_ICON_SIZE, missingicon=MISSING_APP_ICON):
     """
     return the icon in the theme that corresponds to the given iconname
     """    
     if not iconname:
-        iconname = MISSING_APP_ICON
+        iconname = missingicon
     try:
         icon = icons.load_icon(iconname, iconsize, 0)
-    except Exception:
-        icon = icons.load_icon(MISSING_APP_ICON, iconsize, 0)
+    except Exception, e:
+        LOG.warning("could not load icon '%s', displaying missing icon instead: %s " % (iconname, e))
+        icon = icons.load_icon(missingicon, iconsize, 0)
     return icon
     
-def get_icon_file_path_from_iconname(icons, iconsize=APP_ICON_SIZE, iconname=None):
+def get_icon_file_path_from_iconname(icons, iconname=None, iconsize=APP_ICON_SIZE):
     """
     return the file path of the icon in the theme that corresponds to the
     given iconname, or None if it cannot be determined
@@ -308,7 +309,6 @@ def get_icon_file_path_from_iconname(icons, iconsize=APP_ICON_SIZE, iconname=Non
         icon_info.free()
         return icon_file_path
     
-
 # FIXME: why not call it a generic downloader?
 class ImageDownloader(gobject.GObject):
 
