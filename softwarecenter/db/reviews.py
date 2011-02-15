@@ -44,6 +44,8 @@ from softwarecenter.utils import *
 from softwarecenter.paths import *
 from softwarecenter.enums import *
 
+from softwarecenter.netstatus import network_state_is_connected
+
 LOG = logging.getLogger(__name__)
 
 class ReviewStats(object):
@@ -160,6 +162,17 @@ class ReviewLoader(object):
             cmd, flags=glib.SPAWN_DO_NOT_REAP_CHILD, standard_output=True)
         glib.child_watch_add(pid, self._on_report_abuse_finished, (review_id, callback))
 
+    def spawn_submit_usefulness_ui(self, review_id, is_useful, parent_xid, datadir, callback):
+        cmd = [os.path.join(datadir, SUBMIT_USEFULNESS_APP), 
+               "--review-id", "%s" % review_id,
+               "--is-useful", "%s" % int(is_useful),
+               "--parent-xid", "%s" % parent_xid,
+               "--datadir", datadir,
+              ]
+        (pid, stdin, stdout, stderr) = glib.spawn_async(
+            cmd, flags=glib.SPAWN_DO_NOT_REAP_CHILD, standard_output=True)
+        glib.child_watch_add(pid, self._on_submit_usefulness_finished, (review_id, is_useful, callback))
+
     # internal callbacks/helpers
     def _on_submit_review_finished(self, pid, status, (app, stdout_fd, callback)):
         """ called when submit_review finished, when the review was send
@@ -205,6 +218,22 @@ class ReviewLoader(object):
                         # remove the one we don't want to see anymore
                         self._reviews[app].remove(review)
                         callback(app, self._reviews[app])
+                        break
+
+    def _on_submit_usefulness_finished(self, pid, status, (review_id, is_useful, callback)):
+        """ called when report_usefulness finished """
+        if os.WEXITSTATUS(status) == 0:
+            LOG.debug("usefulness id %s " % review_id)
+            for (app, reviews) in self._reviews.iteritems():
+                for review in reviews:
+                    if str(review.id) == str(review_id):
+                        # update usefulness, older servers do not send
+                        # usefulness_{total,favorable} so we use getattr
+                        review.usefulness_total = getattr(review, "usefulness_total", 0) + 1
+                        if is_useful:
+                            review.usefulness_favorable = getattr(review, "usefulness_favorable", 0) + 1
+                        callback(app, self._reviews[app])
+                        break
 
 
 # using multiprocessing here because threading interface was terrible
@@ -224,11 +253,16 @@ class ReviewLoaderThreadedRNRClient(ReviewLoader):
         self._new_reviews = {}
         self._new_review_stats = Queue()
 
+    def _update_rnrclient_offline_state(self):
+        # this needs the lp:~mvo/piston-mini-client/offline-mode branch
+        self.rnrclient._offline_mode = not network_state_is_connected()
+
     # reviews
     def get_reviews(self, app, callback):
         """ public api, triggers fetching a review and calls callback
             when its ready
         """
+        self._update_rnrclient_offline_state()
         self._new_reviews[app] = Queue()
         p = Process(target=self._get_reviews_threaded, args=(app, ))
         p.start()
@@ -267,6 +301,9 @@ class ReviewLoaderThreadedRNRClient(ReviewLoader):
                 #        so it expects it this way
                 kwargs["appname"] = urllib.quote_plus(app.appname.encode("utf-8"))
             reviews = self.rnrclient.get_reviews(**kwargs)
+        except simplejson.decoder.JSONDecodeError, e:
+            logging.error("failed to parse '%s'" % e.doc)
+            reviews = []
         except:
             logging.exception("get_reviews")
             reviews = []

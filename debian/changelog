@@ -1,4 +1,45 @@
-software-center (3.1.17) UNRELEASED; urgency=low
+software-center (3.1.18) natty; urgency=low
+
+  [ Michael Vogt ]
+  * added "Was this review useful" feature (currently hidden
+    pending rollout of server support)
+  * added "Offline cache for reviews" feature 
+    (needs latest python-piston-mini-client to work)
+  * debian/control:
+    - depend on latest python-piston-mini-client
+
+  [ Kiwinote ]
+  * softwarecenter/distro/Ubuntu.py:
+    - we can't download an icon for a featured application if the cache is not
+      ready (LP: #711857, LP: #717337)
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - don't crash if app_details has no desktop_file (LP: #716245)
+  * softwarecenter/view/purchaseview.py:
+    - open external links in default browser (LP: #640520)
+  * softwarecenter/view/softwarepane.py:
+    - play nicely if we click on an app before the cache is ready (LP: #691321)
+    - minor grammar tweak for Dylan McCall (LP: #717410)
+
+  [ Gary Lasker ]
+  * softwarecenter/enums.py,
+    softwarecenter/utils.py,
+    softwarecenter/models/viewswitcherlist.py,
+    softwarecenter/view/pendingview.py:
+    - generalize get_icon_from_iconname method, wire it up
+    - fix crash if an icon can't be found (LP: #716111)
+    - try a different, subjectively better-suited icon for the history item
+      (one that is also included in gnome-icon-theme)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 15 Feb 2011 17:39:02 +0100
+
+software-center (3.1.17.1) natty; urgency=low
+
+  * utils/update-software-center:
+    - fix crash in postinst
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 11 Feb 2011 13:23:10 +0100
+
+software-center (3.1.17) natty; urgency=low
 
   [ Michael Vogt ]
   * test/Makefile:
@@ -52,8 +93,10 @@ software-center (3.1.17) UNRELEASED; urgency=low
   * lp:~mmcg069/software-center/small-rnr-tweaks:
     - add nice human readable time delta string to the review
     - tweak review UI
+  * lp:~mmcg069/software-center/rnr-bitesize-tweaks:
+    - subdue the inappropriate link
   
- -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 10 Feb 2011 22:11:26 +0100
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 11 Feb 2011 10:31:57 +0100
 
 software-center (3.1.16) natty; urgency=low
 

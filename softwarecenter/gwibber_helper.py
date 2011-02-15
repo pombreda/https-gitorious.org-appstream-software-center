@@ -99,7 +99,7 @@ class GwibberHelperMock(object):
         sys.stderr.write("sending '%s' to '%s'\n" % (message, account_id))
         #used for testing purposes, to emulate a gwibber failure for ~1 out of every 5 attempts
         r = random()
-        if r < 0.2:
+        if r < 0.2 and not "SOFTWARE_CENTER_GWIBBER_MOCK_NO_FAIL" in os.environ:
             return False
         return True
     
