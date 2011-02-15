@@ -55,12 +55,12 @@ class SubcategoryButton(VLinkButton):
         VLinkButton.__init__(self,
                              markup,
                              icon_name,
-                             SubCategoryButton.ICON_SIZE,
+                             SubcategoryButton.ICON_SIZE,
                              icons)
 
         self.set_border_width(3)
-        self.set_max_width(SubCategoryButton.MAX_WIDTH)
-        #self.set_max_width(SubCategoryButton.MAX_HEIGHT)
-        self.box.set_size_request(SubCategoryButton.MAX_WIDTH,
-                                  SubCategoryButton.MAX_HEIGHT)
+        self.set_max_width(SubcategoryButton.MAX_WIDTH)
+        #self.set_max_width(SubcategoryButton.MAX_HEIGHT)
+        self.box.set_size_request(SubcategoryButton.MAX_WIDTH,
+                                  SubcategoryButton.MAX_HEIGHT)
         return

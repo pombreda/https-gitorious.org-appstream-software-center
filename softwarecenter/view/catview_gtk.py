@@ -1,32 +1,27 @@
+import os
 import gtk
 import gobject
-import cairo
-import pango
-import pangocairo
 import gettext
-import glib
-import random
-import os
 import xapian
 
 from gettext import gettext as _
 
 from widgets import mkit
 from appview import AppStore
-from softwarecenter.db.database import Application
+
+from softwarecenter.db.application import Application
+
+from softwarecenter.enums import SORT_BY_SEARCH_RANKING
 from softwarecenter.utils import wait_for_apt_cache_ready
 from softwarecenter.backend.zeitgeist_simple import zeitgeist_singleton
-from softwarecenter.enums import SORT_BY_SEARCH_RANKING
+from softwarecenter.drawing import color_floats, rounded_rect, rounded_rect2
 
-from widgets.reviews import StarRating
 from widgets.carousel import CarouselView
 from widgets.buttons import CategoryButton, SubcategoryButton
 
 from catview import (Category, CategoriesView, get_category_by_name,
                      categories_sorted_by_name)
 
-
-from softwarecenter.drawing import color_floats, rounded_rect, rounded_rect2
 
 
 class CategoriesViewGtk(gtk.Viewport, CategoriesView):
