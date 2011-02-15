@@ -924,7 +924,7 @@ class FramedSection(gtk.VBox):
 
 class LayoutView2(gtk.HBox):
 
-    def __init__(self, xspacing=4, yspacing=8):
+    def __init__(self, xspacing=4, yspacing=6):
         gtk.HBox.__init__(self, spacing=xspacing)
         self.set_homogeneous(True)
 

@@ -151,16 +151,18 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
         pass
 
     def _create_mask_surface_cache(self, datadir):
-        global MASK_SURFACE_CACHE
-        MASK_SURFACE_CACHE['bloom'] = cairo.ImageSurface.create_from_png(os.path.join(datadir, 'images/bloom.png'))
+        return
+#        global MASK_SURFACE_CACHE
+#        MASK_SURFACE_CACHE['bloom'] = cairo.ImageSurface.create_from_png(os.path.join(datadir, 'images/bloom.png'))
 
     def _get_best_fit_width(self):
-        if not self.parent: return 1
-        # parent alllocation less the sum of all border widths
-        return self.parent.allocation.width - 4*mkit.BORDER_WIDTH_LARGE
+        return
+#        if not self.parent: return 1
+#        # parent alllocation less the sum of all border widths
+#        return self.parent.allocation.width - 4*mkit.BORDER_WIDTH_LARGE
 
     def _on_style_set(self, widget, old_style):
-        mkit.update_em_metrics()
+#        mkit.update_em_metrics()
 
         global MASK_SURFACE_CACHE
         # cache masked versions of the cached surfaces
@@ -459,7 +461,7 @@ class LobbyViewGtk(CategoriesViewGtk):
 
     def _append_departments(self):
 #        # create departments widget
-        self.departments = mkit.LayoutView2(xspacing=20, yspacing=20)
+        self.departments = mkit.LayoutView2(xspacing=20, yspacing=12)
 
 #        # set the departments section to use the label markup we have just defined
         label = mkit.EtchedLabel("<b>%s</b>" % H2 % self.header)
@@ -472,18 +474,11 @@ class LobbyViewGtk(CategoriesViewGtk):
         layout = self.create_pango_layout('')
 
         max_w = 200
-#        e = self.enquire
 
         for cat in sorted_cats:
             if 'carousel-only' not in cat.flags:
                 layout.set_text(cat.name)
-                w = layout.get_pixel_extents()[1][2]
-
-#                e.set_query(cat.query)
-#                # limiting the size here does not make it faster
-#                matches = e.get_mset(0, len(self.db))
-#                estimate = matches.get_matches_estimated()
-
+                w = layout.get_pixel_extents()[1][2] + 32
                 max_w = max(w, max_w)
 
                 cat_btn = CategoryButton(cat.name, cat.iconname)
@@ -554,9 +549,6 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         if w <= 400 or w == self._prev_width: return True
         self._prev_width = w
 
-#        self.featured_carousel.set_width(w)
-#        self.whatsnew_carousel.set_width(w)
-
         vbox.set_size_request(w, -1)
         return True
 
@@ -575,7 +567,6 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         if self.section: self.section.render(cr, alignment.allocation)
 
         del cr
-
 
     def _append_subcat_departments(self, root_category, num_items):
         # create departments widget
@@ -927,40 +918,6 @@ class CarouselView(gtk.VBox):
         return
 
 
-class BubbleLabel(gtk.Label):
-
-    def __init__(self, *args, **kwargs):
-        gtk.Label.__init__(self, *args, **kwargs)
-
-        self.connect('expose-event', self._on_expose)
-        return
-
-    def _on_expose(self, w, e):
-        a = w.allocation
-        l = w.get_layout()
-        lw, lh = l.get_pixel_extents()[1][2:]
-        ax, ay = w.get_alignment()
-        px, py = w.get_padding()
-
-        x = int(a.x + (a.width - lw - 2*px) * ax)
-        y = int(a.y + (a.height - lh - 2*py) * ay)
-
-        cr = w.window.cairo_create()
-
-        # draw action bubble background
-        rounded_rect(cr, x, y, lw+2*px, lh+2*py, 5)
-        color = w.style.dark[w.state].to_string()
-        cr.set_source_rgb(*color_floats(color))
-        cr.fill()
-
-        # bubble number
-        color = w.style.white.to_string()
-        l.set_markup('<span color="%s">%s</span>' % (color, w.get_label()))
-
-        del cr
-        return
-
-
 class Button(gtk.EventBox):
 
     __gsignals__ = {
@@ -1163,6 +1120,7 @@ class CarouselPoster2(Button):
         Button.__init__(self)
 
         self.hbox = gtk.HBox(spacing=8)
+        self.hbox.set_border_width(3)
         self.add(self.hbox)
 
         self.db = db
@@ -1212,7 +1170,7 @@ class CarouselPoster2(Button):
         inner_vbox.pack_start(self.rating, False)
 #        inner_vbox.pack_start(self.nrreviews, False)
 
-        self.label_list = ('label', 'nrreviews')
+        self.label_list = ('label',)
 
 
         self.show_all()
@@ -1268,9 +1226,8 @@ class CarouselPoster2(Button):
     def _cache_surf(self):
         if not self.app: return
 
-        print 'CacheSurf'
-
         a = self.allocation
+        bw = self.hbox.get_border_width()
         surf = cairo.ImageSurface(cairo.FORMAT_ARGB32,
                                   a.width,
                                   a.height)
@@ -1278,19 +1235,18 @@ class CarouselPoster2(Button):
         cr = cairo.Context(surf)
         cr = gtk.gdk.CairoContext(pangocairo.CairoContext(cr))
 
-        _a = self.image.allocation
         pb = self.image.get_pixbuf()
-
         if pb:
             w, h = pb.get_width(), pb.get_height()
 
             cr.set_source_pixbuf(self.image.get_pixbuf(),
-                                 a.x - _a.x + (_a.width - w)/2,
-                                 a.y - _a.y + (_a.height - h)/2)
+                                 bw + (self.image.allocation.width - w)/2,
+                                 bw + (self.image.allocation.height - h)/2)
             cr.paint()
 
         cr.set_source_color(self.style.text[self.state])
-        cr.move_to(self.label.allocation.x - a.x, self.label.allocation.y - a.y)
+        cr.move_to(self.label.allocation.x - a.x,
+                   self.label.allocation.y - a.y)
         cr.layout_path(self.label.get_layout())
         cr.fill()
 
