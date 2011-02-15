@@ -796,6 +796,34 @@ class ScreenshotView(gtk.Alignment):
             cr.fill()
         return
 
+class ThumbButton(gtk.EventBox):
+    """Button with thumb image for like/dislike actions"""
+    
+    def __init__(self, datapath):
+        gtk.EventBox.__init__(self)
+        image = gtk.Image()
+        pixbuf = gtk.gdk.pixbuf_new_from_file(datapath)
+        scaled = pixbuf.scale_simple(12,12,gtk.gdk.INTERP_BILINEAR)
+        image.set_from_pixbuf(scaled)
+        image.set_padding(1,1)
+        image.show()
+        self.add(image)
+        self.set_visible_window(False)
+        
+        self.set_events(gtk.gdk.ENTER_NOTIFY_MASK|
+                         gtk.gdk.LEAVE_NOTIFY_MASK)
+
+        self.connect('enter-notify-event', self._on_enter)
+        self.connect('leave-notify-event', self._on_leave)
+        
+    def _on_enter(self, widget, event):
+        self.window.set_cursor(gtk.gdk.Cursor(gtk.gdk.HAND2))
+        return
+
+    def _on_leave(self, widget, event):
+        self.window.set_cursor(None)
+        return
+
 
 class Addon(gtk.HBox):
     """ Widget to select addons: CheckButton - Icon - Title (pkgname) """
@@ -1003,6 +1031,8 @@ class Reviews(gtk.VBox):
         self._parent = parent
         self.reviews = []
 
+        self._usefulness_error_id = 0
+
         label = mkit.EtchedLabel()
         label.set_use_markup(True)
         label.set_alignment(0, 0.5)
@@ -1071,7 +1101,7 @@ class Reviews(gtk.VBox):
 
             for r in self.reviews:
                 pkgversion = self._parent.app_details.version
-                review = Review(r, pkgversion, self.logged_in_person)
+                review = Review(r, pkgversion, self.logged_in_person, self._parent.datadir, self._usefulness_error_id)
                 self.vbox.pack_start(review, padding=mkit.SPACING_LARGE)
         elif get_network_state() == NetState.NM_STATE_CONNECTED:
             self.vbox.pack_start(NoReviewYet(), padding=mkit.SPACING_LARGE)
@@ -1121,6 +1151,10 @@ class Reviews(gtk.VBox):
         self.reviews.append(review)
         self._update = True
         return
+    
+    def flag_usefulness_error(self, error_id):
+        self._usefulness_error_id = error_id
+        return
 
     def clear(self):
         self.reviews = []
@@ -1143,13 +1177,26 @@ class Reviews(gtk.VBox):
 
 class Review(gtk.VBox):
     
-    def __init__(self, review_data=None, app_version=None, logged_in_person=None):
+    def __init__(self, review_data=None, app_version=None, logged_in_person=None, datadir=None, error_id=0):
         gtk.VBox.__init__(self, spacing=mkit.SPACING_MED)
 
         self.header = gtk.HBox(spacing=mkit.SPACING_MED)
         self.body = gtk.VBox()
         self.footer_split = gtk.VBox()
         self.footer = gtk.HBox()
+        
+        self.useful = None
+        self.yes_like = None
+        self.no_like = None
+        self.status_box = gtk.HBox()
+        self.submit_error_img = gtk.Image()
+        self.submit_error_img.set_from_stock(gtk.STOCK_DIALOG_ERROR, gtk.ICON_SIZE_SMALL_TOOLBAR)
+        self.submit_status_spinner = gtk.Spinner()
+        self.submit_status_spinner.set_size_request(12,12)
+        self.acknowledge_error = mkit.VLinkButton(_("<small>OK</small>"))
+        self.acknowledge_error.set_underline(True)
+        self.acknowledge_error.set_subdued(True)
+        self.usefulness_error = False
 
         self.pack_start(self.header, False)
         self.pack_start(self.body, False)
@@ -1157,6 +1204,8 @@ class Review(gtk.VBox):
         
         self.logged_in_person = logged_in_person
         self.person = None
+        
+        self.datadir = datadir
 
         if review_data:
             self.connect('realize',
@@ -1164,6 +1213,9 @@ class Review(gtk.VBox):
                          review_data,
                          app_version,
                          logged_in_person)
+        
+            if review_data.id == error_id:
+                self.usefulness_error = True
         return
 
     def _on_realize(self, w, review_data, app_version, logged_in_person):
@@ -1212,7 +1264,86 @@ class Review(gtk.VBox):
     def _on_useful_clicked(self, btn, is_useful):
         reviews = self.get_ancestor(Reviews)
         if reviews:
+            self._usefulness_ui_update('progress')
             reviews.emit("submit-usefulness", self.id, is_useful)
+    
+    def _on_error_acknowledged(self, button, current_user_reviewer, useful_total, useful_favorable):
+        self.usefulness_error = False
+        self._usefulness_ui_update('renew', current_user_reviewer, useful_total, useful_favorable)
+    
+    def _usefulness_ui_update(self, type, current_user_reviewer=False, useful_total=0, useful_favorable=0):
+        self._hide_usefulness_elements()
+        print "_usefulness_ui_update: %s" % type
+        if type == 'renew':
+            self._build_usefulness_ui(current_user_reviewer, useful_total, useful_favorable)
+            return
+        if type == 'progress':
+            self.submit_status_spinner.start()
+            self.submit_status_spinner.show()
+            self.status_label = gtk.Label("<small><b>%s</b></small>" % _(u"Submitting now\u2026"))
+            self.status_box.pack_start(self.submit_status_spinner, False)
+            self.status_label.set_use_markup(True)
+            self.status_label.set_padding(2,0)
+            self.status_box.pack_start(self.status_label,False)
+            self.status_label.show()
+        if type == 'error':
+            self.submit_error_img.show()
+            self.status_label = gtk.Label("<small><b>%s</b></small>" % _("Error submitting usefulness"))
+            self.status_box.pack_start(self.submit_error_img, False)
+            self.status_label.set_use_markup(True)
+            self.status_label.set_padding(2,0)
+            self.status_box.pack_start(self.status_label,False)
+            self.status_label.show()
+            self.acknowledge_error.show()
+            self.status_box.pack_start(self.acknowledge_error,False)
+            self.acknowledge_error.connect('clicked', self._on_error_acknowledged, current_user_reviewer, useful_total, useful_favorable)
+        self.status_box.show()
+        self.footer.pack_start(self.status_box, False)
+        return
+    
+    def _hide_usefulness_elements(self):
+        try:
+            self.useful.hide()
+        except AttributeError:
+            pass
+            
+        try:
+            self.yes_like.hide()
+        except AttributeError:
+            pass
+            
+        try:
+            self.no_like.hide()
+        except AttributeError:
+            pass
+        
+        try:
+            self.submit_status_spinner.hide()
+        except AttributeError:
+            pass
+        
+        try:
+            self.submit_error_img.hide()
+        except AttributeError:
+            pass
+            
+        try:
+            self.status_box.hide()
+        except AttributeError:
+            pass
+        
+        try:
+            self.status_label.hide()
+        except AttributeError:
+            pass
+
+        try:
+            self.acknowledge_error.hide()
+        except AttributeError:
+            pass
+
+        return
+        
 
     def _get_datetime_from_review_date(self, raw_date):
         # example raw_date str format: 2011-01-28 19:15:21
@@ -1266,40 +1397,12 @@ class Review(gtk.VBox):
             self.footer_split.pack_start(version_lbl, False)
             
         self.footer_split.pack_start(self.footer, False)
-        
-        #if no usefulness has been submitted, simply ask if
-        # user found it useful (i.e. don't say 0 out of 0 found this...)
-        if useful_total == 0:
-            useful = gtk.Label('<small>%s</small>' % \
-                               _("Did you find this review useful?"))
-        else:
-            s = gettext.ngettext(
-                "%(useful_favorable)s out of %(useful_total)s person "
-                "found this review useful. Did you?",
-                "%(useful_favorable)s out of %(useful_total)s people "
-                "found this review useful. Did you?",
-                useful_total) % { 'useful_total' : useful_total,
-                                  'useful_favorable' : useful_favorable,
-                                }
-            useful = gtk.Label('<small>%s </small>' % s)
-        
-        useful.set_use_markup(True)
-        #vertically centre so it lines up with the Yes and No buttons
-        useful.set_alignment(0, 0.5)
-        
-        yes_like = mkit.VLinkButton('<small>Yes</small>')
-        no_like = mkit.VLinkButton('<small>No</small>')
-        yes_like.set_underline(True)
-        no_like.set_underline(True)
-        yes_like.set_subdued(True)
-        no_like.set_subdued(True)
 
-        self.footer.pack_start(useful, False)
-        self.footer.pack_start(yes_like, False)
-        self.footer.pack_start(no_like, False)
-        #connect signals
-        yes_like.connect('clicked', self._on_useful_clicked, True)
-        no_like.connect('clicked', self._on_useful_clicked, False)
+        current_user_reviewer = False
+        if person == self.logged_in_person:
+            current_user_reviewer = True
+
+        self._build_usefulness_ui(current_user_reviewer, useful_total, useful_favorable)
 
         # Translators: This link is for flagging a review as inappropriate.
         # To minimize repetition, if at all possible, keep it to a single word.
@@ -1313,6 +1416,70 @@ class Review(gtk.VBox):
 
         self.body.connect('size-allocate', self._on_allocate, stars, summary, who_when, version_lbl, self.complain)
         return
+    
+    def _build_usefulness_ui(self, current_user_reviewer, useful_total, useful_favorable):
+        if self.usefulness_error:
+            self._usefulness_ui_update('error', current_user_reviewer, useful_total, useful_favorable)
+        else:
+            #get correct label based on retrieved usefulness totals and if user is reviewer
+            self.useful = self._get_usefulness_label(current_user_reviewer, useful_total, useful_favorable)
+            self.useful.set_use_markup(True)
+            #vertically centre so it lines up with the Yes and No buttons
+            self.useful.set_alignment(0, 0.5)
+
+            self.useful.show()
+            self.footer.pack_start(self.useful, False, padding=3)
+            if not current_user_reviewer:
+                self.yes_like = mkit.VLinkButton('<small>%s</small>' % _('Yes'))
+                self.no_like = mkit.VLinkButton('<small>%s</small>' % _('No'))
+                self.yes_like.set_underline(True)
+                self.no_like.set_underline(True)
+                self.yes_like.set_subdued(True)
+                self.no_like.set_subdued(True)
+                self.yes_like.connect('clicked', self._on_useful_clicked, True)
+                self.no_like.connect('clicked', self._on_useful_clicked, False)
+                
+                self.yes_like.show()
+                self.no_like.show()
+                self.likebox = gtk.HBox()
+                self.likebox.set_spacing(3)
+                self.likebox.pack_start(self.yes_like, False)
+                self.likebox.pack_start(self.no_like, False)
+                self.likebox.show()
+                self.footer.pack_start(self.likebox, False)
+        return
+
+    
+    def _get_usefulness_label(self, current_user_reviewer, useful_total, useful_favorable):
+        '''returns gtk.Label() to be used as usefulness label depending on passed in parameters'''
+        if useful_total == 0 and current_user_reviewer:
+            usefulness_label = gtk.Label('<small>%s</small>' % \
+                               _("No one has flagged your review's usefulness yet."))
+        elif useful_total == 0:
+            usefulness_label = gtk.Label('<small>%s</small>' % \
+                               _("Did you find this review useful?"))
+        elif current_user_reviewer:
+            s = gettext.ngettext(
+                "%(useful_favorable)s out of %(useful_total)s person "
+                "found your review useful.",
+                "%(useful_favorable)s out of %(useful_total)s people "
+                "found your review useful.",
+                useful_total) % { 'useful_total' : useful_total,
+                                  'useful_favorable' : useful_favorable,
+                                }
+            usefulness_label = gtk.Label('<small>%s </small>' % s)
+        else:
+            s = gettext.ngettext(
+                "%(useful_favorable)s out of %(useful_total)s person "
+                "found this review useful. Did you?",
+                "%(useful_favorable)s out of %(useful_total)s people "
+                "found this review useful. Did you?",
+                useful_total) % { 'useful_total' : useful_total,
+                                  'useful_favorable' : useful_favorable,
+                                }
+            usefulness_label = gtk.Label('<small>%s </small>' % s)
+        
+        return usefulness_label
 
     def _whom_when_markup(self, person, cur_t, dark_color):
         nice_date = get_nice_date_string(cur_t)
@@ -1560,7 +1727,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         else:
             self.review_stats_widget.hide()
 
-    def _reviews_ready_callback(self, app, reviews):
+    def _reviews_ready_callback(self, app, reviews, error_code=0, review_id=0):
         """ callback when new reviews are ready, cleans out the
             old ones
         """
@@ -1571,9 +1738,12 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         #  software-center totem)
         if self.app.pkgname != app.pkgname:
             return
-        # clear out the old ones ...
-        self.reviews.clear()
 
+        self.reviews.clear()
+        self.reviews.flag_usefulness_error(0)
+        if error_code == 2:
+            self.reviews.flag_usefulness_error(review_id)
+            
         # add network message if needed
         if not network_state_is_connected():
             s = '<big><b>%s</b></big>\n%s' % (
