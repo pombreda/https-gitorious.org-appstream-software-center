@@ -156,10 +156,10 @@ class ViewSwitcherList(gtk.TreeStore):
         return channel_iter_for_name
                     
     def _get_icon(self, icon_name):
-            return AnimatedImage(get_icon_from_iconname(self.icons, 
-                                                        iconname=icon_name, 
-                                                        iconsize=self.ICON_SIZE,
-                                                        missingicon="gtk-missing-image"))
+        return AnimatedImage(get_icon_from_iconname(self.icons, 
+                                                    iconname=icon_name, 
+                                                    iconsize=self.ICON_SIZE,
+                                                    missingicon="gtk-missing-image"))
 
     @wait_for_apt_cache_ready
     def _update_channel_list(self):
