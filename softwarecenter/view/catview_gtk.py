@@ -71,7 +71,6 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
         self.icons = icons
         self.section = None
 
-        self._surf_id = 0
         self.section_color = mkit.floats_from_string('#0769BC')
 
         gtk.Viewport.__init__(self)
@@ -129,9 +128,6 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
         self.emit("category-selected", cat)
         return
 
-    def _image_path(self,name):
-        return os.path.abspath("%s/images/%s.png" % (self.datadir, name))
-
     def set_section(self, section):
         self.section = section
 
@@ -155,7 +151,7 @@ class LobbyViewGtk(CategoriesViewGtk):
                  apps_filter,
                  apps_limit=0)
 
-        self.enquire = xapian.Enquire(self.db.xapiandb)
+#        self.enquire = xapian.Enquire(self.db.xapiandb)
 
         # sections
         self.featured_carousel = None
