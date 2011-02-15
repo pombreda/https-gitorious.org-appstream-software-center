@@ -1,7 +1,31 @@
-software-center (3.1.18) UNRELEASED; urgency=low
+software-center (3.1.19) UNRELEASED; urgency=low
+
+  * softwarecenter/backend/aptd.py,
+    softwarecenter/models/appstore.py,
+    softwarecenter/view/appdetailsview_webkit.py,
+    softwarecenter/view/appview.py,
+    softwarecenter/enums.py:
+    - include additional details about the transaction when
+      firing a transaction-started signal, wire to handlers
+  * softwarecenter/view/widgets/actionbar.py:
+    - tweak spacings for action bar
+  * softwarecenter/db/application.py,
+    softwarecenter/view/appdetailsview_gtk.py,
+    softwarecenter/view/availablepane.py,
+    softwarecenter/view/channelpane.py,
+    softwarecenter/view/installedpane.py,
+    softwarecenter/view/softwarepane.py,
+    softwarecenter/enums.py:
+    - implement the software-center side of unity launcher
+      integration per the specification (LP: #670403)
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 15 Feb 2011 13:27:56 -0500
+
+software-center (3.1.18) natty; urgency=low
 
   [ Michael Vogt ]
-  * added "Was this review useful" feature
+  * added "Was this review useful" feature (currently hidden
+    pending rollout of server support)
   * added "Offline cache for reviews" feature 
     (needs latest python-piston-mini-client to work)
   * debian/control:
@@ -25,30 +49,11 @@ software-center (3.1.18) UNRELEASED; urgency=low
     softwarecenter/models/viewswitcherlist.py,
     softwarecenter/view/pendingview.py:
     - generalize get_icon_from_iconname method, wire it up
-    - add new get_icon_file_path_from_iconname method
     - fix crash if an icon can't be found (LP: #716111)
     - try a different, subjectively better-suited icon for the history item
       (one that is also included in gnome-icon-theme)
-  * softwarecenter/backend/aptd.py,
-    softwarecenter/models/appstore.py,
-    softwarecenter/view/appdetailsview_webkit.py,
-    softwarecenter/view/appview.py,
-    softwarecenter/enums.py:
-    - include additional details about the transaction when
-      firing a transaction-started signal, wire to handlers
-  * softwarecenter/view/widgets/actionbar.py:
-    - tweak spacings for action bar
-  * softwarecenter/db/application.py,
-    softwarecenter/view/appdetailsview_gtk.py,
-    softwarecenter/view/availablepane.py,
-    softwarecenter/view/channelpane.py,
-    softwarecenter/view/installedpane.py,
-    softwarecenter/view/softwarepane.py,
-    softwarecenter/enums.py:
-    - implement the software-center side of unity launcher
-      integration per the specification (LP: #670403) 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 14 Feb 2011 22:17:37 -0500
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 15 Feb 2011 17:39:02 +0100
 
 software-center (3.1.17.1) natty; urgency=low
 
