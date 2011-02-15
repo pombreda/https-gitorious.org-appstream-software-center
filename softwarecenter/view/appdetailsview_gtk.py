@@ -1293,13 +1293,15 @@ class Review(gtk.VBox):
         no_like.set_underline(True)
         yes_like.set_subdued(True)
         no_like.set_subdued(True)
-        
-        self.footer.pack_start(useful, False)
-        self.footer.pack_start(yes_like, False)
-        self.footer.pack_start(no_like, False)
-        #connect signals
-        yes_like.connect('clicked', self._on_useful_clicked, True)
-        no_like.connect('clicked', self._on_useful_clicked, False)
+
+        # FIXME: Uncomment the following to re-enable the reviews usefulness feature
+        #        (currently waiting for server support for this feature)        
+#        self.footer.pack_start(useful, False)
+#        self.footer.pack_start(yes_like, False)
+#        self.footer.pack_start(no_like, False)
+#        #connect signals
+#        yes_like.connect('clicked', self._on_useful_clicked, True)
+#        no_like.connect('clicked', self._on_useful_clicked, False)
 
         # Translators: This link is for flagging a review as inappropriate.
         # To minimize repetition, if at all possible, keep it to a single word.
