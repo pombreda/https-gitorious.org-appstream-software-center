@@ -1,7 +1,8 @@
-software-center (3.1.18) UNRELEASED; urgency=low
+software-center (3.1.18) natty; urgency=low
 
   [ Michael Vogt ]
-  * added "Was this review useful" feature
+  * added "Was this review useful" feature (currently hidden
+    pending rollout of server support)
   * added "Offline cache for reviews" feature 
     (needs latest python-piston-mini-client to work)
   * debian/control:
@@ -19,7 +20,17 @@ software-center (3.1.18) UNRELEASED; urgency=low
     - play nicely if we click on an app before the cache is ready (LP: #691321)
     - minor grammar tweak for Dylan McCall (LP: #717410)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 11 Feb 2011 15:40:03 +0100
+  [ Gary Lasker ]
+  * softwarecenter/enums.py,
+    softwarecenter/utils.py,
+    softwarecenter/models/viewswitcherlist.py,
+    softwarecenter/view/pendingview.py:
+    - generalize get_icon_from_iconname method, wire it up
+    - fix crash if an icon can't be found (LP: #716111)
+    - try a different, subjectively better-suited icon for the history item
+      (one that is also included in gnome-icon-theme)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 15 Feb 2011 17:39:02 +0100
 
 software-center (3.1.17.1) natty; urgency=low
 
