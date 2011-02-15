@@ -1099,6 +1099,150 @@ class LayoutView(FramedSection):
         return
 
 
+class Button(gtk.EventBox):
+
+    __gsignals__ = {
+        "clicked" : (gobject.SIGNAL_RUN_LAST,
+                     gobject.TYPE_NONE, 
+                     (),)
+        }
+
+    def __init__(self):
+        gtk.EventBox.__init__(self)
+        self.set_visible_window(False)
+
+        self.set_flags(gtk.CAN_FOCUS)
+        self.set_events(gtk.gdk.BUTTON_PRESS_MASK|
+                        gtk.gdk.BUTTON_RELEASE_MASK|
+                        gtk.gdk.KEY_RELEASE_MASK|
+                        gtk.gdk.KEY_PRESS_MASK|
+                        gtk.gdk.ENTER_NOTIFY_MASK|
+                        gtk.gdk.LEAVE_NOTIFY_MASK)
+
+        self._button_press_origin = None
+        self._cursor = gtk.gdk.Cursor(cursor_type=gtk.gdk.HAND2)
+
+        self.connect("button-press-event", self._on_button_press)
+        self.connect("button-release-event", self._on_button_release)
+        self.connect('enter-notify-event', self._on_enter)
+        self.connect('leave-notify-event', self._on_leave)
+        return
+
+    def _on_button_press(self, btn, event):
+        if event.button != 1: return
+        self._button_press_origin = btn
+        self.set_state(gtk.STATE_ACTIVE)
+
+        if hasattr(self, 'label_list'):
+            for v in self.label_list:
+                l = getattr(self, v)
+                self._label_colorise_active(l)
+        return
+
+    def _on_button_release(self, btn, event):
+
+        def clicked(w):
+            w.emit('clicked')
+
+        if event.button != 1:
+            self.queue_draw()
+            return
+
+        region = gtk.gdk.region_rectangle(self.allocation)
+        if not region.point_in(*self.window.get_pointer()[:2]):
+            self._button_press_origin = None
+            self.set_state(gtk.STATE_NORMAL)
+            return
+
+        self._button_press_origin = None
+        self.set_state(gtk.STATE_PRELIGHT)
+
+        if hasattr(self, 'label_list'):
+            for v in self.label_list:
+                l = getattr(self, v)
+                self._label_colorise_normal(l)
+
+        gobject.timeout_add(50, clicked, btn)
+        return
+
+    def _on_enter(self, btn, event):
+        if self == self._button_press_origin:
+            self.set_state(gtk.STATE_ACTIVE)
+        else:
+            self.set_state(gtk.STATE_PRELIGHT)
+
+        self.window.set_cursor(self._cursor)
+        return
+
+    def _on_leave(self, btn, event):
+        self.set_state(gtk.STATE_NORMAL)
+        self.window.set_cursor(None)
+        return
+
+    def _label_colorise_active(self, label):
+        c = self.style.base[gtk.STATE_SELECTED]
+
+        attr = pango.AttrForeground(c.red,
+                                    c.green,
+                                    c.blue,
+                                    0, -1)
+
+        layout = label.get_layout()
+        attrs = layout.get_attributes()
+
+        if not attrs:
+            attrs = pango.AttrList()
+
+        attrs.change(attr)
+        layout.set_attributes(attrs)
+        return
+
+    def _label_colorise_normal(self, label):
+        if self.state == gtk.STATE_PRELIGHT or \
+            self.has_focus():
+            if hasattr(label, 'is_subtle') and label.is_subtle:
+                c = self.style.dark[self.state]
+            else:
+                c = self.style.text[self.state]
+        else:
+            c = self.style.dark[self.state]
+
+        attr = pango.AttrForeground(c.red,
+                                    c.green,
+                                    c.blue,
+                                    0, -1)
+
+        layout = label.get_layout()
+        attrs = layout.get_attributes()
+
+        if not attrs:
+            attrs = pango.AttrList()
+
+        attrs.change(attr)
+        layout.set_attributes(attrs)
+        return
+
+
+class LinkButtonLight(Button):
+
+    def __init__(self):
+        Button.__init__(self)
+        self.label = EtchedLabel()
+        self.add(self.label)
+        self.show_all()
+
+        self.label_list = ('label',)
+        return
+
+    def set_label(self, label):
+        self.label.set_markup('<u>%s</u>' % label)
+        return
+
+    def draw(self, *args):
+        return
+
+
+
 class LinkButton(gtk.EventBox):
 
     """ A minimal LinkButton type widget """
