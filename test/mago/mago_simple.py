@@ -73,7 +73,8 @@ class TestSoftwareCenter(TestCase):
         text = context.getcellvalue(self.availablePaneAppView, row, column)
         self.assertEqual(text, "\nInstalled\nAdvanced front-end for dpkg")
 
-    def test_search_scroll_down_hang(self):
+    # disabled for now as it takes a long time to run
+    def _diabled_for_now_test_search_scroll_down_hang(self):
         context = ooldtp.context(self.window_name)
         ldtp.wait(2)
         context.enterstring(self.availablePaneSearchEntry, "a")

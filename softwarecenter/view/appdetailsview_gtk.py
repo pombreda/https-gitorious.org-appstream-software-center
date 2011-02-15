@@ -30,7 +30,7 @@ import subprocess
 import sys
 import cairo
 
-from softwarecenter.netstatus import NetState, get_network_state, get_network_watcher
+from softwarecenter.netstatus import NetState, get_network_state, network_state_is_connected, get_network_watcher
 
 from PIL import Image
 from gettext import gettext as _
@@ -992,6 +992,9 @@ class Reviews(gtk.VBox):
         'report-abuse':(gobject.SIGNAL_RUN_FIRST,
                     gobject.TYPE_NONE,
                     (gobject.TYPE_PYOBJECT,)),
+        'submit-usefulness':(gobject.SIGNAL_RUN_FIRST,
+                    gobject.TYPE_NONE,
+                    (gobject.TYPE_PYOBJECT, bool)),
     }
 
     def __init__(self, parent):
@@ -1111,6 +1114,9 @@ class Reviews(gtk.VBox):
             r.body.set_size_request(w, -1)
         return
 
+    def add_embedded_message(self, m):
+        self.vbox.pack_start(m)
+
     def add_review(self, review):
         self.reviews.append(review)
         self._update = True
@@ -1142,11 +1148,12 @@ class Review(gtk.VBox):
 
         self.header = gtk.HBox(spacing=mkit.SPACING_MED)
         self.body = gtk.VBox()
+        self.footer_split = gtk.VBox()
         self.footer = gtk.HBox()
 
         self.pack_start(self.header, False)
         self.pack_start(self.body, False)
-        self.pack_start(self.footer, False)
+        self.pack_start(self.footer_split, False)
         
         self.logged_in_person = logged_in_person
         self.person = None
@@ -1169,6 +1176,9 @@ class Review(gtk.VBox):
         app_name = review_data.app_name
         # some older version of the server do not set the version
         review_version = getattr(review_data, "version", "")
+        # old versions of the server do not expose usefulness
+        useful_total = getattr(review_data, "usefulness_total", 0)
+        useful_favorable = getattr(review_data, "usefulness_favorable", 0)
 
         self._build(rating,
                     self.person,
@@ -1177,7 +1187,9 @@ class Review(gtk.VBox):
                     date,
                     app_name,
                     review_version,
-                    app_version)
+                    app_version,
+                    useful_total,
+                    useful_favorable)
         return
 
     def _on_allocate(self, widget, allocation, stars, summary, who_when, version_lbl, flag):
@@ -1196,12 +1208,17 @@ class Review(gtk.VBox):
         reviews = self.get_ancestor(Reviews)
         if reviews:
             reviews.emit("report-abuse", self.id)
+    
+    def _on_useful_clicked(self, btn, is_useful):
+        reviews = self.get_ancestor(Reviews)
+        if reviews:
+            reviews.emit("submit-usefulness", self.id, is_useful)
 
     def _get_datetime_from_review_date(self, raw_date):
         # example raw_date str format: 2011-01-28 19:15:21
         return datetime.datetime.strptime(raw_date, '%Y-%m-%d %H:%M:%S')
     
-    def _build(self, rating, person, summary, text, date, app_name, review_version, app_version):
+    def _build(self, rating, person, summary, text, date, app_name, review_version, app_version, useful_total, useful_favorable):
         # all the arguments may need markup escape, depening on if
         # they are used as text or markup
 
@@ -1246,17 +1263,51 @@ class Review(gtk.VBox):
             version_lbl.set_padding(0,3)
             version_lbl.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
             version_lbl.set_alignment(0, 0.5)
-            self.footer.pack_start(version_lbl, False)
+            self.footer_split.pack_start(version_lbl, False)
+            
+        self.footer_split.pack_start(self.footer, False)
         
-        #like = mkit.VLinkButton('<small>%s</small>' % _('This review was useful'))
-        #like.set_underline(True)
-        #self.footer.pack_start(like, False)
+        #if no usefulness has been submitted, simply ask if
+        # user found it useful (i.e. don't say 0 out of 0 found this...)
+        if useful_total == 0:
+            useful = gtk.Label('<small>%s</small>' % \
+                               _("Did you find this review useful?"))
+        else:
+            s = gettext.ngettext(
+                "%(useful_favorable)s out of %(useful_total)s person "
+                "found this review useful. Did you?",
+                "%(useful_favorable)s out of %(useful_total)s people "
+                "found this review useful. Did you?",
+                useful_total) % { 'useful_total' : useful_total,
+                                  'useful_favorable' : useful_favorable,
+                                }
+            useful = gtk.Label('<small>%s </small>' % s)
+        
+        useful.set_use_markup(True)
+        #vertically centre so it lines up with the Yes and No buttons
+        useful.set_alignment(0, 0.5)
+        
+        yes_like = mkit.VLinkButton('<small>Yes</small>')
+        no_like = mkit.VLinkButton('<small>No</small>')
+        yes_like.set_underline(True)
+        no_like.set_underline(True)
+        yes_like.set_subdued(True)
+        no_like.set_subdued(True)
+        
+        self.footer.pack_start(useful, False)
+        self.footer.pack_start(yes_like, False)
+        self.footer.pack_start(no_like, False)
+        #connect signals
+        yes_like.connect('clicked', self._on_useful_clicked, True)
+        no_like.connect('clicked', self._on_useful_clicked, False)
 
         # Translators: This link is for flagging a review as inappropriate.
         # To minimize repetition, if at all possible, keep it to a single word.
         # If your language has an obvious verb, it won't need a question mark.
         self.complain = mkit.VLinkButton('<small>%s</small>' % _('Inappropriate?'))
+        self.complain.set_subdued(True)
         self.complain.set_underline(True)
+        self.complain.set_sensitive(network_state_is_connected())
         self.footer.pack_end(self.complain, False)
         self.complain.connect('clicked', self._on_report_abuse_clicked)
 
@@ -1485,11 +1536,12 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.loaded = True
         return
 
+    # review display releated stuff
     def _on_net_state_changed(self, watcher, state):
         if state == NetState.NM_STATE_DISCONNECTED:
-            self._update_reviews_inactive_network()
+            self._check_for_reviews()
         elif state == NetState.NM_STATE_CONNECTED:
-            gobject.timeout_add(500, self._update_reviews_active_network)
+            gobject.timeout_add(500, self._check_for_reviews)
         return
 
     def _check_for_reviews(self):
@@ -1521,6 +1573,15 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             return
         # clear out the old ones ...
         self.reviews.clear()
+
+        # add network message if needed
+        if not network_state_is_connected():
+            s = '<big><b>%s</b></big>\n%s' % (
+                _('No Network Connection'),
+                _('Only cached reviews can be displayed'))
+            m = EmbeddedMessage(s, 'network-offline')
+            self.reviews.add_embedded_message(m)
+            
         # then add the new ones ...
         for review in reviews:
             self.reviews.add_review(review)
@@ -1802,6 +1863,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.reviews = Reviews(self)
         self.reviews.connect("new-review", self._on_review_new)
         self.reviews.connect("report-abuse", self._on_review_report_abuse)
+        self.reviews.connect("submit-usefulness", self._on_review_submit_usefulness)
         self.main_frame.body.pack_start(self.reviews)
         return
 
@@ -1820,6 +1882,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
     def _on_review_new(self, button):
         self._review_write_new()
 
+    def _on_review_submit_usefulness(self, button, review_id, is_useful):
+        self._review_submit_usefulness(review_id, is_useful)
+    
     def _on_review_report_abuse(self, button, review_id):
         self._review_report_abuse(str(review_id))
 
@@ -1950,43 +2015,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
     def _update_reviews(self, app_details):
         self.reviews.clear()
-
-    def _update_reviews_inactive_network(self):
-        if self.reviews.get_reviews():
-            msg_exists = False
-            for r in self.reviews.vbox:
-                if isinstance(r, EmbeddedMessage):
-                    msg_exists = True
-                elif hasattr(r, 'complain'):
-                    r.complain.set_sensitive(False)
-            if not msg_exists:
-                s = '<big><b>%s</b></big>\n%s' % ('No Network Connection',
-                                                  'Only cached reviews can be displayed')
-                m = EmbeddedMessage(s, 'network-offline')
-
-                self.reviews.vbox.pack_start(m)
-                self.reviews.vbox.reorder_child(m, 0)
-        else:
-            self.reviews.clear()
-            s = '<big><b>%s</b></big>\n%s' % ('No Network Connection',
-                                              'Unable to download application reviews')
-            m = EmbeddedMessage(s, 'network-offline')
-            self.reviews.vbox.pack_start(m)
-
-        self.reviews.new_review.set_sensitive(False)
-        return
-
-    def _update_reviews_active_network(self):
-        for r in self.reviews.vbox:
-            if isinstance(r, (EmbeddedMessage, NoReviewYet)):
-                r.destroy()
-            if hasattr(r, 'complain'):
-                r.complain.set_sensitive(True)
-
-        if not self.reviews.get_reviews():
-            self._check_for_reviews()
-
-        self.reviews.new_review.set_sensitive(True)
+        self._check_for_reviews()
         return
 
     def _update_all(self, app_details):
@@ -2009,7 +2038,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self._update_app_screenshot(app_details)
         self._update_pkg_info_table(app_details)
         self._update_addons(app_details)
-#        self._update_reviews(app_details)
+        self._update_reviews(app_details)
 
         # depending on pkg install state set action labels
         self.pkg_statusbar.configure(app_details, app_details.pkg_state)
@@ -2019,13 +2048,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         # async query zeitgeist and rnr
         self.get_usage_counter()
-
-        self.reviews.clear()
-        if get_network_state() == NetState.NM_STATE_DISCONNECTED:
-            self._update_reviews_inactive_network()
-        else:
-            self._update_reviews_active_network()
-        return
 
     def _update_minimal(self, app_details):
         pkg_ambiguous_error = app_details.pkg_state in (PKG_STATE_NOT_FOUND, PKG_STATE_NEEDS_SOURCE)
@@ -2073,7 +2095,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             pkgname = self.app_details.pkgname
             for p in [self.app_details.desktop_file,
                       "/usr/share/applications/%s.desktop" % pkgname]:
-                if os.path.exists(p):
+                if p and os.path.exists(p):
                     desktop_file = p
                     break
             where = searcher.get_main_menu_path(desktop_file)

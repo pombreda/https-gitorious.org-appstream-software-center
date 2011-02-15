@@ -105,8 +105,8 @@ h1 {
     def init_view(self):
         if self.wk is None:
             self.wk = ScrolledWebkitWindow()
-            self.wk.webkit.connect("create-web-view", 
-                                   self._on_create_webview_request)
+            self.wk.webkit.connect("new-window-policy-decision-requested", 
+                                   self._on_new_window)
             # a possible way to do IPC (script or title change)
             self.wk.webkit.connect("script-alert", self._on_script_alert)
             self.wk.webkit.connect("title-changed", self._on_title_changed)
@@ -134,18 +134,11 @@ h1 {
         if os.environ.get("SOFTWARE_CENTER_DEBUG_BUY"):
             glib.timeout_add_seconds(1, _generate_events, self)
         
-    def _on_create_webview_request(self, view, frame, parent=None):
-        LOG.debug("_on_create_webview_request")
-        popup = gtk.Dialog()
-        popup.set_size_request(750,400)
-        popup.set_title("")
-        popup.set_modal(True)
-        popup.set_transient_for(None)
-        wk = ScrolledWebkitWindow()
-        wk.show()
-        popup.vbox.pack_start(wk)
-        popup.show()
-        return wk.webkit
+    def _on_new_window(self, view, frame, request, action, policy):
+        LOG.debug("_on_new_window")
+        import subprocess
+        subprocess.Popen(['xdg-open', request.get_uri()])
+        return True
 
     def _on_script_alert(self, view, frame, message):
         self._process_json(message)
