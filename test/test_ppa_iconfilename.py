@@ -14,9 +14,12 @@ from softwarecenter.distro.Ubuntu import Ubuntu
 class MockCache(object):
     def __init__(self, mock_base_url):
         self._baseurl = mock_base_url
-    
+        self._cache = []
+        self.ready = True
     def __getitem__(self, k):
         return MockPackage(self, k)
+    def __contains__(self, k):
+        return True
 
 class MockPackage(object):
     def __init__(self, parent, pkgname):
