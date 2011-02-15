@@ -236,7 +236,11 @@ class ReviewLoader(object):
                         break
         elif os.WEXITSTATUS(status) == 2:
             LOG.debug("submit usefulness failed%s" % review_id)
-            callback(app, self._reviews[app], 2, review_id)
+            for (app, reviews) in self._reviews.iteritems():
+                for review in reviews:
+                    if str(review.id) == str(review_id):
+                        callback(app, self._reviews[app], 2, review_id)
+                        break
 
 
 # using multiprocessing here because threading interface was terrible
