@@ -1101,7 +1101,7 @@ class Reviews(gtk.VBox):
 
             for r in self.reviews:
                 pkgversion = self._parent.app_details.version
-                review = Review(r, pkgversion, self.logged_in_person, self._parent.datadir, self._usefulness_error_id)
+                review = Review(r, pkgversion, self.logged_in_person, self._usefulness_error_id)
                 self.vbox.pack_start(review, padding=mkit.SPACING_LARGE)
         elif get_network_state() == NetState.NM_STATE_CONNECTED:
             self.vbox.pack_start(NoReviewYet(), padding=mkit.SPACING_LARGE)
@@ -1177,7 +1177,7 @@ class Reviews(gtk.VBox):
 
 class Review(gtk.VBox):
     
-    def __init__(self, review_data=None, app_version=None, logged_in_person=None, datadir=None, error_id=0):
+    def __init__(self, review_data=None, app_version=None, logged_in_person=None, error_id=0):
         gtk.VBox.__init__(self, spacing=mkit.SPACING_MED)
 
         self.header = gtk.HBox(spacing=mkit.SPACING_MED)
@@ -1204,8 +1204,6 @@ class Review(gtk.VBox):
         
         self.logged_in_person = logged_in_person
         self.person = None
-        
-        self.datadir = datadir
 
         if review_data:
             self.connect('realize',
