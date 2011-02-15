@@ -689,17 +689,6 @@ class CarouselView(mkit.FramedSection):
         self.start()
         return
 
-    #def _cache_overlay_image(self, overlay_icon_name, overlay_size=16):
-        #icons = gtk.icon_theme_get_default()
-        #try:
-            #self._overlay = icons.load_icon(overlay_icon_name,
-                                            #overlay_size, 0)
-        #except glib.GError:
-            ## icon not present in theme, probably because running uninstalled
-            #self._overlay = icons.load_icon('emblem-system',
-                                            #overlay_size, 0)
-        #return
-
     def _build_view(self, width):
         if not self.carousel_apps or len(self.carousel_apps) == 0:
             return
