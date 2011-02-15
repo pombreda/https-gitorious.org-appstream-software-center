@@ -140,7 +140,7 @@ class PendingStore(gtk.ListStore, TransactionsWatcher):
         try:
             iconname = trans.meta_data["sc_iconname"]
         except KeyError:
-            icon = icon = get_icon_from_iconname(self.icons, iconsize=self.ICON_SIZE)
+            icon = get_icon_from_iconname(self.icons, iconsize=self.ICON_SIZE)
         else:
             icon = get_icon_from_iconname(self.icons, iconname=iconname, iconsize=self.ICON_SIZE)
         if trans.status == STATUS_WAITING_LOCK:
