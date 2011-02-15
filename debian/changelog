@@ -1,4 +1,4 @@
-software-center (3.1.18) UNRELEASED; urgency=low
+software-center (3.1.18) natty; urgency=low
 
   [ Michael Vogt ]
   * added "Was this review useful" feature (currently hidden
@@ -30,7 +30,7 @@ software-center (3.1.18) UNRELEASED; urgency=low
     - try a different, subjectively better-suited icon for the history item
       (one that is also included in gnome-icon-theme)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Tue, 15 Feb 2011 11:18:43 -0500
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 15 Feb 2011 17:39:02 +0100
 
 software-center (3.1.17.1) natty; urgency=low
 
