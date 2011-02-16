@@ -451,10 +451,10 @@ class SoftwareChannel(object):
         return channel_query
 
     def _get_icon(self, icon_name):
-        return AnimatedImage(get_icon_from_iconname(self.icons, 
-                                                    iconname=icon_name, 
-                                                    iconsize=self.ICON_SIZE,
-                                                    missingicon=GENERIC_MISSING_IMAGE))
+        return AnimatedImage(get_icon_from_theme(self.icons, 
+                                                 iconname=icon_name, 
+                                                 iconsize=self.ICON_SIZE,
+                                                 missingicon=GENERIC_MISSING_IMAGE))
         
     def __str__(self):
         details = []

@@ -279,7 +279,7 @@ def is_unity_running():
         LOG.exception("could not check for Unity dbus service")
     return unity_running
     
-def get_icon_from_iconname(icons, iconname=None, iconsize=APP_ICON_SIZE, missingicon=MISSING_APP_ICON):
+def get_icon_from_theme(icons, iconname=None, iconsize=APP_ICON_SIZE, missingicon=MISSING_APP_ICON):
     """
     return the icon in the theme that corresponds to the given iconname
     """    

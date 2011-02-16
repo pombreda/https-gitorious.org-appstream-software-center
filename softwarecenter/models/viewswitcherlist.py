@@ -28,7 +28,7 @@ from softwarecenter.backend.channel import ChannelsManager
 from softwarecenter.backend import get_install_backend
 from softwarecenter.distro import get_distro
 from softwarecenter.enums import *
-from softwarecenter.utils import wait_for_apt_cache_ready, get_icon_from_iconname
+from softwarecenter.utils import wait_for_apt_cache_ready, get_icon_from_theme
 
 from softwarecenter.view.widgets.animatedimage import CellRendererAnimatedImage, AnimatedImage
 
@@ -79,10 +79,10 @@ class ViewSwitcherList(gtk.TreeStore):
         self.available_iter = self.append(None, [available_icon, _("Get Software"), VIEW_PAGE_AVAILABLE, None, None])
 
         # the installedpane items
-        icon = AnimatedImage(get_icon_from_iconname(self.icons, 
-                                                    iconname="computer", 
-                                                    iconsize=self.ICON_SIZE,
-                                                    missingicon=GENERIC_MISSING_IMAGE))
+        icon = AnimatedImage(get_icon_from_theme(self.icons, 
+                                                 iconname="computer", 
+                                                 iconsize=self.ICON_SIZE,
+                                                 missingicon=GENERIC_MISSING_IMAGE))
         self.installed_iter = self.append(None, [icon, _("Installed Software"), VIEW_PAGE_INSTALLED, None, None])
         
         # the channelpane 
@@ -156,10 +156,10 @@ class ViewSwitcherList(gtk.TreeStore):
         return channel_iter_for_name
                     
     def _get_icon(self, icon_name):
-        return AnimatedImage(get_icon_from_iconname(self.icons, 
-                                                    iconname=icon_name, 
-                                                    iconsize=self.ICON_SIZE,
-                                                    missingicon=GENERIC_MISSING_IMAGE))
+        return AnimatedImage(get_icon_from_theme(self.icons, 
+                                                 iconname=icon_name, 
+                                                 iconsize=self.ICON_SIZE,
+                                                 missingicon=GENERIC_MISSING_IMAGE))
 
     @wait_for_apt_cache_ready
     def _update_channel_list(self):
