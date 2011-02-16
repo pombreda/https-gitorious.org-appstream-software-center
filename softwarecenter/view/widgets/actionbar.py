@@ -43,6 +43,7 @@ class ActionBar(gtk.HBox):
         super(ActionBar, self).__init__()
         self._btns = gtk.HBox()
         self._label = gtk.HBox()
+        self._label.set_border_width(4)
         # So that all buttons children right align
         self._btn_bin = gtk.Alignment(xalign=1)
         self._btn_bin.add(self._btns)
@@ -70,6 +71,7 @@ class ActionBar(gtk.HBox):
         if overwrite:
             self._btns.remove(overwrite)
         btn = HLinkButton(label)
+        btn.set_border_width(4)
         btn.set_underline(True)
         btn.connect("clicked", self._callback(result, result_args))
         btn.id = id
@@ -91,7 +93,7 @@ class ActionBar(gtk.HBox):
 
     def set_label(self, text, link_result=None, *link_result_args):
         """
-        Places a string on the right and shows the actionbar.
+        Places a string on the left and shows the actionbar.
         Note the "_" symbol acts to delimit sections treated as a link.
         For example, in text="Lorem _ ipsum_ dolor _sit amat", clicking
         the section " ipsum" or "sit amat" will trigger the link_result.

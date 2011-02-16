@@ -162,6 +162,10 @@ class InstalledPane(SoftwarePane):
     def is_applist_view_showing(self):
         """Return True if we are in the applist view """
         return self.notebook.get_current_page() == self.PAGE_APPLIST
+        
+    def is_app_details_view_showing(self):
+        """Return True if we are in the app_details view """
+        return self.notebook.get_current_page() == self.PAGE_APP_DETAILS
 
     def show_app(self, app):
         """ Display an application in the installed_pane """

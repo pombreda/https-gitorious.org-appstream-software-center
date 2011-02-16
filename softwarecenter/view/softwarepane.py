@@ -41,7 +41,7 @@ from softwarecenter.backend import get_install_backend
 from softwarecenter.enums import *
 from softwarecenter.paths import *
 from softwarecenter.view.basepane import BasePane
-from softwarecenter.utils import wait_for_apt_cache_ready, ExecutionTime
+from softwarecenter.utils import *
 
 from appview import AppView, AppStore
 from purchaseview import PurchaseView
@@ -231,6 +231,9 @@ class SoftwarePane(gtk.VBox, BasePane):
         # when the cache changes, refresh the app list
         self.cache.connect("cache-ready", self.on_cache_ready)
         
+        # aptdaemon
+        self.backend.connect("transaction-started", self.on_transaction_started)
+        
         # connect signals
         self.searchentry.connect("terms-changed", self.on_search_terms_changed)
         self.connect("app-list-changed", self.on_app_list_changed)
@@ -311,12 +314,87 @@ class SoftwarePane(gtk.VBox, BasePane):
     def on_purchase_cancelled_by_user(self, widget):
         # return to the the appdetails view via the button to reset it
         self._click_appdetails_view()
-            
+        
     def _click_appdetails_view(self):
         details_button = self.navigation_bar.get_button_from_id(NAV_BUTTON_ID_DETAILS)
         if details_button:
             self.navigation_bar.set_active(details_button)
-                                       
+        
+    def on_transaction_started(self, backend, pkgname, appname, trans_id, trans_type):
+        self.show_add_to_launcher_panel(backend, pkgname, appname, trans_id, trans_type)
+        
+    def show_add_to_launcher_panel(self, backend, pkgname, appname, trans_id, trans_type):
+        """
+        if Unity is currently running, display a panel to allow the user
+        the choose whether to add a newly-installed application to the
+        launcher
+        """
+        # TODO: handle local deb install case
+        # TODO: handle apps in PPAs and in extras.ubuntu.com
+        # TODO: implement the list view case (once it is specified)
+        # only show the panel if unity is running and this is a package install
+        if (not is_unity_running() or
+            not trans_type == TRANSACTION_TYPE_INSTALL or
+            not self.is_app_details_view_showing()):
+            return
+        app = Application(pkgname=pkgname, appname=appname)
+        appdetails = app.get_details(self.db)
+        # we only show the prompt for apps with a desktop file
+        if not appdetails.desktop_file:
+            return
+        self.action_bar.set_label(_("Add %s to the launcher?" % app.name))
+        self.action_bar.add_button(ACTION_BUTTON_CANCEL_ADD_TO_LAUNCHER,
+                                    _("Not Now"), 
+                                    self.on_cancel_add_to_launcher, 
+                                    None)
+        self.action_bar.add_button(ACTION_BUTTON_ADD_TO_LAUNCHER,
+                                   _("Add to Launcher"),
+                                   self.on_add_to_launcher,
+                                   app,
+                                   appdetails,
+                                   trans_id)        
+        
+    def on_add_to_launcher(self, app, appdetails, trans_id):
+        """
+        callback indicating the user has chosen to add the indicated application
+        to the launcher
+        """
+        (icon_name, icon_file_path, icon_size, icon_x, icon_y) = self._get_icon_details_for_launcher_service(app)
+        print "values for use in the unity launcher dbus call:"
+        # print "   (icon_name): ", icon_name
+        print "   app.name: ", app.name
+        print "   icon_file_path: ", icon_file_path
+        print "   icon_x: ", icon_x
+        print "   icon_y: ", icon_y
+        print "   icon_size: ", icon_size
+        print "   appdetails.desktop_file: ", appdetails.desktop_file
+        print "   trans_id: ", trans_id
+        try:
+            bus = dbus.SessionBus()
+            launcher_obj = bus.get_object('com.canonical.Unity.Launcher', '/com/canonical/Unity/Launcher')
+            launcher_iface = dbus.Interface(launcher_obj, 'com.canonical.Unity.Launcher')
+            launcher_iface.AddLauncherItemFromPosition(app.name,
+                                                       icon_file_path,
+                                                       icon_x,
+                                                       icon_y,
+                                                       icon_size,
+                                                       appdetails.desktop_file,
+                                                       trans_id)
+        except Exception, e:
+            LOG.warn("could not connect to launcher via dbus (%s)", e)
+        
+        self.action_bar.clear()
+
+    def _get_icon_details_for_launcher_service(self, app):
+        if self.is_app_details_view_showing():
+            return self.app_details_view.get_app_icon_details()
+        elif self.is_applist_view_showing():
+            # TODO: implement the app list view case once it has been specified
+            return ("", "", None, None, None)
+                                              
+    def on_cancel_add_to_launcher(self, args):
+        self.action_bar.clear()
+                                               
     def show_appview_spinner(self):
         """ display the spinner in the appview panel """
         self.action_bar.clear()
@@ -558,6 +636,11 @@ class SoftwarePane(gtk.VBox, BasePane):
         
     def is_applist_view_showing(self):
         " stub implementation "
+        pass
+        
+    def is_app_details_view_showing(self):
+        " stub implementation "
+        pass
         
     def get_current_app(self):
         " stub implementation "

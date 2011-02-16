@@ -1018,7 +1018,7 @@ class AppView(gtk.TreeView):
             if btn.point_in(int(x), int(y)):
                 self.window.set_cursor(cursor)
 
-    def _on_transaction_started(self, backend, pkgname, tr):
+    def _on_transaction_started(self, backend, pkgname, appname, trans_id, trans_type, tr):
         """ callback when an application install/remove transaction has started """
         action_btn = tr.get_button_by_name('action0')
         if action_btn:

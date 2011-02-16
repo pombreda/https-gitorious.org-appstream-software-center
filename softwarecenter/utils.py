@@ -291,8 +291,24 @@ def get_icon_from_theme(icons, iconname=None, iconsize=APP_ICON_SIZE, missingico
         LOG.warning("could not load icon '%s', displaying missing icon instead: %s " % (iconname, e))
         icon = icons.load_icon(missingicon, iconsize, 0)
     return icon
-
-# FIXME: why not call it a generic downloader?
+    
+def get_icon_file_path_from_iconname(icons, iconname=None, iconsize=APP_ICON_SIZE):
+    """
+    return the file path of the icon in the theme that corresponds to the
+    given iconname, or None if it cannot be determined
+    """
+    if (not iconname or
+        not icons.has_icon(iconname)):
+        iconname = MISSING_APP_ICON
+    try:
+        icon_info = icons.lookup_icon(iconname, iconsize, 0)
+    except Exception:
+        icon_info = icons.lookup_icon(MISSING_APP_ICON, iconsize, 0)
+    if icon_info is not None:
+        icon_file_path = icon_info.get_filename()
+        icon_info.free()
+        return icon_file_path
+    
 class SimpleFileDownloader(gobject.GObject):
 
     LOG = logging.getLogger("softwarecenter.imagedownloader")

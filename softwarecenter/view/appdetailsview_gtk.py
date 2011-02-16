@@ -40,7 +40,7 @@ from softwarecenter.db.reviews import ReviewStats
 from softwarecenter.backend.zeitgeist_simple import zeitgeist_singleton
 from softwarecenter.enums import *
 from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR, INSTALLED_ICON, IMAGE_LOADING_INSTALLED
-from softwarecenter.utils import SimpleFileDownloader, GMenuSearcher, uri_to_filename, is_unity_running, upstream_version_compare, upstream_version, get_nice_date_string
+from softwarecenter.utils import *
 from softwarecenter.gwibber_helper import GWIBBER_SERVICE_AVAILABLE
 
 from appdetailsview import AppDetailsViewBase
@@ -2363,7 +2363,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         return False
 
-    def _on_transaction_started(self, backend, pkgname):
+    def _on_transaction_started(self, backend, pkgname, appname, trans_id, trans_type):
         if self.addons_statusbar.applying:
             self.pkg_statusbar.configure(self.app_details, APP_ACTION_APPLY)
             return
@@ -2452,20 +2452,47 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         #cr.restore()
         #return
 
-    def _get_xy_icon_position_on_screen(self):
+    def get_app_icon_details(self):
+        """ helper for unity dbus support to provide details about the application
+            icon as it is displayed on-screen
+        """
+        icon_name = self.appdetails.icon
+        if self.appdetails.icon_needs_download:
+            icon_file = self.appdetails.cached_icon_file_path
+        icon_size = self._get_app_icon_size_on_screen()
+        icon_file_path = get_icon_file_path_from_iconname(self.icons,
+                                                          iconsize=icon_size,
+                                                          iconname=icon_name)
+        (icon_x, icon_y) = self._get_app_icon_xy_position_on_screen()
+        return (icon_name, icon_file_path, icon_size, icon_x, icon_y)
+        
+    def _get_app_icon_size_on_screen(self):
+        """ helper for unity dbus support to get the size of the maximum side
+            for the application icon as it is displayed on-screen
+        """
+        icon_size = self.APP_ICON_SIZE
+        if self.main_frame.image.get_storage_type() == gtk.IMAGE_PIXBUF:
+            pb = self.main_frame.image.get_pixbuf()
+            if pb.get_width() > pb.get_height():
+                icon_size = pb.get_width()
+            else:
+                icon_size = pb.get_height()
+        return icon_size
+                
+    def _get_app_icon_xy_position_on_screen(self):
         """ helper for unity dbus support to get the x,y position of
-            the appicon on the screen
+            the application icon as it is displayed on-screen
         """
         # find toplevel parent
         parent = self
         while parent.get_parent():
             parent = parent.get_parent()
         # get x, y relative to toplevel
-        (x,y) = self.app_info.image.translate_coordinates(parent, 0, 0)
+        (x,y) = self.main_frame.image.translate_coordinates(parent, 0, 0)
         # get toplevel window position
         (px, py) = parent.get_position()
         return (px+x, py+y)
-
+        
     def _draw_icon_frame(self, cr):
         # draw small or no icon background
         a = self.main_frame.image.allocation
@@ -2506,10 +2533,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                     pb = gtk.gdk.pixbuf_new_from_file(image_file_path)
                     self.main_frame.set_icon_from_pixbuf(pb)
                     
-                icon_file_path = os.path.join(SOFTWARE_CENTER_ICON_CACHE_DIR, app_details.icon_file_name)
                 image_downloader = SimpleFileDownloader()
                 image_downloader.connect('image-download-complete', on_image_download_complete)
-                image_downloader.download_image(app_details.icon_url, icon_file_path)
+                image_downloader.download_image(app_details.icon_url, appdetails.cached_icon_file_path)
         return self.icons.load_icon(MISSING_APP_ICON, 84, 0)
     
     def update_totalsize(self, hide=False):
@@ -2691,7 +2717,7 @@ if __name__ == "__main__":
     win = gtk.Window()
     scroll.add(view)
     win.add(scroll)
-    win.set_size_request(600,400)
+    win.set_size_request(800,600)
     win.show_all()
 
     # keep it spinning to test for re-draw issues and memleaks
