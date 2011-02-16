@@ -1,10 +1,13 @@
 software-center (3.1.19) UNRELEASED; urgency=low
 
   * softwarecenter/enums.py,
-    softwarecenter/backend/channel.py:
+    softwarecenter/utils.py,
+    softwarecenter/backend/channel.py,
+    softwarecenter/models/viewswitcherlist.py,
+    softwarecenter/view/pendingview.py:
     - more icon crash fixes (LP: #719662)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Tue, 15 Feb 2011 19:24:28 -0500
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 15 Feb 2011 21:57:58 -0500
 
 software-center (3.1.18) natty; urgency=low
 
