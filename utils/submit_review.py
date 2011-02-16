@@ -1149,5 +1149,26 @@ if __name__ == "__main__":
                                          is_useful=int(options.is_useful))
         usefulness_app.run()
 
+    if "modify_review" in sys.argv[0]:
+        parser.add_option("", "--review-id")
+        parser.add_option("", "--parent-xid")
+        parser.add_option("", "--debug",
+                          action="store_true", default=False)
+        (options, args) = parser.parse_args()
+        
+        if not (options.review_id):
+            parser.error(_("Missing review-id arguments"))
+    
+        if options.debug:
+            logging.basicConfig(level=logging.DEBUG)
+
+        # personality
+            logging.debug("report_abuse mode")
+        
+        modify_app = ModifyReviewApp(datadir=options.datadir,
+                                    review_id=options.review_id,
+                                    parent_xid=options.parent_xid)
+        modify_app.run()
+        
     # main
     gtk.main()
