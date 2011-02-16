@@ -64,6 +64,7 @@ NAV_BUTTON_ID_PREV_PURCHASES = "prev-purchases"
 MISSING_APP_ICON = "applications-other"
 MISSING_PKG_ICON = "dialog-question"
 APP_ICON_SIZE = 48
+GENERIC_MISSING_IMAGE = "gtk-missing-image"
 
 # sorting
 (SORT_UNSORTED,

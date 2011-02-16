@@ -82,7 +82,7 @@ class ViewSwitcherList(gtk.TreeStore):
         icon = AnimatedImage(get_icon_from_iconname(self.icons, 
                                                     iconname="computer", 
                                                     iconsize=self.ICON_SIZE,
-                                                    missingicon="gtk-missing-image"))
+                                                    missingicon=GENERIC_MISSING_IMAGE))
         self.installed_iter = self.append(None, [icon, _("Installed Software"), VIEW_PAGE_INSTALLED, None, None])
         
         # the channelpane 
@@ -159,7 +159,7 @@ class ViewSwitcherList(gtk.TreeStore):
         return AnimatedImage(get_icon_from_iconname(self.icons, 
                                                     iconname=icon_name, 
                                                     iconsize=self.ICON_SIZE,
-                                                    missingicon="gtk-missing-image"))
+                                                    missingicon=GENERIC_MISSING_IMAGE))
 
     @wait_for_apt_cache_ready
     def _update_channel_list(self):

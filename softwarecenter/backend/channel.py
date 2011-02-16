@@ -454,7 +454,7 @@ class SoftwareChannel(object):
         return AnimatedImage(get_icon_from_iconname(self.icons, 
                                                     iconname=icon_name, 
                                                     iconsize=self.ICON_SIZE,
-                                                    missingicon="gtk-missing-image"))
+                                                    missingicon=GENERIC_MISSING_IMAGE))
         
     def __str__(self):
         details = []
