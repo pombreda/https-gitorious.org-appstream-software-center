@@ -19,6 +19,12 @@ software-center (3.1.19) UNRELEASED; urgency=low
   * softwarecenter/view/appdetailsview_gtk.py:
     - add transparent-bg-hint gdata theme engine hint to the 
       progress bar
+  
+  [ Matthew McGowan ]
+  * lp:~mmcg069/software-center/lobby-tweaks:
+    - better layout of the welcome lobby screen
+  * lp:~mmcg069/software-center/catviewgtk-code-reorg:
+    - move widgets out into softwarecenter/view/widgets
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 16 Feb 2011 09:27:59 +0100
 
