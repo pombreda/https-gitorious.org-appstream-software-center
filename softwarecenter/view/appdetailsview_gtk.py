@@ -1015,6 +1015,8 @@ class Reviews(gtk.VBox):
         self.new_review = mkit.VLinkButton(_("Write your own review"))
         self.new_review.set_internal_spacing(mkit.SPACING_MED)
         self.new_review.set_underline(True)
+        
+        self.current_user_reviews = []
 
         expander_hb = gtk.HBox(spacing=mkit.SPACING_MED)
         self.pack_start(expander_hb, False)
@@ -1083,10 +1085,13 @@ class Reviews(gtk.VBox):
         return
     
     def _any_reviews_current_user(self):
+        self.current_user_reviews = []
+        any_found = False
         for review in self.reviews:
             if self.logged_in_person == review.reviewer_username:
-                return True
-        return False
+                any_found = True
+                self.current_user_reviews.append(review.id)
+        return any_found
 
     def finished(self):
         #print 'Review count: %s' % len(self.reviews)
@@ -1100,7 +1105,7 @@ class Reviews(gtk.VBox):
             self._be_the_first_to_review()
         else:
             if self._any_reviews_current_user():
-                self.new_review.set_label(_("Write another review"))
+                self.new_review.set_label(_("Edit your review"))
             else:
                 self.new_review.set_label(_("Write your own review"))
             if self.expander.get_expanded():
@@ -1874,8 +1879,15 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.show_all()
         return
 
-    def _on_review_new(self, button):
-        self._review_write_new()
+    def _on_review_new(self, button, existing_review_id=0):
+        if existing_review_id == 0:
+            self._review_write_new()
+        else:
+            self._edit_existing_review(existing_review_id)
+    
+    def _edit_existing_review(existing_review_id):
+        """takes a review id and allows the user to edit it and se-submit"""
+        pass
 
     def _on_review_submit_usefulness(self, button, review_id, is_useful):
         self._review_submit_usefulness(review_id, is_useful)
