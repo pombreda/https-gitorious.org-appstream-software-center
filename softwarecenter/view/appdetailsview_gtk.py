@@ -988,7 +988,7 @@ class Reviews(gtk.VBox):
     __gsignals__ = {
         'new-review':(gobject.SIGNAL_RUN_FIRST,
                     gobject.TYPE_NONE,
-                    ()),
+                    (gobject.TYPE_PYOBJECT,)),
         'report-abuse':(gobject.SIGNAL_RUN_FIRST,
                     gobject.TYPE_NONE,
                     (gobject.TYPE_PYOBJECT,)),
@@ -1031,7 +1031,7 @@ class Reviews(gtk.VBox):
         self._update = True
         self.expander.connect('notify::expanded', self._on_expand)
         self.expander.set_expanded(True)
-        self.new_review.connect('clicked', lambda w: self.emit('new-review'))
+        self.new_review.connect('clicked', lambda w: self.emit('new-review', self.current_user_reviews))
         return
 
     @property
@@ -1061,7 +1061,7 @@ class Reviews(gtk.VBox):
         return
 
     def _on_button_new_clicked(self, button):
-        self.emit("new-review")
+        self.emit("new-review", self.current_user_reviews)
 
     def _fill(self):
         self.logged_in_person = self._get_person_from_config()
@@ -1879,14 +1879,16 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.show_all()
         return
 
-    def _on_review_new(self, button, existing_review_id=0):
-        if existing_review_id == 0:
+    def _on_review_new(self, button, existing_review_ids=[]):
+        if existing_review_ids == []:
             self._review_write_new()
         else:
-            self._edit_existing_review(existing_review_id)
+            self._edit_existing_review(existing_review_ids)
     
-    def _edit_existing_review(existing_review_id):
-        """takes a review id and allows the user to edit it and se-submit"""
+    def _edit_existing_review(self, existing_review_ids):
+        #FIXME: useless stub at the moment. plan is to spawn new review app with existing review id
+        #need to determine how to handle situation with more than 1 review id passed
+        print existing_review_ids
         pass
 
     def _on_review_submit_usefulness(self, button, review_id, is_useful):
