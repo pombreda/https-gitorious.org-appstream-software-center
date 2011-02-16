@@ -7,14 +7,14 @@ import time
 import unittest
 
 sys.path.insert(0,"../")
-from softwarecenter.utils import ImageDownloader
+from softwarecenter.utils import SimpleFileDownloader
 
 class TestImageDownloader(unittest.TestCase):
 
     DOWNLOAD_FILENAME = "test_image_download"
 
     def setUp(self):
-        self.downloader = ImageDownloader()
+        self.downloader = SimpleFileDownloader()
         self.downloader.connect("image-url-reachable",
                                 self._cb_image_url_reachable)
         self.downloader.connect("image-download-complete",

@@ -308,7 +308,8 @@ def get_icon_file_path_from_iconname(icons, iconname=None, iconsize=APP_ICON_SIZ
         icon_file_path = icon_info.get_filename()
         icon_info.free()
         return icon_file_path
-    
+
+
 class SimpleFileDownloader(gobject.GObject):
 
     LOG = logging.getLogger("softwarecenter.imagedownloader")
