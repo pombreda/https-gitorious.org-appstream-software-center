@@ -232,7 +232,9 @@ class SoftwarePane(gtk.VBox, BasePane):
         self.cache.connect("cache-ready", self.on_cache_ready)
         
         # aptdaemon
-        self.backend.connect("transaction-started", self.on_transaction_started)
+        #FIXME: Uncomment the following to enable Unity launcher integration (it is disabled
+        #       temporarily pending implentation of the Unity side of the integration)
+#        self.backend.connect("transaction-started", self.on_transaction_started)
         
         # connect signals
         self.searchentry.connect("terms-changed", self.on_search_terms_changed)
