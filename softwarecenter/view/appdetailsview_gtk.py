@@ -796,6 +796,7 @@ class ScreenshotView(gtk.Alignment):
             cr.fill()
         return
 
+
 class Addon(gtk.HBox):
     """ Widget to select addons: CheckButton - Icon - Title (pkgname) """
 

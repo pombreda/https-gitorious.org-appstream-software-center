@@ -1,5 +1,6 @@
 software-center (3.1.19) UNRELEASED; urgency=low
 
+  [ Gary Lasker ]
   * softwarecenter/enums.py,
     softwarecenter/utils.py,
     softwarecenter/backend/channel.py,
@@ -7,7 +8,13 @@ software-center (3.1.19) UNRELEASED; urgency=low
     softwarecenter/view/pendingview.py:
     - another icon crash fix (LP: #719662)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Tue, 15 Feb 2011 22:10:48 -0500
+  [ Aaron Peachey ]
+  * softwarecenter/db/reviews.py,
+    softwarecenter/view/appdetailsview_gtk.py:
+    - provide user feedback when submitting review usefulness
+    - handle case where usefulness submission fails
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 15 Feb 2011 22:35:16 -0500
 
 software-center (3.1.18) natty; urgency=low
 
