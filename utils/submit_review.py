@@ -494,7 +494,6 @@ class BaseApp(SimpleGtkbuilderApp):
 class SubmitReviewsApp(BaseApp):
     """ review a given application or package """
 
-
     STAR_SIZE = (32, 32)
     APP_ICON_SIZE = 48
     #character limits for text boxes and hurdles for indicator changes 
@@ -507,7 +506,7 @@ class SubmitReviewsApp(BaseApp):
     SUBMIT_MESSAGE = _("Submitting Review")
     
 
-    def __init__(self, app, version, iconname, origin, parent_xid, datadir):
+    def __init__(self, app, version, iconname, origin, parent_xid, datadir, action="submit", review_id=None):
         BaseApp.__init__(self, datadir, "submit_review.ui")
         self.datadir = datadir
         # legal fineprint, do not change without consulting a lawyer
@@ -520,20 +519,6 @@ class SubmitReviewsApp(BaseApp):
         self.submit_window.connect("destroy", self.on_button_cancel_clicked)
         self._add_spellcheck_to_textview(self.textview_review)
 
-        # gwibber stuff
-        self.gwibber_combo = gtk.combo_box_new_text()
-        #cells = self.gwibber_combo.get_cells()
-        #cells[0].set_property("ellipsize", pango.ELLIPSIZE_END)
-        self.gwibber_hbox.pack_start(self.gwibber_combo, True)
-        if "SOFTWARE_CENTER_GWIBBER_MOCK_USERS" in os.environ:
-            self.gwibber_helper = GwibberHelperMock()
-        else:
-            self.gwibber_helper = GwibberHelper()
-        
-        #get a dict with a saved gwibber_send (boolean) and gwibber account_id for persistent state
-        self.gwibber_prefs = self._get_gwibber_prefs()
-
-        # interactive star rating
         self.star_rating = StarRatingSelector(0, star_size=self.STAR_SIZE)
         self.star_caption = StarCaption()
 
@@ -547,22 +532,14 @@ class SubmitReviewsApp(BaseApp):
         self.rating_hbox.reorder_child(self.star_caption, 1)
 
         self.review_buffer = self.textview_review.get_buffer()
-
+        
         # data
         self.app = app
         self.version = version
         self.origin = origin
         self.iconname = iconname
-        
-        # title
-        self.submit_window.set_title(_("Review %s" % self.app.name))
-
-        self.review_summary_entry.connect('changed', self._on_mandatory_text_entry_changed)
-        self.star_rating.connect('changed', self._on_mandatory_fields_changed)
-        self.review_buffer.connect('changed', self._on_text_entry_changed)
-        
-        # gwibber stuff
-        self._setup_gwibber_gui()
+        self.action = action
+        self.review_id = review_id
 
         # parent xid
         if parent_xid:
@@ -572,6 +549,78 @@ class SubmitReviewsApp(BaseApp):
                 self.submit_window.window.set_transient_for(win)
 
         self.submit_window.set_position(gtk.WIN_POS_MOUSE)
+        
+        self.review_summary_entry.connect('changed', self._on_mandatory_text_entry_changed)
+        self.star_rating.connect('changed', self._on_mandatory_fields_changed)
+        self.review_buffer.connect('changed', self._on_text_entry_changed)
+
+        #now setup rest of app based on whether submit or modify/delete
+        if self.action == "submit":
+            self._init_submit()
+        elif self.action == "modify":
+            self._init_modify()
+
+
+    def _init_submit(self):
+        # gwibber stuff
+        self.gwibber_combo = gtk.combo_box_new_text()
+        #cells = self.gwibber_combo.get_cells()
+        #cells[0].set_property("ellipsize", pango.ELLIPSIZE_END)
+        self.gwibber_hbox.pack_start(self.gwibber_combo, True)
+        if "SOFTWARE_CENTER_GWIBBER_MOCK_USERS" in os.environ:
+            self.gwibber_helper = GwibberHelperMock()
+        else:
+            self.gwibber_helper = GwibberHelper()
+        
+        #get a dict with a saved gwibber_send (boolean) and gwibber account_id for persistent state
+        self.gwibber_prefs = self._get_gwibber_prefs()
+        
+        # gwibber stuff
+        self._setup_gwibber_gui()
+        
+        self.submit_window.set_title(_("Review %s" % self.app.name))
+    
+    def _init_modify(self):
+        self.submit_window.set_title(_("Edit or delete review id: %s " % self.review_id))
+        self.radio_modify = gtk.RadioButton(label=_("Edit This Review"))
+        self.radio_delete = gtk.RadioButton(self.radio_modify, _("Delete This Review"))
+        self.radio_modify.connect('toggled', self._modify_clicked)
+        self.radio_delete.connect('toggled', self._delete_clicked)
+        self.gwibber_checkbutton.hide()
+        self.radio_modify.show()
+        self.radio_delete.show()
+        self.gwibber_hbox.pack_start(self.radio_modify, False)
+        self.gwibber_hbox.pack_start(self.radio_delete, False)
+        self._populate_review()
+    
+    def _populate_review(self):
+        review_data = self._retrieve_existing_review()
+        self.review_summary_entry.set_text(review_data['summary_text'])
+        self.star_rating.set_rating(review_data['rating'])
+        self.textview_review.get_buffer().set_text(review_data['review_text'])
+        return
+    
+    def _retrieve_existing_review(self):
+        #   FIXME: retrieve a review from server based on self.review_id
+        summary_text = "test review retrieval"
+        review_text = "review text test retrieval ........"
+        rating = 4
+        return {"summary_text":summary_text, "review_text":review_text, "rating":rating}
+    
+    
+    def _modify_clicked(self, button):
+        self.textview_review.set_sensitive(True)
+        self.review_summary_entry.set_sensitive(True)
+        self.star_rating.set_sensitive(True)
+        self.SUBMIT_MESSAGE = _("Updating your review")
+        self._enable_or_disable_post_button()
+    
+    def _delete_clicked(self, button):
+        self.textview_review.set_sensitive(False)
+        self.review_summary_entry.set_sensitive(False)
+        self.star_rating.set_sensitive(False)
+        self.SUBMIT_MESSAGE = _("Deleting your review")
+        self.button_post.set_sensitive(False)
 
     def _setup_details(self, widget, app, iconname, version, display_name):
         # icon shazam
@@ -1150,24 +1199,39 @@ if __name__ == "__main__":
         usefulness_app.run()
 
     if "modify_review" in sys.argv[0]:
+            # check options
+        parser.add_option("-a", "--appname")
+        parser.add_option("-p", "--pkgname")
+        parser.add_option("-i", "--iconname")
+        parser.add_option("-V", "--version")
+        parser.add_option("-O", "--origin")
         parser.add_option("", "--review-id")
         parser.add_option("", "--parent-xid")
         parser.add_option("", "--debug",
                           action="store_true", default=False)
         (options, args) = parser.parse_args()
-        
-        if not (options.review_id):
-            parser.error(_("Missing review-id arguments"))
+
+        if not (options.pkgname and options.version):
+            parser.error(_("Missing arguments"))
     
         if options.debug:
             logging.basicConfig(level=logging.DEBUG)
 
         # personality
-            logging.debug("report_abuse mode")
-        
-        modify_app = ModifyReviewApp(datadir=options.datadir,
-                                    review_id=options.review_id,
-                                    parent_xid=options.parent_xid)
+        logging.debug("modify_review mode")
+
+        # initialize and run
+        theapp = Application(options.appname, options.pkgname)
+        modify_app = SubmitReviewsApp(datadir=options.datadir,
+                                      app=theapp, 
+                                      parent_xid=options.parent_xid,
+                                      iconname=options.iconname,
+                                      origin=options.origin,
+                                      version=options.version,
+                                    action="modify",
+                                    review_id=options.review_id
+                                    )
+
         modify_app.run()
         
     # main
