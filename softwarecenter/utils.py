@@ -312,14 +312,14 @@ def get_icon_file_path_from_iconname(icons, iconname=None, iconsize=APP_ICON_SIZ
 
 class SimpleFileDownloader(gobject.GObject):
 
-    LOG = logging.getLogger("softwarecenter.imagedownloader")
+    LOG = logging.getLogger("softwarecenter.simplefiledownloader")
 
     __gsignals__ = {
-        "image-url-reachable"     : (gobject.SIGNAL_RUN_LAST,
+        "file-url-reachable"      : (gobject.SIGNAL_RUN_LAST,
                                      gobject.TYPE_NONE,
                                      (bool,),),
 
-        "image-download-complete" : (gobject.SIGNAL_RUN_LAST,
+        "file-download-complete"  : (gobject.SIGNAL_RUN_LAST,
                                      gobject.TYPE_NONE,
                                      (str,),),
         }
@@ -339,8 +339,8 @@ class SimpleFileDownloader(gobject.GObject):
         self.dest_file_path = dest_file_path
         
         if os.path.exists(self.dest_file_path):
-            self.emit('image-url-reachable', True)
-            self.emit("image-download-complete", self.dest_file_path)
+            self.emit('file-url-reachable', True)
+            self.emit("file-download-complete", self.dest_file_path)
             return
         
         f = gio.File(url)
@@ -351,13 +351,13 @@ class SimpleFileDownloader(gobject.GObject):
     def _check_url_reachable_and_then_download_cb(self, f, result):
         try:
             result = f.query_info_finish(result)
-            self.emit('image-url-reachable', True)
-            self.LOG.debug("image reachable %s" % self.url)
-            # url is reachable, now download the icon file
+            self.emit('file-url-reachable', True)
+            self.LOG.debug("file reachable %s" % self.url)
+            # url is reachable, now download the file
             f.load_contents_async(self._icon_download_complete_cb)
         except glib.GError, e:
-            self.LOG.debug("image *not* reachable %s" % self.url)
-            self.emit('image-url-reachable', False)
+            self.LOG.debug("file *not* reachable %s" % self.url)
+            self.emit('file-url-reachable', False)
         del f
 
     def _icon_download_complete_cb(self, f, result, path=None):
@@ -369,7 +369,7 @@ class SimpleFileDownloader(gobject.GObject):
         outputfile = open(self.dest_file_path, "w")
         outputfile.write(content)
         outputfile.close()
-        self.emit('image-download-complete', self.dest_file_path)
+        self.emit('file-download-complete', self.dest_file_path)
 
 
 class GMenuSearcher(object):

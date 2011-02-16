@@ -15,9 +15,9 @@ class TestImageDownloader(unittest.TestCase):
 
     def setUp(self):
         self.downloader = SimpleFileDownloader()
-        self.downloader.connect("image-url-reachable",
+        self.downloader.connect("file-url-reachable",
                                 self._cb_image_url_reachable)
-        self.downloader.connect("image-download-complete",
+        self.downloader.connect("file-download-complete",
                                 self._cb_image_download_complete)
         self._image_is_reachable = None
         self._image_downloaded_filename = None

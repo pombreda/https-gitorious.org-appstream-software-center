@@ -61,8 +61,8 @@ class ShowImageDialog(gtk.Dialog):
 
         # downloader
         self.loader = SimpleFileDownloader()
-        self.loader.connect('image-download-complete', self._on_screenshot_download_complete)
-        self.loader.connect('image-url-reachable', self._on_screenshot_query_complete)
+        self.loader.connect('file-download-complete', self._on_screenshot_download_complete)
+        self.loader.connect('file-url-reachable', self._on_screenshot_query_complete)
 
         # scolled window for screenshot
         viewport = gtk.Viewport()

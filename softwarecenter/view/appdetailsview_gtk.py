@@ -565,8 +565,8 @@ class ScreenshotView(gtk.Alignment):
 
         # convienience class for handling the downloading (or not) of any screenshot
         self.loader = SimpleFileDownloader()
-        self.loader.connect('image-url-reachable', self._on_screenshot_query_complete)
-        self.loader.connect('image-download-complete', self._on_screenshot_download_complete)
+        self.loader.connect('file-url-reachable', self._on_screenshot_query_complete)
+        self.loader.connect('file-download-complete', self._on_screenshot_download_complete)
 
     # signal handlers
     def _on_enter(self, widget, event):
@@ -749,7 +749,7 @@ class ScreenshotView(gtk.Alignment):
         """ Download then displays the screenshot.
             This actually does a query on the URL first to check if its 
             reachable, if so it downloads the thumbnail.
-            If not, it emits "image-url-reachable" False, then exits.
+            If not, it emits "file-url-reachable" False, then exits.
         """
         
         self.loader.download_image(self.thumbnail_url)
@@ -2534,7 +2534,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                     self.main_frame.set_icon_from_pixbuf(pb)
                     
                 image_downloader = SimpleFileDownloader()
-                image_downloader.connect('image-download-complete', on_image_download_complete)
+                image_downloader.connect('file-download-complete', on_image_download_complete)
                 image_downloader.download_image(app_details.icon_url, appdetails.cached_icon_file_path)
         return self.icons.load_icon(MISSING_APP_ICON, 84, 0)
     

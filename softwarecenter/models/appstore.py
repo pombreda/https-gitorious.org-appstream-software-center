@@ -388,7 +388,7 @@ class AppStore(gtk.GenericTreeModel):
         if url is not None:
             icon_file_path = os.path.join(SOFTWARE_CENTER_ICON_CACHE_DIR, icon_file_name)
             image_downloader = SimpleFileDownloader()
-            image_downloader.connect('image-download-complete', on_image_download_complete)
+            image_downloader.connect('file-download-complete', on_image_download_complete)
             image_downloader.download_image(url, icon_file_path)
 
     # GtkTreeModel functions
