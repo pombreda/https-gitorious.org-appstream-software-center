@@ -140,6 +140,8 @@ class PackageStatusBar(StatusBar):
         self.label = mkit.EtchedLabel()
         self.button = gtk.Button()
         self.progress = gtk.ProgressBar()
+        # theme engine hint for bug #606942
+        self.progress.set_data("transparent-bg-hint", True)
 
         self.pkg_state = None
 
