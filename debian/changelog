@@ -25,6 +25,8 @@ software-center (3.1.19) UNRELEASED; urgency=low
     softwarecenter/enums.py:
     - implement the software-center side of unity launcher
       integration per the specification (LP: #670403)
+    - temporarily hide the launcher integration feature pending
+      implementation on the Unity side
 
   [ Aaron Peachey ]
   * utils/submit_review.py,
@@ -44,7 +46,7 @@ software-center (3.1.19) UNRELEASED; urgency=low
   * lp:~mmcg069/software-center/catviewgtk-code-reorg:
     - move widgets out into softwarecenter/view/widgets
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 16 Feb 2011 16:44:00 -0500
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 16 Feb 2011 17:56:13 -0500
 
 software-center (3.1.18) natty; urgency=low
 
