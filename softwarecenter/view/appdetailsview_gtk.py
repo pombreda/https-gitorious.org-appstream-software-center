@@ -796,35 +796,6 @@ class ScreenshotView(gtk.Alignment):
             cr.fill()
         return
 
-class ThumbButton(gtk.EventBox):
-    """Button with thumb image for like/dislike actions"""
-    
-    def __init__(self, datapath):
-        gtk.EventBox.__init__(self)
-        image = gtk.Image()
-        pixbuf = gtk.gdk.pixbuf_new_from_file(datapath)
-        scaled = pixbuf.scale_simple(12,12,gtk.gdk.INTERP_BILINEAR)
-        image.set_from_pixbuf(scaled)
-        image.set_padding(1,1)
-        image.show()
-        self.add(image)
-        self.set_visible_window(False)
-        
-        self.set_events(gtk.gdk.ENTER_NOTIFY_MASK|
-                         gtk.gdk.LEAVE_NOTIFY_MASK)
-
-        self.connect('enter-notify-event', self._on_enter)
-        self.connect('leave-notify-event', self._on_leave)
-        
-    def _on_enter(self, widget, event):
-        self.window.set_cursor(gtk.gdk.Cursor(gtk.gdk.HAND2))
-        return
-
-    def _on_leave(self, widget, event):
-        self.window.set_cursor(None)
-        return
-
-
 class Addon(gtk.HBox):
     """ Widget to select addons: CheckButton - Icon - Title (pkgname) """
 
