@@ -74,8 +74,7 @@ class SoftwareSection(object):
         lin.add_color_stop_rgba(0, r,g,b, 0.3)
         lin.add_color_stop_rgba(1, r,g,b,0)
         cr.set_source(lin)
-        cr.rectangle(0,0,
-                     a.width, 150)
+        cr.rectangle(0,0,a.width, 150)
         cr.fill()
 
         # there is a race here because we create e.g. the installed-page

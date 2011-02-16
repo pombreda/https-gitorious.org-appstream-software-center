@@ -24,17 +24,17 @@ import pygtk
 pygtk.require ("2.0")
 import gobject
 import cairo
-import gettext
 import gtk
 import os
 
 import pangocairo
 
+import gettext
 from gettext import gettext as _
 from mkit import EM, ShapeStar, ShapeRoundedRectangle, VLinkButton, floats_from_string
 
 
-class StarPainter(object):
+class IStarPainter:
 
     FILL_EMPTY      = 0
     FILL_HALF       = 1
@@ -44,7 +44,7 @@ class StarPainter(object):
     GLOW_PRELIGHT   = 4
 
     def __init__(self):
-        self.shape = ShapeStar(5, 0.6)
+        self.shape = ShapeStar(5, 0.55)
         self.fill = self.FILL_EMPTY
         self.glow = self.GLOW_NORMAL
 
@@ -61,12 +61,96 @@ class StarPainter(object):
         self.glow = glow
         return
 
-    def paint_half_star(self, cr, x, y, w, h):
-        # TODO: some rtl switch will be needed here
+    def paint_half_star(self, cr, widget, state, x, y, w, h):
+        raise NotImplemented
+
+    def paint_star(self, cr, widget, state, x, y, w, h):
+        raise NotImplemented
+
+
+class StarPainterFlat(IStarPainter):
+
+    def paint_half_star(self, cr, widget, state, x, y, w, h):
+        cr.save()
+        #cr.set_line_join(cairo.LINE_CAP_ROUND)
+
+        cr.rectangle(x+w*0.5, y-1, w/2+2, h+2)
+        cr.clip()
+
+        if widget.get_direction() != gtk.TEXT_DIR_RTL:
+#            color1 = widget.style.mid[state]
+#            color2 = widget.style.text[state]
+            color1 = self.bg_color
+            color2 = self.fg_color
+
+        else:
+#            color1 = widget.style.text[state]
+#            color2 = widget.style.mid[state]
+            color1 = self.fg_color
+            color2 = self.bg_color
+
+        self.shape.layout(cr, x, y, w, h)
+#        cr.set_source_color(color1)
+        cr.set_source_rgb(*color1)
+        cr.fill()
+        cairo.Context.reset_clip(cr)
+
+        cr.rectangle(x-1, y-1, w*0.5+1, h+2)
+        cr.clip()
+
+        self.shape.layout(cr, x, y, w, h)
+#        cr.set_source_color(color2)
+        cr.set_source_rgb(*color2)
+        cr.fill()
+        cairo.Context.reset_clip(cr)
+
+        cr.restore()
+        return
+
+    def paint_star(self, cr, widget, state, x, y, w, h):
+        if self.fill == self.FILL_HALF:
+            self.paint_half_star(cr, widget, state, x, y, w, h)
+            return
+
         cr.save()
 
         self.shape.layout(cr, x, y, w, h)
-        self._setup_glow(cr)
+        if self.fill == self.FILL_EMPTY:
+            cr.set_source_color(widget.style.mid[state])
+        else:
+            if state != gtk.STATE_SELECTED:
+#                cr.set_source_color(widget.style.base[gtk.STATE_SELECTED])
+                cr.set_source_rgb(*self.fg_color)
+            else:
+#                cr.set_source_color(widget.style.base[gtk.STATE_NORMAL])
+                cr.set_source_rgb(*self.bg_color)
+
+        cr.fill()
+
+        cr.restore()
+        return
+
+
+class StarPainter(IStarPainter):
+
+    def paint_half_star(self, cr, widget, state, x, y, w, h):
+        # TODO: some rtl switch will be needed here
+        cr.save()
+
+        if widget.get_direction() != gtk.TEXT_DIR_RTL:
+#            color1 = widget.style.mid[state]
+#            color2 = widget.style.text[state]
+            color1 = self.bg_color
+            color2 = self.fg_color
+
+        else:
+#            color1 = widget.style.text[state]
+#            color2 = widget.style.mid[state]
+            color1 = self.fg_color
+            color2 = self.bg_color
+
+        self.shape.layout(cr, x, y, w, h)
+        self._setup_glow(cr, widget)
         cr.stroke()
         cr.set_line_width(2)
 
@@ -74,7 +158,8 @@ class StarPainter(object):
         cr.clip()
 
         self.shape.layout(cr, x, y, w, h)
-        cr.set_source_rgb(*self.bg_color)
+#        cr.set_source_color(widget.style.mid[state])
+        cr.set_source_rgb(*color1)
         cr.stroke_preserve()
         cr.fill()
         cairo.Context.reset_clip(cr)
@@ -83,7 +168,8 @@ class StarPainter(object):
         cr.clip()
         
         self.shape.layout(cr, x, y, w, h)
-        cr.set_source_rgb(*self.fg_color)
+#        cr.set_source_color(widget.style.base[gtk.STATE_SELECTED])
+        cr.set_source_rgb(*color2)
         cr.stroke_preserve()
         cr.fill_preserve()
         cairo.Context.reset_clip(cr)
@@ -94,22 +180,24 @@ class StarPainter(object):
         cr.restore()
         return
 
-    def paint_star(self, cr, x, y, w, h):
+    def paint_star(self, cr, widget, state, x, y, w, h):
         if self.fill == self.FILL_HALF:
-            self.paint_half_star(cr, x, y, w, h)
+            self.paint_half_star(cr, widget, state, x, y, w, h)
             return
 
         cr.save()
 
         self.shape.layout(cr, x, y, w, h)
 
-        self._setup_glow(cr)
+        self._setup_glow(cr, widget)
         cr.stroke_preserve()
         cr.set_line_width(2)
 
         if self.fill == self.FILL_EMPTY:
+#            cr.set_source_color(widget.style.mid[state])
             cr.set_source_rgb(*self.bg_color)
         else:
+#            cr.set_source_color(widget.style.base[gtk.STATE_SELECTED])
             cr.set_source_rgb(*self.fg_color)
 
         cr.stroke_preserve()
@@ -121,24 +209,25 @@ class StarPainter(object):
         cr.restore()
         return
 
-    def _setup_glow(self, cr):
-        if not hasattr(self, "style"):
-            return
+    def _setup_glow(self, cr, widget):
         if self.glow == self.GLOW_NORMAL:
-            white = self.style.white
+            white = widget.style.white
             cr.set_source_rgba(white.red_float,
                                white.green_float,
-                               white.blue_float, 0.4)
+                               white.blue_float, 0.33)
             cr.set_line_width(5)
         else:
-            cr.set_source_rgba(*self.glow_color+(0.6,))
+            glow = widget.style.base[gtk.STATE_SELECTED]
+            cr.set_source_rgba(glow.red_float,
+                               glow.green_float,
+                               glow.blue_float, 0.6)
             cr.set_line_width(6)
         return
 
     def _setup_gradient(self, cr, y, h):
         lin = cairo.LinearGradient(0, y, 0, y+h)
-        lin.add_color_stop_rgba(0, 1,1,1, 0.5)
-        lin.add_color_stop_rgba(1, 1,1,1, 0.05)
+        lin.add_color_stop_rgba(0, 1,1,1, 0.3)
+        lin.add_color_stop_rgba(1, 1,1,1, 0.02)
         cr.set_source(lin)
         return
 
@@ -148,6 +237,7 @@ class StarWidget(gtk.EventBox, StarPainter):
     def __init__(self, size, is_interactive):
         gtk.EventBox.__init__(self)
         StarPainter.__init__(self)
+
         self.set_visible_window(False)
         self.set_size_request(*size)
 
@@ -177,7 +267,7 @@ class StarWidget(gtk.EventBox, StarPainter):
         w, h = self.get_size_request()
         x = a.x + (a.width-w)/2
         y = a.y + (a.height-h)/2
-        self.paint_star(cr, x, y, w, h)
+        self.paint_star(cr, self, self.state, x, y, w, h)
         return
 
 
@@ -293,7 +383,6 @@ class StarRatingSelector(StarRating):
             self.set_rating(4)
         elif kv == gtk.keysyms._5:
             self.set_rating(5)
-        
         if self.caption:
             self.caption.set_markup(self.RATING_WORDS[self.rating])
         return
@@ -349,7 +438,7 @@ class StarCaption(gtk.Label):
         #return
 
     def set_markup(self, markup):
-        gtk.Label.set_markup(self, '<small><b>%s</b></small>' % markup)
+        gtk.Label.set_markup(self, '<small>%s</small>' % markup)
         return
 
 

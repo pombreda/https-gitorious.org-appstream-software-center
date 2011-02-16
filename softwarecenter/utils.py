@@ -279,7 +279,7 @@ def is_unity_running():
         LOG.exception("could not check for Unity dbus service")
     return unity_running
     
-def get_icon_from_iconname(icons, iconname=None, iconsize=APP_ICON_SIZE, missingicon=MISSING_APP_ICON):
+def get_icon_from_theme(icons, iconname=None, iconsize=APP_ICON_SIZE, missingicon=MISSING_APP_ICON):
     """
     return the icon in the theme that corresponds to the given iconname
     """    
@@ -309,8 +309,7 @@ def get_icon_file_path_from_iconname(icons, iconname=None, iconsize=APP_ICON_SIZ
         icon_info.free()
         return icon_file_path
     
-# FIXME: why not call it a generic downloader?
-class ImageDownloader(gobject.GObject):
+class SimpleFileDownloader(gobject.GObject):
 
     LOG = logging.getLogger("softwarecenter.imagedownloader")
 
@@ -450,7 +449,7 @@ def get_nice_date_string(cur_t):
                              "%(days)i days ago",
                              days) % { 'days' : days }
 
-    else:   # any timedelta greater than 3 days old
+    else:   # any timedelta greater than 5 days old
         # YYYY-MM-DD
         s = cur_t.isoformat().split('T')[0]
 

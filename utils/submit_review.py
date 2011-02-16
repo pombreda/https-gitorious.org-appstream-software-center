@@ -1041,6 +1041,10 @@ class SubmitUsefulnessApp(BaseApp):
         logging.debug("submit usefulness")
         self.main_notebook.set_current_page(1)
         self.api.submit_usefulness(self.review_id, self.is_useful)
+    
+    def on_transmit_failure(self, api, trans, error):
+        print "exiting - error: %s" % error
+        self.quit(2)
 
     # override parents run to only trigger login (and subsequent
     # events) but no UI, if this is commented out, there is some
