@@ -1888,8 +1888,10 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
     def _edit_existing_review(self, existing_review_ids):
         #FIXME: useless stub at the moment. plan is to spawn new review app with existing review id
         #need to determine how to handle situation with more than 1 review id passed
-        print existing_review_ids
-        pass
+        if len(existing_review_ids) == 1:
+            self._review_modify(existing_review_ids[0])
+        else:
+            pass
 
     def _on_review_submit_usefulness(self, button, review_id, is_useful):
         self._review_submit_usefulness(review_id, is_useful)

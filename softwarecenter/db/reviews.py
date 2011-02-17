@@ -172,6 +172,19 @@ class ReviewLoader(object):
         (pid, stdin, stdout, stderr) = glib.spawn_async(
             cmd, flags=glib.SPAWN_DO_NOT_REAP_CHILD, standard_output=True)
         glib.child_watch_add(pid, self._on_submit_usefulness_finished, (review_id, is_useful, callback))
+    
+    def spawn_modify_review_ui(self, parent_xid, datadir, review_id, callback):
+        """ this spawns the UI for writing a new review and
+            adds it automatically to the reviews DB """
+        cmd = [os.path.join(datadir, MODIFY_REVIEW_APP), 
+               "--parent-xid", "%s" % parent_xid,
+               "--datadir", "%s" % datadir,
+               "--review-id", "%s" % review_id,
+               ]
+        print cmd
+        (pid, stdin, stdout, stderr) = glib.spawn_async(
+            cmd, flags=glib.SPAWN_DO_NOT_REAP_CHILD, standard_output=True)
+        glib.child_watch_add(pid, self._on_modify_review_finished, (review_id, callback))
 
     # internal callbacks/helpers
     def _on_submit_review_finished(self, pid, status, (app, stdout_fd, callback)):
@@ -235,6 +248,8 @@ class ReviewLoader(object):
                         callback(app, self._reviews[app])
                         break
 
+    def _on_modify_review_app_finished(self, pid, status, (app, stdout_fd, callback)):
+        pass
 
 # using multiprocessing here because threading interface was terrible
 # slow and full of latency

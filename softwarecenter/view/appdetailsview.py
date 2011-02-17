@@ -128,6 +128,12 @@ class AppDetailsViewBase(object):
             review_id, is_useful, parent_xid, self.datadir,
             self._reviews_ready_callback)
 
+    def _review_modify(self, review_id):
+        parent_xid = get_parent_xid(self)
+        self.review_loader.spawn_modify_review_ui(
+            parent_xid, self.datadir, review_id,
+            self._reviews_ready_callback)
+
     # public interface
     def reload(self):
         """ reload the package cache, this goes straight to the backend """

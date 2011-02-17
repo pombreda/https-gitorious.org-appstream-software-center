@@ -598,14 +598,22 @@ class SubmitReviewsApp(BaseApp):
         self.review_summary_entry.set_text(review_data['summary_text'])
         self.star_rating.set_rating(review_data['rating'])
         self.textview_review.get_buffer().set_text(review_data['review_text'])
+        self.app = review_data['app']
+        self.version = review_data['version']
+        self.origin = review_data['origin']
         return
     
     def _retrieve_existing_review(self):
         #   FIXME: retrieve a review from server based on self.review_id
+        # currently hardcoded for testing
         summary_text = "test review retrieval"
         review_text = "review text test retrieval ........"
         rating = 4
-        return {"summary_text":summary_text, "review_text":review_text, "rating":rating}
+        app = "Compiz, compiz-core"
+        version = "1:0.9.2.1+glibmainloop4-0ubuntu11"
+        origin = "ubuntu"
+        return {"summary_text":summary_text, "review_text":review_text, "rating":rating,
+                "app":app, "version":version, "origin":origin}
     
     
     def _modify_clicked(self, button):
@@ -1200,19 +1208,14 @@ if __name__ == "__main__":
 
     if "modify_review" in sys.argv[0]:
             # check options
-        parser.add_option("-a", "--appname")
-        parser.add_option("-p", "--pkgname")
-        parser.add_option("-i", "--iconname")
-        parser.add_option("-V", "--version")
-        parser.add_option("-O", "--origin")
         parser.add_option("", "--review-id")
         parser.add_option("", "--parent-xid")
         parser.add_option("", "--debug",
                           action="store_true", default=False)
         (options, args) = parser.parse_args()
 
-        if not (options.pkgname and options.version):
-            parser.error(_("Missing arguments"))
+        if not (options.review_id):
+            parser.error(_("Missing review-id argument"))
     
         if options.debug:
             logging.basicConfig(level=logging.DEBUG)
@@ -1221,13 +1224,12 @@ if __name__ == "__main__":
         logging.debug("modify_review mode")
 
         # initialize and run
-        theapp = Application(options.appname, options.pkgname)
         modify_app = SubmitReviewsApp(datadir=options.datadir,
-                                      app=theapp, 
+                                      app=None, 
                                       parent_xid=options.parent_xid,
-                                      iconname=options.iconname,
-                                      origin=options.origin,
-                                      version=options.version,
+                                      iconname=None,
+                                      origin=None,
+                                      version=None,
                                     action="modify",
                                     review_id=options.review_id
                                     )
