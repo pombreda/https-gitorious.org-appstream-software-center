@@ -328,8 +328,8 @@ class SimpleFileDownloader(gobject.GObject):
         gobject.GObject.__init__(self)
         self.tmpdir = None
 
-    def download_image(self, url, dest_file_path=None):
-        self.LOG.debug("download_image: %s %s" % (url, dest_file_path))
+    def download_file(self, url, dest_file_path=None):
+        self.LOG.debug("download_file: %s %s" % (url, dest_file_path))
         if dest_file_path is None:
             if self.tmpdir is None:
                 self.tmpdir = tempfile.mkdtemp(prefix="software-center-")

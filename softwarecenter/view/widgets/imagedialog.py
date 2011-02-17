@@ -100,7 +100,7 @@ class ShowImageDialog(gtk.Dialog):
         self._abort = False
         self._fetched = 0.0
         self._percent = 0.0
-        self.loader.download_image(self.url, self.path)
+        self.loader.download_file(self.url, self.path)
         # wait for download to finish or for abort
         while not self._finished:
             time.sleep(0.1)

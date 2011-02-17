@@ -752,7 +752,7 @@ class ScreenshotView(gtk.Alignment):
             If not, it emits "file-url-reachable" False, then exits.
         """
         
-        self.loader.download_image(self.thumbnail_url)
+        self.loader.download_file(self.thumbnail_url)
         return
 
     def draw(self, cr, a, expose_area):
@@ -2535,7 +2535,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                     
                 image_downloader = SimpleFileDownloader()
                 image_downloader.connect('file-download-complete', on_image_download_complete)
-                image_downloader.download_image(app_details.icon_url, appdetails.cached_icon_file_path)
+                image_downloader.download_file(app_details.icon_url, appdetails.cached_icon_file_path)
         return self.icons.load_icon(MISSING_APP_ICON, 84, 0)
     
     def update_totalsize(self, hide=False):

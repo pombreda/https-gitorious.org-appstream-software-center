@@ -31,8 +31,8 @@ class TestImageDownloader(unittest.TestCase):
         self._image_downloaded_filename = filename
 
     def test_download_unreachable(self):
-        self.downloader.download_image("http://examplex.com/not-there",
-                                       self.DOWNLOAD_FILENAME)
+        self.downloader.download_file("http://examplex.com/not-there",
+                                      self.DOWNLOAD_FILENAME)
         main_loop = glib.main_context_default()
         while self._image_is_reachable is None:
             while main_loop.pending():
@@ -43,8 +43,8 @@ class TestImageDownloader(unittest.TestCase):
         self.assertTrue(not os.path.exists(self.DOWNLOAD_FILENAME))
  
     def test_download_reachable(self):
-        self.downloader.download_image("http://www.ubuntu.com",
-                                       self.DOWNLOAD_FILENAME)
+        self.downloader.download_file("http://www.ubuntu.com",
+                                      self.DOWNLOAD_FILENAME)
         main_loop = glib.main_context_default()
         while self._image_downloaded_filename is None:
             while main_loop.pending():
