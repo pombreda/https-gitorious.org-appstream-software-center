@@ -812,7 +812,8 @@ class SubmitReviewsApp(BaseApp):
     def _run_gwibber_submits(self, api, trans):
         """check if gwibber send should occur and send via gwibber if so"""
         gwibber_success = True
-        if self.gwibber_checkbutton.get_active():
+        using_gwibber = self.gwibber_checkbutton.get_active()
+        if using_gwibber:
             i = self.gwibber_combo.get_active()
             msg = (self._gwibber_message())
             send_accounts = self._get_send_accounts(i)
@@ -830,7 +831,8 @@ class SubmitReviewsApp(BaseApp):
         # run parent handler on gwibber success, otherwise this will be dealt
         # with in _on_gwibber_fail
         if gwibber_success:
-            self._gwibber_success_status()
+            if using_gwibber:
+                self._gwibber_success_status()
             BaseApp.on_transmit_success(self, api, trans)
     
     def _gwibber_retry_some(self, api, trans, accounts):

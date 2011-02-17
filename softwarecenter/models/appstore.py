@@ -353,7 +353,7 @@ class AppStore(gtk.GenericTreeModel):
     # the following methods ensure that the contents data is refreshed
     # whenever a transaction potentially changes it: see _refresh_contents.
 
-    def _on_transaction_started(self, backend, pkgname):
+    def _on_transaction_started(self, backend, pkgname, appname, trans_id, trans_type):
         self._existing_apps = None
         self._installable_apps = None
         self._register_transaction_index_for_pkgname(pkgname)
@@ -388,8 +388,8 @@ class AppStore(gtk.GenericTreeModel):
         if url is not None:
             icon_file_path = os.path.join(SOFTWARE_CENTER_ICON_CACHE_DIR, icon_file_name)
             image_downloader = SimpleFileDownloader()
-            image_downloader.connect('image-download-complete', on_image_download_complete)
-            image_downloader.download_image(url, icon_file_path)
+            image_downloader.connect('file-download-complete', on_image_download_complete)
+            image_downloader.download_file(url, icon_file_path)
 
     # GtkTreeModel functions
     def on_get_flags(self):

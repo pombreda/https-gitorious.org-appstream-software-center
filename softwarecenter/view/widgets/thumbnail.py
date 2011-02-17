@@ -55,8 +55,8 @@ class ScreenshotThumbnail(gtk.Alignment):
 
         # convienience class for handling the downloading (or not) of any screenshot
         self.loader = SimpleFileDownloader()
-        self.loader.connect('url-reachable', self._on_screenshot_query_complete)
-        self.loader.connect('download-complete', self._on_screenshot_download_complete)
+        self.loader.connect('file-url-reachable', self._on_screenshot_query_complete)
+        self.loader.connect('file-download-complete', self._on_screenshot_download_complete)
 
         self._build_ui()
         return
@@ -384,7 +384,7 @@ class ScreenshotThumbnail(gtk.Alignment):
         """ Download then displays the screenshot.
             This actually does a query on the URL first to check if its 
             reachable, if so it downloads the thumbnail.
-            If not, it emits "image-url-reachable" False, then exits.
+            If not, it emits "file-url-reachable" False, then exits.
         """
         
         self.loader.begin_download(self.thumbnail_url)

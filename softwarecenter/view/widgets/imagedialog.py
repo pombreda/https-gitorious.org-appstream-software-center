@@ -61,8 +61,8 @@ class ShowImageDialog(gtk.Dialog):
 
         # downloader
         self.loader = SimpleFileDownloader()
-        self.loader.connect('image-download-complete', self._on_screenshot_download_complete)
-        self.loader.connect('image-url-reachable', self._on_screenshot_query_complete)
+        self.loader.connect('file-download-complete', self._on_screenshot_download_complete)
+        self.loader.connect('file-url-reachable', self._on_screenshot_query_complete)
 
         # scolled window for screenshot
         viewport = gtk.Viewport()
@@ -100,7 +100,7 @@ class ShowImageDialog(gtk.Dialog):
         self._abort = False
         self._fetched = 0.0
         self._percent = 0.0
-        self.loader.download_image(self.url, self.path)
+        self.loader.download_file(self.url, self.path)
         # wait for download to finish or for abort
         while not self._finished:
             time.sleep(0.1)

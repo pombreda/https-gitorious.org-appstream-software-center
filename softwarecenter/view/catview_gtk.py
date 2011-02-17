@@ -446,7 +446,6 @@ class LobbyViewGtk(CategoriesViewGtk):
     def build(self, desktopdir):
         self.categories = self.parse_applications_menu(desktopdir)
         self.header = _('Departments')
-        print 'Build'
         self._build_homepage_view()
         return
 
