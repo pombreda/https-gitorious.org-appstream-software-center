@@ -94,12 +94,12 @@ if __name__ == "__main__":
     icons.append_search_path("/usr/share/app-install/icons/")
     
     purchased_packages = set()
-#    purchased_packages.add('file-roller')
-#    purchased_packages.add('alarm-clock')
-#    purchased_packages.add('pitivi')
-#    purchased_packages.add('chromium-browser')
-#    purchased_packages.add('cheese')
-#    purchased_packages.add('aisleriot')
+    purchased_packages.add('file-roller')
+    purchased_packages.add('alarm-clock')
+    purchased_packages.add('pitivi')
+    purchased_packages.add('chromium-browser')
+    purchased_packages.add('cheese')
+    purchased_packages.add('aisleriot')
     
     account_name = "max.fischer@rushmoreacademy.edu"
 
