@@ -33,13 +33,12 @@ LOG = logging.getLogger(__name__)
 #FIXME: These need to come from the main app
 ICON_SIZE = 24
 
-def deauthorize_my_computer(parent, datadir, db, icons, purchased_packages):
+def deauthorize_my_computer(parent, datadir, db, icons, account_name, purchased_packages):
     """ Display a dialog to deauthorize the current computer for purchases
     """
     cache = db._aptcache
     distro = get_distro()
 
-    account_name = "gary.lasker@canonical.com"
     (primary, button_text) = distro.get_deauthorize_text(account_name,
                                                          purchased_packages)
         
@@ -98,10 +97,13 @@ if __name__ == "__main__":
     purchased_packages.add('chromium-browser')
     purchased_packages.add('cheese')
     purchased_packages.add('aisleriot')
+    
+    account_name = "max.fischer@rushmoreacademy.edu"
 
     deauthorize_my_computer(None, 
                             "./data", 
                             db,
                             icons,
+                            account_name,
                             purchased_packages)
 
