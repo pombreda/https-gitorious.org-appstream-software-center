@@ -1190,13 +1190,10 @@ class Review(gtk.VBox):
         text = review_data.review_text
         date = review_data.date_created
         app_name = review_data.app_name
-        # some older version of the server do not set the version
-        review_version = getattr(review_data, "version", "")
-        # old versions of the server do not expose usefulness
-        useful_total = getattr(review_data, "usefulness_total", 0)
-        useful_favorable = getattr(review_data, "usefulness_favorable", 0)
-        # only set if we got a submit error
-        useful_submit_error = getattr(review_data, "usefulness_submit_error", False)
+        review_version = review_data.version
+        useful_total = review_data.usefulness_total
+        useful_favorable = review_data.usefulness_favorable
+        useful_submit_error = review_data.usefulness_submit_error
 
         self._build(rating,
                     self.person,

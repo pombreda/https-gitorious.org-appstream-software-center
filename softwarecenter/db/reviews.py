@@ -72,9 +72,26 @@ class Review(object):
         self.date_created = None
         self.rating = None
         self.reviewer_username = None
+        self.version = ""
+        self.usefulness_total = 0
+        self.usefulness_favorable = 0
+        # this will be set if tryint to submit usefulness for this review failed
+        self.usefulness_submit_error = False
     def __repr__(self):
         return "[Review id=%s review_text='%s' reviewer_username='%s']" % (
             self.id, self.review_text, self.reviewer_username)
+    @classmethod
+    def from_piston_mini_client(cls, other):
+        """ converts the rnrclieent reviews we get into
+            "our" Review object (we need this as we have more
+            attributes then the rnrclient review object)
+        """
+        app = Application(other.app_name, other.package_name)
+        review = cls(app)
+        for (attr, value) in other.__dict__.iteritems():
+            if not attr.startswith("_"):
+                setattr(review, attr, value)
+        return review
 
 class ReviewLoader(object):
     """A loader that returns a review object list"""
@@ -310,16 +327,17 @@ class ReviewLoaderThreadedRNRClient(ReviewLoader):
                 #        but it appears the server has currently a bug
                 #        so it expects it this way
                 kwargs["appname"] = urllib.quote_plus(app.appname.encode("utf-8"))
-            reviews = self.rnrclient.get_reviews(**kwargs)
+            piston_reviews = self.rnrclient.get_reviews(**kwargs)
         except simplejson.decoder.JSONDecodeError, e:
             logging.error("failed to parse '%s'" % e.doc)
-            reviews = []
+            piston_reviews = []
         except:
             logging.exception("get_reviews")
-            reviews = []
+            piston_reviews = []
         # add "app" attribute
-        for r in reviews:
-            r.app = Application(r.app_name, r.package_name)
+        reviews = []
+        for r in piston_reviews:
+            reviews.append(Review.from_piston_mini_client(r))
         # push into the queue
         self._new_reviews[app].put(reviews)
 

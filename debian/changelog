@@ -43,6 +43,10 @@ software-center (3.1.19) UNRELEASED; urgency=low
   * softwarecenter/view/appdetailsview_gtk.py:
     - add transparent-bg-hint gdata theme engine hint to the 
       progress bar
+  * softwarecenter/db/reviews.py, 
+    softwarecenter/view/appdetailsview_gtk.py:
+    - cleanup by unifing Review objects from rnrclient and  
+      the detailsview
   
   [ Matthew McGowan ]
   * lp:~mmcg069/software-center/lobby-tweaks:
