@@ -309,6 +309,48 @@ def get_icon_file_path_from_iconname(icons, iconname=None, iconsize=APP_ICON_SIZ
         icon_info.free()
         return icon_file_path
 
+def clear_token_from_ubuntu_sso(appname):
+    """ send a dbus signal to the com.ubuntu.sso service to clear 
+        the credentials for the given appname
+    """
+    import dbus
+    bus = dbus.SessionBus()
+    proxy = bus.get_object('com.ubuntu.sso', '/credentials')
+    proxy.clear_token(appname)
+
+def get_nice_date_string(cur_t):
+    """ return a "nice" human readable date, like "2 minutes ago"  """
+    import datetime
+    dt = datetime.datetime.utcnow() - cur_t
+    days = dt.days
+    secs = dt.seconds
+
+    if days < 1:
+
+        if secs < 120:   # less than 2 minute ago
+            s = _('a few minutes ago')   # dont be fussy
+
+        elif secs < 3600:   # less than an hour ago
+            s = gettext.ngettext("%(min)i minute ago",
+                                 "%(min)i minutes ago",
+                                 (secs/60)) % { 'min' : (secs/60) }
+
+        else:   # less than a day ago
+            s = gettext.ngettext("%(hours)i hour ago",
+                                 "%(hours)i hours ago",
+                                 (secs/3600)) % { 'hours' : (secs/3600) }
+
+    elif days <= 5: # less than a week ago
+        s = gettext.ngettext("%(days)i day ago",
+                             "%(days)i days ago",
+                             days) % { 'days' : days }
+
+    else:   # any timedelta greater than 5 days old
+        # YYYY-MM-DD
+        s = cur_t.isoformat().split('T')[0]
+
+    return s
+
 
 class SimpleFileDownloader(gobject.GObject):
 
@@ -414,47 +456,6 @@ class GMenuSearcher(object):
                 return self._found
         return None
 
-def clear_token_from_ubuntu_sso(appname):
-    """ send a dbus signal to the com.ubuntu.sso service to clear 
-        the credentials for the given appname
-    """
-    import dbus
-    bus = dbus.SessionBus()
-    proxy = bus.get_object('com.ubuntu.sso', '/credentials')
-    proxy.clear_token(appname)
-
-def get_nice_date_string(cur_t):
-    """ return a "nice" human readable date, like "2 minutes ago"  """
-    import datetime
-    dt = datetime.datetime.utcnow() - cur_t
-    days = dt.days
-    secs = dt.seconds
-
-    if days < 1:
-
-        if secs < 120:   # less than 2 minute ago
-            s = _('a few minutes ago')   # dont be fussy
-
-        elif secs < 3600:   # less than an hour ago
-            s = gettext.ngettext("%(min)i minute ago",
-                                 "%(min)i minutes ago",
-                                 (secs/60)) % { 'min' : (secs/60) }
-
-        else:   # less than a day ago
-            s = gettext.ngettext("%(hours)i hour ago",
-                                 "%(hours)i hours ago",
-                                 (secs/3600)) % { 'hours' : (secs/3600) }
-
-    elif days <= 5: # less than a week ago
-        s = gettext.ngettext("%(days)i day ago",
-                             "%(days)i days ago",
-                             days) % { 'days' : days }
-
-    else:   # any timedelta greater than 5 days old
-        # YYYY-MM-DD
-        s = cur_t.isoformat().split('T')[0]
-
-    return s
         
 if __name__ == "__main__":
     s = decode_xml_char_reference('Search&#x2026;')
