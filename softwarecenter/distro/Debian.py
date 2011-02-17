@@ -69,6 +69,17 @@ class Debian(Distro):
                 depends = None
                 break
         return (primary, button_text)
+        
+    def get_deauthorize_text(self, account_name, purchased_packages):
+        if len(purchased_packages) == 0:
+            primary = _("Are you sure you want to deauthorize this computer "
+                        "from the '%s' account?") % account_name
+            button_text = _("Deauthorize")
+        else:
+            primary = _("Deauthorizing this computer from the '%s' account "
+                    "will remove this purchased software:") % account_name
+            button_text = _("Remove All")
+        return (primary, button_text)
 
     def get_distro_codename(self):
         if not hasattr(self ,"codename"):

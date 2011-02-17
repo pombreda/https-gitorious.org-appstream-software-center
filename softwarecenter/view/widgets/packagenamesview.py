@@ -29,7 +29,6 @@ class PackageNamesView(gtk.TreeView):
     """ A simple widget that presents a list of packages, with
         associated icons, in a treeview.  Useful in dialogs.
     """
-    
     (COL_ICON,
      COL_TEXT) = range(2)
 
