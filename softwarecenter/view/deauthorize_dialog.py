@@ -53,7 +53,7 @@ def deauthorize_my_computer(parent, datadir, db, icons):
         
     # build the dialog
     glade_dialog = SimpleGtkbuilderDialog(datadir, domain="software-center")
-    dialog = glade_dialog.dialog_dependency_alert
+    dialog = glade_dialog.dialog_deauthorize
     dialog.set_resizable(True)
     dialog.set_transient_for(parent)
     dialog.set_default_size(360, -1)
@@ -63,21 +63,21 @@ def deauthorize_my_computer(parent, datadir, db, icons):
     if (icon_name is None or
         not icons.has_icon(icon_name)):
         icon_name = MISSING_APP_ICON
-    glade_dialog.image_package_icon.set_from_icon_name(icon_name, 
-                                                       gtk.ICON_SIZE_DIALOG)
+    glade_dialog.image_icon.set_from_icon_name(icon_name, 
+                                               gtk.ICON_SIZE_DIALOG)
 
     # set the texts
-    glade_dialog.label_dependency_primary.set_text("<span font_weight=\"bold\" font_size=\"large\">%s</span>" % primary)
-    glade_dialog.label_dependency_primary.set_use_markup(True)
-    glade_dialog.button_dependency_do.set_label(button_text)
+    glade_dialog.label_deauthorize_primary.set_text("<span font_weight=\"bold\" font_size=\"large\">%s</span>" % primary)
+    glade_dialog.label_deauthorize_primary.set_use_markup(True)
+    glade_dialog.button_deauthorize_do.set_label(button_text)
 
-    # add the dependencies
+    # add the packages to remove
     vbox = dialog.get_content_area()
     view = PackageNamesView(_("Deauthorize"), cache, purchased_packages, icons, ICON_SIZE, db)
     view.set_headers_visible(False)
     # FIXME: work out how not to select?/focus?/activate? first item
-    glade_dialog.scrolledwindow_dependencies.add(view)
-    glade_dialog.scrolledwindow_dependencies.show_all()
+    glade_dialog.scrolledwindow_purchased_packages.add(view)
+    glade_dialog.scrolledwindow_purchased_packages.show_all()
         
     result = dialog.run()
     dialog.hide()
