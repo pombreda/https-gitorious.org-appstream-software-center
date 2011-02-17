@@ -62,13 +62,16 @@ def deauthorize_my_computer(parent, datadir, db, icons, account_name, purchased_
     glade_dialog.label_deauthorize_primary.set_use_markup(True)
     glade_dialog.button_deauthorize_do.set_label(button_text)
 
-    # add the packages to remove
-    vbox = dialog.get_content_area()
-    view = PackageNamesView(_("Deauthorize"), cache, purchased_packages, icons, ICON_SIZE, db)
-    view.set_headers_visible(False)
-    # FIXME: work out how not to select?/focus?/activate? first item
-    glade_dialog.scrolledwindow_purchased_packages.add(view)
-    glade_dialog.scrolledwindow_purchased_packages.show_all()
+    # add the list of packages to remove, if there are any
+    if len(purchased_packages) > 0:
+        vbox = dialog.get_content_area()
+        view = PackageNamesView(_("Deauthorize"), cache, purchased_packages, icons, ICON_SIZE, db)
+        view.set_headers_visible(False)
+        # FIXME: work out how not to select?/focus?/activate? first item
+        glade_dialog.scrolledwindow_purchased_packages.add(view)
+        glade_dialog.scrolledwindow_purchased_packages.show_all()
+    else:
+        glade_dialog.viewport_purchased_packages.hide()
         
     result = dialog.run()
     dialog.hide()
@@ -91,12 +94,12 @@ if __name__ == "__main__":
     icons.append_search_path("/usr/share/app-install/icons/")
     
     purchased_packages = set()
-    purchased_packages.add('file-roller')
-    purchased_packages.add('alarm-clock')
-    purchased_packages.add('pitivi')
-    purchased_packages.add('chromium-browser')
-    purchased_packages.add('cheese')
-    purchased_packages.add('aisleriot')
+#    purchased_packages.add('file-roller')
+#    purchased_packages.add('alarm-clock')
+#    purchased_packages.add('pitivi')
+#    purchased_packages.add('chromium-browser')
+#    purchased_packages.add('cheese')
+#    purchased_packages.add('aisleriot')
     
     account_name = "max.fischer@rushmoreacademy.edu"
 

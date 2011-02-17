@@ -506,7 +506,7 @@ until the package catalog is repaired. Do you want to repair it now?&lt;/span&gt
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkViewport" id="viewportd">
+                  <object class="GtkViewport" id="viewport_purchased_packages">
                     <property name="visible">True</property>
                     <property name="resize_mode">queue</property>
                     <child>
