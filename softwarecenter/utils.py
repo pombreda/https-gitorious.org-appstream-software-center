@@ -292,7 +292,7 @@ def get_icon_from_theme(icons, iconname=None, iconsize=APP_ICON_SIZE, missingico
         icon = icons.load_icon(missingicon, iconsize, 0)
     return icon
     
-def get_icon_file_path_from_iconname(icons, iconname=None, iconsize=APP_ICON_SIZE):
+def get_file_path_from_iconname(icons, iconname=None, iconsize=APP_ICON_SIZE):
     """
     return the file path of the icon in the theme that corresponds to the
     given iconname, or None if it cannot be determined
@@ -308,17 +308,60 @@ def get_icon_file_path_from_iconname(icons, iconname=None, iconsize=APP_ICON_SIZ
         icon_file_path = icon_info.get_filename()
         icon_info.free()
         return icon_file_path
-    
+
+def clear_token_from_ubuntu_sso(appname):
+    """ send a dbus signal to the com.ubuntu.sso service to clear 
+        the credentials for the given appname
+    """
+    import dbus
+    bus = dbus.SessionBus()
+    proxy = bus.get_object('com.ubuntu.sso', '/credentials')
+    proxy.clear_token(appname)
+
+def get_nice_date_string(cur_t):
+    """ return a "nice" human readable date, like "2 minutes ago"  """
+    import datetime
+    dt = datetime.datetime.utcnow() - cur_t
+    days = dt.days
+    secs = dt.seconds
+
+    if days < 1:
+
+        if secs < 120:   # less than 2 minute ago
+            s = _('a few minutes ago')   # dont be fussy
+
+        elif secs < 3600:   # less than an hour ago
+            s = gettext.ngettext("%(min)i minute ago",
+                                 "%(min)i minutes ago",
+                                 (secs/60)) % { 'min' : (secs/60) }
+
+        else:   # less than a day ago
+            s = gettext.ngettext("%(hours)i hour ago",
+                                 "%(hours)i hours ago",
+                                 (secs/3600)) % { 'hours' : (secs/3600) }
+
+    elif days <= 5: # less than a week ago
+        s = gettext.ngettext("%(days)i day ago",
+                             "%(days)i days ago",
+                             days) % { 'days' : days }
+
+    else:   # any timedelta greater than 5 days old
+        # YYYY-MM-DD
+        s = cur_t.isoformat().split('T')[0]
+
+    return s
+
+
 class SimpleFileDownloader(gobject.GObject):
 
-    LOG = logging.getLogger("softwarecenter.imagedownloader")
+    LOG = logging.getLogger("softwarecenter.simplefiledownloader")
 
     __gsignals__ = {
-        "image-url-reachable"     : (gobject.SIGNAL_RUN_LAST,
+        "file-url-reachable"      : (gobject.SIGNAL_RUN_LAST,
                                      gobject.TYPE_NONE,
                                      (bool,),),
 
-        "image-download-complete" : (gobject.SIGNAL_RUN_LAST,
+        "file-download-complete"  : (gobject.SIGNAL_RUN_LAST,
                                      gobject.TYPE_NONE,
                                      (str,),),
         }
@@ -327,8 +370,8 @@ class SimpleFileDownloader(gobject.GObject):
         gobject.GObject.__init__(self)
         self.tmpdir = None
 
-    def download_image(self, url, dest_file_path=None):
-        self.LOG.debug("download_image: %s %s" % (url, dest_file_path))
+    def download_file(self, url, dest_file_path=None):
+        self.LOG.debug("download_file: %s %s" % (url, dest_file_path))
         if dest_file_path is None:
             if self.tmpdir is None:
                 self.tmpdir = tempfile.mkdtemp(prefix="software-center-")
@@ -338,8 +381,8 @@ class SimpleFileDownloader(gobject.GObject):
         self.dest_file_path = dest_file_path
         
         if os.path.exists(self.dest_file_path):
-            self.emit('image-url-reachable', True)
-            self.emit("image-download-complete", self.dest_file_path)
+            self.emit('file-url-reachable', True)
+            self.emit("file-download-complete", self.dest_file_path)
             return
         
         f = gio.File(url)
@@ -350,17 +393,17 @@ class SimpleFileDownloader(gobject.GObject):
     def _check_url_reachable_and_then_download_cb(self, f, result):
         try:
             result = f.query_info_finish(result)
-            self.emit('image-url-reachable', True)
-            self.LOG.debug("image reachable %s" % self.url)
-            # url is reachable, now download the icon file
-            f.load_contents_async(self._icon_download_complete_cb)
+            self.emit('file-url-reachable', True)
+            self.LOG.debug("file reachable %s" % self.url)
+            # url is reachable, now download the file
+            f.load_contents_async(self._file_download_complete_cb)
         except glib.GError, e:
-            self.LOG.debug("image *not* reachable %s" % self.url)
-            self.emit('image-url-reachable', False)
+            self.LOG.debug("file *not* reachable %s" % self.url)
+            self.emit('file-url-reachable', False)
         del f
 
-    def _icon_download_complete_cb(self, f, result, path=None):
-        self.LOG.debug("icon download completed %s" % self.dest_file_path)
+    def _file_download_complete_cb(self, f, result, path=None):
+        self.LOG.debug("file download completed %s" % self.dest_file_path)
         # The result from the download is actually a tuple with three 
         # elements (content, size, etag?)
         # The first element is the actual content so let's grab that
@@ -368,7 +411,7 @@ class SimpleFileDownloader(gobject.GObject):
         outputfile = open(self.dest_file_path, "w")
         outputfile.write(content)
         outputfile.close()
-        self.emit('image-download-complete', self.dest_file_path)
+        self.emit('file-download-complete', self.dest_file_path)
 
 
 class GMenuSearcher(object):
@@ -413,47 +456,6 @@ class GMenuSearcher(object):
                 return self._found
         return None
 
-def clear_token_from_ubuntu_sso(appname):
-    """ send a dbus signal to the com.ubuntu.sso service to clear 
-        the credentials for the given appname
-    """
-    import dbus
-    bus = dbus.SessionBus()
-    proxy = bus.get_object('com.ubuntu.sso', '/credentials')
-    proxy.clear_token(appname)
-
-def get_nice_date_string(cur_t):
-    """ return a "nice" human readable date, like "2 minutes ago"  """
-    import datetime
-    dt = datetime.datetime.utcnow() - cur_t
-    days = dt.days
-    secs = dt.seconds
-
-    if days < 1:
-
-        if secs < 120:   # less than 2 minute ago
-            s = _('a few minutes ago')   # dont be fussy
-
-        elif secs < 3600:   # less than an hour ago
-            s = gettext.ngettext("%(min)i minute ago",
-                                 "%(min)i minutes ago",
-                                 (secs/60)) % { 'min' : (secs/60) }
-
-        else:   # less than a day ago
-            s = gettext.ngettext("%(hours)i hour ago",
-                                 "%(hours)i hours ago",
-                                 (secs/3600)) % { 'hours' : (secs/3600) }
-
-    elif days <= 5: # less than a week ago
-        s = gettext.ngettext("%(days)i day ago",
-                             "%(days)i days ago",
-                             days) % { 'days' : days }
-
-    else:   # any timedelta greater than 5 days old
-        # YYYY-MM-DD
-        s = cur_t.isoformat().split('T')[0]
-
-    return s
         
 if __name__ == "__main__":
     s = decode_xml_char_reference('Search&#x2026;')

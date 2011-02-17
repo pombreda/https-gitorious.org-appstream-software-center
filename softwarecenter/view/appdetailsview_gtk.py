@@ -565,8 +565,8 @@ class ScreenshotView(gtk.Alignment):
 
         # convienience class for handling the downloading (or not) of any screenshot
         self.loader = SimpleFileDownloader()
-        self.loader.connect('image-url-reachable', self._on_screenshot_query_complete)
-        self.loader.connect('image-download-complete', self._on_screenshot_download_complete)
+        self.loader.connect('file-url-reachable', self._on_screenshot_query_complete)
+        self.loader.connect('file-download-complete', self._on_screenshot_download_complete)
 
     # signal handlers
     def _on_enter(self, widget, event):
@@ -749,10 +749,10 @@ class ScreenshotView(gtk.Alignment):
         """ Download then displays the screenshot.
             This actually does a query on the URL first to check if its 
             reachable, if so it downloads the thumbnail.
-            If not, it emits "image-url-reachable" False, then exits.
+            If not, it emits "file-url-reachable" False, then exits.
         """
         
-        self.loader.download_image(self.thumbnail_url)
+        self.loader.download_file(self.thumbnail_url)
         return
 
     def draw(self, cr, a, expose_area):
@@ -2460,9 +2460,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         if self.appdetails.icon_needs_download:
             icon_file = self.appdetails.cached_icon_file_path
         icon_size = self._get_app_icon_size_on_screen()
-        icon_file_path = get_icon_file_path_from_iconname(self.icons,
-                                                          iconsize=icon_size,
-                                                          iconname=icon_name)
+        icon_file_path = get_file_path_from_iconname(self.icons,
+                                                     iconsize=icon_size,
+                                                     iconname=icon_name)
         (icon_x, icon_y) = self._get_app_icon_xy_position_on_screen()
         return (icon_name, icon_file_path, icon_size, icon_x, icon_y)
         
@@ -2534,8 +2534,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                     self.main_frame.set_icon_from_pixbuf(pb)
                     
                 image_downloader = SimpleFileDownloader()
-                image_downloader.connect('image-download-complete', on_image_download_complete)
-                image_downloader.download_image(app_details.icon_url, appdetails.cached_icon_file_path)
+                image_downloader.connect('file-download-complete', on_image_download_complete)
+                image_downloader.download_file(app_details.icon_url, appdetails.cached_icon_file_path)
         return self.icons.load_icon(MISSING_APP_ICON, 84, 0)
     
     def update_totalsize(self, hide=False):
