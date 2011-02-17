@@ -101,6 +101,25 @@ def error(parent, primary, secondary, details=None):
                          type=gtk.MESSAGE_ERROR)
 
 
+class FullsizeScreenshotDialog(gtk.Dialog):
+
+    def __init__(self, parent):
+        gtk.Dialog.__init__(self,
+                            '',
+                            parent,
+                            gtk.DIALOG_MODAL | gtk.DIALOG_DESTROY_WITH_PARENT,
+                            (gtk.STOCK_CANCEL, gtk.RESPONSE_REJECT))
+
+        self.image = gtk.Image()
+        self.vbox.pack_start(self.image)
+        return
+
+    def set_pixbuf(self, pb):
+        self.image.set_from_pixbuf(pb)
+        self.show_all()
+        return
+
+
 if __name__ == "__main__":
     print "Running remove dialog"
     

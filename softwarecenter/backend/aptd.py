@@ -25,6 +25,7 @@ import re
 import subprocess
 import sys
 from softwarecenter.utils import *
+from softwarecenter.enums import *
 
 from aptdaemon import client
 from aptdaemon import enums
@@ -86,7 +87,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
 
     __gsignals__ = {'transaction-started':(gobject.SIGNAL_RUN_FIRST,
                                             gobject.TYPE_NONE,
-                                            (str,)),
+                                            (str,str,str,str)),
                     # emits a TransactionFinished object
                     'transaction-finished':(gobject.SIGNAL_RUN_FIRST,
                                             gobject.TYPE_NONE,
@@ -138,7 +139,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
 
     @inline_callbacks
     def fix_broken_depends(self):
-        self.emit("transaction-started", "")
+        self.emit("transaction-started", "", "", "")
         try:
             trans = yield self.aptd_client.fix_broken_depends(defer=True)
             yield self._run_transaction(trans, None, None, None)
@@ -149,10 +150,10 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
     @inline_callbacks
     def upgrade(self, pkgname, appname, iconname, addons_install=[], addons_remove=[], metadata=None):
         """ upgrade a single package """
-        self.emit("transaction-started", pkgname)
         try:
             trans = yield self.aptd_client.upgrade_packages([pkgname],
                                                             defer=True)
+            self.emit("transaction-started", pkgname, appname, trans.tid, TRANSACTION_TYPE_UPGRADE)
             yield self._run_transaction(trans, pkgname, appname, iconname, metadata)
         except Exception, error:
             self._on_trans_error(error, pkgname)
@@ -186,10 +187,10 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
     @inline_callbacks
     def remove(self, pkgname, appname, iconname, addons_install=[], addons_remove=[], metadata=None):
         """ remove a single package """
-        self.emit("transaction-started", pkgname)
         try:
             trans = yield self.aptd_client.remove_packages([pkgname],
                                                            defer=True)
+            self.emit("transaction-started", pkgname, appname, trans.tid, TRANSACTION_TYPE_REMOVE)
             yield self._run_transaction(trans, pkgname, appname, iconname, metadata)
         except Exception, error:
             self._on_trans_error(error, pkgname)
@@ -209,12 +210,12 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         """Install a single package from the archive
            If filename is given a local deb package is installed instead.
         """
-        self.emit("transaction-started", pkgname)
         try:
             if filename:
                 # force means on lintian failure
                 trans = yield self.aptd_client.install_file(
                     filename, force=False, defer=True)
+                self.emit("transaction-started", pkgname, appname, trans.tid, TRANSACTION_TYPE_INSTALL)
             else:
                 install = [pkgname] + addons_install
                 remove = addons_remove
@@ -222,6 +223,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
                 trans = yield self.aptd_client.commit_packages(
                     install, reinstall, remove, purge, upgrade, downgrade, 
                     defer=True)
+                self.emit("transaction-started", pkgname, appname, trans.tid, TRANSACTION_TYPE_INSTALL)
             yield self._run_transaction(
                 trans, pkgname, appname, iconname, metadata)
         except Exception, error:
@@ -240,7 +242,6 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
     @inline_callbacks
     def apply_changes(self, pkgname, appname, iconname, addons_install=[], addons_remove=[], metadata=None):
         """ install and remove add-ons """
-        self.emit("transaction-started", pkgname)
         try:
             install = addons_install
             remove = addons_remove
@@ -248,6 +249,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             trans = yield self.aptd_client.commit_packages(
                 install, reinstall, remove, purge, upgrade, downgrade, 
                 defer=True)
+            self.emit("transaction-started", pkgname, appname, trans.tid, TRANSACTION_TYPE_APPLY)
             yield self._run_transaction(trans, pkgname, appname, iconname)
         except Exception, error:
             self._on_trans_error(error)
@@ -362,7 +364,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         and finally installing the specified application once the
         package list reload has completed.
         """
-        self.emit("transaction-started", app.pkgname)
+        self.emit("transaction-started", app.pkgname, app.appname, "FIXME-NEED-ID-HERE", TRANSACTION_TYPE_INSTALL)
         self._logger.info("add_repo_add_key_and_install_app() '%s' '%s' '%s'"% (
                 # re.sub() out the password from the log
                 re.sub("deb https://.*@", "", deb_line),
