@@ -7,17 +7,17 @@ import time
 import unittest
 
 sys.path.insert(0,"../")
-from softwarecenter.utils import ImageDownloader
+from softwarecenter.utils import SimpleFileDownloader
 
 class TestImageDownloader(unittest.TestCase):
 
     DOWNLOAD_FILENAME = "test_image_download"
 
     def setUp(self):
-        self.downloader = ImageDownloader()
-        self.downloader.connect("image-url-reachable",
+        self.downloader = SimpleFileDownloader()
+        self.downloader.connect("file-url-reachable",
                                 self._cb_image_url_reachable)
-        self.downloader.connect("image-download-complete",
+        self.downloader.connect("file-download-complete",
                                 self._cb_image_download_complete)
         self._image_is_reachable = None
         self._image_downloaded_filename = None
@@ -31,8 +31,8 @@ class TestImageDownloader(unittest.TestCase):
         self._image_downloaded_filename = filename
 
     def test_download_unreachable(self):
-        self.downloader.download_image("http://examplex.com/not-there",
-                                       self.DOWNLOAD_FILENAME)
+        self.downloader.download_file("http://examplex.com/not-there",
+                                      self.DOWNLOAD_FILENAME)
         main_loop = glib.main_context_default()
         while self._image_is_reachable is None:
             while main_loop.pending():
@@ -43,8 +43,8 @@ class TestImageDownloader(unittest.TestCase):
         self.assertTrue(not os.path.exists(self.DOWNLOAD_FILENAME))
  
     def test_download_reachable(self):
-        self.downloader.download_image("http://www.ubuntu.com",
-                                       self.DOWNLOAD_FILENAME)
+        self.downloader.download_file("http://www.ubuntu.com",
+                                      self.DOWNLOAD_FILENAME)
         main_loop = glib.main_context_default()
         while self._image_downloaded_filename is None:
             while main_loop.pending():
