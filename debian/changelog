@@ -1,3 +1,57 @@
+software-center (3.1.19) UNRELEASED; urgency=low
+
+  [ Gary Lasker ]
+  * softwarecenter/enums.py,
+    softwarecenter/utils.py,
+    softwarecenter/backend/channel.py,
+    softwarecenter/models/viewswitcherlist.py,
+    softwarecenter/view/pendingview.py:
+    - another icon crash fix (LP: #719662)
+  * softwarecenter/backend/aptd.py,
+    softwarecenter/models/appstore.py,
+    softwarecenter/view/appdetailsview_webkit.py,
+    softwarecenter/view/appview.py,
+    softwarecenter/enums.py:
+    - include additional details about the transaction when
+      firing a transaction-started signal, wire to handlers
+  * softwarecenter/view/widgets/actionbar.py:
+    - tweak spacings for action bar
+  * softwarecenter/db/application.py,
+    softwarecenter/view/appdetailsview_gtk.py,
+    softwarecenter/view/availablepane.py,
+    softwarecenter/view/channelpane.py,
+    softwarecenter/view/installedpane.py,
+    softwarecenter/view/softwarepane.py,
+    softwarecenter/enums.py:
+    - implement the software-center side of unity launcher
+      integration per the specification (LP: #670403)
+    - temporarily hide the launcher integration feature pending
+      implementation on the Unity side
+  * test/test_downloader.py:
+    - update unit test for SimpleFileDownloader changes
+
+  [ Aaron Peachey ]
+  * utils/submit_review.py,
+    softwarecenter/db/reviews.py,
+    softwarecenter/view/appdetailsview_gtk.py:
+    - provide user feedback when submitting review usefulness
+    - handle case where usefulness submission fails
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - display own reviews according to the spec
+  
+  [ Michael Vogt ]
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - add transparent-bg-hint gdata theme engine hint to the 
+      progress bar
+  
+  [ Matthew McGowan ]
+  * lp:~mmcg069/software-center/lobby-tweaks:
+    - better layout of the welcome lobby screen
+  * lp:~mmcg069/software-center/catviewgtk-code-reorg:
+    - move widgets out into softwarecenter/view/widgets
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 16 Feb 2011 19:45:15 -0500
+
 software-center (3.1.18) natty; urgency=low
 
   [ Michael Vogt ]

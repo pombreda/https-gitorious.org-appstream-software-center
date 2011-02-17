@@ -33,14 +33,21 @@ from softwarecenter.enums import *
 from softwarecenter.utils import *
 from softwarecenter.backend import get_install_backend
 from softwarecenter.db.database import StoreDatabase, Application
+
+#from softwarecenter.db.reviews import get_review_loader
+#from softwarecenter.backend import get_install_backend
+#from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
+
 from softwarecenter.distro import get_distro
 from softwarecenter.models.appstore import AppStore
 
 from widgets.mkit import get_em_value, get_mkit_theme, floats_from_gdkcolor_with_alpha, EM
 from widgets.reviews import StarPainter
+
 from gtk import gdk
 
 from gettext import gettext as _
+
 
 class CellRendererButton2:
 
@@ -242,7 +249,7 @@ class CellRendererAppView2(gtk.CellRendererText):
     
     # ratings
     MAX_STARS = 5
-    STAR_SIZE = EM-1
+    STAR_SIZE = int(1.15*EM)
 
     __gproperties__ = {
         'overlay' : (bool, 'overlay', 'show an overlay icon', False,
@@ -391,13 +398,16 @@ class CellRendererAppView2(gtk.CellRendererText):
                                   x, y, layout)
         return
 
-    def _render_rating(self, window, widget, state, cell_area, xpad, ypad, direction):
+    def _render_rating(self, window, widget, state, cell_area, xpad, ypad, direction, spacing=3):
         # draw stars on the top right
         cr = window.cairo_create()
-        w = self.STAR_SIZE
-        h = self.STAR_SIZE
+
+        # for the sake of aesthetics,
+        # star width should be approx 1/5 the width of the action button
+        sw = sh = self.get_button_by_name('action0').get_size()[0] / 5
+
         for i in range(0, self.MAX_STARS):
-            x = cell_area.x + cell_area.width - xpad - (self.MAX_STARS-i)*(w+3)
+            x = cell_area.x + cell_area.width - xpad - (self.MAX_STARS-i)*sw
             y = cell_area.y + ypad
             if i < int(self.rating):
                 self._star_painter.set_fill(StarPainter.FILL_FULL)
@@ -406,22 +416,27 @@ class CellRendererAppView2(gtk.CellRendererText):
                 self._star_painter.set_fill(StarPainter.FILL_HALF)
             else:
                 self._star_painter.set_fill(StarPainter.FILL_EMPTY)
-            self._star_painter.paint_star(cr, x, y, w, h)
+            self._star_painter.paint_star(cr, widget, state, x, y, sw, sh)
+
         # and nr-reviews below
-        x = cell_area.x + cell_area.width - xpad - self.MAX_STARS*(w+3)
-        y = cell_area.y + 2*ypad+h
         if not self._nr_reviews_layout:
-            pc = widget.get_pango_context()
-            self._nr_reviews_layout = pango.Layout(pc)
+            self._nr_reviews_layout = widget.create_pango_layout('')
         s = gettext.ngettext(
             "%(nr_ratings)i Rating",
             "%(nr_ratings)i Ratings",
             self.nreviews) % { 'nr_ratings' : self.nreviews, }
+
         self._nr_reviews_layout.set_markup("<small>%s</small>" % s)
         # FIXME: improve w, h area calculation
-        w = 6*self.STAR_SIZE
-        h = self._nr_reviews_layout.get_size()[1]
-        clip_area = (x, y, w, h)
+
+        lw, lh = self._nr_reviews_layout.get_pixel_extents()[1][2:]
+
+        w = self.MAX_STARS*sw
+
+        x = cell_area.x + cell_area.width - xpad - w + (w-lw)/2
+        y = cell_area.y + 2*ypad+sh
+
+        clip_area = None#(x, y, w, h)
         widget.style.paint_layout(window, 
                                   state,
                                   True, 
@@ -583,7 +598,6 @@ class CellRendererAppView2(gtk.CellRendererText):
             btn.set_position(xs, y-btn.allocation.height)
             btn.render(window, widget, self._layout)
             xs += btn.allocation.width + spacing
-
 
         for btn in self._buttons[end]:
             xb -= btn.allocation.width
@@ -1004,7 +1018,7 @@ class AppView(gtk.TreeView):
             if btn.point_in(int(x), int(y)):
                 self.window.set_cursor(cursor)
 
-    def _on_transaction_started(self, backend, pkgname, tr):
+    def _on_transaction_started(self, backend, pkgname, appname, trans_id, trans_type, tr):
         """ callback when an application install/remove transaction has started """
         action_btn = tr.get_button_by_name('action0')
         if action_btn:

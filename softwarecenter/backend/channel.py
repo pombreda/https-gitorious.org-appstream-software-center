@@ -446,23 +446,15 @@ class SoftwareChannel(object):
             channel_query = xapian.Query(xapian.Query.OP_AND, 
                                          xapian.Query("XOL" + channel_name),
                                          xapian.Query("ATapplication"))
-        # uncomment the following to limit the distro channel contents to only applications
-#        elif channel_name == self.distro.get_distro_channel_name():
-#            channel_query = xapian.Query(xapian.Query.OP_AND, 
-#                                         xapian.Query("XOL" + channel_name),
-#                                         xapian.Query("ATapplication"))
         else:
             channel_query = xapian.Query("XOL" + channel_name)
         return channel_query
 
     def _get_icon(self, icon_name):
-        if self.icons.lookup_icon(icon_name, self.ICON_SIZE, 0):
-            icon = AnimatedImage(self.icons.load_icon(icon_name, self.ICON_SIZE, 0))
-        else:
-            # icon not present in theme, probably because running uninstalled
-            icon = AnimatedImage(self.icons.load_icon("gtk-missing-image", 
-                                                      self.ICON_SIZE, 0))
-        return icon
+        return AnimatedImage(get_icon_from_theme(self.icons, 
+                                                 iconname=icon_name, 
+                                                 iconsize=self.ICON_SIZE,
+                                                 missingicon=GENERIC_MISSING_IMAGE))
         
     def __str__(self):
         details = []
