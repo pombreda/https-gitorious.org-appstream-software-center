@@ -27,7 +27,8 @@ LOG = logging.getLogger(__name__)
 
 class PackageNamesView(gtk.TreeView):
     """ A simple widget that presents a list of packages, with
-        associated icons, in a treeview.  Useful in dialogs.
+        associated icons, in a treeview.  Note the for current
+        uses we only show installed packages.  Useful in dialogs.
     """
     (COL_ICON,
      COL_TEXT) = range(2)
@@ -44,6 +45,8 @@ class PackageNamesView(gtk.TreeView):
         column = gtk.TreeViewColumn(header, tr, markup=self.COL_TEXT)
         self.append_column(column)
         for pkgname in sorted(pkgnames):
+            if not cache[pkgname].installed:
+                continue
             s = "%s \n<small>%s</small>" % (
                 cache[pkgname].installed.summary.capitalize(), pkgname)
             
@@ -59,4 +62,7 @@ class PackageNamesView(gtk.TreeView):
                 pix = icons.load_icon(MISSING_APP_ICON, icon_size, ()).scale_simple(icon_size, 
                                       icon_size, gtk.gdk.INTERP_BILINEAR)
             row = model.append([pix, s])
-
+            
+        # finally, we don't allow selection, it's just a simple display list
+        tree_selection = self.get_selection()
+        tree_selection.set_mode(gtk.SELECTION_NONE)

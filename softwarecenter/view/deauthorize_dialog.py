@@ -41,6 +41,11 @@ def deauthorize_my_computer(parent, datadir, db, icons):
 
     purchased_packages = set()
     purchased_packages.add('file-roller')
+    purchased_packages.add('alarm-clock')
+    purchased_packages.add('pitivi')
+    purchased_packages.add('chromium-browser')
+    purchased_packages.add('cheese')
+    purchased_packages.add('aisleriot')
 
     account_name = "gary.lasker@canonical.com"
     (primary, button_text) = distro.get_deauthorize_text(account_name,
