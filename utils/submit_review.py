@@ -631,7 +631,6 @@ class SubmitReviewsApp(BaseApp):
         self.review_summary_entry.set_sensitive(False)
         self.star_rating.set_sensitive(False)
         self.SUBMIT_MESSAGE = _("Deleting your review")
-        self.button_post.set_sensitive(False)
 
     def _setup_details(self, widget, app, iconname, version, display_name):
         # icon shazam
@@ -763,7 +762,10 @@ class SubmitReviewsApp(BaseApp):
     
     #FIXME: stub. will see if user has chosen to delete or modify then take appropriate action
     def _on_post_clicked_modify(self):
-        logging.warn("_on_post_clicked_modify called")
+        if self.radio_modify.get_active():
+            logging.warn("send modified review")
+        else:
+            self.api.delete_review(review_id)
         return
         
     def _on_post_clicked_submit(self):
