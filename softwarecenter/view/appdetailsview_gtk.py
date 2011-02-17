@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Copyright (C) 2009 Canonical
 #
 # Authors:
@@ -985,7 +986,7 @@ class AddonsTable(gtk.VBox):
         return
 
 
-class Reviews(gtk.VBox):
+class UIReviewsList(gtk.VBox):
 
     __gsignals__ = {
         'new-review':(gobject.SIGNAL_RUN_FIRST,
@@ -1077,7 +1078,7 @@ class Reviews(gtk.VBox):
 
             for r in self.reviews:
                 pkgversion = self._parent.app_details.version
-                review = Review(r, pkgversion, self.logged_in_person)
+                review = UIReview(r, pkgversion, self.logged_in_person)
                 self.vbox.pack_start(review, padding=mkit.SPACING_LARGE)
         return
 
@@ -1141,9 +1142,9 @@ class Reviews(gtk.VBox):
         return
 
     def get_reviews(self):
-        return filter(lambda r: not isinstance(r, (EmbeddedMessage)) and isinstance(r, Review), self.vbox.get_children())
+        return filter(lambda r: not isinstance(r, (EmbeddedMessage)) and isinstance(r, UIReview), self.vbox.get_children())
 
-class Review(gtk.VBox):
+class UIReview(gtk.VBox):
     
     def __init__(self, review_data=None, app_version=None, logged_in_person=None):
         gtk.VBox.__init__(self, spacing=mkit.SPACING_MED)
@@ -1483,10 +1484,10 @@ class Review(gtk.VBox):
 
         cr.restore()
 
-class EmbeddedMessage(Review):
+class EmbeddedMessage(UIReview):
 
     def __init__(self, label=None, icon_name=None):
-        Review.__init__(self)
+        UIReview.__init__(self)
 
         a = gtk.Alignment(0.5, 0.5)
         self.body.pack_start(a, False)
@@ -1505,19 +1506,6 @@ class EmbeddedMessage(Review):
 
         self.show_all()
         return
-
-class NoReviewYet(EmbeddedMessage):
-    """ represents if there are no reviews yet """
-    def __init__(self, *args, **kwargs):
-        super(NoReviewYet, self).__init__(*args, **kwargs)
-        # TRANSLATORS: displayed if there are no reviews yet
-        self.body.pack_start(gtk.Label(_("None yet")))
-
-class LoadingReviews(EmbeddedMessage):
-    def __init__(self, *args, **kwargs):
-        super(LoadingReviews, self).__init__(*args, **kwargs)
-        self.body.pack_start(gtk.Label(_("Loading reviews ...")))
-
 
 class AddonsStatusBar(StatusBar):
     
@@ -1686,7 +1674,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self._update_review_stats_widget(stats)
         # individual reviews is slow and async so we just queue it here
         if network_state_is_connected():
-            self.reviews.add_embedded_message(LoadingReviews())
+            m = EmbeddedMessage(_("Loading reviews…"))
+            self.ui_reviews_list.add_embedded_message(m)
         reviews = self.review_loader.get_reviews(self.app,
                                                  self._reviews_ready_callback)
 
@@ -1698,7 +1687,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         else:
             self.review_stats_widget.hide()
 
-    def _reviews_ready_callback(self, app, reviews):
+    def _reviews_ready_callback(self, app, review_data_list):
         """ callback when new reviews are ready, cleans out the
             old ones
         """
@@ -1710,7 +1699,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         if self.app.pkgname != app.pkgname:
             return
         # clear out the old ones ...
-        self.reviews.clear()
+        self.ui_reviews_list.clear()
             
         # add network message if needed
         if not network_state_is_connected():
@@ -1718,32 +1707,35 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                 _('No Network Connection'),
                 _('Only cached reviews can be displayed'))
             m = EmbeddedMessage(s, 'network-offline')
-            self.reviews.add_embedded_message(m)
+            self.ui_reviews_list.add_embedded_message(m)
 
-        if not reviews and network_state_is_connected():
-            self.reviews.add_embedded_message(NoReviewYet())
+        if not review_data_list and network_state_is_connected():
+            s = '%s' % _("None yet")
+            self.ui_reviews_list.add_embedded_message(EmbeddedMessage(s))
             
         # then add the new ones ...
-        for review in reviews:
-            self.reviews.add_review(review)
+        for review_data in review_data_list:
+            self.ui_reviews_list.add_review(review_data)
         # then update the stats (if needed). the caching can make them
         # wrong, so if the reviews we have in the list are more than the
         # stats we update manually
         old_stats = self.review_loader.get_review_stats(self.app)
-        if ((old_stats is None and len(reviews) > 0) or
-            (old_stats is not None and old_stats.ratings_total < len(reviews))):
+        if ((old_stats is None and
+             len(review_data_list) > 0) or
+            (old_stats is not None and
+             old_stats.ratings_total < len(review_data_list))):
             # generate new stats
             stats = ReviewStats(app)
             stats.ratings_total = len(reviews)
             if stats.ratings_total == 0:
                 stats.ratings_average = 0
             else:
-                stats.ratings_average = sum([x.rating for x in reviews]) / float(stats.ratings_total)
+                stats.ratings_average = sum([x.rating for x in review_data_list]) / float(stats.ratings_total)
             # update UI
             self._update_review_stats_widget(stats)
             # update global stats cache as well
             self.review_loader.REVIEW_STATS_CACHE[app] = stats
-        self.reviews.finished()
+        self.ui_reviews_list.finished()
 
     def _on_allocate(self, widget, allocation):
         w = allocation.width
@@ -1763,7 +1755,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.license_info.set_width(w-4*EM)
         self.support_info.set_width(w-4*EM)
 
-        self.reviews.set_width(w-5*EM)
+        self.ui_reviews_list.set_width(w-5*EM)
 
         self._full_redraw()   #  ewww
         return
@@ -1819,8 +1811,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         if self.addon_view.get_property('visible'):
             self.addon_view.draw(cr, self.addon_view.allocation)
 
-        if self.reviews.get_property('visible'):
-            self.reviews.draw(cr, self.reviews.allocation)
+        if self.ui_reviews_list.get_property('visible'):
+            self.ui_reviews_list.draw(cr, self.ui_reviews_list.allocation)
 
         del cr
         return
@@ -2001,11 +1993,14 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
     def _layout_reviews(self):
         # reviews
-        self.reviews = Reviews(self)
-        self.reviews.connect("new-review", self._on_review_new)
-        self.reviews.connect("report-abuse", self._on_review_report_abuse)
-        self.reviews.connect("submit-usefulness", self._on_review_submit_usefulness)
-        self.main_frame.body.pack_start(self.reviews)
+        self.ui_reviews_list = UIReviewsList(self)
+        self.ui_reviews_list.connect(
+            "new-review", self._on_review_new)
+        self.ui_reviews_list.connect(
+            "report-abuse", self._on_review_report_abuse)
+        self.ui_reviews_list.connect(
+            "submit-usefulness", self._on_review_submit_usefulness)
+        self.main_frame.body.pack_start(self.ui_reviews_list)
         return
 
     def _layout_all(self):
@@ -2066,7 +2061,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # if we have an error or if we need to enable a source, then hide everything else
         if pkg_error:
             self.addon_view.hide()
-            self.reviews.hide()
+            self.ui_reviews_list.hide()
             self.screenshot.hide()
             self.version_info.hide()
             self.license_info.hide()
@@ -2074,7 +2069,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.totalsize_info.hide()
         else:
             self.addon_view.show()
-            self.reviews.show()
+            self.ui_reviews_list.show()
             self.version_info.show()
             self.license_info.show()
             self.support_info.show()
@@ -2155,7 +2150,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         return
 
     def _update_reviews(self, app_details):
-        self.reviews.clear()
+        self.ui_reviews_list.clear()
         self._check_for_reviews()
         return
 
@@ -2294,7 +2289,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         
         # hide the "write a review" button initially until we are ready
         # to display it
-        self.reviews.new_review.hide()
+        self.ui_reviews_list.new_review.hide()
 
         # init data
         old_details = self.app_details
