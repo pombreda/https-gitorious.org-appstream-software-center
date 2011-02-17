@@ -1666,7 +1666,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         """ callback when new reviews are ready, cleans out the
             old ones
         """
-        logging.info("_review_ready_callback: %s" % app)
+        LOG.debug("_review_ready_callback: %s" % app)
         # avoid possible race if we already moved to a new app when
         # the reviews become ready 
         # (we only check for pkgname currently to avoid breaking on

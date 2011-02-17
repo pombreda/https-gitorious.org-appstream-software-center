@@ -113,7 +113,7 @@ class ReviewLoader(object):
             try:
                 self.REVIEW_STATS_CACHE = cPickle.load(open(self.REVIEW_STATS_CACHE_FILE))
             except:
-                logging.exception("review stats cache load failure")
+                LOG.exception("review stats cache load failure")
                 os.rename(self.REVIEW_STATS_CACHE_FILE, self.REVIEW_STATS_CACHE_FILE+".fail")
 
     def get_reviews(self, application, callback):
@@ -207,7 +207,7 @@ class ReviewLoader(object):
             try:
                 review_json = simplejson.loads(stdout)
             except simplejson.decoder.JSONDecodeError:
-                logging.error("failed to parse '%s'" % stdout)
+                LOG.error("failed to parse '%s'" % stdout)
                 return
             review = ReviewDetails.from_dict(review_json)
             # FIXME: ideally this would be stored in ubuntu-sso-client
@@ -329,10 +329,10 @@ class ReviewLoaderThreadedRNRClient(ReviewLoader):
                 kwargs["appname"] = urllib.quote_plus(app.appname.encode("utf-8"))
             piston_reviews = self.rnrclient.get_reviews(**kwargs)
         except simplejson.decoder.JSONDecodeError, e:
-            logging.error("failed to parse '%s'" % e.doc)
+            LOG.error("failed to parse '%s'" % e.doc)
             piston_reviews = []
         except:
-            logging.exception("get_reviews")
+            LOG.exception("get_reviews")
             piston_reviews = []
         # add "app" attribute
         reviews = []
@@ -367,7 +367,7 @@ class ReviewLoaderThreadedRNRClient(ReviewLoader):
             days_delta += 1
         except OSError:
             days_delta = 0
-        logging.info("refresh with days_delta: %s" % days_delta)
+        LOG.debug("refresh with days_delta: %s" % days_delta)
         try:
             # depending on the time delta, use a different call
             if days_delta:
@@ -375,7 +375,7 @@ class ReviewLoaderThreadedRNRClient(ReviewLoader):
             else:
                 piston_review_stats = self.rnrclient.review_stats()
         except:
-            logging.exception("refresh_review_stats")
+            LOG.exception("refresh_review_stats")
             return
         # convert to the format that s-c uses
         review_stats = self.REVIEW_STATS_CACHE
@@ -437,7 +437,7 @@ class ReviewLoaderJsonAsync(ReviewLoader):
                                           'origin' : origin,
                                           'distroseries' : distroseries,
                                          }
-        logging.debug("looking for review at '%s'" % url)
+        LOG.debug("looking for review at '%s'" % url)
         f=gio.File(url)
         f.set_data("app", app)
         f.set_data("callback", callback)

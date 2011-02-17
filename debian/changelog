@@ -52,6 +52,10 @@ software-center (3.1.19) UNRELEASED; urgency=low
       the detailsview
   * softwarecenter/view/appdetailsview_gtk.py:
     - show "none yet", "loading" in the review details
+  * softwarecenter/db/reviews.py, softwarecenter/view/appdetailsview_gtk.py:
+    - log into the right logger with the right priority
+  * softwarecenter/view/catview_gtk.py:
+    - remove debug output
   
   [ Matthew McGowan ]
   * lp:~mmcg069/software-center/lobby-tweaks:
@@ -59,7 +63,7 @@ software-center (3.1.19) UNRELEASED; urgency=low
   * lp:~mmcg069/software-center/catviewgtk-code-reorg:
     - move widgets out into softwarecenter/view/widgets
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 16 Feb 2011 19:45:15 -0500
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 17 Feb 2011 15:46:44 +0100
 
 software-center (3.1.18) natty; urgency=low
 
