@@ -1005,8 +1005,6 @@ class Reviews(gtk.VBox):
         self._parent = parent
         self.reviews = []
 
-        self._usefulness_error_id = 0
-
         label = mkit.EtchedLabel()
         label.set_use_markup(True)
         label.set_alignment(0, 0.5)
@@ -1075,7 +1073,7 @@ class Reviews(gtk.VBox):
 
             for r in self.reviews:
                 pkgversion = self._parent.app_details.version
-                review = Review(r, pkgversion, self.logged_in_person, self._usefulness_error_id)
+                review = Review(r, pkgversion, self.logged_in_person)
                 self.vbox.pack_start(review, padding=mkit.SPACING_LARGE)
         elif get_network_state() == NetState.NM_STATE_CONNECTED:
             self.vbox.pack_start(NoReviewYet(), padding=mkit.SPACING_LARGE)
@@ -1126,10 +1124,6 @@ class Reviews(gtk.VBox):
         self._update = True
         return
     
-    def flag_usefulness_error(self, error_id):
-        self._usefulness_error_id = error_id
-        return
-
     def clear(self):
         self.reviews = []
         for review in self.vbox:
@@ -1151,7 +1145,7 @@ class Reviews(gtk.VBox):
 
 class Review(gtk.VBox):
     
-    def __init__(self, review_data=None, app_version=None, logged_in_person=None, error_id=0):
+    def __init__(self, review_data=None, app_version=None, logged_in_person=None):
         gtk.VBox.__init__(self, spacing=mkit.SPACING_MED)
 
         self.header = gtk.HBox(spacing=mkit.SPACING_MED)
@@ -1186,8 +1180,6 @@ class Review(gtk.VBox):
                          app_version,
                          logged_in_person)
         
-            if review_data.id == error_id:
-                self.usefulness_error = True
         return
 
     def _on_realize(self, w, review_data, app_version, logged_in_person):
@@ -1203,6 +1195,8 @@ class Review(gtk.VBox):
         # old versions of the server do not expose usefulness
         useful_total = getattr(review_data, "usefulness_total", 0)
         useful_favorable = getattr(review_data, "usefulness_favorable", 0)
+        # only set if we got a submit error
+        useful_submit_error = getattr(review_data, "usefulness_submit_error", False)
 
         self._build(rating,
                     self.person,
@@ -1213,7 +1207,8 @@ class Review(gtk.VBox):
                     review_version,
                     app_version,
                     useful_total,
-                    useful_favorable)
+                    useful_favorable,
+                    useful_submit_error)
         return
 
     def _on_allocate(self, widget, allocation, stars, summary, who_when, version_lbl, flag):
@@ -1245,7 +1240,7 @@ class Review(gtk.VBox):
     
     def _usefulness_ui_update(self, type, current_user_reviewer=False, useful_total=0, useful_favorable=0):
         self._hide_usefulness_elements()
-        print "_usefulness_ui_update: %s" % type
+        #print "_usefulness_ui_update: %s" % type
         if type == 'renew':
             self._build_usefulness_ui(current_user_reviewer, useful_total, useful_favorable)
             return
@@ -1321,7 +1316,7 @@ class Review(gtk.VBox):
         # example raw_date str format: 2011-01-28 19:15:21
         return datetime.datetime.strptime(raw_date, '%Y-%m-%d %H:%M:%S')
     
-    def _build(self, rating, person, summary, text, date, app_name, review_version, app_version, useful_total, useful_favorable):
+    def _build(self, rating, person, summary, text, date, app_name, review_version, app_version, useful_total, useful_favorable, useful_submit_error):
         # all the arguments may need markup escape, depening on if
         # they are used as text or markup
 
@@ -1376,7 +1371,8 @@ class Review(gtk.VBox):
 
         # FIXME: Uncomment the following line to re-enable the reviews usefulness feature,
         #        it it temporarily hidden pending rollout of server support
-#        self._build_usefulness_ui(current_user_reviewer, useful_total, useful_favorable)
+        self._build_usefulness_ui(current_user_reviewer, useful_total,
+                                  useful_favorable, useful_submit_error)
 
         # Translators: This link is for flagging a review as inappropriate.
         # To minimize repetition, if at all possible, keep it to a single word.
@@ -1391,8 +1387,8 @@ class Review(gtk.VBox):
         self.body.connect('size-allocate', self._on_allocate, stars, summary, who_when, version_lbl, self.complain)
         return
     
-    def _build_usefulness_ui(self, current_user_reviewer, useful_total, useful_favorable):
-        if self.usefulness_error:
+    def _build_usefulness_ui(self, current_user_reviewer, useful_total, useful_favorable, usefulness_submit_error=False):
+        if usefulness_submit_error:
             self._usefulness_ui_update('error', current_user_reviewer, useful_total, useful_favorable)
         else:
             #get correct label based on retrieved usefulness totals and if user is reviewer
@@ -1698,7 +1694,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         else:
             self.review_stats_widget.hide()
 
-    def _reviews_ready_callback(self, app, reviews, error_code=0, review_id=0):
+    def _reviews_ready_callback(self, app, reviews):
         """ callback when new reviews are ready, cleans out the
             old ones
         """
@@ -1709,11 +1705,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         #  software-center totem)
         if self.app.pkgname != app.pkgname:
             return
-
+        # clear out the old ones ...
         self.reviews.clear()
-        self.reviews.flag_usefulness_error(0)
-        if error_code == 2:
-            self.reviews.flag_usefulness_error(review_id)
             
         # add network message if needed
         if not network_state_is_connected():
