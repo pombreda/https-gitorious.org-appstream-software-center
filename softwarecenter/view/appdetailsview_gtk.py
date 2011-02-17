@@ -1031,7 +1031,7 @@ class Reviews(gtk.VBox):
         self._update = True
         self.expander.connect('notify::expanded', self._on_expand)
         self.expander.set_expanded(True)
-        self.new_review.connect('clicked', lambda w: self.emit('new-review', self.current_user_reviews))
+        self.new_review.connect('clicked', self._on_button_new_clicked)
         return
 
     @property
@@ -1061,6 +1061,7 @@ class Reviews(gtk.VBox):
         return
 
     def _on_button_new_clicked(self, button):
+        self._any_reviews_current_user()  #run to 'reset' the list of reviews belonging to the user
         self.emit("new-review", self.current_user_reviews)
 
     def _fill(self):
