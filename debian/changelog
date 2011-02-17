@@ -66,6 +66,10 @@ software-center (3.1.19) UNRELEASED; urgency=low
     - move widgets out into softwarecenter/view/widgets
 
   [ Kiwinote ]
+  * softwarecenter/view/widgets/buttons.py:
+    - make CategoryButton accessible
+  * softwarecenter/view/widgets/carousel.py:
+    - minor accessibility tweaks
   * softwarecenter/view/widgets/mkit.py:
     - make Button emit 'clicked' on pressing enter key
 
