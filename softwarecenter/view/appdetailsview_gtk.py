@@ -1032,6 +1032,9 @@ class Reviews(gtk.VBox):
         self.expander.connect('notify::expanded', self._on_expand)
         self.expander.set_expanded(True)
         self.new_review.connect('clicked', lambda w: self.emit('new-review'))
+
+        # data
+        self.logged_in_person = self._get_person_from_config()
         return
 
     @property
@@ -1064,7 +1067,8 @@ class Reviews(gtk.VBox):
         self.emit("new-review")
 
     def _fill(self):
-        self.logged_in_person = self._get_person_from_config()
+        # FIXME: this should go away (or into a different method),
+        #        we want the fill from the reviews-ready callback
         if self.reviews:
 
             self.reviews.reverse()  # XXX: sort so that reviews are ordered recent to oldest
@@ -1075,8 +1079,6 @@ class Reviews(gtk.VBox):
                 pkgversion = self._parent.app_details.version
                 review = Review(r, pkgversion, self.logged_in_person)
                 self.vbox.pack_start(review, padding=mkit.SPACING_LARGE)
-        elif get_network_state() == NetState.NM_STATE_CONNECTED:
-            self.vbox.pack_start(NoReviewYet(), padding=mkit.SPACING_LARGE)
         return
 
     def _be_the_first_to_review(self):
@@ -1118,6 +1120,7 @@ class Reviews(gtk.VBox):
 
     def add_embedded_message(self, m):
         self.vbox.pack_start(m)
+        self.vbox.show_all()
 
     def add_review(self, review):
         self.reviews.append(review)
@@ -1130,18 +1133,15 @@ class Reviews(gtk.VBox):
             review.destroy()
 
     def draw(self, cr, a):
-#        cr.save()
-
-#        cr.restore()
-
-        if not self.expander.get_expanded(): return
+        if not self.expander.get_expanded():
+            return
 
         for r in self.vbox:
             r.draw(cr, r.allocation)
         return
 
     def get_reviews(self):
-        return filter(lambda r: not isinstance(r, (EmbeddedMessage, NoReviewYet)) and isinstance(r, Review), self.vbox.get_children())
+        return filter(lambda r: not isinstance(r, (EmbeddedMessage)) and isinstance(r, Review), self.vbox.get_children())
 
 class Review(gtk.VBox):
     
@@ -1172,6 +1172,7 @@ class Review(gtk.VBox):
         
         self.logged_in_person = logged_in_person
         self.person = None
+        self.id = None
 
         if review_data:
             self.connect('realize',
@@ -1482,19 +1483,9 @@ class Review(gtk.VBox):
 
         cr.restore()
 
-class NoReviewYet(Review):
-    """ represents if there are no reviews yet """
-    def __init__(self, *args, **kwargs):
-        super(NoReviewYet, self).__init__(*args, **kwargs)
-        # TRANSLATORS: displayed if there are no reviews yet
-        self.body.pack_start(gtk.Label(_("None yet")))
-    #def draw(self, cr, a):
-    #    pass
-
-
 class EmbeddedMessage(Review):
 
-    def __init__(self, label, icon_name):
+    def __init__(self, label=None, icon_name=None):
         Review.__init__(self)
 
         a = gtk.Alignment(0.5, 0.5)
@@ -1503,15 +1494,29 @@ class EmbeddedMessage(Review):
         hb = gtk.HBox(spacing=12)
         a.add(hb)
 
-        i = gtk.image_new_from_icon_name(icon_name, gtk.ICON_SIZE_DIALOG)
-        hb.pack_start(i)
+        if icon_name:
+            i = gtk.image_new_from_icon_name(icon_name, gtk.ICON_SIZE_DIALOG)
+            hb.pack_start(i)
 
-        l = gtk.Label()
-        l.set_markup(label)
-        hb.pack_start(l)
+        if label:
+            l = gtk.Label()
+            l.set_markup(label)
+            hb.pack_start(l)
 
         self.show_all()
         return
+
+class NoReviewYet(EmbeddedMessage):
+    """ represents if there are no reviews yet """
+    def __init__(self, *args, **kwargs):
+        super(NoReviewYet, self).__init__(*args, **kwargs)
+        # TRANSLATORS: displayed if there are no reviews yet
+        self.body.pack_start(gtk.Label(_("None yet")))
+
+class LoadingReviews(EmbeddedMessage):
+    def __init__(self, *args, **kwargs):
+        super(LoadingReviews, self).__init__(*args, **kwargs)
+        self.body.pack_start(gtk.Label(_("Loading reviews ...")))
 
 
 class AddonsStatusBar(StatusBar):
@@ -1680,6 +1685,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         stats = self.review_loader.get_review_stats(self.app)
         self._update_review_stats_widget(stats)
         # individual reviews is slow and async so we just queue it here
+        if network_state_is_connected():
+            self.reviews.add_embedded_message(LoadingReviews())
         reviews = self.review_loader.get_reviews(self.app,
                                                  self._reviews_ready_callback)
 
@@ -1712,6 +1719,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                 _('Only cached reviews can be displayed'))
             m = EmbeddedMessage(s, 'network-offline')
             self.reviews.add_embedded_message(m)
+
+        if not reviews and network_state_is_connected():
+            self.reviews.add_embedded_message(NoReviewYet())
             
         # then add the new ones ...
         for review in reviews:
