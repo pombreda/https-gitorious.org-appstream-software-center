@@ -38,6 +38,9 @@ software-center (3.1.19) UNRELEASED; urgency=low
     - handle case where usefulness submission fails
   * softwarecenter/view/appdetailsview_gtk.py:
     - display own reviews according to the spec
+  * utils/submit_review.py: 
+    - fix bug that showed gwibber success message when gwibber 
+      checkbox was not selected
   
   [ Michael Vogt ]
   * softwarecenter/view/appdetailsview_gtk.py:
