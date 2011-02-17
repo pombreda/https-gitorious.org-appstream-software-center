@@ -1459,7 +1459,9 @@ class EmbeddedMessage(UIReview):
 
     def __init__(self, label=None, icon_name=None):
         UIReview.__init__(self)
-
+        self.label = None
+        self.image = None
+        
         a = gtk.Alignment(0.5, 0.5)
         self.body.pack_start(a, False)
 
@@ -1469,11 +1471,13 @@ class EmbeddedMessage(UIReview):
         if icon_name:
             i = gtk.image_new_from_icon_name(icon_name, gtk.ICON_SIZE_DIALOG)
             hb.pack_start(i)
+            self.image = i
 
         if label:
             l = gtk.Label()
             l.set_markup(label)
             hb.pack_start(l)
+            self.label = l
 
         self.show_all()
         return
