@@ -1144,9 +1144,13 @@ class UIReviewsList(gtk.VBox):
     def get_reviews(self):
         return filter(lambda r: not isinstance(r, (EmbeddedMessage)) and isinstance(r, UIReview), self.vbox.get_children())
 
+
 class UIReview(gtk.VBox):
-    
-    def __init__(self, review_data=None, app_version=None, logged_in_person=None):
+    """ the UI for a individual review including all button to mark
+        useful/inappropriate etc
+    """
+    def __init__(self, review_data=None, app_version=None,
+                 logged_in_person=None):
         gtk.VBox.__init__(self, spacing=mkit.SPACING_MED)
 
         self.header = gtk.HBox(spacing=mkit.SPACING_MED)
@@ -1223,12 +1227,12 @@ class UIReview(gtk.VBox):
         return
 
     def _on_report_abuse_clicked(self, button):
-        reviews = self.get_ancestor(Reviews)
+        reviews = self.get_ancestor(UIReviewsList)
         if reviews:
             reviews.emit("report-abuse", self.id)
     
     def _on_useful_clicked(self, btn, is_useful):
-        reviews = self.get_ancestor(Reviews)
+        reviews = self.get_ancestor(UIReviewsList)
         if reviews:
             self._usefulness_ui_update('progress')
             reviews.emit("submit-usefulness", self.id, is_useful)
@@ -1268,48 +1272,15 @@ class UIReview(gtk.VBox):
         return
     
     def _hide_usefulness_elements(self):
-        try:
-            self.useful.hide()
-        except AttributeError:
-            pass
-            
-        try:
-            self.yes_like.hide()
-        except AttributeError:
-            pass
-            
-        try:
-            self.no_like.hide()
-        except AttributeError:
-            pass
-        
-        try:
-            self.submit_status_spinner.hide()
-        except AttributeError:
-            pass
-        
-        try:
-            self.submit_error_img.hide()
-        except AttributeError:
-            pass
-            
-        try:
-            self.status_box.hide()
-        except AttributeError:
-            pass
-        
-        try:
-            self.status_label.hide()
-        except AttributeError:
-            pass
-
-        try:
-            self.acknowledge_error.hide()
-        except AttributeError:
-            pass
-
+        """ hide all usefulness elements """
+        for attr in ["useful", "yes_like", "no_like", "submit_status_spinner",
+                     "submit_error_img", "status_box", "status_label",
+                     "acknowledge_error"
+                     ]:
+            o = getattr(self, attr, None)
+            if o:
+                o.hide()
         return
-        
 
     def _get_datetime_from_review_date(self, raw_date):
         # example raw_date str format: 2011-01-28 19:15:21
