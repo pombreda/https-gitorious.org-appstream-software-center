@@ -594,6 +594,7 @@ class SubmitReviewsApp(BaseApp):
         self.gwibber_hbox.pack_start(self.radio_modify, False)
         self.gwibber_hbox.pack_start(self.radio_delete, False)
         self._populate_review()
+        self.review_body_vbox.reorder_child(self.gwibber_hbox, 2)
     
     def _populate_review(self):
         review_data = self._retrieve_existing_review()
