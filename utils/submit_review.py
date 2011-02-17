@@ -755,6 +755,18 @@ class SubmitReviewsApp(BaseApp):
                            "%02X" % b)
 
     def on_button_post_clicked(self, button):
+        """choose what clicking post button does, depending on whether app is using submit or modify/delete action"""
+        if self.action == "submit":
+            self._on_post_clicked_submit()
+        elif self.action == "modify":
+            self._on_post_clicked_modify()
+    
+    #FIXME: stub. will see if user has chosen to delete or modify then take appropriate action
+    def _on_post_clicked_modify(self):
+        logging.warn("_on_post_clicked_modify called")
+        return
+        
+    def _on_post_clicked_submit(self):
         logging.debug("enter_review ok button")
         review = Review(self.app)
         text_buffer = self.textview_review.get_buffer()
