@@ -56,6 +56,8 @@ software-center (3.1.19) UNRELEASED; urgency=low
     - log into the right logger with the right priority
   * softwarecenter/view/catview_gtk.py:
     - remove debug output
+  * softwarecenter/db/reviews.py, test/test_reviews.py:
+    - sort reviews by version/usefulness/date
   
   [ Matthew McGowan ]
   * lp:~mmcg069/software-center/lobby-tweaks:

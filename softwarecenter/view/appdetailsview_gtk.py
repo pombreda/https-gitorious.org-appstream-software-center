@@ -1070,12 +1070,8 @@ class UIReviewsList(gtk.VBox):
     def _fill(self):
         # FIXME: this should go away (or into a different method),
         #        we want the fill from the reviews-ready callback
+        #  duplicated code
         if self.reviews:
-
-            self.reviews.reverse()  # XXX: sort so that reviews are ordered recent to oldest
-                                    # XXX: prob should be done somewhere else, perhaps in the review fetcher?
-                                    # mvo: the server will eventually sort for us (hopefully) by usefulness/version/date, but for now looks like we need to do it
-
             for r in self.reviews:
                 pkgversion = self._parent.app_details.version
                 review = UIReview(r, pkgversion, self.logged_in_person)
