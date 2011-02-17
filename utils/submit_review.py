@@ -46,6 +46,8 @@ from softwarecenter.backend.restfulclient import UbuntuSSOAPI
 
 import piston_mini_client
 
+import softwarecenter.db.application
+
 from softwarecenter.paths import *
 from softwarecenter.enums import MISSING_APP_ICON
 from softwarecenter.backend.login_sso import LoginBackendDbusSSO
@@ -609,7 +611,7 @@ class SubmitReviewsApp(BaseApp):
         summary_text = "test review retrieval"
         review_text = "review text test retrieval ........"
         rating = 4
-        app = "Compiz, compiz-core"
+        app = softwarecenter.db.application.Application("Compiz", "compiz-core")
         version = "1:0.9.2.1+glibmainloop4-0ubuntu11"
         origin = "ubuntu"
         return {"summary_text":summary_text, "review_text":review_text, "rating":rating,
