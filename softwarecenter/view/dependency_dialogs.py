@@ -18,7 +18,6 @@
 
 import gtk
 import logging
-import pango
 
 from gettext import gettext as _
 
