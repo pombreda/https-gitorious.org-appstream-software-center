@@ -36,6 +36,8 @@ software-center (3.1.19) UNRELEASED; urgency=low
     softwarecenter/view/appdetailsview_gtk.py:
     - provide user feedback when submitting review usefulness
     - handle case where usefulness submission fails
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - display own reviews according to the spec
   
   [ Michael Vogt ]
   * softwarecenter/view/appdetailsview_gtk.py:

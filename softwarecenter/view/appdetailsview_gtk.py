@@ -1460,21 +1460,18 @@ class Review(gtk.VBox):
         dt = datetime.datetime.utcnow() - cur_t
 
         if person == self.logged_in_person:
-            m = '<span color="%s">%s</span>'
-
-            if dt.days <= 5:
-                m = m % (dark_color.to_string(),
-                         # TRANSLATORS: this will add the submit date as a string like "5 
-                         _("This is your review, submitted %s") % glib.markup_escape_text(nice_date))
-            else:
-                m = m % (dark_color.to_string(),
-                         # TRANSLATORS: this will add the submit date in the form "2011-02-24"
-                         _("This is your review, submitted on %s") % glib.markup_escape_text(nice_date))
-
+            m = '<span color="%s"><b>%s (%s)</b>, %s</span>' % (
+                dark_color.to_string(),
+                glib.markup_escape_text(person),
+                # TRANSLATORS: displayed in a review after the persons name,
+                # e.g. "Wonderful text based app" mvo (that's you) 2011-02-11"
+                _("that's you"),
+                glib.markup_escape_text(nice_date))
         else:
-            m = '<span color="%s"><b>%s</b>, %s</span>' % (dark_color.to_string(),
-                                                           glib.markup_escape_text(person),
-                                                           glib.markup_escape_text(nice_date))
+            m = '<span color="%s"><b>%s</b>, %s</span>' % (
+                dark_color.to_string(),
+                glib.markup_escape_text(person),
+                glib.markup_escape_text(nice_date))
 
         return m
 
