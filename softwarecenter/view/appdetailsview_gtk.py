@@ -2460,9 +2460,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         if self.appdetails.icon_needs_download:
             icon_file = self.appdetails.cached_icon_file_path
         icon_size = self._get_app_icon_size_on_screen()
-        icon_file_path = get_icon_file_path_from_iconname(self.icons,
-                                                          iconsize=icon_size,
-                                                          iconname=icon_name)
+        icon_file_path = get_file_path_from_iconname(self.icons,
+                                                     iconsize=icon_size,
+                                                     iconname=icon_name)
         (icon_x, icon_y) = self._get_app_icon_xy_position_on_screen()
         return (icon_name, icon_file_path, icon_size, icon_x, icon_y)
         
