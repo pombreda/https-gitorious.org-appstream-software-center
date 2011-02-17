@@ -354,14 +354,14 @@ class SimpleFileDownloader(gobject.GObject):
             self.emit('file-url-reachable', True)
             self.LOG.debug("file reachable %s" % self.url)
             # url is reachable, now download the file
-            f.load_contents_async(self._icon_download_complete_cb)
+            f.load_contents_async(self._file_download_complete_cb)
         except glib.GError, e:
             self.LOG.debug("file *not* reachable %s" % self.url)
             self.emit('file-url-reachable', False)
         del f
 
-    def _icon_download_complete_cb(self, f, result, path=None):
-        self.LOG.debug("icon download completed %s" % self.dest_file_path)
+    def _file_download_complete_cb(self, f, result, path=None):
+        self.LOG.debug("file download completed %s" % self.dest_file_path)
         # The result from the download is actually a tuple with three 
         # elements (content, size, etag?)
         # The first element is the actual content so let's grab that
