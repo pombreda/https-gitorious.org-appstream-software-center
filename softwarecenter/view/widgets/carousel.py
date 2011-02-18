@@ -258,7 +258,7 @@ class CarouselView(gtk.VBox):
 
     def transition(self, loop=True):
         for poster in self.posters:
-            if poster.state > 0:
+            if poster.state > 0 or poster.is_focus():
                 return loop
         self._fader = gobject.timeout_add(CarouselView.FADE_INTERVAL,
                                           self._fade_out)

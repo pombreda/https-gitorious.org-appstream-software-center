@@ -1,3 +1,13 @@
+software-center (3.1.20) UNRELEASED; urgency=low
+
+  [ Kiwinote ]
+  * softwarecenter/view/widgets/carousel.py:
+    - don't transition when a Page has focus
+  * softwarecenter/view/widgets/mkit.py:
+    - some fixes to correctly update color/cursor of Button upon mouse actions
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 18 Feb 2011 11:53:19 +0100
+
 software-center (3.1.19) natty; urgency=low
 
   [ Gary Lasker ]
