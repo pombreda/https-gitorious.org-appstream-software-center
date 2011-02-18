@@ -1106,7 +1106,7 @@ class Reviews(gtk.VBox):
             self._be_the_first_to_review()
         else:
             if self._any_reviews_current_user():
-                self.new_review.set_label(_("Edit your review"))
+                self.new_review.set_label(_("Edit or delete your review"))
             else:
                 self.new_review.set_label(_("Write your own review"))
             if self.expander.get_expanded():
