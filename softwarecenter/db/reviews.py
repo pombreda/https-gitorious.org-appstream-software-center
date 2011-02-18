@@ -233,6 +233,10 @@ class ReviewLoader(object):
                         self._reviews[app].remove(review)
                         callback(app, self._reviews[app])
                         break
+    
+    def _on_modify_review_finished(self, pid, status, (review_id, callback)):
+        #FIXME: stub
+        pass
 
     def _on_submit_usefulness_finished(self, pid, status, (review_id, is_useful, callback)):
         """ called when report_usefulness finished """
