@@ -23,7 +23,6 @@ import gtk
 import logging
 import tempfile
 import time
-import threading
 import gobject
 
 from softwarecenter.enums import *
@@ -95,7 +94,6 @@ class ShowImageDialog(gtk.Dialog):
     def run(self):
         self.spinner_view.start()
         self.show_all()
-        # thread
         self._finished = False
         self._abort = False
         self._fetched = 0.0

@@ -280,6 +280,7 @@ class LobbyViewGtk(CategoriesViewGtk):
                                      len(r_apps)) % { 'len' : len(r_apps) }
             # FIXME: use a gtk.Label() with <a href> instead and put it
             #        all into one label to make it more i18n friendly
+            #        also ensure this new label is accessible
             linkbutton = mkit.HLinkButton(label)
             linkbutton.set_underline(True)
             #linkbutton.set_subdued(True)
@@ -446,7 +447,6 @@ class LobbyViewGtk(CategoriesViewGtk):
     def build(self, desktopdir):
         self.categories = self.parse_applications_menu(desktopdir)
         self.header = _('Departments')
-        print 'Build'
         self._build_homepage_view()
         return
 
