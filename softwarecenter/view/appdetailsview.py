@@ -131,7 +131,7 @@ class AppDetailsViewBase(object):
     def _review_modify(self, review_id):
         parent_xid = get_parent_xid(self)
         self.review_loader.spawn_modify_review_ui(
-            parent_xid, self.datadir, review_id,
+            parent_xid, self.appdetails.icon, self.datadir, review_id,
             self._reviews_ready_callback)
 
     # public interface

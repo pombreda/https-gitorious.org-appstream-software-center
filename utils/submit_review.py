@@ -593,8 +593,8 @@ class SubmitReviewsApp(BaseApp):
         self.radio_delete.show()
         self.gwibber_hbox.pack_start(self.radio_modify, False)
         self.gwibber_hbox.pack_start(self.radio_delete, False)
-        self._populate_review()
         self.review_body_vbox.reorder_child(self.gwibber_hbox, 2)
+        self._populate_review()
     
     def _populate_review(self):
         review_data = self._retrieve_existing_review()
@@ -612,8 +612,10 @@ class SubmitReviewsApp(BaseApp):
         summary_text = "test review retrieval"
         review_text = "review text test retrieval ........"
         rating = 4
-        app = softwarecenter.db.application.Application("Compiz", "compiz-core")
-        version = "1:0.9.2.1+glibmainloop4-0ubuntu11"
+        app = softwarecenter.db.application.Application("Bluetooth", "gnome-bluetooth")
+        #app = softwarecenter.db.application.Application("Compiz", "compiz-core")
+        #version = "1:0.9.2.1+glibmainloop4-0ubuntu11"
+        version = "2.91.2.is.2.32.0-0ubuntu1"
         origin = "ubuntu"
         return {"summary_text":summary_text, "review_text":review_text, "rating":rating,
                 "app":app, "version":version, "origin":origin}
@@ -1226,6 +1228,7 @@ if __name__ == "__main__":
     if "modify_review" in sys.argv[0]:
             # check options
         parser.add_option("", "--review-id")
+        parser.add_option("-i", "--iconname")
         parser.add_option("", "--parent-xid")
         parser.add_option("", "--debug",
                           action="store_true", default=False)
@@ -1244,7 +1247,7 @@ if __name__ == "__main__":
         modify_app = SubmitReviewsApp(datadir=options.datadir,
                                       app=None, 
                                       parent_xid=options.parent_xid,
-                                      iconname=None,
+                                      iconname=options.iconname,
                                       origin=None,
                                       version=None,
                                     action="modify",

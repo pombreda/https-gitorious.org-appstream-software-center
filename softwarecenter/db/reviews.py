@@ -173,11 +173,12 @@ class ReviewLoader(object):
             cmd, flags=glib.SPAWN_DO_NOT_REAP_CHILD, standard_output=True)
         glib.child_watch_add(pid, self._on_submit_usefulness_finished, (review_id, is_useful, callback))
     
-    def spawn_modify_review_ui(self, parent_xid, datadir, review_id, callback):
+    def spawn_modify_review_ui(self, parent_xid, iconname, datadir, review_id, callback):
         """ this spawns the UI for writing a new review and
             adds it automatically to the reviews DB """
         cmd = [os.path.join(datadir, MODIFY_REVIEW_APP), 
                "--parent-xid", "%s" % parent_xid,
+               "--iconname", iconname,
                "--datadir", "%s" % datadir,
                "--review-id", "%s" % review_id,
                ]
