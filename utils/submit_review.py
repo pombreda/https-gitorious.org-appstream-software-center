@@ -449,7 +449,7 @@ class BaseApp(SimpleGtkbuilderApp):
         self.quit()
 
     def on_transmit_failure(self, api, trans, error):
-        self._change_status("fail",  error)
+        self._change_status("fail",  self.ERROR_MESSAGE)
         self.button_post.set_sensitive(True)
         self.button_cancel.set_sensitive(True)
             
@@ -512,6 +512,7 @@ class SubmitReviewsApp(BaseApp):
     NORMAL_COLOUR = "000000"
     ERROR_COLOUR = "FF0000"
     SUBMIT_MESSAGE = _("Submitting Review")
+    ERROR_MESSAGE = _("Failed to submit review")
     
 
     def __init__(self, app, version, iconname, origin, parent_xid, datadir, action="submit", review_id=None):
@@ -632,6 +633,7 @@ class SubmitReviewsApp(BaseApp):
         self.review_summary_entry.set_sensitive(True)
         self.star_rating.set_sensitive(True)
         self.SUBMIT_MESSAGE = _("Updating your review")
+        self.ERROR_MESSAGE = _("Failed to edit review")
         self._enable_or_disable_post_button()
     
     def _delete_clicked(self, button):
@@ -639,6 +641,7 @@ class SubmitReviewsApp(BaseApp):
         self.review_summary_entry.set_sensitive(False)
         self.star_rating.set_sensitive(False)
         self.SUBMIT_MESSAGE = _("Deleting your review")
+        self.ERROR_MESSAGE = _("Failed to delete review")
 
     def _setup_details(self, widget, app, iconname, version, display_name):
         # icon shazam
@@ -1034,6 +1037,7 @@ class ReportReviewApp(BaseApp):
     APP_ICON_SIZE = 48
     
     SUBMIT_MESSAGE = _(u"Sending report\u2026")
+    ERROR_MESSAGE = _("Failed to submit report")
 
     def __init__(self, review_id, parent_xid, datadir):
         BaseApp.__init__(self, datadir, "report_abuse.ui")
@@ -1105,6 +1109,7 @@ class ReportReviewApp(BaseApp):
 
 class SubmitUsefulnessApp(BaseApp):
     SUBMIT_MESSAGE = _(u"Sending usefulness\u2026")
+    ERROR_MESSAGE = _("Failed to send usefulness")
     
     def __init__(self, review_id, parent_xid, is_useful, datadir):
         BaseApp.__init__(self, datadir, "submit_usefulness.ui")
