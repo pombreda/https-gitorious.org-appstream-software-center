@@ -33,7 +33,7 @@ LOG = logging.getLogger(__name__)
 #FIXME: These need to come from the main app
 ICON_SIZE = 24
 
-def deauthorize_my_computer(parent, datadir, db, icons, account_name, purchased_packages):
+def deauthorize_computer(parent, datadir, db, icons, account_name, purchased_packages):
     """ Display a dialog to deauthorize the current computer for purchases
     """
     cache = db._aptcache
@@ -103,10 +103,10 @@ if __name__ == "__main__":
     
     account_name = "max.fischer@rushmoreacademy.edu"
 
-    deauthorize_my_computer(None, 
-                            "./data", 
-                            db,
-                            icons,
-                            account_name,
-                            purchased_packages)
+    deauthorize_computer(None, 
+                         "./data", 
+                         db,
+                         icons,
+                         account_name,
+                         purchased_packages)
 

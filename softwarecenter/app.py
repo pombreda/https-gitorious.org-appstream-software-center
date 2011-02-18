@@ -43,6 +43,7 @@ with ExecutionTime("TIME loading app.py imports"):
     from softwarecenter.version import *
     from softwarecenter.db.database import StoreDatabase
     import softwarecenter.view.dependency_dialogs as dependency_dialogs
+    import softwarecenter.view.deauthorize_dialog as deauthorize_dialog
     from softwarecenter.view.softwarepane import wait_for_apt_cache_ready
 
     import view.dialogs
@@ -652,14 +653,17 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self.sso = LoginBackendDbusSSO(self.window_main.window.xid,
                                            appname, login_text)
             self.sso.connect("login-successful", self._on_sso_login)
+            
     def _login_via_dbus_sso(self):
         self._create_dbus_sso_if_needed()
         self.sso.login()
+        
     def _create_scagent_if_needed(self):
         if not self.scagent:
             from backend.restfulclient import SoftwareCenterAgent
             self.scagent = SoftwareCenterAgent()
             self.scagent.connect("available-for-me", self._available_for_me_result)
+            
     def on_menuitem_reinstall_purchases_activate(self, menuitem):
         self.view_switcher.select_available_node()
         self._create_scagent_if_needed()
@@ -668,6 +672,16 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self._login_via_buildin_sso()
         else:
             self._login_via_dbus_sso()
+            
+    def on_menuitem_deauthorize_computer_activate(self, menuitem):
+        account_name = "gary.lasker@canonical.com"
+        purchased_packages = set()
+        success = deauthorize_dialog.deauthorize_computer(None,
+                                                          self.datadir,
+                                                          self.db,
+                                                          self.icons,
+                                                          account_name,
+                                                          purchased_packages)
         
     def on_menuitem_install_activate(self, menuitem):
         app = self.active_pane.get_current_app()
