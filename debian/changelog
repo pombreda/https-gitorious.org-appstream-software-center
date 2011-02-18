@@ -1,4 +1,4 @@
-software-center (3.1.19) UNRELEASED; urgency=low
+software-center (3.1.19) natty; urgency=low
 
   [ Gary Lasker ]
   * softwarecenter/enums.py,
@@ -73,7 +73,7 @@ software-center (3.1.19) UNRELEASED; urgency=low
   * softwarecenter/view/widgets/mkit.py:
     - make Button emit 'clicked' on pressing enter key
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 17 Feb 2011 15:46:44 +0100
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 18 Feb 2011 11:53:19 +0100
 
 software-center (3.1.18) natty; urgency=low
 
