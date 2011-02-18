@@ -676,12 +676,14 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
     def on_menuitem_deauthorize_computer_activate(self, menuitem):
         account_name = "gary.lasker@canonical.com"
         purchased_packages = set()
-        success = deauthorize_dialog.deauthorize_computer(None,
-                                                          self.datadir,
-                                                          self.db,
-                                                          self.icons,
-                                                          account_name,
-                                                          purchased_packages)
+        deauthorize = deauthorize_dialog.deauthorize_computer(None,
+                                                              self.datadir,
+                                                              self.db,
+                                                              self.icons,
+                                                              account_name,
+                                                              purchased_packages)
+        if deauthorize:
+            clear_token_from_ubuntu_sso(_("Ubuntu Software Center"))
         
     def on_menuitem_install_activate(self, menuitem):
         app = self.active_pane.get_current_app()
