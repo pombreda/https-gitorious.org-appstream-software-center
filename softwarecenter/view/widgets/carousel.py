@@ -1,3 +1,4 @@
+import atk
 import gtk
 import gobject
 import cairo
@@ -68,7 +69,8 @@ class CarouselView(gtk.VBox):
 #        self.more_btn.set_subdued()
 
         self.more_btn.a11y = self.more_btn.get_accessible()
-        self.more_btn.a11y.set_name(_("%s section: show all") % title )
+        self.more_btn.a11y.set_name(_("show all"))
+        self.more_btn.a11y.set_role(atk.ROLE_PUSH_BUTTON)
 
         a = gtk.Alignment(1, 0.5)
         a.set_padding(6, 6, 6, 6)
@@ -341,6 +343,9 @@ class CarouselPoster2(Button):
 
         self._build_ui(icon_size)
 
+        self.a11y = self.get_accessible()
+        self.a11y.set_role(atk.ROLE_PUSH_BUTTON)
+
         self.connect('expose-event', self._on_expose)
         return
 
@@ -511,7 +516,7 @@ class CarouselPoster2(Button):
         self.rating.set_rating(a.popcon)
 
         # set a11y text
-        self.get_accessible().set_name(name)
+        self.a11y.set_name(name)
 
         self._cache_surf()
         return

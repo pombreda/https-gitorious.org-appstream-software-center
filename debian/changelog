@@ -65,6 +65,14 @@ software-center (3.1.19) UNRELEASED; urgency=low
   * lp:~mmcg069/software-center/catviewgtk-code-reorg:
     - move widgets out into softwarecenter/view/widgets
 
+  [ Kiwinote ]
+  * softwarecenter/view/widgets/buttons.py:
+    - make CategoryButton accessible
+  * softwarecenter/view/widgets/carousel.py:
+    - minor accessibility tweaks
+  * softwarecenter/view/widgets/mkit.py:
+    - make Button emit 'clicked' on pressing enter key
+
  -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 17 Feb 2011 15:46:44 +0100
 
 software-center (3.1.18) natty; urgency=low

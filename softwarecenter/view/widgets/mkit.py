@@ -1126,6 +1126,7 @@ class Button(gtk.EventBox):
         self.connect("button-release-event", self._on_button_release)
         self.connect('enter-notify-event', self._on_enter)
         self.connect('leave-notify-event', self._on_leave)
+        self.connect('key-press-event', self._on_key_press)
         return
 
     def _on_button_press(self, btn, event):
@@ -1177,6 +1178,17 @@ class Button(gtk.EventBox):
     def _on_leave(self, btn, event):
         self.set_state(gtk.STATE_NORMAL)
         self.window.set_cursor(None)
+        return
+
+    def _on_key_press(self, btn, event):
+        if (event.keyval != (gtk.gdk.keyval_from_name('Return') or
+             gtk.gdk.keyval_from_name('KP_Enter'))):
+            return
+
+        def clicked(w):
+            w.emit('clicked')
+
+        gobject.timeout_add(50, clicked, btn)
         return
 
     def _label_colorise_active(self, label):
