@@ -123,6 +123,9 @@ class GRatingsAndReviews(gobject.GObject):
     def submit_usefulness(self, review_id, is_useful):
         self.emit("transmit-start", review_id)
         self.worker_thread.pending_usefulness.put((int(review_id), is_useful))
+    def modify_review(self, review_id, review):
+        self.emit("transmit-start", review_id)
+        self.worker_thread.pending_modify.put((int(review_id), review))
     def server_status(self):
         self.worker_thread.pending_server_status()
     def shutdown(self):
@@ -767,7 +770,7 @@ class SubmitReviewsApp(BaseApp):
         if self.radio_modify.get_active():
             logging.warn("send modified review")
         else:
-            self.api.delete_review(review_id)
+            self.api.report_abuse(self.review_id, "User deleted own review", "User deleted own review")
         return
         
     def _on_post_clicked_submit(self):

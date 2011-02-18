@@ -235,8 +235,18 @@ class ReviewLoader(object):
                         break
     
     def _on_modify_review_finished(self, pid, status, (review_id, callback)):
-        #FIXME: stub
-        pass
+        """called when modify_review finished, currently only works for delete
+            and uses same functionality as report_abuse
+        """
+        if os.WEXITSTATUS(status) == 0:
+            LOG.debug("hide id %s " % review_id)
+            for (app, reviews) in self._reviews.iteritems():
+                for review in reviews:
+                    if str(review.id) == str(review_id):
+                        # remove the one we don't want to see anymore
+                        self._reviews[app].remove(review)
+                        callback(app, self._reviews[app])
+                        break
 
     def _on_submit_usefulness_finished(self, pid, status, (review_id, is_useful, callback)):
         """ called when report_usefulness finished """
