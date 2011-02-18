@@ -1,3 +1,4 @@
+import atk
 import os
 import gtk
 import gobject
@@ -266,34 +267,30 @@ class LobbyViewGtk(CategoriesViewGtk):
     def _append_recommendations(self):
         """ get recommendations from zeitgeist and add to the view """
 
-        def _show_recommended_apps_widget(query, r_apps): 
-            # build UI
-            self.hbox = gtk.HBox()
-            # Translators: full sentence will be: Welcome back! There is/are %(len)i new recommendation/s for you.
-            welcome = gettext.ngettext("Welcome back! There is ",
-                                      "Welcome back! There are ",
-                                      len(r_apps))
-            self.hbox.pack_start(gtk.Label(welcome), False, False)
-            # Translators: full sentence will be: Welcome back! There is/are %(len)i new recommendation/s for you.
-            label = gettext.ngettext("%(len)i new recommendation",
-                                     "%(len)i new recommendations",
-                                     len(r_apps)) % { 'len' : len(r_apps) }
-            # FIXME: use a gtk.Label() with <a href> instead and put it
-            #        all into one label to make it more i18n friendly
-            #        also ensure this new label is accessible
-            linkbutton = mkit.HLinkButton(label)
-            linkbutton.set_underline(True)
-            #linkbutton.set_subdued(True)
-            self.hbox.pack_start(linkbutton, False, False)
-            # Translators: full sentence will be: Welcome back! There is/are %(len)i new recommendation/s for you.
-            self.hbox.pack_start(gtk.Label(_(" for you.")), False, False)
-            self.vbox.pack_start(self.hbox, False, False)
-            self.vbox.reorder_child(self.hbox, 0)
-            # build category
-            rec_cat = Category("Recommendations", _("Recommendations"), "category-recommendations", query, sortmode=SORT_BY_SEARCH_RANKING)
-            linkbutton.connect('clicked', self._on_category_clicked, rec_cat)
+        def _show_recommended_apps_widget(query, r_apps):
+            recommended = gtk.Label()
+            recommended_text = gettext.ngettext(
+             "Welcome back! There is <a href=\"\">%i new recommendation</a>"
+                                                   " for you." % len(r_apps),
+             "Welcome back! There are <a href=\"\">%i new recommendations</a>"
+                                                     " for you." % len(r_apps),
+             len(r_apps))
+            recommended.set_markup(recommended_text)
+            recommended.set_visible(True)
+            recommended.get_accessible().set_role(atk.ROLE_PUSH_BUTTON)
+            recommended.set_alignment(0,-1)
+            self.vbox.pack_start(recommended, False, False)
+            self.vbox.reorder_child(recommended, 0)
 
-            self.show_all() 
+            # build category
+            rec_cat = Category("Recommendations",
+                               _("Recommendations"),
+                               "category-recommendations",
+                               query,
+                               sortmode=SORT_BY_SEARCH_RANKING)
+            recommended.connect('activate-link',
+                                self._on_recommended_clicked,
+                                rec_cat)
               
         def _popular_mimetypes_callback(mimetypes):
             def _find_applications(mimetypes):
@@ -324,7 +321,10 @@ class LobbyViewGtk(CategoriesViewGtk):
                 _show_recommended_apps_widget(_make_query(r_apps), r_apps)
         
         zeitgeist_singleton.get_popular_mimetypes(_popular_mimetypes_callback)
-        
+
+    def _on_recommended_clicked(self, link, uri, rec_cat):
+        self._on_category_clicked(self, rec_cat)
+        return True # mutter..
 
     def _append_featured(self):
 
