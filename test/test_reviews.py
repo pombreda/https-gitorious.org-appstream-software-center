@@ -5,11 +5,55 @@ import sys
 import unittest
 sys.path.insert(0,"../")
 from softwarecenter.utils import *
+from softwarecenter.db.application import Application
+from softwarecenter.db.reviews import Review
 
 sys.path.insert(0, "../utils")
 
 class TestReviews(unittest.TestCase):
     """ tests the reviews """
+
+    def test_reviews_sorting_by_version(self):
+        # new version
+        a1 = Review(Application("", "foo_pkg1"))
+        a1.id = 1
+        a1.version = "1.0"
+        # old version
+        a2 = Review(Application("f", "foo_pkg2"))
+        a2.id = 2
+        a2.version = "0.1"
+        # now ensure that the new version is sorted in front
+        self.assertEqual(sorted([a2, a1], reverse=True), [a1, a2])
+
+    def test_reviews_sorting_by_usefulness(self):
+        # new version
+        a1 = Review(Application("", "foo_pkg1"))
+        a1.id = 1
+        a1.usefulness_favorable = 20
+        a1.version = "1.0"
+        # old version
+        a2 = Review(Application("f", "foo_pkg2"))
+        a2.id = 2
+        a2.usefulness_favorable = 10
+        a2.version = "1.0"
+        # now ensure that the new version is sorted in front
+        self.assertEqual(sorted([a2, a1], reverse=True), [a1, a2])
+
+    def test_reviews_sorting_by_date(self):
+        # new version
+        a1 = Review(Application("", "foo_pkg1"))
+        a1.date_created = "2012-01-01 10:00:00"
+        a1.id = 1
+        a1.usefulness_favorable = 10
+        a1.version = "1.0"
+        # old version
+        a2 = Review(Application("f", "foo_pkg2"))
+        a2.id = 2
+        a2.date_created = "2011-01-01 10:00:00"
+        a2.usefulness_favorable = 10
+        a2.version = "1.0"
+        # now ensure that the new version is sorted in front
+        self.assertEqual(sorted([a2, a1], reverse=True), [a1, a2])
 
     def test_gwibber_message(self):
         from submit_review import SubmitReviewsApp

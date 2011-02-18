@@ -19,6 +19,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import cPickle
+import datetime
 import gio
 import gzip
 import glib
@@ -80,6 +81,20 @@ class Review(object):
     def __repr__(self):
         return "[Review id=%s review_text='%s' reviewer_username='%s']" % (
             self.id, self.review_text, self.reviewer_username)
+    def __cmp__(self, other):
+        # first compare version, high version number first
+        vc = version_compare(self.version, other.version)
+        if vc != 0:
+            return vc
+        # then usefulness
+        uc = cmp(self.usefulness_favorable, other.usefulness_favorable)
+        if uc != 0:
+            return uc
+        # last is date
+        t1 = datetime.datetime.strptime(self.date_created, '%Y-%m-%d %H:%M:%S')
+        t2 = datetime.datetime.strptime(other.date_created, '%Y-%m-%d %H:%M:%S')
+        return cmp(t1, t2)
+        
     @classmethod
     def from_piston_mini_client(cls, other):
         """ converts the rnrclieent reviews we get into
@@ -339,7 +354,7 @@ class ReviewLoaderThreadedRNRClient(ReviewLoader):
         for r in piston_reviews:
             reviews.append(Review.from_piston_mini_client(r))
         # push into the queue
-        self._new_reviews[app].put(reviews)
+        self._new_reviews[app].put(sorted(reviews, reverse=True))
 
     # stats
     def refresh_review_stats(self, callback):
