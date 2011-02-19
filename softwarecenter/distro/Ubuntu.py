@@ -92,12 +92,20 @@ class Ubuntu(Distro):
         
     def get_deauthorize_text(self, account_name, purchased_packages):
         if len(purchased_packages) == 0:
-            primary = _('Are you sure you want to deauthorize this computer '
-                        'from the "%s" account?') % account_name
+            if account_name:
+                primary = _('Are you sure you want to deauthorize this computer '
+                            'from the "%s" account?') % account_name
+            else:
+                primary = _('Are you sure you want to deauthorize this computer '
+                            'for your Ubuntu SSO account?')
             button_text = _('Deauthorize')
         else:
-            primary = _('Deauthorizing this computer from the "%s" account '
-                    'will remove this purchased software:') % account_name
+            if account_name:
+                primary = _('Deauthorizing this computer from the "%s" account '
+                            'will remove this purchased software:') % account_name
+            else:
+                primary = _('Deauthorizing this computer for your account '
+                            'will remove this purchased software:')
             button_text = _('Remove All')
         return (primary, button_text)
 

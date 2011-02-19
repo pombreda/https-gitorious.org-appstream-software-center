@@ -674,7 +674,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self._login_via_dbus_sso()
             
     def on_menuitem_deauthorize_computer_activate(self, menuitem):
-        account_name = "gary.lasker@canonical.com"
+        # TODO: get account name if we want to display that in the dialog
+        account_name = None
         purchased_packages = set()
         deauthorize = deauthorize_dialog.deauthorize_computer(None,
                                                               self.datadir,
