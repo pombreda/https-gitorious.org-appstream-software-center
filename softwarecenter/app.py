@@ -320,8 +320,11 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.config = get_config()
         self.restore_state()
 
-        # atk and stuff
-        atk.Object.set_name(self.label_status.get_accessible(), "status_text")
+        # create label_status for in our eventbox
+        self.label_status = gtk.Label()
+        self.status_box.a11y = self.status_box.get_accessible()
+        self.status_box.a11y.set_role(atk.ROLE_STATUSBAR)
+        self.status_box.add(self.label_status)
 
         # open plugin manager and load plugins
         self.plugin_manager = PluginManager(self, SOFTWARE_CENTER_PLUGIN_DIR)
@@ -871,6 +874,13 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             # FIXME: deal with the pending view status
             s = ""
         self.label_status.set_text(s)
+
+        # update a11y
+        if s:
+            self.status_box.a11y.set_name(s)
+            self.status_box.set_property('can-focus', True)
+        else:
+            self.status_box.set_property('can-focus', False)
         
     def update_app_list_view(self, channel=None):
         """Helper that updates the app view list """

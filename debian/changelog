@@ -1,6 +1,10 @@
 software-center (3.1.20) UNRELEASED; urgency=low
 
   [ Kiwinote ]
+  * data/ui/SoftwareCenter.ui,
+    softwarecenter/app.py:
+    - place the status label inside an eventbox to allow focus and setup a11y
+      (LP: #575691)
   * softwarecenter/view/appdetailsview_gtk.py:
     - make description accessible
     - correctly update screenshot a11y text and make it less verbose
