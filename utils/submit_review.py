@@ -542,6 +542,8 @@ class SubmitReviewsApp(BaseApp):
 
         self.review_buffer = self.textview_review.get_buffer()
         
+        self.retrieve_api = RatingsAndReviewsAPI()
+        
         # data
         self.app = app
         self.version = version
@@ -604,29 +606,15 @@ class SubmitReviewsApp(BaseApp):
         self._populate_review()
     
     def _populate_review(self):
-        review_data = self._retrieve_existing_review()
-        self.review_summary_entry.set_text(review_data['summary_text'])
+        review_data = self.retrieve_api.get_review_by_id(review_id=self.review_id)
+        app = softwarecenter.db.application.Application(pkgname=review_data['package_name'])
+        self.app = app
+        self.review_summary_entry.set_text(review_data['summary'])
         self.star_rating.set_rating(review_data['rating'])
         self.textview_review.get_buffer().set_text(review_data['review_text'])
-        self.app = review_data['app']
         self.version = review_data['version']
-        self.origin = review_data['origin']
+        self.origin = 'ubuntu'
         return
-    
-    def _retrieve_existing_review(self):
-        #   FIXME: retrieve a review from server based on self.review_id
-        # currently hardcoded for testing
-        summary_text = "test review retrieval"
-        review_text = "review text test retrieval ........"
-        rating = 4
-        app = softwarecenter.db.application.Application("Bluetooth", "gnome-bluetooth")
-        #app = softwarecenter.db.application.Application("Compiz", "compiz-core")
-        #version = "1:0.9.2.1+glibmainloop4-0ubuntu11"
-        version = "2.91.2.is.2.32.0-0ubuntu1"
-        origin = "ubuntu"
-        return {"summary_text":summary_text, "review_text":review_text, "rating":rating,
-                "app":app, "version":version, "origin":origin}
-    
     
     def _modify_clicked(self, button):
         self.textview_review.set_sensitive(True)

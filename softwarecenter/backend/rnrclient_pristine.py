@@ -70,6 +70,12 @@ class RatingsAndReviewsAPI(PistonAPI):
             content_type='application/json')
 
     @validate('review_id', int)
+    @returns_json
+    def get_review_by_id(self, review_id):
+        """Get a single review from the server using review id"""
+        return self._get('reviews/%s' % review_id)
+
+    @validate('review_id', int)
     @validate_pattern('reason', r'[^\n]+')
     @validate_pattern('text', r'[^\n]+')
     @returns_json
