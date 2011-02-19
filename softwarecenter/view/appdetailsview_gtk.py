@@ -334,6 +334,8 @@ class AppDescription(gtk.VBox):
         self.description = IndentLabel()
         self.footer = gtk.HBox(spacing=mkit.SPACING_MED)
 
+        self.description.a11y = self.get_accessible()
+
         self.pack_start(self.description, False)
         self.pack_start(self.footer, False)
         self.show_all()
@@ -369,6 +371,7 @@ class AppDescription(gtk.VBox):
 
         LOG.debug("description: '%s' " % desc)
         self.clear()
+        self.description.a11y.set_name(desc)
         desc = gobject.markup_escape_text(desc)
 
         parts = desc.split('\n')

@@ -1,6 +1,8 @@
 software-center (3.1.20) UNRELEASED; urgency=low
 
   [ Kiwinote ]
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - make description accessible
   * softwarecenter/view/catview_gtk.py:
     - rewrite recommended widget to make it suitable for i18n and a11y
   * softwarecenter/view/widgets/carousel.py:
