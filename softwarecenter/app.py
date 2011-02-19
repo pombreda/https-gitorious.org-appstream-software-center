@@ -30,6 +30,7 @@ import os
 import subprocess
 import sys
 import xapian
+import glob
 
 with ExecutionTime("TIME loading app.py imports"):
     # purely to initialize the netstatus
@@ -693,6 +694,9 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             
             # TODO: remove the corresponding private PPA sources
             # (private-ppa.launchpad.net_commercial-ppa-uploaders*)
+            purchased_sources = glob.glob("/etc/apt/sources.list.d/private-ppa.launchpad.net_commercial-ppa-uploaders*")
+            for source in purchased_sources:
+                print "source: ", source
             
     def _get_installed_purchased_packages(self):
         for_purchase_query = xapian.Query("AH" + AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME)
