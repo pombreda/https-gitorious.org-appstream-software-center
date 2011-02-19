@@ -701,6 +701,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                 self.backend.remove(app.pkgname, app.appname, appdetails.icon)
             
             # TODO: remove the corresponding private PPA sources
+            # FIXME: this should really be done using aptdaemon, update this if/when
+            #        remove repository support is added to aptdaemon
             # (private-ppa.launchpad.net_commercial-ppa-uploaders*)
             purchased_sources = glob.glob("/etc/apt/sources.list.d/private-ppa.launchpad.net_commercial-ppa-uploaders*")
             for source in purchased_sources:
