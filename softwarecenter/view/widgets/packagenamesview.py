@@ -45,7 +45,8 @@ class PackageNamesView(gtk.TreeView):
         column = gtk.TreeViewColumn(header, tr, markup=self.COL_TEXT)
         self.append_column(column)
         for pkgname in sorted(pkgnames):
-            if not cache[pkgname].installed:
+            if (not pkgname in cache or
+                not cache[pkgname].installed):
                 continue
             s = "%s \n<small>%s</small>" % (
                 cache[pkgname].installed.summary.capitalize(), pkgname)

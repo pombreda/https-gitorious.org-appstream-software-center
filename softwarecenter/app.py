@@ -676,15 +676,37 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
     def on_menuitem_deauthorize_computer_activate(self, menuitem):
         # TODO: get account name if we want to display that in the dialog
         account_name = None
-        purchased_packages = set()
+        
+        # get a list of installed purchased packages
+        installed_purchased_packages = self._get_installed_purchased_packages()
+            
         deauthorize = deauthorize_dialog.deauthorize_computer(None,
                                                               self.datadir,
                                                               self.db,
                                                               self.icons,
                                                               account_name,
-                                                              purchased_packages)
+                                                              installed_purchased_packages)
         if deauthorize:
             clear_token_from_ubuntu_sso(_("Ubuntu Software Center"))
+            
+            # TODO: uninstall the list of purchased packages
+            
+            # TODO: remove the corresponding private PPA sources
+            # (private-ppa.launchpad.net_commercial-ppa-uploaders*)
+            
+    def _get_installed_purchased_packages(self):
+        for_purchase_query = xapian.Query("AH" + AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME)
+        enquire = xapian.Enquire(self.db.xapiandb)
+        enquire.set_query(for_purchase_query)
+        matches = enquire.get_mset(0, self.db.xapiandb.get_doccount())
+        installed_purchased_packages = set()
+        for m in matches:
+            doc = m.document
+            pkgname = doc.get_value(XAPIAN_VALUE_PKGNAME)
+            if (pkgname in self.cache and
+                self.cache[pkgname].installed):
+                installed_purchased_packages.add(pkgname)
+        return installed_purchased_packages
         
     def on_menuitem_install_activate(self, menuitem):
         app = self.active_pane.get_current_app()
