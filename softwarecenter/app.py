@@ -675,12 +675,13 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self._login_via_dbus_sso()
             
     def on_menuitem_deauthorize_computer_activate(self, menuitem):
-        # TODO: get account name if we want to display that in the dialog
+        # TODO: get the account name if we want to display that in the dialog
         account_name = None
         
         # get a list of installed purchased packages
         installed_purchased_packages = self._get_installed_purchased_packages()
-            
+
+        # display the deauthorize computer dialog
         deauthorize = deauthorize_dialog.deauthorize_computer(None,
                                                               self.datadir,
                                                               self.db,
@@ -688,9 +689,16 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                                               account_name,
                                                               installed_purchased_packages)
         if deauthorize:
+            # clear the ubuntu SSO token for this account
             clear_token_from_ubuntu_sso(_("Ubuntu Software Center"))
             
-            # TODO: uninstall the list of purchased packages
+            # uninstall the list of purchased packages
+            # TODO: do we need to check for dependencies and show a removal
+            # dialog for that case?  seems not since these are purchased apps
+            for pkgname in installed_purchased_packages:
+                app = Application(pkgname=pkgname)
+                appdetails = app.get_details(self.db)
+                self.backend.remove(app.pkgname, app.appname, appdetails.icon)
             
             # TODO: remove the corresponding private PPA sources
             # (private-ppa.launchpad.net_commercial-ppa-uploaders*)
