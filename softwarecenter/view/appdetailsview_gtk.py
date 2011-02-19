@@ -697,15 +697,17 @@ class ScreenshotView(gtk.Alignment):
                 # 160 pixels is the fixed width of the thumbnails
                 self.unavailable.set_size_request(160, 100)
                 self.unavailable.show_all()
-                acc = self.get_accessible()
-                acc.set_name(_('%s - No screenshot available') % self.appname)
+            acc = self.get_accessible()
+            acc.set_name(_('No screenshot available'))
+            acc.set_role(atk.ROLE_LABEL)
         else:
             if self.unavailable.parent:
                 self.eventbox.remove(self.unavailable)
                 self.eventbox.add(self.image)
                 self.image.show()
-                acc = self.get_accessible()
-                acc.set_name(_('%s - Screenshot') % self.appname)
+            acc = self.get_accessible()
+            acc.set_name(_('Screenshot'))
+            acc.set_role(atk.ROLE_PUSH_BUTTON)
 
         self.screenshot_available = available
         return
