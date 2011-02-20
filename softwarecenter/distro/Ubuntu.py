@@ -96,15 +96,15 @@ class Ubuntu(Distro):
                 primary = _('Are you sure you want to deauthorize this computer '
                             'from the "%s" account?') % account_name
             else:
-                primary = _('Are you sure you want to deauthorize your account '
-                            'for purchases on this computer?')
+                primary = _('Are you sure you want to deauthorize this computer '
+                            'for purchases?')
             button_text = _('Deauthorize')
         else:
             if account_name:
                 primary = _('Deauthorizing this computer from the "%s" account '
                             'will remove this purchased software:') % account_name
             else:
-                primary = _('Deauthorizing your account for purchases on this computer '
+                primary = _('Deauthorizing this computer for purchases '
                             'will remove the following purchased software:')
             button_text = _('Remove All')
         return (primary, button_text)
