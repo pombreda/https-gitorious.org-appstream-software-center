@@ -515,7 +515,7 @@ class SubmitReviewsApp(BaseApp):
     ERROR_MESSAGE = _("Failed to submit review")
     
 
-    def __init__(self, app, version, iconname, origin, parent_xid, datadir, action="submit", review_id=None):
+    def __init__(self, app, version, iconname, origin, parent_xid, datadir, action="submit", review_id=0):
         BaseApp.__init__(self, datadir, "submit_review.ui")
         self.datadir = datadir
         # legal fineprint, do not change without consulting a lawyer
@@ -550,7 +550,7 @@ class SubmitReviewsApp(BaseApp):
         self.origin = origin
         self.iconname = iconname
         self.action = action
-        self.review_id = review_id
+        self.review_id = int(review_id)
 
         # parent xid
         if parent_xid:
@@ -606,14 +606,24 @@ class SubmitReviewsApp(BaseApp):
         self._populate_review()
     
     def _populate_review(self):
-        review_data = self.retrieve_api.get_review_by_id(review_id=self.review_id)
-        app = softwarecenter.db.application.Application(pkgname=review_data['package_name'])
-        self.app = app
-        self.review_summary_entry.set_text(review_data['summary'])
-        self.star_rating.set_rating(review_data['rating'])
-        self.textview_review.get_buffer().set_text(review_data['review_text'])
-        self.version = review_data['version']
-        self.origin = 'ubuntu'
+        try:
+            review_data = self.retrieve_api.get_review_by_id(review_id=self.review_id)
+            app = softwarecenter.db.application.Application(pkgname=review_data['package_name'])
+            self.app = app
+            self.review_summary_entry.set_text(review_data['summary'])
+            self.star_rating.set_rating(review_data['rating'])
+            self.textview_review.get_buffer().set_text(review_data['review_text'])
+            self.version = review_data['version']
+            self.origin = 'ubuntu'
+        #FIXME: hardcoded except clause for testing, until API is ready
+        except:
+            app = softwarecenter.db.application.Application(pkgname='brasero')
+            self.app = app
+            self.review_summary_entry.set_text("summary text")
+            self.star_rating.set_rating(4)
+            self.textview_review.get_buffer().set_text("review text goes here......")
+            self.version = '0.1'
+            self.origin = 'ubuntu'
         return
     
     def _modify_clicked(self, button):

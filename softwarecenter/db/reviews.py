@@ -185,7 +185,7 @@ class ReviewLoader(object):
         print cmd
         (pid, stdin, stdout, stderr) = glib.spawn_async(
             cmd, flags=glib.SPAWN_DO_NOT_REAP_CHILD, standard_output=True)
-        glib.child_watch_add(pid, self._on_modify_review_finished, (review_id, callback))
+        glib.child_watch_add(pid, self._on_modify_review_finished, (review_id, stdout, callback))
 
     # internal callbacks/helpers
     def _on_submit_review_finished(self, pid, status, (app, stdout_fd, callback)):
@@ -234,12 +234,24 @@ class ReviewLoader(object):
                         callback(app, self._reviews[app])
                         break
     
-    def _on_modify_review_finished(self, pid, status, (review_id, callback)):
+    def _on_modify_review_finished(self, pid, status, (review_id, stdout_fd, callback)):
         """called when modify_review finished, currently only works for delete
             and uses same functionality as report_abuse
         """
+        stdout = ""
+        while True:
+            s = os.read(stdout_fd, 1024)
+            if not s: break
+            stdout += s
+        LOG.debug("stdout from submit_review: '%s'" % stdout)
         if os.WEXITSTATUS(status) == 0:
-            LOG.debug("hide id %s " % review_id)
+            try:
+                response_json = simplejson.loads(stdout)
+            except simplejson.decoder.JSONDecodeError:
+                logging.error("failed to parse '%s'" % stdout)
+                return
+            response = ReviewDetails.from_dict(response_json)
+            
             for (app, reviews) in self._reviews.iteritems():
                 for review in reviews:
                     if str(review.id) == str(review_id):
@@ -262,9 +274,6 @@ class ReviewLoader(object):
                             review.usefulness_favorable = getattr(review, "usefulness_favorable", 0) + 1
                         callback(app, self._reviews[app])
                         break
-
-    def _on_modify_review_app_finished(self, pid, status, (app, stdout_fd, callback)):
-        pass
 
 # using multiprocessing here because threading interface was terrible
 # slow and full of latency
