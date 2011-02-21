@@ -128,7 +128,7 @@ class GRatingsAndReviews(gobject.GObject):
         self.worker_thread.pending_modify.put((int(review_id), review))
     def delete_review(self, review_id):
         self.emit("transmit-start", review_id)
-        self.worker_thread.pending_reports.put((int(review_id), "User deleted own review","User deleted own review"))
+        self.worker_thread.pending_delete.put((int(review_id), "User deleted own review","User deleted own review"))
     def server_status(self):
         self.worker_thread.pending_server_status()
     def shutdown(self):
@@ -152,6 +152,8 @@ class Worker(threading.Thread):
         self.pending_reviews = Queue()
         self.pending_reports = Queue()
         self.pending_usefulness = Queue()
+        self.pending_modify = Queue()
+        self.pending_delete = Queue()
         self.pending_server_status = Queue()
         self._shutdown = False
         # FIXME: instead of a binary value we need the state associated
@@ -188,11 +190,15 @@ class Worker(threading.Thread):
             self._submit_reviews_if_pending()
             self._submit_reports_if_pending()
             self._submit_usefulness_if_pending()
+            self._submit_modify_if_pending()
+            self._submit_delete_if_pending()
             time.sleep(0.2)
             if (self._shutdown and
                 self.pending_reviews.empty() and
                 self.pending_usefulness.empty() and
-                self.pending_reports.empty()):
+                self.pending_reports.empty() and
+                self.pending_modify.empty() and
+                self.pending_delete.empty()):
                 return
 
     # usefulness
@@ -218,6 +224,41 @@ class Worker(threading.Thread):
                 self._transmit_state = TRANSMIT_STATE_ERROR
                 self._transmit_error_str = _("Failed to submit usefulness")
             self.pending_usefulness.task_done()
+    
+    #modify
+    def queue_modify(self, modification):
+        """ queue a new review modification request for sending to LP """
+        logging.debug("queue_modify %s %s %s" % modification)
+        self.pending_modify.put(modification)
+
+    def _submit_modify_if_pending(self):
+        #FIXME: stub
+        pass
+            
+    #delete
+    def queue_delete(self, deletion):
+        """ queue a new deletion request for sending to LP """
+        logging.debug("queue_delete %s %s %s" % deletion)
+        self.pending_delete.put(deletion)
+    
+    def _submit_delete_if_pending(self):
+        """ the actual deletion """
+        while not self.pending_delete.empty():
+            logging.debug("POST delete")
+            self._transmit_state = TRANSMIT_STATE_INPROGRESS
+            (review_id, summary, text) = self.pending_delete.get()
+            try:
+                res = self.rnrclient.flag_review(review_id=review_id,
+                                                 reason=summary,
+                                                 text=text)
+                self._transmit_state = TRANSMIT_STATE_DONE
+                sys.stdout.write(simplejson.dumps(res))
+            except Exception as e:
+                logging.exception("delete_review failed")
+                self._write_exception_html_log_if_needed(e)
+                self._transmit_state = TRANSMIT_STATE_ERROR
+                self._transmit_error_str = _("Failed to delete review")
+            self.pending_delete.task_done()
 
     # reports
     def queue_report(self, report):
