@@ -595,8 +595,8 @@ class SubmitReviewsApp(BaseApp):
         self.submit_window.set_title(_("Edit or delete review id: %s " % self.review_id))
         self.radio_modify = gtk.RadioButton(label=_("Edit This Review"))
         self.radio_delete = gtk.RadioButton(self.radio_modify, _("Delete This Review"))
-        self.radio_modify.connect('toggled', self._modify_clicked)
-        self.radio_delete.connect('toggled', self._delete_clicked)
+        self.radio_modify.connect('toggled', self._modify_toggled)
+        self.radio_delete.connect('toggled', self._delete_toggled)
         self.gwibber_checkbutton.hide()
         self.radio_modify.show()
         self.radio_delete.show()
@@ -626,7 +626,7 @@ class SubmitReviewsApp(BaseApp):
             self.origin = 'ubuntu'
         return
     
-    def _modify_clicked(self, button):
+    def _modify_toggled(self, button):
         self.textview_review.set_sensitive(True)
         self.review_summary_entry.set_sensitive(True)
         self.star_rating.set_sensitive(True)
@@ -634,7 +634,7 @@ class SubmitReviewsApp(BaseApp):
         self.ERROR_MESSAGE = _("Failed to edit review")
         self._enable_or_disable_post_button()
     
-    def _delete_clicked(self, button):
+    def _delete_toggled(self, button):
         self.textview_review.set_sensitive(False)
         self.review_summary_entry.set_sensitive(False)
         self.star_rating.set_sensitive(False)
