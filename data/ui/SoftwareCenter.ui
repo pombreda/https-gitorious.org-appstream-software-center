@@ -361,7 +361,7 @@
           </packing>
         </child>
         <child>
-          <object class="GtkLabel" id="label_status">
+          <object class="GtkEventBox" id="status_box">
             <property name="visible">True</property>
           </object>
           <packing>

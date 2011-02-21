@@ -334,6 +334,8 @@ class AppDescription(gtk.VBox):
         self.description = IndentLabel()
         self.footer = gtk.HBox(spacing=mkit.SPACING_MED)
 
+        self.description.a11y = self.get_accessible()
+
         self.pack_start(self.description, False)
         self.pack_start(self.footer, False)
         self.show_all()
@@ -369,6 +371,7 @@ class AppDescription(gtk.VBox):
 
         LOG.debug("description: '%s' " % desc)
         self.clear()
+        self.description.a11y.set_name(desc)
         desc = gobject.markup_escape_text(desc)
 
         parts = desc.split('\n')
@@ -694,15 +697,17 @@ class ScreenshotView(gtk.Alignment):
                 # 160 pixels is the fixed width of the thumbnails
                 self.unavailable.set_size_request(160, 100)
                 self.unavailable.show_all()
-                acc = self.get_accessible()
-                acc.set_name(_('%s - No screenshot available') % self.appname)
+            acc = self.get_accessible()
+            acc.set_name(_('No screenshot available'))
+            acc.set_role(atk.ROLE_LABEL)
         else:
             if self.unavailable.parent:
                 self.eventbox.remove(self.unavailable)
                 self.eventbox.add(self.image)
                 self.image.show()
-                acc = self.get_accessible()
-                acc.set_name(_('%s - Screenshot') % self.appname)
+            acc = self.get_accessible()
+            acc.set_name(_('Screenshot'))
+            acc.set_role(atk.ROLE_PUSH_BUTTON)
 
         self.screenshot_available = available
         return
