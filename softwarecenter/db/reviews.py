@@ -173,6 +173,16 @@ class ReviewLoader(object):
             cmd, flags=glib.SPAWN_DO_NOT_REAP_CHILD, standard_output=True)
         glib.child_watch_add(pid, self._on_submit_usefulness_finished, (review_id, is_useful, callback))
     
+    def spawn_delete_review_ui(self, review_id, parent_xid, datadir, callback):
+        cmd = [os.path.join(datadir, DELETE_REVIEW_APP), 
+               "--review-id", "%s" % review_id,
+               "--parent-xid", "%s" % parent_xid,
+               "--datadir", datadir,
+              ]
+        (pid, stdin, stdout, stderr) = glib.spawn_async(
+            cmd, flags=glib.SPAWN_DO_NOT_REAP_CHILD, standard_output=True)
+        glib.child_watch_add(pid, self._on_delete_review_finished, (review_id, callback))
+    
     def spawn_modify_review_ui(self, parent_xid, iconname, datadir, review_id, callback):
         """ this spawns the UI for writing a new review and
             adds it automatically to the reviews DB """
@@ -182,7 +192,6 @@ class ReviewLoader(object):
                "--datadir", "%s" % datadir,
                "--review-id", "%s" % review_id,
                ]
-        print cmd
         (pid, stdin, stdout, stderr) = glib.spawn_async(
             cmd, flags=glib.SPAWN_DO_NOT_REAP_CHILD, standard_output=True)
         glib.child_watch_add(pid, self._on_modify_review_finished, (review_id, stdout, callback))
@@ -233,11 +242,21 @@ class ReviewLoader(object):
                         self._reviews[app].remove(review)
                         callback(app, self._reviews[app])
                         break
+
+    def _on_delete_review_finished(self, pid, status, (review_id, callback)):
+        """ called when delete_review finished"""
+        if os.WEXITSTATUS(status) == 0:
+            LOG.debug("hide id %s " % review_id)
+            for (app, reviews) in self._reviews.iteritems():
+                for review in reviews:
+                    if str(review.id) == str(review_id):
+                        # remove the one we don't want to see anymore
+                        self._reviews[app].remove(review)
+                        callback(app, self._reviews[app])
+                        break
     
     def _on_modify_review_finished(self, pid, status, (review_id, stdout_fd, callback)):
-        """called when modify_review finished, currently only works for delete
-            and uses same functionality as report_abuse
-        """
+        """called when modify_review finished, currently just gets the response"""
         stdout = ""
         while True:
             s = os.read(stdout_fd, 1024)
@@ -251,14 +270,6 @@ class ReviewLoader(object):
                 logging.error("failed to parse '%s'" % stdout)
                 return
             response = ReviewDetails.from_dict(response_json)
-            
-            for (app, reviews) in self._reviews.iteritems():
-                for review in reviews:
-                    if str(review.id) == str(review_id):
-                        # remove the one we don't want to see anymore
-                        self._reviews[app].remove(review)
-                        callback(app, self._reviews[app])
-                        break
 
     def _on_submit_usefulness_finished(self, pid, status, (review_id, is_useful, callback)):
         """ called when report_usefulness finished """

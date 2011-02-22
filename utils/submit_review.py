@@ -1148,6 +1148,33 @@ class SubmitUsefulnessApp(BaseApp):
     def run(self):
         self.login()
 
+class DeleteReviewApp(BaseApp):
+    SUBMIT_MESSAGE = _(u"Deleting review\u2026")
+    ERROR_MESSAGE = _("Failed to delete review")
+    
+    def __init__(self, review_id, parent_xid, datadir):
+        #uses same UI as submit usefulness because (a) it isn't shown and (b) it's similar in usage
+        BaseApp.__init__(self, datadir, "submit_usefulness.ui")
+        # data
+        self.review_id = review_id
+        # no UI except for error conditions
+        self.parent_xid = parent_xid
+
+    # override behavior of baseapp here as we don't actually
+    # have a UI by default
+    def _get_parent_xid_for_login_window(self):
+        return self.parent_xid
+
+    def login_successful(self, display_name):
+        logging.debug("delete review")
+        self.main_notebook.set_current_page(1)
+        self.api.delete_review(self.review_id)
+
+    # override parents run to only trigger login (and subsequent
+    # events) but no UI, if this is commented out, there is some
+    # stub ui that can be useful for testing
+    #def run(self):
+    #    self.login()
 
 if __name__ == "__main__":
     try:
@@ -1279,6 +1306,30 @@ if __name__ == "__main__":
                                     )
 
         modify_app.run()
+
+
+    if "delete_review" in sys.argv[0]:
+        # check options
+        parser.add_option("", "--review-id") 
+        parser.add_option("", "--parent-xid")
+        parser.add_option("", "--debug",
+                          action="store_true", default=False)
+        (options, args) = parser.parse_args()
+
+        if not (options.review_id):
+            parser.error(_("Missing review-id arguments"))
+    
+        if options.debug:
+            logging.basicConfig(level=logging.DEBUG)
+
+        # personality
+        logging.debug("delete_review mode")
+
+        # initialize and run
+        delete_app = DeleteReviewApp(datadir=options.datadir,
+                                         review_id=options.review_id, 
+                                         parent_xid=options.parent_xid)
+        delete_app.run()
         
     # main
     gtk.main()
