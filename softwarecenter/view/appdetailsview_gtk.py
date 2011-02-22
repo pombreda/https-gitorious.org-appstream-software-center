@@ -988,7 +988,7 @@ class Reviews(gtk.VBox):
     __gsignals__ = {
         'new-review':(gobject.SIGNAL_RUN_FIRST,
                     gobject.TYPE_NONE,
-                    (gobject.TYPE_PYOBJECT,)),
+                    ()),
         'report-abuse':(gobject.SIGNAL_RUN_FIRST,
                     gobject.TYPE_NONE,
                     (gobject.TYPE_PYOBJECT,)),

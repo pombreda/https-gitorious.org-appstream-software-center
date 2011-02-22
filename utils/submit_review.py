@@ -605,15 +605,7 @@ class SubmitReviewsApp(BaseApp):
         self.review_summary_entry.connect('changed', self._on_mandatory_text_entry_changed)
         self.star_rating.connect('changed', self._on_mandatory_fields_changed)
         self.review_buffer.connect('changed', self._on_text_entry_changed)
-
-        #now setup rest of app based on whether submit or modify/delete
-        if self.action == "submit":
-            self._init_submit()
-        elif self.action == "modify":
-            self._init_modify()
-
-
-    def _init_submit(self):
+        
         # gwibber stuff
         self.gwibber_combo = gtk.combo_box_new_text()
         #cells = self.gwibber_combo.get_cells()
@@ -629,22 +621,22 @@ class SubmitReviewsApp(BaseApp):
         
         # gwibber stuff
         self._setup_gwibber_gui()
-        
+
+        #now setup rest of app based on whether submit or modify
+        if self.action == "submit":
+            self._init_submit()
+        elif self.action == "modify":
+            self._init_modify()
+
+    def _init_submit(self):
         self.submit_window.set_title(_("Review %s" % self.app.name))
     
     def _init_modify(self):
         self.submit_window.set_title(_("Edit or delete review id: %s " % self.review_id))
-        self.radio_modify = gtk.RadioButton(label=_("Edit This Review"))
-        self.radio_delete = gtk.RadioButton(self.radio_modify, _("Delete This Review"))
-        self.radio_modify.connect('toggled', self._modify_toggled)
-        self.radio_delete.connect('toggled', self._delete_toggled)
-        self.gwibber_checkbutton.hide()
-        self.radio_modify.show()
-        self.radio_delete.show()
-        self.gwibber_hbox.pack_start(self.radio_modify, False)
-        self.gwibber_hbox.pack_start(self.radio_delete, False)
-        self.review_body_vbox.reorder_child(self.gwibber_hbox, 2)
         self._populate_review()
+        self.SUBMIT_MESSAGE = _("Updating your review")
+        self.ERROR_MESSAGE = _("Failed to edit review")
+        self._enable_or_disable_post_button()
     
     def _populate_review(self):
         try:
@@ -667,20 +659,6 @@ class SubmitReviewsApp(BaseApp):
             self.origin = 'ubuntu'
         return
     
-    def _modify_toggled(self, button):
-        self.textview_review.set_sensitive(True)
-        self.review_summary_entry.set_sensitive(True)
-        self.star_rating.set_sensitive(True)
-        self.SUBMIT_MESSAGE = _("Updating your review")
-        self.ERROR_MESSAGE = _("Failed to edit review")
-        self._enable_or_disable_post_button()
-    
-    def _delete_toggled(self, button):
-        self.textview_review.set_sensitive(False)
-        self.review_summary_entry.set_sensitive(False)
-        self.star_rating.set_sensitive(False)
-        self.SUBMIT_MESSAGE = _("Deleting your review")
-        self.ERROR_MESSAGE = _("Failed to delete review")
 
     def _setup_details(self, widget, app, iconname, version, display_name):
         # icon shazam
@@ -804,19 +782,15 @@ class SubmitReviewsApp(BaseApp):
                            "%02X" % b)
 
     def on_button_post_clicked(self, button):
-        """choose what clicking post button does, depending on whether app is using submit or modify/delete action"""
+        """choose what clicking post button does, depending on whether app is using submit or modify action"""
         if self.action == "submit":
             self._on_post_clicked_submit()
         elif self.action == "modify":
             self._on_post_clicked_modify()
     
-    #FIXME: stub. will see if user has chosen to delete or modify then take appropriate action
+    #FIXME: stub until api can allow us to edit reviews
     def _on_post_clicked_modify(self):
-        if self.radio_modify.get_active():
-            logging.warn("send modified review")
-        else:
-            self.api.delete_review(self.review_id)
-        return
+        logging.warn("send modified review")
         
     def _on_post_clicked_submit(self):
         logging.debug("enter_review ok button")
