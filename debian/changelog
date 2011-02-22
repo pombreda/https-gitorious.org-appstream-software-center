@@ -19,6 +19,11 @@ software-center (3.1.20) UNRELEASED; urgency=low
   * softwarecenter/db/reviews.py: 
     - prevent 404 errors from outputting a traceback (especially 
       caused when origin is a PPA) LP: #709408
+  
+  [ Michael Vogt ]
+  * softwarecenter/backend/weblive.py:
+    - add prototype backend for interacting with weblive, many 
+      thanks to Stephane Graber
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 18 Feb 2011 11:53:19 +0100
 

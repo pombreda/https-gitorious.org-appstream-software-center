@@ -1398,7 +1398,7 @@ class UIReview(gtk.VBox):
                                _("No one has flagged your review's usefulness yet."))
         elif useful_total == 0:
             usefulness_label = gtk.Label('<small>%s</small>' % \
-                               _("Did you find this review useful?"))
+                               _("Was this review hepful?"))
         elif current_user_reviewer:
             s = gettext.ngettext(
                 "%(useful_favorable)s out of %(useful_total)s person "
