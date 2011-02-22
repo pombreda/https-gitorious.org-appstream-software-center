@@ -25,22 +25,31 @@ class WebLivePackage(object):
 
 class WebLiveServer(object):
 
-    def __init__(self, name, description, locales, packages):
+    def __init__(self, name, title, description, locales, packages, timelimit, userlimit, users):
         self.name = name
+        self.title = title
         self.description = description
         self.locales = [WebLiveLocale(x[0], x[1]) for x in locales]
         self.packages = [WebLivePackage(x[0], x[1]) for x in packages]
+        self.timelimit = timelimit
+        self.userlimit = userlimit
+        self.current_users = users
 
     def __repr__(self):
-        return "[WebLiveServer: %s (%s), nr_locales=%s nr_pkgs=%s" % (
-            self.name, self.description, len(self.locales), len(self.packages))
+        return "[WebLiveServer: %s (%s - %s), timelimit=%s, userlimit=%s, current_users=%s, nr_locales=%s, nr_pkgs=%s" % (
+            self.name, self.title, self.description, self.timelimit, self.userlimit, self.current_users, len(self.locales), len(self.packages))
 
     @classmethod
     def from_json(cls, name, attributes):
-        o = cls(name, 
-                attributes["description"], 
-                attributes["locales"], 
-                attributes["packages"])
+        o = cls(name,
+                attributes["title"],
+                attributes["description"],
+                attributes["locales"],
+                attributes["packages"],
+                attributes["timelimit"],
+                attributes["userlimit"],
+                attributes["users"],
+                )
         return o
         
 
@@ -90,6 +99,7 @@ class WebLiveBackend(object):
     def _server_list_from_json(self, json_str):
         servers = []
         servers_json_dict = json.loads(json_str)
+        #print pprint.pprint(servers_json_dict)
         if not servers_json_dict["status"] == "ok":
             raise ServerNotReadyError("server not ok, msg: '%s'" % \
                                           servers_json_dict["message"])
@@ -114,7 +124,6 @@ class WebLiveBackend(object):
         # Encode and send using HTTPs
         page=urllib.urlopen(self.URL,
                             urllib.urlencode({'query':json.dumps(query)}))
-
         # Decode JSON reply
         result=json.loads(page.read())
         print "\nStatus: %s" % result['status']
