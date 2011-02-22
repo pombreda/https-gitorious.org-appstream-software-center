@@ -3,12 +3,46 @@
 import getpass
 import json
 import os
+import pprint
 import random
 import socket
 import subprocess
 import sys
 import urllib
 
+class ServerNotReadyError(Exception):
+    pass
+
+class WebLiveLocale(object):
+    def __init__(self, locale, description):
+        self.locale = locale
+        self.description = description
+    
+class WebLivePackage(object):
+    def __init__(self, pkgname, version):
+        self.pkgname = pkgname
+        self.version = version
+
+class WebLiveServer(object):
+
+    def __init__(self, name, description, locales, packages):
+        self.name = name
+        self.description = description
+        self.locales = [WebLiveLocale(x[0], x[1]) for x in locales]
+        self.packages = [WebLivePackage(x[0], x[1]) for x in packages]
+
+    def __repr__(self):
+        return "[WebLiveServer: %s (%s), nr_locales=%s nr_pkgs=%s" % (
+            self.name, self.description, len(self.locales), len(self.packages))
+
+    @classmethod
+    def from_json(cls, name, attributes):
+        o = cls(name, 
+                attributes["description"], 
+                attributes["locales"], 
+                attributes["packages"])
+        return o
+        
 
 class WebLiveBackend(object):
     """ backend for interacting with the weblive service """
@@ -44,27 +78,29 @@ class WebLiveBackend(object):
     URL = 'https://www.edubuntu.org/vmmanager/json'
 
     def query_available(self):
-        """ get available server and limits """
+        """ (sync) get available server and limits """
         query={}
         query['action']='list_everything'
         page=urllib.urlopen(self.URL,
                             urllib.urlencode({'query':json.dumps(query)}))
-        servers=json.loads(page.read())
-        if servers['status'] == 'ok':
-            for server in servers['message']:
-                attributes=servers['message'][server]
-                print "== %s ==" % server
-                for attribute in attributes:
-                    if attribute in ('locales','packages'):
-                        print " * %s: %s" % (attribute,len(attributes[attribute]))
-                    else:
-                        print " * %s: %s" % (attribute,attributes[attribute])
-                print ""
-        return []
+        json_str = page.read()
+        servers=self._server_list_from_json(json_str)
+        return servers
 
-    def create_automatic_user(self, 
-                              serverid='ubuntu-natty01', 
-                              session="desktop"):
+    def _server_list_from_json(self, json_str):
+        servers = []
+        servers_json_dict = json.loads(json_str)
+        if not servers_json_dict["status"] == "ok":
+            raise ServerNotReadyError("server not ok, msg: '%s'" % \
+                                          servers_json_dict["message"])
+
+        for (servername, attributes) in servers_json_dict['message'].iteritems():
+            servers.append(WebLiveServer.from_json(servername, attributes))
+        return servers
+
+    def create_automatic_user_and_run_session(self, 
+                                              serverid='ubuntu-natty01', 
+                                              session="desktop"):
         """ login into serverid and automatically create a user """
         username = os.environ['USER']
         query={}
@@ -119,5 +155,6 @@ class WebLiveBackend(object):
                              
 if __name__ == "__main__":
     weblive = WebLiveBackend()
-    weblive.query_available()
-    weblive.create_automatic_user(session="gedit")
+    servers = weblive.query_available()
+    print servers
+    weblive.create_automatic_user_and_run_session(session="gedit")
