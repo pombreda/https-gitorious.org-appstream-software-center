@@ -14,6 +14,11 @@ software-center (3.1.20) UNRELEASED; urgency=low
     - don't transition when a Page has focus
   * softwarecenter/view/widgets/mkit.py:
     - some fixes to correctly update color/cursor of Button upon mouse actions
+  
+  [ Aaron Peachey ]
+  * softwarecenter/db/reviews.py: 
+    - prevent 404 errors from outputting a traceback (especially 
+      caused when origin is a PPA) LP: #709408
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 18 Feb 2011 11:53:19 +0100
 

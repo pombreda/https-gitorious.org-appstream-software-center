@@ -44,6 +44,7 @@ import softwarecenter.distro
 from softwarecenter.utils import *
 from softwarecenter.paths import *
 from softwarecenter.enums import *
+from piston_mini_client import APIError
 
 from softwarecenter.netstatus import network_state_is_connected
 
@@ -345,6 +346,11 @@ class ReviewLoaderThreadedRNRClient(ReviewLoader):
             piston_reviews = self.rnrclient.get_reviews(**kwargs)
         except simplejson.decoder.JSONDecodeError, e:
             LOG.error("failed to parse '%s'" % e.doc)
+            piston_reviews = []
+        #bug lp:709408 - don't print 404 errors as traceback when api request returns 404 error
+        except APIError, e:
+            LOG.warn("_get_reviews_threaded: no reviews able to be retrieved for package: %s (%s, origin: %s)" % (app.pkgname, distroseries, origin))
+            LOG.debug("_get_reviews_threaded: no reviews able to be retrieved: %s" % e)
             piston_reviews = []
         except:
             LOG.exception("get_reviews")
