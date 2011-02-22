@@ -995,6 +995,12 @@ class Reviews(gtk.VBox):
         'submit-usefulness':(gobject.SIGNAL_RUN_FIRST,
                     gobject.TYPE_NONE,
                     (gobject.TYPE_PYOBJECT, bool)),
+        'modify-review':(gobject.SIGNAL_RUN_FIRST,
+                    gobject.TYPE_NONE,
+                    (gobject.TYPE_PYOBJECT,)),
+        'delete-review':(gobject.SIGNAL_RUN_FIRST,
+                    gobject.TYPE_NONE,
+                    (gobject.TYPE_PYOBJECT,)),
     }
 
     def __init__(self, parent):
@@ -1062,7 +1068,7 @@ class Reviews(gtk.VBox):
 
     def _on_button_new_clicked(self, button):
         self._any_reviews_current_user()  #run to 'reset' the list of reviews belonging to the user
-        self.emit("new-review", self.current_user_reviews)
+        self.emit("new-review")
 
     def _fill(self):
         self.logged_in_person = self._get_person_from_config()
@@ -1105,10 +1111,7 @@ class Reviews(gtk.VBox):
         if not self.reviews:
             self._be_the_first_to_review()
         else:
-            if self._any_reviews_current_user():
-                self.new_review.set_label(_("Edit or delete your review"))
-            else:
-                self.new_review.set_label(_("Write your own review"))
+            self.new_review.set_label(_("Write your own review"))
             if self.expander.get_expanded():
                 self._fill()
                 self.vbox.show_all()
@@ -1215,6 +1218,16 @@ class Review(gtk.VBox):
         if reviews:
             reviews.emit("report-abuse", self.id)
     
+    def _on_modify_clicked(self, button):
+        reviews = self.get_ancestor(Reviews)
+        if reviews:
+            reviews.emit("modify-review", self.id)
+            
+    def _on_delete_clicked(self, button):
+        reviews = self.get_ancestor(Reviews)
+        if reviews:
+            reviews.emit("delete-review", self.id)
+    
     def _on_useful_clicked(self, btn, is_useful):
         reviews = self.get_ancestor(Reviews)
         if reviews:
@@ -1312,14 +1325,29 @@ class Review(gtk.VBox):
         # Translators: This link is for flagging a review as inappropriate.
         # To minimize repetition, if at all possible, keep it to a single word.
         # If your language has an obvious verb, it won't need a question mark.
-        self.complain = mkit.VLinkButton('<small>%s</small>' % _('Inappropriate?'))
-        self.complain.set_subdued(True)
-        self.complain.set_underline(True)
-        self.complain.set_sensitive(network_state_is_connected())
-        self.footer.pack_end(self.complain, False)
-        self.complain.connect('clicked', self._on_report_abuse_clicked)
-
-        self.body.connect('size-allocate', self._on_allocate, stars, summary, who_when, version_lbl, self.complain)
+        self.flagbox = gtk.HBox()
+        if person == self.logged_in_person:
+            self.edit = mkit.VLinkButton('<small>%s</small>' %_('Edit'))
+            self.delete = mkit.VLinkButton('<small>%s</small>' %_('Delete'))
+            self.edit.set_underline(True)
+            self.delete.set_underline(True)
+            self.edit.set_subdued(True)
+            self.delete.set_subdued(True)
+            self.flagbox.pack_start(self.edit, False)
+            self.flagbox.pack_start(self.delete, False)
+            self.edit.connect('clicked', self._on_modify_clicked)
+            self.delete.connect('clicked', self._on_delete_clicked)
+        else:
+            self.complain = mkit.VLinkButton('<small>%s</small>' % _('Inappropriate?'))
+            self.complain.set_subdued(True)
+            self.complain.set_underline(True)
+            self.complain.set_sensitive(network_state_is_connected())
+            self.flagbox.pack_start(self.complain, False)
+            self.complain.connect('clicked', self._on_report_abuse_clicked)
+        self.footer.pack_end(self.flagbox,False)
+        self.flagbox.show_all()
+        self.body.connect('size-allocate', self._on_allocate, stars, summary, who_when, version_lbl, self.flagbox)
+            
         return
 
     def _whom_when_markup(self, person, cur_t, dark_color):
@@ -1865,6 +1893,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.reviews.connect("new-review", self._on_review_new)
         self.reviews.connect("report-abuse", self._on_review_report_abuse)
         self.reviews.connect("submit-usefulness", self._on_review_submit_usefulness)
+        self.reviews.connect("modify-review", self._on_review_modify)
+        self.reviews.connect("delete-review", self._on_review_delete)
         self.main_frame.body.pack_start(self.reviews)
         return
 
@@ -1880,19 +1910,14 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.show_all()
         return
 
-    def _on_review_new(self, button, existing_review_ids=[]):
-        if existing_review_ids == []:
+    def _on_review_new(self, button):
             self._review_write_new()
-        else:
-            self._edit_existing_review(existing_review_ids)
     
-    def _edit_existing_review(self, existing_review_ids):
-        #FIXME: useless stub at the moment. plan is to spawn new review app with existing review id
-        #need to determine how to handle situation with more than 1 review id passed
-        if len(existing_review_ids) == 1:
-            self._review_modify(existing_review_ids[0])
-        else:
-            pass
+    def _on_review_modify(self, button, review_id):
+        self._review_modify(review_id)
+    
+    def _on_review_delete(self, button, review_id):
+        self._review_delete(review_id)
 
     def _on_review_submit_usefulness(self, button, review_id, is_useful):
         self._review_submit_usefulness(review_id, is_useful)

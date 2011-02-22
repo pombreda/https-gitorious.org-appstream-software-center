@@ -133,6 +133,13 @@ class AppDetailsViewBase(object):
         self.review_loader.spawn_modify_review_ui(
             parent_xid, self.appdetails.icon, self.datadir, review_id,
             self._reviews_ready_callback)
+    
+    #FIXME: currently just spawns modify ui
+    def _review_delete(self, review_id):
+        parent_xid = get_parent_xid(self)
+        self.review_loader.spawn_modify_review_ui(
+            parent_xid, self.appdetails.icon, self.datadir, review_id,
+            self._reviews_ready_callback)        
 
     # public interface
     def reload(self):
