@@ -179,7 +179,7 @@ class TestGUI(unittest.TestCase):
         self.assertFalse(self.app.available_pane.app_details_view.version_info.get_property("visible"))
         self.assertFalse(self.app.available_pane.app_details_view.license_info.get_property("visible"))
         self.assertFalse(self.app.available_pane.app_details_view.support_info.get_property("visible"))
-        self.assertEqual(self.app.available_pane.app_details_view.desc.description.order, [])
+        self.assertEqual(self.app.available_pane.app_details_view.app_desc.description.order, [])
 
     def _monkey_sso_login(self):
         #print "monkey_sso_login"

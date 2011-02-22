@@ -1,4 +1,23 @@
-software-center (3.1.19) UNRELEASED; urgency=low
+software-center (3.1.20) UNRELEASED; urgency=low
+
+  [ Kiwinote ]
+  * data/ui/SoftwareCenter.ui,
+    softwarecenter/app.py:
+    - place the status label inside an eventbox to allow focus and setup a11y
+      (LP: #575691)
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - make description accessible
+    - correctly update screenshot a11y text and make it less verbose
+  * softwarecenter/view/catview_gtk.py:
+    - rewrite recommended widget to make it suitable for i18n and a11y
+  * softwarecenter/view/widgets/carousel.py:
+    - don't transition when a Page has focus
+  * softwarecenter/view/widgets/mkit.py:
+    - some fixes to correctly update color/cursor of Button upon mouse actions
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 18 Feb 2011 11:53:19 +0100
+
+software-center (3.1.19) natty; urgency=low
 
   [ Gary Lasker ]
   * softwarecenter/enums.py,
@@ -38,11 +57,26 @@ software-center (3.1.19) UNRELEASED; urgency=low
     - handle case where usefulness submission fails
   * softwarecenter/view/appdetailsview_gtk.py:
     - display own reviews according to the spec
+  * utils/submit_review.py: 
+    - fix bug that showed gwibber success message when gwibber 
+      checkbox was not selected
   
   [ Michael Vogt ]
   * softwarecenter/view/appdetailsview_gtk.py:
     - add transparent-bg-hint gdata theme engine hint to the 
       progress bar
+  * softwarecenter/db/reviews.py, 
+    softwarecenter/view/appdetailsview_gtk.py:
+    - cleanup by unifing Review objects from rnrclient and  
+      the detailsview
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - show "none yet", "loading" in the review details
+  * softwarecenter/db/reviews.py, softwarecenter/view/appdetailsview_gtk.py:
+    - log into the right logger with the right priority
+  * softwarecenter/view/catview_gtk.py:
+    - remove debug output
+  * softwarecenter/db/reviews.py, test/test_reviews.py:
+    - sort reviews by version/usefulness/date
   
   [ Matthew McGowan ]
   * lp:~mmcg069/software-center/lobby-tweaks:
@@ -50,7 +84,15 @@ software-center (3.1.19) UNRELEASED; urgency=low
   * lp:~mmcg069/software-center/catviewgtk-code-reorg:
     - move widgets out into softwarecenter/view/widgets
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 16 Feb 2011 19:45:15 -0500
+  [ Kiwinote ]
+  * softwarecenter/view/widgets/buttons.py:
+    - make CategoryButton accessible
+  * softwarecenter/view/widgets/carousel.py:
+    - minor accessibility tweaks
+  * softwarecenter/view/widgets/mkit.py:
+    - make Button emit 'clicked' on pressing enter key
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 18 Feb 2011 11:53:19 +0100
 
 software-center (3.1.18) natty; urgency=low
 

@@ -54,9 +54,8 @@ class TestAppDetailsView(unittest.TestCase):
         self._p()
         time.sleep(1)
         self._p()
-        # check that we have the embedded message
-        for r in self.appdetails.reviews.vbox:
-            if isinstance(r, EmbeddedMessage):
+        for r in self.appdetails.ui_reviews_list.vbox:
+            if self._is_embedded_message_no_network(r):
                 break
         else:
             raise Exception("can not find embedded message") 
@@ -66,8 +65,8 @@ class TestAppDetailsView(unittest.TestCase):
         app = Application("7zip","p7zip-full")
         self.appdetails.show_app(app)
         # check that we do *not* have the embedded message
-        for r in self.appdetails.reviews.vbox:
-            self.assertFalse(isinstance(r, EmbeddedMessage))
+        for r in self.appdetails.ui_reviews_list.vbox:
+            self.assertFalse(self._is_embedded_message_no_network(r))
 
     def test_show_app_simple_network_unknown(self):
         # if we don't know about the network state (or have no network
@@ -76,8 +75,13 @@ class TestAppDetailsView(unittest.TestCase):
         app = Application("7zip","p7zip-full")
         self.appdetails.show_app(app)
         # check that we do *not* have the embedded message
-        for r in self.appdetails.reviews.vbox:
-            self.assertFalse(isinstance(r, EmbeddedMessage))
+        for r in self.appdetails.ui_reviews_list.vbox:
+            self.assertFalse(self._is_embedded_message_no_network(r))
+
+    def _is_embedded_message_no_network(self, message):
+        return (isinstance(message, EmbeddedMessage) and
+                message.image and
+                message.image.get_icon_name()[0] == "network-offline")
 
     def _get_mock_app_details(self):
         mock_app_details = mock.Mock(AppDetails)

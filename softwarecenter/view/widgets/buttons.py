@@ -1,3 +1,4 @@
+import atk
 import gtk
 import gobject
 
@@ -27,6 +28,10 @@ class CategoryButton(Button):
         hb.pack_start(self.label, False)
 
         self.label_list = ('label',)
+
+        self.a11y = self.get_accessible()
+        self.a11y.set_name(label)
+        self.a11y.set_role(atk.ROLE_PUSH_BUTTON)
 
         self.connect('expose-event', self._on_expose)
         return
