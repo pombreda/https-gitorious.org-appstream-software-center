@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import getpass
+import glib
 import json
 import os
 import pprint
@@ -48,8 +49,7 @@ class WebLiveServer(object):
                 attributes["packages"],
                 attributes["timelimit"],
                 attributes["userlimit"],
-                attributes["users"],
-                )
+                attributes["users"])
         return o
         
 
@@ -155,15 +155,23 @@ class WebLiveBackend(object):
         nxml.write(config)
         nxml.close()
 
-        qtnx=subprocess.Popen(['/usr/bin/qtnx',
-                               '%s-%s-%s' % (host, port, session), 
-                               username, 
-                               password])
-        ret = qtnx.wait()
-        return (ret == 0)
+        cmd = ['/usr/bin/qtnx',
+               '%s-%s-%s' % (str(host), str(port), str(session)),
+               username,
+               password]
+        #print cmd
+        (pid, stdin, stdout, stderr) = glib.spawn_async(
+            cmd, flags=glib.SPAWN_DO_NOT_REAP_CHILD)
+        #p=subprocess.Popen(cmd)
+        #p.wait()
+        glib.child_watch_add(pid, self._on_qtnx_exit)
+   
+    def _on_qtnx_exit(self, pid, status):
+        print "_on_qtnx_exit ", os.WEXITSTATUS(status)
+        
                              
 if __name__ == "__main__":
     weblive = WebLiveBackend()
     servers = weblive.query_available()
     print servers
-    weblive.create_automatic_user_and_run_session(session="gedit")
+    weblive.create_automatic_user_and_run_session(session="firefox")

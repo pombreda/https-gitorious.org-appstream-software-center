@@ -499,7 +499,7 @@ class PackageInfo(gtk.HBox):
         self.a11y.set_name(self.key + ' ' + self.value_label.get_text())
 
 
-class ScreenshotView(gtk.Alignment):
+class ScreenshotView(gtk.VBox):
 
     """ Widget that displays screenshot availability, download prrogress,
         and eventually the screenshot itself.
@@ -508,7 +508,11 @@ class ScreenshotView(gtk.Alignment):
     def __init__(self, distro, icons):
         # center child widgets in the available horizontal space (0.5)
         # 0.0 == left/top margin, 0.5 == center, 1.0 == right/bottom margin
-        gtk.Alignment.__init__(self, 0.5, 0.0)
+        gtk.VBox.__init__(self)
+        self.set_spacing(12)
+
+        alignment = gtk.Alignment(0.5, 0.0)
+        self.pack_start(alignment, expand=False, fill=False)
         self.set_redraw_on_allocate(False)
 
         # the frame around the screenshot (placeholder)
@@ -517,13 +521,18 @@ class ScreenshotView(gtk.Alignment):
         # eventbox so we can connect to event signals
         event = gtk.EventBox()
         event.set_visible_window(False)
-        self.add(event)
+        alignment.add(event)
 
         # the image
         self.image = gtk.Image()
         self.image.set_redraw_on_allocate(False)
         event.add(self.image)
         self.eventbox = event
+
+        # the test-drive label
+        self.test_drive = gtk.Button(_("Test drive"))
+        self.test_drive.connect("clicked", self.on_test_drive_clicked)
+        self.pack_start(self.test_drive, expand=False, fill=False)
 
         # connect the image to our custom draw func for fading in
         self.image.connect('expose-event', self._on_image_expose)
@@ -711,6 +720,12 @@ class ScreenshotView(gtk.Alignment):
 
         self.screenshot_available = available
         return
+
+    def on_test_drive_clicked(self, button):
+        print "on_testdrive_clicked"
+        from softwarecenter.backend.weblive import WebLiveBackend
+        weblive = WebLiveBackend()
+        weblive.create_automatic_user_and_run_session(session=self.pkgname)
  
     def configure(self, app_details):
 
