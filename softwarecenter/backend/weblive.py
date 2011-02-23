@@ -84,7 +84,7 @@ class WebLiveBackend(object):
 <option key="Enable Fullscreen Desktop" value="False"></option>
 </NXClientLibSettings>
 """
-    URL = 'https://www.edubuntu.org/vmmanager/json'
+    URL = 'https://weblive.stgraber.org/vmmanager/json'
 
     def query_available(self):
         """ (sync) get available server and limits """
@@ -112,13 +112,14 @@ class WebLiveBackend(object):
                                               serverid='ubuntu-natty01', 
                                               session="desktop"):
         """ login into serverid and automatically create a user """
-        username = os.environ['USER']
+        hostname = socket.gethostname()
+        username = "%s%s" % (os.environ['USER'], hostname)
         query={}
         query['action'] = 'create_user'
         query['serverid'] = serverid
         query['username'] = username
         query['fullname'] = "WebLive User"
-        query['password'] = socket.gethostname()      # bYes, the hostname is the password ;)
+        query['password'] = hostname  # FIXME: use random PW
         query['session'] = session
 
         # Encode and send using HTTPs
