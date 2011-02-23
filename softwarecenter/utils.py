@@ -311,7 +311,7 @@ def get_file_path_from_iconname(icons, iconname=None, iconsize=APP_ICON_SIZE):
 
 def clear_token_from_ubuntu_sso(appname):
     """ send a dbus signal to the com.ubuntu.sso service to clear 
-        the credentials for the given appname
+        the credentials for the given appname, e.g. _("Ubuntu Software Center")
     """
     import dbus
     bus = dbus.SessionBus()

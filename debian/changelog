@@ -26,6 +26,10 @@ software-center (3.1.20) UNRELEASED; urgency=low
       thanks to Stephane Graber
   * merged lp:~osomon/software-center/fixDatabaseLockError, many
     thanks (LP: #625189)
+  
+  [ Gary Lasker ]
+  * implement "Deauthorize my Computer" 
+    (lp:~gary-lasker/software-center/deauthorize-my-computer)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 18 Feb 2011 11:53:19 +0100
 
