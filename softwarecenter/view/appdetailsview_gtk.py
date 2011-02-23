@@ -1159,6 +1159,16 @@ class Review(gtk.VBox):
         self.body = gtk.VBox()
         self.footer_split = gtk.VBox()
         self.footer = gtk.HBox()
+        
+        self.delete_status_box = gtk.HBox()
+        self.delete_error_img = gtk.Image()
+        self.delete_error_img.set_from_stock(gtk.STOCK_DIALOG_ERROR, gtk.ICON_SIZE_SMALL_TOOLBAR)
+        self.delete_status_spinner = gtk.Spinner()
+        self.delete_status_spinner.set_size_request(12,12)
+        self.delete_acknowledge_error = mkit.VLinkButton(_("<small>OK</small>"))
+        self.delete_acknowledge_error.set_underline(True)
+        self.delete_acknowledge_error.set_subdued(True)
+        self.delete_error = False
 
         self.pack_start(self.header, False)
         self.pack_start(self.body, False)
@@ -1188,6 +1198,7 @@ class Review(gtk.VBox):
         # old versions of the server do not expose usefulness
         useful_total = getattr(review_data, "usefulness_total", 0)
         useful_favorable = getattr(review_data, "usefulness_favorable", 0)
+        delete_error = False
 
         self._build(rating,
                     self.person,
@@ -1198,7 +1209,8 @@ class Review(gtk.VBox):
                     review_version,
                     app_version,
                     useful_total,
-                    useful_favorable)
+                    useful_favorable,
+                    delete_error)
         return
 
     def _on_allocate(self, widget, allocation, stars, summary, who_when, version_lbl, flag):
@@ -1237,7 +1249,57 @@ class Review(gtk.VBox):
         # example raw_date str format: 2011-01-28 19:15:21
         return datetime.datetime.strptime(raw_date, '%Y-%m-%d %H:%M:%S')
     
-    def _build(self, rating, person, summary, text, date, app_name, review_version, app_version, useful_total, useful_favorable):
+    def _delete_ui_update(self, type, current_user_reviewer=False):
+        self._hide_delete_elements()
+        if type == 'renew':
+            self._build_delete_flag_ui(current_user_reviewer)
+            return
+        if type == 'progress':
+            self.delete_status_spinner.start()
+            self.delete_status_spinner.show()
+            self.delete_status_label = gtk.Label("<small><b>%s</b></small>" % _(u"Submitting now\u2026"))
+            self.delete_status_box.pack_start(self.delete_status_spinner, False)
+            self.delete_status_label.set_use_markup(True)
+            self.delete_status_label.set_padding(2,0)
+            self.delete_status_box.pack_start(self.delete_status_label,False)
+            self.delete_status_label.show()
+        if type == 'error':
+            self.submit_error_img.show()
+            self.delete_status_label = gtk.Label("<small><b>%s</b></small>" % _("Error deleting review"))
+            self.delete_status_box.pack_start(self.submit_error_img, False)
+            self.delete_status_label.set_use_markup(True)
+            self.delete_status_label.set_padding(2,0)
+            self.delete_status_box.pack_start(self.status_label,False)
+            self.delete_status_label.show()
+            self.delete_acknowledge_error.show()
+            self.delete_status_box.pack_start(self.acknowledge_error,False)
+            self.delete_acknowledge_error.connect('clicked', self._on_delete_error_acknowledged, current_user_reviewer)
+        self.delete_status_box.show()
+        self.footer.pack_end(self.delete_status_box, False)
+        return
+    
+    def _on_delete_clicked(self, btn):
+        reviews = self.get_ancestor(Reviews)
+        if reviews:
+            self._delete_ui_update('progress')
+            reviews.emit("delete-review", self.id)
+    
+    def _on_delete_error_acknowledged(self, button, current_user_reviewer):
+        self.delete_error = False
+        self._delete_ui_update('renew', current_user_reviewer)
+        
+    def _hide_delete_elements(self):
+        """ hide all delete elements """
+        for attr in ["complain", "edit", "delete", "delete_status_spinner",
+                     "delete_error_img", "delete_status_box", "delete_status_label",
+                     "delete_acknowledge_error", "flagbox"
+                     ]:
+            o = getattr(self, attr, None)
+            if o:
+                o.hide()
+        return
+    
+    def _build(self, rating, person, summary, text, date, app_name, review_version, app_version, useful_total, useful_favorable, delete_error):
         # all the arguments may need markup escape, depening on if
         # they are used as text or markup
 
@@ -1322,33 +1384,45 @@ class Review(gtk.VBox):
         yes_like.connect('clicked', self._on_useful_clicked, True)
         no_like.connect('clicked', self._on_useful_clicked, False)
 
-        # Translators: This link is for flagging a review as inappropriate.
-        # To minimize repetition, if at all possible, keep it to a single word.
-        # If your language has an obvious verb, it won't need a question mark.
-        self.flagbox = gtk.HBox()
         if person == self.logged_in_person:
-            self.edit = mkit.VLinkButton('<small>%s</small>' %_('Edit'))
-            self.delete = mkit.VLinkButton('<small>%s</small>' %_('Delete'))
-            self.edit.set_underline(True)
-            self.delete.set_underline(True)
-            self.edit.set_subdued(True)
-            self.delete.set_subdued(True)
-            self.flagbox.pack_start(self.edit, False)
-            self.flagbox.pack_start(self.delete, False)
-            self.edit.connect('clicked', self._on_modify_clicked)
-            self.delete.connect('clicked', self._on_delete_clicked)
+            current_user_reviewer = True
         else:
-            self.complain = mkit.VLinkButton('<small>%s</small>' % _('Inappropriate?'))
-            self.complain.set_subdued(True)
-            self.complain.set_underline(True)
-            self.complain.set_sensitive(network_state_is_connected())
-            self.flagbox.pack_start(self.complain, False)
-            self.complain.connect('clicked', self._on_report_abuse_clicked)
+            current_user_reviewer = False
+            
+        self.flagbox = gtk.HBox()
+        self._build_delete_flag_ui(current_user_reviewer, delete_error)
         self.footer.pack_end(self.flagbox,False)
         self.flagbox.show_all()
         self.body.connect('size-allocate', self._on_allocate, stars, summary, who_when, version_lbl, self.flagbox)
             
         return
+
+    def _build_delete_flag_ui(self, current_user_reviewer, delete_error=False):
+        if delete_error:
+            self._delete_ui_update('error', current_user_reviewer)
+        else:
+            if current_user_reviewer:
+                self.edit = mkit.VLinkButton('<small>%s</small>' %_('Edit'))
+                self.delete = mkit.VLinkButton('<small>%s</small>' %_('Delete'))
+                self.edit.set_underline(True)
+                self.delete.set_underline(True)
+                self.edit.set_subdued(True)
+                self.delete.set_subdued(True)
+                self.flagbox.pack_start(self.edit, False)
+                self.flagbox.pack_start(self.delete, False)
+                self.edit.connect('clicked', self._on_modify_clicked)
+                self.delete.connect('clicked', self._on_delete_clicked)
+            else:
+                # Translators: This link is for flagging a review as inappropriate.
+                # To minimize repetition, if at all possible, keep it to a single word.
+                # If your language has an obvious verb, it won't need a question mark.
+                self.complain = mkit.VLinkButton('<small>%s</small>' % _('Inappropriate?'))
+                self.complain.set_subdued(True)
+                self.complain.set_underline(True)
+                self.complain.set_sensitive(network_state_is_connected())
+                self.flagbox.pack_start(self.complain, False)
+                self.complain.connect('clicked', self._on_report_abuse_clicked)
+            return
 
     def _whom_when_markup(self, person, cur_t, dark_color):
         nice_date = get_nice_date_string(cur_t)
