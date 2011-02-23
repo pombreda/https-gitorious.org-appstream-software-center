@@ -24,6 +24,8 @@ software-center (3.1.20) UNRELEASED; urgency=low
   * softwarecenter/backend/weblive.py:
     - add prototype backend for interacting with weblive, many 
       thanks to Stephane Graber
+  * merged lp:~osomon/software-center/fixDatabaseLockError, many
+    thanks (LP: #625189)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 18 Feb 2011 11:53:19 +0100
 
