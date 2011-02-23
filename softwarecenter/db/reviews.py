@@ -231,7 +231,7 @@ class ReviewLoader(object):
             self._save_person_to_config(review.reviewer_username)
             if not app in self._reviews: 
                 self._reviews[app] = []
-            self._reviews[app].insert(0, review)
+            self._reviews[app].insert(0, Review.from_piston_mini_client(review))
             callback(app, self._reviews[app])
 
     def _save_person_to_config(self, username):
