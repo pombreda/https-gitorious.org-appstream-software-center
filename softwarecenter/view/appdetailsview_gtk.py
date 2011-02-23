@@ -1168,7 +1168,6 @@ class Review(gtk.VBox):
         self.delete_acknowledge_error = mkit.VLinkButton(_("<small>OK</small>"))
         self.delete_acknowledge_error.set_underline(True)
         self.delete_acknowledge_error.set_subdued(True)
-        self.delete_error = False
 
         self.pack_start(self.header, False)
         self.pack_start(self.body, False)
@@ -1198,7 +1197,7 @@ class Review(gtk.VBox):
         # old versions of the server do not expose usefulness
         useful_total = getattr(review_data, "usefulness_total", 0)
         useful_favorable = getattr(review_data, "usefulness_favorable", 0)
-        delete_error = review_data.delete_error
+        delete_error = getattr(review_data, "delete_error", False)
 
         self._build(rating,
                     self.person,
@@ -1264,15 +1263,15 @@ class Review(gtk.VBox):
             self.delete_status_box.pack_start(self.delete_status_label,False)
             self.delete_status_label.show()
         if type == 'error':
-            self.submit_error_img.show()
+            self.delete_error_img.show()
             self.delete_status_label = gtk.Label("<small><b>%s</b></small>" % _("Error deleting review"))
-            self.delete_status_box.pack_start(self.submit_error_img, False)
+            self.delete_status_box.pack_start(self.delete_error_img, False)
             self.delete_status_label.set_use_markup(True)
             self.delete_status_label.set_padding(2,0)
-            self.delete_status_box.pack_start(self.status_label,False)
+            self.delete_status_box.pack_start(self.delete_status_label,False)
             self.delete_status_label.show()
             self.delete_acknowledge_error.show()
-            self.delete_status_box.pack_start(self.acknowledge_error,False)
+            self.delete_status_box.pack_start(self.delete_acknowledge_error,False)
             self.delete_acknowledge_error.connect('clicked', self._on_delete_error_acknowledged, current_user_reviewer)
         self.delete_status_box.show()
         self.footer.pack_end(self.delete_status_box, False)
@@ -1392,7 +1391,6 @@ class Review(gtk.VBox):
         self.flagbox = gtk.HBox()
         self._build_delete_flag_ui(current_user_reviewer, delete_error)
         self.footer.pack_end(self.flagbox,False)
-        self.flagbox.show_all()
         self.body.connect('size-allocate', self._on_allocate, stars, summary, who_when, version_lbl, self.flagbox)
             
         return
@@ -1422,6 +1420,7 @@ class Review(gtk.VBox):
                 self.complain.set_sensitive(network_state_is_connected())
                 self.flagbox.pack_start(self.complain, False)
                 self.complain.connect('clicked', self._on_report_abuse_clicked)
+            self.flagbox.show_all()
             return
 
     def _whom_when_markup(self, person, cur_t, dark_color):
