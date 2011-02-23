@@ -245,15 +245,29 @@ class ReviewLoader(object):
 
     def _on_delete_review_finished(self, pid, status, (review_id, callback)):
         """ called when delete_review finished"""
-        if os.WEXITSTATUS(status) == 0:
-            LOG.debug("hide id %s " % review_id)
+        """ called when report_usefulness finished """
+        exitcode = os.WEXITSTATUS(status)
+        if exitcode == 0:
+            LOG.debug("delete id %s " % review_id)
             for (app, reviews) in self._reviews.iteritems():
                 for review in reviews:
                     if str(review.id) == str(review_id):
                         # remove the one we don't want to see anymore
                         self._reviews[app].remove(review)
                         callback(app, self._reviews[app])
+                        break                    
+        else:
+            LOG.debug("delete review id=%s failed with exitcode %s" % (
+                review_id, exitcode))
+            for (app, reviews) in self._reviews.iteritems():
+                for review in reviews:
+                    if str(review.id) == str(review_id):
+                        review.delete_error = exitcode
+                        callback(app, self._reviews[app])
                         break
+        
+        
+
     
     def _on_modify_review_finished(self, pid, status, (review_id, stdout_fd, callback)):
         """called when modify_review finished, currently just gets the response"""

@@ -1169,12 +1169,16 @@ class DeleteReviewApp(BaseApp):
         logging.debug("delete review")
         self.main_notebook.set_current_page(1)
         self.api.delete_review(self.review_id)
+    
+    def on_transmit_failure(self, api, trans, error):
+        print "exiting - error: %s" % error
+        self.quit(2)
 
     # override parents run to only trigger login (and subsequent
     # events) but no UI, if this is commented out, there is some
     # stub ui that can be useful for testing
-    #def run(self):
-    #    self.login()
+    def run(self):
+        self.login()
 
 if __name__ == "__main__":
     try:

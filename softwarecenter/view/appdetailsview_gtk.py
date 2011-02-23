@@ -1198,7 +1198,7 @@ class Review(gtk.VBox):
         # old versions of the server do not expose usefulness
         useful_total = getattr(review_data, "usefulness_total", 0)
         useful_favorable = getattr(review_data, "usefulness_favorable", 0)
-        delete_error = False
+        delete_error = review_data.delete_error
 
         self._build(rating,
                     self.person,
@@ -1257,7 +1257,7 @@ class Review(gtk.VBox):
         if type == 'progress':
             self.delete_status_spinner.start()
             self.delete_status_spinner.show()
-            self.delete_status_label = gtk.Label("<small><b>%s</b></small>" % _(u"Submitting now\u2026"))
+            self.delete_status_label = gtk.Label("<small><b>%s</b></small>" % _(u"Deleting now\u2026"))
             self.delete_status_box.pack_start(self.delete_status_spinner, False)
             self.delete_status_label.set_use_markup(True)
             self.delete_status_label.set_padding(2,0)
