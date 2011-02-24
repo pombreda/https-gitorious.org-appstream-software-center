@@ -344,6 +344,9 @@ class ReviewLoaderThreadedRNRClient(ReviewLoader):
                 #        so it expects it this way
                 kwargs["appname"] = urllib.quote_plus(app.appname.encode("utf-8"))
             piston_reviews = self.rnrclient.get_reviews(**kwargs)
+            # the backend sometimes returns None here
+            if piston_reviews is None:
+                piston_reviews = []
         except simplejson.decoder.JSONDecodeError, e:
             LOG.error("failed to parse '%s'" % e.doc)
             piston_reviews = []
