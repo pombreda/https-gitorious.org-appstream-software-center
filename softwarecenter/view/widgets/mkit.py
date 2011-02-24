@@ -1130,7 +1130,14 @@ class Button(gtk.EventBox):
         return
 
     def _on_button_press(self, btn, event):
-        if event.button != 1: return
+        if event.button != 1:
+            self.set_state(gtk.STATE_NORMAL)
+            self.window.set_cursor(None)
+            if hasattr(self, 'label_list'):
+                for v in self.label_list:
+                    l = getattr(self, v)
+                    self._label_colorise_normal(l)
+            return
         self._button_press_origin = btn
         self.set_state(gtk.STATE_ACTIVE)
 
@@ -1172,12 +1179,25 @@ class Button(gtk.EventBox):
         else:
             self.set_state(gtk.STATE_PRELIGHT)
 
-        self.window.set_cursor(self._cursor)
+        if not event.state:
+            self.window.set_cursor(self._cursor)
+
+        if event.state and event.state == gtk.gdk.BUTTON1_MASK:
+            self.window.set_cursor(self._cursor)
+            if hasattr(self, 'label_list'):
+                for v in self.label_list:
+                    l = getattr(self, v)
+                    self._label_colorise_active(l)
         return
 
     def _on_leave(self, btn, event):
         self.set_state(gtk.STATE_NORMAL)
         self.window.set_cursor(None)
+
+        if hasattr(self, 'label_list'):
+            for v in self.label_list:
+                l = getattr(self, v)
+                self._label_colorise_normal(l)
         return
 
     def _on_key_press(self, btn, event):
@@ -1217,7 +1237,7 @@ class Button(gtk.EventBox):
             else:
                 c = self.style.text[self.state]
         else:
-            c = self.style.dark[self.state]
+            c = self.style.text[self.state]
 
         attr = pango.AttrForeground(c.red,
                                     c.green,

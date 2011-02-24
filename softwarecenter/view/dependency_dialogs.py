@@ -18,7 +18,6 @@
 
 import gtk
 import logging
-import pango
 
 from gettext import gettext as _
 
@@ -27,45 +26,12 @@ from dialogs import SimpleGtkbuilderDialog
 from softwarecenter.db.application import Application
 from softwarecenter.distro import get_distro
 from softwarecenter.enums import MISSING_APP_ICON
+from softwarecenter.view.widgets.packagenamesview import PackageNamesView
 
 LOG = logging.getLogger(__name__)
 
 #FIXME: These need to come from the main app
 ICON_SIZE = 24
-
-class PkgNamesView(gtk.TreeView):
-    """ show a bunch of pkgnames with description """
-
-    (COL_ICON,
-     COL_TEXT) = range(2)
-
-    def __init__(self, header, cache, pkgnames, icons, db):
-        super(PkgNamesView, self).__init__()
-        model = gtk.ListStore(gtk.gdk.Pixbuf, str)
-        self.set_model(model)
-        tp = gtk.CellRendererPixbuf()
-        column = gtk.TreeViewColumn("Icon", tp, pixbuf=self.COL_ICON)
-        self.append_column(column)
-        tr = gtk.CellRendererText()
-        tr.set_property("ellipsize", pango.ELLIPSIZE_END)
-        column = gtk.TreeViewColumn(header, tr, markup=self.COL_TEXT)
-        self.append_column(column)
-        for pkgname in sorted(pkgnames):
-            s = "%s \n<small>%s</small>" % (
-                cache[pkgname].installed.summary.capitalize(), pkgname)
-            
-            app_details = Application("", pkgname).get_details(db)
-            proposed_icon = app_details.icon
-            if not proposed_icon or not icons.has_icon(proposed_icon):
-                proposed_icon = MISSING_APP_ICON
-            try:
-                pix = icons.load_icon(proposed_icon, ICON_SIZE, ()).scale_simple(ICON_SIZE, 
-                                      ICON_SIZE, gtk.gdk.INTERP_BILINEAR)
-            except:
-                LOG.warning("cant set icon for '%s' " % pkgname)
-                pix = icons.load_icon(MISSING_APP_ICON, ICON_SIZE, ()).scale_simple(ICON_SIZE, 
-                                      ICON_SIZE, gtk.gdk.INTERP_BILINEAR)
-            row = model.append([pix, s])
 
 def confirm_install(parent, datadir, app, db, icons):
     """Confirm install of the given app
@@ -130,8 +96,7 @@ def _confirm_remove_internal(parent, datadir, app, db, icons, primary, button_te
 
     # add the dependencies
     vbox = dialog.get_content_area()
-    # FIXME: make this a generic pkgview widget
-    view = PkgNamesView(_("Dependency"), cache, depends, icons, db)
+    view = PackageNamesView(_("Dependency"), cache, depends, icons, ICON_SIZE, db)
     view.set_headers_visible(False)
     # FIXME: work out how not to select?/focus?/activate? first item
     glade_dialog.scrolledwindow_dependencies.add(view)
@@ -147,6 +112,7 @@ def _confirm_remove_internal(parent, datadir, app, db, icons, primary, button_te
 if __name__ == "__main__":
     from softwarecenter.apt.aptcache import AptCache
     cache = AptCache()
+    cache.open()
 
     from softwarecenter.db.database import StoreDatabase, Application
     pathname = "/var/cache/software-center/xapian"
