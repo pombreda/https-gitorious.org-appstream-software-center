@@ -92,6 +92,7 @@ class WebLiveBackend(object):
         """ return if the current system will work (has the required
             dependencies
         """
+        # FIXME: also test if package is available on the weblive server
         if os.path.exists(cls.QTNX):
             return True
         return False

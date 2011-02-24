@@ -531,9 +531,9 @@ class ScreenshotView(gtk.VBox):
         self.eventbox = event
 
         # the test-drive label
+        self.test_drive = gtk.Button(_("Test drive"))
+        self.test_drive.connect("clicked", self.on_test_drive_clicked)
         if WebLiveBackend.is_supported():
-            self.test_drive = gtk.Button(_("Test drive"))
-            self.test_drive.connect("clicked", self.on_test_drive_clicked)
             self.pack_start(self.test_drive, expand=False, fill=False)
 
         # connect the image to our custom draw func for fading in
@@ -725,8 +725,11 @@ class ScreenshotView(gtk.VBox):
 
     def on_test_drive_clicked(self, button):
         #print "on_testdrive_clicked"
+        exec_line = get_exec_line_from_desktop(self.desktop_file)
+        # split away any arguments, gedit for example as %U
+        cmd = exec_line.split()[0]
         weblive = WebLiveBackend()
-        weblive.create_automatic_user_and_run_session(session=self.pkgname)
+        weblive.create_automatic_user_and_run_session(session=cmd)
  
     def configure(self, app_details):
 
@@ -743,6 +746,13 @@ class ScreenshotView(gtk.VBox):
         self.pkgname = app_details.pkgname
         self.thumbnail_url = app_details.thumbnail
         self.large_url = app_details.screenshot
+        self.desktop_file = app_details.desktop_file
+        # only enable test drive if we have a desktop file and exec line
+        if (not os.path.exists(self.desktop_file) or
+            not get_exec_line_from_desktop(self.desktop_file)):
+            self.test_drive.hide()
+        else:
+            self.test_drive.show()
         return
 
     def clear(self):
