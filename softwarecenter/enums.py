@@ -60,10 +60,16 @@ NAV_BUTTON_ID_SEARCH   = "search"
 NAV_BUTTON_ID_PURCHASE = "purchase"
 NAV_BUTTON_ID_PREV_PURCHASES = "prev-purchases"
 
-# icon
+# define ID values for the action bar buttons
+ACTION_BUTTON_ID_INSTALL = "install"
+ACTION_BUTTON_ADD_TO_LAUNCHER = "add_to_launcher"
+ACTION_BUTTON_CANCEL_ADD_TO_LAUNCHER = "cancel_add_to_launcher"
+
+# icons
 MISSING_APP_ICON = "applications-other"
 MISSING_PKG_ICON = "dialog-question"
 APP_ICON_SIZE = 48
+GENERIC_MISSING_IMAGE = "gtk-missing-image"
 
 # sorting
 (SORT_UNSORTED,
@@ -135,6 +141,13 @@ APP_ACTION_INSTALL = "install"
 APP_ACTION_REMOVE = "remove"
 APP_ACTION_UPGRADE = "upgrade"
 APP_ACTION_APPLY = "apply_changes"
+
+# transaction types
+TRANSACTION_TYPE_INSTALL = "install"
+TRANSACTION_TYPE_REMOVE = "remove"
+TRANSACTION_TYPE_UPGRADE = "upgrade"
+TRANSACTION_TYPE_APPLY = "apply_changes"
+
 
 from version import *
 USER_AGENT="Software Center/%s (N;) %s/%s (%s)" % (VERSION, 

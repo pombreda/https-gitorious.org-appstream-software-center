@@ -27,6 +27,8 @@ import gobject
 import pangocairo
 from math import pi, cos, sin
 
+from math import sin, cos
+
 from mkit_themes import Color, ColorArray, ThemeRegistry
 
 import logging
@@ -470,7 +472,7 @@ class ShapeCircle(Shape):
 
 class ShapeStar(Shape):
 
-    def __init__(self, points, indent=0.5, direction=gtk.TEXT_DIR_LTR):
+    def __init__(self, points, indent=0.61, direction=gtk.TEXT_DIR_LTR):
         self.coords = self._calc_coords(points, 1-indent)
 
     def _calc_coords(self, points, indent):
@@ -489,15 +491,11 @@ class ShapeStar(Shape):
         return coords
 
     def layout(self, cr, x, y, w, h):
-        sx, sy = self.coords[0]
-        px = sx*w+x
-        py = sy*h+y
-        cr.move_to(px, py)
+        points = map(lambda (sx,sy): (sx*w+x,sy*h+y), self.coords)
+        cr.move_to(*points[0])
 
-        for sx, sy in self.coords[1:]:
-            px = sx*w+x
-            py = sy*h+y
-            cr.line_to(px, py)
+        for p in points[1:]:
+            cr.line_to(*p)
 
         cr.close_path()
         return
@@ -924,6 +922,90 @@ class FramedSection(gtk.VBox):
         return
 
 
+class LayoutView2(gtk.HBox):
+
+    def __init__(self, xspacing=4, yspacing=6):
+        gtk.HBox.__init__(self, spacing=xspacing)
+        self.set_homogeneous(True)
+
+        self.min_col_width = 128
+        self.yspacing = yspacing
+
+        self._prev_width = -1
+        self._non_col_children = []
+
+        self.connect('size-allocate', self._on_allocate, yspacing)
+#        self.connect('expose-event', self._on_expose_debug)
+        return
+
+    def _on_allocate(self, widget, allocation, yspacing):
+        w = allocation.width
+
+        if self._prev_width == w: return True
+        self._prev_width = w
+
+        self.layout(w, yspacing, force=False)
+        return True
+
+    def _on_expose_debug(self, widget, event):
+        cr = widget.window.cairo_create()
+
+        for i, child in enumerate(self.get_children()):
+            a = child.allocation
+            cr.rectangle(a)
+
+            if i%2:
+                cr.set_dash((2,2))
+                cr.set_source_rgb(1,0,0)
+            else:
+                cr.set_dash((2,2), 2)
+                cr.set_source_rgb(0,1,0)
+
+            cr.stroke()
+
+        del cr
+        return
+
+    def add(self, child):
+        self._non_col_children.append(child)
+        return
+
+    def clear(self):
+        for w in self._non_col_children:
+            w.destroy()
+
+        self._non_col_children = []
+        return
+
+    def layout(self, width, yspacing, force=True):
+
+        old_n_cols = len(self.get_children())
+        n_cols = max(1, width / (self.min_col_width + self.get_spacing()))
+
+        n_cols = min(len(self._non_col_children), n_cols)
+
+        if old_n_cols == n_cols and not force: return True
+
+        for i, col in enumerate(self.get_children()):
+            for child in col.get_children():
+                col.remove(child)
+
+            if i >= n_cols:
+                col.destroy()
+
+        if n_cols > old_n_cols:
+            for i in range(old_n_cols, n_cols):
+                col = gtk.VBox(spacing=yspacing)
+                self.pack_start(col)
+
+        cols = self.get_children()
+        for i, child in enumerate(self._non_col_children):
+            cols[i%n_cols].pack_start(child, False)
+
+        self.show_all()
+        return
+
+
 class LayoutView(FramedSection):
 
     def __init__(self):
@@ -1015,6 +1097,182 @@ class LayoutView(FramedSection):
 
 #        cr.restore()
         return
+
+
+class Button(gtk.EventBox):
+
+    __gsignals__ = {
+        "clicked" : (gobject.SIGNAL_RUN_LAST,
+                     gobject.TYPE_NONE, 
+                     (),)
+        }
+
+    def __init__(self):
+        gtk.EventBox.__init__(self)
+        self.set_visible_window(False)
+
+        self.set_flags(gtk.CAN_FOCUS)
+        self.set_events(gtk.gdk.BUTTON_PRESS_MASK|
+                        gtk.gdk.BUTTON_RELEASE_MASK|
+                        gtk.gdk.KEY_RELEASE_MASK|
+                        gtk.gdk.KEY_PRESS_MASK|
+                        gtk.gdk.ENTER_NOTIFY_MASK|
+                        gtk.gdk.LEAVE_NOTIFY_MASK)
+
+        self._button_press_origin = None
+        self._cursor = gtk.gdk.Cursor(cursor_type=gtk.gdk.HAND2)
+
+        self.connect("button-press-event", self._on_button_press)
+        self.connect("button-release-event", self._on_button_release)
+        self.connect('enter-notify-event', self._on_enter)
+        self.connect('leave-notify-event', self._on_leave)
+        self.connect('key-press-event', self._on_key_press)
+        return
+
+    def _on_button_press(self, btn, event):
+        if event.button != 1:
+            self.set_state(gtk.STATE_NORMAL)
+            self.window.set_cursor(None)
+            if hasattr(self, 'label_list'):
+                for v in self.label_list:
+                    l = getattr(self, v)
+                    self._label_colorise_normal(l)
+            return
+        self._button_press_origin = btn
+        self.set_state(gtk.STATE_ACTIVE)
+
+        if hasattr(self, 'label_list'):
+            for v in self.label_list:
+                l = getattr(self, v)
+                self._label_colorise_active(l)
+        return
+
+    def _on_button_release(self, btn, event):
+
+        def clicked(w):
+            w.emit('clicked')
+
+        if event.button != 1:
+            self.queue_draw()
+            return
+
+        region = gtk.gdk.region_rectangle(self.allocation)
+        if not region.point_in(*self.window.get_pointer()[:2]):
+            self._button_press_origin = None
+            self.set_state(gtk.STATE_NORMAL)
+            return
+
+        self._button_press_origin = None
+        self.set_state(gtk.STATE_PRELIGHT)
+
+        if hasattr(self, 'label_list'):
+            for v in self.label_list:
+                l = getattr(self, v)
+                self._label_colorise_normal(l)
+
+        gobject.timeout_add(50, clicked, btn)
+        return
+
+    def _on_enter(self, btn, event):
+        if self == self._button_press_origin:
+            self.set_state(gtk.STATE_ACTIVE)
+        else:
+            self.set_state(gtk.STATE_PRELIGHT)
+
+        if not event.state:
+            self.window.set_cursor(self._cursor)
+
+        if event.state and event.state == gtk.gdk.BUTTON1_MASK:
+            self.window.set_cursor(self._cursor)
+            if hasattr(self, 'label_list'):
+                for v in self.label_list:
+                    l = getattr(self, v)
+                    self._label_colorise_active(l)
+        return
+
+    def _on_leave(self, btn, event):
+        self.set_state(gtk.STATE_NORMAL)
+        self.window.set_cursor(None)
+
+        if hasattr(self, 'label_list'):
+            for v in self.label_list:
+                l = getattr(self, v)
+                self._label_colorise_normal(l)
+        return
+
+    def _on_key_press(self, btn, event):
+        if (event.keyval != (gtk.gdk.keyval_from_name('Return') or
+             gtk.gdk.keyval_from_name('KP_Enter'))):
+            return
+
+        def clicked(w):
+            w.emit('clicked')
+
+        gobject.timeout_add(50, clicked, btn)
+        return
+
+    def _label_colorise_active(self, label):
+        c = self.style.base[gtk.STATE_SELECTED]
+
+        attr = pango.AttrForeground(c.red,
+                                    c.green,
+                                    c.blue,
+                                    0, -1)
+
+        layout = label.get_layout()
+        attrs = layout.get_attributes()
+
+        if not attrs:
+            attrs = pango.AttrList()
+
+        attrs.change(attr)
+        layout.set_attributes(attrs)
+        return
+
+    def _label_colorise_normal(self, label):
+        if self.state == gtk.STATE_PRELIGHT or \
+            self.has_focus():
+            if hasattr(label, 'is_subtle') and label.is_subtle:
+                c = self.style.dark[self.state]
+            else:
+                c = self.style.text[self.state]
+        else:
+            c = self.style.text[self.state]
+
+        attr = pango.AttrForeground(c.red,
+                                    c.green,
+                                    c.blue,
+                                    0, -1)
+
+        layout = label.get_layout()
+        attrs = layout.get_attributes()
+
+        if not attrs:
+            attrs = pango.AttrList()
+
+        attrs.change(attr)
+        layout.set_attributes(attrs)
+        return
+
+
+class LinkButtonLight(Button):
+
+    def __init__(self):
+        Button.__init__(self)
+        self.label = EtchedLabel()
+        self.add(self.label)
+        self.show_all()
+
+        self.label_list = ('label',)
+        return
+
+    def set_label(self, label):
+        self.label.set_markup('<u>%s</u>' % label)
+        return
+
+    def draw(self, *args):
+        return
+
 
 
 class LinkButton(gtk.EventBox):
@@ -1194,9 +1452,11 @@ class LinkButton(gtk.EventBox):
 
         layout = self.label.get_layout()
         attrs = layout.get_attributes()
-        if attrs:
-            attrs.change(attr)
-            layout.set_attributes(attrs)
+        if not attrs:
+            attrs = pango.AttrList()
+
+        attrs.change(attr)
+        layout.set_attributes(attrs)
         return
 
     def _colorise_label_normal(self):
@@ -1213,9 +1473,11 @@ class LinkButton(gtk.EventBox):
 
         layout = self.label.get_layout()
         attrs = layout.get_attributes()
-        if attrs:
-            attrs.change(attr)
-            layout.set_attributes(attrs)
+        if not attrs:
+            attrs = pango.AttrList()
+
+        attrs.change(attr)
+        layout.set_attributes(attrs)
         return
 
     def _cache_image_surface(self, pb):
@@ -1300,6 +1562,53 @@ class LinkButton(gtk.EventBox):
                                    self,
                                    'expander',
                                    x-3, y-1, w+6, h+2)
+        return
+
+
+class EtchedLabel(gtk.Label):
+    
+    def __init__(self, *args, **kwargs):
+        gtk.Label.__init__(self, *args, **kwargs)
+        self.alpha = 0.5
+        self.connect('expose-event', self._on_expose)
+        return
+
+    def set_etching_alpha(self, a):
+        self.alpha = a
+        return
+
+    def _on_expose(self, widget, event):
+        l = self.get_layout()
+        a = widget.allocation
+
+        cr = widget.window.cairo_create()
+        cr.rectangle(event.area)
+        cr.clip()
+
+        pc = pangocairo.CairoContext(cr)
+
+        xp, yp = self.get_padding()
+
+        x, y = a.x+xp, a.y+1+yp
+        w, h = a.width, a.height
+
+        lw, lh = l.get_pixel_extents()[1][2:]
+        ax, ay = self.get_alignment()
+
+        if lw < w:
+            x += int((w-2*xp-lw)*ax)
+        if lh < h:
+            y += int((h-2*yp-lh)*ay)
+
+        pc.move_to(x, y)
+        pc.layout_path(l)
+        r,g,b = floats_from_gdkcolor(self.style.light[self.state])
+        pc.set_source_rgba(r,g,b,self.alpha)
+        pc.fill()
+        del pc
+        return
+
+    def set_max_line_count(self, *args):
         return
 
 
@@ -1421,14 +1730,16 @@ class BubbleLabel(gtk.Label):
         return
 
     def set_text(self, markup):
-        gtk.Label.set_markup(self, '<span color="white"><b>%s</b></span>' % markup)
+        gtk.Label.set_markup(self, '<span color="white">%s</span>' % markup)
         return
 
     def set_markup(self, markup):
-        gtk.Label.set_markup(self, '<span color="white"><b>%s</b></span>' % markup)
+        gtk.Label.set_markup(self, '<span color="white">%s</span>' % markup)
         return
 
-    def draw(self, cr, a):
+    def draw(self, cr, a, event_area):
+        if not self.get_property('visible'): return
+
         cr.save()
         xp = self.get_padding()[0]
         ax, ay = self.get_alignment()
@@ -1442,99 +1753,37 @@ class BubbleLabel(gtk.Label):
         return
 
 
-class EtchedLabel(gtk.Label):
+class MoreLabel(gtk.EventBox):
 
-    def __init__(self, *args, **kwargs):
-        gtk.Label.__init__(self, *args, **kwargs)
-        self.alpha = 0.55
+    def __init__(self):
+        gtk.EventBox.__init__(self)
+        self.set_visible_window(False)
 
-        self._max_line_count = -1
-        self._allocation = None
+        self.label = l = EtchedLabel()
+        l.set_alignment(0,0.5)
+        l.set_padding(6, 4)
 
-        self.connect('expose-event', self._on_expose)
-        self.connect('size-allocate', self._on_allocate)
+        self.add(l)
+
+        self.theme = get_mkit_theme()
+        self.shape = SHAPE_RECTANGLE
+
+        self.ishover = False
         return
 
-    def _on_allocate(self, label, allocation):
-
-        layout = label.get_layout()
-        layout.set_width(label.allocation.width*pango.SCALE)
-        layout.set_wrap(pango.WRAP_WORD)
-
-        if self._allocation == allocation: return
-
-        if layout.get_line_count() > 2:
-            l = self.get_text()
-            attrs = layout.get_attributes()
-            line = layout.get_line(2)
-            if line:
-                i = line.start_index
-                l = gobject.markup_escape_text(l[:i-1] + u"\u2026")
-                layout.set_markup(l)
-                layout.set_attributes(attrs)
-
-        w, h = layout.get_pixel_extents()[1][2:]
-        self.set_size_request(self.get_size_request()[0], h)
-        self._allocation = allocation
+    def set_text(self, markup):
+        gtk.Label.set_markup(self.label, '<small>%s</small>' % markup)
         return
 
-    def set_text(self, t):
-        gtk.Label.set_text(self, t)
-        self._allocation = None
-
-    def set_markup(self, m):
-        gtk.Label.set_markup(self, m)
-        self._allocation = None
-
-    def set_label(self, l):
-        gtk.Label.set_label(self, l)
-        self._allocation = None
-
-    def set_etching_alpha(self, a):
-        self.alpha = a
+    def set_markup(self, markup):
+        gtk.Label.set_markup(self.label, '<small>%s</small>' % markup)
         return
 
-    def set_max_line_count(self, n):
-        self._max_line_count = n
+    def draw(self, cr, a, event_area):
+        if not self.get_property('visible'): return True
 
-    def _vis_debug(self):
-        cr = self.window.cairo_create()
-        cr.rectangle(self.allocation)
-        cr.set_source_rgb(1, 0, 0)
-        cr.stroke()
-        del cr
+        if self.state == gtk.STATE_PRELIGHT:
+            self.set_state(gtk.STATE_NORMAL)
+        self.theme.paint_bg(cr, self, a.x, a.y+2, a.width, a.height-4)
         return
 
-    def _on_expose(self, widget, event):
-        if not widget.window: return True
-        #self._vis_debug()
-        l = widget.get_layout()
-        e = l.get_pixel_extents()[1]
-
-        a = widget.allocation
-        ah, av = self.get_alignment()
-        pc = pangocairo.CairoContext(widget.window.cairo_create())
-
-        x,y = a.x, a.y
-        if e[2] < a.width and e[0] == 0:
-            x += int((a.width-e[2])*ah)
-        if e[3] < a.height and e[1] == 0:
-            y += int((a.height-e[3])*av)
-
-        pc.move_to(x, y+1)
-        pc.layout_path(l)
-        r,g,b = floats_from_gdkcolor(self.style.light[self.state])
-        pc.set_source_rgba(r,g,b,self.alpha)
-        pc.fill()
-        del pc
-
-        self.style.paint_layout(widget.parent.window,
-                                self.state,
-                                True,
-                                None,
-                                widget,
-                                None,
-                                x, y,
-                                l)
-
-        return True

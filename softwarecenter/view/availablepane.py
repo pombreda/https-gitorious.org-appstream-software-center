@@ -61,9 +61,6 @@ class AvailablePane(SoftwarePane):
                                               gobject.TYPE_NONE,
                                               ())}
 
-    # constant for use in action bar (see _update_action_bar)
-    _INSTALL_BTN_ID = 0
-
     def __init__(self, 
                  cache,
                  db, 
@@ -361,21 +358,21 @@ class AvailablePane(SoftwarePane):
             button_text = gettext.ngettext("Install %(amount)s Item",
                                            "Install %(amount)s Items",
                                             len(installable)) % { 'amount': len(installable), }
-            button = self.action_bar.get_button(self._INSTALL_BTN_ID)
+            button = self.action_bar.get_button(ACTION_BUTTON_ID_INSTALL)
             if button and installable:
                 # Install all already offered. Update offer.
                 if button.get_label() != button_text:
                     button.set_label(button_text)
             elif installable:
                 # Install all not yet offered. Offer.
-                self.action_bar.add_button(self._INSTALL_BTN_ID, button_text,
+                self.action_bar.add_button(ACTION_BUTTON_ID_INSTALL, button_text,
                                            self._install_current_appstore)
             else:
                 # Install offered, but nothing to install. Clear offer.
-                self.action_bar.remove_button(self._INSTALL_BTN_ID)
+                self.action_bar.remove_button(ACTION_BUTTON_ID_INSTALL)
         else:
             # Ensure button is removed.
-            self.action_bar.remove_button(self._INSTALL_BTN_ID)
+            self.action_bar.remove_button(ACTION_BUTTON_ID_INSTALL)
             
     def _install_current_appstore(self):
         '''
@@ -692,6 +689,10 @@ class AvailablePane(SoftwarePane):
     def is_applist_view_showing(self):
         """Return True if we are in the applist view """
         return self.notebook.get_current_page() == self.PAGE_APPLIST
+        
+    def is_app_details_view_showing(self):
+        """Return True if we are in the app_details view """
+        return self.notebook.get_current_page() == self.PAGE_APP_DETAILS
 
     def set_section(self, section):
         self.cat_view.set_section(section)
