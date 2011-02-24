@@ -69,7 +69,7 @@ class Debian(Distro):
                 depends = None
                 break
         return (primary, button_text)
-
+        
     def get_distro_codename(self):
         if not hasattr(self ,"codename"):
             self.codename = subprocess.Popen(
