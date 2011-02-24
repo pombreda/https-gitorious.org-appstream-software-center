@@ -1340,8 +1340,9 @@ class UIReview(gtk.VBox):
         if person == self.logged_in_person:
             current_user_reviewer = True
 
-
-        self._build_usefulness_ui(current_user_reviewer, useful_total, useful_favorable, useful_submit_error)
+        # FIXME: Uncomment the following line to re-enable the reviews usefulness feature,
+        # temporarily hidden pending rollout of server support
+        #self._build_usefulness_ui(current_user_reviewer, useful_total, useful_favorable, useful_submit_error)
 
         # Translators: This link is for flagging a review as inappropriate.
         # To minimize repetition, if at all possible, keep it to a single word.
