@@ -1276,7 +1276,7 @@ class UIReview(gtk.VBox):
         """ hide all usefulness elements """
         for attr in ["useful", "yes_like", "no_like", "submit_status_spinner",
                      "submit_error_img", "status_box", "status_label",
-                     "acknowledge_error"
+                     "acknowledge_error", "yes_no_separator"
                      ]:
             o = getattr(self, attr, None)
             if o:
@@ -1394,11 +1394,9 @@ class UIReview(gtk.VBox):
     def _get_usefulness_label(self, current_user_reviewer, useful_total, useful_favorable):
         '''returns gtk.Label() to be used as usefulness label depending on passed in parameters'''
         if useful_total == 0 and current_user_reviewer:
-            usefulness_label = gtk.Label('<small>%s</small>' % \
-                               _(""))
+            s = ""
         elif useful_total == 0:
-            usefulness_label = gtk.Label('<small>%s</small>' % \
-                               _("Was this review hepful?"))
+            s = _("Was this review hepful?")
         elif current_user_reviewer:
             s = gettext.ngettext(
                 "%(useful_favorable)s of %(useful_total)s person "
@@ -1408,7 +1406,6 @@ class UIReview(gtk.VBox):
                 useful_total) % { 'useful_total' : useful_total,
                                   'useful_favorable' : useful_favorable,
                                 }
-            usefulness_label = gtk.Label('<small>%s </small>' % s)
         else:
             s = gettext.ngettext(
                 "%(useful_favorable)s of %(useful_total)s person "
@@ -1416,11 +1413,10 @@ class UIReview(gtk.VBox):
                 "%(useful_favorable)s of %(useful_total)s people "
                 "found this review helpful. Did you?",
                 useful_total) % { 'useful_total' : useful_total,
-                                  'useful_favorable' : useful_favorable,
+                                'useful_favorable' : useful_favorable,
                                 }
-            usefulness_label = gtk.Label('<small>%s </small>' % s)
         
-        return usefulness_label
+        return gtk.Label('<small>%s</small>' % s)
 
     def _whom_when_markup(self, person, cur_t, dark_color):
         nice_date = get_nice_date_string(cur_t)
