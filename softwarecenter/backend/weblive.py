@@ -11,6 +11,8 @@ import subprocess
 import sys
 import urllib
 
+from threading import Thread, Event
+
 class ServerNotReadyError(Exception):
     pass
 
@@ -87,6 +89,11 @@ class WebLiveBackend(object):
     URL = 'https://weblive.stgraber.org/vmmanager/json'
     QTNX = "/usr/bin/qtnx"
 
+    def __init__(self):
+        self.available_servers = []
+        self.ready = Event()
+        self.ready.clear()
+
     @classmethod
     def is_supported(cls):
         """ return if the current system will work (has the required
@@ -106,6 +113,14 @@ class WebLiveBackend(object):
         json_str = page.read()
         servers=self._server_list_from_json(json_str)
         return servers
+
+    def query_available_async(self):
+        def _query_available_helper():
+            self.available_servers = self.query_available()
+            self.ready.set()
+            print "done"
+        p = Thread(target=_query_available_helper)
+        p.start()
 
     def _server_list_from_json(self, json_str):
         servers = []
@@ -180,10 +195,21 @@ class WebLiveBackend(object):
    
     def _on_qtnx_exit(self, pid, status):
         print "_on_qtnx_exit ", os.WEXITSTATUS(status)
-        
+
+# singleton
+_weblive_backend = None
+def get_weblive_backend():
+    global _weblive_backend
+    if _weblive_backend is None:
+        _weblive_backend = WebLiveBackend()
+        # initial query
+        _weblive_backend.query_available_async()
+    return _weblive_backend
                              
 if __name__ == "__main__":
-    weblive = WebLiveBackend()
-    servers = weblive.query_available()
-    print servers
+    weblive = get_weblive_backend()
+    weblive.ready.wait()
+    print weblive.available_servers
+
+    # run session
     weblive.create_automatic_user_and_run_session(session="firefox")

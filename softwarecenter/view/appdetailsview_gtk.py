@@ -43,7 +43,7 @@ from softwarecenter.enums import *
 from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR, INSTALLED_ICON, IMAGE_LOADING_INSTALLED
 from softwarecenter.utils import *
 from softwarecenter.gwibber_helper import GWIBBER_SERVICE_AVAILABLE
-from softwarecenter.backend.weblive import WebLiveBackend
+from softwarecenter.backend.weblive import get_weblive_backend
         
 from appdetailsview import AppDetailsViewBase
 
@@ -530,11 +530,11 @@ class ScreenshotView(gtk.VBox):
         event.add(self.image)
         self.eventbox = event
 
-        # the test-drive label
+        # the weblive test-drive stuff
+        self.weblive = get_weblive_backend()
         self.test_drive = gtk.Button(_("Test drive"))
         self.test_drive.connect("clicked", self.on_test_drive_clicked)
-        if WebLiveBackend.is_supported():
-            self.pack_start(self.test_drive, expand=False, fill=False)
+        self.pack_start(self.test_drive, expand=False, fill=False)
 
         # connect the image to our custom draw func for fading in
         self.image.connect('expose-event', self._on_image_expose)
@@ -728,8 +728,7 @@ class ScreenshotView(gtk.VBox):
         exec_line = get_exec_line_from_desktop(self.desktop_file)
         # split away any arguments, gedit for example as %U
         cmd = exec_line.split()[0]
-        weblive = WebLiveBackend()
-        weblive.create_automatic_user_and_run_session(session=cmd)
+        self.weblive.create_automatic_user_and_run_session(session=cmd)
  
     def configure(self, app_details):
 
@@ -748,7 +747,8 @@ class ScreenshotView(gtk.VBox):
         self.large_url = app_details.screenshot
         self.desktop_file = app_details.desktop_file
         # only enable test drive if we have a desktop file and exec line
-        if (not os.path.exists(self.desktop_file) or
+        if (not self.weblive.is_supported() or
+            not os.path.exists(self.desktop_file) or
             not get_exec_line_from_desktop(self.desktop_file)):
             self.test_drive.hide()
         else:
