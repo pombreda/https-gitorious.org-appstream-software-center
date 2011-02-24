@@ -43,7 +43,8 @@ from softwarecenter.enums import *
 from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR, INSTALLED_ICON, IMAGE_LOADING_INSTALLED
 from softwarecenter.utils import *
 from softwarecenter.gwibber_helper import GWIBBER_SERVICE_AVAILABLE
-
+from softwarecenter.backend.weblive import WebLiveBackend
+        
 from appdetailsview import AppDetailsViewBase
 
 from widgets import mkit
@@ -530,9 +531,10 @@ class ScreenshotView(gtk.VBox):
         self.eventbox = event
 
         # the test-drive label
-        self.test_drive = gtk.Button(_("Test drive"))
-        self.test_drive.connect("clicked", self.on_test_drive_clicked)
-        self.pack_start(self.test_drive, expand=False, fill=False)
+        if WebLiveBackend.is_supported():
+            self.test_drive = gtk.Button(_("Test drive"))
+            self.test_drive.connect("clicked", self.on_test_drive_clicked)
+            self.pack_start(self.test_drive, expand=False, fill=False)
 
         # connect the image to our custom draw func for fading in
         self.image.connect('expose-event', self._on_image_expose)
@@ -722,8 +724,7 @@ class ScreenshotView(gtk.VBox):
         return
 
     def on_test_drive_clicked(self, button):
-        print "on_testdrive_clicked"
-        from softwarecenter.backend.weblive import WebLiveBackend
+        #print "on_testdrive_clicked"
         weblive = WebLiveBackend()
         weblive.create_automatic_user_and_run_session(session=self.pkgname)
  

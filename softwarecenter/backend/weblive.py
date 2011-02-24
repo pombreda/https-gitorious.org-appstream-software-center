@@ -85,6 +85,16 @@ class WebLiveBackend(object):
 </NXClientLibSettings>
 """
     URL = 'https://weblive.stgraber.org/vmmanager/json'
+    QTNX = "/usr/bin/qtnx"
+
+    @classmethod
+    def is_supported(cls):
+        """ return if the current system will work (has the required
+            dependencies
+        """
+        if os.path.exists(cls.QTNX):
+            return True
+        return False
 
     def query_available(self):
         """ (sync) get available server and limits """
@@ -141,7 +151,7 @@ class WebLiveBackend(object):
             self._spawn_qtnx(host, port, session, username, password)
 
     def _spawn_qtnx(self, host, port, session, username, password):
-        if not os.path.exists('/usr/bin/qtnx'):
+        if not os.path.exists(self.QTNX):
             raise IOError("qtnx not found")
         if not os.path.exists(os.path.expanduser('~/.qtnx')):
             os.mkdir(os.path.expanduser('~/.qtnx'))
@@ -156,7 +166,7 @@ class WebLiveBackend(object):
         nxml.write(config)
         nxml.close()
 
-        cmd = ['/usr/bin/qtnx',
+        cmd = [self.QTNX,
                '%s-%s-%s' % (str(host), str(port), str(session)),
                username,
                password]
