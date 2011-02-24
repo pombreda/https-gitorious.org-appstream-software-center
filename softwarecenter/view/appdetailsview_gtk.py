@@ -1548,7 +1548,8 @@ class AddonsManager():
             if addon in self.addons_to_install:
                 self.addons_to_install.remove(addon)
         self.status_bar.configure()
-        gobject.idle_add(self.view.update_totalsize)
+        gobject.idle_add(self.view.update_totalsize,
+                         priority=glib.PRIORITY_LOW)
 
     def configure(self, pkgname, update_addons=True):
         self.addons_to_install = []
@@ -1562,7 +1563,8 @@ class AddonsManager():
         self.addons_to_install = []
         self.addons_to_remove = []
         self.configure(self.view.app.pkgname)
-        gobject.idle_add(self.view.update_totalsize)
+        gobject.idle_add(self.view.update_totalsize,
+                         priority=glib.PRIORITY_LOW)
 
 
 class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
@@ -1848,7 +1850,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         and self.adjustment_value >= self.get_vadjustment().lower \
         and self.adjustment_value <= self.get_vadjustment().upper:
             self.get_vadjustment().set_value(self.adjustment_value)
-        gobject.idle_add(self._full_redraw_cb)
+        gobject.idle_add(self._full_redraw_cb,
+                         priority=glib.PRIORITY_HIGH_IDLE)
         return
 
     def _layout_main_frame_header(self):
