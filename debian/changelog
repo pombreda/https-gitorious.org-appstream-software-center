@@ -3,6 +3,7 @@ software-center (3.1.21) UNRELEASED; urgency=low
   [ Aaron Peachey ]
   * lp:~aaronp/software-center/reviews-usefulness:
     - view/appdetailsview_gtk.py: string updates in line with spec
+  * view/appdetailsview_gtk.py: display name used for reviews instead of username (LP: #713013)
 
   [ Michael Vogt ]
   * merged lp:~mvo/software-center/weblive that contians the remaining
