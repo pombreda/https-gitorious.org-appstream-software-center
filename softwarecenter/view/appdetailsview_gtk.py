@@ -1220,6 +1220,7 @@ class UIReview(gtk.VBox):
         self.id = review_data.id
         rating = review_data.rating 
         self.person = review_data.reviewer_username
+        displayname = review_data.reviewer_displayname
         summary = review_data.summary
         text = review_data.review_text
         date = review_data.date_created
@@ -1239,7 +1240,8 @@ class UIReview(gtk.VBox):
                     app_version,
                     useful_total,
                     useful_favorable,
-                    useful_submit_error)
+                    useful_submit_error,
+                    displayname)
         return
 
     def _on_allocate(self, widget, allocation, stars, summary, who_when, version_lbl, flag):
@@ -1314,7 +1316,7 @@ class UIReview(gtk.VBox):
         # example raw_date str format: 2011-01-28 19:15:21
         return datetime.datetime.strptime(raw_date, '%Y-%m-%d %H:%M:%S')
     
-    def _build(self, rating, person, summary, text, date, app_name, review_version, app_version, useful_total, useful_favorable, useful_submit_error):
+    def _build(self, rating, person, summary, text, date, app_name, review_version, app_version, useful_total, useful_favorable, useful_submit_error, displayname):
         # all the arguments may need markup escape, depening on if
         # they are used as text or markup
 
@@ -1322,7 +1324,7 @@ class UIReview(gtk.VBox):
         cur_t = self._get_datetime_from_review_date(date)
 
         dark_color = self.style.dark[gtk.STATE_NORMAL]
-        m = self._whom_when_markup(person, cur_t, dark_color)
+        m = self._whom_when_markup(person, cur_t, dark_color, displayname)
 
         who_when = mkit.EtchedLabel(m)
         who_when.set_use_markup(True)
@@ -1446,14 +1448,20 @@ class UIReview(gtk.VBox):
         
         return gtk.Label('<small>%s</small>' % s)
 
-    def _whom_when_markup(self, person, cur_t, dark_color):
+    def _whom_when_markup(self, person, cur_t, dark_color, displayname):
         nice_date = get_nice_date_string(cur_t)
         dt = datetime.datetime.utcnow() - cur_t
+        
+        #tests if reviewer display name has been found and use it if so, else revert to the username
+        if displayname != '':
+            correct_name = displayname
+        else:
+            correct_name = person
 
         if person == self.logged_in_person:
             m = '<span color="%s"><b>%s (%s)</b>, %s</span>' % (
                 dark_color.to_string(),
-                glib.markup_escape_text(person),
+                glib.markup_escape_text(correct_name),
                 # TRANSLATORS: displayed in a review after the persons name,
                 # e.g. "Wonderful text based app" mvo (that's you) 2011-02-11"
                 _("that's you"),
@@ -1461,7 +1469,7 @@ class UIReview(gtk.VBox):
         else:
             m = '<span color="%s"><b>%s</b>, %s</span>' % (
                 dark_color.to_string(),
-                glib.markup_escape_text(person),
+                glib.markup_escape_text(correct_name),
                 glib.markup_escape_text(nice_date))
 
         return m
