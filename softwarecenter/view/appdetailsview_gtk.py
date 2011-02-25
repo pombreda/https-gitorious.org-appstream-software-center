@@ -1276,7 +1276,7 @@ class UIReview(gtk.VBox):
         """ hide all usefulness elements """
         for attr in ["useful", "yes_like", "no_like", "submit_status_spinner",
                      "submit_error_img", "status_box", "status_label",
-                     "acknowledge_error"
+                     "acknowledge_error", "yes_no_separator"
                      ]:
             o = getattr(self, attr, None)
             if o:
@@ -1341,9 +1341,8 @@ class UIReview(gtk.VBox):
             current_user_reviewer = True
 
         # FIXME: Uncomment the following line to re-enable the reviews usefulness feature,
-        #        it it temporarily hidden pending rollout of server support
-#       self._build_usefulness_ui(current_user_reviewer, useful_total,
-#                                  useful_favorable, useful_submit_error)
+        # temporarily hidden pending rollout of server support
+        #self._build_usefulness_ui(current_user_reviewer, useful_total, useful_favorable, useful_submit_error)
 
         # Translators: This link is for flagging a review as inappropriate.
         # To minimize repetition, if at all possible, keep it to a single word.
@@ -1375,16 +1374,18 @@ class UIReview(gtk.VBox):
                 self.no_like = mkit.VLinkButton('<small>%s</small>' % _('No'))
                 self.yes_like.set_underline(True)
                 self.no_like.set_underline(True)
-                self.yes_like.set_subdued(True)
-                self.no_like.set_subdued(True)
                 self.yes_like.connect('clicked', self._on_useful_clicked, True)
                 self.no_like.connect('clicked', self._on_useful_clicked, False)
+                self.yes_no_separator = gtk.Label("<small>/</small>")
+                self.yes_no_separator.set_use_markup(True)
                 
                 self.yes_like.show()
                 self.no_like.show()
+                self.yes_no_separator.show()
                 self.likebox = gtk.HBox()
                 self.likebox.set_spacing(3)
                 self.likebox.pack_start(self.yes_like, False)
+                self.likebox.pack_start(self.yes_no_separator, False)
                 self.likebox.pack_start(self.no_like, False)
                 self.likebox.show()
                 self.footer.pack_start(self.likebox, False)
@@ -1394,33 +1395,29 @@ class UIReview(gtk.VBox):
     def _get_usefulness_label(self, current_user_reviewer, useful_total, useful_favorable):
         '''returns gtk.Label() to be used as usefulness label depending on passed in parameters'''
         if useful_total == 0 and current_user_reviewer:
-            usefulness_label = gtk.Label('<small>%s</small>' % \
-                               _("No one has flagged your review's usefulness yet."))
+            s = ""
         elif useful_total == 0:
-            usefulness_label = gtk.Label('<small>%s</small>' % \
-                               _("Was this review hepful?"))
+            s = _("Was this review hepful?")
         elif current_user_reviewer:
             s = gettext.ngettext(
-                "%(useful_favorable)s out of %(useful_total)s person "
-                "found your review useful.",
-                "%(useful_favorable)s out of %(useful_total)s people "
-                "found your review useful.",
+                "%(useful_favorable)s of %(useful_total)s person "
+                "found this review helpful.",
+                "%(useful_favorable)s of %(useful_total)s people "
+                "found this review helpful.",
                 useful_total) % { 'useful_total' : useful_total,
                                   'useful_favorable' : useful_favorable,
                                 }
-            usefulness_label = gtk.Label('<small>%s </small>' % s)
         else:
             s = gettext.ngettext(
-                "%(useful_favorable)s out of %(useful_total)s person "
-                "found this review useful. Did you?",
-                "%(useful_favorable)s out of %(useful_total)s people "
-                "found this review useful. Did you?",
+                "%(useful_favorable)s of %(useful_total)s person "
+                "found this review helpful. Did you?",
+                "%(useful_favorable)s of %(useful_total)s people "
+                "found this review helpful. Did you?",
                 useful_total) % { 'useful_total' : useful_total,
-                                  'useful_favorable' : useful_favorable,
+                                'useful_favorable' : useful_favorable,
                                 }
-            usefulness_label = gtk.Label('<small>%s </small>' % s)
         
-        return usefulness_label
+        return gtk.Label('<small>%s</small>' % s)
 
     def _whom_when_markup(self, person, cur_t, dark_color):
         nice_date = get_nice_date_string(cur_t)
