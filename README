@@ -35,6 +35,7 @@ SOFTWARE_CENTER_OLD_PATHBAR - use old pathbar code
 SOFTWARE_CENTER_SEARCHES_SORT_MODE={popcon,alphabetic,xapian}
 SOFTWARE_CENTER_GWIBBER_MOCK_USERS=2 - use mock gwibber service
 SOFTWARE_CENTER_AGENT_INCLUDE_APPROVED_BUT_UNPUBLISHED - show not yet QA apps available from the agent
+SOFTWARE_CENTER_ENABLE_WEBLIVE - enable (experimental) weblive support
 
 == applications.menu ==
 
