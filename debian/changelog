@@ -9,7 +9,12 @@ software-center (3.1.21) UNRELEASED; urgency=low
     bit of the weblive support, this is disabled by default and you need
     to run software-center --with-weblive to enable it
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 25 Feb 2011 09:15:06 +0100
+  [ Gary Lasker ]
+  * softwarecenter/enums.py,
+    softwarecenter/backend/aptd.py:
+    - fix transaction-started for broken depends case (LP: #724321) 
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Fri, 25 Feb 2011 13:24:50 -0500
 
 software-center (3.1.20) natty; urgency=low
 
