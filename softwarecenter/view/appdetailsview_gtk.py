@@ -748,6 +748,7 @@ class ScreenshotView(gtk.VBox):
         self.desktop_file = app_details.desktop_file
         # only enable test drive if we have a desktop file and exec line
         if (not self.weblive.is_supported() or
+            not self.weblive.is_pkgname_available_on_server(self.pkgname) or
             not os.path.exists(self.desktop_file) or
             not get_exec_line_from_desktop(self.desktop_file)):
             self.test_drive.hide()

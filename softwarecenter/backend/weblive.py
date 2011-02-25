@@ -88,11 +88,17 @@ class WebLiveBackend(object):
 """
     URL = 'https://weblive.stgraber.org/vmmanager/json'
     QTNX = "/usr/bin/qtnx"
+    DEFAULT_SERVER = "ubuntu-natty01"
 
     def __init__(self):
         self.available_servers = []
-        self.ready = Event()
-        self.ready.clear()
+        self._ready = Event()
+
+    @property
+    def ready(self):
+        """ return true if data from the remote server was loaded
+        """
+        return self._ready.is_set()
 
     @classmethod
     def is_supported(cls):
@@ -115,10 +121,11 @@ class WebLiveBackend(object):
         return servers
 
     def query_available_async(self):
+        """ query available in a thread and set self.ready """
         def _query_available_helper():
             self.available_servers = self.query_available()
-            self.ready.set()
-            print "done"
+            self._ready.set()
+        self._ready.clear()
         p = Thread(target=_query_available_helper)
         p.start()
 
@@ -134,10 +141,21 @@ class WebLiveBackend(object):
             servers.append(WebLiveServer.from_json(servername, attributes))
         return servers
 
-    def create_automatic_user_and_run_session(self, 
-                                              serverid='ubuntu-natty01', 
+    def is_pkgname_available_on_server(self, pkgname, serverid=None):
+        if not serverid:
+            serverid = self.DEFAULT_SERVER
+        for server in self.available_servers:
+            if server.name == serverid:
+                for pkg in server.packages:
+                    if pkg.pkgname == pkgname:
+                        return True
+        return False
+
+    def create_automatic_user_and_run_session(self, serverid=None,
                                               session="desktop"):
         """ login into serverid and automatically create a user """
+        if not serverid:
+            serverid = self.DEFAULT_SERVER
         hostname = socket.gethostname()
         username = "%s%s" % (os.environ['USER'], hostname)
         query={}
@@ -203,7 +221,8 @@ def get_weblive_backend():
     if _weblive_backend is None:
         _weblive_backend = WebLiveBackend()
         # initial query
-        _weblive_backend.query_available_async()
+        if _weblive_backend.is_supported():
+            _weblive_backend.query_available_async()
     return _weblive_backend
                              
 if __name__ == "__main__":
