@@ -1453,7 +1453,7 @@ class UIReview(gtk.VBox):
         dt = datetime.datetime.utcnow() - cur_t
         
         #tests if reviewer display name has been found and use it if so, else revert to the username
-        if displayname != '':
+        if displayname and displayname != '':
             correct_name = displayname
         else:
             correct_name = person
