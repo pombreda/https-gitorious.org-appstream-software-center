@@ -35,6 +35,7 @@ softwarecenter/view/catview_gtk.py
 softwarecenter/view/catview_webkit.py
 softwarecenter/view/channelpane.py
 softwarecenter/view/dependency_dialogs.py
+softwarecenter/view/deauthorize_dialog.py
 softwarecenter/view/dialogs.py
 softwarecenter/view/historypane.py
 softwarecenter/view/installedpane.py
@@ -46,6 +47,7 @@ softwarecenter/view/viewswitcher.py
 softwarecenter/view/widgets/backforward.py
 softwarecenter/view/widgets/carousel.py
 softwarecenter/view/widgets/pathbar_gtk_atk.py
+softwarecenter/view/widgets/packagenamesview.py
 softwarecenter/view/widgets/reviews.py
 softwarecenter/view/widgets/searchentry.py
 softwarecenter/view/widgets/thumbnail.py
