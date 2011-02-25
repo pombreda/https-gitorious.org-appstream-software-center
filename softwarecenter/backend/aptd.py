@@ -139,9 +139,9 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
 
     @inline_callbacks
     def fix_broken_depends(self):
-        self.emit("transaction-started", "", "", "")
         try:
             trans = yield self.aptd_client.fix_broken_depends(defer=True)
+            self.emit("transaction-started", "", "", trans.tid, TRANSACTION_TYPE_REPAIR)
             yield self._run_transaction(trans, None, None, None)
         except Exception, error:
             self._on_trans_error(error)
