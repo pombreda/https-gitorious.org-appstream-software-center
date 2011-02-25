@@ -147,6 +147,7 @@ TRANSACTION_TYPE_INSTALL = "install"
 TRANSACTION_TYPE_REMOVE = "remove"
 TRANSACTION_TYPE_UPGRADE = "upgrade"
 TRANSACTION_TYPE_APPLY = "apply_changes"
+TRANSACTION_TYPE_REPAIR = "repair_dependencies"
 
 
 from version import *

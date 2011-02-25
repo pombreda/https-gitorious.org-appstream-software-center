@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import getpass
+import glib
 import json
 import os
 import pprint
@@ -9,6 +10,8 @@ import socket
 import subprocess
 import sys
 import urllib
+
+from threading import Thread, Event
 
 class ServerNotReadyError(Exception):
     pass
@@ -48,8 +51,7 @@ class WebLiveServer(object):
                 attributes["packages"],
                 attributes["timelimit"],
                 attributes["userlimit"],
-                attributes["users"],
-                )
+                attributes["users"])
         return o
         
 
@@ -84,7 +86,31 @@ class WebLiveBackend(object):
 <option key="Enable Fullscreen Desktop" value="False"></option>
 </NXClientLibSettings>
 """
-    URL = 'https://www.edubuntu.org/vmmanager/json'
+    URL = os.environ.get('SOFTWARE_CENTER_WEBLIVE_HOST',
+			 'https://weblive.stgraber.org/vmmanager/json')
+    QTNX = "/usr/bin/qtnx"
+    DEFAULT_SERVER = "ubuntu-natty01"
+
+    def __init__(self):
+        self.available_servers = []
+        self._ready = Event()
+
+    @property
+    def ready(self):
+        """ return true if data from the remote server was loaded
+        """
+        return self._ready.is_set()
+
+    @classmethod
+    def is_supported(cls):
+        """ return if the current system will work (has the required
+            dependencies
+        """
+        # FIXME: also test if package is available on the weblive server
+        if (os.path.exists(cls.QTNX) and
+            "SOFTWARE_CENTER_ENABLE_WEBLIVE" in os.environ):
+            return True
+        return False
 
     def query_available(self):
         """ (sync) get available server and limits """
@@ -95,6 +121,15 @@ class WebLiveBackend(object):
         json_str = page.read()
         servers=self._server_list_from_json(json_str)
         return servers
+
+    def query_available_async(self):
+        """ query available in a thread and set self.ready """
+        def _query_available_helper():
+            self.available_servers = self.query_available()
+            self._ready.set()
+        self._ready.clear()
+        p = Thread(target=_query_available_helper)
+        p.start()
 
     def _server_list_from_json(self, json_str):
         servers = []
@@ -108,17 +143,29 @@ class WebLiveBackend(object):
             servers.append(WebLiveServer.from_json(servername, attributes))
         return servers
 
-    def create_automatic_user_and_run_session(self, 
-                                              serverid='ubuntu-natty01', 
+    def is_pkgname_available_on_server(self, pkgname, serverid=None):
+        if not serverid:
+            serverid = self.DEFAULT_SERVER
+        for server in self.available_servers:
+            if server.name == serverid:
+                for pkg in server.packages:
+                    if pkg.pkgname == pkgname:
+                        return True
+        return False
+
+    def create_automatic_user_and_run_session(self, serverid=None,
                                               session="desktop"):
         """ login into serverid and automatically create a user """
-        username = os.environ['USER']
+        if not serverid:
+            serverid = self.DEFAULT_SERVER
+        hostname = socket.gethostname()
+        username = "%s%s" % (os.environ['USER'], hostname)
         query={}
         query['action'] = 'create_user'
         query['serverid'] = serverid
         query['username'] = username
         query['fullname'] = "WebLive User"
-        query['password'] = socket.gethostname()      # bYes, the hostname is the password ;)
+        query['password'] = hostname  # FIXME: use random PW
         query['session'] = session
 
         # Encode and send using HTTPs
@@ -140,7 +187,7 @@ class WebLiveBackend(object):
             self._spawn_qtnx(host, port, session, username, password)
 
     def _spawn_qtnx(self, host, port, session, username, password):
-        if not os.path.exists('/usr/bin/qtnx'):
+        if not os.path.exists(self.QTNX):
             raise IOError("qtnx not found")
         if not os.path.exists(os.path.expanduser('~/.qtnx')):
             os.mkdir(os.path.expanduser('~/.qtnx'))
@@ -155,15 +202,35 @@ class WebLiveBackend(object):
         nxml.write(config)
         nxml.close()
 
-        qtnx=subprocess.Popen(['/usr/bin/qtnx',
-                               '%s-%s-%s' % (host, port, session), 
-                               username, 
-                               password])
-        ret = qtnx.wait()
-        return (ret == 0)
+        cmd = [self.QTNX,
+               '%s-%s-%s' % (str(host), str(port), str(session)),
+               username,
+               password]
+        #print cmd
+        (pid, stdin, stdout, stderr) = glib.spawn_async(
+            cmd, flags=glib.SPAWN_DO_NOT_REAP_CHILD)
+        #p=subprocess.Popen(cmd)
+        #p.wait()
+        glib.child_watch_add(pid, self._on_qtnx_exit)
+   
+    def _on_qtnx_exit(self, pid, status):
+        print "_on_qtnx_exit ", os.WEXITSTATUS(status)
+
+# singleton
+_weblive_backend = None
+def get_weblive_backend():
+    global _weblive_backend
+    if _weblive_backend is None:
+        _weblive_backend = WebLiveBackend()
+        # initial query
+        if _weblive_backend.is_supported():
+            _weblive_backend.query_available_async()
+    return _weblive_backend
                              
 if __name__ == "__main__":
-    weblive = WebLiveBackend()
-    servers = weblive.query_available()
-    print servers
-    weblive.create_automatic_user_and_run_session(session="gedit")
+    weblive = get_weblive_backend()
+    weblive.ready.wait()
+    print weblive.available_servers
+
+    # run session
+    weblive.create_automatic_user_and_run_session(session="firefox")
