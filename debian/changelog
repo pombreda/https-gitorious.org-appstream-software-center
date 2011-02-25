@@ -4,6 +4,11 @@ software-center (3.1.21) UNRELEASED; urgency=low
   * lp:~aaronp/software-center/reviews-usefulness:
     - view/appdetailsview_gtk.py: string updates in line with spec
 
+  [ Michael Vogt ]
+  * merged lp:~mvo/software-center/weblive that contians the remaining
+    bit of the weblive support, this is disabled by default and you need
+    to run software-center --with-weblive to enable it
+
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 25 Feb 2011 09:15:06 +0100
 
 software-center (3.1.20) natty; urgency=low

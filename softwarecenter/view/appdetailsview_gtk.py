@@ -43,7 +43,8 @@ from softwarecenter.enums import *
 from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR, INSTALLED_ICON, IMAGE_LOADING_INSTALLED
 from softwarecenter.utils import *
 from softwarecenter.gwibber_helper import GWIBBER_SERVICE_AVAILABLE
-
+from softwarecenter.backend.weblive import get_weblive_backend
+        
 from appdetailsview import AppDetailsViewBase
 
 from widgets import mkit
@@ -499,7 +500,7 @@ class PackageInfo(gtk.HBox):
         self.a11y.set_name(self.key + ' ' + self.value_label.get_text())
 
 
-class ScreenshotView(gtk.Alignment):
+class ScreenshotView(gtk.VBox):
 
     """ Widget that displays screenshot availability, download prrogress,
         and eventually the screenshot itself.
@@ -508,7 +509,11 @@ class ScreenshotView(gtk.Alignment):
     def __init__(self, distro, icons):
         # center child widgets in the available horizontal space (0.5)
         # 0.0 == left/top margin, 0.5 == center, 1.0 == right/bottom margin
-        gtk.Alignment.__init__(self, 0.5, 0.0)
+        gtk.VBox.__init__(self)
+        self.set_spacing(12)
+
+        alignment = gtk.Alignment(0.5, 0.0)
+        self.pack_start(alignment, expand=False, fill=False)
         self.set_redraw_on_allocate(False)
 
         # the frame around the screenshot (placeholder)
@@ -517,13 +522,19 @@ class ScreenshotView(gtk.Alignment):
         # eventbox so we can connect to event signals
         event = gtk.EventBox()
         event.set_visible_window(False)
-        self.add(event)
+        alignment.add(event)
 
         # the image
         self.image = gtk.Image()
         self.image.set_redraw_on_allocate(False)
         event.add(self.image)
         self.eventbox = event
+
+        # the weblive test-drive stuff
+        self.weblive = get_weblive_backend()
+        self.test_drive = gtk.Button(_("Test drive"))
+        self.test_drive.connect("clicked", self.on_test_drive_clicked)
+        self.pack_start(self.test_drive, expand=False, fill=False)
 
         # connect the image to our custom draw func for fading in
         self.image.connect('expose-event', self._on_image_expose)
@@ -711,6 +722,13 @@ class ScreenshotView(gtk.Alignment):
 
         self.screenshot_available = available
         return
+
+    def on_test_drive_clicked(self, button):
+        #print "on_testdrive_clicked"
+        exec_line = get_exec_line_from_desktop(self.desktop_file)
+        # split away any arguments, gedit for example as %U
+        cmd = exec_line.split()[0]
+        self.weblive.create_automatic_user_and_run_session(session=cmd)
  
     def configure(self, app_details):
 
@@ -727,6 +745,15 @@ class ScreenshotView(gtk.Alignment):
         self.pkgname = app_details.pkgname
         self.thumbnail_url = app_details.thumbnail
         self.large_url = app_details.screenshot
+        self.desktop_file = app_details.desktop_file
+        # only enable test drive if we have a desktop file and exec line
+        if (not self.weblive.is_supported() or
+            not self.weblive.is_pkgname_available_on_server(self.pkgname) or
+            not os.path.exists(self.desktop_file) or
+            not get_exec_line_from_desktop(self.desktop_file)):
+            self.test_drive.hide()
+        else:
+            self.test_drive.show()
         return
 
     def clear(self):
