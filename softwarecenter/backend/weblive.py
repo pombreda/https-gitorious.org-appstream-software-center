@@ -86,7 +86,8 @@ class WebLiveBackend(object):
 <option key="Enable Fullscreen Desktop" value="False"></option>
 </NXClientLibSettings>
 """
-    URL = 'https://weblive.stgraber.org/vmmanager/json'
+    URL = os.environ.get('SOFTWARE_CENTER_WEBLIVE_HOST',
+			 'https://weblive.stgraber.org/vmmanager/json')
     QTNX = "/usr/bin/qtnx"
     DEFAULT_SERVER = "ubuntu-natty01"
 
