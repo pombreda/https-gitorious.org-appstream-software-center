@@ -1,3 +1,38 @@
+software-center (3.1.20) natty; urgency=low
+
+  [ Kiwinote ]
+  * data/ui/SoftwareCenter.ui,
+    softwarecenter/app.py:
+    - place the status label inside an eventbox to allow focus and setup a11y
+      (LP: #575691)
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - make description accessible
+    - correctly update screenshot a11y text and make it less verbose
+  * softwarecenter/view/catview_gtk.py:
+    - rewrite recommended widget to make it suitable for i18n and a11y
+  * softwarecenter/view/widgets/carousel.py:
+    - don't transition when a Page has focus
+  * softwarecenter/view/widgets/mkit.py:
+    - some fixes to correctly update color/cursor of Button upon mouse actions
+  
+  [ Aaron Peachey ]
+  * softwarecenter/db/reviews.py: 
+    - prevent 404 errors from outputting a traceback (especially 
+      caused when origin is a PPA) LP: #709408
+  
+  [ Michael Vogt ]
+  * softwarecenter/backend/weblive.py:
+    - add prototype backend for interacting with weblive, many 
+      thanks to Stephane Graber
+  * merged lp:~osomon/software-center/fixDatabaseLockError, many
+    thanks (LP: #625189)
+  
+  [ Gary Lasker ]
+  * implement "Deauthorize my Computer" 
+    (lp:~gary-lasker/software-center/deauthorize-my-computer)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 24 Feb 2011 08:47:40 +0100
+
 software-center (3.1.19) natty; urgency=low
 
   [ Gary Lasker ]
