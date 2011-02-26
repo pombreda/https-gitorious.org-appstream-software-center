@@ -351,6 +351,10 @@ def get_nice_date_string(cur_t):
 
     return s
 
+def get_exec_line_from_desktop(desktop_file):
+    for line in open(desktop_file):
+        if line.startswith("Exec="):
+            return line.split("Exec=")[1]
 
 class SimpleFileDownloader(gobject.GObject):
 
