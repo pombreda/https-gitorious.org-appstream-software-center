@@ -47,6 +47,7 @@ class ScreenshotThumbnail(gtk.Alignment):
                                            
 
         # tip stuff
+        self._hide_after = None
         self.tip_alpha = 0.0
         self._tip_fader = 0
         self._tip_layout = self.create_pango_layout("")
@@ -74,14 +75,12 @@ class ScreenshotThumbnail(gtk.Alignment):
         self.set_redraw_on_allocate(False)
         # the frame around the screenshot (placeholder)
         self.set_border_width(3)
-        self.set_size_request(self.MAX_SIZE[0], -1)
 
         # eventbox so we can connect to event signals
         event = gtk.EventBox()
         event.set_visible_window(False)
 
-        self.spinner_alignment = gtk.Alignment(0.5, 0.5)
-        self.spinner_alignment.set_size_request(*self.IDLE_SIZE)
+        self.spinner_alignment = gtk.Alignment(0.5, 0.5, yscale=0)
 
         self.spinner = gtk.Spinner()
         self.spinner.set_size_request(*self.SPINNER_SIZE)
@@ -243,14 +242,16 @@ class ScreenshotThumbnail(gtk.Alignment):
 
         if self.tip_alpha >= 1.0:
             self.tip_alpha = 1.0
-            self.image.queue_draw_area(ia.x+ia.width-tw,
-                                       ia.y+ia.height-th,
-                                       tw, th)
+            self.image.queue_draw()
+#            self.image.queue_draw_area(ia.x+ia.width-tw,
+#                                       ia.y+ia.height-th,
+#                                       tw, th)
             return False
 
-        self.image.queue_draw_area(ia.x+ia.width-tw,
-                                   ia.y+ia.height-th,
-                                   tw, th)
+        self.image.queue_draw()
+#        self.image.queue_draw_area(ia.x+ia.width-tw,
+#                                   ia.y+ia.height-th,
+#                                   tw, th)
         return True
 
     def _tip_fade_out(self):
@@ -264,13 +265,16 @@ class ScreenshotThumbnail(gtk.Alignment):
 
         if self.tip_alpha <= 0.0:
             self.tip_alpha = 0.0
-            self.image.queue_draw_area(ia.x+ia.width-tw,
-                                       ia.y+ia.height-th,
-                                       tw, th)
+#            self.image.queue_draw_area(ia.x+ia.width-tw,
+#                                       ia.y+ia.height-th,
+#                                       tw, th)
+            self.image.queue_draw()
             return False
-        self.image.queue_draw_area(ia.x+ia.width-tw,
-                                   ia.y+ia.height-th,
-                                   tw, th)
+
+        self.image.queue_draw()
+#        self.image.queue_draw_area(ia.x+ia.width-tw,
+#                                   ia.y+ia.height-th,
+#                                   tw, th)
         return True
 
     def _show_image_dialog(self):
@@ -351,7 +355,8 @@ class ScreenshotThumbnail(gtk.Alignment):
         self._tip_fader = gobject.timeout_add(25, self._tip_fade_in)
 
         if hide_after:
-            gobject.timeout_add(hide_after, self.hide_tip)
+            if self._hide_after: gobject.source_remove(self._hide_after)
+            self._hide_after = gobject.timeout_add(hide_after, self.hide_tip)
         return
 
     def hide_tip(self):
@@ -426,10 +431,13 @@ class ScreenshotThumbnail(gtk.Alignment):
         self.alpha = 0.0
 
         if self.eventbox.parent:
+            self.eventbox.hide()
             self.remove(self.eventbox)
 
         if not self.spinner_alignment.parent:
             self.add(self.spinner_alignment)
+
+        self.spinner_alignment.set_size_request(*self.IDLE_SIZE)
 
         self.spinner.start()
         self.show_all()
@@ -441,7 +449,7 @@ class ScreenshotThumbnail(gtk.Alignment):
             reachable, if so it downloads the thumbnail.
             If not, it emits "file-url-reachable" False, then exits.
         """
-        
+
         self.loader.download_file(self.thumbnail_url)
         return
 
@@ -450,11 +458,11 @@ class ScreenshotThumbnail(gtk.Alignment):
 
         if mkit.not_overlapping(a, expose_area): return
 
-        if self.image.get_property('visible'):
-            ia = self.image.allocation
-        elif self.unavailable.get_property('visible'):
-            ia = self.unavailable.allocation
+        if self.eventbox.get_property('visible'):
+            ia = self.eventbox.allocation
+            print 'EventBox'
         else:
+            print 'Spinner'
             ia = self.spinner_alignment.allocation
 
         x = a.x + (a.width - ia.width)/2

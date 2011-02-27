@@ -208,6 +208,7 @@ class StatusBar(gtk.Alignment):
         return
         
     def draw(self, cr, a, expose_area):
+        if not self.get_property('visible'): return
         if mkit.not_overlapping(a, expose_area): return
 
         cr.save()
@@ -231,12 +232,15 @@ class StatusBar(gtk.Alignment):
 
 
 class PackageStatusBar(StatusBar):
-
+    
     def __init__(self, view):
         StatusBar.__init__(self, view)
         self.label = mkit.EtchedLabel()
         self.button = gtk.Button()
         self.progress = gtk.ProgressBar()
+
+        # theme engine hint for bug #606942
+        self.progress.set_data("transparent-bg-hint", True)
 
         self.pkg_state = None
 
@@ -250,6 +254,10 @@ class PackageStatusBar(StatusBar):
         glib.timeout_add(500, self._pulse_helper)
 
     def _on_view_style_set(self, view, old_style):
+        self._progress_modify_bg(view)
+        return
+
+    def _progress_modify_bg(self, view):    
         # more in relation to bug #606942
         # for themes where "transparent-bg-hint" is not understood
         if view.section:
@@ -309,7 +317,7 @@ class PackageStatusBar(StatusBar):
 
         #~ self.fill_color = COLOR_BLACK
         #~ self.line_color = COLOR_GREEN_OUTLINE
-
+        
         if state in (PKG_STATE_INSTALLING,
                      PKG_STATE_INSTALLING_PURCHASED,
                      PKG_STATE_REMOVING,
@@ -319,6 +327,7 @@ class PackageStatusBar(StatusBar):
         elif state == PKG_STATE_NOT_FOUND:
             self.hide()
         elif state == PKG_STATE_ERROR:
+            self.progress.hide()
             self.button.set_sensitive(False)
             self.button.show()
             self.show()
@@ -348,45 +357,43 @@ class PackageStatusBar(StatusBar):
             self.set_label(_('Upgrading...'))
             self.button.set_sensitive(False)
         elif state == PKG_STATE_INSTALLED or state == PKG_STATE_REINSTALLABLE:
-            if app_details.purchase_date:
-                purchase_date = str(app_details.purchase_date).split()[0]
-                self.set_label(_('Purchased on %s') % purchase_date)
-            elif app_details.installation_date:
-                installation_date = str(app_details.installation_date).split()[0]
-                self.set_label(_('Installed on %s') % installation_date)
+            #special label only if the app being viewed is software centre itself
+            if app_details.pkgname== SOFTWARE_CENTER_PKGNAME:
+                self.set_label(_("Installed (you're using it right now)"))
             else:
-                self.set_label(_('Installed'))
+                if app_details.purchase_date:
+                    purchase_date = str(app_details.purchase_date).split()[0]
+                    self.set_label(_('Purchased on %s') % purchase_date)
+                elif app_details.installation_date:
+                    installation_date = str(app_details.installation_date).split()[0]
+                    self.set_label(_('Installed on %s') % installation_date)
+                else:
+                    self.set_label(_('Installed'))
             if state == PKG_STATE_REINSTALLABLE: # only deb files atm
                 self.set_button_label(_('Reinstall'))
             elif state == PKG_STATE_INSTALLED:
                 self.set_button_label(_('Remove'))
-            self.label.show()
-#            self.price.hide()
         elif state == PKG_STATE_NEEDS_PURCHASE:
             # FIXME:  need to determine the currency dynamically once we can
             #         get that info from the software-center-agent/payments service.
             # NOTE:  the currency string for this label is purposely not translatable
             #        when hardcoded, since it (currently) won't vary based on locale
             #        and as such we don't want it translated
-#            self.price.price.set_markup("$%s" % app_details.price)
-            self.label.hide()
-#            self.price.show()
-
-#            self.set_label("US$ %s" % app_details.price)
+            self.set_label("US$ %s" % app_details.price)
             self.set_button_label(_(u'Buy\u2026'))
         elif state == PKG_STATE_PURCHASED_BUT_REPO_MUST_BE_ENABLED:
             purchase_date = str(app_details.purchase_date).split()[0]
             self.set_label(_('Purchased on %s') % purchase_date)
             self.set_button_label(_('Install'))
         elif state == PKG_STATE_UNINSTALLED:
-            if app_details.price:
-#                self.price.price.set_markup("$%s" % app_details.price)
-                self.label.hide()
-#                self.price.show()
+            #special label only if the app being viewed is software centre itself
+            if app_details.pkgname== SOFTWARE_CENTER_PKGNAME:
+                self.set_label(_("Removed (close it and it'll be gone)"))
             else:
-                self.label.show()
-#                self.price.hide()
-                self.set_label(_("Free"))
+                if app_details.price:
+                    self.set_label(app_details.price)
+                else:
+                    self.set_label(_("Free"))
             self.set_button_label(_('Install'))
         elif state == PKG_STATE_UPGRADABLE:
             self.set_label(_('Upgrade Available'))
@@ -786,33 +793,33 @@ class UIReviewsList(gtk.VBox):
         return
 
     def draw(self, cr, a):
-#        cr.save()
+        cr.save()
 
-#        color = color_floats('#FFE879')
+        color = color_floats('#FFE879')
 
-#        a = self.allocation
-#        rounded_rect(cr, a.x, a.y, a.width, a.height, 5)
-#        cr.set_source_rgba(*color+(0.225,))
-#        cr.fill()
+        a = self.allocation
+        rounded_rect(cr, a.x, a.y, a.width, a.height, 5)
+        cr.set_source_rgba(*color+(0.225,))
+        cr.fill()
 
-#        a = self.header.allocation
-#        rounded_rect2(cr, a.x, a.y, a.width, a.height, (5, 5, 0, 0))
+        a = self.header.allocation
+        rounded_rect2(cr, a.x, a.y, a.width, a.height, (5, 5, 0, 0))
 
-#        cr.set_source_rgba(*color+(0.5,))
-#        cr.fill()
+        cr.set_source_rgba(*color+(0.5,))
+        cr.fill()
 
-#        a = self.allocation
-#        cr.save()
-#        rounded_rect(cr, a.x+0.5, a.y+0.5, a.width-1, a.height-1, 5)
-#        cr.set_source_rgba(*color+(0.4,))
-#        cr.set_line_width(1)
-#        cr.stroke()
-#        cr.restore()
+        a = self.allocation
+        cr.save()
+        rounded_rect(cr, a.x+0.5, a.y+0.5, a.width-1, a.height-1, 5)
+        cr.set_source_rgba(*color+(0.4,))
+        cr.set_line_width(1)
+        cr.stroke()
+        cr.restore()
 
-#        i = 0
-#        for r in self.vbox:
-#            if isinstance(r, (Review)):
-#                r.draw(cr, r.allocation, i)
+        i = 0
+        for r in self.vbox:
+            if isinstance(r, (UIReview)):
+                r.draw(cr, r.allocation)
         return
 
     def get_reviews(self):
@@ -1325,10 +1332,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.review_stats_widget = ReviewStatsContainer()
         self.reviews = UIReviewsList(self)
 
-        self.loaded = False
-        return
-
-    def _init_ondemand(self):
         self.adjustment_value = None
 
         # atk
@@ -1421,70 +1424,17 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.review_loader.REVIEW_STATS_CACHE[app] = stats
         self.reviews.finished()
 
-    def _on_expose(self, widget, event):
-        a = widget.allocation
-
+    def _on_expose(self, widget, event, alignment):
         cr = widget.window.cairo_create()
-        cr.rectangle(a.x-5, a.y, a.width+10, a.height)
-        cr.clip()
+        cr.rectangle(alignment.allocation)
+        cr.clip_preserve()
 
-        color = color_floats(widget.style.base[gtk.STATE_NORMAL])
-
-        cr.rectangle(widget.allocation)
+        color = color_floats(widget.style.light[gtk.STATE_NORMAL])
         cr.set_source_rgba(*color+(0.6,))
         cr.fill()
 
         # paint the section backdrop
-        if self.section: self.section.render(cr, a)
-
-        # only draw shadows when viewport is sufficiently wide...
-        if a.width >= 900:
-            # shadow on the right side
-            lin = cairo.LinearGradient(a.x+a.width, a.y, a.x+a.width+5, a.y)
-            lin.add_color_stop_rgba(0, 0,0,0, 0.175)
-            lin.add_color_stop_rgba(1, 0,0,0, 0.000)
-
-            cr.rectangle(a.x+a.width, a.y, 5, a.height)
-            cr.set_source(lin)
-            cr.fill()
-
-            cr.set_line_width(1)
-
-            # right side
-            # outer vertical strong line
-            cr.move_to(a.x+a.width+0.5, a.y)
-            cr.rel_line_to(0, a.height)
-            cr.set_source_rgb(*color_floats(widget.style.dark[self.state]))
-            cr.stroke()
-
-            # inner vertical highlight
-            cr.move_to(a.x+a.width-0.5, a.y)
-            cr.rel_line_to(0, a.height)
-            cr.set_source_rgba(1,1,1,0.3)
-            cr.stroke()
-
-            # shadow on the left side
-            lin = cairo.LinearGradient(a.x-5, a.y, a.x, a.y)
-            lin.add_color_stop_rgba(1, 0,0,0, 0.175)
-            lin.add_color_stop_rgba(0, 0,0,0, 0.000)
-
-            cr.rectangle(a.x-5, a.y, 5, a.height)
-            cr.set_source(lin)
-            cr.fill()
-
-            # left side
-            # outer vertical strong line
-            cr.move_to(a.x-0.5, a.y)
-            cr.rel_line_to(0, a.height)
-            cr.set_source_rgb(*color_floats(widget.style.dark[self.state]))
-            cr.stroke()
-
-            # inner vertical highlight
-            cr.move_to(a.x+0.5, a.y)
-            cr.rel_line_to(0, a.height)
-            cr.set_source_rgba(1,1,1,0.3)
-            cr.stroke()
-
+        if self.section: self.section.render(cr, alignment.allocation)
 
         # draw the info vbox bg
         a = self.info_vb.allocation
@@ -1528,11 +1478,11 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         return
 
     def _on_allocate(self, viewport, allocation, vbox):
-        gobject.idle_add(self.queue_draw)
+        self.queue_draw()
 
-        w = min(allocation.width-2, 900)
+        w = min(allocation.width-2, 75*mkit.EM)
 
-        if w <= 400 or w == self._prev_width: return True
+        if w <= 35*mkit.EM or w == self._prev_width: return True
         self._prev_width = w
 
         vbox.set_size_request(w, -1)
@@ -1585,11 +1535,11 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
     def _layout_page(self):
         # setup widgets
-        a = gtk.Alignment(0.5, 0.0, yscale=1.0)
-        self.add(a)
+        alignment = gtk.Alignment(0.5, 0.0, yscale=1.0)
+        self.add(alignment)
 
         self.hbox = gtk.HBox()
-        a.add(self.hbox)
+        alignment.add(self.hbox)
 
         vb = gtk.VBox(spacing=18)
         vb.set_border_width(20)
@@ -1731,7 +1681,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # signals!
         self.connect('key-press-event', self._on_key_press)
 #        self.connect('key-release-event', self._on_key_release, entry)
-        vb.connect('expose-event', self._on_expose)
+        vb.connect('expose-event', self._on_expose, alignment)
         self.connect('size-allocate', self._on_allocate, vb)
         return
 
@@ -1909,11 +1859,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         return
 
     def _update_all(self, app_details):
-        if not self.loaded:
-            print 'Loading ItemView layout...', self.loaded
-            self._init_ondemand()
-            print 'ItemView layout complete', self.loaded
-
         # reset view to top left
         self.get_vadjustment().set_value(0)
         self.get_hadjustment().set_value(0)

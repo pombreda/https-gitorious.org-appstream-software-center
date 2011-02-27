@@ -575,8 +575,6 @@ class SoftwarePane(gtk.VBox, BasePane):
         self.refresh_seq_nr += 1
         LOG.debug("softwarepane query: %s" % query)
 
-        t0 = gobject.get_current_time()
-
         old_model = self.app_view.get_model()
         if old_model is not None:
             # *ugh* deactivate the old model because otherwise it keeps
@@ -600,22 +598,16 @@ class SoftwarePane(gtk.VBox, BasePane):
                              nonapps_visible = self.nonapps_visible,
                              filter=self.apps_filter)
 
-        print
-        print self.apps_search_term
-        print 'Time to query:', gobject.get_current_time() - t0
-
         #print "new_model", new_model, len(new_model), seq_nr
         # between request of the new model and actual delivery other
         # events may have happend
         if seq_nr != self.refresh_seq_nr:
             LOG.info("discarding new model (%s != %s)" % (seq_nr, self.refresh_seq_nr))
             return False
-        t0 = gobject.get_current_time()
 
         # set model
         self.app_view.set_model(new_model)
         self.app_view.get_model().active = True
-        print 'Time to display:', gobject.get_current_time() - t0
 
         self.hide_appview_spinner()
         # we can not use "new_model" here, because set_model may actually
