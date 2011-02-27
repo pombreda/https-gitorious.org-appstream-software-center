@@ -219,7 +219,8 @@ class SoftwarePane(gtk.VBox, BasePane):
                                                self.distro,
                                                self.icons, 
                                                self.cache, 
-                                               self.datadir)
+                                               self.datadir,
+                                               self)
         self.app_details_view.connect("purchase-requested",
                                       self.on_purchase_requested)
         self.scroll_details.add(self.app_details_view)
