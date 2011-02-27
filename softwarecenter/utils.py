@@ -371,7 +371,8 @@ class SimpleFileDownloader(gobject.GObject):
 
         "error"                   : (gobject.SIGNAL_RUN_LAST,
                                      gobject.TYPE_NONE,
-                                     (gobject.TYPE_PYOBJECT, str,),),
+                                     (gobject.TYPE_PYOBJECT,
+                                      gobject.TYPE_PYOBJECT,),),
         }
 
     def __init__(self):
@@ -424,7 +425,7 @@ class SimpleFileDownloader(gobject.GObject):
             # 1. content = f.load_contents_finish(result)[0]
             #    gio.Error: DBus error org.freedesktop.DBus.Error.NoReply
             self.LOG.debug(e)
-            self.emit('error', gio.Error, e)
+            self.emit('error', (gio.Error, e))
             return
 
         outputfile = open(self.dest_file_path, "w")

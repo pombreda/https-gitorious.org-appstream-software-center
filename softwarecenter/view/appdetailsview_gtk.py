@@ -553,7 +553,8 @@ class Addon(gtk.HBox):
         self.title = gtk.Label()
         self.title.set_markup(title+pkgname)
         self.title.set_alignment(0.0, 0.5)
-        self.title.set_ellipsize(pango.ELLIPSIZE_END)
+        self.title.set_line_wrap(True)
+#        self.title.set_ellipsize(pango.ELLIPSIZE_END)
         hbox.pack_start(self.title)
 
         loader = self.get_ancestor(AppDetailsViewGtk).review_loader
@@ -1487,19 +1488,26 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         vbox.set_size_request(w, -1)
         return True
 
+    def _header_on_allocate(self, widget, allocation, spacing):
+        w = allocation.width - self.review_stats_widget.allocation.width - \
+            self.icon.allocation.width - 2*spacing
+
+        self.title.set_size_request(w, -1)
+        return
+
     def _on_key_press(self, widget, event):
         kv = gtk.keysyms
         if event.keyval == kv.BackSpace:
             self.back.emit('clicked')
         return
 
-    def _on_key_release(self, widget, event, entry):
-        ctrl = event.state & gtk.gdk.CONTROL_MASK
-        if ctrl:
-            if event.keyval == gtk.keysyms.s:
-                entry.set_position(-1)
-                entry.grab_focus()
-        return
+#    def _on_key_release(self, widget, event, entry):
+#        ctrl = event.state & gtk.gdk.CONTROL_MASK
+#        if ctrl:
+#            if event.keyval == gtk.keysyms.s:
+#                entry.set_position(-1)
+#                entry.grab_focus()
+#        return
 
     def _on_icon_expose(self, widget, event):
         if not self._show_overlay: return
@@ -1548,7 +1556,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         # header
         hb = gtk.HBox(spacing=12)
-        vb.pack_start(hb)
+        vb.pack_start(hb, False)
 
         # the app icon
         self.icon = gtk.Image()
@@ -1559,6 +1567,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # the app title/summary
         self.title = mkit.EtchedLabel('<span font_desc="bold 20">Title</span>\nSummary')
         self.title.set_alignment(0, 0.5)
+        self.title.set_line_wrap(True)
+#        self.title.set_ellipsize(pango.ELLIPSIZE_END)
         vb_inner=gtk.VBox(spacing=6)
         vb_inner.pack_start(self.title)
 
@@ -1642,7 +1652,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.addons_bar = self.addons_manager.status_bar
         self.addon_view.pack_start(self.addons_bar, False)
 
-
         # package info
         self.info_keys = []
 
@@ -1678,6 +1687,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.show_all()
 
         # signals!
+        hb.connect('size-allocate', self._header_on_allocate, hb.get_spacing())
         self.connect('key-press-event', self._on_key_press)
 #        self.connect('key-release-event', self._on_key_release, entry)
         vb.connect('expose-event', self._on_expose, alignment)
