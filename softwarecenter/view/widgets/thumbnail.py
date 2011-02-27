@@ -38,7 +38,14 @@ class ScreenshotThumbnail(gtk.Alignment):
         self.screenshot_pixbuf = None
         self.screenshot_available = False
         self.alpha = 0.0
-        
+
+        # zoom cursor
+        theme = gtk.icon_theme_get_default()
+        zoom_pb = theme.load_icon(gtk.STOCK_ZOOM_IN, 22, 0)
+        self._zoom_cursor = gtk.gdk.Cursor(gtk.gdk.display_get_default(),
+                                           zoom_pb, 0, 0)
+                                           
+
         # tip stuff
         self.tip_alpha = 0.0
         self._tip_fader = 0
@@ -121,7 +128,7 @@ class ScreenshotThumbnail(gtk.Alignment):
     def _on_enter(self, widget, event):
         if not self.get_is_actionable(): return
 
-        self.window.set_cursor(gtk.gdk.Cursor(gtk.gdk.HAND2))
+        self.window.set_cursor(self._zoom_cursor)
         self.show_tip(hide_after=3000)
         return
 
@@ -217,8 +224,6 @@ class ScreenshotThumbnail(gtk.Alignment):
             stopping once 1 is reached or exceeded.
         """
 
-        print 'fade in', self.alpha
-
         self.alpha += 0.05
         if self.alpha >= 1.0:
             self.alpha = 1.0
@@ -312,6 +317,8 @@ class ScreenshotThumbnail(gtk.Alignment):
 
             # remove the spinner
             if self.spinner_alignment.parent:
+                self.spinner.stop()
+                self.spinner.hide()
                 self.remove(self.spinner_alignment)
 
             pb = self._downsize_pixbuf(self.screenshot_pixbuf, *self.MAX_SIZE)
@@ -441,13 +448,11 @@ class ScreenshotThumbnail(gtk.Alignment):
     def draw(self, cr, a, expose_area):
         """ Draws the thumbnail frame """
 
-#        if mkit.not_overlapping(a, expose_area): return
+        if mkit.not_overlapping(a, expose_area): return
 
         if self.image.get_property('visible'):
-            print 'image'
             ia = self.image.allocation
         elif self.unavailable.get_property('visible'):
-            print 'unavailable'
             ia = self.unavailable.allocation
         else:
             ia = self.spinner_alignment.allocation
