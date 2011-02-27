@@ -45,7 +45,7 @@ from softwarecenter.backend.zeitgeist_simple import zeitgeist_singleton
 from softwarecenter.enums import *
 from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
 
-from softwarecenter.utils import SimpleFileDownloader, GMenuSearcher, uri_to_filename, upstream_version_compare, upstream_version, is_unity_running
+from softwarecenter.utils import SimpleFileDownloader, GMenuSearcher, uri_to_filename, is_unity_running
 
 from softwarecenter.gwibber_helper import GWIBBER_SERVICE_AVAILABLE
 from softwarecenter.backend.weblive import get_weblive_backend
@@ -862,8 +862,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         return True
 
     def _header_on_allocate(self, widget, allocation, spacing):
-        w = allocation.width - self.review_stats_widget.allocation.width - \
-            self.icon.allocation.width - 2*spacing
+        w = allocation.width - self.icon.allocation.width - 2*spacing
+        if self.review_stats_widget.get_property('visible'):
+            w -= self.review_stats_widget.allocation.width
 
         self.title.set_size_request(w, -1)
         return
@@ -1092,6 +1093,12 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         pb = self._get_icon_as_pixbuf(app_details)
         # should we show the green tick?
 #        self._show_overlay = app_details.pkg_state == PKG_STATE_INSTALLED
+        w, h = pb.get_width(), pb.get_height()
+
+        tw = self.APP_ICON_SIZE - 10 # bit of a fudge factor
+        if pb.get_width() < tw:
+            pb = pb.scale_simple(tw, tw, gtk.gdk.INTERP_TILES)
+
         self.icon.set_from_pixbuf(pb)
         return
 
