@@ -291,9 +291,9 @@ class ScreenshotThumbnail(gtk.Alignment):
         d.destroy()
         return
 
-    def _on_screenshot_load_error(self, err_type, err_message):
-        self.set_screenshot_available(reachable)
-        if not reachable: self.ready = True
+    def _on_screenshot_load_error(self, loader, err_type, err_message):
+        self.set_screenshot_available(False)
+        self.ready = True
         return
 
     def _on_screenshot_query_complete(self, loader, reachable):
