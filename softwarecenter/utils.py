@@ -419,6 +419,10 @@ class SimpleFileDownloader(gobject.GObject):
         try:
             content = f.load_contents_finish(result)[0]
         except gio.Error, e:
+            # i witnissed a strange error[1], so make the loader robust in this
+            # situation
+            # 1. content = f.load_contents_finish(result)[0]
+            #    gio.Error: DBus error org.freedesktop.DBus.Error.NoReply
             self.LOG.debug(e)
             self.emit('error', gio.Error, e)
             return
