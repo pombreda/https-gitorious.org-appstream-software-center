@@ -65,6 +65,7 @@ class ScreenshotThumbnail(gtk.Alignment):
 
         # convienience class for handling the downloading (or not) of any screenshot
         self.loader = SimpleFileDownloader()
+        self.loader.connect('error', self._on_screenshot_load_error)
         self.loader.connect('file-url-reachable', self._on_screenshot_query_complete)
         self.loader.connect('file-download-complete', self._on_screenshot_download_complete)
 
@@ -290,6 +291,11 @@ class ScreenshotThumbnail(gtk.Alignment):
         d.destroy()
         return
 
+    def _on_screenshot_load_error(self, err_type, err_message):
+        self.set_screenshot_available(reachable)
+        if not reachable: self.ready = True
+        return
+
     def _on_screenshot_query_complete(self, loader, reachable):
         self.set_screenshot_available(reachable)
         if not reachable: self.ready = True
@@ -460,9 +466,7 @@ class ScreenshotThumbnail(gtk.Alignment):
 
         if self.eventbox.get_property('visible'):
             ia = self.eventbox.allocation
-            print 'EventBox'
         else:
-            print 'Spinner'
             ia = self.spinner_alignment.allocation
 
         x = a.x + (a.width - ia.width)/2

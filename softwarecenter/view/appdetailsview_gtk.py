@@ -793,30 +793,29 @@ class UIReviewsList(gtk.VBox):
         return
 
     def draw(self, cr, a):
-        cr.save()
+#        cr.save()
 
-        color = color_floats('#FFE879')
+#        color = color_floats('#FFE879')
 
-        a = self.allocation
-        rounded_rect(cr, a.x, a.y, a.width, a.height, 5)
-        cr.set_source_rgba(*color+(0.225,))
-        cr.fill()
+#        a = self.allocation
+#        rounded_rect(cr, a.x, a.y, a.width, a.height, 5)
+#        cr.set_source_rgba(*color+(0.225,))
+#        cr.fill()
 
-        a = self.header.allocation
-        rounded_rect2(cr, a.x, a.y, a.width, a.height, (5, 5, 0, 0))
+#        a = self.header.allocation
+#        rounded_rect2(cr, a.x, a.y, a.width, a.height, (5, 5, 0, 0))
 
-        cr.set_source_rgba(*color+(0.5,))
-        cr.fill()
+#        cr.set_source_rgba(*color+(0.5,))
+#        cr.fill()
 
-        a = self.allocation
-        cr.save()
-        rounded_rect(cr, a.x+0.5, a.y+0.5, a.width-1, a.height-1, 5)
-        cr.set_source_rgba(*color+(0.4,))
-        cr.set_line_width(1)
-        cr.stroke()
-        cr.restore()
+#        a = self.allocation
+#        cr.save()
+#        rounded_rect(cr, a.x+0.5, a.y+0.5, a.width-1, a.height-1, 5)
+#        cr.set_source_rgba(*color+(0.4,))
+#        cr.set_line_width(1)
+#        cr.stroke()
+#        cr.restore()
 
-        i = 0
         for r in self.vbox:
             if isinstance(r, (UIReview)):
                 r.draw(cr, r.allocation)

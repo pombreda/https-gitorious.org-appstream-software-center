@@ -368,6 +368,10 @@ class SimpleFileDownloader(gobject.GObject):
         "file-download-complete"  : (gobject.SIGNAL_RUN_LAST,
                                      gobject.TYPE_NONE,
                                      (str,),),
+
+        "error"                   : (gobject.SIGNAL_RUN_LAST,
+                                     gobject.TYPE_NONE,
+                                     (gobject.TYPE_PYOBJECT, str,),),
         }
 
     def __init__(self):
@@ -404,6 +408,7 @@ class SimpleFileDownloader(gobject.GObject):
         except glib.GError, e:
             self.LOG.debug("file *not* reachable %s" % self.url)
             self.emit('file-url-reachable', False)
+            self.emit('error', glib.GError, e)
         del f
 
     def _file_download_complete_cb(self, f, result, path=None):
@@ -411,7 +416,13 @@ class SimpleFileDownloader(gobject.GObject):
         # The result from the download is actually a tuple with three 
         # elements (content, size, etag?)
         # The first element is the actual content so let's grab that
-        content = f.load_contents_finish(result)[0]
+        try:
+            content = f.load_contents_finish(result)[0]
+        except gio.Error, e:
+            self.LOG.debug(e)
+            self.emit('error', gio.Error, e)
+            return
+
         outputfile = open(self.dest_file_path, "w")
         outputfile.write(content)
         outputfile.close()
