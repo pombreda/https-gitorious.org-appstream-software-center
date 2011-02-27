@@ -35,7 +35,7 @@ def color_floats(color):
             r,g,b = color
             c = Color(red=r, green=g, blue=b)
     else:
-        raise TypeError, 'Expected gtk.gdk.Color, hash or list of integers...'
+        raise TypeError, 'Expected gtk.gdk.Color, hash or list of integers.  Received: %s' % color
     return c.red_float, c.green_float, c.blue_float
 
 def rounded_rect(cr, x, y, w, h, r):

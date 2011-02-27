@@ -72,69 +72,8 @@ DEFAULT_SOCKET_TIMEOUT=4
 LOG = logging.getLogger("softwarecenter.view.appdetailsview")
 
 
-#class PriceyStar(gtk.VBox, ShapeStar):
-
-#    def __init__(self):
-#        gtk.VBox.__init__(self)
-#        ShapeStar.__init__(self, 18, indent=0.15)
-
-#        self.price = mkit.EtchedLabel()
-#        self.price.alpha = 0.3
-#        self.price.set_use_markup(True)
-#        self.price.set_padding(8, 0)
-#        self.price.set_alignment(0.5, 0.5)
-
-#        self.pack_start(self.price)
-
-##        self.connect('expose-event', self.on_expose)
-#        return
-
-#    def draw(self, cr, a, expose_area):
-
-#        cr.save()
-#        cr.set_line_join(cairo.LINE_CAP_ROUND)
-#        
-#        stride = max(a.width, a.height)
-#        x = a.x + (a.width - stride)/2
-#        y = a.y + (a.height - stride)/2
-
-#        self.layout(cr, x, y, stride, stride)
-
-#        # shadow
-#        cr.set_source_rgba(0,0,0,0.15)
-#        cr.set_line_width(5)
-#        cr.stroke_preserve()
-
-#        cr.set_source_color(self.style.base[gtk.STATE_SELECTED])
-#        cr.fill_preserve()
-
-#        light = gtk.gdk.Color('#FFD363')
-#        dark = gtk.gdk.Color('#AA0000')
-
-#        cr.set_source_color(dark)
-#        cr.set_line_width(2)
-#        cr.stroke_preserve()
-
-#        cx0 = cx1 = a.x + a.width/2
-#        cy0 = cy1 = a.y + stride
-
-#        radius0 = 0; radius1 = int(1.5*stride)
-
-#        rad = cairo.RadialGradient(cx0, cy0, radius0, cx1, cy1, radius1)
-#        rad.add_color_stop_rgba(0, dark.red_float, dark.green_float, dark.blue_float, 0.6)
-#        rad.add_color_stop_rgba(1, light.red_float, light.green_float, light.blue_float, 0.3)
-
-#        cr.set_source(rad)
-#        cr.fill()
-
-#        self.layout(cr, x+0.5, y+0.5, stride-1, stride-1)
-
-#        cr.set_line_width(1)
-#        cr.set_source_color(light)
-#        cr.stroke()
-
-#        cr.restore()
-#        return
+# fixed black for action bar label, taken from Ambiance gtk-theme
+COLOR_BLACK = '#323232'
 
 
 class PackageUsageCounter(gtk.Label):
@@ -153,24 +92,18 @@ class PackageUsageCounter(gtk.Label):
         return
 
 
-# action colours, taken from synaptic
-# reds: used for pkg_status errors or serious warnings
-COLOR_RED_FILL     = '#FF9595'
-COLOR_RED_OUTLINE  = '#EF2929'
-
-# yellows: some user action is required outside of install or remove
-COLOR_YELLOW_FILL    = '#FFF7B3'
-COLOR_YELLOW_OUTLINE = '#FCE94F'
-
-# fixed black for action bar label, taken from Ambiance gtk-theme
-COLOR_BLACK         = '#323232'
-
-
-
-
 class StatusBar(gtk.Alignment):
 
-    FALLBACK_COLOR = 0.5,0.5,0.5
+    # mid-gray: when no section color is available
+    SECTION_FALLBACK_COLOR = '#808080'
+
+    # action colours, taken from synaptic
+    # red: used for pkg_status errors or serious warnings
+    PKG_STATUS_ERROR_COLOR = '#FF9595'
+
+    # yellow: some user action is required outside of install or remove
+    USER_ACTION_REQRD_COLOR = '#FFC61A'
+
 
     def __init__(self, view):
         gtk.Alignment.__init__(self, xscale=1.0, yscale=1.0)
@@ -186,7 +119,7 @@ class StatusBar(gtk.Alignment):
         self.view = view
 
         self._height = 1
-        self._create_colors(view)
+        self._create_colors()
 
         self.connect('size-allocate', self._on_size_allocate)
         self.connect('style-set', self._on_style_set)
@@ -203,14 +136,16 @@ class StatusBar(gtk.Alignment):
         # reset max heights, this is so we can resize properly on, say, a font-size change
         self._height = 1
         self.set_size_request(-1, -1)
-        self._create_colors(self.view)
+        self._create_colors()
         return
 
-    def _create_colors(self, view):
-        if view.section:
-            bg = view.section._section_color
+    def _create_colors(self, src_color=None):
+        if src_color:
+            bg = color_floats(src_color)
+        elif self.view.section:
+            bg = self.view.section._section_color
         else:
-            bg = self.FALLBACK_COLOR
+            bg = color_floats(StatusBar.SECTION_FALLBACK_COLOR)
 
         self.line_color = alpha_composite(bg+(0.6,), (1,1,1))
         self.bg_color = alpha_composite(bg+(0.333,), (1,1,1))
@@ -229,7 +164,7 @@ class StatusBar(gtk.Alignment):
         cr.set_line_width(1)
         cr.translate(0.5, 0.5)
         cr.rectangle(a.x, a.y, a.width-1, a.height-1)
-        cr.set_source_rgba(*self.line_color)
+        cr.set_source_rgb(*self.line_color)
         cr.stroke()
         cr.restore()
         return
@@ -264,10 +199,9 @@ class PackageStatusBar(StatusBar):
     def _progress_modify_bg(self, view):
         # more in relation to bug #606942
         # for themes where "transparent-bg-hint" is not understood
-        self._create_colors(view)
-        r, g, b = self.bg_color
+        self._create_colors()
         self.progress.modify_bg(gtk.STATE_NORMAL,
-                                gtk.gdk.Color(red=r, green=g, blue=b))
+                                gtk.gdk.Color(*self.bg_color))
         return
 
     def _pulse_helper(self):
@@ -313,9 +247,8 @@ class PackageStatusBar(StatusBar):
         self.pkg_state = state
         self.app_details = app_details
 
-        #~ self.fill_color = COLOR_BLACK
-        #~ self.line_color = COLOR_GREEN_OUTLINE
-        
+        self._create_colors()
+
         if state in (PKG_STATE_INSTALLING,
                      PKG_STATE_INSTALLING_PURCHASED,
                      PKG_STATE_REMOVING,
@@ -407,8 +340,7 @@ class PackageStatusBar(StatusBar):
             # we display the error in the description field
             self.set_button_label(_("Install"))
             self.set_label("")
-            self.fill_color = COLOR_RED_FILL
-            self.line_color = COLOR_RED_OUTLINE
+            self._create_colors(StatusBar.PKG_STATUS_ERROR_COLOR)
         elif state == PKG_STATE_NOT_FOUND:
             # this is used when the pkg is not in the cache and there is no request
             # we display the error in the summary field and hide the rest
@@ -427,8 +359,7 @@ class PackageStatusBar(StatusBar):
                 #        components that are not enabled or that just
                 #        lack the "Packages" files (but are in sources.list)
                 self.set_button_label(_("Update Now"))
-            self.fill_color = COLOR_YELLOW_FILL
-            self.line_color = COLOR_YELLOW_OUTLINE
+            self._create_colors(StatusBar.USER_ACTION_REQRD_COLOR)
         if (self.app_details.warning and not self.app_details.error and
            not state in (PKG_STATE_INSTALLING, PKG_STATE_INSTALLING_PURCHASED,
            PKG_STATE_REMOVING, PKG_STATE_UPGRADING, APP_ACTION_APPLY)):
