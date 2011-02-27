@@ -119,7 +119,7 @@ class StatusBar(gtk.Alignment):
         self.view = view
 
         self._height = 1
-        self._create_colors()
+        self.create_colors()
 
         self.connect('size-allocate', self._on_size_allocate)
         self.connect('style-set', self._on_style_set)
@@ -136,10 +136,10 @@ class StatusBar(gtk.Alignment):
         # reset max heights, this is so we can resize properly on, say, a font-size change
         self._height = 1
         self.set_size_request(-1, -1)
-        self._create_colors()
+        self.create_colors()
         return
 
-    def _create_colors(self, src_color=None):
+    def create_colors(self, src_color=None):
         if src_color:
             bg = color_floats(src_color)
         elif self.view.section:
@@ -199,7 +199,7 @@ class PackageStatusBar(StatusBar):
     def _progress_modify_bg(self, view):
         # more in relation to bug #606942
         # for themes where "transparent-bg-hint" is not understood
-        self._create_colors()
+        self.create_colors()
         self.progress.modify_bg(gtk.STATE_NORMAL,
                                 gtk.gdk.Color(*self.bg_color))
         return
@@ -247,7 +247,7 @@ class PackageStatusBar(StatusBar):
         self.pkg_state = state
         self.app_details = app_details
 
-        self._create_colors()
+        self.create_colors()
 
         if state in (PKG_STATE_INSTALLING,
                      PKG_STATE_INSTALLING_PURCHASED,
@@ -340,7 +340,7 @@ class PackageStatusBar(StatusBar):
             # we display the error in the description field
             self.set_button_label(_("Install"))
             self.set_label("")
-            self._create_colors(StatusBar.PKG_STATUS_ERROR_COLOR)
+            self.create_colors(StatusBar.PKG_STATUS_ERROR_COLOR)
         elif state == PKG_STATE_NOT_FOUND:
             # this is used when the pkg is not in the cache and there is no request
             # we display the error in the summary field and hide the rest
@@ -359,7 +359,7 @@ class PackageStatusBar(StatusBar):
                 #        components that are not enabled or that just
                 #        lack the "Packages" files (but are in sources.list)
                 self.set_button_label(_("Update Now"))
-            self._create_colors(StatusBar.USER_ACTION_REQRD_COLOR)
+            self.create_colors(StatusBar.USER_ACTION_REQRD_COLOR)
         if (self.app_details.warning and not self.app_details.error and
            not state in (PKG_STATE_INSTALLING, PKG_STATE_INSTALLING_PURCHASED,
            PKG_STATE_REMOVING, PKG_STATE_UPGRADING, APP_ACTION_APPLY)):
