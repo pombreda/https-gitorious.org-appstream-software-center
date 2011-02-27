@@ -686,7 +686,7 @@ class UIReviewsList(gtk.VBox):
         hb.pack_end(self.new_review, False, padding=6)
 
         self.vbox = gtk.VBox(spacing=24)
-        self.vbox.set_border_width(12)
+        self.vbox.set_border_width(6)
         self.pack_start(self.vbox)
 
         self.new_review.connect('clicked', lambda w: self.emit('new-review'))
@@ -917,13 +917,13 @@ class UIReview(gtk.VBox):
 
         return s
 
-    def _on_allocate(self, widget, allocation, stars, summary, who_what_when, version_lbl, flag):
+    def _on_allocate(self, widget, allocation, stars, summary, who_when, version_lbl, flag):
         for child in self.body:
             child.set_size_request(allocation.width, -1)
 
-        summary.set_size_request(allocation.width - \
+        summary.set_size_request(max(20, allocation.width - \
                                  stars.allocation.width - \
-                                 who_what_when.allocation.width - 20, -1)
+                                 who_when.allocation.width - 20), -1)
         if version_lbl:
             version_lbl.set_size_request(allocation.width-flag.allocation.width-20, -1)
         return
@@ -1024,7 +1024,9 @@ class UIReview(gtk.VBox):
                 'app_name' : app_name,
                 'version' : glib.markup_escape_text(upstream_version(review_version))
                 }
-            version_lbl = gtk.Label('<small><i><span color="%s">%s</span></i></small>' % (version_string, dark_color.to_string()))
+
+            m = '<small><i><span color="%s">%s</span></i></small>'
+            version_lbl = gtk.Label(m % (dark_color.to_string(), version_string))
             version_lbl.set_use_markup(True)
             version_lbl.set_padding(0,3)
             version_lbl.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
