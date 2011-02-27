@@ -28,6 +28,7 @@ class ScreenshotThumbnail(gtk.Alignment):
         self.distro = distro
         self.icons = icons
 
+        self.pkgname = None
         self.appname = None
         self.thumb_url = None
         self.large_url = None
@@ -216,6 +217,8 @@ class ScreenshotThumbnail(gtk.Alignment):
             stopping once 1 is reached or exceeded.
         """
 
+        print 'fade in', self.alpha
+
         self.alpha += 0.05
         if self.alpha >= 1.0:
             self.alpha = 1.0
@@ -361,26 +364,29 @@ class ScreenshotThumbnail(gtk.Alignment):
         """ Configures the ScreenshotView depending on whether there is a screenshot available. """
 
         if not available:
-            self.remove(self.spinner_alignment)
-            self.spinner.stop()
+            if not self.eventbox.parent:
+                self.remove(self.spinner_alignment)
+                self.spinner.stop()
+                self.add(self.eventbox)
 
             if self.image.parent:
+                self.image.hide()
                 self.eventbox.remove(self.image)
                 self.eventbox.add(self.unavailable)
                 # set the size of the unavailable placeholder
                 # 160 pixels is the fixed width of the thumbnails
                 self.unavailable.set_size_request(*self.IDLE_SIZE)
-                self.unavailable.show_all()
                 acc = self.get_accessible()
                 acc.set_name(_('%s - No screenshot available') % self.appname)
         else:
             if self.unavailable.parent:
+                self.unavailable.hide()
                 self.eventbox.remove(self.unavailable)
                 self.eventbox.add(self.image)
-                self.image.show()
                 acc = self.get_accessible()
                 acc.set_name(_('%s - Screenshot') % self.appname)
 
+        self.show_all()
         self.screenshot_available = available
         return
  
@@ -412,9 +418,6 @@ class ScreenshotThumbnail(gtk.Alignment):
         self.ready = False
         self.alpha = 0.0
 
-        if self.unavailable.parent:
-            self.remove(self.unavailable)
-
         if self.eventbox.parent:
             self.remove(self.eventbox)
 
@@ -438,11 +441,13 @@ class ScreenshotThumbnail(gtk.Alignment):
     def draw(self, cr, a, expose_area):
         """ Draws the thumbnail frame """
 
-        if mkit.not_overlapping(a, expose_area): return
+#        if mkit.not_overlapping(a, expose_area): return
 
         if self.image.get_property('visible'):
+            print 'image'
             ia = self.image.allocation
         elif self.unavailable.get_property('visible'):
+            print 'unavailable'
             ia = self.unavailable.allocation
         else:
             ia = self.spinner_alignment.allocation
@@ -489,6 +494,18 @@ if __name__ == '__main__':
         del cr
         return
 
+    def testing_cycle_apps(thumb, apps, db):
+
+        if not thumb.pkgname or thumb.pkgname == "uace":
+            d = apps[0].get_details(db)
+        else:
+            d = apps[1].get_details(db)
+
+        thumb.configure(d)
+        thumb.download_and_display()
+        return True
+
+
     import sys, logging
     logging.basicConfig(level=logging.DEBUG)
 
@@ -531,8 +548,11 @@ if __name__ == '__main__':
     w.connect('destroy', gtk.main_quit)
 
     from softwarecenter.db.application import Application
-    app_details = Application("Movie Player", "totem").get_details(db)
-    t.configure(app_details)
-    t.download_and_display()
+    apps = [Application("Movie Player", "totem"),
+            Application("ACE", "uace")]
+
+    testing_cycle_apps(t, apps, db)
+
+    gobject.timeout_add(6000, testing_cycle_apps, t, apps, db)
 
     gtk.main()

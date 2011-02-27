@@ -48,7 +48,8 @@ from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
 from softwarecenter.utils import SimpleFileDownloader, GMenuSearcher, uri_to_filename, upstream_version_compare, upstream_version, is_unity_running
 
 from softwarecenter.gwibber_helper import GWIBBER_SERVICE_AVAILABLE
-
+from softwarecenter.backend.weblive import get_weblive_backend
+        
 from appdetailsview import AppDetailsViewBase
 
 from widgets import mkit
@@ -59,7 +60,7 @@ from widgets.description import AppDescription, TextBlock
 from widgets.thumbnail import ScreenshotThumbnail
 from softwarecenter.distro import get_distro
 
-from softwarecenter.drawing import color_floats, rounded_rect2, rounded_rect
+from softwarecenter.drawing import alpha_composite, color_floats, rounded_rect2, rounded_rect
 from softwarecenter.backend.config import get_config
 
 if os.path.exists("./softwarecenter/enums.py"):
@@ -168,7 +169,12 @@ COLOR_BLACK         = '#323232'
 
 
 class StatusBar(gtk.Alignment):
-    
+
+    FALLBACK_COLOR = 0.5,0.5,0.5
+
+    BG_ALPHA = 0.333
+    LINE_ALPHA = 0.5
+
     def __init__(self, view):
         gtk.Alignment.__init__(self, xscale=1.0, yscale=1.0)
         self.set_redraw_on_allocate(False)
@@ -202,23 +208,23 @@ class StatusBar(gtk.Alignment):
         return
         
     def draw(self, cr, a, expose_area):
-        if not self.get_property('visible'): return
         if mkit.not_overlapping(a, expose_area): return
 
         cr.save()
         if self.view.section:
             r,g,b = self.view.section._section_color
         else:
-            r,g,b = 0.5,0.5,0.5
+            r,g,b = self.FALLBACK_COLOR
 
         cr.rectangle(a)
-        cr.set_source_rgba(r,g,b,0.333)
+        cr.set_source_rgba(r,g,b,self.BG_ALPHA)
+#        cr.set_source_rgb(*mkit.floats_from_string(self.line_color))
         cr.fill()
 
         cr.set_line_width(1)
         cr.translate(0.5, 0.5)
         cr.rectangle(a.x, a.y, a.width-1, a.height-1)
-        cr.set_source_rgba(r,g,b,0.5)
+        cr.set_source_rgba(r,g,b,self.LINE_ALPHA)
         cr.stroke()
         cr.restore()
         return
@@ -239,8 +245,24 @@ class PackageStatusBar(StatusBar):
         self.hbox.pack_end(self.progress, False)
         self.show_all()
 
+        self.view.connect('style-set', self._on_view_style_set)
         self.button.connect('clicked', self._on_button_clicked)
         glib.timeout_add(500, self._pulse_helper)
+
+    def _on_view_style_set(self, view, old_style):
+        # more in relation to bug #606942
+        # for themes where "transparent-bg-hint" is not understood
+        if view.section:
+            fg = view.section._section_color+(StatusBar.BG_ALPHA,)  # must be an rgba
+            bg = color_floats(view.style.base[gtk.STATE_NORMAL])  # must be an rgb
+        else:
+            fg = self.FALLBACK_COLOR+(StatusBar.BG_ALPHA,)  # must be rgba
+            bg = color_floats(view.style.base[gtk.STATE_NORMAL]) # must be an rgb
+
+        r, g, b = alpha_composite(fg, bg)
+        bg_color = gtk.gdk.Color(red=r, green=g, blue=b)
+        self.progress.modify_bg(gtk.STATE_NORMAL, bg_color)
+        return
 
     def _pulse_helper(self):
         if (self.pkg_state == PKG_STATE_INSTALLING_PURCHASED and
@@ -406,10 +428,6 @@ class PackageStatusBar(StatusBar):
            not state in (PKG_STATE_INSTALLING, PKG_STATE_INSTALLING_PURCHASED,
            PKG_STATE_REMOVING, PKG_STATE_UPGRADING, APP_ACTION_APPLY)):
             self.set_label(self.app_details.warning)
-        return
-
-    def draw(self, cr, a, expose_area):
-        StatusBar.draw(self, cr, a, expose_area)
         return
 
 
@@ -633,7 +651,7 @@ class AddonsTable(gtk.VBox):
         return False
 
 
-class Reviews(gtk.VBox):
+class UIReviewsList(gtk.VBox):
 
     __gsignals__ = {
         'new-review':(gobject.SIGNAL_RUN_FIRST,
@@ -691,7 +709,7 @@ class Reviews(gtk.VBox):
                                     # XXX: prob should be done somewhere else
             for r in self.reviews:
                 pkgversion = self._parent.app_details.version
-                review = Review(r, pkgversion, self.logged_in_person)
+                review = UIReview(r, pkgversion, self.logged_in_person)
                 self.vbox.pack_start(review)
 
         elif get_network_state() == NetState.NM_STATE_CONNECTED:
@@ -799,22 +817,38 @@ class Reviews(gtk.VBox):
 
     def get_reviews(self):
         return filter(lambda r: not isinstance(r, (EmbeddedMessage, NoReviewYet)) \
-                        and isinstance(r, Review), self.vbox.get_children())
+                        and isinstance(r, UIReview), self.vbox.get_children())
 
-class Review(gtk.VBox):
+class UIReview(gtk.VBox):
     
     def __init__(self, review_data=None, app_version=None, logged_in_person=None):
         gtk.VBox.__init__(self, spacing=mkit.SPACING_LARGE)
 
         self.header = gtk.HBox(spacing=mkit.SPACING_MED)
         self.body = gtk.VBox()
+        self.footer_split = gtk.VBox()
         self.footer = gtk.HBox()
+        
+        self.useful = None
+        self.yes_like = None
+        self.no_like = None
+        self.status_box = gtk.HBox()
+        self.submit_error_img = gtk.Image()
+        self.submit_error_img.set_from_stock(gtk.STOCK_DIALOG_ERROR, gtk.ICON_SIZE_SMALL_TOOLBAR)
+        self.submit_status_spinner = gtk.Spinner()
+        self.submit_status_spinner.set_size_request(12,12)
+        self.acknowledge_error = mkit.VLinkButton(_("<small>OK</small>"))
+        self.acknowledge_error.set_underline(True)
+        self.acknowledge_error.set_subdued(True)
+        self.usefulness_error = False
 
         self.pack_start(self.header, False)
         self.pack_start(self.body, False)
-        self.pack_start(self.footer, False)
+        self.pack_start(self.footer_split, False)
         
         self.logged_in_person = logged_in_person
+        self.person = None
+        self.id = None
 
         if review_data:
             self.connect('realize',
@@ -822,7 +856,6 @@ class Review(gtk.VBox):
                          review_data,
                          app_version,
                          logged_in_person)
-
         return
 
     def _on_realize(self, w, review_data, app_version, logged_in_person):
@@ -899,6 +932,57 @@ class Review(gtk.VBox):
         reviews = self.get_ancestor(Reviews)
         if reviews:
             reviews.emit("report-abuse", self.id)
+    
+    def _on_useful_clicked(self, btn, is_useful):
+        reviews = self.get_ancestor(UIReviewsList)
+        if reviews:
+            self._usefulness_ui_update('progress')
+            reviews.emit("submit-usefulness", self.id, is_useful)
+    
+    def _on_error_acknowledged(self, button, current_user_reviewer, useful_total, useful_favorable):
+        self.usefulness_error = False
+        self._usefulness_ui_update('renew', current_user_reviewer, useful_total, useful_favorable)
+    
+    def _usefulness_ui_update(self, type, current_user_reviewer=False, useful_total=0, useful_favorable=0):
+        self._hide_usefulness_elements()
+        #print "_usefulness_ui_update: %s" % type
+        if type == 'renew':
+            self._build_usefulness_ui(current_user_reviewer, useful_total, useful_favorable)
+            return
+        if type == 'progress':
+            self.submit_status_spinner.start()
+            self.submit_status_spinner.show()
+            self.status_label = gtk.Label("<small><b>%s</b></small>" % _(u"Submitting now\u2026"))
+            self.status_box.pack_start(self.submit_status_spinner, False)
+            self.status_label.set_use_markup(True)
+            self.status_label.set_padding(2,0)
+            self.status_box.pack_start(self.status_label,False)
+            self.status_label.show()
+        if type == 'error':
+            self.submit_error_img.show()
+            self.status_label = gtk.Label("<small><b>%s</b></small>" % _("Error submitting usefulness"))
+            self.status_box.pack_start(self.submit_error_img, False)
+            self.status_label.set_use_markup(True)
+            self.status_label.set_padding(2,0)
+            self.status_box.pack_start(self.status_label,False)
+            self.status_label.show()
+            self.acknowledge_error.show()
+            self.status_box.pack_start(self.acknowledge_error,False)
+            self.acknowledge_error.connect('clicked', self._on_error_acknowledged, current_user_reviewer, useful_total, useful_favorable)
+        self.status_box.show()
+        self.footer.pack_start(self.status_box, False)
+        return
+    
+    def _hide_usefulness_elements(self):
+        """ hide all usefulness elements """
+        for attr in ["useful", "yes_like", "no_like", "submit_status_spinner",
+                     "submit_error_img", "status_box", "status_label",
+                     "acknowledge_error", "yes_no_separator"
+                     ]:
+            o = getattr(self, attr, None)
+            if o:
+                o.hide()
+        return
 
     def _build(self, rating, person, summary, text, date, app_name, review_version, app_version, dark_color):
         # all the arguments may need markup escape, depening on if
@@ -910,8 +994,8 @@ class Review(gtk.VBox):
             m = '<span color="%s"><b>%s</b>, %s</span>' % (dark_color.to_string(),
                                                            glib.markup_escape_text(person),
                                                            glib.markup_escape_text(date))
-        who_what_when = mkit.EtchedLabel(m)
-        who_what_when.set_use_markup(True)
+        who_when = mkit.EtchedLabel(m)
+        who_when.set_use_markup(True)
 
         summary = mkit.EtchedLabel('<b>%s</b>' % glib.markup_escape_text(summary))
         summary.set_use_markup(True)
@@ -927,7 +1011,7 @@ class Review(gtk.VBox):
 
         self.header.pack_start(stars, False)
         self.header.pack_start(summary, False)
-        self.header.pack_end(who_what_when, False)
+        self.header.pack_end(who_when, False)
 
         self.body.pack_start(text, False)
         
@@ -945,63 +1029,144 @@ class Review(gtk.VBox):
             version_lbl.set_padding(0,3)
             version_lbl.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
             version_lbl.set_alignment(0, 0.5)
-            self.footer.pack_start(version_lbl, False)
-        
-        #like = mkit.VLinkButton('<small>%s</small>' % _('This review was useful'))
-        #like.set_underline(True)
-        #self.footer.pack_start(like, False)
+            self.footer_split.pack_start(version_lbl, False)
 
-        # Translators: Flags should be translated in the sense of
-        #  "Report as inappropriate"
-        self.complain = mkit.VLinkButton('<small>%s</small>' % _('Flag'))
+        self.footer_split.pack_start(self.footer, False)
+
+        current_user_reviewer = False
+        if person == self.logged_in_person:
+            current_user_reviewer = True
+
+        # FIXME: Uncomment the following line to re-enable the reviews usefulness feature,
+        # temporarily hidden pending rollout of server support
+        #self._build_usefulness_ui(current_user_reviewer, useful_total, useful_favorable, useful_submit_error)
+
+        # Translators: This link is for flagging a review as inappropriate.
+        # To minimize repetition, if at all possible, keep it to a single word.
+        # If your language has an obvious verb, it won't need a question mark.
+        self.complain = mkit.VLinkButton('<small>%s</small>' % _('Inappropriate?'))
+        self.complain.set_subdued(True)
         self.complain.set_underline(True)
         self.footer.pack_end(self.complain, False)
         self.complain.connect('clicked', self._on_report_abuse_clicked)
 
-        self.body.connect('size-allocate', self._on_allocate, stars, summary, who_what_when, version_lbl, self.complain)
+        self.body.connect('size-allocate', self._on_allocate, stars, summary, who_when, version_lbl, self.complain)
+        return
+    
+    def _build_usefulness_ui(self, current_user_reviewer, useful_total, useful_favorable, usefulness_submit_error=False):
+        if usefulness_submit_error:
+            self._usefulness_ui_update('error', current_user_reviewer, useful_total, useful_favorable)
+        else:
+            #get correct label based on retrieved usefulness totals and if user is reviewer
+            self.useful = self._get_usefulness_label(current_user_reviewer, useful_total, useful_favorable)
+            self.useful.set_use_markup(True)
+            #vertically centre so it lines up with the Yes and No buttons
+            self.useful.set_alignment(0, 0.5)
+
+            self.useful.show()
+            self.footer.pack_start(self.useful, False, padding=3)
+            if not current_user_reviewer:
+                self.yes_like = mkit.VLinkButton('<small>%s</small>' % _('Yes'))
+                self.no_like = mkit.VLinkButton('<small>%s</small>' % _('No'))
+                self.yes_like.set_underline(True)
+                self.no_like.set_underline(True)
+                self.yes_like.connect('clicked', self._on_useful_clicked, True)
+                self.no_like.connect('clicked', self._on_useful_clicked, False)
+                self.yes_no_separator = gtk.Label("<small>/</small>")
+                self.yes_no_separator.set_use_markup(True)
+                
+                self.yes_like.show()
+                self.no_like.show()
+                self.yes_no_separator.show()
+                self.likebox = gtk.HBox()
+                self.likebox.set_spacing(3)
+                self.likebox.pack_start(self.yes_like, False)
+                self.likebox.pack_start(self.yes_no_separator, False)
+                self.likebox.pack_start(self.no_like, False)
+                self.likebox.show()
+                self.footer.pack_start(self.likebox, False)
         return
 
-    def draw(self, cr, a, i):
-#        cr.save()
-#        color = color_floats('#FFE879')
+    
+    def _get_usefulness_label(self, current_user_reviewer, useful_total, useful_favorable):
+        '''returns gtk.Label() to be used as usefulness label depending on passed in parameters'''
+        if useful_total == 0 and current_user_reviewer:
+            s = ""
+        elif useful_total == 0:
+            s = _("Was this review hepful?")
+        elif current_user_reviewer:
+            s = gettext.ngettext(
+                "%(useful_favorable)s of %(useful_total)s person "
+                "found this review helpful.",
+                "%(useful_favorable)s of %(useful_total)s people "
+                "found this review helpful.",
+                useful_total) % { 'useful_total' : useful_total,
+                                  'useful_favorable' : useful_favorable,
+                                }
+        else:
+            s = gettext.ngettext(
+                "%(useful_favorable)s of %(useful_total)s person "
+                "found this review helpful. Did you?",
+                "%(useful_favorable)s of %(useful_total)s people "
+                "found this review helpful. Did you?",
+                useful_total) % { 'useful_total' : useful_total,
+                                'useful_favorable' : useful_favorable,
+                                }
+        
+        return gtk.Label('<small>%s</small>' % s)
 
-#        cr.rectangle(a)
-#        if i%2:
-#            cr.set_source_rgba(*color+(0.2,))
-#            cr.fill()
+    def _whom_when_markup(self, person, cur_t, dark_color):
+        nice_date = get_nice_date_string(cur_t)
+        dt = datetime.datetime.utcnow() - cur_t
 
-##        rr = mkit.ShapeRoundedRectangle()
-##        rr.layout(cr, a.x-6, a.y-5, a.x+a.width+6, a.y+a.height+5, radius=3)
-#        cr.rectangle(a)
+        if person == self.logged_in_person:
+            m = '<span color="%s"><b>%s (%s)</b>, %s</span>' % (
+                dark_color.to_string(),
+                glib.markup_escape_text(person),
+                # TRANSLATORS: displayed in a review after the persons name,
+                # e.g. "Wonderful text based app" mvo (that's you) 2011-02-11"
+                _("that's you"),
+                glib.markup_escape_text(nice_date))
+        else:
+            m = '<span color="%s"><b>%s</b>, %s</span>' % (
+                dark_color.to_string(),
+                glib.markup_escape_text(person),
+                glib.markup_escape_text(nice_date))
 
-#        if self.person == self.logged_in_person:
-#            cr.set_source_rgba(0.8,0.8,0.8,0.5)
-#        else:
-#            cr.set_source_rgba(1,1,1,0.7)
-#        cr.fill()
+        return m
 
-##        cr.set_source_rgb(*mkit.floats_from_string('#E6BC26'))
-##        rr.layout(cr, a.x-5.5, a.y-4.5, a.x+a.width+5.5, a.y+a.height+4.5, radius=3)
-##        cr.set_line_width(1)
-##        cr.stroke()
-#        cr.restore()
-        return
+    def draw(self, cr, a):
+        cr.save()
+        if not self.person == self.logged_in_person:
+            return
 
+        cr.rectangle(a)
 
-class EmbeddedMessage(gtk.Alignment):
+        color = mkit.floats_from_gdkcolor(self.style.mid[self.state])
+        cr.set_source_rgba(*color+(0.2,))
 
-    def __init__(self, title, message, icon_name):
-        gtk.Alignment.__init__(self, 0.5, 0.5)
-        self.set_padding(12, 12, 6, 6)
+        cr.fill()
+
+        cr.restore()
+
+class EmbeddedMessage(UIReview):
+
+    def __init__(self, title='', message='', icon_name=''):
+        UIReview.__init__(self)
+        self.label = None
+        self.image = None
+        
+        a = gtk.Alignment(0.5, 0.5)
+        self.body.pack_start(a, False)
 
         hb = gtk.HBox(spacing=12)
-        self.add(hb)
+        a.add(hb)
 
         i = gtk.image_new_from_icon_name(icon_name, gtk.ICON_SIZE_DIALOG)
-        hb.pack_start(i)
+        hb.pack_start(i, False)
 
         l = gtk.Label()
-        l.set_size_request(250, -1)
+        l.set_size_request(300, -1)
         l.set_line_wrap(True)
         l.set_alignment(0, 0.5)
 
@@ -1093,7 +1258,8 @@ class AddonsManager():
             if addon in self.addons_to_install:
                 self.addons_to_install.remove(addon)
         self.status_bar.configure()
-        gobject.idle_add(self.view.update_totalsize)
+        gobject.idle_add(self.view.update_totalsize,
+                         priority=glib.PRIORITY_LOW)
 
     def configure(self, pkgname, update_addons=True):
         self.addons_to_install = []
@@ -1107,7 +1273,8 @@ class AddonsManager():
         self.addons_to_install = []
         self.addons_to_remove = []
         self.configure(self.view.app.pkgname)
-        gobject.idle_add(self.view.update_totalsize)
+        gobject.idle_add(self.view.update_totalsize,
+                         priority=glib.PRIORITY_LOW)
 
 
 class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
@@ -1154,7 +1321,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.addons_statusbar = AddonsStatusBar(self.addons_manager)
 
         self.review_stats_widget = ReviewStatsContainer()
-        self.reviews = Reviews(self)
+        self.reviews = UIReviewsList(self)
 
         self.loaded = False
         return
@@ -1259,7 +1426,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         cr.rectangle(a.x-5, a.y, a.width+10, a.height)
         cr.clip()
 
-        color = color_floats(widget.style.light[0])
+        color = color_floats(widget.style.base[gtk.STATE_NORMAL])
 
         cr.rectangle(widget.allocation)
         cr.set_source_rgba(*color+(0.6,))
@@ -2215,8 +2382,9 @@ if __name__ == "__main__":
     distro = softwarecenter.distro.get_distro()
 
     # gui
+    win = gtk.Window()
     scroll = gtk.ScrolledWindow()
-    view = AppDetailsViewGtk(db, distro, icons, cache, datadir)
+    view = AppDetailsViewGtk(db, distro, icons, cache, datadir, win)
     from softwarecenter.db.application import Application
     #view.show_app(Application("Pay App Example", "pay-app"))
     #view.show_app(Application("3D Chess", "3dchess"))
@@ -2230,12 +2398,12 @@ if __name__ == "__main__":
     #view.show_app("cournol")
     #view.show_app("Qlix")
 
-    win = gtk.Window()
     scroll.add(view)
     win.add(scroll)
     win.set_size_request(600,400)
     win.show_all()
+    win.connect('destroy', gtk.main_quit)
 
     # keep it spinning to test for re-draw issues and memleaks
-    glib.timeout_add_seconds(1, _show_app, view)
+#    glib.timeout_add_seconds(2, _show_app, view)
     gtk.main()

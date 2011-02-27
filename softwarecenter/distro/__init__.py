@@ -111,6 +111,27 @@ class Distro(object):
                 break
         return (primary, button_text)
 
+    # generic version of deauthorize, can be customized by the distro
+    def get_deauthorize_text(self, account_name, purchased_packages):
+        if len(purchased_packages) == 0:
+            if account_name:
+                primary = _('Are you sure you want to deauthorize this computer '
+                            'from the "%s" account?') % account_name
+            else:
+                primary = _('Are you sure you want to deauthorize this computer '
+                            'for purchases?')
+            button_text = _('Deauthorize')
+        else:
+            if account_name:
+                primary = _('Deauthorizing this computer from the "%s" account '
+                            'will remove this purchased software:') % account_name
+            else:
+                primary = _('Deauthorizing this computer for purchases '
+                            'will remove the following purchased software:')
+            button_text = _('Remove All')
+        return (primary, button_text)
+
+
 def _get_distro():
     distro_id = subprocess.Popen(["lsb_release","-i","-s"], 
                                  stdout=subprocess.PIPE).communicate()[0].strip()
