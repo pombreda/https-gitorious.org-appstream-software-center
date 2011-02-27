@@ -1298,7 +1298,7 @@ class UIReview(gtk.VBox):
         self.status_box.show()
         self.footer.pack_start(self.status_box, False)
         return
-    
+
     def _hide_usefulness_elements(self):
         """ hide all usefulness elements """
         for attr in ["useful", "yes_like", "no_like", "submit_status_spinner",
