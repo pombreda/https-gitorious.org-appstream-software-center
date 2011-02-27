@@ -117,25 +117,12 @@ class StatusBar(gtk.Alignment):
         self.add(self.hbox)
 
         self.view = view
-
-        self._height = 1
         self.create_colors()
 
-        self.connect('size-allocate', self._on_size_allocate)
         self.connect('style-set', self._on_style_set)
 
-    def _on_size_allocate(self, button, allocation):
-        # Bug #617443
-        # Dont allow the package status bar to shrink
-        self._height = max(allocation.height, self._height)
-        if allocation.height < self._height:
-            self.set_size_request(-1, self._height)
-        return
-
     def _on_style_set(self, widget, old_style):
-        # reset max heights, this is so we can resize properly on, say, a font-size change
-        self._height = 1
-        self.set_size_request(-1, -1)
+        self.set_size_request(-1, 3*EM)
         self.create_colors()
         return
 
