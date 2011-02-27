@@ -1342,7 +1342,7 @@ class UIReview(gtk.VBox):
 
         # FIXME: Uncomment the following line to re-enable the reviews usefulness feature,
         # temporarily hidden pending rollout of server support
-        #self._build_usefulness_ui(current_user_reviewer, useful_total, useful_favorable, useful_submit_error)
+        self._build_usefulness_ui(current_user_reviewer, useful_total, useful_favorable, useful_submit_error)
 
         # Translators: This link is for flagging a review as inappropriate.
         # To minimize repetition, if at all possible, keep it to a single word.
@@ -1397,26 +1397,24 @@ class UIReview(gtk.VBox):
         if useful_total == 0 and current_user_reviewer:
             s = ""
         elif useful_total == 0:
-            s = _("Was this review hepful?")
-        elif current_user_reviewer:
-            s = gettext.ngettext(
-                "%(useful_favorable)s of %(useful_total)s person "
-                "found this review helpful.",
-                "%(useful_favorable)s of %(useful_total)s people "
-                "found this review helpful.",
-                useful_total) % { 'useful_total' : useful_total,
-                                  'useful_favorable' : useful_favorable,
-                                }
+            s = _("Was this review helpful?")
         else:
-            s = gettext.ngettext(
-                "%(useful_favorable)s of %(useful_total)s person "
-                "found this review helpful. Did you?",
-                "%(useful_favorable)s of %(useful_total)s people "
-                "found this review helpful. Did you?",
-                useful_total) % { 'useful_total' : useful_total,
-                                'useful_favorable' : useful_favorable,
-                                }
-        
+            if useful_favorable == 0:
+                s = _("No one has found this review helpful (0%).")
+            else:
+                useful_percentage = (useful_favorable / float(useful_total)) * 100
+                #get a string representation of percentage, already in brackets e.g. "(75%)"
+                useful_display_percentage = "(%s%s)" % (str(int(useful_percentage)), '%')
+                s = gettext.ngettext(
+                        "%(useful_favorable)s person found this review helpful %(useful_display_percentage)s.",
+                        "%(useful_favorable)s people found this review helpful %(useful_display_percentage)s.",
+                            useful_favorable) % { 'useful_display_percentage' : useful_display_percentage,
+                                             'useful_favorable' : useful_favorable,
+                                             }
+            #add question to string if user is not current reviewer
+            if not current_user_reviewer:
+                s = _("%s %s" % (s, "Did you?"))
+                            
         return gtk.Label('<small>%s</small>' % s)
 
     def _whom_when_markup(self, person, cur_t, dark_color):
