@@ -321,6 +321,7 @@ def clear_token_from_ubuntu_sso(appname):
 def get_nice_date_string(cur_t):
     """ return a "nice" human readable date, like "2 minutes ago"  """
     import datetime
+
     dt = datetime.datetime.utcnow() - cur_t
     days = dt.days
     secs = dt.seconds
