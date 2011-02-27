@@ -167,7 +167,7 @@ class LobbyViewGtk(CategoriesViewGtk):
     def _on_allocate(self, viewport, allocation, vbox):
         self.queue_draw()
 
-        w = min(allocation.width-2, 75*mkit.EM)
+        w = min(allocation.width-2, 70*mkit.EM)
 
         if w <= 35*mkit.EM or w == self._prev_width: return True
         self._prev_width = w
@@ -481,9 +481,9 @@ class SubCategoryViewGtk(CategoriesViewGtk):
     def _on_allocate(self, viewport, allocation, vbox):
         self.queue_draw()
 
-        w = min(allocation.width-2, 900)
+        w = min(allocation.width-2, 70*mkit.EM)
 
-        if w <= 400 or w == self._prev_width: return True
+        if w <= 35*mkit.EM or w == self._prev_width: return True
         self._prev_width = w
 
         vbox.set_size_request(w, -1)

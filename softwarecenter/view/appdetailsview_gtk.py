@@ -172,9 +172,6 @@ class StatusBar(gtk.Alignment):
 
     FALLBACK_COLOR = 0.5,0.5,0.5
 
-    BG_ALPHA = 0.333
-    LINE_ALPHA = 0.5
-
     def __init__(self, view):
         gtk.Alignment.__init__(self, xscale=1.0, yscale=1.0)
         self.set_redraw_on_allocate(False)
@@ -189,10 +186,11 @@ class StatusBar(gtk.Alignment):
         self.view = view
 
         self._height = 1
+        self._create_colors(view)
 
         self.connect('size-allocate', self._on_size_allocate)
         self.connect('style-set', self._on_style_set)
-        
+
     def _on_size_allocate(self, button, allocation):
         # Bug #617443
         # Dont allow the package status bar to shrink
@@ -205,27 +203,33 @@ class StatusBar(gtk.Alignment):
         # reset max heights, this is so we can resize properly on, say, a font-size change
         self._height = 1
         self.set_size_request(-1, -1)
+        self._create_colors(self.view)
         return
-        
+
+    def _create_colors(self, view):
+        if view.section:
+            bg = view.section._section_color
+        else:
+            bg = self.FALLBACK_COLOR
+
+        self.line_color = alpha_composite(bg+(0.6,), (1,1,1))
+        self.bg_color = alpha_composite(bg+(0.333,), (1,1,1))
+        return
+
     def draw(self, cr, a, expose_area):
         if not self.get_property('visible'): return
         if mkit.not_overlapping(a, expose_area): return
 
         cr.save()
-        if self.view.section:
-            r,g,b = self.view.section._section_color
-        else:
-            r,g,b = self.FALLBACK_COLOR
 
         cr.rectangle(a)
-        cr.set_source_rgba(r,g,b,self.BG_ALPHA)
-#        cr.set_source_rgb(*mkit.floats_from_string(self.line_color))
+        cr.set_source_rgb(*self.bg_color)
         cr.fill()
 
         cr.set_line_width(1)
         cr.translate(0.5, 0.5)
         cr.rectangle(a.x, a.y, a.width-1, a.height-1)
-        cr.set_source_rgba(r,g,b,self.LINE_ALPHA)
+        cr.set_source_rgba(*self.line_color)
         cr.stroke()
         cr.restore()
         return
@@ -257,19 +261,13 @@ class PackageStatusBar(StatusBar):
         self._progress_modify_bg(view)
         return
 
-    def _progress_modify_bg(self, view):    
+    def _progress_modify_bg(self, view):
         # more in relation to bug #606942
         # for themes where "transparent-bg-hint" is not understood
-        if view.section:
-            fg = view.section._section_color+(StatusBar.BG_ALPHA,)  # must be an rgba
-            bg = color_floats(view.style.base[gtk.STATE_NORMAL])  # must be an rgb
-        else:
-            fg = self.FALLBACK_COLOR+(StatusBar.BG_ALPHA,)  # must be rgba
-            bg = color_floats(view.style.base[gtk.STATE_NORMAL]) # must be an rgb
-
-        r, g, b = alpha_composite(fg, bg)
-        bg_color = gtk.gdk.Color(red=r, green=g, blue=b)
-        self.progress.modify_bg(gtk.STATE_NORMAL, bg_color)
+        self._create_colors(view)
+        r, g, b = self.bg_color
+        self.progress.modify_bg(gtk.STATE_NORMAL,
+                                gtk.gdk.Color(red=r, green=g, blue=b))
         return
 
     def _pulse_helper(self):
@@ -1480,7 +1478,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
     def _on_allocate(self, viewport, allocation, vbox):
         self.queue_draw()
 
-        w = min(allocation.width-2, 75*mkit.EM)
+        w = min(allocation.width-2, 70*mkit.EM)
 
         if w <= 35*mkit.EM or w == self._prev_width: return True
         self._prev_width = w
