@@ -1043,10 +1043,6 @@ p7zip-full provides:
 p7zip provides 7zr, a light version of 7za, and p7zip a gzip like wrapper around 7zr.""".strip()
 
     win = gtk.Window()
-#    win.set_size_request(300, 300)
-
-#    s = gtk.ScrolledWindow()
-#    s.set_policy(gtk.POLICY_NEVER, gtk.POLICY_ALWAYS)
 
     d = AppDescription()
     d.set_description(EXAMPLE, pkgname='')
