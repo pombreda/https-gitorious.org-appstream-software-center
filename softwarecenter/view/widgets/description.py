@@ -828,14 +828,13 @@ class TextBlock(gtk.EventBox):
         return self.order[self.selection.paragraph]
 
     def render(self, cr, a, expose_area):
-        if not self.order: return
-
+        if not self.order or not self._allocation: return
 
         for layout in self.order:
             la = layout.allocation
-            if not la.x or not la.y:
-                print 'Skipping draw'
-                return
+#            if not la.x or not la.y:
+#                print 'Skipping draw'
+#                return
 
             self._selection_highlight(layout,
                                       self.selection,
@@ -1026,3 +1025,35 @@ class AppDescription(gtk.VBox):
 
         self.show_all()
         return
+
+
+if __name__ == '__main__':
+
+    EXAMPLE = """
+p7zip is the Unix port of 7-Zip, a file archiver that archives with very high compression ratios.
+
+p7zip-full provides:
+
+ - /usr/bin/7za a standalone version of the 7-zip tool that handles 
+   7z archives (implementation of the LZMA compression algorithm) and some other formats.
+
+ - /usr/bin/7z not only does it handle 7z but also ZIP, Zip64, CAB, RAR, ARJ, GZIP, 
+   BZIP2, TAR, CPIO, RPM, ISO and DEB archives. 7z compression is 30-50% better than ZIP compression.
+
+p7zip provides 7zr, a light version of 7za, and p7zip a gzip like wrapper around 7zr.""".strip()
+
+    win = gtk.Window()
+#    win.set_size_request(300, 300)
+
+#    s = gtk.ScrolledWindow()
+#    s.set_policy(gtk.POLICY_NEVER, gtk.POLICY_ALWAYS)
+
+    d = AppDescription()
+    d.set_description(EXAMPLE, pkgname='')
+    win.add(d)
+
+    win.show_all()
+    win.connect('destroy', gtk.main_quit)
+
+    gtk.main()
+
