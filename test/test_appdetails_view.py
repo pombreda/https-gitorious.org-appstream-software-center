@@ -55,7 +55,7 @@ class TestAppDetailsView(unittest.TestCase):
         self._p()
         time.sleep(1)
         self._p()
-        for r in self.appdetails.ui_reviews_list.vbox:
+        for r in self.appdetails.reviews.vbox:
             if self._is_embedded_message_no_network(r):
                 break
         else:
@@ -66,7 +66,7 @@ class TestAppDetailsView(unittest.TestCase):
         app = Application("7zip","p7zip-full")
         self.appdetails.show_app(app)
         # check that we do *not* have the embedded message
-        for r in self.appdetails.ui_reviews_list.vbox:
+        for r in self.appdetails.reviews.vbox:
             self.assertFalse(self._is_embedded_message_no_network(r))
 
     def test_show_app_simple_network_unknown(self):
@@ -76,7 +76,7 @@ class TestAppDetailsView(unittest.TestCase):
         app = Application("7zip","p7zip-full")
         self.appdetails.show_app(app)
         # check that we do *not* have the embedded message
-        for r in self.appdetails.ui_reviews_list.vbox:
+        for r in self.appdetails.reviews.vbox:
             self.assertFalse(self._is_embedded_message_no_network(r))
 
     def _is_embedded_message_no_network(self, message):
