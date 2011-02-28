@@ -284,8 +284,7 @@ class TextBlock(gtk.EventBox):
         font_desc.set_weight(pango.WEIGHT_BOLD)
         self._bullet.set_font_description(font_desc)
 
-        self._xy = 0,0
-#        self._max_width = 900
+        self._allocation = None
 
         self.indent, self.line_height = self._bullet.get_pixel_extents()[1][2:]
         self.order = []
@@ -299,7 +298,7 @@ class TextBlock(gtk.EventBox):
         #self.drag_source_set(gtk.gdk.BUTTON1_MASK, [("text/plain", 0, 80),], gtk.gdk.ACTION_COPY)
 
         self.viewport = viewport
-        self.viewport.connect('size-allocate', self._on_allocate)
+#        self.viewport.connect('size-allocate', self._on_allocate)
 
         self.connect('button-press-event', self._on_press, self.cursor, self.selection)
         self.connect('key-press-event', self._on_key_press, self.cursor, self.selection)
@@ -324,36 +323,7 @@ class TextBlock(gtk.EventBox):
         return
 
     def _on_allocate(self, widget, a):
-        if not self.order: return
 
-        x = self.allocation.x
-        y = self.allocation.y
-
-        width = self.allocation.width
-        height = self.allocation.height
-
-        size = self.height_from_width(width)
-
-        if size != (width, height) or (x,y) != self._xy:
-            self.set_size_request(*size)
-            self.viewport.queue_draw()
-
-        self._xy = x,y
-
-        for layout in self.order:
-            if layout.index > 0:
-                y += (layout.vspacing or self.line_height)
-
-            lx,ly,lw,lh = layout.get_pixel_extents()[1]
-
-            if self.get_direction() != gtk.TEXT_DIR_RTL:
-                layout.set_allocation(x+lx+layout.indent, y+ly,
-                                      width-layout.indent, lh)
-            else:
-                layout.set_allocation(x+width-lx-lw-layout.indent-1, y+ly,
-                                      width-layout.indent, lh)
-
-            y += ly + lh
         return
 
     def _on_style_set(self, widget, old_style):
@@ -530,6 +500,34 @@ class TextBlock(gtk.EventBox):
                 self._copy_text(sel)
 
             self.queue_draw()
+        return
+
+    def _size_allocate(self, widget, a):
+        if not self.order or self._allocation == a:
+            return
+
+        self._allocation = a
+
+        size = self.height_from_width(a.width)
+        self.set_size_request(*size)
+
+        x, y = self.allocation.x, self.allocation.y
+        width, height = size
+
+        for layout in self.order:
+            if layout.index > 0:
+                y += (layout.vspacing or self.line_height)
+
+            lx,ly,lw,lh = layout.get_pixel_extents()[1]
+
+            if self.get_direction() != gtk.TEXT_DIR_RTL:
+                layout.set_allocation(x+lx+layout.indent, y+ly,
+                                      width-layout.indent, lh)
+            else:
+                layout.set_allocation(x+width-lx-lw-layout.indent-1, y+ly,
+                                      width-layout.indent, lh)
+
+            y += ly + lh
         return
 
     def _select_up(self, cur, sel):
@@ -901,6 +899,7 @@ class TextBlock(gtk.EventBox):
         return
 
     def clear(self, key=None):
+        self._allocation = None
         self.cursor.zero()
         self.selection.clear(key)
         self.order = []
@@ -921,7 +920,12 @@ class AppDescription(gtk.VBox):
         self.pack_start(self.description, False)
 
         self._prev_type = None
+        self.connect('size-allocate', self._on_allocate)
         return
+
+    def _on_allocate(self, widget, allocation):
+        self.description._size_allocate(widget, allocation)
+        return True
 
     def _parse_desc(self, desc, pkgname):
         """ Attempt to maintain original fixed width layout, while 
