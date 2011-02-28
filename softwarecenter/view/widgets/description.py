@@ -259,7 +259,7 @@ class SelectionCursor(Cursor):
 
 class TextBlock(gtk.EventBox):
 
-    PAINT_PRIMARY_CURSOR = False
+    PAINT_PRIMARY_CURSOR = True
     BULLET_POINT = u'  \u2022  '
 
     INFOCUS_NORM = 0
@@ -539,14 +539,7 @@ class TextBlock(gtk.EventBox):
 
         if sel.target_x:
             x = sel.target_x + (sel.target_x_indent - layout.indent)*PS
-            # special case for when we sel all of bottom line after 
-            # hitting bottom line extent
-            if cur.get_position() == (len(self.order)-1, len(layout)) and x != layout.get_extents()[1][2]:
-                y = layout.get_extents()[1][3]
-                j = sum(layout.xy_to_index(x, y))
-                xy = (x,y)
-            else:
-                j, xy = layout.cursor_up(cur, x)
+            j, xy = layout.cursor_up(cur, x)
         else:
             j, xy = layout.cursor_up(cur)
             sel.set_target_x(xy[0], layout.indent)
@@ -559,6 +552,8 @@ class TextBlock(gtk.EventBox):
             else:
                 cur.set_position(0, 0)
                 return False
+
+            print cur.paragraph, cur.index
 
             layout1 = self._get_layout(cur)
             x = sel.target_x + (sel.target_x_indent - layout1.indent)*PS
