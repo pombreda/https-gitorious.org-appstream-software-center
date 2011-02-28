@@ -711,7 +711,7 @@ class UIReview(gtk.VBox):
         return
 
     def _on_report_abuse_clicked(self, button):
-        reviews = self.get_ancestor(UIReviews)
+        reviews = self.get_ancestor(UIReviewsList)
         if reviews:
             reviews.emit("report-abuse", self.id)
     
