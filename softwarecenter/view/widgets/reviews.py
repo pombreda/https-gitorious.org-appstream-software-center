@@ -523,8 +523,6 @@ class UIReviewsList(gtk.VBox):
     def _fill(self):
         self.logged_in_person = self._get_person_from_config()
         if self.reviews:
-            self.reviews.reverse()  # XXX: sort so that reviews are ordered recent to oldest
-                                    # XXX: prob should be done somewhere else
             for r in self.reviews:
                 pkgversion = self._parent.app_details.version
                 review = UIReview(r, pkgversion, self.logged_in_person)
@@ -548,7 +546,7 @@ class UIReviewsList(gtk.VBox):
         return False
 
     def finished(self):
-        print 'Review count: %s' % len(self.reviews)
+        #print 'Review count: %s' % len(self.reviews)
         if not self.reviews:
             self._be_the_first_to_review()
         else:
