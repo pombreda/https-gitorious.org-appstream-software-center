@@ -53,7 +53,7 @@ from appdetailsview import AppDetailsViewBase
 
 from widgets import mkit
 from widgets.mkit import EM, ShapeStar
-from widgets.reviews import UIReviewsList, UIReview, ReviewStatsContainer, StarRating
+from widgets.reviews import UIReviewsList, UIReview, ReviewStatsContainer, StarRating, EmbeddedMessage
 
 from widgets.description import AppDescription, TextBlock
 from widgets.thumbnail import ScreenshotThumbnail
@@ -61,6 +61,7 @@ from softwarecenter.distro import get_distro
 
 from softwarecenter.drawing import alpha_composite, color_floats, rounded_rect2, rounded_rect
 from softwarecenter.backend.config import get_config
+
 
 if os.path.exists("./softwarecenter/enums.py"):
     sys.path.insert(0, ".")
@@ -1126,14 +1127,16 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.license_info.hide()
             self.support_info.hide()
             self.totalsize_info.hide()
+            self.info_header.hide()
         else:
             self.addon_view.show()
             self.reviews.show()
+            self.screenshot.show()
             self.version_info.show()
             self.license_info.show()
             self.support_info.show()
             self.totalsize_info.show()
-            self.screenshot.show()
+            self.info_header.show()
         return
 
     def _update_app_description(self, app_details, pkgname):
@@ -1281,7 +1284,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # set button sensitive again
         self.pkg_statusbar.button.set_sensitive(True)
 
-        pkg_ambiguous_error = app_details.pkg_state in (PKG_STATE_NOT_FOUND, PKG_STATE_NEEDS_SOURCE)
+        pkg_ambiguous_error = app_details.pkg_state in (PKG_STATE_NOT_FOUND,
+                                                        PKG_STATE_NEEDS_SOURCE)
 
         appname = gobject.markup_escape_text(app_details.display_name)
 
@@ -1301,7 +1305,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         self._update_title_markup(appname, summary)
         self._update_app_icon(app_details)
-        self._update_layout_error_status(pkg_ambiguous_error)
         self._update_app_description(app_details, appname)
         self._update_description_footer_links(app_details)
         self._update_app_screenshot(app_details)
@@ -1309,6 +1312,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self._update_pkg_info_table(app_details)
         self._update_addons(app_details)
         self._update_reviews(app_details)
+        self._update_layout_error_status(pkg_ambiguous_error)
 
         # show where it is
         self._configure_where_is_it()
@@ -1416,8 +1420,10 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             LOG.debug("no app selected")
             return
 
-        same_app = (self.app and self.app.pkgname and self.app.pkgname == app.pkgname)
-        print 'SameApp:', same_app
+        same_app = (self.app and 
+                    self.app.pkgname and 
+                    self.app.pkgname == app.pkgname)
+        #print 'SameApp:', same_app
 
         # init data
         self.app = app

@@ -21,7 +21,8 @@ from softwarecenter.db.application import Application, AppDetails
 from softwarecenter.distro import get_distro
 from softwarecenter.enums import *
 from softwarecenter.paths import XAPIAN_BASE_PATH
-from softwarecenter.view.appdetailsview_gtk import AppDetailsViewGtk, EmbeddedMessage
+from softwarecenter.view.appdetailsview_gtk import AppDetailsViewGtk
+from softwarecenter.view.widgets.reviews import EmbeddedMessage
 
 
 class TestAppDetailsView(unittest.TestCase):
@@ -40,7 +41,7 @@ class TestAppDetailsView(unittest.TestCase):
         icons = gtk.icon_theme_get_default()
         # create a details object
         self.appdetails = AppDetailsViewGtk(
-            db, distro, icons, cache, datadir)
+            db, distro, icons, cache, datadir, None)
 
     def test_show_app_simple(self):
         app = Application("7zip","p7zip-full")
@@ -54,7 +55,7 @@ class TestAppDetailsView(unittest.TestCase):
         self._p()
         time.sleep(1)
         self._p()
-        for r in self.appdetails.ui_reviews_list.vbox:
+        for r in self.appdetails.reviews.vbox:
             if self._is_embedded_message_no_network(r):
                 break
         else:
@@ -65,7 +66,7 @@ class TestAppDetailsView(unittest.TestCase):
         app = Application("7zip","p7zip-full")
         self.appdetails.show_app(app)
         # check that we do *not* have the embedded message
-        for r in self.appdetails.ui_reviews_list.vbox:
+        for r in self.appdetails.reviews.vbox:
             self.assertFalse(self._is_embedded_message_no_network(r))
 
     def test_show_app_simple_network_unknown(self):
@@ -75,7 +76,7 @@ class TestAppDetailsView(unittest.TestCase):
         app = Application("7zip","p7zip-full")
         self.appdetails.show_app(app)
         # check that we do *not* have the embedded message
-        for r in self.appdetails.ui_reviews_list.vbox:
+        for r in self.appdetails.reviews.vbox:
             self.assertFalse(self._is_embedded_message_no_network(r))
 
     def _is_embedded_message_no_network(self, message):

@@ -8,6 +8,8 @@ software-center (3.1.21) UNRELEASED; urgency=low
   * merged lp:~mvo/software-center/weblive that contians the remaining
     bit of the weblive support, this is disabled by default and you need
     to run software-center --with-weblive to enable it
+  * utils/update-software-center:
+    - fix typo in loghandler, thanks to Stephane Graber
 
   [ Gary Lasker ]
   * softwarecenter/enums.py,
