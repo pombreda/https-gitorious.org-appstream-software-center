@@ -16,12 +16,13 @@ software-center (3.1.21) UNRELEASED; urgency=low
     softwarecenter/backend/aptd.py:
     - fix transaction-started for broken depends case (LP: #724321) 
   * softwarecenter/db/update.py,
+    test/test_appview.py,
     test/test_database.py:
     - also catalog items not in axi (e.g. for-purchase apps) so
       they will show up in What's New, add a unit test for
       this (LP: #684077) 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 28 Feb 2011 14:23:20 -0500
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 28 Feb 2011 15:24:17 -0500
 
 software-center (3.1.20) natty; urgency=low
 
