@@ -295,7 +295,7 @@ class TextBlock(gtk.EventBox):
         #self._xterm = gtk.gdk.Cursor(gtk.gdk.XTERM)
 
         # TODO: drag n drop
-        #self.drag_source_set(gtk.gdk.BUTTON1_MASK, [("text/plain", 0, 80),], gtk.gdk.ACTION_COPY)
+        self.drag_source_set(gtk.gdk.BUTTON1_MASK, [("text/plain", 0, 80),], gtk.gdk.ACTION_COPY)
 
         self.viewport = viewport
 #        self.viewport.connect('size-allocate', self._on_allocate)
