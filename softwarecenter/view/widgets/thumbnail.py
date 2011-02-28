@@ -404,7 +404,8 @@ class ScreenshotThumbnail(gtk.Alignment):
                 acc = self.get_accessible()
                 acc.set_name(_('%s - Screenshot') % self.appname)
 
-        self.show_all()
+        if self.get_property("visible"):
+            self.show_all()
         self.screenshot_available = available
         return
  
