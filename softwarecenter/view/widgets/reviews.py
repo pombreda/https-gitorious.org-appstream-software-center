@@ -952,11 +952,15 @@ class EmbeddedMessage(UIReview):
 
         i = gtk.image_new_from_icon_name(icon_name, gtk.ICON_SIZE_DIALOG)
         hb.pack_start(i, False)
+        # this is used in the UI tests
+        self.image = i
 
         l = gtk.Label()
         l.set_size_request(300, -1)
         l.set_line_wrap(True)
         l.set_alignment(0, 0.5)
+        # this is used in the UI tests
+        self.label = l
 
         l.set_markup('<b><big>%s</big></b>\n%s' % (title, message))
 
