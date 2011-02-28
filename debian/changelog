@@ -18,11 +18,11 @@ software-center (3.1.21) UNRELEASED; urgency=low
   * softwarecenter/db/update.py,
     test/test_appview.py,
     test/test_database.py:
-    - also catalog items not in axi (e.g. for-purchase apps) so
-      they will show up in What's New, add a unit test for
-      this (LP: #684077) 
+    - track cataloged_time for items not in axi (e.g. for-purchase apps)
+      so that they will show up in What's New, add/modify unit tests
+      (LP: #684077) 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 28 Feb 2011 15:24:17 -0500
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 28 Feb 2011 15:27:58 -0500
 
 software-center (3.1.20) natty; urgency=low
 
