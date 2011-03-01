@@ -553,8 +553,6 @@ class UIReviewsList(gtk.VBox):
         # only show new_review for installed stuff
         if is_installed:
             self.new_review.show()
-            if not self.reviews:
-                self._be_the_first_to_review()
         else:
             self.new_review.hide()
 
@@ -563,16 +561,18 @@ class UIReviewsList(gtk.VBox):
         self._fill()
         self.vbox.show_all()
 
-        # setup label accordingly (maybe hidden)
         if self.reviews:
+            # adjust label
             if self._any_reviews_current_user():
                 self.new_review.set_label(_("Write another review"))
             else:
                 self.new_review.set_label(_("Write your own review"))
         else:
-            s = '%s' % _("None yet")
-            self.vbox.pack_start(EmbeddedMessage(message=s))
-
+            # no reviews, either offer to write one or show "none"
+            if is_installed:
+                self._be_the_first_to_review()
+            else:
+                self.vbox.pack_start(EmbeddedMessage(message=_("None yet")))
         return
 
     def set_width(self, w):
