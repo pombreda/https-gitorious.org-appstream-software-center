@@ -881,19 +881,19 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         del cr
         return
 
-    def _on_allocate(self, viewport, allocation, vbox):
-        name = self._pane.pane_name.replace(' ', '')
+    def _on_allocate(self, widget, allocation):
+        self.queue_draw()
+
         if allocation == self._allocation:
-            logging.getLogger("softwarecenter.view.allocation.%s" % name).debug("TopAllocate skipped!")
+            logging.getLogger("softwarecenter.view.allocation").debug("TopAllocate skipped!")
             return True
 
-        logging.getLogger("softwarecenter.view.allocation.%s" % name).debug("on_alloc widget=%s, allocation=%s" % (viewport, allocation))
+        logging.getLogger("softwarecenter.view.allocation").debug("on_alloc widget=%s, allocation=%s" % (widget, allocation))
 
         self._allocation = allocation
 
-        w = min(allocation.width-2, 70*mkit.EM)
-        vbox.set_size_request(w, -1)
-        self.queue_draw()
+        w = min(self.allocation.width-2, 70*mkit.EM)
+        widget.set_size_request(w, -1)
         return True
 
     def _header_on_allocate(self, widget, allocation, spacing):
@@ -1109,7 +1109,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         hb.connect('size-allocate', self._header_on_allocate, hb.get_spacing())
         self.connect('key-press-event', self._on_key_press)
         vb.connect('expose-event', self._on_expose, alignment)
-        self.connect('size-allocate', self._on_allocate, vb)
+        vb.connect('size-allocate', self._on_allocate)
         return
 
     def _on_review_new(self, button):
