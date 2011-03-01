@@ -84,7 +84,7 @@ class CarouselView(gtk.VBox):
                 self._offset = random.randrange(len(carousel_apps))
             else:
                 self._offset = 0
-            #self.connect('realize', self._on_realize)
+
         else:
             self._icon_size = 48
             self._offset = 0
@@ -102,6 +102,13 @@ class CarouselView(gtk.VBox):
         self.show_all()
 
         self.page_sel.connect('page-selected', self._on_page_clicked)
+        self.connect('size-allocate', self._on_allocate)
+        return
+
+    def _on_allocate(self, widget, allocation):
+        if allocation.width == self._width: return
+        self._width = allocation.width
+        self._build_view(self._width)
         return
 
     def _on_page_clicked(self, page_sel, page):
@@ -263,12 +270,6 @@ class CarouselView(gtk.VBox):
         self._fader = gobject.timeout_add(CarouselView.FADE_INTERVAL,
                                           self._fade_out)
         return loop
-
-    def set_width(self, width):
-        self._width = width
-        self.page_sel.set_width(width)
-        self._build_view(width)
-        return
 
     def get_posters(self):
         return self.posters
@@ -546,7 +547,12 @@ class PageSelector(gtk.Alignment):
         self.dots = []
         self._width = 0
         self._signals = []
+
+#        self.connect('size-allocate', self._on_allocate)
         return
+
+#    def _on_allocate(self, widget, allocation):
+#        return
 
     def _on_dot_clicked(self, dot):
         self.emit('page-selected', dot.page_number)
@@ -577,10 +583,6 @@ class PageSelector(gtk.Alignment):
         self._signals = []
         return
 
-    def set_width(self, width):
-        self._width = width
-        return
-
     def set_n_pages(self, n_pages, row_spacing=6):
         self.n_pages = n_pages
         self.clear_paging_dots()
@@ -591,7 +593,7 @@ class PageSelector(gtk.Alignment):
 
         self.vbox.pack_start(row)
 
-        max_w = self._width
+        max_w = self.allocation.width
         #print max_w, self.vbox.allocation.width
         w = 0
         for i in range(int(n_pages)):
@@ -603,7 +605,7 @@ class PageSelector(gtk.Alignment):
                 row.add(rowbox)
 
                 self.vbox.pack_start(row, expand=True)
-                w = PagingDot.DOT_SIZE + row_spacing
+                w = PagingDot.SIZE + row_spacing
 
             dot = PagingDot(i)
             rowbox.pack_start(dot, False)

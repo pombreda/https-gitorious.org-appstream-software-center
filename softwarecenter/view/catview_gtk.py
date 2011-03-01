@@ -172,8 +172,8 @@ class LobbyViewGtk(CategoriesViewGtk):
         if w <= 35*mkit.EM or w == self._prev_width: return True
         self._prev_width = w
 
-        self.featured_carousel.set_width(w)
-        self.whatsnew_carousel.set_width(w)
+#        self.featured_carousel.set_width(w)
+#        self.whatsnew_carousel.set_width(w)
 
         vbox.set_size_request(w, -1)
         return True
