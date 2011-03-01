@@ -726,8 +726,9 @@ class ScreenshotView(gtk.VBox):
         exec_line = get_exec_line_from_desktop(self.desktop_file)
         # split away any arguments, gedit for example as %U
         cmd = exec_line.split()[0]
-        self.weblive.create_automatic_user_and_run_session(session=cmd)
- 
+        servers = self.weblive.get_servers_for_pkgname(self.pkgname)
+        self.weblive.create_automatic_user_and_run_session(session=cmd,serverid=servers[0])
+
     def configure(self, app_details):
 
         """ Called to configure the screenshotview for a new application.

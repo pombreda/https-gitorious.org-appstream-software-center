@@ -144,14 +144,20 @@ class WebLiveBackend(object):
         return servers
 
     def is_pkgname_available_on_server(self, pkgname, serverid=None):
-        if not serverid:
-            serverid = self.DEFAULT_SERVER
         for server in self.available_servers:
-            if server.name == serverid:
+            if not serverid or server.name == serverid:
                 for pkg in server.packages:
                     if pkg.pkgname == pkgname:
                         return True
         return False
+
+    def get_servers_for_pkgname(self, pkgname):
+        servers=[]
+        for server in self.available_servers:
+            for pkg in server.packages:
+                if pkg.pkgname == pkgname:
+                    servers.append(server.name)
+        return servers
 
     def create_automatic_user_and_run_session(self, serverid=None,
                                               session="desktop"):
