@@ -418,7 +418,9 @@ class StoreDatabase(gobject.GObject):
         return False
 
     def get_installed_purchased_packages(self):
-        """ return a set() of packagenames with purchased apps """
+        """ return a set() of packagenames of purchased apps that are
+            currently installed 
+        """
         for_purchase_query = xapian.Query(
             "AH" + AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME)
         enquire = xapian.Enquire(self.xapiandb)
