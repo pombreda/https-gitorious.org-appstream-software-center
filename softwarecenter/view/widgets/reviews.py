@@ -495,12 +495,10 @@ class UIReviewsList(gtk.VBox):
         self.reviews = []
         self.logged_in_person = None
 
-        label = mkit.EtchedLabel()
+        label = mkit.EtchedLabel(_("Reviews"))
         label.set_padding(6, 6)
         label.set_use_markup(True)
         label.set_alignment(0, 0.5)
-        markup = _("Reviews")
-        label.set_markup(markup)
 
         self.new_review = mkit.VLinkButton(_("Write your own review"))
         self.new_review.set_underline(True)
@@ -969,21 +967,28 @@ class EmbeddedMessage(UIReview):
             self.image = i
 
         l = gtk.Label()
-        l.set_size_request(300, -1)
         l.set_line_wrap(True)
         l.set_alignment(0, 0.5)
         # this is used in the UI tests
         self.label = l
 
-        l.set_markup('<b><big>%s</big></b>\n%s' % (title, message))
+        if title:
+            l.set_markup('<b><big>%s</big></b>\n%s' % (title, message))
+        else:
+            l.set_markup(message)
 
         hb.pack_start(l)
 
         self.show_all()
         return
 
-    def draw(self, *args, **kwargs):
-        return
+    def draw(self, cr, a):
+        cr.save()
+        cr.rectangle(a)
+        color = mkit.floats_from_gdkcolor(self.style.mid[self.state])
+        cr.set_source_rgba(*color+(0.2,))
+        cr.fill()
+        cr.restore()
 
 
 class NoReviewYet(EmbeddedMessage):
