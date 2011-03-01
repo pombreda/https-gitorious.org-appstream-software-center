@@ -674,30 +674,7 @@ class UIReview(gtk.VBox):
         return
 
     def _on_realize(self, w, review_data, app_version, logged_in_person):
-        self.id = review_data.id
-        rating = review_data.rating
-        self.person = review_data.reviewer_username
-        summary = review_data.summary
-        text = review_data.review_text
-        date = review_data.date_created
-        app_name = review_data.app_name
-        review_version = review_data.version
-        useful_total = review_data.usefulness_total
-        useful_favorable = review_data.usefulness_favorable
-        useful_submit_error = review_data.usefulness_submit_error
-        dark_color = self.style.dark[gtk.STATE_NORMAL]
-        self._build(rating,
-                    self.person,
-                    summary,
-                    text,
-                    date,
-                    app_name,
-                    review_version,
-                    app_version,
-                    useful_total,
-                    useful_favorable,
-                    useful_submit_error,
-                    dark_color)
+        self._build(review_data, app_version, logged_in_person)
         return
 
     def _on_allocate(self, widget, allocation, stars, summary, who_when, version_lbl, flag):
@@ -773,35 +750,42 @@ class UIReview(gtk.VBox):
         # example raw_date str format: 2011-01-28 19:15:21
         return datetime.datetime.strptime(raw_date_str, '%Y-%m-%d %H:%M:%S')
 
-    def _build(self, rating, person, summary, text, date, app_name, review_version, app_version, useful_total, useful_favorable, useful_submit_error, dark_color):
-        # all the arguments may need markup escape, depening on if
-        # they are used as text or markup
+    def _build(self, review_data, app_version, logged_in_person):
 
+        # all the attributes of review_data may need markup escape, 
+        # depening on if they are used as text or markup
+        self.id = review_data.id
+        self.person = review_data.reviewer_username
         # example raw_date str format: 2011-01-28 19:15:21
-        cur_t = self._get_datetime_from_review_date(date)
+        cur_t = self._get_datetime_from_review_date(review_data.date_created)
+
+        app_name = review_data.app_name
+        review_version = review_data.version
+        useful_total = review_data.usefulness_total
+        useful_favorable = review_data.usefulness_favorable
+        useful_submit_error = review_data.usefulness_submit_error
 
         dark_color = self.style.dark[gtk.STATE_NORMAL]
-        m = self._whom_when_markup(person, cur_t, dark_color)
+        m = self._whom_when_markup(self.person, cur_t, dark_color)
 
         who_when = mkit.EtchedLabel(m)
         who_when.set_use_markup(True)
 
-        summary = mkit.EtchedLabel('<b>%s</b>' % gobject.markup_escape_text(summary))
+        summary = mkit.EtchedLabel('<b>%s</b>' % gobject.markup_escape_text(review_data.summary))
         summary.set_use_markup(True)
         summary.set_ellipsize(pango.ELLIPSIZE_END)
         summary.set_alignment(0, 0.5)
 
-        text = gtk.Label(text)
+        text = gtk.Label(review_data.review_text)
         text.set_line_wrap(True)
         text.set_selectable(True)
         text.set_alignment(0, 0)
 
-        stars = StarRating(rating)
+        stars = StarRating(review_data.rating)
 
         self.header.pack_start(stars, False)
         self.header.pack_start(summary, False)
         self.header.pack_end(who_when, False)
-
         self.body.pack_start(text, False)
         
         #if review version is different to version of app being displayed, 
@@ -825,7 +809,7 @@ class UIReview(gtk.VBox):
         self.footer_split.pack_start(self.footer, False)
 
         current_user_reviewer = False
-        if person == self.logged_in_person:
+        if self.person == self.logged_in_person:
             current_user_reviewer = True
 
         self._build_usefulness_ui(current_user_reviewer, useful_total, useful_favorable, useful_submit_error)
