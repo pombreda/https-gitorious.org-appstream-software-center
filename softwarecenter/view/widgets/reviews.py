@@ -37,6 +37,8 @@ from gettext import gettext as _
 from mkit import EM, ShapeStar, ShapeRoundedRectangle, VLinkButton, floats_from_string
 from softwarecenter.utils import get_nice_date_string, upstream_version_compare, upstream_version
 
+from softwarecenter.netstatus import network_state_is_connected
+
 from softwarecenter.utils import get_person_from_config
 from softwarecenter.enums import *
 
@@ -527,8 +529,7 @@ class UIReviewsList(gtk.VBox):
                 review = UIReview(r, pkgversion, self.logged_in_person)
                 self.vbox.pack_start(review)
 
-        elif get_network_state() == NetState.NM_STATE_CONNECTED:
-            self.vbox.pack_start(NoReviewYet())
+
         return
 
     def _be_the_first_to_review(self):
@@ -546,24 +547,28 @@ class UIReviewsList(gtk.VBox):
 
     def finished(self):
         #print 'Review count: %s' % len(self.reviews)
-        if (self._parent.app_details and
-            not self._parent.app_details.pkg_state == PKG_STATE_INSTALLED):
-            self.new_review.hide()
-        else:
+        is_installed = (self._parent.app_details and
+                        self._parent.app_details.pkg_state == PKG_STATE_INSTALLED)
+
+        # only show new_review for installed stuff
+        if is_installed:
             self.new_review.show()
             if not self.reviews:
                 self._be_the_first_to_review()
-        
-        if self.reviews:
-            self.hide_spinner()
+        else:
+            self.new_review.hide()
 
+        # hide spinner 
+        self.hide_spinner()
+        self._fill()
+        self.vbox.show_all()
+
+        # setup label accordingly (maybe hidden)
+        if self.reviews:
             if self._any_reviews_current_user():
                 self.new_review.set_label(_("Write another review"))
             else:
                 self.new_review.set_label(_("Write your own review"))
-
-            self._fill()
-            self.vbox.show_all()
         return
 
     def set_width(self, w):

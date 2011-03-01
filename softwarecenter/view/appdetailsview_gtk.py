@@ -1300,7 +1300,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
     def _update_reviews_active_network(self):
         for r in self.reviews.vbox:
-            if isinstance(r, (EmbeddedMessage, NoReviewYet)):
+            if isinstance(r, EmbeddedMessage):
                 r.destroy()
             if hasattr(r, 'complain'):
                 r.complain.set_sensitive(True)
