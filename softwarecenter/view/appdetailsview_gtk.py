@@ -45,6 +45,7 @@ from softwarecenter.enums import *
 from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
 
 from softwarecenter.utils import *
+from softwarecenter.config import get_config
 from softwarecenter.backend.weblive import get_weblive_backend
 
 from softwarecenter.gwibber_helper import GWIBBER_SERVICE_AVAILABLE
@@ -60,7 +61,6 @@ from widgets.thumbnail import ScreenshotThumbnail
 from softwarecenter.distro import get_distro
 
 from softwarecenter.drawing import alpha_composite, color_floats, rounded_rect2, rounded_rect
-from softwarecenter.backend.config import get_config
 
 
 if os.path.exists("./softwarecenter/enums.py"):
