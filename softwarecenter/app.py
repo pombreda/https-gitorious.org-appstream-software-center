@@ -678,8 +678,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self._login_via_dbus_sso()
             
     def on_menuitem_deauthorize_computer_activate(self, menuitem):
-        # TODO: get the account name if we want to display that in the dialog
-        account_name = None
+        account_name = get_person_from_config()
         
         # get a list of installed purchased packages
         installed_purchased_packages = self.db.get_installed_purchased_packages()
