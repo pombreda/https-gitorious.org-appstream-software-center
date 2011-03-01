@@ -569,6 +569,10 @@ class UIReviewsList(gtk.VBox):
                 self.new_review.set_label(_("Write another review"))
             else:
                 self.new_review.set_label(_("Write your own review"))
+        else:
+            s = '%s' % _("None yet")
+            self.vbox.pack_start(EmbeddedMessage(message=s))
+
         return
 
     def set_width(self, w):
@@ -642,7 +646,7 @@ class UIReviewsList(gtk.VBox):
         return
 
     def get_reviews(self):
-        return filter(lambda r: not isinstance(r, (EmbeddedMessage, NoReviewYet)) \
+        return filter(lambda r: not isinstance(r, EmbeddedMessage) \
                         and isinstance(r, UIReview), self.vbox.get_children())
 
 class UIReview(gtk.VBox):
@@ -948,10 +952,11 @@ class EmbeddedMessage(UIReview):
         hb = gtk.HBox(spacing=12)
         a.add(hb)
 
-        i = gtk.image_new_from_icon_name(icon_name, gtk.ICON_SIZE_DIALOG)
-        hb.pack_start(i, False)
-        # this is used in the UI tests
-        self.image = i
+        if icon_name:
+            i = gtk.image_new_from_icon_name(icon_name, gtk.ICON_SIZE_DIALOG)
+            hb.pack_start(i, False)
+            # this is used in the UI tests
+            self.image = i
 
         l = gtk.Label()
         l.set_size_request(300, -1)
