@@ -1082,7 +1082,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.info_keys = []
 
         # info header
-        self.info_header = mkit.EtchedLabel("Details")
+        self.info_header = mkit.EtchedLabel(_("Details"))
         self.info_header.set_alignment(0, 0.5)
         self.info_header.set_padding(6, 6)
         self.info_header.set_use_markup(True)
