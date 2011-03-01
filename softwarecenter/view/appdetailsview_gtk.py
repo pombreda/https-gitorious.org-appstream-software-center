@@ -410,12 +410,6 @@ class PackageInfo(gtk.HBox):
     def _on_allocate(self, widget, allocation, value_label, space_consumed):
         logging.getLogger("softwarecenter.view.allocation").debug("on_alloc widget=%s, allocation=%s" % (widget, allocation))
         value_label.set_size_request(max(10, allocation.width-space_consumed), -1)
-
-#        width = allocation.width
-#        if self.get_children():
-#            k, v = self.get_children()
-#            l = v.get_children()[0]
-#            l.set_size_request(width-k.allocation.width-self.get_spacing(), -1)
         return
 
     def set_width(self, width):
@@ -485,7 +479,7 @@ class Addon(gtk.HBox):
 
         self.checkbutton.add(hbox)
 
-        self.connect('size-allocate', self._on_allocate, self.title)
+#        self.connect('size-allocate', self._on_allocate, self.title)
 
         # a11y
         self.a11y = self.checkbutton.get_accessible()
@@ -699,7 +693,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         gtk.Viewport.__init__(self)
         self.set_shadow_type(gtk.SHADOW_NONE)
 
-        self._prev_width = -1
+        self._allocation = None
         self._pane = pane
 
         self.section = None
@@ -872,15 +866,18 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         return
 
     def _on_allocate(self, viewport, allocation, vbox):
-        logging.getLogger("softwarecenter.view.allocation").debug("on_alloc widget=%s, allocation=%s" % (viewport, allocation))
-        self.queue_draw()
+        name = self._pane.pane_name.replace(' ', '')
+        if allocation == self._allocation:
+            logging.getLogger("softwarecenter.view.allocation.%s" % name).debug("Allocate skipped!")
+            return True
+
+        logging.getLogger("softwarecenter.view.allocation.%s" % name).debug("on_alloc widget=%s, allocation=%s" % (viewport, allocation))
+
+        self._allocation = allocation
 
         w = min(allocation.width-2, 70*mkit.EM)
-
-        if w <= 35*mkit.EM or w == self._prev_width: return True
-        self._prev_width = w
-
         vbox.set_size_request(w, -1)
+        self.queue_draw()
         return True
 
     def _header_on_allocate(self, widget, allocation, spacing):
