@@ -782,7 +782,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         else:
             self.review_stats_widget.hide()
 
-    def _reviews_ready_callback(self, app, reviews):
+    def _reviews_ready_callback(self, app, reviews_data):
         """ callback when new reviews are ready, cleans out the
             old ones
         """
@@ -793,28 +793,27 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         #  software-center totem)
         if self.app.pkgname != app.pkgname:
             return
-        # clear out the old ones ...
-        self.reviews.clear()
-        # then add the new ones ...
-        for review in reviews:
-            self.reviews.add_review(review)
-        # then update the stats (if needed). the caching can make them
+        # update the stats (if needed). the caching can make them
         # wrong, so if the reviews we have in the list are more than the
         # stats we update manually
         old_stats = self.review_loader.get_review_stats(self.app)
-        if ((old_stats is None and len(reviews) > 0) or
-            (old_stats is not None and old_stats.ratings_total < len(reviews))):
+        if ((old_stats is None and len(reviews_data) > 0) or
+            (old_stats is not None and old_stats.ratings_total < len(reviews_data))):
             # generate new stats
             stats = ReviewStats(app)
-            stats.ratings_total = len(reviews)
+            stats.ratings_total = len(reviews_data)
             if stats.ratings_total == 0:
                 stats.ratings_average = 0
             else:
-                stats.ratings_average = sum([x.rating for x in reviews]) / float(stats.ratings_total)
+                stats.ratings_average = sum([x.rating for x in reviews_data]) / float(stats.ratings_total)
             # update UI
             self._update_review_stats_widget(stats)
             # update global stats cache as well
             self.review_loader.REVIEW_STATS_CACHE[app] = stats
+        # update the UI
+        self.reviews.clear()
+        for review in reviews_data:
+            self.reviews.add_review(review)
         self.reviews.finished()
 
     def on_test_drive_clicked(self, button):
@@ -822,7 +821,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         exec_line = get_exec_line_from_desktop(self.desktop_file)
         # split away any arguments, gedit for example as %U
         cmd = exec_line.split()[0]
-        self.weblive.create_automatic_user_and_run_session(session=cmd)
+        servers = self.weblive.get_servers_for_pkgname(self.pkgname)
+        self.weblive.create_automatic_user_and_run_session(
+            session=cmd,serverid=servers[0])
 
     def _on_addon_table_built(self, table):
         self.info_vb.pack_start(table, False)
@@ -1100,6 +1101,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # reviews cascade
         self.reviews.connect("new-review", self._on_review_new)
         self.reviews.connect("report-abuse", self._on_review_report_abuse)
+        self.reviews.connect("submit-usefulness", self._on_review_submit_usefulness)
 
         vb.pack_start(self.reviews, False)
 
@@ -1117,6 +1119,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
     def _on_review_report_abuse(self, button, review_id):
         self._review_report_abuse(str(review_id))
+
+    def _on_review_submit_usefulness(self, button, review_id, is_useful):
+        self._review_submit_usefulness(review_id, is_useful)
 
     def _update_title_markup(self, appname, summary):
         # make title font size fixed as they should look good compared to the 

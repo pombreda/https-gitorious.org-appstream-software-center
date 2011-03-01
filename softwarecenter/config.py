@@ -1,4 +1,4 @@
-# Copyright (C) 2009 Canonical
+# Copyright (C) 20011 Canonical
 #
 # Authors:
 #  Andrew Higginson
@@ -19,7 +19,7 @@
 import ConfigParser
 import os
 
-from softwarecenter.paths import *
+from paths import SOFTWARE_CENTER_CONFIG_FILE
 
 class SoftwareCenterConfig(ConfigParser.SafeConfigParser):
     def __init__(self, config):

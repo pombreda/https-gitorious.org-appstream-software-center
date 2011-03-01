@@ -36,8 +36,9 @@ from gettext import gettext as _
 
 from mkit import EM, ShapeStar, ShapeRoundedRectangle, VLinkButton, floats_from_string
 from softwarecenter.utils import get_nice_date_string, upstream_version_compare, upstream_version
-from softwarecenter.backend.config import get_config
 
+from softwarecenter.utils import get_person_from_config
+from softwarecenter.enums import *
 
 class IStarPainter:
 
@@ -478,11 +479,15 @@ class UIReviewsList(gtk.VBox):
         'report-abuse':(gobject.SIGNAL_RUN_FIRST,
                     gobject.TYPE_NONE,
                     (gobject.TYPE_PYOBJECT,)),
+        'submit-usefulness':(gobject.SIGNAL_RUN_FIRST,
+                    gobject.TYPE_NONE,
+                    (gobject.TYPE_PYOBJECT, bool)),
+
     }
 
     def __init__(self, parent):
         gtk.VBox.__init__(self)
-        self.logged_in_person = self._get_person_from_config()
+        self.logged_in_person = get_person_from_config()
 
         self._parent = parent
         self.reviews = []
@@ -511,17 +516,11 @@ class UIReviewsList(gtk.VBox):
         self.show_all()
         return
 
-    def _get_person_from_config(self):
-        cfg = get_config()
-        if cfg.has_option("reviews", "username"):
-            return cfg.get("reviews", "username")
-        return None
-
     def _on_button_new_clicked(self, button):
         self.emit("new-review")
 
     def _fill(self):
-        self.logged_in_person = self._get_person_from_config()
+        self.logged_in_person = get_person_from_config()
         if self.reviews:
             for r in self.reviews:
                 pkgversion = self._parent.app_details.version
@@ -547,9 +546,15 @@ class UIReviewsList(gtk.VBox):
 
     def finished(self):
         #print 'Review count: %s' % len(self.reviews)
-        if not self.reviews:
-            self._be_the_first_to_review()
+        if (self._parent.app_details and
+            not self._parent.app_details.pkg_state == PKG_STATE_INSTALLED):
+            self.new_review.hide()
         else:
+            self.new_review.show()
+            if not self.reviews:
+                self._be_the_first_to_review()
+        
+        if self.reviews:
             self.hide_spinner()
 
             if self._any_reviews_current_user():
@@ -558,7 +563,7 @@ class UIReviewsList(gtk.VBox):
                 self.new_review.set_label(_("Write your own review"))
 
             self._fill()
-            self.show_all()
+            self.vbox.show_all()
         return
 
     def set_width(self, w):
@@ -574,6 +579,7 @@ class UIReviewsList(gtk.VBox):
         self.reviews = []
         for review in self.vbox:
             review.destroy()
+        self.new_review.hide()
 
     def show_spinner_with_message(self, message):
         a = gtk.Alignment(0.5, 0.5)
@@ -676,27 +682,7 @@ class UIReview(gtk.VBox):
         return
 
     def _on_realize(self, w, review_data, app_version, logged_in_person):
-        self.id = review_data.id
-        rating = review_data.rating 
-        self.person = review_data.reviewer_username
-        summary = review_data.summary
-        text = review_data.review_text
-        date = review_data.date_created
-        app_name = review_data.app_name
-        # some older version of the server do not set the version
-        review_version = getattr(review_data, "version", "")
-
-        dark_color = self.style.dark[gtk.STATE_NORMAL]
-
-        self._build(rating,
-                    self.person,
-                    summary,
-                    text,
-                    date,
-                    app_name,
-                    review_version,
-                    app_version,
-                    dark_color)
+        self._build(review_data, app_version, logged_in_person)
         return
 
     def _on_allocate(self, widget, allocation, stars, summary, who_when, version_lbl, flag):
@@ -772,35 +758,42 @@ class UIReview(gtk.VBox):
         # example raw_date str format: 2011-01-28 19:15:21
         return datetime.datetime.strptime(raw_date_str, '%Y-%m-%d %H:%M:%S')
 
-    def _build(self, rating, person, summary, text, date, app_name, review_version, app_version, dark_color):
-        # all the arguments may need markup escape, depening on if
-        # they are used as text or markup
+    def _build(self, review_data, app_version, logged_in_person):
 
+        # all the attributes of review_data may need markup escape, 
+        # depening on if they are used as text or markup
+        self.id = review_data.id
+        self.person = review_data.reviewer_username
         # example raw_date str format: 2011-01-28 19:15:21
-        cur_t = self._get_datetime_from_review_date(date)
+        cur_t = self._get_datetime_from_review_date(review_data.date_created)
+
+        app_name = review_data.app_name
+        review_version = review_data.version
+        useful_total = review_data.usefulness_total
+        useful_favorable = review_data.usefulness_favorable
+        useful_submit_error = review_data.usefulness_submit_error
 
         dark_color = self.style.dark[gtk.STATE_NORMAL]
-        m = self._whom_when_markup(person, cur_t, dark_color)
+        m = self._whom_when_markup(self.person, cur_t, dark_color)
 
         who_when = mkit.EtchedLabel(m)
         who_when.set_use_markup(True)
 
-        summary = mkit.EtchedLabel('<b>%s</b>' % gobject.markup_escape_text(summary))
+        summary = mkit.EtchedLabel('<b>%s</b>' % gobject.markup_escape_text(review_data.summary))
         summary.set_use_markup(True)
         summary.set_ellipsize(pango.ELLIPSIZE_END)
         summary.set_alignment(0, 0.5)
 
-        text = gtk.Label(text)
+        text = gtk.Label(review_data.review_text)
         text.set_line_wrap(True)
         text.set_selectable(True)
         text.set_alignment(0, 0)
 
-        stars = StarRating(rating)
+        stars = StarRating(review_data.rating)
 
         self.header.pack_start(stars, False)
         self.header.pack_start(summary, False)
         self.header.pack_end(who_when, False)
-
         self.body.pack_start(text, False)
         
         #if review version is different to version of app being displayed, 
@@ -824,12 +817,10 @@ class UIReview(gtk.VBox):
         self.footer_split.pack_start(self.footer, False)
 
         current_user_reviewer = False
-        if person == self.logged_in_person:
+        if self.person == self.logged_in_person:
             current_user_reviewer = True
 
-        # FIXME: Uncomment the following line to re-enable the reviews usefulness feature,
-        # temporarily hidden pending rollout of server support
-        #self._build_usefulness_ui(current_user_reviewer, useful_total, useful_favorable, useful_submit_error)
+        self._build_usefulness_ui(current_user_reviewer, useful_total, useful_favorable, useful_submit_error)
 
         # Translators: This link is for flagging a review as inappropriate.
         # To minimize repetition, if at all possible, keep it to a single word.
