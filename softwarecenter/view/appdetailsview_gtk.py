@@ -1523,7 +1523,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         return False
 
     def _on_transaction_started(self, backend, pkgname, appname, trans_id, trans_type):
-        if self.addons_statusbar.get_applying():
+        if self.addons_statusbar.applying:
             self.pkg_statusbar.configure(self.app_details, APP_ACTION_APPLY)
         
         state = self.pkg_statusbar.pkg_state
