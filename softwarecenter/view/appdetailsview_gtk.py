@@ -761,9 +761,14 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
     def _on_net_state_changed(self, watcher, state):
         if state == NetState.NM_STATE_DISCONNECTED:
-            self._update_reviews_inactive_network()
+            self._check_for_reviews()
         elif state == NetState.NM_STATE_CONNECTED:
-            gobject.timeout_add(500, self._update_reviews_active_network)
+            gobject.timeout_add(500, self._check_for_reviews)
+        return
+
+    def _update_reviews(self, app_details):
+        self.reviews.clear()
+        self._check_for_reviews()
         return
 
     def _check_for_reviews(self):
@@ -771,6 +776,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         stats = self.review_loader.get_review_stats(self.app)
         self._update_review_stats_widget(stats)
         # individual reviews is slow and async so we just queue it here
+        self.reviews.show_spinner_with_message(_('Checking for reviews...'))
         reviews = self.review_loader.get_reviews(self.app,
                                                  self._reviews_ready_callback)
 
@@ -1260,56 +1266,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         # Update addons state bar
         self.addons_statusbar.configure()
-        return
-
-    def _update_reviews(self, app_details):
-        self.reviews.clear()
-        if get_network_state() == NetState.NM_STATE_DISCONNECTED:
-            self._update_reviews_inactive_network()
-        else:
-            self._update_reviews_active_network()
-        return
-
-    def _update_reviews_inactive_network(self):
-        if self.reviews.get_reviews():
-            msg_exists = False
-            for r in self.reviews.vbox:
-                if isinstance(r, EmbeddedMessage):
-                    msg_exists = True
-                elif hasattr(r, 'complain'):
-                    r.complain.set_sensitive(False)
-            if not msg_exists:
-
-                title = _('No Network Connection')
-                msg = _('Only cached reviews can be displayed')
-
-                m = EmbeddedMessage(title, msg, 'network-offline')
-
-                self.reviews.vbox.pack_start(m)
-                self.reviews.vbox.reorder_child(m, 0)
-        else:
-            self.reviews.clear()
-            title = _('No Network Connection')
-            msg = _('Unable to download application reviews')
-
-            m = EmbeddedMessage(title, msg, 'network-offline')
-            self.reviews.vbox.pack_start(m)
-
-        self.reviews.new_review.set_sensitive(False)
-        return
-
-    def _update_reviews_active_network(self):
-        for r in self.reviews.vbox:
-            if isinstance(r, EmbeddedMessage):
-                r.destroy()
-            if hasattr(r, 'complain'):
-                r.complain.set_sensitive(True)
-
-        if not self.reviews.get_reviews():
-            self.reviews.show_spinner_with_message(_('Checking for reviews...'))
-            self._check_for_reviews()
-
-        self.reviews.new_review.set_sensitive(True)
         return
 
     def _update_all(self, app_details):
