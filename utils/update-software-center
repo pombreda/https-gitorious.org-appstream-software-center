@@ -31,6 +31,7 @@ import xapian
 from optparse import OptionParser
 
 from softwarecenter.enums import *
+from softwarecenter.paths import XAPIAN_BASE_PATH
 from softwarecenter.db.update import rebuild_database
 
 # dbus may not be available during a upgrade so we 
@@ -87,7 +88,7 @@ if __name__ == "__main__":
 
     #logging.basicConfig(level=logging.INFO)
     if options.debug:
-        LOG.set_level(logging.DEBUG)
+        LOG.setLevel(logging.DEBUG)
 
     # check if we are dpkg triggered because of langpack change
     # and avoid unneeded database rebuilds by checking the timestamp

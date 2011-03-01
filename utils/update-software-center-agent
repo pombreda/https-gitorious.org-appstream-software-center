@@ -72,7 +72,13 @@ if __name__ == "__main__":
         sys.exit(1)
 
     # get a writable DB
-    db = xapian.WritableDatabase(pathname, xapian.DB_CREATE_OR_OVERWRITE)
+    try:
+        db = xapian.WritableDatabase(pathname, xapian.DB_CREATE_OR_OVERWRITE)
+    except xapian.DatabaseLockError:
+        # Ref: http://launchpad.net/bugs/625189
+        logging.warn("Another instance of the update agent already holds "
+                     "a write lock on %s" % pathname)
+        sys.exit(1)
 
     # the following requires a http connection, so we do it in a 
     # seperate database

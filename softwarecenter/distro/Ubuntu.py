@@ -216,7 +216,9 @@ class Ubuntu(Distro):
         """
         generates the url for a downloadable icon based on its pkgname and the icon filename itself
         """
-        if cache is None:
+        if (cache is None or
+            not hasattr(cache._cache, '__contains__') or # cache not ready
+            not pkgname in cache):
             return None
         full_archive_url = cache[pkgname].candidate.uri
         split_at_pool = full_archive_url.split("pool")[0]

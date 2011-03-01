@@ -1,4 +1,177 @@
-software-center (3.1.17) UNRELEASED; urgency=low
+software-center (3.1.21) UNRELEASED; urgency=low
+
+  [ Aaron Peachey ]
+  * lp:~aaronp/software-center/reviews-usefulness:
+    - view/appdetailsview_gtk.py: string updates in line with spec
+
+  [ Michael Vogt ]
+  * merged lp:~mvo/software-center/weblive that contians the remaining
+    bit of the weblive support, this is disabled by default and you need
+    to run software-center --with-weblive to enable it
+  * utils/update-software-center:
+    - fix typo in loghandler, thanks to Stephane Graber
+
+  [ Gary Lasker ]
+  * softwarecenter/enums.py,
+    softwarecenter/backend/aptd.py:
+    - fix transaction-started for broken depends case (LP: #724321) 
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Fri, 25 Feb 2011 13:24:50 -0500
+
+software-center (3.1.20) natty; urgency=low
+
+  [ Kiwinote ]
+  * data/ui/SoftwareCenter.ui,
+    softwarecenter/app.py:
+    - place the status label inside an eventbox to allow focus and setup a11y
+      (LP: #575691)
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - make description accessible
+    - correctly update screenshot a11y text and make it less verbose
+  * softwarecenter/view/catview_gtk.py:
+    - rewrite recommended widget to make it suitable for i18n and a11y
+  * softwarecenter/view/widgets/carousel.py:
+    - don't transition when a Page has focus
+  * softwarecenter/view/widgets/mkit.py:
+    - some fixes to correctly update color/cursor of Button upon mouse actions
+  
+  [ Aaron Peachey ]
+  * softwarecenter/db/reviews.py: 
+    - prevent 404 errors from outputting a traceback (especially 
+      caused when origin is a PPA) LP: #709408
+  
+  [ Michael Vogt ]
+  * softwarecenter/backend/weblive.py:
+    - add prototype backend for interacting with weblive, many 
+      thanks to Stephane Graber
+  * merged lp:~osomon/software-center/fixDatabaseLockError, many
+    thanks (LP: #625189)
+  
+  [ Gary Lasker ]
+  * implement "Deauthorize my Computer" 
+    (lp:~gary-lasker/software-center/deauthorize-my-computer)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 24 Feb 2011 08:47:40 +0100
+
+software-center (3.1.19) natty; urgency=low
+
+  [ Gary Lasker ]
+  * softwarecenter/enums.py,
+    softwarecenter/utils.py,
+    softwarecenter/backend/channel.py,
+    softwarecenter/models/viewswitcherlist.py,
+    softwarecenter/view/pendingview.py:
+    - another icon crash fix (LP: #719662)
+  * softwarecenter/backend/aptd.py,
+    softwarecenter/models/appstore.py,
+    softwarecenter/view/appdetailsview_webkit.py,
+    softwarecenter/view/appview.py,
+    softwarecenter/enums.py:
+    - include additional details about the transaction when
+      firing a transaction-started signal, wire to handlers
+  * softwarecenter/view/widgets/actionbar.py:
+    - tweak spacings for action bar
+  * softwarecenter/db/application.py,
+    softwarecenter/view/appdetailsview_gtk.py,
+    softwarecenter/view/availablepane.py,
+    softwarecenter/view/channelpane.py,
+    softwarecenter/view/installedpane.py,
+    softwarecenter/view/softwarepane.py,
+    softwarecenter/enums.py:
+    - implement the software-center side of unity launcher
+      integration per the specification (LP: #670403)
+    - temporarily hide the launcher integration feature pending
+      implementation on the Unity side
+  * test/test_downloader.py:
+    - update unit test for SimpleFileDownloader changes
+
+  [ Aaron Peachey ]
+  * utils/submit_review.py,
+    softwarecenter/db/reviews.py,
+    softwarecenter/view/appdetailsview_gtk.py:
+    - provide user feedback when submitting review usefulness
+    - handle case where usefulness submission fails
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - display own reviews according to the spec
+  * utils/submit_review.py: 
+    - fix bug that showed gwibber success message when gwibber 
+      checkbox was not selected
+  
+  [ Michael Vogt ]
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - add transparent-bg-hint gdata theme engine hint to the 
+      progress bar
+  * softwarecenter/db/reviews.py, 
+    softwarecenter/view/appdetailsview_gtk.py:
+    - cleanup by unifing Review objects from rnrclient and  
+      the detailsview
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - show "none yet", "loading" in the review details
+  * softwarecenter/db/reviews.py, softwarecenter/view/appdetailsview_gtk.py:
+    - log into the right logger with the right priority
+  * softwarecenter/view/catview_gtk.py:
+    - remove debug output
+  * softwarecenter/db/reviews.py, test/test_reviews.py:
+    - sort reviews by version/usefulness/date
+  
+  [ Matthew McGowan ]
+  * lp:~mmcg069/software-center/lobby-tweaks:
+    - better layout of the welcome lobby screen
+  * lp:~mmcg069/software-center/catviewgtk-code-reorg:
+    - move widgets out into softwarecenter/view/widgets
+
+  [ Kiwinote ]
+  * softwarecenter/view/widgets/buttons.py:
+    - make CategoryButton accessible
+  * softwarecenter/view/widgets/carousel.py:
+    - minor accessibility tweaks
+  * softwarecenter/view/widgets/mkit.py:
+    - make Button emit 'clicked' on pressing enter key
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 18 Feb 2011 11:53:19 +0100
+
+software-center (3.1.18) natty; urgency=low
+
+  [ Michael Vogt ]
+  * added "Was this review useful" feature (currently hidden
+    pending rollout of server support)
+  * added "Offline cache for reviews" feature 
+    (needs latest python-piston-mini-client to work)
+  * debian/control:
+    - depend on latest python-piston-mini-client
+
+  [ Kiwinote ]
+  * softwarecenter/distro/Ubuntu.py:
+    - we can't download an icon for a featured application if the cache is not
+      ready (LP: #711857, LP: #717337)
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - don't crash if app_details has no desktop_file (LP: #716245)
+  * softwarecenter/view/purchaseview.py:
+    - open external links in default browser (LP: #640520)
+  * softwarecenter/view/softwarepane.py:
+    - play nicely if we click on an app before the cache is ready (LP: #691321)
+    - minor grammar tweak for Dylan McCall (LP: #717410)
+
+  [ Gary Lasker ]
+  * softwarecenter/enums.py,
+    softwarecenter/utils.py,
+    softwarecenter/models/viewswitcherlist.py,
+    softwarecenter/view/pendingview.py:
+    - generalize get_icon_from_iconname method, wire it up
+    - fix crash if an icon can't be found (LP: #716111)
+    - try a different, subjectively better-suited icon for the history item
+      (one that is also included in gnome-icon-theme)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 15 Feb 2011 17:39:02 +0100
+
+software-center (3.1.17.1) natty; urgency=low
+
+  * utils/update-software-center:
+    - fix crash in postinst
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 11 Feb 2011 13:23:10 +0100
+
+software-center (3.1.17) natty; urgency=low
 
   [ Michael Vogt ]
   * test/Makefile:
@@ -52,8 +225,10 @@ software-center (3.1.17) UNRELEASED; urgency=low
   * lp:~mmcg069/software-center/small-rnr-tweaks:
     - add nice human readable time delta string to the review
     - tweak review UI
+  * lp:~mmcg069/software-center/rnr-bitesize-tweaks:
+    - subdue the inappropriate link
   
- -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 10 Feb 2011 22:11:26 +0100
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 11 Feb 2011 10:31:57 +0100
 
 software-center (3.1.16) natty; urgency=low
 

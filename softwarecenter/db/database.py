@@ -417,6 +417,21 @@ class StoreDatabase(gobject.GObject):
                 return True
         return False
 
+    def get_installed_purchased_packages(self):
+        """ return a set() of packagenames with purchased apps """
+        for_purchase_query = xapian.Query(
+            "AH" + AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME)
+        enquire = xapian.Enquire(self.xapiandb)
+        enquire.set_query(for_purchase_query)
+        matches = enquire.get_mset(0, self.xapiandb.get_doccount())
+        installed_purchased_packages = set()
+        for m in matches:
+            pkgname = self.get_pkgname(m.document)
+            if (pkgname in self.cache and
+                self.cache[pkgname].is_installed):
+                installed_purchased_packages.add(pkgname)
+        return installed_purchased_packages
+
     def __len__(self):
         """return the doc count of the database"""
         return self.xapiandb.get_doccount()

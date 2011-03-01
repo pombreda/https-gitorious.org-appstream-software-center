@@ -19,6 +19,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import cPickle
+import datetime
 import gio
 import gzip
 import glib
@@ -43,6 +44,9 @@ import softwarecenter.distro
 from softwarecenter.utils import *
 from softwarecenter.paths import *
 from softwarecenter.enums import *
+from piston_mini_client import APIError
+
+from softwarecenter.netstatus import network_state_is_connected
 
 LOG = logging.getLogger(__name__)
 
@@ -70,9 +74,40 @@ class Review(object):
         self.date_created = None
         self.rating = None
         self.reviewer_username = None
+        self.version = ""
+        self.usefulness_total = 0
+        self.usefulness_favorable = 0
+        # this will be set if tryint to submit usefulness for this review failed
+        self.usefulness_submit_error = False
     def __repr__(self):
         return "[Review id=%s review_text='%s' reviewer_username='%s']" % (
             self.id, self.review_text, self.reviewer_username)
+    def __cmp__(self, other):
+        # first compare version, high version number first
+        vc = version_compare(self.version, other.version)
+        if vc != 0:
+            return vc
+        # then usefulness
+        uc = cmp(self.usefulness_favorable, other.usefulness_favorable)
+        if uc != 0:
+            return uc
+        # last is date
+        t1 = datetime.datetime.strptime(self.date_created, '%Y-%m-%d %H:%M:%S')
+        t2 = datetime.datetime.strptime(other.date_created, '%Y-%m-%d %H:%M:%S')
+        return cmp(t1, t2)
+        
+    @classmethod
+    def from_piston_mini_client(cls, other):
+        """ converts the rnrclieent reviews we get into
+            "our" Review object (we need this as we have more
+            attributes then the rnrclient review object)
+        """
+        app = Application(other.app_name, other.package_name)
+        review = cls(app)
+        for (attr, value) in other.__dict__.iteritems():
+            if not attr.startswith("_"):
+                setattr(review, attr, value)
+        return review
 
 class ReviewLoader(object):
     """A loader that returns a review object list"""
@@ -94,7 +129,7 @@ class ReviewLoader(object):
             try:
                 self.REVIEW_STATS_CACHE = cPickle.load(open(self.REVIEW_STATS_CACHE_FILE))
             except:
-                logging.exception("review stats cache load failure")
+                LOG.exception("review stats cache load failure")
                 os.rename(self.REVIEW_STATS_CACHE_FILE, self.REVIEW_STATS_CACHE_FILE+".fail")
 
     def get_reviews(self, application, callback):
@@ -160,6 +195,17 @@ class ReviewLoader(object):
             cmd, flags=glib.SPAWN_DO_NOT_REAP_CHILD, standard_output=True)
         glib.child_watch_add(pid, self._on_report_abuse_finished, (review_id, callback))
 
+    def spawn_submit_usefulness_ui(self, review_id, is_useful, parent_xid, datadir, callback):
+        cmd = [os.path.join(datadir, SUBMIT_USEFULNESS_APP), 
+               "--review-id", "%s" % review_id,
+               "--is-useful", "%s" % int(is_useful),
+               "--parent-xid", "%s" % parent_xid,
+               "--datadir", datadir,
+              ]
+        (pid, stdin, stdout, stderr) = glib.spawn_async(
+            cmd, flags=glib.SPAWN_DO_NOT_REAP_CHILD, standard_output=True)
+        glib.child_watch_add(pid, self._on_submit_usefulness_finished, (review_id, is_useful, callback))
+
     # internal callbacks/helpers
     def _on_submit_review_finished(self, pid, status, (app, stdout_fd, callback)):
         """ called when submit_review finished, when the review was send
@@ -177,7 +223,7 @@ class ReviewLoader(object):
             try:
                 review_json = simplejson.loads(stdout)
             except simplejson.decoder.JSONDecodeError:
-                logging.error("failed to parse '%s'" % stdout)
+                LOG.error("failed to parse '%s'" % stdout)
                 return
             review = ReviewDetails.from_dict(review_json)
             # FIXME: ideally this would be stored in ubuntu-sso-client
@@ -185,7 +231,7 @@ class ReviewLoader(object):
             self._save_person_to_config(review.reviewer_username)
             if not app in self._reviews: 
                 self._reviews[app] = []
-            self._reviews[app].insert(0, review)
+            self._reviews[app].insert(0, Review.from_piston_mini_client(review))
             callback(app, self._reviews[app])
 
     def _save_person_to_config(self, username):
@@ -205,6 +251,32 @@ class ReviewLoader(object):
                         # remove the one we don't want to see anymore
                         self._reviews[app].remove(review)
                         callback(app, self._reviews[app])
+                        break
+
+    def _on_submit_usefulness_finished(self, pid, status, (review_id, is_useful, callback)):
+        """ called when report_usefulness finished """
+        exitcode = os.WEXITSTATUS(status)
+        if exitcode == 0:
+            LOG.debug("usefulness id %s " % review_id)
+            for (app, reviews) in self._reviews.iteritems():
+                for review in reviews:
+                    if str(review.id) == str(review_id):
+                        # update usefulness, older servers do not send
+                        # usefulness_{total,favorable} so we use getattr
+                        review.usefulness_total = getattr(review, "usefulness_total", 0) + 1
+                        if is_useful:
+                            review.usefulness_favorable = getattr(review, "usefulness_favorable", 0) + 1
+                        callback(app, self._reviews[app])
+                        break
+        else:
+            LOG.debug("submit usefulness id=%s failed with exitcode %s" % (
+                review_id, exitcode))
+            for (app, reviews) in self._reviews.iteritems():
+                for review in reviews:
+                    if str(review.id) == str(review_id):
+                        review.usefulness_submit_error = exitcode
+                        callback(app, self._reviews[app])
+                        break
 
 
 # using multiprocessing here because threading interface was terrible
@@ -224,11 +296,16 @@ class ReviewLoaderThreadedRNRClient(ReviewLoader):
         self._new_reviews = {}
         self._new_review_stats = Queue()
 
+    def _update_rnrclient_offline_state(self):
+        # this needs the lp:~mvo/piston-mini-client/offline-mode branch
+        self.rnrclient._offline_mode = not network_state_is_connected()
+
     # reviews
     def get_reviews(self, app, callback):
         """ public api, triggers fetching a review and calls callback
             when its ready
         """
+        self._update_rnrclient_offline_state()
         self._new_reviews[app] = Queue()
         p = Process(target=self._get_reviews_threaded, args=(app, ))
         p.start()
@@ -266,15 +343,27 @@ class ReviewLoaderThreadedRNRClient(ReviewLoader):
                 #        but it appears the server has currently a bug
                 #        so it expects it this way
                 kwargs["appname"] = urllib.quote_plus(app.appname.encode("utf-8"))
-            reviews = self.rnrclient.get_reviews(**kwargs)
+            piston_reviews = self.rnrclient.get_reviews(**kwargs)
+            # the backend sometimes returns None here
+            if piston_reviews is None:
+                piston_reviews = []
+        except simplejson.decoder.JSONDecodeError, e:
+            LOG.error("failed to parse '%s'" % e.doc)
+            piston_reviews = []
+        #bug lp:709408 - don't print 404 errors as traceback when api request returns 404 error
+        except APIError, e:
+            LOG.warn("_get_reviews_threaded: no reviews able to be retrieved for package: %s (%s, origin: %s)" % (app.pkgname, distroseries, origin))
+            LOG.debug("_get_reviews_threaded: no reviews able to be retrieved: %s" % e)
+            piston_reviews = []
         except:
-            logging.exception("get_reviews")
-            reviews = []
+            LOG.exception("get_reviews")
+            piston_reviews = []
         # add "app" attribute
-        for r in reviews:
-            r.app = Application(r.app_name, r.package_name)
+        reviews = []
+        for r in piston_reviews:
+            reviews.append(Review.from_piston_mini_client(r))
         # push into the queue
-        self._new_reviews[app].put(reviews)
+        self._new_reviews[app].put(sorted(reviews, reverse=True))
 
     # stats
     def refresh_review_stats(self, callback):
@@ -302,7 +391,7 @@ class ReviewLoaderThreadedRNRClient(ReviewLoader):
             days_delta += 1
         except OSError:
             days_delta = 0
-        logging.info("refresh with days_delta: %s" % days_delta)
+        LOG.debug("refresh with days_delta: %s" % days_delta)
         try:
             # depending on the time delta, use a different call
             if days_delta:
@@ -310,7 +399,7 @@ class ReviewLoaderThreadedRNRClient(ReviewLoader):
             else:
                 piston_review_stats = self.rnrclient.review_stats()
         except:
-            logging.exception("refresh_review_stats")
+            LOG.exception("refresh_review_stats")
             return
         # convert to the format that s-c uses
         review_stats = self.REVIEW_STATS_CACHE
@@ -372,7 +461,7 @@ class ReviewLoaderJsonAsync(ReviewLoader):
                                           'origin' : origin,
                                           'distroseries' : distroseries,
                                          }
-        logging.debug("looking for review at '%s'" % url)
+        LOG.debug("looking for review at '%s'" % url)
         f=gio.File(url)
         f.set_data("app", app)
         f.set_data("callback", callback)

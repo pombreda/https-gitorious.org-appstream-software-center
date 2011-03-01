@@ -40,6 +40,7 @@ import time
 import sys
 
 from softwarecenter.enums import *
+from softwarecenter.paths import XAPIAN_BASE_PATH
 from softwarecenter.utils import ExecutionTime
 from softwarecenter.version import *
 
@@ -68,6 +69,10 @@ if __name__ == "__main__":
                       help="disable support to buy software",
                       default=False)
 
+    parser.add_option("--with-weblive", action="store_true",
+                      help="enable (experimental) weblive support, this needs the qtnx pacakge",
+                      default=False)
+
     parser.add_option("--measure-startup-time", action="store_true",
                       help="open and wait until the window is visible, then close, only useful for profiling",
                       default=False)
@@ -87,6 +92,9 @@ if __name__ == "__main__":
         softwarecenter.log.root.setLevel(level=logging.DEBUG)
     else:
         softwarecenter.log.root.setLevel(level=logging.INFO)
+
+    if options.with_weblive:
+        os.environ["SOFTWARE_CENTER_ENABLE_WEBLIVE"] = "1"
     
     # override text direction for testing purposes
     if options.force_rtl:
