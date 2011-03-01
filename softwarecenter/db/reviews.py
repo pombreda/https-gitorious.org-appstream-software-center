@@ -203,7 +203,7 @@ class ReviewLoader(object):
               ]
         (pid, stdin, stdout, stderr) = glib.spawn_async(
             cmd, flags=glib.SPAWN_DO_NOT_REAP_CHILD, standard_output=True)
-        glib.child_watch_add(pid, self._on_submit_usefulness_finished, (review_id, is_useful, callback))
+        glib.child_watch_add(pid, self._on_submit_usefulness_finished, (review_id, is_useful, stdout, callback))
 
     # internal callbacks/helpers
     def _on_submit_review_finished(self, pid, status, (app, stdout_fd, callback)):
@@ -245,9 +245,14 @@ class ReviewLoader(object):
                         callback(app, self._reviews[app])
                         break
 
-    def _on_submit_usefulness_finished(self, pid, status, (review_id, is_useful, callback)):
+    def _on_submit_usefulness_finished(self, pid, status, (review_id, is_useful, stdout_fd, callback)):
         """ called when report_usefulness finished """
         exitcode = os.WEXITSTATUS(status)
+        # "Created", "Updated", "Not modified" - 
+        # once lp:~mvo/rnr-server/submit-usefulness-result-strings makes it
+        response = os.read(stdout_fd, 512)
+        if response == '"Not modified"':
+            return
         if exitcode == 0:
             LOG.debug("usefulness id %s " % review_id)
             for (app, reviews) in self._reviews.iteritems():
