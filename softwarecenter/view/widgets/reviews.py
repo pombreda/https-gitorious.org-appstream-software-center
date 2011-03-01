@@ -548,29 +548,39 @@ class UIReviewsList(gtk.VBox):
 
     def finished(self):
         #print 'Review count: %s' % len(self.reviews)
-        is_installed = (self._parent.app_details and
-                        self._parent.app_details.pkg_state == PKG_STATE_INSTALLED)
+
+        # network sensitive stuff
+        is_connected = network_state_is_connected()
+        self.new_review.set_sensitive(is_connected)
+
+        if not is_connected:
+            title = _('No Network Connection')
+            msg = _('Only cached reviews can be displayed')
+            m = EmbeddedMessage(title, msg, 'network-offline')
+            self.vbox.pack_start(m)
 
         # only show new_review for installed stuff
+        is_installed = (self._parent.app_details and
+                        self._parent.app_details.pkg_state == PKG_STATE_INSTALLED)
         if is_installed:
             self.new_review.show()
         else:
             self.new_review.hide()
 
-        # hide spinner 
+        # always hide spinner 
         self.hide_spinner()
         self._fill()
         self.vbox.show_all()
 
         if self.reviews:
-            # adjust label
+            # adjust label if we have reviews
             if self._any_reviews_current_user():
                 self.new_review.set_label(_("Write another review"))
             else:
                 self.new_review.set_label(_("Write your own review"))
         else:
             # no reviews, either offer to write one or show "none"
-            if is_installed:
+            if is_installed and is_connected:
                 self._be_the_first_to_review()
             else:
                 self.vbox.pack_start(EmbeddedMessage(message=_("None yet")))
