@@ -486,13 +486,13 @@ class SoftwarePane(gtk.VBox, BasePane):
             if category:
                 text = _("Search term not found in current category. "
                          "Do you want to search "
-                         "<a href=\"search-all:\">all categories</a> instead ?")
+                         "<a href=\"search-all:\">all categories</a> instead?")
                 self.label_app_list_header.set_markup(text)
                 self.label_app_list_header.set_visible(True)
                 return
             elif correction:
                 ref = "<a href=\"search:%s\">%s</a>" % (correction, correction)
-                text = _("Search term not found. Did you mean: %s ?") % ref
+                text = _("Search term not found. Did you mean: %s?") % ref
                 self.label_app_list_header.set_markup(text)
                 self.label_app_list_header.set_visible(True)
                 return
