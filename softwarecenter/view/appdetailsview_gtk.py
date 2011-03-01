@@ -54,8 +54,6 @@ from widgets.imagedialog import ShowImageDialog
 
 from widgets.reviews import ReviewStatsContainer, StarRating
 
-from softwarecenter.backend.config import get_config
-
 if os.path.exists("./softwarecenter/enums.py"):
     sys.path.insert(0, ".")
 
@@ -1067,19 +1065,13 @@ class UIReviewsList(gtk.VBox):
         self.new_review.connect('clicked', lambda w: self.emit('new-review'))
 
         # data
-        self.logged_in_person = self._get_person_from_config()
+        self.logged_in_person = get_person_from_config()
         return
 
     @property
     def app_details(self):
         if self._parent:
             return self._parent.app_details
-        return None
-
-    def _get_person_from_config(self):
-        cfg = get_config()
-        if cfg.has_option("reviews", "username"):
-            return cfg.get("reviews", "username")
         return None
 
     def _on_expand(self, expander, param):

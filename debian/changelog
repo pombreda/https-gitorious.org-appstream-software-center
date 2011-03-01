@@ -10,6 +10,7 @@ software-center (3.1.21) UNRELEASED; urgency=low
     to run software-center --with-weblive to enable it
   * utils/update-software-center:
     - fix typo in loghandler, thanks to Stephane Graber
+  * merged lp:~gary-lasker/software-center/deauth_username, many thanks
 
   [ Gary Lasker ]
   * softwarecenter/enums.py,
