@@ -701,7 +701,7 @@ class UIReview(gtk.VBox):
 
     def _on_allocate(self, widget, allocation, stars, summary, who_when, version_lbl, flag):
         if self._allocation == allocation:
-            logging.getLogger("softwarecenter.view.allocation").debug("PackageInfoAllocate skipped!")
+            logging.getLogger("softwarecenter.view.allocation").debug("UIReviewAllocate skipped!")
             return True
         self._allocation = allocation
 
