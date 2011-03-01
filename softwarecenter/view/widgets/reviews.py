@@ -30,6 +30,7 @@ import os
 import mkit
 import pango
 import pangocairo
+import logging
 
 import gettext
 from gettext import gettext as _
