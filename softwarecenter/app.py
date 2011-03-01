@@ -57,7 +57,7 @@ with ExecutionTime("TIME loading app.py imports"):
     from view.historypane import HistoryPane
     from view.viewmanager import ViewManager
 
-    from backend.config import get_config
+    from config import get_config
     from backend import get_install_backend
     from paths import SOFTWARE_CENTER_ICON_CACHE_DIR
 
@@ -678,7 +678,9 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self._login_via_dbus_sso()
             
     def on_menuitem_deauthorize_computer_activate(self, menuitem):
-        # TODO: get the account name if we want to display that in the dialog
+    
+        # FIXME: need Ubuntu SSO username here
+        # account_name = get_person_from_config()
         account_name = None
         
         # get a list of installed purchased packages

@@ -54,8 +54,6 @@ from widgets.imagedialog import ShowImageDialog
 
 from widgets.reviews import ReviewStatsContainer, StarRating
 
-from softwarecenter.backend.config import get_config
-
 if os.path.exists("./softwarecenter/enums.py"):
     sys.path.insert(0, ".")
 
@@ -728,8 +726,9 @@ class ScreenshotView(gtk.VBox):
         exec_line = get_exec_line_from_desktop(self.desktop_file)
         # split away any arguments, gedit for example as %U
         cmd = exec_line.split()[0]
-        self.weblive.create_automatic_user_and_run_session(session=cmd)
- 
+        servers = self.weblive.get_servers_for_pkgname(self.pkgname)
+        self.weblive.create_automatic_user_and_run_session(session=cmd,serverid=servers[0])
+
     def configure(self, app_details):
 
         """ Called to configure the screenshotview for a new application.
@@ -1067,19 +1066,13 @@ class UIReviewsList(gtk.VBox):
         self.new_review.connect('clicked', lambda w: self.emit('new-review'))
 
         # data
-        self.logged_in_person = self._get_person_from_config()
+        self.logged_in_person = get_person_from_config()
         return
 
     @property
     def app_details(self):
         if self._parent:
             return self._parent.app_details
-        return None
-
-    def _get_person_from_config(self):
-        cfg = get_config()
-        if cfg.has_option("reviews", "username"):
-            return cfg.get("reviews", "username")
         return None
 
     def _on_expand(self, expander, param):
@@ -1367,9 +1360,7 @@ class UIReview(gtk.VBox):
         if person == self.logged_in_person:
             current_user_reviewer = True
 
-        # FIXME: Uncomment the following line to re-enable the reviews usefulness feature,
-        # temporarily hidden pending rollout of server support
-        #self._build_usefulness_ui(current_user_reviewer, useful_total, useful_favorable, useful_submit_error)
+        self._build_usefulness_ui(current_user_reviewer, useful_total, useful_favorable, useful_submit_error)
 
         # Translators: This link is for flagging a review as inappropriate.
         # To minimize repetition, if at all possible, keep it to a single word.
