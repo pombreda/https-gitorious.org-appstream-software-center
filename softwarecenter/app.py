@@ -57,7 +57,7 @@ with ExecutionTime("TIME loading app.py imports"):
     from view.historypane import HistoryPane
     from view.viewmanager import ViewManager
 
-    from backend.config import get_config
+    from config import get_config
     from backend import get_install_backend
     from paths import SOFTWARE_CENTER_ICON_CACHE_DIR
 
