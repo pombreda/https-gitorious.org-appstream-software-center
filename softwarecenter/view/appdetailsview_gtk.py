@@ -822,7 +822,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         exec_line = get_exec_line_from_desktop(self.desktop_file)
         # split away any arguments, gedit for example as %U
         cmd = exec_line.split()[0]
-        self.weblive.create_automatic_user_and_run_session(session=cmd)
+        servers = self.weblive.get_servers_for_pkgname(self.pkgname)
+        self.weblive.create_automatic_user_and_run_session(
+            session=cmd,serverid=servers[0])
 
     def _on_addon_table_built(self, table):
         self.info_vb.pack_start(table, False)

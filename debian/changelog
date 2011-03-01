@@ -3,6 +3,9 @@ software-center (3.1.21) UNRELEASED; urgency=low
   [ Aaron Peachey ]
   * lp:~aaronp/software-center/reviews-usefulness:
     - view/appdetailsview_gtk.py: string updates in line with spec
+  * softwarecenter/view/softwarepane.py: 
+    - quick string fix to remove space between text and question marks
+      in search result suggestion strings (LP: #725966)
 
   [ Michael Vogt ]
   * merged lp:~mvo/software-center/weblive that contians the remaining
@@ -10,13 +13,26 @@ software-center (3.1.21) UNRELEASED; urgency=low
     to run software-center --with-weblive to enable it
   * utils/update-software-center:
     - fix typo in loghandler, thanks to Stephane Graber
+  * merged lp:~gary-lasker/software-center/deauth_username, many thanks
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - expose usefulness UI
+  * softwarecenter/db/reviews.py:
+    - deal properly with "Not modified" return value
 
   [ Gary Lasker ]
   * softwarecenter/enums.py,
     softwarecenter/backend/aptd.py:
     - fix transaction-started for broken depends case (LP: #724321) 
+  * softwarecenter/db/database.py:
+    - fix crash when deauthorizing computer (LP: #726876) 
+  * softwarecenter/db/update.py,
+    test/test_appview.py,
+    test/test_database.py:
+    - track cataloged_time for items not in axi (e.g. for-purchase apps)
+      so that they will show up in What's New, add/modify unit tests
+      per the changes (LP: #684077) 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Fri, 25 Feb 2011 13:24:50 -0500
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 01 Mar 2011 09:44:12 +0100
 
 software-center (3.1.20) natty; urgency=low
 

@@ -36,8 +36,8 @@ from gettext import gettext as _
 
 from mkit import EM, ShapeStar, ShapeRoundedRectangle, VLinkButton, floats_from_string
 from softwarecenter.utils import get_nice_date_string, upstream_version_compare, upstream_version
-from softwarecenter.backend.config import get_config
 
+from softwarecenter.utils import get_person_from_config
 
 class IStarPainter:
 
@@ -482,7 +482,7 @@ class UIReviewsList(gtk.VBox):
 
     def __init__(self, parent):
         gtk.VBox.__init__(self)
-        self.logged_in_person = self._get_person_from_config()
+        self.logged_in_person = get_person_from_config()
 
         self._parent = parent
         self.reviews = []
@@ -511,17 +511,11 @@ class UIReviewsList(gtk.VBox):
         self.show_all()
         return
 
-    def _get_person_from_config(self):
-        cfg = get_config()
-        if cfg.has_option("reviews", "username"):
-            return cfg.get("reviews", "username")
-        return None
-
     def _on_button_new_clicked(self, button):
         self.emit("new-review")
 
     def _fill(self):
-        self.logged_in_person = self._get_person_from_config()
+        self.logged_in_person = get_person_from_config()
         if self.reviews:
             for r in self.reviews:
                 pkgversion = self._parent.app_details.version
@@ -827,9 +821,7 @@ class UIReview(gtk.VBox):
         if person == self.logged_in_person:
             current_user_reviewer = True
 
-        # FIXME: Uncomment the following line to re-enable the reviews usefulness feature,
-        # temporarily hidden pending rollout of server support
-        #self._build_usefulness_ui(current_user_reviewer, useful_total, useful_favorable, useful_submit_error)
+        self._build_usefulness_ui(current_user_reviewer, useful_total, useful_favorable, useful_submit_error)
 
         # Translators: This link is for flagging a review as inappropriate.
         # To minimize repetition, if at all possible, keep it to a single word.

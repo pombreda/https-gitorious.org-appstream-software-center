@@ -38,7 +38,6 @@ import simplejson
 from multiprocessing import Process, Queue
 
 from softwarecenter.backend.rnrclient import RatingsAndReviewsAPI, ReviewDetails
-from softwarecenter.backend.config import get_config
 from softwarecenter.db.database import Application
 import softwarecenter.distro
 from softwarecenter.utils import *
@@ -204,7 +203,7 @@ class ReviewLoader(object):
               ]
         (pid, stdin, stdout, stderr) = glib.spawn_async(
             cmd, flags=glib.SPAWN_DO_NOT_REAP_CHILD, standard_output=True)
-        glib.child_watch_add(pid, self._on_submit_usefulness_finished, (review_id, is_useful, callback))
+        glib.child_watch_add(pid, self._on_submit_usefulness_finished, (review_id, is_useful, stdout, callback))
 
     # internal callbacks/helpers
     def _on_submit_review_finished(self, pid, status, (app, stdout_fd, callback)):
@@ -228,18 +227,11 @@ class ReviewLoader(object):
             review = ReviewDetails.from_dict(review_json)
             # FIXME: ideally this would be stored in ubuntu-sso-client
             #        but it dosn't so we store it here
-            self._save_person_to_config(review.reviewer_username)
+            save_person_to_config(review.reviewer_username)
             if not app in self._reviews: 
                 self._reviews[app] = []
             self._reviews[app].insert(0, Review.from_piston_mini_client(review))
             callback(app, self._reviews[app])
-
-    def _save_person_to_config(self, username):
-        config = get_config()
-        if not config.has_section("reviews"):
-            config.add_section("reviews")
-        config.set("reviews", "username", username)
-        config.write()
 
     def _on_report_abuse_finished(self, pid, status, (review_id, callback)):
         """ called when report_absuse finished """
@@ -253,9 +245,14 @@ class ReviewLoader(object):
                         callback(app, self._reviews[app])
                         break
 
-    def _on_submit_usefulness_finished(self, pid, status, (review_id, is_useful, callback)):
+    def _on_submit_usefulness_finished(self, pid, status, (review_id, is_useful, stdout_fd, callback)):
         """ called when report_usefulness finished """
         exitcode = os.WEXITSTATUS(status)
+        # "Created", "Updated", "Not modified" - 
+        # once lp:~mvo/rnr-server/submit-usefulness-result-strings makes it
+        response = os.read(stdout_fd, 512)
+        if response == '"Not modified"':
+            return
         if exitcode == 0:
             LOG.debug("usefulness id %s " % review_id)
             for (app, reviews) in self._reviews.iteritems():
