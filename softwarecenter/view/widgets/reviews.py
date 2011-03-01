@@ -38,6 +38,7 @@ from mkit import EM, ShapeStar, ShapeRoundedRectangle, VLinkButton, floats_from_
 from softwarecenter.utils import get_nice_date_string, upstream_version_compare, upstream_version
 
 from softwarecenter.utils import get_person_from_config
+from softwarecenter.enums import *
 
 class IStarPainter:
 
@@ -550,9 +551,10 @@ class UIReviewsList(gtk.VBox):
             self.new_review.hide()
         else:
             self.new_review.show()
-        if not self.reviews:
-            self._be_the_first_to_review()
-        else:
+            if not self.reviews:
+                self._be_the_first_to_review()
+        
+        if self.reviews:
             self.hide_spinner()
 
             if self._any_reviews_current_user():
@@ -561,7 +563,7 @@ class UIReviewsList(gtk.VBox):
                 self.new_review.set_label(_("Write your own review"))
 
             self._fill()
-            self.show_all()
+            self.vbox.show_all()
         return
 
     def set_width(self, w):
