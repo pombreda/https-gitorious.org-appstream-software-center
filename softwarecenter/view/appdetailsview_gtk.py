@@ -1522,7 +1522,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 #        self.addons_manager.configure(self.app_details.name, False)
         return False
 
-    def _on_transaction_started(self, backend):
+    def _on_transaction_started(self, backend, pkgname, appname, trans_id, trans_type):
         if self.addons_statusbar.get_applying():
             self.pkg_statusbar.configure(self.app_details, APP_ACTION_APPLY)
         
