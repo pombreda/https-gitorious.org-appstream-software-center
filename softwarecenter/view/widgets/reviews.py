@@ -38,6 +38,8 @@ from gettext import gettext as _
 from mkit import EM, ShapeStar, ShapeRoundedRectangle, VLinkButton, floats_from_string
 from softwarecenter.utils import get_nice_date_string, upstream_version_compare, upstream_version
 
+from softwarecenter.netstatus import network_state_is_connected
+
 from softwarecenter.utils import get_person_from_config
 from softwarecenter.enums import *
 
@@ -528,8 +530,7 @@ class UIReviewsList(gtk.VBox):
                 review = UIReview(r, pkgversion, self.logged_in_person)
                 self.vbox.pack_start(review)
 
-        elif get_network_state() == NetState.NM_STATE_CONNECTED:
-            self.vbox.pack_start(NoReviewYet())
+
         return
 
     def _be_the_first_to_review(self):
@@ -547,24 +548,32 @@ class UIReviewsList(gtk.VBox):
 
     def finished(self):
         #print 'Review count: %s' % len(self.reviews)
-        if (self._parent.app_details and
-            not self._parent.app_details.pkg_state == PKG_STATE_INSTALLED):
-            self.new_review.hide()
-        else:
-            self.new_review.show()
-            if not self.reviews:
-                self._be_the_first_to_review()
-        
-        if self.reviews:
-            self.hide_spinner()
+        is_installed = (self._parent.app_details and
+                        self._parent.app_details.pkg_state == PKG_STATE_INSTALLED)
 
+        # only show new_review for installed stuff
+        if is_installed:
+            self.new_review.show()
+        else:
+            self.new_review.hide()
+
+        # hide spinner 
+        self.hide_spinner()
+        self._fill()
+        self.vbox.show_all()
+
+        if self.reviews:
+            # adjust label
             if self._any_reviews_current_user():
                 self.new_review.set_label(_("Write another review"))
             else:
                 self.new_review.set_label(_("Write your own review"))
-
-            self._fill()
-            self.vbox.show_all()
+        else:
+            # no reviews, either offer to write one or show "none"
+            if is_installed:
+                self._be_the_first_to_review()
+            else:
+                self.vbox.pack_start(EmbeddedMessage(message=_("None yet")))
         return
 
     def set_width(self, w):
@@ -580,6 +589,7 @@ class UIReviewsList(gtk.VBox):
         self.reviews = []
         for review in self.vbox:
             review.destroy()
+        self.new_review.hide()
 
     def show_spinner_with_message(self, message):
         a = gtk.Alignment(0.5, 0.5)
@@ -637,7 +647,7 @@ class UIReviewsList(gtk.VBox):
         return
 
     def get_reviews(self):
-        return filter(lambda r: not isinstance(r, (EmbeddedMessage, NoReviewYet)) \
+        return filter(lambda r: not isinstance(r, EmbeddedMessage) \
                         and isinstance(r, UIReview), self.vbox.get_children())
 
 class UIReview(gtk.VBox):
@@ -943,10 +953,11 @@ class EmbeddedMessage(UIReview):
         hb = gtk.HBox(spacing=12)
         a.add(hb)
 
-        i = gtk.image_new_from_icon_name(icon_name, gtk.ICON_SIZE_DIALOG)
-        hb.pack_start(i, False)
-        # this is used in the UI tests
-        self.image = i
+        if icon_name:
+            i = gtk.image_new_from_icon_name(icon_name, gtk.ICON_SIZE_DIALOG)
+            hb.pack_start(i, False)
+            # this is used in the UI tests
+            self.image = i
 
         l = gtk.Label()
         l.set_size_request(300, -1)
