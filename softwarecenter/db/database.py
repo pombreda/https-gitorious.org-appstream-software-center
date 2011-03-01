@@ -429,8 +429,8 @@ class StoreDatabase(gobject.GObject):
         installed_purchased_packages = set()
         for m in matches:
             pkgname = self.get_pkgname(m.document)
-            if (pkgname in self.cache and
-                self.cache[pkgname].is_installed):
+            if (pkgname in self._aptcache and
+                self._aptcache[pkgname].is_installed):
                 installed_purchased_packages.add(pkgname)
         return installed_purchased_packages
 
