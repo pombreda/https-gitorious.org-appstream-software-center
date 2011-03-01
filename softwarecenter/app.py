@@ -678,7 +678,10 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self._login_via_dbus_sso()
             
     def on_menuitem_deauthorize_computer_activate(self, menuitem):
-        account_name = get_person_from_config()
+    
+        # FIXME: need Ubuntu SSO username here
+        # account_name = get_person_from_config()
+        account_name = None
         
         # get a list of installed purchased packages
         installed_purchased_packages = self.db.get_installed_purchased_packages()
