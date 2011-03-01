@@ -545,6 +545,11 @@ class UIReviewsList(gtk.VBox):
 
     def finished(self):
         #print 'Review count: %s' % len(self.reviews)
+        if (self._parent.app_details and
+            not self._parent.app_details.pkg_state == PKG_STATE_INSTALLED):
+            self.new_review.hide()
+        else:
+            self.new_review.show()
         if not self.reviews:
             self._be_the_first_to_review()
         else:
