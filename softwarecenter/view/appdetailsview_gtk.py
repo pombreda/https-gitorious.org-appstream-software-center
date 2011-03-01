@@ -1102,6 +1102,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # reviews cascade
         self.reviews.connect("new-review", self._on_review_new)
         self.reviews.connect("report-abuse", self._on_review_report_abuse)
+        self.reviews.connect("submit-usefulness", self._on_review_submit_usefulness)
 
         vb.pack_start(self.reviews, False)
 
@@ -1119,6 +1120,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
     def _on_review_report_abuse(self, button, review_id):
         self._review_report_abuse(str(review_id))
+
+    def _on_review_submit_usefulness(self, button, review_id, is_useful):
+        self._review_submit_usefulness(review_id, is_useful)
 
     def _update_title_markup(self, appname, summary):
         # make title font size fixed as they should look good compared to the 

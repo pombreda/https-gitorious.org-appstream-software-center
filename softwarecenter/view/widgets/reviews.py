@@ -478,6 +478,10 @@ class UIReviewsList(gtk.VBox):
         'report-abuse':(gobject.SIGNAL_RUN_FIRST,
                     gobject.TYPE_NONE,
                     (gobject.TYPE_PYOBJECT,)),
+        'submit-usefulness':(gobject.SIGNAL_RUN_FIRST,
+                    gobject.TYPE_NONE,
+                    (gobject.TYPE_PYOBJECT, bool)),
+
     }
 
     def __init__(self, parent):
@@ -671,17 +675,17 @@ class UIReview(gtk.VBox):
 
     def _on_realize(self, w, review_data, app_version, logged_in_person):
         self.id = review_data.id
-        rating = review_data.rating 
+        rating = review_data.rating
         self.person = review_data.reviewer_username
         summary = review_data.summary
         text = review_data.review_text
         date = review_data.date_created
         app_name = review_data.app_name
-        # some older version of the server do not set the version
-        review_version = getattr(review_data, "version", "")
-
+        review_version = review_data.version
+        useful_total = review_data.usefulness_total
+        useful_favorable = review_data.usefulness_favorable
+        useful_submit_error = review_data.usefulness_submit_error
         dark_color = self.style.dark[gtk.STATE_NORMAL]
-
         self._build(rating,
                     self.person,
                     summary,
@@ -690,6 +694,9 @@ class UIReview(gtk.VBox):
                     app_name,
                     review_version,
                     app_version,
+                    useful_total,
+                    useful_favorable,
+                    useful_submit_error,
                     dark_color)
         return
 
@@ -766,7 +773,7 @@ class UIReview(gtk.VBox):
         # example raw_date str format: 2011-01-28 19:15:21
         return datetime.datetime.strptime(raw_date_str, '%Y-%m-%d %H:%M:%S')
 
-    def _build(self, rating, person, summary, text, date, app_name, review_version, app_version, dark_color):
+    def _build(self, rating, person, summary, text, date, app_name, review_version, app_version, useful_total, useful_favorable, useful_submit_error, dark_color):
         # all the arguments may need markup escape, depening on if
         # they are used as text or markup
 
