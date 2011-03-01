@@ -409,13 +409,15 @@ class PackageInfo(gtk.HBox):
 
     def _on_allocate(self, widget, allocation, value_label, space_consumed):
         value_label.set_size_request(max(10, allocation.width-space_consumed), -1)
+
+#        width = allocation.width
+#        if self.get_children():
+#            k, v = self.get_children()
+#            l = v.get_children()[0]
+#            l.set_size_request(width-k.allocation.width-self.get_spacing(), -1)
         return
 
     def set_width(self, width):
-        if self.get_children():
-            k, v = self.get_children()
-            l = v.get_children()[0]
-            l.set_size_request(width-k.allocation.width-self.get_spacing(), -1)
         return
 
     def set_value(self, value):

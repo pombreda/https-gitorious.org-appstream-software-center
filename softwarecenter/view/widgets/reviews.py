@@ -698,9 +698,6 @@ class UIReview(gtk.VBox):
         return
 
     def _on_allocate(self, widget, allocation, stars, summary, who_when, version_lbl, flag):
-        for child in self.body:
-            child.set_size_request(allocation.width, -1)
-
         summary.set_size_request(max(20, allocation.width - \
                                  stars.allocation.width - \
                                  who_when.allocation.width - 20), -1)
