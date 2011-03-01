@@ -18,8 +18,14 @@ software-center (3.1.21) UNRELEASED; urgency=low
     - fix transaction-started for broken depends case (LP: #724321) 
   * softwarecenter/db/database.py:
     - fix crash when deauthorizing computer (LP: #726876) 
+  * softwarecenter/db/update.py,
+    test/test_appview.py,
+    test/test_database.py:
+    - track cataloged_time for items not in axi (e.g. for-purchase apps)
+      so that they will show up in What's New, add/modify unit tests
+      per the changes (LP: #684077) 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Tue, 01 Mar 2011 00:12:40 -0500
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 01 Mar 2011 09:44:12 +0100
 
 software-center (3.1.20) natty; urgency=low
 
