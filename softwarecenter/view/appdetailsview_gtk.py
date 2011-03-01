@@ -32,7 +32,6 @@ import pangocairo
 
 from softwarecenter.netstatus import NetState, get_network_state, get_network_watcher
 
-from PIL import Image
 from gettext import gettext as _
 import apt_pkg
 
@@ -45,11 +44,11 @@ from softwarecenter.backend.zeitgeist_simple import zeitgeist_singleton
 from softwarecenter.enums import *
 from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
 
-from softwarecenter.utils import SimpleFileDownloader, GMenuSearcher, uri_to_filename, is_unity_running
+from softwarecenter.utils import *
+from softwarecenter.backend.weblive import get_weblive_backend
 
 from softwarecenter.gwibber_helper import GWIBBER_SERVICE_AVAILABLE
-from softwarecenter.backend.weblive import get_weblive_backend
-        
+
 from appdetailsview import AppDetailsViewBase
 
 from widgets import mkit
@@ -519,10 +518,14 @@ class Addon(gtk.HBox):
 
 class AddonsTable(gtk.VBox):
     """ Widget to display a table of addons. """
-    
+
+    __gsignals__ = {'table-built' : (gobject.SIGNAL_RUN_FIRST,
+                                     gobject.TYPE_NONE,
+                                     ()),
+                   }
+
     def __init__(self, addons_manager):
         gtk.VBox.__init__(self, False, 12)
-        self.set_resize_mode(gtk.RESIZE_QUEUE)
         self.addons_manager = addons_manager
         self.cache = self.addons_manager.view.cache
         self.db = self.addons_manager.view.db
@@ -573,6 +576,8 @@ class AddonsTable(gtk.VBox):
                                       self.addons_manager.mark_changes)
             self.pack_start(addon, False)
         self.show_all()
+
+        self.emit('table-built')
         return False
 
 
@@ -798,6 +803,18 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.review_loader.REVIEW_STATS_CACHE[app] = stats
         self.reviews.finished()
 
+    def on_test_drive_clicked(self, button):
+        #print "on_testdrive_clicked"
+        exec_line = get_exec_line_from_desktop(self.desktop_file)
+        # split away any arguments, gedit for example as %U
+        cmd = exec_line.split()[0]
+        self.weblive.create_automatic_user_and_run_session(session=cmd)
+
+    def _on_addon_table_built(self, table):
+        self.info_vb.pack_start(table, False)
+        self.info_vb.reorder_child(table, 0)
+        return
+
     def _on_expose(self, widget, event, alignment):
         cr = widget.window.cairo_create()
         cr.rectangle(alignment.allocation)
@@ -816,16 +833,15 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         cr.set_source_rgba(*color_floats("#F7F7F7")+(0.75,))
         cr.fill()
 
-        # draw the info header bg
+        # draw the addon header bg
         a = self.addon_view.label.allocation
-        # hack: the > 200 is so we dont get premature drawing of the add-ons bg
-        if self.addon_view.get_property("visible") and a.y > 200:
+        if self.addon_view.parent:
             rounded_rect2(cr, a.x, a.y, a.width, a.height, (5, 5, 0, 0))
             cr.set_source_rgb(*color_floats("#DAD7D3"))
             cr.fill()
 
-        # draw the info header bg
-        if self.addon_view.get_property("visible"):
+        # draw the info header bg, shape depends on visibility of addons
+        if self.addon_view.parent:
             cr.rectangle(self.info_header.allocation)
         else:
             a = self.info_header.allocation
@@ -984,7 +1000,15 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         # the thumbnail/screenshot
         self.screenshot = ScreenshotThumbnail(get_distro(), self.icons)
-        body_hb.pack_start(self.screenshot, False)
+        right_vb = gtk.VBox(spacing=6)
+        body_hb.pack_start(right_vb, False)
+        right_vb.pack_start(self.screenshot, False)
+
+        # the weblive test-drive stuff
+        self.weblive = get_weblive_backend()
+        self.test_drive = gtk.Button(_("Test drive"))
+        self.test_drive.connect("clicked", self.on_test_drive_clicked)
+        right_vb.pack_start(self.test_drive, expand=False, fill=False)
 
         # homepage link button
         self.homepage_btn = mkit.HLinkButton(_('Website'))
@@ -1026,6 +1050,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         self.addons_bar = self.addons_manager.status_bar
         self.addon_view.pack_start(self.addons_bar, False)
+        self.addon_view.connect('table-built', self._on_addon_table_built)
 
         # package info
         self.info_keys = []
@@ -1064,7 +1089,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # signals!
         hb.connect('size-allocate', self._header_on_allocate, hb.get_spacing())
         self.connect('key-press-event', self._on_key_press)
-#        self.connect('key-release-event', self._on_key_release, entry)
         vb.connect('expose-event', self._on_expose, alignment)
         self.connect('size-allocate', self._on_allocate, vb)
         return
@@ -1163,6 +1187,18 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.screenshot.download_and_display()
         return
 
+    def _update_weblive(self, app_details):
+        self.desktop_file = app_details.desktop_file
+        # only enable test drive if we have a desktop file and exec line
+        if (not self.weblive.is_supported() or
+            not self.weblive.is_pkgname_available_on_server(self.pkgname) or
+            not os.path.exists(self.desktop_file) or
+            not get_exec_line_from_desktop(self.desktop_file)):
+            self.test_drive.hide()
+        else:
+            self.test_drive.show()
+        return
+
     def _update_pkg_info_table(self, app_details):
         # set the strings in the package info table
         if app_details.version:
@@ -1187,7 +1223,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
     def _update_addons(self, app_details):
         # refresh addons interface
-        self.addon_view.hide_all()
+        if self.addon_view.parent:
+            self.addon_view.hide_all()
+            self.info_vb.remove(self.addon_view)
 
         if not app_details.error:
             self.addons_manager.configure(app_details.pkgname)
@@ -1195,7 +1233,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # Update total size label
         self.totalsize_info.set_value(_("Calculating..."))
         gobject.timeout_add(500, self.update_totalsize, True)
-        
+
         # Update addons state bar
         self.addons_statusbar.configure()
         return
@@ -1282,6 +1320,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self._update_app_description(app_details, appname)
         self._update_description_footer_links(app_details)
         self._update_app_screenshot(app_details)
+        self._update_weblive(app_details)
         self._update_pkg_info_table(app_details)
         self._update_addons(app_details)
         self._update_reviews(app_details)
