@@ -106,6 +106,8 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
         self._prev_width = 0
         self._poster_sigs = []
 
+        self._allocation = None
+
         self.vbox.connect('expose-event', self._on_expose, a)
         self.connect('size-allocate', self._on_allocate, vb)
 #        self.connect('style-set', self._on_style_set)
@@ -167,13 +169,11 @@ class LobbyViewGtk(CategoriesViewGtk):
     def _on_allocate(self, viewport, allocation, vbox):
         self.queue_draw()
 
+        if self._allocation == allocation: return True
+        self._allocation = allocation
+
         w = min(allocation.width-2, 70*mkit.EM)
-
-        if w <= 35*mkit.EM or w == self._prev_width: return True
-        self._prev_width = w
-
-        self.featured_carousel.set_width(w)
-        self.whatsnew_carousel.set_width(w)
+        if w == self._prev_width: return True
 
         vbox.set_size_request(w, -1)
         return True

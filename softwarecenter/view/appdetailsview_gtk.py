@@ -364,6 +364,9 @@ class PackageInfo(gtk.HBox):
         self.value_label = gtk.Label()
         self.value_label.set_selectable(True)
         self.a11y = self.get_accessible()
+
+        self._allocation = None
+
         self.connect('realize', self._on_realize)
         return
 
@@ -408,15 +411,17 @@ class PackageInfo(gtk.HBox):
         return
 
     def _on_allocate(self, widget, allocation, value_label, space_consumed):
+        if self._allocation == allocation:
+            logging.getLogger("softwarecenter.view.allocation").debug("PackageInfoAllocate skipped!")
+            return True
+        self._allocation = allocation
+
         logging.getLogger("softwarecenter.view.allocation").debug("on_alloc widget=%s, allocation=%s" % (widget, allocation))
+
         value_label.set_size_request(max(10, allocation.width-space_consumed), -1)
-        return
+        return True
 
     def set_width(self, width):
-        if self.get_children():
-            k, v = self.get_children()
-            l = v.get_children()[0]
-            l.set_size_request(width-k.allocation.width-self.get_spacing(), -1)
         return
 
     def set_value(self, value):
@@ -439,6 +444,8 @@ class Addon(gtk.HBox):
         self.checkbutton = gtk.CheckButton()
         self.checkbutton.pkgname = self.app.pkgname
         self.pack_start(self.checkbutton, False, padding=12)
+
+        self._allocation = None
 
         self.connect('realize', self._on_realize, icons, pkgname)
         return
@@ -492,6 +499,11 @@ class Addon(gtk.HBox):
         self.show_all()
 
     def _on_allocate(self, widget, allocation, title):
+        if self._allocation == allocation:
+            logging.getLogger("softwarecenter.view.allocation").debug("AddonAllocate skipped!")
+            return True
+        self._allocation = allocation
+
         logging.getLogger("softwarecenter.view.allocation").debug("on_alloc widget=%s, allocation=%s" % (widget, allocation))
         hw = widget.allocation.width
         cw = self.checkbutton.allocation.width
@@ -499,7 +511,7 @@ class Addon(gtk.HBox):
 
         width = max(10, hw - (cw - tw) - 24)
         title.set_size_request(width, -1)
-        return
+        return True
 
     def _on_more_expose(self, w, e):
         if self.checkbutton.state not in (gtk.STATE_PRELIGHT,):
@@ -697,7 +709,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         gtk.Viewport.__init__(self)
         self.set_shadow_type(gtk.SHADOW_NONE)
 
-        self._prev_width = -1
+        self._allocation = None
         self._pane = pane
 
         self.section = None
@@ -869,16 +881,19 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         del cr
         return
 
-    def _on_allocate(self, viewport, allocation, vbox):
-        logging.getLogger("softwarecenter.view.allocation").debug("on_alloc widget=%s, allocation=%s" % (viewport, allocation))
+    def _on_allocate(self, widget, allocation):
         self.queue_draw()
 
-        w = min(allocation.width-2, 70*mkit.EM)
+        if allocation == self._allocation:
+            logging.getLogger("softwarecenter.view.allocation").debug("TopAllocate skipped!")
+            return True
 
-        if w <= 35*mkit.EM or w == self._prev_width: return True
-        self._prev_width = w
+        logging.getLogger("softwarecenter.view.allocation").debug("on_alloc widget=%s, allocation=%s" % (widget, allocation))
 
-        vbox.set_size_request(w, -1)
+        self._allocation = allocation
+
+        w = min(self.allocation.width-2, 70*mkit.EM)
+        widget.set_size_request(w, -1)
         return True
 
     def _header_on_allocate(self, widget, allocation, spacing):
@@ -1094,7 +1109,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         hb.connect('size-allocate', self._header_on_allocate, hb.get_spacing())
         self.connect('key-press-event', self._on_key_press)
         vb.connect('expose-event', self._on_expose, alignment)
-        self.connect('size-allocate', self._on_allocate, vb)
+        vb.connect('size-allocate', self._on_allocate)
         return
 
     def _on_review_new(self, button):

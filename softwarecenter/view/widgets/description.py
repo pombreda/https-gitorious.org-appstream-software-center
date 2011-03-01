@@ -303,6 +303,8 @@ class TextBlock(gtk.EventBox):
                         gtk.gdk.BUTTON_RELEASE_MASK|
                         gtk.gdk.POINTER_MOTION_MASK)
 
+        self.viewport = viewport
+
         self._bullet = self._new_layout()
         self._bullet.set_markup(self.BULLET_POINT)
         font_desc = pango.FontDescription()
@@ -321,8 +323,7 @@ class TextBlock(gtk.EventBox):
 
         #self._xterm = gtk.gdk.Cursor(gtk.gdk.XTERM)
 
-        self.viewport = viewport
-#        self.viewport.connect('size-allocate', self._on_allocate)
+        self.connect('size-allocate', self._on_allocate)
 
         self.connect('button-press-event', self._on_press, event_helper, cur, sel)
         self.connect('button-release-event', self._on_release, event_helper, cur, sel)
@@ -340,6 +341,34 @@ class TextBlock(gtk.EventBox):
 
         self.connect('style-set', self._on_style_set)
         self.connect('expose-event', self._on_expose)
+        return
+
+    def _on_allocate(self, widget, a):
+        if not self.order or self._allocation == a:
+            return
+
+        self._allocation = a
+
+        size = self.height_from_width(a.width)
+        self.set_size_request(*size)
+
+        x, y = self.allocation.x, self.allocation.y
+        width, height = size
+
+        for layout in self.order:
+            if layout.index > 0:
+                y += (layout.vspacing or self.line_height)
+
+            lx,ly,lw,lh = layout.get_pixel_extents()[1]
+
+            if self.get_direction() != gtk.TEXT_DIR_RTL:
+                layout.set_allocation(x+lx+layout.indent, y+ly,
+                                      width-layout.indent, lh)
+            else:
+                layout.set_allocation(x+width-lx-lw-layout.indent-1, y+ly,
+                                      width-layout.indent, lh)
+
+            y += ly + lh
         return
 
     def _on_expose(self, widget, event):
@@ -380,7 +409,7 @@ class TextBlock(gtk.EventBox):
 #        current_x, current_y = int(event.x), int(event.y)
 
 #        if self.drag_check_threshold(start_x, start_y, current_x, current_y):
-#            event_helper['drag'] = True
+#            event_helper['drag'] = Truebz
 
 #        if event_helper['drag'] and event_helper['within-selection']:
 ##            print 'DoDrag'
@@ -570,34 +599,6 @@ class TextBlock(gtk.EventBox):
                 self._copy_text(sel)
 
             self.queue_draw()
-        return
-
-    def _size_allocate(self, widget, a):
-        if not self.order or self._allocation == a:
-            return
-
-        self._allocation = a
-
-        size = self.height_from_width(a.width)
-        self.set_size_request(*size)
-
-        x, y = self.allocation.x, self.allocation.y
-        width, height = size
-
-        for layout in self.order:
-            if layout.index > 0:
-                y += (layout.vspacing or self.line_height)
-
-            lx,ly,lw,lh = layout.get_pixel_extents()[1]
-
-            if self.get_direction() != gtk.TEXT_DIR_RTL:
-                layout.set_allocation(x+lx+layout.indent, y+ly,
-                                      width-layout.indent, lh)
-            else:
-                layout.set_allocation(x+width-lx-lw-layout.indent-1, y+ly,
-                                      width-layout.indent, lh)
-
-            y += ly + lh
         return
 
     def _select_up(self, cur, sel):
@@ -957,10 +958,7 @@ class TextBlock(gtk.EventBox):
         return text
 
     def finished(self):
-        if self.viewport:
-            self.viewport.queue_resize()
-        else:
-            self.queue_resize()
+        self.queue_resize()
         return
 
     def clear(self, key=None):
@@ -985,13 +983,7 @@ class AppDescription(gtk.VBox):
         self.pack_start(self.description, False)
 
         self._prev_type = None
-        self.connect('size-allocate', self._on_allocate)
         return
-
-    def _on_allocate(self, widget, allocation):
-        logging.getLogger("softwarecenter.view.allocation").debug("on_alloc widget=%s, allocation=%s" % (widget, allocation))
-        self.description._size_allocate(widget, allocation)
-        return True
 
     def _parse_desc(self, desc, pkgname):
         """ Attempt to maintain original fixed width layout, while 
