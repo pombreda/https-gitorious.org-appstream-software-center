@@ -665,6 +665,8 @@ class UIReview(gtk.VBox):
         self.person = None
         self.id = None
 
+        self._allocation = None
+
         if review_data:
             self.connect('realize',
                          self._on_realize,
@@ -698,6 +700,11 @@ class UIReview(gtk.VBox):
         return
 
     def _on_allocate(self, widget, allocation, stars, summary, who_when, version_lbl, flag):
+        if self._allocation == allocation:
+            logging.getLogger("softwarecenter.view.allocation").debug("PackageInfoAllocate skipped!")
+            return True
+        self._allocation = allocation
+
         summary.set_size_request(max(20, allocation.width - \
                                  stars.allocation.width - \
                                  who_when.allocation.width - 20), -1)
