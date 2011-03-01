@@ -579,6 +579,7 @@ class UIReviewsList(gtk.VBox):
         self.reviews = []
         for review in self.vbox:
             review.destroy()
+        self.new_review.hide()
 
     def show_spinner_with_message(self, message):
         a = gtk.Alignment(0.5, 0.5)
