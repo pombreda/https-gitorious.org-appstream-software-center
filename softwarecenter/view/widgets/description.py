@@ -16,8 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
 import gtk
+import logging
 import pango
 import gobject
 
@@ -989,6 +989,7 @@ class AppDescription(gtk.VBox):
         return
 
     def _on_allocate(self, widget, allocation):
+        logging.getLogger("softwarecenter.view.allocation").debug("on_alloc widget=%s, allocation=%s" % (widget, allocation))
         self.description._size_allocate(widget, allocation)
         return True
 
