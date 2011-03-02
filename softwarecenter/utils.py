@@ -37,6 +37,8 @@ import dbus
 
 from enums import USER_AGENT, MISSING_APP_ICON, APP_ICON_SIZE
 
+from config import get_config
+
 # define additional entities for the unescape method, needed
 # because only '&amp;', '&lt;', and '&gt;' are included by default
 ESCAPE_ENTITIES = {"&apos;":"'",
@@ -311,7 +313,7 @@ def get_file_path_from_iconname(icons, iconname=None, iconsize=APP_ICON_SIZE):
 
 def clear_token_from_ubuntu_sso(appname):
     """ send a dbus signal to the com.ubuntu.sso service to clear 
-        the credentials for the given appname
+        the credentials for the given appname, e.g. _("Ubuntu Software Center")
     """
     import dbus
     bus = dbus.SessionBus()
@@ -351,6 +353,29 @@ def get_nice_date_string(cur_t):
 
     return s
 
+def get_exec_line_from_desktop(desktop_file):
+    for line in open(desktop_file):
+        if line.startswith("Exec="):
+            return line.split("Exec=")[1]
+            
+def save_person_to_config(username):
+    """ save the specified username value for Ubuntu SSO to the config file
+    """
+    # FIXME: ideally this would be stored in ubuntu-sso-client
+    #        but it dosn't so we store it here
+    config = get_config()
+    if not config.has_section("reviews"):
+        config.add_section("reviews")
+    config.set("reviews", "username", username)
+    config.write()
+            
+def get_person_from_config():
+    """ get the username value for Ubuntu SSO from the config file
+    """
+    cfg = get_config()
+    if cfg.has_option("reviews", "username"):
+        return cfg.get("reviews", "username")
+    return None
 
 class SimpleFileDownloader(gobject.GObject):
 

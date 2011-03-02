@@ -1137,20 +1137,27 @@ def on_entry_changed(widget, data):
     #if len(new_text) < 3:
     #    return
     (cache, db, view, filter) = data
-    query = get_query_from_search_entry(new_text)
-    view.set_model(_get_model_from_query(filter, query))
-    with ExecutionTime("model settle"):
-        while gtk.events_pending():
-            gtk.main_iteration()
+
+    with ExecutionTime("total time:"):
+        query = get_query_from_search_entry(new_text)
+        view.set_model(_get_model_from_query(filter, query))
+        with ExecutionTime("model settle"):
+            while gtk.events_pending():
+                gtk.main_iteration()
 
 def _get_model_from_query(filter, query):
     return AppStore(cache, db, icons, query,
-                    filter=filter, limit=0,
+                    filter=filter, limit=100*1000,
                     nonapps_visible=AppStore.NONAPPS_ALWAYS_VISIBLE)
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.DEBUG)
+    import softwarecenter.log
+    softwarecenter.log.root.setLevel(level=logging.DEBUG)
+    softwarecenter.log.add_filters_from_string("performance")
+    fmt = logging.Formatter("%(name)s - %(message)s", None)
+    softwarecenter.log.handler.setFormatter(fmt)
 
+    from softwarecenter.paths import XAPIAN_BASE_PATH
     xapian_base_path = XAPIAN_BASE_PATH
     pathname = os.path.join(xapian_base_path, "xapian")
 

@@ -260,6 +260,24 @@ class TestDatabase(unittest.TestCase):
             doc = m.document
             doc.get_value(value_time) >= last_time
             last_time = doc.get_value(value_time)
+            
+    def test_non_axi_apps_cataloged_time(self):
+        db = xapian.WritableDatabase("./data/test.db", 
+                                     xapian.DB_CREATE_OR_OVERWRITE)
+        res = update_from_app_install_data(db, self.cache, datadir="./data/")
+        db = StoreDatabase("./data/test.db", self.cache)
+        db.open(use_axi=True)
+
+        axi_value_time = db._axi_values["catalogedtime"]
+        sc_app = Application("Ubuntu Software Center Test", "software-center")
+        sc_doc = db.get_xapian_document(sc_app.appname, sc_app.pkgname)
+        sc_cataloged_time = sc_doc.get_value(axi_value_time)
+        so_app = Application("Scintillant Orange", "scintillant-orange")
+        so_doc = db.get_xapian_document(so_app.appname, so_app.pkgname)
+        so_cataloged_time = so_doc.get_value(axi_value_time)
+        # the test package Scintillant Orange should be cataloged at a
+        # later time than axi package Ubuntu Software Center
+        self.assertTrue(so_cataloged_time > sc_cataloged_time)
 
     def test_parse_axi_values_file(self):
         s = """
