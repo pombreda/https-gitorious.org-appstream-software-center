@@ -1192,13 +1192,19 @@ class UIReview(gtk.VBox):
         self.yes_like = None
         self.no_like = None
         self.status_box = gtk.HBox()
+        self.delete_status_box = gtk.HBox()
         self.submit_error_img = gtk.Image()
         self.submit_error_img.set_from_stock(gtk.STOCK_DIALOG_ERROR, gtk.ICON_SIZE_SMALL_TOOLBAR)
         self.submit_status_spinner = gtk.Spinner()
         self.submit_status_spinner.set_size_request(12,12)
+        self.delete_status_spinner = gtk.Spinner()
+        self.delete_status_spinner.set_size_request(12,12)
         self.acknowledge_error = mkit.VLinkButton(_("<small>OK</small>"))
         self.acknowledge_error.set_underline(True)
         self.acknowledge_error.set_subdued(True)
+        self.delete_acknowledge_error = mkit.VLinkButton(_("<small>OK</small>"))
+        self.delete_acknowledge_error.set_underline(True)
+        self.delete_acknowledge_error.set_subdued(True)
         self.usefulness_error = False
         self.delete_error = False
 
@@ -1360,7 +1366,7 @@ class UIReview(gtk.VBox):
         return
     
     def _on_delete_clicked(self, btn):
-        reviews = self.get_ancestor(Reviews)
+        reviews = self.get_ancestor(UIReviewsList)
         if reviews:
             self._delete_ui_update('progress')
             reviews.emit("delete-review", self.id)
