@@ -98,6 +98,10 @@ class WebLiveBackend(object):
     def get_servers_for_pkgname(self, pkgname):
         servers=[]
         for server in self.available_servers:
+            # No point in returning a server that's full
+            if server.users >= server.userlimit:
+                continue
+
             for pkg in server.packages:
                 if pkg.pkgname == pkgname:
                     servers.append(server.name)
