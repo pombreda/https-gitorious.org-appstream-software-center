@@ -42,10 +42,36 @@ class TestAppDetailsView(unittest.TestCase):
         # create a details object
         self.appdetails = AppDetailsViewGtk(
             db, distro, icons, cache, datadir, None)
+        self.appdetails.show_all()
 
     def test_show_app_simple(self):
-        app = Application("7zip","p7zip-full")
+        app = Application("","2vcard")
         self.appdetails.show_app(app)
+        self._p()
+        self.assertFalse(self.appdetails.addon_view.get_property("visible"))
+
+    def test_show_addons_bar(self):
+        app = Application("7zip", "p7zip-full")
+        self.appdetails.show_app(app)
+        self._p()
+        self.assertTrue(
+            self.appdetails.addon_view.get_property("visible"))
+        # get first child
+        widgets = self.appdetails.addon_view.get_children()
+        # get the first addon, the widget layout is:
+        #  first is the header, then the status bar, then all the addons
+        addon = widgets[2]
+        addon.checkbutton.set_active(not addon.checkbutton.get_active())
+        self._p()
+
+        print self.appdetails.addons_statusbar
+        print self.appdetails.addons_manager.status_bar
+        print self.appdetails.addons_statusbar.get_property("visible")        
+
+        self.assertTrue(
+            self.appdetails.addons_manager.status_bar.get_property("visible"))
+        self.assertTrue(
+            self.appdetails.addons_statusbar.get_property("visible"))
 
     def test_show_app_simple_no_network(self):
         softwarecenter.netstatus.NETWORK_STATE = softwarecenter.netstatus.NetState.NM_STATE_DISCONNECTED
@@ -118,7 +144,7 @@ class TestAppDetailsView(unittest.TestCase):
         for i in range(PKG_STATE_UNKNOWN):
             mock_app_details.pkg_state = i
             self.appdetails.show_app(app)
-    
+
     def test_show_app_addons(self):
         app = Application("Web browser", "firefox")
         mock_app_details = self._get_mock_app_details()

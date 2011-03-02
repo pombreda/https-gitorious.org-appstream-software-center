@@ -30,12 +30,15 @@ import os
 import mkit
 import pango
 import pangocairo
+import logging
 
 import gettext
 from gettext import gettext as _
 
 from mkit import EM, ShapeStar, ShapeRoundedRectangle, VLinkButton, floats_from_string
 from softwarecenter.utils import get_nice_date_string, upstream_version_compare, upstream_version
+
+from softwarecenter.netstatus import network_state_is_connected
 
 from softwarecenter.utils import get_person_from_config
 from softwarecenter.enums import *
@@ -493,12 +496,10 @@ class UIReviewsList(gtk.VBox):
         self.reviews = []
         self.logged_in_person = None
 
-        label = mkit.EtchedLabel()
+        label = mkit.EtchedLabel(_("Reviews"))
         label.set_padding(6, 6)
         label.set_use_markup(True)
         label.set_alignment(0, 0.5)
-        markup = _("Reviews")
-        label.set_markup(markup)
 
         self.new_review = mkit.VLinkButton(_("Write your own review"))
         self.new_review.set_underline(True)
@@ -527,8 +528,7 @@ class UIReviewsList(gtk.VBox):
                 review = UIReview(r, pkgversion, self.logged_in_person)
                 self.vbox.pack_start(review)
 
-        elif get_network_state() == NetState.NM_STATE_CONNECTED:
-            self.vbox.pack_start(NoReviewYet())
+
         return
 
     def _be_the_first_to_review(self):
@@ -546,24 +546,42 @@ class UIReviewsList(gtk.VBox):
 
     def finished(self):
         #print 'Review count: %s' % len(self.reviews)
-        if (self._parent.app_details and
-            not self._parent.app_details.pkg_state == PKG_STATE_INSTALLED):
-            self.new_review.hide()
-        else:
-            self.new_review.show()
-            if not self.reviews:
-                self._be_the_first_to_review()
-        
-        if self.reviews:
-            self.hide_spinner()
 
+        # network sensitive stuff
+        is_connected = network_state_is_connected()
+        self.new_review.set_sensitive(is_connected)
+
+        if not is_connected:
+            title = _('No Network Connection')
+            msg = _('Only cached reviews can be displayed')
+            m = EmbeddedMessage(title, msg, 'network-offline')
+            self.vbox.pack_start(m)
+
+        # only show new_review for installed stuff
+        is_installed = (self._parent.app_details and
+                        self._parent.app_details.pkg_state == PKG_STATE_INSTALLED)
+        if is_installed:
+            self.new_review.show()
+        else:
+            self.new_review.hide()
+
+        # always hide spinner 
+        self.hide_spinner()
+        self._fill()
+        self.vbox.show_all()
+
+        if self.reviews:
+            # adjust label if we have reviews
             if self._any_reviews_current_user():
                 self.new_review.set_label(_("Write another review"))
             else:
                 self.new_review.set_label(_("Write your own review"))
-
-            self._fill()
-            self.vbox.show_all()
+        else:
+            # no reviews, either offer to write one or show "none"
+            if is_installed and is_connected:
+                self._be_the_first_to_review()
+            else:
+                self.vbox.pack_start(EmbeddedMessage(message=_("None yet")))
         return
 
     def set_width(self, w):
@@ -637,7 +655,7 @@ class UIReviewsList(gtk.VBox):
         return
 
     def get_reviews(self):
-        return filter(lambda r: not isinstance(r, (EmbeddedMessage, NoReviewYet)) \
+        return filter(lambda r: not isinstance(r, EmbeddedMessage) \
                         and isinstance(r, UIReview), self.vbox.get_children())
 
 class UIReview(gtk.VBox):
@@ -943,27 +961,35 @@ class EmbeddedMessage(UIReview):
         hb = gtk.HBox(spacing=12)
         a.add(hb)
 
-        i = gtk.image_new_from_icon_name(icon_name, gtk.ICON_SIZE_DIALOG)
-        hb.pack_start(i, False)
-        # this is used in the UI tests
-        self.image = i
+        if icon_name:
+            i = gtk.image_new_from_icon_name(icon_name, gtk.ICON_SIZE_DIALOG)
+            hb.pack_start(i, False)
+            # this is used in the UI tests
+            self.image = i
 
         l = gtk.Label()
-        l.set_size_request(300, -1)
         l.set_line_wrap(True)
         l.set_alignment(0, 0.5)
         # this is used in the UI tests
         self.label = l
 
-        l.set_markup('<b><big>%s</big></b>\n%s' % (title, message))
+        if title:
+            l.set_markup('<b><big>%s</big></b>\n%s' % (title, message))
+        else:
+            l.set_markup(message)
 
         hb.pack_start(l)
 
         self.show_all()
         return
 
-    def draw(self, *args, **kwargs):
-        return
+    def draw(self, cr, a):
+        cr.save()
+        cr.rectangle(a)
+        color = mkit.floats_from_gdkcolor(self.style.mid[self.state])
+        cr.set_source_rgba(*color+(0.2,))
+        cr.fill()
+        cr.restore()
 
 
 class NoReviewYet(EmbeddedMessage):

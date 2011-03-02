@@ -45,6 +45,7 @@ from softwarecenter.enums import *
 from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
 
 from softwarecenter.utils import *
+from softwarecenter.config import get_config
 from softwarecenter.backend.weblive import get_weblive_backend
 
 from softwarecenter.gwibber_helper import GWIBBER_SERVICE_AVAILABLE
@@ -60,7 +61,6 @@ from widgets.thumbnail import ScreenshotThumbnail
 from softwarecenter.distro import get_distro
 
 from softwarecenter.drawing import alpha_composite, color_floats, rounded_rect2, rounded_rect
-from softwarecenter.backend.config import get_config
 
 
 if os.path.exists("./softwarecenter/enums.py"):
@@ -544,11 +544,6 @@ class AddonsTable(gtk.VBox):
         self.label.set_alignment(0, 0.5)
         self.label.set_padding(6, 6)
 
-        self.vbox = gtk.VBox(spacing=mkit.SPACING_SMALL)
-        self.vbox.set_no_show_all(True)
-        self.vbox.set_border_width(6)
-        self.pack_start(self.vbox)
-
         markup = _('Add-ons')
         self.label.set_markup(markup)
         self.pack_start(self.label, False, False)
@@ -614,7 +609,8 @@ class AddonsStatusBar(StatusBar):
     def configure(self):
         print 'AddonsStatusBarConfigure'
         # FIXME: addons are not always free, but the old implementation of determining price was buggy
-        if not self.addons_manager.addons_to_install and not self.addons_manager.addons_to_remove:
+        if (not self.addons_manager.addons_to_install and 
+            not self.addons_manager.addons_to_remove):
             self.hide_all()
         else:
             self.button_apply.set_sensitive(True)
@@ -715,7 +711,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.app_details = None
 
         self.pkg_statusbar = PackageStatusBar(self)
-        self.addons_manager = AddonsManager(self)
 
         self.review_stats_widget = ReviewStatsContainer()
         self.reviews = UIReviewsList(self)
@@ -738,6 +733,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         # addons manager
         self.addons_manager = AddonsManager(self)
+        self.addons_statusbar = self.addons_manager.status_bar
         self.addons_to_install = self.addons_manager.addons_to_install
         self.addons_to_remove = self.addons_manager.addons_to_remove
 
@@ -756,9 +752,14 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
     def _on_net_state_changed(self, watcher, state):
         if state == NetState.NM_STATE_DISCONNECTED:
-            self._update_reviews_inactive_network()
+            self._check_for_reviews()
         elif state == NetState.NM_STATE_CONNECTED:
-            gobject.timeout_add(500, self._update_reviews_active_network)
+            gobject.timeout_add(500, self._check_for_reviews)
+        return
+
+    def _update_reviews(self, app_details):
+        self.reviews.clear()
+        self._check_for_reviews()
         return
 
     def _check_for_reviews(self):
@@ -766,6 +767,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         stats = self.review_loader.get_review_stats(self.app)
         self._update_review_stats_widget(stats)
         # individual reviews is slow and async so we just queue it here
+        self.reviews.show_spinner_with_message(_('Checking for reviews...'))
         reviews = self.review_loader.get_reviews(self.app,
                                                  self._reviews_ready_callback)
 
@@ -1074,7 +1076,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.info_keys = []
 
         # info header
-        self.info_header = mkit.EtchedLabel("Details")
+        self.info_header = mkit.EtchedLabel(_("Details"))
         self.info_header.set_alignment(0, 0.5)
         self.info_header.set_padding(6, 6)
         self.info_header.set_use_markup(True)
@@ -1245,8 +1247,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
     def _update_addons(self, app_details):
         # refresh addons interface
+        self.addon_view.hide_all()
         if self.addon_view.parent:
-            self.addon_view.hide_all()
             self.info_vb.remove(self.addon_view)
 
         if not app_details.error:
@@ -1258,56 +1260,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         # Update addons state bar
         self.addons_statusbar.configure()
-        return
-
-    def _update_reviews(self, app_details):
-        self.reviews.clear()
-        if get_network_state() == NetState.NM_STATE_DISCONNECTED:
-            self._update_reviews_inactive_network()
-        else:
-            self._update_reviews_active_network()
-        return
-
-    def _update_reviews_inactive_network(self):
-        if self.reviews.get_reviews():
-            msg_exists = False
-            for r in self.reviews.vbox:
-                if isinstance(r, EmbeddedMessage):
-                    msg_exists = True
-                elif hasattr(r, 'complain'):
-                    r.complain.set_sensitive(False)
-            if not msg_exists:
-
-                title = _('No Network Connection')
-                msg = _('Only cached reviews can be displayed')
-
-                m = EmbeddedMessage(title, msg, 'network-offline')
-
-                self.reviews.vbox.pack_start(m)
-                self.reviews.vbox.reorder_child(m, 0)
-        else:
-            self.reviews.clear()
-            title = _('No Network Connection')
-            msg = _('Unable to download application reviews')
-
-            m = EmbeddedMessage(title, msg, 'network-offline')
-            self.reviews.vbox.pack_start(m)
-
-        self.reviews.new_review.set_sensitive(False)
-        return
-
-    def _update_reviews_active_network(self):
-        for r in self.reviews.vbox:
-            if isinstance(r, (EmbeddedMessage, NoReviewYet)):
-                r.destroy()
-            if hasattr(r, 'complain'):
-                r.complain.set_sensitive(True)
-
-        if not self.reviews.get_reviews():
-            self.reviews.show_spinner_with_message(_('Checking for reviews...'))
-            self._check_for_reviews()
-
-        self.reviews.new_review.set_sensitive(True)
         return
 
     def _update_all(self, app_details):
@@ -1337,6 +1289,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # depending on pkg install state set action labels
         self.pkg_statusbar.configure(app_details, app_details.pkg_state)
 
+        self._update_layout_error_status(pkg_ambiguous_error)
         self._update_title_markup(appname, summary)
         self._update_app_icon(app_details)
         self._update_app_description(app_details, appname)
@@ -1346,7 +1299,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self._update_pkg_info_table(app_details)
         self._update_addons(app_details)
         self._update_reviews(app_details)
-        self._update_layout_error_status(pkg_ambiguous_error)
 
         # show where it is
         self._configure_where_is_it()

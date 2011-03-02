@@ -48,6 +48,7 @@ import piston_mini_client
 
 from softwarecenter.paths import *
 from softwarecenter.enums import MISSING_APP_ICON
+from softwarecenter.config import get_config
 from softwarecenter.backend.login_sso import LoginBackendDbusSSO
 from softwarecenter.db.database import Application
 from softwarecenter.db.reviews import Review
@@ -59,8 +60,6 @@ from softwarecenter.view.widgets.reviews import StarRatingSelector, StarCaption
 from softwarecenter.gwibber_helper import GwibberHelper, GwibberHelperMock
 
 from softwarecenter.backend.rnrclient import RatingsAndReviewsAPI, ReviewRequest
-
-from softwarecenter.config import get_config
 
 #import httplib2
 #httplib2.debuglevel = 1
