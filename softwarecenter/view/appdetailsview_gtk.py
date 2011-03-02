@@ -551,11 +551,6 @@ class AddonsTable(gtk.VBox):
         self.label.set_alignment(0, 0.5)
         self.label.set_padding(6, 6)
 
-        self.vbox = gtk.VBox(spacing=mkit.SPACING_SMALL)
-        self.vbox.set_no_show_all(True)
-        self.vbox.set_border_width(6)
-        self.pack_start(self.vbox)
-
         markup = _('Add-ons')
         self.label.set_markup(markup)
         self.pack_start(self.label, False, False)
@@ -619,7 +614,8 @@ class AddonsStatusBar(StatusBar):
 
     def configure(self):
         # FIXME: addons are not always free, but the old implementation of determining price was buggy
-        if not self.addons_manager.addons_to_install and not self.addons_manager.addons_to_remove:
+        if (not self.addons_manager.addons_to_install and 
+            not self.addons_manager.addons_to_remove):
             self.hide_all()
         else:
             self.button_apply.set_sensitive(True)
@@ -719,9 +715,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         self.pkg_statusbar = PackageStatusBar(self)
 
-        self.addons_manager = AddonsManager(self)
-        self.addons_statusbar = AddonsStatusBar(self.addons_manager)
-
         self.review_stats_widget = ReviewStatsContainer()
         self.reviews = UIReviewsList(self)
 
@@ -743,6 +736,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         # addons manager
         self.addons_manager = AddonsManager(self)
+        self.addons_statusbar = self.addons_manager.status_bar
         self.addons_to_install = self.addons_manager.addons_to_install
         self.addons_to_remove = self.addons_manager.addons_to_remove
 
