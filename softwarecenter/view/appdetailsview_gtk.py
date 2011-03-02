@@ -710,8 +710,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.app = None
         self.app_details = None
 
-        self.pkg_statusbar = PackageStatusBar(self)
-
         self.review_stats_widget = ReviewStatsContainer()
         self.reviews = UIReviewsList(self)
 
