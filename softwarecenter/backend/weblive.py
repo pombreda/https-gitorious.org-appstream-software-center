@@ -99,7 +99,7 @@ class WebLiveBackend(object):
         servers=[]
         for server in self.available_servers:
             # No point in returning a server that's full
-            if server.users >= server.userlimit:
+            if server.current_users >= server.userlimit:
                 continue
 
             for pkg in server.packages:
