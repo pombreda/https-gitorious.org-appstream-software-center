@@ -1417,18 +1417,10 @@ class UIReview(gtk.VBox):
         elif useful_total == 0:
             s = _("Was this review helpful?")
         else:
-            if useful_favorable == 0:
-                s = _("No one has found this review helpful (0%).")
-            else:
-                useful_percentage = (useful_favorable / float(useful_total)) * 100
-                #get a string representation of percentage, already in brackets e.g. "(75%)"
-                useful_display_percentage = "(%s%s)" % (str(int(useful_percentage)), '%')
-                s = gettext.ngettext(
-                        "%(useful_favorable)s person found this review helpful %(useful_display_percentage)s.",
-                        "%(useful_favorable)s people found this review helpful %(useful_display_percentage)s.",
-                            useful_favorable) % { 'useful_display_percentage' : useful_display_percentage,
-                                             'useful_favorable' : useful_favorable,
-                                             }
+            # TRANSLATORS: in this case, the word 'people' is used in both plural and singular form to indicate
+            # a 'set' of people who voted, that could only have 1 member e.g. "0 of 1 people"
+            s = _("%s of %s people found this review helpful." % (useful_favorable, useful_total))
+                        
             #add question to string if user is not current reviewer
             if not current_user_reviewer:
                 s = _("%s %s" % (s, "Did you?"))
