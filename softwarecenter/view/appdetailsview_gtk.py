@@ -826,8 +826,11 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             session=cmd,serverid=servers[0])
 
     def _on_addon_table_built(self, table):
-        self.info_vb.pack_start(table, False)
-        self.info_vb.reorder_child(table, 0)
+        if not table.parent:
+            self.info_vb.pack_start(table, False)
+            self.info_vb.reorder_child(table, 0)
+        if not table.get_property('visible'):
+            table.show_all()
         return
 
     def _on_expose(self, widget, event, alignment):
@@ -1510,7 +1513,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # addons modified
         elif self.addons_statusbar.applying:
             self.pkg_statusbar.configure(self.app_details, PKG_STATE_INSTALLED)
-            self.pkg_statusbar.configure(self.app_details, PKG_STATE_INSTALLED)
             self.addons_manager.configure(self.app_details.name, False)
             self.addons_statusbar.configure()
 
@@ -1519,15 +1521,15 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         if self.addons_statusbar.applying:
             self.addons_statusbar.applying = False
 
-#        self.addons_manager.configure(self.app_details.name, False)
         return False
 
-    def _on_transaction_started(self, backend):
-        if self.addons_statusbar.get_applying():
+    def _on_transaction_started(self, backend, pkgname, appname, trans_id, trans_type):
+        if self.addons_statusbar.applying:
             self.pkg_statusbar.configure(self.app_details, APP_ACTION_APPLY)
-        
+            return
+
         state = self.pkg_statusbar.pkg_state
-        LOG.debug("_on_transaction_stated %s" % state)
+        LOG.debug("_on_transaction_started %s" % state)
         if state == PKG_STATE_NEEDS_PURCHASE:
             self.pkg_statusbar.configure(self.app_details, PKG_STATE_INSTALLING_PURCHASED)
         elif state == PKG_STATE_UNINSTALLED:
@@ -1565,16 +1567,43 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                 self.adjustment_value = self.get_vadjustment().get_value()
         return
 
-    def _get_xy_icon_position_on_screen(self):
+    def get_app_icon_details(self):
+        """ helper for unity dbus support to provide details about the application
+            icon as it is displayed on-screen
+        """
+        icon_name = self.appdetails.icon
+        if self.appdetails.icon_needs_download:
+            icon_file = self.appdetails.cached_icon_file_path
+        icon_size = self._get_app_icon_size_on_screen()
+        icon_file_path = get_file_path_from_iconname(self.icons,
+                                                     iconsize=icon_size,
+                                                     iconname=icon_name)
+        (icon_x, icon_y) = self._get_app_icon_xy_position_on_screen()
+        return (icon_name, icon_file_path, icon_size, icon_x, icon_y)
+
+    def _get_app_icon_size_on_screen(self):
+        """ helper for unity dbus support to get the size of the maximum side
+            for the application icon as it is displayed on-screen
+        """
+        icon_size = self.APP_ICON_SIZE
+        if self.main_frame.image.get_storage_type() == gtk.IMAGE_PIXBUF:
+            pb = self.main_frame.image.get_pixbuf()
+            if pb.get_width() > pb.get_height():
+                icon_size = pb.get_width()
+            else:
+                icon_size = pb.get_height()
+        return icon_size
+                
+    def _get_app_icon_xy_position_on_screen(self):
         """ helper for unity dbus support to get the x,y position of
-            the appicon on the screen
+            the application icon as it is displayed on-screen
         """
         # find toplevel parent
         parent = self
         while parent.get_parent():
             parent = parent.get_parent()
         # get x, y relative to toplevel
-        (x,y) = self.app_info.image.translate_coordinates(parent, 0, 0)
+        (x,y) = self.main_frame.image.translate_coordinates(parent, 0, 0)
         # get toplevel window position
         (px, py) = parent.get_position()
         return (px+x, py+y)
