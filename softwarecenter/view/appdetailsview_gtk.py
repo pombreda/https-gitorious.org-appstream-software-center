@@ -623,12 +623,12 @@ class AddonsStatusBar(StatusBar):
     
     def _on_button_apply_clicked(self, button):
         self.applying = True
-        print 'ApplyButtonClicked', self.applying
         self.button_apply.set_sensitive(False)
         self.button_cancel.set_sensitive(False)
         # these two lines are the magic that make it work
         self.view.addons_to_install = self.addons_manager.addons_to_install
         self.view.addons_to_remove = self.addons_manager.addons_to_remove
+        print 'ApplyButtonClicked', self.view.addons_to_install, self.view.addons_to_remove
         AppDetailsViewBase.apply_changes(self.view)
 
 
@@ -715,9 +715,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.app_details = None
 
         self.pkg_statusbar = PackageStatusBar(self)
-
         self.addons_manager = AddonsManager(self)
-        self.addons_statusbar = AddonsStatusBar(self.addons_manager)
 
         self.review_stats_widget = ReviewStatsContainer()
         self.reviews = UIReviewsList(self)
@@ -1358,25 +1356,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         return
 
     def _update_minimal(self, app_details):
-#        pkg_ambiguous_error = app_details.pkg_state in (PKG_STATE_NOT_FOUND, PKG_STATE_NEEDS_SOURCE)
-
-#        appname = gobject.markup_escape_text(app_details.display_name)
-
-#        if app_details.pkg_state == PKG_STATE_NOT_FOUND:
-#            summary = app_details._error_not_found
-#        else:
-#            summary = app_details.display_summary
-#        if not summary:
-#            summary = ""
-
-#        self._update_title_markup(appname, summary)
         self._update_app_icon(app_details)
-#        self._update_layout_error_status(pkg_ambiguous_error)
-#        self._update_app_description(app_details, app_details.pkgname)
-#        self._update_app_screenshot(app_details)
-#        self._update_description_footer_links(app_details)
         self._update_pkg_info_table(app_details)
-#        gobject.timeout_add(500, self._update_addons, app_details)
+#        self._update_addons_minimal(app_details)
 
         # depending on pkg install state set action labels
         self.pkg_statusbar.configure(app_details, app_details.pkg_state)
