@@ -2,16 +2,134 @@
 
 import getpass
 import glib
-import json
 import os
 import pprint
 import random
 import socket
 import subprocess
 import sys
-import urllib
 
 from threading import Thread, Event
+
+# Start of copy from weblive.py in upstream branch
+import urllib, urllib2, json
+class WebLiveJsonError(Exception):
+    def __init__(self, value):
+        self.value = value
+    def __str__(self):
+        return repr(self.value)
+
+class WebLiveError(Exception):
+    def __init__(self, value):
+        self.value = value
+
+    def __str__(self):
+        return repr(self.value)
+
+class WebLive:
+    def __init__(self,url):
+        self.url=url
+
+    def do_query(self,query):
+        page=urllib2.Request(self.url,urllib.urlencode({'query':json.dumps(query)}))
+
+        try:
+            response=urllib2.urlopen(page)
+        except urllib2.HTTPError, e:
+            raise WebLiveJsonError("HTTP return code: %s" % e.code)
+        except urllib2.URLError, e:
+            raise WebLiveJsonError("Failed to reach server: %s" % e.reason)
+
+        try:
+            reply=json.loads(response.read())
+        except ValueError:
+            raise WebLiveJsonError("Returned json object is invalid.")
+
+        if reply['status'] != 'ok':
+            if reply['message'] == -1:
+                raise WebliveJsonError("Missing 'action' field in query.")
+            elif reply['message'] == -2:
+                raise WebLiveJsonError("Missing parameter")
+            elif reply['message'] == -3:
+                raise WebliveJsonError("Function '%s' isn't exported over JSON." % query['action'])
+            else:
+                raise WebLiveJsonError("Unknown error code: %s" % reply['message'])
+
+        if 'message' not in reply:
+            raise WebLiveJsonError("Invalid json reply")
+
+        return reply
+
+    def create_user(self,serverid,username,fullname,password,session="desktop"):
+        query={}
+        query['action']='create_user'
+        query['serverid']=serverid
+        query['username']=username
+        query['fullname']=fullname
+        query['password']=password
+        query['session']=session
+        reply=self.do_query(query)
+
+        if type(reply['message']) != type([]):
+            if reply['message'] == 1:
+                raise WebLiveError("Reached user limit, return false.")
+            elif reply['message'] == 2:
+                raise WebLiveError("Different user with same username already exists.")
+            elif reply['message'] == 3:
+                raise WebLiveError("Invalid fullname, must only contain alphanumeric characters and spaces.")
+            elif reply['message'] == 4:
+                raise WebLiveError("Invalid login, must only contain lowercase letters.")
+            elif reply['message'] == 5:
+                raise WebLiveError("Invalid password, must contain only alphanumeric characters.")
+            elif reply['message'] == 7:
+                raise WebLiveError("Invalid server: %s" % serverid)
+            else:
+                raise WebLiveError("Unknown error code: %s" % reply['message'])
+
+        return reply['message']
+
+    def list_everything(self):
+        query={}
+        query['action']='list_everything'
+        reply=self.do_query(query)
+
+        if type(reply['message']) != type({}):
+            raise WebLiveError("Invalid value, expected '%s' and got '%s'." % (type({}),type(reply['message'])))
+
+        return reply['message']
+
+    def list_locales(self,serverid):
+        query={}
+        query['action']='list_locales'
+        query['serverid']=serverid
+        reply=self.do_query(query)
+
+        if type(reply['message']) != type([]):
+            raise WebLiveError("Invalid value, expected '%s' and got '%s'." % (type({}),type(reply['message'])))
+
+        return reply['message']
+
+    def list_packages(self,serverid):
+        query={}
+        query['action']='list_packages'
+        query['serverid']=serverid
+        reply=self.do_query(query)
+
+        if type(reply['message']) != type([]):
+            raise WebLiveError("Invalid value, expected '%s' and got '%s'." % (type({}),type(reply['message'])))
+
+        return reply['message']
+
+    def list_servers(self):
+        query={}
+        query['action']='list_servers'
+        reply=self.do_query(query)
+
+        if type(reply['message']) != type({}):
+            raise WebLiveError("Invalid value, expected '%s' and got '%s'." % (type({}),type(reply['message'])))
+
+        return reply['message']
+# End of copy from weblive.py in upstream branch
 
 class ServerNotReadyError(Exception):
     pass
@@ -20,14 +138,13 @@ class WebLiveLocale(object):
     def __init__(self, locale, description):
         self.locale = locale
         self.description = description
-    
+
 class WebLivePackage(object):
     def __init__(self, pkgname, version):
         self.pkgname = pkgname
         self.version = version
 
 class WebLiveServer(object):
-
     def __init__(self, name, title, description, locales, packages, timelimit, userlimit, users):
         self.name = name
         self.title = title
@@ -53,7 +170,6 @@ class WebLiveServer(object):
                 attributes["userlimit"],
                 attributes["users"])
         return o
-        
 
 class WebLiveBackend(object):
     """ backend for interacting with the weblive service """
@@ -87,11 +203,12 @@ class WebLiveBackend(object):
 </NXClientLibSettings>
 """
     URL = os.environ.get('SOFTWARE_CENTER_WEBLIVE_HOST',
-			 'https://weblive.stgraber.org/vmmanager/json')
+        'https://weblive.stgraber.org/weblive/json')
     QTNX = "/usr/bin/qtnx"
     DEFAULT_SERVER = "ubuntu-natty01"
 
     def __init__(self):
+        self.weblive = WebLive(self.URL)
         self.available_servers = []
         self._ready = Event()
 
@@ -114,12 +231,7 @@ class WebLiveBackend(object):
 
     def query_available(self):
         """ (sync) get available server and limits """
-        query={}
-        query['action']='list_everything'
-        page=urllib.urlopen(self.URL,
-                            urllib.urlencode({'query':json.dumps(query)}))
-        json_str = page.read()
-        servers=self._server_list_from_json(json_str)
+        servers=self._server_objects_from_dict(self.weblive.list_everything())
         return servers
 
     def query_available_async(self):
@@ -127,19 +239,14 @@ class WebLiveBackend(object):
         def _query_available_helper():
             self.available_servers = self.query_available()
             self._ready.set()
+
         self._ready.clear()
         p = Thread(target=_query_available_helper)
         p.start()
 
-    def _server_list_from_json(self, json_str):
-        servers = []
-        servers_json_dict = json.loads(json_str)
-        #print pprint.pprint(servers_json_dict)
-        if not servers_json_dict["status"] == "ok":
-            raise ServerNotReadyError("server not ok, msg: '%s'" % \
-                                          servers_json_dict["message"])
-
-        for (servername, attributes) in servers_json_dict['message'].iteritems():
+    def _server_objects_from_dict(self, server_dict):
+        servers=[]
+        for (servername, attributes) in server_dict.iteritems():
             servers.append(WebLiveServer.from_json(servername, attributes))
         return servers
 
@@ -164,33 +271,13 @@ class WebLiveBackend(object):
         """ login into serverid and automatically create a user """
         if not serverid:
             serverid = self.DEFAULT_SERVER
+
         hostname = socket.gethostname()
         username = "%s%s" % (os.environ['USER'], hostname)
-        query={}
-        query['action'] = 'create_user'
-        query['serverid'] = serverid
-        query['username'] = username
-        query['fullname'] = "WebLive User"
-        query['password'] = hostname  # FIXME: use random PW
-        query['session'] = session
+        password = hostname
 
-        # Encode and send using HTTPs
-        page=urllib.urlopen(self.URL,
-                            urllib.urlencode({'query':json.dumps(query)}))
-        # Decode JSON reply
-        result=json.loads(page.read())
-        print "\nStatus: %s" % result['status']
-
-        if result['message']:
-            print "Message: %s" % result['message']
-            print result
-        if result['status'] == 'ok':
-            host = result['message'][0]
-            port = result['message'][1]
-            session = query['session']
-            username = query['username']
-            password = query['password']
-            self._spawn_qtnx(host, port, session, username, password)
+        connection=self.weblive.create_user(serverid, username, "WebLive User", password, session)
+        self._spawn_qtnx(connection[0], connection[1], session, username, password)
 
     def _spawn_qtnx(self, host, port, session, username, password):
         if not os.path.exists(self.QTNX):
@@ -218,7 +305,7 @@ class WebLiveBackend(object):
         #p=subprocess.Popen(cmd)
         #p.wait()
         glib.child_watch_add(pid, self._on_qtnx_exit)
-   
+
     def _on_qtnx_exit(self, pid, status):
         print "_on_qtnx_exit ", os.WEXITSTATUS(status)
 
@@ -232,7 +319,7 @@ def get_weblive_backend():
         if _weblive_backend.is_supported():
             _weblive_backend.query_available_async()
     return _weblive_backend
-                             
+
 if __name__ == "__main__":
     weblive = get_weblive_backend()
     weblive.ready.wait()
