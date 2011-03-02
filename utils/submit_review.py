@@ -643,8 +643,11 @@ class SubmitReviewsApp(BaseApp):
             review_data = self.retrieve_api.get_review_by_id(review_id=self.review_id)
             app = softwarecenter.db.application.Application(pkgname=review_data['package_name'])
             self.app = app
+            self.orig_summary_text = review_data['summary'] 
             self.review_summary_entry.set_text(review_data['summary'])
+            self.orig_star_rating = review_data['rating']
             self.star_rating.set_rating(review_data['rating'])
+            self.orig_review_text = review_data['review_text']
             self.textview_review.get_buffer().set_text(review_data['review_text'])
             self.version = review_data['version']
             self.origin = 'ubuntu'
@@ -712,6 +715,34 @@ class SubmitReviewsApp(BaseApp):
             self.button_post.set_sensitive(True)
         else:
             self.button_post.set_sensitive(False)
+        
+        #set post button insensitive, if review being modified is the same as what is currently in the UI fields
+        if self.action == 'modify':
+            if self._modify_review_is_the_same():
+                self.button_post.set_sensitive(False)
+    
+    def _modify_review_is_the_same(self):
+        '''checks if review fields are the same as the review being modified and returns true if so'''
+        current_buffer = self.textview_review.get_buffer()
+        #perform an initial check on character counts to return False if any don't match, avoids doing unnecessary string comparisons
+        
+        if (self.review_summary_entry.get_text_length() != len(self.orig_summary_text) or
+           current_buffer.get_char_count() != len(self.orig_review_text)):
+            return False
+        #compare rating
+        if self.star_rating.get_rating() != self.orig_star_rating:
+            return False
+        #compare summary text
+        if self.review_summary_entry.get_text() != self.orig_summary_text:
+            return False
+        #compare review text
+        if current_buffer.get_text(current_buffer.get_start_iter(),
+                                           current_buffer.get_end_iter()) != self.orig_review_text:
+            return False
+        return True
+        
+            
+            
     
     def _check_summary_character_count(self):
         summary_chars = self.review_summary_entry.get_text_length()
