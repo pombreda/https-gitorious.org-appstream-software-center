@@ -63,15 +63,16 @@ class TestAppDetailsView(unittest.TestCase):
         addon = widgets[2]
         addon.checkbutton.set_active(not addon.checkbutton.get_active())
         self._p()
-
-        print self.appdetails.addons_statusbar
-        print self.appdetails.addons_manager.status_bar
-        print self.appdetails.addons_statusbar.get_property("visible")        
-
-        self.assertTrue(
-            self.appdetails.addons_manager.status_bar.get_property("visible"))
         self.assertTrue(
             self.appdetails.addons_statusbar.get_property("visible"))
+        # simulate intall finished
+        self.appdetails.addons_statusbar.applying = True
+        result = mock.Mock()
+        self.appdetails.backend.emit("transaction-finished", (None, result))
+        self._p()
+        self.assertFalse(
+            self.appdetails.addons_statusbar.get_property("visible"))
+        
 
     def test_show_app_simple_no_network(self):
         softwarecenter.netstatus.NETWORK_STATE = softwarecenter.netstatus.NetState.NM_STATE_DISCONNECTED
