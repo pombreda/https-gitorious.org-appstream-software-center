@@ -60,7 +60,7 @@ from softwarecenter.gwibber_helper import GwibberHelper, GwibberHelperMock
 
 from softwarecenter.backend.rnrclient import RatingsAndReviewsAPI, ReviewRequest
 
-from softwarecenter.backend.config import get_config
+from softwarecenter.config import get_config
 
 #import httplib2
 #httplib2.debuglevel = 1

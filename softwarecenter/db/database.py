@@ -418,7 +418,9 @@ class StoreDatabase(gobject.GObject):
         return False
 
     def get_installed_purchased_packages(self):
-        """ return a set() of packagenames with purchased apps """
+        """ return a set() of packagenames of purchased apps that are
+            currently installed 
+        """
         for_purchase_query = xapian.Query(
             "AH" + AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME)
         enquire = xapian.Enquire(self.xapiandb)
@@ -427,8 +429,8 @@ class StoreDatabase(gobject.GObject):
         installed_purchased_packages = set()
         for m in matches:
             pkgname = self.get_pkgname(m.document)
-            if (pkgname in self.cache and
-                self.cache[pkgname].is_installed):
+            if (pkgname in self._aptcache and
+                self._aptcache[pkgname].is_installed):
                 installed_purchased_packages.add(pkgname)
         return installed_purchased_packages
 
