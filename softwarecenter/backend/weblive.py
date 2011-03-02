@@ -18,7 +18,6 @@ class ServerNotReadyError(Exception):
 class WebLiveBackend(object):
     """ backend for interacting with the weblive service """
 
-
     # NXML template
     NXML_TEMPLATE = """
 <!DOCTYPE NXClientLibSettings>
@@ -105,7 +104,7 @@ class WebLiveBackend(object):
         return servers
 
     def create_automatic_user_and_run_session(self, serverid=None,
-                                              session="desktop"):
+                                              session="desktop", wait=False):
         """ login into serverid and automatically create a user """
         if not serverid:
             serverid = self.DEFAULT_SERVER
@@ -115,9 +114,9 @@ class WebLiveBackend(object):
         password = hostname
 
         connection=self.weblive.create_user(serverid, username, "WebLive User", password, session)
-        self._spawn_qtnx(connection[0], connection[1], session, username, password)
+        self._spawn_qtnx(connection[0], connection[1], session, username, password, wait)
 
-    def _spawn_qtnx(self, host, port, session, username, password):
+    def _spawn_qtnx(self, host, port, session, username, password, wait):
         if not os.path.exists(self.QTNX):
             raise IOError("qtnx not found")
         if not os.path.exists(os.path.expanduser('~/.qtnx')):
@@ -137,12 +136,14 @@ class WebLiveBackend(object):
                '%s-%s-%s' % (str(host), str(port), str(session)),
                username,
                password]
-        #print cmd
-        (pid, stdin, stdout, stderr) = glib.spawn_async(
-            cmd, flags=glib.SPAWN_DO_NOT_REAP_CHILD)
-        #p=subprocess.Popen(cmd)
-        #p.wait()
-        glib.child_watch_add(pid, self._on_qtnx_exit)
+
+        if wait == False:
+            (pid, stdin, stdout, stderr) = glib.spawn_async(
+                cmd, flags=glib.SPAWN_DO_NOT_REAP_CHILD)
+            glib.child_watch_add(pid, self._on_qtnx_exit)
+        else:
+            p=subprocess.Popen(cmd)
+            p.wait()
 
     def _on_qtnx_exit(self, pid, status):
         print "_on_qtnx_exit ", os.WEXITSTATUS(status)
@@ -160,8 +161,10 @@ def get_weblive_backend():
 
 if __name__ == "__main__":
     weblive = get_weblive_backend()
-    weblive.ready.wait()
+    weblive.query_available_async()
+    weblive._ready.wait()
+
     print weblive.available_servers
 
     # run session
-    weblive.create_automatic_user_and_run_session(session="firefox")
+    weblive.create_automatic_user_and_run_session(session="firefox",wait=True)
