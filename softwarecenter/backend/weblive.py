@@ -13,9 +13,11 @@ from threading import Thread, Event
 
 # Start of copy from weblive.py in upstream branch
 import urllib, urllib2, json
+
 class WebLiveJsonError(Exception):
     def __init__(self, value):
         self.value = value
+
     def __str__(self):
         return repr(self.value)
 
@@ -26,9 +28,44 @@ class WebLiveError(Exception):
     def __str__(self):
         return repr(self.value)
 
+class WebLiveLocale(object):
+    def __init__(self, locale, description):
+        self.locale = locale
+        self.description = description
+
+class WebLivePackage(object):
+    def __init__(self, pkgname, version):
+        self.pkgname = pkgname
+        self.version = version
+
+class WebLiveServer(object):
+    def __init__(self, name, title, description, timelimit, userlimit, users):
+        self.name = name
+        self.title = title
+        self.description = description
+        self.timelimit = timelimit
+        self.userlimit = userlimit
+        self.current_users = users
+
+    def __repr__(self):
+        return "[WebLiveServer: %s (%s - %s), timelimit=%s, userlimit=%s, current_users=%s" % (
+            self.name, self.title, self.description, self.timelimit, self.userlimit, self.current_users)
+
+class WebLiveEverythingServer(WebLiveServer):
+    def __init__(self, name, title, description, timelimit, userlimit, users, locales, packages):
+        self.locales = [WebLiveLocale(x[0], x[1]) for x in locales]
+        self.packages = [WebLivePackage(x[0], x[1]) for x in packages]
+
+        WebLiveServer.__init__(self, name, title, description, timelimit, userlimit, users)
+
+    def __repr__(self):
+        return "[WebLiveServer: %s (%s - %s), timelimit=%s, userlimit=%s, current_users=%s, nr_locales=%s, nr_pkgs=%s" % (
+            self.name, self.title, self.description, self.timelimit, self.userlimit, self.current_users, len(self.locales), len(self.packages))
+
 class WebLive:
-    def __init__(self,url):
+    def __init__(self,url,as_object=False):
         self.url=url
+        self.as_object=as_object
 
     def do_query(self,query):
         page=urllib2.Request(self.url,urllib.urlencode({'query':json.dumps(query)}))
@@ -94,9 +131,25 @@ class WebLive:
         reply=self.do_query(query)
 
         if type(reply['message']) != type({}):
-            raise WebLiveError("Invalid value, expected '%s' and got '%s'." % (type({}),type(reply['message'])))
+            raise WebLiveError("Invalid value, expected '%s' and got '%s'."
+                % (type({}),type(reply['message'])))
 
-        return reply['message']
+        if not self.as_object:
+            return reply['message']
+        else:
+            servers=[]
+            for server in reply['message']:
+                attr=reply['message'][server]
+                servers.append(WebLiveEverythingServer(
+                    server,
+                    attr['title'],
+                    attr['description'],
+                    attr['timelimit'],
+                    attr['userlimit'],
+                    attr['users'],
+                    attr['locales'],
+                    attr['packages']))
+            return servers
 
     def list_locales(self,serverid):
         query={}
@@ -105,9 +158,13 @@ class WebLive:
         reply=self.do_query(query)
 
         if type(reply['message']) != type([]):
-            raise WebLiveError("Invalid value, expected '%s' and got '%s'." % (type({}),type(reply['message'])))
+            raise WebLiveError("Invalid value, expected '%s' and got '%s'."
+                % (type({}),type(reply['message'])))
 
-        return reply['message']
+        if not self.as_object:
+            return reply['message']
+        else:
+            return [WebLiveLocale(x[0], x[1]) for x in reply['message']]
 
     def list_packages(self,serverid):
         query={}
@@ -116,9 +173,13 @@ class WebLive:
         reply=self.do_query(query)
 
         if type(reply['message']) != type([]):
-            raise WebLiveError("Invalid value, expected '%s' and got '%s'." % (type({}),type(reply['message'])))
+            raise WebLiveError("Invalid value, expected '%s' and got '%s'."
+                % (type({}),type(reply['message'])))
 
-        return reply['message']
+        if not self.as_object:
+            return reply['message']
+        else:
+            return [WebLivePackage(x[0], x[1]) for x in reply['message']]
 
     def list_servers(self):
         query={}
@@ -126,50 +187,27 @@ class WebLive:
         reply=self.do_query(query)
 
         if type(reply['message']) != type({}):
-            raise WebLiveError("Invalid value, expected '%s' and got '%s'." % (type({}),type(reply['message'])))
+            raise WebLiveError("Invalid value, expected '%s' and got '%s'."
+                % (type({}),type(reply['message'])))
 
-        return reply['message']
+        if not self.as_object:
+            return reply['message']
+        else:
+            servers=[]
+            for server in reply['message']:
+                attr=reply['message'][server]
+                servers.append(WebLiveServer(
+                    server,
+                    attr['title'],
+                    attr['description'],
+                    attr['timelimit'],
+                    attr['userlimit'],
+                    attr['users']))
+            return servers
 # End of copy from weblive.py in upstream branch
 
 class ServerNotReadyError(Exception):
     pass
-
-class WebLiveLocale(object):
-    def __init__(self, locale, description):
-        self.locale = locale
-        self.description = description
-
-class WebLivePackage(object):
-    def __init__(self, pkgname, version):
-        self.pkgname = pkgname
-        self.version = version
-
-class WebLiveServer(object):
-    def __init__(self, name, title, description, locales, packages, timelimit, userlimit, users):
-        self.name = name
-        self.title = title
-        self.description = description
-        self.locales = [WebLiveLocale(x[0], x[1]) for x in locales]
-        self.packages = [WebLivePackage(x[0], x[1]) for x in packages]
-        self.timelimit = timelimit
-        self.userlimit = userlimit
-        self.current_users = users
-
-    def __repr__(self):
-        return "[WebLiveServer: %s (%s - %s), timelimit=%s, userlimit=%s, current_users=%s, nr_locales=%s, nr_pkgs=%s" % (
-            self.name, self.title, self.description, self.timelimit, self.userlimit, self.current_users, len(self.locales), len(self.packages))
-
-    @classmethod
-    def from_json(cls, name, attributes):
-        o = cls(name,
-                attributes["title"],
-                attributes["description"],
-                attributes["locales"],
-                attributes["packages"],
-                attributes["timelimit"],
-                attributes["userlimit"],
-                attributes["users"])
-        return o
 
 class WebLiveBackend(object):
     """ backend for interacting with the weblive service """
@@ -208,7 +246,7 @@ class WebLiveBackend(object):
     DEFAULT_SERVER = "ubuntu-natty01"
 
     def __init__(self):
-        self.weblive = WebLive(self.URL)
+        self.weblive = WebLive(self.URL,True)
         self.available_servers = []
         self._ready = Event()
 
@@ -231,7 +269,7 @@ class WebLiveBackend(object):
 
     def query_available(self):
         """ (sync) get available server and limits """
-        servers=self._server_objects_from_dict(self.weblive.list_everything())
+        servers=self.weblive.list_everything()
         return servers
 
     def query_available_async(self):
@@ -243,12 +281,6 @@ class WebLiveBackend(object):
         self._ready.clear()
         p = Thread(target=_query_available_helper)
         p.start()
-
-    def _server_objects_from_dict(self, server_dict):
-        servers=[]
-        for (servername, attributes) in server_dict.iteritems():
-            servers.append(WebLiveServer.from_json(servername, attributes))
-        return servers
 
     def is_pkgname_available_on_server(self, pkgname, serverid=None):
         for server in self.available_servers:
