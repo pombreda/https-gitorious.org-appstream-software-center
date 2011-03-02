@@ -78,6 +78,7 @@ class Review(object):
         self.usefulness_favorable = 0
         # this will be set if tryint to submit usefulness for this review failed
         self.usefulness_submit_error = False
+        self.delete_error = False
     def __repr__(self):
         return "[Review id=%s review_text='%s' reviewer_username='%s']" % (
             self.id, self.review_text, self.reviewer_username)

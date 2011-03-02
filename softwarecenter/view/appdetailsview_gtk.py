@@ -1200,6 +1200,7 @@ class UIReview(gtk.VBox):
         self.acknowledge_error.set_underline(True)
         self.acknowledge_error.set_subdued(True)
         self.usefulness_error = False
+        self.delete_error = False
 
         self.pack_start(self.header, False)
         self.pack_start(self.body, False)
@@ -1231,6 +1232,7 @@ class UIReview(gtk.VBox):
         useful_total = review_data.usefulness_total
         useful_favorable = review_data.usefulness_favorable
         useful_submit_error = review_data.usefulness_submit_error
+        delete_error = review_data.delete_error
 
         self._build(rating,
                     self.person,
@@ -1242,7 +1244,8 @@ class UIReview(gtk.VBox):
                     app_version,
                     useful_total,
                     useful_favorable,
-                    useful_submit_error, delete_error)
+                    useful_submit_error, 
+                    delete_error)
         return
 
     def _on_allocate(self, widget, allocation, stars, summary, who_when, version_lbl, flag):
@@ -1263,12 +1266,12 @@ class UIReview(gtk.VBox):
             reviews.emit("report-abuse", self.id)
     
     def _on_modify_clicked(self, button):
-        reviews = self.get_ancestor(Reviews)
+        reviews = self.get_ancestor(UIReviewsList)
         if reviews:
             reviews.emit("modify-review", self.id)
             
     def _on_delete_clicked(self, button):
-        reviews = self.get_ancestor(Reviews)
+        reviews = self.get_ancestor(UIReviewsList)
         if reviews:
             reviews.emit("delete-review", self.id)
     
@@ -2091,9 +2094,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             "report-abuse", self._on_review_report_abuse)
         self.ui_reviews_list.connect(
             "submit-usefulness", self._on_review_submit_usefulness)
-        self.reviews.connect(
+        self.ui_reviews_list.connect(
             "modify-review", self._on_review_modify)
-        self.reviews.connect(
+        self.ui_reviews_list.connect(
             "delete-review", self._on_review_delete)
         self.main_frame.body.pack_start(self.ui_reviews_list)
         return
