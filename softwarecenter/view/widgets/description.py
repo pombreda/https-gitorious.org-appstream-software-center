@@ -29,17 +29,32 @@ from gettext import gettext as _
 
 class EventHelper(dict):
 
+    VALID_KEYS = (
+        'event',
+        'layout',
+        'index',
+        'within-selection',
+        'drag-active',
+        'drag-context')
+
     def __init__(self):
         dict.__init__(self)
-        self.set(None, None, None, False, False)
+        self.new_press(None, None, None, False)
         return
 
-    def set(self, event, layout, index, within_sel, drag):
+    def __setitem__(self, k, v):
+        if k not in EventHelper.VALID_KEYS:
+            raise KeyError, '\"%s\" is not a valid key'
+            return False
+        return dict.__setitem__(self, k, v)
+
+    def new_press(self, event, layout, index, within_sel):
         self['event'] = event
         self['layout'] = layout
         self['index'] = index
         self['within-selection'] = within_sel
-        self['drag'] = drag
+        self['drag-active'] = False
+        self['drag-context'] = None
         return
 
 
@@ -332,9 +347,8 @@ class TextBlock(gtk.EventBox):
         self.connect('key-press-event', self._on_key_press, cur, sel)
         self.connect('key-release-event', self._on_key_release, cur, sel)
 
-        # TODO: Drag n Drop
 #        self.connect('drag-begin', self._on_drag_begin)
-#        self.connect('drag-data-get', self._on_drag_data_get)
+        self.connect('drag-data-get', self._on_drag_data_get, sel)
 
         self.connect('focus-in-event', self._on_focus_in)
         self.connect('focus-out-event', self._on_focus_out)
@@ -390,6 +404,16 @@ class TextBlock(gtk.EventBox):
             self._fg = self.style.text[gtk.STATE_NORMAL]
         return
 
+#    def _on_drag_begin(self, widgets, context, event_helper):
+#        print 'drag: begin'
+#        return
+
+    def _on_drag_data_get(self, widget, context, selection, info, timestamp, sel):
+#        print 'drag: get data'
+        text = self.get_selected_text(sel)
+        selection.set_text(text, -1)
+        return
+
     def _on_focus_in(self, widget, event):
         self._bg = self.style.base[gtk.STATE_SELECTED]
         self._fg = self.style.text[gtk.STATE_SELECTED]
@@ -403,17 +427,25 @@ class TextBlock(gtk.EventBox):
     def _on_motion(self, widget, event, event_helper, cur, sel):
         if not (event.state & gtk.gdk.BUTTON1_MASK) or not self.has_focus(): return
 
-#        press = event_helper['event']
+        # check if we have moved enough to count as a drag
+        press = event_helper['event']
+        start_x, start_y = int(press.x), int(press.y)
+        cur_x, cur_y = int(event.x), int(event.y)
 
-#        start_x, start_y = int(press.x), int(press.y)
-#        current_x, current_y = int(event.x), int(event.y)
+        if not event_helper['drag-active'] and \
+            self.drag_check_threshold(start_x, start_y, cur_x, cur_y):
+            event_helper['drag-active'] = True
 
-#        if self.drag_check_threshold(start_x, start_y, current_x, current_y):
-#            event_helper['drag'] = Truebz
+        if not event_helper['drag-active']: return
 
-#        if event_helper['drag'] and event_helper['within-selection']:
-##            print 'DoDrag'
-#            return
+        if event_helper['within-selection'] and not event_helper['drag-context']:
+            ctx = self.drag_begin([("text/plain", 0, 80),],
+                                  gtk.gdk.ACTION_COPY,
+                                  1,    # initiating button
+                                  event)
+
+            event_helper['drag-context'] = ctx
+            return
 
         for layout in self.order:
             point_in, index = layout.index_at(int(event.x), int(event.y))
@@ -426,7 +458,7 @@ class TextBlock(gtk.EventBox):
 
         if sel and not self.has_focus():
             self.grab_focus()
-            return
+            return  # spot the difference
 
         elif not self.has_focus():
             self.grab_focus()
@@ -449,26 +481,19 @@ class TextBlock(gtk.EventBox):
                     cur.set_position(layout.index, index)
                     sel.clear()
 
-                event_helper.set(event.copy(), layout, index, within_sel, False)
+                event_helper.new_press(event.copy(), layout, index, within_sel)
                 break
         return
 
     def _on_release(self, widget, event, event_helper, cur, sel):
         if not event_helper['event']: return
 
-        press = event_helper['event']
-
-        start_x, start_y = int(press.x), int(press.y)
-        current_x, current_y = int(event.x), int(event.y)
-
-        if self.drag_check_threshold(start_x, start_y,
-                                     current_x, current_y):
+        # check if a drag occurred
+        if event_helper['drag-active']:
+            # if so, do not handle release
             return
 
-        self._handle_click(event_helper, cur, sel)
-        return
-
-    def _handle_click(self, event_helper, cur, sel):
+        # else, handle release, do click
         cur.set_position(event_helper['layout'].index,
                          event_helper['index'])
         sel.clear()

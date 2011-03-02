@@ -513,13 +513,6 @@ class Addon(gtk.HBox):
         title.set_size_request(width, -1)
         return True
 
-    def _on_more_expose(self, w, e):
-        if self.checkbutton.state not in (gtk.STATE_PRELIGHT,):
-            return True
-        cr = w.window.cairo_create()
-        w.draw(cr, w.allocation, e.area)
-        return
-
     def get_active(self):
         return self.checkbutton.get_active()
 
@@ -584,6 +577,7 @@ class AddonsTable(gtk.VBox):
             addon.checkbutton.connect("toggled",
                                       self.addons_manager.mark_changes)
             self.pack_start(addon, False)
+
         self.show_all()
 
         self.emit('table-built')
@@ -613,6 +607,7 @@ class AddonsStatusBar(StatusBar):
         #self.hbox.pack_start(self.hbuttonbox, False)
 
     def configure(self):
+        print 'AddonsStatusBarConfigure'
         # FIXME: addons are not always free, but the old implementation of determining price was buggy
         if (not self.addons_manager.addons_to_install and 
             not self.addons_manager.addons_to_remove):
@@ -629,6 +624,7 @@ class AddonsStatusBar(StatusBar):
         # these two lines are the magic that make it work
         self.view.addons_to_install = self.addons_manager.addons_to_install
         self.view.addons_to_remove = self.addons_manager.addons_to_remove
+        print 'ApplyButtonClicked', self.view.addons_to_install, self.view.addons_to_remove
         AppDetailsViewBase.apply_changes(self.view)
 
 
@@ -643,6 +639,7 @@ class AddonsManager():
         self.addons_to_remove = []
 
     def mark_changes(self, checkbutton):
+        print 'MarkChanges'
         addon = checkbutton.pkgname
         installed = self.view.cache[addon].installed
         if checkbutton.get_active():
@@ -712,8 +709,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # app specific data
         self.app = None
         self.app_details = None
-
-        self.pkg_statusbar = PackageStatusBar(self)
 
         self.review_stats_widget = ReviewStatsContainer()
         self.reviews = UIReviewsList(self)
@@ -826,8 +821,11 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             session=cmd,serverid=servers[0])
 
     def _on_addon_table_built(self, table):
-        self.info_vb.pack_start(table, False)
-        self.info_vb.reorder_child(table, 0)
+        if not table.parent:
+            self.info_vb.pack_start(table, False)
+            self.info_vb.reorder_child(table, 0)
+        if not table.get_property('visible'):
+            table.show_all()
         return
 
     def _on_expose(self, widget, event, alignment):
@@ -877,7 +875,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.usage.draw(cr, self.usage.allocation, event.area)
         self.pkg_statusbar.draw(cr, self.pkg_statusbar.allocation, event.area)
         self.screenshot.draw(cr, self.screenshot.allocation, event.area)
-        self.addons_bar.draw(cr, self.addons_bar.allocation, event.area)
+        self.addons_statusbar.draw(cr, self.addons_statusbar.allocation, event.area)
         self.reviews.draw(cr, self.reviews.allocation)
         del cr
         return
@@ -933,7 +931,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         return
 
     def _on_realize(self, widget):
-        self.addons_bar.hide_all()
+        self.addons_statusbar.hide_all()
         return
 
     def _on_homepage_clicked(self, button):
@@ -1068,8 +1066,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.addon_view = self.addons_manager.table
         info_vb.pack_start(self.addon_view, False)
 
-        self.addons_bar = self.addons_manager.status_bar
-        self.addon_view.pack_start(self.addons_bar, False)
+        self.addons_statusbar = self.addons_manager.status_bar
+        self.addon_view.pack_start(self.addons_statusbar, False)
         self.addon_view.connect('table-built', self._on_addon_table_built)
 
         # package info
@@ -1308,25 +1306,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         return
 
     def _update_minimal(self, app_details):
-#        pkg_ambiguous_error = app_details.pkg_state in (PKG_STATE_NOT_FOUND, PKG_STATE_NEEDS_SOURCE)
-
-#        appname = gobject.markup_escape_text(app_details.display_name)
-
-#        if app_details.pkg_state == PKG_STATE_NOT_FOUND:
-#            summary = app_details._error_not_found
-#        else:
-#            summary = app_details.display_summary
-#        if not summary:
-#            summary = ""
-
-#        self._update_title_markup(appname, summary)
         self._update_app_icon(app_details)
-#        self._update_layout_error_status(pkg_ambiguous_error)
-#        self._update_app_description(app_details, app_details.pkgname)
-#        self._update_app_screenshot(app_details)
-#        self._update_description_footer_links(app_details)
         self._update_pkg_info_table(app_details)
-#        gobject.timeout_add(500, self._update_addons, app_details)
+#        self._update_addons_minimal(app_details)
 
         # depending on pkg install state set action labels
         self.pkg_statusbar.configure(app_details, app_details.pkg_state)
@@ -1460,7 +1442,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # addons modified
         elif self.addons_statusbar.applying:
             self.pkg_statusbar.configure(self.app_details, PKG_STATE_INSTALLED)
-            self.pkg_statusbar.configure(self.app_details, PKG_STATE_INSTALLED)
             self.addons_manager.configure(self.app_details.name, False)
             self.addons_statusbar.configure()
 
@@ -1469,15 +1450,15 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         if self.addons_statusbar.applying:
             self.addons_statusbar.applying = False
 
-#        self.addons_manager.configure(self.app_details.name, False)
         return False
 
     def _on_transaction_started(self, backend, pkgname, appname, trans_id, trans_type):
         if self.addons_statusbar.applying:
             self.pkg_statusbar.configure(self.app_details, APP_ACTION_APPLY)
-        
+            return
+
         state = self.pkg_statusbar.pkg_state
-        LOG.debug("_on_transaction_stated %s" % state)
+        LOG.debug("_on_transaction_started %s" % state)
         if state == PKG_STATE_NEEDS_PURCHASE:
             self.pkg_statusbar.configure(self.app_details, PKG_STATE_INSTALLING_PURCHASED)
         elif state == PKG_STATE_UNINSTALLED:
@@ -1515,16 +1496,43 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                 self.adjustment_value = self.get_vadjustment().get_value()
         return
 
-    def _get_xy_icon_position_on_screen(self):
+    def get_app_icon_details(self):
+        """ helper for unity dbus support to provide details about the application
+            icon as it is displayed on-screen
+        """
+        icon_name = self.appdetails.icon
+        if self.appdetails.icon_needs_download:
+            icon_file = self.appdetails.cached_icon_file_path
+        icon_size = self._get_app_icon_size_on_screen()
+        icon_file_path = get_file_path_from_iconname(self.icons,
+                                                     iconsize=icon_size,
+                                                     iconname=icon_name)
+        (icon_x, icon_y) = self._get_app_icon_xy_position_on_screen()
+        return (icon_name, icon_file_path, icon_size, icon_x, icon_y)
+
+    def _get_app_icon_size_on_screen(self):
+        """ helper for unity dbus support to get the size of the maximum side
+            for the application icon as it is displayed on-screen
+        """
+        icon_size = self.APP_ICON_SIZE
+        if self.main_frame.image.get_storage_type() == gtk.IMAGE_PIXBUF:
+            pb = self.main_frame.image.get_pixbuf()
+            if pb.get_width() > pb.get_height():
+                icon_size = pb.get_width()
+            else:
+                icon_size = pb.get_height()
+        return icon_size
+                
+    def _get_app_icon_xy_position_on_screen(self):
         """ helper for unity dbus support to get the x,y position of
-            the appicon on the screen
+            the application icon as it is displayed on-screen
         """
         # find toplevel parent
         parent = self
         while parent.get_parent():
             parent = parent.get_parent()
         # get x, y relative to toplevel
-        (x,y) = self.app_info.image.translate_coordinates(parent, 0, 0)
+        (x,y) = self.main_frame.image.translate_coordinates(parent, 0, 0)
         # get toplevel window position
         (px, py) = parent.get_position()
         return (px+x, py+y)
