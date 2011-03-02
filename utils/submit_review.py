@@ -647,6 +647,7 @@ class SubmitReviewsApp(BaseApp):
     def _init_modify(self):
         self._populate_review()
         self.submit_window.set_title(_("Modify Your %s Review" % self.app.name))
+        self.button_post.set_label(_("Modify"))
         self.SUBMIT_MESSAGE = _("Updating your review")
         self.ERROR_MESSAGE = _("Failed to edit review")
         self._enable_or_disable_post_button()
