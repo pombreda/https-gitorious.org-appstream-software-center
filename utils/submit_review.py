@@ -379,6 +379,9 @@ class BaseApp(SimpleGtkbuilderApp):
         #submit success image
         self.submit_success_img = gtk.Image()
         self.submit_success_img.set_from_stock(gtk.STOCK_APPLY,  gtk.ICON_SIZE_SMALL_TOOLBAR)
+        #submit warn image
+        self.submit_warn_img = gtk.Image()
+        self.submit_warn_img.set_from_stock(gtk.STOCK_DIALOG_INFO,  gtk.ICON_SIZE_SMALL_TOOLBAR)
         #label size to prevent image or spinner from resizing
         self.label_transmit_status.set_size_request(-1, gtk.icon_size_lookup(gtk.ICON_SIZE_SMALL_TOOLBAR)[1])
 
@@ -494,7 +497,7 @@ class BaseApp(SimpleGtkbuilderApp):
         self.button_post.set_sensitive(True)
         self.button_cancel.set_sensitive(True)
             
-    def _change_status(self, type,  message):
+    def _change_status(self, type,  message=""):
         """method to separate the updating of status icon/spinner and message in the submit review window,
          takes a type (progress, fail, success) as a string and a message string then updates status area accordingly"""
         self._clear_status_imagery()
@@ -503,17 +506,21 @@ class BaseApp(SimpleGtkbuilderApp):
             self.status_hbox.reorder_child(self.submit_spinner, 0)
             self.submit_spinner.show()
             self.submit_spinner.start()
-            self.label_transmit_status.set_text(message)
         elif type == "fail":
             self.status_hbox.pack_start(self.submit_error_img, False)
             self.status_hbox.reorder_child(self.submit_error_img, 0)
             self.submit_error_img.show()
-            self.label_transmit_status.set_text(message)
         elif type == "success":
             self.status_hbox.pack_start(self.submit_success_img, False)
             self.status_hbox.reorder_child(self.submit_success_img, 0)
             self.submit_success_img.show()
-            self.label_transmit_status.set_text(message)
+        elif type == "warning":
+            self.status_hbox.pack_start(self.submit_warn_img, False)
+            self.status_hbox.reorder_child(self.submit_warn_img, 0)
+            self.submit_warn_img.show()
+        
+        self.label_transmit_status.set_text(message)
+            
 
     def _clear_status_imagery(self):
         #clears spinner or error image from dialog submission label before trying to display one or the other
@@ -532,6 +539,12 @@ class BaseApp(SimpleGtkbuilderApp):
          try: 
             result = self.status_hbox.query_child_packing(self.submit_success_img)
             self.status_hbox.remove(self.submit_success_img)
+         except TypeError:
+            pass
+        
+         try:
+            result = self.status_hbox.query_child_packing(self.submit_warn_img)
+            self.status_hbox.remove(self.submit_warn_img)
          except TypeError:
             pass
         
@@ -592,7 +605,7 @@ class SubmitReviewsApp(BaseApp):
         self.iconname = iconname
         self.action = action
         self.review_id = int(review_id)
-
+        
         # parent xid
         if parent_xid:
             win = gtk.gdk.window_foreign_new(int(parent_xid))
@@ -642,13 +655,14 @@ class SubmitReviewsApp(BaseApp):
         try:
             review_data = self.retrieve_api.get_review_by_id(review_id=self.review_id)
             app = softwarecenter.db.application.Application(pkgname=review_data['package_name'])
-            self.app = app
-            self.orig_summary_text = review_data['summary'] 
+            self.app = app 
             self.review_summary_entry.set_text(review_data['summary'])
-            self.orig_star_rating = review_data['rating']
             self.star_rating.set_rating(review_data['rating'])
+            self.review_buffer.set_text(review_data['review_text'])
+            #save original review field data, for comparison purposes when user makes changes to fields
+            self.orig_summary_text = review_data['summary']
+            self.orig_star_rating = review_data['rating']
             self.orig_review_text = review_data['review_text']
-            self.textview_review.get_buffer().set_text(review_data['review_text'])
             self.version = review_data['version']
             self.origin = 'ubuntu'
         #FIXME: hardcoded except clause for testing, until API is ready
@@ -657,7 +671,7 @@ class SubmitReviewsApp(BaseApp):
             self.app = app
             self.review_summary_entry.set_text("summary text")
             self.star_rating.set_rating(4)
-            self.textview_review.get_buffer().set_text("review text goes here......")
+            self.review_buffer.set_text("review text goes here......")
             self.version = '0.1'
             self.origin = 'ubuntu'
         return
@@ -713,21 +727,23 @@ class SubmitReviewsApp(BaseApp):
             review_chars and review_chars <= self.REVIEW_CHAR_LIMITS[0] and
             self.star_rating.get_rating()):
             self.button_post.set_sensitive(True)
+            self._change_status("clear")
         else:
             self.button_post.set_sensitive(False)
+            self._change_status("clear")
         
         #set post button insensitive, if review being modified is the same as what is currently in the UI fields
         if self.action == 'modify':
             if self._modify_review_is_the_same():
                 self.button_post.set_sensitive(False)
+                self._change_status("warning", _("Can't submit unmodified"))
     
     def _modify_review_is_the_same(self):
         '''checks if review fields are the same as the review being modified and returns true if so'''
-        current_buffer = self.textview_review.get_buffer()
-        #perform an initial check on character counts to return False if any don't match, avoids doing unnecessary string comparisons
         
+        #perform an initial check on character counts to return False if any don't match, avoids doing unnecessary string comparisons
         if (self.review_summary_entry.get_text_length() != len(self.orig_summary_text) or
-           current_buffer.get_char_count() != len(self.orig_review_text)):
+           self.review_buffer.get_char_count() != len(self.orig_review_text)):
             return False
         #compare rating
         if self.star_rating.get_rating() != self.orig_star_rating:
@@ -736,8 +752,8 @@ class SubmitReviewsApp(BaseApp):
         if self.review_summary_entry.get_text() != self.orig_summary_text:
             return False
         #compare review text
-        if current_buffer.get_text(current_buffer.get_start_iter(),
-                                           current_buffer.get_end_iter()) != self.orig_review_text:
+        if self.review_buffer.get_text(self.review_buffer.get_start_iter(),
+                                           self.review_buffer.get_end_iter()) != self.orig_review_text:
             return False
         return True
         
