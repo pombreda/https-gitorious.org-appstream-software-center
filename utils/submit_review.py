@@ -734,7 +734,8 @@ class SubmitReviewsApp(BaseApp):
             self._change_status("clear")
         
         #set post button insensitive, if review being modified is the same as what is currently in the UI fields
-        if self.action == 'modify':
+        #checks if 'original' review attributes exist to avoid exceptions when this method has been called prior to review being retrieved  
+        if self.action == 'modify' and hasattr(self, "orig_star_rating"):
             if self._modify_review_is_the_same():
                 self.button_post.set_sensitive(False)
                 self._change_status("warning", _("Can't submit unmodified"))
