@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Copyright (C) 2009 Canonical
 #
 # Authors:
@@ -40,9 +41,10 @@ from softwarecenter.db.reviews import ReviewStats
 from softwarecenter.backend.zeitgeist_simple import zeitgeist_singleton
 from softwarecenter.enums import *
 from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR, INSTALLED_ICON, IMAGE_LOADING_INSTALLED
-from softwarecenter.utils import ImageDownloader, GMenuSearcher, uri_to_filename, is_unity_running, upstream_version_compare, upstream_version, get_nice_date_string
+from softwarecenter.utils import *
 from softwarecenter.gwibber_helper import GWIBBER_SERVICE_AVAILABLE
-
+from softwarecenter.backend.weblive import get_weblive_backend
+        
 from appdetailsview import AppDetailsViewBase
 
 from widgets import mkit
@@ -51,8 +53,6 @@ from widgets.label import IndentLabel
 from widgets.imagedialog import ShowImageDialog
 
 from widgets.reviews import ReviewStatsContainer, StarRating
-
-from softwarecenter.backend.config import get_config
 
 if os.path.exists("./softwarecenter/enums.py"):
     sys.path.insert(0, ".")
@@ -140,6 +140,8 @@ class PackageStatusBar(StatusBar):
         self.label = mkit.EtchedLabel()
         self.button = gtk.Button()
         self.progress = gtk.ProgressBar()
+        # theme engine hint for bug #606942
+        self.progress.set_data("transparent-bg-hint", True)
 
         self.pkg_state = None
 
@@ -331,6 +333,8 @@ class AppDescription(gtk.VBox):
         self.description = IndentLabel()
         self.footer = gtk.HBox(spacing=mkit.SPACING_MED)
 
+        self.description.a11y = self.get_accessible()
+
         self.pack_start(self.description, False)
         self.pack_start(self.footer, False)
         self.show_all()
@@ -366,6 +370,7 @@ class AppDescription(gtk.VBox):
 
         LOG.debug("description: '%s' " % desc)
         self.clear()
+        self.description.a11y.set_name(desc)
         desc = gobject.markup_escape_text(desc)
 
         parts = desc.split('\n')
@@ -493,7 +498,7 @@ class PackageInfo(gtk.HBox):
         self.a11y.set_name(self.key + ' ' + self.value_label.get_text())
 
 
-class ScreenshotView(gtk.Alignment):
+class ScreenshotView(gtk.VBox):
 
     """ Widget that displays screenshot availability, download prrogress,
         and eventually the screenshot itself.
@@ -502,7 +507,11 @@ class ScreenshotView(gtk.Alignment):
     def __init__(self, distro, icons):
         # center child widgets in the available horizontal space (0.5)
         # 0.0 == left/top margin, 0.5 == center, 1.0 == right/bottom margin
-        gtk.Alignment.__init__(self, 0.5, 0.0)
+        gtk.VBox.__init__(self)
+        self.set_spacing(12)
+
+        alignment = gtk.Alignment(0.5, 0.0)
+        self.pack_start(alignment, expand=False, fill=False)
         self.set_redraw_on_allocate(False)
 
         # the frame around the screenshot (placeholder)
@@ -511,13 +520,19 @@ class ScreenshotView(gtk.Alignment):
         # eventbox so we can connect to event signals
         event = gtk.EventBox()
         event.set_visible_window(False)
-        self.add(event)
+        alignment.add(event)
 
         # the image
         self.image = gtk.Image()
         self.image.set_redraw_on_allocate(False)
         event.add(self.image)
         self.eventbox = event
+
+        # the weblive test-drive stuff
+        self.weblive = get_weblive_backend()
+        self.test_drive = gtk.Button(_("Test drive"))
+        self.test_drive.connect("clicked", self.on_test_drive_clicked)
+        self.pack_start(self.test_drive, expand=False, fill=False)
 
         # connect the image to our custom draw func for fading in
         self.image.connect('expose-event', self._on_image_expose)
@@ -562,9 +577,9 @@ class ScreenshotView(gtk.Alignment):
         self.alpha = 0.0
 
         # convienience class for handling the downloading (or not) of any screenshot
-        self.loader = ImageDownloader()
-        self.loader.connect('image-url-reachable', self._on_screenshot_query_complete)
-        self.loader.connect('image-download-complete', self._on_screenshot_download_complete)
+        self.loader = SimpleFileDownloader()
+        self.loader.connect('file-url-reachable', self._on_screenshot_query_complete)
+        self.loader.connect('file-download-complete', self._on_screenshot_download_complete)
 
     # signal handlers
     def _on_enter(self, widget, event):
@@ -691,19 +706,29 @@ class ScreenshotView(gtk.Alignment):
                 # 160 pixels is the fixed width of the thumbnails
                 self.unavailable.set_size_request(160, 100)
                 self.unavailable.show_all()
-                acc = self.get_accessible()
-                acc.set_name(_('%s - No screenshot available') % self.appname)
+            acc = self.get_accessible()
+            acc.set_name(_('No screenshot available'))
+            acc.set_role(atk.ROLE_LABEL)
         else:
             if self.unavailable.parent:
                 self.eventbox.remove(self.unavailable)
                 self.eventbox.add(self.image)
                 self.image.show()
-                acc = self.get_accessible()
-                acc.set_name(_('%s - Screenshot') % self.appname)
+            acc = self.get_accessible()
+            acc.set_name(_('Screenshot'))
+            acc.set_role(atk.ROLE_PUSH_BUTTON)
 
         self.screenshot_available = available
         return
- 
+
+    def on_test_drive_clicked(self, button):
+        #print "on_testdrive_clicked"
+        exec_line = get_exec_line_from_desktop(self.desktop_file)
+        # split away any arguments, gedit for example as %U
+        cmd = exec_line.split()[0]
+        servers = self.weblive.get_servers_for_pkgname(self.pkgname)
+        self.weblive.create_automatic_user_and_run_session(session=cmd,serverid=servers[0])
+
     def configure(self, app_details):
 
         """ Called to configure the screenshotview for a new application.
@@ -719,6 +744,15 @@ class ScreenshotView(gtk.Alignment):
         self.pkgname = app_details.pkgname
         self.thumbnail_url = app_details.thumbnail
         self.large_url = app_details.screenshot
+        self.desktop_file = app_details.desktop_file
+        # only enable test drive if we have a desktop file and exec line
+        if (not self.weblive.is_supported() or
+            not self.weblive.is_pkgname_available_on_server(self.pkgname) or
+            not os.path.exists(self.desktop_file) or
+            not get_exec_line_from_desktop(self.desktop_file)):
+            self.test_drive.hide()
+        else:
+            self.test_drive.show()
         return
 
     def clear(self):
@@ -747,10 +781,10 @@ class ScreenshotView(gtk.Alignment):
         """ Download then displays the screenshot.
             This actually does a query on the URL first to check if its 
             reachable, if so it downloads the thumbnail.
-            If not, it emits "image-url-reachable" False, then exits.
+            If not, it emits "file-url-reachable" False, then exits.
         """
         
-        self.loader.download_image(self.thumbnail_url)
+        self.loader.download_file(self.thumbnail_url)
         return
 
     def draw(self, cr, a, expose_area):
@@ -983,7 +1017,7 @@ class AddonsTable(gtk.VBox):
         return
 
 
-class Reviews(gtk.VBox):
+class UIReviewsList(gtk.VBox):
 
     __gsignals__ = {
         'new-review':(gobject.SIGNAL_RUN_FIRST,
@@ -1038,18 +1072,15 @@ class Reviews(gtk.VBox):
         self.expander.connect('notify::expanded', self._on_expand)
         self.expander.set_expanded(True)
         self.new_review.connect('clicked', self._on_button_new_clicked)
+
+        # data
+        self.logged_in_person = get_person_from_config()
         return
 
     @property
     def app_details(self):
         if self._parent:
             return self._parent.app_details
-        return None
-
-    def _get_person_from_config(self):
-        cfg = get_config()
-        if cfg.has_option("reviews", "username"):
-            return cfg.get("reviews", "username")
         return None
 
     def _on_expand(self, expander, param):
@@ -1071,19 +1102,14 @@ class Reviews(gtk.VBox):
         self.emit("new-review")
 
     def _fill(self):
-        self.logged_in_person = self._get_person_from_config()
+        # FIXME: this should go away (or into a different method),
+        #        we want the fill from the reviews-ready callback
+        #  duplicated code
         if self.reviews:
-
-            self.reviews.reverse()  # XXX: sort so that reviews are ordered recent to oldest
-                                    # XXX: prob should be done somewhere else, perhaps in the review fetcher?
-                                    # mvo: the server will eventually sort for us (hopefully) by usefulness/version/date, but for now looks like we need to do it
-
             for r in self.reviews:
                 pkgversion = self._parent.app_details.version
-                review = Review(r, pkgversion, self.logged_in_person)
+                review = UIReview(r, pkgversion, self.logged_in_person)
                 self.vbox.pack_start(review, padding=mkit.SPACING_LARGE)
-        elif get_network_state() == NetState.NM_STATE_CONNECTED:
-            self.vbox.pack_start(NoReviewYet(), padding=mkit.SPACING_LARGE)
         return
 
     def _be_the_first_to_review(self):
@@ -1125,49 +1151,55 @@ class Reviews(gtk.VBox):
 
     def add_embedded_message(self, m):
         self.vbox.pack_start(m)
+        self.vbox.show_all()
 
     def add_review(self, review):
         self.reviews.append(review)
         self._update = True
         return
-
+    
     def clear(self):
         self.reviews = []
         for review in self.vbox:
             review.destroy()
 
     def draw(self, cr, a):
-#        cr.save()
-
-#        cr.restore()
-
-        if not self.expander.get_expanded(): return
+        if not self.expander.get_expanded():
+            return
 
         for r in self.vbox:
             r.draw(cr, r.allocation)
         return
 
     def get_reviews(self):
-        return filter(lambda r: not isinstance(r, (EmbeddedMessage, NoReviewYet)) and isinstance(r, Review), self.vbox.get_children())
+        return filter(lambda r: not isinstance(r, (EmbeddedMessage)) and isinstance(r, UIReview), self.vbox.get_children())
 
-class Review(gtk.VBox):
-    
-    def __init__(self, review_data=None, app_version=None, logged_in_person=None):
+
+class UIReview(gtk.VBox):
+    """ the UI for a individual review including all button to mark
+        useful/inappropriate etc
+    """
+    def __init__(self, review_data=None, app_version=None,
+                 logged_in_person=None):
         gtk.VBox.__init__(self, spacing=mkit.SPACING_MED)
 
         self.header = gtk.HBox(spacing=mkit.SPACING_MED)
         self.body = gtk.VBox()
         self.footer_split = gtk.VBox()
         self.footer = gtk.HBox()
-        
-        self.delete_status_box = gtk.HBox()
-        self.delete_error_img = gtk.Image()
-        self.delete_error_img.set_from_stock(gtk.STOCK_DIALOG_ERROR, gtk.ICON_SIZE_SMALL_TOOLBAR)
-        self.delete_status_spinner = gtk.Spinner()
-        self.delete_status_spinner.set_size_request(12,12)
-        self.delete_acknowledge_error = mkit.VLinkButton(_("<small>OK</small>"))
-        self.delete_acknowledge_error.set_underline(True)
-        self.delete_acknowledge_error.set_subdued(True)
+
+        self.useful = None
+        self.yes_like = None
+        self.no_like = None
+        self.status_box = gtk.HBox()
+        self.submit_error_img = gtk.Image()
+        self.submit_error_img.set_from_stock(gtk.STOCK_DIALOG_ERROR, gtk.ICON_SIZE_SMALL_TOOLBAR)
+        self.submit_status_spinner = gtk.Spinner()
+        self.submit_status_spinner.set_size_request(12,12)
+        self.acknowledge_error = mkit.VLinkButton(_("<small>OK</small>"))
+        self.acknowledge_error.set_underline(True)
+        self.acknowledge_error.set_subdued(True)
+        self.usefulness_error = False
 
         self.pack_start(self.header, False)
         self.pack_start(self.body, False)
@@ -1175,6 +1207,7 @@ class Review(gtk.VBox):
         
         self.logged_in_person = logged_in_person
         self.person = None
+        self.id = None
 
         if review_data:
             self.connect('realize',
@@ -1182,6 +1215,7 @@ class Review(gtk.VBox):
                          review_data,
                          app_version,
                          logged_in_person)
+        
         return
 
     def _on_realize(self, w, review_data, app_version, logged_in_person):
@@ -1192,12 +1226,11 @@ class Review(gtk.VBox):
         text = review_data.review_text
         date = review_data.date_created
         app_name = review_data.app_name
-        # some older version of the server do not set the version
-        review_version = getattr(review_data, "version", "")
-        # old versions of the server do not expose usefulness
-        useful_total = getattr(review_data, "usefulness_total", 0)
-        useful_favorable = getattr(review_data, "usefulness_favorable", 0)
-        delete_error = getattr(review_data, "delete_error", False)
+
+        review_version = review_data.version
+        useful_total = review_data.usefulness_total
+        useful_favorable = review_data.usefulness_favorable
+        useful_submit_error = review_data.usefulness_submit_error
 
         self._build(rating,
                     self.person,
@@ -1209,7 +1242,7 @@ class Review(gtk.VBox):
                     app_version,
                     useful_total,
                     useful_favorable,
-                    delete_error)
+                    useful_submit_error, delete_error)
         return
 
     def _on_allocate(self, widget, allocation, stars, summary, who_when, version_lbl, flag):
@@ -1225,7 +1258,7 @@ class Review(gtk.VBox):
         return
 
     def _on_report_abuse_clicked(self, button):
-        reviews = self.get_ancestor(Reviews)
+        reviews = self.get_ancestor(UIReviewsList)
         if reviews:
             reviews.emit("report-abuse", self.id)
     
@@ -1240,14 +1273,60 @@ class Review(gtk.VBox):
             reviews.emit("delete-review", self.id)
     
     def _on_useful_clicked(self, btn, is_useful):
-        reviews = self.get_ancestor(Reviews)
+        reviews = self.get_ancestor(UIReviewsList)
         if reviews:
+            self._usefulness_ui_update('progress')
             reviews.emit("submit-usefulness", self.id, is_useful)
+    
+    def _on_error_acknowledged(self, button, current_user_reviewer, useful_total, useful_favorable):
+        self.usefulness_error = False
+        self._usefulness_ui_update('renew', current_user_reviewer, useful_total, useful_favorable)
+    
+    def _usefulness_ui_update(self, type, current_user_reviewer=False, useful_total=0, useful_favorable=0):
+        self._hide_usefulness_elements()
+        #print "_usefulness_ui_update: %s" % type
+        if type == 'renew':
+            self._build_usefulness_ui(current_user_reviewer, useful_total, useful_favorable)
+            return
+        if type == 'progress':
+            self.submit_status_spinner.start()
+            self.submit_status_spinner.show()
+            self.status_label = gtk.Label("<small><b>%s</b></small>" % _(u"Submitting now\u2026"))
+            self.status_box.pack_start(self.submit_status_spinner, False)
+            self.status_label.set_use_markup(True)
+            self.status_label.set_padding(2,0)
+            self.status_box.pack_start(self.status_label,False)
+            self.status_label.show()
+        if type == 'error':
+            self.submit_error_img.show()
+            self.status_label = gtk.Label("<small><b>%s</b></small>" % _("Error submitting usefulness"))
+            self.status_box.pack_start(self.submit_error_img, False)
+            self.status_label.set_use_markup(True)
+            self.status_label.set_padding(2,0)
+            self.status_box.pack_start(self.status_label,False)
+            self.status_label.show()
+            self.acknowledge_error.show()
+            self.status_box.pack_start(self.acknowledge_error,False)
+            self.acknowledge_error.connect('clicked', self._on_error_acknowledged, current_user_reviewer, useful_total, useful_favorable)
+        self.status_box.show()
+        self.footer.pack_start(self.status_box, False)
+        return
+    
+    def _hide_usefulness_elements(self):
+        """ hide all usefulness elements """
+        for attr in ["useful", "yes_like", "no_like", "submit_status_spinner",
+                     "submit_error_img", "status_box", "status_label",
+                     "acknowledge_error", "yes_no_separator"
+                     ]:
+            o = getattr(self, attr, None)
+            if o:
+                o.hide()
+        return
 
     def _get_datetime_from_review_date(self, raw_date):
         # example raw_date str format: 2011-01-28 19:15:21
         return datetime.datetime.strptime(raw_date, '%Y-%m-%d %H:%M:%S')
-    
+
     def _delete_ui_update(self, type, current_user_reviewer=False):
         self._hide_delete_elements()
         if type == 'renew':
@@ -1298,7 +1377,7 @@ class Review(gtk.VBox):
                 o.hide()
         return
     
-    def _build(self, rating, person, summary, text, date, app_name, review_version, app_version, useful_total, useful_favorable, delete_error):
+    def _build(self, rating, person, summary, text, date, app_name, review_version, app_version, useful_total, useful_favorable, useful_submit_error, delete_error):
         # all the arguments may need markup escape, depening on if
         # they are used as text or markup
 
@@ -1346,42 +1425,12 @@ class Review(gtk.VBox):
             self.footer_split.pack_start(version_lbl, False)
             
         self.footer_split.pack_start(self.footer, False)
-        
-        #if no usefulness has been submitted, simply ask if
-        # user found it useful (i.e. don't say 0 out of 0 found this...)
-        if useful_total == 0:
-            useful = gtk.Label('<small>%s</small>' % \
-                               _("Did you find this review useful?"))
-        else:
-            s = gettext.ngettext(
-                "%(useful_favorable)s out of %(useful_total)s person "
-                "found this review useful. Did you?",
-                "%(useful_favorable)s out of %(useful_total)s people "
-                "found this review useful. Did you?",
-                useful_total) % { 'useful_total' : useful_total,
-                                  'useful_favorable' : useful_favorable,
-                                }
-            useful = gtk.Label('<small>%s </small>' % s)
-        
-        useful.set_use_markup(True)
-        #vertically centre so it lines up with the Yes and No buttons
-        useful.set_alignment(0, 0.5)
-        
-        yes_like = mkit.VLinkButton('<small>Yes</small>')
-        no_like = mkit.VLinkButton('<small>No</small>')
-        yes_like.set_underline(True)
-        no_like.set_underline(True)
-        yes_like.set_subdued(True)
-        no_like.set_subdued(True)
 
-        # FIXME: Uncomment the following to re-enable the reviews usefulness feature
-        #        It it temporarily hidden pending rollout of server support
-#        self.footer.pack_start(useful, False)
-#        self.footer.pack_start(yes_like, False)
-#        self.footer.pack_start(no_like, False)
-        #connect signals
-        yes_like.connect('clicked', self._on_useful_clicked, True)
-        no_like.connect('clicked', self._on_useful_clicked, False)
+        current_user_reviewer = False
+        if person == self.logged_in_person:
+            current_user_reviewer = True
+
+        self._build_usefulness_ui(current_user_reviewer, useful_total, useful_favorable, useful_submit_error)
 
         if person == self.logged_in_person:
             current_user_reviewer = True
@@ -1394,6 +1443,68 @@ class Review(gtk.VBox):
         self.body.connect('size-allocate', self._on_allocate, stars, summary, who_when, version_lbl, self.flagbox)
             
         return
+    
+    def _build_usefulness_ui(self, current_user_reviewer, useful_total, useful_favorable, usefulness_submit_error=False):
+        if usefulness_submit_error:
+            self._usefulness_ui_update('error', current_user_reviewer, useful_total, useful_favorable)
+        else:
+            #get correct label based on retrieved usefulness totals and if user is reviewer
+            self.useful = self._get_usefulness_label(current_user_reviewer, useful_total, useful_favorable)
+            self.useful.set_use_markup(True)
+            #vertically centre so it lines up with the Yes and No buttons
+            self.useful.set_alignment(0, 0.5)
+
+            self.useful.show()
+            self.footer.pack_start(self.useful, False, padding=3)
+            if not current_user_reviewer:
+                self.yes_like = mkit.VLinkButton('<small>%s</small>' % _('Yes'))
+                self.no_like = mkit.VLinkButton('<small>%s</small>' % _('No'))
+                self.yes_like.set_underline(True)
+                self.no_like.set_underline(True)
+                self.yes_like.connect('clicked', self._on_useful_clicked, True)
+                self.no_like.connect('clicked', self._on_useful_clicked, False)
+                self.yes_no_separator = gtk.Label("<small>/</small>")
+                self.yes_no_separator.set_use_markup(True)
+                
+                self.yes_like.show()
+                self.no_like.show()
+                self.yes_no_separator.show()
+                self.likebox = gtk.HBox()
+                self.likebox.set_spacing(3)
+                self.likebox.pack_start(self.yes_like, False)
+                self.likebox.pack_start(self.yes_no_separator, False)
+                self.likebox.pack_start(self.no_like, False)
+                self.likebox.show()
+                self.footer.pack_start(self.likebox, False)
+        return
+
+    
+    def _get_usefulness_label(self, current_user_reviewer, useful_total, useful_favorable):
+        '''returns gtk.Label() to be used as usefulness label depending on passed in parameters'''
+        if useful_total == 0 and current_user_reviewer:
+            s = ""
+        elif useful_total == 0:
+            s = _("Was this review hepful?")
+        elif current_user_reviewer:
+            s = gettext.ngettext(
+                "%(useful_favorable)s of %(useful_total)s person "
+                "found this review helpful.",
+                "%(useful_favorable)s of %(useful_total)s people "
+                "found this review helpful.",
+                useful_total) % { 'useful_total' : useful_total,
+                                  'useful_favorable' : useful_favorable,
+                                }
+        else:
+            s = gettext.ngettext(
+                "%(useful_favorable)s of %(useful_total)s person "
+                "found this review helpful. Did you?",
+                "%(useful_favorable)s of %(useful_total)s people "
+                "found this review helpful. Did you?",
+                useful_total) % { 'useful_total' : useful_total,
+                                'useful_favorable' : useful_favorable,
+                                }
+        
+        return gtk.Label('<small>%s</small>' % s)
 
     def _build_delete_flag_ui(self, current_user_reviewer, delete_error=False):
         if delete_error:
@@ -1428,14 +1539,18 @@ class Review(gtk.VBox):
         dt = datetime.datetime.utcnow() - cur_t
 
         if person == self.logged_in_person:
-            m = '<span color="%s"><b>%s (%s)</b>, %s</span>' % (dark_color.to_string(),
-                                                           glib.markup_escape_text(person),
-                                                            _("that's you"),
-                                                           glib.markup_escape_text(nice_date))
+            m = '<span color="%s"><b>%s (%s)</b>, %s</span>' % (
+                dark_color.to_string(),
+                glib.markup_escape_text(person),
+                # TRANSLATORS: displayed in a review after the persons name,
+                # e.g. "Wonderful text based app" mvo (that's you) 2011-02-11"
+                _("that's you"),
+                glib.markup_escape_text(nice_date))
         else:
-            m = '<span color="%s"><b>%s</b>, %s</span>' % (dark_color.to_string(),
-                                                           glib.markup_escape_text(person),
-                                                           glib.markup_escape_text(nice_date))
+            m = '<span color="%s"><b>%s</b>, %s</span>' % (
+                dark_color.to_string(),
+                glib.markup_escape_text(person),
+                glib.markup_escape_text(nice_date))
 
         return m
 
@@ -1453,37 +1568,32 @@ class Review(gtk.VBox):
 
         cr.restore()
 
-class NoReviewYet(Review):
-    """ represents if there are no reviews yet """
-    def __init__(self, *args, **kwargs):
-        super(NoReviewYet, self).__init__(*args, **kwargs)
-        # TRANSLATORS: displayed if there are no reviews yet
-        self.body.pack_start(gtk.Label(_("None yet")))
-    #def draw(self, cr, a):
-    #    pass
+class EmbeddedMessage(UIReview):
 
-
-class EmbeddedMessage(Review):
-
-    def __init__(self, label, icon_name):
-        Review.__init__(self)
-
+    def __init__(self, label=None, icon_name=None):
+        UIReview.__init__(self)
+        self.label = None
+        self.image = None
+        
         a = gtk.Alignment(0.5, 0.5)
         self.body.pack_start(a, False)
 
         hb = gtk.HBox(spacing=12)
         a.add(hb)
 
-        i = gtk.image_new_from_icon_name(icon_name, gtk.ICON_SIZE_DIALOG)
-        hb.pack_start(i)
+        if icon_name:
+            i = gtk.image_new_from_icon_name(icon_name, gtk.ICON_SIZE_DIALOG)
+            hb.pack_start(i)
+            self.image = i
 
-        l = gtk.Label()
-        l.set_markup(label)
-        hb.pack_start(l)
+        if label:
+            l = gtk.Label()
+            l.set_markup(label)
+            hb.pack_start(l)
+            self.label = l
 
         self.show_all()
         return
-
 
 class AddonsStatusBar(StatusBar):
     
@@ -1550,7 +1660,8 @@ class AddonsManager():
             if addon in self.addons_to_install:
                 self.addons_to_install.remove(addon)
         self.status_bar.configure()
-        gobject.idle_add(self.view.update_totalsize)
+        gobject.idle_add(self.view.update_totalsize,
+                         priority=glib.PRIORITY_LOW)
 
     def configure(self, pkgname, update_addons=True):
         self.addons_to_install = []
@@ -1564,7 +1675,8 @@ class AddonsManager():
         self.addons_to_install = []
         self.addons_to_remove = []
         self.configure(self.view.app.pkgname)
-        gobject.idle_add(self.view.update_totalsize)
+        gobject.idle_add(self.view.update_totalsize,
+                         priority=glib.PRIORITY_LOW)
 
 
 class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
@@ -1651,6 +1763,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         stats = self.review_loader.get_review_stats(self.app)
         self._update_review_stats_widget(stats)
         # individual reviews is slow and async so we just queue it here
+        if network_state_is_connected():
+            m = EmbeddedMessage(_("Loading reviews…"))
+            self.ui_reviews_list.add_embedded_message(m)
         reviews = self.review_loader.get_reviews(self.app,
                                                  self._reviews_ready_callback)
 
@@ -1662,11 +1777,11 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         else:
             self.review_stats_widget.hide()
 
-    def _reviews_ready_callback(self, app, reviews):
+    def _reviews_ready_callback(self, app, review_data_list):
         """ callback when new reviews are ready, cleans out the
             old ones
         """
-        logging.info("_review_ready_callback: %s" % app)
+        LOG.debug("_review_ready_callback: %s" % app)
         # avoid possible race if we already moved to a new app when
         # the reviews become ready 
         # (we only check for pkgname currently to avoid breaking on
@@ -1674,37 +1789,43 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         if self.app.pkgname != app.pkgname:
             return
         # clear out the old ones ...
-        self.reviews.clear()
-
+        self.ui_reviews_list.clear()
+            
         # add network message if needed
         if not network_state_is_connected():
             s = '<big><b>%s</b></big>\n%s' % (
                 _('No Network Connection'),
                 _('Only cached reviews can be displayed'))
             m = EmbeddedMessage(s, 'network-offline')
-            self.reviews.add_embedded_message(m)
+            self.ui_reviews_list.add_embedded_message(m)
+
+        if not review_data_list and network_state_is_connected():
+            s = '%s' % _("None yet")
+            self.ui_reviews_list.add_embedded_message(EmbeddedMessage(s))
             
         # then add the new ones ...
-        for review in reviews:
-            self.reviews.add_review(review)
+        for review_data in review_data_list:
+            self.ui_reviews_list.add_review(review_data)
         # then update the stats (if needed). the caching can make them
         # wrong, so if the reviews we have in the list are more than the
         # stats we update manually
         old_stats = self.review_loader.get_review_stats(self.app)
-        if ((old_stats is None and len(reviews) > 0) or
-            (old_stats is not None and old_stats.ratings_total < len(reviews))):
+        if ((old_stats is None and
+             len(review_data_list) > 0) or
+            (old_stats is not None and
+             old_stats.ratings_total < len(review_data_list))):
             # generate new stats
             stats = ReviewStats(app)
-            stats.ratings_total = len(reviews)
+            stats.ratings_total = len(review_data_list)
             if stats.ratings_total == 0:
                 stats.ratings_average = 0
             else:
-                stats.ratings_average = sum([x.rating for x in reviews]) / float(stats.ratings_total)
+                stats.ratings_average = sum([x.rating for x in review_data_list]) / float(stats.ratings_total)
             # update UI
             self._update_review_stats_widget(stats)
             # update global stats cache as well
             self.review_loader.REVIEW_STATS_CACHE[app] = stats
-        self.reviews.finished()
+        self.ui_reviews_list.finished()
 
     def _on_allocate(self, widget, allocation):
         w = allocation.width
@@ -1724,7 +1845,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.license_info.set_width(w-4*EM)
         self.support_info.set_width(w-4*EM)
 
-        self.reviews.set_width(w-5*EM)
+        self.ui_reviews_list.set_width(w-5*EM)
 
         self._full_redraw()   #  ewww
         return
@@ -1775,13 +1896,13 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.share_btn.draw(cr, self.share_btn.allocation, expose_area)
 
         if self.usage.get_property('visible'):
-            self.usage.draw(cr, self.usage.allocation)
+            self.usage.draw(cr, self.usage.allocation, expose_area)
 
         if self.addon_view.get_property('visible'):
             self.addon_view.draw(cr, self.addon_view.allocation)
 
-        if self.reviews.get_property('visible'):
-            self.reviews.draw(cr, self.reviews.allocation)
+        if self.ui_reviews_list.get_property('visible'):
+            self.ui_reviews_list.draw(cr, self.ui_reviews_list.allocation)
 
         del cr
         return
@@ -1841,7 +1962,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         and self.adjustment_value >= self.get_vadjustment().lower \
         and self.adjustment_value <= self.get_vadjustment().upper:
             self.get_vadjustment().set_value(self.adjustment_value)
-        gobject.idle_add(self._full_redraw_cb)
+        gobject.idle_add(self._full_redraw_cb,
+                         priority=glib.PRIORITY_HIGH_IDLE)
         return
 
     def _layout_main_frame_header(self):
@@ -1962,13 +2084,18 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
     def _layout_reviews(self):
         # reviews
-        self.reviews = Reviews(self)
-        self.reviews.connect("new-review", self._on_review_new)
-        self.reviews.connect("report-abuse", self._on_review_report_abuse)
-        self.reviews.connect("submit-usefulness", self._on_review_submit_usefulness)
-        self.reviews.connect("modify-review", self._on_review_modify)
-        self.reviews.connect("delete-review", self._on_review_delete)
-        self.main_frame.body.pack_start(self.reviews)
+        self.ui_reviews_list = UIReviewsList(self)
+        self.ui_reviews_list.connect(
+            "new-review", self._on_review_new)
+        self.ui_reviews_list.connect(
+            "report-abuse", self._on_review_report_abuse)
+        self.ui_reviews_list.connect(
+            "submit-usefulness", self._on_review_submit_usefulness)
+        self.reviews.connect(
+            "modify-review", self._on_review_modify)
+        self.reviews.connect(
+            "delete-review", self._on_review_delete)
+        self.main_frame.body.pack_start(self.ui_reviews_list)
         return
 
     def _layout_all(self):
@@ -2035,7 +2162,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # if we have an error or if we need to enable a source, then hide everything else
         if pkg_error:
             self.addon_view.hide()
-            self.reviews.hide()
+            self.ui_reviews_list.hide()
             self.screenshot.hide()
             self.version_info.hide()
             self.license_info.hide()
@@ -2043,7 +2170,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.totalsize_info.hide()
         else:
             self.addon_view.show()
-            self.reviews.show()
+            self.ui_reviews_list.show()
             self.version_info.show()
             self.license_info.show()
             self.support_info.show()
@@ -2124,7 +2251,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         return
 
     def _update_reviews(self, app_details):
-        self.reviews.clear()
+        self.ui_reviews_list.clear()
         self._check_for_reviews()
         return
 
@@ -2263,7 +2390,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         
         # hide the "write a review" button initially until we are ready
         # to display it
-        self.reviews.new_review.hide()
+        self.ui_reviews_list.new_review.hide()
 
         # init data
         old_details = self.app_details
@@ -2329,7 +2456,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         return False
 
-    def _on_transaction_started(self, backend, pkgname):
+    def _on_transaction_started(self, backend, pkgname, appname, trans_id, trans_type):
         if self.addons_statusbar.applying:
             self.pkg_statusbar.configure(self.app_details, APP_ACTION_APPLY)
             return
@@ -2418,20 +2545,47 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         #cr.restore()
         #return
 
-    def _get_xy_icon_position_on_screen(self):
+    def get_app_icon_details(self):
+        """ helper for unity dbus support to provide details about the application
+            icon as it is displayed on-screen
+        """
+        icon_name = self.appdetails.icon
+        if self.appdetails.icon_needs_download:
+            icon_file = self.appdetails.cached_icon_file_path
+        icon_size = self._get_app_icon_size_on_screen()
+        icon_file_path = get_file_path_from_iconname(self.icons,
+                                                     iconsize=icon_size,
+                                                     iconname=icon_name)
+        (icon_x, icon_y) = self._get_app_icon_xy_position_on_screen()
+        return (icon_name, icon_file_path, icon_size, icon_x, icon_y)
+        
+    def _get_app_icon_size_on_screen(self):
+        """ helper for unity dbus support to get the size of the maximum side
+            for the application icon as it is displayed on-screen
+        """
+        icon_size = self.APP_ICON_SIZE
+        if self.main_frame.image.get_storage_type() == gtk.IMAGE_PIXBUF:
+            pb = self.main_frame.image.get_pixbuf()
+            if pb.get_width() > pb.get_height():
+                icon_size = pb.get_width()
+            else:
+                icon_size = pb.get_height()
+        return icon_size
+                
+    def _get_app_icon_xy_position_on_screen(self):
         """ helper for unity dbus support to get the x,y position of
-            the appicon on the screen
+            the application icon as it is displayed on-screen
         """
         # find toplevel parent
         parent = self
         while parent.get_parent():
             parent = parent.get_parent()
         # get x, y relative to toplevel
-        (x,y) = self.app_info.image.translate_coordinates(parent, 0, 0)
+        (x,y) = self.main_frame.image.translate_coordinates(parent, 0, 0)
         # get toplevel window position
         (px, py) = parent.get_position()
         return (px+x, py+y)
-
+        
     def _draw_icon_frame(self, cr):
         # draw small or no icon background
         a = self.main_frame.image.allocation
@@ -2472,10 +2626,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                     pb = gtk.gdk.pixbuf_new_from_file(image_file_path)
                     self.main_frame.set_icon_from_pixbuf(pb)
                     
-                icon_file_path = os.path.join(SOFTWARE_CENTER_ICON_CACHE_DIR, app_details.icon_file_name)
-                image_downloader = ImageDownloader()
-                image_downloader.connect('image-download-complete', on_image_download_complete)
-                image_downloader.download_image(app_details.icon_url, icon_file_path)
+                image_downloader = SimpleFileDownloader()
+                image_downloader.connect('file-download-complete', on_image_download_complete)
+                image_downloader.download_file(app_details.icon_url, appdetails.cached_icon_file_path)
         return self.icons.load_icon(MISSING_APP_ICON, 84, 0)
     
     def update_totalsize(self, hide=False):
@@ -2657,7 +2810,7 @@ if __name__ == "__main__":
     win = gtk.Window()
     scroll.add(view)
     win.add(scroll)
-    win.set_size_request(600,400)
+    win.set_size_request(800,600)
     win.show_all()
 
     # keep it spinning to test for re-draw issues and memleaks

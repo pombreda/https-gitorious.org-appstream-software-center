@@ -76,16 +76,22 @@ class testAppStore(unittest.TestCase):
         sorter.add_value(XAPIAN_VALUE_PKGNAME, True)
         enquire.set_sort_by_key(sorter)
 
-        matches = enquire.get_mset(0, 20)
+        matches = enquire.get_mset(0, 10)
         for m in matches:
             doc = db.get_document(m.docid)
             #print xapian.sortable_unserialise(doc.get_value(valueno))
             sorted_by_axi.append(self.db.get_pkgname(doc))
         # now compare to what we get from the store
         sorted_by_appstore = []
+        # we don't want to include items for purchase in the compare,
+        # since although tagged with cataloged_time values, they don't
+        # actually appear in the axi
+        for_purchase_query = xapian.Query("AH" + AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME)
+        store_query = xapian.Query(xapian.Query.OP_AND_NOT, 
+                                   query, for_purchase_query)
         store = AppStore(self.cache, self.db, self.mock_icons, 
                          sortmode=SORT_BY_CATALOGED_TIME,
-                         limit=20, search_query=query,
+                         limit=10, search_query=store_query,
                          nonapps_visible=AppStore.NONAPPS_ALWAYS_VISIBLE)
         for item in store:
             sorted_by_appstore.append(item[AppStore.COL_PKGNAME])

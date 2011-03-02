@@ -1,32 +1,74 @@
+"""This module provides the RatingsAndReviewsAPI class for talking to the
+ratings and reviews API, plus a few helper classes.
+"""
+
 from urllib import quote_plus
 from piston_mini_client import (PistonAPI, PistonResponseObject,
     PistonSerializable, returns_json, returns_list_of)
 from piston_mini_client.validators import validate_pattern, validate
 
+# These are factored out as constants for if you need to work against a
+# server that doesn't support both schemes (like http-only dev servers)
+PUBLIC_API_SCHEME = 'http'
+AUTHENTICATED_API_SCHEME = 'https'
 
 class ReviewRequest(PistonSerializable):
+    """A review request.
+
+    Instantiate one of these objects to describe a new review you wish to
+    submit, then pass it in as an argument to submit_review().
+    """
     _atts = ('app_name', 'package_name', 'summary', 'version', 'review_text',
         'rating', 'language', 'origin', 'distroseries', 'arch_tag')
     app_name = ''
 
 class ReviewsStats(PistonResponseObject):
-    """This class will be populated with the retrieved JSON"""
+    """A ratings summary for a package/app.
+    
+    This class will be automatically populated with JSON retrieved from the
+    server.  Each ReviewStats object will have the following fields:
+     * package_name
+     * app_name
+     * ratings_total
+     * ratings_average
+    """
     pass
 
 
 class ReviewDetails(PistonResponseObject):
-    """This class will be populated with the retrieved JSON"""
+    """A detailed review description.
+
+    This class will be automatically populated with JSON retrieved from the
+    server.  Each ReviewDetails object will have the following fields:
+     * id
+     * package_name
+     * app_name
+     * language
+     * date_created
+     * rating
+     * reviewer_username
+     * summary
+     * review_text
+     * hide
+     * version
+    """
     pass
 
 
 class RatingsAndReviewsAPI(PistonAPI):
+    """A client for talking to the reviews and ratings API.
+
+    If you pass no arguments into the constructor it will try to connect to
+    localhost:8000 so you probably want to at least pass in the
+    ``service_root`` constructor argument.
+    """
     default_service_root = 'http://localhost:8000/reviews/api/1.0'
     default_content_type = 'application/x-www-form-urlencoded'
 
     @returns_json
     def server_status(self):
         """Check the state of the server, to see if everything's ok."""
-        return self._get('server-status')
+        return self._get('server-status/', scheme=PUBLIC_API_SCHEME)
 
     @validate('days', int, required=False)
     @returns_list_of(ReviewsStats)
@@ -41,33 +83,35 @@ class RatingsAndReviewsAPI(PistonAPI):
                 if days <= valid_day:
                     url += 'updates-last-{0}-days/'.format(valid_day)
                     break
-        return self._get(url)
+        return self._get(url, scheme=PUBLIC_API_SCHEME)
 
-    @validate_pattern('language', r'\w+')
-    @validate_pattern('origin', r'[0-9a-z+-.:/]+')
-    @validate_pattern('distroseries', r'\w+')
+    @validate_pattern('language', r'\w+', required=False)
+    @validate_pattern('origin', r'[0-9a-z+-.:/]+', required=False)
+    @validate_pattern('distroseries', r'\w+', required=False)
+    @validate_pattern('version', r'[-\w+.:~]+', required=False)
     @validate_pattern('packagename', r'[a-z0-9.+-]+')
-    @validate('appname', str, required=False)
+    @validate('appname', basestring, required=False)
     @validate('page', int, required=False)
     @returns_list_of(ReviewDetails)
-    def get_reviews(self, language, origin, distroseries, packagename,
-        appname='', page=1):
+    def get_reviews(self, packagename, language='any', origin='any',
+        distroseries='any', version='any', appname='', page=1):
         """Fetch ratings and reviews for a particular package name.
 
-        If appname is provided, fetch reviews for that particular app, not
-        the whole package.
+        If any of the optional arguments are provided, fetch reviews for that
+        particular app, language, origin, distroseries or version.
         """
         if appname:
-            appname = quote_plus(';' + appname)
-        return self._get('%s/%s/%s/%s%s/page/%s/' % (language, origin,
-            distroseries, packagename, appname, page))
+            appname = quote_plus(';' + unicode(appname))
+        return self._get('%s/%s/%s/%s/%s%s/page/%s/' % (language, origin,
+            distroseries, version, packagename, appname, page),
+            scheme=PUBLIC_API_SCHEME)
 
     @validate('review', ReviewRequest)
     @returns_json
     def submit_review(self, review):
         """Submit a rating/review."""
         return self._post('reviews/', data=review,
-            content_type='application/json')
+        scheme=AUTHENTICATED_API_SCHEME, content_type='application/json')
 
     @validate('review_id', int)
     @returns_json
@@ -84,7 +128,8 @@ class RatingsAndReviewsAPI(PistonAPI):
         data = {'reason': reason,
             'text': text,
         }
-        return self._post('reviews/%s/flags/' % review_id, data=data)
+        return self._post('reviews/%s/flags/' % review_id, data=data,
+        scheme=AUTHENTICATED_API_SCHEME)
 
     @validate('review_id', int)
     @validate_pattern('useful', 'True|False')
@@ -92,5 +137,5 @@ class RatingsAndReviewsAPI(PistonAPI):
     def submit_usefulness(self, review_id, useful):
         """Submit a usefulness vote."""
         return self._post('/reviews/%s/recommendations/' % review_id,
-            data={'useful': useful})
+            data={'useful': useful}, scheme=AUTHENTICATED_API_SCHEME)
 

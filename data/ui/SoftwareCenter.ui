@@ -67,6 +67,14 @@
                       </object>
                     </child>
                     <child>
+                      <object class="GtkMenuItem" id="menuitem_deauthorize_computer">
+                        <property name="visible">True</property>
+                        <property name="label" translatable="yes">Deauthorize Computer…</property>
+                        <property name="use_underline">True</property>
+                        <signal name="activate" handler="on_menuitem_deauthorize_computer_activate"/>
+                      </object>
+                    </child>
+                    <child>
                       <object class="GtkSeparatorMenuItem" id="&lt;seperator&gt;">
                         <property name="visible">True</property>
                       </object>
@@ -361,7 +369,7 @@
           </packing>
         </child>
         <child>
-          <object class="GtkLabel" id="label_status">
+          <object class="GtkEventBox" id="status_box">
             <property name="visible">True</property>
           </object>
           <packing>

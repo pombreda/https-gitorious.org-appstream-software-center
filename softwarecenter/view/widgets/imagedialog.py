@@ -23,11 +23,10 @@ import gtk
 import logging
 import tempfile
 import time
-import threading
 import gobject
 
 from softwarecenter.enums import *
-from softwarecenter.utils import ImageDownloader
+from softwarecenter.utils import SimpleFileDownloader
 from spinner import SpinnerView
 
 ICON_EXCEPTIONS = ["gnome"]
@@ -60,9 +59,9 @@ class ShowImageDialog(gtk.Dialog):
         self.img = gtk.Image()
 
         # downloader
-        self.loader = ImageDownloader()
-        self.loader.connect('image-download-complete', self._on_screenshot_download_complete)
-        self.loader.connect('image-url-reachable', self._on_screenshot_query_complete)
+        self.loader = SimpleFileDownloader()
+        self.loader.connect('file-download-complete', self._on_screenshot_download_complete)
+        self.loader.connect('file-url-reachable', self._on_screenshot_query_complete)
 
         # scolled window for screenshot
         viewport = gtk.Viewport()
@@ -95,12 +94,11 @@ class ShowImageDialog(gtk.Dialog):
     def run(self):
         self.spinner_view.start()
         self.show_all()
-        # thread
         self._finished = False
         self._abort = False
         self._fetched = 0.0
         self._percent = 0.0
-        self.loader.download_image(self.url, self.path)
+        self.loader.download_file(self.url, self.path)
         # wait for download to finish or for abort
         while not self._finished:
             time.sleep(0.1)

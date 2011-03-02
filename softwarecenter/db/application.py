@@ -298,7 +298,7 @@ class AppDetails(object):
     def icon_file_name(self):
         if self._doc:
             return self._db.get_iconname(self._doc)
-            
+    
     @property
     def icon_needs_download(self):
         if self._doc:
@@ -307,6 +307,11 @@ class AppDetails(object):
     @property
     def icon_url(self):
         return self._distro.get_downloadable_icon_url(self._cache, self.pkgname, self.icon_file_name)
+
+    @property
+    def cached_icon_file_path(self):
+        if self._doc:
+            return os.path.join(SOFTWARE_CENTER_ICON_CACHE_DIR, self._db.get_iconname(self._doc))
 
     @property
     def installation_date(self):

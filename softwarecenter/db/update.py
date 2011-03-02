@@ -516,9 +516,14 @@ def index_app_info_from_parser(parser, db, cache):
         if "display_name" in axi_values:
             doc.add_value(axi_values["display_name"], name)
         # cataloged_times
-        if pkgname in cataloged_times and "catalogedtime" in axi_values:
-            doc.add_value(axi_values["catalogedtime"], 
-                          xapian.sortable_serialise(cataloged_times[pkgname]))
+        if "catalogedtime" in axi_values:
+            if pkgname in cataloged_times:
+                doc.add_value(axi_values["catalogedtime"], 
+                              xapian.sortable_serialise(cataloged_times[pkgname]))
+            else:
+                # also catalog apps not found in axi (e.g. for-purchase apps)
+                doc.add_value(axi_values["catalogedtime"], 
+                              xapian.sortable_serialise(time.time()))
         # pocket (main, restricted, ...)
         if parser.has_option_desktop("X-AppInstall-Section"):
             archive_section = parser.get_desktop("X-AppInstall-Section")
