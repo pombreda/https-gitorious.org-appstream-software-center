@@ -1253,8 +1253,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
     def _update_addons(self, app_details):
         # refresh addons interface
+        self.addon_view.hide_all()
         if self.addon_view.parent:
-            self.addon_view.hide_all()
             self.info_vb.remove(self.addon_view)
 
         if not app_details.error:
@@ -1295,6 +1295,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # depending on pkg install state set action labels
         self.pkg_statusbar.configure(app_details, app_details.pkg_state)
 
+        self._update_layout_error_status(pkg_ambiguous_error)
         self._update_title_markup(appname, summary)
         self._update_app_icon(app_details)
         self._update_app_description(app_details, appname)
@@ -1304,7 +1305,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self._update_pkg_info_table(app_details)
         self._update_addons(app_details)
         self._update_reviews(app_details)
-        self._update_layout_error_status(pkg_ambiguous_error)
 
         # show where it is
         self._configure_where_is_it()
