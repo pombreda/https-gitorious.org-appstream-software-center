@@ -431,6 +431,9 @@ class TextBlock(gtk.EventBox):
 
         # check if we have moved enough to count as a drag
         press = event_helper['event']
+        # mvo: how can this be?
+        if not press:
+            return
         start_x, start_y = int(press.x), int(press.y)
         cur_x, cur_y = int(event.x), int(event.y)
 
