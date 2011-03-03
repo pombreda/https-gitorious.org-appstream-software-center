@@ -1,3 +1,19 @@
+software-center UNRELEASED natty; urgency=low
+
+    [ Kiwinote ]
+    * softwarecenter/view/appdetailsview_gtk.py,
+      softwarecenter/view/widgets/description.py,
+      softwarecenter/view/widgets/thumbnail.py:
+      - grab back some fixes which got lost (and a few other minor a11y tweaks)
+    * softwarecenter/view/widgets/reviews.py:
+      - use full width for review text
+
+    [ Omer Akram ]
+    * softwarecenter/view/widgets/reviews.py:
+      - fix typo (hepful -> helpful) (LP: #725671)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 03 Mar 2011 14:51:34 +0100
+
 software-center (3.1.21) natty; urgency=low
 
   [ Aaron Peachey ]
