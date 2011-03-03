@@ -1,6 +1,8 @@
 software-center UNRELEASED natty; urgency=low
 
     [ Kiwinote ]
+    * setup.py:
+      - mark submit_usefulness.py as a script (LP: #728717)
     * softwarecenter/view/appdetailsview_gtk.py,
       softwarecenter/view/widgets/description.py,
       softwarecenter/view/widgets/thumbnail.py:
