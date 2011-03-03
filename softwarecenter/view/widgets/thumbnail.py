@@ -19,6 +19,7 @@ class ScreenshotThumbnail(gtk.Alignment):
 
     MAX_SIZE = 225, 225
     IDLE_SIZE = 225, 150
+    SPINNER_SIZE = 32, 32
 
     def __init__(self, distro, icons):
         gtk.Alignment.__init__(self, 0.5, 0.0)
@@ -27,6 +28,7 @@ class ScreenshotThumbnail(gtk.Alignment):
         self.distro = distro
         self.icons = icons
 
+        self.pkgname = None
         self.appname = None
         self.thumb_url = None
         self.large_url = None
@@ -36,8 +38,16 @@ class ScreenshotThumbnail(gtk.Alignment):
         self.screenshot_pixbuf = None
         self.screenshot_available = False
         self.alpha = 0.0
-        
+
+        # zoom cursor
+        theme = gtk.icon_theme_get_default()
+        zoom_pb = theme.load_icon(gtk.STOCK_ZOOM_IN, 22, 0)
+        self._zoom_cursor = gtk.gdk.Cursor(gtk.gdk.display_get_default(),
+                                           zoom_pb, 0, 0)
+                                           
+
         # tip stuff
+        self._hide_after = None
         self.tip_alpha = 0.0
         self._tip_fader = 0
         self._tip_layout = self.create_pango_layout("")
@@ -55,6 +65,7 @@ class ScreenshotThumbnail(gtk.Alignment):
 
         # convienience class for handling the downloading (or not) of any screenshot
         self.loader = SimpleFileDownloader()
+        self.loader.connect('error', self._on_screenshot_load_error)
         self.loader.connect('file-url-reachable', self._on_screenshot_query_complete)
         self.loader.connect('file-download-complete', self._on_screenshot_download_complete)
 
@@ -69,7 +80,12 @@ class ScreenshotThumbnail(gtk.Alignment):
         # eventbox so we can connect to event signals
         event = gtk.EventBox()
         event.set_visible_window(False)
-        self.add(event)
+
+        self.spinner_alignment = gtk.Alignment(0.5, 0.5, yscale=0)
+
+        self.spinner = gtk.Spinner()
+        self.spinner.set_size_request(*self.SPINNER_SIZE)
+        self.spinner_alignment.add(self.spinner)
 
         # the image
         self.image = gtk.Image()
@@ -85,7 +101,6 @@ class ScreenshotThumbnail(gtk.Alignment):
         # force the label state to INSENSITIVE so we get the nice subtle etched in look
         l.set_state(gtk.STATE_INSENSITIVE)
         # center children both horizontally and vertically
-        # 0.0 == left/top margin, 0.5 == center, 1.0 == right/bottom margin
         self.unavailable = gtk.Alignment(0.5, 0.5)
         self.unavailable.add(l)
 
@@ -103,6 +118,9 @@ class ScreenshotThumbnail(gtk.Alignment):
         event.connect('leave-notify-event', self._on_leave)
         event.connect('button-press-event', self._on_press)
         event.connect('button-release-event', self._on_release)
+
+        self.connect('focus-in-event', self._on_focus_in)
+#        self.connect('focus-out-event', self._on_focus_out)
         self.connect("key-press-event", self._on_key_press)
         self.connect("key-release-event", self._on_key_release)
 
@@ -110,15 +128,13 @@ class ScreenshotThumbnail(gtk.Alignment):
     def _on_enter(self, widget, event):
         if not self.get_is_actionable(): return
 
-        self.window.set_cursor(gtk.gdk.Cursor(gtk.gdk.HAND2))
-        if self._tip_fader: gobject.source_remove(self._tip_fader)
-        self._tip_fader = gobject.timeout_add(25, self._tip_fade_in)
+        self.window.set_cursor(self._zoom_cursor)
+        self.show_tip(hide_after=3000)
         return
 
     def _on_leave(self, widget, event):
         self.window.set_cursor(None)
-        if self._tip_fader: gobject.source_remove(self._tip_fader)
-        self._tip_fader = gobject.timeout_add(25, self._tip_fade_out)
+        self.hide_tip()
         return
 
     def _on_press(self, widget, event):
@@ -131,6 +147,13 @@ class ScreenshotThumbnail(gtk.Alignment):
         self.set_state(gtk.STATE_NORMAL)
         self._show_image_dialog()
         return
+
+    def _on_focus_in(self, widget, event):
+        self.show_tip(hide_after=3000)
+        return
+
+#    def _on_focus_out(self, widget, event):
+#        return
 
     def _on_key_press(self, widget, event):
         # react to spacebar, enter, numpad-enter
@@ -220,14 +243,16 @@ class ScreenshotThumbnail(gtk.Alignment):
 
         if self.tip_alpha >= 1.0:
             self.tip_alpha = 1.0
-            self.image.queue_draw_area(ia.x+ia.width-tw,
-                                       ia.y+ia.height-th,
-                                       tw, th)
+            self.image.queue_draw()
+#            self.image.queue_draw_area(ia.x+ia.width-tw,
+#                                       ia.y+ia.height-th,
+#                                       tw, th)
             return False
 
-        self.image.queue_draw_area(ia.x+ia.width-tw,
-                                   ia.y+ia.height-th,
-                                   tw, th)
+        self.image.queue_draw()
+#        self.image.queue_draw_area(ia.x+ia.width-tw,
+#                                   ia.y+ia.height-th,
+#                                   tw, th)
         return True
 
     def _tip_fade_out(self):
@@ -241,13 +266,16 @@ class ScreenshotThumbnail(gtk.Alignment):
 
         if self.tip_alpha <= 0.0:
             self.tip_alpha = 0.0
-            self.image.queue_draw_area(ia.x+ia.width-tw,
-                                       ia.y+ia.height-th,
-                                       tw, th)
+#            self.image.queue_draw_area(ia.x+ia.width-tw,
+#                                       ia.y+ia.height-th,
+#                                       tw, th)
+            self.image.queue_draw()
             return False
-        self.image.queue_draw_area(ia.x+ia.width-tw,
-                                   ia.y+ia.height-th,
-                                   tw, th)
+
+        self.image.queue_draw()
+#        self.image.queue_draw_area(ia.x+ia.width-tw,
+#                                   ia.y+ia.height-th,
+#                                   tw, th)
         return True
 
     def _show_image_dialog(self):
@@ -261,6 +289,11 @@ class ScreenshotThumbnail(gtk.Alignment):
             os.path.join(self.loader.tmpdir, uri_to_filename(url)))
         d.run()
         d.destroy()
+        return
+
+    def _on_screenshot_load_error(self, loader, err_type, err_message):
+        self.set_screenshot_available(False)
+        self.ready = True
         return
 
     def _on_screenshot_query_complete(self, loader, reachable):
@@ -292,7 +325,17 @@ class ScreenshotThumbnail(gtk.Alignment):
                 LOG.warn('Screenshot downloaded but the file could not be opened.', e)
                 return False
 
+            # remove the spinner
+            if self.spinner_alignment.parent:
+                self.spinner.stop()
+                self.spinner.hide()
+                self.remove(self.spinner_alignment)
+
             pb = self._downsize_pixbuf(self.screenshot_pixbuf, *self.MAX_SIZE)
+
+            if not self.eventbox.parent:
+                self.add(self.eventbox)
+                self.show_all()
 
             self.image.set_size_request(-1, -1)
             self.image.set_from_pixbuf(pb)
@@ -310,32 +353,65 @@ class ScreenshotThumbnail(gtk.Alignment):
         gobject.idle_add(setter_cb, screenshot_path)
         return
 
+    def show_tip(self, hide_after=0):
+        if (not self.image.get_property('visible') or
+            self.tip_alpha >= 1.0): 
+            return
+
+        if self._tip_fader: gobject.source_remove(self._tip_fader)
+        self._tip_fader = gobject.timeout_add(25, self._tip_fade_in)
+
+        if hide_after:
+            if self._hide_after: 
+                gobject.source_remove(self._hide_after)
+            self._hide_after = gobject.timeout_add(hide_after, self.hide_tip)
+        return
+
+    def hide_tip(self):
+        if (not self.image.get_property('visible') or
+            self.tip_alpha <= 0.0):
+            return
+
+        if self._tip_fader: 
+            gobject.source_remove(self._tip_fader)
+        self._tip_fader = gobject.timeout_add(25, self._tip_fade_out)
+        return
+
     def get_is_actionable(self):
-        """ Returns true if there is a screenshot available and the download has completed """
+        """ Returns true if there is a screenshot available and
+            the download has completed 
+        """
         return self.screenshot_available and self.ready
 
     def set_screenshot_available(self, available):
-
-        """ Configures the ScreenshotView depending on whether there is a screenshot available. """
-
+        """ Configures the ScreenshotView depending on whether there
+            is a screenshot available.
+        """
         if not available:
+            if not self.eventbox.parent:
+                self.remove(self.spinner_alignment)
+                self.spinner.stop()
+                self.add(self.eventbox)
+
             if self.image.parent:
+                self.image.hide()
                 self.eventbox.remove(self.image)
                 self.eventbox.add(self.unavailable)
                 # set the size of the unavailable placeholder
                 # 160 pixels is the fixed width of the thumbnails
                 self.unavailable.set_size_request(*self.IDLE_SIZE)
-                self.unavailable.show_all()
                 acc = self.get_accessible()
                 acc.set_name(_('%s - No screenshot available') % self.appname)
         else:
             if self.unavailable.parent:
+                self.unavailable.hide()
                 self.eventbox.remove(self.unavailable)
                 self.eventbox.add(self.image)
-                self.image.show()
                 acc = self.get_accessible()
                 acc.set_name(_('%s - Screenshot') % self.appname)
 
+        if self.get_property("visible"):
+            self.show_all()
         self.screenshot_available = available
         return
  
@@ -367,17 +443,16 @@ class ScreenshotThumbnail(gtk.Alignment):
         self.ready = False
         self.alpha = 0.0
 
-        if self.unavailable.parent:
-            self.eventbox.remove(self.unavailable)
-            self.eventbox.add(self.image)
-            self.image.show()
+        if self.eventbox.parent:
+            self.eventbox.hide()
+            self.remove(self.eventbox)
 
-        # set the loading animation (its a .gif so a our GtkImage happily renders the animation
-        # without any fuss, NOTE this gif has a white background, i.e. it has no transparency
-        # TODO: use a generic gtk.Spinner instead of this icon
-        self.image.set_from_file(IMAGE_LOADING_INSTALLED)
-        self.image.set_size_request(*self.IDLE_SIZE)
-        self.set_size_request(250, -1)
+        if not self.spinner_alignment.parent:
+            self.add(self.spinner_alignment)
+
+        self.spinner_alignment.set_size_request(*self.IDLE_SIZE)
+
+        self.spinner.start()
         return
 
     def download_and_display(self):
@@ -386,8 +461,8 @@ class ScreenshotThumbnail(gtk.Alignment):
             reachable, if so it downloads the thumbnail.
             If not, it emits "file-url-reachable" False, then exits.
         """
-        
-        self.loader.begin_download(self.thumbnail_url)
+
+        self.loader.download_file(self.thumbnail_url)
         return
 
     def draw(self, cr, a, expose_area):
@@ -395,10 +470,10 @@ class ScreenshotThumbnail(gtk.Alignment):
 
         if mkit.not_overlapping(a, expose_area): return
 
-        if self.image.parent:
-            ia = self.image.allocation
+        if self.eventbox.get_property('visible'):
+            ia = self.eventbox.allocation
         else:
-            ia = self.unavailable.allocation
+            ia = self.spinner_alignment.allocation
 
         x = a.x + (a.width - ia.width)/2
         y = ia.y
@@ -433,3 +508,74 @@ class ScreenshotThumbnail(gtk.Alignment):
             cr.fill()
         return
 
+
+if __name__ == '__main__':
+
+    def testing_expose_handler(thumb, event):
+        cr = thumb.window.cairo_create()
+        thumb.draw(cr, thumb.allocation, event.area)
+        del cr
+        return
+
+    def testing_cycle_apps(thumb, apps, db):
+
+        if not thumb.pkgname or thumb.pkgname == "uace":
+            d = apps[0].get_details(db)
+        else:
+            d = apps[1].get_details(db)
+
+        thumb.configure(d)
+        thumb.download_and_display()
+        return True
+
+
+    import sys, logging
+    logging.basicConfig(level=logging.DEBUG)
+
+    if len(sys.argv) > 1:
+        datadir = sys.argv[1]
+    elif os.path.exists("./data"):
+        datadir = "./data"
+    else:
+        datadir = "/usr/share/software-center"
+
+    xapian_base_path = "/var/cache/software-center"
+    pathname = os.path.join(xapian_base_path, "xapian")
+    from softwarecenter.apt.aptcache import AptCache
+    cache = AptCache()
+    cache.open()
+
+    from softwarecenter.db.database import StoreDatabase
+    db = StoreDatabase(pathname, cache)
+    db.open()
+
+    icons = gtk.icon_theme_get_default()
+    icons.append_search_path("/usr/share/app-install/icons/")
+
+    import softwarecenter.distro
+    distro = softwarecenter.distro.get_distro()
+
+    t = ScreenshotThumbnail(distro, icons)
+    t.connect('expose-event', testing_expose_handler)
+
+    w = gtk.Window()
+    w.set_border_width(10)
+
+    vb = gtk.VBox(spacing=6)
+    w.add(vb)
+
+    vb.pack_start(gtk.Button('A button for focus testing'))
+    vb.pack_start(t)
+
+    w.show_all()
+    w.connect('destroy', gtk.main_quit)
+
+    from softwarecenter.db.application import Application
+    apps = [Application("Movie Player", "totem"),
+            Application("ACE", "uace")]
+
+    testing_cycle_apps(t, apps, db)
+
+    gobject.timeout_add(6000, testing_cycle_apps, t, apps, db)
+
+    gtk.main()

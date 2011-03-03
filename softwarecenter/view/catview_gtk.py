@@ -3,6 +3,7 @@ import os
 import gtk
 import gobject
 import gettext
+import logging
 import xapian
 
 from gettext import gettext as _
@@ -106,6 +107,8 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
         self._prev_width = 0
         self._poster_sigs = []
 
+        self._allocation = None
+
         self.vbox.connect('expose-event', self._on_expose, a)
         self.connect('size-allocate', self._on_allocate, vb)
 #        self.connect('style-set', self._on_style_set)
@@ -165,15 +168,18 @@ class LobbyViewGtk(CategoriesViewGtk):
         return
 
     def _on_allocate(self, viewport, allocation, vbox):
+        logging.getLogger("softwarecenter.view.allocation").debug("on_alloc widget=%s, allocation=%s" % (viewport, allocation))
+
         self.queue_draw()
 
-        w = min(allocation.width-2, 75*mkit.EM)
+        if self._allocation == allocation: 
+            logging.getLogger("softwarecenter.view.allocation").debug("LobbyviewGtk skipped!")
+            return True
+        self._allocation = allocation
 
-        if w <= 35*mkit.EM or w == self._prev_width: return True
-        self._prev_width = w
-
-        self.featured_carousel.set_width(w)
-        self.whatsnew_carousel.set_width(w)
+        w = min(allocation.width-2, 70*mkit.EM)
+        if w == self._prev_width: 
+            return True
 
         vbox.set_size_request(w, -1)
         return True
@@ -479,11 +485,13 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         return
 
     def _on_allocate(self, viewport, allocation, vbox):
+        logging.getLogger("softwarecenter.view.allocation").debug("on_alloc widget=%s, allocation=%s" % (viewport, allocation))
         self.queue_draw()
 
-        w = min(allocation.width-2, 900)
+        w = min(allocation.width-2, 70*mkit.EM)
 
-        if w <= 400 or w == self._prev_width: return True
+        if w <= 35*mkit.EM or w == self._prev_width: 
+            return True
         self._prev_width = w
 
         vbox.set_size_request(w, -1)

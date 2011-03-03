@@ -16,8 +16,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
 import gtk
+import logging
 import pango
 import gobject
 
@@ -25,6 +25,37 @@ from pango import SCALE as PS
 from gtk import keysyms as keys
 
 from gettext import gettext as _
+
+
+class EventHelper(dict):
+
+    VALID_KEYS = (
+        'event',
+        'layout',
+        'index',
+        'within-selection',
+        'drag-active',
+        'drag-context')
+
+    def __init__(self):
+        dict.__init__(self)
+        self.new_press(None, None, None, False)
+        return
+
+    def __setitem__(self, k, v):
+        if k not in EventHelper.VALID_KEYS:
+            raise KeyError, '\"%s\" is not a valid key'
+            return False
+        return dict.__setitem__(self, k, v)
+
+    def new_press(self, event, layout, index, within_sel):
+        self['event'] = event
+        self['layout'] = layout
+        self['index'] = index
+        self['within-selection'] = within_sel
+        self['drag-active'] = False
+        self['drag-context'] = None
+        return
 
 
 class Layout(pango.Layout):
@@ -256,10 +287,20 @@ class SelectionCursor(Cursor):
     def get_range(self):
         return self.min, self.max
 
+    def within_selection(self, pos):
+        l = list(self.get_range())
+        l.append(pos)
+        l.sort()
+        # sort the list, see if pos is in between the extents of the selection
+        # range, if it is, pos is within the selection
+        if pos in l:
+            return l.index(pos) == 1
+        return False
+
 
 class TextBlock(gtk.EventBox):
 
-    PAINT_PRIMARY_CURSOR = False
+    PAINT_PRIMARY_CURSOR = True
     BULLET_POINT = u'  \u2022  '
 
     INFOCUS_NORM = 0
@@ -277,6 +318,8 @@ class TextBlock(gtk.EventBox):
                         gtk.gdk.BUTTON_RELEASE_MASK|
                         gtk.gdk.POINTER_MOTION_MASK)
 
+        self.viewport = viewport
+
         self._bullet = self._new_layout()
         self._bullet.set_markup(self.BULLET_POINT)
         font_desc = pango.FontDescription()
@@ -284,27 +327,28 @@ class TextBlock(gtk.EventBox):
         font_desc.set_weight(pango.WEIGHT_BOLD)
         self._bullet.set_font_description(font_desc)
 
-        self._xy = 0,0
-#        self._max_width = 900
+        self._allocation = None
+        event_helper = EventHelper()
 
         self.indent, self.line_height = self._bullet.get_pixel_extents()[1][2:]
         self.order = []
-        self.cursor = PrimaryCursor(self)
-        self.selection = SelectionCursor(self.cursor)
+        self.cursor = cur = PrimaryCursor(self)
+        self.selection = sel = SelectionCursor(self.cursor)
         self.clipboard = None
 
         #self._xterm = gtk.gdk.Cursor(gtk.gdk.XTERM)
 
-        # TODO: drag n drop
-        #self.drag_source_set(gtk.gdk.BUTTON1_MASK, [("text/plain", 0, 80),], gtk.gdk.ACTION_COPY)
+        self.connect('size-allocate', self._on_allocate)
 
-        self.viewport = viewport
-        self.viewport.connect('size-allocate', self._on_allocate)
+        self.connect('button-press-event', self._on_press, event_helper, cur, sel)
+        self.connect('button-release-event', self._on_release, event_helper, cur, sel)
+        self.connect('motion-notify-event', self._on_motion, event_helper, cur, sel)
 
-        self.connect('button-press-event', self._on_press, self.cursor, self.selection)
-        self.connect('key-press-event', self._on_key_press, self.cursor, self.selection)
-        self.connect('key-release-event', self._on_key_release, self.cursor, self.selection)
-        self.connect('motion-notify-event', self._on_motion, self.cursor, self.selection)
+        self.connect('key-press-event', self._on_key_press, cur, sel)
+        self.connect('key-release-event', self._on_key_release, cur, sel)
+
+#        self.connect('drag-begin', self._on_drag_begin)
+        self.connect('drag-data-get', self._on_drag_data_get, sel)
 
         self.connect('focus-in-event', self._on_focus_in)
         self.connect('focus-out-event', self._on_focus_out)
@@ -313,32 +357,17 @@ class TextBlock(gtk.EventBox):
         self.connect('expose-event', self._on_expose)
         return
 
-    def _on_expose(self, widget, event):
-        cr = widget.window.cairo_create()
-        cr.rectangle(event.area)
-        cr.clip()
-
-        self.render(cr, self.allocation, event.area)
-
-        del cr
-        return
-
     def _on_allocate(self, widget, a):
-        if not self.order: return
+        if not self.order or self._allocation == a:
+            return
 
-        x = self.allocation.x
-        y = self.allocation.y
+        self._allocation = a
 
-        width = self.allocation.width
-        height = self.allocation.height
+        size = self.height_from_width(a.width)
+        self.set_size_request(*size)
 
-        size = self.height_from_width(width)
-
-        if size != (width, height) or (x,y) != self._xy:
-            self.set_size_request(*size)
-            self.viewport.queue_draw()
-
-        self._xy = x,y
+        x, y = self.allocation.x, self.allocation.y
+        width, height = size
 
         for layout in self.order:
             if layout.index > 0:
@@ -356,6 +385,16 @@ class TextBlock(gtk.EventBox):
             y += ly + lh
         return
 
+    def _on_expose(self, widget, event):
+        cr = widget.window.cairo_create()
+        cr.rectangle(event.area)
+        cr.clip()
+
+        self.render(cr, self.allocation, event.area)
+
+        del cr
+        return
+
     def _on_style_set(self, widget, old_style):
         if self.has_focus():
             self._bg = self.style.base[gtk.STATE_SELECTED]
@@ -363,6 +402,16 @@ class TextBlock(gtk.EventBox):
         else:
             self._bg = gtk.gdk.color_parse('#E5E3E1')
             self._fg = self.style.text[gtk.STATE_NORMAL]
+        return
+
+#    def _on_drag_begin(self, widgets, context, event_helper):
+#        print 'drag: begin'
+#        return
+
+    def _on_drag_data_get(self, widget, context, selection, info, timestamp, sel):
+#        print 'drag: get data'
+        text = self.get_selected_text(sel)
+        selection.set_text(text, -1)
         return
 
     def _on_focus_in(self, widget, event):
@@ -375,8 +424,36 @@ class TextBlock(gtk.EventBox):
         self._fg = self.style.text[gtk.STATE_NORMAL]
         return
 
-    def _on_motion(self, widget, event, cur, sel):
-        if not (event.state & gtk.gdk.BUTTON1_MASK) or not self.has_focus(): return
+    def _on_motion(self, widget, event, event_helper, cur, sel):
+        if (not (event.state & gtk.gdk.BUTTON1_MASK) or
+            not self.has_focus()): 
+            return
+
+        # check if we have moved enough to count as a drag
+        press = event_helper['event']
+        # mvo: how can this be?
+        if not press:
+            return
+        start_x, start_y = int(press.x), int(press.y)
+        cur_x, cur_y = int(event.x), int(event.y)
+
+        if (not event_helper['drag-active'] and
+            self.drag_check_threshold(start_x, start_y, cur_x, cur_y)):
+            event_helper['drag-active'] = True
+
+        if not event_helper['drag-active']: 
+            return
+
+        if (event_helper['within-selection'] and 
+            not event_helper['drag-context']):
+            ctx = self.drag_begin([("text/plain", 0, 80),],
+                                  gtk.gdk.ACTION_COPY,
+                                  1,    # initiating button
+                                  event)
+
+            event_helper['drag-context'] = ctx
+            return
+
         for layout in self.order:
             point_in, index = layout.index_at(int(event.x), int(event.y))
             if point_in:
@@ -384,31 +461,58 @@ class TextBlock(gtk.EventBox):
                 self.queue_draw()
                 break
 
-    def _on_press(self, widget, event, cur, sel):
+    def _on_press(self, widget, event, event_helper, cur, sel):
+
         if sel and not self.has_focus():
             self.grab_focus()
-            return
+            return  # spot the difference
+
         elif not self.has_focus():
             self.grab_focus()
 
         if event.button == 3:
             self._button3_action(cur, sel, event)
             return
+
         elif event.button != 1:
             return
 
         for layout in self.order:
-            point_in, index = layout.index_at(int(event.x), int(event.y))
-            if point_in:
-                cur.set_position(layout.index, index)
-                sel.clear()
+            x, y = int(event.x), int(event.y)
+            point_in, index = layout.index_at(x, y)
 
-                if (event.type == gtk.gdk._2BUTTON_PRESS):
-                    self._2click_select(cur, sel)
-                elif (event.type == gtk.gdk._3BUTTON_PRESS):
-                    self._3click_select(cur, sel)
-                self.queue_draw()
+            if point_in:
+                within_sel = sel.within_selection((layout.index, index))
+
+                if not within_sel:
+                    cur.set_position(layout.index, index)
+                    sel.clear()
+
+                event_helper.new_press(event.copy(), layout, index, within_sel)
                 break
+        return
+
+    def _on_release(self, widget, event, event_helper, cur, sel):
+        if not event_helper['event']: return
+
+        # check if a drag occurred
+        if event_helper['drag-active']:
+            # if so, do not handle release
+            return
+
+        # else, handle release, do click
+        cur.set_position(event_helper['layout'].index,
+                         event_helper['index'])
+        sel.clear()
+
+        press = event_helper['event']
+
+        if (press.type == gtk.gdk._2BUTTON_PRESS):
+            self._2click_select(cur, sel)
+        elif (press.type == gtk.gdk._3BUTTON_PRESS):
+            self._3click_select(cur, sel)
+
+        self.queue_draw()
         return
 
     def _menu_do_copy(self, item, sel):
@@ -439,9 +543,6 @@ class TextBlock(gtk.EventBox):
         menu.popup(None, None, None,
                    event.button, event.time,
                    data=None)
-        return
-
-    def _on_release(self, widget, event):
         return
 
     def _on_key_press(self, widget, event, cur, sel):
@@ -541,14 +642,7 @@ class TextBlock(gtk.EventBox):
 
         if sel.target_x:
             x = sel.target_x + (sel.target_x_indent - layout.indent)*PS
-            # special case for when we sel all of bottom line after 
-            # hitting bottom line extent
-            if cur.get_position() == (len(self.order)-1, len(layout)) and x != layout.get_extents()[1][2]:
-                y = layout.get_extents()[1][3]
-                j = sum(layout.xy_to_index(x, y))
-                xy = (x,y)
-            else:
-                j, xy = layout.cursor_up(cur, x)
+            j, xy = layout.cursor_up(cur, x)
         else:
             j, xy = layout.cursor_up(cur)
             sel.set_target_x(xy[0], layout.indent)
@@ -613,9 +707,8 @@ class TextBlock(gtk.EventBox):
         return
 
     def _copy_text(self, sel):
-        text = ''
-        for layout in self.order:
-            text += self._selection_copy(layout, sel, (layout.index > 0))
+
+        text = self.get_selected_text(sel)
 
         if not self.clipboard:
             self.clipboard = self.get_clipboard(gtk.gdk.SELECTION_CLIPBOARD)
@@ -830,14 +923,10 @@ class TextBlock(gtk.EventBox):
         return self.order[self.selection.paragraph]
 
     def render(self, cr, a, expose_area):
-        if not self.order: return
-
+        if not self.order or not self._allocation: return
 
         for layout in self.order:
             la = layout.allocation
-            if not la.x or not la.y:
-                print 'Skipping draw'
-                return
 
             self._selection_highlight(layout,
                                       self.selection,
@@ -871,7 +960,6 @@ class TextBlock(gtk.EventBox):
         for layout in self.order:
             layout.set_width(PS*(width-layout.indent))
             height += layout.get_pixel_extents()[1][3] + (layout.vspacing or self.line_height)
-
         return width, height
 
     def append_paragraph(self, p, vspacing=None):
@@ -893,14 +981,20 @@ class TextBlock(gtk.EventBox):
         self.order.append(l)
         return
 
+    def get_selected_text(self, sel=None):
+        text = ''
+        if not sel:
+            sel = self.selection
+        for layout in self.order:
+            text += self._selection_copy(layout, sel, (layout.index > 0))
+        return text
+
     def finished(self):
-        if self.viewport:
-            self.viewport.queue_resize()
-        else:
-            self.queue_resize()
+        self.queue_resize()
         return
 
     def clear(self, key=None):
+        self._allocation = None
         self.cursor.zero()
         self.selection.clear(key)
         self.order = []
@@ -909,7 +1003,7 @@ class TextBlock(gtk.EventBox):
 
 class AppDescription(gtk.VBox):
 
-    # chars that server as bullets in the description
+    # chars that serve as bullets in the description
     BULLETS = ('- ', '* ', 'o ')
     TYPE_PARAGRAPH = 0
     TYPE_BULLET    = 1
@@ -1022,3 +1116,31 @@ class AppDescription(gtk.VBox):
 
         self.show_all()
         return
+
+
+if __name__ == '__main__':
+
+    EXAMPLE = """
+p7zip is the Unix port of 7-Zip, a file archiver that archives with very high compression ratios.
+
+p7zip-full provides:
+
+ - /usr/bin/7za a standalone version of the 7-zip tool that handles 
+   7z archives (implementation of the LZMA compression algorithm) and some other formats.
+
+ - /usr/bin/7z not only does it handle 7z but also ZIP, Zip64, CAB, RAR, ARJ, GZIP, 
+   BZIP2, TAR, CPIO, RPM, ISO and DEB archives. 7z compression is 30-50% better than ZIP compression.
+
+p7zip provides 7zr, a light version of 7za, and p7zip a gzip like wrapper around 7zr.""".strip()
+
+    win = gtk.Window()
+
+    d = AppDescription()
+    d.set_description(EXAMPLE, pkgname='')
+    win.add(d)
+
+    win.show_all()
+    win.connect('destroy', gtk.main_quit)
+
+    gtk.main()
+
