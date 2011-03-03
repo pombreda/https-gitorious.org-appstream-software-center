@@ -18,7 +18,13 @@ software-center (3.1.21) UNRELEASED; urgency=low
     - expose usefulness UI
   * softwarecenter/db/reviews.py:
     - deal properly with "Not modified" return value
+  * merged lp:~mmcg069/software-center/detailsview-stuff
 
+  [ Matthew McGowan ]
+  * fix hang in appdetails view
+  * improve presentation of the application details
+  * reduce flickering in the detailsview
+  
   [ Gary Lasker ]
   * softwarecenter/enums.py,
     softwarecenter/backend/aptd.py:

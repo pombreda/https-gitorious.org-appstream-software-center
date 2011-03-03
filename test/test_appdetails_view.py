@@ -21,7 +21,8 @@ from softwarecenter.db.application import Application, AppDetails
 from softwarecenter.distro import get_distro
 from softwarecenter.enums import *
 from softwarecenter.paths import XAPIAN_BASE_PATH
-from softwarecenter.view.appdetailsview_gtk import AppDetailsViewGtk, EmbeddedMessage
+from softwarecenter.view.appdetailsview_gtk import AppDetailsViewGtk
+from softwarecenter.view.widgets.reviews import EmbeddedMessage
 
 
 class TestAppDetailsView(unittest.TestCase):
@@ -40,11 +41,38 @@ class TestAppDetailsView(unittest.TestCase):
         icons = gtk.icon_theme_get_default()
         # create a details object
         self.appdetails = AppDetailsViewGtk(
-            db, distro, icons, cache, datadir)
+            db, distro, icons, cache, datadir, None)
+        self.appdetails.show_all()
 
     def test_show_app_simple(self):
-        app = Application("7zip","p7zip-full")
+        app = Application("","2vcard")
         self.appdetails.show_app(app)
+        self._p()
+        self.assertFalse(self.appdetails.addon_view.get_property("visible"))
+
+    def test_show_addons_bar(self):
+        app = Application("7zip", "p7zip-full")
+        self.appdetails.show_app(app)
+        self._p()
+        self.assertTrue(
+            self.appdetails.addon_view.get_property("visible"))
+        # get first child
+        widgets = self.appdetails.addon_view.get_children()
+        # get the first addon, the widget layout is:
+        #  first is the header, then the status bar, then all the addons
+        addon = widgets[2]
+        addon.checkbutton.set_active(not addon.checkbutton.get_active())
+        self._p()
+        self.assertTrue(
+            self.appdetails.addons_statusbar.get_property("visible"))
+        # simulate intall finished
+        self.appdetails.addons_statusbar.applying = True
+        result = mock.Mock()
+        self.appdetails.backend.emit("transaction-finished", (None, result))
+        self._p()
+        self.assertFalse(
+            self.appdetails.addons_statusbar.get_property("visible"))
+        
 
     def test_show_app_simple_no_network(self):
         softwarecenter.netstatus.NETWORK_STATE = softwarecenter.netstatus.NetState.NM_STATE_DISCONNECTED
@@ -54,7 +82,7 @@ class TestAppDetailsView(unittest.TestCase):
         self._p()
         time.sleep(1)
         self._p()
-        for r in self.appdetails.ui_reviews_list.vbox:
+        for r in self.appdetails.reviews.vbox:
             if self._is_embedded_message_no_network(r):
                 break
         else:
@@ -65,7 +93,7 @@ class TestAppDetailsView(unittest.TestCase):
         app = Application("7zip","p7zip-full")
         self.appdetails.show_app(app)
         # check that we do *not* have the embedded message
-        for r in self.appdetails.ui_reviews_list.vbox:
+        for r in self.appdetails.reviews.vbox:
             self.assertFalse(self._is_embedded_message_no_network(r))
 
     def test_show_app_simple_network_unknown(self):
@@ -75,7 +103,7 @@ class TestAppDetailsView(unittest.TestCase):
         app = Application("7zip","p7zip-full")
         self.appdetails.show_app(app)
         # check that we do *not* have the embedded message
-        for r in self.appdetails.ui_reviews_list.vbox:
+        for r in self.appdetails.reviews.vbox:
             self.assertFalse(self._is_embedded_message_no_network(r))
 
     def _is_embedded_message_no_network(self, message):
@@ -117,7 +145,7 @@ class TestAppDetailsView(unittest.TestCase):
         for i in range(PKG_STATE_UNKNOWN):
             mock_app_details.pkg_state = i
             self.appdetails.show_app(app)
-    
+
     def test_show_app_addons(self):
         app = Application("Web browser", "firefox")
         mock_app_details = self._get_mock_app_details()

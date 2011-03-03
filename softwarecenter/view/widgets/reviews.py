@@ -22,17 +22,26 @@
 
 import pygtk
 pygtk.require ("2.0")
+import datetime
 import gobject
 import cairo
 import gtk
 import os
-
+import mkit
+import pango
 import pangocairo
+import logging
 
 import gettext
 from gettext import gettext as _
-from mkit import EM, ShapeStar, ShapeRoundedRectangle, VLinkButton, floats_from_string
 
+from mkit import EM, ShapeStar, ShapeRoundedRectangle, VLinkButton, floats_from_string
+from softwarecenter.utils import get_nice_date_string, upstream_version_compare, upstream_version
+
+from softwarecenter.netstatus import network_state_is_connected
+
+from softwarecenter.utils import get_person_from_config
+from softwarecenter.enums import *
 
 class IStarPainter:
 
@@ -462,6 +471,564 @@ class ReviewStatsContainer(gtk.VBox):
             "%(nr_ratings)i ratings",
             self.nr_reviews) % { 'nr_ratings' : self.nr_reviews, }
         self.label.set_markup(s)
+
+
+class UIReviewsList(gtk.VBox):
+
+    __gsignals__ = {
+        'new-review':(gobject.SIGNAL_RUN_FIRST,
+                    gobject.TYPE_NONE,
+                    ()),
+        'report-abuse':(gobject.SIGNAL_RUN_FIRST,
+                    gobject.TYPE_NONE,
+                    (gobject.TYPE_PYOBJECT,)),
+        'submit-usefulness':(gobject.SIGNAL_RUN_FIRST,
+                    gobject.TYPE_NONE,
+                    (gobject.TYPE_PYOBJECT, bool)),
+
+    }
+
+    def __init__(self, parent):
+        gtk.VBox.__init__(self)
+        self.logged_in_person = get_person_from_config()
+
+        self._parent = parent
+        # this is a list of review data (softwarecenter.db.reviews.Review)
+        self.reviews = []
+        self.logged_in_person = None
+
+        label = mkit.EtchedLabel(_("Reviews"))
+        label.set_padding(6, 6)
+        label.set_use_markup(True)
+        label.set_alignment(0, 0.5)
+
+        self.new_review = mkit.VLinkButton(_("Write your own review"))
+        self.new_review.set_underline(True)
+
+        self.header = hb = gtk.HBox(spacing=mkit.SPACING_MED)
+        self.pack_start(hb, False)
+        hb.pack_start(label, False)
+        hb.pack_end(self.new_review, False, padding=6)
+
+        self.vbox = gtk.VBox(spacing=24)
+        self.vbox.set_border_width(6)
+        self.pack_start(self.vbox)
+
+        self.new_review.connect('clicked', lambda w: self.emit('new-review'))
+        self.show_all()
+        return
+
+    def _on_button_new_clicked(self, button):
+        self.emit("new-review")
+
+    def _fill(self):
+        """ take the review data object from self.reviews and build the
+            UI vbox out of them
+        """
+        self.logged_in_person = get_person_from_config()
+        if self.reviews:
+            for r in self.reviews:
+                pkgversion = self._parent.app_details.version
+                review = UIReview(r, pkgversion, self.logged_in_person)
+                self.vbox.pack_start(review)
+        return
+
+    def _be_the_first_to_review(self):
+        s = _('Be the first to review it')
+        self.new_review.set_label(s)
+        self.vbox.pack_start(NoReviewYetWriteOne())
+        self.vbox.show_all()
+        return
+    
+    # FIXME: this needs to be smarter in the future as we will
+    #        not allow multiple reviews for the same software version
+    def _any_reviews_current_user(self):
+        for review in self.reviews:
+            if self.logged_in_person == review.reviewer_username:
+                return True
+        return False
+
+    def _add_no_network_connection_msg(self):
+        title = _('No Network Connection')
+        msg = _('Only cached reviews can be displayed')
+        m = EmbeddedMessage(title, msg, 'network-offline')
+        self.vbox.pack_start(m)
+
+    # FIXME: instead of clear/add_reviews/finished we should provide
+    #        a single show_reviews(reviews_data_list)
+    def finished(self):
+        """ this needs to be called after add_reviews, it will actually
+            show the reviews
+        """
+        #print 'Review count: %s' % len(self.reviews)
+
+        # network sensitive stuff, only show write_review if connected,
+        # add msg about offline cache usage if offline
+        is_connected = network_state_is_connected()
+        self.new_review.set_sensitive(is_connected)
+        if not is_connected:
+            self._add_no_network_connection_msg()
+
+        # only show new_review for installed stuff
+        is_installed = (self._parent.app_details and
+                        self._parent.app_details.pkg_state == PKG_STATE_INSTALLED)
+        if is_installed:
+            self.new_review.show()
+        else:
+            self.new_review.hide()
+
+        # always hide spinner and call _fill (fine if there is nothing to do)
+        self.hide_spinner()
+        self._fill()
+        self.vbox.show_all()
+
+        if self.reviews:
+            # adjust label if we have reviews
+            if self._any_reviews_current_user():
+                self.new_review.set_label(_("Write another review"))
+            else:
+                self.new_review.set_label(_("Write your own review"))
+        else:
+            # no reviews, either offer to write one or show "none"
+            if is_installed and is_connected:
+                self._be_the_first_to_review()
+            else:
+                self.vbox.pack_start(NoReviewYet())
+        return
+
+    def set_width(self, w):
+        for r in self.vbox:
+            r.body.set_size_request(w, -1)
+        return
+
+    def add_review(self, review):
+        self.reviews.append(review)
+        return
+
+    def clear(self):
+        self.reviews = []
+        for review in self.vbox:
+            review.destroy()
+        self.new_review.hide()
+
+    # FIXME: ideally we would have "{show,hide}_loading_notice()" to
+    #        easily allow changing from e.g. spinner to text
+    def show_spinner_with_message(self, message):
+        a = gtk.Alignment(0.5, 0.5)
+
+        hb = gtk.HBox(spacing=12)
+        a.add(hb)
+
+        spinner = gtk.Spinner()
+        spinner.start()
+
+        hb.pack_start(spinner, False)
+
+        l = mkit.EtchedLabel(message)
+        l.set_use_markup(True)
+
+        hb.pack_start(l, False)
+
+        self.vbox.pack_start(a, False)
+        self.vbox.show_all()
+        return
+    def hide_spinner(self):
+        for child in self.vbox.get_children():
+            if isinstance(child, gtk.Alignment):
+                child.destroy()
+        return
+
+    def draw(self, cr, a):
+        for r in self.vbox:
+            if isinstance(r, (UIReview)):
+                r.draw(cr, r.allocation)
+        return
+
+    # mvo: this appears to be not used
+    #def get_reviews(self):
+    #    return filter(lambda r: type(r) == UIReview, self.vbox.get_children())
+
+class UIReview(gtk.VBox):
+    """ the UI for a individual review including all button to mark
+        useful/inappropriate etc
+    """
+    def __init__(self, review_data=None, app_version=None, 
+                 logged_in_person=None):
+        gtk.VBox.__init__(self, spacing=mkit.SPACING_LARGE)
+
+        self.header = gtk.HBox(spacing=mkit.SPACING_MED)
+        self.body = gtk.VBox()
+        self.footer_split = gtk.VBox()
+        self.footer = gtk.HBox()
+        
+        self.useful = None
+        self.yes_like = None
+        self.no_like = None
+        self.status_box = gtk.HBox()
+        self.submit_error_img = gtk.Image()
+        self.submit_error_img.set_from_stock(gtk.STOCK_DIALOG_ERROR, gtk.ICON_SIZE_SMALL_TOOLBAR)
+        self.submit_status_spinner = gtk.Spinner()
+        self.submit_status_spinner.set_size_request(12,12)
+        self.acknowledge_error = mkit.VLinkButton(_("<small>OK</small>"))
+        self.acknowledge_error.set_underline(True)
+        self.acknowledge_error.set_subdued(True)
+        self.usefulness_error = False
+
+        self.pack_start(self.header, False)
+        self.pack_start(self.body, False)
+        self.pack_start(self.footer_split, False)
+        
+        self.logged_in_person = logged_in_person
+        self.person = None
+        self.id = None
+
+        self._allocation = None
+
+        if review_data:
+            self.connect('realize',
+                         self._on_realize,
+                         review_data,
+                         app_version,
+                         logged_in_person)
+        return
+
+    def _on_realize(self, w, review_data, app_version, logged_in_person):
+        self._build(review_data, app_version, logged_in_person)
+        return
+
+    def _on_allocate(self, widget, allocation, stars, summary, who_when, version_lbl, flag):
+        if self._allocation == allocation:
+            logging.getLogger("softwarecenter.view.allocation").debug("UIReviewAllocate skipped!")
+            return True
+        self._allocation = allocation
+
+        summary.set_size_request(max(20, allocation.width - \
+                                 stars.allocation.width - \
+                                 who_when.allocation.width - 20), -1)
+        if version_lbl:
+            version_lbl.set_size_request(allocation.width-flag.allocation.width-20, -1)
+        return
+
+    def _on_report_abuse_clicked(self, button):
+        reviews = self.get_ancestor(UIReviewsList)
+        if reviews:
+            reviews.emit("report-abuse", self.id)
+    
+    def _on_useful_clicked(self, btn, is_useful):
+        reviews = self.get_ancestor(UIReviewsList)
+        if reviews:
+            self._usefulness_ui_update('progress')
+            reviews.emit("submit-usefulness", self.id, is_useful)
+    
+    def _on_error_acknowledged(self, button, current_user_reviewer, useful_total, useful_favorable):
+        self.usefulness_error = False
+        self._usefulness_ui_update('renew', current_user_reviewer, useful_total, useful_favorable)
+    
+    def _usefulness_ui_update(self, type, current_user_reviewer=False, useful_total=0, useful_favorable=0):
+        self._hide_usefulness_elements()
+        #print "_usefulness_ui_update: %s" % type
+        if type == 'renew':
+            self._build_usefulness_ui(current_user_reviewer, useful_total, useful_favorable)
+            return
+        if type == 'progress':
+            self.submit_status_spinner.start()
+            self.submit_status_spinner.show()
+            self.status_label = gtk.Label("<small><b>%s</b></small>" % _(u"Submitting now\u2026"))
+            self.status_box.pack_start(self.submit_status_spinner, False)
+            self.status_label.set_use_markup(True)
+            self.status_label.set_padding(2,0)
+            self.status_box.pack_start(self.status_label,False)
+            self.status_label.show()
+        if type == 'error':
+            self.submit_error_img.show()
+            self.status_label = gtk.Label("<small><b>%s</b></small>" % _("Error submitting usefulness"))
+            self.status_box.pack_start(self.submit_error_img, False)
+            self.status_label.set_use_markup(True)
+            self.status_label.set_padding(2,0)
+            self.status_box.pack_start(self.status_label,False)
+            self.status_label.show()
+            self.acknowledge_error.show()
+            self.status_box.pack_start(self.acknowledge_error,False)
+            self.acknowledge_error.connect('clicked', self._on_error_acknowledged, current_user_reviewer, useful_total, useful_favorable)
+        self.status_box.show()
+        self.footer.pack_start(self.status_box, False)
+        return
+
+    def _hide_usefulness_elements(self):
+        """ hide all usefulness elements """
+        for attr in ["useful", "yes_like", "no_like", "submit_status_spinner",
+                     "submit_error_img", "status_box", "status_label",
+                     "acknowledge_error", "yes_no_separator"
+                     ]:
+            widget = getattr(self, attr, None)
+            if widget:
+                widget.hide()
+        return
+
+    def _get_datetime_from_review_date(self, raw_date_str):
+        # example raw_date str format: 2011-01-28 19:15:21
+        return datetime.datetime.strptime(raw_date_str, '%Y-%m-%d %H:%M:%S')
+
+    def _build(self, review_data, app_version, logged_in_person):
+
+        # all the attributes of review_data may need markup escape, 
+        # depening on if they are used as text or markup
+        self.id = review_data.id
+        self.person = review_data.reviewer_username
+        # example raw_date str format: 2011-01-28 19:15:21
+        cur_t = self._get_datetime_from_review_date(review_data.date_created)
+
+        app_name = review_data.app_name
+        review_version = review_data.version
+        self.useful_total = useful_total = review_data.usefulness_total
+        useful_favorable = review_data.usefulness_favorable
+        useful_submit_error = review_data.usefulness_submit_error
+
+        dark_color = self.style.dark[gtk.STATE_NORMAL]
+        m = self._whom_when_markup(self.person, cur_t, dark_color)
+
+        who_when = mkit.EtchedLabel(m)
+        who_when.set_use_markup(True)
+
+        summary = mkit.EtchedLabel('<b>%s</b>' % gobject.markup_escape_text(review_data.summary))
+        summary.set_use_markup(True)
+        summary.set_ellipsize(pango.ELLIPSIZE_END)
+        summary.set_selectable(True)
+        summary.set_alignment(0, 0.5)
+
+        text = gtk.Label(review_data.review_text)
+        text.set_line_wrap(True)
+        text.set_selectable(True)
+        text.set_alignment(0, 0)
+
+        stars = StarRating(review_data.rating)
+
+        self.header.pack_start(stars, False)
+        self.header.pack_start(summary, False)
+        self.header.pack_end(who_when, False)
+        self.body.pack_start(text, False)
+        
+        #if review version is different to version of app being displayed, 
+        # alert user
+        version_lbl = None
+        if (review_version and 
+            upstream_version_compare(review_version, app_version) != 0):
+            version_string = _("This review was written for a different version of %(app_name)s (Version: %(version)s)") % { 
+                'app_name' : app_name,
+                'version' : gobject.markup_escape_text(upstream_version(review_version))
+                }
+
+            m = '<small><i><span color="%s">%s</span></i></small>'
+            version_lbl = gtk.Label(m % (dark_color.to_string(), version_string))
+            version_lbl.set_use_markup(True)
+            version_lbl.set_padding(0,3)
+            version_lbl.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
+            version_lbl.set_alignment(0, 0.5)
+            self.footer_split.pack_start(version_lbl, False)
+
+        self.footer_split.pack_start(self.footer, False)
+
+        current_user_reviewer = False
+        if self.person == self.logged_in_person:
+            current_user_reviewer = True
+
+        self._build_usefulness_ui(current_user_reviewer, useful_total,
+                                  useful_favorable, useful_submit_error)
+
+        # Translators: This link is for flagging a review as inappropriate.
+        # To minimize repetition, if at all possible, keep it to a single word.
+        # If your language has an obvious verb, it won't need a question mark.
+        self.complain = mkit.VLinkButton('<small>%s</small>' % _('Inappropriate?'))
+        self.complain.set_subdued(True)
+        self.complain.set_underline(True)
+        self.footer.pack_end(self.complain, False)
+        self.complain.connect('clicked', self._on_report_abuse_clicked)
+        # FIXME: dynamically update this on network changes
+        self.complain.set_sensitive(network_state_is_connected())
+        self.body.connect('size-allocate', self._on_allocate, stars, 
+                          summary, who_when, version_lbl, self.complain)
+        return
+    
+    def _build_usefulness_ui(self, current_user_reviewer, useful_total, 
+                             useful_favorable, usefulness_submit_error=False):
+        if usefulness_submit_error:
+            self._usefulness_ui_update('error', current_user_reviewer, 
+                                       useful_total, useful_favorable)
+        else:
+            #get correct label based on retrieved usefulness totals and 
+            # if user is reviewer
+            self.useful = self._get_usefulness_label(
+                current_user_reviewer, useful_total, useful_favorable)
+            self.useful.set_use_markup(True)
+            #vertically centre so it lines up with the Yes and No buttons
+            self.useful.set_alignment(0, 0.5)
+
+            self.useful.show()
+            self.footer.pack_start(self.useful, False, padding=3)
+            # add here, but only populate if its not the own review
+            self.likebox = gtk.HBox()
+            if not current_user_reviewer:
+                self.yes_like = mkit.VLinkButton('<small>%s</small>' % _('Yes'))
+                self.no_like = mkit.VLinkButton('<small>%s</small>' % _('No'))
+                self.yes_like.set_underline(True)
+                self.no_like.set_underline(True)
+                self.yes_like.connect('clicked', self._on_useful_clicked, True)
+                self.no_like.connect('clicked', self._on_useful_clicked, False)
+                self.yes_no_separator = gtk.Label("<small>/</small>")
+                self.yes_no_separator.set_use_markup(True)
+                
+                self.yes_like.show()
+                self.no_like.show()
+                self.yes_no_separator.show()
+                self.likebox.set_spacing(3)
+                self.likebox.pack_start(self.yes_like, False)
+                self.likebox.pack_start(self.yes_no_separator, False)
+                self.likebox.pack_start(self.no_like, False)
+                self.footer.pack_start(self.likebox, False)
+            # always update network status (to keep the code simple)
+            self._update_likebox_based_on_network_state()
+        return
+
+    def _update_likebox_based_on_network_state(self):
+        """ show/hide yes/no based on network connection state """
+        # FIXME: make this dynamic shode/hide on network changes
+        # FIXME2: make ti actually work, later show_all() kill it
+        #         currently
+        if network_state_is_connected():
+            self.likebox.show()
+            self.useful.show()
+        else:
+            self.likebox.hide()
+            # showing "was this useful is not interessting"
+            if self.useful_total == 0:
+                self.useful.hide()
+    
+    def _get_usefulness_label(self, current_user_reviewer, 
+                              useful_total,  useful_favorable):
+        '''returns gtk.Label() to be used as usefulness label depending 
+           on passed in parameters
+        '''
+        if useful_total == 0 and current_user_reviewer:
+            s = ""
+        elif useful_total == 0:
+            s = _("Was this review hepful?")
+        elif current_user_reviewer:
+            s = gettext.ngettext(
+                "%(useful_favorable)s of %(useful_total)s person "
+                "found this review helpful.",
+                "%(useful_favorable)s of %(useful_total)s people "
+                "found this review helpful.",
+                useful_total) % { 'useful_total' : useful_total,
+                                  'useful_favorable' : useful_favorable,
+                                }
+        else:
+            s = gettext.ngettext(
+                "%(useful_favorable)s of %(useful_total)s person "
+                "found this review helpful. Did you?",
+                "%(useful_favorable)s of %(useful_total)s people "
+                "found this review helpful. Did you?",
+                useful_total) % { 'useful_total' : useful_total,
+                                'useful_favorable' : useful_favorable,
+                                }
+        
+        return gtk.Label('<small>%s</small>' % s)
+
+    def _whom_when_markup(self, person, cur_t, dark_color):
+        nice_date = get_nice_date_string(cur_t)
+        dt = datetime.datetime.utcnow() - cur_t
+
+        if person == self.logged_in_person:
+            m = '<span color="%s"><b>%s (%s)</b>, %s</span>' % (
+                dark_color.to_string(),
+                gobject.markup_escape_text(person),
+                # TRANSLATORS: displayed in a review after the persons name,
+                # e.g. "Wonderful text based app" mvo (that's you) 2011-02-11"
+                _("that's you"),
+                gobject.markup_escape_text(nice_date))
+        else:
+            m = '<span color="%s"><b>%s</b>, %s</span>' % (
+                dark_color.to_string(),
+                gobject.markup_escape_text(person),
+                gobject.markup_escape_text(nice_date))
+
+        return m
+
+    def draw(self, cr, a):
+        cr.save()
+        if not self.person == self.logged_in_person:
+            return
+
+        cr.rectangle(a)
+
+        color = mkit.floats_from_gdkcolor(self.style.mid[self.state])
+        cr.set_source_rgba(*color+(0.2,))
+
+        cr.fill()
+
+        cr.restore()
+
+class EmbeddedMessage(UIReview):
+
+    def __init__(self, title='', message='', icon_name=''):
+        UIReview.__init__(self)
+        self.label = None
+        self.image = None
+        
+        a = gtk.Alignment(0.5, 0.5)
+        self.body.pack_start(a, False)
+
+        hb = gtk.HBox(spacing=12)
+        a.add(hb)
+
+        if icon_name:
+            self.image = gtk.image_new_from_icon_name(icon_name,
+                                                      gtk.ICON_SIZE_DIALOG)
+            hb.pack_start(self.image, False)
+
+        self.label = gtk.Label()
+        self.label.set_line_wrap(True)
+        self.label.set_alignment(0, 0.5)
+
+        if title:
+            self.label.set_markup('<b><big>%s</big></b>\n%s' % (title, message))
+        else:
+            self.label.set_markup(message)
+
+        hb.pack_start(self.label)
+
+        self.show_all()
+        return
+
+    def draw(self, cr, a):
+        cr.save()
+        cr.rectangle(a)
+        color = mkit.floats_from_gdkcolor(self.style.mid[self.state])
+        cr.set_source_rgba(*color+(0.2,))
+        cr.fill()
+        cr.restore()
+
+
+class NoReviewYet(EmbeddedMessage):
+    """ represents if there are no reviews yet and the app is not installed """
+    def __init__(self, *args, **kwargs):
+        # TRANSLATORS: displayed if there are no reviews for the app yet
+        #              and the user does not have it installed
+        msg = _("None yet")
+        EmbeddedMessage.__init__(self, message=msg)
+
+class NoReviewYetWriteOne(EmbeddedMessage):
+    """ represents if there are no reviews yet and the app is installed """
+    def __init__(self, *args, **kwargs):
+
+        # TRANSLATORS: displayed if there are no reviews yet and the user
+        #              has the app installed
+        title = _('Want to be awesome?')
+        msg = _('Be the first to contribute a review for this application')
+
+        EmbeddedMessage.__init__(self, title, msg, 'face-glasses')
+        return
+
+
 
 if __name__ == "__main__":
     w = ReviewStatsContainer()
