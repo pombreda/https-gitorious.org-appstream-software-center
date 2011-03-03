@@ -105,6 +105,7 @@ class WebLiveBackend(object):
             for pkg in server.packages:
                 if pkg.pkgname == pkgname:
                     servers.append(server)
+                    servers.append(server)
         return servers
 
     def create_automatic_user_and_run_session(self, serverid=None,

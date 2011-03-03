@@ -22,7 +22,7 @@ import gtk, sys
 class ShowWebLiveServerChooserDialog(gtk.Dialog):
     """A dialog to choose between multiple server"""
 
-    def __init__(self, servers, parent=None):
+    def __init__(self, supplied_servers, parent=None):
         gtk.Dialog.__init__(self)
         self.set_has_separator(False)
 
@@ -34,8 +34,25 @@ class ShowWebLiveServerChooserDialog(gtk.Dialog):
 
         # servers
         self.servers_vbox=gtk.VBox(False, 0)
-        button=None
 
+        # Merge duplicate servers, keep the one with the most space
+        servers=[]
+        for server in supplied_servers:
+            duplicate=False
+            for otherserver in servers:
+                if server.title == otherserver.title:
+                    percent_server=((float(server.current_users)/float(server.userlimit))*100.0)
+                    percent_otherserver=((float(otherserver.current_users)/float(otherserver.userlimit))*100.0)
+                    if percent_otherserver < percent_server:
+                        otherserver=server
+                    duplicate=True
+
+            if duplicate:
+                continue
+
+            servers.append(server)
+
+        button=None
         for server in servers:
             button=gtk.RadioButton(button, server.title)
             button.serverid=server.name
