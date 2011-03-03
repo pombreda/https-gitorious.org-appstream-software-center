@@ -453,7 +453,6 @@ class ScreenshotThumbnail(gtk.Alignment):
         self.spinner_alignment.set_size_request(*self.IDLE_SIZE)
 
         self.spinner.start()
-        self.show_all()
         return
 
     def download_and_display(self):
