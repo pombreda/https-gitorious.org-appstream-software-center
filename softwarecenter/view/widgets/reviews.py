@@ -913,7 +913,7 @@ class UIReview(gtk.VBox):
             s = ""
         elif useful_total == 0:
             # no votes for the review yet
-            s = _("Was this review hepful?")
+            s = _("Was this review helpful?")
         elif current_user_reviewer:
             # user has already voted for the review
             s = gettext.ngettext(
