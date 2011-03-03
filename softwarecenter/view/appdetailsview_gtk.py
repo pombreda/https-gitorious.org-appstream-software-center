@@ -1041,9 +1041,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 #        self.app_info.body.pack_start(self.desc_installed_where)
 #        self.desc_installed_where.a11y = self.desc_installed_where.get_accessible()
 
-#        # a11y for description
-#        self.app_desc.description.set_property("can-focus", True)
-#        self.app_desc.description.a11y = self.app_desc.description.get_accessible()
+        # a11y for description
+        self.desc.description.set_property("can-focus", True)
+        self.desc.description.a11y = self.desc.description.get_accessible()
 
         self.info_vb = info_vb = gtk.VBox(spacing=12)
         vb.pack_start(info_vb, False)
@@ -1166,8 +1166,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         if not description:
             description = " "
         self.desc.set_description(description, appname)
+
         # a11y for description
-        #self.app_desc.body.a11y.set_name("Description: " + description)
+        self.desc.description.a11y.set_name(description)
         return
 
     def _update_description_footer_links(self, app_details):        
