@@ -472,13 +472,7 @@ class Addon(gtk.HBox):
             rating.set_rating(stats.ratings_average)
 
         self.checkbutton.add(hbox)
-
         self.connect('size-allocate', self._on_allocate, self.title)
-
-        # a11y
-        self.a11y = self.checkbutton.get_accessible()
-        self.a11y.set_name(_("Add-on") + ':' + title + '(' + pkgname + ')')
-
         self.show_all()
 
     def _on_allocate(self, widget, allocation, title):
@@ -977,10 +971,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         a.add(self.review_stats_widget)
         hb.pack_end(a, False)
 
-        # FIXME: re-add this
-#        # a11y for name/summary
-#        self.main_frame.header.set_property("can-focus", True)
-#        self.main_frame.header.a11y = self.main_frame.header.get_accessible()
+        vb_inner.set_property("can-focus", True)
+        self.title.a11y = vb_inner.get_accessible()
+        self.title.a11y.set_role(atk.ROLE_PANEL)
         hb.pack_start(vb_inner)
 
         # the package status bar
@@ -999,6 +992,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         # append the description widget, hold the formatted long description
         self.desc = AppDescription(viewport=self)
+        self.desc.description.set_property("can-focus", True)
+        self.desc.description.a11y = self.desc.description.get_accessible()
         body_hb.pack_start(self.desc)
 
         # the thumbnail/screenshot
@@ -1030,20 +1025,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         footer_hb.pack_start(self.homepage_btn, False)
         footer_hb.pack_start(self.share_btn, False)
         self.desc.pack_start(footer_hb, False)
-
-        # FIXME: re-add this
-#        # a11y for name/summary
-#        self.app_info.header.set_property("can-focus", True)
-#        self.app_info.header.a11y = self.app_info.header.get_accessible()
-
-#        # the location of the app (if its installed)
-#        self.desc_installed_where = gtk.HBox(spacing=mkit.SPACING_MED)
-#        self.app_info.body.pack_start(self.desc_installed_where)
-#        self.desc_installed_where.a11y = self.desc_installed_where.get_accessible()
-
-        # a11y for description
-        self.desc.description.set_property("can-focus", True)
-        self.desc.description.a11y = self.desc.description.get_accessible()
 
         self.info_vb = info_vb = gtk.VBox(spacing=12)
         vb.pack_start(info_vb, False)
@@ -1113,11 +1094,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         markup = markup % (appname, gobject.markup_escape_text(summary))
 
         self.title.set_markup(markup)
-
-#        # a11y for name/summary
-#        self.app_info.header.a11y.set_name("Application: " + appname + ". Summary: " + summary)
-#        self.app_info.header.a11y.set_role(atk.ROLE_PANEL)
-#        self.app_info.header.grab_focus()
+        self.title.a11y.set_name(appname + '. ' + summary)
         return
 
     def _update_app_icon(self, app_details):
@@ -1394,6 +1371,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self._update_minimal(self.app_details)
         else:
             self._update_all(self.app_details)
+
+        self.title.grab_focus()
 
         self.emit("selected", self.app)
         return
