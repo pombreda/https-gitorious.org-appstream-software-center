@@ -775,6 +775,7 @@ class UIReview(gtk.VBox):
         # depening on if they are used as text or markup
         self.id = review_data.id
         self.person = review_data.reviewer_username
+        displayname = review_data.reviewer_displayname
         # example raw_date str format: 2011-01-28 19:15:21
         cur_t = self._get_datetime_from_review_date(review_data.date_created)
 
@@ -785,7 +786,7 @@ class UIReview(gtk.VBox):
         useful_submit_error = review_data.usefulness_submit_error
 
         dark_color = self.style.dark[gtk.STATE_NORMAL]
-        m = self._whom_when_markup(self.person, cur_t, dark_color)
+        m = self._whom_when_markup(self.person, displayname, cur_t, dark_color)
 
         who_when = mkit.EtchedLabel(m)
         who_when.set_use_markup(True)
@@ -936,14 +937,17 @@ class UIReview(gtk.VBox):
         
         return gtk.Label('<small>%s</small>' % s)
 
-    def _whom_when_markup(self, person, cur_t, dark_color):
+    def _whom_when_markup(self, person, displayname, cur_t, dark_color):
         nice_date = get_nice_date_string(cur_t)
         dt = datetime.datetime.utcnow() - cur_t
+
+        # prefer displayname if available
+        correct_name = displayname or person
 
         if person == self.logged_in_person:
             m = '<span color="%s"><b>%s (%s)</b>, %s</span>' % (
                 dark_color.to_string(),
-                gobject.markup_escape_text(person),
+                gobject.markup_escape_text(correct_name),
                 # TRANSLATORS: displayed in a review after the persons name,
                 # e.g. "Wonderful text based app" mvo (that's you) 2011-02-11"
                 _("that's you"),
@@ -951,7 +955,7 @@ class UIReview(gtk.VBox):
         else:
             m = '<span color="%s"><b>%s</b>, %s</span>' % (
                 dark_color.to_string(),
-                gobject.markup_escape_text(person),
+                gobject.markup_escape_text(correct_name),
                 gobject.markup_escape_text(nice_date))
 
         return m

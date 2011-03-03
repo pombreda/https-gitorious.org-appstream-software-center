@@ -830,8 +830,7 @@ class SubmitReviewsApp(BaseApp):
         # run parent handler on gwibber success, otherwise this will be dealt
         # with in _on_gwibber_fail
         if gwibber_success:
-            if using_gwibber:
-                self._gwibber_success_status()
+            self._success_status()
             BaseApp.on_transmit_success(self, api, trans)
     
     def _gwibber_retry_some(self, api, trans, accounts):
@@ -851,12 +850,12 @@ class SubmitReviewsApp(BaseApp):
             #FIXME: send an error string to this method instead of empty string
             self._on_gwibber_fail(api, trans, failed_accounts, "")
         else:
-            self._gwibber_success_status()
+            self._success_status()
             BaseApp.on_transmit_success(self, api, trans)
     
-    def _gwibber_success_status(self):
-        """Updates status area to show Gwibber success for 2 seconds then allows window to proceed"""
-        self._change_status("success", _("Successfully posted via Gwibber"))
+    def _success_status(self):
+        """Updates status area to show success for 2 seconds then allows window to proceed"""
+        self._change_status("success", _("Review submitted."))
         while gtk.events_pending():
             gtk.main_iteration(False)
         time.sleep(2)

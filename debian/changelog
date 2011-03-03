@@ -8,6 +8,8 @@ software-center (3.1.21) UNRELEASED; urgency=low
       in search result suggestion strings (LP: #725966)
   * softwarecenter/view/appdetailsview_gtk.py:
     - usefulness label updates (LP: #725679)
+  * view/appdetailsview_gtk.py: 
+    - display name used for reviews instead of username (LP: #713013)
 
   [ Michael Vogt ]
   * merged lp:~mvo/software-center/weblive that contians the remaining
