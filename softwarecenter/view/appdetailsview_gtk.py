@@ -559,7 +559,6 @@ class AddonsTable(gtk.VBox):
                                       self.addons_manager.mark_changes)
             self.pack_start(addon, False)
             exists.add(addon_name)
-
         self.show_all()
 
         self.emit('table-built')

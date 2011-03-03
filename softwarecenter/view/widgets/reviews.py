@@ -911,10 +911,12 @@ class UIReview(gtk.VBox):
         if useful_total == 0 and current_user_reviewer:
             s = ""
         elif useful_total == 0:
+            # no votes for the review yet
             s = _("Was this review hepful?")
         elif current_user_reviewer:
+            # user has already voted for the review
             s = gettext.ngettext(
-                "%(useful_favorable)s of %(useful_total)s person "
+                "%(useful_favorable)s of %(useful_total)s people "
                 "found this review helpful.",
                 "%(useful_favorable)s of %(useful_total)s people "
                 "found this review helpful.",
@@ -922,6 +924,7 @@ class UIReview(gtk.VBox):
                                   'useful_favorable' : useful_favorable,
                                 }
         else:
+            # user has not already voted for the review
             s = gettext.ngettext(
                 "%(useful_favorable)s of %(useful_total)s person "
                 "found this review helpful. Did you?",
