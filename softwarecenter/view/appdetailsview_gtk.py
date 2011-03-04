@@ -1521,8 +1521,11 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
                 def on_image_download_complete(downloader, image_file_path):
                     # when the download is complete, replace the icon in the view with the downloaded one
-                    pb = gtk.gdk.pixbuf_new_from_file(image_file_path)
-                    self.icon.set_from_pixbuf(pb)
+                    try:
+                        pb = gtk.gdk.pixbuf_new_from_file(image_file_path)
+                        self.icon.set_from_pixbuf(pb)
+                    except Exception, e:
+                        LOG.warning("couldn't load downloadable icon file '%s': %s" % (image_file_path, e))
                     
                 image_downloader = SimpleFileDownloader()
                 image_downloader.connect(
