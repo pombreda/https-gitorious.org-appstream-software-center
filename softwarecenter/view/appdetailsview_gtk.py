@@ -1462,8 +1462,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             for the application icon as it is displayed on-screen
         """
         icon_size = self.APP_ICON_SIZE
-        if self.main_frame.image.get_storage_type() == gtk.IMAGE_PIXBUF:
-            pb = self.main_frame.image.get_pixbuf()
+        if self.image.get_storage_type() == gtk.IMAGE_PIXBUF:
+            pb = self.image.get_pixbuf()
             if pb.get_width() > pb.get_height():
                 icon_size = pb.get_width()
             else:
@@ -1479,7 +1479,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         while parent.get_parent():
             parent = parent.get_parent()
         # get x, y relative to toplevel
-        (x,y) = self.main_frame.image.translate_coordinates(parent, 0, 0)
+        (x,y) = self.image.translate_coordinates(parent, 0, 0)
         # get toplevel window position
         (px, py) = parent.get_position()
         return (px+x, py+y)
