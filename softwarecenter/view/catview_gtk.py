@@ -110,12 +110,27 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
         self._allocation = None
 
         self.vbox.connect('expose-event', self._on_expose, a)
-        self.connect('size-allocate', self._on_allocate, vb)
+        self.vbox.connect('size-allocate', self._on_allocate)
 #        self.connect('style-set', self._on_style_set)
         return
 
     def build(self, desktopdir):
         pass
+
+    def _on_allocate(self, widget, allocation):
+        logging.getLogger("softwarecenter.view.allocation").debug("on_alloc widget=%s, allocation=%s" % (widget, allocation))
+
+        self.queue_draw()
+
+        if self._allocation == allocation: 
+            logging.getLogger("softwarecenter.view.allocation").debug("LobbyviewGtk skipped!")
+            return True
+        self._allocation = allocation
+
+        w = min(self.allocation.width-2, 70*mkit.EM)
+
+        widget.set_size_request(w, -1)
+        return True
 
     def _on_app_clicked(self, btn):
         app = btn.app
@@ -166,23 +181,6 @@ class LobbyViewGtk(CategoriesViewGtk):
 
         self.build(desktopdir)
         return
-
-    def _on_allocate(self, viewport, allocation, vbox):
-        logging.getLogger("softwarecenter.view.allocation").debug("on_alloc widget=%s, allocation=%s" % (viewport, allocation))
-
-        self.queue_draw()
-
-        if self._allocation == allocation: 
-            logging.getLogger("softwarecenter.view.allocation").debug("LobbyviewGtk skipped!")
-            return True
-        self._allocation = allocation
-
-        w = min(allocation.width-2, 70*mkit.EM)
-        if w == self._prev_width: 
-            return True
-
-        vbox.set_size_request(w, -1)
-        return True
 
     def _on_expose(self, widget, event, alignment):
         cr = widget.window.cairo_create()
@@ -483,19 +481,6 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         # sections
         self.departments = None
         return
-
-    def _on_allocate(self, viewport, allocation, vbox):
-        logging.getLogger("softwarecenter.view.allocation").debug("on_alloc widget=%s, allocation=%s" % (viewport, allocation))
-        self.queue_draw()
-
-        w = min(allocation.width-2, 70*mkit.EM)
-
-        if w <= 35*mkit.EM or w == self._prev_width: 
-            return True
-        self._prev_width = w
-
-        vbox.set_size_request(w, -1)
-        return True
 
     def _on_expose(self, widget, event, alignment):
         cr = widget.window.cairo_create()
