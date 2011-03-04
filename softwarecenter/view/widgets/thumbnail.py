@@ -1,3 +1,4 @@
+import atk
 import gtk
 import gobject
 import mkit
@@ -400,15 +401,17 @@ class ScreenshotThumbnail(gtk.Alignment):
                 # set the size of the unavailable placeholder
                 # 160 pixels is the fixed width of the thumbnails
                 self.unavailable.set_size_request(*self.IDLE_SIZE)
-                acc = self.get_accessible()
-                acc.set_name(_('%s - No screenshot available') % self.appname)
+            acc = self.get_accessible()
+            acc.set_name(_('No screenshot available'))
+            acc.set_role(atk.ROLE_LABEL)
         else:
             if self.unavailable.parent:
                 self.unavailable.hide()
                 self.eventbox.remove(self.unavailable)
                 self.eventbox.add(self.image)
-                acc = self.get_accessible()
-                acc.set_name(_('%s - Screenshot') % self.appname)
+            acc = self.get_accessible()
+            acc.set_name(_('Screenshot'))
+            acc.set_role(atk.ROLE_PUSH_BUTTON)
 
         if self.get_property("visible"):
             self.show_all()
