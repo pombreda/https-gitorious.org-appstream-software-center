@@ -1483,30 +1483,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # get toplevel window position
         (px, py) = parent.get_position()
         return (px+x, py+y)
-
-    def _draw_icon_frame(self, cr):
-        # draw small or no icon background
-        a = self.main_frame.image.allocation
-        rr = mkit.ShapeRoundedRectangle()
-
-        cr.save()
-        rr.layout(cr, a.x, a.y, a.x+a.width, a.y+a.height, radius=6)
-        r, g, b = self.avg_icon_rgb
-        cr.set_source_rgb(r, g, b)
-        cr.fill_preserve()
-
-        lin = cairo.LinearGradient(0, a.y, 0, a.y+a.height)
-        lin.add_color_stop_rgba(0, 1,1,1, 0.6)
-        lin.add_color_stop_rgba(1, 1,1,1, 0.7)
-
-        cr.set_source(lin)
-        cr.fill_preserve()
-
-        cr.set_source_rgba(r, g, b, 0.75)
-        cr.stroke()
-
-        cr.restore()
-        return
         
     def _get_icon_as_pixbuf(self, app_details):
         if app_details.icon:
