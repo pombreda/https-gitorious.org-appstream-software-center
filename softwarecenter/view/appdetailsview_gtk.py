@@ -891,26 +891,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.back.emit('clicked')
         return
 
-#    def _on_key_release(self, widget, event, entry):
-#        ctrl = event.state & gtk.gdk.CONTROL_MASK
-#        if ctrl:
-#            if event.keyval == gtk.keysyms.s:
-#                entry.set_position(-1)
-#                entry.grab_focus()
-#        return
-
-    def _on_icon_expose(self, widget, event):
-        if not self._show_overlay: return
-        a = widget.allocation
-        cr = widget.window.cairo_create()
-        pb = self._overlay
-        cr.set_source_pixbuf(pb,
-                             a.x+a.width-pb.get_width(),
-                             a.y+a.height-pb.get_height())
-        cr.paint()
-        del cr
-        return
-
     def _on_realize(self, widget):
         self.addons_statusbar.hide_all()
         return
@@ -1548,7 +1528,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                 image_downloader.connect(
                     'file-download-complete', on_image_download_complete)
                 image_downloader.download_file(
-                    app_details.icon_url, appdetails.cached_icon_file_path)
+                    app_details.icon_url, app_details.cached_icon_file_path)
         return self.icons.load_icon(MISSING_APP_ICON, 84, 0)
     
     def update_totalsize(self):
