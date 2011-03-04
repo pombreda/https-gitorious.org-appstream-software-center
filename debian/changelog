@@ -1,4 +1,22 @@
-software-center (3.1.21) UNRELEASED; urgency=low
+software-center (3.1.22) UNRELEASED; urgency=low
+
+  [ Kiwinote ]
+    * setup.py:
+      - mark submit_usefulness.py as a script (LP: #728717)
+    * softwarecenter/view/appdetailsview_gtk.py,
+      softwarecenter/view/widgets/description.py,
+      softwarecenter/view/widgets/thumbnail.py:
+      - grab back some fixes which got lost (and a few other minor a11y tweaks)
+    * softwarecenter/view/widgets/reviews.py:
+      - use full width for review text
+
+    [ Omer Akram ]
+    * softwarecenter/view/widgets/reviews.py:
+      - fix typo (hepful -> helpful) (LP: #725671) 
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 03 Mar 2011 19:15:07 -0500
+
+software-center (3.1.21) natty; urgency=low
 
   [ Aaron Peachey ]
   * lp:~aaronp/software-center/reviews-usefulness:
@@ -6,6 +24,10 @@ software-center (3.1.21) UNRELEASED; urgency=low
   * softwarecenter/view/softwarepane.py: 
     - quick string fix to remove space between text and question marks
       in search result suggestion strings (LP: #725966)
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - usefulness label updates (LP: #725679)
+  * view/appdetailsview_gtk.py: 
+    - display name used for reviews instead of username (LP: #713013)
 
   [ Michael Vogt ]
   * merged lp:~mvo/software-center/weblive that contians the remaining
@@ -18,7 +40,13 @@ software-center (3.1.21) UNRELEASED; urgency=low
     - expose usefulness UI
   * softwarecenter/db/reviews.py:
     - deal properly with "Not modified" return value
+  * merged lp:~mmcg069/software-center/detailsview-stuff
 
+  [ Matthew McGowan ]
+  * fix hang in appdetails view
+  * improve presentation of the application details
+  * reduce flickering in the detailsview
+  
   [ Gary Lasker ]
   * softwarecenter/enums.py,
     softwarecenter/backend/aptd.py:
@@ -32,7 +60,7 @@ software-center (3.1.21) UNRELEASED; urgency=low
       so that they will show up in What's New, add/modify unit tests
       per the changes (LP: #684077) 
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 01 Mar 2011 09:44:12 +0100
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 03 Mar 2011 14:51:34 +0100
 
 software-center (3.1.20) natty; urgency=low
 
