@@ -4,8 +4,11 @@ software-center (3.1.23) UNRELEASED; urgency=low
     - fix broken downloadable icon code, improve error checking
     - update Unity launcher integration code per recent detailsview
       changes
+  * softwarecenter/view/widgets/backforward.py:
+    - remove the additional border space in the navigation bar
+      (LP: #729053) 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Fri, 04 Mar 2011 16:12:07 -0500
+ -- Gary Lasker <gary.lasker@canonical.com>  Fri, 04 Mar 2011 17:10:46 -0500
 
 software-center (3.1.22) natty; urgency=low
 
