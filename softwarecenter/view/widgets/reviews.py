@@ -596,11 +596,6 @@ class UIReviewsList(gtk.VBox):
                 self.vbox.pack_start(NoReviewYet())
         return
 
-    def set_width(self, w):
-        for r in self.vbox:
-            r.body.set_size_request(w, -1)
-        return
-
     def add_review(self, review):
         self.reviews.append(review)
         return
@@ -696,7 +691,7 @@ class UIReview(gtk.VBox):
         self._build(review_data, app_version, logged_in_person)
         return
 
-    def _on_allocate(self, widget, allocation, stars, summary, who_when, version_lbl, flag):
+    def _on_allocate(self, widget, allocation, stars, summary, text, who_when, version_lbl, flag):
         if self._allocation == allocation:
             logging.getLogger("softwarecenter.view.allocation").debug("UIReviewAllocate skipped!")
             return True
@@ -705,6 +700,9 @@ class UIReview(gtk.VBox):
         summary.set_size_request(max(20, allocation.width - \
                                  stars.allocation.width - \
                                  who_when.allocation.width - 20), -1)
+
+        text.set_size_request(allocation.width, -1)
+
         if version_lbl:
             version_lbl.set_size_request(allocation.width-flag.allocation.width-20, -1)
         return
@@ -847,7 +845,7 @@ class UIReview(gtk.VBox):
         # FIXME: dynamically update this on network changes
         self.complain.set_sensitive(network_state_is_connected())
         self.body.connect('size-allocate', self._on_allocate, stars, 
-                          summary, who_when, version_lbl, self.complain)
+                          summary, text, who_when, version_lbl, self.complain)
         return
     
     def _build_usefulness_ui(self, current_user_reviewer, useful_total, 
@@ -913,7 +911,7 @@ class UIReview(gtk.VBox):
             s = ""
         elif useful_total == 0:
             # no votes for the review yet
-            s = _("Was this review hepful?")
+            s = _("Was this review helpful?")
         elif current_user_reviewer:
             # user has already voted for the review
             s = gettext.ngettext(
