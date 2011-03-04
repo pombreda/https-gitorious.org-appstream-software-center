@@ -73,6 +73,7 @@ class Review(object):
         self.date_created = None
         self.rating = None
         self.reviewer_username = None
+        self.reviewer_displayname = None
         self.version = ""
         self.usefulness_total = 0
         self.usefulness_favorable = 0

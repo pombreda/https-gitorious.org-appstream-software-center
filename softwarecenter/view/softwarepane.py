@@ -219,7 +219,8 @@ class SoftwarePane(gtk.VBox, BasePane):
                                                self.distro,
                                                self.icons, 
                                                self.cache, 
-                                               self.datadir)
+                                               self.datadir,
+                                               self)
         self.app_details_view.connect("purchase-requested",
                                       self.on_purchase_requested)
         self.scroll_details.add(self.app_details_view)
@@ -596,6 +597,7 @@ class SoftwarePane(gtk.VBox, BasePane):
                              exact=self.custom_list_mode,
                              nonapps_visible = self.nonapps_visible,
                              filter=self.apps_filter)
+
         #print "new_model", new_model, len(new_model), seq_nr
         # between request of the new model and actual delivery other
         # events may have happend
