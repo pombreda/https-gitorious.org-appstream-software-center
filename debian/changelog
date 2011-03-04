@@ -1,6 +1,6 @@
-software-center UNRELEASED natty; urgency=low
+software-center (3.1.22) natty; urgency=low
 
-    [ Kiwinote ]
+  [ Kiwinote ]
     * setup.py:
       - mark submit_usefulness.py as a script (LP: #728717)
     * softwarecenter/view/appdetailsview_gtk.py,
@@ -12,9 +12,9 @@ software-center UNRELEASED natty; urgency=low
 
     [ Omer Akram ]
     * softwarecenter/view/widgets/reviews.py:
-      - fix typo (hepful -> helpful) (LP: #725671)
+      - fix typo (hepful -> helpful) (LP: #725671) 
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 03 Mar 2011 14:51:34 +0100
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 04 Mar 2011 09:15:47 +0100
 
 software-center (3.1.21) natty; urgency=low
 
