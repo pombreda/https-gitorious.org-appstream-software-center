@@ -1514,7 +1514,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                 try:
                     return self.icons.load_icon(app_details.icon, 84, 0)
                 except glib.GError, e:
-                    logging.warn("failed to load '%s'" % app_details.icon)
+                    logging.warn("failed to load '%s': %s" % (app_details.icon, e))
                     return self.icons.load_icon(MISSING_APP_ICON, 84, 0)
             elif app_details.icon_needs_download and app_details.icon_url:
                 LOG.debug("did not find the icon locally, must download it")
@@ -1522,7 +1522,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                 def on_image_download_complete(downloader, image_file_path):
                     # when the download is complete, replace the icon in the view with the downloaded one
                     pb = gtk.gdk.pixbuf_new_from_file(image_file_path)
-                    self.main_frame.set_icon_from_pixbuf(pb)
+                    self.icon.set_from_pixbuf(pb)
                     
                 image_downloader = SimpleFileDownloader()
                 image_downloader.connect(
