@@ -82,16 +82,16 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
         # setup base widgets
         # we have our own viewport so we know when the viewport grows/shrinks
         # setup widgets
-        a = gtk.Alignment(0.5, 0.0, yscale=1.0)
-        self.add(a)
+        self.a = gtk.Alignment(0.5, 0.0, yscale=1.0)
+        self.add(self.a)
 
         self.hbox = hb = gtk.HBox()
-        a.add(hb)
+        self.a.add(hb)
 
-        self.vbox = vb = gtk.VBox(spacing=18)
-        vb.set_border_width(20)
-        vb.set_redraw_on_allocate(False)
-        hb.pack_start(vb, False)
+        self.vbox = gtk.VBox(spacing=18)
+        self.vbox.set_border_width(20)
+        self.vbox.set_redraw_on_allocate(False)
+        hb.pack_start(self.vbox, False)
 
         # atk stuff
         atk_desc = self.get_accessible()
@@ -108,10 +108,6 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
         self._poster_sigs = []
 
         self._allocation = None
-
-        self.vbox.connect('expose-event', self._on_expose, a)
-        self.connect('size-allocate', self._on_allocate, vb)
-#        self.connect('style-set', self._on_style_set)
         return
 
     def build(self, desktopdir):
@@ -185,6 +181,8 @@ class LobbyViewGtk(CategoriesViewGtk):
         return True
 
     def _on_expose(self, widget, event, alignment):
+            
+        # FIXME: if carousel allocations are unchanged, just return
         cr = widget.window.cairo_create()
         cr.rectangle(alignment.allocation)
         cr.clip_preserve()
@@ -267,6 +265,10 @@ class LobbyViewGtk(CategoriesViewGtk):
         self._append_featured()
         self._append_whatsnew()
         self._append_recommendations()
+        
+        # now that the UI is constructed, we can connect events
+        self.vbox.connect('expose-event', self._on_expose, self.a)
+        self.connect('size-allocate', self._on_allocate, self.vbox)
         return
 
     @wait_for_apt_cache_ready
@@ -559,6 +561,10 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         # these methods add sections to the page
         # changing order of methods changes order that they appear in the page
         self._append_subcat_departments(root_category, num_items)
+        
+        # now that the UI is constructed, we can connect events
+        self.vbox.connect('expose-event', self._on_expose, self.a)
+        self.connect('size-allocate', self._on_allocate, self.vbox)
         return
 
     def set_subcategory(self, root_category, num_items=0, block=False):
