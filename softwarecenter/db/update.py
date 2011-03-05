@@ -30,7 +30,7 @@ import sys
 import time
 import urllib
 import xapian
-
+import softwarecenter.log
 
 from ConfigParser import RawConfigParser, NoOptionError
 from gettext import gettext as _
