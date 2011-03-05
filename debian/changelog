@@ -8,10 +8,10 @@ software-center (3.1.23) UNRELEASED; urgency=low
     - remove the additional border space in the navigation bar
       (LP: #729053) 
   * softwarecenter/view/catview_gtk.py:
-    - for subclasses of CategoriesViewGtk, connect events only
-      after the UI has been fully created (LP: #721704) 
+    - for subclasses of CategoriesViewGtk, connect events only after
+      the UI has been fully created (LP: #721704, LP: #725642) 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Fri, 04 Mar 2011 23:20:07 -0500
+ -- Gary Lasker <gary.lasker@canonical.com>  Sat, 05 Mar 2011 01:08:56 -0500
 
 software-center (3.1.22) natty; urgency=low
 
