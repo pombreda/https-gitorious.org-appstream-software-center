@@ -182,7 +182,7 @@ class LobbyViewGtk(CategoriesViewGtk):
 
     def _on_expose(self, widget, event, alignment):
             
-        # FIXME: if carousel allocations are unchanged, just return
+        # TODO: if carousel allocations are unchanged, just return
         cr = widget.window.cairo_create()
         cr.rectangle(alignment.allocation)
         cr.clip_preserve()
