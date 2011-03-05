@@ -264,11 +264,7 @@ class LobbyViewGtk(CategoriesViewGtk):
         self._append_departments()
         self._append_featured()
         self._append_whatsnew()
-        self._append_recommendations()
-        
-        # now that the UI is constructed, we can connect events
-        self.vbox.connect('expose-event', self._on_expose, self.a)
-        self.connect('size-allocate', self._on_allocate, self.vbox)
+        self._append_recommendations()        
         return
 
     @wait_for_apt_cache_ready
@@ -456,6 +452,10 @@ class LobbyViewGtk(CategoriesViewGtk):
         self.categories = self.parse_applications_menu(desktopdir)
         self.header = _('Departments')
         self._build_homepage_view()
+        
+        # now that the UI is constructed, we can connect events
+        self.vbox.connect('expose-event', self._on_expose, self.a)
+        self.connect('size-allocate', self._on_allocate, self.vbox)
         return
 
 
