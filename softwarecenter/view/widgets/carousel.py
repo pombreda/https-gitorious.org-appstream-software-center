@@ -94,7 +94,7 @@ class CarouselView(gtk.VBox):
         self._is_playing = False
         self._play_offset = 0
         self._user_offset_override = None
-        self._width = 0
+        self._allocation = None
         self._alpha = 1.0
         self._fader = 0
         self._layout = None
@@ -108,11 +108,11 @@ class CarouselView(gtk.VBox):
 
     def _on_allocate(self, widget, allocation):
         logging.getLogger("softwarecenter.view.allocation").debug("on_alloc widget=%s, allocation=%s" % (widget, allocation))
-        if allocation.width == self._width: 
+        if allocation == self._allocation: 
             logging.getLogger("softwarecenter.view.allocation").debug("CarouselView skipped!")
             return
-        self._width = allocation.width
-        self._build_view(self._width)
+        self._allocation = allocation
+        self._build_view(allocation.width)
         return
 
     def _on_page_clicked(self, page_sel, page):

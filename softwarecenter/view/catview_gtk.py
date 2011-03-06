@@ -499,45 +499,34 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         del cr
 
     def _append_subcat_departments(self, root_category, num_items):
-        # create departments widget
-        if not self.departments:
-            self.departments = mkit.LayoutView2()
+        m = "<b><big>%s</big></b>"
+        if self.departments is None:
+            self.subcat_label = mkit.EtchedLabel()
+            self.subcat_label.set_use_markup(True)
+            self.subcat_label.set_alignment(0, 0.5)
+            self.vbox.pack_start(self.subcat_label, False)
+
+            self.departments = mkit.LayoutView2(xspacing=20, yspacing=12)
+            self.departments.min_col_width = 10*mkit.EM
+
             # append the departments section to the page
             self.vbox.pack_start(self.departments)
-        else:
-            self.departments.clear()
 
-        # set the departments section to use the label
-        header = gobject.markup_escape_text(self.header)
-#        self.departments.set_label(H2 % header)
+        # set the subcat header
+        self.subcat_label.set_markup(m % gobject.markup_escape_text(self.header))
 
         # sort Category.name's alphabetically
         sorted_cats = categories_sorted_by_name(self.categories)
 
+        buttons = []
         for cat in sorted_cats:
-            #enquirer.set_query(cat.query)
-            ## limiting the size here does not make it faster
-            #matches = enquirer.get_mset(0, len(self.db))
-            #estimate = matches.get_matches_estimated()
-
-            # sanitize text so its pango friendly...
-            name = gobject.markup_escape_text(cat.name.strip())
-
-            cat_btn = SubcategoryButton(name, cat.iconname, self.icons)
-
+            cat_btn = SubcategoryButton(cat.name, cat.iconname)
             cat_btn.connect('clicked', self._on_category_clicked, cat)
-            # append the department to the departments widget
-            self.departments.add(cat_btn)
+            buttons.append(cat_btn)
 
-        # append an additional button to show all of the items in the category
-        name = gobject.markup_escape_text(_("All %s") % num_items)
-        show_all_btn = SubcategoryButton(name, "category-show-all", self.icons)
-        all_cat = Category("All", _("All"), "category-show-all", root_category.query)
-        show_all_btn.connect('clicked', self._on_category_clicked, all_cat)
-        self.departments.add(show_all_btn)
-
-        self.departments.layout(self.departments.allocation.width,
-                                self.departments.yspacing)
+        # append the cat buttons to the departments widget
+        self.departments.set_widgets(buttons)
+        self.show_all()
         return
 
     def _build_subcat_view(self, root_category, num_items):

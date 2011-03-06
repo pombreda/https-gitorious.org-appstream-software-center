@@ -931,18 +931,18 @@ class LayoutView2(gtk.HBox):
         self.min_col_width = 128
         self.yspacing = yspacing
 
-        self._prev_width = -1
+        self._allocation = None
         self._non_col_children = []
 
         self.connect('size-allocate', self._on_allocate, yspacing)
-#        self.connect('expose-event', self._on_expose_debug)
+        #~ self.connect('expose-event', self._on_expose_debug)
         return
 
     def _on_allocate(self, widget, allocation, yspacing):
         w = allocation.width
 
-        if self._prev_width == w: return True
-        self._prev_width = w
+        if self._allocation == allocation: return True
+        self._allocation = allocation
 
         self.layout(w, yspacing, force=False)
         return True
@@ -977,14 +977,21 @@ class LayoutView2(gtk.HBox):
         self._non_col_children = []
         return
 
-    def layout(self, width, yspacing, force=True):
+    def set_widgets(self, widgets):
+        self.clear()
+        for w in widgets:
+            self._non_col_children.append(w)
+        
+        gobject.idle_add(self.layout, self.allocation.width, self.yspacing)
+        return
 
+    def layout(self, width, yspacing, force=True):
         old_n_cols = len(self.get_children())
         n_cols = max(1, width / (self.min_col_width + self.get_spacing()))
-
         n_cols = min(len(self._non_col_children), n_cols)
 
-        if old_n_cols == n_cols and not force: return True
+        if old_n_cols == n_cols and not force:
+            return True
 
         for i, col in enumerate(self.get_children()):
             for child in col.get_children():
