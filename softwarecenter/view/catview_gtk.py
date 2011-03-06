@@ -524,8 +524,16 @@ class SubCategoryViewGtk(CategoriesViewGtk):
             cat_btn.connect('clicked', self._on_category_clicked, cat)
             buttons.append(cat_btn)
 
+        # append an additional button to show all of the items in the category
+        name = gobject.markup_escape_text('%s %s' % (_("All"), num_items))
+        show_all_btn = SubcategoryButton(name, "category-show-all")
+        all_cat = Category("All", _("All"), "category-show-all", root_category.query)
+        show_all_btn.connect('clicked', self._on_category_clicked, all_cat)
+        buttons.append(show_all_btn)
+
         # append the cat buttons to the departments widget
         self.departments.set_widgets(buttons)
+
         self.show_all()
         return
 
