@@ -128,7 +128,7 @@ class StarPainter(IStarPainter):
     def _paint_star(self, cr, widget, state, x, y, w, h, alpha=1.0):
         cr.save()
 
-        if widget.has_focus() and \
+        if widget.has_focus() or state == gtk.STATE_PRELIGHT and \
             hasattr(self, 'is_interactive') and \
                 self.is_interactive:
 
@@ -251,7 +251,8 @@ class StarPainter(IStarPainter):
         cr.set_line_width(1)
         self.shape.layout(cr, x+2.5, y+2.5, w-5, h-5)
 
-        cr.set_source_rgba(*dark+(0.2*alpha,))
+        darker = color_floats('#6A2D00')
+        cr.set_source_rgba(*darker+(0.11*alpha,))
         cr.stroke()
         return
 
@@ -443,36 +444,50 @@ class StarRatingSelector(StarRating):
         #~ self.set_tentative_rating(star.position+1)
         if self.caption:
             self.caption.set_markup(self.RATING_WORDS[star.position+1])
+        a = star.allocation
+        self.queue_draw_area(a.x-2, a.y-2, a.width+4, a.height+4)
         return
 
     def _on_leave(self, star, event):
         star.set_state(gtk.STATE_NORMAL)
         gobject.timeout_add(100, self._hover_check_cb)
+        a = star.allocation
+        star.queue_draw_area(a.x-2, a.y-2, a.width+4, a.height+4)
         return
 
     def _on_press(self, star, event):
+        a_star_has_focus = filter(lambda s: s.has_focus(),
+                                  self.get_stars())
+        if a_star_has_focus: star.grab_focus()
+
         star.set_state(gtk.STATE_ACTIVE)
+        a = star.allocation
+        star.queue_draw_area(a.x-2, a.y-2, a.width+4, a.height+4)
         return
 
     def _on_release(self, star, event):
         gobject.timeout_add(50, self.set_rating, star.position+1)
         star.set_state(gtk.STATE_PRELIGHT)
+        a = star.allocation
+        star.queue_draw_area(a.x-2, a.y-2, a.width+4, a.height+4)
         return
 
     def _on_focus_in(self, star, event):
         a = star.allocation
-        self.queue_draw_area(a.x-2, a.y-2, a.width+4, a.height+4)
+        star.queue_draw_area(a.x-2, a.y-2, a.width+4, a.height+4)
         return True
 
     def _on_focus_out(self, star, event):
         a = star.allocation
-        self.queue_draw_area(a.x-2, a.y-2, a.width+4, a.height+4)
+        star.queue_draw_area(a.x-2, a.y-2, a.width+4, a.height+4)
         return True
 
     def _on_key_press(self, star, event):
         kv = event.keyval
         if kv == gtk.keysyms.space or kv == gtk.keysyms.Return:
-            self.set_rating(star.position+1)
+            star.set_state(gtk.STATE_ACTIVE)
+            a = star.allocation
+            star.queue_draw_area(a.x-2, a.y-2, a.width+4, a.height+4)
         elif kv == gtk.keysyms._1:
             self.set_rating(1)
         elif kv == gtk.keysyms._2:
@@ -487,6 +502,15 @@ class StarRatingSelector(StarRating):
             self.caption.set_markup(self.RATING_WORDS[self.rating])
         return
 
+    def _on_key_release(self, star, event):
+        kv = event.keyval
+        if kv == gtk.keysyms.space or kv == gtk.keysyms.Return:
+            self.set_rating(star.position+1)
+            star.set_state(gtk.STATE_NORMAL)
+            a = star.allocation
+            star.queue_draw_area(a.x-2, a.y-2, a.width+4, a.height+4)
+        return
+
     def _connect_signals(self, star):
         star.connect('enter-notify-event', self._on_enter)
         star.connect('leave-notify-event', self._on_leave)
@@ -495,6 +519,7 @@ class StarRatingSelector(StarRating):
         star.connect('focus-in-event', self._on_focus_in)
         star.connect('focus-out-event', self._on_focus_out)
         star.connect('key-press-event', self._on_key_press)
+        star.connect('key-release-event', self._on_key_release)
         return
 
     def _hover_check_cb(self):
