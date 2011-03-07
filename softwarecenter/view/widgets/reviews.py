@@ -52,11 +52,15 @@ class IStarPainter:
     FILL_HALF       = 1
     FILL_FULL       = 2
 
+    BORDER_OFF = 0
+    BORDER_ON = 1
+
     def __init__(self):
         self.shape = ShapeStar(5, 0.55)
 
         self.fill = self.FILL_EMPTY
         self.shadow = gtk.SHADOW_NONE
+        self.border = self.BORDER_OFF
 
         self.alpha = 1.0
         self.animate_fill = False
@@ -128,20 +132,8 @@ class StarPainter(IStarPainter):
     def _paint_star(self, cr, widget, state, x, y, w, h, alpha=1.0):
         cr.save()
 
-        if widget.has_focus() or state == gtk.STATE_PRELIGHT and \
-            hasattr(self, 'is_interactive') and \
-                self.is_interactive:
-
-            cr.save()
-            cr.set_line_join(cairo.LINE_CAP_ROUND)
-
-            self.shape.layout(cr, x, y, w, h)
-            sel_color = color_floats(widget.style.base[gtk.STATE_SELECTED])
-
-            cr.set_source_rgba(*sel_color+(0.75,))
-            cr.set_line_width(4)
-            cr.stroke()
-            cr.restore()
+        if self.border == self.BORDER_ON:
+            self._paint_star_border(cr, widget, state, x, y, w, h, alpha)
 
         if self.shadow == gtk.SHADOW_ETCHED_OUT:
             if widget.state != gtk.STATE_ACTIVE:
@@ -154,18 +146,34 @@ class StarPainter(IStarPainter):
         if state == gtk.STATE_PRELIGHT and \
             hasattr(self, 'is_interactive') and \
                 self.is_interactive:
-
-            self.shape.layout(cr, x, y, w, h)
-
-            if self.fill == self.FILL_FULL:
-                _alpha = (0.4*alpha,)
-            else:
-                _alpha = (0.3*alpha,)
-
-            cr.set_source_rgba(*color_floats(widget.style.white)+_alpha)
-            cr.fill()
+            self._paint_star_prelight(cr, widget, state, x, y, w, h, alpha)
 
         cr.restore()
+        return
+
+    def _paint_star_border(self, cr, widget, state, x, y, w, h, alpha):
+        cr.save()
+        cr.set_line_join(cairo.LINE_CAP_ROUND)
+
+        self.shape.layout(cr, x, y, w, h)
+        sel_color = color_floats(widget.style.base[gtk.STATE_SELECTED])
+
+        cr.set_source_rgba(*sel_color+(0.75,))
+        cr.set_line_width(4)
+        cr.stroke()
+        cr.restore()
+        return
+
+    def _paint_star_prelight(self, cr, widget, state, x, y, w, h, alpha):
+        self.shape.layout(cr, x, y, w, h)
+
+        if self.fill == self.FILL_FULL:
+            _alpha = (0.4*alpha,)
+        else:
+            _alpha = (0.3*alpha,)
+
+        cr.set_source_rgba(*color_floats(widget.style.white)+_alpha)
+        cr.fill()
         return
 
     def _paint_star_flat(self, cr, widget, state, x, y, w, h, alpha):
@@ -441,11 +449,9 @@ class StarRatingSelector(StarRating):
 
     def _on_enter(self, star, event):
         star.set_state(gtk.STATE_PRELIGHT)
-        #~ self.set_tentative_rating(star.position+1)
+        self.set_tentative_rating(star.position+1)
         if self.caption:
             self.caption.set_markup(self.RATING_WORDS[star.position+1])
-        a = star.allocation
-        self.queue_draw_area(a.x-2, a.y-2, a.width+4, a.height+4)
         return
 
     def _on_leave(self, star, event):
@@ -473,13 +479,11 @@ class StarRatingSelector(StarRating):
         return
 
     def _on_focus_in(self, star, event):
-        a = star.allocation
-        star.queue_draw_area(a.x-2, a.y-2, a.width+4, a.height+4)
+        self.set_tentative_rating(star.position+1)
         return True
 
     def _on_focus_out(self, star, event):
-        a = star.allocation
-        star.queue_draw_area(a.x-2, a.y-2, a.width+4, a.height+4)
+        self.set_tentative_rating(0)
         return True
 
     def _on_key_press(self, star, event):
@@ -538,9 +542,11 @@ class StarRatingSelector(StarRating):
     def set_tentative_rating(self, n_stars):
         for i, star in enumerate(self.get_stars()):
             if i < int(n_stars):
-                star.set_state(gtk.STATE_PRELIGHT)
+                star.border = StarPainter.BORDER_ON
             else:
-                star.set_state(gtk.STATE_NORMAL)
+                star.border = StarPainter.BORDER_OFF
+        a = self.allocation
+        self.queue_draw_area(a.x-2, a.y-2, a.width+4, a.height+4)
         return
 
 
