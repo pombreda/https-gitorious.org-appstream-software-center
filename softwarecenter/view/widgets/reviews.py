@@ -267,7 +267,7 @@ class StarPainter(IStarPainter):
         darker = color_floats('#6A2D00')
         lin = cairo.LinearGradient(x, y, x, y+h)
         lin.add_color_stop_rgba(0.0, *darker+(0.175,))
-        lin.add_color_stop_rgba(1.0, 1,1,1, 0.5)
+        lin.add_color_stop_rgba(1.0, *darker+(0.05,))
         cr.set_source(lin)
 
         #~ cr.set_source_rgba(*darker+(0.1*alpha,))
