@@ -735,7 +735,7 @@ class ScreenshotView(gtk.VBox):
         if len(servers) == 0:
             error(None,"No available server","There is currently no available WebLive server for this application.\nPlease try again later.")
         elif len(servers) == 1:
-            self.weblive.create_automatic_user_and_run_session(session=cmd,serverid=servers[0])
+            self.weblive.create_automatic_user_and_run_session(session=cmd,serverid=servers[0].name)
         else:
             d = ShowWebLiveServerChooserDialog(servers)
             serverid=None
