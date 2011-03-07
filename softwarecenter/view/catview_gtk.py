@@ -105,9 +105,7 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
         self.apps_limit = apps_limit
 
         # more stuff
-        self._prev_width = 0
         self._poster_sigs = []
-
         self._allocation = None
 
         self.vbox.connect('expose-event', self._on_expose, a)
@@ -176,8 +174,6 @@ class LobbyViewGtk(CategoriesViewGtk):
         self.featured_carousel = None
         self.whatsnew_carousel = None
         self.departments = None
-
-        self._prev_width = -1
 
         self.build(desktopdir)
         return
@@ -423,7 +419,7 @@ class LobbyViewGtk(CategoriesViewGtk):
         layout = self.create_pango_layout('')
 
         max_w = 200
-
+        buttons = []
         for cat in sorted_cats:
             if 'carousel-only' not in cat.flags:
                 layout.set_text(cat.name)
@@ -432,10 +428,11 @@ class LobbyViewGtk(CategoriesViewGtk):
 
                 cat_btn = CategoryButton(cat.name, cat.iconname)
                 cat_btn.connect('clicked', self._on_category_clicked, cat)
-                # append the department to the departments widget
-                self.departments.add(cat_btn)
+                buttons.append(cat_btn)
 
+        # append the department to the departments widget
         self.departments.min_col_width = max_w
+        self.departments.set_widgets(buttons)
 
         # append the departments section to the page
         self.vbox.pack_start(self.departments, False)
