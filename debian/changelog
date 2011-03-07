@@ -23,6 +23,9 @@ software-center (3.1.23) UNRELEASED; urgency=low
   * merged lp:~weblive-dev/software-center/software-center-use-module,
     many thanks to Stephane Graber. This will use the upstream weblive
     python module where possible
+  * softwarecenter/db/application.py:
+    - ensure appname is unicode to fix review stats lookup (e.g. for
+      deja-dup)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 07 Mar 2011 15:59:47 +0100
 
