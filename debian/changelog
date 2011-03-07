@@ -1,5 +1,13 @@
-software-center (3.1.23) UNRELEASED; urgency=low
+software-center (3.1.23.1) natty; urgency=low
 
+  * softwarecenter/db/reviews.py:
+    - fix crash when submitting new review
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 07 Mar 2011 20:40:10 +0100
+
+software-center (3.1.23) natty; urgency=low
+
+  [ Gary Lasker ]
   * softwarecenter/view/appdetailsview_gtk.py:
     - fix broken downloadable icon code, improve error checking
     - update Unity launcher integration code per recent detailsview
@@ -8,10 +16,25 @@ software-center (3.1.23) UNRELEASED; urgency=low
     - remove the additional border space in the navigation bar
       (LP: #729053) 
   * softwarecenter/view/catview_gtk.py:
-    - for subclasses of CategoriesViewGtk, connect events only
-      after the UI has been fully created (LP: #721704) 
+    - for subclasses of CategoriesViewGtk, connect events only after
+      the UI has been fully created (LP: #721704, LP: #725642) 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Fri, 04 Mar 2011 23:20:07 -0500
+  [ Aaron Peachey ]
+    * softwarecenter/db/update.py:
+      - fix missing log handler when run by update-software-center 
+        (LP: #728896)
+  
+  [ Michael Vogt ]
+  * merged lp:~mmcg069/software-center/small-catview-cleanup that
+    fixes problems in the subcategies display
+  * merged lp:~weblive-dev/software-center/software-center-use-module,
+    many thanks to Stephane Graber. This will use the upstream weblive
+    python module where possible
+  * softwarecenter/db/application.py:
+    - ensure appname is unicode to fix review stats lookup (e.g. for
+      deja-dup)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 07 Mar 2011 19:25:17 +0100
 
 software-center (3.1.22) natty; urgency=low
 

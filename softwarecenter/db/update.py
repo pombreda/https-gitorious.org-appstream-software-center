@@ -30,7 +30,7 @@ import sys
 import time
 import urllib
 import xapian
-
+import softwarecenter.log
 
 from ConfigParser import RawConfigParser, NoOptionError
 from gettext import gettext as _
@@ -380,7 +380,14 @@ def update_from_app_install_data(db, cache, datadir=APP_INSTALL_PATH):
             index_app_info_from_parser(parser, db, cache)
         except Exception, e:
             # Print a warning, no error (Debian Bug #568941)
-            LOG.warning("error processing: %s %s" % (desktopf, e))
+            LOG.debug("error processing: %s %s" % (desktopf, e))
+            warning_text = _(
+                "The file: '%s' could not be read correctly. The application "
+                "associated with this file will not be included in the "
+                "software catalog. Please consider raising a bug report "
+                "for this issue with the maintainer of that "
+                "application") % desktopf
+            LOG.warning(warning_text)
     return True
 
 def add_from_purchased_but_needs_reinstall_data(purchased_but_may_need_reinstall_list, db, cache):
