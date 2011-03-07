@@ -507,7 +507,7 @@ class SubCategoryViewGtk(CategoriesViewGtk):
             self.vbox.pack_start(self.subcat_label, False)
 
             self.departments = mkit.LayoutView2(xspacing=20, yspacing=12)
-            self.departments.min_col_width = 10*mkit.EM
+            #~ self.departments.min_col_width = 10*mkit.EM
 
             # append the departments section to the page
             self.vbox.pack_start(self.departments)

@@ -108,9 +108,10 @@ class CarouselView(gtk.VBox):
 
     def _on_allocate(self, widget, allocation):
         logging.getLogger("softwarecenter.view.allocation").debug("on_alloc widget=%s, allocation=%s" % (widget, allocation))
-        if allocation == self._allocation: 
+        if allocation == self._allocation or allocation.width <= 200: 
             logging.getLogger("softwarecenter.view.allocation").debug("CarouselView skipped!")
             return
+
         self._allocation = allocation
         self._build_view(allocation.width)
         return

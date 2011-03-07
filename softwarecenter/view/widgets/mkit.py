@@ -922,6 +922,7 @@ class FramedSection(gtk.VBox):
         return
 
 
+
 class LayoutView2(gtk.HBox):
 
     def __init__(self, xspacing=4, yspacing=6):
@@ -929,6 +930,7 @@ class LayoutView2(gtk.HBox):
         self.set_homogeneous(True)
 
         self.min_col_width = 128
+        self.n_columns = 0
         self.yspacing = yspacing
 
         self._allocation = None
@@ -939,11 +941,9 @@ class LayoutView2(gtk.HBox):
         return
 
     def _on_allocate(self, widget, allocation, yspacing):
-        w = allocation.width
-
         if self._allocation == allocation: return True
         self._allocation = allocation
-
+        w = allocation.width
         self.layout(w, yspacing, force=False)
         return True
 
@@ -986,11 +986,10 @@ class LayoutView2(gtk.HBox):
         return
 
     def layout(self, width, yspacing, force=True):
-        old_n_cols = len(self.get_children())
         n_cols = max(1, width / (self.min_col_width + self.get_spacing()))
         n_cols = min(len(self._non_col_children), n_cols)
 
-        if old_n_cols == n_cols and not force:
+        if self.n_columns == n_cols and not force:
             return True
 
         for i, col in enumerate(self.get_children()):
@@ -998,10 +997,11 @@ class LayoutView2(gtk.HBox):
                 col.remove(child)
 
             if i >= n_cols:
+                self.remove(col)
                 col.destroy()
 
-        if n_cols > old_n_cols:
-            for i in range(old_n_cols, n_cols):
+        if n_cols > self.n_columns:
+            for i in range(self.n_columns, n_cols):
                 col = gtk.VBox(spacing=yspacing)
                 self.pack_start(col)
 
@@ -1010,6 +1010,7 @@ class LayoutView2(gtk.HBox):
             cols[i%n_cols].pack_start(child, False)
 
         self.show_all()
+        self.n_columns = n_cols
         return
 
 

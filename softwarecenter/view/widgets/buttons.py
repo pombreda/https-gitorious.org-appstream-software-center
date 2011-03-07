@@ -59,19 +59,23 @@ class SubcategoryEtchedLabel(gtk.Label):
     
     def __init__(self, *args, **kwargs):
         gtk.Label.__init__(self, *args, **kwargs)
+        self.set_padding(0, EM)
         self.set_justify(gtk.JUSTIFY_CENTER)
         self.set_line_wrap(True)
+        self.ideal_width = 1
 
         self.connect('expose-event', self._on_expose)
         return
 
     def _on_expose(self, widget, event):
         l = self.get_layout()
+        l.set_width(pango.SCALE * self.ideal_width)
+
         a = widget.allocation
 
         cr = widget.window.cairo_create()
-        cr.rectangle(event.area)
-        cr.clip()
+        #~ cr.rectangle(event.area)
+        #~ cr.clip()
 
         pc = pangocairo.CairoContext(cr)
         w, h = a.width, a.height
@@ -96,7 +100,7 @@ class SubcategoryEtchedLabel(gtk.Label):
         widget.style.paint_layout(widget.window,
                                   widget.state,
                                   True, # use text gc    
-                                  a,    # allocation    
+                                  None,    # allocation    
                                   widget,
                                   '',   # detail    
                                   x, y,
@@ -122,8 +126,6 @@ class SubcategoryButton(Button):
                                                    False)
 
         self.label = SubcategoryEtchedLabel(label)
-        self.label.set_line_wrap(True)
-        self.label.set_padding(0, 6)
         vb.pack_start(self.label, False)
 
         self.label_list = ('label',)
@@ -135,8 +137,7 @@ class SubcategoryButton(Button):
         self.connect('expose-event', self._on_expose)
         #~ self.connect('expose-event', self._debug_on_expose)
     
-        # cahce the initial layout width for testing label width
-        vb.connect('size-allocate', self._on_size_allocate)
+        self.connect('size-allocate', self._on_size_allocate)
         return
 
     def _on_expose(self, w, e):
@@ -164,5 +165,5 @@ class SubcategoryButton(Button):
         return
 
     def _on_size_allocate(self, widget, allocation):
-        self.label.set_size_request(allocation.width, 3*EM)
+        self.label.ideal_width = allocation.width
         return
