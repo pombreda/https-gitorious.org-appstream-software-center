@@ -88,10 +88,10 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
         self.hbox = hb = gtk.HBox()
         a.add(hb)
 
-        self.vbox = vb = gtk.VBox(spacing=18)
-        vb.set_border_width(20)
-        vb.set_redraw_on_allocate(False)
-        hb.pack_start(vb, False)
+        self.vbox = gtk.VBox(spacing=18)
+        self.vbox.set_border_width(20)
+        self.vbox.set_redraw_on_allocate(False)
+        hb.pack_start(self.vbox, False)
 
         # atk stuff
         atk_desc = self.get_accessible()
@@ -111,24 +111,23 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
 
         self.vbox.connect('expose-event', self._on_expose, a)
         self.vbox.connect('size-allocate', self._on_allocate)
-#        self.connect('style-set', self._on_style_set)
         return
 
     def build(self, desktopdir):
         pass
 
     def _on_allocate(self, widget, allocation):
-        logging.getLogger("softwarecenter.view.allocation").debug("on_alloc widget=%s, allocation=%s" % (widget, allocation))
-
         self.queue_draw()
 
-        if self._allocation == allocation: 
-            logging.getLogger("softwarecenter.view.allocation").debug("LobbyviewGtk skipped!")
+        if allocation == self._allocation:
+            logging.getLogger("softwarecenter.view.allocation").debug("TopAllocate skipped!")
             return True
+
+        logging.getLogger("softwarecenter.view.allocation").debug("on_alloc widget=%s, allocation=%s" % (widget, allocation))
+
         self._allocation = allocation
 
         w = min(self.allocation.width-2, 70*mkit.EM)
-
         widget.set_size_request(w, -1)
         return True
 
@@ -183,6 +182,8 @@ class LobbyViewGtk(CategoriesViewGtk):
         return
 
     def _on_expose(self, widget, event, alignment):
+            
+        # TODO: if carousel allocations are unchanged, just return
         cr = widget.window.cairo_create()
         cr.rectangle(alignment.allocation)
         cr.clip_preserve()
