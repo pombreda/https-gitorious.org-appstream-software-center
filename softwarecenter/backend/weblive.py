@@ -127,7 +127,7 @@ class WebLiveBackend(object):
         if not os.path.exists(os.path.expanduser('~/.qtnx')):
             os.mkdir(os.path.expanduser('~/.qtnx'))
         filename=os.path.expanduser('~/.qtnx/%s-%s-%s.nxml') % (
-            host, port, session)
+            host, port, session.replace("/","_"))
         nxml=open(filename,"w+")
         config=self.NXML_TEMPLATE
         config=config.replace("WL_NAME","%s-%s-%s" % (host, port, session))
