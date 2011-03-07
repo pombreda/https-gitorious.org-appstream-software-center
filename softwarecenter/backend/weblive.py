@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-import getpass
+import re
 import glib
 import os
 import pprint
@@ -8,6 +8,7 @@ import random
 import socket
 import subprocess
 import sys
+import string
 
 from threading import Thread, Event
 from weblive_pristine import WebLive
@@ -113,12 +114,17 @@ class WebLiveBackend(object):
         if not serverid:
             serverid = self.DEFAULT_SERVER
 
-        hostname = socket.gethostname()
-        username = "%s%s" % (os.environ['USER'], hostname)
-        password = hostname
+        if os.path.exists('/proc/sys/kernel/random/boot_id'):
+            uuid=open('/proc/sys/kernel/random/boot_id','r').read().strip().replace('-','')
+            random.seed(uuid)
+        identifier=''.join(random.choice(string.ascii_lowercase) for x in range (20))
 
-        connection=self.weblive.create_user(serverid, username, "WebLive User", password, session)
-        self._spawn_qtnx(connection[0], connection[1], session, username, password, wait)
+        fullname=str(os.environ.get('USER','WebLive user'))
+        if not re.match("^[A-Za-z0-9 ]*$",fullname) or len(fullname) == 0:
+            fullname='WebLive user'
+
+        connection=self.weblive.create_user(serverid, identifier, fullname, identifier, session)
+        self._spawn_qtnx(connection[0], connection[1], session, identifier, identifier, wait)
 
     def _spawn_qtnx(self, host, port, session, username, password, wait):
         if not os.path.exists(self.QTNX):
