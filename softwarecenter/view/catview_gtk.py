@@ -194,52 +194,57 @@ class LobbyViewGtk(CategoriesViewGtk):
         cr.fill()
 
         # paint the section backdrop
-        if self.section: self.section.render(cr, alignment.allocation)
+        if self.section: 
+            self.section.render(cr, alignment.allocation)
 
         # featured carousel
         # draw the info vbox bg
-        a = self.featured_carousel.allocation
-        rounded_rect(cr, a.x, a.y, a.width, a.height, 5)
-        cr.set_source_rgba(*color_floats("#F7F7F7")+(0.75,))
-        cr.fill()
+        if self.featured_carousel:
+            a = self.featured_carousel.allocation
+            rounded_rect(cr, a.x, a.y, a.width, a.height, 5)
+            cr.set_source_rgba(*color_floats("#F7F7F7")+(0.75,))
+            cr.fill()
 
-        # draw the info header bg
-        a = self.featured_carousel.header.allocation
-        rounded_rect2(cr, a.x, a.y, a.width, a.height, (5, 5, 0, 0))
-        cr.set_source_rgb(*color_floats("#DAD7D3"))
-        cr.fill()
+            # draw the info header bg
+            a = self.featured_carousel.header.allocation
+            rounded_rect2(cr, a.x, a.y, a.width, a.height, (5, 5, 0, 0))
+            cr.set_source_rgb(*color_floats("#DAD7D3"))
+            cr.fill()
 
-        a = self.featured_carousel.allocation
-        cr.save()
-        rounded_rect(cr, a.x+0.5, a.y+0.5, a.width-1, a.height-1, 5)
-        cr.set_source_rgba(*color_floats("#DAD7D3")+(0.3,))
-        cr.set_line_width(1)
-        cr.stroke()
-        cr.restore()
+            a = self.featured_carousel.allocation
+            cr.save()
+            rounded_rect(cr, a.x+0.5, a.y+0.5, a.width-1, a.height-1, 5)
+            cr.set_source_rgba(*color_floats("#DAD7D3")+(0.3,))
+            cr.set_line_width(1)
+            cr.stroke()
+            cr.restore()
 
         # whatsnew carousel
         # draw the info vbox bg
-        a = self.whatsnew_carousel.allocation
-        rounded_rect(cr, a.x, a.y, a.width, a.height, 5)
-        cr.set_source_rgba(*color_floats("#F7F7F7")+(0.75,))
-        cr.fill()
+        if self.whatsnew_carousel:
+            a = self.whatsnew_carousel.allocation
+            rounded_rect(cr, a.x, a.y, a.width, a.height, 5)
+            cr.set_source_rgba(*color_floats("#F7F7F7")+(0.75,))
+            cr.fill()
 
-        # draw the info header bg
-        a = self.whatsnew_carousel.header.allocation
-        rounded_rect2(cr, a.x, a.y, a.width, a.height, (5, 5, 0, 0))
-        cr.set_source_rgb(*color_floats("#DAD7D3"))
-        cr.fill()
+            # draw the info header bg
+            a = self.whatsnew_carousel.header.allocation
+            rounded_rect2(cr, a.x, a.y, a.width, a.height, (5, 5, 0, 0))
+            cr.set_source_rgb(*color_floats("#DAD7D3"))
+            cr.fill()
 
-        a = self.whatsnew_carousel.allocation
-        cr.save()
-        rounded_rect(cr, a.x+0.5, a.y+0.5, a.width-1, a.height-1, 5)
-        cr.set_source_rgba(*color_floats("#DAD7D3")+(0.3,))
-        cr.set_line_width(1)
-        cr.stroke()
-        cr.restore()
+            a = self.whatsnew_carousel.allocation
+            cr.save()
+            rounded_rect(cr, a.x+0.5, a.y+0.5, a.width-1, a.height-1, 5)
+            cr.set_source_rgba(*color_floats("#DAD7D3")+(0.3,))
+            cr.set_line_width(1)
+            cr.stroke()
+            cr.restore()
 
-        self.featured_carousel.draw(cr, self.featured_carousel.allocation, event.area)
-        self.whatsnew_carousel.draw(cr, self.whatsnew_carousel.allocation, event.area)
+        if self.featured_carousel:
+            self.featured_carousel.draw(cr, self.featured_carousel.allocation, event.area)
+        if self.whatsnew_carousel:
+            self.whatsnew_carousel.draw(cr, self.whatsnew_carousel.allocation, event.area)
 
         del cr
         return
