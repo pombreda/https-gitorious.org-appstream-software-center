@@ -30,6 +30,7 @@ import sys
 import cairo
 import pangocairo
 
+from softwarecenter.cmdfinder import CmdFinder
 from softwarecenter.netstatus import NetState, get_network_state, get_network_watcher
 
 from gettext import gettext as _
@@ -1305,6 +1306,41 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                     break
             where = searcher.get_main_menu_path(desktop_file)
             if not where:
+                cmdfinder = CmdFinder(self.cache)
+                cmds = cmdfinder.cmds_from_pkgname(pkgname)
+                if not cmds: return
+
+                vb = gtk.VBox(spacing=3)
+                self.installed_where_hbox.pack_start(vb, False)
+
+                m = '<i>%s</i> %s'
+                t = _('does not provide an application launcher, however, it does include the following executables:')
+
+                title = gtk.Label()
+                title.set_alignment(0, 0)
+                title.set_markup(m % (self.app_details.name, t))
+                title.set_line_wrap(True)
+                title.set_size_request(self.allocation.width-24, -1)
+
+                vb.pack_start(title, False, padding=3)
+
+                cmds_str = ''
+                for cmd in cmds:
+                    cmds_str += cmd + ', '
+
+                cmds_str = cmds_str[:-2]
+
+                cmd_label = gtk.Label('<span font_desc="monospace bold 9">%s</span>' % cmds_str)
+                cmd_label.set_selectable(True)
+                cmd_label.set_use_markup(True)
+                cmd_label.set_alignment(0, 0.5)
+                cmd_label.set_padding(12, 0)
+                cmd_label.set_line_wrap(True)
+                cmd_label.set_size_request(self.allocation.width-48, -1)
+
+                vb.pack_start(cmd_label, False)
+
+                self.installed_where_hbox.show_all()
                 return
             label = gtk.Label(_("Find it in the menu: "))
             self.installed_where_hbox.pack_start(label, False, False)
