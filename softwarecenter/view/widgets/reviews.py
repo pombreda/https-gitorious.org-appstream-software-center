@@ -132,6 +132,12 @@ class StarPainter(IStarPainter):
     def _paint_star(self, cr, widget, state, x, y, w, h, alpha=1.0):
         cr.save()
 
+        # bevel
+        self.shape.layout(cr, x+0.5, y+1.5, w-1, h-1)
+        cr.set_line_join(cairo.LINE_CAP_ROUND)
+        cr.set_source_rgba(*color_floats(widget.style.white)+(0.85,))
+        cr.stroke()
+
         if self.border == self.BORDER_ON:
             self._paint_star_border(cr, widget, state, x, y, w, h, alpha)
 
@@ -207,12 +213,12 @@ class StarPainter(IStarPainter):
         if self.fill == self.FILL_EMPTY:
             cr.set_source_rgba(*color_floats(widget.style.mid[state])+(alpha,))
         else:
-            cr.set_source_rgba(*self.fg_color+(alpha,))
+            cr.set_source_color(widget.style.base[gtk.STATE_SELECTED])
 
         cr.fill_preserve()
 
         lin = cairo.LinearGradient(x, y, x, y+h)
-        lin.add_color_stop_rgba(0.0, 1,1,1, 0.4*alpha)
+        lin.add_color_stop_rgba(0.0, 1,1,1, 0.5*alpha)
         lin.add_color_stop_rgba(1.0, *brown+(0.3*alpha,))
 
         cr.set_source(lin)
@@ -221,7 +227,11 @@ class StarPainter(IStarPainter):
         cr.set_line_width(1)
 
         self.shape.layout(cr, x+1.5, y+1.5, w-3, h-3)
-        cr.set_source_rgba(1,1,1,0.3*alpha)
+        lin = cairo.LinearGradient(x, y, x, y+h)
+        lin.add_color_stop_rgba(0.0, 1,1,1, 0.6)
+        lin.add_color_stop_rgba(1.0, 1,1,1, 0.15)
+
+        cr.set_source(lin)
         cr.stroke()
         return
 
@@ -241,26 +251,26 @@ class StarPainter(IStarPainter):
         cr.stroke()
 
         self.shape.layout(cr, x+1, y+1, w-2, h-2)
-
-        if self.fill == self.FILL_EMPTY:
-            cr.set_source_rgba(*color_floats(widget.style.mid[state])+(alpha,))
-        else:
-            cr.set_source_rgba(*self.fg_color+(alpha,))
-
+        cr.set_source_rgba(*color_floats(widget.style.mid[state])+(alpha,))
         cr.fill_preserve()
 
         lin = cairo.LinearGradient(x, y, x, y+h)
-        lin.add_color_stop_rgba(1.0, *dark+(0,))
-        lin.add_color_stop_rgba(0.0, *dark+(0.4*alpha,))
+        lin.add_color_stop_rgba(0.0, 0,0,0, 0.12)
+        lin.add_color_stop_rgba(1.0, 0,0,0, 0.05)
 
         cr.set_source(lin)
         cr.fill()
 
-        cr.set_line_width(1)
-        self.shape.layout(cr, x+2.5, y+2.5, w-5, h-5)
+        cr.set_line_width(2)
+        self.shape.layout(cr, x+1, y+1, w-2, h-2)
 
         darker = color_floats('#6A2D00')
-        cr.set_source_rgba(*darker+(0.11*alpha,))
+        lin = cairo.LinearGradient(x, y, x, y+h)
+        lin.add_color_stop_rgba(0.0, *darker+(0.175,))
+        lin.add_color_stop_rgba(1.0, 1,1,1, 0.5)
+        cr.set_source(lin)
+
+        #~ cr.set_source_rgba(*darker+(0.1*alpha,))
         cr.stroke()
         return
 
