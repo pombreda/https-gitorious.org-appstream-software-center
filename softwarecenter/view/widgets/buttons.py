@@ -121,9 +121,9 @@ class SubcategoryButton(Button):
         vb.set_border_width(SubcategoryButton.BORDER_WIDTH)
         self.add(vb)
 
-        vb.pack_start(gtk.image_new_from_icon_name(iconname,
-                                                   SubcategoryButton.ICON_SIZE),
-                                                   False)
+        self.image = gtk.image_new_from_icon_name(iconname, 
+                                                  SubcategoryButton.ICON_SIZE)
+        vb.pack_start(self.image, False)
 
         self.label = SubcategoryEtchedLabel(label)
         vb.pack_start(self.label, False)
