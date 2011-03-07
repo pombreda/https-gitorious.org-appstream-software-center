@@ -65,7 +65,8 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
         desktopdir - the dir where the applications.menu file can be found
         db - a Database object
         icons - a gtk.IconTheme
-        root_category - a Category class with subcategories or None
+        apps_filter - ?
+        apps_limit - the maximum amount of items to display to query for
         """
         
         self.cache = cache
