@@ -891,26 +891,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.back.emit('clicked')
         return
 
-#    def _on_key_release(self, widget, event, entry):
-#        ctrl = event.state & gtk.gdk.CONTROL_MASK
-#        if ctrl:
-#            if event.keyval == gtk.keysyms.s:
-#                entry.set_position(-1)
-#                entry.grab_focus()
-#        return
-
-    def _on_icon_expose(self, widget, event):
-        if not self._show_overlay: return
-        a = widget.allocation
-        cr = widget.window.cairo_create()
-        pb = self._overlay
-        cr.set_source_pixbuf(pb,
-                             a.x+a.width-pb.get_width(),
-                             a.y+a.height-pb.get_height())
-        cr.paint()
-        del cr
-        return
-
     def _on_realize(self, widget):
         self.addons_statusbar.hide_all()
         return
@@ -1482,8 +1462,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             for the application icon as it is displayed on-screen
         """
         icon_size = self.APP_ICON_SIZE
-        if self.main_frame.image.get_storage_type() == gtk.IMAGE_PIXBUF:
-            pb = self.main_frame.image.get_pixbuf()
+        if self.icon.get_storage_type() == gtk.IMAGE_PIXBUF:
+            pb = self.icon.get_pixbuf()
             if pb.get_width() > pb.get_height():
                 icon_size = pb.get_width()
             else:
@@ -1499,34 +1479,10 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         while parent.get_parent():
             parent = parent.get_parent()
         # get x, y relative to toplevel
-        (x,y) = self.main_frame.image.translate_coordinates(parent, 0, 0)
+        (x,y) = self.icon.translate_coordinates(parent, 0, 0)
         # get toplevel window position
         (px, py) = parent.get_position()
         return (px+x, py+y)
-
-    def _draw_icon_frame(self, cr):
-        # draw small or no icon background
-        a = self.main_frame.image.allocation
-        rr = mkit.ShapeRoundedRectangle()
-
-        cr.save()
-        rr.layout(cr, a.x, a.y, a.x+a.width, a.y+a.height, radius=6)
-        r, g, b = self.avg_icon_rgb
-        cr.set_source_rgb(r, g, b)
-        cr.fill_preserve()
-
-        lin = cairo.LinearGradient(0, a.y, 0, a.y+a.height)
-        lin.add_color_stop_rgba(0, 1,1,1, 0.6)
-        lin.add_color_stop_rgba(1, 1,1,1, 0.7)
-
-        cr.set_source(lin)
-        cr.fill_preserve()
-
-        cr.set_source_rgba(r, g, b, 0.75)
-        cr.stroke()
-
-        cr.restore()
-        return
         
     def _get_icon_as_pixbuf(self, app_details):
         if app_details.icon:
@@ -1534,21 +1490,24 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                 try:
                     return self.icons.load_icon(app_details.icon, 84, 0)
                 except glib.GError, e:
-                    logging.warn("failed to load '%s'" % app_details.icon)
+                    logging.warn("failed to load '%s': %s" % (app_details.icon, e))
                     return self.icons.load_icon(MISSING_APP_ICON, 84, 0)
             elif app_details.icon_needs_download and app_details.icon_url:
                 LOG.debug("did not find the icon locally, must download it")
 
                 def on_image_download_complete(downloader, image_file_path):
                     # when the download is complete, replace the icon in the view with the downloaded one
-                    pb = gtk.gdk.pixbuf_new_from_file(image_file_path)
-                    self.main_frame.set_icon_from_pixbuf(pb)
+                    try:
+                        pb = gtk.gdk.pixbuf_new_from_file(image_file_path)
+                        self.icon.set_from_pixbuf(pb)
+                    except Exception, e:
+                        LOG.warning("couldn't load downloadable icon file '%s': %s" % (image_file_path, e))
                     
                 image_downloader = SimpleFileDownloader()
                 image_downloader.connect(
                     'file-download-complete', on_image_download_complete)
                 image_downloader.download_file(
-                    app_details.icon_url, appdetails.cached_icon_file_path)
+                    app_details.icon_url, app_details.cached_icon_file_path)
         return self.icons.load_icon(MISSING_APP_ICON, 84, 0)
     
     def update_totalsize(self):
