@@ -20,9 +20,11 @@ software-center (3.1.23) UNRELEASED; urgency=low
   [ Michael Vogt ]
   * merged lp:~mmcg069/software-center/small-catview-cleanup that
     fixes problems in the subcategies display
+  * merged lp:~weblive-dev/software-center/software-center-use-module,
+    many thanks to Stephane Graber. This will use the upstream weblive
+    python module where possible
 
-
- -- Gary Lasker <gary.lasker@canonical.com>  Sat, 05 Mar 2011 01:08:56 -0500
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 07 Mar 2011 15:59:47 +0100
 
 software-center (3.1.22) natty; urgency=low
 
