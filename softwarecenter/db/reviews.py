@@ -175,7 +175,8 @@ class ReviewLoader(object):
                "--datadir", datadir,
                ]
         if app.appname:
-            cmd += ["--appname", app.appname]
+            # needs to be (utf8 encoded) str, otherwise call fails
+            cmd += ["--appname", app.appname.encode("utf-8")]
         (pid, stdin, stdout, stderr) = glib.spawn_async(
             cmd, flags=glib.SPAWN_DO_NOT_REAP_CHILD, standard_output=True)
         glib.child_watch_add(pid, self._on_submit_review_finished, (app, stdout, callback))

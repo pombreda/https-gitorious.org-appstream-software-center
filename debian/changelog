@@ -1,3 +1,10 @@
+software-center (3.1.23.1) natty; urgency=low
+
+  * softwarecenter/db/reviews.py:
+    - fix crash when submitting new review
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 07 Mar 2011 20:40:10 +0100
+
 software-center (3.1.23) natty; urgency=low
 
   [ Gary Lasker ]
