@@ -14,7 +14,12 @@ software-center (3.1.23) UNRELEASED; urgency=low
 
   [ Aaron Peachey ]
     * softwarecenter/db/update.py:
-      - fix missing log handler when run by update-software-center (LP: #728896)
+      - fix missing log handler when run by update-software-center 
+        (LP: #728896)
+  
+  [ Michael Vogt ]
+  * merged lp:~mmcg069/software-center/small-catview-cleanup that
+    fixes problems in the subcategies display
 
 
  -- Gary Lasker <gary.lasker@canonical.com>  Sat, 05 Mar 2011 01:08:56 -0500
