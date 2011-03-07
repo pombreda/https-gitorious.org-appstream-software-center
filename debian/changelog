@@ -11,6 +11,11 @@ software-center (3.1.23) UNRELEASED; urgency=low
     - for subclasses of CategoriesViewGtk, connect events only after
       the UI has been fully created (LP: #721704, LP: #725642) 
 
+  [ Aaron Peachey ]
+    * softwarecenter/db/update.py:
+      - fix missing log handler when run by update-software-center (LP: #728896)
+
+
  -- Gary Lasker <gary.lasker@canonical.com>  Sat, 05 Mar 2011 01:08:56 -0500
 
 software-center (3.1.22) natty; urgency=low
