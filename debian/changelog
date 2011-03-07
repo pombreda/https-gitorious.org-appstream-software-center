@@ -1,5 +1,6 @@
 software-center (3.1.23) UNRELEASED; urgency=low
 
+  [ Gary Lasker ]
   * softwarecenter/view/appdetailsview_gtk.py:
     - fix broken downloadable icon code, improve error checking
     - update Unity launcher integration code per recent detailsview
