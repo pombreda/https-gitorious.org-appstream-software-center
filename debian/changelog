@@ -12,6 +12,9 @@ software-center (3.1.23.2) UNRELEASED; urgency=low
 
   [ Kiwinote ]
   * clean up mimetype handling (allows us to accept apturls once again)
+  * softwarecenter/backend/channel.py:
+    - don't return two copies of one channel with different names
+    - channel query is based on XOO rather than XOL
   * softwarecenter/backend/restfulclient.py:
     - import time on demand, this avoids an attribute error
   * softwarecenter/db/application.py:
