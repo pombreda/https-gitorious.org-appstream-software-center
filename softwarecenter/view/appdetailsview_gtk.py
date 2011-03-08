@@ -906,12 +906,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.title.set_size_request(w, -1)
         return
 
-    def _on_key_press(self, widget, event):
-        kv = gtk.keysyms
-        if event.keyval == kv.BackSpace:
-            self.back.emit('clicked')
-        return
-
     def _on_realize(self, widget):
         self.addons_statusbar.hide_all()
         return
@@ -1074,7 +1068,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         # signals!
         hb.connect('size-allocate', self._header_on_allocate, hb.get_spacing())
-        self.connect('key-press-event', self._on_key_press)
         vb.connect('expose-event', self._on_expose, alignment)
         vb.connect('size-allocate', self._on_allocate)
         return
