@@ -410,13 +410,6 @@ class AvailablePane(SoftwarePane):
             return self.apps_category.item_limit
         return 0
 
-    def _get_sort_mode(self):
-        if self.apps_search_term:
-            return SORT_BY_SEARCH_RANKING
-        elif self.apps_category:
-            return self.apps_category.sortmode
-        return SORT_BY_ALPHABET
-
     def _clear_search(self):
         self.searchentry.clear_with_no_signal()
         self.apps_limit = 0
