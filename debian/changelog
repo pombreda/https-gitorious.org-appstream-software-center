@@ -11,6 +11,7 @@ software-center (3.1.23.2) UNRELEASED; urgency=low
       LP: #731376
 
   [ Kiwinote ]
+  * clean up mimetype handling (allows us to accept apturls once again)
   * softwarecenter/backend/restfulclient.py:
     - import time on demand, this avoids an attribute error
   * softwarecenter/db/application.py:
