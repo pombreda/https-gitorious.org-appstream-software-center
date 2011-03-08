@@ -121,29 +121,18 @@ class TestAppStore(unittest.TestCase):
                   "graphic", "ubuntu", "debian", "gtk" "this", "bar", 
                   "baz"]
 
-        # create window
-        win = gtk.Window()
-        #win.set_size_request(800,400)
-        box = gtk.HBox()
-        win.add(box)
-        win.show_all()
-        for term in terms:
-            icons = gtk.icon_theme_get_default()
-            store = AppStore(
-                self.cache, self.db, icons,
-                search_query = xapian.Query(term),
-                limit=0,
-                nonapps_visible = AppStore.NONAPPS_MAYBE_VISIBLE)
-            # create view
-            view = AppView(show_ratings=False, store=store)
-            view.show()
-            scroll = gtk.ScrolledWindow()
-            scroll.add(view)
-            scroll.show()
-            box.pack_start(scroll)
-            # extra fun
-            glib.timeout_add(10, store._threaded_perform_search)
-        self._p()
+        # run a bunch of the querries in parallel
+        for i in range(10):
+            for term in terms:
+                icons = gtk.icon_theme_get_default()
+                store = AppStore(
+                    self.cache, self.db, icons,
+                    search_query = xapian.Query(term),
+                    limit=0,
+                    nonapps_visible = AppStore.NONAPPS_MAYBE_VISIBLE)
+                # extra fun
+                glib.timeout_add(10, store._threaded_perform_search)
+            self._p()
 
     def _p(self):
         while gtk.events_pending():
