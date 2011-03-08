@@ -11,6 +11,8 @@ software-center (3.1.23.2) UNRELEASED; urgency=low
       LP: #731376
 
   [ Kiwinote ]
+  * softwarecenter/db/application.py:
+    - avoid using unicode(None)
   * softwarecenter/view/softwarepane.py:
     - revert to correct sortmode once searchterm has been cleared
   
