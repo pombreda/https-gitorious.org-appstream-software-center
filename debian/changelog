@@ -1,7 +1,8 @@
 software-center (3.1.23.2) UNRELEASED; urgency=low
 
   * merged lp:~mmcg069/software-center/little-catview-cleanups
-
+  * merged lp:~mmcg069/software-center/stars-visual-tweaks 
+  
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 08 Mar 2011 09:15:22 +0100
 
 software-center (3.1.23.1) natty; urgency=low
