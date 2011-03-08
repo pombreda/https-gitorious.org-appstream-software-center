@@ -323,16 +323,16 @@ class UbuntuSSOlogin(LoginBackend):
 
     def _thread_authentication_done(self, result):
         # runs in the thread context, can not touch gui or glib
-        print "_authentication_done", result
+        #print "_authentication_done", result
         self._oauth_credentials = result
 
     def _thread_authentication_error(self, e):
         # runs in the thread context, can not touch gui or glib
-        print "_authentication_error", type(e)
+        #print "_authentication_error", type(e)
         self._login_failure = e
 
     def __del__(self):
-        print "del"
+        #print "del"
         if self.worker_thread:
             self.worker_thread.shutdown()
 
@@ -465,7 +465,9 @@ def _available_for_me_result(scagent, result):
     print "_available_for_me: ", [x.package_name for x in result]
 
 def _available(scagent, result):
-    print "_available: ", [x.name for x in result]
+    print "_available"
+    for available in result:
+        print available.name, available.archive_id, available.archive_root
 def _error(scaagent, errormsg):
     print "_error:", errormsg
 def _whoami(sso, whoami):
