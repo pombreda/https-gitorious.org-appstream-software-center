@@ -65,7 +65,8 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
         desktopdir - the dir where the applications.menu file can be found
         db - a Database object
         icons - a gtk.IconTheme
-        root_category - a Category class with subcategories or None
+        apps_filter - ?
+        apps_limit - the maximum amount of items to display to query for
         """
         
         self.cache = cache
@@ -88,10 +89,10 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
         self.hbox = hb = gtk.HBox()
         a.add(hb)
 
-        self.vbox = vb = gtk.VBox(spacing=18)
-        vb.set_border_width(20)
-        vb.set_redraw_on_allocate(False)
-        hb.pack_start(vb, False)
+        self.vbox = gtk.VBox(spacing=18)
+        self.vbox.set_border_width(20)
+        self.vbox.set_redraw_on_allocate(False)
+        hb.pack_start(self.vbox, False)
 
         # atk stuff
         atk_desc = self.get_accessible()
@@ -104,18 +105,30 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
         self.apps_limit = apps_limit
 
         # more stuff
-        self._prev_width = 0
         self._poster_sigs = []
-
         self._allocation = None
 
         self.vbox.connect('expose-event', self._on_expose, a)
-        self.connect('size-allocate', self._on_allocate, vb)
-#        self.connect('style-set', self._on_style_set)
+        self.vbox.connect('size-allocate', self._on_allocate)
         return
 
     def build(self, desktopdir):
         pass
+
+    def _on_allocate(self, widget, allocation):
+        self.queue_draw()
+
+        if allocation == self._allocation:
+            logging.getLogger("softwarecenter.view.allocation").debug("TopAllocate skipped!")
+            return True
+
+        logging.getLogger("softwarecenter.view.allocation").debug("on_alloc widget=%s, allocation=%s" % (widget, allocation))
+
+        self._allocation = allocation
+
+        w = min(self.allocation.width-2, 70*mkit.EM)
+        widget.set_size_request(w, -1)
+        return True
 
     def _on_app_clicked(self, btn):
         app = btn.app
@@ -162,29 +175,12 @@ class LobbyViewGtk(CategoriesViewGtk):
         self.whatsnew_carousel = None
         self.departments = None
 
-        self._prev_width = -1
-
         self.build(desktopdir)
         return
 
-    def _on_allocate(self, viewport, allocation, vbox):
-        logging.getLogger("softwarecenter.view.allocation").debug("on_alloc widget=%s, allocation=%s" % (viewport, allocation))
-
-        self.queue_draw()
-
-        if self._allocation == allocation: 
-            logging.getLogger("softwarecenter.view.allocation").debug("LobbyviewGtk skipped!")
-            return True
-        self._allocation = allocation
-
-        w = min(allocation.width-2, 70*mkit.EM)
-        if w == self._prev_width: 
-            return True
-
-        vbox.set_size_request(w, -1)
-        return True
-
     def _on_expose(self, widget, event, alignment):
+            
+        # TODO: if carousel allocations are unchanged, just return
         cr = widget.window.cairo_create()
         cr.rectangle(alignment.allocation)
         cr.clip_preserve()
@@ -194,52 +190,57 @@ class LobbyViewGtk(CategoriesViewGtk):
         cr.fill()
 
         # paint the section backdrop
-        if self.section: self.section.render(cr, alignment.allocation)
+        if self.section: 
+            self.section.render(cr, alignment.allocation)
 
         # featured carousel
         # draw the info vbox bg
-        a = self.featured_carousel.allocation
-        rounded_rect(cr, a.x, a.y, a.width, a.height, 5)
-        cr.set_source_rgba(*color_floats("#F7F7F7")+(0.75,))
-        cr.fill()
+        if self.featured_carousel:
+            a = self.featured_carousel.allocation
+            rounded_rect(cr, a.x, a.y, a.width, a.height, 5)
+            cr.set_source_rgba(*color_floats("#F7F7F7")+(0.75,))
+            cr.fill()
 
-        # draw the info header bg
-        a = self.featured_carousel.header.allocation
-        rounded_rect2(cr, a.x, a.y, a.width, a.height, (5, 5, 0, 0))
-        cr.set_source_rgb(*color_floats("#DAD7D3"))
-        cr.fill()
+            # draw the info header bg
+            a = self.featured_carousel.header.allocation
+            rounded_rect2(cr, a.x, a.y, a.width, a.height, (5, 5, 0, 0))
+            cr.set_source_rgb(*color_floats("#DAD7D3"))
+            cr.fill()
 
-        a = self.featured_carousel.allocation
-        cr.save()
-        rounded_rect(cr, a.x+0.5, a.y+0.5, a.width-1, a.height-1, 5)
-        cr.set_source_rgba(*color_floats("#DAD7D3")+(0.3,))
-        cr.set_line_width(1)
-        cr.stroke()
-        cr.restore()
+            a = self.featured_carousel.allocation
+            cr.save()
+            rounded_rect(cr, a.x+0.5, a.y+0.5, a.width-1, a.height-1, 5)
+            cr.set_source_rgba(*color_floats("#DAD7D3")+(0.3,))
+            cr.set_line_width(1)
+            cr.stroke()
+            cr.restore()
 
         # whatsnew carousel
         # draw the info vbox bg
-        a = self.whatsnew_carousel.allocation
-        rounded_rect(cr, a.x, a.y, a.width, a.height, 5)
-        cr.set_source_rgba(*color_floats("#F7F7F7")+(0.75,))
-        cr.fill()
+        if self.whatsnew_carousel:
+            a = self.whatsnew_carousel.allocation
+            rounded_rect(cr, a.x, a.y, a.width, a.height, 5)
+            cr.set_source_rgba(*color_floats("#F7F7F7")+(0.75,))
+            cr.fill()
 
-        # draw the info header bg
-        a = self.whatsnew_carousel.header.allocation
-        rounded_rect2(cr, a.x, a.y, a.width, a.height, (5, 5, 0, 0))
-        cr.set_source_rgb(*color_floats("#DAD7D3"))
-        cr.fill()
+            # draw the info header bg
+            a = self.whatsnew_carousel.header.allocation
+            rounded_rect2(cr, a.x, a.y, a.width, a.height, (5, 5, 0, 0))
+            cr.set_source_rgb(*color_floats("#DAD7D3"))
+            cr.fill()
 
-        a = self.whatsnew_carousel.allocation
-        cr.save()
-        rounded_rect(cr, a.x+0.5, a.y+0.5, a.width-1, a.height-1, 5)
-        cr.set_source_rgba(*color_floats("#DAD7D3")+(0.3,))
-        cr.set_line_width(1)
-        cr.stroke()
-        cr.restore()
+            a = self.whatsnew_carousel.allocation
+            cr.save()
+            rounded_rect(cr, a.x+0.5, a.y+0.5, a.width-1, a.height-1, 5)
+            cr.set_source_rgba(*color_floats("#DAD7D3")+(0.3,))
+            cr.set_line_width(1)
+            cr.stroke()
+            cr.restore()
 
-        self.featured_carousel.draw(cr, self.featured_carousel.allocation, event.area)
-        self.whatsnew_carousel.draw(cr, self.whatsnew_carousel.allocation, event.area)
+        if self.featured_carousel:
+            self.featured_carousel.draw(cr, self.featured_carousel.allocation, event.area)
+        if self.whatsnew_carousel:
+            self.whatsnew_carousel.draw(cr, self.whatsnew_carousel.allocation, event.area)
 
         del cr
         return
@@ -418,7 +419,7 @@ class LobbyViewGtk(CategoriesViewGtk):
         layout = self.create_pango_layout('')
 
         max_w = 200
-
+        buttons = []
         for cat in sorted_cats:
             if 'carousel-only' not in cat.flags:
                 layout.set_text(cat.name)
@@ -427,10 +428,11 @@ class LobbyViewGtk(CategoriesViewGtk):
 
                 cat_btn = CategoryButton(cat.name, cat.iconname)
                 cat_btn.connect('clicked', self._on_category_clicked, cat)
-                # append the department to the departments widget
-                self.departments.add(cat_btn)
+                buttons.append(cat_btn)
 
+        # append the department to the departments widget
         self.departments.min_col_width = max_w
+        self.departments.set_widgets(buttons)
 
         # append the departments section to the page
         self.vbox.pack_start(self.departments, False)
@@ -484,19 +486,6 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         self.departments = None
         return
 
-    def _on_allocate(self, viewport, allocation, vbox):
-        logging.getLogger("softwarecenter.view.allocation").debug("on_alloc widget=%s, allocation=%s" % (viewport, allocation))
-        self.queue_draw()
-
-        w = min(allocation.width-2, 70*mkit.EM)
-
-        if w <= 35*mkit.EM or w == self._prev_width: 
-            return True
-        self._prev_width = w
-
-        vbox.set_size_request(w, -1)
-        return True
-
     def _on_expose(self, widget, event, alignment):
         cr = widget.window.cairo_create()
         cr.rectangle(alignment.allocation)
@@ -514,45 +503,42 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         del cr
 
     def _append_subcat_departments(self, root_category, num_items):
-        # create departments widget
-        if not self.departments:
-            self.departments = mkit.LayoutView2()
+        m = "<b><big>%s</big></b>"
+        if self.departments is None:
+            self.subcat_label = mkit.EtchedLabel()
+            self.subcat_label.set_use_markup(True)
+            self.subcat_label.set_alignment(0, 0.5)
+            self.vbox.pack_start(self.subcat_label, False)
+
+            self.departments = mkit.LayoutView2(xspacing=20, yspacing=12)
+            #~ self.departments.min_col_width = 10*mkit.EM
+
             # append the departments section to the page
             self.vbox.pack_start(self.departments)
-        else:
-            self.departments.clear()
 
-        # set the departments section to use the label
-        header = gobject.markup_escape_text(self.header)
-#        self.departments.set_label(H2 % header)
+        # set the subcat header
+        self.subcat_label.set_markup(m % gobject.markup_escape_text(self.header))
 
         # sort Category.name's alphabetically
         sorted_cats = categories_sorted_by_name(self.categories)
 
+        buttons = []
         for cat in sorted_cats:
-            #enquirer.set_query(cat.query)
-            ## limiting the size here does not make it faster
-            #matches = enquirer.get_mset(0, len(self.db))
-            #estimate = matches.get_matches_estimated()
-
-            # sanitize text so its pango friendly...
-            name = gobject.markup_escape_text(cat.name.strip())
-
-            cat_btn = SubcategoryButton(name, cat.iconname, self.icons)
-
+            cat_btn = SubcategoryButton(cat.name, cat.iconname)
             cat_btn.connect('clicked', self._on_category_clicked, cat)
-            # append the department to the departments widget
-            self.departments.add(cat_btn)
+            buttons.append(cat_btn)
 
         # append an additional button to show all of the items in the category
-        name = gobject.markup_escape_text(_("All %s") % num_items)
-        show_all_btn = SubcategoryButton(name, "category-show-all", self.icons)
+        name = gobject.markup_escape_text('%s %s' % (_("All"), num_items))
+        show_all_btn = SubcategoryButton(name, "category-show-all")
         all_cat = Category("All", _("All"), "category-show-all", root_category.query)
         show_all_btn.connect('clicked', self._on_category_clicked, all_cat)
-        self.departments.add(show_all_btn)
+        buttons.append(show_all_btn)
 
-        self.departments.layout(self.departments.allocation.width,
-                                self.departments.yspacing)
+        # append the cat buttons to the departments widget
+        self.departments.set_widgets(buttons)
+
+        self.show_all()
         return
 
     def _build_subcat_view(self, root_category, num_items):

@@ -6,7 +6,7 @@ import logging
 import pangocairo
 import random
 
-from reviews import StarRating
+from reviews import SimpleStarRating
 
 from mkit import EM, EtchedLabel, ShapeCircle, LinkButton, \
                  LinkButtonLight, Button, not_overlapping
@@ -94,7 +94,7 @@ class CarouselView(gtk.VBox):
         self._is_playing = False
         self._play_offset = 0
         self._user_offset_override = None
-        self._width = 0
+        self._allocation = None
         self._alpha = 1.0
         self._fader = 0
         self._layout = None
@@ -108,11 +108,12 @@ class CarouselView(gtk.VBox):
 
     def _on_allocate(self, widget, allocation):
         logging.getLogger("softwarecenter.view.allocation").debug("on_alloc widget=%s, allocation=%s" % (widget, allocation))
-        if allocation.width == self._width: 
+        if allocation == self._allocation or allocation.width <= 200: 
             logging.getLogger("softwarecenter.view.allocation").debug("CarouselView skipped!")
             return
-        self._width = allocation.width
-        self._build_view(self._width)
+
+        self._allocation = allocation
+        self._build_view(allocation.width)
         return
 
     def _on_page_clicked(self, page_sel, page):
@@ -355,39 +356,36 @@ class CarouselPoster2(Button):
         return
 
     def _build_ui(self, icon_size):
-        self.image = gtk.Image()
-        self.image.set_size_request(icon_size, icon_size)
-
-        self.label = gtk.Label()
-        self.label.set_alignment(0, 0.5)
-        self.label.set_line_wrap(True)
-
 #        self.nrreviews = gtk.Label()
 #        self.nrreviews.is_subtle = True
 #        self.nrreviews.set_alignment(0, 0.5)
 
-        self.rating = StarRating()
-        self.rating.set(0, 0.5, 0, 0)
-
+        self.image = gtk.Image()
+        self.image.set_size_request(icon_size, icon_size)
         self.hbox.pack_start(self.image, False)
 
         inner_vbox = gtk.VBox(spacing=3)
 
+        self.label = gtk.Label()
+        self.label.set_alignment(0, 0.5)
+        self.label.set_line_wrap(True)
+        inner_vbox.pack_start(self.label, False)
+
+        self.rating = SimpleStarRating()
+        a = gtk.Alignment(0, 0.5, 0, 0)
+        a.add(self.rating)
+        inner_vbox.pack_start(a, False)
+
         a = gtk.Alignment(0, 0)
         a.set_padding(12, 0, 0, 0)
         a.add(inner_vbox)
-
         self.hbox.pack_start(a, False)
 
-        inner_vbox.pack_start(self.label, False)
-        inner_vbox.pack_start(self.rating, False)
 #        inner_vbox.pack_start(self.nrreviews, False)
 
         self.label_list = ('label',)
 
-
         self.show_all()
-
         self.connect('size-allocate', self._on_allocate, self.label)
         return
 
@@ -471,10 +469,10 @@ class CarouselPoster2(Button):
 #            cr.fill()
 
         if self.rating.get_property('visible'):
-            for star in self.rating.get_stars():
-                sa = star.allocation
-                _a = gtk.gdk.Rectangle(sa.x - a.x, sa.y - a.y, sa.width, sa.height)
-                star.draw(cr, _a)
+            ra = self.rating.allocation
+            _a = gtk.gdk.Rectangle(ra.x - a.x, ra.y - a.y,
+                                   ra.width, ra.height)
+            self.rating.draw(cr, _a)
 
         del cr
 

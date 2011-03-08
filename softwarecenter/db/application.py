@@ -47,7 +47,7 @@ class Application(object):
             raise ValueError("Need either appname or pkgname or request")
         # defaults
         self.pkgname = pkgname.replace("$kernel", os.uname()[2])
-        self.appname = appname
+        self.appname = unicode(appname)
         # the request can take additional "request" data like apturl
         # strings or the path of a local deb package
         self.request = request
@@ -102,6 +102,8 @@ class Application(object):
         return self.apps_cmp(self, other)
     def __str__(self):
         return "%s,%s" % (self.appname, self.pkgname)
+    def __repr__(self):
+        return "[Application: appname=%s pkgname=%s]" % (self.appname, self.pkgname)
     @staticmethod
     def apps_cmp(x, y):
         """ sort method for the applications """

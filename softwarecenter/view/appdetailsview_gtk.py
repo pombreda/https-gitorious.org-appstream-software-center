@@ -50,18 +50,23 @@ from softwarecenter.backend.weblive import get_weblive_backend
 
 from softwarecenter.gwibber_helper import GWIBBER_SERVICE_AVAILABLE
 
+from softwarecenter.backend.weblive import get_weblive_backend
+from softwarecenter.view.dialogs import error
+
 from appdetailsview import AppDetailsViewBase
 
 from widgets import mkit
+
 from widgets.mkit import EM, ShapeStar
 from widgets.reviews import UIReviewsList, UIReview, ReviewStatsContainer, StarRating, EmbeddedMessage
 
 from widgets.description import AppDescription, TextBlock
 from widgets.thumbnail import ScreenshotThumbnail
+from widgets.weblivedialog import ShowWebLiveServerChooserDialog
+
 from softwarecenter.distro import get_distro
 
 from softwarecenter.drawing import alpha_composite, color_floats, rounded_rect2, rounded_rect
-
 
 if os.path.exists("./softwarecenter/enums.py"):
     sys.path.insert(0, ".")
@@ -410,7 +415,6 @@ class PackageInfo(gtk.HBox):
     def set_value(self, value):
         self.value_label.set_markup(value)
         self.a11y.set_name(self.key + ' ' + value)
-
 
 class Addon(gtk.HBox):
     """ Widget to select addons: CheckButton - Icon - Title (pkgname) """
@@ -792,13 +796,30 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.reviews.finished()
 
     def on_test_drive_clicked(self, button):
-        #print "on_testdrive_clicked"
         exec_line = get_exec_line_from_desktop(self.desktop_file)
+
         # split away any arguments, gedit for example as %U
         cmd = exec_line.split()[0]
-        servers = self.weblive.get_servers_for_pkgname(self.appdetails.pkgname)
-        self.weblive.create_automatic_user_and_run_session(
-            session=cmd,serverid=servers[0])
+
+        # Get the list of servers
+        servers = self.weblive.get_servers_for_pkgname(self.app.pkgname)
+
+        if len(servers) == 0:
+            error(None,"No available server","There is currently no available WebLive server for this application.\nPlease try again later.")
+        elif len(servers) == 1:
+            self.weblive.create_automatic_user_and_run_session(session=cmd,serverid=servers[0].name)
+        else:
+            d = ShowWebLiveServerChooserDialog(servers)
+            serverid=None
+            if d.run() == gtk.RESPONSE_OK:
+                for server in d.servers_vbox:
+                    if server.get_active():
+                        serverid=server.serverid
+                        break
+            d.destroy()
+
+            if serverid:
+                self.weblive.create_automatic_user_and_run_session(session=cmd,serverid=serverid)
 
     def _on_addon_table_built(self, table):
         if not table.parent:
@@ -883,32 +904,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             w -= self.review_stats_widget.allocation.width
 
         self.title.set_size_request(w, -1)
-        return
-
-    def _on_key_press(self, widget, event):
-        kv = gtk.keysyms
-        if event.keyval == kv.BackSpace:
-            self.back.emit('clicked')
-        return
-
-#    def _on_key_release(self, widget, event, entry):
-#        ctrl = event.state & gtk.gdk.CONTROL_MASK
-#        if ctrl:
-#            if event.keyval == gtk.keysyms.s:
-#                entry.set_position(-1)
-#                entry.grab_focus()
-#        return
-
-    def _on_icon_expose(self, widget, event):
-        if not self._show_overlay: return
-        a = widget.allocation
-        cr = widget.window.cairo_create()
-        pb = self._overlay
-        cr.set_source_pixbuf(pb,
-                             a.x+a.width-pb.get_width(),
-                             a.y+a.height-pb.get_height())
-        cr.paint()
-        del cr
         return
 
     def _on_realize(self, widget):
@@ -1073,7 +1068,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         # signals!
         hb.connect('size-allocate', self._header_on_allocate, hb.get_spacing())
-        self.connect('key-press-event', self._on_key_press)
         vb.connect('expose-event', self._on_expose, alignment)
         vb.connect('size-allocate', self._on_allocate)
         return
@@ -1482,8 +1476,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             for the application icon as it is displayed on-screen
         """
         icon_size = self.APP_ICON_SIZE
-        if self.main_frame.image.get_storage_type() == gtk.IMAGE_PIXBUF:
-            pb = self.main_frame.image.get_pixbuf()
+        if self.icon.get_storage_type() == gtk.IMAGE_PIXBUF:
+            pb = self.icon.get_pixbuf()
             if pb.get_width() > pb.get_height():
                 icon_size = pb.get_width()
             else:
@@ -1499,34 +1493,10 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         while parent.get_parent():
             parent = parent.get_parent()
         # get x, y relative to toplevel
-        (x,y) = self.main_frame.image.translate_coordinates(parent, 0, 0)
+        (x,y) = self.icon.translate_coordinates(parent, 0, 0)
         # get toplevel window position
         (px, py) = parent.get_position()
         return (px+x, py+y)
-
-    def _draw_icon_frame(self, cr):
-        # draw small or no icon background
-        a = self.main_frame.image.allocation
-        rr = mkit.ShapeRoundedRectangle()
-
-        cr.save()
-        rr.layout(cr, a.x, a.y, a.x+a.width, a.y+a.height, radius=6)
-        r, g, b = self.avg_icon_rgb
-        cr.set_source_rgb(r, g, b)
-        cr.fill_preserve()
-
-        lin = cairo.LinearGradient(0, a.y, 0, a.y+a.height)
-        lin.add_color_stop_rgba(0, 1,1,1, 0.6)
-        lin.add_color_stop_rgba(1, 1,1,1, 0.7)
-
-        cr.set_source(lin)
-        cr.fill_preserve()
-
-        cr.set_source_rgba(r, g, b, 0.75)
-        cr.stroke()
-
-        cr.restore()
-        return
         
     def _get_icon_as_pixbuf(self, app_details):
         if app_details.icon:
@@ -1534,21 +1504,24 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                 try:
                     return self.icons.load_icon(app_details.icon, 84, 0)
                 except glib.GError, e:
-                    logging.warn("failed to load '%s'" % app_details.icon)
+                    logging.warn("failed to load '%s': %s" % (app_details.icon, e))
                     return self.icons.load_icon(MISSING_APP_ICON, 84, 0)
             elif app_details.icon_needs_download and app_details.icon_url:
                 LOG.debug("did not find the icon locally, must download it")
 
                 def on_image_download_complete(downloader, image_file_path):
                     # when the download is complete, replace the icon in the view with the downloaded one
-                    pb = gtk.gdk.pixbuf_new_from_file(image_file_path)
-                    self.main_frame.set_icon_from_pixbuf(pb)
+                    try:
+                        pb = gtk.gdk.pixbuf_new_from_file(image_file_path)
+                        self.icon.set_from_pixbuf(pb)
+                    except Exception, e:
+                        LOG.warning("couldn't load downloadable icon file '%s': %s" % (image_file_path, e))
                     
                 image_downloader = SimpleFileDownloader()
                 image_downloader.connect(
                     'file-download-complete', on_image_download_complete)
                 image_downloader.download_file(
-                    app_details.icon_url, appdetails.cached_icon_file_path)
+                    app_details.icon_url, app_details.cached_icon_file_path)
         return self.icons.load_icon(MISSING_APP_ICON, 84, 0)
     
     def update_totalsize(self):

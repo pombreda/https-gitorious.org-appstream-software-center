@@ -115,8 +115,9 @@ class ReviewLoader(object):
     # cache the ReviewStats
     REVIEW_STATS_CACHE = {}
 
-    def __init__(self, cache, distro=None):
+    def __init__(self, cache, db, distro=None):
         self.cache = cache
+        self.db = db
         self.distro = distro
         if not self.distro:
             self.distro = softwarecenter.distro.get_distro()
@@ -175,7 +176,8 @@ class ReviewLoader(object):
                "--datadir", datadir,
                ]
         if app.appname:
-            cmd += ["--appname", app.appname]
+            # needs to be (utf8 encoded) str, otherwise call fails
+            cmd += ["--appname", app.appname.encode("utf-8")]
         (pid, stdin, stdout, stderr) = glib.spawn_async(
             cmd, flags=glib.SPAWN_DO_NOT_REAP_CHILD, standard_output=True)
         glib.child_watch_add(pid, self._on_submit_review_finished, (app, stdout, callback))
@@ -285,8 +287,8 @@ class ReviewLoaderThreadedRNRClient(ReviewLoader):
         data 
     """
 
-    def __init__(self, cache, distro=None):
-        super(ReviewLoaderThreadedRNRClient, self).__init__(cache, distro)
+    def __init__(self, cache, db, distro=None):
+        super(ReviewLoaderThreadedRNRClient, self).__init__(cache, db, distro)
         cachedir = os.path.join(SOFTWARE_CENTER_CACHE_DIR, "rnrclient")
         self.rnrclient = RatingsAndReviewsAPI(cachedir=cachedir)
         self._reviews = {}
@@ -325,8 +327,13 @@ class ReviewLoaderThreadedRNRClient(ReviewLoader):
 
     def _get_reviews_threaded(self, app):
         """ threaded part of the fetching """
-        # FIXME: select correct origin
         origin = self.cache.get_origin(app.pkgname)
+        # special case for not-enabled PPAs
+        if not origin and self.db:
+            details = app.get_details(self.db)
+            ppa = details.ppaname
+            if ppa:
+                origin = "lp-ppa-%s" % ppa.replace("/", "-")
         if not origin:
             return
         distroseries = self.distro.get_codename()
@@ -511,7 +518,7 @@ class ReviewLoaderFake(ReviewLoader):
     SUMMARIES = ["Cool", "Medium", "Bad", "Too difficult"]
     IPSUM = "no ipsum\n\nstill no ipsum"
 
-    def __init__(self, cache):
+    def __init__(self, cache, db):
         self._review_stats_cache = {}
         self._reviews_cache = {}
     def _random_person(self):
@@ -551,8 +558,8 @@ class ReviewLoaderFake(ReviewLoader):
         callback(review_stats)
 
 class ReviewLoaderFortune(ReviewLoaderFake):
-    def __init__(self, cache):
-        ReviewLoaderFake.__init__(self, cache)
+    def __init__(self, cache, db):
+        ReviewLoaderFake.__init__(self, cache, db)
         self.LOREM = ""
         for i in range(10):
             out = subprocess.Popen(["fortune"], stdout=subprocess.PIPE).communicate()[0]
@@ -682,22 +689,22 @@ et ea rebum stet clita kasd gubergren no sea takimata sanctus est lorem
 ipsum dolor sit amet"""
 
 review_loader = None
-def get_review_loader(cache):
+def get_review_loader(cache, db=None):
     """ 
     factory that returns a reviews loader singelton
     """
     global review_loader
     if not review_loader:
         if "SOFTWARE_CENTER_IPSUM_REVIEWS" in os.environ:
-            review_loader = ReviewLoaderIpsum(cache)
+            review_loader = ReviewLoaderIpsum(cache, db)
         elif "SOFTWARE_CENTER_FORTUNE_REVIEWS" in os.environ:
-            review_loader = ReviewLoaderFortune(cache)
+            review_loader = ReviewLoaderFortune(cache, db)
         elif "SOFTWARE_CENTER_TECHSPEAK_REVIEWS" in os.environ:
-            review_loader = ReviewLoaderTechspeak(cache)
+            review_loader = ReviewLoaderTechspeak(cache, db)
         elif "SOFTWARE_CENTER_GIO_REVIEWS" in os.environ:
-            review_loader = ReviewLoaderJsonAsync(cache)
+            review_loader = ReviewLoaderJsonAsync(cache, db)
         else:
-            review_loader = ReviewLoaderThreadedRNRClient(cache)
+            review_loader = ReviewLoaderThreadedRNRClient(cache, db)
     return review_loader
 
 if __name__ == "__main__":
