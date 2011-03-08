@@ -213,6 +213,12 @@ class AppStore(gtk.GenericTreeModel):
         self.nr_apps, self.nr_pkgs = 0, 0
         self.matches = []
         self.match_docids = set()
+        
+        # acquire lock before performing the search or block until the
+        # lock becomes available
+        self.db.acquire_search_lock()
+
+        # now do the search
         for q in self.search_query:
             enquire = xapian.Enquire(self.db.xapiandb)
             self._logger.debug("initial query: '%s'" % q)
@@ -289,6 +295,10 @@ class AppStore(gtk.GenericTreeModel):
                     if not match.docid in self.match_docids:
                         self.matches.append(match)
                         self.match_docids.add(match.docid)
+
+        # release the lock here because the following check may trigger
+        # calling this function again (and we would deadlock otherwise)
+        self.db.release_search_lock()
 
         # if we have no results, try forcing pkgs to be displayed
         # if not NONAPPS_NEVER_VISIBLE is set

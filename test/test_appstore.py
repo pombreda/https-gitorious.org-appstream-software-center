@@ -118,7 +118,7 @@ class TestAppStore(unittest.TestCase):
 
     def test_concurrent_searches(self):
         terms = [ "app", "this", "the", "that", "foo", "tool", "game", 
-                  "graphic", "ubuntu", "debian", "gtk" "this", "bar", 
+                  "graphic", "ubuntu", "debian", "gtk", "this", "bar", 
                   "baz"]
 
         # run a bunch of the querries in parallel
