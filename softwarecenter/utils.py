@@ -323,6 +323,7 @@ def clear_token_from_ubuntu_sso(appname):
 def get_nice_date_string(cur_t):
     """ return a "nice" human readable date, like "2 minutes ago"  """
     import datetime
+
     dt = datetime.datetime.utcnow() - cur_t
     days = dt.days
     secs = dt.seconds
@@ -389,6 +390,11 @@ class SimpleFileDownloader(gobject.GObject):
         "file-download-complete"  : (gobject.SIGNAL_RUN_LAST,
                                      gobject.TYPE_NONE,
                                      (str,),),
+
+        "error"                   : (gobject.SIGNAL_RUN_LAST,
+                                     gobject.TYPE_NONE,
+                                     (gobject.TYPE_PYOBJECT,
+                                      gobject.TYPE_PYOBJECT,),),
         }
 
     def __init__(self):
@@ -425,6 +431,7 @@ class SimpleFileDownloader(gobject.GObject):
         except glib.GError, e:
             self.LOG.debug("file *not* reachable %s" % self.url)
             self.emit('file-url-reachable', False)
+            self.emit('error', glib.GError, e)
         del f
 
     def _file_download_complete_cb(self, f, result, path=None):
@@ -432,7 +439,17 @@ class SimpleFileDownloader(gobject.GObject):
         # The result from the download is actually a tuple with three 
         # elements (content, size, etag?)
         # The first element is the actual content so let's grab that
-        content = f.load_contents_finish(result)[0]
+        try:
+            content = f.load_contents_finish(result)[0]
+        except gio.Error, e:
+            # i witnissed a strange error[1], so make the loader robust in this
+            # situation
+            # 1. content = f.load_contents_finish(result)[0]
+            #    gio.Error: DBus error org.freedesktop.DBus.Error.NoReply
+            self.LOG.debug(e)
+            self.emit('error', gio.Error, e)
+            return
+
         outputfile = open(self.dest_file_path, "w")
         outputfile.write(content)
         outputfile.close()
