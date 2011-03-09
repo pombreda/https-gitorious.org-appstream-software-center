@@ -86,7 +86,7 @@ class UsefulnessCache(object):
     
     def add_usefulness_vote(self, review_id, useful):
         """pass a review id and useful boolean vote and save it into the dict, then try to save to cache file"""
-        USEFULNESS_CACHE[str(review_id)] = useful
+        self.USEFULNESS_CACHE[str(review_id)] = useful
         if self.save_usefulness_cache_file():
             return True
         return False
@@ -298,6 +298,8 @@ class ReviewLoader(object):
             return
         if exitcode == 0:
             LOG.debug("usefulness id %s " % review_id)
+            useful_votes = UsefulnessCache()
+            useful_votes.add_usefulness_vote(review_id, is_useful)
             for (app, reviews) in self._reviews.iteritems():
                 for review in reviews:
                     if str(review.id) == str(review_id):
