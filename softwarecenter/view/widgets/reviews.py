@@ -1005,7 +1005,7 @@ class UIReview(gtk.VBox):
             self.footer.pack_start(self.useful, False, padding=3)
             # add here, but only populate if its not the own review
             self.likebox = gtk.HBox()
-            if not current_user_reviewer:
+            if already_voted == None and not current_user_reviewer:
                 self.yes_like = mkit.VLinkButton('<small>%s</small>' % _('Yes'))
                 self.no_like = mkit.VLinkButton('<small>%s</small>' % _('No'))
                 self.yes_like.set_underline(True)
@@ -1046,15 +1046,7 @@ class UIReview(gtk.VBox):
         '''returns gtk.Label() to be used as usefulness label depending 
            on passed in parameters
         '''
-        if already_voted is not None:
-        #only display these special strings if the user voted either way
-            if already_voted:
-                #if voted True
-                s = _("You have already marked this review as helpful")
-            else:
-                #if voted False
-                s = _("You have already marked this review as unhelpful")
-        else:
+        if already_voted == None:
             if useful_total == 0 and current_user_reviewer:
                 s = ""
             elif useful_total == 0:
@@ -1080,6 +1072,14 @@ class UIReview(gtk.VBox):
                     useful_total) % { 'useful_total' : useful_total,
                                     'useful_favorable' : useful_favorable,
                                     }
+        else:
+        #only display these special strings if the user voted either way
+            if already_voted:
+                #if voted True
+                s = _("You have already marked this review as helpful")
+            else:
+                #if voted False
+                s = _("You have already marked this review as unhelpful")
         
         return gtk.Label('<small>%s</small>' % s)
 
