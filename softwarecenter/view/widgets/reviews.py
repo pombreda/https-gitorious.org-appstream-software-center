@@ -1065,7 +1065,7 @@ class UIReview(gtk.VBox):
             else:
                 # user has not already voted for the review
                 s = gettext.ngettext(
-                    "%(useful_favorable)s of %(useful_total)s person "
+                    "%(useful_favorable)s of %(useful_total)s people "
                     "found this review helpful. Did you?",
                     "%(useful_favorable)s of %(useful_total)s people "
                     "found this review helpful. Did you?",
@@ -1075,11 +1075,30 @@ class UIReview(gtk.VBox):
         else:
         #only display these special strings if the user voted either way
             if already_voted:
-                #if voted True
-                s = _("You have already marked this review as helpful")
+                if useful_total == 1:
+                    s = _("You found this review helpful.")
+                else:
+                    s = gettext.ngettext(
+                        "%(useful_favorable)s of %(useful_total)s people "
+                        "found this review helpful, including you",
+                        "%(useful_favorable)s of %(useful_total)s people "
+                        "found this review helpful, including you.",
+                        useful_total) % { 'useful_total' : useful_total,
+                                    'useful_favorable' : useful_favorable,
+                                    }
             else:
-                #if voted False
-                s = _("You have already marked this review as unhelpful")
+                if useful_total == 1:
+                    s = _("You found this review unhelpful.")
+                else:
+                    s = gettext.ngettext(
+                        "%(useful_favorable)s of %(useful_total)s people "
+                        "found this review helpful; you did not.",
+                        "%(useful_favorable)s of %(useful_total)s people "
+                        "found this review helpful; you did not.",
+                        useful_total) % { 'useful_total' : useful_total,
+                                    'useful_favorable' : useful_favorable,
+                                    }
+                    
         
         return gtk.Label('<small>%s</small>' % s)
 
