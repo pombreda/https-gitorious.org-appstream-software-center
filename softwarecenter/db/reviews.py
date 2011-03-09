@@ -57,6 +57,46 @@ class ReviewStats(object):
     def __repr__(self):
         return "[ReviewStats '%s' ratings_average='%s' ratings_total='%s']" % (self.app, self.ratings_average, self.ratings_total)
 
+class UsefulnessCache(object):
+
+    USEFULNESS_CACHE = {}
+    
+    def __init__(self):
+        fname = "usefulness.p"
+        self.USEFULNESS_CACHE_FILE = os.path.join(SOFTWARE_CENTER_CACHE_DIR,
+                                                    fname)
+        if os.path.exists(self.USEFULNESS_CACHE_FILE):
+            try:
+                self.USEFULNESS_CACHE = cPickle.load(open(self.USEFULNESS_CACHE_FILE))
+            except:
+                LOG.exception("usefulness cache load failure")
+                os.rename(self.USEFULNESS_CACHE_FILE, self.USEFULNESS_CACHE_FILE+".fail")
+    
+    def save_usefulness_cache_file(self):
+        """write the dict out to cache file"""
+        cachedir = SOFTWARE_CENTER_CACHE_DIR
+        try:
+            if not os.path.exists(cachedir):
+                os.makedirs(cachedir)
+            cPickle.dump(self.USEFULNESS_CACHE,
+                      open(self.USEFULNESS_CACHE_FILE, "w"))
+            return True
+        except:
+            return False
+    
+    def add_usefulness_vote(self, review_id, useful):
+        """pass a review id and useful boolean vote and save it into the dict, then try to save to cache file"""
+        USEFULNESS_CACHE[str(review_id)] = useful
+        if self.save_usefulness_cache_file():
+            return True
+        return False
+    
+    def check_for_usefulness(self, review_id):
+        """pass a review id and get a True/False useful back or None if the review_id is not in the dict"""
+        return self.USEFULNESS_CACHE.get(str(review_id))
+    
+    
+
 class Review(object):
     """A individual review object """
     def __init__(self, app):
