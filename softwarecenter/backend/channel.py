@@ -187,6 +187,7 @@ class ChannelsManager(object):
         
         # gather the set of software channels and order them
         other_channel_list = []
+        cached_origins = []
         for channel_iter in self.db.xapiandb.allterms("XOL"):
             if len(channel_iter.term) == 3:
                 continue
@@ -202,7 +203,9 @@ class ChannelsManager(object):
                     break
             self._logger.debug("channel_name: %s" % channel_name)
             self._logger.debug("channel_origin: %s" % channel_origin)
-            other_channel_list.append((channel_name, channel_origin))
+            if channel_origin not in cached_origins:
+                other_channel_list.append((channel_name, channel_origin))
+                cached_origins.append(channel_origin)
         
         dist_channel = None
         partner_channel = None
@@ -212,7 +215,7 @@ class ChannelsManager(object):
         other_channels = []
         unknown_channel = []
         local_channel = None
-        
+
         for (channel_name, channel_origin) in other_channel_list:
             if not channel_name:
                 unknown_channel.append(SoftwareChannel(self.icons, 
@@ -335,7 +338,7 @@ class SoftwareChannel(object):
         else:
             self._channel_icon = channel_icon
         if channel_query is None:
-            self._channel_query = self._get_channel_query_for_channel(channel_name, channel_component)
+            self._channel_query = self._get_channel_query_for_channel(channel_name, channel_origin, channel_component)
         else:
             self._channel_query = channel_query
         # a sources.list entry attached to the channel (this is currently
@@ -435,7 +438,7 @@ class SoftwareChannel(object):
             channel_icon = self._get_icon("unknown-channel")
         return channel_icon
     
-    def _get_channel_query_for_channel(self, channel_name, channel_component):
+    def _get_channel_query_for_channel(self, channel_name, channel_origin, channel_component):
     
         if channel_component == "partner":
             q1 = xapian.Query("XOCpartner")
@@ -446,6 +449,8 @@ class SoftwareChannel(object):
             channel_query = xapian.Query(xapian.Query.OP_AND, 
                                          xapian.Query("XOL" + channel_name),
                                          xapian.Query("ATapplication"))
+        elif channel_origin:
+            channel_query = xapian.Query("XOO" + channel_origin)
         else:
             channel_query = xapian.Query("XOL" + channel_name)
         return channel_query
