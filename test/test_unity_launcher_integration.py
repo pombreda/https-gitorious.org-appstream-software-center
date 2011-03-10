@@ -72,16 +72,14 @@ class TestUnityLauncherIntegration(unittest.TestCase):
         icon_x,
         icon_y) = self.s_c_app.available_pane._get_icon_details_for_launcher_service(app)
         appdetails = app.get_details(self.s_c_app.db)
-        print "values for use in the unity launcher dbus call:"
-        # print "   (icon_name): ", icon_name
-        print "   app.name: ", app.name
-        print "   icon_file_path: ", icon_file_path
-        print "   icon_x: ", icon_x
-        print "   icon_y: ", icon_y
-        print "   icon_size: ", icon_size
-        print "   appdetails.desktop_file: ", appdetails.desktop_file
-#        print "   trans_id: ", trans_id
-
+        # check for valid values
+        self.assertEqual(app.name, "Lincity-ng")
+        self.assertEqual(icon_file_path, "/usr/share/app-install/icons/lincity-ng.png")
+        self.assertTrue(icon_x > 20)
+        self.assertTrue(icon_y > 20)
+        self.assertEqual(icon_size, 84)
+        self.assertEqual(appdetails.desktop_file, "/usr/share/app-install/desktop/lincity-ng.desktop")
+        
 
 if __name__ == "__main__":
     unittest.main()
