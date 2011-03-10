@@ -50,12 +50,20 @@ class TestUnityLauncherIntegration(unittest.TestCase):
                 needle, pkgname_from_row))
 
     def test_unity_launcher_ui(self):
-        # test package is the inimitable lincity-ng, nicest little icon
-        # west of the pecos
-        # Note: this test relys on lincity-ng actually not being installed
+        # test package is the inimitable lincity-ng, the app with the
+        # nicest little icon west of the pecos
+        #
+        # Note: this test relies on lincity-ng actually *not being installed*
         #       on the test machine!
         model = self._run_search("lincity-ng")
         self.assertFirstPkgInModel(model, "lincity-ng")
+        treeview = self.app.available_pane.app_view
+        treeview.row_activated(model.get_path(model.get_iter_root()),
+                               treeview.get_column(0))
+        # click the "Install" button
+        self.app.available_pane.app_details_view.pkg_statusbar.button.clicked()
+        self._p()
+        time.sleep(1)
 
 
 if __name__ == "__main__":
