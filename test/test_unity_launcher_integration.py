@@ -52,7 +52,7 @@ class TestUnityLauncherIntegration(unittest.TestCase):
 
     def test_unity_launcher_integration(self):
         # test package is the inimitable lincity-ng
-        # Note: this test relies on lincity-ng actually *not being installed*
+        # Note: this test relies on lincity-ng being *not installed*
         #       on the test machine!
         model = self._run_search("lincity-ng")
         self.assertFirstPkgInModel(model, "lincity-ng")
