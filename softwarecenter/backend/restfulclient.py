@@ -26,7 +26,6 @@ import gio
 import glib
 import logging
 import simplejson
-import time
 import threading
 
 from softwarecenter.distro import get_distro
@@ -129,6 +128,7 @@ class RestfulClientWorker(threading.Thread):
                     result_callback(res)
                 self._pending_requests.task_done()
             # wait a bit
+            import time
             time.sleep(0.1)
             if (self._shutdown and
                 self._pending_requests.empty()):

@@ -47,7 +47,10 @@ class Application(object):
             raise ValueError("Need either appname or pkgname or request")
         # defaults
         self.pkgname = pkgname.replace("$kernel", os.uname()[2])
-        self.appname = unicode(appname)
+        if appname:
+            self.appname = unicode(appname)
+        else:
+            self.appname = ''
         # the request can take additional "request" data like apturl
         # strings or the path of a local deb package
         self.request = request

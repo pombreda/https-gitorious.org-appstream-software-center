@@ -618,7 +618,7 @@ class SoftwarePane(gtk.VBox, BasePane):
         return 0
 
     def get_sort_mode(self):
-        if self.apps_search_term:
+        if self.apps_search_term and len(self.apps_search_term) >= 2:
             return SORT_BY_SEARCH_RANKING
         elif self.apps_category:
             return self.apps_category.sortmode
