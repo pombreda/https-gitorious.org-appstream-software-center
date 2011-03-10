@@ -71,6 +71,7 @@ class TestUnityLauncherIntegration(unittest.TestCase):
         icon_size,
         icon_x,
         icon_y) = self.s_c_app.available_pane._get_icon_details_for_launcher_service(app)
+        appdetails = app.get_details(self.s_c_app.db)
         print "values for use in the unity launcher dbus call:"
         # print "   (icon_name): ", icon_name
         print "   app.name: ", app.name
@@ -78,7 +79,7 @@ class TestUnityLauncherIntegration(unittest.TestCase):
         print "   icon_x: ", icon_x
         print "   icon_y: ", icon_y
         print "   icon_size: ", icon_size
-#        print "   appdetails.desktop_file: ", appdetails.desktop_file
+        print "   appdetails.desktop_file: ", appdetails.desktop_file
 #        print "   trans_id: ", trans_id
 
 
