@@ -32,9 +32,7 @@ class TestUnityLauncherIntegration(unittest.TestCase):
         apt.apt_pkg.config.set("Dir::state::lists", "/tmp")
         self.app = SoftwareCenterApp("../data", XAPIAN_BASE_PATH, mock_options)
         self.app.window_main.show_all()
-        print "foo0"
         self._p()
-        print "foo1"
 
     def _run_search(self, search_text):
         logging.info("_run_search", search_text)
@@ -44,21 +42,20 @@ class TestUnityLauncherIntegration(unittest.TestCase):
         time.sleep(2)
         self._p()
         return self.app.available_pane.app_view.get_model()
-        
-    def _debug(self, model, needle):
-        print "Expected '%s' first, but search results in model: " % needle
-        for it in model:
-            print " %s" % it[AppStore.COL_PKGNAME]
 
     def assertFirstPkgInModel(self, model, needle):
-        #self.assertEqual(model[0][AppStore.COL_PKGNAME], 
-        #                 needle, self._debug(model, needle))
-        self._debug(model, needle)
+        pkgname_from_row = model[0][AppStore.COL_PKGNAME]
+        self.assertEqual(
+            pkgname_from_row, needle, "expected row '%s' got '%s'" % (
+                needle, pkgname_from_row))
 
-    def test_search_per_spec(self):
-        # try dive into python
-        model = self._run_search("dive into python")
-        self.assertFirstPkgInModel(model, "diveintopython")
+    def test_unity_launcher_ui(self):
+        # test package is the inimitable lincity-ng, nicest little icon
+        # west of the pecos
+        # Note: this test relys on lincity-ng actually not being installed
+        #       on the test machine!
+        model = self._run_search("lincity-ng")
+        self.assertFirstPkgInModel(model, "lincity-ng")
 
 
 if __name__ == "__main__":
