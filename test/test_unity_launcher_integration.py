@@ -13,6 +13,7 @@ sys.path.insert(0, "..")
 
 from softwarecenter.app import SoftwareCenterApp
 from softwarecenter.paths import XAPIAN_BASE_PATH
+from softwarecenter.enums import ACTION_BUTTON_ADD_TO_LAUNCHER
 from softwarecenter.view.appview import AppStore
 from softwarecenter.db.application import Application
 
@@ -70,7 +71,8 @@ class TestUnityLauncherIntegration(unittest.TestCase):
         time.sleep(1)
         
         # verify that the panel is shown offering to add the app to the launcher
-        
+        self.assertTrue(self.s_c_app.available_pane.action_bar.get_property("visible"))
+        button = self.s_c_app.available_pane.action_bar.get_button(ACTION_BUTTON_ADD_TO_LAUNCHER)
         
         # now test the values to be used in the dbus call
         app = Application("", model[0][AppStore.COL_PKGNAME])
