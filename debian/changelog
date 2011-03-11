@@ -13,6 +13,13 @@ software-center (3.1.23.2) UNRELEASED; urgency=low
     - updated to match latest upstream version
   * data/ui/submit_review.ui, data/ui/report_abuse.ui:
     - set softwarecenter icon (thanks to davmor2 for reporting)
+  * softwarecenter/db/update.py:
+    - add "translated" argument to the parser and store untranslated
+      name as well and store untranslated value in the DB
+  * softwarecenter/db/application.py:
+    - add get_untranslated_app() call 
+  * softwarecenter/db/reviews.py:
+    - when talking to the rnr-server, always use the untranslated names
 
   [ Kiwinote ]
   * clean up mimetype handling (allows us to accept apturls once again)

@@ -74,6 +74,15 @@ class Application(object):
         """ return a new AppDetails object for this application """
         return AppDetails(db, application=self)
 
+    def get_untranslated_app(self, db):
+        """ return a Application object with the untranslated application
+            name 
+        """
+        doc = db.get_xapian_document(self.appname, self.pkgname)
+        untranslated_application = doc.get_value(XAPIAN_VALUE_APPNAME_UNTRANSLATED)
+        uapp = Application(untranslated_application, self.pkgname)
+        return uapp
+
     @staticmethod
     def get_display_name(db, doc):
         """ Return the application name as it should be displayed in the UI

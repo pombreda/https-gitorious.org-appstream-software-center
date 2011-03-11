@@ -75,7 +75,7 @@ class AppInfoParserBase(object):
 
     MAPPING = {}
 
-    def get_desktop(self, key):
+    def get_desktop(self, key, translated=True):
         """ get a AppInfo entry for the given key """
     def has_option_desktop(self, key):
         """ return True if there is a given AppInfo info """
@@ -141,7 +141,7 @@ class SoftwareCenterAgentParser(AppInfoParserBase):
         if hasattr(self.sca_entry, "description"):
             self.sca_entry.Comment = self.sca_entry.description.split("\n")[0]
             self.sca_entry.Description = "\n".join(self.sca_entry.description.split("\n")[1:])
-    def get_desktop(self, key):
+    def get_desktop(self, key, translated=True):
         if key in self.STATIC_DATA:
             return self.STATIC_DATA[key]
         return getattr(self.sca_entry, self._apply_mapping(key))
@@ -165,7 +165,7 @@ class JsonTagSectionParser(AppInfoParserBase):
     def __init__(self, tag_section, url):
         self.tag_section = tag_section
         self.url = url
-    def get_desktop(self, key):
+    def get_desktop(self, key, translated=True):
         return self.tag_section[self._apply_mapping(key)]
     def has_option_desktop(self, key):
         return self._apply_mapping(key) in self.tag_section
@@ -192,7 +192,7 @@ class AppStreamXMLParser(AppInfoParserBase):
     def __init__(self, appinfo_xml, xmlfile):
         self.appinfo_xml = appinfo_xml
         self.xmlfile = xmlfile
-    def get_desktop(self, key):
+    def get_desktop(self, key, translated=True):
         from lxml import etree
         key = self._apply_mapping(key)
         if key in self.LISTS:
@@ -225,10 +225,13 @@ class DesktopTagSectionParser(AppInfoParserBase):
     def __init__(self, tag_section, tagfile):
         self.tag_section = tag_section
         self.tagfile = tagfile
-    def get_desktop(self, key):
+    def get_desktop(self, key, translated=True):
         # strip away bogus prefixes
         if key.startswith("X-AppInstall-"):
             key = key[len("X-AppInstall-"):]
+        # shortcut
+        if not translated:
+            return self.tag_section[key]
         # FIXME: make i18n work similar to get_desktop
         # first try dgettext
         if "Gettext-Domain" in self.tag_section:
@@ -265,10 +268,13 @@ class DesktopTagSectionParser(AppInfoParserBase):
 class DesktopConfigParser(RawConfigParser, AppInfoParserBase):
     " thin wrapper that is tailored for xdg Desktop files "
     DE = "Desktop Entry"
-    def get_desktop(self, key):
+    def get_desktop(self, key, translated=True):
         " get generic option under 'Desktop Entry'"
         # never translate the pkgname
         if key == "X-AppInstall-Package":
+            return self.get(self.DE, key)
+        # shortcut
+        if not translated:
             return self.get(self.DE, key)
         # first try dgettext
         if self.has_option_desktop("X-Ubuntu-Gettext-Domain"):
@@ -498,13 +504,17 @@ def index_app_info_from_parser(parser, db, cache):
         # app name is the data
         if parser.has_option_desktop("X-GNOME-FullName"):
             name = parser.get_desktop("X-GNOME-FullName")
+            untranslated_name = parser.get_desktop("X-GNOME-FullName", translated=False)
         else:
             name = parser.get_desktop("Name")
+            untranslated_name = parser.get_desktop("Name", translated=False)
         if name in seen:
             LOG.debug("duplicated name '%s' (%s)" % (name, parser.desktopf))
         seen.add(name)
         doc.set_data(name)
         index_name(doc, name, term_generator)
+        doc.add_value(XAPIAN_VALUE_APPNAME_UNTRANSLATED, untranslated_name)
+
         # check if we should ignore this file
         if parser.has_option_desktop("X-AppInstall-Ignore"):
             ignore = parser.get_desktop("X-AppInstall-Ignore")

@@ -786,7 +786,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             # update UI
             self._update_review_stats_widget(stats)
             # update global stats cache as well
-            self.review_loader.REVIEW_STATS_CACHE[app] = stats
+            self.review_loader.update_review_stats(app, stats)
         
         # FIXME: simplify UIReviewsList API to provide a single set_reviews()
         # update the UI
