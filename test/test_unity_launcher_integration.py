@@ -18,6 +18,17 @@ from softwarecenter.db.application import Application
 
 # see https://wiki.ubuntu.com/SoftwareCenter#Learning%20how%20to%20launch%20an%20application
 
+# we make s_c_app global as its relatively expensive to create
+# and in setUp it would be created and destroyed for each
+# test
+apt.apt_pkg.config.set("Dir::log::history", "/tmp")
+#apt.apt_pkg.config.set("Dir::state::lists", "/tmp")
+mock_options = Mock()
+mock_options.enable_lp = False
+mock_options.enable_buy = True
+s_c_app = SoftwareCenterApp("../data", XAPIAN_BASE_PATH, mock_options)
+s_c_app.window_main.show_all()
+
 class TestUnityLauncherIntegration(unittest.TestCase):
     
     def _p(self):
@@ -25,15 +36,7 @@ class TestUnityLauncherIntegration(unittest.TestCase):
             gtk.main_iteration()
 
     def setUp(self):
-        # options
-        mock_options = Mock()
-        mock_options.enable_lp = False
-        mock_options.enable_buy = True
-        apt.apt_pkg.config.set("Dir::log::history", "/tmp")
-        apt.apt_pkg.config.set("Dir::state::lists", "/tmp")
-        self.s_c_app = SoftwareCenterApp("../data", XAPIAN_BASE_PATH, mock_options)
-        self.s_c_app.window_main.show_all()
-        self._p()
+        self.s_c_app = s_c_app
 
     def _run_search(self, search_text):
         logging.info("_run_search", search_text)
@@ -62,7 +65,10 @@ class TestUnityLauncherIntegration(unittest.TestCase):
         # click the "Install" button
         self.s_c_app.available_pane.app_details_view.pkg_statusbar.button.clicked()
         self._p()
-        time.sleep(4)
+        time.sleep(1)
+        
+        # verify that the panel is shown offering to add the app to the launcher
+        
         
         # now test the values to be used in the dbus call
         app = Application("", model[0][AppStore.COL_PKGNAME])
@@ -72,6 +78,7 @@ class TestUnityLauncherIntegration(unittest.TestCase):
         icon_x,
         icon_y) = self.s_c_app.available_pane._get_icon_details_for_launcher_service(app)
         appdetails = app.get_details(self.s_c_app.db)
+        print ">>> appdetails: ", appdetails
         # check for valid values
         self.assertEqual(app.name, "Lincity-ng")
         self.assertEqual(icon_file_path, "/usr/share/app-install/icons/lincity-ng.png")
