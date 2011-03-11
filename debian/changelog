@@ -29,7 +29,11 @@ software-center (3.1.23.2) UNRELEASED; urgency=low
     - different behaviour for review display if user has already votedon usefulness
       (LP: #730768)
   
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 09 Mar 2011 20:28:33 -0500
+  [ Gary Lasker ]
+  * test/test_unity_launcher_integration.py:
+    - add unit test for Unity launcher integration feature 
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Fri, 11 Mar 2011 01:05:55 -0500
 
 software-center (3.1.23.1) natty; urgency=low
 
