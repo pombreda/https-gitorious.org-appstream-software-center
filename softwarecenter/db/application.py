@@ -78,7 +78,10 @@ class Application(object):
         """ return a Application object with the untranslated application
             name 
         """
-        doc = db.get_xapian_document(self.appname, self.pkgname)
+        try:
+            doc = db.get_xapian_document(self.appname, self.pkgname)
+        except IndexError:
+            return self
         untranslated_application = doc.get_value(XAPIAN_VALUE_APPNAME_UNTRANSLATED)
         uapp = Application(untranslated_application, self.pkgname)
         return uapp
