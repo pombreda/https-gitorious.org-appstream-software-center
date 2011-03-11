@@ -62,6 +62,8 @@ class TestUnityLauncherIntegration(unittest.TestCase):
         treeview = self.s_c_app.available_pane.app_view
         treeview.row_activated(model.get_path(model.get_iter_root()),
                                treeview.get_column(0))
+        self._p()
+        time.sleep(1)
         # click the "Install" button
         self.s_c_app.available_pane.app_details_view.pkg_statusbar.button.clicked()
         self._p()
@@ -78,7 +80,6 @@ class TestUnityLauncherIntegration(unittest.TestCase):
         icon_x,
         icon_y) = self.s_c_app.available_pane._get_icon_details_for_launcher_service(app)
         appdetails = app.get_details(self.s_c_app.db)
-        print ">>> appdetails: ", appdetails
         # check for valid values
         self.assertEqual(app.name, "Lincity-ng")
         self.assertEqual(icon_file_path, "/usr/share/app-install/icons/lincity-ng.png")
