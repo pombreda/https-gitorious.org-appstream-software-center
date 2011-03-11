@@ -9,6 +9,8 @@ software-center (3.1.23.2) UNRELEASED; urgency=low
   * softwarecenter/db/reviews.py:
     - fix support for reviews in not enabled PPAs (like for-pay PPAs)
       LP: #731376
+  * softwarecenter/backend/rnrclient_pristine.py:
+    - updated to match latest upstream version
 
   [ Kiwinote ]
   * clean up mimetype handling (allows us to accept apturls once again)
@@ -26,15 +28,15 @@ software-center (3.1.23.2) UNRELEASED; urgency=low
   * softwarecenter/db/reviews.py:
     - add functionality to keep track of review usefulness votes locally
   * softwarecenter/view/widgets/reviews.py:
-    - different behaviour for review display if user has already votedon usefulness
-      (LP: #730768)
+    - different behaviour for review display if user has already 
+      votedon usefulness (LP: #730768)
   
   [ Gary Lasker ]
   * test/test_unity_launcher_integration.py:
     - add unit test for Unity launcher integration feature 
 
  -- Gary Lasker <gary.lasker@canonical.com>  Fri, 11 Mar 2011 01:05:55 -0500
-
+ 
 software-center (3.1.23.1) natty; urgency=low
 
   * softwarecenter/db/reviews.py:
