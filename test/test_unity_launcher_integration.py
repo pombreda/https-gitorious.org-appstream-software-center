@@ -73,6 +73,7 @@ class TestUnityLauncherIntegration(unittest.TestCase):
         # verify that the panel is shown offering to add the app to the launcher
         self.assertTrue(self.s_c_app.available_pane.action_bar.get_property("visible"))
         button = self.s_c_app.available_pane.action_bar.get_button(ACTION_BUTTON_ADD_TO_LAUNCHER)
+        self.assertTrue(button is not None)
         
         # now test the values to be used in the dbus call
         app = Application("", model[0][AppStore.COL_PKGNAME])
