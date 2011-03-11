@@ -1,4 +1,4 @@
-software-center (3.1.23.2) UNRELEASED; urgency=low
+software-center (3.1.23.2) natty; urgency=low
 
   [ Michael Vogt]
   * merged lp:~mmcg069/software-center/little-catview-cleanups
@@ -9,6 +9,17 @@ software-center (3.1.23.2) UNRELEASED; urgency=low
   * softwarecenter/db/reviews.py:
     - fix support for reviews in not enabled PPAs (like for-pay PPAs)
       LP: #731376
+  * softwarecenter/backend/rnrclient_pristine.py:
+    - updated to match latest upstream version
+  * data/ui/submit_review.ui, data/ui/report_abuse.ui:
+    - set softwarecenter icon (thanks to davmor2 for reporting)
+  * softwarecenter/db/update.py:
+    - add "translated" argument to the parser and store untranslated
+      name as well and store untranslated value in the DB
+  * softwarecenter/db/application.py:
+    - add get_untranslated_app() call 
+  * softwarecenter/db/reviews.py:
+    - when talking to the rnr-server, always use the untranslated names
 
   [ Kiwinote ]
   * clean up mimetype handling (allows us to accept apturls once again)
@@ -26,15 +37,15 @@ software-center (3.1.23.2) UNRELEASED; urgency=low
   * softwarecenter/db/reviews.py:
     - add functionality to keep track of review usefulness votes locally
   * softwarecenter/view/widgets/reviews.py:
-    - different behaviour for review display if user has already votedon usefulness
-      (LP: #730768)
+    - different behaviour for review display if user has already 
+      votedon usefulness (LP: #730768)
   
   [ Gary Lasker ]
   * test/test_unity_launcher_integration.py:
     - add unit test for Unity launcher integration feature 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Fri, 11 Mar 2011 01:05:55 -0500
-
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 11 Mar 2011 18:53:22 +0100
+ 
 software-center (3.1.23.1) natty; urgency=low
 
   * softwarecenter/db/reviews.py:
