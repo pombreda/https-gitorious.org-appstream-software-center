@@ -1,4 +1,4 @@
-software-center (3.1.23.2) UNRELEASED; urgency=low
+software-center (3.1.23.2) natty; urgency=low
 
   [ Michael Vogt]
   * merged lp:~mmcg069/software-center/little-catview-cleanups
@@ -44,7 +44,7 @@ software-center (3.1.23.2) UNRELEASED; urgency=low
   * test/test_unity_launcher_integration.py:
     - add unit test for Unity launcher integration feature 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Fri, 11 Mar 2011 01:05:55 -0500
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 11 Mar 2011 18:53:22 +0100
  
 software-center (3.1.23.1) natty; urgency=low
 
