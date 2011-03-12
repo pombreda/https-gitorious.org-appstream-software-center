@@ -156,7 +156,7 @@ class WebLiveBackend(object):
             host, port, session.replace("/","_"))
         nxml=open(filename,"w+")
         config=self.NXML_TEMPLATE
-        config=config.replace("WL_NAME","%s-%s-%s" % (host, port, session))
+        config=config.replace("WL_NAME","%s-%s-%s" % (host, port, session.replace("/","_")))
         config=config.replace("WL_SERVER", socket.gethostbyname(host))
         config=config.replace("WL_PORT",str(port))
         config=config.replace("WL_COMMAND","vmmanager-session %s" % session)
@@ -164,20 +164,20 @@ class WebLiveBackend(object):
         nxml.close()
 
         cmd = [self.QTNX,
-               '%s-%s-%s' % (str(host), str(port), str(session)),
+               '%s-%s-%s' % (str(host), str(port), session.replace("/","_")),
                username,
                password]
 
         if wait == False:
             (pid, stdin, stdout, stderr) = glib.spawn_async(
                 cmd, flags=glib.SPAWN_DO_NOT_REAP_CHILD)
-            glib.child_watch_add(pid, self._on_qtnx_exit)
+            glib.child_watch_add(pid, self._on_qtnx_exit,filename)
         else:
             p=subprocess.Popen(cmd)
             p.wait()
 
-    def _on_qtnx_exit(self, pid, status):
-        print "_on_qtnx_exit ", os.WEXITSTATUS(status)
+    def _on_qtnx_exit(self, pid, status, filename):
+        os.remove(filename)
 
 # singleton
 _weblive_backend = None

@@ -274,8 +274,9 @@ class Worker(threading.Thread):
             try:
                 res = self.rnrclient.submit_review(review=piston_review)
                 self._transmit_state = TRANSMIT_STATE_DONE
-                # output the resulting json so that the parent can read it
-                sys.stdout.write(simplejson.dumps(res))
+                # output the resulting ReviewDetails object as json so
+                # that the parent can read it
+                sys.stdout.write(simplejson.dumps(vars(res)))
             except Exception as e:
                 logging.exception("submit_review")
                 self._write_exception_html_log_if_needed(e)

@@ -213,6 +213,12 @@ class AppStore(gtk.GenericTreeModel):
         self.nr_apps, self.nr_pkgs = 0, 0
         self.matches = []
         self.match_docids = set()
+        
+        # acquire lock before performing the search or block until the
+        # lock becomes available
+        self.db.acquire_search_lock()
+
+        # now do the search
         for q in self.search_query:
             enquire = xapian.Enquire(self.db.xapiandb)
             self._logger.debug("initial query: '%s'" % q)
@@ -289,6 +295,10 @@ class AppStore(gtk.GenericTreeModel):
                     if not match.docid in self.match_docids:
                         self.matches.append(match)
                         self.match_docids.add(match.docid)
+
+        # release the lock here because the following check may trigger
+        # calling this function again (and we would deadlock otherwise)
+        self.db.release_search_lock()
 
         # if we have no results, try forcing pkgs to be displayed
         # if not NONAPPS_NEVER_VISIBLE is set
@@ -412,9 +422,10 @@ class AppStore(gtk.GenericTreeModel):
         #self._logger.debug("on_get_value: %s %s" % (rowref, column))
         doc = self.matches[rowref].document
         appname = doc.get_value(XAPIAN_VALUE_APPNAME)
+        untranslated_appname = doc.get_value(XAPIAN_VALUE_APPNAME_UNTRANSLATED)
         pkgname = self.db.get_pkgname(doc)
         popcon = self.db.get_popcon(doc)
-        app = Application(appname, pkgname, "", popcon)
+        app = Application(appname, pkgname)
         # FIXME: do not actually load the xapian document if we don'
         #        need the full data
         try:
@@ -522,12 +533,14 @@ class AppStore(gtk.GenericTreeModel):
             pkgname = app.pkgname
             return pkgname
         elif column == self.COL_RATING:
-            stats = self.review_loader.get_review_stats(app)
+            uapp = Application(untranslated_appname, pkgname)
+            stats = self.review_loader.get_review_stats(uapp)
             if stats:
                 return stats.ratings_average
             return 0
         elif column == self.COL_NR_REVIEWS:
-            stats = self.review_loader.get_review_stats(app)
+            uapp = Application(untranslated_appname, pkgname)
+            stats = self.review_loader.get_review_stats(uapp)
             if stats:
                 return stats.ratings_total
             return 0

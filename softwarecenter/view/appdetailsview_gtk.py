@@ -786,7 +786,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             # update UI
             self._update_review_stats_widget(stats)
             # update global stats cache as well
-            self.review_loader.REVIEW_STATS_CACHE[app] = stats
+            self.review_loader.update_review_stats(app, stats)
         
         # FIXME: simplify UIReviewsList API to provide a single set_reviews()
         # update the UI
@@ -904,12 +904,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             w -= self.review_stats_widget.allocation.width
 
         self.title.set_size_request(w, -1)
-        return
-
-    def _on_key_press(self, widget, event):
-        kv = gtk.keysyms
-        if event.keyval == kv.BackSpace:
-            self.back.emit('clicked')
         return
 
     def _on_realize(self, widget):
@@ -1074,7 +1068,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         # signals!
         hb.connect('size-allocate', self._header_on_allocate, hb.get_spacing())
-        self.connect('key-press-event', self._on_key_press)
         vb.connect('expose-event', self._on_expose, alignment)
         vb.connect('size-allocate', self._on_allocate)
         return
