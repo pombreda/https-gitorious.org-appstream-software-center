@@ -103,6 +103,8 @@ class TestGUI(unittest.TestCase):
                          AvailablePane.PAGE_CATEGORY)
         self.app.available_pane.back_forward.emit("right-clicked", None)
         self._p()
+        time.sleep(0.5)
+        self._p()
         self.assertEqual(self.app.available_pane.notebook.get_current_page(),
                          AvailablePane.PAGE_SUBCATEGORY)
 
@@ -179,7 +181,7 @@ class TestGUI(unittest.TestCase):
         self.assertFalse(self.app.available_pane.app_details_view.version_info.get_property("visible"))
         self.assertFalse(self.app.available_pane.app_details_view.license_info.get_property("visible"))
         self.assertFalse(self.app.available_pane.app_details_view.support_info.get_property("visible"))
-        self.assertEqual(self.app.available_pane.app_details_view.app_desc.description.order, [])
+        self.assertEqual(self.app.available_pane.app_details_view.desc.description.order, [])
 
     def _monkey_sso_login(self):
         #print "monkey_sso_login"

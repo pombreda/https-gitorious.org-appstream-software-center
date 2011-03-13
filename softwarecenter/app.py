@@ -57,7 +57,7 @@ with ExecutionTime("TIME loading app.py imports"):
     from view.historypane import HistoryPane
     from view.viewmanager import ViewManager
 
-    from backend.config import get_config
+    from config import get_config
     from backend import get_install_backend
     from paths import SOFTWARE_CENTER_ICON_CACHE_DIR
 
@@ -136,11 +136,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.cache = AptCache()
         self.cache.connect("cache-broken", self._on_apt_cache_broken)
 
-        # reviews
-        self.review_loader = get_review_loader(self.cache)
-        # FIXME: add some kind of throttle, I-M-S here
-        self.review_loader.refresh_review_stats(self.on_review_stats_loaded)
-
         # backend
         self.backend = get_install_backend()
         self.backend.connect("transaction-finished", self._on_transaction_finished)
@@ -171,6 +166,11 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                  "package."))
             # FIXME: force rebuild by providing a dbus service for this
             sys.exit(1)
+
+        # reviews
+        self.review_loader = get_review_loader(self.cache, self.db)
+        # FIXME: add some kind of throttle, I-M-S here
+        self.review_loader.refresh_review_stats(self.on_review_stats_loaded)
     
         # additional icons come from app-install-data
         self.icons = gtk.icon_theme_get_default()
@@ -678,7 +678,9 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self._login_via_dbus_sso()
             
     def on_menuitem_deauthorize_computer_activate(self, menuitem):
-        # TODO: get the account name if we want to display that in the dialog
+    
+        # FIXME: need Ubuntu SSO username here
+        # account_name = get_person_from_config()
         account_name = None
         
         # get a list of installed purchased packages

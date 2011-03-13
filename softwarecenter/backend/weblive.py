@@ -1,63 +1,44 @@
 #!/usr/bin/python
+# Copyright (C) Canonical
+#
+# Author: 2011 Stephane Graber <stgraber@ubuntu.com>
+#              Michael Vogt <mvo@ubuntu.com>
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+#
+# taken from lp:~weblive-dev/weblive/ltsp-cluster-agent-weblive/client/weblive.py
+# and put into weblive_pristine.py
 
-import getpass
+import re
 import glib
-import json
 import os
 import pprint
 import random
 import socket
 import subprocess
 import sys
-import urllib
+import string
 
 from threading import Thread, Event
+from weblive_pristine import WebLive
 
 class ServerNotReadyError(Exception):
     pass
 
-class WebLiveLocale(object):
-    def __init__(self, locale, description):
-        self.locale = locale
-        self.description = description
-    
-class WebLivePackage(object):
-    def __init__(self, pkgname, version):
-        self.pkgname = pkgname
-        self.version = version
-
-class WebLiveServer(object):
-
-    def __init__(self, name, title, description, locales, packages, timelimit, userlimit, users):
-        self.name = name
-        self.title = title
-        self.description = description
-        self.locales = [WebLiveLocale(x[0], x[1]) for x in locales]
-        self.packages = [WebLivePackage(x[0], x[1]) for x in packages]
-        self.timelimit = timelimit
-        self.userlimit = userlimit
-        self.current_users = users
-
-    def __repr__(self):
-        return "[WebLiveServer: %s (%s - %s), timelimit=%s, userlimit=%s, current_users=%s, nr_locales=%s, nr_pkgs=%s" % (
-            self.name, self.title, self.description, self.timelimit, self.userlimit, self.current_users, len(self.locales), len(self.packages))
-
-    @classmethod
-    def from_json(cls, name, attributes):
-        o = cls(name,
-                attributes["title"],
-                attributes["description"],
-                attributes["locales"],
-                attributes["packages"],
-                attributes["timelimit"],
-                attributes["userlimit"],
-                attributes["users"])
-        return o
-        
-
 class WebLiveBackend(object):
     """ backend for interacting with the weblive service """
-
 
     # NXML template
     NXML_TEMPLATE = """
@@ -87,11 +68,12 @@ class WebLiveBackend(object):
 </NXClientLibSettings>
 """
     URL = os.environ.get('SOFTWARE_CENTER_WEBLIVE_HOST',
-			 'https://weblive.stgraber.org/vmmanager/json')
+        'https://weblive.stgraber.org/weblive/json')
     QTNX = "/usr/bin/qtnx"
     DEFAULT_SERVER = "ubuntu-natty01"
 
     def __init__(self):
+        self.weblive = WebLive(self.URL,True)
         self.available_servers = []
         self._ready = Event()
 
@@ -114,12 +96,7 @@ class WebLiveBackend(object):
 
     def query_available(self):
         """ (sync) get available server and limits """
-        query={}
-        query['action']='list_everything'
-        page=urllib.urlopen(self.URL,
-                            urllib.urlencode({'query':json.dumps(query)}))
-        json_str = page.read()
-        servers=self._server_list_from_json(json_str)
+        servers=self.weblive.list_everything()
         return servers
 
     def query_available_async(self):
@@ -127,75 +104,59 @@ class WebLiveBackend(object):
         def _query_available_helper():
             self.available_servers = self.query_available()
             self._ready.set()
+
         self._ready.clear()
         p = Thread(target=_query_available_helper)
         p.start()
 
-    def _server_list_from_json(self, json_str):
-        servers = []
-        servers_json_dict = json.loads(json_str)
-        #print pprint.pprint(servers_json_dict)
-        if not servers_json_dict["status"] == "ok":
-            raise ServerNotReadyError("server not ok, msg: '%s'" % \
-                                          servers_json_dict["message"])
-
-        for (servername, attributes) in servers_json_dict['message'].iteritems():
-            servers.append(WebLiveServer.from_json(servername, attributes))
-        return servers
-
     def is_pkgname_available_on_server(self, pkgname, serverid=None):
-        if not serverid:
-            serverid = self.DEFAULT_SERVER
         for server in self.available_servers:
-            if server.name == serverid:
+            if not serverid or server.name == serverid:
                 for pkg in server.packages:
                     if pkg.pkgname == pkgname:
                         return True
         return False
 
+    def get_servers_for_pkgname(self, pkgname):
+        servers=[]
+        for server in self.available_servers:
+            # No point in returning a server that's full
+            if server.current_users >= server.userlimit:
+                continue
+
+            for pkg in server.packages:
+                if pkg.pkgname == pkgname:
+                    servers.append(server)
+        return servers
+
     def create_automatic_user_and_run_session(self, serverid=None,
-                                              session="desktop"):
+                                              session="desktop", wait=False):
         """ login into serverid and automatically create a user """
         if not serverid:
             serverid = self.DEFAULT_SERVER
-        hostname = socket.gethostname()
-        username = "%s%s" % (os.environ['USER'], hostname)
-        query={}
-        query['action'] = 'create_user'
-        query['serverid'] = serverid
-        query['username'] = username
-        query['fullname'] = "WebLive User"
-        query['password'] = hostname  # FIXME: use random PW
-        query['session'] = session
 
-        # Encode and send using HTTPs
-        page=urllib.urlopen(self.URL,
-                            urllib.urlencode({'query':json.dumps(query)}))
-        # Decode JSON reply
-        result=json.loads(page.read())
-        print "\nStatus: %s" % result['status']
+        if os.path.exists('/proc/sys/kernel/random/boot_id'):
+            uuid=open('/proc/sys/kernel/random/boot_id','r').read().strip().replace('-','')
+            random.seed(uuid)
+        identifier=''.join(random.choice(string.ascii_lowercase) for x in range (20))
 
-        if result['message']:
-            print "Message: %s" % result['message']
-            print result
-        if result['status'] == 'ok':
-            host = result['message'][0]
-            port = result['message'][1]
-            session = query['session']
-            username = query['username']
-            password = query['password']
-            self._spawn_qtnx(host, port, session, username, password)
+        fullname=str(os.environ.get('USER','WebLive user'))
+        if not re.match("^[A-Za-z0-9 ]*$",fullname) or len(fullname) == 0:
+            fullname='WebLive user'
 
-    def _spawn_qtnx(self, host, port, session, username, password):
+        connection=self.weblive.create_user(serverid, identifier, fullname, identifier, session)
+        self._spawn_qtnx(connection[0], connection[1], session, identifier, identifier, wait)
+
+    def _spawn_qtnx(self, host, port, session, username, password, wait):
         if not os.path.exists(self.QTNX):
             raise IOError("qtnx not found")
         if not os.path.exists(os.path.expanduser('~/.qtnx')):
             os.mkdir(os.path.expanduser('~/.qtnx'))
         filename=os.path.expanduser('~/.qtnx/%s-%s-%s.nxml') % (
-            host, port, session)
+            host, port, session.replace("/","_"))
         nxml=open(filename,"w+")
         config=self.NXML_TEMPLATE
-        config=config.replace("WL_NAME","%s-%s-%s" % (host, port, session))
+        config=config.replace("WL_NAME","%s-%s-%s" % (host, port, session.replace("/","_")))
         config=config.replace("WL_SERVER", socket.gethostbyname(host))
         config=config.replace("WL_PORT",str(port))
         config=config.replace("WL_COMMAND","vmmanager-session %s" % session)
@@ -203,18 +164,20 @@ class WebLiveBackend(object):
         nxml.close()
 
         cmd = [self.QTNX,
-               '%s-%s-%s' % (str(host), str(port), str(session)),
+               '%s-%s-%s' % (str(host), str(port), session.replace("/","_")),
                username,
                password]
-        #print cmd
-        (pid, stdin, stdout, stderr) = glib.spawn_async(
-            cmd, flags=glib.SPAWN_DO_NOT_REAP_CHILD)
-        #p=subprocess.Popen(cmd)
-        #p.wait()
-        glib.child_watch_add(pid, self._on_qtnx_exit)
-   
-    def _on_qtnx_exit(self, pid, status):
-        print "_on_qtnx_exit ", os.WEXITSTATUS(status)
+
+        if wait == False:
+            (pid, stdin, stdout, stderr) = glib.spawn_async(
+                cmd, flags=glib.SPAWN_DO_NOT_REAP_CHILD)
+            glib.child_watch_add(pid, self._on_qtnx_exit,filename)
+        else:
+            p=subprocess.Popen(cmd)
+            p.wait()
+
+    def _on_qtnx_exit(self, pid, status, filename):
+        os.remove(filename)
 
 # singleton
 _weblive_backend = None
@@ -226,11 +189,13 @@ def get_weblive_backend():
         if _weblive_backend.is_supported():
             _weblive_backend.query_available_async()
     return _weblive_backend
-                             
+
 if __name__ == "__main__":
     weblive = get_weblive_backend()
-    weblive.ready.wait()
+    weblive.query_available_async()
+    weblive._ready.wait()
+
     print weblive.available_servers
 
     # run session
-    weblive.create_automatic_user_and_run_session(session="firefox")
+    weblive.create_automatic_user_and_run_session(session="firefox",wait=True)

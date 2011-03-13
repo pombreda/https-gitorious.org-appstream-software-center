@@ -48,6 +48,7 @@ import piston_mini_client
 
 from softwarecenter.paths import *
 from softwarecenter.enums import MISSING_APP_ICON
+from softwarecenter.config import get_config
 from softwarecenter.backend.login_sso import LoginBackendDbusSSO
 from softwarecenter.db.database import Application
 from softwarecenter.db.reviews import Review
@@ -59,8 +60,6 @@ from softwarecenter.view.widgets.reviews import StarRatingSelector, StarCaption
 from softwarecenter.gwibber_helper import GwibberHelper, GwibberHelperMock
 
 from softwarecenter.backend.rnrclient import RatingsAndReviewsAPI, ReviewRequest
-
-from softwarecenter.backend.config import get_config
 
 #import httplib2
 #httplib2.debuglevel = 1
@@ -275,8 +274,9 @@ class Worker(threading.Thread):
             try:
                 res = self.rnrclient.submit_review(review=piston_review)
                 self._transmit_state = TRANSMIT_STATE_DONE
-                # output the resulting json so that the parent can read it
-                sys.stdout.write(simplejson.dumps(res))
+                # output the resulting ReviewDetails object as json so
+                # that the parent can read it
+                sys.stdout.write(simplejson.dumps(vars(res)))
             except Exception as e:
                 logging.exception("submit_review")
                 self._write_exception_html_log_if_needed(e)

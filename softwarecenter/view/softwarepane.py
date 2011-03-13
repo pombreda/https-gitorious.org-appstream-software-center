@@ -219,7 +219,8 @@ class SoftwarePane(gtk.VBox, BasePane):
                                                self.distro,
                                                self.icons, 
                                                self.cache, 
-                                               self.datadir)
+                                               self.datadir,
+                                               self)
         self.app_details_view.connect("purchase-requested",
                                       self.on_purchase_requested)
         self.scroll_details.add(self.app_details_view)
@@ -486,13 +487,13 @@ class SoftwarePane(gtk.VBox, BasePane):
             if category:
                 text = _("Search term not found in current category. "
                          "Do you want to search "
-                         "<a href=\"search-all:\">all categories</a> instead ?")
+                         "<a href=\"search-all:\">all categories</a> instead?")
                 self.label_app_list_header.set_markup(text)
                 self.label_app_list_header.set_visible(True)
                 return
             elif correction:
                 ref = "<a href=\"search:%s\">%s</a>" % (correction, correction)
-                text = _("Search term not found. Did you mean: %s ?") % ref
+                text = _("Search term not found. Did you mean: %s?") % ref
                 self.label_app_list_header.set_markup(text)
                 self.label_app_list_header.set_visible(True)
                 return
@@ -596,6 +597,7 @@ class SoftwarePane(gtk.VBox, BasePane):
                              exact=self.custom_list_mode,
                              nonapps_visible = self.nonapps_visible,
                              filter=self.apps_filter)
+
         #print "new_model", new_model, len(new_model), seq_nr
         # between request of the new model and actual delivery other
         # events may have happend
@@ -618,7 +620,7 @@ class SoftwarePane(gtk.VBox, BasePane):
         return 0
 
     def get_sort_mode(self):
-        if self.apps_search_term:
+        if self.apps_search_term and len(self.apps_search_term) >= 2:
             return SORT_BY_SEARCH_RANKING
         elif self.apps_category:
             return self.apps_category.sortmode

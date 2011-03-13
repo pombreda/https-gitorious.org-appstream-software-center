@@ -728,200 +728,6 @@ class Style:
         return
 
 
-class FramedSectionAlt(gtk.VBox):
-
-    def __init__(self, xpadding=SPACING_MED):
-        gtk.VBox.__init__(self)
-        self.set_redraw_on_allocate(False)
-
-        self.header_alignment = gtk.Alignment(xscale=1.0, yscale=1.0)
-        self.header = gtk.HBox()
-        self.header_vbox = gtk.VBox()
-        header_vb_align = gtk.Alignment(0, 0.5)
-        header_vb_align.add(self.header_vbox)
-        self.header.pack_start(header_vb_align, False)
-
-        self.header_alignment.add(self.header)
-        self.header_alignment.set_padding(SPACING_SMALL,
-                                          SPACING_SMALL,
-                                          xpadding,
-                                          xpadding)
-
-        self.body_alignment = gtk.Alignment(xscale=1.0, yscale=1.0)
-        self.body = gtk.VBox()
-        self.body_alignment.add(self.body)
-        self.body_alignment.set_padding(SPACING_MED, 0, 0, 0)
-
-        self.body.set_spacing(SPACING_MED)
-
-        self.pack_start(self.header_alignment, False)
-        self.pack_start(self.body_alignment)
-
-        self.image = gtk.Image()
-        self.title = EtchedLabel()
-        self.summary = gtk.Label()
-
-        self.title.set_alignment(0,0.5)
-        self.summary.set_alignment(0,0.5)
-
-        self.summary.set_line_wrap(True)
-
-        self.header_vbox.pack_start(self.title, False, False)
-        self.header_vbox.pack_start(self.summary, False)
-        # Make sure the user can select and copy the title/summary
-        #self.label.set_selectable(True)
-        return
-
-    def set_icon_from_name(self, icon_name, icon_size=gtk.ICON_SIZE_MENU):
-        self.image.set_from_icon_name(icon_name, icon_size)
-
-        if not self.image.parent:
-            self.header.pack_start(self.image, False)
-            self.header.reorder_child(self.image, 0)
-            self.image.show()
-        return
-
-    def set_icon_from_pixbuf(self, pixbuf):
-        self.image.set_from_pixbuf(pixbuf)
-
-        if not self.image.parent:
-            self.header.pack_start(self.image, False)
-            self.header.reorder_child(self.image, 0)
-            self.image.show()
-        return
-
-    def set_title(self, label='', markup=None):
-        if markup:
-            self.title.set_markup(markup)
-        else:
-            self.title.set_markup('<small>%s</small>' % label)
-
-        # atk stuff
-        acc = self.get_accessible()
-        acc.set_role(atk.ROLE_SECTION)
-        return
-
-    def set_summary(self, label='', markup=None):
-        if markup:
-            self.summary.set_markup(markup)
-        else:
-            self.summary.set_markup('<small>%s</small>' % label)
-
-        # atk stuff
-        acc = self.get_accessible()
-        acc.set_role(atk.ROLE_SECTION)
-        return
-
-    def set_xpadding(self, xpadding):
-        self.header_alignment.set_padding(0, 0, xpadding, xpadding)
-        self.body_alignment.set_padding(0, 0, xpadding, xpadding)
-        self.footer_alignment.set_padding(0, 0, xpadding, xpadding)
-        return
-
-
-class FramedSection(gtk.VBox):
-
-    def __init__(self, label_markup=None, xpadding=SPACING_MED):
-        gtk.VBox.__init__(self)
-        self.set_redraw_on_allocate(False)
-
-        self.header_alignment = gtk.Alignment(xscale=1.0, yscale=1.0)
-        self.header = gtk.HBox()
-        self.header_alignment.add(self.header)
-
-        self.header_alignment.set_padding(SPACING_SMALL,
-                                          SPACING_SMALL,
-                                          xpadding,
-                                          xpadding)
-
-        self.body_alignment = gtk.Alignment(xscale=1.0, yscale=1.0)
-        self.body = gtk.VBox()
-        self.body_alignment.add(self.body)
-        self.body_alignment.set_padding(SPACING_MED, 0, 0, 0)
-
-        self.footer_alignment = gtk.Alignment(xscale=1.0, yscale=1.0)
-        self.footer = gtk.HBox()
-        self.footer_alignment.add(self.footer)
-        self.footer_alignment.set_padding(0, 0,
-                                          xpadding,
-                                          xpadding)
-
-        self.body.set_spacing(SPACING_MED)
-        self.footer.set_size_request(-1, 2*EM)
-
-        self.pack_start(self.header_alignment, False)
-        self.pack_start(self.body_alignment)
-        self.pack_start(self.footer_alignment, False)
-
-        self.image = gtk.Image()
-        self.label = EtchedLabel()
-        # Make sure the user can select and copy the title/summary
-        #self.label.set_selectable(True)
-        self.header.pack_start(self.label, False)
-        if label_markup:
-            self.set_label(label_markup)
-        return
-
-    def set_icon_from_name(self, icon_name, icon_size=gtk.ICON_SIZE_MENU):
-        self.image.set_from_icon_name(icon_name, icon_size)
-
-        if not self.image.parent:
-            self.header.pack_start(self.image, False)
-            self.header.reorder_child(self.image, 0)
-            self.image.show()
-        return
-
-    def set_icon_from_pixbuf(self, pixbuf):
-        self.image.set_from_pixbuf(pixbuf)
-
-        if not self.image.parent:
-            self.header.pack_start(self.image, False)
-            self.header.reorder_child(self.image, 0)
-            self.image.show()
-        return
-
-    def set_label(self, label='', markup=None):
-        if markup:
-            self.label.set_markup(markup)
-        else:
-            self.label.set_markup('<b>%s</b>' % label)
-
-        # atk stuff
-        acc = self.get_accessible()
-        acc.set_name(self.label.get_text())
-        acc.set_role(atk.ROLE_SECTION)
-        return
-
-    def set_xpadding(self, xpadding):
-        self.header_alignment.set_padding(0, 0, xpadding, xpadding)
-        self.body_alignment.set_padding(0, 0, xpadding, xpadding)
-        self.footer_alignment.set_padding(0, 0, xpadding, xpadding)
-        return
-
-    def draw(self, cr, a, expose_area, draw_border=True):
-#        if not_overlapping(a, expose_area): return
-
-#        cr.save()
-#        cr.translate(0.5, 0.5)
-#        cr.rectangle(a)
-#        cr.clip_preserve()
-
-        #a = self.header_alignment.allocation
-
-        # fill section white
-        #cr.rectangle(a)
-        #cr.set_source_rgb(*floats_from_gdkcolor_wit(self.style.base[self.state]))
-        #cr.fill()
-        #cr.save()
-#        cr.set_line_width(1)
-#        cr.set_source_rgb(*floats_from_gdkcolor(self.style.dark[self.state]))
-#        cr.stroke()
-        #cr.restore()
-
-#        cr.restore()
-        return
-
-
 class LayoutView2(gtk.HBox):
 
     def __init__(self, xspacing=4, yspacing=6):
@@ -929,21 +735,20 @@ class LayoutView2(gtk.HBox):
         self.set_homogeneous(True)
 
         self.min_col_width = 128
+        self.n_columns = 0
         self.yspacing = yspacing
 
-        self._prev_width = -1
+        self._allocation = None
         self._non_col_children = []
 
         self.connect('size-allocate', self._on_allocate, yspacing)
-#        self.connect('expose-event', self._on_expose_debug)
+        #~ self.connect('expose-event', self._on_expose_debug)
         return
 
     def _on_allocate(self, widget, allocation, yspacing):
+        if self._allocation == allocation: return True
+        self._allocation = allocation
         w = allocation.width
-
-        if self._prev_width == w: return True
-        self._prev_width = w
-
         self.layout(w, yspacing, force=False)
         return True
 
@@ -977,24 +782,31 @@ class LayoutView2(gtk.HBox):
         self._non_col_children = []
         return
 
+    def set_widgets(self, widgets):
+        self.clear()
+        for w in widgets:
+            self._non_col_children.append(w)
+        
+        gobject.idle_add(self.layout, self.allocation.width, self.yspacing)
+        return
+
     def layout(self, width, yspacing, force=True):
-
-        old_n_cols = len(self.get_children())
         n_cols = max(1, width / (self.min_col_width + self.get_spacing()))
-
         n_cols = min(len(self._non_col_children), n_cols)
 
-        if old_n_cols == n_cols and not force: return True
+        if self.n_columns == n_cols and not force:
+            return True
 
         for i, col in enumerate(self.get_children()):
             for child in col.get_children():
                 col.remove(child)
 
             if i >= n_cols:
+                self.remove(col)
                 col.destroy()
 
-        if n_cols > old_n_cols:
-            for i in range(old_n_cols, n_cols):
+        if n_cols > self.n_columns:
+            for i in range(self.n_columns, n_cols):
                 col = gtk.VBox(spacing=yspacing)
                 self.pack_start(col)
 
@@ -1003,99 +815,7 @@ class LayoutView2(gtk.HBox):
             cols[i%n_cols].pack_start(child, False)
 
         self.show_all()
-        return
-
-
-class LayoutView(FramedSection):
-
-    def __init__(self):
-        FramedSection.__init__(self)
-        self.set_redraw_on_allocate(False)
-
-        self.column_hbox = gtk.HBox(spacing=SPACING_SMALL)
-        self.column_hbox.set_homogeneous(True)
-        self.body.pack_start(self.column_hbox)
-
-        self.n_columns = 0
-        self.widget_list = []
-        self.theme = get_mkit_theme()
-        return
-
-    def append(self, widget):
-        self.widget_list.append(widget)
-        return
-
-    def set_width(self, width):
-        self.body.set_size_request(width, -1)
-
-        # find widest button/widget
-        widgets = self.widget_list
-        widest_w = 0
-        for btn in widgets:
-            widest_w = max(widest_w, btn.calc_width())
-
-        # determine number of columns to display
-#        width -= 100    # fudge number
-        n_columns = width / widest_w
-        n_columns = (width - n_columns*self.column_hbox.get_spacing()) / widest_w
-
-        if n_columns > len(widgets):
-            n_columns = len(widgets)
-        if n_columns <= 0:
-            n_columns = 1
-
-        if n_columns == self.n_columns: return
-        self.clear_columns()
-
-        # pack columns into widget
-        for i in range(n_columns):
-            self.column_hbox.pack_start(gtk.VBox(spacing=SPACING_LARGE))
-
-        # pack buttons into appropriate columns
-        i = 0
-        columns = self.column_hbox.get_children()
-        for btn in widgets:
-            columns[i].pack_start(btn, False)
-            if i < n_columns-1:
-                i += 1
-            else:
-                i = 0
-
-        self.show_all()
-        self.n_columns = n_columns
-        return
-
-    def clear_all(self):
-        # destroy all columns and column-children
-        self.widget_list = []
-        self.n_columns = 0
-        for col in self.column_hbox.get_children():
-            for child in col.get_children():
-                child.destroy()
-            col.destroy()
-        return
-
-    def clear_columns(self):
-        # remove columns, but do not destroy column-children
-        for col in self.column_hbox.get_children():
-            for btn in col.get_children():
-                col.remove(btn)
-            col.destroy()
-        return
-
-    def draw(self, cr, a, expose_area):
-        if not_overlapping(a, expose_area): return
-
-#        cr.save()
-#        FramedSection.draw(self, cr, a, expose_area)
-
-        for btn in self.widget_list:
-            a = btn.allocation
-            if a.width == 1 or a.height == 1: break
-
-            btn.draw(cr, a, expose_area)
-
-#        cr.restore()
+        self.n_columns = n_cols
         return
 
 
