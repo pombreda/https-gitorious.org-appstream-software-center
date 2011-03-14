@@ -56,7 +56,7 @@ if __name__ == "__main__":
         print "stats for (pkg='%s', app: '%s'):  avg=%s total=%s" % (
             stat.package_name, stat.app_name, stat.ratings_average, stat.ratings_total)
         reviews = rnr.get_reviews(
-            language="en", origin="ubuntu", distroseries="natty",
+            language="any", origin="ubuntu", distroseries="natty",
             packagename=stat.package_name,
             appname=urllib.quote_plus(stat.app_name.encode("utf-8")))
         for review in reviews:
