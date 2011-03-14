@@ -1,3 +1,11 @@
+software-center (3.1.23.3) UNRELEASED; urgency=low
+
+  [ Aaron Peachey ]
+  * utils/submit_review.py:
+    - Remove 'unspecified' reason and disable submit button if  
+      no reason selected for report abuse (LP: #733366)
+
+
 software-center (3.1.23.2) natty; urgency=low
 
   [ Michael Vogt]
