@@ -156,7 +156,7 @@ class Worker(threading.Thread):
                                                        token["consumer_secret"])
         # change default server to the SSL one
         distro = get_distro()
-        service_root = distro.REVIEWS_SERVER_SSL
+        service_root = distro.REVIEWS_SERVER
         self.rnrclient = RatingsAndReviewsAPI(service_root=service_root,
                                               auth=auth)
 
@@ -274,8 +274,9 @@ class Worker(threading.Thread):
             try:
                 res = self.rnrclient.submit_review(review=piston_review)
                 self._transmit_state = TRANSMIT_STATE_DONE
-                # output the resulting json so that the parent can read it
-                sys.stdout.write(simplejson.dumps(res))
+                # output the resulting ReviewDetails object as json so
+                # that the parent can read it
+                sys.stdout.write(simplejson.dumps(vars(res)))
             except Exception as e:
                 logging.exception("submit_review")
                 self._write_exception_html_log_if_needed(e)
@@ -962,6 +963,7 @@ class ReportReviewApp(BaseApp):
         self.textview_report.get_buffer().connect(
             "changed", self._enable_or_disable_report_button)
 
+
         # data
         self.review_id = review_id
 
@@ -981,16 +983,19 @@ class ReportReviewApp(BaseApp):
         self.report_body_vbox.pack_start(self.combobox_report_summary, False)
         self.report_body_vbox.reorder_child(self.combobox_report_summary, 2)
         self.combobox_report_summary.show()
-        for term in [ _("Unspecified"), 
+        for term in [ _(u"Please make a selection\u2026"), 
                       _("Offensive language"), 
                       _("Infringes copyright"), 
                       _("Contains inaccuracies"),
                       _("Other") ]:
             self.combobox_report_summary.append_text(term)
         self.combobox_report_summary.set_active(0)
+        
+        self.combobox_report_summary.connect(
+            "changed", self._enable_or_disable_report_button)
 
-    def _enable_or_disable_report_button(self, buf):
-        if buf.get_char_count() > 0:
+    def _enable_or_disable_report_button(self, widget):
+        if self.textview_report.get_buffer().get_char_count() > 0 and self.combobox_report_summary.get_active() != 0:
             self.button_post.set_sensitive(True)
         else:
             self.button_post.set_sensitive(False)

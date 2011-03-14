@@ -180,12 +180,17 @@ class ReviewLoader(object):
         """
         return []
 
-    def get_review_stats(self, application):
+    def update_review_stats(self, translated_application, stats):
+        application = translated_application.get_untranslated_app(self.db)
+        self.REVIEW_STATS_CACHE[application] = stats
+
+    def get_review_stats(self, translated_application):
         """return a ReviewStats (number of reviews, rating)
            for a given application. this *must* be super-fast
            as it is called a lot during tree view display
         """
         # check cache
+        application = translated_application.get_untranslated_app(self.db)
         if application in self.REVIEW_STATS_CACHE:
             return self.REVIEW_STATS_CACHE[application]
         return None
@@ -204,9 +209,11 @@ class ReviewLoader(object):
 
     # writing new reviews spawns external helper
     # FIXME: instead of the callback we should add proper gobject signals
-    def spawn_write_new_review_ui(self, app, version, iconname, origin, parent_xid, datadir, callback):
+    def spawn_write_new_review_ui(self, translated_app, version, iconname, 
+                                  origin, parent_xid, datadir, callback):
         """ this spawns the UI for writing a new review and
             adds it automatically to the reviews DB """
+        app = translated_app.get_untranslated_app(self.db)
         cmd = [os.path.join(datadir, SUBMIT_REVIEW_APP), 
                "--pkgname", app.pkgname,
                "--iconname", iconname,
@@ -343,10 +350,11 @@ class ReviewLoaderThreadedRNRClient(ReviewLoader):
         self.rnrclient._offline_mode = not network_state_is_connected()
 
     # reviews
-    def get_reviews(self, app, callback):
+    def get_reviews(self, translated_app, callback):
         """ public api, triggers fetching a review and calls callback
             when its ready
         """
+        app = translated_app.get_untranslated_app(self.db)
         self._update_rnrclient_offline_state()
         self._new_reviews[app] = Queue()
         p = Process(target=self._get_reviews_threaded, args=(app, ))

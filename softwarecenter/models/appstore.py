@@ -422,9 +422,10 @@ class AppStore(gtk.GenericTreeModel):
         #self._logger.debug("on_get_value: %s %s" % (rowref, column))
         doc = self.matches[rowref].document
         appname = doc.get_value(XAPIAN_VALUE_APPNAME)
+        untranslated_appname = doc.get_value(XAPIAN_VALUE_APPNAME_UNTRANSLATED)
         pkgname = self.db.get_pkgname(doc)
         popcon = self.db.get_popcon(doc)
-        app = Application(appname, pkgname, "", popcon)
+        app = Application(appname, pkgname)
         # FIXME: do not actually load the xapian document if we don'
         #        need the full data
         try:
@@ -532,12 +533,14 @@ class AppStore(gtk.GenericTreeModel):
             pkgname = app.pkgname
             return pkgname
         elif column == self.COL_RATING:
-            stats = self.review_loader.get_review_stats(app)
+            uapp = Application(untranslated_appname, pkgname)
+            stats = self.review_loader.get_review_stats(uapp)
             if stats:
                 return stats.ratings_average
             return 0
         elif column == self.COL_NR_REVIEWS:
-            stats = self.review_loader.get_review_stats(app)
+            uapp = Application(untranslated_appname, pkgname)
+            stats = self.review_loader.get_review_stats(uapp)
             if stats:
                 return stats.ratings_total
             return 0
