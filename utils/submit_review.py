@@ -156,7 +156,7 @@ class Worker(threading.Thread):
                                                        token["consumer_secret"])
         # change default server to the SSL one
         distro = get_distro()
-        service_root = distro.REVIEWS_SERVER_SSL
+        service_root = distro.REVIEWS_SERVER
         self.rnrclient = RatingsAndReviewsAPI(service_root=service_root,
                                               auth=auth)
 

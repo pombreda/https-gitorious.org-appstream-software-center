@@ -4,8 +4,13 @@ software-center (3.1.23.3) UNRELEASED; urgency=low
   * utils/submit_review.py:
     - Remove 'unspecified' reason and disable submit button if  
       no reason selected for report abuse (LP: #733366)
+  
+  [ Michael Vogt ]
+  * add SOFTWARE_CENTER_FORCE_NON_SSL environment to allow
+    testing against a local django server
 
-
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 14 Mar 2011 09:32:08 +0100
+  
 software-center (3.1.23.2) natty; urgency=low
 
   [ Michael Vogt]

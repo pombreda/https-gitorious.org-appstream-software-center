@@ -41,6 +41,12 @@ except:
                   "   ppa:software-store-developers/daily-build ")
     sys.exit(1)
 
+import rnrclient_pristine
+if "SOFTWARE_CENTER_FORCE_NON_SSL" in os.environ:
+    logging.warn("forcing transmission over NON ENCRYPTED CHANNEL")
+    rnrclient_pristine.AUTHENTICATED_API_SCHEME = "http"
+
+
 if __name__ == "__main__":
     import urllib
 
