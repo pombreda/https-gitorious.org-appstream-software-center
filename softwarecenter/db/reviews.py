@@ -57,6 +57,46 @@ class ReviewStats(object):
     def __repr__(self):
         return "[ReviewStats '%s' ratings_average='%s' ratings_total='%s']" % (self.app, self.ratings_average, self.ratings_total)
 
+class UsefulnessCache(object):
+
+    USEFULNESS_CACHE = {}
+    
+    def __init__(self):
+        fname = "usefulness.p"
+        self.USEFULNESS_CACHE_FILE = os.path.join(SOFTWARE_CENTER_CACHE_DIR,
+                                                    fname)
+        if os.path.exists(self.USEFULNESS_CACHE_FILE):
+            try:
+                self.USEFULNESS_CACHE = cPickle.load(open(self.USEFULNESS_CACHE_FILE))
+            except:
+                LOG.exception("usefulness cache load failure")
+                os.rename(self.USEFULNESS_CACHE_FILE, self.USEFULNESS_CACHE_FILE+".fail")
+    
+    def save_usefulness_cache_file(self):
+        """write the dict out to cache file"""
+        cachedir = SOFTWARE_CENTER_CACHE_DIR
+        try:
+            if not os.path.exists(cachedir):
+                os.makedirs(cachedir)
+            cPickle.dump(self.USEFULNESS_CACHE,
+                      open(self.USEFULNESS_CACHE_FILE, "w"))
+            return True
+        except:
+            return False
+    
+    def add_usefulness_vote(self, review_id, useful):
+        """pass a review id and useful boolean vote and save it into the dict, then try to save to cache file"""
+        self.USEFULNESS_CACHE[str(review_id)] = useful
+        if self.save_usefulness_cache_file():
+            return True
+        return False
+    
+    def check_for_usefulness(self, review_id):
+        """pass a review id and get a True/False useful back or None if the review_id is not in the dict"""
+        return self.USEFULNESS_CACHE.get(str(review_id))
+    
+    
+
 class Review(object):
     """A individual review object """
     def __init__(self, app):
@@ -140,12 +180,17 @@ class ReviewLoader(object):
         """
         return []
 
-    def get_review_stats(self, application):
+    def update_review_stats(self, translated_application, stats):
+        application = translated_application.get_untranslated_app(self.db)
+        self.REVIEW_STATS_CACHE[application] = stats
+
+    def get_review_stats(self, translated_application):
         """return a ReviewStats (number of reviews, rating)
            for a given application. this *must* be super-fast
            as it is called a lot during tree view display
         """
         # check cache
+        application = translated_application.get_untranslated_app(self.db)
         if application in self.REVIEW_STATS_CACHE:
             return self.REVIEW_STATS_CACHE[application]
         return None
@@ -164,9 +209,11 @@ class ReviewLoader(object):
 
     # writing new reviews spawns external helper
     # FIXME: instead of the callback we should add proper gobject signals
-    def spawn_write_new_review_ui(self, app, version, iconname, origin, parent_xid, datadir, callback):
+    def spawn_write_new_review_ui(self, translated_app, version, iconname, 
+                                  origin, parent_xid, datadir, callback):
         """ this spawns the UI for writing a new review and
             adds it automatically to the reviews DB """
+        app = translated_app.get_untranslated_app(self.db)
         cmd = [os.path.join(datadir, SUBMIT_REVIEW_APP), 
                "--pkgname", app.pkgname,
                "--iconname", iconname,
@@ -258,6 +305,8 @@ class ReviewLoader(object):
             return
         if exitcode == 0:
             LOG.debug("usefulness id %s " % review_id)
+            useful_votes = UsefulnessCache()
+            useful_votes.add_usefulness_vote(review_id, is_useful)
             for (app, reviews) in self._reviews.iteritems():
                 for review in reviews:
                     if str(review.id) == str(review_id):
@@ -301,10 +350,11 @@ class ReviewLoaderThreadedRNRClient(ReviewLoader):
         self.rnrclient._offline_mode = not network_state_is_connected()
 
     # reviews
-    def get_reviews(self, app, callback):
+    def get_reviews(self, translated_app, callback):
         """ public api, triggers fetching a review and calls callback
             when its ready
         """
+        app = translated_app.get_untranslated_app(self.db)
         self._update_rnrclient_offline_state()
         self._new_reviews[app] = Queue()
         p = Process(target=self._get_reviews_threaded, args=(app, ))
