@@ -256,6 +256,7 @@ class SoftwarePane(gtk.VBox, BasePane):
         # aptdaemon
         self.backend.connect("transaction-started", self.on_transaction_started)
         self.backend.connect("transaction-finished", self.on_transaction_finished)
+        self.backend.connect("transaction-stopped", self.on_transaction_finished)
         
         # connect signals
         self.searchentry.connect("terms-changed", self.on_search_terms_changed)
@@ -407,26 +408,33 @@ class SoftwarePane(gtk.VBox, BasePane):
         self.action_bar.clear()
         
     def on_transaction_finished(self, backend, result):
-
-        # check if this package has been requested to be added to the Unity launcher,
-        # and send a dbus signal to the launcher to add it
+        # if requested, add this item to the Unity launcher
         if result.pkgname in self.unity_launcher_items:
-            print "self.unity_launcher_items: ", self.unity_launcher_items
             launcher_info = self.unity_launcher_items.pop(result.pkgname)
-            try:
-                bus = dbus.SessionBus()
-                launcher_obj = bus.get_object('com.canonical.Unity.Launcher', '/com/canonical/Unity/Launcher')
-                launcher_iface = dbus.Interface(launcher_obj, 'com.canonical.Unity.Launcher')
-                launcher_iface.AddLauncherItemFromPosition(launcher_info.appname,
-                                                           launcher_info.icon_file_path,
-                                                           launcher_info.icon_x,
-                                                           launcher_info.icon_y,
-                                                           launcher_info.icon_size,
-                                                           launcher_info.appdetails.desktop_file_path,
-                                                           launcher_info.trans_id)
-            except Exception, e:
-                LOG.warn("could not send dbus signal to the Unity launcher: (%s)", e)
+            if result.success:
+                self._send_dbus_signal_to_unity_launcher()
             self.action_bar.clear()
+   
+    def _send_dbus_signal_to_unity_launcher(self):
+        try:
+            bus = dbus.SessionBus()
+            launcher_obj = bus.get_object('com.canonical.Unity.Launcher',
+                                          '/com/canonical/Unity/Launcher')
+            launcher_iface = dbus.Interface(launcher_obj, 'com.canonical.Unity.Launcher')
+            launcher_iface.AddLauncherItemFromPosition(launcher_info.appname,
+                                                       launcher_info.icon_file_path,
+                                                       launcher_info.icon_x,
+                                                       launcher_info.icon_y,
+                                                       launcher_info.icon_size,
+                                                       launcher_info.appdetails.desktop_file_path,
+                                                       launcher_info.trans_id)
+        except Exception, e:
+            LOG.warn("could not send dbus signal to the Unity launcher: (%s)", e)
+            
+    def on_transaction_stopped(self, backend, result):
+        if result.pkgname in self.unity_launcher_items:
+            self.unity_launcher_items.pop(result.pkgname)
+        self.action_bar.clear()
 
     def show_appview_spinner(self):
         """ display the spinner in the appview panel """
