@@ -412,10 +412,17 @@ class SoftwarePane(gtk.VBox, BasePane):
         if result.pkgname in self.unity_launcher_items:
             launcher_info = self.unity_launcher_items.pop(result.pkgname)
             if result.success:
-                self._send_dbus_signal_to_unity_launcher()
+                self._send_dbus_signal_to_unity_launcher(launcher_info)
             self.action_bar.clear()
    
-    def _send_dbus_signal_to_unity_launcher(self):
+    def _send_dbus_signal_to_unity_launcher(self, launcher_info):
+        print ">>> launcher_info.appname: ", launcher_info.appname
+        print ">>> launcher_info.icon_file_path: ", launcher_info.icon_file_path
+        print ">>> launcher_info.icon_x: ", launcher_info.icon_x
+        print ">>> launcher_info.icon_y: ", launcher_info.icon_y
+        print ">>> launcher_info.icon_size: ", launcher_info.icon_size
+        print ">>> launcher_info.desktop_file_path: ", launcher_info.desktop_file_path
+        print ">>> launcher_info.trans_id: ", launcher_info.trans_id
         try:
             bus = dbus.SessionBus()
             launcher_obj = bus.get_object('com.canonical.Unity.Launcher',
@@ -426,7 +433,7 @@ class SoftwarePane(gtk.VBox, BasePane):
                                                        launcher_info.icon_x,
                                                        launcher_info.icon_y,
                                                        launcher_info.icon_size,
-                                                       launcher_info.appdetails.desktop_file_path,
+                                                       launcher_info.desktop_file_path,
                                                        launcher_info.trans_id)
         except Exception, e:
             LOG.warn("could not send dbus signal to the Unity launcher: (%s)", e)
