@@ -375,7 +375,7 @@ class SoftwarePane(gtk.VBox, BasePane):
                                    self.on_add_to_launcher,
                                    app,
                                    appdetails,
-                                   trans_id)        
+                                   trans_id)
         
     def on_add_to_launcher(self, app, appdetails, trans_id):
         """
@@ -391,7 +391,10 @@ class SoftwarePane(gtk.VBox, BasePane):
                                           appdetails.desktop_file,
                                           trans_id)
         self.unity_launcher_items[app.pkgname] = launcher_info
-        self.action_bar.clear()
+        self.action_bar.unset_label()
+        self.action_bar.set_label(_("%s will be added to the launcher when installation completes." % app.name))
+        self.action_bar.remove_button(ACTION_BUTTON_CANCEL_ADD_TO_LAUNCHER)
+        self.action_bar.remove_button(ACTION_BUTTON_ADD_TO_LAUNCHER)
 
     def _get_icon_details_for_launcher_service(self, app):
         if self.is_app_details_view_showing():
@@ -406,9 +409,8 @@ class SoftwarePane(gtk.VBox, BasePane):
     def on_transaction_finished(self, backend, result):
 
         # check if this package has been requested to be added to the Unity launcher,
-        # and add it if so
+        # and send a dbus signal to the launcher to add it
         if result.pkgname in self.unity_launcher_items:
-        
             print "self.unity_launcher_items: ", self.unity_launcher_items
             launcher_info = self.unity_launcher_items.pop(result.pkgname)
             try:
@@ -424,8 +426,8 @@ class SoftwarePane(gtk.VBox, BasePane):
                                                            launcher_info.trans_id)
             except Exception, e:
                 LOG.warn("could not send dbus signal to the Unity launcher: (%s)", e)
+            self.action_bar.clear()
 
-        
     def show_appview_spinner(self):
         """ display the spinner in the appview panel """
         self.action_bar.clear()
