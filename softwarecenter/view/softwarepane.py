@@ -109,7 +109,26 @@ class SoftwareSection(object):
 
     def get_image(self):
         return self.MASK_SURFACE_CACHE[self._image_id]
-
+        
+class UnityLauncherInfo(object):
+    """ Simple class to keep track of application details needed for
+        Unity launcher integration
+    """
+    def __init__(self,
+                 appname,
+                 icon_file_path,
+                 icon_x,
+                 icon_y,
+                 icon_size,
+                 desktop_file_path,
+                 trans_id):
+        self.appname = appname
+        self.icon_file_path = icon_file_path
+        self.icon_x = icon_x
+        self.icon_y = icon_y
+        self.icon_size = icon_size
+        self.desktop_file_path = desktop_file_path
+        self.trans_id = trans_id
 
 class SoftwarePane(gtk.VBox, BasePane):
     """ Common base class for InstalledPane, AvailablePane and ChannelPane"""
@@ -234,6 +253,7 @@ class SoftwarePane(gtk.VBox, BasePane):
         
         # aptdaemon
         self.backend.connect("transaction-started", self.on_transaction_started)
+        self.backend.connect("transaction-finished", self.on_transaction_finished)
         
         # connect signals
         self.searchentry.connect("terms-changed", self.on_search_terms_changed)
@@ -324,6 +344,10 @@ class SoftwarePane(gtk.VBox, BasePane):
     def on_transaction_started(self, backend, pkgname, appname, trans_id, trans_type):
         self.show_add_to_launcher_panel(backend, pkgname, appname, trans_id, trans_type)
         
+    def on_transaction_finished(self, backend, result):
+        print ">>> got the on_transaction_finished signal"
+        print ">>> with result.meta_data: ", result.meta_data
+        
     def show_add_to_launcher_panel(self, backend, pkgname, appname, trans_id, trans_type):
         """
         if Unity is currently running, display a panel to allow the user
@@ -382,7 +406,7 @@ class SoftwarePane(gtk.VBox, BasePane):
                                                        appdetails.desktop_file,
                                                        trans_id)
         except Exception, e:
-            LOG.warn("could not connect to the Unity launcher dbus service (%s)", e)
+            LOG.warn("unable to send dbus signal to the Unity launcher: (%s)", e)
         
         self.action_bar.clear()
 
@@ -395,7 +419,7 @@ class SoftwarePane(gtk.VBox, BasePane):
                                               
     def on_cancel_add_to_launcher(self, args):
         self.action_bar.clear()
-                                               
+
     def show_appview_spinner(self):
         """ display the spinner in the appview panel """
         self.action_bar.clear()
