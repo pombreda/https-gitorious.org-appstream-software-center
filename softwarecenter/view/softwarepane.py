@@ -414,6 +414,9 @@ class SoftwarePane(gtk.VBox, BasePane):
             if result.success:
                 self._send_dbus_signal_to_unity_launcher(launcher_info)
             self.action_bar.clear()
+        # if the user never selected a choice in the action bar, just clear it
+        elif self.action_bar.get_button(ACTION_BUTTON_ADD_TO_LAUNCHER):
+            self.action_bar.clear()
    
     def _send_dbus_signal_to_unity_launcher(self, launcher_info):
         print ">>> launcher_info.appname: ", launcher_info.appname
