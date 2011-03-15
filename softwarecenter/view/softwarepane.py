@@ -411,7 +411,6 @@ class SoftwarePane(gtk.VBox, BasePane):
         
             print "self.unity_launcher_items: ", self.unity_launcher_items
             launcher_info = self.unity_launcher_items.pop(result.pkgname)
-            print "self.unity_launcher_items: ", self.unity_launcher_items
             try:
                 bus = dbus.SessionBus()
                 launcher_obj = bus.get_object('com.canonical.Unity.Launcher', '/com/canonical/Unity/Launcher')
