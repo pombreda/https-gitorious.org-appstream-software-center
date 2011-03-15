@@ -385,28 +385,26 @@ class SoftwarePane(gtk.VBox, BasePane):
         to the launcher
         """
         (icon_name, icon_file_path, icon_size, icon_x, icon_y) = self._get_icon_details_for_launcher_service(app)
-        print "values for use in the unity launcher dbus call:"
-        # print "   (icon_name): ", icon_name
-        print "   app.name: ", app.name
-        print "   icon_file_path: ", icon_file_path
-        print "   icon_x: ", icon_x
-        print "   icon_y: ", icon_y
-        print "   icon_size: ", icon_size
-        print "   appdetails.desktop_file: ", appdetails.desktop_file
-        print "   trans_id: ", trans_id
+        launcher_info = UnityLauncherInfo(app.appname,
+                                          icon_file_path,
+                                          icon_x,
+                                          icon_y,
+                                          icon_size,
+                                          appdetails.desktop_file,
+                                          trans_id)
         try:
             bus = dbus.SessionBus()
             launcher_obj = bus.get_object('com.canonical.Unity.Launcher', '/com/canonical/Unity/Launcher')
             launcher_iface = dbus.Interface(launcher_obj, 'com.canonical.Unity.Launcher')
-            launcher_iface.AddLauncherItemFromPosition(app.name,
-                                                       icon_file_path,
-                                                       icon_x,
-                                                       icon_y,
-                                                       icon_size,
-                                                       appdetails.desktop_file,
-                                                       trans_id)
+            launcher_iface.AddLauncherItemFromPosition(launcher_info.appname,
+                                                       launcher_info.icon_file_path,
+                                                       launcher_info.icon_x,
+                                                       launcher_info.icon_y,
+                                                       launcher_info.icon_size,
+                                                       launcher_info.appdetails.desktop_file_path,
+                                                       launcher_info.trans_id)
         except Exception, e:
-            LOG.warn("unable to send dbus signal to the Unity launcher: (%s)", e)
+            LOG.warn("could not send dbus signal to the Unity launcher: (%s)", e)
         
         self.action_bar.clear()
 
