@@ -382,7 +382,7 @@ class SoftwarePane(gtk.VBox, BasePane):
                                                        appdetails.desktop_file,
                                                        trans_id)
         except Exception, e:
-            LOG.warn("could not connect to launcher via dbus (%s)", e)
+            LOG.warn("could not connect to the Unity launcher via dbus (%s)", e)
         
         self.action_bar.clear()
 
