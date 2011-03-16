@@ -384,12 +384,13 @@ class SoftwarePane(gtk.VBox, BasePane):
         to the launcher
         """
         (icon_name, icon_size, icon_x, icon_y) = self._get_icon_details_for_launcher_service(app)
+        installed_desktop_file_path = convert_desktop_file_to_installed_location(appdetails.desktop_file)
         launcher_info = UnityLauncherInfo(app.appname,
                                           icon_name,
                                           icon_x,
                                           icon_y,
                                           icon_size,
-                                          appdetails.desktop_file,
+                                          installed_desktop_file_path,
                                           trans_id)
         self.unity_launcher_items[app.pkgname] = launcher_info
         self.action_bar.unset_label()

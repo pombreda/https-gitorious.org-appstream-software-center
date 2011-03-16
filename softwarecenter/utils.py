@@ -311,11 +311,12 @@ def get_file_path_from_iconname(icons, iconname=None, iconsize=APP_ICON_SIZE):
         icon_info.free()
         return icon_file_path
         
-def convert_desktop_file_installed_location(app_install_data_file_path):
+def convert_desktop_file_to_installed_location(app_install_data_file_path):
     """ returns the installed desktop file path that corresponds to the
         given app-install-date file path
     """
-   
+    # FIXME:  handle all edge cases e.g. kde4 in subdirectory, etc.
+    return app_install_data_file_path.replace("app-install/desktop", "applications")
 
 def clear_token_from_ubuntu_sso(appname):
     """ send a dbus signal to the com.ubuntu.sso service to clear 
