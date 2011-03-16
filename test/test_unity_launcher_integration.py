@@ -14,6 +14,7 @@ sys.path.insert(0, "..")
 from softwarecenter.app import SoftwareCenterApp
 from softwarecenter.paths import XAPIAN_BASE_PATH
 from softwarecenter.enums import ACTION_BUTTON_ADD_TO_LAUNCHER
+from softwarecenter.utils import convert_desktop_file_to_installed_location
 from softwarecenter.view.appview import AppStore
 from softwarecenter.db.application import Application
 
@@ -88,6 +89,11 @@ class TestUnityLauncherIntegration(unittest.TestCase):
         self.assertTrue(icon_y > 20)
         self.assertEqual(icon_size, 84)
         self.assertEqual(appdetails.desktop_file, "/usr/share/app-install/desktop/lincity-ng.desktop")
+        
+    def test_desktop_file_path_conversion(self):
+        app_install_desktop_path = "/usr/share/app-install/desktop/deja-dup.desktop"
+        installed_desktop_path = convert_desktop_file_to_installed_location(app_install_desktop_path)
+        self.assertTrue(installed_desktop_path, "/usr/share/applications/deja-dup.desktop")
         
 
 if __name__ == "__main__":
