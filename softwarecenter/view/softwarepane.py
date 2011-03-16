@@ -418,6 +418,8 @@ class SoftwarePane(gtk.VBox, BasePane):
         # if the user never selected a choice in the action bar, just clear it
         elif self.action_bar.get_button(ACTION_BUTTON_ADD_TO_LAUNCHER):
             self.action_bar.clear()
+            
+        print "installed file path: ", get_file_path_from_iconname(self.icons, launcher_info.icon_name)
    
     def _send_dbus_signal_to_unity_launcher(self, launcher_info):
         print ">>> launcher_info.appname: ", launcher_info.appname
