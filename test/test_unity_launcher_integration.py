@@ -78,14 +78,12 @@ class TestUnityLauncherIntegration(unittest.TestCase):
         # now test the values to be used in the dbus call
         app = Application("", model[0][AppStore.COL_PKGNAME])
         (icon_name,
-        icon_file_path,
         icon_size,
         icon_x,
         icon_y) = self.s_c_app.available_pane._get_icon_details_for_launcher_service(app)
         appdetails = app.get_details(self.s_c_app.db)
         # check for valid values
         self.assertEqual(app.name, "Lincity-ng")
-        self.assertEqual(icon_file_path, "/usr/share/app-install/icons/lincity-ng.png")
         self.assertTrue(icon_x > 20)
         self.assertTrue(icon_y > 20)
         self.assertEqual(icon_size, 84)
