@@ -116,6 +116,7 @@ class UnityLauncherInfo(object):
     def __init__(self,
                  appname,
                  icon_name,
+                 icon_file_path,
                  icon_x,
                  icon_y,
                  icon_size,
@@ -123,6 +124,7 @@ class UnityLauncherInfo(object):
                  trans_id):
         self.appname = appname
         self.icon_name = icon_name
+        self.icon_file_path = icon_file_path
         self.icon_x = icon_x
         self.icon_y = icon_y
         self.icon_size = icon_size
@@ -387,6 +389,7 @@ class SoftwarePane(gtk.VBox, BasePane):
         installed_desktop_file_path = convert_desktop_file_to_installed_location(appdetails.desktop_file)
         launcher_info = UnityLauncherInfo(app.appname,
                                           icon_name,
+                                          "",           # we set the icon_file_path value after install
                                           icon_x,
                                           icon_y,
                                           icon_size,
@@ -412,6 +415,8 @@ class SoftwarePane(gtk.VBox, BasePane):
         # if requested, add this item to the Unity launcher
         if result.pkgname in self.unity_launcher_items:
             launcher_info = self.unity_launcher_items.pop(result.pkgname)
+            launcher_info.icon_file_path = get_file_path_from_iconname(self.icons,
+                                                                       launcher_info.icon_name)
             if result.success:
                 self._send_dbus_signal_to_unity_launcher(launcher_info)
             self.action_bar.clear()
@@ -419,11 +424,10 @@ class SoftwarePane(gtk.VBox, BasePane):
         elif self.action_bar.get_button(ACTION_BUTTON_ADD_TO_LAUNCHER):
             self.action_bar.clear()
             
-        print "installed file path: ", get_file_path_from_iconname(self.icons, launcher_info.icon_name)
-   
     def _send_dbus_signal_to_unity_launcher(self, launcher_info):
         print ">>> launcher_info.appname: ", launcher_info.appname
         print ">>> launcher_info.icon_name: ", launcher_info.icon_name
+        print ">>> launcher_info.icon_file_path: ", launcher_info.icon_file_path
         print ">>> launcher_info.icon_x: ", launcher_info.icon_x
         print ">>> launcher_info.icon_y: ", launcher_info.icon_y
         print ">>> launcher_info.icon_size: ", launcher_info.icon_size
@@ -435,7 +439,7 @@ class SoftwarePane(gtk.VBox, BasePane):
                                           '/com/canonical/Unity/Launcher')
             launcher_iface = dbus.Interface(launcher_obj, 'com.canonical.Unity.Launcher')
             launcher_iface.AddLauncherItemFromPosition(launcher_info.appname,
-                                                       launcher_info.icon_name,
+                                                       launcher_info.icon_file_path,
                                                        launcher_info.icon_x,
                                                        launcher_info.icon_y,
                                                        launcher_info.icon_size,
