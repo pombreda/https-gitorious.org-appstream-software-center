@@ -70,7 +70,7 @@ if __name__ == "__main__":
                       default=False)
 
     parser.add_option("--with-weblive", action="store_true",
-                      help="enable (experimental) weblive support, this needs the qtnx pacakge",
+                      help="enable (experimental) weblive support, this needs the qtnx package",
                       default=False)
 
     parser.add_option("--measure-startup-time", action="store_true",
