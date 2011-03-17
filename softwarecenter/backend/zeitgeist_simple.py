@@ -94,7 +94,7 @@ class SoftwareCenterZeitgeist():
         # trigger event (actual processing is done in _callback)
         # FIXME: investigate how result_type MostRecentEvents or
         #        MostRecentSubjects would affect the results
-        self.zg_client.find_events_for_template(
+        self.zg_client.find_events_for_templates(
             [], _callback, num_events=1000, 
             result_type=ResultType.MostRecentEvents)
 

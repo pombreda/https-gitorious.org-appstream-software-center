@@ -8,6 +8,11 @@ software-center (3.1.23.3) UNRELEASED; urgency=low
   [ Michael Vogt ]
   * add SOFTWARE_CENTER_FORCE_NON_SSL environment to allow
     testing against a local django server
+  * software-center:
+    - fix spelling error in --help output, thanks to
+      Robbie Williamson
+  * softwarecenter/backend/zeitgeist_simple.py:
+    - fix crash with the new zeitgeist version
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 14 Mar 2011 09:32:08 +0100
   
