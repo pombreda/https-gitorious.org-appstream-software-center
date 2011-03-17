@@ -3,6 +3,7 @@ import gtk
 import gobject
 import mkit
 import pangocairo
+import logging
 
 from softwarecenter.enums import *
 from softwarecenter.utils import SimpleFileDownloader, uri_to_filename
@@ -11,6 +12,7 @@ from imagedialog import ShowImageDialog
 
 from gettext import gettext as _
 
+LOG = logging.getLogger(__name__)
 
 class ScreenshotThumbnail(gtk.Alignment):
 
