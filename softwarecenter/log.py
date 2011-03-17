@@ -89,6 +89,15 @@ handler.addFilter(NullFilterThatWarnsAboutRootLoggerUsage())
 if not os.path.exists(SOFTWARE_CENTER_CACHE_DIR):
     os.makedirs(SOFTWARE_CENTER_CACHE_DIR)
 logfile_path = os.path.join(SOFTWARE_CENTER_CACHE_DIR, "software-center.log")
+
+# according to bug 688682 many people have a non-writeable logfile
+if os.path.exists(logfile_path) and not os.access(logfile_path, os.W_OK):
+    try:
+        logging.warn("trying to fix non-writeable logfile")
+        os.remove(logfile_path)
+    except:
+        logging.exception("failed to fix non-writeable logfile")
+
 logfile_handler = logging.handlers.RotatingFileHandler(logfile_path,
                                                        maxBytes=100*1000,
                                                        backupCount=5)

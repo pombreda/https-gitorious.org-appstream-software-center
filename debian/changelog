@@ -1,3 +1,11 @@
+software-center (3.1.23.4) natty; urgency=low
+
+  [ Kiwinote ]
+  * softwarecenter/log.py:
+    - don't crash on startup when logfile is not writeable (LP: #688682)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 17 Mar 2011 13:59:15 +0100
+
 software-center (3.1.23.3) natty; urgency=low
 
   [ Aaron Peachey ]
