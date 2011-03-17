@@ -93,23 +93,16 @@ class TestUnityLauncherIntegration(unittest.TestCase):
         # TODO: modify tests per UnityLauncherInfo object
         
     def test_desktop_file_path_conversion(self):
-        # to test this, we need to temporarily monkey-patch os.path.exists so that the
-        # convert_desktop_file_to_installed_location method will return a result even for
-        # cases where the desktop file doesn't exist (the corresponding app is not installed)
         import os.path
-        os.path.exists_restore = os.path.exists
-        os.path.exists = lambda p: True
         # test 'normal' case
         app_install_desktop_path = "/usr/share/app-install/desktop/deja-dup.desktop"
         installed_desktop_path = convert_desktop_file_to_installed_location(app_install_desktop_path)
-        self.assertTrue(installed_desktop_path, "/usr/share/applications/deja-dup.desktop")
+        self.assertEqual(installed_desktop_path, "/usr/share/applications/deja-dup.desktop")
         # test encoded subdirectory case, e.g. e.g. kde4_soundkonverter.desktop
         app_install_desktop_path = "/usr/share/app-install/desktop/kde4_soundkonverter.desktop"
         installed_desktop_path = convert_desktop_file_to_installed_location(app_install_desktop_path)
-        self.assertTrue(installed_desktop_path, "/usr/share/applications/kde4/soundkonverter.desktop")
+        self.assertEqual(installed_desktop_path, "/usr/share/applications/kde4/soundkonverter.desktop")
         # TODO:  test remaining special cases e.g. therion.desktop_therion.desktop, etc.
-        
-        os.path.exists = os.path.exists_restore
         
 
 if __name__ == "__main__":
