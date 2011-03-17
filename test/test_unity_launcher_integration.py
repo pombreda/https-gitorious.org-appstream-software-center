@@ -90,15 +90,18 @@ class TestUnityLauncherIntegration(unittest.TestCase):
         self.assertEqual(icon_size, 84)
         self.assertEqual(appdetails.desktop_file, "/usr/share/app-install/desktop/lincity-ng.desktop")
         
+        # TODO: modify tests per UnityLauncherInfo object
+        
     def test_desktop_file_path_conversion(self):
         # test 'normal' case
         app_install_desktop_path = "/usr/share/app-install/desktop/deja-dup.desktop"
         installed_desktop_path = convert_desktop_file_to_installed_location(app_install_desktop_path)
         self.assertTrue(installed_desktop_path, "/usr/share/applications/deja-dup.desktop")
-        # test encoded subdirectory case, e.g. e.g. kde4_soundkonverter.desktop 
+        # test encoded subdirectory case, e.g. e.g. kde4_soundkonverter.desktop
         app_install_desktop_path = "/usr/share/app-install/desktop/kde4_soundkonverter.desktop"
         installed_desktop_path = convert_desktop_file_to_installed_location(app_install_desktop_path)
         self.assertTrue(installed_desktop_path, "/usr/share/applications/kde4/soundkonverter.desktop")
+        # TODO:  test remaining special cases e.g. therion.desktop_therion.desktop, etc.
         
 
 if __name__ == "__main__":

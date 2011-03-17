@@ -315,6 +315,7 @@ def convert_desktop_file_to_installed_location(app_install_data_file_path):
     """ returns the installed desktop file path that corresponds to the
         given app-install-date file path
     """
+    # TODO: Fix this, need to handle all special cases
     installed_desktop_file_path = app_install_data_file_path.replace("app-install/desktop", "applications")
     # handle case where a subdirectory is encoded in the app-install
     # desktop filename, e.g. kde4_soundkonverter.desktop
