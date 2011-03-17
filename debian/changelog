@@ -5,6 +5,8 @@ software-center (3.1.23.4) natty; urgency=low
     - don't crash on startup when logfile is not writeable (LP: #688682)
   * softwarecenter/view/catview_gtk:
     - don't crash when we have no what's new carousel (LP: #736046)
+  * softwarecenter/view/widgets/reviews.py:
+    - fallback to package_name if review_data contains no app_name
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 17 Mar 2011 13:59:15 +0100
 
