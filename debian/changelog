@@ -1,9 +1,14 @@
-software-center (3.1.23.3) UNRELEASED; urgency=low
+software-center (3.1.23.3) natty; urgency=low
 
   [ Aaron Peachey ]
   * utils/submit_review.py:
     - Remove 'unspecified' reason and disable submit button if  
       no reason selected for report abuse (LP: #733366)
+  * softwarecenter/db/reviews.py, view/appdetailsview_gtk.py,
+    view/widgets/reviews.py:
+    - refresh usefulness object with latest vote after successful
+      usefulness submit, so review UI is updated correctly
+      (LP: #736312)
   
   [ Michael Vogt ]
   * add SOFTWARE_CENTER_FORCE_NON_SSL environment to allow
@@ -14,7 +19,7 @@ software-center (3.1.23.3) UNRELEASED; urgency=low
   * softwarecenter/backend/zeitgeist_simple.py:
     - fix crash with the new zeitgeist version
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 14 Mar 2011 09:32:08 +0100
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 17 Mar 2011 13:59:15 +0100
   
 software-center (3.1.23.2) natty; urgency=low
 

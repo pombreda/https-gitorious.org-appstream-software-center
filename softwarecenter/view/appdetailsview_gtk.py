@@ -758,7 +758,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         else:
             self.review_stats_widget.hide()
 
-    def _reviews_ready_callback(self, app, reviews_data):
+    def _reviews_ready_callback(self, app, reviews_data, my_votes=None):
         """ callback when new reviews are ready, cleans out the
             old ones
         """
@@ -787,6 +787,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self._update_review_stats_widget(stats)
             # update global stats cache as well
             self.review_loader.update_review_stats(app, stats)
+        
+        if my_votes:
+            self.reviews.update_useful_votes(my_votes)
         
         # FIXME: simplify UIReviewsList API to provide a single set_reviews()
         # update the UI
