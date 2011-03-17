@@ -918,7 +918,7 @@ class UIReview(gtk.VBox):
         # example raw_date str format: 2011-01-28 19:15:21
         cur_t = self._get_datetime_from_review_date(review_data.date_created)
 
-        app_name = review_data.app_name
+        app_name = review_data.app_name or review_data.package_name
         review_version = review_data.version
         self.useful_total = useful_total = review_data.usefulness_total
         useful_favorable = review_data.usefulness_favorable
