@@ -3,6 +3,8 @@ software-center (3.1.23.4) natty; urgency=low
   [ Kiwinote ]
   * softwarecenter/log.py:
     - don't crash on startup when logfile is not writeable (LP: #688682)
+  * softwarecenter/view/catview_gtk:
+    - don't crash when we have no what's new carousel (LP: #736046)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 17 Mar 2011 13:59:15 +0100
 

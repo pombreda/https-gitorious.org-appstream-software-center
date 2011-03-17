@@ -253,10 +253,12 @@ class LobbyViewGtk(CategoriesViewGtk):
         for sig_id in self._poster_sigs:
             gobject.source_remove(sig_id)
         self._poster_sigs = []
-        for poster in self.featured_carousel.posters:
-            self._poster_sigs.append(poster.connect('clicked', self._on_app_clicked))
-        for poster in self.whatsnew_carousel.posters:
-            self._poster_sigs.append(poster.connect('clicked', self._on_app_clicked))
+        if self.featured_carousel:
+            for poster in self.featured_carousel.posters:
+                self._poster_sigs.append(poster.connect('clicked', self._on_app_clicked))
+        if self.whatsnew_carousel:
+            for poster in self.whatsnew_carousel.posters:
+                self._poster_sigs.append(poster.connect('clicked', self._on_app_clicked))
 
 #        print self._poster_sigs
         return
