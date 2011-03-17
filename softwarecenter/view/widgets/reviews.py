@@ -657,6 +657,9 @@ class UIReviewsList(gtk.VBox):
 
     def _on_button_new_clicked(self, button):
         self.emit("new-review")
+    
+    def update_useful_votes(self, votes):
+        self.useful_votes = votes
 
     def _fill(self):
         """ take the review data object from self.reviews and build the
