@@ -315,12 +315,20 @@ def convert_desktop_file_to_installed_location(app_install_data_file_path):
     """ returns the installed desktop file path that corresponds to the
         given app-install-date file path
     """
-    # TODO: Fix this, need to handle all special cases
+    # TODO: Fix this, need to handle any remaining special cases
+    # "normal" case
     installed_desktop_file_path = app_install_data_file_path.replace("app-install/desktop", "applications")
-    # handle case where a subdirectory is encoded in the app-install
+    if os.path.exists(installed_desktop_file_path):
+        return installed_desktop_file_path  
+    # next, try case where a subdirectory is encoded in the app-install
     # desktop filename, e.g. kde4_soundkonverter.desktop
+    # FIXME: after the upcoming app-install-data update, the underscore will be replaced by a double-underscore
+    #        to differentiate actual "/" replaces from legitimate instances of "_" in the filename
     installed_desktop_file_path = installed_desktop_file_path.replace("_", "/")
-    return installed_desktop_file_path
+    if os.path.exists(installed_desktop_file_path):
+        return installed_desktop_file_path
+    logging.warn("Could not determine the installed desktop file path for app-install desktop file: '%s'" % app_install_data_file_path)
+    return ""
 
 def clear_token_from_ubuntu_sso(appname):
     """ send a dbus signal to the com.ubuntu.sso service to clear 
@@ -489,6 +497,8 @@ class GMenuSearcher(object):
                 # the data extractor is doing
                 if "applications/" in desktop_file_path:
                     path_after_applications = desktop_file_path.split("applications/")[1]
+                    # FIXME: after update to app-install-data, the data extractor will be
+                    #        replacing the "/" with "__", so update the following to conform
                     if needle == path_after_applications.replace("/","_"):
                         self._found = dirlist+[item]
                         return

@@ -120,7 +120,8 @@ class UnityLauncherInfo(object):
                  icon_x,
                  icon_y,
                  icon_size,
-                 desktop_file_path,
+                 app_install_desktop_file_path,
+                 installed_desktop_file_path,
                  trans_id):
         self.appname = appname
         self.icon_name = icon_name
@@ -128,7 +129,8 @@ class UnityLauncherInfo(object):
         self.icon_x = icon_x
         self.icon_y = icon_y
         self.icon_size = icon_size
-        self.desktop_file_path = desktop_file_path
+        self.app_install_desktop_file_path = app_install_desktop_file_path
+        self.installed_desktop_file_path = installed_desktop_file_path
         self.trans_id = trans_id
 
 class SoftwarePane(gtk.VBox, BasePane):
@@ -386,14 +388,14 @@ class SoftwarePane(gtk.VBox, BasePane):
         to the launcher
         """
         (icon_name, icon_size, icon_x, icon_y) = self._get_icon_details_for_launcher_service(app)
-        installed_desktop_file_path = convert_desktop_file_to_installed_location(appdetails.desktop_file)
         launcher_info = UnityLauncherInfo(app.appname,
                                           icon_name,
-                                          "",           # we set the icon_file_path value after install
+                                          "",        # we set the icon_file_path value *after* install
                                           icon_x,
                                           icon_y,
                                           icon_size,
-                                          installed_desktop_file_path,
+                                          appdetails.desktop_file,
+                                          "",        # we set the installed_desktop_file_path *after* install
                                           trans_id)
         self.unity_launcher_items[app.pkgname] = launcher_info
         self.action_bar.unset_label()
@@ -417,6 +419,8 @@ class SoftwarePane(gtk.VBox, BasePane):
             launcher_info = self.unity_launcher_items.pop(result.pkgname)
             launcher_info.icon_file_path = get_file_path_from_iconname(self.icons,
                                                                        launcher_info.icon_name)
+            launcher_info.installed_desktop_file_path \
+                = convert_desktop_file_to_installed_location(launcher_info.app_install_desktop_file_path)
             if result.success:
                 self._send_dbus_signal_to_unity_launcher(launcher_info)
             self.action_bar.clear()
@@ -431,7 +435,8 @@ class SoftwarePane(gtk.VBox, BasePane):
         print ">>> launcher_info.icon_x: ", launcher_info.icon_x
         print ">>> launcher_info.icon_y: ", launcher_info.icon_y
         print ">>> launcher_info.icon_size: ", launcher_info.icon_size
-        print ">>> launcher_info.desktop_file_path: ", launcher_info.desktop_file_path
+        print ">>> launcher_info.app_install_desktop_file_path: ", launcher_info.app_install_desktop_file_path
+        print ">>> launcher_info.installed_desktop_file_path: ", launcher_info.installed_desktop_file_path
         print ">>> launcher_info.trans_id: ", launcher_info.trans_id
         try:
             bus = dbus.SessionBus()
@@ -443,7 +448,7 @@ class SoftwarePane(gtk.VBox, BasePane):
                                                        launcher_info.icon_x,
                                                        launcher_info.icon_y,
                                                        launcher_info.icon_size,
-                                                       launcher_info.desktop_file_path,
+                                                       launcher_info.installed_desktop_file_path,
                                                        launcher_info.trans_id)
         except Exception, e:
             LOG.warn("could not send dbus signal to the Unity launcher: (%s)", e)
