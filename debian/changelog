@@ -1,3 +1,11 @@
+software-center (3.1.23.4) UNRELEASED; urgency=low
+
+  * softwarecenter/view/widgets/thumbnail.py:
+    - add missing logger definition to fix name error on
+      a thumbnail download error
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 17 Mar 2011 18:07:05 -0400
+
 software-center (3.1.23.3) natty; urgency=low
 
   [ Aaron Peachey ]
