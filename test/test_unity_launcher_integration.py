@@ -95,13 +95,13 @@ class TestUnityLauncherIntegration(unittest.TestCase):
     def test_desktop_file_path_conversion(self):
         import os.path
         # test 'normal' case
-        app_install_desktop_path = "/usr/share/app-install/desktop/deja-dup.desktop"
+        app_install_desktop_path = "./data/app-install/desktop/deja-dup.desktop"
         installed_desktop_path = convert_desktop_file_to_installed_location(app_install_desktop_path)
-        self.assertEqual(installed_desktop_path, "/usr/share/applications/deja-dup.desktop")
+        self.assertEqual(installed_desktop_path, "./data/applications/deja-dup.desktop")
         # test encoded subdirectory case, e.g. e.g. kde4_soundkonverter.desktop
-        app_install_desktop_path = "/usr/share/app-install/desktop/kde4_soundkonverter.desktop"
+        app_install_desktop_path = "./data/app-install/desktop/kde4_soundkonverter.desktop"
         installed_desktop_path = convert_desktop_file_to_installed_location(app_install_desktop_path)
-        self.assertEqual(installed_desktop_path, "/usr/share/applications/kde4/soundkonverter.desktop")
+        self.assertEqual(installed_desktop_path, "./data/applications/kde4/soundkonverter.desktop")
         # TODO:  test remaining special cases e.g. therion.desktop_therion.desktop, etc.
         
 
