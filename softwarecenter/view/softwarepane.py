@@ -114,7 +114,7 @@ class UnityLauncherInfo(object):
         Unity launcher integration
     """
     def __init__(self,
-                 appname,
+                 name,
                  icon_name,
                  icon_file_path,
                  icon_x,
@@ -123,7 +123,7 @@ class UnityLauncherInfo(object):
                  app_install_desktop_file_path,
                  installed_desktop_file_path,
                  trans_id):
-        self.appname = appname
+        self.name = name
         self.icon_name = icon_name
         self.icon_file_path = icon_file_path
         self.icon_x = icon_x
@@ -388,7 +388,7 @@ class SoftwarePane(gtk.VBox, BasePane):
         to the launcher
         """
         (icon_name, icon_size, icon_x, icon_y) = self._get_icon_details_for_launcher_service(app)
-        launcher_info = UnityLauncherInfo(app.appname,
+        launcher_info = UnityLauncherInfo(app.name,
                                           icon_name,
                                           "",        # we set the icon_file_path value *after* install
                                           icon_x,
@@ -429,7 +429,7 @@ class SoftwarePane(gtk.VBox, BasePane):
             self.action_bar.clear()
             
     def _send_dbus_signal_to_unity_launcher(self, launcher_info):
-        print ">>> launcher_info.appname: ", launcher_info.appname
+        print ">>> launcher_info.name: ", launcher_info.name
         print ">>> launcher_info.icon_name: ", launcher_info.icon_name
         print ">>> launcher_info.icon_file_path: ", launcher_info.icon_file_path
         print ">>> launcher_info.icon_x: ", launcher_info.icon_x
@@ -443,7 +443,7 @@ class SoftwarePane(gtk.VBox, BasePane):
             launcher_obj = bus.get_object('com.canonical.Unity.Launcher',
                                           '/com/canonical/Unity/Launcher')
             launcher_iface = dbus.Interface(launcher_obj, 'com.canonical.Unity.Launcher')
-            launcher_iface.AddLauncherItemFromPosition(launcher_info.appname,
+            launcher_iface.AddLauncherItemFromPosition(launcher_info.name,
                                                        launcher_info.icon_file_path,
                                                        launcher_info.icon_x,
                                                        launcher_info.icon_y,

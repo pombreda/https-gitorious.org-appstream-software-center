@@ -83,7 +83,23 @@ class TestUnityLauncherIntegration(unittest.TestCase):
         icon_x,
         icon_y) = self.s_c_app.available_pane._get_icon_details_for_launcher_service(app)
         appdetails = app.get_details(self.s_c_app.db)
-        # check for valid values
+        trans_id = "/org/debian/apt/transaction/test101"
+        # check that a correct UnityLauncherInfo object has been created and added to the queue
+        self.s_c_app.available_pane.on_add_to_launcher(app, appdetails, trans_id)
+        self.assertTrue(app.pkgname in self.s_c_app.available_pane.unity_launcher_items)
+        launcher_info = self.s_c_app.available_pane.unity_launcher_items.pop(app.pkgname)
+        print ">>> launcher_info.name: ", launcher_info.name
+        print ">>> launcher_info.icon_name: ", launcher_info.icon_name
+        print ">>> launcher_info.icon_file_path: ", launcher_info.icon_file_path
+        print ">>> launcher_info.icon_x: ", launcher_info.icon_x
+        print ">>> launcher_info.icon_y: ", launcher_info.icon_y
+        print ">>> launcher_info.icon_size: ", launcher_info.icon_size
+        print ">>> launcher_info.app_install_desktop_file_path: ", launcher_info.app_install_desktop_file_path
+        print ">>> launcher_info.installed_desktop_file_path: ", launcher_info.installed_desktop_file_path
+        print ">>> launcher_info.trans_id: ", launcher_info.trans_id
+        
+        self.assertTrue(app.pkgname not in self.s_c_app.available_pane.unity_launcher_items)
+        
         self.assertEqual(app.name, "Lincity-ng")
         self.assertTrue(icon_x > 20)
         self.assertTrue(icon_y > 20)
