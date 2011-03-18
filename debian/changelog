@@ -4,6 +4,14 @@ software-center (3.1.23.4) UNRELEASED; urgency=low
   * softwarecenter/view/widgets/thumbnail.py:
     - add missing logger definition to fix name error on
       a thumbnail download error
+  * softwarecenter/utils.py,
+    softwarecenter/view/appdetailsview_gtk.py,
+    softwarecenter/view/softwarepane.py:
+    - update Unity launcher integration implementation per
+      revised approach (see LP: #670403)
+  * test/test_unity_launcher_integration.py,
+    test/data/<many>:
+    - enhance/update unit tests per the revised approach
       
   [ Kiwinote ]
   * softwarecenter/log.py:
@@ -13,7 +21,7 @@ software-center (3.1.23.4) UNRELEASED; urgency=low
   * softwarecenter/view/widgets/reviews.py:
     - fallback to package_name if review_data contains no app_name
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 17 Mar 2011 18:32:43 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Fri, 18 Mar 2011 19:01:57 -0400
 
 software-center (3.1.23.3) natty; urgency=low
 
