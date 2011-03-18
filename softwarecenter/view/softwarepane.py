@@ -387,6 +387,7 @@ class SoftwarePane(gtk.VBox, BasePane):
         callback indicating the user has chosen to add the indicated application
         to the launcher
         """
+        LOG.debug("the application '%s' will be added to the Unity launcher when installation is complete" % app.name)
         (icon_name, icon_size, icon_x, icon_y) = self._get_icon_details_for_launcher_service(app)
         launcher_info = UnityLauncherInfo(app.name,
                                           icon_name,
@@ -429,15 +430,10 @@ class SoftwarePane(gtk.VBox, BasePane):
             self.action_bar.clear()
             
     def _send_dbus_signal_to_unity_launcher(self, launcher_info):
-        print ">>> launcher_info.name: ", launcher_info.name
-        print ">>> launcher_info.icon_name: ", launcher_info.icon_name
-        print ">>> launcher_info.icon_file_path: ", launcher_info.icon_file_path
-        print ">>> launcher_info.icon_x: ", launcher_info.icon_x
-        print ">>> launcher_info.icon_y: ", launcher_info.icon_y
-        print ">>> launcher_info.icon_size: ", launcher_info.icon_size
-        print ">>> launcher_info.app_install_desktop_file_path: ", launcher_info.app_install_desktop_file_path
-        print ">>> launcher_info.installed_desktop_file_path: ", launcher_info.installed_desktop_file_path
-        print ">>> launcher_info.trans_id: ", launcher_info.trans_id
+        LOG.debug("sending dbus signal to Unity launcher for application: ", launcher_info.name)
+        LOG.debug("  launcher_info.icon_file_path: ", launcher_info.icon_file_path)
+        LOG.debug("  launcher_info.installed_desktop_file_path: ", launcher_info.installed_desktop_file_path)
+        LOG.debug("  launcher_info.trans_id: ", launcher_info.trans_id)
         try:
             bus = dbus.SessionBus()
             launcher_obj = bus.get_object('com.canonical.Unity.Launcher',
