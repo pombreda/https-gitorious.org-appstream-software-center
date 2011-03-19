@@ -191,7 +191,7 @@ class LobbyViewGtk(CategoriesViewGtk):
 
         # paint the section backdrop
         if self.section: 
-            self.section.render(cr, alignment.allocation)
+            self.section.render(cr, self, alignment.allocation)
 
         # featured carousel
         # draw the info vbox bg
@@ -498,7 +498,7 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         cr.fill()
 
         # paint the section backdrop
-        if self.section: self.section.render(cr, alignment.allocation)
+        if self.section: self.section.render(cr, self, alignment.allocation)
 
         del cr
 

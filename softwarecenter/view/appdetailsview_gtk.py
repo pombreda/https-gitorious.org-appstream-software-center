@@ -843,7 +843,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         # paint the section backdrop
         if self.section: 
-            self.section.render(cr, alignment.allocation)
+            self.section.render(cr, self, alignment.allocation)
 
         # draw the info vbox bg
         a = self.info_vb.allocation

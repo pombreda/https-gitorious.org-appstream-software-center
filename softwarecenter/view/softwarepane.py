@@ -67,7 +67,7 @@ class SoftwareSection(object):
         self._section_color = None
         return
 
-    def render(self, cr, a):
+    def render(self, cr, widget, a):
         # sky
         r,g,b = self._section_color
         lin = cairo.LinearGradient(0,a.y,0,a.y+150)
@@ -84,7 +84,12 @@ class SoftwareSection(object):
             s = self.MASK_SURFACE_CACHE[self._image_id]
         else:
             s = cairo.ImageSurface(0, 64, 64)
-        cr.set_source_surface(s, a.width-s.get_width(), 0)
+
+        if widget.get_direction() != gtk.TEXT_DIR_RTL:
+            cr.set_source_surface(s, a.x+a.width-s.get_width(), 0)
+        else:
+            cr.set_source_surface(s, a.x, 0)
+
         cr.paint()
         return
 
