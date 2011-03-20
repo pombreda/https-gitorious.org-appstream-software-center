@@ -89,8 +89,7 @@ class WebLiveBackend(object):
             dependencies
         """
         # FIXME: also test if package is available on the weblive server
-        if (os.path.exists(cls.QTNX) and
-            "SOFTWARE_CENTER_ENABLE_WEBLIVE" in os.environ):
+        if os.path.exists(cls.QTNX):
             return True
         return False
 
