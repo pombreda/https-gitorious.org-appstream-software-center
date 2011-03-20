@@ -807,10 +807,28 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # Get the list of servers
         servers = self.weblive.get_servers_for_pkgname(self.app.pkgname)
 
+        def weblive_button_timeout(button, old_label):
+            if button.count == 10:
+                # Restore the button
+                button.set_sensitive(True)
+                button.set_label(old_label)
+                return False
+            else:
+                button.set_sensitive(False)
+                button.set_label(_("Connecting ... (%s%%)") % (button.count * 10))
+                button.count+=1
+                return True
+
         if len(servers) == 0:
             error(None,"No available server","There is currently no available WebLive server for this application.\nPlease try again later.")
         elif len(servers) == 1:
             self.weblive.create_automatic_user_and_run_session(session=cmd,serverid=servers[0].name)
+
+            # Try to give some indication that we are connecting
+            old_label=button.get_label()
+            button.count=0
+            weblive_button_timeout(button, old_label)
+            glib.timeout_add_seconds(2, weblive_button_timeout, button, old_label)
         else:
             d = ShowWebLiveServerChooserDialog(servers)
             serverid=None
@@ -823,6 +841,12 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
             if serverid:
                 self.weblive.create_automatic_user_and_run_session(session=cmd,serverid=serverid)
+
+                # Try to give some indication that we are connecting
+                old_label=button.get_label()
+                button.count=0
+                weblive_button_timeout(button, old_label)
+                glib.timeout_add_seconds(2, weblive_button_timeout, button, old_label)
 
     def _on_addon_table_built(self, table):
         if not table.parent:
