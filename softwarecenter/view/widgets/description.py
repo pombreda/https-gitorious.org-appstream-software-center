@@ -151,7 +151,7 @@ class Layout(pango.Layout):
 
 class Cursor(object):
 
-    WORD_TERMINATORS = (' ',)
+    WORD_TERMINATORS = (' ',)   # empty space. suggestions recommended...
 
     def __init__(self, parent):
         self.parent = parent
@@ -300,7 +300,7 @@ class SelectionCursor(Cursor):
 
 class TextBlock(gtk.EventBox):
 
-    PAINT_PRIMARY_CURSOR = True
+    PAINT_PRIMARY_CURSOR = False
     BULLET_POINT = u'  \u2022  '
 
     INFOCUS_NORM = 0
