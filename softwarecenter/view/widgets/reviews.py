@@ -98,26 +98,30 @@ class StarPainter(IStarPainter):
         cr.save()
 
         if widget.get_direction() != gtk.TEXT_DIR_RTL:
-            color1 = self.fg_color
-            color2 = self.bg_color
+            x0 = x
+            x1 = x + w/2
 
         else:
-            color1 = self.bg_color
-            color2 = self.fg_color
+            x0 = x + w/2
+            x1 = x
 
-        cr.rectangle(x, y, w/2, h)
+        cr.rectangle(x0, y, w/2, h)
         cr.clip()
 
+        self.set_fill(self.FILL_FULL)
         self._paint_star(cr, widget, state, x, y, w, h)
 
         cairo.Context.reset_clip(cr)
 
-        cr.rectangle(x+w/2, y, w/2, h)
+        cr.rectangle(x1, y, w/2, h)
         cr.clip()
 
+        self.set_fill(self.FILL_EMPTY)
         self._paint_star(cr, widget, state, x, y, w, h)
 
         cairo.Context.reset_clip(cr)
+
+        self.set_fill(self.FILL_HALF)
         cr.restore()
         return
 
@@ -128,7 +132,30 @@ class StarPainter(IStarPainter):
             return
 
         self._paint_star(cr, widget, state, x, y, w, h, self.alpha)
+        return
 
+    def paint_rating(self, cr, widget, state, x, y, star_size, max_stars, rating):
+
+        sw = star_size[0]
+        direction = widget.get_direction()
+
+        index = range(0, max_stars)
+        if direction == gtk.TEXT_DIR_RTL: index.reverse()
+
+        for i in index:
+
+            if i < int(rating):
+                self.set_fill(StarPainter.FILL_FULL)
+
+            elif (i == int(rating) and 
+                  rating - int(rating) > 0):
+                self.set_fill(StarPainter.FILL_HALF)
+
+            else:
+                self.set_fill(StarPainter.FILL_EMPTY)
+
+            self.paint_star(cr, widget, state, x, y, *star_size)
+            x += sw
         return
 
     def _paint_star(self, cr, widget, state, x, y, w, h, alpha=1.0):
