@@ -1074,15 +1074,19 @@ class AppViewFilter(xapian.MatchDecider):
         self.distro = get_distro()
         self.db = db
         self.cache = cache
+        self.available_only = False
         self.supported_only = False
         self.installed_only = False
         self.not_installed_only = False
     @property
     def required(self):
         """ True if the filter is in a state that it should be part of a query """
-        return (self.supported_only or
+        return (self.available_only or
+                self.supported_only or
                 self.installed_only or 
                 self.not_installed_only)
+    def set_available_only(self, v):
+        self.available_only = v
     def set_supported_only(self, v):
         self.supported_only = v
     def set_installed_only(self, v):
@@ -1107,6 +1111,9 @@ class AppViewFilter(xapian.MatchDecider):
         #logging.debug(
         #    "filter: supported_only: %s installed_only: %s '%s'" % (
         #        self.supported_only, self.installed_only, pkgname))
+        if self.available_only:
+            if not pkgname in self.cache:
+                return False
         if self.installed_only:
             # use the lowlevel cache here, twice as fast
             lowlevel_cache = self.cache._cache._cache

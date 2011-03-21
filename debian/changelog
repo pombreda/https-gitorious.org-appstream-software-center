@@ -12,6 +12,12 @@ software-center (3.1.23.4) UNRELEASED; urgency=low
     to Stephane Graber (LP: #736227)
       
   [ Kiwinote ]
+  * data/new.menu.in,
+    softwarecenter/view/appview.py,
+    softwarecenter/view/availablepane.py,
+    softwarecenter/view/catview_gtk.py:
+    - only display available items in what's new (LP: #739276)
+    - don't display installed items in what's new (LP: #627114)
   * softwarecenter/db/database.py:
     - don't crash when we have no axi values (LP: #737870)
   * softwarecenter/gwibber_helper.py:
