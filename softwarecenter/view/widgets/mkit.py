@@ -1298,34 +1298,19 @@ class EtchedLabel(gtk.Label):
         return
 
     def _on_expose(self, widget, event):
-        l = self.get_layout()
-        a = widget.allocation
+        x, y = widget.get_layout_offsets()
 
         cr = widget.window.cairo_create()
         cr.rectangle(event.area)
         cr.clip()
 
-        pc = pangocairo.CairoContext(cr)
-
-        xp, yp = self.get_padding()
-
-        x, y = a.x+xp, a.y+1+yp
-        w, h = a.width, a.height
-
-        lw, lh = l.get_pixel_extents()[1][2:]
-        ax, ay = self.get_alignment()
-
-        if lw < w:
-            x += int((w-2*xp-lw)*ax)
-        if lh < h:
-            y += int((h-2*yp-lh)*ay)
-
-        pc.move_to(x, y)
-        pc.layout_path(l)
+        cr.move_to(x, y + 1)
+        cr.layout_path(self.get_layout())
         r,g,b = floats_from_gdkcolor(self.style.light[self.state])
-        pc.set_source_rgba(r,g,b,self.alpha)
-        pc.fill()
-        del pc
+        cr.set_source_rgba(r,g,b,self.alpha)
+        cr.fill()
+
+        del cr
         return
 
     def set_max_line_count(self, *args):

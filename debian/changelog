@@ -4,6 +4,10 @@ software-center (3.1.23.4) UNRELEASED; urgency=low
   * softwarecenter/view/widgets/thumbnail.py:
     - add missing logger definition to fix name error on
       a thumbnail download error
+  
+  [ Michael Vogt ]
+  * merged lp:~mmcg069/software-center/rtl-work, thanks
+    to Matthew McGowan
       
   [ Kiwinote ]
   * softwarecenter/db/database.py:
