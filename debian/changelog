@@ -23,14 +23,27 @@ software-center (3.1.23.4) UNRELEASED; urgency=low
     - fix show/hide issue in download_and_display()
       
   [ Kiwinote ]
+  * data/new.menu.in,
+    softwarecenter/view/appview.py,
+    softwarecenter/view/availablepane.py,
+    softwarecenter/view/catview_gtk.py:
+    - only display available items in what's new (LP: #739276)
+    - don't display installed items in what's new (LP: #627114)
   * softwarecenter/db/database.py:
     - don't crash when we have no axi values (LP: #737870)
   * softwarecenter/gwibber_helper.py:
     - don't crash on startup due to anything sqlite related (LP: #737220)
   * softwarecenter/log.py:
     - don't crash on startup when logfile is not writeable (LP: #688682)
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - correctly update statusbar after cancelling a dependency dialog
+  * softwarecenter/view/appview.py:
+    - don't crash on encountering a unicode pkgname ?how? (LP: #738691)
   * softwarecenter/view/catview_gtk:
     - don't crash when we have no what's new carousel (LP: #736046)
+  * softwarecenter/view/softwarepane.py:
+    - connect 'transaction-stopped' to on_transaction_stopped rather than o_t_f
+    - don't crash on encountering a str rather than a TransactionResult
   * softwarecenter/view/widgets/reviews.py:
     - fallback to package_name if review_data contains no app_name
 

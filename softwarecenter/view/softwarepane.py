@@ -265,7 +265,7 @@ class SoftwarePane(gtk.VBox, BasePane):
         # aptdaemon
         self.backend.connect("transaction-started", self.on_transaction_started)
         self.backend.connect("transaction-finished", self.on_transaction_finished)
-        self.backend.connect("transaction-stopped", self.on_transaction_finished)
+        self.backend.connect("transaction-stopped", self.on_transaction_stopped)
         
         # connect signals
         self.searchentry.connect("terms-changed", self.on_search_terms_changed)
@@ -455,8 +455,12 @@ class SoftwarePane(gtk.VBox, BasePane):
             LOG.warn("could not send dbus signal to the Unity launcher: (%s)", e)
             
     def on_transaction_stopped(self, backend, result):
-        if result.pkgname in self.unity_launcher_items:
-            self.unity_launcher_items.pop(result.pkgname)
+        if hasattr(result, 'pkgname'):
+            pkgname = result.pkgname
+        else:
+            pkgname = result
+        if pkgname in self.unity_launcher_items:
+            self.unity_launcher_items.pop(pkgname)
         self.action_bar.clear()
 
     def show_appview_spinner(self):
