@@ -8,6 +8,8 @@ software-center (3.1.23.4) UNRELEASED; urgency=low
   [ Michael Vogt ]
   * merged lp:~mmcg069/software-center/rtl-work, thanks
     to Matthew McGowan
+  * merged lp:~weblive-dev/software-center/weblive-by-default, thanks
+    to Stephane Graber (LP: #736227)
       
   [ Kiwinote ]
   * softwarecenter/db/database.py:
