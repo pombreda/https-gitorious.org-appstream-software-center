@@ -35,7 +35,7 @@ import xml.sax.saxutils
 import gtk
 import dbus
 
-from enums import USER_AGENT, MISSING_APP_ICON, APP_ICON_SIZE
+from enums import USER_AGENT, MISSING_APP_ICON, APP_ICON_SIZE, APP_INSTALL_PATH_DELIMITER
 
 from config import get_config
 
@@ -321,7 +321,7 @@ def convert_desktop_file_to_installed_location(app_install_data_file_path):
         return installed_desktop_file_path  
     # next, try case where a subdirectory is encoded in the app-install
     # desktop filename, e.g. kde4_soundkonverter.desktop
-    installed_desktop_file_path = installed_desktop_file_path.replace("_", "/")
+    installed_desktop_file_path = installed_desktop_file_path.replace(APP_INSTALL_PATH_DELIMITER, "/")
     if os.path.exists(installed_desktop_file_path):
         return installed_desktop_file_path
     logging.warn("Could not determine the installed desktop file path for app-install desktop file: '%s'" % app_install_data_file_path)
@@ -490,11 +490,11 @@ class GMenuSearcher(object):
                     return
                 # if there is no direct match, take the part of the path after 
                 # "applications" (e.g. kde4/amarok.desktop) and
-                # change "/" to "_" and do the match again - this is what
+                # change "/" to "__" and do the match again - this is what
                 # the data extractor is doing
                 if "applications/" in desktop_file_path:
                     path_after_applications = desktop_file_path.split("applications/")[1]
-                    if needle == path_after_applications.replace("/","_"):
+                    if needle == path_after_applications.replace("/", APP_INSTALL_PATH_DELIMITER):
                         self._found = dirlist+[item]
                         return
 
