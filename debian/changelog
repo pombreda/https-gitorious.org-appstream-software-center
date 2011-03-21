@@ -19,6 +19,8 @@ software-center (3.1.23.4) UNRELEASED; urgency=low
   * merged lp:~mmcg069/software-center/desc-tweaks 
   * merged lp:~weblive-dev/software-center/weblive-by-default, thanks
     to Stephane Graber (LP: #736227)
+  * softwarecenter/view/widgets/thumbnail.py:
+    - fix show/hide issue in download_and_display()
       
   [ Kiwinote ]
   * softwarecenter/db/database.py:

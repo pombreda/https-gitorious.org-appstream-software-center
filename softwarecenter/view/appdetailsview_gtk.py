@@ -1729,9 +1729,10 @@ if __name__ == "__main__":
     #view.show_app("Qlix")
 
     scroll.add(view)
+    scroll.show()
     win.add(scroll)
     win.set_size_request(600,400)
-    win.show_all()
+    win.show()
     win.connect('destroy', gtk.main_quit)
 
     # keep it spinning to test for re-draw issues and memleaks
