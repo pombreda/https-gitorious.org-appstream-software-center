@@ -373,23 +373,13 @@ class SimpleStarRating(gtk.HBox, StarPainter):
         return
 
     def draw(self, cr, a):
-        w, h = self.get_size_request()
-        y = a.y + (a.height-h)/2
-        sw, sh = self.star_size
-        spacing = self.get_spacing()
-
-        n_stars = self.n_stars
-
-        for i in range(self.max_stars):
-            if i < int(n_stars):
-                self.set_fill(StarPainter.FILL_FULL)
-            elif i == int(n_stars) and n_stars-int(n_stars) > 0:
-                self.set_fill(StarPainter.FILL_HALF)
-            else:
-                self.set_fill(StarPainter.FILL_EMPTY)
-
-            x = a.x + i*(sw+spacing)
-            self.paint_star(cr, self, self.state, x, y, sw, sh)
+        sw = self.get_property('width-request')/self.MAX_STARS
+        self.paint_rating(cr, self,
+                          self.state,
+                          a.x, a.y,
+                          (sw, sw),
+                          self.MAX_STARS,
+                          self.n_stars)
         return
 
     def set_max_stars(self, max_stars):
