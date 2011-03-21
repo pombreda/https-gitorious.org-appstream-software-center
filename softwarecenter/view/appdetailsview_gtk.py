@@ -1496,11 +1496,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         if self.appdetails.icon_needs_download:
             icon_file = self.appdetails.cached_icon_file_path
         icon_size = self._get_app_icon_size_on_screen()
-        icon_file_path = get_file_path_from_iconname(self.icons,
-                                                     iconsize=icon_size,
-                                                     iconname=icon_name)
         (icon_x, icon_y) = self._get_app_icon_xy_position_on_screen()
-        return (icon_name, icon_file_path, icon_size, icon_x, icon_y)
+        return (icon_name, icon_size, icon_x, icon_y)
 
     def _get_app_icon_size_on_screen(self):
         """ helper for unity dbus support to get the size of the maximum side
@@ -1732,9 +1729,10 @@ if __name__ == "__main__":
     #view.show_app("Qlix")
 
     scroll.add(view)
+    scroll.show()
     win.add(scroll)
     win.set_size_request(600,400)
-    win.show_all()
+    win.show()
     win.connect('destroy', gtk.main_quit)
 
     # keep it spinning to test for re-draw issues and memleaks
