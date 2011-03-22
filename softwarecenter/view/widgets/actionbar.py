@@ -38,14 +38,17 @@ class ActionBar(gtk.HBox):
     https://wiki.ubuntu.com/SoftwareCenter#Custom%20package%20lists
     https://wiki.ubuntu.com/SoftwareCenter#software-list-view-disclosure
     """
+    
+    PADDING = 6
 
     def __init__(self):
-        super(ActionBar, self).__init__()
-        self._btns = gtk.HBox()
+        super(ActionBar, self).__init__(spacing=self.PADDING)
+        self.set_border_width(self.PADDING)
+        self._btns = gtk.HBox(spacing=self.PADDING)
         self._label = gtk.HBox()
-        self._label.set_border_width(6)
         # So that all buttons children right align
         self._btn_bin = gtk.Alignment(xalign=1)
+        self._btn_bin.set_padding(0,0,0,self.PADDING)
         self._btn_bin.add(self._btns)
         # Buttons go on the right, labels on the left (in LTR mode)
         super(ActionBar, self).pack_start(self._label, fill=False,
@@ -71,7 +74,6 @@ class ActionBar(gtk.HBox):
         if overwrite:
             self._btns.remove(overwrite)
         btn = HLinkButton(label)
-        btn.set_border_width(4)
         btn.set_underline(True)
         btn.connect("clicked", self._callback(result, result_args))
         btn.id = id
