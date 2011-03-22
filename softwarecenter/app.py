@@ -46,6 +46,7 @@ with ExecutionTime("TIME loading app.py imports"):
     import softwarecenter.view.dependency_dialogs as dependency_dialogs
     import softwarecenter.view.deauthorize_dialog as deauthorize_dialog
     from softwarecenter.view.softwarepane import wait_for_apt_cache_ready
+    from softwarecenter.backend.aptd import TransactionFinishedResult
 
     import view.dialogs
     from view.viewswitcher import ViewSwitcher
@@ -535,7 +536,9 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         if action == "remove":
             if not dependency_dialogs.confirm_remove(None, self.datadir, app,
                                                      self.db, self.icons):
-                    self.backend.emit("transaction-stopped", app.pkgname)
+                    result = TransactionFinishedResult(None, None)
+                    result.pkgname = app.pkgname
+                    self.backend.emit("transaction-stopped", result)
                     return
         elif action == "install":
             # If we are installing a package, check for dependencies that will 
@@ -543,7 +546,9 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             # generic removal text (fixing LP bug #554319)
             if not dependency_dialogs.confirm_install(None, self.datadir, app, 
                                                       self.db, self.icons):
-                    self.backend.emit("transaction-stopped", app.pkgname)
+                    result = TransactionFinishedResult(None, None)
+                    result.pkgname = app.pkgname
+                    self.backend.emit("transaction-stopped", result)
                     return
 
         # this allows us to 'upgrade' deb files
