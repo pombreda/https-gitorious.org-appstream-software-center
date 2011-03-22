@@ -23,11 +23,11 @@ from gettext import gettext as _
 class CarouselView(gtk.VBox):
 
     # as per spec transition timeout should be 15000 (15 seconds)
-    TRANSITION_TIMEOUT =    3000
+    TRANSITION_TIMEOUT =    15000
 
     # spec says the fade duration should be 1 second, these values suffice:
-    FADE_INTERVAL =         50 # msec
-    FADE_STEP =             0.2 # value between 0.0 and 1.0
+    FADE_INTERVAL =         25 # msec
+    FADE_STEP =             0.075 # value between 0.0 and 1.0
 
     POSTER_MIN_WIDTH =      15*EM
 
