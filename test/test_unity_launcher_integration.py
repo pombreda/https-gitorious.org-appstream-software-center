@@ -70,7 +70,10 @@ class TestUnityLauncherIntegration(unittest.TestCase):
         self._p()
         # click the "Install" button
         self.s_c_app.available_pane.app_details_view.pkg_statusbar.button.clicked()
-        self._p()
+        for i in range(2):
+            self._p()
+            time.sleep(0.3)
+        
         
         # verify that the panel is shown offering to add the app to the launcher
         self.assertTrue(
