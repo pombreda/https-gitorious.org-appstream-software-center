@@ -38,7 +38,7 @@ from gettext import gettext as _
 from mkit import EM, Style, ShapeStar, ShapeRoundedRectangle, VLinkButton, floats_from_string
 
 from softwarecenter.utils import get_nice_date_string, upstream_version_compare, upstream_version
-from softwarecenter.drawing import color_floats
+from softwarecenter.drawing import color_floats, rounded_rect
 
 from softwarecenter.netstatus import network_state_is_connected
 
@@ -1193,7 +1193,7 @@ class EmbeddedMessage(UIReview):
 
     def draw(self, cr, a):
         cr.save()
-        cr.rectangle(a)
+        rounded_rect(cr, a.x, a.y, a.width, a.height, 4)
         color = mkit.floats_from_gdkcolor(self.style.mid[self.state])
         cr.set_source_rgba(*color+(0.2,))
         cr.fill()
@@ -1205,8 +1205,9 @@ class NoReviewYet(EmbeddedMessage):
     def __init__(self, *args, **kwargs):
         # TRANSLATORS: displayed if there are no reviews for the app yet
         #              and the user does not have it installed
-        msg = _("None yet")
-        EmbeddedMessage.__init__(self, message=msg)
+        title = _("This app has not been reviewed yet")
+        msg = _('You need to install this app before you can review it')
+        EmbeddedMessage.__init__(self, title, msg, 'help-hint')
 
 
 class NoReviewYetWriteOne(EmbeddedMessage):
@@ -1215,10 +1216,10 @@ class NoReviewYetWriteOne(EmbeddedMessage):
 
         # TRANSLATORS: displayed if there are no reviews yet and the user
         #              has the app installed
-        title = _('Want to be awesome?')
+        title = _('Got an opinion?')
         msg = _('Be the first to contribute a review for this application')
 
-        EmbeddedMessage.__init__(self, title, msg, 'face-glasses')
+        EmbeddedMessage.__init__(self, title, msg, 'text-editor')
         return
 
 
