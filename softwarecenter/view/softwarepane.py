@@ -37,11 +37,13 @@ from widgets.searchentry import SearchEntry
 from widgets.actionbar import ActionBar
 from widgets.spinner import SpinnerView
 
+import softwarecenter.utils
+
 from softwarecenter.backend import get_install_backend
 from softwarecenter.enums import *
 from softwarecenter.paths import *
 from softwarecenter.view.basepane import BasePane
-from softwarecenter.utils import *
+from softwarecenter.utils import wait_for_apt_cache_ready
 
 from appview import AppView, AppStore
 from purchaseview import PurchaseView
@@ -366,7 +368,10 @@ class SoftwarePane(gtk.VBox, BasePane):
         # TODO: handle apps in PPAs and in extras.ubuntu.com
         # TODO: implement the list view case (once it is specified)
         # only show the panel if unity is running and this is a package install
-        if (not is_unity_running() or
+        #
+        # mvo: use use softwarecenter.utils explictely so that we can monkey
+        #      patch it in the test
+        if (not softwarecenter.utils.is_unity_running() or
             not trans_type == TRANSACTION_TYPE_INSTALL or
             not self.is_app_details_view_showing()):
             return

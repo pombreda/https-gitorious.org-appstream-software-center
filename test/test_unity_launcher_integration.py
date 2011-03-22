@@ -11,6 +11,7 @@ from mock import Mock
 
 sys.path.insert(0, "..")
 
+import softwarecenter.utils
 from softwarecenter.app import SoftwareCenterApp
 from softwarecenter.paths import XAPIAN_BASE_PATH
 from softwarecenter.enums import ACTION_BUTTON_ADD_TO_LAUNCHER
@@ -56,6 +57,8 @@ class TestUnityLauncherIntegration(unittest.TestCase):
                 needle, pkgname_from_row))
 
     def test_unity_launcher_integration(self):
+        # monkey patch is_unity_running
+        softwarecenter.utils.is_unity_running = lambda: True
         # test package is the inimitable lincity-ng
         # Note: this test relies on lincity-ng being *not installed*
         #       on the test machine!
@@ -65,15 +68,15 @@ class TestUnityLauncherIntegration(unittest.TestCase):
         treeview.row_activated(model.get_path(model.get_iter_root()),
                                treeview.get_column(0))
         self._p()
-        time.sleep(1)
         # click the "Install" button
         self.s_c_app.available_pane.app_details_view.pkg_statusbar.button.clicked()
         self._p()
-        time.sleep(1)
         
         # verify that the panel is shown offering to add the app to the launcher
-        self.assertTrue(self.s_c_app.available_pane.action_bar.get_property("visible"))
-        button = self.s_c_app.available_pane.action_bar.get_button(ACTION_BUTTON_ADD_TO_LAUNCHER)
+        self.assertTrue(
+            self.s_c_app.available_pane.action_bar.get_property("visible"))
+        button = self.s_c_app.available_pane.action_bar.get_button(
+            ACTION_BUTTON_ADD_TO_LAUNCHER)
         self.assertTrue(button is not None)
         
         # now test the values to be used in the dbus call
