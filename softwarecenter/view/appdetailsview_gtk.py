@@ -1395,12 +1395,15 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                       "/usr/share/applications/%s.desktop" % pkgname]:
                 if p and os.path.exists(p):
                     desktop_file = p
-                    break
-            where = searcher.get_main_menu_path(desktop_file)
-            if where:
-                self._add_where_is_it_launcher(where)
+            # try to show menu location if there is a desktop file,
+            # but never show commandline programs for apps with desktop 
+            # file to cover cases like "file-roller" that have NoDisplay=true
+            if desktop_file:
+                where = searcher.get_main_menu_path(desktop_file)
+                if where:
+                    self._add_where_is_it_launcher(where)
+            # if there is no desktop file, show commandline
             else:
-                # add any commandline apps
                 self._add_where_is_it_commandline(pkgname)
         return
 
