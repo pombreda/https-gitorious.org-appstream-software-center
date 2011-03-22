@@ -31,10 +31,12 @@ software-center (3.1.23.4) UNRELEASED; urgency=low
     - don't crash on startup when logfile is not writeable (LP: #688682)
   * softwarecenter/view/catview_gtk:
     - don't crash when we have no what's new carousel (LP: #736046)
+  * softwarecenter/view/softwarepane.py:
+    - connect 'transaction-stopped' to on_transaction_stopped rather than o_t_f
   * softwarecenter/view/widgets/reviews.py:
     - fallback to package_name if review_data contains no app_name
 
- -- Gary Lasker <gary.lasker@canonical.com>  Sun, 20 Mar 2011 21:44:26 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 21 Mar 2011 23:11:48 -0400
 
 software-center (3.1.23.3) natty; urgency=low
 
