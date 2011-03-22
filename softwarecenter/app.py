@@ -536,6 +536,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         if action == "remove":
             if not dependency_dialogs.confirm_remove(None, self.datadir, app,
                                                      self.db, self.icons):
+                    # craft an instance of TransactionFinishedResult to send with the
+                    # transaction-stopped signal
                     result = TransactionFinishedResult(None, None)
                     result.pkgname = app.pkgname
                     self.backend.emit("transaction-stopped", result)
@@ -546,6 +548,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             # generic removal text (fixing LP bug #554319)
             if not dependency_dialogs.confirm_install(None, self.datadir, app, 
                                                       self.db, self.icons):
+                    # craft an instance of TransactionFinishedResult to send with the
+                    # transaction-stopped signal
                     result = TransactionFinishedResult(None, None)
                     result.pkgname = app.pkgname
                     self.backend.emit("transaction-stopped", result)
