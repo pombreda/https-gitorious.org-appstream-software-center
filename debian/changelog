@@ -21,6 +21,9 @@ software-center (3.1.23.4) UNRELEASED; urgency=low
     to Stephane Graber (LP: #736227)
   * softwarecenter/view/widgets/thumbnail.py:
     - fix show/hide issue in download_and_display()
+  * softwarecenter/db/reviews.py, softwarecenter/models/appstore.py:
+    - deal with empty appname in the review-stats to follow the 
+      latest server changes
       
   [ Kiwinote ]
   * softwarecenter/db/database.py:
