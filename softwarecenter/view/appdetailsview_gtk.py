@@ -1467,6 +1467,11 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.pkg_statusbar.configure(self.app_details, PKG_STATE_INSTALLED)
         elif state == PKG_STATE_UPGRADING:
             self.pkg_statusbar.configure(self.app_details, PKG_STATE_INSTALLED)
+        # cancellation of dependency dialog
+        elif state == PKG_STATE_INSTALLED:
+            self.pkg_statusbar.configure(self.app_details, PKG_STATE_INSTALLED)
+        elif state == PKG_STATE_UNINSTALLED:
+            self.pkg_statusbar.configure(self.app_details, PKG_STATE_UNINSTALLED)
         # addons modified
         elif self.addons_statusbar.applying:
             self.pkg_statusbar.configure(self.app_details, PKG_STATE_INSTALLED)

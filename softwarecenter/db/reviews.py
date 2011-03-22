@@ -181,7 +181,7 @@ class ReviewLoader(object):
         return []
 
     def update_review_stats(self, translated_application, stats):
-        application = Application("", translated_application)
+        application = Application("", translated_application.pkgname)
         self.REVIEW_STATS_CACHE[application] = stats
 
     def get_review_stats(self, translated_application):
