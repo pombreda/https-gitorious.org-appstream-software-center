@@ -43,7 +43,7 @@ class ActionBar(gtk.HBox):
         super(ActionBar, self).__init__()
         self._btns = gtk.HBox()
         self._label = gtk.HBox()
-        self._label.set_border_width(4)
+        self._label.set_border_width(6)
         # So that all buttons children right align
         self._btn_bin = gtk.Alignment(xalign=1)
         self._btn_bin.add(self._btns)
