@@ -142,7 +142,7 @@ class Review(object):
             "our" Review object (we need this as we have more
             attributes then the rnrclient review object)
         """
-        app = Application(other.app_name, other.package_name)
+        app = Application("", other.package_name)
         review = cls(app)
         for (attr, value) in other.__dict__.iteritems():
             if not attr.startswith("_"):
@@ -162,7 +162,7 @@ class ReviewLoader(object):
         if not self.distro:
             self.distro = softwarecenter.distro.get_distro()
         fname = "%s_%s" % (uri_to_filename(self.distro.REVIEWS_SERVER),
-                           "review-stats.p")
+                           "review-stats-pkgnames.p")
         self.REVIEW_STATS_CACHE_FILE = os.path.join(SOFTWARE_CENTER_CACHE_DIR,
                                                     fname)
         self.language = get_language()
@@ -181,7 +181,7 @@ class ReviewLoader(object):
         return []
 
     def update_review_stats(self, translated_application, stats):
-        application = translated_application.get_untranslated_app(self.db)
+        application = Application("", translated_application)
         self.REVIEW_STATS_CACHE[application] = stats
 
     def get_review_stats(self, translated_application):
@@ -190,7 +190,7 @@ class ReviewLoader(object):
            as it is called a lot during tree view display
         """
         # check cache
-        application = translated_application.get_untranslated_app(self.db)
+        application = Application("", translated_application.pkgname)
         if application in self.REVIEW_STATS_CACHE:
             return self.REVIEW_STATS_CACHE[application]
         return None
@@ -459,7 +459,7 @@ class ReviewLoaderThreadedRNRClient(ReviewLoader):
         # convert to the format that s-c uses
         review_stats = self.REVIEW_STATS_CACHE
         for r in piston_review_stats:
-            s = ReviewStats(Application(r.app_name, r.package_name))
+            s = ReviewStats(Application("", r.package_name))
             s.ratings_average = float(r.ratings_average)
             s.ratings_total = float(r.ratings_total)
             review_stats[s.app] = s

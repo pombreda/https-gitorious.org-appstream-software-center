@@ -26,6 +26,9 @@ software-center (3.1.23.4) UNRELEASED; urgency=low
     to Stephane Graber (LP: #736227)
   * softwarecenter/view/widgets/thumbnail.py:
     - fix show/hide issue in download_and_display()
+  * softwarecenter/db/reviews.py, softwarecenter/models/appstore.py:
+    - deal with empty appname in the review-stats to follow the 
+      latest server changes
       
   [ Kiwinote ]
   * data/new.menu.in,
@@ -49,7 +52,7 @@ software-center (3.1.23.4) UNRELEASED; urgency=low
   * softwarecenter/view/widgets/reviews.py:
     - fallback to package_name if review_data contains no app_name
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 21 Mar 2011 20:16:18 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 21 Mar 2011 23:11:48 -0400
 
 software-center (3.1.23.3) natty; urgency=low
 

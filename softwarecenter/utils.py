@@ -438,6 +438,7 @@ class SimpleFileDownloader(gobject.GObject):
                            self._check_url_reachable_and_then_download_cb)
                            
     def _check_url_reachable_and_then_download_cb(self, f, result):
+        self.LOG.debug("_check_url_reachable_and_then_download_cb: %s" % f)
         try:
             result = f.query_info_finish(result)
             self.emit('file-url-reachable', True)
