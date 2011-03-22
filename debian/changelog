@@ -1,3 +1,11 @@
+software-center (3.1.24.1) unstable; urgency=low
+
+  * softwarecenter/db/database.py:
+    - return empty dict instead of None if axi is not installed
+      (LP: #740372)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 22 Mar 2011 21:46:59 +0100
+
 software-center (3.1.24) natty; urgency=low
 
   [ Gary Lasker ]
