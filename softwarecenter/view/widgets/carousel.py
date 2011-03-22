@@ -456,8 +456,9 @@ class CarouselPoster2(Button):
             cr.paint()
 
         cr.set_source_color(self.style.text[self.state])
-        cr.move_to(self.label.allocation.x - a.x,
-                   self.label.allocation.y - a.y)
+        xo, yo = self.label.get_layout_offsets()
+        cr.move_to(self.label.allocation.x + xo - a.x,
+                   self.label.allocation.y + yo - a.y)
         cr.layout_path(self.label.get_layout())
         cr.fill()
 
