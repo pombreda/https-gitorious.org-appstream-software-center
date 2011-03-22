@@ -438,11 +438,10 @@ class CarouselPoster2(Button):
         if not self.app: return
 
         a = self.allocation
-        bw = self.hbox.get_border_width()
+        # create cairo.surfcae and context
         surf = cairo.ImageSurface(cairo.FORMAT_ARGB32,
                                   a.width,
                                   a.height)
-
         cr = cairo.Context(surf)
         cr = gtk.gdk.CairoContext(pangocairo.CairoContext(cr))
 
