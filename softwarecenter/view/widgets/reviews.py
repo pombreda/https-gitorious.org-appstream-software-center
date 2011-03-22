@@ -1205,8 +1205,9 @@ class NoReviewYet(EmbeddedMessage):
     def __init__(self, *args, **kwargs):
         # TRANSLATORS: displayed if there are no reviews for the app yet
         #              and the user does not have it installed
-        msg = _("None yet")
-        EmbeddedMessage.__init__(self, message=msg)
+        title = _("This app has not been reviewed yet")
+        msg = _('You need to install this app before you can review it')
+        EmbeddedMessage.__init__(self, title, msg)
 
 
 class NoReviewYetWriteOne(EmbeddedMessage):
@@ -1215,10 +1216,10 @@ class NoReviewYetWriteOne(EmbeddedMessage):
 
         # TRANSLATORS: displayed if there are no reviews yet and the user
         #              has the app installed
-        title = _('Want to be awesome?')
+        title = _('Got an opinion?')
         msg = _('Be the first to contribute a review for this application')
 
-        EmbeddedMessage.__init__(self, title, msg, 'face-glasses')
+        EmbeddedMessage.__init__(self, title, msg, 'text-editor')
         return
 
 

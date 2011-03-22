@@ -9,7 +9,7 @@ import xapian
 from gettext import gettext as _
 
 from widgets import mkit
-from appview import AppStore
+from appview import AppStore, AppViewFilter
 
 from softwarecenter.db.application import Application
 
@@ -335,6 +335,7 @@ class LobbyViewGtk(CategoriesViewGtk):
         self._on_category_clicked(self, rec_cat)
         return True # mutter..
 
+    @wait_for_apt_cache_ready # be consistent with new apps
     def _append_featured(self):
 
         # add some filler...
@@ -376,11 +377,16 @@ class LobbyViewGtk(CategoriesViewGtk):
             self.vbox.pack_start(self.featured_carousel, False)
         return
 
+    @wait_for_apt_cache_ready # required for the filter to work
     def _append_whatsnew(self):
         # create new-apps widget
         new_cat = get_category_by_name(self.categories, 
                                        u"What\u2019s New")
         if new_cat:
+            if not self.apps_filter:
+                self.apps_filter = AppViewFilter(self.db, self.cache)
+            self.apps_filter.set_available_only(True)
+            self.apps_filter.set_not_installed_only(True)
             new_apps = AppStore(self.cache,
                                 self.db,
                                 self.icons,
@@ -392,6 +398,8 @@ class LobbyViewGtk(CategoriesViewGtk):
                                 global_icon_cache=False,
                                 nonapps_visible=AppStore.NONAPPS_MAYBE_VISIBLE,
                                 nonblocking_load=False)
+            self.apps_filter.set_available_only(False)
+            self.apps_filter.set_not_installed_only(False)
 
             self.whatsnew_carousel = CarouselView(self,
                                                   new_apps,

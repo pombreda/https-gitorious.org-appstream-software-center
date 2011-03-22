@@ -1,4 +1,4 @@
-software-center (3.1.23.4) UNRELEASED; urgency=low
+software-center (3.1.24) natty; urgency=low
 
   [ Gary Lasker ]
   * softwarecenter/view/widgets/thumbnail.py:
@@ -12,9 +12,12 @@ software-center (3.1.23.4) UNRELEASED; urgency=low
   * test/test_unity_launcher_integration.py,
     test/data/<many>:
     - update unit tests per the revised approach
+  * softwarecenter/app.py:
+    - send correct result object type when emitting
+      transaction-stopped signals (LP: #738691)
   
   [ Michael Vogt ]
-  * merged lp:~mmcg069/software-center/rtl-work, thanks
+  * merged lp:~mmcg069/software-center/rtl-work, many thanks
     to Matthew McGowan
   * merged lp:~mmcg069/software-center/desc-tweaks 
   * merged lp:~weblive-dev/software-center/weblive-by-default, thanks
@@ -24,14 +27,28 @@ software-center (3.1.23.4) UNRELEASED; urgency=low
   * softwarecenter/db/reviews.py, softwarecenter/models/appstore.py:
     - deal with empty appname in the review-stats to follow the 
       latest server changes
+  * merged lp:~mmcg069/software-center/reviews-msg-tweaks, many thanks
+    to to Matthew McGowan
+  * show launcher like location for commandline only apps, thanks
+    to Matthew McGowan
+  * when scanning for commandline binaries take alterantives into 
+    account as well
       
   [ Kiwinote ]
+  * data/new.menu.in,
+    softwarecenter/view/appview.py,
+    softwarecenter/view/availablepane.py,
+    softwarecenter/view/catview_gtk.py:
+    - only display available items in what's new (LP: #739276)
+    - don't display installed items in what's new (LP: #627114)
   * softwarecenter/db/database.py:
     - don't crash when we have no axi values (LP: #737870)
   * softwarecenter/gwibber_helper.py:
     - don't crash on startup due to anything sqlite related (LP: #737220)
   * softwarecenter/log.py:
     - don't crash on startup when logfile is not writeable (LP: #688682)
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - correctly update statusbar after cancelling a dependency dialog
   * softwarecenter/view/catview_gtk:
     - don't crash when we have no what's new carousel (LP: #736046)
   * softwarecenter/view/softwarepane.py:
@@ -39,7 +56,7 @@ software-center (3.1.23.4) UNRELEASED; urgency=low
   * softwarecenter/view/widgets/reviews.py:
     - fallback to package_name if review_data contains no app_name
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 21 Mar 2011 23:11:48 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 22 Mar 2011 16:03:58 +0100
 
 software-center (3.1.23.3) natty; urgency=low
 

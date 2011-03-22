@@ -30,6 +30,7 @@ import sys
 import cairo
 import pangocairo
 
+from softwarecenter.cmdfinder import CmdFinder
 from softwarecenter.netstatus import NetState, get_network_state, get_network_watcher
 
 from gettext import gettext as _
@@ -1306,10 +1307,78 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self._configure_where_is_it()
         return
 
-    def _configure_where_is_it(self):
+    def _add_where_is_it_commandline(self, pkgname):
+        cmdfinder = CmdFinder(self.cache)
+        cmds = cmdfinder.find_cmds_from_pkgname(pkgname)
+        if not cmds: 
+            return
+        vb = gtk.VBox(spacing=3)
+        self.installed_where_hbox.pack_start(vb, False)
+        msg = gettext.ngettext(
+            _('This program is run from a terminal: '),
+            _('These programs are run from a terminal: '),
+            len(cmds))
+        title = gtk.Label()
+        title.set_alignment(0, 0)
+        title.set_markup(msg)
+        title.set_line_wrap(True)
+        title.set_size_request(self.allocation.width-24, -1)
+        vb.pack_start(title, False, padding=3)
+        cmds_str = ", ".join(cmds)
+        cmd_label = gtk.Label(
+            '<span font_desc="monospace bold 9">%s</span>' % cmds_str)
+        cmd_label.set_selectable(True)
+        cmd_label.set_use_markup(True)
+        cmd_label.set_alignment(0, 0.5)
+        cmd_label.set_padding(12, 0)
+        cmd_label.set_line_wrap(True)
+        cmd_label.set_size_request(self.allocation.width-64, -1)
+        vb.pack_start(cmd_label, False)
+        self.installed_where_hbox.show_all()
+
+    def _add_where_is_it_launcher(self, where):
         # disable where-is-it under Unity as it does not apply there
         if is_unity_running():
             return
+        # display launcher location
+        label = gtk.Label(_("Find it in the menu: "))
+        self.installed_where_hbox.pack_start(label, False, False)
+        for (i, item) in enumerate(where):
+            iconname = item.get_icon()
+            # check icontheme first
+            if iconname and self.icons.has_icon(iconname) and i > 0:
+                image = gtk.Image()
+                image.set_from_icon_name(iconname, gtk.ICON_SIZE_SMALL_TOOLBAR)
+                self.installed_where_hbox.pack_start(image, False, False)
+            # then see if its a path to a file on disk
+            elif iconname and os.path.exists(iconname):
+                image = gtk.Image()
+                pb = gtk.gdk.pixbuf_new_from_file_at_size(iconname, 18, 18)
+                if pb:
+                    image.set_from_pixbuf(pb)
+                self.installed_where_hbox.pack_start(image, False, False)
+
+            label_name = gtk.Label()
+            if item.get_type() == gmenu.TYPE_ENTRY:
+                label_name.set_text(item.get_display_name())
+            else:
+                label_name.set_text(item.get_name())
+            self.installed_where_hbox.pack_start(label_name, False, False)
+            if i+1 < len(where):
+                right_arrow = gtk.Arrow(gtk.ARROW_RIGHT, gtk.SHADOW_NONE)
+                self.installed_where_hbox.pack_start(right_arrow, 
+                                                         False, False)
+
+        # create our a11y text
+        a11y_text = ""
+        for widget in self.installed_where_hbox:
+            if isinstance(widget, gtk.Label):
+                a11y_text += ' > ' + widget.get_text()
+        self.installed_where_hbox.a11y.set_name(a11y_text)
+        self.installed_where_hbox.set_property("can-focus", True)
+        self.installed_where_hbox.show_all()
+
+    def _configure_where_is_it(self):
         # remove old content
         self.installed_where_hbox.foreach(lambda c: c.destroy())
         self.installed_where_hbox.set_property("can-focus", False)
@@ -1319,54 +1388,24 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             # first try the desktop file from the DB, then see if
             # there is a local desktop file with the same name as 
             # the package
-            searcher = GMenuSearcher()
             desktop_file = None
+            searcher = GMenuSearcher()
             pkgname = self.app_details.pkgname
             for p in [self.app_details.desktop_file,
                       "/usr/share/applications/%s.desktop" % pkgname]:
                 if p and os.path.exists(p):
                     desktop_file = p
-                    break
-            where = searcher.get_main_menu_path(desktop_file)
-            if not where:
-                return
-            label = gtk.Label(_("Find it in the menu: "))
-            self.installed_where_hbox.pack_start(label, False, False)
-            for (i, item) in enumerate(where):
-                iconname = item.get_icon()
-                # check icontheme first
-                if iconname and self.icons.has_icon(iconname) and i > 0:
-                    image = gtk.Image()
-                    image.set_from_icon_name(iconname, gtk.ICON_SIZE_SMALL_TOOLBAR)
-                    self.installed_where_hbox.pack_start(image, False, False)
-                # then see if its a path to a file on disk
-                elif iconname and os.path.exists(iconname):
-                    image = gtk.Image()
-                    pb = gtk.gdk.pixbuf_new_from_file_at_size(iconname, 18, 18)
-                    if pb:
-                        image.set_from_pixbuf(pb)
-                    self.installed_where_hbox.pack_start(image, False, False)
-
-                label_name = gtk.Label()
-                if item.get_type() == gmenu.TYPE_ENTRY:
-                    label_name.set_text(item.get_display_name())
-                else:
-                    label_name.set_text(item.get_name())
-                self.installed_where_hbox.pack_start(label_name, False, False)
-                if i+1 < len(where):
-                    right_arrow = gtk.Arrow(gtk.ARROW_RIGHT, gtk.SHADOW_NONE)
-                    self.installed_where_hbox.pack_start(right_arrow, 
-                                                         False, False)
-
-            # create our a11y text
-            a11y_text = ""
-            for widget in self.installed_where_hbox:
-                if isinstance(widget, gtk.Label):
-                    a11y_text += ' > ' + widget.get_text()
-            self.installed_where_hbox.a11y.set_name(a11y_text)
-            self.installed_where_hbox.set_property("can-focus", True)
-
-            self.installed_where_hbox.show_all()
+            # try to show menu location if there is a desktop file,
+            # but never show commandline programs for apps with desktop 
+            # file to cover cases like "file-roller" that have NoDisplay=true
+            if desktop_file:
+                where = searcher.get_main_menu_path(desktop_file)
+                if where:
+                    self._add_where_is_it_launcher(where)
+            # if there is no desktop file, show commandline
+            else:
+                self._add_where_is_it_commandline(pkgname)
+        return
 
     # public API
     # FIXME:  port to AppDetailsViewBase as
@@ -1431,12 +1470,16 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.pkg_statusbar.configure(self.app_details, PKG_STATE_INSTALLED)
         elif state == PKG_STATE_UPGRADING:
             self.pkg_statusbar.configure(self.app_details, PKG_STATE_INSTALLED)
-        # addons modified
+        # addons modified, order is important here
         elif self.addons_statusbar.applying:
             self.pkg_statusbar.configure(self.app_details, PKG_STATE_INSTALLED)
             self.addons_manager.configure(self.app_details.name, False)
             self.addons_statusbar.configure()
-
+        # cancellation of dependency dialog
+        elif state == PKG_STATE_INSTALLED:
+            self.pkg_statusbar.configure(self.app_details, PKG_STATE_INSTALLED)
+        elif state == PKG_STATE_UNINSTALLED:
+            self.pkg_statusbar.configure(self.app_details, PKG_STATE_UNINSTALLED)
         self.adjustment_value = None
         
         if self.addons_statusbar.applying:
@@ -1718,9 +1761,9 @@ if __name__ == "__main__":
     from softwarecenter.db.application import Application
     #view.show_app(Application("Pay App Example", "pay-app"))
     #view.show_app(Application("3D Chess", "3dchess"))
-    view.show_app(Application("Movie Player", "totem"))
+    #view.show_app(Application("Movie Player", "totem"))
     #view.show_app(Application("ACE", "unace"))
-    #view.show_app(Application("", "2vcard"))
+    view.show_app(Application("", "apt"))
 
     #view.show_app("AMOR")
     #view.show_app("Configuration Editor")
