@@ -1,3 +1,46 @@
+software-center (3.1.23.4) UNRELEASED; urgency=low
+
+  [ Gary Lasker ]
+  * softwarecenter/view/widgets/thumbnail.py:
+    - add missing logger definition to fix name error on
+      a thumbnail download error
+  * softwarecenter/utils.py,
+    softwarecenter/view/appdetailsview_gtk.py,
+    softwarecenter/view/softwarepane.py:
+    - update Unity launcher integration implementation per
+      revised approach (see LP: #670403)
+  * test/test_unity_launcher_integration.py,
+    test/data/<many>:
+    - update unit tests per the revised approach
+  
+  [ Michael Vogt ]
+  * merged lp:~mmcg069/software-center/rtl-work, thanks
+    to Matthew McGowan
+  * merged lp:~mmcg069/software-center/desc-tweaks 
+  * merged lp:~weblive-dev/software-center/weblive-by-default, thanks
+    to Stephane Graber (LP: #736227)
+  * softwarecenter/view/widgets/thumbnail.py:
+    - fix show/hide issue in download_and_display()
+  * softwarecenter/db/reviews.py, softwarecenter/models/appstore.py:
+    - deal with empty appname in the review-stats to follow the 
+      latest server changes
+      
+  [ Kiwinote ]
+  * softwarecenter/db/database.py:
+    - don't crash when we have no axi values (LP: #737870)
+  * softwarecenter/gwibber_helper.py:
+    - don't crash on startup due to anything sqlite related (LP: #737220)
+  * softwarecenter/log.py:
+    - don't crash on startup when logfile is not writeable (LP: #688682)
+  * softwarecenter/view/catview_gtk:
+    - don't crash when we have no what's new carousel (LP: #736046)
+  * softwarecenter/view/softwarepane.py:
+    - connect 'transaction-stopped' to on_transaction_stopped rather than o_t_f
+  * softwarecenter/view/widgets/reviews.py:
+    - fallback to package_name if review_data contains no app_name
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 21 Mar 2011 23:11:48 -0400
+
 software-center (3.1.23.3) natty; urgency=low
 
   [ Aaron Peachey ]

@@ -799,6 +799,30 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.reviews.finished()
 
     def on_test_drive_clicked(self, button):
+        # weblive helpers
+        def weblive_button_timeout(button, old_label):
+            """ timeout handler when a weblive session is requested """
+            if button.count == 10:
+                # Restore the button
+                button.set_sensitive(True)
+                button.set_label(old_label)
+                return False
+            else:
+                button.set_sensitive(False)
+                button.set_label(_("Connecting ... (%s%%)") % (button.count * 10))
+                button.count+=1
+                return True
+
+        def weblive_start_timer():
+            """ initiate a simple feedback UI when weblive connects """
+            old_label=button.get_label()
+            button.count=0
+            weblive_button_timeout(button, old_label)
+            glib.timeout_add_seconds(
+                2, weblive_button_timeout,  button, old_label)
+        #--------------------------------------------------------
+
+        # get exec line
         exec_line = get_exec_line_from_desktop(self.desktop_file)
 
         # split away any arguments, gedit for example as %U
@@ -808,9 +832,11 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         servers = self.weblive.get_servers_for_pkgname(self.app.pkgname)
 
         if len(servers) == 0:
-            error(None,"No available server","There is currently no available WebLive server for this application.\nPlease try again later.")
+            error(None,"No available server", "There is currently no available WebLive server for this application.\nPlease try again later.")
         elif len(servers) == 1:
             self.weblive.create_automatic_user_and_run_session(session=cmd,serverid=servers[0].name)
+            # Try to give some indication that we are connecting
+            weblive_start_timer()
         else:
             d = ShowWebLiveServerChooserDialog(servers)
             serverid=None
@@ -823,6 +849,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
             if serverid:
                 self.weblive.create_automatic_user_and_run_session(session=cmd,serverid=serverid)
+                # Try to give some indication that we are connecting
+                weblive_start_timer()
 
     def _on_addon_table_built(self, table):
         if not table.parent:
@@ -1468,11 +1496,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         if self.appdetails.icon_needs_download:
             icon_file = self.appdetails.cached_icon_file_path
         icon_size = self._get_app_icon_size_on_screen()
-        icon_file_path = get_file_path_from_iconname(self.icons,
-                                                     iconsize=icon_size,
-                                                     iconname=icon_name)
         (icon_x, icon_y) = self._get_app_icon_xy_position_on_screen()
-        return (icon_name, icon_file_path, icon_size, icon_x, icon_y)
+        return (icon_name, icon_size, icon_x, icon_y)
 
     def _get_app_icon_size_on_screen(self):
         """ helper for unity dbus support to get the size of the maximum side
@@ -1704,9 +1729,10 @@ if __name__ == "__main__":
     #view.show_app("Qlix")
 
     scroll.add(view)
+    scroll.show()
     win.add(scroll)
     win.set_size_request(600,400)
-    win.show_all()
+    win.show()
     win.connect('destroy', gtk.main_quit)
 
     # keep it spinning to test for re-draw issues and memleaks

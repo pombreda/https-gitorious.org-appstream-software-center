@@ -3,6 +3,7 @@ import gtk
 import gobject
 import mkit
 import pangocairo
+import logging
 
 from softwarecenter.enums import *
 from softwarecenter.utils import SimpleFileDownloader, uri_to_filename
@@ -11,6 +12,7 @@ from imagedialog import ShowImageDialog
 
 from gettext import gettext as _
 
+LOG = logging.getLogger(__name__)
 
 class ScreenshotThumbnail(gtk.Alignment):
 
@@ -456,6 +458,7 @@ class ScreenshotThumbnail(gtk.Alignment):
         self.spinner_alignment.set_size_request(*self.IDLE_SIZE)
 
         self.spinner.start()
+
         return
 
     def download_and_display(self):
@@ -466,6 +469,10 @@ class ScreenshotThumbnail(gtk.Alignment):
         """
 
         self.loader.download_file(self.thumbnail_url)
+        # show it
+        if self.get_property('visible'):
+            self.show_all()
+
         return
 
     def draw(self, cr, a, expose_area):

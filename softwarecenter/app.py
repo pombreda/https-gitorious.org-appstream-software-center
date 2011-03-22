@@ -515,12 +515,11 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
     def _on_sso_login(self, sso, oauth_result):
         self._sso_login_successful = True
         # consumer key is the openid identifier
-        print "query"
         self.scagent.query_available_for_me(oauth_result["token"],
                                             oauth_result["consumer_key"])
 
     def _available_for_me_result(self, scagent, result_list):
-        print "available_for_me_result", result_list
+        #print "available_for_me_result", result_list
         from db.update import add_from_purchased_but_needs_reinstall_data
         available_for_me_query = add_from_purchased_but_needs_reinstall_data(
             result_list, self.db, self.cache)

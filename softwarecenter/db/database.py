@@ -346,7 +346,7 @@ class StoreDatabase(gobject.GObject):
             # the doc says that get_value() is quicker than get_data()
             # so we use that if we have a updated DB, otherwise
             # fallback to the old way (the xapian DB may not yet be rebuild)
-            if "pkgname" in self._axi_values:
+            if self._axi_values and "pkgname" in self._axi_values:
                 pkgname = doc.get_value(self._axi_values["pkgname"])
             else:
                 pkgname = doc.get_data()

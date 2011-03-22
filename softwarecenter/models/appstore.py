@@ -533,14 +533,12 @@ class AppStore(gtk.GenericTreeModel):
             pkgname = app.pkgname
             return pkgname
         elif column == self.COL_RATING:
-            uapp = Application(untranslated_appname, pkgname)
-            stats = self.review_loader.get_review_stats(uapp)
+            stats = self.review_loader.get_review_stats(app)
             if stats:
                 return stats.ratings_average
             return 0
         elif column == self.COL_NR_REVIEWS:
-            uapp = Application(untranslated_appname, pkgname)
-            stats = self.review_loader.get_review_stats(uapp)
+            stats = self.review_loader.get_review_stats(app)
             if stats:
                 return stats.ratings_total
             return 0
