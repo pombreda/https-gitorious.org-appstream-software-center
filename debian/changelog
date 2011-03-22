@@ -12,6 +12,11 @@ software-center (3.1.23.4) UNRELEASED; urgency=low
   * test/test_unity_launcher_integration.py,
     test/data/<many>:
     - update unit tests per the revised approach
+  * softwarecenter/app.py,
+    softwarecenter/view/appview.py,
+    softwarecenter/view/softwarepane.py:
+    - send correct result object type when emitting
+      transaction-stopped signals in app.py
   
   [ Michael Vogt ]
   * merged lp:~mmcg069/software-center/rtl-work, thanks
@@ -38,7 +43,7 @@ software-center (3.1.23.4) UNRELEASED; urgency=low
   * softwarecenter/view/appdetailsview_gtk.py:
     - correctly update statusbar after cancelling a dependency dialog
   * softwarecenter/view/appview.py:
-    - don't crash on encountering a unicode pkgname ?how? (LP: #738691)
+    - don't crash on encountering a unicode pkgname (LP: #738691)
   * softwarecenter/view/catview_gtk:
     - don't crash when we have no what's new carousel (LP: #736046)
   * softwarecenter/view/softwarepane.py:
@@ -47,7 +52,7 @@ software-center (3.1.23.4) UNRELEASED; urgency=low
   * softwarecenter/view/widgets/reviews.py:
     - fallback to package_name if review_data contains no app_name
 
- -- Gary Lasker <gary.lasker@canonical.com>  Sun, 20 Mar 2011 21:44:26 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 21 Mar 2011 20:16:18 -0400
 
 software-center (3.1.23.3) natty; urgency=low
 
