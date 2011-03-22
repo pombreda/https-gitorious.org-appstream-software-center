@@ -455,12 +455,8 @@ class SoftwarePane(gtk.VBox, BasePane):
             LOG.warn("could not send dbus signal to the Unity launcher: (%s)", e)
             
     def on_transaction_stopped(self, backend, result):
-        if hasattr(result, 'pkgname'):
-            pkgname = result.pkgname
-        else:
-            pkgname = result
-        if pkgname in self.unity_launcher_items:
-            self.unity_launcher_items.pop(pkgname)
+        if result.pkgname in self.unity_launcher_items:
+            self.unity_launcher_items.pop(result.pkgname)
         self.action_bar.clear()
 
     def show_appview_spinner(self):
