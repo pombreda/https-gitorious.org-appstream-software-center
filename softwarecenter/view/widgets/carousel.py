@@ -23,11 +23,11 @@ from gettext import gettext as _
 class CarouselView(gtk.VBox):
 
     # as per spec transition timeout should be 15000 (15 seconds)
-    TRANSITION_TIMEOUT =    15000
+    TRANSITION_TIMEOUT =    3000
 
     # spec says the fade duration should be 1 second, these values suffice:
-    FADE_INTERVAL =         25 # msec
-    FADE_STEP =             0.075 # value between 0.0 and 1.0
+    FADE_INTERVAL =         50 # msec
+    FADE_STEP =             0.2 # value between 0.0 and 1.0
 
     POSTER_MIN_WIDTH =      15*EM
 
@@ -448,17 +448,18 @@ class CarouselPoster2(Button):
 
         pb = self.image.get_pixbuf()
         if pb:
-            w, h = pb.get_width(), pb.get_height()
+            pb_w, pb_h = pb.get_width(), pb.get_height()
+            ia = self.image.allocation
 
             cr.set_source_pixbuf(self.image.get_pixbuf(),
-                                 bw + (self.image.allocation.width - w)/2,
-                                 bw + (self.image.allocation.height - h)/2)
+                                 ia.x - a.x + (ia.width - pb_w)/2,
+                                 ia.y - a.y + (ia.height - pb_h)/2)
             cr.paint()
 
         cr.set_source_color(self.style.text[self.state])
         xo, yo = self.label.get_layout_offsets()
-        cr.move_to(self.label.allocation.x + xo - a.x,
-                   self.label.allocation.y + yo - a.y)
+
+        cr.move_to(xo - a.x, yo - a.y)
         cr.layout_path(self.label.get_layout())
         cr.fill()
 
