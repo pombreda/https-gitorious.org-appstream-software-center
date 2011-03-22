@@ -50,6 +50,14 @@ class CmdFinder(object):
     def _get_exec_candidates(self, pkg):
         return filter(self._is_exec, pkg.installed_files)
 
+    def _find_alternatives_for_cmds(self, cmds):
+        alternatives = set()
+        root = "/etc/alternatives"
+        for p in os.listdir(root):
+            if os.path.realpath(os.path.join(root, p)) in cmds:
+                alternatives.add(p)
+        return alternatives
+
     def find_cmds_from_pkgname(self, pkgname):
         """ find the executables binaries for a given package """
         try:
@@ -60,7 +68,8 @@ class CmdFinder(object):
         if not pkg.is_installed:
             return []
         cmds = self._get_exec_candidates(pkg)
-        return [os.path.basename(p) for p in cmds]
+        cmds += self._find_alternatives_for_cmds(cmds)
+        return sorted([os.path.basename(p) for p in cmds])
 
 #~ 
 #~ class CmdFinderWidget(gtk.VBox, CmdFinder):

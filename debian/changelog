@@ -28,6 +28,8 @@ software-center (3.1.23.4) UNRELEASED; urgency=low
     to to Matthew McGowan
   * show launcher like location for commandline only apps, thanks
     to Matthew McGowan
+  * when scanning for commandline binaries take alterantives into 
+    account as well
       
   [ Kiwinote ]
   * softwarecenter/db/database.py:

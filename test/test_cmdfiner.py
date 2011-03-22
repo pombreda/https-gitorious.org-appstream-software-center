@@ -19,7 +19,11 @@ class TestCmdFinder(unittest.TestCase):
         cmds = self.cmd.find_cmds_from_pkgname("apt")
         self.assertTrue("apt-get" in cmds)
         self.assertTrue(len(cmds) > 2)
-        
+
+    def test_cmdfinder_find_alternatives(self):
+        # this test ensures that alternatives are also considered
+        cmds = self.cmd.find_cmds_from_pkgname("gawk")
+        self.assertTrue("awk" in cmds)
 
 if __name__ == "__main__":
     import logging
