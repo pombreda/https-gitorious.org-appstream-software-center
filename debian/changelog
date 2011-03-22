@@ -12,6 +12,9 @@ software-center (3.1.24) natty; urgency=low
   * test/test_unity_launcher_integration.py,
     test/data/<many>:
     - update unit tests per the revised approach
+  * softwarecenter/app.py:
+    - send correct result object type when emitting
+      transaction-stopped signals (LP: #738691)
   
   [ Michael Vogt ]
   * merged lp:~mmcg069/software-center/rtl-work, many thanks
