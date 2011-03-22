@@ -50,8 +50,20 @@ UBUNTU_SSO_SERVICE = os.environ.get(
     "USSOC_SERVICE_URL", "https://login.ubuntu.com/api/1.0")
 UBUNTU_SOFTWARE_CENTER_AGENT_SERVICE = BUY_SOMETHING_HOST+"/api/1.0"
 
-class EmptyObject(object):
-    pass
+class AttributesObject(object):
+    """ convinient object to hold attributes """
+    MAX_REPR_STRING_SIZE = 30
+
+    def __repr__(self):
+        s = "<'%s': " % self.__class__.__name__
+        for key in vars(self):
+            value = str(getattr(self, key))
+            if len(value) > self.MAX_REPR_STRING_SIZE:
+                value = "%s..." % value[:self.MAX_REPR_STRING_SIZE]
+            s += "%s='%s';" % (key, value)
+        s += ">"
+        return s
+
 
 def restful_collection_to_real_python(restful_list):
     """ take a restful and convert it to a python list with real python
@@ -59,7 +71,7 @@ def restful_collection_to_real_python(restful_list):
     """
     l = []
     for entry in restful_list:
-        o = EmptyObject()
+        o = AttributesObject()
         for attr in entry.lp_attributes:
             setattr(o, attr, getattr(entry, attr))
         l.append(o)
@@ -401,7 +413,7 @@ class SoftwareCenterAgentAnonymous(gobject.GObject):
         # all good, convert to real objects and emit available items
         items = []
         for item_dict in json_list:
-            o = EmptyObject()
+            o = AttributesObject()
             for (key, value) in item_dict.iteritems():
                 setattr(o, key, value)
             items.append(o)
