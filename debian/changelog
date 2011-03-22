@@ -26,6 +26,8 @@ software-center (3.1.23.4) UNRELEASED; urgency=low
       latest server changes
   * merged lp:~mmcg069/software-center/reviews-msg-tweaks, many thanks
     to to Matthew McGowan
+  * show launcher like location for commandline only apps, thanks
+    to Matthew McGowan
       
   [ Kiwinote ]
   * softwarecenter/db/database.py:
