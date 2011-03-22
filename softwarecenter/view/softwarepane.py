@@ -43,7 +43,7 @@ from softwarecenter.backend import get_install_backend
 from softwarecenter.enums import *
 from softwarecenter.paths import *
 from softwarecenter.view.basepane import BasePane
-from softwarecenter.utils import wait_for_apt_cache_ready
+from softwarecenter.utils import *
 
 from appview import AppView, AppStore
 from purchaseview import PurchaseView
