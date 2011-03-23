@@ -86,6 +86,9 @@ class ActionBar(gtk.HBox):
         children = self._btns.get_children()
         for child in children:
             if child.id == id:
+                # lock the height of the action bar when removing buttons to prevent
+                # an unsightly resize if a label remains but all buttons are removed
+                self.set_size_request(-1, self.allocation.height)
                 self._btns.remove(child)
                 if len(children) == 1 and not len(self._label):
                     self._hide()
@@ -210,6 +213,9 @@ class ActionBar(gtk.HBox):
     def _hide(self):
         super(ActionBar, self).hide()
         self._visible = False
+        # unlock any fixed height request to allow natural sizing when
+        # the action bar is shown again
+        self.set_size_request(-1, -1)
 
     def _callback(self, function, args):
         # Disposes of the 'widget' argument that
