@@ -20,7 +20,6 @@ import gtk
 import logging
 
 from gettext import gettext as _
-from mkit import HLinkButton, EM
 
 LOG = logging.getLogger(__name__)
 
@@ -73,8 +72,7 @@ class ActionBar(gtk.HBox):
         overwrite = self.get_button(id)
         if overwrite:
             self._btns.remove(overwrite)
-        btn = HLinkButton(label)
-        btn.set_underline(True)
+        btn = gtk.Button(label)
         btn.connect("clicked", self._callback(result, result_args))
         btn.id = id
         btn.show()
