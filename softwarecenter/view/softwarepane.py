@@ -207,10 +207,15 @@ class SoftwarePane(gtk.VBox, BasePane):
         self.spinner_notebook.append_page(self.spinner_view)
         
         self.pack_start(self.spinner_notebook)
-        # a bar at the bottom (hidden by default) for contextual actions
+
+        # add a bar at the bottom (hidden by default) for contextual actions
         self.action_bar = ActionBar()
         self.pack_start(self.action_bar, expand=False)
-        self.top_hbox.connect('expose-event', self._on_expose)
+        
+        # connect expose events to allow us to draw lines, one at the bottom of
+        # the top_hbox and another at the top of the action bar
+        self.top_hbox.connect('expose-event', self._on_top_hbox_expose)
+        self.action_bar.connect('expose-event', self._on_action_bar_expose)
         
         # cursor
         self.busy_cursor = gtk.gdk.Cursor(gtk.gdk.WATCH)
@@ -277,7 +282,7 @@ class SoftwarePane(gtk.VBox, BasePane):
         if self.db:
             self.db.connect("reopen", self.on_db_reopen)
 
-    def _on_expose(self, widget, event):
+    def _on_top_hbox_expose(self, widget, event):
         """ Draw a horizontal line that separates the top hbox from the page content """
         a = widget.allocation
         self.style.paint_shadow(widget.window, self.state,
@@ -288,6 +293,16 @@ class SoftwarePane(gtk.VBox, BasePane):
                                 a.width, a.y+a.height-1)
         return
 
+    def _on_action_bar_expose(self, widget, event):
+        """ Draw a horizontal line that separates the top of the action bar from the page content """
+        a = widget.allocation
+        self.style.paint_shadow(widget.window, self.state,
+                                gtk.SHADOW_IN,
+                                (a.x, a.y, a.width, 1),
+                                widget, "viewport",
+                                a.x, a.y,
+                                a.width, a.y)
+        return
 
     def init_atk_name(self, widget, name):
         """ init the atk name for a given gtk widget based on parent-pane
