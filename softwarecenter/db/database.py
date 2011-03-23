@@ -199,8 +199,6 @@ class StoreDatabase(gobject.GObject):
         """ get xapian.Query from a search term string and a limit the
             search to the given category
         """
-   #     if search_term and ',' in search_term:
-    #        return SearchQuery(xapian.Query())# handled elsewhere
         def _add_category_to_query(query):
             """ helper that adds the current category to the query"""
             if not category_query:

@@ -132,7 +132,6 @@ class AppStore(gtk.GenericTreeModel):
         # invalidate the cache on icon theme changes
         self.icons.connect("changed", self._clear_app_icon_cache)
         self._appicon_missing_icon = self.icons.load_icon(MISSING_APP_ICON, self.icon_size, 0)
-        self.apps = []  # XXX: does this actually get used anymore??? -- since today it does
         self.sortmode = sortmode
         # we need a copy of the filter here because otherwise comparing
         # two models will not work
@@ -163,7 +162,9 @@ class AppStore(gtk.GenericTreeModel):
             self.search_query = SearchQuery(xapian.Query(""))
             self.sortmode = SORT_BY_ALPHABET
             self.limit = 0
+        # custom package lists
         self.search_term = search_term
+        self.apps = []
 
         # we support single and list search_queries,
         # if list we append them one by one
@@ -198,8 +199,12 @@ class AppStore(gtk.GenericTreeModel):
         return (nr_apps, nr_pkgs)
 
     def _blocking_perform_search(self):
+        # WARNING this call may run in a thread, so its *not* 
+        #         allowed to touch gtk, otherwise hell breaks loose
+
+        # custom package lists
         if self.search_term and ',' in self.search_term:
-            apps = []
+            self.apps = []
             terms = []
             for term in self.search_term.split(','):
                 term = term.strip()
@@ -208,13 +213,10 @@ class AppStore(gtk.GenericTreeModel):
                     app = Application('', term.split('?')[0])
                     if '?' in term:
                         app.request = term.split('?')[1]
-                    apps.append(app)
-            self.apps = apps
+                    self.apps.append(app)
             self.matches = self.db.get_exact_matches(terms)
             self._perform_search_complete = True
             return
-        # WARNING this call may run in a thread, so its *not* 
-        #         allowed to touch gtk, otherwise hell breaks loose
 
         # performance only: this is only needed to avoid the 
         # python __call__ overhead for each item if we can avoid it
@@ -360,8 +362,8 @@ class AppStore(gtk.GenericTreeModel):
             doc = self.matches[index].document
             try:
                 pkgname = self.db.get_pkgname(doc)
-            except:
-                pkgname = doc #custom package lists
+            except: # 'not found' Application items for custom package lists
+                pkgname = doc.pkgname
             if pkgname == pkgname_to_match:
                 self.transaction_index_map[pkgname] = index
                 return
@@ -410,9 +412,9 @@ class AppStore(gtk.GenericTreeModel):
         #self._logger.debug("on_get_value: %s %s" % (rowref, column))
         doc = self.matches[rowref].document
 
-        if type(doc) == Application: # custom package list - not found
+        # 'not found' applications for custom package lists
+        if type(doc) == Application:
             app = doc
-
             if column == self.COL_APP_NAME:
                 if app.request:
                     return app.name
@@ -423,7 +425,7 @@ class AppStore(gtk.GenericTreeModel):
                 if app.request:
                     s = "%s\n<small>%s</small>" % (
                         gobject.markup_escape_text(app.name),
-                        gobject.markup_escape_text(_("Not Found")))
+                        gobject.markup_escape_text(_("Not found")))
                     return s
                 s = "<span foreground='#666'>%s\n<small>%s</small></span>" % (
                     gobject.markup_escape_text(_("Not found")),
@@ -455,7 +457,7 @@ class AppStore(gtk.GenericTreeModel):
             elif column == self.COL_ACTION_IN_PROGRESS:
                 return -1
             elif column == self.COL_ACCESSIBLE:
-                return '%s\n%s' % (app.pkgname, _('Package state unknown'))
+                return '%s\n%s' % (app.pkgname, _("Not found"))
             elif column == self.COL_REQUEST:
                 return app.request
 
@@ -466,7 +468,7 @@ class AppStore(gtk.GenericTreeModel):
         popcon = self.db.get_popcon(doc)
         app = Application(appname, pkgname)
 
-        # la la la, no one sees this, do they...
+        # ensure that any app.requests don't get lost
         if self.apps:
             for s_app in self.apps:
                 if s_app.pkgname == pkgname:

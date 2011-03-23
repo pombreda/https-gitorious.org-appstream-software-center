@@ -349,7 +349,8 @@ class AvailablePane(SoftwarePane):
         appstore = self.app_view.get_model()
         if (appstore and
             self.apps_search_term and
-            ',' in self.apps_search_term):
+            ',' in self.apps_search_term and
+            self.notebook.get_current_page() == self.PAGE_APPLIST):
             appstore = self.app_view.get_model()
             installable = []
             for app in appstore.apps:
