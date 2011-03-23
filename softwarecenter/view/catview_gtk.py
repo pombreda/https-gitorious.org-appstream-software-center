@@ -358,7 +358,6 @@ class LobbyViewGtk(CategoriesViewGtk):
                                      self.icons,
                                      featured_cat.query,
                                      self.apps_limit,
-                                     exact=True,
                                      filter=self.apps_filter,
                                      icon_size=best_stock_size,
                                      global_icon_cache=False,

@@ -176,7 +176,6 @@ class SoftwarePane(gtk.VBox, BasePane):
         self.apps_category = None
         self.apps_subcategory = None
         self.apps_search_term = None
-        self.custom_list_mode = False
         # keep track of applications that have been requested to be added
         # to the Unity launcher
         self.unity_launcher_items = {}
@@ -648,16 +647,15 @@ class SoftwarePane(gtk.VBox, BasePane):
         LOG.debug("softwarepane query: %s" % query)
         # create new model and attach it
         seq_nr = self.refresh_seq_nr
-        # In custom list mode, search should yield the exact package name.
         new_model = AppStore(self.cache,
                              self.db,
                              self.icons,
                              query,
                              limit=self.get_app_items_limit(),
                              sortmode=self.get_sort_mode(),
-                             exact=self.custom_list_mode,
                              nonapps_visible = self.nonapps_visible,
-                             filter=self.apps_filter)
+                             filter=self.apps_filter,
+                             search_term=self.apps_search_term)
 
         #print "new_model", new_model, len(new_model), seq_nr
         # between request of the new model and actual delivery other
