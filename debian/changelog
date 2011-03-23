@@ -18,6 +18,11 @@ software-center (3.1.24.1) unstable; urgency=low
     softwarecenter/view/availablepane.py,
     others:
     - make custom lists work (LP: #712903)
+  * softwarecenter/db/reviews.py,
+    softwarecenter/distro/Ubuntu.py:
+    - fallback to ReviewLoaderJsonAsync when we can't use multiprocessing
+      (LP: #741069)
+    - fixes to make ReviewLoaderJsonAsync 'work' (ie most common cases)
 
  -- Gary Lasker <gary.lasker@canonical.com>  Tue, 22 Mar 2011 22:00:11 -0400
 
