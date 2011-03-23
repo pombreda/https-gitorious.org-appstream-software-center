@@ -301,7 +301,7 @@ class SoftwarePane(gtk.VBox, BasePane):
                                 (a.x, a.y, a.width, 1),
                                 widget, "viewport",
                                 a.x, a.y,
-                                a.width, a.y)
+                                a.width, 1)
         return
 
     def init_atk_name(self, widget, name):
