@@ -8,9 +8,9 @@ software-center (3.1.24.1) unstable; urgency=low
   [ Gary Lasker ]
   * softwarecenter/view/softwarepane.py,
     softwarecenter/view/widgets/actionbar.py:
-    - fixes for the action bar (LP: #644454) 
+    - visual improvements for the action bar (LP: #644454) 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Tue, 22 Mar 2011 20:35:28 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 22 Mar 2011 20:37:46 -0400
 
 software-center (3.1.24) natty; urgency=low
 
