@@ -1,4 +1,4 @@
-software-center (3.1.24.1) unstable; urgency=low
+software-center (3.1.24.1) natty; urgency=low
 
   [ Michael Vogt ]
   * softwarecenter/db/database.py:
@@ -12,7 +12,7 @@ software-center (3.1.24.1) unstable; urgency=low
     - display buttons in the action bar as gtk buttons
       rather than as links (LP: #635062)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Tue, 22 Mar 2011 22:00:11 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 23 Mar 2011 21:00:39 +0100
 
 software-center (3.1.24) natty; urgency=low
 
