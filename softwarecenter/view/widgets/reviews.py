@@ -132,16 +132,19 @@ class StarPainter(IStarPainter):
     def _paint_star(self, cr, widget, state, x, y, w, h, alpha=1.0):
         cr.save()
 
-        # bevel
-        self.shape.layout(cr, x+0.5, y+1.5, w-1, h-1)
-        cr.set_line_join(cairo.LINE_CAP_ROUND)
-        cr.set_source_rgba(*color_floats(widget.style.white)+(0.85,))
-        cr.stroke()
-
         if self.border == self.BORDER_ON:
             self._paint_star_border(cr, widget, state, x, y, w, h, alpha)
 
         if self.shadow == gtk.SHADOW_ETCHED_OUT:
+
+            if not self.border == self.BORDER_ON:
+                # bevel
+                self.shape.layout(cr, x+0.5, y+2.5, w-1, h-1)
+                cr.set_line_join(cairo.LINE_CAP_ROUND)
+                cr.set_line_width(1)
+                cr.set_source_rgba(*color_floats(widget.style.white)+(0.95,))
+                cr.stroke()
+
             if widget.state != gtk.STATE_ACTIVE:
                 self._paint_star_etched_out(cr, widget, state, x, y, w, h, alpha)
             else:
@@ -1169,22 +1172,123 @@ class NoReviewYetWriteOne(EmbeddedMessage):
         return
 
 
+class _StarGallery(gtk.Window):
+
+    """ for testing only.  paints all the different star painters in
+        one window """
+
+    SIZE = (60, 60)
+
+    def __init__(self):
+        gtk.Window.__init__(self)
+        self.set_border_width(20)
+        self.set_title('Star Gallery')
+
+        vb = gtk.VBox(spacing=12)
+        self.add(vb)
+
+        hb = gtk.HBox(spacing=12)
+        vb.pack_start(hb, False)
+
+        hb1 = gtk.HBox(spacing=12)
+        vb.pack_start(hb1)
+
+        # flat
+        star = StarWidget(size=self.SIZE, is_interactive=False)
+        hb.pack_start(star, False)
+
+        star = StarWidget(size=self.SIZE, is_interactive=False)
+        star.set_fill(star.FILL_FULL)
+        hb1.pack_start(star, False)
+
+        # etched out
+        star = StarWidget(size=self.SIZE, is_interactive=False)
+        star.set_shadow_type(gtk.SHADOW_ETCHED_OUT)
+        hb.pack_start(star, False)
+
+        star = StarWidget(size=self.SIZE, is_interactive=False)
+        star.set_shadow_type(gtk.SHADOW_ETCHED_OUT)
+        star.set_fill(star.FILL_FULL)
+        hb1.pack_start(star, False)
+
+        #~ star = StarWidget(size=self.SIZE, is_interactive=False)
+        #~ star.set_shadow_type(gtk.SHADOW_ETCHED_IN)
+        #~ hb.pack_start(star, False)
+#~ 
+        #~ star = StarWidget(size=self.SIZE, is_interactive=False)
+        #~ star.set_shadow_type(gtk.SHADOW_ETCHED_IN)
+        #~ star.set_fill(star.FILL_FULL)
+        #~ hb1.pack_start(star, False)
+
+        # etched out border on
+        star = StarWidget(size=self.SIZE, is_interactive=False)
+        star.set_shadow_type(gtk.SHADOW_ETCHED_OUT)
+        star.border = star.BORDER_ON
+        hb.pack_start(star, False)
+
+        star = StarWidget(size=self.SIZE, is_interactive=False)
+        star.set_shadow_type(gtk.SHADOW_ETCHED_OUT)
+        star.border = star.BORDER_ON
+        star.set_fill(star.FILL_FULL)
+        hb1.pack_start(star, False)
+
+        # active border off etched out
+        star = StarWidget(size=self.SIZE, is_interactive=False)
+        star.set_shadow_type(gtk.SHADOW_ETCHED_OUT)
+        star.border = IStarPainter.BORDER_OFF
+        star.set_state(gtk.STATE_ACTIVE)
+        hb.pack_start(star, False)
+
+        star = StarWidget(size=self.SIZE, is_interactive=False)
+        star.set_shadow_type(gtk.SHADOW_ETCHED_OUT)
+        star.border = IStarPainter.BORDER_OFF
+        star.set_state(gtk.STATE_ACTIVE)
+        star.set_fill(star.FILL_FULL)
+        hb1.pack_start(star, False)
+
+        # prelight etched out border off
+        star = StarWidget(size=self.SIZE, is_interactive=False)
+        star.set_shadow_type(gtk.SHADOW_ETCHED_OUT)
+        star.border = IStarPainter.BORDER_OFF
+        star.set_state(gtk.STATE_PRELIGHT)
+        hb.pack_start(star, False)
+
+        star = StarWidget(size=self.SIZE, is_interactive=False)
+        star.set_shadow_type(gtk.SHADOW_ETCHED_OUT)
+        star.border = IStarPainter.BORDER_OFF
+        star.set_state(gtk.STATE_PRELIGHT)
+        star.set_fill(star.FILL_FULL)
+        hb1.pack_start(star, False)
+
+        self.show_all()
+        self.connect("destroy", gtk.main_quit)
+        return
+
+
 
 if __name__ == "__main__":
-    w = StarRatingSelector()
-    #~ w.set_avg_rating(3.5)
-    #~ w.set_nr_reviews(101)
+    import sys
 
-    l = gtk.Label('focus steeler')
-    l.set_selectable(True)
+    if '--star-gallery' in sys.argv:
+        # do star gallery stuff...
+        print 'wooo... star gallery!'
+        w = _StarGallery()
+        
+    else:
+        w = StarRatingSelector()
+        #~ w.set_avg_rating(3.5)
+        #~ w.set_nr_reviews(101)
 
-    vb = gtk.VBox(spacing=6)
-    vb.pack_start(l)
-    vb.pack_start(w)
+        l = gtk.Label('focus steeler')
+        l.set_selectable(True)
 
-    win = gtk.Window()
-    win.add(vb)
-    win.show_all()
-    win.connect('destroy', gtk.main_quit)
+        vb = gtk.VBox(spacing=6)
+        vb.pack_start(l)
+        vb.pack_start(w)
+
+        win = gtk.Window()
+        win.add(vb)
+        win.show_all()
+        win.connect('destroy', gtk.main_quit)
 
     gtk.main()
