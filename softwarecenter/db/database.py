@@ -79,7 +79,7 @@ def parse_axi_values_file(filename="/var/lib/apt-xapian-index/values"):
     """
     axi_values = {}
     if not os.path.exists(filename):
-        return
+        return axi_values
     for raw_line in open(filename):
         line = string.split(raw_line, "#", 1)[0]
         if line.strip() == "":

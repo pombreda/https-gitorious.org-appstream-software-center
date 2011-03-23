@@ -472,7 +472,11 @@ def update_from_software_center_agent(db, cache, ignore_etag=False,
             entry.channel = AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME
             # icon is transmited inline
             iconname = "sc-agent-%s" % entry.package_name
-            icondata = base64.b64decode(entry.icon_data)
+            if hasattr(entry, "icon_data"):
+                icondata = base64.b64decode(entry.icon_data)
+            else:
+                # workaround for scagent bug #740112
+                icondata = base64.b64decode(entry.icon_64_data)
             open(os.path.join(SOFTWARE_CENTER_ICON_CACHE_DIR,
                               "%s.png" % iconname),"w").write(icondata)
             entry.icon = iconname
