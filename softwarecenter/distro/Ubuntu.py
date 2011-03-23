@@ -42,7 +42,6 @@ class Ubuntu(Distro):
 
     # reviews
     REVIEWS_SERVER = os.environ.get("SOFTWARE_CENTER_REVIEWS_HOST") or "http://reviews.staging.ubuntu.com/reviews/api/1.0"
-    REVIEWS_SERVER_SSL = REVIEWS_SERVER.replace("http://", "https://")
     REVIEWS_URL = urllib.basejoin(REVIEWS_SERVER, "/reviews/api/1.0/%(language)s/%(origin)s/%(distroseries)s/%(pkgname)s%(appname)s/")
 
     #REVIEW_STATS_URL = REVIEWS_SERVER+"/reviews/api/1.0/%(language)s/%(origin)s/%(distroseries)s/review-stats/"

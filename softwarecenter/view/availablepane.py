@@ -410,13 +410,6 @@ class AvailablePane(SoftwarePane):
             return self.apps_category.item_limit
         return 0
 
-    def _get_sort_mode(self):
-        if self.apps_search_term:
-            return SORT_BY_SEARCH_RANKING
-        elif self.apps_category:
-            return self.apps_category.sortmode
-        return SORT_BY_ALPHABET
-
     def _clear_search(self):
         self.searchentry.clear_with_no_signal()
         self.apps_limit = 0
@@ -701,14 +694,26 @@ class AvailablePane(SoftwarePane):
         return
 
     def set_category(self, category):
-        #print "set_category", category
-        #import traceback
-        #traceback.print_stack()
+        LOG.debug('set_category: %s' % category)
+
+        # apply any category based filters
+        if not self.apps_filter:
+            self.apps_filter = AppViewFilter(self.db, self.cache)
+
+        if category.flags and 'available-only' in category.flags:
+            self.apps_filter.set_available_only(True)
+        else:
+            self.apps_filter.set_available_only(False)
+
+        if category.flags and 'not-installed-only' in category.flags:
+            self.apps_filter.set_not_installed_only(True)
+        else:
+            self.apps_filter.set_not_installed_only(False)
+
+        # the rest
         self.update_navigation_button()
         def _cb():
             self.refresh_apps()
-            # this is already done earlier
-            #self.notebook.set_current_page(self.PAGE_APPLIST)
             return False
         gobject.timeout_add(1, _cb)
         pass

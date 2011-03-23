@@ -513,6 +513,7 @@ class PathBar(gtk.HBox):
         if self._scroller:
             gobject.source_remove(self._scroller)
             self.get_children()[-1].destroy()
+
         self._scroll_xO = 0
         self._scroller = None
 

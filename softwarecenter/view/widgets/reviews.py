@@ -45,6 +45,8 @@ from softwarecenter.netstatus import network_state_is_connected
 from softwarecenter.utils import get_person_from_config
 from softwarecenter.enums import *
 
+from softwarecenter.db.reviews import UsefulnessCache
+
 
 class IStarPainter:
 
@@ -96,26 +98,30 @@ class StarPainter(IStarPainter):
         cr.save()
 
         if widget.get_direction() != gtk.TEXT_DIR_RTL:
-            color1 = self.fg_color
-            color2 = self.bg_color
+            x0 = x
+            x1 = x + w/2
 
         else:
-            color1 = self.bg_color
-            color2 = self.fg_color
+            x0 = x + w/2
+            x1 = x
 
-        cr.rectangle(x, y, w/2, h)
+        cr.rectangle(x0, y, w/2, h)
         cr.clip()
 
+        self.set_fill(self.FILL_FULL)
         self._paint_star(cr, widget, state, x, y, w, h)
 
         cairo.Context.reset_clip(cr)
 
-        cr.rectangle(x+w/2, y, w/2, h)
+        cr.rectangle(x1, y, w/2, h)
         cr.clip()
 
+        self.set_fill(self.FILL_EMPTY)
         self._paint_star(cr, widget, state, x, y, w, h)
 
         cairo.Context.reset_clip(cr)
+
+        self.set_fill(self.FILL_HALF)
         cr.restore()
         return
 
@@ -126,7 +132,30 @@ class StarPainter(IStarPainter):
             return
 
         self._paint_star(cr, widget, state, x, y, w, h, self.alpha)
+        return
 
+    def paint_rating(self, cr, widget, state, x, y, star_size, max_stars, rating):
+
+        sw = star_size[0]
+        direction = widget.get_direction()
+
+        index = range(0, max_stars)
+        if direction == gtk.TEXT_DIR_RTL: index.reverse()
+
+        for i in index:
+
+            if i < int(rating):
+                self.set_fill(StarPainter.FILL_FULL)
+
+            elif (i == int(rating) and 
+                  rating - int(rating) > 0):
+                self.set_fill(StarPainter.FILL_HALF)
+
+            else:
+                self.set_fill(StarPainter.FILL_EMPTY)
+
+            self.paint_star(cr, widget, state, x, y, *star_size)
+            x += sw
         return
 
     def _paint_star(self, cr, widget, state, x, y, w, h, alpha=1.0):
@@ -347,23 +376,13 @@ class SimpleStarRating(gtk.HBox, StarPainter):
         return
 
     def draw(self, cr, a):
-        w, h = self.get_size_request()
-        y = a.y + (a.height-h)/2
-        sw, sh = self.star_size
-        spacing = self.get_spacing()
-
-        n_stars = self.n_stars
-
-        for i in range(self.max_stars):
-            if i < int(n_stars):
-                self.set_fill(StarPainter.FILL_FULL)
-            elif i == int(n_stars) and n_stars-int(n_stars) > 0:
-                self.set_fill(StarPainter.FILL_HALF)
-            else:
-                self.set_fill(StarPainter.FILL_EMPTY)
-
-            x = a.x + i*(sw+spacing)
-            self.paint_star(cr, self, self.state, x, y, sw, sh)
+        sw = self.get_property('width-request')/self.MAX_STARS
+        self.paint_rating(cr, self,
+                          self.state,
+                          a.x, a.y,
+                          (sw, sw),
+                          self.MAX_STARS,
+                          self.n_stars)
         return
 
     def set_max_stars(self, max_stars):
@@ -632,6 +651,7 @@ class UIReviewsList(gtk.VBox):
         self._parent = parent
         # this is a list of review data (softwarecenter.db.reviews.Review)
         self.reviews = []
+        self.useful_votes = UsefulnessCache()
         self.logged_in_person = None
 
         label = mkit.EtchedLabel(_("Reviews"))
@@ -657,6 +677,9 @@ class UIReviewsList(gtk.VBox):
 
     def _on_button_new_clicked(self, button):
         self.emit("new-review")
+    
+    def update_useful_votes(self, my_votes):
+        self.useful_votes = my_votes
 
     def _fill(self):
         """ take the review data object from self.reviews and build the
@@ -666,7 +689,7 @@ class UIReviewsList(gtk.VBox):
         if self.reviews:
             for r in self.reviews:
                 pkgversion = self._parent.app_details.version
-                review = UIReview(r, pkgversion, self.logged_in_person)
+                review = UIReview(r, pkgversion, self.logged_in_person, self.useful_votes)
                 self.vbox.pack_start(review)
         return
 
@@ -785,7 +808,7 @@ class UIReview(gtk.VBox):
         useful/inappropriate etc
     """
     def __init__(self, review_data=None, app_version=None, 
-                 logged_in_person=None):
+                 logged_in_person=None, useful_votes=None):
         gtk.VBox.__init__(self, spacing=mkit.SPACING_LARGE)
 
         self.header = gtk.HBox(spacing=mkit.SPACING_MED)
@@ -821,11 +844,12 @@ class UIReview(gtk.VBox):
                          self._on_realize,
                          review_data,
                          app_version,
-                         logged_in_person)
+                         logged_in_person,
+                         useful_votes)
         return
 
-    def _on_realize(self, w, review_data, app_version, logged_in_person):
-        self._build(review_data, app_version, logged_in_person)
+    def _on_realize(self, w, review_data, app_version, logged_in_person, useful_votes):
+        self._build(review_data, app_version, logged_in_person, useful_votes)
         return
 
     def _on_allocate(self, widget, allocation, stars, summary, text, who_when, version_lbl, flag):
@@ -904,7 +928,7 @@ class UIReview(gtk.VBox):
         # example raw_date str format: 2011-01-28 19:15:21
         return datetime.datetime.strptime(raw_date_str, '%Y-%m-%d %H:%M:%S')
 
-    def _build(self, review_data, app_version, logged_in_person):
+    def _build(self, review_data, app_version, logged_in_person, useful_votes):
 
         # all the attributes of review_data may need markup escape, 
         # depening on if they are used as text or markup
@@ -914,7 +938,7 @@ class UIReview(gtk.VBox):
         # example raw_date str format: 2011-01-28 19:15:21
         cur_t = self._get_datetime_from_review_date(review_data.date_created)
 
-        app_name = review_data.app_name
+        app_name = review_data.app_name or review_data.package_name
         review_version = review_data.version
         self.useful_total = useful_total = review_data.usefulness_total
         useful_favorable = review_data.usefulness_favorable
@@ -969,7 +993,7 @@ class UIReview(gtk.VBox):
             current_user_reviewer = True
 
         self._build_usefulness_ui(current_user_reviewer, useful_total,
-                                  useful_favorable, useful_submit_error)
+                                  useful_favorable, useful_votes, useful_submit_error)
 
         # Translators: This link is for flagging a review as inappropriate.
         # To minimize repetition, if at all possible, keep it to a single word.
@@ -986,15 +1010,16 @@ class UIReview(gtk.VBox):
         return
     
     def _build_usefulness_ui(self, current_user_reviewer, useful_total, 
-                             useful_favorable, usefulness_submit_error=False):
+                             useful_favorable, useful_votes, usefulness_submit_error=False):
         if usefulness_submit_error:
             self._usefulness_ui_update('error', current_user_reviewer, 
                                        useful_total, useful_favorable)
         else:
+            already_voted = useful_votes.check_for_usefulness(self.id)
             #get correct label based on retrieved usefulness totals and 
             # if user is reviewer
             self.useful = self._get_usefulness_label(
-                current_user_reviewer, useful_total, useful_favorable)
+                current_user_reviewer, useful_total, useful_favorable, already_voted)
             self.useful.set_use_markup(True)
             #vertically centre so it lines up with the Yes and No buttons
             self.useful.set_alignment(0, 0.5)
@@ -1003,7 +1028,7 @@ class UIReview(gtk.VBox):
             self.footer.pack_start(self.useful, False, padding=3)
             # add here, but only populate if its not the own review
             self.likebox = gtk.HBox()
-            if not current_user_reviewer:
+            if already_voted == None and not current_user_reviewer:
                 self.yes_like = mkit.VLinkButton('<small>%s</small>' % _('Yes'))
                 self.no_like = mkit.VLinkButton('<small>%s</small>' % _('No'))
                 self.yes_like.set_underline(True)
@@ -1040,35 +1065,63 @@ class UIReview(gtk.VBox):
                 self.useful.hide()
     
     def _get_usefulness_label(self, current_user_reviewer, 
-                              useful_total,  useful_favorable):
+                              useful_total,  useful_favorable, already_voted):
         '''returns gtk.Label() to be used as usefulness label depending 
            on passed in parameters
         '''
-        if useful_total == 0 and current_user_reviewer:
-            s = ""
-        elif useful_total == 0:
-            # no votes for the review yet
-            s = _("Was this review helpful?")
-        elif current_user_reviewer:
-            # user has already voted for the review
-            s = gettext.ngettext(
-                "%(useful_favorable)s of %(useful_total)s people "
-                "found this review helpful.",
-                "%(useful_favorable)s of %(useful_total)s people "
-                "found this review helpful.",
-                useful_total) % { 'useful_total' : useful_total,
-                                  'useful_favorable' : useful_favorable,
-                                }
+        if already_voted == None:
+            if useful_total == 0 and current_user_reviewer:
+                s = ""
+            elif useful_total == 0:
+                # no votes for the review yet
+                s = _("Was this review helpful?")
+            elif current_user_reviewer:
+                # user has already voted for the review
+                s = gettext.ngettext(
+                    "%(useful_favorable)s of %(useful_total)s people "
+                    "found this review helpful.",
+                    "%(useful_favorable)s of %(useful_total)s people "
+                    "found this review helpful.",
+                    useful_total) % { 'useful_total' : useful_total,
+                                    'useful_favorable' : useful_favorable,
+                                    }
+            else:
+                # user has not already voted for the review
+                s = gettext.ngettext(
+                    "%(useful_favorable)s of %(useful_total)s people "
+                    "found this review helpful. Did you?",
+                    "%(useful_favorable)s of %(useful_total)s people "
+                    "found this review helpful. Did you?",
+                    useful_total) % { 'useful_total' : useful_total,
+                                    'useful_favorable' : useful_favorable,
+                                    }
         else:
-            # user has not already voted for the review
-            s = gettext.ngettext(
-                "%(useful_favorable)s of %(useful_total)s person "
-                "found this review helpful. Did you?",
-                "%(useful_favorable)s of %(useful_total)s people "
-                "found this review helpful. Did you?",
-                useful_total) % { 'useful_total' : useful_total,
-                                'useful_favorable' : useful_favorable,
-                                }
+        #only display these special strings if the user voted either way
+            if already_voted:
+                if useful_total == 1:
+                    s = _("You found this review helpful.")
+                else:
+                    s = gettext.ngettext(
+                        "%(useful_favorable)s of %(useful_total)s people "
+                        "found this review helpful, including you",
+                        "%(useful_favorable)s of %(useful_total)s people "
+                        "found this review helpful, including you.",
+                        useful_total) % { 'useful_total' : useful_total,
+                                    'useful_favorable' : useful_favorable,
+                                    }
+            else:
+                if useful_total == 1:
+                    s = _("You found this review unhelpful.")
+                else:
+                    s = gettext.ngettext(
+                        "%(useful_favorable)s of %(useful_total)s people "
+                        "found this review helpful; you did not.",
+                        "%(useful_favorable)s of %(useful_total)s people "
+                        "found this review helpful; you did not.",
+                        useful_total) % { 'useful_total' : useful_total,
+                                    'useful_favorable' : useful_favorable,
+                                    }
+                    
         
         return gtk.Label('<small>%s</small>' % s)
 
@@ -1155,8 +1208,9 @@ class NoReviewYet(EmbeddedMessage):
     def __init__(self, *args, **kwargs):
         # TRANSLATORS: displayed if there are no reviews for the app yet
         #              and the user does not have it installed
-        msg = _("None yet")
-        EmbeddedMessage.__init__(self, message=msg)
+        title = _("This app has not been reviewed yet")
+        msg = _('You need to install this app before you can review it')
+        EmbeddedMessage.__init__(self, title, msg)
 
 
 class NoReviewYetWriteOne(EmbeddedMessage):
@@ -1165,10 +1219,10 @@ class NoReviewYetWriteOne(EmbeddedMessage):
 
         # TRANSLATORS: displayed if there are no reviews yet and the user
         #              has the app installed
-        title = _('Want to be awesome?')
+        title = _('Got an opinion?')
         msg = _('Be the first to contribute a review for this application')
 
-        EmbeddedMessage.__init__(self, title, msg, 'face-glasses')
+        EmbeddedMessage.__init__(self, title, msg, 'text-editor')
         return
 
 

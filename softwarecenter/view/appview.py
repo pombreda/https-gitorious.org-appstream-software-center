@@ -402,50 +402,47 @@ class CellRendererAppView2(gtk.CellRendererText):
         # draw stars on the top right
         cr = window.cairo_create()
 
-        # for the sake of aesthetics,
-        # star width should be approx 1/5 the width of the action button
-        sw = sh = self.get_button_by_name('action0').get_size()[0] / 5
+        # make the ratings x & width the same as the 'Install/Remove' button
+        sw = sh = self.get_button_by_name('action0').allocation.width/5
 
-        for i in range(0, self.MAX_STARS):
-            x = cell_area.x + cell_area.width - xpad - (self.MAX_STARS-i)*sw
-            y = cell_area.y + ypad
-            if i < int(self.rating):
-                self._star_painter.set_fill(StarPainter.FILL_FULL)
-            elif (i == int(self.rating) and 
-                  self.rating - int(self.rating) > 0):
-                self._star_painter.set_fill(StarPainter.FILL_HALF)
-            else:
-                self._star_painter.set_fill(StarPainter.FILL_EMPTY)
-            self._star_painter.paint_star(cr, widget, state, x, y, sw, sh)
+        if direction != gtk.TEXT_DIR_RTL:
+            x = cell_area.x + cell_area.width - xpad - (sw*self.MAX_STARS)
+        else:
+            x = cell_area.x + xpad
+
+        y = cell_area.y + ypad
+
+        self._star_painter.paint_rating(cr,
+                                        widget,
+                                        state,
+                                        x, y,
+                                        (sw, sw),           # star size
+                                        self.MAX_STARS,     # max stars
+                                        self.rating)        # rating
 
         # and nr-reviews below
-        if not self._nr_reviews_layout:
-            self._nr_reviews_layout = widget.create_pango_layout('')
         s = gettext.ngettext(
             "%(nr_ratings)i Rating",
             "%(nr_ratings)i Ratings",
             self.nreviews) % { 'nr_ratings' : self.nreviews, }
 
-        self._nr_reviews_layout.set_markup("<small>%s</small>" % s)
-        # FIXME: improve w, h area calculation
-
-        lw, lh = self._nr_reviews_layout.get_pixel_extents()[1][2:]
+        self._layout.set_markup("<small>%s</small>" % s)
+        lw, lh = self._layout.get_pixel_extents()[1][2:]
 
         w = self.MAX_STARS*sw
 
-        x = cell_area.x + cell_area.width - xpad - w + (w-lw)/2
-        y = cell_area.y + 2*ypad+sh
+        x += (w-lw)/2
+        y += sh + ypad
 
-        clip_area = None#(x, y, w, h)
         widget.style.paint_layout(window, 
                                   state,
                                   True, 
-                                  clip_area,
+                                  (x, y, w, lh),
                                   widget,
                                   None, 
                                   x, 
                                   y, 
-                                  self._nr_reviews_layout)
+                                  self._layout)
         return
 
     def _render_progress(self, window, widget, cell_area, ypad, direction):
@@ -1040,10 +1037,7 @@ class AppView(gtk.TreeView):
     def _on_transaction_stopped(self, backend, result, tr):
         """ callback when an application install/remove transaction has stopped """
         # remove pkg from the block list
-        if isinstance(result, str):
-            self._check_remove_pkg_from_blocklist(result)
-        else:
-            self._check_remove_pkg_from_blocklist(result.pkgname)
+        self._check_remove_pkg_from_blocklist(result.pkgname)
 
         action_btn = tr.get_button_by_name('action0')
         if action_btn:
@@ -1077,15 +1071,19 @@ class AppViewFilter(xapian.MatchDecider):
         self.distro = get_distro()
         self.db = db
         self.cache = cache
+        self.available_only = False
         self.supported_only = False
         self.installed_only = False
         self.not_installed_only = False
     @property
     def required(self):
         """ True if the filter is in a state that it should be part of a query """
-        return (self.supported_only or
+        return (self.available_only or
+                self.supported_only or
                 self.installed_only or 
                 self.not_installed_only)
+    def set_available_only(self, v):
+        self.available_only = v
     def set_supported_only(self, v):
         self.supported_only = v
     def set_installed_only(self, v):
@@ -1110,6 +1108,9 @@ class AppViewFilter(xapian.MatchDecider):
         #logging.debug(
         #    "filter: supported_only: %s installed_only: %s '%s'" % (
         #        self.supported_only, self.installed_only, pkgname))
+        if self.available_only:
+            if not pkgname in self.cache:
+                return False
         if self.installed_only:
             # use the lowlevel cache here, twice as fast
             lowlevel_cache = self.cache._cache._cache

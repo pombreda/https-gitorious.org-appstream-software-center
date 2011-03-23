@@ -22,6 +22,7 @@ import logging
 import os
 import re
 import string
+import threading
 import xapian
 from softwarecenter.db.application import Application
 
@@ -111,10 +112,21 @@ class StoreDatabase(gobject.GObject):
         self._db_pathname = pathname
         self._aptcache = cache
         self._additional_databases = []
+        # xapian.Database is not thread safe (its however safe to 
+        # have multiple xapian.Databases. if this lock becomes a bottleneck
+        # we need to replace it with a solution that creates a DB per
+        # search query)
+        self._search_lock = threading.Lock()
 
         # the xapian values as read from /var/lib/apt-xapian-index/values
         self._axi_values = {}
         self._logger = logging.getLogger("softwarecenter.db")
+
+    def acquire_search_lock(self):
+        self._search_lock.acquire()
+
+    def release_search_lock(self):
+        self._search_lock.release()
 
     def open(self, pathname=None, use_axi=True, use_agent=True):
         " open the database "
@@ -334,7 +346,7 @@ class StoreDatabase(gobject.GObject):
             # the doc says that get_value() is quicker than get_data()
             # so we use that if we have a updated DB, otherwise
             # fallback to the old way (the xapian DB may not yet be rebuild)
-            if "pkgname" in self._axi_values:
+            if self._axi_values and "pkgname" in self._axi_values:
                 pkgname = doc.get_value(self._axi_values["pkgname"])
             else:
                 pkgname = doc.get_data()

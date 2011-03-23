@@ -98,6 +98,7 @@ XAPIAN_VALUE_SCREENSHOT_URL = 185
 XAPIAN_VALUE_ICON_NEEDS_DOWNLOAD = 186
 XAPIAN_VALUE_THUMBNAIL_URL = 187
 XAPIAN_VALUE_SC_DESCRIPTION = 188
+XAPIAN_VALUE_APPNAME_UNTRANSLATED = 189
 
 # fake channels
 PURCHASED_NEEDS_REINSTALL_MAGIC_CHANNEL_NAME = "for-pay-needs-reinstall"
@@ -149,6 +150,8 @@ TRANSACTION_TYPE_UPGRADE = "upgrade"
 TRANSACTION_TYPE_APPLY = "apply_changes"
 TRANSACTION_TYPE_REPAIR = "repair_dependencies"
 
+# delimiter for directory path separator in app-install
+APP_INSTALL_PATH_DELIMITER = "__"
 
 from version import *
 USER_AGENT="Software Center/%s (N;) %s/%s (%s)" % (VERSION, 

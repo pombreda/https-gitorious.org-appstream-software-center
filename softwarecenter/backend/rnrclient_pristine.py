@@ -3,14 +3,21 @@ ratings and reviews API, plus a few helper classes.
 """
 
 from urllib import quote_plus
-from piston_mini_client import (PistonAPI, PistonResponseObject,
-    PistonSerializable, returns_json, returns_list_of)
+from piston_mini_client import (
+    PistonAPI,
+    PistonResponseObject,
+    PistonSerializable,
+    returns,
+    returns_json,
+    returns_list_of,
+    )
 from piston_mini_client.validators import validate_pattern, validate
 
 # These are factored out as constants for if you need to work against a
 # server that doesn't support both schemes (like http-only dev servers)
 PUBLIC_API_SCHEME = 'http'
 AUTHENTICATED_API_SCHEME = 'https'
+
 
 class ReviewRequest(PistonSerializable):
     """A review request.
@@ -90,7 +97,7 @@ class RatingsAndReviewsAPI(PistonAPI):
     @validate_pattern('distroseries', r'\w+', required=False)
     @validate_pattern('version', r'[-\w+.:~]+', required=False)
     @validate_pattern('packagename', r'[a-z0-9.+-]+')
-    @validate('appname', basestring, required=False)
+    @validate('appname', str, required=False)
     @validate('page', int, required=False)
     @returns_list_of(ReviewDetails)
     def get_reviews(self, packagename, language='any', origin='any',
@@ -101,13 +108,20 @@ class RatingsAndReviewsAPI(PistonAPI):
         particular app, language, origin, distroseries or version.
         """
         if appname:
-            appname = quote_plus(';' + unicode(appname))
-        return self._get('%s/%s/%s/%s/%s%s/page/%s/' % (language, origin,
-            distroseries, version, packagename, appname, page),
+            appname = quote_plus(';' + appname)
+        return self._get('reviews/filter/%s/%s/%s/%s/%s%s/page/%s/' % (
+            language, origin, distroseries, version, packagename,
+            appname, page),
             scheme=PUBLIC_API_SCHEME)
 
+    @validate('review_id', int)
+    @returns(ReviewDetails)
+    def get_review(self, review_id):
+        """Fetch a particular review via its id."""
+        return self._get('reviews/%s/' % review_id)
+
     @validate('review', ReviewRequest)
-    @returns_json
+    @returns(ReviewDetails)
     def submit_review(self, review):
         """Submit a rating/review."""
         return self._post('reviews/', data=review,

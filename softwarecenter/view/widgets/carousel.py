@@ -94,7 +94,7 @@ class CarouselView(gtk.VBox):
         self._is_playing = False
         self._play_offset = 0
         self._user_offset_override = None
-        self._width = 0
+        self._allocation = None
         self._alpha = 1.0
         self._fader = 0
         self._layout = None
@@ -108,11 +108,12 @@ class CarouselView(gtk.VBox):
 
     def _on_allocate(self, widget, allocation):
         logging.getLogger("softwarecenter.view.allocation").debug("on_alloc widget=%s, allocation=%s" % (widget, allocation))
-        if allocation.width == self._width: 
+        if allocation == self._allocation or allocation.width <= 200: 
             logging.getLogger("softwarecenter.view.allocation").debug("CarouselView skipped!")
             return
-        self._width = allocation.width
-        self._build_view(self._width)
+
+        self._allocation = allocation
+        self._build_view(allocation.width)
         return
 
     def _on_page_clicked(self, page_sel, page):
@@ -437,26 +438,28 @@ class CarouselPoster2(Button):
         if not self.app: return
 
         a = self.allocation
-        bw = self.hbox.get_border_width()
+        # create cairo.surfcae and context
         surf = cairo.ImageSurface(cairo.FORMAT_ARGB32,
                                   a.width,
                                   a.height)
-
         cr = cairo.Context(surf)
         cr = gtk.gdk.CairoContext(pangocairo.CairoContext(cr))
 
+        # paint the pixbuf/icon onto the surface
         pb = self.image.get_pixbuf()
         if pb:
-            w, h = pb.get_width(), pb.get_height()
+            pb_w, pb_h = pb.get_width(), pb.get_height()
+            ia = self.image.allocation
 
             cr.set_source_pixbuf(self.image.get_pixbuf(),
-                                 bw + (self.image.allocation.width - w)/2,
-                                 bw + (self.image.allocation.height - h)/2)
+                                 ia.x - a.x + (ia.width - pb_w)/2,
+                                 ia.y - a.y + (ia.height - pb_h)/2)
             cr.paint()
 
+        # paint the label onto the surface
         cr.set_source_color(self.style.text[self.state])
-        cr.move_to(self.label.allocation.x - a.x,
-                   self.label.allocation.y - a.y)
+        xo, yo = self.label.get_layout_offsets()
+        cr.move_to(xo - a.x, yo - a.y)
         cr.layout_path(self.label.get_layout())
         cr.fill()
 
@@ -467,6 +470,7 @@ class CarouselPoster2(Button):
 #            cr.set_source_color(self.style.dark[self.state])
 #            cr.fill()
 
+        # paint the star rating onto the surface
         if self.rating.get_property('visible'):
             ra = self.rating.allocation
             _a = gtk.gdk.Rectangle(ra.x - a.x, ra.y - a.y,
@@ -475,6 +479,7 @@ class CarouselPoster2(Button):
 
         del cr
 
+        # all done :)
         self._surf_cache = surf
         return
 

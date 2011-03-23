@@ -26,7 +26,6 @@ import gio
 import glib
 import logging
 import simplejson
-import time
 import threading
 
 from softwarecenter.distro import get_distro
@@ -51,8 +50,20 @@ UBUNTU_SSO_SERVICE = os.environ.get(
     "USSOC_SERVICE_URL", "https://login.ubuntu.com/api/1.0")
 UBUNTU_SOFTWARE_CENTER_AGENT_SERVICE = BUY_SOMETHING_HOST+"/api/1.0"
 
-class EmptyObject(object):
-    pass
+class AttributesObject(object):
+    """ convinient object to hold attributes """
+    MAX_REPR_STRING_SIZE = 30
+
+    def __repr__(self):
+        s = "<'%s': " % self.__class__.__name__
+        for key in vars(self):
+            value = str(getattr(self, key))
+            if len(value) > self.MAX_REPR_STRING_SIZE:
+                value = "%s..." % value[:self.MAX_REPR_STRING_SIZE]
+            s += "%s='%s';" % (key, value)
+        s += ">"
+        return s
+
 
 def restful_collection_to_real_python(restful_list):
     """ take a restful and convert it to a python list with real python
@@ -60,7 +71,7 @@ def restful_collection_to_real_python(restful_list):
     """
     l = []
     for entry in restful_list:
-        o = EmptyObject()
+        o = AttributesObject()
         for attr in entry.lp_attributes:
             setattr(o, attr, getattr(entry, attr))
         l.append(o)
@@ -129,6 +140,7 @@ class RestfulClientWorker(threading.Thread):
                     result_callback(res)
                 self._pending_requests.task_done()
             # wait a bit
+            import time
             time.sleep(0.1)
             if (self._shutdown and
                 self._pending_requests.empty()):
@@ -323,16 +335,16 @@ class UbuntuSSOlogin(LoginBackend):
 
     def _thread_authentication_done(self, result):
         # runs in the thread context, can not touch gui or glib
-        print "_authentication_done", result
+        #print "_authentication_done", result
         self._oauth_credentials = result
 
     def _thread_authentication_error(self, e):
         # runs in the thread context, can not touch gui or glib
-        print "_authentication_error", type(e)
+        #print "_authentication_error", type(e)
         self._login_failure = e
 
     def __del__(self):
-        print "del"
+        #print "del"
         if self.worker_thread:
             self.worker_thread.shutdown()
 
@@ -401,7 +413,7 @@ class SoftwareCenterAgentAnonymous(gobject.GObject):
         # all good, convert to real objects and emit available items
         items = []
         for item_dict in json_list:
-            o = EmptyObject()
+            o = AttributesObject()
             for (key, value) in item_dict.iteritems():
                 setattr(o, key, value)
             items.append(o)
@@ -465,7 +477,9 @@ def _available_for_me_result(scagent, result):
     print "_available_for_me: ", [x.package_name for x in result]
 
 def _available(scagent, result):
-    print "_available: ", [x.name for x in result]
+    print "_available"
+    for available in result:
+        print available.name, available.archive_id, available.archive_root
 def _error(scaagent, errormsg):
     print "_error:", errormsg
 def _whoami(sso, whoami):

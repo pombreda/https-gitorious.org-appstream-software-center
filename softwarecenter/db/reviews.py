@@ -57,6 +57,46 @@ class ReviewStats(object):
     def __repr__(self):
         return "[ReviewStats '%s' ratings_average='%s' ratings_total='%s']" % (self.app, self.ratings_average, self.ratings_total)
 
+class UsefulnessCache(object):
+
+    USEFULNESS_CACHE = {}
+    
+    def __init__(self):
+        fname = "usefulness.p"
+        self.USEFULNESS_CACHE_FILE = os.path.join(SOFTWARE_CENTER_CACHE_DIR,
+                                                    fname)
+        if os.path.exists(self.USEFULNESS_CACHE_FILE):
+            try:
+                self.USEFULNESS_CACHE = cPickle.load(open(self.USEFULNESS_CACHE_FILE))
+            except:
+                LOG.exception("usefulness cache load failure")
+                os.rename(self.USEFULNESS_CACHE_FILE, self.USEFULNESS_CACHE_FILE+".fail")
+    
+    def save_usefulness_cache_file(self):
+        """write the dict out to cache file"""
+        cachedir = SOFTWARE_CENTER_CACHE_DIR
+        try:
+            if not os.path.exists(cachedir):
+                os.makedirs(cachedir)
+            cPickle.dump(self.USEFULNESS_CACHE,
+                      open(self.USEFULNESS_CACHE_FILE, "w"))
+            return True
+        except:
+            return False
+    
+    def add_usefulness_vote(self, review_id, useful):
+        """pass a review id and useful boolean vote and save it into the dict, then try to save to cache file"""
+        self.USEFULNESS_CACHE[str(review_id)] = useful
+        if self.save_usefulness_cache_file():
+            return True
+        return False
+    
+    def check_for_usefulness(self, review_id):
+        """pass a review id and get a True/False useful back or None if the review_id is not in the dict"""
+        return self.USEFULNESS_CACHE.get(str(review_id))
+    
+    
+
 class Review(object):
     """A individual review object """
     def __init__(self, app):
@@ -102,7 +142,7 @@ class Review(object):
             "our" Review object (we need this as we have more
             attributes then the rnrclient review object)
         """
-        app = Application(other.app_name, other.package_name)
+        app = Application("", other.package_name)
         review = cls(app)
         for (attr, value) in other.__dict__.iteritems():
             if not attr.startswith("_"):
@@ -115,13 +155,14 @@ class ReviewLoader(object):
     # cache the ReviewStats
     REVIEW_STATS_CACHE = {}
 
-    def __init__(self, cache, distro=None):
+    def __init__(self, cache, db, distro=None):
         self.cache = cache
+        self.db = db
         self.distro = distro
         if not self.distro:
             self.distro = softwarecenter.distro.get_distro()
         fname = "%s_%s" % (uri_to_filename(self.distro.REVIEWS_SERVER),
-                           "review-stats.p")
+                           "review-stats-pkgnames.p")
         self.REVIEW_STATS_CACHE_FILE = os.path.join(SOFTWARE_CENTER_CACHE_DIR,
                                                     fname)
         self.language = get_language()
@@ -139,12 +180,17 @@ class ReviewLoader(object):
         """
         return []
 
-    def get_review_stats(self, application):
+    def update_review_stats(self, translated_application, stats):
+        application = Application("", translated_application.pkgname)
+        self.REVIEW_STATS_CACHE[application] = stats
+
+    def get_review_stats(self, translated_application):
         """return a ReviewStats (number of reviews, rating)
            for a given application. this *must* be super-fast
            as it is called a lot during tree view display
         """
         # check cache
+        application = Application("", translated_application.pkgname)
         if application in self.REVIEW_STATS_CACHE:
             return self.REVIEW_STATS_CACHE[application]
         return None
@@ -163,9 +209,11 @@ class ReviewLoader(object):
 
     # writing new reviews spawns external helper
     # FIXME: instead of the callback we should add proper gobject signals
-    def spawn_write_new_review_ui(self, app, version, iconname, origin, parent_xid, datadir, callback):
+    def spawn_write_new_review_ui(self, translated_app, version, iconname, 
+                                  origin, parent_xid, datadir, callback):
         """ this spawns the UI for writing a new review and
             adds it automatically to the reviews DB """
+        app = translated_app.get_untranslated_app(self.db)
         cmd = [os.path.join(datadir, SUBMIT_REVIEW_APP), 
                "--pkgname", app.pkgname,
                "--iconname", iconname,
@@ -175,7 +223,8 @@ class ReviewLoader(object):
                "--datadir", datadir,
                ]
         if app.appname:
-            cmd += ["--appname", app.appname]
+            # needs to be (utf8 encoded) str, otherwise call fails
+            cmd += ["--appname", app.appname.encode("utf-8")]
         (pid, stdin, stdout, stderr) = glib.spawn_async(
             cmd, flags=glib.SPAWN_DO_NOT_REAP_CHILD, standard_output=True)
         glib.child_watch_add(pid, self._on_submit_review_finished, (app, stdout, callback))
@@ -256,6 +305,8 @@ class ReviewLoader(object):
             return
         if exitcode == 0:
             LOG.debug("usefulness id %s " % review_id)
+            useful_votes = UsefulnessCache()
+            useful_votes.add_usefulness_vote(review_id, is_useful)
             for (app, reviews) in self._reviews.iteritems():
                 for review in reviews:
                     if str(review.id) == str(review_id):
@@ -264,7 +315,7 @@ class ReviewLoader(object):
                         review.usefulness_total = getattr(review, "usefulness_total", 0) + 1
                         if is_useful:
                             review.usefulness_favorable = getattr(review, "usefulness_favorable", 0) + 1
-                        callback(app, self._reviews[app])
+                        callback(app, self._reviews[app], useful_votes)
                         break
         else:
             LOG.debug("submit usefulness id=%s failed with exitcode %s" % (
@@ -285,8 +336,8 @@ class ReviewLoaderThreadedRNRClient(ReviewLoader):
         data 
     """
 
-    def __init__(self, cache, distro=None):
-        super(ReviewLoaderThreadedRNRClient, self).__init__(cache, distro)
+    def __init__(self, cache, db, distro=None):
+        super(ReviewLoaderThreadedRNRClient, self).__init__(cache, db, distro)
         cachedir = os.path.join(SOFTWARE_CENTER_CACHE_DIR, "rnrclient")
         self.rnrclient = RatingsAndReviewsAPI(cachedir=cachedir)
         self._reviews = {}
@@ -299,10 +350,11 @@ class ReviewLoaderThreadedRNRClient(ReviewLoader):
         self.rnrclient._offline_mode = not network_state_is_connected()
 
     # reviews
-    def get_reviews(self, app, callback):
+    def get_reviews(self, translated_app, callback):
         """ public api, triggers fetching a review and calls callback
             when its ready
         """
+        app = translated_app.get_untranslated_app(self.db)
         self._update_rnrclient_offline_state()
         self._new_reviews[app] = Queue()
         p = Process(target=self._get_reviews_threaded, args=(app, ))
@@ -325,8 +377,13 @@ class ReviewLoaderThreadedRNRClient(ReviewLoader):
 
     def _get_reviews_threaded(self, app):
         """ threaded part of the fetching """
-        # FIXME: select correct origin
         origin = self.cache.get_origin(app.pkgname)
+        # special case for not-enabled PPAs
+        if not origin and self.db:
+            details = app.get_details(self.db)
+            ppa = details.ppaname
+            if ppa:
+                origin = "lp-ppa-%s" % ppa.replace("/", "-")
         if not origin:
             return
         distroseries = self.distro.get_codename()
@@ -402,7 +459,7 @@ class ReviewLoaderThreadedRNRClient(ReviewLoader):
         # convert to the format that s-c uses
         review_stats = self.REVIEW_STATS_CACHE
         for r in piston_review_stats:
-            s = ReviewStats(Application(r.app_name, r.package_name))
+            s = ReviewStats(Application("", r.package_name))
             s.ratings_average = float(r.ratings_average)
             s.ratings_total = float(r.ratings_total)
             review_stats[s.app] = s
@@ -511,7 +568,7 @@ class ReviewLoaderFake(ReviewLoader):
     SUMMARIES = ["Cool", "Medium", "Bad", "Too difficult"]
     IPSUM = "no ipsum\n\nstill no ipsum"
 
-    def __init__(self, cache):
+    def __init__(self, cache, db):
         self._review_stats_cache = {}
         self._reviews_cache = {}
     def _random_person(self):
@@ -551,8 +608,8 @@ class ReviewLoaderFake(ReviewLoader):
         callback(review_stats)
 
 class ReviewLoaderFortune(ReviewLoaderFake):
-    def __init__(self, cache):
-        ReviewLoaderFake.__init__(self, cache)
+    def __init__(self, cache, db):
+        ReviewLoaderFake.__init__(self, cache, db)
         self.LOREM = ""
         for i in range(10):
             out = subprocess.Popen(["fortune"], stdout=subprocess.PIPE).communicate()[0]
@@ -682,22 +739,22 @@ et ea rebum stet clita kasd gubergren no sea takimata sanctus est lorem
 ipsum dolor sit amet"""
 
 review_loader = None
-def get_review_loader(cache):
+def get_review_loader(cache, db=None):
     """ 
     factory that returns a reviews loader singelton
     """
     global review_loader
     if not review_loader:
         if "SOFTWARE_CENTER_IPSUM_REVIEWS" in os.environ:
-            review_loader = ReviewLoaderIpsum(cache)
+            review_loader = ReviewLoaderIpsum(cache, db)
         elif "SOFTWARE_CENTER_FORTUNE_REVIEWS" in os.environ:
-            review_loader = ReviewLoaderFortune(cache)
+            review_loader = ReviewLoaderFortune(cache, db)
         elif "SOFTWARE_CENTER_TECHSPEAK_REVIEWS" in os.environ:
-            review_loader = ReviewLoaderTechspeak(cache)
+            review_loader = ReviewLoaderTechspeak(cache, db)
         elif "SOFTWARE_CENTER_GIO_REVIEWS" in os.environ:
-            review_loader = ReviewLoaderJsonAsync(cache)
+            review_loader = ReviewLoaderJsonAsync(cache, db)
         else:
-            review_loader = ReviewLoaderThreadedRNRClient(cache)
+            review_loader = ReviewLoaderThreadedRNRClient(cache, db)
     return review_loader
 
 if __name__ == "__main__":

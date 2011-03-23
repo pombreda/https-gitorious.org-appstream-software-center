@@ -33,6 +33,9 @@ import xdg.BaseDirectory
 
 from optparse import OptionParser
 
+if os.path.exists("./softwarecenter/enums.py"):
+    sys.path.insert(0, ".")
+
 from softwarecenter.enums import *
 from softwarecenter.paths import *
 from softwarecenter.db.update import update_from_software_center_agent

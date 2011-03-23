@@ -103,6 +103,8 @@ class TestGUI(unittest.TestCase):
                          AvailablePane.PAGE_CATEGORY)
         self.app.available_pane.back_forward.emit("right-clicked", None)
         self._p()
+        time.sleep(0.5)
+        self._p()
         self.assertEqual(self.app.available_pane.notebook.get_current_page(),
                          AvailablePane.PAGE_SUBCATEGORY)
 

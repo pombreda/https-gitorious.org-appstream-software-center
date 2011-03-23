@@ -47,7 +47,10 @@ class Application(object):
             raise ValueError("Need either appname or pkgname or request")
         # defaults
         self.pkgname = pkgname.replace("$kernel", os.uname()[2])
-        self.appname = appname
+        if appname:
+            self.appname = unicode(appname)
+        else:
+            self.appname = ''
         # the request can take additional "request" data like apturl
         # strings or the path of a local deb package
         self.request = request
@@ -70,6 +73,18 @@ class Application(object):
     def get_details(self, db):
         """ return a new AppDetails object for this application """
         return AppDetails(db, application=self)
+
+    def get_untranslated_app(self, db):
+        """ return a Application object with the untranslated application
+            name 
+        """
+        try:
+            doc = db.get_xapian_document(self.appname, self.pkgname)
+        except IndexError:
+            return self
+        untranslated_application = doc.get_value(XAPIAN_VALUE_APPNAME_UNTRANSLATED)
+        uapp = Application(untranslated_application, self.pkgname)
+        return uapp
 
     @staticmethod
     def get_display_name(db, doc):
@@ -102,6 +117,8 @@ class Application(object):
         return self.apps_cmp(self, other)
     def __str__(self):
         return "%s,%s" % (self.appname, self.pkgname)
+    def __repr__(self):
+        return "[Application: appname=%s pkgname=%s]" % (self.appname, self.pkgname)
     @staticmethod
     def apps_cmp(x, y):
         """ sort method for the applications """
