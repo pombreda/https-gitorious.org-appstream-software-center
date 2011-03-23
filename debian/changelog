@@ -9,8 +9,10 @@ software-center (3.1.24.1) unstable; urgency=low
   * softwarecenter/view/softwarepane.py,
     softwarecenter/view/widgets/actionbar.py:
     - visual improvements for the action bar (LP: #644454) 
+    - display buttons in the action bar as gtk buttons
+      rather than as links (LP: #635062)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Tue, 22 Mar 2011 20:37:46 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 22 Mar 2011 22:00:11 -0400
 
 software-center (3.1.24) natty; urgency=low
 
