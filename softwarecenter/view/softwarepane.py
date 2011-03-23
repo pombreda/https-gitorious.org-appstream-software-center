@@ -212,10 +212,11 @@ class SoftwarePane(gtk.VBox, BasePane):
         self.action_bar = ActionBar()
         self.pack_start(self.action_bar, expand=False)
         
-        # connect expose events to allow us to draw lines, one at the bottom of
+        # connect events to allow us to draw separator lines, one at the bottom of
         # the top_hbox and another at the top of the action bar
-        self.top_hbox.connect('expose-event', self._on_top_hbox_expose)
-        self.action_bar.connect('expose-event', self._on_action_bar_expose)
+        self.top_hbox.connect('expose-event', self._draw_top_hbox_separator)
+        self.action_bar.connect('expose-event', self._draw_action_bar_separator)
+        self.action_bar.connect('size-allocate', self._draw_action_bar_separator)
         
         # cursor
         self.busy_cursor = gtk.gdk.Cursor(gtk.gdk.WATCH)
@@ -282,7 +283,7 @@ class SoftwarePane(gtk.VBox, BasePane):
         if self.db:
             self.db.connect("reopen", self.on_db_reopen)
 
-    def _on_top_hbox_expose(self, widget, event):
+    def _draw_top_hbox_separator(self, widget, event):
         """ Draw a horizontal line that separates the top hbox from the page content """
         a = widget.allocation
         self.style.paint_shadow(widget.window, self.state,
@@ -293,7 +294,7 @@ class SoftwarePane(gtk.VBox, BasePane):
                                 a.width, a.y+a.height-1)
         return
 
-    def _on_action_bar_expose(self, widget, event):
+    def _draw_action_bar_separator(self, widget, event):
         """ Draw a horizontal line that separates the top of the action bar from the page content """
         a = widget.allocation
         self.style.paint_shadow(widget.window, self.state,
