@@ -285,24 +285,26 @@ class SoftwarePane(gtk.VBox, BasePane):
 
     def _draw_top_hbox_separator(self, widget, event):
         """ Draw a horizontal line that separates the top hbox from the page content """
-        a = widget.allocation
-        self.style.paint_shadow(widget.window, self.state,
-                                gtk.SHADOW_IN,
-                                (a.x, a.y+a.height-1, a.width, 1),
-                                widget, "viewport",
-                                a.x, a.y+a.height-1,
-                                a.width, a.y+a.height-1)
+        if (widget.allocation and widget.window):
+            a = widget.allocation
+            self.style.paint_shadow(widget.window, self.state,
+                                    gtk.SHADOW_IN,
+                                    (a.x, a.y+a.height-1, a.width, 1),
+                                    widget, "viewport",
+                                    a.x, a.y+a.height-1,
+                                    a.width, a.y+a.height-1)
         return
 
     def _draw_action_bar_separator(self, widget, event):
         """ Draw a horizontal line that separates the top of the action bar from the page content """
-        a = widget.allocation
-        self.style.paint_shadow(widget.window, self.state,
-                                gtk.SHADOW_IN,
-                                (a.x, a.y, a.width, 1),
-                                widget, "viewport",
-                                a.x, a.y,
-                                a.width, 1)
+        if (widget.allocation and widget.window):
+            a = widget.allocation
+            self.style.paint_shadow(widget.window, self.state,
+                                    gtk.SHADOW_IN,
+                                    (a.x, a.y, a.width, 1),
+                                    widget, "viewport",
+                                    a.x, a.y,
+                                    a.width, 1)
         return
 
     def init_atk_name(self, widget, name):
