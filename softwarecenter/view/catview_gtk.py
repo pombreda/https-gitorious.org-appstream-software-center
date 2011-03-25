@@ -497,6 +497,7 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         self.root_category = root_category
 
         # sections
+        self.current_category = None
         self.departments = None
         return
 
@@ -538,9 +539,23 @@ class SubCategoryViewGtk(CategoriesViewGtk):
 
         buttons = []
         for cat in sorted_cats:
-            cat_btn = SubcategoryButton(cat.name, cat.iconname)
-            cat_btn.connect('clicked', self._on_category_clicked, cat)
-            buttons.append(cat_btn)
+            # add the subcategory if and only if it is non-empty
+            enquire = xapian.Enquire(self.db.xapiandb)
+            enquire.set_query(cat.query)
+            if len(enquire.get_mset(0, 1, None, self.apps_filter)):
+                cat_btn = SubcategoryButton(cat.name, cat.iconname)
+                cat_btn.connect('clicked', self._on_category_clicked, cat)
+                buttons.append(cat_btn)
+
+        # partialy work around a (quite rare) corner case
+        if num_items == 0:
+            enquire = xapian.Enquire(self.db.xapiandb)
+            enquire.set_query(xapian.Query(xapian.Query.OP_AND, 
+                                           root_category.query,
+                                           xapian.Query("ATapplication")))
+            # assuming that we only want apps is not always correct ^^^
+            tmp_matches = enquire.get_mset(0, len(self.db), None, self.apps_filter)
+            num_items = tmp_matches.get_matches_estimated()
 
         # append an additional button to show all of the items in the category
         name = gobject.markup_escape_text('%s %s' % (_("All"), num_items))
@@ -562,6 +577,7 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         return
 
     def set_subcategory(self, root_category, num_items=0, block=False):
+        self.current_category = root_category
         # nothing to do
         if self.categories == root_category.subcategories:
             return
