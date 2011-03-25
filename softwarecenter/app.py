@@ -851,6 +851,10 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self.active_pane.apps_filter.set_supported_only(False)
             self.active_pane.refresh_apps()
 
+            # update recommended widget counter
+            if self.available_pane and self.available_pane.cat_view:
+                self.available_pane.cat_view._append_recommendations()
+
     def on_menuitem_view_supported_only_activate(self, widget):
         if (not self._block_menuitem_view and
             self.active_pane.apps_filter and
@@ -873,7 +877,11 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                 len(ap.app_view.get_model()) == 0):
                 ap.navigation_bar.navigate_up()
                 ap.on_application_selected(None, None)    
-            
+
+            # update recommended widget counter
+            if self.available_pane and self.available_pane.cat_view:
+                self.available_pane.cat_view._append_recommendations()
+
     def on_navhistory_back_action_activate(self, navhistory_back_action):
         self.available_pane.nav_history.nav_back()
         self.available_pane._status_text = ""

@@ -175,6 +175,11 @@ class LobbyViewGtk(CategoriesViewGtk):
         self.whatsnew_carousel = None
         self.departments = None
 
+        # this means that the departments don't jump down once the cache loads
+        # it doesn't look odd if the recommends are never loaded
+        self.recommended = gtk.Label()
+        self.vbox.pack_start(self.recommended, False, False)
+
         self.build(desktopdir)
         return
 
@@ -275,21 +280,26 @@ class LobbyViewGtk(CategoriesViewGtk):
     @wait_for_apt_cache_ready
     def _append_recommendations(self):
         """ get recommendations from zeitgeist and add to the view """
+        # FIXME: the whole process of finding mimetypes, querying db etc seems
+        #        to be a bit duplicated
 
-        def _show_recommended_apps_widget(query, r_apps):
-            recommended = gtk.Label()
-            recommended_text = gettext.ngettext(
+        def _show_recommended_apps_widget(query):
+            # determine correctly how many apps will be shown
+            enquire = xapian.Enquire(self.db.xapiandb)
+            enquire.set_query(query)
+            tmp_matches = enquire.get_mset(0, len(self.db), None, self.apps_filter)
+            nr_apps = tmp_matches.get_matches_estimated()
+
+            # update the widget
+            text = gettext.ngettext(
              "Welcome back! There is <a href=\"\">%i new recommendation</a>"
-                                                   " for you." % len(r_apps),
+                                                   " for you." % nr_apps,
              "Welcome back! There are <a href=\"\">%i new recommendations</a>"
-                                                     " for you." % len(r_apps),
-             len(r_apps))
-            recommended.set_markup(recommended_text)
-            recommended.set_visible(True)
-            recommended.get_accessible().set_role(atk.ROLE_PUSH_BUTTON)
-            recommended.set_alignment(0,-1)
-            self.vbox.pack_start(recommended, False, False)
-            self.vbox.reorder_child(recommended, 0)
+                                                     " for you." % nr_apps,
+             nr_apps)
+            self.recommended.set_markup(text)
+            self.recommended.get_accessible().set_role(atk.ROLE_PUSH_BUTTON)
+            self.recommended.set_alignment(0,-1)
 
             # build category
             rec_cat = Category("Recommendations",
@@ -297,9 +307,9 @@ class LobbyViewGtk(CategoriesViewGtk):
                                "category-recommendations",
                                query,
                                sortmode=SORT_BY_SEARCH_RANKING)
-            recommended.connect('activate-link',
-                                self._on_recommended_clicked,
-                                rec_cat)
+            self.recommended.connect('activate-link',
+                                     self._on_recommended_clicked,
+                                     rec_cat)
               
         def _popular_mimetypes_callback(mimetypes):
             def _find_applications(mimetypes):
@@ -319,15 +329,10 @@ class LobbyViewGtk(CategoriesViewGtk):
                     results.append("AP"+app.pkgname)
                 return results
 
-            def _make_query(r_apps):
-                if len(r_apps) > 0:
-                    return xapian.Query(xapian.Query.OP_OR, r_apps)
-                return None
             # get the recommended apps     
             r_apps =_find_applications(mimetypes) 
             if r_apps:
-                # build the widget
-                _show_recommended_apps_widget(_make_query(r_apps), r_apps)
+                _show_recommended_apps_widget(xapian.Query(xapian.Query.OP_OR, r_apps))
         
         zeitgeist_singleton.get_popular_mimetypes(_popular_mimetypes_callback)
 

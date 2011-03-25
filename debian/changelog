@@ -14,13 +14,17 @@ software-center (3.1.24.3) UNRELEASED; urgency=low
     - when the supported filter is set to supported_only, navigate up if:
       - we are in a details view of an app which is not supported (LP: #480827)
       - we are in a list view which becomes empty
+  * softwarecenter/app.py,
+    softwarecenter/view/catview_gtk.py:
+    - correctly count the nr of apps displayed in the recommended category and
+      update it when needed (LP: #735634)
   * softwarecenter/db/reviews.py,
     softwarecenter/distro/Ubuntu.py:
     - fallback to ReviewLoaderJsonAsync when we can't use multiprocessing
       (LP: #741069)
     - fixes to make ReviewLoaderJsonAsync 'work' (ie most common cases)
   * softwarecenter/view/appview.py:
-    - correctly refresh listview when supprted filters are changed
+    - correctly refresh listview when supported filters are changed
   * refresh .pot filesoftwarecenter/view/widgets/pathbar_gtk_atk.py
 
  -- Gary Lasker <gary.lasker@canonical.com>  Thu, 24 Mar 2011 11:07:27 -0400
