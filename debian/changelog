@@ -13,6 +13,8 @@ software-center (3.1.24.3) UNRELEASED; urgency=low
     - fallback to ReviewLoaderJsonAsync when we can't use multiprocessing
       (LP: #741069)
     - fixes to make ReviewLoaderJsonAsync 'work' (ie most common cases)
+  * softwarecenter/view/appview.py:
+    - correctly refresh listview when supprted filters are changed
   * refresh .pot file
 
  -- Gary Lasker <gary.lasker@canonical.com>  Thu, 24 Mar 2011 11:07:27 -0400
