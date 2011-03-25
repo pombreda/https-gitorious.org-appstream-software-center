@@ -573,6 +573,12 @@ class PathBar(gtk.HBox):
             self.set_active(nav_part)
         return
 
+    def navigate_up_twice(self):
+        parts = self.get_children()
+        if len(parts) > 2:
+            nav_part = parts[len(parts) - 3]
+            self.set_active(nav_part)
+        return
 
 class PathPart(gtk.EventBox):
 

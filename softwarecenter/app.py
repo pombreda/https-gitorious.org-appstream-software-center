@@ -857,6 +857,22 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             not self.active_pane.apps_filter.get_supported_only()):
             self.active_pane.apps_filter.set_supported_only(True)
             self.active_pane.refresh_apps()
+
+            # navigate up if the details page is no longer available
+            ap = self.active_pane
+            if (ap and ap.is_app_details_view_showing and
+                ap.app_details_view.app and not self.distro.is_supported(self.cache, None, ap.app_details_view.app.pkgname)):
+                    if len(ap.app_view.get_model()) == 0:
+                        ap.navigation_bar.navigate_up_twice()
+                    else:
+                        ap.navigation_bar.navigate_up()
+                    ap.on_application_selected(None, None)    
+
+            # navigate up if the list page is empty
+            if (ap and ap.is_applist_view_showing() and 
+                len(ap.app_view.get_model()) == 0):
+                ap.navigation_bar.navigate_up()
+                ap.on_application_selected(None, None)    
             
     def on_navhistory_back_action_activate(self, navhistory_back_action):
         self.available_pane.nav_history.nav_back()

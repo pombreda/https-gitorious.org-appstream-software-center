@@ -8,6 +8,12 @@ software-center (3.1.24.3) UNRELEASED; urgency=low
     softwarecenter/view/availablepane.py,
     others:
     - make custom lists work (LP: #712903)
+  * softwarecenter/app.py,
+    softwarecenter/distro/Ubuntu.py,
+    softwarecenter/view/widgets/pathbar_gtk_atk.py:
+    - when the supported filter is set to supported_only, navigate up if:
+      - we are in a details view of an app which is not supported (LP: #480827)
+      - we are in a list view which becomes empty
   * softwarecenter/db/reviews.py,
     softwarecenter/distro/Ubuntu.py:
     - fallback to ReviewLoaderJsonAsync when we can't use multiprocessing
@@ -15,7 +21,7 @@ software-center (3.1.24.3) UNRELEASED; urgency=low
     - fixes to make ReviewLoaderJsonAsync 'work' (ie most common cases)
   * softwarecenter/view/appview.py:
     - correctly refresh listview when supprted filters are changed
-  * refresh .pot file
+  * refresh .pot filesoftwarecenter/view/widgets/pathbar_gtk_atk.py
 
  -- Gary Lasker <gary.lasker@canonical.com>  Thu, 24 Mar 2011 11:07:27 -0400
 

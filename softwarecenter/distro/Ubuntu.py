@@ -103,9 +103,8 @@ class Ubuntu(Distro):
             return _("Proprietary")
 
     def is_supported(self, cache, doc, pkgname):
-        section = doc.get_value(XAPIAN_VALUE_ARCHIVE_SECTION)
-        if section == "main" and section == "restricted":
-            return True
+        # the doc does not by definition contain correct data regarding the
+        # section. Looking up in the cache seems just as fast/slow.
         if pkgname in cache and cache[pkgname].candidate:
             for origin in cache[pkgname].candidate.origins:
                 if (origin.origin == "Ubuntu" and 
