@@ -99,6 +99,8 @@ software-center (3.1.24) natty; urgency=low
     softwarecenter/view/catview_gtk.py:
     - only display available items in what's new (LP: #739276)
     - don't display installed items in what's new (LP: #627114)
+  * softwarecenter/backend/weblive.py:
+    - don't crash if we try to delete a non-existent file (LP: #743511)
   * softwarecenter/db/database.py:
     - don't crash when we have no axi values (LP: #737870)
   * softwarecenter/db/update.py:
