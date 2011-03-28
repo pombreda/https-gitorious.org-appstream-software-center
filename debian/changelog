@@ -1,3 +1,11 @@
+software-center (3.1.24.3) UNRELEASED; urgency=low
+
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - fix crash that can happen on a network state change
+      event (LP: #742635)
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Sun, 27 Mar 2011 21:22:50 -0400
+
 software-center (3.1.24.2) natty; urgency=low
 
   * softwarecenter/view/softwarepane.py:
