@@ -43,7 +43,7 @@ class ShowWebLiveServerChooserDialog(gtk.Dialog):
                 if server.title == otherserver.title:
                     percent_server=((float(server.current_users)/float(server.userlimit))*100.0)
                     percent_otherserver=((float(otherserver.current_users)/float(otherserver.userlimit))*100.0)
-                    if percent_otherserver < percent_server:
+                    if percent_otherserver > percent_server:
                         otherserver=server
                     duplicate=True
 

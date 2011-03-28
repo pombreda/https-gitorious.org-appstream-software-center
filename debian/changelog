@@ -1,4 +1,4 @@
-software-center (3.1.24.3) UNRELEASED; urgency=low
+software-center (3.1.24.4) UNRELEASED; urgency=low
 
   [ Kiwinote ]
   * data/ui/SoftwareCenter.ui:
@@ -32,6 +32,22 @@ software-center (3.1.24.3) UNRELEASED; urgency=low
   * refresh .pot file
 
  -- Gary Lasker <gary.lasker@canonical.com>  Thu, 24 Mar 2011 11:07:27 -0400
+
+software-center (3.1.24.3) natty; urgency=low
+
+  [ Gary Lasker ]
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - fix crash that can happen on a network state change
+      event (LP: #742635)
+  
+  [ Michael Vogt ]
+  * softwarecenter/view/widgets/weblivedialog.py:
+    - merged lp:~weblive-dev/software-center/weblive-loadbalancing-fix
+      bugfix to fix server selection bug, thanks to Stephane Graber
+  * tests/Makefile:
+    - fix in clean target to remove some test leftover data
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 28 Mar 2011 09:34:41 +0200
 
 software-center (3.1.24.2) natty; urgency=low
 

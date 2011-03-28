@@ -744,6 +744,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         return
 
     def _check_for_reviews(self):
+        # self.app may be undefined on network state change events (LP: #742635)
+        if not self.app:
+            return
         # review stats is fast and syncronous
         stats = self.review_loader.get_review_stats(self.app)
         self._update_review_stats_widget(stats)
