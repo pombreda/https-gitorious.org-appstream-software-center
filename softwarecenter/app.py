@@ -32,42 +32,39 @@ import sys
 import xapian
 import glob
 
-with ExecutionTime("TIME loading app.py imports"):
-    # purely to initialize the netstatus
-    import softwarecenter.netstatus
+# purely to initialize the netstatus
+import softwarecenter.netstatus
 
-    from SimpleGtkbuilderApp import SimpleGtkbuilderApp
-    from softwarecenter.db.application import Application, DebFileApplication
-    from softwarecenter.enums import *
-    from softwarecenter.paths import *
-    from softwarecenter.utils import *
-    from softwarecenter.version import *
-    from softwarecenter.db.database import StoreDatabase
-    import softwarecenter.view.dependency_dialogs as dependency_dialogs
-    import softwarecenter.view.deauthorize_dialog as deauthorize_dialog
-    from softwarecenter.view.softwarepane import wait_for_apt_cache_ready
-    from softwarecenter.backend.aptd import TransactionFinishedResult
+from SimpleGtkbuilderApp import SimpleGtkbuilderApp
+from softwarecenter.db.application import Application, DebFileApplication
+from softwarecenter.enums import *
+from softwarecenter.paths import *
+from softwarecenter.utils import *
+from softwarecenter.version import *
+from softwarecenter.db.database import StoreDatabase
+import softwarecenter.view.dependency_dialogs as dependency_dialogs
+import softwarecenter.view.deauthorize_dialog as deauthorize_dialog
+from softwarecenter.backend.aptd import TransactionFinishedResult
 
-    import view.dialogs
-    from view.viewswitcher import ViewSwitcher
-    from view.pendingview import PendingView
-    from view.installedpane import InstalledPane
-    from view.channelpane import ChannelPane
-    from view.availablepane import AvailablePane
-    from view.softwarepane import SoftwareSection
-    from view.historypane import HistoryPane
-    from view.viewmanager import ViewManager
+import view.dialogs
+from view.viewswitcher import ViewSwitcher
+from view.pendingview import PendingView
+from view.installedpane import InstalledPane
+from view.channelpane import ChannelPane
+from view.availablepane import AvailablePane
+from view.softwarepane import SoftwareSection
+from view.historypane import HistoryPane
+from view.viewmanager import ViewManager
 
-    from config import get_config
-    from backend import get_install_backend
-    from paths import SOFTWARE_CENTER_ICON_CACHE_DIR
+from config import get_config
+from backend import get_install_backend
+from paths import SOFTWARE_CENTER_ICON_CACHE_DIR
 
-    from plugin import PluginManager
-    from db.reviews import get_review_loader
-    from distro import get_distro
-    from apt.aptcache import AptCache
-    from gettext import gettext as _
-
+from plugin import PluginManager
+from db.reviews import get_review_loader
+from distro import get_distro
+from apt.aptcache import AptCache
+from gettext import gettext as _
 
 
 class SoftwarecenterDbusController(dbus.service.Object):

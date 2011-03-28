@@ -338,7 +338,8 @@ class ScreenshotThumbnail(gtk.Alignment):
 
             if not self.eventbox.parent:
                 self.add(self.eventbox)
-                self.show_all()
+                if self.get_property("visible"):
+                    self.show_all()
 
             self.image.set_size_request(-1, -1)
             self.image.set_from_pixbuf(pb)
