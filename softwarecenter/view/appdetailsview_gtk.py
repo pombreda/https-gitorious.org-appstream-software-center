@@ -49,9 +49,6 @@ from softwarecenter.utils import *
 from softwarecenter.config import get_config
 from softwarecenter.backend.weblive import get_weblive_backend
 
-from softwarecenter.gwibber_helper import GWIBBER_SERVICE_AVAILABLE
-
-from softwarecenter.backend.weblive import get_weblive_backend
 from softwarecenter.view.dialogs import error
 
 from appdetailsview import AppDetailsViewBase
@@ -718,8 +715,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.addons_to_remove = self.addons_manager.addons_to_remove
 
         # switches
-        # Bug #628714 check not only that gwibber is installed but that service accounts exist
-        self._gwibber_is_available = GWIBBER_SERVICE_AVAILABLE
         self._show_overlay = False
 
         # page elements are packed into our very own lovely viewport
@@ -950,16 +945,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         webbrowser.open_new_tab(self.app_details.website)
         return
 
-    def _on_share_clicked(self, button):
-        # TRANSLATORS: apt:%(pkgname) is the apt protocol
-        msg = _("Check out %(appname)s! apt:%(pkgname)s") % {
-                'appname' : self.app_details.display_name, 
-                'pkgname' : self.app_details.pkgname }
-        p = subprocess.Popen(["gwibber-poster", "-w", "-m", msg])
-        # setup timeout handler to avoid zombies
-        glib.timeout_add_seconds(1, lambda p: p.poll() is None, p)
-        return
-
     def _layout_page(self):
         # setup widgets
         alignment = gtk.Alignment(0.5, 0.0, yscale=1.0)
@@ -1044,16 +1029,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.homepage_btn.set_underline(True)
         self.homepage_btn.set_xmargin(0)
 
-        # share app with microbloggers button
-        self.share_btn = mkit.HLinkButton(_('Share...'))
-        self.share_btn.set_underline(True)
-        self.share_btn.set_tooltip_text(_('Share via a micro-blogging service...'))
-        self.share_btn.connect('clicked', self._on_share_clicked)
-
         # add the links footer to the description widget
         footer_hb = gtk.HBox(spacing=6)
         footer_hb.pack_start(self.homepage_btn, False)
-        footer_hb.pack_start(self.share_btn, False)
         self.desc.pack_start(footer_hb, False)
 
         self.info_vb = info_vb = gtk.VBox(spacing=12)
@@ -1184,14 +1162,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.homepage_btn.set_tooltip_text(app_details.website)
         else:
             self.homepage_btn.hide()
-
-        # check if gwibber-poster is available, if so display Share... btn
-        if (self._gwibber_is_available and 
-            app_details.pkg_state not in (PKG_STATE_NOT_FOUND, 
-                                          PKG_STATE_NEEDS_SOURCE)):
-            self.share_btn.show()
-        else:
-            self.share_btn.hide()
         return
 
     def _update_app_screenshot(self, app_details):
