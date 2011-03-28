@@ -19,6 +19,7 @@
 import gtk
 import logging
 import mkit
+import gobject
 
 from gettext import gettext as _
 
@@ -40,6 +41,9 @@ class ActionBar(gtk.HBox):
     """
     
     PADDING = 4
+    
+    ANIMATE_START_DELAY = 100
+    ANIMATE_FPS = 50
 
     def __init__(self):
         super(ActionBar, self).__init__(spacing=self.PADDING)
@@ -233,26 +237,21 @@ class ActionBar(gtk.HBox):
         self.set_size_request(-1, -1)
         
     def _slide_in(self):
-        if True:
-            super(ActionBar, self).show()
-        else:
-            self.target_height = self.size_request()[1]
-            self.current_height = 0
-            print "target_height: ", target_height
-            self.set_size_request(-1, 0)
-            super(ActionBar, self).show()
-            gobject.timeout_add(self.ANIMATE_DELAY,
-                                self._slide_in_cb)
+        self._target_height = self.size_request()[1]
+        self._current_height = 0
+        print ">>> self._target_height: ", self._target_height
+        self.set_size_request(-1, 0)
+        super(ActionBar, self).show()
+        gobject.timeout_add(self.ANIMATE_START_DELAY,
+                            self._slide_in_cb)
         return
 
     def _slide_out(self):
-        if True:
-            super(ActionBar, self).hide()
-        else:
-            self.target_height = 0
-            self.current_height = self.size_request()[1]
-            gobject.timeout_add(self.ANIMATE_DELAY,
-                                self._slide_out_cb)
+        self._target_height = 0
+        self._current_height = self.size_request()[1]
+        print ">>> self._current_height: ", self._current_height
+        gobject.timeout_add(self.ANIMATE_START_DELAY,
+                            self._slide_out_cb)
         return
     
     def _slide_in_cb(self):
