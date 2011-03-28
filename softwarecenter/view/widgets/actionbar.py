@@ -18,6 +18,7 @@
 
 import gtk
 import logging
+import mkit
 
 from gettext import gettext as _
 
@@ -61,8 +62,12 @@ class ActionBar(gtk.HBox):
         self._btn_bin.show_all()
         self._visible = False
         
-        self.connect('expose-event', self._on_expose_event)
+        # listen for size allocation events, used for implementing the
+        # action bar slide in/out animation effect
         self.connect('size-allocate', self._on_size_allocate)
+        self._slide_in_in_progress = False
+        self._slide_out_in_progress = False
+        self._target_height = None
 
     def add_button(self, id, label, result, *result_args):
         """Adds a button and shows the bar.
@@ -211,14 +216,11 @@ class ActionBar(gtk.HBox):
     # Internal methods
 
     def _show(self):
-        if self._visible:
+        if self._visible or self._slide_in_in_progress:
             return
         print "called action_bar._show()"
         self._visible = True
-        self_slide_in()
-        self.target_height = self.size_request()[1]
-        print "target_height: ", target_height
-        super(ActionBar, self).show()
+        self._slide_in()
 
     def _hide(self):
         if not self._visible:
@@ -231,73 +233,39 @@ class ActionBar(gtk.HBox):
         self.set_size_request(-1, -1)
         
     def _slide_in(self):
-        self.target_height = self.size_request()[1]
-        print "target_height: ", target_height
-        self.set_size_request(-1, 0)
-        super(ActionBar, self).show()
-        gobject.timeout_add(self.ANIMATE_DELAY,
-                            self._slide_init,
-                            self._slide_in_cb)
+        if True:
+            super(ActionBar, self).show()
+        else:
+            self.target_height = self.size_request()[1]
+            self.current_height = 0
+            print "target_height: ", target_height
+            self.set_size_request(-1, 0)
+            super(ActionBar, self).show()
+            gobject.timeout_add(self.ANIMATE_DELAY,
+                                self._slide_in_cb)
         return
 
     def _slide_out(self):
-        gobject.timeout_add(self.ANIMATE_DELAY,
-                            self._slide_init,
-                            self._slide_out_cb)
+        if True:
+            super(ActionBar, self).hide()
+        else:
+            self.target_height = 0
+            self.current_height = self.size_request()[1]
+            gobject.timeout_add(self.ANIMATE_DELAY,
+                                self._slide_out_cb)
         return
-        
-    def _slide_init(self, slide_callback):
-        self._slider = gobject.timeout_add(
-            max(int(1000.0 / self.ANIMATE_FPS), 10),  # interval
-            slide_callback,
-            self.get_size_request()[1],
-            self.ANIMATE_DURATION*0.001,   # 1 over duration (converted to seconds)
-            gobject.get_current_time(),
-            priority=100)
-        return False
     
-    def _slide_in_cb(self, distance, duration, start_t):
-        cur_t = gobject.get_current_time()
-        y0 = distance - distance*((cur_t - start_t) / duration)
-
-        if y0 > 0:
-            self._slide_y0 = y0
-            
-        else:   # final frame
-            self._slide_y0 = 0
-            self._slider = None
-            return False
-        return True
+    def _slide_in_cb(self):
+        pass
     
     def _slide_out_cb(self):
+        pass
     
     def _on_size_allocate(self, widget, allocation):
-        if self._width < allocation.width and self._out_of_width:
-            self._grow_check(allocation)
-        elif self._width >= allocation.width:
-            self._shrink_check(allocation)
-
-        if self._animate[0] and self.theme['enable-animations']:
-            part = self._animate[1]
-            self._part_scroll_out(part)
-        else:
-            self.queue_draw()
-        return
-    
-    def _on_expose_event(self, widget, event):
+        print "current slide height is allocation.height: ", allocation.height
         
-        if self._scroll_yO:
-            self._expose_slide(widget, event)
-        else:
-            self._expose_normal(widget, event)
-        return
-        
-    def _expose_normal(self, widget, event):
-
-        return
-
-    def _expose_scroll(self, widget, event):
-
+        # DO THIS if we are at full height
+        self.queue_draw()
         return
 
     def _callback(self, function, args):
