@@ -651,7 +651,7 @@ class UIReviewsList(gtk.VBox):
         hb.pack_start(label, False)
         hb.pack_end(self.new_review, False, padding=6)
 
-        self.vbox = gtk.VBox()
+        self.vbox = gtk.VBox(spacing=24)
         self.vbox.set_border_width(6)
         self.pack_start(self.vbox)
 
@@ -671,13 +671,9 @@ class UIReviewsList(gtk.VBox):
         """
         self.logged_in_person = get_person_from_config()
         if self.reviews:
-#            self.reviews.reverse()  # XXX: sort so that reviews are ordered recent to oldest
-#                                    # XXX: prob should be done somewhere else
             for r in self.reviews:
                 pkgversion = self._parent.app_details.version
-                review = UIReview(self, r, pkgversion,
-                                  self.logged_in_person,
-                                  self.useful_votes)
+                review = UIReview(r, pkgversion, self.logged_in_person, self.useful_votes)
                 self.vbox.pack_start(review)
         return
 
@@ -763,7 +759,6 @@ class UIReviewsList(gtk.VBox):
         a.add(hb)
 
         spinner = gtk.Spinner()
-        spinner.set_size_request(22,22)
         spinner.start()
 
         hb.pack_start(spinner, False)
@@ -782,84 +777,32 @@ class UIReviewsList(gtk.VBox):
                 child.destroy()
         return
 
-    def draw(self, cr, a, event_area):
-        cr.save()
-
-        rounded_rect(cr, a.x, a.y, a.width, a.height, 5)
-        cr.set_source_rgba(*color_floats("#F7F7F7")+(0.75,))
-        cr.fill()
-
-        a = self.header.allocation
-        rounded_rect2(cr, a.x, a.y, a.width, a.height, (5, 5, 0, 0))
-        cr.set_source_rgb(*color_floats("#DAD7D3"))
-        cr.fill()
-
-        a = self.allocation
-        cr.save()
-        rounded_rect(cr, a.x+0.5, a.y+0.5, a.width-1, a.height-1, 5)
-        cr.set_source_rgba(*color_floats("#DAD7D3")+(0.3,))
-        cr.set_line_width(1)
-        cr.stroke()
-
-        cr.set_dash((1, 2))
-        cr.set_source_color(self.style.dark[gtk.STATE_NORMAL])
-
-        l = len(self.reviews)
-        yo = self.vbox.get_spacing()/2 - 0.5
-
-        for i, r in enumerate(self.get_reviews()):
-            if i != l-1:
-                ra = r.allocation
-                cr.move_to(ra.x, ra.y+ra.height+yo)
-                cr.rel_line_to(ra.width, 0)
-                cr.stroke()
-
-        cr.restore()
+    def draw(self, cr, a):
+        for r in self.vbox:
+            if isinstance(r, (UIReview)):
+                r.draw(cr, r.allocation)
         return
 
     # mvo: this appears to be not used
-    def get_reviews(self):
-        return filter(lambda r: type(r) == UIReview, self.vbox.get_children())
+    #def get_reviews(self):
+    #    return filter(lambda r: type(r) == UIReview, self.vbox.get_children())
 
-    def unhighlight_others(self, caller):
-        for r in self.get_reviews():
-            if r != caller: r.unhighlight()
-        return
-
-
-class UIReview(gtk.EventBox):
-
-    def __init__(self, review_list=None, review_data=None, app_version=None, 
+class UIReview(gtk.VBox):
+    """ the UI for a individual review including all button to mark
+        useful/inappropriate etc
+    """
+    def __init__(self, review_data=None, app_version=None, 
                  logged_in_person=None, useful_votes=None):
-        gtk.EventBox.__init__(self)
-        self.set_visible_window(False)
-
-        self.review_list = review_list
-
-        self.vbox = gtk.VBox(spacing=mkit.SPACING_LARGE)
-        self.vbox.set_border_width(6)
+        gtk.VBox.__init__(self, spacing=mkit.SPACING_LARGE)
 
         self.header = gtk.HBox(spacing=mkit.SPACING_MED)
         self.body = gtk.VBox()
         self.footer_split = gtk.VBox()
-        self.footer = gtk.HBox(spacing=3)
-        self.footer.set_size_request(-1, 2*EM)
-
-        self.add(self.vbox)
-        self.vbox.pack_start(self.header, False)
-        self.vbox.pack_start(self.body, False)
-        self.vbox.pack_start(self.footer_split, False)
-
-        if not review_data: return
-
-        self.set_events(gtk.gdk.ENTER_NOTIFY_MASK|
-                        gtk.gdk.LEAVE_NOTIFY_MASK)
-        self._poller = None
-
+        self.footer = gtk.HBox()
+        
         self.useful = None
         self.yes_like = None
         self.no_like = None
-
         self.status_box = gtk.HBox()
         self.submit_error_img = gtk.Image()
         self.submit_error_img.set_from_stock(gtk.STOCK_DIALOG_ERROR, gtk.ICON_SIZE_SMALL_TOOLBAR)
@@ -870,6 +813,10 @@ class UIReview(gtk.EventBox):
         self.acknowledge_error.set_subdued(True)
         self.usefulness_error = False
 
+        self.pack_start(self.header, False)
+        self.pack_start(self.body, False)
+        self.pack_start(self.footer_split, False)
+        
         self.logged_in_person = logged_in_person
         self.person = None
         self.id = None
@@ -877,21 +824,16 @@ class UIReview(gtk.EventBox):
         self._allocation = None
 
         if review_data:
-            self._connect_signals(review_data,
-                                  app_version,
-                                  logged_in_person,
-                                  useful_votes)
+            self.connect('realize',
+                         self._on_realize,
+                         review_data,
+                         app_version,
+                         logged_in_person,
+                         useful_votes)
         return
 
-    def _connect_signals(self, *review_info):
-        self.connect('enter-notify-event', self._on_enter)
-#        self.connect('leave-notify-event', self._on_leave)
-        self.connect('expose-event', self._on_expose)
-        self.connect('realize', self._on_realize, *review_info)
-        return
-
-    def _on_realize(self, w, *review_info):
-        self._build(*review_info)
+    def _on_realize(self, w, review_data, app_version, logged_in_person, useful_votes):
+        self._build(review_data, app_version, logged_in_person, useful_votes)
         return
 
     def _on_allocate(self, widget, allocation, stars, summary, text, who_when, version_lbl, flag):
@@ -900,115 +842,33 @@ class UIReview(gtk.EventBox):
             return True
         self._allocation = allocation
 
+        summary.set_size_request(max(20, allocation.width - \
+                                 stars.allocation.width - \
+                                 who_when.allocation.width - 20), -1)
+
         text.set_size_request(allocation.width, -1)
 
-        w = max(20, allocation.width - stars.allocation.width - \
-                    who_when.allocation.width - 20)
-        summary.set_size_request(w, -1)
-
         if version_lbl:
-            w = allocation.width - flag.allocation.width - 20
-            version_lbl.set_size_request(w, -1)
+            version_lbl.set_size_request(allocation.width-flag.allocation.width-20, -1)
         return
 
-    def _on_enter(self, widget, event):
-        if self.state == gtk.STATE_PRELIGHT: return
-
-        self.review_list.unhighlight_others(self)
-        self.highlight()
-
-        # the leave-notify-event seemed a bit unreliable. Quick swoops of the
-        # mouse would leave the review in a 'highlighted' state despite 
-        # the pointer no-longer being within the review region
-        if self._poller: gobject.source_remove(self._poller)
-        self._poller = gobject.timeout_add(200,
-                                           self._poll_pointer_position,
-                                           self.allocation)
-        return
-
-    def _text_on_motion(self, widget, event):
-        if self.state == gtk.STATE_PRELIGHT: return
-        if not self.review_list: return
-
-        self.review_list.unhighlight_others(self)
-        self.highlight()
-        return
-
-    def _poll_pointer_position(self, alloc):
-        x, y = self.get_pointer()
-        alloc = gtk.gdk.Rectangle(0, 0, alloc.width, alloc.height)
-        review_region = gtk.gdk.region_rectangle(alloc)
-
-        if not review_region.point_in(x, y):
-            self.unhighlight()
-            return False
-
-        return True
-
-    def highlight(self):
-        if hasattr(self, 'complain'):
-            self.complain.show()
-        if hasattr(self, 'like_yes_no'):
-            self.like_yes_no.show()
-        if hasattr(self, 'useful'):
-            self.useful.hide()
-#        self._show_usefulness_elements()
-        self.set_state(gtk.STATE_PRELIGHT)
-        return
-
-    def unhighlight(self):
-        self.set_state(gtk.STATE_NORMAL)
-        if hasattr(self, 'complain'):
-            self.complain.hide()
-        if hasattr(self, 'like_yes_no'):
-            self.like_yes_no.hide()
-        if hasattr(self, 'useful'):
-            self.useful.show()
-#        self._hide_usefulness_elements()
-        return
-
-#    def _on_leave(self, widget, event):
-#        # first check if event x,y is within eventbox, required because
-#        # a leave event is also emitted when the pointer crosses internally from
-#        # the eventbox to the selectable labels
-#        alloc = widget.allocation
-#        review_region = gtk.gdk.region_rectangle(alloc)
-#        x = int(event.x) + alloc.x
-#        y = int(event.y) + alloc.y
-#        if review_region.point_in(x, y): return
-
-#        if hasattr(self, 'complain'):
-#            self.complain.hide()
-#        self.set_state(gtk.STATE_NORMAL)
-#        return
-
-    def _on_expose(self, widget, event):
-        cr = widget.window.cairo_create()
-        cr.rectangle(event.area)
-        cr.clip()
-
-        self.draw(cr, widget.allocation, event.area)
-
-        del cr
-        return
-
-    def _on_report_abuse_clicked(self, button, uri):
+    def _on_report_abuse_clicked(self, button):
         reviews = self.get_ancestor(UIReviewsList)
         if reviews:
             reviews.emit("report-abuse", self.id)
     
-    def _submit_usefulness(self, is_useful):
+    def _on_useful_clicked(self, btn, is_useful):
         reviews = self.get_ancestor(UIReviewsList)
         if reviews:
             self._usefulness_ui_update('progress')
             reviews.emit("submit-usefulness", self.id, is_useful)
-
+    
     def _on_error_acknowledged(self, button, current_user_reviewer, useful_total, useful_favorable):
         self.usefulness_error = False
         self._usefulness_ui_update('renew', current_user_reviewer, useful_total, useful_favorable)
     
     def _usefulness_ui_update(self, type, current_user_reviewer=False, useful_total=0, useful_favorable=0):
-        self.footer.remove(self.like_yes_no)
+        self._hide_usefulness_elements()
         #print "_usefulness_ui_update: %s" % type
         if type == 'renew':
             self._build_usefulness_ui(current_user_reviewer, useful_total, useful_favorable)
@@ -1037,27 +897,16 @@ class UIReview(gtk.EventBox):
         self.footer.pack_start(self.status_box, False)
         return
 
-#    def _show_usefulness_elements(self):
-#        """ hide all usefulness elements """
-#        for attr in ["useful", "yes_like", "no_like", "submit_status_spinner",
-#                     "submit_error_img", "status_box", "status_label",
-#                     "acknowledge_error", "yes_no_separator"
-#                     ]:
-#            widget = getattr(self, attr, None)
-#            if widget:
-#                widget.show()
-#        return
-
-#    def _hide_usefulness_elements(self):
-#        """ hide all usefulness elements """
-#        for attr in ["useful", "yes_like", "no_like", "submit_status_spinner",
-#                     "submit_error_img", "status_box", "status_label",
-#                     "acknowledge_error", "yes_no_separator"
-#                     ]:
-#            widget = getattr(self, attr, None)
-#            if widget:
-#                widget.hide()
-#        return
+    def _hide_usefulness_elements(self):
+        """ hide all usefulness elements """
+        for attr in ["useful", "yes_like", "no_like", "submit_status_spinner",
+                     "submit_error_img", "status_box", "status_label",
+                     "acknowledge_error", "yes_no_separator"
+                     ]:
+            widget = getattr(self, attr, None)
+            if widget:
+                widget.hide()
+        return
 
     def _get_datetime_from_review_date(self, raw_date_str):
         # example raw_date str format: 2011-01-28 19:15:21
@@ -1079,16 +928,8 @@ class UIReview(gtk.EventBox):
         useful_favorable = review_data.usefulness_favorable
         useful_submit_error = review_data.usefulness_submit_error
 
-        current_user_reviewer = False
-        if self.person == self.logged_in_person:
-            current_user_reviewer = True
-
-        if current_user_reviewer:
-            color = self.style.text[gtk.STATE_NORMAL]
-        else:
-            color = self.style.dark[gtk.STATE_NORMAL]
-
-        m = self._whom_when_markup(self.person, displayname, cur_t, color)
+        dark_color = self.style.dark[gtk.STATE_NORMAL]
+        m = self._whom_when_markup(self.person, displayname, cur_t, dark_color)
 
         who_when = mkit.EtchedLabel(m)
         who_when.set_use_markup(True)
@@ -1097,17 +938,12 @@ class UIReview(gtk.EventBox):
         summary.set_use_markup(True)
         summary.set_ellipsize(pango.ELLIPSIZE_END)
         summary.set_selectable(True)
-        summary.set_padding(0, 3)
         summary.set_alignment(0, 0.5)
 
         text = gtk.Label(review_data.review_text)
         text.set_line_wrap(True)
         text.set_selectable(True)
         text.set_alignment(0, 0)
-        # this is for the case where the user quickly moves the cursor across 
-        # the review region and the enter-event is not emitted, so we play catch
-        # up by capturing the text enter-event as well
-        text.connect('motion-notify-event', self._text_on_motion)
 
         stars = SimpleStarRating(review_data.rating)
 
@@ -1127,7 +963,7 @@ class UIReview(gtk.EventBox):
                 }
 
             m = '<small><i><span color="%s">%s</span></i></small>'
-            version_lbl = gtk.Label(m % (color.to_string(), version_string))
+            version_lbl = gtk.Label(m % (dark_color.to_string(), version_string))
             version_lbl.set_use_markup(True)
             version_lbl.set_padding(0,3)
             version_lbl.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
@@ -1136,28 +972,25 @@ class UIReview(gtk.EventBox):
 
         self.footer_split.pack_start(self.footer, False)
 
+        current_user_reviewer = False
+        if self.person == self.logged_in_person:
+            current_user_reviewer = True
+
         self._build_usefulness_ui(current_user_reviewer, useful_total,
                                   useful_favorable, useful_votes, useful_submit_error)
 
         # Translators: This link is for flagging a review as inappropriate.
         # To minimize repetition, if at all possible, keep it to a single word.
         # If your language has an obvious verb, it won't need a question mark.
-        self.complain = gtk.Label()
-        if not current_user_reviewer:
-            self.complain.set_markup('<a href=""><small>%s</small></a>' % _('Inappropriate?'))
-            self.complain.set_no_show_all(True)
-            self.footer.pack_end(self.complain, False)
-            self.complain.connect('activate-link', self._on_report_abuse_clicked)
-            self.complain.set_sensitive(network_state_is_connected())
-
-        self.body.connect('size-allocate',
-                          self._on_allocate,
-                          stars,
-                          summary,
-                          text,
-                          who_when,
-                          version_lbl,
-                          self.complain)
+        self.complain = mkit.VLinkButton('<small>%s</small>' % _('Inappropriate?'))
+        self.complain.set_subdued(True)
+        self.complain.set_underline(True)
+        self.footer.pack_end(self.complain, False)
+        self.complain.connect('clicked', self._on_report_abuse_clicked)
+        # FIXME: dynamically update this on network changes
+        self.complain.set_sensitive(network_state_is_connected())
+        self.body.connect('size-allocate', self._on_allocate, stars, 
+                          summary, text, who_when, version_lbl, self.complain)
         return
     
     def _build_usefulness_ui(self, current_user_reviewer, useful_total, 
@@ -1167,62 +1000,38 @@ class UIReview(gtk.EventBox):
                                        useful_total, useful_favorable)
         else:
             already_voted = useful_votes.check_for_usefulness(self.id)
-            # get correct label based on retrieved usefulness totals and 
+            #get correct label based on retrieved usefulness totals and 
             # if user is reviewer
             self.useful = self._get_usefulness_label(
                 current_user_reviewer, useful_total, useful_favorable, already_voted)
             self.useful.set_use_markup(True)
-            self.footer.pack_start(self.useful, False)
+            #vertically centre so it lines up with the Yes and No buttons
+            self.useful.set_alignment(0, 0.5)
 
+            self.useful.show()
+            self.footer.pack_start(self.useful, False, padding=3)
             # add here, but only populate if its not the own review
+            self.likebox = gtk.HBox()
             if already_voted == None and not current_user_reviewer:
-
-                def on_activate_link_yes_no(widget, uri):
-                    if uri == 'yes':
-                        is_useful = True
-                    else:
-                        is_useful = False
-
-                    self._submit_usefulness(is_useful)
-                    return True
-
-                question = _('Like this review?')
-                yes = _('Yes')
-                no = _('No')
-                sep = u"\u2022" # seperator character
-
-                m = '<small>%s <a href="yes">%s</a> %s <a href="no">%s</a></small>'
-
-                self.like_yes_no = gtk.Label()
-                self.like_yes_no.set_markup(m % (question, yes, sep, no))
-                self.like_yes_no.set_sensitive(network_state_is_connected())
-                self.like_yes_no.connect('activate-link', on_activate_link_yes_no)
-
-                self.footer.pack_start(self.like_yes_no, False)
-                self.like_yes_no.set_no_show_all(True)
-#~ =======
-            #~ self.likebox = gtk.HBox()
-            #~ if already_voted == None and not current_user_reviewer:
-                #~ self.yes_like = mkit.VLinkButton('<small>%s</small>' % _('Yes'))
-                #~ self.no_like = mkit.VLinkButton('<small>%s</small>' % _('No'))
-                #~ self.yes_like.set_underline(True)
-                #~ self.no_like.set_underline(True)
-                #~ self.yes_like.connect('clicked', self._on_useful_clicked, True)
-                #~ self.no_like.connect('clicked', self._on_useful_clicked, False)
-                #~ self.yes_no_separator = gtk.Label("<small>/</small>")
-                #~ self.yes_no_separator.set_use_markup(True)
-                #~ 
-                #~ self.yes_like.show()
-                #~ self.no_like.show()
-                #~ self.yes_no_separator.show()
-                #~ self.likebox.set_spacing(3)
-                #~ self.likebox.pack_start(self.yes_like, False)
-                #~ self.likebox.pack_start(self.yes_no_separator, False)
-                #~ self.likebox.pack_start(self.no_like, False)
-                #~ self.footer.pack_start(self.likebox, False)
-            #~ # always update network status (to keep the code simple)
-            #~ self._update_likebox_based_on_network_state()
-#~ >>>>>>> MERGE-SOURCE
+                self.yes_like = mkit.VLinkButton('<small>%s</small>' % _('Yes'))
+                self.no_like = mkit.VLinkButton('<small>%s</small>' % _('No'))
+                self.yes_like.set_underline(True)
+                self.no_like.set_underline(True)
+                self.yes_like.connect('clicked', self._on_useful_clicked, True)
+                self.no_like.connect('clicked', self._on_useful_clicked, False)
+                self.yes_no_separator = gtk.Label("<small>/</small>")
+                self.yes_no_separator.set_use_markup(True)
+                
+                self.yes_like.show()
+                self.no_like.show()
+                self.yes_no_separator.show()
+                self.likebox.set_spacing(3)
+                self.likebox.pack_start(self.yes_like, False)
+                self.likebox.pack_start(self.yes_no_separator, False)
+                self.likebox.pack_start(self.no_like, False)
+                self.footer.pack_start(self.likebox, False)
+            # always update network status (to keep the code simple)
+            self._update_likebox_based_on_network_state()
         return
 
     def _update_likebox_based_on_network_state(self):
@@ -1244,23 +1053,6 @@ class UIReview(gtk.EventBox):
         '''returns gtk.Label() to be used as usefulness label depending 
            on passed in parameters
         '''
-#~ <<<<<<< TREE
-        #~ if useful_total == 0 and current_user_reviewer:
-            #~ s = ""
-        #~ elif useful_total == 0:
-            #~ # no votes for the review yet
-            #~ s = ''
-        #~ elif current_user_reviewer:
-            #~ # user has already voted for the review
-            #~ s = gettext.ngettext(
-                #~ "%(useful_favorable)s of %(useful_total)s people "
-                #~ "found this review helpful",
-                #~ "%(useful_favorable)s of %(useful_total)s people "
-                #~ "found this review helpful",
-                #~ useful_total) % { 'useful_total' : useful_total,
-                                  #~ 'useful_favorable' : useful_favorable,
-                                #~ }
-#~ =======
         if already_voted == None:
             if useful_total == 0 and current_user_reviewer:
                 s = ""
@@ -1288,17 +1080,6 @@ class UIReview(gtk.EventBox):
                                     'useful_favorable' : useful_favorable,
                                     }
         else:
-#~ <<<<<<< TREE
-            #~ # user has not already voted for the review
-            #~ s = gettext.ngettext(
-                #~ "%(useful_favorable)s of %(useful_total)s person "
-                #~ "found this review helpful",
-                #~ "%(useful_favorable)s of %(useful_total)s people "
-                #~ "found this review helpful",
-                #~ useful_total) % { 'useful_total' : useful_total,
-                                #~ 'useful_favorable' : useful_favorable,
-                                #~ }
-#~ =======
         #only display these special strings if the user voted either way
             if already_voted:
                 if useful_total == 1:
@@ -1324,11 +1105,11 @@ class UIReview(gtk.EventBox):
                         useful_total) % { 'useful_total' : useful_total,
                                     'useful_favorable' : useful_favorable,
                                     }
+                    
+        
+        return gtk.Label('<small>%s</small>' % s)
 
-        color = self.style.dark[gtk.STATE_NORMAL].to_string()
-        return gtk.Label('<small><span color="%s">%s</span></small>' % (color, s))
-
-    def _whom_when_markup(self, person, displayname, cur_t, color):
+    def _whom_when_markup(self, person, displayname, cur_t, dark_color):
         nice_date = get_nice_date_string(cur_t)
         dt = datetime.datetime.utcnow() - cur_t
 
@@ -1336,46 +1117,34 @@ class UIReview(gtk.EventBox):
         correct_name = displayname or person
 
         if person == self.logged_in_person:
-            m = '<span color="%s"><span font_desc="serif bold">%s (%s)</span>, %s</span>' % (
-                color.to_string(),
+            m = '<span color="%s"><b>%s (%s)</b>, %s</span>' % (
+                dark_color.to_string(),
                 gobject.markup_escape_text(correct_name),
                 # TRANSLATORS: displayed in a review after the persons name,
                 # e.g. "Wonderful text based app" mvo (that's you) 2011-02-11"
                 _("that's you"),
                 gobject.markup_escape_text(nice_date))
         else:
-            m = '<span color="%s"><span font_desc="serif bold">%s</span>, %s</span>' % (
-                color.to_string(),
+            m = '<span color="%s"><b>%s</b>, %s</span>' % (
+                dark_color.to_string(),
                 gobject.markup_escape_text(correct_name),
                 gobject.markup_escape_text(nice_date))
 
         return m
 
-    def draw(self, cr, a, event_area):
-        users_review = self.person == self.logged_in_person
-        if not (self.state == gtk.STATE_PRELIGHT or users_review): return
-
+    def draw(self, cr, a):
         cr.save()
+        if not self.person == self.logged_in_person:
+            return
 
         cr.rectangle(a)
-#        rounded_rect(cr, a.x, a.y, a.width, a.height, 5)
 
-        if users_review:
-            if self.state == gtk.STATE_PRELIGHT:
-                alpha = (0.15,)
-            else:
-                alpha = (0.1,)
+        color = mkit.floats_from_gdkcolor(self.style.mid[self.state])
+        cr.set_source_rgba(*color+(0.2,))
 
-            bg = color_floats(self.style.base[gtk.STATE_SELECTED])+alpha
-        else:
-            bg = color_floats(self.style.dark[self.state])+(0.1125,)
-
-        cr.set_source_rgba(*bg)
         cr.fill()
 
         cr.restore()
-        return
-
 
 class EmbeddedMessage(UIReview):
 
@@ -1423,8 +1192,9 @@ class NoReviewYet(EmbeddedMessage):
     def __init__(self, *args, **kwargs):
         # TRANSLATORS: displayed if there are no reviews for the app yet
         #              and the user does not have it installed
-        msg = _("None yet")
-        EmbeddedMessage.__init__(self, message=msg)
+        title = _("This app has not been reviewed yet")
+        msg = _('You need to install this app before you can review it')
+        EmbeddedMessage.__init__(self, title, msg)
 
 
 class NoReviewYetWriteOne(EmbeddedMessage):
@@ -1433,10 +1203,10 @@ class NoReviewYetWriteOne(EmbeddedMessage):
 
         # TRANSLATORS: displayed if there are no reviews yet and the user
         #              has the app installed
-        title = _('Want to be awesome?')
+        title = _('Got an opinion?')
         msg = _('Be the first to contribute a review for this application')
 
-        EmbeddedMessage.__init__(self, title, msg, 'face-glasses')
+        EmbeddedMessage.__init__(self, title, msg, 'text-editor')
         return
 
 
