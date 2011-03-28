@@ -42,8 +42,9 @@ class ActionBar(gtk.HBox):
     
     PADDING = 4
     
-    ANIMATE_START_DELAY = 100
+    ANIMATE_START_DELAY = 50
     ANIMATE_STEP_INTERVAL = 10
+    ANIMATE_STEP = 2
 
     def __init__(self):
         super(ActionBar, self).__init__(spacing=self.PADDING)
@@ -257,16 +258,23 @@ class ActionBar(gtk.HBox):
     def _slide_in_cb(self):
         if (self._is_sliding_in and
             self._current_height < self._target_height):
-            self.set_size_request(-1, self._current_height+1)
+            new_height = self._current_height + self.ANIMATE_STEP
+            if new_height > self._target_height:
+                new_height = self._target_height
+            self.set_size_request(-1, new_height)
         else:
             self._is_sliding_in = False
         return
     
     def _slide_out_cb(self):
+        print ">> self._current_height: ", self._current_height
+        print ">> self._target_height: ", self._target_height
         if (self._is_sliding_out and
             self._current_height > self._target_height):
-            print ">> self._current_height: ", self._current_height
-            self.set_size_request(-1, self._current_height-1)
+            new_height = self._current_height - self.ANIMATE_STEP
+            if new_height < self._target_height:
+                new_height = self._target_height
+            self.set_size_request(-1, new_height)
         else:
             self._is_sliding_out = False
             self.set_size_request(-1, -1)
