@@ -137,14 +137,21 @@ class StarPainter(object):
         return
 
     def _paint_star_flat(self, cr, widget, state, x, y, w, h, alpha):
-        self.shape.layout(cr, x, y, w, h)
 
         if self.fill == self.FILL_EMPTY:
-            cr.set_source_rgba(*color_floats(widget.style.mid[state])+(alpha,))
-        else:
-            cr.set_source_rgba(*self.fg_color+(alpha,))
+            cr.set_source_rgb(*color_floats(widget.style.mid[gtk.STATE_NORMAL]))
 
+        else:
+            cr.set_source_rgba(*self.fg_color)
+
+        self.shape.layout(cr, x, y, w, h)
         cr.fill()
+
+        if isinstance(widget, gtk.TreeView) and state == gtk.STATE_SELECTED:
+            self.shape.layout(cr, x-0.5, y-0.5, w+1, h+1)
+            cr.set_line_width(1)
+            cr.set_source_color(widget.style.white)
+            cr.stroke()
         return
 
     def _paint_star_interactive(self, cr, widget, state, x, y, w, h, alpha):
@@ -587,7 +594,7 @@ class ReviewStatsContainer(gtk.VBox):
     def __init__(self):
         gtk.VBox.__init__(self, spacing=4)
         self.star_rating = StarRating(star_size=(3*EM,3*EM))
-        self.star_rating.set_shadow_type(gtk.SHADOW_ETCHED_OUT)
+        #~ self.star_rating.set_shadow_type(gtk.SHADOW_ETCHED_OUT)
 
         self.label = gtk.Label()
         self.pack_start(self.star_rating, False)
