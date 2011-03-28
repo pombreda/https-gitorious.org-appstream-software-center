@@ -1,10 +1,16 @@
 software-center (3.1.24.3) UNRELEASED; urgency=low
 
+  [ Gary Lasker ]
   * softwarecenter/view/appdetailsview_gtk.py:
     - fix crash that can happen on a network state change
       event (LP: #742635)
+  
+  [ Michael Vogt ]
+  * softwarecenter/view/widgets/weblivedialog.py:
+    - merged lp:~weblive-dev/software-center/weblive-loadbalancing-fix
+      bugfix to fix server selection bug, thanks to Stephane Graber
 
- -- Gary Lasker <gary.lasker@canonical.com>  Sun, 27 Mar 2011 21:22:50 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 28 Mar 2011 09:34:41 +0200
 
 software-center (3.1.24.2) natty; urgency=low
 
