@@ -400,7 +400,6 @@ class PathBar(gtk.HBox):
     def _on_style_set(self, widget, old_style):
         self.set_size_request(*self.DEFAULT_SIZE_REQUEST)
         self.theme = mkit.get_mkit_theme()
-        self.set_size_request(-1, -1)
         for part in self.get_children():
             part.recalc_dimensions()
         self.queue_draw()
