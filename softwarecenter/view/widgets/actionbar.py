@@ -44,7 +44,6 @@ class ActionBar(gtk.HBox):
     
     ANIMATE_START_DELAY = 100
     ANIMATE_STEP_INTERVAL = 10
-    ANIMATE_STEP = 2
 
     def __init__(self):
         super(ActionBar, self).__init__(spacing=self.PADDING)
@@ -70,8 +69,8 @@ class ActionBar(gtk.HBox):
         # listen for size allocation events, used for implementing the
         # action bar slide in/out animation effect
         self.connect('size-allocate', self._on_size_allocate)
-        self._slide_in_in_progress = False
-        self._slide_out_in_progress = False
+        self._is_sliding_in = False
+        self._is_sliding_out = False
         self._target_height = None
 
     def add_button(self, id, label, result, *result_args):
@@ -222,25 +221,20 @@ class ActionBar(gtk.HBox):
     # Internal methods
 
     def _show(self):
-        if self._visible or self._slide_in_in_progress:
+        if self._visible or self._is_sliding_in:
             return
         print ">> called self._show()"
         self._visible = True
         self._slide_in()
 
     def _hide(self):
-        if not self._visible or self._slide_out_in_progress:
+        if not self._visible or self._is_sliding_out:
             return
         print ">> called self._hide()"
-        self._visible = False
-        super(ActionBar, self).hide()
-        # TODO: Move this to the end of the animation out sequence
-        # unlock any fixed height request to allow natural sizing when
-        # the action bar is shown again
-        self.set_size_request(-1, -1)
+        self._slide_out()
         
     def _slide_in(self):
-        self._slide_in_in_progress = True
+        self._is_sliding_in = True
         self._target_height = self.size_request()[1]
         self._current_height = 0
         print ">> self._target_height: ", self._target_height
@@ -251,7 +245,7 @@ class ActionBar(gtk.HBox):
         return
 
     def _slide_out(self):
-        self._slide_out_in_progress = True
+        self._is_sliding_out = True
         self._target_height = 0
         self._current_height = self.size_request()[1]
         # TODO: use current allocation for this?
@@ -261,22 +255,35 @@ class ActionBar(gtk.HBox):
         return
     
     def _slide_in_cb(self):
-        if (self._slide_in_in_progress and
-            self._current_height <= self._target_height):
-            self.set_size_request(-1, self._current_height+self.ANIMATE_STEP)
+        if (self._is_sliding_in and
+            self._current_height < self._target_height):
+            self.set_size_request(-1, self._current_height+1)
         else:
-            self._slide_in_in_progress = False
+            self._is_sliding_in = False
         return
     
     def _slide_out_cb(self):
-        pass
+        if (self._is_sliding_out and
+            self._current_height > self._target_height):
+            print ">> self._current_height: ", self._current_height
+            self.set_size_request(-1, self._current_height-1)
+        else:
+            self._is_sliding_out = False
+            self.set_size_request(-1, -1)
+            self._visible = False
+            super(ActionBar, self).hide()
+        return
     
     def _on_size_allocate(self, widget, allocation):
-        print ">> current slide height is allocation.height: ", allocation.height
-        if self._slide_in_in_progress:
+        if self._is_sliding_in:
             self._current_height = allocation.height
             gobject.timeout_add(self.ANIMATE_STEP_INTERVAL,
                                 self._slide_in_cb,
+                                priority=100)
+        elif self._is_sliding_out:
+            self._current_height = allocation.height
+            gobject.timeout_add(self.ANIMATE_STEP_INTERVAL,
+                                self._slide_out_cb,
                                 priority=100)
         else:
             self.queue_draw()
