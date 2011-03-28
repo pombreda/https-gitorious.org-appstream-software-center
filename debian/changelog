@@ -1,4 +1,4 @@
-software-center (3.1.24.3) UNRELEASED; urgency=low
+software-center (3.1.24.3) natty; urgency=low
 
   [ Gary Lasker ]
   * softwarecenter/view/appdetailsview_gtk.py:
@@ -9,6 +9,8 @@ software-center (3.1.24.3) UNRELEASED; urgency=low
   * softwarecenter/view/widgets/weblivedialog.py:
     - merged lp:~weblive-dev/software-center/weblive-loadbalancing-fix
       bugfix to fix server selection bug, thanks to Stephane Graber
+  * tests/Makefile:
+    - fix in clean target to remove some test leftover data
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 28 Mar 2011 09:34:41 +0200
 
