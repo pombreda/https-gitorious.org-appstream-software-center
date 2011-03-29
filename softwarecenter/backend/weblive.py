@@ -156,9 +156,9 @@ class WebLiveBackend(object):
         nxml=open(filename,"w+")
         config=self.NXML_TEMPLATE
         config=config.replace("WL_NAME","%s-%s-%s" % (host, port, session.replace("/","_")))
-        config=config.replace("WL_SERVER", socket.gethostbyname(host))
+        config=config.replace("WL_SERVER", host)
         config=config.replace("WL_PORT",str(port))
-        config=config.replace("WL_COMMAND","vmmanager-session %s" % session)
+        config=config.replace("WL_COMMAND","weblive-session %s" % session)
         nxml.write(config)
         nxml.close()
 

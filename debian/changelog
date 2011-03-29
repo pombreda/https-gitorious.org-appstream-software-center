@@ -1,3 +1,11 @@
+software-center (3.1.24.4) UNRELEASED; urgency=low
+
+  * merged some small fixes for the backend server of weblive
+    from lp:~weblive-dev/software-center/weblive-backend-fixes,
+    thanks to Stephane Graber
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 29 Mar 2011 09:40:57 +0200
+
 software-center (3.1.24.3) natty; urgency=low
 
   [ Gary Lasker ]
