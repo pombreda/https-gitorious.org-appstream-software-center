@@ -263,7 +263,7 @@ class AvailablePane(SoftwarePane):
 
     def get_current_app(self):
         """return the current active application object"""
-        if self.is_category_view_showing() or self.is_applist_view_showing():
+        if self.is_category_view_showing():
             return None
         else:
             if self.apps_subcategory:
