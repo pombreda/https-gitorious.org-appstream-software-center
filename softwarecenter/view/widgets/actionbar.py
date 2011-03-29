@@ -93,7 +93,8 @@ class ActionBar(gtk.HBox):
         self._btns.pack_start(btn)
 
         if not self._visible:
-            self._show()
+            # always animate with buttons
+            self._show(animate=True)
 
     def remove_button(self, id):
         """Removes a button. Hides bar if no buttons left."""
@@ -105,10 +106,11 @@ class ActionBar(gtk.HBox):
                 self.set_size_request(-1, self.allocation.height)
                 self._btns.remove(child)
                 if len(children) == 1 and not len(self._label):
-                    self._hide()
+                    # always animate with buttons
+                    self._hide(animate=True)
                 return
 
-    def set_label(self, text, link_result=None, *link_result_args):
+    def set_label(self, text, animate=False, link_result=None, *link_result_args):
         """
         Places a string on the left and shows the actionbar.
         Note the "_" symbol acts to delimit sections treated as a link.
@@ -117,9 +119,12 @@ class ActionBar(gtk.HBox):
 
         Keyword arguments:
         text -- a string optionally with "_" to indicate a link button.
+        animate -- use animation to slide the action bar into the view
         link_result -- A function to be called on link click
         link_result_args -- Any arguments for the result function
         """
+        
+        print ">> called set_label() with animate: ", animate
 
         sections = text.split("_")
         LOG.debug("got sections '%s'" % sections)
@@ -155,15 +160,15 @@ class ActionBar(gtk.HBox):
                 box.remove(box.get_child())
             box.add(label)
             box.show_all()
-        self._show()
+        self._show(animate)
 
-    def unset_label(self):
+    def unset_label(self, animate=False):
         """
         Removes the currently set label, hiding the actionbar if no
         buttons are displayed.
         """
         # Destroy all event boxes holding text segments.
-        print ">> called unset_label"
+        print ">> called unset_label with animate: ", animate
         while len(self._label):
             last = self._label.get_children()[-1]
             self._label.remove(last)
@@ -171,7 +176,7 @@ class ActionBar(gtk.HBox):
             self.window.set_cursor(None)
         # Then hide if there's nothing else visible.
         if not len(self._btns):
-            self._hide()
+            self._hide(animate)
 
     def get_button(self, id):
         """Returns a button, or None if `id` links to no button."""
@@ -179,12 +184,12 @@ class ActionBar(gtk.HBox):
             if child.id == id:
                 return child
 
-    def clear(self):
+    def clear(self, animate=False):
         """Removes all contents and hides the bar."""
         for child in self._btns.get_children():
             self._btns.remove(child)
         self.unset_label()
-        self._hide()
+        self._hide(animate)
 
     # The following gtk.Container methods are deimplemented to prevent
     # overwriting of the _elems children box, and because the only
@@ -221,18 +226,27 @@ class ActionBar(gtk.HBox):
 
     # Internal methods
 
-    def _show(self):
+    def _show(self, animate):
         if self._visible or self._is_sliding_in:
             return
-        print ">> called self._show()"
+        print ">> called action_bar._show() with animate: ", animate
         self._visible = True
-        self._slide_in()
-
-    def _hide(self):
+        if animate:
+            self._slide_in()
+        else:
+            super(ActionBar, self).show()
+            
+    def _hide(self, animate):
         if not self._visible or self._is_sliding_out:
             return
-        print ">> called self._hide()"
-        self._slide_out()
+        print ">> called action_bar._hide() with animate: ", animate
+        if animate:
+            self._slide_out()
+        else:
+            self.set_size_request(-1, -1)
+            self._visible = False
+            super(ActionBar, self).hide()
+        return
         
     def _slide_in(self):
         self._is_sliding_in = True
