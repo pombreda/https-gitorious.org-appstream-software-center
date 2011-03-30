@@ -226,7 +226,6 @@ class ActionBar(gtk.HBox):
     def _show(self, animate):
         if self._visible or self._is_sliding_in:
             return
-        print ">> called action_bar._show() with animate: ", animate
         self._visible = True
         if animate:
             self._slide_in()
@@ -236,7 +235,6 @@ class ActionBar(gtk.HBox):
     def _hide(self, animate):
         if not self._visible or self._is_sliding_out:
             return
-        print ">> called action_bar._hide() with animate: ", animate
         if animate:
             self._slide_out()
         else:
@@ -279,14 +277,14 @@ class ActionBar(gtk.HBox):
         if (self._is_sliding_out and
             self._current_height > self._target_height):
             new_height = self._current_height - self.ANIMATE_STEP
-            if new_height < self._target_height:
+            if new_height <= self._target_height:
                 new_height = self._target_height
-            self.set_size_request(-1, new_height)
-        else:
-            self._is_sliding_out = False
-            self.set_size_request(-1, -1)
-            self._visible = False
-            super(ActionBar, self).hide()
+                self._is_sliding_out = False
+                self.set_size_request(-1, -1)
+                self._visible = False
+                super(ActionBar, self).hide()
+            else:
+                self.set_size_request(-1, new_height)
         return
     
     def _on_size_allocate(self, widget, allocation):
