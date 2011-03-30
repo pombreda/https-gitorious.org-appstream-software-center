@@ -44,7 +44,7 @@ class ActionBar(gtk.HBox):
     
     ANIMATE_START_DELAY = 50
     ANIMATE_STEP_INTERVAL = 10
-    ANIMATE_STEP = 2
+    ANIMATE_STEP = 8
 
     def __init__(self):
         super(ActionBar, self).__init__(spacing=self.PADDING)
