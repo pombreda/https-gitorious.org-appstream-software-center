@@ -1,16 +1,23 @@
-software-center (3.1.24.4) UNRELEASED; urgency=low
+software-center (3.1.24.5) UNRELEASED; urgency=low
 
-  [ Michael Vogt ]
-  * merged some small fixes for the backend server of weblive
-    from lp:~weblive-dev/software-center/weblive-backend-fixes,
-    thanks to Stephane Graber
-
-  [ Gary Lasker ]
   * softwarecenter/view/softwarepane.py,
     softwarecenter/view/widgets/actionbar.py:
     - animate the action bar show/hide 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Tue, 29 Mar 2011 23:52:14 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 30 Mar 2011 09:43:52 -0400
+
+software-center (3.1.24.4) natty; urgency=low
+
+  * merged some small fixes for the backend server of weblive
+    from lp:~weblive-dev/software-center/weblive-backend-fixes,
+    thanks to Stephane Graber
+  * softwarecenter/db/update.py:
+    - if no icon_data is transmited from software-center-agent, just use
+      the stock item
+  * softwarecenter/distro/Ubuntu.py:
+    - point to the ratings&reviews production server
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 30 Mar 2011 13:59:13 +0200
 
 software-center (3.1.24.3) natty; urgency=low
 
