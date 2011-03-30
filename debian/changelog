@@ -1,4 +1,4 @@
-software-center (3.1.24.4) UNRELEASED; urgency=low
+software-center (3.1.24.4) natty; urgency=low
 
   * merged some small fixes for the backend server of weblive
     from lp:~weblive-dev/software-center/weblive-backend-fixes,
@@ -9,7 +9,7 @@ software-center (3.1.24.4) UNRELEASED; urgency=low
   * softwarecenter/distro/Ubuntu.py:
     - point to the ratings&reviews production server
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 29 Mar 2011 09:40:57 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 30 Mar 2011 13:59:13 +0200
 
 software-center (3.1.24.3) natty; urgency=low
 
