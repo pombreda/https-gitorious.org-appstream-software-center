@@ -105,11 +105,11 @@ h1 {
     def init_view(self):
         if self.wk is None:
             self.wk = ScrolledWebkitWindow()
-            self.wk.webkit.connect("new-window-policy-decision-requested", 
-                                   self._on_new_window)
-            # a possible way to do IPC (script or title change)
-            self.wk.webkit.connect("script-alert", self._on_script_alert)
-            self.wk.webkit.connect("title-changed", self._on_title_changed)
+        # connect signals each time we display the purchase (webkit) view
+        self.wk.webkit.connect("new-window-policy-decision-requested", self._on_new_window)
+        # a possible way to do IPC (script or title change)
+        self.wk.webkit.connect("script-alert", self._on_script_alert)
+        self.wk.webkit.connect("title-changed", self._on_title_changed)
             
     def initiate_purchase(self, app, iconname, url=None, html=None):
         """
@@ -161,6 +161,7 @@ h1 {
         if res["successful"] == False:
             if res.get("user_canceled", False):
                 self.emit("purchase-cancelled-by-user")
+                self._disconnect_wk_handlers()
                 return
             # this is what the agent implements
             elif "failures" in res:
@@ -168,9 +169,11 @@ h1 {
             # show a generic error, the "failures" string we get from the
             # server is way too technical to show, but we do log it
             self.emit("purchase-failed")
+            self._disconnect_wk_handlers()
             return
         else:
             self.emit("purchase-succeeded")
+            self._disconnect_wk_handlers()
             # gather data from response
             deb_line = res["deb_line"]
             signing_key_id = res["signing_key_id"]
@@ -179,6 +182,15 @@ h1 {
                                                                    signing_key_id,
                                                                    self.app,
                                                                    self.iconname)
+                                                                   
+    def _disconnect_wk_handlers(self):
+        # always disconnect webkit signal handlers when we hide the
+        # purchase webkit view, this prevents e.g. handling of signals on
+        # title_change on reloads (see LP: #696861)
+        self.wk.webkit.disconnect_by_func(self._on_new_window)
+        self.wk.webkit.disconnect_by_func(self._on_script_alert)
+        self.wk.webkit.disconnect_by_func(self._on_title_changed)
+        
 
 # just used for testing --------------------------------------------
 DUMMY_HTML = """
