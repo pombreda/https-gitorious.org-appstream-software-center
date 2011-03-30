@@ -1,10 +1,16 @@
 software-center (3.1.24.4) UNRELEASED; urgency=low
 
+  [ Michael Vogt ]
   * merged some small fixes for the backend server of weblive
     from lp:~weblive-dev/software-center/weblive-backend-fixes,
     thanks to Stephane Graber
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 29 Mar 2011 09:40:57 +0200
+  [ Gary Lasker ]
+  * softwarecenter/view/softwarepane.py,
+    softwarecenter/view/widgets/actionbar.py:
+    - animate the action bar show/hide 
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 29 Mar 2011 23:52:14 -0400
 
 software-center (3.1.24.3) natty; urgency=low
 
