@@ -182,15 +182,11 @@ class ActionBar(gtk.HBox):
 
     def clear(self):
         """Removes all contents and hides the bar."""
-        if len(self._btns.get_children()) > 0:
-            # always animate with buttons
-            animate = True
-            for child in self._btns.get_children():
-                self._btns.remove(child)
-        else:
-            animate=False
-        self.unset_label()
+        animate = len(self._btns.get_children()) > 0
         self._hide(animate)
+        for child in self._btns.get_children():
+                self._btns.remove(child)
+        self.unset_label()
 
     # The following gtk.Container methods are deimplemented to prevent
     # overwriting of the _elems children box, and because the only
