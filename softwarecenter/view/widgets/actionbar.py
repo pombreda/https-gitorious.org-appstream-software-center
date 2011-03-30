@@ -122,7 +122,6 @@ class ActionBar(gtk.HBox):
         link_result -- A function to be called on link click
         link_result_args -- Any arguments for the result function
         """
-        
         sections = text.split("_")
         LOG.debug("got sections '%s'" % sections)
 
@@ -257,7 +256,6 @@ class ActionBar(gtk.HBox):
         self._is_sliding_out = True
         self._target_height = 0
         self._current_height = self.size_request()[1]
-        # TODO: use current allocation for this?
         gobject.timeout_add(self.ANIMATE_START_DELAY,
                             self._slide_out_cb)
         return
