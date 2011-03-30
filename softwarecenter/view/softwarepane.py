@@ -408,7 +408,7 @@ class SoftwarePane(gtk.VBox, BasePane):
                                    app,
                                    appdetails,
                                    trans_id)
-        self.action_bar.set_label(_("Add %s to the launcher?" % app.name), animate=True)
+        self.action_bar.set_label(_("Add %s to the launcher?" % app.name))
         
     def on_add_to_launcher(self, app, appdetails, trans_id):
         """
@@ -439,7 +439,7 @@ class SoftwarePane(gtk.VBox, BasePane):
             return ("", "", None, None, None)
                                               
     def on_cancel_add_to_launcher(self, args):
-        self.action_bar.clear(animate=True)
+        self.action_bar.clear()
         
     def on_transaction_finished(self, backend, result):
         # if requested, add this item to the Unity launcher
@@ -451,10 +451,10 @@ class SoftwarePane(gtk.VBox, BasePane):
                 = convert_desktop_file_to_installed_location(launcher_info.app_install_desktop_file_path)
             if result.success:
                 self._send_dbus_signal_to_unity_launcher(launcher_info)
-            self.action_bar.clear(animate=True)
+            self.action_bar.clear()
         # if the user never selected a choice in the action bar, just clear it
         elif self.action_bar.get_button(ACTION_BUTTON_ADD_TO_LAUNCHER):
-            self.action_bar.clear(animate=True)
+            self.action_bar.clear()
             
     def _send_dbus_signal_to_unity_launcher(self, launcher_info):
         LOG.debug("sending dbus signal to Unity launcher for application: ", launcher_info.name)
@@ -479,7 +479,7 @@ class SoftwarePane(gtk.VBox, BasePane):
     def on_transaction_stopped(self, backend, result):
         if result.pkgname in self.unity_launcher_items:
             self.unity_launcher_items.pop(result.pkgname)
-        self.action_bar.clear(animate=True)
+        self.action_bar.clear()
 
     def show_appview_spinner(self):
         """ display the spinner in the appview panel """
@@ -555,12 +555,12 @@ class SoftwarePane(gtk.VBox, BasePane):
                 label = gettext.ngettext("_Hide %(amount)i technical item_",
                                          "_Hide %(amount)i technical items_",
                                          pkgs) % { 'amount': pkgs, }
-                self.action_bar.set_label(label, animate=False, link_result=self._hide_nonapp_pkgs) 
+                self.action_bar.set_label(label, link_result=self._hide_nonapp_pkgs) 
             else:
                 label = gettext.ngettext("_Show %(amount)i technical item_",
                                          "_Show %(amount)i technical items_",
                                          pkgs) % { 'amount': pkgs, }
-                self.action_bar.set_label(label, animate=False, link_result=self._show_nonapp_pkgs)
+                self.action_bar.set_label(label, link_result=self._show_nonapp_pkgs)
 
     def update_search_help(self):
         search = self.searchentry.get_text()
