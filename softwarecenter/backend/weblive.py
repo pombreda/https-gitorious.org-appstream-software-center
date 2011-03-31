@@ -176,7 +176,8 @@ class WebLiveBackend(object):
             p.wait()
 
     def _on_qtnx_exit(self, pid, status, filename):
-        os.remove(filename)
+        if os.path.exists(filename):
+            os.remove(filename)
 
 # singleton
 _weblive_backend = None

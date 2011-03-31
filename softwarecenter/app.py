@@ -851,13 +851,55 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self.active_pane.apps_filter.set_supported_only(False)
             self.active_pane.refresh_apps()
 
+            # update recommended widget counter
+            if self.available_pane and self.available_pane.cat_view:
+                self.available_pane.cat_view._append_recommendations()
+
+            # update subcategory view
+            if (self.available_pane and
+                self.available_pane == self.active_pane and
+                self.available_pane.subcategories_view and
+                self.available_pane.subcategories_view.current_category):
+                self.available_pane.subcategories_view._append_subcat_departments(
+                    self.available_pane.subcategories_view.current_category,
+                    len(self.available_pane.app_view.get_model()))
+
     def on_menuitem_view_supported_only_activate(self, widget):
         if (not self._block_menuitem_view and
             self.active_pane.apps_filter and
             not self.active_pane.apps_filter.get_supported_only()):
             self.active_pane.apps_filter.set_supported_only(True)
             self.active_pane.refresh_apps()
-            
+
+            # navigate up if the details page is no longer available
+            ap = self.active_pane
+            if (ap and ap.is_app_details_view_showing and ap.app_details_view.app and
+                not self.distro.is_supported(self.cache, None, ap.app_details_view.app.pkgname)):
+                if len(ap.app_view.get_model()) == 0:
+                    ap.navigation_bar.navigate_up_twice()
+                else:
+                    ap.navigation_bar.navigate_up()
+                ap.on_application_selected(None, None)    
+
+            # navigate up if the list page is empty
+            elif (ap and ap.is_applist_view_showing() and 
+                len(ap.app_view.get_model()) == 0):
+                ap.navigation_bar.navigate_up()
+                ap.on_application_selected(None, None)    
+
+            # update recommended widget counter
+            if self.available_pane and self.available_pane.cat_view:
+                self.available_pane.cat_view._append_recommendations()
+
+            # update subcategory view
+            if (self.available_pane and
+                self.available_pane == self.active_pane and
+                self.available_pane.subcategories_view and
+                self.available_pane.subcategories_view.current_category):
+                self.available_pane.subcategories_view._append_subcat_departments(
+                    self.available_pane.subcategories_view.current_category,
+                    len(self.available_pane.app_view.get_model()))
+
     def on_navhistory_back_action_activate(self, navhistory_back_action):
         self.available_pane.nav_history.nav_back()
         self.available_pane._status_text = ""

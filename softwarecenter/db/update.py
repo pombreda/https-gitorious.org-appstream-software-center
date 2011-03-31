@@ -30,7 +30,6 @@ import sys
 import time
 import urllib
 import xapian
-import softwarecenter.log
 
 from ConfigParser import RawConfigParser, NoOptionError
 from gettext import gettext as _
@@ -480,7 +479,8 @@ def update_from_software_center_agent(db, cache, ignore_etag=False,
                 icondata = ""
             # write it if we have data
             if icondata:
-                iconname = "sc-agent-%s" % entry.package_name
+		# the iconcache gets mightly confused if there is a "." in the name
+                iconname = "sc-agent-%s" % entry.package_name.replace(".", "__")
                 open(os.path.join(SOFTWARE_CENTER_ICON_CACHE_DIR,
                                   "%s.png" % iconname),"w").write(icondata)
                 entry.icon = iconname
