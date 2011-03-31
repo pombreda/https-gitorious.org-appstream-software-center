@@ -110,7 +110,8 @@ h1 {
         # a possible way to do IPC (script or title change)
         self.wk.webkit.connect("script-alert", self._on_script_alert)
         self.wk.webkit.connect("title-changed", self._on_title_changed)
-            
+        self.wk.webkit.connect("notify::load-status", self._on_load_status_changed)
+
     def initiate_purchase(self, app, iconname, url=None, html=None):
         """
         initiates the purchase workflow inside the embedded webkit window
@@ -150,6 +151,17 @@ h1 {
         # see wkwidget.py _on_title_changed() for a code example
         self._process_json(title)
 
+    def _on_load_status_changed(self, view, property_spec):
+        """ helper to give visual feedback while the page is loading """
+        prop = view.get_property(property_spec.name)
+        if prop == webkit.LOAD_PROVISIONAL:
+            if self.window:
+                self.window.set_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
+        elif (prop == webkit.LOAD_FIRST_VISUALLY_NON_EMPTY_LAYOUT or
+              prop == webkit.LOAD_FINISHED):
+            if self.window:
+                self.window.set_cursor(None)
+
     def _process_json(self, json_string):
         try:
             LOG.debug("server returned: '%s'" % json_string)
@@ -184,10 +196,8 @@ h1 {
             deb_line = res["deb_line"]
             signing_key_id = res["signing_key_id"]
             # add repo and key
-            get_install_backend().add_repo_add_key_and_install_app(deb_line,
-                                                                   signing_key_id,
-                                                                   self.app,
-                                                                   self.iconname)
+            get_install_backend().add_repo_add_key_and_install_app(
+                deb_line, signing_key_id, self.app, self.iconname)
                                                                    
     def _disconnect_wk_handlers(self):
         # always disconnect webkit signal handlers when we hide the
@@ -294,8 +304,7 @@ def _generate_events(view):
 
 if __name__ == "__main__":
     #url = "http://www.animiertegifs.de/java-scripts/alertbox.php"
-    #url = "http://www.ubuntu.com"
-    #d = PurchaseDialog(app=None, html=DUMMY_HTML)
+    url = "http://www.ubuntu.cohtml=DUMMY_m"
     #d = PurchaseDialog(app=None, url="http://spiegel.de")
     from softwarecenter.enums import BUY_SOMETHING_HOST
     url = BUY_SOMETHING_HOST+"/subscriptions/en/ubuntu/maverick/+new/?%s" % ( 
@@ -311,7 +320,9 @@ if __name__ == "__main__":
     #glib.timeout_add_seconds(1, _generate_events, d)
     
     widget = PurchaseView()
-    widget.initiate_purchase(app=None, iconname=None, html=DUMMY_HTML)
+    widget.initiate_purchase(app=None, iconname=None, url=url)
+    #widget.initiate_purchase(app=None, iconname=None, html=DUMMY_HTML)
+
 
     window = gtk.Window()
     window.add(widget)

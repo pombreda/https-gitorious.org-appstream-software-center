@@ -59,6 +59,8 @@ software-center (3.1.25) UNRELEASED; urgency=low
     Robert Roth (LP: #672229)
   * merged lp:~alexeftimie/software-center/fix-704719-briefly-wrong-display,
     many thanks to Alex Eftimie (LP: #704719)
+  * softwarecenter/view/purchaseview.py:
+    - add visual feedback when data is loading
   
  -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 31 Mar 2011 13:56:42 +0200
 
