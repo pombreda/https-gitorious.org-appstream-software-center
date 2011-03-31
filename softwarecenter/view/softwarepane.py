@@ -397,7 +397,6 @@ class SoftwarePane(gtk.VBox, BasePane):
         # we only show the prompt for apps with a desktop file
         if not appdetails.desktop_file:
             return
-        self.action_bar.set_label(_("Add %s to the launcher?" % app.name))
         self.action_bar.add_button(ACTION_BUTTON_CANCEL_ADD_TO_LAUNCHER,
                                     _("Not Now"), 
                                     self.on_cancel_add_to_launcher, 
@@ -408,6 +407,7 @@ class SoftwarePane(gtk.VBox, BasePane):
                                    app,
                                    appdetails,
                                    trans_id)
+        self.action_bar.set_label(_("Add %s to the launcher?" % app.name))
         
     def on_add_to_launcher(self, app, appdetails, trans_id):
         """
@@ -426,7 +426,6 @@ class SoftwarePane(gtk.VBox, BasePane):
                                           "",        # we set the installed_desktop_file_path *after* install
                                           trans_id)
         self.unity_launcher_items[app.pkgname] = launcher_info
-        self.action_bar.unset_label()
         self.action_bar.set_label(_("%s will be added to the launcher when installation completes." % app.name))
         self.action_bar.remove_button(ACTION_BUTTON_CANCEL_ADD_TO_LAUNCHER)
         self.action_bar.remove_button(ACTION_BUTTON_ADD_TO_LAUNCHER)
@@ -540,9 +539,10 @@ class SoftwarePane(gtk.VBox, BasePane):
             else:
                 apps = appstore.nr_apps
                 pkgs = appstore.nr_pkgs
-
-        self.action_bar.unset_label()
-        
+                
+        if not self.is_app_details_view_showing():
+            self.action_bar.unset_label()
+            
         if (appstore and 
             appstore.active and
             self.is_applist_view_showing() and
@@ -554,12 +554,12 @@ class SoftwarePane(gtk.VBox, BasePane):
                 label = gettext.ngettext("_Hide %(amount)i technical item_",
                                          "_Hide %(amount)i technical items_",
                                          pkgs) % { 'amount': pkgs, }
-                self.action_bar.set_label(label, self._hide_nonapp_pkgs) 
+                self.action_bar.set_label(label, link_result=self._hide_nonapp_pkgs) 
             else:
                 label = gettext.ngettext("_Show %(amount)i technical item_",
                                          "_Show %(amount)i technical items_",
                                          pkgs) % { 'amount': pkgs, }
-                self.action_bar.set_label(label, self._show_nonapp_pkgs)
+                self.action_bar.set_label(label, link_result=self._show_nonapp_pkgs)
 
     def update_search_help(self):
         search = self.searchentry.get_text()
