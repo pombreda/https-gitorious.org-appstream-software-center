@@ -1,3 +1,11 @@
+software-center (3.1.24.5) UNRELEASED; urgency=low
+
+  * softwarecenter/view/purchaseview.py:
+    - disconnect webkit signal handlers when the webkit view
+      is not in view (LP: #696861)
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 30 Mar 2011 20:11:37 -0400
+
 software-center (3.1.24.4) natty; urgency=low
 
   * merged some small fixes for the backend server of weblive
