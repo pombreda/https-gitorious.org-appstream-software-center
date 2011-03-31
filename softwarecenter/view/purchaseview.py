@@ -159,7 +159,8 @@ h1 {
             LOG.debug("error processing json: '%s'" % json_string)
             return
         if res["successful"] == False:
-            if res.get("user_canceled", False):
+            if (res.get("user_canceled", False) or
+                "user_cancelled" in res):
                 self.emit("purchase-cancelled-by-user")
                 self._disconnect_wk_handlers()
                 return
