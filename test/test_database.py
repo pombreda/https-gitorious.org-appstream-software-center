@@ -28,23 +28,6 @@ class TestDatabase(unittest.TestCase):
         self.cache = AptCache()
         self.cache.open()
 
-    def test_comma_seperation(self):
-        xapian_base_path = XAPIAN_BASE_PATH
-        pathname = os.path.join(xapian_base_path, "xapian")
-        db = StoreDatabase(pathname, self.cache)
-        # normal
-        querries = db._comma_expansion("apt,2vcard,7zip")
-        self.assertEqual(len(querries), 3)
-        # multiple identical
-        querries = db._comma_expansion("apt,apt,apt")
-        self.assertEqual(len(querries), 1)
-        # too many commas
-        querries = db._comma_expansion(",,,apt,xxx,,,")
-        self.assertEqual(len(querries), 2)
-        # invalid query
-        querries = db._comma_expansion("??")
-        self.assertEqual(querries, None)
-
     def test_update_from_desktop_file(self):
         # ensure we index with german locales to test i18n
         os.environ["LANGUAGE"] = "de"

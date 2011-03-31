@@ -1,3 +1,53 @@
+software-center (3.1.25) UNRELEASED; urgency=low
+
+  [ Kiwinote ]
+  * data/ui/SoftwareCenter.ui:
+    - mark the back/forward actions as translatable (LP: #742129)
+  * softwarecenter/db/database.py,
+    softwarecenter/models/appstore.py,
+    softwarecenter/view/availablepane.py,
+    others:
+    - make custom lists work (LP: #712903)
+  * softwarecenter/app.py,
+    softwarecenter/distro/Ubuntu.py,
+    softwarecenter/view/widgets/pathbar_gtk_atk.py:
+    - when the supported filter is set to supported_only, navigate up if:
+      - we are in a details view of an app which is not supported (LP: #480827)
+      - we are in a list view which becomes empty
+  * softwarecenter/app.py,
+    softwarecenter/view/catview_gtk.py:
+    - correctly count the nr of apps displayed in the recommended category and
+      update it when needed (LP: #735634)
+    - only display subcategories if they are non-empty (LP: #419270)
+  * softwarecenter/backend/weblive.py:
+    - don't crash if we try to delete a non-existent file (LP: #743511)
+  * softwarecenter/db/reviews.py,
+    softwarecenter/distro/Ubuntu.py:
+    - fallback to ReviewLoaderJsonAsync when we can't use multiprocessing
+      (LP: #741069)
+    - fixes to make ReviewLoaderJsonAsync 'work' (ie most common cases)
+  * softwarecenter/db/update.py:
+    - don't import softwarecenter.log
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - don't draw random boxes when we have an error layout (LP: #739269)
+    - retire share button as we now have full microblogging support in the
+      review dialog (LP: #592619, LP: #743765)
+  * softwarecenter/view/appview.py:
+    - correctly refresh listview when supported filters are changed
+  * softwarecenter/view/catview.py:
+    - if a category has subcategories, then category.query should include all
+      items included in the subcategories, not a subset of these
+  * softwarecenter/view/widgets/pathbar_gtk_atk.py:
+    - avoid having a half-height pathbar (LP: #743614)
+  * refresh .pot file
+
+  [ Michael Vogt ]
+  * softwarecenter/db/update.py:
+    - ensure the iconname that comes from the software-center-agent
+      does not contain a ".", the icon cache gets confused otherwise
+  
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 31 Mar 2011 13:56:42 +0200
+
 software-center (3.1.24.4) natty; urgency=low
 
   * merged some small fixes for the backend server of weblive
@@ -8,9 +58,6 @@ software-center (3.1.24.4) natty; urgency=low
       the stock item
   * softwarecenter/distro/Ubuntu.py:
     - point to the ratings&reviews production server
-  * softwarecenter/db/update.py:
-    - ensure the iconname that comes from the software-center-agent
-      does not contain a ".", the icon cache gets confused otherwise
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 30 Mar 2011 13:59:13 +0200
 

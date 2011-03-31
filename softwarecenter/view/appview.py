@@ -1098,7 +1098,8 @@ class AppViewFilter(xapian.MatchDecider):
         if self is None or other is None: 
             return False
         return (self.installed_only == other.installed_only and
-                self.not_installed_only == other.not_installed_only)
+                self.not_installed_only == other.not_installed_only and
+                self.supported_only == other.supported_only)
     def __ne__(self, other):
         return not self.__eq__(other)
     def __call__(self, doc):

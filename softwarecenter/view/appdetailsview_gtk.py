@@ -49,9 +49,6 @@ from softwarecenter.utils import *
 from softwarecenter.config import get_config
 from softwarecenter.backend.weblive import get_weblive_backend
 
-from softwarecenter.gwibber_helper import GWIBBER_SERVICE_AVAILABLE
-
-from softwarecenter.backend.weblive import get_weblive_backend
 from softwarecenter.view.dialogs import error
 
 from appdetailsview import AppDetailsViewBase
@@ -718,8 +715,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.addons_to_remove = self.addons_manager.addons_to_remove
 
         # switches
-        # Bug #628714 check not only that gwibber is installed but that service accounts exist
-        self._gwibber_is_available = GWIBBER_SERVICE_AVAILABLE
         self._show_overlay = False
 
         # page elements are packed into our very own lovely viewport
@@ -877,11 +872,12 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         if self.section: 
             self.section.render(cr, self, alignment.allocation)
 
-        # draw the info vbox bg
-        a = self.info_vb.allocation
-        rounded_rect(cr, a.x, a.y, a.width, a.height, 5)
-        cr.set_source_rgba(*color_floats("#F7F7F7")+(0.75,))
-        cr.fill()
+        if self.info_header.get_property('visible'):
+            # draw the info vbox bg
+            a = self.info_vb.allocation
+            rounded_rect(cr, a.x, a.y, a.width, a.height, 5)
+            cr.set_source_rgba(*color_floats("#F7F7F7")+(0.75,))
+            cr.fill()
 
         # draw the addon header bg
         a = self.addon_view.label.allocation
@@ -890,28 +886,30 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             cr.set_source_rgb(*color_floats("#DAD7D3"))
             cr.fill()
 
-        # draw the info header bg, shape depends on visibility of addons
-        if self.addon_view.parent:
-            cr.rectangle(self.info_header.allocation)
-        else:
-            a = self.info_header.allocation
-            rounded_rect2(cr, a.x, a.y, a.width, a.height, (5, 5, 0, 0))
+        if self.info_header.get_property('visible'):
+            # draw the info header bg, shape depends on visibility of addons
+            if self.addon_view.parent:
+                cr.rectangle(self.info_header.allocation)
+            else:
+                a = self.info_header.allocation
+                rounded_rect2(cr, a.x, a.y, a.width, a.height, (5, 5, 0, 0))
 
-        cr.set_source_rgb(*color_floats("#DAD7D3"))
-        cr.fill()
+            cr.set_source_rgb(*color_floats("#DAD7D3"))
+            cr.fill()
 
-        a = self.info_vb.allocation
-        cr.save()
-        rounded_rect(cr, a.x+0.5, a.y+0.5, a.width-1, a.height-1, 5)
-        cr.set_source_rgba(*color_floats("#DAD7D3")+(0.3,))
-        cr.set_line_width(1)
-        cr.stroke()
-        cr.restore()
+            a = self.info_vb.allocation
+            cr.save()
+            rounded_rect(cr, a.x+0.5, a.y+0.5, a.width-1, a.height-1, 5)
+            cr.set_source_rgba(*color_floats("#DAD7D3")+(0.3,))
+            cr.set_line_width(1)
+            cr.stroke()
+            cr.restore()
 
         # draw subwidgets
         self.usage.draw(cr, self.usage.allocation, event.area)
         self.pkg_statusbar.draw(cr, self.pkg_statusbar.allocation, event.area)
-        self.screenshot.draw(cr, self.screenshot.allocation, event.area)
+        if self.screenshot.get_property('visible'):
+            self.screenshot.draw(cr, self.screenshot.allocation, event.area)
         self.addons_statusbar.draw(cr, self.addons_statusbar.allocation, event.area)
         self.reviews.draw(cr, self.reviews.allocation)
         del cr
@@ -948,16 +946,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
     def _on_homepage_clicked(self, button):
         import webbrowser
         webbrowser.open_new_tab(self.app_details.website)
-        return
-
-    def _on_share_clicked(self, button):
-        # TRANSLATORS: apt:%(pkgname) is the apt protocol
-        msg = _("Check out %(appname)s! apt:%(pkgname)s") % {
-                'appname' : self.app_details.display_name, 
-                'pkgname' : self.app_details.pkgname }
-        p = subprocess.Popen(["gwibber-poster", "-w", "-m", msg])
-        # setup timeout handler to avoid zombies
-        glib.timeout_add_seconds(1, lambda p: p.poll() is None, p)
         return
 
     def _layout_page(self):
@@ -1044,16 +1032,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.homepage_btn.set_underline(True)
         self.homepage_btn.set_xmargin(0)
 
-        # share app with microbloggers button
-        self.share_btn = mkit.HLinkButton(_('Share...'))
-        self.share_btn.set_underline(True)
-        self.share_btn.set_tooltip_text(_('Share via a micro-blogging service...'))
-        self.share_btn.connect('clicked', self._on_share_clicked)
-
         # add the links footer to the description widget
         footer_hb = gtk.HBox(spacing=6)
         footer_hb.pack_start(self.homepage_btn, False)
-        footer_hb.pack_start(self.share_btn, False)
         self.desc.pack_start(footer_hb, False)
 
         self.info_vb = info_vb = gtk.VBox(spacing=12)
@@ -1147,20 +1128,14 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.addon_view.hide()
             self.reviews.hide()
             self.screenshot.hide()
-            self.version_info.hide()
-            self.license_info.hide()
-            self.support_info.hide()
-            self.totalsize_info.hide()
             self.info_header.hide()
+            self.info_vb.hide()
         else:
             self.addon_view.show()
             self.reviews.show()
             self.screenshot.show()
-            self.version_info.show()
-            self.license_info.show()
-            self.support_info.show()
-            self.totalsize_info.show()
             self.info_header.show()
+            self.info_vb.show()
         return
 
     def _update_app_description(self, app_details, appname):
@@ -1184,14 +1159,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.homepage_btn.set_tooltip_text(app_details.website)
         else:
             self.homepage_btn.hide()
-
-        # check if gwibber-poster is available, if so display Share... btn
-        if (self._gwibber_is_available and 
-            app_details.pkg_state not in (PKG_STATE_NOT_FOUND, 
-                                          PKG_STATE_NEEDS_SOURCE)):
-            self.share_btn.show()
-        else:
-            self.share_btn.hide()
         return
 
     def _update_app_screenshot(self, app_details):
