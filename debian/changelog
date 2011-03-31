@@ -47,7 +47,7 @@ software-center (3.1.25) UNRELEASED; urgency=low
       calling upstream_version_compare (LP: #746120)
   * softwarecenter/view/purchaseview.py:
     - disconnect webkit signal handlers when the webkit view
-      is not in view (LP: #696861)
+      is not showing (LP: #696861)
     - support 'user_cancelled' from the software-center-agent
       (LP: #641321)
   * softwarecenter/view/softwarepane.py,
@@ -78,7 +78,7 @@ software-center (3.1.25) UNRELEASED; urgency=low
   * softwarecenter/view/appdetailsview.py, softwarecenter/distro/Ubuntu.py:
     - fix purchase url on natty, thanks to davmor2
   
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 31 Mar 2011 17:41:09 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 31 Mar 2011 18:03:00 -0400
 
 software-center (3.1.24.4) natty; urgency=low
 
