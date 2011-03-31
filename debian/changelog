@@ -71,6 +71,8 @@ software-center (3.1.25) UNRELEASED; urgency=low
   * softwarecenter/backend/aptd.py:
     - use more robust approach for handling the commercial PPA ready
       polling (LP: #708372)
+  * softwarecenter/view/appdetailsview.py, softwarecenter/distro/Ubuntu.py:
+    - fix purchase url on natty, thanks to davmor2
   
  -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 31 Mar 2011 13:56:42 +0200
 
