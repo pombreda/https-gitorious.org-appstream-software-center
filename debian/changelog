@@ -53,6 +53,10 @@ software-center (3.1.25) UNRELEASED; urgency=low
   * softwarecenter/view/softwarepane.py,
     softwarecenter/view/widgets/actionbar.py:
     - animate the action bar show/hide
+  * softwarecenter/view/appview.py:
+    - in the AppViewFilter, also consider apps in the for-purchase
+      channel as available; this allows them to show up in
+      e.g. What's New (LP: #746679)
 
   [ Michael Vogt ]
   * softwarecenter/db/update.py:
@@ -74,7 +78,7 @@ software-center (3.1.25) UNRELEASED; urgency=low
   * softwarecenter/view/appdetailsview.py, softwarecenter/distro/Ubuntu.py:
     - fix purchase url on natty, thanks to davmor2
   
- -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 31 Mar 2011 13:56:42 +0200
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 31 Mar 2011 17:41:09 -0400
 
 software-center (3.1.24.4) natty; urgency=low
 
