@@ -41,6 +41,11 @@ software-center (3.1.25) UNRELEASED; urgency=low
     - avoid having a half-height pathbar (LP: #743614)
   * refresh .pot file
 
+  [ Gary Lasker ]
+  * softwarecenter/view/widgets/reviews.py:
+    - fix crash if app_version is not defined when
+      calling upstream_version_compare (LP: #746120)
+
   [ Michael Vogt ]
   * softwarecenter/db/update.py:
     - ensure the iconname that comes from the software-center-agent
