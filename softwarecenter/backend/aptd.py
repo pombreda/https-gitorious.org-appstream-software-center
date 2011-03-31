@@ -420,10 +420,9 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         # and then queue the install only when the reload finished
         # otherwise the daemon will fail because he does not know
         # the new package name yet
-        self._reload_signal_id = self.connect(
-            "reload-finished",
-            self._on_reload_for_add_repo_and_install_app_finished, 
-            trans_metadata, app)
+        self.connect("reload-finished",
+                     self._on_reload_for_add_repo_and_install_app_finished, 
+                     trans_metadata, app)
         # reload to ensure we have the new package data
         yield self.reload(sources_list=sources_list, metadata=trans_metadata)
 
@@ -468,8 +467,8 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             result = False
 
         # disconnect again, this is only a one-time operation
-        self.handler_disconnect(self._reload_signal_id)
-        self._reload_signal_id = None
+        self.disconnect_by_func(
+            self._on_reload_for_add_repo_and_install_app_finished)
 
         # FIXME: this logic will *fail* if the sources.list of the user
         #        was broken before
