@@ -50,6 +50,8 @@ software-center (3.1.25) UNRELEASED; urgency=low
   * softwarecenter/db/update.py:
     - ensure the iconname that comes from the software-center-agent
       does not contain a ".", the icon cache gets confused otherwise
+  * merged lp:~evfool/software-center/sfix672229, many thanks to
+    Robert Roth (LP: #672229)
   
  -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 31 Mar 2011 13:56:42 +0200
 
