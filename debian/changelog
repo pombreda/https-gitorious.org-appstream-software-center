@@ -3,8 +3,10 @@ software-center (3.1.24.5) UNRELEASED; urgency=low
   * softwarecenter/view/purchaseview.py:
     - disconnect webkit signal handlers when the webkit view
       is not in view (LP: #696861)
+    - support 'user_cancelled' from the software-center-agent
+      (LP: #641321)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 30 Mar 2011 20:11:37 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 30 Mar 2011 22:30:22 -0400
 
 software-center (3.1.24.4) natty; urgency=low
 
