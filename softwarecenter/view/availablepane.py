@@ -702,12 +702,12 @@ class AvailablePane(SoftwarePane):
         if not self.apps_filter:
             self.apps_filter = AppViewFilter(self.db, self.cache)
 
-        if category.flags and 'available-only' in category.flags:
+        if category and category.flags and 'available-only' in category.flags:
             self.apps_filter.set_available_only(True)
         else:
             self.apps_filter.set_available_only(False)
 
-        if category.flags and 'not-installed-only' in category.flags:
+        if category and category.flags and 'not-installed-only' in category.flags:
             self.apps_filter.set_not_installed_only(True)
         else:
             self.apps_filter.set_not_installed_only(False)
