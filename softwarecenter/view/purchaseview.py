@@ -203,7 +203,7 @@ h1 {
                 deb_line, signing_key_id, self.app, self.iconname)
                                                                    
     def _block_wk_handlers(self):
-        # always block webkit signal handlers when we hide the
+        # we need to block webkit signal handlers when we hide the
         # purchase webkit view, this prevents e.g. handling of signals on
         # title_change on reloads (see LP: #696861)
         if not self._wk_handlers_blocked:

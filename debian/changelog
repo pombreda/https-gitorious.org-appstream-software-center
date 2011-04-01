@@ -1,3 +1,13 @@
+software-center (3.1.25.1) UNRELEASED; urgency=low
+
+  * softwarecenter/view/purchaseview.py:
+    - block signal handlers rather than disconnect them when
+      the purchase screen is not showing
+    - handle case where the nav bar buttons are used to navigate
+      back from the purchase screen
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Fri, 01 Apr 2011 18:40:01 -0400
+
 software-center (3.1.25) natty; urgency=low
 
   [ Kiwinote ]
