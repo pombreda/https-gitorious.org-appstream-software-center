@@ -61,6 +61,7 @@ class StarPainter(object):
     STYLE_BIG         = 1
     STYLE_INTERACTIVE = 2
 
+
     def __init__(self):
         self.shape = ShapeStar(5, 0.575)
         self.theme = get_mkit_theme()
@@ -73,8 +74,6 @@ class StarPainter(object):
 
         self.bg_color = color_floats('#989898')     # gray
         self.fg_color = color_floats('#FFa000')     # yellow
-
-        #~ self.star_theme = self._build_theme(self.fg_color)
         return
 
     def _paint_star(self, cr, widget, state, x, y, w, h, alpha=1.0):
@@ -85,8 +84,15 @@ class StarPainter(object):
 
         if self.paint_style == self.STYLE_INTERACTIVE:
             self._paint_star_interactive(cr, widget, state, x, y, w, h, alpha)
-        else:
+
+        elif self.paint_style == self.STYLE_BIG:
+            self._paint_star_big(cr, widget, state, x, y, w, h, alpha)
+
+        elif self.paint_style == self.STYLE_FLAT:
             self._paint_star_flat(cr, widget, state, x, y, w, h, alpha)
+
+        else:
+            raise AttributeError, 'paint_style value not recognised!'
 
         cr.restore()
         return
@@ -130,7 +136,7 @@ class StarPainter(object):
         self.shape.layout(cr, x, y, w, h)
         sel_color = color_floats(widget.style.base[gtk.STATE_SELECTED])
 
-        cr.set_source_rgba(*sel_color+(0.75,))
+        cr.set_source_rgba(*sel_color+(0.65,))
         cr.set_line_width(4)
         cr.stroke()
         cr.restore()
@@ -154,94 +160,170 @@ class StarPainter(object):
             cr.stroke()
         return
 
-    def _paint_star_interactive(self, cr, widget, state, x, y, w, h, alpha):
-        # XXX: a bit of a mess, but i'm in a rush ...
+    def _paint_star_interactive(self, cr, widget, state, *args):
+        if state == gtk.STATE_ACTIVE:
+            self._paint_star_interactive_in(cr, widget, state, *args)
+        else:
+            self._paint_star_interactive_out(cr, widget, state, *args)
+        return
 
-        theme = self.theme
+    def _paint_star_interactive_out(self, cr, widget, state, x, y, w, h, alpha):
         shape = self.shape
 
-        cr.save()
-        cr.translate(x, y)
-        cr.set_line_join(cairo.LINE_CAP_ROUND)
-
-        # bevel
-        if not self.border:
-            shape.layout(cr, 0, 1, w, h)
-            cr.set_source_rgba(*color_floats(widget.style.white)+(0.8,))
-            cr.stroke()
-
-        shape.layout(cr, 0, 0, w, h)
-        lin = cairo.LinearGradient(0, 0, 0, h)
-
-        # bg linear vertical gradient
+        # define the color palate
         if self.fill == self.FILL_FULL:
+            grad0 = white = color_floats(widget.style.white)
+            grad1 = dark = color_floats('#B54D00') # brownish
 
             if state == gtk.STATE_PRELIGHT:
-                color1 = alpha_composite(self.fg_color+(0.40,), (1,1,1))
-                color2 = alpha_composite(color1+(0.7,), (1,0,0))
+                fill = alpha_composite(self.fg_color+(0.75,), (1,1,1))
 
-            elif state == gtk.STATE_ACTIVE:
-                color1 = color2 = alpha_composite(self.fg_color+(0.75,), (1,0,0))
-
-            else:   # gtk state normal
-                color2 = alpha_composite(self.fg_color+(0.75,), (1,0,0))
-                color1 = alpha_composite(self.fg_color+(0.50,), (1,1,1))
+            else:
+                fill = self.fg_color
 
         else:
-            color1, color2 = theme.gradients[state]
-            color1 = color1.floats()
-            color2 = color2.floats()
+            theme = self.theme
 
-        lin.add_color_stop_rgb(0.0, *color1)
-        lin.add_color_stop_rgb(1.0, *color2)
+            grad0, grad1 = theme.gradients[state]
+            grad0 = grad0.floats()
+            grad1 = grad1.floats()
+
+            white = theme.light_line[state].floats()
+            dark = theme.dark_line[state].floats()
+            fill = grad0
+
+        cr.set_line_join(cairo.LINE_CAP_ROUND)
+
+        if not self.border:
+            # paint bevel
+            shape.layout(cr, x, y+1, w, h)
+            cr.set_line_width(2)
+            light = self.theme.light_line[state].floats()
+            cr.set_source_rgba(*light + (0.9,))
+            cr.stroke()
+
+        shape.layout(cr, x+1, y+1, w-2, h-2)
+
+        cr.set_source_rgb(*dark)
+        cr.set_line_width(2)
+        cr.stroke_preserve()
+        cr.stroke()
+
+        shape.layout(cr, x+1, y+1, w-2, h-2)
+        cr.set_source_rgb(*fill)
+        cr.fill_preserve()
+
+        lin = cairo.LinearGradient(x, y, x, y+h)
+        lin.add_color_stop_rgba(0.0, *white + (0.5,))
+        lin.add_color_stop_rgba(1.0, *dark + (0.3,))
 
         cr.set_source(lin)
         cr.fill()
 
-        # highlight
-        shape.layout(cr, 2, 2, w-4, h-4)
-        if state != gtk.STATE_ACTIVE:
-
-            inline = theme.light_line[state].floats()
-            lin = cairo.LinearGradient(0, 0, 0, h)
-            lin.add_color_stop_rgba(0.0, *inline+(0.7,))
-            lin.add_color_stop_rgba(1.0, *inline+(0.1,))
-            cr.set_source(lin)
-
-            if self.border == self.BORDER_ON:
-                outline = theme.theme.base[gtk.STATE_SELECTED].floats()
-            else:
-                outline = theme.dark_line[state].floats()
-
-        else:
-
-            if self.fill != self.FILL_FULL:
-                inline = outline = theme.dark_line[state].floats()
-
-            else:
-                # state active, i.e. button is pressed in
-                brown = color_floats('#B54D00')
-                outline = alpha_composite(self.fg_color+(0.1,), brown)
-                inline = alpha_composite(self.fg_color+(0.05,), brown)
-
-        # inline 1
-        cr.set_line_width(4)
-        cr.set_source_rgba(*inline+(0.2,))
-        cr.stroke_preserve()
-
-        # inline 2
-        cr.set_line_width(2)
-        cr.set_source_rgba(*inline+(0.3,))
-        cr.stroke()
-
         cr.set_line_width(1)
 
-        # outline
-        shape.layout(cr, 0.5, 0.5, w-1, h-1)
-        cr.set_source_rgb(*outline)
+        shape.layout(cr, x+1.5, y+1.5, w-3, h-3)
+        lin = cairo.LinearGradient(x, y, x, y+h)
+        lin.add_color_stop_rgba(0.0, *white + (0.6,))
+        lin.add_color_stop_rgba(1.0, *white + (0.15,))
+
+        cr.set_source(lin)
+        cr.stroke()
+        return
+
+    def _paint_star_interactive_in(self, cr, widget, state, x, y, w, h, alpha):
+        shape = self.shape
+
+        # define the color palate
+        #~ black = color_floats(widget.style.black)
+
+        if self.fill == self.FILL_FULL:
+            white = color_floats(widget.style.white)
+            dark = color_floats('#B54D00') # brownish
+            darker = alpha_composite(dark+(0.65,), (0,0,0))
+            grad0 = grad1 = alpha_composite(self.fg_color+(0.9,), dark)
+
+        else:
+            theme = self.theme
+            white = theme.light_line[state].floats()
+            dark = darker = theme.dark_line[state].floats()
+            grad0, grad1 = theme.gradients[state]
+            grad0 = grad0.floats()
+            grad1 = grad1.floats()
+
+        cr.set_line_join(cairo.LINE_CAP_ROUND)
+
+        shape.layout(cr, x+1, y+1, w-2, h-2)
+        cr.set_source_rgba(*dark+(0.35,))
+
+        cr.set_line_width(3)
+        cr.stroke_preserve()
+
+        cr.set_source_rgba(*dark+(0.8,))
+        cr.set_line_width(2)
         cr.stroke()
 
-        cr.restore()
+        self.shape.layout(cr, x+1, y+1, w-2, h-2)
+
+        lin = cairo.LinearGradient(x, y, x, y+h)
+        lin.add_color_stop_rgb(0.0, *grad0)
+        lin.add_color_stop_rgb(1.0, *grad1)
+
+        cr.set_source(lin)
+        cr.fill()
+
+        cr.set_line_width(2)
+        self.shape.layout(cr, x+1, y+1, w-2, h-2)
+
+        lin = cairo.LinearGradient(x, y, x, y+h)
+        lin.add_color_stop_rgba(0.0, *darker+(0.175,))
+        lin.add_color_stop_rgba(1.0, *darker+(0.05,))
+        cr.set_source(lin)
+
+        #~ cr.set_source_rgba(*darker+(0.1*alpha,))
+        cr.stroke()
+        return
+
+    def _paint_star_big(self, cr, widget, state, x, y, w, h, alpha):
+        if self.fill == self.FILL_FULL:
+            white = (1,1,1)
+            dark = color_floats('#B54D00') # brownish
+            fill = self.fg_color
+
+        else:
+            white = color_floats(widget.style.white)
+            dark = self.theme.dark_line[state].floats()
+            grad0, grad1 = self.theme.gradients[state]
+            fill = alpha_composite(grad0.floats()+(0.5,),
+                                   grad1.floats())
+
+        cr.set_line_join(cairo.LINE_CAP_ROUND)
+        self.shape.layout(cr, x+2, y+2, w-4, h-4)
+
+        cr.set_source_rgba(*white+(0.2,))
+        cr.set_line_width(8)
+        cr.stroke_preserve()
+
+        cr.set_source_rgba(*white+(0.5,))
+        cr.set_line_width(6)
+        cr.stroke_preserve()
+
+        cr.set_source_rgba(*dark+(0.8,))
+        cr.set_line_width(4)
+        cr.stroke_preserve()
+
+        cr.set_source_rgb(*fill)
+        cr.set_line_width(2)
+        cr.stroke_preserve()
+
+        cr.fill_preserve()
+
+        lin = cairo.LinearGradient(x, y, x, y+h)
+        lin.add_color_stop_rgba(0.0, *white+(0.45,))
+        lin.add_color_stop_rgba(1.0, *white+(0.0,))
+        cr.set_source(lin)
+
+        cr.fill()
         return
 
     def set_paint_style(self, paint_style):
@@ -368,6 +450,11 @@ class SimpleStarRating(gtk.HBox, StarPainter):
                           self.n_stars)
         return
 
+    def queue_draw(self):
+        a = self.allocation
+        self.queue_draw_area(a.x-5, a.y-5, a.width+10, a.height+10)
+        return
+
     def set_max_stars(self, max_stars):
         self.max_stars = max_stars
         self._calc_size(max_stars)
@@ -474,7 +561,7 @@ class StarRatingSelector(StarRating):
         star.set_state(gtk.STATE_NORMAL)
         gobject.timeout_add(100, self._hover_check_cb)
         a = star.allocation
-        star.queue_draw_area(a.x-2, a.y-2, a.width+4, a.height+4)
+        star.queue_draw()
         return
 
     def _on_press(self, star, event):
@@ -484,14 +571,14 @@ class StarRatingSelector(StarRating):
 
         star.set_state(gtk.STATE_ACTIVE)
         a = star.allocation
-        star.queue_draw_area(a.x-2, a.y-2, a.width+4, a.height+4)
+        star.queue_draw()
         return
 
     def _on_release(self, star, event):
         self.set_rating(star.position+1)
         star.set_state(gtk.STATE_PRELIGHT)
         a = star.allocation
-        star.queue_draw_area(a.x-2, a.y-2, a.width+4, a.height+4)
+        star.queue_draw()
         return
 
     def _on_focus_in(self, star, event):
@@ -528,7 +615,7 @@ class StarRatingSelector(StarRating):
             self.set_rating(star.position+1)
             star.set_state(gtk.STATE_NORMAL)
             a = star.allocation
-            star.queue_draw_area(a.x-2, a.y-2, a.width+4, a.height+4)
+            star.queue_draw()
         return
 
     def _connect_signals(self, star):
@@ -550,6 +637,11 @@ class StarRatingSelector(StarRating):
                 self.caption.set_markup(self.RATING_WORDS[self.rating])
         return
 
+    def queue_draw(self):
+        a = self.allocation
+        self.queue_draw_area(a.x-5, a.y-5, a.width+10, a.height+10)
+        return
+
     def set_caption_widget(self, caption_widget):
         caption_widget.set_markup(self.RATING_WORDS[0])
         self.caption = caption_widget
@@ -562,7 +654,7 @@ class StarRatingSelector(StarRating):
             else:
                 star.border = StarPainter.BORDER_OFF
         a = self.allocation
-        self.queue_draw_area(a.x-2, a.y-2, a.width+4, a.height+4)
+        self.queue_draw()
         return
 
 
@@ -591,19 +683,23 @@ class StarCaption(gtk.Label):
 
 class ReviewStatsContainer(gtk.VBox):
 
+    SIZE = (2*EM, 2*EM)
+
     def __init__(self):
         gtk.VBox.__init__(self, spacing=4)
-        self.star_rating = StarRating(star_size=(3*EM,3*EM))
-        #~ self.star_rating.set_shadow_type(gtk.SHADOW_ETCHED_OUT)
-
+        self.star_rating = StarRating(star_size=self.SIZE)
+        self.star_rating.set_paint_style(StarPainter.STYLE_BIG)
         self.label = gtk.Label()
         self.pack_start(self.star_rating, False)
         self.pack_start(self.label, False, False)
+
     def set_avg_rating(self, avg_rating):
         self.star_rating.set_rating(avg_rating)
+
     def set_nr_reviews(self, nr_reviews):
         self.nr_reviews = nr_reviews
         self._update_nr_reviews()
+
     # internal stuff
     def _update_nr_reviews(self):
         s = gettext.ngettext(
@@ -1212,7 +1308,7 @@ class NoReviewYetWriteOne(EmbeddedMessage):
 
 
 if __name__ == "__main__":
-    w = StarRatingSelector(star_size=(6*EM,6*EM))
+    w = StarRatingSelector()
     #~ w.set_avg_rating(3.5)
     #~ w.set_nr_reviews(101)
 
