@@ -206,6 +206,7 @@ h1 {
         self.wk.webkit.disconnect_by_func(self._on_new_window)
         self.wk.webkit.disconnect_by_func(self._on_script_alert)
         self.wk.webkit.disconnect_by_func(self._on_title_changed)
+        self.wk.webkit.disconnect_by_func(self._on_load_status_changed)
         
 
 # just used for testing --------------------------------------------
