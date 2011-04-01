@@ -111,15 +111,9 @@ h1 {
             self.wk.webkit.connect("script-alert", self._on_script_alert)
             self.wk.webkit.connect("title-changed", self._on_title_changed)
             self.wk.webkit.connect("notify::load-status", self._on_load_status_changed)
-        # unblock signal handlers if needed when showing the purchase webkit view (they
-        # will have been blocked if a previous purchase was completed or cancelled)
-        if self._wk_handlers_blocked:
-            self.wk.webkit.handler_unblock_by_func(self._on_new_window)
-            # a possible way to do IPC (script or title change)
-            self.wk.webkit.handler_unblock_by_func(self._on_script_alert)
-            self.wk.webkit.handler_unblock_by_func(self._on_title_changed)
-            self.wk.webkit.handler_unblock_by_func(self._on_load_status_changed)
-            self._wk_handlers_blocked = False
+        # unblock signal handlers if needed when showing the purchase webkit view in
+        # case they were blocked after a previous purchase was completed or canceled
+        self._unblock_wk_handlers()
 
     def initiate_purchase(self, app, iconname, url=None, html=None):
         """
@@ -212,11 +206,20 @@ h1 {
         # always block webkit signal handlers when we hide the
         # purchase webkit view, this prevents e.g. handling of signals on
         # title_change on reloads (see LP: #696861)
-        self.wk.webkit.handler_block_by_func(self._on_new_window)
-        self.wk.webkit.handler_block_by_func(self._on_script_alert)
-        self.wk.webkit.handler_block_by_func(self._on_title_changed)
-        self.wk.webkit.handler_block_by_func(self._on_load_status_changed)
-        self._wk_handlers_blocked = True
+        if not self._wk_handlers_blocked:
+            self.wk.webkit.handler_block_by_func(self._on_new_window)
+            self.wk.webkit.handler_block_by_func(self._on_script_alert)
+            self.wk.webkit.handler_block_by_func(self._on_title_changed)
+            self.wk.webkit.handler_block_by_func(self._on_load_status_changed)
+            self._wk_handlers_blocked = True
+        
+    def _unblock_wk_handlers(self):
+        if self._wk_handlers_blocked:
+            self.wk.webkit.handler_unblock_by_func(self._on_new_window)
+            self.wk.webkit.handler_unblock_by_func(self._on_script_alert)
+            self.wk.webkit.handler_unblock_by_func(self._on_title_changed)
+            self.wk.webkit.handler_unblock_by_func(self._on_load_status_changed)
+            self._wk_handlers_blocked = False
         
 
 # just used for testing --------------------------------------------
