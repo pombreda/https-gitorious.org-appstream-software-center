@@ -101,16 +101,25 @@ h1 {
     def __init__(self):
         gtk.VBox.__init__(self)
         self.wk = None
+        self._wk_handlers_blocked = False
 
     def init_view(self):
         if self.wk is None:
             self.wk = ScrolledWebkitWindow()
-        # connect signals each time we display the purchase (webkit) view
-        self.wk.webkit.connect("new-window-policy-decision-requested", self._on_new_window)
-        # a possible way to do IPC (script or title change)
-        self.wk.webkit.connect("script-alert", self._on_script_alert)
-        self.wk.webkit.connect("title-changed", self._on_title_changed)
-        self.wk.webkit.connect("notify::load-status", self._on_load_status_changed)
+            self.wk.webkit.connect("new-window-policy-decision-requested", self._on_new_window)
+            # a possible way to do IPC (script or title change)
+            self.wk.webkit.connect("script-alert", self._on_script_alert)
+            self.wk.webkit.connect("title-changed", self._on_title_changed)
+            self.wk.webkit.connect("notify::load-status", self._on_load_status_changed)
+        # unblock signal handlers if needed when showing the purchase webkit view (they
+        # will have been blocked if a previous purchase was completed or cancelled)
+        if self._wk_handlers_blocked:
+            self.wk.webkit.handler_unblock_by_func(self._on_new_window)
+            # a possible way to do IPC (script or title change)
+            self.wk.webkit.handler_unblock_by_func(self._on_script_alert)
+            self.wk.webkit.handler_unblock_by_func(self._on_title_changed)
+            self.wk.webkit.handler_unblock_by_func(self._on_load_status_changed)
+            self._wk_handlers_blocked = False
 
     def initiate_purchase(self, app, iconname, url=None, html=None):
         """
@@ -179,7 +188,7 @@ h1 {
                 #        to be not translated
                 "CANCELLED" in res.get("failures", "")):
                 self.emit("purchase-cancelled-by-user")
-                self._disconnect_wk_handlers()
+                self._block_wk_handlers()
                 return
             # this is what the agent implements
             elif "failures" in res:
@@ -187,11 +196,11 @@ h1 {
             # show a generic error, the "failures" string we get from the
             # server is way too technical to show, but we do log it
             self.emit("purchase-failed")
-            self._disconnect_wk_handlers()
+            self._block_wk_handlers()
             return
         else:
             self.emit("purchase-succeeded")
-            self._disconnect_wk_handlers()
+            self._block_wk_handlers()
             # gather data from response
             deb_line = res["deb_line"]
             signing_key_id = res["signing_key_id"]
@@ -199,14 +208,15 @@ h1 {
             get_install_backend().add_repo_add_key_and_install_app(
                 deb_line, signing_key_id, self.app, self.iconname)
                                                                    
-    def _disconnect_wk_handlers(self):
-        # always disconnect webkit signal handlers when we hide the
+    def _block_wk_handlers(self):
+        # always block webkit signal handlers when we hide the
         # purchase webkit view, this prevents e.g. handling of signals on
         # title_change on reloads (see LP: #696861)
-        self.wk.webkit.disconnect_by_func(self._on_new_window)
-        self.wk.webkit.disconnect_by_func(self._on_script_alert)
-        self.wk.webkit.disconnect_by_func(self._on_title_changed)
-        self.wk.webkit.disconnect_by_func(self._on_load_status_changed)
+        self.wk.webkit.handler_block_by_func(self._on_new_window)
+        self.wk.webkit.handler_block_by_func(self._on_script_alert)
+        self.wk.webkit.handler_block_by_func(self._on_title_changed)
+        self.wk.webkit.handler_block_by_func(self._on_load_status_changed)
+        self._wk_handlers_blocked = True
         
 
 # just used for testing --------------------------------------------
