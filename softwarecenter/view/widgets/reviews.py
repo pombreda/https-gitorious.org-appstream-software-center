@@ -294,32 +294,24 @@ class StarPainter(object):
             white = color_floats(widget.style.white)
             dark = self.theme.dark_line[state].floats()
             grad0, grad1 = self.theme.gradients[state]
-            fill = alpha_composite(grad0.floats()+(0.5,),
-                                   grad1.floats())
+            fill = color_floats(widget.style.mid[state])
 
         cr.set_line_join(cairo.LINE_CAP_ROUND)
         self.shape.layout(cr, x+2, y+2, w-4, h-4)
 
-        cr.set_source_rgba(*white+(0.2,))
-        cr.set_line_width(8)
-        cr.stroke_preserve()
-
         cr.set_source_rgba(*white+(0.5,))
-        cr.set_line_width(6)
-        cr.stroke_preserve()
-
-        cr.set_source_rgba(*dark+(0.8,))
         cr.set_line_width(4)
         cr.stroke_preserve()
 
-        cr.set_source_rgb(*fill)
+        cr.set_source_rgb(*dark)
         cr.set_line_width(2)
         cr.stroke_preserve()
 
+        cr.set_source_rgb(*fill)
         cr.fill_preserve()
 
         lin = cairo.LinearGradient(x, y, x, y+h)
-        lin.add_color_stop_rgba(0.0, *white+(0.45,))
+        lin.add_color_stop_rgba(0.0, *white+(0.6,))
         lin.add_color_stop_rgba(1.0, *white+(0.0,))
         cr.set_source(lin)
 
@@ -683,7 +675,7 @@ class StarCaption(gtk.Label):
 
 class ReviewStatsContainer(gtk.VBox):
 
-    SIZE = (2*EM, 2*EM)
+    SIZE = (3*EM, 3*EM)
 
     def __init__(self):
         gtk.VBox.__init__(self, spacing=4)
