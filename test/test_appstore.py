@@ -14,7 +14,7 @@ import unittest
 from softwarecenter.apt.aptcache import AptCache
 from softwarecenter.db.application import Application
 from softwarecenter.db.database import StoreDatabase
-from softwarecenter.view.appview import AppView, AppStore
+from softwarecenter.view.appview import AppView, AppStore, AppViewFilter
 from softwarecenter.enums import *
 from softwarecenter.paths import *
 
@@ -92,8 +92,10 @@ class TestAppStore(unittest.TestCase):
         for_purchase_query = xapian.Query("AH" + AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME)
         store_query = xapian.Query(xapian.Query.OP_AND_NOT, 
                                    query, for_purchase_query)
+        appviewfilter = AppViewFilter(self.db, self.cache)
+        appviewfilter.set_available_only(True)
         store = AppStore(self.cache, self.db, self.mock_icons, 
-                         sortmode=SORT_BY_CATALOGED_TIME,
+                         sortmode=SORT_BY_CATALOGED_TIME, filter=appviewfilter,
                          limit=10, search_query=store_query,
                          nonapps_visible=AppStore.NONAPPS_ALWAYS_VISIBLE)
         for item in store:

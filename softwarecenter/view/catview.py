@@ -70,11 +70,13 @@ class Category(object):
     """represents a menu category"""
     def __init__(self, untranslated_name, name, iconname, query,
                  only_unallocated=True, dont_display=False, flags=[], 
-                 subcategories=None, sortmode=SORT_BY_ALPHABET,
+                 subcategories=[], sortmode=SORT_BY_ALPHABET,
                  item_limit=0):
         self.name = name
         self.untranslated_name = untranslated_name
         self.iconname = iconname
+        for subcategory in subcategories:
+            query = xapian.Query(xapian.Query.OP_OR, query, subcategory.query)
         self.query = query
         self.only_unallocated = only_unallocated
         self.subcategories = subcategories

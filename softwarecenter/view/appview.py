@@ -1098,7 +1098,8 @@ class AppViewFilter(xapian.MatchDecider):
         if self is None or other is None: 
             return False
         return (self.installed_only == other.installed_only and
-                self.not_installed_only == other.not_installed_only)
+                self.not_installed_only == other.not_installed_only and
+                self.supported_only == other.supported_only)
     def __ne__(self, other):
         return not self.__eq__(other)
     def __call__(self, doc):
@@ -1109,7 +1110,10 @@ class AppViewFilter(xapian.MatchDecider):
         #    "filter: supported_only: %s installed_only: %s '%s'" % (
         #        self.supported_only, self.installed_only, pkgname))
         if self.available_only:
-            if not pkgname in self.cache:
+            # an item is considered available if it is either found
+            # in the cache or is available for purchase
+            if (not pkgname in self.cache and 
+                not doc.get_value(XAPIAN_VALUE_ARCHIVE_CHANNEL) == AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME):
                 return False
         if self.installed_only:
             # use the lowlevel cache here, twice as fast

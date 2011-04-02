@@ -178,7 +178,6 @@ class SoftwarePane(gtk.VBox, BasePane):
         self.apps_category = None
         self.apps_subcategory = None
         self.apps_search_term = None
-        self.custom_list_mode = False
         # keep track of applications that have been requested to be added
         # to the Unity launcher
         self.unity_launcher_items = {}
@@ -398,7 +397,6 @@ class SoftwarePane(gtk.VBox, BasePane):
         # we only show the prompt for apps with a desktop file
         if not appdetails.desktop_file:
             return
-        self.action_bar.set_label(_("Add %s to the launcher?" % app.name))
         self.action_bar.add_button(ACTION_BUTTON_CANCEL_ADD_TO_LAUNCHER,
                                     _("Not Now"), 
                                     self.on_cancel_add_to_launcher, 
@@ -409,6 +407,7 @@ class SoftwarePane(gtk.VBox, BasePane):
                                    app,
                                    appdetails,
                                    trans_id)
+        self.action_bar.set_label(_("Add %s to the launcher?" % app.name))
         
     def on_add_to_launcher(self, app, appdetails, trans_id):
         """
@@ -427,7 +426,6 @@ class SoftwarePane(gtk.VBox, BasePane):
                                           "",        # we set the installed_desktop_file_path *after* install
                                           trans_id)
         self.unity_launcher_items[app.pkgname] = launcher_info
-        self.action_bar.unset_label()
         self.action_bar.set_label(_("%s will be added to the launcher when installation completes." % app.name))
         self.action_bar.remove_button(ACTION_BUTTON_CANCEL_ADD_TO_LAUNCHER)
         self.action_bar.remove_button(ACTION_BUTTON_ADD_TO_LAUNCHER)
@@ -541,9 +539,10 @@ class SoftwarePane(gtk.VBox, BasePane):
             else:
                 apps = appstore.nr_apps
                 pkgs = appstore.nr_pkgs
-
-        self.action_bar.unset_label()
-        
+                
+        if not self.is_app_details_view_showing():
+            self.action_bar.unset_label()
+            
         if (appstore and 
             appstore.active and
             self.is_applist_view_showing() and
@@ -555,12 +554,12 @@ class SoftwarePane(gtk.VBox, BasePane):
                 label = gettext.ngettext("_Hide %(amount)i technical item_",
                                          "_Hide %(amount)i technical items_",
                                          pkgs) % { 'amount': pkgs, }
-                self.action_bar.set_label(label, self._hide_nonapp_pkgs) 
+                self.action_bar.set_label(label, link_result=self._hide_nonapp_pkgs) 
             else:
                 label = gettext.ngettext("_Show %(amount)i technical item_",
                                          "_Show %(amount)i technical items_",
                                          pkgs) % { 'amount': pkgs, }
-                self.action_bar.set_label(label, self._show_nonapp_pkgs)
+                self.action_bar.set_label(label, link_result=self._show_nonapp_pkgs)
 
     def update_search_help(self):
         search = self.searchentry.get_text()
@@ -671,16 +670,15 @@ class SoftwarePane(gtk.VBox, BasePane):
         LOG.debug("softwarepane query: %s" % query)
         # create new model and attach it
         seq_nr = self.refresh_seq_nr
-        # In custom list mode, search should yield the exact package name.
         new_model = AppStore(self.cache,
                              self.db,
                              self.icons,
                              query,
                              limit=self.get_app_items_limit(),
                              sortmode=self.get_sort_mode(),
-                             exact=self.custom_list_mode,
                              nonapps_visible = self.nonapps_visible,
-                             filter=self.apps_filter)
+                             filter=self.apps_filter,
+                             search_term=self.apps_search_term)
 
         #print "new_model", new_model, len(new_model), seq_nr
         # between request of the new model and actual delivery other

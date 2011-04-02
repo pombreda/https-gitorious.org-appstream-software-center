@@ -310,7 +310,8 @@ class HistoryPane(gtk.VBox, BasePane):
         if isinstance(when, datetime.datetime):
             action = store.get_value(iter, self.COL_ACTION)
             pkg = store.get_value(iter, self.COL_PKG)
-            subs = {'pkgname': pkg, 'time': when.time().strftime('%X')}
+	    # Translators : time displayed in history, display hours (0-12), minutes and AM/PM. %H should be used instead of %I to display hours 0-24
+            subs = {'pkgname': pkg, 'time': when.time().strftime(_('%I:%M %p'))}
             if action == self.INSTALLED:
                 text = _('%(pkgname)s installed %(time)s') % subs
             elif action == self.REMOVED:
