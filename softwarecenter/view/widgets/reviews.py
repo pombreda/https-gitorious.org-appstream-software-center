@@ -1043,7 +1043,8 @@ class UIReview(gtk.VBox):
         #if review version is different to version of app being displayed, 
         # alert user
         version_lbl = None
-        if (review_version and 
+        if (review_version and
+            app_version and
             upstream_version_compare(review_version, app_version) != 0):
             version_string = _("This review was written for a different version of %(app_name)s (Version: %(version)s)") % { 
                 'app_name' : app_name,

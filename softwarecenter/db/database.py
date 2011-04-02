@@ -195,31 +195,6 @@ class StoreDatabase(gobject.GObject):
         assert popcon_max > 0
         return popcon_max
 
-    def _comma_expansion(self, search_term):
-        """do expansion of "," in a search term, see
-        https://wiki.ubuntu.com/SoftwareCenter?action=show&redirect=SoftwareStore#Searching%20for%20multiple%20package%20names
-        """
-        # expand "," to APpkgname AND
-        # (ignore trailing comma)
-        search_term = search_term.rstrip(",")
-        if "," in search_term:
-            queries = []
-            added = set()
-            for pkgname in search_term.split(","):
-                pkgname = pkgname.lower()
-                # double comma, ignore term
-                if not pkgname:
-                    continue
-                # not a pkgname, return
-                if not re.match("[0-9a-z\.\-]+", pkgname):
-                    return None
-                # only add if not there already
-                if pkgname not in added:
-                    added.add(pkgname)
-                    queries.append(xapian.Query("AP"+pkgname))
-            return queries
-        return None
-
     def get_query_list_from_search_entry(self, search_term, category_query=None):
         """ get xapian.Query from a search term string and a limit the
             search to the given category
@@ -254,12 +229,6 @@ class StoreDatabase(gobject.GObject):
         if search_term == '':
             self._logger.debug("grey-list replaced all terms, restoring")
             search_term = orig_search_term
-        
-        # check if we need to do comma expansion instead of a regular
-        # query
-        queries = self._comma_expansion(search_term)
-        if queries:
-            return SearchQuery(map(_add_category_to_query, queries))
 
         # get a pkg query
         pkg_query = xapian.Query()
@@ -446,6 +415,23 @@ class StoreDatabase(gobject.GObject):
                 installed_purchased_packages.add(pkgname)
         return installed_purchased_packages
 
+    def get_exact_matches(self, pkgnames=[]):
+        """ Returns a list of fake MSetItems. If the pkgname is available, then
+            MSetItem.document is pkgnames proper xapian document. If the pkgname
+            is not available, then MSetItem is actually an Application. """
+        matches = []
+        for pkgname in pkgnames:
+            app = Application('', pkgname.split('?')[0])
+            if '?' in pkgname:
+                app.request = pkgname.split('?')[1]
+            match = app
+            for m in  self.xapiandb.postlist("XP"+app.pkgname):
+                match = self.xapiandb.get_document(m.docid)
+            for m in self.xapiandb.postlist("AP"+app.pkgname):
+                match = self.xapiandb.get_document(m.docid)
+            matches.append(FakeMSetItem(match))
+        return matches        
+
     def __len__(self):
         """return the doc count of the database"""
         return self.xapiandb.get_doccount()
@@ -456,6 +442,9 @@ class StoreDatabase(gobject.GObject):
             doc = self.xapiandb.get_document(it.docid)
             yield doc
 
+class FakeMSetItem():
+    def __init__(self, doc):
+        self.document = doc
 
 if __name__ == "__main__":
     import apt

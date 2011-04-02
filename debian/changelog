@@ -1,3 +1,124 @@
+software-center (3.1.25.1) UNRELEASED; urgency=low
+
+  * softwarecenter/view/purchaseview.py:
+    - block signal handlers rather than disconnect them when
+      the purchase screen is not showing
+    - handle case where the nav bar buttons are used to navigate
+      back from the purchase screen
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Fri, 01 Apr 2011 18:40:01 -0400
+
+software-center (3.1.25) natty; urgency=low
+
+  [ Kiwinote ]
+  * data/ui/SoftwareCenter.ui:
+    - mark the back/forward actions as translatable (LP: #742129)
+  * softwarecenter/db/database.py,
+    softwarecenter/models/appstore.py,
+    softwarecenter/view/availablepane.py,
+    others:
+    - make custom lists work (LP: #712903)
+  * softwarecenter/app.py,
+    softwarecenter/distro/Ubuntu.py,
+    softwarecenter/view/widgets/pathbar_gtk_atk.py:
+    - when the supported filter is set to supported_only, navigate up if:
+      - we are in a details view of an app which is not supported (LP: #480827)
+      - we are in a list view which becomes empty
+  * softwarecenter/app.py,
+    softwarecenter/view/catview_gtk.py:
+    - correctly count the nr of apps displayed in the recommended category and
+      update it when needed (LP: #735634)
+    - only display subcategories if they are non-empty (LP: #419270)
+  * softwarecenter/backend/weblive.py:
+    - don't crash if we try to delete a non-existent file (LP: #743511)
+  * softwarecenter/db/reviews.py,
+    softwarecenter/distro/Ubuntu.py:
+    - fallback to ReviewLoaderJsonAsync when we can't use multiprocessing
+      (LP: #741069)
+    - fixes to make ReviewLoaderJsonAsync 'work' (ie most common cases)
+  * softwarecenter/db/update.py:
+    - don't import softwarecenter.log
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - don't draw random boxes when we have an error layout (LP: #739269)
+    - retire share button as we now have full microblogging support in the
+      review dialog (LP: #592619, LP: #743765)
+  * softwarecenter/view/appview.py:
+    - correctly refresh listview when supported filters are changed
+  * softwarecenter/view/catview.py:
+    - if a category has subcategories, then category.query should include all
+      items included in the subcategories, not a subset of these
+  * softwarecenter/view/widgets/pathbar_gtk_atk.py:
+    - avoid having a half-height pathbar (LP: #743614)
+  * refresh .pot file
+
+  [ Gary Lasker ]
+  * softwarecenter/view/widgets/reviews.py:
+    - fix crash if app_version is not defined when
+      calling upstream_version_compare (LP: #746120)
+  * softwarecenter/view/purchaseview.py:
+    - disconnect webkit signal handlers when the webkit view
+      is not showing (LP: #696861)
+    - support 'user_cancelled' from the software-center-agent
+      (LP: #641321)
+  * softwarecenter/view/softwarepane.py,
+    softwarecenter/view/widgets/actionbar.py:
+    - animate the action bar show/hide
+  * softwarecenter/view/appview.py:
+    - in the AppViewFilter, also consider apps in the for-purchase
+      channel as available; this allows them to show up in
+      e.g. What's New (LP: #746679)
+
+  [ Michael Vogt ]
+  * softwarecenter/db/update.py:
+    - ensure the iconname that comes from the software-center-agent
+      does not contain a ".", the icon cache gets confused otherwise
+  * merged lp:~evfool/software-center/sfix672229, many thanks to
+    Robert Roth (LP: #672229)
+  * merged lp:~alexeftimie/software-center/fix-704719-briefly-wrong-display,
+    many thanks to Alex Eftimie (LP: #704719)
+  * softwarecenter/view/purchaseview.py:
+    - add visual feedback when data is loading
+  * po/POTFILES.in, po/software-center.pot:
+    - remove [type: python] and run setup.py build_i18n, looks like
+      intltool is confused about this type and left those files out
+      (LP: #746397)
+  * softwarecenter/backend/aptd.py:
+    - use more robust approach for handling the commercial PPA ready
+      polling (LP: #708372)
+  * softwarecenter/view/appdetailsview.py, softwarecenter/distro/Ubuntu.py:
+    - fix purchase url on natty, thanks to davmor2
+  
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 01 Apr 2011 08:06:13 +0200
+
+software-center (3.1.24.4) natty; urgency=low
+
+  * merged some small fixes for the backend server of weblive
+    from lp:~weblive-dev/software-center/weblive-backend-fixes,
+    thanks to Stephane Graber
+  * softwarecenter/db/update.py:
+    - if no icon_data is transmited from software-center-agent, just use
+      the stock item
+  * softwarecenter/distro/Ubuntu.py:
+    - point to the ratings&reviews production server
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 30 Mar 2011 13:59:13 +0200
+
+software-center (3.1.24.3) natty; urgency=low
+
+  [ Gary Lasker ]
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - fix crash that can happen on a network state change
+      event (LP: #742635)
+  
+  [ Michael Vogt ]
+  * softwarecenter/view/widgets/weblivedialog.py:
+    - merged lp:~weblive-dev/software-center/weblive-loadbalancing-fix
+      bugfix to fix server selection bug, thanks to Stephane Graber
+  * tests/Makefile:
+    - fix in clean target to remove some test leftover data
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 28 Mar 2011 09:34:41 +0200
+
 software-center (3.1.24.2) natty; urgency=low
 
   * softwarecenter/view/softwarepane.py:

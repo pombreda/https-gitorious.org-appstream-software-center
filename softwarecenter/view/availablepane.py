@@ -88,8 +88,6 @@ class AvailablePane(SoftwarePane):
         self.current_app_by_category = {}
         self.current_app_by_subcategory = {}
         self.pane_name = _("Get Software")
-        # search mode
-        self.custom_list_mode = False
         # add nav history back/forward buttons
         if self.navhistory_back_action:
             self.navhistory_back_action.set_sensitive(False)
@@ -242,7 +240,7 @@ class AvailablePane(SoftwarePane):
                                             animate=True)
 
         elif self.apps_search_term:
-            if self.custom_list_mode:
+            if ',' in self.apps_search_term:
                 tail_label = _("Custom List")
             else:
                 tail_label = _("Search Results")
@@ -292,7 +290,7 @@ class AvailablePane(SoftwarePane):
         """internal helper that keeps the action bar up-to-date by
            keeping track of the transaction-started signals
         """
-        if self.custom_list_mode:
+        if self.apps_search_term and ',' in self.apps_search_term:
             self._update_action_bar()
 
     def on_app_list_changed(self, pane, length):
@@ -326,12 +324,11 @@ class AvailablePane(SoftwarePane):
             matches = enquire.get_mset(0, len(self.db))
             length = len(matches)
 
-        if self.custom_list_mode:
-            appstore = self.app_view.get_model()
-            existing = len(appstore.existing_apps)
+        if self.apps_search_term and ',' in self.apps_search_term:
+            length = len(self.app_view.get_model().apps)
             self._status_text = gettext.ngettext("%(amount)s item",
                                                  "%(amount)s items",
-                                                 existing) % { 'amount' : existing, }
+                                                 length) % { 'amount' : length, }
         elif len(self.searchentry.get_text()) > 0:
             self._status_text = gettext.ngettext("%(amount)s matching item",
                                                  "%(amount)s matching items",
@@ -351,10 +348,16 @@ class AvailablePane(SoftwarePane):
         '''
         appstore = self.app_view.get_model()
         if (appstore and
-            self.custom_list_mode and 
-            self.apps_search_term):
+            self.apps_search_term and
+            ',' in self.apps_search_term and
+            self.notebook.get_current_page() == self.PAGE_APPLIST):
             appstore = self.app_view.get_model()
-            installable = appstore.installable_apps
+            installable = []
+            for app in appstore.apps:
+                if (app.pkgname in self.cache and
+                    not self.cache[app.pkgname].is_installed and
+                    app.pkgname not in self.backend.pending_transactions):
+                    installable.append(app)
             button_text = gettext.ngettext("Install %(amount)s Item",
                                            "Install %(amount)s Items",
                                             len(installable)) % { 'amount': len(installable), }
@@ -382,12 +385,15 @@ class AvailablePane(SoftwarePane):
         appnames = []
         iconnames = []
         appstore = self.app_view.get_model()
-        for app in appstore.installable_apps:
-            pkgnames.append(app.pkgname)
-            appnames.append(app.appname)
-            # add iconnames
-            doc = self.db.get_xapian_document(app.appname, app.pkgname)
-            iconnames.append(self.db.get_iconname(doc))
+        for app in appstore.apps:
+            if (app.pkgname in self.cache and
+                not self.cache[app.pkgname].is_installed and
+                app.pkgname not in self.backend.pending_transactions):
+                pkgnames.append(app.pkgname)
+                appnames.append(app.appname)
+                # add iconnames
+                doc = self.db.get_xapian_document(app.appname, app.pkgname)
+                iconnames.append(self.db.get_iconname(doc))
         self.backend.install_multiple(pkgnames, appnames, iconnames)
 
     def _show_category_overview(self):
@@ -414,7 +420,6 @@ class AvailablePane(SoftwarePane):
         self.searchentry.clear_with_no_signal()
         self.apps_limit = 0
         self.apps_search_term = ""
-        self.custom_list_mode = False
         self.navigation_bar.remove_id(NAV_BUTTON_ID_SEARCH)
 
     @wait_for_apt_cache_ready
@@ -490,9 +495,6 @@ class AvailablePane(SoftwarePane):
         else:
             self.apps_search_term = new_text
             self.apps_limit = DEFAULT_SEARCH_LIMIT
-            # enter custom list mode if search has non-trailing
-            # comma per custom list spec.
-            self.custom_list_mode = "," in new_text.rstrip(',')
         self.update_navigation_button()
         self.refresh_apps()
         self.notebook.set_current_page(self.PAGE_APPLIST)
@@ -700,12 +702,12 @@ class AvailablePane(SoftwarePane):
         if not self.apps_filter:
             self.apps_filter = AppViewFilter(self.db, self.cache)
 
-        if category.flags and 'available-only' in category.flags:
+        if category and category.flags and 'available-only' in category.flags:
             self.apps_filter.set_available_only(True)
         else:
             self.apps_filter.set_available_only(False)
 
-        if category.flags and 'not-installed-only' in category.flags:
+        if category and category.flags and 'not-installed-only' in category.flags:
             self.apps_filter.set_not_installed_only(True)
         else:
             self.apps_filter.set_not_installed_only(False)

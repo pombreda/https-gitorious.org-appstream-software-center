@@ -178,9 +178,7 @@ class TestGUI(unittest.TestCase):
         self.app.show_available_packages(["i-dont-exit"])
         self._p()
         self.assertFalse(self.app.available_pane.app_details_view.screenshot.get_property("visible"))
-        self.assertFalse(self.app.available_pane.app_details_view.version_info.get_property("visible"))
-        self.assertFalse(self.app.available_pane.app_details_view.license_info.get_property("visible"))
-        self.assertFalse(self.app.available_pane.app_details_view.support_info.get_property("visible"))
+        self.assertFalse(self.app.available_pane.app_details_view.info_vb.get_property("visible"))
         self.assertEqual(self.app.available_pane.app_details_view.desc.description.order, [])
 
     def _monkey_sso_login(self):

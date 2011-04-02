@@ -30,7 +30,6 @@ import sys
 import time
 import urllib
 import xapian
-import softwarecenter.log
 
 from ConfigParser import RawConfigParser, NoOptionError
 from gettext import gettext as _
@@ -471,15 +470,20 @@ def update_from_software_center_agent(db, cache, ignore_etag=False,
             # magic channel
             entry.channel = AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME
             # icon is transmited inline
-            iconname = "sc-agent-%s" % entry.package_name
-            if hasattr(entry, "icon_data"):
+            if hasattr(entry, "icon_data") and entry.icon_data:
                 icondata = base64.b64decode(entry.icon_data)
-            else:
+            elif hasattr(entry, "icon_64_data") and entry.icon_64_data:
                 # workaround for scagent bug #740112
                 icondata = base64.b64decode(entry.icon_64_data)
-            open(os.path.join(SOFTWARE_CENTER_ICON_CACHE_DIR,
-                              "%s.png" % iconname),"w").write(icondata)
-            entry.icon = iconname
+            else:
+                icondata = ""
+            # write it if we have data
+            if icondata:
+		# the iconcache gets mightly confused if there is a "." in the name
+                iconname = "sc-agent-%s" % entry.package_name.replace(".", "__")
+                open(os.path.join(SOFTWARE_CENTER_ICON_CACHE_DIR,
+                                  "%s.png" % iconname),"w").write(icondata)
+                entry.icon = iconname
             # now the normal parser
             parser = SoftwareCenterAgentParser(entry)
             index_app_info_from_parser(parser, db, cache)

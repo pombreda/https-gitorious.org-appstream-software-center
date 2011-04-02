@@ -101,16 +101,20 @@ h1 {
     def __init__(self):
         gtk.VBox.__init__(self)
         self.wk = None
+        self._wk_handlers_blocked = False
 
     def init_view(self):
         if self.wk is None:
             self.wk = ScrolledWebkitWindow()
-            self.wk.webkit.connect("new-window-policy-decision-requested", 
-                                   self._on_new_window)
+            self.wk.webkit.connect("new-window-policy-decision-requested", self._on_new_window)
             # a possible way to do IPC (script or title change)
             self.wk.webkit.connect("script-alert", self._on_script_alert)
             self.wk.webkit.connect("title-changed", self._on_title_changed)
-            
+            self.wk.webkit.connect("notify::load-status", self._on_load_status_changed)
+        # unblock signal handlers if needed when showing the purchase webkit view in
+        # case they were blocked after a previous purchase was completed or canceled
+        self._unblock_wk_handlers()
+
     def initiate_purchase(self, app, iconname, url=None, html=None):
         """
         initiates the purchase workflow inside the embedded webkit window
@@ -150,6 +154,17 @@ h1 {
         # see wkwidget.py _on_title_changed() for a code example
         self._process_json(title)
 
+    def _on_load_status_changed(self, view, property_spec):
+        """ helper to give visual feedback while the page is loading """
+        prop = view.get_property(property_spec.name)
+        if prop == webkit.LOAD_PROVISIONAL:
+            if self.window:
+                self.window.set_cursor(gtk.gdk.Cursor(gtk.gdk.WATCH))
+        elif (prop == webkit.LOAD_FIRST_VISUALLY_NON_EMPTY_LAYOUT or
+              prop == webkit.LOAD_FINISHED):
+            if self.window:
+                self.window.set_cursor(None)
+
     def _process_json(self, json_string):
         try:
             LOG.debug("server returned: '%s'" % json_string)
@@ -159,8 +174,15 @@ h1 {
             LOG.debug("error processing json: '%s'" % json_string)
             return
         if res["successful"] == False:
-            if res.get("user_canceled", False):
+            if (res.get("user_canceled", False) or
+                # note the different spelling
+                res.get("user_cancelled", False) or
+                # COMPAT with older clients that do not send the user
+                #        canceled property (LP: #696861), this msg appears
+                #        to be not translated
+                "CANCELLED" in res.get("failures", "")):
                 self.emit("purchase-cancelled-by-user")
+                self._block_wk_handlers()
                 return
             # this is what the agent implements
             elif "failures" in res:
@@ -168,17 +190,37 @@ h1 {
             # show a generic error, the "failures" string we get from the
             # server is way too technical to show, but we do log it
             self.emit("purchase-failed")
+            self._block_wk_handlers()
             return
         else:
             self.emit("purchase-succeeded")
+            self._block_wk_handlers()
             # gather data from response
             deb_line = res["deb_line"]
             signing_key_id = res["signing_key_id"]
             # add repo and key
-            get_install_backend().add_repo_add_key_and_install_app(deb_line,
-                                                                   signing_key_id,
-                                                                   self.app,
-                                                                   self.iconname)
+            get_install_backend().add_repo_add_key_and_install_app(
+                deb_line, signing_key_id, self.app, self.iconname)
+                                                                   
+    def _block_wk_handlers(self):
+        # we need to block webkit signal handlers when we hide the
+        # purchase webkit view, this prevents e.g. handling of signals on
+        # title_change on reloads (see LP: #696861)
+        if not self._wk_handlers_blocked:
+            self.wk.webkit.handler_block_by_func(self._on_new_window)
+            self.wk.webkit.handler_block_by_func(self._on_script_alert)
+            self.wk.webkit.handler_block_by_func(self._on_title_changed)
+            self.wk.webkit.handler_block_by_func(self._on_load_status_changed)
+            self._wk_handlers_blocked = True
+        
+    def _unblock_wk_handlers(self):
+        if self._wk_handlers_blocked:
+            self.wk.webkit.handler_unblock_by_func(self._on_new_window)
+            self.wk.webkit.handler_unblock_by_func(self._on_script_alert)
+            self.wk.webkit.handler_unblock_by_func(self._on_title_changed)
+            self.wk.webkit.handler_unblock_by_func(self._on_load_status_changed)
+            self._wk_handlers_blocked = False
+        
 
 # just used for testing --------------------------------------------
 DUMMY_HTML = """
@@ -276,8 +318,7 @@ def _generate_events(view):
 
 if __name__ == "__main__":
     #url = "http://www.animiertegifs.de/java-scripts/alertbox.php"
-    #url = "http://www.ubuntu.com"
-    #d = PurchaseDialog(app=None, html=DUMMY_HTML)
+    url = "http://www.ubuntu.cohtml=DUMMY_m"
     #d = PurchaseDialog(app=None, url="http://spiegel.de")
     from softwarecenter.enums import BUY_SOMETHING_HOST
     url = BUY_SOMETHING_HOST+"/subscriptions/en/ubuntu/maverick/+new/?%s" % ( 
@@ -293,7 +334,9 @@ if __name__ == "__main__":
     #glib.timeout_add_seconds(1, _generate_events, d)
     
     widget = PurchaseView()
-    widget.initiate_purchase(app=None, iconname=None, html=DUMMY_HTML)
+    widget.initiate_purchase(app=None, iconname=None, url=url)
+    #widget.initiate_purchase(app=None, iconname=None, html=DUMMY_HTML)
+
 
     window = gtk.Window()
     window.add(widget)
