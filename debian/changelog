@@ -1,5 +1,6 @@
 software-center (3.1.25.1) UNRELEASED; urgency=low
 
+  [ Gary Lasker ]
   * softwarecenter/view/purchaseview.py:
     - block signal handlers rather than disconnect them when
       the purchase screen is not showing
@@ -10,7 +11,11 @@ software-center (3.1.25.1) UNRELEASED; urgency=low
     - make custom package lists work consistently for all
       combinations of package names (LP: #748827)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Sun, 03 Apr 2011 00:49:14 -0400
+  [ Robert Roth ]
+  * softwarecenter/view/historypane.py:
+    - expand most recent day in the history view (LP: #644438)
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Sun, 03 Apr 2011 13:46:42 -0400
 
 software-center (3.1.25) natty; urgency=low
 

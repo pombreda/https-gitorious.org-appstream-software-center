@@ -259,6 +259,8 @@ class HistoryPane(gtk.VBox, BasePane):
         while day is not None:
             self.visible_changes += self.store_filter.iter_n_children(day)
             day = self.store_filter.iter_next(day)
+            
+        # Expand the most recent day
         day = self.store.get_iter_first()
         if day is not None:
 	        path = self.store.get_path(day)
