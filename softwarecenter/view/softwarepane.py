@@ -482,7 +482,8 @@ class SoftwarePane(gtk.VBox, BasePane):
 
     def show_appview_spinner(self):
         """ display the spinner in the appview panel """
-        self.action_bar.clear()
+        if not self.apps_search_term:
+            self.action_bar.clear()
         self.spinner_view.stop()
         self.spinner_notebook.set_current_page(self.PAGE_SPINNER)
         # "mask" the spinner view momentarily to prevent it from flashing into
