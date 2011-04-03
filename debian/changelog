@@ -4,9 +4,13 @@ software-center (3.1.25.1) UNRELEASED; urgency=low
     - block signal handlers rather than disconnect them when
       the purchase screen is not showing
     - handle case where the nav bar buttons are used to navigate
-      back from the purchase screen
+      back to the details view from the purchase screen
+  * softwarecenter/view/availablepane.py,
+    softwarecenter/view/softwarepane.py:
+    - make custom package lists work consistently for all
+      combinations of package names (LP: #748827)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Fri, 01 Apr 2011 18:40:01 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Sun, 03 Apr 2011 00:49:14 -0400
 
 software-center (3.1.25) natty; urgency=low
 
