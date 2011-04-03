@@ -248,7 +248,7 @@ class HistoryPane(gtk.VBox, BasePane):
 
     def update_view(self):
         self.store_filter.refilter()
-
+        self.view.collapse_all()
         # Expand all the matching rows
         if self.searchentry.get_text():
             self.view.expand_all()
@@ -259,6 +259,11 @@ class HistoryPane(gtk.VBox, BasePane):
         while day is not None:
             self.visible_changes += self.store_filter.iter_n_children(day)
             day = self.store_filter.iter_next(day)
+        day = self.store.get_iter_first()
+        if day is not None:
+	        path = self.store.get_path(day)
+	        self.view.expand_row(path, False)
+	        self.view.scroll_to_cell(path)
 
         self.emit('app-list-changed', self.visible_changes)
 
