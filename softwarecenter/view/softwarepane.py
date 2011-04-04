@@ -435,7 +435,7 @@ class SoftwarePane(gtk.VBox, BasePane):
             return self.app_details_view.get_app_icon_details()
         elif self.is_applist_view_showing():
             # TODO: implement the app list view case once it has been specified
-            return ("", "", None, None, None)
+            return ("", "", None, None)
                                               
     def on_cancel_add_to_launcher(self, args):
         self.action_bar.clear()
