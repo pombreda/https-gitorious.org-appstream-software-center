@@ -14,8 +14,10 @@ software-center (3.1.25.1) UNRELEASED; urgency=low
   [ Robert Roth ]
   * softwarecenter/view/historypane.py:
     - expand most recent day in the history view (LP: #644438)
+    - fix ellipsis of summary text in the list view on a
+      window resize (LP: #678442)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Sun, 03 Apr 2011 13:46:42 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 04 Apr 2011 14:34:25 -0400
 
 software-center (3.1.25) natty; urgency=low
 
