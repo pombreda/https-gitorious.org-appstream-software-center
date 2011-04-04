@@ -368,6 +368,7 @@ class CellRendererAppView2(gtk.CellRendererText):
         # adjust cell_area
 
         # work out max allowable layout width
+        layout.set_width(-1)
         lw = self._layout_get_pixel_width(layout)
         max_layout_width = cell_area.width - self.pixbuf_width - 3*xpad - self.MAX_STARS*self.STAR_SIZE
 
