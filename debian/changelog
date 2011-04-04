@@ -10,6 +10,10 @@ software-center (3.1.25.1) UNRELEASED; urgency=low
     softwarecenter/view/softwarepane.py:
     - make custom package lists work consistently for all
       combinations of package names (LP: #748827)
+  * softwarecenter/view/softwarepane.py,
+    softwarecenter/view/appdetailsview_gtk.py:
+    - fix ValueError crash that can occur when adding an
+      app to the launcher (LP: #750144)
 
   [ Robert Roth ]
   * softwarecenter/view/historypane.py:
@@ -17,7 +21,7 @@ software-center (3.1.25.1) UNRELEASED; urgency=low
     - fix ellipsis of summary text in the list view on a
       window resize (LP: #678442)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 04 Apr 2011 14:34:25 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 04 Apr 2011 16:12:06 -0400
 
 software-center (3.1.25) natty; urgency=low
 

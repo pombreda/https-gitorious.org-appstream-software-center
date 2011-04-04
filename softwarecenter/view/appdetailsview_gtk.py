@@ -1505,12 +1505,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         """ helper for unity dbus support to provide details about the application
             icon as it is displayed on-screen
         """
-        icon_name = self.appdetails.icon
-        if self.appdetails.icon_needs_download:
-            icon_file = self.appdetails.cached_icon_file_path
         icon_size = self._get_app_icon_size_on_screen()
         (icon_x, icon_y) = self._get_app_icon_xy_position_on_screen()
-        return (icon_name, icon_size, icon_x, icon_y)
+        return (icon_size, icon_x, icon_y)
 
     def _get_app_icon_size_on_screen(self):
         """ helper for unity dbus support to get the size of the maximum side
