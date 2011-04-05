@@ -12,7 +12,6 @@
 	<SCPkgname>cheese</SCPkgname>
 	<SCPkgname>homebank</SCPkgname>
 	<SCPkgname>stellarium</SCPkgname>
-	<SCPkgname>gnome-do</SCPkgname>
 	<SCPkgname>deja-dup</SCPkgname>
 	<SCPkgname>gimp</SCPkgname>
 	<SCPkgname>inkscape</SCPkgname>
@@ -21,8 +20,6 @@
 	<SCPkgname>gufw</SCPkgname>
 	<SCPkgname>frozen-bubble</SCPkgname>
 	<SCPkgname>fretsonfire</SCPkgname>
-	<SCPkgname>pdfmod</SCPkgname>
-	<SCPkgname>pingus</SCPkgname>
 	<SCPkgname>moovida</SCPkgname>
 	<SCPkgname>liferea</SCPkgname>
 	<SCPkgname>arista</SCPkgname>
