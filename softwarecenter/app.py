@@ -764,11 +764,22 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             # search sensitive if searchentry is not focused
             else:
                 self.menuitem_search.set_sensitive(True)
+
         # weblink
         if self.active_pane:
             app = self.active_pane.get_current_app()
             if app and app.pkgname in self.cache:
                 self.menuitem_copy_web_link.set_sensitive(True)
+
+        # details view
+        if (self.active_pane and 
+            self.active_pane.is_app_details_view_showing()):
+
+            self.menuitem_select_all.set_sensitive(True)
+            sel_text = self.active_pane.app_details_view.desc.get_selected_text()
+
+            if sel_text:
+                self.menuitem_copy.set_sensitive(True)
 
     def on_menuitem_undo_activate(self, menuitem):
         self.active_pane.searchentry.undo()
@@ -780,7 +791,13 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.active_pane.searchentry.cut_clipboard()
 
     def on_menuitem_copy_activate(self, menuitem):
-        self.active_pane.searchentry.copy_clipboard()
+        if (self.active_pane and
+            self.active_pane.is_app_details_view_showing()):
+
+            self.active_pane.app_details_view.desc.copy_clipboard()
+
+        elif self.active_pane:
+            self.active_pane.searchentry.copy_clipboard()
 
     def on_menuitem_paste_activate(self, menuitem):
         self.active_pane.searchentry.paste_clipboard()
@@ -789,7 +806,14 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.active_pane.searchentry.set_text("")
 
     def on_menuitem_select_all_activate(self, menuitem):
-        self.active_pane.searchentry.select_region(0, -1)
+        if (self.active_pane and
+            self.active_pane.is_app_details_view_showing()):
+
+            self.active_pane.app_details_view.desc.select_all()
+            self.active_pane.app_details_view.desc.grab_focus()
+
+        elif self.active_pane:
+            self.active_pane.searchentry.select_region(0, -1)
 
     def on_menuitem_copy_web_link_activate(self, menuitem):
         app = self.active_pane.get_current_app()
