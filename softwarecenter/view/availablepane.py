@@ -344,7 +344,8 @@ class AvailablePane(SoftwarePane):
 
     def _update_action_bar_buttons(self):
         '''
-        update buttons in the action bar
+        update buttons in the action bar to implement the custom package lists feature,
+        see https://wiki.ubuntu.com/SoftwareCenter#Custom%20package%20lists
         '''
         appstore = self.app_view.get_model()
         if (appstore and

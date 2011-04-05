@@ -415,9 +415,9 @@ class SoftwarePane(gtk.VBox, BasePane):
         to the launcher
         """
         LOG.debug("the application '%s' will be added to the Unity launcher when installation is complete" % app.name)
-        (icon_name, icon_size, icon_x, icon_y) = self._get_icon_details_for_launcher_service(app)
+        (icon_size, icon_x, icon_y) = self._get_onscreen_icon_details_for_launcher_service(app)
         launcher_info = UnityLauncherInfo(app.name,
-                                          icon_name,
+                                          appdetails.icon,
                                           "",        # we set the icon_file_path value *after* install
                                           icon_x,
                                           icon_y,
@@ -430,12 +430,12 @@ class SoftwarePane(gtk.VBox, BasePane):
         self.action_bar.remove_button(ACTION_BUTTON_CANCEL_ADD_TO_LAUNCHER)
         self.action_bar.remove_button(ACTION_BUTTON_ADD_TO_LAUNCHER)
 
-    def _get_icon_details_for_launcher_service(self, app):
+    def _get_onscreen_icon_details_for_launcher_service(self, app):
         if self.is_app_details_view_showing():
             return self.app_details_view.get_app_icon_details()
-        elif self.is_applist_view_showing():
+        else:
             # TODO: implement the app list view case once it has been specified
-            return ("", "", None, None, None)
+            return (0, 0, 0)
                                               
     def on_cancel_add_to_launcher(self, args):
         self.action_bar.clear()
@@ -482,7 +482,8 @@ class SoftwarePane(gtk.VBox, BasePane):
 
     def show_appview_spinner(self):
         """ display the spinner in the appview panel """
-        self.action_bar.clear()
+        if not self.apps_search_term:
+            self.action_bar.clear()
         self.spinner_view.stop()
         self.spinner_notebook.set_current_page(self.PAGE_SPINNER)
         # "mask" the spinner view momentarily to prevent it from flashing into
