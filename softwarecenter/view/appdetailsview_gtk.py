@@ -266,11 +266,11 @@ class PackageStatusBar(StatusBar):
                 self.set_label(_("Installed (you're using it right now)"))
             else:
                 if app_details.purchase_date:
-                    purchase_date = str(app_details.purchase_date).split()[0]
-                    self.set_label(_('Purchased on %s') % purchase_date)
+                    # TRANSLATORS : %x is the locale-specific date representation, %Y-%m-%d formats the date like 2011-03-31
+                    self.set_label(app_details.purchase_date.strftime_('Purchased on %Y-%m-%d') )
                 elif app_details.installation_date:
-                    installation_date = str(app_details.installation_date).split()[0]
-                    self.set_label(_('Installed on %s') % installation_date)
+                    # TRANSLATORS : %x is the locale-specific date representation, %Y-%m-%d formats the date like 2011-03-31
+                    self.set_label(app_details.installation_date.strftime('Installed on %Y-%m-%d') )
                 else:
                     self.set_label(_('Installed'))
             if state == PKG_STATE_REINSTALLABLE: # only deb files atm
