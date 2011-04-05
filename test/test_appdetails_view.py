@@ -11,6 +11,7 @@ import os
 import sys
 import time
 import unittest
+import datetime
 
 sys.path.insert(0,"../")
 import softwarecenter.netstatus
@@ -129,8 +130,8 @@ class TestAppDetailsView(unittest.TestCase):
         mock_app_details.thumbnail = None
         mock_app_details.license = "license"
         mock_app_details.maintenance_status = "support_status"
-        mock_app_details.purchase_date = "purchase_date"
-        mock_app_details.installation_date = "installation_date"
+        mock_app_details.purchase_date = None
+        mock_app_details.installation_date = datetime.datetime.now()
         mock_app_details.price = "price"
         mock_app_details.icon = "iconname"
         mock_app_details.icon_url = None

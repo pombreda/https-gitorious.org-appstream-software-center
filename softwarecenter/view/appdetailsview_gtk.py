@@ -29,6 +29,7 @@ import subprocess
 import sys
 import cairo
 import pangocairo
+import datetime
 
 from softwarecenter.cmdfinder import CmdFinder
 from softwarecenter.netstatus import NetState, get_network_state, get_network_watcher
@@ -266,10 +267,14 @@ class PackageStatusBar(StatusBar):
                 self.set_label(_("Installed (you're using it right now)"))
             else:
                 if app_details.purchase_date:
-                    # TRANSLATORS : %x is the locale-specific date representation, %Y-%m-%d formats the date like 2011-03-31
-                    self.set_label(app_details.purchase_date.strftime(_('Purchased on %Y-%m-%d')) )
+                    # purchase_date is a string, must first convert to datetime.datetime
+                    pdate = datetime.datetime.strptime(app_details.purchase_date, "%Y-%m-%d %H:%M:%S")
+                    # TRANSLATORS : %Y-%m-%d formats the date as 2011-03-31, please specify a format per your
+                    # locale (%x can be used the locale-specific date representation)
+                    self.set_label(pdate.strftime(_('Purchased on %Y-%m-%d')) )
                 elif app_details.installation_date:
-                    # TRANSLATORS : %x is the locale-specific date representation, %Y-%m-%d formats the date like 2011-03-31
+                    # TRANSLATORS : %Y-%m-%d formats the date as 2011-03-31, please specify a format per your
+                    # locale (%x can be used the locale-specific date representation)
                     self.set_label(app_details.installation_date.strftime(_('Installed on %Y-%m-%d')) )
                 else:
                     self.set_label(_('Installed'))
