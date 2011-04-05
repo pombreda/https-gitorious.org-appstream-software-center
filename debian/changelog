@@ -26,6 +26,10 @@ software-center (3.1.25.1) UNRELEASED; urgency=low
   * softwarecenter/models/appstore.py:
     - correctly display half star ratings in listviews and
       the carousels (LP: #746173)
+  
+  [ Michael Vogt ]
+  * merged lp:~mmcg069/software-center/Bug477285 (LP: #477285),
+    many thanks!
 
  -- Gary Lasker <gary.lasker@canonical.com>  Tue, 05 Apr 2011 11:37:28 -0400
 
