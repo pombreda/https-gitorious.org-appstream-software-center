@@ -71,7 +71,7 @@ class AppStore(gtk.GenericTreeModel):
                    bool,
                    bool,
                    str,
-                   int,
+                   float,
                    int,
                    bool,
                    int,
