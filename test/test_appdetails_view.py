@@ -130,7 +130,7 @@ class TestAppDetailsView(unittest.TestCase):
         mock_app_details.thumbnail = None
         mock_app_details.license = "license"
         mock_app_details.maintenance_status = "support_status"
-        mock_app_details.purchase_date = "2011-01-01"
+        mock_app_details.purchase_date = None
         mock_app_details.installation_date = datetime.datetime.now()
         mock_app_details.price = "price"
         mock_app_details.icon = "iconname"
@@ -144,6 +144,19 @@ class TestAppDetailsView(unittest.TestCase):
         app = Application("7zip","p7zip-full")
         # create details mock
         mock_app_details = self._get_mock_app_details()
+        # monkey patch get_details() so that we get the mock object
+        app.get_details = lambda db: mock_app_details
+        # make sure all PKG_STATE_* states work and do not cause crashes
+        for i in range(PKG_STATE_UNKNOWN):
+            mock_app_details.pkg_state = i
+            self.appdetails.show_app(app)
+            
+    def test_show_app_all_pkg_states_purchased_app(self):
+        app = Application("7zip","p7zip-full")
+        # create details mock
+        mock_app_details = self._get_mock_app_details()
+        # for the purchase case, the value of purchase_date is a string
+        mock_app_details.purchase_date = "2011-01-01"
         # monkey patch get_details() so that we get the mock object
         app.get_details = lambda db: mock_app_details
         # make sure all PKG_STATE_* states work and do not cause crashes
