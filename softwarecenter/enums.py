@@ -150,6 +150,8 @@ TRANSACTION_TYPE_UPGRADE = "upgrade"
 TRANSACTION_TYPE_APPLY = "apply_changes"
 TRANSACTION_TYPE_REPAIR = "repair_dependencies"
 
+# delimiter for directory path separator in app-install
+APP_INSTALL_PATH_DELIMITER = "__"
 
 from version import *
 USER_AGENT="Software Center/%s (N;) %s/%s (%s)" % (VERSION, 

@@ -338,7 +338,8 @@ class ScreenshotThumbnail(gtk.Alignment):
 
             if not self.eventbox.parent:
                 self.add(self.eventbox)
-                self.show_all()
+                if self.get_property("visible"):
+                    self.show_all()
 
             self.image.set_size_request(-1, -1)
             self.image.set_from_pixbuf(pb)
@@ -458,6 +459,7 @@ class ScreenshotThumbnail(gtk.Alignment):
         self.spinner_alignment.set_size_request(*self.IDLE_SIZE)
 
         self.spinner.start()
+
         return
 
     def download_and_display(self):
@@ -468,6 +470,10 @@ class ScreenshotThumbnail(gtk.Alignment):
         """
 
         self.loader.download_file(self.thumbnail_url)
+        # show it
+        if self.get_property('visible'):
+            self.show_all()
+
         return
 
     def draw(self, cr, a, expose_area):

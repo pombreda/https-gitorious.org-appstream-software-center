@@ -51,6 +51,10 @@ class TestAppDetailsView(unittest.TestCase):
         self.assertFalse(self.appdetails.addon_view.get_property("visible"))
 
     def test_show_addons_bar(self):
+        """ this tests if the addons bar is visible and also simulates
+            a install to ensure that the "apply bar" goes away after
+            a install/remove
+        """
         app = Application("7zip", "p7zip-full")
         self.appdetails.show_app(app)
         self._p()

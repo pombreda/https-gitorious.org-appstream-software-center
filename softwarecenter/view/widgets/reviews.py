@@ -98,26 +98,30 @@ class StarPainter(IStarPainter):
         cr.save()
 
         if widget.get_direction() != gtk.TEXT_DIR_RTL:
-            color1 = self.fg_color
-            color2 = self.bg_color
+            x0 = x
+            x1 = x + w/2
 
         else:
-            color1 = self.bg_color
-            color2 = self.fg_color
+            x0 = x + w/2
+            x1 = x
 
-        cr.rectangle(x, y, w/2, h)
+        cr.rectangle(x0, y, w/2, h)
         cr.clip()
 
+        self.set_fill(self.FILL_FULL)
         self._paint_star(cr, widget, state, x, y, w, h)
 
         cairo.Context.reset_clip(cr)
 
-        cr.rectangle(x+w/2, y, w/2, h)
+        cr.rectangle(x1, y, w/2, h)
         cr.clip()
 
+        self.set_fill(self.FILL_EMPTY)
         self._paint_star(cr, widget, state, x, y, w, h)
 
         cairo.Context.reset_clip(cr)
+
+        self.set_fill(self.FILL_HALF)
         cr.restore()
         return
 
@@ -128,7 +132,30 @@ class StarPainter(IStarPainter):
             return
 
         self._paint_star(cr, widget, state, x, y, w, h, self.alpha)
+        return
 
+    def paint_rating(self, cr, widget, state, x, y, star_size, max_stars, rating):
+
+        sw = star_size[0]
+        direction = widget.get_direction()
+
+        index = range(0, max_stars)
+        if direction == gtk.TEXT_DIR_RTL: index.reverse()
+
+        for i in index:
+
+            if i < int(rating):
+                self.set_fill(StarPainter.FILL_FULL)
+
+            elif (i == int(rating) and 
+                  rating - int(rating) > 0):
+                self.set_fill(StarPainter.FILL_HALF)
+
+            else:
+                self.set_fill(StarPainter.FILL_EMPTY)
+
+            self.paint_star(cr, widget, state, x, y, *star_size)
+            x += sw
         return
 
     def _paint_star(self, cr, widget, state, x, y, w, h, alpha=1.0):
@@ -346,23 +373,13 @@ class SimpleStarRating(gtk.HBox, StarPainter):
         return
 
     def draw(self, cr, a):
-        w, h = self.get_size_request()
-        y = a.y + (a.height-h)/2
-        sw, sh = self.star_size
-        spacing = self.get_spacing()
-
-        n_stars = self.n_stars
-
-        for i in range(self.max_stars):
-            if i < int(n_stars):
-                self.set_fill(StarPainter.FILL_FULL)
-            elif i == int(n_stars) and n_stars-int(n_stars) > 0:
-                self.set_fill(StarPainter.FILL_HALF)
-            else:
-                self.set_fill(StarPainter.FILL_EMPTY)
-
-            x = a.x + i*(sw+spacing)
-            self.paint_star(cr, self, self.state, x, y, sw, sh)
+        sw = self.get_property('width-request')/self.MAX_STARS
+        self.paint_rating(cr, self,
+                          self.state,
+                          a.x, a.y,
+                          (sw, sw),
+                          self.MAX_STARS,
+                          self.n_stars)
         return
 
     def set_max_stars(self, max_stars):
@@ -951,7 +968,8 @@ class UIReview(gtk.VBox):
         #if review version is different to version of app being displayed, 
         # alert user
         version_lbl = None
-        if (review_version and 
+        if (review_version and
+            app_version and
             upstream_version_compare(review_version, app_version) != 0):
             version_string = _("This review was written for a different version of %(app_name)s (Version: %(version)s)") % { 
                 'app_name' : app_name,
@@ -1188,8 +1206,9 @@ class NoReviewYet(EmbeddedMessage):
     def __init__(self, *args, **kwargs):
         # TRANSLATORS: displayed if there are no reviews for the app yet
         #              and the user does not have it installed
-        msg = _("None yet")
-        EmbeddedMessage.__init__(self, message=msg)
+        title = _("This app has not been reviewed yet")
+        msg = _('You need to install this app before you can review it')
+        EmbeddedMessage.__init__(self, title, msg)
 
 
 class NoReviewYetWriteOne(EmbeddedMessage):
@@ -1198,10 +1217,10 @@ class NoReviewYetWriteOne(EmbeddedMessage):
 
         # TRANSLATORS: displayed if there are no reviews yet and the user
         #              has the app installed
-        title = _('Want to be awesome?')
+        title = _('Got an opinion?')
         msg = _('Be the first to contribute a review for this application')
 
-        EmbeddedMessage.__init__(self, title, msg, 'face-glasses')
+        EmbeddedMessage.__init__(self, title, msg, 'text-editor')
         return
 
 

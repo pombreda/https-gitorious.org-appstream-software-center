@@ -89,8 +89,7 @@ class WebLiveBackend(object):
             dependencies
         """
         # FIXME: also test if package is available on the weblive server
-        if (os.path.exists(cls.QTNX) and
-            "SOFTWARE_CENTER_ENABLE_WEBLIVE" in os.environ):
+        if os.path.exists(cls.QTNX):
             return True
         return False
 
@@ -157,9 +156,9 @@ class WebLiveBackend(object):
         nxml=open(filename,"w+")
         config=self.NXML_TEMPLATE
         config=config.replace("WL_NAME","%s-%s-%s" % (host, port, session.replace("/","_")))
-        config=config.replace("WL_SERVER", socket.gethostbyname(host))
+        config=config.replace("WL_SERVER", host)
         config=config.replace("WL_PORT",str(port))
-        config=config.replace("WL_COMMAND","vmmanager-session %s" % session)
+        config=config.replace("WL_COMMAND","weblive-session %s" % session)
         nxml.write(config)
         nxml.close()
 
@@ -177,7 +176,8 @@ class WebLiveBackend(object):
             p.wait()
 
     def _on_qtnx_exit(self, pid, status, filename):
-        os.remove(filename)
+        if os.path.exists(filename):
+            os.remove(filename)
 
 # singleton
 _weblive_backend = None
