@@ -149,19 +149,9 @@ class TestAppDetailsView(unittest.TestCase):
         # make sure all PKG_STATE_* states work and do not cause crashes
         for i in range(PKG_STATE_UNKNOWN):
             mock_app_details.pkg_state = i
-            self.appdetails.show_app(app)
-            
-    def test_show_app_all_pkg_states_purchased_app(self):
-        app = Application("7zip","p7zip-full")
-        # create details mock
-        mock_app_details = self._get_mock_app_details()
-        # for the purchase case, the value of purchase_date is a string
-        mock_app_details.purchase_date = "2011-01-01 11:11:11"
-        # monkey patch get_details() so that we get the mock object
-        app.get_details = lambda db: mock_app_details
-        # make sure all PKG_STATE_* states work and do not cause crashes
-        for i in range(PKG_STATE_UNKNOWN):
-            mock_app_details.pkg_state = i
+            if PKG_STATE_PURCHASED_BUT_REPO_MUST_BE_ENABLED:
+                # for the purchased case, the value of purchase_date is a string
+                mock_app_details.purchase_date = "2011-01-01 11:11:11"
             self.appdetails.show_app(app)
 
     def test_show_app_addons(self):
