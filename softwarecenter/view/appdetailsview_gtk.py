@@ -268,7 +268,7 @@ class PackageStatusBar(StatusBar):
             else:
                 if app_details.purchase_date:
                     # purchase_date is a string, must first convert to datetime.datetime
-                    pdate = datetime.datetime.strptime(app_details.purchase_date, "%Y-%m-%d")
+                    pdate = datetime.datetime.strptime(app_details.purchase_date, "%Y-%m-%d %H:%M:%S")
                     # TRANSLATORS : %Y-%m-%d formats the date as 2011-03-31, please specify a format per your
                     # locale (%x can be used the locale-specific date representation)
                     self.set_label(pdate.strftime(_('Purchased on %Y-%m-%d')) )

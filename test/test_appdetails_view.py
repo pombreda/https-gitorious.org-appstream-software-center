@@ -156,7 +156,7 @@ class TestAppDetailsView(unittest.TestCase):
         # create details mock
         mock_app_details = self._get_mock_app_details()
         # for the purchase case, the value of purchase_date is a string
-        mock_app_details.purchase_date = "2011-01-01"
+        mock_app_details.purchase_date = "2011-01-01 11:11:11"
         # monkey patch get_details() so that we get the mock object
         app.get_details = lambda db: mock_app_details
         # make sure all PKG_STATE_* states work and do not cause crashes
