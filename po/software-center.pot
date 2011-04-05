@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-03-31 16:03+0200\n"
+"POT-Creation-Date: 2011-04-05 17:30-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -275,12 +275,12 @@ msgid ""
 "the moment. Try again in a day or two.</span>"
 msgstr ""
 
-#: ../data/ui/dialogs.ui.h:7 ../softwarecenter/view/appdetailsview_gtk.py:580
+#: ../data/ui/dialogs.ui.h:7 ../softwarecenter/view/appdetailsview_gtk.py:595
 msgid "Cancel"
 msgstr ""
 
 #. info header
-#: ../data/ui/dialogs.ui.h:8 ../softwarecenter/view/appdetailsview_gtk.py:1055
+#: ../data/ui/dialogs.ui.h:8 ../softwarecenter/view/appdetailsview_gtk.py:1070
 #: ../softwarecenter/view/dialogs.py:71
 msgid "Details"
 msgstr ""
@@ -295,10 +295,10 @@ msgid ""
 "the store."
 msgstr ""
 
-#: ../data/ui/dialogs.ui.h:11 ../softwarecenter/view/appdetailsview_gtk.py:279
+#: ../data/ui/dialogs.ui.h:11 ../softwarecenter/view/appdetailsview_gtk.py:286
 #: ../softwarecenter/view/appdetailsview_webkit.py:448
 #: ../softwarecenter/view/appdetailsview_webkit.py:464
-#: ../softwarecenter/view/appview.py:681
+#: ../softwarecenter/view/appview.py:682
 msgid "Remove"
 msgstr ""
 
@@ -627,12 +627,12 @@ msgstr ""
 msgid "Web Development"
 msgstr ""
 
-#: ../softwarecenter/app.py:162 ../softwarecenter/view/availablepane.py:768
+#: ../softwarecenter/app.py:162 ../softwarecenter/view/availablepane.py:769
 #: ../softwarecenter/view/installedpane.py:230
 msgid "Sorry, can not open the software database"
 msgstr ""
 
-#: ../softwarecenter/app.py:163 ../softwarecenter/view/availablepane.py:769
+#: ../softwarecenter/app.py:163 ../softwarecenter/view/availablepane.py:770
 #: ../softwarecenter/view/installedpane.py:231
 msgid "Please re-install the 'software-center' package."
 msgstr ""
@@ -647,8 +647,8 @@ msgid ""
 "account you used to pay for them."
 msgstr ""
 
-#: ../softwarecenter/backend/aptd.py:576
-#: ../softwarecenter/view/appdetailsview_gtk.py:310
+#: ../softwarecenter/backend/aptd.py:575
+#: ../softwarecenter/view/appdetailsview_gtk.py:321
 msgid "Error"
 msgstr ""
 
@@ -657,11 +657,11 @@ msgid "Canonical Partners"
 msgstr ""
 
 #: ../softwarecenter/backend/channel.py:407
-#: ../softwarecenter/view/appdetailsview_gtk.py:1190
-#: ../softwarecenter/view/appdetailsview_gtk.py:1196
-#: ../softwarecenter/view/appdetailsview_gtk.py:1200
-#: ../softwarecenter/view/appdetailsview_gtk.py:1589
-#: ../softwarecenter/view/appdetailsview_gtk.py:1662
+#: ../softwarecenter/view/appdetailsview_gtk.py:1205
+#: ../softwarecenter/view/appdetailsview_gtk.py:1211
+#: ../softwarecenter/view/appdetailsview_gtk.py:1215
+#: ../softwarecenter/view/appdetailsview_gtk.py:1601
+#: ../softwarecenter/view/appdetailsview_gtk.py:1674
 msgid "Unknown"
 msgstr ""
 
@@ -1014,53 +1014,57 @@ msgid ""
 "possible."
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview_gtk.py:251
+#: ../softwarecenter/view/appdetailsview_gtk.py:252
 msgid "Installing..."
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview_gtk.py:254
+#: ../softwarecenter/view/appdetailsview_gtk.py:255
 #: ../softwarecenter/view/pendingview.py:106
 msgid "Installing purchase…"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview_gtk.py:258
+#: ../softwarecenter/view/appdetailsview_gtk.py:259
 msgid "Removing..."
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview_gtk.py:261
+#: ../softwarecenter/view/appdetailsview_gtk.py:262
 msgid "Upgrading..."
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview_gtk.py:266
+#: ../softwarecenter/view/appdetailsview_gtk.py:267
 msgid "Installed (you're using it right now)"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview_gtk.py:270
-#: ../softwarecenter/view/appdetailsview_gtk.py:290
-#, python-format
-msgid "Purchased on %s"
-msgstr ""
-
-#: ../softwarecenter/view/appdetailsview_gtk.py:273
-#, python-format
-msgid "Installed on %s"
-msgstr ""
-
+#. TRANSLATORS : %Y-%m-%d formats the date as 2011-03-31, please specify a format per your
+#. locale (if you prefer, %x can be used to provide a default locale-specific date
+#. representation)
 #: ../softwarecenter/view/appdetailsview_gtk.py:275
+#: ../softwarecenter/view/appdetailsview_gtk.py:301
+msgid "Purchased on %Y-%m-%d"
+msgstr ""
+
+#. TRANSLATORS : %Y-%m-%d formats the date as 2011-03-31, please specify a format per your
+#. locale (if you prefer, %x can be used to provide a default locale-specific date
+#. representation)
+#: ../softwarecenter/view/appdetailsview_gtk.py:280
+msgid "Installed on %Y-%m-%d"
+msgstr ""
+
+#: ../softwarecenter/view/appdetailsview_gtk.py:282
 #: ../softwarecenter/view/appdetailsview_webkit.py:242
 msgid "Installed"
 msgstr ""
 
 #. only deb files atm
-#: ../softwarecenter/view/appdetailsview_gtk.py:277
+#: ../softwarecenter/view/appdetailsview_gtk.py:284
 #: ../softwarecenter/view/appdetailsview_webkit.py:470
 msgid "Reinstall"
 msgstr ""
 
 #. we want to re-enable the buy button if this is an app for purchase
 #. FIXME:  hacky, find a better approach
-#: ../softwarecenter/view/appdetailsview_gtk.py:287
-#: ../softwarecenter/view/availablepane.py:568
+#: ../softwarecenter/view/appdetailsview_gtk.py:294
+#: ../softwarecenter/view/availablepane.py:569
 #: ../softwarecenter/view/channelpane.py:180
 msgid "Buy…"
 msgstr ""
@@ -1069,41 +1073,41 @@ msgstr ""
 #. we display the error in the description field
 #. string for action button
 #. needs variants for the current label states: install, remove & pending
-#: ../softwarecenter/view/appdetailsview_gtk.py:291
-#: ../softwarecenter/view/appdetailsview_gtk.py:301
-#: ../softwarecenter/view/appdetailsview_gtk.py:314
+#: ../softwarecenter/view/appdetailsview_gtk.py:302
+#: ../softwarecenter/view/appdetailsview_gtk.py:312
+#: ../softwarecenter/view/appdetailsview_gtk.py:325
 #: ../softwarecenter/view/appdetailsview_webkit.py:454
-#: ../softwarecenter/view/appview.py:680
+#: ../softwarecenter/view/appview.py:681
 msgid "Install"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview_gtk.py:295
+#: ../softwarecenter/view/appdetailsview_gtk.py:306
 msgid "Removed (close it and it'll be gone)"
 msgstr ""
 
 #. its free
-#: ../softwarecenter/view/appdetailsview_gtk.py:300
-#: ../softwarecenter/view/appdetailsview_gtk.py:573
+#: ../softwarecenter/view/appdetailsview_gtk.py:311
+#: ../softwarecenter/view/appdetailsview_gtk.py:588
 #: ../softwarecenter/view/appdetailsview_webkit.py:456
 msgid "Free"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview_gtk.py:303
+#: ../softwarecenter/view/appdetailsview_gtk.py:314
 msgid "Upgrade Available"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview_gtk.py:304
+#: ../softwarecenter/view/appdetailsview_gtk.py:315
 msgid "Upgrade"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview_gtk.py:306
+#: ../softwarecenter/view/appdetailsview_gtk.py:317
 msgid "Changing Add-ons…"
 msgstr ""
 
 #. FIXME: deal with the EULA stuff
 #. FIXME: use a proper message here, but we are in string freeze
-#: ../softwarecenter/view/appdetailsview_gtk.py:325
-#: ../softwarecenter/view/appdetailsview_gtk.py:328
+#: ../softwarecenter/view/appdetailsview_gtk.py:336
+#: ../softwarecenter/view/appdetailsview_gtk.py:339
 #: ../softwarecenter/view/appdetailsview_webkit.py:477
 #: ../softwarecenter/view/appdetailsview_webkit.py:482
 msgid "Use This Source"
@@ -1113,95 +1117,95 @@ msgstr ""
 #. because we don't differenciate between
 #. components that are not enabled or that just
 #. lack the "Packages" files (but are in sources.list)
-#: ../softwarecenter/view/appdetailsview_gtk.py:334
+#: ../softwarecenter/view/appdetailsview_gtk.py:345
 #: ../softwarecenter/view/appdetailsview_webkit.py:485
 msgid "Update Now"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview_gtk.py:526
+#: ../softwarecenter/view/appdetailsview_gtk.py:541
 msgid "Add-ons"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview_gtk.py:578
+#: ../softwarecenter/view/appdetailsview_gtk.py:593
 msgid "Apply Changes"
 msgstr ""
 
 #. individual reviews is slow and async so we just queue it here
-#: ../softwarecenter/view/appdetailsview_gtk.py:749
+#: ../softwarecenter/view/appdetailsview_gtk.py:764
 msgid "Checking for reviews..."
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview_gtk.py:811
+#: ../softwarecenter/view/appdetailsview_gtk.py:826
 #, python-format
 msgid "Connecting ... (%s%%)"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview_gtk.py:1025
+#: ../softwarecenter/view/appdetailsview_gtk.py:1040
 msgid "Test drive"
 msgstr ""
 
 #. homepage link button
-#: ../softwarecenter/view/appdetailsview_gtk.py:1030
+#: ../softwarecenter/view/appdetailsview_gtk.py:1045
 #: ../softwarecenter/view/appdetailsview_webkit.py:245
 msgid "Website"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview_gtk.py:1061
+#: ../softwarecenter/view/appdetailsview_gtk.py:1076
 msgid "Total size:"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview_gtk.py:1064
+#: ../softwarecenter/view/appdetailsview_gtk.py:1079
 msgid "Version:"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview_gtk.py:1067
+#: ../softwarecenter/view/appdetailsview_gtk.py:1082
 msgid "License:"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview_gtk.py:1070
+#: ../softwarecenter/view/appdetailsview_gtk.py:1085
 msgid "Updates:"
 msgstr ""
 
 #. Update total size label
-#: ../softwarecenter/view/appdetailsview_gtk.py:1217
+#: ../softwarecenter/view/appdetailsview_gtk.py:1232
 msgid "Calculating..."
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview_gtk.py:1288
+#: ../softwarecenter/view/appdetailsview_gtk.py:1303
 msgid "This program is run from a terminal: "
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview_gtk.py:1289
+#: ../softwarecenter/view/appdetailsview_gtk.py:1304
 msgid "These programs are run from a terminal: "
 msgstr ""
 
 #. display launcher location
-#: ../softwarecenter/view/appdetailsview_gtk.py:1314
+#: ../softwarecenter/view/appdetailsview_gtk.py:1329
 msgid "Find it in the menu: "
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview_gtk.py:1645
+#: ../softwarecenter/view/appdetailsview_gtk.py:1657
 #, python-format
 msgid "%sB to download, "
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview_gtk.py:1648
+#: ../softwarecenter/view/appdetailsview_gtk.py:1660
 #, python-format
 msgid "%sB when installed"
 msgstr ""
 
 #. FIXME: this is not really a good indication of the size on disk
-#: ../softwarecenter/view/appdetailsview_gtk.py:1656
+#: ../softwarecenter/view/appdetailsview_gtk.py:1668
 #, python-format
 msgid "%sB on disk"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview_gtk.py:1659
+#: ../softwarecenter/view/appdetailsview_gtk.py:1671
 #, python-format
 msgid "%sB to be freed"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview_gtk.py:1683
+#: ../softwarecenter/view/appdetailsview_gtk.py:1695
 #, python-format
 msgid "Used: one time"
 msgid_plural "Used: %(amount)s times"
@@ -1283,7 +1287,7 @@ msgstr ""
 msgid "Buy for %s"
 msgstr ""
 
-#: ../softwarecenter/view/appview.py:425
+#: ../softwarecenter/view/appview.py:426
 #, python-format
 msgid "%(nr_ratings)i Rating"
 msgid_plural "%(nr_ratings)i Ratings"
@@ -1292,7 +1296,7 @@ msgstr[1] ""
 
 #. translatable labels for cell buttons
 #. string for info button, currently does not need any variants
-#: ../softwarecenter/view/appview.py:676
+#: ../softwarecenter/view/appview.py:677
 msgid "More Info"
 msgstr ""
 
@@ -1305,7 +1309,7 @@ msgid "Custom List"
 msgstr ""
 
 #: ../softwarecenter/view/availablepane.py:246
-#: ../softwarecenter/view/softwarepane.py:619
+#: ../softwarecenter/view/softwarepane.py:620
 msgid "Search Results"
 msgstr ""
 
@@ -1334,14 +1338,14 @@ msgid_plural "%(amount)s items available"
 msgstr[0] ""
 msgstr[1] ""
 
-#: ../softwarecenter/view/availablepane.py:361
+#: ../softwarecenter/view/availablepane.py:362
 #, python-format
 msgid "Install %(amount)s Item"
 msgid_plural "Install %(amount)s Items"
 msgstr[0] ""
 msgstr[1] ""
 
-#: ../softwarecenter/view/availablepane.py:673
+#: ../softwarecenter/view/availablepane.py:674
 msgid "Previous Purchases"
 msgstr ""
 
@@ -1431,37 +1435,37 @@ msgid "%d changes"
 msgstr ""
 
 #. Translators : time displayed in history, display hours (0-12), minutes and AM/PM. %H should be used instead of %I to display hours 0-24
-#: ../softwarecenter/view/historypane.py:314
+#: ../softwarecenter/view/historypane.py:321
 msgid "%I:%M %p"
 msgstr ""
 
-#: ../softwarecenter/view/historypane.py:316
+#: ../softwarecenter/view/historypane.py:323
 #, python-format
 msgid "%(pkgname)s installed %(time)s"
 msgstr ""
 
-#: ../softwarecenter/view/historypane.py:318
+#: ../softwarecenter/view/historypane.py:325
 #, python-format
 msgid "%(pkgname)s removed %(time)s"
 msgstr ""
 
-#: ../softwarecenter/view/historypane.py:320
+#: ../softwarecenter/view/historypane.py:327
 #, python-format
 msgid "%(pkgname)s updated %(time)s"
 msgstr ""
 
 #. Current week, display the name of the day
-#: ../softwarecenter/view/historypane.py:326
+#: ../softwarecenter/view/historypane.py:333
 msgid "%A"
 msgstr ""
 
 #. Current year, display the day and month
-#: ../softwarecenter/view/historypane.py:330
+#: ../softwarecenter/view/historypane.py:337
 msgid "%d %B"
 msgstr ""
 
 #. Display the full date: day, month, year
-#: ../softwarecenter/view/historypane.py:333
+#: ../softwarecenter/view/historypane.py:340
 msgid "%d %B %Y"
 msgstr ""
 
@@ -1494,47 +1498,47 @@ msgstr ""
 msgid "Sorry, something went wrong. Your payment has been cancelled."
 msgstr ""
 
-#: ../softwarecenter/view/softwarepane.py:400
+#: ../softwarecenter/view/softwarepane.py:401
+msgid "Not Now"
+msgstr ""
+
+#: ../softwarecenter/view/softwarepane.py:405
+msgid "Add to Launcher"
+msgstr ""
+
+#: ../softwarecenter/view/softwarepane.py:410
 #, python-format
 msgid "Add %s to the launcher?"
 msgstr ""
 
-#: ../softwarecenter/view/softwarepane.py:402
-msgid "Not Now"
-msgstr ""
-
-#: ../softwarecenter/view/softwarepane.py:406
-msgid "Add to Launcher"
-msgstr ""
-
-#: ../softwarecenter/view/softwarepane.py:430
+#: ../softwarecenter/view/softwarepane.py:429
 #, python-format
 msgid "%s will be added to the launcher when installation completes."
 msgstr ""
 
 #. TRANSLATORS: the text inbetween the underscores acts as a link
 #. In most/all languages you will want the whole string as a link
-#: ../softwarecenter/view/softwarepane.py:554
+#: ../softwarecenter/view/softwarepane.py:555
 #, python-format
 msgid "_Hide %(amount)i technical item_"
 msgid_plural "_Hide %(amount)i technical items_"
 msgstr[0] ""
 msgstr[1] ""
 
-#: ../softwarecenter/view/softwarepane.py:559
+#: ../softwarecenter/view/softwarepane.py:560
 #, python-format
 msgid "_Show %(amount)i technical item_"
 msgid_plural "_Show %(amount)i technical items_"
 msgstr[0] ""
 msgstr[1] ""
 
-#: ../softwarecenter/view/softwarepane.py:571
+#: ../softwarecenter/view/softwarepane.py:572
 msgid ""
 "Search term not found in current category. Do you want to search <a href="
 "\"search-all:\">all categories</a> instead?"
 msgstr ""
 
-#: ../softwarecenter/view/softwarepane.py:579
+#: ../softwarecenter/view/softwarepane.py:580
 #, python-format
 msgid "Search term not found. Did you mean: %s?"
 msgstr ""
