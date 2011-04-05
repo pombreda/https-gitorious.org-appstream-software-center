@@ -29,6 +29,7 @@ import subprocess
 import sys
 import cairo
 import pangocairo
+import datetime
 
 from softwarecenter.cmdfinder import CmdFinder
 from softwarecenter.netstatus import NetState, get_network_state, get_network_watcher
@@ -266,11 +267,17 @@ class PackageStatusBar(StatusBar):
                 self.set_label(_("Installed (you're using it right now)"))
             else:
                 if app_details.purchase_date:
-                    # TRANSLATORS : %x is the locale-specific date representation, %Y-%m-%d formats the date like 2011-03-31
-                    self.set_label(app_details.purchase_date.strftime_('Purchased on %Y-%m-%d') )
+                    # purchase_date is a string, must first convert to datetime.datetime
+                    pdate = self._convert_purchase_date_str_to_datetime(app_details.purchase_date)
+                    # TRANSLATORS : %Y-%m-%d formats the date as 2011-03-31, please specify a format per your
+                    # locale (if you prefer, %x can be used to provide a default locale-specific date 
+                    # representation)
+                    self.set_label(pdate.strftime(_('Purchased on %Y-%m-%d')))
                 elif app_details.installation_date:
-                    # TRANSLATORS : %x is the locale-specific date representation, %Y-%m-%d formats the date like 2011-03-31
-                    self.set_label(app_details.installation_date.strftime('Installed on %Y-%m-%d') )
+                    # TRANSLATORS : %Y-%m-%d formats the date as 2011-03-31, please specify a format per your
+                    # locale (if you prefer, %x can be used to provide a default locale-specific date 
+                    # representation)
+                    self.set_label(app_details.installation_date.strftime(_('Installed on %Y-%m-%d')))
                 else:
                     self.set_label(_('Installed'))
             if state == PKG_STATE_REINSTALLABLE: # only deb files atm
@@ -286,8 +293,12 @@ class PackageStatusBar(StatusBar):
             self.set_label("US$ %s" % app_details.price)
             self.set_button_label(_(u'Buy\u2026'))
         elif state == PKG_STATE_PURCHASED_BUT_REPO_MUST_BE_ENABLED:
-            purchase_date = str(app_details.purchase_date).split()[0]
-            self.set_label(_('Purchased on %s') % purchase_date)
+            # purchase_date is a string, must first convert to datetime.datetime
+            pdate = self._convert_purchase_date_str_to_datetime(app_details.purchase_date)
+            # TRANSLATORS : %Y-%m-%d formats the date as 2011-03-31, please specify a format per your
+            # locale (if you prefer, %x can be used to provide a default locale-specific date 
+            # representation)
+            self.set_label(pdate.strftime(_('Purchased on %Y-%m-%d')))
             self.set_button_label(_('Install'))
         elif state == PKG_STATE_UNINSTALLED:
             #special label only if the app being viewed is software centre itself
@@ -338,6 +349,10 @@ class PackageStatusBar(StatusBar):
            PKG_STATE_REMOVING, PKG_STATE_UPGRADING, APP_ACTION_APPLY)):
             self.set_label(self.app_details.warning)
         return
+        
+    def _convert_purchase_date_str_to_datetime(self, purchase_date):
+        if purchase_date is not None:
+            return datetime.datetime.strptime(purchase_date, "%Y-%m-%d %H:%M:%S")
 
 
 class PackageInfo(gtk.HBox):
