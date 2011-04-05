@@ -20,8 +20,11 @@ software-center (3.1.25.1) UNRELEASED; urgency=low
     - expand most recent day in the history view (LP: #644438)
     - fix ellipsis of summary text in the list view on a
       window resize (LP: #678442)
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - support localized date string for the installed date
+      in the details view (LP: #751068)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 04 Apr 2011 16:12:06 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 05 Apr 2011 11:21:51 -0400
 
 software-center (3.1.25) natty; urgency=low
 
