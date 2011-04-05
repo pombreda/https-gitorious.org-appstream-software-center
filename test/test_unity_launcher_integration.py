@@ -84,10 +84,7 @@ class TestUnityLauncherIntegration(unittest.TestCase):
         
         # now test the values to be used in the dbus call
         app = Application("", model[0][AppStore.COL_PKGNAME])
-        (icon_name,
-        icon_size,
-        icon_x,
-        icon_y) = self.s_c_app.available_pane._get_icon_details_for_launcher_service(app)
+        (icon_size, icon_x, icon_y) = self.s_c_app.available_pane._get_onscreen_icon_details_for_launcher_service(app)
         appdetails = app.get_details(self.s_c_app.db)
         trans_id = "/org/debian/apt/transaction/test101"
         # check that a correct UnityLauncherInfo object has been created and added to the queue
