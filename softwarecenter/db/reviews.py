@@ -149,6 +149,15 @@ class Review(object):
                 setattr(review, attr, value)
         return review
 
+    @classmethod
+    def from_json(cls, other):
+        """ convert json reviews into "out" review objects """
+        app = Application("", other["package_name"])
+        review = cls(app)
+        for k, v in other.iteritems():
+            setattr(review, k, v)
+        return review
+
 class ReviewLoader(object):
     """A loader that returns a review object list"""
 
@@ -486,20 +495,8 @@ class ReviewLoaderJsonAsync(ReviewLoader):
         reviews_json = simplejson.loads(json_str)
         reviews = []
         for review_json in reviews_json:
-            appname = review_json["app_name"]
-            pkgname = review_json["package_name"]
-            app = Application(appname, pkgname)
-            review = Review(app)
-            review.id = review_json["id"]
-            review.date_created = review_json["date_created"]
-            review.rating = review_json["rating"]
-            if review_json["reviewer_displayname"]:
-                review.reviewer_username = review_json["reviewer_displayname"]
-            else:
-                review.reviewer_username = review_json["reviewer_username"]
-            review.language = review_json["language"]
-            review.summary =  review_json["summary"]
-            review.review_text = review_json["review_text"]
+            print "review_json", review_json
+            review = Review.from_json(review_json)
             reviews.append(review)
         # run callback
         callback(app, reviews)
