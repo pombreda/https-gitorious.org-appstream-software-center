@@ -40,33 +40,35 @@ class WebLiveLocale(object):
         self.description = description
 
 class WebLivePackage(object):
-    def __init__(self, pkgname, version):
+    def __init__(self, pkgname, version, autoinstall):
         self.pkgname = pkgname
         self.version = version
+        self.autoinstall = autoinstall
 
 class WebLiveServer(object):
-    def __init__(self, name, title, description, timelimit, userlimit, users):
+    def __init__(self, name, title, description, timelimit, userlimit, users, autoinstall):
         self.name = name
         self.title = title
         self.description = description
         self.timelimit = timelimit
         self.userlimit = userlimit
         self.current_users = users
+        self.autoinstall = autoinstall
 
     def __repr__(self):
-        return "[WebLiveServer: %s (%s - %s), timelimit=%s, userlimit=%s, current_users=%s" % (
-            self.name, self.title, self.description, self.timelimit, self.userlimit, self.current_users)
+        return "[WebLiveServer: %s (%s - %s), timelimit=%s, userlimit=%s, current_users=%s, autoinstall=%s" % (
+            self.name, self.title, self.description, self.timelimit, self.userlimit, self.current_users, self.autoinstall)
 
 class WebLiveEverythingServer(WebLiveServer):
-    def __init__(self, name, title, description, timelimit, userlimit, users, locales, packages):
+    def __init__(self, name, title, description, timelimit, userlimit, users, autoinstall, locales, packages):
         self.locales = [WebLiveLocale(x[0], x[1]) for x in locales]
-        self.packages = [WebLivePackage(x[0], x[1]) for x in packages]
+        self.packages = [WebLivePackage(x[0], x[1], x[2]) for x in packages]
 
-        WebLiveServer.__init__(self, name, title, description, timelimit, userlimit, users)
+        WebLiveServer.__init__(self, name, title, description, timelimit, userlimit, users, autoinstall)
 
     def __repr__(self):
-        return "[WebLiveServer: %s (%s - %s), timelimit=%s, userlimit=%s, current_users=%s, nr_locales=%s, nr_pkgs=%s" % (
-            self.name, self.title, self.description, self.timelimit, self.userlimit, self.current_users, len(self.locales), len(self.packages))
+        return "[WebLiveServer: %s (%s - %s), timelimit=%s, userlimit=%s, current_users=%s, autoinstall=%s, nr_locales=%s, nr_pkgs=%s" % (
+            self.name, self.title, self.description, self.timelimit, self.userlimit, self.current_users, self.autoinstall, len(self.locales), len(self.packages))
 
 class WebLive:
     def __init__(self,url,as_object=False):
@@ -153,6 +155,7 @@ class WebLive:
                     attr['timelimit'],
                     attr['userlimit'],
                     attr['users'],
+                    attr['autointsall'],
                     attr['locales'],
                     attr['packages']))
             return servers
@@ -172,6 +175,20 @@ class WebLive:
         else:
             return [WebLiveLocale(x[0], x[1]) for x in reply['message']]
 
+    def list_package_blacklist(self):
+        query={}
+        query['action']='list_package_blacklist'
+        reply=self.do_query(query)
+
+        if type(reply['message']) != type([]):
+            raise WebLiveError("Invalid value, expected '%s' and got '%s'."
+                % (type({}),type(reply['message'])))
+
+        if not self.as_object:
+            return reply['message']
+        else:
+            return [WebLivePackage(x, None, None) for x in reply['message']]
+
     def list_packages(self,serverid):
         query={}
         query['action']='list_packages'
@@ -185,7 +202,7 @@ class WebLive:
         if not self.as_object:
             return reply['message']
         else:
-            return [WebLivePackage(x[0], x[1]) for x in reply['message']]
+            return [WebLivePackage(x[0], x[1], x[2]) for x in reply['message']]
 
     def list_servers(self):
         query={}
@@ -208,5 +225,6 @@ class WebLive:
                     attr['description'],
                     attr['timelimit'],
                     attr['userlimit'],
-                    attr['users']))
+                    attr['users'],
+                    attr['autoinstall']))
             return servers
