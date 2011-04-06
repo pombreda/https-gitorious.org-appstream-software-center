@@ -23,8 +23,8 @@ software-center (3.1.25.1) UNRELEASED; urgency=low
   * softwarecenter/utils.py,
     softwarecenter/view/softwarepane.py,
     test/test_unity_launcher_integration.py:
-    - make add to unity launcher feature work corectly for
-      purchased apps (LP: #752951)
+    - make add to unity launcher feature work correctly for
+      purchased apps, add unit test for this (LP: #752951)
 
   [ Robert Roth ]
   * softwarecenter/view/historypane.py:
@@ -42,7 +42,7 @@ software-center (3.1.25.1) UNRELEASED; urgency=low
   * merged lp:~mmcg069/software-center/Bug477285 (LP: #477285),
     many thanks!
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 06 Apr 2011 17:39:59 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 06 Apr 2011 17:45:46 -0400
 
 software-center (3.1.25) natty; urgency=low
 
