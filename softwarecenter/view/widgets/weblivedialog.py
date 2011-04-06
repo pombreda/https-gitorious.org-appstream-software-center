@@ -22,7 +22,7 @@ import gtk, sys
 class ShowWebLiveServerChooserDialog(gtk.Dialog):
     """A dialog to choose between multiple server"""
 
-    def __init__(self, supplied_servers, parent=None):
+    def __init__(self, supplied_servers, pkgname, parent=None):
         gtk.Dialog.__init__(self)
         self.set_has_separator(False)
 
@@ -43,7 +43,16 @@ class ShowWebLiveServerChooserDialog(gtk.Dialog):
                 if server.title == otherserver.title:
                     percent_server=((float(server.current_users)/float(server.userlimit))*100.0)
                     percent_otherserver=((float(otherserver.current_users)/float(otherserver.userlimit))*100.0)
-                    if percent_otherserver > percent_server:
+                    for package in server.packages:
+                        if package.pkgname == pkgname:
+                            autoinstall_server=package.autoinstall
+
+                    for package in otherserver.packages:
+                        if package.pkgname == pkgname:
+                            autoinstall_otherserver=package.autoinstall
+
+                    # Replace existing server if current server has more slots or doesn't need autoinstall
+                    if percent_otherserver > percent_server or otherserver > server:
                         otherserver=server
                     duplicate=True
 

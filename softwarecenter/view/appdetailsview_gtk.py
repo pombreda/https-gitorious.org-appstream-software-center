@@ -852,7 +852,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             # Try to give some indication that we are connecting
             weblive_start_timer()
         else:
-            d = ShowWebLiveServerChooserDialog(servers)
+            d = ShowWebLiveServerChooserDialog(servers, self.app.pkgname)
             serverid=None
             if d.run() == gtk.RESPONSE_OK:
                 for server in d.servers_vbox:

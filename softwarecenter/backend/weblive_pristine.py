@@ -155,7 +155,7 @@ class WebLive:
                     attr['timelimit'],
                     attr['userlimit'],
                     attr['users'],
-                    attr['autointsall'],
+                    attr['autoinstall'],
                     attr['locales'],
                     attr['packages']))
             return servers
