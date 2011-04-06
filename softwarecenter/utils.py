@@ -311,9 +311,10 @@ def get_file_path_from_iconname(icons, iconname=None, iconsize=APP_ICON_SIZE):
         icon_info.free()
         return icon_file_path
         
-def convert_desktop_file_to_installed_location(app_install_data_file_path):
+def convert_desktop_file_to_installed_location(app_install_data_file_path, pkgname=None):
     """ returns the installed desktop file path that corresponds to the
-        given app-install-date file path
+        given app-install-data file path, and will also check directly for
+        the desktop file that corresponds to a given pkgname.
     """
     # "normal" case
     installed_desktop_file_path = app_install_data_file_path.replace("app-install/desktop", "applications")
@@ -324,6 +325,11 @@ def convert_desktop_file_to_installed_location(app_install_data_file_path):
     installed_desktop_file_path = installed_desktop_file_path.replace(APP_INSTALL_PATH_DELIMITER, "/")
     if os.path.exists(installed_desktop_file_path):
         return installed_desktop_file_path
+    # lastly, just try checking directly for the desktop file based on the pkgname itself
+    if pkgname:
+        installed_desktop_file_path =  "/usr/share/applications/%s.desktop" % pkgname
+        if os.path.exists(installed_desktop_file_path):
+            return installed_desktop_file_path
     logging.warn("Could not determine the installed desktop file path for app-install desktop file: '%s'" % app_install_data_file_path)
     return ""
 
