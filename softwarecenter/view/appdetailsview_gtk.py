@@ -57,7 +57,9 @@ from appdetailsview import AppDetailsViewBase
 from widgets import mkit
 
 from widgets.mkit import EM, ShapeStar
-from widgets.reviews import UIReviewsList, UIReview, ReviewStatsContainer, StarRating, EmbeddedMessage
+from widgets.reviews import UIReviewsList, UIReview, \
+                            ReviewStatsContainer, StarPainter, \
+                            StarRating, EmbeddedMessage
 
 from widgets.description import AppDescription, TextBlock
 from widgets.thumbnail import ScreenshotThumbnail
@@ -1000,7 +1002,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         vb_inner.pack_start(self.usage)
 
         # star rating widget
-        a = gtk.Alignment(0.5, 0.5)
+        a = gtk.Alignment(0.0, 0.5)
+        self.review_stats_widget.star_rating.set_paint_style(StarPainter.STYLE_BIG)
         a.add(self.review_stats_widget)
         hb.pack_end(a, False)
 
