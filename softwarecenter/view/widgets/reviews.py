@@ -144,6 +144,11 @@ class StarPainter(object):
 
     def _paint_star_flat(self, cr, widget, state, x, y, w, h, alpha):
 
+        if not isinstance(widget, gtk.TreeView):
+            cr.set_source_color(widget.style.white)
+            self.shape.layout(cr, x, y+2, w, h)
+            cr.fill()
+
         if self.fill == self.FILL_EMPTY:
             cr.set_source_rgb(*color_floats(widget.style.mid[gtk.STATE_NORMAL]))
 
