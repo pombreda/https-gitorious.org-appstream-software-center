@@ -52,7 +52,7 @@ class ShowWebLiveServerChooserDialog(gtk.Dialog):
                             autoinstall_otherserver=package.autoinstall
 
                     # Replace existing server if current server has more slots or doesn't need autoinstall
-                    if percent_otherserver > percent_server or otherserver > server:
+                    if percent_otherserver > percent_server or autoinstall_otherserver > autoinstall_server:
                         servers.remove(otherserver)
                         servers.append(server)
                     duplicate=True
