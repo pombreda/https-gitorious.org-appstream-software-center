@@ -43,6 +43,8 @@ software-center (3.1.25.1) UNRELEASED; urgency=low
     many thanks!
   * merged lp:~weblive-dev/software-center/weblive-backend-fixes,
     many thanks!
+  * test/test_gui_buy_something.py:
+    - fix test
 
  -- Gary Lasker <gary.lasker@canonical.com>  Wed, 06 Apr 2011 17:45:46 -0400
 

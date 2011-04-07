@@ -12,6 +12,11 @@ import unittest
 
 from mock import Mock
 
+# this needs to be set very early to ensure that when this is run as root we
+# use the right pathes (update-software-center-agent will be run with sudo -u)
+if os.getuid() == 0:
+    os.environ["XDG_CACHE_HOME"] = "/home/%s/.cache" % os.environ["SUDO_USER"]
+
 sys.path.insert(0, "..")
 
 from softwarecenter.app import SoftwareCenterApp
