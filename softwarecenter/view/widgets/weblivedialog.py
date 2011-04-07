@@ -62,6 +62,11 @@ class ShowWebLiveServerChooserDialog(gtk.Dialog):
 
             servers.append(server)
 
+        if len(servers) == 1:
+            self.show_dialog=False
+        else:
+            self.show_dialog=True
+
         button=None
         for server in sorted(servers, key=lambda server: server.title):
             button=gtk.RadioButton(button, "%s - %s" % (server.title, server.description))
@@ -79,6 +84,9 @@ class ShowWebLiveServerChooserDialog(gtk.Dialog):
         self.set_border_width(8)
 
     def run(self):
+        if self.show_dialog == False:
+            return gtk.RESPONSE_OK
+
         self.show_all()
 
         # and run the real thing
