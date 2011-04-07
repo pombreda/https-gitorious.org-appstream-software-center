@@ -495,7 +495,6 @@ class ReviewLoaderJsonAsync(ReviewLoader):
         reviews_json = simplejson.loads(json_str)
         reviews = []
         for review_json in reviews_json:
-            print "review_json", review_json
             review = Review.from_json(review_json)
             reviews.append(review)
         # run callback

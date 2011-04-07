@@ -1,4 +1,4 @@
-software-center (3.1.25.1) UNRELEASED; urgency=low
+software-center (3.1.26) natty; urgency=low
 
   [ Gary Lasker ]
   * softwarecenter/view/purchaseview.py:
@@ -45,8 +45,10 @@ software-center (3.1.25.1) UNRELEASED; urgency=low
     many thanks!
   * test/test_gui_buy_something.py:
     - fix test
+  * data/featured.menu.in:
+    - tweaked for natty
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 06 Apr 2011 17:45:46 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 07 Apr 2011 16:38:32 +0200
 
 software-center (3.1.25) natty; urgency=low
 
