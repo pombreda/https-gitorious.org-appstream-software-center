@@ -455,7 +455,7 @@ class BaseApp(SimpleGtkbuilderApp):
             self.status_hbox.pack_start(self.submit_error_img, False)
             self.status_hbox.reorder_child(self.submit_error_img, 0)
             self.submit_error_img.show()
-            self.label_transmit_status.set_text(self._FAILURE_MESSAGE)
+            self.label_transmit_status.set_text(self.FAILURE_MESSAGE)
             self.error_textview.get_buffer().set_text(_(message))  
             self.detail_expander.show()
         elif type == "success":
@@ -469,25 +469,25 @@ class BaseApp(SimpleGtkbuilderApp):
         self.detail_expander.set_expanded(False)
         
         #clears spinner or error image from dialog submission label before trying to display one or the other
-         try: 
+        try: 
             result = self.status_hbox.query_child_packing(self.submit_spinner)
             self.status_hbox.remove(self.submit_spinner)
-         except TypeError:
+        except TypeError:
             pass
         
-         try: 
+        try: 
             result = self.status_hbox.query_child_packing(self.submit_error_img)
             self.status_hbox.remove(self.submit_error_img)
-         except TypeError:
+        except TypeError:
             pass
             
-         try: 
+        try: 
             result = self.status_hbox.query_child_packing(self.submit_success_img)
             self.status_hbox.remove(self.submit_success_img)
-         except TypeError:
+        except TypeError:
             pass
         
-         return
+        return
         
             
             
@@ -506,7 +506,7 @@ class SubmitReviewsApp(BaseApp):
     NORMAL_COLOUR = "000000"
     ERROR_COLOUR = "FF0000"
     SUBMIT_MESSAGE = _("Submitting Review")
-    FAILURE_MESSAGE = _("Failed to submit review")
+    FAILURE_MESSAGE = _("Review failed")
 
     def __init__(self, app, version, iconname, origin, parent_xid, datadir):
         BaseApp.__init__(self, datadir, "submit_review.ui")
@@ -959,6 +959,7 @@ class ReportReviewApp(BaseApp):
     APP_ICON_SIZE = 48
     
     SUBMIT_MESSAGE = _(u"Sending report\u2026")
+    FAILURE_MESSAGE = _("Report failed")
 
     def __init__(self, review_id, parent_xid, datadir):
         BaseApp.__init__(self, datadir, "report_abuse.ui")
