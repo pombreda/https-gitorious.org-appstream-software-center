@@ -1,4 +1,4 @@
-software-center (3.1.27) UNRELEASED; urgency=low
+software-center (3.1.26.1) natty; urgency=low
 
   [ Matthew McGowan ]
   * softwarecenter/view/appdetailsview_gtk.py,
@@ -19,7 +19,7 @@ software-center (3.1.27) UNRELEASED; urgency=low
     - use a joinable queue in the multiprocessing code and ensure
       task_done/join is used (LP: #743020)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 08 Apr 2011 11:37:04 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 08 Apr 2011 13:13:49 +0200
 
 software-center (3.1.26) natty; urgency=low
 
