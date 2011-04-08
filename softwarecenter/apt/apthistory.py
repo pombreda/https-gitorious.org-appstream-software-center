@@ -144,8 +144,8 @@ class AptHistory(object):
             # ignore the ones we have already
             if (rescan and
                 len(self.transactions) > 0 and
-                trans.start_date < self.transactions[0].start_date):
-                break
+                trans.start_date <= self.transactions[0].start_date):
+                continue
             # add it
             # FIXME: this is a list, so potentially slow, but its sorted
             #        so we could (and should) do a binary search

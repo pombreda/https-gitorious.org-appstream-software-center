@@ -10,6 +10,11 @@ software-center (3.1.27) UNRELEASED; urgency=low
   * softwarecenter/view/basepane.py:
     - fix crash if the edit menu is activated while viewing
       the pending view or the history pane (LP: #754153) 
+  
+  [ Michael Vogt ]
+  * softwarecenter/apt/apthistory.py:
+    - fix showing newly installed apps in the history (thanks to
+      Geliy Sokolov) LP: #612183)
 
  -- Gary Lasker <gary.lasker@canonical.com>  Thu, 07 Apr 2011 23:57:21 -0400
 
