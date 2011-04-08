@@ -6,7 +6,12 @@ software-center (3.1.27) UNRELEASED; urgency=low
     - tweak color of review stars in details view and the
       review dialog to match listview color (LP: #753620)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 07 Apr 2011 16:45:19 -0400
+  [ Gary Lasker ]
+  * softwarecenter/view/basepane.py:
+    - fix crash if the edit menu is activated while viewing
+      the pending view or the history pane (LP: #754153) 
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 07 Apr 2011 23:57:21 -0400
 
 software-center (3.1.26) natty; urgency=low
 
