@@ -1,3 +1,11 @@
+software-center (3.1.26.2) UNRELEASED; urgency=low
+
+  * softwarecenter/db/update.py:
+    - do not crash if /var/lib/apt-xapian-index/cataloged_times.p can
+      not be read (LP: #636049)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 08 Apr 2011 15:20:41 +0200
+
 software-center (3.1.26.1) natty; urgency=low
 
   [ Matthew McGowan ]
