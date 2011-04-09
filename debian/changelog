@@ -1,4 +1,35 @@
-software-center (3.1.25.1) UNRELEASED; urgency=low
+software-center (3.1.26.2) UNRELEASED; urgency=low
+
+  * softwarecenter/db/update.py:
+    - do not crash if /var/lib/apt-xapian-index/cataloged_times.p can
+      not be read (LP: #636049)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 08 Apr 2011 15:20:41 +0200
+
+software-center (3.1.26.1) natty; urgency=low
+
+  [ Matthew McGowan ]
+  * softwarecenter/view/appdetailsview_gtk.py,
+    softwarecenter/view/widgets/reviews.py:
+    - tweak color of review stars in details view and the
+      review dialog to match listview color (LP: #753620)
+
+  [ Gary Lasker ]
+  * softwarecenter/view/basepane.py:
+    - fix crash if the edit menu is activated while viewing
+      the pending view or the history pane (LP: #754153) 
+  
+  [ Michael Vogt ]
+  * softwarecenter/apt/apthistory.py:
+    - fix showing newly installed apps in the history (thanks to
+      Geliy Sokolov) LP: #612183)
+  * softwarecenter/db/reviews.py: 
+    - use a joinable queue in the multiprocessing code and ensure
+      task_done/join is used (LP: #743020)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 08 Apr 2011 13:13:49 +0200
+
+software-center (3.1.26) natty; urgency=low
 
   [ Gary Lasker ]
   * softwarecenter/view/purchaseview.py:
@@ -14,14 +45,41 @@ software-center (3.1.25.1) UNRELEASED; urgency=low
     softwarecenter/view/appdetailsview_gtk.py:
     - fix ValueError crash that can occur when adding an
       app to the launcher (LP: #750144)
+  * softwarecenter/test/test_appdetails_view.py:
+    - update unit test for the localized date strings
+      in the details view
+  * refresh .pot file
+  * softwarecenter/test/test_unity_launcher_integration.py:
+    - fix broken unit test
+  * softwarecenter/utils.py,
+    softwarecenter/view/softwarepane.py,
+    test/test_unity_launcher_integration.py:
+    - make add to unity launcher feature work correctly for
+      purchased apps, add unit test for this (LP: #752951)
 
   [ Robert Roth ]
   * softwarecenter/view/historypane.py:
     - expand most recent day in the history view (LP: #644438)
     - fix ellipsis of summary text in the list view on a
       window resize (LP: #678442)
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - support localized date string for the installed date
+      in the details view (LP: #751068)
+  * softwarecenter/models/appstore.py:
+    - correctly display half star ratings in listviews and
+      the carousels (LP: #746173)
+  
+  [ Michael Vogt ]
+  * merged lp:~mmcg069/software-center/Bug477285 (LP: #477285),
+    many thanks!
+  * merged lp:~weblive-dev/software-center/weblive-backend-fixes,
+    many thanks!
+  * test/test_gui_buy_something.py:
+    - fix test
+  * data/featured.menu.in:
+    - tweaked for natty
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 04 Apr 2011 16:12:06 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 07 Apr 2011 16:38:32 +0200
 
 software-center (3.1.25) natty; urgency=low
 

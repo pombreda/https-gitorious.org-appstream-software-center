@@ -35,7 +35,7 @@ import thread
 import weakref
 import simplejson
 
-from multiprocessing import Process, Queue
+from multiprocessing import Process, JoinableQueue
 
 from softwarecenter.backend.rnrclient import RatingsAndReviewsAPI, ReviewDetails
 from softwarecenter.db.database import Application
@@ -147,6 +147,15 @@ class Review(object):
         for (attr, value) in other.__dict__.iteritems():
             if not attr.startswith("_"):
                 setattr(review, attr, value)
+        return review
+
+    @classmethod
+    def from_json(cls, other):
+        """ convert json reviews into "out" review objects """
+        app = Application("", other["package_name"])
+        review = cls(app)
+        for k, v in other.iteritems():
+            setattr(review, k, v)
         return review
 
 class ReviewLoader(object):
@@ -343,7 +352,7 @@ class ReviewLoaderThreadedRNRClient(ReviewLoader):
         self._reviews = {}
         # this is a dict of queue objects
         self._new_reviews = {}
-        self._new_review_stats = Queue()
+        self._new_review_stats = JoinableQueue()
 
     def _update_rnrclient_offline_state(self):
         # this needs the lp:~mvo/piston-mini-client/offline-mode branch
@@ -356,7 +365,7 @@ class ReviewLoaderThreadedRNRClient(ReviewLoader):
         """
         app = translated_app.get_untranslated_app(self.db)
         self._update_rnrclient_offline_state()
-        self._new_reviews[app] = Queue()
+        self._new_reviews[app] = JoinableQueue()
         p = Process(target=self._get_reviews_threaded, args=(app, ))
         p.start()
         glib.timeout_add(500, self._reviews_timeout_watcher, app, callback)
@@ -370,6 +379,8 @@ class ReviewLoaderThreadedRNRClient(ReviewLoader):
         # check if we have data waiting
         if not self._new_reviews[app].empty():
             self._reviews[app] = self._new_reviews[app].get()
+            # indicate that we are done
+            self._new_reviews[app].task_done()
             del self._new_reviews[app]
             callback(app, self._reviews[app])
             return False
@@ -419,6 +430,7 @@ class ReviewLoaderThreadedRNRClient(ReviewLoader):
             reviews.append(Review.from_piston_mini_client(r))
         # push into the queue
         self._new_reviews[app].put(sorted(reviews, reverse=True))
+        self._new_reviews[app].join()
 
     # stats
     def refresh_review_stats(self, callback):
@@ -486,20 +498,7 @@ class ReviewLoaderJsonAsync(ReviewLoader):
         reviews_json = simplejson.loads(json_str)
         reviews = []
         for review_json in reviews_json:
-            appname = review_json["app_name"]
-            pkgname = review_json["package_name"]
-            app = Application(appname, pkgname)
-            review = Review(app)
-            review.id = review_json["id"]
-            review.date_created = review_json["date_created"]
-            review.rating = review_json["rating"]
-            if review_json["reviewer_displayname"]:
-                review.reviewer_username = review_json["reviewer_displayname"]
-            else:
-                review.reviewer_username = review_json["reviewer_username"]
-            review.language = review_json["language"]
-            review.summary =  review_json["summary"]
-            review.review_text = review_json["review_text"]
+            review = Review.from_json(review_json)
             reviews.append(review)
         # run callback
         callback(app, reviews)

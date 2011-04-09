@@ -68,12 +68,8 @@ from softwarecenter.backend.rnrclient import RatingsAndReviewsAPI, ReviewRequest
 distro = get_distro()
 SERVER_ROOT=distro.REVIEWS_SERVER
 
-# the SUBMIT url
-SUBMIT_POST_URL = SERVER_ROOT+"/reviews/en/ubuntu/lucid/+create"
-# the REPORT url
-REPORT_POST_URL = SERVER_ROOT+"/reviews/%s/+report-review"
 # server status URL
-SERVER_STATUS_URL = SERVER_ROOT+"/reviews/+server-status"
+SERVER_STATUS_URL = SERVER_ROOT+"/server-status/"
 
 class UserCancelException(Exception):
     """ user pressed cancel """

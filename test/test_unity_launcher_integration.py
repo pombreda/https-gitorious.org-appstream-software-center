@@ -84,10 +84,7 @@ class TestUnityLauncherIntegration(unittest.TestCase):
         
         # now test the values to be used in the dbus call
         app = Application("", model[0][AppStore.COL_PKGNAME])
-        (icon_name,
-        icon_size,
-        icon_x,
-        icon_y) = self.s_c_app.available_pane._get_icon_details_for_launcher_service(app)
+        (icon_size, icon_x, icon_y) = self.s_c_app.available_pane._get_onscreen_icon_details_for_launcher_service(app)
         appdetails = app.get_details(self.s_c_app.db)
         trans_id = "/org/debian/apt/transaction/test101"
         # check that a correct UnityLauncherInfo object has been created and added to the queue
@@ -115,6 +112,12 @@ class TestUnityLauncherIntegration(unittest.TestCase):
         app_install_desktop_path = "./data/app-install/desktop/kde4__soundkonverter.desktop"
         installed_desktop_path = convert_desktop_file_to_installed_location(app_install_desktop_path)
         self.assertEqual(installed_desktop_path, "./data/applications/kde4/soundkonverter.desktop")
+        # test the for-purchase case (uses "software-center-agent" as its appdetails.desktop_file value)
+        # FIXME: this will only work if update-manager is installed
+        app_install_desktop_path = "software-center-agent"
+        installed_desktop_path = convert_desktop_file_to_installed_location(app_install_desktop_path,
+                                                                            "update-manager")
+        self.assertEqual(installed_desktop_path, "/usr/share/applications/update-manager.desktop")
         
 
 if __name__ == "__main__":

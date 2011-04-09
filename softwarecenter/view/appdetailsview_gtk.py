@@ -29,6 +29,7 @@ import subprocess
 import sys
 import cairo
 import pangocairo
+import datetime
 
 from softwarecenter.cmdfinder import CmdFinder
 from softwarecenter.netstatus import NetState, get_network_state, get_network_watcher
@@ -56,7 +57,9 @@ from appdetailsview import AppDetailsViewBase
 from widgets import mkit
 
 from widgets.mkit import EM, ShapeStar
-from widgets.reviews import UIReviewsList, UIReview, ReviewStatsContainer, StarRating, EmbeddedMessage
+from widgets.reviews import UIReviewsList, UIReview, \
+                            ReviewStatsContainer, StarPainter, \
+                            StarRating, EmbeddedMessage
 
 from widgets.description import AppDescription, TextBlock
 from widgets.thumbnail import ScreenshotThumbnail
@@ -266,11 +269,17 @@ class PackageStatusBar(StatusBar):
                 self.set_label(_("Installed (you're using it right now)"))
             else:
                 if app_details.purchase_date:
-                    purchase_date = str(app_details.purchase_date).split()[0]
-                    self.set_label(_('Purchased on %s') % purchase_date)
+                    # purchase_date is a string, must first convert to datetime.datetime
+                    pdate = self._convert_purchase_date_str_to_datetime(app_details.purchase_date)
+                    # TRANSLATORS : %Y-%m-%d formats the date as 2011-03-31, please specify a format per your
+                    # locale (if you prefer, %x can be used to provide a default locale-specific date 
+                    # representation)
+                    self.set_label(pdate.strftime(_('Purchased on %Y-%m-%d')))
                 elif app_details.installation_date:
-                    installation_date = str(app_details.installation_date).split()[0]
-                    self.set_label(_('Installed on %s') % installation_date)
+                    # TRANSLATORS : %Y-%m-%d formats the date as 2011-03-31, please specify a format per your
+                    # locale (if you prefer, %x can be used to provide a default locale-specific date 
+                    # representation)
+                    self.set_label(app_details.installation_date.strftime(_('Installed on %Y-%m-%d')))
                 else:
                     self.set_label(_('Installed'))
             if state == PKG_STATE_REINSTALLABLE: # only deb files atm
@@ -286,8 +295,12 @@ class PackageStatusBar(StatusBar):
             self.set_label("US$ %s" % app_details.price)
             self.set_button_label(_(u'Buy\u2026'))
         elif state == PKG_STATE_PURCHASED_BUT_REPO_MUST_BE_ENABLED:
-            purchase_date = str(app_details.purchase_date).split()[0]
-            self.set_label(_('Purchased on %s') % purchase_date)
+            # purchase_date is a string, must first convert to datetime.datetime
+            pdate = self._convert_purchase_date_str_to_datetime(app_details.purchase_date)
+            # TRANSLATORS : %Y-%m-%d formats the date as 2011-03-31, please specify a format per your
+            # locale (if you prefer, %x can be used to provide a default locale-specific date 
+            # representation)
+            self.set_label(pdate.strftime(_('Purchased on %Y-%m-%d')))
             self.set_button_label(_('Install'))
         elif state == PKG_STATE_UNINSTALLED:
             #special label only if the app being viewed is software centre itself
@@ -338,6 +351,10 @@ class PackageStatusBar(StatusBar):
            PKG_STATE_REMOVING, PKG_STATE_UPGRADING, APP_ACTION_APPLY)):
             self.set_label(self.app_details.warning)
         return
+        
+    def _convert_purchase_date_str_to_datetime(self, purchase_date):
+        if purchase_date is not None:
+            return datetime.datetime.strptime(purchase_date, "%Y-%m-%d %H:%M:%S")
 
 
 class PackageInfo(gtk.HBox):
@@ -837,7 +854,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             # Try to give some indication that we are connecting
             weblive_start_timer()
         else:
-            d = ShowWebLiveServerChooserDialog(servers)
+            d = ShowWebLiveServerChooserDialog(servers, self.app.pkgname)
             serverid=None
             if d.run() == gtk.RESPONSE_OK:
                 for server in d.servers_vbox:
@@ -985,7 +1002,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         vb_inner.pack_start(self.usage)
 
         # star rating widget
-        a = gtk.Alignment(0.5, 0.5)
+        a = gtk.Alignment(0.0, 0.5)
+        self.review_stats_widget.star_rating.set_paint_style(StarPainter.STYLE_BIG)
         a.add(self.review_stats_widget)
         hb.pack_end(a, False)
 
@@ -1746,5 +1764,8 @@ if __name__ == "__main__":
     win.connect('destroy', gtk.main_quit)
 
     # keep it spinning to test for re-draw issues and memleaks
-#    glib.timeout_add_seconds(2, _show_app, view)
+    #glib.timeout_add_seconds(2, _show_app, view)
+
+
+    # run it
     gtk.main()

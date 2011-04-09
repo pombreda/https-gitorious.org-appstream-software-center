@@ -66,7 +66,10 @@ axi_values = parse_axi_values_file()
 cataloged_times = {}
 CF = "/var/lib/apt-xapian-index/cataloged_times.p"
 if os.path.exists(CF):
-    cataloged_times = cPickle.load(open(CF))
+    try:
+        cataloged_times = cPickle.load(open(CF))
+    except EOFError as e:
+        logging.warn("failed to read %s (%s" % (CF, e))
 del CF
 
 class AppInfoParserBase(object):

@@ -447,7 +447,8 @@ class SoftwarePane(gtk.VBox, BasePane):
             launcher_info.icon_file_path = get_file_path_from_iconname(self.icons,
                                                                        launcher_info.icon_name)
             launcher_info.installed_desktop_file_path \
-                = convert_desktop_file_to_installed_location(launcher_info.app_install_desktop_file_path)
+                = convert_desktop_file_to_installed_location(launcher_info.app_install_desktop_file_path,
+                                                             result.pkgname)
             if result.success:
                 self._send_dbus_signal_to_unity_launcher(launcher_info)
             self.action_bar.clear()
