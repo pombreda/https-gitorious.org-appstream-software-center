@@ -390,7 +390,7 @@
     <property name="type_hint">normal</property>
     <property name="has_separator">False</property>
     <property name="version">0.3.4</property>
-    <property name="copyright" translatable="yes">©2009-2010 Canonical</property>
+    <property name="copyright" translatable="yes">©2009-2011 Canonical</property>
     <property name="website">http://launchpad.net/software-center</property>
     <property name="authors">Michael Vogt - Coding, Fixes
 Matthew Paul Thomas - UI Design
@@ -492,12 +492,12 @@ Zygmunt Krynicki - Coding, Fixes
     </child>
   </object>
   <object class="GtkAction" id="navhistory_back_action">
-    <property name="label">_Go Back</property>
+    <property name="label" translatable="yes">_Go Back</property>
     <property name="stock_id">gtk-go-back</property>
     <signal name="activate" handler="on_navhistory_back_action_activate"/>
   </object>
   <object class="GtkAction" id="navhistory_forward_action">
-    <property name="label">_Go Forward</property>
+    <property name="label" translatable="yes">_Go Forward</property>
     <property name="stock_id">gtk-go-forward</property>
     <signal name="activate" handler="on_navhistory_forward_action_activate"/>
   </object>

@@ -9,7 +9,7 @@ import xapian
 from gettext import gettext as _
 
 from widgets import mkit
-from appview import AppStore
+from appview import AppStore, AppViewFilter
 
 from softwarecenter.db.application import Application
 
@@ -175,6 +175,11 @@ class LobbyViewGtk(CategoriesViewGtk):
         self.whatsnew_carousel = None
         self.departments = None
 
+        # this means that the departments don't jump down once the cache loads
+        # it doesn't look odd if the recommends are never loaded
+        self.recommended = gtk.Label()
+        self.vbox.pack_start(self.recommended, False, False)
+
         self.build(desktopdir)
         return
 
@@ -191,7 +196,7 @@ class LobbyViewGtk(CategoriesViewGtk):
 
         # paint the section backdrop
         if self.section: 
-            self.section.render(cr, alignment.allocation)
+            self.section.render(cr, self, alignment.allocation)
 
         # featured carousel
         # draw the info vbox bg
@@ -253,10 +258,12 @@ class LobbyViewGtk(CategoriesViewGtk):
         for sig_id in self._poster_sigs:
             gobject.source_remove(sig_id)
         self._poster_sigs = []
-        for poster in self.featured_carousel.posters:
-            self._poster_sigs.append(poster.connect('clicked', self._on_app_clicked))
-        for poster in self.whatsnew_carousel.posters:
-            self._poster_sigs.append(poster.connect('clicked', self._on_app_clicked))
+        if self.featured_carousel:
+            for poster in self.featured_carousel.posters:
+                self._poster_sigs.append(poster.connect('clicked', self._on_app_clicked))
+        if self.whatsnew_carousel:
+            for poster in self.whatsnew_carousel.posters:
+                self._poster_sigs.append(poster.connect('clicked', self._on_app_clicked))
 
 #        print self._poster_sigs
         return
@@ -273,21 +280,26 @@ class LobbyViewGtk(CategoriesViewGtk):
     @wait_for_apt_cache_ready
     def _append_recommendations(self):
         """ get recommendations from zeitgeist and add to the view """
+        # FIXME: the whole process of finding mimetypes, querying db etc seems
+        #        to be a bit duplicated
 
-        def _show_recommended_apps_widget(query, r_apps):
-            recommended = gtk.Label()
-            recommended_text = gettext.ngettext(
+        def _show_recommended_apps_widget(query):
+            # determine correctly how many apps will be shown
+            enquire = xapian.Enquire(self.db.xapiandb)
+            enquire.set_query(query)
+            tmp_matches = enquire.get_mset(0, len(self.db), None, self.apps_filter)
+            nr_apps = tmp_matches.get_matches_estimated()
+
+            # update the widget
+            text = gettext.ngettext(
              "Welcome back! There is <a href=\"\">%i new recommendation</a>"
-                                                   " for you." % len(r_apps),
+                                                   " for you." % nr_apps,
              "Welcome back! There are <a href=\"\">%i new recommendations</a>"
-                                                     " for you." % len(r_apps),
-             len(r_apps))
-            recommended.set_markup(recommended_text)
-            recommended.set_visible(True)
-            recommended.get_accessible().set_role(atk.ROLE_PUSH_BUTTON)
-            recommended.set_alignment(0,-1)
-            self.vbox.pack_start(recommended, False, False)
-            self.vbox.reorder_child(recommended, 0)
+                                                     " for you." % nr_apps,
+             nr_apps)
+            self.recommended.set_markup(text)
+            self.recommended.get_accessible().set_role(atk.ROLE_PUSH_BUTTON)
+            self.recommended.set_alignment(0,-1)
 
             # build category
             rec_cat = Category("Recommendations",
@@ -295,9 +307,9 @@ class LobbyViewGtk(CategoriesViewGtk):
                                "category-recommendations",
                                query,
                                sortmode=SORT_BY_SEARCH_RANKING)
-            recommended.connect('activate-link',
-                                self._on_recommended_clicked,
-                                rec_cat)
+            self.recommended.connect('activate-link',
+                                     self._on_recommended_clicked,
+                                     rec_cat)
               
         def _popular_mimetypes_callback(mimetypes):
             def _find_applications(mimetypes):
@@ -317,15 +329,10 @@ class LobbyViewGtk(CategoriesViewGtk):
                     results.append("AP"+app.pkgname)
                 return results
 
-            def _make_query(r_apps):
-                if len(r_apps) > 0:
-                    return xapian.Query(xapian.Query.OP_OR, r_apps)
-                return None
             # get the recommended apps     
             r_apps =_find_applications(mimetypes) 
             if r_apps:
-                # build the widget
-                _show_recommended_apps_widget(_make_query(r_apps), r_apps)
+                _show_recommended_apps_widget(xapian.Query(xapian.Query.OP_OR, r_apps))
         
         zeitgeist_singleton.get_popular_mimetypes(_popular_mimetypes_callback)
 
@@ -333,6 +340,7 @@ class LobbyViewGtk(CategoriesViewGtk):
         self._on_category_clicked(self, rec_cat)
         return True # mutter..
 
+    @wait_for_apt_cache_ready # be consistent with new apps
     def _append_featured(self):
 
         # add some filler...
@@ -355,7 +363,6 @@ class LobbyViewGtk(CategoriesViewGtk):
                                      self.icons,
                                      featured_cat.query,
                                      self.apps_limit,
-                                     exact=True,
                                      filter=self.apps_filter,
                                      icon_size=best_stock_size,
                                      global_icon_cache=False,
@@ -374,11 +381,16 @@ class LobbyViewGtk(CategoriesViewGtk):
             self.vbox.pack_start(self.featured_carousel, False)
         return
 
+    @wait_for_apt_cache_ready # required for the filter to work
     def _append_whatsnew(self):
         # create new-apps widget
         new_cat = get_category_by_name(self.categories, 
                                        u"What\u2019s New")
         if new_cat:
+            if not self.apps_filter:
+                self.apps_filter = AppViewFilter(self.db, self.cache)
+            self.apps_filter.set_available_only(True)
+            self.apps_filter.set_not_installed_only(True)
             new_apps = AppStore(self.cache,
                                 self.db,
                                 self.icons,
@@ -390,6 +402,8 @@ class LobbyViewGtk(CategoriesViewGtk):
                                 global_icon_cache=False,
                                 nonapps_visible=AppStore.NONAPPS_MAYBE_VISIBLE,
                                 nonblocking_load=False)
+            self.apps_filter.set_available_only(False)
+            self.apps_filter.set_not_installed_only(False)
 
             self.whatsnew_carousel = CarouselView(self,
                                                   new_apps,
@@ -483,6 +497,7 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         self.root_category = root_category
 
         # sections
+        self.current_category = None
         self.departments = None
         return
 
@@ -498,7 +513,7 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         cr.fill()
 
         # paint the section backdrop
-        if self.section: self.section.render(cr, alignment.allocation)
+        if self.section: self.section.render(cr, self, alignment.allocation)
 
         del cr
 
@@ -524,9 +539,23 @@ class SubCategoryViewGtk(CategoriesViewGtk):
 
         buttons = []
         for cat in sorted_cats:
-            cat_btn = SubcategoryButton(cat.name, cat.iconname)
-            cat_btn.connect('clicked', self._on_category_clicked, cat)
-            buttons.append(cat_btn)
+            # add the subcategory if and only if it is non-empty
+            enquire = xapian.Enquire(self.db.xapiandb)
+            enquire.set_query(cat.query)
+            if len(enquire.get_mset(0, 1, None, self.apps_filter)):
+                cat_btn = SubcategoryButton(cat.name, cat.iconname)
+                cat_btn.connect('clicked', self._on_category_clicked, cat)
+                buttons.append(cat_btn)
+
+        # partialy work around a (quite rare) corner case
+        if num_items == 0:
+            enquire = xapian.Enquire(self.db.xapiandb)
+            enquire.set_query(xapian.Query(xapian.Query.OP_AND, 
+                                           root_category.query,
+                                           xapian.Query("ATapplication")))
+            # assuming that we only want apps is not always correct ^^^
+            tmp_matches = enquire.get_mset(0, len(self.db), None, self.apps_filter)
+            num_items = tmp_matches.get_matches_estimated()
 
         # append an additional button to show all of the items in the category
         name = gobject.markup_escape_text('%s %s' % (_("All"), num_items))
@@ -548,6 +577,7 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         return
 
     def set_subcategory(self, root_category, num_items=0, block=False):
+        self.current_category = root_category
         # nothing to do
         if self.categories == root_category.subcategories:
             return

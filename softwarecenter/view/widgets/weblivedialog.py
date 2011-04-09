@@ -22,7 +22,7 @@ import gtk, sys
 class ShowWebLiveServerChooserDialog(gtk.Dialog):
     """A dialog to choose between multiple server"""
 
-    def __init__(self, supplied_servers, parent=None):
+    def __init__(self, supplied_servers, pkgname, parent=None):
         gtk.Dialog.__init__(self)
         self.set_has_separator(False)
 
@@ -43,8 +43,23 @@ class ShowWebLiveServerChooserDialog(gtk.Dialog):
                 if server.title == otherserver.title:
                     percent_server=((float(server.current_users)/float(server.userlimit))*100.0)
                     percent_otherserver=((float(otherserver.current_users)/float(otherserver.userlimit))*100.0)
-                    if percent_otherserver < percent_server:
-                        otherserver=server
+                    for package in server.packages:
+                        if package.pkgname == pkgname:
+                            autoinstall_server=package.autoinstall
+
+                    for package in otherserver.packages:
+                        if package.pkgname == pkgname:
+                            autoinstall_otherserver=package.autoinstall
+
+                    # Replace existing server if:
+                    #  current server has more free slots and we don't switch 
+                    #  to a server requiring autoinstall
+                    #  or doesn't need autoinstall but existing one does
+                    if ( (percent_otherserver > percent_server and
+                          not autoinstall_otherserver < autoinstall_server) or
+                         autoinstall_otherserver > autoinstall_server ):
+                        servers.remove(otherserver)
+                        servers.append(server)
                     duplicate=True
 
             if duplicate:
@@ -52,9 +67,14 @@ class ShowWebLiveServerChooserDialog(gtk.Dialog):
 
             servers.append(server)
 
+        if len(servers) == 1:
+            self.show_dialog=False
+        else:
+            self.show_dialog=True
+
         button=None
-        for server in servers:
-            button=gtk.RadioButton(button, server.title)
+        for server in sorted(servers, key=lambda server: server.title):
+            button=gtk.RadioButton(button, "%s - %s" % (server.title, server.description))
             button.serverid=server.name
             self.servers_vbox.pack_start(button, True, True, 0)
 
@@ -65,9 +85,13 @@ class ShowWebLiveServerChooserDialog(gtk.Dialog):
         self.add_button(gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL)
         self.add_button(gtk.STOCK_OK, gtk.RESPONSE_OK)
         self.set_resizable(False)
-        self.set_title("WebLive server chooser")
+        self.set_title(_("Choose your distribution"))
+        self.set_border_width(8)
 
     def run(self):
+        if self.show_dialog == False:
+            return gtk.RESPONSE_OK
+
         self.show_all()
 
         # and run the real thing

@@ -31,6 +31,12 @@ class BasePane(object):
 
     def is_category_view_showing(self):
         return False
+        
+    def is_applist_view_showing(self):
+        return False
+        
+    def is_app_details_view_showing(self):
+        return False
 
     def get_status_text(self):
         return ""

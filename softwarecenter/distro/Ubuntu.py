@@ -38,16 +38,15 @@ class Ubuntu(Distro):
     SCREENSHOT_LARGE_URL = "http://screenshots.ubuntu.com/screenshot-with-version/%(pkgname)s/%(version)s"
 
     # purchase subscription
-    PURCHASE_APP_URL = BUY_SOMETHING_HOST+"/subscriptions/%s/ubuntu/maverick/+new/?%s"
+    PURCHASE_APP_URL = BUY_SOMETHING_HOST+"/subscriptions/%s/ubuntu/%s/+new/?%s"
 
     # reviews
-    REVIEWS_SERVER = os.environ.get("SOFTWARE_CENTER_REVIEWS_HOST") or "http://reviews.staging.ubuntu.com/reviews/api/1.0"
-    REVIEWS_SERVER_SSL = REVIEWS_SERVER.replace("http://", "https://")
-    REVIEWS_URL = urllib.basejoin(REVIEWS_SERVER, "/reviews/api/1.0/%(language)s/%(origin)s/%(distroseries)s/%(pkgname)s%(appname)s/")
+    REVIEWS_SERVER = os.environ.get("SOFTWARE_CENTER_REVIEWS_HOST") or "http://reviews.ubuntu.com/reviews/api/1.0"
+    REVIEWS_URL = REVIEWS_SERVER + "/reviews/filter/%(language)s/%(origin)s/%(distroseries)s/%(version)s/%(pkgname)s%(appname)s/"
 
     #REVIEW_STATS_URL = REVIEWS_SERVER+"/reviews/api/1.0/%(language)s/%(origin)s/%(distroseries)s/review-stats/"
     # FIXME: does that make sense?!?
-    REVIEW_STATS_URL = REVIEWS_SERVER+"/reviews/api/1.0/review-stats"
+    REVIEW_STATS_URL = REVIEWS_SERVER+"/review-stats"
 
     def get_app_name(self):
         return _("Ubuntu Software Center")
@@ -104,9 +103,8 @@ class Ubuntu(Distro):
             return _("Proprietary")
 
     def is_supported(self, cache, doc, pkgname):
-        section = doc.get_value(XAPIAN_VALUE_ARCHIVE_SECTION)
-        if section == "main" and section == "restricted":
-            return True
+        # the doc does not by definition contain correct data regarding the
+        # section. Looking up in the cache seems just as fast/slow.
         if pkgname in cache and cache[pkgname].candidate:
             for origin in cache[pkgname].candidate.origins:
                 if (origin.origin == "Ubuntu" and 

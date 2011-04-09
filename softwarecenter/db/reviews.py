@@ -35,7 +35,7 @@ import thread
 import weakref
 import simplejson
 
-from multiprocessing import Process, Queue
+from multiprocessing import Process, JoinableQueue
 
 from softwarecenter.backend.rnrclient import RatingsAndReviewsAPI, ReviewDetails
 from softwarecenter.db.database import Application
@@ -142,11 +142,20 @@ class Review(object):
             "our" Review object (we need this as we have more
             attributes then the rnrclient review object)
         """
-        app = Application(other.app_name, other.package_name)
+        app = Application("", other.package_name)
         review = cls(app)
         for (attr, value) in other.__dict__.iteritems():
             if not attr.startswith("_"):
                 setattr(review, attr, value)
+        return review
+
+    @classmethod
+    def from_json(cls, other):
+        """ convert json reviews into "out" review objects """
+        app = Application("", other["package_name"])
+        review = cls(app)
+        for k, v in other.iteritems():
+            setattr(review, k, v)
         return review
 
 class ReviewLoader(object):
@@ -162,7 +171,7 @@ class ReviewLoader(object):
         if not self.distro:
             self.distro = softwarecenter.distro.get_distro()
         fname = "%s_%s" % (uri_to_filename(self.distro.REVIEWS_SERVER),
-                           "review-stats.p")
+                           "review-stats-pkgnames.p")
         self.REVIEW_STATS_CACHE_FILE = os.path.join(SOFTWARE_CENTER_CACHE_DIR,
                                                     fname)
         self.language = get_language()
@@ -181,7 +190,7 @@ class ReviewLoader(object):
         return []
 
     def update_review_stats(self, translated_application, stats):
-        application = translated_application.get_untranslated_app(self.db)
+        application = Application("", translated_application.pkgname)
         self.REVIEW_STATS_CACHE[application] = stats
 
     def get_review_stats(self, translated_application):
@@ -190,7 +199,7 @@ class ReviewLoader(object):
            as it is called a lot during tree view display
         """
         # check cache
-        application = translated_application.get_untranslated_app(self.db)
+        application = Application("", translated_application.pkgname)
         if application in self.REVIEW_STATS_CACHE:
             return self.REVIEW_STATS_CACHE[application]
         return None
@@ -315,7 +324,7 @@ class ReviewLoader(object):
                         review.usefulness_total = getattr(review, "usefulness_total", 0) + 1
                         if is_useful:
                             review.usefulness_favorable = getattr(review, "usefulness_favorable", 0) + 1
-                        callback(app, self._reviews[app])
+                        callback(app, self._reviews[app], useful_votes)
                         break
         else:
             LOG.debug("submit usefulness id=%s failed with exitcode %s" % (
@@ -343,7 +352,7 @@ class ReviewLoaderThreadedRNRClient(ReviewLoader):
         self._reviews = {}
         # this is a dict of queue objects
         self._new_reviews = {}
-        self._new_review_stats = Queue()
+        self._new_review_stats = JoinableQueue()
 
     def _update_rnrclient_offline_state(self):
         # this needs the lp:~mvo/piston-mini-client/offline-mode branch
@@ -356,7 +365,7 @@ class ReviewLoaderThreadedRNRClient(ReviewLoader):
         """
         app = translated_app.get_untranslated_app(self.db)
         self._update_rnrclient_offline_state()
-        self._new_reviews[app] = Queue()
+        self._new_reviews[app] = JoinableQueue()
         p = Process(target=self._get_reviews_threaded, args=(app, ))
         p.start()
         glib.timeout_add(500, self._reviews_timeout_watcher, app, callback)
@@ -370,6 +379,8 @@ class ReviewLoaderThreadedRNRClient(ReviewLoader):
         # check if we have data waiting
         if not self._new_reviews[app].empty():
             self._reviews[app] = self._new_reviews[app].get()
+            # indicate that we are done
+            self._new_reviews[app].task_done()
             del self._new_reviews[app]
             callback(app, self._reviews[app])
             return False
@@ -419,6 +430,7 @@ class ReviewLoaderThreadedRNRClient(ReviewLoader):
             reviews.append(Review.from_piston_mini_client(r))
         # push into the queue
         self._new_reviews[app].put(sorted(reviews, reverse=True))
+        self._new_reviews[app].join()
 
     # stats
     def refresh_review_stats(self, callback):
@@ -459,7 +471,7 @@ class ReviewLoaderThreadedRNRClient(ReviewLoader):
         # convert to the format that s-c uses
         review_stats = self.REVIEW_STATS_CACHE
         for r in piston_review_stats:
-            s = ReviewStats(Application(r.app_name, r.package_name))
+            s = ReviewStats(Application("", r.package_name))
             s.ratings_average = float(r.ratings_average)
             s.ratings_total = float(r.ratings_total)
             review_stats[s.app] = s
@@ -486,17 +498,7 @@ class ReviewLoaderJsonAsync(ReviewLoader):
         reviews_json = simplejson.loads(json_str)
         reviews = []
         for review_json in reviews_json:
-            appname = review_json["app_name"]
-            pkgname = review_json["package_name"]
-            app = Application(appname, pkgname)
-            review = Review(app)
-            review.id = review_json["id"]
-            review.date_created = review_json["date_created"]
-            review.rating = review_json["rating"]
-            review.reviewer_username = review_json["reviewer_username"]
-            review.language = review_json["language"]
-            review.summary =  review_json["summary"]
-            review.review_text = review_json["review_text"]
+            review = Review.from_json(review_json)
             reviews.append(review)
         # run callback
         callback(app, reviews)
@@ -511,10 +513,11 @@ class ReviewLoaderJsonAsync(ReviewLoader):
         else:
             appname = ""
         url = self.distro.REVIEWS_URL % { 'pkgname' : app.pkgname,
-                                          'appname' : appname,
+                                          'appname' : urllib.quote_plus(appname.encode("utf-8")),
                                           'language' : self.language,
                                           'origin' : origin,
                                           'distroseries' : distroseries,
+                                          'version' : 'any',
                                          }
         LOG.debug("looking for review at '%s'" % url)
         f=gio.File(url)
@@ -539,7 +542,7 @@ class ReviewLoaderJsonAsync(ReviewLoader):
         for review_stat_json in review_stats_json:
             appname = review_stat_json["app_name"]
             pkgname = review_stat_json["package_name"]
-            app = Application(appname, pkgname)
+            app = Application('', pkgname)
             stats = ReviewStats(app)
             stats.ratings_total = int(review_stat_json["ratings_total"])
             stats.ratings_average = float(review_stat_json["ratings_average"])
@@ -552,13 +555,7 @@ class ReviewLoaderJsonAsync(ReviewLoader):
 
     def refresh_review_stats(self, callback):
         """ get the review statists and call callback when its there """
-        origin = self.cache.get_origin(app.pkgname)
-        distroseries = self.distro.get_codename()
-        url = self.distro.REVIEW_STATS_URL % { 'language' : self.language,
-                                               'origin' : origin,
-                                               'distroseries' : distroseries,
-                                             }
-        f=gio.File(url)
+        f=gio.File(self.distro.REVIEW_STATS_URL)
         f.set_data("callback", callback)
         f.load_contents_async(self._gio_review_stats_download_finished_callback)
 
@@ -745,13 +742,18 @@ def get_review_loader(cache, db=None):
     """
     global review_loader
     if not review_loader:
+        try: # in the guest session this fails
+            Queue()
+            gio = False
+        except:
+            gio = True
         if "SOFTWARE_CENTER_IPSUM_REVIEWS" in os.environ:
             review_loader = ReviewLoaderIpsum(cache, db)
         elif "SOFTWARE_CENTER_FORTUNE_REVIEWS" in os.environ:
             review_loader = ReviewLoaderFortune(cache, db)
         elif "SOFTWARE_CENTER_TECHSPEAK_REVIEWS" in os.environ:
             review_loader = ReviewLoaderTechspeak(cache, db)
-        elif "SOFTWARE_CENTER_GIO_REVIEWS" in os.environ:
+        elif gio or "SOFTWARE_CENTER_GIO_REVIEWS" in os.environ:
             review_loader = ReviewLoaderJsonAsync(cache, db)
         else:
             review_loader = ReviewLoaderThreadedRNRClient(cache, db)

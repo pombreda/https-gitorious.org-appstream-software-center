@@ -151,7 +151,7 @@ class Layout(pango.Layout):
 
 class Cursor(object):
 
-    WORD_TERMINATORS = (' ',)
+    WORD_TERMINATORS = (' ',)   # empty space. suggestions recommended...
 
     def __init__(self, parent):
         self.parent = parent
@@ -300,7 +300,7 @@ class SelectionCursor(Cursor):
 
 class TextBlock(gtk.EventBox):
 
-    PAINT_PRIMARY_CURSOR = True
+    PAINT_PRIMARY_CURSOR = False
     BULLET_POINT = u'  \u2022  '
 
     INFOCUS_NORM = 0
@@ -981,6 +981,10 @@ class TextBlock(gtk.EventBox):
         self.order.append(l)
         return
 
+    def copy_clipboard(self):
+        self._copy_text(self.selection)
+        return
+
     def get_selected_text(self, sel=None):
         text = ''
         if not sel:
@@ -988,6 +992,11 @@ class TextBlock(gtk.EventBox):
         for layout in self.order:
             text += self._selection_copy(layout, sel, (layout.index > 0))
         return text
+
+    def select_all(self):
+        self._select_all(self.cursor, self.selection)
+        self.queue_draw()
+        return
 
     def finished(self):
         self.queue_resize()
@@ -1116,6 +1125,16 @@ class AppDescription(gtk.VBox):
 
         self.show_all()
         return
+
+    # easy access to some TextBlock methods
+    def copy_clipboard(self):
+        return TextBlock.copy_clipboard(self.description)
+
+    def get_selected_text(self):
+        return TextBlock.get_selected_text(self.description)
+
+    def select_all(self):
+        return TextBlock.select_all(self.description)
 
 
 if __name__ == '__main__':

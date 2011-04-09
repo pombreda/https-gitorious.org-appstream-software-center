@@ -92,9 +92,14 @@ class ViewItemCellRenderer(gtk.CellRendererText):
             h = min(cell_area.height-8, lh+8)
 
             # shrink text area width to make room for the bubble
-            area = gtk.gdk.Rectangle(cell_area.x, cell_area.y,
-                                     cell_area.width-w-9,
-                                     cell_area.height)
+            if widget.get_direction() != gtk.TEXT_DIR_RTL:
+                area = gtk.gdk.Rectangle(cell_area.x, cell_area.y,
+                                         cell_area.width-w-9,
+                                         cell_area.height)
+            else:
+                area = gtk.gdk.Rectangle(w+9+cell_area.x, cell_area.y,
+                                         cell_area.width-w-9,
+                                         cell_area.height)
         else:
             area = cell_area
 
@@ -113,10 +118,14 @@ class ViewItemCellRenderer(gtk.CellRendererText):
         cr = window.cairo_create()
 
         # draw action bubble background
-        x = max(3, cell_area.x + cell_area.width - w)
+        if widget.get_direction() != gtk.TEXT_DIR_RTL:
+            x = max(3, cell_area.x + cell_area.width - w)
+        else:
+            x = 3
+
         y = cell_area.y + (cell_area.height-h)/2
 
-        self._rr.layout(cr, x, y, x+w, y+h, radius=7)
+        self._rr.layout(cr, x, y, x + w, y + h, radius=7)
         cr.set_source_rgb(*floats_from_gdkcolor(widget.style.dark[state]))
         cr.fill_preserve()
 
@@ -126,8 +135,8 @@ class ViewItemCellRenderer(gtk.CellRendererText):
         cr.set_source(lin)
         cr.fill_preserve()
 
-        x, y = int(x+(w-lw)*0.5+0.5), int(y+(h-lh)*0.5+0.5),
-                                  
+        x = int(x+(w-lw)*0.5+0.5)
+        y = int(y+(h-lh)*0.5+0.5)
 
         # bubble number shadow
         widget.style.paint_layout(window,

@@ -70,15 +70,19 @@ class GwibberHelper(object):
     def has_accounts_in_sqlite():
         """ return if there are accounts for gwibber in sqlite """
         # don't use dbus, triggers a gwibber start each time we call this
-        import sqlite3
         dbpath = "%s/gwibber/gwibber.sqlite" % xdg.xdg_config_home
         if not os.path.exists(dbpath):
             return False
-        with sqlite3.connect(dbpath) as db:
-            results = db.execute("SELECT data FROM accounts")
-            if len(results.fetchall()) > 0:
-                return True
-        return False
+        try:
+            import sqlite3
+            with sqlite3.connect(dbpath) as db:
+                results = db.execute("SELECT data FROM accounts")
+                if len(results.fetchall()) > 0:
+                    return True
+            return False
+        except:
+            logging.exception("GwibberHelper.has_accounts_in_sqlite() failed")
+            return False
 
 class GwibberHelperMock(object):
         

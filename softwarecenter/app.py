@@ -32,41 +32,39 @@ import sys
 import xapian
 import glob
 
-with ExecutionTime("TIME loading app.py imports"):
-    # purely to initialize the netstatus
-    import softwarecenter.netstatus
+# purely to initialize the netstatus
+import softwarecenter.netstatus
 
-    from SimpleGtkbuilderApp import SimpleGtkbuilderApp
-    from softwarecenter.db.application import Application, DebFileApplication
-    from softwarecenter.enums import *
-    from softwarecenter.paths import *
-    from softwarecenter.utils import *
-    from softwarecenter.version import *
-    from softwarecenter.db.database import StoreDatabase
-    import softwarecenter.view.dependency_dialogs as dependency_dialogs
-    import softwarecenter.view.deauthorize_dialog as deauthorize_dialog
-    from softwarecenter.view.softwarepane import wait_for_apt_cache_ready
+from SimpleGtkbuilderApp import SimpleGtkbuilderApp
+from softwarecenter.db.application import Application, DebFileApplication
+from softwarecenter.enums import *
+from softwarecenter.paths import *
+from softwarecenter.utils import *
+from softwarecenter.version import *
+from softwarecenter.db.database import StoreDatabase
+import softwarecenter.view.dependency_dialogs as dependency_dialogs
+import softwarecenter.view.deauthorize_dialog as deauthorize_dialog
+from softwarecenter.backend.aptd import TransactionFinishedResult
 
-    import view.dialogs
-    from view.viewswitcher import ViewSwitcher
-    from view.pendingview import PendingView
-    from view.installedpane import InstalledPane
-    from view.channelpane import ChannelPane
-    from view.availablepane import AvailablePane
-    from view.softwarepane import SoftwareSection
-    from view.historypane import HistoryPane
-    from view.viewmanager import ViewManager
+import view.dialogs
+from view.viewswitcher import ViewSwitcher
+from view.pendingview import PendingView
+from view.installedpane import InstalledPane
+from view.channelpane import ChannelPane
+from view.availablepane import AvailablePane
+from view.softwarepane import SoftwareSection
+from view.historypane import HistoryPane
+from view.viewmanager import ViewManager
 
-    from config import get_config
-    from backend import get_install_backend
-    from paths import SOFTWARE_CENTER_ICON_CACHE_DIR
+from config import get_config
+from backend import get_install_backend
+from paths import SOFTWARE_CENTER_ICON_CACHE_DIR
 
-    from plugin import PluginManager
-    from db.reviews import get_review_loader
-    from distro import get_distro
-    from apt.aptcache import AptCache
-    from gettext import gettext as _
-
+from plugin import PluginManager
+from db.reviews import get_review_loader
+from distro import get_distro
+from apt.aptcache import AptCache
+from gettext import gettext as _
 
 
 class SoftwarecenterDbusController(dbus.service.Object):
@@ -515,12 +513,11 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
     def _on_sso_login(self, sso, oauth_result):
         self._sso_login_successful = True
         # consumer key is the openid identifier
-        print "query"
         self.scagent.query_available_for_me(oauth_result["token"],
                                             oauth_result["consumer_key"])
 
     def _available_for_me_result(self, scagent, result_list):
-        print "available_for_me_result", result_list
+        #print "available_for_me_result", result_list
         from db.update import add_from_purchased_but_needs_reinstall_data
         available_for_me_query = add_from_purchased_but_needs_reinstall_data(
             result_list, self.db, self.cache)
@@ -536,7 +533,11 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         if action == "remove":
             if not dependency_dialogs.confirm_remove(None, self.datadir, app,
                                                      self.db, self.icons):
-                    self.backend.emit("transaction-stopped", app.pkgname)
+                    # craft an instance of TransactionFinishedResult to send with the
+                    # transaction-stopped signal
+                    result = TransactionFinishedResult(None, None)
+                    result.pkgname = app.pkgname
+                    self.backend.emit("transaction-stopped", result)
                     return
         elif action == "install":
             # If we are installing a package, check for dependencies that will 
@@ -544,7 +545,11 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             # generic removal text (fixing LP bug #554319)
             if not dependency_dialogs.confirm_install(None, self.datadir, app, 
                                                       self.db, self.icons):
-                    self.backend.emit("transaction-stopped", app.pkgname)
+                    # craft an instance of TransactionFinishedResult to send with the
+                    # transaction-stopped signal
+                    result = TransactionFinishedResult(None, None)
+                    result.pkgname = app.pkgname
+                    self.backend.emit("transaction-stopped", result)
                     return
 
         # this allows us to 'upgrade' deb files
@@ -764,11 +769,22 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             # search sensitive if searchentry is not focused
             else:
                 self.menuitem_search.set_sensitive(True)
+
         # weblink
         if self.active_pane:
             app = self.active_pane.get_current_app()
             if app and app.pkgname in self.cache:
                 self.menuitem_copy_web_link.set_sensitive(True)
+
+        # details view
+        if (self.active_pane and 
+            self.active_pane.is_app_details_view_showing()):
+
+            self.menuitem_select_all.set_sensitive(True)
+            sel_text = self.active_pane.app_details_view.desc.get_selected_text()
+
+            if sel_text:
+                self.menuitem_copy.set_sensitive(True)
 
     def on_menuitem_undo_activate(self, menuitem):
         self.active_pane.searchentry.undo()
@@ -780,7 +796,13 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.active_pane.searchentry.cut_clipboard()
 
     def on_menuitem_copy_activate(self, menuitem):
-        self.active_pane.searchentry.copy_clipboard()
+        if (self.active_pane and
+            self.active_pane.is_app_details_view_showing()):
+
+            self.active_pane.app_details_view.desc.copy_clipboard()
+
+        elif self.active_pane:
+            self.active_pane.searchentry.copy_clipboard()
 
     def on_menuitem_paste_activate(self, menuitem):
         self.active_pane.searchentry.paste_clipboard()
@@ -789,7 +811,14 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.active_pane.searchentry.set_text("")
 
     def on_menuitem_select_all_activate(self, menuitem):
-        self.active_pane.searchentry.select_region(0, -1)
+        if (self.active_pane and
+            self.active_pane.is_app_details_view_showing()):
+
+            self.active_pane.app_details_view.desc.select_all()
+            self.active_pane.app_details_view.desc.grab_focus()
+
+        elif self.active_pane:
+            self.active_pane.searchentry.select_region(0, -1)
 
     def on_menuitem_copy_web_link_activate(self, menuitem):
         app = self.active_pane.get_current_app()
@@ -846,13 +875,55 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self.active_pane.apps_filter.set_supported_only(False)
             self.active_pane.refresh_apps()
 
+            # update recommended widget counter
+            if self.available_pane and self.available_pane.cat_view:
+                self.available_pane.cat_view._append_recommendations()
+
+            # update subcategory view
+            if (self.available_pane and
+                self.available_pane == self.active_pane and
+                self.available_pane.subcategories_view and
+                self.available_pane.subcategories_view.current_category):
+                self.available_pane.subcategories_view._append_subcat_departments(
+                    self.available_pane.subcategories_view.current_category,
+                    len(self.available_pane.app_view.get_model()))
+
     def on_menuitem_view_supported_only_activate(self, widget):
         if (not self._block_menuitem_view and
             self.active_pane.apps_filter and
             not self.active_pane.apps_filter.get_supported_only()):
             self.active_pane.apps_filter.set_supported_only(True)
             self.active_pane.refresh_apps()
-            
+
+            # navigate up if the details page is no longer available
+            ap = self.active_pane
+            if (ap and ap.is_app_details_view_showing and ap.app_details_view.app and
+                not self.distro.is_supported(self.cache, None, ap.app_details_view.app.pkgname)):
+                if len(ap.app_view.get_model()) == 0:
+                    ap.navigation_bar.navigate_up_twice()
+                else:
+                    ap.navigation_bar.navigate_up()
+                ap.on_application_selected(None, None)    
+
+            # navigate up if the list page is empty
+            elif (ap and ap.is_applist_view_showing() and 
+                len(ap.app_view.get_model()) == 0):
+                ap.navigation_bar.navigate_up()
+                ap.on_application_selected(None, None)    
+
+            # update recommended widget counter
+            if self.available_pane and self.available_pane.cat_view:
+                self.available_pane.cat_view._append_recommendations()
+
+            # update subcategory view
+            if (self.available_pane and
+                self.available_pane == self.active_pane and
+                self.available_pane.subcategories_view and
+                self.available_pane.subcategories_view.current_category):
+                self.available_pane.subcategories_view._append_subcat_departments(
+                    self.available_pane.subcategories_view.current_category,
+                    len(self.available_pane.app_view.get_model()))
+
     def on_navhistory_back_action_activate(self, navhistory_back_action):
         self.available_pane.nav_history.nav_back()
         self.available_pane._status_text = ""

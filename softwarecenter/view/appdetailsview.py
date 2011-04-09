@@ -148,7 +148,8 @@ class AppDetailsViewBase(object):
     def buy_app(self):
         """ initiate the purchase transaction """
         lang = get_default_language()
-        url = self.distro.PURCHASE_APP_URL % (lang, urllib.urlencode({
+        distro = self.distro.get_codename()
+        url = self.distro.PURCHASE_APP_URL % (lang, distro, urllib.urlencode({
                     'archive_id' : self.appdetails.ppaname, 
                     'arch' : get_current_arch() ,
                     }))

@@ -18,9 +18,10 @@
 
 import gtk
 import logging
+import mkit
+import gobject
 
 from gettext import gettext as _
-from mkit import HLinkButton, EM
 
 LOG = logging.getLogger(__name__)
 
@@ -38,14 +39,22 @@ class ActionBar(gtk.HBox):
     https://wiki.ubuntu.com/SoftwareCenter#Custom%20package%20lists
     https://wiki.ubuntu.com/SoftwareCenter#software-list-view-disclosure
     """
+    
+    PADDING = 4
+    
+    ANIMATE_START_DELAY = 50
+    ANIMATE_STEP_INTERVAL = 10
+    ANIMATE_STEP = 8
 
     def __init__(self):
-        super(ActionBar, self).__init__()
-        self._btns = gtk.HBox()
+        super(ActionBar, self).__init__(spacing=self.PADDING)
+        self.set_border_width(self.PADDING)
+        self._btns = gtk.HBox(spacing=self.PADDING)
         self._label = gtk.HBox()
-        self._label.set_border_width(4)
+        self._label.set_border_width(2)
         # So that all buttons children right align
         self._btn_bin = gtk.Alignment(xalign=1)
+        self._btn_bin.set_padding(0,0,0,10)
         self._btn_bin.add(self._btns)
         # Buttons go on the right, labels on the left (in LTR mode)
         super(ActionBar, self).pack_start(self._label, fill=False,
@@ -57,6 +66,13 @@ class ActionBar(gtk.HBox):
         self._label.show_all()
         self._btn_bin.show_all()
         self._visible = False
+        
+        # listen for size allocation events, used for implementing the
+        # action bar slide in/out animation effect
+        self.connect('size-allocate', self._on_size_allocate)
+        self._is_sliding_in = False
+        self._is_sliding_out = False
+        self._target_height = None
 
     def add_button(self, id, label, result, *result_args):
         """Adds a button and shows the bar.
@@ -70,25 +86,28 @@ class ActionBar(gtk.HBox):
         overwrite = self.get_button(id)
         if overwrite:
             self._btns.remove(overwrite)
-        btn = HLinkButton(label)
-        btn.set_border_width(4)
-        btn.set_underline(True)
+        btn = gtk.Button(label)
         btn.connect("clicked", self._callback(result, result_args))
         btn.id = id
         btn.show()
         self._btns.pack_start(btn)
 
         if not self._visible:
-            self._show()
+            # always animate with buttons
+            self._show(animate=True)
 
     def remove_button(self, id):
         """Removes a button. Hides bar if no buttons left."""
         children = self._btns.get_children()
         for child in children:
             if child.id == id:
+                # lock the height of the action bar when removing buttons to prevent
+                # an unsightly resize if a label remains but all buttons are removed
+                self.set_size_request(-1, self.allocation.height)
                 self._btns.remove(child)
                 if len(children) == 1 and not len(self._label):
-                    self._hide()
+                    # always animate with buttons
+                    self._hide(animate=True)
                 return
 
     def set_label(self, text, link_result=None, *link_result_args):
@@ -103,7 +122,6 @@ class ActionBar(gtk.HBox):
         link_result -- A function to be called on link click
         link_result_args -- Any arguments for the result function
         """
-
         sections = text.split("_")
         LOG.debug("got sections '%s'" % sections)
 
@@ -138,7 +156,7 @@ class ActionBar(gtk.HBox):
                 box.remove(box.get_child())
             box.add(label)
             box.show_all()
-        self._show()
+        self._show(animate=False)
 
     def unset_label(self):
         """
@@ -153,7 +171,7 @@ class ActionBar(gtk.HBox):
             self.window.set_cursor(None)
         # Then hide if there's nothing else visible.
         if not len(self._btns):
-            self._hide()
+            self._hide(animate=False)
 
     def get_button(self, id):
         """Returns a button, or None if `id` links to no button."""
@@ -163,10 +181,11 @@ class ActionBar(gtk.HBox):
 
     def clear(self):
         """Removes all contents and hides the bar."""
+        animate = len(self._btns.get_children()) > 0
+        self._hide(animate)
         for child in self._btns.get_children():
-            self._btns.remove(child)
+                self._btns.remove(child)
         self.unset_label()
-        self._hide()
 
     # The following gtk.Container methods are deimplemented to prevent
     # overwriting of the _elems children box, and because the only
@@ -203,13 +222,83 @@ class ActionBar(gtk.HBox):
 
     # Internal methods
 
-    def _show(self):
-        super(ActionBar, self).show()
+    def _show(self, animate):
+        if self._visible or self._is_sliding_in:
+            return
         self._visible = True
+        if animate:
+            self._slide_in()
+        else:
+            super(ActionBar, self).show()
+            
+    def _hide(self, animate):
+        if not self._visible or self._is_sliding_out:
+            return
+        if animate:
+            self._slide_out()
+        else:
+            self.set_size_request(-1, -1)
+            self._visible = False
+            super(ActionBar, self).hide()
+        return
+        
+    def _slide_in(self):
+        self._is_sliding_in = True
+        self._target_height = self.size_request()[1]
+        self._current_height = 0
+        self.set_size_request(-1, self._current_height)
+        super(ActionBar, self).show()
+        gobject.timeout_add(self.ANIMATE_START_DELAY,
+                            self._slide_in_cb)
+        return
 
-    def _hide(self):
-        super(ActionBar, self).hide()
-        self._visible = False
+    def _slide_out(self):
+        self._is_sliding_out = True
+        self._target_height = 0
+        self._current_height = self.size_request()[1]
+        gobject.timeout_add(self.ANIMATE_START_DELAY,
+                            self._slide_out_cb)
+        return
+    
+    def _slide_in_cb(self):
+        if (self._is_sliding_in and
+            self._current_height < self._target_height):
+            new_height = self._current_height + self.ANIMATE_STEP
+            if new_height > self._target_height:
+                new_height = self._target_height
+            self.set_size_request(-1, new_height)
+        else:
+            self._is_sliding_in = False
+        return
+    
+    def _slide_out_cb(self):
+        if (self._is_sliding_out and
+            self._current_height > self._target_height):
+            new_height = self._current_height - self.ANIMATE_STEP
+            if new_height <= self._target_height:
+                new_height = self._target_height
+                self._is_sliding_out = False
+                self.set_size_request(-1, -1)
+                self._visible = False
+                super(ActionBar, self).hide()
+            else:
+                self.set_size_request(-1, new_height)
+        return
+    
+    def _on_size_allocate(self, widget, allocation):
+        if self._is_sliding_in:
+            self._current_height = allocation.height
+            gobject.timeout_add(self.ANIMATE_STEP_INTERVAL,
+                                self._slide_in_cb,
+                                priority=100)
+        elif self._is_sliding_out:
+            self._current_height = allocation.height
+            gobject.timeout_add(self.ANIMATE_STEP_INTERVAL,
+                                self._slide_out_cb,
+                                priority=100)
+        else:
+            self.queue_draw()
+        return
 
     def _callback(self, function, args):
         # Disposes of the 'widget' argument that
