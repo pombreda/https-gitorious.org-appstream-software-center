@@ -776,6 +776,14 @@ class UIReviewsList(gtk.VBox):
         self.vbox.pack_start(NoReviewYetWriteOne())
         self.vbox.show_all()
         return
+
+    def _install_to_review(self):
+        s = _('<small><b><i>You need to install this app before you can review it</i></b></small>')
+        self.install_first_label = gtk.Label(s)
+        self.install_first_label.set_use_markup(True)
+        self.vbox.pack_start(self.install_first_label)
+        self.install_first_label.show()
+        return
     
     # FIXME: this needs to be smarter in the future as we will
     #        not allow multiple reviews for the same software version
@@ -813,6 +821,7 @@ class UIReviewsList(gtk.VBox):
             self.new_review.show()
         else:
             self.new_review.hide()
+            self._install_to_review()
 
         # always hide spinner and call _fill (fine if there is nothing to do)
         self.hide_spinner()
@@ -830,6 +839,9 @@ class UIReviewsList(gtk.VBox):
             if is_installed and is_connected:
                 self._be_the_first_to_review()
             else:
+                #remove the label that applies only if reviews exist for an uninstalled app
+                if self.install_first_label:
+                    self.install_first_label.hide()
                 self.vbox.pack_start(NoReviewYet())
         return
 
