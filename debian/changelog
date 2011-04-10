@@ -1,10 +1,17 @@
 software-center (3.1.26.2) UNRELEASED; urgency=low
 
+  [ Michael Vogt ]
   * softwarecenter/db/update.py:
     - do not crash if /var/lib/apt-xapian-index/cataloged_times.p can
       not be read (LP: #636049)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 08 Apr 2011 15:20:41 +0200
+  [ Gary Lasker ]
+  * softwarecenter/db/reviews.py:
+    - update review loader to check for JoinableQueue rather than
+      Queue so that we re-enable the ReviewLoaderThreadedRNRClient
+      (LP: #754639)
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Sun, 10 Apr 2011 16:57:56 -0400
 
 software-center (3.1.26.1) natty; urgency=low
 
