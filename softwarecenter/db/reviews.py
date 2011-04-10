@@ -743,7 +743,7 @@ def get_review_loader(cache, db=None):
     global review_loader
     if not review_loader:
         try: # in the guest session this fails
-            Queue()
+            JoinableQueue()
             gio = False
         except:
             gio = True
