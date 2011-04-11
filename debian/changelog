@@ -1,4 +1,4 @@
-software-center (3.1.26.2) UNRELEASED; urgency=low
+software-center (3.1.26.2) natty; urgency=low
 
   [ Michael Vogt ]
   * softwarecenter/db/update.py:
@@ -32,7 +32,7 @@ software-center (3.1.26.2) UNRELEASED; urgency=low
     - advise user that app needs to be installed in order to review,
       even if reviews exist (LP: #754879)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 11 Apr 2011 16:17:35 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 11 Apr 2011 23:02:12 +0200
 
 software-center (3.1.26.1) natty; urgency=low
 
