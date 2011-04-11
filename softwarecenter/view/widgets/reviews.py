@@ -778,10 +778,10 @@ class UIReviewsList(gtk.VBox):
         return
 
     def _install_to_review(self):
-        s = _('<small><b><i>You need to install this app before you can review it</i></b></small>')
+        s = _('<small><b>You need to install this app before you can review it</b></small>')
         self.install_first_label = gtk.Label(s)
         self.install_first_label.set_use_markup(True)
-        self.vbox.pack_start(self.install_first_label)
+        self.header.pack_end(self.install_first_label, False, padding=2)
         self.install_first_label.show()
         return
     
