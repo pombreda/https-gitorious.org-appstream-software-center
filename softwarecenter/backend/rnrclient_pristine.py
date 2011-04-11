@@ -31,7 +31,7 @@ class ReviewRequest(PistonSerializable):
 
 class ReviewsStats(PistonResponseObject):
     """A ratings summary for a package/app.
-    
+
     This class will be automatically populated with JSON retrieved from the
     server.  Each ReviewStats object will have the following fields:
      * package_name
@@ -77,11 +77,14 @@ class RatingsAndReviewsAPI(PistonAPI):
         """Check the state of the server, to see if everything's ok."""
         return self._get('server-status/', scheme=PUBLIC_API_SCHEME)
 
+    @validate_pattern('origin', r'[0-9a-z+-.:/]+', required=False)
+    @validate_pattern('distroseries', r'\w+', required=False)
     @validate('days', int, required=False)
     @returns_list_of(ReviewsStats)
-    def review_stats(self, days=None, valid_days=(1,3,7)):
+    def review_stats(self, origin='any', distroseries='any', days=None,
+        valid_days=(1,3,7)):
         """Fetch ratings for a particular distroseries"""
-        url = 'review-stats/'
+        url = 'review-stats/{0}/{1}/'.format(origin, distroseries)
         if days is not None:
             # the server only knows valid_days (1,3,7) currently
             for valid_day in valid_days:
@@ -147,3 +150,20 @@ class RatingsAndReviewsAPI(PistonAPI):
         return self._post('/reviews/%s/recommendations/' % review_id,
             data={'useful': useful}, scheme=AUTHENTICATED_API_SCHEME)
 
+    @validate('review_id', int, required=False)
+    @validate_pattern('username', r'[^\n]+', required=False)
+    @returns_json
+    def get_usefulness(self, review_id=None, username=None):
+        """Get a list of usefulness filtered by username/review_id"""
+        if not username and not review_id:
+            return None
+
+        data = {}
+
+        if username:
+            data['username'] = username
+        if review_id:
+            data['review_id'] = str(review_id)
+
+        return self._get('usefulness/', args=data,
+            scheme=PUBLIC_API_SCHEME)
