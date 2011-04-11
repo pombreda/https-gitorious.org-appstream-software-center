@@ -337,8 +337,11 @@ class ReviewLoader(object):
                         break
 
 
-# using multiprocessing here because threading interface was terrible
-# slow and full of latency
+# this code had several incernations: 
+# - python threads, slow and full of latency (GIL)
+# - python multiprocesing, crashed when accessibility was turned on, 
+#                          does not work in the quest session (#743020)
+# - glib.spawn_async() looks good so far
 class ReviewLoaderThreadedRNRClient(ReviewLoader):
     """ loader that uses multiprocessing to call rnrclient and
         a glib timeout watcher that polls periodically for the
@@ -380,23 +383,29 @@ class ReviewLoaderThreadedRNRClient(ReviewLoader):
         distroseries = self.distro.get_codename()
         # run the command and add watcher
         cmd = [os.path.join(softwarecenter.paths.datadir, GET_REVIEWS_HELPER),
-               self.language, origin, distroseries, app.pkgname]
+               "--language", self.language, 
+               "--origin", origin, 
+               "--distroseries", distroseries, 
+               "--pkgname", app.pkgname,
+               "--debug",
+              ]
         (pid, stdin, stdout, stderr) = glib.spawn_async(
-            cmd, flags = glib.SPAWN_DO_NOT_REAP_CHILD, standard_output=True)
-        glib.child_watch_add(pid, self._reviews_loaded_watcher, data=(app, stdout, callback))
+            cmd, flags = glib.SPAWN_DO_NOT_REAP_CHILD, 
+            standard_output=True, standard_error=True)
+        glib.child_watch_add(pid, self._reviews_loaded_watcher, data=(app, stdout, stderr, callback))
 
-    def _reviews_loaded_watcher(self, pid, status, (app, stdout, callback)):
+    def _reviews_loaded_watcher(self, pid, status, (app, stdout, stderr, callback)):
         """ watcher function in parent using glib """
         # get status code
         res = os.WEXITSTATUS(status)
         # read the raw data
         data = ""
         while True:
-            read = os.read(stdout, 1024)
-            if not read:
-                break
-            data += read
+            s = os.read(stdout, 1024)
+            if not s: break
+            data += s
         os.close(stdout)
+        #logging.debug("from helper '%s'" % os.read(stderr, 4*1024))
         # unpickle it, we should *always* get valid data here, so if
         # we don't this should raise a error
         piston_reviews = cPickle.loads(data)

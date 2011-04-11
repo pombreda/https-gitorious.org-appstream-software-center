@@ -4,6 +4,8 @@ import pickle
 import sys
 import logging
 
+from optparse import OptionParser
+
 from softwarecenter.paths import *
 from softwarecenter.backend.rnrclient import RatingsAndReviewsAPI, ReviewDetails
 
@@ -11,18 +13,28 @@ LOG = logging.getLogger(__name__)
 
 if __name__ == "__main__":
 
-    language = sys.argv[1]
-    origin = sys.argv[2]
-    distroseries = sys.argv[3]
-    pkgname = sys.argv[4]
-    
+    # common options for optparse go here
+    parser = OptionParser()
+
+    # check options
+    parser.add_option("--language")
+    parser.add_option("--origin")
+    parser.add_option("--distroseries")
+    parser.add_option("--pkgname")
+    parser.add_option("", "--debug",
+                      action="store_true", default=False)
+    (options, args) = parser.parse_args()
+
+    if options.debug:
+        LOG.setLevel(logging.DEBUG)
+
     cachedir = os.path.join(SOFTWARE_CENTER_CACHE_DIR, "rnrclient")
     rnrclient = RatingsAndReviewsAPI(cachedir=cachedir)
 
-    kwargs = {"language": language, 
-              "origin": origin,
-              "distroseries": distroseries,
-              "packagename": pkgname,
+    kwargs = {"language": options.language, 
+              "origin": options.origin,
+              "distroseries": options.distroseries,
+              "packagename": options.pkgname,
               }
     piston_reviews = []
     try:
