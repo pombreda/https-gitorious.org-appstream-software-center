@@ -52,6 +52,7 @@ SUBMIT_REVIEW_APP = "submit_review.py"
 REPORT_REVIEW_APP = "report_review.py"
 SUBMIT_USEFULNESS_APP = "submit_usefulness.py"
 GET_REVIEWS_HELPER = "get_reviews_helper.py"
+GET_REVIEW_STATS_HELPER = "get_review_stats_helper.py"
 
 # there was a bug in maverick 3.0.3 (#652151) that could lead to a empty
 # root owned directory in ~/.cache/software-center - we remove it here

@@ -12,6 +12,7 @@ from softwarecenter.backend.rnrclient import RatingsAndReviewsAPI, ReviewDetails
 LOG = logging.getLogger(__name__)
 
 if __name__ == "__main__":
+    logging.basicConfig()
 
     # common options for optparse go here
     parser = OptionParser()
@@ -21,6 +22,7 @@ if __name__ == "__main__":
     parser.add_option("--origin")
     parser.add_option("--distroseries")
     parser.add_option("--pkgname")
+    parser.add_option("--version", default="any")
     parser.add_option("", "--debug",
                       action="store_true", default=False)
     (options, args) = parser.parse_args()
@@ -35,6 +37,7 @@ if __name__ == "__main__":
               "origin": options.origin,
               "distroseries": options.distroseries,
               "packagename": options.pkgname,
+              "version": options.version,
               }
     piston_reviews = []
     try:

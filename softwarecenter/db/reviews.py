@@ -35,8 +35,6 @@ import thread
 import weakref
 import simplejson
 
-from multiprocessing import Process, JoinableQueue
-
 from softwarecenter.backend.rnrclient import RatingsAndReviewsAPI, ReviewDetails
 from softwarecenter.db.database import Application
 import softwarecenter.distro
@@ -342,21 +340,19 @@ class ReviewLoader(object):
 # - python multiprocesing, crashed when accessibility was turned on, 
 #                          does not work in the quest session (#743020)
 # - glib.spawn_async() looks good so far
-class ReviewLoaderThreadedRNRClient(ReviewLoader):
+class ReviewLoaderSpawningRNRClient(ReviewLoader):
     """ loader that uses multiprocessing to call rnrclient and
         a glib timeout watcher that polls periodically for the
         data 
     """
 
     def __init__(self, cache, db, distro=None):
-        super(ReviewLoaderThreadedRNRClient, self).__init__(cache, db, distro)
+        super(ReviewLoaderSpawningRNRClient, self).__init__(cache, db, distro)
         cachedir = os.path.join(SOFTWARE_CENTER_CACHE_DIR, "rnrclient")
         self.rnrclient = RatingsAndReviewsAPI(cachedir=cachedir)
         cachedir = os.path.join(SOFTWARE_CENTER_CACHE_DIR, "rnrclient")
         self.rnrclient = RatingsAndReviewsAPI(cachedir=cachedir)
         self._reviews = {}
-        # this is a dict of queue objects
-        self._new_review_stats = JoinableQueue()
 
     def _update_rnrclient_offline_state(self):
         # this needs the lp:~mvo/piston-mini-client/offline-mode branch
@@ -387,7 +383,6 @@ class ReviewLoaderThreadedRNRClient(ReviewLoader):
                "--origin", origin, 
                "--distroseries", distroseries, 
                "--pkgname", app.pkgname,
-               "--debug",
               ]
         (pid, stdin, stdout, stderr) = glib.spawn_async(
             cmd, flags = glib.SPAWN_DO_NOT_REAP_CHILD, 
@@ -398,6 +393,11 @@ class ReviewLoaderThreadedRNRClient(ReviewLoader):
         """ watcher function in parent using glib """
         # get status code
         res = os.WEXITSTATUS(status)
+        # check stderr
+        err = os.read(stderr, 4*1024)
+        if err:
+            logging.warn("got error from helper: '%s'" % err)
+        os.close(stderr)
         # read the raw data
         data = ""
         while True:
@@ -405,7 +405,6 @@ class ReviewLoaderThreadedRNRClient(ReviewLoader):
             if not s: break
             data += s
         os.close(stdout)
-        #logging.debug("from helper '%s'" % os.read(stderr, 4*1024))
         # unpickle it, we should *always* get valid data here, so if
         # we don't this should raise a error
         piston_reviews = cPickle.loads(data)
@@ -420,23 +419,6 @@ class ReviewLoaderThreadedRNRClient(ReviewLoader):
     # stats
     def refresh_review_stats(self, callback):
         """ public api, refresh the available statistics """
-        p = Process(target=self._refresh_review_stats_threaded, args=())
-        p.start()
-        glib.timeout_add(500, self._review_stats_timeout_watcher, callback)
-
-    def _review_stats_timeout_watcher(self, callback):
-        """ glib timeout that waits for the process that gets the data
-            to finish and emits callback then """
-        if not self._new_review_stats.empty():
-            review_stats = self._new_review_stats.get()
-            self.REVIEW_STATS_CACHE = review_stats
-            callback(review_stats)
-            self.save_review_stats_cache_file()
-            return False
-        return True
-
-    def _refresh_review_stats_threaded(self):
-        """ process that actually fetches the statistics """
         try:
             mtime = os.path.getmtime(self.REVIEW_STATS_CACHE_FILE)
             days_delta = int((time.time() - mtime) // (24*60*60))
@@ -444,26 +426,49 @@ class ReviewLoaderThreadedRNRClient(ReviewLoader):
         except OSError:
             days_delta = 0
         LOG.debug("refresh with days_delta: %s" % days_delta)
-        try:
-            # depending on the time delta, use a different call
-            if days_delta:
-                piston_review_stats = self.rnrclient.review_stats(days_delta)
-            else:
-                piston_review_stats = self.rnrclient.review_stats()
-        except:
-            LOG.exception("refresh_review_stats")
-            return
-        # convert to the format that s-c uses
+        cmd = [os.path.join(
+                softwarecenter.paths.datadir, GET_REVIEW_STATS_HELPER),
+               # FIXME: add code for this
+               #"--origin", origin, 
+               #"--distroseries", distroseries, 
+              ]
+        if days_delta:
+            cmd += ["--days-delta", days_delta]
+        (pid, stdin, stdout, stderr) = glib.spawn_async(
+            cmd, flags = glib.SPAWN_DO_NOT_REAP_CHILD, 
+            standard_output=True, standard_error=True)
+        glib.child_watch_add(pid, self._review_stats_loaded_watcher, data=(stdout, stderr, callback))
+
+    def _review_stats_loaded_watcher(self, pid, status, (stdout, stderr, callback)):
+        """ waits for the process that gets the data
+            to finish and emits callback then """
+        # shorthand
         review_stats = self.REVIEW_STATS_CACHE
+        res = os.WEXITSTATUS(status)
+        # check stderr first
+        err = os.read(stderr, 4*1024)
+        if err:
+            logging.warn("got error from helper: '%s'" % err)
+        os.close(stderr)
+        # get data
+        data = ""
+        while True:
+            s = os.read(stdout, 1024)
+            if not s: break
+            data += s
+        os.close(stdout)
+        # unpickle
+        piston_review_stats = cPickle.loads(data)
+        # convert to the format that s-c uses
         for r in piston_review_stats:
             s = ReviewStats(Application("", r.package_name))
             s.ratings_average = float(r.ratings_average)
             s.ratings_total = float(r.ratings_total)
             review_stats[s.app] = s
-        # push into the queue in one, for all practical purposes there
-        # is no limit for the queue size, even millions of review stats
-        # are ok
-        self._new_review_stats.put(review_stats)
+
+        self.REVIEW_STATS_CACHE = review_stats
+        callback(review_stats)
+        self.save_review_stats_cache_file()
 
 class ReviewLoaderJsonAsync(ReviewLoader):
     """ get json (or gzip compressed json) """
@@ -727,21 +732,16 @@ def get_review_loader(cache, db=None):
     """
     global review_loader
     if not review_loader:
-        try: # in the guest session this fails
-            JoinableQueue()
-            gio = False
-        except:
-            gio = True
         if "SOFTWARE_CENTER_IPSUM_REVIEWS" in os.environ:
             review_loader = ReviewLoaderIpsum(cache, db)
         elif "SOFTWARE_CENTER_FORTUNE_REVIEWS" in os.environ:
             review_loader = ReviewLoaderFortune(cache, db)
         elif "SOFTWARE_CENTER_TECHSPEAK_REVIEWS" in os.environ:
             review_loader = ReviewLoaderTechspeak(cache, db)
-        elif gio or "SOFTWARE_CENTER_GIO_REVIEWS" in os.environ:
+        elif "SOFTWARE_CENTER_GIO_REVIEWS" in os.environ:
             review_loader = ReviewLoaderJsonAsync(cache, db)
         else:
-            review_loader = ReviewLoaderThreadedRNRClient(cache, db)
+            review_loader = ReviewLoaderSpawningRNRClient(cache, db)
     return review_loader
 
 if __name__ == "__main__":
@@ -758,7 +758,7 @@ if __name__ == "__main__":
     # rnrclient loader
     app = Application("ACE", "unace")
     #app = Application("", "2vcard")
-    loader = ReviewLoaderThreadedRNRClient(cache)
+    loader = ReviewLoaderSpawningRNRClient(cache)
     print loader.refresh_review_stats(stats_callback)
     print loader.get_reviews(app, callback)
     
