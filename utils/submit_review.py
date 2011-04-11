@@ -201,9 +201,10 @@ class Worker(threading.Thread):
                 sys.stdout.write(simplejson.dumps(res))
             except Exception as e:
                 logging.exception("submit_usefulness failed")
+                err_str = self._get_error_messages(e)
+                self._transmit_error_str = err_str
                 self._write_exception_html_log_if_needed(e)
                 self._transmit_state = TRANSMIT_STATE_ERROR
-                self._transmit_error_str = _("Failed to submit usefulness")
             self.pending_usefulness.task_done()
 
     # reports
@@ -226,9 +227,10 @@ class Worker(threading.Thread):
                 sys.stdout.write(simplejson.dumps(res))
             except Exception as e:
                 logging.exception("flag_review failed")
+                err_str = self._get_error_messages(e)
+                self._transmit_error_str = err_str
                 self._write_exception_html_log_if_needed(e)
                 self._transmit_state = TRANSMIT_STATE_ERROR
-                self._transmit_error_str = _("Failed to submit report")
             self.pending_reports.task_done()
 
     def _write_exception_html_log_if_needed(self, e):
@@ -275,11 +277,30 @@ class Worker(threading.Thread):
                 sys.stdout.write(simplejson.dumps(vars(res)))
             except Exception as e:
                 logging.exception("submit_review")
+                err_str = self._get_error_messages(e)
                 self._write_exception_html_log_if_needed(e)
                 self._transmit_state = TRANSMIT_STATE_ERROR
-                self._transmit_error_str = _("Failed to submit review")
-            self._transmit_state
+                self._transmit_error_str = err_str
             self.pending_reviews.task_done()
+    
+    def _get_error_messages(self, e):
+        if type(e) is piston_mini_client.APIError:
+            try:
+                error_msg = simplejson.loads(e.body)['errors']
+                errs = error_msg["__all__"]
+                err_str = _("Server's response was:")
+                for err in errs:
+                    err_str = _("%s\n%s" % (err_str, err))
+            except:
+                err_str = _("Unknown error communicating with server. Check your log "
+                        "and consider raising a bug report if this problem persists")
+                logging.warning(e)
+        else:
+            err_str = _("Unknown error communicating with server. Check your log "
+                    "and consider raising a bug report if this problem persists")
+            logging.warning(e)
+        return err_str
+    
 
     def verify_server_status(self):
         """ verify that the server we want to talk to can be reached
@@ -489,8 +510,6 @@ class BaseApp(SimpleGtkbuilderApp):
         
         return
         
-            
-            
 
 class SubmitReviewsApp(BaseApp):
     """ review a given application or package """
@@ -506,7 +525,7 @@ class SubmitReviewsApp(BaseApp):
     NORMAL_COLOUR = "000000"
     ERROR_COLOUR = "FF0000"
     SUBMIT_MESSAGE = _("Submitting Review")
-    FAILURE_MESSAGE = _("Review failed")
+    FAILURE_MESSAGE = _("Failed to submit review")
 
     def __init__(self, app, version, iconname, origin, parent_xid, datadir):
         BaseApp.__init__(self, datadir, "submit_review.ui")
@@ -959,7 +978,7 @@ class ReportReviewApp(BaseApp):
     APP_ICON_SIZE = 48
     
     SUBMIT_MESSAGE = _(u"Sending report\u2026")
-    FAILURE_MESSAGE = _("Report failed")
+    FAILURE_MESSAGE = _("Failed to submit report")
 
     def __init__(self, review_id, parent_xid, datadir):
         BaseApp.__init__(self, datadir, "report_abuse.ui")
@@ -1018,6 +1037,10 @@ class ReportReviewApp(BaseApp):
 
         # review summary label
         self.report_summary_label.set_markup(_('Why is this review inappropriate?'))
+        
+        #error detail link label
+        self.label_expander.set_markup('<small><u>%s</u></small>' % (_('Error Details')))
+        
         return
 
     def on_button_post_clicked(self, button):
@@ -1063,7 +1086,7 @@ class SubmitUsefulnessApp(BaseApp):
     # stub ui that can be useful for testing
     def run(self):
         self.login()
-
+    
 
 if __name__ == "__main__":
     try:
