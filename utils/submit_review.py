@@ -979,14 +979,26 @@ class ReportReviewApp(BaseApp):
         self.report_body_vbox.pack_start(self.combobox_report_summary, False)
         self.report_body_vbox.reorder_child(self.combobox_report_summary, 2)
         self.combobox_report_summary.show()
-        # TRANSLATORS: The following choices are entries in a combobox that is
-        # located directly beneath a label asking 'Why is this review inappropriate?'.
-        # Each choice below refers to a possible reason for why the corresponding
-        # review is being flagged as inappropriate.
         for term in [ _(u"Please make a selection\u2026"), 
-                      _("Offensive language"), 
-                      _("Infringes copyright"), 
+        # TRANSLATORS: The following is one entry in a combobox that is
+        # located directly beneath a label asking 'Why is this review inappropriate?'.
+        # This text refers to a possible reason for why the corresponding
+        # review is being flagged as inappropriate.
+                      _("Offensive language"),
+        # TRANSLATORS: The following is one entry in a combobox that is
+        # located directly beneath a label asking 'Why is this review inappropriate?'.
+        # This text refers to a possible reason for why the corresponding
+        # review is being flagged as inappropriate.
+                      _("Infringes copyright"),
+        # TRANSLATORS: The following is one entry in a combobox that is
+        # located directly beneath a label asking 'Why is this review inappropriate?'.
+        # This text refers to a possible reason for why the corresponding
+        # review is being flagged as inappropriate. 
                       _("Contains inaccuracies"),
+        # TRANSLATORS: The following is one entry in a combobox that is
+        # located directly beneath a label asking 'Why is this review inappropriate?'.
+        # This text refers to a possible reason for why the corresponding
+        # review is being flagged as inappropriate.
                       _("Other") ]:
             self.combobox_report_summary.append_text(term)
         self.combobox_report_summary.set_active(0)
