@@ -807,6 +807,11 @@ class UIReviewsList(gtk.VBox):
         """
         #print 'Review count: %s' % len(self.reviews)
 
+        try:
+            self.install_first_label.hide()
+        except AttributeError:
+            pass
+
         # network sensitive stuff, only show write_review if connected,
         # add msg about offline cache usage if offline
         is_connected = network_state_is_connected()
@@ -831,7 +836,7 @@ class UIReviewsList(gtk.VBox):
         if self.reviews:
             # adjust label if we have reviews
             if self._any_reviews_current_user():
-                self.new_review.set_label(_("Write another review"))
+                self.new_review.hide()
             else:
                 self.new_review.set_label(_("Write your own review"))
         else:
@@ -839,9 +844,6 @@ class UIReviewsList(gtk.VBox):
             if is_installed and is_connected:
                 self._be_the_first_to_review()
             else:
-                #remove the label that applies only if reviews exist for an uninstalled app
-                if self.install_first_label:
-                    self.install_first_label.hide()
                 self.vbox.pack_start(NoReviewYet())
         return
 
@@ -858,6 +860,11 @@ class UIReviewsList(gtk.VBox):
     # FIXME: ideally we would have "{show,hide}_loading_notice()" to
     #        easily allow changing from e.g. spinner to text
     def show_spinner_with_message(self, message):
+        try:
+            self.install_first_label.hide()
+        except AttributeError:
+            pass
+        
         a = gtk.Alignment(0.5, 0.5)
 
         hb = gtk.HBox(spacing=12)
