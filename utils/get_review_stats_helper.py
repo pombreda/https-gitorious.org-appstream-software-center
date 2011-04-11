@@ -21,7 +21,9 @@ if __name__ == "__main__":
     parser.add_option("--origin", default="any")
     parser.add_option("--distroseries", default="any")
     parser.add_option("--days-delta", default=None)
-    parser.add_option("", "--debug",
+    parser.add_option("--debug",
+                      action="store_true", default=False)
+    parser.add_option("--no-pickle",
                       action="store_true", default=False)
     (options, args) = parser.parse_args()
 
@@ -45,7 +47,14 @@ if __name__ == "__main__":
         LOG.exception("get_review_stats")
 
 
-    # print to stdout where its consumed by the parent
-    print pickle.dumps(piston_review_stats)
+    # useful for debugging
+    if options.no_pickle:
+        print "\n".join(["pkgname=%s total=%s avg=%s" % (s.package_name, 
+                                                         s.ratings_total, 
+                                                         s.ratings_average)
+                         for s in piston_review_stats])
+    else:
+        # print to stdout where its consumed by the parent
+        print pickle.dumps(piston_review_stats)
 
 

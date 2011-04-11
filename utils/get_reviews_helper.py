@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import pickle
+import simplejson
 import sys
 import logging
 
@@ -8,6 +9,9 @@ from optparse import OptionParser
 
 from softwarecenter.paths import *
 from softwarecenter.backend.rnrclient import RatingsAndReviewsAPI, ReviewDetails
+
+from piston_mini_client import APIError
+
 
 LOG = logging.getLogger(__name__)
 
@@ -18,12 +22,14 @@ if __name__ == "__main__":
     parser = OptionParser()
 
     # check options
-    parser.add_option("--language")
-    parser.add_option("--origin")
-    parser.add_option("--distroseries")
+    parser.add_option("--language", default="any")
+    parser.add_option("--origin", default="any")
+    parser.add_option("--distroseries", default="any")
     parser.add_option("--pkgname")
     parser.add_option("--version", default="any")
     parser.add_option("", "--debug",
+                      action="store_true", default=False)
+    parser.add_option("--no-pickle",
                       action="store_true", default=False)
     (options, args) = parser.parse_args()
 
@@ -55,7 +61,13 @@ if __name__ == "__main__":
     except:
         LOG.exception("get_reviews")
 
-    # print to stdout where its consumed by the parent
-    print pickle.dumps(piston_reviews)
+    # useful for debugging        
+    if options.no_pickle:
+        print "\n".join(["%s: %s" % (r.reviewer_username,
+                                     r.summary)
+                         for r in piston_reviews])
+    else:
+        # print to stdout where its consumed by the parent
+        print pickle.dumps(piston_reviews)
 
 
