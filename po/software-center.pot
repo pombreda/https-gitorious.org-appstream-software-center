@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-04-11 16:00-0400\n"
+"POT-Creation-Date: 2011-04-11 16:37-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -130,49 +130,61 @@ msgstr ""
 msgid "Flag as Inappropriate"
 msgstr ""
 
-#. TRANSLATORS: The following choices are entries in a combobox that is
-#. located directly beneath a label asking 'Why is this review inappropriate?'.
-#. Each choice below refers to a possible reason for why the corresponding
-#. review is being flagged as inappropriate.
-#: ../utils/submit_review.py:986
+#: ../utils/submit_review.py:982
 msgid "Please make a selection…"
 msgstr ""
 
+#. TRANSLATORS: The following is one entry in a combobox that is
+#. located directly beneath a label asking 'Why is this review inappropriate?'.
+#. This text refers to a possible reason for why the corresponding
+#. review is being flagged as inappropriate.
 #: ../utils/submit_review.py:987
 msgid "Offensive language"
 msgstr ""
 
-#: ../utils/submit_review.py:988
+#. TRANSLATORS: The following is one entry in a combobox that is
+#. located directly beneath a label asking 'Why is this review inappropriate?'.
+#. This text refers to a possible reason for why the corresponding
+#. review is being flagged as inappropriate.
+#: ../utils/submit_review.py:992
 msgid "Infringes copyright"
 msgstr ""
 
-#: ../utils/submit_review.py:989
+#. TRANSLATORS: The following is one entry in a combobox that is
+#. located directly beneath a label asking 'Why is this review inappropriate?'.
+#. This text refers to a possible reason for why the corresponding
+#. review is being flagged as inappropriate.
+#: ../utils/submit_review.py:997
 msgid "Contains inaccuracies"
 msgstr ""
 
-#: ../utils/submit_review.py:990 ../softwarecenter/backend/channel.py:415
+#. TRANSLATORS: The following is one entry in a combobox that is
+#. located directly beneath a label asking 'Why is this review inappropriate?'.
+#. This text refers to a possible reason for why the corresponding
+#. review is being flagged as inappropriate.
+#: ../utils/submit_review.py:1002 ../softwarecenter/backend/channel.py:415
 msgid "Other"
 msgstr ""
 
 #. report label
-#: ../utils/submit_review.py:1006
+#: ../utils/submit_review.py:1018
 msgid "Please give details:"
 msgstr ""
 
 #. review summary label
-#: ../utils/submit_review.py:1009
+#: ../utils/submit_review.py:1021
 msgid "Why is this review inappropriate?"
 msgstr ""
 
-#: ../utils/submit_review.py:1026
+#: ../utils/submit_review.py:1038
 msgid "Sending usefulness…"
 msgstr ""
 
-#: ../utils/submit_review.py:1089
+#: ../utils/submit_review.py:1101
 msgid "Missing arguments"
 msgstr ""
 
-#: ../utils/submit_review.py:1118 ../utils/submit_review.py:1142
+#: ../utils/submit_review.py:1130 ../utils/submit_review.py:1154
 msgid "Missing review-id arguments"
 msgstr ""
 
