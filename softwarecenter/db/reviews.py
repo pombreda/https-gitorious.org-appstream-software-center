@@ -433,7 +433,7 @@ class ReviewLoaderSpawningRNRClient(ReviewLoader):
                #"--distroseries", distroseries, 
               ]
         if days_delta:
-            cmd += ["--days-delta", days_delta]
+            cmd += ["--days-delta", str(days_delta)]
         (pid, stdin, stdout, stderr) = glib.spawn_async(
             cmd, flags = glib.SPAWN_DO_NOT_REAP_CHILD, 
             standard_output=True, standard_error=True)
