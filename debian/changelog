@@ -21,13 +21,18 @@ software-center (3.1.26.2) UNRELEASED; urgency=low
     - update review loader to check for JoinableQueue rather than
       Queue so that we re-enable the ReviewLoaderThreadedRNRClient
       (LP: #754639)
+  * utils/submit_review.py:
+    - remove two strings marked for translation that are never
+      actually shown in the ui, also add translators note for
+      combobox entries (LP: #750421)
+  * refresh .pot file
 
   [ Aaron Peachey ]
   * softwarecenter/view/widgets/reviews.py:
     - advise user that app needs to be installed in order to review,
       even if reviews exist (LP: #754879)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 08 Apr 2011 15:20:41 +0200
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 11 Apr 2011 16:17:35 -0400
 
 software-center (3.1.26.1) natty; urgency=low
 
