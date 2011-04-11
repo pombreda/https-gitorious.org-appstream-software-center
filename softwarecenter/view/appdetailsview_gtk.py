@@ -1764,7 +1764,7 @@ if __name__ == "__main__":
     win.connect('destroy', gtk.main_quit)
 
     # keep it spinning to test for re-draw issues and memleaks
-    #glib.timeout_add_seconds(2, _show_app, view)
+    glib.timeout_add_seconds(2, _show_app, view)
 
 
     # run it

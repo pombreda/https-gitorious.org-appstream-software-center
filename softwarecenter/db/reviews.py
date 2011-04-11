@@ -349,9 +349,10 @@ class ReviewLoaderThreadedRNRClient(ReviewLoader):
         super(ReviewLoaderThreadedRNRClient, self).__init__(cache, db, distro)
         cachedir = os.path.join(SOFTWARE_CENTER_CACHE_DIR, "rnrclient")
         self.rnrclient = RatingsAndReviewsAPI(cachedir=cachedir)
+        cachedir = os.path.join(SOFTWARE_CENTER_CACHE_DIR, "rnrclient")
+        self.rnrclient = RatingsAndReviewsAPI(cachedir=cachedir)
         self._reviews = {}
         # this is a dict of queue objects
-        self._new_reviews = {}
         self._new_review_stats = JoinableQueue()
 
     def _update_rnrclient_offline_state(self):
@@ -365,29 +366,7 @@ class ReviewLoaderThreadedRNRClient(ReviewLoader):
         """
         app = translated_app.get_untranslated_app(self.db)
         self._update_rnrclient_offline_state()
-        self._new_reviews[app] = JoinableQueue()
-        p = Process(target=self._get_reviews_threaded, args=(app, ))
-        p.start()
-        glib.timeout_add(500, self._reviews_timeout_watcher, app, callback)
-
-    def _reviews_timeout_watcher(self, app, callback):
-        """ watcher function in parent using glib """
-        # another watcher collected the result already, nothing to do for
-        # us (LP: #709548)
-        if not app in self._new_reviews:
-            return False
-        # check if we have data waiting
-        if not self._new_reviews[app].empty():
-            self._reviews[app] = self._new_reviews[app].get()
-            # indicate that we are done
-            self._new_reviews[app].task_done()
-            del self._new_reviews[app]
-            callback(app, self._reviews[app])
-            return False
-        return True
-
-    def _get_reviews_threaded(self, app):
-        """ threaded part of the fetching """
+        # gather args for the helper
         origin = self.cache.get_origin(app.pkgname)
         # special case for not-enabled PPAs
         if not origin and self.db:
@@ -395,42 +374,39 @@ class ReviewLoaderThreadedRNRClient(ReviewLoader):
             ppa = details.ppaname
             if ppa:
                 origin = "lp-ppa-%s" % ppa.replace("/", "-")
+        # if there is no origin, there is nothing to do
         if not origin:
             return
         distroseries = self.distro.get_codename()
-        try:
-            kwargs = {"language":self.language, 
-                      "origin":origin,
-                      "distroseries":distroseries,
-                      "packagename":app.pkgname,
-                      }
-            if app.appname:
-                # FIXME: the appname will get quote_plus() later again,
-                #        but it appears the server has currently a bug
-                #        so it expects it this way
-                kwargs["appname"] = urllib.quote_plus(app.appname.encode("utf-8"))
-            piston_reviews = self.rnrclient.get_reviews(**kwargs)
-            # the backend sometimes returns None here
-            if piston_reviews is None:
-                piston_reviews = []
-        except simplejson.decoder.JSONDecodeError, e:
-            LOG.error("failed to parse '%s'" % e.doc)
-            piston_reviews = []
-        #bug lp:709408 - don't print 404 errors as traceback when api request returns 404 error
-        except APIError, e:
-            LOG.warn("_get_reviews_threaded: no reviews able to be retrieved for package: %s (%s, origin: %s)" % (app.pkgname, distroseries, origin))
-            LOG.debug("_get_reviews_threaded: no reviews able to be retrieved: %s" % e)
-            piston_reviews = []
-        except:
-            LOG.exception("get_reviews")
-            piston_reviews = []
-        # add "app" attribute
+        # run the command and add watcher
+        cmd = [os.path.join(softwarecenter.paths.datadir, GET_REVIEWS_HELPER),
+               self.language, origin, distroseries, app.pkgname]
+        (pid, stdin, stdout, stderr) = glib.spawn_async(
+            cmd, flags = glib.SPAWN_DO_NOT_REAP_CHILD, standard_output=True)
+        glib.child_watch_add(pid, self._reviews_loaded_watcher, data=(app, stdout, callback))
+
+    def _reviews_loaded_watcher(self, pid, status, (app, stdout, callback)):
+        """ watcher function in parent using glib """
+        # get status code
+        res = os.WEXITSTATUS(status)
+        # read the raw data
+        data = ""
+        while True:
+            read = os.read(stdout, 1024)
+            if not read:
+                break
+            data += read
+        os.close(stdout)
+        # unpickle it, we should *always* get valid data here, so if
+        # we don't this should raise a error
+        piston_reviews = cPickle.loads(data)
+        # convert into our review objects
         reviews = []
         for r in piston_reviews:
             reviews.append(Review.from_piston_mini_client(r))
-        # push into the queue
-        self._new_reviews[app].put(sorted(reviews, reverse=True))
-        self._new_reviews[app].join()
+        # add to our dicts and run callback
+        self._reviews[app] = reviews
+        callback(app, self._reviews[app])
 
     # stats
     def refresh_review_stats(self, callback):
