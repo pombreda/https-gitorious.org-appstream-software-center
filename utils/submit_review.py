@@ -979,6 +979,10 @@ class ReportReviewApp(BaseApp):
         self.report_body_vbox.pack_start(self.combobox_report_summary, False)
         self.report_body_vbox.reorder_child(self.combobox_report_summary, 2)
         self.combobox_report_summary.show()
+        # TRANSLATORS: The following choices are entries in a combobox that is
+        # located directly beneath a label asking 'Why is this review inappropriate?'.
+        # Each choice below, then, refers to a possible reason for why the corresponding
+        # review is being flagged as inappropriate.
         for term in [ _(u"Please make a selection\u2026"), 
                       _("Offensive language"), 
                       _("Infringes copyright"), 
@@ -997,10 +1001,6 @@ class ReportReviewApp(BaseApp):
             self.button_post.set_sensitive(False)
 
     def _setup_details(self, widget, display_name):
-
-        # title
-        m = '<b><span size="x-large">%s</span></b>\n%s %s'
-        self.report_title.set_markup(m % (_('Review Infringment'), _('Reported by'), display_name))
 
         # report label
         self.report_label.set_markup(_('Please give details:'))
