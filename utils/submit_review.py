@@ -981,7 +981,7 @@ class ReportReviewApp(BaseApp):
         self.combobox_report_summary.show()
         # TRANSLATORS: The following choices are entries in a combobox that is
         # located directly beneath a label asking 'Why is this review inappropriate?'.
-        # Each choice below, then, refers to a possible reason for why the corresponding
+        # Each choice below refers to a possible reason for why the corresponding
         # review is being flagged as inappropriate.
         for term in [ _(u"Please make a selection\u2026"), 
                       _("Offensive language"), 
