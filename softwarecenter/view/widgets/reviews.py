@@ -776,6 +776,14 @@ class UIReviewsList(gtk.VBox):
         self.vbox.pack_start(NoReviewYetWriteOne())
         self.vbox.show_all()
         return
+
+    def _install_to_review(self):
+        s = '<small><b>%s</b></small>' % _("You need to install this app before you can review it")
+        self.install_first_label = gtk.Label(s)
+        self.install_first_label.set_use_markup(True)
+        self.header.pack_end(self.install_first_label, False, padding=2)
+        self.install_first_label.show()
+        return
     
     # FIXME: this needs to be smarter in the future as we will
     #        not allow multiple reviews for the same software version
@@ -799,6 +807,11 @@ class UIReviewsList(gtk.VBox):
         """
         #print 'Review count: %s' % len(self.reviews)
 
+        try:
+            self.install_first_label.hide()
+        except AttributeError:
+            pass
+
         # network sensitive stuff, only show write_review if connected,
         # add msg about offline cache usage if offline
         is_connected = network_state_is_connected()
@@ -813,6 +826,7 @@ class UIReviewsList(gtk.VBox):
             self.new_review.show()
         else:
             self.new_review.hide()
+            self._install_to_review()
 
         # always hide spinner and call _fill (fine if there is nothing to do)
         self.hide_spinner()
@@ -822,7 +836,7 @@ class UIReviewsList(gtk.VBox):
         if self.reviews:
             # adjust label if we have reviews
             if self._any_reviews_current_user():
-                self.new_review.set_label(_("Write another review"))
+                self.new_review.hide()
             else:
                 self.new_review.set_label(_("Write your own review"))
         else:
@@ -846,6 +860,11 @@ class UIReviewsList(gtk.VBox):
     # FIXME: ideally we would have "{show,hide}_loading_notice()" to
     #        easily allow changing from e.g. spinner to text
     def show_spinner_with_message(self, message):
+        try:
+            self.install_first_label.hide()
+        except AttributeError:
+            pass
+        
         a = gtk.Alignment(0.5, 0.5)
 
         hb = gtk.HBox(spacing=12)
