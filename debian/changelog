@@ -1,10 +1,38 @@
-software-center (3.1.26.2) UNRELEASED; urgency=low
+software-center (3.1.26.2) natty; urgency=low
 
+  [ Michael Vogt ]
   * softwarecenter/db/update.py:
     - do not crash if /var/lib/apt-xapian-index/cataloged_times.p can
       not be read (LP: #636049)
+  * merged lp:~mvo/software-center/get-reviews-subprocess (LP: #743020):
+    - don't use multiprocessing anymore, instead glib.spawn_async()
+      a helper app, this finally fixes the crashes with accessibility
+      turned on (LP: #743020)
+    - update rnrclient_pristine.py to the latest upstream version
+      that supports origin and distroseries as arguments
+    - add support for getting all the origins of the DB, this is
+      needed for the new rnrclient_pristine.py functionatlity
+    - ship get_reviews_helper.py, get_review_stats_helper.py for
+      the glib.spawn_async() change
+    - this also makes the reviews fully work in the guest session again
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 08 Apr 2011 15:20:41 +0200
+  [ Gary Lasker ]
+  * softwarecenter/db/reviews.py:
+    - update review loader to check for JoinableQueue rather than
+      Queue so that we re-enable the ReviewLoaderThreadedRNRClient
+      (LP: #754639)
+  * utils/submit_review.py:
+    - remove two strings marked for translation that are never
+      actually shown in the ui, also add translators note for
+      combobox entries (LP: #750421)
+  * refresh .pot file
+
+  [ Aaron Peachey ]
+  * softwarecenter/view/widgets/reviews.py:
+    - advise user that app needs to be installed in order to review,
+      even if reviews exist (LP: #754879)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 11 Apr 2011 23:02:12 +0200
 
 software-center (3.1.26.1) natty; urgency=low
 

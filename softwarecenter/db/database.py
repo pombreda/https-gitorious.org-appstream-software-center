@@ -415,6 +415,14 @@ class StoreDatabase(gobject.GObject):
                 installed_purchased_packages.add(pkgname)
         return installed_purchased_packages
 
+    def get_origins_from_db(self):
+        """ return all origins available in the current database """
+        origins = set()
+        for term in self.xapiandb.allterms("XOO"):
+            if term.term[3:]:
+                origins.add(term.term[3:])
+        return list(origins)
+
     def get_exact_matches(self, pkgnames=[]):
         """ Returns a list of fake MSetItems. If the pkgname is available, then
             MSetItem.document is pkgnames proper xapian document. If the pkgname
@@ -452,6 +460,7 @@ if __name__ == "__main__":
 
     db = StoreDatabase("/var/cache/software-center/xapian", apt.Cache())
     db.open()
+
     if len(sys.argv) < 2:
         search = "apt,apport"
     else:
