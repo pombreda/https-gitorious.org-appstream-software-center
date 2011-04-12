@@ -8,6 +8,9 @@ software-center (3.1.26.3) UNRELEASED; urgency=low
   * softwarecenter/models/appstore.py:
     - refresh docids in active searches if the database is reopend
       (LP: #710920)
+  * softwarecenter/backend/aptd.py:
+    - do not run update-apt-xapian-index in --update mode to avoid
+      in-place database modfications (LP: #507836)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 12 Apr 2011 14:40:02 +0200
 
