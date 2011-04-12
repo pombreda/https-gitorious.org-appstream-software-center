@@ -32,7 +32,7 @@ import pangocairo
 import datetime
 
 from softwarecenter.cmdfinder import CmdFinder
-from softwarecenter.netstatus import NetState, get_network_state, get_network_watcher
+from softwarecenter.netstatus import NetState, get_network_watcher, network_state_is_connected
 
 from gettext import gettext as _
 import apt_pkg
@@ -350,6 +350,9 @@ class PackageStatusBar(StatusBar):
            not state in (PKG_STATE_INSTALLING, PKG_STATE_INSTALLING_PURCHASED,
            PKG_STATE_REMOVING, PKG_STATE_UPGRADING, APP_ACTION_APPLY)):
             self.set_label(self.app_details.warning)
+
+        sensitive = network_state_is_connected()
+        self.button.set_sensitive(sensitive)
         return
         
     def _convert_purchase_date_str_to_datetime(self, purchase_date):
@@ -544,10 +547,17 @@ class AddonsTable(gtk.VBox):
         self.label.set_markup(markup)
         self.pack_start(self.label, False, False)
 
+    def get_addons(self):
+        # filter all children widgets and return only Addons
+        return filter(lambda w: isinstance(w, Addon), self)
+
     def clear(self):
-        for w in self:
-            if isinstance(w, Addon):
-                w.destroy()
+        for addon in self.get_addons():
+            addon.destroy()
+
+    def addons_set_sensitive(self, is_sensitive):
+        for addon in self.get_addons():
+            addon.set_sensitive(is_sensitive)
 
     def set_addons(self, addons):
         self.recommended_addons = sorted(addons[0])
@@ -608,8 +618,6 @@ class AddonsStatusBar(StatusBar):
             not self.addons_manager.addons_to_remove):
             self.hide_all()
         else:
-            self.button_apply.set_sensitive(True)
-            self.button_cancel.set_sensitive(True)
             self.show_all()
     
     def _on_button_apply_clicked(self, button):
@@ -659,6 +667,9 @@ class AddonsManager():
             self.addons = self.view.cache.get_addons(pkgname)
             self.table.set_addons(self.addons)
         self.status_bar.configure()
+
+        sensitive = network_state_is_connected()
+        self.table.addons_set_sensitive(sensitive)
 
     def restore(self, *button):
         self.addons_to_install = []
@@ -747,6 +758,11 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self._check_for_reviews()
         elif state == NetState.NM_STATE_CONNECTED:
             gobject.timeout_add(500, self._check_for_reviews)
+
+        # set action button states based on sensitivity
+        sensitive = state == NetState.NM_STATE_CONNECTED
+        self.pkg_statusbar.button.set_sensitive(sensitive)
+        self.addon_view.addons_set_sensitive(sensitive)
         return
 
     # FIXME: should we just this with _check_for_reviews?
