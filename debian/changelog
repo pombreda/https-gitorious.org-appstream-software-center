@@ -24,8 +24,9 @@ software-center (3.1.26.3) UNRELEASED; urgency=low
     - mark string "In Progress..." for translation, many thanks to
       Hendrik Knackstedt and Florian Greinus for finding this
       (LP: #759240) 
+  * refresh .pot file 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Tue, 12 Apr 2011 19:06:57 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 12 Apr 2011 19:13:40 -0400
 
 software-center (3.1.26.2) natty; urgency=low
 
