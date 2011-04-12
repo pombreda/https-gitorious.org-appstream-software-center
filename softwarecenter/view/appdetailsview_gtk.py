@@ -618,8 +618,11 @@ class AddonsStatusBar(StatusBar):
             not self.addons_manager.addons_to_remove):
             self.hide_all()
         else:
+            sensitive = network_state_is_connected()
+            self.button_apply.set_sensitive(sensitive)
+            self.button_cancel.set_sensitive(sensitive)
             self.show_all()
-    
+   
     def _on_button_apply_clicked(self, button):
         self.applying = True
         self.button_apply.set_sensitive(False)
@@ -759,10 +762,12 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         elif state == NetState.NM_STATE_CONNECTED:
             gobject.timeout_add(500, self._check_for_reviews)
 
-        # set action button states based on sensitivity
+        # set addon table and action button states based on sensitivity
         sensitive = state == NetState.NM_STATE_CONNECTED
         self.pkg_statusbar.button.set_sensitive(sensitive)
         self.addon_view.addons_set_sensitive(sensitive)
+        self.addons_statusbar.button_apply.set_sensitive(sensitive)
+        self.addons_statusbar.button_cancel.set_sensitive(sensitive)
         return
 
     # FIXME: should we just this with _check_for_reviews?
