@@ -366,7 +366,12 @@ class ReviewLoaderSpawningRNRClient(ReviewLoader):
         app = translated_app.get_untranslated_app(self.db)
         self._update_rnrclient_offline_state()
         # gather args for the helper
-        origin = self.cache.get_origin(app.pkgname)
+        try:
+            origin = self.cache.get_origin(app.pkgname)
+        except:
+            # do nothing if the origin can not be obtained, this
+            # can happen if the candidate has multiple ones
+            return
         # special case for not-enabled PPAs
         if not origin and self.db:
             details = app.get_details(self.db)
