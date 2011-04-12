@@ -577,13 +577,22 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             enums.get_error_description_from_enum(trans.error_code),
             trans.error_details)
         self._logger.error("error in _on_trans_finished '%s'" % msg)
-        # show dialog to the user and exit (no need to reopen
-        # the cache)
+        # show dialog to the user and exit (no need to reopen the cache)
+        if not trans.error_code:
+            # sometimes aptdaemon doesn't return a value for error_code when the network
+            # connection has become unavailable; in that case, we will assume it's a
+            # failure during a package download because that is the only case where we
+            # see this happening - this avoids display of an empty error dialog and
+            # correctly prompts the user to check their network connection (see LP: #747172)
+            trans.error_code = enums.ERROR_PACKAGE_DOWNLOAD_FAILED
+        dialog_primary = enums.get_error_string_from_enum(trans.error_code)
+        dialog_secondary = enums.get_error_description_from_enum(trans.error_code)
+        dialog_details = trans.error_details
         dialogs.error(
             None, 
-            enums.get_error_string_from_enum(trans.error_code),
-            enums.get_error_description_from_enum(trans.error_code),
-            trans.error_details)
+            dialog_primary,
+            dialog_secondary,
+            dialog_details)
 
     def _on_trans_finished(self, trans, enum):
         """callback when a aptdaemon transaction finished"""
