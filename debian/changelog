@@ -16,9 +16,9 @@ software-center (3.1.26.3) UNRELEASED; urgency=low
   [ Gary Lasker ]
   * softwarecenter/app.py:
     - temporarily disable the deauth option until we have support
-      for remove repository in aptdaemon
+      for remove repository in aptdaemon (see LP: #723911)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Tue, 12 Apr 2011 14:05:11 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 12 Apr 2011 14:17:21 -0400
 
 software-center (3.1.26.2) natty; urgency=low
 
