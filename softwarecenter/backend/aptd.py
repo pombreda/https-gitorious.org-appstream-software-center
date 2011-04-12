@@ -584,6 +584,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             # failure during a package download because that is the only case where we
             # see this happening - this avoids display of an empty error dialog and
             # correctly prompts the user to check their network connection (see LP: #747172)
+            # FIXME: fix aptdaemon to return a valid error_code under all conditions
             trans.error_code = enums.ERROR_PACKAGE_DOWNLOAD_FAILED
         dialog_primary = enums.get_error_string_from_enum(trans.error_code)
         dialog_secondary = enums.get_error_description_from_enum(trans.error_code)
