@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-04-11 16:37-0400\n"
+"POT-Creation-Date: 2011-04-12 18:53-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -36,7 +36,7 @@ msgstr ""
 #. aquired for purchase in utils/submit_review.py
 #. the other one in softwarecenter/app.py
 #: ../utils/submit_review.py:305 ../data/ubuntu-software-center.desktop.in.h:3
-#: ../softwarecenter/app.py:706 ../softwarecenter/distro/Ubuntu.py:52
+#: ../softwarecenter/app.py:711 ../softwarecenter/distro/Ubuntu.py:52
 msgid "Ubuntu Software Center"
 msgstr ""
 
@@ -645,11 +645,11 @@ msgstr ""
 msgid "Please re-install the 'software-center' package."
 msgstr ""
 
-#: ../softwarecenter/app.py:659 ../softwarecenter/app.py:707
+#: ../softwarecenter/app.py:664 ../softwarecenter/app.py:712
 msgid "Ubuntu Software Center Store"
 msgstr ""
 
-#: ../softwarecenter/app.py:660
+#: ../softwarecenter/app.py:665
 msgid ""
 "To reinstall previous purchases, sign in to the Ubuntu Single Sign-On "
 "account you used to pay for them."
@@ -681,31 +681,31 @@ msgstr ""
 msgid "Independent"
 msgstr ""
 
-#: ../softwarecenter/db/application.py:211
-#: ../softwarecenter/db/application.py:301
-#: ../softwarecenter/db/application.py:432
-#: ../softwarecenter/db/application.py:446
-#: ../softwarecenter/db/application.py:612
-#: ../softwarecenter/db/application.py:617
+#: ../softwarecenter/db/application.py:213
+#: ../softwarecenter/db/application.py:313
+#: ../softwarecenter/db/application.py:444
+#: ../softwarecenter/db/application.py:458
+#: ../softwarecenter/db/application.py:624
+#: ../softwarecenter/db/application.py:629
 msgid "Not Found"
 msgstr ""
 
-#: ../softwarecenter/db/application.py:212
-#: ../softwarecenter/db/application.py:302
-#: ../softwarecenter/db/application.py:433
-#: ../softwarecenter/db/application.py:447
+#: ../softwarecenter/db/application.py:214
+#: ../softwarecenter/db/application.py:314
+#: ../softwarecenter/db/application.py:445
+#: ../softwarecenter/db/application.py:459
 #, python-format
 msgid ""
 "There isn't a software package called \"%s\" in your current software "
 "sources."
 msgstr ""
 
-#: ../softwarecenter/db/application.py:515
+#: ../softwarecenter/db/application.py:527
 #, python-format
 msgid "Version %s or later not available."
 msgstr ""
 
-#: ../softwarecenter/db/application.py:528
+#: ../softwarecenter/db/application.py:540
 #, python-format
 msgid "Available from the \"%s\" source."
 msgstr ""
@@ -713,53 +713,53 @@ msgstr ""
 #. Translators: the visible string is constructed concatenating
 #. the following 3 strings like this:
 #. Available from the following sources: %s, ... %s, %s.
-#: ../softwarecenter/db/application.py:533
+#: ../softwarecenter/db/application.py:545
 msgid "Available from the following sources: "
 msgstr ""
 
-#: ../softwarecenter/db/application.py:536
+#: ../softwarecenter/db/application.py:548
 #, python-format
 msgid "\"%s\", "
 msgstr ""
 
-#: ../softwarecenter/db/application.py:537
+#: ../softwarecenter/db/application.py:549
 #, python-format
 msgid "\"%s\"."
 msgstr ""
 
-#: ../softwarecenter/db/application.py:613
+#: ../softwarecenter/db/application.py:625
 #, python-format
 msgid "The file \"%s\" does not exist."
 msgstr ""
 
-#: ../softwarecenter/db/application.py:618
+#: ../softwarecenter/db/application.py:630
 #, python-format
 msgid "The file \"%s\" is not a software package."
 msgstr ""
 
 #. hm, deb files from launchpad get this error..
-#: ../softwarecenter/db/application.py:621
+#: ../softwarecenter/db/application.py:633
 msgid "Internal Error"
 msgstr ""
 
-#: ../softwarecenter/db/application.py:622
+#: ../softwarecenter/db/application.py:634
 #, python-format
 msgid "The file \"%s\" could not be opened."
 msgstr ""
 
-#: ../softwarecenter/db/application.py:714
+#: ../softwarecenter/db/application.py:726
 msgid "Only install this file if you trust the origin."
 msgstr ""
 
-#: ../softwarecenter/db/application.py:719
-#: ../softwarecenter/db/application.py:721
+#: ../softwarecenter/db/application.py:731
+#: ../softwarecenter/db/application.py:733
 #, python-format
 msgid ""
 "Please install \"%s\" via your normal software channels. Only install this "
 "file if you trust the origin."
 msgstr ""
 
-#: ../softwarecenter/db/application.py:723
+#: ../softwarecenter/db/application.py:735
 #, python-format
 msgid ""
 "An older version of \"%s\" is available in your normal software channels. "
@@ -970,6 +970,10 @@ msgstr ""
 
 #: ../softwarecenter/models/viewswitcherlist.py:95
 msgid "History"
+msgstr ""
+
+#: ../softwarecenter/models/viewswitcherlist.py:116
+msgid "In Progress..."
 msgstr ""
 
 #. less than 2 minute ago
