@@ -113,7 +113,7 @@ class ViewSwitcherList(gtk.TreeStore):
             else:
                 icon = AnimatedImage(self.ANIMATION_PATH)
                 icon.start()
-                self.append(None, [icon, "In Progress...", 
+                self.append(None, [icon, _("In Progress..."), 
                              VIEW_PAGE_PENDING, None, str(pending)])
         else:
             for (i, row) in enumerate(self):
