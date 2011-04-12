@@ -120,6 +120,7 @@ class AppStore(gtk.GenericTreeModel):
         self.search_query = SearchQuery(search_query)
         self.cache = cache
         self.db = db
+        self.db.connect("reopen", self._on_db_reopen)
         self.distro = get_distro()
         self.icons = icons
         self.icon_size = icon_size
@@ -165,7 +166,9 @@ class AppStore(gtk.GenericTreeModel):
         # custom package lists
         self.search_term = search_term
         self.apps = []
+        self._perform_search()
 
+    def _perform_search(self):
         # we support single and list search_queries,
         # if list we append them one by one
         with ExecutionTime("populate model from query: '%s' (threaded: %s)" % (
@@ -175,6 +178,10 @@ class AppStore(gtk.GenericTreeModel):
                 self._threaded_perform_search()
             else:
                 self._blocking_perform_search()
+
+    def _on_db_reopen(self, db):
+        logging.debug("got db-reopen signal, refreshing search docids")
+        self._perform_search()
 
     def _threaded_perform_search(self):
         self._perform_search_complete = False
