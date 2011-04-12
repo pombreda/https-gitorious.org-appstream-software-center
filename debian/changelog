@@ -3,6 +3,8 @@ software-center (3.1.26.3) UNRELEASED; urgency=low
   * softwarecenter/db/reviews.py:
     - do not crash on multiple origins for the same version
       (LP: #756415)
+  * softwarecenter/db/application.py:
+    - ensure docid is updated on database reopen() (LP: #757054)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 12 Apr 2011 14:40:02 +0200
 
