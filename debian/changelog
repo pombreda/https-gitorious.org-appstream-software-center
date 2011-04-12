@@ -1,5 +1,6 @@
 software-center (3.1.26.3) UNRELEASED; urgency=low
 
+  [ Michael Vogt ]
   * softwarecenter/db/reviews.py:
     - do not crash on multiple origins for the same version
       (LP: #756415)
@@ -12,7 +13,12 @@ software-center (3.1.26.3) UNRELEASED; urgency=low
     - do not run update-apt-xapian-index in --update mode to avoid
       in-place database modfications (LP: #507836)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 12 Apr 2011 14:40:02 +0200
+  [ Gary Lasker ]
+  * softwarecenter/app.py:
+    - temporarily disable the deauth option until we have support
+      for remove repository in aptdaemon (see LP: #723911)
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 12 Apr 2011 14:17:21 -0400
 
 software-center (3.1.26.2) natty; urgency=low
 
