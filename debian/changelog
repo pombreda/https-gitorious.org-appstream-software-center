@@ -26,10 +26,12 @@ software-center (3.1.26.3) UNRELEASED; urgency=low
   * softwarecenter/models/viewswitcherlist.py:
     - mark string "In Progress..." for translation, many thanks to
       Hendrik Knackstedt and Florian Greinus for finding this
-      (LP: #759240) 
+      (LP: #759240)
+  * softwarecenter/view/catview_gtk.py:
+    - fix broken translation string (LP: #758656)
   * refresh .pot file 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 13 Apr 2011 16:18:39 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 13 Apr 2011 18:36:03 -0400
 
 software-center (3.1.26.2) natty; urgency=low
 

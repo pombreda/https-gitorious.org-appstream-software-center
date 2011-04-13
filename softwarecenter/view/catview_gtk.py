@@ -289,7 +289,7 @@ class LobbyViewGtk(CategoriesViewGtk):
             enquire.set_query(query)
             tmp_matches = enquire.get_mset(0, len(self.db), None, self.apps_filter)
             nr_apps = tmp_matches.get_matches_estimated()
-            
+
             # update the widget
             text = gettext.ngettext(
              "Welcome back! There is <a href=\"\">%i new recommendation</a>"
