@@ -289,14 +289,13 @@ class LobbyViewGtk(CategoriesViewGtk):
             enquire.set_query(query)
             tmp_matches = enquire.get_mset(0, len(self.db), None, self.apps_filter)
             nr_apps = tmp_matches.get_matches_estimated()
-
+            
             # update the widget
             text = gettext.ngettext(
-             "Welcome back! There is <a href=\"\">%(nr_recs)i new recommendation</a>"
+             "Welcome back! There is <a href=\"\">%i new recommendation</a>"
                                                    " for you.",
-             "Welcome back! There are <a href=\"\">%(nr_recs)i new recommendations</a>"
-                                                    " for you.", 
-                                                    nr_apps) % { 'nr_recs' : nr_apps, }
+             "Welcome back! There are <a href=\"\">%i new recommendations</a>"
+                                                   " for you.", nr_apps) % nr_apps
 
             self.recommended.set_markup(text)
             self.recommended.get_accessible().set_role(atk.ROLE_PUSH_BUTTON)
