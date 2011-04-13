@@ -292,11 +292,12 @@ class LobbyViewGtk(CategoriesViewGtk):
 
             # update the widget
             text = gettext.ngettext(
-             "Welcome back! There is <a href=\"\">%i new recommendation</a>"
-                                                   " for you." % nr_apps,
-             "Welcome back! There are <a href=\"\">%i new recommendations</a>"
-                                                     " for you." % nr_apps,
-             nr_apps)
+             "Welcome back! There is <a href=\"\">%(nr_recs)i new recommendation</a>"
+                                                   " for you.",
+             "Welcome back! There are <a href=\"\">%(nr_recs)i new recommendations</a>"
+                                                    " for you.", 
+                                                    nr_apps) % { 'nr_recs' : nr_apps, }
+
             self.recommended.set_markup(text)
             self.recommended.get_accessible().set_role(atk.ROLE_PUSH_BUTTON)
             self.recommended.set_alignment(0,-1)
