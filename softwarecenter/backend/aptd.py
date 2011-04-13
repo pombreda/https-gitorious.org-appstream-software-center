@@ -137,8 +137,8 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         # first arg is force, second update_only
         try:
             axi.update_async(True, False)
-        except Exception, error:
-            self._logger.error("could not update axi: ", error)
+        except Exception, e:
+            self._logger.warning("could not update axi: '%s'" % e)
 
     @inline_callbacks
     def fix_broken_depends(self):
