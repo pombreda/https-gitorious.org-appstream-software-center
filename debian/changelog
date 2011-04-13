@@ -12,6 +12,8 @@ software-center (3.1.26.3) UNRELEASED; urgency=low
   * softwarecenter/backend/aptd.py:
     - do not run update-apt-xapian-index in --update mode to avoid
       in-place database modfications (LP: #507836)
+  * test/test_load_icons.py:
+    - add test for the icon loader
 
   [ Gary Lasker ]
   * softwarecenter/app.py:
