@@ -22,13 +22,14 @@ software-center (3.1.26.3) UNRELEASED; urgency=low
   * softwarecenter/backend/aptd.py :
     - fix empty error dialog for the case where aptdaemon returns
       an error code with no value (LP: #747172)
+    - fix intermittent crash when updating the a-x-i (LP: #657494)
   * softwarecenter/models/viewswitcherlist.py:
     - mark string "In Progress..." for translation, many thanks to
       Hendrik Knackstedt and Florian Greinus for finding this
       (LP: #759240) 
   * refresh .pot file 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Tue, 12 Apr 2011 19:13:40 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 13 Apr 2011 16:18:39 -0400
 
 software-center (3.1.26.2) natty; urgency=low
 
