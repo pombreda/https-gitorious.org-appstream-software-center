@@ -135,7 +135,10 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         # we don't really care for updates at this point
         #axi.connect_to_signal("UpdateProgress", progress)
         # first arg is force, second update_only
-        axi.update_async(True, False)
+        try:
+            axi.update_async(True, False)
+        except Exception, error:
+            self._logger.error("could not update axi: ", error)
 
     @inline_callbacks
     def fix_broken_depends(self):
