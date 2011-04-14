@@ -14,6 +14,9 @@ software-center (3.1.26.3) UNRELEASED; urgency=low
       in-place database modfications (LP: #507836)
   * test/test_load_icons.py:
     - add test for the icon loader
+  * merged lp:~glatzor/software-center/force-bad-quality, this 
+    fixes the missing ability to override the lintian warning
+    (LP: #712377)
 
   [ Gary Lasker ]
   * softwarecenter/app.py:

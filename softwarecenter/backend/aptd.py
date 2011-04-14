@@ -209,7 +209,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             yield self.remove(pkgname, appname, iconname, metadata)
 
     @inline_callbacks
-    def install(self, pkgname, appname, iconname, filename=None, addons_install=[], addons_remove=[], metadata=None):
+    def install(self, pkgname, appname, iconname, filename=None, addons_install=[], addons_remove=[], metadata=None, force=False):
         """Install a single package from the archive
            If filename is given a local deb package is installed instead.
         """
@@ -217,8 +217,9 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             if filename:
                 # force means on lintian failure
                 trans = yield self.aptd_client.install_file(
-                    filename, force=False, defer=True)
+                    filename, force=force, defer=True)
                 self.emit("transaction-started", pkgname, appname, trans.tid, TRANSACTION_TYPE_INSTALL)
+                yield trans.set_meta_data(sc_filename=filename, defer=True)
             else:
                 install = [pkgname] + addons_install
                 remove = addons_remove
@@ -567,7 +568,8 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         except KeyError:
             pass
 
-    def _show_transaction_failed_dialog(self, trans, enum):
+    def _show_transaction_failed_dialog(self, trans, enum,
+                                        alternative_action=None):
         # daemon died are messages that result from broken
         # cancel handling in aptdaemon (LP: #440941)
         # FIXME: this is not a proper fix, just a workaround
@@ -592,20 +594,37 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         dialog_primary = enums.get_error_string_from_enum(trans.error_code)
         dialog_secondary = enums.get_error_description_from_enum(trans.error_code)
         dialog_details = trans.error_details
-        dialogs.error(
-            None, 
-            dialog_primary,
-            dialog_secondary,
-            dialog_details)
+        # show dialog to the user and exit (no need to reopen
+        # the cache)
+        return dialogs.error(None,
+                        enums.get_error_string_from_enum(trans.error_code),
+                        enums.get_error_description_from_enum(trans.error_code),
+                        trans.error_details,
+                        alternative_action)
 
     def _on_trans_finished(self, trans, enum):
         """callback when a aptdaemon transaction finished"""
         self._logger.debug("_on_transaction_finished: %s %s %s" % (
                 trans, enum, trans.meta_data))
 
+
         # show error
         if enum == enums.EXIT_FAILED:
-            if not "sc_add_repo_and_install_ignore_errors" in trans.meta_data:
+            # Handle invalid packages separately
+            if trans.error.code == enums.ERROR_INVALID_PACKAGE_FILE:
+                action = _("_Ignore and install")
+                res = self._show_transaction_failed_dialog(trans, enum, action)
+                if res == gtk.RESPONSE_YES:
+                    # Reinject the transaction
+                    meta_copy = trans.meta_data.copy()
+                    pkgname = meta_copy.pop("sc_pkgname")
+                    appname = meta_copy.pop("sc_appname", None)
+                    iconname = meta_copy.pop("sc_iconname", None)
+                    filename = meta_copy.pop("sc_filename")
+                    self.install(pkgname, appname, iconname, filename, [], [],
+                                 metadata=meta_copy, force=True)
+                    return
+            elif not "sc_add_repo_and_install_ignore_errors" in trans.meta_data:
                 self._show_transaction_failed_dialog(trans, enum)
 
         # send finished signal, use "" here instead of None, because
