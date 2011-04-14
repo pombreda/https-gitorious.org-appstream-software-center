@@ -282,7 +282,9 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         self._logger.debug("enable_component: %s" % component)
         try:
             trans = yield self.aptd_client.enable_distro_component(component)
-            yield self._run_transaction(trans, None, None, None)
+            # don't use self._run_transaction() here, to avoid sending uneeded
+            # signals
+            yield trans.run(defer=True)
         except Exception, error:
             self._on_trans_error(error, component)
             return_value(None)
@@ -304,7 +306,9 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             keyfile = channelfile.replace(".list",".key")
             if os.path.exists(keyfile):
                 trans = yield self.aptd_client.add_vendor_key_from_file(keyfile, wait=True)
-                yield self._run_transaction(trans, None, None, None, metadata)
+                # don't use self._run_transaction() here, to avoid sending
+                # uneeded signals
+                yield trans.run(defer=True)
         yield self.reload(sourcepart)
 
     @inline_callbacks
