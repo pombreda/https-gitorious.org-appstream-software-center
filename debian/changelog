@@ -1,4 +1,4 @@
-software-center (3.1.26.3) UNRELEASED; urgency=low
+software-center (3.1.26.3) natty; urgency=low
 
   [ Michael Vogt ]
   * softwarecenter/db/reviews.py:
@@ -39,7 +39,7 @@ software-center (3.1.26.3) UNRELEASED; urgency=low
   * softwarecenter/db/update.py:
     - fix crash when reinstalling previous purchases (LP: #760353) 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 13 Apr 2011 22:31:54 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 14 Apr 2011 19:59:42 +0200
 
 software-center (3.1.26.2) natty; urgency=low
 

@@ -369,9 +369,9 @@ class ReviewLoaderSpawningRNRClient(ReviewLoader):
         try:
             origin = self.cache.get_origin(app.pkgname)
         except:
-            # do nothing if the origin can not be obtained, this
-            # can happen if the candidate has multiple ones
-            return
+            # this can happen if e.g. the app has multiple origins, this
+            # will be handled later
+            origin = None
         # special case for not-enabled PPAs
         if not origin and self.db:
             details = app.get_details(self.db)
