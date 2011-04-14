@@ -17,6 +17,7 @@ software-center (3.1.26.3) UNRELEASED; urgency=low
   * merged lp:~glatzor/software-center/force-bad-quality, this 
     fixes the missing ability to override the lintian warning
     (LP: #712377)
+  * don't show reviews if we can't determine the origin
 
   [ Gary Lasker ]
   * softwarecenter/app.py:

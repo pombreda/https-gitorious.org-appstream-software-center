@@ -380,6 +380,7 @@ class ReviewLoaderSpawningRNRClient(ReviewLoader):
                 origin = "lp-ppa-%s" % ppa.replace("/", "-")
         # if there is no origin, there is nothing to do
         if not origin:
+            callback(app, [])
             return
         distroseries = self.distro.get_codename()
         # run the command and add watcher
