@@ -82,23 +82,27 @@ def messagedialog(parent=None,
                   secondary=None, 
                   details=None,
                   buttons=gtk.BUTTONS_OK, 
-                  type=gtk.MESSAGE_INFO):
+                  type=gtk.MESSAGE_INFO,
+                  alternative_action=None):
     """ run a dialog """
     dialog = DetailsMessageDialog(parent=parent, title=title,
                                   primary=primary, secondary=secondary,
                                   details=details, type=type, 
                                   buttons=buttons)
+    if alternative_action:
+        dialog.add_button(alternative_action, gtk.RESPONSE_YES)
     result = dialog.run()
     dialog.destroy()
     return result
 
-def error(parent, primary, secondary, details=None):
+def error(parent, primary, secondary, details=None, alternative_action=None):
     """ show a untitled error dialog """
     return messagedialog(parent=parent,
                          primary=primary, 
                          secondary=secondary,
                          details=details,
-                         type=gtk.MESSAGE_ERROR)
+                         type=gtk.MESSAGE_ERROR,
+                         alternative_action=alternative_action)
 
 
 class FullsizeScreenshotDialog(gtk.Dialog):
