@@ -281,7 +281,8 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
     def enable_component(self, component):
         self._logger.debug("enable_component: %s" % component)
         try:
-            yield self.aptd_client.enable_distro_component(component, wait=True, defer=True)
+            trans = yield self.aptd_client.enable_distro_component(component)
+            yield self._run_transaction(trans, None, None, None)
         except Exception, error:
             self._on_trans_error(error, component)
             return_value(None)
@@ -302,7 +303,8 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             yield self.add_sources_list_entry(entry, sourcepart)
             keyfile = channelfile.replace(".list",".key")
             if os.path.exists(keyfile):
-                yield self.aptd_client.add_vendor_key_from_file(keyfile, wait=True)
+                trans = yield self.aptd_client.add_vendor_key_from_file(keyfile, wait=True)
+                yield self._run_transaction(trans, None, None, None, metadata)
         yield self.reload(sourcepart)
 
     @inline_callbacks
@@ -740,5 +742,8 @@ if __name__ == "__main__":
     #c = client.AptClient()
     #c.remove_packages(["4g8"], remove_unused_dependencies=True)
     backend = AptdaemonBackend()
-    backend.reload()
+    #backend.reload()
+    backend.enable_component("multiverse")
+
+    gtk.main()
 
