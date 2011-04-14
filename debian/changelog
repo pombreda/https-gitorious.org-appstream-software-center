@@ -19,6 +19,7 @@ software-center (3.1.26.3) UNRELEASED; urgency=low
     (LP: #712377)
   * don't show reviews if we can't determine the origin
   * fix crash when enabling new components (LP: #636429)
+  * fix missing details when a channel or a component just got added
 
   [ Gary Lasker ]
   * softwarecenter/app.py:

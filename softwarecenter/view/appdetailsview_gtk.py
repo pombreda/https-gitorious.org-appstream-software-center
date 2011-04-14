@@ -1398,7 +1398,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
     # public API
     # FIXME:  port to AppDetailsViewBase as
     #         AppDetailsViewBase.show_app(self, app)
-    def show_app(self, app):
+    def show_app(self, app, force=False):
         LOG.debug("AppDetailsView.show_app '%s'" % app)
         if app is None:
             LOG.debug("no app selected")
@@ -1419,7 +1419,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         # update content
         # layout page
-        if same_app:
+        if same_app and not force:
             self._update_minimal(self.app_details)
         else:
             self._update_all(self.app_details)
