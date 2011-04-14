@@ -573,7 +573,8 @@ def index_app_info_from_parser(parser, db, cache):
         # purchased date
         if parser.has_option_desktop("X-AppInstall-Purchased-Date"):
             date = parser.get_desktop("X-AppInstall-Purchased-Date")
-            doc.add_value(XAPIAN_VALUE_PURCHASED_DATE, str(date))
+            # strip the subseconds from the end of the date string
+            doc.add_value(XAPIAN_VALUE_PURCHASED_DATE, str(date).split(".")[0])
         # deb-line (third party)
         if parser.has_option_desktop("X-AppInstall-Deb-Line"):
             debline = parser.get_desktop("X-AppInstall-Deb-Line")

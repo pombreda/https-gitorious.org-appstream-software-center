@@ -30,8 +30,10 @@ software-center (3.1.26.3) UNRELEASED; urgency=low
   * softwarecenter/view/catview_gtk.py:
     - fix broken translation string (LP: #758656)
   * refresh .pot file 
+  * softwarecenter/db/update.py:
+    - fix crash when reinstalling previous purchases (LP: #760353) 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 13 Apr 2011 18:36:03 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 13 Apr 2011 22:31:54 -0400
 
 software-center (3.1.26.2) natty; urgency=low
 
