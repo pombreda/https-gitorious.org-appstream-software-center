@@ -173,6 +173,6 @@ class AppDetailsViewBase(object):
         # re-show the application if the cache changes, it may affect the
         # current application
         LOG.debug("on_cache_ready")
-        self.show_app(self.app, force=True)
+        self.show_app(self.app)
 
 

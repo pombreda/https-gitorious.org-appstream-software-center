@@ -706,6 +706,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # app specific data
         self.app = None
         self.app_details = None
+        self.pkg_state = None
 
         self.review_stats_widget = ReviewStatsContainer()
         self.reviews = UIReviewsList(self)
@@ -1414,6 +1415,14 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # init data
         self.app = app
         self.app_details = app.get_details(self.db)
+        
+        # check if app just became available and if so, force full
+        # refresh
+        if (same_app and
+            self.pkg_state == PKG_STATE_NEEDS_SOURCE and
+            self.app_details.pkg_state != PKG_STATE_NEEDS_SOURCE):
+            force = True
+        self.pkg_state = self.app_details.pkg_state
 
         # for compat with the base class
         self.appdetails = self.app_details
