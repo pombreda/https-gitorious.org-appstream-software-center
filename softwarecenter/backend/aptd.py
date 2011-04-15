@@ -622,7 +622,8 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         # show error
         if enum == enums.EXIT_FAILED:
             # Handle invalid packages separately
-            if trans.error.code == enums.ERROR_INVALID_PACKAGE_FILE:
+            if (trans.error and 
+                trans.error.code == enums.ERROR_INVALID_PACKAGE_FILE):
                 action = _("_Ignore and install")
                 res = self._show_transaction_failed_dialog(trans, enum, action)
                 if res == gtk.RESPONSE_YES:
