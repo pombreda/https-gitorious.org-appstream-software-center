@@ -363,7 +363,9 @@ class ReviewLoaderSpawningRNRClient(ReviewLoader):
         """ public api, triggers fetching a review and calls callback
             when its ready
         """
-        app = translated_app.get_untranslated_app(self.db)
+        # its fine to use the translated appname here, we only submit the
+        # pkgname to the server
+        app = translated_app
         self._update_rnrclient_offline_state()
         # gather args for the helper
         try:
@@ -390,10 +392,13 @@ class ReviewLoaderSpawningRNRClient(ReviewLoader):
                "--distroseries", distroseries, 
                "--pkgname", app.pkgname,
               ]
-        (pid, stdin, stdout, stderr) = glib.spawn_async(
-            cmd, flags = glib.SPAWN_DO_NOT_REAP_CHILD, 
-            standard_output=True, standard_error=True)
-        glib.child_watch_add(pid, self._reviews_loaded_watcher, data=(app, stdout, stderr, callback))
+        try:
+            (pid, stdin, stdout, stderr) = glib.spawn_async(
+                cmd, flags = glib.SPAWN_DO_NOT_REAP_CHILD, 
+                standard_output=True, standard_error=True)
+            glib.child_watch_add(pid, self._reviews_loaded_watcher, data=(app, stdout, stderr, callback))
+        except Exception as e:
+            raise Exception("failed to launch: '%s' (error: '%s')" % (cmd, e))
 
     def _reviews_loaded_watcher(self, pid, status, (app, stdout, stderr, callback)):
         """ watcher function in parent using glib """

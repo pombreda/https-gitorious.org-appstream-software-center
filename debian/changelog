@@ -5,6 +5,11 @@ software-center (3.1.26.4) UNRELEASED; urgency=low
   * softwarecenter/view/appdetailsview_gtk.py, 
     softwarecenter/view/softwarepane.py:
     - fixes in the i18n handling (LP: #760807)
+  * softwarecenter/db/reviews.py:
+    - in get_review() do not use the untranslate appname, we only need 
+      the pkgname (may fix #761357)
+    - improve error reporting if the get_reviews_helper fails
+      (to fix #761357)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 15 Apr 2011 10:42:35 +0200
 
