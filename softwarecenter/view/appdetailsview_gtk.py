@@ -279,7 +279,8 @@ class PackageStatusBar(StatusBar):
                     # TRANSLATORS : %Y-%m-%d formats the date as 2011-03-31, please specify a format per your
                     # locale (if you prefer, %x can be used to provide a default locale-specific date 
                     # representation)
-                    self.set_label(app_details.installation_date.strftime(_('Installed on %Y-%m-%d')))
+                    template = _('Installed on %Y-%m-%d')
+                    self.set_label(app_details.installation_date.strftime(template))
                 else:
                     self.set_label(_('Installed'))
             if state == PKG_STATE_REINSTALLABLE: # only deb files atm

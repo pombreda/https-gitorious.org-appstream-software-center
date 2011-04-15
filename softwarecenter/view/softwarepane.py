@@ -407,7 +407,7 @@ class SoftwarePane(gtk.VBox, BasePane):
                                    app,
                                    appdetails,
                                    trans_id)
-        self.action_bar.set_label(_("Add %s to the launcher?" % app.name))
+        self.action_bar.set_label(_("Add %s to the launcher?") % app.name)
         
     def on_add_to_launcher(self, app, appdetails, trans_id):
         """
