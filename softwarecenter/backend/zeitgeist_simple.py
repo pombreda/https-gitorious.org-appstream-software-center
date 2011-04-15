@@ -74,6 +74,8 @@ class SoftwareCenterZeitgeist():
             # gather
             mimetypes = {}
             for event in events:
+                if event.subjects is None:
+                    continue
                 mimetype = event.subjects[0].mimetype
                 if not mimetype in mimetypes:
                     mimetypes[mimetype] = 0
