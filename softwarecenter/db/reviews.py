@@ -390,7 +390,7 @@ class ReviewLoaderSpawningRNRClient(ReviewLoader):
                "--language", self.language, 
                "--origin", origin, 
                "--distroseries", distroseries, 
-               "--pkgname", app.pkgname,
+               "--pkgname", str(app.pkgname), # ensure its str, not unicode
               ]
         try:
             (pid, stdin, stdout, stderr) = glib.spawn_async(

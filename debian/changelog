@@ -9,6 +9,9 @@ software-center (3.1.26.5) UNRELEASED; urgency=low
   * utils/get_reviews_helper.py, utils/get_review_stats_helper.py:
     - fix crash when the server returns a API error (LP: #761452)
     - fix pyflakes warnins
+  * softwarecenter/db/reviews.py:
+    - ensure pkgname is a str (and not unicode), otherwise 
+      glib.spawn_async crashes (LP: #761357)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 15 Apr 2011 14:38:00 +0200
 
