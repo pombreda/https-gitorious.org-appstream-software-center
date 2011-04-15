@@ -128,9 +128,14 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
     def update_xapian_index(self):
         self._logger.debug("update_xapian_index")
         system_bus = dbus.SystemBus()
-        axi = dbus.Interface(
-            system_bus.get_object("org.debian.AptXapianIndex","/"),
-            "org.debian.AptXapianIndex")
+        # axi is optional, so just do nothing if its not installed
+        try:
+            axi = dbus.Interface(
+                system_bus.get_object("org.debian.AptXapianIndex","/"),
+                "org.debian.AptXapianIndex")
+        except dbus.DBusException as e:
+            self._logger.warning("axi can not be updated '%s'" % e)
+            return
         axi.connect_to_signal("UpdateFinished", self._axi_finished)
         # we don't really care for updates at this point
         #axi.connect_to_signal("UpdateProgress", progress)

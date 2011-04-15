@@ -1,3 +1,10 @@
+software-center (3.1.26.4) UNRELEASED; urgency=low
+
+  * softwarecenter/backend/aptd.py:
+    - do not crash if a-x-i is not installed (LP: #760090)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 15 Apr 2011 10:42:35 +0200
+
 software-center (3.1.26.3) natty; urgency=low
 
   [ Michael Vogt ]
