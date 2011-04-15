@@ -1,14 +1,14 @@
 #!/usr/bin/python
 
+import os
 import pickle
 import simplejson
-import sys
 import logging
 
 from optparse import OptionParser
 
-from softwarecenter.paths import *
-from softwarecenter.backend.rnrclient import RatingsAndReviewsAPI, ReviewDetails
+from softwarecenter.paths import SOFTWARE_CENTER_CACHE_DIR
+from softwarecenter.backend.rnrclient import RatingsAndReviewsAPI
 
 from piston_mini_client import APIError
 
