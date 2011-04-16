@@ -2,8 +2,10 @@ software-center (3.1.26.6) UNRELEASED; urgency=low
 
   * softwarecenter/view/softwarepane.py:
     - fix broken string for translation (LP: #762893)
+  * po/software-center.pot:
+    - refresh .pot file 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Sat, 16 Apr 2011 18:57:33 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Sat, 16 Apr 2011 19:08:30 -0400
 
 software-center (3.1.26.5) natty; urgency=low
 
