@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-04-11 16:37-0400\n"
+"POT-Creation-Date: 2011-04-16 19:01-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -36,7 +36,7 @@ msgstr ""
 #. aquired for purchase in utils/submit_review.py
 #. the other one in softwarecenter/app.py
 #: ../utils/submit_review.py:305 ../data/ubuntu-software-center.desktop.in.h:3
-#: ../softwarecenter/app.py:706 ../softwarecenter/distro/Ubuntu.py:52
+#: ../softwarecenter/app.py:711 ../softwarecenter/distro/Ubuntu.py:52
 msgid "Ubuntu Software Center"
 msgstr ""
 
@@ -283,12 +283,12 @@ msgid ""
 "the moment. Try again in a day or two.</span>"
 msgstr ""
 
-#: ../data/ui/dialogs.ui.h:7 ../softwarecenter/view/appdetailsview_gtk.py:597
+#: ../data/ui/dialogs.ui.h:7 ../softwarecenter/view/appdetailsview_gtk.py:598
 msgid "Cancel"
 msgstr ""
 
 #. info header
-#: ../data/ui/dialogs.ui.h:8 ../softwarecenter/view/appdetailsview_gtk.py:1073
+#: ../data/ui/dialogs.ui.h:8 ../softwarecenter/view/appdetailsview_gtk.py:1075
 #: ../softwarecenter/view/dialogs.py:71
 msgid "Details"
 msgstr ""
@@ -303,7 +303,7 @@ msgid ""
 "the store."
 msgstr ""
 
-#: ../data/ui/dialogs.ui.h:11 ../softwarecenter/view/appdetailsview_gtk.py:288
+#: ../data/ui/dialogs.ui.h:11 ../softwarecenter/view/appdetailsview_gtk.py:289
 #: ../softwarecenter/view/appdetailsview_webkit.py:448
 #: ../softwarecenter/view/appdetailsview_webkit.py:464
 #: ../softwarecenter/view/appview.py:682
@@ -645,19 +645,23 @@ msgstr ""
 msgid "Please re-install the 'software-center' package."
 msgstr ""
 
-#: ../softwarecenter/app.py:659 ../softwarecenter/app.py:707
+#: ../softwarecenter/app.py:664 ../softwarecenter/app.py:712
 msgid "Ubuntu Software Center Store"
 msgstr ""
 
-#: ../softwarecenter/app.py:660
+#: ../softwarecenter/app.py:665
 msgid ""
 "To reinstall previous purchases, sign in to the Ubuntu Single Sign-On "
 "account you used to pay for them."
 msgstr ""
 
-#: ../softwarecenter/backend/aptd.py:575
-#: ../softwarecenter/view/appdetailsview_gtk.py:323
+#: ../softwarecenter/backend/aptd.py:591
+#: ../softwarecenter/view/appdetailsview_gtk.py:324
 msgid "Error"
+msgstr ""
+
+#: ../softwarecenter/backend/aptd.py:627
+msgid "_Ignore and install"
 msgstr ""
 
 #: ../softwarecenter/backend/channel.py:405
@@ -665,11 +669,11 @@ msgid "Canonical Partners"
 msgstr ""
 
 #: ../softwarecenter/backend/channel.py:407
-#: ../softwarecenter/view/appdetailsview_gtk.py:1208
-#: ../softwarecenter/view/appdetailsview_gtk.py:1214
-#: ../softwarecenter/view/appdetailsview_gtk.py:1218
-#: ../softwarecenter/view/appdetailsview_gtk.py:1604
-#: ../softwarecenter/view/appdetailsview_gtk.py:1677
+#: ../softwarecenter/view/appdetailsview_gtk.py:1210
+#: ../softwarecenter/view/appdetailsview_gtk.py:1216
+#: ../softwarecenter/view/appdetailsview_gtk.py:1220
+#: ../softwarecenter/view/appdetailsview_gtk.py:1614
+#: ../softwarecenter/view/appdetailsview_gtk.py:1687
 msgid "Unknown"
 msgstr ""
 
@@ -681,31 +685,31 @@ msgstr ""
 msgid "Independent"
 msgstr ""
 
-#: ../softwarecenter/db/application.py:211
-#: ../softwarecenter/db/application.py:301
-#: ../softwarecenter/db/application.py:432
-#: ../softwarecenter/db/application.py:446
-#: ../softwarecenter/db/application.py:612
-#: ../softwarecenter/db/application.py:617
+#: ../softwarecenter/db/application.py:213
+#: ../softwarecenter/db/application.py:313
+#: ../softwarecenter/db/application.py:444
+#: ../softwarecenter/db/application.py:458
+#: ../softwarecenter/db/application.py:624
+#: ../softwarecenter/db/application.py:629
 msgid "Not Found"
 msgstr ""
 
-#: ../softwarecenter/db/application.py:212
-#: ../softwarecenter/db/application.py:302
-#: ../softwarecenter/db/application.py:433
-#: ../softwarecenter/db/application.py:447
+#: ../softwarecenter/db/application.py:214
+#: ../softwarecenter/db/application.py:314
+#: ../softwarecenter/db/application.py:445
+#: ../softwarecenter/db/application.py:459
 #, python-format
 msgid ""
 "There isn't a software package called \"%s\" in your current software "
 "sources."
 msgstr ""
 
-#: ../softwarecenter/db/application.py:515
+#: ../softwarecenter/db/application.py:527
 #, python-format
 msgid "Version %s or later not available."
 msgstr ""
 
-#: ../softwarecenter/db/application.py:528
+#: ../softwarecenter/db/application.py:540
 #, python-format
 msgid "Available from the \"%s\" source."
 msgstr ""
@@ -713,53 +717,53 @@ msgstr ""
 #. Translators: the visible string is constructed concatenating
 #. the following 3 strings like this:
 #. Available from the following sources: %s, ... %s, %s.
-#: ../softwarecenter/db/application.py:533
+#: ../softwarecenter/db/application.py:545
 msgid "Available from the following sources: "
 msgstr ""
 
-#: ../softwarecenter/db/application.py:536
+#: ../softwarecenter/db/application.py:548
 #, python-format
 msgid "\"%s\", "
 msgstr ""
 
-#: ../softwarecenter/db/application.py:537
+#: ../softwarecenter/db/application.py:549
 #, python-format
 msgid "\"%s\"."
 msgstr ""
 
-#: ../softwarecenter/db/application.py:613
+#: ../softwarecenter/db/application.py:625
 #, python-format
 msgid "The file \"%s\" does not exist."
 msgstr ""
 
-#: ../softwarecenter/db/application.py:618
+#: ../softwarecenter/db/application.py:630
 #, python-format
 msgid "The file \"%s\" is not a software package."
 msgstr ""
 
 #. hm, deb files from launchpad get this error..
-#: ../softwarecenter/db/application.py:621
+#: ../softwarecenter/db/application.py:633
 msgid "Internal Error"
 msgstr ""
 
-#: ../softwarecenter/db/application.py:622
+#: ../softwarecenter/db/application.py:634
 #, python-format
 msgid "The file \"%s\" could not be opened."
 msgstr ""
 
-#: ../softwarecenter/db/application.py:714
+#: ../softwarecenter/db/application.py:726
 msgid "Only install this file if you trust the origin."
 msgstr ""
 
-#: ../softwarecenter/db/application.py:719
-#: ../softwarecenter/db/application.py:721
+#: ../softwarecenter/db/application.py:731
+#: ../softwarecenter/db/application.py:733
 #, python-format
 msgid ""
 "Please install \"%s\" via your normal software channels. Only install this "
 "file if you trust the origin."
 msgstr ""
 
-#: ../softwarecenter/db/application.py:723
+#: ../softwarecenter/db/application.py:735
 #, python-format
 msgid ""
 "An older version of \"%s\" is available in your normal software channels. "
@@ -972,6 +976,10 @@ msgstr ""
 msgid "History"
 msgstr ""
 
+#: ../softwarecenter/models/viewswitcherlist.py:116
+msgid "In Progress..."
+msgstr ""
+
 #. less than 2 minute ago
 #: ../softwarecenter/utils.py:356
 msgid "a few minutes ago"
@@ -1047,7 +1055,7 @@ msgstr ""
 #. locale (if you prefer, %x can be used to provide a default locale-specific date
 #. representation)
 #: ../softwarecenter/view/appdetailsview_gtk.py:277
-#: ../softwarecenter/view/appdetailsview_gtk.py:303
+#: ../softwarecenter/view/appdetailsview_gtk.py:304
 msgid "Purchased on %Y-%m-%d"
 msgstr ""
 
@@ -1058,20 +1066,20 @@ msgstr ""
 msgid "Installed on %Y-%m-%d"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview_gtk.py:284
+#: ../softwarecenter/view/appdetailsview_gtk.py:285
 #: ../softwarecenter/view/appdetailsview_webkit.py:242
 msgid "Installed"
 msgstr ""
 
 #. only deb files atm
-#: ../softwarecenter/view/appdetailsview_gtk.py:286
+#: ../softwarecenter/view/appdetailsview_gtk.py:287
 #: ../softwarecenter/view/appdetailsview_webkit.py:470
 msgid "Reinstall"
 msgstr ""
 
 #. we want to re-enable the buy button if this is an app for purchase
 #. FIXME:  hacky, find a better approach
-#: ../softwarecenter/view/appdetailsview_gtk.py:296
+#: ../softwarecenter/view/appdetailsview_gtk.py:297
 #: ../softwarecenter/view/availablepane.py:569
 #: ../softwarecenter/view/channelpane.py:180
 msgid "Buy…"
@@ -1081,41 +1089,41 @@ msgstr ""
 #. we display the error in the description field
 #. string for action button
 #. needs variants for the current label states: install, remove & pending
-#: ../softwarecenter/view/appdetailsview_gtk.py:304
-#: ../softwarecenter/view/appdetailsview_gtk.py:314
-#: ../softwarecenter/view/appdetailsview_gtk.py:327
+#: ../softwarecenter/view/appdetailsview_gtk.py:305
+#: ../softwarecenter/view/appdetailsview_gtk.py:315
+#: ../softwarecenter/view/appdetailsview_gtk.py:328
 #: ../softwarecenter/view/appdetailsview_webkit.py:454
 #: ../softwarecenter/view/appview.py:681
 msgid "Install"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview_gtk.py:308
+#: ../softwarecenter/view/appdetailsview_gtk.py:309
 msgid "Removed (close it and it'll be gone)"
 msgstr ""
 
 #. its free
-#: ../softwarecenter/view/appdetailsview_gtk.py:313
-#: ../softwarecenter/view/appdetailsview_gtk.py:590
+#: ../softwarecenter/view/appdetailsview_gtk.py:314
+#: ../softwarecenter/view/appdetailsview_gtk.py:591
 #: ../softwarecenter/view/appdetailsview_webkit.py:456
 msgid "Free"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview_gtk.py:316
+#: ../softwarecenter/view/appdetailsview_gtk.py:317
 msgid "Upgrade Available"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview_gtk.py:317
+#: ../softwarecenter/view/appdetailsview_gtk.py:318
 msgid "Upgrade"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview_gtk.py:319
+#: ../softwarecenter/view/appdetailsview_gtk.py:320
 msgid "Changing Add-ons…"
 msgstr ""
 
 #. FIXME: deal with the EULA stuff
 #. FIXME: use a proper message here, but we are in string freeze
-#: ../softwarecenter/view/appdetailsview_gtk.py:338
-#: ../softwarecenter/view/appdetailsview_gtk.py:341
+#: ../softwarecenter/view/appdetailsview_gtk.py:339
+#: ../softwarecenter/view/appdetailsview_gtk.py:342
 #: ../softwarecenter/view/appdetailsview_webkit.py:477
 #: ../softwarecenter/view/appdetailsview_webkit.py:482
 msgid "Use This Source"
@@ -1125,95 +1133,95 @@ msgstr ""
 #. because we don't differenciate between
 #. components that are not enabled or that just
 #. lack the "Packages" files (but are in sources.list)
-#: ../softwarecenter/view/appdetailsview_gtk.py:347
+#: ../softwarecenter/view/appdetailsview_gtk.py:348
 #: ../softwarecenter/view/appdetailsview_webkit.py:485
 msgid "Update Now"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview_gtk.py:543
+#: ../softwarecenter/view/appdetailsview_gtk.py:544
 msgid "Add-ons"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview_gtk.py:595
+#: ../softwarecenter/view/appdetailsview_gtk.py:596
 msgid "Apply Changes"
 msgstr ""
 
 #. individual reviews is slow and async so we just queue it here
-#: ../softwarecenter/view/appdetailsview_gtk.py:766
+#: ../softwarecenter/view/appdetailsview_gtk.py:768
 msgid "Checking for reviews..."
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview_gtk.py:828
+#: ../softwarecenter/view/appdetailsview_gtk.py:830
 #, python-format
 msgid "Connecting ... (%s%%)"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview_gtk.py:1043
+#: ../softwarecenter/view/appdetailsview_gtk.py:1045
 msgid "Test drive"
 msgstr ""
 
 #. homepage link button
-#: ../softwarecenter/view/appdetailsview_gtk.py:1048
+#: ../softwarecenter/view/appdetailsview_gtk.py:1050
 #: ../softwarecenter/view/appdetailsview_webkit.py:245
 msgid "Website"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview_gtk.py:1079
+#: ../softwarecenter/view/appdetailsview_gtk.py:1081
 msgid "Total size:"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview_gtk.py:1082
+#: ../softwarecenter/view/appdetailsview_gtk.py:1084
 msgid "Version:"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview_gtk.py:1085
+#: ../softwarecenter/view/appdetailsview_gtk.py:1087
 msgid "License:"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview_gtk.py:1088
+#: ../softwarecenter/view/appdetailsview_gtk.py:1090
 msgid "Updates:"
 msgstr ""
 
 #. Update total size label
-#: ../softwarecenter/view/appdetailsview_gtk.py:1235
+#: ../softwarecenter/view/appdetailsview_gtk.py:1237
 msgid "Calculating..."
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview_gtk.py:1306
+#: ../softwarecenter/view/appdetailsview_gtk.py:1308
 msgid "This program is run from a terminal: "
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview_gtk.py:1307
+#: ../softwarecenter/view/appdetailsview_gtk.py:1309
 msgid "These programs are run from a terminal: "
 msgstr ""
 
 #. display launcher location
-#: ../softwarecenter/view/appdetailsview_gtk.py:1332
+#: ../softwarecenter/view/appdetailsview_gtk.py:1334
 msgid "Find it in the menu: "
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview_gtk.py:1660
+#: ../softwarecenter/view/appdetailsview_gtk.py:1670
 #, python-format
 msgid "%sB to download, "
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview_gtk.py:1663
+#: ../softwarecenter/view/appdetailsview_gtk.py:1673
 #, python-format
 msgid "%sB when installed"
 msgstr ""
 
 #. FIXME: this is not really a good indication of the size on disk
-#: ../softwarecenter/view/appdetailsview_gtk.py:1671
+#: ../softwarecenter/view/appdetailsview_gtk.py:1681
 #, python-format
 msgid "%sB on disk"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview_gtk.py:1674
+#: ../softwarecenter/view/appdetailsview_gtk.py:1684
 #, python-format
 msgid "%sB to be freed"
 msgstr ""
 
-#: ../softwarecenter/view/appdetailsview_gtk.py:1698
+#: ../softwarecenter/view/appdetailsview_gtk.py:1708
 #, python-format
 msgid "Used: one time"
 msgid_plural "Used: %(amount)s times"

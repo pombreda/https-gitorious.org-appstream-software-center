@@ -363,10 +363,17 @@ class ReviewLoaderSpawningRNRClient(ReviewLoader):
         """ public api, triggers fetching a review and calls callback
             when its ready
         """
-        app = translated_app.get_untranslated_app(self.db)
+        # its fine to use the translated appname here, we only submit the
+        # pkgname to the server
+        app = translated_app
         self._update_rnrclient_offline_state()
         # gather args for the helper
-        origin = self.cache.get_origin(app.pkgname)
+        try:
+            origin = self.cache.get_origin(app.pkgname)
+        except:
+            # this can happen if e.g. the app has multiple origins, this
+            # will be handled later
+            origin = None
         # special case for not-enabled PPAs
         if not origin and self.db:
             details = app.get_details(self.db)
@@ -375,6 +382,7 @@ class ReviewLoaderSpawningRNRClient(ReviewLoader):
                 origin = "lp-ppa-%s" % ppa.replace("/", "-")
         # if there is no origin, there is nothing to do
         if not origin:
+            callback(app, [])
             return
         distroseries = self.distro.get_codename()
         # run the command and add watcher
@@ -382,12 +390,15 @@ class ReviewLoaderSpawningRNRClient(ReviewLoader):
                "--language", self.language, 
                "--origin", origin, 
                "--distroseries", distroseries, 
-               "--pkgname", app.pkgname,
+               "--pkgname", str(app.pkgname), # ensure its str, not unicode
               ]
-        (pid, stdin, stdout, stderr) = glib.spawn_async(
-            cmd, flags = glib.SPAWN_DO_NOT_REAP_CHILD, 
-            standard_output=True, standard_error=True)
-        glib.child_watch_add(pid, self._reviews_loaded_watcher, data=(app, stdout, stderr, callback))
+        try:
+            (pid, stdin, stdout, stderr) = glib.spawn_async(
+                cmd, flags = glib.SPAWN_DO_NOT_REAP_CHILD, 
+                standard_output=True, standard_error=True)
+            glib.child_watch_add(pid, self._reviews_loaded_watcher, data=(app, stdout, stderr, callback))
+        except Exception as e:
+            raise Exception("failed to launch: '%s' (error: '%s')" % (cmd, e))
 
     def _reviews_loaded_watcher(self, pid, status, (app, stdout, stderr, callback)):
         """ watcher function in parent using glib """

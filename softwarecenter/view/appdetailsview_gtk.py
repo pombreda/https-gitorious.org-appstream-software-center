@@ -279,7 +279,8 @@ class PackageStatusBar(StatusBar):
                     # TRANSLATORS : %Y-%m-%d formats the date as 2011-03-31, please specify a format per your
                     # locale (if you prefer, %x can be used to provide a default locale-specific date 
                     # representation)
-                    self.set_label(app_details.installation_date.strftime(_('Installed on %Y-%m-%d')))
+                    template = _('Installed on %Y-%m-%d')
+                    self.set_label(app_details.installation_date.strftime(template))
                 else:
                     self.set_label(_('Installed'))
             if state == PKG_STATE_REINSTALLABLE: # only deb files atm
@@ -705,6 +706,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # app specific data
         self.app = None
         self.app_details = None
+        self.pkg_state = None
 
         self.review_stats_widget = ReviewStatsContainer()
         self.reviews = UIReviewsList(self)
@@ -1398,7 +1400,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
     # public API
     # FIXME:  port to AppDetailsViewBase as
     #         AppDetailsViewBase.show_app(self, app)
-    def show_app(self, app):
+    def show_app(self, app, force=False):
         LOG.debug("AppDetailsView.show_app '%s'" % app)
         if app is None:
             LOG.debug("no app selected")
@@ -1413,13 +1415,21 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # init data
         self.app = app
         self.app_details = app.get_details(self.db)
+        
+        # check if app just became available and if so, force full
+        # refresh
+        if (same_app and
+            self.pkg_state == PKG_STATE_NEEDS_SOURCE and
+            self.app_details.pkg_state != PKG_STATE_NEEDS_SOURCE):
+            force = True
+        self.pkg_state = self.app_details.pkg_state
 
         # for compat with the base class
         self.appdetails = self.app_details
 
         # update content
         # layout page
-        if same_app:
+        if same_app and not force:
             self._update_minimal(self.app_details)
         else:
             self._update_all(self.app_details)

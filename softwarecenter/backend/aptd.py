@@ -128,14 +128,22 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
     def update_xapian_index(self):
         self._logger.debug("update_xapian_index")
         system_bus = dbus.SystemBus()
-        axi = dbus.Interface(
-            system_bus.get_object("org.debian.AptXapianIndex","/"),
-            "org.debian.AptXapianIndex")
+        # axi is optional, so just do nothing if its not installed
+        try:
+            axi = dbus.Interface(
+                system_bus.get_object("org.debian.AptXapianIndex","/"),
+                "org.debian.AptXapianIndex")
+        except dbus.DBusException as e:
+            self._logger.warning("axi can not be updated '%s'" % e)
+            return
         axi.connect_to_signal("UpdateFinished", self._axi_finished)
         # we don't really care for updates at this point
         #axi.connect_to_signal("UpdateProgress", progress)
-        # first arg is force, second update_only
-        axi.update_async(True, True)
+        try:
+            # first arg is force, second update_only
+            axi.update_async(True, False)
+        except:
+            self._logger.warning("could not update axi")
 
     @inline_callbacks
     def fix_broken_depends(self):
@@ -206,7 +214,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             yield self.remove(pkgname, appname, iconname, metadata)
 
     @inline_callbacks
-    def install(self, pkgname, appname, iconname, filename=None, addons_install=[], addons_remove=[], metadata=None):
+    def install(self, pkgname, appname, iconname, filename=None, addons_install=[], addons_remove=[], metadata=None, force=False):
         """Install a single package from the archive
            If filename is given a local deb package is installed instead.
         """
@@ -214,8 +222,9 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             if filename:
                 # force means on lintian failure
                 trans = yield self.aptd_client.install_file(
-                    filename, force=False, defer=True)
+                    filename, force=force, defer=True)
                 self.emit("transaction-started", pkgname, appname, trans.tid, TRANSACTION_TYPE_INSTALL)
+                yield trans.set_meta_data(sc_filename=filename, defer=True)
             else:
                 install = [pkgname] + addons_install
                 remove = addons_remove
@@ -277,7 +286,10 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
     def enable_component(self, component):
         self._logger.debug("enable_component: %s" % component)
         try:
-            yield self.aptd_client.enable_distro_component(component, wait=True, defer=True)
+            trans = yield self.aptd_client.enable_distro_component(component)
+            # don't use self._run_transaction() here, to avoid sending uneeded
+            # signals
+            yield trans.run(defer=True)
         except Exception, error:
             self._on_trans_error(error, component)
             return_value(None)
@@ -298,7 +310,10 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             yield self.add_sources_list_entry(entry, sourcepart)
             keyfile = channelfile.replace(".list",".key")
             if os.path.exists(keyfile):
-                yield self.aptd_client.add_vendor_key_from_file(keyfile, wait=True)
+                trans = yield self.aptd_client.add_vendor_key_from_file(keyfile, wait=True)
+                # don't use self._run_transaction() here, to avoid sending
+                # uneeded signals
+                yield trans.run(defer=True)
         yield self.reload(sourcepart)
 
     @inline_callbacks
@@ -564,7 +579,8 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         except KeyError:
             pass
 
-    def _show_transaction_failed_dialog(self, trans, enum):
+    def _show_transaction_failed_dialog(self, trans, enum,
+                                        alternative_action=None):
         # daemon died are messages that result from broken
         # cancel handling in aptdaemon (LP: #440941)
         # FIXME: this is not a proper fix, just a workaround
@@ -577,22 +593,50 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             enums.get_error_description_from_enum(trans.error_code),
             trans.error_details)
         self._logger.error("error in _on_trans_finished '%s'" % msg)
+        # show dialog to the user and exit (no need to reopen the cache)
+        if not trans.error_code:
+            # sometimes aptdaemon doesn't return a value for error_code when the network
+            # connection has become unavailable; in that case, we will assume it's a
+            # failure during a package download because that is the only case where we
+            # see this happening - this avoids display of an empty error dialog and
+            # correctly prompts the user to check their network connection (see LP: #747172)
+            # FIXME: fix aptdaemon to return a valid error_code under all conditions
+            trans.error_code = enums.ERROR_PACKAGE_DOWNLOAD_FAILED
+        dialog_primary = enums.get_error_string_from_enum(trans.error_code)
+        dialog_secondary = enums.get_error_description_from_enum(trans.error_code)
+        dialog_details = trans.error_details
         # show dialog to the user and exit (no need to reopen
         # the cache)
-        dialogs.error(
-            None, 
-            enums.get_error_string_from_enum(trans.error_code),
-            enums.get_error_description_from_enum(trans.error_code),
-            trans.error_details)
+        return dialogs.error(None,
+                        enums.get_error_string_from_enum(trans.error_code),
+                        enums.get_error_description_from_enum(trans.error_code),
+                        trans.error_details,
+                        alternative_action)
 
     def _on_trans_finished(self, trans, enum):
         """callback when a aptdaemon transaction finished"""
         self._logger.debug("_on_transaction_finished: %s %s %s" % (
                 trans, enum, trans.meta_data))
 
+
         # show error
         if enum == enums.EXIT_FAILED:
-            if not "sc_add_repo_and_install_ignore_errors" in trans.meta_data:
+            # Handle invalid packages separately
+            if (trans.error and 
+                trans.error.code == enums.ERROR_INVALID_PACKAGE_FILE):
+                action = _("_Ignore and install")
+                res = self._show_transaction_failed_dialog(trans, enum, action)
+                if res == gtk.RESPONSE_YES:
+                    # Reinject the transaction
+                    meta_copy = trans.meta_data.copy()
+                    pkgname = meta_copy.pop("sc_pkgname")
+                    appname = meta_copy.pop("sc_appname", None)
+                    iconname = meta_copy.pop("sc_iconname", None)
+                    filename = meta_copy.pop("sc_filename")
+                    self.install(pkgname, appname, iconname, filename, [], [],
+                                 metadata=meta_copy, force=True)
+                    return
+            elif not "sc_add_repo_and_install_ignore_errors" in trans.meta_data:
                 self._show_transaction_failed_dialog(trans, enum)
 
         # send finished signal, use "" here instead of None, because
@@ -708,5 +752,8 @@ if __name__ == "__main__":
     #c = client.AptClient()
     #c.remove_packages(["4g8"], remove_unused_dependencies=True)
     backend = AptdaemonBackend()
-    backend.reload()
+    #backend.reload()
+    backend.enable_component("multiverse")
+
+    gtk.main()
 

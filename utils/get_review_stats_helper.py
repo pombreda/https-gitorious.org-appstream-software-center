@@ -1,12 +1,12 @@
 #!/usr/bin/python
 
+import os
 import pickle
-import sys
 import logging
 
 from optparse import OptionParser
 
-from softwarecenter.paths import *
+from softwarecenter.paths import SOFTWARE_CENTER_CACHE_DIR
 from softwarecenter.backend.rnrclient import RatingsAndReviewsAPI
 
 LOG = logging.getLogger(__name__)

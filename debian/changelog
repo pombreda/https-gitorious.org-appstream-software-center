@@ -1,3 +1,89 @@
+software-center (3.1.26.6) UNRELEASED; urgency=low
+
+  * softwarecenter/view/softwarepane.py:
+    - fix broken string for translation (LP: #762893)
+  * po/software-center.pot:
+    - refresh .pot file 
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Sat, 16 Apr 2011 19:08:30 -0400
+
+software-center (3.1.26.5) natty; urgency=low
+
+  * softwarecenter/backend/aptd.py:
+    - do not crash if trans.error is None (LP: #761642)
+  * softwarecenter/view/appdetailsview_gtk.py, 
+    softwarecenter/view/appdetailsview.py:
+    - fix flickering during purchase install by more carefully 
+      checking if the app just became availalbe
+  * utils/get_reviews_helper.py, utils/get_review_stats_helper.py:
+    - fix crash when the server returns a API error (LP: #761452)
+    - fix pyflakes warnins
+  * softwarecenter/db/reviews.py:
+    - ensure pkgname is a str (and not unicode), otherwise 
+      glib.spawn_async crashes (LP: #761357)
+  * softwarecenter/backend/zeitgeist_simple.py:
+    - do not crash if a zeitgeist has no subjects (LP: #761905)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 15 Apr 2011 18:28:15 +0200
+
+software-center (3.1.26.4) natty; urgency=low
+
+  * softwarecenter/backend/aptd.py:
+    - do not crash if a-x-i is not installed (LP: #760090)
+  * softwarecenter/view/appdetailsview_gtk.py, 
+    softwarecenter/view/softwarepane.py:
+    - fixes in the i18n handling (LP: #760807)
+  * softwarecenter/db/reviews.py:
+    - in get_review() do not use the untranslate appname, we only need 
+      the pkgname (may fix #761357)
+    - improve error reporting if the get_reviews_helper fails
+      (to fix #761357)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 15 Apr 2011 11:31:21 +0200
+
+software-center (3.1.26.3) natty; urgency=low
+
+  [ Michael Vogt ]
+  * softwarecenter/db/reviews.py:
+    - do not crash on multiple origins for the same version
+      (LP: #756415)
+  * softwarecenter/db/application.py:
+    - ensure docid is updated on database reopen() (LP: #757054)
+  * softwarecenter/models/appstore.py:
+    - refresh docids in active searches if the database is reopend
+      (LP: #710920)
+  * softwarecenter/backend/aptd.py:
+    - do not run update-apt-xapian-index in --update mode to avoid
+      in-place database modfications (LP: #507836)
+  * test/test_load_icons.py:
+    - add test for the icon loader
+  * merged lp:~glatzor/software-center/force-bad-quality, this 
+    fixes the missing ability to override the lintian warning
+    (LP: #712377)
+  * don't show reviews if we can't determine the origin
+  * fix crash when enabling new components (LP: #636429)
+  * fix missing details when a channel or a component just got added
+
+  [ Gary Lasker ]
+  * softwarecenter/app.py:
+    - temporarily disable the deauth option until we have support
+      for remove repository in aptdaemon (see LP: #723911)
+  * softwarecenter/backend/aptd.py :
+    - fix empty error dialog for the case where aptdaemon returns
+      an error code with no value (LP: #747172)
+    - fix intermittent crash when updating the a-x-i (LP: #657494)
+  * softwarecenter/models/viewswitcherlist.py:
+    - mark string "In Progress..." for translation, many thanks to
+      Hendrik Knackstedt and Florian Greinus for finding this
+      (LP: #759240)
+  * softwarecenter/view/catview_gtk.py:
+    - fix broken translation string (LP: #758656)
+  * refresh .pot file 
+  * softwarecenter/db/update.py:
+    - fix crash when reinstalling previous purchases (LP: #760353) 
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 14 Apr 2011 19:59:42 +0200
+
 software-center (3.1.26.2) natty; urgency=low
 
   [ Michael Vogt ]

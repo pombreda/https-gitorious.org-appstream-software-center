@@ -358,6 +358,11 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         if options.disable_buy and not options.enable_lp:
             file_menu.remove(self.builder.get_object("separator_login"))
             
+        # TODO: Remove the following two lines once we have remove repository
+        #       support in aptdaemon (see LP: #723911)
+        file_menu = self.builder.get_object("menu1")
+        file_menu.remove(self.builder.get_object("menuitem_deauthorize_computer"))
+            
     # helper
     def _rebuild_and_reopen_local_db(self, pathname):
         """ helper that rebuilds a db and reopens it """

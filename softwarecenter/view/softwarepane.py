@@ -407,7 +407,7 @@ class SoftwarePane(gtk.VBox, BasePane):
                                    app,
                                    appdetails,
                                    trans_id)
-        self.action_bar.set_label(_("Add %s to the launcher?" % app.name))
+        self.action_bar.set_label(_("Add %s to the launcher?") % app.name)
         
     def on_add_to_launcher(self, app, appdetails, trans_id):
         """
@@ -426,7 +426,7 @@ class SoftwarePane(gtk.VBox, BasePane):
                                           "",        # we set the installed_desktop_file_path *after* install
                                           trans_id)
         self.unity_launcher_items[app.pkgname] = launcher_info
-        self.action_bar.set_label(_("%s will be added to the launcher when installation completes." % app.name))
+        self.action_bar.set_label(_("%s will be added to the launcher when installation completes.") % app.name)
         self.action_bar.remove_button(ACTION_BUTTON_CANCEL_ADD_TO_LAUNCHER)
         self.action_bar.remove_button(ACTION_BUTTON_ADD_TO_LAUNCHER)
 

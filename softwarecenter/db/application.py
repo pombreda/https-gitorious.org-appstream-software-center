@@ -32,6 +32,7 @@ from softwarecenter.enums import *
 from softwarecenter.paths import *
 from softwarecenter.utils import *
 
+LOG = logging.getLogger(__name__)
 
 # this is a very lean class as its used in the main listview
 # and there are a lot of application objects in memory
@@ -160,6 +161,7 @@ class AppDetails(object):
         if not doc and not application:
             raise ValueError, "Need either document or application"
         self._db = db
+        self._db.connect("reopen", self._on_db_reopen)
         self._cache = self._db._aptcache
         self._distro = get_distro()
         self._history = None
@@ -213,6 +215,16 @@ class AppDetails(object):
 
     def same_app(self, other):
         return self.pkgname == other.pkgname
+
+    def _on_db_reopen(self, db):
+        if self._doc:
+            try:
+                LOG.debug("db-reopen, refreshing docid for %s" % self._app)
+                self._doc = self._db.get_xapian_document(
+                    self._app.appname, self._app.pkgname)
+            except IndexError:
+                LOG.warn("document no longer valid after db reopen")
+                self._doc = None
 
     @property
     def channelname(self):

@@ -1,14 +1,14 @@
 #!/usr/bin/python
 
+import os
 import pickle
 import simplejson
-import sys
 import logging
 
 from optparse import OptionParser
 
-from softwarecenter.paths import *
-from softwarecenter.backend.rnrclient import RatingsAndReviewsAPI, ReviewDetails
+from softwarecenter.paths import SOFTWARE_CENTER_CACHE_DIR
+from softwarecenter.backend.rnrclient import RatingsAndReviewsAPI
 
 from piston_mini_client import APIError
 
@@ -56,7 +56,7 @@ if __name__ == "__main__":
     #bug lp:709408 - don't print 404 errors as traceback when api request 
     #                returns 404 error
     except APIError, e:
-        LOG.warn("_get_reviews_threaded: no reviews able to be retrieved for package: %s (%s, origin: %s)" % (app.pkgname, distroseries, origin))
+        LOG.warn("_get_reviews_threaded: no reviews able to be retrieved for package: %s (%s, origin: %s)" % (options.pkgname, options.distroseries, options.origin))
         LOG.debug("_get_reviews_threaded: no reviews able to be retrieved: %s" % e)
     except:
         LOG.exception("get_reviews")
