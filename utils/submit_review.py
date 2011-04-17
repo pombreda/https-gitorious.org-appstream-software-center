@@ -551,7 +551,7 @@ class SubmitReviewsApp(BaseApp):
         self.iconname = iconname
         
         # title
-        self.submit_window.set_title(_("Review %s" % self.app.name))
+        self.submit_window.set_title(_("Review %s") % self.app.name)
 
         self.review_summary_entry.connect('changed', self._on_mandatory_text_entry_changed)
         self.star_rating.connect('changed', self._on_mandatory_fields_changed)
