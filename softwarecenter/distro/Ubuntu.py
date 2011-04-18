@@ -221,7 +221,7 @@ class Ubuntu(Distro):
         try:
             full_archive_url = cache[pkgname].candidate.uri
         except:
-            logging.warning("could not get the downloadable icon url")
+            # it's ok if we can't get the icon url
             return None
         split_at_pool = full_archive_url.split("pool")[0]
         # support ppas and extras.ubuntu.com
