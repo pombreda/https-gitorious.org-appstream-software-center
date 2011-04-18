@@ -28,7 +28,7 @@ from softwarecenter.db.application import AppDetails
 from softwarecenter.db.reviews import get_review_loader
 from softwarecenter.backend import get_install_backend
 from softwarecenter.enums import *
-from softwarecenter.utils import get_current_arch, get_parent_xid, get_default_language
+from softwarecenter.utils import get_current_arch, get_parent_xid, get_language
 
 LOG=logging.getLogger(__name__)
 
@@ -147,7 +147,7 @@ class AppDetailsViewBase(object):
 
     def buy_app(self):
         """ initiate the purchase transaction """
-        lang = get_default_language()
+        lang = get_language()
         distro = self.distro.get_codename()
         url = self.distro.PURCHASE_APP_URL % (lang, distro, urllib.urlencode({
                     'archive_id' : self.appdetails.ppaname, 

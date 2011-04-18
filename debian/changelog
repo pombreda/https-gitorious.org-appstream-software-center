@@ -5,8 +5,13 @@ software-center (3.1.26.6) UNRELEASED; urgency=low
     - string fixes for translation (LP: #762893)
   * po/software-center.pot:
     - refresh .pot file 
+  * softwarecenter/backend/restfulclient.py,
+    softwarecenter/utils.py,
+    softwarecenter/view/appdetailsview.py:
+    - use more robust get_language method in utils.py,
+      fixes crash when getting the default language (LP: #753211)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Sun, 17 Apr 2011 13:44:30 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Sun, 17 Apr 2011 22:13:51 -0400
 
 software-center (3.1.26.5) natty; urgency=low
 
