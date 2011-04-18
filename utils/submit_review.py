@@ -1067,11 +1067,15 @@ class SubmitUsefulnessApp(BaseApp):
 
 
 if __name__ == "__main__":
+
     try:
         locale.setlocale(locale.LC_ALL, "")
     except:
         logging.exception("setlocale failed, resetting to C")
         locale.setlocale(locale.LC_ALL, "C")
+
+    gettext.bindtextdomain("software-center", "/usr/share/locale")
+    gettext.textdomain("software-center")
 
     if os.path.exists("./data/ui/reviews.ui"):
         default_datadir = "./data"
