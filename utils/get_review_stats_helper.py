@@ -55,6 +55,11 @@ if __name__ == "__main__":
                          for s in piston_review_stats])
     else:
         # print to stdout where its consumed by the parent
-        print pickle.dumps(piston_review_stats)
+        try:
+            print pickle.dumps(piston_review_stats)
+        except IOError:
+            # this can happen if the parent gets killed, no need to trigger
+            # apport for this
+            pass
 
 
