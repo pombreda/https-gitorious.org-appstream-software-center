@@ -1,4 +1,4 @@
-software-center (3.1.26.6) UNRELEASED; urgency=low
+software-center (3.1.26.6) natty; urgency=low
 
   [ Gary Lasker ]
   * utils/submit_review.py,
@@ -16,9 +16,9 @@ software-center (3.1.26.6) UNRELEASED; urgency=low
   
   [ Michael Vogt ]
   * utils/get_reviews_helper.py, utils/get_review_stats_helper.py:
-    - do not crash on broken pipe errors (LP: #761775)
+    - do not crash on broken pipe errors (LP: #761775, #761502)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Sun, 17 Apr 2011 23:20:46 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 18 Apr 2011 10:45:55 +0200
 
 software-center (3.1.26.5) natty; urgency=low
 
