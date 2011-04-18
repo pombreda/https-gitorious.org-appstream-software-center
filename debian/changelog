@@ -1,3 +1,11 @@
+software-center (3.1.26.7) UNRELEASED; urgency=low
+
+  * softwarecenter/backend/channel.py:
+    - don't display private PPA sources for purchased
+      items (LP: #748459)
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 18 Apr 2011 11:31:35 -0400
+
 software-center (3.1.26.6) natty; urgency=low
 
   [ Gary Lasker ]
