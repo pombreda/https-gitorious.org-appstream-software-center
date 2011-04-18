@@ -551,7 +551,7 @@ class StarRatingSelector(StarRating):
         star.set_state(gtk.STATE_PRELIGHT)
         self.set_tentative_rating(star.position+1)
         if self.caption:
-            self.caption.set_markup(self.RATING_WORDS[star.position+1])
+            self.caption.set_markup(_(self.RATING_WORDS[star.position+1]))
         return
 
     def _on_leave(self, star, event):
@@ -603,7 +603,7 @@ class StarRatingSelector(StarRating):
         elif kv == gtk.keysyms._5:
             self.set_rating(5)
         if self.caption:
-            self.caption.set_markup(self.RATING_WORDS[self.rating])
+            self.caption.set_markup(_(self.RATING_WORDS[self.rating]))
         return
 
     def _on_key_release(self, star, event):
@@ -631,7 +631,7 @@ class StarRatingSelector(StarRating):
         if not gtk.gdk.region_rectangle(self.hbox.allocation).point_in(x,y):
             self.set_tentative_rating(0)
             if self.caption:
-                self.caption.set_markup(self.RATING_WORDS[self.rating])
+                self.caption.set_markup(_(self.RATING_WORDS[self.rating]))
         return
 
     def queue_draw(self):
@@ -640,7 +640,7 @@ class StarRatingSelector(StarRating):
         return
 
     def set_caption_widget(self, caption_widget):
-        caption_widget.set_markup(self.RATING_WORDS[0])
+        caption_widget.set_markup(_(self.RATING_WORDS[0]))
         self.caption = caption_widget
         return
 
