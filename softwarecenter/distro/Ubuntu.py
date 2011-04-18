@@ -218,7 +218,11 @@ class Ubuntu(Distro):
             not hasattr(cache._cache, '__contains__') or # cache not ready
             not pkgname in cache):
             return None
-        full_archive_url = cache[pkgname].candidate.uri
+        try:
+            full_archive_url = cache[pkgname].candidate.uri
+        except:
+            # it's ok if we can't get the icon url
+            return None
         split_at_pool = full_archive_url.split("pool")[0]
         # support ppas and extras.ubuntu.com
         if split_at_pool.endswith("/ppa/ubuntu/"):
