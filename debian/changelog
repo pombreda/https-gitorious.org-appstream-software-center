@@ -1,4 +1,4 @@
-software-center (3.1.26.7) UNRELEASED; urgency=low
+software-center (3.1.26.7) natty; urgency=low
 
   [ Michael Vogt ]
   * utils/submit_review.py:
@@ -11,7 +11,7 @@ software-center (3.1.26.7) UNRELEASED; urgency=low
     - don't display private PPA sources for purchased
       items (LP: #748459)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 18 Apr 2011 18:13:46 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 18 Apr 2011 18:15:38 +0200
 
 software-center (3.1.26.6) natty; urgency=low
 
