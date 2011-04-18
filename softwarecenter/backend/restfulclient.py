@@ -443,7 +443,6 @@ class SoftwareCenterAgentAnonymous(gobject.GObject):
         """
         series_name = self.distro.get_codename()
         arch_tag = get_current_arch()
-        # the server supports only english for now
         lang = get_language()
         url = BUY_SOMETHING_HOST_ANONYMOUS + "/apps/%(lang)s/ubuntu/%(series)s/%(arch)s" % {
             'lang' : lang,
