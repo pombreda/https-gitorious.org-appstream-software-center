@@ -34,6 +34,8 @@ from softwarecenter.utils import *
 from softwarecenter.backend import get_install_backend
 from softwarecenter.db.database import StoreDatabase, Application
 
+from softwarecenter.netstatus import NetState, get_network_state, get_network_watcher
+
 #from softwarecenter.db.reviews import get_review_loader
 #from softwarecenter.backend import get_install_backend
 #from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
@@ -711,6 +713,10 @@ class AppView(gtk.TreeView):
             store = gtk.ListStore(str, gtk.gdk.Pixbuf)
         self.set_model(store)
 
+        # network status watcher
+        watcher = get_network_watcher()
+        watcher.connect("changed", self._on_net_state_changed)
+
         # custom cursor
         self._cursor_hand = gtk.gdk.Cursor(gtk.gdk.HAND2)
         # our own "activate" handler
@@ -835,7 +841,11 @@ class AppView(gtk.TreeView):
         action_btn = tr.get_button_by_name('action0')
         #if not action_btn: return False
 
-        if self.is_action_in_progress_for_selected_app():
+        net_state = get_network_state()
+        if net_state == NetState.NM_STATE_DISCONNECTED:
+            action_btn.set_sensitive(False)
+            return
+        elif self.is_action_in_progress_for_selected_app():
             action_btn.set_sensitive(False)
         elif self.pressed and self.focal_btn == action_btn:
             action_btn.set_state(gtk.STATE_ACTIVE)
@@ -1047,6 +1057,17 @@ class AppView(gtk.TreeView):
                 action_btn.set_markup_variant_n(1)
             action_btn.set_sensitive(True)
             self._set_cursor(action_btn, self._cursor_hand)
+
+    def _on_net_state_changed(self, watcher, state):
+        # get our column, we only have one column in the treeview
+        col = self.get_column(0)
+        # get our cell renderer, we also only have cell renderer
+        cr = col.get_cell_renderers()[0]
+        # uodate the selected row
+        self._update_selected_row(self, cr)
+        # queue a draw just to be sure the view is looking right
+        self.queue_draw()
+        return
 
     def _check_remove_pkg_from_blocklist(self, pkgname):
         if pkgname in self._action_block_list:
