@@ -29,7 +29,6 @@ import string
 import sys
 import time
 import xapian
-import xdg.BaseDirectory
 
 from optparse import OptionParser
 

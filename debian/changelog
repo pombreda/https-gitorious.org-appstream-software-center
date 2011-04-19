@@ -6,6 +6,8 @@ software-center (3.1.26.8) UNRELEASED; urgency=low
   * softwarecenter/paths.py:
     - check for SUDO_USER before xdg is imported, otherwise the
       check has no effect (LP: #688682)
+  * softwarecenter/{paths,enums}.py, utils/update-software-center-agent:
+    - remove unneeded xdg.BaseDirectory import
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 19 Apr 2011 18:58:13 +0200
 

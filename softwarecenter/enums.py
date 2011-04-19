@@ -17,7 +17,6 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import os
-import xdg.BaseDirectory
 
 # pkgname of this app itself (used for "self-awareness", see spec)
 SOFTWARE_CENTER_PKGNAME = 'software-center'

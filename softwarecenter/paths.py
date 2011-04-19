@@ -25,7 +25,6 @@ if os.getuid() == 0 and "SUDO_USER" in os.environ and "HOME" in os.environ:
 # the check above must be *before* xdg is imported
 from xdg import BaseDirectory as xdg
 
-
 # global datadir, this maybe overriden at startup
 datadir = "/usr/share/software-center/"
 
