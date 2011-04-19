@@ -1,3 +1,11 @@
+software-center (3.1.26.8) UNRELEASED; urgency=low
+
+  * softwarecenter/log.py:
+    - deal with not accessible ~/.cache/software-center directory
+      (LP: #688682)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 19 Apr 2011 18:58:13 +0200
+
 software-center (3.1.26.7) natty; urgency=low
 
   [ Michael Vogt ]

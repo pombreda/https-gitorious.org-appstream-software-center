@@ -90,6 +90,18 @@ if not os.path.exists(SOFTWARE_CENTER_CACHE_DIR):
     os.makedirs(SOFTWARE_CENTER_CACHE_DIR)
 logfile_path = os.path.join(SOFTWARE_CENTER_CACHE_DIR, "software-center.log")
 
+# try to fix inaccessible s-c directory (#688682)
+if not os.access(SOFTWARE_CENTER_CACHE_DIR, os.W_OK):
+    logging.warn("found not writable '%s' dir, trying to fix" % SOFTWARE_CENTER_CACHE_DIR)
+    i = 0
+    while True:
+        target = "%s.%s" % (SOFTWARE_CENTER_CACHE_DIR, i)
+        if not os.path.exists(target):
+            os.rename(SOFTWARE_CENTER_CACHE_DIR, target)
+            break
+        i += 1
+    os.makedirs(SOFTWARE_CENTER_CACHE_DIR)
+
 # according to bug 688682 many people have a non-writeable logfile
 if os.path.exists(logfile_path) and not os.access(logfile_path, os.W_OK):
     try:
