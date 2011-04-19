@@ -374,6 +374,15 @@ class SoftwarePane(gtk.VBox, BasePane):
             self.navigation_bar.set_active(details_button)
         
     def on_transaction_started(self, backend, pkgname, appname, trans_id, trans_type):
+        # add to launcher only applies in the details view currently
+        if not self.is_app_details_view_showing():
+            return
+        # we only care about getting the launcher information on an install
+        if not trans_type == TRANSACTION_TYPE_INSTALL:
+            if pkgname in self.unity_launcher_items:
+                self.unity_launcher_items.pop(pkgname)
+                self.action_bar.clear()
+            return
         # gather details for this transaction and create the launcher_info object
         app = Application(pkgname=pkgname, appname=appname)
         appdetails = app.get_details(self.db)
