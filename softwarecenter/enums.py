@@ -17,7 +17,6 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import os
-import xdg.BaseDirectory
 
 # pkgname of this app itself (used for "self-awareness", see spec)
 SOFTWARE_CENTER_PKGNAME = 'software-center'
@@ -153,7 +152,7 @@ TRANSACTION_TYPE_REPAIR = "repair_dependencies"
 # delimiter for directory path separator in app-install
 APP_INSTALL_PATH_DELIMITER = "__"
 
-from version import *
+from version import VERSION, DISTRO, RELEASE, CODENAME
 USER_AGENT="Software Center/%s (N;) %s/%s (%s)" % (VERSION, 
                                                    DISTRO, 
                                                    RELEASE,

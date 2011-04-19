@@ -20,24 +20,20 @@
 
 import apt
 import locale
-import gettext
 import logging
 import os
 import os.path
 import shutil
 import string
 import sys
-import time
 import xapian
-import xdg.BaseDirectory
 
 from optparse import OptionParser
 
 if os.path.exists("./softwarecenter/enums.py"):
     sys.path.insert(0, ".")
 
-from softwarecenter.enums import *
-from softwarecenter.paths import *
+from softwarecenter.paths import XAPIAN_BASE_PATH_SOFTWARE_CENTER_AGENT
 from softwarecenter.db.update import update_from_software_center_agent
 import softwarecenter.log
 
