@@ -210,8 +210,8 @@ class AppDetails(object):
                     not debfile_matches and 
                     not channel_matches and 
                     not section_matches):
-                    self._error = _("Not Found")
-                    self._error_not_found = _("There isn't a software package called \"%s\" in your current software sources.") % self.pkgname.capitalize()
+                    self._error = _("Not found")
+                    self._error_not_found = _(u"There isn\u2019t a software package called \u201c%s\u201D in your current software sources.") % self.pkgname
 
     def same_app(self, other):
         return self.pkgname == other.pkgname
@@ -310,8 +310,8 @@ class AppDetails(object):
             return self._error
         # this may have changed since we inited the appdetails
         elif self.pkg_state == PKG_STATE_NOT_FOUND:
-            self._error =  _("Not Found")
-            self._error_not_found = _("There isn't a software package called \"%s\" in your current software sources.") % self.pkgname.capitalize()
+            self._error =  _("Not found")
+            self._error_not_found = _(u"There isn\u2019t a software package called \u201c%s\u201D in your current software sources.") % self.pkgname
             return self._error_not_found
 
     @property
@@ -441,8 +441,8 @@ class AppDetails(object):
                 if self._unavailable_channel():
                     return PKG_STATE_NEEDS_SOURCE
                 else:
-                    self._error =  _("Not Found")
-                    self._error_not_found = _("There isn't a software package called \"%s\" in your current software sources.") % self.pkgname.capitalize()
+                    self._error =  _("Not found")
+                    self._error_not_found = _(u"There isn\u2019t a software package called \u201c%s\u201D in your current software sources.") % self.pkgname
                     return PKG_STATE_NOT_FOUND
             else:
                 if self.price:
@@ -455,8 +455,8 @@ class AppDetails(object):
                     for component in components:
                         if component and self._unavailable_component(component_to_check=component):
                             return PKG_STATE_NEEDS_SOURCE
-                self._error =  _("Not Found")
-                self._error_not_found = _("There isn't a software package called \"%s\" in your current software sources.") % self.pkgname.capitalize()
+                self._error =  _("Not found")
+                self._error_not_found = _(u"There isn\u2019t a software package called \u201c%s\u201D in your current software sources.") % self.pkgname
                 return PKG_STATE_NOT_FOUND
         return PKG_STATE_UNKNOWN
 
@@ -621,17 +621,17 @@ class AppDetailsDebFile(AppDetails):
             self._deb = None
             self._pkg = None
             if not os.path.exists(self._app.request):
-                self._error = _("Not Found")
-                self._error_not_found = _("The file \"%s\" does not exist.") % self._app.request
+                self._error = _("Not found")
+                self._error_not_found = _(u"The file \u201c%s\u201d does not exist.") % self._app.request
             else:
                 mimetype = guess_type(self._app.request)
                 if mimetype[0] != "application/x-debian-package":
-                    self._error =  _("Not Found")
-                    self._error_not_found = _("The file \"%s\" is not a software package.") % self._app.request
+                    self._error =  _("Not found")
+                    self._error_not_found = _(u"The file \u201c%s\u201d is not a software package.") % self._app.request
                 else:
                     # hm, deb files from launchpad get this error..
                     self._error =  _("Internal Error")
-                    self._error_not_found = _("The file \"%s\" could not be opened.") % self._app.request
+                    self._error_not_found = _(u"The file \u201c%s\u201d could not be opened.") % self._app.request
             return
 
         if self.pkgname and self.pkgname != self._app.pkgname:
