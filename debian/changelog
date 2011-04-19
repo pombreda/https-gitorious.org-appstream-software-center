@@ -8,8 +8,10 @@ software-center (3.1.26.8) UNRELEASED; urgency=low
       check has no effect (LP: #688682)
   * softwarecenter/{paths,enums}.py, utils/update-software-center-agent:
     - remove unneeded xdg.BaseDirectory import
+  * utils/update-software-center-agent, softwarecenter/enums.py:
+    - remove unused imports, make imports explicit (thanks pyflakes)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 19 Apr 2011 18:58:13 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 19 Apr 2011 20:31:31 +0200
 
 software-center (3.1.26.7) natty; urgency=low
 
