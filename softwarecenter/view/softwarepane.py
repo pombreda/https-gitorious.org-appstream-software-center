@@ -389,6 +389,10 @@ class SoftwarePane(gtk.VBox, BasePane):
     def _register_unity_launcher_transaction_started(self, backend, pkgname, 
                                                      appname, trans_id, 
                                                      trans_type):
+        # mvo: use use softwarecenter.utils explictely so that we can monkey
+        #      patch it in the test
+        if not softwarecenter.utils.is_unity_running():
+            return
         # add to launcher only applies in the details view currently
         if not self.is_app_details_view_showing():
             return
@@ -425,12 +429,6 @@ class SoftwarePane(gtk.VBox, BasePane):
         # TODO: implement the list view case (once it is specified)
         # only show the panel if unity is running and this is a package install
         #
-        # mvo: use use softwarecenter.utils explictely so that we can monkey
-        #      patch it in the test
-        if (not softwarecenter.utils.is_unity_running() or
-            not trans_type == TRANSACTION_TYPE_INSTALL or
-            not self.is_app_details_view_showing()):
-            return
         # we only show the prompt for apps with a desktop file
         if not appdetails.desktop_file:
             return
