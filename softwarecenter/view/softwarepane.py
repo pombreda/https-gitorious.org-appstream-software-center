@@ -377,7 +377,15 @@ class SoftwarePane(gtk.VBox, BasePane):
                                trans_type):
         self._register_unity_launcher_transaction_started(
             backend, pkgname, appname, trans_id, trans_type)
+
         
+    def _get_onscreen_icon_details_for_launcher_service(self, app):
+        if self.is_app_details_view_showing():
+            return self.app_details_view.get_app_icon_details()
+        else:
+            # TODO: implement the app list view case once it has been specified
+            return (0, 0, 0)
+       
     def _register_unity_launcher_transaction_started(self, backend, pkgname, 
                                                      appname, trans_id, 
                                                      trans_type):
@@ -405,13 +413,6 @@ class SoftwarePane(gtk.VBox, BasePane):
                                           trans_id)
         self.unity_launcher_items[app.pkgname] = launcher_info
         self.show_add_to_launcher_panel(backend, pkgname, appname, app, appdetails, trans_id, trans_type)
-        
-    def _get_onscreen_icon_details_for_launcher_service(self, app):
-        if self.is_app_details_view_showing():
-            return self.app_details_view.get_app_icon_details()
-        else:
-            # TODO: implement the app list view case once it has been specified
-            return (0, 0, 0)
                 
     def show_add_to_launcher_panel(self, backend, pkgname, appname, app, appdetails, trans_id, trans_type):
         """
