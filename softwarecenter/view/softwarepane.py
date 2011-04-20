@@ -373,7 +373,14 @@ class SoftwarePane(gtk.VBox, BasePane):
         if details_button:
             self.navigation_bar.set_active(details_button)
         
-    def on_transaction_started(self, backend, pkgname, appname, trans_id, trans_type):
+    def on_transaction_started(self, backend, pkgname, appname, trans_id, 
+                               trans_type):
+        self._register_unity_launcher_transaction_started(
+            backend, pkgname, appname, trans_id, trans_type)
+        
+    def _register_unity_launcher_transaction_started(self, backend, pkgname, 
+                                                     appname, trans_id, 
+                                                     trans_type):
         # add to launcher only applies in the details view currently
         if not self.is_app_details_view_showing():
             return
