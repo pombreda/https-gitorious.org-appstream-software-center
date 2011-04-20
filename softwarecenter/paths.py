@@ -18,6 +18,11 @@
 
 import logging
 import os
+
+# ensure we don't create directories in /home/$user
+if os.getuid() == 0 and "SUDO_USER" in os.environ and "HOME" in os.environ:
+    del os.environ["HOME"]
+# the check above must be *before* xdg is imported
 from xdg import BaseDirectory as xdg
 
 # global datadir, this maybe overriden at startup
@@ -64,11 +69,6 @@ def try_to_fixup_root_owned_dir_via_remove(directory):
             os.rmdir(directory)
         except:
             logging.exception("failed to fix not writable cache directory")
-
-
-# ensure we don't create directories in /home/$user
-if os.getuid() == 0 and "SUDO_USER" in os.environ and "HOME" in os.environ:
-    del os.environ["HOME"]
 
 SOFTWARE_CENTER_CONFIG_DIR = os.path.join(xdg.xdg_config_home, "software-center")
 SOFTWARE_CENTER_CACHE_DIR = os.path.join(xdg.xdg_cache_home, "software-center")

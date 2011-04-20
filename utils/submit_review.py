@@ -551,7 +551,7 @@ class SubmitReviewsApp(BaseApp):
         self.iconname = iconname
         
         # title
-        self.submit_window.set_title(_("Review %s" % self.app.name))
+        self.submit_window.set_title(_("Review %s") % self.app.name)
 
         self.review_summary_entry.connect('changed', self._on_mandatory_text_entry_changed)
         self.star_rating.connect('changed', self._on_mandatory_fields_changed)
@@ -1067,11 +1067,15 @@ class SubmitUsefulnessApp(BaseApp):
 
 
 if __name__ == "__main__":
+
     try:
         locale.setlocale(locale.LC_ALL, "")
     except:
         logging.exception("setlocale failed, resetting to C")
         locale.setlocale(locale.LC_ALL, "C")
+
+    gettext.bindtextdomain("software-center", "/usr/share/locale")
+    gettext.textdomain("software-center")
 
     if os.path.exists("./data/ui/reviews.ui"):
         default_datadir = "./data"

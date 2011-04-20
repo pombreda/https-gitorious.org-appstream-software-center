@@ -242,6 +242,11 @@ class ChannelsManager(object):
                                                     None,
                                                     None,
                                                     installed_only=installed_only)
+            elif (channel_origin and
+                  channel_origin.startswith("LP-PPA-commercial-ppa-uploaders")):
+                # do not display commercial private PPAs, they will all be
+                # displayed in the "for-purchase" node anyway
+                pass
             elif channel_origin and channel_origin.startswith("LP-PPA"):
                 if channel_origin == "LP-PPA-app-review-board":
                     new_apps_channel = SoftwareChannel(self.icons, 
