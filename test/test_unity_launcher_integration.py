@@ -40,6 +40,8 @@ class TestUnityLauncherIntegration(unittest.TestCase):
 
     def setUp(self):
         self.s_c_app = s_c_app
+        # monkey patch is_unity_running
+        softwarecenter.utils.is_unity_running = lambda: True
 
     def _run_search(self, search_text):
         logging.info("_run_search", search_text)
@@ -57,23 +59,22 @@ class TestUnityLauncherIntegration(unittest.TestCase):
                 needle, pkgname_from_row))
 
     def test_unity_launcher_integration(self):
-        # monkey patch is_unity_running
-        softwarecenter.utils.is_unity_running = lambda: True
         # test package is the inimitable lincity-ng
         # Note: this test relies on lincity-ng being *not installed*
         #       on the test machine!
-        model = self._run_search("lincity-ng")
-        self.assertFirstPkgInModel(model, "lincity-ng")
+        pkgname = "lincity-ng"
+        model = self._run_search(pkgname)
+        self.assertFirstPkgInModel(model, pkgname)
         treeview = self.s_c_app.available_pane.app_view
         treeview.row_activated(model.get_path(model.get_iter_root()),
                                treeview.get_column(0))
         self._p()
+
         # click the "Install" button
         self.s_c_app.available_pane.app_details_view.pkg_statusbar.button.clicked()
         for i in range(2):
             self._p()
             time.sleep(0.3)
-        
         
         # verify that the panel is shown offering to add the app to the launcher
         self.assertTrue(
@@ -81,26 +82,22 @@ class TestUnityLauncherIntegration(unittest.TestCase):
         button = self.s_c_app.available_pane.action_bar.get_button(
             ACTION_BUTTON_ADD_TO_LAUNCHER)
         self.assertTrue(button is not None)
-        
-        # now test the values to be used in the dbus call
-        app = Application("", model[0][AppStore.COL_PKGNAME])
-        (icon_size, icon_x, icon_y) = self.s_c_app.available_pane._get_onscreen_icon_details_for_launcher_service(app)
-        appdetails = app.get_details(self.s_c_app.db)
-        trans_id = "/org/debian/apt/transaction/test101"
+        # click the button 
+        button.clicked()
+
         # check that a correct UnityLauncherInfo object has been created and added to the queue
-        self.s_c_app.available_pane.on_add_to_launcher(app, appdetails, trans_id)
-        self.assertTrue(app.pkgname in self.s_c_app.available_pane.unity_launcher_items)
-        launcher_info = self.s_c_app.available_pane.unity_launcher_items.pop(app.pkgname)
+        self.assertTrue(pkgname in self.s_c_app.available_pane.unity_launcher_items)
+        launcher_info = self.s_c_app.available_pane.unity_launcher_items.pop(pkgname)
         # check the UnityLauncherInfo values themselves
-        self.assertEqual(launcher_info.name, "Lincity-ng")
+        self.assertEqual(launcher_info.name, u"Lincity-NG")
         self.assertEqual(launcher_info.icon_name, "lincity-ng")
         self.assertTrue(launcher_info.icon_x > 20)
         self.assertTrue(launcher_info.icon_y > 20)
         self.assertEqual(launcher_info.icon_size, 84)
         self.assertEqual(launcher_info.app_install_desktop_file_path, "/usr/share/app-install/desktop/lincity-ng.desktop")
-        self.assertEqual(launcher_info.trans_id, "/org/debian/apt/transaction/test101")
+        self.assertTrue(launcher_info.trans_id.startswith("/org/debian/apt/transaction/"))
         # finally, make sure the the app has been removed from the launcher queue        
-        self.assertTrue(app.pkgname not in self.s_c_app.available_pane.unity_launcher_items)
+        self.assertFalse(pkgname in self.s_c_app.available_pane.unity_launcher_items)
         
     def test_desktop_file_path_conversion(self):
         import os.path

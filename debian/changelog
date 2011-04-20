@@ -1,3 +1,12 @@
+software-center (3.1.26.9) UNRELEASED; urgency=low
+
+  * softwarecenter/view/softwarepane.py:
+    - display the offer to add an application to the launcher
+      for the duration of the time that the details view
+      is showing (LP: #765389)
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 19 Apr 2011 20:32:20 -0400
+
 software-center (3.1.26.8) natty; urgency=low
 
   * softwarecenter/log.py:
