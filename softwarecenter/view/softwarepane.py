@@ -466,14 +466,18 @@ class SoftwarePane(gtk.VBox, BasePane):
         self.action_bar.clear()
         
     def on_transaction_finished(self, backend, result):
-        # add the completed transaction details to the corresponding launcher_item
+        self._check_unity_launcher_transaction_finished(result)
+
+    def _check_unity_launcher_transaction_finished(self, result):
+        # add the completed transaction details to the corresponding
+        # launcher_item
         if result.pkgname in self.unity_launcher_items:
             launcher_info = self.unity_launcher_items[result.pkgname]
-            launcher_info.icon_file_path = get_file_path_from_iconname(self.icons,
-                                                                       launcher_info.icon_name)
-            launcher_info.installed_desktop_file_path \
-                = convert_desktop_file_to_installed_location(launcher_info.app_install_desktop_file_path,
-                                                             result.pkgname)
+            launcher_info.icon_file_path = get_file_path_from_iconname(
+                self.icons, launcher_info.icon_name)
+            installed_path = convert_desktop_file_to_installed_location(
+                launcher_info.app_install_desktop_file_path, result.pkgname)
+            launcher_info.installed_desktop_file_path = installed_path
             # if the request to add to launcher has already been made, do it now
             if launcher_info.add_to_launcher_requested:
                 if result.success:
