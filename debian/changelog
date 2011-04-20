@@ -1,3 +1,18 @@
+software-center (4.0) UNRELEASED; urgency=low
+
+  [ Gary Lasker ]
+  * softwarecenter/view/softwarepane.py:
+    - display the offer to add an application to the launcher
+      for the duration of the time that the details view
+      is showing (LP: #765389)
+  
+  [ Michael Vogt ]
+  * test/test_unity_launcher_integration.py:
+    - update tests
+  * update version number for natty-final
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 20 Apr 2011 12:45:33 +0200
+
 software-center (3.1.26.8) natty; urgency=low
 
   * softwarecenter/log.py:
