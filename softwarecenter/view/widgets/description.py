@@ -553,6 +553,10 @@ class TextBlock(gtk.EventBox):
         ctrl = event.state & gtk.gdk.CONTROL_MASK
         shift = event.state & gtk.gdk.SHIFT_MASK
 
+        if not self.PAINT_PRIMARY_CURSOR and \
+            kv in (keys.Up, keys.Down) and not sel:
+            return False
+
         if kv == keys.Tab:
             handled_keys = False
 

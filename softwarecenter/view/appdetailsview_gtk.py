@@ -1106,7 +1106,41 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         hb.connect('size-allocate', self._header_on_allocate, hb.get_spacing())
         vb.connect('expose-event', self._on_expose, alignment)
         vb.connect('size-allocate', self._on_allocate)
+
+        vb.connect('key-press-event', self._on_key_press)
         return
+
+    def _on_key_press(self, widget, event):
+        kv = event.keyval
+
+        # key values we want to respond to
+        uppers = (gtk.keysyms.KP_Up, gtk.keysyms.Up)
+        downers = (gtk.keysyms.KP_Down, gtk.keysyms.Down)
+
+        if kv in uppers or kv in downers:
+            # get the ScrolledWindow adjustments and tweak them appropriately
+            if not self.parent: return False
+
+            # the ScrolledWindow vertical-adjustment
+            v_adj = self.parent.get_vadjustment()
+
+            # scroll up
+            if kv in uppers:
+                v = max(v_adj.value - v_adj.step_increment,
+                        v_adj.lower)
+
+            # scroll down 
+            elif kv in downers:
+                v = min(v_adj.value + v_adj.step_increment,
+                        v_adj.upper - v_adj.page_size)
+
+            # set our new value
+            v_adj.set_value(v)
+
+            # do not share the event with other widgets
+            return True
+        # share the event with other widgets
+        return False
 
     def _on_review_new(self, button):
         self._review_write_new()
