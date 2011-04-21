@@ -23,14 +23,14 @@ import pygtk
 pygtk.require ("2.0")
 import gobject
 gobject.threads_init()
-import pango
 
 import datetime
+import gettext
+import glib
 import gtk
 import locale
 import logging
 import os
-import pickle
 import simplejson
 import sys
 import tempfile
@@ -46,13 +46,13 @@ from softwarecenter.backend.restfulclient import UbuntuSSOAPI
 
 import piston_mini_client
 
-from softwarecenter.paths import *
+from softwarecenter.paths import SOFTWARE_CENTER_CONFIG_DIR
 from softwarecenter.enums import MISSING_APP_ICON
 from softwarecenter.config import get_config
 from softwarecenter.backend.login_sso import LoginBackendDbusSSO
 from softwarecenter.db.database import Application
 from softwarecenter.db.reviews import Review
-from softwarecenter.utils import *
+from softwarecenter.utils import get_current_arch, clear_token_from_ubuntu_sso, get_language
 from softwarecenter.SimpleGtkbuilderApp import SimpleGtkbuilderApp
 from softwarecenter.view.dialogs import SimpleGtkbuilderDialog
 from softwarecenter.distro import get_distro

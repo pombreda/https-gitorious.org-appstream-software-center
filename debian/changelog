@@ -3,6 +3,8 @@ software-center (4.1) UNRELEASED; urgency=low
   * merged lp:~evfool/software-center/fix739272 
   * merged lp:~mmcg069/software-center/Bug747172
   * merged lp:~aaronp/software-center/review-error-messages
+  * utils/submit_review.py:
+    - pyflakes based cleanup
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 21 Apr 2011 09:39:57 +0200
 
