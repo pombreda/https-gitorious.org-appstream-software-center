@@ -1,3 +1,11 @@
+software-center (4.1) UNRELEASED; urgency=low
+
+  * merged lp:~evfool/software-center/fix739272 
+  * merged lp:~mmcg069/software-center/Bug747172
+  * merged lp:~aaronp/software-center/review-error-messages
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 21 Apr 2011 09:39:57 +0200
+
 software-center (4.0) natty; urgency=low
 
   [ Gary Lasker ]
@@ -21,7 +29,7 @@ software-center (3.1.26.8) natty; urgency=low
   * softwarecenter/paths.py:
     - check for SUDO_USER before xdg is imported, otherwise the
       check has no effect (LP: #688682)
-  * softwarecenter/{paths,enums}.py, utils/update-software-center-agent:
+  * softwarecenter/{paths,enums}.py, utils/update-software-center-agent
     - remove unneeded xdg.BaseDirectory import
   * utils/update-software-center-agent, softwarecenter/enums.py:
     - remove unused imports, make imports explicit (thanks pyflakes)

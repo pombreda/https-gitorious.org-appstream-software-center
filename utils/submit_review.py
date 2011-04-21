@@ -201,9 +201,10 @@ class Worker(threading.Thread):
                 sys.stdout.write(simplejson.dumps(res))
             except Exception as e:
                 logging.exception("submit_usefulness failed")
+                err_str = self._get_error_messages(e)
+                self._transmit_error_str = err_str
                 self._write_exception_html_log_if_needed(e)
                 self._transmit_state = TRANSMIT_STATE_ERROR
-                self._transmit_error_str = _("Failed to submit usefulness")
             self.pending_usefulness.task_done()
 
     # reports
@@ -226,9 +227,10 @@ class Worker(threading.Thread):
                 sys.stdout.write(simplejson.dumps(res))
             except Exception as e:
                 logging.exception("flag_review failed")
+                err_str = self._get_error_messages(e)
+                self._transmit_error_str = err_str
                 self._write_exception_html_log_if_needed(e)
                 self._transmit_state = TRANSMIT_STATE_ERROR
-                self._transmit_error_str = _("Failed to submit report")
             self.pending_reports.task_done()
 
     def _write_exception_html_log_if_needed(self, e):
@@ -275,11 +277,30 @@ class Worker(threading.Thread):
                 sys.stdout.write(simplejson.dumps(vars(res)))
             except Exception as e:
                 logging.exception("submit_review")
+                err_str = self._get_error_messages(e)
                 self._write_exception_html_log_if_needed(e)
                 self._transmit_state = TRANSMIT_STATE_ERROR
-                self._transmit_error_str = _("Failed to submit review")
-            self._transmit_state
+                self._transmit_error_str = err_str
             self.pending_reviews.task_done()
+    
+    def _get_error_messages(self, e):
+        if type(e) is piston_mini_client.APIError:
+            try:
+                error_msg = simplejson.loads(e.body)['errors']
+                errs = error_msg["__all__"]
+                err_str = _("Server's response was:")
+                for err in errs:
+                    err_str = _("%s\n%s" % (err_str, err))
+            except:
+                err_str = _("Unknown error communicating with server. Check your log "
+                        "and consider raising a bug report if this problem persists")
+                logging.warning(e)
+        else:
+            err_str = _("Unknown error communicating with server. Check your log "
+                    "and consider raising a bug report if this problem persists")
+            logging.warning(e)
+        return err_str
+    
 
     def verify_server_status(self):
         """ verify that the server we want to talk to can be reached
@@ -455,7 +476,9 @@ class BaseApp(SimpleGtkbuilderApp):
             self.status_hbox.pack_start(self.submit_error_img, False)
             self.status_hbox.reorder_child(self.submit_error_img, 0)
             self.submit_error_img.show()
-            self.label_transmit_status.set_text(message)
+            self.label_transmit_status.set_text(self.FAILURE_MESSAGE)
+            self.error_textview.get_buffer().set_text(_(message))  
+            self.detail_expander.show()
         elif type == "success":
             self.status_hbox.pack_start(self.submit_success_img, False)
             self.status_hbox.reorder_child(self.submit_success_img, 0)
@@ -463,29 +486,30 @@ class BaseApp(SimpleGtkbuilderApp):
             self.label_transmit_status.set_text(message)
 
     def _clear_status_imagery(self):
+        self.detail_expander.hide()
+        self.detail_expander.set_expanded(False)
+        
         #clears spinner or error image from dialog submission label before trying to display one or the other
-         try: 
+        try: 
             result = self.status_hbox.query_child_packing(self.submit_spinner)
             self.status_hbox.remove(self.submit_spinner)
-         except TypeError:
+        except TypeError:
             pass
         
-         try: 
+        try: 
             result = self.status_hbox.query_child_packing(self.submit_error_img)
             self.status_hbox.remove(self.submit_error_img)
-         except TypeError:
+        except TypeError:
             pass
             
-         try: 
+        try: 
             result = self.status_hbox.query_child_packing(self.submit_success_img)
             self.status_hbox.remove(self.submit_success_img)
-         except TypeError:
+        except TypeError:
             pass
         
-         return
+        return
         
-            
-            
 
 class SubmitReviewsApp(BaseApp):
     """ review a given application or package """
@@ -501,7 +525,7 @@ class SubmitReviewsApp(BaseApp):
     NORMAL_COLOUR = "000000"
     ERROR_COLOUR = "FF0000"
     SUBMIT_MESSAGE = _("Submitting Review")
-    
+    FAILURE_MESSAGE = _("Failed to submit review")
 
     def __init__(self, app, version, iconname, origin, parent_xid, datadir):
         BaseApp.__init__(self, datadir, "submit_review.ui")
@@ -543,6 +567,8 @@ class SubmitReviewsApp(BaseApp):
         self.rating_hbox.reorder_child(self.star_caption, 1)
 
         self.review_buffer = self.textview_review.get_buffer()
+        
+        self.detail_expander.hide()
 
         # data
         self.app = app
@@ -589,6 +615,9 @@ class SubmitReviewsApp(BaseApp):
         
         #rating label
         self.rating_label.set_markup(_('Rating:'))
+        #error detail link label
+        self.label_expander.set_markup('<small><u>%s</u></small>' % (_('Error Details')))
+
         return
 
     # force resize of the legal label when the app resizes, if not
@@ -949,6 +978,7 @@ class ReportReviewApp(BaseApp):
     APP_ICON_SIZE = 48
     
     SUBMIT_MESSAGE = _(u"Sending report\u2026")
+    FAILURE_MESSAGE = _("Failed to submit report")
 
     def __init__(self, review_id, parent_xid, datadir):
         BaseApp.__init__(self, datadir, "report_abuse.ui")
@@ -1019,6 +1049,10 @@ class ReportReviewApp(BaseApp):
 
         # review summary label
         self.report_summary_label.set_markup(_('Why is this review inappropriate?'))
+        
+        #error detail link label
+        self.label_expander.set_markup('<small><u>%s</u></small>' % (_('Error Details')))
+        
         return
 
     def on_button_post_clicked(self, button):
@@ -1064,7 +1098,7 @@ class SubmitUsefulnessApp(BaseApp):
     # stub ui that can be useful for testing
     def run(self):
         self.login()
-
+    
 
 if __name__ == "__main__":
 
