@@ -24,9 +24,10 @@ software-center (4.0.1) UNRELEASED; urgency=low
   * lp:~gary-lasker/software-center/translation-fixes-lp770439:
     - fix translation not showing up (LP: #770439)
   * softwarecenter/view/appdetailsview_gtk.py,
-    softwarecenter/view/widgets/reviews.py:
+    softwarecenter/view/widgets/reviews.py,
+    test/test_appdetails_view.py:
     - enable writing a review immediately after the package
-      installation is complete (LP: #769439) 
+      installation is complete, add test case (LP: #769439) 
 
  -- Gary Lasker <gary.lasker@canonical.com>  Thu, 28 Apr 2011 00:33:44 -0400
 
