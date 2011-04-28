@@ -835,7 +835,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.reviews.clear()
         for review in reviews_data:
             self.reviews.add_review(review)
-        self.reviews.finished()
+        self.reviews.configure_reviews_ui()
 
     def on_test_drive_clicked(self, button):
         # weblive helpers
@@ -1516,6 +1516,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
               result and
               result.pkgname):
             self.pkg_statusbar.configure(self.app_details, PKG_STATE_INSTALLED)
+            # reset the reviews UI now that we have installed the package
+            self.reviews.configure_reviews_ui()
         # normal states
         elif state == PKG_STATE_REMOVING:
             self.pkg_statusbar.configure(self.app_details, PKG_STATE_UNINSTALLED)
@@ -1531,6 +1533,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # cancellation of dependency dialog
         elif state == PKG_STATE_INSTALLED:
             self.pkg_statusbar.configure(self.app_details, PKG_STATE_INSTALLED)
+            # reset the reviews UI now that we have installed the package
+            self.reviews.configure_reviews_ui()
         elif state == PKG_STATE_UNINSTALLED:
             self.pkg_statusbar.configure(self.app_details, PKG_STATE_UNINSTALLED)
         self.adjustment_value = None
