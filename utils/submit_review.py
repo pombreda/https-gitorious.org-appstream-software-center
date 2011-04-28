@@ -451,7 +451,7 @@ class BaseApp(SimpleGtkbuilderApp):
     def on_transmit_start(self, api, trans):
         self.button_post.set_sensitive(False)
         self.button_cancel.set_sensitive(False)
-        self._change_status("progress",  self.SUBMIT_MESSAGE)
+        self._change_status("progress",  _(self.SUBMIT_MESSAGE))
 
     def on_transmit_success(self, api, trans):
         self.api.shutdown()
