@@ -1,5 +1,6 @@
 software-center (4.1) UNRELEASED; urgency=low
 
+  [ Michael Vogt ]
   * merged lp:~evfool/software-center/fix739272 
   * merged lp:~mmcg069/software-center/Bug747172
   * merged lp:~aaronp/software-center/review-error-messages
@@ -8,7 +9,7 @@ software-center (4.1) UNRELEASED; urgency=low
   * softwarecenter/utils.py:
     - fix a bunch warnings about logging to the root logger
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 21 Apr 2011 09:39:57 +0200
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 28 Apr 2011 18:48:19 -0400
 
 software-center (4.0.1) UNRELEASED; urgency=low
 
@@ -24,9 +25,10 @@ software-center (4.0.1) UNRELEASED; urgency=low
   * lp:~gary-lasker/software-center/translation-fixes-lp770439:
     - fix translation not showing up (LP: #770439)
   * softwarecenter/view/appdetailsview_gtk.py,
-    softwarecenter/view/widgets/reviews.py:
+    softwarecenter/view/widgets/reviews.py,
+    test/test_appdetails_view.py:
     - enable writing a review immediately after the package
-      installation is complete (LP: #769439) 
+      installation is complete, add test case (LP: #769439) 
 
  -- Gary Lasker <gary.lasker@canonical.com>  Thu, 28 Apr 2011 00:33:44 -0400
 
