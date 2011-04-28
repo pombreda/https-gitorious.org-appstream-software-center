@@ -158,6 +158,31 @@ class TestAppDetailsView(unittest.TestCase):
         app = Application("Web browser", "firefox")
         mock_app_details = self._get_mock_app_details()
         self.appdetails.show_app(app)
+        
+    def test_enable_review_on_install(self):
+        app = Application("Freeciv", "freeciv-client-gtk")
+        mock_app_details = self._get_mock_app_details()
+        mock_app_details.pkg_state = PKG_STATE_UNINSTALLED
+        # monkey patch get_details() so that we get the mock object
+        app.get_details = lambda db: mock_app_details
+        self.appdetails.show_app(app)
+        # this is async so we need to give it a bit of time
+        self._p()
+        time.sleep(2)
+        self._p()
+        # check that the prompt to install the app to be able to review it is showing
+        self.assertFalse(self.appdetails.reviews.new_review.get_property("visible"))
+        self.assertTrue(self.appdetails.reviews.install_first_label.get_property("visible"))
+        # now simulate an install completed
+        self.appdetails.pkg_statusbar.pkg_state = PKG_STATE_INSTALLED
+        mock_app_details.pkg_state = PKG_STATE_INSTALLED
+        result = mock.Mock()
+        self.appdetails.backend.emit("transaction-finished", (None, result))
+        self._p()
+        time.sleep(2)
+        self._p()
+        # now that the app is installed, check that the invitation to review the app is showing
+        self.assertTrue(self.appdetails.reviews.new_review.get_property("visible"))
 
     # helper
     def _p(self):
