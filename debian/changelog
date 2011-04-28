@@ -5,6 +5,8 @@ software-center (4.1) UNRELEASED; urgency=low
   * merged lp:~aaronp/software-center/review-error-messages
   * utils/submit_review.py:
     - pyflakes based cleanup
+  * softwarecenter/utils.py:
+    - fix a bunch warnings about logging to the root logger
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 21 Apr 2011 09:39:57 +0200
 

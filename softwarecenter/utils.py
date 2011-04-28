@@ -155,7 +155,7 @@ def get_language():
     try:
         language = locale.getdefaultlocale(('LANGUAGE','LANG','LC_CTYPE','LC_ALL'))[0]
     except Exception as e:
-        logging.warn("Failed to get language: '%s'" % e)
+        LOG.warn("Failed to get language: '%s'" % e)
         language = "C"
     # use fallback if we can't determine the language
     if language is None or language == "C":
@@ -196,7 +196,7 @@ def get_http_proxy_string_from_gconf():
             if host:
                 return http_proxy
     except Exception:
-        logging.exception("failed to get proxy from gconf")
+        LOG.exception("failed to get proxy from gconf")
     return None
 
 def encode_for_xml(unicode_data, encoding="ascii"):
@@ -323,7 +323,7 @@ def convert_desktop_file_to_installed_location(app_install_data_file_path, pkgna
         installed_desktop_file_path =  "/usr/share/applications/%s.desktop" % pkgname
         if os.path.exists(installed_desktop_file_path):
             return installed_desktop_file_path
-    logging.warn("Could not determine the installed desktop file path for app-install desktop file: '%s'" % app_install_data_file_path)
+    LOG.warn("Could not determine the installed desktop file path for app-install desktop file: '%s'" % app_install_data_file_path)
     return ""
 
 def clear_token_from_ubuntu_sso(appname):
