@@ -816,6 +816,8 @@ class UIReviewsList(gtk.VBox):
             self.install_first_label.hide()
         except AttributeError:
             pass
+        
+        self._clear_vbox(self.vbox)
 
         # network sensitive stuff, only show write_review if connected,
         # add msg about offline cache usage if offline
@@ -835,7 +837,6 @@ class UIReviewsList(gtk.VBox):
 
         # always hide spinner and call _fill (fine if there is nothing to do)
         self.hide_spinner()
-        self._clear_vbox(self.vbox)
         self._fill()
         self.vbox.show_all()
 
