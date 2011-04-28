@@ -798,10 +798,15 @@ class UIReviewsList(gtk.VBox):
         msg = _('Only cached reviews can be displayed')
         m = EmbeddedMessage(title, msg, 'network-offline')
         self.vbox.pack_start(m)
+        
+    def _clear_vbox(self, vbox):
+        children = vbox.get_children()
+        for child in children:
+            child.destroy()
 
-    # FIXME: instead of clear/add_reviews/finished we should provide
+    # FIXME: instead of clear/add_reviews/configure_reviews_ui we should provide
     #        a single show_reviews(reviews_data_list)
-    def finished(self):
+    def configure_reviews_ui(self):
         """ this needs to be called after add_reviews, it will actually
             show the reviews
         """
@@ -811,6 +816,8 @@ class UIReviewsList(gtk.VBox):
             self.install_first_label.hide()
         except AttributeError:
             pass
+        
+        self._clear_vbox(self.vbox)
 
         # network sensitive stuff, only show write_review if connected,
         # add msg about offline cache usage if offline
