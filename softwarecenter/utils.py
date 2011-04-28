@@ -39,6 +39,8 @@ from enums import USER_AGENT, MISSING_APP_ICON, APP_ICON_SIZE, APP_INSTALL_PATH_
 
 from config import get_config
 
+from gettext import gettext as _
+
 # define additional entities for the unescape method, needed
 # because only '&amp;', '&lt;', and '&gt;' are included by default
 ESCAPE_ENTITIES = {"&apos;":"'",

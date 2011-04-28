@@ -1,9 +1,16 @@
 software-center (4.0.1) UNRELEASED; urgency=low
 
+  [ Michael Vogt ]
   * debian/control:
     - point to 4.0 bzr branch
   * merged lp:~mmcg069/software-center/Bug635994, many thanks
     (LP: #635994)
+  * utils/submit_review.py:
+    - fix missing translation  (LP: #770439)
+  
+  [ Gary Lasker ]
+  * lp:~gary-lasker/software-center/translation-fixes-lp770439:
+    - fix translation not showing up (LP: #770439)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 21 Apr 2011 09:19:11 +0200
 
