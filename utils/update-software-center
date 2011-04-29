@@ -53,6 +53,7 @@ APP_CATCHUP_DELAY = 2
 # the language pack directory that we need for the triggers checking
 LANGPACKDIR = "/usr/share/locale-langpack"
 
+logging.basicConfig(level=logging.INFO)
 LOG = logging.getLogger(__name__)
 
 class UpdateSoftwarecenterDbus(dbus.service.Object):

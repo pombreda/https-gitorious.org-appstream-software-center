@@ -6,6 +6,10 @@ software-center (4.1) UNRELEASED; urgency=low
   * utils/submit_review.py:
     - pyflakes based cleanup
 
+  [ Aaron Peachey ]
+  * utils/update-software-center, utils/update-software-center-agent
+    - fix 'no log handler' error on update-software-center (LP #728896)
+
  -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 21 Apr 2011 09:39:57 +0200
 
 software-center (4.0.1) UNRELEASED; urgency=low
