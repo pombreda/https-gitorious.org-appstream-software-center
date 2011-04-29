@@ -424,7 +424,7 @@ class ReviewLoaderSpawningRNRClient(ReviewLoader):
         for r in piston_reviews:
             reviews.append(Review.from_piston_mini_client(r))
         # add to our dicts and run callback
-        self._reviews[app] = reviews
+        self._reviews[app] = sorted(reviews, reverse=True)
         callback(app, self._reviews[app])
 
     # stats
@@ -506,7 +506,7 @@ class ReviewLoaderJsonAsync(ReviewLoader):
             review = Review.from_json(review_json)
             reviews.append(review)
         # run callback
-        callback(app, reviews)
+        callback(app, sorted(reviews, reverse=True))
 
     def get_reviews(self, app, callback):
         """ get a specific review and call callback when its available"""

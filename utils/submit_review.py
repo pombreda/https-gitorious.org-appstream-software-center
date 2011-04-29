@@ -323,7 +323,9 @@ class BaseApp(SimpleGtkbuilderApp):
         SimpleGtkbuilderApp.__init__(
             self, os.path.join(datadir,"ui",uifile), "software-center")
         # generic data
-        self.appname = _("Ubuntu Software Center")
+        # see bug #773214 for the rational
+        #self.appname = _("Ubuntu Software Center")
+        self.appname = "Ubuntu Software Center"
         self.token = None
         self.display_name = None
         self._login_successful = False
