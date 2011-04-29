@@ -22,12 +22,15 @@
 import dbus
 import gobject
 import gtk
+import logging
 
 from dbus.mainloop.glib import DBusGMainLoop
 DBusGMainLoop(set_as_default=True)
 from gettext import gettext as _
 
 from login import LoginBackend
+
+LOG = logging.getLogger(__name__)
 
 class LoginBackendDbusSSO(LoginBackend):
 
@@ -63,6 +66,8 @@ class LoginBackendDbusSSO(LoginBackend):
         self.emit("login-successful", credentials)
 
     def _on_credentials_error(self, app_name, error, detailed_error):
+        LOG.error("_on_credentails_error for %s: %s (%s)" % (
+                app_name, error, detailed_error))
         if app_name != self.appname:
             return
         # FIXME: do something useful with the error
