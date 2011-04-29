@@ -68,7 +68,8 @@ class LoginBackendDbusSSO(LoginBackend):
         self.emit("login-successful", credentials)
 
     def _on_credentials_error(self, app_name, error, detailed_error):
-        LOG.error("_on_credentials_error: %s (%s)" % (error, detailed_error))
+        LOG.error("_on_credentials_error: %s %s (%s)" % (
+                app_name, error, detailed_error))
         if app_name != self.appname:
             return
         # FIXME: do something useful with the error
