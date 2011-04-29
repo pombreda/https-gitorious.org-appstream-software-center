@@ -9,8 +9,13 @@ software-center (4.0.1) UNRELEASED; urgency=low
     - fix missing translation  (LP: #770439)
   * utils/submit_review.py:
     - improve logging on SSO failure (LP: #773214)
+    - do not translate "appname" as ubuntu-sso-login will fail
+      for translated names with utf8 chars (LP: #773214)
   * softwarecenter/db/reviews.py:
     - apply review sorting (LP: #773289)
+  * softwarecenter/app.py:
+    - do not translate "appname" as ubuntu-sso-login will fail
+      for translated names with utf8 chars (LP: #773214)
   
   [ Gary Lasker ]
   * lp:~gary-lasker/software-center/translation-fixes-lp770439:
