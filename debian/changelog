@@ -1,4 +1,4 @@
-software-center (4.1) UNRELEASED; urgency=low
+software-center (4.1) oneiric; urgency=low
 
   * merged lp:~evfool/software-center/fix739272 
   * merged lp:~mmcg069/software-center/Bug747172
@@ -8,7 +8,7 @@ software-center (4.1) UNRELEASED; urgency=low
   * softwarecenter/utils.py:
     - fix a bunch warnings about logging to the root logger
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 21 Apr 2011 09:39:57 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 29 Apr 2011 17:59:47 +0200
 
 software-center (4.0.1) natty-proposed; urgency=low
 
