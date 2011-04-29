@@ -1,4 +1,4 @@
-software-center (4.0.1) UNRELEASED; urgency=low
+software-center (4.0.1) natty-proposed; urgency=low
 
   [ Michael Vogt ]
   * debian/control:
@@ -26,7 +26,7 @@ software-center (4.0.1) UNRELEASED; urgency=low
     - enable writing a review immediately after the package
       installation is complete, add test case (LP: #769439) 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 28 Apr 2011 19:12:17 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 29 Apr 2011 16:40:32 +0200
 
 software-center (4.0) natty; urgency=low
 
