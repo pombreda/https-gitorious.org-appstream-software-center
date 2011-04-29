@@ -29,6 +29,9 @@ from gettext import gettext as _
 
 from login import LoginBackend
 
+import logging
+LOG = logging.getLogger(__name__)
+
 class LoginBackendDbusSSO(LoginBackend):
 
     def __init__(self, window_id, appname, login_text):
@@ -46,6 +49,7 @@ class LoginBackendDbusSSO(LoginBackend):
         self._window_id = window_id
 
     def login(self, username=None, password=None):
+        LOG.debug("login()")
         # alternatively use:
         #  login_or_register_to_get_credentials(appname, tc, help, xid)
         self.proxy.login_to_get_credentials(
@@ -53,6 +57,7 @@ class LoginBackendDbusSSO(LoginBackend):
             self._window_id)
         
     def login_or_register(self):
+        LOG.debug("login_or_register()")
         self.proxy.login_or_register_to_get_credentials(
             self.appname, "", self.login_text,
             self._window_id)
@@ -63,12 +68,14 @@ class LoginBackendDbusSSO(LoginBackend):
         self.emit("login-successful", credentials)
 
     def _on_credentials_error(self, app_name, error, detailed_error):
+        LOG.error("_on_credentials_error: %s (%s)" % (error, detailed_error))
         if app_name != self.appname:
             return
         # FIXME: do something useful with the error
         self.emit("login-failed")
 
     def _on_authorization_denied(self, app_name):
+        LOG.error("_on_authorization_denied: %s" % app_name)
         if app_name != self.appname:
             return
         self.cancel_login()
