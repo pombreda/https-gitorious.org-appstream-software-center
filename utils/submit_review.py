@@ -378,6 +378,7 @@ class BaseApp(SimpleGtkbuilderApp):
         return spell
 
     def login(self, show_register=True):
+        logging.debug("login()")
         # either
         login_window_xid = self._get_parent_xid_for_login_window()
         login_text = _("To review software or to report abuse you need to "
@@ -397,6 +398,7 @@ class BaseApp(SimpleGtkbuilderApp):
 
     def _maybe_login_successful(self, sso, oauth_result):
         """ called after we have the token, then we go and figure out our name """
+        logging.debug("_maybe_login_successful")
         self.token = oauth_result
         self.ssoapi = UbuntuSSOAPI(self.token)
         self.ssoapi.connect("whoami", self._whoami_done)
@@ -404,6 +406,7 @@ class BaseApp(SimpleGtkbuilderApp):
         self.ssoapi.whoami()
 
     def _whoami_done(self, ssologin, result):
+        logging.debug("_whoami_done")
         self.display_name = result["displayname"]
         self._create_gratings_api()
         self.login_successful(self.display_name)
@@ -1064,6 +1067,7 @@ class ReportReviewApp(BaseApp):
         self.api.report_abuse(self.review_id, report_summary, report_text)
 
     def login_successful(self, display_name):
+        logging.debug("login_successful")
         self.main_notebook.set_current_page(1)
         #self.label_reporter.set_text(display_name)
         self._setup_details(self.submit_window, display_name)
