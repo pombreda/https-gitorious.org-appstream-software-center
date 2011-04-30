@@ -1103,6 +1103,14 @@ class SubmitUsefulnessApp(BaseApp):
     def run(self):
         self.login()
     
+    # override UI update methods from BaseApp to prevent them 
+    # causing errors if called when UI is hidden
+    def _clear_status_imagery(self):
+        pass
+    
+    def _change_status(self, type, message):
+        pass
+    
 
 if __name__ == "__main__":
 
