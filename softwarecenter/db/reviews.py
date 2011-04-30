@@ -59,21 +59,26 @@ class UsefulnessCache(object):
 
     USEFULNESS_CACHE = {}
     
-    def __init__(self):
+    def __init__(self, try_server=False):
         self.rnrclient = RatingsAndReviewsAPI()
         fname = "usefulness.p"
         self.USEFULNESS_CACHE_FILE = os.path.join(SOFTWARE_CENTER_CACHE_DIR,
                                                     fname)
         
-        if self._retrieve_votes_from_server():
-            LOG.debug("retrieved usefulness votes")
-        else:
-            if os.path.exists(self.USEFULNESS_CACHE_FILE):
-                try:
-                    self.USEFULNESS_CACHE = cPickle.load(open(self.USEFULNESS_CACHE_FILE))
-                except:
-                    LOG.exception("usefulness cache load fallback failure")
-                    os.rename(self.USEFULNESS_CACHE_FILE, self.USEFULNESS_CACHE_FILE+".fail")
+        #Only try to get votes from the server if required, otherwise just hit cache
+        if try_server:
+            if self._retrieve_votes_from_server():
+                LOG.debug("retrieved usefulness votes from server")
+                return
+        self._retrieve_votes_from_cache()
+    
+    def _retrieve_votes_from_cache(self):
+        if os.path.exists(self.USEFULNESS_CACHE_FILE):
+            try:
+                self.USEFULNESS_CACHE = cPickle.load(open(self.USEFULNESS_CACHE_FILE))
+            except:
+                LOG.exception("usefulness cache load fallback failure")
+                os.rename(self.USEFULNESS_CACHE_FILE, self.USEFULNESS_CACHE_FILE+".fail")
     
     def _retrieve_votes_from_server(self):
         user = get_person_from_config()
