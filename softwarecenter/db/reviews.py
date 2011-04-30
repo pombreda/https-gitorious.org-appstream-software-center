@@ -60,16 +60,40 @@ class UsefulnessCache(object):
     USEFULNESS_CACHE = {}
     
     def __init__(self):
+        self.rnrclient = RatingsAndReviewsAPI()
         fname = "usefulness.p"
         self.USEFULNESS_CACHE_FILE = os.path.join(SOFTWARE_CENTER_CACHE_DIR,
                                                     fname)
-        if os.path.exists(self.USEFULNESS_CACHE_FILE):
-            try:
-                self.USEFULNESS_CACHE = cPickle.load(open(self.USEFULNESS_CACHE_FILE))
-            except:
-                LOG.exception("usefulness cache load failure")
-                os.rename(self.USEFULNESS_CACHE_FILE, self.USEFULNESS_CACHE_FILE+".fail")
+        
+        if self._retrieve_votes_from_server():
+            LOG.debug("retrieved usefulness votes")
+        else:
+            if os.path.exists(self.USEFULNESS_CACHE_FILE):
+                try:
+                    self.USEFULNESS_CACHE = cPickle.load(open(self.USEFULNESS_CACHE_FILE))
+                except:
+                    LOG.exception("usefulness cache load fallback failure")
+                    os.rename(self.USEFULNESS_CACHE_FILE, self.USEFULNESS_CACHE_FILE+".fail")
     
+    def _retrieve_votes_from_server(self):
+        user = get_person_from_config()
+        
+        if not user:
+            LOG.warn("Could not get usefulness from server, no username in config file")
+            return False
+        
+        try:
+            results = self.rnrclient.get_usefulness(username=user)
+            for result in results:
+                self.USEFULNESS_CACHE[str(result['review_id'])] = result['useful']
+                
+            if not self.save_usefulness_cache_file():
+                LOG.warn("Read usefulness results from server but failed to write to cache")
+            return True
+        except:
+            LOG.warn("Failed to read and save usefulness results from server, using cache")
+            return False
+            
     def save_usefulness_cache_file(self):
         """write the dict out to cache file"""
         cachedir = SOFTWARE_CENTER_CACHE_DIR
