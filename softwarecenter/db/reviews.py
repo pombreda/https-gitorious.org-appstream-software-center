@@ -65,12 +65,10 @@ class UsefulnessCache(object):
         self.USEFULNESS_CACHE_FILE = os.path.join(SOFTWARE_CENTER_CACHE_DIR,
                                                     fname)
         
-        #Only try to get votes from the server if required, otherwise just hit cache
-        if try_server:
-            if self._retrieve_votes_from_server():
-                LOG.debug("retrieved usefulness votes from server")
-                return
         self._retrieve_votes_from_cache()
+        #Only try to get votes from the server if required, otherwise just use cache
+        if try_server:
+            self._retrieve_votes_from_server()
     
     def _retrieve_votes_from_cache(self):
         if os.path.exists(self.USEFULNESS_CACHE_FILE):
@@ -79,26 +77,55 @@ class UsefulnessCache(object):
             except:
                 LOG.exception("usefulness cache load fallback failure")
                 os.rename(self.USEFULNESS_CACHE_FILE, self.USEFULNESS_CACHE_FILE+".fail")
+        return
     
     def _retrieve_votes_from_server(self):
+        LOG.debug("_retrieve_votes_from_server started")
         user = get_person_from_config()
         
         if not user:
             LOG.warn("Could not get usefulness from server, no username in config file")
             return False
         
+        # run the command and add watcher
+        cmd = [os.path.join(softwarecenter.paths.datadir, GET_USEFUL_VOTES_HELPER),
+               "--username", user, 
+              ]
         try:
-            results = self.rnrclient.get_usefulness(username=user)
-            for result in results:
-                self.USEFULNESS_CACHE[str(result['review_id'])] = result['useful']
-                
-            if not self.save_usefulness_cache_file():
-                LOG.warn("Read usefulness results from server but failed to write to cache")
+            (pid, stdin, stdout, stderr) = glib.spawn_async(
+                cmd, flags = glib.SPAWN_DO_NOT_REAP_CHILD, 
+                standard_output=True, standard_error=True)
+            glib.child_watch_add(pid, self._usefulness_loaded, data=(stdout, stderr))
             return True
-        except:
-            LOG.warn("Failed to read and save usefulness results from server, using cache")
+        except Exception as e:
+            LOG.warn("failed to launch: '%s' (error: '%s')" % (cmd, e))
             return False
-            
+
+    def _usefulness_loaded(self, pid, status, (stdout, stderr)):
+        '''called if usefulness retrieved from server'''
+        LOG.debug("_usefulness_loaded started")
+        # get status code
+        res = os.WEXITSTATUS(status)
+        # check stderr
+        err = os.read(stderr, 4*1024)
+        if err:
+            LOG.warn("got error from helper: '%s'" % err)
+        os.close(stderr)
+        # read the raw data
+        data = ""
+        while True:
+            s = os.read(stdout, 1024)
+            if not s: break
+            data += s
+        os.close(stdout)
+
+        results = cPickle.loads(data)
+        self.USEFULNESS_CACHE.clear()
+        for result in results:
+            self.USEFULNESS_CACHE[str(result['review_id'])] = result['useful']
+        if not self.save_usefulness_cache_file():
+            LOG.warn("Read usefulness results from server but failed to write to cache")
+    
     def save_usefulness_cache_file(self):
         """write the dict out to cache file"""
         cachedir = SOFTWARE_CENTER_CACHE_DIR
