@@ -379,11 +379,16 @@ def save_person_to_config(username):
     """
     # FIXME: ideally this would be stored in ubuntu-sso-client
     #        but it dosn't so we store it here
-    config = get_config()
-    if not config.has_section("reviews"):
-        config.add_section("reviews")
-    config.set("reviews", "username", username)
-    config.write()
+    curr_name = get_person_from_config()
+    if curr_name != username:
+        config = get_config()
+        if not config.has_section("reviews"):
+            config.add_section("reviews")
+        config.set("reviews", "username", username)
+        config.write()
+        from db.reviews import UsefulnessCache
+        usefulness = UsefulnessCache(True)
+    return
             
 def get_person_from_config():
     """ get the username value for Ubuntu SSO from the config file
