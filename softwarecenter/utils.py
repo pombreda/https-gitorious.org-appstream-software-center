@@ -309,15 +309,16 @@ def convert_desktop_file_to_installed_location(app_install_data_file_path, pkgna
         given app-install-data file path, and will also check directly for
         the desktop file that corresponds to a given pkgname.
     """
-    # "normal" case
-    installed_desktop_file_path = app_install_data_file_path.replace("app-install/desktop", "applications")
-    if os.path.exists(installed_desktop_file_path):
-        return installed_desktop_file_path  
-    # next, try case where a subdirectory is encoded in the app-install
-    # desktop filename, e.g. kde4_soundkonverter.desktop
-    installed_desktop_file_path = installed_desktop_file_path.replace(APP_INSTALL_PATH_DELIMITER, "/")
-    if os.path.exists(installed_desktop_file_path):
-        return installed_desktop_file_path
+    if app_install_data_file_path:
+        # "normal" case
+        installed_desktop_file_path = app_install_data_file_path.replace("app-install/desktop", "applications")
+        if os.path.exists(installed_desktop_file_path):
+            return installed_desktop_file_path  
+        # next, try case where a subdirectory is encoded in the app-install
+        # desktop filename, e.g. kde4_soundkonverter.desktop
+        installed_desktop_file_path = installed_desktop_file_path.replace(APP_INSTALL_PATH_DELIMITER, "/")
+        if os.path.exists(installed_desktop_file_path):
+            return installed_desktop_file_path
     # lastly, just try checking directly for the desktop file based on the pkgname itself
     if pkgname:
         installed_desktop_file_path =  "/usr/share/applications/%s.desktop" % pkgname
