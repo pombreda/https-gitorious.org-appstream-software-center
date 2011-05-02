@@ -1,11 +1,16 @@
 software-center (4.1.1) UNRELEASED; urgency=low
 
+  [ Gary Lasker ]
   * softwarecenter/utils.py,
     test/test_unity_launcher_integration.py:
     - fix intermittent crash when installing a local .deb,
       add corresponding test case (LP: #768158)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Sun, 01 May 2011 23:55:27 -0400
+  [ Aaron Peachey ]
+  * utils/update-software-center, utils/update-software-center-agent
+    - fix 'no log handler' error on update-software-center (LP #728896)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 02 May 2011 15:31:06 +0200
 
 software-center (4.1) oneiric; urgency=low
 
