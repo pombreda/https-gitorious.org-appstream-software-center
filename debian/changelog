@@ -1,3 +1,12 @@
+software-center (4.1.1) UNRELEASED; urgency=low
+
+  * softwarecenter/utils.py,
+    test/test_unity_launcher_integration.py:
+    - fix intermittent crash when installing a local .deb,
+      add corresponding test case (LP: #768158)
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Sun, 01 May 2011 23:55:27 -0400
+
 software-center (4.1) oneiric; urgency=low
 
   * merged lp:~evfool/software-center/fix739272 
