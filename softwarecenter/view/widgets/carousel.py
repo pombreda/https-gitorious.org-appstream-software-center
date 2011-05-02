@@ -27,6 +27,9 @@ class CarouselView(gtk.VBox):
 
     # spec says the fade duration should be 1 second, these values suffice:
     FADE_INTERVAL =         25 # msec
+    # fade interval when user changes page by clicking dot
+    # this is set to be half as long as the standard transition time, as requested in lp:633193
+    USER_FADE_INTERVAL =    int(FADE_INTERVAL/2) # msec
     FADE_STEP =             0.075 # value between 0.0 and 1.0
 
     POSTER_MIN_WIDTH =      15*EM
@@ -118,10 +121,9 @@ class CarouselView(gtk.VBox):
 
     def _on_page_clicked(self, page_sel, page):
         self.stop()
+        self._fader = gobject.timeout_add(CarouselView.USER_FADE_INTERVAL,
+                                          self._fade_out, page)
         self._offset = page*self.n_posters
-        self._update_poster_content()
-        self._alpha = 1.0
-        self.queue_draw()
         self.start()
         return
 
@@ -183,24 +185,25 @@ class CarouselView(gtk.VBox):
         self.queue_draw()
         return True
 
-    def _fade_out(self):
+    def _fade_out(self, next_page=-1):
         self._alpha -= CarouselView.FADE_STEP
         if self._alpha <= 0.0:
             self._alpha = 0.0
             self.queue_draw()
-            self._set_next()
+            self._set_next(fade_in=True, page=next_page)
             return False
         self.queue_draw()
         return True
 
-    def _update_pagesel(self):
+    def _update_pagesel(self, page=-1):
         # set the PageSelector page
         if self._offset >= len(self.carousel_apps):
             self._offset = 0
 #        print 'BW:', width, self.page_sel.allocation.width
         #temporary fix for crash in bug 694836
         if self.n_posters> 0:
-            page = self._offset / self.n_posters
+            if page == -1:
+                page = self._offset / self.n_posters
             self.page_sel.set_selected_page(int(page))
         return
 
@@ -215,12 +218,15 @@ class CarouselView(gtk.VBox):
             self._offset += 1
         return
 
-    def _set_next(self, fade_in=True):
-        self._update_pagesel()
+    def _set_next(self, fade_in=True, page=-1):
+        self._update_pagesel(page)
         self._update_poster_content()
 
+        fade_interval = CarouselView.FADE_INTERVAL
+        if page>=0:
+            fade_interval = CarouselView.USER_FADE_INTERVAL
         if fade_in:
-            self._fader = gobject.timeout_add(CarouselView.FADE_INTERVAL,
+            self._fader = gobject.timeout_add(fade_interval,
                                               self._fade_in)
         else:
             self._alpha = 1.0
@@ -625,13 +631,12 @@ class PageSelector(gtk.Alignment):
         return self.n_pages
 
     def set_selected_page(self, page_n):
-        dot = self.dots[page_n]
-        dot.is_selected = True
-
         if self.selected:
             self.selected.is_selected = False
             self.selected.queue_draw()
 
+        dot = self.dots[page_n]
+        dot.is_selected = True
         self.selected = dot
         dot.queue_draw()
         return
