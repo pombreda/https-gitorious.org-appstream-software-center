@@ -153,6 +153,12 @@ class TestUnityLauncherIntegration(unittest.TestCase):
         installed_desktop_path = convert_desktop_file_to_installed_location(app_install_desktop_path,
                                                                             "update-manager")
         self.assertEqual(installed_desktop_path, "/usr/share/applications/update-manager.desktop")
+        # test case where we don't have a value for app_install_desktop_path (e.g. for a local .deb
+        # install, see bug LP: #768158)
+        installed_desktop_path = convert_desktop_file_to_installed_location(None,
+                                                                            "update-manager")
+        # FIXME: this will only work if update-manager is installed
+        self.assertEqual(installed_desktop_path, "/usr/share/applications/update-manager.desktop")
         
 
 if __name__ == "__main__":
