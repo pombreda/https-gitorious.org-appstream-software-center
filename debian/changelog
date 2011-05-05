@@ -4,8 +4,13 @@ software-center (4.0.2) UNRELEASED; urgency=low
     test/test_unity_launcher_integration.py:
     - fix intermittent crash when installing a local .deb,
       add corresponding test case (LP: #768158)
+  * softwarecenter/db/reviews.py,
+    test/test_reviews.py:
+    - sort reviews using upstream package versions to fix
+      incorrect sort by usefulness, update unit test
+      (LP: #777583)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 02 May 2011 00:21:21 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 05 May 2011 01:11:45 -0400
 
 software-center (4.0.1) natty-proposed; urgency=low
 
