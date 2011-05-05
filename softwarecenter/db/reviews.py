@@ -122,7 +122,7 @@ class Review(object):
             self.id, self.review_text, self.reviewer_username)
     def __cmp__(self, other):
         # first compare version, high version number first
-        vc = version_compare(self.version, other.version)
+        vc = upstream_version_compare(self.version, other.version)
         if vc != 0:
             return vc
         # then usefulness
