@@ -5,6 +5,11 @@ software-center (4.1.1) UNRELEASED; urgency=low
     test/test_unity_launcher_integration.py:
     - fix intermittent crash when installing a local .deb,
       add corresponding test case (LP: #768158)
+  * softwarecenter/db/reviews.py,
+    test/test_reviews.py:
+    - sort reviews using upstream package versions to fix
+      incorrect sort by usefulness, update unit test
+      (LP: #777583)
 
   [ Aaron Peachey ]
   * utils/update-software-center, utils/update-software-center-agent
@@ -12,7 +17,7 @@ software-center (4.1.1) UNRELEASED; urgency=low
   * lp:~aaronp/software-center/enhance-usefulness:
     - load/cache users usefulnes votes
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 02 May 2011 15:31:06 +0200
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 05 May 2011 02:03:51 -0400
 
 software-center (4.1) oneiric; urgency=low
 
