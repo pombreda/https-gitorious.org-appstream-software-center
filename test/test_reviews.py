@@ -30,12 +30,14 @@ class TestReviews(unittest.TestCase):
         a1 = Review(Application("", "foo_pkg1"))
         a1.id = 1
         a1.usefulness_favorable = 20
-        a1.version = "1.0"
+        # also test that only upstream version is included in the compare
+        # (see LP: #777583)
+        a1.version = "1.0-0ubuntu1"
         # old version
         a2 = Review(Application("f", "foo_pkg2"))
         a2.id = 2
         a2.usefulness_favorable = 10
-        a2.version = "1.0"
+        a2.version = "1.0-0ubuntu2"
         # now ensure that the new version is sorted in front
         self.assertEqual(sorted([a2, a1], reverse=True), [a1, a2])
 
