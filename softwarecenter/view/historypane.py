@@ -248,7 +248,7 @@ class HistoryPane(gtk.VBox, BasePane):
 
     def update_view(self):
         self.store_filter.refilter()
-
+        self.view.collapse_all()
         # Expand all the matching rows
         if self.searchentry.get_text():
             self.view.expand_all()
@@ -259,6 +259,13 @@ class HistoryPane(gtk.VBox, BasePane):
         while day is not None:
             self.visible_changes += self.store_filter.iter_n_children(day)
             day = self.store_filter.iter_next(day)
+            
+        # Expand the most recent day
+        day = self.store.get_iter_first()
+        if day is not None:
+	        path = self.store.get_path(day)
+	        self.view.expand_row(path, False)
+	        self.view.scroll_to_cell(path)
 
         self.emit('app-list-changed', self.visible_changes)
 
@@ -310,7 +317,8 @@ class HistoryPane(gtk.VBox, BasePane):
         if isinstance(when, datetime.datetime):
             action = store.get_value(iter, self.COL_ACTION)
             pkg = store.get_value(iter, self.COL_PKG)
-            subs = {'pkgname': pkg, 'time': when.time().strftime('%X')}
+	    # Translators : time displayed in history, display hours (0-12), minutes and AM/PM. %H should be used instead of %I to display hours 0-24
+            subs = {'pkgname': pkg, 'time': when.time().strftime(_('%I:%M %p'))}
             if action == self.INSTALLED:
                 text = _('%(pkgname)s installed %(time)s') % subs
             elif action == self.REMOVED:

@@ -17,6 +17,7 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+
 import dbus
 import gobject
 import logging
@@ -60,6 +61,16 @@ def __connection_state_changed_handler(state):
 # init network state
 def __init_network_state():
     global NETWORK_STATE
+
+    # check is SOFTWARE_CENTER_NET_DISCONNECTED is in the environment variables
+    # if so force the network status to be disconnected
+    import os
+    if "SOFTWARE_CENTER_NET_DISCONNECTED" in os.environ and \
+        os.environ["SOFTWARE_CENTER_NET_DISCONNECTED"] == 1:
+        NETWORK_STATE = NetState.NM_STATE_DISCONNECTED
+        print 'forced netstate into disconnected mode...'
+        return
+
     dbus_loop = DBusGMainLoop()
     try:
         bus = dbus.SystemBus(mainloop=dbus_loop)

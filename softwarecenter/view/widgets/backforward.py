@@ -172,7 +172,6 @@ class ButtonPart(gtk.EventBox):
 
     def __init__(self, arrow_type, signal_name, part_size):
         gtk.EventBox.__init__(self)
-        self.set_border_width(max(4, int(part_size[0]*0.3)))
 
         self.is_active = False
 

@@ -22,6 +22,7 @@ import logging
 import os
 import re
 import string
+import threading
 import xapian
 from softwarecenter.db.application import Application
 
@@ -78,7 +79,7 @@ def parse_axi_values_file(filename="/var/lib/apt-xapian-index/values"):
     """
     axi_values = {}
     if not os.path.exists(filename):
-        return
+        return axi_values
     for raw_line in open(filename):
         line = string.split(raw_line, "#", 1)[0]
         if line.strip() == "":
@@ -111,10 +112,21 @@ class StoreDatabase(gobject.GObject):
         self._db_pathname = pathname
         self._aptcache = cache
         self._additional_databases = []
+        # xapian.Database is not thread safe (its however safe to 
+        # have multiple xapian.Databases. if this lock becomes a bottleneck
+        # we need to replace it with a solution that creates a DB per
+        # search query)
+        self._search_lock = threading.Lock()
 
         # the xapian values as read from /var/lib/apt-xapian-index/values
         self._axi_values = {}
         self._logger = logging.getLogger("softwarecenter.db")
+
+    def acquire_search_lock(self):
+        self._search_lock.acquire()
+
+    def release_search_lock(self):
+        self._search_lock.release()
 
     def open(self, pathname=None, use_axi=True, use_agent=True):
         " open the database "
@@ -183,31 +195,6 @@ class StoreDatabase(gobject.GObject):
         assert popcon_max > 0
         return popcon_max
 
-    def _comma_expansion(self, search_term):
-        """do expansion of "," in a search term, see
-        https://wiki.ubuntu.com/SoftwareCenter?action=show&redirect=SoftwareStore#Searching%20for%20multiple%20package%20names
-        """
-        # expand "," to APpkgname AND
-        # (ignore trailing comma)
-        search_term = search_term.rstrip(",")
-        if "," in search_term:
-            queries = []
-            added = set()
-            for pkgname in search_term.split(","):
-                pkgname = pkgname.lower()
-                # double comma, ignore term
-                if not pkgname:
-                    continue
-                # not a pkgname, return
-                if not re.match("[0-9a-z\.\-]+", pkgname):
-                    return None
-                # only add if not there already
-                if pkgname not in added:
-                    added.add(pkgname)
-                    queries.append(xapian.Query("AP"+pkgname))
-            return queries
-        return None
-
     def get_query_list_from_search_entry(self, search_term, category_query=None):
         """ get xapian.Query from a search term string and a limit the
             search to the given category
@@ -242,12 +229,6 @@ class StoreDatabase(gobject.GObject):
         if search_term == '':
             self._logger.debug("grey-list replaced all terms, restoring")
             search_term = orig_search_term
-        
-        # check if we need to do comma expansion instead of a regular
-        # query
-        queries = self._comma_expansion(search_term)
-        if queries:
-            return SearchQuery(map(_add_category_to_query, queries))
 
         # get a pkg query
         pkg_query = xapian.Query()
@@ -334,7 +315,7 @@ class StoreDatabase(gobject.GObject):
             # the doc says that get_value() is quicker than get_data()
             # so we use that if we have a updated DB, otherwise
             # fallback to the old way (the xapian DB may not yet be rebuild)
-            if "pkgname" in self._axi_values:
+            if self._axi_values and "pkgname" in self._axi_values:
                 pkgname = doc.get_value(self._axi_values["pkgname"])
             else:
                 pkgname = doc.get_data()
@@ -434,6 +415,31 @@ class StoreDatabase(gobject.GObject):
                 installed_purchased_packages.add(pkgname)
         return installed_purchased_packages
 
+    def get_origins_from_db(self):
+        """ return all origins available in the current database """
+        origins = set()
+        for term in self.xapiandb.allterms("XOO"):
+            if term.term[3:]:
+                origins.add(term.term[3:])
+        return list(origins)
+
+    def get_exact_matches(self, pkgnames=[]):
+        """ Returns a list of fake MSetItems. If the pkgname is available, then
+            MSetItem.document is pkgnames proper xapian document. If the pkgname
+            is not available, then MSetItem is actually an Application. """
+        matches = []
+        for pkgname in pkgnames:
+            app = Application('', pkgname.split('?')[0])
+            if '?' in pkgname:
+                app.request = pkgname.split('?')[1]
+            match = app
+            for m in  self.xapiandb.postlist("XP"+app.pkgname):
+                match = self.xapiandb.get_document(m.docid)
+            for m in self.xapiandb.postlist("AP"+app.pkgname):
+                match = self.xapiandb.get_document(m.docid)
+            matches.append(FakeMSetItem(match))
+        return matches        
+
     def __len__(self):
         """return the doc count of the database"""
         return self.xapiandb.get_doccount()
@@ -444,6 +450,9 @@ class StoreDatabase(gobject.GObject):
             doc = self.xapiandb.get_document(it.docid)
             yield doc
 
+class FakeMSetItem():
+    def __init__(self, doc):
+        self.document = doc
 
 if __name__ == "__main__":
     import apt
@@ -451,6 +460,7 @@ if __name__ == "__main__":
 
     db = StoreDatabase("/var/cache/software-center/xapian", apt.Cache())
     db.open()
+
     if len(sys.argv) < 2:
         search = "apt,apport"
     else:

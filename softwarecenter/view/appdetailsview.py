@@ -28,7 +28,7 @@ from softwarecenter.db.application import AppDetails
 from softwarecenter.db.reviews import get_review_loader
 from softwarecenter.backend import get_install_backend
 from softwarecenter.enums import *
-from softwarecenter.utils import get_current_arch, get_parent_xid, get_default_language
+from softwarecenter.utils import get_current_arch, get_parent_xid, get_language
 
 LOG=logging.getLogger(__name__)
 
@@ -59,7 +59,7 @@ class AppDetailsViewBase(object):
         self.addons_to_install = []
         self.addons_to_remove = []
         # reviews
-        self.review_loader = get_review_loader(self.cache)
+        self.review_loader = get_review_loader(self.cache, self.db)
         # aptdaemon
         self.backend = get_install_backend()
         
@@ -159,8 +159,9 @@ class AppDetailsViewBase(object):
 
     def buy_app(self):
         """ initiate the purchase transaction """
-        lang = get_default_language()
-        url = self.distro.PURCHASE_APP_URL % (lang, urllib.urlencode({
+        lang = get_language()
+        distro = self.distro.get_codename()
+        url = self.distro.PURCHASE_APP_URL % (lang, distro, urllib.urlencode({
                     'archive_id' : self.appdetails.ppaname, 
                     'arch' : get_current_arch() ,
                     }))

@@ -11,6 +11,7 @@ import os
 import sys
 import time
 import unittest
+import datetime
 
 sys.path.insert(0,"../")
 import softwarecenter.netstatus
@@ -51,6 +52,10 @@ class TestAppDetailsView(unittest.TestCase):
         self.assertFalse(self.appdetails.addon_view.get_property("visible"))
 
     def test_show_addons_bar(self):
+        """ this tests if the addons bar is visible and also simulates
+            a install to ensure that the "apply bar" goes away after
+            a install/remove
+        """
         app = Application("7zip", "p7zip-full")
         self.appdetails.show_app(app)
         self._p()
@@ -125,8 +130,8 @@ class TestAppDetailsView(unittest.TestCase):
         mock_app_details.thumbnail = None
         mock_app_details.license = "license"
         mock_app_details.maintenance_status = "support_status"
-        mock_app_details.purchase_date = "purchase_date"
-        mock_app_details.installation_date = "installation_date"
+        mock_app_details.purchase_date = None
+        mock_app_details.installation_date = datetime.datetime.now()
         mock_app_details.price = "price"
         mock_app_details.icon = "iconname"
         mock_app_details.icon_url = None
@@ -144,12 +149,40 @@ class TestAppDetailsView(unittest.TestCase):
         # make sure all PKG_STATE_* states work and do not cause crashes
         for i in range(PKG_STATE_UNKNOWN):
             mock_app_details.pkg_state = i
+            if PKG_STATE_PURCHASED_BUT_REPO_MUST_BE_ENABLED:
+                # for the purchased case, the value of purchase_date is a string
+                mock_app_details.purchase_date = "2011-01-01 11:11:11"
             self.appdetails.show_app(app)
 
     def test_show_app_addons(self):
         app = Application("Web browser", "firefox")
         mock_app_details = self._get_mock_app_details()
         self.appdetails.show_app(app)
+        
+    def test_enable_review_on_install(self):
+        app = Application("Freeciv", "freeciv-client-gtk")
+        mock_app_details = self._get_mock_app_details()
+        mock_app_details.pkg_state = PKG_STATE_UNINSTALLED
+        # monkey patch get_details() so that we get the mock object
+        app.get_details = lambda db: mock_app_details
+        self.appdetails.show_app(app)
+        # this is async so we need to give it a bit of time
+        self._p()
+        time.sleep(2)
+        self._p()
+        # check that the prompt to install the app to be able to review it is showing
+        self.assertFalse(self.appdetails.reviews.new_review.get_property("visible"))
+        self.assertTrue(self.appdetails.reviews.install_first_label.get_property("visible"))
+        # now simulate an install completed
+        self.appdetails.pkg_statusbar.pkg_state = PKG_STATE_INSTALLED
+        mock_app_details.pkg_state = PKG_STATE_INSTALLED
+        result = mock.Mock()
+        self.appdetails.backend.emit("transaction-finished", (None, result))
+        self._p()
+        time.sleep(2)
+        self._p()
+        # now that the app is installed, check that the invitation to review the app is showing
+        self.assertTrue(self.appdetails.reviews.new_review.get_property("visible"))
 
     # helper
     def _p(self):

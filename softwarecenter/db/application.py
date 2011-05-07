@@ -32,6 +32,7 @@ from softwarecenter.enums import *
 from softwarecenter.paths import *
 from softwarecenter.utils import *
 
+LOG = logging.getLogger(__name__)
 
 # this is a very lean class as its used in the main listview
 # and there are a lot of application objects in memory
@@ -47,7 +48,10 @@ class Application(object):
             raise ValueError("Need either appname or pkgname or request")
         # defaults
         self.pkgname = pkgname.replace("$kernel", os.uname()[2])
-        self.appname = appname
+        if appname:
+            self.appname = unicode(appname)
+        else:
+            self.appname = ''
         # the request can take additional "request" data like apturl
         # strings or the path of a local deb package
         self.request = request
@@ -70,6 +74,18 @@ class Application(object):
     def get_details(self, db):
         """ return a new AppDetails object for this application """
         return AppDetails(db, application=self)
+
+    def get_untranslated_app(self, db):
+        """ return a Application object with the untranslated application
+            name 
+        """
+        try:
+            doc = db.get_xapian_document(self.appname, self.pkgname)
+        except IndexError:
+            return self
+        untranslated_application = doc.get_value(XAPIAN_VALUE_APPNAME_UNTRANSLATED)
+        uapp = Application(untranslated_application, self.pkgname)
+        return uapp
 
     @staticmethod
     def get_display_name(db, doc):
@@ -102,6 +118,8 @@ class Application(object):
         return self.apps_cmp(self, other)
     def __str__(self):
         return "%s,%s" % (self.appname, self.pkgname)
+    def __repr__(self):
+        return "[Application: appname=%s pkgname=%s]" % (self.appname, self.pkgname)
     @staticmethod
     def apps_cmp(x, y):
         """ sort method for the applications """
@@ -143,6 +161,7 @@ class AppDetails(object):
         if not doc and not application:
             raise ValueError, "Need either document or application"
         self._db = db
+        self._db.connect("reopen", self._on_db_reopen)
         self._cache = self._db._aptcache
         self._distro = get_distro()
         self._history = None
@@ -191,11 +210,21 @@ class AppDetails(object):
                     not debfile_matches and 
                     not channel_matches and 
                     not section_matches):
-                    self._error = _("Not Found")
-                    self._error_not_found = _("There isn't a software package called \"%s\" in your current software sources.") % self.pkgname.capitalize()
+                    self._error = _("Not found")
+                    self._error_not_found = _(u"There isn\u2019t a software package called \u201c%s\u201D in your current software sources.") % self.pkgname
 
     def same_app(self, other):
         return self.pkgname == other.pkgname
+
+    def _on_db_reopen(self, db):
+        if self._doc:
+            try:
+                LOG.debug("db-reopen, refreshing docid for %s" % self._app)
+                self._doc = self._db.get_xapian_document(
+                    self._app.appname, self._app.pkgname)
+            except IndexError:
+                LOG.warn("document no longer valid after db reopen")
+                self._doc = None
 
     @property
     def channelname(self):
@@ -281,8 +310,8 @@ class AppDetails(object):
             return self._error
         # this may have changed since we inited the appdetails
         elif self.pkg_state == PKG_STATE_NOT_FOUND:
-            self._error =  _("Not Found")
-            self._error_not_found = _("There isn't a software package called \"%s\" in your current software sources.") % self.pkgname.capitalize()
+            self._error =  _("Not found")
+            self._error_not_found = _(u"There isn\u2019t a software package called \u201c%s\u201D in your current software sources.") % self.pkgname
             return self._error_not_found
 
     @property
@@ -412,8 +441,8 @@ class AppDetails(object):
                 if self._unavailable_channel():
                     return PKG_STATE_NEEDS_SOURCE
                 else:
-                    self._error =  _("Not Found")
-                    self._error_not_found = _("There isn't a software package called \"%s\" in your current software sources.") % self.pkgname.capitalize()
+                    self._error =  _("Not found")
+                    self._error_not_found = _(u"There isn\u2019t a software package called \u201c%s\u201D in your current software sources.") % self.pkgname
                     return PKG_STATE_NOT_FOUND
             else:
                 if self.price:
@@ -426,8 +455,8 @@ class AppDetails(object):
                     for component in components:
                         if component and self._unavailable_component(component_to_check=component):
                             return PKG_STATE_NEEDS_SOURCE
-                self._error =  _("Not Found")
-                self._error_not_found = _("There isn't a software package called \"%s\" in your current software sources.") % self.pkgname.capitalize()
+                self._error =  _("Not found")
+                self._error_not_found = _(u"There isn\u2019t a software package called \u201c%s\u201D in your current software sources.") % self.pkgname
                 return PKG_STATE_NOT_FOUND
         return PKG_STATE_UNKNOWN
 
@@ -592,17 +621,17 @@ class AppDetailsDebFile(AppDetails):
             self._deb = None
             self._pkg = None
             if not os.path.exists(self._app.request):
-                self._error = _("Not Found")
-                self._error_not_found = _("The file \"%s\" does not exist.") % self._app.request
+                self._error = _("Not found")
+                self._error_not_found = _(u"The file \u201c%s\u201d does not exist.") % self._app.request
             else:
                 mimetype = guess_type(self._app.request)
                 if mimetype[0] != "application/x-debian-package":
-                    self._error =  _("Not Found")
-                    self._error_not_found = _("The file \"%s\" is not a software package.") % self._app.request
+                    self._error =  _("Not found")
+                    self._error_not_found = _(u"The file \u201c%s\u201d is not a software package.") % self._app.request
                 else:
                     # hm, deb files from launchpad get this error..
                     self._error =  _("Internal Error")
-                    self._error_not_found = _("The file \"%s\" could not be opened.") % self._app.request
+                    self._error_not_found = _(u"The file \u201c%s\u201d could not be opened.") % self._app.request
             return
 
         if self.pkgname and self.pkgname != self._app.pkgname:

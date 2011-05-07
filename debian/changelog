@@ -1,4 +1,625 @@
-software-center (3.1.22) UNRELEASED; urgency=low
+software-center (4.1.1) UNRELEASED; urgency=low
+
+  [ Gary Lasker ]
+  * softwarecenter/utils.py,
+    test/test_unity_launcher_integration.py:
+    - fix intermittent crash when installing a local .deb,
+      add corresponding test case (LP: #768158)
+  * softwarecenter/db/reviews.py,
+    test/test_reviews.py:
+    - sort reviews using upstream package versions to fix
+      incorrect sort by usefulness, update unit test
+      (LP: #777583)
+
+  [ Aaron Peachey ]
+  * utils/update-software-center, utils/update-software-center-agent
+    - fix 'no log handler' error on update-software-center (LP #728896)
+  * lp:~aaronp/software-center/enhance-usefulness:
+    - load/cache users usefulnes votes
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 05 May 2011 02:03:51 -0400
+
+software-center (4.1) oneiric; urgency=low
+
+  * merged lp:~evfool/software-center/fix739272 
+  * merged lp:~mmcg069/software-center/Bug747172
+  * merged lp:~aaronp/software-center/review-error-messages
+  * utils/submit_review.py:
+    - pyflakes based cleanup
+  * softwarecenter/utils.py:
+    - fix a bunch warnings about logging to the root logger
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 29 Apr 2011 17:59:47 +0200
+
+software-center (4.0.1) natty-proposed; urgency=low
+
+  [ Michael Vogt ]
+  * debian/control:
+    - point to 4.0 bzr branch
+  * merged lp:~mmcg069/software-center/Bug635994, many thanks
+    (LP: #635994)
+  * utils/submit_review.py:
+    - fix missing translation  (LP: #770439)
+  * utils/submit_review.py:
+    - improve logging on SSO failure (LP: #773214)
+    - do not translate "appname" as ubuntu-sso-login will fail
+      for translated names with utf8 chars (LP: #773214)
+  * softwarecenter/db/reviews.py:
+    - apply review sorting (LP: #773289)
+  * softwarecenter/app.py:
+    - do not translate "appname" as ubuntu-sso-login will fail
+      for translated names with utf8 chars (LP: #773214)
+  
+  [ Gary Lasker ]
+  * lp:~gary-lasker/software-center/translation-fixes-lp770439:
+    - fix translation not showing up (LP: #770439)
+  * softwarecenter/view/appdetailsview_gtk.py,
+    softwarecenter/view/widgets/reviews.py,
+    test/test_appdetails_view.py:
+    - enable writing a review immediately after the package
+      installation is complete, add test case (LP: #769439) 
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 29 Apr 2011 16:40:32 +0200
+
+software-center (4.0) natty; urgency=low
+
+  [ Gary Lasker ]
+  * softwarecenter/view/softwarepane.py:
+    - display the offer to add an application to the launcher
+      for the duration of the time that the details view
+      is showing (LP: #765389)
+  
+  [ Michael Vogt ]
+  * test/test_unity_launcher_integration.py:
+    - update tests
+  * update version number for natty-final
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 20 Apr 2011 14:03:25 +0200
+
+software-center (3.1.26.8) natty; urgency=low
+
+  * softwarecenter/log.py:
+    - deal with not accessible ~/.cache/software-center directory
+      (LP: #688682)
+  * softwarecenter/paths.py:
+    - check for SUDO_USER before xdg is imported, otherwise the
+      check has no effect (LP: #688682)
+  * softwarecenter/{paths,enums}.py, utils/update-software-center-agent
+    - remove unneeded xdg.BaseDirectory import
+  * utils/update-software-center-agent, softwarecenter/enums.py:
+    - remove unused imports, make imports explicit (thanks pyflakes)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 19 Apr 2011 20:31:31 +0200
+
+software-center (3.1.26.7) natty; urgency=low
+
+  [ Michael Vogt ]
+  * utils/submit_review.py:
+    - add missing gettext call
+  * softwarecenter/view/widgets/reviews.py:
+    - fix i18n for strings in class data
+
+  [ Gary Lasker ]
+  * softwarecenter/backend/channel.py:
+    - don't display private PPA sources for purchased
+      items (LP: #748459)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 18 Apr 2011 18:15:38 +0200
+
+software-center (3.1.26.6) natty; urgency=low
+
+  [ Gary Lasker ]
+  * utils/submit_review.py,
+    softwarecenter/view/softwarepane.py:
+    - string fixes for translation (LP: #762893)
+  * po/software-center.pot:
+    - refresh .pot file 
+  * softwarecenter/backend/restfulclient.py,
+    softwarecenter/utils.py,
+    softwarecenter/view/appdetailsview.py:
+    - use more robust get_language method in utils.py,
+      fixes crash when getting the default language (LP: #753211)
+  * softwarecenter/distro/Ubuntu.py:
+    - don't crash if we can't get the icon url (LP: #719146) 
+  
+  [ Michael Vogt ]
+  * utils/get_reviews_helper.py, utils/get_review_stats_helper.py:
+    - do not crash on broken pipe errors (LP: #761775, #761502)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 18 Apr 2011 10:45:55 +0200
+
+software-center (3.1.26.5) natty; urgency=low
+
+  * softwarecenter/backend/aptd.py:
+    - do not crash if trans.error is None (LP: #761642)
+  * softwarecenter/view/appdetailsview_gtk.py, 
+    softwarecenter/view/appdetailsview.py:
+    - fix flickering during purchase install by more carefully 
+      checking if the app just became availalbe
+  * utils/get_reviews_helper.py, utils/get_review_stats_helper.py:
+    - fix crash when the server returns a API error (LP: #761452)
+    - fix pyflakes warnins
+  * softwarecenter/db/reviews.py:
+    - ensure pkgname is a str (and not unicode), otherwise 
+      glib.spawn_async crashes (LP: #761357)
+  * softwarecenter/backend/zeitgeist_simple.py:
+    - do not crash if a zeitgeist has no subjects (LP: #761905)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 15 Apr 2011 18:28:15 +0200
+
+software-center (3.1.26.4) natty; urgency=low
+
+  * softwarecenter/backend/aptd.py:
+    - do not crash if a-x-i is not installed (LP: #760090)
+  * softwarecenter/view/appdetailsview_gtk.py, 
+    softwarecenter/view/softwarepane.py:
+    - fixes in the i18n handling (LP: #760807)
+  * softwarecenter/db/reviews.py:
+    - in get_review() do not use the untranslate appname, we only need 
+      the pkgname (may fix #761357)
+    - improve error reporting if the get_reviews_helper fails
+      (to fix #761357)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 15 Apr 2011 11:31:21 +0200
+
+software-center (3.1.26.3) natty; urgency=low
+
+  [ Michael Vogt ]
+  * softwarecenter/db/reviews.py:
+    - do not crash on multiple origins for the same version
+      (LP: #756415)
+  * softwarecenter/db/application.py:
+    - ensure docid is updated on database reopen() (LP: #757054)
+  * softwarecenter/models/appstore.py:
+    - refresh docids in active searches if the database is reopend
+      (LP: #710920)
+  * softwarecenter/backend/aptd.py:
+    - do not run update-apt-xapian-index in --update mode to avoid
+      in-place database modfications (LP: #507836)
+  * test/test_load_icons.py:
+    - add test for the icon loader
+  * merged lp:~glatzor/software-center/force-bad-quality, this 
+    fixes the missing ability to override the lintian warning
+    (LP: #712377)
+  * don't show reviews if we can't determine the origin
+  * fix crash when enabling new components (LP: #636429)
+  * fix missing details when a channel or a component just got added
+
+  [ Gary Lasker ]
+  * softwarecenter/app.py:
+    - temporarily disable the deauth option until we have support
+      for remove repository in aptdaemon (see LP: #723911)
+  * softwarecenter/backend/aptd.py :
+    - fix empty error dialog for the case where aptdaemon returns
+      an error code with no value (LP: #747172)
+    - fix intermittent crash when updating the a-x-i (LP: #657494)
+  * softwarecenter/models/viewswitcherlist.py:
+    - mark string "In Progress..." for translation, many thanks to
+      Hendrik Knackstedt and Florian Greinus for finding this
+      (LP: #759240)
+  * softwarecenter/view/catview_gtk.py:
+    - fix broken translation string (LP: #758656)
+  * refresh .pot file 
+  * softwarecenter/db/update.py:
+    - fix crash when reinstalling previous purchases (LP: #760353) 
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 14 Apr 2011 19:59:42 +0200
+
+software-center (3.1.26.2) natty; urgency=low
+
+  [ Michael Vogt ]
+  * softwarecenter/db/update.py:
+    - do not crash if /var/lib/apt-xapian-index/cataloged_times.p can
+      not be read (LP: #636049)
+  * merged lp:~mvo/software-center/get-reviews-subprocess (LP: #743020):
+    - don't use multiprocessing anymore, instead glib.spawn_async()
+      a helper app, this finally fixes the crashes with accessibility
+      turned on (LP: #743020)
+    - update rnrclient_pristine.py to the latest upstream version
+      that supports origin and distroseries as arguments
+    - add support for getting all the origins of the DB, this is
+      needed for the new rnrclient_pristine.py functionatlity
+    - ship get_reviews_helper.py, get_review_stats_helper.py for
+      the glib.spawn_async() change
+    - this also makes the reviews fully work in the guest session again
+
+  [ Gary Lasker ]
+  * softwarecenter/db/reviews.py:
+    - update review loader to check for JoinableQueue rather than
+      Queue so that we re-enable the ReviewLoaderThreadedRNRClient
+      (LP: #754639)
+  * utils/submit_review.py:
+    - remove two strings marked for translation that are never
+      actually shown in the ui, also add translators note for
+      combobox entries (LP: #750421)
+  * refresh .pot file
+
+  [ Aaron Peachey ]
+  * softwarecenter/view/widgets/reviews.py:
+    - advise user that app needs to be installed in order to review,
+      even if reviews exist (LP: #754879)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 11 Apr 2011 23:02:12 +0200
+
+software-center (3.1.26.1) natty; urgency=low
+
+  [ Matthew McGowan ]
+  * softwarecenter/view/appdetailsview_gtk.py,
+    softwarecenter/view/widgets/reviews.py:
+    - tweak color of review stars in details view and the
+      review dialog to match listview color (LP: #753620)
+
+  [ Gary Lasker ]
+  * softwarecenter/view/basepane.py:
+    - fix crash if the edit menu is activated while viewing
+      the pending view or the history pane (LP: #754153) 
+  
+  [ Michael Vogt ]
+  * softwarecenter/apt/apthistory.py:
+    - fix showing newly installed apps in the history (thanks to
+      Geliy Sokolov) LP: #612183)
+  * softwarecenter/db/reviews.py: 
+    - use a joinable queue in the multiprocessing code and ensure
+      task_done/join is used (LP: #743020)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 08 Apr 2011 13:13:49 +0200
+
+software-center (3.1.26) natty; urgency=low
+
+  [ Gary Lasker ]
+  * softwarecenter/view/purchaseview.py:
+    - block signal handlers rather than disconnect them when
+      the purchase screen is not showing
+    - handle case where the nav bar buttons are used to navigate
+      back to the details view from the purchase screen
+  * softwarecenter/view/availablepane.py,
+    softwarecenter/view/softwarepane.py:
+    - make custom package lists work consistently for all
+      combinations of package names (LP: #748827)
+  * softwarecenter/view/softwarepane.py,
+    softwarecenter/view/appdetailsview_gtk.py:
+    - fix ValueError crash that can occur when adding an
+      app to the launcher (LP: #750144)
+  * softwarecenter/test/test_appdetails_view.py:
+    - update unit test for the localized date strings
+      in the details view
+  * refresh .pot file
+  * softwarecenter/test/test_unity_launcher_integration.py:
+    - fix broken unit test
+  * softwarecenter/utils.py,
+    softwarecenter/view/softwarepane.py,
+    test/test_unity_launcher_integration.py:
+    - make add to unity launcher feature work correctly for
+      purchased apps, add unit test for this (LP: #752951)
+
+  [ Robert Roth ]
+  * softwarecenter/view/historypane.py:
+    - expand most recent day in the history view (LP: #644438)
+    - fix ellipsis of summary text in the list view on a
+      window resize (LP: #678442)
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - support localized date string for the installed date
+      in the details view (LP: #751068)
+  * softwarecenter/models/appstore.py:
+    - correctly display half star ratings in listviews and
+      the carousels (LP: #746173)
+  
+  [ Michael Vogt ]
+  * merged lp:~mmcg069/software-center/Bug477285 (LP: #477285),
+    many thanks!
+  * merged lp:~weblive-dev/software-center/weblive-backend-fixes,
+    many thanks!
+  * test/test_gui_buy_something.py:
+    - fix test
+  * data/featured.menu.in:
+    - tweaked for natty
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 07 Apr 2011 16:38:32 +0200
+
+software-center (3.1.25) natty; urgency=low
+
+  [ Kiwinote ]
+  * data/ui/SoftwareCenter.ui:
+    - mark the back/forward actions as translatable (LP: #742129)
+  * softwarecenter/db/database.py,
+    softwarecenter/models/appstore.py,
+    softwarecenter/view/availablepane.py,
+    others:
+    - make custom lists work (LP: #712903)
+  * softwarecenter/app.py,
+    softwarecenter/distro/Ubuntu.py,
+    softwarecenter/view/widgets/pathbar_gtk_atk.py:
+    - when the supported filter is set to supported_only, navigate up if:
+      - we are in a details view of an app which is not supported (LP: #480827)
+      - we are in a list view which becomes empty
+  * softwarecenter/app.py,
+    softwarecenter/view/catview_gtk.py:
+    - correctly count the nr of apps displayed in the recommended category and
+      update it when needed (LP: #735634)
+    - only display subcategories if they are non-empty (LP: #419270)
+  * softwarecenter/backend/weblive.py:
+    - don't crash if we try to delete a non-existent file (LP: #743511)
+  * softwarecenter/db/reviews.py,
+    softwarecenter/distro/Ubuntu.py:
+    - fallback to ReviewLoaderJsonAsync when we can't use multiprocessing
+      (LP: #741069)
+    - fixes to make ReviewLoaderJsonAsync 'work' (ie most common cases)
+  * softwarecenter/db/update.py:
+    - don't import softwarecenter.log
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - don't draw random boxes when we have an error layout (LP: #739269)
+    - retire share button as we now have full microblogging support in the
+      review dialog (LP: #592619, LP: #743765)
+  * softwarecenter/view/appview.py:
+    - correctly refresh listview when supported filters are changed
+  * softwarecenter/view/catview.py:
+    - if a category has subcategories, then category.query should include all
+      items included in the subcategories, not a subset of these
+  * softwarecenter/view/widgets/pathbar_gtk_atk.py:
+    - avoid having a half-height pathbar (LP: #743614)
+  * refresh .pot file
+
+  [ Gary Lasker ]
+  * softwarecenter/view/widgets/reviews.py:
+    - fix crash if app_version is not defined when
+      calling upstream_version_compare (LP: #746120)
+  * softwarecenter/view/purchaseview.py:
+    - disconnect webkit signal handlers when the webkit view
+      is not showing (LP: #696861)
+    - support 'user_cancelled' from the software-center-agent
+      (LP: #641321)
+  * softwarecenter/view/softwarepane.py,
+    softwarecenter/view/widgets/actionbar.py:
+    - animate the action bar show/hide
+  * softwarecenter/view/appview.py:
+    - in the AppViewFilter, also consider apps in the for-purchase
+      channel as available; this allows them to show up in
+      e.g. What's New (LP: #746679)
+
+  [ Michael Vogt ]
+  * softwarecenter/db/update.py:
+    - ensure the iconname that comes from the software-center-agent
+      does not contain a ".", the icon cache gets confused otherwise
+  * merged lp:~evfool/software-center/sfix672229, many thanks to
+    Robert Roth (LP: #672229)
+  * merged lp:~alexeftimie/software-center/fix-704719-briefly-wrong-display,
+    many thanks to Alex Eftimie (LP: #704719)
+  * softwarecenter/view/purchaseview.py:
+    - add visual feedback when data is loading
+  * po/POTFILES.in, po/software-center.pot:
+    - remove [type: python] and run setup.py build_i18n, looks like
+      intltool is confused about this type and left those files out
+      (LP: #746397)
+  * softwarecenter/backend/aptd.py:
+    - use more robust approach for handling the commercial PPA ready
+      polling (LP: #708372)
+  * softwarecenter/view/appdetailsview.py, softwarecenter/distro/Ubuntu.py:
+    - fix purchase url on natty, thanks to davmor2
+  
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 01 Apr 2011 08:06:13 +0200
+
+software-center (3.1.24.4) natty; urgency=low
+
+  * merged some small fixes for the backend server of weblive
+    from lp:~weblive-dev/software-center/weblive-backend-fixes,
+    thanks to Stephane Graber
+  * softwarecenter/db/update.py:
+    - if no icon_data is transmited from software-center-agent, just use
+      the stock item
+  * softwarecenter/distro/Ubuntu.py:
+    - point to the ratings&reviews production server
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 30 Mar 2011 13:59:13 +0200
+
+software-center (3.1.24.3) natty; urgency=low
+
+  [ Gary Lasker ]
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - fix crash that can happen on a network state change
+      event (LP: #742635)
+  
+  [ Michael Vogt ]
+  * softwarecenter/view/widgets/weblivedialog.py:
+    - merged lp:~weblive-dev/software-center/weblive-loadbalancing-fix
+      bugfix to fix server selection bug, thanks to Stephane Graber
+  * tests/Makefile:
+    - fix in clean target to remove some test leftover data
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 28 Mar 2011 09:34:41 +0200
+
+software-center (3.1.24.2) natty; urgency=low
+
+  * softwarecenter/view/softwarepane.py:
+    - fix intermittent crash when drawing separator line (LP: #741642) 
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 24 Mar 2011 11:07:27 -0400
+
+software-center (3.1.24.1) natty; urgency=low
+
+  [ Michael Vogt ]
+  * softwarecenter/db/database.py:
+    - return empty dict instead of None if axi is not installed
+      (LP: #740372)
+
+  [ Gary Lasker ]
+  * softwarecenter/view/softwarepane.py,
+    softwarecenter/view/widgets/actionbar.py:
+    - visual improvements for the action bar (LP: #644454) 
+    - display buttons in the action bar as gtk buttons
+      rather than as links (LP: #635062)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 23 Mar 2011 21:00:39 +0100
+
+software-center (3.1.24) natty; urgency=low
+
+  [ Gary Lasker ]
+  * softwarecenter/view/widgets/thumbnail.py:
+    - add missing logger definition to fix name error on
+      a thumbnail download error
+  * softwarecenter/utils.py,
+    softwarecenter/view/appdetailsview_gtk.py,
+    softwarecenter/view/softwarepane.py:
+    - update Unity launcher integration implementation per
+      revised approach (see LP: #670403)
+  * test/test_unity_launcher_integration.py,
+    test/data/<many>:
+    - update unit tests per the revised approach
+  * softwarecenter/app.py:
+    - send correct result object type when emitting
+      transaction-stopped signals (LP: #738691)
+  
+  [ Michael Vogt ]
+  * merged lp:~mmcg069/software-center/rtl-work, many thanks
+    to Matthew McGowan
+  * merged lp:~mmcg069/software-center/desc-tweaks 
+  * merged lp:~weblive-dev/software-center/weblive-by-default, thanks
+    to Stephane Graber (LP: #736227)
+  * softwarecenter/view/widgets/thumbnail.py:
+    - fix show/hide issue in download_and_display()
+  * softwarecenter/db/reviews.py, softwarecenter/models/appstore.py:
+    - deal with empty appname in the review-stats to follow the 
+      latest server changes
+  * merged lp:~mmcg069/software-center/reviews-msg-tweaks, many thanks
+    to to Matthew McGowan
+  * show launcher like location for commandline only apps, thanks
+    to Matthew McGowan
+  * when scanning for commandline binaries take alterantives into 
+    account as well
+      
+  [ Kiwinote ]
+  * data/new.menu.in,
+    softwarecenter/view/appview.py,
+    softwarecenter/view/availablepane.py,
+    softwarecenter/view/catview_gtk.py:
+    - only display available items in what's new (LP: #739276)
+    - don't display installed items in what's new (LP: #627114)
+  * softwarecenter/db/database.py:
+    - don't crash when we have no axi values (LP: #737870)
+  * softwarecenter/gwibber_helper.py:
+    - don't crash on startup due to anything sqlite related (LP: #737220)
+  * softwarecenter/log.py:
+    - don't crash on startup when logfile is not writeable (LP: #688682)
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - correctly update statusbar after cancelling a dependency dialog
+  * softwarecenter/view/catview_gtk:
+    - don't crash when we have no what's new carousel (LP: #736046)
+  * softwarecenter/view/softwarepane.py:
+    - connect 'transaction-stopped' to on_transaction_stopped rather than o_t_f
+  * softwarecenter/view/widgets/reviews.py:
+    - fallback to package_name if review_data contains no app_name
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 22 Mar 2011 16:03:58 +0100
+
+software-center (3.1.23.3) natty; urgency=low
+
+  [ Aaron Peachey ]
+  * utils/submit_review.py:
+    - Remove 'unspecified' reason and disable submit button if  
+      no reason selected for report abuse (LP: #733366)
+  * softwarecenter/db/reviews.py, view/appdetailsview_gtk.py,
+    view/widgets/reviews.py:
+    - refresh usefulness object with latest vote after successful
+      usefulness submit, so review UI is updated correctly
+      (LP: #736312)
+  
+  [ Michael Vogt ]
+  * add SOFTWARE_CENTER_FORCE_NON_SSL environment to allow
+    testing against a local django server
+  * software-center:
+    - fix spelling error in --help output, thanks to
+      Robbie Williamson
+  * softwarecenter/backend/zeitgeist_simple.py:
+    - fix crash with the new zeitgeist version
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 17 Mar 2011 13:59:15 +0100
+  
+software-center (3.1.23.2) natty; urgency=low
+
+  [ Michael Vogt]
+  * merged lp:~mmcg069/software-center/little-catview-cleanups
+  * merged lp:~mmcg069/software-center/stars-visual-tweaks 
+  * softwarecenter/db/database.py, test/test_appstore.py:
+    - fix locking and add regression test, thanks to Matthew McGowan
+      for the research into this
+  * softwarecenter/db/reviews.py:
+    - fix support for reviews in not enabled PPAs (like for-pay PPAs)
+      LP: #731376
+  * softwarecenter/backend/rnrclient_pristine.py:
+    - updated to match latest upstream version
+  * data/ui/submit_review.ui, data/ui/report_abuse.ui:
+    - set softwarecenter icon (thanks to davmor2 for reporting)
+  * softwarecenter/db/update.py:
+    - add "translated" argument to the parser and store untranslated
+      name as well and store untranslated value in the DB
+  * softwarecenter/db/application.py:
+    - add get_untranslated_app() call 
+  * softwarecenter/db/reviews.py:
+    - when talking to the rnr-server, always use the untranslated names
+
+  [ Kiwinote ]
+  * clean up mimetype handling (allows us to accept apturls once again)
+  * softwarecenter/backend/channel.py:
+    - don't return two copies of one channel with different names
+    - channel query is based on XOO rather than XOL
+  * softwarecenter/backend/restfulclient.py:
+    - import time on demand, this avoids an attribute error
+  * softwarecenter/db/application.py:
+    - avoid using unicode(None)
+  * softwarecenter/view/softwarepane.py:
+    - revert to correct sortmode once searchterm has been cleared
+    
+  [ Aaron Peachey ]
+  * softwarecenter/db/reviews.py:
+    - add functionality to keep track of review usefulness votes locally
+  * softwarecenter/view/widgets/reviews.py:
+    - different behaviour for review display if user has already 
+      votedon usefulness (LP: #730768)
+  
+  [ Gary Lasker ]
+  * test/test_unity_launcher_integration.py:
+    - add unit test for Unity launcher integration feature 
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 11 Mar 2011 18:53:22 +0100
+ 
+software-center (3.1.23.1) natty; urgency=low
+
+  * softwarecenter/db/reviews.py:
+    - fix crash when submitting new review
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 07 Mar 2011 20:40:10 +0100
+
+software-center (3.1.23) natty; urgency=low
+
+  [ Gary Lasker ]
+  * softwarecenter/view/appdetailsview_gtk.py:
+    - fix broken downloadable icon code, improve error checking
+    - update Unity launcher integration code per recent detailsview
+      changes
+  * softwarecenter/view/widgets/backforward.py:
+    - remove the additional border space in the navigation bar
+      (LP: #729053) 
+  * softwarecenter/view/catview_gtk.py:
+    - for subclasses of CategoriesViewGtk, connect events only after
+      the UI has been fully created (LP: #721704, LP: #725642) 
+
+  [ Aaron Peachey ]
+    * softwarecenter/db/update.py:
+      - fix missing log handler when run by update-software-center 
+        (LP: #728896)
+  
+  [ Michael Vogt ]
+  * merged lp:~mmcg069/software-center/small-catview-cleanup that
+    fixes problems in the subcategies display
+  * merged lp:~weblive-dev/software-center/software-center-use-module,
+    many thanks to Stephane Graber. This will use the upstream weblive
+    python module where possible
+  * softwarecenter/db/application.py:
+    - ensure appname is unicode to fix review stats lookup (e.g. for
+      deja-dup)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 07 Mar 2011 19:25:17 +0100
+
+software-center (3.1.22) natty; urgency=low
 
   [ Kiwinote ]
     * setup.py:
@@ -14,7 +635,7 @@ software-center (3.1.22) UNRELEASED; urgency=low
     * softwarecenter/view/widgets/reviews.py:
       - fix typo (hepful -> helpful) (LP: #725671) 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 03 Mar 2011 19:15:07 -0500
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 04 Mar 2011 09:15:47 +0100
 
 software-center (3.1.21) natty; urgency=low
 

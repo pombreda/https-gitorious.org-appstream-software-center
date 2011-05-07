@@ -400,7 +400,6 @@ class PathBar(gtk.HBox):
     def _on_style_set(self, widget, old_style):
         self.set_size_request(*self.DEFAULT_SIZE_REQUEST)
         self.theme = mkit.get_mkit_theme()
-        self.set_size_request(-1, -1)
         for part in self.get_children():
             part.recalc_dimensions()
         self.queue_draw()
@@ -513,6 +512,7 @@ class PathBar(gtk.HBox):
         if self._scroller:
             gobject.source_remove(self._scroller)
             self.get_children()[-1].destroy()
+
         self._scroll_xO = 0
         self._scroller = None
 
@@ -572,6 +572,12 @@ class PathBar(gtk.HBox):
             self.set_active(nav_part)
         return
 
+    def navigate_up_twice(self):
+        parts = self.get_children()
+        if len(parts) > 2:
+            nav_part = parts[len(parts) - 3]
+            self.set_active(nav_part)
+        return
 
 class PathPart(gtk.EventBox):
 

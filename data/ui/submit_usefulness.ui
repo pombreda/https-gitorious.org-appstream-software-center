@@ -8,6 +8,7 @@
     <property name="border_width">12</property>
     <property name="window_position">center-on-parent</property>
     <property name="destroy_with_parent">True</property>
+    <property name="icon">softwarecenter</property>
     <child>
       <object class="GtkVBox" id="dialog-vbox3">
         <property name="visible">True</property>

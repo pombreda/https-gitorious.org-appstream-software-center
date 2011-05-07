@@ -23,14 +23,14 @@ import pygtk
 pygtk.require ("2.0")
 import gobject
 gobject.threads_init()
-import pango
 
 import datetime
+import gettext
+import glib
 import gtk
 import locale
 import logging
 import os
-import pickle
 import simplejson
 import sys
 import tempfile
@@ -46,9 +46,7 @@ from softwarecenter.backend.restfulclient import UbuntuSSOAPI
 
 import piston_mini_client
 
-import softwarecenter.db.application
-
-from softwarecenter.paths import *
+from softwarecenter.paths import SOFTWARE_CENTER_CONFIG_DIR
 from softwarecenter.enums import MISSING_APP_ICON
 from softwarecenter.config import get_config
 from softwarecenter.backend.login_sso import LoginBackendDbusSSO
@@ -70,12 +68,9 @@ from softwarecenter.backend.rnrclient import RatingsAndReviewsAPI, ReviewRequest
 distro = get_distro()
 SERVER_ROOT=distro.REVIEWS_SERVER
 
-# the SUBMIT url
-SUBMIT_POST_URL = SERVER_ROOT+"/reviews/en/ubuntu/lucid/+create"
-# the REPORT url
-REPORT_POST_URL = SERVER_ROOT+"/reviews/%s/+report-review"
+
 # server status URL
-SERVER_STATUS_URL = SERVER_ROOT+"/reviews/+server-status"
+SERVER_STATUS_URL = SERVER_ROOT+"/server-status/"
 
 class UserCancelException(Exception):
     """ user pressed cancel """
@@ -166,7 +161,7 @@ class Worker(threading.Thread):
                                                        token["consumer_secret"])
         # change default server to the SSL one
         distro = get_distro()
-        service_root = distro.REVIEWS_SERVER_SSL
+        service_root = distro.REVIEWS_SERVER
         self.rnrclient = RatingsAndReviewsAPI(service_root=service_root,
                                               auth=auth)
 
@@ -219,9 +214,10 @@ class Worker(threading.Thread):
                 sys.stdout.write(simplejson.dumps(res))
             except Exception as e:
                 logging.exception("submit_usefulness failed")
+                err_str = self._get_error_messages(e)
+                self._transmit_error_str = err_str
                 self._write_exception_html_log_if_needed(e)
                 self._transmit_state = TRANSMIT_STATE_ERROR
-                self._transmit_error_str = _("Failed to submit usefulness")
             self.pending_usefulness.task_done()
     
     #modify
@@ -279,9 +275,10 @@ class Worker(threading.Thread):
                 sys.stdout.write(simplejson.dumps(res))
             except Exception as e:
                 logging.exception("flag_review failed")
+                err_str = self._get_error_messages(e)
+                self._transmit_error_str = err_str
                 self._write_exception_html_log_if_needed(e)
                 self._transmit_state = TRANSMIT_STATE_ERROR
-                self._transmit_error_str = _("Failed to submit report")
             self.pending_reports.task_done()
 
     def _write_exception_html_log_if_needed(self, e):
@@ -323,15 +320,35 @@ class Worker(threading.Thread):
             try:
                 res = self.rnrclient.submit_review(review=piston_review)
                 self._transmit_state = TRANSMIT_STATE_DONE
-                # output the resulting json so that the parent can read it
-                sys.stdout.write(simplejson.dumps(res))
+                # output the resulting ReviewDetails object as json so
+                # that the parent can read it
+                sys.stdout.write(simplejson.dumps(vars(res)))
             except Exception as e:
                 logging.exception("submit_review")
+                err_str = self._get_error_messages(e)
                 self._write_exception_html_log_if_needed(e)
                 self._transmit_state = TRANSMIT_STATE_ERROR
-                self._transmit_error_str = _("Failed to submit review")
-            self._transmit_state
+                self._transmit_error_str = err_str
             self.pending_reviews.task_done()
+    
+    def _get_error_messages(self, e):
+        if type(e) is piston_mini_client.APIError:
+            try:
+                error_msg = simplejson.loads(e.body)['errors']
+                errs = error_msg["__all__"]
+                err_str = _("Server's response was:")
+                for err in errs:
+                    err_str = _("%s\n%s" % (err_str, err))
+            except:
+                err_str = _("Unknown error communicating with server. Check your log "
+                        "and consider raising a bug report if this problem persists")
+                logging.warning(e)
+        else:
+            err_str = _("Unknown error communicating with server. Check your log "
+                    "and consider raising a bug report if this problem persists")
+            logging.warning(e)
+        return err_str
+    
 
     def verify_server_status(self):
         """ verify that the server we want to talk to can be reached
@@ -354,7 +371,9 @@ class BaseApp(SimpleGtkbuilderApp):
         SimpleGtkbuilderApp.__init__(
             self, os.path.join(datadir,"ui",uifile), "software-center")
         # generic data
-        self.appname = _("Ubuntu Software Center")
+        # see bug #773214 for the rational
+        #self.appname = _("Ubuntu Software Center")
+        self.appname = "Ubuntu Software Center"
         self.token = None
         self.display_name = None
         self._login_successful = False
@@ -412,6 +431,7 @@ class BaseApp(SimpleGtkbuilderApp):
         return spell
 
     def login(self, show_register=True):
+        logging.debug("login()")
         # either
         login_window_xid = self._get_parent_xid_for_login_window()
         login_text = _("To review software or to report abuse you need to "
@@ -431,6 +451,7 @@ class BaseApp(SimpleGtkbuilderApp):
 
     def _maybe_login_successful(self, sso, oauth_result):
         """ called after we have the token, then we go and figure out our name """
+        logging.debug("_maybe_login_successful")
         self.token = oauth_result
         self.ssoapi = UbuntuSSOAPI(self.token)
         self.ssoapi.connect("whoami", self._whoami_done)
@@ -438,6 +459,7 @@ class BaseApp(SimpleGtkbuilderApp):
         self.ssoapi.whoami()
 
     def _whoami_done(self, ssologin, result):
+        logging.debug("_whoami_done")
         self.display_name = result["displayname"]
         self._create_gratings_api()
         self.login_successful(self.display_name)
@@ -485,18 +507,18 @@ class BaseApp(SimpleGtkbuilderApp):
     def on_transmit_start(self, api, trans):
         self.button_post.set_sensitive(False)
         self.button_cancel.set_sensitive(False)
-        self._change_status("progress",  self.SUBMIT_MESSAGE)
+        self._change_status("progress",  _(self.SUBMIT_MESSAGE))
 
     def on_transmit_success(self, api, trans):
         self.api.shutdown()
         self.quit()
 
     def on_transmit_failure(self, api, trans, error):
-        self._change_status("fail",  self.ERROR_MESSAGE)
+        self._change_status("fail",  error)
         self.button_post.set_sensitive(True)
         self.button_cancel.set_sensitive(True)
             
-    def _change_status(self, type,  message=""):
+    def _change_status(self, type,  message):
         """method to separate the updating of status icon/spinner and message in the submit review window,
          takes a type (progress, fail, success) as a string and a message string then updates status area accordingly"""
         self._clear_status_imagery()
@@ -505,10 +527,14 @@ class BaseApp(SimpleGtkbuilderApp):
             self.status_hbox.reorder_child(self.submit_spinner, 0)
             self.submit_spinner.show()
             self.submit_spinner.start()
+            self.label_transmit_status.set_text(message)
         elif type == "fail":
             self.status_hbox.pack_start(self.submit_error_img, False)
             self.status_hbox.reorder_child(self.submit_error_img, 0)
             self.submit_error_img.show()
+            self.label_transmit_status.set_text(self.FAILURE_MESSAGE)
+            self.error_textview.get_buffer().set_text(_(message))  
+            self.detail_expander.show()
         elif type == "success":
             self.status_hbox.pack_start(self.submit_success_img, False)
             self.status_hbox.reorder_child(self.submit_success_img, 0)
@@ -522,35 +548,30 @@ class BaseApp(SimpleGtkbuilderApp):
             
 
     def _clear_status_imagery(self):
+        self.detail_expander.hide()
+        self.detail_expander.set_expanded(False)
+        
         #clears spinner or error image from dialog submission label before trying to display one or the other
-         try: 
+        try: 
             result = self.status_hbox.query_child_packing(self.submit_spinner)
             self.status_hbox.remove(self.submit_spinner)
-         except TypeError:
+        except TypeError:
             pass
         
-         try: 
+        try: 
             result = self.status_hbox.query_child_packing(self.submit_error_img)
             self.status_hbox.remove(self.submit_error_img)
-         except TypeError:
+        except TypeError:
             pass
             
-         try: 
+        try: 
             result = self.status_hbox.query_child_packing(self.submit_success_img)
             self.status_hbox.remove(self.submit_success_img)
-         except TypeError:
+        except TypeError:
             pass
         
-         try:
-            result = self.status_hbox.query_child_packing(self.submit_warn_img)
-            self.status_hbox.remove(self.submit_warn_img)
-         except TypeError:
-            pass
-        
-         return
-        
-            
-            
+        return
+
 
 class SubmitReviewsApp(BaseApp):
     """ review a given application or package """
@@ -565,8 +586,7 @@ class SubmitReviewsApp(BaseApp):
     NORMAL_COLOUR = "000000"
     ERROR_COLOUR = "FF0000"
     SUBMIT_MESSAGE = _("Submitting Review")
-    ERROR_MESSAGE = _("Failed to submit review")
-    
+    FAILURE_MESSAGE = _("Failed to submit review")
 
     def __init__(self, app, version, iconname, origin, parent_xid, datadir, action="submit", review_id=0):
         BaseApp.__init__(self, datadir, "submit_review.ui")
@@ -594,8 +614,11 @@ class SubmitReviewsApp(BaseApp):
         self.rating_hbox.reorder_child(self.star_caption, 1)
 
         self.review_buffer = self.textview_review.get_buffer()
+
+        self.detail_expander.hide()
         
         self.retrieve_api = RatingsAndReviewsAPI()
+
         
         # data
         self.app = app
@@ -697,6 +720,9 @@ class SubmitReviewsApp(BaseApp):
         
         #rating label
         self.rating_label.set_markup(_('Rating:'))
+        #error detail link label
+        self.label_expander.set_markup('<small><u>%s</u></small>' % (_('Error Details')))
+
         return
 
     # force resize of the legal label when the app resizes, if not
@@ -1099,7 +1125,7 @@ class ReportReviewApp(BaseApp):
     APP_ICON_SIZE = 48
     
     SUBMIT_MESSAGE = _(u"Sending report\u2026")
-    ERROR_MESSAGE = _("Failed to submit report")
+    FAILURE_MESSAGE = _("Failed to submit report")
 
     def __init__(self, review_id, parent_xid, datadir):
         BaseApp.__init__(self, datadir, "report_abuse.ui")
@@ -1129,31 +1155,50 @@ class ReportReviewApp(BaseApp):
         self.report_body_vbox.pack_start(self.combobox_report_summary, False)
         self.report_body_vbox.reorder_child(self.combobox_report_summary, 2)
         self.combobox_report_summary.show()
-        for term in [ _("Unspecified"), 
-                      _("Offensive language"), 
-                      _("Infringes copyright"), 
+        for term in [ _(u"Please make a selection\u2026"), 
+        # TRANSLATORS: The following is one entry in a combobox that is
+        # located directly beneath a label asking 'Why is this review inappropriate?'.
+        # This text refers to a possible reason for why the corresponding
+        # review is being flagged as inappropriate.
+                      _("Offensive language"),
+        # TRANSLATORS: The following is one entry in a combobox that is
+        # located directly beneath a label asking 'Why is this review inappropriate?'.
+        # This text refers to a possible reason for why the corresponding
+        # review is being flagged as inappropriate.
+                      _("Infringes copyright"),
+        # TRANSLATORS: The following is one entry in a combobox that is
+        # located directly beneath a label asking 'Why is this review inappropriate?'.
+        # This text refers to a possible reason for why the corresponding
+        # review is being flagged as inappropriate. 
                       _("Contains inaccuracies"),
+        # TRANSLATORS: The following is one entry in a combobox that is
+        # located directly beneath a label asking 'Why is this review inappropriate?'.
+        # This text refers to a possible reason for why the corresponding
+        # review is being flagged as inappropriate.
                       _("Other") ]:
             self.combobox_report_summary.append_text(term)
         self.combobox_report_summary.set_active(0)
+        
+        self.combobox_report_summary.connect(
+            "changed", self._enable_or_disable_report_button)
 
-    def _enable_or_disable_report_button(self, buf):
-        if buf.get_char_count() > 0:
+    def _enable_or_disable_report_button(self, widget):
+        if self.textview_report.get_buffer().get_char_count() > 0 and self.combobox_report_summary.get_active() != 0:
             self.button_post.set_sensitive(True)
         else:
             self.button_post.set_sensitive(False)
 
     def _setup_details(self, widget, display_name):
 
-        # title
-        m = '<b><span size="x-large">%s</span></b>\n%s %s'
-        self.report_title.set_markup(m % (_('Review Infringment'), _('Reported by'), display_name))
-
         # report label
         self.report_label.set_markup(_('Please give details:'))
 
         # review summary label
         self.report_summary_label.set_markup(_('Why is this review inappropriate?'))
+        
+        #error detail link label
+        self.label_expander.set_markup('<small><u>%s</u></small>' % (_('Error Details')))
+        
         return
 
     def on_button_post_clicked(self, button):
@@ -1165,13 +1210,13 @@ class ReportReviewApp(BaseApp):
         self.api.report_abuse(self.review_id, report_summary, report_text)
 
     def login_successful(self, display_name):
+        logging.debug("login_successful")
         self.main_notebook.set_current_page(1)
         #self.label_reporter.set_text(display_name)
         self._setup_details(self.submit_window, display_name)
 
 class SubmitUsefulnessApp(BaseApp):
     SUBMIT_MESSAGE = _(u"Sending usefulness\u2026")
-    ERROR_MESSAGE = _("Failed to send usefulness")
     
     def __init__(self, review_id, parent_xid, is_useful, datadir):
         BaseApp.__init__(self, datadir, "submit_usefulness.ui")
@@ -1239,6 +1284,9 @@ if __name__ == "__main__":
     except:
         logging.exception("setlocale failed, resetting to C")
         locale.setlocale(locale.LC_ALL, "C")
+
+    gettext.bindtextdomain("software-center", "/usr/share/locale")
+    gettext.textdomain("software-center")
 
     if os.path.exists("./data/ui/reviews.ui"):
         default_datadir = "./data"

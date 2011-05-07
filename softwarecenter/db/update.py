@@ -31,7 +31,6 @@ import time
 import urllib
 import xapian
 
-
 from ConfigParser import RawConfigParser, NoOptionError
 from gettext import gettext as _
 from glob import glob
@@ -67,7 +66,10 @@ axi_values = parse_axi_values_file()
 cataloged_times = {}
 CF = "/var/lib/apt-xapian-index/cataloged_times.p"
 if os.path.exists(CF):
-    cataloged_times = cPickle.load(open(CF))
+    try:
+        cataloged_times = cPickle.load(open(CF))
+    except EOFError as e:
+        logging.warn("failed to read %s (%s" % (CF, e))
 del CF
 
 class AppInfoParserBase(object):
@@ -75,7 +77,7 @@ class AppInfoParserBase(object):
 
     MAPPING = {}
 
-    def get_desktop(self, key):
+    def get_desktop(self, key, translated=True):
         """ get a AppInfo entry for the given key """
     def has_option_desktop(self, key):
         """ return True if there is a given AppInfo info """
@@ -141,7 +143,7 @@ class SoftwareCenterAgentParser(AppInfoParserBase):
         if hasattr(self.sca_entry, "description"):
             self.sca_entry.Comment = self.sca_entry.description.split("\n")[0]
             self.sca_entry.Description = "\n".join(self.sca_entry.description.split("\n")[1:])
-    def get_desktop(self, key):
+    def get_desktop(self, key, translated=True):
         if key in self.STATIC_DATA:
             return self.STATIC_DATA[key]
         return getattr(self.sca_entry, self._apply_mapping(key))
@@ -165,7 +167,7 @@ class JsonTagSectionParser(AppInfoParserBase):
     def __init__(self, tag_section, url):
         self.tag_section = tag_section
         self.url = url
-    def get_desktop(self, key):
+    def get_desktop(self, key, translated=True):
         return self.tag_section[self._apply_mapping(key)]
     def has_option_desktop(self, key):
         return self._apply_mapping(key) in self.tag_section
@@ -192,7 +194,7 @@ class AppStreamXMLParser(AppInfoParserBase):
     def __init__(self, appinfo_xml, xmlfile):
         self.appinfo_xml = appinfo_xml
         self.xmlfile = xmlfile
-    def get_desktop(self, key):
+    def get_desktop(self, key, translated=True):
         from lxml import etree
         key = self._apply_mapping(key)
         if key in self.LISTS:
@@ -225,10 +227,13 @@ class DesktopTagSectionParser(AppInfoParserBase):
     def __init__(self, tag_section, tagfile):
         self.tag_section = tag_section
         self.tagfile = tagfile
-    def get_desktop(self, key):
+    def get_desktop(self, key, translated=True):
         # strip away bogus prefixes
         if key.startswith("X-AppInstall-"):
             key = key[len("X-AppInstall-"):]
+        # shortcut
+        if not translated:
+            return self.tag_section[key]
         # FIXME: make i18n work similar to get_desktop
         # first try dgettext
         if "Gettext-Domain" in self.tag_section:
@@ -265,10 +270,13 @@ class DesktopTagSectionParser(AppInfoParserBase):
 class DesktopConfigParser(RawConfigParser, AppInfoParserBase):
     " thin wrapper that is tailored for xdg Desktop files "
     DE = "Desktop Entry"
-    def get_desktop(self, key):
+    def get_desktop(self, key, translated=True):
         " get generic option under 'Desktop Entry'"
         # never translate the pkgname
         if key == "X-AppInstall-Package":
+            return self.get(self.DE, key)
+        # shortcut
+        if not translated:
             return self.get(self.DE, key)
         # first try dgettext
         if self.has_option_desktop("X-Ubuntu-Gettext-Domain"):
@@ -380,7 +388,14 @@ def update_from_app_install_data(db, cache, datadir=APP_INSTALL_PATH):
             index_app_info_from_parser(parser, db, cache)
         except Exception, e:
             # Print a warning, no error (Debian Bug #568941)
-            LOG.warning("error processing: %s %s" % (desktopf, e))
+            LOG.debug("error processing: %s %s" % (desktopf, e))
+            warning_text = _(
+                "The file: '%s' could not be read correctly. The application "
+                "associated with this file will not be included in the "
+                "software catalog. Please consider raising a bug report "
+                "for this issue with the maintainer of that "
+                "application") % desktopf
+            LOG.warning(warning_text)
     return True
 
 def add_from_purchased_but_needs_reinstall_data(purchased_but_may_need_reinstall_list, db, cache):
@@ -458,11 +473,20 @@ def update_from_software_center_agent(db, cache, ignore_etag=False,
             # magic channel
             entry.channel = AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME
             # icon is transmited inline
-            iconname = "sc-agent-%s" % entry.package_name
-            icondata = base64.b64decode(entry.icon_data)
-            open(os.path.join(SOFTWARE_CENTER_ICON_CACHE_DIR,
-                              "%s.png" % iconname),"w").write(icondata)
-            entry.icon = iconname
+            if hasattr(entry, "icon_data") and entry.icon_data:
+                icondata = base64.b64decode(entry.icon_data)
+            elif hasattr(entry, "icon_64_data") and entry.icon_64_data:
+                # workaround for scagent bug #740112
+                icondata = base64.b64decode(entry.icon_64_data)
+            else:
+                icondata = ""
+            # write it if we have data
+            if icondata:
+		# the iconcache gets mightly confused if there is a "." in the name
+                iconname = "sc-agent-%s" % entry.package_name.replace(".", "__")
+                open(os.path.join(SOFTWARE_CENTER_ICON_CACHE_DIR,
+                                  "%s.png" % iconname),"w").write(icondata)
+                entry.icon = iconname
             # now the normal parser
             parser = SoftwareCenterAgentParser(entry)
             index_app_info_from_parser(parser, db, cache)
@@ -491,13 +515,17 @@ def index_app_info_from_parser(parser, db, cache):
         # app name is the data
         if parser.has_option_desktop("X-GNOME-FullName"):
             name = parser.get_desktop("X-GNOME-FullName")
+            untranslated_name = parser.get_desktop("X-GNOME-FullName", translated=False)
         else:
             name = parser.get_desktop("Name")
+            untranslated_name = parser.get_desktop("Name", translated=False)
         if name in seen:
             LOG.debug("duplicated name '%s' (%s)" % (name, parser.desktopf))
         seen.add(name)
         doc.set_data(name)
         index_name(doc, name, term_generator)
+        doc.add_value(XAPIAN_VALUE_APPNAME_UNTRANSLATED, untranslated_name)
+
         # check if we should ignore this file
         if parser.has_option_desktop("X-AppInstall-Ignore"):
             ignore = parser.get_desktop("X-AppInstall-Ignore")
@@ -545,7 +573,8 @@ def index_app_info_from_parser(parser, db, cache):
         # purchased date
         if parser.has_option_desktop("X-AppInstall-Purchased-Date"):
             date = parser.get_desktop("X-AppInstall-Purchased-Date")
-            doc.add_value(XAPIAN_VALUE_PURCHASED_DATE, str(date))
+            # strip the subseconds from the end of the date string
+            doc.add_value(XAPIAN_VALUE_PURCHASED_DATE, str(date).split(".")[0])
         # deb-line (third party)
         if parser.has_option_desktop("X-AppInstall-Deb-Line"):
             debline = parser.get_desktop("X-AppInstall-Deb-Line")
@@ -554,6 +583,9 @@ def index_app_info_from_parser(parser, db, cache):
         if parser.has_option_desktop("X-AppInstall-PPA"):
             archive_ppa = parser.get_desktop("X-AppInstall-PPA")
             doc.add_value(XAPIAN_VALUE_ARCHIVE_PPA, archive_ppa)
+            # add archive origin data here so that its available even if
+            # the PPA is not (yet) enabled
+            doc.add_term("XOO"+"lp-ppa-%s" % archive_ppa.replace("/", "-"))
         # screenshot (for third party)
         if parser.has_option_desktop("X-AppInstall-Screenshot-Url"):
             url = parser.get_desktop("X-AppInstall-Screenshot-Url")

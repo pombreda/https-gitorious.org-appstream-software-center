@@ -5,13 +5,16 @@ import sys
 sys.path.insert(0,"../")
 
 import apt
-import unittest
+import random
+import glib
+import gtk
 import shutil
+import unittest
 
 from softwarecenter.apt.aptcache import AptCache
 from softwarecenter.db.application import Application
 from softwarecenter.db.database import StoreDatabase
-from softwarecenter.view.appview import AppStore
+from softwarecenter.view.appview import AppView, AppStore, AppViewFilter
 from softwarecenter.enums import *
 from softwarecenter.paths import *
 
@@ -30,7 +33,7 @@ class MockIconCache(object):
     def disconnect_by_func(self, func):
         return True
 
-class testAppStore(unittest.TestCase):
+class TestAppStore(unittest.TestCase):
     """ tests the AppStore GtkTreeViewModel """
 
     def setUp(self):
@@ -76,7 +79,7 @@ class testAppStore(unittest.TestCase):
         sorter.add_value(XAPIAN_VALUE_PKGNAME, True)
         enquire.set_sort_by_key(sorter)
 
-        matches = enquire.get_mset(0, 10)
+        matches = enquire.get_mset(0, 5)
         for m in matches:
             doc = db.get_document(m.docid)
             #print xapian.sortable_unserialise(doc.get_value(valueno))
@@ -89,9 +92,11 @@ class testAppStore(unittest.TestCase):
         for_purchase_query = xapian.Query("AH" + AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME)
         store_query = xapian.Query(xapian.Query.OP_AND_NOT, 
                                    query, for_purchase_query)
+        appviewfilter = AppViewFilter(self.db, self.cache)
+        appviewfilter.set_available_only(True)
         store = AppStore(self.cache, self.db, self.mock_icons, 
-                         sortmode=SORT_BY_CATALOGED_TIME,
-                         limit=10, search_query=store_query,
+                         sortmode=SORT_BY_CATALOGED_TIME, filter=appviewfilter,
+                         limit=5, search_query=store_query,
                          nonapps_visible=AppStore.NONAPPS_ALWAYS_VISIBLE)
         for item in store:
             sorted_by_appstore.append(item[AppStore.COL_PKGNAME])
@@ -113,6 +118,27 @@ class testAppStore(unittest.TestCase):
         nonapps_visible = len(store)
         self.assertTrue(nonapps_visible > nonapps_not_visible)
 
+    def test_concurrent_searches(self):
+        terms = [ "app", "this", "the", "that", "foo", "tool", "game", 
+                  "graphic", "ubuntu", "debian", "gtk", "this", "bar", 
+                  "baz"]
+
+        # run a bunch of the querries in parallel
+        for i in range(10):
+            for term in terms:
+                icons = gtk.icon_theme_get_default()
+                store = AppStore(
+                    self.cache, self.db, icons,
+                    search_query = xapian.Query(term),
+                    limit=0,
+                    nonapps_visible = AppStore.NONAPPS_MAYBE_VISIBLE)
+                # extra fun
+                glib.timeout_add(10, store._threaded_perform_search)
+            self._p()
+
+    def _p(self):
+        while gtk.events_pending():
+            gtk.main_iteration()
 
 if __name__ == "__main__":
     import logging

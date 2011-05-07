@@ -1,18 +1,17 @@
-[type: python] software-center
-[type: python] utils/submit_review.py
-[type. python] utils/update-software-center
+software-center
+utils/submit_review.py
+utils/update-software-center
 [type: gettext/glade] data/ui/SoftwareCenter.ui
 [type: gettext/glade] data/ui/dialogs.ui
 [type: gettext/glade] data/ui/login.ui
 [type: gettext/glade] data/ui/submit_review.ui
+[type: gettext/glade] data/ui/submit_usefulness.ui
 [type: gettext/glade] data/ui/report_abuse.ui
 data/ubuntu-software-center.desktop.in
 data/unbranded-software-center.desktop.in
 [type: gettext/xml] data/featured.menu.in
 [type: gettext/xml] data/new.menu.in
 [type: gettext/xml] data/software-center.menu.in
-[type: gettext/xml] data/software-center.schemas.in
-[type: gettext/xml] data/software-center.xml.in
 softwarecenter/app.py
 softwarecenter/backend/aptd.py
 softwarecenter/backend/channel.py
@@ -51,3 +50,4 @@ softwarecenter/view/widgets/packagenamesview.py
 softwarecenter/view/widgets/reviews.py
 softwarecenter/view/widgets/searchentry.py
 softwarecenter/view/widgets/thumbnail.py
+softwarecenter/view/widgets/weblivedialog.py

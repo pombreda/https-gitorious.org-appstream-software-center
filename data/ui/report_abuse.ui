@@ -9,13 +9,11 @@
     <property name="window_position">center-on-parent</property>
     <property name="default_width">400</property>
     <property name="destroy_with_parent">True</property>
+    <property name="icon">softwarecenter</property>
     <child>
       <object class="GtkVBox" id="dialog-vbox3">
         <property name="visible">True</property>
         <property name="spacing">2</property>
-        <child>
-          <placeholder/>
-        </child>
         <child>
           <object class="GtkNotebook" id="main_notebook">
             <property name="visible">True</property>
@@ -207,7 +205,7 @@
             </child>
           </object>
           <packing>
-            <property name="position">1</property>
+            <property name="position">0</property>
           </packing>
         </child>
         <child>
@@ -279,7 +277,38 @@
           <packing>
             <property name="expand">False</property>
             <property name="fill">False</property>
-            <property name="position">2</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkExpander" id="detail_expander">
+            <property name="can_focus">True</property>
+            <property name="use_markup">True</property>
+            <child>
+              <object class="GtkTextView" id="error_textview">
+                <property name="height_request">60</property>
+                <property name="visible">True</property>
+                <property name="sensitive">False</property>
+                <property name="can_focus">True</property>
+                <property name="border_width">2</property>
+                <property name="editable">False</property>
+                <property name="wrap_mode">word</property>
+                <property name="cursor_visible">False</property>
+                <property name="overwrite">True</property>
+              </object>
+            </child>
+            <child type="label">
+              <object class="GtkLabel" id="label_expander">
+                <property name="visible">True</property>
+                <property name="xalign">0</property>
+                <property name="label" translatable="yes">Error Details</property>
+              </object>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">False</property>
+            <property name="position">3</property>
           </packing>
         </child>
       </object>

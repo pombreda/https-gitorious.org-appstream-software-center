@@ -35,9 +35,11 @@ import xml.sax.saxutils
 import gtk
 import dbus
 
-from enums import USER_AGENT, MISSING_APP_ICON, APP_ICON_SIZE
+from enums import USER_AGENT, MISSING_APP_ICON, APP_ICON_SIZE, APP_INSTALL_PATH_DELIMITER
 
 from config import get_config
+
+from gettext import gettext as _
 
 # define additional entities for the unescape method, needed
 # because only '&amp;', '&lt;', and '&gt;' are included by default
@@ -153,7 +155,7 @@ def get_language():
     try:
         language = locale.getdefaultlocale(('LANGUAGE','LANG','LC_CTYPE','LC_ALL'))[0]
     except Exception as e:
-        logging.warn("Failed to get language: '%s'" % e)
+        LOG.warn("Failed to get language: '%s'" % e)
         language = "C"
     # use fallback if we can't determine the language
     if language is None or language == "C":
@@ -194,7 +196,7 @@ def get_http_proxy_string_from_gconf():
             if host:
                 return http_proxy
     except Exception:
-        logging.exception("failed to get proxy from gconf")
+        LOG.exception("failed to get proxy from gconf")
     return None
 
 def encode_for_xml(unicode_data, encoding="ascii"):
@@ -260,15 +262,6 @@ def release_filename_in_lists_from_deb_line(debline):
     name = "%s_dists_%s_Release" % (uri_to_filename(entry.uri), entry.dist)
     return name
     
-def get_default_language():
-    import locale
-    locale = locale.getdefaultlocale()
-    if not locale:
-        return "en"
-    if locale[0] == "C":
-        return "en"
-    return locale[0]
-    
 def is_unity_running():
     """
     return True if Unity is currently running
@@ -310,6 +303,29 @@ def get_file_path_from_iconname(icons, iconname=None, iconsize=APP_ICON_SIZE):
         icon_file_path = icon_info.get_filename()
         icon_info.free()
         return icon_file_path
+        
+def convert_desktop_file_to_installed_location(app_install_data_file_path, pkgname=None):
+    """ returns the installed desktop file path that corresponds to the
+        given app-install-data file path, and will also check directly for
+        the desktop file that corresponds to a given pkgname.
+    """
+    if app_install_data_file_path:
+        # "normal" case
+        installed_desktop_file_path = app_install_data_file_path.replace("app-install/desktop", "applications")
+        if os.path.exists(installed_desktop_file_path):
+            return installed_desktop_file_path  
+        # next, try case where a subdirectory is encoded in the app-install
+        # desktop filename, e.g. kde4_soundkonverter.desktop
+        installed_desktop_file_path = installed_desktop_file_path.replace(APP_INSTALL_PATH_DELIMITER, "/")
+        if os.path.exists(installed_desktop_file_path):
+            return installed_desktop_file_path
+    # lastly, just try checking directly for the desktop file based on the pkgname itself
+    if pkgname:
+        installed_desktop_file_path =  "/usr/share/applications/%s.desktop" % pkgname
+        if os.path.exists(installed_desktop_file_path):
+            return installed_desktop_file_path
+    LOG.warn("Could not determine the installed desktop file path for app-install desktop file: '%s'" % app_install_data_file_path)
+    return ""
 
 def clear_token_from_ubuntu_sso(appname):
     """ send a dbus signal to the com.ubuntu.sso service to clear 
@@ -364,11 +380,16 @@ def save_person_to_config(username):
     """
     # FIXME: ideally this would be stored in ubuntu-sso-client
     #        but it dosn't so we store it here
-    config = get_config()
-    if not config.has_section("reviews"):
-        config.add_section("reviews")
-    config.set("reviews", "username", username)
-    config.write()
+    curr_name = get_person_from_config()
+    if curr_name != username:
+        config = get_config()
+        if not config.has_section("reviews"):
+            config.add_section("reviews")
+        config.set("reviews", "username", username)
+        config.write()
+        from db.reviews import UsefulnessCache
+        usefulness = UsefulnessCache(True)
+    return
             
 def get_person_from_config():
     """ get the username value for Ubuntu SSO from the config file
@@ -422,6 +443,7 @@ class SimpleFileDownloader(gobject.GObject):
                            self._check_url_reachable_and_then_download_cb)
                            
     def _check_url_reachable_and_then_download_cb(self, f, result):
+        self.LOG.debug("_check_url_reachable_and_then_download_cb: %s" % f)
         try:
             result = f.query_info_finish(result)
             self.emit('file-url-reachable', True)
@@ -474,11 +496,11 @@ class GMenuSearcher(object):
                     return
                 # if there is no direct match, take the part of the path after 
                 # "applications" (e.g. kde4/amarok.desktop) and
-                # change "/" to "_" and do the match again - this is what
+                # change "/" to "__" and do the match again - this is what
                 # the data extractor is doing
                 if "applications/" in desktop_file_path:
                     path_after_applications = desktop_file_path.split("applications/")[1]
-                    if needle == path_after_applications.replace("/","_"):
+                    if needle == path_after_applications.replace("/", APP_INSTALL_PATH_DELIMITER):
                         self._found = dirlist+[item]
                         return
 

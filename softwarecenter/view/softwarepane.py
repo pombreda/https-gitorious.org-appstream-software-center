@@ -37,6 +37,8 @@ from widgets.searchentry import SearchEntry
 from widgets.actionbar import ActionBar
 from widgets.spinner import SpinnerView
 
+import softwarecenter.utils
+
 from softwarecenter.backend import get_install_backend
 from softwarecenter.enums import *
 from softwarecenter.paths import *
@@ -56,7 +58,6 @@ from softwarecenter.db.database import Application
 LOG = logging.getLogger(__name__)
 
 
-
 class SoftwareSection(object):
     
     MASK_SURFACE_CACHE = {}
@@ -67,7 +68,7 @@ class SoftwareSection(object):
         self._section_color = None
         return
 
-    def render(self, cr, a):
+    def render(self, cr, widget, a):
         # sky
         r,g,b = self._section_color
         lin = cairo.LinearGradient(0,a.y,0,a.y+150)
@@ -84,7 +85,12 @@ class SoftwareSection(object):
             s = self.MASK_SURFACE_CACHE[self._image_id]
         else:
             s = cairo.ImageSurface(0, 64, 64)
-        cr.set_source_surface(s, a.width-s.get_width(), 0)
+
+        if widget.get_direction() != gtk.TEXT_DIR_RTL:
+            cr.set_source_surface(s, a.x+a.width-s.get_width(), 0)
+        else:
+            cr.set_source_surface(s, a.x, 0)
+
         cr.paint()
         return
 
@@ -109,7 +115,31 @@ class SoftwareSection(object):
 
     def get_image(self):
         return self.MASK_SURFACE_CACHE[self._image_id]
-
+        
+class UnityLauncherInfo(object):
+    """ Simple class to keep track of application details needed for
+        Unity launcher integration
+    """
+    def __init__(self,
+                 name,
+                 icon_name,
+                 icon_file_path,
+                 icon_x,
+                 icon_y,
+                 icon_size,
+                 app_install_desktop_file_path,
+                 installed_desktop_file_path,
+                 trans_id):
+        self.name = name
+        self.icon_name = icon_name
+        self.icon_file_path = icon_file_path
+        self.icon_x = icon_x
+        self.icon_y = icon_y
+        self.icon_size = icon_size
+        self.app_install_desktop_file_path = app_install_desktop_file_path
+        self.installed_desktop_file_path = installed_desktop_file_path
+        self.trans_id = trans_id
+        self.add_to_launcher_requested = False
 
 class SoftwarePane(gtk.VBox, BasePane):
     """ Common base class for InstalledPane, AvailablePane and ChannelPane"""
@@ -149,7 +179,9 @@ class SoftwarePane(gtk.VBox, BasePane):
         self.apps_category = None
         self.apps_subcategory = None
         self.apps_search_term = None
-        self.custom_list_mode = False
+        # keep track of applications that are candidates to be added
+        # to the Unity launcher
+        self.unity_launcher_items = {}
         # Create the basic frame for the common view
         # navigation bar and search on top in a hbox
         self.navigation_bar = NavigationBar()
@@ -175,10 +207,16 @@ class SoftwarePane(gtk.VBox, BasePane):
         self.spinner_notebook.append_page(self.spinner_view)
         
         self.pack_start(self.spinner_notebook)
-        # a bar at the bottom (hidden by default) for contextual actions
+
+        # add a bar at the bottom (hidden by default) for contextual actions
         self.action_bar = ActionBar()
         self.pack_start(self.action_bar, expand=False)
-        self.top_hbox.connect('expose-event', self._on_expose)
+        
+        # connect events to allow us to draw separator lines, one at the bottom of
+        # the top_hbox and another at the top of the action bar
+        self.top_hbox.connect('expose-event', self._draw_top_hbox_separator)
+        self.action_bar.connect('expose-event', self._draw_action_bar_separator)
+        self.action_bar.connect('size-allocate', self._draw_action_bar_separator)
         
         # cursor
         self.busy_cursor = gtk.gdk.Cursor(gtk.gdk.WATCH)
@@ -233,9 +271,9 @@ class SoftwarePane(gtk.VBox, BasePane):
         self.cache.connect("cache-ready", self.on_cache_ready)
         
         # aptdaemon
-        #FIXME: Uncomment the following to enable Unity launcher integration (it is disabled
-        #       temporarily pending implentation of the Unity side of the integration)
-#        self.backend.connect("transaction-started", self.on_transaction_started)
+        self.backend.connect("transaction-started", self.on_transaction_started)
+        self.backend.connect("transaction-finished", self.on_transaction_finished)
+        self.backend.connect("transaction-stopped", self.on_transaction_stopped)
         
         # connect signals
         self.searchentry.connect("terms-changed", self.on_search_terms_changed)
@@ -245,17 +283,29 @@ class SoftwarePane(gtk.VBox, BasePane):
         if self.db:
             self.db.connect("reopen", self.on_db_reopen)
 
-    def _on_expose(self, widget, event):
+    def _draw_top_hbox_separator(self, widget, event):
         """ Draw a horizontal line that separates the top hbox from the page content """
-        a = widget.allocation
-        self.style.paint_shadow(widget.window, self.state,
-                                gtk.SHADOW_IN,
-                                (a.x, a.y+a.height-1, a.width, 1),
-                                widget, "viewport",
-                                a.x, a.y+a.height-1,
-                                a.width, a.y+a.height-1)
+        if (widget.allocation and widget.window):
+            a = widget.allocation
+            self.style.paint_shadow(widget.window, self.state,
+                                    gtk.SHADOW_IN,
+                                    (a.x, a.y+a.height-1, a.width, 1),
+                                    widget, "viewport",
+                                    a.x, a.y+a.height-1,
+                                    a.width, a.y+a.height-1)
         return
 
+    def _draw_action_bar_separator(self, widget, event):
+        """ Draw a horizontal line that separates the top of the action bar from the page content """
+        if (widget.allocation and widget.window):
+            a = widget.allocation
+            self.style.paint_shadow(widget.window, self.state,
+                                    gtk.SHADOW_IN,
+                                    (a.x, a.y, a.width, 1),
+                                    widget, "viewport",
+                                    a.x, a.y,
+                                    a.width, 1)
+        return
 
     def init_atk_name(self, widget, name):
         """ init the atk name for a given gtk widget based on parent-pane
@@ -323,84 +373,152 @@ class SoftwarePane(gtk.VBox, BasePane):
         if details_button:
             self.navigation_bar.set_active(details_button)
         
-    def on_transaction_started(self, backend, pkgname, appname, trans_id, trans_type):
-        self.show_add_to_launcher_panel(backend, pkgname, appname, trans_id, trans_type)
+    def on_transaction_started(self, backend, pkgname, appname, trans_id, 
+                               trans_type):
+        self._register_unity_launcher_transaction_started(
+            backend, pkgname, appname, trans_id, trans_type)
+
         
-    def show_add_to_launcher_panel(self, backend, pkgname, appname, trans_id, trans_type):
+    def _get_onscreen_icon_details_for_launcher_service(self, app):
+        if self.is_app_details_view_showing():
+            return self.app_details_view.get_app_icon_details()
+        else:
+            # TODO: implement the app list view case once it has been specified
+            return (0, 0, 0)
+       
+    def _register_unity_launcher_transaction_started(self, backend, pkgname, 
+                                                     appname, trans_id, 
+                                                     trans_type):
+        # mvo: use use softwarecenter.utils explictely so that we can monkey
+        #      patch it in the test
+        if not softwarecenter.utils.is_unity_running():
+            return
+        # add to launcher only applies in the details view currently
+        if not self.is_app_details_view_showing():
+            return
+        # we only care about getting the launcher information on an install
+        if not trans_type == TRANSACTION_TYPE_INSTALL:
+            if pkgname in self.unity_launcher_items:
+                self.unity_launcher_items.pop(pkgname)
+                self.action_bar.clear()
+            return
+        # gather details for this transaction and create the launcher_info object
+        app = Application(pkgname=pkgname, appname=appname)
+        appdetails = app.get_details(self.db)
+        (icon_size, icon_x, icon_y) = self._get_onscreen_icon_details_for_launcher_service(app)
+        launcher_info = UnityLauncherInfo(app.name,
+                                          appdetails.icon,
+                                          "",        # we set the icon_file_path value *after* install
+                                          icon_x,
+                                          icon_y,
+                                          icon_size,
+                                          appdetails.desktop_file,
+                                          "",        # we set the installed_desktop_file_path *after* install
+                                          trans_id)
+        self.unity_launcher_items[app.pkgname] = launcher_info
+        self.show_add_to_launcher_panel(backend, pkgname, appname, app, appdetails, trans_id, trans_type)
+                
+    def show_add_to_launcher_panel(self, backend, pkgname, appname, app, appdetails, trans_id, trans_type):
         """
         if Unity is currently running, display a panel to allow the user
         the choose whether to add a newly-installed application to the
         launcher
         """
         # TODO: handle local deb install case
-        # TODO: handle apps in PPAs and in extras.ubuntu.com
         # TODO: implement the list view case (once it is specified)
         # only show the panel if unity is running and this is a package install
-        if (not is_unity_running() or
-            not trans_type == TRANSACTION_TYPE_INSTALL or
-            not self.is_app_details_view_showing()):
-            return
-        app = Application(pkgname=pkgname, appname=appname)
-        appdetails = app.get_details(self.db)
+        #
         # we only show the prompt for apps with a desktop file
         if not appdetails.desktop_file:
             return
-        self.action_bar.set_label(_("Add %s to the launcher?" % app.name))
         self.action_bar.add_button(ACTION_BUTTON_CANCEL_ADD_TO_LAUNCHER,
                                     _("Not Now"), 
                                     self.on_cancel_add_to_launcher, 
-                                    None)
+                                    pkgname)
         self.action_bar.add_button(ACTION_BUTTON_ADD_TO_LAUNCHER,
                                    _("Add to Launcher"),
                                    self.on_add_to_launcher,
+                                   pkgname,
                                    app,
                                    appdetails,
-                                   trans_id)        
+                                   trans_id)
+        self.action_bar.set_label(_("Add %s to the launcher?") % app.name)
         
-    def on_add_to_launcher(self, app, appdetails, trans_id):
+    def on_add_to_launcher(self, pkgname, app, appdetails, trans_id):
         """
         callback indicating the user has chosen to add the indicated application
         to the launcher
         """
-        (icon_name, icon_file_path, icon_size, icon_x, icon_y) = self._get_icon_details_for_launcher_service(app)
-        print "values for use in the unity launcher dbus call:"
-        # print "   (icon_name): ", icon_name
-        print "   app.name: ", app.name
-        print "   icon_file_path: ", icon_file_path
-        print "   icon_x: ", icon_x
-        print "   icon_y: ", icon_y
-        print "   icon_size: ", icon_size
-        print "   appdetails.desktop_file: ", appdetails.desktop_file
-        print "   trans_id: ", trans_id
+        if pkgname in self.unity_launcher_items:
+            launcher_info = self.unity_launcher_items[pkgname]
+            if launcher_info.installed_desktop_file_path:
+                # package install is complete, we can add to the launcher immediately
+                self.unity_launcher_items.pop(pkgname)
+                self.action_bar.clear()
+                self._send_dbus_signal_to_unity_launcher(launcher_info)
+            else:
+                # package is not yet installed, it will be added to the launcher
+                # once the installation is complete
+                LOG.debug("the application '%s' will be added to the Unity launcher when installation is complete" % app.name)
+                launcher_info.add_to_launcher_requested = True
+                self.action_bar.set_label(_("%s will be added to the launcher when installation completes.") % app.name)
+                self.action_bar.remove_button(ACTION_BUTTON_CANCEL_ADD_TO_LAUNCHER)
+                self.action_bar.remove_button(ACTION_BUTTON_ADD_TO_LAUNCHER)
+
+    def on_cancel_add_to_launcher(self, pkgname):
+        if pkgname in self.unity_launcher_items:
+            self.unity_launcher_items.pop(pkgname)
+        self.action_bar.clear()
+        
+    def on_transaction_finished(self, backend, result):
+        self._check_unity_launcher_transaction_finished(result)
+
+    def _check_unity_launcher_transaction_finished(self, result):
+        # add the completed transaction details to the corresponding
+        # launcher_item
+        if result.pkgname in self.unity_launcher_items:
+            launcher_info = self.unity_launcher_items[result.pkgname]
+            launcher_info.icon_file_path = get_file_path_from_iconname(
+                self.icons, launcher_info.icon_name)
+            installed_path = convert_desktop_file_to_installed_location(
+                launcher_info.app_install_desktop_file_path, result.pkgname)
+            launcher_info.installed_desktop_file_path = installed_path
+            # if the request to add to launcher has already been made, do it now
+            if launcher_info.add_to_launcher_requested:
+                if result.success:
+                    self._send_dbus_signal_to_unity_launcher(launcher_info)
+                self.unity_launcher_items.pop(result.pkgname)
+                self.action_bar.clear()
+            
+    def _send_dbus_signal_to_unity_launcher(self, launcher_info):
+        LOG.debug("sending dbus signal to Unity launcher for application: ", launcher_info.name)
+        LOG.debug("  launcher_info.icon_file_path: ", launcher_info.icon_file_path)
+        LOG.debug("  launcher_info.installed_desktop_file_path: ", launcher_info.installed_desktop_file_path)
+        LOG.debug("  launcher_info.trans_id: ", launcher_info.trans_id)
         try:
             bus = dbus.SessionBus()
-            launcher_obj = bus.get_object('com.canonical.Unity.Launcher', '/com/canonical/Unity/Launcher')
+            launcher_obj = bus.get_object('com.canonical.Unity.Launcher',
+                                          '/com/canonical/Unity/Launcher')
             launcher_iface = dbus.Interface(launcher_obj, 'com.canonical.Unity.Launcher')
-            launcher_iface.AddLauncherItemFromPosition(app.name,
-                                                       icon_file_path,
-                                                       icon_x,
-                                                       icon_y,
-                                                       icon_size,
-                                                       appdetails.desktop_file,
-                                                       trans_id)
+            launcher_iface.AddLauncherItemFromPosition(launcher_info.name,
+                                                       launcher_info.icon_file_path,
+                                                       launcher_info.icon_x,
+                                                       launcher_info.icon_y,
+                                                       launcher_info.icon_size,
+                                                       launcher_info.installed_desktop_file_path,
+                                                       launcher_info.trans_id)
         except Exception, e:
-            LOG.warn("could not connect to launcher via dbus (%s)", e)
-        
+            LOG.warn("could not send dbus signal to the Unity launcher: (%s)", e)
+            
+    def on_transaction_stopped(self, backend, result):
+        if result.pkgname in self.unity_launcher_items:
+            self.unity_launcher_items.pop(result.pkgname)
         self.action_bar.clear()
 
-    def _get_icon_details_for_launcher_service(self, app):
-        if self.is_app_details_view_showing():
-            return self.app_details_view.get_app_icon_details()
-        elif self.is_applist_view_showing():
-            # TODO: implement the app list view case once it has been specified
-            return ("", "", None, None, None)
-                                              
-    def on_cancel_add_to_launcher(self, args):
-        self.action_bar.clear()
-                                               
     def show_appview_spinner(self):
         """ display the spinner in the appview panel """
-        self.action_bar.clear()
+        if not self.apps_search_term:
+            self.action_bar.clear()
         self.spinner_view.stop()
         self.spinner_notebook.set_current_page(self.PAGE_SPINNER)
         # "mask" the spinner view momentarily to prevent it from flashing into
@@ -457,9 +575,10 @@ class SoftwarePane(gtk.VBox, BasePane):
             else:
                 apps = appstore.nr_apps
                 pkgs = appstore.nr_pkgs
-
-        self.action_bar.unset_label()
-        
+                
+        if not self.is_app_details_view_showing():
+            self.action_bar.unset_label()
+            
         if (appstore and 
             appstore.active and
             self.is_applist_view_showing() and
@@ -471,12 +590,12 @@ class SoftwarePane(gtk.VBox, BasePane):
                 label = gettext.ngettext("_Hide %(amount)i technical item_",
                                          "_Hide %(amount)i technical items_",
                                          pkgs) % { 'amount': pkgs, }
-                self.action_bar.set_label(label, self._hide_nonapp_pkgs) 
+                self.action_bar.set_label(label, link_result=self._hide_nonapp_pkgs) 
             else:
                 label = gettext.ngettext("_Show %(amount)i technical item_",
                                          "_Show %(amount)i technical items_",
                                          pkgs) % { 'amount': pkgs, }
-                self.action_bar.set_label(label, self._show_nonapp_pkgs)
+                self.action_bar.set_label(label, link_result=self._show_nonapp_pkgs)
 
     def update_search_help(self):
         search = self.searchentry.get_text()
@@ -587,16 +706,15 @@ class SoftwarePane(gtk.VBox, BasePane):
         LOG.debug("softwarepane query: %s" % query)
         # create new model and attach it
         seq_nr = self.refresh_seq_nr
-        # In custom list mode, search should yield the exact package name.
         new_model = AppStore(self.cache,
                              self.db,
                              self.icons,
                              query,
                              limit=self.get_app_items_limit(),
                              sortmode=self.get_sort_mode(),
-                             exact=self.custom_list_mode,
                              nonapps_visible = self.nonapps_visible,
-                             filter=self.apps_filter)
+                             filter=self.apps_filter,
+                             search_term=self.apps_search_term)
 
         #print "new_model", new_model, len(new_model), seq_nr
         # between request of the new model and actual delivery other
@@ -620,7 +738,7 @@ class SoftwarePane(gtk.VBox, BasePane):
         return 0
 
     def get_sort_mode(self):
-        if self.apps_search_term:
+        if self.apps_search_term and len(self.apps_search_term) >= 2:
             return SORT_BY_SEARCH_RANKING
         elif self.apps_category:
             return self.apps_category.sortmode

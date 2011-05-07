@@ -29,8 +29,10 @@ import subprocess
 import sys
 import cairo
 import pangocairo
+import datetime
 
-from softwarecenter.netstatus import NetState, get_network_state, get_network_watcher
+from softwarecenter.cmdfinder import CmdFinder
+from softwarecenter.netstatus import NetState, get_network_watcher, network_state_is_connected
 
 from gettext import gettext as _
 import apt_pkg
@@ -48,20 +50,24 @@ from softwarecenter.utils import *
 from softwarecenter.config import get_config
 from softwarecenter.backend.weblive import get_weblive_backend
 
-from softwarecenter.gwibber_helper import GWIBBER_SERVICE_AVAILABLE
+from softwarecenter.view.dialogs import error
 
 from appdetailsview import AppDetailsViewBase
 
 from widgets import mkit
+
 from widgets.mkit import EM, ShapeStar
-from widgets.reviews import UIReviewsList, UIReview, ReviewStatsContainer, StarRating, EmbeddedMessage
+from widgets.reviews import UIReviewsList, UIReview, \
+                            ReviewStatsContainer, StarPainter, \
+                            StarRating, EmbeddedMessage
 
 from widgets.description import AppDescription, TextBlock
 from widgets.thumbnail import ScreenshotThumbnail
+from widgets.weblivedialog import ShowWebLiveServerChooserDialog
+
 from softwarecenter.distro import get_distro
 
 from softwarecenter.drawing import alpha_composite, color_floats, rounded_rect2, rounded_rect
-
 
 if os.path.exists("./softwarecenter/enums.py"):
     sys.path.insert(0, ".")
@@ -263,11 +269,18 @@ class PackageStatusBar(StatusBar):
                 self.set_label(_("Installed (you're using it right now)"))
             else:
                 if app_details.purchase_date:
-                    purchase_date = str(app_details.purchase_date).split()[0]
-                    self.set_label(_('Purchased on %s') % purchase_date)
+                    # purchase_date is a string, must first convert to datetime.datetime
+                    pdate = self._convert_purchase_date_str_to_datetime(app_details.purchase_date)
+                    # TRANSLATORS : %Y-%m-%d formats the date as 2011-03-31, please specify a format per your
+                    # locale (if you prefer, %x can be used to provide a default locale-specific date 
+                    # representation)
+                    self.set_label(pdate.strftime(_('Purchased on %Y-%m-%d')))
                 elif app_details.installation_date:
-                    installation_date = str(app_details.installation_date).split()[0]
-                    self.set_label(_('Installed on %s') % installation_date)
+                    # TRANSLATORS : %Y-%m-%d formats the date as 2011-03-31, please specify a format per your
+                    # locale (if you prefer, %x can be used to provide a default locale-specific date 
+                    # representation)
+                    template = _('Installed on %Y-%m-%d')
+                    self.set_label(app_details.installation_date.strftime(template))
                 else:
                     self.set_label(_('Installed'))
             if state == PKG_STATE_REINSTALLABLE: # only deb files atm
@@ -283,8 +296,12 @@ class PackageStatusBar(StatusBar):
             self.set_label("US$ %s" % app_details.price)
             self.set_button_label(_(u'Buy\u2026'))
         elif state == PKG_STATE_PURCHASED_BUT_REPO_MUST_BE_ENABLED:
-            purchase_date = str(app_details.purchase_date).split()[0]
-            self.set_label(_('Purchased on %s') % purchase_date)
+            # purchase_date is a string, must first convert to datetime.datetime
+            pdate = self._convert_purchase_date_str_to_datetime(app_details.purchase_date)
+            # TRANSLATORS : %Y-%m-%d formats the date as 2011-03-31, please specify a format per your
+            # locale (if you prefer, %x can be used to provide a default locale-specific date 
+            # representation)
+            self.set_label(pdate.strftime(_('Purchased on %Y-%m-%d')))
             self.set_button_label(_('Install'))
         elif state == PKG_STATE_UNINSTALLED:
             #special label only if the app being viewed is software centre itself
@@ -334,7 +351,14 @@ class PackageStatusBar(StatusBar):
            not state in (PKG_STATE_INSTALLING, PKG_STATE_INSTALLING_PURCHASED,
            PKG_STATE_REMOVING, PKG_STATE_UPGRADING, APP_ACTION_APPLY)):
             self.set_label(self.app_details.warning)
+
+        sensitive = network_state_is_connected()
+        self.button.set_sensitive(sensitive)
         return
+        
+    def _convert_purchase_date_str_to_datetime(self, purchase_date):
+        if purchase_date is not None:
+            return datetime.datetime.strptime(purchase_date, "%Y-%m-%d %H:%M:%S")
 
 
 class PackageInfo(gtk.HBox):
@@ -410,7 +434,6 @@ class PackageInfo(gtk.HBox):
     def set_value(self, value):
         self.value_label.set_markup(value)
         self.a11y.set_name(self.key + ' ' + value)
-
 
 class Addon(gtk.HBox):
     """ Widget to select addons: CheckButton - Icon - Title (pkgname) """
@@ -525,10 +548,17 @@ class AddonsTable(gtk.VBox):
         self.label.set_markup(markup)
         self.pack_start(self.label, False, False)
 
+    def get_addons(self):
+        # filter all children widgets and return only Addons
+        return filter(lambda w: isinstance(w, Addon), self)
+
     def clear(self):
-        for w in self:
-            if isinstance(w, Addon):
-                w.destroy()
+        for addon in self.get_addons():
+            addon.destroy()
+
+    def addons_set_sensitive(self, is_sensitive):
+        for addon in self.get_addons():
+            addon.set_sensitive(is_sensitive)
 
     def set_addons(self, addons):
         self.recommended_addons = sorted(addons[0])
@@ -589,10 +619,11 @@ class AddonsStatusBar(StatusBar):
             not self.addons_manager.addons_to_remove):
             self.hide_all()
         else:
-            self.button_apply.set_sensitive(True)
-            self.button_cancel.set_sensitive(True)
+            sensitive = network_state_is_connected()
+            self.button_apply.set_sensitive(sensitive)
+            self.button_cancel.set_sensitive(sensitive)
             self.show_all()
-    
+   
     def _on_button_apply_clicked(self, button):
         self.applying = True
         self.button_apply.set_sensitive(False)
@@ -641,6 +672,9 @@ class AddonsManager():
             self.table.set_addons(self.addons)
         self.status_bar.configure()
 
+        sensitive = network_state_is_connected()
+        self.table.addons_set_sensitive(sensitive)
+
     def restore(self, *button):
         self.addons_to_install = []
         self.addons_to_remove = []
@@ -686,6 +720,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # app specific data
         self.app = None
         self.app_details = None
+        self.pkg_state = None
 
         self.review_stats_widget = ReviewStatsContainer()
         self.reviews = UIReviewsList(self)
@@ -713,8 +748,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.addons_to_remove = self.addons_manager.addons_to_remove
 
         # switches
-        # Bug #628714 check not only that gwibber is installed but that service accounts exist
-        self._gwibber_is_available = GWIBBER_SERVICE_AVAILABLE
         self._show_overlay = False
 
         # page elements are packed into our very own lovely viewport
@@ -730,6 +763,13 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self._check_for_reviews()
         elif state == NetState.NM_STATE_CONNECTED:
             gobject.timeout_add(500, self._check_for_reviews)
+
+        # set addon table and action button states based on sensitivity
+        sensitive = state == NetState.NM_STATE_CONNECTED
+        self.pkg_statusbar.button.set_sensitive(sensitive)
+        self.addon_view.addons_set_sensitive(sensitive)
+        self.addons_statusbar.button_apply.set_sensitive(sensitive)
+        self.addons_statusbar.button_cancel.set_sensitive(sensitive)
         return
 
     # FIXME: should we just this with _check_for_reviews?
@@ -739,6 +779,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         return
 
     def _check_for_reviews(self):
+        # self.app may be undefined on network state change events (LP: #742635)
+        if not self.app:
+            return
         # review stats is fast and syncronous
         stats = self.review_loader.get_review_stats(self.app)
         self._update_review_stats_widget(stats)
@@ -754,7 +797,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         else:
             self.review_stats_widget.hide()
 
-    def _reviews_ready_callback(self, app, reviews_data):
+    def _reviews_ready_callback(self, app, reviews_data, my_votes=None):
         """ callback when new reviews are ready, cleans out the
             old ones
         """
@@ -782,23 +825,71 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             # update UI
             self._update_review_stats_widget(stats)
             # update global stats cache as well
-            self.review_loader.REVIEW_STATS_CACHE[app] = stats
+            self.review_loader.update_review_stats(app, stats)
+        
+        if my_votes:
+            self.reviews.update_useful_votes(my_votes)
         
         # FIXME: simplify UIReviewsList API to provide a single set_reviews()
         # update the UI
         self.reviews.clear()
         for review in reviews_data:
             self.reviews.add_review(review)
-        self.reviews.finished()
+        self.reviews.configure_reviews_ui()
 
     def on_test_drive_clicked(self, button):
-        #print "on_testdrive_clicked"
+        # weblive helpers
+        def weblive_button_timeout(button, old_label):
+            """ timeout handler when a weblive session is requested """
+            if button.count == 10:
+                # Restore the button
+                button.set_sensitive(True)
+                button.set_label(old_label)
+                return False
+            else:
+                button.set_sensitive(False)
+                button.set_label(_("Connecting ... (%s%%)") % (button.count * 10))
+                button.count+=1
+                return True
+
+        def weblive_start_timer():
+            """ initiate a simple feedback UI when weblive connects """
+            old_label=button.get_label()
+            button.count=0
+            weblive_button_timeout(button, old_label)
+            glib.timeout_add_seconds(
+                2, weblive_button_timeout,  button, old_label)
+        #--------------------------------------------------------
+
+        # get exec line
         exec_line = get_exec_line_from_desktop(self.desktop_file)
+
         # split away any arguments, gedit for example as %U
         cmd = exec_line.split()[0]
-        servers = self.weblive.get_servers_for_pkgname(self.appdetails.pkgname)
-        self.weblive.create_automatic_user_and_run_session(
-            session=cmd,serverid=servers[0])
+
+        # Get the list of servers
+        servers = self.weblive.get_servers_for_pkgname(self.app.pkgname)
+
+        if len(servers) == 0:
+            error(None,"No available server", "There is currently no available WebLive server for this application.\nPlease try again later.")
+        elif len(servers) == 1:
+            self.weblive.create_automatic_user_and_run_session(session=cmd,serverid=servers[0].name)
+            # Try to give some indication that we are connecting
+            weblive_start_timer()
+        else:
+            d = ShowWebLiveServerChooserDialog(servers, self.app.pkgname)
+            serverid=None
+            if d.run() == gtk.RESPONSE_OK:
+                for server in d.servers_vbox:
+                    if server.get_active():
+                        serverid=server.serverid
+                        break
+            d.destroy()
+
+            if serverid:
+                self.weblive.create_automatic_user_and_run_session(session=cmd,serverid=serverid)
+                # Try to give some indication that we are connecting
+                weblive_start_timer()
 
     def _on_addon_table_built(self, table):
         if not table.parent:
@@ -819,13 +910,14 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         # paint the section backdrop
         if self.section: 
-            self.section.render(cr, alignment.allocation)
+            self.section.render(cr, self, alignment.allocation)
 
-        # draw the info vbox bg
-        a = self.info_vb.allocation
-        rounded_rect(cr, a.x, a.y, a.width, a.height, 5)
-        cr.set_source_rgba(*color_floats("#F7F7F7")+(0.75,))
-        cr.fill()
+        if self.info_header.get_property('visible'):
+            # draw the info vbox bg
+            a = self.info_vb.allocation
+            rounded_rect(cr, a.x, a.y, a.width, a.height, 5)
+            cr.set_source_rgba(*color_floats("#F7F7F7")+(0.75,))
+            cr.fill()
 
         # draw the addon header bg
         a = self.addon_view.label.allocation
@@ -834,28 +926,30 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             cr.set_source_rgb(*color_floats("#DAD7D3"))
             cr.fill()
 
-        # draw the info header bg, shape depends on visibility of addons
-        if self.addon_view.parent:
-            cr.rectangle(self.info_header.allocation)
-        else:
-            a = self.info_header.allocation
-            rounded_rect2(cr, a.x, a.y, a.width, a.height, (5, 5, 0, 0))
+        if self.info_header.get_property('visible'):
+            # draw the info header bg, shape depends on visibility of addons
+            if self.addon_view.parent:
+                cr.rectangle(self.info_header.allocation)
+            else:
+                a = self.info_header.allocation
+                rounded_rect2(cr, a.x, a.y, a.width, a.height, (5, 5, 0, 0))
 
-        cr.set_source_rgb(*color_floats("#DAD7D3"))
-        cr.fill()
+            cr.set_source_rgb(*color_floats("#DAD7D3"))
+            cr.fill()
 
-        a = self.info_vb.allocation
-        cr.save()
-        rounded_rect(cr, a.x+0.5, a.y+0.5, a.width-1, a.height-1, 5)
-        cr.set_source_rgba(*color_floats("#DAD7D3")+(0.3,))
-        cr.set_line_width(1)
-        cr.stroke()
-        cr.restore()
+            a = self.info_vb.allocation
+            cr.save()
+            rounded_rect(cr, a.x+0.5, a.y+0.5, a.width-1, a.height-1, 5)
+            cr.set_source_rgba(*color_floats("#DAD7D3")+(0.3,))
+            cr.set_line_width(1)
+            cr.stroke()
+            cr.restore()
 
         # draw subwidgets
         self.usage.draw(cr, self.usage.allocation, event.area)
         self.pkg_statusbar.draw(cr, self.pkg_statusbar.allocation, event.area)
-        self.screenshot.draw(cr, self.screenshot.allocation, event.area)
+        if self.screenshot.get_property('visible'):
+            self.screenshot.draw(cr, self.screenshot.allocation, event.area)
         self.addons_statusbar.draw(cr, self.addons_statusbar.allocation, event.area)
         self.reviews.draw(cr, self.reviews.allocation)
         del cr
@@ -885,32 +979,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.title.set_size_request(w, -1)
         return
 
-    def _on_key_press(self, widget, event):
-        kv = gtk.keysyms
-        if event.keyval == kv.BackSpace:
-            self.back.emit('clicked')
-        return
-
-#    def _on_key_release(self, widget, event, entry):
-#        ctrl = event.state & gtk.gdk.CONTROL_MASK
-#        if ctrl:
-#            if event.keyval == gtk.keysyms.s:
-#                entry.set_position(-1)
-#                entry.grab_focus()
-#        return
-
-    def _on_icon_expose(self, widget, event):
-        if not self._show_overlay: return
-        a = widget.allocation
-        cr = widget.window.cairo_create()
-        pb = self._overlay
-        cr.set_source_pixbuf(pb,
-                             a.x+a.width-pb.get_width(),
-                             a.y+a.height-pb.get_height())
-        cr.paint()
-        del cr
-        return
-
     def _on_realize(self, widget):
         self.addons_statusbar.hide_all()
         return
@@ -918,16 +986,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
     def _on_homepage_clicked(self, button):
         import webbrowser
         webbrowser.open_new_tab(self.app_details.website)
-        return
-
-    def _on_share_clicked(self, button):
-        # TRANSLATORS: apt:%(pkgname) is the apt protocol
-        msg = _("Check out %(appname)s! apt:%(pkgname)s") % {
-                'appname' : self.app_details.display_name, 
-                'pkgname' : self.app_details.pkgname }
-        p = subprocess.Popen(["gwibber-poster", "-w", "-m", msg])
-        # setup timeout handler to avoid zombies
-        glib.timeout_add_seconds(1, lambda p: p.poll() is None, p)
         return
 
     def _layout_page(self):
@@ -967,7 +1025,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         vb_inner.pack_start(self.usage)
 
         # star rating widget
-        a = gtk.Alignment(0.5, 0.5)
+        a = gtk.Alignment(0.0, 0.5)
+        self.review_stats_widget.star_rating.set_paint_style(StarPainter.STYLE_BIG)
         a.add(self.review_stats_widget)
         hb.pack_end(a, False)
 
@@ -1014,16 +1073,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.homepage_btn.set_underline(True)
         self.homepage_btn.set_xmargin(0)
 
-        # share app with microbloggers button
-        self.share_btn = mkit.HLinkButton(_('Share...'))
-        self.share_btn.set_underline(True)
-        self.share_btn.set_tooltip_text(_('Share via a micro-blogging service...'))
-        self.share_btn.connect('clicked', self._on_share_clicked)
-
         # add the links footer to the description widget
         footer_hb = gtk.HBox(spacing=6)
         footer_hb.pack_start(self.homepage_btn, False)
-        footer_hb.pack_start(self.share_btn, False)
         self.desc.pack_start(footer_hb, False)
 
         self.info_vb = info_vb = gtk.VBox(spacing=12)
@@ -1075,10 +1127,43 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         # signals!
         hb.connect('size-allocate', self._header_on_allocate, hb.get_spacing())
-        self.connect('key-press-event', self._on_key_press)
         vb.connect('expose-event', self._on_expose, alignment)
         vb.connect('size-allocate', self._on_allocate)
+
+        vb.connect('key-press-event', self._on_key_press)
         return
+
+    def _on_key_press(self, widget, event):
+        kv = event.keyval
+
+        # key values we want to respond to
+        uppers = (gtk.keysyms.KP_Up, gtk.keysyms.Up)
+        downers = (gtk.keysyms.KP_Down, gtk.keysyms.Down)
+
+        if kv in uppers or kv in downers:
+            # get the ScrolledWindow adjustments and tweak them appropriately
+            if not self.parent: return False
+
+            # the ScrolledWindow vertical-adjustment
+            v_adj = self.parent.get_vadjustment()
+
+            # scroll up
+            if kv in uppers:
+                v = max(v_adj.value - v_adj.step_increment,
+                        v_adj.lower)
+
+            # scroll down 
+            elif kv in downers:
+                v = min(v_adj.value + v_adj.step_increment,
+                        v_adj.upper - v_adj.page_size)
+
+            # set our new value
+            v_adj.set_value(v)
+
+            # do not share the event with other widgets
+            return True
+        # share the event with other widgets
+        return False
 
     def _on_review_new(self, button):
             self._review_write_new()
@@ -1126,20 +1211,14 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.addon_view.hide()
             self.reviews.hide()
             self.screenshot.hide()
-            self.version_info.hide()
-            self.license_info.hide()
-            self.support_info.hide()
-            self.totalsize_info.hide()
             self.info_header.hide()
+            self.info_vb.hide()
         else:
             self.addon_view.show()
             self.reviews.show()
             self.screenshot.show()
-            self.version_info.show()
-            self.license_info.show()
-            self.support_info.show()
-            self.totalsize_info.show()
             self.info_header.show()
+            self.info_vb.show()
         return
 
     def _update_app_description(self, app_details, appname):
@@ -1163,14 +1242,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.homepage_btn.set_tooltip_text(app_details.website)
         else:
             self.homepage_btn.hide()
-
-        # check if gwibber-poster is available, if so display Share... btn
-        if (self._gwibber_is_available and 
-            app_details.pkg_state not in (PKG_STATE_NOT_FOUND, 
-                                          PKG_STATE_NEEDS_SOURCE)):
-            self.share_btn.show()
-        else:
-            self.share_btn.hide()
         return
 
     def _update_app_screenshot(self, app_details):
@@ -1289,10 +1360,78 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self._configure_where_is_it()
         return
 
-    def _configure_where_is_it(self):
+    def _add_where_is_it_commandline(self, pkgname):
+        cmdfinder = CmdFinder(self.cache)
+        cmds = cmdfinder.find_cmds_from_pkgname(pkgname)
+        if not cmds: 
+            return
+        vb = gtk.VBox(spacing=3)
+        self.installed_where_hbox.pack_start(vb, False)
+        msg = gettext.ngettext(
+            _('This program is run from a terminal: '),
+            _('These programs are run from a terminal: '),
+            len(cmds))
+        title = gtk.Label()
+        title.set_alignment(0, 0)
+        title.set_markup(msg)
+        title.set_line_wrap(True)
+        title.set_size_request(self.allocation.width-24, -1)
+        vb.pack_start(title, False, padding=3)
+        cmds_str = ", ".join(cmds)
+        cmd_label = gtk.Label(
+            '<span font_desc="monospace bold 9">%s</span>' % cmds_str)
+        cmd_label.set_selectable(True)
+        cmd_label.set_use_markup(True)
+        cmd_label.set_alignment(0, 0.5)
+        cmd_label.set_padding(12, 0)
+        cmd_label.set_line_wrap(True)
+        cmd_label.set_size_request(self.allocation.width-64, -1)
+        vb.pack_start(cmd_label, False)
+        self.installed_where_hbox.show_all()
+
+    def _add_where_is_it_launcher(self, where):
         # disable where-is-it under Unity as it does not apply there
         if is_unity_running():
             return
+        # display launcher location
+        label = gtk.Label(_("Find it in the menu: "))
+        self.installed_where_hbox.pack_start(label, False, False)
+        for (i, item) in enumerate(where):
+            iconname = item.get_icon()
+            # check icontheme first
+            if iconname and self.icons.has_icon(iconname) and i > 0:
+                image = gtk.Image()
+                image.set_from_icon_name(iconname, gtk.ICON_SIZE_SMALL_TOOLBAR)
+                self.installed_where_hbox.pack_start(image, False, False)
+            # then see if its a path to a file on disk
+            elif iconname and os.path.exists(iconname):
+                image = gtk.Image()
+                pb = gtk.gdk.pixbuf_new_from_file_at_size(iconname, 18, 18)
+                if pb:
+                    image.set_from_pixbuf(pb)
+                self.installed_where_hbox.pack_start(image, False, False)
+
+            label_name = gtk.Label()
+            if item.get_type() == gmenu.TYPE_ENTRY:
+                label_name.set_text(item.get_display_name())
+            else:
+                label_name.set_text(item.get_name())
+            self.installed_where_hbox.pack_start(label_name, False, False)
+            if i+1 < len(where):
+                right_arrow = gtk.Arrow(gtk.ARROW_RIGHT, gtk.SHADOW_NONE)
+                self.installed_where_hbox.pack_start(right_arrow, 
+                                                         False, False)
+
+        # create our a11y text
+        a11y_text = ""
+        for widget in self.installed_where_hbox:
+            if isinstance(widget, gtk.Label):
+                a11y_text += ' > ' + widget.get_text()
+        self.installed_where_hbox.a11y.set_name(a11y_text)
+        self.installed_where_hbox.set_property("can-focus", True)
+        self.installed_where_hbox.show_all()
+
+    def _configure_where_is_it(self):
         # remove old content
         self.installed_where_hbox.foreach(lambda c: c.destroy())
         self.installed_where_hbox.set_property("can-focus", False)
@@ -1302,59 +1441,29 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             # first try the desktop file from the DB, then see if
             # there is a local desktop file with the same name as 
             # the package
-            searcher = GMenuSearcher()
             desktop_file = None
+            searcher = GMenuSearcher()
             pkgname = self.app_details.pkgname
             for p in [self.app_details.desktop_file,
                       "/usr/share/applications/%s.desktop" % pkgname]:
                 if p and os.path.exists(p):
                     desktop_file = p
-                    break
-            where = searcher.get_main_menu_path(desktop_file)
-            if not where:
-                return
-            label = gtk.Label(_("Find it in the menu: "))
-            self.installed_where_hbox.pack_start(label, False, False)
-            for (i, item) in enumerate(where):
-                iconname = item.get_icon()
-                # check icontheme first
-                if iconname and self.icons.has_icon(iconname) and i > 0:
-                    image = gtk.Image()
-                    image.set_from_icon_name(iconname, gtk.ICON_SIZE_SMALL_TOOLBAR)
-                    self.installed_where_hbox.pack_start(image, False, False)
-                # then see if its a path to a file on disk
-                elif iconname and os.path.exists(iconname):
-                    image = gtk.Image()
-                    pb = gtk.gdk.pixbuf_new_from_file_at_size(iconname, 18, 18)
-                    if pb:
-                        image.set_from_pixbuf(pb)
-                    self.installed_where_hbox.pack_start(image, False, False)
-
-                label_name = gtk.Label()
-                if item.get_type() == gmenu.TYPE_ENTRY:
-                    label_name.set_text(item.get_display_name())
-                else:
-                    label_name.set_text(item.get_name())
-                self.installed_where_hbox.pack_start(label_name, False, False)
-                if i+1 < len(where):
-                    right_arrow = gtk.Arrow(gtk.ARROW_RIGHT, gtk.SHADOW_NONE)
-                    self.installed_where_hbox.pack_start(right_arrow, 
-                                                         False, False)
-
-            # create our a11y text
-            a11y_text = ""
-            for widget in self.installed_where_hbox:
-                if isinstance(widget, gtk.Label):
-                    a11y_text += ' > ' + widget.get_text()
-            self.installed_where_hbox.a11y.set_name(a11y_text)
-            self.installed_where_hbox.set_property("can-focus", True)
-
-            self.installed_where_hbox.show_all()
+            # try to show menu location if there is a desktop file,
+            # but never show commandline programs for apps with desktop 
+            # file to cover cases like "file-roller" that have NoDisplay=true
+            if desktop_file:
+                where = searcher.get_main_menu_path(desktop_file)
+                if where:
+                    self._add_where_is_it_launcher(where)
+            # if there is no desktop file, show commandline
+            else:
+                self._add_where_is_it_commandline(pkgname)
+        return
 
     # public API
     # FIXME:  port to AppDetailsViewBase as
     #         AppDetailsViewBase.show_app(self, app)
-    def show_app(self, app):
+    def show_app(self, app, force=False):
         LOG.debug("AppDetailsView.show_app '%s'" % app)
         if app is None:
             LOG.debug("no app selected")
@@ -1369,13 +1478,21 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # init data
         self.app = app
         self.app_details = app.get_details(self.db)
+        
+        # check if app just became available and if so, force full
+        # refresh
+        if (same_app and
+            self.pkg_state == PKG_STATE_NEEDS_SOURCE and
+            self.app_details.pkg_state != PKG_STATE_NEEDS_SOURCE):
+            force = True
+        self.pkg_state = self.app_details.pkg_state
 
         # for compat with the base class
         self.appdetails = self.app_details
 
         # update content
         # layout page
-        if same_app:
+        if same_app and not force:
             self._update_minimal(self.app_details)
         else:
             self._update_all(self.app_details)
@@ -1407,6 +1524,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
               result and
               result.pkgname):
             self.pkg_statusbar.configure(self.app_details, PKG_STATE_INSTALLED)
+            # reset the reviews UI now that we have installed the package
+            self.reviews.configure_reviews_ui()
         # normal states
         elif state == PKG_STATE_REMOVING:
             self.pkg_statusbar.configure(self.app_details, PKG_STATE_UNINSTALLED)
@@ -1414,12 +1533,18 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.pkg_statusbar.configure(self.app_details, PKG_STATE_INSTALLED)
         elif state == PKG_STATE_UPGRADING:
             self.pkg_statusbar.configure(self.app_details, PKG_STATE_INSTALLED)
-        # addons modified
+        # addons modified, order is important here
         elif self.addons_statusbar.applying:
             self.pkg_statusbar.configure(self.app_details, PKG_STATE_INSTALLED)
             self.addons_manager.configure(self.app_details.name, False)
             self.addons_statusbar.configure()
-
+        # cancellation of dependency dialog
+        elif state == PKG_STATE_INSTALLED:
+            self.pkg_statusbar.configure(self.app_details, PKG_STATE_INSTALLED)
+            # reset the reviews UI now that we have installed the package
+            self.reviews.configure_reviews_ui()
+        elif state == PKG_STATE_UNINSTALLED:
+            self.pkg_statusbar.configure(self.app_details, PKG_STATE_UNINSTALLED)
         self.adjustment_value = None
         
         if self.addons_statusbar.applying:
@@ -1475,23 +1600,17 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         """ helper for unity dbus support to provide details about the application
             icon as it is displayed on-screen
         """
-        icon_name = self.appdetails.icon
-        if self.appdetails.icon_needs_download:
-            icon_file = self.appdetails.cached_icon_file_path
         icon_size = self._get_app_icon_size_on_screen()
-        icon_file_path = get_file_path_from_iconname(self.icons,
-                                                     iconsize=icon_size,
-                                                     iconname=icon_name)
         (icon_x, icon_y) = self._get_app_icon_xy_position_on_screen()
-        return (icon_name, icon_file_path, icon_size, icon_x, icon_y)
+        return (icon_size, icon_x, icon_y)
 
     def _get_app_icon_size_on_screen(self):
         """ helper for unity dbus support to get the size of the maximum side
             for the application icon as it is displayed on-screen
         """
         icon_size = self.APP_ICON_SIZE
-        if self.main_frame.image.get_storage_type() == gtk.IMAGE_PIXBUF:
-            pb = self.main_frame.image.get_pixbuf()
+        if self.icon.get_storage_type() == gtk.IMAGE_PIXBUF:
+            pb = self.icon.get_pixbuf()
             if pb.get_width() > pb.get_height():
                 icon_size = pb.get_width()
             else:
@@ -1507,34 +1626,10 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         while parent.get_parent():
             parent = parent.get_parent()
         # get x, y relative to toplevel
-        (x,y) = self.main_frame.image.translate_coordinates(parent, 0, 0)
+        (x,y) = self.icon.translate_coordinates(parent, 0, 0)
         # get toplevel window position
         (px, py) = parent.get_position()
         return (px+x, py+y)
-
-    def _draw_icon_frame(self, cr):
-        # draw small or no icon background
-        a = self.main_frame.image.allocation
-        rr = mkit.ShapeRoundedRectangle()
-
-        cr.save()
-        rr.layout(cr, a.x, a.y, a.x+a.width, a.y+a.height, radius=6)
-        r, g, b = self.avg_icon_rgb
-        cr.set_source_rgb(r, g, b)
-        cr.fill_preserve()
-
-        lin = cairo.LinearGradient(0, a.y, 0, a.y+a.height)
-        lin.add_color_stop_rgba(0, 1,1,1, 0.6)
-        lin.add_color_stop_rgba(1, 1,1,1, 0.7)
-
-        cr.set_source(lin)
-        cr.fill_preserve()
-
-        cr.set_source_rgba(r, g, b, 0.75)
-        cr.stroke()
-
-        cr.restore()
-        return
         
     def _get_icon_as_pixbuf(self, app_details):
         if app_details.icon:
@@ -1542,21 +1637,24 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                 try:
                     return self.icons.load_icon(app_details.icon, 84, 0)
                 except glib.GError, e:
-                    logging.warn("failed to load '%s'" % app_details.icon)
+                    logging.warn("failed to load '%s': %s" % (app_details.icon, e))
                     return self.icons.load_icon(MISSING_APP_ICON, 84, 0)
             elif app_details.icon_needs_download and app_details.icon_url:
                 LOG.debug("did not find the icon locally, must download it")
 
                 def on_image_download_complete(downloader, image_file_path):
                     # when the download is complete, replace the icon in the view with the downloaded one
-                    pb = gtk.gdk.pixbuf_new_from_file(image_file_path)
-                    self.main_frame.set_icon_from_pixbuf(pb)
+                    try:
+                        pb = gtk.gdk.pixbuf_new_from_file(image_file_path)
+                        self.icon.set_from_pixbuf(pb)
+                    except Exception, e:
+                        LOG.warning("couldn't load downloadable icon file '%s': %s" % (image_file_path, e))
                     
                 image_downloader = SimpleFileDownloader()
                 image_downloader.connect(
                     'file-download-complete', on_image_download_complete)
                 image_downloader.download_file(
-                    app_details.icon_url, appdetails.cached_icon_file_path)
+                    app_details.icon_url, app_details.cached_icon_file_path)
         return self.icons.load_icon(MISSING_APP_ICON, 84, 0)
     
     def update_totalsize(self):
@@ -1725,9 +1823,9 @@ if __name__ == "__main__":
     from softwarecenter.db.application import Application
     #view.show_app(Application("Pay App Example", "pay-app"))
     #view.show_app(Application("3D Chess", "3dchess"))
-    view.show_app(Application("Movie Player", "totem"))
+    #view.show_app(Application("Movie Player", "totem"))
     #view.show_app(Application("ACE", "unace"))
-    #view.show_app(Application("", "2vcard"))
+    view.show_app(Application("", "apt"))
 
     #view.show_app("AMOR")
     #view.show_app("Configuration Editor")
@@ -1736,11 +1834,15 @@ if __name__ == "__main__":
     #view.show_app("Qlix")
 
     scroll.add(view)
+    scroll.show()
     win.add(scroll)
     win.set_size_request(600,400)
-    win.show_all()
+    win.show()
     win.connect('destroy', gtk.main_quit)
 
     # keep it spinning to test for re-draw issues and memleaks
-#    glib.timeout_add_seconds(2, _show_app, view)
+    #glib.timeout_add_seconds(2, _show_app, view)
+
+
+    # run it
     gtk.main()

@@ -27,7 +27,8 @@ class SCTestGUI(unittest.TestCase):
         pickle.dump(
             self.revno_to_times_list, open("revno_to_times_list.p", "w"))
 
-    def test_startup_time(self):
+    # FIXME: debug why this sometimes hangs
+    def disabled_for_now_untiL_hang_is_found_test_startup_time(self):
         for i in range(5):
             time_to_visible = self.create_ui_and_return_time_to_visible()
             self.record_test_run_data(time_to_visible)
@@ -37,7 +38,8 @@ class SCTestGUI(unittest.TestCase):
         os.environ["PYTHONPATH"] = ".."
         now = time.time()
         # we get the time on stdout and detailed stats on stderr
-        p = subprocess.Popen(["../software-center", "--measure-startup-time"],
+        p = subprocess.Popen(["./software-center", "--measure-startup-time"],
+                             cwd="..",
                              stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         p.wait()
         # this is the time with the python statup overhead
