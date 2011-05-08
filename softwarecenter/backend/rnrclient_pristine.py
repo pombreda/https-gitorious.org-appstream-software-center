@@ -131,12 +131,6 @@ class RatingsAndReviewsAPI(PistonAPI):
         scheme=AUTHENTICATED_API_SCHEME, content_type='application/json')
 
     @validate('review_id', int)
-    @returns_json
-    def get_review_by_id(self, review_id):
-        """Get a single review from the server using review id"""
-        return self._get('reviews/%s' % review_id)
-
-    @validate('review_id', int)
     @validate_pattern('reason', r'[^\n]+')
     @validate_pattern('text', r'[^\n]+')
     @returns_json
@@ -173,3 +167,10 @@ class RatingsAndReviewsAPI(PistonAPI):
 
         return self._get('usefulness/', args=data,
             scheme=PUBLIC_API_SCHEME)
+
+    @validate('review_id', int)
+    @returns_json
+    def delete_review(self, review_id):
+        """Delete a review"""
+        return self._post('/reviews/delete/%s/' % review_id, data={},
+            scheme=AUTHENTICATED_API_SCHEME)

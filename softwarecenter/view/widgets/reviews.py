@@ -929,6 +929,8 @@ class UIReview(gtk.VBox):
         self.no_like = None
         self.status_box = gtk.HBox()
         self.delete_status_box = gtk.HBox()
+        self.delete_error_img = gtk.Image()
+        self.delete_error_img.set_from_stock(gtk.STOCK_DIALOG_ERROR, gtk.ICON_SIZE_SMALL_TOOLBAR)        
         self.submit_error_img = gtk.Image()
         self.submit_error_img.set_from_stock(gtk.STOCK_DIALOG_ERROR, gtk.ICON_SIZE_SMALL_TOOLBAR)
         self.submit_status_spinner = gtk.Spinner()

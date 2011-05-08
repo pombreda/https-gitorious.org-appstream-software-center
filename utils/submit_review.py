@@ -122,7 +122,7 @@ class GRatingsAndReviews(gobject.GObject):
         self.worker_thread.pending_modify.put((int(review_id), review))
     def delete_review(self, review_id):
         self.emit("transmit-start", review_id)
-        self.worker_thread.pending_delete.put((int(review_id), "User deleted own review","User deleted own review"))
+        self.worker_thread.pending_delete.put(int(review_id))
     def server_status(self):
         self.worker_thread.pending_server_status()
     def shutdown(self):
@@ -233,7 +233,7 @@ class Worker(threading.Thread):
     #delete
     def queue_delete(self, deletion):
         """ queue a new deletion request for sending to LP """
-        logging.debug("queue_delete %s %s %s" % deletion)
+        logging.debug("queue_delete review id: %s" % deletion)
         self.pending_delete.put(deletion)
     
     def _submit_delete_if_pending(self):
@@ -241,11 +241,9 @@ class Worker(threading.Thread):
         while not self.pending_delete.empty():
             logging.debug("POST delete")
             self._transmit_state = TRANSMIT_STATE_INPROGRESS
-            (review_id, summary, text) = self.pending_delete.get()
+            review_id = self.pending_delete.get()
             try:
-                res = self.rnrclient.flag_review(review_id=review_id,
-                                                 reason=summary,
-                                                 text=text)
+                res = self.rnrclient.delete_review(review_id=review_id)
                 self._transmit_state = TRANSMIT_STATE_DONE
                 sys.stdout.write(simplejson.dumps(res))
             except Exception as e:
@@ -522,6 +520,8 @@ class BaseApp(SimpleGtkbuilderApp):
         """method to separate the updating of status icon/spinner and message in the submit review window,
          takes a type (progress, fail, success) as a string and a message string then updates status area accordingly"""
         self._clear_status_imagery()
+        self.label_transmit_status.set_text("")
+        
         if type == "progress":
             self.status_hbox.pack_start(self.submit_spinner, False)
             self.status_hbox.reorder_child(self.submit_spinner, 0)
@@ -566,6 +566,12 @@ class BaseApp(SimpleGtkbuilderApp):
         try: 
             result = self.status_hbox.query_child_packing(self.submit_success_img)
             self.status_hbox.remove(self.submit_success_img)
+        except TypeError:
+            pass
+        
+        try: 
+            result = self.status_hbox.query_child_packing(self.submit_warn_img)
+            self.status_hbox.remove(self.submit_warn_img)
         except TypeError:
             pass
         
@@ -674,29 +680,29 @@ class SubmitReviewsApp(BaseApp):
         self._enable_or_disable_post_button()
     
     def _populate_review(self):
-        try:
-            review_data = self.retrieve_api.get_review_by_id(review_id=self.review_id)
-            app = softwarecenter.db.application.Application(pkgname=review_data['package_name'])
-            self.app = app 
-            self.review_summary_entry.set_text(review_data['summary'])
-            self.star_rating.set_rating(review_data['rating'])
-            self.review_buffer.set_text(review_data['review_text'])
+        #try:
+            review_data = self.retrieve_api.get_review(review_id=self.review_id)
+            app = Application(pkgname=review_data.package_name)
+            self.app = app
+            self.review_summary_entry.set_text(review_data.summary)
+            self.star_rating.set_rating(review_data.rating)
+            self.review_buffer.set_text(review_data.review_text)
             #save original review field data, for comparison purposes when user makes changes to fields
-            self.orig_summary_text = review_data['summary']
-            self.orig_star_rating = review_data['rating']
-            self.orig_review_text = review_data['review_text']
-            self.version = review_data['version']
+            self.orig_summary_text = review_data.summary
+            self.orig_star_rating = review_data.rating
+            self.orig_review_text = review_data.review_text
+            self.version = review_data.version
             self.origin = 'ubuntu'
         #FIXME: hardcoded except clause for testing, until API is ready
-        except:
-            app = Application(pkgname='brasero')
-            self.app = app
-            self.review_summary_entry.set_text("summary text")
-            self.star_rating.set_rating(4)
-            self.review_buffer.set_text("review text goes here......")
-            self.version = '0.1'
-            self.origin = 'ubuntu'
-        return
+        #except:
+        #    app = Application(pkgname='brasero')
+        #    self.app = app
+        #    self.review_summary_entry.set_text("summary text")
+        #    self.star_rating.set_rating(4)
+        #    self.review_buffer.set_text("review text goes here......")
+        #    self.version = '0.1'
+        #    self.origin = 'ubuntu'
+            return  
     
 
     def _setup_details(self, widget, app, iconname, version, display_name):
@@ -763,6 +769,8 @@ class SubmitReviewsApp(BaseApp):
             if self._modify_review_is_the_same():
                 self.button_post.set_sensitive(False)
                 self._change_status("warning", _("Can't submit unmodified"))
+            else:
+                self._change_status("clear", "")
     
     def _modify_review_is_the_same(self):
         '''checks if review fields are the same as the review being modified and returns true if so'''
@@ -1244,13 +1252,22 @@ class SubmitUsefulnessApp(BaseApp):
     # stub ui that can be useful for testing
     def run(self):
         self.login()
+        
+    # override UI update methods from BaseApp to prevent them 
+    # causing errors if called when UI is hidden
+    def _clear_status_imagery(self):
+        pass
+    
+    def _change_status(self, type, message):
+        pass
 
 class DeleteReviewApp(BaseApp):
     SUBMIT_MESSAGE = _(u"Deleting review\u2026")
     FAILURE_MESSAGE = _("Failed to delete review")
     
     def __init__(self, review_id, parent_xid, datadir):
-        #uses same UI as submit usefulness because (a) it isn't shown and (b) it's similar in usage
+        # uses same UI as submit usefulness because 
+        # (a) it isn't shown and (b) it's similar in usage
         BaseApp.__init__(self, datadir, "submit_usefulness.ui")
         # data
         self.review_id = review_id
@@ -1276,6 +1293,14 @@ class DeleteReviewApp(BaseApp):
     # stub ui that can be useful for testing
     def run(self):
         self.login()
+        
+    # override UI update methods from BaseApp to prevent them 
+    # causing errors if called when UI is hidden
+    def _clear_status_imagery(self):
+        pass
+    
+    def _change_status(self, type, message):
+        pass
 
 if __name__ == "__main__":
     try:
@@ -1379,6 +1404,27 @@ if __name__ == "__main__":
                                          parent_xid=options.parent_xid,
                                          is_useful=int(options.is_useful))
         usefulness_app.run()
+    
+    if "delete_review" in sys.argv[0]:
+        #check options
+        parser.add_option("", "--review-id")
+        parser.add_option("", "--parent-xid")
+        parser.add_option("", "--debug",
+                          action="store_true", default=False)
+        (options, args) = parser.parse_args()
+        
+        if not (options.review_id):
+            parser.error(_("Missing review-id argument"))
+    
+        if options.debug:
+            logging.basicConfig(level=logging.DEBUG)
+        
+        logging.debug("delete review mode")
+        
+        delete_app = DeleteReviewApp(datadir=options.datadir,
+                                    review_id=options.review_id,
+                                    parent_xid=options.parent_xid)
+        delete_app.run()
 
     if "modify_review" in sys.argv[0]:
             # check options
@@ -1411,29 +1457,6 @@ if __name__ == "__main__":
 
         modify_app.run()
 
-
-    if "delete_review" in sys.argv[0]:
-        # check options
-        parser.add_option("", "--review-id") 
-        parser.add_option("", "--parent-xid")
-        parser.add_option("", "--debug",
-                          action="store_true", default=False)
-        (options, args) = parser.parse_args()
-
-        if not (options.review_id):
-            parser.error(_("Missing review-id arguments"))
-    
-        if options.debug:
-            logging.basicConfig(level=logging.DEBUG)
-
-        # personality
-        logging.debug("delete_review mode")
-
-        # initialize and run
-        delete_app = DeleteReviewApp(datadir=options.datadir,
-                                         review_id=options.review_id, 
-                                         parent_xid=options.parent_xid)
-        delete_app.run()
         
     # main
     gtk.main()
