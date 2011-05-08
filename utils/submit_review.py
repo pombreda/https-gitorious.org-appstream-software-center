@@ -539,13 +539,12 @@ class BaseApp(SimpleGtkbuilderApp):
             self.status_hbox.pack_start(self.submit_success_img, False)
             self.status_hbox.reorder_child(self.submit_success_img, 0)
             self.submit_success_img.show()
+            self.label_transmit_status.set_text(message)
         elif type == "warning":
             self.status_hbox.pack_start(self.submit_warn_img, False)
             self.status_hbox.reorder_child(self.submit_warn_img, 0)
             self.submit_warn_img.show()
-        
-        self.label_transmit_status.set_text(message)
-            
+            self.label_transmit_status.set_text(message)
 
     def _clear_status_imagery(self):
         self.detail_expander.hide()
@@ -671,7 +670,7 @@ class SubmitReviewsApp(BaseApp):
         self.submit_window.set_title(_("Modify Your %s Review" % self.app.name))
         self.button_post.set_label(_("Modify"))
         self.SUBMIT_MESSAGE = _("Updating your review")
-        self.ERROR_MESSAGE = _("Failed to edit review")
+        self.FAILURE_MESSAGE = _("Failed to edit review")
         self._enable_or_disable_post_button()
     
     def _populate_review(self):
@@ -690,7 +689,7 @@ class SubmitReviewsApp(BaseApp):
             self.origin = 'ubuntu'
         #FIXME: hardcoded except clause for testing, until API is ready
         except:
-            app = softwarecenter.db.application.Application(pkgname='brasero')
+            app = Application(pkgname='brasero')
             self.app = app
             self.review_summary_entry.set_text("summary text")
             self.star_rating.set_rating(4)
@@ -753,10 +752,10 @@ class SubmitReviewsApp(BaseApp):
             review_chars and review_chars <= self.REVIEW_CHAR_LIMITS[0] and
             self.star_rating.get_rating()):
             self.button_post.set_sensitive(True)
-            self._change_status("clear")
+            self._change_status("clear", "")
         else:
             self.button_post.set_sensitive(False)
-            self._change_status("clear")
+            self._change_status("clear", "")
         
         #set post button insensitive, if review being modified is the same as what is currently in the UI fields
         #checks if 'original' review attributes exist to avoid exceptions when this method has been called prior to review being retrieved  
@@ -1248,7 +1247,7 @@ class SubmitUsefulnessApp(BaseApp):
 
 class DeleteReviewApp(BaseApp):
     SUBMIT_MESSAGE = _(u"Deleting review\u2026")
-    ERROR_MESSAGE = _("Failed to delete review")
+    FAILURE_MESSAGE = _("Failed to delete review")
     
     def __init__(self, review_id, parent_xid, datadir):
         #uses same UI as submit usefulness because (a) it isn't shown and (b) it's similar in usage

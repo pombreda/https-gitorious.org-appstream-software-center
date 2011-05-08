@@ -1172,7 +1172,7 @@ class UIReview(gtk.VBox):
             current_user_reviewer = True
 
         self._build_usefulness_ui(current_user_reviewer, useful_total,
-                                  useful_favorable, useful_submit_error)
+                                  useful_favorable, useful_votes, useful_submit_error)
             
         self.flagbox = gtk.HBox()
         self._build_delete_flag_ui(current_user_reviewer, delete_error)
