@@ -1,4 +1,4 @@
-software-center (4.0.2) UNRELEASED; urgency=low
+software-center (4.0.2) natty-proposed; urgency=low
 
   [ Gary Lasker ]
   * softwarecenter/utils.py,
@@ -16,7 +16,7 @@ software-center (4.0.2) UNRELEASED; urgency=low
     - fix review-stats loading (LP: #776706)
     - fix review loading (LP: #774201)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 05 May 2011 01:11:45 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 10 May 2011 15:17:15 +0200
 
 software-center (4.0.1) natty-proposed; urgency=low
 
