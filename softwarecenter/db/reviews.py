@@ -431,6 +431,7 @@ class ReviewLoaderSpawningRNRClient(ReviewLoader):
         # add to our dicts and run callback
         self._reviews[app] = sorted(reviews, reverse=True)
         callback(app, self._reviews[app])
+        return False
 
     # stats
     def refresh_review_stats(self, callback):
@@ -490,10 +491,10 @@ class ReviewLoaderSpawningRNRClient(ReviewLoader):
             s.ratings_average = float(r.ratings_average)
             s.ratings_total = float(r.ratings_total)
             review_stats[s.app] = s
-
         self.REVIEW_STATS_CACHE = review_stats
         callback(review_stats)
         self.save_review_stats_cache_file()
+        return False
 
 class ReviewLoaderJsonAsync(ReviewLoader):
     """ get json (or gzip compressed json) """
