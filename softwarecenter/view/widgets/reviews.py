@@ -859,7 +859,15 @@ class UIReviewsList(gtk.VBox):
         # only show the "More" button if there is a chance that there
         # are more
         if self.reviews and len(self.reviews) % REVIEWS_BATCH_PAGE_SIZE == 0:
-            button = gtk.Button(_("Show more reviews"))
+            # mvo: the lines below are only needed because "More…" is
+            #      actually translated already
+            # button = gtk.Button(_("Show more reviews"))
+            button = gtk.Button()
+            label = gtk.Label()
+            label.set_markup(_("<small>More…</small>"))
+            label.show()
+            button.add(label)
+            # ---------------
             button.connect("clicked", self._on_more_reviews_clicked)
             button.show()
             self.vbox.pack_start(button)                
