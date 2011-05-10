@@ -452,19 +452,24 @@ class ReviewLoaderSpawningRNRClient(ReviewLoader):
             (pid, stdin, stdout, stderr) = glib.spawn_async(
                 cmd, flags = glib.SPAWN_DO_NOT_REAP_CHILD, 
                 standard_output=True, standard_error=True)
-            glib.child_watch_add(pid, self._reviews_loaded_watcher, data=(app, stdout, stderr, callback))
+            glib.child_watch_add(pid, self._reviews_helper_finished, data=(app, stdout, stderr, callback))
+            glib.io_add_watch(stdout, glib.IO_IN, self._reviews_io_ready, (app, stdout, callback))
         except Exception as e:
             raise Exception("failed to launch: '%s' (error: '%s')" % (cmd, e))
 
-    def _reviews_loaded_watcher(self, pid, status, (app, stdout, stderr, callback)):
+    def _reviews_helper_finished(self, pid, status, (app, stdout, stderr, callback)):
         """ watcher function in parent using glib """
         # get status code
         res = os.WEXITSTATUS(status)
+        if res != 0:
+            LOG.warn("exit code %s from helper" % res)
         # check stderr
         err = os.read(stderr, 4*1024)
         if err:
-            logging.warn("got error from helper: '%s'" % err)
+            LOG.warn("got error from helper: '%s'" % err)
         os.close(stderr)
+
+    def _reviews_io_ready(self, source, condition, (app, stdout, callback)):
         # read the raw data
         data = ""
         while True:
@@ -508,19 +513,24 @@ class ReviewLoaderSpawningRNRClient(ReviewLoader):
         (pid, stdin, stdout, stderr) = glib.spawn_async(
             cmd, flags = glib.SPAWN_DO_NOT_REAP_CHILD, 
             standard_output=True, standard_error=True)
-        glib.child_watch_add(pid, self._review_stats_loaded_watcher, data=(stdout, stderr, callback))
+        glib.child_watch_add(pid, self._review_stats_helper_finished, data=(stdout, stderr, callback))
+        glib.io_add_watch(stdout, glib.IO_IN, self._review_stats_io_ready, (stdout, callback))
 
-    def _review_stats_loaded_watcher(self, pid, status, (stdout, stderr, callback)):
+    def _review_stats_helper_finished(self, pid, status, (stdout, stderr, callback)):
         """ waits for the process that gets the data
             to finish and emits callback then """
-        # shorthand
-        review_stats = self.REVIEW_STATS_CACHE
         res = os.WEXITSTATUS(status)
-        # check stderr first
+        if res != 0:
+            LOG.warn("exit code %s from helper" % res)
+        # log stderr
         err = os.read(stderr, 4*1024)
         if err:
-            logging.warn("got error from helper: '%s'" % err)
+            LOG.warn("got error from helper: '%s'" % err)
         os.close(stderr)
+
+    def _review_stats_io_ready(self, source, condition, (stdout, callback)):
+        """ process stdout from the helper """
+        review_stats = self.REVIEW_STATS_CACHE
         # get data
         data = ""
         while True:
