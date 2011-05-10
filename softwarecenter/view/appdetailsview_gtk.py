@@ -733,6 +733,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.addons_to_install = self.addons_manager.addons_to_install
         self.addons_to_remove = self.addons_manager.addons_to_remove
 
+        # reviews
+        self._reviews_server_page = 1
+        
         # switches
         self._show_overlay = False
 
@@ -776,6 +779,12 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         else:
             self.review_stats_widget.hide()
 
+    def _on_more_reviews_clicked(self, uilist):
+        self._reviews_server_page += 1
+        self.review_loader.get_reviews(
+            self.app, self._reviews_ready_callback,
+            page=self._reviews_server_page)
+
     def _reviews_ready_callback(self, app, reviews_data, my_votes=None):
         """ callback when new reviews are ready, cleans out the
             old ones
@@ -809,9 +818,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         if my_votes:
             self.reviews.update_useful_votes(my_votes)
         
-        # FIXME: simplify UIReviewsList API to provide a single set_reviews()
-        # update the UI
-        self.reviews.clear()
         for review in reviews_data:
             self.reviews.add_review(review)
         self.reviews.configure_reviews_ui()
@@ -1098,6 +1104,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.reviews.connect("new-review", self._on_review_new)
         self.reviews.connect("report-abuse", self._on_review_report_abuse)
         self.reviews.connect("submit-usefulness", self._on_review_submit_usefulness)
+        self.reviews.connect("more-reviews-clicked", self._on_more_reviews_clicked)
         vb.pack_start(self.reviews, False)
 
         self.show_all()

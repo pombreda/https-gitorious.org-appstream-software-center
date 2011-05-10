@@ -718,6 +718,9 @@ class UIReviewsList(gtk.VBox):
         'submit-usefulness':(gobject.SIGNAL_RUN_FIRST,
                     gobject.TYPE_NONE,
                     (gobject.TYPE_PYOBJECT, bool)),
+        'more-reviews-clicked':(gobject.SIGNAL_RUN_FIRST,
+                                gobject.TYPE_NONE,
+                                () ),
 
     }
 
@@ -852,7 +855,16 @@ class UIReviewsList(gtk.VBox):
                 self._be_the_first_to_review()
             else:
                 self.vbox.pack_start(NoReviewYet())
+
+        if self.reviews:
+            button = gtk.Button(_("More"))
+            button.connect("clicked", self._on_more_reviews_clicked)
+            button.show()
+            self.vbox.pack_start(button)                
         return
+
+    def _on_more_reviews_clicked(self, button):
+        self.emit("more-reviews-clicked")
 
     def add_review(self, review):
         self.reviews.append(review)
