@@ -781,6 +781,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
     def _on_more_reviews_clicked(self, uilist):
         self._reviews_server_page += 1
+        self.reviews.show_spinner_with_message(_('Checking for reviews...'))
         self.review_loader.get_reviews(
             self.app, self._reviews_ready_callback,
             page=self._reviews_server_page)

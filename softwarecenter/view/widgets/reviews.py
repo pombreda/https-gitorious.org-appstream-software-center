@@ -864,6 +864,8 @@ class UIReviewsList(gtk.VBox):
         return
 
     def _on_more_reviews_clicked(self, button):
+        # remove buttn and emit signal
+        self.vbox.remove(button)
         self.emit("more-reviews-clicked")
 
     def add_review(self, review):
