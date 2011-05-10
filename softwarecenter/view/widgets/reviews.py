@@ -856,8 +856,10 @@ class UIReviewsList(gtk.VBox):
             else:
                 self.vbox.pack_start(NoReviewYet())
 
-        if self.reviews:
-            button = gtk.Button(_("More"))
+        # only show the "More" button if there is a chance that there
+        # are more
+        if self.reviews and len(self.reviews) % REVIEWS_BATCH_PAGE_SIZE == 0:
+            button = gtk.Button(_("Show more reviews"))
             button.connect("clicked", self._on_more_reviews_clicked)
             button.show()
             self.vbox.pack_start(button)                
