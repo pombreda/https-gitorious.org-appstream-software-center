@@ -236,7 +236,7 @@ class ReviewLoader(object):
                 LOG.exception("review stats cache load failure")
                 os.rename(self.REVIEW_STATS_CACHE_FILE, self.REVIEW_STATS_CACHE_FILE+".fail")
 
-    def get_reviews(self, application, callback):
+    def get_reviews(self, application, callback, page=1):
         """run callback f(app, review_list) 
            with list of review objects for the given
            db.database.Application object
@@ -415,7 +415,7 @@ class ReviewLoaderSpawningRNRClient(ReviewLoader):
         self.rnrclient._offline_mode = not network_state_is_connected()
 
     # reviews
-    def get_reviews(self, translated_app, callback):
+    def get_reviews(self, translated_app, callback, page=1):
         """ public api, triggers fetching a review and calls callback
             when its ready
         """
@@ -447,6 +447,7 @@ class ReviewLoaderSpawningRNRClient(ReviewLoader):
                "--origin", origin, 
                "--distroseries", distroseries, 
                "--pkgname", str(app.pkgname), # ensure its str, not unicode
+               "--page", str(page),
               ]
         try:
             (pid, stdin, stdout, stderr) = glib.spawn_async(
@@ -487,6 +488,7 @@ class ReviewLoaderSpawningRNRClient(ReviewLoader):
         # add to our dicts and run callback
         self._reviews[app] = sorted(reviews, reverse=True)
         callback(app, self._reviews[app])
+        return False
 
     # stats
     def refresh_review_stats(self, callback):
@@ -546,10 +548,10 @@ class ReviewLoaderSpawningRNRClient(ReviewLoader):
             s.ratings_average = float(r.ratings_average)
             s.ratings_total = float(r.ratings_total)
             review_stats[s.app] = s
-
         self.REVIEW_STATS_CACHE = review_stats
         callback(review_stats)
         self.save_review_stats_cache_file()
+        return False
 
 class ReviewLoaderJsonAsync(ReviewLoader):
     """ get json (or gzip compressed json) """
@@ -574,7 +576,7 @@ class ReviewLoaderJsonAsync(ReviewLoader):
         # run callback
         callback(app, sorted(reviews, reverse=True))
 
-    def get_reviews(self, app, callback):
+    def get_reviews(self, app, callback, page=1):
         """ get a specific review and call callback when its available"""
         # FIXME: get this from the app details
         origin = self.cache.get_origin(app.pkgname)
@@ -645,7 +647,7 @@ class ReviewLoaderFake(ReviewLoader):
         return random.choice(self.LOREM.split("\n\n"))
     def _random_summary(self):
         return random.choice(self.SUMMARIES)
-    def get_reviews(self, application, callback):
+    def get_reviews(self, application, callback, page=1):
         if not application in self._review_stats_cache:
             self.get_review_stats(application)
         stats = self._review_stats_cache[application]

@@ -718,6 +718,9 @@ class UIReviewsList(gtk.VBox):
         'submit-usefulness':(gobject.SIGNAL_RUN_FIRST,
                     gobject.TYPE_NONE,
                     (gobject.TYPE_PYOBJECT, bool)),
+        'more-reviews-clicked':(gobject.SIGNAL_RUN_FIRST,
+                                gobject.TYPE_NONE,
+                                () ),
 
     }
 
@@ -852,7 +855,20 @@ class UIReviewsList(gtk.VBox):
                 self._be_the_first_to_review()
             else:
                 self.vbox.pack_start(NoReviewYet())
+
+        # only show the "More" button if there is a chance that there
+        # are more
+        if self.reviews and len(self.reviews) % REVIEWS_BATCH_PAGE_SIZE == 0:
+            button = gtk.Button(_("Show more reviews"))
+            button.connect("clicked", self._on_more_reviews_clicked)
+            button.show()
+            self.vbox.pack_start(button)                
         return
+
+    def _on_more_reviews_clicked(self, button):
+        # remove buttn and emit signal
+        self.vbox.remove(button)
+        self.emit("more-reviews-clicked")
 
     def add_review(self, review):
         self.reviews.append(review)
