@@ -410,7 +410,7 @@ class ReviewLoaderSpawningRNRClient(ReviewLoader):
         # check stderr
         err = os.read(stderr, 4*1024)
         if err:
-            logging.warn("got error from helper: '%s'" % err)
+            LOG.warn("got error from helper: '%s'" % err)
         os.close(stderr)
 
     def _reviews_io_ready(self, source, condition, (app, stdout, callback)):
