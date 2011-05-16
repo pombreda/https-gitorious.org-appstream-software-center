@@ -30,6 +30,11 @@ from softwarecenter.enums import *
 
 class Ubuntu(Distro):
 
+    # see __init__.py description
+    DISTROSERIES = ["oneiric",
+                    "natty",
+                   ]
+
     # metapackages
     IMPORTANT_METAPACKAGES = ("ubuntu-desktop", "kubuntu-desktop")
 

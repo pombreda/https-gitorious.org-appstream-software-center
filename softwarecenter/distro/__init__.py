@@ -28,6 +28,11 @@ class UnimplementedError(Exception):
 class Distro(object):
     """ abstract base class for a distribution """
     
+    # list of code names for the distro from newest to oldest, this is
+    # used e.g. in the reviews loader if no reviews for the current codename
+    # are found
+    DISTROSERIES = []
+
     # missing thumbnail
     IMAGE_THUMBNAIL_MISSING = "/usr/share/software-center/images/dummy-thumbnail-ubuntu.png"
     IMAGE_FULL_MISSING = "/usr/share/software-center/images/dummy-screenshot-ubuntu.png"

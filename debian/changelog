@@ -23,6 +23,9 @@ software-center (4.1.1) UNRELEASED; urgency=low
     thanks
   * support pagination ("Show more reviews" button) when there are
     more reviews than fitting in a returned "page"
+  * utils/get_reviews_helper.py:
+    - if there are no reviews for the current distroseries, fallback
+      to the previous one (LP: #783331)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 16 May 2011 09:40:43 +0200
 
