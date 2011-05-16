@@ -407,22 +407,31 @@ class ReviewLoader(object):
                         callback(app, self._reviews[app])
                         break
 
-    
     def _on_modify_review_finished(self, pid, status, (review_id, stdout_fd, callback)):
-        """called when modify_review finished, currently just gets the response"""
+        """called when modify_review finished"""
+        LOG.debug("_on_modify_review_finished")
         stdout = ""
         while True:
             s = os.read(stdout_fd, 1024)
             if not s: break
             stdout += s
-        LOG.debug("stdout from submit_review: '%s'" % stdout)
+        LOG.debug("stdout from modify_review: '%s'" % stdout)
         if os.WEXITSTATUS(status) == 0:
             try:
-                response_json = simplejson.loads(stdout)
+                review_json = simplejson.loads(stdout)
             except simplejson.decoder.JSONDecodeError:
-                logging.error("failed to parse '%s'" % stdout)
+                LOG.error("failed to parse '%s'" % stdout)
                 return
-            response = ReviewDetails.from_dict(response_json)
+            review = ReviewDetails.from_dict(review_json)
+            
+            for (app, reviews) in self._reviews.iteritems():
+                for review in reviews:
+                    if str(review.id) == str(review_id):
+                        # remove the one we don't want to see anymore
+                        self._reviews[app].remove(review)
+                        self._reviews[app].insert(0, Review.from_piston_mini_client(review))
+                        callback(app, self._reviews[app])
+                        break
 
     def _on_submit_usefulness_finished(self, pid, status, (review_id, is_useful, stdout_fd, callback)):
         """ called when report_usefulness finished """
