@@ -16,8 +16,9 @@ software-center (4.1.1) UNRELEASED; urgency=low
     - fix 'no log handler' error on update-software-center (LP #728896)
   * lp:~aaronp/software-center/enhance-usefulness:
     - load/cache users usefulnes votes
+  * add utils/get_useful_votes_helper.py to the setup scripts
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 05 May 2011 02:03:51 -0400
+ -- Aaron Peachey <alpeachey@gmail.com>  Sun, 08 May 2011 20:32:04 +1000
 
 software-center (4.1) oneiric; urgency=low
 
