@@ -32,6 +32,9 @@ from softwarecenter.backend import get_install_backend
 class SCBuySomething(unittest.TestCase):
     
     def setUp(self):
+        # ensure we get something from s-c-agent
+        os.environ["SOFTWARE_CENTER_DISTRO_CODENAME"] = "natty"
+
         if os.getuid() == 0:
             p = "/etc/apt/sources.list.d/private-ppa.launchpad.net_mvo_private-test_ubuntu.list"
             if os.path.exists(p):
