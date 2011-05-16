@@ -15,6 +15,7 @@ import datetime
 
 sys.path.insert(0,"../")
 import softwarecenter.netstatus
+import softwarecenter.paths
 
 from softwarecenter.apt.aptcache import AptCache
 from softwarecenter.db.database import StoreDatabase
@@ -30,7 +31,11 @@ class TestAppDetailsView(unittest.TestCase):
     """ tests the AppDetailsView """
 
     def setUp(self):
+        # setup env/datadirs for the reviews helper
         datadir = "../data"
+        softwarecenter.paths.datadir = datadir
+        os.environ["PYTHONPATH"] = ".."
+        # cache
         cache = AptCache()
         cache.open()
         xapian_base_path = XAPIAN_BASE_PATH
