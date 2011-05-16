@@ -223,7 +223,7 @@ class Worker(threading.Thread):
     #modify
     def queue_modify(self, modification):
         """ queue a new review modification request for sending to LP """
-        logging.debug("queue_modify %s %s %s" % modification)
+        logging.debug("queue_modify %s %s" % modification)
         self.pending_modify.put(modification)
 
     def _submit_modify_if_pending(self):
@@ -706,7 +706,6 @@ class SubmitReviewsApp(BaseApp):
         self._enable_or_disable_post_button()
     
     def _populate_review(self):
-        #try:
             review_data = self.retrieve_api.get_review(review_id=self.review_id)
             app = Application(pkgname=review_data.package_name)
             self.app = app
@@ -719,15 +718,6 @@ class SubmitReviewsApp(BaseApp):
             self.orig_review_text = review_data.review_text
             self.version = review_data.version
             self.origin = 'ubuntu'
-        #FIXME: hardcoded except clause for testing, until API is ready
-        #except:
-        #    app = Application(pkgname='brasero')
-        #    self.app = app
-        #    self.review_summary_entry.set_text("summary text")
-        #    self.star_rating.set_rating(4)
-        #    self.review_buffer.set_text("review text goes here......")
-        #    self.version = '0.1'
-        #    self.origin = 'ubuntu'
             return  
     
 
@@ -889,17 +879,6 @@ class SubmitReviewsApp(BaseApp):
                            "%02X" % b)
 
     def on_button_post_clicked(self, button):
-        """choose what clicking post button does, depending on whether app is using submit or modify action"""
-        if self.action == "submit":
-            self._on_post_clicked_submit()
-        elif self.action == "modify":
-            self._on_post_clicked_modify()
-    
-    #FIXME: stub until api can allow us to edit reviews
-    def _on_post_clicked_modify(self):
-        logging.warn("send modified review")
-        
-    def _on_post_clicked_submit(self):
         logging.debug("enter_review ok button")
         review = Review(self.app)
         text_buffer = self.textview_review.get_buffer()
@@ -911,7 +890,10 @@ class SubmitReviewsApp(BaseApp):
         review.rating = self.star_rating.get_rating()
         review.package_version = self.version
         review.origin = self.origin
-        self.api.submit_review(review)
+        if self.action == "submit":
+            self.api.submit_review(review)
+        elif self.action == "modify":
+            self.api.modify_review(self.review_id, review)
 
     def login_successful(self, display_name):
         self.main_notebook.set_current_page(1)
