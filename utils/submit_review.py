@@ -618,6 +618,7 @@ class SubmitReviewsApp(BaseApp):
     ERROR_COLOUR = "FF0000"
     SUBMIT_MESSAGE = _("Submitting Review")
     FAILURE_MESSAGE = _("Failed to submit review")
+    SUCCESS_MESSAGE = _("Review submitted")
 
     def __init__(self, app, version, iconname, origin, parent_xid, datadir, action="submit", review_id=0):
         BaseApp.__init__(self, datadir, "submit_review.ui")
@@ -703,23 +704,23 @@ class SubmitReviewsApp(BaseApp):
         self.button_post.set_label(_("Modify"))
         self.SUBMIT_MESSAGE = _("Updating your review")
         self.FAILURE_MESSAGE = _("Failed to edit review")
+        self.SUCCESS_MESSAGE = _("Review updated")
         self._enable_or_disable_post_button()
     
     def _populate_review(self):
-            review_data = self.retrieve_api.get_review(review_id=self.review_id)
-            app = Application(pkgname=review_data.package_name)
-            self.app = app
-            self.review_summary_entry.set_text(review_data.summary)
-            self.star_rating.set_rating(review_data.rating)
-            self.review_buffer.set_text(review_data.review_text)
-            #save original review field data, for comparison purposes when user makes changes to fields
-            self.orig_summary_text = review_data.summary
-            self.orig_star_rating = review_data.rating
-            self.orig_review_text = review_data.review_text
-            self.version = review_data.version
-            self.origin = 'ubuntu'
-            return  
-    
+        review_data = self.retrieve_api.get_review(review_id=self.review_id)
+        app = Application(pkgname=review_data.package_name)
+        self.app = app
+        self.review_summary_entry.set_text(review_data.summary)
+        self.star_rating.set_rating(review_data.rating)
+        self.review_buffer.set_text(review_data.review_text)
+        #save original review field data, for comparison purposes when user makes changes to fields
+        self.orig_summary_text = review_data.summary
+        self.orig_star_rating = review_data.rating
+        self.orig_review_text = review_data.review_text
+        self.version = review_data.version
+        self.origin = 'ubuntu'
+        return  
 
     def _setup_details(self, widget, app, iconname, version, display_name):
         # icon shazam
@@ -1043,7 +1044,7 @@ class SubmitReviewsApp(BaseApp):
     
     def _success_status(self):
         """Updates status area to show success for 2 seconds then allows window to proceed"""
-        self._change_status("success", _("Review submitted."))
+        self._change_status("success", self.SUCCESS_MESSAGE)
         while gtk.events_pending():
             gtk.main_iteration(False)
         time.sleep(2)
