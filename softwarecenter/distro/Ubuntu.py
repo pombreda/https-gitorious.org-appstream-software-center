@@ -94,13 +94,6 @@ class Ubuntu(Distro):
                 break
         return (primary, button_text)
 
-    def get_distro_codename(self):
-        if not hasattr(self ,"codename"):
-            self.codename = subprocess.Popen(
-                ["lsb_release","-c","-s"],
-                stdout=subprocess.PIPE).communicate()[0].strip()
-        return self.codename
-
     def get_license_text(self, component):
         if component in ("main", "universe", "independent"):
             return _("Open source")
@@ -135,7 +128,7 @@ class Ubuntu(Distro):
         # updated regularly)
         releasef = get_release_filename_for_pkg(cache._cache, pkgname, 
                                                 "Ubuntu", 
-                                                self.get_distro_codename())
+                                                self.get_codename())
         time_t = get_release_date_from_release_file(releasef)
         # check the release date and show support information
         # based on this
