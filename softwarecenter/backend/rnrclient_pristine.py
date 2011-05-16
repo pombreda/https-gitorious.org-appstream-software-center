@@ -129,6 +129,15 @@ class RatingsAndReviewsAPI(PistonAPI):
         """Submit a rating/review."""
         return self._post('reviews/', data=review,
         scheme=AUTHENTICATED_API_SCHEME, content_type='application/json')
+    
+    #TODO: this method currently just retrieves and returns the old review for testing purposes
+    #      needs to be fixed once modify review api is available on server
+    @validate('review_id', int)
+    @validate('review', ReviewRequest)
+    @returns(ReviewDetails)
+    def modify_review(self, review_id, review):
+        """Modify an existing review"""
+        return self._get('reviews/%s/' % review_id)
 
     @validate('review_id', int)
     @validate_pattern('reason', r'[^\n]+')
