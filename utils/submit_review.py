@@ -227,9 +227,35 @@ class Worker(threading.Thread):
         self.pending_modify.put(modification)
 
     def _submit_modify_if_pending(self):
-        #FIXME: stub
-        pass
-            
+        """ the actual modify function """
+        while not self.pending_modify.empty():
+            logging.debug("_modify_review")
+            self._transmit_state = TRANSMIT_STATE_INPROGRESS
+            (review_id, review) = self.pending_modify.get()
+            piston_review = ReviewRequest()
+            piston_review.package_name = review.app.pkgname
+            piston_review.app_name = review.app.appname
+            piston_review.summary = review.summary
+            piston_review.version = review.package_version
+            piston_review.review_text = review.text
+            piston_review.date = str(review.date)
+            piston_review.rating = review.rating
+            piston_review.language = review.language
+            piston_review.arch_tag = get_current_arch()
+            piston_review.origin = review.origin
+            piston_review.distroseries=distro.get_codename()
+            try:
+                res = self.rnrclient.modify_review(review_id=review_id, review=piston_review)
+                self._transmit_state = TRANSMIT_STATE_DONE
+                sys.stdout.write(simplejson.dumps(vars(res)))
+            except Exception as e:
+                logging.exception("modify_review")
+                err_str = self._get_error_messages(e)
+                self._write_exception_html_log_if_needed(e)
+                self._transmit_state = TRANSMIT_STATE_ERROR
+                self._transmit_error_str = err_str
+            self.pending_modify.task_done() 
+                       
     #delete
     def queue_delete(self, deletion):
         """ queue a new deletion request for sending to LP """
