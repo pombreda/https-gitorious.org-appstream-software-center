@@ -17,8 +17,9 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 
-import subprocess
 import logging
+import os
+import subprocess
 
 from gettext import gettext as _
 
@@ -64,6 +65,10 @@ class Distro(object):
 
     def get_codename(self):
         """ The codename of the distro, e.g. lucid """
+        # for tests and similar
+        if "SOFTWARE_CENTER_DISTRO_CODENAME" in os.environ:
+            return os.environ["SOFTWARE_CENTER_DISTRO_CODENAME"]
+        # normal behavior
         if not hasattr(self, "_distro_code_name"):
             self._distro_code_name = subprocess.Popen(
                 ["lsb_release","-c","-s"], 
