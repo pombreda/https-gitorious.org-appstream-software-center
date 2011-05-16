@@ -1,4 +1,4 @@
-software-center (4.1.1) UNRELEASED; urgency=low
+software-center (4.1.1) oneiric; urgency=low
 
   [ Gary Lasker ]
   * softwarecenter/utils.py,
@@ -26,8 +26,9 @@ software-center (4.1.1) UNRELEASED; urgency=low
   * utils/get_reviews_helper.py:
     - if there are no reviews for the current distroseries, fallback
       to the previous one (LP: #783331)
+  * updated tests for oneiric
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 16 May 2011 09:40:43 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 16 May 2011 09:53:04 +0200
 
 software-center (4.1) oneiric; urgency=low
 
