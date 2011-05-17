@@ -112,8 +112,11 @@ class AptHistory(object):
         cachetime = 0
         if os.path.exists(p) and use_cache:
             with ExecutionTime("loading pickle cache"):
-                self.transactions = cPickle.load(open(p))
-            cachetime = os.path.getmtime(p)
+                try:
+                    self.transactions = cPickle.load(open(p))
+                    cachetime = os.path.getmtime(p)
+                except:
+                    LOG.exception("failed to load cache")
         for history_gz_file in sorted(glob.glob(self.history_file+".*.gz"),
                                       cmp=self._mtime_cmp):
             if os.path.getmtime(history_gz_file) < cachetime:
