@@ -1772,9 +1772,12 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                 # --there are still cases when we really do want to hide this
                 self.usage.hide()
                 return
-            label_string = gettext.ngettext("Used: one time",
-                                            "Used: %(amount)s times",
-                                            counter) % { 'amount' : counter, }
+            if counter <=100:
+                label_string = gettext.ngettext("Used: one time",
+                                                "Used: %(amount)s times",
+                                                counter) % { 'amount' : counter, }
+            else:
+                label_string = _("Used: over 100 times")
             self.usage.set_text('<small>%s</small>' % label_string)
             self.usage.show()
 
