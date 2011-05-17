@@ -18,7 +18,7 @@
 
 import gobject
 
-class PkgInfo(gobject.GObject):
+class PackageInfo(gobject.GObject):
     """ abstract interface for the packageinfo information """
 
     __gsignals__ = {'cache-ready':  (gobject.SIGNAL_RUN_FIRST,
@@ -48,6 +48,7 @@ class PkgInfo(gobject.GObject):
         pass
 
 
-pkginfo = PkgInfo()
+from pkginfo_impl.aptcache import AptCache
+pkginfo = AptCache()
 def get_pkginfo():
     return pkginfo
