@@ -1,3 +1,14 @@
+software-center (4.1.2) oneiric; urgency=low
+
+  * applied patch from Andrew Higginson to make the border around 
+    the status bar a bit bigger, many thanks!
+  * merged lp:~evfool/software-center/smallfixes, many thanks
+    to Robert Roth 
+  * softwarecenter/apt/apthistory.py:
+    - ignore corrupted apthistory.p files
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 17 May 2011 17:03:26 +0200
+
 software-center (4.1.1) oneiric; urgency=low
 
   [ Gary Lasker ]
@@ -42,6 +53,13 @@ software-center (4.1) oneiric; urgency=low
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 29 Apr 2011 17:59:47 +0200
 
+software-center (4.0.3) UNRELEASED; urgency=low
+
+  * merged lp:~evfool/software-center/qfix774201, many thanks
+    to Robert Roth (really fixes LP: #774201)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 17 May 2011 15:48:32 +0200
+
 software-center (4.0.2) natty-proposed; urgency=low
 
   [ Gary Lasker ]
@@ -58,9 +76,10 @@ software-center (4.0.2) natty-proposed; urgency=low
   [ Michael Vogt ]
   * softwarecenter/db/reviews.py:
     - fix review-stats loading (LP: #776706)
-    - fix review loading (LP: #774201)
+  * merged lp:~evfool/software-center/qfix774201, many thanks
+    to Robert Roth (fixes LP: #774201)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 10 May 2011 15:17:15 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 17 May 2011 16:04:01 +0200
 
 software-center (4.0.1) natty-proposed; urgency=low
 

@@ -264,7 +264,8 @@ class CellRendererAppView2(gtk.CellRendererText):
         'rating': (gobject.TYPE_FLOAT, 'Rating', 'Avg rating', 0.0, 5.0, 0.0,
             gobject.PARAM_READWRITE),
 
-        'nreviews': (gobject.TYPE_INT, 'Reviews', 'Number of reviews', 0, 100, 0,
+        # can't use max=sys.maxint here as this causes OverflowError on amd64
+        'nreviews': (gobject.TYPE_INT, 'Reviews', 'Number of reviews', 0, 100000, 0,
             gobject.PARAM_READWRITE),
 
         'isactive': (bool, 'IsActive', 'Is active?', False,
