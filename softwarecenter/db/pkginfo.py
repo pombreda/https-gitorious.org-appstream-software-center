@@ -50,5 +50,5 @@ class PackageInfo(gobject.GObject):
 
 from pkginfo_impl.aptcache import AptCache
 pkginfo = AptCache()
-def get_pkginfo():
+def get_pkg_info():
     return pkginfo

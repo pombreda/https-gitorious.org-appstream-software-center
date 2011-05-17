@@ -63,7 +63,7 @@ from paths import SOFTWARE_CENTER_ICON_CACHE_DIR
 from plugin import PluginManager
 from db.reviews import get_review_loader, UsefulnessCache
 from distro import get_distro
-from apt.aptcache import AptCache
+from db.pkginfo import get_pkg_info
 from gettext import gettext as _
 
 
@@ -131,7 +131,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             sources.set_sensitive(False)
 
         # a main iteration friendly apt cache
-        self.cache = AptCache()
+        self.cache = get_pkg_info()
         self.cache.connect("cache-broken", self._on_apt_cache_broken)
 
         # backend

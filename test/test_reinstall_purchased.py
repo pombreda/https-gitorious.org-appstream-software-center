@@ -12,7 +12,7 @@ import simplejson
 import unittest
 import xapian
 
-from softwarecenter.apt.aptcache import AptCache
+from softwarecenter.db.pkginfo import get_pkg_info
 from softwarecenter.enums import *
 from softwarecenter.db.database import StoreDatabase
 from softwarecenter.db.update import add_from_purchased_but_needs_reinstall_data

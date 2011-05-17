@@ -1802,8 +1802,8 @@ if __name__ == "__main__":
 
     xapian_base_path = "/var/cache/software-center"
     pathname = os.path.join(xapian_base_path, "xapian")
-    from softwarecenter.apt.aptcache import AptCache
-    cache = AptCache()
+    from softwarecenter.db.pkginfo import get_pkg_info
+    cache = get_pkg_info()
     cache.open()
 
     from softwarecenter.db.database import StoreDatabase

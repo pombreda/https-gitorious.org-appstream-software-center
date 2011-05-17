@@ -1189,8 +1189,8 @@ if __name__ == "__main__":
     pathname = os.path.join(xapian_base_path, "xapian")
 
     # the store
-    from softwarecenter.apt.aptcache import AptCache
-    cache = AptCache()
+    from softwarecenter.db.pkginfo import get_pkg_info
+    cache = get_pkg_info()
     cache.open()
 
     db = StoreDatabase(pathname, cache)

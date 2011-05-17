@@ -6,7 +6,7 @@ sys.path.insert(0,"../")
 import logging
 import unittest
 
-from softwarecenter.db.pkginfo import get_pkginfo
+from softwarecenter.db.pkginfo import get_pkg_info
 from softwarecenter.utils import ExecutionTime
 
 class TestPkgInfo(unittest.TestCase):
@@ -15,7 +15,7 @@ class TestPkgInfo(unittest.TestCase):
         pass
 
     def test_pkg_info(self):
-        pkginfo = get_pkginfo()
+        pkginfo = get_pkg_info()
         pkginfo.open()
         self.assertTrue(pkginfo.is_installed("coreutils"))
         self.assertTrue(pkginfo.is_available("bash"))

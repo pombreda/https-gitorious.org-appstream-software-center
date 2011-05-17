@@ -11,7 +11,7 @@ import shutil
 import time
 import unittest
 
-from softwarecenter.apt.aptcache import AptCache
+from softwarecenter.db.pkginfo import get_pkg_info
 from softwarecenter.backend.channel import SoftwareChannel, ChannelsManager
 from softwarecenter.db.database import StoreDatabase
 from softwarecenter.enums import *
@@ -31,7 +31,7 @@ class TestSoftwareChannels(unittest.TestCase):
     def setUp(self):
         xapian_base_path = XAPIAN_BASE_PATH
         pathname = os.path.join(xapian_base_path, "xapian")
-        self.cache = AptCache()
+        self.cache = get_pkg_info()
         self.cache.open()
         self.db = StoreDatabase(pathname, self.cache)
         self.db.open()

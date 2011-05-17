@@ -17,9 +17,9 @@ sys.path.insert(0,"../")
 import softwarecenter.netstatus
 import softwarecenter.paths
 
-from softwarecenter.apt.aptcache import AptCache
-from softwarecenter.db.database import StoreDatabase
 from softwarecenter.db.application import Application, AppDetails
+from softwarecenter.db.database import StoreDatabase
+from softwarecenter.db.pkginfo import get_pkg_info
 from softwarecenter.distro import get_distro
 from softwarecenter.enums import *
 from softwarecenter.paths import XAPIAN_BASE_PATH
@@ -36,7 +36,7 @@ class TestAppDetailsView(unittest.TestCase):
         softwarecenter.paths.datadir = datadir
         os.environ["PYTHONPATH"] = ".."
         # cache
-        cache = AptCache()
+        cache = get_pkg_info()
         cache.open()
         xapian_base_path = XAPIAN_BASE_PATH
         pathname = os.path.join(xapian_base_path, "xapian")

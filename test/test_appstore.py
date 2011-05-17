@@ -11,9 +11,10 @@ import gtk
 import shutil
 import unittest
 
-from softwarecenter.apt.aptcache import AptCache
 from softwarecenter.db.application import Application
 from softwarecenter.db.database import StoreDatabase
+from softwarecenter.db.pkginfo import get_pkg_info
+
 from softwarecenter.ui.gtk.appview import AppView, AppStore, AppViewFilter
 from softwarecenter.enums import *
 from softwarecenter.paths import *
@@ -39,7 +40,7 @@ class TestAppStore(unittest.TestCase):
     def setUp(self):
         xapian_base_path = XAPIAN_BASE_PATH
         pathname = os.path.join(xapian_base_path, "xapian")
-        self.cache = AptCache()
+        self.cache = get_pkg_info()
         self.cache.open()
         self.db = StoreDatabase(pathname, self.cache)
         self.db.open()

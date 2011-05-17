@@ -37,7 +37,6 @@ from widgets.spinner import SpinnerView
 from basepane import BasePane
 
 from softwarecenter.enums import *
-from softwarecenter.apt.aptcache import AptCache
 from softwarecenter.db.database import StoreDatabase
 
 class HistoryPane(gtk.VBox, BasePane):
@@ -343,7 +342,8 @@ class HistoryPane(gtk.VBox, BasePane):
 
 
 if __name__ == '__main__':
-    cache = AptCache()
+    from softwarecenter.db.pkginfo import get_pkg_info
+    cache = get_pkg_info()
 
     db_path = os.path.join(XAPIAN_BASE_PATH, "xapian")
     db = StoreDatabase(db_path, cache)
