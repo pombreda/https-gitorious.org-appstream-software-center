@@ -1,0 +1,161 @@
+import sys
+
+import glib
+glib.threads_init()
+
+# pyside are the official bindings, LGPL
+from PySide import QtCore
+from PySide import QtGui
+
+from PySide.QtCore import *
+from PySide.QtGui import *
+
+from PySide import QtDeclarative
+#~ from PySide import QtOpenGL
+
+from database import StoreDatabase
+#~ import apt
+
+
+class PropWrapper(QtCore.QObject):
+    def __init__(self, prop):
+        QtCore.QObject.__init__(self)
+        self._prop = prop
+ 
+    def _name(self):
+        return str(self._prop)
+ 
+    changed = QtCore.Signal()
+ 
+    name = QtCore.Property(unicode, _name, notify=changed)
+
+
+class ListModel(QtCore.QAbstractListModel):
+    COLUMNS = ('pkg',)
+ 
+    def __init__(self):
+        QtCore.QAbstractListModel.__init__(self)
+        self._items = []
+        self.setRoleNames(dict(enumerate(ListModel.COLUMNS)))
+ 
+    def rowCount(self, parent=QtCore.QModelIndex()):
+        return len(self._items)
+ 
+    def data(self, index, role):
+        if index.isValid() and role == ListModel.COLUMNS.index('pkg'):
+            return self._items[index.row()]
+        return None
+
+    def clear(self):
+        self.removeRows(0, self.rowCount())
+        return
+
+    def setData(self, index, value, role=Qt.EditRole):
+        if role == Qt.EditRole:
+            # set the data.
+            # the str() cast here is mostly for peace of mind, you can't perform some operations
+            # in python with Qt types, like pickling.
+            self._items[index.row()] = str(value.toString().toUtf8())
+
+            # *always* emit the dataChanged() signal after changing any data inside the model.
+            # this is so e.g. the different views know they need to do things with it.
+            #
+            # don't be lazy and pass a huge range of values to this, because it is processing-heavy.
+            QtCore.QObject.emit(self, SIGNAL("dataChanged(const QModelIndex&, const QModelIndex &)"), index, index)
+            return True
+        # unhandled change.
+        return False
+
+    def removeRows(self, row, count, parent=QModelIndex()):
+        # make sure the index is valid, to avoid IndexErrors ;)
+        if row < 0 or row > len(self._items):
+            return
+
+        # let the model know we're changing things.
+        # we may have to remove multiple rows, if not, this could be handled simpler.
+        self.beginRemoveRows(parent, row, row + count - 1)
+
+        # actually remove the items from our internal data representation
+        while count != 0:
+            del self._items[row]
+            count -= 1
+
+        # let the model know we're done
+        self.endRemoveRows()
+
+    def addItem(self, item):
+        # The str() cast is because we don't want to be storing a Qt type in here.
+        self.beginInsertRows(QModelIndex(), len(self._items), len(self._items))
+        self._items.append(item)
+        self.endInsertRows()
+
+
+class Controller(QtCore.QObject):
+
+    def __init__(self, db, pkg_list):
+        QtCore.QObject.__init__(self)
+        self._db = db
+        self._pkglist = pkg_list
+        self._previous_query = None
+
+    @QtCore.Slot(QtCore.QObject)
+    def rowClicked(self, wrapper):
+        print 'User clicked on:', wrapper._prop.name
+
+    @QtCore.Slot(str)
+    def rebuildListFromQuery(self, s):
+        if str(s) == self._previous_query: return
+        self._previous_query = str(s)
+
+        docs = self._db.docs_from_query(str(s))
+
+        self._pkglist.clear()
+        for o in [PropWrapper(p) for p in [Package(d) for d in docs]]:
+            self._pkglist.addItem(o)
+        return
+
+
+class Package(object):
+    def __init__(self, xdoc):
+        self.name = xdoc.get_data()
+ 
+    def __str__(self):
+        return self.name
+
+# glib integration tests
+def on_glib_timeout():
+    print "i am called"
+    return True
+
+def on_db_open(db, s):
+    print "openi: ", db, s
+
+glib.timeout_add_seconds(2, on_glib_timeout)
+
+app = QtGui.QApplication(sys.argv)
+m = QtGui.QMainWindow()
+view = QtDeclarative.QDeclarativeView()
+
+# XXX: nice in terms of fps but bad for font rendering
+#~ glw = QtOpenGL.QGLWidget()
+#~ view.setViewport(glw)
+
+view.setResizeMode(QtDeclarative.QDeclarativeView.SizeRootObjectToView)
+
+db = StoreDatabase()
+db.connect("open", on_db_open)
+
+pkglist = ListModel()
+controller = Controller(db, pkglist)
+
+rc = view.rootContext()
+ 
+rc.setContextProperty('controller', controller)
+rc.setContextProperty('pythonListModel', pkglist)
+
+view.setSource('qml/appview2.qml')
+
+m.setCentralWidget(view) 
+m.show()
+ 
+app.exec_()
