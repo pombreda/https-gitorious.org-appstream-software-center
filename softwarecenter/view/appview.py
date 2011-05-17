@@ -262,7 +262,7 @@ class CellRendererAppView2(gtk.CellRendererText):
         'rating': (gobject.TYPE_FLOAT, 'Rating', 'Avg rating', 0.0, 5.0, 0.0,
             gobject.PARAM_READWRITE),
 
-        'nreviews': (gobject.TYPE_INT, 'Reviews', 'Number of reviews', 0, 100, 0,
+        'nreviews': (gobject.TYPE_INT, 'Reviews', 'Number of reviews', 0, sys.maxint, 0,
             gobject.PARAM_READWRITE),
 
         'isactive': (bool, 'IsActive', 'Is active?', False,
