@@ -1,4 +1,11 @@
-software-center (4.1.1) UNRELEASED; urgency=low
+software-center (4.1.2) UNRELEASED; urgency=low
+
+  * applied patch from Andrew Higginson to make the border around 
+    the status bar a bit bigger, many thanks!
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 17 May 2011 10:12:35 +0200
+
+software-center (4.1.1) oneiric; urgency=low
 
   [ Gary Lasker ]
   * softwarecenter/utils.py,
@@ -16,8 +23,19 @@ software-center (4.1.1) UNRELEASED; urgency=low
     - fix 'no log handler' error on update-software-center (LP #728896)
   * lp:~aaronp/software-center/enhance-usefulness:
     - load/cache users usefulnes votes
+  * add utils/get_useful_votes_helper.py to the setup scripts
+  
+  [ Michael Vogt ]
+  * merged lp:~weblive-dev/software-center/weblive-set-locale, many 
+    thanks
+  * support pagination ("Show more reviews" button) when there are
+    more reviews than fitting in a returned "page"
+  * utils/get_reviews_helper.py:
+    - if there are no reviews for the current distroseries, fallback
+      to the previous one (LP: #783331)
+  * updated tests for oneiric
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 05 May 2011 02:03:51 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 16 May 2011 09:53:04 +0200
 
 software-center (4.1) oneiric; urgency=low
 
@@ -30,6 +48,26 @@ software-center (4.1) oneiric; urgency=low
     - fix a bunch warnings about logging to the root logger
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 29 Apr 2011 17:59:47 +0200
+
+software-center (4.0.2) natty-proposed; urgency=low
+
+  [ Gary Lasker ]
+  * softwarecenter/utils.py,
+    test/test_unity_launcher_integration.py:
+    - fix intermittent crash when installing a local .deb,
+      add corresponding test case (LP: #768158)
+  * softwarecenter/db/reviews.py,
+    test/test_reviews.py:
+    - sort reviews using upstream package versions to fix
+      incorrect sort by usefulness, update unit test
+      (LP: #777583)
+  
+  [ Michael Vogt ]
+  * softwarecenter/db/reviews.py:
+    - fix review-stats loading (LP: #776706)
+    - fix review loading (LP: #774201)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 10 May 2011 15:17:15 +0200
 
 software-center (4.0.1) natty-proposed; urgency=low
 

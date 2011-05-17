@@ -12,6 +12,7 @@ import time
 import unittest
 
 sys.path.insert(0, "..")
+import softwarecenter.paths
 
 from softwarecenter.app import SoftwareCenterApp
 from softwarecenter.paths import XAPIAN_BASE_PATH
@@ -36,6 +37,10 @@ class TestGUIWithMainLoop(unittest.TestCase):
 
     def setUp(self):
         self.app = app
+        # for the reviews helper
+        datadir = "../data"
+        softwarecenter.paths.datadir = datadir
+        os.environ["PYTHONPATH"] = ".."
     
     def _trigger_channel_change(self):
         # reset

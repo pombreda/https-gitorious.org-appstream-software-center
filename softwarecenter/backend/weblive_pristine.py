@@ -105,7 +105,7 @@ class WebLive:
 
         return reply
 
-    def create_user(self,serverid,username,fullname,password,session="desktop"):
+    def create_user(self,serverid,username,fullname,password,session,locale):
         query={}
         query['action']='create_user'
         query['serverid']=serverid
@@ -113,6 +113,7 @@ class WebLive:
         query['fullname']=fullname
         query['password']=password
         query['session']=session
+        query['locale']=locale
         reply=self.do_query(query)
 
         if type(reply['message']) != type([]):

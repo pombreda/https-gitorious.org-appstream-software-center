@@ -239,7 +239,7 @@ class ReviewLoader(object):
                 LOG.exception("review stats cache load failure")
                 os.rename(self.REVIEW_STATS_CACHE_FILE, self.REVIEW_STATS_CACHE_FILE+".fail")
 
-    def get_reviews(self, application, callback):
+    def get_reviews(self, application, callback, page=1):
         """run callback f(app, review_list) 
            with list of review objects for the given
            db.database.Application object
@@ -491,7 +491,7 @@ class ReviewLoaderSpawningRNRClient(ReviewLoader):
         self.rnrclient._offline_mode = not network_state_is_connected()
 
     # reviews
-    def get_reviews(self, translated_app, callback):
+    def get_reviews(self, translated_app, callback, page=1):
         """ public api, triggers fetching a review and calls callback
             when its ready
         """
@@ -523,24 +523,30 @@ class ReviewLoaderSpawningRNRClient(ReviewLoader):
                "--origin", origin, 
                "--distroseries", distroseries, 
                "--pkgname", str(app.pkgname), # ensure its str, not unicode
+               "--page", str(page),
               ]
         try:
             (pid, stdin, stdout, stderr) = glib.spawn_async(
                 cmd, flags = glib.SPAWN_DO_NOT_REAP_CHILD, 
                 standard_output=True, standard_error=True)
-            glib.child_watch_add(pid, self._reviews_loaded_watcher, data=(app, stdout, stderr, callback))
+            glib.child_watch_add(pid, self._reviews_helper_finished, data=(app, stdout, stderr, callback))
+            glib.io_add_watch(stdout, glib.IO_IN, self._reviews_io_ready, (app, stdout, callback))
         except Exception as e:
             raise Exception("failed to launch: '%s' (error: '%s')" % (cmd, e))
 
-    def _reviews_loaded_watcher(self, pid, status, (app, stdout, stderr, callback)):
+    def _reviews_helper_finished(self, pid, status, (app, stdout, stderr, callback)):
         """ watcher function in parent using glib """
         # get status code
         res = os.WEXITSTATUS(status)
+        if res != 0:
+            LOG.warn("exit code %s from helper" % res)
         # check stderr
         err = os.read(stderr, 4*1024)
         if err:
-            logging.warn("got error from helper: '%s'" % err)
+            LOG.warn("got error from helper: '%s'" % err)
         os.close(stderr)
+
+    def _reviews_io_ready(self, source, condition, (app, stdout, callback)):
         # read the raw data
         data = ""
         while True:
@@ -558,6 +564,7 @@ class ReviewLoaderSpawningRNRClient(ReviewLoader):
         # add to our dicts and run callback
         self._reviews[app] = sorted(reviews, reverse=True)
         callback(app, self._reviews[app])
+        return False
 
     # stats
     def refresh_review_stats(self, callback):
@@ -585,19 +592,24 @@ class ReviewLoaderSpawningRNRClient(ReviewLoader):
         (pid, stdin, stdout, stderr) = glib.spawn_async(
             cmd, flags = glib.SPAWN_DO_NOT_REAP_CHILD, 
             standard_output=True, standard_error=True)
-        glib.child_watch_add(pid, self._review_stats_loaded_watcher, data=(stdout, stderr, callback))
+        glib.child_watch_add(pid, self._review_stats_helper_finished, data=(stdout, stderr, callback))
+        glib.io_add_watch(stdout, glib.IO_IN, self._review_stats_io_ready, (stdout, callback))
 
-    def _review_stats_loaded_watcher(self, pid, status, (stdout, stderr, callback)):
+    def _review_stats_helper_finished(self, pid, status, (stdout, stderr, callback)):
         """ waits for the process that gets the data
             to finish and emits callback then """
-        # shorthand
-        review_stats = self.REVIEW_STATS_CACHE
         res = os.WEXITSTATUS(status)
-        # check stderr first
+        if res != 0:
+            LOG.warn("exit code %s from helper" % res)
+        # log stderr
         err = os.read(stderr, 4*1024)
         if err:
-            logging.warn("got error from helper: '%s'" % err)
+            LOG.warn("got error from helper: '%s'" % err)
         os.close(stderr)
+
+    def _review_stats_io_ready(self, source, condition, (stdout, callback)):
+        """ process stdout from the helper """
+        review_stats = self.REVIEW_STATS_CACHE
         # get data
         data = ""
         while True:
@@ -613,10 +625,10 @@ class ReviewLoaderSpawningRNRClient(ReviewLoader):
             s.ratings_average = float(r.ratings_average)
             s.ratings_total = float(r.ratings_total)
             review_stats[s.app] = s
-
         self.REVIEW_STATS_CACHE = review_stats
         callback(review_stats)
         self.save_review_stats_cache_file()
+        return False
 
 class ReviewLoaderJsonAsync(ReviewLoader):
     """ get json (or gzip compressed json) """
@@ -641,7 +653,7 @@ class ReviewLoaderJsonAsync(ReviewLoader):
         # run callback
         callback(app, sorted(reviews, reverse=True))
 
-    def get_reviews(self, app, callback):
+    def get_reviews(self, app, callback, page=1):
         """ get a specific review and call callback when its available"""
         # FIXME: get this from the app details
         origin = self.cache.get_origin(app.pkgname)
@@ -712,7 +724,7 @@ class ReviewLoaderFake(ReviewLoader):
         return random.choice(self.LOREM.split("\n\n"))
     def _random_summary(self):
         return random.choice(self.SUMMARIES)
-    def get_reviews(self, application, callback):
+    def get_reviews(self, application, callback, page=1):
         if not application in self._review_stats_cache:
             self.get_review_stats(application)
         stats = self._review_stats_cache[application]

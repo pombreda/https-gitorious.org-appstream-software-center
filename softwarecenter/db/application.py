@@ -184,7 +184,7 @@ class AppDetails(object):
         # sustitute for apturl
         if self._app.request:
             self._app.request = self._app.request.replace(
-                "$distro", self._distro.get_distro_codename())
+                "$distro", self._distro.get_codename())
 
         # load pkg cache
         self._pkg = None

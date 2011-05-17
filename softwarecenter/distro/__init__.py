@@ -17,8 +17,9 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 
-import subprocess
 import logging
+import os
+import subprocess
 
 from gettext import gettext as _
 
@@ -28,6 +29,11 @@ class UnimplementedError(Exception):
 class Distro(object):
     """ abstract base class for a distribution """
     
+    # list of code names for the distro from newest to oldest, this is
+    # used e.g. in the reviews loader if no reviews for the current codename
+    # are found
+    DISTROSERIES = []
+
     # missing thumbnail
     IMAGE_THUMBNAIL_MISSING = "/usr/share/software-center/images/dummy-thumbnail-ubuntu.png"
     IMAGE_FULL_MISSING = "/usr/share/software-center/images/dummy-screenshot-ubuntu.png"
@@ -59,6 +65,10 @@ class Distro(object):
 
     def get_codename(self):
         """ The codename of the distro, e.g. lucid """
+        # for tests and similar
+        if "SOFTWARE_CENTER_DISTRO_CODENAME" in os.environ:
+            return os.environ["SOFTWARE_CENTER_DISTRO_CODENAME"]
+        # normal behavior
         if not hasattr(self, "_distro_code_name"):
             self._distro_code_name = subprocess.Popen(
                 ["lsb_release","-c","-s"], 

@@ -476,6 +476,7 @@ class StarRating(gtk.Alignment):
 
     def __init__(self, n_stars=0, spacing=0, star_size=(EM,EM), is_interactive=False):
         gtk.Alignment.__init__(self, 0.5, 0.5)
+
         self.set_padding(2, 2, 0, 0)
         self.hbox = gtk.HBox(spacing=spacing)
         self.add(self.hbox)
@@ -723,6 +724,9 @@ class UIReviewsList(gtk.VBox):
         'delete-review':(gobject.SIGNAL_RUN_FIRST,
                     gobject.TYPE_NONE,
                     (gobject.TYPE_PYOBJECT,)),
+        'more-reviews-clicked':(gobject.SIGNAL_RUN_FIRST,
+                                gobject.TYPE_NONE,
+                                () ),
 
     }
 
@@ -857,7 +861,20 @@ class UIReviewsList(gtk.VBox):
                 self._be_the_first_to_review()
             else:
                 self.vbox.pack_start(NoReviewYet())
+
+        # only show the "More" button if there is a chance that there
+        # are more
+        if self.reviews and len(self.reviews) % REVIEWS_BATCH_PAGE_SIZE == 0:
+            button = gtk.Button(_("Show more reviews"))
+            button.connect("clicked", self._on_more_reviews_clicked)
+            button.show()
+            self.vbox.pack_start(button)                
         return
+
+    def _on_more_reviews_clicked(self, button):
+        # remove buttn and emit signal
+        self.vbox.remove(button)
+        self.emit("more-reviews-clicked")
 
     def add_review(self, review):
         self.reviews.append(review)
@@ -1106,8 +1123,6 @@ class UIReview(gtk.VBox):
         return
     
     def _build(self, review_data, app_version, logged_in_person, useful_votes):
-        # all the arguments may need markup escape, depening on if
-        # they are used as text or markup
 
         # all the attributes of review_data may need markup escape, 
         # depening on if they are used as text or markup
@@ -1413,6 +1428,7 @@ class NoReviewYet(EmbeddedMessage):
         title = _("This app has not been reviewed yet")
         msg = _('You need to install this app before you can review it')
         EmbeddedMessage.__init__(self, title, msg)
+
 
 class NoReviewYetWriteOne(EmbeddedMessage):
     """ represents if there are no reviews yet and the app is installed """

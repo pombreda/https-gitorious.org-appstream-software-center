@@ -143,7 +143,9 @@ class WebLiveBackend(object):
         if not re.match("^[A-Za-z0-9 ]*$",fullname) or len(fullname) == 0:
             fullname='WebLive user'
 
-        connection=self.weblive.create_user(serverid, identifier, fullname, identifier, session)
+        locale=os.environ.get("LANG","None").replace("UTF-8","utf8")
+
+        connection=self.weblive.create_user(serverid, identifier, fullname, identifier, session, locale)
         self._spawn_qtnx(connection[0], connection[1], session, identifier, identifier, wait)
 
     def _spawn_qtnx(self, host, port, session, username, password, wait):

@@ -9,14 +9,17 @@ from optparse import OptionParser
 
 from softwarecenter.paths import SOFTWARE_CENTER_CACHE_DIR
 from softwarecenter.backend.rnrclient import RatingsAndReviewsAPI
+from softwarecenter.distro import get_distro
 
 from piston_mini_client import APIError
 
-
 LOG = logging.getLogger(__name__)
+
 
 if __name__ == "__main__":
     logging.basicConfig()
+
+    distro = get_distro()
 
     # common options for optparse go here
     parser = OptionParser()
@@ -27,6 +30,7 @@ if __name__ == "__main__":
     parser.add_option("--distroseries", default="any")
     parser.add_option("--pkgname")
     parser.add_option("--version", default="any")
+    parser.add_option("--page", default="1")
     parser.add_option("", "--debug",
                       action="store_true", default=False)
     parser.add_option("--no-pickle",
@@ -44,10 +48,19 @@ if __name__ == "__main__":
               "distroseries": options.distroseries,
               "packagename": options.pkgname,
               "version": options.version,
+              "page": int(options.page),
               }
     piston_reviews = []
     try:
         piston_reviews = rnrclient.get_reviews(**kwargs)
+
+        # test if we don't have reviews for the current distroseries
+        # and fallback to the previous oneif that is the case
+        if (piston_reviews == [] and
+            kwargs["distroseries"] == distro.DISTROSERIES[0]):
+            kwargs["distroseries"] = distro.DISTROSERIES[1]
+            piston_reviews = rnrclient.get_reviews(**kwargs)
+
         # the backend sometimes returns None so we fix this here
         if piston_reviews is None:
             piston_reviews = []
