@@ -35,7 +35,7 @@ import glob
 # purely to initialize the netstatus
 import softwarecenter.netstatus
 
-from SimpleGtkbuilderApp import SimpleGtkbuilderApp
+from ui.gtk.SimpleGtkbuilderApp import SimpleGtkbuilderApp
 from softwarecenter.db.application import Application, DebFileApplication
 from softwarecenter.enums import *
 from softwarecenter.paths import *

@@ -53,7 +53,7 @@ from softwarecenter.backend.login_sso import LoginBackendDbusSSO
 from softwarecenter.db.database import Application
 from softwarecenter.db.reviews import Review
 from softwarecenter.utils import get_current_arch, clear_token_from_ubuntu_sso, get_language
-from softwarecenter.SimpleGtkbuilderApp import SimpleGtkbuilderApp
+from softwarecenter.ui.gtk.SimpleGtkbuilderApp import SimpleGtkbuilderApp
 from softwarecenter.ui.gtk.dialogs import SimpleGtkbuilderDialog
 from softwarecenter.distro import get_distro
 from softwarecenter.ui.gtk.widgets.reviews import StarRatingSelector, StarCaption
