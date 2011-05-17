@@ -798,7 +798,7 @@ class UIReviewsList(gtk.VBox):
 
     def _add_no_network_connection_msg(self):
         title = _('No Network Connection')
-        msg = _('Only cached reviews can be displayed')
+        msg = _('Only saved reviews can be displayed')
         m = EmbeddedMessage(title, msg, 'network-offline')
         self.vbox.pack_start(m)
         
