@@ -14,7 +14,7 @@ import unittest
 from softwarecenter.apt.aptcache import AptCache
 from softwarecenter.db.application import Application
 from softwarecenter.db.database import StoreDatabase
-from softwarecenter.view.appview import AppView, AppStore, AppViewFilter
+from softwarecenter.ui.gtk.appview import AppView, AppStore, AppViewFilter
 from softwarecenter.enums import *
 from softwarecenter.paths import *
 

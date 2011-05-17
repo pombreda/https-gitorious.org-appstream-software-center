@@ -10,7 +10,7 @@ import unittest
 
 from softwarecenter.apt.aptcache import AptCache
 from softwarecenter.db.database import StoreDatabase
-from softwarecenter.view.appview import AppView, AppStore
+from softwarecenter.ui.gtk.appview import AppView, AppStore
 from softwarecenter.paths import *
 
 import xapian

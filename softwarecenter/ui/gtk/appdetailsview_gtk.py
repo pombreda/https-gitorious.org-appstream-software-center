@@ -50,7 +50,7 @@ from softwarecenter.utils import *
 from softwarecenter.config import get_config
 from softwarecenter.backend.weblive import get_weblive_backend
 
-from softwarecenter.view.dialogs import error
+from dialogs import error
 
 from appdetailsview import AppDetailsViewBase
 

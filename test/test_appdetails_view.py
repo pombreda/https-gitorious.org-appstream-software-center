@@ -23,8 +23,8 @@ from softwarecenter.db.application import Application, AppDetails
 from softwarecenter.distro import get_distro
 from softwarecenter.enums import *
 from softwarecenter.paths import XAPIAN_BASE_PATH
-from softwarecenter.view.appdetailsview_gtk import AppDetailsViewGtk
-from softwarecenter.view.widgets.reviews import EmbeddedMessage
+from softwarecenter.ui.gtk.appdetailsview_gtk import AppDetailsViewGtk
+from softwarecenter.ui.gtk.widgets.reviews import EmbeddedMessage
 
 
 class TestAppDetailsView(unittest.TestCase):

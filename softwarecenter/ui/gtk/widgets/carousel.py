@@ -12,7 +12,7 @@ from mkit import EM, EtchedLabel, ShapeCircle, LinkButton, \
                  LinkButtonLight, Button, not_overlapping
 
 from softwarecenter.db.database import Application
-from softwarecenter.models.appstore import AppStore
+from softwarecenter.ui.gtk.models.appstore import AppStore
 
 from softwarecenter.drawing import color_floats
 from softwarecenter.utils import wait_for_apt_cache_ready

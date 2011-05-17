@@ -32,12 +32,13 @@ import datetime
 
 from gettext import gettext as _
 
+from widgets.searchentry import SearchEntry
+from widgets.spinner import SpinnerView
+from basepane import BasePane
+
 from softwarecenter.enums import *
-from softwarecenter.view.widgets.searchentry import SearchEntry
-from softwarecenter.view.widgets.spinner import SpinnerView
 from softwarecenter.apt.aptcache import AptCache
 from softwarecenter.db.database import StoreDatabase
-from softwarecenter.view.basepane import BasePane
 
 class HistoryPane(gtk.VBox, BasePane):
 

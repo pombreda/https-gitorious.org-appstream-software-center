@@ -42,19 +42,19 @@ from softwarecenter.paths import *
 from softwarecenter.utils import *
 from softwarecenter.version import *
 from softwarecenter.db.database import StoreDatabase
-import softwarecenter.view.dependency_dialogs as dependency_dialogs
-import softwarecenter.view.deauthorize_dialog as deauthorize_dialog
+import softwarecenter.ui.gtk.dependency_dialogs as dependency_dialogs
+import softwarecenter.ui.gtk.deauthorize_dialog as deauthorize_dialog
 from softwarecenter.backend.aptd import TransactionFinishedResult
 
-import view.dialogs
-from view.viewswitcher import ViewSwitcher
-from view.pendingview import PendingView
-from view.installedpane import InstalledPane
-from view.channelpane import ChannelPane
-from view.availablepane import AvailablePane
-from view.softwarepane import SoftwareSection
-from view.historypane import HistoryPane
-from view.viewmanager import ViewManager
+import ui.gtk.dialogs
+from ui.gtk.viewswitcher import ViewSwitcher
+from ui.gtk.pendingview import PendingView
+from ui.gtk.installedpane import InstalledPane
+from ui.gtk.channelpane import ChannelPane
+from ui.gtk.availablepane import AvailablePane
+from ui.gtk.softwarepane import SoftwareSection
+from ui.gtk.historypane import HistoryPane
+from ui.gtk.viewmanager import ViewManager
 
 from config import get_config
 from backend import get_install_backend

@@ -30,7 +30,7 @@ from softwarecenter.distro import get_distro
 from softwarecenter.enums import *
 from softwarecenter.utils import wait_for_apt_cache_ready, get_icon_from_theme
 
-from softwarecenter.view.widgets.animatedimage import CellRendererAnimatedImage, AnimatedImage
+from softwarecenter.ui.gtk.widgets.animatedimage import CellRendererAnimatedImage, AnimatedImage
 
 LOG = logging.getLogger(__name__)
 

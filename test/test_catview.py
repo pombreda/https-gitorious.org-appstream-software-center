@@ -8,7 +8,7 @@ import unittest
 sys.path.insert(0,"../")
 from softwarecenter.apt.aptcache import AptCache
 from softwarecenter.db.database import StoreDatabase
-from softwarecenter.view.catview_gtk import LobbyViewGtk, SubCategoryViewGtk
+from softwarecenter.ui.gtk.catview_gtk import LobbyViewGtk, SubCategoryViewGtk
 from softwarecenter.paths import *
 from softwarecenter.distro import get_distro
 

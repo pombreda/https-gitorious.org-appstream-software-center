@@ -10,7 +10,7 @@ from softwarecenter.utils import *
 
 from softwarecenter.apt.aptcache import AptCache
 from softwarecenter.db.database import StoreDatabase
-from softwarecenter.view.catview import CategoriesView, Category, get_category_by_name
+from softwarecenter.ui.gtk.catview import CategoriesView, Category, get_category_by_name
 
 
 class TestCatParsing(unittest.TestCase):

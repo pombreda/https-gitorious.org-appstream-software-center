@@ -41,7 +41,7 @@ from softwarecenter.netstatus import NetState, get_network_state, get_network_wa
 #from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
 
 from softwarecenter.distro import get_distro
-from softwarecenter.models.appstore import AppStore
+from models.appstore import AppStore
 
 from widgets.mkit import get_em_value, get_mkit_theme, floats_from_gdkcolor_with_alpha, EM
 from widgets.reviews import StarPainter

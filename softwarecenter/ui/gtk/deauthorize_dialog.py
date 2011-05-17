@@ -26,7 +26,7 @@ from dialogs import SimpleGtkbuilderDialog
 from softwarecenter.db.application import Application
 from softwarecenter.distro import get_distro
 from softwarecenter.enums import MISSING_APP_ICON
-from softwarecenter.view.widgets.packagenamesview import PackageNamesView
+from widgets.packagenamesview import PackageNamesView
 
 LOG = logging.getLogger(__name__)
 

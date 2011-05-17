@@ -13,8 +13,8 @@ import unittest
 from softwarecenter.apt.aptcache import AptCache
 from softwarecenter.db.application import Application
 from softwarecenter.db.database import StoreDatabase
-from softwarecenter.view.viewmanager import ViewManager
-from softwarecenter.view.viewswitcher import ViewSwitcher, ViewSwitcherList
+from softwarecenter.ui.gtk.viewmanager import ViewManager
+from softwarecenter.ui.gtk.viewswitcher import ViewSwitcher, ViewSwitcherList
 from softwarecenter.enums import *
 from softwarecenter.paths import XAPIAN_BASE_PATH
 
