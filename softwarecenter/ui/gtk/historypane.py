@@ -196,8 +196,8 @@ class HistoryPane(gtk.VBox, BasePane):
         self._app_icon_cache[MISSING_APP_ICON] = missing
         
     def load_and_parse_history(self):
-        from softwarecenter.apt.apthistory import get_apt_history
-        self.history = get_apt_history()
+        from softwarecenter.db.history import get_pkg_history
+        self.history = get_pkg_history()
         # FIXME: a signal from AptHistory is nicer
         while not self.history.history_ready:
             while gtk.events_pending():
