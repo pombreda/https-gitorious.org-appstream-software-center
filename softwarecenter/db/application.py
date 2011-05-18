@@ -344,8 +344,8 @@ class AppDetails(object):
 
     @property
     def installation_date(self):
-        from softwarecenter.apt.apthistory import get_apt_history
-        self._history = get_apt_history()
+        from softwarecenter.db.history import get_pkg_history
+        self._history = get_pkg_history()
         return self._history.get_installed_date(self.pkgname)
         
     @property

@@ -14,8 +14,8 @@ import xapian
 from softwarecenter.db.application import Application, AppDetails
 from softwarecenter.db.database import StoreDatabase
 from softwarecenter.db.database import parse_axi_values_file
+from softwarecenter.db.pkginfo import get_pkg_info
 from softwarecenter.db.update import update_from_app_install_data, update_from_var_lib_apt_lists, update_from_appstream_xml
-from softwarecenter.apt.aptcache import AptCache
 from softwarecenter.paths import *
 from softwarecenter.enums import *
 
@@ -25,7 +25,7 @@ class TestDatabase(unittest.TestCase):
     def setUp(self):
         apt_pkg.config.set("Dir::State::status",
                            "./data/appdetails/var/lib/dpkg/status")
-        self.cache = AptCache()
+        self.cache = get_pkg_info()
         self.cache.open()
 
     def test_update_from_desktop_file(self):

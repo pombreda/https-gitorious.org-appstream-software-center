@@ -13,7 +13,7 @@ import subprocess
 import time
 import unittest
 
-from softwarecenter.apt.apthistory import AptHistory
+from softwarecenter.db.history import AptHistory
 from softwarecenter.utils import ExecutionTime
 
 class TestAptHistory(unittest.TestCase):
@@ -77,7 +77,7 @@ class TestAptHistory(unittest.TestCase):
         self._generate_big_history_file(new_history)
         timer_id = glib.timeout_add(100, self._glib_timeout)
         with ExecutionTime("rescan %s byte file" % os.path.getsize(new_history+".gz")):
-            history.rescan(use_cache=False)
+            history._rescan(use_cache=False)
         glib.source_remove(timer_id)
         # verify rescan
         self.assertTrue(len(history.transactions) > 186)

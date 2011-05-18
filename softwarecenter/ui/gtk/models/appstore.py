@@ -41,6 +41,8 @@ from gettext import gettext as _
 # global cache icons to speed up rendering
 _app_icon_cache = {}
 
+LOG = logging.getLogger(__name__)
+
 class AppStore(gtk.GenericTreeModel):
     """
     A subclass GenericTreeModel that reads its data from a xapian
@@ -116,7 +118,6 @@ class AppStore(gtk.GenericTreeModel):
                          this for custom package lists. 
         """
         gtk.GenericTreeModel.__init__(self)
-        self._logger = logging.getLogger("softwarecenter.view.appstore")
         self.search_query = SearchQuery(search_query)
         self.cache = cache
         self.db = db
@@ -243,7 +244,7 @@ class AppStore(gtk.GenericTreeModel):
         # now do the search
         for q in self.search_query:
             enquire = xapian.Enquire(self.db.xapiandb)
-            self._logger.debug("initial query: '%s'" % q)
+            LOG.debug("initial query: '%s'" % q)
 
             # for searches we may want to disable show/hide
             terms = [term for term in q]
@@ -261,7 +262,7 @@ class AppStore(gtk.GenericTreeModel):
                                      xapian.Query("ATapplication"),
                                      q)
 
-            self._logger.debug("nearly completely filtered query: '%s'" % q)
+            LOG.debug("nearly completely filtered query: '%s'" % q)
 
             # filter out docs of pkgs of which there exists a doc of the app
             # FIXME: make this configurable again?
@@ -300,7 +301,7 @@ class AppStore(gtk.GenericTreeModel):
                     matches = enquire.get_mset(0, len(self.db), None, xfilter)
                 else:
                     matches = enquire.get_mset(0, self.limit, None, xfilter)
-                self._logger.debug("found ~%i matches" % matches.get_matches_estimated())
+                LOG.debug("found ~%i matches" % matches.get_matches_estimated())
             except:
                 logging.exception("get_mset")
                 matches = []
@@ -382,7 +383,7 @@ class AppStore(gtk.GenericTreeModel):
             del self.transaction_index_map[result.pkgname]
 
     def _download_icon_and_show_when_ready(self, cache, pkgname, icon_file_name):
-        self._logger.debug("did not find the icon locally, must download %s" % icon_file_name)
+        LOG.debug("did not find the icon locally, must download %s" % icon_file_name)
         def on_image_download_complete(downloader, image_file_path):
             pb = gtk.gdk.pixbuf_new_from_file_at_size(icon_file_path,
                                                       self.icon_size,
@@ -407,16 +408,16 @@ class AppStore(gtk.GenericTreeModel):
     def on_get_column_type(self, index):
         return self.column_type[index]
     def on_get_iter(self, path):
-        #self._logger.debug("on_get_iter: %s" % path)
+        #LOG.debug("on_get_iter: %s" % path)
         if len(self.matches) == 0:
             return None
         index = path[0]
         return index
     def on_get_path(self, rowref):
-        self._logger.debug("on_get_path: %s" % rowref)
+        LOG.debug("on_get_path: %s" % rowref)
         return rowref
     def on_get_value(self, rowref, column):
-        #self._logger.debug("on_get_value: %s %s" % (rowref, column))
+        #LOG.debug("on_get_value: %s %s" % (rowref, column))
         doc = self.matches[rowref].document
 
         # 'not found' applications for custom package lists
@@ -520,7 +521,7 @@ class AppStore(gtk.GenericTreeModel):
                         # display the missing icon while the real one downloads
                         self.icon_cache[icon_name] = self._appicon_missing_icon
             except glib.GError, e:
-                self._logger.debug("get_icon returned '%s'" % e)
+                LOG.debug("get_icon returned '%s'" % e)
             return self._appicon_missing_icon
         elif column == self.COL_INSTALLED:
             pkgname = app.pkgname
@@ -562,7 +563,7 @@ class AppStore(gtk.GenericTreeModel):
         elif column == self.COL_REQUEST:
             return app.request
     def on_iter_next(self, rowref):
-        #self._logger.debug("on_iter_next: %s" % rowref)
+        #LOG.debug("on_iter_next: %s" % rowref)
         new_rowref = int(rowref) + 1
         if new_rowref >= len(self.matches):
             return None
@@ -579,7 +580,7 @@ class AppStore(gtk.GenericTreeModel):
             return 0
         return len(self.matches)
     def on_iter_nth_child(self, parent, n):
-        #self._logger.debug("on_iter_nth_child: %s %i" % (parent, n))
+        #LOG.debug("on_iter_nth_child: %s %i" % (parent, n))
         if parent:
             return 0
         if n >= len(self.matches):

@@ -8,16 +8,16 @@ from softwarecenter.enums import *
 from softwarecenter.paths import *
 from softwarecenter.utils import *
 
-from softwarecenter.apt.aptcache import AptCache
 from softwarecenter.db.database import StoreDatabase
-from softwarecenter.view.catview import CategoriesView, Category, get_category_by_name
+from softwarecenter.db.pkginfo import get_pkg_info
+from softwarecenter.ui.gtk.catview import CategoriesView, Category, get_category_by_name
 
 
 class TestCatParsing(unittest.TestCase):
     """ tests the "where is it in the menu" code """
 
     def setUp(self):
-        cache = AptCache()
+        cache = get_pkg_info()
         cache.open()
         xapian_base_path = XAPIAN_BASE_PATH
         pathname = os.path.join(xapian_base_path, "xapian")

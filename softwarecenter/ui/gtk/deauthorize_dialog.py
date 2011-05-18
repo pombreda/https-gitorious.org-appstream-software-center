@@ -26,7 +26,7 @@ from dialogs import SimpleGtkbuilderDialog
 from softwarecenter.db.application import Application
 from softwarecenter.distro import get_distro
 from softwarecenter.enums import MISSING_APP_ICON
-from softwarecenter.view.widgets.packagenamesview import PackageNamesView
+from widgets.packagenamesview import PackageNamesView
 
 LOG = logging.getLogger(__name__)
 
@@ -81,8 +81,8 @@ def deauthorize_computer(parent, datadir, db, icons, account_name, purchased_pac
 
 
 if __name__ == "__main__":
-    from softwarecenter.apt.aptcache import AptCache
-    cache = AptCache()
+    from softwarecenter.db.pkginfo import get_pkg_info
+    cache = get_pkg_info()
     cache.open()
 
     from softwarecenter.db.database import StoreDatabase, Application

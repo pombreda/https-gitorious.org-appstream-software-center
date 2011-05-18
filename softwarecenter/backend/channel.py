@@ -31,9 +31,11 @@ from gettext import gettext as _
 
 from softwarecenter.backend import get_install_backend
 from softwarecenter.distro import get_distro
-from softwarecenter.view.widgets.animatedimage import AnimatedImage
 from softwarecenter.utils import *
 from softwarecenter.enums import *
+
+# FIXME: wrong layer
+from softwarecenter.ui.gtk.widgets.animatedimage import AnimatedImage
 
 LOG = logging.getLogger(__name__)
 

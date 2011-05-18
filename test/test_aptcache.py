@@ -14,7 +14,7 @@ import subprocess
 import time
 import unittest
 
-from softwarecenter.apt.aptcache import AptCache
+from softwarecenter.db.pkginfo import get_pkg_info
 from softwarecenter.utils import ExecutionTime
 
 class testAptCache(unittest.TestCase):
@@ -28,8 +28,8 @@ class testAptCache(unittest.TestCase):
 
         # open s-c aptcache
         with ExecutionTime("s-c softwarecenter.apt.AptCache"):
-            self.sccache = AptCache()
-        # cache is opened with a timeout_add() in AptCache()
+            self.sccache = get_pkg_info()
+        # cache is opened with a timeout_add() in get_pkg_info()
         time.sleep(0.2)
         while gtk.events_pending():
             gtk.main_iteration()

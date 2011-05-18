@@ -32,12 +32,12 @@ import datetime
 
 from gettext import gettext as _
 
+from widgets.searchentry import SearchEntry
+from widgets.spinner import SpinnerView
+from basepane import BasePane
+
 from softwarecenter.enums import *
-from softwarecenter.view.widgets.searchentry import SearchEntry
-from softwarecenter.view.widgets.spinner import SpinnerView
-from softwarecenter.apt.aptcache import AptCache
 from softwarecenter.db.database import StoreDatabase
-from softwarecenter.view.basepane import BasePane
 
 class HistoryPane(gtk.VBox, BasePane):
 
@@ -195,8 +195,8 @@ class HistoryPane(gtk.VBox, BasePane):
         self._app_icon_cache[MISSING_APP_ICON] = missing
         
     def load_and_parse_history(self):
-        from softwarecenter.apt.apthistory import get_apt_history
-        self.history = get_apt_history()
+        from softwarecenter.db.history import get_pkg_history
+        self.history = get_pkg_history()
         # FIXME: a signal from AptHistory is nicer
         while not self.history.history_ready:
             while gtk.events_pending():
@@ -342,7 +342,8 @@ class HistoryPane(gtk.VBox, BasePane):
 
 
 if __name__ == '__main__':
-    cache = AptCache()
+    from softwarecenter.db.pkginfo import get_pkg_info
+    cache = get_pkg_info()
 
     db_path = os.path.join(XAPIAN_BASE_PATH, "xapian")
     db = StoreDatabase(db_path, cache)

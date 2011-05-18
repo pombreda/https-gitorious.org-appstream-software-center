@@ -16,7 +16,7 @@ from softwarecenter.app import SoftwareCenterApp
 from softwarecenter.paths import XAPIAN_BASE_PATH
 from softwarecenter.enums import ACTION_BUTTON_ADD_TO_LAUNCHER, TRANSACTION_TYPE_INSTALL
 from softwarecenter.utils import convert_desktop_file_to_installed_location
-from softwarecenter.view.appview import AppStore
+from softwarecenter.ui.gtk.appview import AppStore
 from softwarecenter.db.application import Application
 
 # see https://wiki.ubuntu.com/SoftwareCenter#Learning%20how%20to%20launch%20an%20application

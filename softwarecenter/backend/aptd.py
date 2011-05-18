@@ -51,7 +51,7 @@ except ImportError:
 import gtk
 from softwarecenter.backend.transactionswatcher import TransactionsWatcher
 from softwarecenter.utils import get_http_proxy_string_from_gconf
-from softwarecenter.view import dialogs
+from softwarecenter.ui.gtk import dialogs
 
 from gettext import gettext as _
 

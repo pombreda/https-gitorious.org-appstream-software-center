@@ -34,7 +34,7 @@ from softwarecenter.enums import *
 from softwarecenter.utils import get_icon_from_theme
 from softwarecenter.backend import get_install_backend
 from softwarecenter.backend.transactionswatcher import TransactionsWatcher
-from softwarecenter.view.basepane import BasePane
+from basepane import BasePane
 
 from gettext import gettext as _
 
