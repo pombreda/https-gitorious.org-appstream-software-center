@@ -31,13 +31,13 @@ from gettext import gettext as _
 
 from softwarecenter.db.application import Application
 from softwarecenter.enums import *
-from softwarecenter.view.appdetailsview import AppDetailsViewBase
+from softwarecenter.ui.gtk.appdetailsview import AppDetailsViewBase
 from softwarecenter.utils import get_current_arch, htmlize_package_desc
 from widgets.wkwidget import WebkitWidget
 
 from widgets.imagedialog import ShowImageDialog
 
-from softwarecenter.view.purchasedialog import PurchaseDialog
+from softwarecenter.ui.gtk.purchasedialog import PurchaseDialog
 
 
 class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
