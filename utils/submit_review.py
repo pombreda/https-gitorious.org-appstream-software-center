@@ -54,7 +54,7 @@ from softwarecenter.db.database import Application
 from softwarecenter.db.reviews import Review
 from softwarecenter.utils import *
 from softwarecenter.SimpleGtkbuilderApp import SimpleGtkbuilderApp
-from softwarecenter.view.dialogs import SimpleGtkbuilderDialog
+from softwarecenter.ui.gtk.dialogs import SimpleGtkbuilderDialog
 from softwarecenter.distro import get_distro
 from softwarecenter.ui.gtk.widgets.reviews import StarRatingSelector, StarCaption
 from softwarecenter.gwibber_helper import GwibberHelper, GwibberHelperMock
