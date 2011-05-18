@@ -458,7 +458,7 @@ class CellRendererAppView2(gtk.CellRendererText):
         # per the spec, the progressbar should be the width of the action button
         action_btn = self.get_button_by_name('action0')
         if not action_btn:
-            logging.warn("No action button? This doesn't make sense!")
+            LOG.warn("No action button? This doesn't make sense!")
             return
 
         x, y, w, h = action_btn.get_allocation_tuple()
