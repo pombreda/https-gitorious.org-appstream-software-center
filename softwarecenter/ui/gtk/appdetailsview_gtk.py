@@ -75,7 +75,7 @@ if os.path.exists("./softwarecenter/enums.py"):
 # default socket timeout to deal with unreachable screenshot site
 DEFAULT_SOCKET_TIMEOUT=4
 
-LOG = logging.getLogger("softwarecenter.view.appdetailsview")
+LOG = logging.getLogger(__name__)
 
 
 # fixed black for action bar label, taken from Ambiance gtk-theme

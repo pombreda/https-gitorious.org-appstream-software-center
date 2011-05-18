@@ -80,7 +80,7 @@ class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
         self.backend.connect("transaction-started", self._on_transaction_started)
         self.backend.connect("transaction-stopped", self._on_transaction_stopped)
         self.backend.connect("transaction-progress-changed", self._on_transaction_progress_changed)
-        self._logger = logging.getLogger("softwarecenter.view.appdetails")
+        self._logger = logging.getLogger(__name__)
 
     # public API
     def _draw(self):

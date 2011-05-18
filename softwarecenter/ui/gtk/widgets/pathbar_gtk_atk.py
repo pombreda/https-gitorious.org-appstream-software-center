@@ -26,7 +26,8 @@ import pango
 
 from gettext import gettext as _
 
-LOG = logging.getLogger("softwarecenter.view.widgets.NavigationBar")
+LOG = logging.getLogger(__name__)
+
 
 class PathBar(gtk.HBox):
 
