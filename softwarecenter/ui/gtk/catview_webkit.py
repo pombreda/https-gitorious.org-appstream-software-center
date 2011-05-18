@@ -16,23 +16,15 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import gettext
-import glib
-import glob
 import gobject
 import gtk
-import locale
 import logging
 import os
 import xapian
 
-from ConfigParser import ConfigParser
 from gettext import gettext as _
 from widgets.wkwidget import WebkitWidget
-from xml.etree import ElementTree as ET
 
-from xml.sax.saxutils import escape as xml_escape
-from xml.sax.saxutils import unescape as xml_unescape
 
 from softwarecenter.utils import *
 from softwarecenter.distro import get_distro

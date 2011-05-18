@@ -1,5 +1,4 @@
 import atk
-import os
 import gtk
 import gobject
 import gettext

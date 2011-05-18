@@ -16,9 +16,8 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import apt
 import apt_pkg
-import atk
+import dbus
 import gmenu
 import gettext
 import gobject
@@ -27,15 +26,13 @@ import glib
 import logging
 import os
 import re
-import urllib
 import tempfile
 import traceback
 import time
 import xml.sax.saxutils
-import gtk
-import dbus
 
-from enums import USER_AGENT, MISSING_APP_ICON, APP_ICON_SIZE, APP_INSTALL_PATH_DELIMITER
+
+from enums import MISSING_APP_ICON, APP_ICON_SIZE, APP_INSTALL_PATH_DELIMITER
 
 from config import get_config
 
@@ -182,7 +179,7 @@ def get_http_proxy_string_from_gconf():
     Returns: string with http://auth:pw@proxy:port/ or None
     """
     try:
-        import gconf, glib
+        import gconf
         client = gconf.client_get_default()
         if client.get_bool("/system/http_proxy/use_http_proxy"):
             authentication = ""
@@ -247,7 +244,6 @@ def sources_filename_from_ppa_entry(entry):
     """ 
     takes a PPA SourceEntry and returns a filename suitable for sources.list.d
     """
-    from urlparse import urlsplit
     import apt_pkg
     name = "%s.list" % apt_pkg.URItoFileName(entry.uri)
     return name
@@ -387,8 +383,10 @@ def save_person_to_config(username):
             config.add_section("reviews")
         config.set("reviews", "username", username)
         config.write()
+        # refresh usefulness cache in the background once we know
+        # the person 
         from db.reviews import UsefulnessCache
-        usefulness = UsefulnessCache(True)
+        UsefulnessCache(True)
     return
             
 def get_person_from_config():

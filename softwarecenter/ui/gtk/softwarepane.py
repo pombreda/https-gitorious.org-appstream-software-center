@@ -16,22 +16,19 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import apt
 import atk
-import bisect
-import glib
+import cairo
+import dbus
+import gettext
+import dialogs
 import gobject
 import gtk
 import logging
-import os
 import xapian
-import cairo
-import gettext
-import dialogs
 
 from gettext import gettext as _
 
-from widgets.mkit import floats_from_gdkcolor, floats_from_string
+from widgets.mkit import floats_from_string
 from widgets.pathbar_gtk_atk import NavigationBar
 from widgets.searchentry import SearchEntry
 from widgets.actionbar import ActionBar
@@ -40,18 +37,29 @@ from widgets.spinner import SpinnerView
 import softwarecenter.utils
 
 from softwarecenter.backend import get_install_backend
-from softwarecenter.enums import *
-from softwarecenter.paths import *
-from softwarecenter.utils import *
-
+from softwarecenter.enums import (
+    ACTION_BUTTON_ADD_TO_LAUNCHER,
+    ACTION_BUTTON_CANCEL_ADD_TO_LAUNCHER,
+    NAV_BUTTON_ID_DETAILS,
+    NAV_BUTTON_ID_LIST,
+    NAV_BUTTON_ID_PURCHASE,
+    NAV_BUTTON_ID_SEARCH,
+    SORT_BY_ALPHABET,
+    SORT_BY_SEARCH_RANKING,
+    TRANSACTION_TYPE_INSTALL
+    )
+from softwarecenter.utils import (convert_desktop_file_to_installed_location,
+                                  get_file_path_from_iconname,
+                                  wait_for_apt_cache_ready
+                                  )
 from basepane import BasePane
 from appview import AppView, AppStore
 from purchaseview import PurchaseView
 
-if "SOFTWARE_CENTER_APPDETAILS_WEBKIT" in os.environ:
-    from appdetailsview_webkit import AppDetailsViewWebkit as AppDetailsView
-else:
-    from  appdetailsview_gtk import AppDetailsViewGtk as AppDetailsView
+#if "SOFTWARE_CENTER_APPDETAILS_WEBKIT" in os.environ:
+#    from appdetailsview_webkit import AppDetailsViewWebkit as AppDetailsView
+#else:
+from  appdetailsview_gtk import AppDetailsViewGtk as AppDetailsView
 
 from softwarecenter.db.database import Application
 
@@ -559,12 +567,6 @@ class SoftwarePane(gtk.VBox, BasePane):
             self.action_bar.unset_label()
             return
         
-        # first figure out if we are only showing installed
-        if appstore.filter:
-            showing_installed = appstore.filter.installed_only
-        else:
-            showing_installed = False
-
         # calculate the number of apps/pkgs
         pkgs = 0
         apps = 0

@@ -62,7 +62,7 @@ class CmdFinder(object):
         """ find the executables binaries for a given package """
         try:
             pkg = self._cache[pkgname]
-        except KeyError, e:
+        except KeyError:
             LOG.debug("can't find %s" % pkgname)
             return []
         if not pkg.is_installed:
