@@ -8,7 +8,7 @@ from softwarecenter.enums import *
 from softwarecenter.utils import *
 from softwarecenter.paths import XAPIAN_BASE_PATH
 
-from softwarecenter.apt.aptcache import AptCache
+from softwarecenter.db.pkginfo import get_pkg_info
 from softwarecenter.db.database import StoreDatabase
 from softwarecenter.db.application import Application, AppDetails
 
@@ -19,7 +19,7 @@ class TestWhereIsit(unittest.TestCase):
 
     def setUp(self):
         datadir = "../data"
-        cache = AptCache()
+        cache = get_pkg_info()
         cache.open()
         xapian_base_path = XAPIAN_BASE_PATH
         pathname = os.path.join(xapian_base_path, "xapian")

@@ -12,12 +12,14 @@ from mkit import EM, EtchedLabel, ShapeCircle, LinkButton, \
                  LinkButtonLight, Button, not_overlapping
 
 from softwarecenter.db.database import Application
-from softwarecenter.models.appstore import AppStore
+from softwarecenter.ui.gtk.models.appstore import AppStore
 
 from softwarecenter.drawing import color_floats
 from softwarecenter.utils import wait_for_apt_cache_ready
 
 from gettext import gettext as _
+
+LOG_ALLOCATION = logging.getLogger("softwarecenter.ui.gtk.allocation")
 
 
 class CarouselView(gtk.VBox):
@@ -107,9 +109,9 @@ class CarouselView(gtk.VBox):
         return
 
     def _on_allocate(self, widget, allocation):
-        logging.getLogger("softwarecenter.view.allocation").debug("on_alloc widget=%s, allocation=%s" % (widget, allocation))
+        LOG_ALLOCATION.debug("on_alloc widget=%s, allocation=%s" % (widget, allocation))
         if allocation == self._allocation or allocation.width <= 200: 
-            logging.getLogger("softwarecenter.view.allocation").debug("CarouselView skipped!")
+            LOG_ALLOCATION.debug("CarouselView skipped!")
             return
 
         self._allocation = allocation

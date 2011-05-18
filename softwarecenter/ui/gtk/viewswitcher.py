@@ -28,10 +28,10 @@ from gettext import gettext as _
 
 from softwarecenter.backend import get_install_backend
 from softwarecenter.db.database import StoreDatabase
-from softwarecenter.models.viewswitcherlist import ViewSwitcherList
 from softwarecenter.enums import *
 from softwarecenter.utils import wait_for_apt_cache_ready
 
+from models.viewswitcherlist import ViewSwitcherList
 from widgets.animatedimage import CellRendererAnimatedImage, AnimatedImage
 from widgets.mkit import ShapeRoundedRectangle, floats_from_gdkcolor
 

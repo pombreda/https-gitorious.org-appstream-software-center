@@ -4,13 +4,13 @@ import sys
 import unittest
 sys.path.insert(0,"../")
 
-from softwarecenter.apt.aptcache import AptCache
+from softwarecenter.db.pkginfo import get_pkg_info
 
 class TestSCAddons(unittest.TestCase):
     """ tests the addons """
 
     def setUp(self):
-        self.cache = AptCache()
+        self.cache = get_pkg_info()
         self.cache.open()
 
     def test_get_addons_simple(self):

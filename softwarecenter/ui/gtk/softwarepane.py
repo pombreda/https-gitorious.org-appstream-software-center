@@ -42,9 +42,9 @@ import softwarecenter.utils
 from softwarecenter.backend import get_install_backend
 from softwarecenter.enums import *
 from softwarecenter.paths import *
-from softwarecenter.view.basepane import BasePane
 from softwarecenter.utils import *
 
+from basepane import BasePane
 from appview import AppView, AppStore
 from purchaseview import PurchaseView
 

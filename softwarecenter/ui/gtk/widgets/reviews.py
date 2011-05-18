@@ -38,14 +38,15 @@ from gettext import gettext as _
 from mkit import EM, Style, ShapeStar, ShapeRoundedRectangle, VLinkButton, floats_from_string, get_mkit_theme
 from softwarecenter.drawing import alpha_composite, color_floats, rounded_rect, rounded_rect2
 
-from softwarecenter.utils import get_nice_date_string, upstream_version_compare, upstream_version
+from softwarecenter.utils import get_nice_date_string, upstream_version_compare, upstream_version, get_person_from_config
 
 from softwarecenter.netstatus import network_state_is_connected
 
-from softwarecenter.utils import get_person_from_config
 from softwarecenter.enums import *
 
 from softwarecenter.db.reviews import UsefulnessCache
+
+LOG_ALLOCATION = logging.getLogger("softwarecenter.ui.gtk.allocation")
 
 
 class StarPainter(object):
@@ -804,7 +805,7 @@ class UIReviewsList(gtk.VBox):
 
     def _add_no_network_connection_msg(self):
         title = _('No Network Connection')
-        msg = _('Only cached reviews can be displayed')
+        msg = _('Only saved reviews can be displayed')
         m = EmbeddedMessage(title, msg, 'network-offline')
         self.vbox.pack_start(m)
         
@@ -940,7 +941,7 @@ class UIReview(gtk.VBox):
         self.body = gtk.VBox()
         self.footer_split = gtk.VBox()
         self.footer = gtk.HBox()
-        
+
         self.useful = None
         self.yes_like = None
         self.no_like = None
@@ -988,7 +989,7 @@ class UIReview(gtk.VBox):
 
     def _on_allocate(self, widget, allocation, stars, summary, text, who_when, version_lbl, flag):
         if self._allocation == allocation:
-            logging.getLogger("softwarecenter.view.allocation").debug("UIReviewAllocate skipped!")
+            LOG_ALLOCATION.debug("UIReviewAllocate skipped!")
             return True
         self._allocation = allocation
 

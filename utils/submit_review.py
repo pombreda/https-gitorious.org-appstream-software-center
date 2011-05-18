@@ -56,7 +56,7 @@ from softwarecenter.utils import *
 from softwarecenter.SimpleGtkbuilderApp import SimpleGtkbuilderApp
 from softwarecenter.view.dialogs import SimpleGtkbuilderDialog
 from softwarecenter.distro import get_distro
-from softwarecenter.view.widgets.reviews import StarRatingSelector, StarCaption
+from softwarecenter.ui.gtk.widgets.reviews import StarRatingSelector, StarCaption
 from softwarecenter.gwibber_helper import GwibberHelper, GwibberHelperMock
 
 from softwarecenter.backend.rnrclient import RatingsAndReviewsAPI, ReviewRequest

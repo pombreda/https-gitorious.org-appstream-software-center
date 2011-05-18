@@ -50,7 +50,7 @@ from softwarecenter.utils import *
 from softwarecenter.config import get_config
 from softwarecenter.backend.weblive import get_weblive_backend
 
-from softwarecenter.view.dialogs import error
+from dialogs import error
 
 from appdetailsview import AppDetailsViewBase
 
@@ -75,7 +75,8 @@ if os.path.exists("./softwarecenter/enums.py"):
 # default socket timeout to deal with unreachable screenshot site
 DEFAULT_SOCKET_TIMEOUT=4
 
-LOG = logging.getLogger("softwarecenter.view.appdetailsview")
+LOG = logging.getLogger(__name__)
+LOG_ALLOCATION = logging.getLogger("softwarecenter.ui.gtk.allocation")
 
 
 # fixed black for action bar label, taken from Ambiance gtk-theme
@@ -419,11 +420,11 @@ class PackageInfo(gtk.HBox):
 
     def _on_allocate(self, widget, allocation, value_label, space_consumed):
         if self._allocation == allocation:
-            logging.getLogger("softwarecenter.view.allocation").debug("PackageInfoAllocate skipped!")
+            LOG_ALLOCATION.debug("PackageInfoAllocate skipped!")
             return True
         self._allocation = allocation
 
-        logging.getLogger("softwarecenter.view.allocation").debug("on_alloc widget=%s, allocation=%s" % (widget, allocation))
+        LOG_ALLOCATION.debug("on_alloc widget=%s, allocation=%s" % (widget, allocation))
 
         value_label.set_size_request(max(10, allocation.width-space_consumed), -1)
         return True
@@ -500,11 +501,11 @@ class Addon(gtk.HBox):
 
     def _on_allocate(self, widget, allocation, title):
         if self._allocation == allocation:
-            logging.getLogger("softwarecenter.view.allocation").debug("AddonAllocate skipped!")
+            LOG_ALLOCATION.debug("AddonAllocate skipped!")
             return True
         self._allocation = allocation
 
-        logging.getLogger("softwarecenter.view.allocation").debug("on_alloc widget=%s, allocation=%s" % (widget, allocation))
+        LOG_ALLOCATION.debug("on_alloc widget=%s, allocation=%s" % (widget, allocation))
         hw = widget.allocation.width
         cw = self.checkbutton.allocation.width
         tw = title.allocation.width
@@ -966,10 +967,10 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.queue_draw()
 
         if allocation == self._allocation:
-            logging.getLogger("softwarecenter.view.allocation").debug("TopAllocate skipped!")
+            LOG_ALLOCATION.debug("TopAllocate skipped!")
             return True
 
-        logging.getLogger("softwarecenter.view.allocation").debug("on_alloc widget=%s, allocation=%s" % (widget, allocation))
+        LOG_ALLOCATION.debug("on_alloc widget=%s, allocation=%s" % (widget, allocation))
 
         self._allocation = allocation
 
@@ -978,7 +979,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         return True
 
     def _header_on_allocate(self, widget, allocation, spacing):
-        logging.getLogger("softwarecenter.view.allocation").debug("on_alloc widget=%s, allocation=%s" % (widget, allocation))
+        LOG_ALLOCATION.debug("on_alloc widget=%s, allocation=%s" % (widget, allocation))
         w = allocation.width - self.icon.allocation.width - 2*spacing
         if self.review_stats_widget.get_property('visible'):
             w -= self.review_stats_widget.allocation.width
@@ -1780,9 +1781,12 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                 # --there are still cases when we really do want to hide this
                 self.usage.hide()
                 return
-            label_string = gettext.ngettext("Used: one time",
-                                            "Used: %(amount)s times",
-                                            counter) % { 'amount' : counter, }
+            if counter <= 100:
+                label_string = gettext.ngettext("Used: one time",
+                                                "Used: %(amount)s times",
+                                                counter) % { 'amount' : counter, }
+            else:
+                label_string = _("Used: over 100 times")
             self.usage.set_text('<small>%s</small>' % label_string)
             self.usage.show()
 
@@ -1810,8 +1814,8 @@ if __name__ == "__main__":
 
     xapian_base_path = "/var/cache/software-center"
     pathname = os.path.join(xapian_base_path, "xapian")
-    from softwarecenter.apt.aptcache import AptCache
-    cache = AptCache()
+    from softwarecenter.db.pkginfo import get_pkg_info
+    cache = get_pkg_info()
     cache.open()
 
     from softwarecenter.db.database import StoreDatabase

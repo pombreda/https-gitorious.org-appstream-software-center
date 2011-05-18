@@ -46,7 +46,7 @@ from gettext import gettext as _
 ESCAPE_ENTITIES = {"&apos;":"'",
                    '&quot;':'"'}
                    
-LOG = logging.getLogger("softwarecenter.utils")
+LOG = logging.getLogger(__name__)
 
 
 class ExecutionTime(object):

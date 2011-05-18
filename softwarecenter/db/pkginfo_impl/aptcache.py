@@ -35,6 +35,7 @@ import time
 from gettext import gettext as _
 from softwarecenter.enums import *
 from softwarecenter.utils import ExecutionTime
+from softwarecenter.db.pkginfo import PackageInfo
 
 LOG = logging.getLogger(__name__)
 
@@ -44,7 +45,7 @@ class GtkMainIterationProgress(apt.progress.base.OpProgress):
         while gtk.events_pending():
             gtk.main_iteration()
 
-class AptCache(gobject.GObject):
+class AptCache(PackageInfo):
     """ 
     A apt cache that opens in the background and keeps the UI alive
     """
@@ -62,19 +63,8 @@ class AptCache(gobject.GObject):
 
     LANGPACK_PKGDEPENDS = "/usr/share/language-selector/data/pkg_depends"
 
-    __gsignals__ = {'cache-ready':  (gobject.SIGNAL_RUN_FIRST,
-                                     gobject.TYPE_NONE,
-                                     ()),
-                    'cache-invalid':(gobject.SIGNAL_RUN_FIRST,
-                                     gobject.TYPE_NONE,
-                                     ()),
-                    'cache-broken':(gobject.SIGNAL_RUN_FIRST,
-                                     gobject.TYPE_NONE,
-                                     ()),
-                    }
-
     def __init__(self):
-        gobject.GObject.__init__(self)
+        PackageInfo.__init__(self)
         self._cache = None
         self._ready = False
         self._timeout_id = None
@@ -86,14 +76,14 @@ class AptCache(gobject.GObject):
             "changed", self._on_apt_finished_stamp_changed)
         # this is fast, so ok
         self._language_packages = self._read_language_pkgs()
-        
-    def _on_apt_finished_stamp_changed(self, monitor, afile, other_file, event):
-        if not event == gio.FILE_MONITOR_EVENT_CHANGES_DONE_HINT:
-            return 
-        if self._timeout_id:
-            glib.source_remove(self._timeout_id)
-            self._timeout_id = None
-        self._timeout_id = glib.timeout_add_seconds(10, self.open)
+
+    def is_installed(self, pkgname):
+        return (pkgname in self._cache and
+                self._cache[pkgname].is_installed)
+    def is_available(self, pkgname):
+        return (pkgname in self._cache and
+                self._cache[pkgname].candidate)
+
     @property
     def ready(self):
         return self._ready
@@ -111,12 +101,21 @@ class AptCache(gobject.GObject):
         self.emit("cache-ready")
         if self._cache.broken_count > 0:
             self.emit("cache-broken")
+
+    # implementation specific code
     def __getitem__(self, key):
         return self._cache[key]
     def __iter__(self):
         return self._cache.__iter__()
     def __contains__(self, k):
         return self._cache.__contains__(k)
+    def _on_apt_finished_stamp_changed(self, monitor, afile, other_file, event):
+        if not event == gio.FILE_MONITOR_EVENT_CHANGES_DONE_HINT:
+            return 
+        if self._timeout_id:
+            glib.source_remove(self._timeout_id)
+            self._timeout_id = None
+        self._timeout_id = glib.timeout_add_seconds(10, self.open)
     def _get_rdepends_by_type(self, pkg, type, onlyInstalled):
         rdeps = set()
         for rdep in pkg._pkg.rev_depends_list:

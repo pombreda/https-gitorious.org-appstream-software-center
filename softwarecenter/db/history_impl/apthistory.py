@@ -17,7 +17,6 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 
-import apt
 import apt_pkg
 import cPickle
 import gio
@@ -25,67 +24,16 @@ import glib
 import glob
 import gzip
 import os.path
-import re
 import logging
-import string
-import datetime
 
-from datetime import datetime
 
 LOG = logging.getLogger(__name__)
 
 from softwarecenter.paths import SOFTWARE_CENTER_CACHE_DIR
 from softwarecenter.utils import ExecutionTime
+from softwarecenter.db.history import Transaction, PackageHistory
 
-def ascii_lower(key):
-    ascii_trans_table = string.maketrans(string.ascii_uppercase,
-                                        string.ascii_lowercase)
-    return key.translate(ascii_trans_table)
-
-class Transaction(object):
-    """ Represents an apt transaction 
-
-o    Attributes:
-    - 'start_date': the start date/time of the transaction as datetime
-    - 'install', 'upgrade', 'downgrade', 'remove', 'purge':
-        contain the list of packagenames affected by this action
-    """
-
-    PKGACTIONS=["Install", "Upgrade", "Downgrade", "Remove", "Purge"]
-
-    def __init__(self, sec):
-        self.start_date = datetime.strptime(sec["Start-Date"],
-                                            "%Y-%m-%d  %H:%M:%S")
-        # set the object attributes "install", "upgrade", "downgrade",
-        #                           "remove", "purge", error
-        for k in self.PKGACTIONS+["Error"]:
-            # we use ascii_lower for issues described in LP: #581207
-            attr = ascii_lower(k)
-            if k in sec:
-                value = map(self._fixup_history_item, sec[k].split("),"))
-            else:
-                value = []
-            setattr(self, attr, value)
-    def __len__(self):
-        count=0
-        for k in self.PKGACTIONS:
-            count += len(getattr(self, k.lower()))
-        return count
-    def __repr__(self):
-        return ('<Transaction: start_date:%s install:%s upgrade:%s downgrade:%s remove:%s purge:%s' % (self.start_date, self.install, self.upgrade, self.downgrade, self.remove, self.purge))
-    def __cmp__(self, other):
-        return cmp(self.start_date, other.start_date)
-    @staticmethod
-    def _fixup_history_item(s):
-        """ strip history item string and add missing ")" if needed """
-        s=s.strip()
-        # remove the infomation about the architecture
-        s = re.sub(":\w+", "", s)
-        if "(" in s and not s.endswith(")"):
-            s+=")"
-        return s
-               
-class AptHistory(object):
+class AptHistory(PackageHistory):
 
     def __init__(self, use_cache=True):
         LOG.debug("AptHistory.__init__()")
@@ -98,22 +46,32 @@ class AptHistory(object):
         self.update_callback = None
         LOG.debug("init history")
         # this takes a long time, run it in the idle handler
-        self.transactions = []
-        self.history_ready = False
-        glib.idle_add(self.rescan, use_cache)
+        self._transactions = []
+        self._history_ready = False
+        glib.idle_add(self._rescan, use_cache)
+
+    @property
+    def transactions(self):
+        return self._transactions
+    @property
+    def history_ready(self):
+        return self._history_ready
 
     def _mtime_cmp(self, a, b):
         return cmp(os.path.getmtime(a), os.path.getmtime(b))
 
-    def rescan(self, use_cache=True):
-        self.history_ready = False
-        self.transactions = []
+    def _rescan(self, use_cache=True):
+        self._history_ready = False
+        self._transactions = []
         p = os.path.join(SOFTWARE_CENTER_CACHE_DIR, "apthistory.p")
         cachetime = 0
         if os.path.exists(p) and use_cache:
             with ExecutionTime("loading pickle cache"):
-                self.transactions = cPickle.load(open(p))
-            cachetime = os.path.getmtime(p)
+                try:
+                    self._transactions = cPickle.load(open(p))
+                    cachetime = os.path.getmtime(p)
+                except:
+                    LOG.exception("failed to load cache")
         for history_gz_file in sorted(glob.glob(self.history_file+".*.gz"),
                                       cmp=self._mtime_cmp):
             if os.path.getmtime(history_gz_file) < cachetime:
@@ -122,8 +80,8 @@ class AptHistory(object):
             self._scan(history_gz_file)
         self._scan(self.history_file)
         if use_cache:
-            cPickle.dump(self.transactions, open(p, "w"))
-        self.history_ready = True
+            cPickle.dump(self._transactions, open(p, "w"))
+        self._history_ready = True
     
     def _scan(self, history_file, rescan = False):
         LOG.debug("_scan: %s (%s)" % (history_file, rescan))
@@ -143,14 +101,14 @@ class AptHistory(object):
                 continue
             # ignore the ones we have already
             if (rescan and
-                len(self.transactions) > 0 and
-                trans.start_date <= self.transactions[0].start_date):
+                len(self._transactions) > 0 and
+                trans.start_date <= self._transactions[0].start_date):
                 continue
             # add it
             # FIXME: this is a list, so potentially slow, but its sorted
             #        so we could (and should) do a binary search
-            if not trans in self.transactions:
-                self.transactions.insert(0, trans)
+            if not trans in self._transactions:
+                self._transactions.insert(0, trans)
             
     def _on_apt_history_changed(self, monitor, afile, other_file, event):
         if event == gio.FILE_MONITOR_EVENT_CHANGES_DONE_HINT:
@@ -163,7 +121,7 @@ class AptHistory(object):
             
     def get_installed_date(self, pkg_name):
         installed_date = None
-        for trans in self.transactions:
+        for trans in self._transactions:
             for pkg in trans.install:
                 if pkg.split(" ")[0] == pkg_name:
                     installed_date = trans.start_date
@@ -196,13 +154,4 @@ class AptHistory(object):
                 if term_lines:
                     return term_lines
         return term_lines
-
-# make it a singleton
-apt_history = None
-def get_apt_history():
-    """ get the global AptHistory() singleton object """
-    global apt_history
-    if apt_history is None:
-        apt_history = AptHistory()
-    return apt_history
 

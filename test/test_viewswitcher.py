@@ -10,11 +10,11 @@ import shutil
 import unittest
 
 
-from softwarecenter.apt.aptcache import AptCache
+from softwarecenter.db.pkginfo import get_pkg_info
 from softwarecenter.db.application import Application
 from softwarecenter.db.database import StoreDatabase
-from softwarecenter.view.viewmanager import ViewManager
-from softwarecenter.view.viewswitcher import ViewSwitcher, ViewSwitcherList
+from softwarecenter.ui.gtk.viewmanager import ViewManager
+from softwarecenter.ui.gtk.viewswitcher import ViewSwitcher, ViewSwitcherList
 from softwarecenter.enums import *
 from softwarecenter.paths import XAPIAN_BASE_PATH
 
@@ -26,7 +26,7 @@ class testViewSwitcher(unittest.TestCase):
     def setUp(self):
         xapian_base_path = XAPIAN_BASE_PATH
         pathname = os.path.join(xapian_base_path, "xapian")
-        self.cache = AptCache()
+        self.cache = get_pkg_info()
         self.cache.open()
         self.db = StoreDatabase(pathname, self.cache)
         self.db.open()

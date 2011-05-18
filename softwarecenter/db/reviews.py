@@ -912,8 +912,8 @@ if __name__ == "__main__":
         print "stats callback:"
         print stats
     # cache
-    from softwarecenter.apt.aptcache import AptCache
-    cache = AptCache()
+    from softwarecenter.db.pkginfo import get_pkg_info
+    cache = get_pkg_info()
     cache.open()
     # rnrclient loader
     app = Application("ACE", "unace")

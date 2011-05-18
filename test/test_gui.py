@@ -15,10 +15,10 @@ sys.path.insert(0, "..")
 
 from softwarecenter.app import SoftwareCenterApp
 from softwarecenter.paths import XAPIAN_BASE_PATH
-from softwarecenter.view.appview import AppStore
-from softwarecenter.view.availablepane import AvailablePane
+from softwarecenter.ui.gtk.appview import AppStore
+from softwarecenter.ui.gtk.availablepane import AvailablePane
 from softwarecenter.db.application import Application
-from softwarecenter.view.catview import get_category_by_name
+from softwarecenter.ui.gtk.catview import get_category_by_name
 from softwarecenter.backend import get_install_backend
 
 # needed for the install test

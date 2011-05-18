@@ -31,13 +31,13 @@ from gettext import gettext as _
 
 from softwarecenter.db.application import Application
 from softwarecenter.enums import *
-from softwarecenter.view.appdetailsview import AppDetailsViewBase
+from softwarecenter.ui.gtk.appdetailsview import AppDetailsViewBase
 from softwarecenter.utils import get_current_arch, htmlize_package_desc
 from widgets.wkwidget import WebkitWidget
 
 from widgets.imagedialog import ShowImageDialog
 
-from softwarecenter.view.purchasedialog import PurchaseDialog
+from softwarecenter.ui.gtk.purchasedialog import PurchaseDialog
 
 
 class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
@@ -80,7 +80,7 @@ class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
         self.backend.connect("transaction-started", self._on_transaction_started)
         self.backend.connect("transaction-stopped", self._on_transaction_stopped)
         self.backend.connect("transaction-progress-changed", self._on_transaction_progress_changed)
-        self._logger = logging.getLogger("softwarecenter.view.appdetails")
+        self._logger = logging.getLogger(__name__)
 
     # public API
     def _draw(self):
@@ -525,8 +525,8 @@ if __name__ == "__main__":
 
     xapian_base_path = "/var/cache/software-center"
     pathname = os.path.join(xapian_base_path, "xapian")
-    from softwarecenter.apt.aptcache import AptCache
-    cache = AptCache()
+    from softwarecenter.db.pkginfo import get_pkg_info
+    cache = get_pkg_info()
 
     from softwarecenter.db.database import StoreDatabase
     db = StoreDatabase(pathname, cache)

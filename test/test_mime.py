@@ -13,14 +13,14 @@ import xapian
 from softwarecenter.db.application import Application, AppDetails
 from softwarecenter.db.database import StoreDatabase
 from softwarecenter.db.database import parse_axi_values_file
-from softwarecenter.apt.aptcache import AptCache
+from softwarecenter.db.pkginfo import get_pkg_info
 from softwarecenter.db.update import rebuild_database
 
 class TestMime(unittest.TestCase):
     """ tests the mime releated stuff """
 
     def setUp(self):
-        self.cache = AptCache()
+        self.cache = get_pkg_info()
         self.cache.open()
 
     def test_most_popular_applications_for_mimetype(self):

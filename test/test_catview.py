@@ -6,9 +6,9 @@ import unittest
 
 
 sys.path.insert(0,"../")
-from softwarecenter.apt.aptcache import AptCache
+from softwarecenter.db.pkginfo import get_pkg_info
 from softwarecenter.db.database import StoreDatabase
-from softwarecenter.view.catview_gtk import LobbyViewGtk, SubCategoryViewGtk
+from softwarecenter.ui.gtk.catview_gtk import LobbyViewGtk, SubCategoryViewGtk
 from softwarecenter.paths import *
 from softwarecenter.distro import get_distro
 
@@ -17,7 +17,7 @@ class TestLobbyViewGtk(unittest.TestCase):
     def setUp(self):
         datadir = "../data"
         self.desktopdir = "/usr/share/app-install/"
-        cache = AptCache()
+        cache = get_pkg_info()
         cache.open()
         xapian_base_path = XAPIAN_BASE_PATH
         pathname = os.path.join(xapian_base_path, "xapian")
@@ -43,7 +43,7 @@ class TestSubCatViewGtk(unittest.TestCase):
     def setUp(self):
         datadir = "../data"
         self.desktopdir = "/usr/share/app-install/"
-        cache = AptCache()
+        cache = get_pkg_info()
         cache.open()
         xapian_base_path = XAPIAN_BASE_PATH
         pathname = os.path.join(xapian_base_path, "xapian")
