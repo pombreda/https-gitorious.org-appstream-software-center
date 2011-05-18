@@ -24,6 +24,7 @@ from widgets.buttons import CategoryButton, SubcategoryButton
 from catview import (Category, CategoriesView, get_category_by_name,
                      categories_sorted_by_name)
 
+LOG_ALLOCATION = logging.getLogger("softwarecenter.ui.gtk.allocation")
 
 
 class CategoriesViewGtk(gtk.Viewport, CategoriesView):
@@ -68,7 +69,7 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
         apps_filter - ?
         apps_limit - the maximum amount of items to display to query for
         """
-        
+
         self.cache = cache
         self.db = db
         self.icons = icons
@@ -119,10 +120,10 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
         self.queue_draw()
 
         if allocation == self._allocation:
-            logging.getLogger("softwarecenter.view.allocation").debug("TopAllocate skipped!")
+            LOG_ALLOCATION.debug("TopAllocate skipped!")
             return True
 
-        logging.getLogger("softwarecenter.view.allocation").debug("on_alloc widget=%s, allocation=%s" % (widget, allocation))
+        LOG_ALLOCATION.debug("on_alloc widget=%s, allocation=%s" % (widget, allocation))
 
         self._allocation = allocation
 
