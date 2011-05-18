@@ -4,8 +4,6 @@ import glib
 import gnomekeyring as gk
 import unittest
 
-import unittest
-
 class testGnomeKeyringUsage(unittest.TestCase):
 
     APP = "gk-test"
@@ -54,7 +52,7 @@ class testGnomeKeyringUsage(unittest.TestCase):
     def tearDown(self):
         try:
             gk.delete_sync(self.KEYRING_NAME)
-        except gk.NoSuchKeyringError, e:
+        except gk.NoSuchKeyringError:
             pass
 
 

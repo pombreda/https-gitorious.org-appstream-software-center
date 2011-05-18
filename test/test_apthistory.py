@@ -3,7 +3,6 @@
 import sys
 sys.path.insert(0,"../")
 
-import apt
 import apt_pkg
 import datetime
 import glib

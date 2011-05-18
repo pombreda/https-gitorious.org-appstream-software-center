@@ -5,7 +5,6 @@ import unittest
 sys.path.insert(0,"../")
 
 import apt
-from softwarecenter.db.pkginfo import get_pkg_info
 
 class TestOrigins(unittest.TestCase):
     """ tests the origin code """

@@ -21,7 +21,11 @@ from softwarecenter.db.application import Application, AppDetails
 from softwarecenter.db.database import StoreDatabase
 from softwarecenter.db.pkginfo import get_pkg_info
 from softwarecenter.distro import get_distro
-from softwarecenter.enums import *
+from softwarecenter.enums import (PKG_STATE_UNKNOWN,
+                                  PKG_STATE_PURCHASED_BUT_REPO_MUST_BE_ENABLED,
+                                  PKG_STATE_UNINSTALLED,
+                                  PKG_STATE_INSTALLED,
+                                  )
 from softwarecenter.paths import XAPIAN_BASE_PATH
 from softwarecenter.ui.gtk.appdetailsview_gtk import AppDetailsViewGtk
 from softwarecenter.ui.gtk.widgets.reviews import EmbeddedMessage
@@ -161,7 +165,7 @@ class TestAppDetailsView(unittest.TestCase):
 
     def test_show_app_addons(self):
         app = Application("Web browser", "firefox")
-        mock_app_details = self._get_mock_app_details()
+        #mock_app_details = self._get_mock_app_details()
         self.appdetails.show_app(app)
         
     def test_enable_review_on_install(self):

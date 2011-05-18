@@ -1,16 +1,15 @@
 #!/usr/bin/python
 
+import os
 import gtk
 import sys
 import unittest
-
 
 sys.path.insert(0,"../")
 from softwarecenter.db.pkginfo import get_pkg_info
 from softwarecenter.db.database import StoreDatabase
 from softwarecenter.ui.gtk.catview_gtk import LobbyViewGtk, SubCategoryViewGtk
-from softwarecenter.paths import *
-from softwarecenter.distro import get_distro
+from softwarecenter.paths import XAPIAN_BASE_PATH
 
 class TestLobbyViewGtk(unittest.TestCase):
 
@@ -23,7 +22,6 @@ class TestLobbyViewGtk(unittest.TestCase):
         pathname = os.path.join(xapian_base_path, "xapian")
         db = StoreDatabase(pathname, cache)
         db.open()
-        distro = get_distro()
         # icon mock
         icons = gtk.icon_theme_get_default()
         # create a details object
@@ -49,7 +47,6 @@ class TestSubCatViewGtk(unittest.TestCase):
         pathname = os.path.join(xapian_base_path, "xapian")
         db = StoreDatabase(pathname, cache)
         db.open()
-        distro = get_distro()
         # icon mock
         icons = gtk.icon_theme_get_default()
         # create a details object
