@@ -50,6 +50,8 @@ from gtk import gdk
 
 from gettext import gettext as _
 
+LOG = logging.getLogger(__name__)
+
 
 class CellRendererButton2:
 
@@ -378,7 +380,7 @@ class CellRendererAppView2(gtk.CellRendererText):
         if self.isactive and self.props.action_in_progress > 0:
             action_btn = self.get_button_by_name('action0')
             if not action_btn:
-                logging.warn("No action button? This doesn't make sense!")
+                LOG.warn("No action button? This doesn't make sense!")
                 return
             max_layout_width -= (xpad + action_btn.allocation.width) 
 
@@ -456,7 +458,7 @@ class CellRendererAppView2(gtk.CellRendererText):
         # per the spec, the progressbar should be the width of the action button
         action_btn = self.get_button_by_name('action0')
         if not action_btn:
-            logging.warn("No action button? This doesn't make sense!")
+            LOG.warn("No action button? This doesn't make sense!")
             return
 
         x, y, w, h = action_btn.get_allocation_tuple()
@@ -643,7 +645,6 @@ class AppView(gtk.TreeView):
 
     def __init__(self, show_ratings, store=None):
         gtk.TreeView.__init__(self)
-        self._logger = logging.getLogger("softwarecenter.view.appview")
         #self.buttons = {}
         self.pressed = False
         self.focal_btn = None
@@ -656,7 +657,7 @@ class AppView(gtk.TreeView):
             self.set_property("ubuntu-almost-fixed-height-mode", True)
             self.set_fixed_height_mode(True)
         except:
-            self._logger.warn("ubuntu-almost-fixed-height-mode extension not available")
+            LOG.warn("ubuntu-almost-fixed-height-mode extension not available")
 
         self.set_headers_visible(False)
 
@@ -1009,7 +1010,7 @@ class AppView(gtk.TreeView):
             store.row_changed(path[0], store.get_iter(path[0]))
             # be sure we dont request an action for a pkg with pre-existing actions
             if pkgname in self._action_block_list:
-                logging.debug("Action already in progress for package: '%s'" % pkgname)
+                LOG.debug("Action already in progress for package: '%s'" % pkgname)
                 return False
             self._action_block_list.append(pkgname)
             if installed:
@@ -1129,7 +1130,7 @@ class AppViewFilter(xapian.MatchDecider):
         """return True if the package should be displayed"""
         # get pkgname from document
         pkgname =  self.db.get_pkgname(doc)
-        #logging.debug(
+        #LOG.debug(
         #    "filter: supported_only: %s installed_only: %s '%s'" % (
         #        self.supported_only, self.installed_only, pkgname))
         if self.available_only:
