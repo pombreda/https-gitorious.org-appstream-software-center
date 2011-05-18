@@ -80,9 +80,9 @@ class LoginDialog(object):
 
     def cb_login_failure(self, lp):
         """ callback when the login failed """
-        softwarecenter.view.dialogs.error(self.parent,
-                                          _("Authentication failure"),
-                                          _("Sorry, please try again"))
+        softwarecenter.ui.gtk.dialogs.error(self.parent,
+                                            _("Authentication failure"),
+                                            _("Sorry, please try again"))
         self.cb_need_username_password(None)
 
     def on_button_cancel_clicked(self, button=None):
