@@ -496,19 +496,19 @@ class BaseApp(SimpleGtkbuilderApp):
         
         #clears spinner or error image from dialog submission label before trying to display one or the other
         try: 
-            result = self.status_hbox.query_child_packing(self.submit_spinner)
+            self.status_hbox.query_child_packing(self.submit_spinner)
             self.status_hbox.remove(self.submit_spinner)
         except TypeError:
             pass
         
         try: 
-            result = self.status_hbox.query_child_packing(self.submit_error_img)
+            self.status_hbox.query_child_packing(self.submit_error_img)
             self.status_hbox.remove(self.submit_error_img)
         except TypeError:
             pass
             
         try: 
-            result = self.status_hbox.query_child_packing(self.submit_success_img)
+            self.status_hbox.query_child_packing(self.submit_success_img)
             self.status_hbox.remove(self.submit_success_img)
         except TypeError:
             pass

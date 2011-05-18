@@ -20,13 +20,11 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import dbus
-import gobject
 import gtk
 import logging
 
 from dbus.mainloop.glib import DBusGMainLoop
 DBusGMainLoop(set_as_default=True)
-from gettext import gettext as _
 
 from login import LoginBackend
 
