@@ -260,6 +260,10 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                    self.on_view_switcher_changed)
         self.view_switcher.width = self.scrolledwindow_viewswitcher.get_property('width-request')
         self.view_switcher.connect('size-allocate', self.on_viewswitcher_resized)
+        
+        # expand the Get Software node in the viewswitcher by default so that its important subitems
+        # (e.g., For Purchase and Independent) are always clearly visible and available
+        self.view_switcher.expand_available_node()
 
         # launchpad integration help, its ok if that fails
         try:
@@ -1149,9 +1153,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         if (self.config.has_option("general", "maximized") and
             self.config.getboolean("general", "maximized")):
             self.window_main.maximize()
-        if (self.config.has_option("general", "available-node-expanded") and
-            self.config.getboolean("general", "available-node-expanded")):
-            self.view_switcher.expand_available_node()
         if (self.config.has_option("general", "installed-node-expanded") and
             self.config.getboolean("general", "installed-node-expanded")):
             self.view_switcher.expand_installed_node()
@@ -1174,11 +1175,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             # size only matters when non-maximized
             size = self.window_main.get_size() 
             self.config.set("general","size", "%s, %s" % (size[0], size[1]))
-        available_node_expanded = self.view_switcher.is_available_node_expanded()
-        if available_node_expanded:
-            self.config.set("general", "available-node-expanded", "True")
-        else:
-            self.config.set("general", "available-node-expanded", "False")
         installed_node_expanded = self.view_switcher.is_installed_node_expanded()
         if installed_node_expanded:
             self.config.set("general", "installed-node-expanded", "True")
