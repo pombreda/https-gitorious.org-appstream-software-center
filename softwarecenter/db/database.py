@@ -259,7 +259,7 @@ class StoreDatabase(gobject.GObject):
         if not ':' in search_term: # ie, not a mimetype query
             # we need this to work around xapian oddness
             search_term = search_term.replace('-','_')
-        query = self.xapian_parser.parse_query(
+        self.xapian_parser.parse_query(
             search_term, xapian.QueryParser.FLAG_SPELLING_CORRECTION)
         return self.xapian_parser.get_corrected_query_string()
 

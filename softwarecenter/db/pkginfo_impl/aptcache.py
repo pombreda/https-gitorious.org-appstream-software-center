@@ -25,7 +25,11 @@ import glib
 import gtk
 import os
 
-from softwarecenter.enums import *
+from softwarecenter.enums import (PKG_STATE_INSTALLING,
+                                  PKG_STATE_REMOVING,
+                                  PKG_STATE_UPGRADING,
+                                  PKG_STATE_UNKNOWN,
+                                  )
 from softwarecenter.utils import ExecutionTime
 from softwarecenter.db.pkginfo import PackageInfo
 

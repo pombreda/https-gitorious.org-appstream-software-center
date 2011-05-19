@@ -97,7 +97,7 @@ class AptHistory(PackageHistory):
             # ignore records with 
             try:
                 trans = Transaction(stanza)
-            except KeyError, e:
+            except KeyError:
                 continue
             # ignore the ones we have already
             if (rescan and

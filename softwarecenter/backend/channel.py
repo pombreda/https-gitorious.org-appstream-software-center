@@ -36,7 +36,7 @@ from softwarecenter.enums import (SORT_BY_ALPHABET,
                                   GENERIC_MISSING_IMAGE,
                                   AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME,
                                   )
-from softwarecenter.path import SOFTWARE_CENTER_ICON_PATH, ICON_PATH
+from softwarecenter.paths import ICON_PATH
 
 # FIXME: wrong layer
 from softwarecenter.ui.gtk.widgets.animatedimage import AnimatedImage
@@ -489,7 +489,6 @@ if __name__ == "__main__":
     import gtk
     icons = gtk.icon_theme_get_default()
     icons.append_search_path(ICON_PATH)
-    icons.append_search_path(SOFTWARE_CENTER_ICON_PATH)
     distro = get_distro()
     channel = SoftwareChannel(icons, distro.get_distro_channel_name(), 
                               None, None)
