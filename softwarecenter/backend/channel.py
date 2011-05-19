@@ -27,8 +27,16 @@ from gettext import gettext as _
 
 from softwarecenter.backend import get_install_backend
 from softwarecenter.distro import get_distro
-from softwarecenter.utils import *
-from softwarecenter.enums import *
+from softwarecenter.utils import (get_icon_from_theme,
+                                  human_readable_name_from_ppa_uri,
+                                  )
+from softwarecenter.enums import (SORT_BY_ALPHABET,
+                                  VIEW_PAGE_INSTALLED,
+                                  VIEW_PAGE_AVAILABLE,
+                                  GENERIC_MISSING_IMAGE,
+                                  AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME,
+                                  )
+from softwarecenter.path import SOFTWARE_CENTER_ICON_PATH, ICON_PATH
 
 # FIXME: wrong layer
 from softwarecenter.ui.gtk.widgets.animatedimage import AnimatedImage
@@ -479,7 +487,6 @@ class SoftwareChannel(object):
         
 if __name__ == "__main__":
     import gtk
-    from softwarecenter.enums import *
     icons = gtk.icon_theme_get_default()
     icons.append_search_path(ICON_PATH)
     icons.append_search_path(SOFTWARE_CENTER_ICON_PATH)
