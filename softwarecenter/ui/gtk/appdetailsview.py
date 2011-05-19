@@ -25,7 +25,7 @@ import urllib
 import gobject
 
 from softwarecenter.db.application import AppDetails
-from softwarecenter.db.reviews import get_review_loader
+from softwarecenter.backend.reviews import get_review_loader
 from softwarecenter.backend import get_install_backend
 from softwarecenter.enums import *
 from softwarecenter.utils import get_current_arch, get_parent_xid, get_language

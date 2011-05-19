@@ -40,7 +40,7 @@ import apt_pkg
 from softwarecenter.backend import get_install_backend
 
 from softwarecenter.db.application import Application
-from softwarecenter.db.reviews import ReviewStats
+from softwarecenter.backend.reviews import ReviewStats
 
 from softwarecenter.backend.zeitgeist_simple import zeitgeist_singleton
 from softwarecenter.enums import *

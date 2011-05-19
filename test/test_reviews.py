@@ -6,7 +6,7 @@ import unittest
 sys.path.insert(0,"../")
 from softwarecenter.utils import *
 from softwarecenter.db.application import Application
-from softwarecenter.db.reviews import Review
+from softwarecenter.backend.reviews import Review
 
 sys.path.insert(0, "../utils")
 

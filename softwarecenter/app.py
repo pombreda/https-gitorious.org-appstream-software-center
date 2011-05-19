@@ -61,7 +61,7 @@ from backend import get_install_backend
 from paths import SOFTWARE_CENTER_ICON_CACHE_DIR
 
 from plugin import PluginManager
-from db.reviews import get_review_loader, UsefulnessCache
+from backend.reviews import get_review_loader, UsefulnessCache
 from distro import get_distro
 from db.pkginfo import get_pkg_info
 from gettext import gettext as _
