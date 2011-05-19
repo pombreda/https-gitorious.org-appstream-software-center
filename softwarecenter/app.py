@@ -260,6 +260,10 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                    self.on_view_switcher_changed)
         self.view_switcher.width = self.scrolledwindow_viewswitcher.get_property('width-request')
         self.view_switcher.connect('size-allocate', self.on_viewswitcher_resized)
+        
+        # expand the Get Software node in the viewswitcher by default so that its important subitems
+        # (e.g., For Purchase and Independent) are always clearly visible and available
+        self.view_switcher.expand_available_node()
 
         # launchpad integration help, its ok if that fails
         try:
