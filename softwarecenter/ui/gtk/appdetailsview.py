@@ -18,17 +18,23 @@
 
 
 import logging
-import gtk
 import dialogs
 
 import urllib
 import gobject
 
+from gettext import gettext as _
+
 from softwarecenter.db.application import AppDetails
 from softwarecenter.db.reviews import get_review_loader
 from softwarecenter.backend import get_install_backend
-from softwarecenter.enums import *
+from softwarecenter.enums import (APP_ACTION_INSTALL,
+                                  APP_ACTION_REMOVE,
+                                  APP_ACTION_UPGRADE,
+                                  APP_ACTION_APPLY,
+                                  )
 from softwarecenter.utils import get_current_arch, get_parent_xid, get_language
+
 
 LOG=logging.getLogger(__name__)
 

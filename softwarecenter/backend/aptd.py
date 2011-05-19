@@ -16,14 +16,11 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import aptsources.sourceslist
 import dbus
 import gobject
 import logging
 import os
 import re
-import subprocess
-import sys
 from softwarecenter.utils import *
 from softwarecenter.enums import *
 
@@ -36,17 +33,7 @@ from aptdaemon.gtkwidgets import AptMediumRequiredDialog, \
 from aptsources.sourceslist import SourceEntry
 from aptdaemon import policykit1
 
-# natty uses python-defer
-try:
-    from defer import inline_callbacks, return_value
-except ImportError:
-    # compat with maverick
-    try:
-        from aptdaemon.defer import inline_callbacks, return_value
-    except ImportError:
-        logging.getLogger("softwarecenter.backend").exception("aptdaemon import failed")
-        print 'Need the latest aptdaemon, try "sudo apt-add-repository ppa:software-store-developers/ppa" to get the PPA'
-        sys.exit(1)
+from defer import inline_callbacks, return_value
 
 import gtk
 from softwarecenter.backend.transactionswatcher import TransactionsWatcher

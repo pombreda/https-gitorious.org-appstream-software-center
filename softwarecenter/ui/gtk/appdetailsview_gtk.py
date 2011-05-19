@@ -17,6 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import atk
+import datetime
 import gettext
 import glib
 import gmenu
@@ -24,12 +25,8 @@ import gobject
 import gtk
 import logging
 import os
-import pango
-import subprocess
 import sys
-import cairo
-import pangocairo
-import datetime
+
 
 from softwarecenter.cmdfinder import CmdFinder
 from softwarecenter.netstatus import NetState, get_network_watcher, network_state_is_connected
@@ -37,17 +34,33 @@ from softwarecenter.netstatus import NetState, get_network_watcher, network_stat
 from gettext import gettext as _
 import apt_pkg
 
-from softwarecenter.backend import get_install_backend
-
 from softwarecenter.db.application import Application
 from softwarecenter.db.reviews import ReviewStats
 
 from softwarecenter.backend.zeitgeist_simple import zeitgeist_singleton
-from softwarecenter.enums import *
-from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
-
-from softwarecenter.utils import *
-from softwarecenter.config import get_config
+from softwarecenter.enums import (PKG_STATE_INSTALLING_PURCHASED,
+                                  PKG_STATE_INSTALLED,
+                                  PKG_STATE_PURCHASED_BUT_REPO_MUST_BE_ENABLED,
+                                  PKG_STATE_NEEDS_PURCHASE,
+                                  PKG_STATE_NEEDS_SOURCE,
+                                  PKG_STATE_UNINSTALLED,
+                                  PKG_STATE_REINSTALLABLE,
+                                  PKG_STATE_UPGRADABLE,
+                                  PKG_STATE_INSTALLING,
+                                  PKG_STATE_UPGRADING,
+                                  PKG_STATE_REMOVING,
+                                  PKG_STATE_NOT_FOUND,
+                                  PKG_STATE_UNKNOWN,
+                                  APP_ACTION_APPLY,
+                                  PKG_STATE_ERROR,
+                                  SOFTWARE_CENTER_PKGNAME,
+                                  MISSING_APP_ICON,
+                                  )
+from softwarecenter.utils import (is_unity_running, 
+                                  get_exec_line_from_desktop,
+                                  GMenuSearcher,
+                                  SimpleFileDownloader,
+                                  )
 from softwarecenter.backend.weblive import get_weblive_backend
 
 from dialogs import error
@@ -56,12 +69,14 @@ from appdetailsview import AppDetailsViewBase
 
 from widgets import mkit
 
-from widgets.mkit import EM, ShapeStar
-from widgets.reviews import UIReviewsList, UIReview, \
-                            ReviewStatsContainer, StarPainter, \
-                            StarRating, EmbeddedMessage
+from widgets.mkit import EM
+from widgets.reviews import (UIReviewsList, 
+                             ReviewStatsContainer, 
+                             StarPainter,
+                             StarRating,
+                             )
 
-from widgets.description import AppDescription, TextBlock
+from widgets.description import AppDescription
 from widgets.thumbnail import ScreenshotThumbnail
 from widgets.weblivedialog import ShowWebLiveServerChooserDialog
 
@@ -1824,7 +1839,6 @@ if __name__ == "__main__":
     win = gtk.Window()
     scroll = gtk.ScrolledWindow()
     view = AppDetailsViewGtk(db, distro, icons, cache, datadir, win)
-    from softwarecenter.db.application import Application
     #view.show_app(Application("Pay App Example", "pay-app"))
     #view.show_app(Application("3D Chess", "3dchess"))
     #view.show_app(Application("Movie Player", "totem"))

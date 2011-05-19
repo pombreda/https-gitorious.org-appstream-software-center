@@ -43,7 +43,6 @@ from softwarecenter.enums import (
     APP_ACTION_INSTALL,
     APP_ACTION_REMOVE,
     DB_SCHEMA_VERSION,
-    ICON_PATH,
     NAV_BUTTON_ID_PURCHASE,
     MISSING_APP_ICON,
     PKG_STATE_UPGRADABLE,
@@ -56,7 +55,7 @@ from softwarecenter.enums import (
     VIEW_PAGE_HISTORY,
     VIEW_PAGE_PENDING,
     )
-from softwarecenter.paths import SOFTWARE_CENTER_PLUGIN_DIR
+from softwarecenter.paths import SOFTWARE_CENTER_PLUGIN_DIR, ICON_PATH
 from softwarecenter.utils import (clear_token_from_ubuntu_sso,
                                   wait_for_apt_cache_ready)
 from softwarecenter.version import VERSION

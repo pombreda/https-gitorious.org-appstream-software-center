@@ -26,9 +26,7 @@ import os
 import simplejson
 import string
 import shutil
-import sys
 import time
-import urllib
 import xapian
 
 from ConfigParser import RawConfigParser, NoOptionError
@@ -195,7 +193,6 @@ class AppStreamXMLParser(AppInfoParserBase):
         self.appinfo_xml = appinfo_xml
         self.xmlfile = xmlfile
     def get_desktop(self, key, translated=True):
-        from lxml import etree
         key = self._apply_mapping(key)
         if key in self.LISTS:
             return self._parse_with_lists(key)
@@ -215,7 +212,6 @@ class AppStreamXMLParser(AppInfoParserBase):
                 l.append(child.text)
         return ",".join(l)
     def has_option_desktop(self, key):
-        from lxml import etree
         key = self._apply_mapping(key)
         return not self.appinfo_xml.find(key) is None
     @property

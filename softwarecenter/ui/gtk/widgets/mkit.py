@@ -27,9 +27,7 @@ import gobject
 import pangocairo
 from math import pi, cos, sin
 
-from math import sin, cos
-
-from mkit_themes import Color, ColorArray, ThemeRegistry
+from mkit_themes import Color, ThemeRegistry
 
 import logging
 

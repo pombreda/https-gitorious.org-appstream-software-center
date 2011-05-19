@@ -18,21 +18,35 @@
 
 import apt
 import gettext
+import gobject
+import glib
 import gtk
 import logging
 import os
 import sys
 import xapian
 
+import dialogs
+
 from gettext import gettext as _
 
-from softwarecenter.enums import *
-from softwarecenter.paths import *
-from softwarecenter.utils import *
-from softwarecenter.db.database import SearchQuery
+from softwarecenter.enums import (
+    ACTION_BUTTON_ID_INSTALL,
+    DEFAULT_SEARCH_LIMIT,
+    NAV_BUTTON_ID_LIST,
+    NAV_BUTTON_ID_DETAILS,
+    NAV_BUTTON_ID_PURCHASE,
+    NAV_BUTTON_ID_SUBCAT,
+    NAV_BUTTON_ID_CATEGORY,
+    NAV_BUTTON_ID_SEARCH,
+    NAV_BUTTON_ID_PREV_PURCHASES,
+    )
+from softwarecenter.paths import APP_INSTALL_PATH, ICON_PATH, XAPIAN_BASE_PATH
+from softwarecenter.utils import wait_for_apt_cache_ready
+
 from softwarecenter.distro import get_distro
 
-from appview import AppView, AppStore, AppViewFilter
+from appview import AppStore, AppViewFilter
 #from catview_webkit import CategoriesViewWebkit as CategoriesView
 from catview_gtk import LobbyViewGtk, SubCategoryViewGtk
 from catview import Category, CategoriesView
@@ -41,7 +55,7 @@ from softwarepane import SoftwarePane
 
 from widgets.backforward import BackForwardButton
 
-from navhistory import *
+from navhistory import NavigationHistory, NavigationItem
 
 LOG = logging.getLogger(__name__)
 
@@ -742,7 +756,6 @@ if __name__ == "__main__":
     # HACK: make it more friendly for local installs (for mpt)
     icons.append_search_path(datadir+"/icons/32x32/status")
     gtk.window_set_default_icon_name("softwarecenter")
-    import apt
     cache = apt.Cache(apt.progress.text.OpProgress())
     cache.ready = True
 
@@ -765,10 +778,10 @@ if __name__ == "__main__":
             db.open()
     except xapian.DatabaseCorruptError, e:
         logging.exception("xapian open failed")
-        view.dialogs.error(None, 
-                           _("Sorry, can not open the software database"),
-                           _("Please re-install the 'software-center' "
-                             "package."))
+        dialogs.error(None, 
+                      _("Sorry, can not open the software database"),
+                      _("Please re-install the 'software-center' "
+                        "package."))
         # FIXME: force rebuild by providing a dbus service for this
         sys.exit(1)
 

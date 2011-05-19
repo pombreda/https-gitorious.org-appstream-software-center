@@ -21,10 +21,8 @@ import apt_pkg
 import locale
 import os
 import re
-import string
 
 from apt import Cache
-from apt import debfile
 from gettext import gettext as _
 from mimetypes import guess_type
 from softwarecenter.distro import get_distro

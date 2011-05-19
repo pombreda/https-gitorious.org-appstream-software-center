@@ -37,8 +37,6 @@ from widgets.wkwidget import WebkitWidget
 
 from widgets.imagedialog import ShowImageDialog
 
-from softwarecenter.ui.gtk.purchasedialog import PurchaseDialog
-
 
 class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
     """The view that shows the application details """
@@ -374,11 +372,10 @@ class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
         return 0
 
     # internal helpers
-    # internal helpers
     def _check_for_reviews(self):
         logging.debug("_check_for_reviews")
-        reviews = self.review_loader.get_reviews(self.app, 
-                                                 self._reviews_ready_callback)
+        self.review_loader.get_reviews(self.app, 
+                                       self._reviews_ready_callback)
 
     def _reviews_ready_callback(self, app, reviews):
         # avoid possible race if we already moved to a new app when
@@ -415,7 +412,7 @@ class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
             try:
                 result = source.query_info_finish(result)
                 self.execute_script("showThumbnail();")
-            except glib.GError, e:
+            except glib.GError:
                 self._logger.debug("no thumb available")
                 glib.timeout_add(200, run_thumb_missing_js)
             del source

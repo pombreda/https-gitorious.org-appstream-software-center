@@ -19,7 +19,6 @@
 
 import atk
 import gtk
-import cairo
 import gobject
 import mkit
 
@@ -301,7 +300,6 @@ class ButtonPartLeft(ButtonPart):
 
     def _on_expose(self, widget, event):
         cr = self.window.cairo_create()
-        a = self.allocation
         self.draw(cr, event.area, alpha=1.0)
         return
 

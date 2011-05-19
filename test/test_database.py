@@ -4,7 +4,6 @@
 import sys
 sys.path.insert(0,"../")
 
-import apt_pkg
 import apt
 import os
 import re
@@ -29,8 +28,8 @@ class TestDatabase(unittest.TestCase):
     """ tests the store database """
 
     def setUp(self):
-        apt_pkg.config.set("Dir::State::status",
-                           "./data/appdetails/var/lib/dpkg/status")
+        apt.apt_pkg.config.set("Dir::State::status",
+                               "./data/appdetails/var/lib/dpkg/status")
         self.cache = get_pkg_info()
         self.cache.open()
 

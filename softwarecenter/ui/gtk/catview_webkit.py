@@ -26,10 +26,8 @@ from gettext import gettext as _
 from widgets.wkwidget import WebkitWidget
 
 
-from softwarecenter.utils import *
 from softwarecenter.distro import get_distro
-
-from catview import *
+from catview import CategoriesView
 
 class CategoriesViewWebkit(WebkitWidget, CategoriesView):
 
@@ -196,7 +194,7 @@ class CategoriesViewWebkit(WebkitWidget, CategoriesView):
 # test code
 def category_activated(iconview, category, db):
     #(name, pixbuf, query) = iconview.get_model()[path]
-    name = category.name
+    #name = category.name
     query = category.query
     enquire = xapian.Enquire(db.xapiandb)
     enquire.set_query(query)
@@ -212,7 +210,7 @@ def category_activated(iconview, category, db):
 
 if __name__ == "__main__":
     import apt
-    from softwarecenter.enums import *
+    from softwarecenter.enums import XAPIAN_VALUE_APPNAME
     from softwarecenter.db.database import StoreDatabase
     logging.basicConfig(level=logging.DEBUG)
 

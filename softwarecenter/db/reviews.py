@@ -23,16 +23,12 @@ import datetime
 import gio
 import gzip
 import glib
-import locale
 import os
-import json
 import random
 import StringIO
 import subprocess
 import time
 import urllib
-import thread
-import weakref
 import simplejson
 
 from softwarecenter.backend.rnrclient import RatingsAndReviewsAPI, ReviewDetails
