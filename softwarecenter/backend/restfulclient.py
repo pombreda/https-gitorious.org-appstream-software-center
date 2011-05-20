@@ -46,6 +46,8 @@ from Queue import Queue
 
 from login import LoginBackend
 
+LOG = logging.getLogger(__name__)
+
 UBUNTU_SSO_SERVICE = os.environ.get(
     "USSOC_SERVICE_URL", "https://login.ubuntu.com/api/1.0")
 UBUNTU_SOFTWARE_CENTER_AGENT_SERVICE = BUY_SOMETHING_HOST+"/api/1.0"
@@ -89,7 +91,6 @@ class RestfulClientWorker(threading.Thread):
         self._shutdown = False
         self.daemon = True
         self.error = None
-        self._logger = logging.getLogger("softwarecenter.backend")
         self._cachedir = os.path.join(SOFTWARE_CENTER_CACHE_DIR,
                                       "restfulclient")
 
@@ -97,7 +98,7 @@ class RestfulClientWorker(threading.Thread):
         """
         Main thread run interface, logs into launchpad
         """
-        self._logger.debug("lp worker thread run")
+        LOG.debug("lp worker thread run")
         try:
             self.service = ServiceRoot(self._authorizer, 
                                        self._service_root_url,
@@ -126,7 +127,7 @@ class RestfulClientWorker(threading.Thread):
         """internal helper that waits for commands"""
         while True:
             while not self._pending_requests.empty():
-                self._logger.debug("found pending request")
+                LOG.debug("found pending request")
                 (func_str, args, kwargs, result_callback, error_callback) = self._pending_requests.get()
                 # run func async
                 try:
@@ -251,7 +252,7 @@ class SoftwareCenterAgent(gobject.GObject):
         self._available_for_me = restful_collection_to_real_python(result)
 
     def _thread_available_for_me_error(self, error):
-        logging.error("_available_for_me_error %s" % error)
+        LOG.error("_available_for_me_error %s" % error)
         self._available_for_me = []
         
     def query_available_for_me(self, oauth_token, openid_identifier):
@@ -263,12 +264,12 @@ class SoftwareCenterAgent(gobject.GObject):
                                          self._thread_available_for_me_error)
 
     def _thread_available_done(self, result):
-        logging.debug("_thread_available_done %s %s" % (result,
+        LOG.debug("_thread_available_done %s %s" % (result,
                       restful_collection_to_real_python(result)))
         self._available = restful_collection_to_real_python(result)
 
     def _thread_available_error(self, error):
-        logging.error("_thread_available_error %s" % error)
+        LOG.error("_thread_available_error %s" % error)
         self._available = []
 
     def query_available(self, series_name=None, arch_tag=None):
