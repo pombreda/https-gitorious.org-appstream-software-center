@@ -11,8 +11,13 @@ software-center (4.1.3) UNRELEASED; urgency=low
       (LP: #774590)
   * merged lp:~aaronp/software-center/refactoring, many thanks
     to Aaron Peachey
+  * softwarecenter/app.py,
+    softwarecenter/backend/restfulclient.py,
+    softwarecenter/backend/rnrclient.py,
+    softwarecenter/db/update.py:
+    - fix some root logger warnings, other cleanup
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 19 May 2011 22:57:56 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Fri, 20 May 2011 16:47:37 -0400
 
 software-center (4.1.2) oneiric; urgency=low
 
