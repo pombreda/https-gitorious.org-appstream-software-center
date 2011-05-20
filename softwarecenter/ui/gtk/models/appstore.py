@@ -30,7 +30,7 @@ import threading
 from softwarecenter.enums import *
 from softwarecenter.utils import *
 from softwarecenter.backend import get_install_backend
-from softwarecenter.db.reviews import get_review_loader
+from softwarecenter.backend.reviews import get_review_loader
 from softwarecenter.db.database import Application, SearchQuery, LocaleSorter
 
 from softwarecenter.distro import get_distro

@@ -44,7 +44,7 @@ from softwarecenter.netstatus import network_state_is_connected
 
 from softwarecenter.enums import *
 
-from softwarecenter.db.reviews import UsefulnessCache
+from softwarecenter.backend.reviews import UsefulnessCache
 
 LOG_ALLOCATION = logging.getLogger("softwarecenter.ui.gtk.allocation")
 
@@ -730,7 +730,7 @@ class UIReviewsList(gtk.VBox):
         self.logged_in_person = get_person_from_config()
 
         self._parent = parent
-        # this is a list of review data (softwarecenter.db.reviews.Review)
+        # this is a list of review data (softwarecenter.backend.reviews.Review)
         self.reviews = []
         self.useful_votes = UsefulnessCache()
         self.logged_in_person = None

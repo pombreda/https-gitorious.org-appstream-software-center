@@ -379,7 +379,7 @@ def save_person_to_config(username):
     """ save the specified username value for Ubuntu SSO to the config file
     """
     # FIXME: ideally this would be stored in ubuntu-sso-client
-    #        but it dosn't so we store it here
+    #        but it doesn't so we store it here
     curr_name = get_person_from_config()
     if curr_name != username:
         config = get_config()
@@ -387,7 +387,7 @@ def save_person_to_config(username):
             config.add_section("reviews")
         config.set("reviews", "username", username)
         config.write()
-        from db.reviews import UsefulnessCache
+        from backend.reviews import UsefulnessCache
         usefulness = UsefulnessCache(True)
     return
             
