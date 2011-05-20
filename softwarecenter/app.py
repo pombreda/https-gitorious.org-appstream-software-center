@@ -115,7 +115,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         try:
             locale.setlocale(locale.LC_ALL, "")
         except:
-            LOG.exception("setlocale failed, reseting to C")
+            LOG.exception("setlocale failed, resetting to C")
             locale.setlocale(locale.LC_ALL, "C")
 
         # setup dbus and exit if there is another instance already
@@ -147,7 +147,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self.db.open()
             if self.db.schema_version() != DB_SCHEMA_VERSION:
                 LOG.warn("database format '%s' expected, but got '%s'" % (
-                        DB_SCHEMA_VERSION, self.db.schema_version()))
+                         DB_SCHEMA_VERSION, self.db.schema_version()))
                 if os.access(pathname, os.W_OK):
                     self._rebuild_and_reopen_local_db(pathname)
         except xapian.DatabaseOpeningError:
