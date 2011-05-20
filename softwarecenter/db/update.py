@@ -69,7 +69,7 @@ if os.path.exists(CF):
     try:
         cataloged_times = cPickle.load(open(CF))
     except EOFError as e:
-        logging.warn("failed to read %s (%s" % (CF, e))
+        LOG.warn("failed to read %s (%s" % (CF, e))
 del CF
 
 class AppInfoParserBase(object):
@@ -367,7 +367,7 @@ def update_from_appstream_xml(db, cache, xmldir):
         tree = etree.parse(open(appstream_xml))
         root = tree.getroot()
         if not root.tag == "applications":
-            logging.error("failed to read '%s' excepected Applications root tag" % appstream_xml)
+            LOG.error("failed to read '%s' excepected Applications root tag" % appstream_xml)
             continue
         for appinfo in root.iter("application"):
             parser = AppStreamXMLParser(appinfo, appstream_xml)
