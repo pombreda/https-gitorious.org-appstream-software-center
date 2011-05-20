@@ -36,7 +36,7 @@ from softwarecenter.db.database import StoreDatabase, Application
 
 from softwarecenter.netstatus import NetState, get_network_state, get_network_watcher
 
-#from softwarecenter.db.reviews import get_review_loader
+#from softwarecenter.backend.reviews import get_review_loader
 #from softwarecenter.backend import get_install_backend
 #from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
 
