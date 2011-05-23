@@ -26,8 +26,18 @@ import threading
 import xapian
 from softwarecenter.db.application import Application
 
-from softwarecenter.utils import *
-from softwarecenter.enums import *
+#from softwarecenter.utils import *
+from softwarecenter.enums import (
+    AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME,
+    PKG_STATE_UNINSTALLED,
+    XAPIAN_VALUE_ARCHIVE_CHANNEL,
+    XAPIAN_VALUE_SUMMARY,
+    XAPIAN_VALUE_PKGNAME,
+    XAPIAN_VALUE_APPNAME,
+    XAPIAN_VALUE_ICON,
+    XAPIAN_VALUE_ICON_NEEDS_DOWNLOAD,
+    XAPIAN_VALUE_POPCON
+)
 from softwarecenter.paths import XAPIAN_BASE_PATH_SOFTWARE_CENTER_AGENT
 from gettext import gettext as _
 

@@ -40,7 +40,8 @@ from softwarecenter.utils import get_nice_date_string, upstream_version_compare,
 
 from softwarecenter.netstatus import network_state_is_connected
 
-from softwarecenter.enums import *
+from softwarecenter.enums import (PKG_STATE_INSTALLED,
+                                  REVIEWS_BATCH_PAGE_SIZE)
 
 from softwarecenter.db.reviews import UsefulnessCache
 

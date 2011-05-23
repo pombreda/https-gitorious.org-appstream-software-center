@@ -1,11 +1,12 @@
+
 import atk
 import gtk
 import gobject
 import mkit
 import pangocairo
 import logging
+import os
 
-from softwarecenter.enums import *
 from softwarecenter.utils import SimpleFileDownloader, uri_to_filename
 
 from imagedialog import ShowImageDialog

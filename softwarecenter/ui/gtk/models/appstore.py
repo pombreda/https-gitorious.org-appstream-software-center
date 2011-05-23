@@ -24,10 +24,20 @@ import logging
 import math
 import os
 import xapian
+import time
 import threading
 
-from softwarecenter.enums import *
-from softwarecenter.utils import *
+from softwarecenter.enums import (
+    DEFAULT_SEARCH_LIMIT,
+    MISSING_APP_ICON,
+    SORT_UNSORTED,
+    SORT_BY_ALPHABET,
+    SORT_BY_CATALOGED_TIME,
+    SORT_BY_SEARCH_RANKING,
+    XAPIAN_VALUE_PKGNAME,
+    XAPIAN_VALUE_APPNAME,
+    )
+from softwarecenter.utils import ExecutionTime, SimpleFileDownloader
 from softwarecenter.backend import get_install_backend
 from softwarecenter.db.reviews import get_review_loader
 from softwarecenter.db.database import Application, SearchQuery, LocaleSorter
@@ -470,9 +480,8 @@ class AppStore(gtk.GenericTreeModel):
 
         # Otherwise the app should return app data normally.
         appname = doc.get_value(XAPIAN_VALUE_APPNAME)
-        untranslated_appname = doc.get_value(XAPIAN_VALUE_APPNAME_UNTRANSLATED)
         pkgname = self.db.get_pkgname(doc)
-        popcon = self.db.get_popcon(doc)
+        #popcon = self.db.get_popcon(doc)
         app = Application(appname, pkgname)
 
         # ensure that any app.requests don't get lost
