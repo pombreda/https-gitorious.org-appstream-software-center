@@ -2,14 +2,10 @@
 
 import unittest
 
-import ldtp
 import ooldtp
-import ldtputils
-import logging
 import os
 import shutil
 import subprocess
-import sys
 import time
 
 class SoftwareCenterLdtp(unittest.TestCase):
@@ -41,6 +37,7 @@ class SoftwareCenterLdtp(unittest.TestCase):
                 continue
             else:
                 break
+        print comp, close_menu_label
 
     def tearDown(self):
         self.p.kill()

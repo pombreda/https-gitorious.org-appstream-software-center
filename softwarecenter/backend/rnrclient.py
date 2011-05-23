@@ -21,6 +21,8 @@ import logging
 import os
 import sys
 
+LOG = logging.getLogger(__name__)
+
 # useful for debugging
 if "SOFTWARE_CENTER_DEBUG_HTTP" in os.environ:
     import httplib2
@@ -33,17 +35,17 @@ SERVER_ROOT=distro.REVIEWS_SERVER
 
 # patch default_service_root
 try:
-    from rnrclient_pristine import RatingsAndReviewsAPI, ReviewRequest, ReviewDetails
+    from rnrclient_pristine import RatingsAndReviewsAPI
     RatingsAndReviewsAPI.default_service_root = SERVER_ROOT
 except:
-    logging.error("need python-piston-mini client\n"
-                  "available in natty or from:\n"
-                  "   ppa:software-store-developers/daily-build ")
+    LOG.error("need python-piston-mini client\n"
+              "available in natty or from:\n"
+              "   ppa:software-store-developers/daily-build ")
     sys.exit(1)
 
 import rnrclient_pristine
 if "SOFTWARE_CENTER_FORCE_NON_SSL" in os.environ:
-    logging.warn("forcing transmission over NON ENCRYPTED CHANNEL")
+    LOG.warn("forcing transmission over NON ENCRYPTED CHANNEL")
     rnrclient_pristine.AUTHENTICATED_API_SCHEME = "http"
 
 

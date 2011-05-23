@@ -30,7 +30,6 @@ set setupOnce to False to launch/close the app for each test
 """
 
 import ldtp
-import logging
 import ooldtp
 import unittest
 
@@ -41,7 +40,7 @@ class TestSoftwareCenter(TestCase):
     """
     # try local checkout first
     try:
-        import softwarecenter.enums
+        #import softwarecenter.enums
         launcher = "../software-center"
         print "using local checkout"
     except ImportError:

@@ -39,12 +39,14 @@ from softwarecenter.utils import get_current_arch, get_language
 from lazr.restfulclient.resource import ServiceRoot
 from lazr.restfulclient.authorize import BasicHttpAuthorizer
 from lazr.restfulclient.authorize.oauth import OAuthAuthorizer
-from oauth.oauth import OAuthConsumer, OAuthToken
+from oauth.oauth import OAuthToken
 
 from softwarecenter.paths import SOFTWARE_CENTER_CACHE_DIR
 from Queue import Queue
 
 from login import LoginBackend
+
+LOG = logging.getLogger(__name__)
 
 UBUNTU_SSO_SERVICE = os.environ.get(
     "USSOC_SERVICE_URL", "https://login.ubuntu.com/api/1.0")
@@ -89,7 +91,6 @@ class RestfulClientWorker(threading.Thread):
         self._shutdown = False
         self.daemon = True
         self.error = None
-        self._logger = logging.getLogger("softwarecenter.backend")
         self._cachedir = os.path.join(SOFTWARE_CENTER_CACHE_DIR,
                                       "restfulclient")
 
@@ -97,7 +98,7 @@ class RestfulClientWorker(threading.Thread):
         """
         Main thread run interface, logs into launchpad
         """
-        self._logger.debug("lp worker thread run")
+        LOG.debug("lp worker thread run")
         try:
             self.service = ServiceRoot(self._authorizer, 
                                        self._service_root_url,
@@ -126,7 +127,7 @@ class RestfulClientWorker(threading.Thread):
         """internal helper that waits for commands"""
         while True:
             while not self._pending_requests.empty():
-                self._logger.debug("found pending request")
+                LOG.debug("found pending request")
                 (func_str, args, kwargs, result_callback, error_callback) = self._pending_requests.get()
                 # run func async
                 try:
@@ -251,7 +252,7 @@ class SoftwareCenterAgent(gobject.GObject):
         self._available_for_me = restful_collection_to_real_python(result)
 
     def _thread_available_for_me_error(self, error):
-        logging.error("_available_for_me_error %s" % error)
+        LOG.error("_available_for_me_error %s" % error)
         self._available_for_me = []
         
     def query_available_for_me(self, oauth_token, openid_identifier):
@@ -263,12 +264,12 @@ class SoftwareCenterAgent(gobject.GObject):
                                          self._thread_available_for_me_error)
 
     def _thread_available_done(self, result):
-        logging.debug("_thread_available_done %s %s" % (result,
+        LOG.debug("_thread_available_done %s %s" % (result,
                       restful_collection_to_real_python(result)))
         self._available = restful_collection_to_real_python(result)
 
     def _thread_available_error(self, error):
-        logging.error("_thread_available_error %s" % error)
+        LOG.error("_thread_available_error %s" % error)
         self._available = []
 
     def query_available(self, series_name=None, arch_tag=None):
@@ -530,15 +531,3 @@ if __name__ == "__main__":
         sys.exit(1)
 
 
-    # wait
-    try:
-        glib.MainLoop().run()
-    except KeyboardInterrupt:
-        try:
-            sso.worker_thread.shutdown()
-        except:
-            pass
-        try:
-            scagent.worker_thread.shutdown()
-        except:
-            pass

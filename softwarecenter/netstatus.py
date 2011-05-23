@@ -51,6 +51,7 @@ class NetworkStatusWatcher(gobject.GObject):
         return
 
 # internal helper
+NETWORK_STATE = 0
 def __connection_state_changed_handler(state):
     global NETWORK_STATE
 

@@ -19,19 +19,45 @@
 from apt.debfile import DebPackage
 import apt_pkg
 import locale
+import logging
 import os
 import re
-import string
 
 from apt import Cache
-from apt import debfile
 from gettext import gettext as _
 from mimetypes import guess_type
 from softwarecenter.distro import get_distro
-from softwarecenter.enums import *
-from softwarecenter.paths import *
-from softwarecenter.utils import *
-
+from softwarecenter.enums import (
+    MISSING_PKG_ICON,
+    PKG_STATE_INSTALLING_PURCHASED,
+    PKG_STATE_INSTALLED,
+    PKG_STATE_PURCHASED_BUT_REPO_MUST_BE_ENABLED,
+    PKG_STATE_NEEDS_PURCHASE,
+    PKG_STATE_NEEDS_SOURCE,
+    PKG_STATE_UNINSTALLED,
+    PKG_STATE_REINSTALLABLE,
+    PKG_STATE_UPGRADABLE,
+    PKG_STATE_INSTALLING,
+    PKG_STATE_REMOVING,
+    PKG_STATE_NOT_FOUND,
+    PKG_STATE_UNKNOWN,
+    PKG_STATE_ERROR,
+    XAPIAN_VALUE_ARCHIVE_CHANNEL,
+    XAPIAN_VALUE_APPNAME_UNTRANSLATED,
+    XAPIAN_VALUE_ARCHIVE_SECTION,
+    XAPIAN_VALUE_DESKTOP_FILE,
+    XAPIAN_VALUE_SC_DESCRIPTION,
+    XAPIAN_VALUE_PURCHASED_DATE,
+    XAPIAN_VALUE_ARCHIVE_DEB_LINE,
+    XAPIAN_VALUE_PRICE,
+    XAPIAN_VALUE_ARCHIVE_PPA,
+    XAPIAN_VALUE_ARCHIVE_SIGNING_KEY_ID,
+    XAPIAN_VALUE_SCREENSHOT_URL,
+    XAPIAN_VALUE_THUMBNAIL_URL,
+)
+from softwarecenter.paths import (APP_INSTALL_CHANNELS_PATH,
+                                  SOFTWARE_CENTER_ICON_CACHE_DIR,
+                                  )
 LOG = logging.getLogger(__name__)
 
 # this is a very lean class as its used in the main listview

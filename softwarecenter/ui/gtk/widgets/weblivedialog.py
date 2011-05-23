@@ -17,7 +17,10 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import gtk, sys
+import gtk
+import sys
+
+from gettext import gettext as _
 
 class ShowWebLiveServerChooserDialog(gtk.Dialog):
     """A dialog to choose between multiple server"""
@@ -30,7 +33,7 @@ class ShowWebLiveServerChooserDialog(gtk.Dialog):
         if not parent:
             parent = self.get_parent()
             while parent:
-                parent = w.get_parent()
+                parent = parent.get_parent()
 
         # servers
         self.servers_vbox=gtk.VBox(False, 0)

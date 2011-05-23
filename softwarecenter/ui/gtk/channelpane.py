@@ -30,10 +30,12 @@ from gettext import gettext as _
 
 from softwarecenter.backend import get_install_backend
 from softwarecenter.distro import get_distro
-from softwarecenter.enums import *
-from softwarecenter.utils import wait_for_apt_cache_ready
-
-from appview import AppView, AppStore, AppViewFilter
+from softwarecenter.enums import (NAV_BUTTON_ID_DETAILS,
+                                  NAV_BUTTON_ID_PURCHASE,
+                                  NAV_BUTTON_ID_SEARCH,
+                                  )
+from softwarecenter.paths import XAPIAN_BASE_PATH
+from appview import AppStore, AppViewFilter
 
 from softwarepane import SoftwarePane
 

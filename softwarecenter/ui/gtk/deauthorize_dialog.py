@@ -23,7 +23,6 @@ from gettext import gettext as _
 
 from dialogs import SimpleGtkbuilderDialog
 
-from softwarecenter.db.application import Application
 from softwarecenter.distro import get_distro
 from softwarecenter.enums import MISSING_APP_ICON
 from widgets.packagenamesview import PackageNamesView
@@ -64,7 +63,6 @@ def deauthorize_computer(parent, datadir, db, icons, account_name, purchased_pac
 
     # add the list of packages to remove, if there are any
     if len(purchased_packages) > 0:
-        vbox = dialog.get_content_area()
         view = PackageNamesView(_("Deauthorize"), cache, purchased_packages, icons, ICON_SIZE, db)
         view.set_headers_visible(False)
         # FIXME: work out how not to select?/focus?/activate? first item
@@ -85,7 +83,7 @@ if __name__ == "__main__":
     cache = get_pkg_info()
     cache.open()
 
-    from softwarecenter.db.database import StoreDatabase, Application
+    from softwarecenter.db.database import StoreDatabase
     pathname = "/var/cache/software-center/xapian"
     db = StoreDatabase(pathname, cache)
     db.open()

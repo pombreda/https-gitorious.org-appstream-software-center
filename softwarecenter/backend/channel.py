@@ -17,12 +17,8 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import apt
 import glib
-import gettext
 import logging
-import string
-import urlparse
 import xapian
 
 from aptsources.sourceslist import SourceEntry, SourcesList
@@ -31,8 +27,16 @@ from gettext import gettext as _
 
 from softwarecenter.backend import get_install_backend
 from softwarecenter.distro import get_distro
-from softwarecenter.utils import *
-from softwarecenter.enums import *
+from softwarecenter.utils import (get_icon_from_theme,
+                                  human_readable_name_from_ppa_uri,
+                                  )
+from softwarecenter.enums import (SORT_BY_ALPHABET,
+                                  VIEW_PAGE_INSTALLED,
+                                  VIEW_PAGE_AVAILABLE,
+                                  GENERIC_MISSING_IMAGE,
+                                  AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME,
+                                  )
+from softwarecenter.paths import ICON_PATH
 
 # FIXME: wrong layer
 from softwarecenter.ui.gtk.widgets.animatedimage import AnimatedImage
@@ -483,10 +487,8 @@ class SoftwareChannel(object):
         
 if __name__ == "__main__":
     import gtk
-    from softwarecenter.enums import *
     icons = gtk.icon_theme_get_default()
     icons.append_search_path(ICON_PATH)
-    icons.append_search_path(SOFTWARE_CENTER_ICON_PATH)
     distro = get_distro()
     channel = SoftwareChannel(icons, distro.get_distro_channel_name(), 
                               None, None)

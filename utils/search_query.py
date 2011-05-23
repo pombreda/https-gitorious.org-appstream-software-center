@@ -7,8 +7,8 @@ import xapian
 from optparse import OptionParser
 
 sys.path.insert(0, "../")
-from softwarecenter.enums import *
-from softwarecenter.utils import *
+from softwarecenter.paths import XAPIAN_BASE_PATH
+from softwarecenter.utils import ExecutionTime
 
 def run_query(parser, search_terms, verbose):
     for search_term in search_terms:

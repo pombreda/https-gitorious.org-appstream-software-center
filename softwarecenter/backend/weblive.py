@@ -24,11 +24,8 @@
 import re
 import glib
 import os
-import pprint
 import random
-import socket
 import subprocess
-import sys
 import string
 
 from threading import Thread, Event

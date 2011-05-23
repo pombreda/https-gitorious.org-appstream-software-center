@@ -18,10 +18,7 @@
 
 import gtk
 import logging
-import mkit
 import gobject
-
-from gettext import gettext as _
 
 LOG = logging.getLogger(__name__)
 

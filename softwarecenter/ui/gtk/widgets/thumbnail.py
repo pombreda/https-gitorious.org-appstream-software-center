@@ -1,11 +1,12 @@
+
 import atk
 import gtk
 import gobject
 import mkit
 import pangocairo
 import logging
+import os
 
-from softwarecenter.enums import *
 from softwarecenter.utils import SimpleFileDownloader, uri_to_filename
 
 from imagedialog import ShowImageDialog
@@ -241,7 +242,7 @@ class ScreenshotThumbnail(gtk.Alignment):
         """
 
         self.tip_alpha += 0.1
-        ia = self.image.allocation
+#        ia = self.image.allocation
         tw, th = self._tip_size
 
         if self.tip_alpha >= 1.0:
@@ -264,7 +265,7 @@ class ScreenshotThumbnail(gtk.Alignment):
         """
 
         self.tip_alpha -= 0.1
-        ia = self.image.allocation
+#        ia = self.image.allocation
         tw, th = self._tip_size
 
         if self.tip_alpha <= 0.0:

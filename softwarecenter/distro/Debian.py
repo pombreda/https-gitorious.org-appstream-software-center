@@ -17,12 +17,6 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import datetime
-import gettext
-import locale
-import subprocess
-
-from apt.utils import *
 from softwarecenter.distro import Distro
 from gettext import gettext as _
 
@@ -85,5 +79,5 @@ class Debian(Distro):
 if __name__ == "__main__":
     import apt
     cache = apt.Cache()
-    print c.get_maintenance_status(cache, "synaptic app", "synaptic", "main", None)
-    print c.get_maintenance_status(cache, "3dchess app", "3dchess", "universe", None)
+    print cache.get_maintenance_status(cache, "synaptic app", "synaptic", "main", None)
+    print cache.get_maintenance_status(cache, "3dchess app", "3dchess", "universe", None)

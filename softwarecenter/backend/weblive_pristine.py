@@ -92,11 +92,11 @@ class WebLive:
 
         if reply['status'] != 'ok':
             if reply['message'] == -1:
-                raise WebliveJsonError("Missing 'action' field in query.")
+                raise WebLiveJsonError("Missing 'action' field in query.")
             elif reply['message'] == -2:
                 raise WebLiveJsonError("Missing parameter")
             elif reply['message'] == -3:
-                raise WebliveJsonError("Function '%s' isn't exported over JSON." % query['action'])
+                raise WebLiveJsonError("Function '%s' isn't exported over JSON." % query['action'])
             else:
                 raise WebLiveJsonError("Unknown error code: %s" % reply['message'])
 

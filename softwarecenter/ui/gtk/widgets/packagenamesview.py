@@ -62,7 +62,7 @@ class PackageNamesView(gtk.TreeView):
                 LOG.warning("cant set icon for '%s' " % pkgname)
                 pix = icons.load_icon(MISSING_APP_ICON, icon_size, ()).scale_simple(icon_size, 
                                       icon_size, gtk.gdk.INTERP_BILINEAR)
-            row = model.append([pix, s])
+            model.append([pix, s])
             
         # finally, we don't allow selection, it's just a simple display list
         tree_selection = self.get_selection()

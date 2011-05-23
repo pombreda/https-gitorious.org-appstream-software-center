@@ -26,25 +26,24 @@ import datetime
 import gobject
 import cairo
 import gtk
-import os
 import mkit
 import pango
-import pangocairo
 import logging
 
 import gettext
 from gettext import gettext as _
 
-from mkit import EM, Style, ShapeStar, ShapeRoundedRectangle, VLinkButton, floats_from_string, get_mkit_theme
-from softwarecenter.drawing import alpha_composite, color_floats, rounded_rect, rounded_rect2
+from mkit import EM, ShapeStar, get_mkit_theme
+from softwarecenter.drawing import alpha_composite, color_floats
 
 from softwarecenter.utils import get_nice_date_string, upstream_version_compare, upstream_version, get_person_from_config
 
 from softwarecenter.netstatus import network_state_is_connected
 
-from softwarecenter.enums import *
+from softwarecenter.enums import (PKG_STATE_INSTALLED,
+                                  REVIEWS_BATCH_PAGE_SIZE)
 
-from softwarecenter.db.reviews import UsefulnessCache
+from softwarecenter.backend.reviews import UsefulnessCache
 
 LOG_ALLOCATION = logging.getLogger("softwarecenter.ui.gtk.allocation")
 
@@ -244,14 +243,12 @@ class StarPainter(object):
         #~ black = color_floats(widget.style.black)
 
         if self.fill == self.FILL_FULL:
-            white = color_floats(widget.style.white)
             dark = color_floats('#B54D00') # brownish
             darker = alpha_composite(dark+(0.65,), (0,0,0))
             grad0 = grad1 = alpha_composite(self.fg_color+(0.9,), dark)
 
         else:
             theme = self.theme
-            white = theme.light_line[state].floats()
             dark = darker = theme.dark_line[state].floats()
             grad0, grad1 = theme.gradients[state]
             grad0 = grad0.floats()
@@ -558,7 +555,6 @@ class StarRatingSelector(StarRating):
     def _on_leave(self, star, event):
         star.set_state(gtk.STATE_NORMAL)
         gobject.timeout_add(100, self._hover_check_cb)
-        a = star.allocation
         star.queue_draw()
         return
 
@@ -568,14 +564,12 @@ class StarRatingSelector(StarRating):
         if a_star_has_focus: star.grab_focus()
 
         star.set_state(gtk.STATE_ACTIVE)
-        a = star.allocation
         star.queue_draw()
         return
 
     def _on_release(self, star, event):
         self.set_rating(star.position+1)
         star.set_state(gtk.STATE_PRELIGHT)
-        a = star.allocation
         star.queue_draw()
         return
 
@@ -612,7 +606,6 @@ class StarRatingSelector(StarRating):
         if kv == gtk.keysyms.space or kv == gtk.keysyms.Return:
             self.set_rating(star.position+1)
             star.set_state(gtk.STATE_NORMAL)
-            a = star.allocation
             star.queue_draw()
         return
 
@@ -651,7 +644,6 @@ class StarRatingSelector(StarRating):
                 star.border = StarPainter.BORDER_ON
             else:
                 star.border = StarPainter.BORDER_OFF
-        a = self.allocation
         self.queue_draw()
         return
 
@@ -730,7 +722,7 @@ class UIReviewsList(gtk.VBox):
         self.logged_in_person = get_person_from_config()
 
         self._parent = parent
-        # this is a list of review data (softwarecenter.db.reviews.Review)
+        # this is a list of review data (softwarecenter.backend.reviews.Review)
         self.reviews = []
         self.useful_votes = UsefulnessCache()
         self.logged_in_person = None
@@ -1248,7 +1240,7 @@ class UIReview(gtk.VBox):
 
     def _whom_when_markup(self, person, displayname, cur_t, dark_color):
         nice_date = get_nice_date_string(cur_t)
-        dt = datetime.datetime.utcnow() - cur_t
+        #dt = datetime.datetime.utcnow() - cur_t
 
         # prefer displayname if available
         correct_name = displayname or person

@@ -16,7 +16,6 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from softwarecenter.utils import ExecutionTime
 import atexit
 import atk
 import locale
@@ -34,19 +33,37 @@ import glob
 
 # purely to initialize the netstatus
 import softwarecenter.netstatus
+# make pyflakes shut up
+softwarecenter.netstatus.NETWORK_STATE
 
+import ui.gtk
 from ui.gtk.SimpleGtkbuilderApp import SimpleGtkbuilderApp
 from softwarecenter.db.application import Application, DebFileApplication
-from softwarecenter.enums import *
-from softwarecenter.paths import *
-from softwarecenter.utils import *
-from softwarecenter.version import *
+from softwarecenter.enums import (                                  
+    APP_ACTION_INSTALL,
+    APP_ACTION_REMOVE,
+    DB_SCHEMA_VERSION,
+    NAV_BUTTON_ID_PURCHASE,
+    MISSING_APP_ICON,
+    PKG_STATE_UPGRADABLE,
+    PKG_STATE_REINSTALLABLE,
+    PKG_STATE_INSTALLED,
+    PKG_STATE_UNINSTALLED,
+    VIEW_PAGE_AVAILABLE,
+    VIEW_PAGE_CHANNEL,
+    VIEW_PAGE_INSTALLED,
+    VIEW_PAGE_HISTORY,
+    VIEW_PAGE_PENDING,
+    )
+from softwarecenter.paths import SOFTWARE_CENTER_PLUGIN_DIR, ICON_PATH
+from softwarecenter.utils import (clear_token_from_ubuntu_sso,
+                                  wait_for_apt_cache_ready)
+from softwarecenter.version import VERSION
 from softwarecenter.db.database import StoreDatabase
 import softwarecenter.ui.gtk.dependency_dialogs as dependency_dialogs
 import softwarecenter.ui.gtk.deauthorize_dialog as deauthorize_dialog
 from softwarecenter.backend.aptd import TransactionFinishedResult
 
-import ui.gtk.dialogs
 from ui.gtk.viewswitcher import ViewSwitcher
 from ui.gtk.pendingview import PendingView
 from ui.gtk.installedpane import InstalledPane
@@ -61,10 +78,12 @@ from backend import get_install_backend
 from paths import SOFTWARE_CENTER_ICON_CACHE_DIR
 
 from plugin import PluginManager
-from db.reviews import get_review_loader, UsefulnessCache
+from backend.reviews import get_review_loader, UsefulnessCache
 from distro import get_distro
 from db.pkginfo import get_pkg_info
 from gettext import gettext as _
+
+LOG = logging.getLogger(__name__)
 
 
 class SoftwarecenterDbusController(dbus.service.Object):
@@ -103,7 +122,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
     def __init__(self, datadir, xapian_base_path, options, args=None):
 
-        self._logger = logging.getLogger(__name__)
         self.datadir = datadir
         SimpleGtkbuilderApp.__init__(self, 
                                      datadir+"/ui/SoftwareCenter.ui", 
@@ -114,7 +132,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         try:
             locale.setlocale(locale.LC_ALL, "")
         except:
-            self._logger.exception("setlocale failed, reseting to C")
+            LOG.exception("setlocale failed, resetting to C")
             locale.setlocale(locale.LC_ALL, "C")
 
         # setup dbus and exit if there is another instance already
@@ -145,8 +163,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self.db = StoreDatabase(pathname, self.cache)
             self.db.open()
             if self.db.schema_version() != DB_SCHEMA_VERSION:
-                logging.warn("database format '%s' expected, but got '%s'" % (
-                        DB_SCHEMA_VERSION, self.db.schema_version()))
+                LOG.warn("database format '%s' expected, but got '%s'" % (
+                         DB_SCHEMA_VERSION, self.db.schema_version()))
                 if os.access(pathname, os.W_OK):
                     self._rebuild_and_reopen_local_db(pathname)
         except xapian.DatabaseOpeningError:
@@ -157,11 +175,11 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             if os.path.isdir(pathname) and not os.listdir(pathname):
                 self._rebuild_and_reopen_local_db(pathname)
         except xapian.DatabaseCorruptError, e:
-            self._logger.exception("xapian open failed")
-            view.dialogs.error(None, 
-                               _("Sorry, can not open the software database"),
-                               _("Please re-install the 'software-center' "
-                                 "package."))
+            LOG.exception("xapian open failed")
+            ui.gtk.dialogs.error(None, 
+                          _("Sorry, can not open the software database"),
+                          _("Please re-install the 'software-center' "
+                            "package."))
             # FIXME: force rebuild by providing a dbus service for this
             sys.exit(1)
 
@@ -260,6 +278,10 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                    self.on_view_switcher_changed)
         self.view_switcher.width = self.scrolledwindow_viewswitcher.get_property('width-request')
         self.view_switcher.connect('size-allocate', self.on_viewswitcher_resized)
+        
+        # expand the Get Software node in the viewswitcher by default so that its important subitems
+        # (e.g., For Purchase and Independent) are always clearly visible and available
+        self.view_switcher.expand_available_node()
 
         # launchpad integration help, its ok if that fails
         try:
@@ -267,7 +289,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             LaunchpadIntegration.set_sourcepackagename("software-center")
             LaunchpadIntegration.add_items(self.menu_help, 1, True, False)
         except Exception, e:
-            self._logger.debug("launchpad integration error: '%s'" % e)
+            LOG.debug("launchpad integration error: '%s'" % e)
             
         # set up accelerator keys for navigation history actions
         accel_group = gtk.AccelGroup()
@@ -369,7 +391,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
     def _rebuild_and_reopen_local_db(self, pathname):
         """ helper that rebuilds a db and reopens it """
         from softwarecenter.db.update import rebuild_database
-        self._logger.info("building local database")
+        LOG.info("building local database")
         rebuild_database(pathname)
         self.db = StoreDatabase(pathname, self.cache)
         self.db.open()
@@ -437,12 +459,12 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                   VIEW_PAGE_HISTORY)
     
     def _on_update_software_center_agent_finished(self, pid, condition):
-        self._logger.info("software-center-agent finished with status %i" % os.WEXITSTATUS(condition))
+        LOG.info("software-center-agent finished with status %i" % os.WEXITSTATUS(condition))
         if os.WEXITSTATUS(condition) == 0:
             self.db.reopen()
 
     def on_review_stats_loaded(self, reviews):
-        self._logger.debug("on_review_stats_loaded: '%s'" % len(reviews))
+        LOG.debug("on_review_stats_loaded: '%s'" % len(reviews))
 
     def on_app_details_changed(self, widget, app, page):
         self.update_status_bar()
@@ -472,7 +494,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self.active_pane.navigation_bar.navigate_up()
         
     def on_view_switcher_changed(self, view_switcher, view_id, channel):
-        self._logger.debug("view_switcher_activated: %s %s" % (view_switcher, view_id))
+        LOG.debug("view_switcher_activated: %s %s" % (view_switcher, view_id))
 
         # set active pane
         self.active_pane = self.view_manager.get_view_widget(view_id)
@@ -535,7 +557,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
            if action is "remove", must check if other dependencies have to be
            removed as well and show a dialog in that case
         """
-        logging.debug("on_application_action_requested: '%s' %s" % (app, action))
+        LOG.debug("on_application_action_requested: '%s' %s" % (app, action))
         appdetails = app.get_details(self.db)
         if action == "remove":
             if not dependency_dialogs.confirm_remove(None, self.datadir, app,
@@ -575,7 +597,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         elif callable(action_func):
             action_func(app.pkgname, app.appname, appdetails.icon, addons_install=addons_install, addons_remove=addons_remove)
         else:
-            logging.error("Not a valid action in AptdaemonBackend: '%s'" % action)
+            LOG.error("Not a valid action in AptdaemonBackend: '%s'" % action)
             
     def get_icon_filename(self, iconname, iconsize):
         iconinfo = self.icons.lookup_icon(iconname, iconsize, 0)
@@ -586,7 +608,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
     # Menu Items
     def on_menu_file_activate(self, menuitem):
         """Enable/disable install/remove"""
-        self._logger.debug("on_menu_file_activate")
+        LOG.debug("on_menu_file_activate")
         # check if we have a pkg for this page
         app = None
         if self.active_pane:
@@ -948,7 +970,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         if self.window_main.props.visible == False:
             glib.timeout_add_seconds(1, self._ask_and_repair_broken_cache)
             return
-        if view.dialogs.confirm_repair_broken_cache(self.window_main, self.datadir):
+        if ui.gtk.dialogs.confirm_repair_broken_cache(self.window_main,
+                                                      self.datadir):
             self.backend.fix_broken_depends()
 
     def _on_notebook_expose(self, widget, event):
@@ -977,7 +1000,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
     def on_channels_changed(self, backend, res):
         """ callback when the set of software channels has changed """
-        self._logger.debug("on_channels_changed %s" % res)
+        LOG.debug("on_channels_changed %s" % res)
         if res:
             # reopen the database, this will ensure that the right signals
             # are send and triggers "refresh_apps"
@@ -1018,7 +1041,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self.active_pane.refresh_apps()
 
     def _on_database_rebuilding_handler(self, is_rebuilding):
-        self._logger.debug("_on_database_rebuilding_handler %s" % is_rebuilding)
+        LOG.debug("_on_database_rebuilding_handler %s" % is_rebuilding)
         self._database_is_rebuilding = is_rebuilding
 
         if is_rebuilding:
@@ -1036,7 +1059,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         try:
             bus = dbus.SystemBus()
         except:
-            self._logger.exception("could not get system bus")
+            LOG.exception("could not get system bus")
             return
         # check if its currently rebuilding (most likely not, so we
         # just ignore errors from dbus because the interface
@@ -1047,7 +1070,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             res = iface.IsRebuilding()
             self._on_database_rebuilding_handler(res)
         except Exception ,e:
-            self._logger.debug("query for the update-database exception '%s' (probably ok)" % e)
+            LOG.debug("query for the update-database exception '%s' (probably ok)" % e)
 
         # add signal handler
         bus.add_signal_receiver(self._on_database_rebuilding_handler,
@@ -1061,7 +1084,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         try:
             bus = dbus.SessionBus()
         except:
-            self._logger.exception("could not initiate dbus")
+            LOG.exception("could not initiate dbus")
             return
         # if there is another Softwarecenter running bring it to front
         # and exit, otherwise install the dbus controller
@@ -1075,7 +1098,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                 # None can not be transported over dbus
                 iface.bringToFront('nothing-to-show')
             sys.exit()
-        except dbus.DBusException, e:
+        except dbus.DBusException:
             bus_name = dbus.service.BusName('com.ubuntu.Softwarecenter',bus)
             self.dbusControler = SoftwarecenterDbusController(self, bus_name)
 
@@ -1149,9 +1172,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         if (self.config.has_option("general", "maximized") and
             self.config.getboolean("general", "maximized")):
             self.window_main.maximize()
-        if (self.config.has_option("general", "available-node-expanded") and
-            self.config.getboolean("general", "available-node-expanded")):
-            self.view_switcher.expand_available_node()
         if (self.config.has_option("general", "installed-node-expanded") and
             self.config.getboolean("general", "installed-node-expanded")):
             self.view_switcher.expand_installed_node()
@@ -1160,7 +1180,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self.scrolledwindow_viewswitcher.set_property('width_request', width)
 
     def save_state(self):
-        self._logger.debug("save_state")
+        LOG.debug("save_state")
         # this happens on a delete event, we explicitely save_state() there
         if self.window_main.window is None:
             return
@@ -1174,11 +1194,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             # size only matters when non-maximized
             size = self.window_main.get_size() 
             self.config.set("general","size", "%s, %s" % (size[0], size[1]))
-        available_node_expanded = self.view_switcher.is_available_node_expanded()
-        if available_node_expanded:
-            self.config.set("general", "available-node-expanded", "True")
-        else:
-            self.config.set("general", "available-node-expanded", "False")
         installed_node_expanded = self.view_switcher.is_installed_node_expanded()
         if installed_node_expanded:
             self.config.set("general", "installed-node-expanded", "True")

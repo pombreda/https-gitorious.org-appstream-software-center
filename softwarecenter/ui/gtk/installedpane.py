@@ -26,11 +26,13 @@ import xapian
 import gobject
 
 from gettext import gettext as _
+import dialogs
+from softwarecenter.enums import (NAV_BUTTON_ID_DETAILS,
+                                  NAV_BUTTON_ID_SEARCH,
+                                  NAV_BUTTON_ID_LIST)
+from softwarecenter.paths import ICON_PATH, XAPIAN_BASE_PATH
 
-from softwarecenter.enums import *
-from softwarecenter.utils import wait_for_apt_cache_ready
-
-from appview import AppView, AppStore, AppViewFilter
+from appview import AppViewFilter
 
 from softwarepane import SoftwarePane
 
@@ -226,10 +228,10 @@ if __name__ == "__main__":
             db.open()
     except xapian.DatabaseCorruptError, e:
         logging.exception("xapian open failed")
-        view.dialogs.error(None, 
-                           _("Sorry, can not open the software database"),
-                           _("Please re-install the 'software-center' "
-                             "package."))
+        dialogs.error(None, 
+                      _("Sorry, can not open the software database"),
+                      _("Please re-install the 'software-center' "
+                        "package."))
         # FIXME: force rebuild by providing a dbus service for this
         sys.exit(1)
 

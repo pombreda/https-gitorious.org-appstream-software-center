@@ -22,26 +22,36 @@ import cPickle
 import datetime
 import gio
 import gzip
+import gtk
 import glib
-import locale
+import logging
 import os
-import json
 import random
 import StringIO
 import subprocess
 import time
 import urllib
-import thread
-import weakref
 import simplejson
 
-from softwarecenter.backend.rnrclient import RatingsAndReviewsAPI, ReviewDetails
+from softwarecenter.backend.rnrclient import RatingsAndReviewsAPI
+from softwarecenter.backend.rnrclient_pristine import ReviewDetails
 from softwarecenter.db.database import Application
 import softwarecenter.distro
-from softwarecenter.utils import *
-from softwarecenter.paths import *
-from softwarecenter.enums import *
-from piston_mini_client import APIError
+from softwarecenter.utils import (upstream_version_compare,
+                                  uri_to_filename,
+                                  get_language,
+                                  save_person_to_config,
+                                  get_person_from_config,
+                                  )
+from softwarecenter.paths import (SOFTWARE_CENTER_CACHE_DIR,
+                                  SUBMIT_REVIEW_APP,
+                                  REPORT_REVIEW_APP,
+                                  SUBMIT_USEFULNESS_APP,
+                                  GET_REVIEWS_HELPER,
+                                  GET_REVIEW_STATS_HELPER,
+                                  GET_USEFUL_VOTES_HELPER,
+                                  )
+#from softwarecenter.enums import *
 
 from softwarecenter.netstatus import network_state_is_connected
 
@@ -106,6 +116,7 @@ class UsefulnessCache(object):
         LOG.debug("_usefulness_loaded started")
         # get status code
         res = os.WEXITSTATUS(status)
+        LOG.debug("usefulness loader exited with status: '%i'" % res)
         # check stderr
         err = os.read(stderr, 4*1024)
         if err:
@@ -500,8 +511,8 @@ class ReviewLoaderSpawningRNRClient(ReviewLoader):
         except OSError:
             days_delta = 0
         LOG.debug("refresh with days_delta: %s" % days_delta)
-        origin = "any"
-        distroseries = self.distro.get_codename()
+        #origin = "any"
+        #distroseries = self.distro.get_codename()
         cmd = [os.path.join(
                 softwarecenter.paths.datadir, GET_REVIEW_STATS_HELPER),
                # FIXME: the server currently has bug (#757695) so we
@@ -561,7 +572,7 @@ class ReviewLoaderJsonAsync(ReviewLoader):
         callback = source.get_data("callback")
         try:
             (json_str, length, etag) = source.load_contents_finish(result)
-        except glib.GError, e:
+        except glib.GError:
             # ignore read errors, most likely transient
             return callback(app, [])
         # check for gzip header
@@ -603,7 +614,7 @@ class ReviewLoaderJsonAsync(ReviewLoader):
         callback = source.get_data("callback")
         try:
             (json_str, length, etag) = source.load_contents_finish(result)
-        except glib.GError, e:
+        except glib.GError:
             # ignore read errors, most likely transient
             return
         # check for gzip header
@@ -613,7 +624,7 @@ class ReviewLoaderJsonAsync(ReviewLoader):
         review_stats_json = simplejson.loads(json_str)
         review_stats = {}
         for review_stat_json in review_stats_json:
-            appname = review_stat_json["app_name"]
+            #appname = review_stat_json["app_name"]
             pkgname = review_stat_json["package_name"]
             app = Application('', pkgname)
             stats = ReviewStats(app)

@@ -4,7 +4,6 @@
 import sys
 sys.path.insert(0,"../")
 
-import apt
 import unittest
 import os
 import xapian

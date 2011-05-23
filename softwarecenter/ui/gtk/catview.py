@@ -17,15 +17,12 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import gettext
-import gobject
 import glob
 import locale
 import logging
-import os
 import xapian
 
 from ConfigParser import ConfigParser
-from gettext import gettext as _
 
 from xml.etree import ElementTree as ET
 from xml.sax.saxutils import escape as xml_escape
@@ -145,7 +142,7 @@ class CategoriesView(object):
         cp.read(fname)
         try:
             untranslated_name = name = cp.get("Desktop Entry","Name")
-        except Exception, e:
+        except Exception:
             LOG.warn("'%s' has no name" % fname)
             return None
         try:
@@ -154,7 +151,7 @@ class CategoriesView(object):
             gettext_domain = None
         try:
             icon = cp.get("Desktop Entry","Icon")
-        except Exception, e:
+        except Exception:
             icon = "applications-other"
         if gettext_domain:
             name = gettext.dgettext(gettext_domain, untranslated_name)

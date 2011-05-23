@@ -4,14 +4,13 @@ import os
 import sys
 sys.path.insert(0,"../")
 
-import glib
 import gtk
 import unittest
 
 from softwarecenter.db.database import StoreDatabase
 from softwarecenter.db.pkginfo import get_pkg_info
 from softwarecenter.ui.gtk.appview import AppView, AppStore
-from softwarecenter.paths import *
+from softwarecenter.paths import XAPIAN_BASE_PATH
 
 import xapian
 

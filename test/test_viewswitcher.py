@@ -4,21 +4,16 @@ import os
 import sys
 sys.path.insert(0,"../")
 
-import apt
 import gtk
-import shutil
 import unittest
 
 
 from softwarecenter.db.pkginfo import get_pkg_info
-from softwarecenter.db.application import Application
 from softwarecenter.db.database import StoreDatabase
 from softwarecenter.ui.gtk.viewmanager import ViewManager
 from softwarecenter.ui.gtk.viewswitcher import ViewSwitcher, ViewSwitcherList
-from softwarecenter.enums import *
 from softwarecenter.paths import XAPIAN_BASE_PATH
 
-import xapian
 
 class testViewSwitcher(unittest.TestCase):
     """ tests the ViewSwitcher """

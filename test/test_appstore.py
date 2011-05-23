@@ -4,20 +4,20 @@ import os
 import sys
 sys.path.insert(0,"../")
 
-import apt
-import random
 import glib
 import gtk
-import shutil
 import unittest
 
-from softwarecenter.db.application import Application
 from softwarecenter.db.database import StoreDatabase
 from softwarecenter.db.pkginfo import get_pkg_info
 
-from softwarecenter.ui.gtk.appview import AppView, AppStore, AppViewFilter
-from softwarecenter.enums import *
-from softwarecenter.paths import *
+from softwarecenter.ui.gtk.appview import AppStore, AppViewFilter
+from softwarecenter.enums import (AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME,
+                                  SORT_BY_ALPHABET,
+                                  SORT_BY_CATALOGED_TIME,
+                                  XAPIAN_VALUE_PKGNAME,
+                                  )
+from softwarecenter.paths import XAPIAN_BASE_PATH
 
 import xapian
 

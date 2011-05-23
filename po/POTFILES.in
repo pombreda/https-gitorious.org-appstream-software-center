@@ -16,8 +16,8 @@ softwarecenter/app.py
 softwarecenter/backend/aptd.py
 softwarecenter/backend/channel.py
 softwarecenter/backend/login_sso.py
+softwarecenter/backend/reviews.py
 softwarecenter/db/application.py
-softwarecenter/db/reviews.py
 softwarecenter/db/database.py
 softwarecenter/db/update.py
 softwarecenter/distro/Debian.py

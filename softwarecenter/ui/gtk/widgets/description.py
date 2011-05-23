@@ -17,15 +17,11 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import gtk
-import logging
 import pango
 import gobject
 
 from pango import SCALE as PS
 from gtk import keysyms as keys
-
-from gettext import gettext as _
-
 
 class EventHelper(dict):
 
