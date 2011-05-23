@@ -20,6 +20,7 @@ import gio
 import glib
 import gobject
 import gtk
+import json
 import logging
 import re
 import os
@@ -30,14 +31,16 @@ import tempfile
 from gettext import gettext as _
 
 from softwarecenter.db.application import Application
-from softwarecenter.enums import *
+from softwarecenter.enums import (USER_AGENT,
+                                  PKG_STATE_INSTALLED,
+                                  PKG_STATE_NEEDS_PURCHASE,
+                                  PKG_STATE_PURCHASED_BUT_REPO_MUST_BE_ENABLED,
+                                  PKG_STATE_NEEDS_SOURCE)
 from softwarecenter.ui.gtk.appdetailsview import AppDetailsViewBase
 from softwarecenter.utils import get_current_arch, htmlize_package_desc
 from widgets.wkwidget import WebkitWidget
 
 from widgets.imagedialog import ShowImageDialog
-
-from softwarecenter.ui.gtk.purchasedialog import PurchaseDialog
 
 
 class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
@@ -374,11 +377,10 @@ class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
         return 0
 
     # internal helpers
-    # internal helpers
     def _check_for_reviews(self):
         logging.debug("_check_for_reviews")
-        reviews = self.review_loader.get_reviews(self.app, 
-                                                 self._reviews_ready_callback)
+        self.review_loader.get_reviews(self.app, 
+                                       self._reviews_ready_callback)
 
     def _reviews_ready_callback(self, app, reviews):
         # avoid possible race if we already moved to a new app when
@@ -415,7 +417,7 @@ class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
             try:
                 result = source.query_info_finish(result)
                 self.execute_script("showThumbnail();")
-            except glib.GError, e:
+            except glib.GError:
                 self._logger.debug("no thumb available")
                 glib.timeout_add(200, run_thumb_missing_js)
             del source
@@ -438,6 +440,7 @@ class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
     def _get_action_button_label_and_value(self):
         action_button_label = ""
         action_button_value = ""
+        state = self.appdetails.pkg_state
         if self.appdetails.pkg:
             pkg = self.appdetails.pkg
             # Don't handle upgrades yet

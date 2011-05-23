@@ -28,11 +28,14 @@ from gettext import gettext as _
 
 from softwarecenter.backend import get_install_backend
 from softwarecenter.db.database import StoreDatabase
-from softwarecenter.enums import *
+from softwarecenter.enums import (PERMANENT_VIEWS,
+                                  VIEW_PAGE_SEPARATOR_1,
+                                  )
+from softwarecenter.paths import XAPIAN_BASE_PATH
 from softwarecenter.utils import wait_for_apt_cache_ready
 
 from models.viewswitcherlist import ViewSwitcherList
-from widgets.animatedimage import CellRendererAnimatedImage, AnimatedImage
+from widgets.animatedimage import CellRendererAnimatedImage
 from widgets.mkit import ShapeRoundedRectangle, floats_from_gdkcolor
 
 LOG = logging.getLogger(__name__)

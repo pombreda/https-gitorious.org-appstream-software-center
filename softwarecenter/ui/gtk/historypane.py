@@ -19,7 +19,6 @@
 
 
 import gobject
-import gio
 import glib
 import gtk
 import logging
@@ -36,7 +35,8 @@ from widgets.searchentry import SearchEntry
 from widgets.spinner import SpinnerView
 from basepane import BasePane
 
-from softwarecenter.enums import *
+from softwarecenter.enums import MISSING_APP_ICON, XAPIAN_VALUE_ICON
+from softwarecenter.paths import ICON_PATH, XAPIAN_BASE_PATH
 from softwarecenter.db.database import StoreDatabase
 
 class HistoryPane(gtk.VBox, BasePane):

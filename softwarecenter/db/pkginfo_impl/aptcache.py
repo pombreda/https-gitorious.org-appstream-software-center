@@ -19,21 +19,17 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import apt
-import apt_pkg
-import datetime
-import locale
 import logging
-import gettext
 import gio
 import glib
-import gobject
 import gtk
 import os
-import subprocess
-import time
 
-from gettext import gettext as _
-from softwarecenter.enums import *
+from softwarecenter.enums import (PKG_STATE_INSTALLING,
+                                  PKG_STATE_REMOVING,
+                                  PKG_STATE_UPGRADING,
+                                  PKG_STATE_UNKNOWN,
+                                  )
 from softwarecenter.utils import ExecutionTime
 from softwarecenter.db.pkginfo import PackageInfo
 

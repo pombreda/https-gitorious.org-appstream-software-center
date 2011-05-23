@@ -7,7 +7,6 @@ import logging
 import unittest
 
 from softwarecenter.db.pkginfo import get_pkg_info
-from softwarecenter.utils import ExecutionTime
 
 class TestPkgInfo(unittest.TestCase):
 

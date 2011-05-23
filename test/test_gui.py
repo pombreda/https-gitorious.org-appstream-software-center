@@ -199,10 +199,8 @@ class TestGUI(unittest.TestCase):
     def test_previous_purchase(self):
         self._reset_ui()
         # monkey patch stuff
-        from softwarecenter.backend.login_sso import LoginBackendDbusSSO
         self.app._create_dbus_sso_if_needed()
         self.app.sso.login = self._monkey_sso_login
-        from softwarecenter.backend.restfulclient import SoftwareCenterAgent
         self.app._create_scagent_if_needed()
         self.app.scagent.query_available_for_me = self._monkey_query_available_for_me
         self.app.on_menuitem_reinstall_purchases_activate(None)

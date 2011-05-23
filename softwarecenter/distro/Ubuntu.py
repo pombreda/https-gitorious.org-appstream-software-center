@@ -17,16 +17,17 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import datetime
-import gettext
 import locale
+import logging
+import os
 import re
-import urllib
-import subprocess
 
-from apt.utils import *
+from apt.utils import (get_release_filename_for_pkg,
+                       get_release_date_from_release_file,
+                       get_maintenance_end_date)
 from gettext import gettext as _
 from softwarecenter.distro import Distro
-from softwarecenter.enums import *
+from softwarecenter.enums import BUY_SOMETHING_HOST
 
 class Ubuntu(Distro):
 
@@ -136,7 +137,7 @@ class Ubuntu(Distro):
             release_date = datetime.datetime.fromtimestamp(time_t)
             #print "release_date: ", release_date
             now = datetime.datetime.now()
-            release_age = (now - release_date).days
+            #release_age = (now - release_date).days
             #print "release age: ", release_age
 
             # init with the default time
@@ -247,5 +248,5 @@ class Ubuntu(Distro):
 if __name__ == "__main__":
     import apt
     cache = apt.Cache()
-    print c.get_maintenance_status(cache, "synaptic app", "synaptic", "main", None)
-    print c.get_maintenance_status(cache, "3dchess app", "3dchess", "universe", None)
+    print cache.get_maintenance_status(cache, "synaptic app", "synaptic", "main", None)
+    print cache.get_maintenance_status(cache, "3dchess app", "3dchess", "universe", None)

@@ -59,7 +59,8 @@ from softwarecenter.distro import get_distro
 from softwarecenter.ui.gtk.widgets.reviews import StarRatingSelector, StarCaption
 from softwarecenter.gwibber_helper import GwibberHelper, GwibberHelperMock
 
-from softwarecenter.backend.rnrclient import RatingsAndReviewsAPI, ReviewRequest
+from softwarecenter.backend.rnrclient import RatingsAndReviewsAPI
+from softwarecenter.backend.rnrclient_pristine import ReviewRequest
 
 #import httplib2
 #httplib2.debuglevel = 1
@@ -496,19 +497,19 @@ class BaseApp(SimpleGtkbuilderApp):
         
         #clears spinner or error image from dialog submission label before trying to display one or the other
         try: 
-            result = self.status_hbox.query_child_packing(self.submit_spinner)
+            self.status_hbox.query_child_packing(self.submit_spinner)
             self.status_hbox.remove(self.submit_spinner)
         except TypeError:
             pass
         
         try: 
-            result = self.status_hbox.query_child_packing(self.submit_error_img)
+            self.status_hbox.query_child_packing(self.submit_error_img)
             self.status_hbox.remove(self.submit_error_img)
         except TypeError:
             pass
             
         try: 
-            result = self.status_hbox.query_child_packing(self.submit_success_img)
+            self.status_hbox.query_child_packing(self.submit_success_img)
             self.status_hbox.remove(self.submit_success_img)
         except TypeError:
             pass

@@ -1,24 +1,21 @@
 #!/usr/bin/python
 
+import os
 import sys
 import unittest
 sys.path.insert(0,"../")
 
-from softwarecenter.enums import *
-from softwarecenter.utils import *
 from softwarecenter.paths import XAPIAN_BASE_PATH
-
+from softwarecenter.utils import GMenuSearcher
 from softwarecenter.db.pkginfo import get_pkg_info
 from softwarecenter.db.database import StoreDatabase
-from softwarecenter.db.application import Application, AppDetails
+from softwarecenter.db.application import Application
 
-import gmenu
 
 class TestWhereIsit(unittest.TestCase):
     """ tests the "where is it in the menu" code """
 
     def setUp(self):
-        datadir = "../data"
         cache = get_pkg_info()
         cache.open()
         xapian_base_path = XAPIAN_BASE_PATH

@@ -1,10 +1,13 @@
 #!/usr/bin/python
 
+import gtk
 import mock
+import os
 import sys
 import unittest
+
 sys.path.insert(0,"../")
-from softwarecenter.utils import *
+
 from softwarecenter.db.application import Application
 from softwarecenter.backend.reviews import Review
 

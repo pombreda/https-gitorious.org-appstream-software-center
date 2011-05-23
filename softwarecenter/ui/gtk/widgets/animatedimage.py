@@ -21,7 +21,7 @@ import gobject
 import gtk
 import os
 import glob
-import time
+
 
 class AnimatedImage(gtk.Image):
     
@@ -78,8 +78,7 @@ class AnimatedImage(gtk.Image):
             raise IOError, "need a str, list or a pixbuf"
 
     def start(self, w=None):
-        source_id = gobject.timeout_add(int(1000/self.FPS), 
-                                              self._progress_timeout)
+        gobject.timeout_add(int(1000/self.FPS), self._progress_timeout)
         self._run = True
 
     def stop(self, w=None):

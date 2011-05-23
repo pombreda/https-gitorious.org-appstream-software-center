@@ -1,10 +1,9 @@
 import atk
 import gtk
-import gobject
 import pango
 import pangocairo
 
-from mkit import EM, Button, VLinkButton, EtchedLabel
+from mkit import EM, Button, EtchedLabel
 from softwarecenter.drawing import color_floats
 
 

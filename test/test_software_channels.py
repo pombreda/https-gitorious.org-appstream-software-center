@@ -4,19 +4,15 @@ import os
 import sys
 sys.path.insert(0,"../")
 
-import apt
 import gtk
 import logging
-import shutil
 import time
 import unittest
 
 from softwarecenter.db.pkginfo import get_pkg_info
-from softwarecenter.backend.channel import SoftwareChannel, ChannelsManager
+from softwarecenter.backend.channel import ChannelsManager
 from softwarecenter.db.database import StoreDatabase
-from softwarecenter.enums import *
 from softwarecenter.paths import XAPIAN_BASE_PATH
-from softwarecenter.utils import ExecutionTime
 
 class MockIconCache(object):
     def connect(self, signal, func):

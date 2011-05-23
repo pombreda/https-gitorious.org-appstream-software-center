@@ -4,7 +4,6 @@
 import sys
 sys.path.insert(0,"../")
 
-import apt_pkg
 import apt
 import os
 import re
@@ -16,15 +15,21 @@ from softwarecenter.db.database import StoreDatabase
 from softwarecenter.db.database import parse_axi_values_file
 from softwarecenter.db.pkginfo import get_pkg_info
 from softwarecenter.db.update import update_from_app_install_data, update_from_var_lib_apt_lists, update_from_appstream_xml
-from softwarecenter.paths import *
-from softwarecenter.enums import *
+from softwarecenter.enums import (
+    XAPIAN_VALUE_ARCHIVE_PPA,
+    XAPIAN_VALUE_ICON,
+    PKG_STATE_INSTALLED,
+    PKG_STATE_NEEDS_SOURCE,
+    PKG_STATE_NEEDS_PURCHASE,
+    PKG_STATE_NOT_FOUND,
+    )
 
 class TestDatabase(unittest.TestCase):
     """ tests the store database """
 
     def setUp(self):
-        apt_pkg.config.set("Dir::State::status",
-                           "./data/appdetails/var/lib/dpkg/status")
+        apt.apt_pkg.config.set("Dir::State::status",
+                               "./data/appdetails/var/lib/dpkg/status")
         self.cache = get_pkg_info()
         self.cache.open()
 
@@ -96,17 +101,23 @@ class TestDatabase(unittest.TestCase):
         db = xapian.WritableDatabase("./data/test.db", 
                                      xapian.DB_CREATE_OR_OVERWRITE)
         cache = apt.Cache()
-        # we test against the real https://sc.ubuntu.com so we need network
-        res = update_from_software_center_agent(db, cache)
-	# sofware-center.ubuntu.com down; film at 11
-	return
+        # monkey patch distro to ensure we get data
+        import softwarecenter.distro
+        distro = softwarecenter.distro.get_distro()
+        distro.get_codename = lambda: "natty"
+        # we test against the real https://software-center.ubuntu.com here
+        # so we need network
+        res = update_from_software_center_agent(db, cache, ignore_etag=True)
+        # check results
         self.assertTrue(res)
-        self.assertEqual(db.get_doccount(), 1)
+        self.assertTrue(db.get_doccount() > 1)
         for p in db.postlist(""):
             doc = db.get_document(p.docid)
-            self.assertTrue(doc.get_value(XAPIAN_VALUE_ARCHIVE_PPA),
-                            "pay-owner/pay-ppa-name")
-            self.assertTrue(doc.get_value(XAPIAN_VALUE_ICON).startswith("sc-agent"))
+            ppa = doc.get_value(XAPIAN_VALUE_ARCHIVE_PPA)
+            self.assertTrue(ppa.startswith("commercial-ppa") and
+                            ppa.count("/") == 1)
+            self.assertTrue(
+                doc.get_value(XAPIAN_VALUE_ICON).startswith("sc-agent"))
         
     def test_application(self):
         db = StoreDatabase("/var/cache/software-center/xapian", self.cache)
@@ -118,6 +129,7 @@ class TestDatabase(unittest.TestCase):
         db = xapian.WritableDatabase("./data/test.db", 
                                      xapian.DB_CREATE_OR_OVERWRITE)
         res = update_from_app_install_data(db, self.cache, datadir="./data/")
+        self.assertTrue(res)
         db = StoreDatabase("./data/test.db", self.cache)
         db.open(use_axi=False, use_agent=False)
         self.assertEqual(len(db), 5)
@@ -194,6 +206,7 @@ class TestDatabase(unittest.TestCase):
         db = xapian.WritableDatabase("./data/test.db", 
                                      xapian.DB_CREATE_OR_OVERWRITE)
         res = update_from_app_install_data(db, self.cache, datadir="./data/")
+        self.assertTrue(res)
         db = StoreDatabase("./data/test.db", self.cache)
         db.open(use_axi=False)
         # test PKG_STATE_INSTALLED
@@ -248,6 +261,7 @@ class TestDatabase(unittest.TestCase):
         db = xapian.WritableDatabase("./data/test.db", 
                                      xapian.DB_CREATE_OR_OVERWRITE)
         res = update_from_app_install_data(db, self.cache, datadir="./data/")
+        self.assertTrue(res)
         db = StoreDatabase("./data/test.db", self.cache)
         db.open(use_axi=True)
 
@@ -283,7 +297,7 @@ packagesize	3	# package size
 app-popcon	4	# app-install .desktop popcon rank
 """
         open("axi-test-values","w").write(s)
-        db = StoreDatabase("/var/cache/software-center/xapian", self.cache)
+        #db = StoreDatabase("/var/cache/software-center/xapian", self.cache)
         axi_values = parse_axi_values_file("axi-test-values")
         self.assertNotEqual(axi_values, {})
         print axi_values

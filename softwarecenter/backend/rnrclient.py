@@ -35,7 +35,7 @@ SERVER_ROOT=distro.REVIEWS_SERVER
 
 # patch default_service_root
 try:
-    from rnrclient_pristine import RatingsAndReviewsAPI, ReviewRequest, ReviewDetails
+    from rnrclient_pristine import RatingsAndReviewsAPI
     RatingsAndReviewsAPI.default_service_root = SERVER_ROOT
 except:
     LOG.error("need python-piston-mini client\n"

@@ -84,7 +84,7 @@ class AptHistory(PackageHistory):
         self._history_ready = True
     
     def _scan(self, history_file, rescan = False):
-        LOG.debug("_scan: %s (%s)" % (history_file, rescan))
+        LOG.debug("_scan: '%s' (%s)" % (history_file, rescan))
         try:
             tagfile = apt_pkg.TagFile(open(history_file))
         except (IOError, SystemError), ioe:
@@ -97,7 +97,7 @@ class AptHistory(PackageHistory):
             # ignore records with 
             try:
                 trans = Transaction(stanza)
-            except KeyError, e:
+            except KeyError:
                 continue
             # ignore the ones we have already
             if (rescan and

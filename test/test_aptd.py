@@ -6,7 +6,6 @@ sys.path.insert(0,"../")
 import unittest
 
 from softwarecenter.backend.aptd import AptdaemonBackend
-from softwarecenter.enums import *
 
 class TestAptdaemon(unittest.TestCase):
     """ tests the AptdaemonBackend """

@@ -3,6 +3,9 @@ software-center (4.1.3) UNRELEASED; urgency=low
   [ Michael Vogt ]
   * merged lp:~mvo/software-center/refactor, no user visible
     changes, only code cleanup
+  * merged lp:~mvo/software-center/pyflakes, no user visible
+    changes, only code cleanup
+  * enforce pyflakes cleaness on bzr-buildpackage
 
   [ Gary Lasker ]
   * softwarecenter/app.py:

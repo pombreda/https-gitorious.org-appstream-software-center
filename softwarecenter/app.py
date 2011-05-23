@@ -16,7 +16,6 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from softwarecenter.utils import ExecutionTime
 import atexit
 import atk
 import locale
@@ -34,19 +33,37 @@ import glob
 
 # purely to initialize the netstatus
 import softwarecenter.netstatus
+# make pyflakes shut up
+softwarecenter.netstatus.NETWORK_STATE
 
+import ui.gtk
 from ui.gtk.SimpleGtkbuilderApp import SimpleGtkbuilderApp
 from softwarecenter.db.application import Application, DebFileApplication
-from softwarecenter.enums import *
-from softwarecenter.paths import *
-from softwarecenter.utils import *
-from softwarecenter.version import *
+from softwarecenter.enums import (                                  
+    APP_ACTION_INSTALL,
+    APP_ACTION_REMOVE,
+    DB_SCHEMA_VERSION,
+    NAV_BUTTON_ID_PURCHASE,
+    MISSING_APP_ICON,
+    PKG_STATE_UPGRADABLE,
+    PKG_STATE_REINSTALLABLE,
+    PKG_STATE_INSTALLED,
+    PKG_STATE_UNINSTALLED,
+    VIEW_PAGE_AVAILABLE,
+    VIEW_PAGE_CHANNEL,
+    VIEW_PAGE_INSTALLED,
+    VIEW_PAGE_HISTORY,
+    VIEW_PAGE_PENDING,
+    )
+from softwarecenter.paths import SOFTWARE_CENTER_PLUGIN_DIR, ICON_PATH
+from softwarecenter.utils import (clear_token_from_ubuntu_sso,
+                                  wait_for_apt_cache_ready)
+from softwarecenter.version import VERSION
 from softwarecenter.db.database import StoreDatabase
 import softwarecenter.ui.gtk.dependency_dialogs as dependency_dialogs
 import softwarecenter.ui.gtk.deauthorize_dialog as deauthorize_dialog
 from softwarecenter.backend.aptd import TransactionFinishedResult
 
-import ui.gtk.dialogs
 from ui.gtk.viewswitcher import ViewSwitcher
 from ui.gtk.pendingview import PendingView
 from ui.gtk.installedpane import InstalledPane
@@ -159,10 +176,10 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                 self._rebuild_and_reopen_local_db(pathname)
         except xapian.DatabaseCorruptError, e:
             LOG.exception("xapian open failed")
-            view.dialogs.error(None, 
-                               _("Sorry, can not open the software database"),
-                               _("Please re-install the 'software-center' "
-                                 "package."))
+            ui.gtk.dialogs.error(None, 
+                          _("Sorry, can not open the software database"),
+                          _("Please re-install the 'software-center' "
+                            "package."))
             # FIXME: force rebuild by providing a dbus service for this
             sys.exit(1)
 
@@ -953,7 +970,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         if self.window_main.props.visible == False:
             glib.timeout_add_seconds(1, self._ask_and_repair_broken_cache)
             return
-        if view.dialogs.confirm_repair_broken_cache(self.window_main, self.datadir):
+        if ui.gtk.dialogs.confirm_repair_broken_cache(self.window_main,
+                                                      self.datadir):
             self.backend.fix_broken_depends()
 
     def _on_notebook_expose(self, widget, event):
@@ -1080,7 +1098,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                 # None can not be transported over dbus
                 iface.bringToFront('nothing-to-show')
             sys.exit()
-        except dbus.DBusException, e:
+        except dbus.DBusException:
             bus_name = dbus.service.BusName('com.ubuntu.Softwarecenter',bus)
             self.dbusControler = SoftwarecenterDbusController(self, bus_name)
 

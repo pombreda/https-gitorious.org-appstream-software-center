@@ -7,7 +7,6 @@ import logging
 import unittest
 
 from softwarecenter.plugin import PluginManager
-from softwarecenter.utils import ExecutionTime
 
 class MockApp(object):
     """ mock app """

@@ -499,9 +499,7 @@ class CarouselPoster2(Button):
                         pkgname=app[AppStore.COL_PKGNAME],
                         popcon=app[AppStore.COL_RATING])
 
-        nr_reviews = app[AppStore.COL_NR_REVIEWS]
-
-        d = a.get_details(self.db)
+        #nr_reviews = app[AppStore.COL_NR_REVIEWS]
 
         name = app[AppStore.COL_APP_NAME]
 

@@ -89,7 +89,7 @@ class Distro(object):
         return True if the given document and pkgname is supported by 
         the distribution
         """
-        raise UnimplementError
+        raise UnimplementedError
 
     def get_supported_query(self):
         """ return a xapian query that gives all supported documents """

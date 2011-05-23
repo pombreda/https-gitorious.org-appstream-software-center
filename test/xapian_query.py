@@ -4,13 +4,7 @@ import os
 import sys
 import xapian
 
-try:
-    from AppCenter.enums import *
-except ImportError:
-    # support running from the dir too
-    d = os.path.dirname(os.path.abspath(os.path.join(os.getcwd(),__file__)))
-    sys.path.insert(0, os.path.split(d)[0])
-    from AppCenter.enums import *
+from softwarecenter.enums import XAPIAN_VALUE_POPCON
 
 if __name__ == "__main__":
 

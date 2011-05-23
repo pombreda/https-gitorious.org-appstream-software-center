@@ -26,18 +26,38 @@ import os
 import simplejson
 import string
 import shutil
-import sys
 import time
-import urllib
 import xapian
 
 from ConfigParser import RawConfigParser, NoOptionError
 from gettext import gettext as _
 from glob import glob
 
-from softwarecenter.paths import *
-from softwarecenter.enums import *
-from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
+from softwarecenter.enums import (XAPIAN_VALUE_APPNAME,
+                                  XAPIAN_VALUE_PKGNAME,
+                                  XAPIAN_VALUE_DESKTOP_FILE,
+                                  XAPIAN_VALUE_ARCHIVE_SECTION,
+                                  XAPIAN_VALUE_ARCHIVE_CHANNEL,
+                                  XAPIAN_VALUE_ARCHIVE_SIGNING_KEY_ID,
+                                  XAPIAN_VALUE_PURCHASED_DATE,
+                                  XAPIAN_VALUE_ARCHIVE_DEB_LINE,
+                                  XAPIAN_VALUE_ARCHIVE_PPA,
+                                  XAPIAN_VALUE_SCREENSHOT_URL,
+                                  XAPIAN_VALUE_THUMBNAIL_URL,
+                                  XAPIAN_VALUE_PRICE,
+                                  XAPIAN_VALUE_ICON,
+                                  XAPIAN_VALUE_GETTEXT_DOMAIN,
+                                  XAPIAN_VALUE_ARCHIVE_ARCH,
+                                  XAPIAN_VALUE_SC_DESCRIPTION,
+                                  XAPIAN_VALUE_POPCON,
+                                  XAPIAN_VALUE_SUMMARY,
+                                  XAPIAN_VALUE_APPNAME_UNTRANSLATED,
+                                  DB_SCHEMA_VERSION,
+                                  AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME,
+                                  PURCHASED_NEEDS_REINSTALL_MAGIC_CHANNEL_NAME,
+                                  )
+from softwarecenter.paths import (SOFTWARE_CENTER_ICON_CACHE_DIR, 
+                                  APP_INSTALL_PATH)
 from softwarecenter.db.database import parse_axi_values_file
 
 from locale import getdefaultlocale
@@ -195,7 +215,6 @@ class AppStreamXMLParser(AppInfoParserBase):
         self.appinfo_xml = appinfo_xml
         self.xmlfile = xmlfile
     def get_desktop(self, key, translated=True):
-        from lxml import etree
         key = self._apply_mapping(key)
         if key in self.LISTS:
             return self._parse_with_lists(key)
@@ -215,7 +234,6 @@ class AppStreamXMLParser(AppInfoParserBase):
                 l.append(child.text)
         return ",".join(l)
     def has_option_desktop(self, key):
-        from lxml import etree
         key = self._apply_mapping(key)
         return not self.appinfo_xml.find(key) is None
     @property
@@ -254,7 +272,7 @@ class DesktopTagSectionParser(AppInfoParserBase):
                     locale_short = locale.split("_")[0]
                     if self.has_option_desktop("%s-%s" % (key, locale_short)):
                         return self.tag_section["%s-%s" % (key, locale_short)]
-        except ValueError,e :
+        except ValueError:
             pass
         # and then the untranslated field
         return self.tag_section[key]
@@ -297,7 +315,7 @@ class DesktopConfigParser(RawConfigParser, AppInfoParserBase):
                     locale_short = locale.split("_")[0]
                     if self.has_option_desktop("%s[%s]" % (key, locale_short)):
                         return self.get(self.DE, "%s[%s]" % (key, locale_short))
-        except ValueError,e :
+        except ValueError:
             pass
         # and then the untranslated field
         return self.get(self.DE, key)

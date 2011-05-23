@@ -39,7 +39,7 @@ from softwarecenter.utils import get_current_arch, get_language
 from lazr.restfulclient.resource import ServiceRoot
 from lazr.restfulclient.authorize import BasicHttpAuthorizer
 from lazr.restfulclient.authorize.oauth import OAuthAuthorizer
-from oauth.oauth import OAuthConsumer, OAuthToken
+from oauth.oauth import OAuthToken
 
 from softwarecenter.paths import SOFTWARE_CENTER_CACHE_DIR
 from Queue import Queue
@@ -531,15 +531,3 @@ if __name__ == "__main__":
         sys.exit(1)
 
 
-    # wait
-    try:
-        glib.MainLoop().run()
-    except KeyboardInterrupt:
-        try:
-            sso.worker_thread.shutdown()
-        except:
-            pass
-        try:
-            scagent.worker_thread.shutdown()
-        except:
-            pass

@@ -6,8 +6,9 @@ import sys
 import xapian
 
 sys.path.insert(0, "../")
-from softwarecenter.enums import *
-from softwarecenter.utils import *
+from softwarecenter.enums import XAPIAN_VALUE_PKGNAME, XAPIAN_VALUE_APPNAME, XAPIAN_VALUE_SUMMARY
+from softwarecenter.paths import XAPIAN_BASE_PATH
+
 
 if __name__ == "__main__":
 
