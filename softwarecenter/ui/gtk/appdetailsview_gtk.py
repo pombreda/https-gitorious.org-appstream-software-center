@@ -765,6 +765,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         # reviews
         self._reviews_server_page = 1
+        self._reviews_server_language = None
         
         # switches
         self._show_overlay = False
@@ -805,8 +806,22 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         stats = self.review_loader.get_review_stats(self.app)
         self._update_review_stats_widget(stats)
         # individual reviews is slow and async so we just queue it here
+        self._do_load_reviews()
+
+    def _on_more_reviews_clicked(self, uilist):
+        self._reviews_server_page += 1
+        self._do_load_reviews()
+
+    def _on_reviews_in_different_language_clicked(self, uilist, language):
+        self._reviews_server_language = language
+        self._do_load_reviews()
+
+    def _do_load_reviews(self):
         self.reviews.show_spinner_with_message(_('Checking for reviews...'))
-        self.review_loader.get_reviews(self.app, self._reviews_ready_callback)
+        self.review_loader.get_reviews(
+            self.app, self._reviews_ready_callback, 
+            page=self._reviews_server_page,
+            language=self._reviews_server_language)
 
     def _update_review_stats_widget(self, stats):
         if stats:
@@ -815,13 +830,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.review_stats_widget.show()
         else:
             self.review_stats_widget.hide()
-
-    def _on_more_reviews_clicked(self, uilist):
-        self._reviews_server_page += 1
-        self.reviews.show_spinner_with_message(_('Checking for reviews...'))
-        self.review_loader.get_reviews(
-            self.app, self._reviews_ready_callback,
-            page=self._reviews_server_page)
 
     def _reviews_ready_callback(self, app, reviews_data, my_votes=None):
         """ callback when new reviews are ready, cleans out the
@@ -1143,6 +1151,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.reviews.connect("report-abuse", self._on_review_report_abuse)
         self.reviews.connect("submit-usefulness", self._on_review_submit_usefulness)
         self.reviews.connect("more-reviews-clicked", self._on_more_reviews_clicked)
+        self.reviews.connect("different-review-language-clicked", self._on_reviews_in_different_language_clicked)
         vb.pack_start(self.reviews, False)
 
         self.show_all()
