@@ -392,8 +392,7 @@ Rectangle {
                 anchors.top: screenshottitle.bottom
                 anchors.right: parent.right
                 anchors.margins: 20
-                width: 540
-                sourceSize.height: height
+                width: parent.width - 50
                 sourceSize.width: width
                 source: "http://screenshots.ubuntu.com/screenshot/" + list.currentItem.pkgname
                 MouseArea {
