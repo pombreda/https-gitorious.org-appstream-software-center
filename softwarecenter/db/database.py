@@ -239,7 +239,9 @@ class StoreDatabase(gobject.GObject):
         if search_term == '':
             self._logger.debug("grey-list replaced all terms, restoring")
             search_term = orig_search_term
-
+        # we have to strip the leading and trailing whitespaces to avoid having
+        # different results for e.g. 'font ' and 'font' (LP: #506419)
+        search_term = search_term.strip()
         # get a pkg query
         pkg_query = xapian.Query()
         for term in search_term.split():

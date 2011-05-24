@@ -1,4 +1,4 @@
-software-center (4.1.3) UNRELEASED; urgency=low
+1software-center (4.1.3) UNRELEASED; urgency=low
 
   [ Michael Vogt ]
   * merged lp:~mvo/software-center/refactor, no user visible
@@ -9,6 +9,8 @@ software-center (4.1.3) UNRELEASED; urgency=low
   * merged lp:~mvo/software-center/review-language-fallback
     to support fallback to other languages if there are no
     reviews in the native language
+  * merged lp:~evfool/software-center/fix506419, many thanks!
+    (LP: #506419)
 
   [ Gary Lasker ]
   * softwarecenter/app.py:
