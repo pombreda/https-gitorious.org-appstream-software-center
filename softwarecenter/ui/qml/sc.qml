@@ -358,6 +358,23 @@ Rectangle {
             color: "white"
             radius: 5
 
+            Rectangle {
+                anchors.left: parent.left
+                anchors.right: parent.right
+                height: 150
+                radius: parent.radius
+                gradient: Gradient {
+                    GradientStop { position: 0.0; color: "#B2CFE7" }
+                    GradientStop { position: 1.0; color: "white" }
+                }
+                Image {
+                    anchors.top: parent.top
+                    anchors.right: parent.right
+                    source: "file:///usr/share/software-center/images/clouds.png"
+                    asynchronous: true
+                }
+            }
+            
             Text {
                 id: screenshottitle
                 anchors.top: parent.top
