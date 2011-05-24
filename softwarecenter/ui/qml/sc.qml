@@ -219,7 +219,7 @@ Rectangle {
 
     Rectangle {
         id: detailsview
-        width: listview.width
+        width: parent.width
         height: parent.height
         anchors.left: listview.right
         color: "lightsteelblue"
@@ -346,7 +346,7 @@ Rectangle {
 
     Rectangle {
         id: screenshotview
-        width: listview.width
+        width: parent.width
         height: parent.height
         anchors.left: detailsview.right
         color: "lightsteelblue"
