@@ -6,6 +6,9 @@ software-center (4.1.3) UNRELEASED; urgency=low
   * merged lp:~mvo/software-center/pyflakes, no user visible
     changes, only code cleanup
   * enforce pyflakes cleaness on bzr-buildpackage
+  * merged lp:~mvo/software-center/review-language-fallback
+    to support fallback to other languages if there are no
+    reviews in the native language
 
   [ Gary Lasker ]
   * softwarecenter/app.py:
