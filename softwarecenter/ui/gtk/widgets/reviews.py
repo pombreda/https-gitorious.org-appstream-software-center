@@ -733,6 +733,9 @@ class UIReviewsList(gtk.VBox):
         self._parent = parent
         # this is a list of review data (softwarecenter.backend.reviews.Review)
         self.reviews = []
+        # global review stats, this includes ratings in different languages
+        self.global_review_stats = None
+        # usefulness stuff
         self.useful_votes = UsefulnessCache()
         self.logged_in_person = None
 
@@ -858,11 +861,15 @@ class UIReviewsList(gtk.VBox):
             else:
                 self.vbox.pack_start(NoReviewYet())
 
-        # if there are no reviews, try a different language
+        # if there are no reviews, try english as fallback
         language = get_language()
-        if len(self.reviews) == 0 and language != "en":
+        if (len(self.reviews) == 0 and
+            self.global_review_stats and
+            self.global_review_stats.ratings_total > 0 and
+            language != "en"):
             button = gtk.Button(_("Show reviews in english"))
-            button.connect("clicked", self._on_different_review_language_clicked)
+            button.connect(
+                "clicked", self._on_different_review_language_clicked)
             button.show()
             self.vbox.pack_start(button)                
 

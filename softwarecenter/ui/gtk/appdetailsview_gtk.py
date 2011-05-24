@@ -825,6 +825,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
     def _update_review_stats_widget(self, stats):
         if stats:
+            # ensure that the review UI knows about the stats 
+            self.reviews.global_review_stats = stats
+            # update the widget
             self.review_stats_widget.set_avg_rating(stats.ratings_average)
             self.review_stats_widget.set_nr_reviews(stats.ratings_total)
             self.review_stats_widget.show()
