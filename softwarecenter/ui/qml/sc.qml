@@ -12,7 +12,7 @@ Rectangle {
     SystemPalette { id: activePalette }
 
     Rectangle {
-        id: browser
+        id: listview
         width: parent.width
         height: parent.height
         color: "lightsteelblue"
@@ -160,7 +160,7 @@ Rectangle {
                         MouseArea {
                             anchors.fill: parent
                             onClicked: {
-                                browser.x = browser.x - browser.width
+                                listview.x = listview.x - listview.width
                             }
                         }
                     }
@@ -218,10 +218,10 @@ Rectangle {
     }
 
     Rectangle {
-        id: details
-        width: browser.width
+        id: detailsview
+        width: listview.width
         height: parent.height
-        anchors.left: browser.right
+        anchors.left: listview.right
         color: "lightsteelblue"
 
         Rectangle {
@@ -311,7 +311,7 @@ Rectangle {
                 MouseArea {
                     anchors.fill: parent
                     onClicked: {
-                        browser.x = browser.x - browser.width
+                        listview.x = listview.x - listview.width
                     }
                 }
             }
@@ -336,7 +336,7 @@ Rectangle {
                MouseArea {
                    anchors.fill: parent
                    onClicked: {
-                       browser.x = browser.x + browser.width
+                       listview.x = listview.x + listview.width
                        search.focus = true
                    }
                }
@@ -345,10 +345,10 @@ Rectangle {
     }
 
     Rectangle {
-        id: screenshot
-        width: browser.width
+        id: screenshotview
+        width: listview.width
         height: parent.height
-        anchors.left: details.right
+        anchors.left: detailsview.right
         color: "lightsteelblue"
 
         Rectangle {
@@ -384,7 +384,7 @@ Rectangle {
                 MouseArea {
                     anchors.fill: parent
                     onClicked: {
-                        browser.x = browser.x + browser.width
+                        listview.x = listview.x + listview.width
                     }
                 }
             }
@@ -409,7 +409,7 @@ Rectangle {
                MouseArea {
                    anchors.fill: parent
                    onClicked: {
-                       browser.x = browser.x + browser.width
+                       listview.x = listview.x + listview.width
                    }
                }
            }
