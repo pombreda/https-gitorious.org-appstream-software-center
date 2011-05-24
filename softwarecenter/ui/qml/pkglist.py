@@ -3,13 +3,14 @@ import os
 import sys
 
 from PySide import QtCore
-from PySide.QtCore import QObject, Property, QAbstractListModel, QModelIndex
+from PySide.QtCore import QObject, Property, QAbstractListModel, QModelIndex, Slot
 from PySide.QtDeclarative import QDeclarativeItem
 
 from softwarecenter.db.database import StoreDatabase
 from softwarecenter.db.pkginfo import get_pkg_info
 from softwarecenter.paths import XAPIAN_BASE_PATH
 from softwarecenter.enums import XAPIAN_VALUE_PKGNAME
+from softwarecenter.backend import get_install_backend
 
 class PkgListModel(QAbstractListModel):
 
@@ -33,6 +34,7 @@ class PkgListModel(QAbstractListModel):
         self.cache.open()
         self.db = StoreDatabase(pathname, self.cache)
         self.db.open(use_axi=False)
+        self.backend = get_install_backend()
 
     # QAbstractListModel code
     def rowCount(self, parent=QModelIndex()):
@@ -86,10 +88,16 @@ class PkgListModel(QAbstractListModel):
         self.endInsertRows()
 
     # install/remove interface (for qml)
-    def removePackage(self, pkgname):
-        print "*********** remove", pkgname
+    @Slot(str)
     def installPackage(self, pkgname):
-        print "*********** install", pkgname
+        appname = ""
+        iconname = ""
+        self.backend.install(pkgname, appname, iconname)
+    @Slot(str)
+    def removePackage(self, pkgname):
+        appname = ""
+        iconname = ""
+        self.backend.remove(pkgname, appname, iconname)
 
     # searchQuery property (for qml )
     def getSearchQuery(self):
