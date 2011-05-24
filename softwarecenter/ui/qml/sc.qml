@@ -361,13 +361,13 @@ Rectangle {
             Text {
                 id: screenshottitle
                 anchors.top: parent.top
-                anchors.left: largeiconimg.right
+                anchors.left: parent.left
                 anchors.right: parent.right
                 anchors.margins: 15
                 height: 25
-                font.pointSize: 20
+                font.pointSize: 14
                 font.bold: true
-                text: list.currentItem.appname
+                text: "Screenshot for " + list.currentItem.appname
             }
 
             Image {
