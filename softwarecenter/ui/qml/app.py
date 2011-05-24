@@ -6,6 +6,7 @@ glib.threads_init()
 import os
 import sys
 
+from PySide import QtDeclarative
 from PySide.QtCore import QUrl
 from PySide.QtGui import QApplication
 from PySide.QtDeclarative import qmlRegisterType, QDeclarativeView 
@@ -17,6 +18,7 @@ if __name__ == '__main__':
     view = QDeclarativeView()
     qmlpath = os.path.join(os.path.dirname(__file__), "sc.qml")
     view.setSource(QUrl.fromLocalFile(qmlpath))
+    view.setResizeMode(QtDeclarative.QDeclarativeView.SizeRootObjectToView)
 
     # ideally this should be part of the qml by using a qmlRegisterType()
     # but that does not seem to be supported in pyside yet(?) so we need

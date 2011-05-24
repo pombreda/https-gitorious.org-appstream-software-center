@@ -85,7 +85,13 @@ class PkgListModel(QAbstractListModel):
         self._docs = docs
         self.endInsertRows()
 
-    # searchQuery property
+    # install/remove interface (for qml)
+    def removePackage(self, pkgname):
+        print "*********** remove", pkgname
+    def installPackage(self, pkgname):
+        print "*********** install", pkgname
+
+    # searchQuery property (for qml )
     def getSearchQuery(self):
         return self._query
     def setSearchQuery(self, query):
