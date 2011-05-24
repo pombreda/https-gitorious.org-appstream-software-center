@@ -373,11 +373,9 @@ Rectangle {
             Image {
                 id: screenshotfullimg
                 anchors.top: screenshottitle.bottom
-                anchors.topMargin: 50
                 anchors.right: parent.right
-                anchors.margins: 15
-                height: 300
-                width: 450
+                anchors.margins: 20
+                width: 540
                 sourceSize.height: height
                 sourceSize.width: width
                 source: "http://screenshots.ubuntu.com/screenshot/" + list.currentItem.pkgname
