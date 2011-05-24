@@ -290,7 +290,7 @@ Rectangle {
                 anchors.top: headertxt.bottom
                 anchors.topMargin: 50
                 anchors.left: parent.left
-                anchors.right: screenshotimg.left
+                anchors.right: screenshotthumb.left
                 anchors.margins: 15
                 height: 200
                 text: list.currentItem.description
@@ -298,7 +298,7 @@ Rectangle {
             }
 
             Image {
-                id: screenshotimg
+                id: screenshotthumb
                 anchors.top: headertxt.bottom
                 anchors.topMargin: 50
                 anchors.right: parent.right
@@ -308,6 +308,12 @@ Rectangle {
                 sourceSize.height: height
                 sourceSize.width: width
                 source: "http://screenshots.ubuntu.com/thumbnail/" + list.currentItem.pkgname
+                MouseArea {
+                    anchors.fill: parent
+                    onClicked: {
+                        browser.x = browser.x - browser.width
+                    }
+                }
             }
            Rectangle {
                id: backbtn
@@ -332,6 +338,78 @@ Rectangle {
                    onClicked: {
                        browser.x = browser.x + browser.width
                        search.focus = true
+                   }
+               }
+           }
+        }
+    }
+
+    Rectangle {
+        id: screenshot
+        width: browser.width
+        height: parent.height
+        anchors.left: details.right
+        color: "lightsteelblue"
+
+        Rectangle {
+            id: screenshotframe
+            anchors.fill: parent
+            anchors.margins: 10
+            color: "white"
+            radius: 5
+
+            Text {
+                id: screenshottitle
+                anchors.top: parent.top
+                anchors.left: largeiconimg.right
+                anchors.right: parent.right
+                anchors.margins: 15
+                height: 25
+                font.pointSize: 20
+                font.bold: true
+                text: list.currentItem.appname
+            }
+
+            Image {
+                id: screenshotfullimg
+                anchors.top: screenshottitle.bottom
+                anchors.topMargin: 50
+                anchors.right: parent.right
+                anchors.margins: 15
+                height: 300
+                width: 450
+                sourceSize.height: height
+                sourceSize.width: width
+                source: "http://screenshots.ubuntu.com/screenshot/" + list.currentItem.pkgname
+                MouseArea {
+                    anchors.fill: parent
+                    onClicked: {
+                        browser.x = browser.x + browser.width
+                    }
+                }
+            }
+           Rectangle {
+               id: screenshotbackbtn
+               anchors.left: parent.left
+               anchors.bottom: parent.bottom
+               anchors.margins: 15
+               Text {
+                   id: screenshotbackbuttontxt
+                   anchors.centerIn: parent
+                   color: activePalette.buttonText
+                   text: "Back"
+               }
+
+               height: backbuttontxt.height + 10;
+               width: backbuttontxt.width + 10
+               border.width: 1
+               radius: 4
+               smooth: true
+
+               MouseArea {
+                   anchors.fill: parent
+                   onClicked: {
+                       browser.x = browser.x + browser.width
                    }
                }
            }
