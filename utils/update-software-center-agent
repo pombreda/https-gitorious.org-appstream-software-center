@@ -38,6 +38,7 @@ from softwarecenter.paths import XAPIAN_BASE_PATH_SOFTWARE_CENTER_AGENT
 from softwarecenter.db.update import update_from_software_center_agent
 
 if __name__ == "__main__":
+
     try:
         locale.setlocale(locale.LC_ALL, "")
     except Exception, e:
@@ -55,6 +56,11 @@ if __name__ == "__main__":
     if options.debug:
         logging.basicConfig(level=logging.DEBUG)
         softwarecenter.log.root.setLevel(level=logging.DEBUG)
+
+    # support global disable
+    if "SOFTWARE_CENTER_NO_SC_AGENT" in os.environ:
+        logging.warn("SOFTWARE_CENTER_NO_SC_AGENT in environ disabled the agent")
+        sys.exit(1)
 
     # get a cache
     cache = apt.Cache(memonly=True)
