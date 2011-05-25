@@ -328,10 +328,11 @@ Rectangle {
                 sourceSize.height: height
                 sourceSize.width: width
 
-                // FIXME: this is currently loaded everytime someone
-                //        clicks on a icon in the listview! 
-                //        - load *only* when on the appropriate page
-                source: list.currentItem != null ? "http://screenshots.ubuntu.com/thumbnail/" + list.currentItem.pkgname : ""
+                source: {
+                    if (detailsview.x == 0 && list.currentItem != null)
+                        return "http://screenshots.ubuntu.com/thumbnail/" + list.currentItem.pkgname
+                    return ""
+                }
                 MouseArea {
                     anchors.fill: parent
                     onClicked: {
