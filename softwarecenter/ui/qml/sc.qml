@@ -286,8 +286,7 @@ Rectangle {
                 MouseArea {
                     anchors.fill: parent
                     onClicked: {
-                        screenshotfullimg.source = "http://screenshots.ubuntu.com/screenshot/" + list.currentItem.pkgname 
-                        screenshotin.start()
+                        screenshotview.loadScreenshot("http://screenshots.ubuntu.com/screenshot/" + list.currentItem.pkgname)
                     }
                 }
             }
@@ -314,22 +313,23 @@ Rectangle {
         opacity: 0.0
         color: "lightsteelblue"
 
-        PropertyAnimation {
-            id: screenshotin
-            target: screenshotview
-            property: "opacity"; 
-            from: 0.0;
-            to: 1.0; 
-            duration: 300 
+        Behavior on opacity {
+            NumberAnimation {
+                duration: 300
+            }
         }
 
-        PropertyAnimation {
-            id: screenshotout
-            target: screenshotview
-            property: "opacity"; 
-            from: 1.0;
-            to: 0; 
-            duration: 300 
+        function loadScreenshot(url) {
+            screenshotfullimg.source = url
+            fadeIn()
+        }
+
+        function fadeIn() {
+            opacity = 1.0
+        }
+
+        function fadeOut() {
+            opacity = 0.0
         }
 
         Rectangle {
@@ -381,7 +381,7 @@ Rectangle {
                 MouseArea {
                     anchors.fill: parent
                     onClicked: {
-                        screenshotout.start()
+                        screenshotview.fadeOut()
                     }
                 }
             }
@@ -394,7 +394,7 @@ Rectangle {
                 anchors.margins: 15
 
                 onClicked: {
-                    screenshotout.start()
+                    screenshotview.fadeOut()
                 }
             }
         }
