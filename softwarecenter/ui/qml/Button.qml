@@ -1,8 +1,6 @@
 import Qt 4.7
 
 Rectangle {
-    id: container
-
     property string text: "ButtonText"
     signal clicked
     
@@ -11,20 +9,22 @@ Rectangle {
     Text {
         id: buttontxt
         anchors.centerIn: parent
+        text: parent.text
         color: activePalette.buttonText
-        text: container.text
     }
-    
-    height: buttontxt.height + 10;
+
     width: buttontxt.width + 10
-    border.width: 1
+    height: buttontxt.height + 10
+
     radius: 4
-    smooth: true
+    border.width: 1
+    border.color: activePalette.shadow
+    color: mousearea.containsMouse && !mousearea.pressed ? activePalette.light : activePalette.button
     
     MouseArea {
+        id: mousearea
         anchors.fill: parent
-        onClicked: {
-            container.clicked()
-        }
+        hoverEnabled: true
+        onClicked: parent.clicked()
     }
 }
