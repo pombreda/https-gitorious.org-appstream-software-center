@@ -19,7 +19,8 @@ class PkgListModel(QAbstractListModel):
                '_icon',
                '_summary',
                '_installed',
-               '_description')
+               '_description',
+               '_installremoveprogress')
  
     def __init__(self, parent=None):
         super(PkgListModel, self).__init__()
@@ -35,6 +36,8 @@ class PkgListModel(QAbstractListModel):
         self.db = StoreDatabase(pathname, self.cache)
         self.db.open(use_axi=False)
         self.backend = get_install_backend()
+        self.backend.connect("transaction-progress-changed", 
+                             self._on_backend_transaction_progress_changed)
 
     # QAbstractListModel code
     def rowCount(self, parent=QModelIndex()):
@@ -63,9 +66,20 @@ class PkgListModel(QAbstractListModel):
         elif role == "_icon":
             iconname = self.db.get_iconname(doc)
             return self._findIcon(iconname)
+        elif role == "_installremoveprogress":
+            if pkgname in self.backend.pending_transactions:
+                return self.backend.pending_transactions[pkgname].progress
+            return -1
         return None
 
     # helper
+    def _on_backend_transaction_progress_changed(self, backend, pkgname, progress):
+        column = self.COLUMNS.index("_installremoveprogress")
+        # FIXME: instead of the entire model, just find the row that changed
+        top = self.createIndex(0, column)
+        bottom = self.createIndex(self.rowCount()-1, column)
+        self.dataChanged.emit(top, bottom)
+
     def _findIcon(self, iconname):
         path = "/usr/share/icons/Humanity/categories/32/applications-other.svg"
         for ext in ["svg", "png", ".xpm"]:

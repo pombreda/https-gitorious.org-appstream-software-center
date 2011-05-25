@@ -72,6 +72,7 @@ Rectangle {
                     property string summary: _summary
                     property bool installed: _installed
                     property string description: _description
+                    property int installremoveprogress: _installremoveprogress
                 
                     width: parent.width
                     height: ListView.isCurrentItem ? 75 : 40
@@ -138,6 +139,18 @@ Rectangle {
                         font.pointSize:  appnametxt.font.pointSize * 0.8
                         text: summary
                     }
+
+                    Rectangle {
+                        id: installremoveprogressbar
+                        x: parent.width - 100 -10
+                        anchors.top: appnametxt.top
+                        anchors.margins: 10
+                        height: appnametxt.height
+                        color: "steelblue"
+                        visible:  parent.ListView.isCurrentItem
+                        width: installremoveprogress 
+                    }
+
                     Button {
                         id: moreinfobtn
                         text: "More Info"
