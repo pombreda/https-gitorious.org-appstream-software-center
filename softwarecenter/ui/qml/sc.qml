@@ -277,7 +277,7 @@ Rectangle {
                 anchors.margins: 15
                 sourceSize.height: height
                 sourceSize.width: width
-                source: list.currentItem.icon
+                source: list.currentItem != null ? list.currentItem.icon : ""
                 asynchronous: true
             }
 
@@ -290,7 +290,7 @@ Rectangle {
                 height: 25
                 font.pointSize: 20
                 font.bold: true
-                text: list.currentItem.appname
+                text: list.currentItem != null ? list.currentItem.appname : ""
             }
 
             Text {
@@ -302,7 +302,7 @@ Rectangle {
                 anchors.margins: 15
                 height: 10
                 font.pointSize: 9
-                text: list.currentItem.summary
+                text: list.currentItem != null ? list.currentItem.summary : ""
             }
 
             Text {
@@ -313,7 +313,7 @@ Rectangle {
                 anchors.right: screenshotthumb.left
                 anchors.margins: 15
                 height: 200
-                text: list.currentItem.description
+                text: list.currentItem != null ? list.currentItem.description : ""
                 wrapMode: Text.Wrap
             }
 
@@ -331,7 +331,7 @@ Rectangle {
                 // FIXME: this is currently loaded everytime someone
                 //        clicks on a icon in the listview! 
                 //        - load *only* when on the appropriate page
-                source: "http://screenshots.ubuntu.com/thumbnail/" + list.currentItem.pkgname
+                source: list.currentItem != null ? "http://screenshots.ubuntu.com/thumbnail/" + list.currentItem.pkgname : ""
                 MouseArea {
                     anchors.fill: parent
                     onClicked: {
@@ -414,7 +414,7 @@ Rectangle {
                 height: 25
                 font.pointSize: 14
                 font.bold: true
-                text: "Screenshot for " + list.currentItem.appname
+                text: list.currentItem != null ? "Screenshot for " + list.currentItem.appname : ""
             }
 
             Image {
