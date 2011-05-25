@@ -138,60 +138,31 @@ Rectangle {
                         font.pointSize:  appnametxt.font.pointSize * 0.8
                         text: summary
                     }
-                    Rectangle {
+                    Button {
                         id: moreinfobtn
-                        Text {
-                            id: moreinfotxt
-                            anchors.centerIn: parent
-                            color: activePalette.buttonText
-                            text: "More Info"
-                        }
-
-                        height: moreinfotxt.height + 10;
-                        width: moreinfotxt.width + 10
-                        border.width: 1
-                        radius: 4
-                        smooth: true
+                        text: "More Info"
 
                         anchors.top: summarytxt.bottom
                         x: summarytxt.x
                         visible: parent.ListView.isCurrentItem
 
-                        MouseArea {
-                            anchors.fill: parent
-                            onClicked: {
-                                browser.x = browser.x - browser.width
-                            }
+                        onClicked: {
+                            browser.x = browser.x - browser.width
                         }
                     }
-                    Rectangle {
-                        id: installbtn
-                        Text {
-                            id: installorremovetxt
-                            anchors.centerIn: parent
-                            color: activePalette.buttonText
-                            text: installed ? "Remove" : "Install"
-                        }
-
-                        height: installorremovetxt.height + 10;
-                        width: installorremovetxt.width + 10
-                        border.width: 1
-                        radius: 4
-                        smooth: true
+                    Button {
+                        text: installed ? "Remove" : "Install"
 
                         anchors.top: summarytxt.bottom
                         anchors.right: parent.right
                         anchors.rightMargin: 10
                         visible: parent.ListView.isCurrentItem
 
-                        MouseArea {
-                            anchors.fill: parent
-                            onClicked: {
-                                if (installed) 
-                                    pkglistmodel.removePackage(pkgname)
-                                else
-                                    pkglistmodel.installPackage(pkgname)
-                            }
+                        onClicked: {
+                            if (installed) 
+                                pkglistmodel.removePackage(pkgname)
+                            else
+                                pkglistmodel.installPackage(pkgname)
                         }
                     }
 
@@ -309,30 +280,16 @@ Rectangle {
                 sourceSize.width: width
                 source: "http://screenshots.ubuntu.com/thumbnail/" + list.currentItem.pkgname
             }
-           Rectangle {
+           Button {
                id: backbtn
                anchors.left: parent.left
                anchors.bottom: parent.bottom
                anchors.margins: 15
-               Text { 
-                   id: backbuttontxt
-                   anchors.centerIn: parent
-                   color: activePalette.buttonText
-                   text: "Back"
-               }
 
-               height: backbuttontxt.height + 10;
-               width: backbuttontxt.width + 10
-               border.width: 1
-               radius: 4
-               smooth: true
-
-               MouseArea {
-                   anchors.fill: parent
-                   onClicked: {
-                       browser.x = browser.x + browser.width
-                       search.focus = true
-                   }
+               text: "Back"
+               onClicked: {
+                   browser.x = browser.x + browser.width
+                   search.focus = true
                }
            }
         }
