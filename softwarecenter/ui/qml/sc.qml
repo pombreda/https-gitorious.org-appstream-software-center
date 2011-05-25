@@ -12,7 +12,7 @@ Rectangle {
     SystemPalette { id: activePalette }
 
     Rectangle {
-        id: browser
+        id: listview
         width: parent.width
         height: parent.height
         color: "lightsteelblue"
@@ -147,7 +147,7 @@ Rectangle {
                         visible: parent.ListView.isCurrentItem
 
                         onClicked: {
-                            browser.x = browser.x - browser.width
+                            listview.x = listview.x - listview.width
                         }
                     }
                     Button {
@@ -189,10 +189,10 @@ Rectangle {
     }
 
     Rectangle {
-        id: details
-        width: browser.width
+        id: detailsview
+        width: parent.width
         height: parent.height
-        anchors.left: browser.right
+        anchors.left: listview.right
         color: "lightsteelblue"
 
         Rectangle {
@@ -261,7 +261,7 @@ Rectangle {
                 anchors.top: headertxt.bottom
                 anchors.topMargin: 50
                 anchors.left: parent.left
-                anchors.right: screenshotimg.left
+                anchors.right: screenshotthumb.left
                 anchors.margins: 15
                 height: 200
                 text: list.currentItem.description
@@ -269,7 +269,7 @@ Rectangle {
             }
 
             Image {
-                id: screenshotimg
+                id: screenshotthumb
                 anchors.top: headertxt.bottom
                 anchors.topMargin: 50
                 anchors.right: parent.right
@@ -278,20 +278,108 @@ Rectangle {
                 width: 150
                 sourceSize.height: height
                 sourceSize.width: width
+
+                // FIXME: this is currently loaded everytime someone
+                //        clicks on a icon in the listview! 
+                //        - load *only* when on the appropriate page
                 source: "http://screenshots.ubuntu.com/thumbnail/" + list.currentItem.pkgname
+                MouseArea {
+                    anchors.fill: parent
+                    onClicked: {
+                        screenshotview.visible = true
+                    }
+                }
             }
            Button {
                id: backbtn
                anchors.left: parent.left
                anchors.bottom: parent.bottom
                anchors.margins: 15
-
                text: "Back"
+               
                onClicked: {
-                   browser.x = browser.x + browser.width
+                   listview.x = listview.x + listview.width
                    search.focus = true
                }
            }
+        }
+    }
+
+    Rectangle {
+        id: screenshotview
+        width: parent.width
+        height: parent.height
+        anchors.left: detailsview.left
+        visible: false
+        color: "lightsteelblue"
+
+        Rectangle {
+            id: screenshotframe
+            anchors.fill: parent
+            anchors.margins: 10
+            color: "white"
+            radius: 5
+
+            Rectangle {
+                anchors.left: parent.left
+                anchors.right: parent.right
+                height: 150
+                radius: parent.radius
+                gradient: Gradient {
+                    GradientStop { position: 0.0; color: "#B2CFE7" }
+                    GradientStop { position: 1.0; color: "white" }
+                }
+                Image {
+                    anchors.top: parent.top
+                    anchors.right: parent.right
+                    source: "file:///usr/share/software-center/images/clouds.png"
+                    asynchronous: true
+                }
+            }
+            
+            Text {
+                id: screenshottitle
+                anchors.top: parent.top
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.margins: 15
+                height: 25
+                font.pointSize: 14
+                font.bold: true
+                text: "Screenshot for " + list.currentItem.appname
+            }
+
+            Image {
+                id: screenshotfullimg
+                anchors.top: screenshottitle.bottom
+                anchors.right: parent.right
+                anchors.margins: 20
+                width: parent.width - 50
+                sourceSize.width: width
+
+                // mvo: check if this is only loaded on demand
+                source: "http://screenshots.ubuntu.com/screenshot/" + list.currentItem.pkgname 
+                asynchronous: true
+
+                MouseArea {
+                    anchors.fill: parent
+                    onClicked: {
+                        screenshotview.visible = false
+                    }
+                }
+            }
+            Button {
+                id: screenshotbackbtn
+                text: "Done"
+
+                anchors.bottom: parent.bottom
+                anchors.horizontalCenter: parent.horizontalCenter
+                anchors.margins: 15
+
+                onClicked: {
+                    screenshotview.visible = false
+                }
+            }
         }
     }
 }
