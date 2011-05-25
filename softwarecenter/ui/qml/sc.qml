@@ -142,18 +142,37 @@ Rectangle {
                         text: summary
                     }
 
-                    Text {
-                        id: ratingsaveragetxt
-                        text: String(ratingsaverage)
+                    // ratings row
+                    Row {
+                        id: ratingsaverageimg
                         anchors.top: parent.top
                         anchors.right: parent.right
+                        anchors.margins: 5
                         visible: (ratingstotal > 0)
+                        Repeater {
+                            model: Math.floor(ratingsaverage)
+                            Image {
+                                source: "../../../data/images/star-yellow.png"
+                            }
+                        }
+                        Image {
+                            source: "../../../data/images/star-half.png"
+                            visible: { Math.floor(ratingsaverage) != 
+                                       Math.ceil(ratingsaverage) }
+                        }
+                        Repeater {
+                            model: 5-Math.ceil(ratingsaverage)
+                            Image {
+                                source: "../../../data/images/star-dark.png"
+                            }
+                        }
                     }
+                    // ratings total text
                     Text {
                         id: ratingstotaltxt
                         text: String(ratingstotal) + " Ratings"
-                        anchors.top: ratingsaveragetxt.bottom
-                        anchors.right: ratingsaveragetxt.right
+                        anchors.top: ratingsaverageimg.bottom
+                        anchors.right: ratingsaverageimg.right
                         visible: (ratingstotal > 0)
                     }
 
