@@ -16,8 +16,6 @@ from pkglist import PkgListModel
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     view = QDeclarativeView()
-    qmlpath = os.path.join(os.path.dirname(__file__), "sc.qml")
-    view.setSource(QUrl.fromLocalFile(qmlpath))
     view.setResizeMode(QtDeclarative.QDeclarativeView.SizeRootObjectToView)
 
     # ideally this should be part of the qml by using a qmlRegisterType()
@@ -31,6 +29,10 @@ if __name__ == '__main__':
     if len(sys.argv) > 1:
         # FIXME: we really should set the text entry here
         pkglistmodel.setSearchQuery(sys.argv[1])
+
+    # load the main QML file into the view
+    qmlpath = os.path.join(os.path.dirname(__file__), "sc.qml")
+    view.setSource(QUrl.fromLocalFile(qmlpath))
 
     # show it
     view.show()
