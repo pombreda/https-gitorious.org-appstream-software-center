@@ -27,6 +27,11 @@ if __name__ == '__main__':
     rc = view.rootContext()
     rc.setContextProperty('pkglistmodel', pkglistmodel)
 
+    # debug
+    if len(sys.argv) > 1:
+        # FIXME: we really should set the text entry here
+        pkglistmodel.setSearchQuery(sys.argv[1])
+
     # show it
     view.show()
     sys.exit(app.exec_())

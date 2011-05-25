@@ -286,7 +286,8 @@ Rectangle {
                 MouseArea {
                     anchors.fill: parent
                     onClicked: {
-                        screenshotview.visible = true
+                        screenshotfullimg.source = "http://screenshots.ubuntu.com/screenshot/" + list.currentItem.pkgname 
+                        screenshotin.start()
                     }
                 }
             }
@@ -310,8 +311,26 @@ Rectangle {
         width: parent.width
         height: parent.height
         anchors.left: detailsview.left
-        visible: false
+        opacity: 0.0
         color: "lightsteelblue"
+
+        PropertyAnimation {
+            id: screenshotin
+            target: screenshotview
+            property: "opacity"; 
+            from: 0.0;
+            to: 1.0; 
+            duration: 300 
+        }
+
+        PropertyAnimation {
+            id: screenshotout
+            target: screenshotview
+            property: "opacity"; 
+            from: 1.0;
+            to: 0; 
+            duration: 300 
+        }
 
         Rectangle {
             id: screenshotframe
@@ -357,14 +376,12 @@ Rectangle {
                 width: parent.width - 50
                 sourceSize.width: width
 
-                // mvo: check if this is only loaded on demand
-                source: "http://screenshots.ubuntu.com/screenshot/" + list.currentItem.pkgname 
                 asynchronous: true
 
                 MouseArea {
                     anchors.fill: parent
                     onClicked: {
-                        screenshotview.visible = false
+                        screenshotout.start()
                     }
                 }
             }
@@ -377,7 +394,7 @@ Rectangle {
                 anchors.margins: 15
 
                 onClicked: {
-                    screenshotview.visible = false
+                    screenshotout.start()
                 }
             }
         }
