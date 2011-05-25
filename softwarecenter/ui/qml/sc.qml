@@ -72,6 +72,8 @@ Rectangle {
                     property string summary: _summary
                     property bool installed: _installed
                     property string description: _description
+                    property double ratingsaverage: _ratings_average
+                    property int ratingstotal: _ratings_total
                     property int installremoveprogress: _installremoveprogress
                 
                     width: parent.width
@@ -138,6 +140,21 @@ Rectangle {
                         x: appnametxt.x
                         font.pointSize:  appnametxt.font.pointSize * 0.8
                         text: summary
+                    }
+
+                    Text {
+                        id: ratingsaveragetxt
+                        text: String(ratingsaverage)
+                        anchors.top: parent.top
+                        anchors.right: parent.right
+                        visible: (ratingstotal > 0)
+                    }
+                    Text {
+                        id: ratingstotaltxt
+                        text: String(ratingstotal) + " Ratings"
+                        anchors.top: ratingsaveragetxt.bottom
+                        anchors.right: ratingsaveragetxt.right
+                        visible: (ratingstotal > 0)
                     }
 
                     Rectangle {

@@ -6,11 +6,12 @@ from PySide import QtCore
 from PySide.QtCore import QObject, Property, QAbstractListModel, QModelIndex, Slot
 from PySide.QtDeclarative import QDeclarativeItem
 
-from softwarecenter.db.database import StoreDatabase
+from softwarecenter.db.database import StoreDatabase, Application
 from softwarecenter.db.pkginfo import get_pkg_info
 from softwarecenter.paths import XAPIAN_BASE_PATH
 from softwarecenter.enums import XAPIAN_VALUE_PKGNAME
 from softwarecenter.backend import get_install_backend
+from softwarecenter.backend.reviews import get_review_loader
 
 class PkgListModel(QAbstractListModel):
 
@@ -20,6 +21,8 @@ class PkgListModel(QAbstractListModel):
                '_summary',
                '_installed',
                '_description',
+               '_ratings_total',
+               '_ratings_average',
                '_installremoveprogress')
  
     def __init__(self, parent=None):
@@ -38,6 +41,7 @@ class PkgListModel(QAbstractListModel):
         self.backend = get_install_backend()
         self.backend.connect("transaction-progress-changed", 
                              self._on_backend_transaction_progress_changed)
+        self.reviews = get_review_loader(self.cache)
 
     # QAbstractListModel code
     def rowCount(self, parent=QModelIndex()):
@@ -49,10 +53,11 @@ class PkgListModel(QAbstractListModel):
         doc = self._docs[index.row()]
         role = self.COLUMNS[role]
         pkgname = self.db.get_pkgname(doc)
+        appname =  self.db.get_appname(doc)
         if role == "_pkgname":
             return pkgname 
         elif role == "_appname":
-            return self.db.get_appname(doc)
+            return appname
         elif role == "_summary":
             return self.db.get_summary(doc)
         elif role == "_installed":
@@ -66,6 +71,16 @@ class PkgListModel(QAbstractListModel):
         elif role == "_icon":
             iconname = self.db.get_iconname(doc)
             return self._findIcon(iconname)
+        elif role == "_ratings_average":
+            stats = self.reviews.get_review_stats(Application(appname, pkgname))
+            if stats:
+                return stats.ratings_average
+            return 0
+        elif role == "_ratings_total":
+            stats = self.reviews.get_review_stats(Application(appname, pkgname))
+            if stats:
+                return stats.ratings_total
+            return 0
         elif role == "_installremoveprogress":
             if pkgname in self.backend.pending_transactions:
                 return self.backend.pending_transactions[pkgname].progress
