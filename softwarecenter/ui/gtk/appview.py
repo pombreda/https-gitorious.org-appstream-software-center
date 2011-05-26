@@ -880,8 +880,10 @@ class AppView(gtk.TreeView):
             self.emit("application-activated", Application(name, pkgname, request))
 
     def _on_button_press_event(self, view, event, tr):
+        print ">>> appview got button_press_event with event.button: ", event.button
         if event.button != 1:
-            return
+            print ">>> but doing nothing"
+            return False
         self.pressed = True
         res = view.get_path_at_pos(int(event.x), int(event.y))
         if not res:

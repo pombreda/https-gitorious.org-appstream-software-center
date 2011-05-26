@@ -8,6 +8,7 @@
     <property name="default_height">500</property>
     <property name="icon_name">softwarecenter</property>
     <signal name="key_press_event" handler="on_window_main_key_press_event"/>
+    <signal name="button_press_event" handler="on_button_press_event"/>
     <signal name="delete_event" handler="on_window_main_delete_event"/>
     <child>
       <object class="GtkVBox" id="vbox1">
