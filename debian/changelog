@@ -5,6 +5,8 @@ software-center (4.1.4) UNRELEASED; urgency=low
     - check for SOFTWARE_CENTER_NO_SC_AGENT in the environment
       and if found, do not run the update-software-center-agent
       command
+  * apt-xapian-index-plugin/software-center.py:
+    - fix incorrect enums import
 
   [ Gary Lasker ]
   * merged lp:~evfool/software-center/search-suggestions,
