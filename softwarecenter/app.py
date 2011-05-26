@@ -54,6 +54,8 @@ from softwarecenter.enums import (
     VIEW_PAGE_INSTALLED,
     VIEW_PAGE_HISTORY,
     VIEW_PAGE_PENDING,
+    MOUSE_EVENT_FORWARD_BUTTON,
+    MOUSE_EVENT_BACK_BUTTON,
     )
 from softwarecenter.paths import SOFTWARE_CENTER_PLUGIN_DIR, ICON_PATH
 from softwarecenter.utils import (clear_token_from_ubuntu_sso,
@@ -497,13 +499,13 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         """
         """
         print ">>> mouse button pressed with event.button: ", event.button
-        if (event.button == 8 and
+        if (event.button == MOUSE_EVENT_BACK_BUTTON and
             self.active_pane and
             hasattr(self.active_pane, 'navigation_bar') and
             not self.active_pane.searchentry.is_focus() and
             not self.active_pane.navigation_bar.has_id(NAV_BUTTON_ID_PURCHASE)):
             self.on_navhistory_back_action_activate()
-        elif (event.button == 9 and
+        elif (event.button == MOUSE_EVENT_FORWARD_BUTTON and
             self.active_pane and
             hasattr(self.active_pane, 'navigation_bar') and
             not self.active_pane.searchentry.is_focus() and
