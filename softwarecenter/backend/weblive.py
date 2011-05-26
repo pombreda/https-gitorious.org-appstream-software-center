@@ -31,11 +31,8 @@ import string
 from threading import Thread, Event
 from weblive_pristine import WebLive
 
-class ServerNotReadyError(Exception):
-    pass
-
 class WebLiveBackend(object):
-    """ backend for interacting with the weblive service """
+    """ Backend for interacting with the WebLive service """
 
     # Try to load x2go
     try:
@@ -82,26 +79,26 @@ class WebLiveBackend(object):
 
     @property
     def ready(self):
-        """ return true if data from the remote server was loaded
+        """ Return true if data from the remote server was loaded
         """
         return self._ready.is_set()
 
     @classmethod
     def is_supported(cls):
-        """ return if the current system will work (has the required
-            dependencies
+        """ Return if the current system will work
+            (has the required dependencies)
         """
         if cls.X2GO or os.path.exists(cls.QTNX):
             return True
         return False
 
     def query_available(self):
-        """ (sync) get available server and limits """
+        """ Get all the available data from WebLive """
         servers=self.weblive.list_everything()
         return servers
 
     def query_available_async(self):
-        """ query available in a thread and set self.ready """
+        """ Call query_available in a thread and set self.ready """
         def _query_available_helper():
             self.available_servers = self.query_available()
             self._ready.set()
@@ -111,6 +108,8 @@ class WebLiveBackend(object):
         p.start()
 
     def is_pkgname_available_on_server(self, pkgname, serverid=None):
+        """ Check if the package is available (on all servers or on 'serverid') """
+
         for server in self.available_servers:
             if not serverid or server.name == serverid:
                 for pkg in server.packages:
@@ -119,6 +118,8 @@ class WebLiveBackend(object):
         return False
 
     def get_servers_for_pkgname(self, pkgname):
+        """ Return a list of servers having a given package """
+
         servers=[]
         for server in self.available_servers:
             # No point in returning a server that's full
@@ -132,20 +133,29 @@ class WebLiveBackend(object):
 
     def create_automatic_user_and_run_session(self, serverid,
                                               session="desktop", wait=False):
-        """ login into serverid and automatically create a user """
+        """ Create a user on 'serverid' and start the session """
 
+        # Use the boot_id to get a temporary unique identifier (till next reboot)
         if os.path.exists('/proc/sys/kernel/random/boot_id'):
             uuid=open('/proc/sys/kernel/random/boot_id','r').read().strip().replace('-','')
             random.seed(uuid)
+
+        # Generate a 20 characters string based on the boot_id
         identifier=''.join(random.choice(string.ascii_lowercase) for x in range (20))
 
+        # Use the current username as the GECOS on the server
+        # if it's invalid (by weblive's standard), use "WebLive user" instead
         fullname=str(os.environ.get('USER','WebLive user'))
         if not re.match("^[A-Za-z0-9 ]*$",fullname) or len(fullname) == 0:
             fullname='WebLive user'
 
+        # Send the user's locale so it's automatically selected when connecting
         locale=os.environ.get("LANG","None").replace("UTF-8","utf8")
 
+        # Create the user and retrieve host and port of the target server
         connection=self.weblive.create_user(serverid, identifier, fullname, identifier, session, locale)
+
+        # Connect using x2go or fallback to qtnx if not available
         if (self.X2GO):
             self._spawn_qtnx(connection[0], connection[1], session, identifier, identifier, wait)
         elif (os.path.exists(self.QTNX):
@@ -153,9 +163,15 @@ class WebLiveBackend(object):
         else:
             raise IOError("No remote desktop client available.")
 
+# qtnx backend
+
     def _spawn_qtnx(self, host, port, session, username, password, wait):
+        """ Start a session using qtnx """
+
         if not os.path.exists(os.path.expanduser('~/.qtnx')):
             os.mkdir(os.path.expanduser('~/.qtnx'))
+
+        # Generate qtnx's configuration file
         filename=os.path.expanduser('~/.qtnx/%s-%s-%s.nxml') % (
             host, port, session.replace("/","_"))
         nxml=open(filename,"w+")
@@ -167,24 +183,34 @@ class WebLiveBackend(object):
         nxml.write(config)
         nxml.close()
 
+        # Prepare qtnx call
         cmd = [self.QTNX,
                '%s-%s-%s' % (str(host), str(port), session.replace("/","_")),
                username,
                password]
 
         if wait == False:
+            # Start in the background and attach a watch for when it exits
             (pid, stdin, stdout, stderr) = glib.spawn_async(
                 cmd, flags=glib.SPAWN_DO_NOT_REAP_CHILD)
             glib.child_watch_add(pid, self._on_qtnx_exit,filename)
         else:
+            # Start it and wait till it finishes
             p=subprocess.Popen(cmd)
             p.wait()
 
     def _on_qtnx_exit(self, pid, status, filename):
+        """ Called when the qtnx process exits (when in the background) """
+
+        # Remove configuration file
         if os.path.exists(filename):
             os.remove(filename)
 
+# x2go backend
+
     def _spawn_x2go(self, host, port, session, username, password, wait):
+        """ Start a session using x2go """
+
         #FIXME: placeholder
         pass
 
@@ -201,11 +227,13 @@ def get_weblive_backend():
     return _weblive_backend
 
 if __name__ == "__main__":
+    # Contact the weblive daemon to get all servers
     weblive = get_weblive_backend()
     weblive.query_available_async()
     weblive._ready.wait()
 
+    # Show the currently available servers
     print weblive.available_servers
 
-    # run session
+    # Start firefox on the first available server and wait for it to finish
     weblive.create_automatic_user_and_run_session(serverid=weblive.available_servers[0].name,session="firefox",wait=True)
