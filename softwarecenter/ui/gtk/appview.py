@@ -641,14 +641,10 @@ class AppView(gtk.TreeView):
                                          gobject.TYPE_PYOBJECT,
                                          str),
                                        ),
-        "nav-back-requested" : (gobject.SIGNAL_RUN_LAST,
-                                gobject.TYPE_NONE, 
-                                (),
-                                ),
-        "nav-forward-requested" : (gobject.SIGNAL_RUN_LAST,
-                                   gobject.TYPE_NONE, 
-                                   (),
-                                  )
+        "mouse-nav-requested" : (gobject.SIGNAL_RUN_LAST,
+                                 gobject.TYPE_NONE, 
+                                 (gobject.TYPE_PYOBJECT, ),
+                                 )
     }
 
     def __init__(self, show_ratings, store=None):
@@ -893,11 +889,9 @@ class AppView(gtk.TreeView):
         # note: we send explicit navigation events here because the mouse nav button events
         # are consumed by the list view widget and so are not being propagated out to the
         # main window for handling in app.py
-        if event.button == MOUSE_EVENT_BACK_BUTTON:
-            self.emit("nav-back-requested")
-            return True
-        elif event.button == MOUSE_EVENT_FORWARD_BUTTON:
-            self.emit("nav-forward-requested")
+        if event.button in (MOUSE_EVENT_BACK_BUTTON,
+                            MOUSE_EVENT_FORWARD_BUTTON):
+            self.emit("mouse-nav-requested", event)
             return True
         elif event.button != 1:
             return False
