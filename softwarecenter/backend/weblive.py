@@ -146,11 +146,14 @@ class WebLiveBackend(object):
         locale=os.environ.get("LANG","None").replace("UTF-8","utf8")
 
         connection=self.weblive.create_user(serverid, identifier, fullname, identifier, session, locale)
-        self._spawn_qtnx(connection[0], connection[1], session, identifier, identifier, wait)
+        if (self.X2GO):
+            self._spawn_qtnx(connection[0], connection[1], session, identifier, identifier, wait)
+        elif (os.path.exists(self.QTNX):
+            self._spawn_qtnx(connection[0], connection[1], session, identifier, identifier, wait)
+        else:
+            raise IOError("No remote desktop client available.")
 
     def _spawn_qtnx(self, host, port, session, username, password, wait):
-        if not os.path.exists(self.QTNX):
-            raise IOError("qtnx not found")
         if not os.path.exists(os.path.expanduser('~/.qtnx')):
             os.mkdir(os.path.expanduser('~/.qtnx'))
         filename=os.path.expanduser('~/.qtnx/%s-%s-%s.nxml') % (
@@ -180,6 +183,11 @@ class WebLiveBackend(object):
     def _on_qtnx_exit(self, pid, status, filename):
         if os.path.exists(filename):
             os.remove(filename)
+
+    def _spawn_x2go(self, host, port, session, username, password, wait):
+        #FIXME: placeholder
+        pass
+
 
 # singleton
 _weblive_backend = None
