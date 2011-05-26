@@ -890,10 +890,9 @@ class AppView(gtk.TreeView):
             self.emit("application-activated", Application(name, pkgname, request))
 
     def _on_button_press_event(self, view, event, tr):
-        print ">>> appview got button_press_event with event.button: ", event.button
-        # we send explicit navigation events here because the mouse nav button events
-        # are consumed here in the list view widget and so are not being propagated out to the
-        # main window to be handled in app.py
+        # note: we send explicit navigation events here because the mouse nav button events
+        # are consumed by the list view widget and so are not being propagated out to the
+        # main window for handling in app.py
         if event.button == MOUSE_EVENT_BACK_BUTTON:
             self.emit("nav-back-requested")
             return True
