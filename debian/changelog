@@ -1,5 +1,6 @@
 software-center (4.0.3) UNRELEASED; urgency=low
 
+  [ Gary Lasker ]
   * softwarecenter/app.py:
     - expand the "Get Software" item in the viewswitcher by default
       so that its subitems are always visible and available
@@ -8,8 +9,12 @@ software-center (4.0.3) UNRELEASED; urgency=low
     softwarecenter/view/catview_gtk.py:
     - jumpstart Featured and What's New carousel transitions
       on launch (LP: #786403) 
+  
+  [ Michael Vogt ]
+  * merge lp:~mvo/software-center/4.0-pageination to properly 
+    support pageination (LP: #788688)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Sun, 22 May 2011 01:10:49 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 26 May 2011 17:33:09 +0200
 
 software-center (4.0.2) natty-proposed; urgency=low
 

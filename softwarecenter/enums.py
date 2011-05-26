@@ -33,6 +33,9 @@ DB_SCHEMA_VERSION = "2"
 # the default limit for a search
 DEFAULT_SEARCH_LIMIT = 10000
 
+# the server size "page" for ratings&reviews
+REVIEWS_BATCH_PAGE_SIZE = 10
+
 # the various "views" that the app has
 VIEW_PAGE_AVAILABLE = "view-page-available"
 VIEW_PAGE_INSTALLED = "view-page-installed"

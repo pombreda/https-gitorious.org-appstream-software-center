@@ -27,6 +27,7 @@ if __name__ == "__main__":
     parser.add_option("--distroseries", default="any")
     parser.add_option("--pkgname")
     parser.add_option("--version", default="any")
+    parser.add_option("--page", default="1")
     parser.add_option("", "--debug",
                       action="store_true", default=False)
     parser.add_option("--no-pickle",
@@ -44,6 +45,7 @@ if __name__ == "__main__":
               "distroseries": options.distroseries,
               "packagename": options.pkgname,
               "version": options.version,
+              "page": int(options.page),
               }
     piston_reviews = []
     try:
