@@ -1,17 +1,19 @@
-software-center (4.1.4) UNRELEASED; urgency=low
+software-center (4.1.4) oneiric; urgency=low
 
   [ Michael Vogt ]
   * utils/update-software-center-agent:
     - check for SOFTWARE_CENTER_NO_SC_AGENT in the environment
       and if found, do not run the update-software-center-agent
       command
+  * apt-xapian-index-plugin/software-center.py:
+    - fix incorrect enums import
 
   [ Gary Lasker ]
   * merged lp:~evfool/software-center/search-suggestions,
     really nice enhancements to the search suggestions
     feature, many thanks Robert Roth! (LP: #681476)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 25 May 2011 16:47:42 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 26 May 2011 15:35:37 +0200
 
 software-center (4.1.3) oneiric; urgency=low
 
