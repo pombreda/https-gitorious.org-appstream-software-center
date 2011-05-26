@@ -11,6 +11,19 @@ Rectangle {
 
     SystemPalette { id: activePalette }
 
+    function showListView()
+    {
+        listview.x = listview.x + listview.width
+    }
+
+    function showDetailsView()
+    {
+        listview.x = listview.x - listview.width
+        // FIXME: actually we could do this on a property change event
+        //        for listview.x, if it changes to "0" trigger load
+        reviewslistmodel.getReviews(list.currentItem.pkgname)
+    }
+
     Rectangle {
         id: listview
         width: parent.width
@@ -196,7 +209,7 @@ Rectangle {
                         visible: parent.ListView.isCurrentItem
 
                         onClicked: {
-                            listview.x = listview.x - listview.width
+                            showDetailsView()
                         }
                     }
                     Button {
@@ -312,7 +325,6 @@ Rectangle {
                 anchors.left: parent.left
                 anchors.right: screenshotthumb.left
                 anchors.margins: 15
-                height: 200
                 text: list.currentItem != null ? list.currentItem.description : ""
                 wrapMode: Text.Wrap
             }
@@ -340,7 +352,79 @@ Rectangle {
                     }
                 }
             }
-           Button {
+
+            // reviews part
+            Text {
+                anchors.top: desctxt.bottom
+                id: reviewsheadertxt
+                text: "Reviews"
+            }
+
+            Rectangle {
+                id: reviewslistframe
+                width: parent.width
+                anchors.top: reviewsheadertxt.bottom
+                anchors.bottom: backbtn.top
+                clip: true
+
+                ListView {
+                    id: reviewlist
+                    spacing: 5
+                    width: parent.width - 10
+                    height: parent.height - 10
+                    anchors.centerIn: parent
+                    anchors.top: reviewsheadertxt.bottom
+
+                    model: reviewslistmodel
+
+                    delegate: Rectangle {
+                        width: parent.width
+                        property string summary: _summary
+                        property string review_text: _review_text
+                        property string rating: _rating
+                        property string reviewer_displayname: _reviewer_displayname
+                        property string date_created: _date_created
+
+                        // FIXME: can this be automatically calculated?
+                        //        if I ommit it its getting cramped togehter 
+                        //        in funny ways
+                        height: reviewsummarytxt.height + reviewtxt.height + 10
+
+                        Text {
+                            id: ratingtxt
+                            text: rating + "/5"
+                        }
+                        Text {
+                            id: reviewsummarytxt
+                            anchors.left: ratingtxt.right
+                            text: "<b>" + summary + "</b>"
+                        }
+                        Text {
+                            id: persontxt
+                            anchors.right: datetxt.left
+                            text: reviewer_displayname
+                        }
+                        Text {
+                            id: datetxt
+                            anchors.right: parent.right
+                            text: date_created
+                        }
+                        Text {
+                            id: reviewtxt
+                            anchors.top: reviewsummarytxt.bottom
+                            text: review_text
+                            wrapMode: Text.Wrap
+                            // FIXME: this is only needed because the size
+                            //        of the header gets pretty big so we
+                            //        force the size here to get proper
+                            //        word wrap
+                            width: parent.width
+                        }
+                    }
+                }
+            }
+
+            Button {
                id: backbtn
                anchors.left: parent.left
                anchors.bottom: parent.bottom
@@ -348,7 +432,7 @@ Rectangle {
                text: "Back"
                
                onClicked: {
-                   listview.x = listview.x + listview.width
+                   showListView()
                    search.focus = true
                }
            }

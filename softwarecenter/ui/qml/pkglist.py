@@ -33,9 +33,7 @@ class PkgListModel(QAbstractListModel):
         self._query = ""
         # db
         pathname = os.path.join(XAPIAN_BASE_PATH, "xapian")
-        # FIXME: make this async
         self.cache = get_pkg_info()
-        self.cache.open()
         self.db = StoreDatabase(pathname, self.cache)
         self.db.open(use_axi=False)
         self.backend = get_install_backend()

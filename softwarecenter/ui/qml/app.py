@@ -11,10 +11,18 @@ from PySide.QtCore import QUrl
 from PySide.QtGui import QApplication
 from PySide.QtDeclarative import qmlRegisterType, QDeclarativeView 
 
+from softwarecenter.db.pkginfo import get_pkg_info
+
 from pkglist import PkgListModel
+from reviewslist import ReviewsListModel
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
+
+    # TODO do this async
+    app.cache = get_pkg_info()
+    app.cache.open()
+
     view = QDeclarativeView()
     view.setResizeMode(QtDeclarative.QDeclarativeView.SizeRootObjectToView)
 
@@ -22,8 +30,10 @@ if __name__ == '__main__':
     # but that does not seem to be supported in pyside yet(?) so we need
     # to cowboy it in here
     pkglistmodel = PkgListModel()
+    reviewslistmodel = ReviewsListModel()
     rc = view.rootContext()
     rc.setContextProperty('pkglistmodel', pkglistmodel)
+    rc.setContextProperty('reviewslistmodel', reviewslistmodel)
 
     # debug
     if len(sys.argv) > 1:
