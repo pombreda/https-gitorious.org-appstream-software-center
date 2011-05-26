@@ -37,6 +37,13 @@ class ServerNotReadyError(Exception):
 class WebLiveBackend(object):
     """ backend for interacting with the weblive service """
 
+    # Try to load x2go
+    try:
+        import x2go
+        X2GO=True
+    except:
+        X2GO=False
+
     # NXML template
     NXML_TEMPLATE = """
 <!DOCTYPE NXClientLibSettings>
@@ -84,8 +91,7 @@ class WebLiveBackend(object):
         """ return if the current system will work (has the required
             dependencies
         """
-        # FIXME: also test if package is available on the weblive server
-        if os.path.exists(cls.QTNX):
+        if cls.X2GO or os.path.exists(cls.QTNX):
             return True
         return False
 
