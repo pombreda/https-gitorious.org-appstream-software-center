@@ -68,9 +68,20 @@ Rectangle {
             radius: 5
             clip: true
 
+            ScrollBar {
+                id: verticalScrollBar
+                width: 6; 
+                height: list.height - 10
+                orientation: Qt.Vertical
+
+                anchors.right: listframe.right
+                position: list.visibleArea.yPosition
+                pageSize: list.visibleArea.heightRatio
+            }
+
             ListView {
                 id: list
-                width: parent.width - 10
+                width: parent.width - 12
                 height: parent.height - 10
                 anchors.centerIn: parent
                 spacing: 5
@@ -356,6 +367,7 @@ Rectangle {
             // reviews part
             Text {
                 anchors.top: desctxt.bottom
+                anchors.topMargin: 18
                 id: reviewsheadertxt
                 text: "Reviews"
             }
@@ -367,8 +379,19 @@ Rectangle {
                 anchors.bottom: backbtn.top
                 clip: true
 
+                ScrollBar {
+                    id: reviewsVerticalScrollBar
+                    width: 6; 
+                    height: reviewslist.height - 10
+                    orientation: Qt.Vertical
+                    
+                    anchors.right: reviewslistframe.right
+                    position: reviewslist.visibleArea.yPosition
+                    pageSize: reviewslist.visibleArea.heightRatio
+                }
+
                 ListView {
-                    id: reviewlist
+                    id: reviewslist
                     spacing: 5
                     width: parent.width - 10
                     height: parent.height - 10
