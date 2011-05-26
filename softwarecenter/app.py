@@ -416,6 +416,10 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                                      self.on_application_request_action)
         self.available_pane.app_view.connect("application-request-action", 
                                              self.on_application_request_action)
+        self.available_pane.app_view.connect("nav-back-requested", 
+                                             self.on_navhistory_back_action_activate)
+        self.available_pane.app_view.connect("nav-forward-requested", 
+                                             self.on_navhistory_forward_action_activate)
         self.available_pane.searchentry.grab_focus()
     
     def on_channel_pane_created(self, widget):
