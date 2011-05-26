@@ -67,7 +67,6 @@ class WebLiveBackend(object):
     URL = os.environ.get('SOFTWARE_CENTER_WEBLIVE_HOST',
         'https://weblive.stgraber.org/weblive/json')
     QTNX = "/usr/bin/qtnx"
-    DEFAULT_SERVER = "ubuntu-natty01"
 
     def __init__(self):
         self.weblive = WebLive(self.URL,True)
@@ -125,11 +124,9 @@ class WebLiveBackend(object):
                     servers.append(server)
         return servers
 
-    def create_automatic_user_and_run_session(self, serverid=None,
+    def create_automatic_user_and_run_session(self, serverid,
                                               session="desktop", wait=False):
         """ login into serverid and automatically create a user """
-        if not serverid:
-            serverid = self.DEFAULT_SERVER
 
         if os.path.exists('/proc/sys/kernel/random/boot_id'):
             uuid=open('/proc/sys/kernel/random/boot_id','r').read().strip().replace('-','')
@@ -197,4 +194,4 @@ if __name__ == "__main__":
     print weblive.available_servers
 
     # run session
-    weblive.create_automatic_user_and_run_session(session="firefox",wait=True)
+    weblive.create_automatic_user_and_run_session(serverid=weblive.available_servers[0].name,session="firefox",wait=True)
