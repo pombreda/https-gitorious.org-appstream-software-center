@@ -507,13 +507,11 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         if (event.button == MOUSE_EVENT_BACK_BUTTON and
             self.active_pane and
             hasattr(self.active_pane, 'navigation_bar') and
-            not self.active_pane.searchentry.is_focus() and
             not self.active_pane.navigation_bar.has_id(NAV_BUTTON_ID_PURCHASE)):
             self.on_navhistory_back_action_activate()
         elif (event.button == MOUSE_EVENT_FORWARD_BUTTON and
             self.active_pane and
             hasattr(self.active_pane, 'navigation_bar') and
-            not self.active_pane.searchentry.is_focus() and
             not self.active_pane.navigation_bar.has_id(NAV_BUTTON_ID_PURCHASE)):
             self.on_navhistory_forward_action_activate()
         
