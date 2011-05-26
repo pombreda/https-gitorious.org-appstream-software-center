@@ -499,7 +499,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             not self.active_pane.navigation_bar.has_id(NAV_BUTTON_ID_PURCHASE)):
             self.active_pane.navigation_bar.navigate_up()
             
-    def on_button_press_event(self, widget, event):
+    def on_window_main_button_press_event(self, widget, event):
         """
         Implement back/forward navigation via the corresponding
         mouse buttons as used if Firefox and Nautilus.
