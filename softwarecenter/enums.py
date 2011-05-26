@@ -153,8 +153,8 @@ TRANSACTION_TYPE_APPLY = "apply_changes"
 TRANSACTION_TYPE_REPAIR = "repair_dependencies"
 
 # mouse event codes for back/forward buttons
-# TODO: consider whether we ought to get these from gconf itself for the
-#       corresponding values used by Nautilus:
+# TODO: consider whether we ought to get these values from gconf so that we
+#       can be sure to use the corresponding values used by Nautilus:
 #           /apps/nautilus/preferences/mouse_forward_button
 #           /apps/nautilus/preferences/mouse_back_button
 MOUSE_EVENT_FORWARD_BUTTON = 9
