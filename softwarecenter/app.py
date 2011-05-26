@@ -499,8 +499,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             
     def on_window_main_button_press_event(self, widget, event):
         """
-        Implement back/forward navigation via the corresponding
-        mouse buttons as used if Firefox and Nautilus.
+        Implement back/forward navigation via mouse navigation keys using
+        the same button codes as used in Nautilus.
         """
         if (event.button == MOUSE_EVENT_BACK_BUTTON and
             self.active_pane and
