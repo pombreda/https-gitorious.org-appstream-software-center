@@ -52,14 +52,14 @@ class PkgListModel(QAbstractListModel):
             return None
         doc = self._docs[index.row()]
         role = self.COLUMNS[role]
-        pkgname = self.db.get_pkgname(doc)
-        appname =  self.db.get_appname(doc)
+        pkgname = unicode(self.db.get_pkgname(doc))
+        appname =  unicode(self.db.get_appname(doc))
         if role == "_pkgname":
             return pkgname 
         elif role == "_appname":
             return appname
         elif role == "_summary":
-            return self.db.get_summary(doc)
+            return unicode(self.db.get_summary(doc))
         elif role == "_installed":
             if not pkgname in self.cache:
                 return False
