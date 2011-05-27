@@ -39,6 +39,9 @@ def exception(string):
     print "EXCEPTION: %s" % string
     sys.exit(1)
 
+def warning(string):
+    print "WARNING: %s" % string
+
 def disconnect(connection, uuid):
     try:
         if connection.terminate_session(uuid) not in (None, True):
@@ -72,11 +75,22 @@ while 1:
 
         # Parse command from stdin
         if params[0] == "CONNECT:":
-            if len(params) == 6 and not uuid and not connection:
+            if not len(params) == 6:
+                exception("invalid connect string")
+
+            if not uuid and not connection:
                 connection, uuid = connect(*params[1:])
+            else:
+                warning("already connected")
+
         elif params[0] == "DISCONNECT":
             if connection and uuid:
                 disconnect(connection, uuid)
+            else:
+                exception("no existing connection")
+
+        else:
+            warning("invalid command")
 
     # Check if the session ended
     if connection and uuid and not connection.session_ok(uuid):
