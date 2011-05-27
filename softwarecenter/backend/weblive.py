@@ -27,6 +27,7 @@ import os
 import random
 import subprocess
 import string
+import imp
 
 from threading import Thread, Event
 from weblive_pristine import WebLive
@@ -34,9 +35,9 @@ from weblive_pristine import WebLive
 class WebLiveBackend(object):
     """ Backend for interacting with the WebLive service """
 
-    # Try to load x2go
+    # Check if x2go module exists but don't load it (gevent breaks everything)
     try:
-        import x2go
+        imp.find_module("x2go")
         X2GO=True
     except:
         X2GO=False
@@ -157,8 +158,8 @@ class WebLiveBackend(object):
 
         # Connect using x2go or fallback to qtnx if not available
         if (self.X2GO):
-            self._spawn_qtnx(connection[0], connection[1], session, identifier, identifier, wait)
-        elif (os.path.exists(self.QTNX):
+            self._spawn_x2go(connection[0], connection[1], session, identifier, identifier, wait)
+        elif (os.path.exists(self.QTNX)):
             self._spawn_qtnx(connection[0], connection[1], session, identifier, identifier, wait)
         else:
             raise IOError("No remote desktop client available.")
@@ -211,9 +212,15 @@ class WebLiveBackend(object):
     def _spawn_x2go(self, host, port, session, username, password, wait):
         """ Start a session using x2go """
 
-        #FIXME: placeholder
-        pass
+        # Start in the background and attach a watch for when it exits
+        cmd = [ "/usr/bin/python", "utils/x2go_helper.py" ]
+        (pid, stdin, stdout, stderr) = glib.spawn_async(
+            cmd, flags=glib.SPAWN_DO_NOT_REAP_CHILD, standard_input=True, standard_output=True)
+        os.fdopen(stdin,"w").write("CONNECT: \"%s\" \"%s\" \"%s\" \"%s\" \"%s\"" % (host, port, username, password, session))
+        glib.child_watch_add(pid, self._on_x2go_exit)
 
+    def _on_x2go_exit(self, pid, status):
+        pass
 
 # singleton
 _weblive_backend = None
