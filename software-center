@@ -102,8 +102,10 @@ if __name__ == "__main__":
         # set new global datadir
         softwarecenter.paths.datadir = datadir
         # also alter the app-install path
-        if not glob.glob("%s/*.desktop" % softwarecenter.paths.APP_INSTALL_PATH):
+        expr = "%s/desktop/*.desktop" % softwarecenter.paths.APP_INSTALL_PATH
+        if not glob.glob(expr):
             softwarecenter.paths.APP_INSTALL_PATH = './build/share/app-install'
+            logging.warn("using local APP_INSTALL_PATH: %s" % softwarecenter.paths.APP_INSTALL_PATH)
     else:
         datadir = softwarecenter.paths.datadir
         xapian_base_path = XAPIAN_BASE_PATH
