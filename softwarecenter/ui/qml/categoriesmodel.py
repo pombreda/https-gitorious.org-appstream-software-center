@@ -1,7 +1,10 @@
 
 import os
 
+import gtk
+
 from PySide.QtCore import QAbstractListModel, QModelIndex
+from PySide.QtGui import QIcon
 
 from softwarecenter.db.categories import CategoriesParser
 from softwarecenter.db.database import StoreDatabase
@@ -39,5 +42,13 @@ class CategoriesModel(QAbstractListModel):
             return None
         cat = self._categories[index.row()]
         role = self.COLUMNS[role]
-        return unicode(getattr(cat, role[1:]))
+        if role == "_name":
+            return cat.name
+        elif role == "_iconname":
+            # funny, but it appears like Qt does not have something
+            # to lookup the icon path in QIcon
+            icons = gtk.icon_theme_get_default()
+            info = icons.lookup_icon(cat.iconname, 48, 0)
+            return info.get_filename()
+        
 
