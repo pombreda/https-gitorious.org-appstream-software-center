@@ -10,4 +10,9 @@ python /usr/lib/ubuntu-sso-client/ubuntu-sso-login &
 
 # s-c
 export PYTHONPATH=$(pwd)
+
+if [ ! -d "./build" ]; then
+    echo "Please run: 'python setup.py build' before $0"
+fi
+
 ./software-center $@

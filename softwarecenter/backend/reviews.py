@@ -426,7 +426,7 @@ class ReviewLoaderSpawningRNRClient(ReviewLoader):
         self.rnrclient._offline_mode = not network_state_is_connected()
 
     # reviews
-    def get_reviews(self, translated_app, callback, page=1):
+    def get_reviews(self, translated_app, callback, page=1, language=None):
         """ public api, triggers fetching a review and calls callback
             when its ready
         """
@@ -434,6 +434,8 @@ class ReviewLoaderSpawningRNRClient(ReviewLoader):
         # pkgname to the server
         app = translated_app
         self._update_rnrclient_offline_state()
+        if language is None:
+            language = self.language
         # gather args for the helper
         try:
             origin = self.cache.get_origin(app.pkgname)
@@ -454,7 +456,7 @@ class ReviewLoaderSpawningRNRClient(ReviewLoader):
         distroseries = self.distro.get_codename()
         # run the command and add watcher
         cmd = [os.path.join(softwarecenter.paths.datadir, GET_REVIEWS_HELPER),
-               "--language", self.language, 
+               "--language", language, 
                "--origin", origin, 
                "--distroseries", distroseries, 
                "--pkgname", str(app.pkgname), # ensure its str, not unicode

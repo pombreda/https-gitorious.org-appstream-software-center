@@ -16,3 +16,4 @@ data/xapian/iamchert
 data/xapian/spelling.DB
 data/xapian/spelling.baseA
 data/xapian/spelling.baseB
+build/

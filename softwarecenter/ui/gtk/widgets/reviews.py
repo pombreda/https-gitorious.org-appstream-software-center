@@ -36,7 +36,13 @@ from gettext import gettext as _
 from mkit import EM, ShapeStar, get_mkit_theme
 from softwarecenter.drawing import alpha_composite, color_floats
 
-from softwarecenter.utils import get_nice_date_string, upstream_version_compare, upstream_version, get_person_from_config
+from softwarecenter.utils import (
+    get_language,
+    get_person_from_config,
+    get_nice_date_string, 
+    upstream_version_compare, 
+    upstream_version, 
+    )
 
 from softwarecenter.netstatus import network_state_is_connected
 
@@ -714,6 +720,9 @@ class UIReviewsList(gtk.VBox):
         'more-reviews-clicked':(gobject.SIGNAL_RUN_FIRST,
                                 gobject.TYPE_NONE,
                                 () ),
+        'different-review-language-clicked':(gobject.SIGNAL_RUN_FIRST,
+                                             gobject.TYPE_NONE,
+                                             (gobject.TYPE_STRING,) ),
 
     }
 
@@ -724,6 +733,9 @@ class UIReviewsList(gtk.VBox):
         self._parent = parent
         # this is a list of review data (softwarecenter.backend.reviews.Review)
         self.reviews = []
+        # global review stats, this includes ratings in different languages
+        self.global_review_stats = None
+        # usefulness stuff
         self.useful_votes = UsefulnessCache()
         self.logged_in_person = None
 
@@ -849,6 +861,18 @@ class UIReviewsList(gtk.VBox):
             else:
                 self.vbox.pack_start(NoReviewYet())
 
+        # if there are no reviews, try english as fallback
+        language = get_language()
+        if (len(self.reviews) == 0 and
+            self.global_review_stats and
+            self.global_review_stats.ratings_total > 0 and
+            language != "en"):
+            button = gtk.Button(_("Show reviews in english"))
+            button.connect(
+                "clicked", self._on_different_review_language_clicked)
+            button.show()
+            self.vbox.pack_start(button)                
+
         # only show the "More" button if there is a chance that there
         # are more
         if self.reviews and len(self.reviews) % REVIEWS_BATCH_PAGE_SIZE == 0:
@@ -862,6 +886,11 @@ class UIReviewsList(gtk.VBox):
         # remove buttn and emit signal
         self.vbox.remove(button)
         self.emit("more-reviews-clicked")
+
+    def _on_different_review_language_clicked(self, button):
+        language = "en"
+        self.vbox.remove(button)
+        self.emit("different-review-language-clicked", language)
 
     def add_review(self, review):
         self.reviews.append(review)
