@@ -57,7 +57,7 @@ from softwarecenter.enums import (XAPIAN_VALUE_APPNAME,
                                   PURCHASED_NEEDS_REINSTALL_MAGIC_CHANNEL_NAME,
                                   )
 from softwarecenter.paths import (SOFTWARE_CENTER_ICON_CACHE_DIR, 
-                                  APP_INSTALL_PATH)
+                                  APP_INSTALL_DESKTOP_PATH)
 from softwarecenter.db.database import parse_axi_values_file
 
 from locale import getdefaultlocale
@@ -343,7 +343,7 @@ def index_name(doc, name, term_generator):
     w = globals()["WEIGHT_DESKTOP_NAME"]
     term_generator.index_text_without_positions(name, w)
 
-def update(db, cache, datadir=APP_INSTALL_PATH):
+def update(db, cache, datadir=APP_INSTALL_DESKTOP_PATH):
     update_from_app_install_data(db, cache, datadir)
     update_from_var_lib_apt_lists(db, cache)
     # add db global meta-data
@@ -392,10 +392,10 @@ def update_from_appstream_xml(db, cache, xmldir):
             index_app_info_from_parser(parser, db, cache)
     return True
         
-def update_from_app_install_data(db, cache, datadir=APP_INSTALL_PATH):
+def update_from_app_install_data(db, cache, datadir=APP_INSTALL_DESKTOP_PATH):
     """ index the desktop files in $datadir/desktop/*.desktop """
     context = glib.main_context_default()
-    for desktopf in glob(datadir+"/desktop/*.desktop"):
+    for desktopf in glob(datadir+"/*.desktop"):
         LOG.debug("processing %s" % desktopf)
         # process events
         while context.pending():
