@@ -63,7 +63,7 @@ uuid = None
 while 1:
     # Get anything that appeared on stdin
     try:
-        buf = sys.stdin.read().strip()
+        buf = sys.stdin.readline().strip()
     except IOError:
         buf = None
 
@@ -72,7 +72,7 @@ while 1:
 
         # Parse command from stdin
         if params[0] == "CONNECT:":
-            if len(params) == 6:
+            if len(params) == 6 and not uuid and not connection:
                 connection, uuid = connect(*params[1:])
         elif params[0] == "DISCONNECT":
             if connection and uuid:
@@ -82,4 +82,5 @@ while 1:
     if connection and uuid and not connection.session_ok(uuid):
         disconnect(connection, uuid)
 
-    gevent.sleep(0.5)
+    if not buf:
+        gevent.sleep(0.5)
