@@ -27,11 +27,6 @@ class ReviewsListModel(QAbstractListModel):
         super(ReviewsListModel, self).__init__()
         self._reviews = []
 
-        from softwarecenter.backend.reviews import Review
-        r = Review(Application("", "2vcard"))
-        r.summary = "lalalalalal"
-        self._reviews.append(r)
-
         roles = dict(enumerate(ReviewsListModel.COLUMNS))
         self.setRoleNames(roles)
         # FIXME: make this async
