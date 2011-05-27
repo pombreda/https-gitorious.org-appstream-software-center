@@ -67,6 +67,28 @@ class CategoriesModel(QAbstractListModel):
             # to lookup the icon path in QIcon
             icons = gtk.icon_theme_get_default()
             info = icons.lookup_icon(cat.iconname, 48, 0)
-            return info.get_filename()
+            if info:
+                return info.get_filename()
+            return ""
         
+if __name__ == "__main__":
+    from PySide.QtGui import QApplication
+    from PySide.QtDeclarative import qmlRegisterType, QDeclarativeView 
+    import sys
+
+    app = QApplication(sys.argv)
+    app.cache = get_pkg_info()
+    app.cache.open()
+    view = QDeclarativeView()
+    categoriesmodel = CategoriesModel()
+    rc = view.rootContext()
+    rc.setContextProperty('categoriesmodel', categoriesmodel)
+
+    # load the main QML file into the view
+    qmlpath = os.path.join(os.path.dirname(__file__), "CategoriesView.qml")
+    view.setSource(qmlpath)
+
+    # show it
+    view.show()
+    sys.exit(app.exec_())
 
