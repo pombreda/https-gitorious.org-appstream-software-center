@@ -102,8 +102,8 @@ if __name__ == "__main__":
         # set new global datadir
         softwarecenter.paths.datadir = datadir
         # also alter the app-install path
-        expr = "%s/desktop/*.desktop" % softwarecenter.paths.APP_INSTALL_PATH
-        if not glob.glob(expr):
+        expr =  "%s/desktop/software-center.menu" % softwarecenter.paths.APP_INSTALL_PATH
+        if not os.path.exists(expr):
             softwarecenter.paths.APP_INSTALL_PATH = './build/share/app-install'
             logging.warn("using local APP_INSTALL_PATH: %s" % softwarecenter.paths.APP_INSTALL_PATH)
     else:
