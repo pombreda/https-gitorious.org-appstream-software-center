@@ -28,12 +28,10 @@ from xml.etree import ElementTree as ET
 from xml.sax.saxutils import escape as xml_escape
 from xml.sax.saxutils import unescape as xml_unescape
 
-from softwarecenter.enums import SORT_UNSORTED, SORT_BY_ALPHABET, SORT_BY_SEARCH_RANKING, SORT_BY_CATALOGED_TIME
-
-(COL_CAT_NAME,
- COL_CAT_PIXBUF,
- COL_CAT_QUERY,
- COL_CAT_MARKUP) = range(4)
+from softwarecenter.enums import (SORT_UNSORTED, 
+                                  SORT_BY_ALPHABET, 
+                                  SORT_BY_SEARCH_RANKING, 
+                                  SORT_BY_CATALOGED_TIME)
 
 # not possible not use local logger
 LOG = logging.getLogger(__name__)
@@ -85,13 +83,13 @@ class Category(object):
     def __str__(self):
         return "* Category: %s" % self.name
 
-class CategoriesView(object):
+class CategoriesParser(object):
     """ 
-    Base class for the CategoriesView that supports parsing menu files
+    Parser that is able to read the categories from a menu file
     """
-    
-    def __init__(self):
-        self._logger = LOG
+
+    def __init__(self, db):
+        self.db = db
     
     def parse_applications_menu(self, datadir):
         """ parse a application menu and return a list of Category objects """

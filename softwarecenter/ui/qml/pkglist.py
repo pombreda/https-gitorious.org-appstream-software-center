@@ -1,15 +1,13 @@
 
 import os
-import sys
 
 from PySide import QtCore
-from PySide.QtCore import QObject, Property, QAbstractListModel, QModelIndex, Slot
-from PySide.QtDeclarative import QDeclarativeItem
+from PySide.QtCore import Property, QAbstractListModel, QModelIndex, Slot
+
 
 from softwarecenter.db.database import StoreDatabase, Application
 from softwarecenter.db.pkginfo import get_pkg_info
 from softwarecenter.paths import XAPIAN_BASE_PATH
-from softwarecenter.enums import XAPIAN_VALUE_PKGNAME
 from softwarecenter.backend import get_install_backend
 from softwarecenter.backend.reviews import get_review_loader
 

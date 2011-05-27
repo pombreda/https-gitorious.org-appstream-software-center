@@ -47,9 +47,8 @@ from softwarecenter.utils import wait_for_apt_cache_ready
 from softwarecenter.distro import get_distro
 
 from appview import AppStore, AppViewFilter
-#from catview_webkit import CategoriesViewWebkit as CategoriesView
 from catview_gtk import LobbyViewGtk, SubCategoryViewGtk
-from catview import Category, CategoriesView
+from softwarecenter.db.categories import Category, CategoriesParser
 
 from softwarepane import SoftwarePane
 
@@ -443,7 +442,7 @@ class AvailablePane(SoftwarePane):
         # FIXME: it would be great to extract this code so that
         #        we can use it to show the category in search hits
         #        as well
-        for cat in CategoriesView.parse_applications_menu(self.cat_view, APP_INSTALL_PATH):
+        for cat in CategoriesParser.parse_applications_menu(self.cat_view, APP_INSTALL_PATH):
             if (not cat_of_app and 
                 cat.untranslated_name != "New Applications" and 
                 cat.untranslated_name != "Featured Applications"):

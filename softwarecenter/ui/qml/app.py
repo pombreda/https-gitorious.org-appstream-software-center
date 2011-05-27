@@ -15,6 +15,7 @@ from softwarecenter.db.pkginfo import get_pkg_info
 
 from pkglist import PkgListModel
 from reviewslist import ReviewsListModel
+from categoriesmodel import CategoriesModel
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
@@ -31,9 +32,11 @@ if __name__ == '__main__':
     # to cowboy it in here
     pkglistmodel = PkgListModel()
     reviewslistmodel = ReviewsListModel()
+    categoriesmodel = CategoriesModel()
     rc = view.rootContext()
     rc.setContextProperty('pkglistmodel', pkglistmodel)
     rc.setContextProperty('reviewslistmodel', reviewslistmodel)
+    rc.setContextProperty('categoriesmodel', categoriesmodel)
 
     # debug
     if len(sys.argv) > 1:

@@ -20,13 +20,16 @@ from softwarecenter.drawing import color_floats, rounded_rect, rounded_rect2
 from widgets.carousel import CarouselView
 from widgets.buttons import CategoryButton, SubcategoryButton
 
-from catview import (Category, CategoriesView, get_category_by_name,
-                     categories_sorted_by_name)
+from softwarecenter.db.categories import (
+    Category,
+    CategoriesParser, 
+    get_category_by_name,
+    categories_sorted_by_name)
 
 LOG_ALLOCATION = logging.getLogger("softwarecenter.ui.gtk.allocation")
+LOG=logging.getLogger(__name__)
 
-
-class CategoriesViewGtk(gtk.Viewport, CategoriesView):
+class CategoriesViewGtk(gtk.Viewport, CategoriesParser):
 
     __gsignals__ = {
         "category-selected" : (gobject.SIGNAL_RUN_LAST,
@@ -77,7 +80,7 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
         self.section_color = mkit.floats_from_string('#0769BC')
 
         gtk.Viewport.__init__(self)
-        CategoriesView.__init__(self)
+        CategoriesParser.__init__(self, db)
         self.set_shadow_type(gtk.SHADOW_NONE)
 
         # setup base widgets
@@ -141,7 +144,7 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
 
     def _on_category_clicked(self, cat_btn, cat):
         """emit the category-selected signal when a category was clicked"""
-        self._logger.debug("on_category_changed: %s" % cat.name)
+        LOG.debug("on_category_changed: %s" % cat.name)
         self.emit("category-selected", cat)
         return
 
