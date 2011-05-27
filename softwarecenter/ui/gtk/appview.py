@@ -32,6 +32,8 @@ from softwarecenter.enums import (APP_ACTION_REMOVE,
                                   APP_ACTION_INSTALL,
                                   XAPIAN_VALUE_ARCHIVE_CHANNEL,
                                   AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME,
+                                  MOUSE_EVENT_BACK_BUTTON,
+                                  MOUSE_EVENT_FORWARD_BUTTON,
                                   )
 from softwarecenter.utils import ExecutionTime
 from softwarecenter.backend import get_install_backend
@@ -639,6 +641,10 @@ class AppView(gtk.TreeView):
                                          gobject.TYPE_PYOBJECT,
                                          str),
                                        ),
+        "mouse-nav-requested" : (gobject.SIGNAL_RUN_LAST,
+                                 gobject.TYPE_NONE, 
+                                 (gobject.TYPE_PYOBJECT, ),
+                                 )
     }
 
     def __init__(self, show_ratings, store=None):
@@ -880,8 +886,15 @@ class AppView(gtk.TreeView):
             self.emit("application-activated", Application(name, pkgname, request))
 
     def _on_button_press_event(self, view, event, tr):
-        if event.button != 1:
-            return
+        # note: we send explicit navigation events here because the mouse nav button events
+        # are consumed by the list view widget and so are not being propagated out to the
+        # main window for handling in app.py
+        if event.button in (MOUSE_EVENT_BACK_BUTTON,
+                            MOUSE_EVENT_FORWARD_BUTTON):
+            self.emit("mouse-nav-requested", event)
+            return True
+        elif event.button != 1:
+            return False
         self.pressed = True
         res = view.get_path_at_pos(int(event.x), int(event.y))
         if not res:

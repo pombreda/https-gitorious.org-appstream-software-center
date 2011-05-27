@@ -54,6 +54,8 @@ from softwarecenter.enums import (
     VIEW_PAGE_INSTALLED,
     VIEW_PAGE_HISTORY,
     VIEW_PAGE_PENDING,
+    MOUSE_EVENT_FORWARD_BUTTON,
+    MOUSE_EVENT_BACK_BUTTON,
     )
 from softwarecenter.paths import SOFTWARE_CENTER_PLUGIN_DIR, ICON_PATH
 from softwarecenter.utils import (clear_token_from_ubuntu_sso,
@@ -414,6 +416,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                                      self.on_application_request_action)
         self.available_pane.app_view.connect("application-request-action", 
                                              self.on_application_request_action)
+        self.available_pane.app_view.connect("mouse-nav-requested", 
+                                             self.on_window_main_button_press_event)
         self.available_pane.searchentry.grab_focus()
     
     def on_channel_pane_created(self, widget):
@@ -492,6 +496,22 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             not self.active_pane.searchentry.is_focus() and
             not self.active_pane.navigation_bar.has_id(NAV_BUTTON_ID_PURCHASE)):
             self.active_pane.navigation_bar.navigate_up()
+            
+    def on_window_main_button_press_event(self, widget, event):
+        """
+        Implement back/forward navigation via mouse navigation keys using
+        the same button codes as used in Nautilus.
+        """
+        if (event.button == MOUSE_EVENT_BACK_BUTTON and
+            self.active_pane and
+            hasattr(self.active_pane, 'navigation_bar') and
+            not self.active_pane.navigation_bar.has_id(NAV_BUTTON_ID_PURCHASE)):
+            self.on_navhistory_back_action_activate()
+        elif (event.button == MOUSE_EVENT_FORWARD_BUTTON and
+            self.active_pane and
+            hasattr(self.active_pane, 'navigation_bar') and
+            not self.active_pane.navigation_bar.has_id(NAV_BUTTON_ID_PURCHASE)):
+            self.on_navhistory_forward_action_activate()
         
     def on_view_switcher_changed(self, view_switcher, view_id, channel):
         LOG.debug("view_switcher_activated: %s %s" % (view_switcher, view_id))
@@ -955,12 +975,12 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                     self.available_pane.subcategories_view.current_category,
                     len(self.available_pane.app_view.get_model()))
 
-    def on_navhistory_back_action_activate(self, navhistory_back_action):
+    def on_navhistory_back_action_activate(self, navhistory_back_action=None):
         self.available_pane.nav_history.nav_back()
         self.available_pane._status_text = ""
         self.update_status_bar()
         
-    def on_navhistory_forward_action_activate(self, navhistory_forward_action):
+    def on_navhistory_forward_action_activate(self, navhistory_forward_action=None):
         self.available_pane.nav_history.nav_forward()
         self.available_pane._status_text = ""
         self.update_status_bar()

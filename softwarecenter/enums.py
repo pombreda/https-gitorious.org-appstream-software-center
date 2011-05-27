@@ -152,6 +152,14 @@ TRANSACTION_TYPE_UPGRADE = "upgrade"
 TRANSACTION_TYPE_APPLY = "apply_changes"
 TRANSACTION_TYPE_REPAIR = "repair_dependencies"
 
+# mouse event codes for back/forward buttons
+# TODO: consider whether we ought to get these values from gconf so that we
+#       can be sure to use the corresponding values used by Nautilus:
+#           /apps/nautilus/preferences/mouse_forward_button
+#           /apps/nautilus/preferences/mouse_back_button
+MOUSE_EVENT_FORWARD_BUTTON = 9
+MOUSE_EVENT_BACK_BUTTON = 8
+
 # delimiter for directory path separator in app-install
 APP_INSTALL_PATH_DELIMITER = "__"
 
