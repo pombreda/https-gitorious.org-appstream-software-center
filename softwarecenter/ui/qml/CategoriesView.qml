@@ -44,6 +44,17 @@ Rectangle {
                 anchors.horizontalCenter: parent.horizontalCenter 
             }
             
+            MouseArea {
+                // FIXME: this generates a rather ugly warning,
+                //        but it appears to work?!?
+                anchors.fill: caticonimg
+                
+                onClicked: {
+                    // mvo: this works fine, but where is "index" actualy
+                    //      set/definied?
+                    catlist.currentIndex = index
+                }
+            }
         }
     }
 }
