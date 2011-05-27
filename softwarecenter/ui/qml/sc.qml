@@ -220,7 +220,7 @@ Rectangle {
 
                     Button {
                         id: moreinfobtn
-                        text: "More Info"
+                        text: qsTr("More Info")
 
                         anchors.top: summarytxt.bottom
                         x: summarytxt.x
@@ -231,7 +231,7 @@ Rectangle {
                         }
                     }
                     Button {
-                        text: installed ? "Remove" : "Install"
+                        text: installed ? qsTr("Remove") : qsTr("Install")
 
                         anchors.top: summarytxt.bottom
                         anchors.right: parent.right
@@ -263,7 +263,7 @@ Rectangle {
             Text {
                 anchors.fill: parent
                 anchors.margins: 5
-                text: list.count + " items available"
+                text: list.count + qsTr(" items available")
             }
         }
     }
@@ -376,7 +376,7 @@ Rectangle {
                 anchors.top: desctxt.bottom
                 anchors.topMargin: 18
                 id: reviewsheadertxt
-                text: "Reviews"
+                text: qsTr("Reviews")
             }
 
             Rectangle {
@@ -458,7 +458,7 @@ Rectangle {
                anchors.left: parent.left
                anchors.bottom: parent.bottom
                anchors.margins: 15
-               text: "Back"
+               text: qsTr("Back")
                
                onClicked: {
                    showListView()
@@ -550,7 +550,7 @@ Rectangle {
             }
             Button {
                 id: screenshotbackbtn
-                text: "Done"
+                text: qsTr("Done")
 
                 anchors.bottom: parent.bottom
                 anchors.horizontalCenter: parent.horizontalCenter
