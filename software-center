@@ -102,7 +102,7 @@ if __name__ == "__main__":
         # set new global datadir
         softwarecenter.paths.datadir = datadir
         # also alter the app-install path
-        if glob.glob("%s/*.desktop" % softwarecenter.paths.APP_INSTALL_PATH) == 0:
+        if not glob.glob("%s/*.desktop" % softwarecenter.paths.APP_INSTALL_PATH):
             softwarecenter.paths.APP_INSTALL_PATH = './build/share/app-install'
     else:
         datadir = softwarecenter.paths.datadir
