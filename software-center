@@ -100,6 +100,8 @@ if __name__ == "__main__":
         xapian_base_path = datadir
         # set new global datadir
         softwarecenter.paths.datadir = datadir
+        # also alter the app-install path
+        softwarecenter.paths.APP_INSTALL_PATH = './build/share/app-install'
     else:
         datadir = softwarecenter.paths.datadir
         xapian_base_path = XAPIAN_BASE_PATH
