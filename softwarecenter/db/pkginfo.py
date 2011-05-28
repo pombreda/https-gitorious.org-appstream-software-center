@@ -47,8 +47,11 @@ class PackageInfo(gobject.GObject):
     def ready(self):
         pass
 
-
-from pkginfo_impl.aptcache import AptCache
-pkginfo = AptCache()
+# singleton
+pkginfo = None
 def get_pkg_info():
+    global pkginfo
+    if pkginfo is None:
+        from softwarecenter.db.pkginfo_impl.aptcache import AptCache
+        pkginfo = AptCache()
     return pkginfo

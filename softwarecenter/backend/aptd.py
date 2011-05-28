@@ -46,6 +46,7 @@ from defer import inline_callbacks, return_value
 
 import gtk
 from softwarecenter.backend.transactionswatcher import TransactionsWatcher
+from softwarecenter.backend.installbackend import InstallBackend
 from softwarecenter.utils import get_http_proxy_string_from_gconf
 from softwarecenter.ui.gtk import dialogs
 
@@ -78,7 +79,7 @@ class TransactionProgress(object):
         self.meta_data = trans.meta_data
         self.progress = trans.progress
 
-class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
+class AptdaemonBackend(gobject.GObject, TransactionsWatcher, InstallBackend):
     """ software center specific code that interacts with aptdaemon """
 
     __gsignals__ = {'transaction-started':(gobject.SIGNAL_RUN_FIRST,
