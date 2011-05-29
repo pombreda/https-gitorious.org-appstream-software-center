@@ -232,20 +232,14 @@ class Worker(threading.Thread):
             logging.debug("_modify_review")
             self._transmit_state = TRANSMIT_STATE_INPROGRESS
             (review_id, review) = self.pending_modify.get()
-            piston_review = ReviewRequest()
-            piston_review.package_name = review.app.pkgname
-            piston_review.app_name = review.app.appname
-            piston_review.summary = review.summary
-            piston_review.version = review.package_version
-            piston_review.review_text = review.text
-            piston_review.date = str(review.date)
-            piston_review.rating = review.rating
-            piston_review.language = review.language
-            piston_review.arch_tag = get_current_arch()
-            piston_review.origin = review.origin
-            piston_review.distroseries=distro.get_codename()
+            summary = review['summary']
+            review_text = review['review_text']
+            rating = review['rating']
             try:
-                res = self.rnrclient.modify_review(review_id=review_id, review=piston_review)
+                res = self.rnrclient.modify_review(review_id=review_id, 
+                                                   summary=summary,
+                                                   review_text=review_text,
+                                                   rating=rating)
                 self._transmit_state = TRANSMIT_STATE_DONE
                 sys.stdout.write(simplejson.dumps(vars(res)))
             except Exception as e:
@@ -891,10 +885,14 @@ class SubmitReviewsApp(BaseApp):
         review.rating = self.star_rating.get_rating()
         review.package_version = self.version
         review.origin = self.origin
+        
         if self.action == "submit":
             self.api.submit_review(review)
         elif self.action == "modify":
-            self.api.modify_review(self.review_id, review)
+            changes = {'review_text':review.text,
+                       'summary':review.summary,
+                       'rating':review.rating}
+            self.api.modify_review(self.review_id, changes)
 
     def login_successful(self, display_name):
         self.main_notebook.set_current_page(1)

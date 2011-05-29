@@ -386,7 +386,6 @@ class ReviewLoader(object):
 
     def _on_delete_review_finished(self, pid, status, (review_id, callback)):
         """ called when delete_review finished"""
-        """ called when report_usefulness finished """
         exitcode = os.WEXITSTATUS(status)
         if exitcode == 0:
             LOG.debug("delete id %s " % review_id)
@@ -422,14 +421,14 @@ class ReviewLoader(object):
             except simplejson.decoder.JSONDecodeError:
                 LOG.error("failed to parse '%s'" % stdout)
                 return
-            review = ReviewDetails.from_dict(review_json)
+            mod_review = ReviewDetails.from_dict(review_json)
             
             for (app, reviews) in self._reviews.iteritems():
                 for review in reviews:
                     if str(review.id) == str(review_id):
                         # remove the one we don't want to see anymore
                         self._reviews[app].remove(review)
-                        self._reviews[app].insert(0, Review.from_piston_mini_client(review))
+                        self._reviews[app].insert(0, Review.from_piston_mini_client(mod_review))
                         callback(app, self._reviews[app])
                         break
 

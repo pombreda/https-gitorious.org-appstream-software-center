@@ -841,6 +841,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         if my_votes:
             self.reviews.update_useful_votes(my_votes)
         
+        self.reviews.clear()
         for review in reviews_data:
             self.reviews.add_review(review)
         self.reviews.configure_reviews_ui()
