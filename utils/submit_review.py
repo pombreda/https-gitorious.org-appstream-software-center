@@ -702,19 +702,23 @@ class SubmitReviewsApp(BaseApp):
         self._enable_or_disable_post_button()
     
     def _populate_review(self):
-        review_data = self.retrieve_api.get_review(review_id=self.review_id)
-        app = Application(pkgname=review_data.package_name)
-        self.app = app
-        self.review_summary_entry.set_text(review_data.summary)
-        self.star_rating.set_rating(review_data.rating)
-        self.review_buffer.set_text(review_data.review_text)
-        #save original review field data, for comparison purposes when user makes changes to fields
-        self.orig_summary_text = review_data.summary
-        self.orig_star_rating = review_data.rating
-        self.orig_review_text = review_data.review_text
-        self.version = review_data.version
-        self.origin = review_data.origin
-        return  
+        try:
+            review_data = self.retrieve_api.get_review(review_id=self.review_id)
+            app = Application(pkgname=review_data.package_name)
+            self.app = app
+            self.review_summary_entry.set_text(review_data.summary)
+            self.star_rating.set_rating(review_data.rating)
+            self.review_buffer.set_text(review_data.review_text)
+            #save original review field data, for comparison purposes when user makes changes to fields
+            self.orig_summary_text = review_data.summary
+            self.orig_star_rating = review_data.rating
+            self.orig_review_text = review_data.review_text
+            self.version = review_data.version
+            self.origin = review_data.origin
+            return  
+        except piston_mini_client.APIError as e:
+            logging.warn('Unable to retrieve review id %s for editing. Exiting' % self.review_id)
+            self.quit(2)
 
     def _setup_details(self, widget, app, iconname, version, display_name):
         # icon shazam

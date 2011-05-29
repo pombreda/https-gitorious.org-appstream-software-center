@@ -963,6 +963,7 @@ class UIReview(gtk.VBox):
         self.delete_acknowledge_error.set_subdued(True)
         self.usefulness_error = False
         self.delete_error = False
+        self.modify_error = False
 
         self.pack_start(self.header, False)
         self.pack_start(self.body, False)
@@ -1073,7 +1074,7 @@ class UIReview(gtk.VBox):
         # example raw_date str format: 2011-01-28 19:15:21
         return datetime.datetime.strptime(raw_date_str, '%Y-%m-%d %H:%M:%S')
 
-    def _delete_ui_update(self, type, current_user_reviewer=False):
+    def _delete_ui_update(self, type, current_user_reviewer=False, action=None):
         self._hide_delete_elements()
         if type == 'renew':
             self._build_delete_flag_ui(current_user_reviewer)
@@ -1089,7 +1090,7 @@ class UIReview(gtk.VBox):
             self.delete_status_label.show()
         if type == 'error':
             self.delete_error_img.show()
-            self.delete_status_label = gtk.Label("<small><b>%s</b></small>" % _("Error deleting review"))
+            self.delete_status_label = gtk.Label("<small><b>%s</b></small>" % _("Error %s review" % action))
             self.delete_status_box.pack_start(self.delete_error_img, False)
             self.delete_status_label.set_use_markup(True)
             self.delete_status_label.set_padding(2,0)
@@ -1139,6 +1140,7 @@ class UIReview(gtk.VBox):
         useful_favorable = review_data.usefulness_favorable
         useful_submit_error = review_data.usefulness_submit_error
         delete_error = review_data.delete_error
+        modify_error = review_data.modify_error
 
         dark_color = self.style.dark[gtk.STATE_NORMAL]
         m = self._whom_when_markup(self.person, displayname, cur_t, dark_color)
@@ -1193,7 +1195,7 @@ class UIReview(gtk.VBox):
                                   useful_favorable, useful_votes, useful_submit_error)
             
         self.flagbox = gtk.HBox()
-        self._build_delete_flag_ui(current_user_reviewer, delete_error)
+        self._build_delete_flag_ui(current_user_reviewer, delete_error, modify_error)
         self.footer.pack_end(self.flagbox,False)
         self.body.connect('size-allocate', self._on_allocate, stars, summary, text, who_when, version_lbl, self.flagbox)
             
@@ -1315,9 +1317,11 @@ class UIReview(gtk.VBox):
         
         return gtk.Label('<small>%s</small>' % s)
 
-    def _build_delete_flag_ui(self, current_user_reviewer, delete_error=False):
+    def _build_delete_flag_ui(self, current_user_reviewer, delete_error=False, modify_error=False):
         if delete_error:
-            self._delete_ui_update('error', current_user_reviewer)
+            self._delete_ui_update('error', current_user_reviewer, 'deleting')
+        elif modify_error:
+            self._delete_ui_update('error', current_user_reviewer, 'modifying')
         else:
             if current_user_reviewer:
                 self.edit = mkit.VLinkButton('<small>%s</small>' %_('Edit'))

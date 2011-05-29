@@ -176,6 +176,7 @@ class Review(object):
         # this will be set if tryint to submit usefulness for this review failed
         self.usefulness_submit_error = False
         self.delete_error = False
+        self.modify_error = False
     def __repr__(self):
         return "[Review id=%s review_text='%s' reviewer_username='%s']" % (
             self.id, self.review_text, self.reviewer_username)
@@ -408,6 +409,7 @@ class ReviewLoader(object):
 
     def _on_modify_review_finished(self, pid, status, (review_id, stdout_fd, callback)):
         """called when modify_review finished"""
+        exitcode = os.WEXITSTATUS(status)
         LOG.debug("_on_modify_review_finished")
         stdout = ""
         while True:
@@ -415,7 +417,7 @@ class ReviewLoader(object):
             if not s: break
             stdout += s
         LOG.debug("stdout from modify_review: '%s'" % stdout)
-        if os.WEXITSTATUS(status) == 0:
+        if exitcode == 0:
             try:
                 review_json = simplejson.loads(stdout)
             except simplejson.decoder.JSONDecodeError:
@@ -429,6 +431,15 @@ class ReviewLoader(object):
                         # remove the one we don't want to see anymore
                         self._reviews[app].remove(review)
                         self._reviews[app].insert(0, Review.from_piston_mini_client(mod_review))
+                        callback(app, self._reviews[app])
+                        break
+        else:
+            LOG.debug("modify review id=%s failed with exitcode %s" % (
+                review_id, exitcode))
+            for (app, reviews) in self._reviews.iteritems():
+                for review in reviews:
+                    if str(review.id) == str(review_id):
+                        review.modify_error = exitcode
                         callback(app, self._reviews[app])
                         break
 
