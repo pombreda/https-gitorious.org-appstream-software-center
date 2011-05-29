@@ -129,15 +129,6 @@ class RatingsAndReviewsAPI(PistonAPI):
         """Submit a rating/review."""
         return self._post('reviews/', data=review,
         scheme=AUTHENTICATED_API_SCHEME, content_type='application/json')
-    
-    #TODO: this method currently just retrieves and returns the old review for testing purposes
-    #      needs to be fixed once modify review api is available on server
-    @validate('review_id', int)
-    @validate('review', ReviewRequest)
-    @returns(ReviewDetails)
-    def modify_review(self, review_id, review):
-        """Modify an existing review"""
-        return self._get('reviews/%s/' % review_id)
 
     @validate('review_id', int)
     @validate_pattern('reason', r'[^\n]+')
@@ -182,4 +173,15 @@ class RatingsAndReviewsAPI(PistonAPI):
     def delete_review(self, review_id):
         """Delete a review"""
         return self._post('/reviews/delete/%s/' % review_id, data={},
+            scheme=AUTHENTICATED_API_SCHEME)
+
+    @validate('review_id', int)
+    @validate('rating', int)
+    @validate_pattern('summary', r'[^\n]+')
+    @validate_pattern('review_text', r'[^\n]+')
+    @returns(ReviewDetails)
+    def modify_review(self, review_id, rating, summary, review_text):
+        """Modify an existing review"""
+        data = {'rating':rating, 'summary':summary, 'review_text':review_text}
+        return self._put('/reviews/modify/%s/' % review_id, data=data,
             scheme=AUTHENTICATED_API_SCHEME)
