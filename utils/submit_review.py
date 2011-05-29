@@ -713,7 +713,7 @@ class SubmitReviewsApp(BaseApp):
         self.orig_star_rating = review_data.rating
         self.orig_review_text = review_data.review_text
         self.version = review_data.version
-        self.origin = 'ubuntu'
+        self.origin = review_data.origin
         return  
 
     def _setup_details(self, widget, app, iconname, version, display_name):
