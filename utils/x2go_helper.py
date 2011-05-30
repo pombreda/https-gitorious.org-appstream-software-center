@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python -u
 import x2go, gevent, sys, fcntl, os, shlex
 
 def connect(server, port, login, password, session):

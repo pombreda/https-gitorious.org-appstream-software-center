@@ -216,12 +216,21 @@ class WebLiveBackend(object):
         # Start in the background and attach a watch for when it exits
         cmd = [os.path.join(softwarecenter.paths.datadir, softwarecenter.paths.X2GO_HELPER)]
         (pid, stdin, stdout, stderr) = glib.spawn_async(
-            cmd, flags=glib.SPAWN_DO_NOT_REAP_CHILD, standard_input=True, standard_output=True)
-        os.fdopen(stdin,"w").write("CONNECT: \"%s\" \"%s\" \"%s\" \"%s\" \"%s\"" % (host, port, username, password, session))
+            cmd, standard_input=True, standard_output=True, standard_error=True)
         glib.child_watch_add(pid, self._on_x2go_exit)
 
+        # Add a watch on stdout
+        glib.io_add_watch(os.fdopen(stdout), glib.IO_IN, self._on_x2go_activity)
+
+        # Start the connection
+        os.fdopen(stdin,"w").write("CONNECT: \"%s\" \"%s\" \"%s\" \"%s\" \"%s\"" % (host, port, username, password, session))
+
     def _on_x2go_exit(self, pid, status):
-        pass
+        print "x2go: exit with status: %s" % status
+
+    def _on_x2go_activity(self, stdout, condition):
+        print "x2go: received: %s" % stdout.readline().strip()
+        return True
 
 # singleton
 _weblive_backend = None
