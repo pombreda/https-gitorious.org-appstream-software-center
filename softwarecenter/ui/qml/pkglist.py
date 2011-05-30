@@ -25,6 +25,7 @@ from PySide.QtCore import Property, QAbstractListModel, QModelIndex, Slot
 
 from softwarecenter.db.database import StoreDatabase, Application
 from softwarecenter.db.pkginfo import get_pkg_info
+from softwarecenter.db.categories import CategoriesParser
 from softwarecenter.paths import XAPIAN_BASE_PATH
 from softwarecenter.backend import get_install_backend
 from softwarecenter.backend.reviews import get_review_loader
@@ -47,7 +48,7 @@ class PkgListModel(QAbstractListModel):
         roles = dict(enumerate(PkgListModel.COLUMNS))
         self.setRoleNames(roles)
         self._query = ""
-        # db
+        self._category = ""
         pathname = os.path.join(XAPIAN_BASE_PATH, "xapian")
         self.cache = get_pkg_info()
         self.db = StoreDatabase(pathname, self.cache)
@@ -56,6 +57,10 @@ class PkgListModel(QAbstractListModel):
         self.backend.connect("transaction-progress-changed", 
                              self._on_backend_transaction_progress_changed)
         self.reviews = get_review_loader(self.cache)
+        # FIXME: get this from a parent
+        self._catparser = CategoriesParser(self.db)
+        self._categories = self._catparser.parse_applications_menu(
+            '/usr/share/app-install')
 
     # QAbstractListModel code
     def rowCount(self, parent=QModelIndex()):
@@ -150,3 +155,19 @@ class PkgListModel(QAbstractListModel):
         self._runQuery(query)
     searchQueryChanged = QtCore.Signal()
     searchQuery = Property(unicode, getSearchQuery, setSearchQuery, notify=searchQueryChanged)
+
+    # allow to refine searches for specific categories
+    @Slot(str)
+    def setCategory(self, catname):
+        # empty category resets it
+        if not catname:
+            self._category = None
+            return
+        # search for the category
+        for cat in self._categories:
+            if cat.name == catname:
+                self._category = cat
+                break
+        else:
+            raise Exception("Can not find category '%s'" % catname)
+

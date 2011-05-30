@@ -28,6 +28,10 @@ Rectangle {
         id: catview
         width: parent.width
         height: 100
+
+        onCategoryChanged: {
+            pkglistmodel.setCategory(catname)
+        }
      }
 
     Rectangle {

@@ -6,6 +6,8 @@ Rectangle {
     width: parent != null ? parent.width : 400
     height: 300
 
+    signal categoryChanged(string catname)
+
     ScrollBar {
         id: catviewScrollBar
         width: 6; 
@@ -63,7 +65,8 @@ Rectangle {
                     onClicked: {
                         // mvo: this works fine, but where is "index" actualy
                         //      set/definied?
-                        catgrid.currentIndex = index
+                        catgrid.currentIndex = index    
+                        catview.categoryChanged(catname)
                     }
                 }
             }
