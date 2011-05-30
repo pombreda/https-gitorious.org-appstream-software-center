@@ -160,10 +160,11 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.backend.connect("channels-changed", self.on_channels_changed)
         # xapian
         pathname = os.path.join(xapian_base_path, "xapian")
+        self._use_axi = not options.disable_apt_xapian_index
 
         try:
             self.db = StoreDatabase(pathname, self.cache)
-            self.db.open()
+            self.db.open(use_axi = self._use_axi)
             if self.db.schema_version() != DB_SCHEMA_VERSION:
                 LOG.warn("database format '%s' expected, but got '%s'" % (
                          DB_SCHEMA_VERSION, self.db.schema_version()))
@@ -396,7 +397,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         LOG.info("building local database")
         rebuild_database(pathname)
         self.db = StoreDatabase(pathname, self.cache)
-        self.db.open()
+        self.db.open(use_axi=self._use_axi)
 
     # callbacks
     def on_available_pane_created(self, widget):

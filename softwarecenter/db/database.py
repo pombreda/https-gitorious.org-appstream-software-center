@@ -147,6 +147,8 @@ class StoreDatabase(gobject.GObject):
         # for now as we do not have a good way to integrate non-apps
         # with the UI)
         self.nr_databases = 0
+        self._use_axi = use_axi
+        self._use_agent = use_agent
         if use_axi:
             try:
                 axi = xapian.Database("/var/lib/apt-xapian-index/index")
@@ -196,7 +198,7 @@ class StoreDatabase(gobject.GObject):
 
     def reopen(self):
         " reopen the database "
-        self.open()
+        self.open(self._use_axi, self._use_agent)
         self.emit("reopen")
 
     @property
