@@ -31,6 +31,7 @@ import imp
 
 from threading import Thread, Event
 from weblive_pristine import WebLive
+import softwarecenter.paths
 
 class WebLiveBackend(object):
     """ Backend for interacting with the WebLive service """
@@ -213,7 +214,7 @@ class WebLiveBackend(object):
         """ Start a session using x2go """
 
         # Start in the background and attach a watch for when it exits
-        cmd = [ "/usr/bin/python", "utils/x2go_helper.py" ]
+        cmd = [os.path.join(softwarecenter.paths.datadir, softwarecenter.paths.X2GO_HELPER)]
         (pid, stdin, stdout, stderr) = glib.spawn_async(
             cmd, flags=glib.SPAWN_DO_NOT_REAP_CHILD, standard_input=True, standard_output=True)
         os.fdopen(stdin,"w").write("CONNECT: \"%s\" \"%s\" \"%s\" \"%s\" \"%s\"" % (host, port, username, password, session))
