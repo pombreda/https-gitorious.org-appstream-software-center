@@ -57,7 +57,9 @@ from softwarecenter.enums import (XAPIAN_VALUE_APPNAME,
                                   PURCHASED_NEEDS_REINSTALL_MAGIC_CHANNEL_NAME,
                                   )
 from softwarecenter.paths import (SOFTWARE_CENTER_ICON_CACHE_DIR, 
-                                  APP_INSTALL_DESKTOP_PATH)
+                                  APP_INSTALL_DESKTOP_PATH,
+                                  APPSTREAM_XML_PATH
+                                  )
 from softwarecenter.db.database import parse_axi_values_file
 
 from locale import getdefaultlocale
@@ -374,7 +376,7 @@ def update_from_var_lib_apt_lists(db, cache, listsdir=None):
             index_app_info_from_parser(parser, db, cache)
     return True
 
-def update_from_appstream_xml(db, cache, xmldir):
+def update_from_appstream_xml(db, cache, xmldir=APPSTREAM_XML_PATH):
     from lxml import etree
     context = glib.main_context_default()
     for appstream_xml in glob(os.path.join(xmldir, "*.xml")):
@@ -709,7 +711,7 @@ def index_app_info_from_parser(parser, db, cache):
         # now add it
         db.add_document(doc)
 
-def rebuild_database(pathname):
+def rebuild_database(pathname, debian_sources=True, appstream_sources=False):
     cache = apt.Cache(memonly=True)
     old_path = pathname+"_old"
     rebuild_path = pathname+"_rb"
@@ -742,7 +744,12 @@ def rebuild_database(pathname):
             
     # write it
     db = xapian.WritableDatabase(rebuild_path, xapian.DB_CREATE_OR_OVERWRITE)
-    update(db, cache)
+
+    if debian_sources:
+        update(db, cache)
+    if appstream_sources:
+        update_from_appstream_xml(db, cache)
+
     # write the database version into the filep
     db.set_metadata("db-schema-version", DB_SCHEMA_VERSION)
     # update the mo file stamp for the langpack checks

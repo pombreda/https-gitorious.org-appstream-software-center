@@ -100,11 +100,11 @@ class PackageHistory(object):
 
 
 # make it a singleton
-from history_impl.apthistory import AptHistory
 pkg_history = None
 def get_pkg_history():
     """ get the global PackageHistory() singleton object """
     global pkg_history
     if pkg_history is None:
+        from history_impl.apthistory import AptHistory
         pkg_history = AptHistory()
     return pkg_history
