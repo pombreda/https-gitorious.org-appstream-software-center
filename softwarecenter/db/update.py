@@ -33,6 +33,8 @@ from ConfigParser import RawConfigParser, NoOptionError
 from gettext import gettext as _
 from glob import glob
 
+import softwarecenter.paths
+
 from softwarecenter.enums import (XAPIAN_VALUE_APPNAME,
                                   XAPIAN_VALUE_PKGNAME,
                                   XAPIAN_VALUE_DESKTOP_FILE,
@@ -55,10 +57,6 @@ from softwarecenter.enums import (XAPIAN_VALUE_APPNAME,
                                   DB_SCHEMA_VERSION,
                                   AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME,
                                   PURCHASED_NEEDS_REINSTALL_MAGIC_CHANNEL_NAME,
-                                  )
-from softwarecenter.paths import (SOFTWARE_CENTER_ICON_CACHE_DIR, 
-                                  APP_INSTALL_DESKTOP_PATH,
-                                  APPSTREAM_XML_PATH
                                   )
 from softwarecenter.db.database import parse_axi_values_file
 
@@ -345,7 +343,9 @@ def index_name(doc, name, term_generator):
     w = globals()["WEIGHT_DESKTOP_NAME"]
     term_generator.index_text_without_positions(name, w)
 
-def update(db, cache, datadir=APP_INSTALL_DESKTOP_PATH):
+def update(db, cache, datadir=None):
+    if not datadir:
+        datadir = softwarecenter.paths.APP_INSTALL_DESKTOP_PATH
     update_from_app_install_data(db, cache, datadir)
     update_from_var_lib_apt_lists(db, cache)
     # add db global meta-data
@@ -376,9 +376,12 @@ def update_from_var_lib_apt_lists(db, cache, listsdir=None):
             index_app_info_from_parser(parser, db, cache)
     return True
 
-def update_from_appstream_xml(db, cache, xmldir=APPSTREAM_XML_PATH):
+def update_from_appstream_xml(db, cache, xmldir=None):
+    if not xmldir:
+        xmldir = softwarecenter.paths.APPSTREAM_XML_PATH
     from lxml import etree
     context = glib.main_context_default()
+    print  glob(os.path.join(xmldir, "*.xml"))
     for appstream_xml in glob(os.path.join(xmldir, "*.xml")):
         LOG.debug("processing %s" % appstream_xml)
         # process events
@@ -394,7 +397,9 @@ def update_from_appstream_xml(db, cache, xmldir=APPSTREAM_XML_PATH):
             index_app_info_from_parser(parser, db, cache)
     return True
         
-def update_from_app_install_data(db, cache, datadir=APP_INSTALL_DESKTOP_PATH):
+def update_from_app_install_data(db, cache, datadir=None):
+    if not datadir:
+        datadir = softwarecenter.paths.APP_INSTALL_DESKTOP_PATH
     """ index the desktop files in $datadir/desktop/*.desktop """
     context = glib.main_context_default()
     for desktopf in glob(datadir+"/*.desktop"):
@@ -504,8 +509,9 @@ def update_from_software_center_agent(db, cache, ignore_etag=False,
             if icondata:
 		# the iconcache gets mightly confused if there is a "." in the name
                 iconname = "sc-agent-%s" % entry.package_name.replace(".", "__")
-                open(os.path.join(SOFTWARE_CENTER_ICON_CACHE_DIR,
-                                  "%s.png" % iconname),"w").write(icondata)
+                open(os.path.join(
+                        softwarecenter.paths.SOFTWARE_CENTER_ICON_CACHE_DIR,
+                        "%s.png" % iconname),"w").write(icondata)
                 entry.icon = iconname
             # now the normal parser
             parser = SoftwareCenterAgentParser(entry)
