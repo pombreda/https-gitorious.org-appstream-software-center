@@ -381,7 +381,6 @@ def update_from_appstream_xml(db, cache, xmldir=None):
         xmldir = softwarecenter.paths.APPSTREAM_XML_PATH
     from lxml import etree
     context = glib.main_context_default()
-    print  glob(os.path.join(xmldir, "*.xml"))
     for appstream_xml in glob(os.path.join(xmldir, "*.xml")):
         LOG.debug("processing %s" % appstream_xml)
         # process events
@@ -547,6 +546,7 @@ def index_app_info_from_parser(parser, db, cache):
             untranslated_name = parser.get_desktop("Name", translated=False)
         if name in seen:
             LOG.debug("duplicated name '%s' (%s)" % (name, parser.desktopf))
+        LOG.debug("indexing app '%s'" % name)
         seen.add(name)
         doc.set_data(name)
         index_name(doc, name, term_generator)
