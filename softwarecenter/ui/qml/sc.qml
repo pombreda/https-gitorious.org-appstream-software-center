@@ -458,6 +458,9 @@ Rectangle {
                     // refresh review stats on each startup
                     Component.onCompleted: {
                         reviewslistmodel.refreshReviewStats()
+                        // FIXME: how to connect the "reviewStatsChanged" signal
+                        //        from reviewslistmodel there to a JS function?
+                        
                     }
                 }
             }

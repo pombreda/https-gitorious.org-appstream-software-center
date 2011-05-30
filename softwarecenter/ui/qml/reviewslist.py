@@ -94,6 +94,7 @@ class ReviewsListModel(QAbstractListModel):
         self.reviews.refresh_review_stats(
             _on_refresh_reviews_ready_callback)
 
+    # FIXME: how is this signal actually used in the qml JS?
     # signals
     reviewStatsChanged = Signal()
 
