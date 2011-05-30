@@ -56,7 +56,7 @@ APP_CATCHUP_DELAY = 2
 LANGPACKDIR = "/usr/share/locale-langpack"
 
 logging.basicConfig(level=logging.INFO)
-LOG = logging.getLogger(__name__)
+LOG = logging.getLogger("softwarecenter.db.update")
 
 class UpdateSoftwarecenterDbus(dbus.service.Object):
     """ 
