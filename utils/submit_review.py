@@ -269,8 +269,8 @@ class Worker(threading.Thread):
             except Exception as e:
                 logging.exception("delete_review failed")
                 self._write_exception_html_log_if_needed(e)
-                self._transmit_state = TRANSMIT_STATE_ERROR
                 self._transmit_error_str = _("Failed to delete review")
+                self._transmit_state = TRANSMIT_STATE_ERROR
             self.pending_delete.task_done()
 
     # reports
@@ -1255,7 +1255,8 @@ class SubmitUsefulnessApp(BaseApp):
         self.api.submit_usefulness(self.review_id, self.is_useful)
     
     def on_transmit_failure(self, api, trans, error):
-        print "exiting - error: %s" % error
+        logging.warn("exiting - error: %s" % error)
+        self.api.shutdown()
         self.quit(2)
 
     # override parents run to only trigger login (and subsequent
@@ -1293,10 +1294,11 @@ class DeleteReviewApp(BaseApp):
     def login_successful(self, display_name):
         logging.debug("delete review")
         self.main_notebook.set_current_page(1)
-        self.api.delete_review(self.review_id)
+        self.api.delete_review(self.review_id)    
     
     def on_transmit_failure(self, api, trans, error):
-        print "exiting - error: %s" % error
+        logging.warn("exiting - error: %s" % error)
+        self.api.shutdown()
         self.quit(2)
 
     # override parents run to only trigger login (and subsequent
