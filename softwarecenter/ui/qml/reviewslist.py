@@ -21,7 +21,7 @@ import os
 import sys
 
 from PySide import QtCore
-from PySide.QtCore import QObject, Property, QAbstractListModel, QModelIndex, Slot
+from PySide.QtCore import QObject, Property, QAbstractListModel, QModelIndex, Slot, Signal
 from PySide.QtDeclarative import QDeclarativeItem
 
 from softwarecenter.db.database import StoreDatabase, Application
@@ -85,4 +85,16 @@ class ReviewsListModel(QAbstractListModel):
         self.reviews.get_reviews(Application(appname, pkgname),
                                  self._on_reviews_ready_callback, 
                                  page)
-    
+
+    # refresh review-stats (for qml)
+    @Slot()
+    def refreshReviewStats(self):
+        def _on_refresh_reviews_ready_callback(loader):
+            self.reviewStatsChanged.emit()
+        self.reviews.refresh_review_stats(
+            _on_refresh_reviews_ready_callback)
+
+    # signals
+    reviewStatsChanged = Signal()
+
+

@@ -454,9 +454,14 @@ Rectangle {
                             width: parent.width
                         }
                     }
+
+                    // refresh review stats on each startup
+                    Component.onCompleted: {
+                        reviewslistmodel.refreshReviewStats()
+                    }
                 }
             }
-
+            
             Button {
                id: backbtn
                anchors.left: parent.left
