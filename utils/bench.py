@@ -5,8 +5,9 @@ import sys
 import xapian
 
 sys.path.insert(0, "../")
-from softwarecenter.enums import *
-from softwarecenter.utils import *
+from softwarecenter.enums import XAPIAN_VALUE_PKGNAME, XAPIAN_VALUE_APPNAME
+from softwarecenter.paths import XAPIAN_BASE_PATH
+from softwarecenter.utils import ExecutionTime
 
 def run_benchmark(db):
     # test postlist

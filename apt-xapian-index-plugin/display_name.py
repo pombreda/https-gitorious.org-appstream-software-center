@@ -1,7 +1,5 @@
-import apt
 import apt_pkg
-import xapian
-import os, os.path
+import os
 
 class DisplayNames:
     def info(self):

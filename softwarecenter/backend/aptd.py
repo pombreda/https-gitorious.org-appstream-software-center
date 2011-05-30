@@ -16,16 +16,22 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import aptsources.sourceslist
+import apt_pkg
 import dbus
 import gobject
+import glib
 import logging
 import os
 import re
-import subprocess
-import sys
-from softwarecenter.utils import *
-from softwarecenter.enums import *
+from softwarecenter.utils import (sources_filename_from_ppa_entry,
+                                  release_filename_in_lists_from_deb_line,
+                                  )
+from softwarecenter.enums import (TRANSACTION_TYPE_REPAIR,
+                                  TRANSACTION_TYPE_UPGRADE,
+                                  TRANSACTION_TYPE_REMOVE,
+                                  TRANSACTION_TYPE_INSTALL,
+                                  TRANSACTION_TYPE_APPLY,
+                                  )
 
 from aptdaemon import client
 from aptdaemon import enums
@@ -36,17 +42,7 @@ from aptdaemon.gtkwidgets import AptMediumRequiredDialog, \
 from aptsources.sourceslist import SourceEntry
 from aptdaemon import policykit1
 
-# natty uses python-defer
-try:
-    from defer import inline_callbacks, return_value
-except ImportError:
-    # compat with maverick
-    try:
-        from aptdaemon.defer import inline_callbacks, return_value
-    except ImportError:
-        logging.getLogger("softwarecenter.backend").exception("aptdaemon import failed")
-        print 'Need the latest aptdaemon, try "sudo apt-add-repository ppa:software-store-developers/ppa" to get the PPA'
-        sys.exit(1)
+from defer import inline_callbacks, return_value
 
 import gtk
 from softwarecenter.backend.transactionswatcher import TransactionsWatcher
@@ -602,9 +598,6 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             # correctly prompts the user to check their network connection (see LP: #747172)
             # FIXME: fix aptdaemon to return a valid error_code under all conditions
             trans.error_code = enums.ERROR_PACKAGE_DOWNLOAD_FAILED
-        dialog_primary = enums.get_error_string_from_enum(trans.error_code)
-        dialog_secondary = enums.get_error_description_from_enum(trans.error_code)
-        dialog_details = trans.error_details
         # show dialog to the user and exit (no need to reopen
         # the cache)
         return dialogs.error(None,

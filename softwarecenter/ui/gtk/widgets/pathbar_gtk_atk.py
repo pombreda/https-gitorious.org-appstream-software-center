@@ -17,7 +17,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import atk
-import cairo
 import gobject
 import gtk
 import logging
@@ -79,7 +78,6 @@ class PathBar(gtk.HBox):
         mpw = self.theme['min-part-width']
         for part in self.get_children():
             w = part.get_size_request()[0]
-            dw = 0
             if w - overhang <= mpw:
                 overhang -= w-mpw
                 part.set_width(mpw)

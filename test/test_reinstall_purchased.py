@@ -7,13 +7,14 @@ sys.path.insert(0,"../")
 import apt_pkg
 import apt
 import logging
-import os
 import simplejson
 import unittest
 import xapian
 
-from softwarecenter.db.pkginfo import get_pkg_info
-from softwarecenter.enums import *
+from softwarecenter.enums import (XAPIAN_VALUE_ARCHIVE_DEB_LINE,
+                                  XAPIAN_VALUE_ARCHIVE_SIGNING_KEY_ID,
+                                  XAPIAN_VALUE_PKGNAME,
+                                  )
 from softwarecenter.db.database import StoreDatabase
 from softwarecenter.db.update import add_from_purchased_but_needs_reinstall_data
 

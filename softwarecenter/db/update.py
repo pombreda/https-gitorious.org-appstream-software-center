@@ -26,18 +26,38 @@ import os
 import simplejson
 import string
 import shutil
-import sys
 import time
-import urllib
 import xapian
 
 from ConfigParser import RawConfigParser, NoOptionError
 from gettext import gettext as _
 from glob import glob
 
-from softwarecenter.paths import *
-from softwarecenter.enums import *
-from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
+from softwarecenter.enums import (XAPIAN_VALUE_APPNAME,
+                                  XAPIAN_VALUE_PKGNAME,
+                                  XAPIAN_VALUE_DESKTOP_FILE,
+                                  XAPIAN_VALUE_ARCHIVE_SECTION,
+                                  XAPIAN_VALUE_ARCHIVE_CHANNEL,
+                                  XAPIAN_VALUE_ARCHIVE_SIGNING_KEY_ID,
+                                  XAPIAN_VALUE_PURCHASED_DATE,
+                                  XAPIAN_VALUE_ARCHIVE_DEB_LINE,
+                                  XAPIAN_VALUE_ARCHIVE_PPA,
+                                  XAPIAN_VALUE_SCREENSHOT_URL,
+                                  XAPIAN_VALUE_THUMBNAIL_URL,
+                                  XAPIAN_VALUE_PRICE,
+                                  XAPIAN_VALUE_ICON,
+                                  XAPIAN_VALUE_GETTEXT_DOMAIN,
+                                  XAPIAN_VALUE_ARCHIVE_ARCH,
+                                  XAPIAN_VALUE_SC_DESCRIPTION,
+                                  XAPIAN_VALUE_POPCON,
+                                  XAPIAN_VALUE_SUMMARY,
+                                  XAPIAN_VALUE_APPNAME_UNTRANSLATED,
+                                  DB_SCHEMA_VERSION,
+                                  AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME,
+                                  PURCHASED_NEEDS_REINSTALL_MAGIC_CHANNEL_NAME,
+                                  )
+from softwarecenter.paths import (SOFTWARE_CENTER_ICON_CACHE_DIR, 
+                                  APP_INSTALL_DESKTOP_PATH)
 from softwarecenter.db.database import parse_axi_values_file
 
 from locale import getdefaultlocale
@@ -69,7 +89,7 @@ if os.path.exists(CF):
     try:
         cataloged_times = cPickle.load(open(CF))
     except EOFError as e:
-        logging.warn("failed to read %s (%s" % (CF, e))
+        LOG.warn("failed to read %s (%s" % (CF, e))
 del CF
 
 class AppInfoParserBase(object):
@@ -195,7 +215,6 @@ class AppStreamXMLParser(AppInfoParserBase):
         self.appinfo_xml = appinfo_xml
         self.xmlfile = xmlfile
     def get_desktop(self, key, translated=True):
-        from lxml import etree
         key = self._apply_mapping(key)
         if key in self.LISTS:
             return self._parse_with_lists(key)
@@ -215,7 +234,6 @@ class AppStreamXMLParser(AppInfoParserBase):
                 l.append(child.text)
         return ",".join(l)
     def has_option_desktop(self, key):
-        from lxml import etree
         key = self._apply_mapping(key)
         return not self.appinfo_xml.find(key) is None
     @property
@@ -254,7 +272,7 @@ class DesktopTagSectionParser(AppInfoParserBase):
                     locale_short = locale.split("_")[0]
                     if self.has_option_desktop("%s-%s" % (key, locale_short)):
                         return self.tag_section["%s-%s" % (key, locale_short)]
-        except ValueError,e :
+        except ValueError:
             pass
         # and then the untranslated field
         return self.tag_section[key]
@@ -297,7 +315,7 @@ class DesktopConfigParser(RawConfigParser, AppInfoParserBase):
                     locale_short = locale.split("_")[0]
                     if self.has_option_desktop("%s[%s]" % (key, locale_short)):
                         return self.get(self.DE, "%s[%s]" % (key, locale_short))
-        except ValueError,e :
+        except ValueError:
             pass
         # and then the untranslated field
         return self.get(self.DE, key)
@@ -325,7 +343,7 @@ def index_name(doc, name, term_generator):
     w = globals()["WEIGHT_DESKTOP_NAME"]
     term_generator.index_text_without_positions(name, w)
 
-def update(db, cache, datadir=APP_INSTALL_PATH):
+def update(db, cache, datadir=APP_INSTALL_DESKTOP_PATH):
     update_from_app_install_data(db, cache, datadir)
     update_from_var_lib_apt_lists(db, cache)
     # add db global meta-data
@@ -367,17 +385,17 @@ def update_from_appstream_xml(db, cache, xmldir):
         tree = etree.parse(open(appstream_xml))
         root = tree.getroot()
         if not root.tag == "applications":
-            logging.error("failed to read '%s' excepected Applications root tag" % appstream_xml)
+            LOG.error("failed to read '%s' expected Applications root tag" % appstream_xml)
             continue
         for appinfo in root.iter("application"):
             parser = AppStreamXMLParser(appinfo, appstream_xml)
             index_app_info_from_parser(parser, db, cache)
     return True
         
-def update_from_app_install_data(db, cache, datadir=APP_INSTALL_PATH):
+def update_from_app_install_data(db, cache, datadir=APP_INSTALL_DESKTOP_PATH):
     """ index the desktop files in $datadir/desktop/*.desktop """
     context = glib.main_context_default()
-    for desktopf in glob(datadir+"/desktop/*.desktop"):
+    for desktopf in glob(datadir+"/*.desktop"):
         LOG.debug("processing %s" % desktopf)
         # process events
         while context.pending():

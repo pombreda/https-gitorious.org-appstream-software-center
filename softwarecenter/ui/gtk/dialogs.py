@@ -19,6 +19,7 @@
 
 import gtk
 from gettext import gettext as _
+import sys
 
 class SimpleGtkbuilderDialog(object):
     def __init__(self, datadir, domain):

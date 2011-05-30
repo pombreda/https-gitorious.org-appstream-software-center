@@ -27,10 +27,18 @@ from gettext import gettext as _
 from softwarecenter.backend.channel import ChannelsManager
 from softwarecenter.backend import get_install_backend
 from softwarecenter.distro import get_distro
-from softwarecenter.enums import *
+from softwarecenter.enums import (
+    GENERIC_MISSING_IMAGE,
+    VIEW_PAGE_AVAILABLE,
+    VIEW_PAGE_INSTALLED,
+    VIEW_PAGE_CHANNEL,
+    VIEW_PAGE_HISTORY,
+    VIEW_PAGE_SEPARATOR_1,
+    VIEW_PAGE_PENDING,
+    )
 from softwarecenter.utils import wait_for_apt_cache_ready, get_icon_from_theme
 
-from softwarecenter.ui.gtk.widgets.animatedimage import CellRendererAnimatedImage, AnimatedImage
+from softwarecenter.ui.gtk.widgets.animatedimage import AnimatedImage
 
 LOG = logging.getLogger(__name__)
 
@@ -92,7 +100,7 @@ class ViewSwitcherList(gtk.TreeStore):
 
         # the historypane item
         icon = self._get_icon("document-open-recent")
-        history_iter = self.append(None, [icon, _("History"), VIEW_PAGE_HISTORY, None, None])
+        self.append(None, [icon, _("History"), VIEW_PAGE_HISTORY, None, None])
         icon = AnimatedImage(None)
         self.append(None, [icon, "<span size='1'> </span>", VIEW_PAGE_SEPARATOR_1, None, None])
         

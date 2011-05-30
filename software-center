@@ -34,6 +34,7 @@ gobject.threads_init()
 import gtk
 
 import gettext
+import glob
 import logging
 import os
 import time
@@ -100,6 +101,11 @@ if __name__ == "__main__":
         xapian_base_path = datadir
         # set new global datadir
         softwarecenter.paths.datadir = datadir
+        # also alter the app-install path
+        path =  "%s/desktop/software-center.menu" % softwarecenter.paths.APP_INSTALL_PATH
+        if not os.path.exists(path):
+            softwarecenter.paths.APP_INSTALL_PATH = './build/share/app-install'
+            logging.warn("using local APP_INSTALL_PATH: %s" % softwarecenter.paths.APP_INSTALL_PATH)
     else:
         datadir = softwarecenter.paths.datadir
         xapian_base_path = XAPIAN_BASE_PATH

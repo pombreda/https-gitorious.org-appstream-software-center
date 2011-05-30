@@ -38,6 +38,7 @@ SOFTWARE_CENTER_AGENT_INCLUDE_APPROVED_BUT_UNPUBLISHED - show not yet QA apps av
 SOFTWARE_CENTER_NET_DISCONNECTED - make software-center's netstatus module believe network manager is in a disconnected state
 SOFTWARE_CENTER_WEBLIVE_HOST - overwrite default weblive server
 SC_DISTRO_CODENAME - overwrite "lsb_release -c -s" output
+SOFTWARE_CENTER_NO_SC_AGENT - disable the software-center-agent
 
 == applications.menu ==
 

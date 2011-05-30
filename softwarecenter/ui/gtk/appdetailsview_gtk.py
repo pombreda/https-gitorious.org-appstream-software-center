@@ -17,6 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import atk
+import datetime
 import gettext
 import glib
 import gmenu
@@ -24,12 +25,8 @@ import gobject
 import gtk
 import logging
 import os
-import pango
-import subprocess
 import sys
-import cairo
-import pangocairo
-import datetime
+
 
 from softwarecenter.cmdfinder import CmdFinder
 from softwarecenter.netstatus import NetState, get_network_watcher, network_state_is_connected
@@ -37,17 +34,33 @@ from softwarecenter.netstatus import NetState, get_network_watcher, network_stat
 from gettext import gettext as _
 import apt_pkg
 
-from softwarecenter.backend import get_install_backend
-
 from softwarecenter.db.application import Application
-from softwarecenter.db.reviews import ReviewStats
+from softwarecenter.backend.reviews import ReviewStats
 
 from softwarecenter.backend.zeitgeist_simple import zeitgeist_singleton
-from softwarecenter.enums import *
-from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
-
-from softwarecenter.utils import *
-from softwarecenter.config import get_config
+from softwarecenter.enums import (PKG_STATE_INSTALLING_PURCHASED,
+                                  PKG_STATE_INSTALLED,
+                                  PKG_STATE_PURCHASED_BUT_REPO_MUST_BE_ENABLED,
+                                  PKG_STATE_NEEDS_PURCHASE,
+                                  PKG_STATE_NEEDS_SOURCE,
+                                  PKG_STATE_UNINSTALLED,
+                                  PKG_STATE_REINSTALLABLE,
+                                  PKG_STATE_UPGRADABLE,
+                                  PKG_STATE_INSTALLING,
+                                  PKG_STATE_UPGRADING,
+                                  PKG_STATE_REMOVING,
+                                  PKG_STATE_NOT_FOUND,
+                                  PKG_STATE_UNKNOWN,
+                                  APP_ACTION_APPLY,
+                                  PKG_STATE_ERROR,
+                                  SOFTWARE_CENTER_PKGNAME,
+                                  MISSING_APP_ICON,
+                                  )
+from softwarecenter.utils import (is_unity_running, 
+                                  get_exec_line_from_desktop,
+                                  GMenuSearcher,
+                                  SimpleFileDownloader,
+                                  )
 from softwarecenter.backend.weblive import get_weblive_backend
 
 from dialogs import error
@@ -56,12 +69,14 @@ from appdetailsview import AppDetailsViewBase
 
 from widgets import mkit
 
-from widgets.mkit import EM, ShapeStar
-from widgets.reviews import UIReviewsList, UIReview, \
-                            ReviewStatsContainer, StarPainter, \
-                            StarRating, EmbeddedMessage
+from widgets.mkit import EM
+from widgets.reviews import (UIReviewsList, 
+                             ReviewStatsContainer, 
+                             StarPainter,
+                             StarRating,
+                             )
 
-from widgets.description import AppDescription, TextBlock
+from widgets.description import AppDescription
 from widgets.thumbnail import ScreenshotThumbnail
 from widgets.weblivedialog import ShowWebLiveServerChooserDialog
 
@@ -750,6 +765,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         # reviews
         self._reviews_server_page = 1
+        self._reviews_server_language = None
         
         # switches
         self._show_overlay = False
@@ -790,23 +806,33 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         stats = self.review_loader.get_review_stats(self.app)
         self._update_review_stats_widget(stats)
         # individual reviews is slow and async so we just queue it here
+        self._do_load_reviews()
+
+    def _on_more_reviews_clicked(self, uilist):
+        self._reviews_server_page += 1
+        self._do_load_reviews()
+
+    def _on_reviews_in_different_language_clicked(self, uilist, language):
+        self._reviews_server_language = language
+        self._do_load_reviews()
+
+    def _do_load_reviews(self):
         self.reviews.show_spinner_with_message(_('Checking for reviews...'))
-        self.review_loader.get_reviews(self.app, self._reviews_ready_callback)
+        self.review_loader.get_reviews(
+            self.app, self._reviews_ready_callback, 
+            page=self._reviews_server_page,
+            language=self._reviews_server_language)
 
     def _update_review_stats_widget(self, stats):
         if stats:
+            # ensure that the review UI knows about the stats 
+            self.reviews.global_review_stats = stats
+            # update the widget
             self.review_stats_widget.set_avg_rating(stats.ratings_average)
             self.review_stats_widget.set_nr_reviews(stats.ratings_total)
             self.review_stats_widget.show()
         else:
             self.review_stats_widget.hide()
-
-    def _on_more_reviews_clicked(self, uilist):
-        self._reviews_server_page += 1
-        self.reviews.show_spinner_with_message(_('Checking for reviews...'))
-        self.review_loader.get_reviews(
-            self.app, self._reviews_ready_callback,
-            page=self._reviews_server_page)
 
     def _reviews_ready_callback(self, app, reviews_data, my_votes=None):
         """ callback when new reviews are ready, cleans out the
@@ -1131,6 +1157,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.reviews.connect("modify-review", self._on_review_modify)
         self.reviews.connect("delete-review", self._on_review_delete)
         self.reviews.connect("more-reviews-clicked", self._on_more_reviews_clicked)
+        self.reviews.connect("different-review-language-clicked", self._on_reviews_in_different_language_clicked)
         vb.pack_start(self.reviews, False)
 
         self.show_all()
@@ -1833,7 +1860,6 @@ if __name__ == "__main__":
     win = gtk.Window()
     scroll = gtk.ScrolledWindow()
     view = AppDetailsViewGtk(db, distro, icons, cache, datadir, win)
-    from softwarecenter.db.application import Application
     #view.show_app(Application("Pay App Example", "pay-app"))
     #view.show_app(Application("3D Chess", "3dchess"))
     #view.show_app(Application("Movie Player", "totem"))

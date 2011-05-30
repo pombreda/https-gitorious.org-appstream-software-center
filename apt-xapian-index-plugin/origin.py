@@ -1,7 +1,6 @@
 # Add origin tags to the index
 
 import apt
-import re
 import os
 
 class OriginPlugin:

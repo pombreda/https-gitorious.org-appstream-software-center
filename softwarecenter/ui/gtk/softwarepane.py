@@ -16,42 +16,51 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import apt
 import atk
-import bisect
-import glib
+import cairo
+import dbus
+import gettext
+import dialogs
 import gobject
 import gtk
 import logging
-import os
 import xapian
-import cairo
-import gettext
-import dialogs
+import copy
 
 from gettext import gettext as _
 
-from widgets.mkit import floats_from_gdkcolor, floats_from_string
+from widgets.mkit import floats_from_string
 from widgets.pathbar_gtk_atk import NavigationBar
 from widgets.searchentry import SearchEntry
 from widgets.actionbar import ActionBar
 from widgets.spinner import SpinnerView
-
+from softwarecenter.enums import NAV_BUTTON_ID_SUBCAT
 import softwarecenter.utils
 
 from softwarecenter.backend import get_install_backend
-from softwarecenter.enums import *
-from softwarecenter.paths import *
-from softwarecenter.utils import *
-
+from softwarecenter.enums import (
+    ACTION_BUTTON_ADD_TO_LAUNCHER,
+    ACTION_BUTTON_CANCEL_ADD_TO_LAUNCHER,
+    NAV_BUTTON_ID_DETAILS,
+    NAV_BUTTON_ID_LIST,
+    NAV_BUTTON_ID_PURCHASE,
+    NAV_BUTTON_ID_SEARCH,
+    SORT_BY_ALPHABET,
+    SORT_BY_SEARCH_RANKING,
+    TRANSACTION_TYPE_INSTALL
+    )
+from softwarecenter.utils import (convert_desktop_file_to_installed_location,
+                                  get_file_path_from_iconname,
+                                  wait_for_apt_cache_ready
+                                  )
 from basepane import BasePane
 from appview import AppView, AppStore
 from purchaseview import PurchaseView
 
-if "SOFTWARE_CENTER_APPDETAILS_WEBKIT" in os.environ:
-    from appdetailsview_webkit import AppDetailsViewWebkit as AppDetailsView
-else:
-    from  appdetailsview_gtk import AppDetailsViewGtk as AppDetailsView
+#if "SOFTWARE_CENTER_APPDETAILS_WEBKIT" in os.environ:
+#    from appdetailsview_webkit import AppDetailsViewWebkit as AppDetailsView
+#else:
+from  appdetailsview_gtk import AppDetailsViewGtk as AppDetailsView
 
 from softwarecenter.db.database import Application
 
@@ -559,12 +568,6 @@ class SoftwarePane(gtk.VBox, BasePane):
             self.action_bar.unset_label()
             return
         
-        # first figure out if we are only showing installed
-        if appstore.filter:
-            showing_installed = appstore.filter.installed_only
-        else:
-            showing_installed = False
-
         # calculate the number of apps/pkgs
         pkgs = 0
         apps = 0
@@ -598,24 +601,73 @@ class SoftwarePane(gtk.VBox, BasePane):
                 self.action_bar.set_label(label, link_result=self._show_nonapp_pkgs)
 
     def update_search_help(self):
+        def build_category_path():
+            if not self.apps_category:
+                return None
+            if not self.apps_subcategory:
+                return self.apps_category.name
+            return u"%s \u25b8 %s"%(self.apps_category.name,self.apps_subcategory.name) 
         search = self.searchentry.get_text()
         appstore = self.app_view.get_model()
         if (search and appstore is not None and len(appstore) == 0):
             category = self.get_current_category()
             correction = self.db.get_spelling_correction(search)
+            text = "<b>%s</b>\n\n"%(_('No results for "%s"')%search)
+            option_template = "\t - %s\n\n"
+            if not category:
+                text += _('No items match "%s". Suggestions:')%search+"\n\n"
+            else:
+                text += _('No items in %s match "%s". Suggestions:')%("<b>%s</b>"%build_category_path(), search)+"\n\n"
+
+            if self.apps_subcategory:
+                parent_model = AppStore(self.cache,
+                             self.db,
+                             self.icons,
+                             self.db.get_query_list_from_search_entry(search,
+                                                        self.apps_category.query),
+                             limit=self.get_app_items_limit(),
+                             sortmode=self.get_sort_mode(),
+                             nonapps_visible = self.nonapps_visible,
+                             filter=self.apps_filter,
+                             nonblocking_load=False,
+                             search_term=search)
+                if parent_model.nr_apps>0:
+                    text += option_template%(gettext.ngettext("Try "
+                         "<a href=\"search-parent:\">the item "
+                         "in %(category)s</a> that matches.", "Try "
+                         "<a href=\"search-parent:\">the %(n)d items "
+                         "in %(category)s</a> that match.", n=parent_model.nr_apps)%\
+                         {'category':self.apps_category.name,'n':parent_model.nr_apps})
+            if self.apps_filter.get_supported_only(): 
+                unsupported = copy.copy(self.apps_filter)
+                unsupported.set_supported_only(False)
+                unsupported_model = AppStore(self.cache,
+                             self.db,
+                             self.icons,
+                             self.app_view.get_model().search_query,
+                             limit=self.get_app_items_limit(),
+                             sortmode=self.get_sort_mode(),
+                             nonapps_visible = self.nonapps_visible,
+                             filter=unsupported,
+                             nonblocking_load=False,
+                             search_term=search)
+                if unsupported_model.nr_apps>0:
+                    text += option_template%(gettext.ngettext("Try "
+                         "<a href=\"search-unsupported:\">the %(amount)d item "
+                         "that matches</a> in software not maintained by Canonical.", 
+                         "Try <a href=\"search-unsupported:\">the %(amount)d items "
+                         "that match</a> in software not maintained by Canonical.",unsupported_model.nr_apps)%{'amount':unsupported_model.nr_apps})
             if category:
-                text = _("Search term not found in current category. "
-                         "Do you want to search "
-                         "<a href=\"search-all:\">all categories</a> instead?")
-                self.label_app_list_header.set_markup(text)
-                self.label_app_list_header.set_visible(True)
-                return
-            elif correction:
+                text += option_template%_("Try searching in "
+                         "<a href=\"search-all:\">all categories</a> instead.")
+            if correction:
                 ref = "<a href=\"search:%s\">%s</a>" % (correction, correction)
-                text = _("Search term not found. Did you mean: %s?") % ref
-                self.label_app_list_header.set_markup(text)
-                self.label_app_list_header.set_visible(True)
-                return
+                text += option_template%_("Check the search is spelled correctly. Did you mean: %s?") % ref
+            text += option_template%gettext.ngettext("Try using a different word.", "Try using fewer words or different words", len(search.split()))
+                
+            self.label_app_list_header.set_markup(text)
+            self.label_app_list_header.set_visible(True)
+            return
         # catchall, hide if we don't have anything useful to suggest
         self.label_app_list_header.set_visible(False)
             
@@ -625,6 +677,13 @@ class SoftwarePane(gtk.VBox, BasePane):
             self.searchentry.set_text(uri[len("search:"):])
         elif uri.startswith("search-all:"):
             self.unset_current_category()
+            self.refresh_apps()
+        elif uri.startswith("search-parent:"):
+            self.apps_subcategory = None;
+            self.navigation_bar.remove_id(NAV_BUTTON_ID_SUBCAT, animate=True)
+            self.refresh_apps()
+        elif uri.startswith("search-unsupported:"):
+            self.apps_filter.set_supported_only(False)
             self.refresh_apps()
         # FIXME: add ability to remove categories restriction here
         # True stops event propergation

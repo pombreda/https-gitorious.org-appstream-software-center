@@ -1,13 +1,24 @@
 # add software-center custom metadata to the index
 
 import apt
-import re
 import os
 import sys
 import xapian
 
 sys.path.insert(0, "/usr/share/software-center")
-from softwarecenter.db.update import *
+from softwarecenter.enums import (
+    CUSTOM_KEY_APPNAME,
+    CUSTOM_KEY_CATEGORY,
+    CUSTOM_KEY_ICON,
+    CUSTOM_KEY_SCREENSHOT_URL,
+    CUSTOM_KEY_THUMBNAIL_URL,
+    XAPIAN_VALUE_ARCHIVE_SECTION,
+    XAPIAN_VALUE_ICON,
+    XAPIAN_VALUE_ICON_NEEDS_DOWNLOAD,
+    XAPIAN_VALUE_SCREENSHOT_URL,
+    XAPIAN_VALUE_THUMBNAIL_URL,
+    )
+from softwarecenter.db.update import index_name
 
 class SoftwareCenterMetadataPlugin:
     def info(self):

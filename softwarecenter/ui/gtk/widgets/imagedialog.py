@@ -16,15 +16,12 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import glib
-import gio
 import gtk
 import logging
 import tempfile
 import time
-import gobject
 
-from softwarecenter.enums import *
+#from softwarecenter.enums import *
 from softwarecenter.utils import SimpleFileDownloader
 from spinner import SpinnerView
 
@@ -46,7 +43,7 @@ class ShowImageDialog(gtk.Dialog):
         if not parent:
             parent = self.get_parent()
             while parent:
-                parent = w.get_parent()
+                parent = parent.get_parent()
         # missing
         self._missing_img = missing_img
         self.image_filename = self._missing_img

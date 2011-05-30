@@ -28,7 +28,7 @@ class UnimplementedError(Exception):
 
 class Distro(object):
     """ abstract base class for a distribution """
-    
+
     # list of code names for the distro from newest to oldest, this is
     # used e.g. in the reviews loader if no reviews for the current codename
     # are found
@@ -40,6 +40,7 @@ class Distro(object):
 
     # base path for the review summary, the JS will append %i.png (with i={1,5})
     REVIEW_SUMMARY_STARS_BASE_PATH = "/usr/share/software-center/images/review-summary"
+    REVIEWS_SERVER = os.environ.get("SOFTWARE_CENTER_REVIEWS_HOST") or "http://localhost:8000"
 
     def get_app_name(self):
         """ 
@@ -89,7 +90,7 @@ class Distro(object):
         return True if the given document and pkgname is supported by 
         the distribution
         """
-        raise UnimplementError
+        raise UnimplementedError
 
     def get_supported_query(self):
         """ return a xapian query that gives all supported documents """

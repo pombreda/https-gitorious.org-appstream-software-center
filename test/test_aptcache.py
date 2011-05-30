@@ -4,13 +4,8 @@ import sys
 sys.path.insert(0,"../")
 
 import apt
-import apt_pkg
-import datetime
-import glib
 import gtk
 import logging
-import os
-import subprocess
 import time
 import unittest
 
@@ -18,9 +13,6 @@ from softwarecenter.db.pkginfo import get_pkg_info
 from softwarecenter.utils import ExecutionTime
 
 class testAptCache(unittest.TestCase):
-
-    def setUp(self):
-        rundir = os.path.abspath(os.path.dirname(sys.argv[0]))
 
     def test_open_aptcache(self):
         # mvo: for the performance, its critical to have a 

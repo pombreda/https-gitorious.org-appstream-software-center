@@ -3,16 +3,10 @@
 import sys
 sys.path.insert(0,"../")
 
-import apt_pkg
-import apt
 import os
-import re
 import unittest
-import xapian
 
-from softwarecenter.db.application import Application, AppDetails
 from softwarecenter.db.database import StoreDatabase
-from softwarecenter.db.database import parse_axi_values_file
 from softwarecenter.db.pkginfo import get_pkg_info
 from softwarecenter.db.update import rebuild_database
 

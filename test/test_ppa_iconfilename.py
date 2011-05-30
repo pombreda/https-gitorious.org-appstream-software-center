@@ -1,12 +1,7 @@
 #!/usr/bin/python
 
-import glib
-import os
 import sys
-import time
 import unittest
-
-from mock import Mock
 
 sys.path.insert(0,"../")
 from softwarecenter.distro.Ubuntu import Ubuntu

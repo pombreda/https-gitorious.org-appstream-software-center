@@ -17,12 +17,10 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 
-import gobject
 import gtk
 import logging
 import os
 import sys
-import string
 
 class GtkbuilderWidget(gtk.HBox):
     """A widget that gets loaded from a Gtkbuilder UI file 

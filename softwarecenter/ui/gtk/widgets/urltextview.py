@@ -23,7 +23,6 @@
 #  USA
 
 
-import pygtk
 import gtk
 import pango
 import subprocess
@@ -63,7 +62,6 @@ class UrlTextView(gtk.TextView):
         """Search for http URLs in newly inserted text  
            and tag them accordingly"""
         iter = buffer.get_iter_at_offset(iter_end.get_offset() - len(text))
-        iter_real_end = buffer.get_end_iter()
         for protocol in ["http://", "https://"]:
             while True:
                 # search for the next URL in the buffer

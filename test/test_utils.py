@@ -1,10 +1,15 @@
 #!/usr/bin/python
 
+import os
 import sys
 import unittest
 sys.path.insert(0,"../")
 
-from softwarecenter.utils import *
+from softwarecenter.utils import (decode_xml_char_reference,
+                                  release_filename_in_lists_from_deb_line,
+                                  get_language,
+                                  get_http_proxy_string_from_libproxy,
+                                  )
 
 class TestSCUtils(unittest.TestCase):
     """ tests the sc utils """

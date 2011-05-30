@@ -1,16 +1,15 @@
 #!/usr/bin/python
 
+import os
 import sys
 import unittest
 sys.path.insert(0,"../")
 
-from softwarecenter.enums import *
-from softwarecenter.paths import *
-from softwarecenter.utils import *
+from softwarecenter.paths import XAPIAN_BASE_PATH
 
 from softwarecenter.db.database import StoreDatabase
 from softwarecenter.db.pkginfo import get_pkg_info
-from softwarecenter.ui.gtk.catview import CategoriesView, Category, get_category_by_name
+from softwarecenter.ui.gtk.catview import CategoriesView, get_category_by_name
 
 
 class TestCatParsing(unittest.TestCase):

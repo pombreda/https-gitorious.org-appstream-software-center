@@ -16,21 +16,19 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import apt
 import apt_pkg
 import dbus
 import glib
 import gtk
 import gobject
 import logging
-import os
-import sys
-import time
 
 import aptdaemon.client
-from aptdaemon.enums import *
-
-from softwarecenter.enums import *
+from aptdaemon.enums import (get_role_localised_present_from_enum,
+                             get_status_string_from_enum,
+                             STATUS_WAITING_LOCK,
+                             STATUS_DOWNLOADING,
+                             )
 from softwarecenter.utils import get_icon_from_theme
 from softwarecenter.backend import get_install_backend
 from softwarecenter.backend.transactionswatcher import TransactionsWatcher
@@ -283,7 +281,7 @@ class PendingView(gtk.ScrolledWindow, BasePane):
         trans = aptdaemon.client.get_transaction(tid)
         try:
             trans.cancel()
-        except dbus.exceptions.DBusException, e:
+        except dbus.exceptions.DBusException:
             logging.exception("transaction cancel failed")
 
 if __name__ == "__main__":

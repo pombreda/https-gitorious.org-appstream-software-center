@@ -1,5 +1,4 @@
 import atk
-import os
 import gtk
 import gobject
 import gettext
@@ -247,6 +246,8 @@ class LobbyViewGtk(CategoriesViewGtk):
             self.featured_carousel.draw(cr, self.featured_carousel.allocation, event.area)
         if self.whatsnew_carousel:
             self.whatsnew_carousel.draw(cr, self.whatsnew_carousel.allocation, event.area)
+            
+        self.start_carousels()
 
         del cr
         return

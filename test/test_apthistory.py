@@ -4,7 +4,6 @@ import sys
 sys.path.insert(0,"../")
 
 import apt
-import apt_pkg
 import datetime
 import glib
 import logging
@@ -18,18 +17,18 @@ from softwarecenter.utils import ExecutionTime
 
 class TestAptHistory(unittest.TestCase):
 
+    def setUp(self):
+        rundir = os.path.abspath(os.path.dirname(sys.argv[0]))
+        self.basedir = os.path.join(rundir, "./data/apt-history")
+        apt.apt_pkg.Config.set("Dir::Log", self.basedir)
+        #apt_pkg.Config.set("Dir::Log::History", "./")
+
     def _get_apt_history(self):
         history = AptHistory(use_cache=False)
         main_loop = glib.main_context_default()
         while main_loop.pending():
            main_loop.iteration()
         return history
-
-    def setUp(self):
-        rundir = os.path.abspath(os.path.dirname(sys.argv[0]))
-        self.basedir = os.path.join(rundir, "./data/apt-history")
-        apt_pkg.Config.set("Dir::Log", self.basedir)
-        #apt_pkg.Config.set("Dir::Log::History", "./)
 
     def test_history(self):
         history = self._get_apt_history()
@@ -91,11 +90,11 @@ class TestAptHistory(unittest.TestCase):
 
     def test_no_history_log(self):
         # set to dir with no existing history.log
-        apt_pkg.Config.set("Dir::Log", "/")
+        apt.apt_pkg.Config.set("Dir::Log", "/")
         # this should not raise
         history = self._get_apt_history()
         self.assertEqual(history.transactions, [])
-        apt_pkg.Config.set("Dir::Log", self.basedir)
+        apt.apt_pkg.Config.set("Dir::Log", self.basedir)
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)

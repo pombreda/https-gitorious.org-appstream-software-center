@@ -26,17 +26,22 @@ import logging
 import os
 import pangocairo
 import pango
-import sys
 import xapian
 
-from softwarecenter.enums import *
-from softwarecenter.utils import *
+from softwarecenter.enums import (APP_ACTION_REMOVE,
+                                  APP_ACTION_INSTALL,
+                                  XAPIAN_VALUE_ARCHIVE_CHANNEL,
+                                  AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME,
+                                  MOUSE_EVENT_BACK_BUTTON,
+                                  MOUSE_EVENT_FORWARD_BUTTON,
+                                  )
+from softwarecenter.utils import ExecutionTime
 from softwarecenter.backend import get_install_backend
 from softwarecenter.db.database import StoreDatabase, Application
 
 from softwarecenter.netstatus import NetState, get_network_state, get_network_watcher
 
-#from softwarecenter.db.reviews import get_review_loader
+#from softwarecenter.backend.reviews import get_review_loader
 #from softwarecenter.backend import get_install_backend
 #from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
 
@@ -163,11 +168,6 @@ class CellRendererButton2:
     def render(self, window, widget, layout=None):
         if not self._widget:
             self._widget = widget
-        if self.state != gtk.STATE_ACTIVE:
-            shadow = gtk.SHADOW_OUT
-        else:
-            shadow = gtk.SHADOW_IN
-
         if not layout:
             pc = widget.get_pango_context()
             self.layout = pango.Layout(pc)
@@ -641,6 +641,10 @@ class AppView(gtk.TreeView):
                                          gobject.TYPE_PYOBJECT,
                                          str),
                                        ),
+        "mouse-nav-requested" : (gobject.SIGNAL_RUN_LAST,
+                                 gobject.TYPE_NONE, 
+                                 (gobject.TYPE_PYOBJECT, ),
+                                 )
     }
 
     def __init__(self, show_ratings, store=None):
@@ -821,7 +825,6 @@ class AppView(gtk.TreeView):
         return
 
     def _on_cursor_changed(self, view, tr):
-        model = view.get_model()
         sel = view.get_selection()
         path = view.get_cursor()[0] or (0,)
         sel.select_path(path)
@@ -883,8 +886,15 @@ class AppView(gtk.TreeView):
             self.emit("application-activated", Application(name, pkgname, request))
 
     def _on_button_press_event(self, view, event, tr):
-        if event.button != 1:
-            return
+        # note: we send explicit navigation events here because the mouse nav button events
+        # are consumed by the list view widget and so are not being propagated out to the
+        # main window for handling in app.py
+        if event.button in (MOUSE_EVENT_BACK_BUTTON,
+                            MOUSE_EVENT_FORWARD_BUTTON):
+            self.emit("mouse-nav-requested", event)
+            return True
+        elif event.button != 1:
+            return False
         self.pressed = True
         res = view.get_path_at_pos(int(event.x), int(event.y))
         if not res:
@@ -1078,7 +1088,6 @@ class AppView(gtk.TreeView):
 
     def _xy_is_over_focal_row(self, x, y):
         res = self.get_path_at_pos(x, y)
-        cur = self.get_cursor()
         if not res:
             return False
         return self.get_path_at_pos(x, y)[0] == self.get_cursor()[0]

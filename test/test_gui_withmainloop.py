@@ -6,9 +6,7 @@ import gtk
 import logging
 from mock import Mock
 import os
-import subprocess
 import sys
-import time
 import unittest
 
 sys.path.insert(0, "..")
@@ -16,11 +14,6 @@ import softwarecenter.paths
 
 from softwarecenter.app import SoftwareCenterApp
 from softwarecenter.paths import XAPIAN_BASE_PATH
-from softwarecenter.ui.gtk.appview import AppStore
-from softwarecenter.ui.gtk.availablepane import AvailablePane
-from softwarecenter.db.application import Application
-from softwarecenter.ui.gtk.catview import get_category_by_name
-from softwarecenter.backend import get_install_backend
 
 # we make app global as its relatively expensive to create
 # and in setUp it would be created and destroyed for each

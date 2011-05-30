@@ -4,8 +4,6 @@ import os
 import sys
 import xapian
 
-from softwarecenter.enums import *
-
 if __name__ == "__main__":
 
     if len(sys.argv) > 1:

@@ -1,11 +1,9 @@
 import gtk
 import pango
-import gobject
+
 
 from pango import SCALE as PS
 from gtk import keysyms as keys
-
-from gettext import gettext as _
 
 
 class Layout(pango.Layout):

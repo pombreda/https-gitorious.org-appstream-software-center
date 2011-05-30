@@ -1,13 +1,10 @@
 #!/usr/bin/python
 
 import glib
-import logging
 import time
 
 from aptdaemon.client import AptClient
-from aptdaemon.gtkwidgets import (AptErrorDialog, 
-                                  AptProgressDialog, 
-                                  AptMessageDialog)
+from aptdaemon.gtkwidgets import AptProgressDialog
 
 # run with terminal and progress
 WITH_GUI=True

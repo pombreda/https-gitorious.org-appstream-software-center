@@ -95,7 +95,6 @@ def _confirm_remove_internal(parent, datadir, app, db, icons, primary, button_te
     glade_dialog.button_dependency_do.set_label(button_text)
 
     # add the dependencies
-    vbox = dialog.get_content_area()
     view = PackageNamesView(_("Dependency"), cache, depends, icons, ICON_SIZE, db)
     view.set_headers_visible(False)
     # FIXME: work out how not to select?/focus?/activate? first item
@@ -114,7 +113,7 @@ if __name__ == "__main__":
     cache = get_pkg_info()
     cache.open()
 
-    from softwarecenter.db.database import StoreDatabase, Application
+    from softwarecenter.db.database import StoreDatabase
     pathname = "/var/cache/software-center/xapian"
     db = StoreDatabase(pathname, cache)
     db.open()
