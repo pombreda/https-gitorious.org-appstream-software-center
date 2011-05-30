@@ -31,7 +31,7 @@ import traceback
 import time
 import xml.sax.saxutils
 
-
+from softwarecenter.distro import get_distro
 from enums import MISSING_APP_ICON, APP_ICON_SIZE, APP_INSTALL_PATH_DELIMITER
 
 from config import get_config
@@ -226,8 +226,8 @@ def unescape(text):
     """
     return xml.sax.saxutils.unescape(text, ESCAPE_ENTITIES)
 
-def get_current_arch():
-    return apt_pkg.config.find("Apt::Architecture")
+#def get_current_arch():
+#    return apt_pkg.config.find("Apt::Architecture")
 
 def uri_to_filename(uri):
     return apt_pkg.uri_to_filename(uri)

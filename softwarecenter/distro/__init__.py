@@ -142,6 +142,10 @@ class Distro(object):
             button_text = _('Remove All')
         return (primary, button_text)
 
+    # generic architecture detection code
+    def get_architecture(self):
+        pass
+
 
 def _get_distro():
     distro_id = subprocess.Popen(["lsb_release","-i","-s"], 
@@ -157,6 +161,9 @@ def _get_distro():
 def get_distro():
     """ factory to return the right Distro object """
     return distro_instance
+
+def get_current_arch():
+    return get_distro().get_architecture()
 
 # singelton
 distro_instance=_get_distro()

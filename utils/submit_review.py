@@ -52,10 +52,10 @@ from softwarecenter.config import get_config
 from softwarecenter.backend.login_sso import LoginBackendDbusSSO
 from softwarecenter.db.database import Application
 from softwarecenter.backend.reviews import Review
-from softwarecenter.utils import get_current_arch, clear_token_from_ubuntu_sso, get_language
+from softwarecenter.utils import clear_token_from_ubuntu_sso, get_language
 from softwarecenter.ui.gtk.SimpleGtkbuilderApp import SimpleGtkbuilderApp
 from softwarecenter.ui.gtk.dialogs import SimpleGtkbuilderDialog
-from softwarecenter.distro import get_distro
+from softwarecenter.distro import get_distro, get_current_arch
 from softwarecenter.ui.gtk.widgets.reviews import StarRatingSelector, StarCaption
 from softwarecenter.gwibber_helper import GwibberHelper, GwibberHelperMock
 

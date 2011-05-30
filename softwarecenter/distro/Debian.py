@@ -17,6 +17,9 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+import apt_pkg
+apt_pkg.init_config()
+
 from softwarecenter.distro import Distro
 from gettext import gettext as _
 
@@ -75,6 +78,8 @@ class Debian(Distro):
     def get_maintenance_status(self, cache, appname, pkgname, component, channel):
         return ""
 
+    def get_architecture(self):
+        return apt_pkg.config.find("Apt::Architecture")
 
 if __name__ == "__main__":
     import apt
