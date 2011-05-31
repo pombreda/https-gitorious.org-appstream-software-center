@@ -34,87 +34,30 @@ from threading import Thread, Event
 from weblive_pristine import WebLive
 import softwarecenter.paths
 
-class WebLiveBackend(gobject.GObject):
+class WebLiveBackend(object):
     """ Backend for interacting with the WebLive service """
 
-    __gsignals__ = {
-        "progress": (
-            gobject.SIGNAL_RUN_FIRST,
-            gobject.TYPE_NONE,
-            (gobject.TYPE_INT,)
-        ),
-        "connected": (
-            gobject.SIGNAL_RUN_FIRST,
-            gobject.TYPE_NONE,
-            ()
-        ),
-        "disconnected": (
-            gobject.SIGNAL_RUN_FIRST,
-            gobject.TYPE_NONE,
-            ()
-        ),
-        "exception": (
-            gobject.SIGNAL_RUN_FIRST,
-            gobject.TYPE_NONE,
-            (gobject.TYPE_STRING,)
-        ),
-        "warning": (
-            gobject.SIGNAL_RUN_FIRST,
-            gobject.TYPE_NONE,
-            (gobject.TYPE_STRING,)
-        )
-    }
-
-
-    # Check if x2go module exists but don't load it (gevent breaks everything)
-    try:
-        imp.find_module("x2go")
-        X2GO=True
-    except:
-        X2GO=False
-
-    # NXML template
-    NXML_TEMPLATE = """
-<!DOCTYPE NXClientLibSettings>
-<NXClientLibSettings>
-<option key="Connection Name" value="WL_NAME"></option>
-<option key="Server Hostname" value="WL_SERVER"></option>
-<option key="Server Port" value="WL_PORT"></option>
-<option key="Session Type" value="unix-application"></option>
-<option key="Custom Session Command" value="WL_COMMAND"></option>
-<option key="Disk Cache" value="64"></option>
-<option key="Image Cache" value="16"></option>
-<option key="Link Type" value="adsl"></option>
-<option key="Use Render Extension" value="True"></option>
-<option key="Image Compression Method" value="JPEG"></option>
-<option key="JPEG Compression Level" value="9"></option>
-<option key="Desktop Geometry" value=""></option>
-<option key="Keyboard Layout" value="defkeymap"></option>
-<option key="Keyboard Type" value="pc102/defkeymap"></option>
-<option key="Media" value="False"></option>
-<option key="Agent Server" value=""></option>
-<option key="Agent User" value=""></option>
-<option key="CUPS Port" value="0"></option>
-<option key="Authentication Key" value=""></option>
-<option key="Use SSL Tunnelling" value="True"></option>
-<option key="Enable Fullscreen Desktop" value="False"></option>
-</NXClientLibSettings>
-"""
+    backend = None
     URL = os.environ.get('SOFTWARE_CENTER_WEBLIVE_HOST',
         'https://weblive.stgraber.org/weblive/json')
-    QTNX = "/usr/bin/qtnx"
 
     def __init__(self):
-        gobject.GObject.__init__(self)
         self.weblive = WebLive(self.URL,True)
         self.available_servers = []
+        self.backend = None
+
+        for backend in (WebLiveClientX2GO,WebLiveClientQTNX):
+            if backend.is_supported():
+                self.backend=backend()
+                break
+
         self._ready = Event()
 
     @property
     def ready(self):
         """ Return true if data from the remote server was loaded
         """
-        return self._ready.is_set()
+        return self.backend and self._ready.is_set()
 
     @classmethod
     def is_supported(cls):
@@ -127,16 +70,16 @@ class WebLiveBackend(gobject.GObject):
 
     def query_available(self):
         """ Get all the available data from WebLive """
+        self._ready.clear()
         servers=self.weblive.list_everything()
+        self._ready.set()
         return servers
 
     def query_available_async(self):
         """ Call query_available in a thread and set self.ready """
         def _query_available_helper():
             self.available_servers = self.query_available()
-            self._ready.set()
 
-        self._ready.clear()
         p = Thread(target=_query_available_helper)
         p.start()
 
@@ -189,16 +132,88 @@ class WebLiveBackend(gobject.GObject):
         connection=self.weblive.create_user(serverid, identifier, fullname, identifier, session, locale)
 
         # Connect using x2go or fallback to qtnx if not available
-        if (self.X2GO):
-            self._spawn_x2go(connection[0], connection[1], session, identifier, identifier, wait)
-        elif (os.path.exists(self.QTNX)):
-            self._spawn_qtnx(connection[0], connection[1], session, identifier, identifier, wait)
+        if (self.backend):
+            self.backend.connect(connection[0], connection[1], session, identifier, identifier, wait)
         else:
             raise IOError("No remote desktop client available.")
 
-# qtnx backend
+class WebLiveClient(gobject.GObject):
+    """ Generic WebLive client """
 
-    def _spawn_qtnx(self, host, port, session, username, password, wait):
+    __gsignals__ = {
+        "progress": (
+            gobject.SIGNAL_RUN_FIRST,
+            gobject.TYPE_NONE,
+            (gobject.TYPE_INT,)
+        ),
+        "connected": (
+            gobject.SIGNAL_RUN_FIRST,
+            gobject.TYPE_NONE,
+            ()
+        ),
+        "disconnected": (
+            gobject.SIGNAL_RUN_FIRST,
+            gobject.TYPE_NONE,
+            ()
+        ),
+        "exception": (
+            gobject.SIGNAL_RUN_FIRST,
+            gobject.TYPE_NONE,
+            (gobject.TYPE_STRING,)
+        ),
+        "warning": (
+            gobject.SIGNAL_RUN_FIRST,
+            gobject.TYPE_NONE,
+            (gobject.TYPE_STRING,)
+        )
+    }
+
+    state = "disconnected"
+
+
+class WebLiveClientQTNX(WebLiveClient):
+    """ qtnx client """
+
+    # NXML template
+    NXML_TEMPLATE = """
+<!DOCTYPE NXClientLibSettings>
+<NXClientLibSettings>
+<option key="Connection Name" value="WL_NAME"></option>
+<option key="Server Hostname" value="WL_SERVER"></option>
+<option key="Server Port" value="WL_PORT"></option>
+<option key="Session Type" value="unix-application"></option>
+<option key="Custom Session Command" value="WL_COMMAND"></option>
+<option key="Disk Cache" value="64"></option>
+<option key="Image Cache" value="16"></option>
+<option key="Link Type" value="adsl"></option>
+<option key="Use Render Extension" value="True"></option>
+<option key="Image Compression Method" value="JPEG"></option>
+<option key="JPEG Compression Level" value="9"></option>
+<option key="Desktop Geometry" value=""></option>
+<option key="Keyboard Layout" value="defkeymap"></option>
+<option key="Keyboard Type" value="pc102/defkeymap"></option>
+<option key="Media" value="False"></option>
+<option key="Agent Server" value=""></option>
+<option key="Agent User" value=""></option>
+<option key="CUPS Port" value="0"></option>
+<option key="Authentication Key" value=""></option>
+<option key="Use SSL Tunnelling" value="True"></option>
+<option key="Enable Fullscreen Desktop" value="False"></option>
+</NXClientLibSettings>
+"""
+
+    QTNX = "/usr/bin/qtnx"
+
+    @classmethod
+    def is_supported(cls):
+        """ Return if the current system will work
+            (has the required dependencies)
+        """
+        if os.path.exists(cls.BINARY_PATH):
+            return True
+        return False
+
+    def connect(self, host, port, session, username, password, wait):
         """ Start a session using qtnx """
 
         if not os.path.exists(os.path.expanduser('~/.qtnx')):
@@ -239,9 +254,21 @@ class WebLiveBackend(gobject.GObject):
         if os.path.exists(filename):
             os.remove(filename)
 
-# x2go backend
+class WebLiveClientX2GO(WebLiveClient):
+    """ x2go client """
 
-    def _spawn_x2go(self, host, port, session, username, password, wait):
+    @classmethod
+    def is_supported(cls):
+        """ Return if the current system will work
+            (has the required dependencies)
+        """
+        try:
+            imp.find_module("x2go")
+            return True
+        except:
+            return False
+
+    def connect(self, host, port, session, username, password, wait):
         """ Start a session using x2go """
 
         # Start in the background and attach a watch for when it exits
@@ -261,8 +288,11 @@ class WebLiveBackend(gobject.GObject):
         pass
 
     def _on_x2go_activity(self, stdout, condition):
+        """ Called when something appears on stdout """
+
         line=stdout.readline().strip()
         if line.startswith("PROGRESS: "):
+            self.state = "connecting"
             if line.endswith("creating"):
                 self.emit("progress",10)
             elif line.endswith("connecting"):
@@ -272,10 +302,13 @@ class WebLiveBackend(gobject.GObject):
 
         elif line == "CONNECTED":
             self.emit("connected")
+            self.state = "connected"
         elif line == "DISCONNECTED":
             self.emit("disconnected")
+            self.state = "disconnected"
         elif line.startswith("EXCEPTION: "):
             self.emit("exception", line.split(": ")[1])
+            self.state = "disconnected"
         elif line.startswith("WARNING: "):
             self.emit("warning", line.split(": ")[1])
         else:
