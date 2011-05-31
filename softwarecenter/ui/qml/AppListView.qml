@@ -171,7 +171,7 @@ FocusScope {
                 }
 
                 Text {
-                    text: qsTr("%1 Ratings").arg(String(ratingstotal))
+                    text: qsTr("%1 Ratings").arg(ratingstotal)
                     anchors.top: ratingstars.bottom
                     anchors.right: parent.right
                 }

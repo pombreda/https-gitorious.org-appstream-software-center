@@ -97,7 +97,7 @@ Rectangle {
             Text {
                 anchors.fill: parent
                 anchors.margins: 5
-                text: list.count + qsTr(" items available")
+                text: qsTr("%1 items available").arg(list.count)
             }
         }
     }
