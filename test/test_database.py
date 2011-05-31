@@ -38,7 +38,7 @@ class TestDatabase(unittest.TestCase):
         os.environ["LANGUAGE"] = "de"
         db = xapian.WritableDatabase("./data/test.db", 
                                      xapian.DB_CREATE_OR_OVERWRITE)
-        res = update_from_app_install_data(db, self.cache, datadir="./data/")
+        res = update_from_app_install_data(db, self.cache, datadir="./data/desktop")
         self.assertTrue(res)
         self.assertEqual(db.get_doccount(), 5)
         # test if Name[de] was picked up
@@ -128,7 +128,7 @@ class TestDatabase(unittest.TestCase):
     def test_application_details(self):
         db = xapian.WritableDatabase("./data/test.db", 
                                      xapian.DB_CREATE_OR_OVERWRITE)
-        res = update_from_app_install_data(db, self.cache, datadir="./data/")
+        res = update_from_app_install_data(db, self.cache, datadir="./data/desktop")
         self.assertTrue(res)
         db = StoreDatabase("./data/test.db", self.cache)
         db.open(use_axi=False, use_agent=False)
@@ -205,7 +205,7 @@ class TestDatabase(unittest.TestCase):
     def test_package_states(self):
         db = xapian.WritableDatabase("./data/test.db", 
                                      xapian.DB_CREATE_OR_OVERWRITE)
-        res = update_from_app_install_data(db, self.cache, datadir="./data/")
+        res = update_from_app_install_data(db, self.cache, datadir="./data/desktop")
         self.assertTrue(res)
         db = StoreDatabase("./data/test.db", self.cache)
         db.open(use_axi=False)
@@ -260,7 +260,7 @@ class TestDatabase(unittest.TestCase):
     def test_non_axi_apps_cataloged_time(self):
         db = xapian.WritableDatabase("./data/test.db", 
                                      xapian.DB_CREATE_OR_OVERWRITE)
-        res = update_from_app_install_data(db, self.cache, datadir="./data/")
+        res = update_from_app_install_data(db, self.cache, datadir="./data/desktop")
         self.assertTrue(res)
         db = StoreDatabase("./data/test.db", self.cache)
         db.open(use_axi=True)

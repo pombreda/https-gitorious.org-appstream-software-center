@@ -405,9 +405,9 @@ def update_from_appstream_xml(db, cache, xmldir=None):
     return True
         
 def update_from_app_install_data(db, cache, datadir=None):
+    """ index the desktop files in $datadir/desktop/*.desktop """
     if not datadir:
         datadir = softwarecenter.paths.APP_INSTALL_DESKTOP_PATH
-    """ index the desktop files in $datadir/desktop/*.desktop """
     context = glib.main_context_default()
     for desktopf in glob(datadir+"/*.desktop"):
         LOG.debug("processing %s" % desktopf)
