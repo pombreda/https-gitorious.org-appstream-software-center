@@ -57,6 +57,11 @@ class WebLiveBackend(gobject.GObject):
             gobject.SIGNAL_RUN_FIRST,
             gobject.TYPE_NONE,
             (gobject.TYPE_STRING,)
+        ),
+        "warning": (
+            gobject.SIGNAL_RUN_FIRST,
+            gobject.TYPE_NONE,
+            (gobject.TYPE_STRING,)
         )
     }
 
