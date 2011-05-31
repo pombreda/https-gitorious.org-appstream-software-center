@@ -1290,7 +1290,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
     def _update_weblive(self, app_details):
         self.desktop_file = app_details.desktop_file
         # only enable test drive if we have a desktop file and exec line
-        if (not self.weblive.is_supported() or
+        if (not self.weblive.ready or
             not self.weblive.is_pkgname_available_on_server(app_details.pkgname) or
             not os.path.exists(self.desktop_file) or
             not get_exec_line_from_desktop(self.desktop_file)):
