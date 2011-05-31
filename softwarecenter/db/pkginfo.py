@@ -25,7 +25,7 @@ class _Package:
     def installed(self):
         if not self.pkginfo.is_installed(self.name):
             return None
-        return self.pkinfo.get_installed(self.name)
+        return self.pkginfo.get_installed(self.name)
     @property
     def candidate(self):
         return self.pkginfo.get_candidate(self.name)

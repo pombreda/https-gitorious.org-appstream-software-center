@@ -135,8 +135,8 @@ class AptCache(PackageInfo):
             self.emit("cache-broken")
 
     # implementation specific code
-    def __getitem__(self, key):
-        return self._cache[key]
+    #def __getitem__(self, key):
+    #    return self._cache[key]
     def __iter__(self):
         return self._cache.__iter__()
     def __contains__(self, k):
@@ -222,7 +222,7 @@ class AptCache(PackageInfo):
         origins = set()
         for origin in self._cache[pkgname].candidate.origins:
             if origin.origin:
-                origins.add(origin.origin)
+                origins.add(origin)
         return origins
 
     def get_origin(self, pkgname):
@@ -232,7 +232,7 @@ class AptCache(PackageInfo):
         """
         if not pkgname in self._cache or not self._cache[pkgname].candidate:
             return
-        origins = self.get_origins(pkgname)
+        origins = [origin.origin for origin in self.get_origins(pkgname)]
         if len(origins) > 1:
             raise Exception("Error, more than one origin '%s'" % origins)
         if not origins:

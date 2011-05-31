@@ -711,7 +711,7 @@ def index_app_info_from_parser(parser, db, cache):
             term_generator.index_text_without_positions(s, WEIGHT_APT_SUMMARY)
             s = cache[pkgname].description
             term_generator.index_text_without_positions(s, WEIGHT_APT_DESCRIPTION)
-            for origin in cache[pkgname].origins:
+            for origin in cache[pkgname].candidate.origins:
                 doc.add_term("XOA"+origin.archive)
                 doc.add_term("XOC"+origin.component)
                 doc.add_term("XOL"+origin.label)
