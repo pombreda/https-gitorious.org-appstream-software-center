@@ -58,15 +58,6 @@ class WebLiveBackend(object):
         """
         return self.client and self._ready.is_set()
 
-    @classmethod
-    def is_supported(cls):
-        """ Return if the current system will work
-            (has the required dependencies)
-        """
-        if cls.X2GO or os.path.exists(cls.QTNX):
-            return True
-        return False
-
     def query_available(self):
         """ Get all the available data from WebLive """
         self._ready.clear()
@@ -321,7 +312,7 @@ def get_weblive_backend():
     if _weblive_backend is None:
         _weblive_backend = WebLiveBackend()
         # initial query
-        if _weblive_backend.is_supported():
+        if _weblive_backend.client:
             _weblive_backend.query_available_async()
     return _weblive_backend
 
