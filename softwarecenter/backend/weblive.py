@@ -123,7 +123,7 @@ class WebLiveBackend(object):
 
         # Connect using x2go or fallback to qtnx if not available
         if (self.client):
-            self.client.connect(connection[0], connection[1], session, identifier, identifier, wait)
+            self.client.start_session(connection[0], connection[1], session, identifier, identifier, wait)
         else:
             raise IOError("No remote desktop client available.")
 
@@ -203,7 +203,7 @@ class WebLiveClientQTNX(WebLiveClient):
             return True
         return False
 
-    def connect(self, host, port, session, username, password, wait):
+    def start_session(self, host, port, session, username, password, wait):
         """ Start a session using qtnx """
 
         if not os.path.exists(os.path.expanduser('~/.qtnx')):
@@ -258,7 +258,7 @@ class WebLiveClientX2GO(WebLiveClient):
         except:
             return False
 
-    def connect(self, host, port, session, username, password, wait):
+    def start_session(self, host, port, session, username, password, wait):
         """ Start a session using x2go """
 
         # Start in the background and attach a watch for when it exits
