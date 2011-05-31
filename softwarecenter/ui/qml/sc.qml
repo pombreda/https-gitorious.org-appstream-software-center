@@ -9,8 +9,6 @@ Rectangle {
     width: 600
     height: 600
 
-    SystemPalette { id: activePalette }
-
     function showListView()
     {
         listview.x = listview.x + listview.width
@@ -32,7 +30,7 @@ Rectangle {
         onCategoryChanged: {
             pkglistmodel.setCategory(catname)
         }
-     }
+    }
 
     Rectangle {
         id: listview
@@ -53,7 +51,7 @@ Rectangle {
             y: 10
             color: "white"
             radius: 5
-            
+
             TextInput {
                 id: search
                 anchors.fill: parent
@@ -61,197 +59,24 @@ Rectangle {
                 focus: true
                 KeyNavigation.down: list
 
-                Keys.onReleased: {
-                    pkglistmodel.searchQuery = search.text
-                }               
+                Binding {
+                    target: pkglistmodel
+                    property: "searchQuery"
+                    value: search.text
+                }
             }
         }
 
-        Rectangle {
-            id: listframe
+        AppListView {
+            id: list
+            model: pkglistmodel
             width: searchframe.width
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.top: searchframe.bottom
             anchors.topMargin: 10
             anchors.bottom: statusframe.top
             anchors.bottomMargin: 10
-            color: "white"
-            radius: 5
-            clip: true
-
-            ScrollBar {
-                id: verticalScrollBar
-                width: 6; 
-                height: list.height - 10
-                orientation: Qt.Vertical
-
-                anchors.right: listframe.right
-                position: list.visibleArea.yPosition
-                pageSize: list.visibleArea.heightRatio
-            }
-
-            ListView {
-                id: list
-                width: parent.width - 12
-                height: parent.height - 10
-                anchors.centerIn: parent
-                spacing: 5
-                KeyNavigation.up: search
-
-                model: pkglistmodel
-
-                delegate: Rectangle {
-                    property string appname: _appname
-                    property string pkgname: _pkgname
-                    property string icon: _icon
-                    property string summary: _summary
-                    property bool installed: _installed
-                    property string description: _description
-                    property double ratingsaverage: _ratings_average
-                    property int ratingstotal: _ratings_total
-                    property int installremoveprogress: _installremoveprogress
-                
-                    width: parent.width
-                    height: ListView.isCurrentItem ? 75 : 40
-                    Behavior on height {
-                        NumberAnimation { duration: 40 }
-                    }
-
-                    radius: 5
-                    color: {
-                        if (!ListView.isCurrentItem) return "white"
-                        if (list.activeFocus) return "#F07746"
-                        else return "#E1DFDD"
-                    }
-
-                    MouseArea {
-                        anchors.fill: parent
-                        onClicked: {
-                            list.focus = true
-                            list.currentIndex = index
-                        }
-                    }
-
-                    Image {
-                        id: iconimg
-                        height: 24
-                        width: height
-                        anchors.top: parent.top
-                        anchors.topMargin: 3
-                        anchors.left: parent.left
-                        anchors.leftMargin: 3
-                        sourceSize.height: height
-                        sourceSize.width: width
-                        source: icon
-                        asynchronous: true
-
-                        Image {
-                            id: installedemblem
-                            height: 16
-                            width: height
-                            sourceSize.height: height
-                            sourceSize.width: width
-                            source: "file:///usr/share/software-center/icons/software-center-installed.png"
-                            anchors.horizontalCenter: parent.right
-                            anchors.verticalCenter: parent.bottom
-                            asynchronous: true
-                            visible: installed
-                        }
-                    }
-                    Text {
-                        id: appnametxt
-                        height: 20
-                        anchors.top: parent.top
-                        anchors.topMargin: 3
-                        width: parent.width - iconimg.witdh - 15
-                        x: iconimg.x + iconimg.width + 10
-                        text: appname
-                    }
-                    Text {
-                        id: summarytxt
-                        height: 20
-                        anchors.top: appnametxt.bottom
-                        width: appnametxt.width
-                        x: appnametxt.x
-                        font.pointSize:  appnametxt.font.pointSize * 0.8
-                        text: summary
-                    }
-
-                    // ratings row
-                    Row {
-                        id: ratingsaverageimg
-                        anchors.top: parent.top
-                        anchors.right: parent.right
-                        anchors.margins: 5
-                        visible: (ratingstotal > 0)
-                        Repeater {
-                            model: Math.floor(ratingsaverage)
-                            Image {
-                                source: "../../../data/images/star-yellow.png"
-                            }
-                        }
-                        Image {
-                            source: "../../../data/images/star-half.png"
-                            visible: { Math.floor(ratingsaverage) != 
-                                       Math.ceil(ratingsaverage) }
-                        }
-                        Repeater {
-                            model: 5-Math.ceil(ratingsaverage)
-                            Image {
-                                source: "../../../data/images/star-dark.png"
-                            }
-                        }
-                    }
-                    // ratings total text
-                    Text {
-                        id: ratingstotaltxt
-                        text: String(ratingstotal) + " Ratings"
-                        anchors.top: ratingsaverageimg.bottom
-                        anchors.right: ratingsaverageimg.right
-                        visible: (ratingstotal > 0)
-                    }
-
-                    Rectangle {
-                        id: installremoveprogressbar
-                        x: parent.width - 100 -10
-                        anchors.top: appnametxt.top
-                        anchors.margins: 10
-                        height: appnametxt.height
-                        color: "steelblue"
-                        visible:  parent.ListView.isCurrentItem
-                        width: installremoveprogress 
-                    }
-
-                    Button {
-                        id: moreinfobtn
-                        text: qsTr("More Info")
-
-                        anchors.top: summarytxt.bottom
-                        x: summarytxt.x
-                        visible: parent.ListView.isCurrentItem
-
-                        onClicked: {
-                            showDetailsView()
-                        }
-                    }
-                    Button {
-                        text: installed ? qsTr("Remove") : qsTr("Install")
-
-                        anchors.top: summarytxt.bottom
-                        anchors.right: parent.right
-                        anchors.rightMargin: 10
-                        visible: parent.ListView.isCurrentItem
-
-                        onClicked: {
-                            if (installed) 
-                                pkglistmodel.removePackage(pkgname)
-                            else
-                                pkglistmodel.installPackage(pkgname)
-                        }
-                    }
-
-                }
-            }
+            KeyNavigation.up: search
         }
 
         Rectangle {
