@@ -38,7 +38,8 @@ softwarecenter.netstatus.NETWORK_STATE
 
 import ui.gtk
 from ui.gtk.SimpleGtkbuilderApp import SimpleGtkbuilderApp
-from softwarecenter.db.application import Application, DebFileApplication
+from softwarecenter.db.application import Application
+from softwarecenter.db.debfile import DebFileApplication
 from softwarecenter.enums import (                                  
     APP_ACTION_INSTALL,
     APP_ACTION_REMOVE,
