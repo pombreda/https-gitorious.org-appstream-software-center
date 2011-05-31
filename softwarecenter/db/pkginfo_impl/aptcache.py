@@ -80,6 +80,24 @@ class AptCache(PackageInfo):
         return (pkgname in self._cache and
                 self._cache[pkgname].candidate)
 
+    def get_installed(self, pkgname):
+        if (pkgname not in self._cache or
+            not self._cache[pkgname].is_installed):
+            return None
+        return self._cache[pkgname].installed
+
+    def get_candidate(self, pkgname):
+        if (pkgname not in self._cache or
+            not self._cache[pkgname].candidate):
+            return None
+        return self._cache[pkgname].candidate
+
+    def get_available(self, pkgname):
+        if (pkgname not in self._cache or
+            not self._cache[pkgname].candidate):
+            return []
+        return self._cache[pkgname].versions
+
     def get_section(self, pkgname):
         if (pkgname not in self._cache or 
             not self._cache[pkgname].candidate):
@@ -117,8 +135,8 @@ class AptCache(PackageInfo):
             self.emit("cache-broken")
 
     # implementation specific code
-    def __getitem__(self, key):
-        return self._cache[key]
+    #def __getitem__(self, key):
+    #    return self._cache[key]
     def __iter__(self):
         return self._cache.__iter__()
     def __contains__(self, k):
@@ -179,7 +197,8 @@ class AptCache(PackageInfo):
                     pkg.is_auto_removable):
                     installed_auto_deps.add(dep_name)
         return installed_auto_deps
-    def get_origins(self):
+
+    def get_all_origins(self):
         """
         return a set of the current channel origins from the apt.Cache itself
         """
@@ -194,6 +213,18 @@ class AptCache(PackageInfo):
                     origins.add(item.origin)
         return origins
 
+    def get_origins(self, pkgname):
+        """
+        return package origins from apt.Cache
+        """
+        if not pkgname in self._cache or not self._cache[pkgname].candidate:
+            return
+        origins = set()
+        for origin in self._cache[pkgname].candidate.origins:
+            if origin.origin:
+                origins.add(origin)
+        return origins
+
     def get_origin(self, pkgname):
         """
         return a uniqe origin for the given package name. currently
@@ -201,10 +232,7 @@ class AptCache(PackageInfo):
         """
         if not pkgname in self._cache or not self._cache[pkgname].candidate:
             return
-        origins = set()
-        for origin in self._cache[pkgname].candidate.origins:
-            if origin.origin:
-                origins.add(origin.origin)
+        origins = [origin.origin for origin in self.get_origins(pkgname)]
         if len(origins) > 1:
             raise Exception("Error, more than one origin '%s'" % origins)
         if not origins:

@@ -17,8 +17,6 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import apt
-import apt_pkg
 import base64
 import glib
 import logging
@@ -64,6 +62,9 @@ from softwarecenter.db.database import parse_axi_values_file
 from locale import getdefaultlocale
 import gettext
 import cPickle
+
+from softwarecenter.db.pkginfo import get_pkg_info
+from softwarecenter.distro import get_current_arch
 
 # weights for the different fields
 WEIGHT_DESKTOP_NAME = 10
@@ -372,6 +373,7 @@ def update_from_json_string(db, cache, json_string, origin):
 
 def update_from_var_lib_apt_lists(db, cache, listsdir=None):
     """ index the files in /var/lib/apt/lists/*AppInfo """
+    import apt_pkg
     if not listsdir:
         listsdir = apt_pkg.Config.find_dir("Dir::State::lists")
     context = glib.main_context_default()
@@ -595,7 +597,7 @@ def index_app_info_from_parser(parser, db, cache):
             doc.add_value(XAPIAN_VALUE_ARCHIVE_SECTION, archive_section)
         # section (mail, base, ..)
         if pkgname in cache and cache[pkgname].candidate:
-            section = cache[pkgname].candidate.section
+            section = cache[pkgname].section
             doc.add_term("AE"+section)
         # channel (third party stuff)
         if parser.has_option_desktop("X-AppInstall-Channel"):
@@ -663,7 +665,7 @@ def index_app_info_from_parser(parser, db, cache):
         if parser.has_option_desktop("X-AppInstall-Architectures"):
             arches = parser.get_desktop("X-AppInstall-Architectures")
             doc.add_value(XAPIAN_VALUE_ARCHIVE_ARCH, arches)
-            if apt_pkg.config.find("Apt::Architecture") not in arches:
+            if get_current_arch() not in arches:
                 return
         # Description (software-center extension)
         if parser.has_option_desktop("X-AppInstall-Description"):
@@ -691,7 +693,7 @@ def index_app_info_from_parser(parser, db, cache):
             if s != name:
                 doc.add_value(XAPIAN_VALUE_SUMMARY, s)
         elif pkgname in cache and cache[pkgname].candidate:
-            s = cache[pkgname].candidate.summary
+            s = cache[pkgname].summary
             doc.add_value(XAPIAN_VALUE_SUMMARY, s)
 
         # add packagename as meta-data too
@@ -713,9 +715,9 @@ def index_app_info_from_parser(parser, db, cache):
             term_generator.index_text_without_positions(s, w)
         # add data from the apt cache
         if pkgname in cache and cache[pkgname].candidate:
-            s = cache[pkgname].candidate.summary
+            s = cache[pkgname].summary
             term_generator.index_text_without_positions(s, WEIGHT_APT_SUMMARY)
-            s = cache[pkgname].candidate.description
+            s = cache[pkgname].description
             term_generator.index_text_without_positions(s, WEIGHT_APT_DESCRIPTION)
             for origin in cache[pkgname].candidate.origins:
                 doc.add_term("XOA"+origin.archive)
@@ -734,7 +736,9 @@ def index_app_info_from_parser(parser, db, cache):
         db.add_document(doc)
 
 def rebuild_database(pathname, debian_sources=True, appstream_sources=False):
-    cache = apt.Cache(memonly=True)
+    #cache = apt.Cache(memonly=True)
+    cache = get_pkg_info()
+    cache.open()
     old_path = pathname+"_old"
     rebuild_path = pathname+"_rb"
     
