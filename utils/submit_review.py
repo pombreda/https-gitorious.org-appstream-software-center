@@ -1059,6 +1059,7 @@ class SubmitUsefulnessApp(BaseApp):
     
     def on_transmit_failure(self, api, trans, error):
         print "exiting - error: %s" % error
+        self.api.shutdown()
         self.quit(2)
 
     # override parents run to only trigger login (and subsequent
