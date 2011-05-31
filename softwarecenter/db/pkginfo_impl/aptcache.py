@@ -135,8 +135,11 @@ class AptCache(PackageInfo):
             self.emit("cache-broken")
 
     # implementation specific code
-    #def __getitem__(self, key):
-    #    return self._cache[key]
+    def __getitem__(self, key):
+        package = PackageInfo.__getitem__(self, key)
+        if package is not None:
+            package._pkg = self._cache[key]._pkg
+        return package
     def __iter__(self):
         return self._cache.__iter__()
     def __contains__(self, k):
