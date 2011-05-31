@@ -37,18 +37,17 @@ import softwarecenter.paths
 class WebLiveBackend(object):
     """ Backend for interacting with the WebLive service """
 
-    backend = None
+    client = None
     URL = os.environ.get('SOFTWARE_CENTER_WEBLIVE_HOST',
         'https://weblive.stgraber.org/weblive/json')
 
     def __init__(self):
         self.weblive = WebLive(self.URL,True)
         self.available_servers = []
-        self.backend = None
 
-        for backend in (WebLiveClientX2GO,WebLiveClientQTNX):
-            if backend.is_supported():
-                self.backend=backend()
+        for client in (WebLiveClientX2GO,WebLiveClientQTNX):
+            if client.is_supported():
+                self.client=client()
                 break
 
         self._ready = Event()
@@ -57,7 +56,7 @@ class WebLiveBackend(object):
     def ready(self):
         """ Return true if data from the remote server was loaded
         """
-        return self.backend and self._ready.is_set()
+        return self.client and self._ready.is_set()
 
     @classmethod
     def is_supported(cls):
@@ -132,8 +131,8 @@ class WebLiveBackend(object):
         connection=self.weblive.create_user(serverid, identifier, fullname, identifier, session, locale)
 
         # Connect using x2go or fallback to qtnx if not available
-        if (self.backend):
-            self.backend.connect(connection[0], connection[1], session, identifier, identifier, wait)
+        if (self.client):
+            self.client.connect(connection[0], connection[1], session, identifier, identifier, wait)
         else:
             raise IOError("No remote desktop client available.")
 
