@@ -210,11 +210,17 @@ class AppStreamXMLParser(AppInfoParserBase):
               "keywords"  : "keyword",
               "mimetypes" : "mimetype",
             }
-    
+
+    # map from requested key to a static data element
+    STATIC_DATA = { 'Type' : 'Application',
+                  }
+
     def __init__(self, appinfo_xml, xmlfile):
         self.appinfo_xml = appinfo_xml
         self.xmlfile = xmlfile
     def get_desktop(self, key, translated=True):
+        if key in self.STATIC_DATA:
+            return self.STATIC_DATA[key]
         key = self._apply_mapping(key)
         if key in self.LISTS:
             return self._parse_with_lists(key)
@@ -234,6 +240,8 @@ class AppStreamXMLParser(AppInfoParserBase):
                 l.append(child.text)
         return ",".join(l)
     def has_option_desktop(self, key):
+        if key in self.STATIC_DATA: 
+            return True
         key = self._apply_mapping(key)
         return not self.appinfo_xml.find(key) is None
     @property
