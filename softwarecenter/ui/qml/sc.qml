@@ -9,6 +9,11 @@ Rectangle {
     width: 600
     height: 600
 
+    SystemPalette {
+        id: activePalette
+        colorGroup: SystemPalette.Active
+    }
+
     function showListView()
     {
         listview.x = listview.x + listview.width
@@ -36,7 +41,7 @@ Rectangle {
         id: listview
         width: parent.width
         height: parent.height - 100
-        color: "lightsteelblue"
+        color: activePalette.window
         y: 100
 
         Behavior on x {
@@ -49,7 +54,7 @@ Rectangle {
             height: 30
             anchors.horizontalCenter: parent.horizontalCenter
             y: 10
-            color: "white"
+            color: activePalette.base
             radius: 5
 
             TextInput {
@@ -86,7 +91,7 @@ Rectangle {
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.bottom: parent.bottom
             anchors.bottomMargin: 10
-            color: "white"
+            color: activePalette.base
             radius: 5
 
             Text {
@@ -102,13 +107,13 @@ Rectangle {
         width: parent.width
         height: parent.height
         anchors.left: listview.right
-        color: "lightsteelblue"
+        color: activePalette.window
 
         Rectangle {
             id: detailsframe
             anchors.fill: parent
             anchors.margins: 10
-            color: "white"
+            color: activePalette.base
             radius: 5
 
             Rectangle {
@@ -311,7 +316,7 @@ Rectangle {
         height: parent.height
         anchors.left: detailsview.left
         opacity: 0.0
-        color: "lightsteelblue"
+        color: activePalette.window
 
         Behavior on opacity {
             NumberAnimation {
@@ -336,7 +341,7 @@ Rectangle {
             id: screenshotframe
             anchors.fill: parent
             anchors.margins: 10
-            color: "white"
+            color: activePalette.base
             radius: 5
 
             Rectangle {
