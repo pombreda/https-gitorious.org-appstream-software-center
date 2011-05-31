@@ -141,39 +141,40 @@ FocusScope {
                 text: summary
             }
 
-            // ratings row
-            Row {
-                id: ratingsaverageimg
+            Item {
+                id: ratings
                 anchors.top: parent.top
                 anchors.right: parent.right
                 anchors.margins: 5
                 visible: !progressbar.visible && (ratingstotal > 0)
-                Repeater {
-                    model: Math.floor(ratingsaverage)
-                    Image {
-                        source: "../../../data/images/star-yellow.png"
-                    }
-                }
-                Image {
-                    source: "../../../data/images/star-half.png"
-                    visible: { Math.floor(ratingsaverage) != 
-                               Math.ceil(ratingsaverage) }
-                }
-                Repeater {
-                    model: 5-Math.ceil(ratingsaverage)
-                    Image {
-                        source: "../../../data/images/star-dark.png"
-                    }
-                }
-            }
 
-            // ratings total text
-            Text {
-                id: ratingstotaltxt
-                text: String(ratingstotal) + " Ratings"
-                anchors.top: ratingsaverageimg.bottom
-                anchors.right: ratingsaverageimg.right
-                visible: ratingsaverageimg.visible
+                Row {
+                    id: ratingstars
+                    anchors.top: parent.top
+                    anchors.right: parent.right
+                    Repeater {
+                        model: Math.floor(ratingsaverage)
+                        Image {
+                            source: "../../../data/images/star-yellow.png"
+                        }
+                    }
+                    Image {
+                        source: "../../../data/images/star-half.png"
+                        visible: Math.floor(ratingsaverage) != Math.ceil(ratingsaverage)
+                    }
+                    Repeater {
+                        model: 5 - Math.ceil(ratingsaverage)
+                        Image {
+                            source: "../../../data/images/star-dark.png"
+                        }
+                    }
+                }
+
+                Text {
+                    text: qsTr("%1 Ratings").arg(String(ratingstotal))
+                    anchors.top: ratingstars.bottom
+                    anchors.right: parent.right
+                }
             }
 
             ProgressBar {
