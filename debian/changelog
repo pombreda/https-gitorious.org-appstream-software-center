@@ -1,3 +1,14 @@
+software-center (4.0.4) UNRELEASED; urgency=low
+
+  [ Aaron Peachey ]
+  * utils/submit_review.py:
+    - ensure error message shows if usefulness submit 
+      fails (LP: #790450)
+  * softwarecenter/view/widgets/reviews.py:
+    - fix disappearing usefulness UI on clicking 'OK' after error
+
+ -- Aaron Peachey <alpeachey@gmail.com>  Tue, 31 May 2011 16:21:32 +1000
+
 software-center (4.0.3) natty-proposed; urgency=low
 
   [ Gary Lasker ]
