@@ -871,30 +871,31 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.reviews.add_review(review)
         self.reviews.configure_reviews_ui()
 
+    def on_weblive_progress(self, weblive, progress):
+        """ When receiving connection progress, update button """
+        self.test_drive.set_label(_("Connection ... (%s%%)") % (progress))
+
+    def on_weblive_connected(self, weblive):
+        """ When connected, update button """
+        self.test_drive.set_label(_("Disconnect"))
+        button.set_sensitive(True)
+
+    def on_weblive_disconnected(self, weblive):
+        """ When disconnected, reset button """
+        self.test_drive.set_label(_("Test drive"))
+        button.set_sensitive(True)
+
+    def on_weblive_exception(self, weblive, exception):
+        """ When receiving an exception, reset button and show the error """
+        error(None,"WebLive exception", exception)
+        self.test_drive.set_label(_("Test drive"))
+        button.set_sensitive(True)
+
+    def on_weblive_warning(self, weblive, warning):
+        """ When receiving a warning, just show it """
+        error(None,"WebLive warning", warning)
+
     def on_test_drive_clicked(self, button):
-        # weblive helpers
-        def weblive_button_timeout(button, old_label):
-            """ timeout handler when a weblive session is requested """
-            if button.count == 10:
-                # Restore the button
-                button.set_sensitive(True)
-                button.set_label(old_label)
-                return False
-            else:
-                button.set_sensitive(False)
-                button.set_label(_("Connecting ... (%s%%)") % (button.count * 10))
-                button.count+=1
-                return True
-
-        def weblive_start_timer():
-            """ initiate a simple feedback UI when weblive connects """
-            old_label=button.get_label()
-            button.count=0
-            weblive_button_timeout(button, old_label)
-            glib.timeout_add_seconds(
-                2, weblive_button_timeout,  button, old_label)
-        #--------------------------------------------------------
-
         # get exec line
         exec_line = get_exec_line_from_desktop(self.desktop_file)
 
@@ -908,8 +909,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             error(None,"No available server", "There is currently no available WebLive server for this application.\nPlease try again later.")
         elif len(servers) == 1:
             self.weblive.create_automatic_user_and_run_session(session=cmd,serverid=servers[0].name)
-            # Try to give some indication that we are connecting
-            weblive_start_timer()
+            button.set_sensitive(False)
         else:
             d = ShowWebLiveServerChooserDialog(servers, self.app.pkgname)
             serverid=None
@@ -922,8 +922,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
             if serverid:
                 self.weblive.create_automatic_user_and_run_session(session=cmd,serverid=serverid)
-                # Try to give some indication that we are connecting
-                weblive_start_timer()
+                button.set_sensitive(False)
 
     def _on_addon_table_built(self, table):
         if not table.parent:
@@ -1100,6 +1099,13 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.test_drive = gtk.Button(_("Test drive"))
         self.test_drive.connect("clicked", self.on_test_drive_clicked)
         right_vb.pack_start(self.test_drive, expand=False, fill=False)
+
+        # attach to all the WebLive events
+        self.weblive.connect("progress", self.on_weblive_progress)
+        self.weblive.connect("connected", self.on_weblive_connected)
+        self.weblive.connect("disconnected", self.on_weblive_disconnected)
+        self.weblive.connect("exception", self.on_weblive_exception)
+        self.weblive.connect("warning", self.on_weblive_warning)
 
         # homepage link button
         self.homepage_btn = mkit.HLinkButton(_('Website'))
