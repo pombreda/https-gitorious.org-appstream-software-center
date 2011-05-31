@@ -172,7 +172,7 @@ class ChannelsManager(object):
         returns True is a update is needed
         """
         # the operation get_origins can take some time (~60s?)
-        cache_origins = self.db._aptcache.get_origins()
+        cache_origins = self.db._aptcache.get_all_origins()
         db_origins = set()
         for channel in self.channels:
             origin = channel.origin
