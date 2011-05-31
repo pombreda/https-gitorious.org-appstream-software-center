@@ -46,6 +46,7 @@ from softwarecenter.enums import (XAPIAN_VALUE_APPNAME,
                                   XAPIAN_VALUE_ARCHIVE_PPA,
                                   XAPIAN_VALUE_SCREENSHOT_URL,
                                   XAPIAN_VALUE_THUMBNAIL_URL,
+                                  XAPIAN_VALUE_ICON_URL,
                                   XAPIAN_VALUE_PRICE,
                                   XAPIAN_VALUE_ICON,
                                   XAPIAN_VALUE_GETTEXT_DOMAIN,
@@ -144,6 +145,7 @@ class SoftwareCenterAgentParser(AppInfoParserBase):
                 'Icon'       : 'icon',
                 'Screenshot-Url' : 'screenshot_url',
                 'Thumbnail-Url' : 'thumbnail_url',
+                'Icon-Url' : 'icon_url',
               }
 
     # map from requested key to a static data element
@@ -628,6 +630,12 @@ def index_app_info_from_parser(parser, db, cache):
         if parser.has_option_desktop("X-AppInstall-Thumbnail-Url"):
             url = parser.get_desktop("X-AppInstall-Thumbnail-Url")
             doc.add_value(XAPIAN_VALUE_THUMBNAIL_URL, url)
+        # icon (for third party)
+        if parser.has_option_desktop("X-AppInstall-Icon-Url"):
+            url = parser.get_desktop("X-AppInstall-Icon-Url")
+            doc.add_value(XAPIAN_VALUE_ICON_URL, url)
+            if not parser.has_option_desktop("X-AppInstall-Icon"):
+                doc.add_value(XAPIAN_VALUE_ICON, os.path.basename(url))
         # price (pay stuff)
         if parser.has_option_desktop("X-AppInstall-Price"):
             price = parser.get_desktop("X-AppInstall-Price")

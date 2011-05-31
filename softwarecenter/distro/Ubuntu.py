@@ -209,19 +209,11 @@ class Ubuntu(Debian):
         #return _("Application %s has an unknown maintenance status.") % appname
         return
 
-    def get_downloadable_icon_url(self, cache, pkgname, icon_filename):
+    def get_downloadable_icon_url(self, full_archive_url, icon_filename):
         """
-        generates the url for a downloadable icon based on its pkgname and the icon filename itself
+        generates the url for a downloadable icon based on the download
+        uri and the icon filename itself
         """
-        if (cache is None or
-            not hasattr(cache._cache, '__contains__') or # cache not ready
-            not pkgname in cache):
-            return None
-        try:
-            full_archive_url = cache[pkgname].candidate.uri
-        except:
-            # it's ok if we can't get the icon url
-            return None
         split_at_pool = full_archive_url.split("pool")[0]
         # support ppas and extras.ubuntu.com
         if split_at_pool.endswith("/ppa/ubuntu/"):
