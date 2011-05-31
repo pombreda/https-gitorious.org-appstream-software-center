@@ -730,6 +730,7 @@ def index_app_info_from_parser(parser, db, cache):
 def rebuild_database(pathname, debian_sources=True, appstream_sources=False):
     #cache = apt.Cache(memonly=True)
     cache = get_pkg_info()
+    cache.open()
     old_path = pathname+"_old"
     rebuild_path = pathname+"_rb"
     

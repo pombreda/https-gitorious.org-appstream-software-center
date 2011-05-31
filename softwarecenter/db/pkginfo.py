@@ -35,6 +35,9 @@ class _Package:
         return self.pkginfo.get_available(self.name)
 
     @property
+    def is_installed(self):
+        return self.pkginfo.is_installed(self.name)
+    @property
     def section(self):
         return self.pkginfo.get_section(self.name)
     @property

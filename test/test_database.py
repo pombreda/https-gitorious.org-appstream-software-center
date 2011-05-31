@@ -157,8 +157,7 @@ class TestDatabase(unittest.TestCase):
         self.assertEqual(appdetails.component, "main")
         self.assertNotEqual(appdetails.pkg, None)
         # from the fake test/data/appdetails/var/lib/dpkg/status
-        # disable this test since is apt.Package specific
-        #self.assertEqual(appdetails.pkg.is_installed, True)
+        self.assertEqual(appdetails.pkg.is_installed, True)
         self.assertEqual(appdetails.pkg_state, PKG_STATE_INSTALLED)
         # FIXME: test description for unavailable pkg
         self.assertTrue(
