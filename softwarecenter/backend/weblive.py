@@ -28,13 +28,38 @@ import random
 import subprocess
 import string
 import imp
+import gobject
 
 from threading import Thread, Event
 from weblive_pristine import WebLive
 import softwarecenter.paths
 
-class WebLiveBackend(object):
+class WebLiveBackend(gobject.GObject):
     """ Backend for interacting with the WebLive service """
+
+    __gsignals__ = {
+        "weblive-progress": (
+            gobject.SIGNAL_RUN_FIRST,
+            gobject.TYPE_NONE,
+            (gobject.TYPE_INT,)
+        ),
+        "weblive-connected": (
+            gobject.SIGNAL_RUN_FIRST,
+            gobject.TYPE_NONE,
+            ()
+        ),
+        "weblive-disconnected": (
+            gobject.SIGNAL_RUN_FIRST,
+            gobject.TYPE_NONE,
+            ()
+        ),
+        "weblive-exception": (
+            gobject.SIGNAL_RUN_FIRST,
+            gobject.TYPE_NONE,
+            (gobject.TYPE_STRING,)
+        )
+    }
+
 
     # Check if x2go module exists but don't load it (gevent breaks everything)
     try:
@@ -75,6 +100,7 @@ class WebLiveBackend(object):
     QTNX = "/usr/bin/qtnx"
 
     def __init__(self):
+        gobject.GObject.__init__(self)
         self.weblive = WebLive(self.URL,True)
         self.available_servers = []
         self._ready = Event()
@@ -226,10 +252,29 @@ class WebLiveBackend(object):
         os.fdopen(stdin,"w").write("CONNECT: \"%s\" \"%s\" \"%s\" \"%s\" \"%s\"" % (host, port, username, password, session))
 
     def _on_x2go_exit(self, pid, status):
-        print "x2go: exit with status: %s" % status
+        # We get everything by just watching stdout
+        pass
 
     def _on_x2go_activity(self, stdout, condition):
-        print "x2go: received: %s" % stdout.readline().strip()
+        line=stdout.readline().strip()
+        if line.startswith("PROGRESS: "):
+            if line.endswith("creating"):
+                self.emit("weblive-progress",10)
+            elif line.endswith("connecting"):
+                self.emit("weblive-progress",30)
+            elif line.endswith("starting"):
+                self.emit("weblive-progress",60)
+
+        elif line == "CONNECTED":
+            self.emit("weblive-connected")
+        elif line == "DISCONNECTED":
+            self.emit("weblive-disconnected")
+        elif line.startswith("EXCEPTION: "):
+            self.emit("weblive-exception", line.split(": ")[1])
+        elif line.startswith("WARNING: "):
+            self.emit("weblive-warning", line.split(": ")[1])
+        else:
+            pass
         return True
 
 # singleton
