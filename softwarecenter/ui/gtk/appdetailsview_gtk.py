@@ -878,18 +878,18 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
     def on_weblive_connected(self, weblive):
         """ When connected, update button """
         self.test_drive.set_label(_("Disconnect"))
-        button.set_sensitive(True)
+        self.test_drive.set_sensitive(True)
 
     def on_weblive_disconnected(self, weblive):
         """ When disconnected, reset button """
         self.test_drive.set_label(_("Test drive"))
-        button.set_sensitive(True)
+        self.test_drive.set_sensitive(True)
 
     def on_weblive_exception(self, weblive, exception):
         """ When receiving an exception, reset button and show the error """
         error(None,"WebLive exception", exception)
         self.test_drive.set_label(_("Test drive"))
-        button.set_sensitive(True)
+        self.test_drive.set_sensitive(True)
 
     def on_weblive_warning(self, weblive, warning):
         """ When receiving a warning, just show it """
