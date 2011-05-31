@@ -38,22 +38,22 @@ class WebLiveBackend(gobject.GObject):
     """ Backend for interacting with the WebLive service """
 
     __gsignals__ = {
-        "weblive-progress": (
+        "progress": (
             gobject.SIGNAL_RUN_FIRST,
             gobject.TYPE_NONE,
             (gobject.TYPE_INT,)
         ),
-        "weblive-connected": (
+        "connected": (
             gobject.SIGNAL_RUN_FIRST,
             gobject.TYPE_NONE,
             ()
         ),
-        "weblive-disconnected": (
+        "disconnected": (
             gobject.SIGNAL_RUN_FIRST,
             gobject.TYPE_NONE,
             ()
         ),
-        "weblive-exception": (
+        "exception": (
             gobject.SIGNAL_RUN_FIRST,
             gobject.TYPE_NONE,
             (gobject.TYPE_STRING,)
@@ -259,20 +259,20 @@ class WebLiveBackend(gobject.GObject):
         line=stdout.readline().strip()
         if line.startswith("PROGRESS: "):
             if line.endswith("creating"):
-                self.emit("weblive-progress",10)
+                self.emit("progress",10)
             elif line.endswith("connecting"):
-                self.emit("weblive-progress",30)
+                self.emit("progress",30)
             elif line.endswith("starting"):
-                self.emit("weblive-progress",60)
+                self.emit("progress",60)
 
         elif line == "CONNECTED":
-            self.emit("weblive-connected")
+            self.emit("connected")
         elif line == "DISCONNECTED":
-            self.emit("weblive-disconnected")
+            self.emit("disconnected")
         elif line.startswith("EXCEPTION: "):
-            self.emit("weblive-exception", line.split(": ")[1])
+            self.emit("exception", line.split(": ")[1])
         elif line.startswith("WARNING: "):
-            self.emit("weblive-warning", line.split(": ")[1])
+            self.emit("warning", line.split(": ")[1])
         else:
             pass
         return True
