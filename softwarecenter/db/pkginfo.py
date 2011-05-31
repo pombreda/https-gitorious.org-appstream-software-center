@@ -36,6 +36,12 @@ class PackageInfo(gobject.GObject):
         pass
     def is_available(self, pkgname):
         pass
+    def get_section(self, pkgname):
+        pass
+    def get_summary(self, pkgname):
+        pass
+    def get_description(self, pkgname):
+        pass
     def get_addons(self, pkgname, ignore_installed):
         pass
     def open(self):

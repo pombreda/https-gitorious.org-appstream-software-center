@@ -33,7 +33,8 @@ from softwarecenter.enums import (APP_ACTION_INSTALL,
                                   APP_ACTION_UPGRADE,
                                   APP_ACTION_APPLY,
                                   )
-from softwarecenter.utils import get_current_arch, get_parent_xid, get_language
+from softwarecenter.distro import get_current_arch
+from softwarecenter.utils import get_parent_xid, get_language
 
 
 LOG=logging.getLogger(__name__)

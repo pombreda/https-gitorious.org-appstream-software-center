@@ -80,6 +80,24 @@ class AptCache(PackageInfo):
         return (pkgname in self._cache and
                 self._cache[pkgname].candidate)
 
+    def get_section(self, pkgname):
+        if (pkgname not in self._cache or 
+            not self._cache[pkgname].candidate):
+            return ''
+        return self._cache[pkgname].candidate.section
+
+    def get_summary(self, pkgname):
+        if (pkgname not in self._cache or
+        not self._cache[pkgname].candidate):
+            return ''
+        return self._cache[pkgname].candidate.summary
+
+    def get_description(self, pkgname):
+        if (pkgname not in self._cache or
+            not self._cache[pkgname].candidate):
+            return ''
+        return self._cache[pkgname].candidate.description
+
     @property
     def ready(self):
         return self._ready

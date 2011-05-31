@@ -28,9 +28,9 @@ import logging
 import simplejson
 import threading
 
-from softwarecenter.distro import get_distro
+from softwarecenter.distro import get_distro, get_current_arch
 from softwarecenter.enums import BUY_SOMETHING_HOST, BUY_SOMETHING_HOST_ANONYMOUS
-from softwarecenter.utils import get_current_arch, get_language
+from softwarecenter.utils import get_language
 
 # possible workaround for bug #599332 is to try to import lazr.restful
 # import lazr.restful
