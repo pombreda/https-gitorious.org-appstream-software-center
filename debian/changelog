@@ -13,6 +13,8 @@ software-center (4.1.5) UNRELEASED; urgency=low
     thanks!
   * merged lp:~alexeftimie/software-center/backend-refactor to
     cleanup more code
+  * merged lp:~weblive-dev/software-center/weblive-x2go, many thanks
+    to Stephane Graber!
 
  -- Gary Lasker <gary.lasker@canonical.com>  Thu, 26 May 2011 18:55:21 -0400
 
