@@ -147,7 +147,7 @@ FocusScope {
                 anchors.top: parent.top
                 anchors.right: parent.right
                 anchors.margins: 5
-                visible: (ratingstotal > 0)
+                visible: !progressbar.visible && (ratingstotal > 0)
                 Repeater {
                     model: Math.floor(ratingsaverage)
                     Image {
@@ -173,18 +173,18 @@ FocusScope {
                 text: String(ratingstotal) + " Ratings"
                 anchors.top: ratingsaverageimg.bottom
                 anchors.right: ratingsaverageimg.right
-                visible: (ratingstotal > 0)
+                visible: ratingsaverageimg.visible
             }
 
-            Rectangle {
-                id: installremoveprogressbar
-                x: parent.width - 100 -10
+            ProgressBar {
+                id: progressbar
+                width: 100
                 anchors.top: appnametxt.top
+                anchors.right: parent.right
                 anchors.margins: 10
                 height: appnametxt.height
-                color: "steelblue"
-                visible:  parent.ListView.isCurrentItem
-                width: installremoveprogress 
+                progress: installremoveprogress
+                visible: parent.ListView.isCurrentItem && (progress != -1)
             }
 
             Button {
