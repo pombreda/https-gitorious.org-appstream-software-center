@@ -52,6 +52,7 @@ from softwarecenter.enums import (
     XAPIAN_VALUE_ARCHIVE_SIGNING_KEY_ID,
     XAPIAN_VALUE_SCREENSHOT_URL,
     XAPIAN_VALUE_THUMBNAIL_URL,
+    XAPIAN_VALUE_ICON_URL,
 )
 from softwarecenter.paths import (APP_INSTALL_CHANNELS_PATH,
                                   SOFTWARE_CENTER_ICON_CACHE_DIR,
@@ -339,13 +340,9 @@ class AppDetails(object):
             return self._db.get_iconname(self._doc)
     
     @property
-    def icon_needs_download(self):
-        if self._doc:
-            return self._db.get_icon_needs_download(self._doc)
-            
-    @property
     def icon_url(self):
-        return self._distro.get_downloadable_icon_url(self._cache, self.pkgname, self.icon_file_name)
+        if self._doc:
+            return self._db.get_icon_download_url(self._doc)
 
     @property
     def cached_icon_file_path(self):
@@ -600,7 +597,6 @@ class AppDetails(object):
         details.append("               error: %s" % self.error)
         details.append("                icon: %s" % self.icon)
         details.append("      icon_file_name: %s" % self.icon_file_name)
-        details.append(" icon_needs_download: %s" % self.icon_needs_download)
         details.append("            icon_url: %s" % self.icon_url)
         details.append("   installation_date: %s" % self.installation_date)
         details.append("       purchase_date: %s" % self.purchase_date)

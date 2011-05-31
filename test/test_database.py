@@ -18,6 +18,7 @@ from softwarecenter.db.update import update_from_app_install_data, update_from_v
 from softwarecenter.enums import (
     XAPIAN_VALUE_ARCHIVE_PPA,
     XAPIAN_VALUE_ICON,
+    XAPIAN_VALUE_ICON_URL,
     PKG_STATE_INSTALLED,
     PKG_STATE_NEEDS_SOURCE,
     PKG_STATE_NEEDS_PURCHASE,
@@ -228,6 +229,8 @@ class TestDatabase(unittest.TestCase):
         app = Application("The expensive gem", "expensive-gem")
         appdetails = app.get_details(db)
         self.assertEqual(appdetails.pkg_state, PKG_STATE_NEEDS_PURCHASE)
+        self.assertEqual(appdetails.icon_url, "http://www.google.com/favicon.ico")
+        self.assertEqual(appdetails.icon, "favicon")
         # test PKG_STATE_PURCHASED_BUT_REPO_MUST_BE_ENABLED
         # test PKG_STATE_UNKNOWN
         app = Application("Scintillant Orange", "scintillant-orange")

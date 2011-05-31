@@ -20,7 +20,8 @@ import gobject
 
 class _Package:
     def __init__(self, name, pkginfo):
-        self.name, self.pkginfo = name, pkginfo
+        self.name = name
+        self.pkginfo = pkginfo
     @property
     def installed(self):
         if not self.pkginfo.is_installed(self.name):

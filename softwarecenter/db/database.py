@@ -35,6 +35,7 @@ from softwarecenter.enums import (
     XAPIAN_VALUE_PKGNAME,
     XAPIAN_VALUE_APPNAME,
     XAPIAN_VALUE_ICON,
+    XAPIAN_VALUE_ICON_URL,
     XAPIAN_VALUE_ICON_NEEDS_DOWNLOAD,
     XAPIAN_VALUE_POPCON
 )
@@ -370,9 +371,10 @@ class StoreDatabase(gobject.GObject):
             result.add(m.docid)
         return result
         
-    def get_icon_needs_download(self, doc):
-        """ Return a value if the icon needs to be downloaded """
-        return doc.get_value(XAPIAN_VALUE_ICON_NEEDS_DOWNLOAD)
+    def get_icon_download_url(self, doc):
+        """ Return the url of the icon or None """
+        url = doc.get_value(XAPIAN_VALUE_ICON_URL)
+        return url
 
     def get_popcon(self, doc):
         """ Return a popcon value from a xapian document """
