@@ -1101,11 +1101,11 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         right_vb.pack_start(self.test_drive, expand=False, fill=False)
 
         # attach to all the WebLive events
-        self.weblive.connect("progress", self.on_weblive_progress)
-        self.weblive.connect("connected", self.on_weblive_connected)
-        self.weblive.connect("disconnected", self.on_weblive_disconnected)
-        self.weblive.connect("exception", self.on_weblive_exception)
-        self.weblive.connect("warning", self.on_weblive_warning)
+        self.weblive.client.connect("progress", self.on_weblive_progress)
+        self.weblive.client.connect("connected", self.on_weblive_connected)
+        self.weblive.client.connect("disconnected", self.on_weblive_disconnected)
+        self.weblive.client.connect("exception", self.on_weblive_exception)
+        self.weblive.client.connect("warning", self.on_weblive_warning)
 
         # homepage link button
         self.homepage_btn = mkit.HLinkButton(_('Website'))
