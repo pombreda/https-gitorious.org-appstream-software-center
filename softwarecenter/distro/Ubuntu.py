@@ -22,17 +22,14 @@ import logging
 import os
 import re
 
-import apt_pkg
-apt_pkg.init_config()
-
 from apt.utils import (get_release_filename_for_pkg,
                        get_release_date_from_release_file,
                        get_maintenance_end_date)
 from gettext import gettext as _
-from softwarecenter.distro import Distro
+from softwarecenter.distro.Debian import Debian
 from softwarecenter.enums import BUY_SOMETHING_HOST
 
-class Ubuntu(Distro):
+class Ubuntu(Debian):
 
     # see __init__.py description
     DISTROSERIES = ["oneiric",
@@ -246,9 +243,6 @@ class Ubuntu(Distro):
         else:
             #raise ValueError, "we currently support downloadable icons in ppa's only"
             return None
-
-    def get_architecture(self):
-        return apt_pkg.config.find("Apt::Architecture")
 
 if __name__ == "__main__":
     import apt

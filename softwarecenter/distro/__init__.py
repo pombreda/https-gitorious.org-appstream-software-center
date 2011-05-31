@@ -76,9 +76,6 @@ class Distro(object):
                 stdout=subprocess.PIPE).communicate()[0].strip()
         return self._distro_code_name
 
-    def get_installation_status(self, pkg):
-        raise UnimplementedError
-
     def get_maintenance_status(self, cache, appname, pkgname, component, channelname):
         raise UnimplementedError
 
@@ -144,7 +141,7 @@ class Distro(object):
 
     # generic architecture detection code
     def get_architecture(self):
-        pass
+        return None
 
 
 def _get_distro():

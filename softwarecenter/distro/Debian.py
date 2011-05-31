@@ -17,8 +17,7 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import apt_pkg
-apt_pkg.init_config()
+import apt
 
 from softwarecenter.distro import Distro
 from gettext import gettext as _
@@ -79,10 +78,9 @@ class Debian(Distro):
         return ""
 
     def get_architecture(self):
-        return apt_pkg.config.find("Apt::Architecture")
+        return apt.apt_pkg.config.find("Apt::Architecture")
 
 if __name__ == "__main__":
-    import apt
     cache = apt.Cache()
     print cache.get_maintenance_status(cache, "synaptic app", "synaptic", "main", None)
     print cache.get_maintenance_status(cache, "3dchess app", "3dchess", "universe", None)

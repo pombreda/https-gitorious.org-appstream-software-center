@@ -31,7 +31,6 @@ import traceback
 import time
 import xml.sax.saxutils
 
-from softwarecenter.distro import get_distro
 from enums import MISSING_APP_ICON, APP_ICON_SIZE, APP_INSTALL_PATH_DELIMITER
 
 from config import get_config

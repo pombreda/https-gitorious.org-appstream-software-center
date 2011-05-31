@@ -210,11 +210,17 @@ class AppStreamXMLParser(AppInfoParserBase):
               "keywords"  : "keyword",
               "mimetypes" : "mimetype",
             }
-    
+
+    # map from requested key to a static data element
+    STATIC_DATA = { 'Type' : 'Application',
+                  }
+
     def __init__(self, appinfo_xml, xmlfile):
         self.appinfo_xml = appinfo_xml
         self.xmlfile = xmlfile
     def get_desktop(self, key, translated=True):
+        if key in self.STATIC_DATA:
+            return self.STATIC_DATA[key]
         key = self._apply_mapping(key)
         if key in self.LISTS:
             return self._parse_with_lists(key)
@@ -234,6 +240,8 @@ class AppStreamXMLParser(AppInfoParserBase):
                 l.append(child.text)
         return ",".join(l)
     def has_option_desktop(self, key):
+        if key in self.STATIC_DATA: 
+            return True
         key = self._apply_mapping(key)
         return not self.appinfo_xml.find(key) is None
     @property
@@ -397,9 +405,9 @@ def update_from_appstream_xml(db, cache, xmldir=None):
     return True
         
 def update_from_app_install_data(db, cache, datadir=None):
+    """ index the desktop files in $datadir/desktop/*.desktop """
     if not datadir:
         datadir = softwarecenter.paths.APP_INSTALL_DESKTOP_PATH
-    """ index the desktop files in $datadir/desktop/*.desktop """
     context = glib.main_context_default()
     for desktopf in glob(datadir+"/*.desktop"):
         LOG.debug("processing %s" % desktopf)

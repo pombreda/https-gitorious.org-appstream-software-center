@@ -139,10 +139,13 @@ class StoreDatabase(gobject.GObject):
         self._search_lock.release()
 
     def open(self, pathname=None, use_axi=True, use_agent=True):
-        " open the database "
+        """ open the database """
         if pathname:
             self._db_pathname = pathname
-        self.xapiandb = xapian.Database(self._db_pathname)
+        try:
+            self.xapiandb = xapian.Database(self._db_pathname)
+        except:
+            logging.exception("can not open '%s'" % self._db_pathname)
         # add the apt-xapian-database for here (we don't do this
         # for now as we do not have a good way to integrate non-apps
         # with the UI)
@@ -198,7 +201,7 @@ class StoreDatabase(gobject.GObject):
 
     def reopen(self):
         " reopen the database "
-        self.open(self._use_axi, self._use_agent)
+        self.open(use_axi=self._use_axi, use_agent=self._use_agent)
         self.emit("reopen")
 
     @property

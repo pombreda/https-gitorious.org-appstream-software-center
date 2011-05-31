@@ -723,7 +723,6 @@ class UIReviewsList(gtk.VBox):
         'different-review-language-clicked':(gobject.SIGNAL_RUN_FIRST,
                                              gobject.TYPE_NONE,
                                              (gobject.TYPE_STRING,) ),
-
     }
 
     def __init__(self, parent):
@@ -977,6 +976,7 @@ class UIReview(gtk.VBox):
         self.logged_in_person = logged_in_person
         self.person = None
         self.id = None
+        self.useful_votes = useful_votes
 
         self._allocation = None
 
@@ -1028,7 +1028,7 @@ class UIReview(gtk.VBox):
         self._hide_usefulness_elements()
         #print "_usefulness_ui_update: %s" % type
         if type == 'renew':
-            self._build_usefulness_ui(current_user_reviewer, useful_total, useful_favorable)
+            self._build_usefulness_ui(current_user_reviewer, useful_total, useful_favorable, self.useful_votes)
             return
         if type == 'progress':
             self.submit_status_spinner.start()
