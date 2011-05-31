@@ -201,7 +201,7 @@ class StoreDatabase(gobject.GObject):
 
     def reopen(self):
         " reopen the database "
-        self.open(self._use_axi, self._use_agent)
+        self.open(use_axi=self._use_axi, use_agent=self._use_agent)
         self.emit("reopen")
 
     @property
