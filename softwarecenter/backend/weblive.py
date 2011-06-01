@@ -56,10 +56,12 @@ class WebLiveBackend(object):
     def ready(self):
         """ Return true if data from the remote server was loaded
         """
+
         return self.client and self._ready.is_set()
 
     def query_available(self):
         """ Get all the available data from WebLive """
+
         self._ready.clear()
         servers=self.weblive.list_everything()
         self._ready.set()
@@ -67,6 +69,7 @@ class WebLiveBackend(object):
 
     def query_available_async(self):
         """ Call query_available in a thread and set self.ready """
+
         def _query_available_helper():
             self.available_servers = self.query_available()
 
@@ -199,6 +202,7 @@ class WebLiveClientQTNX(WebLiveClient):
         """ Return if the current system will work
             (has the required dependencies)
         """
+
         if os.path.exists(cls.BINARY_PATH):
             return True
         return False
@@ -229,6 +233,8 @@ class WebLiveClientQTNX(WebLiveClient):
                password]
 
         def qtnx_countdown():
+            """ Send progress events every two seconds """
+
             if self.helper_progress == 10:
                 self.state = "connected"
                 self.emit("connected",False)
@@ -239,6 +245,10 @@ class WebLiveClientQTNX(WebLiveClient):
                 return True
 
         def qtnx_start_timer():
+            """ As we don't have a way of knowing the connection
+                status, we countdown from 20s
+            """
+
             self.helper_progress=0
             qtnx_countdown()
             glib.timeout_add_seconds(
@@ -274,6 +284,7 @@ class WebLiveClientX2GO(WebLiveClient):
         """ Return if the current system will work
             (has the required dependencies)
         """
+
         try:
             imp.find_module("x2go")
             return True
