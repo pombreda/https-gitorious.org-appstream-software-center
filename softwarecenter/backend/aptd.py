@@ -45,7 +45,7 @@ from aptdaemon import policykit1
 from defer import inline_callbacks, return_value
 
 import gtk
-from softwarecenter.backend.transactionswatcher import TransactionsWatcher
+from softwarecenter.backend.transactionswatcher import BaseTransactionsWatcher
 from softwarecenter.backend.installbackend import InstallBackend
 from softwarecenter.utils import get_http_proxy_string_from_gconf
 from softwarecenter.ui.gtk import dialogs
@@ -79,7 +79,28 @@ class TransactionProgress(object):
         self.meta_data = trans.meta_data
         self.progress = trans.progress
 
-class AptdaemonBackend(gobject.GObject, TransactionsWatcher, InstallBackend):
+class AptdaemonTransactionsWatcher(BaseTransactionsWatcher):
+    """ 
+    base class for objects that need to watch the aptdaemon 
+    for transaction changes. it registers a handler for the daemon
+    going away and reconnects when it appears again
+    """
+
+    def __init__(self):
+        # watch the daemon exit and (re)register the signal
+        bus = dbus.SystemBus()
+        self._owner_watcher = bus.watch_name_owner(
+            "org.debian.apt", self._register_active_transactions_watch)
+
+    def _register_active_transactions_watch(self, connection):
+        #print "_register_active_transactions_watch", connection
+        apt_daemon = client.get_aptdaemon()
+        apt_daemon.connect_to_signal("ActiveTransactionsChanged", 
+                                     self.on_transactions_changed)
+        current, queued = apt_daemon.GetActiveTransactions()
+        self.on_transactions_changed(current, queued)
+
+class AptdaemonBackend(gobject.GObject, AptdaemonTransactionsWatcher, InstallBackend):
     """ software center specific code that interacts with aptdaemon """
 
     __gsignals__ = {'transaction-started':(gobject.SIGNAL_RUN_FIRST,
@@ -110,7 +131,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher, InstallBackend):
 
     def __init__(self):
         gobject.GObject.__init__(self)
-        TransactionsWatcher.__init__(self)
+        AptdaemonTransactionsWatcher.__init__(self)
         self.aptd_client = client.AptClient()
         self.pending_transactions = {}
         # dict of pkgname -> FakePurchaseTransaction

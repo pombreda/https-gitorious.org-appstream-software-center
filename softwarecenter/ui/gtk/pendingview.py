@@ -36,7 +36,7 @@ from basepane import BasePane
 
 from gettext import gettext as _
 
-class PendingStore(gtk.ListStore, TransactionsWatcher):
+class PendingStore(gtk.ListStore, TransactionsWatcher()):
 
     # column names
     (COL_TID,
@@ -65,7 +65,7 @@ class PendingStore(gtk.ListStore, TransactionsWatcher):
     def __init__(self, icons):
         # icon, status, progress
         gtk.ListStore.__init__(self, *self.column_types)
-        TransactionsWatcher.__init__(self)
+        TransactionsWatcher().__init__(self)
         # data
         self.icons = icons
         # the apt-daemon stuff

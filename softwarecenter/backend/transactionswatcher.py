@@ -19,29 +19,22 @@
 import dbus
 import aptdaemon
 
-class TransactionsWatcher(object):
+class BaseTransactionsWatcher(object):
     """ 
-    base class for objects that need to watch the aptdaemon 
-    for transaction changes. it registers a handler for the daemon
-    going away and reconnects when it appears again
+    base class for objects that need to watch the install backend 
+    for transaction changes.
 
-    it also provides a "on_transaction_changed()" method
+    provides a "on_transaction_changed()" method
     """
-
-    def __init__(self):
-        # watch the daemon exit and (re)register the signal
-        bus = dbus.SystemBus()
-        self._owner_watcher = bus.watch_name_owner(
-            "org.debian.apt", self._register_active_transactions_watch)
-
-    def _register_active_transactions_watch(self, connection):
-        #print "_register_active_transactions_watch", connection
-        apt_daemon = aptdaemon.client.get_aptdaemon()
-        apt_daemon.connect_to_signal("ActiveTransactionsChanged", 
-                                     self.on_transactions_changed)
-        current, queued = apt_daemon.GetActiveTransactions()
-        self.on_transactions_changed(current, queued)
-    
     def on_transactions_changed(self, current, queue):
         " stub implementation "
         pass
+
+# singleton
+_tw = None
+def TransactionsWatcher():
+    global _tw
+    if _tw is None:
+        from aptd import AptdaemonTransactionsWatcher
+        _tw = AptdaemonTransactionsWatcher
+    return _tw
