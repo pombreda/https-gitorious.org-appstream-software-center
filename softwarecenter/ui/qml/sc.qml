@@ -47,10 +47,43 @@ Rectangle {
         reviewslistmodel.getReviews(list.currentItem.pkgname)
     }
 
+    Rectangle {
+        id: header
+        width: parent.width
+        height: searchframe.height + 2*10 // 10px margin 
+        color: activePalette.window
+
+        Rectangle {
+            id: searchframe
+            color: activePalette.base
+            width: parent.width - 20
+            // FIXME: how can we avoid to hardcode this?
+            height: 30 
+            y: 10 // offset margins
+            x: 10 // offset margins
+            radius: 5
+            
+            TextInput {
+                id: search
+                anchors.fill: parent
+                anchors.margins: 5
+                focus: true
+                //KeyNavigation.down: list
+
+                Binding {
+                    target: pkglistmodel
+                    property: "searchQuery"
+                    value: search.text
+                }
+            }
+        }
+    }
+
     CategoriesView {
         id: catview
         width: parent.width
         height: 100
+        anchors.top: header.bottom
 
         onCategoryChanged: {
             pkglistmodel.setCategory(catname)
@@ -60,46 +93,22 @@ Rectangle {
     Rectangle {
         id: listview
         width: parent.width
-        height: parent.height - 100
+
         color: activePalette.window
-        y: 100
+        anchors.top: catview.bottom
+        anchors.bottom: footer.top
 
         Behavior on x {
             NumberAnimation { duration: 180 }
         }
 
-        Rectangle {
-            id: searchframe
-            width: parent.width - 20
-            height: 30
-            anchors.horizontalCenter: parent.horizontalCenter
-            y: 10
-            color: activePalette.base
-            radius: 5
-
-            TextInput {
-                id: search
-                anchors.fill: parent
-                anchors.margins: 5
-                focus: true
-                KeyNavigation.down: list
-
-                Binding {
-                    target: pkglistmodel
-                    property: "searchQuery"
-                    value: search.text
-                }
-            }
-        }
-
         AppListView {
             id: list
             model: pkglistmodel
-            width: searchframe.width
+            width: header.width
+            height: listview.height
             anchors.horizontalCenter: parent.horizontalCenter
-            anchors.top: searchframe.bottom
             anchors.topMargin: 10
-            anchors.bottom: statusframe.top
             anchors.bottomMargin: 10
             KeyNavigation.up: search
         }
@@ -110,17 +119,21 @@ Rectangle {
             height: parent.height
             anchors.left: listview.right
         }
+    }
+
+    Rectangle {
+        id: footer
+        width: searchframe.width
+        height: 30
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: 10
 
         Rectangle {
             id: statusframe
-            width: searchframe.width
-            height: 30
-            anchors.horizontalCenter: parent.horizontalCenter
-            anchors.bottom: parent.bottom
-            anchors.bottomMargin: 10
             color: activePalette.base
             radius: 5
 
+            anchors.fill: parent
             Text {
                 anchors.fill: parent
                 anchors.margins: 5
@@ -128,6 +141,5 @@ Rectangle {
             }
         }
     }
-
 }
 
