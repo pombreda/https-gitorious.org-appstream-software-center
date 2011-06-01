@@ -266,17 +266,22 @@ class StoreDatabase(gobject.GObject):
         fuzzy_query = _add_category_to_query(fuzzy_query)
         return SearchQuery([pkg_query,fuzzy_query])
 
-    def get_matches_from_query(self, query, start=0, end=-1):
+    def get_matches_from_query(self, query, start=0, end=-1, category=None):
         enquire = xapian.Enquire(self.xapiandb)
         if isinstance(query, str):
-            query = self.xapian_parser.parse_query(query)
+            if query == "":
+                query = xapian.Query("")
+            else:
+                query = self.xapian_parser.parse_query(query)
+        if category:
+            query = xapian.Query(xapian.Query.OP_AND, category.query, query)
         enquire.set_query(query)
         if end == -1: 
             end = len(self)
         return enquire.get_mset(start, end)
 
-    def get_docs_from_query(self, query, start=0, end=-1):
-        matches = self.get_matches_from_query(query, start, end)
+    def get_docs_from_query(self, query, start=0, end=-1, category=None):
+        matches = self.get_matches_from_query(query, start, end, category)
         return [m.document for m in matches]
 
     def get_spelling_correction(self, search_term):

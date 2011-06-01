@@ -128,9 +128,10 @@ class PkgListModel(QAbstractListModel):
         self._docs = []
         self.endRemoveRows()
 
-    def _runQuery(self, query):
+    def _runQuery(self, querystr):
         self.clear()
-        docs = self.db.get_docs_from_query(str(query), start=0, end=100)
+        docs = self.db.get_docs_from_query(
+            str(querystr), start=0, end=500, category=self._category)
         self.beginInsertRows(QModelIndex(), len(docs), len(docs))
         self._docs = docs
         self.endInsertRows()
@@ -162,12 +163,13 @@ class PkgListModel(QAbstractListModel):
         # empty category resets it
         if not catname:
             self._category = None
-            return
-        # search for the category
-        for cat in self._categories:
-            if cat.name == catname:
-                self._category = cat
-                break
         else:
-            raise Exception("Can not find category '%s'" % catname)
-
+            # search for the category
+            for cat in self._categories:
+                if cat.name == catname:
+                    self._category = cat
+                    break
+            else:
+                raise Exception("Can not find category '%s'" % catname)
+        # and trigger a query
+        self._runQuery(self._query)

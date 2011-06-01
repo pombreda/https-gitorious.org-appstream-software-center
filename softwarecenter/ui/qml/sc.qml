@@ -34,18 +34,31 @@ Rectangle {
         colorGroup: SystemPalette.Active
     }
 
+    function showCategoriesView()
+    {
+        console.log("showCategoryView")
+        catview.x = 0
+        
+        // FIXME: would be nice to do this somewhere else
+        pkglistmodel.setCategory("")
+    }
+
     function showListView()
     {
-        listview.x = listview.x + listview.width
+        console.log("showListView")
+        catview.x = 0 - listview.width
     }
 
     function showDetailsView()
     {
-        listview.x = listview.x - listview.width
+        console.log("showDetailsView")
+        catview.x =  0 - listview.width - detailsview.width
+
         // FIXME: actually we could do this on a property change event
         //        for listview.x, if it changes to "0" trigger load
         reviewslistmodel.getReviews(list.currentItem.pkgname)
     }
+
 
     Rectangle {
         id: header
@@ -68,12 +81,17 @@ Rectangle {
                 anchors.fill: parent
                 anchors.margins: 5
                 focus: true
-                //KeyNavigation.down: list
+                KeyNavigation.down: list
 
                 Binding {
                     target: pkglistmodel
                     property: "searchQuery"
                     value: search.text
+                }
+
+                Keys.onReleased: {
+                    //console.log("key: " + event.key);
+                    showListView();
                 }
             }
         }
@@ -82,11 +100,16 @@ Rectangle {
     CategoriesView {
         id: catview
         width: parent.width
-        height: 100
+        height: parent.height
         anchors.top: header.bottom
 
+        Behavior on x {
+            NumberAnimation { duration: 180 }
+        }
+        
         onCategoryChanged: {
             pkglistmodel.setCategory(catname)
+            showListView()
         }
     }
 
@@ -95,7 +118,8 @@ Rectangle {
         width: parent.width
 
         color: activePalette.window
-        anchors.top: catview.bottom
+        anchors.left: catview.right
+        anchors.top: header.bottom
         anchors.bottom: footer.top
 
         Behavior on x {
@@ -105,19 +129,35 @@ Rectangle {
         AppListView {
             id: list
             model: pkglistmodel
-            width: header.width
-            height: listview.height
-            anchors.horizontalCenter: parent.horizontalCenter
-            anchors.topMargin: 10
-            anchors.bottomMargin: 10
+            anchors.margins: 10
+            anchors.fill: parent
+
             KeyNavigation.up: search
         }
 
-        DetailsView {
-            id: details
-            width: parent.width
-            height: parent.height
-            anchors.left: listview.right
+        Button {
+            id: listbackbtn
+            text: qsTr("Back")
+
+            anchors.left: parent.left
+            anchors.bottom: parent.bottom
+            anchors.margins: 15
+
+            onClicked: {
+                showCategoriesView();
+            }
+        }
+    }
+
+    DetailsView {
+        id: detailsview
+        width: parent.width
+        anchors.left: listview.right
+        anchors.top: header.bottom
+        anchors.bottom: footer.top
+
+        Behavior on x {
+            NumberAnimation { duration: 180 }
         }
     }
 

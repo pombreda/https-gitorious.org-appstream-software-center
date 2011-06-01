@@ -27,7 +27,7 @@ import sys
 from PySide import QtDeclarative
 from PySide.QtCore import QUrl
 from PySide.QtGui import QApplication
-from PySide.QtDeclarative import qmlRegisterType, QDeclarativeView 
+from PySide.QtDeclarative import QDeclarativeView 
 
 from softwarecenter.db.pkginfo import get_pkg_info
 
