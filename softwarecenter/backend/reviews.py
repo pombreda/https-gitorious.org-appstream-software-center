@@ -672,9 +672,11 @@ class ReviewLoaderFake(ReviewLoader):
                 # FIXME: instead of random, try to match the avg_rating
                 review.rating = random.randint(1,5)
                 review.summary = self._random_summary()
-                review.date_created = time.ctime(time.time())
+                review.date_created = time.strftime('%Y-%m-%d %H:%M:%S')
                 review.reviewer_username = self._random_person()
                 review.review_text = self._random_text().replace("\n","")
+                review.usefulness_total = random.randint(1, 20)
+                review.usefulness_favorable = random.randint(1, 20)
                 reviews.append(review)
             self._reviews_cache[application] = reviews
         reviews = self._reviews_cache[application]
