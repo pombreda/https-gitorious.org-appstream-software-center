@@ -779,13 +779,13 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         return
 
     def _on_net_state_changed(self, watcher, state):
-        if state == NetState.NM_STATE_DISCONNECTED:
+        if state in NetState.NM_STATE_DISCONNECTED_LIST:
             self._check_for_reviews()
-        elif state == NetState.NM_STATE_CONNECTED:
+        elif state in NetState.NM_STATE_CONNECTED_LIST:
             gobject.timeout_add(500, self._check_for_reviews)
 
         # set addon table and action button states based on sensitivity
-        sensitive = state == NetState.NM_STATE_CONNECTED
+        sensitive = state in NetState.NM_STATE_CONNECTED_LIST
         self.pkg_statusbar.button.set_sensitive(sensitive)
         self.addon_view.addons_set_sensitive(sensitive)
         self.addons_statusbar.button_apply.set_sensitive(sensitive)
