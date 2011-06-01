@@ -147,8 +147,13 @@ class AptCache(PackageInfo):
             self.emit("cache-broken")
 
     # implementation specific code
-    #def __getitem__(self, key):
-    #    return self._cache[key]
+
+    # temporarely return a full apt.Package so that the tests and the
+    # code keeps working for now, this needs to go away eventually
+    # and get replaced with the abstract _Package class 
+    def __getitem__(self, key):
+        return self._cache[key]
+
     def __iter__(self):
         return self._cache.__iter__()
     def __contains__(self, k):
