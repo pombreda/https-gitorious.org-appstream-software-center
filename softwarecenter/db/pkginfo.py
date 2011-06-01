@@ -70,6 +70,19 @@ class PackageInfo(gobject.GObject):
     def __contains__(self, pkgname):
         return False
 
+    @staticmethod
+    def version_compare(v1, v2):
+        """ compare two versions """
+        return cmp(v1, v2)
+    @staticmethod
+    def upstream_version_compare(v1, v2):
+        """ compare two versions, but ignore the distro specific revisions """
+        return cmp(v1, v2)
+    @staticmethod
+    def upstream_version(v):
+        """ Return the "upstream" version number of the given version """
+        return v
+
     def is_installed(self, pkgname):
         pass
     def is_available(self, pkgname):

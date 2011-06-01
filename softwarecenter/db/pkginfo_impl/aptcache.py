@@ -19,6 +19,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import apt
+import apt_pkg
 import logging
 import gio
 import glib
@@ -72,6 +73,17 @@ class AptCache(PackageInfo):
             "changed", self._on_apt_finished_stamp_changed)
         # this is fast, so ok
         self._language_packages = self._read_language_pkgs()
+
+    @staticmethod
+    def version_compare(v1, v2):
+        return apt_pkg.version_compare(a, b)
+    @staticmethod
+    def upstream_version_compare(a, b):
+        return apt_pkg.version_compare(apt_pkg.upstream_version(a),
+                                       apt_pkg.upstream_version(b))
+    @staticmethod
+    def upstream_version(v):
+        return apt_pkg.upstream_version(v)
 
     def is_installed(self, pkgname):
         return (pkgname in self._cache and
