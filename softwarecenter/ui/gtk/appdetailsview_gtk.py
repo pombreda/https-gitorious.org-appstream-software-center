@@ -875,10 +875,13 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         """ When receiving connection progress, update button """
         self.test_drive.set_label(_("Connection ... (%s%%)") % (progress))
 
-    def on_weblive_connected(self, weblive):
+    def on_weblive_connected(self, weblive, can_disconnect):
         """ When connected, update button """
-        self.test_drive.set_label(_("Disconnect"))
-        self.test_drive.set_sensitive(True)
+        if can_disconnect:
+            self.test_drive.set_label(_("Disconnect"))
+            self.test_drive.set_sensitive(True)
+        else:
+            self.test_drive.set_label(_("Connected"))
 
     def on_weblive_disconnected(self, weblive):
         """ When disconnected, reset button """

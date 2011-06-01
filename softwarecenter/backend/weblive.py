@@ -139,7 +139,7 @@ class WebLiveClient(gobject.GObject):
         "connected": (
             gobject.SIGNAL_RUN_FIRST,
             gobject.TYPE_NONE,
-            ()
+            (gobject.TYPE_BOOLEAN,)
         ),
         "disconnected": (
             gobject.SIGNAL_RUN_FIRST,
@@ -192,7 +192,7 @@ class WebLiveClientQTNX(WebLiveClient):
 </NXClientLibSettings>
 """
 
-    QTNX = "/usr/bin/qtnx"
+    BINARY_PATH = "/usr/bin/qtnx"
 
     @classmethod
     def is_supported(cls):
@@ -206,6 +206,7 @@ class WebLiveClientQTNX(WebLiveClient):
     def start_session(self, host, port, session, username, password, wait):
         """ Start a session using qtnx """
 
+        self.state = "connecting"
         if not os.path.exists(os.path.expanduser('~/.qtnx')):
             os.mkdir(os.path.expanduser('~/.qtnx'))
 
@@ -222,16 +223,35 @@ class WebLiveClientQTNX(WebLiveClient):
         nxml.close()
 
         # Prepare qtnx call
-        cmd = [self.QTNX,
+        cmd = [self.BINARY_PATH,
                '%s-%s-%s' % (str(host), str(port), session.replace("/","_")),
                username,
                password]
 
+        def qtnx_countdown():
+            if self.helper_progress == 10:
+                self.state = "connected"
+                self.emit("connected",False)
+                return False
+            else:
+                self.emit("progress",self.helper_progress * 10)
+                self.helper_progress+=1
+                return True
+
+        def qtnx_start_timer():
+            self.helper_progress=0
+            qtnx_countdown()
+            glib.timeout_add_seconds(
+                2, qtnx_countdown)
+
+        qtnx_start_timer()
+
         if wait == False:
             # Start in the background and attach a watch for when it exits
-            (pid, stdin, stdout, stderr) = glib.spawn_async(
-                cmd, flags=glib.SPAWN_DO_NOT_REAP_CHILD)
-            glib.child_watch_add(pid, self._on_qtnx_exit,filename)
+            (self.helper_pid, stdin, stdout, stderr) = glib.spawn_async(
+                cmd, standard_input=True, standard_output=True, standard_error=True,
+                flags=glib.SPAWN_DO_NOT_REAP_CHILD)
+            glib.child_watch_add(self.helper_pid, self._on_qtnx_exit,filename)
         else:
             # Start it and wait till it finishes
             p=subprocess.Popen(cmd)
@@ -241,6 +261,8 @@ class WebLiveClientQTNX(WebLiveClient):
         """ Called when the qtnx process exits (when in the background) """
 
         # Remove configuration file
+        self.state = "disconnected"
+        self.emit("disconnected")
         if os.path.exists(filename):
             os.remove(filename)
 
@@ -264,7 +286,8 @@ class WebLiveClientX2GO(WebLiveClient):
         # Start in the background and attach a watch for when it exits
         cmd = [os.path.join(softwarecenter.paths.datadir, softwarecenter.paths.X2GO_HELPER)]
         (self.helper_pid, stdin, stdout, stderr) = glib.spawn_async(
-            cmd, standard_input=True, standard_output=True, standard_error=True)
+            cmd, standard_input=True, standard_output=True, standard_error=True,
+            flags=glib.SPAWN_DO_NOT_REAP_CHILD)
         self.helper_stdin=os.fdopen(stdin,"w")
         self.helper_stdout=os.fdopen(stdout)
         self.helper_stderr=os.fdopen(stderr)
@@ -305,7 +328,7 @@ class WebLiveClientX2GO(WebLiveClient):
                 self.emit("progress",60)
 
         elif line == "CONNECTED":
-            self.emit("connected")
+            self.emit("connected",True)
             self.state = "connected"
         elif line == "DISCONNECTED":
             self.emit("disconnected")
