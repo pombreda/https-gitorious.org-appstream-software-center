@@ -41,6 +41,16 @@ class GtkMainIterationProgress(apt.progress.base.OpProgress):
         while gtk.events_pending():
             gtk.main_iteration()
 
+def convert_package_argument(f):
+    """ decorator converting _Package argument to Package object from cache """
+    def _converted(self, pkg, *args):
+        try:
+            pkg = self._cache[pkg.name] if type(pkg) is not apt_pkg.Package else pkg
+        except:
+            pkg = None
+        return f(self, pkg, *args)
+    return _converted
+
 class AptCache(PackageInfo):
     """ 
     A apt cache that opens in the background and keeps the UI alive
@@ -103,7 +113,7 @@ class AptCache(PackageInfo):
             return None
         return self._cache[pkgname].candidate
 
-    def get_available(self, pkgname):
+    def get_versions(self, pkgname):
         if (pkgname not in self._cache or
             not self._cache[pkgname].candidate):
             return []
@@ -126,6 +136,29 @@ class AptCache(PackageInfo):
             not self._cache[pkgname].candidate):
             return ''
         return self._cache[pkgname].candidate.description
+
+    def get_website(self, pkgname):
+        if (pkgname not in self._cache or
+            not self._cache[pkgname].candidate):
+            return ''
+        return self._cache[pkgname].candidate.homepage
+
+    def get_installed_files(self, pkgname):
+        if (pkgname not in self._cache):
+            return []
+        return self._cache[pkgname].installed_files
+
+    def get_size(self, pkgname):
+        if (pkgname not in self._cache or
+            not self._cache[pkgname].candidate):
+            return 0
+        return self._cache[pkgname].candidate.size
+
+    def get_installed_size(self, pkgname):
+        if (pkgname not in self._cache or
+            not self._cache[pkgname].candidate):
+            return 0
+        return self._cache[pkgname].candidate.installed_size
 
     @property
     def ready(self):
@@ -151,8 +184,8 @@ class AptCache(PackageInfo):
     # temporarely return a full apt.Package so that the tests and the
     # code keeps working for now, this needs to go away eventually
     # and get replaced with the abstract _Package class 
-    def __getitem__(self, key):
-        return self._cache[key]
+    #def __getitem__(self, key):
+    #    return self._cache[key]
 
     def __iter__(self):
         return self._cache.__iter__()
@@ -167,6 +200,12 @@ class AptCache(PackageInfo):
         self._timeout_id = glib.timeout_add_seconds(10, self.open)
     def _get_rdepends_by_type(self, pkg, type, onlyInstalled):
         rdeps = set()
+        # make sure this is a apt.Package object
+        try:
+            pkg = self._cache[pkg.name]
+        except KeyError:
+            LOG.error("package %s not found in AptCache" % str(pkg))
+            return rdeps
         for rdep in pkg._pkg.rev_depends_list:
             dep_type = rdep.dep_type_untranslated
             if dep_type in type:
@@ -269,7 +308,8 @@ class AptCache(PackageInfo):
                 it.archive == distro_codename):
                 return True
         return False
-        
+
+    @convert_package_argument
     def _get_depends_by_type(self, pkg, types):
         version = pkg.installed
         if version == None:
@@ -316,6 +356,7 @@ class AptCache(PackageInfo):
         return self._get_rdepends_by_type(pkg, self.SUGGESTS_TYPES, False)
     def get_renhances(self, pkg):
         return self._get_rdepends_by_type(pkg, self.ENHANCES_TYPES, False)
+    @convert_package_argument
     def get_renhances_lowlevel_apt_pkg(self, pkg):
         """ takes a apt_pkg.Package and returns a list of pkgnames that 
             enhance this package - this is needed to support enhances
@@ -364,6 +405,7 @@ class AptCache(PackageInfo):
         return language_packages
         
     # these are used for calculating the total size
+    @convert_package_argument
     def _get_changes_without_applying(self, pkg):
         try:
             if pkg.installed == None:

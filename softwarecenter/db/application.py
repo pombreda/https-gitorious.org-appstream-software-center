@@ -433,7 +433,7 @@ class AppDetails(object):
             # Don't handle upgrades yet
             #if self._pkg.installed and self._pkg._isUpgradable:
             #    return PKG_STATE_UPGRADABLE
-            if self._pkg.installed:
+            if self._pkg.is_installed:
                 return PKG_STATE_INSTALLED
             else:
                 return PKG_STATE_UNINSTALLED
@@ -559,7 +559,7 @@ class AppDetails(object):
     @property
     def website(self):
         if self._pkg:
-            return self._pkg.candidate.homepage
+            return self._pkg.website
 
     def _unavailable_channel(self):
         """ Check if the given doc refers to a channel that is currently not enabled """
