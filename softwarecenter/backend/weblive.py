@@ -263,15 +263,23 @@ class WebLiveClientX2GO(WebLiveClient):
 
         # Start in the background and attach a watch for when it exits
         cmd = [os.path.join(softwarecenter.paths.datadir, softwarecenter.paths.X2GO_HELPER)]
-        (pid, stdin, stdout, stderr) = glib.spawn_async(
+        (self.helper_pid, self.helper_stdin, self.helper_stdout, self.helper_stderr) = glib.spawn_async(
             cmd, standard_input=True, standard_output=True, standard_error=True)
-        glib.child_watch_add(pid, self._on_x2go_exit)
+        glib.child_watch_add(self.helper_pid, self._on_x2go_exit)
 
         # Add a watch on stdout
-        glib.io_add_watch(os.fdopen(stdout), glib.IO_IN, self._on_x2go_activity)
+        glib.io_add_watch(os.fdopen(self.helper_stdout), glib.IO_IN, self._on_x2go_activity)
 
         # Start the connection
-        os.fdopen(stdin,"w").write("CONNECT: \"%s\" \"%s\" \"%s\" \"%s\" \"%s\"" % (host, port, username, password, session))
+        os.fdopen(self.helper_stdin,"w").write("CONNECT: \"%s\" \"%s\" \"%s\" \"%s\" \"%s\"" % (host, port, username, password, session))
+        self.state = "connecting"
+
+    def disconnect_session(self):
+        """ Disconnect the current session """
+
+        if self.state == "connected":
+            self.state = "disconnecting"
+            os.fdopen(self.helper_stdin,"w").write("DISCONNECT")
 
     def _on_x2go_exit(self, pid, status):
         # We get everything by just watching stdout
@@ -282,7 +290,6 @@ class WebLiveClientX2GO(WebLiveClient):
 
         line=stdout.readline().strip()
         if line.startswith("PROGRESS: "):
-            self.state = "connecting"
             if line.endswith("creating"):
                 self.emit("progress",10)
             elif line.endswith("connecting"):

@@ -927,7 +927,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         elif self.weblive.client.state == "connected":
             button.set_sensitive(False)
-            self.weblive.client.disconnect()
+            self.weblive.client.disconnect_session()
 
     def _on_addon_table_built(self, table):
         if not table.parent:
