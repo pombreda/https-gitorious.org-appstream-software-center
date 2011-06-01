@@ -200,17 +200,17 @@ class TestAppDetailsView(unittest.TestCase):
         # monkey patch get_details() so that we get the mock object
         app.get_details = lambda db: mock_app_details
         self.appdetails.review_loader = ReviewLoaderIpsum(self.appdetails.cache, self.appdetails.db)
-        
         self.appdetails.show_app(app)
         self._p()
         time.sleep(2)
         self._p()
-        
-        review_box = self.appdetails.reviews.vbox.get_children()[0]
+        win=gtk.Window(); win.add(self.appdetails); win.show()
         self._p()
-
-        import pdb;pdb.set_trace()
-        
+        review_box = self.appdetails.reviews.vbox.get_children()[0]
+        self.assertTrue(review_box.useful.get_property('visible'))
+        self.assertFalse(review_box.submit_status_spinner.get_property('visible'))
+        #review_box.yes_like.emit('clicked')
+    
     # helper
     def _p(self):
         """ process gtk events """
