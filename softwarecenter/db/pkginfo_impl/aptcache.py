@@ -31,7 +31,6 @@ from softwarecenter.enums import (PKG_STATE_INSTALLING,
                                   PKG_STATE_UPGRADING,
                                   PKG_STATE_UNKNOWN,
                                   )
-from softwarecenter.utils import ExecutionTime
 from softwarecenter.db.pkginfo import PackageInfo
 
 LOG = logging.getLogger(__name__)
@@ -136,6 +135,7 @@ class AptCache(PackageInfo):
         """
         self._ready = False
         self.emit("cache-invalid")
+        from softwarecenter.utils import ExecutionTime
         with ExecutionTime("open the apt cache (in event loop)"):
             if self._cache == None:
                 self._cache = apt.Cache(GtkMainIterationProgress())
