@@ -19,6 +19,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import apt
+import apt_pkg
 import logging
 import gio
 import glib
@@ -30,7 +31,6 @@ from softwarecenter.enums import (PKG_STATE_INSTALLING,
                                   PKG_STATE_UPGRADING,
                                   PKG_STATE_UNKNOWN,
                                   )
-from softwarecenter.utils import ExecutionTime
 from softwarecenter.db.pkginfo import PackageInfo
 
 LOG = logging.getLogger(__name__)
@@ -72,6 +72,17 @@ class AptCache(PackageInfo):
             "changed", self._on_apt_finished_stamp_changed)
         # this is fast, so ok
         self._language_packages = self._read_language_pkgs()
+
+    @staticmethod
+    def version_compare(v1, v2):
+        return apt_pkg.version_compare(a, b)
+    @staticmethod
+    def upstream_version_compare(a, b):
+        return apt_pkg.version_compare(apt_pkg.upstream_version(a),
+                                       apt_pkg.upstream_version(b))
+    @staticmethod
+    def upstream_version(v):
+        return apt_pkg.upstream_version(v)
 
     def is_installed(self, pkgname):
         return (pkgname in self._cache and
@@ -124,6 +135,7 @@ class AptCache(PackageInfo):
         """
         self._ready = False
         self.emit("cache-invalid")
+        from softwarecenter.utils import ExecutionTime
         with ExecutionTime("open the apt cache (in event loop)"):
             if self._cache == None:
                 self._cache = apt.Cache(GtkMainIterationProgress())
@@ -135,11 +147,13 @@ class AptCache(PackageInfo):
             self.emit("cache-broken")
 
     # implementation specific code
+
+    # temporarely return a full apt.Package so that the tests and the
+    # code keeps working for now, this needs to go away eventually
+    # and get replaced with the abstract _Package class 
     def __getitem__(self, key):
-        package = PackageInfo.__getitem__(self, key)
-        if package is not None:
-            package._pkg = self._cache[key]._pkg
-        return package
+        return self._cache[key]
+
     def __iter__(self):
         return self._cache.__iter__()
     def __contains__(self, k):
