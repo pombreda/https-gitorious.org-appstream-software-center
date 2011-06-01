@@ -247,7 +247,7 @@ class ReviewLoader(object):
                 LOG.exception("review stats cache load failure")
                 os.rename(self.REVIEW_STATS_CACHE_FILE, self.REVIEW_STATS_CACHE_FILE+".fail")
 
-    def get_reviews(self, application, callback, page=1):
+    def get_reviews(self, application, callback, page=1, language=None):
         """run callback f(app, review_list) 
            with list of review objects for the given
            db.database.Application object
@@ -589,7 +589,7 @@ class ReviewLoaderJsonAsync(ReviewLoader):
         # run callback
         callback(app, sorted(reviews, reverse=True))
 
-    def get_reviews(self, app, callback, page=1):
+    def get_reviews(self, app, callback, page=1, language=None):
         """ get a specific review and call callback when its available"""
         # FIXME: get this from the app details
         origin = self.cache.get_origin(app.pkgname)
@@ -660,7 +660,7 @@ class ReviewLoaderFake(ReviewLoader):
         return random.choice(self.LOREM.split("\n\n"))
     def _random_summary(self):
         return random.choice(self.SUMMARIES)
-    def get_reviews(self, application, callback, page=1):
+    def get_reviews(self, application, callback, page=1, language=None):
         if not application in self._review_stats_cache:
             self.get_review_stats(application)
         stats = self._review_stats_cache[application]
