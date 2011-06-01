@@ -896,33 +896,38 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         error(None,"WebLive warning", warning)
 
     def on_test_drive_clicked(self, button):
-        # get exec line
-        exec_line = get_exec_line_from_desktop(self.desktop_file)
+        if self.weblive.client.state == "disconnected":
+            # get exec line
+            exec_line = get_exec_line_from_desktop(self.desktop_file)
 
-        # split away any arguments, gedit for example as %U
-        cmd = exec_line.split()[0]
+            # split away any arguments, gedit for example as %U
+            cmd = exec_line.split()[0]
 
-        # Get the list of servers
-        servers = self.weblive.get_servers_for_pkgname(self.app.pkgname)
+            # Get the list of servers
+            servers = self.weblive.get_servers_for_pkgname(self.app.pkgname)
 
-        if len(servers) == 0:
-            error(None,"No available server", "There is currently no available WebLive server for this application.\nPlease try again later.")
-        elif len(servers) == 1:
-            self.weblive.create_automatic_user_and_run_session(session=cmd,serverid=servers[0].name)
-            button.set_sensitive(False)
-        else:
-            d = ShowWebLiveServerChooserDialog(servers, self.app.pkgname)
-            serverid=None
-            if d.run() == gtk.RESPONSE_OK:
-                for server in d.servers_vbox:
-                    if server.get_active():
-                        serverid=server.serverid
-                        break
-            d.destroy()
-
-            if serverid:
-                self.weblive.create_automatic_user_and_run_session(session=cmd,serverid=serverid)
+            if len(servers) == 0:
+                error(None,"No available server", "There is currently no available WebLive server for this application.\nPlease try again later.")
+            elif len(servers) == 1:
+                self.weblive.create_automatic_user_and_run_session(session=cmd,serverid=servers[0].name)
                 button.set_sensitive(False)
+            else:
+                d = ShowWebLiveServerChooserDialog(servers, self.app.pkgname)
+                serverid=None
+                if d.run() == gtk.RESPONSE_OK:
+                    for server in d.servers_vbox:
+                        if server.get_active():
+                            serverid=server.serverid
+                            break
+                d.destroy()
+
+                if serverid:
+                    self.weblive.create_automatic_user_and_run_session(session=cmd,serverid=serverid)
+                    button.set_sensitive(False)
+
+        elif self.weblive.client.state == "connected":
+            button.set_sensitive(False)
+            self.weblive.client.disconnect()
 
     def _on_addon_table_built(self, table):
         if not table.parent:
