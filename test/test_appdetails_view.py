@@ -29,6 +29,7 @@ from softwarecenter.enums import (PKG_STATE_UNKNOWN,
 from softwarecenter.paths import XAPIAN_BASE_PATH
 from softwarecenter.ui.gtk.appdetailsview_gtk import AppDetailsViewGtk
 from softwarecenter.ui.gtk.widgets.reviews import EmbeddedMessage
+from softwarecenter.backend.reviews import Review, ReviewLoaderIpsum
 
 
 class TestAppDetailsView(unittest.TestCase):
@@ -192,7 +193,24 @@ class TestAppDetailsView(unittest.TestCase):
         self._p()
         # now that the app is installed, check that the invitation to review the app is showing
         self.assertTrue(self.appdetails.reviews.new_review.get_property("visible"))
+        
+    def test_usefulness_submit_behaviour(self):
+        app = Application("Compiz", "compiz-core")
+        mock_app_details = self._get_mock_app_details()
+        # monkey patch get_details() so that we get the mock object
+        app.get_details = lambda db: mock_app_details
+        self.appdetails.review_loader = ReviewLoaderIpsum(self.appdetails.cache, self.appdetails.db)
+        
+        self.appdetails.show_app(app)
+        self._p()
+        time.sleep(2)
+        self._p()
+        
+        review_box = self.appdetails.reviews.vbox.get_children()[0]
+        self._p()
 
+        import pdb;pdb.set_trace()
+        
     # helper
     def _p(self):
         """ process gtk events """
