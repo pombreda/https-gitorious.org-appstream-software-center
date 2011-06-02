@@ -38,14 +38,18 @@ class RatingsAndReviewsAPI(PistonAPI):
     default_service_root = 'http://localhost:8000/reviews/api/1.0'
     default_content_type = 'application/x-www-form-urlencoded'
     exception_msg = 'Fake RatingsAndReviewsAPI raising fake exception'
+    PACKAGE_NAMES = ['armagetronad', 'compizconfig-settings-manager', 'file-roller', 
+                     'aisleriot', 'p7zip-full', 'compiz-core', 'banshee', 
+                     'gconf-editor', 'nanny', '3depict', 'apturl', 'jockey-gtk', 
+                     'alex4', 'bzr-explorer', 'aqualung']
+
 
     @returns_json
     def server_status(self):
-        if FakeReviewSettings.server_response_ok:
-            return simplejson.dumps('ok')
-        else:
+        if FakeReviewSettings.server_response_error:
             raise APIError(self.exception_msg)
-
+        else:
+            return simplejson.dumps('ok')
 
     @validate_pattern('origin', r'[0-9a-z+-.:/]+', required=False)
     @validate_pattern('distroseries', r'\w+', required=False)
@@ -53,17 +57,26 @@ class RatingsAndReviewsAPI(PistonAPI):
     @returns_list_of(ReviewsStats)
     def review_stats(self, origin='any', distroseries='any', days=None,
         valid_days=(1,3,7)):
-        """Fetch ratings for a particular distroseries"""
-        url = 'review-stats/{0}/{1}/'.format(origin, distroseries)
-        if days is not None:
-            # the server only knows valid_days (1,3,7) currently
-            for valid_day in valid_days:
-                # pick the day from valid_days that is the next bigger than
-                # days
-                if days <= valid_day:
-                    url += 'updates-last-{0}-days/'.format(valid_day)
-                    break
-        #return self._get(url, scheme=PUBLIC_API_SCHEME)
+        
+        if FakeReviewSettings.packages_returned > 15:
+            quantity = 15
+        else:
+            quantity = FakeReviewSettings.packages_returned
+            
+        stats = []
+        
+        if FakeReviewSettings.review_stats_error:
+            raise APIError(self.exception_msg)
+        else:
+            for i in range (0, quantity):
+                s = {'app_name':'', 
+                     'package_name':self.PACKAGE_NAMES[i], 
+                     'ratings_total': str(random.randrange(1,200)),
+                     'ratings_average': str(random.randrange(0,5))
+                }
+                stats.append(s)
+            
+            return simplejson.dumps(stats)
 
     @validate_pattern('language', r'\w+', required=False)
     @validate_pattern('origin', r'[0-9a-z+-.:/]+', required=False)
