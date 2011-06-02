@@ -101,11 +101,9 @@ class ChannelsManager(object):
         self.backend.emit("channels-changed", True)
 
         if channel.installed_only:
-            channel._channel_color = '#aea79f'
-            channel._channel_image_id = VIEW_PAGE_INSTALLED
+            channel._channel_view_id = VIEW_PAGE_INSTALLED
         else:
-            channel._channel_color = '#0769BC'
-            channel._channel_image_id = VIEW_PAGE_AVAILABLE
+            channel._channel_view_id = VIEW_PAGE_AVAILABLE
         return channel
 
     # internal
@@ -308,11 +306,9 @@ class ChannelsManager(object):
 
         for channel in channels:
             if installed_only:
-                channel._channel_color = '#aea79f'
-                channel._channel_image_id = VIEW_PAGE_INSTALLED
+                channel._channel_view_id = VIEW_PAGE_INSTALLED
             else:
-                channel._channel_color = '#0769BC'
-                channel._channel_image_id = VIEW_PAGE_AVAILABLE
+                channel._channel_view_id = VIEW_PAGE_AVAILABLE
         return channels
 
 
@@ -336,7 +332,7 @@ class SoftwareChannel(object):
         self._channel_origin = channel_origin
         self._channel_component = channel_component
         self._channel_color = None
-        self._channel_image_id = None
+        self._channel_view_id = None
         self.installed_only = installed_only
         self.icons = icons
         self._channel_sort_mode = channel_sort_mode
