@@ -12,6 +12,7 @@ from piston_mini_client import (
     returns_list_of,
     )
 from piston_mini_client.validators import validate_pattern, validate
+from piston_mini_client.failhandlers import APIError
 
 # These are factored out as constants for if you need to work against a
 # server that doesn't support both schemes (like http-only dev servers)
@@ -32,13 +33,14 @@ class RatingsAndReviewsAPI(PistonAPI):
     """
     default_service_root = 'http://localhost:8000/reviews/api/1.0'
     default_content_type = 'application/x-www-form-urlencoded'
+    exception_msg = 'Fake RatingsAndReviewsAPI raising fake exception'
 
     @returns_json
     def server_status(self):
         if FakeReviewSettings.server_response_ok:
             return simplejson.dumps('ok')
         else:
-            raise piston_mini_client.failhandlers.APIError
+            raise APIError(self.exception_msg)
 
 
     @validate_pattern('origin', r'[0-9a-z+-.:/]+', required=False)
@@ -70,7 +72,7 @@ class RatingsAndReviewsAPI(PistonAPI):
     def get_reviews(self, packagename, language='any', origin='any',
         distroseries='any', version='any', appname='', page=1):
         if FakeReviewSettings.get_reviews_error:
-            raise piston_mini_client.failhandlers.APIError
+            raise APIError(self.exception_msg)
         else:
             if FakeReviewSettings.reviews_returned == 0:
                 return simplejson.dumps([])
