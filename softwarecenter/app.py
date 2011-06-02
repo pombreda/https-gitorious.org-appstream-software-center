@@ -398,7 +398,10 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
     
     def on_channel_pane_created(self, widget):
         channel_section = SoftwareSection()
-        channel_section.set_image(VIEW_PAGE_CHANNEL, os.path.join(self.datadir, 'images/arrows.png'))
+        # for background rendering, channel panes can specify either available or installed id's
+        # we need only set the installed case here as the available case has been set previously
+        # during the available_pane setup (LP: #724724)
+        channel_section.set_image(VIEW_PAGE_INSTALLED, os.path.join(self.datadir, 'images/arrows.png'))
         channel_section.set_color('#aea79f')
         self.channel_pane.set_section(channel_section)
 
