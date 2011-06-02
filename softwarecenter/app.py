@@ -424,6 +424,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
     
     def on_channel_pane_created(self, widget):
         channel_section = SoftwareSection()
+        channel_section.set_image(VIEW_PAGE_INSTALLED, os.path.join(self.datadir, 'images/arrows.png'))
         channel_section.set_image(VIEW_PAGE_CHANNEL, os.path.join(self.datadir, 'images/arrows.png'))
         channel_section.set_color('#aea79f')
         self.channel_pane.set_section(channel_section)
