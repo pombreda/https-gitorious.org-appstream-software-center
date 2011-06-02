@@ -87,14 +87,7 @@ class SoftwareSection(object):
         cr.rectangle(0,0,a.width, 150)
         cr.fill()
 
-        # there is a race here because we create e.g. the installed-page
-        # delayed. if its not created yet, we just do not show a image
-        # until its available
-        if self._image_id in self.MASK_SURFACE_CACHE:
-            s = self.MASK_SURFACE_CACHE[self._image_id]
-        else:
-            s = cairo.ImageSurface(0, 64, 64)
-
+        s = self.MASK_SURFACE_CACHE[self._image_id]
         if widget.get_direction() != gtk.TEXT_DIR_RTL:
             cr.set_source_surface(s, a.x+a.width-s.get_width(), 0)
         else:
