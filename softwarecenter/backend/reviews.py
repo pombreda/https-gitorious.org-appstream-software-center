@@ -34,10 +34,7 @@ import urllib
 import simplejson
 
 
-if "SOFTWARE_CENTER_FAKE_REVIEW_API" in os.environ:
-    from softwarecenter.backend.rnrclient_fake import RatingsAndReviewsAPI
-else:
-    from softwarecenter.backend.rnrclient import RatingsAndReviewsAPI
+from softwarecenter.backend.rnrclient import RatingsAndReviewsAPI
 from softwarecenter.backend.rnrclient_pristine import ReviewDetails
 from softwarecenter.db.database import Application
 import softwarecenter.distro
