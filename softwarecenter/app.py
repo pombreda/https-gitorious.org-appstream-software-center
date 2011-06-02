@@ -403,8 +403,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
     # callbacks
     def on_available_pane_created(self, widget):
         available_section = SoftwareSection()
-        available_section.set_image(VIEW_PAGE_AVAILABLE, os.path.join(self.datadir, 'images/clouds.png'))
-        available_section.set_color('#0769BC')
+        available_section.set_view_id(VIEW_PAGE_AVAILABLE)
         self.available_pane.set_section(available_section)
 
         # connect signals
@@ -424,8 +423,9 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
     
     def on_channel_pane_created(self, widget):
         channel_section = SoftwareSection()
-        channel_section.set_image(VIEW_PAGE_CHANNEL, os.path.join(self.datadir, 'images/arrows.png'))
-        channel_section.set_color('#aea79f')
+        # note that the view_id for each channel's section is set later
+        # depending on whether the channel view will display available or
+        # installed items
         self.channel_pane.set_section(channel_section)
 
         # connect signals
@@ -442,8 +442,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                            
     def on_installed_pane_created(self, widget):
         installed_section = SoftwareSection()
-        installed_section.set_image(VIEW_PAGE_INSTALLED, os.path.join(self.datadir, 'images/arrows.png'))
-        installed_section.set_color('#aea79f')
+        installed_section.set_view_id(VIEW_PAGE_INSTALLED)
         self.installed_pane.set_section(installed_section)
         
         # connect signals

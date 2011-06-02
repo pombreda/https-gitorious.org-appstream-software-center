@@ -74,8 +74,6 @@ class CategoriesViewGtk(gtk.Viewport, CategoriesView):
         self.icons = icons
         self.section = None
 
-        self.section_color = mkit.floats_from_string('#0769BC')
-
         gtk.Viewport.__init__(self)
         CategoriesView.__init__(self)
         self.set_shadow_type(gtk.SHADOW_NONE)

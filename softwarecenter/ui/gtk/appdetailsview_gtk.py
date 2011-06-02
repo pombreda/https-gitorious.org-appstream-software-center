@@ -135,7 +135,7 @@ class StatusBar(gtk.Alignment):
         if src_color:
             bg = color_floats(src_color)
         elif self.view.section:
-            bg = self.view.section._section_color
+            bg = self.view.section.get_background_color()
         else:
             bg = color_floats(StatusBar.SECTION_FALLBACK_COLOR)
 

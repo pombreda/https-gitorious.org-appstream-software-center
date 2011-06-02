@@ -26,6 +26,7 @@ import gtk
 import logging
 import xapian
 import copy
+import os
 
 from gettext import gettext as _
 
@@ -47,7 +48,9 @@ from softwarecenter.enums import (
     NAV_BUTTON_ID_SEARCH,
     SORT_BY_ALPHABET,
     SORT_BY_SEARCH_RANKING,
-    TRANSACTION_TYPE_INSTALL
+    TRANSACTION_TYPE_INSTALL,
+    VIEW_PAGE_AVAILABLE,
+    VIEW_PAGE_INSTALLED
     )
 from softwarecenter.utils import (convert_desktop_file_to_installed_location,
                                   get_file_path_from_iconname,
@@ -69,17 +72,27 @@ LOG = logging.getLogger(__name__)
 
 class SoftwareSection(object):
     
-    MASK_SURFACE_CACHE = {}
+    # specify background overlay image and color mappings for available and installed view ids
+    BACKGROUND_IMAGES = {VIEW_PAGE_AVAILABLE : cairo.ImageSurface.create_from_png(
+                                                 os.path.join(softwarecenter.paths.datadir, 'images/clouds.png')),
+                         VIEW_PAGE_INSTALLED : cairo.ImageSurface.create_from_png(
+                                                 os.path.join(softwarecenter.paths.datadir, 'images/arrows.png')),
+                        }
+    BACKGROUND_COLORS = {VIEW_PAGE_AVAILABLE : floats_from_string('#0769BC'),
+                         VIEW_PAGE_INSTALLED : floats_from_string('#aea79f'),
+                        }
 
     def __init__(self):
-        self._image_id = 0
-        self._section_icon = None
-        self._section_color = None
+        self._view_id = None
+        return
+        
+    def set_view_id(self, id):
+        self._view_id = id
         return
 
     def render(self, cr, widget, a):
         # sky
-        r,g,b = self._section_color
+        r,g,b = self.get_background_color()
         lin = cairo.LinearGradient(0,a.y,0,a.y+150)
         lin.add_color_stop_rgba(0, r,g,b, 0.3)
         lin.add_color_stop_rgba(1, r,g,b,0)
@@ -87,14 +100,7 @@ class SoftwareSection(object):
         cr.rectangle(0,0,a.width, 150)
         cr.fill()
 
-        # there is a race here because we create e.g. the installed-page
-        # delayed. if its not created yet, we just do not show a image
-        # until its available
-        if self._image_id in self.MASK_SURFACE_CACHE:
-            s = self.MASK_SURFACE_CACHE[self._image_id]
-        else:
-            s = cairo.ImageSurface(0, 64, 64)
-
+        s = self.get_background_image()
         if widget.get_direction() != gtk.TEXT_DIR_RTL:
             cr.set_source_surface(s, a.x+a.width-s.get_width(), 0)
         else:
@@ -103,27 +109,11 @@ class SoftwareSection(object):
         cr.paint()
         return
 
-    def set_icon(self, icon):
-        self._section_icon = icon
-        return
+    def get_background_color(self):
+        return self.BACKGROUND_COLORS[self._view_id]
 
-    def set_image(self, id, path):
-        image = cairo.ImageSurface.create_from_png(path)
-        self._image_id = id
-        self.MASK_SURFACE_CACHE[id] = image
-        return
-
-    def set_image_id(self, id):
-        self._image_id = id
-        return
-
-    def set_color(self, color_spec):
-        color = floats_from_string(color_spec)
-        self._section_color = color
-        return
-
-    def get_image(self):
-        return self.MASK_SURFACE_CACHE[self._image_id]
+    def get_background_image(self):
+        return self.BACKGROUND_IMAGES[self._view_id]
         
 class UnityLauncherInfo(object):
     """ Simple class to keep track of application details needed for
