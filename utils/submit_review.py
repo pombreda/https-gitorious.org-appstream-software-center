@@ -59,7 +59,11 @@ from softwarecenter.distro import get_distro
 from softwarecenter.ui.gtk.widgets.reviews import StarRatingSelector, StarCaption
 from softwarecenter.gwibber_helper import GwibberHelper, GwibberHelperMock
 
-from softwarecenter.backend.rnrclient import RatingsAndReviewsAPI
+if "SOFTWARE_CENTER_FAKE_REVIEW_API" in os.environ:
+    from softwarecenter.backend.rnrclient_fake import RatingsAndReviewsAPI
+else:
+    from softwarecenter.backend.rnrclient import RatingsAndReviewsAPI
+    
 from softwarecenter.backend.rnrclient_pristine import ReviewRequest
 
 #import httplib2
