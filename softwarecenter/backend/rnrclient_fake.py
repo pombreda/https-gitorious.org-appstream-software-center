@@ -127,9 +127,10 @@ class RatingsAndReviewsAPI(PistonAPI):
     @validate_pattern('useful', 'True|False')
     @returns_json
     def submit_usefulness(self, review_id, useful):
-        """Submit a usefulness vote."""
-        #return self._post('/reviews/%s/recommendations/' % review_id,
-        #    data={'useful': useful}, scheme=AUTHENTICATED_API_SCHEME)
+        if FakeReviewSettings.submit_usefulness_error:
+            raise APIError(self.exception_msg)
+        else:
+            return simplejson.dumps(FakeReviewSettings.usefulness_response_string)
 
     @validate('review_id', int, required=False)
     @validate_pattern('username', r'[^\n]+', required=False)

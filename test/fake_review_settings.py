@@ -39,6 +39,11 @@ class FakeReviewSettings(object):
     #raises APIError if True
     submit_usefulness_error = False
     
+    #the following has no effect if submit_usefulness_error = True
+    #which string to pretend the server returned
+    #choices are "Created", "Updated", "Not modified"
+    usefulness_response_string = "Created"
+    
     #get usefulness
     #*************
     #raises APIError if True
