@@ -16,7 +16,6 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import apt_pkg
 import dbus
 import gmenu
 import gettext
@@ -213,10 +212,8 @@ def unescape(text):
     """
     return xml.sax.saxutils.unescape(text, ESCAPE_ENTITIES)
 
-#def get_current_arch():
-#    return apt_pkg.config.find("Apt::Architecture")
-
 def uri_to_filename(uri):
+    import apt_pkg
     return apt_pkg.uri_to_filename(uri)
 
 def human_readable_name_from_ppa_uri(ppa_uri):
