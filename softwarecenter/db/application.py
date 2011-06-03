@@ -16,7 +16,6 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import apt_pkg
 import locale
 import logging
 import os
@@ -25,6 +24,7 @@ import re
 from gettext import gettext as _
 from mimetypes import guess_type
 from softwarecenter.distro import get_distro
+from softwarecenter.backend.channel import ChannelsManager
 from softwarecenter.enums import (
     MISSING_PKG_ICON,
     PKG_STATE_INSTALLING_PURCHASED,
@@ -57,6 +57,8 @@ from softwarecenter.enums import (
 from softwarecenter.paths import (APP_INSTALL_CHANNELS_PATH,
                                   SOFTWARE_CENTER_ICON_CACHE_DIR,
                                   )
+from softwarecenter.utils import version_compare
+
 LOG = logging.getLogger(__name__)
 
 # this is a very lean class as its used in the main listview
@@ -530,7 +532,7 @@ class AppDetails(object):
                 minver_matches = re.findall(r'minver=[a-z,0-9,-,+,.,~]*', self._app.request)
                 if minver_matches and self.version:
                     minver = minver_matches[0][7:]
-                    if apt_pkg.version_compare(minver, self.version) > 0:
+                    if version_compare(minver, self.version) > 0:
                         return _("Version %s or later not available.") % minver
         # can we enable a source
         if not self._pkg:
@@ -563,9 +565,7 @@ class AppDetails(object):
 
     def _unavailable_channel(self):
         """ Check if the given doc refers to a channel that is currently not enabled """
-        p = os.path.join(apt_pkg.config.find_dir("Dir::Etc::sourceparts"),
-                         "%s.list" % self.channelname)
-        return not os.path.exists(p)
+        return not ChannelsManager.channel_available(self.channel_name)
 
     def _unavailable_component(self, component_to_check=None):
         """ Check if the given doc refers to a component that is currently not enabled """
