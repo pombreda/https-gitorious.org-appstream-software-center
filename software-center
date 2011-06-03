@@ -134,6 +134,12 @@ if __name__ == "__main__":
     # create the app
     from softwarecenter.ui.gtk.app import SoftwareCenterApp
     from softwarecenter.utils import ExecutionTime
+    import dbus
+    import dbus.mainloop.glib
+
+    loop = dbus.mainloop.glib.DBusGMainLoop()
+    dbus.set_default_main_loop(loop)
+
     with ExecutionTime("create SoftwareCenterApp"):
         app = SoftwareCenterApp(datadir, xapian_base_path, options, args)
 

@@ -243,8 +243,12 @@ channels_manager = None
 def get_channels_manager(db):
     global channels_manager
     if channels_manager is None:
-        from softwarecenter.backend.aptchannels import AptChannelsManager
-        channels_manager = AptChannelsManager(db)
+        from softwarecenter.enums import USE_PACKAGEKIT_BACKEND
+        if not USE_PACKAGEKIT_BACKEND:
+            from softwarecenter.backend.aptchannels import AptChannelsManager
+            channels_manager = AptChannelsManager(db)
+        else:
+            channels_manager = ChannelsManager()
     return channels_manager
 
 def is_channel_available(channelname):

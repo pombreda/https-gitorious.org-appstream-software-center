@@ -355,7 +355,10 @@ def update_from_json_string(db, cache, json_string, origin):
 
 def update_from_var_lib_apt_lists(db, cache, listsdir=None):
     """ index the files in /var/lib/apt/lists/*AppInfo """
-    import apt_pkg
+    try:
+        import apt_pkg
+    except:
+        return False
     if not listsdir:
         listsdir = apt_pkg.Config.find_dir("Dir::State::lists")
     context = GObject.main_context_default()

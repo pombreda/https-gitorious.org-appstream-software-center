@@ -213,8 +213,11 @@ def unescape(text):
     return xml.sax.saxutils.unescape(text, ESCAPE_ENTITIES)
 
 def uri_to_filename(uri):
-    import apt_pkg
-    return apt_pkg.uri_to_filename(uri)
+    try:
+        import apt_pkg
+        return apt_pkg.uri_to_filename(uri)
+    except ImportError:
+        return uri
 
 def human_readable_name_from_ppa_uri(ppa_uri):
     """ takes a PPA uri and returns a human readable name for it """

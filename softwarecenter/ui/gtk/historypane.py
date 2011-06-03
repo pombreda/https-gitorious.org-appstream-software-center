@@ -150,7 +150,10 @@ class HistoryPane(gtk.VBox, BasePane):
         self.store_filter.set_visible_func(self.filter_row)
         self.view.set_model(self.store_filter)
         all_action.set_active(True)
-        self.filename = apt_pkg.config.find_file("Dir::Log::History")
+        try:
+            self.filename = apt_pkg.config.find_file("Dir::Log::History")
+        except:
+            self.filename = ''
         self.last = None
         
         # to save (a lot of) time at startup we load history later, only when
