@@ -145,7 +145,8 @@ class Distro(object):
 
 def _get_distro():
     distro_id = subprocess.Popen(["lsb_release","-i","-s"], 
-                                 stdout=subprocess.PIPE).communicate()[0].strip()
+                                 stdout=subprocess.PIPE).communicate()[0]
+    distro_id = distro_id.strip().replace(' ', '')
     logging.getLogger("softwarecenter.distro").debug("get_distro: '%s'" % distro_id)
     # start with a import, this gives us only a softwarecenter module
     module =  __import__(distro_id, globals(), locals(), [], -1)

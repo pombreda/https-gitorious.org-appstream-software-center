@@ -22,8 +22,10 @@ from gi.repository import GObject
 import gtk
 import logging
 
-import apt_pkg
-apt_pkg.init_config()
+try:
+	import apt_pkg
+	apt_pkg.init_config()
+except: pass
 
 import os.path
 import datetime

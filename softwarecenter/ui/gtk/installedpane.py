@@ -16,7 +16,6 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import apt
 import gettext
 import gtk
 import logging
@@ -186,6 +185,7 @@ class InstalledPane(SoftwarePane):
 if __name__ == "__main__":
 
     from softwarecenter.db.database import StoreDatabase
+    import apt
 
     #logging.basicConfig(level=logging.DEBUG)
 

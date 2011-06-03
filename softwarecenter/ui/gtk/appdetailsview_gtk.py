@@ -33,7 +33,11 @@ from softwarecenter.netstatus import NetState, get_network_watcher, network_stat
 from gettext import gettext as _
 
 from softwarecenter.db.application import Application
-from softwarecenter.db.debfile import DebFileApplication
+try:
+    from softwarecenter.db.debfile import DebFileApplication
+except:
+    class DebFileApplication: pass
+
 from softwarecenter.backend.reviews import ReviewStats
 
 from softwarecenter.backend.zeitgeist_simple import zeitgeist_singleton

@@ -17,7 +17,6 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import apt
 import gettext
 import gtk
 import logging
@@ -252,6 +251,7 @@ class ChannelPane(SoftwarePane):
         return self.notebook.get_current_page() == self.PAGE_APP_DETAILS
 
 if __name__ == "__main__":
+    import apt
     #logging.basicConfig(level=logging.DEBUG)
     xapian_base_path = XAPIAN_BASE_PATH
     pathname = os.path.join(xapian_base_path, "xapian")

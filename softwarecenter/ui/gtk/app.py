@@ -39,7 +39,10 @@ softwarecenter.netstatus.NETWORK_STATE
 
 from SimpleGtkbuilderApp import SimpleGtkbuilderApp
 from softwarecenter.db.application import Application
-from softwarecenter.db.debfile import DebFileApplication
+try:
+	from softwarecenter.db.debfile import DebFileApplication
+except:
+	class DebFileApplication: pass
 
 from softwarecenter.enums import (Icons,
                                   PkgStates,
@@ -60,9 +63,13 @@ from softwarecenter.version import VERSION
 from softwarecenter.db.database import StoreDatabase
 import dependency_dialogs as dependency_dialogs
 import deauthorize_dialog as deauthorize_dialog
-from softwarecenter.backend.aptd import TransactionFinishedResult
+from softwarecenter.backend.packagekitd import TransactionFinishedResult
 
-from aptd_gtk2 import InstallBackendUI
+try:
+	from aptd_gtk2 import InstallBackendUI
+except:
+	class InstallBackendUI: pass
+
 from viewswitcher import ViewSwitcher
 from pendingview import PendingView
 from installedpane import InstalledPane
