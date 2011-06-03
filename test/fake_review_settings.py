@@ -61,3 +61,12 @@ class FakeReviewSettings(object):
     #*****************************
     #raises APIError if True
     get_usefulness_error = False
+    
+    #the following has no effect if get_usefulness_error = True
+    #how many usefulness votes to return
+    votes_returned = 5
+    
+    #pre-configured review ids to return in the result 
+    #if you don't complete this or enter less review ids than votes_returned
+    #above, it will be random
+    required_review_ids = [3,6,15]

@@ -42,6 +42,11 @@ class RatingsAndReviewsAPI(PistonAPI):
                      'aisleriot', 'p7zip-full', 'compiz-core', 'banshee', 
                      'gconf-editor', 'nanny', '3depict', 'apturl', 'jockey-gtk', 
                      'alex4', 'bzr-explorer', 'aqualung']
+    USERS = ["Joe Doll", "John Foo", "Cat Lala", "Foo Grumpf", 
+             "Bar Tender", "Baz Lightyear"]
+    SUMMARIES = ["Cool", "Medium", "Bad", "Too difficult"]
+    TEXT = ["Review text number 1", "Review text number 2", 
+            "Review text number 3", "Review text number 4"]
 
 
     @returns_json
@@ -136,29 +141,59 @@ class RatingsAndReviewsAPI(PistonAPI):
     @validate_pattern('username', r'[^\n]+', required=False)
     @returns_json
     def get_usefulness(self, review_id=None, username=None):
-        """Get a list of usefulness filtered by username/review_id"""
         if not username and not review_id:
             return None
-
-        data = {}
-
-        if username:
-            data['username'] = username
+        
+        if FakeReviewSettings.get_usefulness_error:
+            raise APIError(self.exception_msg)
+        
+        #just return a single fake item if the revire_id was supplied
         if review_id:
-            data['review_id'] = str(review_id)
+            if username:
+                response_user = username
+            else:
+                response_user = random.choice(self.USERS)
+                
+            response = {
+                'username':response_user,
+                'useful':random.choice(['True','False']),
+                'review_id':review_id
+                }
+            return simplejson.dumps([response])
+            
+        #set up review ids to honour requested and also add randoms
+        quantity = FakeReviewSettings.votes_returned
+        id_list = FakeReviewSettings.required_review_ids
+        id_quantity = len(id_list)
 
-        #return self._get('usefulness/', args=data,
-        #    scheme=PUBLIC_API_SCHEME)
+        #figure out if we need to accomodate requested review ids
+        if id_quantity == 0:
+            rand_id_start = 0
+        else:
+            rand_id_start = max(id_list)
+        
+        votes = []
+            
+        for i in range(0, quantity):
+            #assign review ids requested if any still exist
+            try:
+                id = id_list[i]
+            except IndexError:
+                id = random.randint(rand_id_start,10000)
+                
+            u = {
+                 'username': username, 
+                 'useful': random.choice(['True','False']), 
+                 'review_id' : id
+                }
+            votes.append(u)
+        
+        return simplejson.dumps(votes)
         
         
     def _make_fake_reviews(self, packagename='compiz-core', 
                            quantity=1, single_id=None):
         """Make and return a requested quantity of fake reviews"""
-        USERS = ["Joe Doll", "John Foo", "Cat Lala", "Foo Grumpf", 
-                 "Bar Tender", "Baz Lightyear"]
-        SUMMARIES = ["Cool", "Medium", "Bad", "Too difficult"]
-        TEXT = ["Review text number 1", "Review text number 2", 
-                "Review text number 3", "Review text number 4"]
         
         reviews = []
         
@@ -174,12 +209,12 @@ class RatingsAndReviewsAPI(PistonAPI):
                         "hide": False,
                         "app_name": "",
                         "language": "en",
-                        "reviewer_username": random.choice(USERS),
+                        "reviewer_username": random.choice(self.USERS),
                         "usefulness_total": random.randint(3,6),
                         "usefulness_favorable": random.randint(1,3),
-                        "review_text": random.choice(TEXT),
+                        "review_text": random.choice(self.TEXT),
                         "date_deleted": None,
-                        "summary": random.choice(SUMMARIES),
+                        "summary": random.choice(self.SUMMARIES),
                         "version": "1:0.9.4",
                         "id": id,
                         "date_created": time.strftime("%Y-%m-%d %H:%M:%S"),
