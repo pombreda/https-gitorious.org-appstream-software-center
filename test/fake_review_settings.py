@@ -42,6 +42,15 @@ class FakeReviewSettings(object):
     #raises APIError if True
     get_review_error= False
     
+    #submit review
+    #*****************************
+    #raises APIError if True
+    submit_review_error = False
+    #fake username(str) and review_id(int) to give back with a successful review
+    #leave as None to generate a random username and review_id
+    reviewer_username = None
+    submit_review_id = None
+    
     #flag review
     #*****************************
     #raises APIError if True

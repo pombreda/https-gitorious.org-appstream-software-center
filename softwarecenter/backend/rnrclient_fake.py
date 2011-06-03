@@ -53,8 +53,7 @@ class RatingsAndReviewsAPI(PistonAPI):
     def server_status(self):
         if FakeReviewSettings.server_response_error:
             raise APIError(self.exception_msg)
-        else:
-            return simplejson.dumps('ok')
+        return simplejson.dumps('ok')
 
     @validate_pattern('origin', r'[0-9a-z+-.:/]+', required=False)
     @validate_pattern('distroseries', r'\w+', required=False)
@@ -62,26 +61,25 @@ class RatingsAndReviewsAPI(PistonAPI):
     @returns_list_of(ReviewsStats)
     def review_stats(self, origin='any', distroseries='any', days=None,
         valid_days=(1,3,7)):
-        
+        if FakeReviewSettings.review_stats_error:
+            raise APIError(self.exception_msg)
+            
         if FakeReviewSettings.packages_returned > 15:
             quantity = 15
         else:
             quantity = FakeReviewSettings.packages_returned
             
         stats = []
-        
-        if FakeReviewSettings.review_stats_error:
-            raise APIError(self.exception_msg)
-        else:
-            for i in range (0, quantity):
-                s = {'app_name':'', 
-                     'package_name':self.PACKAGE_NAMES[i], 
-                     'ratings_total': str(random.randrange(1,200)),
-                     'ratings_average': str(random.randrange(0,5))
-                }
-                stats.append(s)
+    
+        for i in range (0, quantity):
+            s = {'app_name':'', 
+                 'package_name':self.PACKAGE_NAMES[i], 
+                 'ratings_total': str(random.randrange(1,200)),
+                 'ratings_average': str(random.randrange(0,5))
+            }
+            stats.append(s)
             
-            return simplejson.dumps(stats)
+        return simplejson.dumps(stats)
 
     @validate_pattern('language', r'\w+', required=False)
     @validate_pattern('origin', r'[0-9a-z+-.:/]+', required=False)
@@ -95,26 +93,47 @@ class RatingsAndReviewsAPI(PistonAPI):
         distroseries='any', version='any', appname='', page=1):
         if FakeReviewSettings.get_reviews_error:
             raise APIError(self.exception_msg)
-        else:
-            reviews = self._make_fake_reviews(packagename, 
-                                              FakeReviewSettings.reviews_returned)
-            return simplejson.dumps(reviews)
+        
+        reviews = self._make_fake_reviews(packagename, 
+                                          FakeReviewSettings.reviews_returned)
+        return simplejson.dumps(reviews)
 
     @validate('review_id', int)
     @returns(ReviewDetails)
     def get_review(self, review_id):
         if FakeReviewSettings.get_review_error:
             raise APIError(self.exception_msg)
-        else:
-            review = self._make_fake_reviews(single_id=review_id)
-            return simplejson.dumps(review)
+        review = self._make_fake_reviews(single_id=review_id)
+        return simplejson.dumps(review)
 
     @validate('review', ReviewRequest)
     @returns(ReviewDetails)
     def submit_review(self, review):
-        """Submit a rating/review."""
-        #return self._post('reviews/', data=review,
-        #scheme=AUTHENTICATED_API_SCHEME, content_type='application/json')
+        if FakeReviewSettings.submit_review_error:
+            raise APIError(self.exception_msg)
+        
+        user = FakeReviewSettings.reviewer_username or random.choice(self.USERS)
+        review_id = FakeReviewSettings.submit_review_id or random.randint(1,10000)
+        r = {
+                "origin": review.origin,
+                "rating": review.rating,
+                "hide": False,
+                "app_name": review.app_name,
+                "language": review.language,
+                "reviewer_username": user,
+                "usefulness_total": 0,
+                "usefulness_favorable": 0,
+                "review_text": review.review_text,
+                "date_deleted": None,
+                "summary": review.summary,
+                "version": review.version,
+                "id": review_id,
+                "date_created": time.strftime("%Y-%m-%d %H:%M:%S"),
+                "reviewer_displayname": "Fake User",
+                "package_name": review.package_name,
+                "distroseries": review.distroseries
+            }
+        return simplejson.dumps(r)
 
     @validate('review_id', int)
     @validate_pattern('reason', r'[^\n]+')
@@ -134,8 +153,7 @@ class RatingsAndReviewsAPI(PistonAPI):
     def submit_usefulness(self, review_id, useful):
         if FakeReviewSettings.submit_usefulness_error:
             raise APIError(self.exception_msg)
-        else:
-            return simplejson.dumps(FakeReviewSettings.usefulness_response_string)
+        return simplejson.dumps(FakeReviewSettings.usefulness_response_string)
 
     @validate('review_id', int, required=False)
     @validate_pattern('username', r'[^\n]+', required=False)
@@ -147,7 +165,7 @@ class RatingsAndReviewsAPI(PistonAPI):
         if FakeReviewSettings.get_usefulness_error:
             raise APIError(self.exception_msg)
         
-        #just return a single fake item if the revire_id was supplied
+        #just return a single fake item if the review_id was supplied
         if review_id:
             if username:
                 response_user = username
