@@ -55,6 +55,10 @@ class FakeReviewSettings(object):
     #*****************************
     #raises APIError if True
     flag_review_error = False
+    #fake username(str) to give back as 'flagger'
+    flagger_username = None
+    #fake package name (str) to give back as flagged app
+    flag_package_name = None
     
     #submit usefulness
     #*****************************

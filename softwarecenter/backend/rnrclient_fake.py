@@ -140,12 +140,35 @@ class RatingsAndReviewsAPI(PistonAPI):
     @validate_pattern('text', r'[^\n]+')
     @returns_json
     def flag_review(self, review_id, reason, text):
-        """Flag a review as being inappropriate"""
-        data = {'reason': reason,
-            'text': text,
+        if FakeReviewSettings.flag_review_error:
+            raise APIError(self.exception_msg)
+    
+        mod_id = random.randint(1,500)
+        pkg = FakeReviewSettings.flag_package_name or random.choice(self.PACKAGE_NAMES)
+        username = FakeReviewSettings.flagger_username or random.choice(self.USERS)
+
+        f = {
+            "user_id": random.randint(1,500),
+            "description": text,
+            "review_moderation_id": mod_id,
+            "_user_cache": self._make_user_cache(username),
+            "summary": reason,
+            "_review_moderation_cache": {
+                "status": 0,
+                "review_id": review_id,
+                "_review_cache": self._make_fake_reviews(packagename=pkg, 
+                                                         single_id=review_id),
+                "moderation_text": text,
+                "date_moderated": None,
+                "moderator_id": None,
+                "date_created": time.strftime("%Y-%m-%d %H:%M:%S"),
+                "id": mod_id
+            },
+            "date_created": time.strftime("%Y-%m-%d %H:%M:%S"),
+            "id": mod_id
         }
-        #return self._post('reviews/%s/flags/' % review_id, data=data,
-        #scheme=AUTHENTICATED_API_SCHEME)
+
+        return simplejson.dumps(f)
 
     @validate('review_id', int)
     @validate_pattern('useful', 'True|False')
@@ -247,3 +270,18 @@ class RatingsAndReviewsAPI(PistonAPI):
             return r
         else:
             return reviews
+    
+    def _make_user_cache(self, username):
+        return {
+            "username": username,
+            "first_name": "Fake",
+            "last_name": "User",
+            "is_active": True,
+            "email": "fakeuser@email.com",
+            "is_superuser": False,
+            "is_staff": False,
+            "last_login": time.strftime("%Y-%m-%d %H:%M:%S"),
+            "password": "!",
+            "id": random.randint(1,500),
+            "date_joined": time.strftime("%Y-%m-%d %H:%M:%S")
+        }
