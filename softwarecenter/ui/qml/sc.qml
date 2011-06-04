@@ -69,6 +69,7 @@ Rectangle {
         }
 
         onSearchQueryChanged: if (searchQuery.length > 0) showListView()
+        onSearchActivated: showListView()
     }
 
     CategoriesView {

@@ -22,6 +22,8 @@ import QtQuick 1.0
 FocusScope {
     property alias searchQuery: searchbox.text
 
+    signal searchActivated
+
     height: searchbox.height + 2 * 10 // 10px margins
 
     SystemPalette {
@@ -61,6 +63,7 @@ FocusScope {
         anchors.right: parent.right
         anchors.margins: 10
         focus: true
+        onActivated: parent.searchActivated()
     }
 }
 
