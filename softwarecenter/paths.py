@@ -33,6 +33,8 @@ APP_INSTALL_PATH = "/usr/share/app-install"
 APP_INSTALL_DESKTOP_PATH = APP_INSTALL_PATH+"/desktop/"
 APP_INSTALL_CHANNELS_PATH = APP_INSTALL_PATH+"/channels/"
 ICON_PATH = APP_INSTALL_PATH+"/icons/"
+APPSTREAM_BASE_PATH = "/usr/share/app-info"
+APPSTREAM_XML_PATH = APPSTREAM_BASE_PATH + "/xmls/"
 
 SOFTWARE_CENTER_BASE = "/usr/share/software-center"
 SOFTWARE_CENTER_PLUGIN_DIR = os.environ.get(
@@ -59,6 +61,7 @@ SUBMIT_USEFULNESS_APP = "submit_usefulness.py"
 GET_REVIEWS_HELPER = "get_reviews_helper.py"
 GET_REVIEW_STATS_HELPER = "get_review_stats_helper.py"
 GET_USEFUL_VOTES_HELPER = "get_useful_votes_helper.py"
+X2GO_HELPER = "x2go_helper.py"
 
 # there was a bug in maverick 3.0.3 (#652151) that could lead to a empty
 # root owned directory in ~/.cache/software-center - we remove it here

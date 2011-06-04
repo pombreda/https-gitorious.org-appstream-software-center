@@ -16,11 +16,4 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from aptd import AptdaemonBackend
-
-# one global backend
-backend = AptdaemonBackend()
-
-def get_install_backend():
-    """ factory that returns the install backend """
-    return backend
+from installbackend import get_install_backend

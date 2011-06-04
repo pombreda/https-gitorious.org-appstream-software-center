@@ -16,14 +16,12 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from apt.debfile import DebPackage
 import apt_pkg
 import locale
 import logging
 import os
 import re
 
-from apt import Cache
 from gettext import gettext as _
 from mimetypes import guess_type
 from softwarecenter.distro import get_distro
@@ -54,6 +52,7 @@ from softwarecenter.enums import (
     XAPIAN_VALUE_ARCHIVE_SIGNING_KEY_ID,
     XAPIAN_VALUE_SCREENSHOT_URL,
     XAPIAN_VALUE_THUMBNAIL_URL,
+    XAPIAN_VALUE_ICON_URL,
 )
 from softwarecenter.paths import (APP_INSTALL_CHANNELS_PATH,
                                   SOFTWARE_CENTER_ICON_CACHE_DIR,
@@ -159,20 +158,6 @@ class Application(object):
             return locale.strcoll(x.pkgname, y.appname)
         else:
             return cmp(x.pkgname, y.pkgname)
-
-
-class DebFileApplication(Application):
-    def __init__(self, debfile):
-        # deb overrides this
-#        if not debfile.endswith(".deb") and not debfile.count('/') >= 2:
- #           raise ValueError("Need a deb file, got '%s'" % debfile)
-        debname = os.path.splitext(os.path.basename(debfile))[0]
-        self.appname = ""
-        self.pkgname = debname.split('_')[0].lower()
-        self.request = debfile
-    def get_details(self, db):
-        return AppDetailsDebFile(db, application=self)
-
 
 # the details
 class AppDetails(object):
@@ -355,13 +340,9 @@ class AppDetails(object):
             return self._db.get_iconname(self._doc)
     
     @property
-    def icon_needs_download(self):
-        if self._doc:
-            return self._db.get_icon_needs_download(self._doc)
-            
-    @property
     def icon_url(self):
-        return self._distro.get_downloadable_icon_url(self._cache, self.pkgname, self.icon_file_name)
+        if self._doc:
+            return self._db.get_icon_download_url(self._doc)
 
     @property
     def cached_icon_file_path(self):
@@ -616,7 +597,6 @@ class AppDetails(object):
         details.append("               error: %s" % self.error)
         details.append("                icon: %s" % self.icon)
         details.append("      icon_file_name: %s" % self.icon_file_name)
-        details.append(" icon_needs_download: %s" % self.icon_needs_download)
         details.append("            icon_url: %s" % self.icon_url)
         details.append("   installation_date: %s" % self.installation_date)
         details.append("       purchase_date: %s" % self.purchase_date)
@@ -631,142 +611,3 @@ class AppDetails(object):
         details.append("             version: %s" % self.version)
         details.append("             website: %s" % self.website)
         return '\n'.join(details)
-
-class AppDetailsDebFile(AppDetails):
-    
-    def __init__(self, db, doc=None, application=None):
-        super(AppDetailsDebFile, self).__init__(db, doc, application)
-        if doc:
-            raise ValueError("doc must be None for deb files")
-
-        try:
-            # for some reason Cache() is much faster than "self._cache._cache"
-            # on startup
-            self._deb = DebPackage(self._app.request, Cache())
-        except:
-            self._deb = None
-            self._pkg = None
-            if not os.path.exists(self._app.request):
-                self._error = _("Not found")
-                self._error_not_found = _(u"The file \u201c%s\u201d does not exist.") % self._app.request
-            else:
-                mimetype = guess_type(self._app.request)
-                if mimetype[0] != "application/x-debian-package":
-                    self._error =  _("Not found")
-                    self._error_not_found = _(u"The file \u201c%s\u201d is not a software package.") % self._app.request
-                else:
-                    # hm, deb files from launchpad get this error..
-                    self._error =  _("Internal Error")
-                    self._error_not_found = _(u"The file \u201c%s\u201d could not be opened.") % self._app.request
-            return
-
-        if self.pkgname and self.pkgname != self._app.pkgname:
-            # this happens when the deb file has a quirky file name
-            self._app.pkgname = self.pkgname
-
-            # load pkg cache
-            self._pkg = None
-            if (self._app.pkgname in self._cache and 
-                self._cache[self._app.pkgname].candidate):
-                self._pkg = self._cache[self._app.pkgname]
-            # load xapian document
-            self._doc = None
-            try:
-                self._doc = self._db.get_xapian_document(
-                    self._app.appname, self._app.pkgname)
-            except:
-                pass
-
-        # check deb and set failure state on error
-        if not self._deb.check():
-            self._error = self._deb._failure_string
-
-    @property
-    def description(self):
-        if self._deb:
-            description = self._deb._sections["Description"]
-            return ('\n').join(description.split('\n')[1:]).replace(" .\n", "")
-        return ""
-
-    @property
-    def maintenance_status(self):
-        return None
-
-    @property
-    def pkgname(self):
-        if self._deb:
-            return self._deb._sections["Package"]
-
-    @property
-    def pkg_state(self):
-        if self._error:
-            if self._error_not_found:
-                return PKG_STATE_NOT_FOUND
-            else:
-                return PKG_STATE_ERROR
-        if self._deb:
-            deb_state = self._deb.compare_to_version_in_cache()
-            if deb_state == DebPackage.VERSION_NONE:
-                return PKG_STATE_UNINSTALLED
-            elif deb_state == DebPackage.VERSION_OUTDATED:
-                if self._cache[self.pkgname].installed:
-                    return PKG_STATE_INSTALLED
-                else:
-                    return PKG_STATE_UNINSTALLED
-            elif deb_state == DebPackage.VERSION_SAME:
-                return PKG_STATE_REINSTALLABLE
-            elif deb_state == DebPackage.VERSION_NEWER:
-                if self._cache[self.pkgname].installed:
-                    return PKG_STATE_UPGRADABLE
-                else:
-                    return PKG_STATE_UNINSTALLED
-    
-    @property
-    def summary(self):
-        if self._deb:
-            description = self._deb._sections["Description"]
-            return description.split('\n')[0]
-
-    @property
-    def display_summary(self):
-        if self._doc:
-            name = self._db.get_appname(self._doc)
-            if name:
-                return self.summary
-            else:
-                # by spec..
-                return self._db.get_pkgname(self._doc)
-        return self.summary
-
-    @property
-    def version(self):
-        if self._deb:
-            return self._deb._sections["Version"]
-
-    @property
-    def warning(self):
-        # FIXME: use more concise warnings
-        if self._deb:
-            deb_state = self._deb.compare_to_version_in_cache(use_installed=False)
-            if deb_state == DebPackage.VERSION_NONE:
-                return _("Only install this file if you trust the origin.")
-            elif (not self._cache[self.pkgname].installed and
-                  self._cache[self.pkgname].candidate and
-                  self._cache[self.pkgname].candidate.downloadable): 
-                if deb_state == DebPackage.VERSION_OUTDATED:
-                    return _("Please install \"%s\" via your normal software channels. Only install this file if you trust the origin.") % self.name
-                elif deb_state == DebPackage.VERSION_SAME:
-                    return _("Please install \"%s\" via your normal software channels. Only install this file if you trust the origin.") % self.name
-                elif deb_state == DebPackage.VERSION_NEWER:
-                    return _("An older version of \"%s\" is available in your normal software channels. Only install this file if you trust the origin.") % self.name
-
-    @property
-    def website(self):
-        if self._deb:
-            website = None
-            try:
-                website = self._deb._sections["Homepage"]
-            except:
-                pass
-            if website:
-                return website

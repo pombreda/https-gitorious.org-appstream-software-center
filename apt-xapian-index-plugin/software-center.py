@@ -17,8 +17,10 @@ from softwarecenter.enums import (
     XAPIAN_VALUE_ICON_NEEDS_DOWNLOAD,
     XAPIAN_VALUE_SCREENSHOT_URL,
     XAPIAN_VALUE_THUMBNAIL_URL,
+    XAPIAN_VALUE_ICON_URL,
     )
 from softwarecenter.db.update import index_name
+from softwarecenter.distro import get_distro
 
 class SoftwareCenterMetadataPlugin:
     def info(self):
@@ -80,6 +82,7 @@ class SoftwareCenterMetadataPlugin:
             enums:
               XAPIAN_VALUE_ICON
               XAPIAN_VALUE_ICON_NEEDS_DOWNLOAD
+              XAPIAN_VALUE_ICON_URL
               XAPIAN_VALUE_SCREENSHOT_URL
               XAPIAN_VALUE_THUMBNAIL_URL
             """
@@ -99,7 +102,11 @@ class SoftwareCenterMetadataPlugin:
         if ver is None or not CUSTOM_KEY_APPNAME in ver.record:
             return
         # we want to index the following custom fields: 
-        #   XB-AppName, XB-Icon, XB-Screenshot-Url, XB-Thumbnail-Url, XB-Category
+        #   XB-AppName, 
+        #   XB-Icon, 
+        #   XB-Screenshot-Url, 
+        #   XB-Thumbnail-Url, 
+        #   XB-Category
         if CUSTOM_KEY_APPNAME in ver.record:
             name = ver.record[CUSTOM_KEY_APPNAME]
             self.indexer.set_document(document)
@@ -111,7 +118,9 @@ class SoftwareCenterMetadataPlugin:
         if CUSTOM_KEY_ICON in ver.record:
             icon = ver.record[CUSTOM_KEY_ICON]
             document.add_value(XAPIAN_VALUE_ICON, icon)
-            document.add_value(XAPIAN_VALUE_ICON_NEEDS_DOWNLOAD, "1")
+            # calculate the url and add it
+            url = get_distro().get_downloadable_icon_url(ver.uri, icon)
+            document.add_value(XAPIAN_VALUE_ICON_URL, url)
         if CUSTOM_KEY_SCREENSHOT_URL in ver.record:
             screenshot_url = ver.record[CUSTOM_KEY_SCREENSHOT_URL]
             document.add_value(XAPIAN_VALUE_SCREENSHOT_URL, screenshot_url)

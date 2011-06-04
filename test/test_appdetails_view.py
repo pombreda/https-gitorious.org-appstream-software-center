@@ -193,6 +193,20 @@ class TestAppDetailsView(unittest.TestCase):
         # now that the app is installed, check that the invitation to review the app is showing
         self.assertTrue(self.appdetails.reviews.new_review.get_property("visible"))
 
+
+    def test_usefulness_submit_behvaior(self):
+        from softwarecenter.backend.reviews import ReviewLoaderIpsum
+        app = Application("Compiz", "compiz-core")
+        app.get_details = lambda db: self._get_mock_app_details()
+        self.appdetails.review_loader = ReviewLoaderIpsum(self.appdetails.cache,
+                                                          self.appdetails.db)
+        self.appdetails.show_app(app)
+        self._p()
+        self.assertTrue(self.appdetails.reviews.get_property("visible"))
+        review_box = self.appdetails.reviews.vbox.get_children()[0]
+        self.assertTrue(review_box.get_property("visible"))
+            
+
     # helper
     def _p(self):
         """ process gtk events """

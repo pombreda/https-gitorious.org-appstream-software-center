@@ -847,7 +847,7 @@ class AppView(gtk.TreeView):
         #if not action_btn: return False
 
         net_state = get_network_state()
-        if net_state == NetState.NM_STATE_DISCONNECTED:
+        if net_state in NetState.NM_STATE_DISCONNECTED_LIST:
             action_btn.set_sensitive(False)
             return
         elif self.is_action_in_progress_for_selected_app():
