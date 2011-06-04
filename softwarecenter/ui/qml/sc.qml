@@ -59,37 +59,28 @@ Rectangle {
         reviewslistmodel.getReviews(list.currentItem.pkgname)
     }
 
+    NavigationBar {
+        id: navigation
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.top: parent.top
+        focus: true
+        KeyNavigation.down: list
 
-    Rectangle {
-        id: header
-        width: parent.width
-        height: search.height + 2*10 // 10px margin
-        color: activePalette.window
-
-        SearchBox {
-            id: search
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.margins: 10
-            anchors.verticalCenter: parent.verticalCenter
-            focus: true
-            KeyNavigation.down: list
-
-            Binding {
-                target: pkglistmodel
-                property: "searchQuery"
-                value: search.text
-            }
-
-            onTextChanged: if (text.length > 0) showListView()
+        Binding {
+            target: pkglistmodel
+            property: "searchQuery"
+            value: navigation.searchQuery
         }
+
+        onSearchQueryChanged: if (searchQuery.length > 0) showListView()
     }
 
     CategoriesView {
         id: catview
         width: parent.width
         height: parent.height
-        anchors.top: header.bottom
+        anchors.top: navigation.bottom
 
         Behavior on x {
             NumberAnimation { duration: 180 }
@@ -107,7 +98,7 @@ Rectangle {
 
         color: activePalette.window
         anchors.left: catview.right
-        anchors.top: header.bottom
+        anchors.top: navigation.bottom
         anchors.bottom: footer.top
 
         Behavior on x {
@@ -120,7 +111,7 @@ Rectangle {
             anchors.margins: 10
             anchors.fill: parent
 
-            KeyNavigation.up: search
+            KeyNavigation.up: navigation
         }
 
         Button {
@@ -141,7 +132,7 @@ Rectangle {
         id: detailsview
         width: parent.width
         anchors.left: listview.right
-        anchors.top: header.bottom
+        anchors.top: navigation.bottom
         anchors.bottom: footer.top
 
         Behavior on x {
@@ -151,7 +142,7 @@ Rectangle {
 
     Rectangle {
         id: footer
-        width: search.width
+        width: navigation.width
         height: 30
         anchors.bottom: parent.bottom
         anchors.bottomMargin: 10
