@@ -20,7 +20,7 @@
 
 import QtQuick 1.0
 
-Rectangle {
+FocusScope {
     id: applistview
 
     property alias count: list.count
