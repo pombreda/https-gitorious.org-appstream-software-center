@@ -60,7 +60,7 @@ Rectangle {
         anchors.right: parent.right
         anchors.top: parent.top
         focus: true
-        KeyNavigation.down: list
+        KeyNavigation.down: (listview.x == 0) ? list : null
 
         Binding {
             target: pkglistmodel
