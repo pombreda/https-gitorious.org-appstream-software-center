@@ -133,19 +133,6 @@ Rectangle {
                 text: qsTr("%1 items available").arg(list.count)
             }
         }
-
-        Button {
-            id: listbackbtn
-            text: qsTr("Back")
-
-            anchors.left: parent.left
-            anchors.bottom: parent.bottom
-            anchors.margins: 15
-
-            onClicked: {
-                showCategoriesView();
-            }
-        }
     }
 
     DetailsView {

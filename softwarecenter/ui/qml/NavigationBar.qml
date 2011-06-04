@@ -45,6 +45,15 @@ FocusScope {
     // TODO: back/forward buttons
     // TODO: navigation history (breadcrumbs)
 
+    // Temporary shortcut to get back to the list of categories
+    Button {
+        text: qsTr("Home")
+        anchors.left: parent.left
+        anchors.margins: 10
+        anchors.verticalCenter: parent.verticalCenter
+        onClicked: showCategoriesView()
+    }
+
     SearchBox {
         id: searchbox
         width: 160
