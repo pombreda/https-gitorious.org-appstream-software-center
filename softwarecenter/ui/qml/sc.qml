@@ -63,37 +63,25 @@ Rectangle {
     Rectangle {
         id: header
         width: parent.width
-        height: searchframe.height + 2*10 // 10px margin 
+        height: search.height + 2*10 // 10px margin
         color: activePalette.window
 
-        Rectangle {
-            id: searchframe
-            color: activePalette.base
-            width: parent.width - 20
-            // FIXME: how can we avoid to hardcode this?
-            height: 30 
-            y: 10 // offset margins
-            x: 10 // offset margins
-            radius: 5
-            
-            TextInput {
-                id: search
-                anchors.fill: parent
-                anchors.margins: 5
-                focus: true
-                KeyNavigation.down: list
+        SearchBox {
+            id: search
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.margins: 10
+            anchors.verticalCenter: parent.verticalCenter
+            focus: true
+            KeyNavigation.down: list
 
-                Binding {
-                    target: pkglistmodel
-                    property: "searchQuery"
-                    value: search.text
-                }
-
-                Keys.onReleased: {
-                    //console.log("key: " + event.key);
-                    showListView();
-                }
+            Binding {
+                target: pkglistmodel
+                property: "searchQuery"
+                value: search.text
             }
+
+            onTextChanged: if (text.length > 0) showListView()
         }
     }
 
@@ -163,7 +151,7 @@ Rectangle {
 
     Rectangle {
         id: footer
-        width: searchframe.width
+        width: search.width
         height: 30
         anchors.bottom: parent.bottom
         anchors.bottomMargin: 10
