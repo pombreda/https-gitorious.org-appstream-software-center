@@ -26,6 +26,17 @@ import simplejson
 import random
 import time
 
+# decorator to add a fake network delay if set 
+# in FakeReviewSettings.fake_network_delay
+def network_delay(fn):
+    def slp(self, *args, **kwargs):
+        delay = FakeReviewSettings.fake_network_delay
+        if delay:
+            time.sleep(delay)
+        return fn(self, *args, **kwargs)
+    return slp
+
+
 class RatingsAndReviewsAPI(PistonAPI):
     """A fake client pretending to be RAtingsAndReviewsAPI from rnrclient_pristine.
        Uses settings from the class in test.fake_review_settings. FakeReviewSettings
@@ -50,15 +61,18 @@ class RatingsAndReviewsAPI(PistonAPI):
 
 
     @returns_json
+    @network_delay
     def server_status(self):
         if FakeReviewSettings.server_response_error:
             raise APIError(self.exception_msg)
         return simplejson.dumps('ok')
 
+
     @validate_pattern('origin', r'[0-9a-z+-.:/]+', required=False)
     @validate_pattern('distroseries', r'\w+', required=False)
     @validate('days', int, required=False)
     @returns_list_of(ReviewsStats)
+    @network_delay
     def review_stats(self, origin='any', distroseries='any', days=None,
         valid_days=(1,3,7)):
         if FakeReviewSettings.review_stats_error:
@@ -89,6 +103,7 @@ class RatingsAndReviewsAPI(PistonAPI):
     @validate('appname', str, required=False)
     @validate('page', int, required=False)
     @returns_list_of(ReviewDetails)
+    @network_delay
     def get_reviews(self, packagename, language='any', origin='any',
         distroseries='any', version='any', appname='', page=1):
         if FakeReviewSettings.get_reviews_error:
@@ -100,6 +115,7 @@ class RatingsAndReviewsAPI(PistonAPI):
 
     @validate('review_id', int)
     @returns(ReviewDetails)
+    @network_delay
     def get_review(self, review_id):
         if FakeReviewSettings.get_review_error:
             raise APIError(self.exception_msg)
@@ -108,6 +124,7 @@ class RatingsAndReviewsAPI(PistonAPI):
 
     @validate('review', ReviewRequest)
     @returns(ReviewDetails)
+    @network_delay
     def submit_review(self, review):
         if FakeReviewSettings.submit_review_error:
             raise APIError(self.exception_msg)
@@ -139,6 +156,7 @@ class RatingsAndReviewsAPI(PistonAPI):
     @validate_pattern('reason', r'[^\n]+')
     @validate_pattern('text', r'[^\n]+')
     @returns_json
+    @network_delay
     def flag_review(self, review_id, reason, text):
         if FakeReviewSettings.flag_review_error:
             raise APIError(self.exception_msg)
@@ -173,6 +191,7 @@ class RatingsAndReviewsAPI(PistonAPI):
     @validate('review_id', int)
     @validate_pattern('useful', 'True|False')
     @returns_json
+    @network_delay
     def submit_usefulness(self, review_id, useful):
         if FakeReviewSettings.submit_usefulness_error:
             raise APIError(self.exception_msg)
@@ -181,6 +200,7 @@ class RatingsAndReviewsAPI(PistonAPI):
     @validate('review_id', int, required=False)
     @validate_pattern('username', r'[^\n]+', required=False)
     @returns_json
+    @network_delay
     def get_usefulness(self, review_id=None, username=None):
         if not username and not review_id:
             return None
@@ -285,3 +305,5 @@ class RatingsAndReviewsAPI(PistonAPI):
             "id": random.randint(1,500),
             "date_joined": time.strftime("%Y-%m-%d %H:%M:%S")
         }
+    
+

@@ -12,6 +12,12 @@ class FakeReviewSettings(object):
        The unit test would make changes to settings in this class before 
        running the unit test.
     '''
+    
+    #general settings
+    #*****************************
+    #delay (in seconds) before returning from any of the fake rnr methods
+    #useful for emulating real network timings (use None for no delays)
+    fake_network_delay = None
 
     #server status
     #*****************************
