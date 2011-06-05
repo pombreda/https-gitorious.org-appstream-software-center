@@ -40,24 +40,15 @@ import ui.gtk
 from ui.gtk.SimpleGtkbuilderApp import SimpleGtkbuilderApp
 from softwarecenter.db.application import Application
 from softwarecenter.db.debfile import DebFileApplication
-from softwarecenter.enums import (                                  
-    APP_ACTION_INSTALL,
-    APP_ACTION_REMOVE,
-    DB_SCHEMA_VERSION,
-    NAV_BUTTON_ID_PURCHASE,
-    MISSING_APP_ICON,
-    PKG_STATE_UPGRADABLE,
-    PKG_STATE_REINSTALLABLE,
-    PKG_STATE_INSTALLED,
-    PKG_STATE_UNINSTALLED,
-    VIEW_PAGE_AVAILABLE,
-    VIEW_PAGE_CHANNEL,
-    VIEW_PAGE_INSTALLED,
-    VIEW_PAGE_HISTORY,
-    VIEW_PAGE_PENDING,
-    MOUSE_EVENT_FORWARD_BUTTON,
-    MOUSE_EVENT_BACK_BUTTON,
-    )
+
+from softwarecenter.enums import (Icons,
+                                  PkgStates,
+                                  ViewPages,
+                                  DB_SCHEMA_VERSION,
+                                  MOUSE_EVENT_FORWARD_BUTTON,
+                                  MOUSE_EVENT_BACK_BUTTON,
+                                 )
+
 from softwarecenter.paths import SOFTWARE_CENTER_PLUGIN_DIR, ICON_PATH
 from softwarecenter.utils import (clear_token_from_ubuntu_sso,
                                   wait_for_apt_cache_ready)
@@ -238,7 +229,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                             self.navhistory_back_action,
                                             self.navhistory_forward_action)
         self.available_pane.connect("available-pane-created", self.on_available_pane_created)
-        self.view_manager.register(self.available_pane, VIEW_PAGE_AVAILABLE)
+        self.view_manager.register(self.available_pane, ViewPages.AVAILABLE)
 
         # channel pane (view not fully initialized at this point)
         self.channel_pane = ChannelPane(self.cache,
@@ -247,7 +238,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                         self.icons,
                                         self.datadir)
         self.channel_pane.connect("channel-pane-created", self.on_channel_pane_created)
-        self.view_manager.register(self.channel_pane, VIEW_PAGE_CHANNEL)
+        self.view_manager.register(self.channel_pane, ViewPages.CHANNEL)
         
         # installed pane (view not fully initialized at this point)
         self.installed_pane = InstalledPane(self.cache,
@@ -256,7 +247,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                             self.icons,
                                             self.datadir)
         self.installed_pane.connect("installed-pane-created", self.on_installed_pane_created)
-        self.view_manager.register(self.installed_pane, VIEW_PAGE_INSTALLED)
+        self.view_manager.register(self.installed_pane, ViewPages.INSTALLED)
         
         # history pane (not fully loaded at this point)
         self.history_pane = HistoryPane(self.cache,
@@ -265,11 +256,11 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                         self.icons,
                                         self.datadir)
         self.history_pane.connect("history-pane-created", self.on_history_pane_created)
-        self.view_manager.register(self.history_pane, VIEW_PAGE_HISTORY)
+        self.view_manager.register(self.history_pane, ViewPages.HISTORY)
 
         # pending view
         self.pending_view = PendingView(self.icons)
-        self.view_manager.register(self.pending_view, VIEW_PAGE_PENDING)
+        self.view_manager.register(self.pending_view, ViewPages.PENDING)
         
         # keep track of the current active pane
         self.active_pane = self.available_pane
@@ -403,16 +394,16 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
     # callbacks
     def on_available_pane_created(self, widget):
         available_section = SoftwareSection()
-        available_section.set_view_id(VIEW_PAGE_AVAILABLE)
+        available_section.set_view_id(ViewPages.AVAILABLE)
         self.available_pane.set_section(available_section)
 
         # connect signals
         self.available_pane.connect("app-list-changed", 
                                     self.on_app_list_changed,
-                                    VIEW_PAGE_AVAILABLE)
+                                    ViewPages.AVAILABLE)
         self.available_pane.app_details_view.connect("selected", 
                                                      self.on_app_details_changed,
-                                                     VIEW_PAGE_AVAILABLE)
+                                                     ViewPages.AVAILABLE)
         self.available_pane.app_details_view.connect("application-request-action", 
                                                      self.on_application_request_action)
         self.available_pane.app_view.connect("application-request-action", 
@@ -431,10 +422,10 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         # connect signals
         self.channel_pane.connect("app-list-changed", 
                                     self.on_app_list_changed,
-                                    VIEW_PAGE_CHANNEL)
+                                    ViewPages.CHANNEL)
         self.channel_pane.app_details_view.connect("selected", 
                                                    self.on_app_details_changed,
-                                                   VIEW_PAGE_CHANNEL)
+                                                   ViewPages.CHANNEL)
         self.channel_pane.app_details_view.connect("application-request-action", 
                                                    self.on_application_request_action)
         self.channel_pane.app_view.connect("application-request-action", 
@@ -442,16 +433,16 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                            
     def on_installed_pane_created(self, widget):
         installed_section = SoftwareSection()
-        installed_section.set_view_id(VIEW_PAGE_INSTALLED)
+        installed_section.set_view_id(ViewPages.INSTALLED)
         self.installed_pane.set_section(installed_section)
         
         # connect signals
         self.installed_pane.connect("app-list-changed", 
                                     self.on_app_list_changed,
-                                    VIEW_PAGE_INSTALLED)
+                                    ViewPages.INSTALLED)
         self.installed_pane.app_details_view.connect("selected", 
                                                      self.on_app_details_changed,
-                                                     VIEW_PAGE_INSTALLED)
+                                                     ViewPages.INSTALLED)
         self.installed_pane.app_details_view.connect("application-request-action", 
                                                      self.on_application_request_action)
         self.installed_pane.app_view.connect("application-request-action", 
@@ -461,7 +452,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         # connect signal
         self.history_pane.connect("app-list-changed", 
                                   self.on_app_list_changed,
-                                  VIEW_PAGE_HISTORY)
+                                  ViewPages.HISTORY)
     
     def _on_update_software_center_agent_finished(self, pid, condition):
         LOG.info("software-center-agent finished with status %i" % os.WEXITSTATUS(condition))
@@ -534,7 +525,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             else:
                 self.menuitem_view_all.activate()
             self._block_menuitem_view = False
-        if view_id == VIEW_PAGE_AVAILABLE:
+        if view_id == ViewPages.AVAILABLE:
             back_action = self.available_pane.nav_history.navhistory_back_action
             forward_action = self.available_pane.nav_history.navhistory_forward_action
             self.menuitem_go_back.set_sensitive(back_action.get_sensitive())
@@ -544,7 +535,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self.menuitem_go_forward.set_sensitive(False)
          # switch to new page
         self.view_manager.set_active_view(view_id)
-        if (view_id == VIEW_PAGE_INSTALLED and
+        if (view_id == ViewPages.INSTALLED and
             not self.installed_pane.loaded and
             not self.installed_pane.get_current_app()):
             self.installed_pane.refresh_apps()
@@ -623,7 +614,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
     def get_icon_filename(self, iconname, iconsize):
         iconinfo = self.icons.lookup_icon(iconname, iconsize, 0)
         if not iconinfo:
-            iconinfo = self.icons.lookup_icon(MISSING_APP_ICON, iconsize, 0)
+            iconinfo = self.icons.lookup_icon(Icons.MISSING_APP_ICON, iconsize, 0)
         return iconinfo.get_filename()
 
     # Menu Items
@@ -657,13 +648,13 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         if self.active_pane.app_view.is_action_in_progress_for_selected_app():
             self.menuitem_install.set_sensitive(False)
             self.menuitem_remove.set_sensitive(False)
-        elif pkg_state == PKG_STATE_UPGRADABLE or pkg_state == PKG_STATE_REINSTALLABLE and not error:
+        elif pkg_state == PkgStates.UPGRADABLE or pkg_state == PkgStates.REINSTALLABLE and not error:
             self.menuitem_install.set_sensitive(True)
             self.menuitem_remove.set_sensitive(True)
-        elif pkg_state == PKG_STATE_INSTALLED:
+        elif pkg_state == PkgStates.INSTALLED:
             self.menuitem_install.set_sensitive(False)
             self.menuitem_remove.set_sensitive(True)
-        elif pkg_state == PKG_STATE_UNINSTALLED and not error:
+        elif pkg_state == PkgStates.UNINSTALLED and not error:
             self.menuitem_install.set_sensitive(True)
             self.menuitem_remove.set_sensitive(False)
         elif (not pkg_state and 
@@ -1141,7 +1132,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         if packages and packages[0].startswith("search:"):
             packages[0] = packages[0].partition("search:")[2]
             self.available_pane.navigation_bar.remove_all(animate=False) # animate *must* be false here
-            self.view_switcher.set_view(VIEW_PAGE_AVAILABLE)
+            self.view_switcher.set_view(ViewPages.AVAILABLE)
             self.available_pane.notebook.set_current_page(
                 self.available_pane.PAGE_APPLIST)
             self.available_pane.searchentry.set_text(" ".join(packages))
@@ -1170,12 +1161,12 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                 if (app.pkgname in self.cache and 
                     self.cache[app.pkgname].installed):
                     self.installed_pane.loaded = True
-                    self.view_switcher.set_view(VIEW_PAGE_INSTALLED)
+                    self.view_switcher.set_view(ViewPages.INSTALLED)
                     self.installed_pane.loaded = False
                     self.available_pane.bypassed = True
                     self.installed_pane.show_app(app)
                 else:
-                    self.view_switcher.set_view(VIEW_PAGE_AVAILABLE)
+                    self.view_switcher.set_view(ViewPages.AVAILABLE)
                     self.available_pane.show_app(app)
 
             show_app(self, app)

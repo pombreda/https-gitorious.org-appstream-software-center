@@ -30,17 +30,7 @@ import dialogs
 
 from gettext import gettext as _
 
-from softwarecenter.enums import (
-    ACTION_BUTTON_ID_INSTALL,
-    DEFAULT_SEARCH_LIMIT,
-    NAV_BUTTON_ID_LIST,
-    NAV_BUTTON_ID_DETAILS,
-    NAV_BUTTON_ID_PURCHASE,
-    NAV_BUTTON_ID_SUBCAT,
-    NAV_BUTTON_ID_CATEGORY,
-    NAV_BUTTON_ID_SEARCH,
-    NAV_BUTTON_ID_PREV_PURCHASES,
-    )
+from softwarecenter.enums import ActionButtons, NavButtons, DEFAULT_SEARCH_LIMIT
 from softwarecenter.paths import APP_INSTALL_PATH, ICON_PATH, XAPIAN_BASE_PATH
 from softwarecenter.utils import wait_for_apt_cache_ready
 
@@ -167,21 +157,21 @@ class AvailablePane(SoftwarePane):
                 gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
             self.scroll_subcategories.add(self.subcategories_view)
             self.notebook.append_page(self.scroll_subcategories,
-                                        gtk.Label(NAV_BUTTON_ID_SUBCAT))
+                                        gtk.Label(NavButtons.SUBCAT))
 
             # app list
             self.notebook.append_page(self.box_app_list,
-                                        gtk.Label(NAV_BUTTON_ID_LIST))
+                                        gtk.Label(NavButtons.LIST))
 
             self.cat_view.connect("category-selected", self.on_category_activated)
             self.cat_view.connect("application-selected", self.on_application_selected)
             self.cat_view.connect("application-activated", self.on_application_activated)
 
             # details
-            self.notebook.append_page(self.scroll_details, gtk.Label(NAV_BUTTON_ID_DETAILS))
+            self.notebook.append_page(self.scroll_details, gtk.Label(NavButtons.DETAILS))
 
             # purchase view
-            self.notebook.append_page(self.purchase_view, gtk.Label(NAV_BUTTON_ID_PURCHASE))
+            self.notebook.append_page(self.purchase_view, gtk.Label(NavButtons.PURCHASE))
         
             # set status text
             self._update_status_text(len(self.db))
@@ -189,7 +179,7 @@ class AvailablePane(SoftwarePane):
             # home button
             self.navigation_bar.add_with_id(self.pane_name,
                                             self.on_navigation_category,
-                                            NAV_BUTTON_ID_CATEGORY,
+                                            NavButtons.CATEGORY,
                                             do_callback=True,
                                             animate=False)
                                             
@@ -249,7 +239,7 @@ class AvailablePane(SoftwarePane):
             cat =  self.apps_category.name
             self.navigation_bar.add_with_id(cat,
                                             self.on_navigation_list,
-                                            NAV_BUTTON_ID_LIST, 
+                                            NavButtons.LIST, 
                                             do_callback=True, 
                                             animate=True)
 
@@ -260,7 +250,7 @@ class AvailablePane(SoftwarePane):
                 tail_label = _("Search Results")
             self.navigation_bar.add_with_id(tail_label,
                                             self.on_navigation_search,
-                                            NAV_BUTTON_ID_SEARCH, 
+                                            NavButtons.SEARCH, 
                                             do_callback=True,
                                             animate=True)
 
@@ -376,21 +366,21 @@ class AvailablePane(SoftwarePane):
             button_text = gettext.ngettext("Install %(amount)s Item",
                                            "Install %(amount)s Items",
                                             len(installable)) % { 'amount': len(installable), }
-            button = self.action_bar.get_button(ACTION_BUTTON_ID_INSTALL)
+            button = self.action_bar.get_button(ActionButtons.INSTALL)
             if button and installable:
                 # Install all already offered. Update offer.
                 if button.get_label() != button_text:
                     button.set_label(button_text)
             elif installable:
                 # Install all not yet offered. Offer.
-                self.action_bar.add_button(ACTION_BUTTON_ID_INSTALL, button_text,
+                self.action_bar.add_button(ActionButtons.INSTALL, button_text,
                                            self._install_current_appstore)
             else:
                 # Install offered, but nothing to install. Clear offer.
-                self.action_bar.remove_button(ACTION_BUTTON_ID_INSTALL)
+                self.action_bar.remove_button(ActionButtons.INSTALL)
         else:
             # Ensure button is removed.
-            self.action_bar.remove_button(ACTION_BUTTON_ID_INSTALL)
+            self.action_bar.remove_button(ActionButtons.INSTALL)
             
     def _install_current_appstore(self):
         '''
@@ -434,7 +424,7 @@ class AvailablePane(SoftwarePane):
         self.searchentry.clear_with_no_signal()
         self.apps_limit = 0
         self.apps_search_term = ""
-        self.navigation_bar.remove_id(NAV_BUTTON_ID_SEARCH)
+        self.navigation_bar.remove_id(NavButtons.SEARCH)
 
     @wait_for_apt_cache_ready
     def show_app(self, app):
@@ -457,7 +447,7 @@ class AvailablePane(SoftwarePane):
             self.apps_category = cat_of_app
             self.navigation_bar.add_with_id(cat_of_app.name, 
                                             self.on_navigation_list,
-                                            NAV_BUTTON_ID_LIST,
+                                            NavButtons.LIST,
                                             do_callback=False,
                                             animate=False)
         else:
@@ -466,7 +456,7 @@ class AvailablePane(SoftwarePane):
         details = app.get_details(self.db)
         self.navigation_bar.add_with_id(details.display_name,
                                         self.on_navigation_details,
-                                        NAV_BUTTON_ID_DETAILS,
+                                        NavButtons.DETAILS,
                                         animate=False)
         self.app_details_view.show_app(app)
         self.display_details()
@@ -526,8 +516,8 @@ class AvailablePane(SoftwarePane):
         return
 
     def display_search(self):
-        self.navigation_bar.remove_id(NAV_BUTTON_ID_DETAILS)
-        self.navigation_bar.remove_id(NAV_BUTTON_ID_PURCHASE)
+        self.navigation_bar.remove_id(NavButtons.DETAILS)
+        self.navigation_bar.remove_id(NavButtons.PURCHASE)
         self.notebook.set_current_page(self.PAGE_APPLIST)
         if self.app_view.get_model():
             list_length = len(self.app_view.get_model())
@@ -536,9 +526,9 @@ class AvailablePane(SoftwarePane):
         return
 
     def display_list(self):
-        self.navigation_bar.remove_id(NAV_BUTTON_ID_SUBCAT)
-        self.navigation_bar.remove_id(NAV_BUTTON_ID_DETAILS)
-        self.navigation_bar.remove_id(NAV_BUTTON_ID_PURCHASE)
+        self.navigation_bar.remove_id(NavButtons.SUBCAT)
+        self.navigation_bar.remove_id(NavButtons.DETAILS)
+        self.navigation_bar.remove_id(NavButtons.PURCHASE)
 
         if self.apps_subcategory:
             self.apps_subcategory = None
@@ -561,8 +551,8 @@ class AvailablePane(SoftwarePane):
             self._clear_search()
             self.refresh_apps()
         self.set_category(self.apps_subcategory)
-        self.navigation_bar.remove_id(NAV_BUTTON_ID_DETAILS)
-        self.navigation_bar.remove_id(NAV_BUTTON_ID_PURCHASE)
+        self.navigation_bar.remove_id(NavButtons.DETAILS)
+        self.navigation_bar.remove_id(NavButtons.PURCHASE)
         self.notebook.set_current_page(self.PAGE_SUBCATEGORY)
         # do not emit app-list-changed here, this is done async when
         # the new model is ready
@@ -572,7 +562,7 @@ class AvailablePane(SoftwarePane):
         return
 
     def display_details(self):
-        self.navigation_bar.remove_id(NAV_BUTTON_ID_PURCHASE)
+        self.navigation_bar.remove_id(NavButtons.PURCHASE)
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
         self.searchentry.hide()
         self.action_bar.clear()
@@ -592,7 +582,7 @@ class AvailablePane(SoftwarePane):
         
     def display_previous_purchases(self):
         self.nonapps_visible = AppStore.NONAPPS_ALWAYS_VISIBLE
-        self.navigation_bar.remove_id(NAV_BUTTON_ID_DETAILS)
+        self.navigation_bar.remove_id(NavButtons.DETAILS)
         self.notebook.set_current_page(self.PAGE_APPLIST)
         # do not emit app-list-changed here, this is done async when
         # the new model is ready
@@ -650,7 +640,7 @@ class AvailablePane(SoftwarePane):
                 category.name, category))
         self.apps_subcategory = category
         self.navigation_bar.add_with_id(
-            category.name, self.on_navigation_subcategory, NAV_BUTTON_ID_SUBCAT)
+            category.name, self.on_navigation_subcategory, NavButtons.SUBCAT)
 
     def on_category_activated(self, cat_view, category):
         """ callback when a category is selected """
@@ -686,7 +676,7 @@ class AvailablePane(SoftwarePane):
         self.navigation_bar.remove_all(do_callback=False, animate=False)
         self.navigation_bar.add_with_id(_("Previous Purchases"),
                                           self.on_navigation_previous_purchases,
-                                          NAV_BUTTON_ID_PREV_PURCHASES)
+                                          NavButtons.PREV_PURCHASES)
 
     def is_category_view_showing(self):
         """ Return True if we are in the category page or if we display a

@@ -25,35 +25,8 @@ import re
 from gettext import gettext as _
 from mimetypes import guess_type
 from softwarecenter.distro import get_distro
-from softwarecenter.enums import (
-    MISSING_PKG_ICON,
-    PKG_STATE_INSTALLING_PURCHASED,
-    PKG_STATE_INSTALLED,
-    PKG_STATE_PURCHASED_BUT_REPO_MUST_BE_ENABLED,
-    PKG_STATE_NEEDS_PURCHASE,
-    PKG_STATE_NEEDS_SOURCE,
-    PKG_STATE_UNINSTALLED,
-    PKG_STATE_REINSTALLABLE,
-    PKG_STATE_UPGRADABLE,
-    PKG_STATE_INSTALLING,
-    PKG_STATE_REMOVING,
-    PKG_STATE_NOT_FOUND,
-    PKG_STATE_UNKNOWN,
-    PKG_STATE_ERROR,
-    XAPIAN_VALUE_ARCHIVE_CHANNEL,
-    XAPIAN_VALUE_APPNAME_UNTRANSLATED,
-    XAPIAN_VALUE_ARCHIVE_SECTION,
-    XAPIAN_VALUE_DESKTOP_FILE,
-    XAPIAN_VALUE_SC_DESCRIPTION,
-    XAPIAN_VALUE_PURCHASED_DATE,
-    XAPIAN_VALUE_ARCHIVE_DEB_LINE,
-    XAPIAN_VALUE_PRICE,
-    XAPIAN_VALUE_ARCHIVE_PPA,
-    XAPIAN_VALUE_ARCHIVE_SIGNING_KEY_ID,
-    XAPIAN_VALUE_SCREENSHOT_URL,
-    XAPIAN_VALUE_THUMBNAIL_URL,
-    XAPIAN_VALUE_ICON_URL,
-)
+from softwarecenter.enums import PkgStates, XapianValues, Icons
+
 from softwarecenter.paths import (APP_INSTALL_CHANNELS_PATH,
                                   SOFTWARE_CENTER_ICON_CACHE_DIR,
                                   )
@@ -108,7 +81,7 @@ class Application(object):
             doc = db.get_xapian_document(self.appname, self.pkgname)
         except IndexError:
             return self
-        untranslated_application = doc.get_value(XAPIAN_VALUE_APPNAME_UNTRANSLATED)
+        untranslated_application = doc.get_value(XapianValues.APPNAME_UNTRANSLATED)
         uapp = Application(untranslated_application, self.pkgname)
         return uapp
 
@@ -240,7 +213,7 @@ class AppDetails(object):
     @property
     def channelname(self):
         if self._doc:
-            channel = self._doc.get_value(XAPIAN_VALUE_ARCHIVE_CHANNEL)
+            channel = self._doc.get_value(XapianValues.ARCHIVE_CHANNEL)
             path = APP_INSTALL_CHANNELS_PATH + channel + ".list"
             if os.path.exists(path):
                 return channel
@@ -282,7 +255,7 @@ class AppDetails(object):
                     return origin.component
         # then xapian
         elif self._doc:
-            comp = self._doc.get_value(XAPIAN_VALUE_ARCHIVE_SECTION)
+            comp = self._doc.get_value(XapianValues.ARCHIVE_SECTION)
             return comp
         # then apturl requests
         else:
@@ -298,18 +271,18 @@ class AppDetails(object):
     @property
     def desktop_file(self):
         if self._doc:
-            return self._doc.get_value(XAPIAN_VALUE_DESKTOP_FILE)
+            return self._doc.get_value(XapianValues.DESKTOP_FILE)
 
     @property
     def description(self):
         if self._pkg:
             return self._pkg.candidate.description
         elif self._doc:
-            if self._doc.get_value(XAPIAN_VALUE_SC_DESCRIPTION):
-                return self._doc.get_value(XAPIAN_VALUE_SC_DESCRIPTION)
+            if self._doc.get_value(XapianValues.SC_DESCRIPTION):
+                return self._doc.get_value(XapianValues.SC_DESCRIPTION)
         # if its in need-source state and we have a eula, display it
         # as the description
-        if self.pkg_state == PKG_STATE_NEEDS_SOURCE and self.eulafile:
+        if self.pkg_state == PkgStates.NEEDS_SOURCE and self.eulafile:
             return open(self.eulafile).read()
         return ""
 
@@ -320,14 +293,14 @@ class AppDetails(object):
         elif self._error:
             return self._error
         # this may have changed since we inited the appdetails
-        elif self.pkg_state == PKG_STATE_NOT_FOUND:
+        elif self.pkg_state == PkgStates.NOT_FOUND:
             self._error =  _("Not found")
             self._error_not_found = _(u"There isn\u2019t a software package called \u201c%s\u201D in your current software sources.") % self.pkgname
             return self._error_not_found
 
     @property
     def icon(self):
-        if self.pkg_state == PKG_STATE_NOT_FOUND:
+        if self.pkg_state == PkgStates.NOT_FOUND:
             return MISSING_PKG_ICON
         if self._doc:
             return os.path.splitext(self._db.get_iconname(self._doc))[0]
@@ -358,7 +331,7 @@ class AppDetails(object):
     @property
     def purchase_date(self):
         if self._doc:
-            return self._doc.get_value(XAPIAN_VALUE_PURCHASED_DATE)
+            return self._doc.get_value(XapianValues.PURCHASED_DATE)
 
     @property
     def license(self):
@@ -413,7 +386,7 @@ class AppDetails(object):
     def pkg_state(self):
         # puchase state
         if self.pkgname in self._backend.pending_purchases:
-            return PKG_STATE_INSTALLING_PURCHASED
+            return PkgStates.INSTALLING_PURCHASED
 
         # via the pending transactions dict
         if self.pkgname in self._backend.pending_transactions:
@@ -421,9 +394,9 @@ class AppDetails(object):
             # if there is no self._pkg yet, that means this is a INSTALL
             # from a previously not-enabled source (like a purchase)
             if self._pkg and self._pkg.installed:
-                return PKG_STATE_REMOVING
+                return PkgStates.REMOVING
             else:
-                return PKG_STATE_INSTALLING
+                return PkgStates.INSTALLING
 
         # if we have _pkg that means its either:
         # - available for download (via sources.list)
@@ -432,11 +405,11 @@ class AppDetails(object):
         if self._pkg:
             # Don't handle upgrades yet
             #if self._pkg.installed and self._pkg._isUpgradable:
-            #    return PKG_STATE_UPGRADABLE
+            #    return PkgStates.UPGRADABLE
             if self._pkg.installed:
-                return PKG_STATE_INSTALLED
+                return PkgStates.INSTALLED
             else:
-                return PKG_STATE_UNINSTALLED
+                return PkgStates.UNINSTALLED
         # if we don't have a _pkg, then its either:
         #  - its in a unavailable repo
         #  - the repository information is outdated
@@ -446,53 +419,53 @@ class AppDetails(object):
         if not self._pkg:
             if self.channelname:
                 if self._unavailable_channel():
-                    return PKG_STATE_NEEDS_SOURCE
+                    return PkgStates.NEEDS_SOURCE
                 else:
                     self._error =  _("Not found")
                     self._error_not_found = _(u"There isn\u2019t a software package called \u201c%s\u201D in your current software sources.") % self.pkgname
-                    return PKG_STATE_NOT_FOUND
+                    return PkgStates.NOT_FOUND
             else:
                 if self.price:
-                    return PKG_STATE_NEEDS_PURCHASE
+                    return PkgStates.NEEDS_PURCHASE
                 if (self.purchase_date and
-                    self._doc.get_value(XAPIAN_VALUE_ARCHIVE_DEB_LINE)):
-                    return PKG_STATE_PURCHASED_BUT_REPO_MUST_BE_ENABLED
+                    self._doc.get_value(XapianValues.ARCHIVE_DEB_LINE)):
+                    return PkgStates.PURCHASED_BUT_REPO_MUST_BE_ENABLED
                 if self.component:
                     components = self.component.split('&')
                     for component in components:
                         if component and self._unavailable_component(component_to_check=component):
-                            return PKG_STATE_NEEDS_SOURCE
+                            return PkgStates.NEEDS_SOURCE
                 self._error =  _("Not found")
                 self._error_not_found = _(u"There isn\u2019t a software package called \u201c%s\u201D in your current software sources.") % self.pkgname
-                return PKG_STATE_NOT_FOUND
-        return PKG_STATE_UNKNOWN
+                return PkgStates.NOT_FOUND
+        return PkgStates.UNKNOWN
 
     @property
     def price(self):
         if self._doc:
-            return self._doc.get_value(XAPIAN_VALUE_PRICE)
+            return self._doc.get_value(XapianValues.PRICE)
 
     @property
     def ppaname(self):
         if self._doc:
-            return self._doc.get_value(XAPIAN_VALUE_ARCHIVE_PPA)
+            return self._doc.get_value(XapianValues.ARCHIVE_PPA)
 
     @property
     def deb_line(self):
         if self._doc:
-            return self._doc.get_value(XAPIAN_VALUE_ARCHIVE_DEB_LINE)
+            return self._doc.get_value(XapianValues.ARCHIVE_DEB_LINE)
 
     @property
     def signing_key_id(self):
         if self._doc:
-            return self._doc.get_value(XAPIAN_VALUE_ARCHIVE_SIGNING_KEY_ID)
+            return self._doc.get_value(XapianValues.ARCHIVE_SIGNING_KEY_ID)
 
     @property
     def screenshot(self):
         # if there is a custom screenshot url provided, use that
         if self._doc:
-            if self._doc.get_value(XAPIAN_VALUE_SCREENSHOT_URL):
-                return self._doc.get_value(XAPIAN_VALUE_SCREENSHOT_URL)
+            if self._doc.get_value(XapianValues.SCREENSHOT_URL):
+                return self._doc.get_value(XapianValues.SCREENSHOT_URL)
         # else use the default
         return self._distro.SCREENSHOT_LARGE_URL % { 'pkgname' : self.pkgname, 
                                                      'version' : self.version or 0 }
@@ -508,8 +481,8 @@ class AppDetails(object):
     def thumbnail(self):
         # if there is a custom thumbnail url provided, use that
         if self._doc:
-            if self._doc.get_value(XAPIAN_VALUE_THUMBNAIL_URL):
-                return self._doc.get_value(XAPIAN_VALUE_THUMBNAIL_URL)
+            if self._doc.get_value(XapianValues.THUMBNAIL_URL):
+                return self._doc.get_value(XapianValues.THUMBNAIL_URL)
         # else use the default
         return self._distro.SCREENSHOT_THUMB_URL % { 'pkgname' : self.pkgname, 
                                                      'version' : self.version or 0}
@@ -525,7 +498,7 @@ class AppDetails(object):
     @property
     def warning(self):
         # apturl minver matches
-        if not self.pkg_state == PKG_STATE_INSTALLED:
+        if not self.pkg_state == PkgStates.INSTALLED:
             if self._app.request:
                 minver_matches = re.findall(r'minver=[a-z,0-9,-,+,.,~]*', self._app.request)
                 if minver_matches and self.version:
@@ -574,7 +547,7 @@ class AppDetails(object):
         elif self.component:
             component = self.component
         else:
-            component =  self._doc.get_value(XAPIAN_VALUE_ARCHIVE_SECTION)
+            component =  self._doc.get_value(XapianValues.ARCHIVE_SECTION)
         if not component:
             return False
         distro_codename = self._distro.get_codename()

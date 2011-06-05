@@ -28,9 +28,7 @@ import pangocairo
 import pango
 import xapian
 
-from softwarecenter.enums import (APP_ACTION_REMOVE,
-                                  APP_ACTION_INSTALL,
-                                  XAPIAN_VALUE_ARCHIVE_CHANNEL,
+from softwarecenter.enums import (AppActions, XapianValues,
                                   AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME,
                                   MOUSE_EVENT_BACK_BUTTON,
                                   MOUSE_EVENT_FORWARD_BUTTON,
@@ -1024,9 +1022,9 @@ class AppView(gtk.TreeView):
                 return False
             self._action_block_list.append(pkgname)
             if installed:
-                perform_action = APP_ACTION_REMOVE
+                perform_action = AppActions.REMOVE
             else:
-                perform_action = APP_ACTION_INSTALL
+                perform_action = AppActions.INSTALL
             self.emit("application-request-action", Application(appname, pkgname, request), [], [], perform_action)
         return False
 
@@ -1146,7 +1144,7 @@ class AppViewFilter(xapian.MatchDecider):
             # an item is considered available if it is either found
             # in the cache or is available for purchase
             if (not pkgname in self.cache and 
-                not doc.get_value(XAPIAN_VALUE_ARCHIVE_CHANNEL) == AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME):
+                not doc.get_value(XapianValues.ARCHIVE_CHANNEL) == AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME):
                 return False
         if self.installed_only:
             # use the lowlevel cache here, twice as fast

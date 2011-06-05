@@ -26,11 +26,8 @@ import glib
 import gtk
 import os
 
-from softwarecenter.enums import (PKG_STATE_INSTALLING,
-                                  PKG_STATE_REMOVING,
-                                  PKG_STATE_UPGRADING,
-                                  PKG_STATE_UNKNOWN,
-                                  )
+from softwarecenter.enums import PkgStates
+
 from softwarecenter.db.pkginfo import PackageInfo
 
 LOG = logging.getLogger(__name__)
@@ -380,13 +377,13 @@ class AptCache(PackageInfo):
         changes = {}
         for change in changes_tmp:
             if change.marked_install or change.marked_reinstall:
-                changes[change.name] = PKG_STATE_INSTALLING
+                changes[change.name] = PkgStates.INSTALLING
             elif change.marked_delete:
-                changes[change.name] = PKG_STATE_REMOVING
+                changes[change.name] = PkgStates.REMOVING
             elif change.marked_upgrade:
-                changes[change.name] = PKG_STATE_UPGRADING
+                changes[change.name] = PkgStates.UPGRADING
             else:
-                changes[change.name] = PKG_STATE_UNKNOWN
+                changes[change.name] = PkgStates.UNKNOWN
         self._cache.clear()
         return changes
     def try_install_and_get_all_deps_installed(self, pkg):
@@ -394,7 +391,7 @@ class AptCache(PackageInfo):
         changes = self._get_changes_without_applying(pkg)
         installing_deps = []
         for change in changes.keys():
-            if change != pkg.name and changes[change] == PKG_STATE_INSTALLING:
+            if change != pkg.name and changes[change] == PkgStates.INSTALLING:
                 installing_deps.append(change)
         return installing_deps
     def try_install_and_get_all_deps_removed(self, pkg):
@@ -402,14 +399,14 @@ class AptCache(PackageInfo):
         changes = self._get_changes_without_applying(pkg)
         removing_deps = []
         for change in changes.keys():
-            if change != pkg.name and changes[change] == PKG_STATE_REMOVING:
+            if change != pkg.name and changes[change] == PkgStates.REMOVING:
                 removing_deps.append(change)
         return removing_deps
     def get_all_deps_upgrading(self, pkg):
         changes = self._get_changes_without_applying(pkg)
         upgrading_deps = []
         for change in changes.keys():
-            if change != pkg.name and changes[change] == PKG_STATE_UPGRADING:
+            if change != pkg.name and changes[change] == PkgStates.UPGRADING:
                 upgrading_deps.append(change)
         return upgrading_deps
 

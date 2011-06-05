@@ -45,10 +45,7 @@ from softwarecenter.utils import (
     )
 
 from softwarecenter.netstatus import network_state_is_connected
-
-from softwarecenter.enums import (PKG_STATE_INSTALLED,
-                                  REVIEWS_BATCH_PAGE_SIZE)
-
+from softwarecenter.enums import PkgStates, REVIEWS_BATCH_PAGE_SIZE
 from softwarecenter.backend.reviews import UsefulnessCache
 
 LOG_ALLOCATION = logging.getLogger("softwarecenter.ui.gtk.allocation")
@@ -835,7 +832,7 @@ class UIReviewsList(gtk.VBox):
 
         # only show new_review for installed stuff
         is_installed = (self._parent.app_details and
-                        self._parent.app_details.pkg_state == PKG_STATE_INSTALLED)
+                        self._parent.app_details.pkg_state == PkgStates.INSTALLED)
         if is_installed:
             self.new_review.show()
         else:

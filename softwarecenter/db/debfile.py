@@ -26,34 +26,7 @@ from gettext import gettext as _
 from mimetypes import guess_type
 
 from softwarecenter.db.application import Application, AppDetails
-from softwarecenter.enums import (
-    MISSING_PKG_ICON,
-    PKG_STATE_INSTALLING_PURCHASED,
-    PKG_STATE_INSTALLED,
-    PKG_STATE_PURCHASED_BUT_REPO_MUST_BE_ENABLED,
-    PKG_STATE_NEEDS_PURCHASE,
-    PKG_STATE_NEEDS_SOURCE,
-    PKG_STATE_UNINSTALLED,
-    PKG_STATE_REINSTALLABLE,
-    PKG_STATE_UPGRADABLE,
-    PKG_STATE_INSTALLING,
-    PKG_STATE_REMOVING,
-    PKG_STATE_NOT_FOUND,
-    PKG_STATE_UNKNOWN,
-    PKG_STATE_ERROR,
-    XAPIAN_VALUE_ARCHIVE_CHANNEL,
-    XAPIAN_VALUE_APPNAME_UNTRANSLATED,
-    XAPIAN_VALUE_ARCHIVE_SECTION,
-    XAPIAN_VALUE_DESKTOP_FILE,
-    XAPIAN_VALUE_SC_DESCRIPTION,
-    XAPIAN_VALUE_PURCHASED_DATE,
-    XAPIAN_VALUE_ARCHIVE_DEB_LINE,
-    XAPIAN_VALUE_PRICE,
-    XAPIAN_VALUE_ARCHIVE_PPA,
-    XAPIAN_VALUE_ARCHIVE_SIGNING_KEY_ID,
-    XAPIAN_VALUE_SCREENSHOT_URL,
-    XAPIAN_VALUE_THUMBNAIL_URL,
-)
+from softwarecenter.enums import Icons, PkgStates, XapianValues
 
 class DebFileApplication(Application):
     def __init__(self, debfile):
@@ -136,25 +109,25 @@ class AppDetailsDebFile(AppDetails):
     def pkg_state(self):
         if self._error:
             if self._error_not_found:
-                return PKG_STATE_NOT_FOUND
+                return PkgStates.NOT_FOUND
             else:
-                return PKG_STATE_ERROR
+                return PkgStates.ERROR
         if self._deb:
             deb_state = self._deb.compare_to_version_in_cache()
             if deb_state == DebPackage.VERSION_NONE:
-                return PKG_STATE_UNINSTALLED
+                return PkgStates.UNINSTALLED
             elif deb_state == DebPackage.VERSION_OUTDATED:
                 if self._cache[self.pkgname].installed:
-                    return PKG_STATE_INSTALLED
+                    return PkgStates.INSTALLED
                 else:
-                    return PKG_STATE_UNINSTALLED
+                    return PkgStates.UNINSTALLED
             elif deb_state == DebPackage.VERSION_SAME:
-                return PKG_STATE_REINSTALLABLE
+                return PkgStates.REINSTALLABLE
             elif deb_state == DebPackage.VERSION_NEWER:
                 if self._cache[self.pkgname].installed:
-                    return PKG_STATE_UPGRADABLE
+                    return PkgStates.UPGRADABLE
                 else:
-                    return PKG_STATE_UNINSTALLED
+                    return PkgStates.UNINSTALLED
     
     @property
     def summary(self):
