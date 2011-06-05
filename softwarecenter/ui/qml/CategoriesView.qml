@@ -37,6 +37,12 @@ FocusScope {
         anchors.fill: parent
     }
 
+    CloudsHeader {
+        anchors.top: parent.top
+        anchors.left: parent. left
+        anchors.right: parent.right
+    }
+
     ScrollBar {
         id: scrollbar
         width: 6
