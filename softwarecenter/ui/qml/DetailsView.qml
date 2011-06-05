@@ -21,11 +21,6 @@
 import QtQuick 1.0
 
 FocusScope {
-
-    id: detailsview
-    width: parent.width
-    height: parent.height
-
     Rectangle {
         id: detailsframe
         anchors.fill: parent
@@ -218,10 +213,9 @@ FocusScope {
             anchors.bottom: parent.bottom
             anchors.margins: 15
             text: qsTr("Back")
-            
+
             onClicked: {
                 showListView()
-                search.focus = true
             }
         }
     }

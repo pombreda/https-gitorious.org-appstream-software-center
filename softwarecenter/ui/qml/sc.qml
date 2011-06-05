@@ -141,7 +141,7 @@ Rectangle {
         width: parent.width
         anchors.left: listview.right
         anchors.top: navigation.bottom
-        anchors.bottom: parent.top
+        anchors.bottom: parent.bottom
 
         Behavior on x {
             NumberAnimation { duration: 180 }
