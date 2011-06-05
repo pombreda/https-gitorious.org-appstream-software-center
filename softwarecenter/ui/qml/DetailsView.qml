@@ -24,9 +24,7 @@ FocusScope {
     Rectangle {
         id: detailsframe
         anchors.fill: parent
-        anchors.margins: 10
         color: activePalette.base
-        radius: 5
 
         Rectangle {
             anchors.left: parent. left
@@ -120,14 +118,18 @@ FocusScope {
         // reviews part
         Text {
             anchors.top: desctxt.bottom
-            anchors.topMargin: 18
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.margins: 15
             id: reviewsheadertxt
             text: qsTr("Reviews")
         }
 
         Rectangle {
             id: reviewslistframe
-            width: parent.width
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.margins: 15
             anchors.top: reviewsheadertxt.bottom
             anchors.bottom: backbtn.top
             clip: true
