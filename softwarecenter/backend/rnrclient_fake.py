@@ -20,11 +20,13 @@ PUBLIC_API_SCHEME = 'http'
 AUTHENTICATED_API_SCHEME = 'https'
 
 from rnrclient_pristine import ReviewRequest, ReviewsStats, ReviewDetails
+from softwarecenter.backend.login import LoginBackend
 from test.fake_review_settings import FakeReviewSettings
 import piston_mini_client
 import simplejson
 import random
 import time
+import string
 
 # decorator to add a fake network delay if set 
 # in FakeReviewSettings.fake_network_delay
@@ -305,5 +307,42 @@ class RatingsAndReviewsAPI(PistonAPI):
             "id": random.randint(1,500),
             "date_joined": time.strftime("%Y-%m-%d %H:%M:%S")
         }
-    
 
+class LoginBackendDbusSSO(LoginBackend):
+
+    def __init__(self, window_id, appname, login_text):
+        super(LoginBackendDbusSSO, self).__init__()
+        self.appname = appname
+        self.login_text = login_text
+        self._window_id = window_id
+        
+    def login(self, username=None, password=None):
+        response = FakeReviewSettings.login_response
+            
+        if response == "successful":
+            self.emit("login-successful", self._return_credentials)
+        elif response == "failed":
+            self.emit("login-failed")
+        elif response == "denied":
+            self.cancel_login()
+        
+        return
+        
+    def login_or_register(self):
+        pass
+                
+    def _random_string(self, length):
+        retval = ''
+        for i in range(0,length):
+            retval = retval + random.choice(string.letters + string.digits)
+        return retval
+ 
+    def _return_credentials(self):
+        c =  {
+              'consumer_secret': self._random_string(30),
+              'token' : self._random_string(50),
+              'consumer_key' : self._random_string(7),
+              'name' : 'Ubuntu Software Center @ ' + self._random_string(6),
+              'token_secret' : self._random_string(50)
+             }
+        return c

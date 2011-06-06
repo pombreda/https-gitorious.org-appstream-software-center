@@ -89,3 +89,11 @@ class FakeReviewSettings(object):
     #if you don't complete this or enter less review ids than votes_returned
     #above, it will be random
     required_review_ids = [3,6,15]
+    
+    #THE FOLLOWING SETTINGS RELATE TO LOGIN SSO FUNCTIONALITY
+    # LoginBackendDbusSSO
+    # login()
+    #***********************
+    # what to fake the login response as 
+    # choices (strings): "successful", "failed", "denied"
+    login_response = "successful"
