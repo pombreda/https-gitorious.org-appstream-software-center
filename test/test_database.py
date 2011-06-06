@@ -16,13 +16,8 @@ from softwarecenter.db.database import parse_axi_values_file
 from softwarecenter.db.pkginfo import get_pkg_info
 from softwarecenter.db.update import update_from_app_install_data, update_from_var_lib_apt_lists, update_from_appstream_xml
 from softwarecenter.enums import (
-    XAPIAN_VALUE_ARCHIVE_PPA,
-    XAPIAN_VALUE_ICON,
-    XAPIAN_VALUE_ICON_URL,
-    PKG_STATE_INSTALLED,
-    PKG_STATE_NEEDS_SOURCE,
-    PKG_STATE_NEEDS_PURCHASE,
-    PKG_STATE_NOT_FOUND,
+    XapianValues,
+    PkgStates,
     )
 
 class TestDatabase(unittest.TestCase):
@@ -114,11 +109,11 @@ class TestDatabase(unittest.TestCase):
         self.assertTrue(db.get_doccount() > 1)
         for p in db.postlist(""):
             doc = db.get_document(p.docid)
-            ppa = doc.get_value(XAPIAN_VALUE_ARCHIVE_PPA)
+            ppa = doc.get_value(XapianValues.ARCHIVE_PPA)
             self.assertTrue(ppa.startswith("commercial-ppa") and
                             ppa.count("/") == 1)
             self.assertTrue(
-                doc.get_value(XAPIAN_VALUE_ICON).startswith("sc-agent"))
+                doc.get_value(XapianValues.ICON).startswith("sc-agent"))
         
     def test_application(self):
         db = StoreDatabase("/var/cache/software-center/xapian", self.cache)
@@ -159,7 +154,7 @@ class TestDatabase(unittest.TestCase):
         self.assertNotEqual(appdetails.pkg, None)
         # from the fake test/data/appdetails/var/lib/dpkg/status
         self.assertEqual(appdetails.pkg.is_installed, True)
-        self.assertEqual(appdetails.pkg_state, PKG_STATE_INSTALLED)
+        self.assertEqual(appdetails.pkg_state, PkgStates.INSTALLED)
         # FIXME: test description for unavailable pkg
         self.assertTrue(
             appdetails.description.startswith("The Ubuntu Software Center"))
@@ -210,32 +205,32 @@ class TestDatabase(unittest.TestCase):
         self.assertTrue(res)
         db = StoreDatabase("./data/test.db", self.cache)
         db.open(use_axi=False)
-        # test PKG_STATE_INSTALLED
+        # test PkgStates.INSTALLED
         # FIXME: this will only work if software-center is installed
         app = Application("Ubuntu Software Center Test", "software-center")
         appdetails = app.get_details(db)
-        self.assertEqual(appdetails.pkg_state, PKG_STATE_INSTALLED)
-        # test PKG_STATE_UNINSTALLED
-        # test PKG_STATE_UPGRADABLE
-        # test PKG_STATE_REINSTALLABLE
-        # test PKG_STATE_INSTALLING
-        # test PKG_STATE_REMOVING
-        # test PKG_STATE_UPGRADING
-        # test PKG_STATE_NEEDS_SOURCE
+        self.assertEqual(appdetails.pkg_state, PkgStates.INSTALLED)
+        # test PkgStates.UNINSTALLED
+        # test PkgStates.UPGRADABLE
+        # test PkgStates.REINSTALLABLE
+        # test PkgStates.INSTALLING
+        # test PkgStates.REMOVING
+        # test PkgStates.UPGRADING
+        # test PkgStates.NEEDS_SOURCE
         app = Application("Zynjacku Test", "zynjacku-fake")
         appdetails = app.get_details(db)
-        self.assertEqual(appdetails.pkg_state, PKG_STATE_NEEDS_SOURCE)
-        # test PKG_STATE_NEEDS_PURCHASE
+        self.assertEqual(appdetails.pkg_state, PkgStates.NEEDS_SOURCE)
+        # test PkgStates.NEEDS_PURCHASE
         app = Application("The expensive gem", "expensive-gem")
         appdetails = app.get_details(db)
-        self.assertEqual(appdetails.pkg_state, PKG_STATE_NEEDS_PURCHASE)
+        self.assertEqual(appdetails.pkg_state, PkgStates.NEEDS_PURCHASE)
         self.assertEqual(appdetails.icon_url, "http://www.google.com/favicon.ico")
         self.assertEqual(appdetails.icon, "favicon")
-        # test PKG_STATE_PURCHASED_BUT_REPO_MUST_BE_ENABLED
-        # test PKG_STATE_UNKNOWN
+        # test PkgStates.PURCHASED_BUT_REPO_MUST_BE_ENABLED
+        # test PkgStates.UNKNOWN
         app = Application("Scintillant Orange", "scintillant-orange")
         appdetails = app.get_details(db)
-        self.assertEqual(appdetails.pkg_state, PKG_STATE_NOT_FOUND)
+        self.assertEqual(appdetails.pkg_state, PkgStates.NOT_FOUND)
 
     def test_packagename_is_application(self):
         db = StoreDatabase("/var/cache/software-center/xapian", self.cache)

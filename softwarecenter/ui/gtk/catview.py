@@ -28,7 +28,7 @@ from xml.etree import ElementTree as ET
 from xml.sax.saxutils import escape as xml_escape
 from xml.sax.saxutils import unescape as xml_unescape
 
-from softwarecenter.enums import SORT_UNSORTED, SORT_BY_ALPHABET, SORT_BY_SEARCH_RANKING, SORT_BY_CATALOGED_TIME
+from softwarecenter.enums import SortMethods
 
 (COL_CAT_NAME,
  COL_CAT_PIXBUF,
@@ -67,7 +67,7 @@ class Category(object):
     """represents a menu category"""
     def __init__(self, untranslated_name, name, iconname, query,
                  only_unallocated=True, dont_display=False, flags=[], 
-                 subcategories=[], sortmode=SORT_BY_ALPHABET,
+                 subcategories=[], sortmode=SortMethods.BY_ALPHABET,
                  item_limit=0):
         self.name = name
         self.untranslated_name = untranslated_name
@@ -240,7 +240,7 @@ class CategoriesView(object):
         dont_display = False
         flags = []
         subcategories = []
-        sortmode = SORT_BY_ALPHABET
+        sortmode = SortMethods.BY_ALPHABET
         item_limit = 0
         for element in item.getchildren():
             # ignore inline translations, we use gettext for this
@@ -291,13 +291,13 @@ class CategoriesView(object):
     def _verify_supported_sort_mode(self, sortmode):
         """ verify that we use a sortmode that we know and can handle """
         # always supported
-        if sortmode in (SORT_UNSORTED, 
-                        SORT_BY_ALPHABET, 
-                        SORT_BY_SEARCH_RANKING):
+        if sortmode in (SortMethods.UNSORTED, 
+                        SortMethods.BY_ALPHABET, 
+                        SortMethods.BY_SEARCH_RANKING):
             return True
         # only supported with a apt-xapian-index version that has the
         # "catalogedtime" value
-        elif sortmode == SORT_BY_CATALOGED_TIME:
+        elif sortmode == SortMethods.BY_CATALOGED_TIME:
             if self.db._axi_values and "catalogedtime" in self.db._axi_values:
                 return True
             else:

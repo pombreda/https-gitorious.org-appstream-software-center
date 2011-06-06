@@ -31,7 +31,7 @@ import traceback
 import time
 import xml.sax.saxutils
 
-from enums import MISSING_APP_ICON, APP_ICON_SIZE, APP_INSTALL_PATH_DELIMITER
+from enums import Icons, APP_INSTALL_PATH_DELIMITER
 
 from config import get_config
 
@@ -257,7 +257,7 @@ def is_unity_running():
         LOG.exception("could not check for Unity dbus service")
     return unity_running
     
-def get_icon_from_theme(icons, iconname=None, iconsize=APP_ICON_SIZE, missingicon=MISSING_APP_ICON):
+def get_icon_from_theme(icons, iconname=None, iconsize=Icons.APP_ICON_SIZE, missingicon=Icons.MISSING_APP):
     """
     return the icon in the theme that corresponds to the given iconname
     """    
@@ -270,18 +270,18 @@ def get_icon_from_theme(icons, iconname=None, iconsize=APP_ICON_SIZE, missingico
         icon = icons.load_icon(missingicon, iconsize, 0)
     return icon
     
-def get_file_path_from_iconname(icons, iconname=None, iconsize=APP_ICON_SIZE):
+def get_file_path_from_iconname(icons, iconname=None, iconsize=Icons.APP_ICON_SIZE):
     """
     return the file path of the icon in the theme that corresponds to the
     given iconname, or None if it cannot be determined
     """
     if (not iconname or
         not icons.has_icon(iconname)):
-        iconname = MISSING_APP_ICON
+        iconname = Icons.MISSING_APP
     try:
         icon_info = icons.lookup_icon(iconname, iconsize, 0)
     except Exception:
-        icon_info = icons.lookup_icon(MISSING_APP_ICON, iconsize, 0)
+        icon_info = icons.lookup_icon(Icons.MISSING_APP, iconsize, 0)
     if icon_info is not None:
         icon_file_path = icon_info.get_filename()
         icon_info.free()
