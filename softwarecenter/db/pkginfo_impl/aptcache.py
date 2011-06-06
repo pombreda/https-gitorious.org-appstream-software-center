@@ -71,7 +71,7 @@ class AptCache(PackageInfo):
         self._language_packages = self._read_language_pkgs()
 
     @staticmethod
-    def version_compare(v1, v2):
+    def version_compare(a, b):
         return apt_pkg.version_compare(a, b)
     @staticmethod
     def upstream_version_compare(a, b):

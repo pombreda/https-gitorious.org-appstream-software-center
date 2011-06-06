@@ -17,3 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 from installbackend import get_install_backend
+
+# mvo: this is only there to make pyflakes silent (otherwise it thinks
+#      its a unused import)
+get_install_backend

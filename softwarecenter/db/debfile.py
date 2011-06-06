@@ -16,8 +16,6 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import locale
-import logging
 import os
 
 from apt import Cache
@@ -26,7 +24,7 @@ from gettext import gettext as _
 from mimetypes import guess_type
 
 from softwarecenter.db.application import Application, AppDetails
-from softwarecenter.enums import Icons, PkgStates, XapianValues
+from softwarecenter.enums import PkgStates
 
 class DebFileApplication(Application):
     def __init__(self, debfile):
