@@ -2,7 +2,6 @@
  * Copyright 2011 Canonical Ltd.
  *
  * Authors:
- *  Michael Vogt <mvo@ubuntu.com>
  *  Olivier Tilloy <olivier@tilloy.net>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -21,31 +20,16 @@
 import QtQuick 1.0
 
 Rectangle {
-    property string text: "ButtonText"
-    signal clicked
-    
-    SystemPalette { id: activePalette }
-
-    Text {
-        id: buttontxt
-        anchors.centerIn: parent
-        text: parent.text
-        color: activePalette.buttonText
+    height: 150
+    gradient: Gradient {
+        GradientStop { position: 0.0; color: "#B2CFE7" }
+        GradientStop { position: 1.0; color: "white" }
     }
-
-    width: buttontxt.width + 10
-    height: buttontxt.height + 10
-
-    radius: 4
-    border.width: 1
-    border.color: activePalette.shadow
-    color: mousearea.containsMouse && !mousearea.pressed ? activePalette.light : activePalette.button
-    
-    MouseArea {
-        id: mousearea
-        anchors.fill: parent
-        hoverEnabled: true
-        onClicked: parent.clicked()
+    Image {
+        anchors.top: parent.top
+        anchors.right: parent.right
+        source: "../../../data/images/clouds.png"
+        asynchronous: true
     }
 }
 

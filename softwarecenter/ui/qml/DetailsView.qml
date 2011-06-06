@@ -21,33 +21,15 @@
 import QtQuick 1.0
 
 FocusScope {
-
-    id: detailsview
-    width: parent.width
-    height: parent.height
-
     Rectangle {
         id: detailsframe
         anchors.fill: parent
-        anchors.margins: 10
         color: activePalette.base
-        radius: 5
 
-        Rectangle {
+        CloudsHeader {
+            anchors.top: parent.top
             anchors.left: parent. left
             anchors.right: parent.right
-            height: 150
-            radius: parent.radius
-            gradient: Gradient {
-                GradientStop { position: 0.0; color: "#B2CFE7" }
-                GradientStop { position: 1.0; color: "white" }
-            }
-            Image {
-                anchors.top: parent.top
-                anchors.right: parent.right
-                source: "file:///usr/share/software-center/images/clouds.png"
-                asynchronous: true
-            }
         }
 
         Image {
@@ -125,14 +107,18 @@ FocusScope {
         // reviews part
         Text {
             anchors.top: desctxt.bottom
-            anchors.topMargin: 18
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.margins: 15
             id: reviewsheadertxt
             text: qsTr("Reviews")
         }
 
         Rectangle {
             id: reviewslistframe
-            width: parent.width
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.margins: 15
             anchors.top: reviewsheadertxt.bottom
             anchors.bottom: backbtn.top
             clip: true
@@ -218,10 +204,9 @@ FocusScope {
             anchors.bottom: parent.bottom
             anchors.margins: 15
             text: qsTr("Back")
-            
+
             onClicked: {
                 showListView()
-                search.focus = true
             }
         }
     }

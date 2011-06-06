@@ -18,12 +18,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import Qt 4.7
-
-/* Need the experimental desktop components, check them out at
-   git://gitorious.org/qt-components/desktop.git */
-//import "../qt-components-desktop/components"
-
+import QtQuick 1.0
 
 Rectangle {
     width: 600
@@ -59,54 +54,34 @@ Rectangle {
         reviewslistmodel.getReviews(list.currentItem.pkgname)
     }
 
+    NavigationBar {
+        id: navigation
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.top: parent.top
+        focus: true
+        KeyNavigation.down: (listview.x == 0) ? list : null
 
-    Rectangle {
-        id: header
-        width: parent.width
-        height: searchframe.height + 2*10 // 10px margin 
-        color: activePalette.window
-
-        Rectangle {
-            id: searchframe
-            color: activePalette.base
-            width: parent.width - 20
-            // FIXME: how can we avoid to hardcode this?
-            height: 30 
-            y: 10 // offset margins
-            x: 10 // offset margins
-            radius: 5
-            
-            TextInput {
-                id: search
-                anchors.fill: parent
-                anchors.margins: 5
-                focus: true
-                KeyNavigation.down: list
-
-                Binding {
-                    target: pkglistmodel
-                    property: "searchQuery"
-                    value: search.text
-                }
-
-                Keys.onReleased: {
-                    //console.log("key: " + event.key);
-                    showListView();
-                }
-            }
+        Binding {
+            target: pkglistmodel
+            property: "searchQuery"
+            value: navigation.searchQuery
         }
+
+        onSearchQueryChanged: if (searchQuery.length > 0) showListView()
+        onSearchActivated: showListView()
     }
 
     CategoriesView {
         id: catview
         width: parent.width
         height: parent.height
-        anchors.top: header.bottom
+        anchors.top: navigation.bottom
 
         Behavior on x {
             NumberAnimation { duration: 180 }
         }
-        
+
         onCategoryChanged: {
             pkglistmodel.setCategory(catname)
             showListView()
@@ -115,12 +90,11 @@ Rectangle {
 
     Rectangle {
         id: listview
-        width: parent.width
 
-        color: activePalette.window
+        width: parent.width
         anchors.left: catview.right
-        anchors.top: header.bottom
-        anchors.bottom: footer.top
+        anchors.top: navigation.bottom
+        anchors.bottom: parent.bottom
 
         Behavior on x {
             NumberAnimation { duration: 180 }
@@ -129,22 +103,35 @@ Rectangle {
         AppListView {
             id: list
             model: pkglistmodel
-            anchors.margins: 10
-            anchors.fill: parent
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.top: parent.top
+            anchors.bottom: statusframe.top
 
-            KeyNavigation.up: search
+            KeyNavigation.up: navigation
         }
 
-        Button {
-            id: listbackbtn
-            text: qsTr("Back")
-
+        Rectangle {
+            id: statusframe
+            height: 20
             anchors.left: parent.left
+            anchors.right: parent.right
             anchors.bottom: parent.bottom
-            anchors.margins: 15
+            color: activePalette.window
 
-            onClicked: {
-                showCategoriesView();
+            Rectangle {
+                height: 1
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.top: parent.top
+                color: activePalette.mid
+            }
+
+            Text {
+                anchors.fill: parent
+                anchors.margins: 5
+                verticalAlignment: Text.AlignVCenter
+                text: qsTr("%1 items available").arg(list.count)
             }
         }
     }
@@ -153,32 +140,11 @@ Rectangle {
         id: detailsview
         width: parent.width
         anchors.left: listview.right
-        anchors.top: header.bottom
-        anchors.bottom: footer.top
+        anchors.top: navigation.bottom
+        anchors.bottom: parent.bottom
 
         Behavior on x {
             NumberAnimation { duration: 180 }
-        }
-    }
-
-    Rectangle {
-        id: footer
-        width: searchframe.width
-        height: 30
-        anchors.bottom: parent.bottom
-        anchors.bottomMargin: 10
-
-        Rectangle {
-            id: statusframe
-            color: activePalette.base
-            radius: 5
-
-            anchors.fill: parent
-            Text {
-                anchors.fill: parent
-                anchors.margins: 5
-                text: qsTr("%1 items available").arg(list.count)
-            }
         }
     }
 }
