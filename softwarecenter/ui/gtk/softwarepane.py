@@ -26,6 +26,7 @@ import gtk
 import logging
 import xapian
 import copy
+import os
 
 from gettext import gettext as _
 
@@ -34,21 +35,15 @@ from widgets.pathbar_gtk_atk import NavigationBar
 from widgets.searchentry import SearchEntry
 from widgets.actionbar import ActionBar
 from widgets.spinner import SpinnerView
-from softwarecenter.enums import NAV_BUTTON_ID_SUBCAT
 import softwarecenter.utils
 
 from softwarecenter.backend import get_install_backend
-from softwarecenter.enums import (
-    ACTION_BUTTON_ADD_TO_LAUNCHER,
-    ACTION_BUTTON_CANCEL_ADD_TO_LAUNCHER,
-    NAV_BUTTON_ID_DETAILS,
-    NAV_BUTTON_ID_LIST,
-    NAV_BUTTON_ID_PURCHASE,
-    NAV_BUTTON_ID_SEARCH,
-    SORT_BY_ALPHABET,
-    SORT_BY_SEARCH_RANKING,
-    TRANSACTION_TYPE_INSTALL
-    )
+from softwarecenter.enums import (ActionButtons,
+                                  NavButtons,
+                                  SortMethods,
+                                  TransactionTypes,
+                                  ViewPages)
+
 from softwarecenter.utils import (convert_desktop_file_to_installed_location,
                                   get_file_path_from_iconname,
                                   wait_for_apt_cache_ready
@@ -69,17 +64,27 @@ LOG = logging.getLogger(__name__)
 
 class SoftwareSection(object):
     
-    MASK_SURFACE_CACHE = {}
+    # specify background overlay image and color mappings for available and installed view ids
+    BACKGROUND_IMAGES = {ViewPages.AVAILABLE : cairo.ImageSurface.create_from_png(
+                                                 os.path.join(softwarecenter.paths.datadir, 'images/clouds.png')),
+                         ViewPages.INSTALLED : cairo.ImageSurface.create_from_png(
+                                                 os.path.join(softwarecenter.paths.datadir, 'images/arrows.png')),
+                        }
+    BACKGROUND_COLORS = {ViewPages.AVAILABLE : floats_from_string('#0769BC'),
+                         ViewPages.INSTALLED : floats_from_string('#aea79f'),
+                        }
 
     def __init__(self):
-        self._image_id = 0
-        self._section_icon = None
-        self._section_color = None
+        self._view_id = None
+        return
+        
+    def set_view_id(self, id):
+        self._view_id = id
         return
 
     def render(self, cr, widget, a):
         # sky
-        r,g,b = self._section_color
+        r,g,b = self.get_background_color()
         lin = cairo.LinearGradient(0,a.y,0,a.y+150)
         lin.add_color_stop_rgba(0, r,g,b, 0.3)
         lin.add_color_stop_rgba(1, r,g,b,0)
@@ -87,14 +92,7 @@ class SoftwareSection(object):
         cr.rectangle(0,0,a.width, 150)
         cr.fill()
 
-        # there is a race here because we create e.g. the installed-page
-        # delayed. if its not created yet, we just do not show a image
-        # until its available
-        if self._image_id in self.MASK_SURFACE_CACHE:
-            s = self.MASK_SURFACE_CACHE[self._image_id]
-        else:
-            s = cairo.ImageSurface(0, 64, 64)
-
+        s = self.get_background_image()
         if widget.get_direction() != gtk.TEXT_DIR_RTL:
             cr.set_source_surface(s, a.x+a.width-s.get_width(), 0)
         else:
@@ -103,27 +101,11 @@ class SoftwareSection(object):
         cr.paint()
         return
 
-    def set_icon(self, icon):
-        self._section_icon = icon
-        return
+    def get_background_color(self):
+        return self.BACKGROUND_COLORS[self._view_id]
 
-    def set_image(self, id, path):
-        image = cairo.ImageSurface.create_from_png(path)
-        self._image_id = id
-        self.MASK_SURFACE_CACHE[id] = image
-        return
-
-    def set_image_id(self, id):
-        self._image_id = id
-        return
-
-    def set_color(self, color_spec):
-        color = floats_from_string(color_spec)
-        self._section_color = color
-        return
-
-    def get_image(self):
-        return self.MASK_SURFACE_CACHE[self._image_id]
+    def get_background_image(self):
+        return self.BACKGROUND_IMAGES[self._view_id]
         
 class UnityLauncherInfo(object):
     """ Simple class to keep track of application details needed for
@@ -348,14 +330,14 @@ class SoftwarePane(gtk.VBox, BasePane):
         details = app.get_details(self.db)
         self.navigation_bar.add_with_id(details.display_name,
                                        self.on_navigation_details,
-                                       NAV_BUTTON_ID_DETAILS)
+                                       NavButtons.DETAILS)
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
         self.app_details_view.show_app(app)
         
     def on_purchase_requested(self, widget, app, url):
         self.navigation_bar.add_with_id(_("Buy"),
                                        self.on_navigation_purchase,
-                                       NAV_BUTTON_ID_PURCHASE)
+                                       NavButtons.PURCHASE)
         self.appdetails = app.get_details(self.db)
         iconname = self.appdetails.icon
         self.purchase_view.initiate_purchase(app, iconname, url)
@@ -363,7 +345,7 @@ class SoftwarePane(gtk.VBox, BasePane):
     def on_purchase_succeeded(self, widget):
         # switch to the details page to display the transaction is in progress
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
-        self.navigation_bar.remove_id(NAV_BUTTON_ID_PURCHASE)
+        self.navigation_bar.remove_id(NavButtons.PURCHASE)
         
     def on_purchase_failed(self, widget):
         # return to the the appdetails view via the button to reset it
@@ -378,7 +360,7 @@ class SoftwarePane(gtk.VBox, BasePane):
         self._click_appdetails_view()
         
     def _click_appdetails_view(self):
-        details_button = self.navigation_bar.get_button_from_id(NAV_BUTTON_ID_DETAILS)
+        details_button = self.navigation_bar.get_button_from_id(NavButtons.DETAILS)
         if details_button:
             self.navigation_bar.set_active(details_button)
         
@@ -406,7 +388,7 @@ class SoftwarePane(gtk.VBox, BasePane):
         if not self.is_app_details_view_showing():
             return
         # we only care about getting the launcher information on an install
-        if not trans_type == TRANSACTION_TYPE_INSTALL:
+        if not trans_type == TransactionTypes.INSTALL:
             if pkgname in self.unity_launcher_items:
                 self.unity_launcher_items.pop(pkgname)
                 self.action_bar.clear()
@@ -440,11 +422,11 @@ class SoftwarePane(gtk.VBox, BasePane):
         # we only show the prompt for apps with a desktop file
         if not appdetails.desktop_file:
             return
-        self.action_bar.add_button(ACTION_BUTTON_CANCEL_ADD_TO_LAUNCHER,
+        self.action_bar.add_button(ActionButtons.CANCEL_ADD_TO_LAUNCHER,
                                     _("Not Now"), 
                                     self.on_cancel_add_to_launcher, 
                                     pkgname)
-        self.action_bar.add_button(ACTION_BUTTON_ADD_TO_LAUNCHER,
+        self.action_bar.add_button(ActionButtons.ADD_TO_LAUNCHER,
                                    _("Add to Launcher"),
                                    self.on_add_to_launcher,
                                    pkgname,
@@ -471,8 +453,8 @@ class SoftwarePane(gtk.VBox, BasePane):
                 LOG.debug("the application '%s' will be added to the Unity launcher when installation is complete" % app.name)
                 launcher_info.add_to_launcher_requested = True
                 self.action_bar.set_label(_("%s will be added to the launcher when installation completes.") % app.name)
-                self.action_bar.remove_button(ACTION_BUTTON_CANCEL_ADD_TO_LAUNCHER)
-                self.action_bar.remove_button(ACTION_BUTTON_ADD_TO_LAUNCHER)
+                self.action_bar.remove_button(ActionButtons.CANCEL_ADD_TO_LAUNCHER)
+                self.action_bar.remove_button(ActionButtons.ADD_TO_LAUNCHER)
 
     def on_cancel_add_to_launcher(self, pkgname):
         if pkgname in self.unity_launcher_items:
@@ -680,7 +662,7 @@ class SoftwarePane(gtk.VBox, BasePane):
             self.refresh_apps()
         elif uri.startswith("search-parent:"):
             self.apps_subcategory = None;
-            self.navigation_bar.remove_id(NAV_BUTTON_ID_SUBCAT, animate=True)
+            self.navigation_bar.remove_id(NavButtons.SUBCAT, animate=True)
             self.refresh_apps()
         elif uri.startswith("search-unsupported:"):
             self.apps_filter.set_supported_only(False)
@@ -713,13 +695,13 @@ class SoftwarePane(gtk.VBox, BasePane):
                 self.apps_search_term, channel_query)
             self.navigation_bar.add_with_id(_("Search Results"),
                                               self.on_navigation_search, 
-                                              NAV_BUTTON_ID_SEARCH,
+                                              NavButtons.SEARCH,
                                               do_callback=False)
             return query
         # overview list
         self.navigation_bar.add_with_id(name,
                                         self.on_navigation_list,
-                                        NAV_BUTTON_ID_LIST,
+                                        NavButtons.LIST,
                                         do_callback=False)
         # if we are in a channel, limit to that
         if channel_query:
@@ -798,10 +780,10 @@ class SoftwarePane(gtk.VBox, BasePane):
 
     def get_sort_mode(self):
         if self.apps_search_term and len(self.apps_search_term) >= 2:
-            return SORT_BY_SEARCH_RANKING
+            return SortMethods.BY_SEARCH_RANKING
         elif self.apps_category:
             return self.apps_category.sortmode
-        return SORT_BY_ALPHABET
+        return SortMethods.BY_ALPHABET
 
     def on_search_terms_changed(self, terms):
         " stub implementation "

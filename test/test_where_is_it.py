@@ -23,7 +23,11 @@ class TestWhereIsit(unittest.TestCase):
         self.db = StoreDatabase(pathname, cache)
         self.db.open()
 
-    def test_where_is_it_in_system(self):
+    # mvo: disabled for now (2011-06-06) because the new gnome-panel
+    #      does not have "System" anymore and its not clear to me yet
+    #      where those items will appear. Once that is settled it
+    #      should be re-enabled
+    def disabled_for_now_test_where_is_it_in_system(self):
         app = Application("Hardware Drivers", "jockey-gtk")
         details = app.get_details(self.db)
         self.assertEqual(details.desktop_file, 
@@ -31,7 +35,7 @@ class TestWhereIsit(unittest.TestCase):
         # search the settings menu
         searcher = GMenuSearcher()
         found = searcher.get_main_menu_path(details.desktop_file)
-        self.assertEqual(found[0].get_name(), "System")
+        self.assertEqual(found[0].get_name(), "Desktop")
         self.assertEqual(found[0].get_icon(), "preferences-other")
         self.assertEqual(found[1].get_name(), "Administration")
         self.assertEqual(found[1].get_icon(), "preferences-system")
