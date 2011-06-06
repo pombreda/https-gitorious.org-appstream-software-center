@@ -31,12 +31,12 @@ from aptdaemon.enums import (get_role_localised_present_from_enum,
                              )
 from softwarecenter.utils import get_icon_from_theme
 from softwarecenter.backend import get_install_backend
-from softwarecenter.backend.transactionswatcher import TransactionsWatcher
+from softwarecenter.backend.transactionswatcher import get_transactions_watcher
 from basepane import BasePane
 
 from gettext import gettext as _
 
-class PendingStore(gtk.ListStore, TransactionsWatcher()):
+class PendingStore(gtk.ListStore):
 
     # column names
     (COL_TID,
@@ -65,7 +65,9 @@ class PendingStore(gtk.ListStore, TransactionsWatcher()):
     def __init__(self, icons):
         # icon, status, progress
         gtk.ListStore.__init__(self, *self.column_types)
-        TransactionsWatcher().__init__(self)
+        self._transactions_watcher = get_transactions_watcher()
+        self._transactions_watcher.connect("lowlevel-transactions-changed",
+                                           self._on_lowlevel_transactions_changed)
         # data
         self.icons = icons
         # the apt-daemon stuff
@@ -82,7 +84,7 @@ class PendingStore(gtk.ListStore, TransactionsWatcher()):
             del sig
         self._signals = []
 
-    def on_transactions_changed(self, current_tid, pending_tids):
+    def _on_lowlevel_transactions_changed(self, watcher, current_tid, pending_tids):
         logging.debug("on_transaction_changed %s (%s)" % (current_tid, len(pending_tids)))
         self.clear()
         for tid in [current_tid] + pending_tids:

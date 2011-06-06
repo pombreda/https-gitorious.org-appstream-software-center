@@ -17,23 +17,28 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import dbus
+import gobject
 
-class BaseTransactionsWatcher(object):
+class BaseTransactionsWatcher(gobject.GObject):
     """ 
     base class for objects that need to watch the install backend 
     for transaction changes.
 
-    provides a "on_transaction_changed()" method
+    provides a "lowlevel-transactions-changed" signal
     """
-    def on_transactions_changed(self, current, queue):
-        " stub implementation "
-        pass
+
+    __gsignals__ = {'lowlevel-transactions-changed': (gobject.SIGNAL_RUN_FIRST,
+                                                     gobject.TYPE_NONE,
+                                                     (str,gobject.TYPE_PYOBJECT)),
+                    }
+
+
 
 # singleton
 _tw = None
-def TransactionsWatcher():
+def get_transactions_watcher():
     global _tw
     if _tw is None:
         from aptd import AptdaemonTransactionsWatcher
-        _tw = AptdaemonTransactionsWatcher
+        _tw = AptdaemonTransactionsWatcher()
     return _tw

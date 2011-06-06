@@ -82,6 +82,7 @@ class AptdaemonTransactionsWatcher(BaseTransactionsWatcher):
     """
 
     def __init__(self):
+        super(AptdaemonTransactionsWatcher, self).__init__()
         # watch the daemon exit and (re)register the signal
         bus = dbus.SystemBus()
         self._owner_watcher = bus.watch_name_owner(
@@ -91,11 +92,14 @@ class AptdaemonTransactionsWatcher(BaseTransactionsWatcher):
         #print "_register_active_transactions_watch", connection
         apt_daemon = client.get_aptdaemon()
         apt_daemon.connect_to_signal("ActiveTransactionsChanged", 
-                                     self.on_transactions_changed)
+                                     self._on_transactions_changed)
         current, queued = apt_daemon.GetActiveTransactions()
-        self.on_transactions_changed(current, queued)
+        self._on_transactions_changed(current, queued)
 
-class AptdaemonBackend(gobject.GObject, AptdaemonTransactionsWatcher, InstallBackend):
+    def _on_transactions_changed(self, current, queued):
+        self.emit("lowlevel-transactions-changed", current, queued)
+
+class AptdaemonBackend(gobject.GObject, InstallBackend):
     """ software center specific code that interacts with aptdaemon """
 
     __gsignals__ = {'transaction-started':(gobject.SIGNAL_RUN_FIRST,
@@ -126,9 +130,12 @@ class AptdaemonBackend(gobject.GObject, AptdaemonTransactionsWatcher, InstallBac
 
     def __init__(self):
         gobject.GObject.__init__(self)
-        AptdaemonTransactionsWatcher.__init__(self)
+        
         self.aptd_client = client.AptClient()
         self.pending_transactions = {}
+        self._transactions_watcher = AptdaemonTransactionsWatcher()
+        self._transactions_watcher.connect("lowlevel-transactions-changed",
+                                           self._on_lowlevel_transactions_changed)
         # dict of pkgname -> FakePurchaseTransaction
         self.pending_purchases = {}
         self._progress_signal = None
@@ -542,7 +549,7 @@ class AptdaemonBackend(gobject.GObject, AptdaemonTransactionsWatcher, InstallBac
                                      app, trans.meta_data, sourcepart)
 
     # internal helpers
-    def on_transactions_changed(self, current, pending):
+    def _on_lowlevel_transactions_changed(self, watcher, current, pending):
         # cleanup progress signal (to be sure to not leave dbus matchers around)
         if self._progress_signal:
             gobject.source_remove(self._progress_signal)
