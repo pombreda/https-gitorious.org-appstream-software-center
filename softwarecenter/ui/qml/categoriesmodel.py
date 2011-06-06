@@ -22,7 +22,7 @@ import os
 import gtk
 
 from PySide.QtCore import QAbstractListModel, QModelIndex
-from PySide.QtGui import QIcon
+#from PySide.QtGui import QIcon
 
 from softwarecenter.db.categories import CategoriesParser
 from softwarecenter.db.database import StoreDatabase
@@ -73,7 +73,7 @@ class CategoriesModel(QAbstractListModel):
         
 if __name__ == "__main__":
     from PySide.QtGui import QApplication
-    from PySide.QtDeclarative import qmlRegisterType, QDeclarativeView 
+    from PySide.QtDeclarative import QDeclarativeView 
     import sys
 
     app = QApplication(sys.argv)

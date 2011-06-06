@@ -5,9 +5,6 @@ import os
 # ensure we set the review backend to the fake one
 os.environ["SOFTWARE_CENTER_IPSUM_REVIEWS"] = "1"
 import unittest
-import xapian
-
-from PySide.QtCore import QAbstractListModel, QModelIndex
 
 import sys
 sys.path.insert(0,"../")

@@ -17,18 +17,10 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import os
-import sys
+from PySide.QtCore import QAbstractListModel, QModelIndex, Slot, Signal
 
-from PySide import QtCore
-from PySide.QtCore import QObject, Property, QAbstractListModel, QModelIndex, Slot, Signal
-from PySide.QtDeclarative import QDeclarativeItem
-
-from softwarecenter.db.database import StoreDatabase, Application
+from softwarecenter.db.database import Application
 from softwarecenter.db.pkginfo import get_pkg_info
-from softwarecenter.paths import XAPIAN_BASE_PATH
-from softwarecenter.enums import XapianValues
-from softwarecenter.backend import get_install_backend
 from softwarecenter.backend.reviews import get_review_loader
 
 class ReviewsListModel(QAbstractListModel):
