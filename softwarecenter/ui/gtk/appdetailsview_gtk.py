@@ -1132,6 +1132,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         self.totalsize_info = PackageInfo(_("Total size:"), self.info_keys)
         info_vb.pack_start(self.totalsize_info, False)
+        
+        self.pkgname_info = PackageInfo(_("Package:"), self.info_keys)
+        info_vb.pack_start(self.pkgname_info, False)
 
         self.version_info = PackageInfo(_("Version:"), self.info_keys)
         info_vb.pack_start(self.version_info, False)
@@ -1292,8 +1295,13 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
     def _update_pkg_info_table(self, app_details):
         # set the strings in the package info table
+        if app_details.pkgname:
+            pkgname = app_details.pkgname
+        else:
+            # if the pkgname is unknown, just hide the field
+            self.pkgname_info.hide()
         if app_details.version:
-            version = '%s (%s)' % (app_details.version, app_details.pkgname)
+            version = '%s' % app_details.version
         else:
             version = _("Unknown")
             # if the version is unknown, just hide the field
@@ -1307,6 +1315,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         else:
             support = _("Unknown")
 
+        self.pkgname_info.set_value(pkgname)
         self.version_info.set_value(version)
         self.license_info.set_value(license)
         self.support_info.set_value(support)
