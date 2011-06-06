@@ -23,7 +23,6 @@ import os
 import re
 
 from gettext import gettext as _
-from mimetypes import guess_type
 from softwarecenter.distro import get_distro
 from softwarecenter.enums import PkgStates, XapianValues, Icons
 
@@ -301,11 +300,11 @@ class AppDetails(object):
     @property
     def icon(self):
         if self.pkg_state == PkgStates.NOT_FOUND:
-            return MISSING_PKG_ICON
+            return Icons.MISSING_APP
         if self._doc:
             return os.path.splitext(self._db.get_iconname(self._doc))[0]
         if not self.summary:
-            return MISSING_PKG_ICON
+            return Icons.MISSING_APP
             
     @property
     def icon_file_name(self):

@@ -44,6 +44,8 @@ from softwarecenter.db.debfile import DebFileApplication
 from softwarecenter.enums import (Icons,
                                   PkgStates,
                                   ViewPages,
+                                  NavButtons,
+                                  AppActions,
                                   DB_SCHEMA_VERSION,
                                   MOUSE_EVENT_FORWARD_BUTTON,
                                   MOUSE_EVENT_BACK_BUTTON,
@@ -486,7 +488,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self.active_pane and
             hasattr(self.active_pane, 'navigation_bar') and
             not self.active_pane.searchentry.is_focus() and
-            not self.active_pane.navigation_bar.has_id(NAV_BUTTON_ID_PURCHASE)):
+            not self.active_pane.navigation_bar.has_id(NavButtons.ID_PURCHASE)):
             self.active_pane.navigation_bar.navigate_up()
             
     def on_window_main_button_press_event(self, widget, event):
@@ -497,12 +499,12 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         if (event.button == MOUSE_EVENT_BACK_BUTTON and
             self.active_pane and
             hasattr(self.active_pane, 'navigation_bar') and
-            not self.active_pane.navigation_bar.has_id(NAV_BUTTON_ID_PURCHASE)):
+            not self.active_pane.navigation_bar.has_id(NavButtons.ID_PURCHASE)):
             self.on_navhistory_back_action_activate()
         elif (event.button == MOUSE_EVENT_FORWARD_BUTTON and
             self.active_pane and
             hasattr(self.active_pane, 'navigation_bar') and
-            not self.active_pane.navigation_bar.has_id(NAV_BUTTON_ID_PURCHASE)):
+            not self.active_pane.navigation_bar.has_id(NavButtons.ID_PURCHASE)):
             self.on_navhistory_forward_action_activate()
         
     def on_view_switcher_changed(self, view_switcher, view_id, channel):
@@ -767,11 +769,11 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         
     def on_menuitem_install_activate(self, menuitem):
         app = self.active_pane.get_current_app()
-        self.on_application_request_action(self, app, [], [], APP_ACTION_INSTALL)
+        self.on_application_request_action(self, app, [], [], AppActions.INSTALL)
 
     def on_menuitem_remove_activate(self, menuitem):
         app = self.active_pane.get_current_app()
-        self.on_application_request_action(self, app, [], [], APP_ACTION_REMOVE)
+        self.on_application_request_action(self, app, [], [], AppActions.REMOVE)
         
     def on_menuitem_close_activate(self, widget):
         gtk.main_quit()

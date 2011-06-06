@@ -453,8 +453,8 @@ class SoftwarePane(gtk.VBox, BasePane):
                 LOG.debug("the application '%s' will be added to the Unity launcher when installation is complete" % app.name)
                 launcher_info.add_to_launcher_requested = True
                 self.action_bar.set_label(_("%s will be added to the launcher when installation completes.") % app.name)
-                self.action_bar.remove_button(ACTION_BUTTON_CANCEL_ADD_TO_LAUNCHER)
-                self.action_bar.remove_button(ACTION_BUTTON_ADD_TO_LAUNCHER)
+                self.action_bar.remove_button(ActionButtons.CANCEL_ADD_TO_LAUNCHER)
+                self.action_bar.remove_button(ActionButtons.ADD_TO_LAUNCHER)
 
     def on_cancel_add_to_launcher(self, pkgname):
         if pkgname in self.unity_launcher_items:
