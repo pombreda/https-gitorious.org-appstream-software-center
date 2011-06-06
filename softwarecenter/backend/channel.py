@@ -30,12 +30,8 @@ from softwarecenter.distro import get_distro
 from softwarecenter.utils import (get_icon_from_theme,
                                   human_readable_name_from_ppa_uri,
                                   )
-from softwarecenter.enums import (SORT_BY_ALPHABET,
-                                  VIEW_PAGE_INSTALLED,
-                                  VIEW_PAGE_AVAILABLE,
-                                  GENERIC_MISSING_IMAGE,
-                                  AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME,
-                                  )
+
+from softwarecenter.enums import SortMethods, ViewPages, Icons, AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME
 from softwarecenter.paths import ICON_PATH
 
 # FIXME: wrong layer
@@ -101,9 +97,9 @@ class ChannelsManager(object):
         self.backend.emit("channels-changed", True)
 
         if channel.installed_only:
-            channel._channel_view_id = VIEW_PAGE_INSTALLED
+            channel._channel_view_id = ViewPages.INSTALLED
         else:
-            channel._channel_view_id = VIEW_PAGE_AVAILABLE
+            channel._channel_view_id = ViewPages.AVAILABLE
         return channel
 
     # internal
@@ -306,9 +302,9 @@ class ChannelsManager(object):
 
         for channel in channels:
             if installed_only:
-                channel._channel_view_id = VIEW_PAGE_INSTALLED
+                channel._channel_view_id = ViewPages.INSTALLED
             else:
-                channel._channel_view_id = VIEW_PAGE_AVAILABLE
+                channel._channel_view_id = ViewPages.AVAILABLE
         return channels
 
 
@@ -322,7 +318,7 @@ class SoftwareChannel(object):
     def __init__(self, icons, channel_name, channel_origin, channel_component,
                  source_entry=None, installed_only=False,
                  channel_icon=None, channel_query=None,
-                 channel_sort_mode=SORT_BY_ALPHABET):
+                 channel_sort_mode=SortMethods.BY_ALPHABET):
         """
         configure the software channel object based on channel name,
         origin, and component (the latter for detecting the partner
@@ -466,7 +462,7 @@ class SoftwareChannel(object):
         return AnimatedImage(get_icon_from_theme(self.icons, 
                                                  iconname=icon_name, 
                                                  iconsize=self.ICON_SIZE,
-                                                 missingicon=GENERIC_MISSING_IMAGE))
+                                                 missingicon=Icons.GENERIC_MISSING))
         
     def __str__(self):
         details = []

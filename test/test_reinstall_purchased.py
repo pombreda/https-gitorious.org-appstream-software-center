@@ -11,10 +11,7 @@ import simplejson
 import unittest
 import xapian
 
-from softwarecenter.enums import (XAPIAN_VALUE_ARCHIVE_DEB_LINE,
-                                  XAPIAN_VALUE_ARCHIVE_SIGNING_KEY_ID,
-                                  XAPIAN_VALUE_PKGNAME,
-                                  )
+from softwarecenter.enums import XapianValues
 from softwarecenter.db.database import StoreDatabase
 from softwarecenter.db.update import add_from_purchased_but_needs_reinstall_data
 
@@ -85,9 +82,9 @@ class TestPurchased(unittest.TestCase):
         self.assertEqual(len(matches), 1)
         for m in matches:
             doc = db.xapiandb.get_document(m.docid)
-            self.assertEqual(doc.get_value(XAPIAN_VALUE_PKGNAME), "hellox")
-            self.assertEqual(doc.get_value(XAPIAN_VALUE_ARCHIVE_SIGNING_KEY_ID), "1024R/0EB12F05")
-            self.assertEqual(doc.get_value(XAPIAN_VALUE_ARCHIVE_DEB_LINE),
+            self.assertEqual(doc.get_value(XapianValues.PKGNAME), "hellox")
+            self.assertEqual(doc.get_value(XapianValues.ARCHIVE_SIGNING_KEY_ID), "1024R/0EB12F05")
+            self.assertEqual(doc.get_value(XapianValues.ARCHIVE_DEB_LINE),
                                            "deb https://username:randomp3atoken@private-ppa.launchpad.net/mvo/private-test/ubuntu maverick main #Personal access of username to private-test")
             break # only one match
         

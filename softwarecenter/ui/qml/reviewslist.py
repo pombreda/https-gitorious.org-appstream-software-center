@@ -27,7 +27,7 @@ from PySide.QtDeclarative import QDeclarativeItem
 from softwarecenter.db.database import StoreDatabase, Application
 from softwarecenter.db.pkginfo import get_pkg_info
 from softwarecenter.paths import XAPIAN_BASE_PATH
-from softwarecenter.enums import XAPIAN_VALUE_PKGNAME
+from softwarecenter.enums import XapianValues
 from softwarecenter.backend import get_install_backend
 from softwarecenter.backend.reviews import get_review_loader
 

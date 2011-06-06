@@ -22,7 +22,7 @@ class TestCatParsing(unittest.TestCase):
         pathname = os.path.join(xapian_base_path, "xapian")
         self.db = StoreDatabase(pathname, cache)
         self.db.open()
-        self.catview = CategoriesParser()
+        self.catview = CategoriesParser(self.db)
         self.catview.db = self.db
         self.cats = self.catview.parse_applications_menu('/usr/share/app-install')
 

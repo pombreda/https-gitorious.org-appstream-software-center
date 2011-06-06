@@ -12,7 +12,7 @@ from appview import AppStore, AppViewFilter
 
 from softwarecenter.db.application import Application
 
-from softwarecenter.enums import SORT_BY_SEARCH_RANKING
+from softwarecenter.enums import SortMethods
 from softwarecenter.utils import wait_for_apt_cache_ready
 from softwarecenter.backend.zeitgeist_simple import zeitgeist_singleton
 from softwarecenter.drawing import color_floats, rounded_rect, rounded_rect2
@@ -309,7 +309,7 @@ class LobbyViewGtk(CategoriesViewGtk):
                                _("Recommendations"),
                                "category-recommendations",
                                query,
-                               sortmode=SORT_BY_SEARCH_RANKING)
+                               sortmode=SortMethods.BY_SEARCH_RANKING)
             self.recommended.connect('activate-link',
                                      self._on_recommended_clicked,
                                      rec_cat)

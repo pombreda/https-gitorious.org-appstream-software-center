@@ -7,17 +7,8 @@ import xapian
 
 sys.path.insert(0, "/usr/share/software-center")
 from softwarecenter.enums import (
-    CUSTOM_KEY_APPNAME,
-    CUSTOM_KEY_CATEGORY,
-    CUSTOM_KEY_ICON,
-    CUSTOM_KEY_SCREENSHOT_URL,
-    CUSTOM_KEY_THUMBNAIL_URL,
-    XAPIAN_VALUE_ARCHIVE_SECTION,
-    XAPIAN_VALUE_ICON,
-    XAPIAN_VALUE_ICON_NEEDS_DOWNLOAD,
-    XAPIAN_VALUE_SCREENSHOT_URL,
-    XAPIAN_VALUE_THUMBNAIL_URL,
-    XAPIAN_VALUE_ICON_URL,
+    CustomKeys,
+    XapianValues,
     )
 from softwarecenter.db.update import index_name
 from softwarecenter.distro import get_distro
@@ -80,11 +71,11 @@ class SoftwareCenterMetadataPlugin:
               AT to "application" for applications
             It sets the following xapian values from the software-center 
             enums:
-              XAPIAN_VALUE_ICON
-              XAPIAN_VALUE_ICON_NEEDS_DOWNLOAD
-              XAPIAN_VALUE_ICON_URL
-              XAPIAN_VALUE_SCREENSHOT_URL
-              XAPIAN_VALUE_THUMBNAIL_URL
+              XapianValues.ICON
+              XapianValues.ICON_NEEDS_DOWNLOAD
+              XapianValues.ICON_URL
+              XapianValues.SCREENSHOT_URL
+              XapianValues.THUMBNAIL_URL
             """
         )
 
@@ -99,7 +90,7 @@ class SoftwareCenterMetadataPlugin:
         ver = pkg.candidate
         # if there is no version or the AppName custom key is not
         # found we can skip the pkg
-        if ver is None or not CUSTOM_KEY_APPNAME in ver.record:
+        if ver is None or not CustomKeys.APPNAME in ver.record:
             return
         # we want to index the following custom fields: 
         #   XB-AppName, 
@@ -107,28 +98,28 @@ class SoftwareCenterMetadataPlugin:
         #   XB-Screenshot-Url, 
         #   XB-Thumbnail-Url, 
         #   XB-Category
-        if CUSTOM_KEY_APPNAME in ver.record:
-            name = ver.record[CUSTOM_KEY_APPNAME]
+        if CustomKeys.APPNAME in ver.record:
+            name = ver.record[CustomKeys.APPNAME]
             self.indexer.set_document(document)
             index_name(document, name, self.indexer)
             # we pretend to be an application
             document.add_term("AT"+"application")
             # and we inject a custom component value to indicate "independent"
-            document.add_value(XAPIAN_VALUE_ARCHIVE_SECTION, "independent")
-        if CUSTOM_KEY_ICON in ver.record:
-            icon = ver.record[CUSTOM_KEY_ICON]
-            document.add_value(XAPIAN_VALUE_ICON, icon)
+            document.add_value(XapianValues.ARCHIVE_SECTION, "independent")
+        if CustomKeys.ICON in ver.record:
+            icon = ver.record[CustomKeys.ICON]
+            document.add_value(XapianValues.ICON, icon)
             # calculate the url and add it
             url = get_distro().get_downloadable_icon_url(ver.uri, icon)
-            document.add_value(XAPIAN_VALUE_ICON_URL, url)
-        if CUSTOM_KEY_SCREENSHOT_URL in ver.record:
-            screenshot_url = ver.record[CUSTOM_KEY_SCREENSHOT_URL]
-            document.add_value(XAPIAN_VALUE_SCREENSHOT_URL, screenshot_url)
-        if CUSTOM_KEY_THUMBNAIL_URL in ver.record:
-            url = ver.record[CUSTOM_KEY_THUMBNAIL_URL]
-            document.add_value(XAPIAN_VALUE_THUMBNAIL_URL, url)
-        if CUSTOM_KEY_CATEGORY in ver.record:
-            categories_str = ver.record[CUSTOM_KEY_CATEGORY]
+            document.add_value(XapianValues.ICON_URL, url)
+        if CustomKeys.SCREENSHOT_URL in ver.record:
+            screenshot_url = ver.record[CustomKeys.SCREENSHOT_URL]
+            document.add_value(XapianValues.SCREENSHOT_URL, screenshot_url)
+        if CustomKeys.THUMBNAIL_URL in ver.record:
+            url = ver.record[CustomKeys.THUMBNAIL_URL]
+            document.add_value(XapianValues.THUMBNAIL_URL, url)
+        if CustomKeys.CATEGORY in ver.record:
+            categories_str = ver.record[CustomKeys.CATEGORY]
             for cat in categories_str.split(";"):
                 if cat:
                     document.add_term("AC"+cat.lower())
