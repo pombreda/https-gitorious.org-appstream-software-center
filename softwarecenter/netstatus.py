@@ -27,16 +27,38 @@ from dbus.mainloop.glib import DBusGMainLoop
 # enums
 class NetState(object):
     """ enums for network manager status """
+    # Old enum values are for NM 0.7
+
     # The NetworkManager daemon is in an unknown state. 
-    NM_STATE_UNKNOWN      = 0   
+    NM_STATE_UNKNOWN            = 0   
+    NM_STATE_UNKNOWN_LIST       = [NM_STATE_UNKNOWN]
     # The NetworkManager daemon is asleep and all interfaces managed by it are inactive. 
-    NM_STATE_ASLEEP       = 1
+    NM_STATE_ASLEEP_OLD         = 1
+    NM_STATE_ASLEEP             = 10
+    NM_STATE_ASLEEP_LIST        = [NM_STATE_ASLEEP_OLD,
+                                   NM_STATE_ASLEEP]
     # The NetworkManager daemon is connecting a device.
-    NM_STATE_CONNECTING   = 2
+    NM_STATE_CONNECTING_OLD     = 2
+    NM_STATE_CONNECTING         = 40
+    NM_STATE_CONNECTING_LIST    = [NM_STATE_CONNECTING_OLD,
+                                   NM_STATE_CONNECTING]
     # The NetworkManager daemon is connected. 
-    NM_STATE_CONNECTED    = 3
+    NM_STATE_CONNECTED_OLD      = 3
+    NM_STATE_CONNECTED_LOCAL    = 50
+    NM_STATE_CONNECTED_SITE     = 60
+    NM_STATE_CONNECTED_GLOBAL   = 70
+    NM_STATE_CONNECTED_LIST     = [NM_STATE_CONNECTED_OLD,
+                                   NM_STATE_CONNECTED_LOCAL,
+                                   NM_STATE_CONNECTED_SITE,
+                                   NM_STATE_CONNECTED_GLOBAL]
+    # The NetworkManager daemon is disconnecting.
+    NM_STATE_DISCONNECTING      = 30
+    NM_STATE_DISCONNECTING_LIST = [NM_STATE_DISCONNECTING]
     # The NetworkManager daemon is disconnected.
-    NM_STATE_DISCONNECTED = 4
+    NM_STATE_DISCONNECTED_OLD   = 4
+    NM_STATE_DISCONNECTED       = 20
+    NM_STATE_DISCONNECTED_LIST  = [NM_STATE_DISCONNECTED_OLD,
+                                   NM_STATE_DISCONNECTED]
 
 
 class NetworkStatusWatcher(gobject.GObject):
@@ -100,8 +122,8 @@ def get_network_state():
 def network_state_is_connected():
     """ get bool if we are connected """
     # unkown because in doubt, just assume we have network
-    return get_network_state() in (NetState.NM_STATE_UNKNOWN,
-                                   NetState.NM_STATE_CONNECTED)
+    return get_network_state() in NetState.NM_STATE_UNKNOWN_LIST + \
+                                  NetState.NM_STATE_CONNECTED_LIST
 
 # init it once
 __init_network_state()

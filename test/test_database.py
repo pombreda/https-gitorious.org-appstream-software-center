@@ -18,6 +18,7 @@ from softwarecenter.db.update import update_from_app_install_data, update_from_v
 from softwarecenter.enums import (
     XAPIAN_VALUE_ARCHIVE_PPA,
     XAPIAN_VALUE_ICON,
+    XAPIAN_VALUE_ICON_URL,
     PKG_STATE_INSTALLED,
     PKG_STATE_NEEDS_SOURCE,
     PKG_STATE_NEEDS_PURCHASE,
@@ -38,7 +39,7 @@ class TestDatabase(unittest.TestCase):
         os.environ["LANGUAGE"] = "de"
         db = xapian.WritableDatabase("./data/test.db", 
                                      xapian.DB_CREATE_OR_OVERWRITE)
-        res = update_from_app_install_data(db, self.cache, datadir="./data/")
+        res = update_from_app_install_data(db, self.cache, datadir="./data/desktop")
         self.assertTrue(res)
         self.assertEqual(db.get_doccount(), 5)
         # test if Name[de] was picked up
@@ -128,7 +129,7 @@ class TestDatabase(unittest.TestCase):
     def test_application_details(self):
         db = xapian.WritableDatabase("./data/test.db", 
                                      xapian.DB_CREATE_OR_OVERWRITE)
-        res = update_from_app_install_data(db, self.cache, datadir="./data/")
+        res = update_from_app_install_data(db, self.cache, datadir="./data/desktop")
         self.assertTrue(res)
         db = StoreDatabase("./data/test.db", self.cache)
         db.open(use_axi=False, use_agent=False)
@@ -205,7 +206,7 @@ class TestDatabase(unittest.TestCase):
     def test_package_states(self):
         db = xapian.WritableDatabase("./data/test.db", 
                                      xapian.DB_CREATE_OR_OVERWRITE)
-        res = update_from_app_install_data(db, self.cache, datadir="./data/")
+        res = update_from_app_install_data(db, self.cache, datadir="./data/desktop")
         self.assertTrue(res)
         db = StoreDatabase("./data/test.db", self.cache)
         db.open(use_axi=False)
@@ -228,6 +229,8 @@ class TestDatabase(unittest.TestCase):
         app = Application("The expensive gem", "expensive-gem")
         appdetails = app.get_details(db)
         self.assertEqual(appdetails.pkg_state, PKG_STATE_NEEDS_PURCHASE)
+        self.assertEqual(appdetails.icon_url, "http://www.google.com/favicon.ico")
+        self.assertEqual(appdetails.icon, "favicon")
         # test PKG_STATE_PURCHASED_BUT_REPO_MUST_BE_ENABLED
         # test PKG_STATE_UNKNOWN
         app = Application("Scintillant Orange", "scintillant-orange")
@@ -260,7 +263,7 @@ class TestDatabase(unittest.TestCase):
     def test_non_axi_apps_cataloged_time(self):
         db = xapian.WritableDatabase("./data/test.db", 
                                      xapian.DB_CREATE_OR_OVERWRITE)
-        res = update_from_app_install_data(db, self.cache, datadir="./data/")
+        res = update_from_app_install_data(db, self.cache, datadir="./data/desktop")
         self.assertTrue(res)
         db = StoreDatabase("./data/test.db", self.cache)
         db.open(use_axi=True)

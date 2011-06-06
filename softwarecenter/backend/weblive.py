@@ -27,15 +27,145 @@ import os
 import random
 import subprocess
 import string
+import imp
+import gobject
 
 from threading import Thread, Event
 from weblive_pristine import WebLive
-
-class ServerNotReadyError(Exception):
-    pass
+import softwarecenter.paths
 
 class WebLiveBackend(object):
-    """ backend for interacting with the weblive service """
+    """ Backend for interacting with the WebLive service """
+
+    client = None
+    URL = os.environ.get('SOFTWARE_CENTER_WEBLIVE_HOST',
+        'https://weblive.stgraber.org/weblive/json')
+
+    def __init__(self):
+        self.weblive = WebLive(self.URL,True)
+        self.available_servers = []
+
+        for client in (WebLiveClientX2GO,WebLiveClientQTNX):
+            if client.is_supported():
+                self.client=client()
+                break
+
+        self._ready = Event()
+
+    @property
+    def ready(self):
+        """ Return true if data from the remote server was loaded
+        """
+
+        return self.client and self._ready.is_set()
+
+    def query_available(self):
+        """ Get all the available data from WebLive """
+
+        self._ready.clear()
+        servers=self.weblive.list_everything()
+        self._ready.set()
+        return servers
+
+    def query_available_async(self):
+        """ Call query_available in a thread and set self.ready """
+
+        def _query_available_helper():
+            self.available_servers = self.query_available()
+
+        p = Thread(target=_query_available_helper)
+        p.start()
+
+    def is_pkgname_available_on_server(self, pkgname, serverid=None):
+        """ Check if the package is available (on all servers or on 'serverid') """
+
+        for server in self.available_servers:
+            if not serverid or server.name == serverid:
+                for pkg in server.packages:
+                    if pkg.pkgname == pkgname:
+                        return True
+        return False
+
+    def get_servers_for_pkgname(self, pkgname):
+        """ Return a list of servers having a given package """
+
+        servers=[]
+        for server in self.available_servers:
+            # No point in returning a server that's full
+            if server.current_users >= server.userlimit:
+                continue
+
+            for pkg in server.packages:
+                if pkg.pkgname == pkgname:
+                    servers.append(server)
+        return servers
+
+    def create_automatic_user_and_run_session(self, serverid,
+                                              session="desktop", wait=False):
+        """ Create a user on 'serverid' and start the session """
+
+        # Use the boot_id to get a temporary unique identifier (till next reboot)
+        if os.path.exists('/proc/sys/kernel/random/boot_id'):
+            uuid=open('/proc/sys/kernel/random/boot_id','r').read().strip().replace('-','')
+            random.seed(uuid)
+
+        # Generate a 20 characters string based on the boot_id
+        identifier=''.join(random.choice(string.ascii_lowercase) for x in range (20))
+
+        # Use the current username as the GECOS on the server
+        # if it's invalid (by weblive's standard), use "WebLive user" instead
+        fullname=str(os.environ.get('USER','WebLive user'))
+        if not re.match("^[A-Za-z0-9 ]*$",fullname) or len(fullname) == 0:
+            fullname='WebLive user'
+
+        # Send the user's locale so it's automatically selected when connecting
+        locale=os.environ.get("LANG","None").replace("UTF-8","utf8")
+
+        # Create the user and retrieve host and port of the target server
+        connection=self.weblive.create_user(serverid, identifier, fullname, identifier, session, locale)
+
+        # Connect using x2go or fallback to qtnx if not available
+        if (self.client):
+            self.client.start_session(connection[0], connection[1], session, identifier, identifier, wait)
+        else:
+            raise IOError("No remote desktop client available.")
+
+class WebLiveClient(gobject.GObject):
+    """ Generic WebLive client """
+
+    __gsignals__ = {
+        "progress": (
+            gobject.SIGNAL_RUN_FIRST,
+            gobject.TYPE_NONE,
+            (gobject.TYPE_INT,)
+        ),
+        "connected": (
+            gobject.SIGNAL_RUN_FIRST,
+            gobject.TYPE_NONE,
+            (gobject.TYPE_BOOLEAN,)
+        ),
+        "disconnected": (
+            gobject.SIGNAL_RUN_FIRST,
+            gobject.TYPE_NONE,
+            ()
+        ),
+        "exception": (
+            gobject.SIGNAL_RUN_FIRST,
+            gobject.TYPE_NONE,
+            (gobject.TYPE_STRING,)
+        ),
+        "warning": (
+            gobject.SIGNAL_RUN_FIRST,
+            gobject.TYPE_NONE,
+            (gobject.TYPE_STRING,)
+        )
+    }
+
+    state = "disconnected"
+
+
+class WebLiveClientQTNX(WebLiveClient):
+    """ qtnx client """
 
     # NXML template
     NXML_TEMPLATE = """
@@ -64,92 +194,27 @@ class WebLiveBackend(object):
 <option key="Enable Fullscreen Desktop" value="False"></option>
 </NXClientLibSettings>
 """
-    URL = os.environ.get('SOFTWARE_CENTER_WEBLIVE_HOST',
-        'https://weblive.stgraber.org/weblive/json')
-    QTNX = "/usr/bin/qtnx"
-    DEFAULT_SERVER = "ubuntu-natty01"
 
-    def __init__(self):
-        self.weblive = WebLive(self.URL,True)
-        self.available_servers = []
-        self._ready = Event()
-
-    @property
-    def ready(self):
-        """ return true if data from the remote server was loaded
-        """
-        return self._ready.is_set()
+    BINARY_PATH = "/usr/bin/qtnx"
 
     @classmethod
     def is_supported(cls):
-        """ return if the current system will work (has the required
-            dependencies
+        """ Return if the current system will work
+            (has the required dependencies)
         """
-        # FIXME: also test if package is available on the weblive server
-        if os.path.exists(cls.QTNX):
+
+        if os.path.exists(cls.BINARY_PATH):
             return True
         return False
 
-    def query_available(self):
-        """ (sync) get available server and limits """
-        servers=self.weblive.list_everything()
-        return servers
+    def start_session(self, host, port, session, username, password, wait):
+        """ Start a session using qtnx """
 
-    def query_available_async(self):
-        """ query available in a thread and set self.ready """
-        def _query_available_helper():
-            self.available_servers = self.query_available()
-            self._ready.set()
-
-        self._ready.clear()
-        p = Thread(target=_query_available_helper)
-        p.start()
-
-    def is_pkgname_available_on_server(self, pkgname, serverid=None):
-        for server in self.available_servers:
-            if not serverid or server.name == serverid:
-                for pkg in server.packages:
-                    if pkg.pkgname == pkgname:
-                        return True
-        return False
-
-    def get_servers_for_pkgname(self, pkgname):
-        servers=[]
-        for server in self.available_servers:
-            # No point in returning a server that's full
-            if server.current_users >= server.userlimit:
-                continue
-
-            for pkg in server.packages:
-                if pkg.pkgname == pkgname:
-                    servers.append(server)
-        return servers
-
-    def create_automatic_user_and_run_session(self, serverid=None,
-                                              session="desktop", wait=False):
-        """ login into serverid and automatically create a user """
-        if not serverid:
-            serverid = self.DEFAULT_SERVER
-
-        if os.path.exists('/proc/sys/kernel/random/boot_id'):
-            uuid=open('/proc/sys/kernel/random/boot_id','r').read().strip().replace('-','')
-            random.seed(uuid)
-        identifier=''.join(random.choice(string.ascii_lowercase) for x in range (20))
-
-        fullname=str(os.environ.get('USER','WebLive user'))
-        if not re.match("^[A-Za-z0-9 ]*$",fullname) or len(fullname) == 0:
-            fullname='WebLive user'
-
-        locale=os.environ.get("LANG","None").replace("UTF-8","utf8")
-
-        connection=self.weblive.create_user(serverid, identifier, fullname, identifier, session, locale)
-        self._spawn_qtnx(connection[0], connection[1], session, identifier, identifier, wait)
-
-    def _spawn_qtnx(self, host, port, session, username, password, wait):
-        if not os.path.exists(self.QTNX):
-            raise IOError("qtnx not found")
+        self.state = "connecting"
         if not os.path.exists(os.path.expanduser('~/.qtnx')):
             os.mkdir(os.path.expanduser('~/.qtnx'))
+
+        # Generate qtnx's configuration file
         filename=os.path.expanduser('~/.qtnx/%s-%s-%s.nxml') % (
             host, port, session.replace("/","_"))
         nxml=open(filename,"w+")
@@ -161,22 +226,132 @@ class WebLiveBackend(object):
         nxml.write(config)
         nxml.close()
 
-        cmd = [self.QTNX,
+        # Prepare qtnx call
+        cmd = [self.BINARY_PATH,
                '%s-%s-%s' % (str(host), str(port), session.replace("/","_")),
                username,
                password]
 
+        def qtnx_countdown():
+            """ Send progress events every two seconds """
+
+            if self.helper_progress == 10:
+                self.state = "connected"
+                self.emit("connected",False)
+                return False
+            else:
+                self.emit("progress",self.helper_progress * 10)
+                self.helper_progress+=1
+                return True
+
+        def qtnx_start_timer():
+            """ As we don't have a way of knowing the connection
+                status, we countdown from 20s
+            """
+
+            self.helper_progress=0
+            qtnx_countdown()
+            glib.timeout_add_seconds(
+                2, qtnx_countdown)
+
+        qtnx_start_timer()
+
         if wait == False:
-            (pid, stdin, stdout, stderr) = glib.spawn_async(
-                cmd, flags=glib.SPAWN_DO_NOT_REAP_CHILD)
-            glib.child_watch_add(pid, self._on_qtnx_exit,filename)
+            # Start in the background and attach a watch for when it exits
+            (self.helper_pid, stdin, stdout, stderr) = glib.spawn_async(
+                cmd, standard_input=True, standard_output=True, standard_error=True,
+                flags=glib.SPAWN_DO_NOT_REAP_CHILD)
+            glib.child_watch_add(self.helper_pid, self._on_qtnx_exit,filename)
         else:
+            # Start it and wait till it finishes
             p=subprocess.Popen(cmd)
             p.wait()
 
     def _on_qtnx_exit(self, pid, status, filename):
+        """ Called when the qtnx process exits (when in the background) """
+
+        # Remove configuration file
+        self.state = "disconnected"
+        self.emit("disconnected")
         if os.path.exists(filename):
             os.remove(filename)
+
+class WebLiveClientX2GO(WebLiveClient):
+    """ x2go client """
+
+    @classmethod
+    def is_supported(cls):
+        """ Return if the current system will work
+            (has the required dependencies)
+        """
+
+        try:
+            imp.find_module("x2go")
+            return True
+        except:
+            return False
+
+    def start_session(self, host, port, session, username, password, wait):
+        """ Start a session using x2go """
+
+        # Start in the background and attach a watch for when it exits
+        cmd = [os.path.join(softwarecenter.paths.datadir, softwarecenter.paths.X2GO_HELPER)]
+        (self.helper_pid, stdin, stdout, stderr) = glib.spawn_async(
+            cmd, standard_input=True, standard_output=True, standard_error=True,
+            flags=glib.SPAWN_DO_NOT_REAP_CHILD)
+        self.helper_stdin=os.fdopen(stdin,"w")
+        self.helper_stdout=os.fdopen(stdout)
+        self.helper_stderr=os.fdopen(stderr)
+
+        # Add a watch for when the process exits
+        glib.child_watch_add(self.helper_pid, self._on_x2go_exit)
+
+        # Add a watch on stdout
+        glib.io_add_watch(self.helper_stdout, glib.IO_IN, self._on_x2go_activity)
+
+        # Start the connection
+        self.state = "connecting"
+        self.helper_stdin.write("CONNECT: \"%s\" \"%s\" \"%s\" \"%s\" \"%s\"\n" % (host, port, username, password, session))
+        self.helper_stdin.flush()
+
+    def disconnect_session(self):
+        """ Disconnect the current session """
+
+        if self.state == "connected":
+            self.state = "disconnecting"
+            self.helper_stdin.write("DISCONNECT\n")
+            self.helper_stdin.flush()
+
+    def _on_x2go_exit(self, pid, status):
+        # We get everything by just watching stdout
+        pass
+
+    def _on_x2go_activity(self, stdout, condition):
+        """ Called when something appears on stdout """
+
+        line=stdout.readline().strip()
+        if line.startswith("PROGRESS: "):
+            if line.endswith("creating"):
+                self.emit("progress",10)
+            elif line.endswith("connecting"):
+                self.emit("progress",30)
+            elif line.endswith("starting"):
+                self.emit("progress",60)
+
+        elif line == "CONNECTED":
+            self.emit("connected",True)
+            self.state = "connected"
+        elif line == "DISCONNECTED":
+            self.emit("disconnected")
+            self.state = "disconnected"
+        elif line.startswith("EXCEPTION: "):
+            self.emit("exception", line.split(": ")[1])
+            self.state = "disconnected"
+        elif line.startswith("WARNING: "):
+            self.emit("warning", line.split(": ")[1])
+        else:
+            pass
+        return True
 
 # singleton
 _weblive_backend = None
@@ -185,16 +360,18 @@ def get_weblive_backend():
     if _weblive_backend is None:
         _weblive_backend = WebLiveBackend()
         # initial query
-        if _weblive_backend.is_supported():
+        if _weblive_backend.client:
             _weblive_backend.query_available_async()
     return _weblive_backend
 
 if __name__ == "__main__":
+    # Contact the weblive daemon to get all servers
     weblive = get_weblive_backend()
     weblive.query_available_async()
     weblive._ready.wait()
 
+    # Show the currently available servers
     print weblive.available_servers
 
-    # run session
-    weblive.create_automatic_user_and_run_session(session="firefox",wait=True)
+    # Start firefox on the first available server and wait for it to finish
+    weblive.create_automatic_user_and_run_session(serverid=weblive.available_servers[0].name,session="firefox",wait=True)

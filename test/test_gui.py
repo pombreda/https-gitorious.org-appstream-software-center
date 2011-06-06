@@ -33,6 +33,7 @@ apt.apt_pkg.config.set("Dir::log::history", "/tmp")
 mock_options = Mock()
 mock_options.enable_lp = False
 mock_options.enable_buy = True
+mock_options.disable_apt_xapian_index = False
 app = SoftwareCenterApp("../data", XAPIAN_BASE_PATH, mock_options)
 app.window_main.show_all()
 

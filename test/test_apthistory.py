@@ -12,7 +12,7 @@ import subprocess
 import time
 import unittest
 
-from softwarecenter.db.history import AptHistory
+from softwarecenter.db.history_impl.apthistory import AptHistory
 from softwarecenter.utils import ExecutionTime
 
 class TestAptHistory(unittest.TestCase):

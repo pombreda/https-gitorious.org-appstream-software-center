@@ -37,7 +37,8 @@ from softwarecenter.enums import (USER_AGENT,
                                   PKG_STATE_PURCHASED_BUT_REPO_MUST_BE_ENABLED,
                                   PKG_STATE_NEEDS_SOURCE)
 from softwarecenter.ui.gtk.appdetailsview import AppDetailsViewBase
-from softwarecenter.utils import get_current_arch, htmlize_package_desc
+from softwarecenter.distro import get_current_arch
+from softwarecenter.utils import htmlize_package_desc
 from widgets.wkwidget import WebkitWidget
 
 from widgets.imagedialog import ShowImageDialog

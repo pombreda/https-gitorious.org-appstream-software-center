@@ -101,8 +101,8 @@ class ChannelPane(SoftwarePane):
         # check to see if there is any section info that needs to be applied
         if channel._channel_color:
             self.section.set_color(channel._channel_color)
-        if channel._channel_image_id:
-            self.section.set_image_id(channel._channel_image_id)
+        if channel._channel_view_id:
+            self.section.set_view_id(channel._channel_view_id)
         self.section_sync()
 
         # check if the channel needs to added

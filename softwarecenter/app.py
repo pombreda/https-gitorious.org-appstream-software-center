@@ -38,7 +38,8 @@ softwarecenter.netstatus.NETWORK_STATE
 
 import ui.gtk
 from ui.gtk.SimpleGtkbuilderApp import SimpleGtkbuilderApp
-from softwarecenter.db.application import Application, DebFileApplication
+from softwarecenter.db.application import Application
+from softwarecenter.db.debfile import DebFileApplication
 from softwarecenter.enums import (                                  
     APP_ACTION_INSTALL,
     APP_ACTION_REMOVE,
@@ -160,10 +161,11 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.backend.connect("channels-changed", self.on_channels_changed)
         # xapian
         pathname = os.path.join(xapian_base_path, "xapian")
+        self._use_axi = not options.disable_apt_xapian_index
 
         try:
             self.db = StoreDatabase(pathname, self.cache)
-            self.db.open()
+            self.db.open(use_axi = self._use_axi)
             if self.db.schema_version() != DB_SCHEMA_VERSION:
                 LOG.warn("database format '%s' expected, but got '%s'" % (
                          DB_SCHEMA_VERSION, self.db.schema_version()))
@@ -396,13 +398,12 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         LOG.info("building local database")
         rebuild_database(pathname)
         self.db = StoreDatabase(pathname, self.cache)
-        self.db.open()
+        self.db.open(use_axi=self._use_axi)
 
     # callbacks
     def on_available_pane_created(self, widget):
         available_section = SoftwareSection()
-        available_section.set_image(VIEW_PAGE_AVAILABLE, os.path.join(self.datadir, 'images/clouds.png'))
-        available_section.set_color('#0769BC')
+        available_section.set_view_id(VIEW_PAGE_AVAILABLE)
         self.available_pane.set_section(available_section)
 
         # connect signals
@@ -422,8 +423,9 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
     
     def on_channel_pane_created(self, widget):
         channel_section = SoftwareSection()
-        channel_section.set_image(VIEW_PAGE_CHANNEL, os.path.join(self.datadir, 'images/arrows.png'))
-        channel_section.set_color('#aea79f')
+        # note that the view_id for each channel's section is set later
+        # depending on whether the channel view will display available or
+        # installed items
         self.channel_pane.set_section(channel_section)
 
         # connect signals
@@ -440,8 +442,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                            
     def on_installed_pane_created(self, widget):
         installed_section = SoftwareSection()
-        installed_section.set_image(VIEW_PAGE_INSTALLED, os.path.join(self.datadir, 'images/arrows.png'))
-        installed_section.set_color('#aea79f')
+        installed_section.set_view_id(VIEW_PAGE_INSTALLED)
         self.installed_pane.set_section(installed_section)
         
         # connect signals

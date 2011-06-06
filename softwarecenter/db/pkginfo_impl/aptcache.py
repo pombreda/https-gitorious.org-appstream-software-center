@@ -19,6 +19,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import apt
+import apt_pkg
 import logging
 import gio
 import glib
@@ -30,7 +31,6 @@ from softwarecenter.enums import (PKG_STATE_INSTALLING,
                                   PKG_STATE_UPGRADING,
                                   PKG_STATE_UNKNOWN,
                                   )
-from softwarecenter.utils import ExecutionTime
 from softwarecenter.db.pkginfo import PackageInfo
 
 LOG = logging.getLogger(__name__)
@@ -73,12 +73,59 @@ class AptCache(PackageInfo):
         # this is fast, so ok
         self._language_packages = self._read_language_pkgs()
 
+    @staticmethod
+    def version_compare(v1, v2):
+        return apt_pkg.version_compare(a, b)
+    @staticmethod
+    def upstream_version_compare(a, b):
+        return apt_pkg.version_compare(apt_pkg.upstream_version(a),
+                                       apt_pkg.upstream_version(b))
+    @staticmethod
+    def upstream_version(v):
+        return apt_pkg.upstream_version(v)
+
     def is_installed(self, pkgname):
         return (pkgname in self._cache and
                 self._cache[pkgname].is_installed)
     def is_available(self, pkgname):
         return (pkgname in self._cache and
                 self._cache[pkgname].candidate)
+
+    def get_installed(self, pkgname):
+        if (pkgname not in self._cache or
+            not self._cache[pkgname].is_installed):
+            return None
+        return self._cache[pkgname].installed
+
+    def get_candidate(self, pkgname):
+        if (pkgname not in self._cache or
+            not self._cache[pkgname].candidate):
+            return None
+        return self._cache[pkgname].candidate
+
+    def get_available(self, pkgname):
+        if (pkgname not in self._cache or
+            not self._cache[pkgname].candidate):
+            return []
+        return self._cache[pkgname].versions
+
+    def get_section(self, pkgname):
+        if (pkgname not in self._cache or 
+            not self._cache[pkgname].candidate):
+            return ''
+        return self._cache[pkgname].candidate.section
+
+    def get_summary(self, pkgname):
+        if (pkgname not in self._cache or
+        not self._cache[pkgname].candidate):
+            return ''
+        return self._cache[pkgname].candidate.summary
+
+    def get_description(self, pkgname):
+        if (pkgname not in self._cache or
+            not self._cache[pkgname].candidate):
+            return ''
+        return self._cache[pkgname].candidate.description
 
     @property
     def ready(self):
@@ -88,6 +135,7 @@ class AptCache(PackageInfo):
         """
         self._ready = False
         self.emit("cache-invalid")
+        from softwarecenter.utils import ExecutionTime
         with ExecutionTime("open the apt cache (in event loop)"):
             if self._cache == None:
                 self._cache = apt.Cache(GtkMainIterationProgress())
@@ -99,8 +147,13 @@ class AptCache(PackageInfo):
             self.emit("cache-broken")
 
     # implementation specific code
+
+    # temporarely return a full apt.Package so that the tests and the
+    # code keeps working for now, this needs to go away eventually
+    # and get replaced with the abstract _Package class 
     def __getitem__(self, key):
         return self._cache[key]
+
     def __iter__(self):
         return self._cache.__iter__()
     def __contains__(self, k):
@@ -161,7 +214,8 @@ class AptCache(PackageInfo):
                     pkg.is_auto_removable):
                     installed_auto_deps.add(dep_name)
         return installed_auto_deps
-    def get_origins(self):
+
+    def get_all_origins(self):
         """
         return a set of the current channel origins from the apt.Cache itself
         """
@@ -176,6 +230,18 @@ class AptCache(PackageInfo):
                     origins.add(item.origin)
         return origins
 
+    def get_origins(self, pkgname):
+        """
+        return package origins from apt.Cache
+        """
+        if not pkgname in self._cache or not self._cache[pkgname].candidate:
+            return
+        origins = set()
+        for origin in self._cache[pkgname].candidate.origins:
+            if origin.origin:
+                origins.add(origin)
+        return origins
+
     def get_origin(self, pkgname):
         """
         return a uniqe origin for the given package name. currently
@@ -183,10 +249,7 @@ class AptCache(PackageInfo):
         """
         if not pkgname in self._cache or not self._cache[pkgname].candidate:
             return
-        origins = set()
-        for origin in self._cache[pkgname].candidate.origins:
-            if origin.origin:
-                origins.add(origin.origin)
+        origins = [origin.origin for origin in self.get_origins(pkgname)]
         if len(origins) > 1:
             raise Exception("Error, more than one origin '%s'" % origins)
         if not origins:

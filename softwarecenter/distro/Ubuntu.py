@@ -26,10 +26,10 @@ from apt.utils import (get_release_filename_for_pkg,
                        get_release_date_from_release_file,
                        get_maintenance_end_date)
 from gettext import gettext as _
-from softwarecenter.distro import Distro
+from softwarecenter.distro.Debian import Debian
 from softwarecenter.enums import BUY_SOMETHING_HOST
 
-class Ubuntu(Distro):
+class Ubuntu(Debian):
 
     # see __init__.py description
     DISTROSERIES = ["oneiric",
@@ -209,19 +209,11 @@ class Ubuntu(Distro):
         #return _("Application %s has an unknown maintenance status.") % appname
         return
 
-    def get_downloadable_icon_url(self, cache, pkgname, icon_filename):
+    def get_downloadable_icon_url(self, full_archive_url, icon_filename):
         """
-        generates the url for a downloadable icon based on its pkgname and the icon filename itself
+        generates the url for a downloadable icon based on the download
+        uri and the icon filename itself
         """
-        if (cache is None or
-            not hasattr(cache._cache, '__contains__') or # cache not ready
-            not pkgname in cache):
-            return None
-        try:
-            full_archive_url = cache[pkgname].candidate.uri
-        except:
-            # it's ok if we can't get the icon url
-            return None
         split_at_pool = full_archive_url.split("pool")[0]
         # support ppas and extras.ubuntu.com
         if split_at_pool.endswith("/ppa/ubuntu/"):
@@ -243,7 +235,6 @@ class Ubuntu(Distro):
         else:
             #raise ValueError, "we currently support downloadable icons in ppa's only"
             return None
-
 
 if __name__ == "__main__":
     import apt

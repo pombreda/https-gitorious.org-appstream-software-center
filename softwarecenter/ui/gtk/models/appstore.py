@@ -391,7 +391,7 @@ class AppStore(gtk.GenericTreeModel):
         if result.pkgname in self.transaction_index_map:
             del self.transaction_index_map[result.pkgname]
 
-    def _download_icon_and_show_when_ready(self, cache, pkgname, icon_file_name):
+    def _download_icon_and_show_when_ready(self, url, icon_file_name):
         LOG.debug("did not find the icon locally, must download %s" % icon_file_name)
         def on_image_download_complete(downloader, image_file_path):
             pb = gtk.gdk.pixbuf_new_from_file_at_size(icon_file_path,
@@ -401,7 +401,6 @@ class AppStore(gtk.GenericTreeModel):
             icon_file = os.path.splitext(os.path.basename(image_file_path))[0]
             self.icon_cache[icon_file] = pb
         
-        url = get_distro().get_downloadable_icon_url(cache, pkgname, icon_file_name)
         if url is not None:
             icon_file_path = os.path.join(SOFTWARE_CENTER_ICON_CACHE_DIR, icon_file_name)
             image_downloader = SimpleFileDownloader()
@@ -522,10 +521,8 @@ class AppStore(gtk.GenericTreeModel):
                         if icon:
                             self.icon_cache[icon_name] = icon
                             return icon
-                    elif self.db.get_icon_needs_download(doc):
-                        self._download_icon_and_show_when_ready(self.cache, 
-                                                                app.pkgname,
-                                                                icon_file_name)
+                    elif self.db.get_icon_download_url(doc):
+                        self._download_icon_and_show_when_ready(self.db.get_icon_download_url(doc), icon_file_name)
                         # display the missing icon while the real one downloads
                         self.icon_cache[icon_name] = self._appicon_missing_icon
             except glib.GError, e:

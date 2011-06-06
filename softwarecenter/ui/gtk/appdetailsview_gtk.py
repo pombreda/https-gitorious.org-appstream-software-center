@@ -135,7 +135,7 @@ class StatusBar(gtk.Alignment):
         if src_color:
             bg = color_floats(src_color)
         elif self.view.section:
-            bg = self.view.section._section_color
+            bg = self.view.section.get_background_color()
         else:
             bg = color_floats(StatusBar.SECTION_FALLBACK_COLOR)
 
@@ -779,13 +779,13 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         return
 
     def _on_net_state_changed(self, watcher, state):
-        if state == NetState.NM_STATE_DISCONNECTED:
+        if state in NetState.NM_STATE_DISCONNECTED_LIST:
             self._check_for_reviews()
-        elif state == NetState.NM_STATE_CONNECTED:
+        elif state in NetState.NM_STATE_CONNECTED_LIST:
             gobject.timeout_add(500, self._check_for_reviews)
 
         # set addon table and action button states based on sensitivity
-        sensitive = state == NetState.NM_STATE_CONNECTED
+        sensitive = state in NetState.NM_STATE_CONNECTED_LIST
         self.pkg_statusbar.button.set_sensitive(sensitive)
         self.addon_view.addons_set_sensitive(sensitive)
         self.addons_statusbar.button_apply.set_sensitive(sensitive)
@@ -871,59 +871,66 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.reviews.add_review(review)
         self.reviews.configure_reviews_ui()
 
-    def on_test_drive_clicked(self, button):
-        # weblive helpers
-        def weblive_button_timeout(button, old_label):
-            """ timeout handler when a weblive session is requested """
-            if button.count == 10:
-                # Restore the button
-                button.set_sensitive(True)
-                button.set_label(old_label)
-                return False
-            else:
-                button.set_sensitive(False)
-                button.set_label(_("Connecting ... (%s%%)") % (button.count * 10))
-                button.count+=1
-                return True
+    def on_weblive_progress(self, weblive, progress):
+        """ When receiving connection progress, update button """
+        self.test_drive.set_label(_("Connection ... (%s%%)") % (progress))
 
-        def weblive_start_timer():
-            """ initiate a simple feedback UI when weblive connects """
-            old_label=button.get_label()
-            button.count=0
-            weblive_button_timeout(button, old_label)
-            glib.timeout_add_seconds(
-                2, weblive_button_timeout,  button, old_label)
-        #--------------------------------------------------------
-
-        # get exec line
-        exec_line = get_exec_line_from_desktop(self.desktop_file)
-
-        # split away any arguments, gedit for example as %U
-        cmd = exec_line.split()[0]
-
-        # Get the list of servers
-        servers = self.weblive.get_servers_for_pkgname(self.app.pkgname)
-
-        if len(servers) == 0:
-            error(None,"No available server", "There is currently no available WebLive server for this application.\nPlease try again later.")
-        elif len(servers) == 1:
-            self.weblive.create_automatic_user_and_run_session(session=cmd,serverid=servers[0].name)
-            # Try to give some indication that we are connecting
-            weblive_start_timer()
+    def on_weblive_connected(self, weblive, can_disconnect):
+        """ When connected, update button """
+        if can_disconnect:
+            self.test_drive.set_label(_("Disconnect"))
+            self.test_drive.set_sensitive(True)
         else:
-            d = ShowWebLiveServerChooserDialog(servers, self.app.pkgname)
-            serverid=None
-            if d.run() == gtk.RESPONSE_OK:
-                for server in d.servers_vbox:
-                    if server.get_active():
-                        serverid=server.serverid
-                        break
-            d.destroy()
+            self.test_drive.set_label(_("Connected"))
 
-            if serverid:
-                self.weblive.create_automatic_user_and_run_session(session=cmd,serverid=serverid)
-                # Try to give some indication that we are connecting
-                weblive_start_timer()
+    def on_weblive_disconnected(self, weblive):
+        """ When disconnected, reset button """
+        self.test_drive.set_label(_("Test drive"))
+        self.test_drive.set_sensitive(True)
+
+    def on_weblive_exception(self, weblive, exception):
+        """ When receiving an exception, reset button and show the error """
+        error(None,"WebLive exception", exception)
+        self.test_drive.set_label(_("Test drive"))
+        self.test_drive.set_sensitive(True)
+
+    def on_weblive_warning(self, weblive, warning):
+        """ When receiving a warning, just show it """
+        error(None,"WebLive warning", warning)
+
+    def on_test_drive_clicked(self, button):
+        if self.weblive.client.state == "disconnected":
+            # get exec line
+            exec_line = get_exec_line_from_desktop(self.desktop_file)
+
+            # split away any arguments, gedit for example as %U
+            cmd = exec_line.split()[0]
+
+            # Get the list of servers
+            servers = self.weblive.get_servers_for_pkgname(self.app.pkgname)
+
+            if len(servers) == 0:
+                error(None,"No available server", "There is currently no available WebLive server for this application.\nPlease try again later.")
+            elif len(servers) == 1:
+                self.weblive.create_automatic_user_and_run_session(session=cmd,serverid=servers[0].name)
+                button.set_sensitive(False)
+            else:
+                d = ShowWebLiveServerChooserDialog(servers, self.app.pkgname)
+                serverid=None
+                if d.run() == gtk.RESPONSE_OK:
+                    for server in d.servers_vbox:
+                        if server.get_active():
+                            serverid=server.serverid
+                            break
+                d.destroy()
+
+                if serverid:
+                    self.weblive.create_automatic_user_and_run_session(session=cmd,serverid=serverid)
+                    button.set_sensitive(False)
+
+        elif self.weblive.client.state == "connected":
+            button.set_sensitive(False)
+            self.weblive.client.disconnect_session()
 
     def _on_addon_table_built(self, table):
         if not table.parent:
@@ -1100,6 +1107,13 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.test_drive = gtk.Button(_("Test drive"))
         self.test_drive.connect("clicked", self.on_test_drive_clicked)
         right_vb.pack_start(self.test_drive, expand=False, fill=False)
+
+        # attach to all the WebLive events
+        self.weblive.client.connect("progress", self.on_weblive_progress)
+        self.weblive.client.connect("connected", self.on_weblive_connected)
+        self.weblive.client.connect("disconnected", self.on_weblive_disconnected)
+        self.weblive.client.connect("exception", self.on_weblive_exception)
+        self.weblive.client.connect("warning", self.on_weblive_warning)
 
         # homepage link button
         self.homepage_btn = mkit.HLinkButton(_('Website'))
@@ -1284,7 +1298,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
     def _update_weblive(self, app_details):
         self.desktop_file = app_details.desktop_file
         # only enable test drive if we have a desktop file and exec line
-        if (not self.weblive.is_supported() or
+        if (not self.weblive.ready or
             not self.weblive.is_pkgname_available_on_server(app_details.pkgname) or
             not os.path.exists(self.desktop_file) or
             not get_exec_line_from_desktop(self.desktop_file)):
@@ -1667,7 +1681,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                 except glib.GError, e:
                     logging.warn("failed to load '%s': %s" % (app_details.icon, e))
                     return self.icons.load_icon(MISSING_APP_ICON, 84, 0)
-            elif app_details.icon_needs_download and app_details.icon_url:
+            elif app_details.icon_url:
                 LOG.debug("did not find the icon locally, must download it")
 
                 def on_image_download_complete(downloader, image_file_path):

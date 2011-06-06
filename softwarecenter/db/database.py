@@ -35,6 +35,7 @@ from softwarecenter.enums import (
     XAPIAN_VALUE_PKGNAME,
     XAPIAN_VALUE_APPNAME,
     XAPIAN_VALUE_ICON,
+    XAPIAN_VALUE_ICON_URL,
     XAPIAN_VALUE_ICON_NEEDS_DOWNLOAD,
     XAPIAN_VALUE_POPCON
 )
@@ -139,7 +140,7 @@ class StoreDatabase(gobject.GObject):
         self._search_lock.release()
 
     def open(self, pathname=None, use_axi=True, use_agent=True):
-        " open the database "
+        """ open the database """
         if pathname:
             self._db_pathname = pathname
         self.xapiandb = xapian.Database(self._db_pathname)
@@ -147,6 +148,8 @@ class StoreDatabase(gobject.GObject):
         # for now as we do not have a good way to integrate non-apps
         # with the UI)
         self.nr_databases = 0
+        self._use_axi = use_axi
+        self._use_agent = use_agent
         if use_axi:
             try:
                 axi = xapian.Database("/var/lib/apt-xapian-index/index")
@@ -196,7 +199,7 @@ class StoreDatabase(gobject.GObject):
 
     def reopen(self):
         " reopen the database "
-        self.open()
+        self.open(use_axi=self._use_axi, use_agent=self._use_agent)
         self.emit("reopen")
 
     @property
@@ -383,9 +386,10 @@ class StoreDatabase(gobject.GObject):
             result.add(m.docid)
         return result
         
-    def get_icon_needs_download(self, doc):
-        """ Return a value if the icon needs to be downloaded """
-        return doc.get_value(XAPIAN_VALUE_ICON_NEEDS_DOWNLOAD)
+    def get_icon_download_url(self, doc):
+        """ Return the url of the icon or None """
+        url = doc.get_value(XAPIAN_VALUE_ICON_URL)
+        return url
 
     def get_popcon(self, doc):
         """ Return a popcon value from a xapian document """
