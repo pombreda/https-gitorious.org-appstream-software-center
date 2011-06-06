@@ -9,7 +9,7 @@ from softwarecenter.paths import XAPIAN_BASE_PATH
 
 from softwarecenter.db.database import StoreDatabase
 from softwarecenter.db.pkginfo import get_pkg_info
-from softwarecenter.ui.gtk.catview import CategoriesView, get_category_by_name
+from softwarecenter.db.categories import CategoriesParser, get_category_by_name
 
 
 class TestCatParsing(unittest.TestCase):
@@ -22,7 +22,7 @@ class TestCatParsing(unittest.TestCase):
         pathname = os.path.join(xapian_base_path, "xapian")
         self.db = StoreDatabase(pathname, cache)
         self.db.open()
-        self.catview = CategoriesView()
+        self.catview = CategoriesParser(self.db)
         self.catview.db = self.db
         self.cats = self.catview.parse_applications_menu('/usr/share/app-install')
 
