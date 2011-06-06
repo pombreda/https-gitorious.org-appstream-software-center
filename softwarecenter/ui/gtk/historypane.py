@@ -35,7 +35,7 @@ from widgets.searchentry import SearchEntry
 from widgets.spinner import SpinnerView
 from basepane import BasePane
 
-from softwarecenter.enums import MISSING_APP_ICON, XAPIAN_VALUE_ICON
+from softwarecenter.enums import Icons, XapianValues
 from softwarecenter.paths import ICON_PATH, XAPIAN_BASE_PATH
 from softwarecenter.db.database import StoreDatabase
 
@@ -189,10 +189,10 @@ class HistoryPane(gtk.VBox, BasePane):
     def _reset_icon_cache(self, theme=None):
         self._app_icon_cache.clear()
         try:
-            missing = self.icons.load_icon(MISSING_APP_ICON, self.ICON_SIZE, 0)
+            missing = self.icons.load_icon(Icons.MISSING_APP, self.ICON_SIZE, 0)
         except glib.GError:
             missing = None
-        self._app_icon_cache[MISSING_APP_ICON] = missing
+        self._app_icon_cache[Icons.MISSING_APP] = missing
         
     def load_and_parse_history(self):
         from softwarecenter.db.history import get_pkg_history
@@ -295,10 +295,10 @@ class HistoryPane(gtk.VBox, BasePane):
             cell.set_visible(False)
         else:
             cell.set_visible(True)
-            icon_name = MISSING_APP_ICON
+            icon_name = Icons.MISSING_APP
             for m in self.db.xapiandb.postlist("AP" + pkg):
                 doc = self.db.xapiandb.get_document(m.docid)
-                icon_value = doc.get_value(XAPIAN_VALUE_ICON)
+                icon_value = doc.get_value(XapianValues.ICON)
                 if icon_value:
                     icon_name = os.path.splitext(icon_value)[0]
                 break
@@ -308,7 +308,7 @@ class HistoryPane(gtk.VBox, BasePane):
                 try:
                     icon = self.icons.load_icon(icon_name, self.ICON_SIZE, 0)
                 except glib.GError:
-                    icon = self._app_icon_cache[MISSING_APP_ICON]
+                    icon = self._app_icon_cache[Icons.MISSING_APP]
                 self._app_icon_cache[icon_name] = icon
             cell.set_property('pixbuf', icon)
 

@@ -30,10 +30,7 @@ from gettext import gettext as _
 
 from softwarecenter.backend import get_install_backend
 from softwarecenter.distro import get_distro
-from softwarecenter.enums import (NAV_BUTTON_ID_DETAILS,
-                                  NAV_BUTTON_ID_PURCHASE,
-                                  NAV_BUTTON_ID_SEARCH,
-                                  )
+from softwarecenter.enums import NavButtons
 from softwarecenter.paths import XAPIAN_BASE_PATH
 from appview import AppStore, AppViewFilter
 
@@ -82,15 +79,15 @@ class ChannelPane(SoftwarePane):
 
     def _show_channel_overview(self):
         " helper that goes back to the overview page "
-        self.navigation_bar.remove_id(NAV_BUTTON_ID_DETAILS)
-        self.navigation_bar.remove_id(NAV_BUTTON_ID_PURCHASE)
+        self.navigation_bar.remove_id(NavButtons.DETAILS)
+        self.navigation_bar.remove_id(NavButtons.PURCHASE)
         self.notebook.set_current_page(self.PAGE_APPLIST)
         self.searchentry.show()
         
     def _clear_search(self):
         # remove the details and clear the search
         self.searchentry.clear()
-        self.navigation_bar.remove_id(NAV_BUTTON_ID_SEARCH)
+        self.navigation_bar.remove_id(NavButtons.SEARCH)
 
     def set_channel(self, channel):
         """
@@ -101,8 +98,8 @@ class ChannelPane(SoftwarePane):
         # check to see if there is any section info that needs to be applied
         if channel._channel_color:
             self.section.set_color(channel._channel_color)
-        if channel._channel_image_id:
-            self.section.set_image_id(channel._channel_image_id)
+        if channel._channel_view_id:
+            self.section.set_view_id(channel._channel_view_id)
         self.section_sync()
 
         # check if the channel needs to added
@@ -173,7 +170,7 @@ class ChannelPane(SoftwarePane):
         self.display_details()
     
     def display_details(self):
-        self.navigation_bar.remove_id(NAV_BUTTON_ID_PURCHASE)
+        self.navigation_bar.remove_id(NavButtons.PURCHASE)
         self.notebook.set_current_page(self.PAGE_APP_DETAILS)
         self.searchentry.hide()
         self.action_bar.clear()
@@ -199,8 +196,8 @@ class ChannelPane(SoftwarePane):
         self.current_appview_selection = app
 
     def display_search(self):
-        self.navigation_bar.remove_id(NAV_BUTTON_ID_DETAILS)
-        self.navigation_bar.remove_id(NAV_BUTTON_ID_PURCHASE)
+        self.navigation_bar.remove_id(NavButtons.DETAILS)
+        self.navigation_bar.remove_id(NavButtons.PURCHASE)
         self.notebook.set_current_page(self.PAGE_APPLIST)
         model = self.app_view.get_model()
         if model:

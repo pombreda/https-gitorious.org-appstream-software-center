@@ -24,7 +24,7 @@ from gettext import gettext as _
 from dialogs import SimpleGtkbuilderDialog
 
 from softwarecenter.distro import get_distro
-from softwarecenter.enums import MISSING_APP_ICON
+from softwarecenter.enums import Icons
 from widgets.packagenamesview import PackageNamesView
 
 LOG = logging.getLogger(__name__)
@@ -52,7 +52,7 @@ def deauthorize_computer(parent, datadir, db, icons, account_name, purchased_pac
     icon_name = "softwarecenter"
     if (icon_name is None or
         not icons.has_icon(icon_name)):
-        icon_name = MISSING_APP_ICON
+        icon_name = Icons.MISSING_APP
     glade_dialog.image_icon.set_from_icon_name(icon_name, 
                                                gtk.ICON_SIZE_DIALOG)
 

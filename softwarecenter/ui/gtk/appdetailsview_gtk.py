@@ -38,24 +38,7 @@ from softwarecenter.db.application import Application
 from softwarecenter.backend.reviews import ReviewStats
 
 from softwarecenter.backend.zeitgeist_simple import zeitgeist_singleton
-from softwarecenter.enums import (PKG_STATE_INSTALLING_PURCHASED,
-                                  PKG_STATE_INSTALLED,
-                                  PKG_STATE_PURCHASED_BUT_REPO_MUST_BE_ENABLED,
-                                  PKG_STATE_NEEDS_PURCHASE,
-                                  PKG_STATE_NEEDS_SOURCE,
-                                  PKG_STATE_UNINSTALLED,
-                                  PKG_STATE_REINSTALLABLE,
-                                  PKG_STATE_UPGRADABLE,
-                                  PKG_STATE_INSTALLING,
-                                  PKG_STATE_UPGRADING,
-                                  PKG_STATE_REMOVING,
-                                  PKG_STATE_NOT_FOUND,
-                                  PKG_STATE_UNKNOWN,
-                                  APP_ACTION_APPLY,
-                                  PKG_STATE_ERROR,
-                                  SOFTWARE_CENTER_PKGNAME,
-                                  MISSING_APP_ICON,
-                                  )
+from softwarecenter.enums import AppActions, PkgStates, Icons, SOFTWARE_CENTER_PKGNAME
 from softwarecenter.utils import (is_unity_running, 
                                   get_exec_line_from_desktop,
                                   GMenuSearcher,
@@ -135,7 +118,7 @@ class StatusBar(gtk.Alignment):
         if src_color:
             bg = color_floats(src_color)
         elif self.view.section:
-            bg = self.view.section._section_color
+            bg = self.view.section.get_background_color()
         else:
             bg = color_floats(StatusBar.SECTION_FALLBACK_COLOR)
 
@@ -197,7 +180,7 @@ class PackageStatusBar(StatusBar):
         return
 
     def _pulse_helper(self):
-        if (self.pkg_state == PKG_STATE_INSTALLING_PURCHASED and
+        if (self.pkg_state == PkgStates.INSTALLING_PURCHASED and
             self.progress.get_fraction() == 0.0):
             self.progress.pulse()
         return True
@@ -207,19 +190,19 @@ class PackageStatusBar(StatusBar):
         state = self.pkg_state
         self.view.addons_to_install = self.view.addons_manager.addons_to_install
         self.view.addons_to_remove = self.view.addons_manager.addons_to_remove
-        if state == PKG_STATE_INSTALLED:
+        if state == PkgStates.INSTALLED:
             AppDetailsViewBase.remove(self.view)
-        elif state == PKG_STATE_PURCHASED_BUT_REPO_MUST_BE_ENABLED:
+        elif state == PkgStates.PURCHASED_BUT_REPO_MUST_BE_ENABLED:
             AppDetailsViewBase.reinstall_purchased(self.view)
-        elif state == PKG_STATE_NEEDS_PURCHASE:
+        elif state == PkgStates.NEEDS_PURCHASE:
             AppDetailsViewBase.buy_app(self.view)
-        elif state == PKG_STATE_UNINSTALLED:
+        elif state == PkgStates.UNINSTALLED:
             AppDetailsViewBase.install(self.view)
-        elif state == PKG_STATE_REINSTALLABLE:
+        elif state == PkgStates.REINSTALLABLE:
             AppDetailsViewBase.install(self.view)
-        elif state == PKG_STATE_UPGRADABLE:
+        elif state == PkgStates.UPGRADABLE:
             AppDetailsViewBase.upgrade(self.view)
-        elif state == PKG_STATE_NEEDS_SOURCE:
+        elif state == PkgStates.NEEDS_SOURCE:
             # FIXME:  This should be in AppDetailsViewBase
             self.view.use_this_source()
         return
@@ -241,15 +224,15 @@ class PackageStatusBar(StatusBar):
 
         self.create_colors()
 
-        if state in (PKG_STATE_INSTALLING,
-                     PKG_STATE_INSTALLING_PURCHASED,
-                     PKG_STATE_REMOVING,
-                     PKG_STATE_UPGRADING,
-                     APP_ACTION_APPLY):
+        if state in (PkgStates.INSTALLING,
+                     PkgStates.INSTALLING_PURCHASED,
+                     PkgStates.REMOVING,
+                     PkgStates.UPGRADING,
+                     AppActions.APPLY):
             self.show()
-        elif state == PKG_STATE_NOT_FOUND:
+        elif state == PkgStates.NOT_FOUND:
             self.hide()
-        elif state == PKG_STATE_ERROR:
+        elif state == PkgStates.ERROR:
             self.progress.hide()
             self.button.set_sensitive(False)
             self.button.show()
@@ -266,20 +249,20 @@ class PackageStatusBar(StatusBar):
         #         so that all UI controls (menu item, applist view button and appdetails
         #         view button) are managed centrally:  button text, button sensitivity,
         #         and the associated callback.
-        if state == PKG_STATE_INSTALLING:
+        if state == PkgStates.INSTALLING:
             self.set_label(_('Installing...'))
             self.button.set_sensitive(False)
-        elif state == PKG_STATE_INSTALLING_PURCHASED:
+        elif state == PkgStates.INSTALLING_PURCHASED:
             self.set_label(_(u'Installing purchase\u2026'))
             self.button.hide()
             self.progress.show()
-        elif state == PKG_STATE_REMOVING:
+        elif state == PkgStates.REMOVING:
             self.set_label(_('Removing...'))
             self.button.set_sensitive(False)
-        elif state == PKG_STATE_UPGRADING:
+        elif state == PkgStates.UPGRADING:
             self.set_label(_('Upgrading...'))
             self.button.set_sensitive(False)
-        elif state == PKG_STATE_INSTALLED or state == PKG_STATE_REINSTALLABLE:
+        elif state == PkgStates.INSTALLED or state == PkgStates.REINSTALLABLE:
             #special label only if the app being viewed is software centre itself
             if app_details.pkgname== SOFTWARE_CENTER_PKGNAME:
                 self.set_label(_("Installed (you're using it right now)"))
@@ -299,11 +282,11 @@ class PackageStatusBar(StatusBar):
                     self.set_label(app_details.installation_date.strftime(template))
                 else:
                     self.set_label(_('Installed'))
-            if state == PKG_STATE_REINSTALLABLE: # only deb files atm
+            if state == PkgStates.REINSTALLABLE: # only deb files atm
                 self.set_button_label(_('Reinstall'))
-            elif state == PKG_STATE_INSTALLED:
+            elif state == PkgStates.INSTALLED:
                 self.set_button_label(_('Remove'))
-        elif state == PKG_STATE_NEEDS_PURCHASE:
+        elif state == PkgStates.NEEDS_PURCHASE:
             # FIXME:  need to determine the currency dynamically once we can
             #         get that info from the software-center-agent/payments service.
             # NOTE:  the currency string for this label is purposely not translatable
@@ -311,7 +294,7 @@ class PackageStatusBar(StatusBar):
             #        and as such we don't want it translated
             self.set_label("US$ %s" % app_details.price)
             self.set_button_label(_(u'Buy\u2026'))
-        elif state == PKG_STATE_PURCHASED_BUT_REPO_MUST_BE_ENABLED:
+        elif state == PkgStates.PURCHASED_BUT_REPO_MUST_BE_ENABLED:
             # purchase_date is a string, must first convert to datetime.datetime
             pdate = self._convert_purchase_date_str_to_datetime(app_details.purchase_date)
             # TRANSLATORS : %Y-%m-%d formats the date as 2011-03-31, please specify a format per your
@@ -319,7 +302,7 @@ class PackageStatusBar(StatusBar):
             # representation)
             self.set_label(pdate.strftime(_('Purchased on %Y-%m-%d')))
             self.set_button_label(_('Install'))
-        elif state == PKG_STATE_UNINSTALLED:
+        elif state == PkgStates.UNINSTALLED:
             #special label only if the app being viewed is software centre itself
             if app_details.pkgname== SOFTWARE_CENTER_PKGNAME:
                 self.set_label(_("Removed (close it and it'll be gone)"))
@@ -329,26 +312,26 @@ class PackageStatusBar(StatusBar):
                 else:
                     self.set_label(_("Free"))
             self.set_button_label(_('Install'))
-        elif state == PKG_STATE_UPGRADABLE:
+        elif state == PkgStates.UPGRADABLE:
             self.set_label(_('Upgrade Available'))
             self.set_button_label(_('Upgrade'))
-        elif state == APP_ACTION_APPLY:
+        elif state == AppActions.APPLY:
             self.set_label(_(u'Changing Add-ons\u2026'))
             self.button.set_sensitive(False)
-        elif state == PKG_STATE_UNKNOWN:
+        elif state == PkgStates.UNKNOWN:
             self.set_button_label("")
             self.set_label(_("Error"))
-        elif state == PKG_STATE_ERROR:
+        elif state == PkgStates.ERROR:
             # this is used when the pkg can not be installed
             # we display the error in the description field
             self.set_button_label(_("Install"))
             self.set_label("")
             self.create_colors(StatusBar.PKG_STATUS_ERROR_COLOR)
-        elif state == PKG_STATE_NOT_FOUND:
+        elif state == PkgStates.NOT_FOUND:
             # this is used when the pkg is not in the cache and there is no request
             # we display the error in the summary field and hide the rest
             pass
-        elif state == PKG_STATE_NEEDS_SOURCE:
+        elif state == PkgStates.NEEDS_SOURCE:
             channelfile = self.app_details.channelfile
             # it has a price and is not available 
             if channelfile:
@@ -364,8 +347,8 @@ class PackageStatusBar(StatusBar):
                 self.set_button_label(_("Update Now"))
             self.create_colors(StatusBar.USER_ACTION_REQRD_COLOR)
         if (self.app_details.warning and not self.app_details.error and
-           not state in (PKG_STATE_INSTALLING, PKG_STATE_INSTALLING_PURCHASED,
-           PKG_STATE_REMOVING, PKG_STATE_UPGRADING, APP_ACTION_APPLY)):
+           not state in (PkgStates.INSTALLING, PkgStates.INSTALLING_PURCHASED,
+           PkgStates.REMOVING, PkgStates.UPGRADING, AppActions.APPLY)):
             self.set_label(self.app_details.warning)
 
         sensitive = network_state_is_connected()
@@ -478,7 +461,7 @@ class Addon(gtk.HBox):
         self.icon = gtk.Image()
         proposed_icon = self.app_details.icon
         if not proposed_icon or not icons.has_icon(proposed_icon):
-            proposed_icon = MISSING_APP_ICON
+            proposed_icon = Icons.MISSING_APP
         try:
             pixbuf = icons.load_icon(proposed_icon, 22, ())
             if pixbuf:
@@ -779,13 +762,13 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         return
 
     def _on_net_state_changed(self, watcher, state):
-        if state == NetState.NM_STATE_DISCONNECTED:
+        if state in NetState.NM_STATE_DISCONNECTED_LIST:
             self._check_for_reviews()
-        elif state == NetState.NM_STATE_CONNECTED:
+        elif state in NetState.NM_STATE_CONNECTED_LIST:
             gobject.timeout_add(500, self._check_for_reviews)
 
         # set addon table and action button states based on sensitivity
-        sensitive = state == NetState.NM_STATE_CONNECTED
+        sensitive = state in NetState.NM_STATE_CONNECTED_LIST
         self.pkg_statusbar.button.set_sensitive(sensitive)
         self.addon_view.addons_set_sensitive(sensitive)
         self.addons_statusbar.button_apply.set_sensitive(sensitive)
@@ -871,59 +854,66 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.reviews.add_review(review)
         self.reviews.configure_reviews_ui()
 
-    def on_test_drive_clicked(self, button):
-        # weblive helpers
-        def weblive_button_timeout(button, old_label):
-            """ timeout handler when a weblive session is requested """
-            if button.count == 10:
-                # Restore the button
-                button.set_sensitive(True)
-                button.set_label(old_label)
-                return False
-            else:
-                button.set_sensitive(False)
-                button.set_label(_("Connecting ... (%s%%)") % (button.count * 10))
-                button.count+=1
-                return True
+    def on_weblive_progress(self, weblive, progress):
+        """ When receiving connection progress, update button """
+        self.test_drive.set_label(_("Connection ... (%s%%)") % (progress))
 
-        def weblive_start_timer():
-            """ initiate a simple feedback UI when weblive connects """
-            old_label=button.get_label()
-            button.count=0
-            weblive_button_timeout(button, old_label)
-            glib.timeout_add_seconds(
-                2, weblive_button_timeout,  button, old_label)
-        #--------------------------------------------------------
-
-        # get exec line
-        exec_line = get_exec_line_from_desktop(self.desktop_file)
-
-        # split away any arguments, gedit for example as %U
-        cmd = exec_line.split()[0]
-
-        # Get the list of servers
-        servers = self.weblive.get_servers_for_pkgname(self.app.pkgname)
-
-        if len(servers) == 0:
-            error(None,"No available server", "There is currently no available WebLive server for this application.\nPlease try again later.")
-        elif len(servers) == 1:
-            self.weblive.create_automatic_user_and_run_session(session=cmd,serverid=servers[0].name)
-            # Try to give some indication that we are connecting
-            weblive_start_timer()
+    def on_weblive_connected(self, weblive, can_disconnect):
+        """ When connected, update button """
+        if can_disconnect:
+            self.test_drive.set_label(_("Disconnect"))
+            self.test_drive.set_sensitive(True)
         else:
-            d = ShowWebLiveServerChooserDialog(servers, self.app.pkgname)
-            serverid=None
-            if d.run() == gtk.RESPONSE_OK:
-                for server in d.servers_vbox:
-                    if server.get_active():
-                        serverid=server.serverid
-                        break
-            d.destroy()
+            self.test_drive.set_label(_("Connected"))
 
-            if serverid:
-                self.weblive.create_automatic_user_and_run_session(session=cmd,serverid=serverid)
-                # Try to give some indication that we are connecting
-                weblive_start_timer()
+    def on_weblive_disconnected(self, weblive):
+        """ When disconnected, reset button """
+        self.test_drive.set_label(_("Test drive"))
+        self.test_drive.set_sensitive(True)
+
+    def on_weblive_exception(self, weblive, exception):
+        """ When receiving an exception, reset button and show the error """
+        error(None,"WebLive exception", exception)
+        self.test_drive.set_label(_("Test drive"))
+        self.test_drive.set_sensitive(True)
+
+    def on_weblive_warning(self, weblive, warning):
+        """ When receiving a warning, just show it """
+        error(None,"WebLive warning", warning)
+
+    def on_test_drive_clicked(self, button):
+        if self.weblive.client.state == "disconnected":
+            # get exec line
+            exec_line = get_exec_line_from_desktop(self.desktop_file)
+
+            # split away any arguments, gedit for example as %U
+            cmd = exec_line.split()[0]
+
+            # Get the list of servers
+            servers = self.weblive.get_servers_for_pkgname(self.app.pkgname)
+
+            if len(servers) == 0:
+                error(None,"No available server", "There is currently no available WebLive server for this application.\nPlease try again later.")
+            elif len(servers) == 1:
+                self.weblive.create_automatic_user_and_run_session(session=cmd,serverid=servers[0].name)
+                button.set_sensitive(False)
+            else:
+                d = ShowWebLiveServerChooserDialog(servers, self.app.pkgname)
+                serverid=None
+                if d.run() == gtk.RESPONSE_OK:
+                    for server in d.servers_vbox:
+                        if server.get_active():
+                            serverid=server.serverid
+                            break
+                d.destroy()
+
+                if serverid:
+                    self.weblive.create_automatic_user_and_run_session(session=cmd,serverid=serverid)
+                    button.set_sensitive(False)
+
+        elif self.weblive.client.state == "connected":
+            button.set_sensitive(False)
+            self.weblive.client.disconnect_session()
 
     def _on_addon_table_built(self, table):
         if not table.parent:
@@ -1043,7 +1033,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # the app icon
         self.icon = gtk.Image()
         self.icon.set_size_request(84,84)
-        self.icon.set_from_icon_name(MISSING_APP_ICON, gtk.ICON_SIZE_DIALOG)
+        self.icon.set_from_icon_name(Icons.MISSING_APP, gtk.ICON_SIZE_DIALOG)
         hb.pack_start(self.icon, False)
 
         # the app title/summary
@@ -1100,6 +1090,13 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.test_drive = gtk.Button(_("Test drive"))
         self.test_drive.connect("clicked", self.on_test_drive_clicked)
         right_vb.pack_start(self.test_drive, expand=False, fill=False)
+
+        # attach to all the WebLive events
+        #~ self.weblive.client.connect("progress", self.on_weblive_progress)
+        #~ self.weblive.client.connect("connected", self.on_weblive_connected)
+        #~ self.weblive.client.connect("disconnected", self.on_weblive_disconnected)
+        #~ self.weblive.client.connect("exception", self.on_weblive_exception)
+        #~ self.weblive.client.connect("warning", self.on_weblive_warning)
 
         # homepage link button
         self.homepage_btn = mkit.HLinkButton(_('Website'))
@@ -1222,7 +1219,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         pb = self._get_icon_as_pixbuf(app_details)
         # should we show the green tick?
-#        self._show_overlay = app_details.pkg_state == PKG_STATE_INSTALLED
+#        self._show_overlay = app_details.pkg_state == PkgStates.INSTALLED
         w, h = pb.get_width(), pb.get_height()
 
         tw = self.APP_ICON_SIZE - 10 # bit of a fudge factor
@@ -1251,7 +1248,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
     def _update_app_description(self, app_details, appname):
         # format new app description
-        if app_details.pkg_state == PKG_STATE_ERROR:
+        if app_details.pkg_state == PkgStates.ERROR:
             description = app_details.error
         else:
             description = app_details.description
@@ -1284,7 +1281,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
     def _update_weblive(self, app_details):
         self.desktop_file = app_details.desktop_file
         # only enable test drive if we have a desktop file and exec line
-        if (not self.weblive.is_supported() or
+        if (not self.weblive.ready or
             not self.weblive.is_pkgname_available_on_server(app_details.pkgname) or
             not os.path.exists(self.desktop_file) or
             not get_exec_line_from_desktop(self.desktop_file)):
@@ -1340,12 +1337,12 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # set button sensitive again
         self.pkg_statusbar.button.set_sensitive(True)
 
-        pkg_ambiguous_error = app_details.pkg_state in (PKG_STATE_NOT_FOUND,
-                                                        PKG_STATE_NEEDS_SOURCE)
+        pkg_ambiguous_error = app_details.pkg_state in (PkgStates.NOT_FOUND,
+                                                        PkgStates.NEEDS_SOURCE)
 
         appname = gobject.markup_escape_text(app_details.display_name)
 
-        if app_details.pkg_state == PKG_STATE_NOT_FOUND:
+        if app_details.pkg_state == PkgStates.NOT_FOUND:
             summary = app_details._error_not_found
         else:
             summary = app_details.display_summary
@@ -1465,7 +1462,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.installed_where_hbox.set_property("can-focus", False)
         self.installed_where_hbox.a11y.set_name('')
         # see if we have the location if its installed
-        if self.app_details.pkg_state == PKG_STATE_INSTALLED:
+        if self.app_details.pkg_state == PkgStates.INSTALLED:
             # first try the desktop file from the DB, then see if
             # there is a local desktop file with the same name as 
             # the package
@@ -1510,8 +1507,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # check if app just became available and if so, force full
         # refresh
         if (same_app and
-            self.pkg_state == PKG_STATE_NEEDS_SOURCE and
-            self.app_details.pkg_state != PKG_STATE_NEEDS_SOURCE):
+            self.pkg_state == PkgStates.NEEDS_SOURCE and
+            self.app_details.pkg_state != PkgStates.NEEDS_SOURCE):
             force = True
         self.pkg_state = self.app_details.pkg_state
 
@@ -1544,35 +1541,35 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         state = self.pkg_statusbar.pkg_state
 
         # handle purchase: install purchased has multiple steps
-        if (state == PKG_STATE_INSTALLING_PURCHASED and 
+        if (state == PkgStates.INSTALLING_PURCHASED and 
             result and
             not result.pkgname):
-            self.pkg_statusbar.configure(self.app_details, PKG_STATE_INSTALLING_PURCHASED)
-        elif (state == PKG_STATE_INSTALLING_PURCHASED and 
+            self.pkg_statusbar.configure(self.app_details, PkgStates.INSTALLING_PURCHASED)
+        elif (state == PkgStates.INSTALLING_PURCHASED and 
               result and
               result.pkgname):
-            self.pkg_statusbar.configure(self.app_details, PKG_STATE_INSTALLED)
+            self.pkg_statusbar.configure(self.app_details, PkgStates.INSTALLED)
             # reset the reviews UI now that we have installed the package
             self.reviews.configure_reviews_ui()
         # normal states
-        elif state == PKG_STATE_REMOVING:
-            self.pkg_statusbar.configure(self.app_details, PKG_STATE_UNINSTALLED)
-        elif state == PKG_STATE_INSTALLING:
-            self.pkg_statusbar.configure(self.app_details, PKG_STATE_INSTALLED)
-        elif state == PKG_STATE_UPGRADING:
-            self.pkg_statusbar.configure(self.app_details, PKG_STATE_INSTALLED)
+        elif state == PkgStates.REMOVING:
+            self.pkg_statusbar.configure(self.app_details, PkgStates.UNINSTALLED)
+        elif state == PkgStates.INSTALLING:
+            self.pkg_statusbar.configure(self.app_details, PkgStates.INSTALLED)
+        elif state == PkgStates.UPGRADING:
+            self.pkg_statusbar.configure(self.app_details, PkgStates.INSTALLED)
         # addons modified, order is important here
         elif self.addons_statusbar.applying:
-            self.pkg_statusbar.configure(self.app_details, PKG_STATE_INSTALLED)
+            self.pkg_statusbar.configure(self.app_details, PkgStates.INSTALLED)
             self.addons_manager.configure(self.app_details.name, False)
             self.addons_statusbar.configure()
         # cancellation of dependency dialog
-        elif state == PKG_STATE_INSTALLED:
-            self.pkg_statusbar.configure(self.app_details, PKG_STATE_INSTALLED)
+        elif state == PkgStates.INSTALLED:
+            self.pkg_statusbar.configure(self.app_details, PkgStates.INSTALLED)
             # reset the reviews UI now that we have installed the package
             self.reviews.configure_reviews_ui()
-        elif state == PKG_STATE_UNINSTALLED:
-            self.pkg_statusbar.configure(self.app_details, PKG_STATE_UNINSTALLED)
+        elif state == PkgStates.UNINSTALLED:
+            self.pkg_statusbar.configure(self.app_details, PkgStates.UNINSTALLED)
         self.adjustment_value = None
         
         if self.addons_statusbar.applying:
@@ -1582,24 +1579,24 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
     def _on_transaction_started(self, backend, pkgname, appname, trans_id, trans_type):
         if self.addons_statusbar.applying:
-            self.pkg_statusbar.configure(self.app_details, APP_ACTION_APPLY)
+            self.pkg_statusbar.configure(self.app_details, AppActions.APPLY)
             return
 
         state = self.pkg_statusbar.pkg_state
         LOG.debug("_on_transaction_started %s" % state)
-        if state == PKG_STATE_NEEDS_PURCHASE:
-            self.pkg_statusbar.configure(self.app_details, PKG_STATE_INSTALLING_PURCHASED)
-        elif state == PKG_STATE_UNINSTALLED:
-            self.pkg_statusbar.configure(self.app_details, PKG_STATE_INSTALLING)
-        elif state == PKG_STATE_INSTALLED:
-            self.pkg_statusbar.configure(self.app_details, PKG_STATE_REMOVING)
-        elif state == PKG_STATE_UPGRADABLE:
-            self.pkg_statusbar.configure(self.app_details, PKG_STATE_UPGRADING)
-        elif state == PKG_STATE_REINSTALLABLE:
-            self.pkg_statusbar.configure(self.app_details, PKG_STATE_INSTALLING)
+        if state == PkgStates.NEEDS_PURCHASE:
+            self.pkg_statusbar.configure(self.app_details, PkgStates.INSTALLING_PURCHASED)
+        elif state == PkgStates.UNINSTALLED:
+            self.pkg_statusbar.configure(self.app_details, PkgStates.INSTALLING)
+        elif state == PkgStates.INSTALLED:
+            self.pkg_statusbar.configure(self.app_details, PkgStates.REMOVING)
+        elif state == PkgStates.UPGRADABLE:
+            self.pkg_statusbar.configure(self.app_details, PkgStates.UPGRADING)
+        elif state == PkgStates.REINSTALLABLE:
+            self.pkg_statusbar.configure(self.app_details, PkgStates.INSTALLING)
             # FIXME: is there a way to tell if we are installing/removing?
             # we will assume that it is being installed, but this means that during removals we get the text "Installing.."
-            # self.pkg_statusbar.configure(self.app_details, PKG_STATE_REMOVING)
+            # self.pkg_statusbar.configure(self.app_details, PkgStates.REMOVING)
         return
 
     def _on_transaction_stopped(self, backend, result):
@@ -1666,7 +1663,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                     return self.icons.load_icon(app_details.icon, 84, 0)
                 except glib.GError, e:
                     logging.warn("failed to load '%s': %s" % (app_details.icon, e))
-                    return self.icons.load_icon(MISSING_APP_ICON, 84, 0)
+                    return self.icons.load_icon(Icons.MISSING_APP, 84, 0)
             elif app_details.icon_url:
                 LOG.debug("did not find the icon locally, must download it")
 
@@ -1683,7 +1680,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                     'file-download-complete', on_image_download_complete)
                 image_downloader.download_file(
                     app_details.icon_url, app_details.cached_icon_file_path)
-        return self.icons.load_icon(MISSING_APP_ICON, 84, 0)
+        return self.icons.load_icon(Icons.MISSING_APP, 84, 0)
     
     def update_totalsize(self):
         def pkg_downloaded(pkg_version):
@@ -1767,7 +1764,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             install_size = apt_pkg.size_to_str(total_install_size)
             label_string += _("%sB when installed") % (install_size)
         elif (total_install_size == 0 and
-              self.app_details.pkg_state == PKG_STATE_INSTALLED and
+              self.app_details.pkg_state == PkgStates.INSTALLED and
               not self.addons_manager.addons_to_install and
               not self.addons_manager.addons_to_remove):
             pkg = self.cache[self.app_details.pkgname].installed

@@ -25,7 +25,7 @@ from dialogs import SimpleGtkbuilderDialog
 
 from softwarecenter.db.application import Application
 from softwarecenter.distro import get_distro
-from softwarecenter.enums import MISSING_APP_ICON
+from softwarecenter.enums import Icons
 from widgets.packagenamesview import PackageNamesView
 
 LOG = logging.getLogger(__name__)
@@ -85,7 +85,7 @@ def _confirm_remove_internal(parent, datadir, app, db, icons, primary, button_te
     icon_name = appdetails.icon
     if (icon_name is None or
         not icons.has_icon(icon_name)):
-        icon_name = MISSING_APP_ICON
+        icon_name = Icons.MISSING_APP
     glade_dialog.image_package_icon.set_from_icon_name(icon_name, 
                                                        gtk.ICON_SIZE_DIALOG)
 

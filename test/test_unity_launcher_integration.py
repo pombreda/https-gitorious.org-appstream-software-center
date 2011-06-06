@@ -14,7 +14,7 @@ sys.path.insert(0, "..")
 import softwarecenter.utils
 from softwarecenter.app import SoftwareCenterApp
 from softwarecenter.paths import XAPIAN_BASE_PATH
-from softwarecenter.enums import ACTION_BUTTON_ADD_TO_LAUNCHER, TRANSACTION_TYPE_INSTALL
+from softwarecenter.enums import ActionButtons, TransactionTypes
 from softwarecenter.utils import convert_desktop_file_to_installed_location
 from softwarecenter.ui.gtk.appview import AppStore
 
@@ -75,7 +75,7 @@ class TestUnityLauncherIntegration(unittest.TestCase):
         self._p()
         appname = self.s_c_app.available_pane.app_details_view.app.appname
         # pretend we started a install
-        self.s_c_app.backend.emit("transaction-started", pkgname, appname, "testid101", TRANSACTION_TYPE_INSTALL)
+        self.s_c_app.backend.emit("transaction-started", pkgname, appname, "testid101", TransactionTypes.INSTALL)
         # wait a wee bit
         self._zzz()
         
@@ -95,7 +95,7 @@ class TestUnityLauncherIntegration(unittest.TestCase):
         self._zzz()
         # ensure we still have the button
         button = self.s_c_app.available_pane.action_bar.get_button(
-            ACTION_BUTTON_ADD_TO_LAUNCHER)
+            ActionButtons.ADD_TO_LAUNCHER)
         self.assertNotEqual(button, None)
         self.assertTrue(button.get_property("visible"))
         # ensure we haven't called the launcher prematurely
@@ -105,7 +105,7 @@ class TestUnityLauncherIntegration(unittest.TestCase):
         self._zzz()
         # ensure the button is gone
         button = self.s_c_app.available_pane.action_bar.get_button(
-            ACTION_BUTTON_ADD_TO_LAUNCHER)
+            ActionButtons.ADD_TO_LAUNCHER)
         self.assertEqual(button, None)
         self.assertTrue(self.s_c_app.available_pane._send_dbus_signal_to_unity_launcher.called)
 
@@ -117,7 +117,7 @@ class TestUnityLauncherIntegration(unittest.TestCase):
         self.assertTrue(
             self.s_c_app.available_pane.action_bar.get_property("visible"))
         button = self.s_c_app.available_pane.action_bar.get_button(
-            ACTION_BUTTON_ADD_TO_LAUNCHER)
+            ActionButtons.ADD_TO_LAUNCHER)
         self.assertTrue(button is not None)
         # click the button 
         button.clicked()

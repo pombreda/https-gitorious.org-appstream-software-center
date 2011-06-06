@@ -28,6 +28,7 @@ import random
 import subprocess
 import string
 import imp
+import gobject
 
 from threading import Thread, Event
 from weblive_pristine import WebLive
@@ -36,76 +37,42 @@ import softwarecenter.paths
 class WebLiveBackend(object):
     """ Backend for interacting with the WebLive service """
 
-    # Check if x2go module exists but don't load it (gevent breaks everything)
-    try:
-        imp.find_module("x2go")
-        X2GO=True
-    except:
-        X2GO=False
-
-    # NXML template
-    NXML_TEMPLATE = """
-<!DOCTYPE NXClientLibSettings>
-<NXClientLibSettings>
-<option key="Connection Name" value="WL_NAME"></option>
-<option key="Server Hostname" value="WL_SERVER"></option>
-<option key="Server Port" value="WL_PORT"></option>
-<option key="Session Type" value="unix-application"></option>
-<option key="Custom Session Command" value="WL_COMMAND"></option>
-<option key="Disk Cache" value="64"></option>
-<option key="Image Cache" value="16"></option>
-<option key="Link Type" value="adsl"></option>
-<option key="Use Render Extension" value="True"></option>
-<option key="Image Compression Method" value="JPEG"></option>
-<option key="JPEG Compression Level" value="9"></option>
-<option key="Desktop Geometry" value=""></option>
-<option key="Keyboard Layout" value="defkeymap"></option>
-<option key="Keyboard Type" value="pc102/defkeymap"></option>
-<option key="Media" value="False"></option>
-<option key="Agent Server" value=""></option>
-<option key="Agent User" value=""></option>
-<option key="CUPS Port" value="0"></option>
-<option key="Authentication Key" value=""></option>
-<option key="Use SSL Tunnelling" value="True"></option>
-<option key="Enable Fullscreen Desktop" value="False"></option>
-</NXClientLibSettings>
-"""
+    client = None
     URL = os.environ.get('SOFTWARE_CENTER_WEBLIVE_HOST',
         'https://weblive.stgraber.org/weblive/json')
-    QTNX = "/usr/bin/qtnx"
 
     def __init__(self):
         self.weblive = WebLive(self.URL,True)
         self.available_servers = []
+
+        for client in (WebLiveClientX2GO,WebLiveClientQTNX):
+            if client.is_supported():
+                self.client=client()
+                break
+
         self._ready = Event()
 
     @property
     def ready(self):
         """ Return true if data from the remote server was loaded
         """
-        return self._ready.is_set()
 
-    @classmethod
-    def is_supported(cls):
-        """ Return if the current system will work
-            (has the required dependencies)
-        """
-        if cls.X2GO or os.path.exists(cls.QTNX):
-            return True
-        return False
+        return self.client and self._ready.is_set()
 
     def query_available(self):
         """ Get all the available data from WebLive """
+
+        self._ready.clear()
         servers=self.weblive.list_everything()
+        self._ready.set()
         return servers
 
     def query_available_async(self):
         """ Call query_available in a thread and set self.ready """
+
         def _query_available_helper():
             self.available_servers = self.query_available()
-            self._ready.set()
 
-        self._ready.clear()
         p = Thread(target=_query_available_helper)
         p.start()
 
@@ -158,18 +125,92 @@ class WebLiveBackend(object):
         connection=self.weblive.create_user(serverid, identifier, fullname, identifier, session, locale)
 
         # Connect using x2go or fallback to qtnx if not available
-        if (self.X2GO):
-            self._spawn_x2go(connection[0], connection[1], session, identifier, identifier, wait)
-        elif (os.path.exists(self.QTNX)):
-            self._spawn_qtnx(connection[0], connection[1], session, identifier, identifier, wait)
+        if (self.client):
+            self.client.start_session(connection[0], connection[1], session, identifier, identifier, wait)
         else:
             raise IOError("No remote desktop client available.")
 
-# qtnx backend
+class WebLiveClient(gobject.GObject):
+    """ Generic WebLive client """
 
-    def _spawn_qtnx(self, host, port, session, username, password, wait):
+    __gsignals__ = {
+        "progress": (
+            gobject.SIGNAL_RUN_FIRST,
+            gobject.TYPE_NONE,
+            (gobject.TYPE_INT,)
+        ),
+        "connected": (
+            gobject.SIGNAL_RUN_FIRST,
+            gobject.TYPE_NONE,
+            (gobject.TYPE_BOOLEAN,)
+        ),
+        "disconnected": (
+            gobject.SIGNAL_RUN_FIRST,
+            gobject.TYPE_NONE,
+            ()
+        ),
+        "exception": (
+            gobject.SIGNAL_RUN_FIRST,
+            gobject.TYPE_NONE,
+            (gobject.TYPE_STRING,)
+        ),
+        "warning": (
+            gobject.SIGNAL_RUN_FIRST,
+            gobject.TYPE_NONE,
+            (gobject.TYPE_STRING,)
+        )
+    }
+
+    state = "disconnected"
+
+
+class WebLiveClientQTNX(WebLiveClient):
+    """ qtnx client """
+
+    # NXML template
+    NXML_TEMPLATE = """
+<!DOCTYPE NXClientLibSettings>
+<NXClientLibSettings>
+<option key="Connection Name" value="WL_NAME"></option>
+<option key="Server Hostname" value="WL_SERVER"></option>
+<option key="Server Port" value="WL_PORT"></option>
+<option key="Session Type" value="unix-application"></option>
+<option key="Custom Session Command" value="WL_COMMAND"></option>
+<option key="Disk Cache" value="64"></option>
+<option key="Image Cache" value="16"></option>
+<option key="Link Type" value="adsl"></option>
+<option key="Use Render Extension" value="True"></option>
+<option key="Image Compression Method" value="JPEG"></option>
+<option key="JPEG Compression Level" value="9"></option>
+<option key="Desktop Geometry" value=""></option>
+<option key="Keyboard Layout" value="defkeymap"></option>
+<option key="Keyboard Type" value="pc102/defkeymap"></option>
+<option key="Media" value="False"></option>
+<option key="Agent Server" value=""></option>
+<option key="Agent User" value=""></option>
+<option key="CUPS Port" value="0"></option>
+<option key="Authentication Key" value=""></option>
+<option key="Use SSL Tunnelling" value="True"></option>
+<option key="Enable Fullscreen Desktop" value="False"></option>
+</NXClientLibSettings>
+"""
+
+    BINARY_PATH = "/usr/bin/qtnx"
+
+    @classmethod
+    def is_supported(cls):
+        """ Return if the current system will work
+            (has the required dependencies)
+        """
+
+        if os.path.exists(cls.BINARY_PATH):
+            return True
+        return False
+
+    def start_session(self, host, port, session, username, password, wait):
         """ Start a session using qtnx """
 
+        self.state = "connecting"
         if not os.path.exists(os.path.expanduser('~/.qtnx')):
             os.mkdir(os.path.expanduser('~/.qtnx'))
 
@@ -186,16 +227,41 @@ class WebLiveBackend(object):
         nxml.close()
 
         # Prepare qtnx call
-        cmd = [self.QTNX,
+        cmd = [self.BINARY_PATH,
                '%s-%s-%s' % (str(host), str(port), session.replace("/","_")),
                username,
                password]
 
+        def qtnx_countdown():
+            """ Send progress events every two seconds """
+
+            if self.helper_progress == 10:
+                self.state = "connected"
+                self.emit("connected",False)
+                return False
+            else:
+                self.emit("progress",self.helper_progress * 10)
+                self.helper_progress+=1
+                return True
+
+        def qtnx_start_timer():
+            """ As we don't have a way of knowing the connection
+                status, we countdown from 20s
+            """
+
+            self.helper_progress=0
+            qtnx_countdown()
+            glib.timeout_add_seconds(
+                2, qtnx_countdown)
+
+        qtnx_start_timer()
+
         if wait == False:
             # Start in the background and attach a watch for when it exits
-            (pid, stdin, stdout, stderr) = glib.spawn_async(
-                cmd, flags=glib.SPAWN_DO_NOT_REAP_CHILD)
-            glib.child_watch_add(pid, self._on_qtnx_exit,filename)
+            (self.helper_pid, stdin, stdout, stderr) = glib.spawn_async(
+                cmd, standard_input=True, standard_output=True, standard_error=True,
+                flags=glib.SPAWN_DO_NOT_REAP_CHILD)
+            glib.child_watch_add(self.helper_pid, self._on_qtnx_exit,filename)
         else:
             # Start it and wait till it finishes
             p=subprocess.Popen(cmd)
@@ -205,31 +271,86 @@ class WebLiveBackend(object):
         """ Called when the qtnx process exits (when in the background) """
 
         # Remove configuration file
+        self.state = "disconnected"
+        self.emit("disconnected")
         if os.path.exists(filename):
             os.remove(filename)
 
-# x2go backend
+class WebLiveClientX2GO(WebLiveClient):
+    """ x2go client """
 
-    def _spawn_x2go(self, host, port, session, username, password, wait):
+    @classmethod
+    def is_supported(cls):
+        """ Return if the current system will work
+            (has the required dependencies)
+        """
+
+        try:
+            imp.find_module("x2go")
+            return True
+        except:
+            return False
+
+    def start_session(self, host, port, session, username, password, wait):
         """ Start a session using x2go """
 
         # Start in the background and attach a watch for when it exits
         cmd = [os.path.join(softwarecenter.paths.datadir, softwarecenter.paths.X2GO_HELPER)]
-        (pid, stdin, stdout, stderr) = glib.spawn_async(
-            cmd, standard_input=True, standard_output=True, standard_error=True)
-        glib.child_watch_add(pid, self._on_x2go_exit)
+        (self.helper_pid, stdin, stdout, stderr) = glib.spawn_async(
+            cmd, standard_input=True, standard_output=True, standard_error=True,
+            flags=glib.SPAWN_DO_NOT_REAP_CHILD)
+        self.helper_stdin=os.fdopen(stdin,"w")
+        self.helper_stdout=os.fdopen(stdout)
+        self.helper_stderr=os.fdopen(stderr)
+
+        # Add a watch for when the process exits
+        glib.child_watch_add(self.helper_pid, self._on_x2go_exit)
 
         # Add a watch on stdout
-        glib.io_add_watch(os.fdopen(stdout), glib.IO_IN, self._on_x2go_activity)
+        glib.io_add_watch(self.helper_stdout, glib.IO_IN, self._on_x2go_activity)
 
         # Start the connection
-        os.fdopen(stdin,"w").write("CONNECT: \"%s\" \"%s\" \"%s\" \"%s\" \"%s\"" % (host, port, username, password, session))
+        self.state = "connecting"
+        self.helper_stdin.write("CONNECT: \"%s\" \"%s\" \"%s\" \"%s\" \"%s\"\n" % (host, port, username, password, session))
+        self.helper_stdin.flush()
+
+    def disconnect_session(self):
+        """ Disconnect the current session """
+
+        if self.state == "connected":
+            self.state = "disconnecting"
+            self.helper_stdin.write("DISCONNECT\n")
+            self.helper_stdin.flush()
 
     def _on_x2go_exit(self, pid, status):
-        print "x2go: exit with status: %s" % status
+        # We get everything by just watching stdout
+        pass
 
     def _on_x2go_activity(self, stdout, condition):
-        print "x2go: received: %s" % stdout.readline().strip()
+        """ Called when something appears on stdout """
+
+        line=stdout.readline().strip()
+        if line.startswith("PROGRESS: "):
+            if line.endswith("creating"):
+                self.emit("progress",10)
+            elif line.endswith("connecting"):
+                self.emit("progress",30)
+            elif line.endswith("starting"):
+                self.emit("progress",60)
+
+        elif line == "CONNECTED":
+            self.emit("connected",True)
+            self.state = "connected"
+        elif line == "DISCONNECTED":
+            self.emit("disconnected")
+            self.state = "disconnected"
+        elif line.startswith("EXCEPTION: "):
+            self.emit("exception", line.split(": ")[1])
+            self.state = "disconnected"
+        elif line.startswith("WARNING: "):
+            self.emit("warning", line.split(": ")[1])
+        else:
+            pass
         return True
 
 # singleton
@@ -239,7 +360,7 @@ def get_weblive_backend():
     if _weblive_backend is None:
         _weblive_backend = WebLiveBackend()
         # initial query
-        if _weblive_backend.is_supported():
+        if _weblive_backend.client:
             _weblive_backend.query_available_async()
     return _weblive_backend
 
