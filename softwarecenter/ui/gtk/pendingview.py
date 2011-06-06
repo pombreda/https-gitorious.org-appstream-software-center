@@ -22,11 +22,8 @@ import gtk
 import gobject
 import logging
 
-import aptdaemon.client
 from aptdaemon.enums import (get_role_localised_present_from_enum,
                              get_status_string_from_enum,
-                             STATUS_WAITING_LOCK,
-                             STATUS_DOWNLOADING,
                              )
 from softwarecenter.utils import get_icon_from_theme, size_to_str
 from softwarecenter.backend import get_install_backend
@@ -93,7 +90,7 @@ class PendingStore(gtk.ListStore):
             # when we get two on_transaction_changed closely after each
             # other clear() is run before the "_append_transaction" handler
             # is run and we end up with two (or more) _append_transactions
-            trans = aptdaemon.client.get_transaction(tid)
+            trans = self._transactions_watcher.get_transaction(tid)
             self._append_transaction(trans)
         # add pending purchases as pseudo transactions
         for pkgname in self.backend.pending_purchases:
@@ -141,7 +138,7 @@ class PendingStore(gtk.ListStore):
             icon = get_icon_from_theme(self.icons, iconsize=self.ICON_SIZE)
         else:
             icon = get_icon_from_theme(self.icons, iconname=iconname, iconsize=self.ICON_SIZE)
-        if trans.status == STATUS_WAITING_LOCK:
+        if trans.is_waiting():
             status = trans.status_details
         else:
             status = get_status_string_from_enum(trans.status)
@@ -174,7 +171,7 @@ class PendingStore(gtk.ListStore):
         #print "_on_progress_details_changed: ", trans, progress
         for row in self:
             if row[self.COL_TID] == trans.tid:
-                if trans.status == STATUS_DOWNLOADING:
+                if trans.is_downloading():
                     name = row[self.COL_NAME]
                     current_bytes_str = size_to_str(current_bytes)
                     total_bytes_str = size_to_str(total_bytes)
@@ -196,7 +193,7 @@ class PendingStore(gtk.ListStore):
                 # FIXME: the spaces around %s are poor mans padding because
                 #        setting xpad on the cell-renderer seems to not work
                 name = row[self.COL_NAME]
-                if trans.status == STATUS_WAITING_LOCK:
+                if trans.is_waiting():
                     st = trans.status_details
                 else:
                     st = get_status_string_from_enum(status)
@@ -278,7 +275,7 @@ class PendingView(gtk.ScrolledWindow, BasePane):
             return 
         # get tid
         tid = model[path][PendingStore.COL_TID]
-        trans = aptdaemon.client.get_transaction(tid)
+        trans = self._transactions_watcher.get_transaction(tid)
         try:
             trans.cancel()
         except dbus.exceptions.DBusException:

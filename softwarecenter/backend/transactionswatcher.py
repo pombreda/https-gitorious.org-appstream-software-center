@@ -19,6 +19,41 @@
 import dbus
 import gobject
 
+class BaseTransaction(gobject.GObject):
+    """
+    wrapper class for install backend dbus Transaction objects
+    """
+    @property
+    def tid(self):
+        pass
+    @property
+    def role(self):
+        pass
+    @property
+    def status(self):
+        pass
+    @property
+    def status_details(self):
+        pass
+    @property
+    def meta_data(self):
+        return {}
+    @property
+    def cancellable(self):
+        return False
+    @property
+    def progress(self):
+        return False
+
+    def is_waiting(self):
+        return False
+
+    def is_downloading(self):
+        return False
+
+    def cancel(self):
+        pass
+
 class BaseTransactionsWatcher(gobject.GObject):
     """ 
     base class for objects that need to watch the install backend 
@@ -32,6 +67,9 @@ class BaseTransactionsWatcher(gobject.GObject):
                                                      (str,gobject.TYPE_PYOBJECT)),
                     }
 
+    def get_transaction(self, tid):
+        """ should return a _Transaction object """
+        return None
 
 
 # singleton

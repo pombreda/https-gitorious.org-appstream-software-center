@@ -40,7 +40,7 @@ from aptdaemon import policykit1
 from defer import inline_callbacks, return_value
 
 import gtk
-from softwarecenter.backend.transactionswatcher import BaseTransactionsWatcher
+from softwarecenter.backend.transactionswatcher import BaseTransactionsWatcher, BaseTransaction
 from softwarecenter.backend.installbackend import InstallBackend
 from softwarecenter.utils import get_http_proxy_string_from_gconf
 from softwarecenter.ui.gtk import dialogs
@@ -74,6 +74,62 @@ class TransactionProgress(object):
         self.meta_data = trans.meta_data
         self.progress = trans.progress
 
+class AptdaemonTransaction(BaseTransaction):
+    def __init__(self, trans):
+        self._trans = trans
+
+    @property
+    def tid(self):
+        return self._trans.tid
+
+    @property
+    def role(self):
+        return self._trans.role
+
+    @property
+    def status(self):
+        return self._trans.status
+
+    @property
+    def status_details(self):
+        return self._trans.status_details
+
+    @property
+    def meta_data(self):
+        return self._trans.meta_data
+
+    @property
+    def cancellable(self):
+        return self._trans.cancellable
+
+    @property
+    def progress(self):
+        return self._trans.progress
+
+    def is_waiting(self):
+        return self._trans.status == enums.STATUS_WAITING_LOCK
+
+    def is_downloading(self):
+        return self._trans.status == enums.STATUS_DOWNLOADING
+
+    def cancel(self):
+        return self._trans.cancel()
+
+    def connect(self, signal, handler, *args):
+        """ append the real handler to the arguments """
+        args = args + (handler, )
+        return self._trans.connect(signal, self._handler, *args)
+
+    def _handler(self, trans, *args):
+        """ translate trans to BaseTransaction type.
+        call the real handler after that
+        """
+        real_handler = args[-1]
+        args = tuple(args[:-1])
+        if isinstance(trans, client.AptTransaction):
+            trans = AptdaemonTransaction(trans)
+        return real_handler(trans, *args)
+
 class AptdaemonTransactionsWatcher(BaseTransactionsWatcher):
     """ 
     base class for objects that need to watch the aptdaemon 
@@ -98,6 +154,11 @@ class AptdaemonTransactionsWatcher(BaseTransactionsWatcher):
 
     def _on_transactions_changed(self, current, queued):
         self.emit("lowlevel-transactions-changed", current, queued)
+
+    def get_transaction(self, tid):
+        """ synchroneously return a transaction """
+        trans = client.get_transaction(tid)
+        return AptdaemonTransaction(trans)
 
 class AptdaemonBackend(gobject.GObject, InstallBackend):
     """ software center specific code that interacts with aptdaemon """
