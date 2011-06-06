@@ -75,7 +75,7 @@ class Icons:
     APP_ICON_SIZE = 48
 
     MISSING_APP = "applications-other"
-    # MISSING_PKG = "dialog-question"   # XXX: Not used?
+    MISSING_PKG = "dialog-question"   # XXX: Not used?
     GENERIC_MISSING = "gtk-missing-image"
 
 # sorting

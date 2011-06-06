@@ -33,7 +33,7 @@ class TestPkgInfo(unittest.TestCase):
         self.assertTrue(pkg is not None)
         self.assertTrue(pkg.is_installed)
         for p in ('section', 'summary', 'description', 'origins'):
-            self.assertTrue(p in dir(pkg))
+            self.assertTrue(p in dir(pkg), "'%s' missing in vars()" % p)
         self.assertTrue(len(pkg.origins) != 0)
         self.assertEqual(pkg.section, "utils")
         self.assertTrue(pkg.summary != '')

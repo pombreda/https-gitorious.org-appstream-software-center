@@ -300,11 +300,11 @@ class AppDetails(object):
     @property
     def icon(self):
         if self.pkg_state == PkgStates.NOT_FOUND:
-            return Icons.MISSING_APP
+            return Icons.MISSING_PKG
         if self._doc:
             return os.path.splitext(self._db.get_iconname(self._doc))[0]
         if not self.summary:
-            return Icons.MISSING_APP
+            return Icons.MISSING_PKG
             
     @property
     def icon_file_name(self):

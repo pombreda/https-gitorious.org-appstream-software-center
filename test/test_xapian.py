@@ -7,7 +7,7 @@ sys.path.insert(0,"../")
 import unittest
 import os
 import xapian
-from softwarecenter.enums import XAPIAN_VALUE_PKGNAME
+from softwarecenter.enums import XapianValues
 from softwarecenter.db.update import rebuild_database
 
 class testXapian(unittest.TestCase):
@@ -51,7 +51,7 @@ class testXapian(unittest.TestCase):
         pkgs = set()
         for match in matches:
             doc = match.document
-            pkgs.add(doc.get_value(XAPIAN_VALUE_PKGNAME))
+            pkgs.add(doc.get_value(XapianValues.PKGNAME))
         self.assertTrue("firefox" in pkgs)
 
     def test_eset(self):

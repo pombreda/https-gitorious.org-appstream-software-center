@@ -149,7 +149,11 @@ class AptCache(PackageInfo):
     # code keeps working for now, this needs to go away eventually
     # and get replaced with the abstract _Package class 
     def __getitem__(self, key):
-        return self._cache[key]
+        p =  self._cache[key]
+        # temporary only too, just needed for compat with the new interface
+        if p.candidate:
+            p.origins = p.candidate.origins
+        return p
 
     def __iter__(self):
         return self._cache.__iter__()
