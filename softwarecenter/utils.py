@@ -510,6 +510,13 @@ upstream_version_compare = get_pkg_info().upstream_version_compare
 upstream_version = get_pkg_info().upstream_version
 version_compare = get_pkg_info().version_compare
 
+# only when needed
+try:
+    import apt_pkg
+    size_to_str = apt_pkg.size_to_str
+except ImportError:
+    def size_to_str(size):
+        return str(size)
         
 if __name__ == "__main__":
     s = decode_xml_char_reference('Search&#x2026;')

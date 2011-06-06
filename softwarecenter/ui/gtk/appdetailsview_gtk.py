@@ -32,7 +32,6 @@ from softwarecenter.cmdfinder import CmdFinder
 from softwarecenter.netstatus import NetState, get_network_watcher, network_state_is_connected
 
 from gettext import gettext as _
-import apt_pkg
 
 from softwarecenter.db.application import Application
 from softwarecenter.backend.reviews import ReviewStats
@@ -43,6 +42,7 @@ from softwarecenter.utils import (is_unity_running,
                                   get_exec_line_from_desktop,
                                   GMenuSearcher,
                                   SimpleFileDownloader,
+                                  size_to_str,
                                   )
 from softwarecenter.backend.weblive import get_weblive_backend
 
@@ -1758,21 +1758,21 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             total_install_size -= pkg.installed_size
         
         if total_download_size > 0:
-            download_size = apt_pkg.size_to_str(total_download_size)
+            download_size = size_to_str(total_download_size)
             label_string += _("%sB to download, ") % (download_size)
         if total_install_size > 0:
-            install_size = apt_pkg.size_to_str(total_install_size)
+            install_size = size_to_str(total_install_size)
             label_string += _("%sB when installed") % (install_size)
         elif (total_install_size == 0 and
               self.app_details.pkg_state == PkgStates.INSTALLED and
               not self.addons_manager.addons_to_install and
               not self.addons_manager.addons_to_remove):
             pkg = self.cache[self.app_details.pkgname].installed
-            install_size = apt_pkg.size_to_str(pkg.installed_size)
+            install_size = size_to_str(pkg.installed_size)
             # FIXME: this is not really a good indication of the size on disk
             label_string += _("%sB on disk") % (install_size)
         elif total_install_size < 0:
-            remove_size = apt_pkg.size_to_str(-total_install_size)
+            remove_size = size_to_str(-total_install_size)
             label_string += _("%sB to be freed") % (remove_size)
         
         if label_string == "":

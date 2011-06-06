@@ -16,7 +16,6 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import apt_pkg
 import dbus
 import glib
 import gtk
@@ -29,7 +28,7 @@ from aptdaemon.enums import (get_role_localised_present_from_enum,
                              STATUS_WAITING_LOCK,
                              STATUS_DOWNLOADING,
                              )
-from softwarecenter.utils import get_icon_from_theme
+from softwarecenter.utils import get_icon_from_theme, size_to_str
 from softwarecenter.backend import get_install_backend
 from softwarecenter.backend.transactionswatcher import get_transactions_watcher
 from basepane import BasePane
@@ -72,7 +71,6 @@ class PendingStore(gtk.ListStore):
         self.icons = icons
         # the apt-daemon stuff
         self.backend = get_install_backend()
-        self.apt_client = self.backend.aptd_client
         self._signals = []
         # let the pulse helper run
         glib.timeout_add(500, self._pulse_purchase_helper)
@@ -178,8 +176,8 @@ class PendingStore(gtk.ListStore):
             if row[self.COL_TID] == trans.tid:
                 if trans.status == STATUS_DOWNLOADING:
                     name = row[self.COL_NAME]
-                    current_bytes_str = apt_pkg.size_to_str(current_bytes)
-                    total_bytes_str = apt_pkg.size_to_str(total_bytes)
+                    current_bytes_str = size_to_str(current_bytes)
+                    total_bytes_str = size_to_str(total_bytes)
                     status = _("Downloaded %sB of %sB") % \
                              (current_bytes_str, total_bytes_str)
                     row[self.COL_STATUS] = self._render_status_text(name, status)
