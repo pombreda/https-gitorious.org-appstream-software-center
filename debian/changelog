@@ -41,7 +41,7 @@ software-center (4.1.5) oneiric; urgency=low
   [ Olivier Tilloy ]
   * add QML ui frontend (lp:~osomon/software-center/qml)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 07 Jun 2011 14:36:09 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 07 Jun 2011 15:36:46 +0200
 
 software-center (4.1.4) oneiric; urgency=low
 
