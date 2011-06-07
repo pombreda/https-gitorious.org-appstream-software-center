@@ -22,6 +22,8 @@
 import dbus
 import gtk
 import logging
+import random
+import string
 
 from dbus.mainloop.glib import DBusGMainLoop
 DBusGMainLoop(set_as_default=True)
@@ -84,7 +86,7 @@ class LoginBackendDbusSSO(LoginBackend):
 class LoginBackendDbusSSOFake(LoginBackend):
 
     def __init__(self, window_id, appname, login_text):
-        super(LoginBackendDbusSSO, self).__init__()
+        super(LoginBackendDbusSSOFake, self).__init__()
         self.appname = appname
         self.login_text = login_text
         self._window_id = window_id
@@ -102,24 +104,28 @@ class LoginBackendDbusSSOFake(LoginBackend):
         return
         
     def login_or_register(self):
-        pass
+        #fake functionality for this is no different to fake login()
+        self.login()
+        return
                 
-    def _random_string(self, length):
+    def _random_unicode_string(self, length):
         retval = ''
         for i in range(0,length):
             retval = retval + random.choice(string.letters + string.digits)
-        return retval
+        return retval.decode('utf-8')
  
     def _return_credentials(self):
-        c =  {
-              'consumer_secret': self._random_string(30),
-              'token' : self._random_string(50),
-              'consumer_key' : self._random_string(7),
-              'name' : 'Ubuntu Software Center @ ' + self._random_string(6),
-              'token_secret' : self._random_string(50)
-             }
+        c =  dbus.Dictionary(
+            {
+              dbus.String(u'consumer_secret'): dbus.String(self._random_unicode_string(30)),
+              dbus.String(u'token') : dbus.String(self._random_unicode_string(50)),
+              dbus.String(u'consumer_key') : dbus.String(self._random_unicode_string(7)),
+              dbus.String(u'name') : dbus.String('Ubuntu Software Center @ ' + self._random_unicode_string(6)),
+              dbus.String(u'token_secret') : dbus.String(self._random_unicode_string(50))
+             }, 
+             signature=dbus.Signature('ss')
+             )
         return c
-
 
 sso_class = None
 def get_sso_class(window_id, appname, login_text):
@@ -136,7 +142,7 @@ def get_sso_class(window_id, appname, login_text):
     return sso_class
    
 if __name__ == "__main__":
-    login = LoginBackendDbusSSO()
+    login = get_sso_class()
     login.login()
 
     gtk.main()

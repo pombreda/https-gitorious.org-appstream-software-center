@@ -704,13 +704,13 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
     def _create_dbus_sso_if_needed(self):
         if not self.sso:
-            from backend.login_sso import LoginBackendDbusSSO
+            from backend.login_sso import get_sso_class
             # see bug #773214 for the rational
             #appname = _("Ubuntu Software Center Store")
             appname = "Ubuntu Software Center Store"
             login_text = _("To reinstall previous purchases, sign in to the "
                            "Ubuntu Single Sign-On account you used to pay for them.")
-            self.sso = LoginBackendDbusSSO(self.window_main.window.xid,
+            self.sso = get_sso_class(self.window_main.window.xid,
                                            appname, login_text)
             self.sso.connect("login-successful", self._on_sso_login)
 

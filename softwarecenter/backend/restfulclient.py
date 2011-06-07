@@ -508,8 +508,8 @@ if __name__ == "__main__":
             sso.connect("whoami", _whoami)
             sso.connect("error", _error)
             sso.whoami()
-        from login_sso import LoginBackendDbusSSO
-        backend = LoginBackendDbusSSO("", "appname", "login_text")
+        from login_sso import get_sso_class
+        backend = get_sso_class("", "appname", "login_text")
         backend.connect("login-successful", _dbus_maybe_login_successful)
         backend.login_or_register()
 
