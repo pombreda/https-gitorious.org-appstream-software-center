@@ -29,15 +29,10 @@ from softwarecenter.db.application import Application
 #from softwarecenter.utils import *
 from softwarecenter.enums import (
     AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME,
-    PKG_STATE_UNINSTALLED,
-    XAPIAN_VALUE_ARCHIVE_CHANNEL,
-    XAPIAN_VALUE_SUMMARY,
-    XAPIAN_VALUE_PKGNAME,
-    XAPIAN_VALUE_APPNAME,
-    XAPIAN_VALUE_ICON,
-    XAPIAN_VALUE_ICON_NEEDS_DOWNLOAD,
-    XAPIAN_VALUE_POPCON
-)
+    PkgStates,
+    XapianValues
+    )
+
 from softwarecenter.paths import XAPIAN_BASE_PATH_SOFTWARE_CENTER_AGENT
 from gettext import gettext as _
 
@@ -139,7 +134,7 @@ class StoreDatabase(gobject.GObject):
         self._search_lock.release()
 
     def open(self, pathname=None, use_axi=True, use_agent=True):
-        " open the database "
+        """ open the database """
         if pathname:
             self._db_pathname = pathname
         self.xapiandb = xapian.Database(self._db_pathname)
@@ -147,6 +142,8 @@ class StoreDatabase(gobject.GObject):
         # for now as we do not have a good way to integrate non-apps
         # with the UI)
         self.nr_databases = 0
+        self._use_axi = use_axi
+        self._use_agent = use_agent
         if use_axi:
             try:
                 axi = xapian.Database("/var/lib/apt-xapian-index/index")
@@ -196,7 +193,7 @@ class StoreDatabase(gobject.GObject):
 
     def reopen(self):
         " reopen the database "
-        self.open()
+        self.open(use_axi=self._use_axi, use_agent=self._use_agent)
         self.emit("reopen")
 
     @property
@@ -266,6 +263,24 @@ class StoreDatabase(gobject.GObject):
         fuzzy_query = _add_category_to_query(fuzzy_query)
         return SearchQuery([pkg_query,fuzzy_query])
 
+    def get_matches_from_query(self, query, start=0, end=-1, category=None):
+        enquire = xapian.Enquire(self.xapiandb)
+        if isinstance(query, str):
+            if query == "":
+                query = xapian.Query("")
+            else:
+                query = self.xapian_parser.parse_query(query)
+        if category:
+            query = xapian.Query(xapian.Query.OP_AND, category.query, query)
+        enquire.set_query(query)
+        if end == -1: 
+            end = len(self)
+        return enquire.get_mset(start, end)
+
+    def get_docs_from_query(self, query, start=0, end=-1, category=None):
+        matches = self.get_matches_from_query(query, start, end, category)
+        return [m.document for m in matches]
+
     def get_spelling_correction(self, search_term):
         # get a search query
         if not ':' in search_term: # ie, not a mimetype query
@@ -282,7 +297,7 @@ class StoreDatabase(gobject.GObject):
         """
         # sort by popularity by default
         enquire = xapian.Enquire(self.xapiandb)
-        enquire.set_sort_by_value_then_relevance(XAPIAN_VALUE_POPCON)
+        enquire.set_sort_by_value_then_relevance(XapianValues.POPCON)
         # query mimetype
         query = xapian.Query("AM%s"%mimetype)
         enquire.set_query(query)
@@ -294,7 +309,7 @@ class StoreDatabase(gobject.GObject):
             app = Application(self.get_appname(doc),self.get_pkgname(doc),
                               popcon=self.get_popcon(doc))
             if only_uninstalled:
-                if app.get_details(self).pkg_state == PKG_STATE_UNINSTALLED:
+                if app.get_details(self).pkg_state == PkgStates.UNINSTALLED:
                     apps.append(app)
             else:
                 apps.append(app)
@@ -304,8 +319,8 @@ class StoreDatabase(gobject.GObject):
 
     def get_summary(self, doc):
         """ get human readable summary of the given document """
-        summary = doc.get_value(XAPIAN_VALUE_SUMMARY)
-        channel = doc.get_value(XAPIAN_VALUE_ARCHIVE_CHANNEL)
+        summary = doc.get_value(XapianValues.SUMMARY)
+        channel = doc.get_value(XapianValues.ARCHIVE_CHANNEL)
         # if we do not have the summary in the xapian db, get it
         # from the apt cache
         if not summary and self._aptcache.ready: 
@@ -320,7 +335,7 @@ class StoreDatabase(gobject.GObject):
 
     def get_pkgname(self, doc):
         """ Return a packagename from a xapian document """
-        pkgname = doc.get_value(XAPIAN_VALUE_PKGNAME)
+        pkgname = doc.get_value(XapianValues.PKGNAME)
         # if there is no value it means we use the apt-xapian-index 
         # that stores the pkgname in the data field or as a value
         if not pkgname:
@@ -337,11 +352,11 @@ class StoreDatabase(gobject.GObject):
         """ Return a appname from a xapian document, or None if
             a value for appname cannot be found in the document
          """
-        return doc.get_value(XAPIAN_VALUE_APPNAME)
+        return doc.get_value(XapianValues.APPNAME)
 
     def get_iconname(self, doc):
         """ Return the iconname from the xapian document """
-        iconname = doc.get_value(XAPIAN_VALUE_ICON)
+        iconname = doc.get_value(XapianValues.ICON)
         return iconname
 
     def pkg_in_category(self, pkgname, cat_query):
@@ -365,13 +380,14 @@ class StoreDatabase(gobject.GObject):
             result.add(m.docid)
         return result
         
-    def get_icon_needs_download(self, doc):
-        """ Return a value if the icon needs to be downloaded """
-        return doc.get_value(XAPIAN_VALUE_ICON_NEEDS_DOWNLOAD)
+    def get_icon_download_url(self, doc):
+        """ Return the url of the icon or None """
+        url = doc.get_value(XapianValues.ICON_URL)
+        return url
 
     def get_popcon(self, doc):
         """ Return a popcon value from a xapian document """
-        popcon_raw = doc.get_value(XAPIAN_VALUE_POPCON)
+        popcon_raw = doc.get_value(XapianValues.POPCON)
         if popcon_raw:
             popcon = xapian.sortable_unserialise(popcon_raw)
         else:
@@ -387,12 +403,12 @@ class StoreDatabase(gobject.GObject):
         # first search for appname in the app-install-data namespace
         for m in self.xapiandb.postlist("AA"+appname):
             doc = self.xapiandb.get_document(m.docid)
-            if doc.get_value(XAPIAN_VALUE_PKGNAME) == pkgname:
+            if doc.get_value(XapianValues.PKGNAME) == pkgname:
                 return doc
         # then search for pkgname in the app-install-data namespace
         for m in self.xapiandb.postlist("AP"+pkgname):
             doc = self.xapiandb.get_document(m.docid)
-            if doc.get_value(XAPIAN_VALUE_PKGNAME) == pkgname:
+            if doc.get_value(XapianValues.PKGNAME) == pkgname:
                 return doc
         # then look for matching packages from a-x-i
         for m in self.xapiandb.postlist("XP"+pkgname):

@@ -28,9 +28,7 @@ from gettext import gettext as _
 
 from softwarecenter.backend import get_install_backend
 from softwarecenter.db.database import StoreDatabase
-from softwarecenter.enums import (PERMANENT_VIEWS,
-                                  VIEW_PAGE_SEPARATOR_1,
-                                  )
+from softwarecenter.enums import ViewPages
 from softwarecenter.paths import XAPIAN_BASE_PATH
 from softwarecenter.utils import wait_for_apt_cache_ready
 
@@ -206,7 +204,7 @@ class ViewSwitcher(gtk.TreeView):
         self.append_column(column)
 
         # Remember the previously selected permanent view
-        self._permanent_views = PERMANENT_VIEWS
+        self._permanent_views = ViewPages.PERMANENT_VIEWS
         self._previous_permanent_view = None
 
         # set sensible atk name
@@ -258,7 +256,7 @@ class ViewSwitcher(gtk.TreeView):
         model = self.get_model()
         iter_ = model.get_iter(path)
         id_ = model.get_value(iter_, 2)
-        if id_ == VIEW_PAGE_SEPARATOR_1:
+        if id_ == ViewPages.SEPARATOR_1:
             return False
         return True
         
@@ -304,11 +302,11 @@ class ViewSwitcher(gtk.TreeView):
            view is activated (this can happen when a pending view 
            disappeared). Views are:
            
-           VIEW_PAGE_AVAILABLE
-           VIEW_PAGE_CHANNEL
-           VIEW_PAGE_INSTALLED
-           VIEW_PAGE_HISTORY
-           VIEW_PAGE_PENDING
+           ViewPages.AVAILABLE
+           ViewPages.CHANNEL
+           ViewPages.INSTALLED
+           ViewPages.HISTORY
+           ViewPages.PENDING
         """
         (path, column) = self.get_cursor()
         if not path:

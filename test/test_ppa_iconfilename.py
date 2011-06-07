@@ -45,7 +45,8 @@ class TestDistroUbuntu(unittest.TestCase):
         mock_cache = MockCache("http://ppa.launchpad.net/mvo/ppa/ubuntu")
         pkgname = "pkg"
         iconname = "iconfilename"
-        icon_url = self.distro.get_downloadable_icon_url(mock_cache, pkgname, iconname)
+        pkg_uri = mock_cache[pkgname].candidate.uri
+        icon_url = self.distro.get_downloadable_icon_url(pkg_uri, iconname)
         self.assertEqual(icon_url,
                          "http://ppa.launchpad.net/mvo/meta/ppa/iconfilename")
 

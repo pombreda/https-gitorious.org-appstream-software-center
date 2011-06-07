@@ -27,16 +27,9 @@ import xapian
 import time
 import threading
 
-from softwarecenter.enums import (
-    DEFAULT_SEARCH_LIMIT,
-    MISSING_APP_ICON,
-    SORT_UNSORTED,
-    SORT_BY_ALPHABET,
-    SORT_BY_CATALOGED_TIME,
-    SORT_BY_SEARCH_RANKING,
-    XAPIAN_VALUE_PKGNAME,
-    XAPIAN_VALUE_APPNAME,
-    )
+from softwarecenter.enums import (Icons, SortMethods,
+                                  XapianValues, DEFAULT_SEARCH_LIMIT)
+
 from softwarecenter.utils import ExecutionTime, SimpleFileDownloader
 from softwarecenter.backend import get_install_backend
 from softwarecenter.backend.reviews import get_review_loader
@@ -99,7 +92,7 @@ class AppStore(gtk.GenericTreeModel):
 
     def __init__(self, cache, db, icons, search_query=None, 
                  limit=DEFAULT_SEARCH_LIMIT,
-                 sortmode=SORT_UNSORTED, filter=None,
+                 sortmode=SortMethods.UNSORTED, filter=None,
                  icon_size=ICON_SIZE, global_icon_cache=True, 
                  nonapps_visible=NONAPPS_MAYBE_VISIBLE,
                  nonblocking_load=True, search_term=None):
@@ -142,7 +135,7 @@ class AppStore(gtk.GenericTreeModel):
 
         # invalidate the cache on icon theme changes
         self.icons.connect("changed", self._clear_app_icon_cache)
-        self._appicon_missing_icon = self.icons.load_icon(MISSING_APP_ICON, self.icon_size, 0)
+        self._appicon_missing_icon = self.icons.load_icon(Icons.MISSING_APP, self.icon_size, 0)
         self.sortmode = sortmode
         # we need a copy of the filter here because otherwise comparing
         # two models will not work
@@ -171,7 +164,7 @@ class AppStore(gtk.GenericTreeModel):
         # no search query means "all"
         if not search_query:
             self.search_query = SearchQuery(xapian.Query(""))
-            self.sortmode = SORT_BY_ALPHABET
+            self.sortmode = SortMethods.BY_ALPHABET
             self.limit = 0
         # custom package lists
         self.search_term = search_term
@@ -281,7 +274,7 @@ class AppStore(gtk.GenericTreeModel):
             # sort results
 
             # cataloged time - what's new category
-            if self.sortmode == SORT_BY_CATALOGED_TIME:
+            if self.sortmode == SortMethods.BY_CATALOGED_TIME:
                 if (self.db._axi_values and 
                     "catalogedtime" in self.db._axi_values):
                     enquire.set_sort_by_value(
@@ -290,8 +283,8 @@ class AppStore(gtk.GenericTreeModel):
                     logging.warning("no catelogedtime in axi")
 
             # search ranking - when searching
-            elif self.sortmode == SORT_BY_SEARCH_RANKING:
-                #enquire.set_sort_by_value(XAPIAN_VALUE_POPCON)
+            elif self.sortmode == SortMethods.BY_SEARCH_RANKING:
+                #enquire.set_sort_by_value(XapianValues.POPCON)
                 # use the default enquire.set_sort_by_relevance()
                 pass
             # display name - all categories / channels
@@ -302,7 +295,7 @@ class AppStore(gtk.GenericTreeModel):
             # fallback to pkgname - if needed?
             else:
                 enquire.set_sort_by_value_then_relevance(
-                    XAPIAN_VALUE_PKGNAME, False)
+                    XapianValues.PKGNAME, False)
                     
             # set limit
             try:
@@ -391,7 +384,7 @@ class AppStore(gtk.GenericTreeModel):
         if result.pkgname in self.transaction_index_map:
             del self.transaction_index_map[result.pkgname]
 
-    def _download_icon_and_show_when_ready(self, cache, pkgname, icon_file_name):
+    def _download_icon_and_show_when_ready(self, url, icon_file_name):
         LOG.debug("did not find the icon locally, must download %s" % icon_file_name)
         def on_image_download_complete(downloader, image_file_path):
             pb = gtk.gdk.pixbuf_new_from_file_at_size(icon_file_path,
@@ -401,7 +394,6 @@ class AppStore(gtk.GenericTreeModel):
             icon_file = os.path.splitext(os.path.basename(image_file_path))[0]
             self.icon_cache[icon_file] = pb
         
-        url = get_distro().get_downloadable_icon_url(cache, pkgname, icon_file_name)
         if url is not None:
             icon_file_path = os.path.join(SOFTWARE_CENTER_ICON_CACHE_DIR, icon_file_name)
             image_downloader = SimpleFileDownloader()
@@ -479,7 +471,7 @@ class AppStore(gtk.GenericTreeModel):
                 return app.request
 
         # Otherwise the app should return app data normally.
-        appname = doc.get_value(XAPIAN_VALUE_APPNAME)
+        appname = doc.get_value(XapianValues.APPNAME)
         pkgname = self.db.get_pkgname(doc)
         #popcon = self.db.get_popcon(doc)
         app = Application(appname, pkgname)
@@ -522,10 +514,8 @@ class AppStore(gtk.GenericTreeModel):
                         if icon:
                             self.icon_cache[icon_name] = icon
                             return icon
-                    elif self.db.get_icon_needs_download(doc):
-                        self._download_icon_and_show_when_ready(self.cache, 
-                                                                app.pkgname,
-                                                                icon_file_name)
+                    elif self.db.get_icon_download_url(doc):
+                        self._download_icon_and_show_when_ready(self.db.get_icon_download_url(doc), icon_file_name)
                         # display the missing icon while the real one downloads
                         self.icon_cache[icon_name] = self._appicon_missing_icon
             except glib.GError, e:

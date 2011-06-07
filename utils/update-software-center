@@ -34,6 +34,8 @@ from softwarecenter.enums import *
 from softwarecenter.paths import XAPIAN_BASE_PATH
 from softwarecenter.db.update import rebuild_database
 
+import softwarecenter.paths
+
 # dbus may not be available during a upgrade so we 
 # only set it up if its there
 try:
@@ -54,7 +56,7 @@ APP_CATCHUP_DELAY = 2
 LANGPACKDIR = "/usr/share/locale-langpack"
 
 logging.basicConfig(level=logging.INFO)
-LOG = logging.getLogger(__name__)
+LOG = logging.getLogger("softwarecenter.db.update")
 
 class UpdateSoftwarecenterDbus(dbus.service.Object):
     """ 
@@ -88,6 +90,8 @@ if __name__ == "__main__":
     parser.add_option("--appstream-only", "", action="store_true", 
                       default=False,
                       help="appstream app-info only")
+    parser.add_option("--appstream-xml-path", "", default=None,
+                      help="set different appstream xml rootdir")
     parser.add_option("--debug", "", action="store_true", default=False,
                       help="show debug output")
     (options, args) = parser.parse_args()
@@ -107,6 +111,9 @@ if __name__ == "__main__":
 
     if options.appstream_only:
         LOG.info("updating only information from app-info")
+
+    if options.appstream_xml_path:
+        softwarecenter.paths.APPSTREAM_XML_PATH = options.appstream_xml_path
 
     # check if we are dpkg triggered because of langpack change
     # and avoid unneeded database rebuilds by checking the timestamp

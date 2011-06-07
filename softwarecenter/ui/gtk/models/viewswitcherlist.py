@@ -27,15 +27,7 @@ from gettext import gettext as _
 from softwarecenter.backend.channel import ChannelsManager
 from softwarecenter.backend import get_install_backend
 from softwarecenter.distro import get_distro
-from softwarecenter.enums import (
-    GENERIC_MISSING_IMAGE,
-    VIEW_PAGE_AVAILABLE,
-    VIEW_PAGE_INSTALLED,
-    VIEW_PAGE_CHANNEL,
-    VIEW_PAGE_HISTORY,
-    VIEW_PAGE_SEPARATOR_1,
-    VIEW_PAGE_PENDING,
-    )
+from softwarecenter.enums import Icons, ViewPages
 from softwarecenter.utils import wait_for_apt_cache_ready, get_icon_from_theme
 
 from softwarecenter.ui.gtk.widgets.animatedimage import AnimatedImage
@@ -84,14 +76,14 @@ class ViewSwitcherList(gtk.TreeStore):
 
         # first, the availablepane items
         available_icon = self._get_icon("softwarecenter")
-        self.available_iter = self.append(None, [available_icon, _("Get Software"), VIEW_PAGE_AVAILABLE, None, None])
+        self.available_iter = self.append(None, [available_icon, _("Get Software"), ViewPages.AVAILABLE, None, None])
 
         # the installedpane items
         icon = AnimatedImage(get_icon_from_theme(self.icons, 
                                                  iconname="computer", 
                                                  iconsize=self.ICON_SIZE,
-                                                 missingicon=GENERIC_MISSING_IMAGE))
-        self.installed_iter = self.append(None, [icon, _("Installed Software"), VIEW_PAGE_INSTALLED, None, None])
+                                                 missingicon=Icons.GENERIC_MISSING))
+        self.installed_iter = self.append(None, [icon, _("Installed Software"), ViewPages.INSTALLED, None, None])
         
         # the channelpane 
         self.channel_manager = ChannelsManager(db, icons)
@@ -100,9 +92,9 @@ class ViewSwitcherList(gtk.TreeStore):
 
         # the historypane item
         icon = self._get_icon("document-open-recent")
-        self.append(None, [icon, _("History"), VIEW_PAGE_HISTORY, None, None])
+        self.append(None, [icon, _("History"), ViewPages.HISTORY, None, None])
         icon = AnimatedImage(None)
-        self.append(None, [icon, "<span size='1'> </span>", VIEW_PAGE_SEPARATOR_1, None, None])
+        self.append(None, [icon, "<span size='1'> </span>", ViewPages.SEPARATOR_1, None, None])
         
         # the progress pane is build on demand
 
@@ -115,17 +107,17 @@ class ViewSwitcherList(gtk.TreeStore):
         pending = len(total_transactions)
         if pending > 0:
             for row in self:
-                if row[self.COL_ACTION] == VIEW_PAGE_PENDING:
+                if row[self.COL_ACTION] == ViewPages.PENDING:
                     row[self.COL_BUBBLE_TEXT] = str(pending)
                     break
             else:
                 icon = AnimatedImage(self.ANIMATION_PATH)
                 icon.start()
                 self.append(None, [icon, _("In Progress..."), 
-                             VIEW_PAGE_PENDING, None, str(pending)])
+                             ViewPages.PENDING, None, str(pending)])
         else:
             for (i, row) in enumerate(self):
-                if row[self.COL_ACTION] == VIEW_PAGE_PENDING:
+                if row[self.COL_ACTION] == ViewPages.PENDING:
                     del self[(i,)]
                     
     def on_transaction_finished(self, backend, result):
@@ -167,7 +159,7 @@ class ViewSwitcherList(gtk.TreeStore):
         return AnimatedImage(get_icon_from_theme(self.icons, 
                                                  iconname=icon_name, 
                                                  iconsize=self.ICON_SIZE,
-                                                 missingicon=GENERIC_MISSING_IMAGE))
+                                                 missingicon=Icons.GENERIC_MISSING))
 
     @wait_for_apt_cache_ready
     def _update_channel_list(self):
@@ -197,7 +189,7 @@ class ViewSwitcherList(gtk.TreeStore):
             self.append(self.available_iter, [
                         channel.icon,
                         channel.display_name,
-                        VIEW_PAGE_CHANNEL,
+                        ViewPages.CHANNEL,
                         channel,
                         None])
         # delete the old ones
@@ -234,7 +226,7 @@ class ViewSwitcherList(gtk.TreeStore):
                 self.append(self.installed_iter, [
                             channel.icon,
                             channel.display_name,
-                            VIEW_PAGE_CHANNEL,
+                            ViewPages.CHANNEL,
                             channel,
                             None])
         # delete the old ones

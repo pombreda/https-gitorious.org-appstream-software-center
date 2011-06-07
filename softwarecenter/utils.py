@@ -31,8 +31,7 @@ import traceback
 import time
 import xml.sax.saxutils
 
-
-from enums import MISSING_APP_ICON, APP_ICON_SIZE, APP_INSTALL_PATH_DELIMITER
+from enums import Icons, APP_INSTALL_PATH_DELIMITER
 
 from config import get_config
 
@@ -44,7 +43,6 @@ ESCAPE_ENTITIES = {"&apos;":"'",
                    '&quot;':'"'}
                    
 LOG = logging.getLogger(__name__)
-
 
 class ExecutionTime(object):
     """
@@ -60,7 +58,6 @@ class ExecutionTime(object):
     def __exit__(self, type, value, stack):
         logger = logging.getLogger("softwarecenter.performance")
         logger.debug("%s: %s" % (self.info, time.time() - self.now))
-
 
 def log_traceback(info):
     """
@@ -210,24 +207,14 @@ def decode_xml_char_reference(s):
     p = re.compile("\&\#x(\d\d\d\d);")
     return p.sub(r"\u\1", s).decode("unicode-escape")
     
-def version_compare(a, b):
-    return apt_pkg.version_compare(a, b)
-
-def upstream_version_compare(a, b):
-    return apt_pkg.version_compare(apt_pkg.upstream_version(a),
-                                   apt_pkg.upstream_version(b))
-
-def upstream_version(v):
-    return apt_pkg.upstream_version(v)
-
 def unescape(text):
     """
     unescapes the given text
     """
     return xml.sax.saxutils.unescape(text, ESCAPE_ENTITIES)
 
-def get_current_arch():
-    return apt_pkg.config.find("Apt::Architecture")
+#def get_current_arch():
+#    return apt_pkg.config.find("Apt::Architecture")
 
 def uri_to_filename(uri):
     return apt_pkg.uri_to_filename(uri)
@@ -270,7 +257,7 @@ def is_unity_running():
         LOG.exception("could not check for Unity dbus service")
     return unity_running
     
-def get_icon_from_theme(icons, iconname=None, iconsize=APP_ICON_SIZE, missingicon=MISSING_APP_ICON):
+def get_icon_from_theme(icons, iconname=None, iconsize=Icons.APP_ICON_SIZE, missingicon=Icons.MISSING_APP):
     """
     return the icon in the theme that corresponds to the given iconname
     """    
@@ -283,18 +270,18 @@ def get_icon_from_theme(icons, iconname=None, iconsize=APP_ICON_SIZE, missingico
         icon = icons.load_icon(missingicon, iconsize, 0)
     return icon
     
-def get_file_path_from_iconname(icons, iconname=None, iconsize=APP_ICON_SIZE):
+def get_file_path_from_iconname(icons, iconname=None, iconsize=Icons.APP_ICON_SIZE):
     """
     return the file path of the icon in the theme that corresponds to the
     given iconname, or None if it cannot be determined
     """
     if (not iconname or
         not icons.has_icon(iconname)):
-        iconname = MISSING_APP_ICON
+        iconname = Icons.MISSING_APP
     try:
         icon_info = icons.lookup_icon(iconname, iconsize, 0)
     except Exception:
-        icon_info = icons.lookup_icon(MISSING_APP_ICON, iconsize, 0)
+        icon_info = icons.lookup_icon(Icons.MISSING_APP, iconsize, 0)
     if icon_info is not None:
         icon_file_path = icon_info.get_filename()
         icon_info.free()
@@ -517,6 +504,14 @@ class GMenuSearcher(object):
             if self._found:
                 return self._found
         return None
+
+
+
+# those helpers are packaging system specific
+from softwarecenter.db.pkginfo import get_pkg_info
+upstream_version_compare = get_pkg_info().upstream_version_compare
+upstream_version = get_pkg_info().upstream_version
+version_compare = get_pkg_info().version_compare
 
         
 if __name__ == "__main__":
