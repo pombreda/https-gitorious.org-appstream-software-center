@@ -35,6 +35,8 @@ software-center (4.1.5) UNRELEASED; urgency=low
   * merged lp:~mmcg069/software-center/enum-style-idea, this cleans
     up the the enum code handling, many thanks!
   * integration work on the qml branch
+  * merged lp:~evfool/software-center/fix793896, many thanks to
+    Robert Roth, LP: #793896
   
   [ Olivier Tilloy ]
   * add QML ui frontend (lp:~osomon/software-center/qml)
