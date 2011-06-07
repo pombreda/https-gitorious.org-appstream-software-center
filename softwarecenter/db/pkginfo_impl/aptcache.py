@@ -250,7 +250,7 @@ class AptCache(PackageInfo):
         """
         if not pkgname in self._cache or not self._cache[pkgname].candidate:
             return
-        origins = [origin.origin for origin in self.get_origins(pkgname)]
+        origins = set([origin.origin for origin in self.get_origins(pkgname)])
         if len(origins) > 1:
             raise Exception("Error, more than one origin '%s'" % origins)
         if not origins:
