@@ -16,11 +16,8 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from aptd import AptdaemonBackend
+from installbackend import get_install_backend
 
-# one global backend
-backend = AptdaemonBackend()
-
-def get_install_backend():
-    """ factory that returns the install backend """
-    return backend
+# mvo: this is only there to make pyflakes silent (otherwise it thinks
+#      its a unused import)
+get_install_backend

@@ -45,10 +45,7 @@ from softwarecenter.utils import (
     )
 
 from softwarecenter.netstatus import network_state_is_connected
-
-from softwarecenter.enums import (PKG_STATE_INSTALLED,
-                                  REVIEWS_BATCH_PAGE_SIZE)
-
+from softwarecenter.enums import PkgStates, REVIEWS_BATCH_PAGE_SIZE
 from softwarecenter.backend.reviews import UsefulnessCache
 
 LOG_ALLOCATION = logging.getLogger("softwarecenter.ui.gtk.allocation")
@@ -729,7 +726,6 @@ class UIReviewsList(gtk.VBox):
         'different-review-language-clicked':(gobject.SIGNAL_RUN_FIRST,
                                              gobject.TYPE_NONE,
                                              (gobject.TYPE_STRING,) ),
-
     }
 
     def __init__(self, parent):
@@ -842,7 +838,7 @@ class UIReviewsList(gtk.VBox):
 
         # only show new_review for installed stuff
         is_installed = (self._parent.app_details and
-                        self._parent.app_details.pkg_state == PKG_STATE_INSTALLED)
+                        self._parent.app_details.pkg_state == PkgStates.INSTALLED)
         if is_installed:
             self.new_review.show()
         else:
@@ -993,6 +989,7 @@ class UIReview(gtk.VBox):
         self.logged_in_person = logged_in_person
         self.person = None
         self.id = None
+        self.useful_votes = useful_votes
 
         self._allocation = None
 
@@ -1054,7 +1051,7 @@ class UIReview(gtk.VBox):
         self._hide_usefulness_elements()
         #print "_usefulness_ui_update: %s" % type
         if type == 'renew':
-            self._build_usefulness_ui(current_user_reviewer, useful_total, useful_favorable)
+            self._build_usefulness_ui(current_user_reviewer, useful_total, useful_favorable, self.useful_votes)
             return
         if type == 'progress':
             self.submit_status_spinner.start()

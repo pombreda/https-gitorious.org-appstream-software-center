@@ -252,7 +252,7 @@ class ReviewLoader(object):
                 LOG.exception("review stats cache load failure")
                 os.rename(self.REVIEW_STATS_CACHE_FILE, self.REVIEW_STATS_CACHE_FILE+".fail")
 
-    def get_reviews(self, application, callback, page=1):
+    def get_reviews(self, application, callback, page=1, language=None):
         """run callback f(app, review_list) 
            with list of review objects for the given
            db.database.Application object
@@ -677,7 +677,7 @@ class ReviewLoaderJsonAsync(ReviewLoader):
         # run callback
         callback(app, sorted(reviews, reverse=True))
 
-    def get_reviews(self, app, callback, page=1):
+    def get_reviews(self, app, callback, page=1, language=None):
         """ get a specific review and call callback when its available"""
         # FIXME: get this from the app details
         origin = self.cache.get_origin(app.pkgname)
@@ -748,7 +748,7 @@ class ReviewLoaderFake(ReviewLoader):
         return random.choice(self.LOREM.split("\n\n"))
     def _random_summary(self):
         return random.choice(self.SUMMARIES)
-    def get_reviews(self, application, callback, page=1):
+    def get_reviews(self, application, callback, page=1, language=None):
         if not application in self._review_stats_cache:
             self.get_review_stats(application)
         stats = self._review_stats_cache[application]
@@ -760,9 +760,11 @@ class ReviewLoaderFake(ReviewLoader):
                 # FIXME: instead of random, try to match the avg_rating
                 review.rating = random.randint(1,5)
                 review.summary = self._random_summary()
-                review.date_created = time.ctime(time.time())
+                review.date_created = time.strftime('%Y-%m-%d %H:%M:%S')
                 review.reviewer_username = self._random_person()
                 review.review_text = self._random_text().replace("\n","")
+                review.usefulness_total = random.randint(1, 20)
+                review.usefulness_favorable = random.randint(1, 20)
                 reviews.append(review)
             self._reviews_cache[application] = reviews
         reviews = self._reviews_cache[application]

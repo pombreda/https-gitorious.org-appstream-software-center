@@ -7,15 +7,39 @@ software-center (4.1.5) UNRELEASED; urgency=low
     softwarecenter/ui/gtk/appview.py:
     - implement history navigation using the mouse back/forward
       buttons (LP: #782661)
+  * softwarecenter/app.py,
+    softwarecenter/backend/channel.py,
+    softwarecenter/ui/gtk/appdetailsview_gtk.py,
+    softwarecenter/ui/gtk/catview_gtk.py,
+    softwarecenter/ui/gtk/channelpane.py,
+    softwarecenter/ui/gtk/softwarepane.py:
+    - refactor/simplify the view background overlay code and
+      fix issue where the background image is sometimes not
+      rendered for installed channels (LP: #724724)
+   * setup.py:
+    - update script name to x2go_helper.py for happier build
   
   [ Michael Vogt ]
   * merged lp:~alexeftimie/software-center/debian-small-fixes, many
     thanks!
+  * merged lp:~alexeftimie/software-center/backend-refactor to
+    cleanup more code
+  * merged lp:~weblive-dev/software-center/weblive-x2go, many thanks
+    to Stephane Graber!
+  * merged lp:~aaronp/software-center/lp790450-for-4.0, many thanks
+    to Aaron Peachey
+  * add support for X-AppInstall-Icon-Url (and also icon_url from
+    SoftwareCenterAgent)
+  * merged lp:~mterry/software-center/network-manager-0.9, many
+    thanks to Michael Terry
+  * merged lp:~mmcg069/software-center/enum-style-idea, this cleans
+    up the the enum code handling, many thanks!
+  * integration work on the qml branch
+  
+  [ Olivier Tilloy ]
+  * add QML ui frontend (lp:~osomon/software-center/qml)
 
-  [ Aaron Peachey ]
-  * implements delete and edit review functionality (LP: #789768)
-
- -- Aaron Peachey <alpeachey@gmail.com>  Tue, 31 May 2011 10:13:48 +1000
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 02 Jun 2011 14:57:36 -0400
 
 software-center (4.1.4) oneiric; urgency=low
 
@@ -124,12 +148,34 @@ software-center (4.1) oneiric; urgency=low
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 29 Apr 2011 17:59:47 +0200
 
-software-center (4.0.3) UNRELEASED; urgency=low
+software-center (4.0.4) UNRELEASED; urgency=low
 
-  * merged lp:~evfool/software-center/qfix774201, many thanks
-    to Robert Roth (really fixes LP: #774201)
+  [ Aaron Peachey ]
+  * utils/submit_review.py:
+    - ensure error message shows if usefulness submit 
+      fails (LP: #790450)
+  * softwarecenter/view/widgets/reviews.py:
+    - fix disappearing usefulness UI on clicking 'OK' after error
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 17 May 2011 15:48:32 +0200
+ -- Aaron Peachey <alpeachey@gmail.com>  Tue, 31 May 2011 16:21:32 +1000
+
+software-center (4.0.3) natty-proposed; urgency=low
+
+  [ Gary Lasker ]
+  * softwarecenter/app.py:
+    - expand the "Get Software" item in the viewswitcher by default
+      so that its subitems are always visible and available
+      (LP: #774590)
+  * softwarecenter/view/availablepane.py,
+    softwarecenter/view/catview_gtk.py:
+    - jumpstart Featured and What's New carousel transitions
+      on launch (LP: #786403) 
+  
+  [ Michael Vogt ]
+  * merge lp:~mvo/software-center/4.0-pagination to properly 
+    support pagination (LP: #788688)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 26 May 2011 17:55:10 +0200
 
 software-center (4.0.2) natty-proposed; urgency=low
 

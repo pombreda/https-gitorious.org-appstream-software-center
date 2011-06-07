@@ -26,12 +26,7 @@ import re
 from softwarecenter.utils import (sources_filename_from_ppa_entry,
                                   release_filename_in_lists_from_deb_line,
                                   )
-from softwarecenter.enums import (TRANSACTION_TYPE_REPAIR,
-                                  TRANSACTION_TYPE_UPGRADE,
-                                  TRANSACTION_TYPE_REMOVE,
-                                  TRANSACTION_TYPE_INSTALL,
-                                  TRANSACTION_TYPE_APPLY,
-                                  )
+from softwarecenter.enums import TransactionTypes
 
 from aptdaemon import client
 from aptdaemon import enums
@@ -46,6 +41,7 @@ from defer import inline_callbacks, return_value
 
 import gtk
 from softwarecenter.backend.transactionswatcher import TransactionsWatcher
+from softwarecenter.backend.installbackend import InstallBackend
 from softwarecenter.utils import get_http_proxy_string_from_gconf
 from softwarecenter.ui.gtk import dialogs
 
@@ -78,7 +74,7 @@ class TransactionProgress(object):
         self.meta_data = trans.meta_data
         self.progress = trans.progress
 
-class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
+class AptdaemonBackend(gobject.GObject, TransactionsWatcher, InstallBackend):
     """ software center specific code that interacts with aptdaemon """
 
     __gsignals__ = {'transaction-started':(gobject.SIGNAL_RUN_FIRST,
@@ -145,7 +141,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
     def fix_broken_depends(self):
         try:
             trans = yield self.aptd_client.fix_broken_depends(defer=True)
-            self.emit("transaction-started", "", "", trans.tid, TRANSACTION_TYPE_REPAIR)
+            self.emit("transaction-started", "", "", trans.tid, TransactionTypes.REPAIR)
             yield self._run_transaction(trans, None, None, None)
         except Exception, error:
             self._on_trans_error(error)
@@ -157,7 +153,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         try:
             trans = yield self.aptd_client.upgrade_packages([pkgname],
                                                             defer=True)
-            self.emit("transaction-started", pkgname, appname, trans.tid, TRANSACTION_TYPE_UPGRADE)
+            self.emit("transaction-started", pkgname, appname, trans.tid, TransactionTypes.UPGRADE)
             yield self._run_transaction(trans, pkgname, appname, iconname, metadata)
         except Exception, error:
             self._on_trans_error(error, pkgname)
@@ -194,7 +190,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         try:
             trans = yield self.aptd_client.remove_packages([pkgname],
                                                            defer=True)
-            self.emit("transaction-started", pkgname, appname, trans.tid, TRANSACTION_TYPE_REMOVE)
+            self.emit("transaction-started", pkgname, appname, trans.tid, TransactionTypes.REMOVE)
             yield self._run_transaction(trans, pkgname, appname, iconname, metadata)
         except Exception, error:
             self._on_trans_error(error, pkgname)
@@ -219,7 +215,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
                 # force means on lintian failure
                 trans = yield self.aptd_client.install_file(
                     filename, force=force, defer=True)
-                self.emit("transaction-started", pkgname, appname, trans.tid, TRANSACTION_TYPE_INSTALL)
+                self.emit("transaction-started", pkgname, appname, trans.tid, TransactionTypes.INSTALL)
                 yield trans.set_meta_data(sc_filename=filename, defer=True)
             else:
                 install = [pkgname] + addons_install
@@ -228,7 +224,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
                 trans = yield self.aptd_client.commit_packages(
                     install, reinstall, remove, purge, upgrade, downgrade, 
                     defer=True)
-                self.emit("transaction-started", pkgname, appname, trans.tid, TRANSACTION_TYPE_INSTALL)
+                self.emit("transaction-started", pkgname, appname, trans.tid, TransactionTypes.INSTALL)
             yield self._run_transaction(
                 trans, pkgname, appname, iconname, metadata)
         except Exception, error:
@@ -254,7 +250,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
             trans = yield self.aptd_client.commit_packages(
                 install, reinstall, remove, purge, upgrade, downgrade, 
                 defer=True)
-            self.emit("transaction-started", pkgname, appname, trans.tid, TRANSACTION_TYPE_APPLY)
+            self.emit("transaction-started", pkgname, appname, trans.tid, TransactionTypes.APPLY)
             yield self._run_transaction(trans, pkgname, appname, iconname)
         except Exception, error:
             self._on_trans_error(error)
@@ -375,7 +371,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher):
         and finally installing the specified application once the
         package list reload has completed.
         """
-        self.emit("transaction-started", app.pkgname, app.appname, "FIXME-NEED-ID-HERE", TRANSACTION_TYPE_INSTALL)
+        self.emit("transaction-started", app.pkgname, app.appname, "FIXME-NEED-ID-HERE", TransactionTypes.INSTALL)
         self._logger.info("add_repo_add_key_and_install_app() '%s' '%s' '%s'"% (
                 # re.sub() out the password from the log
                 re.sub("deb https://.*@", "", deb_line),

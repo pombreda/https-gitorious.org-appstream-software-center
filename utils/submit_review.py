@@ -47,15 +47,15 @@ from softwarecenter.backend.restfulclient import UbuntuSSOAPI
 import piston_mini_client
 
 from softwarecenter.paths import SOFTWARE_CENTER_CONFIG_DIR
-from softwarecenter.enums import MISSING_APP_ICON
+from softwarecenter.enums import Icons
 from softwarecenter.config import get_config
 from softwarecenter.backend.login_sso import LoginBackendDbusSSO
 from softwarecenter.db.database import Application
 from softwarecenter.backend.reviews import Review
-from softwarecenter.utils import get_current_arch, clear_token_from_ubuntu_sso, get_language
+from softwarecenter.utils import clear_token_from_ubuntu_sso, get_language
 from softwarecenter.ui.gtk.SimpleGtkbuilderApp import SimpleGtkbuilderApp
 from softwarecenter.ui.gtk.dialogs import SimpleGtkbuilderDialog
-from softwarecenter.distro import get_distro
+from softwarecenter.distro import get_distro, get_current_arch
 from softwarecenter.ui.gtk.widgets.reviews import StarRatingSelector, StarCaption
 from softwarecenter.gwibber_helper import GwibberHelper, GwibberHelperMock
 
@@ -726,7 +726,7 @@ class SubmitReviewsApp(BaseApp):
         try:
             icon = self.icons.load_icon(iconname, self.APP_ICON_SIZE, 0)
         except:
-            icon = self.icons.load_icon(MISSING_APP_ICON, self.APP_ICON_SIZE, 0)
+            icon = self.icons.load_icon(Icons.MISSING_APP_ICON, self.APP_ICON_SIZE, 0)
         self.review_appicon.set_from_pixbuf(icon)
 
         # title

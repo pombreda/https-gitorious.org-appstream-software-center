@@ -21,11 +21,7 @@ from softwarecenter.db.application import Application, AppDetails
 from softwarecenter.db.database import StoreDatabase
 from softwarecenter.db.pkginfo import get_pkg_info
 from softwarecenter.distro import get_distro
-from softwarecenter.enums import (PKG_STATE_UNKNOWN,
-                                  PKG_STATE_PURCHASED_BUT_REPO_MUST_BE_ENABLED,
-                                  PKG_STATE_UNINSTALLED,
-                                  PKG_STATE_INSTALLED,
-                                  )
+from softwarecenter.enums import PkgStates
 from softwarecenter.paths import XAPIAN_BASE_PATH
 from softwarecenter.ui.gtk.appdetailsview_gtk import AppDetailsViewGtk
 from softwarecenter.ui.gtk.widgets.reviews import EmbeddedMessage
@@ -103,7 +99,7 @@ class TestAppDetailsView(unittest.TestCase):
             raise Exception("can not find embedded message") 
 
     def test_show_app_simple_with_network(self):
-        softwarecenter.netstatus.NETWORK_STATE = softwarecenter.netstatus.NetState.NM_STATE_CONNECTED
+        softwarecenter.netstatus.NETWORK_STATE = softwarecenter.netstatus.NetState.NM_STATE_CONNECTED_OLD
         app = Application("7zip","p7zip-full")
         self.appdetails.show_app(app)
         # check that we do *not* have the embedded message
@@ -155,10 +151,10 @@ class TestAppDetailsView(unittest.TestCase):
         mock_app_details = self._get_mock_app_details()
         # monkey patch get_details() so that we get the mock object
         app.get_details = lambda db: mock_app_details
-        # make sure all PKG_STATE_* states work and do not cause crashes
-        for i in range(PKG_STATE_UNKNOWN):
+        # make sure all PkgStates.* states work and do not cause crashes
+        for i in range(PkgStates.UNKNOWN):
             mock_app_details.pkg_state = i
-            if PKG_STATE_PURCHASED_BUT_REPO_MUST_BE_ENABLED:
+            if PkgStates.PURCHASED_BUT_REPO_MUST_BE_ENABLED:
                 # for the purchased case, the value of purchase_date is a string
                 mock_app_details.purchase_date = "2011-01-01 11:11:11"
             self.appdetails.show_app(app)
@@ -171,7 +167,7 @@ class TestAppDetailsView(unittest.TestCase):
     def test_enable_review_on_install(self):
         app = Application("Freeciv", "freeciv-client-gtk")
         mock_app_details = self._get_mock_app_details()
-        mock_app_details.pkg_state = PKG_STATE_UNINSTALLED
+        mock_app_details.pkg_state = PkgStates.UNINSTALLED
         # monkey patch get_details() so that we get the mock object
         app.get_details = lambda db: mock_app_details
         self.appdetails.show_app(app)
@@ -183,8 +179,8 @@ class TestAppDetailsView(unittest.TestCase):
         self.assertFalse(self.appdetails.reviews.new_review.get_property("visible"))
         self.assertTrue(self.appdetails.reviews.install_first_label.get_property("visible"))
         # now simulate an install completed
-        self.appdetails.pkg_statusbar.pkg_state = PKG_STATE_INSTALLED
-        mock_app_details.pkg_state = PKG_STATE_INSTALLED
+        self.appdetails.pkg_statusbar.pkg_state = PkgStates.INSTALLED
+        mock_app_details.pkg_state = PkgStates.INSTALLED
         result = mock.Mock()
         self.appdetails.backend.emit("transaction-finished", (None, result))
         self._p()
@@ -192,6 +188,20 @@ class TestAppDetailsView(unittest.TestCase):
         self._p()
         # now that the app is installed, check that the invitation to review the app is showing
         self.assertTrue(self.appdetails.reviews.new_review.get_property("visible"))
+
+
+    def test_usefulness_submit_behvaior(self):
+        from softwarecenter.backend.reviews import ReviewLoaderIpsum
+        app = Application("Compiz", "compiz-core")
+        app.get_details = lambda db: self._get_mock_app_details()
+        self.appdetails.review_loader = ReviewLoaderIpsum(self.appdetails.cache,
+                                                          self.appdetails.db)
+        self.appdetails.show_app(app)
+        self._p()
+        self.assertTrue(self.appdetails.reviews.get_property("visible"))
+        review_box = self.appdetails.reviews.vbox.get_children()[0]
+        self.assertTrue(review_box.get_property("visible"))
+            
 
     # helper
     def _p(self):

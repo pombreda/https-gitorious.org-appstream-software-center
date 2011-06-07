@@ -37,70 +37,78 @@ DEFAULT_SEARCH_LIMIT = 10000
 REVIEWS_BATCH_PAGE_SIZE = 10
 
 # the various "views" that the app has
-VIEW_PAGE_AVAILABLE = "view-page-available"
-VIEW_PAGE_INSTALLED = "view-page-installed"
-VIEW_PAGE_HISTORY =  "view-page-history"
-VIEW_PAGE_SEPARATOR_1 = "view-page-separator-1"
-VIEW_PAGE_PENDING =  "view-page-pending"
-VIEW_PAGE_CHANNEL = "view-page-channel"
+class ViewPages:
+    AVAILABLE = "view-page-available"
+    INSTALLED = "view-page-installed"
+    HISTORY =  "view-page-history"
+    SEPARATOR_1 = "view-page-separator-1"
+    PENDING =  "view-page-pending"
+    CHANNEL = "view-page-channel"
 
-# items considered "permanent", that is, if a item disappears
-# (e.g. progress) then switch back to the previous on in permanent
-# views (LP:  #431907)
-PERMANENT_VIEWS = [VIEW_PAGE_AVAILABLE,
-                   VIEW_PAGE_INSTALLED,
-                   VIEW_PAGE_CHANNEL,
-                   VIEW_PAGE_HISTORY,
-                  ]
-                  
+    # items considered "permanent", that is, if a item disappears
+    # (e.g. progress) then switch back to the previous on in permanent
+    # views (LP:  #431907)
+    PERMANENT_VIEWS = (AVAILABLE,
+                       INSTALLED,
+                       CHANNEL,
+                       HISTORY
+                      )
+
 # define ID values for the various buttons found in the navigation bar
-NAV_BUTTON_ID_CATEGORY = "category"
-NAV_BUTTON_ID_LIST     = "list"
-NAV_BUTTON_ID_SUBCAT   = "subcat"
-NAV_BUTTON_ID_DETAILS  = "details"
-NAV_BUTTON_ID_SEARCH   = "search"
-NAV_BUTTON_ID_PURCHASE = "purchase"
-NAV_BUTTON_ID_PREV_PURCHASES = "prev-purchases"
+class NavButtons:
+    CATEGORY = "category"
+    LIST     = "list"
+    SUBCAT   = "subcat"
+    DETAILS  = "details"
+    SEARCH   = "search"
+    PURCHASE = "purchase"
+    PREV_PURCHASES = "prev-purchases"
 
 # define ID values for the action bar buttons
-ACTION_BUTTON_ID_INSTALL = "install"
-ACTION_BUTTON_ADD_TO_LAUNCHER = "add_to_launcher"
-ACTION_BUTTON_CANCEL_ADD_TO_LAUNCHER = "cancel_add_to_launcher"
+class ActionButtons:
+    INSTALL = "install"
+    ADD_TO_LAUNCHER = "add_to_launcher"
+    CANCEL_ADD_TO_LAUNCHER = "cancel_add_to_launcher"
 
 # icons
-MISSING_APP_ICON = "applications-other"
-MISSING_PKG_ICON = "dialog-question"
-APP_ICON_SIZE = 48
-GENERIC_MISSING_IMAGE = "gtk-missing-image"
+class Icons:
+    APP_ICON_SIZE = 48
+
+    MISSING_APP = "applications-other"
+    MISSING_PKG = "dialog-question"   # XXX: Not used?
+    GENERIC_MISSING = "gtk-missing-image"
 
 # sorting
-(SORT_UNSORTED,
- SORT_BY_ALPHABET,
- SORT_BY_SEARCH_RANKING,
- SORT_BY_CATALOGED_TIME,
-) = range(4)
+class SortMethods:
+    (UNSORTED,
+     BY_ALPHABET,
+     BY_SEARCH_RANKING,
+     BY_CATALOGED_TIME,
+    ) = range(4)
 
 # values used in the database
-XAPIAN_VALUE_APPNAME = 170
-XAPIAN_VALUE_PKGNAME = 171
-XAPIAN_VALUE_ICON = 172
-XAPIAN_VALUE_GETTEXT_DOMAIN = 173
-XAPIAN_VALUE_ARCHIVE_SECTION = 174
-XAPIAN_VALUE_ARCHIVE_ARCH = 175
-XAPIAN_VALUE_POPCON = 176
-XAPIAN_VALUE_SUMMARY = 177
-XAPIAN_VALUE_ARCHIVE_CHANNEL = 178
-XAPIAN_VALUE_DESKTOP_FILE = 179
-XAPIAN_VALUE_PRICE = 180
-XAPIAN_VALUE_ARCHIVE_PPA = 181
-XAPIAN_VALUE_ARCHIVE_DEB_LINE = 182
-XAPIAN_VALUE_ARCHIVE_SIGNING_KEY_ID = 183
-XAPIAN_VALUE_PURCHASED_DATE = 184
-XAPIAN_VALUE_SCREENSHOT_URL = 185
-XAPIAN_VALUE_ICON_NEEDS_DOWNLOAD = 186
-XAPIAN_VALUE_THUMBNAIL_URL = 187
-XAPIAN_VALUE_SC_DESCRIPTION = 188
-XAPIAN_VALUE_APPNAME_UNTRANSLATED = 189
+class XapianValues:
+    APPNAME = 170
+    PKGNAME = 171
+    ICON = 172
+    GETTEXT_DOMAIN = 173
+    ARCHIVE_SECTION = 174
+    ARCHIVE_ARCH = 175
+    POPCON = 176
+    SUMMARY = 177
+    ARCHIVE_CHANNEL = 178
+    DESKTOP_FILE = 179
+    PRICE = 180
+    ARCHIVE_PPA = 181
+    ARCHIVE_DEB_LINE = 182
+    ARCHIVE_SIGNING_KEY_ID = 183
+    PURCHASED_DATE = 184
+    SCREENSHOT_URL = 185
+    ICON_NEEDS_DOWNLOAD = 186         # no longer used
+    THUMBNAIL_URL = 187
+    SC_DESCRIPTION = 188
+    APPNAME_UNTRANSLATED = 189
+    ICON_URL = 190
 
 # fake channels
 PURCHASED_NEEDS_REINSTALL_MAGIC_CHANNEL_NAME = "for-pay-needs-reinstall"
@@ -109,48 +117,53 @@ AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME = "available-for-pay"
 # custom keys for the new-apps repository, correspond
 # control file custom fields:
 #  XB-AppName, XB-Icon, XB-Screenshot-Url, XB-Thumbnail-Url, XB-Category
-CUSTOM_KEY_APPNAME = "AppName"
-CUSTOM_KEY_ICON = "Icon"
-CUSTOM_KEY_SCREENSHOT_URL = "Screenshot-Url"
-CUSTOM_KEY_THUMBNAIL_URL = "Thumbnail-Url"
-CUSTOM_KEY_CATEGORY = "Category"
+class CustomKeys:
+    APPNAME = "AppName"
+    ICON = "Icon"
+    SCREENSHOT_URL = "Screenshot-Url"
+    THUMBNAIL_URL = "Thumbnail-Url"
+    KEY_CATEGORY = "Category"
 
 # pkg action state constants
-(   # current
-    PKG_STATE_INSTALLED,
-    PKG_STATE_UNINSTALLED,
-    PKG_STATE_UPGRADABLE,
-    PKG_STATE_REINSTALLABLE,
+class PkgStates:
+    (
+    # current
+    INSTALLED,
+    UNINSTALLED,
+    UPGRADABLE,
+    REINSTALLABLE,
     # progress
-    PKG_STATE_INSTALLING,
-    PKG_STATE_REMOVING,
-    PKG_STATE_UPGRADING,
-    PKG_STATE_ENABLING_SOURCE,
-    PKG_STATE_INSTALLING_PURCHASED,
+    INSTALLING,
+    REMOVING,
+    UPGRADING,
+    ENABLING_SOURCE,
+    INSTALLING_PURCHASED,
     # special
-    PKG_STATE_NEEDS_SOURCE,
-    PKG_STATE_NEEDS_PURCHASE,
-    PKG_STATE_PURCHASED_BUT_REPO_MUST_BE_ENABLED,
-    PKG_STATE_ERROR,
+    NEEDS_SOURCE,
+    NEEDS_PURCHASE,
+    PURCHASED_BUT_REPO_MUST_BE_ENABLED,
+    ERROR,
     # the package is not found in the DB or cache
-    PKG_STATE_NOT_FOUND, 
+    NOT_FOUND, 
     # this *needs* to be last (for test_appdetails.py) and means
     # something went wrong and we don't have a state for this PKG
-    PKG_STATE_UNKNOWN,
- ) = range(15)
+    UNKNOWN,
+    ) = range(15)
 
 # application actions
-APP_ACTION_INSTALL = "install"
-APP_ACTION_REMOVE = "remove"
-APP_ACTION_UPGRADE = "upgrade"
-APP_ACTION_APPLY = "apply_changes"
+class AppActions:
+    INSTALL = "install"
+    REMOVE = "remove"
+    UPGRADE = "upgrade"
+    APPLY = "apply_changes"
 
 # transaction types
-TRANSACTION_TYPE_INSTALL = "install"
-TRANSACTION_TYPE_REMOVE = "remove"
-TRANSACTION_TYPE_UPGRADE = "upgrade"
-TRANSACTION_TYPE_APPLY = "apply_changes"
-TRANSACTION_TYPE_REPAIR = "repair_dependencies"
+class TransactionTypes:
+    INSTALL = "install"
+    REMOVE = "remove"
+    UPGRADE = "upgrade"
+    APPLY = "apply_changes"
+    REPAIR = "repair_dependencies"
 
 # mouse event codes for back/forward buttons
 # TODO: consider whether we ought to get these values from gconf so that we

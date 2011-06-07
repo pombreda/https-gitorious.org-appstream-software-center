@@ -28,12 +28,9 @@ from gettext import gettext as _
 from softwarecenter.db.application import AppDetails
 from softwarecenter.backend.reviews import get_review_loader
 from softwarecenter.backend import get_install_backend
-from softwarecenter.enums import (APP_ACTION_INSTALL,
-                                  APP_ACTION_REMOVE,
-                                  APP_ACTION_UPGRADE,
-                                  APP_ACTION_APPLY,
-                                  )
-from softwarecenter.utils import get_current_arch, get_parent_xid, get_language
+from softwarecenter.enums import AppActions
+from softwarecenter.distro import get_current_arch
+from softwarecenter.utils import get_parent_xid, get_language
 
 
 LOG=logging.getLogger(__name__)
@@ -151,16 +148,16 @@ class AppDetailsViewBase(object):
         self.backend.reload()
     def install(self):
         """ install the current application, fire an action request """
-        self.emit("application-request-action", self.app, self.addons_to_install, self.addons_to_remove, APP_ACTION_INSTALL)
+        self.emit("application-request-action", self.app, self.addons_to_install, self.addons_to_remove, AppActions.INSTALL)
     def remove(self):
         """ remove the current application, , fire an action request """
-        self.emit("application-request-action", self.app, self.addons_to_install, self.addons_to_remove, APP_ACTION_REMOVE)
+        self.emit("application-request-action", self.app, self.addons_to_install, self.addons_to_remove, AppActions.REMOVE)
     def upgrade(self):
         """ upgrade the current application, fire an action request """
-        self.emit("application-request-action", self.app, self.addons_to_install, self.addons_to_remove, APP_ACTION_UPGRADE)
+        self.emit("application-request-action", self.app, self.addons_to_install, self.addons_to_remove, AppActions.UPGRADE)
     def apply_changes(self):
         """ apply changes concerning add-ons """
-        self.emit("application-request-action", self.app, self.addons_to_install, self.addons_to_remove, APP_ACTION_APPLY)
+        self.emit("application-request-action", self.app, self.addons_to_install, self.addons_to_remove, AppActions.APPLY)
 
     def buy_app(self):
         """ initiate the purchase transaction """

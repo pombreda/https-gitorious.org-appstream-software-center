@@ -70,7 +70,9 @@ if __name__ == "__main__":
     parser.add_option("--disable-buy", action="store_true",
                       help="disable support to buy software",
                       default=False)
-
+    parser.add_option("--disable-apt-xapian-index", action="store_true",
+                      help="disable support for apt-xapian-index (technical items)",
+                      default=False)
     parser.add_option("--measure-startup-time", action="store_true",
                       help="open and wait until the window is visible, then close, only useful for profiling",
                       default=False)
