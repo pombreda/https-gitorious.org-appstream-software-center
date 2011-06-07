@@ -591,7 +591,7 @@ class BaseApp(SimpleGtkbuilderApp):
             pass
         
         try: 
-            result = self.status_hbox.query_child_packing(self.submit_warn_img)
+            self.status_hbox.query_child_packing(self.submit_warn_img)
             self.status_hbox.remove(self.submit_warn_img)
         except TypeError:
             pass
@@ -717,7 +717,7 @@ class SubmitReviewsApp(BaseApp):
             self.version = review_data.version
             self.origin = review_data.origin
             return  
-        except piston_mini_client.APIError as e:
+        except piston_mini_client.APIError:
             logging.warn('Unable to retrieve review id %s for editing. Exiting' % self.review_id)
             self.quit(2)
 

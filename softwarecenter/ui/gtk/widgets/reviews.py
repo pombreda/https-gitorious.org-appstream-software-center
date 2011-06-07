@@ -1031,11 +1031,6 @@ class UIReview(gtk.VBox):
         reviews = self.get_ancestor(UIReviewsList)
         if reviews:
             reviews.emit("modify-review", self.id)
-            
-    def _on_delete_clicked(self, button):
-        reviews = self.get_ancestor(UIReviewsList)
-        if reviews:
-            reviews.emit("delete-review", self.id)
     
     def _on_useful_clicked(self, btn, is_useful):
         reviews = self.get_ancestor(UIReviewsList)

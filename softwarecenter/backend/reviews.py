@@ -54,7 +54,6 @@ from softwarecenter.paths import (SOFTWARE_CENTER_CACHE_DIR,
                                   GET_USEFUL_VOTES_HELPER,
                                   )
 #from softwarecenter.enums import *
-from piston_mini_client import APIError
 
 from softwarecenter.netstatus import network_state_is_connected
 
