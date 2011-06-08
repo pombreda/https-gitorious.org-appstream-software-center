@@ -125,6 +125,17 @@ class PackageInfo(gobject.GObject):
         return []
     def get_addons(self, pkgname, ignore_installed):
         pass
+
+    def get_installed_rdepends(self, pkg):
+        """ Returns a package names list of reverse dependencies """
+        return []
+    def try_install_and_get_all_deps_installed(self, pkg):
+        """ Returns a package names list of package names to be installed """
+        return []
+    def try_install_and_get_all_deps_removed(self, pkg):
+        """ Returns a package names list of package names to be removed """
+        return []
+        
     def open(self):
         """ 
         (re)open the cache, this sends cache-invalid, cache-ready signals

@@ -337,7 +337,9 @@ class AptCache(PackageInfo):
         return self._get_depends_by_type_str(pkg, self.SUGGESTS_TYPES)
     def get_enhances(self, pkg):
         return self._get_depends_by_type_str(pkg, self.ENHANCES_TYPES)
+    @convert_package_argument
     def get_provides(self, pkg):
+        # note: can use ._cand, because pkg has been converted to apt.Package
         provides_list = pkg.candidate._cand.provides_list
         provides = []
         for provided in provides_list:
@@ -445,6 +447,7 @@ class AptCache(PackageInfo):
                 removing_deps.append(change)
         return removing_deps
     def get_all_deps_upgrading(self, pkg):
+        # note: this seems not to be used anywhere
         changes = self._get_changes_without_applying(pkg)
         upgrading_deps = []
         for change in changes.keys():
@@ -598,7 +601,7 @@ if __name__ == "__main__":
     print c._installed_dependencies(c["unrar"].name)
 
     print "unused deps of 4g8"
-    pkg = c["4g8"]
+    pkg = c._cache["4g8"]
     pkg.mark_delete()
     print c.get_installed_automatic_depends_for_pkg(pkg)
 
