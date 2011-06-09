@@ -42,8 +42,13 @@ def convert_package_argument(f):
     """ decorator converting _Package argument to Package object from cache """
     def _converted(self, pkg, *args):
         try:
-            pkg = self._cache[pkg.name] if type(pkg) is not apt_pkg.Package else pkg
-        except:
+            if type(pkg) is not apt_pkg.Package:
+                if type(pkg) is str:
+                    pkg = self._cache[pkg]
+                else:
+                    pkg = self._cache[pkg.name] 
+        except Exception as e:
+            logging.exception(e)
             pkg = None
         return f(self, pkg, *args)
     return _converted
@@ -485,12 +490,12 @@ class AptCache(PackageInfo):
         for p in all_install:
             version = max(self._cache[p].versions)
             pkgs_to_install.append(version)
-            deps_inst = self._try_install_and_get_all_deps_installed(p)
+            deps_inst = self._try_install_and_get_all_deps_installed(self._cache[p])
             for dep in deps_inst:
                 if self._cache[dep].installed == None:
                     dep_version = max(self._cache[dep].versions)
                     pkgs_to_install.append(dep_version)
-            deps_remove = self._try_install_and_get_all_deps_removed(p)
+            deps_remove = self._try_install_and_get_all_deps_removed(self._cache[p])
             for dep in deps_remove:
                 if self._cache[dep].is_installed:
                     dep_version = self._cache[dep].installed
