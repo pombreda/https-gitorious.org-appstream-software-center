@@ -66,7 +66,7 @@ def confirm_remove(parent, datadir, app, db, icons):
     # once it works
     if not appdetails.pkg:
         return True
-    depends = db._aptcache.get_installed_rdepends(appdetails.pkg)
+    depends = cache.get_reverse_dependencies(appdetails.pkg)
     if not depends:
         return True
     (primary, button_text) = distro.get_removal_warning_text(

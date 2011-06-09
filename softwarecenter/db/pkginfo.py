@@ -126,8 +126,9 @@ class PackageInfo(gobject.GObject):
     def get_addons(self, pkgname, ignore_installed):
         pass
 
-    def get_installed_rdepends(self, pkg):
-        """ Returns a package names list of reverse dependencies """
+    def get_reverse_dependencies(self, pkg):
+        """ Returns a package names list of reverse dependencies
+        which will be removed if the package is removed."""
         return []
     def try_install_and_get_all_deps_installed(self, pkg):
         """ Returns a package names list of package names to be installed """

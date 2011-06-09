@@ -20,7 +20,7 @@ class TestPkgInfo(unittest.TestCase):
         self.assertTrue(pkginfo.is_available("bash"))
         self.assertTrue(len(pkginfo.get_addons("firefox")) > 0)
         self.assertEqual(pkginfo.get_section('bash'), 'shells')
-        self.assertEqual(pkginfo.get_summary('bash'), 'The GNU Bourne Again SHell')
+        self.assertTrue('GNU Bourne Again' in pkginfo.get_summary('bash'))
         self.assertTrue(pkginfo.get_description('bash') != '')
         self.assertTrue(len(pkginfo.get_origins("firefox")) > 0)
         self.assertTrue(pkginfo.get_installed("coreutils") is not None)
@@ -30,6 +30,7 @@ class TestPkgInfo(unittest.TestCase):
         self.assertTrue('coreutils' in pkginfo)
         
         pkg = pkginfo['coreutils']
+        self.assertTrue(len(pkginfo.get_reverse_dependencies(pkg)) != 0)
         self.assertTrue(pkg is not None)
         self.assertTrue(pkg.is_installed)
         self.assertTrue(len(pkg.origins) != 0)

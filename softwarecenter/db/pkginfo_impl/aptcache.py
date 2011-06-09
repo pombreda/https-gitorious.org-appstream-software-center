@@ -237,6 +237,7 @@ class AptCache(PackageInfo):
 
             Note that the package must be marked for removal already for
             this to work
+            Not: unused
         """
         installed_auto_deps = set()
         deps = self._installed_dependencies(pkg.name)
@@ -329,16 +330,16 @@ class AptCache(PackageInfo):
     # FIXME: there are cleaner ways to do this than below
 
     # pkg relations
-    def get_depends(self, pkg):
+    def _get_depends(self, pkg):
         return self._get_depends_by_type_str(pkg, self.DEPENDENCY_TYPES)
-    def get_recommends(self, pkg):
+    def _get_recommends(self, pkg):
         return self._get_depends_by_type_str(pkg, self.RECOMMENDS_TYPES)
-    def get_suggests(self, pkg):
+    def _get_suggests(self, pkg):
         return self._get_depends_by_type_str(pkg, self.SUGGESTS_TYPES)
-    def get_enhances(self, pkg):
+    def _get_enhances(self, pkg):
         return self._get_depends_by_type_str(pkg, self.ENHANCES_TYPES)
     @convert_package_argument
-    def get_provides(self, pkg):
+    def _get_provides(self, pkg):
         # note: can use ._cand, because pkg has been converted to apt.Package
         provides_list = pkg.candidate._cand.provides_list
         provides = []
@@ -347,16 +348,16 @@ class AptCache(PackageInfo):
         return provides
 
     # reverse pkg relations
-    def get_rdepends(self, pkg):
+    def _get_rdepends(self, pkg):
         return self._get_rdepends_by_type(pkg, self.DEPENDENCY_TYPES, False)
-    def get_rrecommends(self, pkg):
+    def _get_rrecommends(self, pkg):
         return self._get_rdepends_by_type(pkg, self.RECOMMENDS_TYPES, False)
-    def get_rsuggests(self, pkg):
+    def _get_rsuggests(self, pkg):
         return self._get_rdepends_by_type(pkg, self.SUGGESTS_TYPES, False)
-    def get_renhances(self, pkg):
+    def _get_renhances(self, pkg):
         return self._get_rdepends_by_type(pkg, self.ENHANCES_TYPES, False)
     @convert_package_argument
-    def get_renhances_lowlevel_apt_pkg(self, pkg):
+    def _get_renhances_lowlevel_apt_pkg(self, pkg):
         """ takes a apt_pkg.Package and returns a list of pkgnames that 
             enhance this package - this is needed to support enhances
             for virtual packages
@@ -366,19 +367,20 @@ class AptCache(PackageInfo):
             if dep.dep_type_untranslated == "Enhances":
                 renhances.append(dep.parent_pkg.name)
         return renhances
-    def get_rprovides(self, pkg):
+    def _get_rprovides(self, pkg):
         return self._get_rdepends_by_type(pkg, self.PROVIDES_TYPES, False)
 
     # installed reverse pkg relations
-    def get_installed_rdepends(self, pkg):
+    def get_reverse_dependencies(self, pkg):
         return self._get_rdepends_by_type(pkg, self.DEPENDENCY_TYPES, True)
-    def get_installed_rrecommends(self, pkg):
+
+    def _get_installed_rrecommends(self, pkg):
         return self._get_rdepends_by_type(pkg, self.RECOMMENDS_TYPES, True)
-    def get_installed_rsuggests(self, pkg):
+    def _get_installed_rsuggests(self, pkg):
         return self._get_rdepends_by_type(pkg, self.SUGGESTS_TYPES, True)
-    def get_installed_renhances(self, pkg):
+    def _get_installed_renhances(self, pkg):
         return self._get_rdepends_by_type(pkg, self.ENHANCES_TYPES, True)
-    def get_installed_rprovides(self, pkg):
+    def _get_installed_rprovides(self, pkg):
         return self._get_rdepends_by_type(pkg, self.PROVIDES_TYPES, True)
 
     # language pack stuff
@@ -497,7 +499,7 @@ class AptCache(PackageInfo):
                 LOG.debug("part of language pkg rdepends %s" % addon)
                 return False
             # something on the system depends on it
-            rdeps = self.get_installed_rdepends(addon_pkg)
+            rdeps = self.get_reverse_dependencies(addon_pkg)
             if rdeps and ignore_installed:
                 LOG.debug("already has a installed rdepends %s" % addon)
                 return False
@@ -522,19 +524,19 @@ class AptCache(PackageInfo):
         pkg = self._cache[pkgname]
 
         # recommended addons
-        addons_rec = self.get_recommends(pkg)
+        addons_rec = self._get_recommends(pkg)
         LOG.debug("recommends: %s" % addons_rec)
         # suggested addons and renhances
-        addons_sug = self.get_suggests(pkg)
+        addons_sug = self._get_suggests(pkg)
         LOG.debug("suggests: %s" % addons_sug)
-        renhances = self.get_renhances(pkg)
+        renhances = self._get_renhances(pkg)
         LOG.debug("renhances: %s" % renhances)
         addons_sug += renhances
-        provides = self.get_provides(pkg)
+        provides = self._get_provides(pkg)
         LOG.debug("provides: %s" % provides)
         for provide in provides:
             virtual_aptpkg_pkg = self._cache._cache[provide]
-            renhances = self.get_renhances_lowlevel_apt_pkg(virtual_aptpkg_pkg)
+            renhances = self._get_renhances_lowlevel_apt_pkg(virtual_aptpkg_pkg)
             LOG.debug("renhances of %s: %s" % (provide, renhances))
             addons_sug += renhances
             while gtk.events_pending():
@@ -549,21 +551,21 @@ class AptCache(PackageInfo):
         #        (arduino-core -> avrdude -> avrdude-doc) with that
         # FIXME2: if it turns out we don't have good/better examples,
         #         kill it
-        deps = self.get_depends(pkg)
+        deps = self._get_depends(pkg)
         for dep in deps:
             if dep in self._cache:
                 pkgdep = self._cache[dep]
-                if len(self.get_rdepends(pkgdep)) == 1:
+                if len(self._get_rdepends(pkgdep)) == 1:
                     # pkg is the only known package that depends on pkgdep
-                    pkgdep_rec =  self.get_recommends(pkgdep)
+                    pkgdep_rec =  self._get_recommends(pkgdep)
                     LOG.debug("recommends from lonley dependency %s: %s" % (
                             pkgdep, pkgdep_rec))
                     addons_rec += pkgdep_rec
-                    pkgdep_sug =  self.get_suggests(pkgdep)
+                    pkgdep_sug =  self._get_suggests(pkgdep)
                     LOG.debug("suggests from lonley dependency %s: %s" % (
                             pkgdep, pkgdep_sug))
                     addons_sug += pkgdep_sug
-                    pkgdep_enh = self.get_renhances(pkgdep)
+                    pkgdep_enh = self._get_renhances(pkgdep)
                     LOG.debug("renhances from lonley dependency %s: %s" % (
                             pkgdep, pkgdep_enh))
                     addons_sug += pkgdep_enh
@@ -607,21 +609,21 @@ if __name__ == "__main__":
 
     pkg = c["unace"]
     print c.get_installed_automatic_depends_for_pkg(pkg)
-    print c.get_installed_rdepends(pkg)
-    print c.get_installed_rrecommends(pkg)
-    print c.get_installed_rsuggests(pkg)
+    print c.get_reverse_dependencies(pkg)
+    print c._get_installed_rrecommends(pkg)
+    print c._get_installed_rsuggests(pkg)
     
     print "deps of gimp"
     pkg = c["gimp"]
-    print c.get_depends(pkg)
-    print c.get_recommends(pkg)
-    print c.get_suggests(pkg)
-    print c.get_enhances(pkg)
-    print c.get_provides(pkg)
+    print c._get_depends(pkg)
+    print c._get_recommends(pkg)
+    print c._get_suggests(pkg)
+    print c._get_enhances(pkg)
+    print c._get_provides(pkg)
     
     print "rdeps of gimp"
-    print c.get_rdepends(pkg)
-    print c.get_rrecommends(pkg)
-    print c.get_rsuggests(pkg)
-    print c.get_renhances(pkg)
-    print c.get_rprovides(pkg)
+    print c._get_rdepends(pkg)
+    print c._get_rrecommends(pkg)
+    print c._get_rsuggests(pkg)
+    print c._get_renhances(pkg)
+    print c._get_rprovides(pkg)
