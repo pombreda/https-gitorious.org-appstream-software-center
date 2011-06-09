@@ -1185,7 +1185,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self.window_main.set_default_size(int(x), int(y))
         else:
             # on first launch, specify the default window size to take advantage
-            # of the available screen real estate
+            # of the available screen real estate (but set a reasonable limit
+            # in case of a crazy-huge monitor)
             screen_height = gtk.gdk.screen_height()
             screen_width = gtk.gdk.screen_width()
             self.window_main.set_default_size(min(int(.8 * screen_width), 1200),
