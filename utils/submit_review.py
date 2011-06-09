@@ -42,7 +42,7 @@ from gettext import gettext as _
 from Queue import Queue
 from optparse import OptionParser
 
-from softwarecenter.backend.restfulclient import UbuntuSSOAPI
+from softwarecenter.backend.restfulclient import get_ubuntu_sso_class
 
 import piston_mini_client
 
@@ -404,7 +404,7 @@ class BaseApp(SimpleGtkbuilderApp):
         """ called after we have the token, then we go and figure out our name """
         logging.debug("_maybe_login_successful")
         self.token = oauth_result
-        self.ssoapi = UbuntuSSOAPI(self.token)
+        self.ssoapi = get_ubuntu_sso_class(self.token)
         self.ssoapi.connect("whoami", self._whoami_done)
         self.ssoapi.connect("error", self._whoami_error)
         self.ssoapi.whoami()

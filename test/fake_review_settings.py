@@ -109,3 +109,14 @@ class FakeReviewSettings(object):
     # what to fake the login response as 
     # choices (strings): "successful", "failed", "denied"
     login_response = "successful"
+    
+    # UbuntuSSOAPI
+    # whoami()
+    #***********************
+    # what to fake whoami response as 
+    # choices (strings): "whoami", "error"
+    whoami_response = "whoami"
+    #this only has effect if whoami_response = 'whoami'
+    #determines the username to return in a successful whoami
+    #expects a string or None (for a random username)
+    whoami_username = None

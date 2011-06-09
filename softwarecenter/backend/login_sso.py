@@ -24,6 +24,7 @@ import gtk
 import logging
 import random
 import string
+import os
 
 from dbus.mainloop.glib import DBusGMainLoop
 DBusGMainLoop(set_as_default=True)
@@ -96,7 +97,7 @@ class LoginBackendDbusSSOFake(LoginBackend):
         response = FakeReviewSettings.login_response
             
         if response == "successful":
-            self.emit("login-successful", self._return_credentials)
+            self.emit("login-successful", self._return_credentials())
         elif response == "failed":
             self.emit("login-failed")
         elif response == "denied":

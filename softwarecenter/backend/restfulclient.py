@@ -44,6 +44,8 @@ from oauth.oauth import OAuthToken
 from softwarecenter.paths import SOFTWARE_CENTER_CACHE_DIR
 from Queue import Queue
 
+from test.fake_review_settings import FakeReviewSettings, network_delay
+
 from login import LoginBackend
 
 LOG = logging.getLogger(__name__)
@@ -196,6 +198,46 @@ class UbuntuSSOAPI(gobject.GObject):
                                          self._thread_whoami_done,
                                          self._thread_whoami_error)
 
+
+class UbuntuSSOAPIFake(UbuntuSSOAPI):
+    def __init__(self, token):
+        gobject.GObject.__init__(self)
+
+    @network_delay
+    def whoami(self):
+        if FakeReviewSettings.whoami_response == "whoami":
+            self.emit("whoami", self._create_whoami_response())
+        elif FakeReviewSettings.whoami_response == "error": 
+            self.emit("error", self._make_error())
+    
+    def _create_whoami_response(self):
+        username = FakeReviewSettings.whoami_username or "anyuser"
+        response = {
+                    u'username': username.decode('utf-8'), 
+                    u'preferred_email': u'user@email.com', 
+                    u'displayname': u'Fake User', 
+                    u'unverified_emails': [], 
+                    u'verified_emails': [], 
+                    u'openid_identifier': u'fnerkWt'
+                   }
+        return response
+    
+    def _make_error():
+        return 'HTTP Error 401: Unauthorized'
+
+ubuntu_sso_class = None
+def get_ubuntu_sso_class(token):
+    """ 
+    factory that returns an ubuntu sso loader singelton
+    """
+    global ubuntu_sso_class
+    if not ubuntu_sso_class:
+        if "SOFTWARE_CENTER_FAKE_REVIEW_API" in os.environ:
+            ubuntu_sso_class = UbuntuSSOAPIFake(token)
+            LOG.warn('Using fake Ubuntu SSO API. Only meant for testing purposes')
+        else:
+            ubuntu_sso_class = UbuntuSSOAPI(token)
+    return ubuntu_sso_class
 
 class SoftwareCenterAgent(gobject.GObject):
 
