@@ -1683,80 +1683,20 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         return self.icons.load_icon(Icons.MISSING_APP, 84, 0)
     
     def update_totalsize(self):
-        def pkg_downloaded(pkg_version):
-            filename = os.path.basename(pkg_version.filename)
-            # FIXME: use relative path here
-            return os.path.exists("/var/cache/apt/archives/" + filename)
-
         if not self.totalsize_info.get_property('visible'):
             return False
 
         while gtk.events_pending():
             gtk.main_iteration()
-        
-        pkgs_to_install = []
-        pkgs_to_remove = []
-        total_download_size = 0 # in kB
-        total_install_size = 0 # in kB
-        label_string = ""
-        
-        try:
-            pkg = self.cache[self.app_details.pkgname]
-        except KeyError:
-            self.totalsize_info.set_value(_("Unknown"))
-            return False
-        version = pkg.installed
-        if version == None:
-            version = max(pkg.versions)
-            deps_inst = self.cache.try_install_and_get_all_deps_installed(pkg)
-            for dep in deps_inst:
-                if self.cache[dep].installed == None:
-                    dep_version = max(self.cache[dep].versions)
-                    pkgs_to_install.append(dep_version)
-            deps_remove = self.cache.try_install_and_get_all_deps_removed(pkg)
-            for dep in deps_remove:
-                if self.cache[dep].is_installed:
-                    dep_version = self.cache[dep].installed
-                    pkgs_to_remove.append(dep_version)
-            pkgs_to_install.append(version)
-        
-        for addon in self.addons_manager.addons_to_install:
-            version = max(self.cache[addon].versions)
-            pkgs_to_install.append(version)
-            deps_inst = self.cache.try_install_and_get_all_deps_installed(self.cache[addon])
-            for dep in deps_inst:
-                if self.cache[dep].installed == None:
-                    version = max(self.cache[dep].versions)
-                    pkgs_to_install.append(version)
-            deps_remove = self.cache.try_install_and_get_all_deps_removed(self.cache[addon])
-            for dep in deps_remove:
-                if self.cache[dep].installed != None:
-                    version = self.cache[dep].installed
-                    pkgs_to_remove.append(version)
-        for addon in self.addons_manager.addons_to_remove:
-            version = self.cache[addon].installed
-            pkgs_to_remove.append(version)
-            deps_inst = self.cache.try_install_and_get_all_deps_installed(self.cache[addon])
-            for dep in deps_inst:
-                if self.cache[dep].installed == None:
-                    version = max(self.cache[dep].versions)
-                    pkgs_to_install.append(version)
-            deps_remove = self.cache.try_install_and_get_all_deps_removed(self.cache[addon])
-            for dep in deps_remove:
-                if self.cache[dep].installed != None:
-                    version = self.cache[dep].installed
-                    pkgs_to_remove.append(version)
 
-        pkgs_to_install = list(set(pkgs_to_install))
-        pkgs_to_remove = list(set(pkgs_to_remove))
-            
-        for pkg in pkgs_to_install:
-            if not pkg_downloaded(pkg) and not pkg.package.installed:
-                total_download_size += pkg.size
-            total_install_size += pkg.installed_size
-        for pkg in pkgs_to_remove:
-            total_install_size -= pkg.installed_size
-        
+        label_string = ""
+
+        res = self.cache.get_total_size_on_install(self.app_details.pkgname,
+                self.addons_manager.addons_to_install,
+                self.addons_manager.addons_to_remove
+        )
+        total_download_size, total_install_size = res
+
         if total_download_size > 0:
             download_size = size_to_str(total_download_size)
             label_string += _("%sB to download, ") % (download_size)

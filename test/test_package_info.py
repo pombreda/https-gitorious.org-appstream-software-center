@@ -30,7 +30,8 @@ class TestPkgInfo(unittest.TestCase):
         self.assertTrue('coreutils' in pkginfo)
         
         pkg = pkginfo['coreutils']
-        self.assertTrue(len(pkginfo.get_reverse_dependencies(pkg)) != 0)
+        self.assertTrue(len(pkginfo.get_packages_removed_on_remove(pkg)) != 0)
+        self.assertTrue(len(pkginfo.get_packages_removed_on_install(pkg)) == 0)
         self.assertTrue(pkg is not None)
         self.assertTrue(pkg.is_installed)
         self.assertTrue(len(pkg.origins) != 0)

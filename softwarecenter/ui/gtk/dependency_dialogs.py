@@ -42,14 +42,10 @@ def confirm_install(parent, datadir, app, db, icons):
     cache = db._aptcache
     distro = get_distro()
     appdetails = app.get_details(db)
-    # FIXME: use 
-    depends = set()
+
     if not appdetails.pkg:
         return True
-    deps_remove = cache.try_install_and_get_all_deps_removed(appdetails.pkg)
-    for depname in deps_remove:
-        if cache[depname].is_installed:
-            depends.add(depname)
+    depends = cache.get_packages_removed_on_install(appdetails.pkg)
     if not depends:
         return True
     (primary, button_text) = distro.get_install_warning_text(cache, appdetails.pkg, app.name, depends)
@@ -66,7 +62,7 @@ def confirm_remove(parent, datadir, app, db, icons):
     # once it works
     if not appdetails.pkg:
         return True
-    depends = cache.get_reverse_dependencies(appdetails.pkg)
+    depends = cache.get_packages_removed_on_remove(appdetails.pkg)
     if not depends:
         return True
     (primary, button_text) = distro.get_removal_warning_text(

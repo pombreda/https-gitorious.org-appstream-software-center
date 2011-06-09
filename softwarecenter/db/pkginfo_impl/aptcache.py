@@ -48,6 +48,11 @@ def convert_package_argument(f):
         return f(self, pkg, *args)
     return _converted
 
+def pkg_downloaded(pkg_version):
+    filename = os.path.basename(pkg_version.filename)
+    # FIXME: use relative path here
+    return os.path.exists("/var/cache/apt/archives/" + filename)
+
 class AptCache(PackageInfo):
     """ 
     A apt cache that opens in the background and keeps the UI alive
@@ -371,8 +376,16 @@ class AptCache(PackageInfo):
         return self._get_rdepends_by_type(pkg, self.PROVIDES_TYPES, False)
 
     # installed reverse pkg relations
-    def get_reverse_dependencies(self, pkg):
+    def get_packages_removed_on_remove(self, pkg):
         return self._get_rdepends_by_type(pkg, self.DEPENDENCY_TYPES, True)
+
+    def get_packages_removed_on_install(self, pkg):
+        depends = set()
+        deps_remove = self._try_install_and_get_all_deps_removed(pkg)
+        for depname in deps_remove:
+            if cache[depname].is_installed:
+                depends.add(depname)
+        return depends
 
     def _get_installed_rrecommends(self, pkg):
         return self._get_rdepends_by_type(pkg, self.RECOMMENDS_TYPES, True)
@@ -432,7 +445,7 @@ class AptCache(PackageInfo):
                 changes[change.name] = PkgStates.UNKNOWN
         self._cache.clear()
         return changes
-    def try_install_and_get_all_deps_installed(self, pkg):
+    def _try_install_and_get_all_deps_installed(self, pkg):
         """ Return all dependencies of pkg that will be marked for install """
         changes = self._get_changes_without_applying(pkg)
         installing_deps = []
@@ -440,7 +453,7 @@ class AptCache(PackageInfo):
             if change != pkg.name and changes[change] == PkgStates.INSTALLING:
                 installing_deps.append(change)
         return installing_deps
-    def try_install_and_get_all_deps_removed(self, pkg):
+    def _try_install_and_get_all_deps_removed(self, pkg):
         """ Return all dependencies of pkg that will be marked for remove"""
         changes = self._get_changes_without_applying(pkg)
         removing_deps = []
@@ -448,6 +461,68 @@ class AptCache(PackageInfo):
             if change != pkg.name and changes[change] == PkgStates.REMOVING:
                 removing_deps.append(change)
         return removing_deps
+
+    def get_total_size_on_install(self, pkgname, addons_install=None,
+                                addons_remove=None):
+        pkgs_to_install = []
+        pkgs_to_remove = []
+        total_download_size = 0 # in kB 
+        total_install_size = 0 # in kB
+
+        if not pkgname in self._cache:
+            return (0, 0)
+
+        pkg = self._cache[pkgname]
+        version = pkg.installed
+
+        all_install = []
+        if addons_install is not None:
+            all_install += addons_install
+        
+        if version == None:
+            all_install.append(pkgname)
+
+        for p in all_install:
+            version = max(self._cache[p].versions)
+            pkgs_to_install.append(version)
+            deps_inst = self._try_install_and_get_all_deps_installed(p)
+            for dep in deps_inst:
+                if self._cache[dep].installed == None:
+                    dep_version = max(self._cache[dep].versions)
+                    pkgs_to_install.append(dep_version)
+            deps_remove = self._try_install_and_get_all_deps_removed(p)
+            for dep in deps_remove:
+                if self._cache[dep].is_installed:
+                    dep_version = self._cache[dep].installed
+                    pkgs_to_remove.append(dep_version)
+
+        all_remove = [] if addons_remove is None else addons_remove
+        for p in all_remove:
+            version = self._cache[p].installed
+            pkgs_to_remove.append(version)
+            deps_inst = self._try_install_and_get_all_deps_installed(self._cache[p])
+            for dep in deps_inst:
+                if self._cache[dep].installed == None:
+                    version = max(self._cache[dep].versions)
+                    pkgs_to_install.append(version)
+            deps_remove = self._try_install_and_get_all_deps_removed(self._cache[p])
+            for dep in deps_remove:
+                if self._cache[dep].installed != None:
+                    version = self._cache[dep].installed
+                    pkgs_to_remove.append(version)
+
+        pkgs_to_install = list(set(pkgs_to_install))
+        pkgs_to_remove = list(set(pkgs_to_remove))
+            
+        for pkg in pkgs_to_install:
+            if not pkg_downloaded(pkg) and not pkg.package.installed:
+                total_download_size += pkg.size
+            total_install_size += pkg.installed_size
+        for pkg in pkgs_to_remove:
+            total_install_size -= pkg.installed_size
+
+        return (total_download_size, total_install_size)
+
     def get_all_deps_upgrading(self, pkg):
         # note: this seems not to be used anywhere
         changes = self._get_changes_without_applying(pkg)
@@ -499,7 +574,7 @@ class AptCache(PackageInfo):
                 LOG.debug("part of language pkg rdepends %s" % addon)
                 return False
             # something on the system depends on it
-            rdeps = self.get_reverse_dependencies(addon_pkg)
+            rdeps = self.get_packages_removed_on_remove(addon_pkg)
             if rdeps and ignore_installed:
                 LOG.debug("already has a installed rdepends %s" % addon)
                 return False
@@ -585,7 +660,7 @@ class AptCache(PackageInfo):
         if addons_rec or addons_sug:
             # now get all_deps if the package would be installed
             try:
-                all_deps_if_installed = self.try_install_and_get_all_deps_installed(pkg)
+                all_deps_if_installed = self._try_install_and_get_all_deps_installed(pkg)
             except:
                 # if we have broken packages, then we return no addons
                 LOG.warn("broken packages encountered while getting deps for %s" % pkgname)
@@ -609,7 +684,7 @@ if __name__ == "__main__":
 
     pkg = c["unace"]
     print c.get_installed_automatic_depends_for_pkg(pkg)
-    print c.get_reverse_dependencies(pkg)
+    print c.get_packages_removed_on_remove(pkg)
     print c._get_installed_rrecommends(pkg)
     print c._get_installed_rsuggests(pkg)
     

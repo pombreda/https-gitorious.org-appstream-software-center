@@ -126,17 +126,24 @@ class PackageInfo(gobject.GObject):
     def get_addons(self, pkgname, ignore_installed):
         pass
 
-    def get_reverse_dependencies(self, pkg):
+    def get_packages_removed_on_remove(self, pkg):
         """ Returns a package names list of reverse dependencies
         which will be removed if the package is removed."""
         return []
-    def try_install_and_get_all_deps_installed(self, pkg):
-        """ Returns a package names list of package names to be installed """
+
+    def get_packages_removed_on_install(self, pkg):
+        """ Returns a package names list of dependencies
+        which will be removed if the package is installed."""
         return []
-    def try_install_and_get_all_deps_removed(self, pkg):
-        """ Returns a package names list of package names to be removed """
-        return []
-        
+
+    def get_total_size_on_install(self, pkgname, addons_install=None,
+                                addons_remove=None):
+        """ Returns a tuple (download_size, installed_size)
+        with disk size in KB calculated for pkgname installation
+        plus addons change.
+        """
+        return (0, 0)
+
     def open(self):
         """ 
         (re)open the cache, this sends cache-invalid, cache-ready signals
