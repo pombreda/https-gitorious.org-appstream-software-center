@@ -22,9 +22,6 @@ import gtk
 import gobject
 import logging
 
-from aptdaemon.enums import (get_role_localised_present_from_enum,
-                             get_status_string_from_enum,
-                             )
 from softwarecenter.utils import get_icon_from_theme, size_to_str
 from softwarecenter.backend import get_install_backend
 from softwarecenter.backend.transactionswatcher import get_transactions_watcher
@@ -129,7 +126,7 @@ class PendingStore(gtk.ListStore):
             appname = trans.meta_data["sc_pkgname"]
         else:
             #FIXME: Extract information from packages property
-            appname = get_role_localised_present_from_enum(trans.role)
+            appname = trans.get_role_description()
             self._signals.append(
                 trans.connect("role-changed", self._on_role_changed))
         try:
@@ -141,7 +138,7 @@ class PendingStore(gtk.ListStore):
         if trans.is_waiting():
             status = trans.status_details
         else:
-            status = get_status_string_from_enum(trans.status)
+            status = trans.get_status_description()
         status_text = self._render_status_text(appname, status)
         cancel_icon = self._get_cancel_icon(trans.cancellable)
         self.append([trans.tid, icon, appname, status_text, trans.progress,
@@ -163,7 +160,7 @@ class PendingStore(gtk.ListStore):
         #print "_on_progress_changed: ", trans, role
         for row in self:
             if row[self.COL_TID] == trans.tid:
-                row[self.COL_NAME] = get_role_localised_present_from_enum(role)
+                row[self.COL_NAME] = trans.get_role_description(role)
 
     def _on_progress_details_changed(self, trans, current_items, total_items,
                                      current_bytes, total_bytes, current_cps,
@@ -196,7 +193,7 @@ class PendingStore(gtk.ListStore):
                 if trans.is_waiting():
                     st = trans.status_details
                 else:
-                    st = get_status_string_from_enum(status)
+                    st = trans.get_status_description(status)
                 row[self.COL_STATUS] = self._render_status_text(name, st)
 
     def _render_status_text(self, name, status):

@@ -83,14 +83,6 @@ class AptdaemonTransaction(BaseTransaction):
         return self._trans.tid
 
     @property
-    def role(self):
-        return self._trans.role
-
-    @property
-    def status(self):
-        return self._trans.status
-
-    @property
     def status_details(self):
         return self._trans.status_details
 
@@ -105,6 +97,14 @@ class AptdaemonTransaction(BaseTransaction):
     @property
     def progress(self):
         return self._trans.progress
+
+    def get_role_description(self, role=None):
+        role = self._trans.role if role is None else role
+        return enums.get_role_localised_present_from_enum(role)
+
+    def get_status_description(self, status=None):
+        status = self._trans.status if status is None else status
+        return enums.get_status_string_from_enum(status)
 
     def is_waiting(self):
         return self._trans.status == enums.STATUS_WAITING_LOCK

@@ -27,12 +27,6 @@ class BaseTransaction(gobject.GObject):
     def tid(self):
         pass
     @property
-    def role(self):
-        pass
-    @property
-    def status(self):
-        pass
-    @property
     def status_details(self):
         pass
     @property
@@ -44,6 +38,12 @@ class BaseTransaction(gobject.GObject):
     @property
     def progress(self):
         return False
+
+    def get_role_description(self, role=None):
+        pass
+
+    def get_status_description(self, status=None):
+        pass
 
     def is_waiting(self):
         return False
