@@ -1189,8 +1189,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             # in case of a crazy-huge monitor)
             screen_height = gtk.gdk.screen_height()
             screen_width = gtk.gdk.screen_width()
-            self.window_main.set_default_size(min(int(.8 * screen_width), 1200),
-                                              min(int(.8 * screen_height), 800))
+            self.window_main.set_default_size(min(int(.85 * screen_width), 1200),
+                                              min(int(.85 * screen_height), 800))
         if (self.config.has_option("general", "maximized") and
             self.config.getboolean("general", "maximized")):
             self.window_main.maximize()
