@@ -20,21 +20,11 @@ PUBLIC_API_SCHEME = 'http'
 AUTHENTICATED_API_SCHEME = 'https'
 
 from rnrclient_pristine import ReviewRequest, ReviewsStats, ReviewDetails
-from test.fake_review_settings import FakeReviewSettings
+from test.fake_review_settings import FakeReviewSettings, network_delay
 import piston_mini_client
 import simplejson
 import random
 import time
-
-# decorator to add a fake network delay if set 
-# in FakeReviewSettings.fake_network_delay
-def network_delay(fn):
-    def slp(self, *args, **kwargs):
-        delay = FakeReviewSettings.fake_network_delay
-        if delay:
-            time.sleep(delay)
-        return fn(self, *args, **kwargs)
-    return slp
 
 
 class RatingsAndReviewsAPI(PistonAPI):

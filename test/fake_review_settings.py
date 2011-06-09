@@ -1,4 +1,16 @@
 
+import time
+
+# decorator to add a fake network delay if set 
+# in FakeReviewSettings.fake_network_delay
+def network_delay(fn):
+    def slp(self, *args, **kwargs):
+        delay = FakeReviewSettings.fake_network_delay
+        if delay:
+            time.sleep(delay)
+        return fn(self, *args, **kwargs)
+    return slp
+   
 class FakeReviewSettings(object):
     '''An object that simply holds settings which are used by RatingsAndReviewsAPI
        in the rnrclient_fake module. Using this module allows a developer to test

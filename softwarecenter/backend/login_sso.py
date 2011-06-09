@@ -29,7 +29,7 @@ from dbus.mainloop.glib import DBusGMainLoop
 DBusGMainLoop(set_as_default=True)
 
 from login import LoginBackend
-from test.fake_review_settings import FakeReviewSettings
+from test.fake_review_settings import FakeReviewSettings, network_delay
 
 LOG = logging.getLogger(__name__)
 
@@ -90,7 +90,8 @@ class LoginBackendDbusSSOFake(LoginBackend):
         self.appname = appname
         self.login_text = login_text
         self._window_id = window_id
-        
+    
+    @network_delay
     def login(self, username=None, password=None):
         response = FakeReviewSettings.login_response
             
@@ -102,7 +103,7 @@ class LoginBackendDbusSSOFake(LoginBackend):
             self.cancel_login()
         
         return
-        
+    
     def login_or_register(self):
         #fake functionality for this is no different to fake login()
         self.login()
