@@ -2,10 +2,10 @@ software-center (4.1.6) UNRELEASED; urgency=low
 
   * data/ui/SoftwareCenter.ui,
     softwarecenter/app.py:
-    - specify the default initial window size on the screen
+    - specify the default initial window size based on the screen
       dimensions to better take advantage of the available area
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 09 Jun 2011 20:28:58 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 09 Jun 2011 20:33:13 -0400
 
 software-center (4.1.5) oneiric; urgency=low
 
