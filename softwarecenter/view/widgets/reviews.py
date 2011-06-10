@@ -881,6 +881,22 @@ class UIReviewsList(gtk.VBox):
     def add_review(self, review):
         self.reviews.append(review)
         return
+    
+    def replace_review(self, review):
+        for r in self.reviews:
+            if r.id == review.id:
+                pos = self.reviews.index(r)
+                self.reviews.remove(r)
+                self.reviews.insert(pos, review)
+                break
+        return
+    
+    def remove_review(self, review):
+        for r in self.reviews:
+            if r.id == review.id:
+                self.reviews.remove(r)
+                break
+        return
 
     def clear(self):
         self.reviews = []

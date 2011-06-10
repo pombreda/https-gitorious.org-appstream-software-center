@@ -785,8 +785,17 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.review_loader.get_reviews(
             self.app, self._reviews_ready_callback,
             page=self._reviews_server_page)
+    
+    def _review_update_single(self, action, review):
+        if action == 'replace':
+            self.reviews.replace_review(review)
+        elif action == 'remove':
+            self.reviews.remove_review(review)
+        return
+        
 
-    def _reviews_ready_callback(self, app, reviews_data, my_votes=None):
+    def _reviews_ready_callback(self, app, reviews_data, my_votes=None, 
+                                action=None, single_review=None):
         """ callback when new reviews are ready, cleans out the
             old ones
         """
@@ -819,8 +828,11 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         if my_votes:
             self.reviews.update_useful_votes(my_votes)
         
-        for review in reviews_data:
-            self.reviews.add_review(review)
+        if action:
+            self._review_update_single(action, single_review)
+        else:
+            for review in reviews_data:
+                self.reviews.add_review(review)
         self.reviews.configure_reviews_ui()
 
     def on_test_drive_clicked(self, button):
