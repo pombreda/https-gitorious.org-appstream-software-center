@@ -13,7 +13,6 @@ Build-Depends: debhelper (>= 7.0.50),
                python-setuptools,
                python-scour
 Standards-Version: 3.8.4
-XS-Python-Version: current
 Vcs-Bzr: https://code.launchpad.net/~software-store-developers/software-center/4.0
 Homepage: https://launchpad.net/software-center
 
