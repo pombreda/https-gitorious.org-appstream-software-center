@@ -322,8 +322,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                                  gtk.gdk.MOD1_MASK,
                                                  gtk.ACCEL_VISIBLE)
 
-        # default focus
-        self.window_main.set_size_request(600, 400)
+        # specify the smallest allowable window size
+        self.window_main.set_size_request(700, 400)
 
         # setup window name and about information (needs branding)
         name = self.distro.get_app_name()
@@ -1183,6 +1183,14 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         if self.config.has_option("general", "size"):
             (x, y) = self.config.get("general", "size").split(",")
             self.window_main.set_default_size(int(x), int(y))
+        else:
+            # on first launch, specify the default window size to take advantage
+            # of the available screen real estate (but set a reasonable limit
+            # in case of a crazy-huge monitor)
+            screen_height = gtk.gdk.screen_height()
+            screen_width = gtk.gdk.screen_width()
+            self.window_main.set_default_size(min(int(.85 * screen_width), 1200),
+                                              min(int(.85 * screen_height), 800))
         if (self.config.has_option("general", "maximized") and
             self.config.getboolean("general", "maximized")):
             self.window_main.maximize()
