@@ -16,7 +16,7 @@ class TestOrigins(unittest.TestCase):
         cache.update()
         cache.open()
         # PPA origin
-        origins = cache["firefox"].candidate.origins
+        origins = cache["firefox-trunk"].candidate.origins
         self.assertEqual(origins[0].site, "ppa.launchpad.net")
         self.assertEqual(origins[0].origin, "LP-PPA-ubuntu-mozilla-daily")
         # archive origin
