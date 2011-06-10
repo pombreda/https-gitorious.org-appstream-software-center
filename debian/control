@@ -9,7 +9,6 @@ Build-Depends: debhelper (>= 7.0.50),
                intltool,
                po4a,
                python,
-               python-central,
                python-distutils-extra,
                python-setuptools,
                python-scour
@@ -53,7 +52,6 @@ Conflicts: gnome-app-install (<< 1)
 Replaces: gnome-app-install
 Provides: gnome-app-install
 Suggests: python-launchpadlib
-XB-Python-Version: ${python:Versions}
 Description: Utility for browsing, installing, and removing applications
  The Ubuntu Software Center lets you browse and install thousands of 
  applications available for Ubuntu. You can view available 

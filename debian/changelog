@@ -1,9 +1,13 @@
 software-center (4.1.6) UNRELEASED; urgency=low
 
+  [ Gary Lasker ]
   * data/ui/SoftwareCenter.ui,
     softwarecenter/app.py:
     - specify the default initial window size based on screen
       dimensions to take better advantage of the available area
+
+  [ Michael Vogt ]
+  * move from pyhton-central to python2
 
  -- Gary Lasker <gary.lasker@canonical.com>  Thu, 09 Jun 2011 20:44:41 -0400
 
