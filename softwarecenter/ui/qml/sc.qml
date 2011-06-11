@@ -20,9 +20,10 @@
 
 import QtQuick 1.0
 
-Rectangle {
+FocusScope {
     width: 600
     height: 600
+    focus: true
 
     SystemPalette {
         id: activePalette
@@ -34,6 +35,7 @@ Rectangle {
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.top: parent.top
+        focus: true
         KeyNavigation.down: (switcher.currentFrame() == listview) ? switcher : null
 
         Binding {
@@ -127,7 +129,6 @@ Rectangle {
         switcher.pushFrame(catview)
         switcher.pushFrame(listview)
         switcher.pushFrame(detailsview)
-        navigation.focus = true
     }
 }
 
