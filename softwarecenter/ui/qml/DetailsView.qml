@@ -21,6 +21,10 @@
 import QtQuick 1.0
 
 FocusScope {
+    id: detailsview
+
+    signal backClicked
+
     Rectangle {
         id: detailsframe
         anchors.fill: parent
@@ -204,10 +208,7 @@ FocusScope {
             anchors.bottom: parent.bottom
             anchors.margins: 15
             text: qsTr("Back")
-
-            onClicked: {
-                showListView()
-            }
+            onClicked: detailsview.backClicked()
         }
     }
 
