@@ -22,11 +22,15 @@
 import dbus
 import gtk
 import logging
+import random
+import string
+import os
 
 from dbus.mainloop.glib import DBusGMainLoop
 DBusGMainLoop(set_as_default=True)
 
 from login import LoginBackend
+from test.fake_review_settings import FakeReviewSettings, network_delay
 
 LOG = logging.getLogger(__name__)
 
@@ -78,9 +82,66 @@ class LoginBackendDbusSSO(LoginBackend):
         if app_name != self.appname:
             return
         self.cancel_login()
+
+
+class LoginBackendDbusSSOFake(LoginBackend):
+
+    def __init__(self, window_id, appname, login_text):
+        super(LoginBackendDbusSSOFake, self).__init__()
+        self.appname = appname
+        self.login_text = login_text
+        self._window_id = window_id
     
+    @network_delay
+    def login(self, username=None, password=None):
+        response = FakeReviewSettings.login_response
+            
+        if response == "successful":
+            self.emit("login-successful", self._return_credentials())
+        elif response == "failed":
+            self.emit("login-failed")
+        elif response == "denied":
+            self.cancel_login()
+        
+        return
+    
+    def login_or_register(self):
+        #fake functionality for this is no different to fake login()
+        self.login()
+        return
+                
+    def _random_unicode_string(self, length):
+        retval = ''
+        for i in range(0,length):
+            retval = retval + random.choice(string.letters + string.digits)
+        return retval.decode('utf-8')
+ 
+    def _return_credentials(self):
+        c =  dbus.Dictionary(
+            {
+              dbus.String(u'consumer_secret'): dbus.String(self._random_unicode_string(30)),
+              dbus.String(u'token') : dbus.String(self._random_unicode_string(50)),
+              dbus.String(u'consumer_key') : dbus.String(self._random_unicode_string(7)),
+              dbus.String(u'name') : dbus.String('Ubuntu Software Center @ ' + self._random_unicode_string(6)),
+              dbus.String(u'token_secret') : dbus.String(self._random_unicode_string(50))
+             }, 
+             signature=dbus.Signature('ss')
+             )
+        return c
+
+def get_sso_backend(window_id, appname, login_text):
+    """ 
+    factory that returns an sso loader singelton
+    """
+    if "SOFTWARE_CENTER_FAKE_REVIEW_API" in os.environ:
+        sso_class = LoginBackendDbusSSOFake(window_id, appname, login_text)
+        LOG.warn('Using fake login SSO functionality. Only meant for testing purposes')
+    else:
+        sso_class = LoginBackendDbusSSO(window_id, appname, login_text)
+    return sso_class
+   
 if __name__ == "__main__":
-    login = LoginBackendDbusSSO()
+    login = get_sso_backend()
     login.login()
 
     gtk.main()

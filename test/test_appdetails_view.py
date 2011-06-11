@@ -25,6 +25,7 @@ from softwarecenter.enums import PkgStates
 from softwarecenter.paths import XAPIAN_BASE_PATH
 from softwarecenter.ui.gtk.appdetailsview_gtk import AppDetailsViewGtk
 from softwarecenter.ui.gtk.widgets.reviews import EmbeddedMessage
+from softwarecenter.backend.reviews import Review, ReviewLoaderIpsum
 
 
 class TestAppDetailsView(unittest.TestCase):
@@ -35,6 +36,7 @@ class TestAppDetailsView(unittest.TestCase):
         datadir = "../data"
         softwarecenter.paths.datadir = datadir
         os.environ["PYTHONPATH"] = ".."
+        os.environ["SOFTWARE_CENTER_FAKE_REVIEW_API"] = "1"
         # cache
         cache = get_pkg_info()
         cache.open()
@@ -188,21 +190,24 @@ class TestAppDetailsView(unittest.TestCase):
         self._p()
         # now that the app is installed, check that the invitation to review the app is showing
         self.assertTrue(self.appdetails.reviews.new_review.get_property("visible"))
-
-
-    def test_usefulness_submit_behvaior(self):
-        from softwarecenter.backend.reviews import ReviewLoaderIpsum
-        app = Application("Compiz", "compiz-core")
-        app.get_details = lambda db: self._get_mock_app_details()
-        self.appdetails.review_loader = ReviewLoaderIpsum(self.appdetails.cache,
-                                                          self.appdetails.db)
+        
+    def test_usefulness_submit_behaviour(self):
+        app = Application("3DChess", "3dchess")
+        mock_app_details = self._get_mock_app_details()
+        # monkey patch get_details() so that we get the mock object
+        app.get_details = lambda db: mock_app_details
         self.appdetails.show_app(app)
         self._p()
-        self.assertTrue(self.appdetails.reviews.get_property("visible"))
+        time.sleep(2)
+        self._p()
+        win=gtk.Window(); win.add(self.appdetails); win.show()
+        self._p()
+        import pdb;pdb.set_trace()
         review_box = self.appdetails.reviews.vbox.get_children()[0]
-        self.assertTrue(review_box.get_property("visible"))
-            
-
+        self.assertTrue(review_box.useful.get_property('visible'))
+        self.assertFalse(review_box.submit_status_spinner.get_property('visible'))
+        #review_box.yes_like.emit('clicked')
+    
     # helper
     def _p(self):
         """ process gtk events """
