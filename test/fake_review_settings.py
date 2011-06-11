@@ -51,9 +51,14 @@ class FakeReviewSettings(object):
     #raises APIError if True
     get_reviews_error= False
 
+    #number of pages of 10 reviews to return before returning the number specified
+    #in the reviews_returned value below
+    review_pages = 1
+
     #the following has no effect if get_reviews_error = True
-    #determines number of reviews to return (Accepts 0 to n)
-    reviews_returned = 1
+    #determines number of reviews to return 
+    # (Accepts 0 to n but should really be between 1 and 10)
+    reviews_returned = 10
     
     #get review
     #*****************************

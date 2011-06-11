@@ -96,11 +96,19 @@ class RatingsAndReviewsAPI(PistonAPI):
     @network_delay
     def get_reviews(self, packagename, language='any', origin='any',
         distroseries='any', version='any', appname='', page=1):
+        
+        # work out how many reviews to return for pagination
+        if page <= FakeReviewSettings.review_pages:
+            num_reviews = 10
+        elif page == FakeReviewSettings.review_pages + 1:
+            num_reviews = FakeReviewSettings.reviews_returned
+        else:
+            num_reviews = 0
+        
         if FakeReviewSettings.get_reviews_error:
             raise APIError(self._exception_msg)
         
-        reviews = self._make_fake_reviews(packagename, 
-                                          FakeReviewSettings.reviews_returned)
+        reviews = self._make_fake_reviews(packagename, num_reviews)
         return simplejson.dumps(reviews)
 
     @validate('review_id', int)
