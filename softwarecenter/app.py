@@ -322,8 +322,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                                  gtk.gdk.MOD1_MASK,
                                                  gtk.ACCEL_VISIBLE)
 
-        # default focus
-        self.window_main.set_size_request(600, 400)
+        # specify the smallest allowable window size
+        self.window_main.set_size_request(700, 400)
 
         # setup window name and about information (needs branding)
         name = self.distro.get_app_name()
@@ -698,14 +698,14 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
     def _create_dbus_sso_if_needed(self):
         if not self.sso:
-            from backend.login_sso import get_sso_class
+            from backend.login_sso import get_sso_backend
             # see bug #773214 for the rational
             #appname = _("Ubuntu Software Center Store")
             appname = "Ubuntu Software Center Store"
             login_text = _("To reinstall previous purchases, sign in to the "
                            "Ubuntu Single Sign-On account you used to pay for them.")
-            self.sso = get_sso_class(self.window_main.window.xid,
-                                           appname, login_text)
+            self.sso = get_sso_backend(self.window_main.window.xid,
+                                       appname, login_text)
             self.sso.connect("login-successful", self._on_sso_login)
 
     def _login_via_dbus_sso(self):
@@ -1183,6 +1183,14 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         if self.config.has_option("general", "size"):
             (x, y) = self.config.get("general", "size").split(",")
             self.window_main.set_default_size(int(x), int(y))
+        else:
+            # on first launch, specify the default window size to take advantage
+            # of the available screen real estate (but set a reasonable limit
+            # in case of a crazy-huge monitor)
+            screen_height = gtk.gdk.screen_height()
+            screen_width = gtk.gdk.screen_width()
+            self.window_main.set_default_size(min(int(.85 * screen_width), 1200),
+                                              min(int(.85 * screen_height), 800))
         if (self.config.has_option("general", "maximized") and
             self.config.getboolean("general", "maximized")):
             self.window_main.maximize()

@@ -129,22 +129,19 @@ class LoginBackendDbusSSOFake(LoginBackend):
              )
         return c
 
-sso_class = None
-def get_sso_class(window_id, appname, login_text):
+def get_sso_backend(window_id, appname, login_text):
     """ 
     factory that returns an sso loader singelton
     """
-    global sso_class
-    if not sso_class:
-        if "SOFTWARE_CENTER_FAKE_REVIEW_API" in os.environ:
-            sso_class = LoginBackendDbusSSOFake(window_id, appname, login_text)
-            LOG.warn('Using fake login SSO functionality. Only meant for testing purposes')
-        else:
-            sso_class = LoginBackendDbusSSO(window_id, appname, login_text)
+    if "SOFTWARE_CENTER_FAKE_REVIEW_API" in os.environ:
+        sso_class = LoginBackendDbusSSOFake(window_id, appname, login_text)
+        LOG.warn('Using fake login SSO functionality. Only meant for testing purposes')
+    else:
+        sso_class = LoginBackendDbusSSO(window_id, appname, login_text)
     return sso_class
    
 if __name__ == "__main__":
-    login = get_sso_class()
+    login = get_sso_backend()
     login.login()
 
     gtk.main()

@@ -38,15 +38,15 @@ class RatingsAndReviewsAPI(PistonAPI):
     
     default_service_root = 'http://localhost:8000/reviews/api/1.0'
     default_content_type = 'application/x-www-form-urlencoded'
-    exception_msg = 'Fake RatingsAndReviewsAPI raising fake exception'
-    PACKAGE_NAMES = ['armagetronad', 'compizconfig-settings-manager', 'file-roller', 
+    _exception_msg = 'Fake RatingsAndReviewsAPI raising fake exception'
+    _PACKAGE_NAMES = ['armagetronad', 'compizconfig-settings-manager', 'file-roller', 
                      'aisleriot', 'p7zip-full', 'compiz-core', 'banshee', 
                      'gconf-editor', 'nanny', '3depict', 'apturl', 'jockey-gtk', 
                      'alex4', 'bzr-explorer', 'aqualung']
-    USERS = ["Joe Doll", "John Foo", "Cat Lala", "Foo Grumpf", 
+    _USERS = ["Joe Doll", "John Foo", "Cat Lala", "Foo Grumpf", 
              "Bar Tender", "Baz Lightyear"]
-    SUMMARIES = ["Cool", "Medium", "Bad", "Too difficult"]
-    TEXT = ["Review text number 1", "Review text number 2", 
+    _SUMMARIES = ["Cool", "Medium", "Bad", "Too difficult"]
+    _TEXT = ["Review text number 1", "Review text number 2", 
             "Review text number 3", "Review text number 4"]
 
 
@@ -54,7 +54,7 @@ class RatingsAndReviewsAPI(PistonAPI):
     @network_delay
     def server_status(self):
         if FakeReviewSettings.server_response_error:
-            raise APIError(self.exception_msg)
+            raise APIError(self._exception_msg)
         return simplejson.dumps('ok')
 
 
@@ -66,7 +66,7 @@ class RatingsAndReviewsAPI(PistonAPI):
     def review_stats(self, origin='any', distroseries='any', days=None,
         valid_days=(1,3,7)):
         if FakeReviewSettings.review_stats_error:
-            raise APIError(self.exception_msg)
+            raise APIError(self._exception_msg)
             
         if FakeReviewSettings.packages_returned > 15:
             quantity = 15
@@ -77,7 +77,7 @@ class RatingsAndReviewsAPI(PistonAPI):
     
         for i in range (0, quantity):
             s = {'app_name':'', 
-                 'package_name':self.PACKAGE_NAMES[i], 
+                 'package_name':self._PACKAGE_NAMES[i], 
                  'ratings_total': str(random.randrange(1,200)),
                  'ratings_average': str(random.randrange(0,5))
             }
@@ -97,7 +97,7 @@ class RatingsAndReviewsAPI(PistonAPI):
     def get_reviews(self, packagename, language='any', origin='any',
         distroseries='any', version='any', appname='', page=1):
         if FakeReviewSettings.get_reviews_error:
-            raise APIError(self.exception_msg)
+            raise APIError(self._exception_msg)
         
         reviews = self._make_fake_reviews(packagename, 
                                           FakeReviewSettings.reviews_returned)
@@ -108,7 +108,7 @@ class RatingsAndReviewsAPI(PistonAPI):
     @network_delay
     def get_review(self, review_id):
         if FakeReviewSettings.get_review_error:
-            raise APIError(self.exception_msg)
+            raise APIError(self._exception_msg)
         review = self._make_fake_reviews(single_id=review_id)
         return simplejson.dumps(review)
 
@@ -117,9 +117,9 @@ class RatingsAndReviewsAPI(PistonAPI):
     @network_delay
     def submit_review(self, review):
         if FakeReviewSettings.submit_review_error:
-            raise APIError(self.exception_msg)
+            raise APIError(self._exception_msg)
         
-        user = FakeReviewSettings.reviewer_username or random.choice(self.USERS)
+        user = FakeReviewSettings.reviewer_username or random.choice(self._USERS)
         review_id = FakeReviewSettings.submit_review_id or random.randint(1,10000)
         r = {
                 "origin": review.origin,
@@ -149,11 +149,11 @@ class RatingsAndReviewsAPI(PistonAPI):
     @network_delay
     def flag_review(self, review_id, reason, text):
         if FakeReviewSettings.flag_review_error:
-            raise APIError(self.exception_msg)
+            raise APIError(self._exception_msg)
     
         mod_id = random.randint(1,500)
-        pkg = FakeReviewSettings.flag_package_name or random.choice(self.PACKAGE_NAMES)
-        username = FakeReviewSettings.flagger_username or random.choice(self.USERS)
+        pkg = FakeReviewSettings.flag_package_name or random.choice(self._PACKAGE_NAMES)
+        username = FakeReviewSettings.flagger_username or random.choice(self._USERS)
 
         f = {
             "user_id": random.randint(1,500),
@@ -184,7 +184,7 @@ class RatingsAndReviewsAPI(PistonAPI):
     @network_delay
     def submit_usefulness(self, review_id, useful):
         if FakeReviewSettings.submit_usefulness_error:
-            raise APIError(self.exception_msg)
+            raise APIError(self._exception_msg)
         return simplejson.dumps(FakeReviewSettings.usefulness_response_string)
 
     @validate('review_id', int, required=False)
@@ -196,14 +196,14 @@ class RatingsAndReviewsAPI(PistonAPI):
             return None
         
         if FakeReviewSettings.get_usefulness_error:
-            raise APIError(self.exception_msg)
+            raise APIError(self._exception_msg)
         
         #just return a single fake item if the review_id was supplied
         if review_id:
             if username:
                 response_user = username
             else:
-                response_user = random.choice(self.USERS)
+                response_user = random.choice(self._USERS)
                 
             response = {
                 'username':response_user,
@@ -260,12 +260,12 @@ class RatingsAndReviewsAPI(PistonAPI):
                         "hide": False,
                         "app_name": "",
                         "language": "en",
-                        "reviewer_username": random.choice(self.USERS),
+                        "reviewer_username": random.choice(self._USERS),
                         "usefulness_total": random.randint(3,6),
                         "usefulness_favorable": random.randint(1,3),
-                        "review_text": random.choice(self.TEXT),
+                        "review_text": random.choice(self._TEXT),
                         "date_deleted": None,
-                        "summary": random.choice(self.SUMMARIES),
+                        "summary": random.choice(self._SUMMARIES),
                         "version": "1:0.9.4",
                         "id": id,
                         "date_created": time.strftime("%Y-%m-%d %H:%M:%S"),

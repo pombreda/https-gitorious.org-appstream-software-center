@@ -225,18 +225,15 @@ class UbuntuSSOAPIFake(UbuntuSSOAPI):
     def _make_error():
         return 'HTTP Error 401: Unauthorized'
 
-ubuntu_sso_class = None
-def get_ubuntu_sso_class(token):
+def get_ubuntu_sso_backend(token):
     """ 
     factory that returns an ubuntu sso loader singelton
     """
-    global ubuntu_sso_class
-    if not ubuntu_sso_class:
-        if "SOFTWARE_CENTER_FAKE_REVIEW_API" in os.environ:
-            ubuntu_sso_class = UbuntuSSOAPIFake(token)
-            LOG.warn('Using fake Ubuntu SSO API. Only meant for testing purposes')
-        else:
-            ubuntu_sso_class = UbuntuSSOAPI(token)
+    if "SOFTWARE_CENTER_FAKE_REVIEW_API" in os.environ:
+        ubuntu_sso_class = UbuntuSSOAPIFake(token)
+        LOG.warn('Using fake Ubuntu SSO API. Only meant for testing purposes')
+    else:
+        ubuntu_sso_class = UbuntuSSOAPI(token)
     return ubuntu_sso_class
 
 class SoftwareCenterAgent(gobject.GObject):
@@ -550,8 +547,8 @@ if __name__ == "__main__":
             sso.connect("whoami", _whoami)
             sso.connect("error", _error)
             sso.whoami()
-        from login_sso import get_sso_class
-        backend = get_sso_class("", "appname", "login_text")
+        from login_sso import get_sso_backend
+        backend = get_sso_backend("", "appname", "login_text")
         backend.connect("login-successful", _dbus_maybe_login_successful)
         backend.login_or_register()
 

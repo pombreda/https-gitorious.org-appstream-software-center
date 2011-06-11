@@ -42,14 +42,14 @@ from gettext import gettext as _
 from Queue import Queue
 from optparse import OptionParser
 
-from softwarecenter.backend.restfulclient import get_ubuntu_sso_class
+from softwarecenter.backend.restfulclient import get_ubuntu_sso_backend
 
 import piston_mini_client
 
 from softwarecenter.paths import SOFTWARE_CENTER_CONFIG_DIR
 from softwarecenter.enums import Icons
 from softwarecenter.config import get_config
-from softwarecenter.backend.login_sso import get_sso_class
+from softwarecenter.backend.login_sso import get_sso_backend
 from softwarecenter.db.database import Application
 from softwarecenter.backend.reviews import Review
 from softwarecenter.utils import clear_token_from_ubuntu_sso, get_language
@@ -387,7 +387,7 @@ class BaseApp(SimpleGtkbuilderApp):
         login_window_xid = self._get_parent_xid_for_login_window()
         login_text = _("To review software or to report abuse you need to "
                        "sign in to a Ubuntu Single Sign-On account.")
-        self.sso = get_sso_class(login_window_xid,
+        self.sso = get_sso_backend(login_window_xid,
                                        self.appname, login_text)
         self.sso.connect("login-successful", self._maybe_login_successful)
         self.sso.connect("login-canceled", self._login_canceled)
@@ -404,7 +404,7 @@ class BaseApp(SimpleGtkbuilderApp):
         """ called after we have the token, then we go and figure out our name """
         logging.debug("_maybe_login_successful")
         self.token = oauth_result
-        self.ssoapi = get_ubuntu_sso_class(self.token)
+        self.ssoapi = get_ubuntu_sso_backend(self.token)
         self.ssoapi.connect("whoami", self._whoami_done)
         self.ssoapi.connect("error", self._whoami_error)
         self.ssoapi.whoami()
