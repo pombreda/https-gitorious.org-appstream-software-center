@@ -86,7 +86,6 @@ FocusScope {
 
             KeyNavigation.up: navigation
 
-            onItemClicked: switcher.focus = true
             onMoreInfoClicked: switcher.goToFrame(detailsview)
         }
 

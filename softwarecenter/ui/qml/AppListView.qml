@@ -27,7 +27,6 @@ FocusScope {
     property alias currentItem: list.currentItem
     property alias model: list.model
 
-    signal itemClicked
     signal moreInfoClicked
 
     clip: true
@@ -93,7 +92,7 @@ FocusScope {
             MouseArea {
                 anchors.fill: parent
                 onClicked: {
-                    applistview.itemClicked()
+                    list.forceActiveFocus()
                     list.currentIndex = index
                 }
             }
