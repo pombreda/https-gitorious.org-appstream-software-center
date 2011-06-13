@@ -20,10 +20,14 @@
 import QtQuick 1.0
 
 FocusScope {
+    signal shown
+    signal hidden
     property alias duration: xAnimation.duration
+    property alias running: xAnimation.running
     Behavior on x {
         NumberAnimation { id: xAnimation }
     }
     visible: (x > -width) && (x < parent.width)
+    onVisibleChanged: if (!visible) hidden()
 }
 

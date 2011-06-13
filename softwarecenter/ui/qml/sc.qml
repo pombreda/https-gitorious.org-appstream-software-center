@@ -119,10 +119,13 @@ FocusScope {
         id: detailsview
 
         DetailsView {
+            id: details
             anchors.fill: parent
             focus: true
             onBackClicked: switcher.goToFrame(listview)
         }
+        onShown: details.loadThumbnail()
+        onHidden: details.unloadThumbnail()
     }
 
     Component.onCompleted: {
