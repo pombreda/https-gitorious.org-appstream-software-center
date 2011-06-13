@@ -72,7 +72,6 @@ FocusScope {
         if (newIndex < 0 || newIndex >= frames.count) return
         frameConnection.target = frames.get(0).frame
         frames.get(0).frame.x = -frameSwitch.width * newIndex
-        frames.get(newIndex).frame.focus = true
         frames.currentIndex = newIndex
     }
 
@@ -92,6 +91,7 @@ FocusScope {
             if (!frameConnection.target.running) {
                 frameConnection.target = null
                 currentFrame().shown()
+                currentFrame().focus = true
             }
         }
     }

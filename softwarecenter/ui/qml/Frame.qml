@@ -27,7 +27,9 @@ FocusScope {
     Behavior on x {
         NumberAnimation { id: xAnimation }
     }
-    visible: (x > -width) && (x < parent.width)
-    onVisibleChanged: if (!visible) hidden()
+    // Changing the 'visible' property badly messes with the active focus.
+    // Changing the opacity preserves the focus, which is the desired behaviour.
+    opacity: (x > -width) && (x < parent.width) ? 1.0 : 0.0
+    onOpacityChanged: if (opacity == 0.0) hidden()
 }
 
