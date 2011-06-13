@@ -1293,7 +1293,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
     def _update_pkg_info_table(self, app_details):
         # set the strings in the package info table
         if app_details.version:
-            version = '%s (%s)' % (app_details.version, app_details.pkgname)
+            version = '%s %s' % (app_details.pkgname, app_details.version)
         else:
             version = _("Unknown")
             # if the version is unknown, just hide the field
