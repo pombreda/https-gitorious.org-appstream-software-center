@@ -260,7 +260,7 @@ class RatingsAndReviewsAPI(PistonAPI):
             if quantity == 1 and single_id:
                 id = single_id
             else:
-                id = 1*3
+                id = i*3
                 
             r = {
                         "origin": "ubuntu",
