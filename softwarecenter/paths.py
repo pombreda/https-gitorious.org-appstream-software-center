@@ -74,8 +74,13 @@ def try_to_fixup_root_owned_dir_via_remove(directory):
         except:
             logging.exception("failed to fix not writable cache directory")
 
-SOFTWARE_CENTER_CONFIG_DIR = os.path.join(xdg.xdg_config_home, "software-center")
-SOFTWARE_CENTER_CACHE_DIR = os.path.join(xdg.xdg_cache_home, "software-center")
+if "SOFTWARE_CENTER_FAKE_REVIEW_API" in os.environ:
+    SOFTWARE_CENTER_CONFIG_DIR = os.path.join(xdg.xdg_config_home, "software-center", "fake-review")
+    SOFTWARE_CENTER_CACHE_DIR = os.path.join(xdg.xdg_cache_home, "software-center", "fake-review")
+else:
+    SOFTWARE_CENTER_CONFIG_DIR = os.path.join(xdg.xdg_config_home, "software-center")
+    SOFTWARE_CENTER_CACHE_DIR = os.path.join(xdg.xdg_cache_home, "software-center")
+    
 # FIXUP a brief broken software-center in maverick
 try_to_fixup_root_owned_dir_via_remove(SOFTWARE_CENTER_CACHE_DIR)
 
