@@ -11,11 +11,13 @@ software-center (4.1.6) UNRELEASED; urgency=low
       dimensions to take better advantage of the available area
   * softwarecenter/ui/gtk/appdetailsview_gtk.py:
     - display package name first in the version field per spec
+  * merge lp:~weblive-dev/software-center/fix-weblive, many
+    thanks to Stéphane Graber
 
   [ Michael Vogt ]
   * move from pyhton-central to python2
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 13 Jun 2011 12:05:45 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 14 Jun 2011 17:21:13 -0400
 
 software-center (4.1.5) oneiric; urgency=low
 
