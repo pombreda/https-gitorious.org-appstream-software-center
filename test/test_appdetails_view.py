@@ -190,23 +190,30 @@ class TestAppDetailsView(unittest.TestCase):
         self._p()
         # now that the app is installed, check that the invitation to review the app is showing
         self.assertTrue(self.appdetails.reviews.new_review.get_property("visible"))
-        
+
     def test_usefulness_submit_behaviour(self):
+        # needs to be inside a real window
+        win=gtk.Window()
+        scroll = gtk.ScrolledWindow()
+        scroll.add(self.appdetails)
+        win.add(scroll)
+        win.set_size_request(600,600)
+        win.show_all()
+        # build mock app
         app = Application("3DChess", "3dchess")
         mock_app_details = self._get_mock_app_details()
         # monkey patch get_details() so that we get the mock object
         app.get_details = lambda db: mock_app_details
         self.appdetails.show_app(app)
         self._p()
-        time.sleep(2)
-        self._p()
-        win=gtk.Window(); win.add(self.appdetails); win.show()
-        self._p()
-        import pdb;pdb.set_trace()
+        # and check the result
         review_box = self.appdetails.reviews.vbox.get_children()[0]
         self.assertTrue(review_box.useful.get_property('visible'))
         self.assertFalse(review_box.submit_status_spinner.get_property('visible'))
-        #review_box.yes_like.emit('clicked')
+        self.assertTrue(review_box.yes_like.get_property('visible'))
+        review_box.yes_like.emit('clicked')
+        self._p()
+        self.assertFalse(review_box.yes_like.get_property('visible'))
     
     # helper
     def _p(self):
