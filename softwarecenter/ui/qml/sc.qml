@@ -38,16 +38,52 @@ FocusScope {
         focus: true
         KeyNavigation.down: (switcher.currentFrame() == listview) ? switcher : null
 
+        property string searchResults: qsTr("Search Results")
+
         Binding {
             target: pkglistmodel
             property: "searchQuery"
             value: navigation.searchQuery
         }
 
-        onHomeClicked: switcher.goToFrame(catview)
+        onCrumbClicked: {
+            if (index == 0) {
+                // [Home]
+                switcher.goToFrame(catview)
+            } else if (index == 1) {
+                // Either [Home > categoryName] or [Home > Search Results]
+                switcher.goToFrame(listview)
+            } else if (index == 2) {
+                // Either [Home > categoryName > appName]
+                // or [Home > Search Results > appName]
+                // or [Home > categoryName > Search Results]
+                if (navigation.breadcrumbs.model.get(2).label == searchResults) {
+                    switcher.goToFrame(listview)
+                } else {
+                    switcher.goToFrame(detailsview)
+                }
+            }
+        }
 
-        onSearchQueryChanged: if (searchQuery.length > 0) switcher.goToFrame(listview)
-        onSearchActivated: switcher.goToFrame(listview)
+        searchBoxVisible: switcher.currentFrame() != detailsview
+
+        function doSearch() {
+            if (searchQuery.length > 0) {
+                var bc = navigation.breadcrumbs
+                if (bc.count == 1) {
+                    // [Home]
+                    bc.addCrumb(searchResults)
+                } else if (bc.count == 2) {
+                    // Either [Home > categoryName] or [Home > Search Results]
+                    if (bc.model.get(1).label != searchResults) {
+                        bc.addCrumb(searchResults)
+                    }
+                }
+                switcher.goToFrame(listview)
+            }
+        }
+        onSearchQueryChanged: doSearch()
+        onSearchActivated: doSearch()
     }
 
     FrameSwitcher {
@@ -67,6 +103,7 @@ FocusScope {
             focus: true
             onCategoryChanged: {
                 pkglistmodel.setCategory(catname)
+                navigation.breadcrumbs.addCrumb(catname)
                 switcher.goToFrame(listview)
             }
         }
@@ -86,7 +123,10 @@ FocusScope {
 
             KeyNavigation.up: navigation
 
-            onMoreInfoClicked: switcher.goToFrame(detailsview)
+            onMoreInfoClicked: {
+                navigation.breadcrumbs.addCrumb(currentItem.appname)
+                switcher.goToFrame(detailsview)
+            }
         }
 
         Rectangle {
@@ -121,7 +161,10 @@ FocusScope {
             id: details
             anchors.fill: parent
             focus: true
-            onBackClicked: switcher.goToFrame(listview)
+            onBackClicked: {
+                navigation.breadcrumbs.removeCrumb()
+                switcher.goToFrame(listview)
+            }
         }
         onShown: details.loadThumbnail()
         onHidden: details.unloadThumbnail()
