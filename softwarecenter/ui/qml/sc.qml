@@ -52,6 +52,9 @@ FocusScope {
                 switcher.goToFrame(catview)
             } else if (index == 1) {
                 // Either [Home > categoryName] or [Home > Search Results]
+                if (navigation.breadcrumbs.model.get(1).label != searchResults) {
+                    searchQuery = ""
+                }
                 switcher.goToFrame(listview)
             } else if (index == 2) {
                 // Either [Home > categoryName > appName]
