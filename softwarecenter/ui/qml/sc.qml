@@ -40,32 +40,22 @@ FocusScope {
 
         property string searchResults: qsTr("Search Results")
 
+        property string categoryKey: "category"
+        property string searchresultsKey: "searchresults"
+
         Binding {
             target: pkglistmodel
             property: "searchQuery"
             value: navigation.searchQuery
         }
 
+        Component.onCompleted: breadcrumbs.addCrumb(qsTr("Get Software"), catview, "")
+
         onCrumbClicked: {
-            if (index == 0) {
-                // [Home]
-                switcher.goToFrame(catview)
-            } else if (index == 1) {
-                // Either [Home > categoryName] or [Home > Search Results]
-                if (navigation.breadcrumbs.model.get(1).label != searchResults) {
-                    searchQuery = ""
-                }
-                switcher.goToFrame(listview)
-            } else if (index == 2) {
-                // Either [Home > categoryName > appName]
-                // or [Home > Search Results > appName]
-                // or [Home > categoryName > Search Results]
-                if (navigation.breadcrumbs.model.get(2).label == searchResults) {
-                    switcher.goToFrame(listview)
-                } else {
-                    switcher.goToFrame(detailsview)
-                }
+            if (index == 1 && navigation.breadcrumbs.model.get(1).key == categoryKey) {
+                searchQuery = ""
             }
+            switcher.goToFrame(navigation.breadcrumbs.model.get(index).view)
         }
 
         searchBoxVisible: switcher.currentFrame() != detailsview
@@ -73,14 +63,9 @@ FocusScope {
         function doSearch() {
             if (searchQuery.length > 0) {
                 var bc = navigation.breadcrumbs
-                if (bc.count == 1) {
-                    // [Home]
-                    bc.addCrumb(searchResults)
-                } else if (bc.count == 2) {
-                    // Either [Home > categoryName] or [Home > Search Results]
-                    if (bc.model.get(1).label != searchResults) {
-                        bc.addCrumb(searchResults)
-                    }
+                if (bc.count == 1 ||
+                    (bc.count == 2 && bc.model.get(1).key == categoryKey)) {
+                    bc.addCrumb(searchResults, listview, searchresultsKey)
                 }
                 switcher.goToFrame(listview)
             }
@@ -106,7 +91,7 @@ FocusScope {
             focus: true
             onCategoryChanged: {
                 pkglistmodel.setCategory(catname)
-                navigation.breadcrumbs.addCrumb(catname)
+                navigation.breadcrumbs.addCrumb(catname, listview, navigation.categoryKey)
                 switcher.goToFrame(listview)
             }
         }
@@ -127,7 +112,7 @@ FocusScope {
             KeyNavigation.up: navigation
 
             onMoreInfoClicked: {
-                navigation.breadcrumbs.addCrumb(currentItem.appname)
+                navigation.breadcrumbs.addCrumb(currentItem.appname, detailsview, "")
                 switcher.goToFrame(detailsview)
             }
         }

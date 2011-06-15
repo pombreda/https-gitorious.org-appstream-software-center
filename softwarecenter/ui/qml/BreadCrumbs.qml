@@ -26,8 +26,8 @@ Item {
     property alias model: crumbslist.model
     property alias count: crumbslist.count
 
-    function addCrumb(text) {
-        crumbslist.model.append({ label: text })
+    function addCrumb(text, view, key) {
+        crumbslist.model.append({ label: text, view: view, key: key })
     }
 
     function removeCrumb() {

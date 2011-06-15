@@ -52,7 +52,6 @@ FocusScope {
     BreadCrumbs {
         id: breadcrumbs
         anchors.fill: parent
-        Component.onCompleted: addCrumb(qsTr("Get Software"))
         onCrumbClicked: parent.crumbClicked(index)
     }
 
