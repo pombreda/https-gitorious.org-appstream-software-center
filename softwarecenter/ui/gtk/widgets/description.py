@@ -1152,6 +1152,12 @@ p7zip-full provides:
 
 p7zip provides 7zr, a light version of 7za, and p7zip a gzip like wrapper around 7zr.""".strip()
 
+    EXAMPLE = """A challenging 3D block puzzle game.
+Puzzle Moppet is a challenging 3D puzzle game featuring a diminutive and apparently mute creature who is lost in a mysterious floating landscape.
+
+GAME FEATURES
+* Save the Moppet from itself
+"""
     win = gtk.Window()
 
     d = AppDescription()
