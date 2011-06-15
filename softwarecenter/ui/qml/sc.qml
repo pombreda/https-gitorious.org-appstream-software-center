@@ -123,7 +123,9 @@ FocusScope {
             focus: true
             onBackClicked: switcher.goToFrame(listview)
         }
-        onShown: details.loadThumbnail()
+        onShown: { details.loadThumbnail();
+                   details.loadReviews();
+                 }
         onHidden: details.unloadThumbnail()
     }
 
