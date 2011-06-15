@@ -89,7 +89,6 @@ FocusScope {
             MouseArea {
                 anchors.fill: parent
                 onClicked: {
-                    catview.focus = true
                     catgrid.currentIndex = index    
                     catview.categoryChanged(catname)
                 }

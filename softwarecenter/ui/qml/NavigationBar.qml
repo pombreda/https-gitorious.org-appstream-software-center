@@ -22,6 +22,7 @@ import QtQuick 1.0
 FocusScope {
     property alias searchQuery: searchbox.text
 
+    signal homeClicked
     signal searchActivated
 
     height: searchbox.height + 2 * 10 // 10px margins
@@ -53,7 +54,7 @@ FocusScope {
         anchors.left: parent.left
         anchors.margins: 10
         anchors.verticalCenter: parent.verticalCenter
-        onClicked: showCategoriesView()
+        onClicked: homeClicked()
     }
 
     SearchBox {

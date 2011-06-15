@@ -20,38 +20,14 @@
 
 import QtQuick 1.0
 
-Rectangle {
+FocusScope {
     width: 600
     height: 600
+    focus: true
 
     SystemPalette {
         id: activePalette
         colorGroup: SystemPalette.Active
-    }
-
-    function showCategoriesView()
-    {
-        console.log("showCategoryView")
-        catview.x = 0
-        
-        // FIXME: would be nice to do this somewhere else
-        pkglistmodel.setCategory("")
-    }
-
-    function showListView()
-    {
-        console.log("showListView")
-        catview.x = 0 - listview.width
-    }
-
-    function showDetailsView()
-    {
-        console.log("showDetailsView")
-        catview.x =  0 - listview.width - detailsview.width
-
-        // FIXME: actually we could do this on a property change event
-        //        for listview.x, if it changes to "0" trigger load
-        reviewslistmodel.getReviews(list.currentItem.pkgname)
     }
 
     NavigationBar {
@@ -60,7 +36,7 @@ Rectangle {
         anchors.right: parent.right
         anchors.top: parent.top
         focus: true
-        KeyNavigation.down: (listview.x == 0) ? list : null
+        KeyNavigation.down: (switcher.currentFrame() == listview) ? switcher : null
 
         Binding {
             target: pkglistmodel
@@ -68,40 +44,40 @@ Rectangle {
             value: navigation.searchQuery
         }
 
-        onSearchQueryChanged: if (searchQuery.length > 0) showListView()
-        onSearchActivated: showListView()
+        onHomeClicked: switcher.goToFrame(catview)
+
+        onSearchQueryChanged: if (searchQuery.length > 0) switcher.goToFrame(listview)
+        onSearchActivated: switcher.goToFrame(listview)
     }
 
-    CategoriesView {
-        id: catview
-        width: parent.width
-        height: parent.height
-        anchors.top: navigation.bottom
-
-        Behavior on x {
-            NumberAnimation { duration: 180 }
-        }
-
-        onCategoryChanged: {
-            pkglistmodel.setCategory(catname)
-            showListView()
-        }
-    }
-
-    Rectangle {
-        id: listview
-
-        width: parent.width
-        anchors.left: catview.right
+    FrameSwitcher {
+        id: switcher
+        anchors.left: parent.left
+        anchors.right: parent.right
         anchors.top: navigation.bottom
         anchors.bottom: parent.bottom
+        duration: 180
+    }
 
-        Behavior on x {
-            NumberAnimation { duration: 180 }
+    Frame {
+        id: catview
+
+        CategoriesView {
+            anchors.fill: parent
+            focus: true
+            onCategoryChanged: {
+                pkglistmodel.setCategory(catname)
+                switcher.goToFrame(listview)
+            }
         }
+    }
+
+    Frame {
+        id: listview
 
         AppListView {
             id: list
+            focus: true
             model: pkglistmodel
             anchors.left: parent.left
             anchors.right: parent.right
@@ -109,6 +85,8 @@ Rectangle {
             anchors.bottom: statusframe.top
 
             KeyNavigation.up: navigation
+
+            onMoreInfoClicked: switcher.goToFrame(detailsview)
         }
 
         Rectangle {
@@ -136,16 +114,23 @@ Rectangle {
         }
     }
 
-    DetailsView {
+    Frame {
         id: detailsview
-        width: parent.width
-        anchors.left: listview.right
-        anchors.top: navigation.bottom
-        anchors.bottom: parent.bottom
 
-        Behavior on x {
-            NumberAnimation { duration: 180 }
+        DetailsView {
+            id: details
+            anchors.fill: parent
+            focus: true
+            onBackClicked: switcher.goToFrame(listview)
         }
+        onShown: details.loadThumbnail()
+        onHidden: details.unloadThumbnail()
+    }
+
+    Component.onCompleted: {
+        switcher.pushFrame(catview)
+        switcher.pushFrame(listview)
+        switcher.pushFrame(detailsview)
     }
 }
 
