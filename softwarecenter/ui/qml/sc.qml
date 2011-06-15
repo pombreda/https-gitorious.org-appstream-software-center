@@ -52,7 +52,8 @@ FocusScope {
         Component.onCompleted: breadcrumbs.addCrumb(qsTr("Get Software"), catview, "")
 
         onCrumbClicked: {
-            if (index == 1 && navigation.breadcrumbs.model.get(1).key == categoryKey) {
+            if (index == 0 ||
+                (index == 1 && navigation.breadcrumbs.model.get(1).key == categoryKey)) {
                 searchQuery = ""
             }
             switcher.goToFrame(navigation.breadcrumbs.model.get(index).view)
