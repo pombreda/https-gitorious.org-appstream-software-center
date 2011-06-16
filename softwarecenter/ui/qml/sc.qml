@@ -38,16 +38,41 @@ FocusScope {
         focus: true
         KeyNavigation.down: (switcher.currentFrame() == listview) ? switcher : null
 
+        property string searchResults: qsTr("Search Results")
+
+        property string categoryKey: "category"
+        property string searchresultsKey: "searchresults"
+
         Binding {
             target: pkglistmodel
             property: "searchQuery"
             value: navigation.searchQuery
         }
 
-        onHomeClicked: switcher.goToFrame(catview)
+        Component.onCompleted: breadcrumbs.addCrumb(qsTr("Get Software"), catview, "")
 
-        onSearchQueryChanged: if (searchQuery.length > 0) switcher.goToFrame(listview)
-        onSearchActivated: switcher.goToFrame(listview)
+        onCrumbClicked: {
+            if (index == 0 ||
+                (index == 1 && navigation.breadcrumbs.model.get(1).key == categoryKey)) {
+                searchQuery = ""
+            }
+            switcher.goToFrame(navigation.breadcrumbs.model.get(index).view)
+        }
+
+        searchBoxVisible: switcher.currentFrame() != detailsview
+
+        function doSearch() {
+            if (searchQuery.length > 0) {
+                var bc = navigation.breadcrumbs
+                if (bc.count == 1 ||
+                    (bc.count == 2 && bc.model.get(1).key == categoryKey)) {
+                    bc.addCrumb(searchResults, listview, searchresultsKey)
+                }
+                switcher.goToFrame(listview)
+            }
+        }
+        onSearchQueryChanged: doSearch()
+        onSearchActivated: doSearch()
     }
 
     FrameSwitcher {
@@ -67,6 +92,7 @@ FocusScope {
             focus: true
             onCategoryChanged: {
                 pkglistmodel.setCategory(catname)
+                navigation.breadcrumbs.addCrumb(catname, listview, navigation.categoryKey)
                 switcher.goToFrame(listview)
             }
         }
@@ -86,7 +112,10 @@ FocusScope {
 
             KeyNavigation.up: navigation
 
-            onMoreInfoClicked: switcher.goToFrame(detailsview)
+            onMoreInfoClicked: {
+                navigation.breadcrumbs.addCrumb(currentItem.appname, detailsview, "")
+                switcher.goToFrame(detailsview)
+            }
         }
 
         Rectangle {
@@ -121,7 +150,10 @@ FocusScope {
             id: details
             anchors.fill: parent
             focus: true
-            onBackClicked: switcher.goToFrame(listview)
+            onBackClicked: {
+                navigation.breadcrumbs.removeCrumb()
+                switcher.goToFrame(listview)
+            }
         }
         onShown: { details.loadThumbnail();
                    details.loadReviews();
