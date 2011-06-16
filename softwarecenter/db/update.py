@@ -143,6 +143,7 @@ class SoftwareCenterAgentParser(AppInfoParserBase):
         if (hasattr(self.sca_entry, "screenshot_url") and 
             not hasattr(self.sca_entry, "thumbnail_url")):
             url = self.sca_entry.screenshot_url.replace(".png", ".thumb.png")
+            url = self.sca_entry.screenshot_url.replace(".jpg", ".thumb.jpg")
             self.sca_entry.thumbnail_url = url
         if hasattr(self.sca_entry, "description"):
             self.sca_entry.Comment = self.sca_entry.description.split("\n")[0]
