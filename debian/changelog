@@ -1,4 +1,4 @@
-software-center (4.0.4) UNRELEASED; urgency=low
+software-center (4.0.4) natty-proposed; urgency=low
 
   [ Aaron Peachey ]
   * utils/submit_review.py:
@@ -6,6 +6,11 @@ software-center (4.0.4) UNRELEASED; urgency=low
       fails (LP: #790450)
   * softwarecenter/view/widgets/reviews.py:
     - fix disappearing usefulness UI on clicking 'OK' after error
+  * softwarecenter/db/reviews.py,
+    softwarecenter/view/appdetailsview_gtk.py,
+    softwarecenter/view/widgets/reviews.py:
+    - fix duplication of reviews after user has submitted
+      usefulness or flagged a review (LP: #794060)
 
   [ Gary Lasker ]
   * softwarecenter/app.py,
@@ -13,7 +18,7 @@ software-center (4.0.4) UNRELEASED; urgency=low
     - fix issue where the background image for installed channels
       details view is not consistently rendered (LP: #724724) 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 02 Jun 2011 15:19:17 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 10 Jun 2011 18:22:41 +0200
 
 software-center (4.0.3) natty-proposed; urgency=low
 
