@@ -41,3 +41,5 @@ def get_install_backend():
         from softwarecenter.backend.aptd import AptdaemonBackend
         install_backend = AptdaemonBackend()
     return install_backend
+
+        

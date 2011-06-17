@@ -16,7 +16,6 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import apt_pkg
 import dbus
 import gmenu
 import gettext
@@ -213,10 +212,8 @@ def unescape(text):
     """
     return xml.sax.saxutils.unescape(text, ESCAPE_ENTITIES)
 
-#def get_current_arch():
-#    return apt_pkg.config.find("Apt::Architecture")
-
 def uri_to_filename(uri):
+    import apt_pkg
     return apt_pkg.uri_to_filename(uri)
 
 def human_readable_name_from_ppa_uri(ppa_uri):
@@ -513,6 +510,13 @@ upstream_version_compare = get_pkg_info().upstream_version_compare
 upstream_version = get_pkg_info().upstream_version
 version_compare = get_pkg_info().version_compare
 
+# only when needed
+try:
+    import apt_pkg
+    size_to_str = apt_pkg.size_to_str
+except ImportError:
+    def size_to_str(size):
+        return str(size)
         
 if __name__ == "__main__":
     s = decode_xml_char_reference('Search&#x2026;')
