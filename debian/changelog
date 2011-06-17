@@ -13,6 +13,10 @@ software-center (4.1.6) UNRELEASED; urgency=low
     - display package name first in the version field per spec
   * merge lp:~weblive-dev/software-center/fix-weblive, many
     thanks to Stéphane Graber
+  * softwarecenter/db/update.py:
+    - don't generate thumbnail urls for screenshots in the For
+      Purchase section as we no longer provide separate thumbnail
+      files for these apps
 
   [ Michael Vogt ]
   * move from pyhton-central to python2
@@ -27,7 +31,7 @@ software-center (4.1.6) UNRELEASED; urgency=low
     - use "normalize_package_description()" here for the description
       building
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 17 Jun 2011 14:33:55 +0200
+ -- Gary Lasker <gary.lasker@canonical.com>  Fri, 17 Jun 2011 16:24:21 -0400
 
 software-center (4.1.5) oneiric; urgency=low
 
