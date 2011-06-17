@@ -76,7 +76,21 @@ Features:
                         descr_cmp_filter(description_processed)))
 
 
-        
+    def test_htmlize(self):
+        from softwarecenter.utils import htmlize_package_description
+        s = """A challenging 3D block puzzle game.
+
+Puzzle Moppet is a challenging 3D puzzle game featuring a diminutive and apparently mute creature who is lost in a mysterious floating landscape.
+
+GAME FEATURES
+* Save the Moppet from itself
+"""
+        description_text = htmlize_package_description(s)
+        print description_text
+        self.assertEqual(
+            description_text,
+            """<p tabindex="0">A challenging 3D block puzzle game.</p><p tabindex="0">Puzzle Moppet is a challenging 3D puzzle game featuring a diminutive and apparently mute creature who is lost in a mysterious floating landscape.</p><p tabindex="0">GAME FEATURES</p><ul><li>Save the Moppet from itself</li></ul>""")
+
                          
 
 

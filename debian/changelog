@@ -22,6 +22,7 @@ software-center (4.1.6) UNRELEASED; urgency=low
     - add new generic "normalize_package_description()" helper that
       can be shared between the various UIs to normalize the package
       description
+    - add generic htmlize_package_description()
   * softwarecenter/ui/gtk/widgets/description.py:
     - use "normalize_package_description()" here for the description
       building

@@ -128,48 +128,23 @@ def normalize_package_description(desc):
         old_indent_level = indent_level
     return norm_description.strip()
 
-def htmlize_package_desc(desc):
-    def _is_bullet(line):
-        return re.match("^(\s*[-*])", line)
-    inside_p = False
+def htmlize_package_description(desc):
+    html = ""
     inside_li = False
-    indent_len = None
-    for line in desc.splitlines():
-        stripped_line = line.strip()
-        if (not inside_p and 
-            not inside_li and 
-            not _is_bullet(line) and
-            stripped_line):
-            yield '<p tabindex="0">'
-            inside_p = True
-        if stripped_line:
-            match = re.match("^(\s*[-*])", line)
-            if match:
-                if inside_li:
-                    yield "</li>"
-                yield "<li>"
+    for part in normalize_package_description(desc).split("\n"):
+        if part.startswith("* "):
+            if not inside_li:
+                html += "<ul>"
                 inside_li = True
-                indent_len = len(match.group(1))
-                stripped_line = line[indent_len:].strip()
-                yield stripped_line
-            elif inside_li:
-                if not line.startswith(" " * indent_len):
-                    yield "</li>"
-                    inside_li = False
-                yield stripped_line
-            else:
-                yield stripped_line
+            html += '<li>%s</li>' % part[2:]
         else:
             if inside_li:
-                yield "</li>"
-                inside_li = False
-            if inside_p:
-                yield "</p>"
-                inside_p = False
+                html += "</ul>"
+            html += '<p tabindex="0">%s</p>' % part
+            inside_li = False
     if inside_li:
-        yield "</li>"
-    if inside_p:
-        yield "</p>"
+        html += "</ul>"
+    return html
 
 def get_parent_xid(widget):
     while widget.get_parent():
