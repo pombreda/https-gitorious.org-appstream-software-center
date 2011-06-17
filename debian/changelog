@@ -20,6 +20,9 @@ software-center (4.1.6) UNRELEASED; urgency=low
   * softwarecenter/ui/gtk/softwarepane.py:
     - fix crash when searching the Canonical Partners section
       (LP: #796034)
+  * softwarecenter/db/application.py:
+    - fix broken details view for items in the Canonical Partners
+      section when the channel is not enabled
 
   [ Michael Vogt ]
   * move from pyhton-central to python2
@@ -34,7 +37,7 @@ software-center (4.1.6) UNRELEASED; urgency=low
     - use "normalize_package_description()" here for the description
       building
 
- -- Gary Lasker <gary.lasker@canonical.com>  Fri, 17 Jun 2011 17:50:19 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Fri, 17 Jun 2011 18:15:52 -0400
 
 software-center (4.1.5) oneiric; urgency=low
 
