@@ -25,6 +25,7 @@ import glib
 import logging
 import os
 import re
+import string
 import tempfile
 import traceback
 import time
@@ -86,6 +87,46 @@ def wait_for_apt_cache_ready(f):
         return False
     return wrapper
 
+def normalize_package_description(desc):
+    """ this takes a package description and normalizes it
+        so that all uneeded \n are stripped away and all
+        enumerations are at the start of the line and start with a "*"
+        E.g.:
+        Some potentially very long paragrah that is in a single line.
+        A new paragrpah.
+        A list:
+        * item1
+        * item2 that may again be very very long
+    """
+    BULLETS = ('- ', '* ', 'o ')
+    norm_description = ""
+    in_blist = False
+    # process it
+    old_indent_level = 0
+    for i, part in enumerate(desc.split("\n")):
+        part = part.strip()
+        # explicit newline
+        if not part:
+            norm_description += "\n"
+            continue
+        # get indent level
+        for j, c in enumerate(part):
+            if not c in string.whitespace+"".join([s.strip() for s in BULLETS]):
+                indent_level = j
+                break
+        # check if in a enumeration
+        if part[:2] in BULLETS:
+            in_blist = True
+            norm_description += "\n* " + part[2:]
+        elif in_blist and old_indent_level == indent_level:
+            norm_description += " " + part
+        else:
+            in_blist = False
+            if not norm_description.endswith("\n"):
+                norm_description += " "
+            norm_description += part
+        old_indent_level = indent_level
+    return norm_description.strip()
 
 def htmlize_package_desc(desc):
     def _is_bullet(line):

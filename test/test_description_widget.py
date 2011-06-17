@@ -36,34 +36,6 @@ GAME FEATURES
              "Save the Moppet from itself",
              ])
 
-    def test_description_parser_all(self):
-        import re
-        def descr_cmp_filter(s):
-            new = s
-            for k in [r"\n\s*- ", r"\n\s*\* ", r"\n\s*o ", 
-                      # actually kill off all remaining whitespace
-                      r"\s"]:
-                new = re.sub(k, "", new)
-            return new
-
-        # test that all descriptions are parsable without failure
-        app_description = AppDescription()
-        cache = apt.Cache()
-        for pkg in cache:
-            if pkg.candidate:
-                # set description
-                app_description.set_description(pkg.description,
-                                                pkg.name)
-                # gather the text in there
-                description_processed = ""
-                for p in app_description.description.order:
-                    description_processed += p.get_text()
-                self.assertEqual(descr_cmp_filter(pkg.description),
-                                 descr_cmp_filter(description_processed),
-                                 "pkg '%s' diverge:\n%s\n\n%s\n" % (
-                        pkg.name,
-                        descr_cmp_filter(pkg.description),
-                        descr_cmp_filter(description_processed)))
 
 
         
