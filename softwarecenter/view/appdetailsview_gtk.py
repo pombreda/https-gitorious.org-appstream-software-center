@@ -831,8 +831,11 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         if action:
             self._review_update_single(action, single_review)
         else:
+            curr_list = self.reviews.get_all_review_ids()
             for review in reviews_data:
-                self.reviews.add_review(review)
+                if not review.id in curr_list:
+                    self.reviews.add_review(review)
+        
         self.reviews.configure_reviews_ui()
 
     def on_test_drive_clicked(self, button):
