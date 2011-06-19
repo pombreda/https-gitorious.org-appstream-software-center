@@ -805,6 +805,13 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.app, self._reviews_ready_callback, 
             page=self._reviews_server_page,
             language=self._reviews_server_language)
+    
+    def _review_update_single(self, action, review):
+        if action == 'replace':
+            self.reviews.replace_review(review)
+        elif action == 'remove':
+            self.reviews.remove_review(review)
+        return
 
     def _update_review_stats_widget(self, stats):
         if stats:
@@ -817,7 +824,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         else:
             self.review_stats_widget.hide()
 
-    def _reviews_ready_callback(self, app, reviews_data, my_votes=None):
+    def _reviews_ready_callback(self, app, reviews_data, my_votes=None,
+                                action=None, single_review=None):
         """ callback when new reviews are ready, cleans out the
             old ones
         """
@@ -850,8 +858,13 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         if my_votes:
             self.reviews.update_useful_votes(my_votes)
         
-        for review in reviews_data:
-            self.reviews.add_review(review)
+        if action:
+            self._review_update_single(action, single_review)
+        else:
+            curr_list = self.reviews.get_all_review_ids()
+            for review in reviews_data:
+                if not review.id in curr_list:
+                    self.reviews.add_review(review)
         self.reviews.configure_reviews_ui()
 
     def on_weblive_progress(self, weblive, progress):
