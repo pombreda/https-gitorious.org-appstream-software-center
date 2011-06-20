@@ -1,1 +1,0 @@
-../utils/x2go_helper.py
