@@ -48,6 +48,10 @@ class TestSoftwareChannels(unittest.TestCase):
         cm = ChannelsManager(self.db, self.mock_icons)
         # ensure we have channels
         self.assertTrue(len(cm.channels) > 0)
+        # test channel_available
+        #for c in cm.channels:
+        #     self.assertTrue(cm.channel_available(c.origin))
+        self.assertFalse(ChannelsManager.channel_available('asfd12da098p'))
         # ensure we don't have any channel updates yet
         # FIXME: disabled for now as it
         #self.assertFalse(cm._check_for_channel_updates())

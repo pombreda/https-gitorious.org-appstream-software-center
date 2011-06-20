@@ -45,10 +45,7 @@ from softwarecenter.utils import (
     )
 
 from softwarecenter.netstatus import network_state_is_connected
-
-from softwarecenter.enums import (PKG_STATE_INSTALLED,
-                                  REVIEWS_BATCH_PAGE_SIZE)
-
+from softwarecenter.enums import PkgStates
 from softwarecenter.backend.reviews import UsefulnessCache
 
 LOG_ALLOCATION = logging.getLogger("softwarecenter.ui.gtk.allocation")
@@ -835,7 +832,7 @@ class UIReviewsList(gtk.VBox):
 
         # only show new_review for installed stuff
         is_installed = (self._parent.app_details and
-                        self._parent.app_details.pkg_state == PKG_STATE_INSTALLED)
+                        self._parent.app_details.pkg_state == PkgStates.INSTALLED)
         if is_installed:
             self.new_review.show()
         else:
@@ -872,10 +869,13 @@ class UIReviewsList(gtk.VBox):
             button.show()
             self.vbox.pack_start(button)                
 
-        # only show the "More" button if there is a chance that there
-        # are more
-        if self.reviews and len(self.reviews) % REVIEWS_BATCH_PAGE_SIZE == 0:
-            button = gtk.Button(_("Show more reviews"))
+        # aaronp: removed check to see if the length of reviews is divisible by
+        # the batch size to allow proper fixing of LP: #794060 as when a review
+        # is submitted and appears in the list, the pagination will break this
+        # check and make it unreliable
+        # if self.reviews and len(self.reviews) % REVIEWS_BATCH_PAGE_SIZE == 0:
+        if self.reviews:
+            button = gtk.Button(_("Check for more reviews"))
             button.connect("clicked", self._on_more_reviews_clicked)
             button.show()
             self.vbox.pack_start(button)                
@@ -894,6 +894,28 @@ class UIReviewsList(gtk.VBox):
     def add_review(self, review):
         self.reviews.append(review)
         return
+        
+    def replace_review(self, review):
+        for r in self.reviews:
+            if r.id == review.id:
+                pos = self.reviews.index(r)
+                self.reviews.remove(r)
+                self.reviews.insert(pos, review)
+                break
+        return
+
+    def remove_review(self, review):
+        for r in self.reviews:
+            if r.id == review.id:
+                self.reviews.remove(r)
+                break
+        return
+
+    def get_all_review_ids(self):
+        ids = []
+        for review in self.reviews:
+            ids.append(review.id)
+        return ids 
 
     def clear(self):
         self.reviews = []

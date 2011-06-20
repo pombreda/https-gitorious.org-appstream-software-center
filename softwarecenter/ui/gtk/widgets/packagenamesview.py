@@ -21,7 +21,7 @@ import logging
 import pango
 
 from softwarecenter.db.application import Application
-from softwarecenter.enums import MISSING_APP_ICON
+from softwarecenter.enums import Icons
 
 LOG = logging.getLogger(__name__)
 
@@ -54,13 +54,13 @@ class PackageNamesView(gtk.TreeView):
             app_details = Application("", pkgname).get_details(db)
             proposed_icon = app_details.icon
             if not proposed_icon or not icons.has_icon(proposed_icon):
-                proposed_icon = MISSING_APP_ICON
+                proposed_icon = Icons.MISSING_APP
             try:
                 pix = icons.load_icon(proposed_icon, icon_size, ()).scale_simple(icon_size, 
                                       icon_size, gtk.gdk.INTERP_BILINEAR)
             except:
                 LOG.warning("cant set icon for '%s' " % pkgname)
-                pix = icons.load_icon(MISSING_APP_ICON, icon_size, ()).scale_simple(icon_size, 
+                pix = icons.load_icon(Icons.MISSING_APP, icon_size, ()).scale_simple(icon_size, 
                                       icon_size, gtk.gdk.INTERP_BILINEAR)
             model.append([pix, s])
             

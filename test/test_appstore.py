@@ -13,9 +13,8 @@ from softwarecenter.db.pkginfo import get_pkg_info
 
 from softwarecenter.ui.gtk.appview import AppStore, AppViewFilter
 from softwarecenter.enums import (AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME,
-                                  SORT_BY_ALPHABET,
-                                  SORT_BY_CATALOGED_TIME,
-                                  XAPIAN_VALUE_PKGNAME,
+                                  SortMethods,
+                                  XapianValues,
                                   )
 from softwarecenter.paths import XAPIAN_BASE_PATH
 
@@ -51,7 +50,7 @@ class TestAppStore(unittest.TestCase):
         """ test basic init of the AppStore model """
         store = AppStore(
             self.cache, self.db, self.mock_icons, 
-            sortmode=SORT_BY_ALPHABET, 
+            sortmode=SortMethods.BY_ALPHABET, 
             filter=self.mock_filter)
         self.assertTrue(len(store) > 0)
 
@@ -60,7 +59,7 @@ class TestAppStore(unittest.TestCase):
         search_query = xapian.Query("APsoftware-center")
         store = AppStore(
             self.cache, self.db, self.mock_icons, search_query=search_query,
-            sortmode=SORT_BY_ALPHABET, 
+            sortmode=SortMethods.BY_ALPHABET, 
             filter=self.mock_filter)
         self.assertTrue(len(store) == 1)
 
@@ -77,7 +76,7 @@ class TestAppStore(unittest.TestCase):
         sorter = xapian.MultiValueKeyMaker()
         # second arg is forward-sort
         sorter.add_value(int(valueno), False)
-        sorter.add_value(XAPIAN_VALUE_PKGNAME, True)
+        sorter.add_value(XapianValues.PKGNAME, True)
         enquire.set_sort_by_key(sorter)
 
         matches = enquire.get_mset(0, 5)
@@ -96,7 +95,8 @@ class TestAppStore(unittest.TestCase):
         appviewfilter = AppViewFilter(self.db, self.cache)
         appviewfilter.set_available_only(True)
         store = AppStore(self.cache, self.db, self.mock_icons, 
-                         sortmode=SORT_BY_CATALOGED_TIME, filter=appviewfilter,
+                         sortmode=SortMethods.BY_CATALOGED_TIME, 
+                         filter=appviewfilter,
                          limit=5, search_query=store_query,
                          nonapps_visible=AppStore.NONAPPS_ALWAYS_VISIBLE)
         for item in store:

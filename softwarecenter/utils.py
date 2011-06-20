@@ -16,7 +16,6 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import apt_pkg
 import dbus
 import gmenu
 import gettext
@@ -26,12 +25,13 @@ import glib
 import logging
 import os
 import re
+import string
 import tempfile
 import traceback
 import time
 import xml.sax.saxutils
 
-from enums import MISSING_APP_ICON, APP_ICON_SIZE, APP_INSTALL_PATH_DELIMITER
+from enums import Icons, APP_INSTALL_PATH_DELIMITER
 
 from config import get_config
 
@@ -43,7 +43,6 @@ ESCAPE_ENTITIES = {"&apos;":"'",
                    '&quot;':'"'}
                    
 LOG = logging.getLogger(__name__)
-
 
 class ExecutionTime(object):
     """
@@ -59,7 +58,6 @@ class ExecutionTime(object):
     def __exit__(self, type, value, stack):
         logger = logging.getLogger("softwarecenter.performance")
         logger.debug("%s: %s" % (self.info, time.time() - self.now))
-
 
 def log_traceback(info):
     """
@@ -89,49 +87,64 @@ def wait_for_apt_cache_ready(f):
         return False
     return wrapper
 
+def normalize_package_description(desc):
+    """ this takes a package description and normalizes it
+        so that all uneeded \n are stripped away and all
+        enumerations are at the start of the line and start with a "*"
+        E.g.:
+        Some potentially very long paragrah that is in a single line.
+        A new paragrpah.
+        A list:
+        * item1
+        * item2 that may again be very very long
+    """
+    BULLETS = ('- ', '* ', 'o ')
+    norm_description = ""
+    in_blist = False
+    # process it
+    old_indent_level = 0
+    for i, part in enumerate(desc.split("\n")):
+        part = part.strip()
+        # explicit newline
+        if not part:
+            norm_description += "\n"
+            continue
+        # get indent level
+        for j, c in enumerate(part):
+            if not c in string.whitespace+"".join([s.strip() for s in BULLETS]):
+                indent_level = j
+                break
+        # check if in a enumeration
+        if part[:2] in BULLETS:
+            in_blist = True
+            norm_description += "\n* " + part[2:]
+        elif in_blist and old_indent_level == indent_level:
+            norm_description += " " + part
+        else:
+            in_blist = False
+            if not norm_description.endswith("\n"):
+                norm_description += " "
+            norm_description += part
+        old_indent_level = indent_level
+    return norm_description.strip()
 
-def htmlize_package_desc(desc):
-    def _is_bullet(line):
-        return re.match("^(\s*[-*])", line)
-    inside_p = False
+def htmlize_package_description(desc):
+    html = ""
     inside_li = False
-    indent_len = None
-    for line in desc.splitlines():
-        stripped_line = line.strip()
-        if (not inside_p and 
-            not inside_li and 
-            not _is_bullet(line) and
-            stripped_line):
-            yield '<p tabindex="0">'
-            inside_p = True
-        if stripped_line:
-            match = re.match("^(\s*[-*])", line)
-            if match:
-                if inside_li:
-                    yield "</li>"
-                yield "<li>"
+    for part in normalize_package_description(desc).split("\n"):
+        if part.startswith("* "):
+            if not inside_li:
+                html += "<ul>"
                 inside_li = True
-                indent_len = len(match.group(1))
-                stripped_line = line[indent_len:].strip()
-                yield stripped_line
-            elif inside_li:
-                if not line.startswith(" " * indent_len):
-                    yield "</li>"
-                    inside_li = False
-                yield stripped_line
-            else:
-                yield stripped_line
+            html += '<li>%s</li>' % part[2:]
         else:
             if inside_li:
-                yield "</li>"
-                inside_li = False
-            if inside_p:
-                yield "</p>"
-                inside_p = False
+                html += "</ul>"
+            html += '<p tabindex="0">%s</p>' % part
+            inside_li = False
     if inside_li:
-        yield "</li>"
-    if inside_p:
-        yield "</p>"
+        html += "</ul>"
+    return html
 
 def get_parent_xid(widget):
     while widget.get_parent():
@@ -205,30 +218,17 @@ def decode_xml_char_reference(s):
         and converts it to
         'Search...'
     """
-    import re
     p = re.compile("\&\#x(\d\d\d\d);")
     return p.sub(r"\u\1", s).decode("unicode-escape")
     
-def version_compare(a, b):
-    return apt_pkg.version_compare(a, b)
-
-def upstream_version_compare(a, b):
-    return apt_pkg.version_compare(apt_pkg.upstream_version(a),
-                                   apt_pkg.upstream_version(b))
-
-def upstream_version(v):
-    return apt_pkg.upstream_version(v)
-
 def unescape(text):
     """
     unescapes the given text
     """
     return xml.sax.saxutils.unescape(text, ESCAPE_ENTITIES)
 
-#def get_current_arch():
-#    return apt_pkg.config.find("Apt::Architecture")
-
 def uri_to_filename(uri):
+    import apt_pkg
     return apt_pkg.uri_to_filename(uri)
 
 def human_readable_name_from_ppa_uri(ppa_uri):
@@ -269,7 +269,7 @@ def is_unity_running():
         LOG.exception("could not check for Unity dbus service")
     return unity_running
     
-def get_icon_from_theme(icons, iconname=None, iconsize=APP_ICON_SIZE, missingicon=MISSING_APP_ICON):
+def get_icon_from_theme(icons, iconname=None, iconsize=Icons.APP_ICON_SIZE, missingicon=Icons.MISSING_APP):
     """
     return the icon in the theme that corresponds to the given iconname
     """    
@@ -282,18 +282,18 @@ def get_icon_from_theme(icons, iconname=None, iconsize=APP_ICON_SIZE, missingico
         icon = icons.load_icon(missingicon, iconsize, 0)
     return icon
     
-def get_file_path_from_iconname(icons, iconname=None, iconsize=APP_ICON_SIZE):
+def get_file_path_from_iconname(icons, iconname=None, iconsize=Icons.APP_ICON_SIZE):
     """
     return the file path of the icon in the theme that corresponds to the
     given iconname, or None if it cannot be determined
     """
     if (not iconname or
         not icons.has_icon(iconname)):
-        iconname = MISSING_APP_ICON
+        iconname = Icons.MISSING_APP
     try:
         icon_info = icons.lookup_icon(iconname, iconsize, 0)
     except Exception:
-        icon_info = icons.lookup_icon(MISSING_APP_ICON, iconsize, 0)
+        icon_info = icons.lookup_icon(Icons.MISSING_APP, iconsize, 0)
     if icon_info is not None:
         icon_file_path = icon_info.get_filename()
         icon_info.free()
@@ -517,6 +517,21 @@ class GMenuSearcher(object):
                 return self._found
         return None
 
+
+
+# those helpers are packaging system specific
+from softwarecenter.db.pkginfo import get_pkg_info
+upstream_version_compare = get_pkg_info().upstream_version_compare
+upstream_version = get_pkg_info().upstream_version
+version_compare = get_pkg_info().version_compare
+
+# only when needed
+try:
+    import apt_pkg
+    size_to_str = apt_pkg.size_to_str
+except ImportError:
+    def size_to_str(size):
+        return str(size)
         
 if __name__ == "__main__":
     s = decode_xml_char_reference('Search&#x2026;')

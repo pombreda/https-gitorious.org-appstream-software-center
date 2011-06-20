@@ -33,6 +33,7 @@ import time
 import urllib
 import simplejson
 
+
 from softwarecenter.backend.rnrclient import RatingsAndReviewsAPI
 from softwarecenter.backend.rnrclient_pristine import ReviewDetails
 from softwarecenter.db.database import Application
@@ -247,7 +248,7 @@ class ReviewLoader(object):
                 LOG.exception("review stats cache load failure")
                 os.rename(self.REVIEW_STATS_CACHE_FILE, self.REVIEW_STATS_CACHE_FILE+".fail")
 
-    def get_reviews(self, application, callback, page=1):
+    def get_reviews(self, application, callback, page=1, language=None):
         """run callback f(app, review_list) 
            with list of review objects for the given
            db.database.Application object
@@ -366,7 +367,7 @@ class ReviewLoader(object):
                     if str(review.id) == str(review_id):
                         # remove the one we don't want to see anymore
                         self._reviews[app].remove(review)
-                        callback(app, self._reviews[app])
+                        callback(app, self._reviews[app], None, 'remove', review)
                         break
 
     def _on_submit_usefulness_finished(self, pid, status, (review_id, is_useful, stdout_fd, callback)):
@@ -389,7 +390,7 @@ class ReviewLoader(object):
                         review.usefulness_total = getattr(review, "usefulness_total", 0) + 1
                         if is_useful:
                             review.usefulness_favorable = getattr(review, "usefulness_favorable", 0) + 1
-                        callback(app, self._reviews[app], useful_votes)
+                        callback(app, self._reviews[app], useful_votes, 'replace', review)
                         break
         else:
             LOG.debug("submit usefulness id=%s failed with exitcode %s" % (
@@ -398,7 +399,7 @@ class ReviewLoader(object):
                 for review in reviews:
                     if str(review.id) == str(review_id):
                         review.usefulness_submit_error = exitcode
-                        callback(app, self._reviews[app])
+                        callback(app, self._reviews[app], None, 'replace', review)
                         break
 
 
@@ -589,7 +590,7 @@ class ReviewLoaderJsonAsync(ReviewLoader):
         # run callback
         callback(app, sorted(reviews, reverse=True))
 
-    def get_reviews(self, app, callback, page=1):
+    def get_reviews(self, app, callback, page=1, language=None):
         """ get a specific review and call callback when its available"""
         # FIXME: get this from the app details
         origin = self.cache.get_origin(app.pkgname)
@@ -660,7 +661,7 @@ class ReviewLoaderFake(ReviewLoader):
         return random.choice(self.LOREM.split("\n\n"))
     def _random_summary(self):
         return random.choice(self.SUMMARIES)
-    def get_reviews(self, application, callback, page=1):
+    def get_reviews(self, application, callback, page=1, language=None):
         if not application in self._review_stats_cache:
             self.get_review_stats(application)
         stats = self._review_stats_cache[application]
@@ -672,9 +673,11 @@ class ReviewLoaderFake(ReviewLoader):
                 # FIXME: instead of random, try to match the avg_rating
                 review.rating = random.randint(1,5)
                 review.summary = self._random_summary()
-                review.date_created = time.ctime(time.time())
+                review.date_created = time.strftime("%Y-%m-%d %H:%M:%S")
                 review.reviewer_username = self._random_person()
                 review.review_text = self._random_text().replace("\n","")
+                review.usefulness_total = random.randint(1, 20)
+                review.usefulness_favorable = random.randint(1, 20)
                 reviews.append(review)
             self._reviews_cache[application] = reviews
         reviews = self._reviews_cache[application]
