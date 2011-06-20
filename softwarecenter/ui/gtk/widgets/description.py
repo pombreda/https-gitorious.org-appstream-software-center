@@ -20,6 +20,8 @@ import gtk
 import pango
 import gobject
 
+from softwarecenter.utils import normalize_package_description
+
 from pango import SCALE as PS
 from gtk import keysyms as keys
 
@@ -1031,69 +1033,12 @@ class AppDescription(gtk.VBox):
             reconstructing the description into text blocks 
             (either paragraphs or bullets) which are line-wrap friendly.
         """
-
-        parts = desc.split('\n')
-        l = len(parts)
-
-        in_blist = False
-        processed_frag = ''
-
-        for i, part in enumerate(parts):
-            part = part.strip()
-            # if empty, do the void
-            if not part:
-                pass
-
+        parts = normalize_package_description(desc).split('\n')
+        for part in parts:
+            if part.startswith("* "):
+                self.append_bullet(part)
             else:
-                # frag looks like its a bullet point
-                if part[:2] in self.BULLETS:
-                    # if there's an existing bullet, append it and start anew
-                    if in_blist:
-                        self.append_bullet(processed_frag)
-                        processed_frag = ''
-
-                    in_blist = True
-
-                processed_frag += part
-
-                # ends with a terminator or the following fragment starts with a capital letter
-                if (part[-1] in ('.', '!', '?', ':') or
-                   (i+1 < l and len(parts[i+1]) > 1 and parts[i+1][0].isupper()) or
-                   (i+1 < l and parts[i+1] == '')):
-
-                    # not in a bullet list, so normal paragraph
-                    if not in_blist:
-                        # if not final text block, append newline
-                        if (i+1) < l:
-                            processed_frag += '\n'
-                        # append text block
-                        self.append_paragraph(processed_frag)
-                        # reset
-                        processed_frag = ''
-
-                    # we are in a bullet list
-                    else:
-                        # append newline only if this is not the final
-                        # text block and its not followed by a bullet 
-                        if ((i+1) < l and
-                            len(parts[i+1]) > 1
-                            and not parts[i+1][:2] in self.BULLETS):
-                            processed_frag += '\n'
-
-                        # append a bullet point
-                        self.append_bullet(processed_frag)
-                        # reset
-                        processed_frag = ''
-                        in_blist = False
-
-                else:
-                    processed_frag += ' '
-
-        if processed_frag:
-            if processed_frag[:2] in self.BULLETS:
-                self.append_bullet(processed_frag)
-            else:
-                self.append_paragraph(processed_frag)
+                self.append_paragraph(part)
 
         self.description.finished()
         return
@@ -1152,6 +1097,12 @@ p7zip-full provides:
 
 p7zip provides 7zr, a light version of 7za, and p7zip a gzip like wrapper around 7zr.""".strip()
 
+    EXAMPLE = """A challenging 3D block puzzle game.
+Puzzle Moppet is a challenging 3D puzzle game featuring a diminutive and apparently mute creature who is lost in a mysterious floating landscape.
+
+GAME FEATURES
+* Save the Moppet from itself
+"""
     win = gtk.Window()
 
     d = AppDescription()

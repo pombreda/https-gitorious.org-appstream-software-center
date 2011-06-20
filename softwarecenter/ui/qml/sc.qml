@@ -20,38 +20,14 @@
 
 import QtQuick 1.0
 
-Rectangle {
+FocusScope {
     width: 600
     height: 600
+    focus: true
 
     SystemPalette {
         id: activePalette
         colorGroup: SystemPalette.Active
-    }
-
-    function showCategoriesView()
-    {
-        console.log("showCategoryView")
-        catview.x = 0
-        
-        // FIXME: would be nice to do this somewhere else
-        pkglistmodel.setCategory("")
-    }
-
-    function showListView()
-    {
-        console.log("showListView")
-        catview.x = 0 - listview.width
-    }
-
-    function showDetailsView()
-    {
-        console.log("showDetailsView")
-        catview.x =  0 - listview.width - detailsview.width
-
-        // FIXME: actually we could do this on a property change event
-        //        for listview.x, if it changes to "0" trigger load
-        reviewslistmodel.getReviews(list.currentItem.pkgname)
     }
 
     NavigationBar {
@@ -60,7 +36,12 @@ Rectangle {
         anchors.right: parent.right
         anchors.top: parent.top
         focus: true
-        KeyNavigation.down: (listview.x == 0) ? list : null
+        KeyNavigation.down: (switcher.currentFrame() == listview) ? switcher : null
+
+        property string searchResults: qsTr("Search Results")
+
+        property string categoryKey: "category"
+        property string searchresultsKey: "searchresults"
 
         Binding {
             target: pkglistmodel
@@ -68,40 +49,61 @@ Rectangle {
             value: navigation.searchQuery
         }
 
-        onSearchQueryChanged: if (searchQuery.length > 0) showListView()
-        onSearchActivated: showListView()
-    }
+        Component.onCompleted: breadcrumbs.addCrumb(qsTr("Get Software"), catview, "")
 
-    CategoriesView {
-        id: catview
-        width: parent.width
-        height: parent.height
-        anchors.top: navigation.bottom
-
-        Behavior on x {
-            NumberAnimation { duration: 180 }
+        onCrumbClicked: {
+            if (index == 0 ||
+                (index == 1 && navigation.breadcrumbs.model.get(1).key == categoryKey)) {
+                searchQuery = ""
+            }
+            switcher.goToFrame(navigation.breadcrumbs.model.get(index).view)
         }
 
-        onCategoryChanged: {
-            pkglistmodel.setCategory(catname)
-            showListView()
+        searchBoxVisible: switcher.currentFrame() != detailsview
+
+        function doSearch() {
+            if (searchQuery.length > 0) {
+                var bc = navigation.breadcrumbs
+                if (bc.count == 1 ||
+                    (bc.count == 2 && bc.model.get(1).key == categoryKey)) {
+                    bc.addCrumb(searchResults, listview, searchresultsKey)
+                }
+                switcher.goToFrame(listview)
+            }
         }
+        onSearchQueryChanged: doSearch()
+        onSearchActivated: doSearch()
     }
 
-    Rectangle {
-        id: listview
-
-        width: parent.width
-        anchors.left: catview.right
+    FrameSwitcher {
+        id: switcher
+        anchors.left: parent.left
+        anchors.right: parent.right
         anchors.top: navigation.bottom
         anchors.bottom: parent.bottom
+        duration: 180
+    }
 
-        Behavior on x {
-            NumberAnimation { duration: 180 }
+    Frame {
+        id: catview
+
+        CategoriesView {
+            anchors.fill: parent
+            focus: true
+            onCategoryChanged: {
+                pkglistmodel.setCategory(catname)
+                navigation.breadcrumbs.addCrumb(catname, listview, navigation.categoryKey)
+                switcher.goToFrame(listview)
+            }
         }
+    }
+
+    Frame {
+        id: listview
 
         AppListView {
             id: list
+            focus: true
             model: pkglistmodel
             anchors.left: parent.left
             anchors.right: parent.right
@@ -109,6 +111,11 @@ Rectangle {
             anchors.bottom: statusframe.top
 
             KeyNavigation.up: navigation
+
+            onMoreInfoClicked: {
+                navigation.breadcrumbs.addCrumb(currentItem.appname, detailsview, "")
+                switcher.goToFrame(detailsview)
+            }
         }
 
         Rectangle {
@@ -136,16 +143,28 @@ Rectangle {
         }
     }
 
-    DetailsView {
+    Frame {
         id: detailsview
-        width: parent.width
-        anchors.left: listview.right
-        anchors.top: navigation.bottom
-        anchors.bottom: parent.bottom
 
-        Behavior on x {
-            NumberAnimation { duration: 180 }
+        DetailsView {
+            id: details
+            anchors.fill: parent
+            focus: true
+            onBackClicked: {
+                navigation.breadcrumbs.removeCrumb()
+                switcher.goToFrame(listview)
+            }
         }
+        onShown: { details.loadThumbnail();
+                   details.loadReviews();
+                 }
+        onHidden: details.unloadThumbnail()
+    }
+
+    Component.onCompleted: {
+        switcher.pushFrame(catview)
+        switcher.pushFrame(listview)
+        switcher.pushFrame(detailsview)
     }
 }
 

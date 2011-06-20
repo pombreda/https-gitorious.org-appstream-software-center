@@ -1,4 +1,4 @@
-software-center (4.1.6) UNRELEASED; urgency=low
+software-center (4.1.6) oneiric; urgency=low
 
   [ Brian Murray ]
   * add in an apport package hook for software-center that adds
@@ -9,11 +9,44 @@ software-center (4.1.6) UNRELEASED; urgency=low
     softwarecenter/app.py:
     - specify the default initial window size based on screen
       dimensions to take better advantage of the available area
+  * softwarecenter/ui/gtk/appdetailsview_gtk.py:
+    - display package name first in the version field per spec
+  * merge lp:~weblive-dev/software-center/fix-weblive, many
+    thanks to Stéphane Graber
+  * softwarecenter/db/update.py:
+    - don't generate thumbnail urls for screenshots in the For
+      Purchase section as we no longer provide separate thumbnail
+      files for these apps
+  * softwarecenter/ui/gtk/softwarepane.py:
+    - fix crash when searching the Canonical Partners section
+      (LP: #796034)
+  * softwarecenter/db/application.py:
+    - fix broken details view for items in the Canonical Partners
+      section when the channel is not enabled
 
   [ Michael Vogt ]
   * move from pyhton-central to python2
+  * lp:~alexeftimie/software-center/backend-refactor,
+    many thanks to Alex Eftimie (LP: #704719)
+  * softwarecenter/utils.py:
+    - add new generic "normalize_package_description()" helper that
+      can be shared between the various UIs to normalize the package
+      description
+    - add generic htmlize_package_description()
+  * softwarecenter/ui/gtk/widgets/description.py:
+    - use "normalize_package_description()" here for the description
+      building
+  * fix some pyflakes warnings
+  * update test/test_htmlize.py for the new htmlize_package_description()
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 09 Jun 2011 20:44:41 -0400
+  [ Aaron Peachey ]
+  * softwarecenter/backend/reviews.py,
+    softwarecenter/ui/gtk/appdetailsview_gtk.py,
+    softwarecenter/ui/gtk/widgets/reviews.py:
+    - fix duplication of reviews after user has submitted
+      usefulness, flagged or submitted a review (LP: #794060)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 20 Jun 2011 09:40:28 +0200
 
 software-center (4.1.5) oneiric; urgency=low
 

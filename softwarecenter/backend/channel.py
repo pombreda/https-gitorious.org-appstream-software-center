@@ -17,6 +17,7 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+import os
 import glib
 import logging
 import xapian
@@ -101,6 +102,13 @@ class ChannelsManager(object):
         else:
             channel._channel_view_id = ViewPages.AVAILABLE
         return channel
+
+    @staticmethod
+    def channel_available(channelname):
+        import apt_pkg
+        p = os.path.join(apt_pkg.config.find_dir("Dir::Etc::sourceparts"),
+                         "%s.list" % channelname)
+        return os.path.exists(p)
 
     # internal
     def _feed_in_private_sources_list_entry(self, source_entry):

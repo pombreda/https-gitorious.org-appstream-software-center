@@ -38,6 +38,26 @@ class GtkMainIterationProgress(apt.progress.base.OpProgress):
         while gtk.events_pending():
             gtk.main_iteration()
 
+def convert_package_argument(f):
+    """ decorator converting _Package argument to Package object from cache """
+    def _converted(self, pkg, *args):
+        try:
+            if type(pkg) is not apt_pkg.Package:
+                if type(pkg) is str:
+                    pkg = self._cache[pkg]
+                else:
+                    pkg = self._cache[pkg.name] 
+        except Exception as e:
+            logging.exception(e)
+            pkg = None
+        return f(self, pkg, *args)
+    return _converted
+
+def pkg_downloaded(pkg_version):
+    filename = os.path.basename(pkg_version.filename)
+    # FIXME: use relative path here
+    return os.path.exists("/var/cache/apt/archives/" + filename)
+
 class AptCache(PackageInfo):
     """ 
     A apt cache that opens in the background and keeps the UI alive
@@ -100,7 +120,7 @@ class AptCache(PackageInfo):
             return None
         return self._cache[pkgname].candidate
 
-    def get_available(self, pkgname):
+    def get_versions(self, pkgname):
         if (pkgname not in self._cache or
             not self._cache[pkgname].candidate):
             return []
@@ -123,6 +143,29 @@ class AptCache(PackageInfo):
             not self._cache[pkgname].candidate):
             return ''
         return self._cache[pkgname].candidate.description
+
+    def get_website(self, pkgname):
+        if (pkgname not in self._cache or
+            not self._cache[pkgname].candidate):
+            return ''
+        return self._cache[pkgname].candidate.homepage
+
+    def get_installed_files(self, pkgname):
+        if (pkgname not in self._cache):
+            return []
+        return self._cache[pkgname].installed_files
+
+    def get_size(self, pkgname):
+        if (pkgname not in self._cache or
+            not self._cache[pkgname].candidate):
+            return 0
+        return self._cache[pkgname].candidate.size
+
+    def get_installed_size(self, pkgname):
+        if (pkgname not in self._cache or
+            not self._cache[pkgname].candidate):
+            return 0
+        return self._cache[pkgname].candidate.installed_size
 
     @property
     def ready(self):
@@ -148,12 +191,8 @@ class AptCache(PackageInfo):
     # temporarely return a full apt.Package so that the tests and the
     # code keeps working for now, this needs to go away eventually
     # and get replaced with the abstract _Package class 
-    def __getitem__(self, key):
-        p =  self._cache[key]
-        # temporary only too, just needed for compat with the new interface
-        if p.candidate:
-            p.origins = p.candidate.origins
-        return p
+    #def __getitem__(self, key):
+    #    return self._cache[key]
 
     def __iter__(self):
         return self._cache.__iter__()
@@ -168,6 +207,12 @@ class AptCache(PackageInfo):
         self._timeout_id = glib.timeout_add_seconds(10, self.open)
     def _get_rdepends_by_type(self, pkg, type, onlyInstalled):
         rdeps = set()
+        # make sure this is a apt.Package object
+        try:
+            pkg = self._cache[pkg.name]
+        except KeyError:
+            LOG.error("package %s not found in AptCache" % str(pkg))
+            return rdeps
         for rdep in pkg._pkg.rev_depends_list:
             dep_type = rdep.dep_type_untranslated
             if dep_type in type:
@@ -202,6 +247,7 @@ class AptCache(PackageInfo):
 
             Note that the package must be marked for removal already for
             this to work
+            Not: unused
         """
         installed_auto_deps = set()
         deps = self._installed_dependencies(pkg.name)
@@ -270,7 +316,8 @@ class AptCache(PackageInfo):
                 it.archive == distro_codename):
                 return True
         return False
-        
+
+    @convert_package_argument
     def _get_depends_by_type(self, pkg, types):
         version = pkg.installed
         if version == None:
@@ -293,15 +340,17 @@ class AptCache(PackageInfo):
     # FIXME: there are cleaner ways to do this than below
 
     # pkg relations
-    def get_depends(self, pkg):
+    def _get_depends(self, pkg):
         return self._get_depends_by_type_str(pkg, self.DEPENDENCY_TYPES)
-    def get_recommends(self, pkg):
+    def _get_recommends(self, pkg):
         return self._get_depends_by_type_str(pkg, self.RECOMMENDS_TYPES)
-    def get_suggests(self, pkg):
+    def _get_suggests(self, pkg):
         return self._get_depends_by_type_str(pkg, self.SUGGESTS_TYPES)
-    def get_enhances(self, pkg):
+    def _get_enhances(self, pkg):
         return self._get_depends_by_type_str(pkg, self.ENHANCES_TYPES)
-    def get_provides(self, pkg):
+    @convert_package_argument
+    def _get_provides(self, pkg):
+        # note: can use ._cand, because pkg has been converted to apt.Package
         provides_list = pkg.candidate._cand.provides_list
         provides = []
         for provided in provides_list:
@@ -309,15 +358,16 @@ class AptCache(PackageInfo):
         return provides
 
     # reverse pkg relations
-    def get_rdepends(self, pkg):
+    def _get_rdepends(self, pkg):
         return self._get_rdepends_by_type(pkg, self.DEPENDENCY_TYPES, False)
-    def get_rrecommends(self, pkg):
+    def _get_rrecommends(self, pkg):
         return self._get_rdepends_by_type(pkg, self.RECOMMENDS_TYPES, False)
-    def get_rsuggests(self, pkg):
+    def _get_rsuggests(self, pkg):
         return self._get_rdepends_by_type(pkg, self.SUGGESTS_TYPES, False)
-    def get_renhances(self, pkg):
+    def _get_renhances(self, pkg):
         return self._get_rdepends_by_type(pkg, self.ENHANCES_TYPES, False)
-    def get_renhances_lowlevel_apt_pkg(self, pkg):
+    @convert_package_argument
+    def _get_renhances_lowlevel_apt_pkg(self, pkg):
         """ takes a apt_pkg.Package and returns a list of pkgnames that 
             enhance this package - this is needed to support enhances
             for virtual packages
@@ -327,19 +377,28 @@ class AptCache(PackageInfo):
             if dep.dep_type_untranslated == "Enhances":
                 renhances.append(dep.parent_pkg.name)
         return renhances
-    def get_rprovides(self, pkg):
+    def _get_rprovides(self, pkg):
         return self._get_rdepends_by_type(pkg, self.PROVIDES_TYPES, False)
 
     # installed reverse pkg relations
-    def get_installed_rdepends(self, pkg):
+    def get_packages_removed_on_remove(self, pkg):
         return self._get_rdepends_by_type(pkg, self.DEPENDENCY_TYPES, True)
-    def get_installed_rrecommends(self, pkg):
+
+    def get_packages_removed_on_install(self, pkg):
+        depends = set()
+        deps_remove = self._try_install_and_get_all_deps_removed(pkg)
+        for depname in deps_remove:
+            if self._cache[depname].is_installed:
+                depends.add(depname)
+        return depends
+
+    def _get_installed_rrecommends(self, pkg):
         return self._get_rdepends_by_type(pkg, self.RECOMMENDS_TYPES, True)
-    def get_installed_rsuggests(self, pkg):
+    def _get_installed_rsuggests(self, pkg):
         return self._get_rdepends_by_type(pkg, self.SUGGESTS_TYPES, True)
-    def get_installed_renhances(self, pkg):
+    def _get_installed_renhances(self, pkg):
         return self._get_rdepends_by_type(pkg, self.ENHANCES_TYPES, True)
-    def get_installed_rprovides(self, pkg):
+    def _get_installed_rprovides(self, pkg):
         return self._get_rdepends_by_type(pkg, self.PROVIDES_TYPES, True)
 
     # language pack stuff
@@ -365,6 +424,7 @@ class AptCache(PackageInfo):
         return language_packages
         
     # these are used for calculating the total size
+    @convert_package_argument
     def _get_changes_without_applying(self, pkg):
         try:
             if pkg.installed == None:
@@ -390,7 +450,7 @@ class AptCache(PackageInfo):
                 changes[change.name] = PkgStates.UNKNOWN
         self._cache.clear()
         return changes
-    def try_install_and_get_all_deps_installed(self, pkg):
+    def _try_install_and_get_all_deps_installed(self, pkg):
         """ Return all dependencies of pkg that will be marked for install """
         changes = self._get_changes_without_applying(pkg)
         installing_deps = []
@@ -398,7 +458,7 @@ class AptCache(PackageInfo):
             if change != pkg.name and changes[change] == PkgStates.INSTALLING:
                 installing_deps.append(change)
         return installing_deps
-    def try_install_and_get_all_deps_removed(self, pkg):
+    def _try_install_and_get_all_deps_removed(self, pkg):
         """ Return all dependencies of pkg that will be marked for remove"""
         changes = self._get_changes_without_applying(pkg)
         removing_deps = []
@@ -406,7 +466,70 @@ class AptCache(PackageInfo):
             if change != pkg.name and changes[change] == PkgStates.REMOVING:
                 removing_deps.append(change)
         return removing_deps
+
+    def get_total_size_on_install(self, pkgname, addons_install=None,
+                                addons_remove=None):
+        pkgs_to_install = []
+        pkgs_to_remove = []
+        total_download_size = 0 # in kB 
+        total_install_size = 0 # in kB
+
+        if not pkgname in self._cache:
+            return (0, 0)
+
+        pkg = self._cache[pkgname]
+        version = pkg.installed
+
+        all_install = []
+        if addons_install is not None:
+            all_install += addons_install
+        
+        if version == None:
+            all_install.append(pkgname)
+
+        for p in all_install:
+            version = max(self._cache[p].versions)
+            pkgs_to_install.append(version)
+            deps_inst = self._try_install_and_get_all_deps_installed(self._cache[p])
+            for dep in deps_inst:
+                if self._cache[dep].installed == None:
+                    dep_version = max(self._cache[dep].versions)
+                    pkgs_to_install.append(dep_version)
+            deps_remove = self._try_install_and_get_all_deps_removed(self._cache[p])
+            for dep in deps_remove:
+                if self._cache[dep].is_installed:
+                    dep_version = self._cache[dep].installed
+                    pkgs_to_remove.append(dep_version)
+
+        all_remove = [] if addons_remove is None else addons_remove
+        for p in all_remove:
+            version = self._cache[p].installed
+            pkgs_to_remove.append(version)
+            deps_inst = self._try_install_and_get_all_deps_installed(self._cache[p])
+            for dep in deps_inst:
+                if self._cache[dep].installed == None:
+                    version = max(self._cache[dep].versions)
+                    pkgs_to_install.append(version)
+            deps_remove = self._try_install_and_get_all_deps_removed(self._cache[p])
+            for dep in deps_remove:
+                if self._cache[dep].installed != None:
+                    version = self._cache[dep].installed
+                    pkgs_to_remove.append(version)
+
+        pkgs_to_install = list(set(pkgs_to_install))
+        pkgs_to_remove = list(set(pkgs_to_remove))
+            
+        for pkg in pkgs_to_install:
+            if not pkg_downloaded(pkg) and not pkg.package.installed:
+                total_download_size += pkg.size
+            total_install_size += pkg.installed_size
+        for pkg in pkgs_to_remove:
+            total_install_size -= pkg.installed_size
+
+        return (total_download_size, total_install_size)
+
     def get_all_deps_upgrading(self, pkg):
+        # note: this seems not to be used anywhere
         changes = self._get_changes_without_applying(pkg)
         upgrading_deps = []
         for change in changes.keys():
@@ -456,7 +579,7 @@ class AptCache(PackageInfo):
                 LOG.debug("part of language pkg rdepends %s" % addon)
                 return False
             # something on the system depends on it
-            rdeps = self.get_installed_rdepends(addon_pkg)
+            rdeps = self.get_packages_removed_on_remove(addon_pkg)
             if rdeps and ignore_installed:
                 LOG.debug("already has a installed rdepends %s" % addon)
                 return False
@@ -481,19 +604,19 @@ class AptCache(PackageInfo):
         pkg = self._cache[pkgname]
 
         # recommended addons
-        addons_rec = self.get_recommends(pkg)
+        addons_rec = self._get_recommends(pkg)
         LOG.debug("recommends: %s" % addons_rec)
         # suggested addons and renhances
-        addons_sug = self.get_suggests(pkg)
+        addons_sug = self._get_suggests(pkg)
         LOG.debug("suggests: %s" % addons_sug)
-        renhances = self.get_renhances(pkg)
+        renhances = self._get_renhances(pkg)
         LOG.debug("renhances: %s" % renhances)
         addons_sug += renhances
-        provides = self.get_provides(pkg)
+        provides = self._get_provides(pkg)
         LOG.debug("provides: %s" % provides)
         for provide in provides:
             virtual_aptpkg_pkg = self._cache._cache[provide]
-            renhances = self.get_renhances_lowlevel_apt_pkg(virtual_aptpkg_pkg)
+            renhances = self._get_renhances_lowlevel_apt_pkg(virtual_aptpkg_pkg)
             LOG.debug("renhances of %s: %s" % (provide, renhances))
             addons_sug += renhances
             while gtk.events_pending():
@@ -508,21 +631,21 @@ class AptCache(PackageInfo):
         #        (arduino-core -> avrdude -> avrdude-doc) with that
         # FIXME2: if it turns out we don't have good/better examples,
         #         kill it
-        deps = self.get_depends(pkg)
+        deps = self._get_depends(pkg)
         for dep in deps:
             if dep in self._cache:
                 pkgdep = self._cache[dep]
-                if len(self.get_rdepends(pkgdep)) == 1:
+                if len(self._get_rdepends(pkgdep)) == 1:
                     # pkg is the only known package that depends on pkgdep
-                    pkgdep_rec =  self.get_recommends(pkgdep)
+                    pkgdep_rec =  self._get_recommends(pkgdep)
                     LOG.debug("recommends from lonley dependency %s: %s" % (
                             pkgdep, pkgdep_rec))
                     addons_rec += pkgdep_rec
-                    pkgdep_sug =  self.get_suggests(pkgdep)
+                    pkgdep_sug =  self._get_suggests(pkgdep)
                     LOG.debug("suggests from lonley dependency %s: %s" % (
                             pkgdep, pkgdep_sug))
                     addons_sug += pkgdep_sug
-                    pkgdep_enh = self.get_renhances(pkgdep)
+                    pkgdep_enh = self._get_renhances(pkgdep)
                     LOG.debug("renhances from lonley dependency %s: %s" % (
                             pkgdep, pkgdep_enh))
                     addons_sug += pkgdep_enh
@@ -542,7 +665,7 @@ class AptCache(PackageInfo):
         if addons_rec or addons_sug:
             # now get all_deps if the package would be installed
             try:
-                all_deps_if_installed = self.try_install_and_get_all_deps_installed(pkg)
+                all_deps_if_installed = self._try_install_and_get_all_deps_installed(pkg)
             except:
                 # if we have broken packages, then we return no addons
                 LOG.warn("broken packages encountered while getting deps for %s" % pkgname)
@@ -560,27 +683,27 @@ if __name__ == "__main__":
     print c._installed_dependencies(c["unrar"].name)
 
     print "unused deps of 4g8"
-    pkg = c["4g8"]
+    pkg = c._cache["4g8"]
     pkg.mark_delete()
     print c.get_installed_automatic_depends_for_pkg(pkg)
 
     pkg = c["unace"]
     print c.get_installed_automatic_depends_for_pkg(pkg)
-    print c.get_installed_rdepends(pkg)
-    print c.get_installed_rrecommends(pkg)
-    print c.get_installed_rsuggests(pkg)
+    print c.get_packages_removed_on_remove(pkg)
+    print c._get_installed_rrecommends(pkg)
+    print c._get_installed_rsuggests(pkg)
     
     print "deps of gimp"
     pkg = c["gimp"]
-    print c.get_depends(pkg)
-    print c.get_recommends(pkg)
-    print c.get_suggests(pkg)
-    print c.get_enhances(pkg)
-    print c.get_provides(pkg)
+    print c._get_depends(pkg)
+    print c._get_recommends(pkg)
+    print c._get_suggests(pkg)
+    print c._get_enhances(pkg)
+    print c._get_provides(pkg)
     
     print "rdeps of gimp"
-    print c.get_rdepends(pkg)
-    print c.get_rrecommends(pkg)
-    print c.get_rsuggests(pkg)
-    print c.get_renhances(pkg)
-    print c.get_rprovides(pkg)
+    print c._get_rdepends(pkg)
+    print c._get_rrecommends(pkg)
+    print c._get_rsuggests(pkg)
+    print c._get_renhances(pkg)
+    print c._get_rprovides(pkg)
