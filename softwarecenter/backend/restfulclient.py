@@ -202,16 +202,17 @@ class UbuntuSSOAPI(gobject.GObject):
 class UbuntuSSOAPIFake(UbuntuSSOAPI):
     def __init__(self, token):
         gobject.GObject.__init__(self)
+        self._fake_settings = FakeReviewSettings()
 
     @network_delay
     def whoami(self):
-        if FakeReviewSettings.whoami_response == "whoami":
+        if self._fake_settings.get_setting('whoami_response') == "whoami":
             self.emit("whoami", self._create_whoami_response())
-        elif FakeReviewSettings.whoami_response == "error": 
+        elif self._fake_settings.get_setting('whoami_response') == "error": 
             self.emit("error", self._make_error())
     
     def _create_whoami_response(self):
-        username = FakeReviewSettings.whoami_username or "anyuser"
+        username = self._fake_settings.get_setting('whoami_username') or "anyuser"
         response = {
                     u'username': username.decode('utf-8'), 
                     u'preferred_email': u'user@email.com', 

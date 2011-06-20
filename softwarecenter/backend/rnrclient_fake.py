@@ -29,7 +29,7 @@ import time
 
 class RatingsAndReviewsAPI(PistonAPI):
     """A fake client pretending to be RAtingsAndReviewsAPI from rnrclient_pristine.
-       Uses settings from the class in test.fake_review_settings. FakeReviewSettings
+       Uses settings from test.fake_review_settings.FakeReviewSettings
        to provide predictable responses to methods that try to use the 
        RatingsAndReviewsAPI for testing purposes (i.e. without network activity).
        To use this, instead of importing from rnrclient_pristine, you can import
@@ -48,12 +48,13 @@ class RatingsAndReviewsAPI(PistonAPI):
     _SUMMARIES = ["Cool", "Medium", "Bad", "Too difficult"]
     _TEXT = ["Review text number 1", "Review text number 2", 
             "Review text number 3", "Review text number 4"]
+    _fake_settings = FakeReviewSettings()
 
 
     @returns_json
     @network_delay
     def server_status(self):
-        if FakeReviewSettings.server_response_error:
+        if self._fake_settings.get_setting('server_response_error'):
             raise APIError(self._exception_msg)
         return simplejson.dumps('ok')
 
@@ -65,13 +66,13 @@ class RatingsAndReviewsAPI(PistonAPI):
     @network_delay
     def review_stats(self, origin='any', distroseries='any', days=None,
         valid_days=(1,3,7)):
-        if FakeReviewSettings.review_stats_error:
+        if self._fake_settings.get_setting('review_stats_error'):
             raise APIError(self._exception_msg)
             
-        if FakeReviewSettings.packages_returned > 15:
+        if self._fake_settings.get_setting('packages_returned') > 15:
             quantity = 15
         else:
-            quantity = FakeReviewSettings.packages_returned
+            quantity = self._fake_settings.get_setting('packages_returned')
             
         stats = []
     
@@ -98,14 +99,14 @@ class RatingsAndReviewsAPI(PistonAPI):
         distroseries='any', version='any', appname='', page=1):
         
         # work out how many reviews to return for pagination
-        if page <= FakeReviewSettings.review_pages:
+        if page <= self._fake_settings.get_setting('review_pages'):
             num_reviews = 10
-        elif page == FakeReviewSettings.review_pages + 1:
-            num_reviews = FakeReviewSettings.reviews_returned
+        elif page == self._fake_settings.get_setting('review_pages') + 1:
+            num_reviews = self._fake_settings.get_setting('reviews_returned')
         else:
             num_reviews = 0
         
-        if FakeReviewSettings.get_reviews_error:
+        if self._fake_settings.get_setting('get_reviews_error'):
             raise APIError(self._exception_msg)
         
         reviews = self._make_fake_reviews(packagename, num_reviews)
@@ -115,7 +116,7 @@ class RatingsAndReviewsAPI(PistonAPI):
     @returns(ReviewDetails)
     @network_delay
     def get_review(self, review_id):
-        if FakeReviewSettings.get_review_error:
+        if self._fake_settings.get_setting('get_review_error'):
             raise APIError(self._exception_msg)
         review = self._make_fake_reviews(single_id=review_id)
         return simplejson.dumps(review)
@@ -124,11 +125,11 @@ class RatingsAndReviewsAPI(PistonAPI):
     @returns(ReviewDetails)
     @network_delay
     def submit_review(self, review):
-        if FakeReviewSettings.submit_review_error:
+        if self._fake_settings.get_setting('submit_review_error'):
             raise APIError(self._exception_msg)
         
-        user = FakeReviewSettings.reviewer_username or random.choice(self._USERS)
-        review_id = FakeReviewSettings.submit_review_id or random.randint(1,10000)
+        user = self._fake_settings.get_setting('reviewer_username') or random.choice(self._USERS)
+        review_id = self._fake_settings.get_setting('submit_review_id') or random.randint(1,10000)
         r = {
                 "origin": review.origin,
                 "rating": review.rating,
@@ -156,12 +157,12 @@ class RatingsAndReviewsAPI(PistonAPI):
     @returns_json
     @network_delay
     def flag_review(self, review_id, reason, text):
-        if FakeReviewSettings.flag_review_error:
+        if self._fake_settings.get_setting('flag_review_error'):
             raise APIError(self._exception_msg)
     
         mod_id = random.randint(1,500)
-        pkg = FakeReviewSettings.flag_package_name or random.choice(self._PACKAGE_NAMES)
-        username = FakeReviewSettings.flagger_username or random.choice(self._USERS)
+        pkg = self._fake_settings.get_setting('flag_package_name') or random.choice(self._PACKAGE_NAMES)
+        username = self._fake_settings.get_setting('flagger_username') or random.choice(self._USERS)
 
         f = {
             "user_id": random.randint(1,500),
@@ -191,9 +192,9 @@ class RatingsAndReviewsAPI(PistonAPI):
     @returns_json
     @network_delay
     def submit_usefulness(self, review_id, useful):
-        if FakeReviewSettings.submit_usefulness_error:
+        if self._fake_settings.get_setting('submit_usefulness_error'):
             raise APIError(self._exception_msg)
-        return simplejson.dumps(FakeReviewSettings.usefulness_response_string)
+        return simplejson.dumps(self._fake_settings.get_setting('usefulness_response_string'))
 
     @validate('review_id', int, required=False)
     @validate_pattern('username', r'[^\n]+', required=False)
@@ -203,7 +204,7 @@ class RatingsAndReviewsAPI(PistonAPI):
         if not username and not review_id:
             return None
         
-        if FakeReviewSettings.get_usefulness_error:
+        if self._fake_settings.get_setting('get_usefulness_error'):
             raise APIError(self._exception_msg)
         
         #just return a single fake item if the review_id was supplied
@@ -221,8 +222,8 @@ class RatingsAndReviewsAPI(PistonAPI):
             return simplejson.dumps([response])
             
         #set up review ids to honour requested and also add randoms
-        quantity = FakeReviewSettings.votes_returned
-        id_list = FakeReviewSettings.required_review_ids
+        quantity = self._fake_settings.get_setting('votes_returned')
+        id_list = self._fake_settings.get_setting('required_review_ids')
         id_quantity = len(id_list)
 
         #figure out if we need to accomodate requested review ids

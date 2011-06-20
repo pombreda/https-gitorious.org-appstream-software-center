@@ -1,11 +1,15 @@
 
 import time
+import os
+import cPickle
+from softwarecenter.paths import SOFTWARE_CENTER_CACHE_DIR
 
 # decorator to add a fake network delay if set 
 # in FakeReviewSettings.fake_network_delay
 def network_delay(fn):
     def slp(self, *args, **kwargs):
-        delay = FakeReviewSettings.fake_network_delay
+        fake_settings = FakeReviewSettings()
+        delay = fake_settings.get_setting('fake_network_delay')
         if delay:
             time.sleep(delay)
         return fn(self, *args, **kwargs)
@@ -25,87 +29,89 @@ class FakeReviewSettings(object):
        running the unit test.
     '''
     
+    _FAKE_SETTINGS = {}
+    
     #general settings
     #*****************************
     #delay (in seconds) before returning from any of the fake rnr methods
     #useful for emulating real network timings (use None for no delays)
-    fake_network_delay = None
+    _FAKE_SETTINGS['fake_network_delay'] = 2
 
     #server status
     #*****************************
     #raises APIError if True
-    server_response_error = False
+    _FAKE_SETTINGS['server_response_error'] = False
     
     #review stats
     #*****************************
     #raises APIError if True
-    review_stats_error = False    
+    _FAKE_SETTINGS['review_stats_error'] = False    
     
     #the following has no effect if review_stats_error = True
     #determines the number of package stats (i.e. ReviewStats list size) to return
     #max 15 packages (any number higher than 15 will still return 15)
-    packages_returned = 3
+    _FAKE_SETTINGS['packages_returned'] = 10
     
     #get reviews
     #*****************************
     #raises APIError if True
-    get_reviews_error= False
+    _FAKE_SETTINGS['get_reviews_error'] = False
 
     #number of pages of 10 reviews to return before returning the number specified
     #in the reviews_returned value below
-    review_pages = 1
+    _FAKE_SETTINGS['review_pages'] = 1
 
     #the following has no effect if get_reviews_error = True
     #determines number of reviews to return 
     # (Accepts 0 to n but should really be between 1 and 10)
-    reviews_returned = 10
+    _FAKE_SETTINGS['reviews_returned'] = 0
     
     #get review
     #*****************************
     #raises APIError if True
-    get_review_error= False
+    _FAKE_SETTINGS['get_review_error'] = False
     
     #submit review
     #*****************************
     #raises APIError if True
-    submit_review_error = False
+    _FAKE_SETTINGS['submit_review_error'] = False
     #fake username(str) and review_id(int) to give back with a successful review
     #leave as None to generate a random username and review_id
-    reviewer_username = None
-    submit_review_id = None
+    _FAKE_SETTINGS['reviewer_username'] = None
+    _FAKE_SETTINGS['submit_review_id'] = None
     
     #flag review
     #*****************************
     #raises APIError if True
-    flag_review_error = False
+    _FAKE_SETTINGS['flag_review_error'] = False
     #fake username(str) to give back as 'flagger'
-    flagger_username = None
+    _FAKE_SETTINGS['flagger_username'] = None
     #fake package name (str) to give back as flagged app
-    flag_package_name = None
+    _FAKE_SETTINGS['flag_package_name'] = None
     
     #submit usefulness
     #*****************************
     #raises APIError if True
-    submit_usefulness_error = False
+    _FAKE_SETTINGS['submit_usefulness_error'] = True
     
     #the following has no effect if submit_usefulness_error = True
     #which string to pretend the server returned
     #choices are "Created", "Updated", "Not modified"
-    usefulness_response_string = "Created"
+    _FAKE_SETTINGS['usefulness_response_string'] = "Created"
     
     #get usefulness
     #*****************************
     #raises APIError if True
-    get_usefulness_error = False
+    _FAKE_SETTINGS['get_usefulness_error'] = False
     
     #the following has no effect if get_usefulness_error = True
     #how many usefulness votes to return
-    votes_returned = 5
+    _FAKE_SETTINGS['votes_returned'] = 5
     
     #pre-configured review ids to return in the result 
     #if you don't complete this or enter less review ids than votes_returned
     #above, it will be random
-    required_review_ids = [3,6,15]
+    _FAKE_SETTINGS['required_review_ids'] = [3,6,15]
     
     #THE FOLLOWING SETTINGS RELATE TO LOGIN SSO FUNCTIONALITY
     # LoginBackendDbusSSO
@@ -113,15 +119,62 @@ class FakeReviewSettings(object):
     #***********************
     # what to fake the login response as 
     # choices (strings): "successful", "failed", "denied"
-    login_response = "successful"
+    _FAKE_SETTINGS['login_response'] = "successful"
     
     # UbuntuSSOAPI
     # whoami()
     #***********************
     # what to fake whoami response as 
     # choices (strings): "whoami", "error"
-    whoami_response = "whoami"
+    _FAKE_SETTINGS['whoami_response'] = "whoami"
     #this only has effect if whoami_response = 'whoami'
     #determines the username to return in a successful whoami
     #expects a string or None (for a random username)
-    whoami_username = None
+    _FAKE_SETTINGS['whoami_username'] = None
+
+
+    def __init__(self):
+        fname = 'fake_review_settings.p'
+        self.LOCATION = os.path.join(SOFTWARE_CENTER_CACHE_DIR, fname)
+        self._update_from_file()
+        return
+    
+    def update_setting(self, key_name, new_value):
+        '''Takes a string (key_name) which corresponds to a setting in this object 
+        and updates it with the value passed in (new_value).
+        Raises a NameError if the setting name doesn't exist'''
+       
+        if not key_name in self._FAKE_SETTINGS:
+            raise NameError ('Setting key name %s does not exist' % key_name)
+        else:
+            self._FAKE_SETTINGS[key_name] = new_value
+            self._save_settings()
+        return
+    
+    def get_setting(self, key_name):
+        '''Takes a string (key_name) which corresponds to a setting in this object, 
+        gets the latest copy of it from the file and returns the setting.
+        Raises a NameError if the setting name doesn't exist'''
+        if not key_name in self._FAKE_SETTINGS:
+            raise NameError ('Setting %s does not exist' % key_name)
+        else:
+            self._update_from_file()
+            return self._FAKE_SETTINGS[key_name]
+            
+    def _update_from_file(self):
+        if os.path.exists(self.LOCATION):
+            try:
+                self._FAKE_SETTINGS = cPickle.load(open(self.LOCATION))
+            except:
+                os.rename(self.LOCATION, self.LOCATION+".fail")
+        return
+    
+    def _save_settings(self):
+        """write the dict out to cache file"""
+        try:
+            if not os.path.exists(SOFTWARE_CENTER_CACHE_DIR):
+                os.makedirs(SOFTWARE_CENTER_CACHE_DIR)
+            cPickle.dump(self._FAKE_SETTINGS, open(self.LOCATION, "w"))
+            return True
+        except:
+            return False

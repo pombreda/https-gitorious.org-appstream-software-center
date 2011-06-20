@@ -91,10 +91,11 @@ class LoginBackendDbusSSOFake(LoginBackend):
         self.appname = appname
         self.login_text = login_text
         self._window_id = window_id
+        self._fake_settings = FakeReviewSettings()
     
     @network_delay
     def login(self, username=None, password=None):
-        response = FakeReviewSettings.login_response
+        response = self._fake_settings.get_setting('login_response')
             
         if response == "successful":
             self.emit("login-successful", self._return_credentials())
