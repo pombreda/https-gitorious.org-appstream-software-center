@@ -24,7 +24,8 @@ import gtk
 import gobject
 import logging
 import os
-
+import cPickle
+        
 import softwarecenter.paths
 from softwarecenter.paths import SOFTWARE_CENTER_AGENT_HELPER
 
