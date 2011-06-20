@@ -28,6 +28,7 @@ import cPickle
         
 import softwarecenter.paths
 from softwarecenter.paths import SOFTWARE_CENTER_AGENT_HELPER
+from spawn_helper import SpawnHelper
 
 LOG = logging.getLogger(__name__)
 
@@ -62,43 +63,12 @@ class SoftwareCenterAgent(gobject.GObject):
                series_name,
                arch_tag,
                ]
-        (pid, stdin, stdout, stderr) = glib.spawn_async(
-            cmd, flags = glib.SPAWN_DO_NOT_REAP_CHILD, 
-            standard_output=True, standard_error=True)
-        glib.child_watch_add(pid, 
-                             self._query_available_helper_finished, 
-                             data=(stdout, stderr))
-        glib.io_add_watch(stdout, 
-                          glib.IO_IN, 
-                          self._query_available_io_ready,
-                          (stdout, ))
+        spawner = SpawnHelper()
+        spawner.connect("error", lambda spawner, err: self.emit("error", err))
+        spawner.connect("data-available", self._on_query_available_ready)
+        spawner.spawn_helper(cmd)
 
-    def _query_available_helper_finished(self, pid, status, 
-                                         (stdout, stderr, )):
-        """ watcher function in parent using glib """
-        # get status code
-        res = os.WEXITSTATUS(status)
-        if res != 0:
-            LOG.warn("exit code %s from helper" % res)
-        # check stderr
-        err = os.read(stderr, 4*1024)
-        if err:
-            LOG.warn("got error from helper: '%s'" % err)
-            self.emit("error", err)
-        os.close(stderr)
-
-    def _query_available_io_ready(self, source, condition, 
-                                  (stdout, )):
-        # read the raw data
-        data = ""
-        while True:
-            s = os.read(stdout, 1024)
-            if not s: break
-            data += s
-        os.close(stdout)
-        # unpickle it, we should *always* get valid data here, so if
-        # we don't this should raise a error
-        piston_available = cPickle.loads(data)
+    def _on_query_available_ready(self, spawner, piston_available):
         self.emit("available", piston_available)
 
     def query_available_for_me(self, oauth_token, openid_identifier):
