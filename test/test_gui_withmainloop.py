@@ -34,6 +34,7 @@ class TestGUIWithMainLoop(unittest.TestCase):
         datadir = "../data"
         softwarecenter.paths.datadir = datadir
         os.environ["PYTHONPATH"] = ".."
+        self._p()
     
     def _trigger_channel_change(self):
         # reset
