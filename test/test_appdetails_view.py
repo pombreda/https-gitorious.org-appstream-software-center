@@ -222,7 +222,11 @@ class TestAppDetailsView(unittest.TestCase):
         self.assertTrue(review_box.yes_like.get_property('visible'))
         review_box.yes_like.emit('clicked')
         self._p()
-        self.assertFalse(review_box.yes_like.get_property('visible'))
+        time.sleep(2)
+        self._p()
+        #get the correct review_box again, since it's updated on callback
+        review_box = self.appdetails.reviews.vbox.get_children()[0]
+        self.assertTrue(review_box.submit_error_img.get_property('visible'))
         self._p()
         
     
