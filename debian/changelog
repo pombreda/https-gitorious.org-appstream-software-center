@@ -1,3 +1,16 @@
+software-center (4.1.7) UNRELEASED; urgency=low
+
+  [ Aaron Peachey ]
+  * Add fake-review API that can be used for GUI testing and
+    automatic testing without actually hitting the network.
+    Can be enabled with the SOFTWARE_CENTER_FAKE_REVIEW_API=1
+    environment
+  
+  [ Michael Vogt ]
+  * merged lp:~aaronp/software-center/tests, many thanks
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 20 Jun 2011 13:05:43 +0200
+
 software-center (4.1.6) oneiric; urgency=low
 
   [ Brian Murray ]
