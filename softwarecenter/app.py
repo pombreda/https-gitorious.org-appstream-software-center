@@ -616,7 +616,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
     def get_icon_filename(self, iconname, iconsize):
         iconinfo = self.icons.lookup_icon(iconname, iconsize, 0)
         if not iconinfo:
-            iconinfo = self.icons.lookup_icon(Icons.MISSING_APP_ICON, iconsize, 0)
+            iconinfo = self.icons.lookup_icon(Icons.MISSING_APP, iconsize, 0)
         return iconinfo.get_filename()
 
     # Menu Items
