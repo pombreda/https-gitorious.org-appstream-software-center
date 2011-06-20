@@ -64,7 +64,7 @@ class FakeReviewSettings(object):
     #the following has no effect if get_reviews_error = True
     #determines number of reviews to return 
     # (Accepts 0 to n but should really be between 1 and 10)
-    _FAKE_SETTINGS['reviews_returned'] = 0
+    _FAKE_SETTINGS['reviews_returned'] = 3
     
     #get review
     #*****************************
@@ -92,7 +92,7 @@ class FakeReviewSettings(object):
     #submit usefulness
     #*****************************
     #raises APIError if True
-    _FAKE_SETTINGS['submit_usefulness_error'] = True
+    _FAKE_SETTINGS['submit_usefulness_error'] = False
     
     #the following has no effect if submit_usefulness_error = True
     #which string to pretend the server returned
@@ -133,10 +133,18 @@ class FakeReviewSettings(object):
     _FAKE_SETTINGS['whoami_username'] = None
 
 
-    def __init__(self):
+    def __init__(self, defaults=False):
+        '''Initialises the object and loads the settings into the _FAKE_SETTINGS
+           dict.. If defaults is passed as True any existing settings in the cache 
+           file are ignored and the cache file is overwritten with the defaults 
+           set in the class. This is useful if you don't want previously used 
+           settings from the cache file being used again'''
         fname = 'fake_review_settings.p'
         self.LOCATION = os.path.join(SOFTWARE_CENTER_CACHE_DIR, fname)
-        self._update_from_file()
+        if defaults:
+            self._save_settings()
+        else:
+            self._update_from_file()
         return
     
     def update_setting(self, key_name, new_value):
@@ -162,6 +170,7 @@ class FakeReviewSettings(object):
             return self._FAKE_SETTINGS[key_name]
             
     def _update_from_file(self):
+        '''Loads existing settings from cache file into _FAKE_SETTINGS dict'''
         if os.path.exists(self.LOCATION):
             try:
                 self._FAKE_SETTINGS = cPickle.load(open(self.LOCATION))
