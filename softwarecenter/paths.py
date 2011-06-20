@@ -61,6 +61,7 @@ SUBMIT_USEFULNESS_APP = "submit_usefulness.py"
 GET_REVIEWS_HELPER = "get_reviews_helper.py"
 GET_REVIEW_STATS_HELPER = "get_review_stats_helper.py"
 GET_USEFUL_VOTES_HELPER = "get_useful_votes_helper.py"
+SOFTWARE_CENTER_AGENT_HELPER = "get_scagent_available_apps.py"
 X2GO_HELPER = "x2go_helper.py"
 
 # there was a bug in maverick 3.0.3 (#652151) that could lead to a empty
