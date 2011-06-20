@@ -388,7 +388,7 @@ class AptCache(PackageInfo):
         depends = set()
         deps_remove = self._try_install_and_get_all_deps_removed(pkg)
         for depname in deps_remove:
-            if cache[depname].is_installed:
+            if self._cache[depname].is_installed:
                 depends.add(depname)
         return depends
 

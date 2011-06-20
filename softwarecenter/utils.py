@@ -218,7 +218,6 @@ def decode_xml_char_reference(s):
         and converts it to
         'Search...'
     """
-    import re
     p = re.compile("\&\#x(\d\d\d\d);")
     return p.sub(r"\u\1", s).decode("unicode-escape")
     

@@ -1,6 +1,5 @@
 #!/usr/bin/python
 
-import apt
 import logging
 import sys
 import unittest
