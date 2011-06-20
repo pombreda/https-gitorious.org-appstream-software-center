@@ -1267,7 +1267,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         else:
             description = app_details.description
         if not description:
-            description = " "
+            description = ""
         self.desc.set_description(description, appname)
 
         # a11y for description

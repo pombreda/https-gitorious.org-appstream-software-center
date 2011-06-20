@@ -1033,6 +1033,8 @@ class AppDescription(gtk.VBox):
             reconstructing the description into text blocks 
             (either paragraphs or bullets) which are line-wrap friendly.
         """
+        if not desc:
+            return
         parts = normalize_package_description(desc).split('\n')
         for part in parts:
             if part.startswith("* "):
