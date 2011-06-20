@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import logging
+
 try:
     import mock
 except ImportError:
@@ -8,6 +9,8 @@ except ImportError:
     raise
 import gtk
 import os
+os.environ["SOFTWARE_CENTER_FAKE_REVIEW_API"] = "1"
+
 import sys
 import time
 import unittest
@@ -36,7 +39,6 @@ class TestAppDetailsView(unittest.TestCase):
         datadir = "../data"
         softwarecenter.paths.datadir = datadir
         os.environ["PYTHONPATH"] = ".."
-        os.environ["SOFTWARE_CENTER_FAKE_REVIEW_API"] = "1"
         # cache
         cache = get_pkg_info()
         cache.open()
@@ -192,6 +194,13 @@ class TestAppDetailsView(unittest.TestCase):
         self.assertTrue(self.appdetails.reviews.new_review.get_property("visible"))
 
     def test_usefulness_submit_behaviour(self):
+        #set up fake review for expected behaviour
+        from test.fake_review_settings import FakeReviewSettings
+        fake_settings = FakeReviewSettings(True)
+        settings = {'fake_network_delay': 0, 'review_pages': 0, 'reviews_returned': 1,
+                    'votes_returned': 0, 'submit_usefulness_error': True}
+        fake_settings.update_multiple(settings)
+            
         # needs to be inside a real window
         win=gtk.Window()
         scroll = gtk.ScrolledWindow()
@@ -214,6 +223,8 @@ class TestAppDetailsView(unittest.TestCase):
         review_box.yes_like.emit('clicked')
         self._p()
         self.assertFalse(review_box.yes_like.get_property('visible'))
+        self._p()
+        
     
     # helper
     def _p(self):

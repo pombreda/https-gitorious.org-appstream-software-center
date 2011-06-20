@@ -159,6 +159,19 @@ class FakeReviewSettings(object):
             self._save_settings()
         return
     
+    def update_multiple(self, settings):
+        '''Takes a dict (settings) of key,value pairs to perform multiple updates 
+           in one action, then saves. Dict being passed should contain only keys that 
+           match settings in this object or a NameError will be raised'''
+        for key, value in settings.items():
+            if not key in self._FAKE_SETTINGS:
+                raise NameError ('Setting key name %s does not exist' % key)
+        
+        for key, value in settings.items():
+            self._FAKE_SETTINGS[key] = value
+        self._save_settings()
+        return
+    
     def get_setting(self, key_name):
         '''Takes a string (key_name) which corresponds to a setting in this object, 
         gets the latest copy of it from the file and returns the setting.
