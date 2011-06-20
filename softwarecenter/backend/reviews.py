@@ -366,7 +366,7 @@ class ReviewLoader(object):
                     if str(review.id) == str(review_id):
                         # remove the one we don't want to see anymore
                         self._reviews[app].remove(review)
-                        callback(app, self._reviews[app])
+                        callback(app, self._reviews[app], None, 'remove', review)
                         break
 
     def _on_submit_usefulness_finished(self, pid, status, (review_id, is_useful, stdout_fd, callback)):
@@ -389,7 +389,7 @@ class ReviewLoader(object):
                         review.usefulness_total = getattr(review, "usefulness_total", 0) + 1
                         if is_useful:
                             review.usefulness_favorable = getattr(review, "usefulness_favorable", 0) + 1
-                        callback(app, self._reviews[app], useful_votes)
+                        callback(app, self._reviews[app], useful_votes, 'replace', review)
                         break
         else:
             LOG.debug("submit usefulness id=%s failed with exitcode %s" % (
@@ -398,7 +398,7 @@ class ReviewLoader(object):
                 for review in reviews:
                     if str(review.id) == str(review_id):
                         review.usefulness_submit_error = exitcode
-                        callback(app, self._reviews[app])
+                        callback(app, self._reviews[app], None, 'replace', review)
                         break
 
 

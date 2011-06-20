@@ -606,7 +606,7 @@ class SubmitReviewsApp(BaseApp):
         try:
             icon = self.icons.load_icon(iconname, self.APP_ICON_SIZE, 0)
         except:
-            icon = self.icons.load_icon(Icons.MISSING_APP_ICON, self.APP_ICON_SIZE, 0)
+            icon = self.icons.load_icon(Icons.MISSING_APP, self.APP_ICON_SIZE, 0)
         self.review_appicon.set_from_pixbuf(icon)
 
         # title
