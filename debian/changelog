@@ -46,7 +46,7 @@ software-center (4.1.6) oneiric; urgency=low
     - fix duplication of reviews after user has submitted
       usefulness, flagged or submitted a review (LP: #794060)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 20 Jun 2011 09:40:28 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 20 Jun 2011 11:21:02 +0200
 
 software-center (4.1.5) oneiric; urgency=low
 
