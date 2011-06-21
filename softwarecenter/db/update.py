@@ -461,7 +461,7 @@ def add_from_purchased_but_needs_reinstall_data(purchased_but_may_need_reinstall
     return query
 
 def update_from_software_center_agent(db, cache, ignore_etag=False,
-                                      include_approved_but_unpublished=False):
+                                      include_sca_qa=False):
     """ update index based on the software-center-agent data """
     def _available_cb(sca, available):
         # print "available: ", available
@@ -472,12 +472,16 @@ def update_from_software_center_agent(db, cache, ignore_etag=False,
         sca.available = []
     # use the anonymous interface to s-c-agent, scales much better and is
     # much cache friendlier
-    from softwarecenter.backend.restfulclient import SoftwareCenterAgentAnonymous
-    sca = SoftwareCenterAgentAnonymous(ignore_etag)
+    from softwarecenter.backend.scagent import SoftwareCenterAgent
+    # FIXME: honor ignore_etag here somehow with the new piston based API
+    sca = SoftwareCenterAgent()
     sca.connect("available", _available_cb)
     sca.connect("error", _error_cb)
     sca.available = None
-    sca.query_available(include_approved_but_unpublished)
+    if include_sca_qa:
+        sca.query_available_qa()
+    else:
+        sca.query_available()
     context = glib.main_context_default()
     while sca.available is None:
         while context.pending():
