@@ -49,9 +49,11 @@ class LoginBackendDbusSSO(LoginBackend):
         self.proxy.connect_to_signal("AuthorizationDenied", 
                                      self._on_authorization_denied)
         self._window_id = window_id
+        self._credentials = None
 
     def login(self, username=None, password=None):
         LOG.debug("login()")
+        self._credentials = None
         # alternatively use:
         #  login_or_register_to_get_credentials(appname, tc, help, xid)
         self.proxy.login_to_get_credentials(
@@ -60,6 +62,7 @@ class LoginBackendDbusSSO(LoginBackend):
         
     def login_or_register(self):
         LOG.debug("login_or_register()")
+        self._credentials = None
         self.proxy.login_or_register_to_get_credentials(
             self.appname, "", self.login_text,
             self._window_id)
@@ -67,7 +70,13 @@ class LoginBackendDbusSSO(LoginBackend):
     def _on_credentials_found(self, app_name, credentials):
         if app_name != self.appname:
             return
-        self.emit("login-successful", credentials)
+        # only emit signal here once, otherwise it may happen that a
+        # different process that triggers the on the dbus triggers
+        # another signal emission here!
+        if self._credentials != credentials:
+            self.emit("login-successful", credentials)
+        self._credentials = credentials
+        
 
     def _on_credentials_error(self, app_name, error, detailed_error):
         LOG.error("_on_credentails_error for %s: %s (%s)" % (
