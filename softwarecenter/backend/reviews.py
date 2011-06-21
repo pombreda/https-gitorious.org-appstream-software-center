@@ -33,7 +33,6 @@ import time
 import urllib
 import simplejson
 
-
 from softwarecenter.backend.rnrclient import RatingsAndReviewsAPI
 from softwarecenter.backend.rnrclient_pristine import ReviewDetails
 from softwarecenter.db.database import Application
@@ -55,6 +54,8 @@ from softwarecenter.paths import (SOFTWARE_CENTER_CACHE_DIR,
 #from softwarecenter.enums import *
 
 from softwarecenter.netstatus import network_state_is_connected
+
+from spawn_helper import SpawnHelper
 
 LOG = logging.getLogger(__name__)
 
@@ -99,39 +100,17 @@ class UsefulnessCache(object):
             return False
         
         # run the command and add watcher
-        cmd = [os.path.join(softwarecenter.paths.datadir, GET_USEFUL_VOTES_HELPER),
+        cmd = [os.path.join(
+                softwarecenter.paths.datadir, GET_USEFUL_VOTES_HELPER),
                "--username", user, 
               ]
-        try:
-            (pid, stdin, stdout, stderr) = glib.spawn_async(
-                cmd, flags = glib.SPAWN_DO_NOT_REAP_CHILD, 
-                standard_output=True, standard_error=True)
-            glib.child_watch_add(pid, self._usefulness_loaded, data=(stdout, stderr))
-            return True
-        except Exception as e:
-            LOG.warn("failed to launch: '%s' (error: '%s')" % (cmd, e))
-            return False
+        spawn_helper = SpawnHelper()
+        spawn_helper.connect("data-available", self._on_usefulness_data)
+        spawn_helper.run(cmd)
 
-    def _usefulness_loaded(self, pid, status, (stdout, stderr)):
+    def _on_usefulness_data(self, spawn_helper, results):
         '''called if usefulness retrieved from server'''
         LOG.debug("_usefulness_loaded started")
-        # get status code
-        res = os.WEXITSTATUS(status)
-        LOG.debug("usefulness loader exited with status: '%i'" % res)
-        # check stderr
-        err = os.read(stderr, 4*1024)
-        if err:
-            LOG.warn("got error from helper: '%s'" % err)
-        os.close(stderr)
-        # read the raw data
-        data = ""
-        while True:
-            s = os.read(stdout, 1024)
-            if not s: break
-            data += s
-        os.close(stdout)
-
-        results = cPickle.loads(data)
         self.USEFULNESS_CACHE.clear()
         for result in results:
             self.USEFULNESS_CACHE[str(result['review_id'])] = result['useful']
@@ -300,9 +279,25 @@ class ReviewLoader(object):
         if app.appname:
             # needs to be (utf8 encoded) str, otherwise call fails
             cmd += ["--appname", app.appname.encode("utf-8")]
-        (pid, stdin, stdout, stderr) = glib.spawn_async(
-            cmd, flags=glib.SPAWN_DO_NOT_REAP_CHILD, standard_output=True)
-        glib.child_watch_add(pid, self._on_submit_review_finished, (app, stdout, callback))
+        spawn_helper = SpawnHelper(format="json")
+        spawn_helper.connect(
+            "data-available", self._on_submit_review_data, callback)
+        spawn_helper.run(cmd)
+
+    def _on_submit_review_data(self, spawn_helper, review_json, callback):
+        """ called when submit_review finished, when the review was send
+            successfully the callback is triggered with the new reviews
+        """
+        LOG.debug("_on_submit_review_data")
+        # read stdout from submit_review
+        review = ReviewDetails.from_dict(review_json)
+        # FIXME: ideally this would be stored in ubuntu-sso-client
+        #        but it dosn't so we store it here
+        save_person_to_config(review.reviewer_username)
+        if not app in self._reviews: 
+            self._reviews[app] = []
+        self._reviews[app].insert(0, Review.from_piston_mini_client(review))
+        callback(app, self._reviews[app])
 
     def spawn_report_abuse_ui(self, review_id, parent_xid, datadir, callback):
         """ this spawns the UI for reporting a review as inappropriate
@@ -315,53 +310,16 @@ class ReviewLoader(object):
                "--parent-xid", "%s" % parent_xid,
                "--datadir", datadir,
               ]
-        (pid, stdin, stdout, stderr) = glib.spawn_async(
-            cmd, flags=glib.SPAWN_DO_NOT_REAP_CHILD, standard_output=True)
-        glib.child_watch_add(pid, self._on_report_abuse_finished, (review_id, callback))
+        spawn_helper = SpawnHelper()
+        spawn_helper.connect("exited", 
+                             self._on_report_abuse_finished, 
+                             review_id, callback)
+        spawn_helper.run(cmd)
 
-    def spawn_submit_usefulness_ui(self, review_id, is_useful, parent_xid, datadir, callback):
-        cmd = [os.path.join(datadir, SUBMIT_USEFULNESS_APP), 
-               "--review-id", "%s" % review_id,
-               "--is-useful", "%s" % int(is_useful),
-               "--parent-xid", "%s" % parent_xid,
-               "--datadir", datadir,
-              ]
-        (pid, stdin, stdout, stderr) = glib.spawn_async(
-            cmd, flags=glib.SPAWN_DO_NOT_REAP_CHILD, standard_output=True)
-        glib.child_watch_add(pid, self._on_submit_usefulness_finished, (review_id, is_useful, stdout, callback))
-
-    # internal callbacks/helpers
-    def _on_submit_review_finished(self, pid, status, (app, stdout_fd, callback)):
-        """ called when submit_review finished, when the review was send
-            successfully the callback is triggered with the new reviews
-        """
-        LOG.debug("_on_submit_review_finished")
-        # read stdout from submit_review
-        stdout = ""
-        while True:
-            s = os.read(stdout_fd, 1024)
-            if not s: break
-            stdout += s
-        LOG.debug("stdout from submit_review: '%s'" % stdout)
-        if os.WEXITSTATUS(status) == 0:
-            try:
-                review_json = simplejson.loads(stdout)
-            except simplejson.decoder.JSONDecodeError:
-                LOG.error("failed to parse '%s'" % stdout)
-                return
-            review = ReviewDetails.from_dict(review_json)
-            # FIXME: ideally this would be stored in ubuntu-sso-client
-            #        but it dosn't so we store it here
-            save_person_to_config(review.reviewer_username)
-            if not app in self._reviews: 
-                self._reviews[app] = []
-            self._reviews[app].insert(0, Review.from_piston_mini_client(review))
-            callback(app, self._reviews[app])
-
-    def _on_report_abuse_finished(self, pid, status, (review_id, callback)):
+    def _on_report_abuse_finished(self, spawn_helper, exitcode, review_id, callback):
         """ called when report_absuse finished """
-        if os.WEXITSTATUS(status) == 0:
-            LOG.debug("hide id %s " % review_id)
+        LOG.debug("hide id %s " % review_id)
+        if exitcode == 0:
             for (app, reviews) in self._reviews.iteritems():
                 for review in reviews:
                     if str(review.id) == str(review_id):
@@ -370,12 +328,25 @@ class ReviewLoader(object):
                         callback(app, self._reviews[app], None, 'remove', review)
                         break
 
-    def _on_submit_usefulness_finished(self, pid, status, (review_id, is_useful, stdout_fd, callback)):
+
+    def spawn_submit_usefulness_ui(self, review_id, is_useful, parent_xid, datadir, callback):
+        cmd = [os.path.join(datadir, SUBMIT_USEFULNESS_APP), 
+               "--review-id", "%s" % review_id,
+               "--is-useful", "%s" % int(is_useful),
+               "--parent-xid", "%s" % parent_xid,
+               "--datadir", datadir,
+              ]
+        spawn_helper = SpawnHelper(format="none")
+        spawn_helper.connect("exited", 
+                             self._on_submit_usefulness_finished, 
+                             review_id, is_useful, callback)
+        spawn_helper.run(cmd)
+
+    def _on_submit_usefulness_finished(self, spawn_helper, exitcode, review_id, is_useful, callback):
         """ called when report_usefulness finished """
-        exitcode = os.WEXITSTATUS(status)
         # "Created", "Updated", "Not modified" - 
         # once lp:~mvo/rnr-server/submit-usefulness-result-strings makes it
-        response = os.read(stdout_fd, 512)
+        response = spawn_helper._stdout
         if response == '"Not modified"':
             return
         if exitcode == 0:
@@ -402,12 +373,11 @@ class ReviewLoader(object):
                         callback(app, self._reviews[app], None, 'replace', review)
                         break
 
-
 # this code had several incernations: 
 # - python threads, slow and full of latency (GIL)
 # - python multiprocesing, crashed when accessibility was turned on, 
 #                          does not work in the quest session (#743020)
-# - glib.spawn_async() looks good so far
+# - glib.spawn_async() looks good so far (using the SpawnHelper code)
 class ReviewLoaderSpawningRNRClient(ReviewLoader):
     """ loader that uses multiprocessing to call rnrclient and
         a glib timeout watcher that polls periodically for the
@@ -463,38 +433,12 @@ class ReviewLoaderSpawningRNRClient(ReviewLoader):
                "--pkgname", str(app.pkgname), # ensure its str, not unicode
                "--page", str(page),
               ]
-        try:
-            (pid, stdin, stdout, stderr) = glib.spawn_async(
-                cmd, flags = glib.SPAWN_DO_NOT_REAP_CHILD, 
-                standard_output=True, standard_error=True)
-            glib.child_watch_add(pid, self._reviews_helper_finished, data=(app, stdout, stderr, callback))
-            glib.io_add_watch(stdout, glib.IO_IN, self._reviews_io_ready, (app, stdout, callback))
-        except Exception as e:
-            raise Exception("failed to launch: '%s' (error: '%s')" % (cmd, e))
+        spawn_helper = SpawnHelper()
+        spawn_helper.connect(
+            "data-available", self._on_reviews_helper_data, app, callback)
+        spawn_helper.run(cmd)
 
-    def _reviews_helper_finished(self, pid, status, (app, stdout, stderr, callback)):
-        """ watcher function in parent using glib """
-        # get status code
-        res = os.WEXITSTATUS(status)
-        if res != 0:
-            LOG.warn("exit code %s from helper" % res)
-        # check stderr
-        err = os.read(stderr, 4*1024)
-        if err:
-            LOG.warn("got error from helper: '%s'" % err)
-        os.close(stderr)
-
-    def _reviews_io_ready(self, source, condition, (app, stdout, callback)):
-        # read the raw data
-        data = ""
-        while True:
-            s = os.read(stdout, 1024)
-            if not s: break
-            data += s
-        os.close(stdout)
-        # unpickle it, we should *always* get valid data here, so if
-        # we don't this should raise a error
-        piston_reviews = cPickle.loads(data)
+    def _on_reviews_helper_data(self, spawn_helper, piston_reviews, app, callback):
         # convert into our review objects
         reviews = []
         for r in piston_reviews:
@@ -526,36 +470,12 @@ class ReviewLoaderSpawningRNRClient(ReviewLoader):
               ]
         if days_delta:
             cmd += ["--days-delta", str(days_delta)]
-        (pid, stdin, stdout, stderr) = glib.spawn_async(
-            cmd, flags = glib.SPAWN_DO_NOT_REAP_CHILD, 
-            standard_output=True, standard_error=True)
-        glib.child_watch_add(pid, self._review_stats_helper_finished, data=(stdout, stderr, callback))
-        glib.io_add_watch(stdout, glib.IO_IN, self._review_stats_io_ready, (stdout, callback))
+        spawn_helper = SpawnHelper()
+        spawn_helper.connect("data-available", self._on_review_stats_data, callback)
 
-    def _review_stats_helper_finished(self, pid, status, (stdout, stderr, callback)):
-        """ waits for the process that gets the data
-            to finish and emits callback then """
-        res = os.WEXITSTATUS(status)
-        if res != 0:
-            LOG.warn("exit code %s from helper" % res)
-        # log stderr
-        err = os.read(stderr, 4*1024)
-        if err:
-            LOG.warn("got error from helper: '%s'" % err)
-        os.close(stderr)
-
-    def _review_stats_io_ready(self, source, condition, (stdout, callback)):
+    def _on_review_stats_data(self, spawn_helper, piston_review_stats, callback):
         """ process stdout from the helper """
         review_stats = self.REVIEW_STATS_CACHE
-        # get data
-        data = ""
-        while True:
-            s = os.read(stdout, 1024)
-            if not s: break
-            data += s
-        os.close(stdout)
-        # unpickle
-        piston_review_stats = cPickle.loads(data)
         # convert to the format that s-c uses
         for r in piston_review_stats:
             s = ReviewStats(Application("", r.package_name))
@@ -565,7 +485,6 @@ class ReviewLoaderSpawningRNRClient(ReviewLoader):
         self.REVIEW_STATS_CACHE = review_stats
         callback(review_stats)
         self.save_review_stats_cache_file()
-        return False
 
 class ReviewLoaderJsonAsync(ReviewLoader):
     """ get json (or gzip compressed json) """
