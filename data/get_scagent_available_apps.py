@@ -1,1 +1,0 @@
-../utils/get_scagent_available_apps.py
