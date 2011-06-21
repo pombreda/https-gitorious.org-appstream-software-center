@@ -34,6 +34,7 @@ if os.path.exists("./softwarecenter/enums.py"):
     sys.path.insert(0, ".")
 
 import softwarecenter.log
+import softwarecenter.paths
 from softwarecenter.paths import XAPIAN_BASE_PATH_SOFTWARE_CENTER_AGENT
 from softwarecenter.db.update import update_from_software_center_agent
 
@@ -50,12 +51,15 @@ if __name__ == "__main__":
                       help="show debug output")
     parser.add_option("--ignore-etag", "", action="store_true", default=False,
                       help="update even if etag value matches")
+    parser.add_option("--datadir", "", default=None)
     (options, args) = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO)
     if options.debug:
         logging.basicConfig(level=logging.DEBUG)
         softwarecenter.log.root.setLevel(level=logging.DEBUG)
+    if options.datadir:
+        softwarecenter.paths.datadir = options.datadir
 
     # support global disable
     if "SOFTWARE_CENTER_NO_SC_AGENT" in os.environ:
