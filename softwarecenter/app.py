@@ -488,7 +488,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self.active_pane and
             hasattr(self.active_pane, 'navigation_bar') and
             not self.active_pane.searchentry.is_focus() and
-            not self.active_pane.navigation_bar.has_id(NavButtons.ID_PURCHASE)):
+            not self.active_pane.navigation_bar.has_id(NavButtons.PURCHASE)):
             self.active_pane.navigation_bar.navigate_up()
             
     def on_window_main_button_press_event(self, widget, event):
@@ -499,12 +499,12 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         if (event.button == MOUSE_EVENT_BACK_BUTTON and
             self.active_pane and
             hasattr(self.active_pane, 'navigation_bar') and
-            not self.active_pane.navigation_bar.has_id(NavButtons.ID_PURCHASE)):
+            not self.active_pane.navigation_bar.has_id(NavButtons.PURCHASE)):
             self.on_navhistory_back_action_activate()
         elif (event.button == MOUSE_EVENT_FORWARD_BUTTON and
             self.active_pane and
             hasattr(self.active_pane, 'navigation_bar') and
-            not self.active_pane.navigation_bar.has_id(NavButtons.ID_PURCHASE)):
+            not self.active_pane.navigation_bar.has_id(NavButtons.PURCHASE)):
             self.on_navhistory_forward_action_activate()
         
     def on_view_switcher_changed(self, view_switcher, view_id, channel):
@@ -616,7 +616,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
     def get_icon_filename(self, iconname, iconsize):
         iconinfo = self.icons.lookup_icon(iconname, iconsize, 0)
         if not iconinfo:
-            iconinfo = self.icons.lookup_icon(Icons.MISSING_APP_ICON, iconsize, 0)
+            iconinfo = self.icons.lookup_icon(Icons.MISSING_APP, iconsize, 0)
         return iconinfo.get_filename()
 
     # Menu Items
