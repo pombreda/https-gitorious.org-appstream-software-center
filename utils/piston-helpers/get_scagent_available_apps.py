@@ -50,6 +50,7 @@ if __name__ == "__main__":
                         help="enable debug output")
     parser.add_argument("--ignore-cache", action="store_true", default=False,
                         help="force ignore cache")
+
     subparser = parser.add_subparsers(title="Commands")
     # available_apps
     command = subparser.add_parser("available_apps")
@@ -112,9 +113,23 @@ if __name__ == "__main__":
             LOG.exception("available_apps_qa")
     elif args.command == "subscriptions_for_me":
         try:
-            piston_reply = scaclient.subscriptions_for_me()
+            piston_reply = scaclient.subscriptions_for_me(complete_only=True)
+            # the new piston API send the data in a nasty format, most
+            # interessting stuff is in the "application" dict, move it
+            # back int othe main object here so that the parser understands it
+            for item in piston_reply:
+                for k, v in item.application.iteritems():
+                    setattr(item, k, v)
         except:
             LOG.exception("subscriptions_for_me")
+
+    if args.debug:
+        LOG.debug("reply: %s" % piston_reply)
+        for item in piston_reply:
+            for var in vars(item):
+                print "%s: %s" % (var, getattr(item, var))
+            print "\n\n"
+
 
     # print to stdout where its consumed by the parent
     if piston_reply is not None:
