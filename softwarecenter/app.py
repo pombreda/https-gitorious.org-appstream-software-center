@@ -714,7 +714,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
     def _create_scagent_if_needed(self):
         if not self.scagent:
-            from backend.restfulclient import SoftwareCenterAgent
+            from backend.scagent import SoftwareCenterAgent
             self.scagent = SoftwareCenterAgent()
             self.scagent.connect("available-for-me", self._available_for_me_result)
             
