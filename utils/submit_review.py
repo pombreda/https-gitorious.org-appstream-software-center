@@ -286,6 +286,7 @@ class Worker(threading.Thread):
             self.pending_reviews.task_done()
     
     def _get_error_messages(self, e):
+        logging.warn(e.body)
         if type(e) is piston_mini_client.APIError:
             try:
                 error_msg = simplejson.loads(e.body)['errors']

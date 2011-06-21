@@ -281,10 +281,10 @@ class ReviewLoader(object):
             cmd += ["--appname", app.appname.encode("utf-8")]
         spawn_helper = SpawnHelper(format="json")
         spawn_helper.connect(
-            "data-available", self._on_submit_review_data, callback)
+            "data-available", self._on_submit_review_data, app, callback)
         spawn_helper.run(cmd)
 
-    def _on_submit_review_data(self, spawn_helper, review_json, callback):
+    def _on_submit_review_data(self, spawn_helper, review_json, app, callback):
         """ called when submit_review finished, when the review was send
             successfully the callback is triggered with the new reviews
         """
@@ -472,6 +472,7 @@ class ReviewLoaderSpawningRNRClient(ReviewLoader):
             cmd += ["--days-delta", str(days_delta)]
         spawn_helper = SpawnHelper()
         spawn_helper.connect("data-available", self._on_review_stats_data, callback)
+        spawn_helper.run(cmd)
 
     def _on_review_stats_data(self, spawn_helper, piston_review_stats, callback):
         """ process stdout from the helper """

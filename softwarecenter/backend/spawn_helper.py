@@ -24,6 +24,7 @@ import glib
 import gobject
 import logging
 import os
+import simplejson
 
 
 LOG = logging.getLogger(__name__)
