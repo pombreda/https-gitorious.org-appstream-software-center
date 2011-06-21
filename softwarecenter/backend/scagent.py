@@ -49,7 +49,7 @@ class SoftwareCenterAgent(gobject.GObject):
                   ),
         }
     
-    def __init__(self, ignore_cache):
+    def __init__(self, ignore_cache=False):
         gobject.GObject.__init__(self)
         self.distro = get_distro()
         self.ignore_cache = ignore_cache
