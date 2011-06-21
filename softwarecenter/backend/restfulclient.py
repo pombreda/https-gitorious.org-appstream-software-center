@@ -237,93 +237,6 @@ def get_ubuntu_sso_backend(token):
         ubuntu_sso_class = UbuntuSSOAPI(token)
     return ubuntu_sso_class
 
-class SoftwareCenterAgent(gobject.GObject):
-
-    __gsignals__ = {
-        "available-for-me" : (gobject.SIGNAL_RUN_LAST,
-                              gobject.TYPE_NONE, 
-                              (gobject.TYPE_PYOBJECT,),
-                             ),
-        "available" : (gobject.SIGNAL_RUN_LAST,
-                              gobject.TYPE_NONE, 
-                              (gobject.TYPE_PYOBJECT,),
-                             ),
-        "error" : (gobject.SIGNAL_RUN_LAST,
-                   gobject.TYPE_NONE, 
-                   (str,),
-                  ),
-        }
-
-    AVAILABLE_FOR_ME = "subscriptions.getForOAuthToken"
-    AVAILABLE = "applications.filter"
-
-    def __init__(self):
-        gobject.GObject.__init__(self)
-        # distro
-        self.distro = get_distro()
-        # data
-        self._available = None
-        self._available_for_me = None
-        # setup restful client
-        self.service = UBUNTU_SOFTWARE_CENTER_AGENT_SERVICE
-        empty_token = OAuthToken("", "")
-        authorizer = OAuthAuthorizer("software-center", access_token=empty_token)
-        self.worker_thread =  RestfulClientWorker(authorizer, self.service)
-        self.worker_thread.start()
-        glib.timeout_add(200, self._monitor_thread)
-
-    def _monitor_thread(self):
-        # glib bit of the threading, runs in the main thread
-        if self._available is not None:
-            self.emit("available", self._available)
-            self._available = None
-        if self._available_for_me is not None:
-            self.emit("available-for-me", self._available_for_me)
-            self._available_for_me = None
-        if self.worker_thread.error:
-            self.emit("error", self.worker_thread.error)
-        return True
-
-    def _thread_available_for_me_done(self, result):
-        # attributes for each element in the result list:
-        # 'application_name', 'archive_id', 'deb_line', 'description', 
-        # 'package_name', 'purchase_date', 'purchase_price', 'series', 
-        # 'signing_key_id'
-        self._available_for_me = restful_collection_to_real_python(result)
-
-    def _thread_available_for_me_error(self, error):
-        LOG.error("_available_for_me_error %s" % error)
-        self._available_for_me = []
-        
-    def query_available_for_me(self, oauth_token, openid_identifier):
-        kwargs = { "oauth_token" : oauth_token,
-                   "openid_identifier" : openid_identifier,
-                 }
-        self.worker_thread.queue_request(self.AVAILABLE_FOR_ME, (), kwargs,
-                                         self._thread_available_for_me_done,
-                                         self._thread_available_for_me_error)
-
-    def _thread_available_done(self, result):
-        LOG.debug("_thread_available_done %s %s" % (result,
-                      restful_collection_to_real_python(result)))
-        self._available = restful_collection_to_real_python(result)
-
-    def _thread_available_error(self, error):
-        LOG.error("_thread_available_error %s" % error)
-        self._available = []
-
-    def query_available(self, series_name=None, arch_tag=None):
-        if not series_name:
-            series_name = self.distro.get_codename()
-        if not arch_tag:
-            arch_tag = get_current_arch()
-        kwargs = { "series_name" : series_name,
-                   "arch_tag" : arch_tag,
-                 }
-        self.worker_thread.queue_request(self.AVAILABLE, (), kwargs,
-                                         self._thread_available_done,
-                                         self._thread_available_error)
-
 
 class UbuntuSSOlogin(LoginBackend):
 
@@ -389,114 +302,6 @@ class UbuntuSSOlogin(LoginBackend):
         if self.worker_thread:
             self.worker_thread.shutdown()
 
-class SoftwareCenterAgentAnonymous(gobject.GObject):
-    """ Worker object that does the anonymous communication 
-        with the software-center-agent. Fully async and supports
-        etags to ensure we don't re-download data we already 
-        have
-    """
-
-    __gsignals__ = {
-        "available" : (gobject.SIGNAL_RUN_LAST,
-                              gobject.TYPE_NONE, 
-                              (gobject.TYPE_PYOBJECT,),
-                             ),
-        "error" : (gobject.SIGNAL_RUN_LAST,
-                   gobject.TYPE_NONE, 
-                   (str,),
-                  ),
-        }
-    
-    def __init__(self, ignore_etag=False):
-        gobject.GObject.__init__(self)
-        self.ignore_etag = ignore_etag
-        self.distro = get_distro()
-        self.log = logging.getLogger("softwarecenter.backend.scagent")
-        # make sure we have the cachdir
-        if not os.path.exists(SOFTWARE_CENTER_CACHE_DIR):
-            os.makedirs(SOFTWARE_CENTER_CACHE_DIR)
-        # semantic is "etag for the database we currently use"
-        self.etagfile = os.path.join(SOFTWARE_CENTER_CACHE_DIR, "agent.etag")
-    def _load_etag(self, etagfile, uri):
-        """ take a etagfile path and uri and load the latest etag value
-            for that host. If there is none, return a invalid etag (no
-            quote) that will never match
-        """
-        if os.path.exists(etagfile) and not self.ignore_etag:
-            return open(etagfile).read()
-        else:
-            return "invalid-etag"
-    def _save_etag(self, etagfile, etag):
-        """ save the given etag in the path provided as etagfile """
-        open(etagfile, "w").write(etag)        
-    def _download_complete_cb(self, f, result):
-        """ callback when gio finished the download """
-        try:
-            (content, length, etag) = f.load_contents_finish(result)
-            # store the etag so that we can send it to the server
-            self.latest_etag = etag
-            self._save_etag(self.etagfile, etag)
-        except glib.GError, e:
-            self.log.warn("error in load_contents '%s'" % e)
-            self.emit("error", str(e))
-            return
-        self._decode_result_and_emit_signal(content)
-    def _decode_result_and_emit_signal(self, content):
-        """ helper that decodes a json string to to python objects
-            and emits the result via a gobject signal
-        """
-        # decode and check if its valid
-        try:
-            json_list =  simplejson.loads(content)
-        except simplejson.JSONDecodeError, e:
-            self.emit("error", str(e))
-            return
-        # all good, convert to real objects and emit available items
-        items = []
-        for item_dict in json_list:
-            o = AttributesObject()
-            for (key, value) in item_dict.iteritems():
-                setattr(o, key, value)
-            items.append(o)
-        self.emit("available", items)
-    def _query_info_complete_cb(self, f, result):
-        """ callback when the query for the etag value is finished """
-        try:
-            real_result = f.query_info_finish(result)
-            etag = real_result.get_etag()
-        except glib.GError, e:
-            self.log.warn("error in query_info '%s'" % e)
-            self.emit("error", str(e))
-            return
-        # something changed, go for it
-        if etag != self.latest_etag:
-            self.log.debug("remote etag '%s' != '%s' redownloading" % (
-                    etag, self.latest_etag))
-            f.load_contents_async(self._download_complete_cb)
-        else:
-            self.log.debug("etags match (%s == %s), doing nothing" % (
-                    etag, self.latest_etag))
-            self.emit("available", [])
-    def query_available(self, include_approved_but_unpublished=False):
-        """ query what software is available for the current codename/arch 
-            Note that this function is async and emits "available" or "error"
-            signals when done
-        """
-        series_name = self.distro.get_codename()
-        arch_tag = get_current_arch()
-        lang = get_language()
-        url = BUY_SOMETHING_HOST_ANONYMOUS + "/apps/%(lang)s/ubuntu/%(series)s/%(arch)s" % {
-            'lang' : lang,
-            'series' : series_name,
-            'arch' : arch_tag, }
-        # include not yet-published items (if asked for)
-        if include_approved_but_unpublished:
-            url += "?include_approved=True"
-        # load latest etag if available
-        self.latest_etag = self._load_etag(self.etagfile, url)
-        f = gio.File(url)
-        f.query_info_async(gio.FILE_ATTRIBUTE_ETAG_VALUE,
-                           self._query_info_complete_cb)
 
 # test code
 def _login_success(lp, token):
@@ -513,13 +318,6 @@ def _login_need_user_and_password(sso):
     password = sys.stdin.readline().strip()
     sso.login(user, password)
 
-def _available_for_me_result(scagent, result):
-    print "_available_for_me: ", [x.package_name for x in result]
-
-def _available(scagent, result):
-    print "_available"
-    for available in result:
-        print available.name, available.archive_id, available.archive_root
 def _error(scaagent, errormsg):
     print "_error:", errormsg
 def _whoami(sso, whoami):
@@ -531,16 +329,8 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
 
     if len(sys.argv) < 2:
-        print "need an argument, one of:  'agent','agent-anon' or 'sso'"
+        print "need an argument, one of: 'sso', 'ssologin'"
         sys.exit(1)
-
-    if sys.argv[1] == "agent":
-        scagent = SoftwareCenterAgent()
-        scagent.connect("available-for-me", _available_for_me_result)
-        scagent.connect("available", _available)
-        # argument is oauth token
-        scagent.query_available()
-        scagent.query_available_for_me("dummy_oauth", "dummy openid")
 
     elif sys.argv[1] == "sso":
         def _dbus_maybe_login_successful(ssologin, oauth_result):
@@ -559,12 +349,6 @@ if __name__ == "__main__":
         ssologin.connect("login-failed", _login_failed)
         ssologin.connect("need-username-password", _login_need_user_and_password)
         ssologin.login()
-        
-    elif sys.argv[1] == "agent-anon":
-        anon_agent = SoftwareCenterAgentAnonymous()
-        anon_agent.connect("available", _available)
-        anon_agent.connect("error", _error)
-        anon_agent.query_available()
         
     else:
         print "unknown option"
