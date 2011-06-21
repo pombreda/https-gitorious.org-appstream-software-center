@@ -18,6 +18,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Helper for software-center-agent")
     parser.add_argument("--debug", action="store_true", default=False,
                         help="enable debug output")
+    parser.add_argument("--ignore-cache", action="store_true", default=False,
+                        help="force ignore cache")
     subparser = parser.add_subparsers(title="Commands")
     # available_apps
     command = subparser.add_parser("available_apps")
@@ -41,7 +43,10 @@ if __name__ == "__main__":
     if args.debug:
         LOG.setLevel(logging.DEBUG)
 
-    cachedir = os.path.join(SOFTWARE_CENTER_CACHE_DIR, "scaclient")
+    if args.ignore_cache:
+        cachedir = None
+    else:
+        cachedir = os.path.join(SOFTWARE_CENTER_CACHE_DIR, "scaclient")
     scaclient = SoftwareCenterAgentAPI(cachedir=cachedir)
     piston_reply = None
 

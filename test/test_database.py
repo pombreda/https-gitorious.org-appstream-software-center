@@ -103,7 +103,9 @@ class TestDatabase(unittest.TestCase):
         distro.get_codename = lambda: "natty"
         # we test against the real https://software-center.ubuntu.com here
         # so we need network
-        res = update_from_software_center_agent(db, cache, ignore_etag=True)
+        softwarecenter.paths.datadir="../data"
+        os.environ["PYTHONPATH"] = ".."
+        res = update_from_software_center_agent(db, cache, ignore_cache=True)
         # check results
         self.assertTrue(res)
         self.assertTrue(db.get_doccount() > 1)
