@@ -467,9 +467,11 @@ def update_from_software_center_agent(db, cache, ignore_cache=False,
         # print "available: ", available
         LOG.debug("available: '%s'" % available)
         sca.available = available
+        loop.quit()
     def _error_cb(sca, error):
         LOG.warn("error: %s" % error)
         sca.available = []
+        loop.quit()
     # use the anonymous interface to s-c-agent, scales much better and is
     # much cache friendlier
     from softwarecenter.backend.scagent import SoftwareCenterAgent
@@ -482,11 +484,12 @@ def update_from_software_center_agent(db, cache, ignore_cache=False,
         sca.query_available_qa()
     else:
         sca.query_available()
+    # create event loop and run it until data is available 
+    # (the _available_cb and _error_cb will quit it)
     context = glib.main_context_default()
-    while sca.available is None:
-        while context.pending():
-            context.iteration()
-        time.sleep(0.1)
+    loop = glib.MainLoop(context)
+    loop.run()
+    # process data
     for entry in sca.available:
         # process events
         while context.pending():
