@@ -9,7 +9,7 @@ import argparse
 import piston_mini_client.auth
 
 from softwarecenter.paths import SOFTWARE_CENTER_CACHE_DIR
-from softwarecenter.backend.scaclient import SoftwareCenterAgentAPI
+from softwarecenter.backend.piston.scaclient import SoftwareCenterAgentAPI
 from softwarecenter.backend.login_sso import get_sso_backend
 
 from gettext import gettext as _

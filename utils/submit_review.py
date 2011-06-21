@@ -50,8 +50,8 @@ from softwarecenter.paths import SOFTWARE_CENTER_CONFIG_DIR
 from softwarecenter.enums import Icons
 from softwarecenter.config import get_config
 from softwarecenter.backend.login_sso import get_sso_backend
-from softwarecenter.db.database import Application
 from softwarecenter.backend.reviews import Review
+from softwarecenter.db.database import Application
 from softwarecenter.utils import clear_token_from_ubuntu_sso, get_language
 from softwarecenter.ui.gtk.SimpleGtkbuilderApp import SimpleGtkbuilderApp
 from softwarecenter.ui.gtk.dialogs import SimpleGtkbuilderDialog
@@ -60,8 +60,8 @@ from softwarecenter.ui.gtk.widgets.reviews import StarRatingSelector, StarCaptio
 from softwarecenter.gwibber_helper import GwibberHelper, GwibberHelperMock
 
 
-from softwarecenter.backend.rnrclient import RatingsAndReviewsAPI
-from softwarecenter.backend.rnrclient_pristine import ReviewRequest
+from softwarecenter.backend.piston.rnrclient import RatingsAndReviewsAPI
+from softwarecenter.backend.piston.rnrclient_pristine import ReviewRequest
 
 #import httplib2
 #httplib2.debuglevel = 1

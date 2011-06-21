@@ -8,7 +8,7 @@ import logging
 from optparse import OptionParser
 
 from softwarecenter.paths import SOFTWARE_CENTER_CACHE_DIR
-from softwarecenter.backend.rnrclient import RatingsAndReviewsAPI
+from softwarecenter.backend.piston.rnrclient import RatingsAndReviewsAPI
 from softwarecenter.distro import get_distro
 
 from piston_mini_client import APIError

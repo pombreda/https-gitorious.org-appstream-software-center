@@ -33,8 +33,8 @@ import time
 import urllib
 import simplejson
 
-from softwarecenter.backend.rnrclient import RatingsAndReviewsAPI
-from softwarecenter.backend.rnrclient_pristine import ReviewDetails
+from softwarecenter.backend.piston.rnrclient import RatingsAndReviewsAPI
+from softwarecenter.backend.piston.rnrclient_pristine import ReviewDetails
 from softwarecenter.db.database import Application
 import softwarecenter.distro
 from softwarecenter.utils import (upstream_version_compare,

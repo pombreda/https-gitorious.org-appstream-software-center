@@ -5,7 +5,7 @@ import simplejson
 import logging
 
 from optparse import OptionParser
-from softwarecenter.backend.rnrclient import RatingsAndReviewsAPI
+from softwarecenter.backend.piston.rnrclient import RatingsAndReviewsAPI
 from piston_mini_client import APIError
 
 LOG = logging.getLogger(__name__)
