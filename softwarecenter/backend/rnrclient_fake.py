@@ -2,11 +2,8 @@
 ratings and reviews API, plus a few helper classes.
 """
 
-from urllib import quote_plus
 from piston_mini_client import (
     PistonAPI,
-    PistonResponseObject,
-    PistonSerializable,
     returns,
     returns_json,
     returns_list_of,
@@ -21,7 +18,6 @@ AUTHENTICATED_API_SCHEME = 'https'
 
 from rnrclient_pristine import ReviewRequest, ReviewsStats, ReviewDetails
 from test.fake_review_settings import FakeReviewSettings, network_delay
-import piston_mini_client
 import simplejson
 import random
 import time

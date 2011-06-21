@@ -38,6 +38,7 @@ try:
         from softwarecenter.backend.rnrclient_fake import RatingsAndReviewsAPI
         RatingsAndReviewsAPI.default_service_root = SERVER_ROOT
         import rnrclient_fake
+        rnrclient_fake
         LOG.warn("using FAKE review api, data returned will be dummy data only")
     else:
         # patch default_service_root

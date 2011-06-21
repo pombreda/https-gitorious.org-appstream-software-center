@@ -28,7 +28,6 @@ from softwarecenter.enums import PkgStates
 from softwarecenter.paths import XAPIAN_BASE_PATH
 from softwarecenter.ui.gtk.appdetailsview_gtk import AppDetailsViewGtk
 from softwarecenter.ui.gtk.widgets.reviews import EmbeddedMessage
-from softwarecenter.backend.reviews import Review, ReviewLoaderIpsum
 
 
 class TestAppDetailsView(unittest.TestCase):

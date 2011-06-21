@@ -4,7 +4,6 @@
 import sys
 sys.path.insert(0,"../")
 
-import os
 import unittest
 from softwarecenter.backend.rnrclient import RatingsAndReviewsAPI
 from softwarecenter.backend.rnrclient_fake import RatingsAndReviewsAPI as RatingsAndReviewsAPIFake
