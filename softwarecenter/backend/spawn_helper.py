@@ -87,9 +87,15 @@ class SpawnHelper(gobject.GObject):
         if self._expect_format == "pickle":
             # unpickle it, we should *always* get valid data here, so if
             # we don't this should raise a error
-            data = cPickle.loads(data)
+            try:
+                data = cPickle.loads(data)
+            except:
+                LOG.exception("can not load pickle data: '%s'" % data)
         elif self._expect_format == "json":
-            data = simplejson.loads(data)
+            try:
+                data = simplejson.loads(data)
+            except:
+                LOG.exception("can not load json: '%s'" % data)
         elif self._expect_format == "none":
             pass
         else:
