@@ -59,7 +59,8 @@ class SoftwareCenterAgent(gobject.GObject):
         if self.ignore_cache:
             self.HELPER_CMD.append("--ignore-cache")
         if xid:
-            self.HELPER_CMD.append("--parent-xid", str(xid))
+            self.HELPER_CMD.append("--parent-xid")
+            self.HELPER_CMD.append(str(xid))
 
     def query_available(self, series_name=None, arch_tag=None):
         self._query_available(series_name, arch_tag, for_qa=False)
