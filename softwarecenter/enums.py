@@ -21,6 +21,9 @@ import os
 # pkgname of this app itself (used for "self-awareness", see spec)
 SOFTWARE_CENTER_PKGNAME = 'software-center'
 
+# name of the app in the keyring, untranslated, see bug #773214 for the rational
+SOFTWARE_CENTER_NAME_KEYRING = "Ubuntu Software Center Store",
+
 # buy-something base url
 #BUY_SOMETHING_HOST = "http://localhost:8000/"
 BUY_SOMETHING_HOST = os.environ.get("SOFTWARE_CENTER_BUY_HOST") or "https://software-center.ubuntu.com"

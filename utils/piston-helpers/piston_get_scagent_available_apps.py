@@ -8,6 +8,7 @@ import argparse
 
 import piston_mini_client.auth
 
+from softwarecenter.enums import SOFTWARE_CENTER_NAME_KEYRING
 from softwarecenter.paths import SOFTWARE_CENTER_CACHE_DIR
 from softwarecenter.backend.piston.scaclient import SoftwareCenterAgentAPI
 from softwarecenter.backend.login_sso import get_sso_backend
@@ -30,7 +31,7 @@ class SSOLoginHelper(object):
     def get_oauth_token_sync(self):
         sso = get_sso_backend(
             self.xid, 
-            "Ubuntu Software Center Store",
+            SOFTWARE_CENTER_NAME_KEYRING,
             _("To reinstall previous purchases, sign in to the "
               "Ubuntu Single Sign-On account you used to pay for them."))
         
