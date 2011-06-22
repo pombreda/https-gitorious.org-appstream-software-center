@@ -17,8 +17,9 @@ from gettext import gettext as _
 LOG = logging.getLogger(__name__)
 
 class SSOLoginHelper(object):
-    def __init__(self):
+    def __init__(self, xid=0):
         self.oauth = None
+        self.xid = xid
         self.loop = glib.MainLoop(glib.main_context_default())
     
     def _login_successful(self, sso_backend, oauth_result):
@@ -27,10 +28,9 @@ class SSOLoginHelper(object):
         self.loop.quit()
 
     def get_oauth_token_sync(self):
-        # FIXME: support xid passing for the login stuff
-        xid = 0
         sso = get_sso_backend(
-            xid, "Ubuntu Software Center Store",
+            self.xid, 
+            "Ubuntu Software Center Store",
             _("To reinstall previous purchases, sign in to the "
               "Ubuntu Single Sign-On account you used to pay for them."))
         
@@ -50,6 +50,8 @@ if __name__ == "__main__":
                         help="enable debug output")
     parser.add_argument("--ignore-cache", action="store_true", default=False,
                         help="force ignore cache")
+    parser.add_argument("--parent-xid", default=0,
+                        help="xid of the parent window")
 
     subparser = parser.add_subparsers(title="Commands")
     # available_apps
@@ -82,7 +84,7 @@ if __name__ == "__main__":
 
     # check if auth is required
     if args.command in ("available_apps_qa", "subscriptions_for_me"):
-        token = SSOLoginHelper().get_oauth_token_sync()
+        token = SSOLoginHelper().get_oauth_token_sync(args.parent_xid)
         auth = piston_mini_client.auth.OAuthAuthorizer(token["token"],
                                                        token["token_secret"],
                                                        token["consumer_key"],

@@ -715,7 +715,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
     def _create_scagent_if_needed(self):
         if not self.scagent:
             from backend.scagent import SoftwareCenterAgent
-            self.scagent = SoftwareCenterAgent()
+            self.scagent = SoftwareCenterAgent(xid=self.window_main.window.xid)
             self.scagent.connect("available-for-me", self._available_for_me_result)
             
     def on_menuitem_reinstall_purchases_activate(self, menuitem):

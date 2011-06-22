@@ -49,12 +49,17 @@ class SoftwareCenterAgent(gobject.GObject):
                   ),
         }
     
-    def __init__(self, ignore_cache=False):
+    def __init__(self, ignore_cache=False, xid=None):
         gobject.GObject.__init__(self)
         self.distro = get_distro()
         self.ignore_cache = ignore_cache
-        self.HELPER_BINARY = os.path.join(
+        binary = os.path.join(
             softwarecenter.paths.datadir, SOFTWARE_CENTER_AGENT_HELPER)
+        self.HELPER_CMD = [binary]
+        if self.ignore_cache:
+            self.HELPER_CMD.append("--ignore-cache")
+        if xid:
+            self.HELPER_CMD.append("--parent-xid", str(xid))
 
     def query_available(self, series_name=None, arch_tag=None):
         self._query_available(series_name, arch_tag, for_qa=False)
@@ -69,9 +74,7 @@ class SoftwareCenterAgent(gobject.GObject):
         if not arch_tag:
             arch_tag = get_current_arch()
         # build the command
-        cmd = [self.HELPER_BINARY]
-        if self.ignore_cache:
-            cmd.append("--ignore-cache")
+        cmd = self.HELPER_CMD
         if for_qa:
             cmd.append("available_apps_qa")
         else:
@@ -88,10 +91,8 @@ class SoftwareCenterAgent(gobject.GObject):
         self.emit("available", piston_available)
 
     def query_available_for_me(self, oauth_token, openid_identifier):
-        cmd = [self.HELPER_BINARY,
-               "subscriptions_for_me"]
-        if self.ignore_cache:
-            cmd.append("--ignore-cache")
+        cmd = self.HELPER_CMD
+        cmd.append("subscriptions_for_me")
         spawner = SpawnHelper()
         spawner.connect("data-available", self._on_query_available_for_me_data)
         spawner.connect("error", lambda spawner, err: self.emit("error", err))
