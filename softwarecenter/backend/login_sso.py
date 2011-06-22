@@ -30,7 +30,9 @@ from dbus.mainloop.glib import DBusGMainLoop
 DBusGMainLoop(set_as_default=True)
 
 from login import LoginBackend
-from test.fake_review_settings import FakeReviewSettings, network_delay
+
+# mostly for testing
+from fake_review_settings import FakeReviewSettings, network_delay
 
 LOG = logging.getLogger(__name__)
 

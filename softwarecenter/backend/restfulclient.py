@@ -44,7 +44,8 @@ from oauth.oauth import OAuthToken
 from softwarecenter.paths import SOFTWARE_CENTER_CACHE_DIR
 from Queue import Queue
 
-from test.fake_review_settings import FakeReviewSettings, network_delay
+# mostly for testing
+from fake_review_settings import FakeReviewSettings, network_delay
 
 from login import LoginBackend
 
@@ -200,6 +201,7 @@ class UbuntuSSOAPI(gobject.GObject):
 
 
 class UbuntuSSOAPIFake(UbuntuSSOAPI):
+
     def __init__(self, token):
         gobject.GObject.__init__(self)
         self._fake_settings = FakeReviewSettings()
