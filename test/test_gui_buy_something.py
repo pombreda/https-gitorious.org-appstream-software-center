@@ -48,7 +48,7 @@ class SCBuySomething(unittest.TestCase):
         else:
             cmd = []
         cmd += ["../utils/update-software-center-agent",
-                "--ignore-etag"]
+                "--ignore-cache"]
         res = subprocess.call(cmd, env=os.environ)
         print cmd, res
 
