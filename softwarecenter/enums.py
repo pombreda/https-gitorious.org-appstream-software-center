@@ -122,7 +122,7 @@ class CustomKeys:
     ICON = "Icon"
     SCREENSHOT_URL = "Screenshot-Url"
     THUMBNAIL_URL = "Thumbnail-Url"
-    KEY_CATEGORY = "Category"
+    CATEGORY = "Category"
 
 # pkg action state constants
 class PkgStates:

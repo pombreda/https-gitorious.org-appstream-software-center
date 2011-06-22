@@ -296,7 +296,7 @@ class AptCache(PackageInfo):
         """
         if not pkgname in self._cache or not self._cache[pkgname].candidate:
             return
-        origins = [origin.origin for origin in self.get_origins(pkgname)]
+        origins = set([origin.origin for origin in self.get_origins(pkgname)])
         if len(origins) > 1:
             raise Exception("Error, more than one origin '%s'" % origins)
         if not origins:
@@ -388,7 +388,7 @@ class AptCache(PackageInfo):
         depends = set()
         deps_remove = self._try_install_and_get_all_deps_removed(pkg)
         for depname in deps_remove:
-            if cache[depname].is_installed:
+            if self._cache[depname].is_installed:
                 depends.add(depname)
         return depends
 

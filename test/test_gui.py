@@ -18,7 +18,7 @@ from softwarecenter.paths import XAPIAN_BASE_PATH
 from softwarecenter.ui.gtk.appview import AppStore
 from softwarecenter.ui.gtk.availablepane import AvailablePane
 from softwarecenter.db.application import Application
-from softwarecenter.ui.gtk.catview import get_category_by_name
+from softwarecenter.ui.gtk.catview_gtk import get_category_by_name
 from softwarecenter.backend import get_install_backend
 
 # needed for the install test

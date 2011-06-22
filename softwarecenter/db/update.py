@@ -139,11 +139,12 @@ class SoftwareCenterAgentParser(AppInfoParserBase):
         self.origin = "software-center-agent"
         self._apply_exceptions()
     def _apply_exceptions(self):
-        # map screenshot to thumbnail
+        # for items from the agent, we use the full-size screenshot for
+        # the thumbnail and scale it for display, this is done because
+        # we no longer keep thumbnail versions of screenshots on the server
         if (hasattr(self.sca_entry, "screenshot_url") and 
             not hasattr(self.sca_entry, "thumbnail_url")):
-            url = self.sca_entry.screenshot_url.replace(".png", ".thumb.png")
-            self.sca_entry.thumbnail_url = url
+            self.sca_entry.thumbnail_url = self.sca_entry.screenshot_url
         if hasattr(self.sca_entry, "description"):
             self.sca_entry.Comment = self.sca_entry.description.split("\n")[0]
             self.sca_entry.Description = "\n".join(self.sca_entry.description.split("\n")[1:])

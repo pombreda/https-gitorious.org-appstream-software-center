@@ -1151,9 +1151,10 @@ class AppViewFilter(xapian.MatchDecider):
                 not doc.get_value(XapianValues.ARCHIVE_CHANNEL) == AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME):
                 return False
         if self.installed_only:
-            # use the lowlevel cache here, twice as fast
-            if self.lowlevel_cache and (not pkgname in self.lowlevel_cache or
-                not self.lowlevel_cache[pkgname].current_ver):
+            # use the lowlevel cache here if available, twice as fast
+            if (self.lowlevel_cache and 
+                (not pkgname in self.lowlevel_cache or
+                 not self.lowlevel_cache[pkgname].current_ver)):
                 return False
             else:
                 if (pkgname in self.cache and

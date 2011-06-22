@@ -99,7 +99,7 @@ class SCBuySomething(unittest.TestCase):
         time.sleep(1)
         # check that the purchase pane is displayed
         self.assertEqual(str(self.app.available_pane.navigation_bar.get_parts()),
-                         "[Get Software, Search Results, Hello X Adventure, Buy]")
+                         "[Get Software, Search Results, Test app1, Buy]")
         self._p()
         time.sleep(1)
         self._p()
@@ -113,13 +113,13 @@ class SCBuySomething(unittest.TestCase):
         # check that the purchase pane is removed
         self.assertEqual(
             str(self.app.available_pane.navigation_bar.get_parts()),
-            "[Get Software, Search Results, Hello X Adventure]")
+            "[Get Software, Search Results, Test app1]")
         
         # done with the simulated purchase process, now pretend we install
         # something
         deb_line = "deb https://mvo:nopassyet@private-ppa.launchpad.net/mvo/private-test/ubuntu maverick main"
         signing_key_id = "0EB12F05"
-        app = Application("Hello X Adventure", "hellox")
+        app = Application("Test app1", "hellox")
         # install only when runnig as root, as we require polkit promtps
         # otherwise
         # FIXME: provide InstallBackendSimulate()

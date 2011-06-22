@@ -2,7 +2,7 @@
 
 import sys
 sys.path.insert(0, "..")
-from softwarecenter.utils import htmlize_package_desc
+from softwarecenter.utils import htmlize_package_description
 
 #file-roller
 d1 = """
@@ -86,11 +86,11 @@ import lxml.html
 import lxml.etree
 import unittest
 
-class testHtmlize(unittest.TestCase):
+class TestHtmlize(unittest.TestCase):
 
     def test_htmlize(self):
         for decr in [d1, d2, d3]:
-            html_descr = "\n".join(htmlize_package_desc(decr))
+            html_descr = htmlize_package_description(decr)
             #print html_descr
             #element = lxml.html.document_fromstring(html_descr)
             star_count = decr.count("*")
