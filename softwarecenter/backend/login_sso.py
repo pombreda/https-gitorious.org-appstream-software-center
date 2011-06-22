@@ -151,7 +151,8 @@ def get_sso_backend(window_id, appname, login_text):
     return sso_class
    
 if __name__ == "__main__":
-    login = get_sso_backend()
+    from softwarecenter.enums import SOFTWARE_CENTER_NAME_KEYRING
+    login = get_sso_backend(0, SOFTWARE_CENTER_NAME_KEYRING, "login-text")
     login.login()
 
     gtk.main()
