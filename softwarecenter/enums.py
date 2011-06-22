@@ -26,7 +26,7 @@ SOFTWARE_CENTER_PKGNAME = 'software-center'
 SOFTWARE_CENTER_NAME_KEYRING = "Ubuntu Software Center Store",
 SOFTWARE_CENTER_SSO_DESCRIPTION = _(
     "To reinstall previous purchases, sign in to the "
-    "Ubuntu Single Sign-On account you used to pay for them."))
+    "Ubuntu Single Sign-On account you used to pay for them.")
         
 
 # buy-something base url

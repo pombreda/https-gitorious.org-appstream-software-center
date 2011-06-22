@@ -14,6 +14,8 @@ from softwarecenter.enums import (SOFTWARE_CENTER_NAME_KEYRING,
 from softwarecenter.paths import SOFTWARE_CENTER_CACHE_DIR
 from softwarecenter.backend.piston.scaclient import SoftwareCenterAgentAPI
 from softwarecenter.backend.login_sso import get_sso_backend
+from softwarecenter.backend.restfulclient import UbuntuSSOAPI
+from softwarecenter.utils import clear_token_from_ubuntu_sso
 
 from gettext import gettext as _
 
@@ -30,7 +32,28 @@ class SSOLoginHelper(object):
         # FIXME: actually verify the token against ubuntu SSO
         self.loop.quit()
 
+    def verify_token(self, token):
+        self._whoami = None
+        def _whoami_done(sso, me):
+            print me
+            self._whoami = me
+            self.loop.quit()
+        sso = UbuntuSSOAPI(token)
+        sso.connect("whoami", _whoami_done)
+        sso.connect("error", lambda sso, err: self.loop.quit())
+        sso.whoami()
+        self.loop.run()
+        # check if the token is valid
+        if self._whoami is None:
+            return False
+        else:
+            return True
+
+    def clear_token(self):
+        clear_token_from_ubuntu_sso(SOFTWARE_CENTER_NAME_KEYRING)
+
     def get_oauth_token_sync(self):
+        self.oauth = None
         sso = get_sso_backend(
             self.xid, 
             SOFTWARE_CENTER_NAME_KEYRING,
@@ -85,7 +108,14 @@ if __name__ == "__main__":
 
     # check if auth is required
     if args.command in ("available_apps_qa", "subscriptions_for_me"):
-        token = SSOLoginHelper().get_oauth_token_sync(args.parent_xid)
+        helper = SSOLoginHelper(args.parent_xid)
+        token = helper.get_oauth_token_sync()
+        # check if the token is valid
+        if not helper.verify_token(token):
+            helper.clear_token(token)
+            # re-trigger login
+            helper.get_oauth_token_sync()
+        
         auth = piston_mini_client.auth.OAuthAuthorizer(token["token"],
                                                        token["token_secret"],
                                                        token["consumer_key"],
