@@ -1,3 +1,13 @@
+software-center (4.0.5) UNRELEASED; urgency=low
+
+  [ Aaron Peachey ]
+  * softwarecenter/view/appdetailsview_gtk.py,
+    softwarecenter/view/widgets/reviews.py:
+    - fix duplication of reviews upon submitting a new
+      review, completes the fix for LP: #794060
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 22 Jun 2011 16:25:55 -0400
+
 software-center (4.0.4) natty-proposed; urgency=low
 
   [ Aaron Peachey ]
