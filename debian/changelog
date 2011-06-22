@@ -8,6 +8,11 @@ software-center (4.1.7) UNRELEASED; urgency=low
   
   [ Michael Vogt ]
   * merged lp:~aaronp/software-center/tests, many thanks
+  * merged lp:~mvo/software-center/piston-sc-agent:
+    This move the SoftwareCenterAgent support from restfulclient
+    to piston-mini-client and adds a new SpawnHelper abstraction. 
+    It also adds a new SOFTWARE_CENTER_AGENT_INCLUDE_QA environment 
+    to get apps in QA (if you are in the right group)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 20 Jun 2011 13:05:43 +0200
 

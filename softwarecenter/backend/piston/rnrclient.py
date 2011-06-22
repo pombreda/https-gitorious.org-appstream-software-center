@@ -35,7 +35,7 @@ SERVER_ROOT=distro.REVIEWS_SERVER
 
 try:
     if "SOFTWARE_CENTER_FAKE_REVIEW_API" in os.environ:
-        from softwarecenter.backend.rnrclient_fake import RatingsAndReviewsAPI
+        from softwarecenter.backend.piston.rnrclient_fake import RatingsAndReviewsAPI
         RatingsAndReviewsAPI.default_service_root = SERVER_ROOT
         import rnrclient_fake
         rnrclient_fake
