@@ -856,9 +856,12 @@ class UIReviewsList(gtk.VBox):
             else:
                 self.vbox.pack_start(NoReviewYet())
 
-        # only show the "More" button if there is a chance that there
-        # are more
-        if self.reviews and len(self.reviews) % REVIEWS_BATCH_PAGE_SIZE == 0:
+        # aaronp: removed check to see if the length of reviews is divisible by
+        # the batch size to allow proper fixing of LP: #794060 as when a review
+        # is submitted and appears in the list, the pagination will break this
+        # check and make it unreliable
+        #if self.reviews and len(self.reviews) % REVIEWS_BATCH_PAGE_SIZE == 0:
+        if self.reviews:
             # mvo: the lines below are only needed because "More…" is
             #      actually translated already
             # button = gtk.Button(_("Show more reviews"))
@@ -897,6 +900,12 @@ class UIReviewsList(gtk.VBox):
                 self.reviews.remove(r)
                 break
         return
+    
+    def get_all_review_ids(self):
+        ids = []
+        for review in self.reviews:
+            ids.append(review.id)
+        return ids 
 
     def clear(self):
         self.reviews = []
