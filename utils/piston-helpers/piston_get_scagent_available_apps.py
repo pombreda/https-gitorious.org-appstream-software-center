@@ -1,10 +1,11 @@
 #!/usr/bin/python
 
+import argparse
+import glib
+import logging
 import os
 import pickle
-import logging
-import glib
-import argparse
+import sys
 
 import piston_mini_client.auth
 
@@ -111,10 +112,13 @@ if __name__ == "__main__":
         helper = SSOLoginHelper(args.parent_xid)
         token = helper.get_oauth_token_sync()
         # check if the token is valid
-        if not helper.verify_token(token):
+        if token and not helper.verify_token(token):
             helper.clear_token(token)
             # re-trigger login
-            helper.get_oauth_token_sync()
+            token = helper.get_oauth_token_sync()
+        # if we don't have a token, error here
+        sys.stderr.write("ERROR: can not obtain a oauth token\n")
+        sys.exit(1)
         
         auth = piston_mini_client.auth.OAuthAuthorizer(token["token"],
                                                        token["token_secret"],
