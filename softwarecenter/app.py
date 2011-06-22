@@ -50,6 +50,7 @@ from softwarecenter.enums import (Icons,
                                   MOUSE_EVENT_FORWARD_BUTTON,
                                   MOUSE_EVENT_BACK_BUTTON,
                                   SOFTWARE_CENTER_NAME_KEYRING,
+                                  SOFTWARE_CENTER_SSO_DESCRIPTION,
                                  )
 
 from softwarecenter.paths import SOFTWARE_CENTER_PLUGIN_DIR, ICON_PATH
@@ -701,10 +702,9 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         if not self.sso:
             from backend.login_sso import get_sso_backend
             appname = SOFTWARE_CENTER_NAME_KEYRING
-            login_text = _("To reinstall previous purchases, sign in to the "
-                           "Ubuntu Single Sign-On account you used to pay for them.")
+            login_text = SOFTWARE_CENTER_SSO_DESCRIPTION
             self.sso = get_sso_backend(self.window_main.window.xid,
-                                       appname, login_text)
+                                       appname, _(login_text))
             self.sso.connect("login-successful", self._on_sso_login)
 
     def _login_via_dbus_sso(self):

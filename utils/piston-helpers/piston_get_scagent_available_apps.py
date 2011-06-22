@@ -8,7 +8,9 @@ import argparse
 
 import piston_mini_client.auth
 
-from softwarecenter.enums import SOFTWARE_CENTER_NAME_KEYRING
+from softwarecenter.enums import (SOFTWARE_CENTER_NAME_KEYRING,
+                                  SOFTWARE_CENTER_SSO_DESCRIPTION,
+                                  )
 from softwarecenter.paths import SOFTWARE_CENTER_CACHE_DIR
 from softwarecenter.backend.piston.scaclient import SoftwareCenterAgentAPI
 from softwarecenter.backend.login_sso import get_sso_backend
@@ -32,9 +34,7 @@ class SSOLoginHelper(object):
         sso = get_sso_backend(
             self.xid, 
             SOFTWARE_CENTER_NAME_KEYRING,
-            _("To reinstall previous purchases, sign in to the "
-              "Ubuntu Single Sign-On account you used to pay for them."))
-        
+            _(SOFTWARE_CENTER_SSO_DESCRIPTION))
         sso.connect("login-successful", self._login_successful)
         sso.connect("login-failed", lambda s: self.loop.quit())
         sso.connect("login-canceled", lambda s: self.loop.quit())

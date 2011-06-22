@@ -23,6 +23,7 @@ softwarecenter/db/update.py
 softwarecenter/distro/Debian.py
 softwarecenter/distro/__init__.py
 softwarecenter/distro/Ubuntu.py
+softwarecenter/enums.py
 softwarecenter/utils.py
 softwarecenter/ui/gtk/appdetailsview.py
 softwarecenter/ui/gtk/appdetailsview_gtk.py
