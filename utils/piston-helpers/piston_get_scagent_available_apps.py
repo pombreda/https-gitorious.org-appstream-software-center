@@ -34,11 +34,10 @@ class SSOLoginHelper(object):
         self.loop.quit()
 
     def verify_token(self, token):
-        self._whoami = None
         def _whoami_done(sso, me):
-            print me
             self._whoami = me
             self.loop.quit()
+        self._whoami = None
         sso = UbuntuSSOAPI(token)
         sso.connect("whoami", _whoami_done)
         sso.connect("error", lambda sso, err: self.loop.quit())
@@ -111,14 +110,15 @@ if __name__ == "__main__":
     if args.command in ("available_apps_qa", "subscriptions_for_me"):
         helper = SSOLoginHelper(args.parent_xid)
         token = helper.get_oauth_token_sync()
-        # check if the token is valid
+        # check if the token is valid and reset it if it is not
         if token and not helper.verify_token(token):
-            helper.clear_token(token)
+            helper.clear_token()
             # re-trigger login
             token = helper.get_oauth_token_sync()
         # if we don't have a token, error here
-        sys.stderr.write("ERROR: can not obtain a oauth token\n")
-        sys.exit(1)
+        if not token:
+            sys.stderr.write("ERROR: can not obtain a oauth token\n")
+            sys.exit(1)
         
         auth = piston_mini_client.auth.OAuthAuthorizer(token["token"],
                                                        token["token_secret"],
