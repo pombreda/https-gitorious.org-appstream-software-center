@@ -18,6 +18,9 @@ software-center (4.1.7) UNRELEASED; urgency=low
   * merge lp:~evfool/software-center/smallfixes, many thanks to
     Robert Roth (LP: #796640) 
 
+  [ Steve Langasek ]
+  * debian/control: point Vcs-Bzr field at the right branch.
+
  -- Gary Lasker <gary.lasker@canonical.com>  Wed, 22 Jun 2011 13:59:20 -0400
 
 software-center (4.1.6) oneiric; urgency=low
