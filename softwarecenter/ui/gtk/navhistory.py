@@ -19,6 +19,7 @@
 import gobject
 import logging
 
+from softwarecenter.enums import NavButtons
 from softwarecenter.utils import unescape
 
 # FIXME: sucks, move elsewhere
@@ -99,7 +100,9 @@ class NavigationHistory(object):
         """
         The search terms changed, track them in the current navigation item
         """
-        self._nav_stack[self._nav_stack.cursor].apps_search_term = terms
+        # only track search term changes in search pathbar items (lp: #801114)
+        if self._nav_stack[self._nav_stack.cursor].parts[-1].get_name() == NavButtons.SEARCH:
+            self._nav_stack[self._nav_stack.cursor].apps_search_term = terms
 
     def reset(self):
         """
