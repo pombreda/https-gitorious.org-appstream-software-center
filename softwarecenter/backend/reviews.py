@@ -42,6 +42,7 @@ from softwarecenter.utils import (upstream_version_compare,
                                   get_language,
                                   save_person_to_config,
                                   get_person_from_config,
+                                  calc_dr,
                                   )
 from softwarecenter.paths import (SOFTWARE_CENTER_CACHE_DIR,
                                   SUBMIT_REVIEW_APP,
@@ -64,8 +65,13 @@ class ReviewStats(object):
         self.app = app
         self.ratings_average = None
         self.ratings_total = 0
+        self.rating_spread = [0,0,0,0,0]
+        self.dampened_rating = 3.00
     def __repr__(self):
-        return "[ReviewStats '%s' ratings_average='%s' ratings_total='%s']" % (self.app, self.ratings_average, self.ratings_total)
+        return ("[ReviewStats '%s' ratings_average='%s' ratings_total='%s'" 
+                " rating_spread='%s' dampened_rating='%s']" % 
+                (self.app, self.ratings_average, self.ratings_total, 
+                self.rating_spread, self.dampened_rating))
 
 class UsefulnessCache(object):
 
@@ -482,6 +488,8 @@ class ReviewLoaderSpawningRNRClient(ReviewLoader):
             s = ReviewStats(Application("", r.package_name))
             s.ratings_average = float(r.ratings_average)
             s.ratings_total = float(r.ratings_total)
+            s.rating_spread = simplejson.loads(r.histogram)
+            s.dampened_rating = calc_dr(s.rating_spread)
             review_stats[s.app] = s
         self.REVIEW_STATS_CACHE = review_stats
         callback(review_stats)
