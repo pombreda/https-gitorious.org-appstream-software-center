@@ -15,13 +15,13 @@ software-center (4.1.7) UNRELEASED; urgency=low
     to get apps in QA (if you are in the right group)
 
   [ Gary Lasker ]
-  * merge lp:~evfool/software-center/smallfixes, many thanks to
-    Robert Roth (LP: #796640) 
+  * merge lp:~evfool/software-center/smallfixes, fix up mouse click
+    handling for LinkButton, many thanks to Robert Roth (LP: #796640)
   * merge lp:~mterry/software-center/drop-deja-dup courtesy Michael
     Terry, removes deja-dup from the featured apps list since it has
     been promoted to main
 
- -- Gary Lasker <gary.lasker@canonical.com>  Fri, 24 Jun 2011 11:01:43 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Fri, 24 Jun 2011 21:47:52 -0400
 
 software-center (4.1.6) oneiric; urgency=low
 
