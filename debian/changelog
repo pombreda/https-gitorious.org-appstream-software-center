@@ -20,11 +20,13 @@ software-center (4.1.7) UNRELEASED; urgency=low
   * merge lp:~mterry/software-center/drop-deja-dup courtesy Michael
     Terry, removes deja-dup from the featured apps list since it has
     been promoted to main
+  * merge lp:~evfool/software-center/fixnavigation, fixes navigation
+    error when searching (LP: #801114)
     
   [ Steve Langasek ]
   * debian/control: point Vcs-Bzr field at the right branch.
 
- -- Gary Lasker <gary.lasker@canonical.com>  Fri, 24 Jun 2011 21:47:52 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Sat, 25 Jun 2011 23:12:57 -0400
 
 software-center (4.1.6) oneiric; urgency=low
 
