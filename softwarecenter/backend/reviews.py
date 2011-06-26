@@ -25,13 +25,15 @@ import gzip
 import gtk
 import glib
 import logging
+import operator
 import os
 import random
+import simplejson
 import StringIO
 import subprocess
 import time
 import urllib
-import simplejson
+
 
 from softwarecenter.backend.piston.rnrclient import RatingsAndReviewsAPI
 from softwarecenter.backend.piston.rnrclient_pristine import ReviewDetails
@@ -72,6 +74,7 @@ class ReviewStats(object):
                 " rating_spread='%s' dampened_rating='%s']" % 
                 (self.app, self.ratings_average, self.ratings_total, 
                 self.rating_spread, self.dampened_rating))
+    
 
 class UsefulnessCache(object):
 
@@ -266,6 +269,35 @@ class ReviewLoader(object):
             os.makedirs(cachedir)
         cPickle.dump(self.REVIEW_STATS_CACHE,
                       open(self.REVIEW_STATS_CACHE_FILE, "w"))
+    
+    def get_top_rated_apps(self,quantity=12):
+        """Returns a list of the packages with the highest 'rating' based on
+           the dampened rating calculated from the ReviewStats rating spread."""
+
+        cache = self.REVIEW_STATS_CACHE
+        #create a list of tuples with (Application,dampened_rating)
+        dr_list = []
+        for item in cache.items():
+            if hasattr(item[1],'dampened_rating'):
+                dr_list.append((item[0], item[1].dampened_rating))
+            else:
+                dr_list.append((item[0], 3.00))
+        
+        #sorted the list descending by dampened rating
+        sorted_dr_list = sorted(dr_list, key=operator.itemgetter(1),
+                                reverse=True)
+        
+        #return the quantity requested or as much as we can
+        if quantity < len(sorted_dr_list):
+            return_qty = quantity
+        else:
+            return_qty = len(sorted_dr_list)
+        
+        top_rated = []
+        for i in range (0,return_qty):
+            top_rated.append(sorted_dr_list[i][0])
+        
+        return top_rated
 
     # writing new reviews spawns external helper
     # FIXME: instead of the callback we should add proper gobject signals
