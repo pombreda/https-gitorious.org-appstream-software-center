@@ -27,11 +27,15 @@ software-center (4.1.7) UNRELEASED; urgency=low
   * softwarecenter/db/update.py:
     - add support for custom desktop key X-Ubuntu-Software-Center-Name
       for USC-specific display names (LP: #801197)
+  * softwarecenter/ui/gtk/appdetailsview_gtk.py:
+    - don't start the indeterminate progress bar for purchase
+      transactions until after the authentication dialog is closed
+      (LP: #725181)
     
   [ Steve Langasek ]
   * debian/control: point Vcs-Bzr field at the right branch.
 
- -- Gary Lasker <gary.lasker@canonical.com>  Sun, 26 Jun 2011 21:46:29 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 27 Jun 2011 16:58:26 -0400
 
 software-center (4.1.6) oneiric; urgency=low
 
