@@ -1014,8 +1014,6 @@ class AppView(gtk.TreeView):
         return
 
     def _app_activated_cb(self, btn, btn_id, appname, pkgname, request, installed, store, path):
-        print ">>> activated signal app_activated_cb"
-        print ">>> with btn_id == 'action0': ", btn_id == 'action0'
         if btn_id == 'info':
             self.emit("application-activated", Application(appname, pkgname, request))
         elif (btn_id == 'action0' and
