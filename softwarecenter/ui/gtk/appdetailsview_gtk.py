@@ -1558,8 +1558,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             result and
             not result.pkgname):
             self.pkg_statusbar.configure(self.app_details, PkgStates.INSTALLING_PURCHASED)
-            # start up the indeterminate progress bar now that the first part of the
-            # purchase transaction has completed
+            # start up an indeterminate progress bar now that the first part of the
+            # purchase transaction has completed as there can be a delay before the
+            # actual package installation begins
             self.pkg_statusbar.progress.show()
         elif (state == PkgStates.INSTALLING_PURCHASED and 
               result and
