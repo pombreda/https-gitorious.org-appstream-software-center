@@ -141,6 +141,9 @@ class CellRendererButton2:
         if self._widget:
             self._widget.queue_draw_area(*self.get_allocation_tuple())
         return
+        
+    def is_sensitive(self):
+        return self.state != gtk.STATE_INSENSITIVE
 
     def set_markup(self, markup):
         self.markup_variant = (markup,)
@@ -1013,7 +1016,8 @@ class AppView(gtk.TreeView):
     def _app_activated_cb(self, btn, btn_id, appname, pkgname, request, installed, store, path):
         if btn_id == 'info':
             self.emit("application-activated", Application(appname, pkgname, request))
-        elif btn_id == 'action0':
+        elif (btn_id == 'action0' and
+              btn.is_sensitive()):
             btn.set_sensitive(False)
             store.row_changed(path[0], store.get_iter(path[0]))
             # be sure we dont request an action for a pkg with pre-existing actions
