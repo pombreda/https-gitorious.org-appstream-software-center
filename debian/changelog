@@ -22,11 +22,13 @@ software-center (4.1.7) UNRELEASED; urgency=low
     been promoted to main
   * merge lp:~evfool/software-center/fixnavigation, fixes navigation
     error when searching (LP: #801114)
+  * softwarecenter/ui/gtk/appview.py:
+    - fix phantom install button in for purchase listview (LP: #801512)
     
   [ Steve Langasek ]
   * debian/control: point Vcs-Bzr field at the right branch.
 
- -- Gary Lasker <gary.lasker@canonical.com>  Sat, 25 Jun 2011 23:16:19 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Sun, 26 Jun 2011 21:46:29 -0400
 
 software-center (4.1.6) oneiric; urgency=low
 
