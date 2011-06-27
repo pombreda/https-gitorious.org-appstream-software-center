@@ -24,6 +24,9 @@ software-center (4.1.7) UNRELEASED; urgency=low
     error when searching (LP: #801114)
   * softwarecenter/ui/gtk/appview.py:
     - fix phantom install button in for purchase listview (LP: #801512)
+  * softwarecenter/db/update.py:
+    - add support for custom desktop key X-Ubuntu-Software-Center-Name
+      for USC-specific display names (LP: #801197)
     
   [ Steve Langasek ]
   * debian/control: point Vcs-Bzr field at the right branch.
