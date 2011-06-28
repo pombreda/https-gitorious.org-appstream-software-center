@@ -13,6 +13,8 @@ software-center (4.1.7) UNRELEASED; urgency=low
     to piston-mini-client and adds a new SpawnHelper abstraction. 
     It also adds a new SOFTWARE_CENTER_AGENT_INCLUDE_QA environment 
     to get apps in QA (if you are in the right group)
+  * remove get_http_proxy_string_from_gconf and remove python-gconf
+    dependency
 
   [ Gary Lasker ]
   * merge lp:~evfool/software-center/smallfixes to fix up mouse click
