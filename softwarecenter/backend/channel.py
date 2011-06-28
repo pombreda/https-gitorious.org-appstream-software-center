@@ -162,7 +162,10 @@ class ChannelsManager(object):
             # this will trigger a "channels-changed" signal from
             # the backend object once a-x-i is finished
             self._logger.debug("running update_xapian_index")
-            self.backend.update_xapian_index()
+            try:
+                self.backend.update_xapian_index()
+            except AttributeError:
+                self._logger.error("install backend does not have update_xapian_index")
         return False
 
     def _check_for_channel_updates(self):

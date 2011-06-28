@@ -17,6 +17,10 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 class InstallBackend(object):
+    def __init__(self):
+        self.pending_transactions = []
+        self.pending_purchases = []
+
     def upgrade(self, pkgname, appname, iconname, addons_install=[], addons_remove=[], metadata=None):
         pass
     def remove(self, pkgname, appname, iconname, addons_install=[], addons_remove=[], metadata=None):
@@ -38,8 +42,13 @@ install_backend = None
 def get_install_backend():
     global install_backend
     if install_backend is None:
-        from softwarecenter.backend.aptd import AptdaemonBackend
-        install_backend = AptdaemonBackend()
+        from softwarecenter.enums import USE_PACKAGEKIT_BACKEND
+        if not USE_PACKAGEKIT_BACKEND:
+            from softwarecenter.backend.aptd import AptdaemonBackend
+            install_backend = AptdaemonBackend()
+        else:
+            from softwarecenter.backend.packagekitd import PackagekitBackend
+            install_backend = PackagekitBackend()
     return install_backend
 
         

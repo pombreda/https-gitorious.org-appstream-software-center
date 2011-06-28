@@ -9,7 +9,7 @@ pkill -f ubuntu-sso-login
 python /usr/lib/ubuntu-sso-client/ubuntu-sso-login &
 
 # s-c
-export PYTHONPATH=$(pwd)
+export PYTHONPATH=$(pwd):$PYTHONPATH
 
 if [ ! -d "./build" ]; then
     echo "Please run: 'python setup.py build' before $0"

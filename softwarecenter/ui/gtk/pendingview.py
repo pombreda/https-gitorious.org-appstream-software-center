@@ -16,6 +16,9 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+# hack for loading dynamic before static FIXME
+from gi.repository import PackageKitGlib
+
 import dbus
 import glib
 import gtk
@@ -272,7 +275,7 @@ class PendingView(gtk.ScrolledWindow, BasePane):
             return 
         # get tid
         tid = model[path][PendingStore.COL_TID]
-        trans = self._transactions_watcher.get_transaction(tid)
+        trans = self.tv.get_model()._transactions_watcher.get_transaction(tid)
         try:
             trans.cancel()
         except dbus.exceptions.DBusException:
@@ -281,6 +284,7 @@ class PendingView(gtk.ScrolledWindow, BasePane):
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
 
+    import dbus, dbus.mainloop.glib; dbus.set_default_main_loop(dbus.mainloop.glib.DBusGMainLoop())
     icons = gtk.icon_theme_get_default()
     view = PendingView(icons)
 
@@ -294,4 +298,10 @@ if __name__ == "__main__":
     win.set_size_request(500,200)
     win.show_all()
 
+    backend = view.tv.get_model().backend
+    packages = ('cheese', 'firefox')
+    if backend.pkginfo['cheese'].is_installed:
+        backend.remove_multiple(packages, packages, ('', ''))
+    else:
+        backend.install_multiple(packages, packages, ('', ''))
     gtk.main()

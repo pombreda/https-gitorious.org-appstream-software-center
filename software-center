@@ -76,7 +76,10 @@ if __name__ == "__main__":
     parser.add_option("--measure-startup-time", action="store_true",
                       help="open and wait until the window is visible, then close, only useful for profiling",
                       default=False)
-
+    parser.add_option("--use-packagekit", action="store_true",
+                      help="use PackageKit backend (experimental)", 
+                      default=False)
+                      
     (options, args) = parser.parse_args()
 
     # statup time measure implies "performance" in debug filters
@@ -92,6 +95,12 @@ if __name__ == "__main__":
         softwarecenter.log.root.setLevel(level=logging.DEBUG)
     else:
         softwarecenter.log.root.setLevel(level=logging.INFO)
+
+    if options.use_packagekit:
+        softwarecenter.enums.USE_PACKAGEKIT_BACKEND = True
+        logging.info("Using PackageKit backend")
+    else:
+        softwarecenter.enums.USE_PACKAGEKIT_BACKEND = False
 
     # override text direction for testing purposes
     if options.force_rtl:

@@ -22,6 +22,23 @@ class BaseTransaction(gobject.GObject):
     """
     wrapper class for install backend dbus Transaction objects
     """
+    __gsignals__ = {'progress-details-changed':(gobject.SIGNAL_RUN_FIRST,
+                                            gobject.TYPE_NONE,
+                                            (gobject.TYPE_PYOBJECT, )),
+                    'progress-changed':(gobject.SIGNAL_RUN_FIRST,
+                                            gobject.TYPE_NONE,
+                                            (gobject.TYPE_PYOBJECT, )),
+                    'status-changed':(gobject.SIGNAL_RUN_FIRST,
+                                            gobject.TYPE_NONE,
+                                            (gobject.TYPE_PYOBJECT, )),
+                    'cancellable-changed':(gobject.SIGNAL_RUN_FIRST,
+                                            gobject.TYPE_NONE,
+                                            (gobject.TYPE_PYOBJECT, )),
+                    'role-changed':(gobject.SIGNAL_RUN_FIRST,
+                                            gobject.TYPE_NONE,
+                                            (gobject.TYPE_PYOBJECT, )),
+    }
+
     @property
     def tid(self):
         pass
@@ -76,6 +93,11 @@ _tw = None
 def get_transactions_watcher():
     global _tw
     if _tw is None:
-        from aptd import AptdaemonTransactionsWatcher
-        _tw = AptdaemonTransactionsWatcher()
+        from softwarecenter.enums import USE_PACKAGEKIT_BACKEND
+        if not USE_PACKAGEKIT_BACKEND:
+            from aptd import AptdaemonTransactionsWatcher
+            _tw = AptdaemonTransactionsWatcher()
+        else:
+            from softwarecenter.backend.packagekitd import PackagekitTransactionsWatcher
+            _tw = PackagekitTransactionsWatcher()        
     return _tw
