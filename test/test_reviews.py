@@ -9,7 +9,8 @@ import unittest
 sys.path.insert(0,"../")
 
 from softwarecenter.db.application import Application
-from softwarecenter.backend.reviews import Review
+from softwarecenter.backend.reviews import Review, get_review_loader
+from softwarecenter.db.pkginfo import get_pkg_info
 
 sys.path.insert(0, "../utils")
 
@@ -133,6 +134,13 @@ class TestReviews(unittest.TestCase):
                          "000000")
         self.assertEqual(sa._convert_rgb_to_html(10, 10, 10),
                          "0A0A0A")
+
+    def test_get_top_rated_apps(self):
+        cache = get_pkg_info()
+        loader = get_review_loader(cache)
+        top_rated = loader.get_top_rated_apps()
+        self.assertEqual(len(top_rated), 12)
+        #print top_rated
 
     # helper
     def _p(self):

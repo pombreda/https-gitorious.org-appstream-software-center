@@ -25,13 +25,15 @@ import gzip
 import gtk
 import glib
 import logging
+import operator
 import os
 import random
+import simplejson
 import StringIO
 import subprocess
 import time
 import urllib
-import simplejson
+
 
 from softwarecenter.backend.piston.rnrclient import RatingsAndReviewsAPI
 from softwarecenter.backend.piston.rnrclient_pristine import ReviewDetails
@@ -42,6 +44,7 @@ from softwarecenter.utils import (upstream_version_compare,
                                   get_language,
                                   save_person_to_config,
                                   get_person_from_config,
+                                  calc_dr,
                                   )
 from softwarecenter.paths import (SOFTWARE_CENTER_CACHE_DIR,
                                   SUBMIT_REVIEW_APP,
@@ -64,8 +67,14 @@ class ReviewStats(object):
         self.app = app
         self.ratings_average = None
         self.ratings_total = 0
+        self.rating_spread = [0,0,0,0,0]
+        self.dampened_rating = 3.00
     def __repr__(self):
-        return "[ReviewStats '%s' ratings_average='%s' ratings_total='%s']" % (self.app, self.ratings_average, self.ratings_total)
+        return ("[ReviewStats '%s' ratings_average='%s' ratings_total='%s'" 
+                " rating_spread='%s' dampened_rating='%s']" % 
+                (self.app, self.ratings_average, self.ratings_total, 
+                self.rating_spread, self.dampened_rating))
+    
 
 class UsefulnessCache(object):
 
@@ -260,6 +269,35 @@ class ReviewLoader(object):
             os.makedirs(cachedir)
         cPickle.dump(self.REVIEW_STATS_CACHE,
                       open(self.REVIEW_STATS_CACHE_FILE, "w"))
+    
+    def get_top_rated_apps(self, quantity=12):
+        """Returns a list of the packages with the highest 'rating' based on
+           the dampened rating calculated from the ReviewStats rating spread."""
+
+        cache = self.REVIEW_STATS_CACHE
+        #create a list of tuples with (Application,dampened_rating)
+        dr_list = []
+        for item in cache.items():
+            if hasattr(item[1],'dampened_rating'):
+                dr_list.append((item[0], item[1].dampened_rating))
+            else:
+                dr_list.append((item[0], 3.00))
+        
+        #sorted the list descending by dampened rating
+        sorted_dr_list = sorted(dr_list, key=operator.itemgetter(1),
+                                reverse=True)
+        
+        #return the quantity requested or as much as we can
+        if quantity < len(sorted_dr_list):
+            return_qty = quantity
+        else:
+            return_qty = len(sorted_dr_list)
+        
+        top_rated = []
+        for i in range (0,return_qty):
+            top_rated.append(sorted_dr_list[i][0])
+        
+        return top_rated
 
     # writing new reviews spawns external helper
     # FIXME: instead of the callback we should add proper gobject signals
@@ -482,6 +520,8 @@ class ReviewLoaderSpawningRNRClient(ReviewLoader):
             s = ReviewStats(Application("", r.package_name))
             s.ratings_average = float(r.ratings_average)
             s.ratings_total = float(r.ratings_total)
+            s.rating_spread = simplejson.loads(r.histogram)
+            s.dampened_rating = calc_dr(s.rating_spread)
             review_stats[s.app] = s
         self.REVIEW_STATS_CACHE = review_stats
         callback(review_stats)
