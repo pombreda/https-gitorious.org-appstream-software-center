@@ -92,7 +92,7 @@ Check your Internet connection.
 Failed to fetch https://hidden:hidden@private-ppa.launchpad.net/commercial-ppa-uploaders/steel-storm2/ubuntu/pool/main/s/steelstorm-episode2/steelstorm-episode2-data_2.00.02797-0maverick1_all.deb SSL connection timeout at 117523
 """
         result = obfuscate_private_ppa_details(text)
-        self.assertNotEqual(text, expected)
+        self.assertEqual(result, expected)
         
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
