@@ -36,12 +36,13 @@ software-center (4.1.7) UNRELEASED; urgency=low
   * softwarecenter/utils.py,
     softwarecenter/backend/aptd.py,
     test/test_software_channels.py:
-    - clear any private ppa details in the error log output
+    - obfuscate private ppa details in the error log output and in
+      the error dialog itself, add corresponding unit test
     
   [ Steve Langasek ]
   * debian/control: point Vcs-Bzr field at the right branch.
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 29 Jun 2011 12:54:10 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 29 Jun 2011 14:29:22 -0400
 
 software-center (4.1.6) oneiric; urgency=low
 
