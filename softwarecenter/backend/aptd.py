@@ -25,6 +25,7 @@ import os
 import re
 from softwarecenter.utils import (sources_filename_from_ppa_entry,
                                   release_filename_in_lists_from_deb_line,
+                                  obfuscate_private_ppa_details,
                                   )
 from softwarecenter.enums import TransactionTypes
 
@@ -672,7 +673,9 @@ class AptdaemonBackend(gobject.GObject, InstallBackend):
             enums.get_error_string_from_enum(trans.error_code),
             enums.get_error_description_from_enum(trans.error_code),
             trans.error_details)
-        self._logger.error("error in _on_trans_finished '%s'" % msg)
+        # hide any private ppa details in the logged error message
+        cleaned_msg = obfuscate_private_ppa_details(msg)
+        self._logger.error("error in _on_trans_finished '%s'" % cleaned_msg)
         # show dialog to the user and exit (no need to reopen the cache)
         if not trans.error_code:
             # sometimes aptdaemon doesn't return a value for error_code when the network

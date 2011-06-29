@@ -223,6 +223,22 @@ def sources_filename_from_ppa_entry(entry):
     import apt_pkg
     name = "%s.list" % apt_pkg.URItoFileName(entry.uri)
     return name
+    
+def obfuscate_private_ppa_details(text):
+    """
+    hides any private PPA details that may be found in the given text
+    """
+    result = text
+    s = text.split()
+    for item in s:
+        if "private-ppa.launchpad.net" in item:
+            from urlparse import urlsplit
+            url_parts = urlsplit(item)
+            if url_parts.username:
+                result = result.replace(url_parts.username, "hidden")
+            if url_parts.password:
+                result = result.replace(url_parts.password, "hidden")
+    return result
 
 def release_filename_in_lists_from_deb_line(debline):
     """
