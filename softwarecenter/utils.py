@@ -186,29 +186,6 @@ def get_http_proxy_string_from_libproxy(url):
     else:
         return proxy
 
-def get_http_proxy_string_from_gconf():
-    """Helper that gets the http proxy from gconf
-
-    Returns: string with http://auth:pw@proxy:port/ or None
-    """
-    try:
-        import gconf
-        client = gconf.client_get_default()
-        if client.get_bool("/system/http_proxy/use_http_proxy"):
-            authentication = ""
-            if client.get_bool("/system/http_proxy/use_authentication"):
-                user = client.get_string("/system/http_proxy/authentication_user")
-                password = client.get_string("/system/http_proxy/authentication_password")
-                authentication = "%s:%s@" % (user, password)
-            host = client.get_string("/system/http_proxy/host")
-            port = client.get_int("/system/http_proxy/port")
-            http_proxy = "http://%s%s:%s/" %  (authentication, host, port)
-            if host:
-                return http_proxy
-    except Exception:
-        LOG.exception("failed to get proxy from gconf")
-    return None
-
 def encode_for_xml(unicode_data, encoding="ascii"):
     """ encode a given string for xml """
     return unicode_data.encode(encoding, 'xmlcharrefreplace')

@@ -539,7 +539,10 @@ def index_app_info_from_parser(parser, db, cache):
         doc = xapian.Document()
         term_generator.set_document(doc)
         # app name is the data
-        if parser.has_option_desktop("X-GNOME-FullName"):
+        if parser.has_option_desktop("X-Ubuntu-Software-Center-Name"):
+            name = parser.get_desktop("X-Ubuntu-Software-Center-Name")
+            untranslated_name = parser.get_desktop("X-Ubuntu-Software-Center-Name", translated=False)
+        elif parser.has_option_desktop("X-GNOME-FullName"):
             name = parser.get_desktop("X-GNOME-FullName")
             untranslated_name = parser.get_desktop("X-GNOME-FullName", translated=False)
         else:

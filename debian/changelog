@@ -13,12 +13,31 @@ software-center (4.1.7) UNRELEASED; urgency=low
     to piston-mini-client and adds a new SpawnHelper abstraction. 
     It also adds a new SOFTWARE_CENTER_AGENT_INCLUDE_QA environment 
     to get apps in QA (if you are in the right group)
+  * remove get_http_proxy_string_from_gconf and remove python-gconf
+    dependency
 
   [ Gary Lasker ]
-  * merge lp:~evfool/software-center/smallfixes, many thanks to
-    Robert Roth (LP: #796640) 
+  * merge lp:~evfool/software-center/smallfixes to fix up mouse click
+    handling for LinkButton, many thanks to Robert Roth (LP: #796640)
+  * merge lp:~mterry/software-center/drop-deja-dup courtesy Michael
+    Terry, removes deja-dup from the featured apps list since it has
+    been promoted to main
+  * merge lp:~evfool/software-center/fixnavigation, fixes navigation
+    error when searching (LP: #801114)
+  * softwarecenter/ui/gtk/appview.py:
+    - fix phantom install button in for purchase listview (LP: #801512)
+  * softwarecenter/db/update.py:
+    - add support for custom desktop key X-Ubuntu-Software-Center-Name
+      for USC-specific display names (LP: #801197)
+  * softwarecenter/ui/gtk/appdetailsview_gtk.py:
+    - don't start the indeterminate progress bar for purchase
+      transactions until after the authentication dialog is closed
+      (LP: #725181)
+    
+  [ Steve Langasek ]
+  * debian/control: point Vcs-Bzr field at the right branch.
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 22 Jun 2011 13:59:20 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 27 Jun 2011 16:58:26 -0400
 
 software-center (4.1.6) oneiric; urgency=low
 

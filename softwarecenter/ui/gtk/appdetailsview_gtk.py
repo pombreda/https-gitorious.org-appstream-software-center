@@ -255,7 +255,6 @@ class PackageStatusBar(StatusBar):
         elif state == PkgStates.INSTALLING_PURCHASED:
             self.set_label(_(u'Installing purchase\u2026'))
             self.button.hide()
-            self.progress.show()
         elif state == PkgStates.REMOVING:
             self.set_label(_('Removing...'))
             self.button.set_sensitive(False)
@@ -1559,6 +1558,10 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             result and
             not result.pkgname):
             self.pkg_statusbar.configure(self.app_details, PkgStates.INSTALLING_PURCHASED)
+            # start up an indeterminate progress bar now that the first part of the
+            # purchase transaction has completed as there can be a delay before the
+            # actual package installation begins
+            self.pkg_statusbar.progress.show()
         elif (state == PkgStates.INSTALLING_PURCHASED and 
               result and
               result.pkgname):
