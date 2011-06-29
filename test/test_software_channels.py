@@ -81,16 +81,8 @@ class TestSoftwareChannels(unittest.TestCase):
                          
     def test_obfuscate_private_ppa_details(self):
         from softwarecenter.utils import obfuscate_private_ppa_details
-        text = """Error: Failed to download package files
-Check your Internet connection.
-
-Failed to fetch https://kingoflimbs:R5kGP7MpK777GMiB7bFw@private-ppa.launchpad.net/commercial-ppa-uploaders/steel-storm2/ubuntu/pool/main/s/steelstorm-episode2/steelstorm-episode2-data_2.00.02797-0maverick1_all.deb SSL connection timeout at 117523
-"""
-        expected = """Error: Failed to download package files
-Check your Internet connection.
-
-Failed to fetch https://hidden:hidden@private-ppa.launchpad.net/commercial-ppa-uploaders/steel-storm2/ubuntu/pool/main/s/steelstorm-episode2/steelstorm-episode2-data_2.00.02797-0maverick1_all.deb SSL connection timeout at 117523
-"""
+        text = "Failed to fetch https://kingoflimbs:R5kGP7MpK777GMiB7bFw@private-ppa.launchpad.net/commercial-ppa-uploaders/steel-storm2/ubuntu/pool/main/s/steelstorm-episode2/steelstorm-episode2-data_2.00.02797-0maverick1_all.deb SSL connection timeout at 117523"
+        expected = "Failed to fetch https://hidden:hidden@private-ppa.launchpad.net/commercial-ppa-uploaders/steel-storm2/ubuntu/pool/main/s/steelstorm-episode2/steelstorm-episode2-data_2.00.02797-0maverick1_all.deb SSL connection timeout at 117523"
         result = obfuscate_private_ppa_details(text)
         self.assertEqual(result, expected)
         
