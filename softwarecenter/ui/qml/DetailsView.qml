@@ -143,7 +143,6 @@ FocusScope {
                 model: reviewslistmodel
 
                 delegate: Rectangle {
-                    width: parent.width
                     property string summary: _summary
                     property string review_text: _review_text
                     property string rating: _rating
@@ -154,38 +153,39 @@ FocusScope {
                     //        if I ommit it its getting cramped togehter 
                     //        in funny ways
                     height: reviewsummarytxt.height + reviewtxt.height + 10
-
-                    Row {
-                        id: reviewsheader
-                        spacing: 6
-
-                        Stars {
-                            id: ratingtxt
-                            ratings_average: rating
+                    
+                    Column {
+                        Row {
+                            id: reviewsheader
+                            spacing: 6
+                            
+                            Stars {
+                                id: ratingtxt
+                                ratings_average: rating
+                            }
+                            Text {
+                                id: reviewsummarytxt
+                                text: "<b>" + summary + "</b>"
+                            }
+                            Text {
+                                id: persontxt
+                                text: reviewer_displayname
+                            }
+                            Text {
+                                id: datetxt
+                                text: date_created
+                            }
                         }
                         Text {
-                            id: reviewsummarytxt
-                            text: "<b>" + summary + "</b>"
+                            id: reviewtxt
+                            text: review_text
+                            wrapMode: Text.Wrap
+                            // FIXME: this is only needed because the size
+                            //        of the header gets pretty big so we
+                            //        force the size here to get proper
+                            //        word wrap
+                            width: parent.width
                         }
-                        Text {
-                            id: persontxt
-                            text: reviewer_displayname
-                        }
-                        Text {
-                            id: datetxt
-                            text: date_created
-                        }
-                    }
-                    Text {
-                        id: reviewtxt
-                        anchors.top: reviewsheader.bottom
-                        text: review_text
-                        wrapMode: Text.Wrap
-                        // FIXME: this is only needed because the size
-                        //        of the header gets pretty big so we
-                        //        force the size here to get proper
-                        //        word wrap
-                        width: parent.width
                     }
                 }
 
