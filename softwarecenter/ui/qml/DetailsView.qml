@@ -87,9 +87,35 @@ FocusScope {
             text: list.currentItem != null ? qsTr("%1 reviews").arg(list.currentItem.ratingstotal) : 0
         }
 
+        Rectangle {
+            id: installrect
+            anchors.top: largeiconimg.bottom
+
+            color: "lightblue"
+            height: installbtn.height + 12
+            width: parent.width
+
+            Button {
+                id: installbtn
+                anchors.right: parent.right
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.rightMargin: 12
+
+                text: list.currentItem == null ? "" : list.currentItem.installed ? qsTr("Remove") : qsTr("Install")
+
+                onClicked: {
+                    if (list.currentItem.installed) 
+                        list.model.removePackage(list.currentItem.pkgname)
+                    else
+                        list.model.installPackage(list.currentItem.pkgname)
+                }
+
+            }
+        }
+
         Text {
             id: desctxt
-            anchors.top: headertxt.bottom
+            anchors.top: installrect.bottom
             anchors.topMargin: 50
             anchors.left: parent.left
             anchors.right: screenshotthumb.left
@@ -100,7 +126,7 @@ FocusScope {
 
         Image {
             id: screenshotthumb
-            anchors.top: headertxt.bottom
+            anchors.top: installrect.bottom
             anchors.topMargin: 50
             anchors.right: parent.right
             anchors.margins: 15
