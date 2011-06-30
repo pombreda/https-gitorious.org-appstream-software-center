@@ -73,9 +73,56 @@ FocusScope {
             text: list.currentItem != null ? list.currentItem.summary : ""
         }
 
+        Stars {
+            id: headerstars
+            anchors.top: parent.top
+            anchors.right: parent.right
+            anchors.margins: 12
+            ratings_average: list.currentItem != null ? list.currentItem.ratingsaverage : 0
+        }
+        Text {
+            id: headernrreviews
+            anchors.top: headerstars.bottom
+            anchors.horizontalCenter: headerstars.horizontalCenter
+            text: list.currentItem != null ? qsTr("%1 reviews").arg(list.currentItem.ratingstotal) : 0
+        }
+
+        Rectangle {
+            id: installrect
+            anchors.top: largeiconimg.bottom
+
+            color: "lightblue"
+            height: installbtn.height + 12
+            width: parent.width
+
+            Button {
+                id: installbtn
+                anchors.right: parent.right
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.rightMargin: 12
+
+                text: list.currentItem == null ? "" : list.currentItem.installed ? qsTr("Remove") : qsTr("Install")
+
+                onClicked: {
+                    if (list.currentItem.installed) 
+                        list.model.removePackage(list.currentItem.pkgname)
+                    else
+                        list.model.installPackage(list.currentItem.pkgname)
+                }
+            }
+
+            ProgressBar {
+                id: progressbar
+                anchors.fill: installbtn
+                width: 200
+                progress: list.currentItem != null ? list.currentItem.installremoveprogress : 0
+                visible: list.currentItem && (list.currentItem.installremoveprogress != -1)
+            }
+        }
+
         Text {
             id: desctxt
-            anchors.top: headertxt.bottom
+            anchors.top: installrect.bottom
             anchors.topMargin: 50
             anchors.left: parent.left
             anchors.right: screenshotthumb.left
@@ -86,7 +133,7 @@ FocusScope {
 
         Image {
             id: screenshotthumb
-            anchors.top: headertxt.bottom
+            anchors.top: installrect.bottom
             anchors.topMargin: 50
             anchors.right: parent.right
             anchors.margins: 15
@@ -143,7 +190,6 @@ FocusScope {
                 model: reviewslistmodel
 
                 delegate: Rectangle {
-                    width: parent.width
                     property string summary: _summary
                     property string review_text: _review_text
                     property string rating: _rating
@@ -154,45 +200,36 @@ FocusScope {
                     //        if I ommit it its getting cramped togehter 
                     //        in funny ways
                     height: reviewsummarytxt.height + reviewtxt.height + 10
+                    width: reviewslist.width
 
-                    Text {
-                        id: ratingtxt
-                        text: rating + "/5"
+                    Stars {
+                        id: stars
+                        ratings_average: rating
                     }
                     Text {
                         id: reviewsummarytxt
-                        anchors.left: ratingtxt.right
-                        text: "<b>" + summary + "</b>"
+                        text: summary
+                        font.bold: true
+                        anchors.left: stars.right
+                        anchors.right: whowhentxt.left
+                        anchors.margins: 5
+                        elide: Text.ElideRight
                     }
                     Text {
-                        id: persontxt
-                        anchors.right: datetxt.left
-                        text: reviewer_displayname
-                    }
-                    Text {
-                        id: datetxt
+                        id: whowhentxt
+                        text: qsTr("%1, %2").arg(reviewer_displayname).arg(date_created)
                         anchors.right: parent.right
-                        text: date_created
+                        color: "grey"
                     }
                     Text {
                         id: reviewtxt
-                        anchors.top: reviewsummarytxt.bottom
                         text: review_text
                         wrapMode: Text.Wrap
-                        // FIXME: this is only needed because the size
-                        //        of the header gets pretty big so we
-                        //        force the size here to get proper
-                        //        word wrap
-                        width: parent.width
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        anchors.top: stars.bottom
+                        anchors.topMargin: 5
                     }
-                }
-
-                // refresh review stats on each startup
-                Component.onCompleted: {
-                    reviewslistmodel.refreshReviewStats()
-                    // FIXME: how to connect the "reviewStatsChanged" signal
-                    //        from reviewslistmodel there to a JS function?
-                    
                 }
             }
         }

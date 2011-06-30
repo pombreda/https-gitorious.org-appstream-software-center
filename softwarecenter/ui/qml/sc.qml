@@ -166,6 +166,7 @@ FocusScope {
         switcher.pushFrame(catview)
         switcher.pushFrame(listview)
         switcher.pushFrame(detailsview)
+        reviewslistmodel.refreshReviewStats()
     }
 }
 
