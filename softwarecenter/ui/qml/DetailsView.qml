@@ -109,7 +109,14 @@ FocusScope {
                     else
                         list.model.installPackage(list.currentItem.pkgname)
                 }
+            }
 
+            ProgressBar {
+                id: progressbar
+                anchors.fill: installbtn
+                width: 200
+                progress: list.currentItem != null ? list.currentItem.installremoveprogress : 0
+                visible: list.currentItem && (list.currentItem.installremoveprogress != -1)
             }
         }
 
