@@ -155,9 +155,9 @@ FocusScope {
                     //        in funny ways
                     height: reviewsummarytxt.height + reviewtxt.height + 10
 
-                    Text {
+                    Stars {
                         id: ratingtxt
-                        text: rating + "/5"
+                        ratings_average: rating
                     }
                     Text {
                         id: reviewsummarytxt
