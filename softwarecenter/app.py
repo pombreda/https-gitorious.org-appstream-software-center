@@ -49,6 +49,8 @@ from softwarecenter.enums import (Icons,
                                   DB_SCHEMA_VERSION,
                                   MOUSE_EVENT_FORWARD_BUTTON,
                                   MOUSE_EVENT_BACK_BUTTON,
+                                  SOFTWARE_CENTER_NAME_KEYRING,
+                                  SOFTWARE_CENTER_SSO_DESCRIPTION,
                                  )
 
 from softwarecenter.paths import SOFTWARE_CENTER_PLUGIN_DIR, ICON_PATH
@@ -322,8 +324,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                                  gtk.gdk.MOD1_MASK,
                                                  gtk.ACCEL_VISIBLE)
 
-        # default focus
-        self.window_main.set_size_request(600, 400)
+        # specify the smallest allowable window size
+        self.window_main.set_size_request(700, 400)
 
         # setup window name and about information (needs branding)
         name = self.distro.get_app_name()
@@ -488,7 +490,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self.active_pane and
             hasattr(self.active_pane, 'navigation_bar') and
             not self.active_pane.searchentry.is_focus() and
-            not self.active_pane.navigation_bar.has_id(NavButtons.ID_PURCHASE)):
+            not self.active_pane.navigation_bar.has_id(NavButtons.PURCHASE)):
             self.active_pane.navigation_bar.navigate_up()
             
     def on_window_main_button_press_event(self, widget, event):
@@ -499,12 +501,12 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         if (event.button == MOUSE_EVENT_BACK_BUTTON and
             self.active_pane and
             hasattr(self.active_pane, 'navigation_bar') and
-            not self.active_pane.navigation_bar.has_id(NavButtons.ID_PURCHASE)):
+            not self.active_pane.navigation_bar.has_id(NavButtons.PURCHASE)):
             self.on_navhistory_back_action_activate()
         elif (event.button == MOUSE_EVENT_FORWARD_BUTTON and
             self.active_pane and
             hasattr(self.active_pane, 'navigation_bar') and
-            not self.active_pane.navigation_bar.has_id(NavButtons.ID_PURCHASE)):
+            not self.active_pane.navigation_bar.has_id(NavButtons.PURCHASE)):
             self.on_navhistory_forward_action_activate()
         
     def on_view_switcher_changed(self, view_switcher, view_id, channel):
@@ -616,7 +618,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
     def get_icon_filename(self, iconname, iconsize):
         iconinfo = self.icons.lookup_icon(iconname, iconsize, 0)
         if not iconinfo:
-            iconinfo = self.icons.lookup_icon(Icons.MISSING_APP_ICON, iconsize, 0)
+            iconinfo = self.icons.lookup_icon(Icons.MISSING_APP, iconsize, 0)
         return iconinfo.get_filename()
 
     # Menu Items
@@ -698,14 +700,11 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
     def _create_dbus_sso_if_needed(self):
         if not self.sso:
-            from backend.login_sso import LoginBackendDbusSSO
-            # see bug #773214 for the rational
-            #appname = _("Ubuntu Software Center Store")
-            appname = "Ubuntu Software Center Store"
-            login_text = _("To reinstall previous purchases, sign in to the "
-                           "Ubuntu Single Sign-On account you used to pay for them.")
-            self.sso = LoginBackendDbusSSO(self.window_main.window.xid,
-                                           appname, login_text)
+            from backend.login_sso import get_sso_backend
+            appname = SOFTWARE_CENTER_NAME_KEYRING
+            login_text = SOFTWARE_CENTER_SSO_DESCRIPTION
+            self.sso = get_sso_backend(self.window_main.window.xid,
+                                       appname, _(login_text))
             self.sso.connect("login-successful", self._on_sso_login)
 
     def _login_via_dbus_sso(self):
@@ -714,8 +713,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
     def _create_scagent_if_needed(self):
         if not self.scagent:
-            from backend.restfulclient import SoftwareCenterAgent
-            self.scagent = SoftwareCenterAgent()
+            from backend.scagent import SoftwareCenterAgent
+            self.scagent = SoftwareCenterAgent(xid=self.window_main.window.xid)
             self.scagent.connect("available-for-me", self._available_for_me_result)
             
     def on_menuitem_reinstall_purchases_activate(self, menuitem):
@@ -1183,6 +1182,14 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         if self.config.has_option("general", "size"):
             (x, y) = self.config.get("general", "size").split(",")
             self.window_main.set_default_size(int(x), int(y))
+        else:
+            # on first launch, specify the default window size to take advantage
+            # of the available screen real estate (but set a reasonable limit
+            # in case of a crazy-huge monitor)
+            screen_height = gtk.gdk.screen_height()
+            screen_width = gtk.gdk.screen_width()
+            self.window_main.set_default_size(min(int(.85 * screen_width), 1200),
+                                              min(int(.85 * screen_height), 800))
         if (self.config.has_option("general", "maximized") and
             self.config.getboolean("general", "maximized")):
             self.window_main.maximize()

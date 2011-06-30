@@ -7,7 +7,7 @@ import logging
 from optparse import OptionParser
 
 from softwarecenter.paths import SOFTWARE_CENTER_CACHE_DIR
-from softwarecenter.backend.rnrclient import RatingsAndReviewsAPI
+from softwarecenter.backend.piston.rnrclient import RatingsAndReviewsAPI
 
 LOG = logging.getLogger(__name__)
 

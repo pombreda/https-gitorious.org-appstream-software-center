@@ -52,7 +52,9 @@ class TestQMLHelpers(unittest.TestCase):
             index = model.index(i, APP_NAME_COLUMN)
             role = APP_NAME_COLUMN
             names.add(model.data(index, role))
-        self.assertTrue("Ubuntu Software Center" in names)
+        # en_DK/en_US fun
+        self.assertTrue("Ubuntu Software Center" in names or
+                        "Ubuntu Software Centre" in names)
         # test setCategory by ensuring that setCategory() cuts the nr of 
         # search results
         old_search_hits =  model.rowCount()

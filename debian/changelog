@@ -1,4 +1,102 @@
-software-center (4.1.5) UNRELEASED; urgency=low
+software-center (4.1.7) UNRELEASED; urgency=low
+
+  [ Aaron Peachey ]
+  * Add fake-review API that can be used for GUI testing and
+    automatic testing without actually hitting the network.
+    Can be enabled with the SOFTWARE_CENTER_FAKE_REVIEW_API=1
+    environment
+  * add support to remove/modify reviews, this requires the
+    new rnrserver in production
+  
+  [ Michael Vogt ]
+  * merged lp:~aaronp/software-center/tests, many thanks
+  * merged lp:~mvo/software-center/piston-sc-agent:
+    This move the SoftwareCenterAgent support from restfulclient
+    to piston-mini-client and adds a new SpawnHelper abstraction. 
+    It also adds a new SOFTWARE_CENTER_AGENT_INCLUDE_QA environment 
+    to get apps in QA (if you are in the right group)
+  * remove get_http_proxy_string_from_gconf and remove python-gconf
+    dependency
+
+  [ Gary Lasker ]
+  * merge lp:~evfool/software-center/smallfixes to fix up mouse click
+    handling for LinkButton, many thanks to Robert Roth (LP: #796640)
+  * merge lp:~mterry/software-center/drop-deja-dup courtesy Michael
+    Terry, removes deja-dup from the featured apps list since it has
+    been promoted to main
+  * merge lp:~evfool/software-center/fixnavigation, fixes navigation
+    error when searching (LP: #801114)
+  * softwarecenter/ui/gtk/appview.py:
+    - fix phantom install button in for purchase listview (LP: #801512)
+  * softwarecenter/db/update.py:
+    - add support for custom desktop key X-Ubuntu-Software-Center-Name
+      for USC-specific display names (LP: #801197)
+  * softwarecenter/ui/gtk/appdetailsview_gtk.py:
+    - don't start the indeterminate progress bar for purchase
+      transactions until after the authentication dialog is closed
+      (LP: #725181)
+  * softwarecenter/utils.py,
+    softwarecenter/backend/aptd.py,
+    test/test_software_channels.py:
+    - obfuscate private ppa details in the error log output and in
+      the error dialog itself, add corresponding unit test
+    
+  [ Steve Langasek ]
+  * debian/control: point Vcs-Bzr field at the right branch.
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 29 Jun 2011 14:29:22 -0400
+
+software-center (4.1.6) oneiric; urgency=low
+
+  [ Brian Murray ]
+  * add in an apport package hook for software-center that adds
+    software-center.log to bug reports
+
+  [ Gary Lasker ]
+  * data/ui/SoftwareCenter.ui,
+    softwarecenter/app.py:
+    - specify the default initial window size based on screen
+      dimensions to take better advantage of the available area
+  * softwarecenter/ui/gtk/appdetailsview_gtk.py:
+    - display package name first in the version field per spec
+  * merge lp:~weblive-dev/software-center/fix-weblive, many
+    thanks to Stéphane Graber
+  * softwarecenter/db/update.py:
+    - don't generate thumbnail urls for screenshots in the For
+      Purchase section as we no longer provide separate thumbnail
+      files for these apps
+  * softwarecenter/ui/gtk/softwarepane.py:
+    - fix crash when searching the Canonical Partners section
+      (LP: #796034)
+  * softwarecenter/db/application.py:
+    - fix broken details view for items in the Canonical Partners
+      section when the channel is not enabled
+
+  [ Michael Vogt ]
+  * move from pyhton-central to python2
+  * lp:~alexeftimie/software-center/backend-refactor,
+    many thanks to Alex Eftimie (LP: #704719)
+  * softwarecenter/utils.py:
+    - add new generic "normalize_package_description()" helper that
+      can be shared between the various UIs to normalize the package
+      description
+    - add generic htmlize_package_description()
+  * softwarecenter/ui/gtk/widgets/description.py:
+    - use "normalize_package_description()" here for the description
+      building
+  * fix some pyflakes warnings
+  * update test/test_htmlize.py for the new htmlize_package_description()
+
+  [ Aaron Peachey ]
+  * softwarecenter/backend/reviews.py,
+    softwarecenter/ui/gtk/appdetailsview_gtk.py,
+    softwarecenter/ui/gtk/widgets/reviews.py:
+    - fix duplication of reviews after user has submitted
+      usefulness, flagged or submitted a review (LP: #794060)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 20 Jun 2011 11:21:02 +0200
+
+software-center (4.1.5) oneiric; urgency=low
 
   [ Gary Lasker ]
   * data/ui/SoftwareCenter.ui,
@@ -33,9 +131,15 @@ software-center (4.1.5) UNRELEASED; urgency=low
   * merged lp:~mterry/software-center/network-manager-0.9, many
     thanks to Michael Terry
   * merged lp:~mmcg069/software-center/enum-style-idea, this cleans
-    up the the enum code handling, many thanks! 
+    up the the enum code handling, many thanks!
+  * integration work on the qml branch
+  * merged lp:~evfool/software-center/fix793896, many thanks to
+    Robert Roth, LP: #793896
+  
+  [ Olivier Tilloy ]
+  * add QML ui frontend (lp:~osomon/software-center/qml)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 02 Jun 2011 14:57:36 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 07 Jun 2011 15:36:46 +0200
 
 software-center (4.1.4) oneiric; urgency=low
 

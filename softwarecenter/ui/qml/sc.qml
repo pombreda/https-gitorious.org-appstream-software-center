@@ -55,6 +55,7 @@ FocusScope {
             if (index == 0 ||
                 (index == 1 && navigation.breadcrumbs.model.get(1).key == categoryKey)) {
                 searchQuery = ""
+                pkglistmodel.setCategory("") 
             }
             switcher.goToFrame(navigation.breadcrumbs.model.get(index).view)
         }
@@ -155,7 +156,9 @@ FocusScope {
                 switcher.goToFrame(listview)
             }
         }
-        onShown: details.loadThumbnail()
+        onShown: { details.loadThumbnail();
+                   details.loadReviews();
+                 }
         onHidden: details.unloadThumbnail()
     }
 

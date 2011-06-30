@@ -33,20 +33,26 @@ from softwarecenter.distro import get_distro
 distro = get_distro()
 SERVER_ROOT=distro.REVIEWS_SERVER
 
-# patch default_service_root
 try:
-    from rnrclient_pristine import RatingsAndReviewsAPI
-    RatingsAndReviewsAPI.default_service_root = SERVER_ROOT
-except:
+    if "SOFTWARE_CENTER_FAKE_REVIEW_API" in os.environ:
+        from softwarecenter.backend.piston.rnrclient_fake import RatingsAndReviewsAPI
+        RatingsAndReviewsAPI.default_service_root = SERVER_ROOT
+        import rnrclient_fake
+        rnrclient_fake
+        LOG.warn("using FAKE review api, data returned will be dummy data only")
+    else:
+        # patch default_service_root
+        from rnrclient_pristine import RatingsAndReviewsAPI
+        RatingsAndReviewsAPI.default_service_root = SERVER_ROOT
+        import rnrclient_pristine
+        if "SOFTWARE_CENTER_FORCE_NON_SSL" in os.environ:
+            LOG.warn("forcing transmission over NON ENCRYPTED CHANNEL")
+            rnrclient_pristine.AUTHENTICATED_API_SCHEME = "http"
+except ImportError:
     LOG.error("need python-piston-mini client\n"
               "available in natty or from:\n"
               "   ppa:software-store-developers/daily-build ")
     sys.exit(1)
-
-import rnrclient_pristine
-if "SOFTWARE_CENTER_FORCE_NON_SSL" in os.environ:
-    LOG.warn("forcing transmission over NON ENCRYPTED CHANNEL")
-    rnrclient_pristine.AUTHENTICATED_API_SCHEME = "http"
 
 
 if __name__ == "__main__":

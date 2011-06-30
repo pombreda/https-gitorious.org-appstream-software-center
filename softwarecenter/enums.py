@@ -17,9 +17,17 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import os
+from gettext import gettext as _
 
 # pkgname of this app itself (used for "self-awareness", see spec)
 SOFTWARE_CENTER_PKGNAME = 'software-center'
+
+# name of the app in the keyring, untranslated, see bug #773214 for the rational
+SOFTWARE_CENTER_NAME_KEYRING = "Ubuntu Software Center Store"
+SOFTWARE_CENTER_SSO_DESCRIPTION = _(
+    "To reinstall previous purchases, sign in to the "
+    "Ubuntu Single Sign-On account you used to pay for them.")
+        
 
 # buy-something base url
 #BUY_SOMETHING_HOST = "http://localhost:8000/"
@@ -122,7 +130,7 @@ class CustomKeys:
     ICON = "Icon"
     SCREENSHOT_URL = "Screenshot-Url"
     THUMBNAIL_URL = "Thumbnail-Url"
-    KEY_CATEGORY = "Category"
+    CATEGORY = "Category"
 
 # pkg action state constants
 class PkgStates:

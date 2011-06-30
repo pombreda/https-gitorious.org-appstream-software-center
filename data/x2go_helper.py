@@ -1,1 +1,1 @@
-../utils/x2go_helper.py
+../utils/piston-helpers/x2go_helper.py

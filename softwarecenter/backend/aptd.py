@@ -25,6 +25,7 @@ import os
 import re
 from softwarecenter.utils import (sources_filename_from_ppa_entry,
                                   release_filename_in_lists_from_deb_line,
+                                  obfuscate_private_ppa_details,
                                   )
 from softwarecenter.enums import TransactionTypes
 
@@ -40,9 +41,8 @@ from aptdaemon import policykit1
 from defer import inline_callbacks, return_value
 
 import gtk
-from softwarecenter.backend.transactionswatcher import TransactionsWatcher
+from softwarecenter.backend.transactionswatcher import BaseTransactionsWatcher, BaseTransaction
 from softwarecenter.backend.installbackend import InstallBackend
-from softwarecenter.utils import get_http_proxy_string_from_gconf
 from softwarecenter.ui.gtk import dialogs
 
 from gettext import gettext as _
@@ -74,7 +74,93 @@ class TransactionProgress(object):
         self.meta_data = trans.meta_data
         self.progress = trans.progress
 
-class AptdaemonBackend(gobject.GObject, TransactionsWatcher, InstallBackend):
+class AptdaemonTransaction(BaseTransaction):
+    def __init__(self, trans):
+        self._trans = trans
+
+    @property
+    def tid(self):
+        return self._trans.tid
+
+    @property
+    def status_details(self):
+        return self._trans.status_details
+
+    @property
+    def meta_data(self):
+        return self._trans.meta_data
+
+    @property
+    def cancellable(self):
+        return self._trans.cancellable
+
+    @property
+    def progress(self):
+        return self._trans.progress
+
+    def get_role_description(self, role=None):
+        role = self._trans.role if role is None else role
+        return enums.get_role_localised_present_from_enum(role)
+
+    def get_status_description(self, status=None):
+        status = self._trans.status if status is None else status
+        return enums.get_status_string_from_enum(status)
+
+    def is_waiting(self):
+        return self._trans.status == enums.STATUS_WAITING_LOCK
+
+    def is_downloading(self):
+        return self._trans.status == enums.STATUS_DOWNLOADING
+
+    def cancel(self):
+        return self._trans.cancel()
+
+    def connect(self, signal, handler, *args):
+        """ append the real handler to the arguments """
+        args = args + (handler, )
+        return self._trans.connect(signal, self._handler, *args)
+
+    def _handler(self, trans, *args):
+        """ translate trans to BaseTransaction type.
+        call the real handler after that
+        """
+        real_handler = args[-1]
+        args = tuple(args[:-1])
+        if isinstance(trans, client.AptTransaction):
+            trans = AptdaemonTransaction(trans)
+        return real_handler(trans, *args)
+
+class AptdaemonTransactionsWatcher(BaseTransactionsWatcher):
+    """ 
+    base class for objects that need to watch the aptdaemon 
+    for transaction changes. it registers a handler for the daemon
+    going away and reconnects when it appears again
+    """
+
+    def __init__(self):
+        super(AptdaemonTransactionsWatcher, self).__init__()
+        # watch the daemon exit and (re)register the signal
+        bus = dbus.SystemBus()
+        self._owner_watcher = bus.watch_name_owner(
+            "org.debian.apt", self._register_active_transactions_watch)
+
+    def _register_active_transactions_watch(self, connection):
+        #print "_register_active_transactions_watch", connection
+        apt_daemon = client.get_aptdaemon()
+        apt_daemon.connect_to_signal("ActiveTransactionsChanged", 
+                                     self._on_transactions_changed)
+        current, queued = apt_daemon.GetActiveTransactions()
+        self._on_transactions_changed(current, queued)
+
+    def _on_transactions_changed(self, current, queued):
+        self.emit("lowlevel-transactions-changed", current, queued)
+
+    def get_transaction(self, tid):
+        """ synchroneously return a transaction """
+        trans = client.get_transaction(tid)
+        return AptdaemonTransaction(trans)
+
+class AptdaemonBackend(gobject.GObject, InstallBackend):
     """ software center specific code that interacts with aptdaemon """
 
     __gsignals__ = {'transaction-started':(gobject.SIGNAL_RUN_FIRST,
@@ -105,9 +191,12 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher, InstallBackend):
 
     def __init__(self):
         gobject.GObject.__init__(self)
-        TransactionsWatcher.__init__(self)
+        
         self.aptd_client = client.AptClient()
         self.pending_transactions = {}
+        self._transactions_watcher = AptdaemonTransactionsWatcher()
+        self._transactions_watcher.connect("lowlevel-transactions-changed",
+                                           self._on_lowlevel_transactions_changed)
         # dict of pkgname -> FakePurchaseTransaction
         self.pending_purchases = {}
         self._progress_signal = None
@@ -521,7 +610,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher, InstallBackend):
                                      app, trans.meta_data, sourcepart)
 
     # internal helpers
-    def on_transactions_changed(self, current, pending):
+    def _on_lowlevel_transactions_changed(self, watcher, current, pending):
         # cleanup progress signal (to be sure to not leave dbus matchers around)
         if self._progress_signal:
             gobject.source_remove(self._progress_signal)
@@ -579,11 +668,14 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher, InstallBackend):
         if trans.error_code == enums.ERROR_DAEMON_DIED:
             self._logger.warn("daemon dies, ignoring: %s %s" % (trans, enum))
             return
+        # hide any private ppa details in the error message since it may
+        # appear in the logs for LP bugs and potentially in screenshots as well
+        cleaned_error_details = obfuscate_private_ppa_details(trans.error_details)
         msg = "%s: %s\n%s\n\n%s" % (
             _("Error"),
             enums.get_error_string_from_enum(trans.error_code),
             enums.get_error_description_from_enum(trans.error_code),
-            trans.error_details)
+            cleaned_error_details)
         self._logger.error("error in _on_trans_finished '%s'" % msg)
         # show dialog to the user and exit (no need to reopen the cache)
         if not trans.error_code:
@@ -599,7 +691,7 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher, InstallBackend):
         return dialogs.error(None,
                         enums.get_error_string_from_enum(trans.error_code),
                         enums.get_error_description_from_enum(trans.error_code),
-                        trans.error_details,
+                        cleaned_error_details,
                         alternative_action)
 
     def _on_trans_finished(self, trans, enum):
@@ -694,13 +786,6 @@ class AptdaemonBackend(gobject.GObject, TransactionsWatcher, InstallBackend):
             # generic metadata
             if metadata:
                 yield trans.set_meta_data(defer=True, **metadata)
-            # FIXME: either use get_http_proxy_string_from_libproxy 
-            #        (with target url) or eliminate entirely
-            # do not set the http proxy by default (#628823)
-            if os.environ.get("SOFTWARE_CENTER_USE_GCONF_PROXY"):
-                http_proxy = get_http_proxy_string_from_gconf()
-                if http_proxy:
-                    trans.set_http_proxy(http_proxy, defer=True)
             yield trans.run(defer=True)
         except Exception, error:
             self._on_trans_error(error, pkgname)

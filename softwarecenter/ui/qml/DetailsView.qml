@@ -213,6 +213,9 @@ FocusScope {
     function unloadThumbnail() {
         screenshotthumb.source = ""
     }
+    function loadReviews() {
+         reviewslistmodel.getReviews(list.currentItem.pkgname)
+    }
 
     Rectangle {
         id: screenshotview

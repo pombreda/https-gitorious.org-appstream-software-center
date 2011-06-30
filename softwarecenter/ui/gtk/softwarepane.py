@@ -620,7 +620,7 @@ class SoftwarePane(gtk.VBox, BasePane):
                          "<a href=\"search-parent:\">the %(n)d items "
                          "in %(category)s</a> that match.", n=parent_model.nr_apps)%\
                          {'category':self.apps_category.name,'n':parent_model.nr_apps})
-            if self.apps_filter.get_supported_only(): 
+            if self.apps_filter and self.apps_filter.get_supported_only(): 
                 unsupported = copy.copy(self.apps_filter)
                 unsupported.set_supported_only(False)
                 unsupported_model = AppStore(self.cache,

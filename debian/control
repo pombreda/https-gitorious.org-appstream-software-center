@@ -9,13 +9,11 @@ Build-Depends: debhelper (>= 7.0.50),
                intltool,
                po4a,
                python,
-               python-central,
                python-distutils-extra,
                python-setuptools,
                python-scour
 Standards-Version: 3.8.4
-XS-Python-Version: current
-Vcs-Bzr: https://code.launchpad.net/~software-store-developers/software-center/4.0
+Vcs-Bzr: https://code.launchpad.net/~software-store-developers/software-center/trunk
 Homepage: https://launchpad.net/software-center
 
 Package: software-center
@@ -36,7 +34,6 @@ Depends: ${python:Depends},
          python-gtk2,
          python-webkit,
          python-xdg,
-         python-gconf,
          python-gmenu,
          aptdaemon (>= 0.40),
 	 python-lazr.restfulclient,
@@ -53,7 +50,6 @@ Conflicts: gnome-app-install (<< 1)
 Replaces: gnome-app-install
 Provides: gnome-app-install
 Suggests: python-launchpadlib
-XB-Python-Version: ${python:Versions}
 Description: Utility for browsing, installing, and removing applications
  The Ubuntu Software Center lets you browse and install thousands of 
  applications available for Ubuntu. You can view available 

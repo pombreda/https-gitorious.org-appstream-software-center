@@ -48,6 +48,10 @@ class TestSoftwareChannels(unittest.TestCase):
         cm = ChannelsManager(self.db, self.mock_icons)
         # ensure we have channels
         self.assertTrue(len(cm.channels) > 0)
+        # test channel_available
+        #for c in cm.channels:
+        #     self.assertTrue(cm.channel_available(c.origin))
+        self.assertFalse(ChannelsManager.channel_available('asfd12da098p'))
         # ensure we don't have any channel updates yet
         # FIXME: disabled for now as it
         #self.assertFalse(cm._check_for_channel_updates())
@@ -74,6 +78,13 @@ class TestSoftwareChannels(unittest.TestCase):
         se = SourceEntry(self.repo_from_lp)
         self.assertEqual(sources_filename_from_ppa_entry(se),
                          "private-ppa.launchpad.net_user_private-test_ubuntu.list")
+                         
+    def test_obfuscate_private_ppa_details(self):
+        from softwarecenter.utils import obfuscate_private_ppa_details
+        text = "Failed to fetch https://kingoflimbs:R5kGP7MpK777GMiB7bFw@private-ppa.launchpad.net/commercial-ppa-uploaders/steel-storm2/ubuntu/pool/main/s/steelstorm-episode2/steelstorm-episode2-data_2.00.02797-0maverick1_all.deb SSL connection timeout at 117523"
+        expected = "Failed to fetch https://hidden:hidden@private-ppa.launchpad.net/commercial-ppa-uploaders/steel-storm2/ubuntu/pool/main/s/steelstorm-episode2/steelstorm-episode2-data_2.00.02797-0maverick1_all.deb SSL connection timeout at 117523"
+        result = obfuscate_private_ppa_details(text)
+        self.assertEqual(result, expected)
         
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
