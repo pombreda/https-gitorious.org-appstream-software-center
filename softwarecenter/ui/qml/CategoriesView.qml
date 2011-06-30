@@ -62,7 +62,7 @@ FocusScope {
 
         text: qsTr("Departments")
         font.pointSize: 18
-        font.bold: True
+        font.bold: true
 
     }
 
