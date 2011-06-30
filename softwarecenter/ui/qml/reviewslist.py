@@ -18,6 +18,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import glib
+from datetime import datetime
 
 from PySide.QtCore import QAbstractListModel, QModelIndex, Slot, Signal
 
@@ -54,6 +55,9 @@ class ReviewsListModel(QAbstractListModel):
             return None
         review = self._reviews[index.row()]
         role = self.COLUMNS[role]
+        if role == '_date_created':
+            when = datetime.strptime(getattr(review, role[1:]), '%Y-%m-%d %H:%M:%S')
+            return when.strftime('%Y-%m-%d')
         return unicode(getattr(review, role[1:]))
 
     # helper
