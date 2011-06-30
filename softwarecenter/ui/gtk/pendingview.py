@@ -16,27 +16,20 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import apt_pkg
 import dbus
 import glib
 import gtk
 import gobject
 import logging
 
-import aptdaemon.client
-from aptdaemon.enums import (get_role_localised_present_from_enum,
-                             get_status_string_from_enum,
-                             STATUS_WAITING_LOCK,
-                             STATUS_DOWNLOADING,
-                             )
-from softwarecenter.utils import get_icon_from_theme
+from softwarecenter.utils import get_icon_from_theme, size_to_str
 from softwarecenter.backend import get_install_backend
-from softwarecenter.backend.transactionswatcher import TransactionsWatcher
+from softwarecenter.backend.transactionswatcher import get_transactions_watcher
 from basepane import BasePane
 
 from gettext import gettext as _
 
-class PendingStore(gtk.ListStore, TransactionsWatcher):
+class PendingStore(gtk.ListStore):
 
     # column names
     (COL_TID,
@@ -65,12 +58,13 @@ class PendingStore(gtk.ListStore, TransactionsWatcher):
     def __init__(self, icons):
         # icon, status, progress
         gtk.ListStore.__init__(self, *self.column_types)
-        TransactionsWatcher.__init__(self)
+        self._transactions_watcher = get_transactions_watcher()
+        self._transactions_watcher.connect("lowlevel-transactions-changed",
+                                           self._on_lowlevel_transactions_changed)
         # data
         self.icons = icons
         # the apt-daemon stuff
         self.backend = get_install_backend()
-        self.apt_client = self.backend.aptd_client
         self._signals = []
         # let the pulse helper run
         glib.timeout_add(500, self._pulse_purchase_helper)
@@ -82,7 +76,7 @@ class PendingStore(gtk.ListStore, TransactionsWatcher):
             del sig
         self._signals = []
 
-    def on_transactions_changed(self, current_tid, pending_tids):
+    def _on_lowlevel_transactions_changed(self, watcher, current_tid, pending_tids):
         logging.debug("on_transaction_changed %s (%s)" % (current_tid, len(pending_tids)))
         self.clear()
         for tid in [current_tid] + pending_tids:
@@ -93,7 +87,7 @@ class PendingStore(gtk.ListStore, TransactionsWatcher):
             # when we get two on_transaction_changed closely after each
             # other clear() is run before the "_append_transaction" handler
             # is run and we end up with two (or more) _append_transactions
-            trans = aptdaemon.client.get_transaction(tid)
+            trans = self._transactions_watcher.get_transaction(tid)
             self._append_transaction(trans)
         # add pending purchases as pseudo transactions
         for pkgname in self.backend.pending_purchases:
@@ -132,7 +126,7 @@ class PendingStore(gtk.ListStore, TransactionsWatcher):
             appname = trans.meta_data["sc_pkgname"]
         else:
             #FIXME: Extract information from packages property
-            appname = get_role_localised_present_from_enum(trans.role)
+            appname = trans.get_role_description()
             self._signals.append(
                 trans.connect("role-changed", self._on_role_changed))
         try:
@@ -141,10 +135,10 @@ class PendingStore(gtk.ListStore, TransactionsWatcher):
             icon = get_icon_from_theme(self.icons, iconsize=self.ICON_SIZE)
         else:
             icon = get_icon_from_theme(self.icons, iconname=iconname, iconsize=self.ICON_SIZE)
-        if trans.status == STATUS_WAITING_LOCK:
+        if trans.is_waiting():
             status = trans.status_details
         else:
-            status = get_status_string_from_enum(trans.status)
+            status = trans.get_status_description()
         status_text = self._render_status_text(appname, status)
         cancel_icon = self._get_cancel_icon(trans.cancellable)
         self.append([trans.tid, icon, appname, status_text, trans.progress,
@@ -166,7 +160,7 @@ class PendingStore(gtk.ListStore, TransactionsWatcher):
         #print "_on_progress_changed: ", trans, role
         for row in self:
             if row[self.COL_TID] == trans.tid:
-                row[self.COL_NAME] = get_role_localised_present_from_enum(role)
+                row[self.COL_NAME] = trans.get_role_description(role)
 
     def _on_progress_details_changed(self, trans, current_items, total_items,
                                      current_bytes, total_bytes, current_cps,
@@ -174,10 +168,10 @@ class PendingStore(gtk.ListStore, TransactionsWatcher):
         #print "_on_progress_details_changed: ", trans, progress
         for row in self:
             if row[self.COL_TID] == trans.tid:
-                if trans.status == STATUS_DOWNLOADING:
+                if trans.is_downloading():
                     name = row[self.COL_NAME]
-                    current_bytes_str = apt_pkg.size_to_str(current_bytes)
-                    total_bytes_str = apt_pkg.size_to_str(total_bytes)
+                    current_bytes_str = size_to_str(current_bytes)
+                    total_bytes_str = size_to_str(total_bytes)
                     status = _("Downloaded %sB of %sB") % \
                              (current_bytes_str, total_bytes_str)
                     row[self.COL_STATUS] = self._render_status_text(name, status)
@@ -196,10 +190,10 @@ class PendingStore(gtk.ListStore, TransactionsWatcher):
                 # FIXME: the spaces around %s are poor mans padding because
                 #        setting xpad on the cell-renderer seems to not work
                 name = row[self.COL_NAME]
-                if trans.status == STATUS_WAITING_LOCK:
+                if trans.is_waiting():
                     st = trans.status_details
                 else:
-                    st = get_status_string_from_enum(status)
+                    st = trans.get_status_description(status)
                 row[self.COL_STATUS] = self._render_status_text(name, st)
 
     def _render_status_text(self, name, status):
@@ -278,7 +272,7 @@ class PendingView(gtk.ScrolledWindow, BasePane):
             return 
         # get tid
         tid = model[path][PendingStore.COL_TID]
-        trans = aptdaemon.client.get_transaction(tid)
+        trans = model._transactions_watcher.get_transaction(tid)
         try:
             trans.cancel()
         except dbus.exceptions.DBusException:

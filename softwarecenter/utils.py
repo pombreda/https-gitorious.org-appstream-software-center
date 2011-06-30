@@ -16,7 +16,6 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import apt_pkg
 import dbus
 import gmenu
 import gettext
@@ -24,8 +23,10 @@ import gobject
 import gio
 import glib
 import logging
+import math
 import os
 import re
+import string
 import tempfile
 import traceback
 import time
@@ -87,49 +88,64 @@ def wait_for_apt_cache_ready(f):
         return False
     return wrapper
 
+def normalize_package_description(desc):
+    """ this takes a package description and normalizes it
+        so that all uneeded \n are stripped away and all
+        enumerations are at the start of the line and start with a "*"
+        E.g.:
+        Some potentially very long paragrah that is in a single line.
+        A new paragrpah.
+        A list:
+        * item1
+        * item2 that may again be very very long
+    """
+    BULLETS = ('- ', '* ', 'o ')
+    norm_description = ""
+    in_blist = False
+    # process it
+    old_indent_level = 0
+    for i, part in enumerate(desc.split("\n")):
+        part = part.strip()
+        # explicit newline
+        if not part:
+            norm_description += "\n"
+            continue
+        # get indent level
+        for j, c in enumerate(part):
+            if not c in string.whitespace+"".join([s.strip() for s in BULLETS]):
+                indent_level = j
+                break
+        # check if in a enumeration
+        if part[:2] in BULLETS:
+            in_blist = True
+            norm_description += "\n* " + part[2:]
+        elif in_blist and old_indent_level == indent_level:
+            norm_description += " " + part
+        else:
+            in_blist = False
+            if not norm_description.endswith("\n"):
+                norm_description += " "
+            norm_description += part
+        old_indent_level = indent_level
+    return norm_description.strip()
 
-def htmlize_package_desc(desc):
-    def _is_bullet(line):
-        return re.match("^(\s*[-*])", line)
-    inside_p = False
+def htmlize_package_description(desc):
+    html = ""
     inside_li = False
-    indent_len = None
-    for line in desc.splitlines():
-        stripped_line = line.strip()
-        if (not inside_p and 
-            not inside_li and 
-            not _is_bullet(line) and
-            stripped_line):
-            yield '<p tabindex="0">'
-            inside_p = True
-        if stripped_line:
-            match = re.match("^(\s*[-*])", line)
-            if match:
-                if inside_li:
-                    yield "</li>"
-                yield "<li>"
+    for part in normalize_package_description(desc).split("\n"):
+        if part.startswith("* "):
+            if not inside_li:
+                html += "<ul>"
                 inside_li = True
-                indent_len = len(match.group(1))
-                stripped_line = line[indent_len:].strip()
-                yield stripped_line
-            elif inside_li:
-                if not line.startswith(" " * indent_len):
-                    yield "</li>"
-                    inside_li = False
-                yield stripped_line
-            else:
-                yield stripped_line
+            html += '<li>%s</li>' % part[2:]
         else:
             if inside_li:
-                yield "</li>"
-                inside_li = False
-            if inside_p:
-                yield "</p>"
-                inside_p = False
+                html += "</ul>"
+            html += '<p tabindex="0">%s</p>' % part
+            inside_li = False
     if inside_li:
-        yield "</li>"
-    if inside_p:
-        yield "</p>"
+        html += "</ul>"
+    return html
 
 def get_parent_xid(widget):
     while widget.get_parent():
@@ -170,29 +186,6 @@ def get_http_proxy_string_from_libproxy(url):
     else:
         return proxy
 
-def get_http_proxy_string_from_gconf():
-    """Helper that gets the http proxy from gconf
-
-    Returns: string with http://auth:pw@proxy:port/ or None
-    """
-    try:
-        import gconf
-        client = gconf.client_get_default()
-        if client.get_bool("/system/http_proxy/use_http_proxy"):
-            authentication = ""
-            if client.get_bool("/system/http_proxy/use_authentication"):
-                user = client.get_string("/system/http_proxy/authentication_user")
-                password = client.get_string("/system/http_proxy/authentication_password")
-                authentication = "%s:%s@" % (user, password)
-            host = client.get_string("/system/http_proxy/host")
-            port = client.get_int("/system/http_proxy/port")
-            http_proxy = "http://%s%s:%s/" %  (authentication, host, port)
-            if host:
-                return http_proxy
-    except Exception:
-        LOG.exception("failed to get proxy from gconf")
-    return None
-
 def encode_for_xml(unicode_data, encoding="ascii"):
     """ encode a given string for xml """
     return unicode_data.encode(encoding, 'xmlcharrefreplace')
@@ -203,7 +196,6 @@ def decode_xml_char_reference(s):
         and converts it to
         'Search...'
     """
-    import re
     p = re.compile("\&\#x(\d\d\d\d);")
     return p.sub(r"\u\1", s).decode("unicode-escape")
     
@@ -213,10 +205,8 @@ def unescape(text):
     """
     return xml.sax.saxutils.unescape(text, ESCAPE_ENTITIES)
 
-#def get_current_arch():
-#    return apt_pkg.config.find("Apt::Architecture")
-
 def uri_to_filename(uri):
+    import apt_pkg
     return apt_pkg.uri_to_filename(uri)
 
 def human_readable_name_from_ppa_uri(ppa_uri):
@@ -234,6 +224,22 @@ def sources_filename_from_ppa_entry(entry):
     import apt_pkg
     name = "%s.list" % apt_pkg.URItoFileName(entry.uri)
     return name
+    
+def obfuscate_private_ppa_details(text):
+    """
+    hides any private PPA details that may be found in the given text
+    """
+    result = text
+    s = text.split()
+    for item in s:
+        if "private-ppa.launchpad.net" in item:
+            from urlparse import urlsplit
+            url_parts = urlsplit(item)
+            if url_parts.username:
+                result = result.replace(url_parts.username, "hidden")
+            if url_parts.password:
+                result = result.replace(url_parts.password, "hidden")
+    return result
 
 def release_filename_in_lists_from_deb_line(debline):
     """
@@ -384,6 +390,54 @@ def get_person_from_config():
         return cfg.get("reviews", "username")
     return None
 
+def pnormaldist(qn):
+    '''Inverse normal distribution, based on the Ruby statistics2.pnormaldist'''
+    b = [1.570796288, 0.03706987906, -0.8364353589e-3,
+         -0.2250947176e-3, 0.6841218299e-5, 0.5824238515e-5,
+         -0.104527497e-5, 0.8360937017e-7, -0.3231081277e-8,
+         0.3657763036e-10, 0.6936233982e-12]
+        
+    if qn < 0 or qn > 1:
+        raise ValueError("qn must be between 0.0 and 1.0")
+    if qn == 0.5:
+        return 0.0
+    
+    w1 = qn
+    if qn > 0.5:
+        w1 = 1.0 - w1
+    w3 = -math.log(4.0 * w1 * (1.0 - w1))
+    w1 = b[0]
+    for i in range (1,11):
+        w1 = w1 + (b[i] * math.pow(w3, i))
+        
+    if qn > 0.5:
+        return math.sqrt(w1*w3)
+    else:
+        return -math.sqrt(w1*w3)
+
+def ci_lower_bound(pos, n, power=0.2):
+    if n == 0:
+        return 0
+    z = pnormaldist(1-power/2)
+    phat = 1.0 * pos / n
+    return (phat + z*z/(2*n) - z * math.sqrt((phat*(1-phat)+z*z/(4*n))/n))/(1+z*z/n)
+
+def calc_dr(ratings):
+    '''Calculate the dampened rating for an app given it's collective ratings'''
+    if not len(ratings) == 5:
+        raise AttributeError('ratings argument must be a list of 5 integers')
+   
+    tot_ratings = 0
+    for i in range (0,5):
+        tot_ratings = ratings[i] + tot_ratings
+      
+    sum_scores = 0.0
+    for i in range (0,5):
+        wilson_score = ci_lower_bound(ratings[i],tot_ratings)
+        sum_scores = sum_scores + float((i+1)-3) * wilson_score
+   
+    return sum_scores + 3
+
 class SimpleFileDownloader(gobject.GObject):
 
     LOG = logging.getLogger("softwarecenter.simplefiledownloader")
@@ -513,6 +567,13 @@ upstream_version_compare = get_pkg_info().upstream_version_compare
 upstream_version = get_pkg_info().upstream_version
 version_compare = get_pkg_info().version_compare
 
+# only when needed
+try:
+    import apt_pkg
+    size_to_str = apt_pkg.size_to_str
+except ImportError:
+    def size_to_str(size):
+        return str(size)
         
 if __name__ == "__main__":
     s = decode_xml_char_reference('Search&#x2026;')

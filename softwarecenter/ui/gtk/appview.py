@@ -141,6 +141,9 @@ class CellRendererButton2:
         if self._widget:
             self._widget.queue_draw_area(*self.get_allocation_tuple())
         return
+        
+    def is_sensitive(self):
+        return self.state != gtk.STATE_INSENSITIVE
 
     def set_markup(self, markup):
         self.markup_variant = (markup,)
@@ -1013,7 +1016,8 @@ class AppView(gtk.TreeView):
     def _app_activated_cb(self, btn, btn_id, appname, pkgname, request, installed, store, path):
         if btn_id == 'info':
             self.emit("application-activated", Application(appname, pkgname, request))
-        elif btn_id == 'action0':
+        elif (btn_id == 'action0' and
+              btn.is_sensitive()):
             btn.set_sensitive(False)
             store.row_changed(path[0], store.get_iter(path[0]))
             # be sure we dont request an action for a pkg with pre-existing actions
@@ -1102,6 +1106,10 @@ class AppViewFilter(xapian.MatchDecider):
         self.distro = get_distro()
         self.db = db
         self.cache = cache
+        try:
+            self.lowlevel_cache = self.cache._cache._cache
+        except:
+            self.lowlevel_cache = None
         self.available_only = False
         self.supported_only = False
         self.installed_only = False
@@ -1147,11 +1155,15 @@ class AppViewFilter(xapian.MatchDecider):
                 not doc.get_value(XapianValues.ARCHIVE_CHANNEL) == AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME):
                 return False
         if self.installed_only:
-            # use the lowlevel cache here, twice as fast
-            lowlevel_cache = self.cache._cache._cache
-            if (not pkgname in lowlevel_cache or
-                not lowlevel_cache[pkgname].current_ver):
+            # use the lowlevel cache here if available, twice as fast
+            if (self.lowlevel_cache and 
+                (not pkgname in self.lowlevel_cache or
+                 not self.lowlevel_cache[pkgname].current_ver)):
                 return False
+            else:
+                if (pkgname in self.cache and
+                    not self.cache[pkgname].is_installed):
+                    return False
         if self.not_installed_only:
             if (pkgname in self.cache and
                 self.cache[pkgname].is_installed):

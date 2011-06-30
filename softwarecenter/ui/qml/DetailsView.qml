@@ -21,6 +21,10 @@
 import QtQuick 1.0
 
 FocusScope {
+    id: detailsview
+
+    signal backClicked
+
     Rectangle {
         id: detailsframe
         anchors.fill: parent
@@ -91,11 +95,6 @@ FocusScope {
             sourceSize.height: height
             sourceSize.width: width
 
-            source: {
-                if (listview.x < 0 && list.currentItem != null)
-                    return "http://screenshots.ubuntu.com/thumbnail/" + list.currentItem.pkgname
-                return ""
-            }
             MouseArea {
                 anchors.fill: parent
                 onClicked: {
@@ -204,11 +203,18 @@ FocusScope {
             anchors.bottom: parent.bottom
             anchors.margins: 15
             text: qsTr("Back")
-
-            onClicked: {
-                showListView()
-            }
+            onClicked: detailsview.backClicked()
         }
+    }
+
+    function loadThumbnail() {
+        screenshotthumb.source = "http://screenshots.ubuntu.com/thumbnail/" + list.currentItem.pkgname
+    }
+    function unloadThumbnail() {
+        screenshotthumb.source = ""
+    }
+    function loadReviews() {
+         reviewslistmodel.getReviews(list.currentItem.pkgname)
     }
 
     Rectangle {

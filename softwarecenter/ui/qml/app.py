@@ -26,7 +26,7 @@ import sys
 
 from PySide import QtDeclarative
 from PySide.QtCore import QUrl
-from PySide.QtGui import QApplication
+from PySide.QtGui import QApplication, QIcon
 from PySide.QtDeclarative import QDeclarativeView 
 
 from softwarecenter.db.pkginfo import get_pkg_info
@@ -43,6 +43,8 @@ if __name__ == '__main__':
     app.cache.open()
 
     view = QDeclarativeView()
+    view.setWindowTitle(view.tr("Ubuntu Software Center"))
+    view.setWindowIcon(QIcon(os.path.join(os.path.dirname(__file__), "../../../data/icons/scalable/apps/softwarecenter.svg")))
     view.setResizeMode(QtDeclarative.QDeclarativeView.SizeRootObjectToView)
 
     # ideally this should be part of the qml by using a qmlRegisterType()

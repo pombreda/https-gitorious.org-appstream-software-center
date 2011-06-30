@@ -60,9 +60,13 @@ REPORT_REVIEW_APP = "report_review.py"
 SUBMIT_USEFULNESS_APP = "submit_usefulness.py"
 MODIFY_REVIEW_APP = "modify_review.py"
 DELETE_REVIEW_APP = "delete_review.py"
-GET_REVIEWS_HELPER = "get_reviews_helper.py"
-GET_REVIEW_STATS_HELPER = "get_review_stats_helper.py"
-GET_USEFUL_VOTES_HELPER = "get_useful_votes_helper.py"
+
+# piston helpers
+GET_REVIEWS_HELPER = "piston_get_reviews_helper.py"
+GET_REVIEW_STATS_HELPER = "piston_get_review_stats_helper.py"
+GET_USEFUL_VOTES_HELPER = "piston_get_useful_votes_helper.py"
+SOFTWARE_CENTER_AGENT_HELPER = "piston_get_scagent_available_apps.py"
+
 X2GO_HELPER = "x2go_helper.py"
 
 # there was a bug in maverick 3.0.3 (#652151) that could lead to a empty
@@ -76,8 +80,13 @@ def try_to_fixup_root_owned_dir_via_remove(directory):
         except:
             logging.exception("failed to fix not writable cache directory")
 
-SOFTWARE_CENTER_CONFIG_DIR = os.path.join(xdg.xdg_config_home, "software-center")
-SOFTWARE_CENTER_CACHE_DIR = os.path.join(xdg.xdg_cache_home, "software-center")
+if "SOFTWARE_CENTER_FAKE_REVIEW_API" in os.environ:
+    SOFTWARE_CENTER_CONFIG_DIR = os.path.join(xdg.xdg_config_home, "software-center", "fake-review")
+    SOFTWARE_CENTER_CACHE_DIR = os.path.join(xdg.xdg_cache_home, "software-center", "fake-review")
+else:
+    SOFTWARE_CENTER_CONFIG_DIR = os.path.join(xdg.xdg_config_home, "software-center")
+    SOFTWARE_CENTER_CACHE_DIR = os.path.join(xdg.xdg_cache_home, "software-center")
+    
 # FIXUP a brief broken software-center in maverick
 try_to_fixup_root_owned_dir_via_remove(SOFTWARE_CENTER_CACHE_DIR)
 

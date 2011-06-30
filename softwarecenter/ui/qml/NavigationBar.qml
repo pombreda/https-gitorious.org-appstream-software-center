@@ -21,7 +21,10 @@ import QtQuick 1.0
 
 FocusScope {
     property alias searchQuery: searchbox.text
+    property alias breadcrumbs: breadcrumbs
+    property bool searchBoxVisible: true
 
+    signal crumbClicked(int index)
     signal searchActivated
 
     height: searchbox.height + 2 * 10 // 10px margins
@@ -45,15 +48,11 @@ FocusScope {
     }
 
     // TODO: back/forward buttons
-    // TODO: navigation history (breadcrumbs)
 
-    // Temporary shortcut to get back to the list of categories
-    Button {
-        text: qsTr("Home")
-        anchors.left: parent.left
-        anchors.margins: 10
-        anchors.verticalCenter: parent.verticalCenter
-        onClicked: showCategoriesView()
+    BreadCrumbs {
+        id: breadcrumbs
+        anchors.fill: parent
+        onCrumbClicked: parent.crumbClicked(index)
     }
 
     SearchBox {
@@ -62,8 +61,9 @@ FocusScope {
         anchors.verticalCenter: parent.verticalCenter
         anchors.right: parent.right
         anchors.margins: 10
-        focus: true
         onActivated: parent.searchActivated()
+        opacity: parent.searchBoxVisible ? 1.0 : 0.0
+        focus: parent.searchBoxVisible
     }
 }
 

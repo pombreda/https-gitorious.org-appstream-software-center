@@ -42,16 +42,16 @@ from gettext import gettext as _
 from Queue import Queue
 from optparse import OptionParser
 
-from softwarecenter.backend.restfulclient import UbuntuSSOAPI
+from softwarecenter.backend.restfulclient import get_ubuntu_sso_backend
 
 import piston_mini_client
 
 from softwarecenter.paths import SOFTWARE_CENTER_CONFIG_DIR
 from softwarecenter.enums import Icons
 from softwarecenter.config import get_config
-from softwarecenter.backend.login_sso import LoginBackendDbusSSO
-from softwarecenter.db.database import Application
+from softwarecenter.backend.login_sso import get_sso_backend
 from softwarecenter.backend.reviews import Review
+from softwarecenter.db.database import Application
 from softwarecenter.utils import clear_token_from_ubuntu_sso, get_language
 from softwarecenter.ui.gtk.SimpleGtkbuilderApp import SimpleGtkbuilderApp
 from softwarecenter.ui.gtk.dialogs import SimpleGtkbuilderDialog
@@ -59,8 +59,9 @@ from softwarecenter.distro import get_distro, get_current_arch
 from softwarecenter.ui.gtk.widgets.reviews import StarRatingSelector, StarCaption
 from softwarecenter.gwibber_helper import GwibberHelper, GwibberHelperMock
 
-from softwarecenter.backend.rnrclient import RatingsAndReviewsAPI
-from softwarecenter.backend.rnrclient_pristine import ReviewRequest
+
+from softwarecenter.backend.piston.rnrclient import RatingsAndReviewsAPI
+from softwarecenter.backend.piston.rnrclient_pristine import ReviewRequest
 
 #import httplib2
 #httplib2.debuglevel = 1
@@ -351,6 +352,7 @@ class Worker(threading.Thread):
             self.pending_reviews.task_done()
     
     def _get_error_messages(self, e):
+        logging.warn(e.body)
         if type(e) is piston_mini_client.APIError:
             try:
                 error_msg = simplejson.loads(e.body)['errors']
@@ -455,7 +457,7 @@ class BaseApp(SimpleGtkbuilderApp):
         login_window_xid = self._get_parent_xid_for_login_window()
         login_text = _("To review software or to report abuse you need to "
                        "sign in to a Ubuntu Single Sign-On account.")
-        self.sso = LoginBackendDbusSSO(login_window_xid,
+        self.sso = get_sso_backend(login_window_xid,
                                        self.appname, login_text)
         self.sso.connect("login-successful", self._maybe_login_successful)
         self.sso.connect("login-canceled", self._login_canceled)
@@ -472,7 +474,7 @@ class BaseApp(SimpleGtkbuilderApp):
         """ called after we have the token, then we go and figure out our name """
         logging.debug("_maybe_login_successful")
         self.token = oauth_result
-        self.ssoapi = UbuntuSSOAPI(self.token)
+        self.ssoapi = get_ubuntu_sso_backend(self.token)
         self.ssoapi.connect("whoami", self._whoami_done)
         self.ssoapi.connect("error", self._whoami_error)
         self.ssoapi.whoami()
@@ -726,7 +728,7 @@ class SubmitReviewsApp(BaseApp):
         try:
             icon = self.icons.load_icon(iconname, self.APP_ICON_SIZE, 0)
         except:
-            icon = self.icons.load_icon(Icons.MISSING_APP_ICON, self.APP_ICON_SIZE, 0)
+            icon = self.icons.load_icon(Icons.MISSING_APP, self.APP_ICON_SIZE, 0)
         self.review_appicon.set_from_pixbuf(icon)
 
         # title
