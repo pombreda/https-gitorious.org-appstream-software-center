@@ -37,7 +37,8 @@ import urllib
 
 from softwarecenter.backend.piston.rnrclient import RatingsAndReviewsAPI
 from softwarecenter.backend.piston.rnrclient_pristine import ReviewDetails
-from softwarecenter.db.database import Application
+from softwarecenter.db.categories import CategoriesParser
+from softwarecenter.db.database import Application, StoreDatabase
 import softwarecenter.distro
 from softwarecenter.utils import (upstream_version_compare,
                                   uri_to_filename,
@@ -53,6 +54,8 @@ from softwarecenter.paths import (SOFTWARE_CENTER_CACHE_DIR,
                                   GET_REVIEWS_HELPER,
                                   GET_REVIEW_STATS_HELPER,
                                   GET_USEFUL_VOTES_HELPER,
+                                  APP_INSTALL_PATH,
+                                  XAPIAN_BASE_PATH,
                                   )
 #from softwarecenter.enums import *
 
@@ -270,11 +273,17 @@ class ReviewLoader(object):
         cPickle.dump(self.REVIEW_STATS_CACHE,
                       open(self.REVIEW_STATS_CACHE_FILE, "w"))
     
-    def get_top_rated_apps(self,quantity=12):
+    def get_top_rated_apps(self, quantity=12, category=None):
         """Returns a list of the packages with the highest 'rating' based on
-           the dampened rating calculated from the ReviewStats rating spread."""
+           the dampened rating calculated from the ReviewStats rating spread.
+           Also optionally takes a category (string) to filter by"""
 
         cache = self.REVIEW_STATS_CACHE
+        
+        if category:
+            applist = self._get_apps_for_category(category)
+            cache = self._filter_cache_with_applist(cache, applist)
+        
         #create a list of tuples with (Application,dampened_rating)
         dr_list = []
         for item in cache.items():
@@ -298,6 +307,42 @@ class ReviewLoader(object):
             top_rated.append(sorted_dr_list[i][0])
         
         return top_rated
+    
+    def _filter_cache_with_applist(self, cache, applist):
+        """Take the review cache and filter it to only include the apps that
+           also appear in the applist passed in"""
+        filtered_cache = {}
+        for key in cache.keys():
+            if key.pkgname in applist:
+                filtered_cache[key] = cache[key]
+        
+        return filtered_cache
+        
+    def _get_query_for_category(self, category):
+        cat_parser = CategoriesParser(self.db)
+        categories = cat_parser.parse_applications_menu(APP_INSTALL_PATH)
+        for c in categories:
+            if category == c.untranslated_name:
+                query = c.query
+                return query
+        return False
+    
+    def _get_apps_for_category(self, category):
+        query = self._get_query_for_category(category)
+        if not query:
+            LOG.warn("_get_apps_for_category: received invalid category")
+            return []
+        
+        pathname = os.path.join(XAPIAN_BASE_PATH, "xapian")
+        db = StoreDatabase(pathname, self.cache)
+        db.open()
+        docs = db.get_docs_from_query(query)
+        
+        #from the db docs, return a list of pkgnames
+        applist = []
+        for doc in docs:
+            applist.append(db.get_pkgname(doc))
+        return applist
 
     # writing new reviews spawns external helper
     # FIXME: instead of the callback we should add proper gobject signals
