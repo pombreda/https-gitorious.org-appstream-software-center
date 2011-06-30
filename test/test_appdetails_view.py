@@ -194,7 +194,7 @@ class TestAppDetailsView(unittest.TestCase):
 
     def test_usefulness_submit_behaviour(self):
         #set up fake review for expected behaviour
-        from test.fake_review_settings import FakeReviewSettings
+        from softwarecenter.backend.fake_review_settings import FakeReviewSettings
         fake_settings = FakeReviewSettings(True)
         settings = {'fake_network_delay': 0, 'review_pages': 0, 'reviews_returned': 1,
                     'votes_returned': 0, 'submit_usefulness_error': True}
@@ -213,6 +213,8 @@ class TestAppDetailsView(unittest.TestCase):
         # monkey patch get_details() so that we get the mock object
         app.get_details = lambda db: mock_app_details
         self.appdetails.show_app(app)
+        self._p()
+        time.sleep(1)
         self._p()
         # and check the result
         review_box = self.appdetails.reviews.vbox.get_children()[0]

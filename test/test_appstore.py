@@ -63,7 +63,8 @@ class TestAppStore(unittest.TestCase):
             filter=self.mock_filter)
         self.assertTrue(len(store) == 1)
 
-    def test_sort_by_cataloged_time(self):
+    # FIXME: this test is not reliable
+    def disabled_test_sort_by_cataloged_time(self):
         # use axi to sort-by-cataloged-time
         sorted_by_axi = []
         db = xapian.Database("/var/lib/apt-xapian-index/index")
