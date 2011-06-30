@@ -98,7 +98,9 @@ FocusScope {
             MouseArea {
                 anchors.fill: parent
                 onClicked: {
-                    screenshotview.loadScreenshot("http://screenshots.ubuntu.com/screenshot/" + list.currentItem.pkgname)
+                    if (screenshotthumb.status == Image.Ready) {
+                        screenshotview.loadScreenshot("http://screenshots.ubuntu.com/screenshot/" + list.currentItem.pkgname)
+                    }
                 }
             }
         }
