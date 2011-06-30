@@ -73,6 +73,20 @@ FocusScope {
             text: list.currentItem != null ? list.currentItem.summary : ""
         }
 
+        Stars {
+            id: headerstars
+            anchors.top: parent.top
+            anchors.right: parent.right
+            anchors.margins: 12
+            ratings_average: list.currentItem != null ? list.currentItem.ratingsaverage : 0
+        }
+        Text {
+            id: headernrreviews
+            anchors.top: headerstars.bottom
+            anchors.horizontalCenter: headerstars.horizontalCenter
+            text: list.currentItem != null ? qsTr("%1 reviews").arg(list.currentItem.ratingstotal) : 0
+        }
+
         Text {
             id: desctxt
             anchors.top: headertxt.bottom
