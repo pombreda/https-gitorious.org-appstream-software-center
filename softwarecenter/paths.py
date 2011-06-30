@@ -58,12 +58,15 @@ XAPIAN_BASE_PATH_SOFTWARE_CENTER_AGENT = os.path.join(
 SUBMIT_REVIEW_APP = "submit_review.py"
 REPORT_REVIEW_APP = "report_review.py"
 SUBMIT_USEFULNESS_APP = "submit_usefulness.py"
+MODIFY_REVIEW_APP = "modify_review.py"
+DELETE_REVIEW_APP = "delete_review.py"
 
 # piston helpers
 GET_REVIEWS_HELPER = "piston_get_reviews_helper.py"
 GET_REVIEW_STATS_HELPER = "piston_get_review_stats_helper.py"
 GET_USEFUL_VOTES_HELPER = "piston_get_useful_votes_helper.py"
 SOFTWARE_CENTER_AGENT_HELPER = "piston_get_scagent_available_apps.py"
+
 X2GO_HELPER = "x2go_helper.py"
 
 # there was a bug in maverick 3.0.3 (#652151) that could lead to a empty

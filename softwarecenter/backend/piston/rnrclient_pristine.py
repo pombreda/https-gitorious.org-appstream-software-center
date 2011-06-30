@@ -167,3 +167,21 @@ class RatingsAndReviewsAPI(PistonAPI):
 
         return self._get('usefulness/', args=data,
             scheme=PUBLIC_API_SCHEME)
+
+    @validate('review_id', int)
+    @returns_json
+    def delete_review(self, review_id):
+        """Delete a review"""
+        return self._post('/reviews/delete/%s/' % review_id, data={},
+            scheme=AUTHENTICATED_API_SCHEME)
+
+    @validate('review_id', int)
+    @validate('rating', int)
+    @validate_pattern('summary', r'[^\n]+')
+    @validate_pattern('review_text', r'[^\n]+')
+    @returns(ReviewDetails)
+    def modify_review(self, review_id, rating, summary, review_text):
+        """Modify an existing review"""
+        data = {'rating':rating, 'summary':summary, 'review_text':review_text}
+        return self._put('/reviews/modify/%s/' % review_id, data=data,
+            scheme=AUTHENTICATED_API_SCHEME)

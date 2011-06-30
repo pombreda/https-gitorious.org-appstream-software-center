@@ -5,6 +5,8 @@ software-center (4.1.7) UNRELEASED; urgency=low
     automatic testing without actually hitting the network.
     Can be enabled with the SOFTWARE_CENTER_FAKE_REVIEW_API=1
     environment
+  * add support to remove/modify reviews, this requires the
+    new rnrserver in production
   
   [ Michael Vogt ]
   * merged lp:~aaronp/software-center/tests, many thanks
