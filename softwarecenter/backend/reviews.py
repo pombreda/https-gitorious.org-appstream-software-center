@@ -598,7 +598,7 @@ class ReviewLoaderSpawningRNRClient(ReviewLoader):
             s = ReviewStats(Application("", r.package_name))
             s.ratings_average = float(r.ratings_average)
             s.ratings_total = float(r.ratings_total)
-            s.rating_spread = simplejson.loads(r.histogram)
+            s.rating_spread = simplejson.loads(getattr(r, "histogram", 0))
             s.dampened_rating = calc_dr(s.rating_spread)
             review_stats[s.app] = s
         self.REVIEW_STATS_CACHE = review_stats
