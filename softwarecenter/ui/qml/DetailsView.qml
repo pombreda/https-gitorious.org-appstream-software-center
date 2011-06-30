@@ -23,8 +23,6 @@ import QtQuick 1.0
 FocusScope {
     id: detailsview
 
-    signal backClicked
-
     Rectangle {
         id: detailsframe
         anchors.fill: parent
@@ -121,7 +119,7 @@ FocusScope {
             anchors.right: parent.right
             anchors.margins: 15
             anchors.top: reviewsheadertxt.bottom
-            anchors.bottom: backbtn.top
+            anchors.bottom: parent.bottom
             clip: true
 
             ScrollBar {
@@ -188,15 +186,6 @@ FocusScope {
                     }
                 }
             }
-        }
-        
-        Button {
-            id: backbtn
-            anchors.left: parent.left
-            anchors.bottom: parent.bottom
-            anchors.margins: 15
-            text: qsTr("Back")
-            onClicked: detailsview.backClicked()
         }
     }
 

@@ -151,10 +151,6 @@ FocusScope {
             id: details
             anchors.fill: parent
             focus: true
-            onBackClicked: {
-                navigation.breadcrumbs.removeCrumb()
-                switcher.goToFrame(listview)
-            }
         }
         onShown: {
             details.loadThumbnail()
