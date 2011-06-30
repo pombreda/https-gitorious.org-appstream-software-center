@@ -157,6 +157,7 @@ FocusScope {
 
                     Stars {
                         id: stars
+                        height: 16
                         ratings_average: rating
                     }
                     Text {
