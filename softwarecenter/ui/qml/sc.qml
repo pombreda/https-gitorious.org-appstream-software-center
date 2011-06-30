@@ -21,7 +21,7 @@
 import QtQuick 1.0
 
 FocusScope {
-    width: 600
+    width: 800
     height: 600
     focus: true
 
