@@ -25,6 +25,7 @@ import os
 import re
 from softwarecenter.utils import (sources_filename_from_ppa_entry,
                                   release_filename_in_lists_from_deb_line,
+                                  obfuscate_private_ppa_details,
                                   )
 from softwarecenter.enums import TransactionTypes
 
@@ -667,11 +668,14 @@ class AptdaemonBackend(gobject.GObject, InstallBackend):
         if trans.error_code == enums.ERROR_DAEMON_DIED:
             self._logger.warn("daemon dies, ignoring: %s %s" % (trans, enum))
             return
+        # hide any private ppa details in the error message since it may
+        # appear in the logs for LP bugs and potentially in screenshots as well
+        cleaned_error_details = obfuscate_private_ppa_details(trans.error_details)
         msg = "%s: %s\n%s\n\n%s" % (
             _("Error"),
             enums.get_error_string_from_enum(trans.error_code),
             enums.get_error_description_from_enum(trans.error_code),
-            trans.error_details)
+            cleaned_error_details)
         self._logger.error("error in _on_trans_finished '%s'" % msg)
         # show dialog to the user and exit (no need to reopen the cache)
         if not trans.error_code:
@@ -687,7 +691,7 @@ class AptdaemonBackend(gobject.GObject, InstallBackend):
         return dialogs.error(None,
                         enums.get_error_string_from_enum(trans.error_code),
                         enums.get_error_description_from_enum(trans.error_code),
-                        trans.error_details,
+                        cleaned_error_details,
                         alternative_action)
 
     def _on_trans_finished(self, trans, enum):

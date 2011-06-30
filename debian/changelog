@@ -33,11 +33,16 @@ software-center (4.1.7) UNRELEASED; urgency=low
     - don't start the indeterminate progress bar for purchase
       transactions until after the authentication dialog is closed
       (LP: #725181)
+  * softwarecenter/utils.py,
+    softwarecenter/backend/aptd.py,
+    test/test_software_channels.py:
+    - obfuscate private ppa details in the error log output and in
+      the error dialog itself, add corresponding unit test
     
   [ Steve Langasek ]
   * debian/control: point Vcs-Bzr field at the right branch.
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 27 Jun 2011 16:58:26 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 29 Jun 2011 14:29:22 -0400
 
 software-center (4.1.6) oneiric; urgency=low
 
