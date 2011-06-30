@@ -155,28 +155,30 @@ FocusScope {
                     //        in funny ways
                     height: reviewsummarytxt.height + reviewtxt.height + 10
 
-                    Stars {
-                        id: ratingtxt
-                        ratings_average: rating
-                    }
-                    Text {
-                        id: reviewsummarytxt
-                        anchors.left: ratingtxt.right
-                        text: "<b>" + summary + "</b>"
-                    }
-                    Text {
-                        id: persontxt
-                        anchors.right: datetxt.left
-                        text: reviewer_displayname
-                    }
-                    Text {
-                        id: datetxt
-                        anchors.right: parent.right
-                        text: date_created
+                    Row {
+                        id: reviewsheader
+                        spacing: 6
+
+                        Stars {
+                            id: ratingtxt
+                            ratings_average: rating
+                        }
+                        Text {
+                            id: reviewsummarytxt
+                            text: "<b>" + summary + "</b>"
+                        }
+                        Text {
+                            id: persontxt
+                            text: reviewer_displayname
+                        }
+                        Text {
+                            id: datetxt
+                            text: date_created
+                        }
                     }
                     Text {
                         id: reviewtxt
-                        anchors.top: reviewsummarytxt.bottom
+                        anchors.top: reviewsheader.bottom
                         text: review_text
                         wrapMode: Text.Wrap
                         // FIXME: this is only needed because the size
