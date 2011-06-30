@@ -154,7 +154,7 @@ FocusScope {
                     // FIXME: can this be automatically calculated?
                     //        if I ommit it its getting cramped togehter 
                     //        in funny ways
-                    height: reviewsummarytxt.height + reviewtxt.height + 10
+                    height: reviewsummarytxt.height + reviewtxt.height + 20
                     width: reviewslist.width
 
                     Stars {
