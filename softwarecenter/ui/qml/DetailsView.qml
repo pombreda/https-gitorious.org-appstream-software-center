@@ -209,6 +209,9 @@ FocusScope {
     function loadReviews() {
          reviewslistmodel.getReviews(list.currentItem.pkgname)
     }
+    function hideScreenshot() {
+        screenshotview.fadeOut()
+    }
 
     Rectangle {
         id: screenshotview

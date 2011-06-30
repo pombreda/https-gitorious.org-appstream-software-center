@@ -156,10 +156,14 @@ FocusScope {
                 switcher.goToFrame(listview)
             }
         }
-        onShown: { details.loadThumbnail();
-                   details.loadReviews();
-                 }
-        onHidden: details.unloadThumbnail()
+        onShown: {
+            details.loadThumbnail()
+            details.loadReviews()
+        }
+        onHidden: {
+            details.hideScreenshot()
+            details.unloadThumbnail()
+        }
     }
 
     Component.onCompleted: {
