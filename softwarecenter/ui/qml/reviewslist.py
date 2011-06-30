@@ -77,7 +77,7 @@ class ReviewsListModel(QAbstractListModel):
         if page == 1:
             self.clear()
         # load in the eventloop to ensure that animations are not delayed
-        glib.timeout_add(1, self.reviews.get_reviews,
+        glib.timeout_add(10, self.reviews.get_reviews,
                          Application(appname, pkgname), self._on_reviews_ready_callback, page)
 
     # refresh review-stats (for qml)
