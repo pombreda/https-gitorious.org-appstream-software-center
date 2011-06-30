@@ -17,7 +17,7 @@ PUBLIC_API_SCHEME = 'http'
 AUTHENTICATED_API_SCHEME = 'https'
 
 from rnrclient_pristine import ReviewRequest, ReviewsStats, ReviewDetails
-from test.fake_review_settings import FakeReviewSettings, network_delay
+from softwarecenter.backend.fake_review_settings import FakeReviewSettings, network_delay
 import simplejson
 import random
 import time
@@ -245,6 +245,21 @@ class RatingsAndReviewsAPI(PistonAPI):
             votes.append(u)
         
         return simplejson.dumps(votes)
+
+    @validate('review_id', int)
+    @returns_json
+    def delete_review(self, review_id):
+        """Delete a review"""
+        return simplejson.dumps(True)
+
+    @validate('review_id', int)
+    @validate('rating', int)
+    @validate_pattern('summary', r'[^\n]+')
+    @validate_pattern('review_text', r'[^\n]+')
+    @returns(ReviewDetails)
+    def modify_review(self, review_id, rating, summary, review_text):
+        """Modify an existing review"""
+        return simplejson.dumps(self._make_fake_reviews()[0])
         
         
     def _make_fake_reviews(self, packagename='compiz-core', 
