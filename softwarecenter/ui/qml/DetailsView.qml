@@ -153,39 +153,35 @@ FocusScope {
                     //        if I ommit it its getting cramped togehter 
                     //        in funny ways
                     height: reviewsummarytxt.height + reviewtxt.height + 10
-                    
-                    Column {
-                        Row {
-                            id: reviewsheader
-                            spacing: 6
-                            
-                            Stars {
-                                id: ratingtxt
-                                ratings_average: rating
-                            }
-                            Text {
-                                id: reviewsummarytxt
-                                text: "<b>" + summary + "</b>"
-                            }
-                            Text {
-                                id: persontxt
-                                text: reviewer_displayname
-                            }
-                            Text {
-                                id: datetxt
-                                text: date_created
-                            }
-                        }
-                        Text {
-                            id: reviewtxt
-                            text: review_text
-                            wrapMode: Text.Wrap
-                            // FIXME: this is only needed because the size
-                            //        of the header gets pretty big so we
-                            //        force the size here to get proper
-                            //        word wrap
-                            width: parent.width
-                        }
+                    width: reviewslist.width
+
+                    Stars {
+                        id: stars
+                        ratings_average: rating
+                    }
+                    Text {
+                        id: reviewsummarytxt
+                        text: summary
+                        font.bold: true
+                        anchors.left: stars.right
+                        anchors.right: whowhentxt.left
+                        anchors.margins: 5
+                        elide: Text.ElideRight
+                    }
+                    Text {
+                        id: whowhentxt
+                        text: qsTr("%1, %2").arg(reviewer_displayname).arg(date_created)
+                        anchors.right: parent.right
+                        color: "grey"
+                    }
+                    Text {
+                        id: reviewtxt
+                        text: review_text
+                        wrapMode: Text.Wrap
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        anchors.top: stars.bottom
+                        anchors.topMargin: 5
                     }
                 }
             }
