@@ -33,22 +33,34 @@ from softwarecenter.backend.installbackend import InstallBackend
 from softwarecenter.db.pkginfo import get_pkg_info
 
 class PackagekitTransaction(BaseTransaction):
-    _tlist = []
     _meta_data = {}
     
     def __init__(self, trans):
         """ trans -- a PkProgress object """
         gobject.GObject.__init__(self)
         self._trans = trans
-        PackagekitTransaction._tlist.append(self)
+        self._setup_signals()
 
-    @staticmethod
-    def get_transaction_for_tid(tid):
-        """ how can I do this better? """
-        for t in PackagekitTransaction._tlist:
-            if t.tid == tid:
-                return t
-        return None
+    def _setup_signals(self):
+        """ Connect signals to the PkProgress from libpackagekitlib,
+        because PK DBus exposes only a generic Changed, without
+        specifying the property changed
+        """
+        self._trans.connect('notify::role', self._emit, 'role-changed', 'role')
+        self._trans.connect('notify::status', self._emit, 'status-changed', 'status')
+        self._trans.connect('notify::percentage', self._emit, 'progress-changed', 'percentage')
+        #self._trans.connect('notify::subpercentage', self._emit, 'progress-changed', 'subpercentage') # SC UI does not support subprogress
+        self._trans.connect('notify::percentage', self._emit, 'progress-changed', 'percentage')
+        self._trans.connect('notify::allow-cancel', self._emit, 'cancellable-changed', 'allow-cancel')
+
+        # connect the delete:
+        proxy = dbus.SystemBus().get_object('org.freedesktop.PackageKit', self.tid)
+        trans = dbus.Interface(proxy, 'org.freedesktop.PackageKit.Transaction')
+        trans.connect_to_signal("Destroy", self._remove)
+        
+    def _emit(self, *args):
+        prop, what = args[-1], args[-2]
+        self.emit(what, self._trans.get_property(prop))
 
     @property
     def tid(self):
@@ -94,7 +106,14 @@ class PackagekitTransaction(BaseTransaction):
         trans = dbus.Interface(proxy, 'org.freedesktop.PackageKit.Transaction')
         trans.Cancel()
 
+    def _remove(self):
+        if self.tid in PackagekitTransactionsWatcher._tlist.keys():
+            del PackagekitTransactionsWatcher._tlist[self.tid]
+            logging.debug("Delete transaction %s" % self.tid)
+
 class PackagekitTransactionsWatcher(BaseTransactionsWatcher):
+    _tlist = {}
+
     def __init__(self):
         super(PackagekitTransactionsWatcher, self).__init__()
         self.client = packagekit.Client()
@@ -115,9 +134,20 @@ class PackagekitTransactionsWatcher(BaseTransactionsWatcher):
             current = None
         self.emit("lowlevel-transactions-changed", current, queued)
 
+    def add_transaction(self, tid, trans):
+        if tid not in PackagekitTransactionsWatcher._tlist.keys():
+            logging.debug("Trying to setup %s" % tid)
+            if not trans:
+                trans = self.client.get_progress(tid, None)
+            trans = PackagekitTransaction(trans)
+            logging.debug("Add return new transaction %s %s" % (tid, trans))
+            PackagekitTransactionsWatcher._tlist[tid] = trans
+        return PackagekitTransactionsWatcher._tlist[tid]
+
     def get_transaction(self, tid):
-        trans = self.client.get_progress(tid, None)
-        return PackagekitTransaction(trans)
+        if tid not in PackagekitTransactionsWatcher._tlist.keys():
+            return self.add_transaction(tid, None)
+        return PackagekitTransactionsWatcher._tlist[tid]
 
 class PackagekitBackend(gobject.GObject, InstallBackend):
     
@@ -221,12 +251,9 @@ class PackagekitBackend(gobject.GObject, InstallBackend):
             logging.debug("Progress without transaction")
             return
 
-        trans = PackagekitTransaction.get_transaction_for_tid(tid)
-        if trans is None:
-            logging.debug("Getting progress changed from unknown transaction" + str(status) + str(ptype))
-            #trans = self._transactions_watcher.get_transaction(tid)
-            return
-
+        trans = self._transactions_watcher.add_transaction(tid, status)
+        
+        """
         if ptype == packagekit.ProgressType.ROLE:
             trans.emit('role-changed', status.get_property('role'))
         elif ptype == packagekit.ProgressType.STATUS:
@@ -258,6 +285,7 @@ class PackagekitBackend(gobject.GObject, InstallBackend):
         else:
             print "Unimplemented: ProgressType", ptype
             print status.get_property('transaction-id'),status.get_property('status'),
+        """
 
     def _on_install_ready(self, source, result, data=None):
         print "install done", source, result # FIXME
