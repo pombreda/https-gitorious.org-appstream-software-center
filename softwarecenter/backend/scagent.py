@@ -19,7 +19,6 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import gtk
 import gobject
 import logging
 import os
@@ -117,4 +116,5 @@ if __name__ == "__main__":
     scagent.query_available("natty", "i386")
     scagent.query_available_for_me("dummy_oauth", "dummy openid")
 
+    import gtk
     gtk.main()

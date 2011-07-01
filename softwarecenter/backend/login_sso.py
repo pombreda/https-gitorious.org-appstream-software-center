@@ -20,7 +20,6 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import dbus
-import gtk
 import logging
 import random
 import string
@@ -157,4 +156,5 @@ if __name__ == "__main__":
     login = get_sso_backend(0, SOFTWARE_CENTER_NAME_KEYRING, "login-text")
     login.login()
 
+    import gtk
     gtk.main()

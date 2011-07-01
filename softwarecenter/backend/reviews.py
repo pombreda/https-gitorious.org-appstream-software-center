@@ -22,7 +22,6 @@ import cPickle
 import datetime
 import gio
 import gzip
-import gtk
 import glib
 import logging
 import operator
@@ -888,6 +887,8 @@ if __name__ == "__main__":
     def stats_callback(stats):
         print "stats callback:"
         print stats
+    import gtk
+
     # cache
     from softwarecenter.db.pkginfo import get_pkg_info
     cache = get_pkg_info()
@@ -907,5 +908,4 @@ if __name__ == "__main__":
     loader = get_review_loader(cache)
     loader.refresh_review_stats(stats_callback)
     loader.get_reviews(app, callback)
-    import gtk
     gtk.main()
