@@ -24,7 +24,7 @@ class BaseTransaction(gobject.GObject):
     """
     __gsignals__ = {'progress-details-changed':(gobject.SIGNAL_RUN_FIRST,
                                             gobject.TYPE_NONE,
-                                            (gobject.TYPE_PYOBJECT, )),
+                                            (int, int, int, int, int, int)),
                     'progress-changed':(gobject.SIGNAL_RUN_FIRST,
                                             gobject.TYPE_NONE,
                                             (gobject.TYPE_PYOBJECT, )),

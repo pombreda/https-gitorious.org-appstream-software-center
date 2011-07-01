@@ -34,6 +34,7 @@ from softwarecenter.db.pkginfo import get_pkg_info
 
 class PackagekitTransaction(BaseTransaction):
     _tlist = []
+    _meta_data = {}
     
     def __init__(self, trans):
         """ trans -- a PkProgress object """
@@ -54,10 +55,10 @@ class PackagekitTransaction(BaseTransaction):
         return self._trans.get_property('transaction-id')
     @property
     def status_details(self):
-        return self._trans.get_property('status') # FIXME
+        return self.get_status_description() # FIXME
     @property
     def meta_data(self):
-        return {} # FIXME
+        return self._meta_data # FIXME
     @property
     def cancellable(self):
         return self._trans.get_property('allow-cancel')
@@ -67,20 +68,31 @@ class PackagekitTransaction(BaseTransaction):
 
     def get_role_description(self, role=None):
         role = role if role is not None else self._trans.get_property('role')
-        return packagekit.role_enum_to_string(role)
+        return self.meta_data.get('sc_appname', packagekit.role_enum_to_string(role))
 
     def get_status_description(self, status=None):
         status = status if status is not None else self._trans.get_property('status')
         return packagekit.status_enum_to_string(status)
 
     def is_waiting(self):
-        return self._trans.get_property('status') == packagekit.StatusEnum.WAIT
+        """ return true if a time consuming task is taking place """
+        logging.debug('is_waiting ' + str(self._trans.get_property('status')))
+        status = self._trans.get_property('status')
+        return status == packagekit.StatusEnum.WAIT or \
+               status == packagekit.StatusEnum.LOADING_CACHE or \
+               status == packagekit.StatusEnum.SETUP
 
     def is_downloading(self):
-        return self._trans.get_property('status') == packagekit.StatusEnum.DOWNLOAD
+        logging.debug('is_downloading ' + str(self._trans.get_property('status')))
+        status = self._trans.get_property('status')
+        return status == packagekit.StatusEnum.DOWNLOAD or \
+               (status >= packagekit.StatusEnum.DOWNLOAD_REPOSITORY and \
+               status <= packagekit.StatusEnum.DOWNLOAD_UPDATEINFO)
 
     def cancel(self):
-        logging.error("Cancel not implemented") # FIXME
+        proxy = dbus.SystemBus().get_object('org.freedesktop.PackageKit', self.tid)
+        trans = dbus.Interface(proxy, 'org.freedesktop.PackageKit.Transaction')
+        trans.Cancel()
 
 class PackagekitTransactionsWatcher(BaseTransactionsWatcher):
     def __init__(self):
@@ -204,11 +216,15 @@ class PackagekitBackend(gobject.GObject, InstallBackend):
 
     def _on_progress_changed(self, status, ptype, data=None):
         """ de facto callback on transaction's progress change """
-        trans = PackagekitTransaction.get_transaction_for_tid(
-                                status.get_property('transaction-id')
-        )
+        tid = status.get_property('transaction-id')
+        if not tid:
+            logging.debug("Progress without transaction")
+            return
+
+        trans = PackagekitTransaction.get_transaction_for_tid(tid)
         if trans is None:
-            logging.error("Getting progress changed from unknown transaction")
+            logging.debug("Getting progress changed from unknown transaction" + str(status) + str(ptype))
+            #trans = self._transactions_watcher.get_transaction(tid)
             return
 
         if ptype == packagekit.ProgressType.ROLE:
@@ -217,10 +233,31 @@ class PackagekitBackend(gobject.GObject, InstallBackend):
             trans.emit('status-changed', status.get_property('status'))
         elif ptype == packagekit.ProgressType.PERCENTAGE:
             trans.emit('progress-changed', status.get_property('percentage'))
+        elif ptype == packagekit.ProgressType.SUBPERCENTAGE:
+            #trans.emit('progress-changed', status.get_property('subpercentage'))
+            # SC UI does not show subpercentages
+            logging.debug("subpercentage-changed ignored")
+        elif ptype == packagekit.ProgressType.PACKAGE:
+            # this should be done better
+            package = status.get_property('package')
+            trans.meta_data['sc_appname'] = package.get_name()
+            trans.emit('role-changed', packagekit.RoleEnum.LAST)
+        elif ptype == packagekit.ProgressType.REMAINING_TIME:
+            eta = status.get_property('remaining-time')
+            current_items, total_items, current_bytes, total_bytes, current_cps = 0,0,0,0,0
+            trans.emit('progress-details-changed', current_items, total_items, current_bytes, total_bytes, current_cps, eta)
+        elif ptype == packagekit.ProgressType.ELAPSED_TIME:
+            eta = status.get_property('remaining-time')
+            current_items, total_items, current_bytes, total_bytes, current_cps = 0,0,0,0,0
+            trans.emit('progress-details-changed', current_items, total_items, current_bytes, total_bytes, current_cps, eta)
+        elif ptype == packagekit.ProgressType.PACKAGE_ID:
+            # ignore
+            logging.debug("package-id progress signal  ignored")
+        elif ptype == packagekit.ProgressType.ALLOW_CANCEL:
+            trans.emit('cancellable-changed', status.get_property('allow-cancel'))
         else:
-            print "Unimplemented ",
+            print "Unimplemented: ProgressType", ptype
             print status.get_property('transaction-id'),status.get_property('status'),
-            print ptype
 
     def _on_install_ready(self, source, result, data=None):
         print "install done", source, result # FIXME
