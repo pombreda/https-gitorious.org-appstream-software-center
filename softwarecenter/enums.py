@@ -158,6 +158,12 @@ class PkgStates:
     UNKNOWN,
     ) = range(15)
 
+# visibility of non applications in the search results
+class NonAppVisibility:
+    (ALWAYS_VISIBLE,
+     MAYBE_VISIBLE,
+     NEVER_VISIBLE) = range (3)
+
 # application actions
 class AppActions:
     INSTALL = "install"
