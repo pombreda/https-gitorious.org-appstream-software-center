@@ -31,7 +31,6 @@ class TestSoftwareChannels(unittest.TestCase):
         self.cache.open()
         self.db = StoreDatabase(pathname, self.cache)
         self.db.open()
-        self.mock_icons = MockIconCache()
         # wait for the cache
         while not self.db._aptcache._ready:
             while gtk.events_pending():
@@ -45,7 +44,7 @@ class TestSoftwareChannels(unittest.TestCase):
         self.assertEqual(origin, "ubuntu")
         
     def test_channels(self):
-        cm = ChannelsManager(self.db, self.mock_icons)
+        cm = ChannelsManager(self.db)
         # ensure we have channels
         self.assertTrue(len(cm.channels) > 0)
         # test channel_available
@@ -60,7 +59,7 @@ class TestSoftwareChannels(unittest.TestCase):
         self.assertTrue(cm._check_for_channel_updates())
 
     def test_channels_from_lp(self):
-        cm = ChannelsManager(self.db, self.mock_icons)
+        cm = ChannelsManager(self.db)
         len_now = len(cm.channels)
         cm._feed_in_private_sources_list_entry(self.repo_from_lp)
         self.assertEqual(len(cm.channels), len_now + 1)
