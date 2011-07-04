@@ -18,7 +18,7 @@
 
 class InstallBackend(object):
     def __init__(self):
-        self.pending_transactions = []
+        self.pending_transactions = {}
         self.pending_purchases = []
 
     def upgrade(self, pkgname, appname, iconname, addons_install=[], addons_remove=[], metadata=None):

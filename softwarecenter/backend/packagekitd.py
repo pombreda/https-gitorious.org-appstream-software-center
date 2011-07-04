@@ -32,6 +32,27 @@ from softwarecenter.backend.installbackend import InstallBackend
 # temporary, must think of better solution
 from softwarecenter.db.pkginfo import get_pkg_info
 
+# FIXME: move this to backend.transactionswatcher
+class TransactionFinishedResult(object):
+    """ represents the result of a transaction """
+    def __init__(self, trans, enum):
+        #self.success = (enum != enums.EXIT_FAILED)
+        self.success = True # FIXME
+        if trans:
+            self.pkgname = trans.meta_data.get("sc_pkgname")
+            self.meta_data = trans.meta_data
+        else:
+            self.pkgname = None
+            self.meta_data = None
+
+# FIXME: move this to backend or merge it with PackagekitTransaction/BaseTransaction
+class TransactionProgress(object):
+    """ represents the progress of the transaction """
+    def __init__(self, trans):
+        self.pkgname = trans.meta_data.get("sc_pkgname")
+        self.meta_data = trans.meta_data
+        self.progress = trans.progress
+
 class PackagekitTransaction(BaseTransaction):
     _meta_data = {}
     
@@ -107,6 +128,10 @@ class PackagekitTransaction(BaseTransaction):
         trans.Cancel()
 
     def _remove(self):
+        """ delete transaction from _tlist """
+        # also notify pk install backend, so that this transaction gets removed
+        # from pending_transactions
+        self.emit('deleted')
         if self.tid in PackagekitTransactionsWatcher._tlist.keys():
             del PackagekitTransactionsWatcher._tlist[self.tid]
             logging.debug("Delete transaction %s" % self.tid)
@@ -135,6 +160,7 @@ class PackagekitTransactionsWatcher(BaseTransactionsWatcher):
         self.emit("lowlevel-transactions-changed", current, queued)
 
     def add_transaction(self, tid, trans):
+        """ return a tuple, (transaction, is_new) """
         if tid not in PackagekitTransactionsWatcher._tlist.keys():
             logging.debug("Trying to setup %s" % tid)
             if not trans:
@@ -142,11 +168,13 @@ class PackagekitTransactionsWatcher(BaseTransactionsWatcher):
             trans = PackagekitTransaction(trans)
             logging.debug("Add return new transaction %s %s" % (tid, trans))
             PackagekitTransactionsWatcher._tlist[tid] = trans
-        return PackagekitTransactionsWatcher._tlist[tid]
+            return (trans, True)
+        return (PackagekitTransactionsWatcher._tlist[tid], False)
 
     def get_transaction(self, tid):
         if tid not in PackagekitTransactionsWatcher._tlist.keys():
-            return self.add_transaction(tid, None)
+            trans, new = self.add_transaction(tid, None)
+            return trans
         return PackagekitTransactionsWatcher._tlist[tid]
 
 class PackagekitBackend(gobject.GObject, InstallBackend):
@@ -168,24 +196,26 @@ class PackagekitBackend(gobject.GObject, InstallBackend):
                                                     gobject.TYPE_NONE,
                                                     (str,int,)),
                     # the number/names of the available channels changed
+                    # FIXME: not emitted.
                     'channels-changed':(gobject.SIGNAL_RUN_FIRST,
                                         gobject.TYPE_NONE,
                                         (bool,)),
-                    # cache reload emits this specific signal as well
-                    'reload-finished':(gobject.SIGNAL_RUN_FIRST,
-                                       gobject.TYPE_NONE,
-                                       (gobject.TYPE_PYOBJECT, bool,)),
                     }
 
     def __init__(self):
         gobject.GObject.__init__(self)
         InstallBackend.__init__(self)
 
+        # this is public exposed
+        self.pending_transactions = {}
+
         self.client = packagekit.Client()
         self.pkginfo = get_pkg_info()
         self.pkginfo.open()
 
         self._transactions_watcher = PackagekitTransactionsWatcher()
+        self._transactions_watcher.connect('lowlevel-transactions-changed',
+                                self._on_lowlevel_transactions_changed)        
         self._logger = logging.getLogger("softwarecenter.backend.packagekitd")
 
     def upgrade(self, pkgname, appname, iconname, addons_install=[],
@@ -244,48 +274,109 @@ class PackagekitBackend(gobject.GObject, InstallBackend):
         """ reload package list """
         pass
 
-    def _on_progress_changed(self, status, ptype, data=None):
+    def _on_transaction_deleted(self, trans):
+        name = trans.meta_data.get('sc_pkgname', '')
+        if name in self.pending_transactions:
+            del self.pending_transactions[name]
+            logging.debug("Deleted transaction " + name)
+        else:
+            logging.error("Could not delete: " + name + str(trans))
+        # this is needed too
+        self.emit('transactions-changed', self.pending_transactions)
+
+    def _on_progress_changed(self, progress, ptype, data=None):
         """ de facto callback on transaction's progress change """
-        tid = status.get_property('transaction-id')
+        tid = progress.get_property('transaction-id')
+        status = progress.get_property('status')
         if not tid:
             logging.debug("Progress without transaction")
             return
 
-        trans = self._transactions_watcher.add_transaction(tid, status)
-        
+        trans, new = self._transactions_watcher.add_transaction(tid, progress)
+        if new:
+            trans.connect('deleted', self._on_transaction_deleted)
+            logging.debug("new transaction" + str(trans))
+            # should add it to pending_transactions, but
+            # i cannot get the pkgname here
+
+        logging.debug("Progress update %s %s %s %s" % (status, ptype, progress.get_property('transaction-id'),progress.get_property('status')))
+
+        if status == packagekit.StatusEnum.FINISHED:
+            logging.debug("Transaction finished %s" % tid)
+            self.emit("transaction-finished", TransactionFinishedResult(trans, status))
+
+        if status == packagekit.StatusEnum.CANCEL:
+            logging.debug("Transaction canceled %s" % tid)
+            self.emit("transaction-stopped", TransactionFinishedResult(trans, status))
+
+        if ptype == packagekit.ProgressType.PACKAGE:
+            # this should be done better
+            package = progress.get_property('package')
+            name = package.get_name()
+            trans.meta_data['sc_appname'] = name
+            trans.meta_data['sc_pkgname'] = name
+            if name not in self.pending_transactions:
+                self.pending_transactions[name] = trans
+            # fool sc ui about the name change
+            trans.emit('role-changed', packagekit.RoleEnum.LAST)
+
+        if ptype == packagekit.ProgressType.PERCENTAGE:
+            pkgname = trans.meta_data.get('sc_pkgname', '')
+            prog = progress.get_property('percentage')
+            if prog >= 0:
+                self.emit("transaction-progress-changed", pkgname, prog)
+            else:
+                self.emit("transaction-progress-changed", pkgname, 0)
+
         """
         if ptype == packagekit.ProgressType.ROLE:
-            trans.emit('role-changed', status.get_property('role'))
+            trans.emit('role-changed', progress.get_property('role'))
         elif ptype == packagekit.ProgressType.STATUS:
-            trans.emit('status-changed', status.get_property('status'))
+            trans.emit('status-changed', progress.get_property('status'))
         elif ptype == packagekit.ProgressType.PERCENTAGE:
-            trans.emit('progress-changed', status.get_property('percentage'))
+            trans.emit('progress-changed', progress.get_property('percentage'))
         elif ptype == packagekit.ProgressType.SUBPERCENTAGE:
-            #trans.emit('progress-changed', status.get_property('subpercentage'))
+            #trans.emit('progress-changed', progress.get_property('subpercentage'))
             # SC UI does not show subpercentages
             logging.debug("subpercentage-changed ignored")
         elif ptype == packagekit.ProgressType.PACKAGE:
             # this should be done better
-            package = status.get_property('package')
+            package = progress.get_property('package')
             trans.meta_data['sc_appname'] = package.get_name()
             trans.emit('role-changed', packagekit.RoleEnum.LAST)
         elif ptype == packagekit.ProgressType.REMAINING_TIME:
-            eta = status.get_property('remaining-time')
+            eta = progress.get_property('remaining-time')
             current_items, total_items, current_bytes, total_bytes, current_cps = 0,0,0,0,0
             trans.emit('progress-details-changed', current_items, total_items, current_bytes, total_bytes, current_cps, eta)
         elif ptype == packagekit.ProgressType.ELAPSED_TIME:
-            eta = status.get_property('remaining-time')
+            eta = progress.get_property('remaining-time')
             current_items, total_items, current_bytes, total_bytes, current_cps = 0,0,0,0,0
             trans.emit('progress-details-changed', current_items, total_items, current_bytes, total_bytes, current_cps, eta)
         elif ptype == packagekit.ProgressType.PACKAGE_ID:
             # ignore
             logging.debug("package-id progress signal  ignored")
         elif ptype == packagekit.ProgressType.ALLOW_CANCEL:
-            trans.emit('cancellable-changed', status.get_property('allow-cancel'))
+            trans.emit('cancellable-changed', progress.get_property('allow-cancel'))
         else:
             print "Unimplemented: ProgressType", ptype
-            print status.get_property('transaction-id'),status.get_property('status'),
+            print progress.get_property('transaction-id'),progress.get_property('status'),
         """
+
+    def _on_lowlevel_transactions_changed(self, watcher, current, pending):
+        # update self.pending_transactions
+        self.pending_transactions.clear()
+
+        for tid in [current] + pending:
+            if not tid:
+                continue
+            trans = self._transactions_watcher.get_transaction(tid)
+            trans_progress = TransactionProgress(trans)
+            try:
+                self.pending_transactions[trans_progress.pkgname] = trans_progress
+            except:
+                self.pending_transactions[trans.tid] = trans_progress
+
+        self.emit('transactions-changed', self.pending_transactions)
 
     def _on_install_ready(self, source, result, data=None):
         print "install done", source, result # FIXME

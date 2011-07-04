@@ -16,6 +16,8 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+from gi.repository import PackageKitGlib as packagekit
+
 import apt
 import gobject
 import gtk
@@ -417,6 +419,12 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
     import sys
 
+    import dbus
+    import dbus.mainloop.glib
+
+    loop = dbus.mainloop.glib.DBusGMainLoop()
+    dbus.set_default_main_loop(loop)
+    
     if len(sys.argv) > 1:
         datadir = sys.argv[1]
     elif os.path.exists("./data"):
@@ -429,7 +437,11 @@ if __name__ == "__main__":
 
     xapian_base_path = XAPIAN_BASE_PATH
     pathname = os.path.join(xapian_base_path, "xapian")
-    cache = apt.Cache(apt.progress.text.OpProgress())
+
+    # cache
+    from softwarecenter.db.pkginfo import get_pkg_info
+    #cache = apt.Cache(apt.progress.text.OpProgress())
+    cache = get_pkg_info()
     db = StoreDatabase(pathname, cache)
     db.open()
 
@@ -447,4 +459,5 @@ if __name__ == "__main__":
     win.set_size_request(400,400)
     win.show_all()
 
+    view.backend.install_multiple(['cheese'],['cheese'],[''])
     gtk.main()

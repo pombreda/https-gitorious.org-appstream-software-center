@@ -37,6 +37,9 @@ class BaseTransaction(gobject.GObject):
                     'role-changed':(gobject.SIGNAL_RUN_FIRST,
                                             gobject.TYPE_NONE,
                                             (gobject.TYPE_PYOBJECT, )),
+                    'deleted':(gobject.SIGNAL_RUN_FIRST,
+                                            gobject.TYPE_NONE,
+                                            []),
     }
 
     @property
