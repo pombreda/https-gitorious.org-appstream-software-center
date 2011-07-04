@@ -17,6 +17,8 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+from gi.repository import PackageKitGlib as packagekit
+
 # take time stamp as early as python allows this
 import time
 time_entering_main = time.time()
