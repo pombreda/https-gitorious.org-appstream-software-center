@@ -62,6 +62,7 @@ import softwarecenter.ui.gtk.dependency_dialogs as dependency_dialogs
 import softwarecenter.ui.gtk.deauthorize_dialog as deauthorize_dialog
 from softwarecenter.backend.aptd import TransactionFinishedResult
 
+from ui.gtk.aptd_gtk2 import InstallBackendUI
 from ui.gtk.viewswitcher import ViewSwitcher
 from ui.gtk.pendingview import PendingView
 from ui.gtk.installedpane import InstalledPane
@@ -152,6 +153,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
         # backend
         self.backend = get_install_backend()
+        self.backend.ui = InstallBackendUI()
         self.backend.connect("transaction-finished", self._on_transaction_finished)
         self.backend.connect("channels-changed", self.on_channels_changed)
         # xapian

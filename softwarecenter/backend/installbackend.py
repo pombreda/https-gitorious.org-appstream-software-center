@@ -33,6 +33,22 @@ class InstallBackend(object):
         """ reload package list """
         pass
 
+class InstallBackendUI(object):
+
+    def ask_config_file_conflict(self, old, new):
+        """ show a conffile conflict and ask what to do
+            Return "keep" to keep the old one 
+                   "replace" to replace the old with the new one
+        """
+        raise UnimplementedError("need custom ask_config_file_conflict method")
+
+    def ask_medium_required(self, medium, drive):
+        """ ask the user to provide a medium in drive
+            return True if medium is provided, False to cancel
+        """
+        raise UnimplementedError("need custom ask_medium_required method")
+
+
 # singleton
 install_backend = None
 def get_install_backend():
