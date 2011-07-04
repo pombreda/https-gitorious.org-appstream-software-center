@@ -11,4 +11,4 @@ import os
 def add_info(report):
     attach_file_if_exists(report,
         os.path.expanduser('~/.cache/software-center/software-center.log'),
-        'SoftwareCenterLog.txt')
+        'SoftwareCenterLog')

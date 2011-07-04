@@ -1,9 +1,15 @@
 software-center (4.1.8) UNRELEASED; urgency=low
 
+  [ Michael Vogt ]
   * refactor to move gtk2 UI out of InstallBackend and replace
     with generic InstallBackendUI
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 04 Jul 2011 15:59:52 +0200
+  [ Gary Lasker ]
+  * debian/source_software-center.py:
+    - remove extraneous '.txt' for the logfile upload in the
+      apport hook
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 04 Jul 2011 15:55:04 -0400
 
 software-center (4.1.7) oneiric; urgency=low
 
