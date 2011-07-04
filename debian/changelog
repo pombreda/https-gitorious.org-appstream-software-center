@@ -8,8 +8,11 @@ software-center (4.1.8) UNRELEASED; urgency=low
   * debian/source_software-center.py:
     - remove extraneous '.txt' for the logfile upload in the
       apport hook
+  * softwarecenter/backend/reviews.py:
+    - fix crash if ratings and reviews server does not provide
+      a histogram value (LP: #805421) 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 04 Jul 2011 15:55:04 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 04 Jul 2011 17:53:19 -0400
 
 software-center (4.1.7) oneiric; urgency=low
 
