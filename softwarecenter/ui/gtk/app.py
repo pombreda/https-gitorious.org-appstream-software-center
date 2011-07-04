@@ -36,8 +36,7 @@ import softwarecenter.netstatus
 # make pyflakes shut up
 softwarecenter.netstatus.NETWORK_STATE
 
-import ui.gtk
-from ui.gtk.SimpleGtkbuilderApp import SimpleGtkbuilderApp
+from SimpleGtkbuilderApp import SimpleGtkbuilderApp
 from softwarecenter.db.application import Application
 from softwarecenter.db.debfile import DebFileApplication
 
@@ -58,28 +57,29 @@ from softwarecenter.utils import (clear_token_from_ubuntu_sso,
                                   wait_for_apt_cache_ready)
 from softwarecenter.version import VERSION
 from softwarecenter.db.database import StoreDatabase
-import softwarecenter.ui.gtk.dependency_dialogs as dependency_dialogs
-import softwarecenter.ui.gtk.deauthorize_dialog as deauthorize_dialog
+import dependency_dialogs as dependency_dialogs
+import deauthorize_dialog as deauthorize_dialog
 from softwarecenter.backend.aptd import TransactionFinishedResult
 
-from ui.gtk.aptd_gtk2 import InstallBackendUI
-from ui.gtk.viewswitcher import ViewSwitcher
-from ui.gtk.pendingview import PendingView
-from ui.gtk.installedpane import InstalledPane
-from ui.gtk.channelpane import ChannelPane
-from ui.gtk.availablepane import AvailablePane
-from ui.gtk.softwarepane import SoftwareSection
-from ui.gtk.historypane import HistoryPane
-from ui.gtk.viewmanager import ViewManager
+from aptd_gtk2 import InstallBackendUI
+from viewswitcher import ViewSwitcher
+from pendingview import PendingView
+from installedpane import InstalledPane
+from channelpane import ChannelPane
+from availablepane import AvailablePane
+from softwarepane import SoftwareSection
+from historypane import HistoryPane
+from viewmanager import ViewManager
 
-from config import get_config
-from backend import get_install_backend
-from paths import SOFTWARE_CENTER_ICON_CACHE_DIR
+from softwarecenter.config import get_config
+from softwarecenter.backend import get_install_backend
+from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
 
-from plugin import PluginManager
-from backend.reviews import get_review_loader, UsefulnessCache
-from distro import get_distro
-from db.pkginfo import get_pkg_info
+from softwarecenter.plugin import PluginManager
+from softwarecenter.backend.reviews import get_review_loader, UsefulnessCache
+from softwarecenter.distro import get_distro
+from softwarecenter.db.pkginfo import get_pkg_info
+
 from gettext import gettext as _
 
 LOG = logging.getLogger(__name__)

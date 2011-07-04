@@ -116,7 +116,7 @@ if __name__ == "__main__":
     gtk.init_check()
 
     # create the app
-    from softwarecenter.app import SoftwareCenterApp
+    from softwarecenter.ui.gtk.app import SoftwareCenterApp
     with ExecutionTime("create SoftwareCenterApp"):
         app = SoftwareCenterApp(datadir, xapian_base_path, options, args)
 
