@@ -426,7 +426,7 @@ def ci_lower_bound(pos, n, power=0.2):
     return (phat + z*z/(2*n) - z * math.sqrt((phat*(1-phat)+z*z/(4*n))/n))/(1+z*z/n)
 
 def calc_dr(ratings):
-    '''Calculate the dampened rating for an app given it's collective ratings'''
+    '''Calculate the dampened rating for an app given its collective ratings'''
     if not len(ratings) == 5:
         raise AttributeError('ratings argument must be a list of 5 integers')
    
