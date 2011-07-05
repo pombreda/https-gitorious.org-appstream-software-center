@@ -42,7 +42,7 @@ class PocketLint(distutils.cmd.Command):
 
 
 def merge_authors_into_about_dialog():
-    fname="./data/ui/SoftwareCenter.ui"
+    fname="./data/ui/gtk/SoftwareCenter.ui"
     authors = open("AUTHORS").read()
     gtkbuilder = open(fname).read()
     gtkbuilder = re.sub(r'<property name="authors">.*</property>',
@@ -99,8 +99,8 @@ setup(name="software-center", version=VERSION,
                   'softwarecenter.ui.qml',
                  ],
       data_files=[
-                  ('share/software-center/ui/',
-                   glob.glob("data/ui/*.ui")),
+                  ('share/software-center/ui/gtk/',
+                   glob.glob("data/ui/gtk/*.ui")),
                   ('share/software-center/templates/',
                    glob.glob("data/templates/*.html")),
                   ('../etc/dbus-1/system.d/',

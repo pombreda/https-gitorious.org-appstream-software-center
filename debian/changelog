@@ -1,3 +1,10 @@
+software-center (4.1.9) UNRELEASED; urgency=low
+
+  * data/ui/*.ui:
+    - move into data/ui/gtk preparing the gtk3 merge
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 05 Jul 2011 09:58:02 +0200
+
 software-center (4.1.8) oneiric; urgency=low
 
   [ Michael Vogt ]

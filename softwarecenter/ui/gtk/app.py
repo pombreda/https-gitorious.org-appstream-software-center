@@ -123,7 +123,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
         self.datadir = datadir
         SimpleGtkbuilderApp.__init__(self, 
-                                     datadir+"/ui/SoftwareCenter.ui", 
+                                     datadir+"/ui/gtk/SoftwareCenter.ui", 
                                      "software-center")
         gettext.bindtextdomain("software-center", "/usr/share/locale")
         gettext.textdomain("software-center")

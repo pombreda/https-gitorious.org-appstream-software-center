@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-07-05 09:38+0200\n"
+"POT-Creation-Date: 2011-07-05 09:58+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -122,7 +122,7 @@ msgstr ""
 
 #. error detail link label
 #: ../utils/submit_review.py:747 ../utils/submit_review.py:1221
-#: ../data/ui/submit_review.ui.h:3 ../data/ui/report_abuse.ui.h:1
+#: ../data/ui/gtk/submit_review.ui.h:3 ../data/ui/gtk/report_abuse.ui.h:1
 msgid "Error Details"
 msgstr ""
 
@@ -233,124 +233,124 @@ msgstr ""
 msgid "Missing review-id argument"
 msgstr ""
 
-#: ../data/ui/SoftwareCenter.ui.h:1
+#: ../data/ui/gtk/SoftwareCenter.ui.h:1
 msgid "Copy _Web Link"
 msgstr ""
 
-#: ../data/ui/SoftwareCenter.ui.h:2
+#: ../data/ui/gtk/SoftwareCenter.ui.h:2
 msgid "Deauthorize Computer…"
 msgstr ""
 
-#: ../data/ui/SoftwareCenter.ui.h:3
+#: ../data/ui/gtk/SoftwareCenter.ui.h:3
 msgid "Get private launchpad repositories"
 msgstr ""
 
-#: ../data/ui/SoftwareCenter.ui.h:4
+#: ../data/ui/gtk/SoftwareCenter.ui.h:4
 msgid "Reinstall Previous Purchases…"
 msgstr ""
 
-#: ../data/ui/SoftwareCenter.ui.h:5
+#: ../data/ui/gtk/SoftwareCenter.ui.h:5
 msgid "Search…"
 msgstr ""
 
-#: ../data/ui/SoftwareCenter.ui.h:6
+#: ../data/ui/gtk/SoftwareCenter.ui.h:6
 msgid "Software Center _Help"
 msgstr ""
 
-#: ../data/ui/SoftwareCenter.ui.h:7
+#: ../data/ui/gtk/SoftwareCenter.ui.h:7
 msgid "Updating software catalog…"
 msgstr ""
 
-#: ../data/ui/SoftwareCenter.ui.h:8
+#: ../data/ui/gtk/SoftwareCenter.ui.h:8
 msgid "_All Software"
 msgstr ""
 
-#: ../data/ui/SoftwareCenter.ui.h:9
+#: ../data/ui/gtk/SoftwareCenter.ui.h:9
 msgid "_Canonical-Maintained Software"
 msgstr ""
 
-#: ../data/ui/SoftwareCenter.ui.h:10
+#: ../data/ui/gtk/SoftwareCenter.ui.h:10
 msgid "_Edit"
 msgstr ""
 
-#: ../data/ui/SoftwareCenter.ui.h:11
+#: ../data/ui/gtk/SoftwareCenter.ui.h:11
 msgid "_File"
 msgstr ""
 
-#: ../data/ui/SoftwareCenter.ui.h:12
+#: ../data/ui/gtk/SoftwareCenter.ui.h:12
 msgid "_Go Back"
 msgstr ""
 
-#: ../data/ui/SoftwareCenter.ui.h:13
+#: ../data/ui/gtk/SoftwareCenter.ui.h:13
 msgid "_Go Forward"
 msgstr ""
 
-#: ../data/ui/SoftwareCenter.ui.h:14
+#: ../data/ui/gtk/SoftwareCenter.ui.h:14
 msgid "_Help"
 msgstr ""
 
-#: ../data/ui/SoftwareCenter.ui.h:15
+#: ../data/ui/gtk/SoftwareCenter.ui.h:15
 msgid "_Install"
 msgstr ""
 
-#: ../data/ui/SoftwareCenter.ui.h:16
+#: ../data/ui/gtk/SoftwareCenter.ui.h:16
 msgid "_Software Sources…"
 msgstr ""
 
-#: ../data/ui/SoftwareCenter.ui.h:17
+#: ../data/ui/gtk/SoftwareCenter.ui.h:17
 msgid "_View"
 msgstr ""
 
-#: ../data/ui/SoftwareCenter.ui.h:18
+#: ../data/ui/gtk/SoftwareCenter.ui.h:18
 msgid "translator-credits"
 msgstr ""
 
-#: ../data/ui/SoftwareCenter.ui.h:19
+#: ../data/ui/gtk/SoftwareCenter.ui.h:19
 msgid "©2009-2011 Canonical"
 msgstr ""
 
-#: ../data/ui/dialogs.ui.h:2
+#: ../data/ui/gtk/dialogs.ui.h:2
 #, no-c-format
 msgid "%s had not responded within 30 seconds."
 msgstr ""
 
-#: ../data/ui/dialogs.ui.h:3
+#: ../data/ui/gtk/dialogs.ui.h:3
 msgid ""
 "<span weight=\"bold\" font_size=\"large\">Items cannot be installed or "
 "removed \n"
 "until the package catalog is repaired. Do you want to repair it now?</span>"
 msgstr ""
 
-#: ../data/ui/dialogs.ui.h:6
+#: ../data/ui/gtk/dialogs.ui.h:6
 #, no-c-format
 msgid ""
 "<span weight=\"bold\" font_size=\"large\">Sorry, %s can't be installed at "
 "the moment. Try again in a day or two.</span>"
 msgstr ""
 
-#: ../data/ui/dialogs.ui.h:7
+#: ../data/ui/gtk/dialogs.ui.h:7
 #: ../softwarecenter/ui/gtk/appdetailsview_gtk.py:606
 msgid "Cancel"
 msgstr ""
 
 #. info header
-#: ../data/ui/dialogs.ui.h:8
+#: ../data/ui/gtk/dialogs.ui.h:8
 #: ../softwarecenter/ui/gtk/appdetailsview_gtk.py:1140
 #: ../softwarecenter/ui/gtk/dialogs.py:72
 msgid "Details"
 msgstr ""
 
-#: ../data/ui/dialogs.ui.h:9
+#: ../data/ui/gtk/dialogs.ui.h:9
 msgid "OK"
 msgstr ""
 
-#: ../data/ui/dialogs.ui.h:10
+#: ../data/ui/gtk/dialogs.ui.h:10
 msgid ""
 "Once Update Manager has finished the repairs, you can close it and return to "
 "the store."
 msgstr ""
 
-#: ../data/ui/dialogs.ui.h:11
+#: ../data/ui/gtk/dialogs.ui.h:11
 #: ../softwarecenter/ui/gtk/appdetailsview_gtk.py:287
 #: ../softwarecenter/ui/gtk/appdetailsview_webkit.py:452
 #: ../softwarecenter/ui/gtk/appdetailsview_webkit.py:468
@@ -358,77 +358,77 @@ msgstr ""
 msgid "Remove"
 msgstr ""
 
-#: ../data/ui/dialogs.ui.h:12
+#: ../data/ui/gtk/dialogs.ui.h:12
 msgid "Repair"
 msgstr ""
 
-#: ../data/ui/dialogs.ui.h:13
+#: ../data/ui/gtk/dialogs.ui.h:13
 msgid "Retry"
 msgstr ""
 
-#: ../data/ui/dialogs.ui.h:15
+#: ../data/ui/gtk/dialogs.ui.h:15
 #, no-c-format
 msgid "There was a problem posting this review to %s"
 msgstr ""
 
-#: ../data/ui/login.ui.h:1
+#: ../data/ui/gtk/login.ui.h:1
 msgid "Continue"
 msgstr ""
 
-#: ../data/ui/login.ui.h:2
+#: ../data/ui/gtk/login.ui.h:2
 msgid "E-mail"
 msgstr ""
 
-#: ../data/ui/login.ui.h:3
+#: ../data/ui/gtk/login.ui.h:3
 msgid "I forgot my password"
 msgstr ""
 
-#: ../data/ui/login.ui.h:4
+#: ../data/ui/gtk/login.ui.h:4
 msgid "I have an Ubuntu Account"
 msgstr ""
 
-#: ../data/ui/login.ui.h:5
+#: ../data/ui/gtk/login.ui.h:5
 msgid "I want to register now"
 msgstr ""
 
-#: ../data/ui/login.ui.h:6
+#: ../data/ui/gtk/login.ui.h:6
 msgid "Login"
 msgstr ""
 
-#: ../data/ui/login.ui.h:7
+#: ../data/ui/gtk/login.ui.h:7
 msgid "Password"
 msgstr ""
 
-#: ../data/ui/login.ui.h:8
+#: ../data/ui/gtk/login.ui.h:8
 msgid "Remember password"
 msgstr ""
 
-#: ../data/ui/submit_review.ui.h:1
+#: ../data/ui/gtk/submit_review.ui.h:1
 msgid "<small>Be brief and informative. Do not post bug reports.</small>"
 msgstr ""
 
-#: ../data/ui/submit_review.ui.h:2
+#: ../data/ui/gtk/submit_review.ui.h:2
 msgid "<small>More…</small>"
 msgstr ""
 
-#: ../data/ui/submit_review.ui.h:4
+#: ../data/ui/gtk/submit_review.ui.h:4
 msgid "Publish"
 msgstr ""
 
-#: ../data/ui/submit_review.ui.h:5 ../data/ui/submit_usefulness.ui.h:3
-#: ../data/ui/report_abuse.ui.h:4
+#: ../data/ui/gtk/submit_review.ui.h:5 ../data/ui/gtk/submit_usefulness.ui.h:3
+#: ../data/ui/gtk/report_abuse.ui.h:4
 msgid "label"
 msgstr ""
 
-#: ../data/ui/submit_usefulness.ui.h:1
+#: ../data/ui/gtk/submit_usefulness.ui.h:1
 msgid "Submit"
 msgstr ""
 
-#: ../data/ui/submit_usefulness.ui.h:2 ../data/ui/report_abuse.ui.h:3
+#: ../data/ui/gtk/submit_usefulness.ui.h:2 ../data/ui/gtk/report_abuse.ui.h:3
 msgid "Thank you."
 msgstr ""
 
-#: ../data/ui/report_abuse.ui.h:2
+#: ../data/ui/gtk/report_abuse.ui.h:2
 msgid "Report"
 msgstr ""
 
