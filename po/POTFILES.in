@@ -12,7 +12,7 @@ data/unbranded-software-center.desktop.in
 [type: gettext/xml] data/featured.menu.in
 [type: gettext/xml] data/new.menu.in
 [type: gettext/xml] data/software-center.menu.in
-softwarecenter/app.py
+softwarecenter/ui/gtk/app.py
 softwarecenter/backend/aptd.py
 softwarecenter/backend/channel.py
 softwarecenter/backend/login_sso.py
