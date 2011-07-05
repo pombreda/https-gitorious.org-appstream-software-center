@@ -79,7 +79,7 @@ from softwarecenter.plugin import PluginManager
 from softwarecenter.backend.reviews import get_review_loader, UsefulnessCache
 from softwarecenter.distro import get_distro
 from softwarecenter.db.pkginfo import get_pkg_info
-
+import dialogs
 from gettext import gettext as _
 
 LOG = logging.getLogger(__name__)
@@ -177,7 +177,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                 self._rebuild_and_reopen_local_db(pathname)
         except xapian.DatabaseCorruptError, e:
             LOG.exception("xapian open failed")
-            ui.gtk.dialogs.error(None, 
+            dialogs.error(None, 
                           _("Sorry, can not open the software database"),
                           _("Please re-install the 'software-center' "
                             "package."))
@@ -985,8 +985,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         if self.window_main.props.visible == False:
             glib.timeout_add_seconds(1, self._ask_and_repair_broken_cache)
             return
-        if ui.gtk.dialogs.confirm_repair_broken_cache(self.window_main,
-                                                      self.datadir):
+        if dialogs.confirm_repair_broken_cache(self.window_main,
+                                               self.datadir):
             self.backend.fix_broken_depends()
 
     def _on_notebook_expose(self, widget, event):
