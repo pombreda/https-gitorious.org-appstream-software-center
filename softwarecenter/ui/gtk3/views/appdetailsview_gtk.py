@@ -143,6 +143,10 @@ class PackageStatusBar(StatusBar):
         self._progress_modify_bg(view)
         return
 
+    def create_colors(self, src_color=None):
+        #FIXME: portme
+        return
+
     def _progress_modify_bg(self, view):
         # more in relation to bug #606942
         # for themes where "transparent-bg-hint" is not understood
