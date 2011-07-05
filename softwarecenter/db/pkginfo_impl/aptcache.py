@@ -23,7 +23,6 @@ import apt_pkg
 import logging
 import gio
 import glib
-import gtk
 import os
 
 from softwarecenter.enums import PkgStates
@@ -35,8 +34,9 @@ LOG = logging.getLogger(__name__)
 class GtkMainIterationProgress(apt.progress.base.OpProgress):
     """Progress that just runs the main loop"""
     def update(self, percent=0):
-        while gtk.events_pending():
-            gtk.main_iteration()
+        context = glib.main_context_default()
+        while context.pending():
+            context.iteration()
 
 def convert_package_argument(f):
     """ decorator converting _Package argument to Package object from cache """
@@ -271,8 +271,9 @@ class AptCache(PackageInfo):
             if not pkg.candidate:
                 continue
             for item in pkg.candidate.origins:
-                while gtk.events_pending():
-                    gtk.main_iteration()
+                context = glib.main_context_default()
+                while context.pending():
+                    context.iteration()
                 if item.origin:
                     origins.add(item.origin)
         return origins
@@ -619,8 +620,9 @@ class AptCache(PackageInfo):
             renhances = self._get_renhances_lowlevel_apt_pkg(virtual_aptpkg_pkg)
             LOG.debug("renhances of %s: %s" % (provide, renhances))
             addons_sug += renhances
-            while gtk.events_pending():
-                gtk.main_iteration()
+            context = glib.main_context_default()
+            while context.pending():
+                context.iteration()
 
         # get more addons, the idea is that if a package foo-data
         # just depends on foo we want to get the info about
@@ -650,8 +652,9 @@ class AptCache(PackageInfo):
                             pkgdep, pkgdep_enh))
                     addons_sug += pkgdep_enh
 
-            while gtk.events_pending():
-                gtk.main_iteration()
+            context = glib.main_context_default()
+            while context.pending():
+                context.iteration()
 
         # remove duplicates from suggests (sets are great!)
         addons_sug = list(set(addons_sug)-set(addons_rec))

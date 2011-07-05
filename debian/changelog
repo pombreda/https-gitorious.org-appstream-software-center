@@ -1,10 +1,25 @@
-software-center (4.1.7) UNRELEASED; urgency=low
+software-center (4.1.8) UNRELEASED; urgency=low
+
+  [ Michael Vogt ]
+  * refactor to move gtk2 UI out of InstallBackend and replace
+    with generic InstallBackendUI
+
+  [ Gary Lasker ]
+  * debian/source_software-center.py:
+    - remove extraneous '.txt' for the logfile upload in the
+      apport hook
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 04 Jul 2011 15:55:04 -0400
+
+software-center (4.1.7) oneiric; urgency=low
 
   [ Aaron Peachey ]
   * Add fake-review API that can be used for GUI testing and
     automatic testing without actually hitting the network.
     Can be enabled with the SOFTWARE_CENTER_FAKE_REVIEW_API=1
     environment
+  * add support to remove/modify reviews, this requires the
+    new rnrserver in production
   
   [ Michael Vogt ]
   * merged lp:~aaronp/software-center/tests, many thanks
@@ -33,11 +48,16 @@ software-center (4.1.7) UNRELEASED; urgency=low
     - don't start the indeterminate progress bar for purchase
       transactions until after the authentication dialog is closed
       (LP: #725181)
+  * softwarecenter/utils.py,
+    softwarecenter/backend/aptd.py,
+    test/test_software_channels.py:
+    - obfuscate private ppa details in the error log output and in
+      the error dialog itself, add corresponding unit test
     
   [ Steve Langasek ]
   * debian/control: point Vcs-Bzr field at the right branch.
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 27 Jun 2011 16:58:26 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 04 Jul 2011 07:41:36 +0100
 
 software-center (4.1.6) oneiric; urgency=low
 

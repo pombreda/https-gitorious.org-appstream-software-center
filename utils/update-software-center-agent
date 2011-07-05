@@ -52,6 +52,7 @@ if __name__ == "__main__":
     parser.add_option("--ignore-cache", "", action="store_true", default=False,
                       help="ignore the local cache when updating")
     parser.add_option("--datadir", "", default=None)
+    parser.add_option("--pretend-distro", "", default=None)
     (options, args) = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO)
@@ -60,6 +61,8 @@ if __name__ == "__main__":
         softwarecenter.log.root.setLevel(level=logging.DEBUG)
     if options.datadir:
         softwarecenter.paths.datadir = options.datadir
+    if options.pretend_distro:
+        os.environ["SOFTWARE_CENTER_DISTRO_CODENAME"] = options.pretend_distro
 
     # support global disable
     if "SOFTWARE_CENTER_NO_SC_AGENT" in os.environ:

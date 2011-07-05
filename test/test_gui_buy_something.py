@@ -42,6 +42,7 @@ class SCBuySomething(unittest.TestCase):
             subprocess.call(["dpkg", "-r", "hellox", "hello"])
         # get the software from staging
         os.environ["SOFTWARE_CENTER_BUY_HOST"]="https://sc.staging.ubuntu.com"
+        os.environ["SOFTWARE_CENTER_DISTRO_CODENAME"]="natty"
         os.environ["PYTHONPATH"]=os.path.abspath("..")
         if os.getuid() == 0:
             cmd = ["sudo", "-E", "-u", os.environ["SUDO_USER"]]
@@ -67,7 +68,6 @@ class SCBuySomething(unittest.TestCase):
         while gtk.events_pending():
             gtk.main_iteration()
 
-
     def assertFirstPkgInModel(self, model, needle):
         pkgname_from_row = model[0][AppStore.COL_PKGNAME]
         self.assertEqual(
@@ -83,7 +83,8 @@ class SCBuySomething(unittest.TestCase):
         self._p()
         return self.app.available_pane.app_view.get_model()
 
-    def test_buy_something_gui(self):
+    # DISABLED for now until the staging server readds the test app
+    def disabled_test_buy_something_gui(self):
         # assert we find the right package
         model = self._run_search("hellox")
         treeview = self.app.available_pane.app_view

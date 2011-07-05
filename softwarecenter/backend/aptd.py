@@ -25,24 +25,21 @@ import os
 import re
 from softwarecenter.utils import (sources_filename_from_ppa_entry,
                                   release_filename_in_lists_from_deb_line,
+                                  obfuscate_private_ppa_details,
                                   )
 from softwarecenter.enums import TransactionTypes
+from softwarecenter.utils import UnimplementedError
 
 from aptdaemon import client
 from aptdaemon import enums
 from aptdaemon import errors
-from aptdaemon.gtkwidgets import AptMediumRequiredDialog, \
-                                 AptConfigFileConflictDialog
-
 from aptsources.sourceslist import SourceEntry
 from aptdaemon import policykit1
 
 from defer import inline_callbacks, return_value
 
-import gtk
 from softwarecenter.backend.transactionswatcher import BaseTransactionsWatcher, BaseTransaction
 from softwarecenter.backend.installbackend import InstallBackend
-from softwarecenter.ui.gtk import dialogs
 
 from gettext import gettext as _
 
@@ -159,6 +156,7 @@ class AptdaemonTransactionsWatcher(BaseTransactionsWatcher):
         trans = client.get_transaction(tid)
         return AptdaemonTransaction(trans)
 
+
 class AptdaemonBackend(gobject.GObject, InstallBackend):
     """ software center specific code that interacts with aptdaemon """
 
@@ -200,6 +198,8 @@ class AptdaemonBackend(gobject.GObject, InstallBackend):
         self.pending_purchases = {}
         self._progress_signal = None
         self._logger = logging.getLogger("softwarecenter.backend")
+        # the AptdaemonBackendUI code
+        self.ui = None
     
     def _axi_finished(self, res):
         self.emit("channels-changed", res)
@@ -667,11 +667,14 @@ class AptdaemonBackend(gobject.GObject, InstallBackend):
         if trans.error_code == enums.ERROR_DAEMON_DIED:
             self._logger.warn("daemon dies, ignoring: %s %s" % (trans, enum))
             return
+        # hide any private ppa details in the error message since it may
+        # appear in the logs for LP bugs and potentially in screenshots as well
+        cleaned_error_details = obfuscate_private_ppa_details(trans.error_details)
         msg = "%s: %s\n%s\n\n%s" % (
             _("Error"),
             enums.get_error_string_from_enum(trans.error_code),
             enums.get_error_description_from_enum(trans.error_code),
-            trans.error_details)
+            cleaned_error_details)
         self._logger.error("error in _on_trans_finished '%s'" % msg)
         # show dialog to the user and exit (no need to reopen the cache)
         if not trans.error_code:
@@ -684,11 +687,12 @@ class AptdaemonBackend(gobject.GObject, InstallBackend):
             trans.error_code = enums.ERROR_PACKAGE_DOWNLOAD_FAILED
         # show dialog to the user and exit (no need to reopen
         # the cache)
-        return dialogs.error(None,
-                        enums.get_error_string_from_enum(trans.error_code),
-                        enums.get_error_description_from_enum(trans.error_code),
-                        trans.error_details,
-                        alternative_action)
+        res = self.ui.error(None,
+                            enums.get_error_string_from_enum(trans.error_code),
+                            enums.get_error_description_from_enum(trans.error_code),
+                            cleaned_error_details,
+                            alternative_action)
+        return res
 
     def _on_trans_finished(self, trans, enum):
         """callback when a aptdaemon transaction finished"""
@@ -703,7 +707,7 @@ class AptdaemonBackend(gobject.GObject, InstallBackend):
                 trans.error.code == enums.ERROR_INVALID_PACKAGE_FILE):
                 action = _("_Ignore and install")
                 res = self._show_transaction_failed_dialog(trans, enum, action)
-                if res == gtk.RESPONSE_YES:
+                if res == "yes":
                     # Reinject the transaction
                     meta_copy = trans.meta_data.copy()
                     pkgname = meta_copy.pop("sc_pkgname")
@@ -736,24 +740,21 @@ class AptdaemonBackend(gobject.GObject, InstallBackend):
 
     @inline_callbacks
     def _config_file_conflict(self, transaction, old, new):
-        dia = AptConfigFileConflictDialog(old, new)
-        res = dia.run()
-        dia.hide()
-        dia.destroy()
-        # send result to the daemon
-        if res == gtk.RESPONSE_YES:
+        reply = self.ui.ask_config_file_conflict(old, new)
+        if reply == "replace":
             yield transaction.resolve_config_file_conflict(old, "replace",
                                                            defer=True)
-        else:
+        elif reply == "keep":
             yield transaction.resolve_config_file_conflict(old, "keep",
                                                            defer=True)
+        else:
+            raise Exception(
+                "unknown reply: '%s' in _ask_config_file_conflict " % reply)
 
     @inline_callbacks
     def _medium_required(self, transaction, medium, drive):
-        dialog = AptMediumRequiredDialog(medium, drive)
-        res = dialog.run()
-        dialog.hide()
-        if res == gtk.RESPONSE_OK:
+        res = self.ui.ask_medium_required(medium, drive)
+        if res:
             yield transaction.provide_medium(medium, defer=True)
         else:
             yield transaction.cancel(defer=True)
@@ -803,10 +804,8 @@ class AptdaemonBackend(gobject.GObject, InstallBackend):
         result.pkgname = pkgname
 
         # clean up pending transactions
-        try:
+        if pkgname and pkgname in self.pending_transactions:
             del self.pending_transactions[pkgname]
-        except:
-            pass
 
         self.emit("transaction-stopped", result)
         if isinstance(error, dbus.DBusException):
@@ -818,12 +817,13 @@ class AptdaemonBackend(gobject.GObject, InstallBackend):
             self._logger.exception("_on_trans_error")
             #raise error
 
+
 if __name__ == "__main__":
     #c = client.AptClient()
     #c.remove_packages(["4g8"], remove_unused_dependencies=True)
     backend = AptdaemonBackend()
     #backend.reload()
     backend.enable_component("multiverse")
-
+    import gtk
     gtk.main()
 

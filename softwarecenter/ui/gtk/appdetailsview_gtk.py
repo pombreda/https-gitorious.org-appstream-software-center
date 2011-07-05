@@ -1163,6 +1163,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.reviews.connect("new-review", self._on_review_new)
         self.reviews.connect("report-abuse", self._on_review_report_abuse)
         self.reviews.connect("submit-usefulness", self._on_review_submit_usefulness)
+        self.reviews.connect("modify-review", self._on_review_modify)
+        self.reviews.connect("delete-review", self._on_review_delete)
         self.reviews.connect("more-reviews-clicked", self._on_more_reviews_clicked)
         self.reviews.connect("different-review-language-clicked", self._on_reviews_in_different_language_clicked)
         vb.pack_start(self.reviews, False)
@@ -1211,6 +1213,12 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
     def _on_review_new(self, button):
         self._review_write_new()
+
+    def _on_review_modify(self, button, review_id):
+        self._review_modify(review_id)
+
+    def _on_review_delete(self, button, review_id):
+        self._review_delete(review_id)
 
     def _on_review_report_abuse(self, button, review_id):
         self._review_report_abuse(str(review_id))

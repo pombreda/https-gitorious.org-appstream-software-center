@@ -22,16 +22,17 @@ import cPickle
 import datetime
 import gio
 import gzip
-import gtk
 import glib
 import logging
+import operator
 import os
 import random
+import simplejson
 import StringIO
 import subprocess
 import time
 import urllib
-import simplejson
+
 
 from softwarecenter.backend.piston.rnrclient import RatingsAndReviewsAPI
 from softwarecenter.backend.piston.rnrclient_pristine import ReviewDetails
@@ -42,11 +43,14 @@ from softwarecenter.utils import (upstream_version_compare,
                                   get_language,
                                   save_person_to_config,
                                   get_person_from_config,
+                                  calc_dr,
                                   )
 from softwarecenter.paths import (SOFTWARE_CENTER_CACHE_DIR,
                                   SUBMIT_REVIEW_APP,
                                   REPORT_REVIEW_APP,
                                   SUBMIT_USEFULNESS_APP,
+                                  DELETE_REVIEW_APP,
+                                  MODIFY_REVIEW_APP,
                                   GET_REVIEWS_HELPER,
                                   GET_REVIEW_STATS_HELPER,
                                   GET_USEFUL_VOTES_HELPER,
@@ -64,8 +68,14 @@ class ReviewStats(object):
         self.app = app
         self.ratings_average = None
         self.ratings_total = 0
+        self.rating_spread = [0,0,0,0,0]
+        self.dampened_rating = 3.00
     def __repr__(self):
-        return "[ReviewStats '%s' ratings_average='%s' ratings_total='%s']" % (self.app, self.ratings_average, self.ratings_total)
+        return ("[ReviewStats '%s' ratings_average='%s' ratings_total='%s'" 
+                " rating_spread='%s' dampened_rating='%s']" % 
+                (self.app, self.ratings_average, self.ratings_total, 
+                self.rating_spread, self.dampened_rating))
+    
 
 class UsefulnessCache(object):
 
@@ -164,6 +174,8 @@ class Review(object):
         self.usefulness_favorable = 0
         # this will be set if tryint to submit usefulness for this review failed
         self.usefulness_submit_error = False
+        self.delete_error = False
+        self.modify_error = False
     def __repr__(self):
         return "[Review id=%s review_text='%s' reviewer_username='%s']" % (
             self.id, self.review_text, self.reviewer_username)
@@ -260,6 +272,35 @@ class ReviewLoader(object):
             os.makedirs(cachedir)
         cPickle.dump(self.REVIEW_STATS_CACHE,
                       open(self.REVIEW_STATS_CACHE_FILE, "w"))
+    
+    def get_top_rated_apps(self, quantity=12):
+        """Returns a list of the packages with the highest 'rating' based on
+           the dampened rating calculated from the ReviewStats rating spread."""
+
+        cache = self.REVIEW_STATS_CACHE
+        #create a list of tuples with (Application,dampened_rating)
+        dr_list = []
+        for item in cache.items():
+            if hasattr(item[1],'dampened_rating'):
+                dr_list.append((item[0], item[1].dampened_rating))
+            else:
+                dr_list.append((item[0], 3.00))
+        
+        #sorted the list descending by dampened rating
+        sorted_dr_list = sorted(dr_list, key=operator.itemgetter(1),
+                                reverse=True)
+        
+        #return the quantity requested or as much as we can
+        if quantity < len(sorted_dr_list):
+            return_qty = quantity
+        else:
+            return_qty = len(sorted_dr_list)
+        
+        top_rated = []
+        for i in range (0,return_qty):
+            top_rated.append(sorted_dr_list[i][0])
+        
+        return top_rated
 
     # writing new reviews spawns external helper
     # FIXME: instead of the callback we should add proper gobject signals
@@ -373,6 +414,80 @@ class ReviewLoader(object):
                         callback(app, self._reviews[app], None, 'replace', review)
                         break
 
+    def spawn_delete_review_ui(self, review_id, parent_xid, datadir, callback):
+        cmd = [os.path.join(datadir, DELETE_REVIEW_APP), 
+               "--review-id", "%s" % review_id,
+               "--parent-xid", "%s" % parent_xid,
+               "--datadir", datadir,
+              ]
+        spawn_helper = SpawnHelper(format="none")
+        spawn_helper.connect("exited", 
+                             self._on_delete_review_finished, 
+                             review_id, callback)
+        spawn_helper.run(cmd)
+
+    def _on_delete_review_finished(self, spawn_helper, exitcode, review_id, callback):
+        """ called when delete_review finished"""
+        if exitcode == 0:
+            LOG.debug("delete id %s " % review_id)
+            for (app, reviews) in self._reviews.iteritems():
+                for review in reviews:
+                    if str(review.id) == str(review_id):
+                        # remove the one we don't want to see anymore
+                        self._reviews[app].remove(review)
+                        callback(app, self._reviews[app])
+                        break                    
+        else:
+            LOG.debug("delete review id=%s failed with exitcode %s" % (
+                review_id, exitcode))
+            for (app, reviews) in self._reviews.iteritems():
+                for review in reviews:
+                    if str(review.id) == str(review_id):
+                        review.delete_error = exitcode
+                        callback(app, self._reviews[app])
+                        break
+    
+    def spawn_modify_review_ui(self, parent_xid, iconname, datadir, review_id, callback):
+        """ this spawns the UI for writing a new review and
+            adds it automatically to the reviews DB """
+        cmd = [os.path.join(datadir, MODIFY_REVIEW_APP), 
+               "--parent-xid", "%s" % parent_xid,
+               "--iconname", iconname,
+               "--datadir", "%s" % datadir,
+               "--review-id", "%s" % review_id,
+               ]
+        spawn_helper = SpawnHelper(format="json")
+        spawn_helper.connect("exited", 
+                             self._on_modify_review_finished, 
+                             review_id, callback)
+        spawn_helper.run(cmd)
+
+
+    def _on_modify_review_finished(self, spawn_helper, exitcode, review_id, review_json, callback):
+        """called when modify_review finished"""
+        LOG.debug("_on_modify_review_finished")
+        if exitcode == 0:
+            review_json = spawn_helper._stdout
+            mod_review = ReviewDetails.from_dict(review_json)
+            for (app, reviews) in self._reviews.iteritems():
+                for review in reviews:
+                    if str(review.id) == str(review_id):
+                        # remove the one we don't want to see anymore
+                        self._reviews[app].remove(review)
+                        self._reviews[app].insert(0, Review.from_piston_mini_client(mod_review))
+                        callback(app, self._reviews[app])
+                        break
+        else:
+            LOG.debug("modify review id=%s failed with exitcode %s" % (
+                review_id, exitcode))
+            for (app, reviews) in self._reviews.iteritems():
+                for review in reviews:
+                    if str(review.id) == str(review_id):
+                        review.modify_error = exitcode
+                        callback(app, self._reviews[app])
+                        break
+
+
 # this code had several incernations: 
 # - python threads, slow and full of latency (GIL)
 # - python multiprocesing, crashed when accessibility was turned on, 
@@ -482,6 +597,8 @@ class ReviewLoaderSpawningRNRClient(ReviewLoader):
             s = ReviewStats(Application("", r.package_name))
             s.ratings_average = float(r.ratings_average)
             s.ratings_total = float(r.ratings_total)
+            s.rating_spread = simplejson.loads(getattr(r, "histogram", 0))
+            s.dampened_rating = calc_dr(s.rating_spread)
             review_stats[s.app] = s
         self.REVIEW_STATS_CACHE = review_stats
         callback(review_stats)
@@ -770,6 +887,8 @@ if __name__ == "__main__":
     def stats_callback(stats):
         print "stats callback:"
         print stats
+    import gtk
+
     # cache
     from softwarecenter.db.pkginfo import get_pkg_info
     cache = get_pkg_info()
@@ -789,5 +908,4 @@ if __name__ == "__main__":
     loader = get_review_loader(cache)
     loader.refresh_review_stats(stats_callback)
     loader.get_reviews(app, callback)
-    import gtk
     gtk.main()

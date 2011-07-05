@@ -17,6 +17,9 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+import glib
+from datetime import datetime
+
 from PySide.QtCore import QAbstractListModel, QModelIndex, Slot, Signal
 
 from softwarecenter.db.database import Application
@@ -52,6 +55,9 @@ class ReviewsListModel(QAbstractListModel):
             return None
         review = self._reviews[index.row()]
         role = self.COLUMNS[role]
+        if role == '_date_created':
+            when = datetime.strptime(getattr(review, role[1:]), '%Y-%m-%d %H:%M:%S')
+            return when.strftime('%Y-%m-%d')
         return unicode(getattr(review, role[1:]))
 
     # helper
@@ -74,9 +80,9 @@ class ReviewsListModel(QAbstractListModel):
         # support pagination by not cleaning _reviews for subsequent pages
         if page == 1:
             self.clear()
-        self.reviews.get_reviews(Application(appname, pkgname),
-                                 self._on_reviews_ready_callback, 
-                                 page)
+        # load in the eventloop to ensure that animations are not delayed
+        glib.timeout_add(10, self.reviews.get_reviews,
+                         Application(appname, pkgname), self._on_reviews_ready_callback, page)
 
     # refresh review-stats (for qml)
     @Slot()

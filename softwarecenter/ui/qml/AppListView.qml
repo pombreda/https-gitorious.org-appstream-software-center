@@ -151,26 +151,12 @@ FocusScope {
                 anchors.margins: 5
                 visible: !progressbar.visible && (ratingstotal > 0)
 
-                Row {
+                Stars {
                     id: ratingstars
                     anchors.top: parent.top
                     anchors.right: parent.right
-                    Repeater {
-                        model: Math.floor(ratingsaverage)
-                        Image {
-                            source: "../../../data/images/star-yellow.png"
-                        }
-                    }
-                    Image {
-                        source: "../../../data/images/star-half.png"
-                        visible: Math.floor(ratingsaverage) != Math.ceil(ratingsaverage)
-                    }
-                    Repeater {
-                        model: 5 - Math.ceil(ratingsaverage)
-                        Image {
-                            source: "../../../data/images/star-dark.png"
-                        }
-                    }
+                    height: 16
+                    ratings_average: ratingsaverage
                 }
 
                 Text {
