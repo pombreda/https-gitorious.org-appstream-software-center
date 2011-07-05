@@ -12,7 +12,7 @@ import unittest
 sys.path.insert(0, "..")
 import softwarecenter.paths
 
-from softwarecenter.app import SoftwareCenterApp
+from softwarecenter.ui.gtk.app import SoftwareCenterApp
 from softwarecenter.paths import XAPIAN_BASE_PATH
 
 # we make app global as its relatively expensive to create

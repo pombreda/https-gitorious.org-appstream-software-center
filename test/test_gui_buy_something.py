@@ -19,7 +19,7 @@ if os.getuid() == 0:
 
 sys.path.insert(0, "..")
 
-from softwarecenter.app import SoftwareCenterApp
+from softwarecenter.ui.gtk.app import SoftwareCenterApp
 from softwarecenter.paths import XAPIAN_BASE_PATH
 from softwarecenter.ui.gtk.appview import AppStore
 from softwarecenter.db.application import Application
@@ -83,8 +83,7 @@ class SCBuySomething(unittest.TestCase):
         self._p()
         return self.app.available_pane.app_view.get_model()
 
-    # DISABLED for now until the staging server readds the test app
-    def disabled_test_buy_something_gui(self):
+    def test_buy_something_gui(self):
         # assert we find the right package
         model = self._run_search("hellox")
         treeview = self.app.available_pane.app_view

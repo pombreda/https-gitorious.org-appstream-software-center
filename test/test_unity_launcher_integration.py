@@ -12,7 +12,7 @@ from mock import Mock
 sys.path.insert(0, "..")
 
 import softwarecenter.utils
-from softwarecenter.app import SoftwareCenterApp
+from softwarecenter.ui.gtk.app import SoftwareCenterApp
 from softwarecenter.paths import XAPIAN_BASE_PATH
 from softwarecenter.enums import ActionButtons, TransactionTypes
 from softwarecenter.utils import convert_desktop_file_to_installed_location
