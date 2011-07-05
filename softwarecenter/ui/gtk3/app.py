@@ -56,6 +56,7 @@ from softwarecenter.ui.gtk3.utils import get_sc_icon_theme
 from softwarecenter.version import VERSION
 from softwarecenter.db.database import StoreDatabase
 from softwarecenter.backend.aptd import TransactionFinishedResult
+from aptd_gtk3 import InstallBackendUI
 
 # ui imports
 import softwarecenter.ui.gtk3.dialogs.dependency_dialogs as dependency_dialogs
@@ -209,6 +210,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
 
         # backend
         self.backend = get_install_backend()
+        self.backend.ui = InstallBackendUI()
         self.backend.connect("transaction-finished", self._on_transaction_finished)
         self.backend.connect("channels-changed", self.on_channels_changed)
 
