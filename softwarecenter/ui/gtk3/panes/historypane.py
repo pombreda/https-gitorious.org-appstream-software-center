@@ -39,19 +39,7 @@ from softwarecenter.enums import Icons, XapianValues
 from softwarecenter.paths import ICON_PATH, XAPIAN_BASE_PATH
 from softwarecenter.db.database import StoreDatabase
 from softwarecenter.ui.gtk3.session.viewmanager import get_viewmanager
-
-
-class DisplayState(object):
-
-    def __init__(self):
-        return
-
-    def copy(self):
-        return self
-
-    def __str__(self):
-        return 'HistoryPane'
-
+from softwarepane import DisplayState
 
 class HistoryPane(Gtk.VBox, BasePane):
 

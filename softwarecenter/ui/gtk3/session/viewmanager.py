@@ -126,17 +126,6 @@ class ViewManager(object):
 
         self.navhistory.append(nav_item)
 
-        text = view_state.search_term
-        if text != self.search_entry.get_text():
-            self.search_entry.set_text_with_no_signal(text)
-
-        if callback is not None:
-            set_page = callback(page, view_state)
-        if page is not None and set_page:
-            pane.notebook.set_current_page(page)
-        return
-
-    def recall_page(self, pane, page, view_state, callback):
         pane.state = view_state
 
         text = view_state.search_term
@@ -153,7 +142,7 @@ class ViewManager(object):
             view_id = None
             for view_id, widget in self.view_to_pane.iteritems():
                 if widget == pane: break
-
+    
             self.set_active_view(view_id)
         return
 

@@ -128,7 +128,7 @@ class NavigationItem(object):
         global in_replay_history_mode
         in_replay_history_mode = True
 
-        self.view_manager.recall_page(self.pane, self.page,
+        self.view_manager.display_page(self.pane, self.page,
                        self.view_state, self.callback)
 
         in_replay_history_mode = False
