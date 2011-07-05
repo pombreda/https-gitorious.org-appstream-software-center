@@ -79,14 +79,17 @@ def wait_for_apt_cache_ready(f):
     def wrapper(*args, **kwargs):
         self = args[0]
         # check if the cache is ready and 
+        window = None
+        if hasattr(self, "app_view"):
+            window =  self.app_view.get_window()
         if not self.cache.ready:
-            if hasattr(self, "app_view") and self.app_view.window:
-                self.app_view.window.set_cursor(self.busy_cursor)
+            if window:
+                window.set_cursor(self.busy_cursor)
             glib.timeout_add(500, lambda: wrapper(*args, **kwargs))
             return False
         # cache ready now
-        if hasattr(self, "app_view") and self.app_view.window:
-            self.app_view.window.set_cursor(None)
+        if window:
+            window.set_cursor(None)
         f(*args, **kwargs)
         return False
     return wrapper
