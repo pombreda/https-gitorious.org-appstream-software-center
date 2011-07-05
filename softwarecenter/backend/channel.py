@@ -28,12 +28,11 @@ from gettext import gettext as _
 
 from softwarecenter.backend import get_install_backend
 from softwarecenter.distro import get_distro
-from softwarecenter.utils import (get_icon_from_theme,
-                                  human_readable_name_from_ppa_uri,
-                                  )
+from softwarecenter.utils import human_readable_name_from_ppa_uri
 
-from softwarecenter.enums import SortMethods, ViewPages, Icons, AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME
-from softwarecenter.paths import ICON_PATH
+from softwarecenter.enums import (SortMethods, 
+                                  ViewPages, 
+                                  AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME)
 
 LOG = logging.getLogger(__name__)
 
