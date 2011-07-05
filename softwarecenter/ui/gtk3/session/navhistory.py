@@ -35,7 +35,7 @@ class NavigationHistory(object):
         return
 
     def get_current(self, pane):
-        return self.stack[stack.cursor]
+        return self.stack[self.stack.cursor]
 
     def append(self, nav_item):
         """

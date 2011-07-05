@@ -60,6 +60,7 @@ from softwarecenter.backend.aptd import TransactionFinishedResult
 # ui imports
 import softwarecenter.ui.gtk3.dialogs.dependency_dialogs as dependency_dialogs
 import softwarecenter.ui.gtk3.dialogs.deauthorize_dialog as deauthorize_dialog
+import softwarecenter.ui.gtk3.dialogs as dialogs
 
 from softwarecenter.ui.gtk3.SimpleGtkbuilderApp import SimpleGtkbuilderApp
 from softwarecenter.ui.gtk3.panes.viewswitcher import ViewSwitcher
@@ -76,7 +77,7 @@ from softwarecenter.backend.reviews import get_review_loader, UsefulnessCache
 from softwarecenter.distro import get_distro
 from softwarecenter.db.pkginfo import get_pkg_info
 
-from gi.repository import Gtk, Gdk, Atk
+from gi.repository import Gtk, Gdk, Atk, GObject
 
 LOG = logging.getLogger(__name__)
 
@@ -199,7 +200,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
                 self._rebuild_and_reopen_local_db(pathname)
         except xapian.DatabaseCorruptError:
             LOG.exception("xapian open failed")
-            ui.gtk.dialogs.error(None, 
+            dialogs.error(None, 
                           _("Sorry, can not open the software database"),
                           _("Please re-install the 'software-center' "
                             "package."))
@@ -1037,7 +1038,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         if self.window_main.props.visible == False:
             glib.timeout_add_seconds(1, self._ask_and_repair_broken_cache)
             return
-        if ui.gtk.dialogs.confirm_repair_broken_cache(self.window_main,
+        if dialogs.confirm_repair_broken_cache(self.window_main,
                                                       self.datadir):
             self.backend.fix_broken_depends()
 

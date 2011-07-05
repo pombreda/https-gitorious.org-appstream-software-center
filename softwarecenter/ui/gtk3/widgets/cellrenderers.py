@@ -1,13 +1,10 @@
 import gettext
-
-from gettext import gettext as _
-from gi.repository import Gtk, Gdk, GObject, PangoCairo, Pango
+import logging
+from gi.repository import Gtk, Gdk, GObject, Pango
 print Pango.version()
 
 from softwarecenter.ui.gtk3.em import EM
-from softwarecenter.ui.gtk3.drawing import rounded_rect
 from softwarecenter.ui.gtk3.models.appstore2 import CategoryRowReference
-from softwarecenter.netstatus import network_state_is_connected
 
 from stars import StarRenderer, StarSize
 
@@ -84,13 +81,13 @@ class CellRendererAppView(Gtk.CellRendererText):
         layout.set_markup('<b>%s</b>' % app.display_name, -1)
 
         # work out max allowable layout width
-        lw = self._layout_get_pixel_width(layout)
+        #lw = self._layout_get_pixel_width(layout)
         lh = self._layout_get_pixel_height(layout)
 
         x = cell_area.x
         y = cell_area.y + (cell_area.height - lh)/2
-        w = cell_area.width
-        h = cell_area.height
+        #w = cell_area.width
+        #h = cell_area.height
 
         Gtk.render_layout(context, cr, x, y, layout)
         return
@@ -193,10 +190,9 @@ class CellRendererAppView(Gtk.CellRendererText):
         Gtk.render_layout(context, cr, x, y, self._layout)
         return
 
-    def _render_progress(self, cr, widget, cell_area, ypad, direction, progress):
+    def _render_progress(self, context, cr, progress, cell_area, ypad, is_rtl):
         # as seen in gtk's cellprogress.c
         percent = progress * 0.01
-
         # per the spec, the progressbar should be the width of the action button
         action_btn = self.get_button_by_name('action0')
         if not action_btn:

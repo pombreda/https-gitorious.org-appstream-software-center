@@ -18,13 +18,10 @@
 
 
 from gi.repository import Atk
-from gi.repository import Gtk, Gdk, Gio
+from gi.repository import Gtk
 from gi.repository import GObject
 
 from gettext import gettext as _
-
-from softwarecenter.ui.gtk3.drawing import rounded_rect
-
 
 DEFAULT_PART_SIZE = (28, -1)
 

@@ -1,14 +1,13 @@
 import gi
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk, Gdk, Atk, GObject, PangoCairo, Gio, GdkPixbuf
+from gi.repository import Gtk, Gdk, Atk, GObject, GdkPixbuf
 
 
 import logging
 
-from softwarecenter.enums import *
-from softwarecenter.utils import SimpleFileDownloader, uri_to_filename
-
-from softwarecenter.ui.gtk3.drawing import color_floats
+#from softwarecenter.enums import *
+import os
+from softwarecenter.utils import SimpleFileDownloader
 
 from imagedialog import SimpleShowImageDialog
 
@@ -63,7 +62,7 @@ class ScreenshotThumbnail(Gtk.Alignment):
         self.tip_alpha = 0.0
         self._tip_fader = 0
         self._tip_layout = self.create_pango_layout("")
-        m = "<small><b>%s</b></small>"
+        #m = "<small><b>%s</b></small>"
         #~ self._tip_layout.set_markup(m % _("Click for fullsize screenshot"))
         #~ self._tip_layout.set_ellipsize(Pango.EllipsizeMode.END)
 
@@ -247,7 +246,7 @@ class ScreenshotThumbnail(Gtk.Alignment):
         """
 
         self.tip_alpha += 0.1
-        ia = self.image.get_allocation()
+        #ia = self.image.get_allocation()
         tw, th = self._tip_size
 
         if self.tip_alpha >= 1.0:
@@ -270,7 +269,7 @@ class ScreenshotThumbnail(Gtk.Alignment):
         """
 
         self.tip_alpha -= 0.1
-        ia = self.image.get_allocation()
+        #ia = self.image.get_allocation()
         tw, th = self._tip_size
 
         if self.tip_alpha <= 0.0:
@@ -526,7 +525,7 @@ class ScreenshotThumbnail(Gtk.Alignment):
 
 if __name__ == '__main__':
 
-    def testing_draw_handler(widget, cr):
+    def testing_draw_handler(thumb, cr):
         thumb.draw(widget, cr)
         return
 
