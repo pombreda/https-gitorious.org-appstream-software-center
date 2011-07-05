@@ -82,8 +82,13 @@ class ViewManager(object):
         self.view_to_pane[view_id] = pane
 
     def get_current_view_widget(self):
-        current_view = self.notebook_view.get_current_page()
+        current_view = self.get_active_view()
         return self.get_view_widget(current_view)
+
+    def get_view_id_from_page_id(self, page_id):
+        for (k, v) in self.all_views.iteritems():
+            if page_id == v:
+                return k
 
     def set_active_view(self, view_id):
         page_id = self.all_views[view_id]
@@ -104,9 +109,7 @@ class ViewManager(object):
 
     def get_active_view(self):
         page_id = self.notebook_view.get_current_page()
-        for (k, v) in self.all_views.iteritems():
-            if page_id == v:
-                return k
+        return self.get_view_id_from_page_id(page_id)
 
     def get_notebook_page_from_view_id(self, view_id):
         return self.all_views[view_id]

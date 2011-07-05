@@ -49,7 +49,6 @@ class ViewPages:
     AVAILABLE = "view-page-available"
     INSTALLED = "view-page-installed"
     HISTORY =  "view-page-history"
-    SEPARATOR_1 = "view-page-separator-1"
     PENDING =  "view-page-pending"
     CHANNEL = "view-page-channel"
 
