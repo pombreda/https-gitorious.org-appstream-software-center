@@ -1,4 +1,4 @@
-from gi.repository import Gtk, Gdk
+from gi.repository import Gtk
 
 
 class FlowableGrid(Gtk.Fixed):
@@ -25,7 +25,7 @@ class FlowableGrid(Gtk.Fixed):
     def _layout_children(self, a):
         if not self.get_visible(): return
 
-        children = self.get_children()
+        #children = self.get_children()
         width = a.width
 
         col_spacing = self.column_spacing

@@ -16,13 +16,10 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import __builtin__
 import copy
-import glib
 from gi.repository import GObject
-from gi.repository import Gtk
+from gi.repository import Gtk, GdkPixbuf
 import logging
-import math
 import os
 import xapian
 import threading
@@ -37,9 +34,7 @@ from softwarecenter.backend import get_install_backend
 from softwarecenter.backend.reviews import get_review_loader
 from softwarecenter.db.database import Application, SearchQuery, LocaleSorter
 from softwarecenter.distro import get_distro
-#from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
-
-from gettext import gettext as _
+from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
 
 
 # global cache icons to speed up rendering
@@ -634,9 +629,9 @@ class AppListStore(Gtk.ListStore, AppGenericStore):
                     Gtk.main_iteration()
 
             #~ import sys
-            from softwarecenter.utils import get_nice_size
             t_lapsed = round(GObject.get_current_time() - t0, 3)
             print "Appstore buffered icons in %s seconds" % t_lapsed
+            #from softwarecenter.utils import get_nice_size
             #~ cache_size = get_nice_size(sys.getsizeof(_app_icon_cache))
             #~ print "Number of icons in cache: %s consuming: %sb" % (len(_app_icon_cache), cache_size)
             return False    # remove from sources on completion

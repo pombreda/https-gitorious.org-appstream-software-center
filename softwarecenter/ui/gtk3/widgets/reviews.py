@@ -22,12 +22,11 @@
 
 import gi
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk, GObject, Gdk, Pango
+from gi.repository import Gtk, GObject, Pango
 
 from stars import Star
 
 import datetime
-import cairo
 import logging
 
 import gettext
@@ -45,9 +44,8 @@ from softwarecenter.netstatus import network_state_is_connected
 from softwarecenter.enums import PkgStates, REVIEWS_BATCH_PAGE_SIZE
 from softwarecenter.backend.reviews import UsefulnessCache
 
-from softwarecenter.ui.gtk3.em import StockEms, EM
+from softwarecenter.ui.gtk3.em import StockEms
 from softwarecenter.ui.gtk3.widgets.buttons import Link
-
 
 LOG_ALLOCATION = logging.getLogger("softwarecenter.ui.Gtk.get_allocation()")
 
@@ -673,10 +671,10 @@ class EmbeddedMessage(UIReview):
     def draw(self, cr, a):
         cr.save()
         cr.rectangle(a)
-        color = mkit.floats_from_gdkcolor(self.style.mid[self.state])
-        cr.set_source_rgba(*color+(0.2,))
-        cr.fill()
-        cr.restore()
+        #color = mkit.floats_from_gdkcolor(self.style.mid[self.state])
+        #cr.set_source_rgba(*color+(0.2,))
+        #cr.fill()
+        #cr.restore()
 
 
 class NoReviewYet(EmbeddedMessage):
@@ -704,7 +702,9 @@ class NoReviewYetWriteOne(EmbeddedMessage):
 
 
 if __name__ == "__main__":
-    w = StarRatingSelector()
+    # FIXME: portme
+    #w = StarRatingSelector()
+    w = None
     #~ w.set_avg_rating(3.5)
     #~ w.set_nr_reviews(101)
 

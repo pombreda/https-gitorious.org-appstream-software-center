@@ -20,7 +20,6 @@
 # USA
 
 import sys
-import gi
 from gi.repository import Gtk
 
 # based on SimpleGladeApp

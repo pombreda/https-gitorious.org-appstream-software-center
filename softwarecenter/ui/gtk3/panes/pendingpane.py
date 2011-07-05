@@ -22,9 +22,10 @@ import logging
 
 from basepane import BasePane
 from softwarecenter.ui.gtk3.models.pendingstore import PendingStore
+from softwarecenter.ui.gtk3.pendingview import PendingView
 
-from gettext import gettext as _
-
+import aptdaemon
+import dbus
 
 class PendingPane(Gtk.ScrolledWindow, BasePane):
     

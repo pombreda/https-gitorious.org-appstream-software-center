@@ -16,14 +16,10 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from gi.repository import GObject
 import logging
-
-from softwarecenter.utils import unescape
 
 # FIXME: sucks, move elsewhere
 in_replay_history_mode = False
-
 
 
 class NavigationHistory(object):
@@ -39,7 +35,7 @@ class NavigationHistory(object):
         return
 
     def get_current(self, pane):
-        return self.stack[stack.cursor]
+        return self.stack[self.stack.cursor]
 
     def append(self, nav_item):
         """

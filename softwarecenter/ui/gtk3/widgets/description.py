@@ -17,13 +17,9 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import logging
-
 from gi.repository import Gtk, Gdk
 from gi.repository import GObject
 from gi.repository import Pango
-
-from gettext import gettext as _
 
 from softwarecenter.utils import normalize_package_description
 
@@ -166,7 +162,7 @@ class Layout(PangoLayoutProxy):
         return sum(layout.xy_to_index(x, y)), (x, y)
 
     def index_at(self, px, py):
-        wa = self.widget.get_allocation()
+        #wa = self.widget.get_allocation()
         x, y = self.get_position() # layout allocation
         return point_in(self.allocation, px, py), sum(self.xy_to_index((px-x)*_PS, (py-y)*_PS))
 
@@ -453,15 +449,15 @@ class TextBlock(Gtk.EventBox):
         return
 
     def _on_style_updated(self, widget):
-        style = self.get_style()
+        #style = self.get_style()
     
         if self.has_focus():
-            _, self._bg = Gdk.color_parse('red')
-            _, self._fg = Gdk.color_parse('#000')
+            tmp, self._bg = Gdk.color_parse('red')
+            tmp, self._fg = Gdk.color_parse('#000')
         else:
             #~ _, self._bg = Gdk.color_parse('#E5E3E1')
-            _, self._bg = Gdk.color_parse('red')
-            _, self._fg = Gdk.color_parse('#000')
+            tmp, self._bg = Gdk.color_parse('red')
+            tmp, self._fg = Gdk.color_parse('#000')
         return
 
 #    def _on_drag_begin(self, widgets, context, event_helper):
@@ -476,14 +472,14 @@ class TextBlock(Gtk.EventBox):
 
     def _on_focus_in(self, widget, event):
         #~ _, self._bg = self.style.base[Gtk.StateType.SELECTED]
-        _, self._bg = Gdk.color_parse('red')
-        _, self._fg = Gdk.color_parse('#000')
+        tmp, self._bg = Gdk.color_parse('red')
+        tmp, self._fg = Gdk.color_parse('#000')
         return
 
     def _on_focus_out(self, widget, event):
         #~ _, self._bg = Gdk.color_parse('#E5E3E1')
-        _, self._bg = Gdk.color_parse('red')
-        _, self._fg = Gdk.color_parse('#000')
+        tmp, self._bg = Gdk.color_parse('red')
+        tmp, self._fg = Gdk.color_parse('#000')
         return
 
     def _on_motion(self, widget, event, event_helper, cur, sel):

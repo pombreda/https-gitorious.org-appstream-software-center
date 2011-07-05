@@ -20,8 +20,7 @@
 import sys
 
 from gi.repository import GObject
-import glib
-from gi.repository import Gtk, Gdk, GdkPixbuf
+from gi.repository import Gtk, Gdk
 import logging
 
 import apt_pkg
@@ -32,11 +31,10 @@ import datetime
 
 from gettext import gettext as _
 
-from softwarecenter.ui.gtk3.widgets.searchentry import SearchEntry
 from softwarecenter.ui.gtk3.widgets.spinner import SpinnerView
 from basepane import BasePane
-from softwarecenter.enums import Icons, XapianValues
-from softwarecenter.paths import ICON_PATH, XAPIAN_BASE_PATH
+from softwarecenter.enums import Icons
+from softwarecenter.paths import XAPIAN_BASE_PATH
 from softwarecenter.db.database import StoreDatabase
 from softwarecenter.ui.gtk3.session.viewmanager import get_viewmanager
 from softwarepane import DisplayState
@@ -381,7 +379,7 @@ if __name__ == '__main__':
 
     from softwarecenter.ui.gtk3.utils import get_sc_icon_theme
 
-    import os, sys
+    import os
     if len(sys.argv) > 1:
         datadir = sys.argv[1]
     elif os.path.exists("./data"):

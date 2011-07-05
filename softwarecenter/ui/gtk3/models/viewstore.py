@@ -27,8 +27,7 @@ from gettext import gettext as _
 from softwarecenter.backend.channel import ChannelsManager
 from softwarecenter.backend import get_install_backend
 from softwarecenter.distro import get_distro
-from softwarecenter.enums import Icons, ViewPages
-from softwarecenter.utils import wait_for_apt_cache_ready, get_icon_from_theme
+from softwarecenter.enums import ViewPages
 
 
 LOG = logging.getLogger(__name__)

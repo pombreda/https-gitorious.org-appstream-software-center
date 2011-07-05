@@ -17,7 +17,6 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 from gi.repository import Atk
-import cairo
 import dbus
 import gettext
 from gi.repository import GObject
@@ -26,20 +25,16 @@ from gi.repository import Gtk, Gdk
 import logging
 import xapian
 import copy
-import os
-import copy
 
 from gettext import gettext as _
 
-#~ import softwarecenter.utils
+import softwarecenter.utils
 import softwarecenter.ui.gtk3.dialogs as dialogs
 from softwarecenter.backend import get_install_backend
 from softwarecenter.db.database import Application
 from softwarecenter.enums import (ActionButtons,
-                                  NavButtons,
                                   SortMethods,
                                   TransactionTypes,
-                                  ViewPages,
                                   NonAppVisibility)
 
 from softwarecenter.utils import (ExecutionTime,
@@ -638,10 +633,10 @@ class SoftwarePane(Gtk.VBox, BasePane):
 
     def get_query(self):
         channel_query = None
-        name = self.pane_name
+        #name = self.pane_name
         if self.channel:
             channel_query = self.channel.query
-            name = self.channel.display_name
+            #name = self.channel.display_name
 
         # search terms
         if self.apps_search_term:

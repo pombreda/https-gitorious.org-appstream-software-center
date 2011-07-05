@@ -29,7 +29,6 @@ import os
 import sys
 
 from gettext import gettext as _
-import apt_pkg
 
 from softwarecenter.cmdfinder import CmdFinder
 from softwarecenter.netstatus import (NetState, get_network_watcher,
@@ -49,10 +48,7 @@ from softwarecenter.backend.weblive import get_weblive_backend
 from softwarecenter.ui.gtk3.dialogs import error
 from appdetailsview import AppDetailsViewBase
 
-from softwarecenter.ui.gtk3.em import StockEms, EM, em
-from softwarecenter.ui.gtk3.drawing import (color_floats,
-                                            rounded_rect2,
-                                            rounded_rect)
+from softwarecenter.ui.gtk3.em import StockEms, em
 
 from softwarecenter.ui.gtk3.widgets.reviews import UIReviewsList
 from softwarecenter.ui.gtk3.widgets.stars import Star

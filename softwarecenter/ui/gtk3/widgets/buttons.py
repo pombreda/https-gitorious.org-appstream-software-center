@@ -1,10 +1,6 @@
-from gi.repository import Atk
-from gi.repository import Gtk, Gdk
+from gi.repository import Gtk
 from gi.repository import GObject
-from gi.repository import Pango
-from gi.repository import PangoCairo
 
-from softwarecenter.ui.gtk3.drawing import color_floats, rounded_rect
 from softwarecenter.ui.gtk3.em import StockEms
 
 

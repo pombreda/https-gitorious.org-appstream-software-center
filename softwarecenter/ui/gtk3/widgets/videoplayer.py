@@ -17,11 +17,9 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import logging
-import os
 import sys
 
 from gettext import gettext as _
-from gi.repository import GObject
 from gi.repository import Gdk
 from gi.repository import Gtk
 from gi.repository import Gst

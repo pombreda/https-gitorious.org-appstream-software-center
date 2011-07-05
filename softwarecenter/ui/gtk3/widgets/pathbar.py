@@ -1,11 +1,9 @@
 from gi.repository import Atk
 from gi.repository import Gtk, Gdk
 from gi.repository import GObject
-from gi.repository import Pango, PangoCairo
+from gi.repository import Pango
 
 from softwarecenter.ui.gtk3.em import em
-
-import cairo
 
 from gettext import gettext as _
 

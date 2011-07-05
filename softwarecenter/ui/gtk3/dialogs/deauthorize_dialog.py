@@ -26,6 +26,7 @@ from softwarecenter.ui.gtk3.dialogs import SimpleGtkbuilderDialog
 from softwarecenter.distro import get_distro
 from softwarecenter.enums import Icons
 from softwarecenter.ui.gtk3.views.pkgnamesview import PackageNamesView
+import softwarecenter.ui.gtk3.dialogs as dialogs
 
 LOG = logging.getLogger(__name__)
 
@@ -119,7 +120,7 @@ if __name__ == "__main__":
             db.open()
     except xapian.DatabaseCorruptError, e:
         logging.exception("xapian open failed")
-        view.dialogs.error(None, 
+        dialogs.error(None, 
                            _("Sorry, can not open the software database"),
                            _("Please re-install the 'software-center' "
                              "package."))

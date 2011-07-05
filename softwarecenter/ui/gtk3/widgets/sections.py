@@ -1,10 +1,10 @@
-from gi.repository import Gtk
+#from gi.repository import Gtk
 
 import cairo, os
 
 from softwarecenter.enums import ViewPages
 from softwarecenter.paths import datadir
-
+from mkit import floats_from_string
 
 print os.path.join(datadir, 'images/arrows.png')
 
@@ -30,21 +30,21 @@ class SectionPainter(object):
 
     def draw(self, widget, cr):
         # sky
-        r,g,b = self.get_background_color()
-        lin = cairo.LinearGradient(0,a.y,0,a.y+150)
-        lin.add_color_stop_rgba(0, r,g,b, 0.3)
-        lin.add_color_stop_rgba(1, r,g,b,0)
-        cr.set_source(lin)
-        cr.rectangle(0,0,a.width, 150)
-        cr.fill()
+        #r,g,b = self.get_background_color()
+        #lin = cairo.LinearGradient(0,a.y,0,a.y+150)
+        #lin.add_color_stop_rgba(0, r,g,b, 0.3)
+        #lin.add_color_stop_rgba(1, r,g,b,0)
+        #cr.set_source(lin)
+        #cr.rectangle(0,0,a.width, 150)
+        #cr.fill()
 
-        s = self.get_background_image()
-        if widget.get_direction() != Gtk.TextDirection.RTL:
-            cr.set_source_surface(s, a.x+a.width-s.get_width(), 0)
-        else:
-            cr.set_source_surface(s, a.x, 0)
+        #s = self.get_background_image()
+        #if widget.get_direction() != Gtk.TextDirection.RTL:
+        #    cr.set_source_surface(s, a.x+a.width-s.get_width(), 0)
+        #else:
+        #    cr.set_source_surface(s, a.x, 0)
 
-        cr.paint()
+        #cr.paint()
         return
 
     def get_background_color(self):

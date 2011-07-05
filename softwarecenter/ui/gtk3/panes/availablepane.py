@@ -16,7 +16,6 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import apt
 import gettext
 from gi.repository import GObject
 import glib
@@ -32,14 +31,13 @@ from gettext import gettext as _
 
 from softwarecenter.enums import (ActionButtons,
                                   NavButtons,
+                                  NonAppVisibility,
                                   DEFAULT_SEARCH_LIMIT)
 from softwarecenter.paths import (APP_INSTALL_PATH,
-                                  ICON_PATH,
                                   XAPIAN_BASE_PATH)
 from softwarecenter.utils import wait_for_apt_cache_ready
 from softwarecenter.distro import get_distro
-from softwarecenter.ui.gtk3.views.appview import (AppGenericStore,
-                                                  AppViewFilter)
+from softwarecenter.ui.gtk3.views.appview import AppViewFilter
 from softwarecenter.ui.gtk3.views.catview_gtk import (LobbyViewGtk,
                                                       SubCategoryViewGtk)
 from softwarepane import SoftwarePane, DefaultPages
@@ -396,7 +394,6 @@ class AvailablePane(SoftwarePane):
         else:
             self.apps_category = Category("deb", "deb", None, None, False, True, None)
         self.current_app_by_category[self.apps_category] = app
-        details = app.get_details(self.db)
         self.app_details_view.show_app(app)
         self.display_details()
 
@@ -547,7 +544,7 @@ class AvailablePane(SoftwarePane):
         return
         
     def display_previous_purchases(self):
-        self.nonapps_visible = AppStore.NONAPPS_ALWAYS_VISIBLE
+        self.nonapps_visible = NonAppVisibility.ALWAYS_VISIBLE
         self.notebook.set_current_page(AvailablePages.LIST)
         # do not emit app-list-changed here, this is done async when
         # the new model is ready

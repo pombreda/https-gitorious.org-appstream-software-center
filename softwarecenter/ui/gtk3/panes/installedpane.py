@@ -16,7 +16,6 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import apt
 import gettext
 from gi.repository import Gtk
 import logging
@@ -28,19 +27,17 @@ from gi.repository import GObject
 from gettext import gettext as _
 
 from softwarecenter.enums import (NonAppVisibility,
-                                  NavButtons, ViewPages,
+                                  NavButtons, 
                                   SortMethods)
 from softwarecenter.utils import wait_for_apt_cache_ready
-from softwarecenter.db.categories import (Category,
-                                          CategoriesParser,
+from softwarecenter.db.categories import (CategoriesParser,
                                           categories_sorted_by_name)
 from softwarecenter.ui.gtk3.models.appstore2 import (
-                                                AppEnquire,
                                                 AppTreeStore,
                                                  CategoryRowReference)
-from softwarecenter.ui.gtk3.session.viewmanager import get_viewmanager
 from softwarepane import SoftwarePane
-from softwarecenter.ui.gtk3.views.appview import AppView, AppViewFilter
+from softwarecenter.ui.gtk3.views.appview import AppViewFilter
+import softwarecenter.ui.gtk3.dialogs as dialogs
 
 def interrupt_build_and_wait(f):
     """ decorator that ensures that a build of the categorised installed apps
@@ -76,8 +73,6 @@ class InstalledPane(SoftwarePane, CategoriesParser):
                                               ())}
 
     def __init__(self, cache, db, distro, icons, datadir):
-        # store
-        store = AppTreeStore(db, cache, icons)
 
         # parent
         SoftwarePane.__init__(self, cache, db, distro, icons, datadir, show_ratings=False)
@@ -433,10 +428,10 @@ if __name__ == "__main__":
             db.open()
     except xapian.DatabaseCorruptError, e:
         logging.exception("xapian open failed")
-        view.dialogs.error(None, 
-                           _("Sorry, can not open the software database"),
-                           _("Please re-install the 'software-center' "
-                             "package."))
+        dialogs.error(None, 
+                      _("Sorry, can not open the software database"),
+                      _("Please re-install the 'software-center' "
+                        "package."))
         # FIXME: force rebuild by providing a dbus service for this
         sys.exit(1)
 

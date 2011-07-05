@@ -1,6 +1,4 @@
 import apt_pkg
-import dbus
-import glib
 
 from gi.repository import Gtk, GdkPixbuf
 from gi.repository import GObject

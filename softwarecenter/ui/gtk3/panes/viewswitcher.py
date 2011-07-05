@@ -17,11 +17,12 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 
-import apt
 from gi.repository import GObject
-from gi.repository import Gtk, Gdk
+from gi.repository import Gtk
 import logging
 import os
+import sys
+import xapian
 
 from gettext import gettext as _
 
@@ -29,12 +30,11 @@ from softwarecenter.backend import get_install_backend
 from softwarecenter.db.database import StoreDatabase
 from softwarecenter.enums import ViewPages
 from softwarecenter.paths import XAPIAN_BASE_PATH
-from softwarecenter.utils import wait_for_apt_cache_ready
 from softwarecenter.distro import get_distro
 
 from softwarecenter.ui.gtk3.widgets.buttons import CategoryTile
 from softwarecenter.ui.gtk3.em import StockEms
-
+import softwarecenter.ui.gtk3.dialogs as dialogs
 
 LOG = logging.getLogger(__name__)
 

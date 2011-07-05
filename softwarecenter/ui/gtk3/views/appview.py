@@ -18,20 +18,16 @@
 
 from __future__ import with_statement
 
-import gettext
-import glib
 from gi.repository import GObject
 from gi.repository import Gtk, Gdk
 import logging
 import os
-import sys
 import xapian
 
-from softwarecenter.enums import (AppActions, XapianValues,
+from softwarecenter.enums import (AppActions, 
                                   NonAppVisibility,
+                                  XapianValues,
                                   AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME,
-                                  MOUSE_EVENT_BACK_BUTTON,
-                                  MOUSE_EVENT_FORWARD_BUTTON,
                                   )
 
 from softwarecenter.distro import get_distro
@@ -41,7 +37,7 @@ from softwarecenter.backend import get_install_backend
 from softwarecenter.netstatus import (get_network_watcher,
                                       network_state_is_connected)
 
-from softwarecenter.ui.gtk3.em import EM, em
+from softwarecenter.ui.gtk3.em import em
 from softwarecenter.ui.gtk3.models.appstore2 import AppGenericStore, CategoryRowReference
 
 from softwarecenter.ui.gtk3.widgets.cellrenderers import (
@@ -550,7 +546,7 @@ class AppView(Gtk.TreeView):
 
     def _xy_is_over_focal_row(self, x, y):
         res = self.get_path_at_pos(x, y)
-        cur = self.get_cursor()
+        #cur = self.get_cursor()
         if not res:
             return False
         return self.get_path_at_pos(x, y)[0] == self.get_cursor()[0]
@@ -609,7 +605,7 @@ class AppViewFilter(xapian.MatchDecider):
             # an item is considered available if it is either found
             # in the cache or is available for purchase
             if (not pkgname in self.cache and 
-                not doc.get_value(XAPIAN_VALUE_ARCHIVE_CHANNEL) == AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME):
+                not doc.get_value(XapianValues.ARCHIVE_CHANNEL) == AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME):
                 return False
         if self.installed_only:
             # use the lowlevel cache here, twice as fast
@@ -667,7 +663,6 @@ if __name__ == "__main__":
     fmt = logging.Formatter("%(name)s - %(message)s", None)
     softwarecenter.log.handler.setFormatter(fmt)
 
-    from softwarecenter.paths import XAPIAN_BASE_PATH
     xapian_base_path = XAPIAN_BASE_PATH
     pathname = os.path.join(xapian_base_path, "xapian")
 
