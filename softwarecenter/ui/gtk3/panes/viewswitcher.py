@@ -169,10 +169,12 @@ class ViewSwitcher(Gtk.HBox, ViewSwitcherLogic):
                                     _("History"),
                                     "document-open-recent"))
 
+        view_ids = (ViewPages.AVAILABLE, ViewPages.INSTALLED,
+                    ViewPages.HISTORY)
 
-        for i, btn in enumerate(self.view_buttons):
+        for view_id, btn in zip(view_ids, self.view_buttons):
             self.pack_start(btn, False, False, 0)
-            btn.connect('clicked', self.do_view_switch, i)
+            btn.connect('clicked', self.do_view_switch, view_id)
             btn.show()
 
         # set sensible atk name
