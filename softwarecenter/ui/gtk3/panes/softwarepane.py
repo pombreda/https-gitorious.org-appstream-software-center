@@ -633,7 +633,7 @@ class SoftwarePane(Gtk.VBox, BasePane):
 
     def get_query(self):
         channel_query = None
-        name = self.pane_name
+        #name = self.pane_name
         if self.channel:
             channel_query = self.channel.query
             #name = self.channel.display_name

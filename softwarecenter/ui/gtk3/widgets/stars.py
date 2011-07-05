@@ -3,7 +3,7 @@ import cairo
 import gettext
 from gettext import gettext as _
 
-from gi.repository import Gtk, Gdk, PangoCairo
+from gi.repository import Gtk, Gdk
 
 from softwarecenter.ui.gtk3.shapes import ShapeStar
 from softwarecenter.ui.gtk3.em import StockEms, em, small_em, big_em

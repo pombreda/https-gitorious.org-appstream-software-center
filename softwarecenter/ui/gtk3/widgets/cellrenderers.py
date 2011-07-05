@@ -203,7 +203,7 @@ class CellRendererAppView(Gtk.CellRendererText):
         # shift the bar to the top edge
         y = cell_area.y + ypad
 
-        context = widget.get_style_context()
+        #context = widget.get_style_context()
         context.save()
         context.add_class("trough")
 

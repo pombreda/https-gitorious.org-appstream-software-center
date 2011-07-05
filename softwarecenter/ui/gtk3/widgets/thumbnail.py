@@ -525,8 +525,8 @@ class ScreenshotThumbnail(Gtk.Alignment):
 
 if __name__ == '__main__':
 
-    def testing_draw_handler(thumb, cr):
-        thumb.draw(widget, cr)
+    def testing_draw_handler(widget, cr):
+        #thumb.draw(widget, cr)
         return
 
     def testing_cycle_apps(thumb, apps, db):

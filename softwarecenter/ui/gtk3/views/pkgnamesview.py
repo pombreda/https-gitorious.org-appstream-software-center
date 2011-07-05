@@ -56,7 +56,7 @@ class PackageNamesView(Gtk.TreeView):
             if not proposed_icon or not icons.has_icon(proposed_icon):
                 proposed_icon = Icons.MISSING_APP
             try:
-                pix = icons.load_icon(proposed_icon, icon_size, ()).scale_simple(icon_size, 
+                pb = icons.load_icon(proposed_icon, icon_size, ()).scale_simple(icon_size, 
                                       icon_size, GdkPixbuf.InterpType.BILINEAR)
             except:
                 LOG.warning("cant set icon for '%s' " % pkgname)

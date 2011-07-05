@@ -175,7 +175,7 @@ class LobbyViewGtk(CategoriesViewGtk):
 
         # sort Category.name's alphabetically
         sorted_cats = categories_sorted_by_name(self.categories)
-        layout = self.create_pango_layout('')
+        #layout = self.create_pango_layout('')
 
         for cat in sorted_cats:
             if 'carousel-only' in cat.flags: continue

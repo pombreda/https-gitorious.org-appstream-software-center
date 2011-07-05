@@ -1,10 +1,10 @@
-from gi.repository import Gtk
+#from gi.repository import Gtk
 
 import cairo, os
 
 from softwarecenter.enums import ViewPages
 from softwarecenter.paths import datadir
-
+from mkit import floats_from_string
 
 print os.path.join(datadir, 'images/arrows.png')
 
