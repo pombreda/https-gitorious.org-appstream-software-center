@@ -50,7 +50,6 @@ from softwarecenter.enums import (Icons,
                                   DB_SCHEMA_VERSION,
                                   MOUSE_EVENT_FORWARD_BUTTON,
                                   MOUSE_EVENT_BACK_BUTTON)
-from softwarecenter.paths import SOFTWARE_CENTER_PLUGIN_DIR, ICON_PATH
 from softwarecenter.utils import (clear_token_from_ubuntu_sso,
                                   wait_for_apt_cache_ready)
 from softwarecenter.ui.gtk3.utils import get_sc_icon_theme
@@ -59,26 +58,20 @@ from softwarecenter.db.database import StoreDatabase
 from softwarecenter.backend.aptd import TransactionFinishedResult
 
 # ui imports
-import softwarecenter.ui.gtk3
 import softwarecenter.ui.gtk3.dialogs.dependency_dialogs as dependency_dialogs
 import softwarecenter.ui.gtk3.dialogs.deauthorize_dialog as deauthorize_dialog
 
 from softwarecenter.ui.gtk3.SimpleGtkbuilderApp import SimpleGtkbuilderApp
 from softwarecenter.ui.gtk3.panes.viewswitcher import ViewSwitcher
 from softwarecenter.ui.gtk3.panes.installedpane import InstalledPane
-from softwarecenter.ui.gtk3.panes.channelpane import ChannelPane
 from softwarecenter.ui.gtk3.panes.availablepane import AvailablePane
 from softwarecenter.ui.gtk3.panes.historypane import HistoryPane
-from softwarecenter.ui.gtk3.panes.pendingpane import PendingPane
 from softwarecenter.ui.gtk3.panes.globalpane import GlobalPane
-#~ from ui.gtk.softwarepane import SoftwareSection
 from softwarecenter.ui.gtk3.session.viewmanager import ViewManager
 
 from softwarecenter.config import get_config
 from softwarecenter.backend import get_install_backend
-from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
 
-from softwarecenter.plugin import PluginManager
 from softwarecenter.backend.reviews import get_review_loader, UsefulnessCache
 from softwarecenter.distro import get_distro
 from softwarecenter.db.pkginfo import get_pkg_info
@@ -204,7 +197,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             # script that does population, populate a database in it.
             if os.path.isdir(pathname) and not os.listdir(pathname):
                 self._rebuild_and_reopen_local_db(pathname)
-        except xapian.DatabaseCorruptError, e:
+        except xapian.DatabaseCorruptError:
             LOG.exception("xapian open failed")
             ui.gtk.dialogs.error(None, 
                           _("Sorry, can not open the software database"),

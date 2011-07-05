@@ -17,7 +17,6 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import apt
 import gettext
 from gi.repository import Gtk
 import logging
@@ -33,9 +32,8 @@ from softwarecenter.distro import get_distro
 from softwarecenter.enums import NavButtons, NonAppVisibility
 from softwarecenter.paths import XAPIAN_BASE_PATH
 from softwarepane import SoftwarePane
-from softwarecenter.ui.gtk3.views.appview import (AppViewFilter,
-                                                  AppGenericStore)
-
+from softwarecenter.ui.gtk3.views.appview import AppViewFilter
+import softwarecenter.ui.gtk3.dialogs as dialogs
 
 LOG = logging.getLogger(__name__)
 
@@ -255,7 +253,6 @@ class ChannelPane(SoftwarePane):
 
 if __name__ == "__main__":
     #logging.basicConfig(level=logging.DEBUG)
-    import sys
 
     if len(sys.argv) > 1:
         datadir = sys.argv[1]
