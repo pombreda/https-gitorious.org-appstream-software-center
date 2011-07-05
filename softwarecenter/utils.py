@@ -369,6 +369,12 @@ def get_exec_line_from_desktop(desktop_file):
     for line in open(desktop_file):
         if line.startswith("Exec="):
             return line.split("Exec=")[1]
+
+def get_nice_size(n_bytes):
+    nice_size = lambda s:[(s%1024**i and "%.1f"%(s/1024.0**i) or \
+        str(s/1024**i))+x.strip() for i,x in enumerate(' KMGTPEZY') \
+        if s<1024**(i+1) or i==8][0]
+    return nice_size(n_bytes)
             
 def save_person_to_config(username):
     """ save the specified username value for Ubuntu SSO to the config file
