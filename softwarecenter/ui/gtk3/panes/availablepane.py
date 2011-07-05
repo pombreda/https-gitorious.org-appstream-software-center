@@ -30,18 +30,20 @@ import softwarecenter.ui.gtk3.dialogs as dialogs
 
 from gettext import gettext as _
 
-from softwarecenter.enums import ActionButtons, NavButtons, DEFAULT_SEARCH_LIMIT
-from softwarecenter.paths import APP_INSTALL_PATH, ICON_PATH, XAPIAN_BASE_PATH
+from softwarecenter.enums import (ActionButtons,
+                                  NavButtons,
+                                  DEFAULT_SEARCH_LIMIT)
+from softwarecenter.paths import (APP_INSTALL_PATH,
+                                  ICON_PATH,
+                                  XAPIAN_BASE_PATH)
 from softwarecenter.utils import wait_for_apt_cache_ready
-
 from softwarecenter.distro import get_distro
-
-from views.appview import AppGenericStore, AppViewFilter
-from views.catview_gtk import LobbyViewGtk, SubCategoryViewGtk
+from softwarecenter.ui.gtk3.views.appview import (AppGenericStore,
+                                                  AppViewFilter)
+from softwarecenter.ui.gtk3.views.catview_gtk import (LobbyViewGtk,
+                                                      SubCategoryViewGtk)
 from softwarepane import SoftwarePane, DefaultPages
-
 from softwarecenter.ui.gtk3.session.viewmanager import get_viewmanager
-
 from softwarecenter.db.categories import Category, CategoriesParser
 
 LOG = logging.getLogger(__name__)

@@ -27,21 +27,20 @@ from gi.repository import GObject
 
 from gettext import gettext as _
 
-from softwarecenter.enums import NonAppVisibility, NavButtons, ViewPages, SortMethods
+from softwarecenter.enums import (NonAppVisibility,
+                                  NavButtons, ViewPages,
+                                  SortMethods)
 from softwarecenter.utils import wait_for_apt_cache_ready
-
-from softwarepane import SoftwarePane
-
-from views.appview import AppView, AppViewFilter
-from softwarecenter.ui.gtk3.models.appstore2 import AppTreeStore
-
 from softwarecenter.db.categories import (Category,
                                           CategoriesParser,
                                           categories_sorted_by_name)
-
-from softwarecenter.ui.gtk3.models.appstore2 import AppEnquire, AppTreeStore, CategoryRowReference
+from softwarecenter.ui.gtk3.models.appstore2 import (
+                                                AppEnquire,
+                                                AppTreeStore,
+                                                 CategoryRowReference)
 from softwarecenter.ui.gtk3.session.viewmanager import get_viewmanager
-
+from softwarepane import SoftwarePane
+from softwarecenter.ui.gtk3.views.appview import AppView, AppViewFilter
 
 def interrupt_build_and_wait(f):
     """ decorator that ensures that a build of the categorised installed apps

@@ -28,47 +28,41 @@ import logging
 import os
 import sys
 
-from softwarecenter.cmdfinder import CmdFinder
-from softwarecenter.netstatus import (NetState, get_network_watcher,
-                                      network_state_is_connected)
-
 from gettext import gettext as _
 import apt_pkg
 
+from softwarecenter.cmdfinder import CmdFinder
+from softwarecenter.netstatus import (NetState, get_network_watcher,
+                                      network_state_is_connected)
 from softwarecenter.db.application import Application
 from softwarecenter.backend.reviews import ReviewStats
-
 #from softwarecenter.backend.zeitgeist_simple import zeitgeist_singleton
-from softwarecenter.enums import AppActions, PkgStates, Icons, SOFTWARE_CENTER_PKGNAME
-
+from softwarecenter.enums import (AppActions, PkgStates,
+                                  Icons, SOFTWARE_CENTER_PKGNAME)
 from softwarecenter.utils import (is_unity_running, 
                                   get_exec_line_from_desktop,
                                   GMenuSearcher,
                                   SimpleFileDownloader,
-                                  size_to_str,
-                                 )
-
+                                  size_to_str)
+from softwarecenter.distro import get_distro
 from softwarecenter.backend.weblive import get_weblive_backend
 from softwarecenter.ui.gtk3.dialogs import error
 from appdetailsview import AppDetailsViewBase
 
-from widgets.reviews import (UIReviewsList, 
-                             #~ ReviewStatsContainer, 
-                             #~ StarPainter,
-                             #~ StarRating,
-                            )
-from widgets.stars import Star
-from widgets.description import AppDescription
-from widgets.thumbnail import ScreenshotThumbnail
-from widgets.weblivedialog import ShowWebLiveServerChooserDialog
-
-from softwarecenter.distro import get_distro
-
 from softwarecenter.ui.gtk3.em import StockEms, EM, em
-from softwarecenter.ui.gtk3.drawing import color_floats, rounded_rect2, rounded_rect
+from softwarecenter.ui.gtk3.drawing import (color_floats,
+                                            rounded_rect2,
+                                            rounded_rect)
 
-if os.path.exists("./softwarecenter/enums.py"):
-    sys.path.insert(0, ".")
+from softwarecenter.ui.gtk3.widgets.reviews import UIReviewsList
+from softwarecenter.ui.gtk3.widgets.stars import Star
+from softwarecenter.ui.gtk3.widgets.description import AppDescription
+from softwarecenter.ui.gtk3.widgets.thumbnail import ScreenshotThumbnail
+from softwarecenter.ui.gtk3.widgets.weblivedialog import (
+                                    ShowWebLiveServerChooserDialog)
+
+#~ if os.path.exists("./softwarecenter/enums.py"):
+    #~ sys.path.insert(0, ".")
 
 # default socket timeout to deal with unreachable screenshot site
 DEFAULT_SOCKET_TIMEOUT=4

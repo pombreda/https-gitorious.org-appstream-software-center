@@ -8,18 +8,16 @@ import xapian
 from gettext import gettext as _
 
 from softwarecenter.db.application import Application
-
 from softwarecenter.enums import SortMethods
 from softwarecenter.utils import wait_for_apt_cache_ready
 from softwarecenter.backend.zeitgeist_simple import zeitgeist_singleton
-
-from softwarecenter.ui.gtk3.drawing import color_floats, rounded_rect, rounded_rect2
+from softwarecenter.ui.gtk3.drawing import (color_floats,
+                                            rounded_rect,
+                                            rounded_rect2)
 from softwarecenter.ui.gtk3.em import EM
-
 from appview import AppGenericStore, AppViewFilter
-from widgets.containers import FlowableGrid
-from widgets.buttons import CategoryTile
-
+from softwarecenter.ui.gtk3.widgets.containers import FlowableGrid
+from softwarecenter.ui.gtk3.widgets.buttons import CategoryTile
 from softwarecenter.db.categories import (Category,
                                           CategoriesParser, 
                                           get_category_by_name,

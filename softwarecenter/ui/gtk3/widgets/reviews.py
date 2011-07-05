@@ -46,7 +46,7 @@ from softwarecenter.enums import PkgStates, REVIEWS_BATCH_PAGE_SIZE
 from softwarecenter.backend.reviews import UsefulnessCache
 
 from softwarecenter.ui.gtk3.em import StockEms, EM
-from softwarecenter.ui.gtk3.panes.views.widgets.buttons import Link
+from softwarecenter.ui.gtk3.widgets.buttons import Link
 
 
 LOG_ALLOCATION = logging.getLogger("softwarecenter.ui.Gtk.get_allocation()")

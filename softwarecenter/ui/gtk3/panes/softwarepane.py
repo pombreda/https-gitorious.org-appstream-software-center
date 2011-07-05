@@ -50,12 +50,14 @@ from softwarecenter.utils import (ExecutionTime,
 
 from softwarecenter.ui.gtk3.models.appstore2 import AppListStore, AppEnquire
 from softwarecenter.ui.gtk3.session.viewmanager import get_viewmanager
-from views.widgets.actionbar import ActionBar
-from views.widgets.spinner import SpinnerView
+from softwarecenter.ui.gtk3.widgets.actionbar import ActionBar
+from softwarecenter.ui.gtk3.widgets.spinner import SpinnerView
 
-from views.appview import AppView
-from views.appdetailsview_gtk import AppDetailsViewGtk as AppDetailsView
-from views.purchaseview import PurchaseView
+from softwarecenter.ui.gtk3.views.appview import AppView
+from softwarecenter.ui.gtk3.views.appdetailsview_gtk import (
+                                                AppDetailsViewGtk as
+                                                AppDetailsView)
+from softwarecenter.ui.gtk3.views.purchaseview import PurchaseView
 
 from basepane import BasePane
 

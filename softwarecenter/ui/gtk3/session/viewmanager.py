@@ -19,8 +19,8 @@
 from gi.repository import Gtk
 
 from navhistory import NavigationHistory, NavigationItem
-from softwarecenter.ui.gtk3.panes.views.widgets.backforward import BackForwardButton
-from softwarecenter.ui.gtk3.panes.views.widgets.searchentry import SearchEntry
+from softwarecenter.ui.gtk3.widgets.backforward import BackForwardButton
+from softwarecenter.ui.gtk3.widgets.searchentry import SearchEntry
 
 _viewmanager = None # the gobal Viewmanager instance
 

@@ -32,10 +32,9 @@ import datetime
 
 from gettext import gettext as _
 
-from views.widgets.searchentry import SearchEntry
-from views.widgets.spinner import SpinnerView
+from softwarecenter.ui.gtk3.widgets.searchentry import SearchEntry
+from softwarecenter.ui.gtk3.widgets.spinner import SpinnerView
 from basepane import BasePane
-
 from softwarecenter.enums import Icons, XapianValues
 from softwarecenter.paths import ICON_PATH, XAPIAN_BASE_PATH
 from softwarecenter.db.database import StoreDatabase
