@@ -44,12 +44,12 @@ from softwarecenter.netstatus import (get_network_watcher,
 from softwarecenter.ui.gtk3.em import EM, em
 from softwarecenter.ui.gtk3.models.appstore2 import AppGenericStore, CategoryRowReference
 
-from widgets.cellrenderers import (CellRendererAppView,
+from softwarecenter.ui.gtk3.widgets.cellrenderers import (
+                                   CellRendererAppView,
                                    CellButtonRenderer,
                                    CellButtonIDs)
 
 from gettext import gettext as _
-
 
 
 class AppView(Gtk.TreeView):

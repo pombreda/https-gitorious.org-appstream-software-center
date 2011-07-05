@@ -32,9 +32,9 @@ from softwarecenter.backend import get_install_backend
 from softwarecenter.distro import get_distro
 from softwarecenter.enums import NavButtons, NonAppVisibility
 from softwarecenter.paths import XAPIAN_BASE_PATH
-
 from softwarepane import SoftwarePane
-from views.appview import AppViewFilter, AppGenericStore
+from softwarecenter.ui.gtk3.views.appview import (AppViewFilter,
+                                                  AppGenericStore)
 
 
 LOG = logging.getLogger(__name__)

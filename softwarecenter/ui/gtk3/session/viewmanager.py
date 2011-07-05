@@ -19,8 +19,8 @@
 from gi.repository import Gtk
 
 from navhistory import NavigationHistory, NavigationItem
-from softwarecenter.ui.gtk3.panes.views.widgets.backforward import BackForwardButton
-from softwarecenter.ui.gtk3.panes.views.widgets.searchentry import SearchEntry
+from softwarecenter.ui.gtk3.widgets.backforward import BackForwardButton
+from softwarecenter.ui.gtk3.widgets.searchentry import SearchEntry
 
 _viewmanager = None # the gobal Viewmanager instance
 
@@ -126,14 +126,11 @@ class ViewManager(object):
 
         self.navhistory.append(nav_item)
 
-        if callback is not None:
-            set_page = callback(page, view_state)
-        if page is not None and set_page:
-            pane.notebook.set_current_page(page)
-        return
-
-    def recall_page(self, pane, page, view_state, callback):
         pane.state = view_state
+
+        text = view_state.search_term
+        if text != self.search_entry.get_text():
+            self.search_entry.set_text_with_no_signal(text)
 
         if callback is not None:
             callback(page, view_state)
@@ -145,7 +142,7 @@ class ViewManager(object):
             view_id = None
             for view_id, widget in self.view_to_pane.iteritems():
                 if widget == pane: break
-
+    
             self.set_active_view(view_id)
         return
 

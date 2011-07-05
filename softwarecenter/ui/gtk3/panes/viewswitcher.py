@@ -32,7 +32,7 @@ from softwarecenter.paths import XAPIAN_BASE_PATH
 from softwarecenter.utils import wait_for_apt_cache_ready
 from softwarecenter.distro import get_distro
 
-from softwarecenter.ui.gtk3.panes.views.widgets.buttons import CategoryTile
+from softwarecenter.ui.gtk3.widgets.buttons import CategoryTile
 from softwarecenter.ui.gtk3.em import StockEms
 
 
@@ -169,6 +169,7 @@ class ViewSwitcher(Gtk.HBox, ViewSwitcherLogic):
                                     _("History"),
                                     "document-open-recent"))
 
+        # order is important here, should match button order/length
         view_ids = (ViewPages.AVAILABLE, ViewPages.INSTALLED,
                     ViewPages.HISTORY)
 

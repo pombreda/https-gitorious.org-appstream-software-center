@@ -32,27 +32,14 @@ import datetime
 
 from gettext import gettext as _
 
-from views.widgets.searchentry import SearchEntry
-from views.widgets.spinner import SpinnerView
+from softwarecenter.ui.gtk3.widgets.searchentry import SearchEntry
+from softwarecenter.ui.gtk3.widgets.spinner import SpinnerView
 from basepane import BasePane
-
 from softwarecenter.enums import Icons, XapianValues
 from softwarecenter.paths import ICON_PATH, XAPIAN_BASE_PATH
 from softwarecenter.db.database import StoreDatabase
 from softwarecenter.ui.gtk3.session.viewmanager import get_viewmanager
-
-
-class DisplayState(object):
-
-    def __init__(self):
-        return
-
-    def copy(self):
-        return self
-
-    def __str__(self):
-        return 'HistoryPane'
-
+from softwarepane import DisplayState
 
 class HistoryPane(Gtk.VBox, BasePane):
 

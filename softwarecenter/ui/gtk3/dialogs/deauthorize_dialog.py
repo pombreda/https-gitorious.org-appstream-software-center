@@ -25,7 +25,7 @@ from softwarecenter.ui.gtk3.dialogs import SimpleGtkbuilderDialog
 
 from softwarecenter.distro import get_distro
 from softwarecenter.enums import Icons
-from softwarecenter.ui.gtk3.panes.views.pkgnamesview import PackageNamesView
+from softwarecenter.ui.gtk3.views.pkgnamesview import PackageNamesView
 
 LOG = logging.getLogger(__name__)
 
