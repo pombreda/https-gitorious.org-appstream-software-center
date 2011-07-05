@@ -98,7 +98,7 @@ if __name__ == "__main__":
     win.connect("destroy", gtk.main_quit)
     player = VideoPlayer()
     win.add(player)
-    if sys.argv < 2:
+    if len(sys.argv) < 2:
         player.uri = "http://upload.wikimedia.org/wikipedia/commons/9/9b/Pentagon_News_Sample.ogg"
     else:
         player.uri = sys.argv[1]
