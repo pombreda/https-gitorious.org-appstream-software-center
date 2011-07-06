@@ -10,8 +10,8 @@ from stars import StarRenderer, StarSize
 
 
 class CellButtonIDs:
-    BUTTON_ID_INFO = 0
-    BUTTON_ID_ACTION = 1
+    INFO = 0
+    ACTION = 1
 
 
 # custom cell renderer to support dynamic grow
@@ -131,10 +131,7 @@ class CellRendererAppView(Gtk.CellRendererText):
                             3*xpad - star_width)
 
         if self.props.isactive and self.model.get_transaction_progress(app) > 0:
-            action_btn = self.get_button_by_name('action0')
-            if not action_btn:
-                logging.warn("No action button? This doesn't make sense!")
-                return
+            action_btn = self.get_button_by_name(CellButtonIDs.ACTION)
             max_layout_width -= (xpad + action_btn.width) 
 
         if lw >= max_layout_width:
@@ -161,7 +158,7 @@ class CellRendererAppView(Gtk.CellRendererText):
         sr = self._stars
 
         # make the ratings x & width the same as the 'Install/Remove' button
-        btn = self.get_button_by_name(CellButtonIDs.BUTTON_ID_ACTION)
+        btn = self.get_button_by_name(CellButtonIDs.ACTION)
 
         if not is_rtl:
             x = (cell_area.x + cell_area.width - xpad - star_width -
@@ -194,10 +191,7 @@ class CellRendererAppView(Gtk.CellRendererText):
         # as seen in gtk's cellprogress.c
         percent = progress * 0.01
         # per the spec, the progressbar should be the width of the action button
-        action_btn = self.get_button_by_name('action0')
-        if not action_btn:
-            logging.warn("No action button? This doesn't make sense!")
-            return
+        action_btn = self.get_button_by_name(CellButtonIDs.ACTION)
 
         x, _, w, h = action_btn.allocation
         # shift the bar to the top edge
@@ -356,6 +350,7 @@ class CellRendererAppView(Gtk.CellRendererText):
 
         # only show ratings if we have one
         progress = self.model.get_transaction_progress(app)
+        #~ print progress
         if self.show_ratings and progress < 0:
             self._render_rating(context, cr, app,
                                 cell_area,

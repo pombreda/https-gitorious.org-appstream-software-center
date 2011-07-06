@@ -335,7 +335,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
     def get_status_text(self):
         """return user readable status text suitable for a status bar"""
         # no status text in the details page
-        if self.notebook.get_current_page() == InstalledPages.APP_DETAILS:
+        if self.notebook.get_current_page() == InstalledPages.DETAILS:
             return ""
         # otherwise, show status based on search or not
         model = self.app_view.get_model()
@@ -373,7 +373,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         
     def is_app_details_view_showing(self):
         """Return True if we are in the app_details view """
-        return self.notebook.get_current_page() == InstalledPages.APP_DETAILS
+        return self.notebook.get_current_page() == InstalledPages.DETAILS
 
     def show_app(self, app):
         """ Display an application in the installed_pane """
