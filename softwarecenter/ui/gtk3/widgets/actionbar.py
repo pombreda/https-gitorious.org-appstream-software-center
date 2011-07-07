@@ -242,7 +242,7 @@ class ActionBar(Gtk.HBox):
         
     def _slide_in(self):
         self._is_sliding_in = True
-        self._target_height = self.size_request()[1]
+        self._target_height = self.get_size_request()[1]
         self._current_height = 0
         self.set_size_request(-1, self._current_height)
         super(ActionBar, self).show()
