@@ -531,6 +531,7 @@ class SoftwarePane(Gtk.VBox, BasePane):
                                          n_pkgs) % { 'amount': n_pkgs, }
                 self.action_bar.set_label(label, link_result=self._show_nonapp_pkgs)
 
+    # XXX: eeekkk!
     def update_search_help(self):
         def build_category_path():
             if not self.apps_category:
@@ -551,7 +552,7 @@ class SoftwarePane(Gtk.VBox, BasePane):
                 text += _('No items in %s match "%s". Suggestions:')%("<b>%s</b>"%build_category_path(), search)+"\n\n"
 
             if self.state.subcategory:
-                parent_model = AppStore(self.cache,
+                parent_model = AppEnquire(self.cache,
                              self.db,
                              self.icons,
                              self.db.get_query_list_from_search_entry(search,
@@ -572,7 +573,7 @@ class SoftwarePane(Gtk.VBox, BasePane):
             if self.state.filter.get_supported_only(): 
                 unsupported = copy.copy(self.apps_filter)
                 unsupported.set_supported_only(False)
-                unsupported_model = AppStore(self.cache,
+                unsupported_model = AppEnquire(self.cache,
                              self.db,
                              self.icons,
                              self.app_view.get_model().search_query,

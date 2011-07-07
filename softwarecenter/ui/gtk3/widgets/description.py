@@ -693,10 +693,10 @@ class TextBlock(Gtk.EventBox):
         state = event.get_state().value_nicks
         ctrl = state and state[0] == 'control_mask'
         if ctrl:
-            if event.keyval == keys.a:
+            if event.keyval == Gdk.KEY_a:
                 self._select_all(cur, sel)
 
-            elif event.keyval == keys.c:
+            elif event.keyval == Gdk.KEY_c:
                 self._copy_text(sel)
 
             self.queue_draw()
