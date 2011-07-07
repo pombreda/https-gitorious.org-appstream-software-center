@@ -165,6 +165,7 @@ class SoftwarePane(Gtk.VBox, BasePane):
         # to the Unity launcher
         self.unity_launcher_items = {}
         # Create the basic frame for the common view
+        self.state = DisplayState()
         vm = get_viewmanager()
         self.searchentry = vm.get_global_searchentry()
         self.back_forward = vm.get_global_backforward()

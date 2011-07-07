@@ -16,25 +16,30 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from gi.repository import Gtk
-from gi.repository import GObject
+import dbus
+import glib
 import logging
+from gettext import gettext as _
+from gi.repository import Gtk, GObject, GdkPixbuf
 
 from basepane import BasePane
+from softwarecenter.ui.gtk3.em import StockEms
+from softwarecenter.ui.gtk3.panes.softwarepane import DisplayState
 from softwarecenter.ui.gtk3.models.pendingstore import PendingStore
-from softwarecenter.ui.gtk3.pendingview import PendingView
+from softwarecenter.ui.gtk3.session.viewmanager import get_viewmanager
 
-import aptdaemon
-import dbus
 
 class PendingPane(Gtk.ScrolledWindow, BasePane):
     
-    CANCEL_XPAD = 6
-    CANCEL_YPAD = 6
+    CANCEL_XPAD = StockEms.MEDIUM
+    CANCEL_YPAD = StockEms.MEDIUM
 
     def __init__(self, icons):
-        GObject.GObject.__init__(self)
+        Gtk.ScrolledWindow.__init__(self)
         BasePane.__init__(self)
+        self.state = DisplayState()
+        self.pane_name = _("Progress")
+
         self.tv = Gtk.TreeView()
         # customization
         self.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
@@ -97,11 +102,28 @@ class PendingPane(Gtk.ScrolledWindow, BasePane):
             return 
         # get tid
         tid = model[path][PendingStore.COL_TID]
-        trans = aptdaemon.client.get_transaction(tid)
+        trans = model._transactions_watcher.get_transaction(tid)
         try:
             trans.cancel()
         except dbus.exceptions.DBusException:
             logging.exception("transaction cancel failed")
+
+    # subscribe to the back-forward navigation ...
+    def on_nav_back_clicked(self, widget):
+        vm = get_viewmanager()
+        vm.nav_back(self)
+
+    def on_nav_forward_clicked(self, widget):
+        vm = get_viewmanager()
+        vm.nav_forward(self)
+
+    # boring stuff
+    def get_current_page(self):
+        return None
+
+    def get_callback_for_page(self, page_id, view_state):
+        return None
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
@@ -117,7 +139,7 @@ if __name__ == "__main__":
         datadir = "/usr/share/software-center"
 
     icons = get_sc_icon_theme(datadir)
-    view = PendingView(icons)
+    view = PendingPane(icons)
 
     # gui
     scroll = Gtk.ScrolledWindow()
