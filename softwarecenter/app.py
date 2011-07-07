@@ -34,6 +34,7 @@ import glob
 
 # purely to initialize the netstatus
 import softwarecenter.netstatus
+from softwarecenter.netstatus import network_state_is_connected
 
 from SimpleGtkbuilderApp import SimpleGtkbuilderApp
 from softwarecenter.db.application import Application, DebFileApplication
@@ -366,7 +367,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         #       support in aptdaemon (see LP: #723911)
         file_menu = self.builder.get_object("menu1")
         file_menu.remove(self.builder.get_object("menuitem_deauthorize_computer"))
-            
+
     # helper
     def _rebuild_and_reopen_local_db(self, pathname):
         """ helper that rebuilds a db and reopens it """
@@ -607,6 +608,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         # update menu items
         pkg_state = None
         error = None
+        is_network_available = network_state_is_connected()
         # FIXME:  Use a gtk.Action for the Install/Remove/Buy/Add Source/Update Now action
         #         so that all UI controls (menu item, applist view button and appdetails
         #         view button) are managed centrally:  button text, button sensitivity,
@@ -620,13 +622,13 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self.menuitem_install.set_sensitive(False)
             self.menuitem_remove.set_sensitive(False)
         elif pkg_state == PKG_STATE_UPGRADABLE or pkg_state == PKG_STATE_REINSTALLABLE and not error:
-            self.menuitem_install.set_sensitive(True)
+            self.menuitem_install.set_sensitive(is_network_available)
             self.menuitem_remove.set_sensitive(True)
         elif pkg_state == PKG_STATE_INSTALLED:
             self.menuitem_install.set_sensitive(False)
             self.menuitem_remove.set_sensitive(True)
         elif pkg_state == PKG_STATE_UNINSTALLED and not error:
-            self.menuitem_install.set_sensitive(True)
+            self.menuitem_install.set_sensitive(is_network_available)
             self.menuitem_remove.set_sensitive(False)
         elif (not pkg_state and 
               not self.active_pane.is_category_view_showing() and 
@@ -641,6 +643,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self.menuitem_install.set_sensitive(False)
             self.menuitem_remove.set_sensitive(False)
         # return False to ensure that a possible glib.timeout_add ends
+        self.menuitem_reinstall_purchases.set_sensitive(is_network_available)
         return False
 
     def on_menuitem_launchpad_private_ppas_activate(self, menuitem):
