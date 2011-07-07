@@ -169,9 +169,14 @@ class ViewSwitcher(Gtk.HBox, ViewSwitcherLogic):
                                     _("History"),
                                     "document-open-recent"))
 
+        # the pendingpane
+        self.view_buttons.append(self._make_button(
+                                    _("Progress"),
+                                    "gtk-execute"))
+
         # order is important here, should match button order/length
         view_ids = (ViewPages.AVAILABLE, ViewPages.INSTALLED,
-                    ViewPages.HISTORY)
+                    ViewPages.HISTORY, ViewPages.PENDING)
 
         for view_id, btn in zip(view_ids, self.view_buttons):
             self.pack_start(btn, False, False, 0)
