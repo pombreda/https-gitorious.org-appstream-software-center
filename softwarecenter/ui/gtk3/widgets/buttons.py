@@ -53,11 +53,12 @@ if __name__ == "__main__":
     win = Gtk.Window()
     win.set_size_request(200,200)
 
-    link = Link("<small>test link</small>")
-    win.add(link, uri="www.google.co.nz")
+    vb = Gtk.VBox(spacing=12)
+    win.add(vb)
+
+    link = Link("<small>test link</small>", uri="www.google.co.nz")
+    vb.add(link)
+
     win.show_all()
-
-    print link.get_current_uri()
-
     win.connect("destroy", Gtk.main_quit)
     Gtk.main()

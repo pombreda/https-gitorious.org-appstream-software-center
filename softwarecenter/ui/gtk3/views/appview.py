@@ -108,12 +108,12 @@ class AppView(Gtk.TreeView):
 
         # create buttons and set initial strings
         info = CellButtonRenderer(self,
-                                  name=CellButtonIDs.BUTTON_ID_INFO)
+                                  name=CellButtonIDs.INFO)
         info.set_markup_variants(
                     {self.VARIANT_INFO: _('More Info')})
 
         action = CellButtonRenderer(self,
-                                    name=CellButtonIDs.BUTTON_ID_ACTION)
+                                    name=CellButtonIDs.ACTION)
         action.set_markup_variants(
                 {self.VARIANT_INSTALL: _('Install'),
                  self.VARIANT_REMOVE: _('Remove')})
@@ -308,7 +308,7 @@ class AppView(Gtk.TreeView):
         app = model[row][AppGenericStore.COL_ROW_DATA]
 
         action_btn = tr.get_button_by_name(
-                            CellButtonIDs.BUTTON_ID_ACTION)
+                            CellButtonIDs.ACTION)
         #if not action_btn: return False
 
         if not network_state_is_connected():
@@ -316,9 +316,9 @@ class AppView(Gtk.TreeView):
             return
 
         if self.appmodel.is_installed(app):
-            action_btn.set_variant(self.VARIANT_INSTALL)
-        else:
             action_btn.set_variant(self.VARIANT_REMOVE)
+        else:
+            action_btn.set_variant(self.VARIANT_INSTALL)
 #~ 
         #~ if self.appmodel.get_transaction_progress(app) > 0:
             #~ action_btn.set_sensitive(False)
@@ -446,7 +446,6 @@ class AppView(Gtk.TreeView):
 
     def _init_activated(self, btn, model, path):
         app = model[path][AppGenericStore.COL_ROW_DATA]
-
         s = Gtk.Settings.get_default()
         GObject.timeout_add(s.get_property("gtk-timeout-initial"),
                             self._app_activated_cb,
@@ -474,9 +473,9 @@ class AppView(Gtk.TreeView):
 
         pkgname = self.appmodel.get_pkgname(app)
 
-        if btn_id == CellButtonIDs.BUTTON_ID_INFO:
+        if btn_id == CellButtonIDs.INFO:
             self.emit("application-activated", self.appmodel.get_application(app))
-        elif btn_id == CellButtonIDs.BUTTON_ID_ACTION:
+        elif btn_id == CellButtonIDs.ACTION:
             btn.set_sensitive(False)
             store.row_changed(path, store.get_iter(path))
             # be sure we dont request an action for a pkg with pre-existing actions
@@ -488,6 +487,9 @@ class AppView(Gtk.TreeView):
                 perform_action = AppActions.REMOVE
             else:
                 perform_action = AppActions.INSTALL
+
+            store.notify_action_request(app, path)
+
             self.emit("application-request-action",
                       self.appmodel.get_application(app),
                       [], [], perform_action)
@@ -690,7 +692,7 @@ if __name__ == "__main__":
     from softwarecenter.ui.gtk3.models.appstore2 import AppEnquire, AppListStore
     enquirer = AppEnquire(cache, db)
     store = AppListStore(db, cache, icons)
-    view = AppView(show_ratings=True)
+    view = AppView(icons, show_ratings=True)
     view.set_model(store)
 
     entry = Gtk.Entry()

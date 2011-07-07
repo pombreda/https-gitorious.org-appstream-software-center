@@ -385,8 +385,8 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         self.view_switcher = ViewSwitcher(self.view_manager,
                                           self.datadir, self.db,
                                           self.cache, self.icons)
-        self.view_switcher.connect("view-changed", 
-                                   self.on_view_switcher_changed)
+        #~ self.view_switcher.connect("view-changed", 
+                                   #~ self.on_view_switcher_changed)
         return
 
         #~ # channel pane (view not fully initialized at this point)

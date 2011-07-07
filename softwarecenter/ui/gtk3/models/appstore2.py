@@ -352,9 +352,10 @@ class AppPropertiesHelper(object):
             image_downloader.connect('file-download-complete', on_image_download_complete)
             image_downloader.download_file(url, icon_file_path)
 
-    def reset_availability(self, doc):
+    def update_availability(self, doc):
         doc.available = None
         doc.installed = None
+        self.is_installed(doc)
         return
 
     def is_available(self, doc):
@@ -492,59 +493,31 @@ class AppGenericStore(AppPropertiesHelper):
     def existing_apps(self):
         return []
 
-    # the following methods ensure that the contents data is refreshed
-    # whenever a transaction potentially changes it: 
-    def _refresh_transaction_map(self):
-
-        pkgs_to_match = self.backend.pending_transactions
-        if not pkgs_to_match: return
-
-        def find_and_map_path_for_transaction(model, path, it, user_data):
-            if self._break: return True
-
-            doc = self.get_value(it, self.COL_ROW_DATA)
-
-            if not isinstance(doc, xapian.Document): return
-            pkgname = self.get_pkgname(doc)
-
-            pkgs_to_match, break_count, i = user_data
-
-            if pkgname in pkgs_to_match:
-                self.transaction_path_map[pkgname] = (self.get_path(it), it)
-                i += 1
-                return (i == break_count)
-
-            # process one event 
-            Gtk.main_iteration()
-            return
-
-        break_count = len(pkgs_to_match)
-        i = 0
-        
-        self.foreach(find_and_map_path_for_transaction,
-                     (pkgs_to_match,
-                     break_count, i))
+    def notify_action_request(self, doc, path):
+        pkgname = str(self.get_pkgname(doc))
+        self.transaction_path_map[pkgname] = (path, self.get_iter(path))
         return
 
+    # the following methods ensure that the contents data is refreshed
+    # whenever a transaction potentially changes it: 
     def _on_transaction_started(self, backend, pkgname, appname, trans_id, trans_type):
-        self._refresh_transaction_map()
+        #~ self._refresh_transaction_map()
+        pass
 
     def _on_transaction_progress_changed(self, backend, pkgname, progress):
         if pkgname in self.transaction_path_map:
             path, it = self.transaction_path_map[pkgname]
-
             self.row_changed(path, it)
         return
 
     def _on_transaction_finished(self, backend, result):
-        if result.pkgname in self.transaction_path_map:
-            path, it = self.transaction_path_map[result.pkgname]
-
+        pkgname = str(result.pkgname)
+        if pkgname in self.transaction_path_map:
+            path, it = self.transaction_path_map[pkgname]
             doc = self.get_value(it, self.COL_ROW_DATA)
-            self.reset_availability(doc)
+            self.update_availability(doc)
             self.row_changed(path, it)
-
-            del self.transaction_path_map[result.pkgname]
+            del self.transaction_path_map[pkgname]
 
 
 class AppListStore(Gtk.ListStore, AppGenericStore):
@@ -657,7 +630,7 @@ class AppTreeStore(Gtk.TreeStore, AppGenericStore):
             doc.available = None; doc.installed = None
             self.append(parent, (doc,))
 
-        self._refresh_transaction_map()
+        self.transaction_path_map = {}
         return
 
     def set_category_documents(self, cat, documents):
