@@ -643,6 +643,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self.menuitem_install.set_sensitive(False)
             self.menuitem_remove.set_sensitive(False)
         # return False to ensure that a possible glib.timeout_add ends
+        self.menuitem_reinstall_purchases.set_sensitive(is_network_available)
         return False
 
     def on_menuitem_launchpad_private_ppas_activate(self, menuitem):
