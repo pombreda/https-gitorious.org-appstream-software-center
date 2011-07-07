@@ -123,7 +123,7 @@ class PackageInfo(gobject.GObject):
         return -1
     def get_origins(self, pkgname):
         return []
-    def get_addons(self, pkgname, ignore_installed):
+    def get_addons(self, pkgname, ignore_installed=False):
         pass
 
     def get_packages_removed_on_remove(self, pkg):
