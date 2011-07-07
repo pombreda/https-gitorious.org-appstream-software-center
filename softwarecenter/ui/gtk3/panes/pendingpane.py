@@ -16,18 +16,17 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from gi.repository import Gtk
-from gi.repository import GObject
+import dbus
+import glib
 import logging
+from gettext import gettext as _
+from gi.repository import Gtk, GObject, GdkPixbuf
 
 from basepane import BasePane
 from softwarecenter.ui.gtk3.models.pendingstore import PendingStore
-from softwarecenter.ui.gtk3.pendingview import PendingView
 
-import aptdaemon
-import dbus
 
-class PendingPane(Gtk.ScrolledWindow, BasePane):
+class PendingView(Gtk.ScrolledWindow, BasePane):
     
     CANCEL_XPAD = 6
     CANCEL_YPAD = 6
@@ -97,11 +96,12 @@ class PendingPane(Gtk.ScrolledWindow, BasePane):
             return 
         # get tid
         tid = model[path][PendingStore.COL_TID]
-        trans = aptdaemon.client.get_transaction(tid)
+        trans = model._transactions_watcher.get_transaction(tid)
         try:
             trans.cancel()
         except dbus.exceptions.DBusException:
             logging.exception("transaction cancel failed")
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
