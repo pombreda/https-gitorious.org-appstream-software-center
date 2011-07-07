@@ -197,9 +197,6 @@ class AppView(Gtk.TreeView):
         if path == None: return None
         return model[path][AppGenericStore.COL_ROW_DATA]
 
-    def view_state_new(self, category, text):
-        return AppListViewState(self, category, text)
-
     def rowref_is_category(self, rowref):
         return isinstance(rowref, CategoryRowReference)
 

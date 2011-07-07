@@ -732,9 +732,6 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         self.addons_statusbar.button_cancel.set_sensitive(sensitive)
         return
 
-    def view_state_new(self, application):
-        return DetailsViewState(self, application)
-
     # FIXME: should we just this with _check_for_reviews?
     def _update_reviews(self, app_details):
         self.reviews.clear()
