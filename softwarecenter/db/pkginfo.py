@@ -124,7 +124,8 @@ class PackageInfo(gobject.GObject):
     def get_origins(self, pkgname):
         return []
     def get_addons(self, pkgname, ignore_installed=False):
-        pass
+        """ :return: a tuple of pkgnames (recommends, suggests) """
+        return ([], [])
 
     def get_packages_removed_on_remove(self, pkg):
         """ Returns a package names list of reverse dependencies
@@ -158,6 +159,11 @@ pkginfo = None
 def get_pkg_info():
     global pkginfo
     if pkginfo is None:
-        from softwarecenter.db.pkginfo_impl.aptcache import AptCache
-        pkginfo = AptCache()
+        from softwarecenter.enums import USE_PACKAGEKIT_BACKEND
+        if not USE_PACKAGEKIT_BACKEND:
+            from softwarecenter.db.pkginfo_impl.aptcache import AptCache
+            pkginfo = AptCache()
+        else:
+            from softwarecenter.db.pkginfo_impl.packagekit import PackagekitInfo
+            pkginfo = PackagekitInfo()        
     return pkginfo

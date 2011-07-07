@@ -18,12 +18,40 @@
 
 from gi.repository import PackageKitGlib as packagekit
 import gobject
-from softwarecenter.db.pkginfo import PackageInfo
+import logging
+
+from softwarecenter.db.pkginfo import PackageInfo, _Package
+
+class Version:
+    def __init__(self, package):
+        self.package = package
+
+    @property
+    def version(self):
+        return self.package.get_version()
+
+    @property
+    def description(self):
+        # FIXME get description from parent package or pk_client_get_details
+        return self.package.get_property('description')
+
+    @property
+    def summary(self):
+        return self.package.get_property('summary')
+
+    @property
+    def installed_size(self):
+        return 0 # FIXME get installed size from packagekit
+
+    @property
+    def origins(self):
+        return []
 
 class PackagekitInfo(PackageInfo):
     def __init__(self):
         super(PackagekitInfo, self).__init__()
         self.client = packagekit.Client()
+        self._cache = {} # temporary hack for decent testing
 
     def __contains__(self, pkgname):
         return True # setting it like this for now
@@ -41,12 +69,12 @@ class PackagekitInfo(PackageInfo):
     def get_installed(self, pkgname):
         p = self._get_one_package(pkgname)
         if p.get_info() == packagekit.InfoEnum.INSTALLED:
-            return p.get_version()
+            return Version(p) if p else None
 
     def get_candidate(self, pkgname):
         p = self._get_one_package(pkgname, pfilter=packagekit.FilterEnum.NEWEST)
-        return p
-        
+        return Version(p) if p else None
+
     def get_versions(self, pkgname):
         return self._get_packages(pkgname)
 
@@ -86,7 +114,7 @@ class PackagekitInfo(PackageInfo):
 
     def get_addons(self, pkgname, ignore_installed=True):
         # FIXME
-        return []
+        return ([], [])
 
     def get_packages_removed_on_remove(self, pkg):
         """ Returns a package names list of reverse dependencies
@@ -115,10 +143,14 @@ class PackagekitInfo(PackageInfo):
         return True
 
     """ private methods """
-    def _get_one_package(self, pkgname, pfilter=packagekit.FilterEnum.NONE):
+    def _get_one_package(self, pkgname, pfilter=packagekit.FilterEnum.NONE, cache=True):
+        logging.debug('get_one_package ' + pkgname)
+        if (pkgname in self._cache.keys()) and cache:
+            return self._cache[pkgname]
         ps = self._get_packages(pkgname, pfilter)
         if not ps:
             return None
+        self._cache[pkgname] = ps[0]
         return ps[0]
 
     def _get_packages(self, pkgname, pfilter=packagekit.FilterEnum.NONE):

@@ -127,6 +127,8 @@ class Ubuntu(Debian):
         # (to exclude stuff in ubuntu-updates for the support time 
         # calculation because the "Release" file time for that gets
         # updated regularly)
+        if not hasattr(cache, '_cache') or not hasattr(pkgname, '_pkg'):
+            return
         releasef = get_release_filename_for_pkg(cache._cache, pkgname, 
                                                 "Ubuntu", 
                                                 self.get_codename())

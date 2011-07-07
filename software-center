@@ -44,7 +44,6 @@ import sys
 
 from softwarecenter.enums import *
 from softwarecenter.paths import XAPIAN_BASE_PATH
-from softwarecenter.utils import ExecutionTime
 from softwarecenter.version import *
 
 import softwarecenter.log
@@ -128,6 +127,8 @@ if __name__ == "__main__":
 
     # create the app
     from softwarecenter.app import SoftwareCenterApp
+    from softwarecenter.utils import ExecutionTime
+
     with ExecutionTime("create SoftwareCenterApp"):
         app = SoftwareCenterApp(datadir, xapian_base_path, options, args)
 
