@@ -12,8 +12,11 @@ software-center (4.0.5) UNRELEASED; urgency=low
     test/test_software_channels.py:
     - obfuscate private ppa details in the error log output and in
       the error dialog itself, add corresponding unit test
+  * merge lp:~evfool/software-center/nonetworkfixes, fixes two menu
+    item network state bugs, many thanks to Robert Roth
+    (LP: #802919, LP: #802920) 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 29 Jun 2011 17:52:28 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 07 Jul 2011 12:33:48 -0400
 
 software-center (4.0.4) natty-proposed; urgency=low
 
