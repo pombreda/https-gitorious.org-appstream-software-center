@@ -23,6 +23,7 @@ from gettext import gettext as _
 from gi.repository import Gtk, GObject, GdkPixbuf
 
 from basepane import BasePane
+from softwarecenter.ui.gtk3.em import StockEms
 from softwarecenter.ui.gtk3.panes.softwarepane import DisplayState
 from softwarecenter.ui.gtk3.models.pendingstore import PendingStore
 from softwarecenter.ui.gtk3.session.viewmanager import get_viewmanager
@@ -30,8 +31,8 @@ from softwarecenter.ui.gtk3.session.viewmanager import get_viewmanager
 
 class PendingPane(Gtk.ScrolledWindow, BasePane):
     
-    CANCEL_XPAD = 6
-    CANCEL_YPAD = 6
+    CANCEL_XPAD = StockEms.MEDIUM
+    CANCEL_YPAD = StockEms.MEDIUM
 
     def __init__(self, icons):
         Gtk.ScrolledWindow.__init__(self)
