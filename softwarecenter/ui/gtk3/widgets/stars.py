@@ -458,21 +458,20 @@ class StarRatingSelector(Gtk.Box):
         self.set_spacing(StockEms.SMALL)
 
         self.selector = ReactiveStar()
-        star.selector.set_n_stars(self.N_STARS)
+        self.selector.set_n_stars(self.N_STARS)
         self.selector.set_rating(self.INIT_RATING)
         self.selector.set_size_as_pixel_value(big_em(3))
 
         text = self.RATING_WORDS[self.INIT_RATING]
-        self.caption = Gtk.Label.new_with_text(text)
+        self.caption = Gtk.Label.new(text)
 
         self.set_orientation(Gtk.Orientation.HORIZONTAL)
         self.pack_start(self.selector, False, False, 0)
         self.pack_start(self.caption, False, False, 0)
         return
 
-
-
-if __name__ == "__main__":
+# test helper also used in the unit tests
+def get_test_stars_window():
     win = Gtk.Window()
     win.set_size_request(200, 200)
 
@@ -513,6 +512,13 @@ if __name__ == "__main__":
     star.set_size_as_pixel_value(big_em(3))
     vb.pack_start(star, False, False, 0)
 
-    win.show_all()
+    selector = StarRatingSelector()
+    vb.pack_start(selector, False, False, 0)
+
     win.connect("destroy", Gtk.main_quit)
+    return win
+
+if __name__ == "__main__":
+    win = get_test_stars_window()
+    win.show_all()
     Gtk.main()
