@@ -79,14 +79,17 @@ def wait_for_apt_cache_ready(f):
     def wrapper(*args, **kwargs):
         self = args[0]
         # check if the cache is ready and 
+        window = None
+        if hasattr(self, "app_view"):
+            window =  self.app_view.get_window()
         if not self.cache.ready:
-            if hasattr(self, "app_view") and self.app_view.window:
-                self.app_view.window.set_cursor(self.busy_cursor)
+            if window:
+                window.set_cursor(self.busy_cursor)
             glib.timeout_add(500, lambda: wrapper(*args, **kwargs))
             return False
         # cache ready now
-        if hasattr(self, "app_view") and self.app_view.window:
-            self.app_view.window.set_cursor(None)
+        if window:
+            window.set_cursor(None)
         f(*args, **kwargs)
         return False
     return wrapper
@@ -366,6 +369,12 @@ def get_exec_line_from_desktop(desktop_file):
     for line in open(desktop_file):
         if line.startswith("Exec="):
             return line.split("Exec=")[1]
+
+def get_nice_size(n_bytes):
+    nice_size = lambda s:[(s%1024**i and "%.1f"%(s/1024.0**i) or \
+        str(s/1024**i))+x.strip() for i,x in enumerate(' KMGTPEZY') \
+        if s<1024**(i+1) or i==8][0]
+    return nice_size(n_bytes)
             
 def save_person_to_config(username):
     """ save the specified username value for Ubuntu SSO to the config file
@@ -426,7 +435,7 @@ def ci_lower_bound(pos, n, power=0.2):
     return (phat + z*z/(2*n) - z * math.sqrt((phat*(1-phat)+z*z/(4*n))/n))/(1+z*z/n)
 
 def calc_dr(ratings):
-    '''Calculate the dampened rating for an app given it's collective ratings'''
+    '''Calculate the dampened rating for an app given its collective ratings'''
     if not len(ratings) == 5:
         raise AttributeError('ratings argument must be a list of 5 integers')
    

@@ -33,7 +33,7 @@ class GtkbuilderWidget(gtk.HBox):
         gtk.HBox.__init__(self)
         if toplevel_name is None:
             toplevel_name = self.__class__.__name__
-        ui_file = "%s/ui/%s.ui" % (datadir, toplevel_name)
+        ui_file = "%s/ui/gtk/%s.ui" % (datadir, toplevel_name)
         builder = gtk.Builder()
         builder.add_objects_from_file(ui_file, [toplevel_name])
         builder.connect_signals(self)

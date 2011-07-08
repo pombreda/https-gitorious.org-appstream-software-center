@@ -16,6 +16,8 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+from softwarecenter.utils import UnimplementedError
+
 class InstallBackend(object):
     def upgrade(self, pkgname, appname, iconname, addons_install=[], addons_remove=[], metadata=None):
         pass

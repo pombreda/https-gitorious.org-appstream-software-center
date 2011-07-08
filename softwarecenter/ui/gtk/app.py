@@ -33,6 +33,7 @@ import glob
 
 # purely to initialize the netstatus
 import softwarecenter.netstatus
+from softwarecenter.netstatus import network_state_is_connected
 # make pyflakes shut up
 softwarecenter.netstatus.NETWORK_STATE
 
@@ -79,7 +80,7 @@ from softwarecenter.plugin import PluginManager
 from softwarecenter.backend.reviews import get_review_loader, UsefulnessCache
 from softwarecenter.distro import get_distro
 from softwarecenter.db.pkginfo import get_pkg_info
-
+import dialogs
 from gettext import gettext as _
 
 LOG = logging.getLogger(__name__)
@@ -123,7 +124,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
         self.datadir = datadir
         SimpleGtkbuilderApp.__init__(self, 
-                                     datadir+"/ui/SoftwareCenter.ui", 
+                                     datadir+"/ui/gtk/SoftwareCenter.ui", 
                                      "software-center")
         gettext.bindtextdomain("software-center", "/usr/share/locale")
         gettext.textdomain("software-center")
@@ -177,7 +178,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                 self._rebuild_and_reopen_local_db(pathname)
         except xapian.DatabaseCorruptError, e:
             LOG.exception("xapian open failed")
-            ui.gtk.dialogs.error(None, 
+            dialogs.error(None, 
                           _("Sorry, can not open the software database"),
                           _("Please re-install the 'software-center' "
                             "package."))
@@ -382,7 +383,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
         if options.disable_buy and not options.enable_lp:
             file_menu.remove(self.builder.get_object("separator_login"))
-            
+
         # TODO: Remove the following two lines once we have remove repository
         #       support in aptdaemon (see LP: #723911)
         file_menu = self.builder.get_object("menu1")
@@ -642,6 +643,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         # update menu items
         pkg_state = None
         error = None
+        is_network_available = network_state_is_connected()
         # FIXME:  Use a gtk.Action for the Install/Remove/Buy/Add Source/Update Now action
         #         so that all UI controls (menu item, applist view button and appdetails
         #         view button) are managed centrally:  button text, button sensitivity,
@@ -655,13 +657,13 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self.menuitem_install.set_sensitive(False)
             self.menuitem_remove.set_sensitive(False)
         elif pkg_state == PkgStates.UPGRADABLE or pkg_state == PkgStates.REINSTALLABLE and not error:
-            self.menuitem_install.set_sensitive(True)
+            self.menuitem_install.set_sensitive(is_network_available)
             self.menuitem_remove.set_sensitive(True)
         elif pkg_state == PkgStates.INSTALLED:
             self.menuitem_install.set_sensitive(False)
             self.menuitem_remove.set_sensitive(True)
         elif pkg_state == PkgStates.UNINSTALLED and not error:
-            self.menuitem_install.set_sensitive(True)
+            self.menuitem_install.set_sensitive(is_network_available)
             self.menuitem_remove.set_sensitive(False)
         elif (not pkg_state and 
               not self.active_pane.is_category_view_showing() and 
@@ -675,6 +677,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         else:
             self.menuitem_install.set_sensitive(False)
             self.menuitem_remove.set_sensitive(False)
+        self.menuitem_reinstall_purchases.set_sensitive(is_network_available)
         # return False to ensure that a possible glib.timeout_add ends
         return False
 
@@ -985,8 +988,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         if self.window_main.props.visible == False:
             glib.timeout_add_seconds(1, self._ask_and_repair_broken_cache)
             return
-        if ui.gtk.dialogs.confirm_repair_broken_cache(self.window_main,
-                                                      self.datadir):
+        if dialogs.confirm_repair_broken_cache(self.window_main,
+                                               self.datadir):
             self.backend.fix_broken_depends()
 
     def _on_notebook_expose(self, widget, event):

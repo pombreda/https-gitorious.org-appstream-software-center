@@ -28,7 +28,6 @@ from softwarecenter.utils import (sources_filename_from_ppa_entry,
                                   obfuscate_private_ppa_details,
                                   )
 from softwarecenter.enums import TransactionTypes
-from softwarecenter.utils import UnimplementedError
 
 from aptdaemon import client
 from aptdaemon import enums
@@ -38,7 +37,9 @@ from aptdaemon import policykit1
 
 from defer import inline_callbacks, return_value
 
-from softwarecenter.backend.transactionswatcher import BaseTransactionsWatcher, BaseTransaction
+from softwarecenter.backend.transactionswatcher import (
+    BaseTransactionsWatcher, 
+    BaseTransaction)
 from softwarecenter.backend.installbackend import InstallBackend
 
 from gettext import gettext as _

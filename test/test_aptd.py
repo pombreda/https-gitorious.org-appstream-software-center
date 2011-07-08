@@ -5,7 +5,6 @@ sys.path.insert(0,"../")
 
 import unittest
 
-from mock import Mock
 from softwarecenter.backend.aptd import AptdaemonBackend
 
 class TestAptdaemon(unittest.TestCase):
