@@ -19,13 +19,13 @@ from softwarecenter.ui.gtk3.widgets.description import get_test_description_wind
 from softwarecenter.ui.gtk3.widgets.imagedialog import SimpleShowImageDialog
 from softwarecenter.ui.gtk3.widgets.pathbar import get_test_pathbar_window, PathPart
 from softwarecenter.ui.gtk3.widgets.reviews import get_test_reviews_window
-
+from softwarecenter.ui.gtk3.widgets.searchentry import get_test_searchentry_window
 
 # window destory timeout
-TIMEOUT=100
+TIMEOUT=1000
 
-class TestStars(unittest.TestCase):
-    """ tests the stars widget """
+class TestWidgets(unittest.TestCase):
+    """ basic tests for the various gtk3 widget """
 
     def test_stars(self):
         win = get_test_stars_window()
@@ -81,6 +81,13 @@ class TestStars(unittest.TestCase):
 
     def test_reviews(self):
         win = get_test_reviews_window()
+        GObject.timeout_add(TIMEOUT, lambda: win.destroy())
+        Gtk.main()
+
+    def test_searchentry(self):
+        win = get_test_searchentry_window()
+        s = "foo"
+        win.entry.insert_text(s, len(s))
         GObject.timeout_add(TIMEOUT, lambda: win.destroy())
         Gtk.main()
 

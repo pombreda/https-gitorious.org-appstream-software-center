@@ -103,7 +103,7 @@ if __name__ == "__main__":
     window.set_position(Gtk.WindowPosition.CENTER)
     window.show_all()    
     window.connect('destroy', Gtk.main_quit)
-    
+
     spinner_view.set_text("Loading...")
-    
+
     Gtk.main()
