@@ -9,9 +9,14 @@ import unittest
 
 sys.path.insert(0,"../..")
 
+from mock import Mock
+
 from softwarecenter.ui.gtk3.widgets.stars import get_test_stars_window
 from softwarecenter.ui.gtk3.widgets.actionbar import ActionBar
-from mock import Mock
+from softwarecenter.ui.gtk3.widgets.backforward import get_test_backforward_window
+from softwarecenter.ui.gtk3.widgets.containers import get_test_container_window
+from softwarecenter.ui.gtk3.widgets.description import get_test_description_window
+
 
 class TestStars(unittest.TestCase):
     """ tests the stars widget """
@@ -36,13 +41,25 @@ class TestStars(unittest.TestCase):
         win.show_all()
         glib.timeout_add_seconds(1, lambda: win.destroy())
         Gtk.main()
-        
 
-    # helper
-    def _p(self):
-        """ process gtk events """
-        while Gtk.events_pending():
-            Gtk.main_iteration()
+    def test_backforward(self):
+        win = get_test_backforward_window()
+        win.show_all()
+        glib.timeout_add_seconds(1, lambda: win.destroy())
+        Gtk.main()
+
+    def test_containers(self):
+        win = get_test_container_window()
+        win.show_all()
+        glib.timeout_add_seconds(1, lambda: win.destroy())
+        Gtk.main()
+
+    def test_description(self):
+        win = get_test_description_window()
+        win.show_all()
+        glib.timeout_add_seconds(1, lambda: win.destroy())
+        Gtk.main()
+
 
 if __name__ == "__main__":
     import logging
