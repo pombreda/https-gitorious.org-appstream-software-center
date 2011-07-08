@@ -4,7 +4,7 @@ import sys
 sys.path.insert(0,"../")
 
 import apt
-import gtk
+import glib
 import logging
 import time
 import unittest
@@ -23,8 +23,9 @@ class testAptCache(unittest.TestCase):
             self.sccache = get_pkg_info()
         # cache is opened with a timeout_add() in get_pkg_info()
         time.sleep(0.2)
-        while gtk.events_pending():
-            gtk.main_iteration()
+        context = glib.main_context_default()
+        while context.pending():
+            context.iteration()
         # compare with plain apt
         with ExecutionTime("plain apt: apt.Cache()"):
             self.cache = apt.Cache()
