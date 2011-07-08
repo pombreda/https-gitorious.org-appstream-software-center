@@ -20,9 +20,10 @@ from softwarecenter.ui.gtk3.widgets.imagedialog import SimpleShowImageDialog
 from softwarecenter.ui.gtk3.widgets.pathbar import get_test_pathbar_window, PathPart
 from softwarecenter.ui.gtk3.widgets.reviews import get_test_reviews_window
 from softwarecenter.ui.gtk3.widgets.searchentry import get_test_searchentry_window
+from softwarecenter.ui.gtk3.widgets.spinner import get_test_spinner_window
 
 # window destory timeout
-TIMEOUT=1000
+TIMEOUT=100
 
 class TestWidgets(unittest.TestCase):
     """ basic tests for the various gtk3 widget """
@@ -91,6 +92,11 @@ class TestWidgets(unittest.TestCase):
         GObject.timeout_add(TIMEOUT, lambda: win.destroy())
         Gtk.main()
 
+    def test_spinner(self):
+        win = get_test_spinner_window()
+        GObject.timeout_add(TIMEOUT, lambda: win.destroy())
+        Gtk.main()
+        
         
 
 if __name__ == "__main__":

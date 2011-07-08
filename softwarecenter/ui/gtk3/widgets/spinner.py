@@ -92,8 +92,9 @@ class SpinnerView(Gtk.Viewport):
         useful for adding/removing/changing the label text after the spinner instance has been created
         """
         self.spinner_label.set_markup('<big>%s</big>' % spinner_text)
-        
-if __name__ == "__main__":
+
+
+def get_test_spinner_window():        
     spinner_view = SpinnerView()
     spinner_view.start()
     
@@ -103,7 +104,9 @@ if __name__ == "__main__":
     window.set_position(Gtk.WindowPosition.CENTER)
     window.show_all()    
     window.connect('destroy', Gtk.main_quit)
-
     spinner_view.set_text("Loading...")
+    return window
 
+if __name__ == "__main__":
+    win = get_test_spinner_window()
     Gtk.main()
