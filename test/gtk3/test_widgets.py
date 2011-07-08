@@ -18,6 +18,7 @@ from softwarecenter.ui.gtk3.widgets.containers import get_test_container_window
 from softwarecenter.ui.gtk3.widgets.description import get_test_description_window
 from softwarecenter.ui.gtk3.widgets.imagedialog import SimpleShowImageDialog
 from softwarecenter.ui.gtk3.widgets.pathbar import get_test_pathbar_window, PathPart
+from softwarecenter.ui.gtk3.widgets.reviews import get_test_reviews_window
 
 
 # window destory timeout
@@ -78,6 +79,12 @@ class TestStars(unittest.TestCase):
         GObject.timeout_add(TIMEOUT, lambda: win.destroy())
         Gtk.main()
 
+    def test_reviews(self):
+        win = get_test_reviews_window()
+        GObject.timeout_add(TIMEOUT, lambda: win.destroy())
+        Gtk.main()
+
+        
 
 if __name__ == "__main__":
     import logging

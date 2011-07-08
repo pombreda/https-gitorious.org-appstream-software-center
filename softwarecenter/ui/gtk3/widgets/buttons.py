@@ -44,7 +44,7 @@ class Link(Gtk.Label):
         self.connect("activate-link", self.on_activate_link)
         return
 
-    def on_activate_link(self, uri):
+    def on_activate_link(self, uri, data):
         self.emit("clicked")
         return
 
