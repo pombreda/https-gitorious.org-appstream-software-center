@@ -1,15 +1,79 @@
-software-center (4.1.7) UNRELEASED; urgency=low
+software-center (4.1.9) UNRELEASED; urgency=low
+
+  [ Michael Vogt ]
+  * data/ui/*.ui:
+    - move into data/ui/gtk preparing the gtk3 merge
+
+  [ Gary Lasker ]
+  * merge lp:~evfool/software-center/nonetworkfixes to fix menu
+    item network state bugs, many thanks to Robert Roth
+    (LP: #802919, LP: #802920)
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 07 Jul 2011 12:02:13 -0400
+
+software-center (4.1.8) oneiric; urgency=low
+
+  [ Michael Vogt ]
+  * refactor to move gtk2 UI out of InstallBackend and replace
+    with generic InstallBackendUI
+
+  [ Gary Lasker ]
+  * debian/source_software-center.py:
+    - remove extraneous '.txt' for the logfile upload in the
+      apport hook
+  * softwarecenter/backend/reviews.py:
+    - fix crash if ratings and reviews server does not provide
+      a histogram value (LP: #805421) 
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 05 Jul 2011 09:11:38 +0200
+
+software-center (4.1.7) oneiric; urgency=low
 
   [ Aaron Peachey ]
   * Add fake-review API that can be used for GUI testing and
     automatic testing without actually hitting the network.
     Can be enabled with the SOFTWARE_CENTER_FAKE_REVIEW_API=1
     environment
+  * add support to remove/modify reviews, this requires the
+    new rnrserver in production
   
   [ Michael Vogt ]
   * merged lp:~aaronp/software-center/tests, many thanks
+  * merged lp:~mvo/software-center/piston-sc-agent:
+    This move the SoftwareCenterAgent support from restfulclient
+    to piston-mini-client and adds a new SpawnHelper abstraction. 
+    It also adds a new SOFTWARE_CENTER_AGENT_INCLUDE_QA environment 
+    to get apps in QA (if you are in the right group)
+  * remove get_http_proxy_string_from_gconf and remove python-gconf
+    dependency
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 20 Jun 2011 13:05:43 +0200
+  [ Gary Lasker ]
+  * merge lp:~evfool/software-center/smallfixes to fix up mouse click
+    handling for LinkButton, many thanks to Robert Roth (LP: #796640)
+  * merge lp:~mterry/software-center/drop-deja-dup courtesy Michael
+    Terry, removes deja-dup from the featured apps list since it has
+    been promoted to main
+  * merge lp:~evfool/software-center/fixnavigation, fixes navigation
+    error when searching (LP: #801114)
+  * softwarecenter/ui/gtk/appview.py:
+    - fix phantom install button in for purchase listview (LP: #801512)
+  * softwarecenter/db/update.py:
+    - add support for custom desktop key X-Ubuntu-Software-Center-Name
+      for USC-specific display names (LP: #801197)
+  * softwarecenter/ui/gtk/appdetailsview_gtk.py:
+    - don't start the indeterminate progress bar for purchase
+      transactions until after the authentication dialog is closed
+      (LP: #725181)
+  * softwarecenter/utils.py,
+    softwarecenter/backend/aptd.py,
+    test/test_software_channels.py:
+    - obfuscate private ppa details in the error log output and in
+      the error dialog itself, add corresponding unit test
+    
+  [ Steve Langasek ]
+  * debian/control: point Vcs-Bzr field at the right branch.
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 04 Jul 2011 07:41:36 +0100
 
 software-center (4.1.6) oneiric; urgency=low
 

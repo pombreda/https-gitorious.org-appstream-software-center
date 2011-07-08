@@ -23,20 +23,20 @@ import apt_pkg
 import logging
 import gio
 import glib
-import gtk
 import os
 
 from softwarecenter.enums import PkgStates
 
-from softwarecenter.db.pkginfo import PackageInfo
+from softwarecenter.db.pkginfo import PackageInfo, _Version
 
 LOG = logging.getLogger(__name__)
 
 class GtkMainIterationProgress(apt.progress.base.OpProgress):
     """Progress that just runs the main loop"""
     def update(self, percent=0):
-        while gtk.events_pending():
-            gtk.main_iteration()
+        context = glib.main_context_default()
+        while context.pending():
+            context.iteration()
 
 def convert_package_argument(f):
     """ decorator converting _Package argument to Package object from cache """
@@ -57,6 +57,32 @@ def pkg_downloaded(pkg_version):
     filename = os.path.basename(pkg_version.filename)
     # FIXME: use relative path here
     return os.path.exists("/var/cache/apt/archives/" + filename)
+
+class AptCacheVersion(_Version):
+    def __init__(self, version):
+        self.ver = version
+
+    @property
+    def description(self):
+        return self.ver.description
+    @property
+    def summary(self):
+        return self.ver.description
+    @property
+    def size(self):
+        return self.ver.size
+    @property
+    def installed_size(self):
+        return self.ver.installed_size
+    @property
+    def version(self):
+        return self.ver.version
+    @property
+    def origins(self):
+        return self.ver.origins
+    @property
+    def downloadable(self):
+        return self.ver.downloadable
 
 class AptCache(PackageInfo):
     """ 
@@ -112,19 +138,19 @@ class AptCache(PackageInfo):
         if (pkgname not in self._cache or
             not self._cache[pkgname].is_installed):
             return None
-        return self._cache[pkgname].installed
+        return AptCacheVersion(self._cache[pkgname].installed)
 
     def get_candidate(self, pkgname):
         if (pkgname not in self._cache or
             not self._cache[pkgname].candidate):
             return None
-        return self._cache[pkgname].candidate
+        return AptCacheVersion(self._cache[pkgname].candidate)
 
     def get_versions(self, pkgname):
         if (pkgname not in self._cache or
             not self._cache[pkgname].candidate):
             return []
-        return self._cache[pkgname].versions
+        return [AptCacheVersion(v) for v in self._cache[pkgname].versions]
 
     def get_section(self, pkgname):
         if (pkgname not in self._cache or 
@@ -271,8 +297,9 @@ class AptCache(PackageInfo):
             if not pkg.candidate:
                 continue
             for item in pkg.candidate.origins:
-                while gtk.events_pending():
-                    gtk.main_iteration()
+                context = glib.main_context_default()
+                while context.pending():
+                    context.iteration()
                 if item.origin:
                     origins.add(item.origin)
         return origins
@@ -619,8 +646,9 @@ class AptCache(PackageInfo):
             renhances = self._get_renhances_lowlevel_apt_pkg(virtual_aptpkg_pkg)
             LOG.debug("renhances of %s: %s" % (provide, renhances))
             addons_sug += renhances
-            while gtk.events_pending():
-                gtk.main_iteration()
+            context = glib.main_context_default()
+            while context.pending():
+                context.iteration()
 
         # get more addons, the idea is that if a package foo-data
         # just depends on foo we want to get the info about
@@ -650,8 +678,9 @@ class AptCache(PackageInfo):
                             pkgdep, pkgdep_enh))
                     addons_sug += pkgdep_enh
 
-            while gtk.events_pending():
-                gtk.main_iteration()
+            context = glib.main_context_default()
+            while context.pending():
+                context.iteration()
 
         # remove duplicates from suggests (sets are great!)
         addons_sug = list(set(addons_sug)-set(addons_rec))

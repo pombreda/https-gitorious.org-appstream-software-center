@@ -460,29 +460,36 @@ def add_from_purchased_but_needs_reinstall_data(purchased_but_may_need_reinstall
     query = xapian.Query("AH"+PURCHASED_NEEDS_REINSTALL_MAGIC_CHANNEL_NAME)
     return query
 
-def update_from_software_center_agent(db, cache, ignore_etag=False,
-                                      include_approved_but_unpublished=False):
+def update_from_software_center_agent(db, cache, ignore_cache=False,
+                                      include_sca_qa=False):
     """ update index based on the software-center-agent data """
     def _available_cb(sca, available):
         # print "available: ", available
         LOG.debug("available: '%s'" % available)
         sca.available = available
+        loop.quit()
     def _error_cb(sca, error):
         LOG.warn("error: %s" % error)
         sca.available = []
+        loop.quit()
     # use the anonymous interface to s-c-agent, scales much better and is
     # much cache friendlier
-    from softwarecenter.backend.restfulclient import SoftwareCenterAgentAnonymous
-    sca = SoftwareCenterAgentAnonymous(ignore_etag)
+    from softwarecenter.backend.scagent import SoftwareCenterAgent
+    # FIXME: honor ignore_etag here somehow with the new piston based API
+    sca = SoftwareCenterAgent(ignore_cache)
     sca.connect("available", _available_cb)
     sca.connect("error", _error_cb)
     sca.available = None
-    sca.query_available(include_approved_but_unpublished)
+    if include_sca_qa:
+        sca.query_available_qa()
+    else:
+        sca.query_available()
+    # create event loop and run it until data is available 
+    # (the _available_cb and _error_cb will quit it)
     context = glib.main_context_default()
-    while sca.available is None:
-        while context.pending():
-            context.iteration()
-        time.sleep(0.1)
+    loop = glib.MainLoop(context)
+    loop.run()
+    # process data
     for entry in sca.available:
         # process events
         while context.pending():
@@ -532,7 +539,10 @@ def index_app_info_from_parser(parser, db, cache):
         doc = xapian.Document()
         term_generator.set_document(doc)
         # app name is the data
-        if parser.has_option_desktop("X-GNOME-FullName"):
+        if parser.has_option_desktop("X-Ubuntu-Software-Center-Name"):
+            name = parser.get_desktop("X-Ubuntu-Software-Center-Name")
+            untranslated_name = parser.get_desktop("X-Ubuntu-Software-Center-Name", translated=False)
+        elif parser.has_option_desktop("X-GNOME-FullName"):
             name = parser.get_desktop("X-GNOME-FullName")
             untranslated_name = parser.get_desktop("X-GNOME-FullName", translated=False)
         else:
@@ -675,7 +685,7 @@ def index_app_info_from_parser(parser, db, cache):
             if s != name:
                 doc.add_value(XapianValues.SUMMARY, s)
         elif pkgname in cache and cache[pkgname].candidate:
-            s = cache[pkgname].summary
+            s = cache[pkgname].candidate.summary
             doc.add_value(XapianValues.SUMMARY, s)
 
         # add packagename as meta-data too
@@ -697,9 +707,9 @@ def index_app_info_from_parser(parser, db, cache):
             term_generator.index_text_without_positions(s, w)
         # add data from the apt cache
         if pkgname in cache and cache[pkgname].candidate:
-            s = cache[pkgname].summary
+            s = cache[pkgname].candidate.summary
             term_generator.index_text_without_positions(s, WEIGHT_APT_SUMMARY)
-            s = cache[pkgname].description
+            s = cache[pkgname].candidate.description
             term_generator.index_text_without_positions(s, WEIGHT_APT_DESCRIPTION)
             for origin in cache[pkgname].candidate.origins:
                 doc.add_term("XOA"+origin.archive)

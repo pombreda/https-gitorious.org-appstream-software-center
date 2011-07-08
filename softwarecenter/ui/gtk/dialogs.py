@@ -26,7 +26,7 @@ class SimpleGtkbuilderDialog(object):
         # setup ui
         self.builder = gtk.Builder()
         self.builder.set_translation_domain(domain)
-        self.builder.add_from_file(datadir+"/ui/dialogs.ui")
+        self.builder.add_from_file(datadir+"/ui/gtk/dialogs.ui")
         self.builder.connect_signals(self)
         for o in self.builder.get_objects():
             if issubclass(type(o), gtk.Buildable):

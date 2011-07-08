@@ -1,10 +1,13 @@
 #!/usr/bin/python
 
+import glib
 import random
 import os
+import time
+import unittest
+
 # ensure we set the review backend to the fake one
 os.environ["SOFTWARE_CENTER_IPSUM_REVIEWS"] = "1"
-import unittest
 
 import sys
 sys.path.insert(0,"../")
@@ -73,6 +76,8 @@ class TestQMLHelpers(unittest.TestCase):
         # fetch some reviews and ensure its not random
         random.seed(1)
         model.getReviews("software-center")
+        time.sleep(0.1)
+        self._p()
         # check the results
         self.assertEqual(model.rowCount(), 17)
         summaries = []
@@ -98,7 +103,11 @@ class TestQMLHelpers(unittest.TestCase):
         # ensure the signal got send
         self.assertTrue(self._i_am_refreshed)
         del self._i_am_refreshed
-
+    
+    def _p(self):
+        context = glib.main_context_default()
+        while context.pending():
+            context.iteration()
 
 if __name__ == "__main__":
     import logging

@@ -107,7 +107,7 @@ if __name__ == "__main__":
     if options.force_rtl:
         gtk.widget_set_default_direction(gtk.TEXT_DIR_RTL)
 
-    if os.path.exists("./data/ui/SoftwareCenter.ui"):
+    if os.path.exists("./data/ui/gtk/SoftwareCenter.ui"):
         logging.getLogger("softwarecenter").info("Using data (UI, xapian) from current dir")
         datadir = "./data"
         xapian_base_path = datadir
@@ -126,9 +126,8 @@ if __name__ == "__main__":
     gtk.init_check()
 
     # create the app
-    from softwarecenter.app import SoftwareCenterApp
+    from softwarecenter.ui.gtk.app import SoftwareCenterApp
     from softwarecenter.utils import ExecutionTime
-
     with ExecutionTime("create SoftwareCenterApp"):
         app = SoftwareCenterApp(datadir, xapian_base_path, options, args)
 
@@ -149,4 +148,3 @@ if __name__ == "__main__":
 
     # run it normally
     app.run(args)
-

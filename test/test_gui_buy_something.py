@@ -19,7 +19,7 @@ if os.getuid() == 0:
 
 sys.path.insert(0, "..")
 
-from softwarecenter.app import SoftwareCenterApp
+from softwarecenter.ui.gtk.app import SoftwareCenterApp
 from softwarecenter.paths import XAPIAN_BASE_PATH
 from softwarecenter.ui.gtk.appview import AppStore
 from softwarecenter.db.application import Application
@@ -42,13 +42,14 @@ class SCBuySomething(unittest.TestCase):
             subprocess.call(["dpkg", "-r", "hellox", "hello"])
         # get the software from staging
         os.environ["SOFTWARE_CENTER_BUY_HOST"]="https://sc.staging.ubuntu.com"
+        os.environ["SOFTWARE_CENTER_DISTRO_CODENAME"]="natty"
         os.environ["PYTHONPATH"]=os.path.abspath("..")
         if os.getuid() == 0:
             cmd = ["sudo", "-E", "-u", os.environ["SUDO_USER"]]
         else:
             cmd = []
         cmd += ["../utils/update-software-center-agent",
-                "--ignore-etag"]
+                "--ignore-cache"]
         res = subprocess.call(cmd, env=os.environ)
         print cmd, res
 
@@ -66,7 +67,6 @@ class SCBuySomething(unittest.TestCase):
     def _p(self):
         while gtk.events_pending():
             gtk.main_iteration()
-
 
     def assertFirstPkgInModel(self, model, needle):
         pkgname_from_row = model[0][AppStore.COL_PKGNAME]

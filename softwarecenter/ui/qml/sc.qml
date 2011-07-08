@@ -21,7 +21,7 @@
 import QtQuick 1.0
 
 FocusScope {
-    width: 600
+    width: 800
     height: 600
     focus: true
 
@@ -55,6 +55,7 @@ FocusScope {
             if (index == 0 ||
                 (index == 1 && navigation.breadcrumbs.model.get(1).key == categoryKey)) {
                 searchQuery = ""
+                pkglistmodel.setCategory("") 
             }
             switcher.goToFrame(navigation.breadcrumbs.model.get(index).view)
         }
@@ -150,21 +151,22 @@ FocusScope {
             id: details
             anchors.fill: parent
             focus: true
-            onBackClicked: {
-                navigation.breadcrumbs.removeCrumb()
-                switcher.goToFrame(listview)
-            }
         }
-        onShown: { details.loadThumbnail();
-                   details.loadReviews();
-                 }
-        onHidden: details.unloadThumbnail()
+        onShown: {
+            details.loadThumbnail()
+            details.loadReviews()
+        }
+        onHidden: {
+            details.hideScreenshot()
+            details.unloadThumbnail()
+        }
     }
 
     Component.onCompleted: {
         switcher.pushFrame(catview)
         switcher.pushFrame(listview)
         switcher.pushFrame(detailsview)
+        reviewslistmodel.refreshReviewStats()
     }
 }
 

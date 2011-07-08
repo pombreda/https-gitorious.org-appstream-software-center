@@ -10,7 +10,7 @@ import time
 import unittest
 
 from softwarecenter.db.pkginfo import get_pkg_info
-from softwarecenter.backend.channel import ChannelsManager
+from softwarecenter.backend.channel import AptChannelsManager, get_channels_manager, is_channel_available
 from softwarecenter.db.database import StoreDatabase
 from softwarecenter.paths import XAPIAN_BASE_PATH
 
@@ -31,7 +31,6 @@ class TestSoftwareChannels(unittest.TestCase):
         self.cache.open()
         self.db = StoreDatabase(pathname, self.cache)
         self.db.open()
-        self.mock_icons = MockIconCache()
         # wait for the cache
         while not self.db._aptcache._ready:
             while gtk.events_pending():
@@ -45,13 +44,14 @@ class TestSoftwareChannels(unittest.TestCase):
         self.assertEqual(origin, "ubuntu")
         
     def test_channels(self):
-        cm = ChannelsManager(self.db, self.mock_icons)
+        cm = AptChannelsManager(self.db)
         # ensure we have channels
         self.assertTrue(len(cm.channels) > 0)
         # test channel_available
         #for c in cm.channels:
         #     self.assertTrue(cm.channel_available(c.origin))
-        self.assertFalse(ChannelsManager.channel_available('asfd12da098p'))
+        self.assertFalse(AptChannelsManager.channel_available('asfd12da098p'))
+        self.assertFalse(is_channel_available('asfd12da098p'))
         # ensure we don't have any channel updates yet
         # FIXME: disabled for now as it
         #self.assertFalse(cm._check_for_channel_updates())
@@ -60,7 +60,7 @@ class TestSoftwareChannels(unittest.TestCase):
         self.assertTrue(cm._check_for_channel_updates())
 
     def test_channels_from_lp(self):
-        cm = ChannelsManager(self.db, self.mock_icons)
+        cm = AptChannelsManager(self.db)
         len_now = len(cm.channels)
         cm._feed_in_private_sources_list_entry(self.repo_from_lp)
         self.assertEqual(len(cm.channels), len_now + 1)
@@ -78,6 +78,13 @@ class TestSoftwareChannels(unittest.TestCase):
         se = SourceEntry(self.repo_from_lp)
         self.assertEqual(sources_filename_from_ppa_entry(se),
                          "private-ppa.launchpad.net_user_private-test_ubuntu.list")
+                         
+    def test_obfuscate_private_ppa_details(self):
+        from softwarecenter.utils import obfuscate_private_ppa_details
+        text = "Failed to fetch https://kingoflimbs:R5kGP7MpK777GMiB7bFw@private-ppa.launchpad.net/commercial-ppa-uploaders/steel-storm2/ubuntu/pool/main/s/steelstorm-episode2/steelstorm-episode2-data_2.00.02797-0maverick1_all.deb SSL connection timeout at 117523"
+        expected = "Failed to fetch https://hidden:hidden@private-ppa.launchpad.net/commercial-ppa-uploaders/steel-storm2/ubuntu/pool/main/s/steelstorm-episode2/steelstorm-episode2-data_2.00.02797-0maverick1_all.deb SSL connection timeout at 117523"
+        result = obfuscate_private_ppa_details(text)
+        self.assertEqual(result, expected)
         
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)

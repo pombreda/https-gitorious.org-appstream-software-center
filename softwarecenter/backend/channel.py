@@ -28,23 +28,31 @@ from gettext import gettext as _
 
 from softwarecenter.backend import get_install_backend
 from softwarecenter.distro import get_distro
-from softwarecenter.utils import (get_icon_from_theme,
-                                  human_readable_name_from_ppa_uri,
-                                  )
+from softwarecenter.utils import human_readable_name_from_ppa_uri
 
-from softwarecenter.enums import SortMethods, ViewPages, Icons, AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME
-from softwarecenter.paths import ICON_PATH
-
-# FIXME: wrong layer
-from softwarecenter.ui.gtk.widgets.animatedimage import AnimatedImage
+from softwarecenter.enums import (SortMethods, 
+                                  ViewPages, 
+                                  AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME)
 
 LOG = logging.getLogger(__name__)
 
 class ChannelsManager(object):
+    @property
+    def channels(self):
+        return []
+        
+    @property
+    def channels_installed_only(self):
+        return []
 
-    def __init__(self, db, icons):
+    @staticmethod
+    def channel_available(channelname):
+        pass
+
+class AptChannelsManager(ChannelsManager):
+
+    def __init__(self, db):
         self.db = db
-        self.icons = icons
         self.distro = get_distro()
         self.backend = get_install_backend()
         self.backend.connect("channels-changed", 
@@ -91,7 +99,7 @@ class ChannelsManager(object):
         return the new channel object
         """
         # print name, icon, query
-        channel = SoftwareChannel(self.icons, name, None, None, 
+        channel = SoftwareChannel(name, None, None, 
                                   channel_icon=icon,
                                   channel_query=query)
         self.extra_channels.append(channel)
@@ -127,7 +135,7 @@ class ChannelsManager(object):
         # need to add it as a not yet enabled channel
         name = human_readable_name_from_ppa_uri(potential_new_entry.uri)
         # FIXME: use something better than uri as name
-        private_channel = SoftwareChannel(self.icons, name, None, None,
+        private_channel = SoftwareChannel(name, None, None,
                                           source_entry=source_entry)
         private_channel.needs_adding = True
         if private_channel in self.extra_channels:
@@ -229,27 +237,23 @@ class ChannelsManager(object):
 
         for (channel_name, channel_origin) in other_channel_list:
             if not channel_name:
-                unknown_channel.append(SoftwareChannel(self.icons, 
-                                                       channel_name,
+                unknown_channel.append(SoftwareChannel(channel_name,
                                                        channel_origin,
                                                        None,
                                                        installed_only=installed_only))
             elif channel_name == distro_channel_name:
-                dist_channel = (SoftwareChannel(self.icons,
-                                                distro_channel_name,
+                dist_channel = (SoftwareChannel(distro_channel_name,
                                                 channel_origin,
                                                 None,
                                                 installed_only=installed_only))
             elif channel_name == "Partner archive":
-                partner_channel = SoftwareChannel(self.icons, 
-                                                  channel_name,
+                partner_channel = SoftwareChannel(channel_name,
                                                   channel_origin,
                                                   "partner", 
                                                   installed_only=installed_only)
             elif channel_name == "notdownloadable":
                 if installed_only:
-                    local_channel = SoftwareChannel(self.icons, 
-                                                    channel_name,
+                    local_channel = SoftwareChannel(channel_name,
                                                     None,
                                                     None,
                                                     installed_only=installed_only)
@@ -260,37 +264,32 @@ class ChannelsManager(object):
                 pass
             elif channel_origin and channel_origin.startswith("LP-PPA"):
                 if channel_origin == "LP-PPA-app-review-board":
-                    new_apps_channel = SoftwareChannel(self.icons, 
-                                                       channel_name,
+                    new_apps_channel = SoftwareChannel(channel_name,
                                                        channel_origin,
                                                        None,
                                                        installed_only=installed_only)
                 else:
-                    ppa_channels.append(SoftwareChannel(self.icons, 
-                                                        channel_name,
+                    ppa_channels.append(SoftwareChannel(channel_name,
                                                         channel_origin,
                                                         None,
                                                         installed_only=installed_only))
             # TODO: detect generic repository source (e.g., Google, Inc.)
             else:
-                other_channels.append(SoftwareChannel(self.icons, 
-                                                      channel_name,
+                other_channels.append(SoftwareChannel(channel_name,
                                                       channel_origin,
                                                       None,
                                                       installed_only=installed_only))
 
         # always display the partner channel, even if its source is not enabled                                                       
         if not partner_channel:
-            partner_channel = SoftwareChannel(self.icons, 
-                                              "Partner archive",
+            partner_channel = SoftwareChannel("Partner archive",
                                               "Canonical",
                                               "partner", 
                                               installed_only=installed_only)
         
         # create a "magic" channel to display items available for purchase                                              
         for_purchase_query = xapian.Query("AH" + AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME)
-        for_purchase_channel = SoftwareChannel(self.icons, 
-                                               "For Purchase", None, None, 
+        for_purchase_channel = SoftwareChannel("For Purchase", None, None, 
                                                channel_icon=None,   # FIXME:  need an icon
                                                channel_query=for_purchase_query,
                                                installed_only=installed_only)
@@ -326,7 +325,7 @@ class SoftwareChannel(object):
     
     ICON_SIZE = 24
     
-    def __init__(self, icons, channel_name, channel_origin, channel_component,
+    def __init__(self, channel_name, channel_origin, channel_component,
                  source_entry=None, installed_only=False,
                  channel_icon=None, channel_query=None,
                  channel_sort_mode=SortMethods.BY_ALPHABET):
@@ -341,7 +340,6 @@ class SoftwareChannel(object):
         self._channel_color = None
         self._channel_view_id = None
         self.installed_only = installed_only
-        self.icons = icons
         self._channel_sort_mode = channel_sort_mode
         # distro specific stuff
         self.distro = get_distro()
@@ -433,23 +431,23 @@ class SoftwareChannel(object):
     
     def _get_icon_for_channel(self, channel_name, channel_origin, channel_component):
         if channel_component == "partner":
-            channel_icon = self._get_icon("partner")
+            channel_icon = "partner"
         elif not channel_name:
-            channel_icon = self._get_icon("unknown-channel")
+            channel_icon = "unknown-channel"
         elif channel_name == self.distro.get_distro_channel_name():
-            channel_icon = self._get_icon("distributor-logo")
+            channel_icon = "distributor-logo"
         elif channel_name == "Application Review Board PPA":
-            channel_icon = self._get_icon("system-users")
+            channel_icon = "system-users"
         elif channel_name == "For Purchase":
-            channel_icon = self._get_icon("emblem-money")
+            channel_icon = "emblem-money"
         elif channel_origin and channel_origin.startswith("LP-PPA"):
-            channel_icon = self._get_icon("ppa")
+            channel_icon = "ppa"
         elif channel_name == "notdownloadable":
-            channel_icon = self._get_icon("application-default-icon")
+            channel_icon = "application-default-icon"
         # TODO: add check for generic repository source (e.g., Google, Inc.)
-        #       self._get_icon("generic-repository")
+        #       channel_icon = "generic-repository"
         else:
-            channel_icon = self._get_icon("unknown-channel")
+            channel_icon = "unknown-channel"
         return channel_icon
     
     def _get_channel_query_for_channel(self, channel_name, channel_origin, channel_component):
@@ -469,12 +467,6 @@ class SoftwareChannel(object):
             channel_query = xapian.Query("XOL" + channel_name)
         return channel_query
 
-    def _get_icon(self, icon_name):
-        return AnimatedImage(get_icon_from_theme(self.icons, 
-                                                 iconname=icon_name, 
-                                                 iconsize=self.ICON_SIZE,
-                                                 missingicon=Icons.GENERIC_MISSING))
-        
     def __str__(self):
         details = []
         details.append("* SoftwareChannel")
@@ -482,20 +474,28 @@ class SoftwareChannel(object):
         details.append("  origin: %s" % self.origin)
         details.append("  component: %s" % self.component)
         details.append("  display_name: %s" % self.display_name)
-        details.append("  icon: %s" % self.icon)
+        details.append("  iconname: %s" % self.icon)
         details.append("  query: %s" % self.query)
         details.append("  sort_mode: %s" % self.sort_mode)
         details.append("  installed_only: %s" % self.installed_only)
         return '\n'.join(details)
-        
+
+# singleton
+channels_manager = None
+def get_channels_manager(db):
+    global channels_manager
+    if channels_manager is None:
+        channels_manager = AptChannelsManager(db)
+    return channels_manager
+
+def is_channel_available(channelname):
+    return AptChannelsManager.channel_available(channelname)
+
 if __name__ == "__main__":
-    import gtk
-    icons = gtk.icon_theme_get_default()
-    icons.append_search_path(ICON_PATH)
     distro = get_distro()
-    channel = SoftwareChannel(icons, distro.get_distro_channel_name(), 
+    channel = SoftwareChannel(distro.get_distro_channel_name(), 
                               None, None)
     print channel
-    channel = SoftwareChannel(icons, distro.get_distro_channel_name(), None, "partner")
+    channel = SoftwareChannel(distro.get_distro_channel_name(), None, "partner")
     print channel
 

@@ -148,7 +148,7 @@ class Ubuntu(Debian):
             # see if we have a "Supported" entry in the pkg record
             if (pkgname in cache and
                 cache[pkgname].candidate):
-                support_time = cache[pkgname].candidate.record.get("Supported")
+                support_time = cache._cache[pkgname].candidate.record.get("Supported")
                 if support_time:
                     if support_time.endswith("y"):
                         support_month = 12*int(support_time.strip("y"))

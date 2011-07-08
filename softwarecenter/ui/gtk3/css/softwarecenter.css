@@ -1,0 +1,20 @@
+#view {
+
+    border-width: 0;
+    background-color: #FFF;
+/*
+
+    background-image: -gtk-gradient(linear,
+                                    0 0, 0 0.4,
+                                    from (#B2CFE7),
+                                    to (#FFFFFF));
+*/
+
+}
+
+
+#tile {
+
+    border-width: 0;
+    border-radius: 20;
+}

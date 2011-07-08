@@ -23,8 +23,7 @@ import subprocess
 
 from gettext import gettext as _
 
-class UnimplementedError(Exception):
-    pass
+from softwarecenter.utils import UnimplementedError
 
 class Distro(object):
     """ abstract base class for a distribution """

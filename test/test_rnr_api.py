@@ -5,8 +5,8 @@ import sys
 sys.path.insert(0,"../")
 
 import unittest
-from softwarecenter.backend.rnrclient import RatingsAndReviewsAPI
-from softwarecenter.backend.rnrclient_fake import RatingsAndReviewsAPI as RatingsAndReviewsAPIFake
+from softwarecenter.backend.piston.rnrclient import RatingsAndReviewsAPI
+from softwarecenter.backend.piston.rnrclient_fake import RatingsAndReviewsAPI as RatingsAndReviewsAPIFake
 
 class TestRNRAPI(unittest.TestCase):
     """ tests the rnr backend stuff """

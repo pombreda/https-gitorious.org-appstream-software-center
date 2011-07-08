@@ -258,7 +258,6 @@ class PackageStatusBar(StatusBar):
         elif state == PkgStates.INSTALLING_PURCHASED:
             self.set_label(_(u'Installing purchase\u2026'))
             self.button.hide()
-            self.progress.show()
         elif state == PkgStates.REMOVING:
             self.set_label(_('Removing...'))
             self.button.set_sensitive(False)
@@ -1167,6 +1166,8 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.reviews.connect("new-review", self._on_review_new)
         self.reviews.connect("report-abuse", self._on_review_report_abuse)
         self.reviews.connect("submit-usefulness", self._on_review_submit_usefulness)
+        self.reviews.connect("modify-review", self._on_review_modify)
+        self.reviews.connect("delete-review", self._on_review_delete)
         self.reviews.connect("more-reviews-clicked", self._on_more_reviews_clicked)
         self.reviews.connect("different-review-language-clicked", self._on_reviews_in_different_language_clicked)
         vb.pack_start(self.reviews, False)
@@ -1215,6 +1216,12 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
     def _on_review_new(self, button):
         self._review_write_new()
+
+    def _on_review_modify(self, button, review_id):
+        self._review_modify(review_id)
+
+    def _on_review_delete(self, button, review_id):
+        self._review_delete(review_id)
 
     def _on_review_report_abuse(self, button, review_id):
         self._review_report_abuse(str(review_id))
@@ -1562,6 +1569,10 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             result and
             not result.pkgname):
             self.pkg_statusbar.configure(self.app_details, PkgStates.INSTALLING_PURCHASED)
+            # start up an indeterminate progress bar now that the first part of the
+            # purchase transaction has completed as there can be a delay before the
+            # actual package installation begins
+            self.pkg_statusbar.progress.show()
         elif (state == PkgStates.INSTALLING_PURCHASED and 
               result and
               result.pkgname):

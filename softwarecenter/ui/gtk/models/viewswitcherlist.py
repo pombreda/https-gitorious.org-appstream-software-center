@@ -24,7 +24,7 @@ import xapian
 
 from gettext import gettext as _
 
-from softwarecenter.backend.channel import ChannelsManager
+from softwarecenter.backend.channel import get_channels_manager
 from softwarecenter.backend import get_install_backend
 from softwarecenter.distro import get_distro
 from softwarecenter.enums import Icons, ViewPages
@@ -86,7 +86,7 @@ class ViewSwitcherList(gtk.TreeStore):
         self.installed_iter = self.append(None, [icon, _("Installed Software"), ViewPages.INSTALLED, None, None])
         
         # the channelpane 
-        self.channel_manager = ChannelsManager(db, icons)
+        self.channel_manager = get_channels_manager(db)
         # do initial channel list update
         self._update_channel_list()
 
@@ -187,7 +187,7 @@ class ViewSwitcherList(gtk.TreeStore):
         # iterate the channels and add as subnodes of the available node
         for channel in self.channel_manager.channels:
             self.append(self.available_iter, [
-                        channel.icon,
+                        self._get_icon(channel.icon),
                         channel.display_name,
                         ViewPages.CHANNEL,
                         channel,
@@ -224,7 +224,7 @@ class ViewSwitcherList(gtk.TreeStore):
                         break
             if add_channel_item:
                 self.append(self.installed_iter, [
-                            channel.icon,
+                            self._get_icon(channel.icon),
                             channel.display_name,
                             ViewPages.CHANNEL,
                             channel,

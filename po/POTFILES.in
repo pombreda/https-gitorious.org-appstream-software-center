@@ -1,18 +1,18 @@
 software-center
 utils/submit_review.py
 utils/update-software-center
-[type: gettext/glade] data/ui/SoftwareCenter.ui
-[type: gettext/glade] data/ui/dialogs.ui
-[type: gettext/glade] data/ui/login.ui
-[type: gettext/glade] data/ui/submit_review.ui
-[type: gettext/glade] data/ui/submit_usefulness.ui
-[type: gettext/glade] data/ui/report_abuse.ui
+[type: gettext/glade] data/ui/gtk/SoftwareCenter.ui
+[type: gettext/glade] data/ui/gtk/dialogs.ui
+[type: gettext/glade] data/ui/gtk/login.ui
+[type: gettext/glade] data/ui/gtk/submit_review.ui
+[type: gettext/glade] data/ui/gtk/submit_usefulness.ui
+[type: gettext/glade] data/ui/gtk/report_abuse.ui
 data/ubuntu-software-center.desktop.in
 data/unbranded-software-center.desktop.in
 [type: gettext/xml] data/featured.menu.in
 [type: gettext/xml] data/new.menu.in
 [type: gettext/xml] data/software-center.menu.in
-softwarecenter/app.py
+softwarecenter/ui/gtk/app.py
 softwarecenter/backend/aptd.py
 softwarecenter/backend/channel.py
 softwarecenter/backend/login_sso.py
@@ -23,6 +23,7 @@ softwarecenter/db/update.py
 softwarecenter/distro/Debian.py
 softwarecenter/distro/__init__.py
 softwarecenter/distro/Ubuntu.py
+softwarecenter/enums.py
 softwarecenter/utils.py
 softwarecenter/ui/gtk/appdetailsview.py
 softwarecenter/ui/gtk/appdetailsview_gtk.py

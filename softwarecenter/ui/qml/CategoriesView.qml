@@ -54,9 +54,21 @@ FocusScope {
         pageSize: catgrid.visibleArea.heightRatio
     }
 
+    Text {
+        id: depheader
+        anchors.top: parent.top
+        anchors.left:  parent.left
+        anchors.margins: 24
+
+        text: qsTr("Departments")
+        font.pointSize: 18
+        font.bold: true
+
+    }
+
     GridView {
         id: catgrid
-        anchors.top: parent.top
+        anchors.top: depheader.bottom
         anchors.bottom: parent.bottom
         anchors.left: parent.left
         anchors.right: scrollbar.left

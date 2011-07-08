@@ -1088,9 +1088,10 @@ class LinkButton(gtk.EventBox):
     def _on_enter(self, cat, event):
         if cat == self._button_press_origin:
             cat.set_state(gtk.STATE_ACTIVE)
+            self._colorise_label_active()
         else:
             cat.set_state(gtk.STATE_PRELIGHT)
-        self._colorise_label_normal()
+            self._colorise_label_normal()
         self.window.set_cursor(self._cursor)
         return
 
@@ -1137,9 +1138,9 @@ class LinkButton(gtk.EventBox):
         else:
             self._button_press_origin = None
             cat.set_state(gtk.STATE_PRELIGHT)
-        
+            gobject.timeout_add(50, emit_clicked)
+
         self._colorise_label_normal()
-        gobject.timeout_add(50, emit_clicked)
         return
 
     def _on_key_press(self, cat, event):

@@ -22,7 +22,7 @@ import os
 import re
 
 from gettext import gettext as _
-from softwarecenter.backend.channel import ChannelsManager
+from softwarecenter.backend.channel import is_channel_available
 from softwarecenter.distro import get_distro
 from softwarecenter.enums import PkgStates, XapianValues, Icons
 
@@ -537,7 +537,7 @@ class AppDetails(object):
 
     def _unavailable_channel(self):
         """ Check if the given doc refers to a channel that is currently not enabled """
-        return not ChannelsManager.channel_available(self.channelname)
+        return not is_channel_available(self.channelname)
 
     def _unavailable_component(self, component_to_check=None):
         """ Check if the given doc refers to a component that is currently not enabled """

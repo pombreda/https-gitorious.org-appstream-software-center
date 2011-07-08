@@ -16,6 +16,8 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+from softwarecenter.utils import UnimplementedError
+
 class InstallBackend(object):
     def __init__(self):
         self.pending_transactions = {}
@@ -36,6 +38,22 @@ class InstallBackend(object):
     def reload(self, sources_list=None, metadata=None):
         """ reload package list """
         pass
+
+class InstallBackendUI(object):
+
+    def ask_config_file_conflict(self, old, new):
+        """ show a conffile conflict and ask what to do
+            Return "keep" to keep the old one 
+                   "replace" to replace the old with the new one
+        """
+        raise UnimplementedError("need custom ask_config_file_conflict method")
+
+    def ask_medium_required(self, medium, drive):
+        """ ask the user to provide a medium in drive
+            return True if medium is provided, False to cancel
+        """
+        raise UnimplementedError("need custom ask_medium_required method")
+
 
 # singleton
 install_backend = None

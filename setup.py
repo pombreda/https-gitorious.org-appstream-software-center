@@ -42,7 +42,7 @@ class PocketLint(distutils.cmd.Command):
 
 
 def merge_authors_into_about_dialog():
-    fname="./data/ui/SoftwareCenter.ui"
+    fname="./data/ui/gtk/SoftwareCenter.ui"
     authors = open("AUTHORS").read()
     gtkbuilder = open(fname).read()
     gtkbuilder = re.sub(r'<property name="authors">.*</property>',
@@ -79,15 +79,14 @@ setup(name="software-center", version=VERSION,
                "utils/submit_review.py",
                "utils/report_review.py",
                "utils/submit_usefulness.py",
-               "utils/get_reviews_helper.py",
-               "utils/get_review_stats_helper.py",
-               "utils/get_useful_votes_helper.py",
+               "utils/delete_review.py",
+               "utils/modify_review.py",
                "utils/update-software-center",
                "utils/update-software-center-agent",
-               "utils/x2go_helper.py",
-               ],
+               ]+glob.glob("utils/piston-helpers/*.py"),
       packages = ['softwarecenter',
                   'softwarecenter.backend',
+                  'softwarecenter.backend.piston',
                   'softwarecenter.db',
                   'softwarecenter.db.pkginfo_impl',
                   'softwarecenter.db.history_impl',
@@ -100,8 +99,8 @@ setup(name="software-center", version=VERSION,
                   'softwarecenter.ui.qml',
                  ],
       data_files=[
-                  ('share/software-center/ui/',
-                   glob.glob("data/ui/*.ui")),
+                  ('share/software-center/ui/gtk/',
+                   glob.glob("data/ui/gtk/*.ui")),
                   ('share/software-center/templates/',
                    glob.glob("data/templates/*.html")),
                   ('../etc/dbus-1/system.d/',

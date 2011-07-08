@@ -23,6 +23,7 @@ import gobject
 import gio
 import glib
 import logging
+import math
 import os
 import re
 import string
@@ -43,6 +44,9 @@ ESCAPE_ENTITIES = {"&apos;":"'",
                    '&quot;':'"'}
                    
 LOG = logging.getLogger(__name__)
+
+class UnimplementedError(Exception):
+    pass
 
 class ExecutionTime(object):
     """
@@ -75,14 +79,17 @@ def wait_for_apt_cache_ready(f):
     def wrapper(*args, **kwargs):
         self = args[0]
         # check if the cache is ready and 
+        window = None
+        if hasattr(self, "app_view"):
+            window =  self.app_view.get_window()
         if not self.cache.ready:
-            if hasattr(self, "app_view") and self.app_view.window:
-                self.app_view.window.set_cursor(self.busy_cursor)
+            if window:
+                window.set_cursor(self.busy_cursor)
             glib.timeout_add(500, lambda: wrapper(*args, **kwargs))
             return False
         # cache ready now
-        if hasattr(self, "app_view") and self.app_view.window:
-            self.app_view.window.set_cursor(None)
+        if window:
+            window.set_cursor(None)
         f(*args, **kwargs)
         return False
     return wrapper
@@ -185,29 +192,6 @@ def get_http_proxy_string_from_libproxy(url):
     else:
         return proxy
 
-def get_http_proxy_string_from_gconf():
-    """Helper that gets the http proxy from gconf
-
-    Returns: string with http://auth:pw@proxy:port/ or None
-    """
-    try:
-        import gconf
-        client = gconf.client_get_default()
-        if client.get_bool("/system/http_proxy/use_http_proxy"):
-            authentication = ""
-            if client.get_bool("/system/http_proxy/use_authentication"):
-                user = client.get_string("/system/http_proxy/authentication_user")
-                password = client.get_string("/system/http_proxy/authentication_password")
-                authentication = "%s:%s@" % (user, password)
-            host = client.get_string("/system/http_proxy/host")
-            port = client.get_int("/system/http_proxy/port")
-            http_proxy = "http://%s%s:%s/" %  (authentication, host, port)
-            if host:
-                return http_proxy
-    except Exception:
-        LOG.exception("failed to get proxy from gconf")
-    return None
-
 def encode_for_xml(unicode_data, encoding="ascii"):
     """ encode a given string for xml """
     return unicode_data.encode(encoding, 'xmlcharrefreplace')
@@ -246,6 +230,22 @@ def sources_filename_from_ppa_entry(entry):
     import apt_pkg
     name = "%s.list" % apt_pkg.URItoFileName(entry.uri)
     return name
+    
+def obfuscate_private_ppa_details(text):
+    """
+    hides any private PPA details that may be found in the given text
+    """
+    result = text
+    s = text.split()
+    for item in s:
+        if "private-ppa.launchpad.net" in item:
+            from urlparse import urlsplit
+            url_parts = urlsplit(item)
+            if url_parts.username:
+                result = result.replace(url_parts.username, "hidden")
+            if url_parts.password:
+                result = result.replace(url_parts.password, "hidden")
+    return result
 
 def release_filename_in_lists_from_deb_line(debline):
     """
@@ -369,6 +369,12 @@ def get_exec_line_from_desktop(desktop_file):
     for line in open(desktop_file):
         if line.startswith("Exec="):
             return line.split("Exec=")[1]
+
+def get_nice_size(n_bytes):
+    nice_size = lambda s:[(s%1024**i and "%.1f"%(s/1024.0**i) or \
+        str(s/1024**i))+x.strip() for i,x in enumerate(' KMGTPEZY') \
+        if s<1024**(i+1) or i==8][0]
+    return nice_size(n_bytes)
             
 def save_person_to_config(username):
     """ save the specified username value for Ubuntu SSO to the config file
@@ -395,6 +401,54 @@ def get_person_from_config():
     if cfg.has_option("reviews", "username"):
         return cfg.get("reviews", "username")
     return None
+
+def pnormaldist(qn):
+    '''Inverse normal distribution, based on the Ruby statistics2.pnormaldist'''
+    b = [1.570796288, 0.03706987906, -0.8364353589e-3,
+         -0.2250947176e-3, 0.6841218299e-5, 0.5824238515e-5,
+         -0.104527497e-5, 0.8360937017e-7, -0.3231081277e-8,
+         0.3657763036e-10, 0.6936233982e-12]
+        
+    if qn < 0 or qn > 1:
+        raise ValueError("qn must be between 0.0 and 1.0")
+    if qn == 0.5:
+        return 0.0
+    
+    w1 = qn
+    if qn > 0.5:
+        w1 = 1.0 - w1
+    w3 = -math.log(4.0 * w1 * (1.0 - w1))
+    w1 = b[0]
+    for i in range (1,11):
+        w1 = w1 + (b[i] * math.pow(w3, i))
+        
+    if qn > 0.5:
+        return math.sqrt(w1*w3)
+    else:
+        return -math.sqrt(w1*w3)
+
+def ci_lower_bound(pos, n, power=0.2):
+    if n == 0:
+        return 0
+    z = pnormaldist(1-power/2)
+    phat = 1.0 * pos / n
+    return (phat + z*z/(2*n) - z * math.sqrt((phat*(1-phat)+z*z/(4*n))/n))/(1+z*z/n)
+
+def calc_dr(ratings):
+    '''Calculate the dampened rating for an app given its collective ratings'''
+    if not len(ratings) == 5:
+        raise AttributeError('ratings argument must be a list of 5 integers')
+   
+    tot_ratings = 0
+    for i in range (0,5):
+        tot_ratings = ratings[i] + tot_ratings
+      
+    sum_scores = 0.0
+    for i in range (0,5):
+        wilson_score = ci_lower_bound(ratings[i],tot_ratings)
+        sum_scores = sum_scores + float((i+1)-3) * wilson_score
+   
+    return sum_scores + 3
 
 class SimpleFileDownloader(gobject.GObject):
 

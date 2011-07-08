@@ -282,7 +282,7 @@ class PendingView(gtk.ScrolledWindow, BasePane):
             return 
         # get tid
         tid = model[path][PendingStore.COL_TID]
-        trans = self.tv.get_model()._transactions_watcher.get_transaction(tid)
+        trans = model._transactions_watcher.get_transaction(tid)
         try:
             trans.cancel()
         except dbus.exceptions.DBusException:

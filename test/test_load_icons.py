@@ -7,7 +7,7 @@ import unittest
 from mock import Mock
 
 sys.path.insert(0,"../")
-from softwarecenter.app import SoftwareCenterApp
+from softwarecenter.ui.gtk.app import SoftwareCenterApp
 from softwarecenter.paths import XAPIAN_BASE_PATH
 
 class TestIconLoader(unittest.TestCase):

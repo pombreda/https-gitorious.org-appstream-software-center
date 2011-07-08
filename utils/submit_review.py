@@ -50,8 +50,8 @@ from softwarecenter.paths import SOFTWARE_CENTER_CONFIG_DIR
 from softwarecenter.enums import Icons
 from softwarecenter.config import get_config
 from softwarecenter.backend.login_sso import get_sso_backend
-from softwarecenter.db.database import Application
 from softwarecenter.backend.reviews import Review
+from softwarecenter.db.database import Application
 from softwarecenter.utils import clear_token_from_ubuntu_sso, get_language
 from softwarecenter.ui.gtk.SimpleGtkbuilderApp import SimpleGtkbuilderApp
 from softwarecenter.ui.gtk.dialogs import SimpleGtkbuilderDialog
@@ -60,8 +60,8 @@ from softwarecenter.ui.gtk.widgets.reviews import StarRatingSelector, StarCaptio
 from softwarecenter.gwibber_helper import GwibberHelper, GwibberHelperMock
 
 
-from softwarecenter.backend.rnrclient import RatingsAndReviewsAPI
-from softwarecenter.backend.rnrclient_pristine import ReviewRequest
+from softwarecenter.backend.piston.rnrclient import RatingsAndReviewsAPI
+from softwarecenter.backend.piston.rnrclient_pristine import ReviewRequest
 
 #import httplib2
 #httplib2.debuglevel = 1
@@ -69,6 +69,7 @@ from softwarecenter.backend.rnrclient_pristine import ReviewRequest
 # get current distro and set default server root
 distro = get_distro()
 SERVER_ROOT=distro.REVIEWS_SERVER
+
 
 # server status URL
 SERVER_STATUS_URL = SERVER_ROOT+"/server-status/"
@@ -118,6 +119,12 @@ class GRatingsAndReviews(gobject.GObject):
     def submit_usefulness(self, review_id, is_useful):
         self.emit("transmit-start", review_id)
         self.worker_thread.pending_usefulness.put((int(review_id), is_useful))
+    def modify_review(self, review_id, review):
+        self.emit("transmit-start", review_id)
+        self.worker_thread.pending_modify.put((int(review_id), review))
+    def delete_review(self, review_id):
+        self.emit("transmit-start", review_id)
+        self.worker_thread.pending_delete.put(int(review_id))
     def server_status(self):
         self.worker_thread.pending_server_status()
     def shutdown(self):
@@ -141,6 +148,8 @@ class Worker(threading.Thread):
         self.pending_reviews = Queue()
         self.pending_reports = Queue()
         self.pending_usefulness = Queue()
+        self.pending_modify = Queue()
+        self.pending_delete = Queue()
         self.pending_server_status = Queue()
         self._shutdown = False
         # FIXME: instead of a binary value we need the state associated
@@ -177,11 +186,15 @@ class Worker(threading.Thread):
             self._submit_reviews_if_pending()
             self._submit_reports_if_pending()
             self._submit_usefulness_if_pending()
+            self._submit_modify_if_pending()
+            self._submit_delete_if_pending()
             time.sleep(0.2)
             if (self._shutdown and
                 self.pending_reviews.empty() and
                 self.pending_usefulness.empty() and
-                self.pending_reports.empty()):
+                self.pending_reports.empty() and
+                self.pending_modify.empty() and
+                self.pending_delete.empty()):
                 return
 
     # usefulness
@@ -208,6 +221,59 @@ class Worker(threading.Thread):
                 self._write_exception_html_log_if_needed(e)
                 self._transmit_state = TRANSMIT_STATE_ERROR
             self.pending_usefulness.task_done()
+    
+    #modify
+    def queue_modify(self, modification):
+        """ queue a new review modification request for sending to LP """
+        logging.debug("queue_modify %s %s" % modification)
+        self.pending_modify.put(modification)
+
+    def _submit_modify_if_pending(self):
+        """ the actual modify function """
+        while not self.pending_modify.empty():
+            logging.debug("_modify_review")
+            self._transmit_state = TRANSMIT_STATE_INPROGRESS
+            (review_id, review) = self.pending_modify.get()
+            summary = review['summary']
+            review_text = review['review_text']
+            rating = review['rating']
+            try:
+                res = self.rnrclient.modify_review(review_id=review_id, 
+                                                   summary=summary,
+                                                   review_text=review_text,
+                                                   rating=rating)
+                self._transmit_state = TRANSMIT_STATE_DONE
+                sys.stdout.write(simplejson.dumps(vars(res)))
+            except Exception as e:
+                logging.exception("modify_review")
+                err_str = self._get_error_messages(e)
+                self._write_exception_html_log_if_needed(e)
+                self._transmit_state = TRANSMIT_STATE_ERROR
+                self._transmit_error_str = err_str
+            self.pending_modify.task_done() 
+                       
+    #delete
+    def queue_delete(self, deletion):
+        """ queue a new deletion request for sending to LP """
+        logging.debug("queue_delete review id: %s" % deletion)
+        self.pending_delete.put(deletion)
+    
+    def _submit_delete_if_pending(self):
+        """ the actual deletion """
+        while not self.pending_delete.empty():
+            logging.debug("POST delete")
+            self._transmit_state = TRANSMIT_STATE_INPROGRESS
+            review_id = self.pending_delete.get()
+            try:
+                res = self.rnrclient.delete_review(review_id=review_id)
+                self._transmit_state = TRANSMIT_STATE_DONE
+                sys.stdout.write(simplejson.dumps(res))
+            except Exception as e:
+                logging.exception("delete_review failed")
+                self._write_exception_html_log_if_needed(e)
+                self._transmit_error_str = _("Failed to delete review")
+                self._transmit_state = TRANSMIT_STATE_ERROR
+            self.pending_delete.task_done()
 
     # reports
     def queue_report(self, report):
@@ -286,6 +352,7 @@ class Worker(threading.Thread):
             self.pending_reviews.task_done()
     
     def _get_error_messages(self, e):
+        logging.warn(e.body)
         if type(e) is piston_mini_client.APIError:
             try:
                 error_msg = simplejson.loads(e.body)['errors']
@@ -323,7 +390,7 @@ class BaseApp(SimpleGtkbuilderApp):
 
     def __init__(self, datadir, uifile):
         SimpleGtkbuilderApp.__init__(
-            self, os.path.join(datadir,"ui",uifile), "software-center")
+            self, os.path.join(datadir,"ui/gtk",uifile), "software-center")
         # generic data
         # see bug #773214 for the rational
         #self.appname = _("Ubuntu Software Center")
@@ -351,6 +418,9 @@ class BaseApp(SimpleGtkbuilderApp):
         #submit success image
         self.submit_success_img = gtk.Image()
         self.submit_success_img.set_from_stock(gtk.STOCK_APPLY,  gtk.ICON_SIZE_SMALL_TOOLBAR)
+        #submit warn image
+        self.submit_warn_img = gtk.Image()
+        self.submit_warn_img.set_from_stock(gtk.STOCK_DIALOG_INFO,  gtk.ICON_SIZE_SMALL_TOOLBAR)
         #label size to prevent image or spinner from resizing
         self.label_transmit_status.set_size_request(-1, gtk.icon_size_lookup(gtk.ICON_SIZE_SMALL_TOOLBAR)[1])
 
@@ -473,6 +543,8 @@ class BaseApp(SimpleGtkbuilderApp):
         """method to separate the updating of status icon/spinner and message in the submit review window,
          takes a type (progress, fail, success) as a string and a message string then updates status area accordingly"""
         self._clear_status_imagery()
+        self.label_transmit_status.set_text("")
+        
         if type == "progress":
             self.status_hbox.pack_start(self.submit_spinner, False)
             self.status_hbox.reorder_child(self.submit_spinner, 0)
@@ -490,6 +562,11 @@ class BaseApp(SimpleGtkbuilderApp):
             self.status_hbox.pack_start(self.submit_success_img, False)
             self.status_hbox.reorder_child(self.submit_success_img, 0)
             self.submit_success_img.show()
+            self.label_transmit_status.set_text(message)
+        elif type == "warning":
+            self.status_hbox.pack_start(self.submit_warn_img, False)
+            self.status_hbox.reorder_child(self.submit_warn_img, 0)
+            self.submit_warn_img.show()
             self.label_transmit_status.set_text(message)
 
     def _clear_status_imagery(self):
@@ -515,12 +592,17 @@ class BaseApp(SimpleGtkbuilderApp):
         except TypeError:
             pass
         
-        return
+        try: 
+            self.status_hbox.query_child_packing(self.submit_warn_img)
+            self.status_hbox.remove(self.submit_warn_img)
+        except TypeError:
+            pass
         
+        return
+
 
 class SubmitReviewsApp(BaseApp):
     """ review a given application or package """
-
 
     STAR_SIZE = (32, 32)
     APP_ICON_SIZE = 48
@@ -533,8 +615,9 @@ class SubmitReviewsApp(BaseApp):
     ERROR_COLOUR = "FF0000"
     SUBMIT_MESSAGE = _("Submitting Review")
     FAILURE_MESSAGE = _("Failed to submit review")
+    SUCCESS_MESSAGE = _("Review submitted")
 
-    def __init__(self, app, version, iconname, origin, parent_xid, datadir):
+    def __init__(self, app, version, iconname, origin, parent_xid, datadir, action="submit", review_id=0):
         BaseApp.__init__(self, datadir, "submit_review.ui")
         self.datadir = datadir
         # legal fineprint, do not change without consulting a lawyer
@@ -547,20 +630,6 @@ class SubmitReviewsApp(BaseApp):
         self.submit_window.connect("destroy", self.on_button_cancel_clicked)
         self._add_spellcheck_to_textview(self.textview_review)
 
-        # gwibber stuff
-        self.gwibber_combo = gtk.combo_box_new_text()
-        #cells = self.gwibber_combo.get_cells()
-        #cells[0].set_property("ellipsize", pango.ELLIPSIZE_END)
-        self.gwibber_hbox.pack_start(self.gwibber_combo, True)
-        if "SOFTWARE_CENTER_GWIBBER_MOCK_USERS" in os.environ:
-            self.gwibber_helper = GwibberHelperMock()
-        else:
-            self.gwibber_helper = GwibberHelper()
-        
-        #get a dict with a saved gwibber_send (boolean) and gwibber account_id for persistent state
-        self.gwibber_prefs = self._get_gwibber_prefs()
-
-        # interactive star rating
         self.star_rating = StarRatingSelector(0, star_size=self.STAR_SIZE)
         self.star_caption = StarCaption()
 
@@ -574,25 +643,20 @@ class SubmitReviewsApp(BaseApp):
         self.rating_hbox.reorder_child(self.star_caption, 1)
 
         self.review_buffer = self.textview_review.get_buffer()
-        
-        self.detail_expander.hide()
 
+        self.detail_expander.hide()
+        
+        self.retrieve_api = RatingsAndReviewsAPI()
+
+        
         # data
         self.app = app
         self.version = version
         self.origin = origin
         self.iconname = iconname
+        self.action = action
+        self.review_id = int(review_id)
         
-        # title
-        self.submit_window.set_title(_("Review %s") % self.app.name)
-
-        self.review_summary_entry.connect('changed', self._on_mandatory_text_entry_changed)
-        self.star_rating.connect('changed', self._on_mandatory_fields_changed)
-        self.review_buffer.connect('changed', self._on_text_entry_changed)
-        
-        # gwibber stuff
-        self._setup_gwibber_gui()
-
         # parent xid
         if parent_xid:
             win = gtk.gdk.window_foreign_new(int(parent_xid))
@@ -601,6 +665,63 @@ class SubmitReviewsApp(BaseApp):
                 self.submit_window.window.set_transient_for(win)
 
         self.submit_window.set_position(gtk.WIN_POS_MOUSE)
+        
+        self.review_summary_entry.connect('changed', self._on_mandatory_text_entry_changed)
+        self.star_rating.connect('changed', self._on_mandatory_fields_changed)
+        self.review_buffer.connect('changed', self._on_text_entry_changed)
+        
+        # gwibber stuff
+        self.gwibber_combo = gtk.combo_box_new_text()
+        #cells = self.gwibber_combo.get_cells()
+        #cells[0].set_property("ellipsize", pango.ELLIPSIZE_END)
+        self.gwibber_hbox.pack_start(self.gwibber_combo, True)
+        if "SOFTWARE_CENTER_GWIBBER_MOCK_USERS" in os.environ:
+            self.gwibber_helper = GwibberHelperMock()
+        else:
+            self.gwibber_helper = GwibberHelper()
+        
+        #get a dict with a saved gwibber_send (boolean) and gwibber account_id for persistent state
+        self.gwibber_prefs = self._get_gwibber_prefs()
+        
+        # gwibber stuff
+        self._setup_gwibber_gui()
+
+        #now setup rest of app based on whether submit or modify
+        if self.action == "submit":
+            self._init_submit()
+        elif self.action == "modify":
+            self._init_modify()
+
+    def _init_submit(self):
+        self.submit_window.set_title(_("Review %s" % self.app.name))
+    
+    def _init_modify(self):
+        self._populate_review()
+        self.submit_window.set_title(_("Modify Your %s Review" % self.app.name))
+        self.button_post.set_label(_("Modify"))
+        self.SUBMIT_MESSAGE = _("Updating your review")
+        self.FAILURE_MESSAGE = _("Failed to edit review")
+        self.SUCCESS_MESSAGE = _("Review updated")
+        self._enable_or_disable_post_button()
+    
+    def _populate_review(self):
+        try:
+            review_data = self.retrieve_api.get_review(review_id=self.review_id)
+            app = Application(pkgname=review_data.package_name)
+            self.app = app
+            self.review_summary_entry.set_text(review_data.summary)
+            self.star_rating.set_rating(review_data.rating)
+            self.review_buffer.set_text(review_data.review_text)
+            #save original review field data, for comparison purposes when user makes changes to fields
+            self.orig_summary_text = review_data.summary
+            self.orig_star_rating = review_data.rating
+            self.orig_review_text = review_data.review_text
+            self.version = review_data.version
+            self.origin = review_data.origin
+            return  
+        except piston_mini_client.APIError:
+            logging.warn('Unable to retrieve review id %s for editing. Exiting' % self.review_id)
+            self.quit(2)
 
     def _setup_details(self, widget, app, iconname, version, display_name):
         # icon shazam
@@ -655,8 +776,41 @@ class SubmitReviewsApp(BaseApp):
             review_chars and review_chars <= self.REVIEW_CHAR_LIMITS[0] and
             self.star_rating.get_rating()):
             self.button_post.set_sensitive(True)
+            self._change_status("clear", "")
         else:
             self.button_post.set_sensitive(False)
+            self._change_status("clear", "")
+        
+        #set post button insensitive, if review being modified is the same as what is currently in the UI fields
+        #checks if 'original' review attributes exist to avoid exceptions when this method has been called prior to review being retrieved  
+        if self.action == 'modify' and hasattr(self, "orig_star_rating"):
+            if self._modify_review_is_the_same():
+                self.button_post.set_sensitive(False)
+                self._change_status("warning", _("Can't submit unmodified"))
+            else:
+                self._change_status("clear", "")
+    
+    def _modify_review_is_the_same(self):
+        '''checks if review fields are the same as the review being modified and returns true if so'''
+        
+        #perform an initial check on character counts to return False if any don't match, avoids doing unnecessary string comparisons
+        if (self.review_summary_entry.get_text_length() != len(self.orig_summary_text) or
+           self.review_buffer.get_char_count() != len(self.orig_review_text)):
+            return False
+        #compare rating
+        if self.star_rating.get_rating() != self.orig_star_rating:
+            return False
+        #compare summary text
+        if self.review_summary_entry.get_text() != self.orig_summary_text:
+            return False
+        #compare review text
+        if self.review_buffer.get_text(self.review_buffer.get_start_iter(),
+                                           self.review_buffer.get_end_iter()) != self.orig_review_text:
+            return False
+        return True
+        
+            
+            
     
     def _check_summary_character_count(self):
         summary_chars = self.review_summary_entry.get_text_length()
@@ -738,7 +892,14 @@ class SubmitReviewsApp(BaseApp):
         review.rating = self.star_rating.get_rating()
         review.package_version = self.version
         review.origin = self.origin
-        self.api.submit_review(review)
+        
+        if self.action == "submit":
+            self.api.submit_review(review)
+        elif self.action == "modify":
+            changes = {'review_text':review.text,
+                       'summary':review.summary,
+                       'rating':review.rating}
+            self.api.modify_review(self.review_id, changes)
 
     def login_successful(self, display_name):
         self.main_notebook.set_current_page(1)
@@ -888,7 +1049,7 @@ class SubmitReviewsApp(BaseApp):
     
     def _success_status(self):
         """Updates status area to show success for 2 seconds then allows window to proceed"""
-        self._change_status("success", _("Review submitted."))
+        self._change_status("success", self.SUCCESS_MESSAGE)
         while gtk.events_pending():
             gtk.main_iteration(False)
         time.sleep(2)
@@ -996,7 +1157,6 @@ class ReportReviewApp(BaseApp):
         self.textview_report.get_buffer().connect(
             "changed", self._enable_or_disable_report_button)
 
-
         # data
         self.review_id = review_id
 
@@ -1098,7 +1258,7 @@ class SubmitUsefulnessApp(BaseApp):
         self.api.submit_usefulness(self.review_id, self.is_useful)
     
     def on_transmit_failure(self, api, trans, error):
-        print "exiting - error: %s" % error
+        logging.warn("exiting - error: %s" % error)
         self.api.shutdown()
         self.quit(2)
 
@@ -1107,7 +1267,7 @@ class SubmitUsefulnessApp(BaseApp):
     # stub ui that can be useful for testing
     def run(self):
         self.login()
-    
+        
     # override UI update methods from BaseApp to prevent them 
     # causing errors if called when UI is hidden
     def _clear_status_imagery(self):
@@ -1115,10 +1275,50 @@ class SubmitUsefulnessApp(BaseApp):
     
     def _change_status(self, type, message):
         pass
+
+class DeleteReviewApp(BaseApp):
+    SUBMIT_MESSAGE = _(u"Deleting review\u2026")
+    FAILURE_MESSAGE = _("Failed to delete review")
     
+    def __init__(self, review_id, parent_xid, datadir):
+        # uses same UI as submit usefulness because 
+        # (a) it isn't shown and (b) it's similar in usage
+        BaseApp.__init__(self, datadir, "submit_usefulness.ui")
+        # data
+        self.review_id = review_id
+        # no UI except for error conditions
+        self.parent_xid = parent_xid
+
+    # override behavior of baseapp here as we don't actually
+    # have a UI by default
+    def _get_parent_xid_for_login_window(self):
+        return self.parent_xid
+
+    def login_successful(self, display_name):
+        logging.debug("delete review")
+        self.main_notebook.set_current_page(1)
+        self.api.delete_review(self.review_id)    
+    
+    def on_transmit_failure(self, api, trans, error):
+        logging.warn("exiting - error: %s" % error)
+        self.api.shutdown()
+        self.quit(2)
+
+    # override parents run to only trigger login (and subsequent
+    # events) but no UI, if this is commented out, there is some
+    # stub ui that can be useful for testing
+    def run(self):
+        self.login()
+        
+    # override UI update methods from BaseApp to prevent them 
+    # causing errors if called when UI is hidden
+    def _clear_status_imagery(self):
+        pass
+    
+    def _change_status(self, type, message):
+        pass
 
 if __name__ == "__main__":
-
     try:
         locale.setlocale(locale.LC_ALL, "")
     except:
@@ -1128,7 +1328,7 @@ if __name__ == "__main__":
     gettext.bindtextdomain("software-center", "/usr/share/locale")
     gettext.textdomain("software-center")
 
-    if os.path.exists("./data/ui/reviews.ui"):
+    if os.path.exists("./data/ui/gtk/reviews.ui"):
         default_datadir = "./data"
     else:
         default_datadir = "/usr/share/software-center/"
@@ -1220,6 +1420,59 @@ if __name__ == "__main__":
                                          parent_xid=options.parent_xid,
                                          is_useful=int(options.is_useful))
         usefulness_app.run()
+    
+    if "delete_review" in sys.argv[0]:
+        #check options
+        parser.add_option("", "--review-id")
+        parser.add_option("", "--parent-xid")
+        parser.add_option("", "--debug",
+                          action="store_true", default=False)
+        (options, args) = parser.parse_args()
+        
+        if not (options.review_id):
+            parser.error(_("Missing review-id argument"))
+    
+        if options.debug:
+            logging.basicConfig(level=logging.DEBUG)
+        
+        logging.debug("delete review mode")
+        
+        delete_app = DeleteReviewApp(datadir=options.datadir,
+                                    review_id=options.review_id,
+                                    parent_xid=options.parent_xid)
+        delete_app.run()
 
+    if "modify_review" in sys.argv[0]:
+            # check options
+        parser.add_option("", "--review-id")
+        parser.add_option("-i", "--iconname")
+        parser.add_option("", "--parent-xid")
+        parser.add_option("", "--debug",
+                          action="store_true", default=False)
+        (options, args) = parser.parse_args()
+
+        if not (options.review_id):
+            parser.error(_("Missing review-id argument"))
+    
+        if options.debug:
+            logging.basicConfig(level=logging.DEBUG)
+
+        # personality
+        logging.debug("modify_review mode")
+
+        # initialize and run
+        modify_app = SubmitReviewsApp(datadir=options.datadir,
+                                      app=None, 
+                                      parent_xid=options.parent_xid,
+                                      iconname=options.iconname,
+                                      origin=None,
+                                      version=None,
+                                    action="modify",
+                                    review_id=options.review_id
+                                    )
+
+        modify_app.run()
+
+        
     # main
     gtk.main()
