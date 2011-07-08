@@ -1281,9 +1281,14 @@ class TestIt:
         win.show_all()
 
         win.connect('destroy', Gtk.main_quit)
-        return
+        self.win = win
+        self.win.pb = pb
+
+def get_test_pathbar_window():
+    t = TestIt()
+    return t.win
 
 if __name__ == '__main__':
-    TestIt()
+    win = get_test_pathbar_window()
     Gtk.main()
 

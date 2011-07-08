@@ -17,6 +17,8 @@ from softwarecenter.ui.gtk3.widgets.backforward import get_test_backforward_wind
 from softwarecenter.ui.gtk3.widgets.containers import get_test_container_window
 from softwarecenter.ui.gtk3.widgets.description import get_test_description_window
 from softwarecenter.ui.gtk3.widgets.imagedialog import SimpleShowImageDialog
+from softwarecenter.ui.gtk3.widgets.pathbar import get_test_pathbar_window, PathPart
+
 
 # window destory timeout
 TIMEOUT=100
@@ -67,6 +69,14 @@ class TestStars(unittest.TestCase):
         d = SimpleShowImageDialog("test caption", pix)
         GObject.timeout_add(TIMEOUT, lambda: d.destroy())
         d.run()
+
+    def test_show_image_dialog(self):
+        win = get_test_pathbar_window()
+        win.pb.append(PathPart("foo1"))
+        win.pb.append(PathPart("foo2"))
+        win.pb.pop()
+        GObject.timeout_add(TIMEOUT, lambda: win.destroy())
+        Gtk.main()
 
 
 if __name__ == "__main__":
