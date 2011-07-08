@@ -19,8 +19,7 @@ class TestPkgInfoAptCache(unittest.TestCase):
         self.pkginfo.open()
 
     def test_pkg_version(self):
-        pkginfo = get_pkg_info()
-        pkginfo.open()
+        pkginfo = self.pkginfo
 
         pkg = pkginfo['coreutils']
         self.assertTrue(isinstance(pkg, _Package))
@@ -63,8 +62,8 @@ class TestPkgInfoAptCache(unittest.TestCase):
         self.assertTrue(len(self.pkginfo.get_origins("firefox")) > 0)
 
     def test_addons(self):
-        self.assertTrue(len(self.pkginfo.get_addons("firefox")) > 0)
         pkginfo = self.pkginfo
+        self.assertTrue(len(pkginfo.get_addons("firefox")) > 0)
         pkg = pkginfo['coreutils']
         self.assertTrue(len(pkginfo.get_packages_removed_on_remove(pkg)) != 0)
         self.assertTrue(len(pkginfo.get_packages_removed_on_install(pkg)) == 0)

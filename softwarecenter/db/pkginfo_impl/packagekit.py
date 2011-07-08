@@ -20,32 +20,45 @@ from gi.repository import PackageKitGlib as packagekit
 import gobject
 import logging
 
-from softwarecenter.db.pkginfo import PackageInfo, _Package
+from softwarecenter.db.pkginfo import PackageInfo, _Version
 
-class Version:
-    def __init__(self, package):
+class FakeOrigin:
+    def __init__(self, name):
+        self.origin = name
+        self.trusted = True
+        self.component = ''
+        self.site = ''
+        self.label = ''
+        self.archive = ''
+
+class PackagekitVersion(_Version):
+    def __init__(self, package, pkginfo):
         self.package = package
-
-    @property
-    def version(self):
-        return self.package.get_version()
+        self.pkginfo = pkginfo
 
     @property
     def description(self):
-        # FIXME get description from parent package or pk_client_get_details
-        return self.package.get_property('description')
+        pkgid = self.package.get_id()
+        return self.pkginfo.get_description(pkgid)
 
+    @property
+    def downloadable(self):
+        return True #FIXME: check for an equivalent
     @property
     def summary(self):
         return self.package.get_property('summary')
-
+    @property
+    def size(self):
+        return self.pkginfo.get_size(self.package.get_name())
     @property
     def installed_size(self):
-        return 0 # FIXME get installed size from packagekit
-
+        return 0 #FIXME get installed_size
+    @property
+    def version(self):
+        return self.package.get_version()
     @property
     def origins(self):
-        return []
+        return self.pkginfo.get_origins(self.package.get_name())
 
 class PackagekitInfo(PackageInfo):
     def __init__(self):
@@ -69,14 +82,14 @@ class PackagekitInfo(PackageInfo):
     def get_installed(self, pkgname):
         p = self._get_one_package(pkgname)
         if p.get_info() == packagekit.InfoEnum.INSTALLED:
-            return Version(p) if p else None
+            return PackagekitVersion(p, self) if p else None
 
     def get_candidate(self, pkgname):
         p = self._get_one_package(pkgname, pfilter=packagekit.FilterEnum.NEWEST)
-        return Version(p) if p else None
+        return PackagekitVersion(p, self) if p else None
 
     def get_versions(self, pkgname):
-        return self._get_packages(pkgname)
+        return [PackagekitVersion(p, self) for p in self._get_packages(pkgname)]
 
     def get_section(self, pkgname):
         # FIXME: things are fuzzy here - group-section association
@@ -88,12 +101,15 @@ class PackagekitInfo(PackageInfo):
         p = self._get_one_package(pkgname)
         return p.get_property('summary') if p else ''
 
-    def get_description(self, pkgname):
-        p = self._get_one_package(pkgname)
+    def get_description(self, packageid):
+        p = self._get_package_details(packageid)
         return p.get_property('description') if p else ''
 
     def get_website(self, pkgname):
         p = self._get_one_package(pkgname)
+        if not p:
+            return ''
+        p = self._get_package_details(p.get_id())
         return p.get_property('url') if p else ''
 
     def get_installed_files(self, pkgname):
@@ -102,6 +118,9 @@ class PackagekitInfo(PackageInfo):
 
     def get_size(self, pkgname):
         p = self._get_one_package(pkgname)
+        if not p:
+            return -1
+        p = self._get_package_details(p.get_id())
         return p.get_property('size') if p else -1
 
     def get_installed_size(self, pkgname):
@@ -110,7 +129,7 @@ class PackagekitInfo(PackageInfo):
 
     def get_origins(self, pkgname):
         # FIXME something
-        return []
+        return [FakeOrigin('unknown')]
 
     def get_addons(self, pkgname, ignore_installed=True):
         # FIXME
@@ -143,8 +162,18 @@ class PackagekitInfo(PackageInfo):
         return True
 
     """ private methods """
+    def _get_package_details(self, packageid, cache=True):
+        if (packageid in self._cache.keys()) and cache:
+            return self._cache[packageid]
+
+        result = self.client.get_details((packageid,), None, self._on_progress_changed, None)
+        pkgs = result.get_details_array()
+        if not pkgs:
+            return None
+        self._cache[packageid] = pkgs[0]
+        return pkgs[0]
+            
     def _get_one_package(self, pkgname, pfilter=packagekit.FilterEnum.NONE, cache=True):
-        logging.debug('get_one_package ' + pkgname)
         if (pkgname in self._cache.keys()) and cache:
             return self._cache[pkgname]
         ps = self._get_packages(pkgname, pfilter)
