@@ -9,7 +9,13 @@ software-center (4.1.9) UNRELEASED; urgency=low
     item network state bugs, many thanks to Robert Roth
     (LP: #802919, LP: #802920)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 07 Jul 2011 12:02:13 -0400
+  [ Aaron Peachey ]
+  * softwarecenter/backend/reviews.py, 
+    softwarecenter/backend/spawn_helper.py:
+    - correct modify/delete UI callback behaviour with
+      new spawn helper and pagination code (LP: #807010)
+
+ -- Aaron Peachey <alpeachey@gmail.com>  Fri, 08 Jul 2011 23:00:47 +1000
 
 software-center (4.1.8) oneiric; urgency=low
 
