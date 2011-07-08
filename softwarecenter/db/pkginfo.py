@@ -18,6 +18,29 @@
 
 import gobject
 
+class _Version:
+    @property
+    def description(self):
+        pass
+    @property
+    def downloadable(self):
+        pass
+    @property
+    def summary(self):
+        pass
+    @property
+    def size(self):
+        return self.pkginfo.get_size(self.name)
+    @property
+    def installed_size(self):
+        return 0
+    @property
+    def version(self):
+        pass
+    @property
+    def origins(self):
+        return []
+
 class _Package:
     def __init__(self, name, pkginfo):
         self.name = name
@@ -25,15 +48,17 @@ class _Package:
 
     @property
     def installed(self):
+        """ returns a _Version object """
         if not self.pkginfo.is_installed(self.name):
             return None
         return self.pkginfo.get_installed(self.name)
     @property
     def candidate(self):
+        """ returns a _Version object """
         return self.pkginfo.get_candidate(self.name)
     @property
     def versions(self):
-        """ a list of available versions to install """
+        """ a list of available versions (as _Version) to install """
         return self.pkginfo.get_versions(self.name)
 
     @property
@@ -43,26 +68,11 @@ class _Package:
     def section(self):
         return self.pkginfo.get_section(self.name)
     @property
-    def summary(self):
-        return self.pkginfo.get_summary(self.name)
-    @property
-    def description(self):
-        return self.pkginfo.get_description(self.name)
-    @property
     def website(self):
         return self.pkginfo.get_website(self.name)
     @property
     def installed_files(self):
         return self.pkginfo.get_installed_files(self.name)
-    @property
-    def size(self):
-        return self.pkginfo.get_size(self.name)
-    @property
-    def installed_size(self):
-        return self.pkginfo.get_installed_size(self.name)
-    @property
-    def origins(self):
-        return self.pkginfo.get_origins(self.name)
 
 class PackageInfo(gobject.GObject):
     """ abstract interface for the packageinfo information """

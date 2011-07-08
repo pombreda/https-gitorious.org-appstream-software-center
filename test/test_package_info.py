@@ -6,12 +6,31 @@ sys.path.insert(0,"../")
 import logging
 import unittest
 
-from softwarecenter.db.pkginfo import get_pkg_info
+from softwarecenter.db.pkginfo import get_pkg_info, _Package, _Version
 
 class TestPkgInfo(unittest.TestCase):
 
     def setUp(self):
         pass
+
+    def test_pkg_version(self):
+        pkginfo = get_pkg_info()
+        pkginfo.open()
+
+        pkg = pkginfo['coreutils']
+        self.assertTrue(isinstance(pkg, _Package))
+        self.assertTrue(pkg.is_installed)
+        self.assertTrue(isinstance(pkg.installed, _Version))
+        self.assertTrue(isinstance(pkg.candidate, _Version))
+
+        self.assertNotEqual(len(pkg.installed.origins), 0)
+        self.assertNotEqual(len(pkg.installed.summary), '')
+        self.assertNotEqual(len(pkg.installed.description), '')
+        self.assertNotEqual(pkg.installed.size, 0)
+        self.assertNotEqual(pkg.installed.installed_size, 0)
+
+        for v in pkg.versions:
+            self.assertTrue(isinstance(v, _Version))
 
     def test_pkg_info(self):
         pkginfo = get_pkg_info()
@@ -34,14 +53,9 @@ class TestPkgInfo(unittest.TestCase):
         self.assertTrue(len(pkginfo.get_packages_removed_on_install(pkg)) == 0)
         self.assertTrue(pkg is not None)
         self.assertTrue(pkg.is_installed)
-        self.assertTrue(len(pkg.origins) != 0)
         self.assertTrue(len(pkg.versions) != 0)
         self.assertEqual(pkg.section, "utils")
-        self.assertNotEqual(pkg.summary, '')
-        self.assertNotEqual(pkg.description, '')
         self.assertEqual(pkg.website, 'http://gnu.org/software/coreutils')
-        self.assertNotEqual(pkg.size, 0)
-        self.assertNotEqual(pkg.installed_size, 0)
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)

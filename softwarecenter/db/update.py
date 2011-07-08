@@ -685,7 +685,7 @@ def index_app_info_from_parser(parser, db, cache):
             if s != name:
                 doc.add_value(XapianValues.SUMMARY, s)
         elif pkgname in cache and cache[pkgname].candidate:
-            s = cache[pkgname].summary
+            s = cache[pkgname].candidate.summary
             doc.add_value(XapianValues.SUMMARY, s)
 
         # add packagename as meta-data too
@@ -707,9 +707,9 @@ def index_app_info_from_parser(parser, db, cache):
             term_generator.index_text_without_positions(s, w)
         # add data from the apt cache
         if pkgname in cache and cache[pkgname].candidate:
-            s = cache[pkgname].summary
+            s = cache[pkgname].candidate.summary
             term_generator.index_text_without_positions(s, WEIGHT_APT_SUMMARY)
-            s = cache[pkgname].description
+            s = cache[pkgname].candidate.description
             term_generator.index_text_without_positions(s, WEIGHT_APT_DESCRIPTION)
             for origin in cache[pkgname].candidate.origins:
                 doc.add_term("XOA"+origin.archive)
