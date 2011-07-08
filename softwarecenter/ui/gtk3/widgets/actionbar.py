@@ -99,7 +99,7 @@ class ActionBar(Gtk.HBox):
             if child.id == id:
                 # lock the height of the action bar when removing buttons to prevent
                 # an unsightly resize if a label remains but all buttons are removed
-                self.set_size_request(-1, self.allocation.height)
+                self.set_size_request(-1, self.get_allocation().height)
                 self._btns.remove(child)
                 if len(children) == 1 and not len(self._label):
                     # always animate with buttons
@@ -253,7 +253,7 @@ class ActionBar(Gtk.HBox):
     def _slide_out(self):
         self._is_sliding_out = True
         self._target_height = 0
-        self._current_height = self.size_request()[1]
+        self._current_height = self.get_size_request()[1]
         GObject.timeout_add(self.ANIMATE_START_DELAY,
                             self._slide_out_cb)
         return
@@ -284,13 +284,17 @@ class ActionBar(Gtk.HBox):
         return
     
     def _on_size_allocate(self, widget, allocation):
+        # FIXME: mvo: allocation.height is no longer accessable with gtk3
+        #        THIS SEEMS TO BREAK THE ANIMATION
+        #height = allocation.height
+        height = widget.get_allocation().height
         if self._is_sliding_in:
-            self._current_height = allocation.height
+            self._current_height = height
             GObject.timeout_add(self.ANIMATE_STEP_INTERVAL,
                                 self._slide_in_cb,
                                 priority=100)
         elif self._is_sliding_out:
-            self._current_height = allocation.height
+            self._current_height = height
             GObject.timeout_add(self.ANIMATE_STEP_INTERVAL,
                                 self._slide_out_cb,
                                 priority=100)
@@ -367,7 +371,7 @@ if __name__ == "__main__":
     win.add(box)
     box.pack_start(control_box, False, True, 0)
     box.pack_start(tree, True, True, 0)
-    box.pack_start(bar, expand=False, padding=5)
+    box.pack_start(bar, False, True, 5)
     win.connect("destroy", Gtk.main_quit)
     win.show_all()
 

@@ -10,6 +10,8 @@ import unittest
 sys.path.insert(0,"../..")
 
 from softwarecenter.ui.gtk3.widgets.stars import get_test_stars_window
+from softwarecenter.ui.gtk3.widgets.actionbar import ActionBar
+from mock import Mock
 
 class TestStars(unittest.TestCase):
     """ tests the stars widget """
@@ -19,6 +21,22 @@ class TestStars(unittest.TestCase):
         win.show_all()
         glib.timeout_add_seconds(1, lambda: win.destroy())
         Gtk.main()
+
+    def test_actionbar(self):
+        mock = Mock()
+        actionbar = ActionBar()
+        actionbar.add_button("id1", "label", mock)
+        actionbar.add_button("id2", "label", mock)
+        actionbar.remove_button("id2")
+        actionbar.remove_button("id1")
+        win = Gtk.Window()
+        win.set_size_request(400, 400)
+        win.add(actionbar)
+        win.connect("destroy", Gtk.main_quit)
+        win.show_all()
+        glib.timeout_add_seconds(1, lambda: win.destroy())
+        Gtk.main()
+        
 
     # helper
     def _p(self):
