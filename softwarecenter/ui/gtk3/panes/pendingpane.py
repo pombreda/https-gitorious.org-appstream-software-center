@@ -17,10 +17,9 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import dbus
-import glib
 import logging
 from gettext import gettext as _
-from gi.repository import Gtk, GObject, GdkPixbuf
+from gi.repository import Gtk
 
 from basepane import BasePane
 from softwarecenter.ui.gtk3.em import StockEms

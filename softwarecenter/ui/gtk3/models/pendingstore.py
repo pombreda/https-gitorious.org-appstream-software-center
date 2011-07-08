@@ -1,16 +1,8 @@
-import apt_pkg
 
 from gi.repository import Gtk, GdkPixbuf
 from gi.repository import GObject
 
 import logging
-
-import aptdaemon.client
-from aptdaemon.enums import (get_role_localised_present_from_enum,
-                             get_status_string_from_enum,
-                             STATUS_WAITING_LOCK,
-                             STATUS_DOWNLOADING,
-                             )
 
 from softwarecenter.utils import get_icon_from_theme, size_to_str
 from softwarecenter.backend import get_install_backend
