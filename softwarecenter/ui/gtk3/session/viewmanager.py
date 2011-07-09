@@ -125,7 +125,6 @@ class ViewManager(object):
                                   view_state.copy(), callback)
 
         self.navhistory.append(nav_item)
-
         pane.state = view_state
 
         text = view_state.search_term
@@ -134,6 +133,8 @@ class ViewManager(object):
 
         if callback is not None:
             callback(page, view_state)
+
+        print page, callback
 
         if page is not None:
             pane.notebook.set_current_page(page)

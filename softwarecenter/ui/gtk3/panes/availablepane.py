@@ -360,7 +360,7 @@ class AvailablePane(SoftwarePane):
         self.backend.install_multiple(pkgnames, appnames, iconnames)
 
     def get_app_items_limit(self):
-        if self.apps_search_term:
+        if self.state.search_term:
             return DEFAULT_SEARCH_LIMIT
         elif self.state.category and self.state.category.item_limit > 0:
             return self.state.category.item_limit
@@ -410,8 +410,26 @@ class AvailablePane(SoftwarePane):
         LOG.debug("on_search_terms_changed: %s" % new_text)
 
         self.state.search_term = new_text
-
         vm = get_viewmanager()
+
+        # yeah for special cases - as discussed on irc, mpt
+        # wants this to return to the category screen *if*
+        # we are searching but we are not in any category
+        if not self.state.category and not new_text:
+            # category activate will clear search etc
+            self.state.reset()
+            vm.display_page(self,
+                           AvailablePages.LOBBY,
+                           self.state,
+                           self.display_lobby_page)
+            return False
+        elif (self.state.category and 
+                self.state.category.subcategories and not new_text):
+            vm.display_page(self,
+                           AvailablePages.SUBCATEGORY,
+                           self.state,
+                           self.display_subcategory_page)
+            return False
         vm.display_page(self, AvailablePages.LIST, self.state, self.display_search_page)
 
     def on_db_reopen(self, db):
@@ -454,29 +472,6 @@ class AvailablePane(SoftwarePane):
             #~ return
 
         new_text = view_state.search_term
-        if new_text != self.searchentry.get_text():
-            self.searchentry.set_text_with_no_signal(new_text)
-
-        # yeah for special cases - as discussed on irc, mpt
-        # wants this to return to the category screen *if*
-        # we are searching but we are not in any category
-        if not self.state.category and not new_text:
-            # category activate will clear search etc
-            vm = get_viewmanager()
-            self.state.reset()
-            vm.display_page(self,
-                           AvailablePages.LOBBY,
-                           self.state,
-                           self.display_lobby_page)
-            return False
-        elif (self.state.category and 
-                self.state.category.subcategories and not new_text):
-            vm = get_viewmanager()
-            vm.display_page(self,
-                           AvailablePages.SUBCATEGORY,
-                           self.state,
-                           self.display_subcategory_page)
-            return False
         # DTRT if the search is reseted
         if not new_text:
             self._clear_search()

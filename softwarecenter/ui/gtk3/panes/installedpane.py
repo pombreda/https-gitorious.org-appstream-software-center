@@ -103,7 +103,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         SoftwarePane.init_view(self)
         print 'initing stuff'
 
-        self.label_app_list_header.set_no_show_all(True)
+        #~ self.label_app_list_header.set_no_show_all(True)
         self.notebook.append_page(self.box_app_list, Gtk.Label(label="installed"))
 
         # details

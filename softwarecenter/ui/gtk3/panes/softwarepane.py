@@ -47,6 +47,7 @@ from softwarecenter.ui.gtk3.models.appstore2 import AppListStore, AppEnquire
 from softwarecenter.ui.gtk3.session.viewmanager import get_viewmanager
 from softwarecenter.ui.gtk3.widgets.actionbar import ActionBar
 from softwarecenter.ui.gtk3.widgets.spinner import SpinnerView
+from softwarecenter.ui.gtk3.widgets.searchaid import SearchAid
 
 from softwarecenter.ui.gtk3.views.appview import AppView
 from softwarecenter.ui.gtk3.views.appdetailsview_gtk import (
@@ -160,7 +161,6 @@ class SoftwarePane(Gtk.VBox, BasePane):
         # request (e.g. people click on ubuntu channel, get impatient, click
         # on partner channel)
         self.refresh_seq_nr = 0
-        self.state = DisplayState()
         # keep track of applications that are candidates to be added
         # to the Unity launcher
         self.unity_launcher_items = {}
@@ -199,13 +199,12 @@ class SoftwarePane(Gtk.VBox, BasePane):
         # common UI elements (applist and appdetails) 
         # its the job of the Child class to put it into a good location
         # list
-        self.label_app_list_header = Gtk.Label()
-        self.label_app_list_header.set_alignment(0.1, 0.5)
-        self.label_app_list_header.connect(
-            "activate-link", self._on_label_app_list_header_activate_link)
         self.box_app_list = Gtk.VBox()
-        self.box_app_list.pack_start(
-            self.label_app_list_header, False, False, 12)
+
+        # search aid
+        self.search_aid = SearchAid(self)
+        self.box_app_list.pack_start(self.search_aid, False, False, 0)
+
         self.app_view = AppView(self.icons, self.show_ratings)
         self.app_view.set_model(self.store)
 
@@ -252,6 +251,14 @@ class SoftwarePane(Gtk.VBox, BasePane):
         # db reopen
         if self.db:
             self.db.connect("reopen", self.on_db_reopen)
+
+        self.connect("draw", self.on_draw)
+
+    def on_draw(self, widget, cr):
+        cr.set_source_rgb(1,1,1)
+        cr.paint()
+        return
+
 
     def init_atk_name(self, widget, name):
         """ init the atk name for a given gtk widget based on parent-pane
@@ -492,7 +499,7 @@ class SoftwarePane(Gtk.VBox, BasePane):
            keeping track of the app-list-changed signals
         """
         self.update_show_hide_nonapps(length)
-        self.update_search_help()
+        self.search_aid.update_search_help(self.state)
         
     def update_show_hide_nonapps(self, length):
         """
