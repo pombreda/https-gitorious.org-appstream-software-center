@@ -6,8 +6,6 @@ import xapian
 
 from gettext import gettext as _
 
-from softwarecenter.db.application import Application
-from softwarecenter.ui.gtk3.drawing import color_floats
 from appview import AppViewFilter
 from softwarecenter.ui.gtk3.widgets.containers import FlowableGrid
 from softwarecenter.ui.gtk3.widgets.buttons import CategoryTile
@@ -99,14 +97,14 @@ class CategoriesViewGtk(Gtk.Viewport, CategoriesParser):
     def build(self, desktopdir):
         pass
 
-    def _on_app_clicked(self, btn):
-        app = btn.app
-        appname = app[AppStore.COL_APP_NAME]
-        pkgname = app[AppStore.COL_PKGNAME]
-        rating = app[AppStore.COL_RATING]
-        self.emit("application-selected", Application(appname, pkgname, "", rating))
-        self.emit("application-activated", Application(appname, pkgname, "", rating))
-        return False
+    #~ def _on_app_clicked(self, btn):
+        #~ app = btn.app
+        #~ appname = app[AppStore.COL_APP_NAME]
+        #~ pkgname = app[AppStore.COL_PKGNAME]
+        #~ rating = app[AppStore.COL_RATING]
+        #~ self.emit("application-selected", Application(appname, pkgname, "", rating))
+        #~ self.emit("application-activated", Application(appname, pkgname, "", rating))
+        #~ return False
 
     def _on_category_clicked(self, cat_btn, cat):
         """emit the category-selected signal when a category was clicked"""
@@ -228,25 +226,6 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         self.current_category = None
         self.departments = None
         return
-
-    def view_state_new(self, root_category):
-        return SubCatViewState(self, root_category)
-
-    def _on_expose(self, widget, event, alignment):
-        cr = widget.window.cairo_create()
-        cr.rectangle(alignment.allocation)
-        cr.clip_preserve()
-
-        color = color_floats(widget.style.light[0])
-
-        cr.rectangle(alignment.allocation)
-        cr.set_source_rgba(*color+(0.6,))
-        cr.fill()
-
-        # paint the section backdrop
-        if self.section: self.section.render(cr, self, alignment.allocation)
-
-        del cr
 
     def _append_subcat_departments(self, root_category, num_items):
         m = "<b><big>%s</big></b>"

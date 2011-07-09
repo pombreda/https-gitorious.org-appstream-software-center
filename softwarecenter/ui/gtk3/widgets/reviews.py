@@ -331,17 +331,7 @@ class UIReview(Gtk.VBox):
         self._allocation = None
 
         if review_data:
-            self.connect('realize',
-                         self._on_realize,
-                         review_data,
-                         app_version,
-                         logged_in_person,
-                         useful_votes)
-        return
-
-    def _on_realize(self, w, review_data, app_version, logged_in_person, useful_votes):
-        self._build(review_data, app_version, logged_in_person, useful_votes)
-        return
+            self._build(review_data, app_version, logged_in_person, useful_votes)
 
     def _on_allocate(self, widget, allocation, stars, summary, text, who_when, version_lbl, flag):
         return
@@ -700,24 +690,41 @@ class NoReviewYetWriteOne(EmbeddedMessage):
         return
 
 
+def get_test_reviews_window():
+    from mock import Mock
 
-if __name__ == "__main__":
-    # FIXME: portme
-    #w = StarRatingSelector()
-    w = None
-    #~ w.set_avg_rating(3.5)
-    #~ w.set_nr_reviews(101)
+    appdetails_mock = Mock()
+    appdetails_mock.version = "2.0"
 
-    l = Gtk.Label(label='focus steeler')
-    l.set_selectable(True)
+    parent = Mock()
+    parent.app_details = appdetails_mock
 
-    vb = Gtk.VBox(spacing=6)
-    vb.pack_start(l, True, True, 0)
-    vb.pack_start(w, True, True, 0)
+    review_data = Mock()
+    review_data.app_name = "app"
+    review_data.usefulness_favorable = 10
+    review_data.usefulness_total = 12
+    review_data.usefulness_submit_error = False
+    review_data.reviewer_username = "name"
+    review_data.reviewer_displayname = "displayname"
+    review_data.date_created = "2011-01-01 18:00:00"
+    review_data.summary = "summary"
+    review_data.review_text = 10 * "loonng text"
+    review_data.rating = "3.0"
+    review_data.version = "1.0"
+
+    # create reviewslist
+    vb = UIReviewsList(parent)
+    vb.add_review(review_data)
+    vb.configure_reviews_ui()
 
     win = Gtk.Window()
+    win.set_size_request(200, 200)
     win.add(vb)
-    win.show_all()
     win.connect('destroy', Gtk.main_quit)
+    win.show_all()
+    return win
+
+if __name__ == "__main__":
+    win = get_test_reviews_window()
 
     Gtk.main()

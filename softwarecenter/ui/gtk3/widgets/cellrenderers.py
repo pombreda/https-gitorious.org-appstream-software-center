@@ -1,5 +1,5 @@
 import gettext
-import logging
+#~ import logging
 from gi.repository import Gtk, Gdk, GObject, Pango
 print Pango.version()
 

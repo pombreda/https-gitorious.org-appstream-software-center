@@ -69,6 +69,7 @@ from softwarecenter.ui.gtk3.panes.installedpane import InstalledPane
 from softwarecenter.ui.gtk3.panes.availablepane import AvailablePane
 from softwarecenter.ui.gtk3.panes.historypane import HistoryPane
 from softwarecenter.ui.gtk3.panes.globalpane import GlobalPane
+from softwarecenter.ui.gtk3.panes.pendingpane import PendingPane
 from softwarecenter.ui.gtk3.session.viewmanager import ViewManager
 
 from softwarecenter.config import get_config
@@ -271,6 +272,10 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
                                         self.datadir)
         self.history_pane.connect("history-pane-created", self.on_history_pane_created)
         self.view_manager.register(self.history_pane, ViewPages.HISTORY)
+
+        # pending pane
+        self.pending_pane = PendingPane(self.icons)
+        self.view_manager.register(self.pending_pane, ViewPages.PENDING)
 
         # set up accelerator keys for navigation history actions
         accel_group = Gtk.AccelGroup()
