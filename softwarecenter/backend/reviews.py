@@ -426,36 +426,41 @@ class ReviewLoader(object):
         spawn_helper.connect("exited", 
                              self._on_submit_usefulness_finished, 
                              review_id, is_useful, callback)
+        spawn_helper.connect("error",
+                             self._on_submit_usefulness_error,
+                             review_id, callback)
         spawn_helper.run(cmd)
 
-    def _on_submit_usefulness_finished(self, spawn_helper, exitcode, review_id, is_useful, callback):
+    def _on_submit_usefulness_finished(self, spawn_helper, res, review_id, is_useful, callback):
         """ called when report_usefulness finished """
         # "Created", "Updated", "Not modified" - 
         # once lp:~mvo/rnr-server/submit-usefulness-result-strings makes it
         response = spawn_helper._stdout
         if response == '"Not modified"':
+            self._on_submit_usefulness_error(spawn_helper, response, review_id, callback)
             return
-        if exitcode == 0:
-            LOG.debug("usefulness id %s " % review_id)
-            useful_votes = UsefulnessCache()
-            useful_votes.add_usefulness_vote(review_id, is_useful)
-            for (app, reviews) in self._reviews.iteritems():
-                for review in reviews:
-                    if str(review.id) == str(review_id):
-                        # update usefulness, older servers do not send
-                        # usefulness_{total,favorable} so we use getattr
-                        review.usefulness_total = getattr(review, "usefulness_total", 0) + 1
-                        if is_useful:
-                            review.usefulness_favorable = getattr(review, "usefulness_favorable", 0) + 1
+
+        LOG.debug("usefulness id %s " % review_id)
+        useful_votes = UsefulnessCache()
+        useful_votes.add_usefulness_vote(review_id, is_useful)
+        for (app, reviews) in self._reviews.iteritems():
+            for review in reviews:
+                if str(review.id) == str(review_id):
+                    # update usefulness, older servers do not send
+                    # usefulness_{total,favorable} so we use getattr
+                    review.usefulness_total = getattr(review, "usefulness_total", 0) + 1
+                    if is_useful:
+                        review.usefulness_favorable = getattr(review, "usefulness_favorable", 0) + 1
                         callback(app, self._reviews[app], useful_votes, 'replace', review)
                         break
-        else:
-            LOG.debug("submit usefulness id=%s failed with exitcode %s" % (
-                review_id, exitcode))
+
+    def _on_submit_usefulness_error(self, spawn_helper, error_str, review_id, callback):
+            LOG.warn("submit usefulness id=%s failed with error: %s" %
+                     (review_id, error_str))
             for (app, reviews) in self._reviews.iteritems():
                 for review in reviews:
                     if str(review.id) == str(review_id):
-                        review.usefulness_submit_error = exitcode
+                        review.usefulness_submit_error = True
                         callback(app, self._reviews[app], None, 'replace', review)
                         break
 
