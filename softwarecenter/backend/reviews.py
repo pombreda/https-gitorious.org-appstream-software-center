@@ -396,7 +396,7 @@ class ReviewLoader(object):
                "--parent-xid", "%s" % parent_xid,
                "--datadir", datadir,
               ]
-        spawn_helper = SpawnHelper()
+        spawn_helper = SpawnHelper("json")
         spawn_helper.connect("exited", 
                              self._on_report_abuse_finished, 
                              review_id, callback)
