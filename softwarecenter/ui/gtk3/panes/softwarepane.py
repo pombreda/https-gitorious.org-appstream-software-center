@@ -619,7 +619,7 @@ class SoftwarePane(Gtk.VBox, BasePane):
         self.show_appview_spinner()
         self._refresh_apps_with_apt_cache(query)
 
-    def _quick_query(self, query):
+    def quick_query(self, query):
         # a blocking query does not call on_query_complete
         with ExecutionTime("enquirer.set_query() quick query"):
             self.enquirer.set_query(
@@ -627,7 +627,7 @@ class SoftwarePane(Gtk.VBox, BasePane):
                                 limit=self.get_app_items_limit(),
                                 nonapps_visible=self.nonapps_visible,
                                 nonblocking_load=True,
-                                filter=self.apps_filter)
+                                filter=self.state.filter)
         return len(self.enquirer.matches)
 
     @wait_for_apt_cache_ready
@@ -641,7 +641,7 @@ class SoftwarePane(Gtk.VBox, BasePane):
                                 sortmode=self.get_sort_mode(),
                                 exact=self.is_custom_list(),
                                 nonapps_visible=self.nonapps_visible,
-                                filter=self.apps_filter)
+                                filter=self.state.filter)
         return
 
     def display_details_page(self, page, view_state):

@@ -144,13 +144,13 @@ class SearchAidLogic(object):
         # if we are in a category, suggest searching within 'All cats'
         if category:
             new_text = self.BULLET % _("Try searching across "
-                      "<a href=\"search-all:\">all categories</a>"
+                      "<a href=\"search-all/\">all categories</a>"
                       " instead")
             suggestions.append(new_text)
 
         # If spelling correction, offer alternative term(s)
         if correction:
-            ref = "<a href=\"search:%s\">%s</a>" % (correction, correction)
+            ref = "<a href=\"search/%s\">%s</a>" % (correction, correction)
             new_text = self.BULLET % _("Check that your spelling is correct.  "
                                 "Did you mean: %s?") % ref
 
@@ -182,9 +182,9 @@ class SearchAidLogic(object):
 
         if enq.nr_apps > 0:
             text = self.BULLET % gettext.ngettext("Try "
-                 "<a href=\"search-parent:\">the item "
+                 "<a href=\"search-parent/\">the item "
                  "in %(category)s</a> that matches", "Try "
-                 "<a href=\"search-parent:\">the %(n)d items "
+                 "<a href=\"search-parent/\">the %(n)d items "
                  "in %(category)s</a> that match",
                  n=enq.nr_apps) % \
                  {'category': category.name, 'n': enq.nr_apps}
@@ -318,17 +318,17 @@ class SearchAid(Gtk.Table, SearchAidLogic):
         markup = self.HEADER_MARKUP % _('Trying suggestion ...')
         self.title.set_markup(markup)
 
-        #print "actiavte: ", link, uri
+        print "actiavte: ", uri
         self = self.pane
-        if uri.startswith("search:"):
-            self.searchentry.set_text(uri[len("search:"):])
-        elif uri.startswith("search-all:"):
+        if uri.startswith("search/"):
+            self.searchentry.set_text(uri[len("search/"):])
+        elif uri.startswith("search-all/"):
             self.unset_current_category()
             self.refresh_apps()
-        elif uri.startswith("search-parent:"):
+        elif uri.startswith("search-parent/"):
             self.state.subcategory = None
             self.refresh_apps()
-        elif uri.startswith("search-unsupported:"):
+        elif uri.startswith("search-unsupported/"):
             self.state.filter.set_supported_only(False)
             self.refresh_apps()
         # FIXME: add ability to remove categories restriction here
