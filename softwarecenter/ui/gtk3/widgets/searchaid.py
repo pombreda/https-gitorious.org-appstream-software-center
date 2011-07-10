@@ -20,6 +20,7 @@ class Suggestions(Gtk.VBox):
         self.set_spacing(StockEms.MEDIUM)
 
         self.title = Gtk.Label()
+        self.title.set_line_wrap(True)
         self.pack_start(self.title, False, False, 0)
 
         self.xalign = 0.0
@@ -161,7 +162,8 @@ class SearchAidLogic(object):
         if suggestions:
             return _("Suggestions:")
         # else, say sorry if we cannot offer any suggestions
-        return _("Software-center was unable to conjure any suggestions")
+        return _("Software Center was unable to come up with any "
+                 "suggestions that may aid you in your search")
 
     def get_include_parent_suggestion_text(self, term, category, state):
         if not state.subcategory: return None
@@ -271,7 +273,7 @@ class SearchAid(Gtk.Table, SearchAidLogic):
         self.attach(self.suggestion,
                     1, 2, # left_attach, right_attach
                     1, 2, # top_attach, bottom_attach
-                    Gtk.AttachOptions.FILL,
+                    Gtk.AttachOptions.FILL | Gtk.AttachOptions.EXPAND,
                     Gtk.AttachOptions.FILL,
                     StockEms.MEDIUM, StockEms.MEDIUM)
 
