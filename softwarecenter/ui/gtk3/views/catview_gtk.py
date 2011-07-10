@@ -293,7 +293,6 @@ class SubCategoryViewGtk(CategoriesViewGtk):
             return
         self.header = root_category.name
 
-#        ico_inf = self.icons.lookup_icon(root_category.iconname, 150, 0)
         self.categories = root_category.subcategories
         self._build_subcat_view(root_category, num_items)
         return

@@ -103,6 +103,11 @@ class SearchEntry(Gtk.Entry):
         self.set_text("")
         self._check_style()
 
+    def set_text(self, text, cursor_to_end=True):
+        Gtk.Entry.set_text(self, text)
+        self.emit("move-cursor", Gtk.MovementStep.BUFFER_ENDS, 1, False)
+        return
+
     def set_text_with_no_signal(self, text):
         """Clear and do not send a term-changed signal"""
         self.handler_block(self._handler_changed)

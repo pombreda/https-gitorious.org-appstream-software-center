@@ -140,12 +140,18 @@ class SoftwarePane(Gtk.VBox, BasePane):
     }
     PADDING = 6
 
-    def __init__(self, cache, db, distro, icons, datadir, show_ratings=True, store=None):
+    def __init__(
+            self, cache, db, distro, icons, datadir,
+            show_ratings=True, store=None):
+
         Gtk.VBox.__init__(self)
         BasePane.__init__(self)
 
         # other classes we need        
         self.enquirer = AppEnquire(cache, db)
+        self.enquirer.set_query_complete_callback(
+                                            self.on_query_complete)
+
         self.store = store or AppListStore(db, cache, icons)
         self.cache = cache
         self.db = db
@@ -258,7 +264,6 @@ class SoftwarePane(Gtk.VBox, BasePane):
         cr.set_source_rgb(1,1,1)
         cr.paint()
         return
-
 
     def init_atk_name(self, widget, name):
         """ init the atk name for a given gtk widget based on parent-pane
@@ -395,7 +400,21 @@ class SoftwarePane(Gtk.VBox, BasePane):
                                    appdetails,
                                    trans_id)
         self.action_bar.set_label(_("Add %s to the launcher?") % app.name)
-        
+
+    def on_query_complete(self, enquirer, *user_data):
+        with ExecutionTime("store.set_from_matches()"):
+            self.app_view.clear_model()
+            self.store.set_from_matches(self.enquirer.matches)
+
+        first = Gtk.TreePath.new_first()
+        self.app_view.set_cursor(first, None, False)
+        self.hide_appview_spinner()
+
+        self.show_nonapps_if_required(len(enquirer.matches))
+        self.search_aid.update_search_help(self.state)
+        self.emit("app-list-changed", len(enquirer.matches))
+        return
+
     def on_add_to_launcher(self, pkgname, app, appdetails, trans_id):
         """
         callback indicating the user has chosen to add the indicated application
@@ -498,22 +517,20 @@ class SoftwarePane(Gtk.VBox, BasePane):
         """internal helper that keeps the the action bar up-to-date by
            keeping track of the app-list-changed signals
         """
-        self.update_show_hide_nonapps(length)
-        self.search_aid.update_search_help(self.state)
-        
-    def update_show_hide_nonapps(self, length):
+        return
+
+    def hide_nonapps(self):
+        """ hide non-applications control in the action bar """
+        self.action_bar.unset_label()
+        return
+
+    def show_nonapps_if_required(self, length):
         """
         update the state of the show/hide non-applications control
         in the action_bar
         """
 
-        appstore = self.app_view.get_model()
         enquirer = self.enquirer
-
-        if not appstore:
-            self.action_bar.unset_label()
-            return
-
         n_apps = enquirer.nr_apps
         n_pkgs = enquirer.nr_pkgs
 
@@ -522,95 +539,25 @@ class SoftwarePane(Gtk.VBox, BasePane):
             n_apps = min(enquirer.limit, n_apps)
             n_pkgs = min(enquirer.limit - n_apps, n_pkgs)
 
-        if not self.is_app_details_view_showing():
-            self.action_bar.unset_label()
-            
-        if self.is_applist_view_showing() and (n_apps and n_pkgs):
-            if enquirer.nonapps_visible == NonAppVisibility.ALWAYS_VISIBLE:
-                # TRANSLATORS: the text inbetween the underscores acts as a link
-                # In most/all languages you will want the whole string as a link
-                label = gettext.ngettext("_Hide %(amount)i technical item_",
-                                         "_Hide %(amount)i technical items_",
-                                         n_pkgs) % { 'amount': n_pkgs, }
-                self.action_bar.set_label(label, link_result=self._hide_nonapp_pkgs) 
-            else:
-                label = gettext.ngettext("_Show %(amount)i technical item_",
-                                         "_Show %(amount)i technical items_",
-                                         n_pkgs) % { 'amount': n_pkgs, }
-                self.action_bar.set_label(label, link_result=self._show_nonapp_pkgs)
-
-    # XXX: eeekkk!
-    def update_search_help(self):
-        def build_category_path():
-            if not self.apps_category:
-                return None
-            if not self.apps_subcategory:
-                return self.apps_category.name
-            return u"%s \u25b8 %s"%(self.apps_category.name,self.apps_subcategory.name) 
-        search = self.searchentry.get_text()
-        appstore = self.app_view.get_model()
-        if (search and appstore is not None and len(appstore) == 0):
-            category = self.get_current_category()
-            correction = self.db.get_spelling_correction(search)
-            text = "<b>%s</b>\n\n"%(_('No results for "%s"')%search)
-            option_template = "\t - %s\n\n"
-            if not category:
-                text += _('No items match "%s". Suggestions:')%search+"\n\n"
-            else:
-                text += _('No items in %s match "%s". Suggestions:')%("<b>%s</b>"%build_category_path(), search)+"\n\n"
-
-            if self.state.subcategory:
-                parent_model = AppEnquire(self.cache,
-                             self.db,
-                             self.icons,
-                             self.db.get_query_list_from_search_entry(search,
-                                                        self.state.category.query),
-                             limit=self.get_app_items_limit(),
-                             sortmode=self.get_sort_mode(),
-                             nonapps_visible = self.nonapps_visible,
-                             filter=self.state.filter,
-                             nonblocking_load=False,
-                             search_term=search)
-                if parent_model.nr_apps>0:
-                    text += option_template%(gettext.ngettext("Try "
-                         "<a href=\"search-parent:\">the item "
-                         "in %(category)s</a> that matches.", "Try "
-                         "<a href=\"search-parent:\">the %(n)d items "
-                         "in %(category)s</a> that match.", n=parent_model.nr_apps)%\
-                         {'category':self.apps_category.name,'n':parent_model.nr_apps})
-            if self.state.filter.get_supported_only(): 
-                unsupported = copy.copy(self.apps_filter)
-                unsupported.set_supported_only(False)
-                unsupported_model = AppEnquire(self.cache,
-                             self.db,
-                             self.icons,
-                             self.app_view.get_model().search_query,
-                             limit=self.get_app_items_limit(),
-                             sortmode=self.get_sort_mode(),
-                             nonapps_visible = self.nonapps_visible,
-                             filter=unsupported,
-                             nonblocking_load=False,
-                             search_term=search)
-                if unsupported_model.nr_apps>0:
-                    text += option_template%(gettext.ngettext("Try "
-                         "<a href=\"search-unsupported:\">the %(amount)d item "
-                         "that matches</a> in software not maintained by Canonical.", 
-                         "Try <a href=\"search-unsupported:\">the %(amount)d items "
-                         "that match</a> in software not maintained by Canonical.",unsupported_model.nr_apps)%{'amount':unsupported_model.nr_apps})
-            if category:
-                text += option_template%_("Try searching in "
-                         "<a href=\"search-all:\">all categories</a> instead.")
-            if correction:
-                ref = "<a href=\"search:%s\">%s</a>" % (correction, correction)
-                text += option_template%_("Check the search is spelled correctly. Did you mean: %s?") % ref
-            text += option_template%gettext.ngettext("Try using a different word.", "Try using fewer words or different words", len(search.split()))
-                
-            self.label_app_list_header.set_markup(text)
-            self.label_app_list_header.set_visible(True)
+        if not (n_apps and n_pkgs):
+            self.hide_nonapps()
             return
-        # catchall, hide if we don't have anything useful to suggest
-        self.label_app_list_header.set_visible(False)
-            
+
+        if enquirer.nonapps_visible == NonAppVisibility.ALWAYS_VISIBLE:
+            # TRANSLATORS: the text inbetween the underscores acts as a link
+            # In most/all languages you will want the whole string as a link
+            label = gettext.ngettext("_Hide %(amount)i technical item_",
+                                     "_Hide %(amount)i technical items_",
+                                     n_pkgs) % { 'amount': n_pkgs, }
+            self.action_bar.set_label(
+                        label, link_result=self._hide_nonapp_pkgs) 
+        else:
+            label = gettext.ngettext("_Show %(amount)i technical item_",
+                                     "_Show %(amount)i technical items_",
+                                     n_pkgs) % { 'amount': n_pkgs, }
+            self.action_bar.set_label(
+                        label, link_result=self._show_nonapp_pkgs)
+
     def _on_label_app_list_header_activate_link(self, link, uri):
         #print "actiavte: ", link, uri
         if uri.startswith("search:"):
@@ -668,34 +615,34 @@ class SoftwarePane(Gtk.VBox, BasePane):
         if query is None:
             query = self.get_query()
 
+        self.search_aid.reset()
         self.show_appview_spinner()
         self._refresh_apps_with_apt_cache(query)
 
+    def _quick_query(self, query):
+        # a blocking query does not call on_query_complete
+        with ExecutionTime("enquirer.set_query() quick query"):
+            self.enquirer.set_query(
+                                query,
+                                limit=self.get_app_items_limit(),
+                                nonapps_visible=self.nonapps_visible,
+                                nonblocking_load=True,
+                                filter=self.apps_filter)
+        return len(self.enquirer.matches)
+
     @wait_for_apt_cache_ready
     def _refresh_apps_with_apt_cache(self, query):
-        self.refresh_seq_nr += 1
         LOG.debug("softwarepane query: %s" % query)
-        # set model
+        # a nonblocking query calls on_query_complete once finished
         with ExecutionTime("enquirer.set_query()"):
-            self.enquirer.set_query(query,
-                                    limit=self.get_app_items_limit(),
-                                    sortmode=self.get_sort_mode(),
-                                    exact=self.is_custom_list(),
-                                    nonapps_visible = self.nonapps_visible,
-                                    filter=self.apps_filter)
-
-        with ExecutionTime("store.set_from_matches()"):
-            self.app_view.clear_model()
-            self.store.set_from_matches(self.enquirer.matches)
-
-        #~ self.app_view.set_cursor((0,))
-        self.hide_appview_spinner()
-
-        # we can not use "new_model" here, because set_model may actually
-        # discard new_model and just update the previous one
-        GObject.idle_add(
-            self.emit, "app-list-changed", len(self.enquirer.matches))
-        return False
+            self.enquirer.set_query(
+                                query,
+                                limit=self.get_app_items_limit(),
+                                sortmode=self.get_sort_mode(),
+                                exact=self.is_custom_list(),
+                                nonapps_visible=self.nonapps_visible,
+                                filter=self.apps_filter)
+        return
 
     def display_details_page(self, page, view_state):
         self.app_details_view.show_app(view_state.application)

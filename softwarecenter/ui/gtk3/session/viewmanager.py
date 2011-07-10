@@ -134,8 +134,6 @@ class ViewManager(object):
         if callback is not None:
             callback(page, view_state)
 
-        print page, callback
-
         if page is not None:
             pane.notebook.set_current_page(page)
     

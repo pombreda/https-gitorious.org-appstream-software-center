@@ -177,7 +177,6 @@ class AvailablePane(SoftwarePane):
     def get_query(self):
         """helper that gets the query for the current category/search mode"""
         # NoDisplay is a specal case
-        print "GetQuery:", self.state
         if self._in_no_display_category():
             return xapian.Query()
         # get current sub-category (or category, but sub-category wins)
@@ -197,22 +196,6 @@ class AvailablePane(SoftwarePane):
                 not self.state.subcategory and
                 not self.state.search_term)
 
-    def _show_hide_subcategories(self, show_category_applist=False):
-        # check if have subcategories and are not in a subcategory
-        # view - if so, show it
-        if (self.notebook.get_current_page() == AvailablePages.LOBBY or
-            self.notebook.get_current_page() == AvailablePages.DETAILS):
-            return
-        if (not show_category_applist and
-            self.state.category and
-            self.state.category.subcategories and
-            not (self.state.search_term or self.state.subcategory)):
-            self.subcategories_view.set_subcategory(self.state.category,
-                                                    num_items=len(self.app_view.get_model()))
-            self.notebook.set_current_page(AvailablePages.SUBCATEGORY)
-        else:
-            self.notebook.set_current_page(AvailablePages.LIST)
-
     # status text woo
     def get_status_text(self):
         """return user readable status text suitable for a status bar"""
@@ -220,6 +203,7 @@ class AvailablePane(SoftwarePane):
         if (self.notebook.get_current_page() == AvailablePages.DETAILS or
             self._in_no_display_category()):
             return ""
+        print 'StatusText', self._status_text
         return self._status_text
 
     def get_current_app(self):
@@ -244,6 +228,7 @@ class AvailablePane(SoftwarePane):
         """ unset the current showing category, but keep e.g. the current 
             search 
         """
+
         self.state.category = None
         self.state.subcategory = None
 
@@ -259,36 +244,38 @@ class AvailablePane(SoftwarePane):
            bar up-to-date by keeping track of the app-list-changed
            signals
         """
-
         super(AvailablePane, self).on_app_list_changed(pane, length)
         self._update_status_text(length)
         self._update_action_bar()
-        pass
+
+    def _update_status_text_lobby(self):
+        # SPECIAL CASE: in category page show all items in the DB
+        distro = get_distro()
+        if self.state.filter.get_supported_only():
+            query = distro.get_supported_query()
+        else:
+            query = xapian.Query('')
+        enquire = xapian.Enquire(self.db.xapiandb)
+        # XD is the term for pkgs that have a desktop file
+        enquire.set_query(xapian.Query(xapian.Query.OP_AND_NOT, 
+                                       query,
+                                       xapian.Query("XD"),
+                                       )
+                         )
+        matches = enquire.get_mset(0, len(self.db))
+        length = len(matches)
+
+        self._status_text = gettext.ngettext("%(amount)s item available",
+                                             "%(amount)s items available",
+                                             length) % { 'amount' : length, }
 
     def _update_status_text(self, length):
         """
         update the text in the status bar
         """
 
-        # SPECIAL CASE: in category page show all items in the DB
-        if self.notebook.get_current_page() == AvailablePages.LOBBY:
-            distro = get_distro()
-            if self.state.filter.get_supported_only():
-                query = distro.get_supported_query()
-            else:
-                query = xapian.Query('')
-            enquire = xapian.Enquire(self.db.xapiandb)
-            # XD is the term for pkgs that have a desktop file
-            enquire.set_query(xapian.Query(xapian.Query.OP_AND_NOT, 
-                                           query,
-                                           xapian.Query("XD"),
-                                           )
-                             )
-            matches = enquire.get_mset(0, len(self.db))
-            length = len(matches)
-
         if self.state.search_term and ',' in self.state.search_term:
-            length = len(self.app_view.get_model().apps)
+            length = self.enquirer.nr_apps
             self._status_text = gettext.ngettext("%(amount)s item",
                                                  "%(amount)s items",
                                                  length) % { 'amount' : length, }
@@ -309,14 +296,13 @@ class AvailablePane(SoftwarePane):
         update buttons in the action bar to implement the custom package lists feature,
         see https://wiki.ubuntu.com/SoftwareCenter#Custom%20package%20lists
         '''
-        appstore = self.app_view.get_model()
-        if (appstore and
-            self.state.search_term and
+        return
+        if (self.state.search_term and
             ',' in self.state.search_term and
             self.notebook.get_current_page() == AvailablePages.LIST):
-            appstore = self.app_view.get_model()
+
             installable = []
-            for app in appstore.apps:
+            for app in self.enquirer.apps:
                 if (app.pkgname in self.cache and
                     not self.cache[app.pkgname].is_installed and
                     app.pkgname not in self.backend.pending_transactions):
@@ -461,28 +447,20 @@ class AvailablePane(SoftwarePane):
         self.hide_appview_spinner()
         self.emit("app-list-changed", len(self.db))
         self._clear_search()
+        self._update_status_text_lobby()
         self.searchentry.show()
         self.action_bar.clear()
         return True
 
     def display_search_page(self, page, view_state):
-        # we got the signal after we already switched to a details
-        # page, ignore it
-        #~ if self.notebook.get_current_page() == AvailablePages.DETAILS:
-            #~ return
-
         new_text = view_state.search_term
         # DTRT if the search is reseted
         if not new_text:
             self._clear_search()
         else:
             self.state.limit = DEFAULT_SEARCH_LIMIT
-
         self.refresh_apps()
         self.searchentry.show()
-
-        #~ list_length = len(self.app_view.get_model())
-        #~ self.emit("app-list-changed", list_length)
         return True
 
     def display_subcategory_page(self, page, view_state):
@@ -491,9 +469,11 @@ class AvailablePane(SoftwarePane):
         if self.state.search_term or self.searchentry.get_text():
             self._clear_search()
             self.refresh_apps()
-        self.subcategories_view.set_subcategory(category)
-        # do not emit app-list-changed here, this is done async when
-        # the new model is ready
+
+        query = self.get_query()
+        n_matches = self._quick_query(query)
+        self.subcategories_view.set_subcategory(
+                                category, n_matches)
         self.action_bar.clear()
         self.searchentry.show()
         self.cat_view.stop_carousels()
