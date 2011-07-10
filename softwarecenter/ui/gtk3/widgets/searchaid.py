@@ -89,6 +89,12 @@ class SearchAidLogic(object):
     HEADER_MARKUP = '<b><big>%s</big></b>'
     BULLET = u"\t\u2022  %s"
 
+    LEFT_QUOTE_MARK = u"\u201C"
+    RIGHT_QUOTE_MARK = u"\u201D"
+
+    LTR_ARROW = u"\u2192"
+    #~ RTL_ARROW = u""   # not used...
+
     def __init__(self, pane):
         self.pane = pane
         self.db = pane.db
@@ -109,15 +115,18 @@ class SearchAidLogic(object):
                 return ''
             if not state.subcategory:
                 return category.name
-            return u"%s  \u25b8 %s" % (category.name,
-                                       state.subcategory.name)
+            return u"%s%s%s" % (category.name, self.LTR_ARROW,
+                                state.subcategory.name)
 
         if not category:
-            sub = _('No items match "%s"')
-            sub = sub % term
+            sub = _(u'No items match %s%s%s')
+            sub = sub % (self.LEFT_QUOTE_MARK,
+                         term, self.RIGHT_QUOTE_MARK)
         else:
-            sub = _('No items in %s match "%s"')
-            sub = sub % (build_category_path(), term)
+            sub = _(u'No items in %s match %s%s%s')
+            sub = sub % (build_category_path(),
+                         self.LEFT_QUOTE_MARK,
+                         term, self.RIGHT_QUOTE_MARK)
 
         return self.HEADER_MARKUP % sub
 
@@ -311,14 +320,13 @@ class SearchAid(Gtk.Table, SearchAidLogic):
         return
 
     def on_reset(self):
-        self.suggestion.reset()
+        self.suggestion.reset_all()
         return
 
     def on_link_activate(self, suggestions, link, uri):
         markup = self.HEADER_MARKUP % _('Trying suggestion ...')
         self.title.set_markup(markup)
 
-        print "actiavte: ", uri
         self = self.pane
         if uri.startswith("search/"):
             self.searchentry.set_text(uri[len("search/"):])

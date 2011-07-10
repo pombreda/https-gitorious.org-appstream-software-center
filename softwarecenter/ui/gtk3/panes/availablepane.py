@@ -203,7 +203,6 @@ class AvailablePane(SoftwarePane):
         if (self.notebook.get_current_page() == AvailablePages.DETAILS or
             self._in_no_display_category()):
             return ""
-        print 'StatusText', self._status_text
         return self._status_text
 
     def get_current_app(self):
@@ -244,9 +243,10 @@ class AvailablePane(SoftwarePane):
            bar up-to-date by keeping track of the app-list-changed
            signals
         """
+
         super(AvailablePane, self).on_app_list_changed(pane, length)
-        self._update_status_text(length)
         self._update_action_bar()
+        self._update_status_text(length)
 
     def _update_status_text_lobby(self):
         # SPECIAL CASE: in category page show all items in the DB
@@ -273,6 +273,8 @@ class AvailablePane(SoftwarePane):
         """
         update the text in the status bar
         """
+
+        print "Update status text"
 
         if self.state.search_term and ',' in self.state.search_term:
             length = self.enquirer.nr_apps

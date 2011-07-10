@@ -402,17 +402,15 @@ class SoftwarePane(Gtk.VBox, BasePane):
         self.action_bar.set_label(_("Add %s to the launcher?") % app.name)
 
     def on_query_complete(self, enquirer, *user_data):
+        self.emit("app-list-changed", len(enquirer.matches))
+
         with ExecutionTime("store.set_from_matches()"):
-            self.app_view.clear_model()
+            #~ self.app_view.clear_model()
             self.store.set_from_matches(self.enquirer.matches)
 
         first = Gtk.TreePath.new_first()
         self.app_view.set_cursor(first, None, False)
         self.hide_appview_spinner()
-
-        self.show_nonapps_if_required(len(enquirer.matches))
-        self.search_aid.update_search_help(self.state)
-        self.emit("app-list-changed", len(enquirer.matches))
         return
 
     def on_add_to_launcher(self, pkgname, app, appdetails, trans_id):
@@ -517,6 +515,9 @@ class SoftwarePane(Gtk.VBox, BasePane):
         """internal helper that keeps the the action bar up-to-date by
            keeping track of the app-list-changed signals
         """
+
+        self.show_nonapps_if_required(len(self.enquirer.matches))
+        self.search_aid.update_search_help(self.state)
         return
 
     def hide_nonapps(self):
@@ -615,6 +616,7 @@ class SoftwarePane(Gtk.VBox, BasePane):
         if query is None:
             query = self.get_query()
 
+        self.app_view.clear_model()
         self.search_aid.reset()
         self.show_appview_spinner()
         self._refresh_apps_with_apt_cache(query)
