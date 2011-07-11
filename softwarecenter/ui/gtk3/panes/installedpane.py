@@ -58,16 +58,16 @@ def interrupt_build_and_wait(f):
     return wrapper
 
 
-class InstalledPages:
-    (LIST,
-     DETAILS) = range(2)
-
-
 class InstalledPane(SoftwarePane, CategoriesParser):
     """Widget that represents the installed panel in software-center
        It contains a search entry and navigation buttons
     """
-     
+
+    class Pages:
+        NAMES = ('list', 'details')
+        (LIST,
+         DETAILS) = range(2)
+
     __gsignals__ = {'installed-pane-created':(GObject.SignalFlags.RUN_FIRST,
                                               None,
                                               ())}
@@ -166,9 +166,9 @@ class InstalledPane(SoftwarePane, CategoriesParser):
     def _use_category(self, cat):
         # System cat is large and slow to search, filter it in default mode
 
-        if 'carousel-only' in cat.flags or \
-            ((self.nonapps_visible == NonAppVisibility.NEVER_VISIBLE) and \
-            cat.untranslated_name == 'System'): return False
+        if ('carousel-only' in cat.flags or 
+            ((self.nonapps_visible == NonAppVisibility.NEVER_VISIBLE)
+            and cat.untranslated_name == 'System')): return False
 
         return True
 
@@ -181,8 +181,6 @@ class InstalledPane(SoftwarePane, CategoriesParser):
 
         i = 0
 
-        print "NonAppVisibility", self.nonapps_visible == NonAppVisibility.ALWAYS_VISIBLE
-        
         for cat in self._all_cats:
 
             if not self._use_category(cat): continue
@@ -299,7 +297,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
 
         self._search(terms.strip())
 
-        self.notebook.set_current_page(InstalledPages.LIST)
+        self.notebook.set_current_page(InstalledPane.Pages.LIST)
         return
 
     def _get_vis_cats(self, visids):
@@ -322,7 +320,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         self.current_appview_selection = app
 
     def get_callback_for_page(self, page, state):
-        if page == InstalledPages.LIST:
+        if page == InstalledPane.Pages.LIST:
             return self.display_overview_page
         return self.display_details_page
 
@@ -335,7 +333,8 @@ class InstalledPane(SoftwarePane, CategoriesParser):
     def get_status_text(self):
         """return user readable status text suitable for a status bar"""
         # no status text in the details page
-        if self.notebook.get_current_page() == InstalledPages.DETAILS:
+        if (self.notebook.get_current_page() ==
+            InstalledPane.Pages.DETAILS):
             return ""
         # otherwise, show status based on search or not
         model = self.app_view.get_model()
@@ -369,11 +368,12 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         
     def is_applist_view_showing(self):
         """Return True if we are in the applist view """
-        return self.notebook.get_current_page() == InstalledPages.LIST
+        return (self.notebook.get_current_page() ==
+                InstalledPane.Pages.LIST)
         
     def is_app_details_view_showing(self):
         """Return True if we are in the app_details view """
-        return self.notebook.get_current_page() == InstalledPages.DETAILS
+        return self.notebook.get_current_page() == InstalledPane.Pages.DETAILS
 
     def show_app(self, app):
         """ Display an application in the installed_pane """
