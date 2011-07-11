@@ -64,16 +64,17 @@ class SpawnHelper(gobject.GObject):
     def _helper_finished(self, pid, status, (stdout, stderr)):
         # get status code
         res = os.WEXITSTATUS(status)
-        if res != 0:
+        if res == 0:
+            self.emit("exited", res)
+        else:
             LOG.warn("exit code %s from helper" % res)
-        # check stderr
-        err = os.read(stderr, 4*1024)
-        self._stderr = err
-        if err:
-            LOG.warn("got error from helper: '%s'" % err)
+            # check stderr
+            err = os.read(stderr, 4*1024)
+            self._stderr = err
+            if err:
+                LOG.warn("got error from helper: '%s'" % err)
             self.emit("error", err)
-        os.close(stderr)
-        self.emit("exited", res)
+            os.close(stderr)
 
     def _helper_io_ready(self, source, condition, (stdout,)):
         # read the raw data
