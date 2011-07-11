@@ -14,8 +14,10 @@ software-center (4.1.9) UNRELEASED; urgency=low
     softwarecenter/backend/spawn_helper.py:
     - correct modify/delete UI callback behaviour with
       new spawn helper and pagination code (LP: #807010)
+    - fix submit_usefulness and report_abuse callbacks
+      to work with the new spawn_helper and pagination code
 
- -- Aaron Peachey <alpeachey@gmail.com>  Fri, 08 Jul 2011 23:00:47 +1000
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 11 Jul 2011 16:43:00 -0400
 
 software-center (4.1.8) oneiric; urgency=low
 
