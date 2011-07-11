@@ -326,7 +326,10 @@ class SearchAid(Gtk.Table, SearchAidLogic):
     def on_link_activate(self, suggestions, link, uri):
         markup = self.HEADER_MARKUP % _('Trying suggestion ...')
         self.title.set_markup(markup)
+        GObject.timeout_add(750, self._handle_suggestion_action, uri)
+        return
 
+    def _handle_suggestion_action(self, uri):
         self = self.pane
         if uri.startswith("search/"):
             self.searchentry.set_text(uri[len("search/"):])
@@ -341,6 +344,5 @@ class SearchAid(Gtk.Table, SearchAidLogic):
             self.refresh_apps()
         # FIXME: add ability to remove categories restriction here
         # True stops event propergation
-        return True
-
+        return False
 
