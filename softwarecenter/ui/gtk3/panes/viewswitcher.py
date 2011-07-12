@@ -186,10 +186,11 @@ class ViewSwitcher(Gtk.HBox, ViewSwitcherLogic):
         pane = vm.set_active_view(view_id)
 
         # configure DisplayState
-        pane.state.channel = channel
+        state = pane.state.copy()
+        state.channel = channel
 
         # request page change
-        vm.display_page(pane, pane.Pages.LIST, pane.state)
+        vm.display_page(pane, pane.Pages.LIST, state)
         return
 
 

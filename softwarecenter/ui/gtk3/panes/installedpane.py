@@ -365,11 +365,16 @@ class InstalledPane(SoftwarePane, CategoriesParser):
                                     length) % { 'amount' : length, }
 
     def display_overview_page(self, page, view_state):
-        print 'display_overview_page'
+        print self.state.channel, view_state.channel
+        if self.state.channel == view_state.channel:
+            return
+
         self.state = view_state
         self._build_categorised_view()
+
         if self.state.search_term:
             self._search(self.state.search_term)
+
         self.update_show_hide_nonapps()
         return True
 

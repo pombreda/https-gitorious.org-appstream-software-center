@@ -130,8 +130,6 @@ class ViewManager(object):
 
         self.navhistory.append(nav_item)
 
-        pane.state = view_state
-
         text = view_state.search_term
         if text != self.search_entry.get_text():
             self.search_entry.set_text_with_no_signal(text)
