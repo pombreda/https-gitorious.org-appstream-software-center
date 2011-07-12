@@ -1075,6 +1075,8 @@ class AppView(gtk.TreeView):
     def _on_net_state_changed(self, watcher, state):
         # get our column, we only have one column in the treeview
         col = self.get_column(0)
+        if not col:
+            return
         # get our cell renderer, we also only have cell renderer
         cr = col.get_cell_renderers()[0]
         # uodate the selected row
