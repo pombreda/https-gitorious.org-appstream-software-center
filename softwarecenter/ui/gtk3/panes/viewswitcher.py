@@ -17,8 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 
-from gi.repository import GObject
-from gi.repository import Gtk
+from gi.repository import Gtk, GObject
 import logging
 import os
 import sys
@@ -32,96 +31,50 @@ from softwarecenter.enums import ViewPages
 from softwarecenter.paths import XAPIAN_BASE_PATH
 from softwarecenter.distro import get_distro
 
-from softwarecenter.ui.gtk3.widgets.buttons import CategoryTile
+from softwarecenter.backend.channel import ChannelsManager
+from softwarecenter.ui.gtk3.widgets.buttons import SectionSelector
 from softwarecenter.ui.gtk3.em import StockEms
 import softwarecenter.ui.gtk3.dialogs as dialogs
 
 LOG = logging.getLogger(__name__)
 
 
-class ViewSwitcherLogic(GObject.GObject):
+class ViewSwitcherLogic(object):
 
-    ANIMATION_PATH = "/usr/share/icons/hicolor/24x24/status/softwarecenter-progress.png"
-
-    __gsignals__ = {'channels-refreshed':(GObject.SignalFlags.RUN_FIRST,
-                                          None,
-                                          ())}
+    #~ ANIMATION_PATH = "/usr/share/icons/hicolor/24x24/status/softwarecenter-progress.png"
 
     def __init__(self, view_manager, datadir, db, cache, icons):
-        GObject.GObject.__init__(self)
-
         self.view_manager = view_manager
-        self.icons = icons
-        self.datadir = datadir
-        self.db = db
-        self.cache = cache
-        self.distro = get_distro()
-
-        # pending transactions
-        self._pending = 0
-        
-        # Remember the previously selected permanent view
-        self._permanent_views = ViewPages.PERMANENT_VIEWS
-        self._previous_permanent_view = None
-
-        # emit a transactions-changed signal to ensure that we display any
-        # pending transactions
+        self.channel_manager = ChannelsManager(db)
         self.backend = get_install_backend()
-        self.backend.emit("transactions-changed", self.backend.pending_transactions)
 
-    def on_transactions_changed(self, backend, total_transactions):
-        LOG.debug("on_transactions_changed '%s'" % total_transactions)
-        pending = len(total_transactions)
-        if pending > 0:
-            # do pending animation stuff here
-            pass
+    def get_available_channels(self):
+        return self.channel_manager.channels
 
-    def on_transaction_finished(self, backend, result):
-        if result.success:
-            self._update_channel_list_installed_view()
-            self.emit("channels-refreshed")
+    def get_installed_channels(self):
+        return self.channel_manager.channels
 
+    #~ def on_transactions_changed(self, backend, total_transactions):
+        #~ LOG.debug("on_transactions_changed '%s'" % total_transactions)
+        #~ pending = len(total_transactions)
+        #~ if pending > 0:
+            #~ # do pending animation stuff here
+            #~ pass
+#~ 
+    #~ def on_transaction_finished(self, backend, result):
+        #~ if result.success:
+            #~ self._update_channel_list_installed_view()
+#~ 
     #~ @wait_for_apt_cache_ready
-    def _update_channel_list(self):
-        self._update_channel_list_available_view()
-        self._update_channel_list_installed_view()
-        self.emit("channels-refreshed")
-
-    def _update_channel_list_available_view(self):
-        # check what needs to be cleared. we need to append first, kill
-        # afterward because otherwise a row without children is collapsed
-        # by the view.
-        pass
-
-    def _update_channel_list_installed_view(self):
-        # see comments for _update_channel_list_available_view() method above
-        child = self.iter_children(self.installed_iter)
-        iters_to_kill = set()
-        while child:
-            iters_to_kill.add(child)
-            child = self.iter_next(child)
-        # iterate the channels and add as subnodes of the installed node
-        for channel in self.channel_manager.channels_installed_only:
-            # check for no installed items for each channel and do not
-            # append the channel item in this case
-            enquire = xapian.Enquire(self.db.xapiandb)
-            query = channel.query
-            enquire.set_query(query)
-            matches = enquire.get_mset(0, len(self.db))
-            # only check channels that have a small number of items
-            add_channel_item = True
-            if len(matches) < 200:
-                add_channel_item = False
-                for m in matches:
-                    doc = m.document
-                    pkgname = self.db.get_pkgname(doc)
-                    if (pkgname in self.cache and
-                        self.cache[pkgname].is_installed):
-                        add_channel_item = True
-                        break
-            if add_channel_item:
-                # append channels here
-                pass
+    #~ def _update_channel_list(self):
+        #~ self._update_channel_list_available_view()
+        #~ self._update_channel_list_installed_view()
+#~ 
+    #~ def _update_channel_list_available_view(self):
+        #~ pass
+#~ 
+    #~ def _update_channel_list_installed_view(self):
+        #~ pass
 
 
 class ViewSwitcher(Gtk.HBox, ViewSwitcherLogic):
@@ -136,7 +89,6 @@ class ViewSwitcher(Gtk.HBox, ViewSwitcherLogic):
 
     ICON_SIZE = Gtk.IconSize.BUTTON
 
-
     def __init__(self, view_manager, datadir, db, cache, icons):
         Gtk.ButtonBox.__init__(self)
         self.set_orientation(Gtk.Orientation.HORIZONTAL)
@@ -148,31 +100,28 @@ class ViewSwitcher(Gtk.HBox, ViewSwitcherLogic):
         self.view_buttons = []
 
         # first, the availablepane items
-        self.view_buttons.append(self._make_button(
-                                    _("All Software"),
-                                    "softwarecenter"))
-
-        #~ self.available_button.set_image(available_icon)
+        available = self._make_button(_("All Software"),
+                                      "softwarecenter")
+        available.set_channel_request_func(self.on_get_available_channels)
+        self.view_buttons.append(available)
 
         # the installedpane items
-        self.view_buttons.append(self._make_button(
-                                    _("Installed"),
-                                    "computer"))
-
-        # the channelpane 
-        #~ self.channel_manager = ChannelsManager(db, icons)
-        # do initial channel list update
-        #~ self._update_channel_list()
+        installed = self._make_button(_("Installed"),
+                                      "computer")
+        installed.set_channel_request_func(self.on_get_installed_channels)
+        self.view_buttons.append(installed)
 
         # the historypane item
         self.view_buttons.append(self._make_button(
                                     _("History"),
-                                    "document-open-recent"))
+                                    "document-open-recent",
+                                    display_dropdown=False))
 
         # the pendingpane
         self.view_buttons.append(self._make_button(
                                     _("Progress"),
-                                    "gtk-execute"))
+                                    "gtk-execute",
+                                    display_dropdown=False))
 
         # order is important here, should match button order/length
         view_ids = (ViewPages.AVAILABLE, ViewPages.INSTALLED,
@@ -180,22 +129,56 @@ class ViewSwitcher(Gtk.HBox, ViewSwitcherLogic):
 
         for view_id, btn in zip(view_ids, self.view_buttons):
             self.pack_start(btn, False, False, 0)
-            btn.connect('clicked', self.do_view_switch, view_id)
+            btn.connect('clicked', self.on_view_switch, view_id)
             btn.show()
 
         # set sensible atk name
         atk_desc = self.get_accessible()
         atk_desc.set_name(_("Software sources"))
 
-    def _make_button(self, label, icon_name):
-        t = CategoryTile(label, icon_name, self.ICON_SIZE)
-        t.set_size_request(-1, -1)
-        return t
+    def _make_button(self, label, icon_name, display_dropdown=True):
+        return SectionSelector(label, icon_name, self.ICON_SIZE,
+                               has_channel_sel=display_dropdown)
 
-    def do_view_switch(self, button, view_id):
+    def on_view_switch(self, button, view_id):
         self.view_manager.set_active_view(view_id)
         return
 
+    def on_get_available_channels(self, popup):
+        channels = self.get_available_channels()
+        for i, channel in enumerate(channels):
+            item = Gtk.MenuItem()
+
+            box = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, StockEms.MEDIUM)
+            item.add(box)
+
+            image = Gtk.Image.new_from_icon_name(channel.icon, Gtk.IconSize.BUTTON)
+            label = Gtk.Label.new(channel.display_name)
+
+            box.pack_start(image, False, False, 0)
+            box.pack_start(label, False, False, 0)
+
+            item.show_all()
+            popup.attach(item, 0, 1, i, i+1)
+        return
+
+    def on_get_installed_channels(self, popup):
+        channels = self.get_available_channels()
+        for i, channel in enumerate(channels):
+            item = Gtk.MenuItem()
+
+            box = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, StockEms.MEDIUM)
+            item.add(box)
+
+            image = Gtk.Image.new_from_icon_name(channel.icon, Gtk.IconSize.BUTTON)
+            label = Gtk.Label.new(channel.display_name)
+
+            box.pack_start(image, False, False, 0)
+            box.pack_start(label, False, False, 0)
+
+            item.show_all()
+            popup.attach(item, 0, 1, i, i+1)
+        return
 
 if __name__ == "__main__":
     from softwarecenter.db.pkginfo import get_pkg_info
