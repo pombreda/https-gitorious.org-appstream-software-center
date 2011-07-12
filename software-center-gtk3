@@ -61,6 +61,9 @@ if __name__ == "__main__":
     parser.add_option("--force-rtl", action="store_true",
                       help="force rtl mode (useful for debugging)", 
                       default=False)
+    parser.add_option("--display-navlog", action="store_true",
+                      help="display a navigation history log (useful for debugging)", 
+                      default=False)
     # FIXME:  REMOVE THIS option once launchpad integration is enabled
     #         by default
     parser.add_option("--enable-lp", action="store_true",

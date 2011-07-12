@@ -589,7 +589,7 @@ class AppListStore(Gtk.ListStore, AppGenericStore):
 
     def buffer_icons(self):
         def buffer_icons():
-            print "Buffering icons ..."
+            #~ print "Buffering icons ..."
             t0 = GObject.get_current_time()
             db = self.db.xapiandb
             for m in self.current_matches:
@@ -602,8 +602,8 @@ class AppListStore(Gtk.ListStore, AppGenericStore):
                     Gtk.main_iteration()
 
             #~ import sys
-            t_lapsed = round(GObject.get_current_time() - t0, 3)
-            print "Appstore buffered icons in %s seconds" % t_lapsed
+            #~ t_lapsed = round(GObject.get_current_time() - t0, 3)
+            #~ print "Appstore buffered icons in %s seconds" % t_lapsed
             #from softwarecenter.utils import get_nice_size
             #~ cache_size = get_nice_size(sys.getsizeof(_app_icon_cache))
             #~ print "Number of icons in cache: %s consuming: %sb" % (len(_app_icon_cache), cache_size)

@@ -238,7 +238,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
 
 
         # register view manager and create view panes/widgets
-        self.view_manager = ViewManager(self.notebook_view)
+        self.view_manager = ViewManager(self.notebook_view, options)
 
         self.global_pane = GlobalPane(self.view_manager, self.datadir, self.db, self.cache, self.icons)
         self.vbox1.pack_start(self.global_pane, False, False, 0)

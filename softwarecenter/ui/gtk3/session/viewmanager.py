@@ -31,7 +31,7 @@ def get_viewmanager():
 
 class ViewManager(object):
 
-    def __init__(self, notebook_view):
+    def __init__(self, notebook_view, options):
         self.notebook_view = notebook_view
         self.search_entry = SearchEntry()
         self.search_entry.connect(
@@ -43,7 +43,7 @@ class ViewManager(object):
         self.back_forward.connect(
             "right-clicked", self.on_nav_forward_clicked)
 
-        self.navhistory = NavigationHistory(self.back_forward)
+        self.navhistory = NavigationHistory(self.back_forward, options)
 
         self.all_views = {}
         self.view_to_pane = {}
