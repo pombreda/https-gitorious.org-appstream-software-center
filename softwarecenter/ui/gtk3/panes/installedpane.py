@@ -95,7 +95,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         self.nonapps_visible = NonAppVisibility.NEVER_VISIBLE
 
         # init view in the background after a short delay
-        GObject.timeout_add(2000, self.init_view)
+        #~ GObject.timeout_add(2000, self.init_view)
 
     def init_view(self):
         if self.view_initialized: return
@@ -126,7 +126,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         self._all_cats = categories_sorted_by_name(self._all_cats)
 
         # initial build of installed tree
-        self._build_categorised_view()
+        #~ self._build_categorised_view()
 
         # now we are initialized
         self.emit("installed-pane-created")
@@ -184,7 +184,9 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         for cat in self._all_cats:
 
             if not self._use_category(cat): continue
-            self.enquirer.set_query(cat.query,
+            query = self.get_query_for_cat(cat)
+            #~ print query
+            self.enquirer.set_query(query,
                                     sortmode=SortMethods.BY_ALPHABET,
                                     nonapps_visible=self.nonapps_visible,
                                     filter=self.state.filter,
@@ -205,9 +207,12 @@ class InstalledPane(SoftwarePane, CategoriesParser):
                 first = Gtk.TreePath.new_first()
                 if cursor_path != first.get_indices():
                     self.app_view.set_cursor(first, None, False)
+                if i <= 10:
+                    self.app_view.expand_all()
 
         # cache the installed app count
         self.installed_count = i
+
         self.emit("app-list-changed", i)
         return
 
@@ -253,6 +258,15 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         return self.db.get_query_list_from_search_entry(
                                         self.state.search_term)
 
+    def get_query_for_cat(self, cat):
+        #~ print self.state.channel
+        if self.state.channel:
+            query = xapian.Query(xapian.Query.OP_AND,
+                                 cat.query,
+                                 self.state.channel.query)
+            return query
+        return cat.query
+
     def update_show_hide_nonapps(self, length=-1):
         # override SoftwarePane.update_show_hide_nonapps
         """
@@ -282,9 +296,6 @@ class InstalledPane(SoftwarePane, CategoriesParser):
     def refresh_apps(self, *args, **kwargs):
         """refresh the applist and update the navigation bar """
         logging.debug("installedpane refresh_apps")
-        self._build_categorised_view()
-        if self.state.search_term:
-            self._search(self.state.search_term)
         return
 
     def _clear_search(self):
@@ -354,6 +365,11 @@ class InstalledPane(SoftwarePane, CategoriesParser):
                                     length) % { 'amount' : length, }
 
     def display_overview_page(self, page, view_state):
+        print 'display_overview_page'
+        self.state = view_state
+        self._build_categorised_view()
+        if self.state.search_term:
+            self._search(self.state.search_term)
         self.update_show_hide_nonapps()
         return True
 

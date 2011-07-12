@@ -145,6 +145,8 @@ class ViewSwitcher(Gtk.HBox, ViewSwitcherLogic):
                                has_channel_sel=display_dropdown)
 
     def on_view_switch(self, button, view_id):
+        #~ pane = self.view_manager.get_view_widget(view_id)
+        #~ pane.state.reset()
         self.view_manager.set_active_view(view_id)
         return
 
@@ -184,15 +186,10 @@ class ViewSwitcher(Gtk.HBox, ViewSwitcherLogic):
         pane = vm.set_active_view(view_id)
 
         # configure DisplayState
-        state = pane.state.copy()
-        state.channel = channel
-        if view_id == ViewPages.AVAILABLE:
-            state.filter.set_installed_only(False)
-        elif view_id == ViewPages.INSTALLED:
-            state.filter.set_installed_only(False)
+        pane.state.channel = channel
 
         # request page change
-        vm.display_page(pane, pane.Pages.LIST, state)
+        vm.display_page(pane, pane.Pages.LIST, pane.state)
         return
 
 
