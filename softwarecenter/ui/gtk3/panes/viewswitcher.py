@@ -52,6 +52,7 @@ class ViewSwitcherLogic(object):
         return self.channel_manager.channels
 
     def get_installed_channels(self):
+        # todo, filter out channels for which not packages are installed
         return self.channel_manager.channels
 
     #~ def on_transactions_changed(self, backend, total_transactions):
