@@ -13,18 +13,18 @@ class CategoryTile(Gtk.Button):
 
         self.set_focus_on_click(False)
 
-        vbox = Gtk.VBox(spacing=StockEms.SMALL)
-        vbox.set_border_width(StockEms.SMALL)
-        self.add(vbox)
+        self.vbox = Gtk.VBox(spacing=StockEms.SMALL)
+        #~ self.vbox.set_border_width(StockEms.SMALL)
+        self.add(self.vbox)
 
         image = Gtk.Image.new_from_icon_name(iconname, icon_size)
-        vbox.add(image)
+        self.vbox.add(image)
 
         label = Gtk.Label.new(label)
         label.set_alignment(0.5, 0.0)
         label.set_line_wrap(True)
         label.set_justify(Gtk.Justification.CENTER)
-        vbox.add(label)
+        self.vbox.add(label)
 
         self.set_size_request(self.MIN_WIDTH, -1)
         self.set_relief(Gtk.ReliefStyle.NONE)
