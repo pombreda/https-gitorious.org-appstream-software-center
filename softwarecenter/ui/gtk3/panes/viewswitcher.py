@@ -99,17 +99,18 @@ class ViewSwitcher(Gtk.HBox, ViewSwitcherLogic):
 
         # Gui stuff
         self.view_buttons = []
+        self._handlers = []
 
         # first, the availablepane items
         available = self._make_button(_("All Software"),
                                       "softwarecenter")
-        available.set_channel_request_func(self.on_get_available_channels)
+        available.set_channel_request_func(self.on_get_channels)
         self.view_buttons.append(available)
 
         # the installedpane items
         installed = self._make_button(_("Installed"),
                                       "computer")
-        installed.set_channel_request_func(self.on_get_installed_channels)
+        installed.set_channel_request_func(self.on_get_channels)
         self.view_buttons.append(installed)
 
         # the historypane item
@@ -145,41 +146,40 @@ class ViewSwitcher(Gtk.HBox, ViewSwitcherLogic):
         self.view_manager.set_active_view(view_id)
         return
 
-    def on_get_available_channels(self, popup):
+    def on_get_channels(self, popup):
+        # clean up old signal handlers
+        for sig in self._handlers:
+            GObject.source_remove(sig)
+
         channels = self.get_available_channels()
         for i, channel in enumerate(channels):
-            item = Gtk.MenuItem()
-
-            box = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, StockEms.MEDIUM)
-            item.add(box)
-
+            item = Gtk.ImageMenuItem.new_with_label(channel.display_name)
             image = Gtk.Image.new_from_icon_name(channel.icon, Gtk.IconSize.BUTTON)
-            label = Gtk.Label.new(channel.display_name)
-
-            box.pack_start(image, False, False, 0)
-            box.pack_start(label, False, False, 0)
-
-            item.show_all()
+            item.set_image(image)
+            item.set_always_show_image(True)
+            self._handlers.append(
+                item.connect(
+                    "activate",
+                    self.on_channel_selected,
+                    channel,
+                    ViewPages.AVAILABLE
+                )
+            )
             popup.attach(item, 0, 1, i, i+1)
+
+        popup.show_all()
         return
 
-    def on_get_installed_channels(self, popup):
-        channels = self.get_available_channels()
-        for i, channel in enumerate(channels):
-            item = Gtk.MenuItem()
-
-            box = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, StockEms.MEDIUM)
-            item.add(box)
-
-            image = Gtk.Image.new_from_icon_name(channel.icon, Gtk.IconSize.BUTTON)
-            label = Gtk.Label.new(channel.display_name)
-
-            box.pack_start(image, False, False, 0)
-            box.pack_start(label, False, False, 0)
-
-            item.show_all()
-            popup.attach(item, 0, 1, i, i+1)
+    def on_channel_selected(self, item, channel, view_id):
+        # ewwwww
+        print view_id, channel
+        vm = self.view_manager
+        vm.set_active_view(view_id)
+        pane = vm.get_current_view_widget()
+        pane.refresh_apps(channel.query)
+        pane.notebook.set_current_page(pane.Pages.LIST)
         return
+
 
 if __name__ == "__main__":
     from softwarecenter.db.pkginfo import get_pkg_info
