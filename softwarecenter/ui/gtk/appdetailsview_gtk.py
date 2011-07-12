@@ -1772,8 +1772,12 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.usage.show()
 
         # try to get it
-        zeitgeist_singleton.get_usage_counter(
-            self.app_details.desktop_file, _zeitgeist_callback)
+        try:
+            zeitgeist_singleton.get_usage_counter(
+                self.app_details.desktop_file, _zeitgeist_callback)
+        except Exception, e:
+            LOG.warning("could not update the usage counter: %s " % e)
+            self.usage.hide()
 
 
 if __name__ == "__main__":
