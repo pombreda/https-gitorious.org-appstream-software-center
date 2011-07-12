@@ -10,6 +10,9 @@ software-center (4.1.9) UNRELEASED; urgency=low
     (LP: #802919, LP: #802920)
   * softwarecenter/ui/gtk/appview.py:
     - fix crash on a network change event (LP: #804414)
+  * softwarecenter/ui/gtk/appdetailsview_gtk.py:
+    - gracefully handle AttributeError from zeitgest pending
+      fix in zeitgeist itself, fixes crash (LP: #807282)
 
   [ Aaron Peachey ]
   * softwarecenter/backend/reviews.py, 
@@ -19,7 +22,7 @@ software-center (4.1.9) UNRELEASED; urgency=low
     - fix submit_usefulness and report_abuse callbacks
       to work with the new spawn_helper and pagination code
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 11 Jul 2011 21:43:32 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 12 Jul 2011 13:52:35 -0400
 
 software-center (4.1.8) oneiric; urgency=low
 
