@@ -534,6 +534,8 @@ class GMenuSearcher(object):
     def __init__(self):
         self._found = None
     def _search_gmenu_dir(self, dirlist, needle):
+        if not dirlist[-1]:
+            return
         for item in dirlist[-1].get_contents():
             mtype = item.get_type()
             if mtype == gmenu.TYPE_DIRECTORY:
