@@ -15,6 +15,7 @@ class Tile(Gtk.Button):
         self.vbox = Gtk.VBox(spacing=StockEms.SMALL)
         #~ self.vbox.set_border_width(StockEms.SMALL)
         self.add(self.vbox)
+
         image = Gtk.Image.new_from_icon_name(iconname, icon_size)
         self.vbox.add(image)
 
