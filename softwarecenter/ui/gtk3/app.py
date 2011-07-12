@@ -451,7 +451,10 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
 
     # callbacks
     def on_realize(self, widget):
-        glib.idle_add(self.view_manager.set_active_view, ViewPages.AVAILABLE)
+        def display_lobby():
+            self.view_manager.set_active_view(ViewPages.AVAILABLE)
+            return
+        glib.idle_add(display_lobby)
         return
 
     def on_available_pane_created(self, widget):

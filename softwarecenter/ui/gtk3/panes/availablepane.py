@@ -95,7 +95,8 @@ class AvailablePane(SoftwarePane):
         self.spinner_view.show()
         self.spinner_notebook.set_current_page(AvailablePane.Pages.SPINNER)
         window = self.get_window()
-        window.set_cursor(self.busy_cursor)
+        if window is not None:
+            window.set_cursor(self.busy_cursor)
 
         while Gtk.events_pending():
             Gtk.main_iteration()
@@ -169,8 +170,8 @@ class AvailablePane(SoftwarePane):
             self, AvailablePane.Pages.LOBBY,
             self.state, self.display_lobby_page)
 
-        window = self.get_window()
-        window.set_cursor(None)
+        if window is not None:
+            window.set_cursor(None)
         self.spinner_view.set_text()
         self.view_initialized = True
 
@@ -181,13 +182,15 @@ class AvailablePane(SoftwarePane):
             return xapian.Query()
         # get current sub-category (or category, but sub-category wins)
         cat_query = None
-        if self.state.subcategory:
-            cat_query = self.state.subcategory.query
+        if self.state.channel:
+            query = self.state.channel.query
+        elif self.state.subcategory:
+            query = self.state.subcategory.query
         elif self.state.category:
-            cat_query = self.state.category.query
-        # mix category with the search terms and return query
+            query = self.state.category.query
+        # mix channel/category with the search terms and return query
         return self.db.get_query_list_from_search_entry(
-                            self.state.search_term, cat_query)
+                            self.state.search_term, query)
 
     def _in_no_display_category(self):
         """return True if we are in a category with NoDisplay set in the XML"""

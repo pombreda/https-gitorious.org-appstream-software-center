@@ -104,13 +104,15 @@ class ViewSwitcher(Gtk.HBox, ViewSwitcherLogic):
         # first, the availablepane items
         available = self._make_button(_("All Software"),
                                       "softwarecenter")
-        available.set_channel_request_func(self.on_get_channels)
+        available.set_channel_request_func(
+                                    self.on_get_available_channels)
         self.view_buttons.append(available)
 
         # the installedpane items
         installed = self._make_button(_("Installed"),
                                       "computer")
-        installed.set_channel_request_func(self.on_get_channels)
+        installed.set_channel_request_func(
+                                    self.on_get_installed_channels)
         self.view_buttons.append(installed)
 
         # the historypane item
@@ -146,7 +148,13 @@ class ViewSwitcher(Gtk.HBox, ViewSwitcherLogic):
         self.view_manager.set_active_view(view_id)
         return
 
-    def on_get_channels(self, popup):
+    def on_get_available_channels(self, popup):
+        return self.build_channel_list(popup, ViewPages.AVAILABLE)
+
+    def on_get_installed_channels(self, popup):
+        return self.build_channel_list(popup, ViewPages.INSTALLED)
+
+    def build_channel_list(self, popup, view_id):
         # clean up old signal handlers
         for sig in self._handlers:
             GObject.source_remove(sig)
@@ -162,7 +170,7 @@ class ViewSwitcher(Gtk.HBox, ViewSwitcherLogic):
                     "activate",
                     self.on_channel_selected,
                     channel,
-                    ViewPages.AVAILABLE
+                    view_id
                 )
             )
             popup.attach(item, 0, 1, i, i+1)
@@ -171,13 +179,20 @@ class ViewSwitcher(Gtk.HBox, ViewSwitcherLogic):
         return
 
     def on_channel_selected(self, item, channel, view_id):
-        # ewwwww
-        print view_id, channel
+        # set active pane
         vm = self.view_manager
-        vm.set_active_view(view_id)
-        pane = vm.get_current_view_widget()
-        pane.refresh_apps(channel.query)
-        pane.notebook.set_current_page(pane.Pages.LIST)
+        pane = vm.set_active_view(view_id)
+
+        # configure DisplayState
+        state = pane.state.copy()
+        state.channel = channel
+        if view_id == ViewPages.AVAILABLE:
+            state.filter.set_installed_only(False)
+        elif view_id == ViewPages.INSTALLED:
+            state.filter.set_installed_only(False)
+
+        # request page change
+        vm.display_page(pane, pane.Pages.LIST, state)
         return
 
 

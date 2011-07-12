@@ -17,13 +17,13 @@ class Tile(Gtk.Button):
         self.add(self.vbox)
 
         image = Gtk.Image.new_from_icon_name(iconname, icon_size)
-        self.vbox.add(image)
+        self.vbox.pack_start(image, False, False, 0)
 
         label = Gtk.Label.new(label)
         label.set_alignment(0.5, 0.0)
         label.set_line_wrap(True)
         label.set_justify(Gtk.Justification.CENTER)
-        self.vbox.add(label)
+        self.vbox.pack_start(label, False, False, 0)
 
         self.set_size_request(self.MIN_WIDTH, -1)
         self.set_relief(Gtk.ReliefStyle.NONE)

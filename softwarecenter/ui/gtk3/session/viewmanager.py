@@ -106,6 +106,7 @@ class ViewManager(object):
         self.notebook_view.set_current_page(page_id)
         if view_widget:
             view_widget.init_view()
+        return view_widget
 
     def get_active_view(self):
         page_id = self.notebook_view.get_current_page()
@@ -120,7 +121,10 @@ class ViewManager(object):
     def get_latest_nav_item(self):
         return self.navhistory.stack[-1]
 
-    def display_page(self, pane, page, view_state, callback):
+    def display_page(self, pane, page, view_state, callback=None):
+        if callback is None:
+            callback = pane.get_callback_for_page(page, view_state)
+
         nav_item = NavigationItem(self, pane, page,
                                   view_state.copy(), callback)
 
