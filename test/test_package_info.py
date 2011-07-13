@@ -68,6 +68,11 @@ class TestPkgInfoAptCache(unittest.TestCase):
         self.assertTrue(len(pkginfo.get_packages_removed_on_remove(pkg)) != 0)
         self.assertTrue(len(pkginfo.get_packages_removed_on_install(pkg)) == 0)
 
+    def test_installed_files(self):
+        pkg = self.pkginfo['coreutils']
+        files = pkg.installed_files
+        self.assertTrue('/usr/bin/whoami' in files)
+
 class TestPkgInfoPackagekit(TestPkgInfoAptCache):
     klass = PackagekitInfo
 

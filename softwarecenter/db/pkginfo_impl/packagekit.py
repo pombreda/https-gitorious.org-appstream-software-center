@@ -115,8 +115,14 @@ class PackagekitInfo(PackageInfo):
         return p.get_property('url') if p else ''
 
     def get_installed_files(self, pkgname):
-        # FIXME please
-        return []
+        p = self._get_one_package(pkgname)
+        if not p:
+            return []
+        res = self.client.get_files((p.get_id(),), None, self._on_progress_changed, None)
+        files = res.get_files_array()
+        if not files:
+            return []
+        return files[0].get_property('files')
 
     def get_size(self, pkgname):
         p = self._get_one_package(pkgname)
