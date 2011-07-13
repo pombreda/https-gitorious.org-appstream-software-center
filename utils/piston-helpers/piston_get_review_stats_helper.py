@@ -3,6 +3,7 @@
 import os
 import pickle
 import logging
+import sys
 
 from optparse import OptionParser
 

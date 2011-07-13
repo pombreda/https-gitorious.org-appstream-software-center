@@ -4,6 +4,7 @@ import os
 import pickle
 import simplejson
 import logging
+import sys
 
 from optparse import OptionParser
 
