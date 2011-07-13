@@ -29,7 +29,7 @@ software-center (4.1.9) oneiric; urgency=low
     - fix submit_usefulness and report_abuse callbacks
       to work with the new spawn_helper and pagination code
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 13 Jul 2011 15:06:33 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 13 Jul 2011 16:11:35 +0200
 
 software-center (4.1.8) oneiric; urgency=low
 
