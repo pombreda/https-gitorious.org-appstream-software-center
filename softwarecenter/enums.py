@@ -197,4 +197,4 @@ USER_AGENT="Software Center/%s (N;) %s/%s (%s)" % (VERSION,
                                                    CODENAME)
 
 # experimental, only for testing FIXME: remove this
-USE_PACKAGEKIT_BACKEND = False
+USE_PACKAGEKIT_BACKEND = True

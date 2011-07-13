@@ -52,7 +52,9 @@ class PackagekitVersion(_Version):
         return self.pkginfo.get_size(self.package.get_name())
     @property
     def installed_size(self):
-        return 0 #FIXME get installed_size
+        """ In packagekit, installed_size can be fetched only for installed packages,
+        and is stored in the same 'size' property as the package size """
+        return self.pkginfo.get_size(self.package.get_name())
     @property
     def version(self):
         return self.package.get_version()
