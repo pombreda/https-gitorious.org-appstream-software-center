@@ -1,4 +1,4 @@
-software-center (4.1.9) UNRELEASED; urgency=low
+software-center (4.1.9) oneiric; urgency=low
 
   [ Michael Vogt ]
   * data/ui/*.ui:
@@ -25,7 +25,7 @@ software-center (4.1.9) UNRELEASED; urgency=low
     - fix submit_usefulness and report_abuse callbacks
       to work with the new spawn_helper and pagination code
 
- -- Gary Lasker <gary.lasker@canonical.com>  Tue, 12 Jul 2011 16:03:31 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 13 Jul 2011 15:06:33 +0200
 
 software-center (4.1.8) oneiric; urgency=low
 

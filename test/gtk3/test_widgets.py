@@ -1,13 +1,12 @@
 #!/usr/bin/python
 
-import glib
 from gi.repository import Gtk, GdkPixbuf, GObject
-import mock
 import os
 import sys
 import unittest
 
 sys.path.insert(0,"../..")
+sys.path.insert(0,"..")
 
 from mock import Mock
 
@@ -67,12 +66,16 @@ class TestWidgets(unittest.TestCase):
         Gtk.main()
 
     def test_show_image_dialog(self):
-        pix = GdkPixbuf.Pixbuf.new_from_file("../../data/images/dummy-screenshot-ubuntu.png")
+        if os.path.exists("../../data/images/dummy-screenshot-ubuntu.png"):
+            f = "../../data/images/dummy-screenshot-ubuntu.png"
+        else:
+            f = "../data/images/dummy-screenshot-ubuntu.png"
+        pix = GdkPixbuf.Pixbuf.new_from_file(f)
         d = SimpleShowImageDialog("test caption", pix)
         GObject.timeout_add(TIMEOUT, lambda: d.destroy())
         d.run()
 
-    def test_show_image_dialog(self):
+    def test_show_pathbar(self):
         win = get_test_pathbar_window()
         win.pb.append(PathPart("foo1"))
         win.pb.append(PathPart("foo2"))
