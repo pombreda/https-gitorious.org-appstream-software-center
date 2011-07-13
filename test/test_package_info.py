@@ -65,8 +65,8 @@ class TestPkgInfoAptCache(unittest.TestCase):
         pkginfo = self.pkginfo
         self.assertTrue(len(pkginfo.get_addons("firefox")) > 0)
         pkg = pkginfo['coreutils']
-        self.assertTrue(len(pkginfo.get_packages_removed_on_remove(pkg)) != 0)
         self.assertTrue(len(pkginfo.get_packages_removed_on_install(pkg)) == 0)
+        self.assertTrue(len(pkginfo.get_packages_removed_on_remove(pkg)) != 0)
 
     def test_installed_files(self):
         pkg = self.pkginfo['coreutils']

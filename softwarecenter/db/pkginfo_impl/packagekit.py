@@ -54,7 +54,7 @@ class PackagekitVersion(_Version):
     def installed_size(self):
         """ In packagekit, installed_size can be fetched only for installed packages,
         and is stored in the same 'size' property as the package size """
-        return self.pkginfo.get_size(self.package.get_name())
+        return self.pkginfo.get_installed_size(self.package.get_name())
     @property
     def version(self):
         return self.package.get_version()
@@ -132,8 +132,7 @@ class PackagekitInfo(PackageInfo):
         return p.get_property('size') if p else -1
 
     def get_installed_size(self, pkgname):
-        # TODO find something
-        return -1
+        return self.get_size(pkgname)
 
     def get_origins(self, pkgname):
         # FIXME something
@@ -146,14 +145,33 @@ class PackagekitInfo(PackageInfo):
     def get_packages_removed_on_remove(self, pkg):
         """ Returns a package names list of reverse dependencies
         which will be removed if the package is removed."""
-        # FIXME
-        return []
+        # FIXME it always returns []
+        p = self._get_one_package(pkg.name)
+        if not p:
+            return []
+        autoremove = False
+        res = self.client.simulate_remove_packages((p.get_id(),), 
+                                            autoremove, None,
+                                            self._on_progress_changed, None,
+        )
+        if not res:
+            return []
+        return [p.get_name() for p in res.get_package_array()]
 
     def get_packages_removed_on_install(self, pkg):
         """ Returns a package names list of dependencies
         which will be removed if the package is installed."""
-        # FIXME
-        return []
+        # FIXME it always returns []
+        p = self._get_one_package(pkg.name)
+        if not p:
+            return []
+        res = self.client.simulate_install_packages((p.get_id(),), 
+                                            None,
+                                            self._on_progress_changed, None,
+        )
+        if not res:
+            return []
+        return [p.get_name() for p in res.get_package_array()]
 
     def get_total_size_on_install(self, pkgname, addons_install=None,
                                 addons_remove=None):
