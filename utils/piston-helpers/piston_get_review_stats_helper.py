@@ -45,7 +45,7 @@ if __name__ == "__main__":
         piston_review_stats = rnrclient.review_stats(**kwargs)
     except:
         LOG.exception("get_review_stats")
-
+        sys.exit(1)
 
     # useful for debugging
     if options.no_pickle:
@@ -60,6 +60,5 @@ if __name__ == "__main__":
         except IOError:
             # this can happen if the parent gets killed, no need to trigger
             # apport for this
-            pass
-
+            sys.exit(1)
 

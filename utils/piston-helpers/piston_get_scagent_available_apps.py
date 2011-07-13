@@ -143,11 +143,13 @@ if __name__ == "__main__":
             piston_reply = scaclient.available_apps(**kwargs)
         except:
             LOG.exception("available_apps")
+            sys.exit(1)
     elif args.command == "available_apps_qa":
         try:
             piston_reply = scaclient.available_apps_qa(**kwargs)
         except:
             LOG.exception("available_apps_qa")
+            sys.exit(1)
     elif args.command == "subscriptions_for_me":
         try:
             piston_reply = scaclient.subscriptions_for_me(complete_only=True)
@@ -159,6 +161,7 @@ if __name__ == "__main__":
                     setattr(item, k, v)
         except:
             LOG.exception("subscriptions_for_me")
+            sys.exit(1)
 
     if args.debug:
         LOG.debug("reply: %s" % piston_reply)

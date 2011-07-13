@@ -74,7 +74,7 @@ class SoftwareCenterAgent(gobject.GObject):
         if not arch_tag:
             arch_tag = get_current_arch()
         # build the command
-        cmd = self.HELPER_CMD
+        cmd = self.HELPER_CMD[:]
         if for_qa:
             cmd.append("available_apps_qa")
         else:
@@ -91,7 +91,7 @@ class SoftwareCenterAgent(gobject.GObject):
         self.emit("available", piston_available)
 
     def query_available_for_me(self, oauth_token, openid_identifier):
-        cmd = self.HELPER_CMD
+        cmd = self.HELPER_CMD[:]
         cmd.append("subscriptions_for_me")
         spawner = SpawnHelper()
         spawner.connect("data-available", self._on_query_available_for_me_data)
@@ -105,6 +105,9 @@ if __name__ == "__main__":
         print "_available: ", available
     def _available_for_me(agent, available_for_me):
         print "_availalbe_for_me: ", available_for_me
+    def _error(agent, msg):
+        print "got a error", msg
+        #gtk.main_quit()
 
     # test specific stuff
     logging.basicConfig()
@@ -113,6 +116,7 @@ if __name__ == "__main__":
     scagent = SoftwareCenterAgent()
     scagent.connect("available-for-me", _available_for_me)
     scagent.connect("available", _available)
+    scagent.connect("error", _error)
     scagent.query_available("natty", "i386")
     scagent.query_available_for_me("dummy_oauth", "dummy openid")
 

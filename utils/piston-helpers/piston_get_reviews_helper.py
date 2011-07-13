@@ -73,6 +73,7 @@ if __name__ == "__main__":
         LOG.debug("_get_reviews_threaded: no reviews able to be retrieved: %s" % e)
     except:
         LOG.exception("get_reviews")
+        sys.exit(1)
 
     # useful for debugging        
     if options.no_pickle:

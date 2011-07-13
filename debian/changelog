@@ -3,6 +3,10 @@ software-center (4.1.9) oneiric; urgency=low
   [ Michael Vogt ]
   * data/ui/*.ui:
     - move into data/ui/gtk preparing the gtk3 merge
+  * utils/piston-helpers/*.py:
+    - return exitcode 1 on expections
+  * softwarecenter/backend/scagent.py:
+    - properly copy when building the command
 
   [ Gary Lasker ]
   * merge lp:~evfool/software-center/nonetworkfixes to fix menu
