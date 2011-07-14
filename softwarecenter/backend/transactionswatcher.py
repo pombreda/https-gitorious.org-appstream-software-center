@@ -16,9 +16,9 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import gobject
+from gi.repository import GObject
 
-class BaseTransaction(gobject.GObject):
+class BaseTransaction(GObject.GObject):
     """
     wrapper class for install backend dbus Transaction objects
     """
@@ -53,7 +53,7 @@ class BaseTransaction(gobject.GObject):
     def cancel(self):
         pass
 
-class BaseTransactionsWatcher(gobject.GObject):
+class BaseTransactionsWatcher(GObject.GObject):
     """ 
     base class for objects that need to watch the install backend 
     for transaction changes.
@@ -61,9 +61,9 @@ class BaseTransactionsWatcher(gobject.GObject):
     provides a "lowlevel-transactions-changed" signal
     """
 
-    __gsignals__ = {'lowlevel-transactions-changed': (gobject.SIGNAL_RUN_FIRST,
-                                                     gobject.TYPE_NONE,
-                                                     (str,gobject.TYPE_PYOBJECT)),
+    __gsignals__ = {'lowlevel-transactions-changed': (GObject.SIGNAL_RUN_FIRST,
+                                                     GObject.TYPE_NONE,
+                                                     (str,GObject.TYPE_PYOBJECT)),
                     }
 
     def get_transaction(self, tid):

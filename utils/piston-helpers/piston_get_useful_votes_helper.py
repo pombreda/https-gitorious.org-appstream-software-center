@@ -3,6 +3,7 @@
 import pickle
 import simplejson
 import logging
+import sys
 
 from optparse import OptionParser
 from softwarecenter.backend.piston.rnrclient import RatingsAndReviewsAPI
@@ -34,6 +35,7 @@ if __name__ == "__main__":
             LOG.debug("_get_reviews_threaded: no reviews able to be retrieved: %s" % e)
         except:
             LOG.exception("_get_useful_votes_helper")
+            sys.exit(1)
 
     # print to stdout where its consumed by the parent
     try:

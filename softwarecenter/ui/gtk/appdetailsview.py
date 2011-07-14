@@ -21,7 +21,7 @@ import logging
 import dialogs
 
 import urllib
-import gobject
+from gi.repository import GObject
 
 from gettext import gettext as _
 
@@ -38,15 +38,15 @@ LOG=logging.getLogger(__name__)
 class AppDetailsViewBase(object):
 
     __gsignals__ = {
-        "application-request-action" : (gobject.SIGNAL_RUN_LAST,
-                                        gobject.TYPE_NONE,
-                                        (gobject.TYPE_PYOBJECT, 
-                                         gobject.TYPE_PYOBJECT, 
-                                         gobject.TYPE_PYOBJECT, 
+        "application-request-action" : (GObject.SIGNAL_RUN_LAST,
+                                        GObject.TYPE_NONE,
+                                        (GObject.TYPE_PYOBJECT, 
+                                         GObject.TYPE_PYOBJECT, 
+                                         GObject.TYPE_PYOBJECT, 
                                          str,)),
-         "purchase-requested" : (gobject.SIGNAL_RUN_LAST,
-                                 gobject.TYPE_NONE,
-                                 (gobject.TYPE_PYOBJECT,
+         "purchase-requested" : (GObject.SIGNAL_RUN_LAST,
+                                 GObject.TYPE_NONE,
+                                 (GObject.TYPE_PYOBJECT,
                                   str,)),
     }
 

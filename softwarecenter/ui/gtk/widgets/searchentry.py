@@ -22,16 +22,16 @@
 # Place, Suite 330, Boston, MA 02111-1307 USA
 
 import gtk
-import gobject
+from gi.repository import GObject
 
 from gettext import gettext as _
 
 class SearchEntry(gtk.Entry):
 
     # FIMXE: we need "can-undo", "can-redo" signals
-    __gsignals__ = {'terms-changed':(gobject.SIGNAL_RUN_FIRST,
-                                     gobject.TYPE_NONE,
-                                     (gobject.TYPE_STRING,))}
+    __gsignals__ = {'terms-changed':(GObject.SIGNAL_RUN_FIRST,
+                                     GObject.TYPE_NONE,
+                                     (GObject.TYPE_STRING,))}
 
     SEARCH_TIMEOUT = 200
 
@@ -115,8 +115,8 @@ class SearchEntry(gtk.Entry):
         """
         self._check_style()
         if self._timeout_id > 0:
-            gobject.source_remove(self._timeout_id)
-        self._timeout_id = gobject.timeout_add(self.SEARCH_TIMEOUT,
+            GObject.source_remove(self._timeout_id)
+        self._timeout_id = GObject.timeout_add(self.SEARCH_TIMEOUT,
                                                self._emit_terms_changed)
 
     def _check_style(self):

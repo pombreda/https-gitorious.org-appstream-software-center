@@ -20,9 +20,9 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import os
-import gobject
-gobject.threads_init()
-import glib
+from gi.repository import GObject
+GObject.threads_init()
+from gi.repository import GObject
 import logging
 import threading
 
@@ -146,22 +146,22 @@ class RestfulClientWorker(threading.Thread):
                 self._pending_requests.empty()):
                 return
 
-class UbuntuSSOAPI(gobject.GObject):
+class UbuntuSSOAPI(GObject.GObject):
 
     __gsignals__ = {
-        "whoami" : (gobject.SIGNAL_RUN_LAST,
-                    gobject.TYPE_NONE, 
-                    (gobject.TYPE_PYOBJECT,),
+        "whoami" : (GObject.SIGNAL_RUN_LAST,
+                    GObject.TYPE_NONE, 
+                    (GObject.TYPE_PYOBJECT,),
                     ),
-        "error" : (gobject.SIGNAL_RUN_LAST,
-                    gobject.TYPE_NONE, 
-                    (gobject.TYPE_PYOBJECT,),
+        "error" : (GObject.SIGNAL_RUN_LAST,
+                    GObject.TYPE_NONE, 
+                    (GObject.TYPE_PYOBJECT,),
                     ),
 
         }
        
     def __init__(self, token):
-        gobject.GObject.__init__(self)
+        GObject.GObject.__init__(self)
         self._whoami = None
         self._error = None
         self.service = UBUNTU_SSO_SERVICE
@@ -172,7 +172,7 @@ class UbuntuSSOAPI(gobject.GObject):
                                      access_token=token)
         self.worker_thread =  RestfulClientWorker(authorizer, self.service)
         self.worker_thread.start()
-        glib.timeout_add(200, self._monitor_thread)
+        GObject.timeout_add(200, self._monitor_thread)
 
     def _monitor_thread(self):
         # glib bit of the threading, runs in the main thread
@@ -199,7 +199,7 @@ class UbuntuSSOAPI(gobject.GObject):
 class UbuntuSSOAPIFake(UbuntuSSOAPI):
 
     def __init__(self, token):
-        gobject.GObject.__init__(self)
+        GObject.GObject.__init__(self)
         self._fake_settings = FakeReviewSettings()
 
     @network_delay
@@ -272,7 +272,7 @@ class UbuntuSSOlogin(LoginBackend):
         self.worker_thread.queue_request(self.SSO_AUTHENTICATE_FUNC, (), kwargs,
                                          self._thread_authentication_done,
                                          self._thread_authentication_error)
-        glib.timeout_add(200, self._monitor_thread)
+        GObject.timeout_add(200, self._monitor_thread)
 
     def _monitor_thread(self):
         # glib bit of the threading, runs in the main thread
