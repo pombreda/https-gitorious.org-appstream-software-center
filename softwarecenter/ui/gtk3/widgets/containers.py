@@ -123,9 +123,10 @@ class FlowableGrid(Gtk.Fixed):
             self.remove(child)
         return
 
-
-if __name__ == '__main__':
+# this is used in the automatic tests
+def get_test_container_window():
     win = Gtk.Window()
+    win.set_size_request(500, 300)
     f = FlowableGrid()
 
     import buttons
@@ -141,4 +142,9 @@ if __name__ == '__main__':
     win.show_all()
 
     win.connect("destroy", lambda x: Gtk.main_quit())
+    return win
+
+if __name__ == '__main__':
+    win = get_test_container_window()
+    win.show_all()
     Gtk.main()

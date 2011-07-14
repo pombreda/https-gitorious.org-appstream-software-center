@@ -18,7 +18,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import base64
-import glib
+from gi.repository import GObject
 import logging
 import os
 import simplejson
@@ -358,7 +358,7 @@ def update_from_var_lib_apt_lists(db, cache, listsdir=None):
     import apt_pkg
     if not listsdir:
         listsdir = apt_pkg.Config.find_dir("Dir::State::lists")
-    context = glib.main_context_default()
+    context = GObject.main_context_default()
     for appinfo in glob("%s/*AppInfo" % listsdir):
         LOG.debug("processing %s" % appinfo)
         # process events
@@ -374,7 +374,7 @@ def update_from_appstream_xml(db, cache, xmldir=None):
     if not xmldir:
         xmldir = softwarecenter.paths.APPSTREAM_XML_PATH
     from lxml import etree
-    context = glib.main_context_default()
+    context = GObject.main_context_default()
     for appstream_xml in glob(os.path.join(xmldir, "*.xml")):
         LOG.debug("processing %s" % appstream_xml)
         # process events
@@ -394,7 +394,7 @@ def update_from_app_install_data(db, cache, datadir=None):
     """ index the desktop files in $datadir/desktop/*.desktop """
     if not datadir:
         datadir = softwarecenter.paths.APP_INSTALL_DESKTOP_PATH
-    context = glib.main_context_default()
+    context = GObject.main_context_default()
     for desktopf in glob(datadir+"/*.desktop"):
         LOG.debug("processing %s" % desktopf)
         # process events
@@ -486,8 +486,8 @@ def update_from_software_center_agent(db, cache, ignore_cache=False,
         sca.query_available()
     # create event loop and run it until data is available 
     # (the _available_cb and _error_cb will quit it)
-    context = glib.main_context_default()
-    loop = glib.MainLoop(context)
+    context = GObject.main_context_default()
+    loop = GObject.MainLoop(context)
     loop.run()
     # process data
     for entry in sca.available:

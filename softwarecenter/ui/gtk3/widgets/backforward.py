@@ -182,13 +182,17 @@ class Right(ButtonPart):
         #~ context.get_style_property("border-radius", Gtk.StateFlags.NORMAL)
         return
 
-
-if __name__ == "__main__":
+# this is used in the automatic tests as well
+def get_test_backforward_window():
     win = Gtk.Window()
     win.connect("destroy", lambda x: Gtk.main_quit())
     win.set_default_size(300,100)
     backforward = BackForwardButton()
     win.add(backforward)
+    return win
+
+if __name__ == "__main__":
+    win = get_test_backforward_window()
     win.show_all()
 
     Gtk.main()

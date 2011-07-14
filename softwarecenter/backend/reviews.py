@@ -18,11 +18,11 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+from gi.repository import GObject
 import cPickle
 import datetime
 import gio
 import gzip
-import glib
 import logging
 import operator
 import os
@@ -396,7 +396,7 @@ class ReviewLoader(object):
                "--parent-xid", "%s" % parent_xid,
                "--datadir", datadir,
               ]
-        spawn_helper = SpawnHelper()
+        spawn_helper = SpawnHelper("json")
         spawn_helper.connect("exited", 
                              self._on_report_abuse_finished, 
                              review_id, callback)
@@ -426,36 +426,41 @@ class ReviewLoader(object):
         spawn_helper.connect("exited", 
                              self._on_submit_usefulness_finished, 
                              review_id, is_useful, callback)
+        spawn_helper.connect("error",
+                             self._on_submit_usefulness_error,
+                             review_id, callback)
         spawn_helper.run(cmd)
 
-    def _on_submit_usefulness_finished(self, spawn_helper, exitcode, review_id, is_useful, callback):
+    def _on_submit_usefulness_finished(self, spawn_helper, res, review_id, is_useful, callback):
         """ called when report_usefulness finished """
         # "Created", "Updated", "Not modified" - 
         # once lp:~mvo/rnr-server/submit-usefulness-result-strings makes it
         response = spawn_helper._stdout
         if response == '"Not modified"':
+            self._on_submit_usefulness_error(spawn_helper, response, review_id, callback)
             return
-        if exitcode == 0:
-            LOG.debug("usefulness id %s " % review_id)
-            useful_votes = UsefulnessCache()
-            useful_votes.add_usefulness_vote(review_id, is_useful)
-            for (app, reviews) in self._reviews.iteritems():
-                for review in reviews:
-                    if str(review.id) == str(review_id):
-                        # update usefulness, older servers do not send
-                        # usefulness_{total,favorable} so we use getattr
-                        review.usefulness_total = getattr(review, "usefulness_total", 0) + 1
-                        if is_useful:
-                            review.usefulness_favorable = getattr(review, "usefulness_favorable", 0) + 1
+
+        LOG.debug("usefulness id %s " % review_id)
+        useful_votes = UsefulnessCache()
+        useful_votes.add_usefulness_vote(review_id, is_useful)
+        for (app, reviews) in self._reviews.iteritems():
+            for review in reviews:
+                if str(review.id) == str(review_id):
+                    # update usefulness, older servers do not send
+                    # usefulness_{total,favorable} so we use getattr
+                    review.usefulness_total = getattr(review, "usefulness_total", 0) + 1
+                    if is_useful:
+                        review.usefulness_favorable = getattr(review, "usefulness_favorable", 0) + 1
                         callback(app, self._reviews[app], useful_votes, 'replace', review)
                         break
-        else:
-            LOG.debug("submit usefulness id=%s failed with exitcode %s" % (
-                review_id, exitcode))
+
+    def _on_submit_usefulness_error(self, spawn_helper, error_str, review_id, callback):
+            LOG.warn("submit usefulness id=%s failed with error: %s" %
+                     (review_id, error_str))
             for (app, reviews) in self._reviews.iteritems():
                 for review in reviews:
                     if str(review.id) == str(review_id):
-                        review.usefulness_submit_error = exitcode
+                        review.usefulness_submit_error = True
                         callback(app, self._reviews[app], None, 'replace', review)
                         break
 
@@ -469,28 +474,32 @@ class ReviewLoader(object):
         spawn_helper.connect("exited", 
                              self._on_delete_review_finished, 
                              review_id, callback)
+        spawn_helper.connect("error", self._on_delete_review_error,
+                             review_id, callback)
         spawn_helper.run(cmd)
 
-    def _on_delete_review_finished(self, spawn_helper, exitcode, review_id, callback):
+    def _on_delete_review_finished(self, spawn_helper, res, review_id, callback):
         """ called when delete_review finished"""
-        if exitcode == 0:
-            LOG.debug("delete id %s " % review_id)
-            for (app, reviews) in self._reviews.iteritems():
-                for review in reviews:
-                    if str(review.id) == str(review_id):
-                        # remove the one we don't want to see anymore
-                        self._reviews[app].remove(review)
-                        callback(app, self._reviews[app])
-                        break                    
-        else:
-            LOG.debug("delete review id=%s failed with exitcode %s" % (
-                review_id, exitcode))
-            for (app, reviews) in self._reviews.iteritems():
-                for review in reviews:
-                    if str(review.id) == str(review_id):
-                        review.delete_error = exitcode
-                        callback(app, self._reviews[app])
-                        break
+        LOG.debug("delete id %s " % review_id)
+        for (app, reviews) in self._reviews.iteritems():
+            for review in reviews:
+                if str(review.id) == str(review_id):
+                    # remove the one we don't want to see anymore
+                    self._reviews[app].remove(review)
+                    callback(app, self._reviews[app], None, 'remove', review)
+                    break                    
+
+    def _on_delete_review_error(self, spawn_helper, error_str, review_id, callback):
+        """called if delete review errors"""
+        LOG.warn("delete review id=%s failed with error: %s" % (review_id, error_str))
+        for (app, reviews) in self._reviews.iteritems():
+            for review in reviews:
+                if str(review.id) == str(review_id):
+                    review.delete_error = True
+                    callback(app, self._reviews[app], action='replace', 
+                             single_review=review)
+                    break
+
     
     def spawn_modify_review_ui(self, parent_xid, iconname, datadir, review_id, callback):
         """ this spawns the UI for writing a new review and
@@ -502,42 +511,46 @@ class ReviewLoader(object):
                "--review-id", "%s" % review_id,
                ]
         spawn_helper = SpawnHelper(format="json")
-        spawn_helper.connect("exited", 
+        spawn_helper.connect("data-available", 
                              self._on_modify_review_finished, 
+                             review_id, callback)
+        spawn_helper.connect("error", self._on_modify_review_error,
                              review_id, callback)
         spawn_helper.run(cmd)
 
-
-    def _on_modify_review_finished(self, spawn_helper, exitcode, review_id, review_json, callback):
+    def _on_modify_review_finished(self, spawn_helper, review_json, review_id, callback):
         """called when modify_review finished"""
         LOG.debug("_on_modify_review_finished")
-        if exitcode == 0:
-            review_json = spawn_helper._stdout
-            mod_review = ReviewDetails.from_dict(review_json)
-            for (app, reviews) in self._reviews.iteritems():
-                for review in reviews:
-                    if str(review.id) == str(review_id):
-                        # remove the one we don't want to see anymore
-                        self._reviews[app].remove(review)
-                        self._reviews[app].insert(0, Review.from_piston_mini_client(mod_review))
-                        callback(app, self._reviews[app])
-                        break
-        else:
-            LOG.debug("modify review id=%s failed with exitcode %s" % (
-                review_id, exitcode))
-            for (app, reviews) in self._reviews.iteritems():
-                for review in reviews:
-                    if str(review.id) == str(review_id):
-                        review.modify_error = exitcode
-                        callback(app, self._reviews[app])
-                        break
+        #review_json = spawn_helper._stdout
+        mod_review = ReviewDetails.from_dict(review_json)
+        for (app, reviews) in self._reviews.iteritems():
+            for review in reviews:
+                if str(review.id) == str(review_id):
+                    # remove the one we don't want to see anymore
+                    self._reviews[app].remove(review)
+                    new_review = Review.from_piston_mini_client(mod_review)
+                    self._reviews[app].insert(0, new_review)
+                    callback(app, self._reviews[app], action='replace', 
+                             single_review=new_review)
+                    break
+                    
+    def _on_modify_review_error(self, spawn_helper, error_str, review_id, callback):
+        """called if modify review errors"""
+        LOG.debug("modify review id=%s failed with error: %s" % (review_id, error_str))
+        for (app, reviews) in self._reviews.iteritems():
+            for review in reviews:
+                if str(review.id) == str(review_id):
+                    review.modify_error = True
+                    callback(app, self._reviews[app], action='replace', 
+                             single_review=review)
+                    break
 
 
 # this code had several incernations: 
 # - python threads, slow and full of latency (GIL)
 # - python multiprocesing, crashed when accessibility was turned on, 
 #                          does not work in the quest session (#743020)
-# - glib.spawn_async() looks good so far (using the SpawnHelper code)
+# - GObject.spawn_async() looks good so far (using the SpawnHelper code)
 class ReviewLoaderSpawningRNRClient(ReviewLoader):
     """ loader that uses multiprocessing to call rnrclient and
         a glib timeout watcher that polls periodically for the
@@ -657,7 +670,7 @@ class ReviewLoaderJsonAsync(ReviewLoader):
         callback = source.get_data("callback")
         try:
             (json_str, length, etag) = source.load_contents_finish(result)
-        except glib.GError:
+        except GObject.GError:
             # ignore read errors, most likely transient
             return callback(app, [])
         # check for gzip header
@@ -699,7 +712,7 @@ class ReviewLoaderJsonAsync(ReviewLoader):
         callback = source.get_data("callback")
         try:
             (json_str, length, etag) = source.load_contents_finish(result)
-        except glib.GError:
+        except GObject.GError:
             # ignore read errors, most likely transient
             return
         # check for gzip header

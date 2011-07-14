@@ -17,7 +17,6 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 from gi.repository import PackageKitGlib as packagekit
-import gobject
 import logging
 
 from softwarecenter.db.pkginfo import PackageInfo, _Version

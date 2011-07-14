@@ -24,7 +24,7 @@ import logging
 import os
 import sys
 import xapian
-import gobject
+from gi.repository import GObject
 
 from gettext import gettext as _
 
@@ -49,8 +49,8 @@ class ChannelPane(SoftwarePane):
      PAGE_APP_DETAILS,
      PAGE_APP_PURCHASE) = range(3)
      
-    __gsignals__ = {'channel-pane-created':(gobject.SIGNAL_RUN_FIRST,
-                                            gobject.TYPE_NONE,
+    __gsignals__ = {'channel-pane-created':(GObject.SIGNAL_RUN_FIRST,
+                                            GObject.TYPE_NONE,
                                             ())}
 
     def __init__(self, cache, db, distro, icons, datadir):

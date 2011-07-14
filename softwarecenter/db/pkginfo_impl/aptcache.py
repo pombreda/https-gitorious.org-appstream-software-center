@@ -21,8 +21,8 @@
 import apt
 import apt_pkg
 import logging
+from gi.repository import GObject
 import gio
-import glib
 import os
 
 from softwarecenter.enums import PkgStates
@@ -34,7 +34,7 @@ LOG = logging.getLogger(__name__)
 class GtkMainIterationProgress(apt.progress.base.OpProgress):
     """Progress that just runs the main loop"""
     def update(self, percent=0):
-        context = glib.main_context_default()
+        context = GObject.main_context_default()
         while context.pending():
             context.iteration()
 
@@ -228,9 +228,9 @@ class AptCache(PackageInfo):
         if not event == gio.FILE_MONITOR_EVENT_CHANGES_DONE_HINT:
             return 
         if self._timeout_id:
-            glib.source_remove(self._timeout_id)
+            GObject.source_remove(self._timeout_id)
             self._timeout_id = None
-        self._timeout_id = glib.timeout_add_seconds(10, self.open)
+        self._timeout_id = GObject.timeout_add_seconds(10, self.open)
     def _get_rdepends_by_type(self, pkg, type, onlyInstalled):
         rdeps = set()
         # make sure this is a apt.Package object
@@ -297,7 +297,7 @@ class AptCache(PackageInfo):
             if not pkg.candidate:
                 continue
             for item in pkg.candidate.origins:
-                context = glib.main_context_default()
+                context = GObject.main_context_default()
                 while context.pending():
                     context.iteration()
                 if item.origin:
@@ -646,7 +646,7 @@ class AptCache(PackageInfo):
             renhances = self._get_renhances_lowlevel_apt_pkg(virtual_aptpkg_pkg)
             LOG.debug("renhances of %s: %s" % (provide, renhances))
             addons_sug += renhances
-            context = glib.main_context_default()
+            context = GObject.main_context_default()
             while context.pending():
                 context.iteration()
 
@@ -678,7 +678,7 @@ class AptCache(PackageInfo):
                             pkgdep, pkgdep_enh))
                     addons_sug += pkgdep_enh
 
-            context = glib.main_context_default()
+            context = GObject.main_context_default()
             while context.pending():
                 context.iteration()
 

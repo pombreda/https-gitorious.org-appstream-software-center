@@ -16,13 +16,13 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import gobject
 import logging
 import dbus
 import dbus.mainloop.glib
 import os
 from gettext import gettext as _
 
+from gi.repository import GObject
 from gi.repository import PackageKitGlib as packagekit
 
 from softwarecenter.enums import TransactionTypes
@@ -58,7 +58,7 @@ class PackagekitTransaction(BaseTransaction):
     
     def __init__(self, trans):
         """ trans -- a PkProgress object """
-        gobject.GObject.__init__(self)
+        GObject.GObject.__init__(self)
         self._trans = trans
         self._setup_signals()
 
@@ -177,33 +177,33 @@ class PackagekitTransactionsWatcher(BaseTransactionsWatcher):
             return trans
         return PackagekitTransactionsWatcher._tlist[tid]
 
-class PackagekitBackend(gobject.GObject, InstallBackend):
+class PackagekitBackend(GObject.GObject, InstallBackend):
     
-    __gsignals__ = {'transaction-started':(gobject.SIGNAL_RUN_FIRST,
-                                            gobject.TYPE_NONE,
+    __gsignals__ = {'transaction-started':(GObject.SIGNAL_RUN_FIRST,
+                                            GObject.TYPE_NONE,
                                             (str,str,str,str)),
                     # emits a TransactionFinished object
-                    'transaction-finished':(gobject.SIGNAL_RUN_FIRST,
-                                            gobject.TYPE_NONE,
-                                            (gobject.TYPE_PYOBJECT, )),
-                    'transaction-stopped':(gobject.SIGNAL_RUN_FIRST,
-                                            gobject.TYPE_NONE,
-                                            (gobject.TYPE_PYOBJECT,)),
-                    'transactions-changed':(gobject.SIGNAL_RUN_FIRST,
-                                            gobject.TYPE_NONE,
-                                            (gobject.TYPE_PYOBJECT, )),
-                    'transaction-progress-changed':(gobject.SIGNAL_RUN_FIRST,
-                                                    gobject.TYPE_NONE,
+                    'transaction-finished':(GObject.SIGNAL_RUN_FIRST,
+                                            GObject.TYPE_NONE,
+                                            (GObject.TYPE_PYOBJECT, )),
+                    'transaction-stopped':(GObject.SIGNAL_RUN_FIRST,
+                                            GObject.TYPE_NONE,
+                                            (GObject.TYPE_PYOBJECT,)),
+                    'transactions-changed':(GObject.SIGNAL_RUN_FIRST,
+                                            GObject.TYPE_NONE,
+                                            (GObject.TYPE_PYOBJECT, )),
+                    'transaction-progress-changed':(GObject.SIGNAL_RUN_FIRST,
+                                                    GObject.TYPE_NONE,
                                                     (str,int,)),
                     # the number/names of the available channels changed
                     # FIXME: not emitted.
-                    'channels-changed':(gobject.SIGNAL_RUN_FIRST,
-                                        gobject.TYPE_NONE,
+                    'channels-changed':(GObject.SIGNAL_RUN_FIRST,
+                                        GObject.TYPE_NONE,
                                         (bool,)),
                     }
 
     def __init__(self):
-        gobject.GObject.__init__(self)
+        GObject.GObject.__init__(self)
         InstallBackend.__init__(self)
 
         # this is public exposed

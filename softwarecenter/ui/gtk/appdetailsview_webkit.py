@@ -17,8 +17,8 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import gio
-import glib
-import gobject
+from gi.repository import GObject
+from gi.repository import GObject
 import gtk
 import json
 import logging
@@ -59,12 +59,12 @@ class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
     # hrm, can not put this into AppDetailsViewBase as it overrides
     # the webkit signals otherwise :/
     # need to include application-request-action here also since we are multiple-inheriting
-    __gsignals__ = {'selected':(gobject.SIGNAL_RUN_FIRST,
-                                gobject.TYPE_NONE,
-                                (gobject.TYPE_PYOBJECT, )),
-                    'application-request-action' : (gobject.SIGNAL_RUN_LAST,
-                                        gobject.TYPE_NONE,
-                                        (gobject.TYPE_PYOBJECT, str),
+    __gsignals__ = {'selected':(GObject.SIGNAL_RUN_FIRST,
+                                GObject.TYPE_NONE,
+                                (GObject.TYPE_PYOBJECT, )),
+                    'application-request-action' : (GObject.SIGNAL_RUN_LAST,
+                                        GObject.TYPE_NONE,
+                                        (GObject.TYPE_PYOBJECT, str),
                                        ),
                     }
     
@@ -333,7 +333,7 @@ class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
             'pkgname' : self.app.pkgname }
         p = subprocess.Popen(["gwibber-poster", "-w", "-m", msg])
         # setup timeout handler to avoid zombies
-        glib.timeout_add_seconds(1, lambda p: p.poll() is None, p)
+        GObject.timeout_add_seconds(1, lambda p: p.poll() is None, p)
 
     def on_button_upgrade_clicked(self):
         self.upgrade()
@@ -418,9 +418,9 @@ class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
             try:
                 result = source.query_info_finish(result)
                 self.execute_script("showThumbnail();")
-            except glib.GError:
+            except GObject.GError:
                 self._logger.debug("no thumb available")
-                glib.timeout_add(200, run_thumb_missing_js)
+                GObject.timeout_add(200, run_thumb_missing_js)
             del source
         def run_thumb_missing_js():
             self._logger.debug("run_thumb_missing_js")

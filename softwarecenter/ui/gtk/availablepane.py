@@ -18,8 +18,8 @@
 
 import apt
 import gettext
-import gobject
-import glib
+from gi.repository import GObject
+from gi.repository import GObject
 import gtk
 import logging
 import os
@@ -60,8 +60,8 @@ class AvailablePane(SoftwarePane):
      PAGE_APP_DETAILS,
      PAGE_APP_PURCHASE) = range(5)
      
-    __gsignals__ = {'available-pane-created':(gobject.SIGNAL_RUN_FIRST,
-                                              gobject.TYPE_NONE,
+    __gsignals__ = {'available-pane-created':(GObject.SIGNAL_RUN_FIRST,
+                                              GObject.TYPE_NONE,
                                               ())}
 
     def __init__(self, 
@@ -124,7 +124,7 @@ class AvailablePane(SoftwarePane):
                 gtk.main_iteration()
 
             # open the cache since we are initializing the UI for the first time    
-            glib.idle_add(self.cache.open)
+            GObject.idle_add(self.cache.open)
             
             SoftwarePane.init_view(self)
             # categories, appview and details into the notebook in the bottom
@@ -720,7 +720,7 @@ class AvailablePane(SoftwarePane):
         def _cb():
             self.refresh_apps()
             return False
-        gobject.timeout_add(1, _cb)
+        GObject.timeout_add(1, _cb)
         pass
 
 if __name__ == "__main__":
@@ -782,7 +782,7 @@ if __name__ == "__main__":
     win.add(w)
     win.set_size_request(800,600)
     win.show_all()
-    glib.idle_add(w.init_view)
+    GObject.idle_add(w.init_view)
 
     gtk.main()
 

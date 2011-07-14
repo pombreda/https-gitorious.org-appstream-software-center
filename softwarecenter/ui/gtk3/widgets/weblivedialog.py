@@ -31,7 +31,7 @@ class ShowWebLiveServerChooserDialog(Gtk.Dialog):
 
     def __init__(self, supplied_servers, pkgname, parent=None):
         GObject.GObject.__init__(self)
-        self.set_has_separator(False)
+        #self.set_has_separator(False)
 
         # find parent window for the dialog
         if not parent:
@@ -40,7 +40,7 @@ class ShowWebLiveServerChooserDialog(Gtk.Dialog):
                 parent = parent.get_parent()
 
         # servers
-        self.servers_vbox=Gtk.VBox(False, 0)
+        self.servers_vbox=Gtk.VBox(homogeneous=False, spacing=0)
 
         # Merge duplicate servers, keep the one with the most space
         servers=[]
@@ -50,6 +50,7 @@ class ShowWebLiveServerChooserDialog(Gtk.Dialog):
                 if server.title == otherserver.title:
                     percent_server=((float(server.current_users)/float(server.userlimit))*100.0)
                     percent_otherserver=((float(otherserver.current_users)/float(otherserver.userlimit))*100.0)
+
                     for package in server.packages:
                         if package.pkgname == pkgname:
                             autoinstall_server=package.autoinstall
@@ -79,9 +80,10 @@ class ShowWebLiveServerChooserDialog(Gtk.Dialog):
         else:
             self.show_dialog=True
 
-        button=None
+        button=Gtk.RadioButton()
         for server in sorted(servers, key=lambda server: server.title):
-            button=Gtk.RadioButton(button, "%s - %s" % (server.title, server.description))
+            button=Gtk.RadioButton.new_from_widget(button)
+            button.set_label("%s - %s" % (server.title, server.description))
             button.serverid=server.name
             self.servers_vbox.pack_start(button, True, True, 0)
 
@@ -111,7 +113,7 @@ if __name__ == "__main__":
     weblive=WebLive('https://weblive.stgraber.org/weblive/json',True)
     servers=weblive.list_everything()
 
-    d = ShowWebLiveServerChooserDialog(servers)
+    d = ShowWebLiveServerChooserDialog(servers, "gimp")
     if d.run() == Gtk.ResponseType.OK:
         for server in d.servers_vbox:
             if server.get_active():

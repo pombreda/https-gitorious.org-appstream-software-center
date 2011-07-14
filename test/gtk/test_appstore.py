@@ -1,10 +1,11 @@
 #!/usr/bin/python
 
+from gi.repository import GObject
+
 import os
 import sys
 sys.path.insert(0,"../")
 
-import glib
 import gtk
 import unittest
 
@@ -135,7 +136,7 @@ class TestAppStore(unittest.TestCase):
                     limit=0,
                     nonapps_visible = AppStore.NONAPPS_MAYBE_VISIBLE)
                 # extra fun
-                glib.timeout_add(10, store._threaded_perform_search)
+                GObject.timeout_add(10, store._threaded_perform_search)
             self._p()
 
     def _p(self):

@@ -23,7 +23,7 @@ import dbus
 import dbus.service
 import gettext
 import logging
-import glib
+from gi.repository import GObject
 import gtk
 import os
 import subprocess
@@ -369,9 +369,9 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         else:
             sc_agent_update = os.path.join(
                 self.datadir, "update-software-center-agent")
-            (pid, stdin, stdout, stderr) = glib.spawn_async(
-                [sc_agent_update], flags=glib.SPAWN_DO_NOT_REAP_CHILD)
-            glib.child_watch_add(
+            (pid, stdin, stdout, stderr) = GObject.spawn_async(
+                [sc_agent_update], flags=GObject.SPAWN_DO_NOT_REAP_CHILD)
+            GObject.child_watch_add(
                 pid, self._on_update_software_center_agent_finished)
 
 
@@ -638,7 +638,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             return False
         # wait for the cache to become ready (if needed)
         if not self.cache.ready:
-            glib.timeout_add(100, lambda: self.on_menu_file_activate(menuitem))
+            GObject.timeout_add(100, lambda: self.on_menu_file_activate(menuitem))
             return False
         # update menu items
         pkg_state = None
@@ -678,7 +678,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
             self.menuitem_install.set_sensitive(False)
             self.menuitem_remove.set_sensitive(False)
         self.menuitem_reinstall_purchases.set_sensitive(is_network_available)
-        # return False to ensure that a possible glib.timeout_add ends
+        # return False to ensure that a possible GObject.timeout_add ends
         return False
 
     def on_menuitem_launchpad_private_ppas_activate(self, menuitem):
@@ -892,7 +892,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
              "-n", 
              "-t", str(self.window_main.window.xid)])
         # Monitor the subprocess regularly
-        glib.timeout_add(100, self._poll_software_sources_subprocess, p)
+        GObject.timeout_add(100, self._poll_software_sources_subprocess, p)
 
     def _poll_software_sources_subprocess(self, popen):
         ret = popen.poll()
@@ -915,7 +915,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         # run yelp
         p = subprocess.Popen(["yelp","ghelp:software-center"])
         # collect the exit status (otherwise we leave zombies)
-        glib.timeout_add_seconds(1, lambda p: p.poll() == None, p)
+        GObject.timeout_add_seconds(1, lambda p: p.poll() == None, p)
 
     def on_menuitem_view_all_activate(self, widget):
         if (not self._block_menuitem_view and
@@ -986,7 +986,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
     def _ask_and_repair_broken_cache(self):
         # wait until the window window is available
         if self.window_main.props.visible == False:
-            glib.timeout_add_seconds(1, self._ask_and_repair_broken_cache)
+            GObject.timeout_add_seconds(1, self._ask_and_repair_broken_cache)
             return
         if dialogs.confirm_repair_broken_cache(self.window_main,
                                                self.datadir):

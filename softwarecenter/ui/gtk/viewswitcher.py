@@ -16,10 +16,7 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from gi.repository import PackageKitGlib as packagekit
-
-import apt
-import gobject
+from gi.repository import GObject
 import gtk
 import pango
 import logging
@@ -51,7 +48,7 @@ class ViewItemCellRenderer(gtk.CellRendererText):
         
         'bubble_text': (str, 'Bubble text',
                         'Text to be label inside row bubble',
-                        '', gobject.PARAM_READWRITE),
+                        '', GObject.PARAM_READWRITE),
         }
 
     def __init__(self):
@@ -173,9 +170,9 @@ class ViewItemCellRenderer(gtk.CellRendererText):
 class ViewSwitcher(gtk.TreeView):
 
     __gsignals__ = {
-        "view-changed" : (gobject.SIGNAL_RUN_LAST,
-                          gobject.TYPE_NONE, 
-                          (gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT),
+        "view-changed" : (GObject.SIGNAL_RUN_LAST,
+                          GObject.TYPE_NONE, 
+                          (GObject.TYPE_PYOBJECT, GObject.TYPE_PYOBJECT),
                          ),
     }
 
@@ -440,6 +437,7 @@ if __name__ == "__main__":
 
     # cache
     from softwarecenter.db.pkginfo import get_pkg_info
+    #import apt
     #cache = apt.Cache(apt.progress.text.OpProgress())
     cache = get_pkg_info()
     db = StoreDatabase(pathname, cache)

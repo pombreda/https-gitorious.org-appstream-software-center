@@ -16,13 +16,9 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-# hack for loading dynamic before static FIXME
-from gi.repository import PackageKitGlib
-
 import dbus
-import glib
+from gi.repository import GObject
 import gtk
-import gobject
 import logging
 
 from softwarecenter.utils import get_icon_from_theme, size_to_str
@@ -70,12 +66,12 @@ class PendingStore(gtk.ListStore):
         self.backend = get_install_backend()
         self._signals = []
         # let the pulse helper run
-        glib.timeout_add(500, self._pulse_purchase_helper)
+        GObject.timeout_add(500, self._pulse_purchase_helper)
 
     def clear(self):
         super(PendingStore, self).clear()
         for sig in self._signals:
-            gobject.source_remove(sig)
+            GObject.source_remove(sig)
             del sig
         self._signals = []
 

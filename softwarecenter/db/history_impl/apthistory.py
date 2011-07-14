@@ -19,8 +19,8 @@
 
 import apt_pkg
 import cPickle
+from gi.repository import GObject
 import gio
-import glib
 import glob
 import gzip
 import os.path
@@ -37,7 +37,7 @@ class AptHistory(PackageHistory):
 
     def __init__(self, use_cache=True):
         LOG.debug("AptHistory.__init__()")
-        self.main_context = glib.main_context_default()
+        self.main_context = GObject.main_context_default()
         self.history_file = apt_pkg.config.find_file("Dir::Log::History")
         #Copy monitoring of history file changes from historypane.py
         self.logfile = gio.File(self.history_file)
@@ -48,7 +48,7 @@ class AptHistory(PackageHistory):
         # this takes a long time, run it in the idle handler
         self._transactions = []
         self._history_ready = False
-        glib.idle_add(self._rescan, use_cache)
+        GObject.idle_add(self._rescan, use_cache)
 
     @property
     def transactions(self):

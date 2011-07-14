@@ -16,15 +16,11 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-# hack for loading dynamic before static FIXME
-from gi.repository import PackageKitGlib
-
 import atk
 import datetime
 import gettext
-import glib
+from gi.repository import GObject, GLib
 import gmenu
-import gobject
 import gtk
 import logging
 import os
@@ -168,7 +164,7 @@ class PackageStatusBar(StatusBar):
 
         self.view.connect('style-set', self._on_view_style_set)
         self.button.connect('clicked', self._on_button_clicked)
-        glib.timeout_add(500, self._pulse_helper)
+        GObject.timeout_add(500, self._pulse_helper)
 
     def _on_view_style_set(self, view, old_style):
         self._progress_modify_bg(view)
@@ -527,8 +523,8 @@ class Addon(gtk.HBox):
 class AddonsTable(gtk.VBox):
     """ Widget to display a table of addons. """
 
-    __gsignals__ = {'table-built' : (gobject.SIGNAL_RUN_FIRST,
-                                     gobject.TYPE_NONE,
+    __gsignals__ = {'table-built' : (GObject.SIGNAL_RUN_FIRST,
+                                     GObject.TYPE_NONE,
                                      ()),
                    }
 
@@ -662,8 +658,8 @@ class AddonsManager():
             if addon in self.addons_to_install:
                 self.addons_to_install.remove(addon)
         self.status_bar.configure()
-        gobject.idle_add(self.view.update_totalsize,
-                         priority=glib.PRIORITY_LOW)
+        GObject.idle_add(self.view.update_totalsize,
+                         priority=GObject.PRIORITY_LOW)
 
     def configure(self, pkgname, update_addons=True):
         self.addons_to_install = []
@@ -680,8 +676,8 @@ class AddonsManager():
         self.addons_to_install = []
         self.addons_to_remove = []
         self.configure(self.view.app.pkgname)
-        gobject.idle_add(self.view.update_totalsize,
-                         priority=glib.PRIORITY_LOW)
+        GObject.idle_add(self.view.update_totalsize,
+                         priority=GObject.PRIORITY_LOW)
 
 
 class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
@@ -692,19 +688,19 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
     APP_ICON_SIZE = 84 # gtk.ICON_SIZE_DIALOG ?
 
     # need to include application-request-action here also since we are multiple-inheriting
-    __gsignals__ = {'selected':(gobject.SIGNAL_RUN_FIRST,
-                                gobject.TYPE_NONE,
-                                (gobject.TYPE_PYOBJECT,)),
-                    "application-selected" : (gobject.SIGNAL_RUN_LAST,
-                                   gobject.TYPE_NONE,
-                                   (gobject.TYPE_PYOBJECT, )),
-                    'application-request-action' : (gobject.SIGNAL_RUN_LAST,
-                                        gobject.TYPE_NONE,
-                                        (gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT, gobject.TYPE_PYOBJECT, str),
+    __gsignals__ = {'selected':(GObject.SIGNAL_RUN_FIRST,
+                                GObject.TYPE_NONE,
+                                (GObject.TYPE_PYOBJECT,)),
+                    "application-selected" : (GObject.SIGNAL_RUN_LAST,
+                                   GObject.TYPE_NONE,
+                                   (GObject.TYPE_PYOBJECT, )),
+                    'application-request-action' : (GObject.SIGNAL_RUN_LAST,
+                                        GObject.TYPE_NONE,
+                                        (GObject.TYPE_PYOBJECT, GObject.TYPE_PYOBJECT, GObject.TYPE_PYOBJECT, str),
                                        ),
-                    'purchase-requested' : (gobject.SIGNAL_RUN_LAST,
-                                            gobject.TYPE_NONE,
-                                            (gobject.TYPE_PYOBJECT,
+                    'purchase-requested' : (GObject.SIGNAL_RUN_LAST,
+                                            GObject.TYPE_NONE,
+                                            (GObject.TYPE_PYOBJECT,
                                              str,)),
                     }
 
@@ -767,7 +763,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         if state in NetState.NM_STATE_DISCONNECTED_LIST:
             self._check_for_reviews()
         elif state in NetState.NM_STATE_CONNECTED_LIST:
-            gobject.timeout_add(500, self._check_for_reviews)
+            GObject.timeout_add(500, self._check_for_reviews)
 
         # set addon table and action button states based on sensitivity
         sensitive = state in NetState.NM_STATE_CONNECTED_LIST
@@ -1233,7 +1229,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # make title font size fixed as they should look good compared to the 
         # icon (also fixed).
         markup = '<span font_desc="bold 20">%s</span>\n<span font_desc="9">%s</span>'
-        markup = markup % (appname, gobject.markup_escape_text(summary))
+        markup = markup % (appname, GObject.markup_escape_text(summary))
 
         self.title.set_markup(markup)
         self.title.a11y.set_name(appname + '. ' + summary)
@@ -1347,7 +1343,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
 
         # Update total size label
         self.totalsize_info.set_value(_("Calculating..."))
-        gobject.timeout_add(500, self.update_totalsize)
+        GObject.timeout_add(500, self.update_totalsize)
 
         # Update addons state bar
         self.addons_statusbar.configure()
@@ -1364,7 +1360,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         pkg_ambiguous_error = app_details.pkg_state in (PkgStates.NOT_FOUND,
                                                         PkgStates.NEEDS_SOURCE)
 
-        appname = gobject.markup_escape_text(app_details.display_name)
+        appname = GObject.markup_escape_text(app_details.display_name)
 
         if app_details.pkg_state == PkgStates.NOT_FOUND:
             summary = app_details._error_not_found
@@ -1439,9 +1435,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.installed_where_hbox.show_all()
 
     def _add_where_is_it_launcher(self, where):
-        # disable where-is-it under Unity as it does not apply there
-        if is_unity_running():
-            return
         # display launcher location
         label = gtk.Label(_("Find it in the menu: "))
         self.installed_where_hbox.pack_start(label, False, False)
@@ -1497,10 +1490,11 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                       "/usr/share/applications/%s.desktop" % pkgname]:
                 if p and os.path.exists(p):
                     desktop_file = p
-            # try to show menu location if there is a desktop file,
-            # but never show commandline programs for apps with desktop 
-            # file to cover cases like "file-roller" that have NoDisplay=true
-            if desktop_file:
+            # try to show menu location if there is a desktop file (and only when this
+            # is not a Unity configuration), but never show commandline programs
+            # for apps with desktop file to cover cases like "file-roller" that
+            # have NoDisplay=true
+            if desktop_file and not is_unity_running():
                 where = searcher.get_main_menu_path(desktop_file)
                 if where:
                     self._add_where_is_it_launcher(where)
@@ -1689,7 +1683,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             if self.icons.has_icon(app_details.icon):
                 try:
                     return self.icons.load_icon(app_details.icon, 84, 0)
-                except glib.GError, e:
+                except GObject.GError, e:
                     logging.warn("failed to load '%s': %s" % (app_details.icon, e))
                     return self.icons.load_icon(Icons.MISSING_APP, 84, 0)
             elif app_details.icon_url:
@@ -1775,8 +1769,12 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.usage.show()
 
         # try to get it
-        zeitgeist_singleton.get_usage_counter(
-            self.app_details.desktop_file, _zeitgeist_callback)
+        try:
+            zeitgeist_singleton.get_usage_counter(
+                self.app_details.desktop_file, _zeitgeist_callback)
+        except Exception, e:
+            LOG.warning("could not update the usage counter: %s " % e)
+            self.usage.hide()
 
 
 if __name__ == "__main__":
@@ -1846,7 +1844,7 @@ if __name__ == "__main__":
     win.connect('destroy', gtk.main_quit)
 
     # keep it spinning to test for re-draw issues and memleaks
-    #glib.timeout_add_seconds(2, _show_app, view)
+    #GObject.timeout_add_seconds(2, _show_app, view)
 
     # also  show pending view
     from softwarecenter.ui.gtk.pendingview import PendingView

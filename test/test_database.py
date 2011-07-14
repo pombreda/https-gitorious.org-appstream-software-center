@@ -194,9 +194,10 @@ class TestDatabase(unittest.TestCase):
         self.assertEqual(appdetails.installation_date, None)
         # then we need to wait until the history is loaded in the idle
         # handler
-        import gtk
-        while gtk.events_pending():
-            gtk.main_iteration()
+        from gi.repository import GObject
+        context = GObject.main_context_default()
+        while context.pending():
+            context.iteration()
         # ... and finally we test that its really there
         # FIXME: this will only work if software-center is installed
         self.assertNotEqual(appdetails.installation_date, None)

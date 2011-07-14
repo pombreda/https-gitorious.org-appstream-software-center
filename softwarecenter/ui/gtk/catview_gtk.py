@@ -1,6 +1,6 @@
 import atk
 import gtk
-import gobject
+from gi.repository import GObject
 import gettext
 import logging
 import xapian
@@ -32,23 +32,23 @@ LOG=logging.getLogger(__name__)
 class CategoriesViewGtk(gtk.Viewport, CategoriesParser):
 
     __gsignals__ = {
-        "category-selected" : (gobject.SIGNAL_RUN_LAST,
-                               gobject.TYPE_NONE, 
-                               (gobject.TYPE_PYOBJECT, ),
+        "category-selected" : (GObject.SIGNAL_RUN_LAST,
+                               GObject.TYPE_NONE, 
+                               (GObject.TYPE_PYOBJECT, ),
                               ),
                               
-        "application-selected" : (gobject.SIGNAL_RUN_LAST,
-                                  gobject.TYPE_NONE,
-                                  (gobject.TYPE_PYOBJECT, ),
+        "application-selected" : (GObject.SIGNAL_RUN_LAST,
+                                  GObject.TYPE_NONE,
+                                  (GObject.TYPE_PYOBJECT, ),
                                  ),
 
-        "application-activated" : (gobject.SIGNAL_RUN_LAST,
-                                   gobject.TYPE_NONE,
-                                   (gobject.TYPE_PYOBJECT, ),
+        "application-activated" : (GObject.SIGNAL_RUN_LAST,
+                                   GObject.TYPE_NONE,
+                                   (GObject.TYPE_PYOBJECT, ),
                                   ),
                                   
-        "show-category-applist" : (gobject.SIGNAL_RUN_LAST,
-                                   gobject.TYPE_NONE,
+        "show-category-applist" : (GObject.SIGNAL_RUN_LAST,
+                                   GObject.TYPE_NONE,
                                    (),)
         }
 
@@ -259,7 +259,7 @@ class LobbyViewGtk(CategoriesViewGtk):
     def _cleanup_poster_sigs(self, *args):
         # clean-up and connect signal handlers
         for sig_id in self._poster_sigs:
-            gobject.source_remove(sig_id)
+            GObject.source_remove(sig_id)
         self._poster_sigs = []
         if self.featured_carousel:
             for poster in self.featured_carousel.posters:
@@ -535,7 +535,7 @@ class SubCategoryViewGtk(CategoriesViewGtk):
             self.vbox.pack_start(self.departments)
 
         # set the subcat header
-        self.subcat_label.set_markup(m % gobject.markup_escape_text(self.header))
+        self.subcat_label.set_markup(m % GObject.markup_escape_text(self.header))
 
         # sort Category.name's alphabetically
         sorted_cats = categories_sorted_by_name(self.categories)
@@ -561,7 +561,7 @@ class SubCategoryViewGtk(CategoriesViewGtk):
             num_items = tmp_matches.get_matches_estimated()
 
         # append an additional button to show all of the items in the category
-        name = gobject.markup_escape_text('%s %s' % (_("All"), num_items))
+        name = GObject.markup_escape_text('%s %s' % (_("All"), num_items))
         show_all_btn = SubcategoryButton(name, "category-show-all")
         all_cat = Category("All", _("All"), "category-show-all", root_category.query)
         show_all_btn.connect('clicked', self._on_category_clicked, all_cat)

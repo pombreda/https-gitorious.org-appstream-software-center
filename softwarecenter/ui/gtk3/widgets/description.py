@@ -1134,8 +1134,7 @@ class AppDescription(Gtk.VBox):
         return TextBlock.select_all(self.description)
 
 
-if __name__ == '__main__':
-
+def get_test_description_window():
     EXAMPLE = """
 p7zip is the Unix port of 7-Zip, a file archiver that archives with very high compression ratios.
 
@@ -1148,17 +1147,17 @@ p7zip-full provides:
    BZIP2, TAR, CPIO, RPM, ISO and DEB archives. 7z compression is 30-50% better than ZIP compression.
 
 p7zip provides 7zr, a light version of 7za, and p7zip a gzip like wrapper around 7zr.""".strip()
-
     win = Gtk.Window()
-    #~ win.set_size_request(200, -1)
+    win.set_size_request(400, -1)
     win.set_has_resize_grip(True)
-
     d = AppDescription()
     d.set_description(EXAMPLE, pkgname='')
     win.add(d)
-
-    win.show_all()
     win.connect('destroy',lambda x: Gtk.main_quit())
+    return win
 
+if __name__ == '__main__':
+    win = get_test_description_window()
+    win.show_all()
     Gtk.main()
 

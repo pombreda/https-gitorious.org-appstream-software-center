@@ -16,29 +16,29 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import gobject
+from gi.repository import GObject
 
-class BaseTransaction(gobject.GObject):
+class BaseTransaction(GObject.GObject):
     """
     wrapper class for install backend dbus Transaction objects
     """
-    __gsignals__ = {'progress-details-changed':(gobject.SIGNAL_RUN_FIRST,
-                                            gobject.TYPE_NONE,
+    __gsignals__ = {'progress-details-changed':(GObject.SIGNAL_RUN_FIRST,
+                                            GObject.TYPE_NONE,
                                             (int, int, int, int, int, int)),
-                    'progress-changed':(gobject.SIGNAL_RUN_FIRST,
-                                            gobject.TYPE_NONE,
-                                            (gobject.TYPE_PYOBJECT, )),
-                    'status-changed':(gobject.SIGNAL_RUN_FIRST,
-                                            gobject.TYPE_NONE,
-                                            (gobject.TYPE_PYOBJECT, )),
-                    'cancellable-changed':(gobject.SIGNAL_RUN_FIRST,
-                                            gobject.TYPE_NONE,
-                                            (gobject.TYPE_PYOBJECT, )),
-                    'role-changed':(gobject.SIGNAL_RUN_FIRST,
-                                            gobject.TYPE_NONE,
-                                            (gobject.TYPE_PYOBJECT, )),
-                    'deleted':(gobject.SIGNAL_RUN_FIRST,
-                                            gobject.TYPE_NONE,
+                    'progress-changed':(GObject.SIGNAL_RUN_FIRST,
+                                            GObject.TYPE_NONE,
+                                            (GObject.TYPE_PYOBJECT, )),
+                    'status-changed':(GObject.SIGNAL_RUN_FIRST,
+                                            GObject.TYPE_NONE,
+                                            (GObject.TYPE_PYOBJECT, )),
+                    'cancellable-changed':(GObject.SIGNAL_RUN_FIRST,
+                                            GObject.TYPE_NONE,
+                                            (GObject.TYPE_PYOBJECT, )),
+                    'role-changed':(GObject.SIGNAL_RUN_FIRST,
+                                            GObject.TYPE_NONE,
+                                            (GObject.TYPE_PYOBJECT, )),
+                    'deleted':(GObject.SIGNAL_RUN_FIRST,
+                                            GObject.TYPE_NONE,
                                             []),
     }
 
@@ -73,7 +73,7 @@ class BaseTransaction(gobject.GObject):
     def cancel(self):
         pass
 
-class BaseTransactionsWatcher(gobject.GObject):
+class BaseTransactionsWatcher(GObject.GObject):
     """ 
     base class for objects that need to watch the install backend 
     for transaction changes.
@@ -81,9 +81,9 @@ class BaseTransactionsWatcher(gobject.GObject):
     provides a "lowlevel-transactions-changed" signal
     """
 
-    __gsignals__ = {'lowlevel-transactions-changed': (gobject.SIGNAL_RUN_FIRST,
-                                                     gobject.TYPE_NONE,
-                                                     (str,gobject.TYPE_PYOBJECT)),
+    __gsignals__ = {'lowlevel-transactions-changed': (GObject.SIGNAL_RUN_FIRST,
+                                                     GObject.TYPE_NONE,
+                                                     (str,GObject.TYPE_PYOBJECT)),
                     }
 
     def get_transaction(self, tid):
