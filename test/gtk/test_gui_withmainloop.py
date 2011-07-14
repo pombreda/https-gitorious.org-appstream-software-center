@@ -1,7 +1,8 @@
 #!/usr/bin/python
 
+from gi.repository import GObject
+
 import apt
-import glib
 import gtk
 import logging
 from mock import Mock
@@ -57,7 +58,7 @@ class TestGUIWithMainLoop(unittest.TestCase):
         self.app.on_menuitem_close_activate(None)
 
     def test_action_bar_visible_in_details_on_channel_change(self):
-        glib.timeout_add_seconds(1, self._trigger_channel_change)
+        GObject.timeout_add_seconds(1, self._trigger_channel_change)
         gtk.main()
         self.assertTrue(self._on_the_right_page)
         self.assertTrue(self._action_bar_hidden)
@@ -94,17 +95,17 @@ class TestGUIWithMainLoop(unittest.TestCase):
         self.app.on_menuitem_close_activate(None)
 
     def test_channel_view(self):
-        glib.timeout_add_seconds(1, self._trigger_test_channel_view, "channels-changed")
+        GObject.timeout_add_seconds(1, self._trigger_test_channel_view, "channels-changed")
         gtk.main()
         self.assertTrue(self._on_the_right_channel_view_page)
 
     def test_channel_view_on_db_reopen(self):
-        glib.timeout_add_seconds(1, self._trigger_test_channel_view, "db-reopen")
+        GObject.timeout_add_seconds(1, self._trigger_test_channel_view, "db-reopen")
         gtk.main()
         self.assertTrue(self._on_the_right_channel_view_page)
 
     def test_channel_view_on_cache_ready(self):
-        glib.timeout_add_seconds(1, self._trigger_test_channel_view, "cache-ready")
+        GObject.timeout_add_seconds(1, self._trigger_test_channel_view, "cache-ready")
         gtk.main()
         self.assertTrue(self._on_the_right_channel_view_page)
 

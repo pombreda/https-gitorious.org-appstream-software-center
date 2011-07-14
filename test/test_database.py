@@ -194,8 +194,8 @@ class TestDatabase(unittest.TestCase):
         self.assertEqual(appdetails.installation_date, None)
         # then we need to wait until the history is loaded in the idle
         # handler
-        import glib
-        context = glib.main_context_default()
+        from gi.repository import GObject
+        context = GObject.main_context_default()
         while context.pending():
             context.iteration()
         # ... and finally we test that its really there

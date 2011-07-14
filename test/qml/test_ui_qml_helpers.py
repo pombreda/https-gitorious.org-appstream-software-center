@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
-import glib
+from gi.repository import GObject
+
 import random
 import os
 import time
@@ -105,7 +106,7 @@ class TestQMLHelpers(unittest.TestCase):
         del self._i_am_refreshed
     
     def _p(self):
-        context = glib.main_context_default()
+        context = GObject.main_context_default()
         while context.pending():
             context.iteration()
 

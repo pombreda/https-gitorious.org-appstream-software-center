@@ -1,7 +1,8 @@
 #!/usr/bin/python
 
+from gi.repository import GObject
+
 import apt
-import glib
 import gtk
 import logging
 from mock import Mock
@@ -166,7 +167,7 @@ class TestGUI(unittest.TestCase):
             self.assertEqual(self.app.available_pane.app_details_view.pkgstatus_bar.label.get_text(),
                              "Installing...")
             self.assertFalse(self.app.available_pane.app_details_view.pkgstatus_bar.button.get_property("visible"))
-            glib.timeout_add_seconds(2, self._test_for_progress)
+            GObject.timeout_add_seconds(2, self._test_for_progress)
             while not self._install_done:
                 while gtk.events_pending():
                     gtk.main_iteration()
