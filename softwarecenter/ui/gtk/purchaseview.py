@@ -17,7 +17,7 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import glib
+from gi.repository import GObject
 import gtk
 import logging
 import os
@@ -25,7 +25,7 @@ import simplejson
 import sys
 import urllib
 import webkit
-import gobject
+from gi.repository import GObject
 
 from gettext import gettext as _
 
@@ -87,14 +87,14 @@ h1 {
 """ % _("Connecting to payment service...")
 
     __gsignals__ = {
-         'purchase-succeeded' : (gobject.SIGNAL_RUN_LAST,
-                                 gobject.TYPE_NONE,
+         'purchase-succeeded' : (GObject.SIGNAL_RUN_LAST,
+                                 GObject.TYPE_NONE,
                                  ()),
-         'purchase-failed'    : (gobject.SIGNAL_RUN_LAST,
-                                 gobject.TYPE_NONE,
+         'purchase-failed'    : (GObject.SIGNAL_RUN_LAST,
+                                 GObject.TYPE_NONE,
                                  ()),
-         'purchase-cancelled-by-user' : (gobject.SIGNAL_RUN_LAST,
-                                         gobject.TYPE_NONE,
+         'purchase-cancelled-by-user' : (GObject.SIGNAL_RUN_LAST,
+                                         GObject.TYPE_NONE,
                                          ()),
     }
 
@@ -136,7 +136,7 @@ h1 {
         self.pack_start(self.wk)
         # only for debugging
         if os.environ.get("SOFTWARE_CENTER_DEBUG_BUY"):
-            glib.timeout_add_seconds(1, _generate_events, self)
+            GObject.timeout_add_seconds(1, _generate_events, self)
         
     def _on_new_window(self, view, frame, request, action, policy):
         LOG.debug("_on_new_window")
@@ -331,7 +331,7 @@ if __name__ == "__main__":
         url = sys.argv[1]
     # useful for debugging
     #d.connect("key-press-event", _on_key_press)
-    #glib.timeout_add_seconds(1, _generate_events, d)
+    #GObject.timeout_add_seconds(1, _generate_events, d)
     
     widget = PurchaseView()
     widget.initiate_purchase(app=None, iconname=None, url=url)

@@ -1,7 +1,8 @@
 #!/usr/bin/python
 
+from gi.repository import GLib
+
 import argparse
-import glib
 import logging
 import os
 import pickle
@@ -26,7 +27,7 @@ class SSOLoginHelper(object):
     def __init__(self, xid=0):
         self.oauth = None
         self.xid = xid
-        self.loop = glib.MainLoop(glib.main_context_default())
+        self.loop = GObject.MainLoop(GObject.main_context_default())
     
     def _login_successful(self, sso_backend, oauth_result):
         self.oauth = oauth_result

@@ -19,7 +19,7 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import gobject
+from gi.repository import GObject
 import logging
 import os
         
@@ -31,25 +31,25 @@ from softwarecenter.distro import get_distro, get_current_arch
 
 LOG = logging.getLogger(__name__)
 
-class SoftwareCenterAgent(gobject.GObject):
+class SoftwareCenterAgent(GObject.GObject):
 
     __gsignals__ = {
-        "available-for-me" : (gobject.SIGNAL_RUN_LAST,
-                              gobject.TYPE_NONE, 
-                              (gobject.TYPE_PYOBJECT,),
+        "available-for-me" : (GObject.SIGNAL_RUN_LAST,
+                              GObject.TYPE_NONE, 
+                              (GObject.TYPE_PYOBJECT,),
                              ),
-        "available" : (gobject.SIGNAL_RUN_LAST,
-                              gobject.TYPE_NONE, 
-                              (gobject.TYPE_PYOBJECT,),
+        "available" : (GObject.SIGNAL_RUN_LAST,
+                              GObject.TYPE_NONE, 
+                              (GObject.TYPE_PYOBJECT,),
                              ),
-        "error" : (gobject.SIGNAL_RUN_LAST,
-                   gobject.TYPE_NONE, 
+        "error" : (GObject.SIGNAL_RUN_LAST,
+                   GObject.TYPE_NONE, 
                    (str,),
                   ),
         }
     
     def __init__(self, ignore_cache=False, xid=None):
-        gobject.GObject.__init__(self)
+        GObject.GObject.__init__(self)
         self.distro = get_distro()
         self.ignore_cache = ignore_cache
         binary = os.path.join(

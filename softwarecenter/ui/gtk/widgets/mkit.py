@@ -23,7 +23,7 @@ import atk
 import gtk
 import cairo
 import pango
-import gobject
+from gi.repository import GObject
 import pangocairo
 from math import pi, cos, sin
 
@@ -785,7 +785,7 @@ class LayoutView2(gtk.HBox):
         for w in widgets:
             self._non_col_children.append(w)
         
-        gobject.idle_add(self.layout, self.allocation.width, self.yspacing)
+        GObject.idle_add(self.layout, self.allocation.width, self.yspacing)
         return
 
     def layout(self, width, yspacing, force=True):
@@ -820,8 +820,8 @@ class LayoutView2(gtk.HBox):
 class Button(gtk.EventBox):
 
     __gsignals__ = {
-        "clicked" : (gobject.SIGNAL_RUN_LAST,
-                     gobject.TYPE_NONE, 
+        "clicked" : (GObject.SIGNAL_RUN_LAST,
+                     GObject.TYPE_NONE, 
                      (),)
         }
 
@@ -888,7 +888,7 @@ class Button(gtk.EventBox):
                 l = getattr(self, v)
                 self._label_colorise_normal(l)
 
-        gobject.timeout_add(50, clicked, btn)
+        GObject.timeout_add(50, clicked, btn)
         return
 
     def _on_enter(self, btn, event):
@@ -926,7 +926,7 @@ class Button(gtk.EventBox):
         def clicked(w):
             w.emit('clicked')
 
-        gobject.timeout_add(50, clicked, btn)
+        GObject.timeout_add(50, clicked, btn)
         return
 
     def _label_colorise_active(self, label):
@@ -998,8 +998,8 @@ class LinkButton(gtk.EventBox):
     """ A minimal LinkButton type widget """
 
     __gsignals__ = {
-        "clicked" : (gobject.SIGNAL_RUN_LAST,
-                     gobject.TYPE_NONE, 
+        "clicked" : (GObject.SIGNAL_RUN_LAST,
+                     GObject.TYPE_NONE, 
                      (),)
         }
 
@@ -1138,7 +1138,7 @@ class LinkButton(gtk.EventBox):
         else:
             self._button_press_origin = None
             cat.set_state(gtk.STATE_PRELIGHT)
-            gobject.timeout_add(50, emit_clicked)
+            GObject.timeout_add(50, emit_clicked)
 
         self._colorise_label_normal()
         return
@@ -1159,7 +1159,7 @@ class LinkButton(gtk.EventBox):
         if event.keyval in (32, 65293, 65421):
             self._colorise_label_normal()
             cat.set_state(gtk.STATE_NORMAL)
-            gobject.timeout_add(100, emit_clicked)
+            GObject.timeout_add(100, emit_clicked)
         return
 
     def _colorise_label_active(self):

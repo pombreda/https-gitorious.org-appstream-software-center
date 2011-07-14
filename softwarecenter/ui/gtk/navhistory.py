@@ -16,7 +16,7 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import gobject
+from gi.repository import GObject
 import logging
 
 from softwarecenter.enums import NavButtons
@@ -163,7 +163,7 @@ class NavigationItem(object):
                                 do_callback=False,
                                 animate=False)
 
-        gobject.idle_add(self._update_available_pane_cb, nav_bar)
+        GObject.idle_add(self._update_available_pane_cb, nav_bar)
         in_replay_history_mode = False
 
     def _update_available_pane_cb(self, nav_bar):

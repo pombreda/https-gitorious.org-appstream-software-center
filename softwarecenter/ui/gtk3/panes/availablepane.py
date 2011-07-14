@@ -18,7 +18,7 @@
 
 import gettext
 from gi.repository import GObject
-import glib
+from gi.repository import GObject
 from gi.repository import Gtk
 import logging
 import os
@@ -101,7 +101,7 @@ class AvailablePane(SoftwarePane):
             Gtk.main_iteration()
 
         # open the cache since we are initializing the UI for the first time    
-        glib.idle_add(self.cache.open)
+        GObject.idle_add(self.cache.open)
         
         SoftwarePane.init_view(self)
         # categories, appview and details into the notebook in the bottom
@@ -700,7 +700,7 @@ if __name__ == "__main__":
     win.add(w)
     win.set_size_request(800,600)
     win.show_all()
-    glib.idle_add(w.init_view)
+    GObject.idle_add(w.init_view)
 
     Gtk.main()
 

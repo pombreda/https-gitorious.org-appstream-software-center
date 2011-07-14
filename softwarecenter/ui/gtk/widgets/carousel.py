@@ -1,7 +1,7 @@
 import atk
 import cairo
 import gtk
-import gobject
+from gi.repository import GObject
 import logging
 import pangocairo
 import random
@@ -123,7 +123,7 @@ class CarouselView(gtk.VBox):
 
     def _on_page_clicked(self, page_sel, page):
         self.stop()
-        self._fader = gobject.timeout_add(CarouselView.CLICKED_FADE_INTERVAL,
+        self._fader = GObject.timeout_add(CarouselView.CLICKED_FADE_INTERVAL,
                                           self._fade_out, page)
         self._offset = page*self.n_posters
         self.start()
@@ -228,7 +228,7 @@ class CarouselView(gtk.VBox):
         if page>=0:
             fade_interval = CarouselView.CLICKED_FADE_INTERVAL
         if fade_in:
-            self._fader = gobject.timeout_add(fade_interval,
+            self._fader = GObject.timeout_add(fade_interval,
                                               self._fade_in)
         else:
             self._alpha = 1.0
@@ -242,7 +242,7 @@ class CarouselView(gtk.VBox):
         self._alpha = 1.0
         self._is_playing = False
         for id in self._transition_ids:
-            gobject.source_remove(id)
+            GObject.source_remove(id)
         return
 
     def start(self, offset=0):
@@ -252,19 +252,19 @@ class CarouselView(gtk.VBox):
         self._is_playing = True
         if not offset:
             self._transition_ids.append(
-                gobject.timeout_add(CarouselView.TRANSITION_TIMEOUT,
+                GObject.timeout_add(CarouselView.TRANSITION_TIMEOUT,
                                     self.transition))
             return
 
         def _offset_start_cb():
             self._transition_ids.append(
-                gobject.timeout_add(CarouselView.TRANSITION_TIMEOUT,
+                GObject.timeout_add(CarouselView.TRANSITION_TIMEOUT,
                                     self.transition))
             #print 'offset'
             return False
 
         self._play_offset = 0
-        self._transition_ids.append(gobject.timeout_add(offset, _offset_start_cb))
+        self._transition_ids.append(GObject.timeout_add(offset, _offset_start_cb))
         return
 
     def next(self):
@@ -280,7 +280,7 @@ class CarouselView(gtk.VBox):
         for poster in self.posters:
             if poster.state > 0 or poster.is_focus():
                 return loop
-        self._fader = gobject.timeout_add(CarouselView.AUTO_FADE_INTERVAL,
+        self._fader = GObject.timeout_add(CarouselView.AUTO_FADE_INTERVAL,
                                           self._fade_out)
         return loop
 
@@ -503,7 +503,7 @@ class CarouselPoster2(Button):
 
         name = app[AppStore.COL_APP_NAME]
 
-        markup = '%s' % gobject.markup_escape_text(name)
+        markup = '%s' % GObject.markup_escape_text(name)
         pb = app[AppStore.COL_ICON]
 
         tw = 48    # target width
@@ -542,8 +542,8 @@ class CarouselPoster2(Button):
 class PageSelector(gtk.Alignment):
 
     __gsignals__ = {
-        "page-selected" : (gobject.SIGNAL_RUN_LAST,
-                           gobject.TYPE_NONE, 
+        "page-selected" : (GObject.SIGNAL_RUN_LAST,
+                           GObject.TYPE_NONE, 
                            (int,),)
         }
 
@@ -589,7 +589,7 @@ class PageSelector(gtk.Alignment):
         self._destroy_all_children(self.vbox)
 
         for sig in self._signals:
-            gobject.source_remove(sig)
+            GObject.source_remove(sig)
 
         self.dots = []
         self._signals = []

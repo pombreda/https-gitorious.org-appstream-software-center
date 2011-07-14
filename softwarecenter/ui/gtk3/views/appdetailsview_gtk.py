@@ -20,7 +20,7 @@ import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Atk, Gtk, Gdk, GObject, GdkPixbuf
 
-import glib
+from gi.repository import GObject
 import datetime
 import gettext
 import gmenu
@@ -612,7 +612,7 @@ class AddonsManager():
                 self.addons_to_install.remove(addon)
         self.status_bar.configure()
         GObject.idle_add(self.view.update_totalsize,
-                         priority=glib.PRIORITY_LOW)
+                         priority=GObject.PRIORITY_LOW)
 
     def configure(self, pkgname, update_addons=True):
         self.addons_to_install = []
@@ -630,7 +630,7 @@ class AddonsManager():
         self.addons_to_remove = []
         self.configure(self.view.app.pkgname)
         GObject.idle_add(self.view.update_totalsize,
-                         priority=glib.PRIORITY_LOW)
+                         priority=GObject.PRIORITY_LOW)
 
 
 class HFWBox(Gtk.Box):
@@ -1687,7 +1687,7 @@ if __name__ == "__main__":
     win.connect('destroy', Gtk.main_quit)
 
     # keep it spinning to test for re-draw issues and memleaks
-    #glib.timeout_add_seconds(2, _show_app, view)
+    #GObject.timeout_add_seconds(2, _show_app, view)
 
 
     # run it

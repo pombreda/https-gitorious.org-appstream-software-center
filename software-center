@@ -29,8 +29,8 @@ from decimal import Decimal
 # thread init is also required otherwise both gst and webkit are unhappy
 import pygtk
 pygtk.require ("2.0")
-import gobject
-gobject.threads_init()
+from gi.repository import GObject
+GObject.threads_init()
 import gtk
 
 import gettext

@@ -16,7 +16,7 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import gobject
+from gi.repository import GObject
 import gtk
 import logging
 import os
@@ -35,13 +35,13 @@ class CategoriesViewWebkit(WebkitWidget, CategoriesView):
     SUB_CATEGORY_ICON_SIZE = 48
 
     __gsignals__ = {
-        "category-selected" : (gobject.SIGNAL_RUN_LAST,
-                               gobject.TYPE_NONE, 
-                               (gobject.TYPE_PYOBJECT, ),
+        "category-selected" : (GObject.SIGNAL_RUN_LAST,
+                               GObject.TYPE_NONE, 
+                               (GObject.TYPE_PYOBJECT, ),
                               ),
-        "application-activated" : (gobject.SIGNAL_RUN_LAST,
-                                   gobject.TYPE_NONE,
-                                   (gobject.TYPE_PYOBJECT, ),
+        "application-activated" : (GObject.SIGNAL_RUN_LAST,
+                                   GObject.TYPE_NONE,
+                                   (GObject.TYPE_PYOBJECT, ),
                                   ),
         }
 

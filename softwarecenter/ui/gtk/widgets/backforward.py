@@ -19,7 +19,7 @@
 
 import atk
 import gtk
-import gobject
+from gi.repository import GObject
 import mkit
 
 from gettext import gettext as _
@@ -31,12 +31,12 @@ DEFAULT_ARROW_SIZE = (12, 12)
 
 class BackForwardButton(gtk.HBox):
 
-    __gsignals__ = {'left-clicked':(gobject.SIGNAL_RUN_LAST,
-                                    gobject.TYPE_NONE,
+    __gsignals__ = {'left-clicked':(GObject.SIGNAL_RUN_LAST,
+                                    GObject.TYPE_NONE,
                                     (gtk.gdk.Event,)),
 
-                    'right-clicked':(gobject.SIGNAL_RUN_LAST,
-                                    gobject.TYPE_NONE,
+                    'right-clicked':(GObject.SIGNAL_RUN_LAST,
+                                    GObject.TYPE_NONE,
                                     (gtk.gdk.Event,))}
 
     def __init__(self, part_size=None):

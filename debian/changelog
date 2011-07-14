@@ -457,7 +457,7 @@ software-center (3.1.26.5) natty; urgency=low
     - fix pyflakes warnins
   * softwarecenter/db/reviews.py:
     - ensure pkgname is a str (and not unicode), otherwise 
-      glib.spawn_async crashes (LP: #761357)
+      GObject.spawn_async crashes (LP: #761357)
   * softwarecenter/backend/zeitgeist_simple.py:
     - do not crash if a zeitgeist has no subjects (LP: #761905)
 
@@ -528,7 +528,7 @@ software-center (3.1.26.2) natty; urgency=low
     - do not crash if /var/lib/apt-xapian-index/cataloged_times.p can
       not be read (LP: #636049)
   * merged lp:~mvo/software-center/get-reviews-subprocess (LP: #743020):
-    - don't use multiprocessing anymore, instead glib.spawn_async()
+    - don't use multiprocessing anymore, instead GObject.spawn_async()
       a helper app, this finally fixes the crashes with accessibility
       turned on (LP: #743020)
     - update rnrclient_pristine.py to the latest upstream version
@@ -536,7 +536,7 @@ software-center (3.1.26.2) natty; urgency=low
     - add support for getting all the origins of the DB, this is
       needed for the new rnrclient_pristine.py functionatlity
     - ship get_reviews_helper.py, get_review_stats_helper.py for
-      the glib.spawn_async() change
+      the GObject.spawn_async() change
     - this also makes the reviews fully work in the guest session again
 
   [ Gary Lasker ]
@@ -3519,7 +3519,7 @@ software-center (1.1.20) lucid; urgency=low
     - show correct maintenance status for packages in the partner 
       channel 
   * softwarecenter/app.py:
-    - use glib.timeout_add_seconds()
+    - use GObject.timeout_add_seconds()
   * softwarecenter/distro/__init__.py, softwarecenter/distro/Ubuntu.py:
     - add/implement "is_supported()"
   * softwarecenter/view/appview.py:

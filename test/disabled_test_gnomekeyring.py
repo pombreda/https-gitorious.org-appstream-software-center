@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-import glib
+from gi.repository import GObject
 import gnomekeyring as gk
 import unittest
 
@@ -10,7 +10,7 @@ class testGnomeKeyringUsage(unittest.TestCase):
     KEYRING_NAME = "gk-test-keyring"
 
     def setUp(self):
-        glib.set_application_name(self.APP)
+        GObject.set_application_name(self.APP)
 
     def test_keyring_available(self):
         available = gk.is_available()
