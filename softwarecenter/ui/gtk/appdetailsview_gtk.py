@@ -19,7 +19,7 @@
 import atk
 import datetime
 import gettext
-import glib
+from gi.repository import GObject
 import gmenu
 import gobject
 import gtk
@@ -165,7 +165,7 @@ class PackageStatusBar(StatusBar):
 
         self.view.connect('style-set', self._on_view_style_set)
         self.button.connect('clicked', self._on_button_clicked)
-        glib.timeout_add(500, self._pulse_helper)
+        GObject.timeout_add(500, self._pulse_helper)
 
     def _on_view_style_set(self, view, old_style):
         self._progress_modify_bg(view)
@@ -660,7 +660,7 @@ class AddonsManager():
                 self.addons_to_install.remove(addon)
         self.status_bar.configure()
         gobject.idle_add(self.view.update_totalsize,
-                         priority=glib.PRIORITY_LOW)
+                         priority=GObject.PRIORITY_LOW)
 
     def configure(self, pkgname, update_addons=True):
         self.addons_to_install = []
@@ -678,7 +678,7 @@ class AddonsManager():
         self.addons_to_remove = []
         self.configure(self.view.app.pkgname)
         gobject.idle_add(self.view.update_totalsize,
-                         priority=glib.PRIORITY_LOW)
+                         priority=GObject.PRIORITY_LOW)
 
 
 class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
@@ -1684,7 +1684,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             if self.icons.has_icon(app_details.icon):
                 try:
                     return self.icons.load_icon(app_details.icon, 84, 0)
-                except glib.GError, e:
+                except GObject.GError, e:
                     logging.warn("failed to load '%s': %s" % (app_details.icon, e))
                     return self.icons.load_icon(Icons.MISSING_APP, 84, 0)
             elif app_details.icon_url:
@@ -1835,7 +1835,7 @@ if __name__ == "__main__":
     win.connect('destroy', gtk.main_quit)
 
     # keep it spinning to test for re-draw issues and memleaks
-    #glib.timeout_add_seconds(2, _show_app, view)
+    #GObject.timeout_add_seconds(2, _show_app, view)
 
 
     # run it

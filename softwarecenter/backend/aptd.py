@@ -19,7 +19,7 @@
 import apt_pkg
 import dbus
 import gobject
-import glib
+from gi.repository import GObject
 import logging
 import os
 import re
@@ -606,7 +606,7 @@ class AptdaemonBackend(gobject.GObject, InstallBackend):
             self._logger.info("queuing reload in 30s")
             trans.meta_data["sc_add_repo_and_install_try"]= str(retry+1)
             sourcepart = trans.meta_data["sc_add_repo_and_install_sources_list"]
-            glib.timeout_add_seconds(30, self._reload_for_commercial_repo,
+            GObject.timeout_add_seconds(30, self._reload_for_commercial_repo,
                                      app, trans.meta_data, sourcepart)
 
     # internal helpers

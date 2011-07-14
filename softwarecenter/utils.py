@@ -21,7 +21,7 @@ import gmenu
 import gettext
 import gobject
 import gio
-import glib
+from gi.repository import GObject
 import logging
 import math
 import os
@@ -85,7 +85,7 @@ def wait_for_apt_cache_ready(f):
         if not self.cache.ready:
             if window:
                 window.set_cursor(self.busy_cursor)
-            glib.timeout_add(500, lambda: wrapper(*args, **kwargs))
+            GObject.timeout_add(500, lambda: wrapper(*args, **kwargs))
             return False
         # cache ready now
         if window:
@@ -501,10 +501,10 @@ class SimpleFileDownloader(gobject.GObject):
             self.LOG.debug("file reachable %s" % self.url)
             # url is reachable, now download the file
             f.load_contents_async(self._file_download_complete_cb)
-        except glib.GError, e:
+        except GObject.GError, e:
             self.LOG.debug("file *not* reachable %s" % self.url)
             self.emit('file-url-reachable', False)
-            self.emit('error', glib.GError, e)
+            self.emit('error', GObject.GError, e)
         del f
 
     def _file_download_complete_cb(self, f, result, path=None):

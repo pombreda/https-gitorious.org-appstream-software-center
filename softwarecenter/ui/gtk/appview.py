@@ -19,7 +19,7 @@
 from __future__ import with_statement
 
 import gettext
-import glib
+from gi.repository import GObject
 import gobject
 import gtk
 import logging
@@ -325,7 +325,7 @@ class CellRendererAppView2(gtk.CellRendererText):
         try:
             self._installed = icons.load_icon(overlay_icon_name,
                                               self.OVERLAY_SIZE, 0)
-        except glib.GError:
+        except GObject.GError:
             # icon not present in theme, probably because running uninstalled
             self._installed = icons.load_icon('emblem-system',
                                               self.OVERLAY_SIZE, 0)

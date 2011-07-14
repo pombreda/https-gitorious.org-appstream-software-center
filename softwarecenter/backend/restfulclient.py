@@ -22,7 +22,7 @@
 import os
 import gobject
 gobject.threads_init()
-import glib
+from gi.repository import GObject
 import logging
 import threading
 
@@ -172,7 +172,7 @@ class UbuntuSSOAPI(gobject.GObject):
                                      access_token=token)
         self.worker_thread =  RestfulClientWorker(authorizer, self.service)
         self.worker_thread.start()
-        glib.timeout_add(200, self._monitor_thread)
+        GObject.timeout_add(200, self._monitor_thread)
 
     def _monitor_thread(self):
         # glib bit of the threading, runs in the main thread
@@ -272,7 +272,7 @@ class UbuntuSSOlogin(LoginBackend):
         self.worker_thread.queue_request(self.SSO_AUTHENTICATE_FUNC, (), kwargs,
                                          self._thread_authentication_done,
                                          self._thread_authentication_error)
-        glib.timeout_add(200, self._monitor_thread)
+        GObject.timeout_add(200, self._monitor_thread)
 
     def _monitor_thread(self):
         # glib bit of the threading, runs in the main thread

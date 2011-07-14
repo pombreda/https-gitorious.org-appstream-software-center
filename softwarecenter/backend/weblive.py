@@ -22,7 +22,7 @@
 # and put into weblive_pristine.py
 
 import re
-import glib
+from gi.repository import GObject
 import os
 import random
 import subprocess
@@ -251,17 +251,17 @@ class WebLiveClientQTNX(WebLiveClient):
 
             self.helper_progress=0
             qtnx_countdown()
-            glib.timeout_add_seconds(
+            GObject.timeout_add_seconds(
                 2, qtnx_countdown)
 
         qtnx_start_timer()
 
         if wait == False:
             # Start in the background and attach a watch for when it exits
-            (self.helper_pid, stdin, stdout, stderr) = glib.spawn_async(
+            (self.helper_pid, stdin, stdout, stderr) = GObject.spawn_async(
                 cmd, standard_input=True, standard_output=True, standard_error=True,
-                flags=glib.SPAWN_DO_NOT_REAP_CHILD)
-            glib.child_watch_add(self.helper_pid, self._on_qtnx_exit,filename)
+                flags=GObject.SPAWN_DO_NOT_REAP_CHILD)
+            GObject.child_watch_add(self.helper_pid, self._on_qtnx_exit,filename)
         else:
             # Start it and wait till it finishes
             p=subprocess.Popen(cmd)
@@ -296,18 +296,18 @@ class WebLiveClientX2GO(WebLiveClient):
 
         # Start in the background and attach a watch for when it exits
         cmd = [os.path.join(softwarecenter.paths.datadir, softwarecenter.paths.X2GO_HELPER)]
-        (self.helper_pid, stdin, stdout, stderr) = glib.spawn_async(
+        (self.helper_pid, stdin, stdout, stderr) = GObject.spawn_async(
             cmd, standard_input=True, standard_output=True, standard_error=True,
-            flags=glib.SPAWN_DO_NOT_REAP_CHILD)
+            flags=GObject.SPAWN_DO_NOT_REAP_CHILD)
         self.helper_stdin=os.fdopen(stdin,"w")
         self.helper_stdout=os.fdopen(stdout)
         self.helper_stderr=os.fdopen(stderr)
 
         # Add a watch for when the process exits
-        glib.child_watch_add(self.helper_pid, self._on_x2go_exit)
+        GObject.child_watch_add(self.helper_pid, self._on_x2go_exit)
 
         # Add a watch on stdout
-        glib.io_add_watch(self.helper_stdout, glib.IO_IN, self._on_x2go_activity)
+        GObject.io_add_watch(self.helper_stdout, GObject.IO_IN, self._on_x2go_activity)
 
         # Start the connection
         self.state = "connecting"

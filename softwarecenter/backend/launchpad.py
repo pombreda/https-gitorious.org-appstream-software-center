@@ -22,7 +22,7 @@
 import os
 import gobject
 gobject.threads_init()
-import glib
+from gi.repository import GObject
 import time
 import threading
 
@@ -226,7 +226,7 @@ class GLaunchpad(LoginBackend):
             - login-successful
             - login-failed
         """
-        glib.timeout_add(200, self._wait_for_login)
+        GObject.timeout_add(200, self._wait_for_login)
         lp_worker_thread.start()
 
     def shutdown(self):
@@ -321,6 +321,6 @@ if __name__ == "__main__":
 
     # wait
     try:
-        glib.MainLoop().run()
+        GObject.MainLoop().run()
     except KeyboardInterrupt:
         lp_worker_thread.shutdown()

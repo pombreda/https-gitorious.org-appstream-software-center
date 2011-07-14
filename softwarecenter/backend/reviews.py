@@ -22,7 +22,7 @@ import cPickle
 import datetime
 import gio
 import gzip
-import glib
+from gi.repository import GObject
 import logging
 import operator
 import os
@@ -550,7 +550,7 @@ class ReviewLoader(object):
 # - python threads, slow and full of latency (GIL)
 # - python multiprocesing, crashed when accessibility was turned on, 
 #                          does not work in the quest session (#743020)
-# - glib.spawn_async() looks good so far (using the SpawnHelper code)
+# - GObject.spawn_async() looks good so far (using the SpawnHelper code)
 class ReviewLoaderSpawningRNRClient(ReviewLoader):
     """ loader that uses multiprocessing to call rnrclient and
         a glib timeout watcher that polls periodically for the
@@ -670,7 +670,7 @@ class ReviewLoaderJsonAsync(ReviewLoader):
         callback = source.get_data("callback")
         try:
             (json_str, length, etag) = source.load_contents_finish(result)
-        except glib.GError:
+        except GObject.GError:
             # ignore read errors, most likely transient
             return callback(app, [])
         # check for gzip header
@@ -712,7 +712,7 @@ class ReviewLoaderJsonAsync(ReviewLoader):
         callback = source.get_data("callback")
         try:
             (json_str, length, etag) = source.load_contents_finish(result)
-        except glib.GError:
+        except GObject.GError:
             # ignore read errors, most likely transient
             return
         # check for gzip header

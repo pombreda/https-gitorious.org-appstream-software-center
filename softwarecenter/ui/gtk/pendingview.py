@@ -17,7 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import dbus
-import glib
+from gi.repository import GObject
 import gtk
 import gobject
 import logging
@@ -67,7 +67,7 @@ class PendingStore(gtk.ListStore):
         self.backend = get_install_backend()
         self._signals = []
         # let the pulse helper run
-        glib.timeout_add(500, self._pulse_purchase_helper)
+        GObject.timeout_add(500, self._pulse_purchase_helper)
 
     def clear(self):
         super(PendingStore, self).clear()

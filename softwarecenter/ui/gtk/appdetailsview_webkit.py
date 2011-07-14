@@ -17,7 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import gio
-import glib
+from gi.repository import GObject
 import gobject
 import gtk
 import json
@@ -333,7 +333,7 @@ class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
             'pkgname' : self.app.pkgname }
         p = subprocess.Popen(["gwibber-poster", "-w", "-m", msg])
         # setup timeout handler to avoid zombies
-        glib.timeout_add_seconds(1, lambda p: p.poll() is None, p)
+        GObject.timeout_add_seconds(1, lambda p: p.poll() is None, p)
 
     def on_button_upgrade_clicked(self):
         self.upgrade()
@@ -418,9 +418,9 @@ class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
             try:
                 result = source.query_info_finish(result)
                 self.execute_script("showThumbnail();")
-            except glib.GError:
+            except GObject.GError:
                 self._logger.debug("no thumb available")
-                glib.timeout_add(200, run_thumb_missing_js)
+                GObject.timeout_add(200, run_thumb_missing_js)
             del source
         def run_thumb_missing_js():
             self._logger.debug("run_thumb_missing_js")

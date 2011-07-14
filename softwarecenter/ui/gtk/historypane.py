@@ -19,7 +19,7 @@
 
 
 import gobject
-import glib
+from gi.repository import GObject
 import gtk
 import logging
 
@@ -190,7 +190,7 @@ class HistoryPane(gtk.VBox, BasePane):
         self._app_icon_cache.clear()
         try:
             missing = self.icons.load_icon(Icons.MISSING_APP, self.ICON_SIZE, 0)
-        except glib.GError:
+        except GObject.GError:
             missing = None
         self._app_icon_cache[Icons.MISSING_APP] = missing
         
@@ -307,7 +307,7 @@ class HistoryPane(gtk.VBox, BasePane):
             else:
                 try:
                     icon = self.icons.load_icon(icon_name, self.ICON_SIZE, 0)
-                except glib.GError:
+                except GObject.GError:
                     icon = self._app_icon_cache[Icons.MISSING_APP]
                 self._app_icon_cache[icon_name] = icon
             cell.set_property('pixbuf', icon)

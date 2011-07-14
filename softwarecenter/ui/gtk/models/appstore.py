@@ -17,7 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import copy
-import glib
+from gi.repository import GObject
 import gobject
 import gtk
 import logging
@@ -518,7 +518,7 @@ class AppStore(gtk.GenericTreeModel):
                         self._download_icon_and_show_when_ready(self.db.get_icon_download_url(doc), icon_file_name)
                         # display the missing icon while the real one downloads
                         self.icon_cache[icon_name] = self._appicon_missing_icon
-            except glib.GError, e:
+            except GObject.GError, e:
                 LOG.debug("get_icon returned '%s'" % e)
             return self._appicon_missing_icon
         elif column == self.COL_INSTALLED:

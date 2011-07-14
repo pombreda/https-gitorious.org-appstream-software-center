@@ -20,7 +20,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import cPickle
-import glib
+from gi.repository import GObject
 import gobject
 import logging
 import os
@@ -53,13 +53,13 @@ class SpawnHelper(gobject.GObject):
         self._stderr = None
 
     def run(self, cmd):
-        (pid, stdin, stdout, stderr) = glib.spawn_async(
-            cmd, flags = glib.SPAWN_DO_NOT_REAP_CHILD, 
+        (pid, stdin, stdout, stderr) = GObject.spawn_async(
+            cmd, flags = GObject.SPAWN_DO_NOT_REAP_CHILD, 
             standard_output=True, standard_error=True)
-        glib.child_watch_add(
+        GObject.child_watch_add(
             pid, self._helper_finished, data=(stdout, stderr))
-        glib.io_add_watch(
-            stdout, glib.IO_IN, self._helper_io_ready, (stdout, ))
+        GObject.io_add_watch(
+            stdout, GObject.IO_IN, self._helper_io_ready, (stdout, ))
 
     def _helper_finished(self, pid, status, (stdout, stderr)):
         # get status code

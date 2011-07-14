@@ -16,7 +16,7 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import glib
+from gi.repository import GObject
 import gobject
 import gtk
 import logging
@@ -79,7 +79,7 @@ class WebkitWidget(webkit.WebView):
         if self._is_load_finished():
             self._execute_script_no_wait(script)
             return
-        glib.timeout_add(50, self._execute_script_when_page_is_ready, script)
+        GObject.timeout_add(50, self._execute_script_when_page_is_ready, script)
 
     def _is_load_finished(self):
         # 2 == WEBKIT_LOAD_FINISHED - the enums is not exposed via python
