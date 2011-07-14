@@ -53,13 +53,16 @@ class AvailablePane(SoftwarePane):
     """
 
     class Pages(SoftwarePane.Pages):
-        # notebook pages
+        # page names, useful for debuggin
         NAMES = ('lobby', 'subcategory', 'list', 'details', 'purchase')
+        # actual page id's
         (LOBBY,
          SUBCATEGORY,
          LIST,
          DETAILS,
          PURCHASE) = range(5)
+        # the default page
+        HOME = LOBBY
 
     __gsignals__ = {'available-pane-created':(GObject.SignalFlags.RUN_FIRST,
                                               None,

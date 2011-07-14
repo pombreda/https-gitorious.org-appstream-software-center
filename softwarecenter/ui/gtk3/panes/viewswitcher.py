@@ -224,7 +224,12 @@ class ViewSwitcher(Gtk.HBox, ViewSwitcherLogic):
         state.channel = channel
 
         # request page change
-        GObject.idle_add(vm.display_page, pane, pane.Pages.LIST, state)
+        if channel.origin == "all":
+            page = pane.Pages.HOME
+        else:
+            page = pane.Pages.LIST
+
+        GObject.idle_add(vm.display_page, pane, page, state)
         return
 
 

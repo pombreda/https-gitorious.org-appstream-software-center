@@ -99,11 +99,11 @@ class DisplayState(object):
         return
 
     def __str__(self):
-        s = '%s %s %s "%s" %s' % (self.category,
+        s = '%s %s "%s" %s %s' % (self.category,
                                   self.subcategory,
-                                  self.channel,
                                   self.search_term,
-                                  self.application)
+                                  self.application,
+                                  self.channel,)
         return s
 
     def copy(self):

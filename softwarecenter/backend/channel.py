@@ -476,14 +476,17 @@ class AllChannel(SoftwareChannel):
 
     def __init__(self, channel_name, installed_only):
         SoftwareChannel.__init__(
-            self, channel_name, "all", "",
+            self, channel_name, "all", None,
             installed_only=installed_only,
             channel_icon=Icons.FALLBACK)
         return
 
-    # override
+    # overrides
     def _get_display_name_for_channel(self, channel_name, _):
         return channel_name
+
+    def _get_channel_query_for_channel(self, *args):
+        return None
 
 
 class AllAvailableChannel(AllChannel):

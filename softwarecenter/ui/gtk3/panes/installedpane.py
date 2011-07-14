@@ -64,9 +64,13 @@ class InstalledPane(SoftwarePane, CategoriesParser):
     """
 
     class Pages:
+        # page names, useful for debuggin
         NAMES = ('list', 'details')
+        # the actual page id's
         (LIST,
          DETAILS) = range(2)
+        # the default page
+        HOME = LIST
 
     __gsignals__ = {'installed-pane-created':(GObject.SignalFlags.RUN_FIRST,
                                               None,
