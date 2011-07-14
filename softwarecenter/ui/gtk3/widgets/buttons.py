@@ -67,7 +67,7 @@ class ChannelSelectorArrow(Gtk.Alignment):
         if self.onhover and self.get_state_flags() == Gtk.StateFlags.PRELIGHT:
             alpha = 0.3
         else:
-            alpha = 0.1
+            return
 
         context = self.get_style_context()
         color = context.get_border_color(self.get_state_flags())

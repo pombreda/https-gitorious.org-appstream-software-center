@@ -101,7 +101,6 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         if self.view_initialized: return
 
         SoftwarePane.init_view(self)
-        print 'initing stuff'
 
         self.label_app_list_header.set_no_show_all(True)
         self.notebook.append_page(self.box_app_list, Gtk.Label(label="installed"))
@@ -365,11 +364,10 @@ class InstalledPane(SoftwarePane, CategoriesParser):
                                     length) % { 'amount' : length, }
 
     def display_overview_page(self, page, view_state):
-        print self.state.channel, view_state.channel
         if self.state.channel == view_state.channel:
             return
 
-        self.state = view_state
+        self.state.channel = view_state.channel
         self._build_categorised_view()
 
         if self.state.search_term:

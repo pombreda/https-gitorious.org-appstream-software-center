@@ -561,6 +561,7 @@ class AppViewFilter(xapian.MatchDecider):
         xapian.MatchDecider.__init__(self)
         self.distro = get_distro()
         self.db = db
+        print self.db
         self.cache = cache
         self.available_only = False
         self.supported_only = False
