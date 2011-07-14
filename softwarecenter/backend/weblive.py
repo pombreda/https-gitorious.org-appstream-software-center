@@ -28,7 +28,7 @@ import random
 import subprocess
 import string
 import imp
-import gobject
+from gi.repository import GObject
 
 from threading import Thread, Event
 from weblive_pristine import WebLive
@@ -130,34 +130,34 @@ class WebLiveBackend(object):
         else:
             raise IOError("No remote desktop client available.")
 
-class WebLiveClient(gobject.GObject):
+class WebLiveClient(GObject.GObject):
     """ Generic WebLive client """
 
     __gsignals__ = {
         "progress": (
-            gobject.SIGNAL_RUN_FIRST,
-            gobject.TYPE_NONE,
-            (gobject.TYPE_INT,)
+            GObject.SIGNAL_RUN_FIRST,
+            GObject.TYPE_NONE,
+            (GObject.TYPE_INT,)
         ),
         "connected": (
-            gobject.SIGNAL_RUN_FIRST,
-            gobject.TYPE_NONE,
-            (gobject.TYPE_BOOLEAN,)
+            GObject.SIGNAL_RUN_FIRST,
+            GObject.TYPE_NONE,
+            (GObject.TYPE_BOOLEAN,)
         ),
         "disconnected": (
-            gobject.SIGNAL_RUN_FIRST,
-            gobject.TYPE_NONE,
+            GObject.SIGNAL_RUN_FIRST,
+            GObject.TYPE_NONE,
             ()
         ),
         "exception": (
-            gobject.SIGNAL_RUN_FIRST,
-            gobject.TYPE_NONE,
-            (gobject.TYPE_STRING,)
+            GObject.SIGNAL_RUN_FIRST,
+            GObject.TYPE_NONE,
+            (GObject.TYPE_STRING,)
         ),
         "warning": (
-            gobject.SIGNAL_RUN_FIRST,
-            gobject.TYPE_NONE,
-            (gobject.TYPE_STRING,)
+            GObject.SIGNAL_RUN_FIRST,
+            GObject.TYPE_NONE,
+            (GObject.TYPE_STRING,)
         )
     }
 

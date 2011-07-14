@@ -18,7 +18,7 @@
 
 import gio
 from gi.repository import GObject
-import gobject
+from gi.repository import GObject
 import gtk
 import json
 import logging
@@ -59,12 +59,12 @@ class AppDetailsViewWebkit(AppDetailsViewBase, WebkitWidget):
     # hrm, can not put this into AppDetailsViewBase as it overrides
     # the webkit signals otherwise :/
     # need to include application-request-action here also since we are multiple-inheriting
-    __gsignals__ = {'selected':(gobject.SIGNAL_RUN_FIRST,
-                                gobject.TYPE_NONE,
-                                (gobject.TYPE_PYOBJECT, )),
-                    'application-request-action' : (gobject.SIGNAL_RUN_LAST,
-                                        gobject.TYPE_NONE,
-                                        (gobject.TYPE_PYOBJECT, str),
+    __gsignals__ = {'selected':(GObject.SIGNAL_RUN_FIRST,
+                                GObject.TYPE_NONE,
+                                (GObject.TYPE_PYOBJECT, )),
+                    'application-request-action' : (GObject.SIGNAL_RUN_LAST,
+                                        GObject.TYPE_NONE,
+                                        (GObject.TYPE_PYOBJECT, str),
                                        ),
                     }
     

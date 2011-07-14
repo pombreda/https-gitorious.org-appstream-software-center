@@ -18,7 +18,7 @@
 # this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import gobject
+from gi.repository import GObject
 from gi.repository import GObject
 import gtk
 import logging
@@ -42,12 +42,12 @@ from softwarecenter.db.database import StoreDatabase
 class HistoryPane(gtk.VBox, BasePane):
 
     __gsignals__ = {
-        "app-list-changed" : (gobject.SIGNAL_RUN_LAST,
-                              gobject.TYPE_NONE, 
+        "app-list-changed" : (GObject.SIGNAL_RUN_LAST,
+                              GObject.TYPE_NONE, 
                               (int, ),
                              ),
-        "history-pane-created" : (gobject.SIGNAL_RUN_FIRST,
-                                  gobject.TYPE_NONE,
+        "history-pane-created" : (GObject.SIGNAL_RUN_FIRST,
+                                  GObject.TYPE_NONE,
                                   ()),
     }
 

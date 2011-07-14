@@ -17,14 +17,14 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 from gi.repository import GObject
-import gobject
+from gi.repository import GObject
 import gtk
 import logging
 import os
 import tempfile
 import string
 
-gobject.threads_init()
+GObject.threads_init()
 import webkit
 
 class WebkitWidget(webkit.WebView):

@@ -19,7 +19,7 @@
 import dbus
 import gmenu
 import gettext
-import gobject
+from gi.repository import GObject
 import gio
 from gi.repository import GObject
 import logging
@@ -450,27 +450,27 @@ def calc_dr(ratings):
    
     return sum_scores + 3
 
-class SimpleFileDownloader(gobject.GObject):
+class SimpleFileDownloader(GObject.GObject):
 
     LOG = logging.getLogger("softwarecenter.simplefiledownloader")
 
     __gsignals__ = {
-        "file-url-reachable"      : (gobject.SIGNAL_RUN_LAST,
-                                     gobject.TYPE_NONE,
+        "file-url-reachable"      : (GObject.SIGNAL_RUN_LAST,
+                                     GObject.TYPE_NONE,
                                      (bool,),),
 
-        "file-download-complete"  : (gobject.SIGNAL_RUN_LAST,
-                                     gobject.TYPE_NONE,
+        "file-download-complete"  : (GObject.SIGNAL_RUN_LAST,
+                                     GObject.TYPE_NONE,
                                      (str,),),
 
-        "error"                   : (gobject.SIGNAL_RUN_LAST,
-                                     gobject.TYPE_NONE,
-                                     (gobject.TYPE_PYOBJECT,
-                                      gobject.TYPE_PYOBJECT,),),
+        "error"                   : (GObject.SIGNAL_RUN_LAST,
+                                     GObject.TYPE_NONE,
+                                     (GObject.TYPE_PYOBJECT,
+                                      GObject.TYPE_PYOBJECT,),),
         }
 
     def __init__(self):
-        gobject.GObject.__init__(self)
+        GObject.GObject.__init__(self)
         self.tmpdir = None
 
     def download_file(self, url, dest_file_path=None):

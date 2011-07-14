@@ -20,8 +20,8 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import os
-import gobject
-gobject.threads_init()
+from gi.repository import GObject
+GObject.threads_init()
 from gi.repository import GObject
 import time
 import threading

@@ -18,7 +18,7 @@
 
 import gtk
 import pango
-import gobject
+from gi.repository import GObject
 
 from softwarecenter.utils import normalize_package_description
 
@@ -1066,7 +1066,7 @@ class AppDescription(gtk.VBox):
 
     def set_description(self, desc, pkgname):
         self.clear()
-        desc = gobject.markup_escape_text(desc)
+        desc = GObject.markup_escape_text(desc)
 
         self._parse_desc(desc, pkgname)
 

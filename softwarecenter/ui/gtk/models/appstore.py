@@ -18,7 +18,7 @@
 
 import copy
 from gi.repository import GObject
-import gobject
+from gi.repository import GObject
 import gtk
 import logging
 import math
@@ -433,12 +433,12 @@ class AppStore(gtk.GenericTreeModel):
             elif column == self.COL_MARKUP:
                 if app.request:
                     s = "%s\n<small>%s</small>" % (
-                        gobject.markup_escape_text(app.name),
-                        gobject.markup_escape_text(_("Not found")))
+                        GObject.markup_escape_text(app.name),
+                        GObject.markup_escape_text(_("Not found")))
                     return s
                 s = "<span foreground='#666'>%s\n<small>%s</small></span>" % (
-                    gobject.markup_escape_text(_("Not found")),
-                    gobject.markup_escape_text(app.pkgname))
+                    GObject.markup_escape_text(_("Not found")),
+                    GObject.markup_escape_text(app.pkgname))
                 return s
             elif column == self.COL_ICON:
                 return self.icons.load_icon('application-default-icon',
@@ -494,8 +494,8 @@ class AppStore(gtk.GenericTreeModel):
             if self.db.is_appname_duplicated(appname):
                 appname = "%s (%s)" % (appname, app.pkgname)
             s = "%s\n<small>%s</small>" % (
-                gobject.markup_escape_text(appname),
-                gobject.markup_escape_text(summary))
+                GObject.markup_escape_text(appname),
+                GObject.markup_escape_text(summary))
             return s
         elif column == self.COL_ICON:
             try:

@@ -19,7 +19,7 @@
 import dbus
 from gi.repository import GObject
 import gtk
-import gobject
+from gi.repository import GObject
 import logging
 
 from softwarecenter.utils import get_icon_from_theme, size_to_str
@@ -72,7 +72,7 @@ class PendingStore(gtk.ListStore):
     def clear(self):
         super(PendingStore, self).clear()
         for sig in self._signals:
-            gobject.source_remove(sig)
+            GObject.source_remove(sig)
             del sig
         self._signals = []
 

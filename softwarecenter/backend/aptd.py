@@ -18,7 +18,7 @@
 
 import apt_pkg
 import dbus
-import gobject
+from gi.repository import GObject
 from gi.repository import GObject
 import logging
 import os
@@ -158,37 +158,37 @@ class AptdaemonTransactionsWatcher(BaseTransactionsWatcher):
         return AptdaemonTransaction(trans)
 
 
-class AptdaemonBackend(gobject.GObject, InstallBackend):
+class AptdaemonBackend(GObject.GObject, InstallBackend):
     """ software center specific code that interacts with aptdaemon """
 
-    __gsignals__ = {'transaction-started':(gobject.SIGNAL_RUN_FIRST,
-                                            gobject.TYPE_NONE,
+    __gsignals__ = {'transaction-started':(GObject.SIGNAL_RUN_FIRST,
+                                            GObject.TYPE_NONE,
                                             (str,str,str,str)),
                     # emits a TransactionFinished object
-                    'transaction-finished':(gobject.SIGNAL_RUN_FIRST,
-                                            gobject.TYPE_NONE,
-                                            (gobject.TYPE_PYOBJECT, )),
-                    'transaction-stopped':(gobject.SIGNAL_RUN_FIRST,
-                                            gobject.TYPE_NONE,
-                                            (gobject.TYPE_PYOBJECT,)),
-                    'transactions-changed':(gobject.SIGNAL_RUN_FIRST,
-                                            gobject.TYPE_NONE,
-                                            (gobject.TYPE_PYOBJECT, )),
-                    'transaction-progress-changed':(gobject.SIGNAL_RUN_FIRST,
-                                                    gobject.TYPE_NONE,
+                    'transaction-finished':(GObject.SIGNAL_RUN_FIRST,
+                                            GObject.TYPE_NONE,
+                                            (GObject.TYPE_PYOBJECT, )),
+                    'transaction-stopped':(GObject.SIGNAL_RUN_FIRST,
+                                            GObject.TYPE_NONE,
+                                            (GObject.TYPE_PYOBJECT,)),
+                    'transactions-changed':(GObject.SIGNAL_RUN_FIRST,
+                                            GObject.TYPE_NONE,
+                                            (GObject.TYPE_PYOBJECT, )),
+                    'transaction-progress-changed':(GObject.SIGNAL_RUN_FIRST,
+                                                    GObject.TYPE_NONE,
                                                     (str,int,)),
                     # the number/names of the available channels changed
-                    'channels-changed':(gobject.SIGNAL_RUN_FIRST,
-                                        gobject.TYPE_NONE,
+                    'channels-changed':(GObject.SIGNAL_RUN_FIRST,
+                                        GObject.TYPE_NONE,
                                         (bool,)),
                     # cache reload emits this specific signal as well
-                    'reload-finished':(gobject.SIGNAL_RUN_FIRST,
-                                       gobject.TYPE_NONE,
-                                       (gobject.TYPE_PYOBJECT, bool,)),
+                    'reload-finished':(GObject.SIGNAL_RUN_FIRST,
+                                       GObject.TYPE_NONE,
+                                       (GObject.TYPE_PYOBJECT, bool,)),
                     }
 
     def __init__(self):
-        gobject.GObject.__init__(self)
+        GObject.GObject.__init__(self)
         
         self.aptd_client = client.AptClient()
         self.pending_transactions = {}
@@ -613,7 +613,7 @@ class AptdaemonBackend(gobject.GObject, InstallBackend):
     def _on_lowlevel_transactions_changed(self, watcher, current, pending):
         # cleanup progress signal (to be sure to not leave dbus matchers around)
         if self._progress_signal:
-            gobject.source_remove(self._progress_signal)
+            GObject.source_remove(self._progress_signal)
             self._progress_signal = None
         # attach progress-changed signal for current transaction
         if current:

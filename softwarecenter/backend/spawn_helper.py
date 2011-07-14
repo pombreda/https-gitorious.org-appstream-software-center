@@ -21,7 +21,7 @@
 
 import cPickle
 from gi.repository import GObject
-import gobject
+from gi.repository import GObject
 import logging
 import os
 import simplejson
@@ -29,19 +29,19 @@ import simplejson
 
 LOG = logging.getLogger(__name__)
 
-class SpawnHelper(gobject.GObject):
+class SpawnHelper(GObject.GObject):
     
     __gsignals__ = {
-        "data-available" : (gobject.SIGNAL_RUN_LAST,
-                            gobject.TYPE_NONE, 
-                            (gobject.TYPE_PYOBJECT,),
+        "data-available" : (GObject.SIGNAL_RUN_LAST,
+                            GObject.TYPE_NONE, 
+                            (GObject.TYPE_PYOBJECT,),
                             ),
-        "exited" : (gobject.SIGNAL_RUN_LAST,
-                    gobject.TYPE_NONE, 
+        "exited" : (GObject.SIGNAL_RUN_LAST,
+                    GObject.TYPE_NONE, 
                     (int,),
                     ),
-        "error" : (gobject.SIGNAL_RUN_LAST,
-                   gobject.TYPE_NONE, 
+        "error" : (GObject.SIGNAL_RUN_LAST,
+                   GObject.TYPE_NONE, 
                    (str,),
                   ),
         }

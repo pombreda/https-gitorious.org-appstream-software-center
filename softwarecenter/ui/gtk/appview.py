@@ -20,7 +20,7 @@ from __future__ import with_statement
 
 import gettext
 from gi.repository import GObject
-import gobject
+from gi.repository import GObject
 import gtk
 import logging
 import os
@@ -98,7 +98,7 @@ class CellRendererButton2:
         layout = pango.Layout(pc)
         max_size = (0,0)
         for variant in self.markup_variants:
-            layout.set_markup(gobject.markup_escape_text(variant))
+            layout.set_markup(GObject.markup_escape_text(variant))
             max_size = max(max_size, layout.get_pixel_extents()[1][2:])
 
         w, h = max_size
@@ -258,38 +258,38 @@ class CellRendererAppView2(gtk.CellRendererText):
 
     __gproperties__ = {
         'overlay' : (bool, 'overlay', 'show an overlay icon', False,
-                     gobject.PARAM_READWRITE),
+                     GObject.PARAM_READWRITE),
 
         'pixbuf' :  (gtk.gdk.Pixbuf, "Pixbuf", 
-                    "Application icon pixbuf image", gobject.PARAM_READWRITE),
+                    "Application icon pixbuf image", GObject.PARAM_READWRITE),
 
         # numbers mean: min: 0, max: 5, default: 0
-        'rating': (gobject.TYPE_FLOAT, 'Rating', 'Avg rating', 0.0, 5.0, 0.0,
-            gobject.PARAM_READWRITE),
+        'rating': (GObject.TYPE_FLOAT, 'Rating', 'Avg rating', 0.0, 5.0, 0.0,
+            GObject.PARAM_READWRITE),
 
         # can't use max=sys.maxint here as this causes OverflowError on amd64
-        'nreviews': (gobject.TYPE_INT, 'Reviews', 'Number of reviews', 0, 100000, 0,
-            gobject.PARAM_READWRITE),
+        'nreviews': (GObject.TYPE_INT, 'Reviews', 'Number of reviews', 0, 100000, 0,
+            GObject.PARAM_READWRITE),
 
         'isactive': (bool, 'IsActive', 'Is active?', False,
-                    gobject.PARAM_READWRITE),
+                    GObject.PARAM_READWRITE),
 
         'installed': (bool, 'installed', 'Is the app installed', False,
-                     gobject.PARAM_READWRITE),
+                     GObject.PARAM_READWRITE),
 
         'available': (bool, 'available', 'Is the app available for install', False,
-                     gobject.PARAM_READWRITE),
+                     GObject.PARAM_READWRITE),
 
-        'action_in_progress': (gobject.TYPE_INT, 'Action Progress', 'Action progress', -1, 100, -1,
-                     gobject.PARAM_READWRITE),
+        'action_in_progress': (GObject.TYPE_INT, 'Action Progress', 'Action progress', -1, 100, -1,
+                     GObject.PARAM_READWRITE),
 
         'exists': (bool, 'exists', 'Is the app found in current channel', False,
-                   gobject.PARAM_READWRITE),
+                   GObject.PARAM_READWRITE),
 
         # overload the native markup property becasue i didnt know how to read it
         # note; the 'text' attribute is used as the cell atk description
         'markup': (str, 'markup', 'The markup to paint', '',
-                   gobject.PARAM_READWRITE)
+                   GObject.PARAM_READWRITE)
         }
 
     def __init__(self, show_ratings, overlay_icon_name):
@@ -618,7 +618,7 @@ class CellRendererAppView2(gtk.CellRendererText):
             return -1, -1, -1, self.normal_height
         return -1, -1, -1, self.selected_height
 
-gobject.type_register(CellRendererAppView2)
+GObject.type_register(CellRendererAppView2)
 
 
 
@@ -627,24 +627,24 @@ class AppView(gtk.TreeView):
     """Treeview based view component that takes a AppStore and displays it"""
 
     __gsignals__ = {
-        "application-activated" : (gobject.SIGNAL_RUN_LAST,
-                                   gobject.TYPE_NONE,
-                                   (gobject.TYPE_PYOBJECT, ),
+        "application-activated" : (GObject.SIGNAL_RUN_LAST,
+                                   GObject.TYPE_NONE,
+                                   (GObject.TYPE_PYOBJECT, ),
                                   ),
-        "application-selected" : (gobject.SIGNAL_RUN_LAST,
-                                   gobject.TYPE_NONE,
-                                   (gobject.TYPE_PYOBJECT, ),
+        "application-selected" : (GObject.SIGNAL_RUN_LAST,
+                                   GObject.TYPE_NONE,
+                                   (GObject.TYPE_PYOBJECT, ),
                                   ),
-        "application-request-action" : (gobject.SIGNAL_RUN_LAST,
-                                        gobject.TYPE_NONE,
-                                        (gobject.TYPE_PYOBJECT,
-                                         gobject.TYPE_PYOBJECT, 
-                                         gobject.TYPE_PYOBJECT,
+        "application-request-action" : (GObject.SIGNAL_RUN_LAST,
+                                        GObject.TYPE_NONE,
+                                        (GObject.TYPE_PYOBJECT,
+                                         GObject.TYPE_PYOBJECT, 
+                                         GObject.TYPE_PYOBJECT,
                                          str),
                                        ),
-        "mouse-nav-requested" : (gobject.SIGNAL_RUN_LAST,
-                                 gobject.TYPE_NONE, 
-                                 (gobject.TYPE_PYOBJECT, ),
+        "mouse-nav-requested" : (GObject.SIGNAL_RUN_LAST,
+                                 GObject.TYPE_NONE, 
+                                 (GObject.TYPE_PYOBJECT, ),
                                  )
     }
 
@@ -1001,7 +1001,7 @@ class AppView(gtk.TreeView):
         installed = model[path][AppStore.COL_INSTALLED]
 
         s = gtk.settings_get_default()
-        gobject.timeout_add(s.get_property("gtk-timeout-initial"),
+        GObject.timeout_add(s.get_property("gtk-timeout-initial"),
                             self._app_activated_cb,
                             btn,
                             btn.name,

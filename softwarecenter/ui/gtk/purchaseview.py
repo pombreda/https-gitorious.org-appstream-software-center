@@ -25,7 +25,7 @@ import simplejson
 import sys
 import urllib
 import webkit
-import gobject
+from gi.repository import GObject
 
 from gettext import gettext as _
 
@@ -87,14 +87,14 @@ h1 {
 """ % _("Connecting to payment service...")
 
     __gsignals__ = {
-         'purchase-succeeded' : (gobject.SIGNAL_RUN_LAST,
-                                 gobject.TYPE_NONE,
+         'purchase-succeeded' : (GObject.SIGNAL_RUN_LAST,
+                                 GObject.TYPE_NONE,
                                  ()),
-         'purchase-failed'    : (gobject.SIGNAL_RUN_LAST,
-                                 gobject.TYPE_NONE,
+         'purchase-failed'    : (GObject.SIGNAL_RUN_LAST,
+                                 GObject.TYPE_NONE,
                                  ()),
-         'purchase-cancelled-by-user' : (gobject.SIGNAL_RUN_LAST,
-                                         gobject.TYPE_NONE,
+         'purchase-cancelled-by-user' : (GObject.SIGNAL_RUN_LAST,
+                                         GObject.TYPE_NONE,
                                          ()),
     }
 
