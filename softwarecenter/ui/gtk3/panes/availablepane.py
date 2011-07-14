@@ -172,7 +172,7 @@ class AvailablePane(SoftwarePane):
 
         if window is not None:
             window.set_cursor(None)
-        self.spinner_view.set_text()
+        self.spinner_view.set_text() 
         self.view_initialized = True
 
     def get_query(self):
@@ -181,7 +181,8 @@ class AvailablePane(SoftwarePane):
         if self._in_no_display_category():
             return xapian.Query()
         # get current sub-category (or category, but sub-category wins)
-        cat_query = None
+        query = None
+
         if self.state.channel:
             query = self.state.channel.query
         elif self.state.subcategory:
@@ -507,8 +508,7 @@ class AvailablePane(SoftwarePane):
         return True
 
     def display_app_list_page(self, page, view_state):
-        self.state.category = view_state.category
-
+        self.state = view_state
         category = self.state.category
         self.set_category(category)
 

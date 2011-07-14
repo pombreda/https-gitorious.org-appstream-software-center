@@ -50,6 +50,8 @@ class SectionSelector(Tile):
         self.channel_request_func = None
         if not has_channel_sel: return
 
+        self.popup = None
+
         self.channel_sel = Gtk.Button()
         self.channel_sel.set_relief(Gtk.ReliefStyle.NONE)
         arrow = Gtk.Arrow.new(Gtk.ArrowType.DOWN, Gtk.ShadowType.IN)
@@ -77,8 +79,6 @@ class SectionSelector(Tile):
 
     def on_button_release(self, button, event, has_channel_sel):
         if not has_channel_sel: return
-        if self.channel_request_func is None:
-            raise AttributeError, 'No "channel_request_func" set!'
 
         dd = self.channel_sel
         dd_alloc = dd.get_allocation()
@@ -87,6 +87,8 @@ class SectionSelector(Tile):
         # point in
         if (x >= 0 and x <= dd_alloc.width and
             y >= 0 and y <= dd_alloc.height):
+            if self.popup is None:
+                self.build_channel_selector()
             self.show_channel_sel_popup(self, event)
             return True
         self.emit("clicked")
@@ -101,18 +103,19 @@ class SectionSelector(Tile):
 
         a = widget.get_allocation()
         window = widget.get_window()
-
-        popup = Gtk.Menu()
-        self.channel_request_func(popup)
-
-        popup.attach_to_widget(widget, None)
-        popup.set_size_request(150, -1)
-        popup.popup(None, None, position_func, (window, a),
-                    event.button, event.time)
+        
+        self.popup.popup(None, None, position_func, (window, a),
+                         event.button, event.time)
         return
 
-    def set_channel_request_func(self, func):
-        self.channel_request_func = func
+    def set_build_func(self, build_func):
+        self.build_func = build_func
+        return
+
+    def build_channel_selector(self):
+        self.popup = Gtk.Menu()
+        self.build_func(self.popup)
+        self.popup.attach_to_widget(self.channel_sel, None)
         return
 
 

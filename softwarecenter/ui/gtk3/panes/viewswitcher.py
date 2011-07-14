@@ -49,11 +49,13 @@ class ViewSwitcherLogic(object):
         self.backend = get_install_backend()
 
     def get_available_channels(self):
-        return self.channel_manager.channels
+        channels = self.channel_manager.channels
+        return channels
 
     def get_installed_channels(self):
-        # todo, filter out channels for which not packages are installed
-        return self.channel_manager.channels
+        # todo, filter out channels for which not packages are installed (???)
+        channels = self.channel_manager.channels
+        return channels
 
     #~ def on_transactions_changed(self, backend, total_transactions):
         #~ LOG.debug("on_transactions_changed '%s'" % total_transactions)
@@ -100,19 +102,18 @@ class ViewSwitcher(Gtk.HBox, ViewSwitcherLogic):
         # Gui stuff
         self.view_buttons = []
         self._handlers = []
+        self._prev_item = None
 
         # first, the availablepane items
         available = self._make_button(_("All Software"),
                                       "softwarecenter")
-        available.set_channel_request_func(
-                                    self.on_get_available_channels)
+        available.set_build_func(self.on_get_available_channels)
         self.view_buttons.append(available)
 
         # the installedpane items
         installed = self._make_button(_("Installed"),
                                       "computer")
-        installed.set_channel_request_func(
-                                    self.on_get_installed_channels)
+        installed.set_build_func(self.on_get_installed_channels)
         self.view_buttons.append(installed)
 
         # the historypane item
@@ -157,30 +158,49 @@ class ViewSwitcher(Gtk.HBox, ViewSwitcherLogic):
         return self.build_channel_list(popup, ViewPages.INSTALLED)
 
     def build_channel_list(self, popup, view_id):
+        print 'build list'
         # clean up old signal handlers
         for sig in self._handlers:
             GObject.source_remove(sig)
 
         channels = self.get_available_channels()
         for i, channel in enumerate(channels):
-            item = Gtk.ImageMenuItem.new_with_label(channel.display_name)
-            image = Gtk.Image.new_from_icon_name(channel.icon, Gtk.IconSize.BUTTON)
-            item.set_image(image)
-            item.set_always_show_image(True)
+            item = Gtk.CheckMenuItem()
+            item.set_draw_as_radio(True)
+
+            label = Gtk.Label.new(channel.display_name)
+            image = Gtk.Image.new_from_icon_name(channel.icon, Gtk.IconSize.MENU)
+
+            box = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, StockEms.MEDIUM)
+            box.pack_start(image, False, False, 0)
+            box.pack_start(label, False, False, 0)
+
+            item.add(box)
+            item.show_all()
+
             self._handlers.append(
                 item.connect(
-                    "activate",
+                    "button-release-event",
                     self.on_channel_selected,
                     channel,
                     view_id
                 )
             )
             popup.attach(item, 0, 1, i, i+1)
-
-        popup.show_all()
         return
 
-    def on_channel_selected(self, item, channel, view_id):
+    def on_channel_selected(self, item, event, channel, view_id):
+
+        if self._prev_item is item:
+            parent = item.get_parent()
+            parent.hide()
+            return True
+
+        if self._prev_item is not None:
+            self._prev_item.set_property("active", False)
+
+        self._prev_item = item
+
         # set active pane
         vm = self.view_manager
         pane = vm.set_active_view(view_id)
