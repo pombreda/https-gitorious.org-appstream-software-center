@@ -1,7 +1,7 @@
-from gi.repository import Gtk
-from gi.repository import GObject
+from gi.repository import Gtk, Gdk, GObject
 
 from softwarecenter.ui.gtk3.em import StockEms
+from softwarecenter.ui.gtk3.drawing import rounded_rect, rounded_rect2
 
 
 class Tile(Gtk.Button):
@@ -13,11 +13,15 @@ class Tile(Gtk.Button):
         self.set_focus_on_click(False)
 
         self.vbox = Gtk.VBox(spacing=StockEms.SMALL)
-        #~ self.vbox.set_border_width(StockEms.SMALL)
+        self.image_box = Gtk.Box.new(Gtk.Orientation.HORIZONTAL,
+                                     StockEms.SMALL)
+
         self.add(self.vbox)
 
         image = Gtk.Image.new_from_icon_name(iconname, icon_size)
-        self.vbox.pack_start(image, False, False, 0)
+        self.image_box.pack_start(image, True, True, 0)
+
+        self.vbox.pack_start(self.image_box, False, False, 0)
 
         label = Gtk.Label.new(label)
         label.set_alignment(0.5, 0.0)
@@ -30,12 +34,46 @@ class Tile(Gtk.Button):
         return
 
 
-
 class CategoryTile(Tile):
 
     def __init__(self, label, iconname, icon_size=Gtk.IconSize.DIALOG):
         Tile.__init__(self, label, iconname, icon_size)
         self.set_name("category-tile")
+        return
+
+
+class ChannelSelectorArrow(Gtk.Alignment):    
+
+    def __init__(self):
+        Gtk.Alignment.__init__(self)
+        self.set_size_request(StockEms.LARGE, StockEms.LARGE)
+        self.set_padding(2,2,2,2)
+
+        self.onhover = False
+
+        arrow = Gtk.Arrow.new(Gtk.ArrowType.DOWN, Gtk.ShadowType.IN)
+        self.add(arrow)
+        self.connect("draw", self.on_draw)
+        return
+
+    def set_onhover(self, is_onhover):
+        self.onhover = is_onhover
+        self.queue_draw()
+
+    def on_draw(self, widget, cr):
+        a = widget.get_allocation()
+        rounded_rect(cr, 0.5, 0.5, a.width-1, a.height-1, 6)
+        
+        if self.onhover and self.get_state_flags() == Gtk.StateFlags.PRELIGHT:
+            alpha = 0.3
+        else:
+            alpha = 0.1
+
+        context = self.get_style_context()
+        color = context.get_border_color(self.get_state_flags())
+        cr.set_source_rgba(color.red, color.green, color.blue, alpha)
+        cr.set_line_width(1)
+        cr.fill()
         return
 
 
@@ -51,22 +89,54 @@ class SectionSelector(Tile):
         if not has_channel_sel: return
 
         self.popup = None
+        self.radius = None
 
-        self.channel_sel = Gtk.Button()
-        self.channel_sel.set_relief(Gtk.ReliefStyle.NONE)
-        arrow = Gtk.Arrow.new(Gtk.ArrowType.DOWN, Gtk.ShadowType.IN)
-        self.channel_sel.add(arrow)
-        self.vbox.pack_start(self.channel_sel, False, False, 0)
+        self.channel_sel = ChannelSelectorArrow()
+        filler = Gtk.Box()
+        filler.set_size_request(*self.channel_sel.get_size_request())
 
-        self.connect("button-press-event", self.on_button_press,
-                     has_channel_sel)
-        self.connect('button-release-event', self.on_button_release,
-                     has_channel_sel)
+        self.image_box.pack_start(filler, False, False, 0)
+        self.image_box.reorder_child(filler, 0)
+        self.image_box.pack_start(self.channel_sel, False, False, 0)
+
+        self.add_events(Gdk.EventMask.POINTER_MOTION_MASK)
+
+        self.connect("button-press-event", self.on_button_press)
+        self.connect('button-release-event', self.on_button_release)
+        self.connect('motion-notify-event', self.on_motion)
+        self.connect("draw", self.on_draw)
         return
 
-    def on_button_press(self, button, event, has_channel_sel):
-        if not has_channel_sel: return
+    def on_draw(self, widget, cr):
+        if self.popup is None or not self.popup.get_visible(): return
 
+        a = self.get_allocation()
+        context = self.get_style_context()
+        color = context.get_border_color(self.get_state_flags())
+
+        rounded_rect(cr, 0.0, 0.0, a.width, a.height, self.radius)
+        Gdk.cairo_set_source_rgba(cr, color)
+        #~ cr.set_line_width(1)
+        cr.fill()
+        return
+
+    def on_motion(self, button, event):
+        dd = self.channel_sel
+        dd_alloc = dd.get_allocation()
+        x, y = dd.get_pointer()
+
+        # point in
+        if (x >= 0 and x <= dd_alloc.width and
+            y >= 0 and y <= dd_alloc.height):
+            if not dd.onhover:
+                dd.set_onhover(True)
+
+        elif dd.onhover:
+            dd.set_onhover(False)
+
+        return
+
+    def on_button_press(self, button, event):
         dd = self.channel_sel
         dd_alloc = dd.get_allocation()
         x, y = dd.get_pointer()
@@ -77,9 +147,7 @@ class SectionSelector(Tile):
             return True
         return
 
-    def on_button_release(self, button, event, has_channel_sel):
-        if not has_channel_sel: return
-
+    def on_button_release(self, button, event):
         dd = self.channel_sel
         dd_alloc = dd.get_allocation()
         x, y = dd.get_pointer()
@@ -94,16 +162,25 @@ class SectionSelector(Tile):
         self.emit("clicked")
         return
 
+    def on_popup_hide(self, widget):
+        self.queue_draw()
+
     def show_channel_sel_popup(self, widget, event):
 
         def position_func(menu, (window, a)):
             menu_alloc = menu.get_allocation()
-            x, y = window.get_root_coords(a.x, a.y + a.height)
+            x, y = window.get_root_coords(a.x,
+                                          a.y + a.height - self.radius)
             return (x, y, False)
 
         a = widget.get_allocation()
         window = widget.get_window()
-        
+
+        if self.radius is None:
+            state = self.get_state_flags()
+            context = self.get_style_context()
+            self.radius = context.get_property("border-radius", state)
+
         self.popup.popup(None, None, position_func, (window, a),
                          event.button, event.time)
         return
@@ -116,6 +193,7 @@ class SectionSelector(Tile):
         self.popup = Gtk.Menu()
         self.build_func(self.popup)
         self.popup.attach_to_widget(self.channel_sel, None)
+        self.popup.connect("hide", self.on_popup_hide)
         return
 
 

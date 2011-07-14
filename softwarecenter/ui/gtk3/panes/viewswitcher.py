@@ -90,7 +90,7 @@ class ViewSwitcher(Gtk.HBox, ViewSwitcherLogic):
     }
 
 
-    ICON_SIZE = Gtk.IconSize.BUTTON
+    ICON_SIZE = Gtk.IconSize.LARGE_TOOLBAR
 
     def __init__(self, view_manager, datadir, db, cache, icons):
         Gtk.ButtonBox.__init__(self)

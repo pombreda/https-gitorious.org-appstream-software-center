@@ -7,11 +7,11 @@ from softwarecenter.ui.gtk3.panes.viewswitcher import ViewSwitcher
 
 class GlobalPane(Gtk.VBox):
 
-    PADDING = StockEms.MEDIUM
+    PADDING = StockEms.SMALL
 
     def __init__(self, view_manager, datadir, db, cache, icons):
         Gtk.VBox.__init__(self)
-        self.top_hbox = Gtk.HBox(spacing=StockEms.XLARGE)
+        self.top_hbox = Gtk.HBox()
         self.top_hbox.set_border_width(self.PADDING)
         # add nav history back/forward buttons...
         # note:  this is hacky, would be much nicer to make the custom self/right
