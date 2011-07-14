@@ -175,39 +175,53 @@ class InstalledPane(SoftwarePane, CategoriesParser):
     def _build_categorised_view(self):
         print 'Rebuilding categorised installedview...'
         self.cat_docid_map = {}
+        enq = self.enquirer
         model = self.base_model # base model not treefilter
         model.clear()
 
         i = 0
 
         for cat in self._all_cats:
-
+            # for each category do category query and append as a new
+            # node to tree_view
             if not self._use_category(cat): continue
             query = self.get_query_for_cat(cat)
-            #~ print query
-            self.enquirer.set_query(query,
-                                    sortmode=SortMethods.BY_ALPHABET,
-                                    nonapps_visible=self.nonapps_visible,
-                                    filter=self.state.filter,
-                                    nonblocking_load=False,
-                                    persistent_duplicate_filter=(i>0))
+            enq.set_query(query,
+                          sortmode=SortMethods.BY_ALPHABET,
+                          nonapps_visible=self.nonapps_visible,
+                          filter=self.state.filter,
+                          nonblocking_load=False,
+                          persistent_duplicate_filter=(i>0))
 
             L = len(self.enquirer.matches)
             if L:
                 i += L
-                docs = self.enquirer.get_documents()
-                self.cat_docid_map[cat.untranslated_name] = [doc.get_docid() for doc in docs]
-
+                docs = enq.get_documents()
+                self.cat_docid_map[cat.untranslated_name] = \
+                                    [doc.get_docid() for doc in docs]
                 model.set_category_documents(cat, docs)
-
                 #~ self._check_expand()
 
-                cursor_path = self.app_view.get_cursor()
-                first = Gtk.TreePath.new_first()
-                if cursor_path != first.get_indices():
-                    self.app_view.set_cursor(first, None, False)
-                if i <= 10:
-                    self.app_view.expand_all()
+        # check for uncategorised pkgs
+        enq.set_query(self.state.channel.query,
+                      sortmode=SortMethods.BY_ALPHABET,
+                      nonapps_visible=NonAppVisibility.MAYBE_VISIBLE,
+                      filter=self.state.filter,
+                      nonblocking_load=False,
+                      persistent_duplicate_filter=(i>0))
+
+        L = len(enq.matches)
+        if L:
+            model.set_nocategory_documents(enq.get_documents())
+            i += L
+
+        if i:
+            cursor_path = self.app_view.get_cursor()
+            first = Gtk.TreePath.new_first()
+            if cursor_path != first.get_indices():
+                self.app_view.set_cursor(first, None, False)
+            if i <= 10:
+                self.app_view.expand_all()
 
         # cache the installed app count
         self.installed_count = i

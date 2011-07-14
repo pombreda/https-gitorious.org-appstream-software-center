@@ -25,6 +25,8 @@ import xapian
 import threading
 import time
 
+from gettext import gettext as _
+
 from softwarecenter.enums import (Icons, SortMethods,
                                   XapianValues, NonAppVisibility,
                                   DEFAULT_SEARCH_LIMIT)
@@ -329,6 +331,15 @@ class CategoryRowReference:
         return
 
 
+class UncategorisedRowRef(CategoryRowReference):
+
+    def __init__(self, pkg_count=0):
+        CategoryRowReference.__init__(self,
+                                      "uncategorized",
+                                      _("Uncategorized"),
+                                      None, pkg_count)
+
+
 class AppPropertiesHelper(object):
     """ Baseclass that contains common functions for our
         liststore/treestore, only useful for subclassing
@@ -444,7 +455,7 @@ class AppGenericStore(AppPropertiesHelper):
     COL_ROW_DATA = 0
 
     # default icon size displayed in the treeview
-    ICON_SIZE = 24
+    ICON_SIZE = 32
 
     def __init__(self, db, cache, icons, icon_size, global_icon_cache):
         # the usual suspects
@@ -639,6 +650,12 @@ class AppTreeStore(Gtk.TreeStore, AppGenericStore):
                                         cat.subcategories,
                                         len(documents))
 
+        it = self.append(None, (category,))
+        self.set_documents(it, documents)
+        return it
+
+    def set_nocategory_documents(self, documents):
+        category = UncategorisedRowRef(len(documents))
         it = self.append(None, (category,))
         self.set_documents(it, documents)
         return it
