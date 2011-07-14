@@ -223,10 +223,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
             i += L
 
         if i:
-            cursor_path = self.app_view.get_cursor()
-            first = Gtk.TreePath.new_first()
-            if cursor_path != first.get_indices():
-                self.app_view.set_cursor(first, None, False)
+            self.app_view.set_cursor(Gtk.TreePath(), None, False)
             if i <= 10:
                 self.app_view.expand_all()
 

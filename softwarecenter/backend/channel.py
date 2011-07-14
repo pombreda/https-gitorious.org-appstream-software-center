@@ -31,7 +31,8 @@ from softwarecenter.distro import get_distro
 from softwarecenter.utils import human_readable_name_from_ppa_uri
 
 from softwarecenter.enums import (SortMethods, 
-                                  ViewPages, 
+                                  ViewPages,
+                                  Icons,
                                   AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME)
 
 LOG = logging.getLogger(__name__)
@@ -61,7 +62,13 @@ class ChannelsManager(object):
             Other channels alphabetically, Unknown channel last
         """
         return self._get_channels()
-        
+
+    def get_available_channels(self):
+        return (AllAvailableChannel(),) + tuple(self.channels)
+
+    def get_installed_channels(self):
+        return (AllInstalledChannel(),) + tuple(self.channels_installed_only)
+
     @property
     def channels_installed_only(self):
         """
@@ -395,7 +402,7 @@ class SoftwareChannel(object):
         
     # TODO:  implement __cmp__ so that sort for channels is encapsulated
     #        here as well
-    
+
     def _get_display_name_for_channel(self, channel_name, channel_component):
         if channel_component == "partner":
             channel_display_name = _("Canonical Partners")
@@ -463,7 +470,34 @@ class SoftwareChannel(object):
         details.append("  sort_mode: %s" % self.sort_mode)
         details.append("  installed_only: %s" % self.installed_only)
         return '\n'.join(details)
-        
+
+
+class AllChannel(SoftwareChannel):
+
+    def __init__(self, channel_name, installed_only):
+        SoftwareChannel.__init__(
+            self, channel_name, "all", "",
+            installed_only=installed_only,
+            channel_icon=Icons.FALLBACK)
+        return
+
+    # override
+    def _get_display_name_for_channel(self, channel_name, _):
+        return channel_name
+
+
+class AllAvailableChannel(AllChannel):
+
+    def __init__(self):
+        AllChannel.__init__(self, _("All Software"), False)
+
+
+class AllInstalledChannel(AllChannel):
+
+    def __init__(self):
+        AllChannel.__init__(self, _("All Installed"), True)
+
+
 if __name__ == "__main__":
     distro = get_distro()
     channel = SoftwareChannel(distro.get_distro_channel_name(), 

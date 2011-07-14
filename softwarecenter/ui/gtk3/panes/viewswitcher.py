@@ -50,15 +50,6 @@ class ViewSwitcherLogic(object):
         self.backend.connect("transaction-finished",
                              self.on_transaction_finished)
 
-    def get_available_channels(self):
-        channels = self.channel_manager.channels
-        return channels
-
-    def get_installed_channels(self):
-        # todo, filter out channels for which not packages are installed (???)
-        channels = self.channel_manager.channels
-        return channels
-
     def channels_changed(self):
         self.on_channels_changed()
         return
@@ -177,7 +168,13 @@ class ViewSwitcher(Gtk.HBox, ViewSwitcherLogic):
         for sig in self._handlers:
             GObject.source_remove(sig)
 
-        channels = self.get_available_channels()
+        if view_id == ViewPages.AVAILABLE:
+            channels = self.channel_manager.get_available_channels()
+        elif view_id == ViewPages.INSTALLED:
+            channels = self.channel_manager.get_installed_channels()
+        else:
+            channels = self.channel_manager.channels
+
         for i, channel in enumerate(channels):
             item = Gtk.CheckMenuItem()
             item.set_draw_as_radio(True)
@@ -201,6 +198,9 @@ class ViewSwitcher(Gtk.HBox, ViewSwitcherLogic):
                 )
             )
             popup.attach(item, 0, 1, i, i+1)
+
+        first = popup.get_children()[0]
+        first.set_property("active", True)
         return
 
     def on_channel_selected(self, item, event, channel, view_id):
