@@ -46,8 +46,9 @@ class ChannelSelectorArrow(Gtk.Alignment):
 
     def __init__(self):
         Gtk.Alignment.__init__(self)
+        self.set(0.5, 1.0, 0.0, 0.0)
         self.set_size_request(StockEms.LARGE, StockEms.LARGE)
-        self.set_padding(2,2,2,2)
+        self.set_padding(1,1,1,1)
 
         self.onhover = False
 
