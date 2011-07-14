@@ -47,6 +47,8 @@ class ViewSwitcherLogic(object):
         self.view_manager = view_manager
         self.channel_manager = ChannelsManager(db)
         self.backend = get_install_backend()
+        self.backend.connect("transaction-finished",
+                             self.on_transaction_finished)
 
     def get_available_channels(self):
         channels = self.channel_manager.channels
@@ -57,17 +59,21 @@ class ViewSwitcherLogic(object):
         channels = self.channel_manager.channels
         return channels
 
+    def channels_changed(self):
+        self.on_channels_changed()
+        return
+
     #~ def on_transactions_changed(self, backend, total_transactions):
         #~ LOG.debug("on_transactions_changed '%s'" % total_transactions)
         #~ pending = len(total_transactions)
         #~ if pending > 0:
             #~ # do pending animation stuff here
             #~ pass
-#~ 
-    #~ def on_transaction_finished(self, backend, result):
-        #~ if result.success:
-            #~ self._update_channel_list_installed_view()
-#~ 
+
+    def on_transaction_finished(self, backend, result):
+        if result.success: self.channels_changed()
+        return
+
     #~ @wait_for_apt_cache_ready
     #~ def _update_channel_list(self):
         #~ self._update_channel_list_available_view()
@@ -156,6 +162,14 @@ class ViewSwitcher(Gtk.HBox, ViewSwitcherLogic):
 
     def on_get_installed_channels(self, popup):
         return self.build_channel_list(popup, ViewPages.INSTALLED)
+
+    def on_channels_changed(self):
+        for btn in self.view_buttons:
+            if not btn.has_channel_sel: continue
+            # setting popup to None will cause a rebuild of the popup
+            # menu the next time the selector is clicked
+            btn.popup = None
+        return
 
     def build_channel_list(self, popup, view_id):
         print 'build list'

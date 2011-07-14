@@ -333,11 +333,15 @@ class CategoryRowReference:
 
 class UncategorisedRowRef(CategoryRowReference):
 
-    def __init__(self, pkg_count=0):
+    def __init__(self, pkg_count, display_name=None):
+        if display_name is None:
+            display_name = _("Uncategorized")
+
         CategoryRowReference.__init__(self,
                                       "uncategorized",
-                                      _("Uncategorized"),
+                                      display_name,
                                       None, pkg_count)
+        return
 
 
 class AppPropertiesHelper(object):
@@ -654,8 +658,8 @@ class AppTreeStore(Gtk.TreeStore, AppGenericStore):
         self.set_documents(it, documents)
         return it
 
-    def set_nocategory_documents(self, documents):
-        category = UncategorisedRowRef(len(documents))
+    def set_nocategory_documents(self, documents, display_name=None):
+        category = UncategorisedRowRef(len(documents), display_name)
         it = self.append(None, (category,))
         self.set_documents(it, documents)
         return it

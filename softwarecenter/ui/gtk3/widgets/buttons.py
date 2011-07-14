@@ -42,7 +42,7 @@ class CategoryTile(Tile):
         return
 
 
-class ChannelSelectorArrow(Gtk.Alignment):    
+class _ChannelSelectorArrow(Gtk.Alignment):    
 
     def __init__(self):
         Gtk.Alignment.__init__(self)
@@ -97,7 +97,7 @@ class SectionSelector(Tile):
         self.popup = None
         self.radius = None
 
-        self.channel_sel = ChannelSelectorArrow()
+        self.channel_sel = _ChannelSelectorArrow()
         filler = Gtk.Box()
         pref_w, _ = self.channel_sel.get_preferred_width()
         filler.set_size_request(pref_w, -1)
@@ -121,7 +121,7 @@ class SectionSelector(Tile):
         context = self.get_style_context()
         color = context.get_border_color(self.get_state_flags())
 
-        rounded_rect(cr, 0.0, 0.0, a.width, a.height, self.radius)
+        rounded_rect(cr, 0, 0, a.width, a.height, self.radius)
         Gdk.cairo_set_source_rgba(cr, color)
         #~ cr.set_line_width(1)
         cr.fill()

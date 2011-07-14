@@ -212,7 +212,14 @@ class InstalledPane(SoftwarePane, CategoriesParser):
 
         L = len(enq.matches)
         if L:
-            model.set_nocategory_documents(enq.get_documents())
+            # some foo for channels
+            # if no categorised results but in channel, then use
+            # the channel name for the category
+            channel_name = None
+            if not i and self.state.channel:
+                channel_name = self.state.channel.display_name
+            model.set_nocategory_documents(enq.get_documents(),
+                                           display_name=channel_name)
             i += L
 
         if i:
