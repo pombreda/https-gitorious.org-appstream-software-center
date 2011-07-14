@@ -47,15 +47,20 @@ class ChannelSelectorArrow(Gtk.Alignment):
     def __init__(self):
         Gtk.Alignment.__init__(self)
         self.set(0.5, 1.0, 0.0, 0.0)
-        self.set_size_request(StockEms.LARGE, StockEms.LARGE)
         self.set_padding(1,1,1,1)
 
         self.onhover = False
 
-        arrow = Gtk.Arrow.new(Gtk.ArrowType.DOWN, Gtk.ShadowType.IN)
-        self.add(arrow)
+        self.arrow = Gtk.Arrow.new(Gtk.ArrowType.DOWN, Gtk.ShadowType.IN)
+        self.add(self.arrow)
         self.connect("draw", self.on_draw)
         return
+
+    def do_get_preferred_width(self):
+        pref_w, _ = self.arrow.get_preferred_width()
+        pref_w += sum(self.get_padding()[:2])
+        print pref_w
+        return pref_w, pref_w
 
     def set_onhover(self, is_onhover):
         self.onhover = is_onhover
@@ -94,7 +99,8 @@ class SectionSelector(Tile):
 
         self.channel_sel = ChannelSelectorArrow()
         filler = Gtk.Box()
-        filler.set_size_request(*self.channel_sel.get_size_request())
+        pref_w, _ = self.channel_sel.get_preferred_width()
+        filler.set_size_request(pref_w, -1)
 
         self.image_box.pack_start(filler, False, False, 0)
         self.image_box.reorder_child(filler, 0)
@@ -104,7 +110,7 @@ class SectionSelector(Tile):
 
         self.connect("button-press-event", self.on_button_press)
         self.connect('button-release-event', self.on_button_release)
-        self.connect('motion-notify-event', self.on_motion)
+        #~ self.connect('motion-notify-event', self.on_motion)
         self.connect("draw", self.on_draw)
         return
 
@@ -138,29 +144,29 @@ class SectionSelector(Tile):
         return
 
     def on_button_press(self, button, event):
-        dd = self.channel_sel
-        dd_alloc = dd.get_allocation()
-        x, y = dd.get_pointer()
-
-        # point in
-        if (x >= 0 and x <= dd_alloc.width and
-            y >= 0 and y <= dd_alloc.height):
-            return True
+        #~ dd = self.channel_sel
+        #~ dd_alloc = dd.get_allocation()
+        #~ x, y = dd.get_pointer()
+#~ 
+        #~ # point in
+        #~ if (x >= 0 and x <= dd_alloc.width and
+            #~ y >= 0 and y <= dd_alloc.height):
+            #~ return True
         return
 
     def on_button_release(self, button, event):
-        dd = self.channel_sel
-        dd_alloc = dd.get_allocation()
-        x, y = dd.get_pointer()
-
-        # point in
-        if (x >= 0 and x <= dd_alloc.width and
-            y >= 0 and y <= dd_alloc.height):
-            if self.popup is None:
-                self.build_channel_selector()
-            self.show_channel_sel_popup(self, event)
-            return True
-        self.emit("clicked")
+        #~ dd = self.channel_sel
+        #~ dd_alloc = dd.get_allocation()
+        #~ x, y = dd.get_pointer()
+#~ 
+        #~ # point in
+        #~ if (x >= 0 and x <= dd_alloc.width and
+            #~ y >= 0 and y <= dd_alloc.height):
+        if self.popup is None:
+            self.build_channel_selector()
+        self.show_channel_sel_popup(self, event)
+            #~ return True
+        #~ self.emit("clicked")
         return
 
     def on_popup_hide(self, widget):
