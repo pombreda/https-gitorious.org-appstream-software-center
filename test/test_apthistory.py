@@ -1,11 +1,12 @@
 #!/usr/bin/python
 
+from gi.repository import GObject
+
 import sys
 sys.path.insert(0,"../")
 
 import apt
 import datetime
-import glib
 import logging
 import os
 import subprocess
@@ -25,7 +26,7 @@ class TestAptHistory(unittest.TestCase):
 
     def _get_apt_history(self):
         history = AptHistory(use_cache=False)
-        main_loop = glib.main_context_default()
+        main_loop = GObject.main_context_default()
         while main_loop.pending():
            main_loop.iteration()
         return history
@@ -74,10 +75,10 @@ class TestAptHistory(unittest.TestCase):
         history = self._get_apt_history()
         self.assertEqual(len(history.transactions), 186)
         self._generate_big_history_file(new_history)
-        timer_id = glib.timeout_add(100, self._glib_timeout)
+        timer_id = GObject.timeout_add(100, self._glib_timeout)
         with ExecutionTime("rescan %s byte file" % os.path.getsize(new_history+".gz")):
             history._rescan(use_cache=False)
-        glib.source_remove(timer_id)
+        GObject.source_remove(timer_id)
         # verify rescan
         self.assertTrue(len(history.transactions) > 186)
         # check the timeouts

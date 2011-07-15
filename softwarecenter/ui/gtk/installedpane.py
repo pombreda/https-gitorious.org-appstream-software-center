@@ -23,7 +23,7 @@ import logging
 import os
 import sys
 import xapian
-import gobject
+from gi.repository import GObject
 
 from gettext import gettext as _
 import dialogs
@@ -42,8 +42,8 @@ class InstalledPane(SoftwarePane):
     (PAGE_APPLIST,
      PAGE_APP_DETAILS) = range(2)
      
-    __gsignals__ = {'installed-pane-created':(gobject.SIGNAL_RUN_FIRST,
-                                              gobject.TYPE_NONE,
+    __gsignals__ = {'installed-pane-created':(GObject.SIGNAL_RUN_FIRST,
+                                              GObject.TYPE_NONE,
                                               ())}
 
     def __init__(self, cache, db, distro, icons, datadir):

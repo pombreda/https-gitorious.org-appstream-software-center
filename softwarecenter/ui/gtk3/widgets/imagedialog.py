@@ -20,15 +20,6 @@ import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, GdkPixbuf
 
-
-import logging
-import tempfile
-import time
-
-#from softwarecenter.enums import *
-from softwarecenter.utils import SimpleFileDownloader
-from spinner import SpinnerView
-
 ICON_EXCEPTIONS = ["gnome"]
 
 class Url404Error(IOError):

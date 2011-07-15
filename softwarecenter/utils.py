@@ -19,9 +19,9 @@
 import dbus
 import gmenu
 import gettext
-import gobject
+from gi.repository import GObject
 import gio
-import glib
+from gi.repository import GObject
 import logging
 import math
 import os
@@ -85,7 +85,7 @@ def wait_for_apt_cache_ready(f):
         if not self.cache.ready:
             if window:
                 window.set_cursor(self.busy_cursor)
-            glib.timeout_add(500, lambda: wrapper(*args, **kwargs))
+            GObject.timeout_add(500, lambda: wrapper(*args, **kwargs))
             return False
         # cache ready now
         if window:
@@ -450,27 +450,27 @@ def calc_dr(ratings):
    
     return sum_scores + 3
 
-class SimpleFileDownloader(gobject.GObject):
+class SimpleFileDownloader(GObject.GObject):
 
     LOG = logging.getLogger("softwarecenter.simplefiledownloader")
 
     __gsignals__ = {
-        "file-url-reachable"      : (gobject.SIGNAL_RUN_LAST,
-                                     gobject.TYPE_NONE,
+        "file-url-reachable"      : (GObject.SIGNAL_RUN_LAST,
+                                     GObject.TYPE_NONE,
                                      (bool,),),
 
-        "file-download-complete"  : (gobject.SIGNAL_RUN_LAST,
-                                     gobject.TYPE_NONE,
+        "file-download-complete"  : (GObject.SIGNAL_RUN_LAST,
+                                     GObject.TYPE_NONE,
                                      (str,),),
 
-        "error"                   : (gobject.SIGNAL_RUN_LAST,
-                                     gobject.TYPE_NONE,
-                                     (gobject.TYPE_PYOBJECT,
-                                      gobject.TYPE_PYOBJECT,),),
+        "error"                   : (GObject.SIGNAL_RUN_LAST,
+                                     GObject.TYPE_NONE,
+                                     (GObject.TYPE_PYOBJECT,
+                                      GObject.TYPE_PYOBJECT,),),
         }
 
     def __init__(self):
-        gobject.GObject.__init__(self)
+        GObject.GObject.__init__(self)
         self.tmpdir = None
 
     def download_file(self, url, dest_file_path=None):
@@ -501,10 +501,10 @@ class SimpleFileDownloader(gobject.GObject):
             self.LOG.debug("file reachable %s" % self.url)
             # url is reachable, now download the file
             f.load_contents_async(self._file_download_complete_cb)
-        except glib.GError, e:
+        except GObject.GError, e:
             self.LOG.debug("file *not* reachable %s" % self.url)
             self.emit('file-url-reachable', False)
-            self.emit('error', glib.GError, e)
+            self.emit('error', GObject.GError, e)
         del f
 
     def _file_download_complete_cb(self, f, result, path=None):
@@ -534,6 +534,8 @@ class GMenuSearcher(object):
     def __init__(self):
         self._found = None
     def _search_gmenu_dir(self, dirlist, needle):
+        if not dirlist[-1]:
+            return
         for item in dirlist[-1].get_contents():
             mtype = item.get_type()
             if mtype == gmenu.TYPE_DIRECTORY:

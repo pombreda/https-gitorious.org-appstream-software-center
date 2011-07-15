@@ -16,7 +16,7 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import gobject
+from gi.repository import GObject
 import locale
 import logging
 import os
@@ -93,7 +93,7 @@ def parse_axi_values_file(filename="/var/lib/apt-xapian-index/values"):
         axi_values[key] = int(value)
     return axi_values
 
-class StoreDatabase(gobject.GObject):
+class StoreDatabase(GObject.GObject):
     """thin abstraction for the xapian database with convenient functions"""
 
     # TRANSLATORS: List of "grey-listed" words sperated with ";"
@@ -105,15 +105,15 @@ class StoreDatabase(gobject.GObject):
                             "suite;tool")
 
     # signal emited
-    __gsignals__ = {"reopen" : (gobject.SIGNAL_RUN_FIRST,
-                                gobject.TYPE_NONE,
+    __gsignals__ = {"reopen" : (GObject.SIGNAL_RUN_FIRST,
+                                GObject.TYPE_NONE,
                                 ()),
-                    "open" : (gobject.SIGNAL_RUN_FIRST,
-                              gobject.TYPE_NONE,
-                              (gobject.TYPE_STRING,)),
+                    "open" : (GObject.SIGNAL_RUN_FIRST,
+                              GObject.TYPE_NONE,
+                              (GObject.TYPE_STRING,)),
                     }
     def __init__(self, pathname, cache):
-        gobject.GObject.__init__(self)
+        GObject.GObject.__init__(self)
         self._db_pathname = pathname
         self._aptcache = cache
         self._additional_databases = []

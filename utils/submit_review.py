@@ -19,14 +19,13 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+from gi.repository import GLib, GObject
+
 import pygtk
 pygtk.require ("2.0")
-import gobject
-gobject.threads_init()
 
 import datetime
 import gettext
-import glib
 import gtk
 import locale
 import logging
@@ -83,24 +82,24 @@ TRANSMIT_STATE_INPROGRESS="transmit-state-inprogress"
 TRANSMIT_STATE_DONE="transmit-state-done"
 TRANSMIT_STATE_ERROR="transmit-state-error"
 
-class GRatingsAndReviews(gobject.GObject):
+class GRatingsAndReviews(GObject.GObject):
     """ Access ratings&reviews API as a gobject """
 
     __gsignals__ = {
         # send when a transmit is started
-        "transmit-start" : (gobject.SIGNAL_RUN_LAST,
-                            gobject.TYPE_NONE, 
-                            (gobject.TYPE_PYOBJECT, ),
+        "transmit-start" : (GObject.SIGNAL_RUN_LAST,
+                            GObject.TYPE_NONE, 
+                            (GObject.TYPE_PYOBJECT, ),
                             ),
         # send when a transmit was successful
-        "transmit-success" : (gobject.SIGNAL_RUN_LAST,
-                              gobject.TYPE_NONE, 
-                              (gobject.TYPE_PYOBJECT, ),
+        "transmit-success" : (GObject.SIGNAL_RUN_LAST,
+                              GObject.TYPE_NONE, 
+                              (GObject.TYPE_PYOBJECT, ),
                               ),
         # send when a transmit failed
-        "transmit-failure" : (gobject.SIGNAL_RUN_LAST,
-                              gobject.TYPE_NONE, 
-                              (gobject.TYPE_PYOBJECT, str),
+        "transmit-failure" : (GObject.SIGNAL_RUN_LAST,
+                              GObject.TYPE_NONE, 
+                              (GObject.TYPE_PYOBJECT, str),
                               ),
     }
 
@@ -109,7 +108,10 @@ class GRatingsAndReviews(gobject.GObject):
         # piston worker thread
         self.worker_thread = Worker(token)
         self.worker_thread.start()
-        glib.timeout_add(500, self._check_thread_status)
+        GLib.timeout_add(GLib.PRIORITY_DEFAULT,
+                         500, 
+                         self._check_thread_status,
+                         None)
     def submit_review(self, review):
         self.emit("transmit-start", review)
         self.worker_thread.pending_reviews.put(review)
@@ -130,7 +132,7 @@ class GRatingsAndReviews(gobject.GObject):
     def shutdown(self):
         self.worker_thread.shutdown()
     # internal
-    def _check_thread_status(self):
+    def _check_thread_status(self, data):
         if self.worker_thread._transmit_state == TRANSMIT_STATE_DONE:
             self.emit("transmit-success", "")
             self.worker_thread._transmit_state = TRANSMIT_STATE_NONE

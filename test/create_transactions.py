@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
-import glib
+from gi.repository import GObject, GLib
+
 import time
 
 from aptdaemon.client import AptClient
@@ -28,7 +29,7 @@ def run(t):
 if __name__ == "__main__":
     #logging.basicConfig(level=logging.DEBUG)
 
-    context = glib.main_context_default()
+    context = GObject.main_context_default()
     c = AptClient()
     for i in range(100):
         

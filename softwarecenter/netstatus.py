@@ -19,7 +19,7 @@
 
 
 import dbus
-import gobject
+from gi.repository import GObject
 import logging
 
 from dbus.mainloop.glib import DBusGMainLoop
@@ -61,15 +61,15 @@ class NetState(object):
                                    NM_STATE_DISCONNECTED]
 
 
-class NetworkStatusWatcher(gobject.GObject):
+class NetworkStatusWatcher(GObject.GObject):
     """ simple watcher which notifys subscribers to network events..."""
-    __gsignals__ = {'changed':(gobject.SIGNAL_RUN_FIRST,
-                               gobject.TYPE_NONE,
+    __gsignals__ = {'changed':(GObject.SIGNAL_RUN_FIRST,
+                               GObject.TYPE_NONE,
                                (int,)),
                    }
 
     def __init__(self):
-        gobject.GObject.__init__(self)
+        GObject.GObject.__init__(self)
         return
 
 # internal helper
@@ -129,6 +129,6 @@ def network_state_is_connected():
 __init_network_state()
 
 if __name__ == '__main__':
-    loop = gobject.MainLoop()
+    loop = GObject.MainLoop()
     loop.run()
 

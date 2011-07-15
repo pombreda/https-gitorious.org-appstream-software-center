@@ -17,7 +17,7 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import gobject
+from gi.repository import GObject
 import gtk
 import os
 import glob
@@ -78,7 +78,7 @@ class AnimatedImage(gtk.Image):
             raise IOError, "need a str, list or a pixbuf"
 
     def start(self, w=None):
-        gobject.timeout_add(int(1000/self.FPS), self._progress_timeout)
+        GObject.timeout_add(int(1000/self.FPS), self._progress_timeout)
         self._run = True
 
     def stop(self, w=None):
@@ -100,10 +100,10 @@ class AnimatedImage(gtk.Image):
 class CellRendererAnimatedImage(gtk.CellRendererPixbuf):
 
     __gproperties__  = { 
-        "image" : (gobject.TYPE_OBJECT, 
+        "image" : (GObject.TYPE_OBJECT, 
                    "Image",
                    "Image", 
-                   gobject.PARAM_READWRITE),
+                   GObject.PARAM_READWRITE),
     }
     FPS = 20.0
 
@@ -127,7 +127,7 @@ class CellRendererAnimatedImage(gtk.CellRendererPixbuf):
         if not image:
             return
         if image.get_animation_len() > 1:
-            gobject.timeout_add(int(1000.0/self.FPS), self._animation_helper, widget, image)
+            GObject.timeout_add(int(1000.0/self.FPS), self._animation_helper, widget, image)
         self.set_property("pixbuf", image.get_current_pixbuf())
         return gtk.CellRendererPixbuf.do_render(self, window, widget, background_area, cell_area, expose_area, flags)
     def do_get_size(self, widget, cell_area):
@@ -179,8 +179,8 @@ if __name__ == "__main__":
     win.show()
 
     print "running the image for 5s"
-    gobject.timeout_add_seconds(1, image.show)
-    gobject.timeout_add_seconds(5, image.hide)
+    GObject.timeout_add_seconds(1, image.show)
+    GObject.timeout_add_seconds(5, image.hide)
 
     gtk.main()
 

@@ -1,10 +1,11 @@
 #!/usr/bin/python
 
+from gi.repository import GObject
+
 import sys
 sys.path.insert(0,"../")
 
 import apt
-import glib
 import logging
 import time
 import unittest
@@ -23,7 +24,7 @@ class testAptCache(unittest.TestCase):
             self.sccache = get_pkg_info()
         # cache is opened with a timeout_add() in get_pkg_info()
         time.sleep(0.2)
-        context = glib.main_context_default()
+        context = GObject.main_context_default()
         while context.pending():
             context.iteration()
         # compare with plain apt

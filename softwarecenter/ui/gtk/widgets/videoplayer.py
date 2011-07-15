@@ -17,7 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import sys
-import gobject
+from gi.repository import GObject
 import gtk
 import logging
 import pygst
@@ -33,7 +33,7 @@ class VideoPlayer(gtk.VBox):
 
     __gproperties__ = {
         'uri' : (str, 'videouri', 'uri to play', "",
-                 gobject.PARAM_READWRITE),
+                 GObject.PARAM_READWRITE),
         }
 
     def __init__(self):

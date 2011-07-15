@@ -17,7 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 
-import gobject
+from gi.repository import GObject
 import gtk
 import logging
 import xapian
@@ -48,8 +48,8 @@ class ViewSwitcherList(gtk.TreeStore):
 
     ANIMATION_PATH = "/usr/share/icons/hicolor/24x24/status/softwarecenter-progress.png"
 
-    __gsignals__ = {'channels-refreshed':(gobject.SIGNAL_RUN_FIRST,
-                                          gobject.TYPE_NONE,
+    __gsignals__ = {'channels-refreshed':(GObject.SIGNAL_RUN_FIRST,
+                                          GObject.TYPE_NONE,
                                           ())}
 
 
@@ -57,8 +57,8 @@ class ViewSwitcherList(gtk.TreeStore):
         gtk.TreeStore.__init__(self,
                                AnimatedImage,         # COL_ICON
                                str,                   # COL_NAME
-                               gobject.TYPE_PYOBJECT, # COL_ACTION
-                               gobject.TYPE_PYOBJECT, # COL_CHANNEL
+                               GObject.TYPE_PYOBJECT, # COL_ACTION
+                               GObject.TYPE_PYOBJECT, # COL_CHANNEL
                                str,                   # COL_BUBBLE_TEXT
                                ) # must match columns above
         self.view_manager = view_manager

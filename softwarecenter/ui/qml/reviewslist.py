@@ -17,7 +17,7 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import glib
+from gi.repository import GObject
 from datetime import datetime
 
 from PySide.QtCore import QAbstractListModel, QModelIndex, Slot, Signal
@@ -81,7 +81,7 @@ class ReviewsListModel(QAbstractListModel):
         if page == 1:
             self.clear()
         # load in the eventloop to ensure that animations are not delayed
-        glib.timeout_add(10, self.reviews.get_reviews,
+        GObject.timeout_add(10, self.reviews.get_reviews,
                          Application(appname, pkgname), self._on_reviews_ready_callback, page)
 
     # refresh review-stats (for qml)
