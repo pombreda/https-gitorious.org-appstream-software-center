@@ -1,3 +1,10 @@
+software-center (4.1.10) UNRELEASED; urgency=low
+
+  * merged lp:~alexeftimie/software-center/backend-refactor,
+    many thanks
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 15 Jul 2011 14:59:33 +0200
+
 software-center (4.1.9) oneiric; urgency=low
 
   [ Michael Vogt ]
