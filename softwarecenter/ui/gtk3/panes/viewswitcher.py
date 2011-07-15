@@ -163,7 +163,6 @@ class ViewSwitcher(Gtk.HBox, ViewSwitcherLogic):
         return
 
     def build_channel_list(self, popup, view_id):
-        print 'build list'
         # clean up old signal handlers
         for sig in self._handlers:
             GObject.source_remove(sig)
@@ -199,8 +198,10 @@ class ViewSwitcher(Gtk.HBox, ViewSwitcherLogic):
             )
             popup.attach(item, 0, 1, i, i+1)
 
-        first = popup.get_children()[0]
-        first.set_property("active", True)
+        if self.view_manager.is_active_view(view_id):
+            first = popup.get_children()[0]
+            first.set_property("active", True)
+            self._prev_item = first
         return
 
     def on_channel_selected(self, item, event, channel, view_id):

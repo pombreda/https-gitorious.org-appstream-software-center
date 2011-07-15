@@ -186,7 +186,7 @@ class AvailablePane(SoftwarePane):
         # get current sub-category (or category, but sub-category wins)
         query = None
 
-        if self.state.channel:
+        if self.state.channel and self.state.channel.query:
             query = self.state.channel.query
         elif self.state.subcategory:
             query = self.state.subcategory.query

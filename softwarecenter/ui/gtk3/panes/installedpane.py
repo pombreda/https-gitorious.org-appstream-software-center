@@ -281,7 +281,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
 
     def get_query_for_cat(self, cat):
         #~ print self.state.channel
-        if self.state.channel:
+        if self.state.channel and self.state.channel.query:
             query = xapian.Query(xapian.Query.OP_AND,
                                  cat.query,
                                  self.state.channel.query)

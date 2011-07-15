@@ -112,6 +112,9 @@ class ViewManager(object):
         page_id = self.notebook_view.get_current_page()
         return self.get_view_id_from_page_id(page_id)
 
+    def is_active_view(self, view_id):
+        return view_id == self.get_active_view()
+
     def get_notebook_page_from_view_id(self, view_id):
         return self.all_views[view_id]
         
