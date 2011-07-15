@@ -67,7 +67,7 @@ class AptCacheVersion(_Version):
         return self.ver.description
     @property
     def summary(self):
-        return self.ver.description
+        return self.ver.summary
     @property
     def size(self):
         return self.ver.size
