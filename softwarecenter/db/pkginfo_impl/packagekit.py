@@ -155,7 +155,7 @@ class PackagekitInfo(PackageInfo):
         )
         if not res:
             return []
-        return [p.get_name() for p in res.get_package_array()]
+        return [p.get_name() for p in res.get_package_array() if p.get_name() != pkg.name]
 
     def get_packages_removed_on_install(self, pkg):
         """ Returns a package names list of dependencies
@@ -170,7 +170,7 @@ class PackagekitInfo(PackageInfo):
         )
         if not res:
             return []
-        return [p.get_name() for p in res.get_package_array()]
+        return [p.get_name() for p in res.get_package_array() if (p.get_name() != pkg.name) and p.get_info() == packagekit.InfoEnum.INSTALLED]
 
     def get_total_size_on_install(self, pkgname, addons_install=None,
                                 addons_remove=None):
