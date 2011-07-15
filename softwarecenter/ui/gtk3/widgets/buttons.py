@@ -114,7 +114,7 @@ class SectionSelector(Tile):
 
         self.add_events(Gdk.EventMask.POINTER_MOTION_MASK)
 
-        self.connect("button-press-event", self.on_button_press)
+        #~ self.connect("button-press-event", self.on_button_press)
         self.connect('button-release-event', self.on_button_release)
         #~ self.connect('motion-notify-event', self.on_motion)
         self.connect("draw", self.on_draw)
@@ -149,7 +149,7 @@ class SectionSelector(Tile):
 
         return
 
-    def on_button_press(self, button, event):
+    #~ def on_button_press(self, button, event):
         #~ dd = self.channel_sel
         #~ dd_alloc = dd.get_allocation()
         #~ x, y = dd.get_pointer()
@@ -158,7 +158,7 @@ class SectionSelector(Tile):
         #~ if (x >= 0 and x <= dd_alloc.width and
             #~ y >= 0 and y <= dd_alloc.height):
             #~ return True
-        return
+        #~ return
 
     def on_button_release(self, button, event):
         #~ dd = self.channel_sel

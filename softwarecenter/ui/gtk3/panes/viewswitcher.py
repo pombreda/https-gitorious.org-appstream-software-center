@@ -41,47 +41,7 @@ import softwarecenter.ui.gtk3.dialogs as dialogs
 LOG = logging.getLogger(__name__)
 
 
-class ViewSwitcherLogic(object):
-
-    def __init__(self, view_manager, datadir, db, cache, icons):
-        self.view_manager = view_manager
-        self.channel_manager = ChannelsManager(db)
-        self.backend = get_install_backend()
-        self.backend.connect("transactions-changed",
-                             self.on_transaction_changed)
-        self.backend.connect("transaction-finished",
-                             self.on_transaction_finished)
-        self.backend.connect("channels-changed",
-                             self.on_channels_changed)
-
-    def start_icon_animation(self):
-        self.on_start_icon_animation()
-
-    def stop_icon_animation(self):
-        self.on_stop_icon_animation()
-
-    def on_channels_changed(self):
-        pass
-
-    def on_transaction_changed(self, backend, total_transactions):
-        LOG.debug("on_transactions_changed '%s'" % total_transactions)
-        pending = len(total_transactions)
-        if pending > 0:
-            self.start_icon_animation()
-        else:
-            self.stop_icon_animation()
-        return
-
-    #~ def on_transaction_started(self, *args):
-        #~ self.start_icon_animation()
-        #~ return
-
-    def on_transaction_finished(self, backend, result):
-        if result.success: self.channels_changed()
-        return
-
-
-class ViewSwitcher(Gtk.HBox, ViewSwitcherLogic):
+class ViewSwitcher(Gtk.HBox):
 
     __gsignals__ = {
         "view-changed" : (GObject.SignalFlags.RUN_LAST,
@@ -94,17 +54,30 @@ class ViewSwitcher(Gtk.HBox, ViewSwitcherLogic):
     ICON_SIZE = Gtk.IconSize.LARGE_TOOLBAR
 
     def __init__(self, view_manager, datadir, db, cache, icons):
+        # boring stuff
+        self.view_manager = view_manager
+        self.channel_manager = ChannelsManager(db)
+
+        # backend sig handlers ...
+        self.backend = get_install_backend()
+        self.backend.connect("transactions-changed",
+                             self.on_transaction_changed)
+        self.backend.connect("transaction-finished",
+                             self.on_transaction_finished)
+        self.backend.connect("channels-changed",
+                             self.on_channels_changed)
+
+        # widgetry
         Gtk.ButtonBox.__init__(self)
         self.set_orientation(Gtk.Orientation.HORIZONTAL)
         self.set_spacing(StockEms.XLARGE)
-
-        ViewSwitcherLogic.__init__(self, view_manager, datadir, db, cache, icons)
 
         # Gui stuff
         self.view_buttons = {}
         self._handlers = []
         self._prev_item = None
 
+        # order is important here!
         # first, the availablepane items
         available = self.append_section(ViewPages.AVAILABLE,
                                         _("All Software"),
@@ -133,6 +106,34 @@ class ViewSwitcher(Gtk.HBox, ViewSwitcherLogic):
         atk_desc = self.get_accessible()
         atk_desc.set_name(_("Software sources"))
 
+    def on_transaction_changed(self, backend, total_transactions):
+        LOG.debug("on_transactions_changed '%s'" % total_transactions)
+        pending = len(total_transactions)
+        self.notify_icon_of_pending_count(pending)
+        if pending > 0:
+            self.start_icon_animation()
+        else:
+            self.stop_icon_animation()
+        return
+
+    def start_icon_animation(self):
+        # the pending button ProgressImage is special, see:
+        # softwarecenter/ui/gtk3/widgets/animatedimage.py
+        self.view_buttons[ViewPages.PENDING].image.start()
+
+    def stop_icon_animation(self):
+        # the pending button ProgressImage is special, see:
+        # softwarecenter/ui/gtk3/widgets/animatedimage.py
+        self.view_buttons[ViewPages.PENDING].image.stop()
+
+    def notify_icon_of_pending_count(self, count):
+        image = self.view_buttons[ViewPages.PENDING].image
+        image.set_transaction_count(count)
+
+    def on_transaction_finished(self, backend, result):
+        if result.success: self.on_channels_changed()
+        return
+
     def append_section(self, view_id, label, icon, has_channel_sel=False):
         btn = SectionSelector(label, icon, self.ICON_SIZE,
                               has_channel_sel)
@@ -155,19 +156,11 @@ class ViewSwitcher(Gtk.HBox, ViewSwitcherLogic):
         return self.build_channel_list(popup, ViewPages.INSTALLED)
 
     def on_channels_changed(self):
-        for btn in self.view_buttons:
+        for view_id, btn in self.view_buttons.iteritems():
             if not btn.has_channel_sel: continue
             # setting popup to None will cause a rebuild of the popup
             # menu the next time the selector is clicked
             btn.popup = None
-        return
-
-    def on_stop_icon_animation(self):
-        self.view_buttons[ViewPages.PENDING].image.stop()
-        return
-
-    def on_start_icon_animation(self):
-        self.view_buttons[ViewPages.PENDING].image.start()
         return
 
     def build_channel_list(self, popup, view_id):
