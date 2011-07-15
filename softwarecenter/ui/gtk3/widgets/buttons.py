@@ -8,7 +8,7 @@ class Tile(Gtk.Button):
 
     MIN_WIDTH  = 130
 
-    def __init__(self, label, iconname, icon_size):
+    def __init__(self, label, icon, icon_size):
         Gtk.Button.__init__(self)
         self.set_focus_on_click(False)
 
@@ -18,9 +18,12 @@ class Tile(Gtk.Button):
 
         self.add(self.vbox)
 
-        image = Gtk.Image.new_from_icon_name(iconname, icon_size)
-        self.image_box.pack_start(image, True, True, 0)
+        if isinstance(icon, Gtk.Image):
+            self.image = icon
+        elif isinstance(icon, str):
+            self.image = Gtk.Image.new_from_icon_name(icon, icon_size)
 
+        self.image_box.pack_start(self.image, True, True, 0)
         self.vbox.pack_start(self.image_box, False, False, 0)
 
         label = Gtk.Label.new(label)
@@ -86,7 +89,7 @@ class _ChannelSelectorArrow(Gtk.Alignment):
 class SectionSelector(Tile):
 
     def __init__(self, label, iconname, icon_size=Gtk.IconSize.DIALOG,
-                    has_channel_sel=True):
+                    has_channel_sel=False):
         Tile.__init__(self, label, iconname, icon_size)
         self.set_size_request(-1, -1)
 

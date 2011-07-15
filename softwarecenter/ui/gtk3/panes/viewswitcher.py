@@ -34,47 +34,50 @@ from softwarecenter.distro import get_distro
 from softwarecenter.backend.channel import ChannelsManager
 from softwarecenter.ui.gtk3.widgets.buttons import SectionSelector
 from softwarecenter.ui.gtk3.em import StockEms
+from softwarecenter.ui.gtk3.widgets.animatedimage import ProgressImage
 import softwarecenter.ui.gtk3.dialogs as dialogs
+
 
 LOG = logging.getLogger(__name__)
 
 
 class ViewSwitcherLogic(object):
 
-    #~ ANIMATION_PATH = "/usr/share/icons/hicolor/24x24/status/softwarecenter-progress.png"
-
     def __init__(self, view_manager, datadir, db, cache, icons):
         self.view_manager = view_manager
         self.channel_manager = ChannelsManager(db)
         self.backend = get_install_backend()
+        self.backend.connect("transactions-changed",
+                             self.on_transaction_changed)
         self.backend.connect("transaction-finished",
                              self.on_transaction_finished)
+
+    def start_icon_animation(self):
+        self.on_start_icon_animation()
+
+    def stop_icon_animation(self):
+        self.on_stop_icon_animation()
 
     def channels_changed(self):
         self.on_channels_changed()
         return
 
-    #~ def on_transactions_changed(self, backend, total_transactions):
-        #~ LOG.debug("on_transactions_changed '%s'" % total_transactions)
-        #~ pending = len(total_transactions)
-        #~ if pending > 0:
-            #~ # do pending animation stuff here
-            #~ pass
+    def on_transaction_changed(self, backend, total_transactions):
+        LOG.debug("on_transactions_changed '%s'" % total_transactions)
+        pending = len(total_transactions)
+        if pending > 0:
+            self.start_icon_animation()
+        else:
+            self.stop_icon_animation()
+        return
+
+    #~ def on_transaction_started(self, *args):
+        #~ self.start_icon_animation()
+        #~ return
 
     def on_transaction_finished(self, backend, result):
         if result.success: self.channels_changed()
         return
-
-    #~ @wait_for_apt_cache_ready
-    #~ def _update_channel_list(self):
-        #~ self._update_channel_list_available_view()
-        #~ self._update_channel_list_installed_view()
-#~ 
-    #~ def _update_channel_list_available_view(self):
-        #~ pass
-#~ 
-    #~ def _update_channel_list_installed_view(self):
-        #~ pass
 
 
 class ViewSwitcher(Gtk.HBox, ViewSwitcherLogic):
@@ -97,50 +100,46 @@ class ViewSwitcher(Gtk.HBox, ViewSwitcherLogic):
         ViewSwitcherLogic.__init__(self, view_manager, datadir, db, cache, icons)
 
         # Gui stuff
-        self.view_buttons = []
+        self.view_buttons = {}
         self._handlers = []
         self._prev_item = None
 
         # first, the availablepane items
-        available = self._make_button(_("All Software"),
-                                      "softwarecenter")
+        available = self.append_section(ViewPages.AVAILABLE,
+                                        _("All Software"),
+                                        "softwarecenter",
+                                        True)
         available.set_build_func(self.on_get_available_channels)
-        self.view_buttons.append(available)
 
         # the installedpane items
-        installed = self._make_button(_("Installed"),
-                                      "computer")
+        installed = self.append_section(ViewPages.INSTALLED,
+                                        _("Installed"),
+                                        "computer",
+                                        True)
         installed.set_build_func(self.on_get_installed_channels)
-        self.view_buttons.append(installed)
 
         # the historypane item
-        self.view_buttons.append(self._make_button(
-                                    _("History"),
-                                    "document-open-recent",
-                                    display_dropdown=False))
+        history =  self.append_section(ViewPages.HISTORY,
+                                       _("History"),
+                                       "document-open-recent")
 
         # the pendingpane
-        self.view_buttons.append(self._make_button(
-                                    _("Progress"),
-                                    "gtk-execute",
-                                    display_dropdown=False))
-
-        # order is important here, should match button order/length
-        view_ids = (ViewPages.AVAILABLE, ViewPages.INSTALLED,
-                    ViewPages.HISTORY, ViewPages.PENDING)
-
-        for view_id, btn in zip(view_ids, self.view_buttons):
-            self.pack_start(btn, False, False, 0)
-            btn.connect('clicked', self.on_view_switch, view_id)
-            btn.show()
+        pending = self.append_section(ViewPages.PENDING,
+                                      _("Progress"),
+                                      ProgressImage())
 
         # set sensible atk name
         atk_desc = self.get_accessible()
         atk_desc.set_name(_("Software sources"))
 
-    def _make_button(self, label, icon_name, display_dropdown=True):
-        return SectionSelector(label, icon_name, self.ICON_SIZE,
-                               has_channel_sel=display_dropdown)
+    def append_section(self, view_id, label, icon, has_channel_sel=False):
+        btn = SectionSelector(label, icon, self.ICON_SIZE,
+                              has_channel_sel)
+        self.view_buttons[view_id] = btn
+        self.pack_start(btn, False, False, 0)
+        btn.show()
+        btn.connect('clicked', self.on_view_switch, view_id)
+        return btn
 
     def on_view_switch(self, button, view_id):
         #~ pane = self.view_manager.get_view_widget(view_id)
@@ -160,6 +159,14 @@ class ViewSwitcher(Gtk.HBox, ViewSwitcherLogic):
             # setting popup to None will cause a rebuild of the popup
             # menu the next time the selector is clicked
             btn.popup = None
+        return
+
+    def on_stop_icon_animation(self):
+        self.view_buttons[ViewPages.PENDING].image.stop()
+        return
+
+    def on_start_icon_animation(self):
+        self.view_buttons[ViewPages.PENDING].image.start()
         return
 
     def build_channel_list(self, popup, view_id):

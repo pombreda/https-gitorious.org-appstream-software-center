@@ -418,7 +418,8 @@ class AvailablePane(SoftwarePane):
         self.state.search_term = new_text
 
         vm = get_viewmanager()
-        vm.display_page(self, AvailablePane.Pages.LIST, self.state, self.display_search_page)
+        vm.display_page(self, AvailablePane.Pages.LIST, self.state,
+                        self.display_search_page)
 
     def on_db_reopen(self, db):
         " called when the database is reopened"
