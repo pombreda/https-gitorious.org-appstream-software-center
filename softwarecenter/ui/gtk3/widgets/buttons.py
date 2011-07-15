@@ -1,12 +1,12 @@
 from gi.repository import Gtk, Gdk, GObject
 
-from softwarecenter.ui.gtk3.em import StockEms
+from softwarecenter.ui.gtk3.em import StockEms, em
 from softwarecenter.ui.gtk3.drawing import rounded_rect, rounded_rect2
 
 
 class Tile(Gtk.Button):
 
-    MIN_WIDTH  = 130
+    MIN_WIDTH  = em(7)
 
     def __init__(self, label, icon, icon_size):
         Gtk.Button.__init__(self)
@@ -24,15 +24,15 @@ class Tile(Gtk.Button):
             self.image = Gtk.Image.new_from_icon_name(icon, icon_size)
 
         self.image_box.pack_start(self.image, True, True, 0)
-        self.vbox.pack_start(self.image_box, False, False, 0)
+        self.vbox.pack_start(self.image_box, True, True, 0)
 
         label = Gtk.Label.new(label)
-        label.set_alignment(0.5, 0.0)
+        #~ label.set_alignment(0.5, 0.0)
         label.set_line_wrap(True)
         label.set_justify(Gtk.Justification.CENTER)
-        self.vbox.pack_start(label, False, False, 0)
+        self.vbox.pack_start(label, True, True, 0)
 
-        self.set_size_request(self.MIN_WIDTH, -1)
+        self.vbox.set_size_request(self.MIN_WIDTH, -1)
         self.set_relief(Gtk.ReliefStyle.NONE)
         return
 
@@ -41,53 +41,54 @@ class CategoryTile(Tile):
 
     def __init__(self, label, iconname, icon_size=Gtk.IconSize.DIALOG):
         Tile.__init__(self, label, iconname, icon_size)
-        self.set_border_width(StockEms.MEDIUM)
+        self.vbox.set_border_width(StockEms.SMALL)
         self.set_name("category-tile")
         return
 
 
-class _ChannelSelectorArrow(Gtk.Alignment):    
-
-    def __init__(self):
-        Gtk.Alignment.__init__(self)
-        self.set(0.5, 1.0, 0.0, 0.0)
-        self.set_padding(1,1,1,1)
-
-        self.onhover = False
-
-        self.arrow = Gtk.Arrow.new(Gtk.ArrowType.DOWN, Gtk.ShadowType.IN)
-        self.add(self.arrow)
-        self.connect("draw", self.on_draw)
-        return
-
-    def do_get_preferred_width(self):
-        pref_w, _ = self.arrow.get_preferred_width()
-        pref_w += sum(self.get_padding()[:2])
-        print pref_w
-        return pref_w, pref_w
-
-    def set_onhover(self, is_onhover):
-        self.onhover = is_onhover
-        self.queue_draw()
-
-    def on_draw(self, widget, cr):
-        a = widget.get_allocation()
-        rounded_rect(cr, 0.5, 0.5, a.width-1, a.height-1, 6)
-        
-        if self.onhover and self.get_state_flags() == Gtk.StateFlags.PRELIGHT:
-            alpha = 0.3
-        else:
-            return
-
-        context = self.get_style_context()
-        color = context.get_border_color(self.get_state_flags())
-        cr.set_source_rgba(color.red, color.green, color.blue, alpha)
-        cr.set_line_width(1)
-        cr.fill()
-        return
+#~ class _ChannelSelectorArrow(Gtk.Alignment):    
+#~ 
+    #~ def __init__(self):
+        #~ Gtk.Alignment.__init__(self)
+        #~ self.set(0.5, 1.0, 0.0, 0.0)
+        #~ self.set_padding(1,1,1,1)
+#~ 
+        #~ self.onhover = False
+#~ 
+        #~ self.arrow = Gtk.Arrow.new(Gtk.ArrowType.DOWN, Gtk.ShadowType.IN)
+        #~ self.add(self.arrow)
+        #~ self.connect("draw", self.on_draw)
+        #~ return
+#~ 
+    #~ def do_get_preferred_width(self):
+        #~ pref_w, _ = self.arrow.get_preferred_width()
+        #~ pref_w += sum(self.get_padding()[:2])
+        #~ return pref_w, pref_w
+#~ 
+    #~ def set_onhover(self, is_onhover):
+        #~ self.onhover = is_onhover
+        #~ self.queue_draw()
+#~ 
+    #~ def on_draw(self, widget, cr):
+        #~ a = widget.get_allocation()
+        #~ rounded_rect(cr, 0.5, 0.5, a.width-1, a.height-1, 6)
+        #~ 
+        #~ if self.onhover and self.get_state_flags() == Gtk.StateFlags.PRELIGHT:
+            #~ alpha = 0.3
+        #~ else:
+            #~ return
+#~ 
+        #~ context = self.get_style_context()
+        #~ color = context.get_border_color(self.get_state_flags())
+        #~ cr.set_source_rgba(color.red, color.green, color.blue, alpha)
+        #~ cr.set_line_width(1)
+        #~ cr.fill()
+        #~ return
 
 
 class SectionSelector(Tile):
+
+    MIN_WIDTH  = em(5)
 
     def __init__(self, label, iconname, icon_size=Gtk.IconSize.DIALOG,
                     has_channel_sel=False):
@@ -95,13 +96,14 @@ class SectionSelector(Tile):
         self.set_size_request(-1, -1)
 
         self.has_channel_sel = has_channel_sel
-        self.channel_request_func = None
         if not has_channel_sel: return
 
+        self.channel_request_func = None
         self.popup = None
         self.radius = None
 
-        self.channel_sel = _ChannelSelectorArrow()
+        self.channel_sel = Gtk.Arrow.new(Gtk.ArrowType.DOWN,
+                                         Gtk.ShadowType.IN)
         filler = Gtk.Box()
         pref_w, _ = self.channel_sel.get_preferred_width()
         filler.set_size_request(pref_w, -1)

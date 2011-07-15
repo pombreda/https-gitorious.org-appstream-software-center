@@ -51,6 +51,8 @@ class ViewSwitcherLogic(object):
                              self.on_transaction_changed)
         self.backend.connect("transaction-finished",
                              self.on_transaction_finished)
+        self.backend.connect("channels-changed",
+                             self.on_channels_changed)
 
     def start_icon_animation(self):
         self.on_start_icon_animation()
@@ -58,9 +60,8 @@ class ViewSwitcherLogic(object):
     def stop_icon_animation(self):
         self.on_stop_icon_animation()
 
-    def channels_changed(self):
-        self.on_channels_changed()
-        return
+    def on_channels_changed(self):
+        pass
 
     def on_transaction_changed(self, backend, total_transactions):
         LOG.debug("on_transactions_changed '%s'" % total_transactions)
