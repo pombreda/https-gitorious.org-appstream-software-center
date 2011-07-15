@@ -42,7 +42,7 @@ import softwarecenter.ui.gtk3.dialogs as dialogs
 LOG = logging.getLogger(__name__)
 
 
-class ViewSwitcher(Gtk.HBox):
+class ViewSwitcher(Gtk.Box):
 
     __gsignals__ = {
         "view-changed" : (GObject.SignalFlags.RUN_LAST,
@@ -69,9 +69,9 @@ class ViewSwitcher(Gtk.HBox):
                              self.on_channels_changed)
 
         # widgetry
-        Gtk.ButtonBox.__init__(self)
+        Gtk.Box.__init__(self)
         self.set_orientation(Gtk.Orientation.HORIZONTAL)
-        self.set_spacing(StockEms.XLARGE)
+        self.set_spacing(StockEms.SMALL)
 
         # Gui stuff
         self.view_buttons = {}
