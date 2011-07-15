@@ -3,10 +3,10 @@ import cairo
 from gi.repository import Gtk, Gdk
 
 
-class SymbolicIcon(Gtk.Misc):
+class SymbolicIcon(Gtk.Image):
 
     def __init__(self, icon_path, drop_shadow_path):
-        Gtk.Misc.__init__(self)
+        Gtk.Image.__init__(self)
 
         self.drop_shadow = cairo.ImageSurface.create_from_png(drop_shadow_path)
         self.icon = cairo.ImageSurface.create_from_png(icon_path)

@@ -12,13 +12,13 @@ class Tile(Gtk.Button):
         Gtk.Button.__init__(self)
         self.set_focus_on_click(False)
 
-        self.vbox = Gtk.VBox(spacing=StockEms.SMALL)
+        self.vbox = Gtk.VBox()
         self.image_box = Gtk.Box.new(Gtk.Orientation.HORIZONTAL,
                                      StockEms.SMALL)
 
         self.add(self.vbox)
 
-        if isinstance(icon, Gtk.Misc):
+        if isinstance(icon, Gtk.Image):
             self.image = icon
         elif isinstance(icon, str):
             self.image = Gtk.Image.new_from_icon_name(icon, icon_size)
@@ -94,6 +94,7 @@ class SectionSelector(Tile):
                     has_channel_sel=False):
         Tile.__init__(self, label, iconname, icon_size)
         self.set_size_request(-1, -1)
+        self.set_name("channel-selector")
 
         self.has_channel_sel = has_channel_sel
         if not has_channel_sel: return
