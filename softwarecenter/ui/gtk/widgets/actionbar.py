@@ -18,7 +18,7 @@
 
 import gtk
 import logging
-import gobject
+from gi.repository import GObject
 
 LOG = logging.getLogger(__name__)
 
@@ -245,7 +245,7 @@ class ActionBar(gtk.HBox):
         self._current_height = 0
         self.set_size_request(-1, self._current_height)
         super(ActionBar, self).show()
-        gobject.timeout_add(self.ANIMATE_START_DELAY,
+        GObject.timeout_add(self.ANIMATE_START_DELAY,
                             self._slide_in_cb)
         return
 
@@ -253,7 +253,7 @@ class ActionBar(gtk.HBox):
         self._is_sliding_out = True
         self._target_height = 0
         self._current_height = self.size_request()[1]
-        gobject.timeout_add(self.ANIMATE_START_DELAY,
+        GObject.timeout_add(self.ANIMATE_START_DELAY,
                             self._slide_out_cb)
         return
     
@@ -285,12 +285,12 @@ class ActionBar(gtk.HBox):
     def _on_size_allocate(self, widget, allocation):
         if self._is_sliding_in:
             self._current_height = allocation.height
-            gobject.timeout_add(self.ANIMATE_STEP_INTERVAL,
+            GObject.timeout_add(self.ANIMATE_STEP_INTERVAL,
                                 self._slide_in_cb,
                                 priority=100)
         elif self._is_sliding_out:
             self._current_height = allocation.height
-            gobject.timeout_add(self.ANIMATE_STEP_INTERVAL,
+            GObject.timeout_add(self.ANIMATE_STEP_INTERVAL,
                                 self._slide_out_cb,
                                 priority=100)
         else:

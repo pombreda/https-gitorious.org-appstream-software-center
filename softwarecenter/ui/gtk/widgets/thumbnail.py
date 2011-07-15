@@ -1,7 +1,7 @@
 
 import atk
 import gtk
-import gobject
+from gi.repository import GObject
 import mkit
 import pangocairo
 import logging
@@ -351,11 +351,11 @@ class ScreenshotThumbnail(gtk.Alignment):
                     self.parent.queue_draw()
 
             # start the fade in
-            gobject.timeout_add(50, self._fade_in)
+            GObject.timeout_add(50, self._fade_in)
             self.ready = True
             return False
 
-        gobject.idle_add(setter_cb, screenshot_path)
+        GObject.idle_add(setter_cb, screenshot_path)
         return
 
     def show_tip(self, hide_after=0):
@@ -363,13 +363,13 @@ class ScreenshotThumbnail(gtk.Alignment):
             self.tip_alpha >= 1.0): 
             return
 
-        if self._tip_fader: gobject.source_remove(self._tip_fader)
-        self._tip_fader = gobject.timeout_add(25, self._tip_fade_in)
+        if self._tip_fader: GObject.source_remove(self._tip_fader)
+        self._tip_fader = GObject.timeout_add(25, self._tip_fade_in)
 
         if hide_after:
             if self._hide_after: 
-                gobject.source_remove(self._hide_after)
-            self._hide_after = gobject.timeout_add(hide_after, self.hide_tip)
+                GObject.source_remove(self._hide_after)
+            self._hide_after = GObject.timeout_add(hide_after, self.hide_tip)
         return
 
     def hide_tip(self):
@@ -378,8 +378,8 @@ class ScreenshotThumbnail(gtk.Alignment):
             return
 
         if self._tip_fader: 
-            gobject.source_remove(self._tip_fader)
-        self._tip_fader = gobject.timeout_add(25, self._tip_fade_out)
+            GObject.source_remove(self._tip_fader)
+        self._tip_fader = GObject.timeout_add(25, self._tip_fade_out)
         return
 
     def get_is_actionable(self):
@@ -588,6 +588,6 @@ if __name__ == '__main__':
 
     testing_cycle_apps(t, apps, db)
 
-    gobject.timeout_add(6000, testing_cycle_apps, t, apps, db)
+    GObject.timeout_add(6000, testing_cycle_apps, t, apps, db)
 
     gtk.main()

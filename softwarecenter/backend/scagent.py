@@ -19,7 +19,7 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import gobject
+from gi.repository import GObject
 import logging
 import os
         
@@ -31,25 +31,25 @@ from softwarecenter.distro import get_distro, get_current_arch
 
 LOG = logging.getLogger(__name__)
 
-class SoftwareCenterAgent(gobject.GObject):
+class SoftwareCenterAgent(GObject.GObject):
 
     __gsignals__ = {
-        "available-for-me" : (gobject.SIGNAL_RUN_LAST,
-                              gobject.TYPE_NONE, 
-                              (gobject.TYPE_PYOBJECT,),
+        "available-for-me" : (GObject.SIGNAL_RUN_LAST,
+                              GObject.TYPE_NONE, 
+                              (GObject.TYPE_PYOBJECT,),
                              ),
-        "available" : (gobject.SIGNAL_RUN_LAST,
-                              gobject.TYPE_NONE, 
-                              (gobject.TYPE_PYOBJECT,),
+        "available" : (GObject.SIGNAL_RUN_LAST,
+                              GObject.TYPE_NONE, 
+                              (GObject.TYPE_PYOBJECT,),
                              ),
-        "error" : (gobject.SIGNAL_RUN_LAST,
-                   gobject.TYPE_NONE, 
+        "error" : (GObject.SIGNAL_RUN_LAST,
+                   GObject.TYPE_NONE, 
                    (str,),
                   ),
         }
     
     def __init__(self, ignore_cache=False, xid=None):
-        gobject.GObject.__init__(self)
+        GObject.GObject.__init__(self)
         self.distro = get_distro()
         self.ignore_cache = ignore_cache
         binary = os.path.join(
@@ -74,7 +74,7 @@ class SoftwareCenterAgent(gobject.GObject):
         if not arch_tag:
             arch_tag = get_current_arch()
         # build the command
-        cmd = self.HELPER_CMD
+        cmd = self.HELPER_CMD[:]
         if for_qa:
             cmd.append("available_apps_qa")
         else:
@@ -91,7 +91,7 @@ class SoftwareCenterAgent(gobject.GObject):
         self.emit("available", piston_available)
 
     def query_available_for_me(self, oauth_token, openid_identifier):
-        cmd = self.HELPER_CMD
+        cmd = self.HELPER_CMD[:]
         cmd.append("subscriptions_for_me")
         spawner = SpawnHelper()
         spawner.connect("data-available", self._on_query_available_for_me_data)
@@ -105,6 +105,9 @@ if __name__ == "__main__":
         print "_available: ", available
     def _available_for_me(agent, available_for_me):
         print "_availalbe_for_me: ", available_for_me
+    def _error(agent, msg):
+        print "got a error", msg
+        #gtk.main_quit()
 
     # test specific stuff
     logging.basicConfig()
@@ -113,6 +116,7 @@ if __name__ == "__main__":
     scagent = SoftwareCenterAgent()
     scagent.connect("available-for-me", _available_for_me)
     scagent.connect("available", _available)
+    scagent.connect("error", _error)
     scagent.query_available("natty", "i386")
     scagent.query_available_for_me("dummy_oauth", "dummy openid")
 

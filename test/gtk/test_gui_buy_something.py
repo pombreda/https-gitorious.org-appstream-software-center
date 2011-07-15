@@ -1,7 +1,8 @@
 #!/usr/bin/python
 
+from gi.repository import GObject
+
 import apt
-import glib
 import gtk
 import logging
 import os
@@ -128,7 +129,7 @@ class SCBuySomething(unittest.TestCase):
             backend.connect("transaction-finished", 
                             self._on_transaction_finished)
             # simulate repos becomes available for the public 40 s later
-            glib.timeout_add_seconds(20, self._add_pw_to_commercial_repo)
+            GObject.timeout_add_seconds(20, self._add_pw_to_commercial_repo)
             # run it
             appdetails = app.get_details(self.app.db)
             backend.add_repo_add_key_and_install_app(deb_line,

@@ -17,7 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import atk
-import gobject
+from gi.repository import GObject
 import gtk
 import logging
 import mkit
@@ -228,19 +228,19 @@ class PathBar(gtk.HBox):
             x, y = a.x - aw, a.y
             width, height = a.width + aw, a.height
         
-        self._scroller = gobject.timeout_add(
+        self._scroller = GObject.timeout_add(
             max(int(1000.0 / self.ANIMATE_FPS), 10),  # interval
             scroll_callback,
             part,
             part.get_size_request()[0],
             self.ANIMATE_DURATION*0.001,   # 1 over duration (converted to seconds)
-            gobject.get_current_time(),
+            GObject.get_current_time(),
             (x, y, width, height),  # clip area
             priority=100)
         return False
 
     def _scroll_out_cb(self, part, distance, duration, start_t, draw_area):
-        cur_t = gobject.get_current_time()
+        cur_t = GObject.get_current_time()
         xO = distance - distance*((cur_t - start_t) / duration)
         part.invisible = False
 
@@ -255,7 +255,7 @@ class PathBar(gtk.HBox):
         return True
 
     def _scroll_in_cb(self, part, distance, duration, start_t, draw_area):
-        cur_t = gobject.get_current_time()
+        cur_t = GObject.get_current_time()
         xO = distance*((cur_t - start_t) / duration)
 
         if xO < distance:
@@ -278,7 +278,7 @@ class PathBar(gtk.HBox):
     def _part_scroll_out(self, part):
         self._animate = False, None
         part.invisible = True
-        gobject.timeout_add(self.ANIMATE_DELAY,
+        GObject.timeout_add(self.ANIMATE_DELAY,
                             self._scroll_init,
                             self._scroll_out_cb,
                             part)
@@ -286,7 +286,7 @@ class PathBar(gtk.HBox):
 
     def _part_scroll_in(self, part):
         self._animate = False, None
-        gobject.timeout_add(self.ANIMATE_DELAY,
+        GObject.timeout_add(self.ANIMATE_DELAY,
                             self._scroll_init,
                             self._scroll_in_cb,
                             part)
@@ -411,18 +411,18 @@ class PathBar(gtk.HBox):
 
 #    def _scroll_out_init(self, part):
 #        draw_area = part.get_allocation()
-#        self._scroller = gobject.timeout_add(
+#        self._scroller = GObject.timeout_add(
 #            max(int(1000.0 / self.ANIMATE_FPS), 10),  # interval
 #            self._scroll_out_cb,
 #            part.get_size_request()[0],
 #            self.ANIMATE_DURATION*0.001,   # 1 over duration (converted to seconds)
-#            gobject.get_current_time(),
+#            GObject.get_current_time(),
 #            (draw_area.x, draw_area.y,
 #            draw_area.width, draw_area.height))
 #        return False
 
 #    def _scroll_out_cb(self, distance, duration, start_t, draw_area):
-#        cur_t = gobject.get_current_time()
+#        cur_t = GObject.get_current_time()
 #        xO = distance - distance*((cur_t - start_t) / duration)
 
 #        if xO > 0:
@@ -478,7 +478,7 @@ class PathBar(gtk.HBox):
             return
 
         if self._scroller:
-            gobject.source_remove(self._scroller)
+            GObject.source_remove(self._scroller)
         self._scroll_xO = 0
         self._scroller = None
 
@@ -509,7 +509,7 @@ class PathBar(gtk.HBox):
         if len(parts) <= 1: return  # protect last part
 
         if self._scroller:
-            gobject.source_remove(self._scroller)
+            GObject.source_remove(self._scroller)
             self.get_children()[-1].destroy()
 
         self._scroll_xO = 0
@@ -687,7 +687,7 @@ class PathPart(gtk.EventBox):
 
     def set_label(self, label):
         if label == self.label: return
-        self.label = gobject.markup_escape_text(label.strip())
+        self.label = GObject.markup_escape_text(label.strip())
         self.atk.set_name(label)
         self.atk.set_description(_('Navigates to the %s page.') % label)
         if not self.layout:

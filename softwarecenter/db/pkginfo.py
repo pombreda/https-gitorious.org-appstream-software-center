@@ -16,7 +16,7 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import gobject
+from gi.repository import GObject
 
 class _Package:
     def __init__(self, name, pkginfo):
@@ -64,17 +64,17 @@ class _Package:
     def origins(self):
         return self.pkginfo.get_origins(self.name)
 
-class PackageInfo(gobject.GObject):
+class PackageInfo(GObject.GObject):
     """ abstract interface for the packageinfo information """
 
-    __gsignals__ = {'cache-ready':  (gobject.SIGNAL_RUN_FIRST,
-                                     gobject.TYPE_NONE,
+    __gsignals__ = {'cache-ready':  (GObject.SIGNAL_RUN_FIRST,
+                                     GObject.TYPE_NONE,
                                      ()),
-                    'cache-invalid':(gobject.SIGNAL_RUN_FIRST,
-                                     gobject.TYPE_NONE,
+                    'cache-invalid':(GObject.SIGNAL_RUN_FIRST,
+                                     GObject.TYPE_NONE,
                                      ()),
-                    'cache-broken':(gobject.SIGNAL_RUN_FIRST,
-                                     gobject.TYPE_NONE,
+                    'cache-broken':(GObject.SIGNAL_RUN_FIRST,
+                                     GObject.TYPE_NONE,
                                      ()),
                     }
 

@@ -21,7 +21,7 @@ import cairo
 import dbus
 import gettext
 import dialogs
-import gobject
+from gi.repository import GObject
 import gtk
 import logging
 import xapian
@@ -136,8 +136,8 @@ class SoftwarePane(gtk.VBox, BasePane):
     """ Common base class for InstalledPane, AvailablePane and ChannelPane"""
 
     __gsignals__ = {
-        "app-list-changed" : (gobject.SIGNAL_RUN_LAST,
-                              gobject.TYPE_NONE, 
+        "app-list-changed" : (GObject.SIGNAL_RUN_LAST,
+                              GObject.TYPE_NONE, 
                               (int, ),
                              ),
     }
@@ -514,7 +514,7 @@ class SoftwarePane(gtk.VBox, BasePane):
         self.spinner_notebook.set_current_page(self.PAGE_SPINNER)
         # "mask" the spinner view momentarily to prevent it from flashing into
         # view in the case of short delays where it isn't actually needed
-        gobject.timeout_add(100, self._unmask_appview_spinner)
+        GObject.timeout_add(100, self._unmask_appview_spinner)
         
     def _unmask_appview_spinner(self):
         self.spinner_view.start()

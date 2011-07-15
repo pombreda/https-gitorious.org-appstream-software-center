@@ -23,7 +23,7 @@
 import pygtk
 pygtk.require ("2.0")
 import datetime
-import gobject
+from gi.repository import GObject
 import cairo
 import gtk
 import mkit
@@ -469,8 +469,8 @@ class StarRating(gtk.Alignment):
 
     MAX_STARS = 5
 
-    __gsignals__ = {'changed':(gobject.SIGNAL_RUN_LAST,
-                               gobject.TYPE_NONE,
+    __gsignals__ = {'changed':(GObject.SIGNAL_RUN_LAST,
+                               GObject.TYPE_NONE,
                                ())
                     }
 
@@ -557,7 +557,7 @@ class StarRatingSelector(StarRating):
 
     def _on_leave(self, star, event):
         star.set_state(gtk.STATE_NORMAL)
-        gobject.timeout_add(100, self._hover_check_cb)
+        GObject.timeout_add(100, self._hover_check_cb)
         star.queue_draw()
         return
 
@@ -705,27 +705,27 @@ class ReviewStatsContainer(gtk.VBox):
 class UIReviewsList(gtk.VBox):
 
     __gsignals__ = {
-        'new-review':(gobject.SIGNAL_RUN_FIRST,
-                    gobject.TYPE_NONE,
+        'new-review':(GObject.SIGNAL_RUN_FIRST,
+                    GObject.TYPE_NONE,
                     ()),
-        'report-abuse':(gobject.SIGNAL_RUN_FIRST,
-                    gobject.TYPE_NONE,
-                    (gobject.TYPE_PYOBJECT,)),
-        'submit-usefulness':(gobject.SIGNAL_RUN_FIRST,
-                    gobject.TYPE_NONE,
-                    (gobject.TYPE_PYOBJECT, bool)),
-        'modify-review':(gobject.SIGNAL_RUN_FIRST,
-                    gobject.TYPE_NONE,
-                    (gobject.TYPE_PYOBJECT,)),
-        'delete-review':(gobject.SIGNAL_RUN_FIRST,
-                    gobject.TYPE_NONE,
-                    (gobject.TYPE_PYOBJECT,)),
-        'more-reviews-clicked':(gobject.SIGNAL_RUN_FIRST,
-                                gobject.TYPE_NONE,
+        'report-abuse':(GObject.SIGNAL_RUN_FIRST,
+                    GObject.TYPE_NONE,
+                    (GObject.TYPE_PYOBJECT,)),
+        'submit-usefulness':(GObject.SIGNAL_RUN_FIRST,
+                    GObject.TYPE_NONE,
+                    (GObject.TYPE_PYOBJECT, bool)),
+        'modify-review':(GObject.SIGNAL_RUN_FIRST,
+                    GObject.TYPE_NONE,
+                    (GObject.TYPE_PYOBJECT,)),
+        'delete-review':(GObject.SIGNAL_RUN_FIRST,
+                    GObject.TYPE_NONE,
+                    (GObject.TYPE_PYOBJECT,)),
+        'more-reviews-clicked':(GObject.SIGNAL_RUN_FIRST,
+                                GObject.TYPE_NONE,
                                 () ),
-        'different-review-language-clicked':(gobject.SIGNAL_RUN_FIRST,
-                                             gobject.TYPE_NONE,
-                                             (gobject.TYPE_STRING,) ),
+        'different-review-language-clicked':(GObject.SIGNAL_RUN_FIRST,
+                                             GObject.TYPE_NONE,
+                                             (GObject.TYPE_STRING,) ),
     }
 
     def __init__(self, parent):
@@ -1186,7 +1186,7 @@ class UIReview(gtk.VBox):
         who_when = mkit.EtchedLabel(m)
         who_when.set_use_markup(True)
 
-        summary = mkit.EtchedLabel('<b>%s</b>' % gobject.markup_escape_text(review_data.summary))
+        summary = mkit.EtchedLabel('<b>%s</b>' % GObject.markup_escape_text(review_data.summary))
         summary.set_use_markup(True)
         summary.set_ellipsize(pango.ELLIPSIZE_END)
         summary.set_selectable(True)
@@ -1212,7 +1212,7 @@ class UIReview(gtk.VBox):
             upstream_version_compare(review_version, app_version) != 0):
             version_string = _("This review was written for a different version of %(app_name)s (Version: %(version)s)") % { 
                 'app_name' : app_name,
-                'version' : gobject.markup_escape_text(upstream_version(review_version))
+                'version' : GObject.markup_escape_text(upstream_version(review_version))
                 }
 
             m = '<small><i><span color="%s">%s</span></i></small>'
@@ -1395,16 +1395,16 @@ class UIReview(gtk.VBox):
         if person == self.logged_in_person:
             m = '<span color="%s"><b>%s (%s)</b>, %s</span>' % (
                 dark_color.to_string(),
-                gobject.markup_escape_text(correct_name),
+                GObject.markup_escape_text(correct_name),
                 # TRANSLATORS: displayed in a review after the persons name,
                 # e.g. "Wonderful text based app" mvo (that's you) 2011-02-11"
                 _("that's you"),
-                gobject.markup_escape_text(nice_date))
+                GObject.markup_escape_text(nice_date))
         else:
             m = '<span color="%s"><b>%s</b>, %s</span>' % (
                 dark_color.to_string(),
-                gobject.markup_escape_text(correct_name),
-                gobject.markup_escape_text(nice_date))
+                GObject.markup_escape_text(correct_name),
+                GObject.markup_escape_text(nice_date))
 
         return m
 

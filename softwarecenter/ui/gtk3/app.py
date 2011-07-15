@@ -23,7 +23,7 @@ import dbus
 import dbus.service
 import gettext
 import logging
-import glib
+from gi.repository import GObject
 import os
 import subprocess
 import sys
@@ -361,9 +361,9 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         else:
             sc_agent_update = os.path.join(
                 self.datadir, "update-software-center-agent")
-            (pid, stdin, stdout, stderr) = glib.spawn_async(
-                [sc_agent_update], flags=glib.SPAWN_DO_NOT_REAP_CHILD)
-            glib.child_watch_add(
+            (pid, stdin, stdout, stderr) = GObject.spawn_async(
+                [sc_agent_update], flags=GObject.SPAWN_DO_NOT_REAP_CHILD)
+            GObject.child_watch_add(
                 pid, self._on_update_software_center_agent_finished)
 
 
@@ -454,7 +454,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         def display_lobby():
             self.view_manager.set_active_view(ViewPages.AVAILABLE)
             return
-        glib.idle_add(display_lobby)
+        GObject.idle_add(display_lobby)
         return
 
     def on_available_pane_created(self, widget):
@@ -975,7 +975,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         # run yelp
         p = subprocess.Popen(["yelp","ghelp:software-center"])
         # collect the exit status (otherwise we leave zombies)
-        glib.timeout_add_seconds(1, lambda p: p.poll() == None, p)
+        GObject.timeout_add_seconds(1, lambda p: p.poll() == None, p)
 
     def on_menuitem_view_all_activate(self, widget):
         if (not self._block_menuitem_view and
@@ -1046,7 +1046,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
     def _ask_and_repair_broken_cache(self):
         # wait until the window window is available
         if self.window_main.props.visible == False:
-            glib.timeout_add_seconds(1, self._ask_and_repair_broken_cache)
+            GObject.timeout_add_seconds(1, self._ask_and_repair_broken_cache)
             return
         if dialogs.confirm_repair_broken_cache(self.window_main,
                                                       self.datadir):

@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
-import glib
+from gi.repository import GObject
+
 import os
 import sys
 import time
@@ -33,7 +34,7 @@ class TestImageDownloader(unittest.TestCase):
     def test_download_unreachable(self):
         self.downloader.download_file("http://examplex.com/not-there",
                                       self.DOWNLOAD_FILENAME)
-        main_loop = glib.main_context_default()
+        main_loop = GObject.main_context_default()
         while self._image_is_reachable is None:
             while main_loop.pending():
                 main_loop.iteration()
@@ -45,7 +46,7 @@ class TestImageDownloader(unittest.TestCase):
     def test_download_reachable(self):
         self.downloader.download_file("http://www.ubuntu.com",
                                       self.DOWNLOAD_FILENAME)
-        main_loop = glib.main_context_default()
+        main_loop = GObject.main_context_default()
         while self._image_downloaded_filename is None:
             while main_loop.pending():
                 main_loop.iteration()

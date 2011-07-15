@@ -18,7 +18,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import os
-import glib
+from gi.repository import GObject
 import logging
 import xapian
 
@@ -47,7 +47,7 @@ class ChannelsManager(object):
                              self._remove_no_longer_needed_extra_channels)
         # kick off a background check for changes that may have been made
         # in the channels list
-        glib.timeout_add(300, self._check_for_channel_updates_timer)
+        GObject.timeout_add(300, self._check_for_channel_updates_timer)
         # extra channels from e.g. external sources
         self.extra_channels = []
         self._logger = LOG

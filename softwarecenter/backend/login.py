@@ -19,28 +19,28 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import gobject
+from gi.repository import GObject
 
-class LoginBackend(gobject.GObject):
+class LoginBackend(GObject.GObject):
 
     NEW_ACCOUNT_URL = None
     FORGOT_PASSWORD_URL = None
 
     __gsignals__ = {
-        "login-successful" : (gobject.SIGNAL_RUN_LAST,
-                             gobject.TYPE_NONE, 
-                             (gobject.TYPE_PYOBJECT,),
+        "login-successful" : (GObject.SIGNAL_RUN_LAST,
+                             GObject.TYPE_NONE, 
+                             (GObject.TYPE_PYOBJECT,),
                             ),
-        "login-failed" : (gobject.SIGNAL_RUN_LAST,
-                          gobject.TYPE_NONE, 
+        "login-failed" : (GObject.SIGNAL_RUN_LAST,
+                          GObject.TYPE_NONE, 
                           (),
                          ),
-        "login-canceled" : (gobject.SIGNAL_RUN_LAST,
-                          gobject.TYPE_NONE, 
+        "login-canceled" : (GObject.SIGNAL_RUN_LAST,
+                          GObject.TYPE_NONE, 
                           (),
                          ),
-        "need-username-password" : (gobject.SIGNAL_RUN_LAST,
-                                    gobject.TYPE_NONE, 
+        "need-username-password" : (GObject.SIGNAL_RUN_LAST,
+                                    GObject.TYPE_NONE, 
                                     (),
                                    ),
         }

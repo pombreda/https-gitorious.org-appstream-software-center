@@ -20,8 +20,8 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import cPickle
-import glib
-import gobject
+from gi.repository import GObject
+from gi.repository import GObject
 import logging
 import os
 import simplejson
@@ -29,19 +29,19 @@ import simplejson
 
 LOG = logging.getLogger(__name__)
 
-class SpawnHelper(gobject.GObject):
+class SpawnHelper(GObject.GObject):
     
     __gsignals__ = {
-        "data-available" : (gobject.SIGNAL_RUN_LAST,
-                            gobject.TYPE_NONE, 
-                            (gobject.TYPE_PYOBJECT,),
+        "data-available" : (GObject.SIGNAL_RUN_LAST,
+                            GObject.TYPE_NONE, 
+                            (GObject.TYPE_PYOBJECT,),
                             ),
-        "exited" : (gobject.SIGNAL_RUN_LAST,
-                    gobject.TYPE_NONE, 
+        "exited" : (GObject.SIGNAL_RUN_LAST,
+                    GObject.TYPE_NONE, 
                     (int,),
                     ),
-        "error" : (gobject.SIGNAL_RUN_LAST,
-                   gobject.TYPE_NONE, 
+        "error" : (GObject.SIGNAL_RUN_LAST,
+                   GObject.TYPE_NONE, 
                    (str,),
                   ),
         }
@@ -53,27 +53,28 @@ class SpawnHelper(gobject.GObject):
         self._stderr = None
 
     def run(self, cmd):
-        (pid, stdin, stdout, stderr) = glib.spawn_async(
-            cmd, flags = glib.SPAWN_DO_NOT_REAP_CHILD, 
+        (pid, stdin, stdout, stderr) = GObject.spawn_async(
+            cmd, flags = GObject.SPAWN_DO_NOT_REAP_CHILD, 
             standard_output=True, standard_error=True)
-        glib.child_watch_add(
+        GObject.child_watch_add(
             pid, self._helper_finished, data=(stdout, stderr))
-        glib.io_add_watch(
-            stdout, glib.IO_IN, self._helper_io_ready, (stdout, ))
+        GObject.io_add_watch(
+            stdout, GObject.IO_IN, self._helper_io_ready, (stdout, ))
 
     def _helper_finished(self, pid, status, (stdout, stderr)):
         # get status code
         res = os.WEXITSTATUS(status)
-        if res != 0:
+        if res == 0:
+            self.emit("exited", res)
+        else:
             LOG.warn("exit code %s from helper" % res)
-        # check stderr
-        err = os.read(stderr, 4*1024)
-        self._stderr = err
-        if err:
-            LOG.warn("got error from helper: '%s'" % err)
+            # check stderr
+            err = os.read(stderr, 4*1024)
+            self._stderr = err
+            if err:
+                LOG.warn("got error from helper: '%s'" % err)
             self.emit("error", err)
-        os.close(stderr)
-        self.emit("exited", res)
+            os.close(stderr)
 
     def _helper_io_ready(self, source, condition, (stdout,)):
         # read the raw data
