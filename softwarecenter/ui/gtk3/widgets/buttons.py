@@ -41,6 +41,7 @@ class CategoryTile(Tile):
 
     def __init__(self, label, iconname, icon_size=Gtk.IconSize.DIALOG):
         Tile.__init__(self, label, iconname, icon_size)
+        self.set_border_width(StockEms.MEDIUM)
         self.set_name("category-tile")
         return
 
