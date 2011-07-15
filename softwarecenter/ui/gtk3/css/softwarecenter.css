@@ -1,7 +1,7 @@
 #view {
 
     border-width: 0;
-    background-color: #FFF;
+    background-color: #d7d0d4;      /* light aubergine */
 /*
 
     background-image: -gtk-gradient(linear,
@@ -13,8 +13,11 @@
 }
 
 
-#tile {
+#channel-selector {
+    color: #FFF;
+}
 
+#tile {
     border-width: 0;
     border-radius: 20;
 }

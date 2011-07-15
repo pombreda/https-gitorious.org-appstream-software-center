@@ -13,8 +13,8 @@ class CategoryTile(Gtk.Button):
 
         self.set_focus_on_click(False)
 
-        vbox = Gtk.VBox(spacing=StockEms.SMALL)
-        vbox.set_border_width(StockEms.SMALL)
+        vbox = Gtk.VBox()
+        #~ vbox.set_border_width(StockEms.SMALL)
         self.add(vbox)
 
         image = Gtk.Image.new_from_icon_name(iconname, icon_size)

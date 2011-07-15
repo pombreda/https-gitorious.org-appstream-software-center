@@ -189,6 +189,7 @@ class ViewSwitcher(Gtk.HBox, ViewSwitcherLogic):
 
     def _make_button(self, label, icon_name):
         t = CategoryTile(label, icon_name, self.ICON_SIZE)
+        t.set_name("channel-selector")
         t.set_size_request(-1, -1)
         return t
 
