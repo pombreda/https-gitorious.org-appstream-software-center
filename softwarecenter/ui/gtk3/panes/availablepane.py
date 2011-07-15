@@ -18,7 +18,6 @@
 
 import gettext
 from gi.repository import GObject
-from gi.repository import GObject
 from gi.repository import Gtk
 import logging
 import os

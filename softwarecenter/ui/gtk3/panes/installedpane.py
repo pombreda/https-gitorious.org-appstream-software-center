@@ -242,10 +242,10 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         self.treefilter.refilter()
         if terms:
             self.app_view.expand_all()
-            i = len(self.visible_docids)
+            #i = len(self.visible_docids)
         else:
             self._check_expand()
-            i = self.installed_count
+            #i = self.installed_count
 
         #~ self.emit("app-list-changed", i)
         return

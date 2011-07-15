@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-from gi.repository import GObject, GLib
+from gi.repository import GObject
 
 import time
 

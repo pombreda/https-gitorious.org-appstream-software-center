@@ -1,4 +1,4 @@
-from gi.repository import Gtk, Pango, GObject
+from gi.repository import Gtk, GObject
 
 import gettext
 from gettext import gettext as _
@@ -202,16 +202,17 @@ class SearchAidLogic(object):
 
     def get_unsupported_suggestion_text(self, term, category, state):
         supported_only = state.filter.get_supported_only()
-        if not supported_only: return None
+        if not supported_only:
+            return None
 
         import copy
         unsupported = copy.copy(state.filter)
         unsupported.set_supported_only(False)
 
-        if category:
-            category_query = category.query
-        else:
-            category_query = None
+        #if category:
+        #    category_query = category.query
+        #else:
+        #    category_query = None
 
         enq = self.enquirer
         enq.set_query(enq.search_query,

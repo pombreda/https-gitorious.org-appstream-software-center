@@ -79,7 +79,9 @@ from softwarecenter.backend.reviews import get_review_loader, UsefulnessCache
 from softwarecenter.distro import get_distro
 from softwarecenter.db.pkginfo import get_pkg_info
 
-from gi.repository import Gtk, Gdk, Atk, GObject
+from gi.repository import Gtk
+from gi.repository import Gdk
+from gi.repository import Atk
 
 LOG = logging.getLogger(__name__)
 

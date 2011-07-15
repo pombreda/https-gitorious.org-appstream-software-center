@@ -19,7 +19,6 @@
 import apt
 import gettext
 from gi.repository import GObject
-from gi.repository import GObject
 import gtk
 import logging
 import os
