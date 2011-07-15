@@ -134,21 +134,22 @@ class PendingSymbolicIcon(SymbolicIcon, RotationAboutCenterAnimation):
 
         if not self.is_animating() or not self.transaction_count: return
         # paint transactions bubble
+        # get the layout extents and calc the bubble size
         ex = self.layout.get_pixel_extents()[1]
         x = (a.width - self.icon.get_width()) / 2 + self.icon.get_width() - ex.width + 2
         y = (a.height - self.icon.get_height()) / 2 + self.icon.get_height() - ex.height + 2
         w = ex.width + 2*self.BUBBLE_XPADDING
         h = ex.height + 2*self.BUBBLE_YPADDING
-
+        # paint background
         rounded_rect(cr, x+1, y+1, w-2, h-2, self.BUBBLE_BORDER_RADIUS)
         cr.set_source_rgba(0,0,0,0.75)
         cr.fill()
-
+        # paint outline
         rounded_rect(cr, x+0.5, y+0.5, w-1, h-1, self.BUBBLE_BORDER_RADIUS)
         cr.set_source_rgba(1,1,1, 0.85)
         cr.set_line_width(1)
         cr.stroke()
-
+        # paint layout
         Gtk.render_layout(widget.get_style_context(), cr,
                           x + self.BUBBLE_XPADDING,
                           y + self.BUBBLE_YPADDING,
