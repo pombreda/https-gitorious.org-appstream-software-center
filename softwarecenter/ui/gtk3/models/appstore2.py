@@ -76,6 +76,10 @@ class AppEnquire(object):
         self._matches = []
         self.match_docids = set()
 
+        # support for callbacks when a search is complete
+        self.on_query_complete = None
+        self.callback_user_data = None
+
     def __len__(self):
         return len(self._matches)
 
@@ -95,6 +99,10 @@ class AppEnquire(object):
             time.sleep(0.02) # 50 fps
             while Gtk.events_pending():
                 Gtk.main_iteration()
+
+        # call the query-complete callback
+        if self.on_query_complete:
+            self.on_query_complete(self, *self.callback_user_data)
 
     def _get_estimate_nr_apps_and_nr_pkgs(self, enquire, q, xfilter):
         # filter out docs of pkgs of which there exists a doc of the app
@@ -225,14 +233,20 @@ class AppEnquire(object):
         self._perform_search_complete = True
         return
 
-    def set_query(self,  search_query, 
-                  limit=DEFAULT_SEARCH_LIMIT,
-                  sortmode=SortMethods.UNSORTED, 
-                  filter=None,
-                  exact=False,
-                  nonapps_visible=NonAppVisibility.MAYBE_VISIBLE,
-                  nonblocking_load=True,
-                  persistent_duplicate_filter=False):
+    def set_query_complete_callback(self, cb, *user_data):
+        self.on_query_complete = cb
+        self.callback_user_data = user_data
+        return
+
+    def set_query(
+            self,  search_query, 
+            limit=DEFAULT_SEARCH_LIMIT,
+            sortmode=SortMethods.UNSORTED, 
+            filter=None,
+            exact=False,
+            nonapps_visible=NonAppVisibility.MAYBE_VISIBLE,
+            nonblocking_load=True,
+            persistent_duplicate_filter=False):
 
         """
         Set a new query
@@ -541,10 +555,12 @@ class AppListStore(Gtk.ListStore, AppGenericStore):
         """ set the content of the liststore based on a list of
             xapian.MSetItems
         """
-        self.current_matches = matches
 
-        db = self.db.xapiandb
+        self.current_matches = matches
         n_matches = len(matches)
+        if n_matches == 0: return
+    
+        db = self.db.xapiandb
         extent = min(self.LOAD_INITIAL, n_matches-1)
 
         with ExecutionTime("store.append_initial"):

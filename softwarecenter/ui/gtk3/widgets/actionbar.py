@@ -16,9 +16,10 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from gi.repository import Gtk, Gdk
+import cairo
 import logging
-from gi.repository import GObject
+
+from gi.repository import Gtk, Gdk, GObject
 
 LOG = logging.getLogger(__name__)
 
@@ -45,10 +46,10 @@ class ActionBar(Gtk.HBox):
 
     def __init__(self):
         super(ActionBar, self).__init__(spacing=self.PADDING)
-        self.set_border_width(self.PADDING)
         self._btns = Gtk.HBox(spacing=self.PADDING)
+        self._btns.set_border_width(self.PADDING)
         self._label = Gtk.HBox()
-        self._label.set_border_width(2)
+        self._label.set_border_width(self.PADDING)
         # So that all buttons children right align
         self._btn_bin = Gtk.Alignment.new(1.0, 0.0, 1.0, 1.0)
         self._btn_bin.set_padding(0,0,0,10)
@@ -69,6 +70,8 @@ class ActionBar(Gtk.HBox):
         self._is_sliding_in = False
         self._is_sliding_out = False
         self._target_height = None
+
+        self.connect("draw", self._on_draw)
 
     def add_button(self, id, label, result, *result_args):
         """Adds a button and shows the bar.
@@ -300,6 +303,22 @@ class ActionBar(Gtk.HBox):
                                 priority=100)
         else:
             self.queue_draw()
+        return
+
+    def _on_draw(self, widget, cr):
+        a = widget.get_allocation()
+        context = widget.get_style_context()
+
+        color = context.get_background_color(widget.get_state_flags())
+        cr.set_source_rgb(color.red, color.green, color.blue)
+        cr.paint()
+
+        color = context.get_border_color(widget.get_state_flags())
+        cr.set_source_rgba(color.red, color.green, color.blue, 0.5)
+        cr.set_line_width(1)
+        cr.move_to(0.5, 0.5)
+        cr.rel_line_to(a.width-1, 0)
+        cr.stroke()
         return
 
     def _callback(self, function, args):

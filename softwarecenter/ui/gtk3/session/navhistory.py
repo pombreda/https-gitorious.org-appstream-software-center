@@ -159,29 +159,24 @@ class NavigationStack(object):
 
     def _isok(self, item):
         if item.page is not None and item.page < 0:
-            print 'not ok cos page is foobar'
             return False
         if len(self) == 0:
             return True
         last = self[-1]
         if str(item) == str(last):
-            print 'not ok cos str is foobar',  str(item), str(last)
             return False
         return True
 
     def append(self, item):
-        print item, self._isok(item)
         if not self._isok(item):
             self.cursor = len(self.stack)-1
-            #~ logging.debug('A:%s' % repr(self))
-            print 'A:%s' % repr(self)
+            logging.debug('A:%s' % repr(self))
             return
         if len(self.stack) + 1 > self.max_length:
             self.stack.pop(1)
         self.stack.append(item)
         self.cursor = len(self.stack)-1
-        #~ logging.debug('A:%s' % repr(self))
-        print 'A:%s' % repr(self)
+        logging.debug('A:%s' % repr(self))
         return
 
     def step_back(self):

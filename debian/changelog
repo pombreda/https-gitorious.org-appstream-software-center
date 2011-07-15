@@ -2,6 +2,8 @@ software-center (4.1.10) UNRELEASED; urgency=low
 
   * merged lp:~alexeftimie/software-center/backend-refactor,
     many thanks
+  * merged lp:~mmcg069/software-center/search-aid-improvments,
+    many thanks
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 15 Jul 2011 14:59:33 +0200
 
