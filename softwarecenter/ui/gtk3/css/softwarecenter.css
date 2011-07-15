@@ -14,10 +14,13 @@
 
 
 #channel-selector {
+    color: #d7d0d4;      /* light aubergine */
     border-width: 0;
-    color: #FFF;
 }
 
+#channel-selector:prelight {
+    color: #fff;
+}
 
 #category-tile {
     border-width: 0;

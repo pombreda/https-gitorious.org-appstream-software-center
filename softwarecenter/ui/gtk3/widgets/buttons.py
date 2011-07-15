@@ -26,11 +26,11 @@ class Tile(Gtk.Button):
         self.image_box.pack_start(self.image, True, True, 0)
         self.vbox.pack_start(self.image_box, True, True, 0)
 
-        label = Gtk.Label.new(label)
+        self.label = Gtk.Label.new(label)
         #~ label.set_alignment(0.5, 0.0)
-        label.set_line_wrap(True)
-        label.set_justify(Gtk.Justification.CENTER)
-        self.vbox.pack_start(label, True, True, 0)
+        self.label.set_line_wrap(True)
+        self.label.set_justify(Gtk.Justification.CENTER)
+        self.vbox.pack_start(self.label, True, True, 0)
 
         self.vbox.set_size_request(self.MIN_WIDTH, -1)
         self.set_relief(Gtk.ReliefStyle.NONE)
@@ -95,6 +95,7 @@ class SectionSelector(Tile):
         Tile.__init__(self, label, iconname, icon_size)
         self.set_size_request(-1, -1)
         self.set_name("channel-selector")
+        self.label.set_name("channel-selector")
 
         self.has_channel_sel = has_channel_sel
         if not has_channel_sel: return
@@ -105,6 +106,7 @@ class SectionSelector(Tile):
 
         self.channel_sel = Gtk.Arrow.new(Gtk.ArrowType.DOWN,
                                          Gtk.ShadowType.IN)
+        self.channel_sel.set_name("channel-selector")
         filler = Gtk.Box()
         pref_w, _ = self.channel_sel.get_preferred_width()
         filler.set_size_request(pref_w, -1)

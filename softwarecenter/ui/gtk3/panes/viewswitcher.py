@@ -34,8 +34,8 @@ from softwarecenter.distro import get_distro
 from softwarecenter.backend.channel import ChannelsManager
 from softwarecenter.ui.gtk3.widgets.buttons import SectionSelector
 from softwarecenter.ui.gtk3.em import StockEms
-from softwarecenter.ui.gtk3.widgets.animatedimage import ProgressImage
-from softwarecenter.ui.gtk3.widgets.symbolic_icons import SymbolicIcon
+from softwarecenter.ui.gtk3.widgets.symbolic_icons import (
+                                    SymbolicIcon, PendingSymbolicIcon)
 import softwarecenter.ui.gtk3.dialogs as dialogs
 
 
@@ -80,8 +80,7 @@ class ViewSwitcher(Gtk.Box):
 
         # order is important here!
         # first, the availablepane items
-        icons = "softwarecenter/ui/gtk3/art/icons/"
-        icon = SymbolicIcon(icons+"available.png", icons+"available-dropshadow.png")
+        icon = SymbolicIcon("available")
         available = self.append_section(ViewPages.AVAILABLE,
                                         _("All Software"),
                                         icon,
@@ -89,7 +88,7 @@ class ViewSwitcher(Gtk.Box):
         available.set_build_func(self.on_get_available_channels)
 
         # the installedpane items
-        icon = SymbolicIcon(icons+"installed.png", icons+"installed-dropshadow.png")
+        icon = SymbolicIcon("installed")
         installed = self.append_section(ViewPages.INSTALLED,
                                         _("Installed"),
                                         icon,
@@ -97,15 +96,16 @@ class ViewSwitcher(Gtk.Box):
         installed.set_build_func(self.on_get_installed_channels)
 
         # the historypane item
-        icon = SymbolicIcon(icons+"history.png", icons+"history-dropshadow.png")
+        icon = SymbolicIcon("history")
         history =  self.append_section(ViewPages.HISTORY,
                                        _("History"),
                                        icon)
 
         # the pendingpane
+        icon = PendingSymbolicIcon("pending")
         pending = self.append_section(ViewPages.PENDING,
                                       _("Progress"),
-                                      ProgressImage())
+                                      icon)
 
         # set sensible atk name
         atk_desc = self.get_accessible()
