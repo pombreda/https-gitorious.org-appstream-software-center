@@ -17,8 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 
-from gi.repository import GObject
-from gi.repository import Gtk
+from gi.repository import Gtk, GObject
 import logging
 import os
 import sys
@@ -32,99 +31,17 @@ from softwarecenter.enums import ViewPages
 from softwarecenter.paths import XAPIAN_BASE_PATH
 from softwarecenter.distro import get_distro
 
-from softwarecenter.ui.gtk3.widgets.buttons import CategoryTile
+from softwarecenter.backend.channel import ChannelsManager
+from softwarecenter.ui.gtk3.widgets.buttons import SectionSelector
 from softwarecenter.ui.gtk3.em import StockEms
+from softwarecenter.ui.gtk3.widgets.animatedimage import ProgressImage
 import softwarecenter.ui.gtk3.dialogs as dialogs
+
 
 LOG = logging.getLogger(__name__)
 
 
-class ViewSwitcherLogic(GObject.GObject):
-
-    ANIMATION_PATH = "/usr/share/icons/hicolor/24x24/status/softwarecenter-progress.png"
-
-    __gsignals__ = {'channels-refreshed':(GObject.SignalFlags.RUN_FIRST,
-                                          None,
-                                          ())}
-
-    def __init__(self, view_manager, datadir, db, cache, icons):
-        GObject.GObject.__init__(self)
-
-        self.view_manager = view_manager
-        self.icons = icons
-        self.datadir = datadir
-        self.db = db
-        self.cache = cache
-        self.distro = get_distro()
-
-        # pending transactions
-        self._pending = 0
-        
-        # Remember the previously selected permanent view
-        self._permanent_views = ViewPages.PERMANENT_VIEWS
-        self._previous_permanent_view = None
-
-        # emit a transactions-changed signal to ensure that we display any
-        # pending transactions
-        self.backend = get_install_backend()
-        self.backend.emit("transactions-changed", self.backend.pending_transactions)
-
-    def on_transactions_changed(self, backend, total_transactions):
-        LOG.debug("on_transactions_changed '%s'" % total_transactions)
-        pending = len(total_transactions)
-        if pending > 0:
-            # do pending animation stuff here
-            pass
-
-    def on_transaction_finished(self, backend, result):
-        if result.success:
-            self._update_channel_list_installed_view()
-            self.emit("channels-refreshed")
-
-    #~ @wait_for_apt_cache_ready
-    def _update_channel_list(self):
-        self._update_channel_list_available_view()
-        self._update_channel_list_installed_view()
-        self.emit("channels-refreshed")
-
-    def _update_channel_list_available_view(self):
-        # check what needs to be cleared. we need to append first, kill
-        # afterward because otherwise a row without children is collapsed
-        # by the view.
-        pass
-
-    def _update_channel_list_installed_view(self):
-        # see comments for _update_channel_list_available_view() method above
-        child = self.iter_children(self.installed_iter)
-        iters_to_kill = set()
-        while child:
-            iters_to_kill.add(child)
-            child = self.iter_next(child)
-        # iterate the channels and add as subnodes of the installed node
-        for channel in self.channel_manager.channels_installed_only:
-            # check for no installed items for each channel and do not
-            # append the channel item in this case
-            enquire = xapian.Enquire(self.db.xapiandb)
-            query = channel.query
-            enquire.set_query(query)
-            matches = enquire.get_mset(0, len(self.db))
-            # only check channels that have a small number of items
-            add_channel_item = True
-            if len(matches) < 200:
-                add_channel_item = False
-                for m in matches:
-                    doc = m.document
-                    pkgname = self.db.get_pkgname(doc)
-                    if (pkgname in self.cache and
-                        self.cache[pkgname].is_installed):
-                        add_channel_item = True
-                        break
-            if add_channel_item:
-                # append channels here
-                pass
-
-
-class ViewSwitcher(Gtk.HBox, ViewSwitcherLogic):
+class ViewSwitcher(Gtk.HBox):
 
     __gsignals__ = {
         "view-changed" : (GObject.SignalFlags.RUN_LAST,
@@ -134,67 +51,187 @@ class ViewSwitcher(Gtk.HBox, ViewSwitcherLogic):
     }
 
 
-    ICON_SIZE = Gtk.IconSize.BUTTON
-
+    ICON_SIZE = Gtk.IconSize.LARGE_TOOLBAR
 
     def __init__(self, view_manager, datadir, db, cache, icons):
+        # boring stuff
+        self.view_manager = view_manager
+        self.channel_manager = ChannelsManager(db)
+
+        # backend sig handlers ...
+        self.backend = get_install_backend()
+        self.backend.connect("transactions-changed",
+                             self.on_transaction_changed)
+        self.backend.connect("transaction-finished",
+                             self.on_transaction_finished)
+        self.backend.connect("channels-changed",
+                             self.on_channels_changed)
+
+        # widgetry
         Gtk.ButtonBox.__init__(self)
         self.set_orientation(Gtk.Orientation.HORIZONTAL)
         self.set_spacing(StockEms.XLARGE)
 
-        ViewSwitcherLogic.__init__(self, view_manager, datadir, db, cache, icons)
-
         # Gui stuff
-        self.view_buttons = []
+        self.view_buttons = {}
+        self._handlers = []
+        self._prev_item = None
 
+        # order is important here!
         # first, the availablepane items
-        self.view_buttons.append(self._make_button(
-                                    _("All Software"),
-                                    "softwarecenter"))
-
-        #~ self.available_button.set_image(available_icon)
+        available = self.append_section(ViewPages.AVAILABLE,
+                                        _("All Software"),
+                                        "softwarecenter",
+                                        True)
+        available.set_build_func(self.on_get_available_channels)
 
         # the installedpane items
-        self.view_buttons.append(self._make_button(
-                                    _("Installed"),
-                                    "computer"))
-
-        # the channelpane 
-        #~ self.channel_manager = ChannelsManager(db, icons)
-        # do initial channel list update
-        #~ self._update_channel_list()
+        installed = self.append_section(ViewPages.INSTALLED,
+                                        _("Installed"),
+                                        "computer",
+                                        True)
+        installed.set_build_func(self.on_get_installed_channels)
 
         # the historypane item
-        self.view_buttons.append(self._make_button(
-                                    _("History"),
-                                    "document-open-recent"))
+        history =  self.append_section(ViewPages.HISTORY,
+                                       _("History"),
+                                       "document-open-recent")
 
         # the pendingpane
-        self.view_buttons.append(self._make_button(
-                                    _("Progress"),
-                                    "gtk-execute"))
-
-        # order is important here, should match button order/length
-        view_ids = (ViewPages.AVAILABLE, ViewPages.INSTALLED,
-                    ViewPages.HISTORY, ViewPages.PENDING)
-
-        for view_id, btn in zip(view_ids, self.view_buttons):
-            self.pack_start(btn, False, False, 0)
-            btn.connect('clicked', self.do_view_switch, view_id)
-            btn.show()
+        pending = self.append_section(ViewPages.PENDING,
+                                      _("Progress"),
+                                      ProgressImage())
 
         # set sensible atk name
         atk_desc = self.get_accessible()
         atk_desc.set_name(_("Software sources"))
 
-    def _make_button(self, label, icon_name):
-        t = CategoryTile(label, icon_name, self.ICON_SIZE)
-        t.set_name("channel-selector")
-        t.set_size_request(-1, -1)
-        return t
+    def on_transaction_changed(self, backend, total_transactions):
+        LOG.debug("on_transactions_changed '%s'" % total_transactions)
+        pending = len(total_transactions)
+        self.notify_icon_of_pending_count(pending)
+        if pending > 0:
+            self.start_icon_animation()
+        else:
+            self.stop_icon_animation()
+        return
 
-    def do_view_switch(self, button, view_id):
+    def start_icon_animation(self):
+        # the pending button ProgressImage is special, see:
+        # softwarecenter/ui/gtk3/widgets/animatedimage.py
+        self.view_buttons[ViewPages.PENDING].image.start()
+
+    def stop_icon_animation(self):
+        # the pending button ProgressImage is special, see:
+        # softwarecenter/ui/gtk3/widgets/animatedimage.py
+        self.view_buttons[ViewPages.PENDING].image.stop()
+
+    def notify_icon_of_pending_count(self, count):
+        image = self.view_buttons[ViewPages.PENDING].image
+        image.set_transaction_count(count)
+
+    def on_transaction_finished(self, backend, result):
+        if result.success: self.on_channels_changed()
+        return
+
+    def append_section(self, view_id, label, icon, has_channel_sel=False):
+        btn = SectionSelector(label, icon, self.ICON_SIZE,
+                              has_channel_sel)
+        self.view_buttons[view_id] = btn
+        self.pack_start(btn, False, False, 0)
+        btn.show()
+        btn.connect('clicked', self.on_view_switch, view_id)
+        return btn
+
+    def on_view_switch(self, button, view_id):
+        #~ pane = self.view_manager.get_view_widget(view_id)
+        #~ pane.state.reset()
         self.view_manager.set_active_view(view_id)
+        return
+
+    def on_get_available_channels(self, popup):
+        return self.build_channel_list(popup, ViewPages.AVAILABLE)
+
+    def on_get_installed_channels(self, popup):
+        return self.build_channel_list(popup, ViewPages.INSTALLED)
+
+    def on_channels_changed(self):
+        for view_id, btn in self.view_buttons.iteritems():
+            if not btn.has_channel_sel: continue
+            # setting popup to None will cause a rebuild of the popup
+            # menu the next time the selector is clicked
+            btn.popup = None
+        return
+
+    def build_channel_list(self, popup, view_id):
+        # clean up old signal handlers
+        for sig in self._handlers:
+            GObject.source_remove(sig)
+
+        if view_id == ViewPages.AVAILABLE:
+            channels = self.channel_manager.get_available_channels()
+        elif view_id == ViewPages.INSTALLED:
+            channels = self.channel_manager.get_installed_channels()
+        else:
+            channels = self.channel_manager.channels
+
+        for i, channel in enumerate(channels):
+            item = Gtk.CheckMenuItem()
+            item.set_draw_as_radio(True)
+
+            label = Gtk.Label.new(channel.display_name)
+            image = Gtk.Image.new_from_icon_name(channel.icon, Gtk.IconSize.MENU)
+
+            box = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, StockEms.MEDIUM)
+            box.pack_start(image, False, False, 0)
+            box.pack_start(label, False, False, 0)
+
+            item.add(box)
+            item.show_all()
+
+            self._handlers.append(
+                item.connect(
+                    "button-release-event",
+                    self.on_channel_selected,
+                    channel,
+                    view_id
+                )
+            )
+            popup.attach(item, 0, 1, i, i+1)
+
+        if self.view_manager.is_active_view(view_id):
+            first = popup.get_children()[0]
+            first.set_property("active", True)
+            self._prev_item = first
+        return
+
+    def on_channel_selected(self, item, event, channel, view_id):
+
+        if self._prev_item is item:
+            parent = item.get_parent()
+            parent.hide()
+            return True
+
+        if self._prev_item is not None:
+            self._prev_item.set_property("active", False)
+
+        self._prev_item = item
+
+        # set active pane
+        vm = self.view_manager
+        pane = vm.set_active_view(view_id)
+
+        # configure DisplayState
+        state = pane.state.copy()
+        state.channel = channel
+
+        # request page change
+        if channel.origin == "all":
+            page = pane.Pages.HOME
+        else:
+            page = pane.Pages.LIST
+
+        GObject.idle_add(vm.display_page, pane, page, state)
         return
 
 

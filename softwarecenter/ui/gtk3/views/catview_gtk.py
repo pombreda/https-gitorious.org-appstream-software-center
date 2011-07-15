@@ -179,7 +179,6 @@ class LobbyViewGtk(CategoriesViewGtk):
             if 'carousel-only' in cat.flags: continue
 
             tile = CategoryTile(cat.name, cat.iconname)
-            tile.set_name("tile")
             tile.connect('clicked', self._on_category_clicked, cat)
             self.departments.add_child(tile)
         return
@@ -256,7 +255,6 @@ class SubCategoryViewGtk(CategoriesViewGtk):
 
             if len(enquire.get_mset(0,1)):
                 tile = CategoryTile(cat.name, cat.iconname)
-                tile.set_name("tile")
                 tile.connect('clicked', self._on_category_clicked, cat)
                 self.departments.add_child(tile)
 
@@ -274,7 +272,6 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         all_cat = Category("All", _("All"), "category-show-all", root_category.query)
         name = GObject.markup_escape_text('%s %s' % (_("All"), num_items))
         tile = CategoryTile(name, "category-show-all")
-        tile.set_name("tile")
         tile.connect('clicked', self._on_category_clicked, all_cat)
         self.departments.add_child(tile)
         return

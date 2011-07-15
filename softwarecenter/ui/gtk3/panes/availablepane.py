@@ -40,26 +40,29 @@ from softwarecenter.distro import get_distro
 from softwarecenter.ui.gtk3.views.appview import AppViewFilter
 from softwarecenter.ui.gtk3.views.catview_gtk import (LobbyViewGtk,
                                                       SubCategoryViewGtk)
-from softwarepane import SoftwarePane, DefaultPages
+from softwarepane import SoftwarePane
 from softwarecenter.ui.gtk3.session.viewmanager import get_viewmanager
 from softwarecenter.db.categories import Category, CategoriesParser
 
 LOG = logging.getLogger(__name__)
 
 
-class AvailablePages(DefaultPages):
-    # notebook pages
-    (LOBBY,
-     SUBCATEGORY,
-     LIST,
-     DETAILS,
-     PURCHASE) = range(5)
-
-
 class AvailablePane(SoftwarePane):
     """Widget that represents the available panel in software-center
        It contains a search entry and navigation buttons
     """
+
+    class Pages(SoftwarePane.Pages):
+        # page names, useful for debuggin
+        NAMES = ('lobby', 'subcategory', 'list', 'details', 'purchase')
+        # actual page id's
+        (LOBBY,
+         SUBCATEGORY,
+         LIST,
+         DETAILS,
+         PURCHASE) = range(5)
+        # the default page
+        HOME = LOBBY
 
     __gsignals__ = {'available-pane-created':(GObject.SignalFlags.RUN_FIRST,
                                               None,
@@ -93,9 +96,10 @@ class AvailablePane(SoftwarePane):
         self.spinner_view.set_text(_('Loading Categories'))
         self.spinner_view.start()
         self.spinner_view.show()
-        self.spinner_notebook.set_current_page(AvailablePages.SPINNER)
+        self.spinner_notebook.set_current_page(AvailablePane.Pages.SPINNER)
         window = self.get_window()
-        window.set_cursor(self.busy_cursor)
+        if window is not None:
+            window.set_cursor(self.busy_cursor)
 
         while Gtk.events_pending():
             Gtk.main_iteration()
@@ -162,33 +166,35 @@ class AvailablePane(SoftwarePane):
         self.emit("available-pane-created")
         self.show_all()
         self.spinner_view.stop()
-        self.spinner_notebook.set_current_page(AvailablePages.APPVIEW)
+        self.spinner_notebook.set_current_page(AvailablePane.Pages.APPVIEW)
 
         vm = get_viewmanager()
         vm.display_page(
-            self, AvailablePages.LOBBY,
+            self, AvailablePane.Pages.LOBBY,
             self.state, self.display_lobby_page)
 
-        window = self.get_window()
-        window.set_cursor(None)
-        self.spinner_view.set_text()
+        if window is not None:
+            window.set_cursor(None)
+        self.spinner_view.set_text() 
         self.view_initialized = True
 
     def get_query(self):
         """helper that gets the query for the current category/search mode"""
         # NoDisplay is a specal case
-        print "GetQuery:", self.state
         if self._in_no_display_category():
             return xapian.Query()
         # get current sub-category (or category, but sub-category wins)
-        cat_query = None
-        if self.state.subcategory:
-            cat_query = self.state.subcategory.query
+        query = None
+
+        if self.state.channel and self.state.channel.query:
+            query = self.state.channel.query
+        elif self.state.subcategory:
+            query = self.state.subcategory.query
         elif self.state.category:
-            cat_query = self.state.category.query
-        # mix category with the search terms and return query
+            query = self.state.category.query
+        # mix channel/category with the search terms and return query
         return self.db.get_query_list_from_search_entry(
-                            self.state.search_term, cat_query)
+                            self.state.search_term, query)
 
     def _in_no_display_category(self):
         """return True if we are in a category with NoDisplay set in the XML"""
@@ -200,8 +206,8 @@ class AvailablePane(SoftwarePane):
     def _show_hide_subcategories(self, show_category_applist=False):
         # check if have subcategories and are not in a subcategory
         # view - if so, show it
-        if (self.notebook.get_current_page() == AvailablePages.LOBBY or
-            self.notebook.get_current_page() == AvailablePages.DETAILS):
+        if (self.notebook.get_current_page() == AvailablePane.Pages.LOBBY or
+            self.notebook.get_current_page() == AvailablePane.Pages.DETAILS):
             return
         if (not show_category_applist and
             self.state.category and
@@ -209,15 +215,15 @@ class AvailablePane(SoftwarePane):
             not (self.state.search_term or self.state.subcategory)):
             self.subcategories_view.set_subcategory(self.state.category,
                                                     num_items=len(self.app_view.get_model()))
-            self.notebook.set_current_page(AvailablePages.SUBCATEGORY)
+            self.notebook.set_current_page(AvailablePane.Pages.SUBCATEGORY)
         else:
-            self.notebook.set_current_page(AvailablePages.LIST)
+            self.notebook.set_current_page(AvailablePane.Pages.LIST)
 
     # status text woo
     def get_status_text(self):
         """return user readable status text suitable for a status bar"""
         # no status text in the details page
-        if (self.notebook.get_current_page() == AvailablePages.DETAILS or
+        if (self.notebook.get_current_page() == AvailablePane.Pages.DETAILS or
             self._in_no_display_category()):
             return ""
         return self._status_text
@@ -271,7 +277,7 @@ class AvailablePane(SoftwarePane):
         """
 
         # SPECIAL CASE: in category page show all items in the DB
-        if self.notebook.get_current_page() == AvailablePages.LOBBY:
+        if self.notebook.get_current_page() == AvailablePane.Pages.LOBBY:
             distro = get_distro()
             if self.state.filter.get_supported_only():
                 query = distro.get_supported_query()
@@ -313,7 +319,7 @@ class AvailablePane(SoftwarePane):
         if (appstore and
             self.state.search_term and
             ',' in self.state.search_term and
-            self.notebook.get_current_page() == AvailablePages.LIST):
+            self.notebook.get_current_page() == AvailablePane.Pages.LIST):
             appstore = self.app_view.get_model()
             installable = []
             for app in appstore.apps:
@@ -412,7 +418,8 @@ class AvailablePane(SoftwarePane):
         self.state.search_term = new_text
 
         vm = get_viewmanager()
-        vm.display_page(self, AvailablePages.LIST, self.state, self.display_search_page)
+        vm.display_page(self, AvailablePane.Pages.LIST, self.state,
+                        self.display_search_page)
 
     def on_db_reopen(self, db):
         " called when the database is reopened"
@@ -421,19 +428,19 @@ class AvailablePane(SoftwarePane):
         self.app_details_view.refresh_app()
 
     def get_callback_for_page(self, page, state):
-        if page == AvailablePages.LOBBY:
+        if page == AvailablePane.Pages.LOBBY:
             return self.display_lobby_page
 
-        elif page == AvailablePages.LIST:
+        elif page == AvailablePane.Pages.LIST:
             if state.search_term:
                 return self.display_search_page
             else:
                 return self.display_app_list_page
 
-        elif page == AvailablePages.SUBCATEGORY:
+        elif page == AvailablePane.Pages.SUBCATEGORY:
             return self.display_subcategory_page
 
-        elif page == AvailablePages.DETAILS:
+        elif page == AvailablePane.Pages.DETAILS:
             return self.display_details_page
 
         return self.display_lobby_page
@@ -450,7 +457,7 @@ class AvailablePane(SoftwarePane):
     def display_search_page(self, page, view_state):
         # we got the signal after we already switched to a details
         # page, ignore it
-        #~ if self.notebook.get_current_page() == AvailablePages.DETAILS:
+        #~ if self.notebook.get_current_page() == AvailablePane.Pages.DETAILS:
             #~ return
 
         new_text = view_state.search_term
@@ -465,7 +472,7 @@ class AvailablePane(SoftwarePane):
             vm = get_viewmanager()
             self.state.reset()
             vm.display_page(self,
-                           AvailablePages.LOBBY,
+                           AvailablePane.Pages.LOBBY,
                            self.state,
                            self.display_lobby_page)
             return False
@@ -473,7 +480,7 @@ class AvailablePane(SoftwarePane):
                 self.state.category.subcategories and not new_text):
             vm = get_viewmanager()
             vm.display_page(self,
-                           AvailablePages.SUBCATEGORY,
+                           AvailablePane.Pages.SUBCATEGORY,
                            self.state,
                            self.display_subcategory_page)
             return False
@@ -505,8 +512,7 @@ class AvailablePane(SoftwarePane):
         return True
 
     def display_app_list_page(self, page, view_state):
-        self.state.category = view_state.category
-
+        self.state = view_state
         category = self.state.category
         self.set_category(category)
 
@@ -537,7 +543,7 @@ class AvailablePane(SoftwarePane):
         return True
         
     def display_purchase(self):
-        self.notebook.set_current_page(AvailablePages.PURCHASE)
+        self.notebook.set_current_page(AvailablePane.Pages.PURCHASE)
         self.searchentry.hide()
         self.action_bar.clear()
         self.cat_view.stop_carousels()
@@ -545,7 +551,7 @@ class AvailablePane(SoftwarePane):
         
     def display_previous_purchases(self):
         self.nonapps_visible = NonAppVisibility.ALWAYS_VISIBLE
-        self.notebook.set_current_page(AvailablePages.LIST)
+        self.notebook.set_current_page(AvailablePane.Pages.LIST)
         # do not emit app-list-changed here, this is done async when
         # the new model is ready
         self.refresh_apps(query=self.previous_purchases_query)
@@ -560,7 +566,8 @@ class AvailablePane(SoftwarePane):
                 category.name, category))
 
         self.state.subcategory = category
-        page = AvailablePages.LIST
+        self.state.application = None
+        page = AvailablePane.Pages.LIST
 
         vm = get_viewmanager()
         vm.display_page(self, page, self.state, self.display_app_list_page)
@@ -571,13 +578,15 @@ class AvailablePane(SoftwarePane):
                 category.name, category))
 
         if category.subcategories:
-            page = AvailablePages.SUBCATEGORY
+            page = AvailablePane.Pages.SUBCATEGORY
             callback = self.display_subcategory_page
         else:
-            page = AvailablePages.LIST
+            page = AvailablePane.Pages.LIST
             callback = self.display_app_list_page
 
         self.state.category = category
+        self.state.subcategory = None
+        self.state.application = None
 
         vm = get_viewmanager()
         vm.display_page(self, page, self.state, callback)
@@ -597,7 +606,8 @@ class AvailablePane(SoftwarePane):
         LOG.debug("on_application_activated: '%s'" % app)
         self.state.application = app
         vm = get_viewmanager()
-        vm.display_page(self, AvailablePages.DETAILS, self.state, self.display_details_page)
+        vm.display_page(self, AvailablePane.Pages.DETAILS, self.state,
+                        self.display_details_page)
 
     def on_show_category_applist(self, widget):
         self._show_hide_subcategories(show_category_applist=True)
@@ -612,20 +622,19 @@ class AvailablePane(SoftwarePane):
         """ Return True if we are in the category page or if we display a
             sub-category page
         """
-        return (self.notebook.get_current_page() == AvailablePages.LOBBY or \
-                self.notebook.get_current_page() == AvailablePages.SUBCATEGORY)
+        return (self.notebook.get_current_page() == AvailablePane.Pages.LOBBY or \
+                self.notebook.get_current_page() == AvailablePane.Pages.SUBCATEGORY)
 
     def is_applist_view_showing(self):
         """Return True if we are in the applist view """
-        return self.notebook.get_current_page() == AvailablePages.LIST
+        return self.notebook.get_current_page() == AvailablePane.Pages.LIST
         
     def is_app_details_view_showing(self):
         """Return True if we are in the app_details view """
-        return self.notebook.get_current_page() == AvailablePages.DETAILS
+        return self.notebook.get_current_page() == AvailablePane.Pages.DETAILS
 
     def set_category(self, category):
         LOG.debug('set_category: %s' % category)
-        print category
         self.state.category = category
         # apply any category based filters
         if not self.state.filter:

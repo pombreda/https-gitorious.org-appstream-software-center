@@ -25,6 +25,8 @@ import xapian
 import threading
 import time
 
+from gettext import gettext as _
+
 from softwarecenter.enums import (Icons, SortMethods,
                                   XapianValues, NonAppVisibility,
                                   DEFAULT_SEARCH_LIMIT)
@@ -329,6 +331,19 @@ class CategoryRowReference:
         return
 
 
+class UncategorisedRowRef(CategoryRowReference):
+
+    def __init__(self, pkg_count, display_name=None):
+        if display_name is None:
+            display_name = _("Uncategorized")
+
+        CategoryRowReference.__init__(self,
+                                      "uncategorized",
+                                      display_name,
+                                      None, pkg_count)
+        return
+
+
 class AppPropertiesHelper(object):
     """ Baseclass that contains common functions for our
         liststore/treestore, only useful for subclassing
@@ -444,7 +459,7 @@ class AppGenericStore(AppPropertiesHelper):
     COL_ROW_DATA = 0
 
     # default icon size displayed in the treeview
-    ICON_SIZE = 24
+    ICON_SIZE = 32
 
     def __init__(self, db, cache, icons, icon_size, global_icon_cache):
         # the usual suspects
@@ -589,7 +604,7 @@ class AppListStore(Gtk.ListStore, AppGenericStore):
 
     def buffer_icons(self):
         def buffer_icons():
-            print "Buffering icons ..."
+            #~ print "Buffering icons ..."
             t0 = GObject.get_current_time()
             db = self.db.xapiandb
             for m in self.current_matches:
@@ -602,8 +617,8 @@ class AppListStore(Gtk.ListStore, AppGenericStore):
                     Gtk.main_iteration()
 
             #~ import sys
-            t_lapsed = round(GObject.get_current_time() - t0, 3)
-            print "Appstore buffered icons in %s seconds" % t_lapsed
+            #~ t_lapsed = round(GObject.get_current_time() - t0, 3)
+            #~ print "Appstore buffered icons in %s seconds" % t_lapsed
             #from softwarecenter.utils import get_nice_size
             #~ cache_size = get_nice_size(sys.getsizeof(_app_icon_cache))
             #~ print "Number of icons in cache: %s consuming: %sb" % (len(_app_icon_cache), cache_size)
@@ -639,6 +654,12 @@ class AppTreeStore(Gtk.TreeStore, AppGenericStore):
                                         cat.subcategories,
                                         len(documents))
 
+        it = self.append(None, (category,))
+        self.set_documents(it, documents)
+        return it
+
+    def set_nocategory_documents(self, documents, display_name=None):
+        category = UncategorisedRowRef(len(documents), display_name)
         it = self.append(None, (category,))
         self.set_documents(it, documents)
         return it
