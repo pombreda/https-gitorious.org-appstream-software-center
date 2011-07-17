@@ -7,10 +7,16 @@ import xapian
 from gettext import gettext as _
 
 from appview import AppViewFilter
-from softwarecenter.ui.gtk3.widgets.containers import FlowableGrid
-from softwarecenter.ui.gtk3.widgets.buttons import CategoryTile
+from softwarecenter.enums import NonAppVisibility
+from softwarecenter.ui.gtk3.models.appstore2 import AppEnquire, AppPropertiesHelper
+from softwarecenter.ui.gtk3.widgets.containers import *
+from softwarecenter.ui.gtk3.widgets.buttons import (CategoryLabel,
+                                                    CategoryTile,
+                                                    FeaturedTile)
+from softwarecenter.ui.gtk3.em import StockEms
 from softwarecenter.db.categories import (Category,
-                                          CategoriesParser, 
+                                          CategoriesParser,
+                                          get_category_by_name,
                                           categories_sorted_by_name)
 
 LOG_ALLOCATION = logging.getLogger("softwarecenter.ui.gtk.allocation")
@@ -39,6 +45,12 @@ class CategoriesViewGtk(Gtk.Viewport, CategoriesParser):
                                    None,
                                    (),)
         }
+
+    SPACING = PADDING = StockEms.SMALL
+
+    # art stuff
+    STIPPLE = "softwarecenter/ui/gtk3/art/stipple.png"
+    _asset_cache = {}
 
 
     def __init__(self, 
@@ -74,9 +86,8 @@ class CategoriesViewGtk(Gtk.Viewport, CategoriesParser):
         # setup base widgets
         # we have our own viewport so we know when the viewport grows/shrinks
         # setup widgets
+
         self.vbox = Gtk.VBox()
-        self.vbox.set_spacing(18)
-        self.vbox.set_border_width(20)
         self.add(self.vbox)
 
         # atk stuff
@@ -92,10 +103,29 @@ class CategoriesViewGtk(Gtk.Viewport, CategoriesParser):
         # more stuff
         self._poster_sigs = []
         self._allocation = None
+
+        self._cache_art_assets()
+        self.vbox.connect("draw", self.on_draw, self._asset_cache)
+        return
+
+    def _cache_art_assets(self):
+        import cairo
+
+        assets = self._asset_cache
+        # cache the bg pattern
+        surf = cairo.ImageSurface.create_from_png(self.STIPPLE)
+        ptrn = cairo.SurfacePattern(surf)
+        ptrn.set_extend(cairo.EXTEND_REPEAT)
+        assets["stipple"] = ptrn
         return
 
     def build(self, desktopdir):
         pass
+
+    def on_draw(self, widget, cr, assets):
+        cr.set_source(assets["stipple"])
+        cr.paint_with_alpha(0.5)
+        return
 
     #~ def _on_app_clicked(self, btn):
         #~ app = btn.app
@@ -154,33 +184,76 @@ class LobbyViewGtk(CategoriesViewGtk):
         # these methods add sections to the page
         # changing order of methods changes order that they appear in the page
         #~ self._append_recommendations()
+        self._append_banner_ads()
+
+        self.top_hbox = Gtk.HBox(spacing=StockEms.SMALL)
+        top_hbox_alignment = Gtk.Alignment()
+        top_hbox_alignment.set_padding(self.PADDING, self.PADDING,
+                                       self.PADDING, self.PADDING)
+        top_hbox_alignment.add(self.top_hbox)
+        self.vbox.pack_start(top_hbox_alignment, False, False, 0)
+
+
         self._append_departments()
-        #~ self._append_featured()
+        self._append_featured()
         #~ self._append_whatsnew()
         return
 
-    def _append_departments(self):
-#        # set the departments section to use the label markup we have just defined
-        label = Gtk.Label()
-        label.set_markup("<b><big>%s</big></b>" % self.header)
-        label.set_alignment(0, 0.5)
-        self.vbox.pack_start(label, False, False, 0)
+    def _append_banner_ads(self):
+        placeholder = Gtk.Label.new("Placeholder Banner Ad")
+        placeholder.set_size_request(-1, 200)
+        placeholder.set_name("placeholder-banner-ad")
+        self.vbox.pack_start(placeholder, False, False, 0)
+        return
 
-        self.departments = FlowableGrid()
-        self.departments.set_row_spacing(6)
-        self.departments.set_column_spacing(6)
-        self.vbox.pack_start(self.departments, True, True, 0)
+    def _append_departments(self):
+        # set the departments section to use the label markup we have just defined
+        cat_vbox = FramedBox(Gtk.Orientation.VERTICAL)
+        self.top_hbox.pack_start(cat_vbox, False, False, 0)
 
         # sort Category.name's alphabetically
         sorted_cats = categories_sorted_by_name(self.categories)
-        #layout = self.create_pango_layout('')
 
+        mrkup = "<small>%s</small>"
         for cat in sorted_cats:
             if 'carousel-only' in cat.flags: continue
+            category_name = mrkup % GObject.markup_escape_text(cat.name)
+            label = CategoryLabel(category_name, None)
+            label.label.set_alignment(0.0, 0.5)
+            label.label.set_use_markup(True)
+            label.connect('clicked', self._on_category_clicked, cat)
+            cat_vbox.pack_start(label, False, False, 0)
+        return
 
-            tile = CategoryTile(cat.name, cat.iconname)
-            tile.connect('clicked', self._on_category_clicked, cat)
-            self.departments.add_child(tile)
+    def _append_featured(self):
+        #~ featured_cat = get_category_by_name(self.categories, 
+                                            #~ u"What\u2019s New")  # unstranslated name
+        featured_cat = get_category_by_name(self.categories, 
+                                            u"Featured")  # unstranslated name
+
+        enq = AppEnquire(self.cache, self.db)
+        app_filter = AppViewFilter(self.db, self.cache)
+        enq.set_query(featured_cat.query,
+                      limit=12,
+                      filter=app_filter,
+                      nonapps_visible=NonAppVisibility.ALWAYS_VISIBLE,
+                      nonblocking_load=False)
+
+        self.featured = FlowableGrid()
+        self.featured.col_spacing = 0
+        self.featured.row_spacing = StockEms.SMALL
+        frame = Frame()
+        frame.add(self.featured)
+        self.top_hbox.pack_start(frame, True, True, 0)
+
+        helper = AppPropertiesHelper(self.db, self.cache, self.icons)
+        for doc in enq.get_documents():
+            name = helper.get_appname(doc)
+            icon_pb = helper.get_icon_at_size(doc, 48, 48)
+            stats = helper.get_review_stats(doc)
+            tile = FeaturedTile(name, icon_pb, stats)
+            tile.connect('clicked', self._on_category_clicked, doc)
+            self.featured.add_child(tile)
         return
 
     def build(self, desktopdir):
@@ -236,9 +309,12 @@ class SubCategoryViewGtk(CategoriesViewGtk):
             self.departments = FlowableGrid()
             self.departments.set_row_spacing(6)
             self.departments.set_column_spacing(6)
+            frame = Frame()
+            frame.set(0.5, 0.0, 1.0, 1.0)
+            frame.add(self.departments)
 
             # append the departments section to the page
-            self.vbox.pack_start(self.departments, True, True, 0)
+            self.vbox.pack_start(frame, True, True, 0)
         else:
             self.departments.remove_all()
 

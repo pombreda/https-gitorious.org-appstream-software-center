@@ -1,4 +1,7 @@
-from gi.repository import Gtk
+from gi.repository import Gtk, Gdk, GdkPixbuf
+
+from softwarecenter.ui.gtk3.em import StockEms
+from softwarecenter.ui.gtk3.drawing import rounded_rect
 
 
 class FlowableGrid(Gtk.Fixed):
@@ -122,6 +125,159 @@ class FlowableGrid(Gtk.Fixed):
         for child in self.get_children():
             self.remove(child)
         return
+
+
+_frame_asset_cache = {}
+class Frame(Gtk.Alignment):
+
+    BORDER_IMAGE = "softwarecenter/ui/gtk3/art/frame-border-image.png"
+
+    def __init__(self, padding=4, border_radius=4):
+        Gtk.Alignment.__init__(self)
+        self.set_padding(padding, padding, padding, padding)
+        assets = self._cache_art_assets()
+        self.connect("draw", self.on_draw,
+                     border_radius, assets)
+        return
+
+    def _cache_art_assets(self):
+        import cairo
+        global _frame_asset_cache
+        assets = _frame_asset_cache
+        if assets: return assets
+
+        def cache_corner_surface(tag, xo, yo):
+            sw = sh = cnr_slice
+            surf = cairo.ImageSurface(cairo.FORMAT_ARGB32, sw, sh)
+            cr = cairo.Context(surf)
+            cr.set_source_surface(border_image, xo, yo)
+            cr.paint()
+            assets[tag] = surf
+            del cr
+            return
+
+        def cache_edge_pattern(tag, xo, yo, sw, sh):
+            surf = cairo.ImageSurface(cairo.FORMAT_ARGB32, sw, sh)
+            cr = cairo.Context(surf)
+            cr.set_source_surface(border_image, xo, yo)
+            cr.paint()
+            ptrn = cairo.SurfacePattern(surf)
+            ptrn.set_extend(cairo.EXTEND_PAD)
+            assets[tag] = ptrn
+            del cr
+            return
+
+        # the basic stuff
+        border_image = cairo.ImageSurface.create_from_png(self.BORDER_IMAGE)
+        assets["corner-slice"] = cnr_slice = 10
+        w = border_image.get_width()
+        h = border_image.get_height()
+
+        # caching ....
+        # north-west corner of border image
+        cache_corner_surface("nw", 0, 0)
+        # northern edge pattern
+        cache_edge_pattern("n",
+                           -cnr_slice, 0,
+                           w-2*cnr_slice, cnr_slice)
+        # north-east corner
+        cache_corner_surface("ne", -(w-cnr_slice), 0)
+        # eastern edge pattern
+        cache_edge_pattern("e",
+                           -(w-cnr_slice), -cnr_slice,
+                           cnr_slice, h-2*cnr_slice)
+        # south-east corner
+        cache_corner_surface("se", -(w-cnr_slice), -(h-cnr_slice))
+        # southern edge pattern
+        cache_edge_pattern("s",
+                           -cnr_slice, -(h-cnr_slice),
+                           w-2*cnr_slice, cnr_slice)
+        # south-west corner
+        cache_corner_surface("sw", 0, -(h-cnr_slice))
+        # western edge pattern
+        cache_edge_pattern("w", 0, -cnr_slice, cnr_slice, h-2*cnr_slice)
+
+        # all done!
+        return assets
+
+    def on_draw(self, widget, cr, border_radius, assets):
+        a = widget.get_allocation()
+        width = a.width
+        height = a.height
+        cnr_slice = assets["corner-slice"]
+
+        # paint north-west corner
+        cr.set_source_surface(assets["nw"], 0, 0)
+        cr.paint()
+
+        # paint north length
+        cr.save()
+        cr.set_source(assets["n"])
+        cr.rectangle(cnr_slice, 0, width-2*cnr_slice, cnr_slice)
+        cr.clip()
+        cr.paint()
+        cr.restore()
+
+        # paint north-east corner
+        cr.set_source_surface(assets["ne"], width-cnr_slice, 0)
+        cr.paint()
+
+        # paint east length
+        cr.save()
+        cr.translate(width-cnr_slice, cnr_slice)
+        cr.set_source(assets["e"])
+        cr.rectangle(0, 0, cnr_slice, height-2*cnr_slice)
+        cr.clip()
+        cr.paint()
+        cr.restore()
+
+        # paint south-east corner
+        cr.set_source_surface(assets["se"], width-cnr_slice, height-cnr_slice)
+        cr.paint()
+
+        # paint south length
+        cr.save()
+        cr.translate(cnr_slice, height-cnr_slice)
+        cr.set_source(assets["s"])
+        cr.rectangle(0, 0, width-2*cnr_slice, cnr_slice)
+        cr.clip()
+        cr.paint()
+        cr.restore()
+
+        # paint south-west corner
+        cr.set_source_surface(assets["sw"], 0, height-cnr_slice)
+        cr.paint()
+
+        # paint west length
+        cr.save()
+        cr.translate(0, cnr_slice)
+        cr.set_source(assets["w"])
+        cr.rectangle(0, 0, cnr_slice, height-2*cnr_slice)
+        cr.clip()
+        cr.paint()
+        cr.restore()
+
+        # fill interior
+        rounded_rect(cr, 4, 3, a.width-8, a.height-7, border_radius)
+        cr.set_source_rgba(1,1,1,0.75)
+        cr.fill()
+        return
+
+
+class FramedBox(Frame):
+
+    def __init__(self, orientation=Gtk.Orientation.VERTICAL, spacing=0, padding=4):
+        Frame.__init__(self, padding)
+        self.box = Gtk.Box.new(orientation, spacing)
+        self.add(self.box)
+        return
+
+    def pack_start(self, *args, **kwargs):
+        return self.box.pack_start(*args, **kwargs)
+
+    def pack_end(self, *args, **kwargs):
+        return self.box.pack_end(*args, **kwargs)
+
 
 # this is used in the automatic tests
 def get_test_container_window():

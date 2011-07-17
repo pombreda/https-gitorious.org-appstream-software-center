@@ -1,15 +1,7 @@
 #view {
-
     border-width: 0;
-    background-color: #d7d0d4;      /* light aubergine */
-/*
-
-    background-image: -gtk-gradient(linear,
-                                    0 0, 0 0.4,
-                                    from (#B2CFE7),
-                                    to (#FFFFFF));
-*/
-
+    background-color: #DED7DB;
+    /*  background-image: url('../art/stipple.png'); */
 }
 
 
@@ -23,11 +15,17 @@
     color: #fff;        /* white */
 }
 
+#featured-tile,
 #category-tile {
     border-width: 0;
-    border-radius: 20;
+    border-radius: 4;
+}
+
+#placeholder-banner-ad {
+    color: #FF3100;
 }
 
 GtkEntry {
     border-radius: 7;
 }
+

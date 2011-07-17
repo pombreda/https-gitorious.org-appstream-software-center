@@ -344,7 +344,7 @@ class UncategorisedRowRef(CategoryRowReference):
         return
 
 
-class AppPropertiesHelper(object):
+class _AppPropertiesHelper(object):
     """ Baseclass that contains common functions for our
         liststore/treestore, only useful for subclassing
     """
@@ -395,6 +395,16 @@ class AppPropertiesHelper(object):
         pkgname = self.db.get_pkgname(doc)
         # TODO: requests
         return Application(appname, pkgname, "")
+
+    def get_appname(self, doc):
+        appname = doc.get_value(XapianValues.APPNAME)
+        if not appname:
+            appname = self.db.get_summary(doc)
+            summary = self.get_pkgname(doc)
+        else:
+            if self.db.is_appname_duplicated(appname):
+                appname = "%s (%s)" % (appname, self.get_pkgname(doc))
+        return appname
 
     def get_markup(self, doc):
         appname = doc.get_value(XapianValues.APPNAME)
@@ -450,7 +460,39 @@ class AppPropertiesHelper(object):
         return -1
 
 
-class AppGenericStore(AppPropertiesHelper):
+class AppPropertiesHelper(_AppPropertiesHelper):
+
+    def __init__(self, db, cache, icons, icon_size=48, global_icon_cache=False):
+        self.db = db
+        self.cache = cache
+
+        # reviews stats loader
+        self.review_loader = get_review_loader(cache)
+
+        # icon jazz
+        self.icons = icons
+        self.icon_size = icon_size
+        # cache the 'missing icon' used in the treeview for apps without an icon
+        self._missing_icon = icons.load_icon(Icons.MISSING_APP,
+                                             icon_size, 0)
+
+        if global_icon_cache:
+            self.icon_cache = _app_icon_cache
+        else:
+            self.icon_cache = {}
+        return
+
+    def get_icon_at_size(self, doc, width, height):
+        pixbuf = self.get_icon(doc)
+        pixbuf = pixbuf.scale_simple(width, height,
+                                     GdkPixbuf.InterpType.BILINEAR)
+        return pixbuf
+
+    def get_transaction_progress(self, doc):
+        raise NotImplemented
+
+
+class AppGenericStore(_AppPropertiesHelper):
 
     # column types
     COL_TYPES = (GObject.TYPE_PYOBJECT,)

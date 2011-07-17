@@ -145,10 +145,10 @@ class PendingSymbolicIcon(SymbolicIcon, RotationAboutCenterAnimation):
         cr.set_source_rgba(0,0,0,0.75)
         cr.fill()
         # paint outline
-        rounded_rect(cr, x+0.5, y+0.5, w-1, h-1, self.BUBBLE_BORDER_RADIUS)
-        cr.set_source_rgba(1,1,1, 0.85)
-        cr.set_line_width(1)
-        cr.stroke()
+        #~ rounded_rect(cr, x+0.5, y+0.5, w-1, h-1, self.BUBBLE_BORDER_RADIUS)
+        #~ cr.set_source_rgba(1,1,1, 0.85)
+        #~ cr.set_line_width(1)
+        #~ cr.stroke()
         # paint layout
         Gtk.render_layout(widget.get_style_context(), cr,
                           x + self.BUBBLE_XPADDING,

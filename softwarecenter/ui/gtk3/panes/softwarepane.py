@@ -144,6 +144,7 @@ class SoftwarePane(Gtk.VBox, BasePane):
     }
     PADDING = 6
 
+
     def __init__(self, cache, db, distro, icons, datadir, show_ratings=True, store=None):
         Gtk.VBox.__init__(self)
         BasePane.__init__(self)
@@ -245,7 +246,7 @@ class SoftwarePane(Gtk.VBox, BasePane):
         self.purchase_view.connect("purchase-cancelled-by-user", self.on_purchase_cancelled_by_user)
         # when the cache changes, refresh the app list
         self.cache.connect("cache-ready", self.on_cache_ready)
-        
+
         # aptdaemon
         self.backend.connect("transaction-started", self.on_transaction_started)
         self.backend.connect("transaction-finished", self.on_transaction_finished)
