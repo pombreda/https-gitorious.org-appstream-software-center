@@ -96,17 +96,18 @@ class FeaturedTile(Tile):
         self.category.set_alignment(0.0, 0.0)
         self.content_right.pack_start(self.category, False, False, 4)
 
-        self.stars = Star()
-        self.stars.set_name("featured-star")
-        self.stars.render_outline = True
-        self.stars.set_rating(review_stats.ratings_average)
-        self.content_right.pack_start(self.stars, False, False, 0)
+        if review_stats is not None:
+            self.stars = Star()
+            self.stars.set_name("featured-star")
+            self.stars.render_outline = True
+            self.stars.set_rating(review_stats.ratings_average)
+            self.content_right.pack_start(self.stars, False, False, 0)
 
-        self.n_ratings = Gtk.Label.new('<span font_desc="Italic %i" color="%s">%i %s</span>' %
-                                       (em(0.45), '#8C8C8C', review_stats.ratings_total, 'Reviews'))
-        self.n_ratings.set_use_markup(True)
-        self.n_ratings.set_alignment(0.0, 0.0)
-        self.content_right.pack_start(self.n_ratings, False, False, 0)
+            self.n_ratings = Gtk.Label.new('<span font_desc="Italic %i" color="%s">%i %s</span>' %
+                                           (em(0.45), '#8C8C8C', review_stats.ratings_total, 'Reviews'))
+            self.n_ratings.set_use_markup(True)
+            self.n_ratings.set_alignment(0.0, 0.0)
+            self.content_right.pack_start(self.n_ratings, False, False, 0)
 
         self.price = Gtk.Label.new('<span color="%s"><b>%s</b></span>' %
                                    ('#757575', 'FREE'))

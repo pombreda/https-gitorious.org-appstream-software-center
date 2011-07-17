@@ -103,9 +103,9 @@ class RotationAboutCenterAnimation(object):
 
 class PendingSymbolicIcon(SymbolicIcon, RotationAboutCenterAnimation):
 
-    BUBBLE_BORDER_RADIUS = 5
-    BUBBLE_XPADDING = 4
-    BUBBLE_YPADDING = 0
+    BUBBLE_BORDER_RADIUS = 4
+    BUBBLE_XPADDING = 5
+    BUBBLE_YPADDING = 2
     BUBBLE_FONT_DESC = "Bold 8.5"
 
     def __init__(self, name):

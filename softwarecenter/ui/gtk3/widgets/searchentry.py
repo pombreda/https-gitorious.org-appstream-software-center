@@ -43,7 +43,7 @@ class SearchEntry(Gtk.Entry):
         Creates an enhanced IconEntry that triggers a timeout when typing
         """
         Gtk.Entry.__init__(self)
-        self.set_size_request(em(16), em(1.75))
+        self.set_size_request(em(16), em(1.7))
         self.set_placeholder_text(self.PLACEHOLDER_TEXT)
 
         if not icon_theme:

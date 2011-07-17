@@ -122,7 +122,7 @@ class FlowableGrid(Gtk.Fixed):
                 # paint checker if need be
                 if not (i + j%2)%2:
                     cr.save()
-                    cr.set_source_rgb(0.976470588, 0.956862745, 0.960784314) #F9F4F5
+                    cr.set_source_rgba(0.976470588, 0.956862745, 0.960784314, 0.85) #F9F4F5
                     cr.rectangle(i*cell_w, j*cell_h, cell_w, cell_h)
                     cr.fill()
                     cr.restore()

@@ -204,7 +204,7 @@ class LobbyViewGtk(CategoriesViewGtk):
 
     def _append_banner_ads(self):
         placeholder = Gtk.Label.new("Banner Ad (Placeholder)")
-        placeholder.set_size_request(-1, 200)
+        placeholder.set_size_request(-1, 170)
         placeholder.set_name("placeholder")
         self.vbox.pack_start(placeholder, False, False, 0)
         return
@@ -229,10 +229,8 @@ class LobbyViewGtk(CategoriesViewGtk):
         return
 
     def _append_featured(self):
-        #~ featured_cat = get_category_by_name(self.categories, 
-                                            #~ u"What\u2019s New")  # unstranslated name
         featured_cat = get_category_by_name(self.categories, 
-                                            u"Featured")  # unstranslated name
+                                            u"What\u2019s New")  # unstranslated name
 
         enq = AppEnquire(self.cache, self.db)
         app_filter = AppViewFilter(self.db, self.cache)
@@ -260,13 +258,32 @@ class LobbyViewGtk(CategoriesViewGtk):
         return
 
     def _append_recommendations(self):
-        label = Gtk.Label("Recommendations")
-        label.set_size_request(-1, 200)
-        label.set_name("placeholder")
+        featured_cat = get_category_by_name(self.categories, 
+                                            u"Featured")  # unstranslated name
+
+        enq = AppEnquire(self.cache, self.db)
+        app_filter = AppViewFilter(self.db, self.cache)
+        enq.set_query(featured_cat.query,
+                      limit=6,
+                      filter=app_filter,
+                      nonapps_visible=NonAppVisibility.ALWAYS_VISIBLE,
+                      nonblocking_load=False)
+
+        self.featured = FlowableGrid()
+        #~ self.featured.row_spacing = StockEms.SMALL
         frame = Frame()
-        frame.add(label)
-        frame.set_corner_label("Hot!")
+        frame.set_corner_label(_("Hot"))
+        frame.add(self.featured)
         self.right_column.pack_start(frame, True, True, 0)
+
+        helper = AppPropertiesHelper(self.db, self.cache, self.icons)
+        for doc in enq.get_documents():
+            name = helper.get_appname(doc)
+            icon_pb = helper.get_icon_at_size(doc, 48, 48)
+            stats = helper.get_review_stats(doc)
+            tile = FeaturedTile(name, icon_pb, stats)
+            tile.connect('clicked', self._on_category_clicked, doc)
+            self.featured.add_child(tile)
         return
 
     def build(self, desktopdir):
