@@ -1,4 +1,4 @@
-from gi.repository import Gtk, Gdk, GdkPixbuf
+from gi.repository import Gtk, Gdk, GdkPixbuf, Pango
 
 from math import pi
 
@@ -142,6 +142,8 @@ class Frame(Gtk.Alignment):
         # corner lable jazz
         self.show_corner_label = False
         self.layout = self.create_pango_layout("")
+        self.layout.set_width(40960)
+        self.layout.set_ellipsize(Pango.EllipsizeMode.END)
 
         assets = self._cache_art_assets()
         self.connect("draw", self.on_draw, border_radius, assets)
@@ -278,15 +280,22 @@ class Frame(Gtk.Alignment):
         w = surf.get_width()
         h = surf.get_height()
         cr.reset_clip()
+        # the following arbitrary adjustments are specific to the
+        # corner-label.png image...
+
+        # alter the to allow drawing outside of the widget bounds
         cr.rectangle(-4, -4, w+4, h+4)
         cr.clip()
         cr.set_source_surface(surf, -2, -3)
         cr.paint()
-
+        # render label
         ex = layout.get_pixel_extents()[1]
-        cr.translate(w/2-12, h/2-12)
+        # transalate to the visual center of the corner-label
+        cr.translate(18, 18)
+        # rotate counter-clockwise
         cr.rotate(-pi*0.25)
-        Gtk.render_layout(widget.get_style_context(), cr, -ex.width/2, -ex.height/2, layout)
+        Gtk.render_layout(widget.get_style_context(),
+                          cr, -ex.width/2, -ex.height/2, layout)
         return
 
     def set_show_corner_label(self, show_label):

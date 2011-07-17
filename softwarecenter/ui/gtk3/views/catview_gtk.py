@@ -200,7 +200,7 @@ class LobbyViewGtk(CategoriesViewGtk):
         return
 
     def _append_banner_ads(self):
-        placeholder = Gtk.Label.new("Placeholder Banner Ad")
+        placeholder = Gtk.Label.new("Banner Ad (Placeholder)")
         placeholder.set_size_request(-1, 200)
         placeholder.set_name("placeholder-banner-ad")
         self.vbox.pack_start(placeholder, False, False, 0)
