@@ -42,13 +42,13 @@ class Tile(Gtk.Button):
         return
 
 
-class CategoryLabel(Tile):
+class LabelTile(Tile):
 
     MIN_WIDTH = -1
 
     def __init__(self, label, iconname, icon_size=Gtk.IconSize.MENU):
         Tile.__init__(self, label, iconname, icon_size)
-        self.set_name("category-tile")
+        self.set_name("label-tile")
         self.label.set_line_wrap(True)
         return
 

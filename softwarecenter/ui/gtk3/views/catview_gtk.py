@@ -10,7 +10,7 @@ from appview import AppViewFilter
 from softwarecenter.enums import NonAppVisibility
 from softwarecenter.ui.gtk3.models.appstore2 import AppEnquire, AppPropertiesHelper
 from softwarecenter.ui.gtk3.widgets.containers import *
-from softwarecenter.ui.gtk3.widgets.buttons import (CategoryLabel,
+from softwarecenter.ui.gtk3.widgets.buttons import (LabelTile,
                                                     CategoryTile,
                                                     FeaturedTile)
 from softwarecenter.ui.gtk3.em import StockEms
@@ -124,7 +124,7 @@ class CategoriesViewGtk(Gtk.Viewport, CategoriesParser):
 
     def on_draw(self, widget, cr, assets):
         cr.set_source(assets["stipple"])
-        cr.paint_with_alpha(0.5)
+        cr.paint()
         return
 
     #~ def _on_app_clicked(self, btn):
@@ -221,7 +221,7 @@ class LobbyViewGtk(CategoriesViewGtk):
         for cat in sorted_cats:
             if 'carousel-only' in cat.flags: continue
             category_name = mrkup % GObject.markup_escape_text(cat.name)
-            label = CategoryLabel(category_name, None)
+            label = LabelTile(category_name, None)
             label.label.set_alignment(0.0, 0.5)
             label.label.set_use_markup(True)
             label.connect('clicked', self._on_category_clicked, cat)
@@ -243,10 +243,9 @@ class LobbyViewGtk(CategoriesViewGtk):
                       nonblocking_load=False)
 
         self.featured = FlowableGrid()
-        self.featured.col_spacing = 0
-        self.featured.row_spacing = StockEms.SMALL
+        #~ self.featured.row_spacing = StockEms.SMALL
         frame = Frame()
-        frame.set_corner_label_markup(_("New"))
+        frame.set_corner_label(_("New"))
         frame.add(self.featured)
         self.right_column.pack_start(frame, True, True, 0)
 
@@ -266,6 +265,7 @@ class LobbyViewGtk(CategoriesViewGtk):
         label.set_name("placeholder")
         frame = Frame()
         frame.add(label)
+        frame.set_corner_label("Hot!")
         self.right_column.pack_start(frame, True, True, 0)
         return
 
@@ -317,14 +317,18 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         if self.departments is None:
             self.subcat_label = Gtk.Label()
             self.subcat_label.set_alignment(0, 0.5)
-            self.vbox.pack_start(self.subcat_label, False, False, 0)
 
             self.departments = FlowableGrid()
             self.departments.set_row_spacing(6)
             self.departments.set_column_spacing(6)
-            frame = Frame()
+
+            frame = FramedBox(spacing=StockEms.MEDIUM,
+                              padding=StockEms.LARGE)
+            # set x/y-alignment and x/y-expand
             frame.set(0.5, 0.0, 1.0, 1.0)
-            frame.add(self.departments)
+
+            frame.pack_start(self.subcat_label, False, False, 0)
+            frame.pack_start(self.departments, True, True, 0)
 
             # append the departments section to the page
             self.vbox.pack_start(frame, True, True, 0)

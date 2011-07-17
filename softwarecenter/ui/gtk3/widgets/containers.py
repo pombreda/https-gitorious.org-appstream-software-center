@@ -8,10 +8,11 @@ from softwarecenter.ui.gtk3.drawing import rounded_rect
 
 class FlowableGrid(Gtk.Fixed):
 
-    def __init__(self):
-        Gtk.Fixed.__init__(self)
-        self.set_size_request(100, 100)
+    MIN_HEIGHT = 100
 
+    def __init__(self, paint_grid_pattern=True):
+        Gtk.Fixed.__init__(self)
+        self.set_size_request(100, -1)
         self.row_spacing = 0
         self.column_spacing = 0
         self.n_columns = 0
@@ -19,6 +20,8 @@ class FlowableGrid(Gtk.Fixed):
 
         self._cell_size = None
         self.connect("size-allocate", self.on_size_allocate)
+        if paint_grid_pattern:
+            self.connect("draw", self.on_draw)
         return
 
     # private
@@ -32,23 +35,31 @@ class FlowableGrid(Gtk.Fixed):
 
         #children = self.get_children()
         width = a.width
+        height = a.height
 
         col_spacing = self.column_spacing
         row_spacing = self.row_spacing
 
-        cell_w, cell_h = self.get_cell_size()
-
         n_cols = self._get_n_columns_for_width(width, col_spacing)
+        cell_w, cell_h = self.get_cell_size()
+        cell_w = width/n_cols
+
         if n_cols == 0: return
 
-        overhang = width - n_cols * (col_spacing + cell_w)
-        xo = overhang / n_cols
+        #~ h_overhang = width - n_cols*cell_w - (n_cols-1)*col_spacing
+        #~ if n_cols > 1:
+            #~ xo = h_overhang / (n_cols-1)
+        #~ else:
+            #~ xo = h_overhang
+
 
         y = 0
         for i, child in enumerate(self.get_children()):
-            x = a.x + (i % n_cols) * (cell_w + col_spacing + xo)
-            if n_cols == 1:
-                x += xo/2
+            x = a.x + (i % n_cols) * (cell_w + col_spacing)
+
+            #~ x = a.x + (i % n_cols) * (cell_w + col_spacing + xo)
+            #~ if n_cols == 1:
+                #~ x += xo/2
             if (i%n_cols) == 0:
                 y = a.y + (i / n_cols) * (cell_h + row_spacing)
 
@@ -84,12 +95,51 @@ class FlowableGrid(Gtk.Fixed):
             n_rows += 1
 
         _, cell_h = self.get_cell_size()
-        pref_h = n_rows * (cell_h + self.row_spacing)
+        pref_h = n_rows*cell_h + (n_rows-1)*self.row_spacing + 1
+        pref_h = max(self.MIN_HEIGHT, pref_h)
         return pref_h, pref_h
 
     # signal handlers
     def on_size_allocate(self, *args):
         self._layout_children(self.get_allocation())
+        return
+
+    def on_draw(self, widget, cr):
+        if not (self.n_columns and self.n_rows): return
+
+        cr.save()
+        a = widget.get_allocation()
+        rounded_rect(cr, 0, 0, a.width, a.height-1, 4)
+        cr.clip()
+        cr.set_source_rgb(0.905882353,0.894117647,0.901960784) #E7E4E6
+        cr.set_line_width(1)
+
+        cell_w = a.width / self.n_columns
+        cell_h = a.height / self.n_rows
+
+        for i in range(self.n_columns):
+            for j in range(self.n_rows):
+                # paint checker if need be
+                if not (i + j%2)%2:
+                    cr.save()
+                    cr.set_source_rgb(0.976470588, 0.956862745, 0.960784314) #F9F4F5
+                    cr.rectangle(i*cell_w, j*cell_h, cell_w, cell_h)
+                    cr.fill()
+                    cr.restore()
+
+                # paint rows
+                if not j: continue
+                cr.move_to(0, j*cell_h + 0.5)
+                cr.rel_line_to(a.width-1, 0)
+                cr.stroke()
+
+            # paint columns
+            if not i: continue
+            cr.move_to(i*cell_w + 0.5, 0)
+            cr.rel_line_to(0, a.height-1)
+            cr.stroke()
+
+        cr.restore()
         return
 
     # public
@@ -137,7 +187,7 @@ class Frame(Gtk.Alignment):
 
     def __init__(self, padding=3, border_radius=5):
         Gtk.Alignment.__init__(self)
-        self.set_padding(padding, padding, padding, padding)
+        self.set_padding(padding-1, padding, padding, padding)
 
         # corner lable jazz
         self.show_corner_label = False
@@ -212,6 +262,7 @@ class Frame(Gtk.Alignment):
         return assets
 
     def on_draw(self, widget, cr, border_radius, assets):
+        cr.reset_clip()
         a = widget.get_allocation()
         width = a.width
         height = a.height
@@ -270,8 +321,9 @@ class Frame(Gtk.Alignment):
 
         # fill interior
         rounded_rect(cr, 3, 2, a.width-6, a.height-6, border_radius)
-        cr.set_source_rgba(1,1,1,0.75)
-        cr.fill()
+        cr.set_source_rgb(0.992156863,0.984313725,0.988235294)  #FDFBFC
+        cr.fill_preserve()
+        cr.clip()
         return
 
     def on_draw_after(self, widget, cr, assets, layout):
@@ -291,7 +343,7 @@ class Frame(Gtk.Alignment):
         # render label
         ex = layout.get_pixel_extents()[1]
         # transalate to the visual center of the corner-label
-        cr.translate(18, 18)
+        cr.translate(19, 19)
         # rotate counter-clockwise
         cr.rotate(-pi*0.25)
         # paint normal markup
@@ -300,7 +352,8 @@ class Frame(Gtk.Alignment):
         return
 
     def set_show_corner_label(self, show_label):
-        if self.show_corner_label == show_label: return
+        if (not self.layout.get_text() and
+            self.show_corner_label == show_label): return
         global _frame_asset_cache
         assets = _frame_asset_cache
 
@@ -309,16 +362,13 @@ class Frame(Gtk.Alignment):
             import cairo
             surf = cairo.ImageSurface.create_from_png(self.CORNER_LABEL)
             assets["corner-label"] = surf
-            rgb = Gdk.RGBA()
-            rgb.parse("#a3350f")
-            assets["corner-label-shadow-color"] = rgb
 
         self.show_corner_label = show_label
         self.queue_draw()
         return
 
-    def set_corner_label_markup(self, markup):
-        markup = '<span font_desc="10" color="white"><b>%s</b></span>' % markup
+    def set_corner_label(self, markup):
+        markup = '<span font_desc="12" color="white"><b>%s</b></span>' % markup
         self.set_show_corner_label(True)
         self.layout.set_markup(markup, -1)
         self.queue_draw()
