@@ -243,6 +243,7 @@ class LobbyViewGtk(CategoriesViewGtk):
         self.featured.col_spacing = 0
         self.featured.row_spacing = StockEms.SMALL
         frame = Frame()
+        frame.set_corner_label_markup(_("New"))
         frame.add(self.featured)
         self.top_hbox.pack_start(frame, True, True, 0)
 

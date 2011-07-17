@@ -1,7 +1,7 @@
 #view {
     border-width: 0;
     background-color: #DED7DB;
-    /*  background-image: url('../art/stipple.png'); */
+    /*  background-image: url('../art/stipple.png') repeat; */
 }
 
 
@@ -18,7 +18,7 @@
 #featured-tile,
 #category-tile {
     border-width: 0;
-    border-radius: 4;
+    border-radius: 5;
 }
 
 #placeholder-banner-ad {

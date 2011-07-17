@@ -83,12 +83,11 @@ class FeaturedTile(Tile):
 
         self.content_box = Gtk.Box.new(Gtk.Orientation.VERTICAL,
                                        StockEms.SMALL)
-        self.box.pack_start(self.content_box, False, False, 0)
+        self.box.pack_start(self.content_box, False, False, StockEms.MEDIUM)
 
         self.title = Gtk.Label.new(label)
         self.title.set_alignment(0.0, 0.5)
         self.title.set_use_markup(True)
-        #~ self.label.set_line_wrap(False)
         self.title.set_ellipsize(Pango.EllipsizeMode.END)
         self.content_box.pack_start(self.title, False, False, 0)
 
