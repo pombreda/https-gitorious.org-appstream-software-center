@@ -21,11 +21,16 @@
     border-radius: 5;
 }
 
-#placeholder-banner-ad {
-    color: #FF3100;
+#placeholder {
+    color: #FF00B3;
+}
+
+#featured-star {
+    color: #FFC51D;
+    border-color: #F89516;
 }
 
 GtkEntry {
-    border-radius: 7;
+    border-radius: 8;
 }
 

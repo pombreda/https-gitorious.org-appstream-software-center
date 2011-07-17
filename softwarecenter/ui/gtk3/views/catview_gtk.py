@@ -193,16 +193,19 @@ class LobbyViewGtk(CategoriesViewGtk):
         top_hbox_alignment.add(self.top_hbox)
         self.vbox.pack_start(top_hbox_alignment, False, False, 0)
 
-
         self._append_departments()
+
+        self.right_column = Gtk.Box.new(Gtk.Orientation.VERTICAL, self.SPACING)
+        self.top_hbox.pack_start(self.right_column, True, True, 0)
+
         self._append_featured()
-        #~ self._append_whatsnew()
+        self._append_recommendations()
         return
 
     def _append_banner_ads(self):
         placeholder = Gtk.Label.new("Banner Ad (Placeholder)")
         placeholder.set_size_request(-1, 200)
-        placeholder.set_name("placeholder-banner-ad")
+        placeholder.set_name("placeholder")
         self.vbox.pack_start(placeholder, False, False, 0)
         return
 
@@ -234,7 +237,7 @@ class LobbyViewGtk(CategoriesViewGtk):
         enq = AppEnquire(self.cache, self.db)
         app_filter = AppViewFilter(self.db, self.cache)
         enq.set_query(featured_cat.query,
-                      limit=12,
+                      limit=6,
                       filter=app_filter,
                       nonapps_visible=NonAppVisibility.ALWAYS_VISIBLE,
                       nonblocking_load=False)
@@ -245,7 +248,7 @@ class LobbyViewGtk(CategoriesViewGtk):
         frame = Frame()
         frame.set_corner_label_markup(_("New"))
         frame.add(self.featured)
-        self.top_hbox.pack_start(frame, True, True, 0)
+        self.right_column.pack_start(frame, True, True, 0)
 
         helper = AppPropertiesHelper(self.db, self.cache, self.icons)
         for doc in enq.get_documents():
@@ -255,6 +258,15 @@ class LobbyViewGtk(CategoriesViewGtk):
             tile = FeaturedTile(name, icon_pb, stats)
             tile.connect('clicked', self._on_category_clicked, doc)
             self.featured.add_child(tile)
+        return
+
+    def _append_recommendations(self):
+        label = Gtk.Label("Recommendations")
+        label.set_size_request(-1, 200)
+        label.set_name("placeholder")
+        frame = Frame()
+        frame.add(label)
+        self.right_column.pack_start(frame, True, True, 0)
         return
 
     def build(self, desktopdir):

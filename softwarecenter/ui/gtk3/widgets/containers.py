@@ -173,7 +173,7 @@ class Frame(Gtk.Alignment):
             cr.set_source_surface(border_image, xo, yo)
             cr.paint()
             ptrn = cairo.SurfacePattern(surf)
-            ptrn.set_extend(cairo.EXTEND_PAD)
+            ptrn.set_extend(cairo.EXTEND_REPEAT)
             assets[tag] = ptrn
             del cr
             return
@@ -294,6 +294,7 @@ class Frame(Gtk.Alignment):
         cr.translate(18, 18)
         # rotate counter-clockwise
         cr.rotate(-pi*0.25)
+        # paint normal markup
         Gtk.render_layout(widget.get_style_context(),
                           cr, -ex.width/2, -ex.height/2, layout)
         return
@@ -308,6 +309,9 @@ class Frame(Gtk.Alignment):
             import cairo
             surf = cairo.ImageSurface.create_from_png(self.CORNER_LABEL)
             assets["corner-label"] = surf
+            rgb = Gdk.RGBA()
+            rgb.parse("#a3350f")
+            assets["corner-label-shadow-color"] = rgb
 
         self.show_corner_label = show_label
         self.queue_draw()

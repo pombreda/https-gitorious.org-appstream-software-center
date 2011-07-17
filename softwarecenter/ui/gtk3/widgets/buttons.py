@@ -72,33 +72,46 @@ class FeaturedTile(Tile):
         Gtk.Button.__init__(self)
         self.set_focus_on_click(False)
 
-        self.box = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, StockEms.SMALL)
+        self.box = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, StockEms.MEDIUM)
         self.add(self.box)
+        self.content_left = Gtk.Box.new(Gtk.Orientation.VERTICAL, StockEms.MEDIUM)
+        self.content_right = Gtk.Box.new(Gtk.Orientation.VERTICAL, 2)
+        self.box.pack_start(self.content_left, False, False, 0)
+        self.box.pack_start(self.content_right, False, False, 0)
 
         if isinstance(icon, GdkPixbuf.Pixbuf):
             self.image = Gtk.Image.new_from_pixbuf(icon)
         else:
             raise TypeError, "Expects a GdkPixbuf got %s" % type(icon)
-        self.box.pack_start(self.image, False, False, 0)
-
-        self.content_box = Gtk.Box.new(Gtk.Orientation.VERTICAL,
-                                       StockEms.SMALL)
-        self.box.pack_start(self.content_box, False, False, StockEms.MEDIUM)
+        self.content_left.pack_start(self.image, False, False, 0)
 
         self.title = Gtk.Label.new(label)
         self.title.set_alignment(0.0, 0.5)
         self.title.set_use_markup(True)
         self.title.set_ellipsize(Pango.EllipsizeMode.END)
-        self.content_box.pack_start(self.title, False, False, 0)
+        self.content_right.pack_start(self.title, False, False, 0)
 
         self.category = Gtk.Label.new('<span font_desc="Italic %i">%s</span>' % (em(0.45), 'Category'))
         self.category.set_use_markup(True)
         self.category.set_alignment(0.0, 0.0)
-        self.content_box.pack_start(self.category, False, False, 0)
+        self.content_right.pack_start(self.category, False, False, 4)
 
         self.stars = Star()
+        self.stars.set_name("featured-star")
+        self.stars.render_outline = True
         self.stars.set_rating(review_stats.ratings_average)
-        self.content_box.pack_start(self.stars, False, False, 0)
+        self.content_right.pack_start(self.stars, False, False, 0)
+
+        self.n_ratings = Gtk.Label.new('<span font_desc="Italic %i" color="%s">%i %s</span>' %
+                                       (em(0.45), '#8C8C8C', review_stats.ratings_total, 'Reviews'))
+        self.n_ratings.set_use_markup(True)
+        self.n_ratings.set_alignment(0.0, 0.0)
+        self.content_right.pack_start(self.n_ratings, False, False, 0)
+
+        self.price = Gtk.Label.new('<span color="%s"><b>%s</b></span>' %
+                                   ('#757575', 'FREE'))
+        self.price.set_use_markup(True)
+        self.content_left.pack_start(self.price, False, False, 0)
 
         self.set_relief(Gtk.ReliefStyle.NONE)
         self.set_name("featured-tile")
