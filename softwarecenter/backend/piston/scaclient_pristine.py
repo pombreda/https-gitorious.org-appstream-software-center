@@ -46,3 +46,10 @@ class SoftwareCenterAgentAPI(PistonAPI):
     def subscription_by_id(self, id=None):
         return self._get('subscription/%d' % (id),
                          scheme=AUTHENTICATED_API_SCHEME)
+
+    @validate_pattern('lang', r'[^/]{1,9}$')
+    @returns_list_of(PistonResponseObject)
+    def exhibits(self, lang):
+        """Retrieve the list of currently published exhibits."""
+        return self._get(
+            'exhibits/%s/' % (lang))
