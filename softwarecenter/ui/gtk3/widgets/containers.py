@@ -316,11 +316,13 @@ class Frame(Gtk.Alignment):
         return
 
     def render_frame(self, cr, a, border_radius, assets):
+        A = self.get_allocation()
+        xo, yo = a.x-A.x, a.y-A.y
+
         cr.reset_clip()
 
         cr.save()
-        A = self.get_allocation()
-        cr.translate(a.x-A.x, a.y-A.y)
+        cr.translate(xo, yo)
         width = a.width
         height = a.height
         cnr_slice = assets["corner-slice"]
@@ -379,9 +381,8 @@ class Frame(Gtk.Alignment):
         cr.restore()
 
         # fill interior
-        xo, yo = a.x-A.x, a.y-A.y
         rounded_rect(cr, xo+3, yo+2, a.width-6, a.height-6, border_radius)
-        cr.set_source_rgb(0.992156863,0.984313725,0.988235294)  #FDFBFC
+        cr.set_source_rgba(0.992156863,0.984313725,0.988235294)  #FDFBFC
 
         cr.fill_preserve()
         cr.clip()

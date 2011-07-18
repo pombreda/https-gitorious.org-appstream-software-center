@@ -334,7 +334,7 @@ class SubCategoryViewGtk(CategoriesViewGtk):
             self.subcat_label = Gtk.Label()
             self.subcat_label.set_alignment(0, 0.5)
 
-            self.departments = FlowableGrid()
+            self.departments = FlowableGrid(paint_grid_pattern=False)
             self.departments.set_row_spacing(6)
             self.departments.set_column_spacing(6)
 
