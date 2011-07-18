@@ -185,7 +185,7 @@ class LobbyViewGtk(CategoriesViewGtk):
         return
 
     def _on_expose(self, widget, event, alignment):
-            
+
         # TODO: if carousel allocations are unchanged, just return
         cr = widget.window.cairo_create()
         cr.rectangle(alignment.allocation)
@@ -248,6 +248,7 @@ class LobbyViewGtk(CategoriesViewGtk):
         if self.whatsnew_carousel:
             self.whatsnew_carousel.draw(cr, self.whatsnew_carousel.allocation, event.area)
             
+        self.show_all()
         self.start_carousels()
 
         del cr

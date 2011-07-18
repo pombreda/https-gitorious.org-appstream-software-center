@@ -1154,6 +1154,9 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                 # we may have been given a relative path
                     request = os.path.join(os.getcwd(), request)
                 app = DebFileApplication(request)
+                # display a "Loading" spinner until we actually display the
+                # details view for the deb file
+                self.available_pane.show_appview_spinner(spinner_text=_("Loading"))
             else:
                 # package from archive
                 # if there is a "/" in the string consider it as tuple
@@ -1170,11 +1173,12 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                     self.installed_pane.loaded = True
                     self.view_switcher.set_view(ViewPages.INSTALLED)
                     self.installed_pane.loaded = False
-                    self.available_pane.bypassed = True
                     self.installed_pane.show_app(app)
+                    self.available_pane.hide_appview_spinner()
                 else:
                     self.view_switcher.set_view(ViewPages.AVAILABLE)
                     self.available_pane.show_app(app)
+                    self.available_pane.hide_appview_spinner()
 
             show_app(self, app)
 
