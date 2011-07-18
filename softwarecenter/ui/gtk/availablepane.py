@@ -113,7 +113,7 @@ class AvailablePane(SoftwarePane):
 
     def init_view(self):
         if not self.view_initialized:
-            self.spinner_view.set_text(_('Loading Categories'))
+            self.spinner_view.set_text(_('Loading'))
             self.spinner_view.start()
             self.spinner_view.show()
             self.spinner_notebook.set_current_page(self.PAGE_SPINNER)

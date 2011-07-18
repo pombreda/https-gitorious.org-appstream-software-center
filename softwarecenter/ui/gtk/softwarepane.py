@@ -506,11 +506,13 @@ class SoftwarePane(gtk.VBox, BasePane):
             self.unity_launcher_items.pop(result.pkgname)
         self.action_bar.clear()
 
-    def show_appview_spinner(self):
+    def show_appview_spinner(self, spinner_text=None):
         """ display the spinner in the appview panel """
         if not self.apps_search_term:
             self.action_bar.clear()
         self.spinner_view.stop()
+        if spinner_text:
+            self.spinner_view.set_text(spinner_text)
         self.spinner_notebook.set_current_page(self.PAGE_SPINNER)
         # "mask" the spinner view momentarily to prevent it from flashing into
         # view in the case of short delays where it isn't actually needed
