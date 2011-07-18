@@ -9,12 +9,13 @@ software-center (4.1.10) UNRELEASED; urgency=low
   [ Gary Lasker ]
   * softwarecenter/ui/gtk/app.py,
     softwarecenter/ui/gtk/availablepane.py,
-    softwarecenter/ui/gtk/catview_gtk.py:
+    softwarecenter/ui/gtk/catview_gtk.py,
+    softwarecenter/ui/gtk/softwarepane.py:
     - improvement for a local debian package install, display a
       "loading" spinner while the package loads and do not show
       the main categories view momentarily
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 18 Jul 2011 18:24:39 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 18 Jul 2011 18:37:22 -0400
 
 software-center (4.1.9) oneiric; urgency=low
 
