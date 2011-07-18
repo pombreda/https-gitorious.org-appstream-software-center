@@ -183,11 +183,11 @@ class FlowableGrid(Gtk.Fixed):
 _frame_asset_cache = {}
 class Frame(Gtk.Alignment):
 
+    BORDER_RADIUS = 6
     BORDER_IMAGE = "softwarecenter/ui/gtk3/art/frame-border-image.png"
-    BORDER_IMAGE2 = "softwarecenter/ui/gtk3/art/frame-border-image-concave-corners.png"
     CORNER_LABEL = "softwarecenter/ui/gtk3/art/corner-label.png"
 
-    def __init__(self, padding=3, border_radius=5):
+    def __init__(self, padding=3, border_radius=BORDER_RADIUS):
         Gtk.Alignment.__init__(self)
         self.set_padding(padding-1, padding, padding, padding)
 
@@ -301,7 +301,6 @@ class Frame(Gtk.Alignment):
 
         if "corner-label" not in assets:
             # cache corner label
-            import cairo
             surf = cairo.ImageSurface.create_from_png(self.CORNER_LABEL)
             assets["corner-label"] = surf
 
@@ -316,7 +315,7 @@ class Frame(Gtk.Alignment):
         self.queue_draw()
         return
 
-    def render_frame(self, cr, a, border_radius, assets, clip=True):
+    def render_frame(self, cr, a, border_radius, assets):
         cr.reset_clip()
 
         cr.save()
@@ -384,12 +383,10 @@ class Frame(Gtk.Alignment):
         rounded_rect(cr, xo+3, yo+2, a.width-6, a.height-6, border_radius)
         cr.set_source_rgb(0.992156863,0.984313725,0.988235294)  #FDFBFC
 
-        if clip:
-            cr.fill_preserve()
-            cr.clip()
-        else:
-            cr.fill()
+        cr.fill_preserve()
+        cr.clip()
         return
+
 
 class FramedBox(Frame):
 
@@ -409,17 +406,27 @@ class FramedBox(Frame):
         return self.box.pack_end(*args, **kwargs)
 
 
+class HeaderPosition:
+    LEFT = 0.0
+    CENTER = 0.5
+    RIGHT = 1.0
+
+
 class FramedHeaderBox(FramedBox):
 
     def __init__(self, orientation, spacing=0, padding=3):
         FramedBox.__init__(self, Gtk.Orientation.VERTICAL, spacing, padding)
         self.header = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, spacing)
         self.header_alignment = Gtk.Alignment()
-        self.header_alignment.set_padding(0, 0, StockEms.MEDIUM, StockEms.MEDIUM)
+        self.header_alignment.set_padding(StockEms.SMALL, 1, StockEms.MEDIUM, StockEms.MEDIUM)
         self.header_alignment.add(self.header)
         self.box.pack_start(self.header_alignment, False, False, 0)
         self.content_box = Gtk.Box.new(orientation, spacing)
         self.box.add(self.content_box)
+
+        self.title = Gtk.Label()
+        self.title.set_padding(StockEms.MEDIUM, 0)
+        self.header.pack_start(self.title, False, False, 0)
         return
 
     def on_draw(self, widget, cr, border_radius, assets):
@@ -450,6 +457,27 @@ class FramedHeaderBox(FramedBox):
 
     def pack_end(self, *args, **kwargs):
         return self.content_box.pack_end(*args, **kwargs)
+
+    def set_header_expand(self, expand):
+        alignment = self.header_alignment
+        if expand:
+            expand = 1.0
+        else:
+            expand = 0.0
+        alignment.set(alignment.get_property("xalign"),
+                      alignment.get_property("yalign"),
+                      expand, 1.0)
+
+    def set_header_position(self, position):
+        alignment = self.header_alignment
+        alignment.set(position, 0.5,
+                      alignment.get_property("xscale"),
+                      alignment.get_property("yscale"))
+
+    def set_header_label(self, label):
+        markup = '<span color="white"><b>%s</b></span>' % label
+        self.title.set_markup(markup)
+        return
 
     def render_header(self, cr, a, border_radius, assets, clip=True):
         cr.save()
@@ -494,9 +522,11 @@ class FramedHeaderBox(FramedBox):
         cr.restore()
 
         # fill interior
-        rounded_rect(cr, 3, 2, a.width-6, a.height-6, border_radius)
+        rounded_rect(cr, 4, 3, a.width-7, a.height-7, border_radius)
+        cr.set_source_rgb(0.866666667,0.282352941,0.078431373)  #DD4814
+        cr.fill_preserve()
         cr.set_source_rgb(0.992156863,0.984313725,0.988235294)  #FDFBFC
-        cr.fill()
+        cr.stroke()
 
         cr.restore()
 
