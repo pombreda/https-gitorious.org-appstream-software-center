@@ -1173,7 +1173,6 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                     self.installed_pane.loaded = True
                     self.view_switcher.set_view(ViewPages.INSTALLED)
                     self.installed_pane.loaded = False
-                    self.available_pane.bypassed = True
                     self.installed_pane.show_app(app)
                     self.available_pane.hide_appview_spinner()
                 else:
