@@ -1,11 +1,20 @@
 software-center (4.1.10) UNRELEASED; urgency=low
 
+  [ Michael Vogt ]
   * merged lp:~alexeftimie/software-center/backend-refactor,
     many thanks
   * merged lp:~mmcg069/software-center/search-aid-improvments,
     many thanks
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 15 Jul 2011 14:59:33 +0200
+  [ Gary Lasker ]
+  * softwarecenter/ui/gtk/app.py,
+    softwarecenter/ui/gtk/availablepane.py,
+    softwarecenter/ui/gtk/catview_gtk.py:
+    - improvement for a local debian package install, display a
+      "loading" spinner while the package loads and do not show
+      the main categories view momentarily
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 18 Jul 2011 18:24:39 -0400
 
 software-center (4.1.9) oneiric; urgency=low
 
