@@ -271,9 +271,12 @@ class LobbyViewGtk(CategoriesViewGtk):
 
         self.featured = FlowableGrid()
         #~ self.featured.row_spacing = StockEms.SMALL
-        frame = Frame()
-        frame.set_corner_label(_("Hot"))
+        frame = FramedHeaderBox(Gtk.Orientation.VERTICAL)
+        #~ frame.set_corner_label(_("Hot"))
         frame.add(self.featured)
+        label = Gtk.Label.new("blah")
+        label.set_padding(StockEms.MEDIUM, StockEms.SMALL)
+        frame.header.pack_start(label, False, False, 0)
         self.right_column.pack_start(frame, True, True, 0)
 
         helper = AppPropertiesHelper(self.db, self.cache, self.icons)

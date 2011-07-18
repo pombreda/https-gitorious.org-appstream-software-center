@@ -1,5 +1,6 @@
-from gi.repository import Gtk, Gdk, GdkPixbuf, Pango
+import cairo
 
+from gi.repository import Gtk, Gdk, GdkPixbuf, Pango
 from math import pi
 
 from softwarecenter.ui.gtk3.em import StockEms
@@ -183,6 +184,7 @@ _frame_asset_cache = {}
 class Frame(Gtk.Alignment):
 
     BORDER_IMAGE = "softwarecenter/ui/gtk3/art/frame-border-image.png"
+    BORDER_IMAGE2 = "softwarecenter/ui/gtk3/art/frame-border-image-concave-corners.png"
     CORNER_LABEL = "softwarecenter/ui/gtk3/art/corner-label.png"
 
     def __init__(self, padding=3, border_radius=5):
@@ -202,7 +204,6 @@ class Frame(Gtk.Alignment):
         return
 
     def _cache_art_assets(self):
-        import cairo
         global _frame_asset_cache
         assets = _frame_asset_cache
         if assets: return assets
@@ -256,14 +257,71 @@ class Frame(Gtk.Alignment):
         # south-west corner
         cache_corner_surface("sw", 0, -(h-cnr_slice))
         # western edge pattern
-        cache_edge_pattern("w", 0, -cnr_slice, cnr_slice, h-2*cnr_slice)
+        cache_edge_pattern("w", 0, -cnr_slice,
+                           cnr_slice, h-2*cnr_slice)
 
         # all done!
         return assets
 
     def on_draw(self, widget, cr, border_radius, assets):
-        cr.reset_clip()
         a = widget.get_allocation()
+        self.render_frame(cr, a, border_radius, assets)
+        return
+
+    def on_draw_after(self, widget, cr, assets, layout):
+        if not self.show_corner_label: return
+        surf = assets["corner-label"]
+        w = surf.get_width()
+        h = surf.get_height()
+        cr.reset_clip()
+        # the following arbitrary adjustments are specific to the
+        # corner-label.png image...
+
+        # alter the to allow drawing outside of the widget bounds
+        cr.rectangle(-4, -4, w+4, h+4)
+        cr.clip()
+        cr.set_source_surface(surf, -2, -3)
+        cr.paint()
+        # render label
+        ex = layout.get_pixel_extents()[1]
+        # transalate to the visual center of the corner-label
+        cr.translate(19, 19)
+        # rotate counter-clockwise
+        cr.rotate(-pi*0.25)
+        # paint normal markup
+        Gtk.render_layout(widget.get_style_context(),
+                          cr, -ex.width/2, -ex.height/2, layout)
+        return
+
+    def set_show_corner_label(self, show_label):
+        if (not self.layout.get_text() and
+            self.show_corner_label == show_label): return
+        global _frame_asset_cache
+        assets = _frame_asset_cache
+
+        if "corner-label" not in assets:
+            # cache corner label
+            import cairo
+            surf = cairo.ImageSurface.create_from_png(self.CORNER_LABEL)
+            assets["corner-label"] = surf
+
+        self.show_corner_label = show_label
+        self.queue_draw()
+        return
+
+    def set_corner_label(self, markup):
+        markup = '<span font_desc="12" color="white"><b>%s</b></span>' % markup
+        self.set_show_corner_label(True)
+        self.layout.set_markup(markup, -1)
+        self.queue_draw()
+        return
+
+    def render_frame(self, cr, a, border_radius, assets, clip=True):
+        cr.reset_clip()
+
+        cr.save()
+        A = self.get_allocation()
+        cr.translate(a.x-A.x, a.y-A.y)
         width = a.width
         height = a.height
         cnr_slice = assets["corner-slice"]
@@ -319,75 +377,129 @@ class Frame(Gtk.Alignment):
         cr.paint()
         cr.restore()
 
+        cr.restore()
+
         # fill interior
-        rounded_rect(cr, 3, 2, a.width-6, a.height-6, border_radius)
+        xo, yo = a.x-A.x, a.y-A.y
+        rounded_rect(cr, xo+3, yo+2, a.width-6, a.height-6, border_radius)
         cr.set_source_rgb(0.992156863,0.984313725,0.988235294)  #FDFBFC
-        cr.fill_preserve()
-        cr.clip()
+
+        if clip:
+            cr.fill_preserve()
+            cr.clip()
+        else:
+            cr.fill()
         return
-
-    def on_draw_after(self, widget, cr, assets, layout):
-        if not self.show_corner_label: return
-        surf = assets["corner-label"]
-        w = surf.get_width()
-        h = surf.get_height()
-        cr.reset_clip()
-        # the following arbitrary adjustments are specific to the
-        # corner-label.png image...
-
-        # alter the to allow drawing outside of the widget bounds
-        cr.rectangle(-4, -4, w+4, h+4)
-        cr.clip()
-        cr.set_source_surface(surf, -2, -3)
-        cr.paint()
-        # render label
-        ex = layout.get_pixel_extents()[1]
-        # transalate to the visual center of the corner-label
-        cr.translate(19, 19)
-        # rotate counter-clockwise
-        cr.rotate(-pi*0.25)
-        # paint normal markup
-        Gtk.render_layout(widget.get_style_context(),
-                          cr, -ex.width/2, -ex.height/2, layout)
-        return
-
-    def set_show_corner_label(self, show_label):
-        if (not self.layout.get_text() and
-            self.show_corner_label == show_label): return
-        global _frame_asset_cache
-        assets = _frame_asset_cache
-
-        if "corner-label" not in assets:
-            # cache corner label
-            import cairo
-            surf = cairo.ImageSurface.create_from_png(self.CORNER_LABEL)
-            assets["corner-label"] = surf
-
-        self.show_corner_label = show_label
-        self.queue_draw()
-        return
-
-    def set_corner_label(self, markup):
-        markup = '<span font_desc="12" color="white"><b>%s</b></span>' % markup
-        self.set_show_corner_label(True)
-        self.layout.set_markup(markup, -1)
-        self.queue_draw()
-        return
-
 
 class FramedBox(Frame):
 
     def __init__(self, orientation=Gtk.Orientation.VERTICAL, spacing=0, padding=3):
         Frame.__init__(self, padding)
         self.box = Gtk.Box.new(orientation, spacing)
-        self.add(self.box)
+        Gtk.Alignment.add(self, self.box)
         return
+
+    def add(self, *args, **kwargs):
+        return self.box.add(*args, **kwargs)
 
     def pack_start(self, *args, **kwargs):
         return self.box.pack_start(*args, **kwargs)
 
     def pack_end(self, *args, **kwargs):
         return self.box.pack_end(*args, **kwargs)
+
+
+class FramedHeaderBox(FramedBox):
+
+    def __init__(self, orientation, spacing=0, padding=3):
+        FramedBox.__init__(self, Gtk.Orientation.VERTICAL, spacing, padding)
+        self.header = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, spacing)
+        self.header_alignment = Gtk.Alignment()
+        self.header_alignment.set_padding(0, 0, StockEms.MEDIUM, StockEms.MEDIUM)
+        self.header_alignment.add(self.header)
+        self.box.pack_start(self.header_alignment, False, False, 0)
+        self.content_box = Gtk.Box.new(orientation, spacing)
+        self.box.add(self.content_box)
+        return
+
+    def on_draw(self, widget, cr, border_radius, assets):
+        a = self.header_alignment.get_allocation()
+        ha = self.header.get_allocation()
+        a.x = ha.x
+        a.width = ha.width
+        a.height = 2*a.height
+        self.render_header(cr, a, border_radius, assets, False)
+
+        a = self.get_allocation()
+        for child in self.header:
+            cr.save()
+            ca = child.get_allocation()
+            cr.translate(ca.x-a.x, ca.y-a.y)
+            child.draw(cr)
+            cr.restore()
+
+        a = self.content_box.get_allocation()
+        self.render_frame(cr, a, border_radius, assets)
+        return
+
+    def add(self, *args, **kwargs):
+        return self.content_box.add(*args, **kwargs)
+
+    def pack_start(self, *args, **kwargs):
+        return self.content_box.pack_start(*args, **kwargs)
+
+    def pack_end(self, *args, **kwargs):
+        return self.content_box.pack_end(*args, **kwargs)
+
+    def render_header(self, cr, a, border_radius, assets, clip=True):
+        cr.save()
+        A = self.get_allocation()
+        cr.translate(a.x-A.x, a.y-A.y)
+        width = a.width
+        height = a.height
+        cnr_slice = assets["corner-slice"]
+
+        # paint north-west corner
+        cr.set_source_surface(assets["nw"], 0, 0)
+        cr.paint()
+
+        # paint north length
+        cr.save()
+        cr.set_source(assets["n"])
+        cr.rectangle(cnr_slice, 0, width-2*cnr_slice, cnr_slice)
+        cr.clip()
+        cr.paint()
+        cr.restore()
+
+        # paint north-east corner
+        cr.set_source_surface(assets["ne"], width-cnr_slice, 0)
+        cr.paint()
+
+        # paint east length
+        cr.save()
+        cr.translate(width-cnr_slice, cnr_slice)
+        cr.set_source(assets["e"])
+        cr.rectangle(0, 0, cnr_slice, height-2*cnr_slice)
+        cr.clip()
+        cr.paint()
+        cr.restore()
+
+        # paint west length
+        cr.save()
+        cr.translate(0, cnr_slice)
+        cr.set_source(assets["w"])
+        cr.rectangle(0, 0, cnr_slice, height-2*cnr_slice)
+        cr.clip()
+        cr.paint()
+        cr.restore()
+
+        # fill interior
+        rounded_rect(cr, 3, 2, a.width-6, a.height-6, border_radius)
+        cr.set_source_rgb(0.992156863,0.984313725,0.988235294)  #FDFBFC
+        cr.fill()
+
+        cr.restore()
+
 
 
 # this is used in the automatic tests
