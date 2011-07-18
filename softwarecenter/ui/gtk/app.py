@@ -1154,6 +1154,8 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                 # we may have been given a relative path
                     request = os.path.join(os.getcwd(), request)
                 app = DebFileApplication(request)
+                # display a "Loading" spinner until we actually display the
+                # details view for the deb file
                 self.available_pane.show_appview_spinner(spinner_text=_("Loading"))
             else:
                 # package from archive

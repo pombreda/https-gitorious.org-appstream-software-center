@@ -524,6 +524,7 @@ class SoftwarePane(gtk.VBox, BasePane):
     def hide_appview_spinner(self):
         """ hide the spinner and display the appview in the panel """
         self.spinner_view.stop()
+        self.spinner_view.set_text()
         self.spinner_notebook.set_current_page(self.PAGE_APPVIEW)
 
     def set_section(self, section):
