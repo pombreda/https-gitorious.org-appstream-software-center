@@ -281,14 +281,14 @@ class Frame(Gtk.Alignment):
         # corner-label.png image...
 
         # alter the to allow drawing outside of the widget bounds
-        cr.rectangle(-4, -4, w+4, h+4)
+        cr.rectangle(-8, -8, w+4, h+4)
         cr.clip()
-        cr.set_source_surface(surf, -2, -4)
+        cr.set_source_surface(surf, -5, -6)
         cr.paint()
         # render label
         ex = layout.get_pixel_extents()[1]
         # transalate to the visual center of the corner-label
-        cr.translate(19, 19)
+        cr.translate(19, 18)
         # rotate counter-clockwise
         cr.rotate(-pi*0.25)
         # paint normal markup
@@ -424,7 +424,7 @@ class FramedHeaderBox(FramedBox):
         FramedBox.__init__(self, Gtk.Orientation.VERTICAL, spacing, padding)
         self.header = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, spacing)
         self.header_alignment = Gtk.Alignment()
-        self.header_alignment.set_padding(StockEms.SMALL, 1, StockEms.SMALL, StockEms.SMALL)
+        self.header_alignment.set_padding(StockEms.SMALL+2, 2, StockEms.SMALL, StockEms.SMALL)
         self.header_alignment.add(self.header)
         self.box.pack_start(self.header_alignment, False, False, 0)
         self.content_box = Gtk.Box.new(orientation, spacing)
@@ -525,7 +525,7 @@ class FramedHeaderBox(FramedBox):
         cr.save()
         cr.translate(width-cnr_slice, cnr_slice)
         cr.set_source(assets["e"])
-        cr.rectangle(0, 0, cnr_slice, height-2*cnr_slice)
+        cr.rectangle(0, 0, cnr_slice, height-cnr_slice)
         cr.clip()
         cr.paint()
         cr.restore()
@@ -534,35 +534,39 @@ class FramedHeaderBox(FramedBox):
         cr.save()
         cr.translate(0, cnr_slice)
         cr.set_source(assets["w"])
-        cr.rectangle(0, 0, cnr_slice, height-2*cnr_slice)
+        cr.rectangle(0, 0, cnr_slice, height-cnr_slice)
         cr.clip()
         cr.paint()
         cr.restore()
 
         # fill interior
-        rounded_rect(cr, 4, 3, a.width-7, a.height-7, border_radius)
-        cr.set_source_rgb(0.866666667,0.282352941,0.078431373)  #DD4814
-        cr.fill_preserve()
-        cr.set_source_rgb(0.992156863,0.984313725,0.988235294)  #FDFBFC
-        cr.stroke()
+        if hasattr(self, "more"):
+            rounded_rect(cr, 4, 3, a.width-7, a.height-7, border_radius)
+            cr.set_source_rgb(0.866666667,0.282352941,0.078431373)  #DD4814
+            cr.fill_preserve()
 
-        #~ if hasattr(self, "more"):
-            #~ a = self.title.get_allocation()
-            #~ cr.move_to(a.x-A.x, 3)
-            #~ cr.rel_line_to(a.width, 0)
-            #~ cr.rel_line_to(0, A.height)
-            #~ cr.rel_line_to(-a.width, 0)
-            #~ cr.rel_line_to(10, A.height*0.5)
-            #~ cr.close_path()
-            #~ cr.set_source_rgb(0,1,0)
-            #~ cr.fill()
+            cr.clip()
+            ta = self.more.get_allocation()
+            cr.set_source_rgb(0,1,0)
+            cr.rectangle(ta.x-a.x, 3,
+                         ta.width, a.height)
+            #~ cr.
+            cr.fill()
 
-            #~ cr.stroke()
-        #~ else:
-            #~ cr.stroke()
+            cr.reset_clip()
+            rounded_rect(cr, 4, 3, a.width-7, a.height-7, border_radius)
+            cr.set_source_rgb(0.992156863,0.984313725,0.988235294)  #FDFBFC
+            cr.stroke()
+
+        else:
+            rounded_rect(cr, 4, 3, a.width-7, a.height-7, border_radius)
+            cr.set_source_rgb(0.866666667,0.282352941,0.078431373)  #DD4814
+            cr.fill_preserve()
+            cr.set_source_rgb(0.992156863,0.984313725,0.988235294)  #FDFBFC
+            cr.stroke()
 
         cr.restore()
-
+        return
 
 
 # this is used in the automatic tests
