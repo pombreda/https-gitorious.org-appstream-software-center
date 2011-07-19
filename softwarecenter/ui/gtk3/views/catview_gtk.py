@@ -131,31 +131,30 @@ class CategoriesViewGtk(Gtk.Viewport, CategoriesParser):
 
     def on_app_clicked(self, btn, app):
         """emit the category-selected signal when a category was clicked"""
-        print app
-        #~ self.emit("application-selected", app)
+        def idle_emit():
+            self.emit("application-selected", app)
+            self.emit("application-activated", app)
+            return False
+
+        GObject.timeout_add(50, idle_emit)
         return
 
     def on_category_clicked(self, btn, cat):
         """emit the category-selected signal when a category was clicked"""
-        self.emit("category-selected", cat)
+        def idle_emit():
+            self.emit("category-selected", cat)
+            return False
+
+        GObject.timeout_add(50, idle_emit)
         return
 
     def build(self, desktopdir):
         pass
 
     def on_draw(self, widget, cr, assets):
-        cr.set_source(assets["stipple"])
-        cr.paint()
+        #~ cr.set_source(assets["stipple"])
+        #~ cr.paint()
         return
-
-    #~ def _on_app_clicked(self, btn):
-        #~ app = btn.app
-        #~ appname = app[AppStore.COL_APP_NAME]
-        #~ pkgname = app[AppStore.COL_PKGNAME]
-        #~ rating = app[AppStore.COL_RATING]
-        #~ self.emit("application-selected", Application(appname, pkgname, "", rating))
-        #~ self.emit("application-activated", Application(appname, pkgname, "", rating))
-        #~ return False
 
     def set_section(self, section):
         self.section = section
