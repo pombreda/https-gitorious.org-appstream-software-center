@@ -281,9 +281,9 @@ class Frame(Gtk.Alignment):
         # corner-label.png image...
 
         # alter the to allow drawing outside of the widget bounds
-        cr.rectangle(-8, -8, w+4, h+4)
+        cr.rectangle(-10, -10, w+4, h+4)
         cr.clip()
-        cr.set_source_surface(surf, -5, -6)
+        cr.set_source_surface(surf, -7, -8)
         cr.paint()
         # render label
         ex = layout.get_pixel_extents()[1]

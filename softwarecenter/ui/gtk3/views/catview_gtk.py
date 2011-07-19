@@ -207,6 +207,10 @@ class LobbyViewGtk(CategoriesViewGtk):
     def _append_top_of_the_pops(self):
         self.totp_hbox = Gtk.HBox(spacing=self.SPACING)
 
+        alignment = Gtk.Alignment()
+        alignment.set_padding(0, 0, self.PADDING, self.PADDING)
+        alignment.add(self.totp_hbox)
+
         frame = FramedHeaderBox()
         frame.header_implements_more_button()
         frame.set_header_label(_("Most Popular"))
@@ -216,11 +220,7 @@ class LobbyViewGtk(CategoriesViewGtk):
         label.set_size_request(-1, 200)
 
         frame.add(label)
-
-        alignment = Gtk.Alignment()
-        alignment.set_padding(0, 0, self.PADDING, 0)
-        alignment.add(frame)
-        self.totp_hbox.add(alignment)
+        self.totp_hbox.add(frame)
 
         frame = FramedHeaderBox()
         frame.header_implements_more_button()
@@ -231,13 +231,9 @@ class LobbyViewGtk(CategoriesViewGtk):
         label.set_size_request(-1, 200)
 
         frame.add(label)
+        self.totp_hbox.add(frame)
 
-        alignment = Gtk.Alignment()
-        alignment.set_padding(0, 0, self.PADDING, 0)
-        alignment.add(frame)
-        self.totp_hbox.add(alignment)
-
-        self.vbox.pack_start(self.totp_hbox, False, False, 0)
+        self.vbox.pack_start(alignment, False, False, 0)
         return
 
     def _append_video_clips(self):
