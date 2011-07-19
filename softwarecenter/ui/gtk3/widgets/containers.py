@@ -420,7 +420,7 @@ class FramedHeaderBox(FramedBox):
 
     MARKUP = '<span color="white"><b>%s</b></span>'
 
-    def __init__(self, orientation, spacing=0, padding=3):
+    def __init__(self, orientation=Gtk.Orientation.VERTICAL, spacing=0, padding=3):
         FramedBox.__init__(self, Gtk.Orientation.VERTICAL, spacing, padding)
         self.header = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, spacing)
         self.header_alignment = Gtk.Alignment()
@@ -540,30 +540,29 @@ class FramedHeaderBox(FramedBox):
         cr.restore()
 
         # fill interior
-        if hasattr(self, "more"):
-            rounded_rect(cr, 4, 3, a.width-7, a.height-7, border_radius)
-            cr.set_source_rgb(0.866666667,0.282352941,0.078431373)  #DD4814
-            cr.fill_preserve()
+        #~ if hasattr(self, "more"):
+            #~ rounded_rect(cr, 4, 3, a.width-7, a.height-7, border_radius)
+            #~ cr.set_source_rgb(0.866666667,0.282352941,0.078431373)  #DD4814
+            #~ cr.fill_preserve()
+#~ 
+            #~ cr.clip()
+            #~ ta = self.more.get_allocation()
+            #~ cr.set_source_rgb(0,1,0)
+            #~ cr.rectangle(ta.x-a.x, 3,
+                         #~ ta.width, a.height)
+            #~ cr.fill()
+#~ 
+            #~ cr.reset_clip()
+            #~ rounded_rect(cr, 4, 3, a.width-7, a.height-7, border_radius)
+            #~ cr.set_source_rgb(0.992156863,0.984313725,0.988235294)  #FDFBFC
+            #~ cr.stroke()
 
-            cr.clip()
-            ta = self.more.get_allocation()
-            cr.set_source_rgb(0,1,0)
-            cr.rectangle(ta.x-a.x, 3,
-                         ta.width, a.height)
-            #~ cr.
-            cr.fill()
-
-            cr.reset_clip()
-            rounded_rect(cr, 4, 3, a.width-7, a.height-7, border_radius)
-            cr.set_source_rgb(0.992156863,0.984313725,0.988235294)  #FDFBFC
-            cr.stroke()
-
-        else:
-            rounded_rect(cr, 4, 3, a.width-7, a.height-7, border_radius)
-            cr.set_source_rgb(0.866666667,0.282352941,0.078431373)  #DD4814
-            cr.fill_preserve()
-            cr.set_source_rgb(0.992156863,0.984313725,0.988235294)  #FDFBFC
-            cr.stroke()
+        #~ else:
+        rounded_rect(cr, 4, 3, a.width-7, a.height-7, border_radius)
+        cr.set_source_rgb(0.866666667,0.282352941,0.078431373)  #DD4814
+        cr.fill_preserve()
+        cr.set_source_rgb(0.992156863,0.984313725,0.988235294)  #FDFBFC
+        cr.stroke()
 
         cr.restore()
         return

@@ -87,7 +87,7 @@ class CategoriesViewGtk(Gtk.Viewport, CategoriesParser):
         # we have our own viewport so we know when the viewport grows/shrinks
         # setup widgets
 
-        self.vbox = Gtk.VBox()
+        self.vbox = Gtk.VBox(spacing=3)
         self.add(self.vbox)
 
         # atk stuff
@@ -186,20 +186,40 @@ class LobbyViewGtk(CategoriesViewGtk):
         #~ self._append_recommendations()
         self._append_banner_ads()
 
-        self.top_hbox = Gtk.HBox(spacing=StockEms.SMALL)
+        self.top_hbox = Gtk.HBox(spacing=3)
         top_hbox_alignment = Gtk.Alignment()
-        top_hbox_alignment.set_padding(self.PADDING, self.PADDING,
-                                       self.PADDING, self.PADDING)
+        top_hbox_alignment.set_padding(0, 0, self.PADDING, self.PADDING)
         top_hbox_alignment.add(self.top_hbox)
         self.vbox.pack_start(top_hbox_alignment, False, False, 0)
 
         self._append_departments()
 
-        self.right_column = Gtk.Box.new(Gtk.Orientation.VERTICAL, self.SPACING)
+        self.right_column = Gtk.Box.new(Gtk.Orientation.VERTICAL, 3)
         self.top_hbox.pack_start(self.right_column, True, True, 0)
 
         self._append_featured()
         self._append_recommendations()
+
+        self._append_video_clips()
+        return
+
+    def _append_video_clips(self):
+        frame = FramedHeaderBox()
+        frame.set_header_expand(False)
+        frame.set_header_position(HeaderPosition.LEFT)
+        frame.set_header_label(_("Latest Demo Videos"))
+
+        label = Gtk.Label.new("Videos go here")
+        label.set_name("placeholder")
+        label.set_size_request(-1, 150)
+
+        frame.add(label)
+
+        alignment = Gtk.Alignment()
+        alignment.set_padding(0, 0, self.PADDING, self.PADDING)
+        alignment.add(frame)
+
+        self.vbox.pack_start(alignment, False, False, 0)
         return
 
     def _append_banner_ads(self):
