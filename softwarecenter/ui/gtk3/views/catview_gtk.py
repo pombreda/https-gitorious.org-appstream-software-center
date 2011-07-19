@@ -46,7 +46,7 @@ class CategoriesViewGtk(Gtk.Viewport, CategoriesParser):
                                    (),)
         }
 
-    SPACING = PADDING = StockEms.SMALL
+    SPACING = PADDING = 3
 
     # art stuff
     STIPPLE = "softwarecenter/ui/gtk3/art/stipple.png"
@@ -186,7 +186,7 @@ class LobbyViewGtk(CategoriesViewGtk):
         #~ self._append_recommendations()
         self._append_banner_ads()
 
-        self.top_hbox = Gtk.HBox(spacing=3)
+        self.top_hbox = Gtk.HBox(spacing=self.SPACING)
         top_hbox_alignment = Gtk.Alignment()
         top_hbox_alignment.set_padding(0, 0, self.PADDING, self.PADDING)
         top_hbox_alignment.add(self.top_hbox)
@@ -194,13 +194,50 @@ class LobbyViewGtk(CategoriesViewGtk):
 
         self._append_departments()
 
-        self.right_column = Gtk.Box.new(Gtk.Orientation.VERTICAL, 3)
+        self.right_column = Gtk.Box.new(Gtk.Orientation.VERTICAL, self.SPACING)
         self.top_hbox.pack_start(self.right_column, True, True, 0)
 
         self._append_featured()
         self._append_recommendations()
 
         self._append_video_clips()
+        self._append_top_of_the_pops()
+        return
+
+    def _append_top_of_the_pops(self):
+        self.totp_hbox = Gtk.HBox(spacing=self.SPACING)
+
+        frame = FramedHeaderBox()
+        frame.header_implements_more_button()
+        frame.set_header_label(_("Most Popular"))
+
+        label = Gtk.Label.new("Soda pop!!!")
+        label.set_name("placeholder")
+        label.set_size_request(-1, 200)
+
+        frame.add(label)
+
+        alignment = Gtk.Alignment()
+        alignment.set_padding(0, 0, self.PADDING, 0)
+        alignment.add(frame)
+        self.totp_hbox.add(alignment)
+
+        frame = FramedHeaderBox()
+        frame.header_implements_more_button()
+        frame.set_header_label(_("Top Rated"))
+
+        label = Gtk.Label.new("Demos ftw(?)")
+        label.set_name("placeholder")
+        label.set_size_request(-1, 200)
+
+        frame.add(label)
+
+        alignment = Gtk.Alignment()
+        alignment.set_padding(0, 0, self.PADDING, 0)
+        alignment.add(frame)
+        self.totp_hbox.add(alignment)
+
+        self.vbox.pack_start(self.totp_hbox, False, False, 0)
         return
 
     def _append_video_clips(self):
@@ -211,7 +248,7 @@ class LobbyViewGtk(CategoriesViewGtk):
 
         label = Gtk.Label.new("Videos go here")
         label.set_name("placeholder")
-        label.set_size_request(-1, 150)
+        label.set_size_request(-1, 200)
 
         frame.add(label)
 
@@ -224,7 +261,7 @@ class LobbyViewGtk(CategoriesViewGtk):
 
     def _append_banner_ads(self):
         placeholder = Gtk.Label.new("Banner Ad (Placeholder)")
-        placeholder.set_size_request(-1, 170)
+        placeholder.set_size_request(-1, 200)
         placeholder.set_name("placeholder")
         self.vbox.pack_start(placeholder, False, False, 0)
         return
@@ -296,7 +333,7 @@ class LobbyViewGtk(CategoriesViewGtk):
         frame = FramedHeaderBox(Gtk.Orientation.VERTICAL)
         frame.add(self.featured)
         frame.set_header_label(_("Recommended For You"))
-        frame.append_more_button()
+        frame.header_implements_more_button()
         self.right_column.pack_start(frame, True, True, 0)
 
         helper = AppPropertiesHelper(self.db, self.cache, self.icons)

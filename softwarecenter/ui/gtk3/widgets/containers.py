@@ -489,7 +489,7 @@ class FramedHeaderBox(FramedBox):
         self.title.set_markup(self.MARKUP % label)
         return
 
-    def append_more_button(self, callback=None):
+    def header_implements_more_button(self, callback=None):
         if not hasattr(self, "more"):
             self.more = Gtk.Label()
             self.more.set_padding(StockEms.MEDIUM, 0)
