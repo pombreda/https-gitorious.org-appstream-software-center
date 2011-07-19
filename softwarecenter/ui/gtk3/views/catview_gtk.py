@@ -229,13 +229,16 @@ class LobbyViewGtk(CategoriesViewGtk):
         return
 
     def _append_featured(self):
+        #~ featured_cat = get_category_by_name(self.categories, 
+                                            #~ u"What\u2019s New")  # unstranslated name
         featured_cat = get_category_by_name(self.categories, 
-                                            u"What\u2019s New")  # unstranslated name
+                                            u"Featured")  # unstranslated name
+
 
         enq = AppEnquire(self.cache, self.db)
         app_filter = AppViewFilter(self.db, self.cache)
         enq.set_query(featured_cat.query,
-                      limit=6,
+                      limit=24,
                       filter=app_filter,
                       nonapps_visible=NonAppVisibility.ALWAYS_VISIBLE,
                       nonblocking_load=False)
@@ -248,7 +251,7 @@ class LobbyViewGtk(CategoriesViewGtk):
         self.right_column.pack_start(frame, True, True, 0)
 
         helper = AppPropertiesHelper(self.db, self.cache, self.icons)
-        for doc in enq.get_documents():
+        for doc in enq.get_documents()[15:21]:
             name = helper.get_appname(doc)
             icon_pb = helper.get_icon_at_size(doc, 48, 48)
             stats = helper.get_review_stats(doc)

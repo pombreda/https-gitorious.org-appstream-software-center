@@ -283,7 +283,7 @@ class Frame(Gtk.Alignment):
         # alter the to allow drawing outside of the widget bounds
         cr.rectangle(-4, -4, w+4, h+4)
         cr.clip()
-        cr.set_source_surface(surf, -2, -3)
+        cr.set_source_surface(surf, -2, -4)
         cr.paint()
         # render label
         ex = layout.get_pixel_extents()[1]
