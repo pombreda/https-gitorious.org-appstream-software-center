@@ -32,7 +32,7 @@ set title "Reviews spread"
 set xlabel "Stars"
 set ylabel "Nr ratings"
 set boxwidth 0.75
-set term png size 1600,1200
+set term png size 800,600
 set out 'review-spread.png'
 
 plot "reviews-spread.dat" using 1:2 with boxes fs solid 0.2 title "Star distribution"
