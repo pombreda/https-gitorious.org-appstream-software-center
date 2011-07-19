@@ -136,12 +136,6 @@ class CategoriesViewGtk(Gtk.Viewport, CategoriesParser):
         #~ self.emit("application-activated", Application(appname, pkgname, "", rating))
         #~ return False
 
-    def _on_category_clicked(self, cat_btn, cat):
-        """emit the category-selected signal when a category was clicked"""
-        LOG.debug("on_category_changed: %s" % cat.name)
-        self.emit("category-selected", cat)
-        return
-
     def set_section(self, section):
         self.section = section
 
@@ -202,6 +196,10 @@ class LobbyViewGtk(CategoriesViewGtk):
 
         self._append_video_clips()
         self._append_top_of_the_pops()
+        return
+
+    def on_clicked(self, btn, app):
+        """emit the category-selected signal when a category was clicked"""
         return
 
     def _append_top_of_the_pops(self):
@@ -277,7 +275,7 @@ class LobbyViewGtk(CategoriesViewGtk):
             label = LabelTile(category_name, None)
             label.label.set_alignment(0.0, 0.5)
             label.label.set_use_markup(True)
-            label.connect('clicked', self._on_category_clicked, cat)
+            label.connect('clicked', self.on_clicked, cat)
             cat_vbox.pack_start(label, False, False, 0)
         return
 
@@ -309,7 +307,7 @@ class LobbyViewGtk(CategoriesViewGtk):
             icon_pb = helper.get_icon_at_size(doc, 48, 48)
             stats = helper.get_review_stats(doc)
             tile = FeaturedTile(name, icon_pb, stats)
-            tile.connect('clicked', self._on_category_clicked, doc)
+            tile.connect('clicked', self.on_clicked, doc)
             self.featured.add_child(tile)
         return
 
@@ -338,7 +336,7 @@ class LobbyViewGtk(CategoriesViewGtk):
             icon_pb = helper.get_icon_at_size(doc, 48, 48)
             stats = helper.get_review_stats(doc)
             tile = FeaturedTile(name, icon_pb, stats)
-            tile.connect('clicked', self._on_category_clicked, doc)
+            tile.connect('clicked', self.on_clicked, doc)
             self.featured.add_child(tile)
         return
 
@@ -385,6 +383,10 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         self.departments = None
         return
 
+    def on_clicked(self, btn, cat):
+        """emit the category-selected signal when a category was clicked"""
+        return
+
     def _append_subcat_departments(self, root_category, num_items):
         m = "<b><big>%s</big></b>"
         if self.departments is None:
@@ -421,7 +423,7 @@ class SubCategoryViewGtk(CategoriesViewGtk):
 
             if len(enquire.get_mset(0,1)):
                 tile = CategoryTile(cat.name, cat.iconname)
-                tile.connect('clicked', self._on_category_clicked, cat)
+                #~ tile.connect('clicked', self._on_category_clicked, cat)
                 self.departments.add_child(tile)
 
         # partialy work around a (quite rare) corner case
@@ -438,7 +440,7 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         all_cat = Category("All", _("All"), "category-show-all", root_category.query)
         name = GObject.markup_escape_text('%s %s' % (_("All"), num_items))
         tile = CategoryTile(name, "category-show-all")
-        tile.connect('clicked', self._on_category_clicked, all_cat)
+        #~ tile.connect('clicked', self._on_category_clicked, all_cat)
         self.departments.add_child(tile)
         return
 
