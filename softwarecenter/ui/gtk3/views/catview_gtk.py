@@ -273,6 +273,7 @@ class LobbyViewGtk(CategoriesViewGtk):
         frame = FramedHeaderBox(Gtk.Orientation.VERTICAL)
         frame.add(self.featured)
         frame.set_header_label(_("Recommended For You"))
+        frame.append_more_button()
         self.right_column.pack_start(frame, True, True, 0)
 
         helper = AppPropertiesHelper(self.db, self.cache, self.icons)

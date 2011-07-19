@@ -5,6 +5,8 @@ from softwarecenter.ui.gtk3.drawing import rounded_rect
 from softwarecenter.ui.gtk3.widgets.stars import Star
 
 
+_HAND = Gdk.Cursor.new(Gdk.CursorType.HAND2)
+
 
 class Tile(Gtk.Button):
 
@@ -116,10 +118,33 @@ class FeaturedTile(Tile):
 
         self.set_relief(Gtk.ReliefStyle.NONE)
         self.set_name("featured-tile")
+
+        self.connect("enter-notify-event", self.on_enter)
+        self.connect("leave-notify-event", self.on_leave)
         return
 
     def do_get_preferred_width(self):
         return self.MAX_WIDTH, self.MAX_WIDTH
+
+    def do_draw(self, cr):
+        A = self.get_allocation()
+        for child in self.box:
+            a = child.get_allocation()
+            cr.save()
+            cr.translate(a.x-A.x, a.y-A.y)
+            child.draw(cr)
+            cr.restore()
+        return
+
+    def on_enter(self, widget, event):
+        window = self.get_window()
+        window.set_cursor(_HAND)
+        return
+
+    def on_leave(self, widget, event):
+        window = self.get_window()
+        window.set_cursor(None)
+        return
 
 
 #~ class _ChannelSelectorArrow(Gtk.Alignment):    
