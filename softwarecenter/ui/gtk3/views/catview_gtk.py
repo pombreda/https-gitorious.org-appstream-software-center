@@ -106,6 +106,16 @@ class CategoriesViewGtk(Gtk.Viewport, CategoriesParser):
 
         self._cache_art_assets()
         self.vbox.connect("draw", self.on_draw, self._asset_cache)
+        self._prev_alloc = None
+        self.connect("size-allocate", self.on_size_allocate)
+        return
+
+    def on_size_allocate(self, widget, _):
+        a = widget.get_allocation()
+        prev = self._prev_alloc
+        if prev is None or a.width != prev.width or a.height != prev.height:
+            self._prev_alloc = a
+            self.queue_draw()
         return
 
     def _cache_art_assets(self):
