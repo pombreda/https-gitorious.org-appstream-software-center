@@ -39,7 +39,7 @@ class DebFileApplication(Application):
     def get_details(self, db):
         if not self.details:
             from softwarecenter.utils import ExecutionTime
-            with ExecutionTime("get_details for DebFileApplication"):
+            with ExecutionTime("create AppDetailsDebFile for DebFileApplication"):
                 self.details = AppDetailsDebFile(db, application=self)
         return self.details
 
