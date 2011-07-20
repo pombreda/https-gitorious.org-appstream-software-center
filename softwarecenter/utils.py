@@ -487,9 +487,11 @@ class SimpleFileDownloader(GObject.GObject):
 
         # if the cache is used, we use that as the dest_file_path
         if use_cache:
-            dest_file_path = os.path.join(SOFTWARE_CENTER_CACHE_DIR, 
-                                          "download-cache",
-                                          uri_to_filename(url))
+            cache_path = os.path.join(
+                SOFTWARE_CENTER_CACHE_DIR, "download-cache")
+            if not os.path.exists(cache_path):
+                os.makedirs(cache_path)
+            dest_file_path = os.path.join(cache_path, uri_to_filename(url))
 
         # no cache and no dest_file_path, use tempdir
         if dest_file_path is None:
