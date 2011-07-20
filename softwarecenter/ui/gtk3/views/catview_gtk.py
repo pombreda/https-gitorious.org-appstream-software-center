@@ -270,10 +270,27 @@ class LobbyViewGtk(CategoriesViewGtk):
         return
 
     def _append_banner_ads(self):
-        placeholder = Gtk.Label.new("Banner Ad (Placeholder)")
+        from softwarecenter.ui.gtk3.widgets.exhibits import ExhibitBanner
+        placeholder = ExhibitBanner()
         placeholder.set_size_request(-1, 200)
         placeholder.set_name("placeholder")
         self.vbox.pack_start(placeholder, False, False, 0)
+
+        # mvo: just for the demo 
+        from mock import Mock
+        exhibit = Mock()
+        exhibit.background_color = "#000000"
+        exhibit.banner_url = "https://wiki.ubuntu.com/Brand?action=AttachFile&do=get&target=orangeubuntulogo.png"
+        exhibit.date_created = "2011-07-20 08:49:15"
+        exhibit.font_color = "#000000"
+        exhibit.font_name = ""
+        exhibit.id = 1
+        exhibit.package_names = "apt,2vcard"
+        exhibit.published = True
+        exhibit.title_coords = [10, 10]
+        exhibit.title_translated = "Some title"
+        placeholder.set_exhibit(exhibit)
+
         return
 
     def _append_departments(self):
