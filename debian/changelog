@@ -17,8 +17,10 @@ software-center (4.1.10) UNRELEASED; urgency=low
     - improvement for a local debian package install, display a
       "loading" spinner while the package loads and do not show
       the main categories view momentarily
+  * softwarecenter/backend/reviews.py:
+    - fix crash on an undefined histogram value (LP: #812923) 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 18 Jul 2011 18:37:22 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 20 Jul 2011 14:14:22 -0400
 
 software-center (4.1.9) oneiric; urgency=low
 
