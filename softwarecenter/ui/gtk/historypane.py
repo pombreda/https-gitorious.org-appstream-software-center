@@ -171,6 +171,7 @@ class HistoryPane(gtk.VBox, BasePane):
         if self.history == None:
             # if the history is not yet initialized we have to load and parse it
             # show a spinner while we do that
+            self.realize()
             self.window.set_cursor(self.busy_cursor)
             self.spinner_view.start()
             self.spinner_notebook.set_current_page(self.PAGE_SPINNER)
