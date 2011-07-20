@@ -92,7 +92,7 @@ class AppDetailsDebFile(AppDetails):
 
         # check deb and set failure state on error
         from softwarecenter.utils import ExecutionTime
-        with ExecutionTime("AppDetailsDebFile._deb.check"):
+        with ExecutionTime("AppDetailsDebFile._deb.check()"):
             if not self._deb.check():
                 self._error = self._deb._failure_string
 
