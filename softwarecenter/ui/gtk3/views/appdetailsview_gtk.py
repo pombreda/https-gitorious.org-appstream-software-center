@@ -18,9 +18,12 @@
 
 import gi
 gi.require_version("Gtk", "3.0")
-from gi.repository import Atk, Gtk, Gdk, GObject, GdkPixbuf
-
+from gi.repository import Atk
+from gi.repository import Gtk
+from gi.repository import Gdk
 from gi.repository import GObject
+from gi.repository import GdkPixbuf
+
 import datetime
 import gettext
 import gmenu

@@ -16,10 +16,9 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+from gi.repository import GObject
 import dbus
-from gi.repository import GObject
 import gtk
-from gi.repository import GObject
 import logging
 
 from softwarecenter.utils import get_icon_from_theme, size_to_str

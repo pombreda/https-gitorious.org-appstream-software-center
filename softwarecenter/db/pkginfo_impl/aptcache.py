@@ -27,7 +27,7 @@ import os
 
 from softwarecenter.enums import PkgStates
 
-from softwarecenter.db.pkginfo import PackageInfo
+from softwarecenter.db.pkginfo import PackageInfo, _Version
 
 LOG = logging.getLogger(__name__)
 
@@ -57,6 +57,32 @@ def pkg_downloaded(pkg_version):
     filename = os.path.basename(pkg_version.filename)
     # FIXME: use relative path here
     return os.path.exists("/var/cache/apt/archives/" + filename)
+
+class AptCacheVersion(_Version):
+    def __init__(self, version):
+        self.ver = version
+
+    @property
+    def description(self):
+        return self.ver.description
+    @property
+    def summary(self):
+        return self.ver.summary
+    @property
+    def size(self):
+        return self.ver.size
+    @property
+    def installed_size(self):
+        return self.ver.installed_size
+    @property
+    def version(self):
+        return self.ver.version
+    @property
+    def origins(self):
+        return self.ver.origins
+    @property
+    def downloadable(self):
+        return self.ver.downloadable
 
 class AptCache(PackageInfo):
     """ 
@@ -112,19 +138,19 @@ class AptCache(PackageInfo):
         if (pkgname not in self._cache or
             not self._cache[pkgname].is_installed):
             return None
-        return self._cache[pkgname].installed
+        return AptCacheVersion(self._cache[pkgname].installed)
 
     def get_candidate(self, pkgname):
         if (pkgname not in self._cache or
             not self._cache[pkgname].candidate):
             return None
-        return self._cache[pkgname].candidate
+        return AptCacheVersion(self._cache[pkgname].candidate)
 
     def get_versions(self, pkgname):
         if (pkgname not in self._cache or
             not self._cache[pkgname].candidate):
             return []
-        return self._cache[pkgname].versions
+        return [AptCacheVersion(v) for v in self._cache[pkgname].versions]
 
     def get_section(self, pkgname):
         if (pkgname not in self._cache or 

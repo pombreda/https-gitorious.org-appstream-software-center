@@ -18,14 +18,14 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 from gi.repository import GObject
-from gi.repository import Gtk, Gdk
+from gi.repository import Gtk
+from gi.repository import Gdk
 import logging
 import os
 import simplejson
 import sys
 import urllib
 from gi.repository import WebKit as webkit
-from gi.repository import GObject
 
 from gettext import gettext as _
 

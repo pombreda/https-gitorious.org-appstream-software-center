@@ -287,13 +287,14 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         return
 
     def set_subcategory(self, root_category, num_items=0, block=False):
-        self.current_category = root_category
         # nothing to do
-        if self.categories == root_category.subcategories:
+        if (root_category is None or
+            self.categories == root_category.subcategories):
             return
+
+        self.current_category = root_category
         self.header = root_category.name
 
-#        ico_inf = self.icons.lookup_icon(root_category.iconname, 150, 0)
         self.categories = root_category.subcategories
         self._build_subcat_view(root_category, num_items)
         return

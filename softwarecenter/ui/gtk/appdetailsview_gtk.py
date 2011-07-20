@@ -16,12 +16,12 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+from gi.repository import GObject
+
 import atk
 import datetime
 import gettext
-from gi.repository import GObject
 import gmenu
-from gi.repository import GObject
 import gtk
 import logging
 import os

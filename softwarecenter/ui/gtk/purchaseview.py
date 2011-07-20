@@ -25,7 +25,6 @@ import simplejson
 import sys
 import urllib
 import webkit
-from gi.repository import GObject
 
 from gettext import gettext as _
 
