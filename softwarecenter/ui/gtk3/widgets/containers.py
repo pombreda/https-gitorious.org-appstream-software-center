@@ -558,14 +558,14 @@ class FramedHeaderBox(FramedBox):
             cr.clip()
 
             ta = self.more.get_allocation()
-            cr.set_source_rgb(0.521568627,0.168627451,0.047058824)
+            cr.set_source_rgb(0.521568627,0.168627451,0.047058824)  #852B0C
 
             # the arrow shape stuff
             cr.move_to(ta.x-a.x-StockEms.MEDIUM, 3)
             cr.rel_line_to(ta.width+StockEms.MEDIUM, 0)
             cr.rel_line_to(0, a.height-cnr_slice)
             cr.rel_line_to(-1*(ta.width+StockEms.MEDIUM), 0)
-            cr.rel_line_to(StockEms.MEDIUM, -((a.height-cnr_slice)*0.5))
+            cr.rel_line_to(StockEms.MEDIUM, -(a.height-cnr_slice)*0.5)
             
             cr.close_path()
 
