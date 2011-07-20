@@ -23,6 +23,7 @@ LOG_ALLOCATION = logging.getLogger("softwarecenter.ui.gtk.allocation")
 LOG=logging.getLogger(__name__)
 
 
+_asset_cache = {}
 class CategoriesViewGtk(Gtk.Viewport, CategoriesParser):
 
     __gsignals__ = {
@@ -50,8 +51,6 @@ class CategoriesViewGtk(Gtk.Viewport, CategoriesParser):
 
     # art stuff
     STIPPLE = "softwarecenter/ui/gtk3/art/stipple.png"
-    _asset_cache = {}
-
 
     def __init__(self, 
                  datadir,
@@ -104,8 +103,8 @@ class CategoriesViewGtk(Gtk.Viewport, CategoriesParser):
         self._poster_sigs = []
         self._allocation = None
 
-        self._cache_art_assets()
-        self.vbox.connect("draw", self.on_draw, self._asset_cache)
+        assets = self._cache_art_assets()
+        self.vbox.connect("draw", self.on_draw, assets)
         self._prev_alloc = None
         self.connect("size-allocate", self.on_size_allocate)
         return
@@ -119,15 +118,17 @@ class CategoriesViewGtk(Gtk.Viewport, CategoriesParser):
         return
 
     def _cache_art_assets(self):
+        global _asset_cache
+        if _asset_cache: return _asset_cache
         import cairo
 
-        assets = self._asset_cache
+        assets = _asset_cache
         # cache the bg pattern
         surf = cairo.ImageSurface.create_from_png(self.STIPPLE)
         ptrn = cairo.SurfacePattern(surf)
         ptrn.set_extend(cairo.EXTEND_REPEAT)
         assets["stipple"] = ptrn
-        return
+        return assets
 
     def on_app_clicked(self, btn, app):
         """emit the category-selected signal when a category was clicked"""
