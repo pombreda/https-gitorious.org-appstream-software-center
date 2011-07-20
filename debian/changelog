@@ -19,8 +19,12 @@ software-center (4.1.10) UNRELEASED; urgency=low
       the main categories view momentarily
   * softwarecenter/backend/reviews.py:
     - fix crash on an undefined histogram value (LP: #812923) 
+  * softwarecenter/ui/gtk/historypane.py,
+    softwarecenter/ui/gtk3/panes/historypane.py:
+    - apply patch from Michael Terry to fix a crash when
+      initializing the history pane, many thanks! (LP: #746984)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 20 Jul 2011 14:14:22 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 20 Jul 2011 18:38:13 -0400
 
 software-center (4.1.9) oneiric; urgency=low
 
