@@ -1384,7 +1384,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self._update_app_screenshot(app_details)
         self._update_weblive(app_details)
         self._update_pkg_info_table(app_details)
-        self._update_addons(app_details)
+        from softwarecenter.utils import ExecutionTime
+        with ExecutionTime("AppDetailsViewGtk._update_addons"):
+            self._update_addons(app_details)
         self._update_reviews(app_details)
 
         # show where it is
