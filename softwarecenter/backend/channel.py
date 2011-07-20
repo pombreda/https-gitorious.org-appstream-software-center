@@ -513,6 +513,16 @@ class AllInstalledChannel(AllChannel):
     def __init__(self):
         AllChannel.__init__(self, _("All Installed"), True)
 
+# singleton
+channels_manager = None
+def get_channels_manager(db):
+    global channels_manager
+    if channels_manager is None:
+        channels_manager = AptChannelsManager(db)
+    return channels_manager
+
+def is_channel_available(channelname):
+    return AptChannelsManager.channel_available(channelname)
 
 if __name__ == "__main__":
     distro = get_distro()
