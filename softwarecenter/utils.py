@@ -33,6 +33,7 @@ import time
 import xml.sax.saxutils
 
 from enums import Icons, APP_INSTALL_PATH_DELIMITER
+from paths import SOFTWARE_CENTER_CACHE_DIR
 
 from config import get_config
 
@@ -473,8 +474,24 @@ class SimpleFileDownloader(GObject.GObject):
         GObject.GObject.__init__(self)
         self.tmpdir = None
 
-    def download_file(self, url, dest_file_path=None):
-        self.LOG.debug("download_file: %s %s" % (url, dest_file_path))
+    def download_file(self, url, dest_file_path=None, use_cache=False):
+        """ download a url and emit the file-download-complete 
+            once the file is there
+            if dest_file_path is given, download to that specific
+            local filename 
+            if use_cache is given it will not use a tempdir, but
+            instead a permanent cache dir
+        """
+        self.LOG.debug("download_file: %s %s %s" % (
+                url, dest_file_path, use_cache))
+
+        # if the cache is used, we use that as the dest_file_path
+        if use_cache:
+            dest_file_path = os.path.join(SOFTWARE_CENTER_CACHE_DIR, 
+                                          "download-cache",
+                                          uri_to_filename(url))
+
+        # no cache and no dest_file_path, use tempdir
         if dest_file_path is None:
             if self.tmpdir is None:
                 self.tmpdir = tempfile.mkdtemp(prefix="software-center-")
@@ -482,7 +499,7 @@ class SimpleFileDownloader(GObject.GObject):
 
         self.url = url
         self.dest_file_path = dest_file_path
-        
+
         if os.path.exists(self.dest_file_path):
             self.emit('file-url-reachable', True)
             self.emit("file-download-complete", self.dest_file_path)
