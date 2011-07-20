@@ -170,20 +170,17 @@ class NavigationStack(object):
             return True
         last = self[-1]
         if str(item) == str(last):
-            #~ print 'NOTOK: str\'s match:',  str(item), str(last)
             return False
         return True
 
     def append(self, item):
         if not self._isok(item):
             self.cursor = len(self.stack)-1
-            #~ logging.debug('A:%s' % repr(self))
             return
         if len(self.stack) + 1 > self.max_length:
             self.stack.pop(1)
         self.stack.append(item)
         self.cursor = len(self.stack)-1
-        #~ logging.debug('A:%s' % repr(self))
         if hasattr(self, "navlog"):
             self.navlog.log.notify_append(item)
         return
@@ -195,7 +192,6 @@ class NavigationStack(object):
             did_step = True
         else:
             self.cursor = 0
-        #~ logging.debug('B:%s' % repr(self))
         if hasattr(self, "navlog") and did_step:
             self.navlog.log.notify_step_back()
         return self.stack[self.cursor], did_step
@@ -207,7 +203,6 @@ class NavigationStack(object):
             did_step = True
         else:
             self.cursor = len(self.stack)-1
-        #~ logging.debug('B:%s' % repr(self))
         if hasattr(self, "navlog") and did_step:
             self.navlog.log.notify_step_forward()
         return self.stack[self.cursor], did_step

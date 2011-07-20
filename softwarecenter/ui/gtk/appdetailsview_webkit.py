@@ -18,7 +18,6 @@
 
 import gio
 from gi.repository import GObject
-from gi.repository import GObject
 import gtk
 import json
 import logging

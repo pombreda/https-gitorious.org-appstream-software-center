@@ -19,7 +19,6 @@
 
 
 from gi.repository import GObject
-from gi.repository import GObject
 import gtk
 import logging
 

@@ -38,6 +38,19 @@ from softwarecenter.enums import (SortMethods,
 LOG = logging.getLogger(__name__)
 
 class ChannelsManager(object):
+    @property
+    def channels(self):
+        return []
+        
+    @property
+    def channels_installed_only(self):
+        return []
+
+    @staticmethod
+    def channel_available(channelname):
+        pass
+
+class AptChannelsManager(ChannelsManager):
 
     def __init__(self, db):
         self.db = db

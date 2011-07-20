@@ -106,7 +106,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
 
         SoftwarePane.init_view(self)
 
-        self.label_app_list_header.set_no_show_all(True)
+        self.search_aid.set_no_show_all(True)
         self.notebook.append_page(self.box_app_list, Gtk.Label(label="installed"))
 
         # details
@@ -253,6 +253,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         if not terms:
             self.visible_docids = self.state.search_term = None
             self._clear_search()
+
         elif self.state.search_term != terms:
             self.state.search_term = terms
             self.enquirer.set_query(self.get_query(),
@@ -266,12 +267,12 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         self.treefilter.refilter()
         if terms:
             self.app_view.expand_all()
-            i = len(self.visible_docids)
+            #i = len(self.visible_docids)
         else:
             self._check_expand()
-            i = self.installed_count
+            #i = self.installed_count
 
-        self.emit("app-list-changed", i)
+        #~ self.emit("app-list-changed", i)
         return
 
     def get_query(self):
@@ -321,14 +322,14 @@ class InstalledPane(SoftwarePane, CategoriesParser):
 
     def _clear_search(self):
         # remove the details and clear the search
-        self.searchentry.clear()
+        self.searchentry.clear_with_no_signal()
 
     def on_search_terms_changed(self, searchentry, terms):
         """callback when the search entry widget changes"""
         logging.debug("on_search_terms_changed: '%s'" % terms)
 
+        self.state.search_terms = terms
         self._search(terms.strip())
-
         self.notebook.set_current_page(InstalledPane.Pages.LIST)
         return
 
