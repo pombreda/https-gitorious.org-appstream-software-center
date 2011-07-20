@@ -53,7 +53,9 @@ class AppDetailsDebFile(AppDetails):
         try:
             # for some reason Cache() is much faster than "self._cache._cache"
             # on startup
-            self._deb = DebPackage(self._app.request, Cache())
+            from softwarecenter.utils import ExecutionTime
+            with ExecutionTime("create DebPackage"):
+                self._deb = DebPackage(self._app.request, Cache())
         except:
             self._deb = None
             self._pkg = None
@@ -89,8 +91,10 @@ class AppDetailsDebFile(AppDetails):
                 pass
 
         # check deb and set failure state on error
-        if not self._deb.check():
-            self._error = self._deb._failure_string
+        from softwarecenter.utils import ExecutionTime
+        with ExecutionTime("AppDetailsDebFile._deb.check"):
+            if not self._deb.check():
+                self._error = self._deb._failure_string
 
     @property
     def description(self):
