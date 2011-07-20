@@ -36,7 +36,10 @@ class DebFileApplication(Application):
         self.pkgname = debname.split('_')[0].lower()
         self.request = debfile
     def get_details(self, db):
-        return AppDetailsDebFile(db, application=self)
+        from softwarecenter.utils import ExecutionTime
+        with ExecutionTime("get_details for DebFileApplication"):
+            details = AppDetailsDebFile(db, application=self)
+        return details
 
 class AppDetailsDebFile(AppDetails):
     
