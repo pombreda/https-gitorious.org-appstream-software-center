@@ -183,6 +183,7 @@ class FlowableGrid(Gtk.Fixed):
         return
 
 
+# two tiers of cacheing, assets and surfaces at specific window sizes
 _frame_asset_cache = {}
 class Frame(Gtk.Alignment):
 
@@ -200,10 +201,13 @@ class Frame(Gtk.Alignment):
         self.layout.set_width(40960)
         self.layout.set_ellipsize(Pango.EllipsizeMode.END)
 
+        _frame_surface_cache = {}
         assets = self._cache_art_assets()
         self.connect("draw", self.on_draw, border_radius, assets)
         self.connect_after("draw", self.on_draw_after,
                            assets, self.layout)
+        self._prev_alloc = None
+        self.connect("size-allocate", self.on_size_allocate)
         return
 
     def _cache_art_assets(self):
@@ -265,6 +269,13 @@ class Frame(Gtk.Alignment):
 
         # all done!
         return assets
+
+    def on_size_allocate(self, *args):
+        a = self.get_allocation()
+        prev = self._prev_alloc
+        if prev is None or prev.width != a.width or prev.height != a.height:
+            self._frame_surface_cache = {}
+        return
 
     def on_draw(self, widget, cr, border_radius, assets):
         a = widget.get_allocation()
@@ -436,7 +447,7 @@ class FramedHeaderBox(FramedBox):
         ha = self.header.get_allocation()
         a.x = ha.x
         a.width = ha.width
-        a.height *= 2
+        a.height += assets["corner-slice"]
         self.render_header(cr, a, border_radius, assets, False)
 
         a = self.get_allocation()
@@ -540,29 +551,37 @@ class FramedHeaderBox(FramedBox):
         cr.restore()
 
         # fill interior
-        #~ if hasattr(self, "more"):
-            #~ rounded_rect(cr, 4, 3, a.width-7, a.height-7, border_radius)
-            #~ cr.set_source_rgb(0.866666667,0.282352941,0.078431373)  #DD4814
-            #~ cr.fill_preserve()
-#~ 
-            #~ cr.clip()
-            #~ ta = self.more.get_allocation()
-            #~ cr.set_source_rgb(0,1,0)
-            #~ cr.rectangle(ta.x-a.x, 3,
-                         #~ ta.width, a.height)
-            #~ cr.fill()
-#~ 
-            #~ cr.reset_clip()
-            #~ rounded_rect(cr, 4, 3, a.width-7, a.height-7, border_radius)
-            #~ cr.set_source_rgb(0.992156863,0.984313725,0.988235294)  #FDFBFC
-            #~ cr.stroke()
+        if hasattr(self, "more"):
+            rounded_rect(cr, 4, 3, a.width-7, a.height, border_radius)
+            cr.set_source_rgb(0.866666667,0.282352941,0.078431373)  #DD4814
+            cr.fill_preserve()
+            cr.clip()
 
-        #~ else:
-        rounded_rect(cr, 4, 3, a.width-7, a.height-7, border_radius)
-        cr.set_source_rgb(0.866666667,0.282352941,0.078431373)  #DD4814
-        cr.fill_preserve()
-        cr.set_source_rgb(0.992156863,0.984313725,0.988235294)  #FDFBFC
-        cr.stroke()
+            ta = self.more.get_allocation()
+            cr.set_source_rgb(0.521568627,0.168627451,0.047058824)  #852B0C
+
+            # the arrow shape stuff
+            cr.move_to(ta.x-a.x-StockEms.MEDIUM, 3)
+            cr.rel_line_to(ta.width+StockEms.MEDIUM, 0)
+            cr.rel_line_to(0, a.height-cnr_slice)
+            cr.rel_line_to(-1*(ta.width+StockEms.MEDIUM), 0)
+            cr.rel_line_to(StockEms.MEDIUM, -(a.height-cnr_slice)*0.5)
+            
+            cr.close_path()
+
+            cr.fill()
+
+            cr.reset_clip()
+            rounded_rect(cr, 4, 3, a.width-7, a.height, border_radius)
+            cr.set_source_rgb(0.992156863,0.984313725,0.988235294)  #FDFBFC
+            cr.stroke()
+
+        else:
+            rounded_rect(cr, 4, 3, a.width-7, a.height-7, border_radius)
+            cr.set_source_rgb(0.866666667,0.282352941,0.078431373)  #DD4814
+            cr.fill_preserve()
+            cr.set_source_rgb(0.992156863,0.984313725,0.988235294)  #FDFBFC
+            cr.stroke()
 
         cr.restore()
         return

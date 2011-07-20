@@ -330,7 +330,6 @@ class InstalledPane(SoftwarePane, CategoriesParser):
 
         self.state.search_terms = terms
         self._search(terms.strip())
-
         self.notebook.set_current_page(InstalledPane.Pages.LIST)
         return
 

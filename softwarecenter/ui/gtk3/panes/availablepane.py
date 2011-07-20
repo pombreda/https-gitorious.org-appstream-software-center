@@ -202,22 +202,25 @@ class AvailablePane(SoftwarePane):
                 not self.state.subcategory and
                 not self.state.search_term)
 
-    def _show_hide_subcategories(self, show_category_applist=False):
-        # check if have subcategories and are not in a subcategory
-        # view - if so, show it
-        if (self.notebook.get_current_page() == AvailablePane.Pages.LOBBY or
-            self.notebook.get_current_page() == AvailablePane.Pages.DETAILS):
-            return
-        if (not show_category_applist and
-            self.state.category and
-            self.state.category.subcategories and
-            not (self.state.search_term or self.state.subcategory)):
-            self.subcategories_view.set_subcategory(self.state.category,
-                                                    num_items=len(self.app_view.get_model()))
-            self.notebook.set_current_page(AvailablePane.Pages.SUBCATEGORY)
-        else:
-            self.notebook.set_current_page(AvailablePane.Pages.LIST)
-
+#~ <<<<<<< TREE
+#~ =======
+    #~ def _show_hide_subcategories(self, show_category_applist=False):
+        #~ # check if have subcategories and are not in a subcategory
+        #~ # view - if so, show it
+        #~ if (self.notebook.get_current_page() == AvailablePane.Pages.LOBBY or
+            #~ self.notebook.get_current_page() == AvailablePane.Pages.DETAILS):
+            #~ return
+        #~ if (not show_category_applist and
+            #~ self.state.category and
+            #~ self.state.category.subcategories and
+            #~ not (self.state.search_term or self.state.subcategory)):
+            #~ self.subcategories_view.set_subcategory(self.state.category,
+                                                    #~ num_items=len(self.app_view.get_model()))
+            #~ self.notebook.set_current_page(AvailablePane.Pages.SUBCATEGORY)
+        #~ else:
+            #~ self.notebook.set_current_page(AvailablePane.Pages.LIST)
+#~ 
+#~ >>>>>>> MERGE-SOURCE
     # status text woo
     def get_status_text(self):
         """return user readable status text suitable for a status bar"""
@@ -436,9 +439,27 @@ class AvailablePane(SoftwarePane):
         LOG.debug("on_search_terms_changed: %s" % new_text)
 
         self.state.search_term = new_text
-        vm = get_viewmanager()
 
         vm = get_viewmanager()
+
+        # yeah for special cases - as discussed on irc, mpt
+        # wants this to return to the category screen *if*
+        # we are searching but we are not in any category
+        if not self.state.category and not new_text:
+            # category activate will clear search etc
+            self.state.reset()
+            vm.display_page(self,
+                           AvailablePane.Pages.LOBBY,
+                           self.state,
+                           self.display_lobby_page)
+            return False
+        elif (self.state.category and 
+                self.state.category.subcategories and not new_text):
+            vm.display_page(self,
+                           AvailablePane.Pages.SUBCATEGORY,
+                           self.state,
+                           self.display_subcategory_page)
+            return False
         vm.display_page(self, AvailablePane.Pages.LIST, self.state,
                         self.display_search_page)
 
@@ -477,10 +498,6 @@ class AvailablePane(SoftwarePane):
         return True
 
     def display_search_page(self, page, view_state):
-        # we got the signal after we already switched to a details
-        # page, ignore it
-        #~ if self.notebook.get_current_page() == AvailablePane.Pages.DETAILS:
-            #~ return
 
         new_text = view_state.search_term
         if new_text != self.searchentry.get_text():

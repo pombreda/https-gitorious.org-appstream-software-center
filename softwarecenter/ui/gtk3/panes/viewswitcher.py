@@ -30,7 +30,6 @@ from softwarecenter.db.database import StoreDatabase
 from softwarecenter.enums import ViewPages
 from softwarecenter.paths import XAPIAN_BASE_PATH
 from softwarecenter.distro import get_distro
-
 from softwarecenter.backend.channel import get_channels_manager
 from softwarecenter.ui.gtk3.widgets.buttons import SectionSelector
 from softwarecenter.ui.gtk3.em import StockEms
