@@ -120,8 +120,6 @@ class CategoriesViewGtk(Gtk.Viewport, CategoriesParser):
     def _cache_art_assets(self):
         global _asset_cache
         if _asset_cache: return _asset_cache
-        import cairo
-
         assets = _asset_cache
         # cache the bg pattern
         surf = cairo.ImageSurface.create_from_png(self.STIPPLE)

@@ -202,6 +202,25 @@ class AvailablePane(SoftwarePane):
                 not self.state.subcategory and
                 not self.state.search_term)
 
+#~ <<<<<<< TREE
+#~ =======
+    #~ def _show_hide_subcategories(self, show_category_applist=False):
+        #~ # check if have subcategories and are not in a subcategory
+        #~ # view - if so, show it
+        #~ if (self.notebook.get_current_page() == AvailablePane.Pages.LOBBY or
+            #~ self.notebook.get_current_page() == AvailablePane.Pages.DETAILS):
+            #~ return
+        #~ if (not show_category_applist and
+            #~ self.state.category and
+            #~ self.state.category.subcategories and
+            #~ not (self.state.search_term or self.state.subcategory)):
+            #~ self.subcategories_view.set_subcategory(self.state.category,
+                                                    #~ num_items=len(self.app_view.get_model()))
+            #~ self.notebook.set_current_page(AvailablePane.Pages.SUBCATEGORY)
+        #~ else:
+            #~ self.notebook.set_current_page(AvailablePane.Pages.LIST)
+#~ 
+#~ >>>>>>> MERGE-SOURCE
     # status text woo
     def get_status_text(self):
         """return user readable status text suitable for a status bar"""
@@ -324,6 +343,7 @@ class AvailablePane(SoftwarePane):
             ',' in self.state.search_term and
             self.notebook.get_current_page() == AvailablePane.Pages.LIST):
             appstore = self.app_view.get_model()
+
             installable = []
             for app in self.enquirer.apps:
                 if (app.pkgname in self.cache and
@@ -419,6 +439,7 @@ class AvailablePane(SoftwarePane):
         LOG.debug("on_search_terms_changed: %s" % new_text)
 
         self.state.search_term = new_text
+
         vm = get_viewmanager()
 
         #~ # yeah for special cases - as discussed on irc, mpt
@@ -439,7 +460,8 @@ class AvailablePane(SoftwarePane):
                            #~ self.state,
                            #~ self.display_subcategory_page)
             #~ return False
-        vm.display_page(self, AvailablePane.Pages.LIST, self.state, self.display_search_page)
+        vm.display_page(self, AvailablePane.Pages.LIST, self.state,
+                        self.display_search_page)
 
     def on_db_reopen(self, db):
         " called when the database is reopened"
@@ -476,6 +498,7 @@ class AvailablePane(SoftwarePane):
         return True
 
     def display_search_page(self, page, view_state):
+
         new_text = view_state.search_term
         if new_text != self.searchentry.get_text():
             self.searchentry.set_text_with_no_signal(new_text)

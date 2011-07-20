@@ -145,8 +145,8 @@ class SoftwarePane(Gtk.VBox, BasePane):
     }
     PADDING = 6
 
-    def __init__(
-            self, cache, db, distro, icons, datadir, show_ratings=True, store=None):
+    def __init__(self, cache, db, distro, icons, datadir, show_ratings=True, store=None):
+
         Gtk.VBox.__init__(self)
         BasePane.__init__(self)
 
