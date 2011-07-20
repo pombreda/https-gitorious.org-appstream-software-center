@@ -442,24 +442,24 @@ class AvailablePane(SoftwarePane):
 
         vm = get_viewmanager()
 
-        #~ # yeah for special cases - as discussed on irc, mpt
-        #~ # wants this to return to the category screen *if*
-        #~ # we are searching but we are not in any category
-        #~ if not self.state.category and not new_text:
-            #~ # category activate will clear search etc
-            #~ self.state.reset()
-            #~ vm.display_page(self,
-                           #~ AvailablePane.Pages.LOBBY,
-                           #~ self.state,
-                           #~ self.display_lobby_page)
-            #~ return False
-        #~ elif (self.state.category and 
-                #~ self.state.category.subcategories and not new_text):
-            #~ vm.display_page(self,
-                           #~ AvailablePane.Pages.SUBCATEGORY,
-                           #~ self.state,
-                           #~ self.display_subcategory_page)
-            #~ return False
+        # yeah for special cases - as discussed on irc, mpt
+        # wants this to return to the category screen *if*
+        # we are searching but we are not in any category
+        if not self.state.category and not new_text:
+            # category activate will clear search etc
+            self.state.reset()
+            vm.display_page(self,
+                           AvailablePane.Pages.LOBBY,
+                           self.state,
+                           self.display_lobby_page)
+            return False
+        elif (self.state.category and 
+                self.state.category.subcategories and not new_text):
+            vm.display_page(self,
+                           AvailablePane.Pages.SUBCATEGORY,
+                           self.state,
+                           self.display_subcategory_page)
+            return False
         vm.display_page(self, AvailablePane.Pages.LIST, self.state,
                         self.display_search_page)
 
