@@ -21,7 +21,6 @@
 
 import cPickle
 from gi.repository import GObject
-from gi.repository import GObject
 import logging
 import os
 import simplejson

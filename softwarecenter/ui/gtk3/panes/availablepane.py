@@ -18,7 +18,6 @@
 
 import gettext
 from gi.repository import GObject
-from gi.repository import GObject
 from gi.repository import Gtk
 import logging
 import os
@@ -250,6 +249,7 @@ class AvailablePane(SoftwarePane):
         """ unset the current showing category, but keep e.g. the current 
             search 
         """
+
         self.state.category = None
         self.state.subcategory = None
 
@@ -267,9 +267,29 @@ class AvailablePane(SoftwarePane):
         """
 
         super(AvailablePane, self).on_app_list_changed(pane, length)
-        self._update_status_text(length)
         self._update_action_bar()
-        pass
+        self._update_status_text(length)
+
+    def _update_status_text_lobby(self):
+        # SPECIAL CASE: in category page show all items in the DB
+        distro = get_distro()
+        if self.state.filter.get_supported_only():
+            query = distro.get_supported_query()
+        else:
+            query = xapian.Query('')
+        enquire = xapian.Enquire(self.db.xapiandb)
+        # XD is the term for pkgs that have a desktop file
+        enquire.set_query(xapian.Query(xapian.Query.OP_AND_NOT, 
+                                       query,
+                                       xapian.Query("XD"),
+                                       )
+                         )
+        matches = enquire.get_mset(0, len(self.db))
+        length = len(matches)
+
+        self._status_text = gettext.ngettext("%(amount)s item available",
+                                             "%(amount)s items available",
+                                             length) % { 'amount' : length, }
 
     def _update_status_text(self, length):
         """
@@ -294,7 +314,7 @@ class AvailablePane(SoftwarePane):
             length = len(matches)
 
         if self.state.search_term and ',' in self.state.search_term:
-            length = len(self.app_view.get_model().apps)
+            length = self.enquirer.nr_apps
             self._status_text = gettext.ngettext("%(amount)s item",
                                                  "%(amount)s items",
                                                  length) % { 'amount' : length, }
@@ -315,14 +335,14 @@ class AvailablePane(SoftwarePane):
         update buttons in the action bar to implement the custom package lists feature,
         see https://wiki.ubuntu.com/SoftwareCenter#Custom%20package%20lists
         '''
-        appstore = self.app_view.get_model()
-        if (appstore and
-            self.state.search_term and
+        return
+        if (self.state.search_term and
             ',' in self.state.search_term and
             self.notebook.get_current_page() == AvailablePane.Pages.LIST):
             appstore = self.app_view.get_model()
+
             installable = []
-            for app in appstore.apps:
+            for app in self.enquirer.apps:
                 if (app.pkgname in self.cache and
                     not self.cache[app.pkgname].is_installed and
                     app.pkgname not in self.backend.pending_transactions):
@@ -366,7 +386,7 @@ class AvailablePane(SoftwarePane):
         self.backend.install_multiple(pkgnames, appnames, iconnames)
 
     def get_app_items_limit(self):
-        if self.apps_search_term:
+        if self.state.search_term:
             return DEFAULT_SEARCH_LIMIT
         elif self.state.category and self.state.category.item_limit > 0:
             return self.state.category.item_limit
@@ -416,6 +436,7 @@ class AvailablePane(SoftwarePane):
         LOG.debug("on_search_terms_changed: %s" % new_text)
 
         self.state.search_term = new_text
+        vm = get_viewmanager()
 
         vm = get_viewmanager()
         vm.display_page(self, AvailablePane.Pages.LIST, self.state,
@@ -450,6 +471,7 @@ class AvailablePane(SoftwarePane):
         self.hide_appview_spinner()
         self.emit("app-list-changed", len(self.db))
         self._clear_search()
+        self._update_status_text_lobby()
         self.searchentry.show()
         self.action_bar.clear()
         return True
@@ -489,12 +511,8 @@ class AvailablePane(SoftwarePane):
             self._clear_search()
         else:
             self.state.limit = DEFAULT_SEARCH_LIMIT
-
         self.refresh_apps()
         self.searchentry.show()
-
-        #~ list_length = len(self.app_view.get_model())
-        #~ self.emit("app-list-changed", list_length)
         return True
 
     def display_subcategory_page(self, page, view_state):
@@ -503,9 +521,11 @@ class AvailablePane(SoftwarePane):
         if self.state.search_term or self.searchentry.get_text():
             self._clear_search()
             self.refresh_apps()
-        self.subcategories_view.set_subcategory(category)
-        # do not emit app-list-changed here, this is done async when
-        # the new model is ready
+
+        query = self.get_query()
+        n_matches = self.quick_query(query)
+        self.subcategories_view.set_subcategory(category, n_matches)
+
         self.action_bar.clear()
         self.searchentry.show()
         self.cat_view.stop_carousels()

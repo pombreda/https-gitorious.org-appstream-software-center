@@ -38,6 +38,19 @@ from softwarecenter.enums import (SortMethods,
 LOG = logging.getLogger(__name__)
 
 class ChannelsManager(object):
+    @property
+    def channels(self):
+        return []
+        
+    @property
+    def channels_installed_only(self):
+        return []
+
+    @staticmethod
+    def channel_available(channelname):
+        pass
+
+class AptChannelsManager(ChannelsManager):
 
     def __init__(self, db):
         self.db = db
@@ -500,6 +513,16 @@ class AllInstalledChannel(AllChannel):
     def __init__(self):
         AllChannel.__init__(self, _("All Installed"), True)
 
+# singleton
+channels_manager = None
+def get_channels_manager(db):
+    global channels_manager
+    if channels_manager is None:
+        channels_manager = AptChannelsManager(db)
+    return channels_manager
+
+def is_channel_available(channelname):
+    return AptChannelsManager.channel_available(channelname)
 
 if __name__ == "__main__":
     distro = get_distro()

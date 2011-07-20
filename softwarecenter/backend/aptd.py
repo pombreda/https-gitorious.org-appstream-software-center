@@ -19,7 +19,6 @@
 import apt_pkg
 import dbus
 from gi.repository import GObject
-from gi.repository import GObject
 import logging
 import os
 import re

@@ -31,7 +31,7 @@ from softwarecenter.enums import ViewPages
 from softwarecenter.paths import XAPIAN_BASE_PATH
 from softwarecenter.distro import get_distro
 
-from softwarecenter.backend.channel import ChannelsManager
+from softwarecenter.backend.channel import get_channels_manager
 from softwarecenter.ui.gtk3.widgets.buttons import SectionSelector
 from softwarecenter.ui.gtk3.em import StockEms
 from softwarecenter.ui.gtk3.widgets.symbolic_icons import (
@@ -57,7 +57,7 @@ class ViewSwitcher(Gtk.Box):
     def __init__(self, view_manager, datadir, db, cache, icons):
         # boring stuff
         self.view_manager = view_manager
-        self.channel_manager = ChannelsManager(db)
+        self.channel_manager = get_channels_manager(db)
 
         # backend sig handlers ...
         self.backend = get_install_backend()

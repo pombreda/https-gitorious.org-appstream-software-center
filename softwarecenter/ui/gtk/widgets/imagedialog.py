@@ -76,10 +76,6 @@ class ShowImageDialog(gtk.Dialog):
         self.set_default_size(850,650)
         self.set_title(title)
         self.connect("response", self._response)
-        # destination
-        if not path:
-            tempfile.mkdtemp(prefix="sc-screenshot")
-        self.path = path
         # data
         self.url = url
             
@@ -94,7 +90,7 @@ class ShowImageDialog(gtk.Dialog):
         self._abort = False
         self._fetched = 0.0
         self._percent = 0.0
-        self.loader.download_file(self.url, self.path)
+        self.loader.download_file(self.url, use_cache=False)
         # wait for download to finish or for abort
         while not self._finished:
             time.sleep(0.1)
