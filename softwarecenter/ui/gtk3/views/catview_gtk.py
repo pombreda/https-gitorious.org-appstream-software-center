@@ -277,18 +277,23 @@ class LobbyViewGtk(CategoriesViewGtk):
 
         # mvo: just for the demo 
         from mock import Mock
-        exhibit = Mock()
-        exhibit.background_color = "#000000"
-        exhibit.banner_url = "https://wiki.ubuntu.com/Brand?action=AttachFile&do=get&target=orangeubuntulogo.png"
-        exhibit.date_created = "2011-07-20 08:49:15"
-        exhibit.font_color = "#000000"
-        exhibit.font_name = ""
-        exhibit.id = 1
-        exhibit.package_names = "apt,2vcard"
-        exhibit.published = True
-        exhibit.title_coords = [10, 10]
-        exhibit.title_translated = "Some title"
-        placeholder.set_exhibit(exhibit)
+        exhibits_data = []
+        for (i, url) in enumerate([
+            "https://wiki.ubuntu.com/Brand?action=AttachFile&do=get&target=orangeubuntulogo.png",
+            "https://wiki.ubuntu.com/Brand?action=AttachFile&do=get&target=blackeubuntulogo.png"]):
+            exhibit = Mock()
+            exhibit.background_color = "#000000"
+            exhibit.banner_url = url
+            exhibit.date_created = "2011-07-20 08:49:15"
+            exhibit.font_color = "#000000"
+            exhibit.font_name = ""
+            exhibit.id = 1
+            exhibit.package_names = "apt,2vcard"
+            exhibit.published = True
+            exhibit.title_coords = [10, 10]
+            exhibit.title_translated = "%s title" % i
+            exhibits_data.append(exhibit)
+        placeholder.set_exhibits(exhibits_data)
 
         return
 
