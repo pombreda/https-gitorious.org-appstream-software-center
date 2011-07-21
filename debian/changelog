@@ -23,8 +23,12 @@ software-center (4.1.10) UNRELEASED; urgency=low
     softwarecenter/ui/gtk3/panes/historypane.py:
     - apply patch from Michael Terry to fix a crash when
       initializing the history pane, many thanks! (LP: #746984)
+  * softwarecenter/db/debfile.py,
+    softwarecenter/ui/gtk/appdetailsview_gtk.py,
+    softwarecenter/ui/gtk/availablepane.py:
+    - reduce startup time when installing a deb file by ~50%
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 20 Jul 2011 18:38:13 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 20 Jul 2011 22:04:31 -0400
 
 software-center (4.1.9) oneiric; urgency=low
 
