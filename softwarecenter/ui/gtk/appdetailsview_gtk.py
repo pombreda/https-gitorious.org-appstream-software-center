@@ -1385,7 +1385,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self._update_app_screenshot(app_details)
         self._update_weblive(app_details)
         self._update_pkg_info_table(app_details)
-        from softwarecenter.utils import ExecutionTime
         if not skip_update_addons:
             self._update_addons(app_details)
         self._update_reviews(app_details)
