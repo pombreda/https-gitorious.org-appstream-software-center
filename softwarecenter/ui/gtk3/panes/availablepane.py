@@ -498,31 +498,8 @@ class AvailablePane(SoftwarePane):
         return True
 
     def display_search_page(self, page, view_state):
-
         new_text = view_state.search_term
-        if new_text != self.searchentry.get_text():
-            self.searchentry.set_text_with_no_signal(new_text)
-
-        # yeah for special cases - as discussed on irc, mpt
-        # wants this to return to the category screen *if*
-        # we are searching but we are not in any category
-        if not self.state.category and not new_text:
-            # category activate will clear search etc
-            vm = get_viewmanager()
-            self.state.reset()
-            vm.display_page(self,
-                           AvailablePane.Pages.LOBBY,
-                           self.state,
-                           self.display_lobby_page)
-            return False
-        elif (self.state.category and 
-                self.state.category.subcategories and not new_text):
-            vm = get_viewmanager()
-            vm.display_page(self,
-                           AvailablePane.Pages.SUBCATEGORY,
-                           self.state,
-                           self.display_subcategory_page)
-            return False
+        print new_text
         # DTRT if the search is reseted
         if not new_text:
             self._clear_search()
@@ -549,7 +526,6 @@ class AvailablePane(SoftwarePane):
         return True
 
     def display_app_list_page(self, page, view_state):
-        self.state = view_state
         category = self.state.category
         self.set_category(category)
 
@@ -562,12 +538,11 @@ class AvailablePane(SoftwarePane):
         return True
 
     def display_details_page(self, page, view_state):
-        self.state = view_state
         #~ self._clear_search()
         #~ self.searchentry.hide()
         if self.searchentry.get_text() != self.state.search_term:
             self.searchentry.set_text_with_no_signal(
-                                self.state.search_term)
+                                                self.state.search_term)
 
         self.action_bar.clear()
         # we want to re-enable the buy button if this is an app for purchase

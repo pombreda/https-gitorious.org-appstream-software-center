@@ -170,7 +170,6 @@ class NavigationStack(object):
             return True
         last = self[-1]
         if str(item) == str(last):
-            #~ print 'NOTOK: str\'s match:',  str(item), str(last)
             return False
         return True
 

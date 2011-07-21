@@ -387,10 +387,6 @@ class InstalledPane(SoftwarePane, CategoriesParser):
                                     length) % { 'amount' : length, }
 
     def display_overview_page(self, page, view_state):
-        if self.state.channel == view_state.channel:
-            return
-
-        self.state.channel = view_state.channel
         self._build_categorised_view()
 
         if self.state.search_term:

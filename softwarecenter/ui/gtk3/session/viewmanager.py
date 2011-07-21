@@ -143,12 +143,13 @@ class ViewManager(object):
         if text != self.search_entry.get_text():
             self.search_entry.set_text_with_no_signal(text)
 
+        pane.state = view_state
         if callback is not None:
             callback(page, view_state)
 
         if page is not None:
             pane.notebook.set_current_page(page)
-    
+
         if self.get_current_view_widget() != pane:
             view_id = None
             for view_id, widget in self.view_to_pane.iteritems():
