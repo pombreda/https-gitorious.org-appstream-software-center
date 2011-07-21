@@ -184,7 +184,8 @@ class AppEnquire(object):
                 else:
                     logging.warning("no catelogedtime in axi")
             elif self.sortmode == SortMethods.BY_TOP_RATED:
-                sorter = TopRatedSorter(self.db, self.review_loader)
+                review_loader = get_review_loader(self.cache)
+                sorter = TopRatedSorter(self.db, review_loader)
                 enquire.set_sort_by_key(sorter, reverse=True)
             # search ranking - when searching
             elif self.sortmode == SortMethods.BY_SEARCH_RANKING:

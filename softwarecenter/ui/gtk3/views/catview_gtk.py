@@ -214,7 +214,8 @@ class LobbyViewGtk(CategoriesViewGtk):
         self._append_recommendations()
 
         self._append_video_clips()
-        self._append_top_of_the_pops()
+        self._append_top_rated()
+        #self._append_top_of_the_pops
         return
 
     def _append_top_of_the_pops(self):
@@ -315,6 +316,37 @@ class LobbyViewGtk(CategoriesViewGtk):
             label.connect('clicked', self.on_category_clicked, cat)
             cat_vbox.pack_start(label, False, False, 0)
         return
+
+    def _append_top_rated(self):
+        toprated_cat = get_category_by_name(self.categories, 
+                                            u"Top Rated")  # unstranslated name
+        enq = AppEnquire(self.cache, self.db)
+        app_filter = AppViewFilter(self.db, self.cache)
+        enq.set_query(toprated_cat.query,
+                      limit=toprated_cat.item_limit,
+                      sortmode=toprated_cat.sortmode,
+                      filter=app_filter,
+                      nonapps_visible=NonAppVisibility.ALWAYS_VISIBLE,
+                      nonblocking_load=False)
+
+        self.toprated = FlowableGrid()
+        #~ self.featured.row_spacing = StockEms.SMALL
+        frame = FramedHeaderBox()
+        frame.set_header_label(_("Top Rated"))
+        frame.header_implements_more_button()
+        frame.add(self.toprated)
+        self.right_column.pack_start(frame, True, True, 0)
+
+        helper = AppPropertiesHelper(self.db, self.cache, self.icons)
+        for doc in enq.get_documents():
+            name = helper.get_appname(doc)
+            icon_pb = helper.get_icon_at_size(doc, 48, 48)
+            stats = helper.get_review_stats(doc)
+            tile = FeaturedTile(name, icon_pb, stats)
+            tile.connect('clicked', self.on_app_clicked,
+                         helper.get_application(doc))
+            self.toprated.add_child(tile)
+        
 
     def _append_featured(self):
         #~ featured_cat = get_category_by_name(self.categories, 
