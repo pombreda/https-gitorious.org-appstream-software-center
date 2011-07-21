@@ -128,6 +128,13 @@ class FeaturedTile(Tile):
 
     def do_draw(self, cr):
         A = self.get_allocation()
+
+        if self.has_focus():
+            Gtk.render_focus(self.get_style_context(),
+                             cr,
+                             3, 3,
+                             A.width-6, A.height-6)
+
         for child in self.box:
             a = child.get_allocation()
             cr.save()
