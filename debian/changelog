@@ -8,6 +8,11 @@ software-center (4.1.10) UNRELEASED; urgency=low
   * add generic "use_cache" to SimpleFileDownloader
   * softwarecenter/ui/gtk3/widgets/exhibits.py:
     - add basic ExhibitBanner widget
+  * merged lp:~roignac/software-center/bug-805969, 
+    many thanks to  Vadim Rutkovsky (LP: #805969)
+  * merged lp:~aaronp/software-center/more-top-rated, many thanks
+    to Aaron Peachey
+  * add top rated carousel
 
   [ Gary Lasker ]
   * softwarecenter/ui/gtk/app.py,
@@ -17,8 +22,18 @@ software-center (4.1.10) UNRELEASED; urgency=low
     - improvement for a local debian package install, display a
       "loading" spinner while the package loads and do not show
       the main categories view momentarily
+  * softwarecenter/backend/reviews.py:
+    - fix crash on an undefined histogram value (LP: #812923) 
+  * softwarecenter/ui/gtk/historypane.py,
+    softwarecenter/ui/gtk3/panes/historypane.py:
+    - apply patch from Michael Terry to fix a crash when
+      initializing the history pane, many thanks! (LP: #746984)
+  * softwarecenter/db/debfile.py,
+    softwarecenter/ui/gtk/appdetailsview_gtk.py,
+    softwarecenter/ui/gtk/availablepane.py:
+    - reduce startup time when installing a deb file by ~50%
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 18 Jul 2011 18:37:22 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 20 Jul 2011 22:04:31 -0400
 
 software-center (4.1.9) oneiric; urgency=low
 

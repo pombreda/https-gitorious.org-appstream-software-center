@@ -456,7 +456,9 @@ class AvailablePane(SoftwarePane):
                                         self.on_navigation_details,
                                         NavButtons.DETAILS,
                                         animate=False)
-        self.app_details_view.show_app(app)
+        from softwarecenter.utils import ExecutionTime
+        with ExecutionTime("AppDetailsView.show_app '%s'" % app):
+            self.app_details_view.show_app(app)
         self.display_details()
 
     # callbacks

@@ -77,6 +77,20 @@ class LocaleSorter(parentClass):
     def __call__(self, doc):
         return locale.strxfrm(doc.get_value(self.db._axi_values["display_name"]))
 
+class TopRatedSorter(xapian.KeyMaker):
+    """ Sort using the top rated data """
+    def __init__(self, db, review_loader):
+        super(TopRatedSorter, self).__init__()
+        self.db = db
+        self.review_loader = review_loader
+    def __call__(self, doc):
+        app = Application(self.db.get_appname(doc),
+                          self.db.get_pkgname(doc))
+        stats = self.review_loader.get_review_stats(app)
+        import xapian
+        if stats:
+            return xapian.sortable_serialise(stats.dampened_rating)
+        return xapian.sortable_serialise(0)
 
 def parse_axi_values_file(filename="/var/lib/apt-xapian-index/values"):
     """ parse the apt-xapian-index "values" file and provide the 

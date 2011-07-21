@@ -288,6 +288,7 @@ class CategoriesParser(object):
         # always supported
         if sortmode in (SortMethods.UNSORTED, 
                         SortMethods.BY_ALPHABET, 
+                        SortMethods.BY_TOP_RATED, 
                         SortMethods.BY_SEARCH_RANKING):
             return True
         # only supported with a apt-xapian-index version that has the
