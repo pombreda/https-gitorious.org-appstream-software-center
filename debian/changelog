@@ -8,6 +8,8 @@ software-center (4.1.10) UNRELEASED; urgency=low
   * add generic "use_cache" to SimpleFileDownloader
   * softwarecenter/ui/gtk3/widgets/exhibits.py:
     - add basic ExhibitBanner widget
+  * merged lp:~roignac/software-center/bug-805969, 
+    many thanks to  Vadim Rutkovsky (LP: #805969)
 
   [ Gary Lasker ]
   * softwarecenter/ui/gtk/app.py,

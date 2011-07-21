@@ -567,7 +567,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
     def _available_for_me_result(self, scagent, result_list):
         #print "available_for_me_result", result_list
-        from db.update import add_from_purchased_but_needs_reinstall_data
+        from softwarecenter.db.update import add_from_purchased_but_needs_reinstall_data
         available_for_me_query = add_from_purchased_but_needs_reinstall_data(
             result_list, self.db, self.cache)
         self.available_pane.on_previous_purchases_activated(available_for_me_query) 
@@ -683,7 +683,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         return False
 
     def on_menuitem_launchpad_private_ppas_activate(self, menuitem):
-        from backend.launchpad import GLaunchpad
+        from softwarecenter.backend.launchpad import GLaunchpad
         self.glaunchpad = GLaunchpad()
         self.glaunchpad.connect("login-successful", self._on_lp_login)
         from view.logindialog import LoginDialog
@@ -692,7 +692,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
     def _create_buildin_sso_if_needed(self):
         if not self.sso:
-            from backend.restfulclient import UbuntuSSOlogin
+            from softwarecenter.backend.restfulclient import UbuntuSSOlogin
             self.sso = UbuntuSSOlogin()
             self.sso.connect("login-successful", self._on_sso_login)
     def _login_via_buildin_sso(self):
@@ -706,7 +706,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
     def _create_dbus_sso_if_needed(self):
         if not self.sso:
-            from backend.login_sso import get_sso_backend
+            from softwarecenter.backend.login_sso import get_sso_backend
             appname = SOFTWARE_CENTER_NAME_KEYRING
             login_text = SOFTWARE_CENTER_SSO_DESCRIPTION
             self.sso = get_sso_backend(self.window_main.window.xid,
@@ -719,7 +719,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
 
     def _create_scagent_if_needed(self):
         if not self.scagent:
-            from backend.scagent import SoftwareCenterAgent
+            from softwarecenter.backend.scagent import SoftwareCenterAgent
             self.scagent = SoftwareCenterAgent(xid=self.window_main.window.xid)
             self.scagent.connect("available-for-me", self._available_for_me_result)
             
