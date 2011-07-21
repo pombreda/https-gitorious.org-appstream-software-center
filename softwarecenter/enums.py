@@ -92,7 +92,8 @@ class SortMethods:
      BY_ALPHABET,
      BY_SEARCH_RANKING,
      BY_CATALOGED_TIME,
-    ) = range(4)
+     BY_TOP_RATED,
+    ) = range(5)
 
 # values used in the database
 class XapianValues:

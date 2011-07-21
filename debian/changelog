@@ -12,6 +12,7 @@ software-center (4.1.10) UNRELEASED; urgency=low
     many thanks to  Vadim Rutkovsky (LP: #805969)
   * merged lp:~aaronp/software-center/more-top-rated, many thanks
     to Aaron Peachey
+  * add top rated carousel
 
   [ Gary Lasker ]
   * softwarecenter/ui/gtk/app.py,
