@@ -10,6 +10,8 @@ software-center (4.1.10) UNRELEASED; urgency=low
     - add basic ExhibitBanner widget
   * merged lp:~roignac/software-center/bug-805969, 
     many thanks to  Vadim Rutkovsky (LP: #805969)
+  * merged lp:~aaronp/software-center/more-top-rated, many thanks
+    to Aaron Peachey
 
   [ Gary Lasker ]
   * softwarecenter/ui/gtk/app.py,
