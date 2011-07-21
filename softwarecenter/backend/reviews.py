@@ -223,6 +223,7 @@ class ReviewLoader(object):
 
     # cache the ReviewStats
     REVIEW_STATS_CACHE = {}
+    _cache_version_old = False
 
     def __init__(self, cache, db, distro=None):
         self.cache = cache
@@ -238,9 +239,19 @@ class ReviewLoader(object):
         if os.path.exists(self.REVIEW_STATS_CACHE_FILE):
             try:
                 self.REVIEW_STATS_CACHE = cPickle.load(open(self.REVIEW_STATS_CACHE_FILE))
+                self._cache_version_old = self._missing_histogram_in_cache()
             except:
                 LOG.exception("review stats cache load failure")
                 os.rename(self.REVIEW_STATS_CACHE_FILE, self.REVIEW_STATS_CACHE_FILE+".fail")
+    
+    def _missing_histogram_in_cache(self):
+        '''iterate through review stats to see if it has been fully reloaded
+           with new histogram data from server update'''
+        for app in self.REVIEW_STATS_CACHE.values():
+            result = getattr(app, 'rating_spread', False)
+            if not result:
+                return True
+        return False
 
     def get_reviews(self, application, callback, page=1, language=None):
         """run callback f(app, review_list) 
@@ -650,6 +661,13 @@ class ReviewLoaderSpawningRNRClient(ReviewLoader):
     def _on_review_stats_data(self, spawn_helper, piston_review_stats, callback):
         """ process stdout from the helper """
         review_stats = self.REVIEW_STATS_CACHE
+
+        if self._cache_version_old and self._server_has_histogram(piston_review_stats):
+            self.REVIEW_STATS_CACHE = {}
+            self.save_review_stats_cache_file()
+            self.refresh_review_stats(callback)
+            return
+        
         # convert to the format that s-c uses
         for r in piston_review_stats:
             s = ReviewStats(Application("", r.package_name))
@@ -663,6 +681,13 @@ class ReviewLoaderSpawningRNRClient(ReviewLoader):
         self.REVIEW_STATS_CACHE = review_stats
         callback(review_stats)
         self.save_review_stats_cache_file()
+    
+    def _server_has_histogram(self, piston_review_stats):
+        '''check response from server to see if histogram is supported'''
+        supported = getattr(piston_review_stats[0], "histogram", False)
+        if not supported:
+            return False
+        return True
 
 class ReviewLoaderJsonAsync(ReviewLoader):
     """ get json (or gzip compressed json) """
