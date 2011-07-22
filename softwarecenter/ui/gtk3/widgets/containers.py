@@ -4,6 +4,7 @@ from gi.repository import Gtk, Gdk, GdkPixbuf, Pango
 from gettext import gettext as _
 from math import pi
 
+from buttons import MoreLink
 from softwarecenter.ui.gtk3.em import StockEms
 from softwarecenter.ui.gtk3.drawing import rounded_rect
 
@@ -494,9 +495,7 @@ class FramedHeaderBox(FramedBox):
 
     def header_implements_more_button(self, callback=None):
         if not hasattr(self, "more"):
-            self.more = Gtk.Label()
-            self.more.set_padding(StockEms.MEDIUM, 0)
-            self.more.set_markup(self.MARKUP % _("More"))
+            self.more = MoreLink()
             self.header.pack_end(self.more, False, False, 0)
         return
     
@@ -528,7 +527,7 @@ class FramedHeaderBox(FramedBox):
         cr.save()
         cr.translate(width-cnr_slice, cnr_slice)
         cr.set_source(assets["e"])
-        cr.rectangle(0, 0, cnr_slice, height-cnr_slice)
+        cr.rectangle(0, 0, cnr_slice, height)
         cr.clip()
         cr.paint()
         cr.restore()
@@ -537,7 +536,7 @@ class FramedHeaderBox(FramedBox):
         cr.save()
         cr.translate(0, cnr_slice)
         cr.set_source(assets["w"])
-        cr.rectangle(0, 0, cnr_slice, height-cnr_slice)
+        cr.rectangle(0, 0, cnr_slice, height)
         cr.clip()
         cr.paint()
         cr.restore()
@@ -558,9 +557,7 @@ class FramedHeaderBox(FramedBox):
             cr.rel_line_to(0, a.height-cnr_slice)
             cr.rel_line_to(-1*(ta.width+StockEms.MEDIUM), 0)
             cr.rel_line_to(StockEms.MEDIUM, -(a.height-cnr_slice)*0.5)
-            
             cr.close_path()
-
             cr.fill()
 
             cr.reset_clip()
@@ -569,7 +566,7 @@ class FramedHeaderBox(FramedBox):
             cr.stroke()
 
         else:
-            rounded_rect(cr, 4, 3, a.width-7, a.height-7, border_radius)
+            rounded_rect(cr, 4, 3, a.width-7, a.height, border_radius)
             cr.set_source_rgb(0.866666667,0.282352941,0.078431373)  #DD4814
             cr.fill_preserve()
             cr.set_source_rgb(0.992156863,0.984313725,0.988235294)  #FDFBFC

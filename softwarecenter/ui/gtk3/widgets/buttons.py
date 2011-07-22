@@ -1,4 +1,5 @@
 from gi.repository import Gtk, Gdk, Pango, GObject, GdkPixbuf
+from gettext import gettext as _
 
 from softwarecenter.ui.gtk3.em import StockEms, em
 from softwarecenter.ui.gtk3.drawing import rounded_rect
@@ -337,6 +338,52 @@ class Link(Gtk.Label):
         return
 
     def on_activate_link(self, uri, data):
+        self.emit("clicked")
+        return
+
+
+class MoreLink(Gtk.EventBox):
+
+    __gsignals__ = {
+        "clicked" : (GObject.SignalFlags.RUN_LAST,
+                     None, 
+                     (),)
+        }
+
+    _MARKUP = '<span color="white"><b>%s</b></span>'
+    _MORE = _("More")
+
+    def __init__(self):
+        Gtk.EventBox.__init__(self)
+        self.set_visible_window(False)
+        label = Gtk.Label()
+        label.set_markup(self._MARKUP % self._MORE)
+        label.set_padding(StockEms.MEDIUM, 0)
+        self.add(label)
+        self._init_event_handling()
+        return
+
+    def _init_event_handling(self):
+        self.set_property("can-focus", True)
+        self.set_events(Gdk.EventMask.BUTTON_RELEASE_MASK|
+                        Gdk.EventMask.ENTER_NOTIFY_MASK|
+                        Gdk.EventMask.LEAVE_NOTIFY_MASK)
+
+        self.connect("enter-notify-event", self._on_enter_notify)
+        self.connect("leave-notify-event", self._on_leave_notify)
+        self.connect("button-release-event", self._on_button_release)
+
+    def _on_enter_notify(self, widget, event):
+        window = self.get_window()
+        if window:
+            window.set_cursor(Gdk.Cursor.new(Gdk.CursorType.HAND2))
+
+    def _on_leave_notify(self, widget, event):
+        window = self.get_window()
+        if window:
+            window.set_cursor(None)
+
+    def _on_button_release(self, widget, event):
         self.emit("clicked")
         return
 
