@@ -37,7 +37,8 @@ class TestSCAgent(unittest.TestCase):
         self.loop.run()        
         self.assertFalse(self.error)
 
-    def test_scagent_query_exhibits(self):
+    # disabled for now as this is not yet on staging or production
+    def disabled_test_scagent_query_exhibits(self):
         sca = SoftwareCenterAgent()
         sca.connect("exhibits", self.on_query_done)
         sca.connect("error", self.on_query_error)
