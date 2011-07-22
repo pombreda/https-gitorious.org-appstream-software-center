@@ -174,6 +174,7 @@ class LobbyViewGtk(CategoriesViewGtk):
         # sections
         self.featured_carousel = None
         self.whatsnew_carousel = None
+        self.toprated_carousel = None
         self.departments = None
 
         # this means that the departments don't jump down once the cache loads
@@ -243,10 +244,34 @@ class LobbyViewGtk(CategoriesViewGtk):
             cr.stroke()
             cr.restore()
 
+        # toprated carousel
+        # draw the info vbox bg
+        if self.toprated_carousel:
+            a = self.toprated_carousel.allocation
+            rounded_rect(cr, a.x, a.y, a.width, a.height, 5)
+            cr.set_source_rgba(*color_floats("#F7F7F7")+(0.75,))
+            cr.fill()
+
+            # draw the info header bg
+            a = self.toprated_carousel.header.allocation
+            rounded_rect2(cr, a.x, a.y, a.width, a.height, (5, 5, 0, 0))
+            cr.set_source_rgb(*color_floats("#DAD7D3"))
+            cr.fill()
+
+            a = self.toprated_carousel.allocation
+            cr.save()
+            rounded_rect(cr, a.x+0.5, a.y+0.5, a.width-1, a.height-1, 5)
+            cr.set_source_rgba(*color_floats("#DAD7D3")+(0.3,))
+            cr.set_line_width(1)
+            cr.stroke()
+            cr.restore()
+
         if self.featured_carousel:
             self.featured_carousel.draw(cr, self.featured_carousel.allocation, event.area)
         if self.whatsnew_carousel:
             self.whatsnew_carousel.draw(cr, self.whatsnew_carousel.allocation, event.area)
+        if self.toprated_carousel:
+            self.toprated_carousel.draw(cr, self.toprated_carousel.allocation, event.area)
             
         self.show_all()
         self.start_carousels()
@@ -268,6 +293,9 @@ class LobbyViewGtk(CategoriesViewGtk):
         if self.whatsnew_carousel:
             for poster in self.whatsnew_carousel.posters:
                 self._poster_sigs.append(poster.connect('clicked', self._on_app_clicked))
+        if self.toprated_carousel:
+            for poster in self.toprated_carousel.posters:
+                self._poster_sigs.append(poster.connect('clicked', self._on_app_clicked))
 
 #        print self._poster_sigs
         return
@@ -276,8 +304,10 @@ class LobbyViewGtk(CategoriesViewGtk):
         # these methods add sections to the page
         # changing order of methods changes order that they appear in the page
         self._append_departments()
+        self._append_toprated()
         self._append_featured()
         self._append_whatsnew()
+
         self._append_recommendations()
         return
 
@@ -343,6 +373,48 @@ class LobbyViewGtk(CategoriesViewGtk):
     def _on_recommended_clicked(self, link, uri, rec_cat):
         self._on_category_clicked(self, rec_cat)
         return True # mutter..
+
+    @wait_for_apt_cache_ready # be consistent with new apps
+    def _append_toprated(self):
+
+        # add some filler...
+        padding = gtk.VBox()
+        padding.set_size_request(-1, 6)
+        self.vbox.pack_start(padding, False)
+
+        toprated_cat = get_category_by_name(self.categories,
+                                            'Top Rated')    # untranslated name
+
+        # the spec says the carousel icons should be 4em
+        # however, by not using a stock icon size, icons sometimes dont
+        # look to great.
+        if toprated_cat:
+            # so based on the value of 4*em we try to choose a sane stock
+            # icon size
+            best_stock_size = 64#mkit.get_nearest_stock_size(64)
+            toprated_apps = AppStore(self.cache,
+                                     self.db, 
+                                     self.icons,
+                                     toprated_cat.query,
+                                     toprated_cat.item_limit,
+                                     toprated_cat.sortmode,
+                                     filter=self.apps_filter,
+                                     icon_size=best_stock_size,
+                                     global_icon_cache=False,
+                                     nonapps_visible=AppStore.NONAPPS_ALWAYS_VISIBLE,
+                                     nonblocking_load=False)
+
+            self.toprated_carousel = CarouselView(self,
+                                                  toprated_apps,
+                                                  _('Top Rated'),
+                                                  self.icons)
+
+            self.toprated_carousel.more_btn.connect('clicked',
+                                                    self._on_category_clicked,
+                                                    toprated_cat)
+            # pack featured carousel into hbox
+            self.vbox.pack_start(self.toprated_carousel, False)
+        return
 
     @wait_for_apt_cache_ready # be consistent with new apps
     def _append_featured(self):
@@ -418,6 +490,7 @@ class LobbyViewGtk(CategoriesViewGtk):
             self.whatsnew_carousel.more_btn.connect('clicked',
                                                     self._on_category_clicked,
                                                     new_cat)
+
             # pack whatsnew carousel into hbox
             self.vbox.pack_start(self.whatsnew_carousel, False)
         return
@@ -461,6 +534,8 @@ class LobbyViewGtk(CategoriesViewGtk):
             self.featured_carousel.start()
         if self.whatsnew_carousel:
             self.whatsnew_carousel.start(offset=5000)
+        if self.toprated_carousel:
+            self.toprated_carousel.start(offset=10000)
         return
 
     def stop_carousels(self):
@@ -468,6 +543,8 @@ class LobbyViewGtk(CategoriesViewGtk):
             self.featured_carousel.stop()
         if self.whatsnew_carousel:
             self.whatsnew_carousel.stop()
+        if self.toprated_carousel:
+            self.toprated_carousel.stop()
         return
 
     def build(self, desktopdir):
