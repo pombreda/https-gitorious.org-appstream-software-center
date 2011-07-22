@@ -18,7 +18,6 @@
 
 import gtk
 import logging
-import tempfile
 import time
 
 #from softwarecenter.enums import *
