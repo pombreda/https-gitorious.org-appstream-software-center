@@ -201,13 +201,11 @@ class Frame(Gtk.Alignment):
         self.layout.set_width(40960)
         self.layout.set_ellipsize(Pango.EllipsizeMode.END)
 
-        _frame_surface_cache = {}
+        _frame_surface_cache = None
         assets = self._cache_art_assets()
         self.connect("draw", self.on_draw, border_radius, assets)
         self.connect_after("draw", self.on_draw_after,
                            assets, self.layout)
-        self._prev_alloc = None
-        self.connect("size-allocate", self.on_size_allocate)
         return
 
     def _cache_art_assets(self):
@@ -266,16 +264,8 @@ class Frame(Gtk.Alignment):
         # western edge pattern
         cache_edge_pattern("w", 0, -cnr_slice,
                            cnr_slice, h-2*cnr_slice)
-
         # all done!
         return assets
-
-    def on_size_allocate(self, *args):
-        a = self.get_allocation()
-        prev = self._prev_alloc
-        if prev is None or prev.width != a.width or prev.height != a.height:
-            self._frame_surface_cache = {}
-        return
 
     def on_draw(self, widget, cr, border_radius, assets):
         a = widget.get_allocation()
@@ -330,6 +320,8 @@ class Frame(Gtk.Alignment):
         return
 
     def render_frame(self, cr, a, border_radius, assets):
+
+
         A = self.get_allocation()
         xo, yo = a.x-A.x, a.y-A.y
 
