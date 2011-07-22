@@ -19,8 +19,10 @@
 from gi.repository import Gtk
 from gi.repository import Gdk
 from gi.repository import GObject
+from gi.repository import GdkPixbuf
 
 from softwarecenter.utils import SimpleFileDownloader
+
 
 class Exhibit(Gtk.EventBox):
     """ a single exhibit ui element """
@@ -88,10 +90,14 @@ class Exhibit(Gtk.EventBox):
         self.emit("clicked")
 
     def _on_file_download_complete(self, downloader, path):
-        self.image.set_from_file(path)
+        pb = GdkPixbuf.Pixbuf.new_from_file(path)
+        pb = pb.scale_simple(600, 200, GdkPixbuf.InterpType.BILINEAR)
+        print pb.get_width(), pb.get_height()
+        self.image.set_from_pixbuf(pb)
 
     def __repr__(self):
         return "<Exhibit: '%s'>" % (self.exhibit_data.title_translated)
+
 
 class ExhibitBanner(Gtk.Fixed):
 
