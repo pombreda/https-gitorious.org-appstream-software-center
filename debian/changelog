@@ -1,4 +1,4 @@
-software-center (4.1.10) UNRELEASED; urgency=low
+software-center (4.1.10) oneiric; urgency=low
 
   [ Michael Vogt ]
   * merged lp:~alexeftimie/software-center/backend-refactor,
@@ -33,7 +33,7 @@ software-center (4.1.10) UNRELEASED; urgency=low
     softwarecenter/ui/gtk/availablepane.py:
     - reduce startup time when installing a deb file by ~50%
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 20 Jul 2011 22:04:31 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 22 Jul 2011 15:43:43 +0200
 
 software-center (4.1.9) oneiric; urgency=low
 
