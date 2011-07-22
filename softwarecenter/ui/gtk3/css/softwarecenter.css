@@ -1,10 +1,37 @@
 #view {
     border-width: 0;
-    background-color: #FFF;
+    background-color: #DED7DB;
+    /*  background-image: url('../art/stipple.png'); */
 }
 
 
-#tile {
+#channel-selector {
+    color: #d7d0d4;      /* light aubergine */
     border-width: 0;
-    border-radius: 20;
 }
+
+#symbolic-icon:hover,
+#channel-selector:hover {
+    color: #fff;        /* white */
+}
+
+#label-tile,
+#category-tile,
+#featured-tile {
+    border-width: 0;
+    border-radius: 0;
+}
+
+#placeholder {
+    color: #FF00B3;
+}
+
+#featured-star {
+    color: #FFC51D;
+    border-color: #F89516;
+}
+
+GtkEntry {
+    border-radius: 8;
+}
+
