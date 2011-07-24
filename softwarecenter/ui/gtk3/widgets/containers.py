@@ -164,8 +164,6 @@ class FlowableGrid(Gtk.Fixed):
         return
 
     def add_child(self, child):
-        if isinstance(child, Gtk.Container):
-            child.set_resize_mode(Gtk.ResizeMode.PARENT)
         self._cell_size = None
         self.put(child, 0, 0)
         return
@@ -284,14 +282,16 @@ class Frame(Gtk.Alignment):
         return assets
 
     def do_draw(self, cr):
+        cr.save()
         self.on_draw(cr)
+        cr.restore()
         return
 
     def on_draw(self, cr):
         a = self.get_allocation()
         self.render_frame(cr, a, self.BORDER_RADIUS, _frame_asset_cache)
         for child in self: self.propagate_draw(child, cr)
-        return True
+        return
 
     def on_draw_after(self, widget, cr, assets, layout):
         if not self.show_corner_label: return
