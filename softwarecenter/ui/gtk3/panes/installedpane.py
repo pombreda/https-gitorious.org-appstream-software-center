@@ -98,9 +98,6 @@ class InstalledPane(SoftwarePane, CategoriesParser):
 
         self.nonapps_visible = NonAppVisibility.NEVER_VISIBLE
 
-        # init view in the background after a short delay
-        #~ GObject.timeout_add(2000, self.init_view)
-
     def init_view(self):
         if self.view_initialized: return
 

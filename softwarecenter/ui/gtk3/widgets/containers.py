@@ -20,11 +20,8 @@ class FlowableGrid(Gtk.Fixed):
         self.column_spacing = 0
         self.n_columns = 0
         self.n_rows = 0
-
+        self.paint_grid_pattern = paint_grid_pattern
         self._cell_size = None
-        self.connect("size-allocate", self.on_size_allocate)
-        if paint_grid_pattern:
-            self.connect("draw", self.on_draw)
         return
 
     # private
@@ -44,7 +41,7 @@ class FlowableGrid(Gtk.Fixed):
         row_spacing = self.row_spacing
 
         n_cols = self._get_n_columns_for_width(width, col_spacing)
-        cell_w, cell_h = self.get_cell_size()
+        _, cell_h = self.get_cell_size()
         cell_w = width/n_cols
 
         if n_cols == 0: return
@@ -56,7 +53,11 @@ class FlowableGrid(Gtk.Fixed):
             #~ xo = h_overhang
 
         self.n_columns = n_cols
-        self.n_rows = int(round(len(children)/n_cols, 0))
+        
+        if len(children) % n_cols:
+            self.n_rows = len(children)/n_cols + 1
+        else:
+            self.n_rows = len(children)/n_cols
 
         y = 0
         for i, child in enumerate(children):
@@ -81,21 +82,18 @@ class FlowableGrid(Gtk.Fixed):
         return Gtk.SizeRequestMode.HEIGHT_FOR_WIDTH
 
     def do_get_preferred_height_for_width(self, width):
-        alloc = self.get_allocation()
-        if width == alloc.width: alloc.height, alloc.height
+        old = self.get_allocation()
+        if width == old.width: old.height, old.height
 
         n_cols = self._get_n_columns_for_width(
                         width, self.column_spacing)
 
-        if not n_cols: return alloc.height, alloc.height
+        if not n_cols: return self.MIN_HEIGHT, self.MIN_HEIGHT
 
         children = self.get_children()
         n_rows = len(children) / n_cols
 
         # store these for use when _layout_children gets called
-        self.n_columns = n_cols
-        self.n_rows = n_rows
-
         if len(children) % n_cols:
             n_rows += 1
 
@@ -105,15 +103,33 @@ class FlowableGrid(Gtk.Fixed):
         return pref_h, pref_h
 
     # signal handlers
-    def on_size_allocate(self, *args):
-        self._layout_children(self.get_allocation())
+    def do_size_allocate(self, allocation):
+        old = self.get_allocation()
+        if (allocation.x == old.x and
+            allocation.y == old.y and
+            allocation.width == old.width and
+            allocation.height == old.height):
+            #~ for child in self:
+                #~ child.size_allocate(child.get_allocation())
+            return
+
+        self.set_allocation(allocation)
+        self._layout_children(allocation)
         return
 
-    def on_draw(self, widget, cr):
+    def do_draw(self, cr):
         if not (self.n_columns and self.n_rows): return
 
+        if self.paint_grid_pattern:
+            self.render_grid(cr)
+
+        for child in self: self.propagate_draw(child, cr)
+        return
+
+    # public
+    def render_grid(self, cr):
         cr.save()
-        a = widget.get_allocation()
+        a = self.get_allocation()
         rounded_rect(cr, 0, 0, a.width, a.height-1, Frame.BORDER_RADIUS)
         cr.clip()
         cr.set_source_rgb(0.905882353,0.894117647,0.901960784) #E7E4E6
@@ -147,8 +163,9 @@ class FlowableGrid(Gtk.Fixed):
         cr.restore()
         return
 
-    # public
     def add_child(self, child):
+        if isinstance(child, Gtk.Container):
+            child.set_resize_mode(Gtk.ResizeMode.PARENT)
         self._cell_size = None
         self.put(child, 0, 0)
         return
@@ -184,7 +201,6 @@ class FlowableGrid(Gtk.Fixed):
         return
 
 
-# two tiers of cacheing, assets and surfaces at specific window sizes
 _frame_asset_cache = {}
 class Frame(Gtk.Alignment):
 
@@ -192,7 +208,7 @@ class Frame(Gtk.Alignment):
     BORDER_IMAGE = "softwarecenter/ui/gtk3/art/frame-border-image.png"
     CORNER_LABEL = "softwarecenter/ui/gtk3/art/corner-label.png"
 
-    def __init__(self, padding=3, border_radius=BORDER_RADIUS):
+    def __init__(self, padding=3):
         Gtk.Alignment.__init__(self)
         self.set_padding(padding-1, padding, padding, padding)
 
@@ -202,9 +218,8 @@ class Frame(Gtk.Alignment):
         self.layout.set_width(40960)
         self.layout.set_ellipsize(Pango.EllipsizeMode.END)
 
-        _frame_surface_cache = None
+        #~ _frame_surface_cache = None
         assets = self._cache_art_assets()
-        self.connect("draw", self.on_draw, border_radius, assets)
         self.connect_after("draw", self.on_draw_after,
                            assets, self.layout)
         return
@@ -268,10 +283,15 @@ class Frame(Gtk.Alignment):
         # all done!
         return assets
 
-    def on_draw(self, widget, cr, border_radius, assets):
-        a = widget.get_allocation()
-        self.render_frame(cr, a, border_radius, assets)
+    def do_draw(self, cr):
+        self.on_draw(cr)
         return
+
+    def on_draw(self, cr):
+        a = self.get_allocation()
+        self.render_frame(cr, a, self.BORDER_RADIUS, _frame_asset_cache)
+        for child in self: self.propagate_draw(child, cr)
+        return True
 
     def on_draw_after(self, widget, cr, assets, layout):
         if not self.show_corner_label: return
@@ -321,8 +341,6 @@ class Frame(Gtk.Alignment):
         return
 
     def render_frame(self, cr, a, border_radius, assets):
-
-
         A = self.get_allocation()
         xo, yo = a.x-A.x, a.y-A.y
 
@@ -390,7 +408,6 @@ class Frame(Gtk.Alignment):
         # fill interior
         rounded_rect(cr, xo+3, yo+2, a.width-6, a.height-6, border_radius)
         cr.set_source_rgba(0.992156863,0.984313725,0.988235294)  #FDFBFC
-
         cr.fill_preserve()
         cr.clip()
         return
@@ -435,13 +452,14 @@ class FramedHeaderBox(FramedBox):
         self.box.add(self.content_box)
         return
 
-    def on_draw(self, widget, cr, border_radius, assets):
+    def on_draw(self, cr):
+        assets = _frame_asset_cache
         a = self.header_alignment.get_allocation()
         ha = self.header.get_allocation()
         a.x = ha.x
         a.width = ha.width
         a.height += assets["corner-slice"]
-        self.render_header(cr, a, border_radius, assets, False)
+        self.render_header(cr, a, Frame.BORDER_RADIUS, assets)
 
         a = self.get_allocation()
         for child in self.header:
@@ -455,8 +473,9 @@ class FramedHeaderBox(FramedBox):
         a.x -= 3
         a.width += 6
         a.height += 3
-        self.render_frame(cr, a, border_radius, assets)
-        return
+        self.render_frame(cr, a, Frame.BORDER_RADIUS, assets)
+        for child in self: self.propagate_draw(child, cr)
+        return True
 
     def add(self, *args, **kwargs):
         return self.content_box.add(*args, **kwargs)
@@ -499,7 +518,7 @@ class FramedHeaderBox(FramedBox):
             self.header.pack_end(self.more, False, False, 0)
         return
     
-    def render_header(self, cr, a, border_radius, assets, clip=True):
+    def render_header(self, cr, a, border_radius, assets):
         cr.save()
         A = self.get_allocation()
         cr.translate(a.x-A.x, a.y-A.y)
