@@ -19,8 +19,10 @@
 from gi.repository import Gtk
 from gi.repository import Gdk
 from gi.repository import GObject
+from gi.repository import GdkPixbuf
 
 from softwarecenter.utils import SimpleFileDownloader
+
 
 class Exhibit(Gtk.EventBox):
     """ a single exhibit ui element """
@@ -45,12 +47,20 @@ class Exhibit(Gtk.EventBox):
         self.set_right_pixel_cutoff(right_pixel_cutoff)
         self._init_event_handling()
         self._set_exhibit(exhibit)
+        self.connect("draw", self.on_draw)
+
+    def on_draw(self, widget, cr):
+        Gdk.cairo_set_source_rgba(cr, self.bgcolor)
+        cr.paint()
+        return
 
     def set_right_pixel_cutoff(self, right_pixel_cutoff):
         self.right_pixel_cutoff=right_pixel_cutoff
         
     def _set_exhibit(self, exhibit):
         self.exhibit_data = exhibit
+        self.bgcolor = Gdk.RGBA()
+        self.bgcolor.parse(exhibit.background_color)
         # FIXME:
         # - set background color
         # background image first
@@ -61,7 +71,7 @@ class Exhibit(Gtk.EventBox):
         self.fixed.put(
             self.label, exhibit.title_coords[0], exhibit.title_coords[1])
         # FIXME: set font name, colors, size (that is not exposed in the API)
-        
+
     def _init_event_handling(self):
         self.set_property("can-focus", True)
         self.set_events(Gdk.EventMask.BUTTON_RELEASE_MASK|
@@ -88,10 +98,14 @@ class Exhibit(Gtk.EventBox):
         self.emit("clicked")
 
     def _on_file_download_complete(self, downloader, path):
-        self.image.set_from_file(path)
+        pb = GdkPixbuf.Pixbuf.new_from_file(path)
+        #~ pb = pb.scale_simple(600, 200, GdkPixbuf.InterpType.BILINEAR)
+        #~ print pb.get_width(), pb.get_height()
+        self.image.set_from_pixbuf(pb)
 
     def __repr__(self):
         return "<Exhibit: '%s'>" % (self.exhibit_data.title_translated)
+
 
 class ExhibitBanner(Gtk.Fixed):
 
