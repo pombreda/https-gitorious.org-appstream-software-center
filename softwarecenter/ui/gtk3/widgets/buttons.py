@@ -1,4 +1,4 @@
-from gi.repository import Gtk, Gdk, Pango, GObject, GdkPixbuf
+from gi.repository import Gtk, Gdk, Pango, GObject, GdkPixbuf, PangoCairo
 from gettext import gettext as _
 
 from softwarecenter.ui.gtk3.em import StockEms, em
@@ -373,35 +373,66 @@ class MoreLink(Gtk.EventBox):
     def __init__(self):
         Gtk.EventBox.__init__(self)
         self.set_visible_window(False)
-        label = Gtk.Label()
-        label.set_markup(self._MARKUP % self._MORE)
-        label.set_padding(StockEms.MEDIUM, 0)
-        self.add(label)
+        self.label = Gtk.Label()
+        self.label.set_markup(self._MARKUP % self._MORE)
+        self.label.set_padding(StockEms.MEDIUM, 0)
+        self.add(self.label)
         self._init_event_handling()
+        return
+
+    def do_draw(self, cr):
+        cr.save()
+        if self._pressed: cr.translate(1, 1)
+        a = self.get_allocation()
+        xo, yo = self.label.get_layout_offsets()
+
+        xo -= a.x
+        yo -= a.y
+
+        cr.move_to(xo, yo+1)
+        PangoCairo.layout_path(cr, self.label.get_layout())
+        cr.set_source_rgb(0,0,0)
+        cr.fill()
+
+        Gtk.render_layout(self.get_style_context(),
+                          cr, xo, yo, self.label.get_layout())
+        cr.restore()
         return
 
     def _init_event_handling(self):
         self.set_property("can-focus", True)
+        self._pressed = False
         self.set_events(Gdk.EventMask.BUTTON_RELEASE_MASK|
                         Gdk.EventMask.ENTER_NOTIFY_MASK|
                         Gdk.EventMask.LEAVE_NOTIFY_MASK)
 
-        self.connect("enter-notify-event", self._on_enter_notify)
-        self.connect("leave-notify-event", self._on_leave_notify)
-        self.connect("button-release-event", self._on_button_release)
+        self.connect("enter-notify-event", self.on_enter)
+        self.connect("leave-notify-event", self.on_leave)
+        self.connect("button-press-event", self.on_press)
+        self.connect("button-release-event", self.on_release)
 
-    def _on_enter_notify(self, widget, event):
+    def on_enter(self, widget, event):
         window = self.get_window()
-        if window:
-            window.set_cursor(Gdk.Cursor.new(Gdk.CursorType.HAND2))
+        window.set_cursor(_HAND)
+        return True
 
-    def _on_leave_notify(self, widget, event):
+    def on_leave(self, widget, event):
         window = self.get_window()
-        if window:
-            window.set_cursor(None)
+        window.set_cursor(None)
+        self._pressed = False
+        self.queue_draw()
+        return True
 
-    def _on_button_release(self, widget, event):
+    def on_press(self, widget, event):
+        self._pressed = True
+        self.queue_draw()
+        return
+
+    def on_release(self, widget, event):
+        if not self._pressed: return
         self.emit("clicked")
+        self._pressed = False
+        self.queue_draw()
         return
 
 

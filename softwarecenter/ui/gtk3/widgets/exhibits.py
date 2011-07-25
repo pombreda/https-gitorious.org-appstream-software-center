@@ -22,6 +22,7 @@ from gi.repository import Gtk
 from gi.repository import Gdk
 from gi.repository import GObject
 from gi.repository import GdkPixbuf
+from gi.repository import WebKit
 
 from softwarecenter.utils import SimpleFileDownloader
 from softwarecenter.ui.gtk3.em import em
@@ -32,18 +33,11 @@ class _HtmlRenderer(Gtk.OffscreenWindow):
     def __init__(self):
         Gtk.OffscreenWindow.__init__(self)
         self.set_size_request(-1, ExhibitBanner.MAX_HEIGHT)
-
-        def lazy_init():
-            from gi.repository import WebKit
-            self.view = WebKit.WebView()
-            self.view.load_uri("http://dl.dropbox.com/u/123544/banner-test.html")
-            self.add(self.view)
-            self.show_all()
-            return False
-
-        GObject.timeout_add(5000, lazy_init)
+        self.view = WebKit.WebView()
+        self.view.load_uri("http://dl.dropbox.com/u/123544/banner-test.html")
+        self.add(self.view)
+        self.show_all()
         return
-
 
 
 class Exhibit(object):
@@ -218,7 +212,7 @@ class ExhibitBanner(Gtk.EventBox):
 
         self.image = None
         self.renderer = _HtmlRenderer()
-        self.renderer.connect("damage-event", self.on_damage)
+        self.renderer.view.connect("load-finished", self.on_load, self.renderer)
 
         self.set_visible_window(False)
         self.set_size_request(-1, self.MAX_HEIGHT)
@@ -227,8 +221,8 @@ class ExhibitBanner(Gtk.EventBox):
         assets = self._cache_art_assets()
         self.connect("draw", self.on_draw, assets)
 
-    def on_damage(self, offscreen, *args):
-        self.image = offscreen.get_surface()
+    def on_load(self, view, frame, renderer):
+        self.image = renderer.get_surface()
         self.queue_draw()
 
     def _cache_art_assets(self):
@@ -254,25 +248,12 @@ class ExhibitBanner(Gtk.EventBox):
         a = widget.get_allocation()
 
         if self.image is not None:
-            cr.set_source_surface(self.image, 0, 0)
+            cr.set_source_rgb(1,1,1)
             cr.paint()
-
-        #~ if self.exhibits:
-            #~ exhbit = self.exhibits[2]
-            #~ # render bg
-            #~ Gdk.cairo_set_source_rgba(cr, exhbit.background_color)
-            #~ cr.paint()
-#~ 
-            #~ # render banner
-            #~ if exhbit.image is not None:
-                #~ Gdk.cairo_set_source_pixbuf(cr, exhbit.image, 0, 0)
-                #~ cr.paint()
-                #~ cr.reset_clip()
-#~ 
-            #~ # render title
-            #~ x, y = exhbit.layout.xy
-            #~ Gtk.render_layout(widget.get_style_context(),
-                              #~ cr, x, y, exhbit.layout)
+            x = (a.width - self.image.get_width()) / 2
+            y = (a.height - self.image.get_height()) / 2
+            cr.set_source_surface(self.image, x, y)
+            cr.paint()
 
         # paint dropshadows last
         cr.rectangle(0, 0, a.width, self.DROPSHADOW_HEIGHT)
