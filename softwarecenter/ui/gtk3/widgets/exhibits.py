@@ -209,11 +209,14 @@ class ExhibitBanner(Gtk.EventBox):
 
     def __init__(self):
         Gtk.EventBox.__init__(self)
+        hbox = Gtk.HBox()
+        self.add(hbox)
 
         self.alpha = 0.0
         self.image = None
         self.renderer = _HtmlRenderer()
-        self.renderer.view.connect("load-finished", self.on_load, self.renderer)
+        self.renderer.view.connect("document-load-finished",
+                                   self.on_load, self.renderer)
 
         self.set_visible_window(False)
         self.set_size_request(-1, self.MAX_HEIGHT)
