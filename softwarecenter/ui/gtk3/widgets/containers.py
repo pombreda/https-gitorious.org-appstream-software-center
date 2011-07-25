@@ -295,6 +295,7 @@ class Frame(Gtk.Alignment):
 
     def on_draw_after(self, widget, cr, assets, layout):
         if not self.show_corner_label: return
+        cr.save()
         surf = assets["corner-label"]
         w = surf.get_width()
         h = surf.get_height()
@@ -316,6 +317,7 @@ class Frame(Gtk.Alignment):
         # paint normal markup
         Gtk.render_layout(widget.get_style_context(),
                           cr, -ex.width/2, -ex.height/2, layout)
+        cr.restore()
         return
 
     def set_show_corner_label(self, show_label):
@@ -475,7 +477,7 @@ class FramedHeaderBox(FramedBox):
         a.height += 3
         self.render_frame(cr, a, Frame.BORDER_RADIUS, assets)
         for child in self: self.propagate_draw(child, cr)
-        return True
+        return
 
     def add(self, *args, **kwargs):
         return self.content_box.add(*args, **kwargs)
