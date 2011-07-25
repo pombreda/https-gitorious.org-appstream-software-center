@@ -22,10 +22,18 @@ def show_top_rated_apps():
     for i in [0.5, 0.4, 0.3, 0.2, 0.1, 0.05]:
         for (key, value) in review_stats.iteritems():
             value.dampened_rating = calc_dr(value.rating_spread, power=i)
-        top_rated = loader.get_top_rated_apps()
+        top_rated = loader.get_top_rated_apps(quantity=25)
         print "For power: %s" % i
-        for item in top_rated:
-            print review_stats[item]
+        for (i, key) in enumerate(top_rated):
+            item = review_stats[key]
+            print "%(rang)2i: %(pkgname)-25s avg=%(avg)1.2f total=%(total)03i dampened=%(dampened)1.5f spread=%(spread)s" % { 
+                'rang' : i+1,
+                'pkgname' : item.app.pkgname,
+                'avg' : item.ratings_average,
+                'total' : item.ratings_total,
+                'spread' : item.rating_spread,
+                'dampened' : item.dampened_rating,
+                }
         print 
         results[i] = top_rated[:]
         
