@@ -215,7 +215,7 @@ class ExhibitBanner(Gtk.EventBox):
         self.alpha = 0.0
         self.image = None
         self.renderer = _HtmlRenderer()
-        self.renderer.view.connect("document-load-finished",
+        self.renderer.view.connect("load-finished",
                                    self.on_load, self.renderer)
 
         self.set_visible_window(False)
