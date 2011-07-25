@@ -210,6 +210,7 @@ class ExhibitBanner(Gtk.EventBox):
     def __init__(self):
         Gtk.EventBox.__init__(self)
 
+        self.alpha = 0.0
         self.image = None
         self.renderer = _HtmlRenderer()
         self.renderer.view.connect("load-finished", self.on_load, self.renderer)
@@ -223,7 +224,24 @@ class ExhibitBanner(Gtk.EventBox):
 
     def on_load(self, view, frame, renderer):
         self.image = renderer.get_surface()
-        self.queue_draw()
+        self._fade_in()
+
+    def _fade_in(self, step=0.1):
+        self.alpha = 0.0
+
+        def fade_step():
+            retval = True
+            self.alpha += step
+
+            if self.alpha >= 1.0:
+                self.alpha = 1.0
+                retval = False
+
+            self.queue_draw()
+            return retval
+
+        GObject.timeout_add(50, fade_step)
+        return
 
     def _cache_art_assets(self):
         global _asset_cache
@@ -247,13 +265,14 @@ class ExhibitBanner(Gtk.EventBox):
 
         a = widget.get_allocation()
 
+        cr.set_source_rgb(1,1,1)
+        cr.paint()
+
         if self.image is not None:
-            cr.set_source_rgb(1,1,1)
-            cr.paint()
             x = (a.width - self.image.get_width()) / 2
-            y = (a.height - self.image.get_height()) / 2
+            y = 0
             cr.set_source_surface(self.image, x, y)
-            cr.paint()
+            cr.paint_with_alpha(self.alpha)
 
         # paint dropshadows last
         cr.rectangle(0, 0, a.width, self.DROPSHADOW_HEIGHT)
