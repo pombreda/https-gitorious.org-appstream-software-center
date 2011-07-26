@@ -1,11 +1,9 @@
 
 import sys
-import time
 import unittest
 import xapian
 
 from gi.repository import Gtk
-from mock import Mock
 
 sys.path.insert(0,"../..")
 sys.path.insert(0,"..")
@@ -13,10 +11,9 @@ sys.path.insert(0,"..")
 from softwarecenter.paths import XAPIAN_BASE_PATH
 from softwarecenter.db.pkginfo import get_pkg_info
 from softwarecenter.db.database import StoreDatabase
-from softwarecenter.ui.gtk3.utils import get_sc_icon_theme
 
-from softwarecenter.ui.gtk3.models.appstore2 import (
-    AppListStore, AppEnquire)
+from softwarecenter.ui.gtk3.models.appstore2 import AppListStore
+from softwarecenter.db.enquire import AppEnquire
 
 class TestAppstore(unittest.TestCase):
     """ test the appstore """

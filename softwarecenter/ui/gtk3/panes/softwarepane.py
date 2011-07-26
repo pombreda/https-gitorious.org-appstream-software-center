@@ -32,6 +32,7 @@ import softwarecenter.utils
 import softwarecenter.ui.gtk3.dialogs as dialogs
 from softwarecenter.backend import get_install_backend
 from softwarecenter.db.database import Application
+from softwarecenter.db.enquire import AppEnquire
 from softwarecenter.enums import (ActionButtons,
                                   SortMethods,
                                   TransactionTypes,
@@ -43,7 +44,7 @@ from softwarecenter.utils import (ExecutionTime,
                                   wait_for_apt_cache_ready
                                   )
 
-from softwarecenter.ui.gtk3.models.appstore2 import AppListStore, AppEnquire
+from softwarecenter.ui.gtk3.models.appstore2 import AppListStore
 from softwarecenter.ui.gtk3.session.viewmanager import get_viewmanager
 from softwarecenter.ui.gtk3.widgets.actionbar import ActionBar
 from softwarecenter.ui.gtk3.widgets.spinner import SpinnerView

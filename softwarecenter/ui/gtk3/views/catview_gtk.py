@@ -9,7 +9,7 @@ from gettext import gettext as _
 
 from appview import AppViewFilter
 from softwarecenter.enums import NonAppVisibility
-from softwarecenter.ui.gtk3.models.appstore2 import AppEnquire, AppPropertiesHelper
+from softwarecenter.ui.gtk3.models.appstore2 import AppPropertiesHelper
 from softwarecenter.ui.gtk3.widgets.containers import (
      FramedHeaderBox, HeaderPosition, FramedBox, FlowableGrid, Frame)
 from softwarecenter.ui.gtk3.widgets.exhibits import ExhibitBanner
@@ -17,6 +17,7 @@ from softwarecenter.ui.gtk3.widgets.buttons import (LabelTile,
                                                     CategoryTile,
                                                     FeaturedTile)
 from softwarecenter.ui.gtk3.em import StockEms
+from softwarecenter.db.enquire import AppEnquire
 from softwarecenter.db.categories import (Category,
                                           CategoriesParser,
                                           get_category_by_name,

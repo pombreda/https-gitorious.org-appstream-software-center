@@ -9,6 +9,7 @@ software-center (4.1.11) UNRELAED; urgency=low
   * some cleanup and new test/gtk3/test_navhistory.py
   * merged from lp:~aaronp/software-center/more-top-rated, many
     thanks to Aaron Peachey!
+  * move the AppEnquire code from ui.gtk3 into the generic db space
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 22 Jul 2011 18:23:29 +0200
 
