@@ -24,26 +24,29 @@ LOG_ALLOCATION = logging.getLogger("softwarecenter.ui.gtk.allocation")
 LOG=logging.getLogger(__name__)
 
 # temp: fake exhibits
-from mock import Mock
 exhibits_list = []
-for (i, (title, url)) in enumerate([
-        ("1 some title", "https://wiki.ubuntu.com/Brand?action=AttachFile&do=get&target=orangeubuntulogo.png"),
-        ("2 another title", "https://wiki.ubuntu.com/Brand?action=AttachFile&do=get&target=blackeubuntulogo.png"),
-        ("3 yet another title", "https://wiki.ubuntu.com/Brand?action=AttachFile&do=get&target=xubuntu.png"),
-        ]):
-     exhibit = Mock()
-     exhibit.background_color = "#000000"
-     exhibit.banner_url = url
-     exhibit.date_created = "2011-07-20 08:49:15"
-     exhibit.font_color = "#000000"
-     exhibit.font_name = ""
-     exhibit.font_size = 24
-     exhibit.id = i
-     exhibit.package_names = "apt,2vcard"
-     exhibit.published = True
-     exhibit.title_coords = [10, 10]
-     exhibit.title_translated = title
-     exhibits_list.append(exhibit)
+try:
+     from mock import Mock
+     for (i, (title, url)) in enumerate([
+               ("1 some title", "https://wiki.ubuntu.com/Brand?action=AttachFile&do=get&target=orangeubuntulogo.png"),
+               ("2 another title", "https://wiki.ubuntu.com/Brand?action=AttachFile&do=get&target=blackeubuntulogo.png"),
+               ("3 yet another title", "https://wiki.ubuntu.com/Brand?action=AttachFile&do=get&target=xubuntu.png"),
+               ]):
+          exhibit = Mock()
+          exhibit.background_color = "#000000"
+          exhibit.banner_url = url
+          exhibit.date_created = "2011-07-20 08:49:15"
+          exhibit.font_color = "#000000"
+          exhibit.font_name = ""
+          exhibit.font_size = 24
+          exhibit.id = i
+          exhibit.package_names = "apt,2vcard"
+          exhibit.published = True
+          exhibit.title_coords = [10, 10]
+          exhibit.title_translated = title
+          exhibits_list.append(exhibit)
+except ImportError:
+     pass
 
 
 _asset_cache = {}
