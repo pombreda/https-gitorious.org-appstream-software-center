@@ -428,14 +428,14 @@ def pnormaldist(qn):
     else:
         return -math.sqrt(w1*w3)
 
-def ci_lower_bound(pos, n, power=0.2):
+def ci_lower_bound(pos, n, power):
     if n == 0:
         return 0
     z = pnormaldist(1-power/2)
     phat = 1.0 * pos / n
     return (phat + z*z/(2*n) - z * math.sqrt((phat*(1-phat)+z*z/(4*n))/n))/(1+z*z/n)
 
-def calc_dr(ratings):
+def calc_dr(ratings, power=0.2):
     '''Calculate the dampened rating for an app given its collective ratings'''
     if not len(ratings) == 5:
         raise AttributeError('ratings argument must be a list of 5 integers')
@@ -446,7 +446,7 @@ def calc_dr(ratings):
       
     sum_scores = 0.0
     for i in range (0,5):
-        wilson_score = ci_lower_bound(ratings[i],tot_ratings)
+        wilson_score = ci_lower_bound(ratings[i], tot_ratings, power)
         sum_scores = sum_scores + float((i+1)-3) * wilson_score
    
     return sum_scores + 3

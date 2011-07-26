@@ -69,11 +69,13 @@ class CategoryTile(Tile):
 
 class FeaturedTile(Tile):
 
-    MAX_WIDTH = em(14)
+    MAX_WIDTH = em(10)
+    _MARKUP = '<b>%s</b>'
 
     def __init__(self, label, icon, review_stats, icon_size=48):
         Gtk.Button.__init__(self)
         self.set_focus_on_click(False)
+        self._pressed = False
 
         self.box = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, StockEms.MEDIUM)
         self.add(self.box)
@@ -88,7 +90,8 @@ class FeaturedTile(Tile):
             raise TypeError, "Expects a GdkPixbuf got %s" % type(icon)
         self.content_left.pack_start(self.image, False, False, 0)
 
-        self.title = Gtk.Label.new(label)
+        self.title = Gtk.Label.new(self._MARKUP % label)
+        self.title.set_use_markup(True)
         self.title.set_alignment(0.0, 0.5)
         self.title.set_use_markup(True)
         self.title.set_ellipsize(Pango.EllipsizeMode.END)
@@ -122,13 +125,18 @@ class FeaturedTile(Tile):
 
         self.connect("enter-notify-event", self.on_enter)
         self.connect("leave-notify-event", self.on_leave)
+        self.connect("button-press-event", self.on_press)
+        self.connect("button-release-event", self.on_release)
         return
 
     def do_get_preferred_width(self):
         return self.MAX_WIDTH, self.MAX_WIDTH
 
     def do_draw(self, cr):
+        cr.save()
         A = self.get_allocation()
+        if self._pressed:
+            cr.translate(1, 1)
 
         if self.has_focus():
             Gtk.render_focus(self.get_style_context(),
@@ -136,24 +144,30 @@ class FeaturedTile(Tile):
                              3, 3,
                              A.width-6, A.height-6)
 
-        for child in self.box:
-            a = child.get_allocation()
-            cr.save()
-            cr.translate(a.x-A.x, a.y-A.y)
-            child.draw(cr)
-            cr.restore()
+        for child in self: self.propagate_draw(child, cr)
+        cr.restore()
         return
 
     def on_enter(self, widget, event):
         window = self.get_window()
         window.set_cursor(_HAND)
-        return
+        return True
 
     def on_leave(self, widget, event):
         window = self.get_window()
         window.set_cursor(None)
+        self._pressed = False
+        return True
+
+    def on_press(self, widget, event):
+        self._pressed = True
         return
 
+    def on_release(self, widget, event):
+        if not self._pressed: return
+        self.emit("clicked")
+        self._pressed = False
+        return
 
 #~ class _ChannelSelectorArrow(Gtk.Alignment):    
 #~ 
@@ -198,12 +212,15 @@ class FeaturedTile(Tile):
 class SectionSelector(Tile):
 
     MIN_WIDTH  = em(5)
+    _MARKUP = '<small>%s</small>'
 
     def __init__(self, label, iconname, icon_size=Gtk.IconSize.DIALOG,
                     has_channel_sel=False):
-        Tile.__init__(self, label, iconname, icon_size)
+        markup = self._MARKUP % label
+        Tile.__init__(self, markup, iconname, icon_size)
         self.set_size_request(-1, -1)
         self.set_name("channel-selector")
+        self.label.set_use_markup(True)
         self.label.set_name("channel-selector")
         self.label.set_justify(Gtk.Justification.CENTER)
 
