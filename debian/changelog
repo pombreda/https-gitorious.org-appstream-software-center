@@ -10,7 +10,12 @@ software-center (4.1.11) UNRELAED; urgency=low
   * move the AppEnquire code from ui.gtk3 into the generic db space
     and add gobject query-complete signal
 
- -- Gary Lasker <gary.lasker@canonical.com>  Tue, 26 Jul 2011 14:06:50 -0400
+  [ Gary Lasker ]
+  * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
+    - port recent crash fixes and the standalone deb install
+      startup time improvements to the gtk3 branch 
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 26 Jul 2011 15:40:25 -0400
 
 software-center (4.1.10) oneiric; urgency=low
 
