@@ -74,8 +74,8 @@ class ReviewStats(object):
         self.rating_spread = [0,0,0,0,0]
         self.dampened_rating = 3.00
     def __repr__(self):
-        return ("[ReviewStats '%s' ratings_average='%s' ratings_total='%s'" 
-                " rating_spread='%s' dampened_rating='%s']" % 
+        return ("<ReviewStats '%s' ratings_average='%s' ratings_total='%s'" 
+                " rating_spread='%s' dampened_rating='%s'>" % 
                 (self.app, self.ratings_average, self.ratings_total, 
                 self.rating_spread, self.dampened_rating))
     

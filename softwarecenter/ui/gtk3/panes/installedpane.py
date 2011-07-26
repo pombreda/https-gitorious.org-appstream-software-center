@@ -58,16 +58,20 @@ def interrupt_build_and_wait(f):
     return wrapper
 
 
-class InstalledPages:
-    (LIST,
-     DETAILS) = range(2)
-
-
 class InstalledPane(SoftwarePane, CategoriesParser):
     """Widget that represents the installed panel in software-center
        It contains a search entry and navigation buttons
     """
-     
+
+    class Pages:
+        # page names, useful for debuggin
+        NAMES = ('list', 'details')
+        # the actual page id's
+        (LIST,
+         DETAILS) = range(2)
+        # the default page
+        HOME = LIST
+
     __gsignals__ = {'installed-pane-created':(GObject.SignalFlags.RUN_FIRST,
                                               None,
                                               ())}
@@ -93,9 +97,6 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         self._halt_build = False
 
         self.nonapps_visible = NonAppVisibility.NEVER_VISIBLE
-
-        # init view in the background after a short delay
-        GObject.timeout_add(2000, self.init_view)
 
     def init_view(self):
         if self.view_initialized: return
@@ -125,7 +126,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         self._all_cats = categories_sorted_by_name(self._all_cats)
 
         # initial build of installed tree
-        self._build_categorised_view()
+        #~ self._build_categorised_view()
 
         # now we are initialized
         self.emit("installed-pane-created")
@@ -165,9 +166,9 @@ class InstalledPane(SoftwarePane, CategoriesParser):
     def _use_category(self, cat):
         # System cat is large and slow to search, filter it in default mode
 
-        if 'carousel-only' in cat.flags or \
-            ((self.nonapps_visible == NonAppVisibility.NEVER_VISIBLE) and \
-            cat.untranslated_name == 'System'): return False
+        if ('carousel-only' in cat.flags or 
+            ((self.nonapps_visible == NonAppVisibility.NEVER_VISIBLE)
+            and cat.untranslated_name == 'System')): return False
 
         return True
 
@@ -175,40 +176,61 @@ class InstalledPane(SoftwarePane, CategoriesParser):
     def _build_categorised_view(self):
         print 'Rebuilding categorised installedview...'
         self.cat_docid_map = {}
+        enq = self.enquirer
         model = self.base_model # base model not treefilter
         model.clear()
 
         i = 0
 
-        print "NonAppVisibility", self.nonapps_visible == NonAppVisibility.ALWAYS_VISIBLE
-        
         for cat in self._all_cats:
-
+            # for each category do category query and append as a new
+            # node to tree_view
             if not self._use_category(cat): continue
-            self.enquirer.set_query(cat.query,
-                                    sortmode=SortMethods.BY_ALPHABET,
-                                    nonapps_visible=self.nonapps_visible,
-                                    filter=self.state.filter,
-                                    nonblocking_load=False,
-                                    persistent_duplicate_filter=(i>0))
+            query = self.get_query_for_cat(cat)
+            enq.set_query(query,
+                          sortmode=SortMethods.BY_ALPHABET,
+                          nonapps_visible=self.nonapps_visible,
+                          filter=self.state.filter,
+                          nonblocking_load=False,
+                          persistent_duplicate_filter=(i>0))
 
             L = len(self.enquirer.matches)
             if L:
                 i += L
-                docs = self.enquirer.get_documents()
-                self.cat_docid_map[cat.untranslated_name] = [doc.get_docid() for doc in docs]
-
+                docs = enq.get_documents()
+                self.cat_docid_map[cat.untranslated_name] = \
+                                    [doc.get_docid() for doc in docs]
                 model.set_category_documents(cat, docs)
-
                 #~ self._check_expand()
 
-                cursor_path = self.app_view.get_cursor()
-                first = Gtk.TreePath.new_first()
-                if cursor_path != first.get_indices():
-                    self.app_view.set_cursor(first, None, False)
+        # check for uncategorised pkgs
+        enq.set_query(self.state.channel.query,
+                      sortmode=SortMethods.BY_ALPHABET,
+                      nonapps_visible=NonAppVisibility.MAYBE_VISIBLE,
+                      filter=self.state.filter,
+                      nonblocking_load=False,
+                      persistent_duplicate_filter=(i>0))
+
+        L = len(enq.matches)
+        if L:
+            # some foo for channels
+            # if no categorised results but in channel, then use
+            # the channel name for the category
+            channel_name = None
+            if not i and self.state.channel:
+                channel_name = self.state.channel.display_name
+            model.set_nocategory_documents(enq.get_documents(),
+                                           display_name=channel_name)
+            i += L
+
+        if i:
+            self.app_view.set_cursor(Gtk.TreePath(), None, False)
+            if i <= 10:
+                self.app_view.expand_all()
 
         # cache the installed app count
         self.installed_count = i
+
         self.emit("app-list-changed", i)
         return
 
@@ -255,6 +277,15 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         return self.db.get_query_list_from_search_entry(
                                         self.state.search_term)
 
+    def get_query_for_cat(self, cat):
+        #~ print self.state.channel
+        if self.state.channel and self.state.channel.query:
+            query = xapian.Query(xapian.Query.OP_AND,
+                                 cat.query,
+                                 self.state.channel.query)
+            return query
+        return cat.query
+
     def update_show_hide_nonapps(self, length=-1):
         # override SoftwarePane.update_show_hide_nonapps
         """
@@ -284,9 +315,6 @@ class InstalledPane(SoftwarePane, CategoriesParser):
     def refresh_apps(self, *args, **kwargs):
         """refresh the applist and update the navigation bar """
         logging.debug("installedpane refresh_apps")
-        self._build_categorised_view()
-        if self.state.search_term:
-            self._search(self.state.search_term)
         return
 
     def _clear_search(self):
@@ -299,7 +327,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
 
         self.state.search_terms = terms
         self._search(terms.strip())
-        self.notebook.set_current_page(InstalledPages.LIST)
+        self.notebook.set_current_page(InstalledPane.Pages.LIST)
         return
 
     def _get_vis_cats(self, visids):
@@ -322,7 +350,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         self.current_appview_selection = app
 
     def get_callback_for_page(self, page, state):
-        if page == InstalledPages.LIST:
+        if page == InstalledPane.Pages.LIST:
             return self.display_overview_page
         return self.display_details_page
 
@@ -335,7 +363,8 @@ class InstalledPane(SoftwarePane, CategoriesParser):
     def get_status_text(self):
         """return user readable status text suitable for a status bar"""
         # no status text in the details page
-        if self.notebook.get_current_page() == InstalledPages.DETAILS:
+        if (self.notebook.get_current_page() ==
+            InstalledPane.Pages.DETAILS):
             return ""
         # otherwise, show status based on search or not
         model = self.app_view.get_model()
@@ -355,6 +384,11 @@ class InstalledPane(SoftwarePane, CategoriesParser):
                                     length) % { 'amount' : length, }
 
     def display_overview_page(self, page, view_state):
+        self._build_categorised_view()
+
+        if self.state.search_term:
+            self._search(self.state.search_term)
+
         self.update_show_hide_nonapps()
         return True
 
@@ -369,11 +403,12 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         
     def is_applist_view_showing(self):
         """Return True if we are in the applist view """
-        return self.notebook.get_current_page() == InstalledPages.LIST
+        return (self.notebook.get_current_page() ==
+                InstalledPane.Pages.LIST)
         
     def is_app_details_view_showing(self):
         """Return True if we are in the app_details view """
-        return self.notebook.get_current_page() == InstalledPages.DETAILS
+        return self.notebook.get_current_page() == InstalledPane.Pages.DETAILS
 
     def show_app(self, app):
         """ Display an application in the installed_pane """

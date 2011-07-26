@@ -25,6 +25,8 @@ import xapian
 import threading
 import time
 
+from gettext import gettext as _
+
 from softwarecenter.enums import (Icons, SortMethods,
                                   XapianValues, NonAppVisibility,
                                   DEFAULT_SEARCH_LIMIT)
@@ -32,7 +34,7 @@ from softwarecenter.enums import (Icons, SortMethods,
 from softwarecenter.utils import ExecutionTime, SimpleFileDownloader
 from softwarecenter.backend import get_install_backend
 from softwarecenter.backend.reviews import get_review_loader
-from softwarecenter.db.database import Application, SearchQuery, LocaleSorter
+from softwarecenter.db.database import Application, SearchQuery, LocaleSorter, TopRatedSorter
 from softwarecenter.distro import get_distro
 from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
 
@@ -181,7 +183,10 @@ class AppEnquire(object):
                         self.db._axi_values["catalogedtime"], reverse=True)
                 else:
                     logging.warning("no catelogedtime in axi")
-
+            elif self.sortmode == SortMethods.BY_TOP_RATED:
+                review_loader = get_review_loader(self.cache)
+                sorter = TopRatedSorter(self.db, review_loader)
+                enquire.set_sort_by_key(sorter, reverse=True)
             # search ranking - when searching
             elif self.sortmode == SortMethods.BY_SEARCH_RANKING:
                 #enquire.set_SortMethods.by_value(XapianValues.POPCON)
@@ -343,7 +348,20 @@ class CategoryRowReference:
         return
 
 
-class AppPropertiesHelper(object):
+class UncategorisedRowRef(CategoryRowReference):
+
+    def __init__(self, pkg_count, display_name=None):
+        if display_name is None:
+            display_name = _("Uncategorized")
+
+        CategoryRowReference.__init__(self,
+                                      "uncategorized",
+                                      display_name,
+                                      None, pkg_count)
+        return
+
+
+class _AppPropertiesHelper(object):
     """ Baseclass that contains common functions for our
         liststore/treestore, only useful for subclassing
     """
@@ -394,6 +412,16 @@ class AppPropertiesHelper(object):
         pkgname = self.db.get_pkgname(doc)
         # TODO: requests
         return Application(appname, pkgname, "")
+
+    def get_appname(self, doc):
+        appname = doc.get_value(XapianValues.APPNAME)
+        if not appname:
+            appname = self.db.get_summary(doc)
+            summary = self.get_pkgname(doc)
+        else:
+            if self.db.is_appname_duplicated(appname):
+                appname = "%s (%s)" % (appname, self.get_pkgname(doc))
+        return appname
 
     def get_markup(self, doc):
         appname = doc.get_value(XapianValues.APPNAME)
@@ -449,7 +477,39 @@ class AppPropertiesHelper(object):
         return -1
 
 
-class AppGenericStore(AppPropertiesHelper):
+class AppPropertiesHelper(_AppPropertiesHelper):
+
+    def __init__(self, db, cache, icons, icon_size=48, global_icon_cache=False):
+        self.db = db
+        self.cache = cache
+
+        # reviews stats loader
+        self.review_loader = get_review_loader(cache)
+
+        # icon jazz
+        self.icons = icons
+        self.icon_size = icon_size
+        # cache the 'missing icon' used in the treeview for apps without an icon
+        self._missing_icon = icons.load_icon(Icons.MISSING_APP,
+                                             icon_size, 0)
+
+        if global_icon_cache:
+            self.icon_cache = _app_icon_cache
+        else:
+            self.icon_cache = {}
+        return
+
+    def get_icon_at_size(self, doc, width, height):
+        pixbuf = self.get_icon(doc)
+        pixbuf = pixbuf.scale_simple(width, height,
+                                     GdkPixbuf.InterpType.BILINEAR)
+        return pixbuf
+
+    def get_transaction_progress(self, doc):
+        raise NotImplemented
+
+
+class AppGenericStore(_AppPropertiesHelper):
 
     # column types
     COL_TYPES = (GObject.TYPE_PYOBJECT,)
@@ -458,7 +518,7 @@ class AppGenericStore(AppPropertiesHelper):
     COL_ROW_DATA = 0
 
     # default icon size displayed in the treeview
-    ICON_SIZE = 24
+    ICON_SIZE = 32
 
     def __init__(self, db, cache, icons, icon_size, global_icon_cache):
         # the usual suspects
@@ -605,7 +665,7 @@ class AppListStore(Gtk.ListStore, AppGenericStore):
 
     def buffer_icons(self):
         def buffer_icons():
-            print "Buffering icons ..."
+            #~ print "Buffering icons ..."
             t0 = GObject.get_current_time()
             db = self.db.xapiandb
             for m in self.current_matches:
@@ -618,8 +678,8 @@ class AppListStore(Gtk.ListStore, AppGenericStore):
                     Gtk.main_iteration()
 
             #~ import sys
-            t_lapsed = round(GObject.get_current_time() - t0, 3)
-            print "Appstore buffered icons in %s seconds" % t_lapsed
+            #~ t_lapsed = round(GObject.get_current_time() - t0, 3)
+            #~ print "Appstore buffered icons in %s seconds" % t_lapsed
             #from softwarecenter.utils import get_nice_size
             #~ cache_size = get_nice_size(sys.getsizeof(_app_icon_cache))
             #~ print "Number of icons in cache: %s consuming: %sb" % (len(_app_icon_cache), cache_size)
@@ -655,6 +715,12 @@ class AppTreeStore(Gtk.TreeStore, AppGenericStore):
                                         cat.subcategories,
                                         len(documents))
 
+        it = self.append(None, (category,))
+        self.set_documents(it, documents)
+        return it
+
+    def set_nocategory_documents(self, documents, display_name=None):
+        category = UncategorisedRowRef(len(documents), display_name)
         it = self.append(None, (category,))
         self.set_documents(it, documents)
         return it

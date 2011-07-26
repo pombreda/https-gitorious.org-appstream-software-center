@@ -58,8 +58,8 @@ class StarRenderer(ShapeStar):
     def create_normal_surfaces(self,
                     context, vis_width, vis_height, star_width):
 
-        rgba0 = context.get_border_color(Gtk.StateFlags.NORMAL)
-        rgba1 = context.get_color(Gtk.StateFlags.ACTIVE)
+        rgba1 = context.get_border_color(Gtk.StateFlags.NORMAL)
+        rgba0 = context.get_color(Gtk.StateFlags.ACTIVE)
 
         lin = cairo.LinearGradient(0, 0, 0, vis_height)
         lin.add_color_stop_rgb(0, rgba0.red, rgba0.green, rgba0.blue)
@@ -212,14 +212,13 @@ class StarRenderer(ShapeStar):
         cr.paint()
         cr.reset_clip()
 
-        if fraction >= 1.0: return
-
-        empty_width = stars_width - full_width
-        cr.rectangle(x+full_width, y, empty_width, star_height)
-        cr.clip()
-        cr.set_source_surface(empty, x, y)
-        cr.paint()
-        cr.reset_clip()
+        if fraction < 1.0:
+            empty_width = stars_width - full_width
+            cr.rectangle(x+full_width, y, empty_width, star_height)
+            cr.clip()
+            cr.set_source_surface(empty, x, y)
+            cr.paint()
+            cr.reset_clip()
         return
 
     def get_pixel_size(self):

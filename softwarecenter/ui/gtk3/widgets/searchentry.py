@@ -21,10 +21,11 @@
 # this program; if not, write to the Free Software Foundation, Inc., 59 Temple
 # Place, Suite 330, Boston, MA 02111-1307 USA
 
-from gi.repository import Gtk
-from gi.repository import GObject
-
+from gi.repository import Gtk, GObject
 from gettext import gettext as _
+
+from softwarecenter.ui.gtk3.em import em
+
 
 class SearchEntry(Gtk.Entry):
 
@@ -34,7 +35,7 @@ class SearchEntry(Gtk.Entry):
                                      (GObject.TYPE_STRING,))}
 
     SEARCH_TIMEOUT = 600
-    PLACEHOLDER_TEXT = _("Search")
+    PLACEHOLDER_TEXT = _("Search all applications")
 
 
     def __init__(self, icon_theme=None):
@@ -42,6 +43,7 @@ class SearchEntry(Gtk.Entry):
         Creates an enhanced IconEntry that triggers a timeout when typing
         """
         Gtk.Entry.__init__(self)
+        self.set_size_request(em(16), em(1.7))
         self.set_placeholder_text(self.PLACEHOLDER_TEXT)
 
         if not icon_theme:

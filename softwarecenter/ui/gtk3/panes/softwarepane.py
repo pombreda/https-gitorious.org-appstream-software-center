@@ -86,13 +86,6 @@ class UnityLauncherInfo(object):
         self.add_to_launcher_requested = False
 
 
-class DefaultPages:
-    # pages for the spinner notebook
-    APPVIEW = 0
-    DETAILS = 1
-    SPINNER = 2
-
-
 class DisplayState(object):
 
     def __init__(self):
@@ -107,11 +100,16 @@ class DisplayState(object):
         return
 
     def __str__(self):
-        s = '%s %s "%s" %s' % (self.category, self.subcategory, self.search_term, self.application)
+        s = '%s %s "%s" %s %s' % (self.category,
+                                  self.subcategory,
+                                  self.search_term,
+                                  self.application,
+                                  self.channel,)
         return s
 
     def copy(self):
         state = DisplayState()
+        state.channel = self.channel
         state.category = self.category
         state.subcategory = self.subcategory
         state.search_term = self.search_term
@@ -121,6 +119,7 @@ class DisplayState(object):
         return state
 
     def reset(self):
+        self.channel = None
         self.category = None
         self.subcategory = None
         self.search_term = ""
@@ -132,6 +131,12 @@ class DisplayState(object):
 class SoftwarePane(Gtk.VBox, BasePane):
     """ Common base class for InstalledPane, AvailablePane and ChannelPane"""
 
+    class Pages:
+        NAMES = ('appview', 'details', 'spinner')
+        APPVIEW = 0
+        DETAILS = 1
+        SPINNER = 2
+
     __gsignals__ = {
         "app-list-changed" : (GObject.SignalFlags.RUN_LAST,
                               None, 
@@ -140,9 +145,7 @@ class SoftwarePane(Gtk.VBox, BasePane):
     }
     PADDING = 6
 
-    def __init__(
-            self, cache, db, distro, icons, datadir,
-            show_ratings=True, store=None):
+    def __init__(self, cache, db, distro, icons, datadir, show_ratings=True, store=None):
 
         Gtk.VBox.__init__(self)
         BasePane.__init__(self)
@@ -245,7 +248,7 @@ class SoftwarePane(Gtk.VBox, BasePane):
         self.purchase_view.connect("purchase-cancelled-by-user", self.on_purchase_cancelled_by_user)
         # when the cache changes, refresh the app list
         self.cache.connect("cache-ready", self.on_cache_ready)
-        
+
         # aptdaemon
         self.backend.connect("transaction-started", self.on_transaction_started)
         self.backend.connect("transaction-finished", self.on_transaction_finished)
@@ -298,7 +301,7 @@ class SoftwarePane(Gtk.VBox, BasePane):
         self.state.application = app
 
         vm = get_viewmanager()
-        vm.display_page(self, DefaultPages.DETAILS, self.state, self.display_details_page)
+        vm.display_page(self, SoftwarePane.Pages.DETAILS, self.state, self.display_details_page)
 
     def on_purchase_requested(self, widget, app, url):
 
@@ -308,7 +311,7 @@ class SoftwarePane(Gtk.VBox, BasePane):
         
     def on_purchase_succeeded(self, widget):
         # switch to the details page to display the transaction is in progress
-        self.notebook.set_current_page(DefaultPages.DETAILS)
+        self.notebook.set_current_page(SoftwarePane.Pages.DETAILS)
         
     def on_purchase_failed(self, widget):
         # return to the the appdetails view via the button to reset it
@@ -489,7 +492,7 @@ class SoftwarePane(Gtk.VBox, BasePane):
         if not self.state.search_term:
             self.action_bar.clear()
         self.spinner_view.stop()
-        self.spinner_notebook.set_current_page(DefaultPages.SPINNER)
+        self.spinner_notebook.set_current_page(SoftwarePane.Pages.SPINNER)
         # "mask" the spinner view momentarily to prevent it from flashing into
         # view in the case of short delays where it isn't actually needed
         GObject.timeout_add(100, self._unmask_appview_spinner)
@@ -500,7 +503,8 @@ class SoftwarePane(Gtk.VBox, BasePane):
     def hide_appview_spinner(self):
         """ hide the spinner and display the appview in the panel """
         self.spinner_view.stop()
-        self.spinner_notebook.set_current_page(DefaultPages.APPVIEW)
+        self.spinner_notebook.set_current_page(
+                                        SoftwarePane.Pages.APPVIEW)
 
     def set_section(self, section):
         self.section = section
