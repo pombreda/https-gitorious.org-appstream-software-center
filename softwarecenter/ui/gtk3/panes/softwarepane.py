@@ -153,8 +153,7 @@ class SoftwarePane(Gtk.VBox, BasePane):
 
         # other classes we need        
         self.enquirer = AppEnquire(cache, db)
-        self.enquirer.set_query_complete_callback(
-                                            self.on_query_complete)
+        self.enquirer.connect("query-complete", self.on_query_complete)
 
         self.store = store or AppListStore(db, cache, icons)
         self.cache = cache
@@ -405,7 +404,7 @@ class SoftwarePane(Gtk.VBox, BasePane):
                                    trans_id)
         self.action_bar.set_label(_("Add %s to the launcher?") % app.name)
 
-    def on_query_complete(self, enquirer, *user_data):
+    def on_query_complete(self, enquirer):
         self.emit("app-list-changed", len(enquirer.matches))
 
         with ExecutionTime("store.set_from_matches()"):

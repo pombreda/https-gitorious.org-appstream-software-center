@@ -10,6 +10,7 @@ software-center (4.1.11) UNRELAED; urgency=low
   * merged from lp:~aaronp/software-center/more-top-rated, many
     thanks to Aaron Peachey!
   * move the AppEnquire code from ui.gtk3 into the generic db space
+    and add gobject query-complete signal
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 22 Jul 2011 18:23:29 +0200
 

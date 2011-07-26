@@ -37,13 +37,19 @@ from softwarecenter.utils import ExecutionTime
 
 LOG=logging.getLogger(__name__)
 
-class AppEnquire(object):
+class AppEnquire(GObject.GObject):
     """
     A interface to enquire data from a xapian database. 
     It can combined with any xapian querry and with
     a generic filter function (that can filter on data not
     available in xapian)
     """
+
+    # signal emited
+    __gsignals__ = {"query-complete" : (GObject.SIGNAL_RUN_FIRST,
+                                        GObject.TYPE_NONE,
+                                        ()),
+                    }
 
     def __init__(self, cache, db):
         """
@@ -53,7 +59,7 @@ class AppEnquire(object):
         - `cache`: apt cache (for stuff like the overlay icon)
         - `db`: a xapian.Database that contians the applications
         """
-
+        GObject.GObject.__init__(self)
         self.cache = cache
         self.db = db
         self.distro = get_distro()
@@ -68,10 +74,6 @@ class AppEnquire(object):
         self.nr_apps = 0
         self._matches = []
         self.match_docids = set()
-
-        # support for callbacks when a search is complete
-        self.on_query_complete = None
-        self.callback_user_data = None
 
     def __len__(self):
         return len(self._matches)
@@ -95,8 +97,7 @@ class AppEnquire(object):
                 context.iteration()
 
         # call the query-complete callback
-        if self.on_query_complete:
-            self.on_query_complete(self, *self.callback_user_data)
+        self.emit("query-complete")
 
     def _get_estimate_nr_apps_and_nr_pkgs(self, enquire, q, xfilter):
         # filter out docs of pkgs of which there exists a doc of the app
@@ -228,11 +229,6 @@ class AppEnquire(object):
 
         # wake up the UI if run in a search thread
         self._perform_search_complete = True
-        return
-
-    def set_query_complete_callback(self, cb, *user_data):
-        self.on_query_complete = cb
-        self.callback_user_data = user_data
         return
 
     def set_query(self, search_query, 
