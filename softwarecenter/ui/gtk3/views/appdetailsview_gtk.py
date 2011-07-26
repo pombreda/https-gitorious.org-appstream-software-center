@@ -1295,9 +1295,6 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         self.installed_where_hbox.show_all()
 
     def _add_where_is_it_launcher(self, where):
-        # disable where-is-it under Unity as it does not apply there
-        if is_unity_running():
-            return
         # display launcher location
         label = Gtk.Label(label=_("Find it in the menu: "))
         self.installed_where_hbox.pack_start(label, False, False, 0)
@@ -1353,10 +1350,11 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
                       "/usr/share/applications/%s.desktop" % pkgname]:
                 if p and os.path.exists(p):
                     desktop_file = p
-            # try to show menu location if there is a desktop file,
-            # but never show commandline programs for apps with desktop 
-            # file to cover cases like "file-roller" that have NoDisplay=true
-            if desktop_file:
+            # try to show menu location if there is a desktop file (and only when this
+            # is not a Unity configuration), but never show commandline programs
+            # for apps with desktop file to cover cases like "file-roller" that
+            # have NoDisplay=true
+            if desktop_file and not is_unity_running():
                 where = searcher.get_main_menu_path(desktop_file)
                 if where:
                     self._add_where_is_it_launcher(where)
