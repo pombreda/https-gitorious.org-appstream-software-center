@@ -37,6 +37,7 @@ from softwarecenter.cmdfinder import CmdFinder
 from softwarecenter.netstatus import (NetState, get_network_watcher,
                                       network_state_is_connected)
 from softwarecenter.db.application import Application
+from softwarecenter.db.debfile import DebFileApplication
 from softwarecenter.backend.reviews import ReviewStats
 #from softwarecenter.backend.zeitgeist_simple import zeitgeist_singleton
 from softwarecenter.enums import (AppActions, PkgStates,
@@ -1209,7 +1210,7 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         self.addons_statusbar.configure()
         return
 
-    def _update_all(self, app_details):
+    def _update_all(self, app_details, skip_update_addons=False):
         # reset view to top left
         self.get_vadjustment().set_value(0)
         self.get_hadjustment().set_value(0)
@@ -1243,7 +1244,8 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         self._update_app_screenshot(app_details)
         self._update_weblive(app_details)
         self._update_pkg_info_table(app_details)
-        self._update_addons(app_details)
+        if not skip_update_addons:
+            self._update_addons(app_details)
         self._update_reviews(app_details)
 
         # show where it is
@@ -1398,7 +1400,11 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         if same_app and not force:
             self._update_minimal(self.app_details)
         else:
-            self._update_all(self.app_details)
+            # update all (but skip the addons calculation if this is a
+            # DebFileApplication as this is not useful for this case and it
+            # increases the view load time dramatically)
+            self._update_all(self.app_details,
+                             skip_update_addons=(type(self.app)==DebFileApplication))
 
         self.title.grab_focus()
 
