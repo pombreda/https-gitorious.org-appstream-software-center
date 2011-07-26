@@ -86,7 +86,22 @@ class UnityLauncherInfo(object):
         self.add_to_launcher_requested = False
 
 
+# for DisplayState attribute type-checking
+from softwarecenter.db.categories import Category
+from softwarecenter.db.application import Application
+from softwarecenter.backend.channel import SoftwareChannel
+from softwarecenter.ui.gtk3.views.appview import AppViewFilter
 class DisplayState(object):
+
+    _attrs = {'category': (type(None), Category),
+              'channel': (type(None), SoftwareChannel),
+              'subcategory': (type(None), Category),
+              'search_term': (str,),
+              'application': (type(None), Application),
+              'limit': (int,),
+              'filter': (type(None), AppViewFilter),
+              'previous_purchases_query': (type(None), xapian.Query)
+            }
 
     def __init__(self):
         self.category = None
@@ -98,6 +113,15 @@ class DisplayState(object):
         self.filter = None
         self.previous_purchases_query = None
         return
+
+    def __setattr__(self, name, val):
+        attrs = self._attrs
+        if name not in attrs:
+            raise AttributeError, "The attr name %s is not permitted" % name
+        if not isinstance(val, attrs[name]):
+            msg = "Attribute %s expects %s, got %s" % (name, attrs[name], type(val))
+            raise TypeError, msg
+        return object.__setattr__(self, name, val)
 
     def __str__(self):
         s = '%s %s "%s" %s %s' % (self.category,

@@ -191,6 +191,21 @@ class Exhibit(object):
         #~ return "<Exhibit: '%s'>" % (self.exhibit_data.title_translated)
 
 
+class ExhibitButton(Gtk.Button):
+
+    def __init__(self, arrow_type, shadow_type=Gtk.ShadowType.IN):
+        Gtk.Button.__init__(self)
+        self.set_size_request(24, 24)
+        self.set_focus_on_click(False)
+
+        self.set_name("exhibit-button")
+
+        a = Gtk.Alignment()
+        a.set_padding(2,2,2,2)
+        a.add(Gtk.Arrow.new(arrow_type, shadow_type))
+        self.add(a)
+
+
 _asset_cache = {}
 class ExhibitBanner(Gtk.EventBox):
 
@@ -211,6 +226,16 @@ class ExhibitBanner(Gtk.EventBox):
         Gtk.EventBox.__init__(self)
         hbox = Gtk.HBox()
         self.add(hbox)
+
+        alignment = Gtk.Alignment.new(0.5, 0.5, 0.0, 0.0)
+        alignment.set_padding(10, 10, 10, 10)
+        alignment.add(ExhibitButton(Gtk.ArrowType.RIGHT))
+        hbox.pack_end(alignment, False, False, 0)
+
+        alignment = Gtk.Alignment.new(0.5, 0.5, 0.0, 0.0)
+        alignment.set_padding(10, 10, 10, 10)
+        alignment.add(ExhibitButton(Gtk.ArrowType.LEFT))
+        hbox.pack_start(alignment, False, False, 0)
 
         self.alpha = 0.0
         self.image = None
@@ -278,11 +303,11 @@ class ExhibitBanner(Gtk.EventBox):
             cr.paint_with_alpha(self.alpha)
 
         # paint dropshadows last
-        cr.rectangle(0, 0, a.width, self.DROPSHADOW_HEIGHT)
-        cr.clip()
-        cr.set_source(assets["n"])
-        cr.paint()
-        cr.reset_clip()
+        #~ cr.rectangle(0, 0, a.width, self.DROPSHADOW_HEIGHT)
+        #~ cr.clip()
+        #~ cr.set_source(assets["n"])
+        #~ cr.paint()
+        #~ cr.reset_clip()
         cr.rectangle(0, a.height-self.DROPSHADOW_HEIGHT,
                      a.width, self.DROPSHADOW_HEIGHT)
         cr.clip()

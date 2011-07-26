@@ -101,7 +101,6 @@ class CategoriesViewGtk(Gtk.Viewport, CategoriesParser):
 
         Gtk.Viewport.__init__(self)
         CategoriesParser.__init__(self, db)
-        self.set_shadow_type(Gtk.ShadowType.NONE)
 
         self.set_name("view")
 
@@ -109,7 +108,7 @@ class CategoriesViewGtk(Gtk.Viewport, CategoriesParser):
         # we have our own viewport so we know when the viewport grows/shrinks
         # setup widgets
 
-        self.vbox = Gtk.VBox(spacing=3)
+        self.vbox = Gtk.VBox()
         self.add(self.vbox)
 
         # atk stuff
@@ -127,7 +126,7 @@ class CategoriesViewGtk(Gtk.Viewport, CategoriesParser):
         self._allocation = None
 
         assets = self._cache_art_assets()
-        #~ self.vbox.connect("draw", self.on_draw, assets)
+        self.vbox.connect("draw", self.on_draw, assets)
         self._prev_alloc = None
         self.connect("size-allocate", self.on_size_allocate)
         return
@@ -173,10 +172,10 @@ class CategoriesViewGtk(Gtk.Viewport, CategoriesParser):
     def build(self, desktopdir):
         pass
 
-    def do_draw(self, cr):
-        cr.set_source(_asset_cache["stipple"])
+    def on_draw(self, widget, cr, assets):
+        cr.set_source(assets["stipple"])
         cr.paint()
-        for child in self: self.propagate_draw(child, cr)
+        #~ for child in self: self.propagate_draw(child, cr)
         return
 
     def set_section(self, section):
@@ -298,7 +297,7 @@ class LobbyViewGtk(CategoriesViewGtk):
         #~ exhibit_banner.set_exhibits(exhibits_list)
 
         a = Gtk.Alignment()
-        a.set_padding(0,StockEms.SMALL,0,0)
+        a.set_padding(0,StockEms.MEDIUM,0,0)
         a.add(exhibit_banner)
 
         self.vbox.pack_start(a, False, False, 0)
