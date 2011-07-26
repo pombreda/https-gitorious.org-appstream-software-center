@@ -12,7 +12,7 @@ from appview import AppStore, AppViewFilter
 
 from softwarecenter.db.application import Application
 
-from softwarecenter.enums import SortMethods
+from softwarecenter.enums import SortMethods, TOP_RATED_CAROUSEL_LIMIT
 from softwarecenter.utils import wait_for_apt_cache_ready
 from softwarecenter.backend.zeitgeist_simple import zeitgeist_singleton
 from softwarecenter.drawing import color_floats, rounded_rect, rounded_rect2
@@ -396,7 +396,7 @@ class LobbyViewGtk(CategoriesViewGtk):
                                      self.db, 
                                      self.icons,
                                      toprated_cat.query,
-                                     toprated_cat.item_limit,
+                                     TOP_RATED_CAROUSEL_LIMIT,  #to override .menu file 
                                      toprated_cat.sortmode,
                                      filter=self.apps_filter,
                                      icon_size=best_stock_size,
