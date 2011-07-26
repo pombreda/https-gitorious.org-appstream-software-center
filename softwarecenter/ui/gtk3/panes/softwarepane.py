@@ -327,11 +327,11 @@ class SoftwarePane(Gtk.VBox, BasePane):
 
     def on_nav_back_clicked(self, widget):
         vm = get_viewmanager()
-        vm.nav_back(self)
+        vm.nav_back()
 
     def on_nav_forward_clicked(self, widget):
         vm = get_viewmanager()
-        vm.nav_forward(self)
+        vm.nav_forward()
 
     def on_transaction_started(self, backend, pkgname, appname, trans_id, 
                                trans_type):

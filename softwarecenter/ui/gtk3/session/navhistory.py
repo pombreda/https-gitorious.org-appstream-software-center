@@ -18,31 +18,26 @@
 
 import logging
 
-# FIXME: sucks, move elsewhere
-in_replay_history_mode = False
-
-
+LOG=logging.getLogger(__name__)
 
 class NavigationHistory(object):
     """
-    class to manage navigation history in the "Get Software" section (the
-    available pane).
+    class to manage navigation history
     """
     MAX_NAV_ITEMS = 25  # limit number of NavItems allowed in the NavStack
 
     def __init__(self, back_forward_btn, options):
         self.stack = NavigationStack(self.MAX_NAV_ITEMS, options)
         self.back_forward = back_forward_btn
+        self.in_replay_history_mode = False
         return
-
-    def get_current(self, pane):
-        return self.stack[self.stack.cursor]
 
     def append(self, nav_item):
         """
         append a new NavigationItem to the history stack
         """
-        if in_replay_history_mode:
+        LOG.debug("appending: '%s'" % nav_item)
+        if self.in_replay_history_mode:
             return
 
         stack = self.stack
@@ -54,7 +49,7 @@ class NavigationHistory(object):
             self._nav_back_set_sensitive(True)
         self._nav_forward_set_sensitive(False)
 
-    def nav_forward(self, pane):
+    def nav_forward(self):
         """
         navigate forward one item in the history stack
         """
@@ -68,7 +63,7 @@ class NavigationHistory(object):
                 self.back_forward.left.grab_focus()
             self._nav_forward_set_sensitive(False)
 
-    def nav_back(self, pane):
+    def nav_back(self):
         """
         navigate back one item in the history stack
         """
@@ -122,13 +117,14 @@ class NavigationItem(object):
         """
         navigate to the view that corresponds to this NavigationItem
         """
-        global in_replay_history_mode
-        in_replay_history_mode = True
+        # make sure we are in reply history mode
+        self.view_manager.navhistory.in_replay_history_mode = True
 
         self.view_manager.display_page(self.pane, self.page,
                        self.view_state, self.callback)
 
-        in_replay_history_mode = False
+        # and reset this mode again
+        self.view_manager.navhistory.in_replay_history_mode = False
 
 
 class NavigationStack(object):
