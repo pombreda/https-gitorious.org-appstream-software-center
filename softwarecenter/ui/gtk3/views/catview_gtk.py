@@ -1,4 +1,5 @@
 
+import cairo
 from gi.repository import Gtk
 from gi.repository import GObject
 import logging
@@ -9,7 +10,8 @@ from gettext import gettext as _
 from appview import AppViewFilter
 from softwarecenter.enums import NonAppVisibility
 from softwarecenter.ui.gtk3.models.appstore2 import AppEnquire, AppPropertiesHelper
-from softwarecenter.ui.gtk3.widgets.containers import *
+from softwarecenter.ui.gtk3.widgets.containers import (
+     FramedHeaderBox, HeaderPosition, FramedBox, FlowableGrid, Frame)
 from softwarecenter.ui.gtk3.widgets.exhibits import ExhibitBanner
 from softwarecenter.ui.gtk3.widgets.buttons import (LabelTile,
                                                     CategoryTile,

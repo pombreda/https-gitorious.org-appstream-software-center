@@ -29,7 +29,6 @@ from softwarecenter.backend import get_install_backend
 from softwarecenter.db.database import StoreDatabase
 from softwarecenter.enums import ViewPages
 from softwarecenter.paths import XAPIAN_BASE_PATH
-from softwarecenter.distro import get_distro
 from softwarecenter.backend.channel import get_channels_manager
 from softwarecenter.ui.gtk3.widgets.buttons import SectionSelector
 from softwarecenter.ui.gtk3.em import StockEms
@@ -96,15 +95,11 @@ class ViewSwitcher(Gtk.Box):
 
         # the historypane item
         icon = SymbolicIcon("history")
-        history =  self.append_section(ViewPages.HISTORY,
-                                       _("History"),
-                                       icon)
+        self.append_section(ViewPages.HISTORY, _("History"), icon)
 
         # the pendingpane
         icon = PendingSymbolicIcon("pending")
-        pending = self.append_section(ViewPages.PENDING,
-                                      _("Progress"),
-                                      icon)
+        self.append_section(ViewPages.PENDING, _("Progress"), icon)
 
         # set sensible atk name
         atk_desc = self.get_accessible()

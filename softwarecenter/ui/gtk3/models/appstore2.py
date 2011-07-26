@@ -417,7 +417,7 @@ class _AppPropertiesHelper(object):
         appname = doc.get_value(XapianValues.APPNAME)
         if not appname:
             appname = self.db.get_summary(doc)
-            summary = self.get_pkgname(doc)
+            #summary = self.get_pkgname(doc)
         else:
             if self.db.is_appname_duplicated(appname):
                 appname = "%s (%s)" % (appname, self.get_pkgname(doc))
@@ -666,7 +666,7 @@ class AppListStore(Gtk.ListStore, AppGenericStore):
     def buffer_icons(self):
         def buffer_icons():
             #~ print "Buffering icons ..."
-            t0 = GObject.get_current_time()
+            #t0 = GObject.get_current_time()
             db = self.db.xapiandb
             for m in self.current_matches:
                 doc = db.get_document(m.docid)
