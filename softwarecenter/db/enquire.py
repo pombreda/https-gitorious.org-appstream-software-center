@@ -235,16 +235,14 @@ class AppEnquire(object):
         self.callback_user_data = user_data
         return
 
-    def set_query(
-            self,  search_query, 
-            limit=DEFAULT_SEARCH_LIMIT,
-            sortmode=SortMethods.UNSORTED, 
-            filter=None,
-            exact=False,
-            nonapps_visible=NonAppVisibility.MAYBE_VISIBLE,
-            nonblocking_load=True,
-            persistent_duplicate_filter=False):
-
+    def set_query(self, search_query, 
+                  limit=DEFAULT_SEARCH_LIMIT,
+                  sortmode=SortMethods.UNSORTED, 
+                  filter=None,
+                  exact=False,
+                  nonapps_visible=NonAppVisibility.MAYBE_VISIBLE,
+                  nonblocking_load=True,
+                  persistent_duplicate_filter=False):
         """
         Set a new query
 
