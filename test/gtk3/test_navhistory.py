@@ -23,7 +23,7 @@ class MockButton():
         return False
 
 class TestNavhistory(unittest.TestCase):
-    """ basic tests for the various gtk3 widget """
+    """ basic tests for navigation history """
 
     def test_nav_history(self):
         # mock button

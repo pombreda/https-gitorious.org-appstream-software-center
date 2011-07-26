@@ -417,7 +417,6 @@ class _AppPropertiesHelper(object):
         appname = doc.get_value(XapianValues.APPNAME)
         if not appname:
             appname = self.db.get_summary(doc)
-            #summary = self.get_pkgname(doc)
         else:
             if self.db.is_appname_duplicated(appname):
                 appname = "%s (%s)" % (appname, self.get_pkgname(doc))
