@@ -126,7 +126,7 @@ class CategoriesViewGtk(Gtk.Viewport, CategoriesParser):
         self._allocation = None
 
         assets = self._cache_art_assets()
-        self.vbox.connect("draw", self.on_draw, assets)
+        #~ self.vbox.connect("draw", self.on_draw, assets)
         self._prev_alloc = None
         self.connect("size-allocate", self.on_size_allocate)
         return
@@ -172,10 +172,10 @@ class CategoriesViewGtk(Gtk.Viewport, CategoriesParser):
     def build(self, desktopdir):
         pass
 
-    def on_draw(self, widget, cr, assets):
-        cr.set_source(assets["stipple"])
-        cr.paint()
-        #~ for child in self: self.propagate_draw(child, cr)
+    def do_draw(self, cr):
+        cr.set_source(_asset_cache["stipple"])
+        cr.paint_with_alpha(0.5)
+        for child in self: self.propagate_draw(child, cr)
         return
 
     def set_section(self, section):

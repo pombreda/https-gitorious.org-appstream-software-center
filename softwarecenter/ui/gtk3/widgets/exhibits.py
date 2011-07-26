@@ -316,6 +316,13 @@ class ExhibitBanner(Gtk.EventBox):
         cr.set_source(assets["s"])
         cr.paint()
         cr.restore()
+
+        cr.set_line_width(1)
+        cr.move_to(-0.5, a.height-0.5)
+        cr.rel_line_to(a.width+1, 0)
+        cr.set_source_rgba(1,1,1,0.75)
+        cr.stroke()
+
         cr.restore()
         return
 
