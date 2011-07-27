@@ -70,7 +70,7 @@ from softwarecenter.ui.gtk3.panes.availablepane import AvailablePane
 from softwarecenter.ui.gtk3.panes.historypane import HistoryPane
 from softwarecenter.ui.gtk3.panes.globalpane import GlobalPane
 from softwarecenter.ui.gtk3.panes.pendingpane import PendingPane
-from softwarecenter.ui.gtk3.session.viewmanager import ViewManager
+from softwarecenter.ui.gtk3.session.viewmanager import ViewManager, get_viewmanager
 
 from softwarecenter.config import get_config
 from softwarecenter.backend import get_install_backend
@@ -78,6 +78,7 @@ from softwarecenter.backend import get_install_backend
 from softwarecenter.backend.reviews import get_review_loader, UsefulnessCache
 from softwarecenter.distro import get_distro
 from softwarecenter.db.pkginfo import get_pkg_info
+
 
 from gi.repository import Gtk
 from gi.repository import Gdk
@@ -549,10 +550,10 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         """
         if (event.keyval == Gdk.keyval_from_name("BackSpace") and 
             self.active_pane and
-            hasattr(self.active_pane, 'navigation_bar') and
             not self.active_pane.searchentry.is_focus() and
+            # FIXME: figure out what ID_PURCHASE 
             not self.active_pane.navigation_bar.has_id(NavButtons.ID_PURCHASE)):
-            self.active_pane.navigation_bar.navigate_up()
+            self.on_navhistory_back_action_activate()
             
     def on_window_main_button_press_event(self, widget, event):
         """
@@ -561,12 +562,12 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         """
         if (event.button == MOUSE_EVENT_BACK_BUTTON and
             self.active_pane and
-            hasattr(self.active_pane, 'navigation_bar') and
+            # FIXME: figure out what ID_PURCHASE 
             not self.active_pane.navigation_bar.has_id(NavButtons.ID_PURCHASE)):
             self.on_navhistory_back_action_activate()
         elif (event.button == MOUSE_EVENT_FORWARD_BUTTON and
             self.active_pane and
-            hasattr(self.active_pane, 'navigation_bar') and
+            # FIXME: figure out what ID_PURCHASE             
             not self.active_pane.navigation_bar.has_id(NavButtons.ID_PURCHASE)):
             self.on_navhistory_forward_action_activate()
         
@@ -1037,14 +1038,12 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
                     #~ len(self.available_pane.app_view.get_model()))
 
     def on_navhistory_back_action_activate(self, navhistory_back_action=None):
-        self.available_pane.nav_history.nav_back()
-        self.available_pane._status_text = ""
-        self.update_status_bar()
-        
+        vm = get_viewmanager()
+        vm.nav_back()
+
     def on_navhistory_forward_action_activate(self, navhistory_forward_action=None):
-        self.available_pane.nav_history.nav_forward()
-        self.available_pane._status_text = ""
-        self.update_status_bar()
+        vm = get_viewmanager()
+        vm.nav_forward()
             
     def _ask_and_repair_broken_cache(self):
         # wait until the window window is available
