@@ -54,7 +54,6 @@ from softwarecenter.ui.gtk3.views.appview import AppView
 from softwarecenter.ui.gtk3.views.appdetailsview_gtk import (
                                                 AppDetailsViewGtk as
                                                 AppDetailsView)
-from softwarecenter.ui.gtk3.views.purchaseview import PurchaseView
 
 from basepane import BasePane
 
@@ -238,14 +237,7 @@ class SoftwarePane(Gtk.VBox, BasePane):
                                                self.cache, 
                                                self.datadir,
                                                self)
-        self.app_details_view.connect("purchase-requested",
-                                      self.on_purchase_requested)
         self.scroll_details.add(self.app_details_view)
-        # purchase view
-        self.purchase_view = PurchaseView()
-        self.purchase_view.connect("purchase-succeeded", self.on_purchase_succeeded)
-        self.purchase_view.connect("purchase-failed", self.on_purchase_failed)
-        self.purchase_view.connect("purchase-cancelled-by-user", self.on_purchase_cancelled_by_user)
         # when the cache changes, refresh the app list
         self.cache.connect("cache-ready", self.on_cache_ready)
 
@@ -303,27 +295,6 @@ class SoftwarePane(Gtk.VBox, BasePane):
         vm = get_viewmanager()
         vm.display_page(self, SoftwarePane.Pages.DETAILS, self.state, self.display_details_page)
 
-    def on_purchase_requested(self, widget, app, url):
-
-        self.appdetails = app.get_details(self.db)
-        iconname = self.appdetails.icon
-        self.purchase_view.initiate_purchase(app, iconname, url)
-        
-    def on_purchase_succeeded(self, widget):
-        # switch to the details page to display the transaction is in progress
-        self.notebook.set_current_page(SoftwarePane.Pages.DETAILS)
-        
-    def on_purchase_failed(self, widget):
-        # return to the the appdetails view via the button to reset it
-        self._click_appdetails_view()
-        dialogs.error(None,
-                      _("Failure in the purchase process."),
-                      _("Sorry, something went wrong. Your payment "
-                        "has been cancelled."))
-        
-    def on_purchase_cancelled_by_user(self, widget):
-        # return to the the appdetails view via the button to reset it
-        self._click_appdetails_view()
 
     def on_nav_back_clicked(self, widget):
         vm = get_viewmanager()

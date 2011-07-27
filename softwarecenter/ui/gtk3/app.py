@@ -626,7 +626,8 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
 
     def _available_for_me_result(self, scagent, result_list):
         #print "available_for_me_result", result_list
-        from db.update import add_from_purchased_but_needs_reinstall_data
+        from softwarecenter.db.update import (
+            add_from_purchased_but_needs_reinstall_data)
         available_for_me_query = add_from_purchased_but_needs_reinstall_data(
             result_list, self.db, self.cache)
         self.available_pane.on_previous_purchases_activated(available_for_me_query) 
@@ -747,30 +748,18 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         d = LoginDialog(self.glaunchpad, self.datadir, parent=self.window_main)
         d.login()
 
-    def _create_buildin_sso_if_needed(self):
-        if not self.sso:
-            from backend.restfulclient import UbuntuSSOlogin
-            self.sso = UbuntuSSOlogin()
-            self.sso.connect("login-successful", self._on_sso_login)
-    def _login_via_buildin_sso(self):
-        self._create_buildin_sso_if_needed()
-        if "SOFTWARE_CENTER_TEST_REINSTALL_PURCHASED" in os.environ:
-            self.scagent.query_available_for_me("dummy", "mvo")
-        else:
-            from view.logindialog import LoginDialog
-            d = LoginDialog(self.sso, self.datadir, parent=self.window_main)
-            d.login()
-
     def _create_dbus_sso_if_needed(self):
         if not self.sso:
-            from backend.login_sso import get_sso_backend
+            from softwarecenter.backend.login_sso import get_sso_backend
             # see bug #773214 for the rational
             #appname = _("Ubuntu Software Center Store")
             appname = "Ubuntu Software Center Store"
             login_text = _("To reinstall previous purchases, sign in to the "
                            "Ubuntu Single Sign-On account you used to pay for them.")
             window = self.window_main.get_window()
-            self.sso = get_sso_backend(window.xid,
+            #xid = self.get_window().xid
+            xid = 0
+            self.sso = get_sso_backend(xid,
                                        appname,
                                        login_text)
             self.sso.connect("login-successful", self._on_sso_login)
@@ -781,18 +770,14 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
 
     def _create_scagent_if_needed(self):
         if not self.scagent:
-            from backend.restfulclient import SoftwareCenterAgent
+            from softwarecenter.backend.scagent import SoftwareCenterAgent
             self.scagent = SoftwareCenterAgent()
             self.scagent.connect("available-for-me", self._available_for_me_result)
             
     def on_menuitem_reinstall_purchases_activate(self, menuitem):
-        self.view_switcher.select_available_node()
+        #self.view_switcher.select_available_node()
         self._create_scagent_if_needed()
-        # support both buildin or ubuntu-sso-login
-        if "SOFTWARE_CENTER_USE_BUILTIN_LOGIN" in os.environ:
-            self._login_via_buildin_sso()
-        else:
-            self._login_via_dbus_sso()
+        self._login_via_dbus_sso()
             
     def on_menuitem_deauthorize_computer_activate(self, menuitem):
     
