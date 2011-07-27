@@ -1,5 +1,6 @@
 
 import cairo
+import os
 from gi.repository import Gtk
 from gi.repository import GObject
 import logging
@@ -7,6 +8,7 @@ import xapian
 
 from gettext import gettext as _
 
+import softwarecenter.paths
 from appview import AppViewFilter
 from softwarecenter.enums import NonAppVisibility
 from softwarecenter.ui.gtk3.models.appstore2 import AppPropertiesHelper
@@ -79,7 +81,8 @@ class CategoriesViewGtk(Gtk.Viewport, CategoriesParser):
     SPACING = PADDING = 3
 
     # art stuff
-    STIPPLE = "softwarecenter/ui/gtk3/art/stipple.png"
+    STIPPLE = os.path.join(softwarecenter.paths.datadir,
+                           "ui/gtk3/art/stipple.png")
 
     def __init__(self, 
                  datadir,

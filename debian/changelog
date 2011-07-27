@@ -9,6 +9,10 @@ software-center (4.1.11) UNRELAED; urgency=low
     thanks to Aaron Peachey!
   * move the AppEnquire code from ui.gtk3 into the generic db space
     and add gobject query-complete signal
+  * test/gtk3/test_purchase.py:
+    - add tests for reinstall previous purchase
+  * softwarecenter/ui/gtk3:
+    - use datadir for the gtk3 art and css
 
   [ Gary Lasker ]
   * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:

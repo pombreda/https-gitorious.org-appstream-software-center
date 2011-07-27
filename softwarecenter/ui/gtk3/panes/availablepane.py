@@ -603,7 +603,6 @@ class AvailablePane(SoftwarePane):
         # do not emit app-list-changed here, this is done async when
         # the new model is ready
         self.refresh_apps(query=self.previous_purchases_query)
-        self.searchentry.hide()
         self.action_bar.clear()
         self.cat_view.stop_carousels()
         return
@@ -665,6 +664,9 @@ class AvailablePane(SoftwarePane):
         #print cat_view, name, query
         LOG.debug("on_previous_purchases_activated with query: %s" % query)
         self.previous_purchases_query = query
+        vm = get_viewmanager()
+        vm.display_page(self, AvailablePane.Pages.LIST, self.state,
+                        self.display_previous_purchases)
 
     def is_category_view_showing(self):
         """ Return True if we are in the category page or if we display a

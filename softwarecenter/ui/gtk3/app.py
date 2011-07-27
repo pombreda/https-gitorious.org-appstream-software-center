@@ -230,8 +230,8 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         Gtk.Window.set_default_icon_name("softwarecenter")
 
         # css provider
-        path = os.path.join(os.getcwd(),
-                            "softwarecenter/ui/gtk3/css/softwarecenter.css")
+        path = os.path.join(datadir,
+                            "ui/gtk3/css/softwarecenter.css")
         provider = Gtk.CssProvider()
         provider.load_from_path(path)
 

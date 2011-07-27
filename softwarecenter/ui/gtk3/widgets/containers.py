@@ -1,4 +1,7 @@
 import cairo
+import os
+
+import softwarecenter.paths
 
 from gi.repository import Gtk, Pango
 from math import pi
@@ -202,8 +205,10 @@ _frame_asset_cache = {}
 class Frame(Gtk.Alignment):
 
     BORDER_RADIUS = 8
-    BORDER_IMAGE = "softwarecenter/ui/gtk3/art/frame-border-image.png"
-    CORNER_LABEL = "softwarecenter/ui/gtk3/art/corner-label.png"
+    BORDER_IMAGE = os.path.join(
+        softwarecenter.paths.datadir, "ui/gtk3/art/frame-border-image.png")
+    CORNER_LABEL = os.path.join(
+        softwarecenter.paths.datadir, "ui/gtk3/art/corner-label.png")
 
     def __init__(self, padding=3):
         Gtk.Alignment.__init__(self)
