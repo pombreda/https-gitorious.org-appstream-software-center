@@ -15,6 +15,11 @@ software-center (4.1.11) UNRELAED; urgency=low
     - port recent crash fixes and the standalone deb install
       startup time improvements to the gtk3 branch 
 
+  [ Kiwinote ]
+  * softwarecenter/ui/gtk/appview.py:
+    - lowlevel cache isn't available on startup, so query it only on demand
+    - fix normal cache to correctly filter out unavailable pkgs (LP: #799713)
+
  -- Gary Lasker <gary.lasker@canonical.com>  Tue, 26 Jul 2011 15:40:25 -0400
 
 software-center (4.1.10) oneiric; urgency=low
