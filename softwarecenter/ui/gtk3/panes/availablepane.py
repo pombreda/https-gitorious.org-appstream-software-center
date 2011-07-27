@@ -338,11 +338,12 @@ class AvailablePane(SoftwarePane):
         update buttons in the action bar to implement the custom package lists feature,
         see https://wiki.ubuntu.com/SoftwareCenter#Custom%20package%20lists
         '''
+        # FIXME: for the gtk3 port
         return
         if (self.state.search_term and
             ',' in self.state.search_term and
             self.notebook.get_current_page() == AvailablePane.Pages.LIST):
-            appstore = self.app_view.get_model()
+            #appstore = self.app_view.get_model()
 
             installable = []
             for app in self.enquirer.apps:

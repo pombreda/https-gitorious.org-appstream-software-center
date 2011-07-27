@@ -158,11 +158,11 @@ class ViewManager(object):
             self.set_active_view(view_id)
         return
 
-    def nav_back(self, pane):
-        self.navhistory.nav_back(pane)
+    def nav_back(self):
+        self.navhistory.nav_back()
 
-    def nav_forward(self, pane):
-        self.navhistory.nav_forward(pane)
+    def nav_forward(self):
+        self.navhistory.nav_forward()
 
     def get_global_searchentry(self):
         return self.search_entry

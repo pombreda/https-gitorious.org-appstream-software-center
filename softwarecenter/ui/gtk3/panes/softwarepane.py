@@ -32,6 +32,7 @@ import softwarecenter.utils
 import softwarecenter.ui.gtk3.dialogs as dialogs
 from softwarecenter.backend import get_install_backend
 from softwarecenter.db.database import Application
+from softwarecenter.db.enquire import AppEnquire
 from softwarecenter.enums import (ActionButtons,
                                   SortMethods,
                                   TransactionTypes,
@@ -43,7 +44,7 @@ from softwarecenter.utils import (ExecutionTime,
                                   wait_for_apt_cache_ready
                                   )
 
-from softwarecenter.ui.gtk3.models.appstore2 import AppListStore, AppEnquire
+from softwarecenter.ui.gtk3.models.appstore2 import AppListStore
 from softwarecenter.ui.gtk3.session.viewmanager import get_viewmanager
 from softwarecenter.ui.gtk3.widgets.actionbar import ActionBar
 from softwarecenter.ui.gtk3.widgets.spinner import SpinnerView
@@ -152,8 +153,7 @@ class SoftwarePane(Gtk.VBox, BasePane):
 
         # other classes we need        
         self.enquirer = AppEnquire(cache, db)
-        self.enquirer.set_query_complete_callback(
-                                            self.on_query_complete)
+        self.enquirer.connect("query-complete", self.on_query_complete)
 
         self.store = store or AppListStore(db, cache, icons)
         self.cache = cache
@@ -327,11 +327,11 @@ class SoftwarePane(Gtk.VBox, BasePane):
 
     def on_nav_back_clicked(self, widget):
         vm = get_viewmanager()
-        vm.nav_back(self)
+        vm.nav_back()
 
     def on_nav_forward_clicked(self, widget):
         vm = get_viewmanager()
-        vm.nav_forward(self)
+        vm.nav_forward()
 
     def on_transaction_started(self, backend, pkgname, appname, trans_id, 
                                trans_type):
@@ -404,7 +404,7 @@ class SoftwarePane(Gtk.VBox, BasePane):
                                    trans_id)
         self.action_bar.set_label(_("Add %s to the launcher?") % app.name)
 
-    def on_query_complete(self, enquirer, *user_data):
+    def on_query_complete(self, enquirer):
         self.emit("app-list-changed", len(enquirer.matches))
 
         with ExecutionTime("store.set_from_matches()"):

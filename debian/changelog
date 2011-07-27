@@ -1,12 +1,21 @@
 software-center (4.1.11) UNRELAED; urgency=low
 
-  * merged lp:~roignac/software-center/bug-741778,
-    many thanks to  Vadim Rutkovsky (LP: #741778)
+  [ Michael Vogt ]
   * utils/show_top_rated_for_various_powers.py:
     - add helper to help with the parameterization of the top-rated
       algorithm
+  * some cleanup and new test/gtk3/test_navhistory.py
+  * merged from lp:~aaronp/software-center/more-top-rated, many
+    thanks to Aaron Peachey!
+  * move the AppEnquire code from ui.gtk3 into the generic db space
+    and add gobject query-complete signal
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 22 Jul 2011 18:23:29 +0200
+  [ Gary Lasker ]
+  * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
+    - port recent crash fixes and the standalone deb install
+      startup time improvements to the gtk3 branch 
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 26 Jul 2011 15:40:25 -0400
 
 software-center (4.1.10) oneiric; urgency=low
 

@@ -1287,8 +1287,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         if app_details.website:
             self.homepage_btn.show()
             self.homepage_btn.set_tooltip_text(app_details.website)
-            self.homepage_btn.set_label(app_details.website)
-            self.homepage_btn.label.set_selectable(True)
         else:
             self.homepage_btn.hide()
         return

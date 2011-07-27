@@ -12,6 +12,7 @@ import xapian
 
 from softwarecenter.db.application import Application, AppDetails
 from softwarecenter.db.database import StoreDatabase
+from softwarecenter.db.enquire import AppEnquire
 from softwarecenter.db.database import parse_axi_values_file
 from softwarecenter.db.pkginfo import get_pkg_info
 from softwarecenter.db.update import update_from_app_install_data, update_from_var_lib_apt_lists, update_from_appstream_xml
@@ -304,6 +305,15 @@ app-popcon	4	# app-install .desktop popcon rank
         self.assertNotEqual(axi_values, {})
         print axi_values
 
+    def test_app_enquire(self):
+        db = StoreDatabase("/var/cache/software-center/xapian", self.cache)
+        db.open()
+        # test the AppEnquire engine
+        enquirer = AppEnquire(self.cache, db)
+        enquirer.set_query(xapian.Query("a"),
+                           nonblocking_load=False)
+        self.assertTrue(len(enquirer.get_docids()) > 0)
+        # FIXME: test more of the interface
 
 if __name__ == "__main__":
     import logging

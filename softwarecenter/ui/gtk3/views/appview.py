@@ -686,7 +686,8 @@ if __name__ == "__main__":
     filter.set_installed_only(True)
 
     # appview
-    from softwarecenter.ui.gtk3.models.appstore2 import AppEnquire, AppListStore
+    from softwarecenter.ui.gtk3.models.appstore2 import AppListStore
+    from softwarecenter.db.enquire import AppEnquire
     enquirer = AppEnquire(cache, db)
     store = AppListStore(db, cache, icons)
     view = AppView(icons, show_ratings=True)

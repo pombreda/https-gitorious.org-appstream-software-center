@@ -256,11 +256,11 @@ class HistoryPane(Gtk.VBox, BasePane):
 
     def on_nav_back_clicked(self, widget):
         vm = get_viewmanager()
-        vm.nav_back(self)
+        vm.nav_back()
 
     def on_nav_forward_clicked(self, widget):
         vm = get_viewmanager()
-        vm.nav_forward(self)
+        vm.nav_forward()
 
     def change_filter(self, action, current):
         self.filter = action.get_current_value()

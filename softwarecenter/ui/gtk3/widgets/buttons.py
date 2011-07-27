@@ -311,7 +311,7 @@ class SectionSelector(Tile):
     def show_channel_sel_popup(self, widget, event):
 
         def position_func(menu, (window, a)):
-            menu_alloc = menu.get_allocation()
+            #menu_alloc = menu.get_allocation()
             x, y = window.get_root_coords(a.x,
                                           a.y + a.height - self.radius)
             return (x, y, False)
