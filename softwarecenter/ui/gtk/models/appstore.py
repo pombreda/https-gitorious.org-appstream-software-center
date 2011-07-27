@@ -18,7 +18,6 @@
 
 import copy
 from gi.repository import GObject
-from gi.repository import GObject
 import gtk
 import logging
 import math
@@ -33,7 +32,7 @@ from softwarecenter.enums import (Icons, SortMethods,
 from softwarecenter.utils import ExecutionTime, SimpleFileDownloader
 from softwarecenter.backend import get_install_backend
 from softwarecenter.backend.reviews import get_review_loader
-from softwarecenter.db.database import Application, SearchQuery, LocaleSorter
+from softwarecenter.db.database import Application, SearchQuery, LocaleSorter, TopRatedSorter
 
 from softwarecenter.distro import get_distro
 from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
@@ -281,7 +280,9 @@ class AppStore(gtk.GenericTreeModel):
                         self.db._axi_values["catalogedtime"], reverse=True)
                 else:
                     logging.warning("no catelogedtime in axi")
-
+            elif self.sortmode == SortMethods.BY_TOP_RATED:
+                sorter = TopRatedSorter(self.db, self.review_loader)
+                enquire.set_sort_by_key(sorter, reverse=True)
             # search ranking - when searching
             elif self.sortmode == SortMethods.BY_SEARCH_RANKING:
                 #enquire.set_sort_by_value(XapianValues.POPCON)

@@ -19,7 +19,6 @@
 import apt
 import gettext
 from gi.repository import GObject
-from gi.repository import GObject
 import gtk
 import logging
 import os
@@ -114,7 +113,7 @@ class AvailablePane(SoftwarePane):
 
     def init_view(self):
         if not self.view_initialized:
-            self.spinner_view.set_text(_('Loading Categories'))
+            self.spinner_view.set_text(_('Loading'))
             self.spinner_view.start()
             self.spinner_view.show()
             self.spinner_notebook.set_current_page(self.PAGE_SPINNER)
@@ -457,7 +456,9 @@ class AvailablePane(SoftwarePane):
                                         self.on_navigation_details,
                                         NavButtons.DETAILS,
                                         animate=False)
-        self.app_details_view.show_app(app)
+        from softwarecenter.utils import ExecutionTime
+        with ExecutionTime("AppDetailsView.show_app '%s'" % app):
+            self.app_details_view.show_app(app)
         self.display_details()
 
     # callbacks

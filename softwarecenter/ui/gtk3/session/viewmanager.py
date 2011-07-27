@@ -31,7 +31,7 @@ def get_viewmanager():
 
 class ViewManager(object):
 
-    def __init__(self, notebook_view):
+    def __init__(self, notebook_view, options):
         self.notebook_view = notebook_view
         self.search_entry = SearchEntry()
         self.search_entry.connect(
@@ -43,7 +43,7 @@ class ViewManager(object):
         self.back_forward.connect(
             "right-clicked", self.on_nav_forward_clicked)
 
-        self.navhistory = NavigationHistory(self.back_forward)
+        self.navhistory = NavigationHistory(self.back_forward, options)
 
         self.all_views = {}
         self.view_to_pane = {}
@@ -93,9 +93,15 @@ class ViewManager(object):
     def set_active_view(self, view_id):
         page_id = self.all_views[view_id]
         view_widget = self.get_view_widget(view_id)
-    
+
         view_page = view_widget.get_current_page()
         view_state = view_widget.state
+
+        #~ if (self.search_entry.get_text() !=
+            #~ view_widget.state.search_terms):
+            #~ self.search_entry.set_text_with_no_signal(
+                                        #~ view_widget.state.search_terms)
+    
         callback = view_widget.get_callback_for_page(view_page,
                                                      view_state)
 
@@ -106,10 +112,14 @@ class ViewManager(object):
         self.notebook_view.set_current_page(page_id)
         if view_widget:
             view_widget.init_view()
+        return view_widget
 
     def get_active_view(self):
         page_id = self.notebook_view.get_current_page()
         return self.get_view_id_from_page_id(page_id)
+
+    def is_active_view(self, view_id):
+        return view_id == self.get_active_view()
 
     def get_notebook_page_from_view_id(self, view_id):
         return self.all_views[view_id]
@@ -120,24 +130,26 @@ class ViewManager(object):
     def get_latest_nav_item(self):
         return self.navhistory.stack[-1]
 
-    def display_page(self, pane, page, view_state, callback):
+    def display_page(self, pane, page, view_state, callback=None):
+        if callback is None:
+            callback = pane.get_callback_for_page(page, view_state)
+
         nav_item = NavigationItem(self, pane, page,
                                   view_state.copy(), callback)
 
         self.navhistory.append(nav_item)
 
-        pane.state = view_state
-
         text = view_state.search_term
         if text != self.search_entry.get_text():
             self.search_entry.set_text_with_no_signal(text)
 
+        pane.state = view_state
         if callback is not None:
             callback(page, view_state)
 
         if page is not None:
             pane.notebook.set_current_page(page)
-    
+
         if self.get_current_view_widget() != pane:
             view_id = None
             for view_id, widget in self.view_to_pane.iteritems():

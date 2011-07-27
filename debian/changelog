@@ -1,9 +1,49 @@
-software-center (4.1.10) UNRELEASED; urgency=low
+software-center (4.1.11) UNRELAED; urgency=low
 
+  * merged lp:~roignac/software-center/bug-741778,
+    many thanks to  Vadim Rutkovsky (LP: #741778)
+  * utils/show_top_rated_for_various_powers.py:
+    - add helper to help with the parameterization of the top-rated
+      algorithm
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 22 Jul 2011 18:23:29 +0200
+
+software-center (4.1.10) oneiric; urgency=low
+
+  [ Michael Vogt ]
   * merged lp:~alexeftimie/software-center/backend-refactor,
     many thanks
+  * merged lp:~mmcg069/software-center/search-aid-improvments,
+    many thanks
+  * add generic "use_cache" to SimpleFileDownloader
+  * softwarecenter/ui/gtk3/widgets/exhibits.py:
+    - add basic ExhibitBanner widget
+  * merged lp:~roignac/software-center/bug-805969, 
+    many thanks to  Vadim Rutkovsky (LP: #805969)
+  * merged lp:~aaronp/software-center/more-top-rated, many thanks
+    to Aaron Peachey
+  * add top rated carousel
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 15 Jul 2011 14:59:33 +0200
+  [ Gary Lasker ]
+  * softwarecenter/ui/gtk/app.py,
+    softwarecenter/ui/gtk/availablepane.py,
+    softwarecenter/ui/gtk/catview_gtk.py,
+    softwarecenter/ui/gtk/softwarepane.py:
+    - improvement for a local debian package install, display a
+      "loading" spinner while the package loads and do not show
+      the main categories view momentarily
+  * softwarecenter/backend/reviews.py:
+    - fix crash on an undefined histogram value (LP: #812923) 
+  * softwarecenter/ui/gtk/historypane.py,
+    softwarecenter/ui/gtk3/panes/historypane.py:
+    - apply patch from Michael Terry to fix a crash when
+      initializing the history pane, many thanks! (LP: #746984)
+  * softwarecenter/db/debfile.py,
+    softwarecenter/ui/gtk/appdetailsview_gtk.py,
+    softwarecenter/ui/gtk/availablepane.py:
+    - reduce startup time when installing a deb file by ~50%
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 22 Jul 2011 15:43:43 +0200
 
 software-center (4.1.9) oneiric; urgency=low
 

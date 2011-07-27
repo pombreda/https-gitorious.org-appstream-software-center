@@ -42,6 +42,10 @@ class SoftwareCenterAgent(GObject.GObject):
                               GObject.TYPE_NONE, 
                               (GObject.TYPE_PYOBJECT,),
                              ),
+        "exhibits" : (GObject.SIGNAL_RUN_LAST,
+                              GObject.TYPE_NONE, 
+                              (GObject.TYPE_PYOBJECT,),
+                             ),
         "error" : (GObject.SIGNAL_RUN_LAST,
                    GObject.TYPE_NONE, 
                    (str,),
@@ -100,6 +104,17 @@ class SoftwareCenterAgent(GObject.GObject):
     def _on_query_available_for_me_data(self, spawner, piston_available_for_me):
         self.emit("available-for-me", piston_available_for_me)
 
+    def query_exhibits(self):
+        cmd = self.HELPER_CMD[:]
+        cmd.append("exhibits")
+        cmd.append(get_language())
+        spawner = SpawnHelper()
+        spawner.connect("data-available", self._on_exhibits_data_available)
+        spawner.connect("error", lambda spawner, err: self.emit("error", err))
+        spawner.run(cmd)
+    def _on_exhibits_data_available(self, spawner, exhibits):
+        self.emit("exhibits", exhibits)
+        
 if __name__ == "__main__":
     def _available(agent, available):
         print "_available: ", available

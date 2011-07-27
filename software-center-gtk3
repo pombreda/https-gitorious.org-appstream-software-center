@@ -61,6 +61,9 @@ if __name__ == "__main__":
     parser.add_option("--force-rtl", action="store_true",
                       help="force rtl mode (useful for debugging)", 
                       default=False)
+    parser.add_option("--display-navlog", action="store_true",
+                      help="display a navigation history log (useful for debugging)", 
+                      default=False)
     # FIXME:  REMOVE THIS option once launchpad integration is enabled
     #         by default
     parser.add_option("--enable-lp", action="store_true",
@@ -96,8 +99,12 @@ if __name__ == "__main__":
     if options.force_rtl:
         Gtk.widget_set_default_direction(Gtk.TextDirection.RTL)
 
+    # we are running in a local checkout, make life as easy as possible
+    # for this
     if os.path.exists("./data/ui/gtk3/SoftwareCenter.ui"):
         logging.getLogger("softwarecenter").info("Using data (UI, xapian) from current dir")
+        # set pythonpath for the various helpers
+        os.environ["PYTHONPATH"]=os.path.abspath(".") + ":"+os.environ.get("PYTHONPATH","")
         datadir = "./data"
         xapian_base_path = datadir
         # set new global datadir
