@@ -36,18 +36,18 @@ def radian(deg):
 
 class SymbolicIcon(Gtk.Image):
 
-    SYMBOLIC_DIR = os.path.join(softwarecenter.paths.datadir,
-                                "ui/gtk3/art/icons/")
     DROPSHADOW = "%s-dropshadow.png"
     ICON = "%s.png"
 
     def __init__(self, name):
         Gtk.Image.__init__(self)
         self.set_name("symbolic-icon")
-
-        drop_shadow_path = self.SYMBOLIC_DIR + self.DROPSHADOW % name
+        # get base dir
+        SYMBOLIC_DIR = os.path.join(
+            softwarecenter.paths.datadir, "ui/gtk3/art/icons/")
+        drop_shadow_path = SYMBOLIC_DIR + self.DROPSHADOW % name
         self.drop_shadow = cairo.ImageSurface.create_from_png(drop_shadow_path)
-        icon_path = self.SYMBOLIC_DIR + self.ICON % name
+        icon_path = SYMBOLIC_DIR + self.ICON % name
         self.icon = cairo.ImageSurface.create_from_png(icon_path)
 
         self.drop_shadow_x_offset = 0

@@ -31,7 +31,7 @@ def get_viewmanager():
 
 class ViewManager(object):
 
-    def __init__(self, notebook_view, options):
+    def __init__(self, notebook_view, options=None):
         self.notebook_view = notebook_view
         self.search_entry = SearchEntry()
         self.search_entry.connect(

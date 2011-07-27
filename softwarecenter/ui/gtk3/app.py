@@ -172,6 +172,10 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             LOG.exception("setlocale failed, resetting to C")
             locale.setlocale(locale.LC_ALL, "C")
 
+
+        if "SOFTWARE_CENTER_DEBUG_TABS" in os.environ:
+            self.notebook_view.set_show_tabs(True)
+
         # distro specific stuff
         self.distro = get_distro()
 
@@ -391,47 +395,12 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
 
         # view switcher
         # repurpose this code
-        self.view_switcher = ViewSwitcher(self.view_manager,
-                                          self.datadir, self.db,
-                                          self.cache, self.icons)
+        #self.view_switcher = ViewSwitcher(self.view_manager,
+        #                                  self.datadir, self.db,
+        #                                  self.cache, self.icons)
+
         #~ self.view_switcher.connect("view-changed", 
                                    #~ self.on_view_switcher_changed)
-        return
-
-        #~ # channel pane (view not fully initialized at this point)
-        #~ self.channel_pane = ChannelPane(self.cache,
-                                        #~ self.db,
-                                        #~ self.distro,
-                                        #~ self.icons,
-                                        #~ self.datadir)
-        #~ self.channel_pane.connect("channel-pane-created", self.on_channel_pane_created)
-        #~ self.view_manager.register(self.channel_pane, ViewPages.CHANNEL)
-
-        # installed pane (view not fully initialized at this point)
-        self.installed_pane = InstalledPane(self.cache,
-                                            self.db, 
-                                            self.distro,
-                                            self.icons,
-                                            self.datadir)
-        self.installed_pane.connect("installed-pane-created", self.on_installed_pane_created)
-        self.view_manager.register(self.installed_pane, ViewPages.INSTALLED)
-
-        #~ # history pane (not fully loaded at this point)
-        #~ self.history_pane = HistoryPane(self.cache,
-                                        #~ self.db,
-                                        #~ self.distro,
-                                        #~ self.icons,
-                                        #~ self.datadir)
-        #~ self.history_pane.connect("history-pane-created", self.on_history_pane_created)
-        #~ self.view_manager.register(self.history_pane, ViewPages.HISTORY)
-#~ 
-        #~ # pending view
-        #~ self.pending_pane = PendingPane(self.icons)
-        #~ self.view_manager.register(self.pending_pane, ViewPages.PENDING)
-        #~ 
-        #~ # keep track of the current active pane
-        #~ self.active_pane = self.available_pane
-        #~ self.window_main.connect("realize", self.on_realize)
 
         # XXX lp integration still uses gtk2
         # launchpad integration help, its ok if that fails
@@ -607,10 +576,6 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             self.installed_pane.refresh_apps()
         self.update_app_list_view(channel)
         self.update_status_bar()
-
-    def on_viewswitcher_resized(self, widget, _):
-        allocation = widget.get_allocation()
-        self.view_switcher.width = allocation.width
 
     def _on_lp_login(self, lp, token):
         self._lp_login_successful = True
@@ -1230,12 +1195,6 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         if (self.config.has_option("general", "maximized") and
             self.config.getboolean("general", "maximized")):
             self.window_main.maximize()
-        #~ if (self.config.has_option("general", "installed-node-expanded") and
-            #~ self.config.getboolean("general", "installed-node-expanded")):
-            #~ self.view_switcher.expand_installed_node()
-        #~ if (self.config.has_option("general", "sidebar-width")):
-            #~ width = int(self.config.get("general", "sidebar-width"))
-            #~ self.hpaned_main.set_position(width)
 
     def save_state(self):
         LOG.debug("save_state")
@@ -1253,15 +1212,6 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             # size only matters when non-maximized
             size = self.window_main.get_size() 
             self.config.set("general","size", "%s, %s" % (size[0], size[1]))
-        #~ installed_node_expanded = self.view_switcher.is_installed_node_expanded()
-        #~ if installed_node_expanded:
-            #~ self.config.set("general", "installed-node-expanded", "True")
-        #~ else:
-            #~ self.config.set("general", "installed-node-expanded", "False")
-        #~ width = self.hpaned_main.get_position()
-        #~ # sanity check the sidebar width
-        #~ width = max(width, 2)
-        #~ self.config.set("general", "sidebar-width", str(width))
         self.config.write()
 
     def run(self, args):
