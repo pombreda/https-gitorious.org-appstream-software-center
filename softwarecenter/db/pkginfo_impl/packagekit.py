@@ -61,7 +61,10 @@ class PackagekitVersion(_Version):
     def origins(self):
         return self.pkginfo.get_origins(self.package.get_name())
 
+
 class PackagekitInfo(PackageInfo):
+    USE_CACHE = True
+
     def __init__(self):
         super(PackagekitInfo, self).__init__()
         self.client = packagekit.Client()
@@ -144,7 +147,6 @@ class PackagekitInfo(PackageInfo):
     def get_packages_removed_on_remove(self, pkg):
         """ Returns a package names list of reverse dependencies
         which will be removed if the package is removed."""
-        # FIXME it always returns []
         p = self._get_one_package(pkg.name)
         if not p:
             return []
@@ -160,7 +162,6 @@ class PackagekitInfo(PackageInfo):
     def get_packages_removed_on_install(self, pkg):
         """ Returns a package names list of dependencies
         which will be removed if the package is installed."""
-        # FIXME it always returns []
         p = self._get_one_package(pkg.name)
         if not p:
             return []
@@ -187,7 +188,7 @@ class PackagekitInfo(PackageInfo):
         return True
 
     """ private methods """
-    def _get_package_details(self, packageid, cache=True):
+    def _get_package_details(self, packageid, cache=USE_CACHE):
         if (packageid in self._cache.keys()) and cache:
             return self._cache[packageid]
 
@@ -198,7 +199,7 @@ class PackagekitInfo(PackageInfo):
         self._cache[packageid] = pkgs[0]
         return pkgs[0]
             
-    def _get_one_package(self, pkgname, pfilter=packagekit.FilterEnum.NONE, cache=True):
+    def _get_one_package(self, pkgname, pfilter=packagekit.FilterEnum.NONE, cache=USE_CACHE):
         if (pkgname in self._cache.keys()) and cache:
             return self._cache[pkgname]
         ps = self._get_packages(pkgname, pfilter)
@@ -217,7 +218,20 @@ class PackagekitInfo(PackageInfo):
         )
         pkgs = result.get_package_array()
         return pkgs
-        
+
+    def _reset_cache(self, name=None):
+        # clean resolved packages cache
+        # This is used after finishing a transaction, so that we always
+        # have the latest package information
+        print "[reset_cache] here: ", self._cache.keys()
+        # FIXME it doesn't work properly
+        if name and (name in self._cache.keys()):
+            del self._cache[name]
+        else:
+            # delete all
+            self._cache = {}
+        self.emit('cache-ready')
+
     def _on_progress_changed(self, progress, ptype, data=None):
         pass
 

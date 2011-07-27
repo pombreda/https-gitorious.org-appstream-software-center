@@ -233,12 +233,14 @@ class PackagekitBackend(GObject.GObject, InstallBackend):
         # temporary hack
         pkgnames = self._fix_pkgnames(pkgnames)
 
-        self.client.remove_packages(pkgnames,
+        self.client.remove_packages_async(pkgnames,
                     False, # allow deps
                     False, # autoremove
                     None, # cancellable
                     self._on_progress_changed,
-                    None # progress data
+                    None, # progress data
+                    self._on_remove_ready, # callback ready
+                    None # callback data
         )
         self.emit("transaction-started", pkgnames[0], appnames[0], 0, TransactionTypes.REMOVE)
 
@@ -283,6 +285,9 @@ class PackagekitBackend(GObject.GObject, InstallBackend):
             logging.error("Could not delete: " + name + str(trans))
         # this is needed too
         self.emit('transactions-changed', self.pending_transactions)
+        # also hack PackagekitInfo cache so that it emits a cache-ready signal
+        if hasattr(self.pkginfo, '_reset_cache'):
+            self.pkginfo._reset_cache(name)
 
     def _on_progress_changed(self, progress, ptype, data=None):
         """ de facto callback on transaction's progress change """
@@ -299,7 +304,7 @@ class PackagekitBackend(GObject.GObject, InstallBackend):
             # should add it to pending_transactions, but
             # i cannot get the pkgname here
 
-        logging.debug("Progress update %s %s %s %s" % (status, ptype, progress.get_property('transaction-id'),progress.get_property('status')))
+        #logging.debug("Progress update %s %s %s %s" % (status, ptype, progress.get_property('transaction-id'),progress.get_property('status')))
 
         if status == packagekit.StatusEnum.FINISHED:
             logging.debug("Transaction finished %s" % tid)
@@ -380,6 +385,9 @@ class PackagekitBackend(GObject.GObject, InstallBackend):
 
     def _on_install_ready(self, source, result, data=None):
         print "install done", source, result # FIXME
+
+    def _on_remove_ready(self, source, result, data=None):
+        print "remove done", source, result # FIXME
 
     def _fix_pkgnames(self, pkgnames):
         is_pk_id = lambda a: ';' in a

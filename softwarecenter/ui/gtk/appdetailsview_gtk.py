@@ -19,7 +19,7 @@
 import atk
 import datetime
 import gettext
-from gi.repository import GObject, GLib
+from gi.repository import GObject, GLib, Gio
 import gmenu
 import gtk
 import logging
@@ -1834,7 +1834,7 @@ if __name__ == "__main__":
     #view.show_app(Application("3D Chess", "3dchess"))
     #view.show_app(Application("Movie Player", "totem"))
     #view.show_app(Application("ACE", "unace"))
-    view.show_app(Application("", "cheese"))
+    view.show_app(Application("", "firefox"))
 
     #view.show_app("AMOR")
     #view.show_app("Configuration Editor")
