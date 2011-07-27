@@ -23,9 +23,11 @@ from softwarecenter.ui.gtk3.panes.availablepane import (
 class TestPurchase(unittest.TestCase):
 
     def test_reinstall_previous_purchase_display(self):
+        os.environ["PYTHONPATH"]=".."
         mock_options = Mock()
         mock_options.display_navlog = False
         mock_options.disable_apt_xapian_index = False
+        mock_options.disable_buy = False
         xapiandb = "/var/cache/software-center/"
         app = SoftwareCenterAppGtk3(
             softwarecenter.paths.datadir, xapiandb, mock_options)
@@ -34,7 +36,7 @@ class TestPurchase(unittest.TestCase):
         self._p()
         self.assertEqual(
             app.available_pane.get_current_page(), AvailablePane.Pages.LIST)
-        
+
     def _p(self):
         context = GObject.main_context_default()
         while context.pending():

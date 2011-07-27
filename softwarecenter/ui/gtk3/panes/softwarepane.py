@@ -180,8 +180,8 @@ class SoftwarePane(Gtk.VBox, BasePane):
         self.back_forward = vm.get_global_backforward()
         # a notebook below
         self.notebook = Gtk.Notebook()
-        if "SOFTWARE_CENTER_DEBUG_TABS" in os.environ:
-            self.notebook.set_show_tabs(True)
+        if not "SOFTWARE_CENTER_DEBUG_TABS" in os.environ:
+            self.notebook.set_show_tabs(False)
         self.notebook.set_show_border(False)
         # make a spinner view to display while the applist is loading
         self.spinner_view = SpinnerView()
