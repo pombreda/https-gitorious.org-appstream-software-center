@@ -16,6 +16,7 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+import copy
 from gi.repository import Atk
 import dbus
 import gettext
@@ -23,8 +24,8 @@ from gi.repository import GObject
 from gi.repository import Gtk, Gdk
 #~ from gi.repository import Cairo
 import logging
+import os
 import xapian
-import copy
 
 from gettext import gettext as _
 
@@ -179,7 +180,8 @@ class SoftwarePane(Gtk.VBox, BasePane):
         self.back_forward = vm.get_global_backforward()
         # a notebook below
         self.notebook = Gtk.Notebook()
-        self.notebook.set_show_tabs(False)
+        if "SOFTWARE_CENTER_DEBUG_TABS" in os.environ:
+            self.notebook.set_show_tabs(True)
         self.notebook.set_show_border(False)
         # make a spinner view to display while the applist is loading
         self.spinner_view = SpinnerView()
