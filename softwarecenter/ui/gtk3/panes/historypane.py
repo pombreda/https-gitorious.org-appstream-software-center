@@ -118,6 +118,7 @@ class HistoryPane(Gtk.VBox, BasePane):
         self._set_actions_sensitive(False)
 
         self.view = Gtk.TreeView()
+        self.view.set_headers_visible(False)
         self.view.show()
         self.history_view = Gtk.ScrolledWindow()
         self.history_view.set_policy(Gtk.PolicyType.AUTOMATIC,

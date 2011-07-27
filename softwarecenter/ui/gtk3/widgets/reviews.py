@@ -617,7 +617,6 @@ class UIReview(Gtk.VBox):
                     GObject.markup_escape_text(nice_date))
             except Exception, e:
                 print e
-            finally:
                 m = "Error parsing name"
 
         return m
