@@ -372,7 +372,7 @@ class LobbyViewGtk(CategoriesViewGtk):
 
     def _on_recommended_clicked(self, link, uri, rec_cat):
         self._on_category_clicked(self, rec_cat)
-        return True # mutter..
+        return True # mutter..        
 
     @wait_for_apt_cache_ready # be consistent with new apps
     def _append_toprated(self):
@@ -403,6 +403,7 @@ class LobbyViewGtk(CategoriesViewGtk):
                                      global_icon_cache=False,
                                      nonapps_visible=AppStore.NONAPPS_ALWAYS_VISIBLE,
                                      nonblocking_load=False)
+
 
             self.toprated_carousel = CarouselView(self,
                                                   toprated_apps,
@@ -554,7 +555,7 @@ class LobbyViewGtk(CategoriesViewGtk):
         return
 
 
-class SubCategoryViewGtk(CategoriesViewGtk):
+class SubCategoryViewGtk(LobbyViewGtk):
 
     def __init__(self, 
                  datadir,
@@ -580,6 +581,9 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         # sections
         self.current_category = None
         self.departments = None
+        self.toprated_carousel = None
+        self.featured_carousel = None
+        self.whatsnew_carousel = None
         return
 
     def _on_expose(self, widget, event, alignment):
@@ -597,7 +601,42 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         if self.section: self.section.render(cr, self, alignment.allocation)
 
         del cr
+        LobbyViewGtk._on_expose(self, widget, event, alignment)
 
+    @wait_for_apt_cache_ready # be consistent with new apps
+    def _append_carousel(self, category):
+        padding = gtk.VBox()
+        padding.set_size_request(-1, 6)
+        self.vbox.pack_start(padding, False)
+
+        # the spec says the carousel icons should be 4em
+        # however, by not using a stock icon size, icons sometimes dont
+        # look to great.
+        if category:
+            # so based on the value of 4*em we try to choose a sane stock
+            # icon size
+            best_stock_size = 64#mkit.get_nearest_stock_size(64)
+            toprated_apps = AppStore(self.cache,
+                                     self.db, 
+                                     self.icons,
+                                     category.query,
+                                     TOP_RATED_CAROUSEL_LIMIT,  #to override .menu file 
+                                     4,
+                                     filter=self.apps_filter,
+                                     icon_size=best_stock_size,
+                                     global_icon_cache=False,
+                                     nonapps_visible=AppStore.NONAPPS_ALWAYS_VISIBLE,
+                                     nonblocking_load=False)
+
+            self.toprated_carousel = CarouselView(self,
+                                                  toprated_apps,
+                                                  _('Top Rated'),
+                                                  self.icons,
+                                                  has_more_button=False)
+
+            self.vbox.pack_start(self.toprated_carousel, False)
+        return
+        
     def _append_subcat_departments(self, root_category, num_items):
         m = "<b><big>%s</big></b>"
         if self.departments is None:
@@ -605,7 +644,9 @@ class SubCategoryViewGtk(CategoriesViewGtk):
             self.subcat_label.set_use_markup(True)
             self.subcat_label.set_alignment(0, 0.5)
             self.vbox.pack_start(self.subcat_label, False)
-
+            
+            self._append_carousel(root_category)
+            
             self.departments = mkit.LayoutView2(xspacing=20, yspacing=12)
             #~ self.departments.min_col_width = 10*mkit.EM
 
@@ -617,6 +658,7 @@ class SubCategoryViewGtk(CategoriesViewGtk):
 
         # sort Category.name's alphabetically
         sorted_cats = categories_sorted_by_name(self.categories)
+
 
         buttons = []
         for cat in sorted_cats:
