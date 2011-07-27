@@ -109,14 +109,14 @@ class PackagekitTransaction(BaseTransaction):
 
     def is_waiting(self):
         """ return true if a time consuming task is taking place """
-        logging.debug('is_waiting ' + str(self._trans.get_property('status')))
+        #logging.debug('is_waiting ' + str(self._trans.get_property('status')))
         status = self._trans.get_property('status')
         return status == packagekit.StatusEnum.WAIT or \
                status == packagekit.StatusEnum.LOADING_CACHE or \
                status == packagekit.StatusEnum.SETUP
 
     def is_downloading(self):
-        logging.debug('is_downloading ' + str(self._trans.get_property('status')))
+        #logging.debug('is_downloading ' + str(self._trans.get_property('status')))
         status = self._trans.get_property('status')
         return status == packagekit.StatusEnum.DOWNLOAD or \
                (status >= packagekit.StatusEnum.DOWNLOAD_REPOSITORY and \
@@ -206,6 +206,9 @@ class PackagekitBackend(GObject.GObject, InstallBackend):
         GObject.GObject.__init__(self)
         InstallBackend.__init__(self)
 
+        # transaction details for setting as meta
+        self.new_pkgname, self.new_appname, self.new_iconname = '', '', ''
+        
         # this is public exposed
         self.pending_transactions = {}
 
@@ -229,6 +232,9 @@ class PackagekitBackend(GObject.GObject, InstallBackend):
 
     def remove_multiple(self, pkgnames, appnames, iconnames,
                 addons_install=[], addons_remove=[], metadatas=None):
+
+        # keep track of pkg, app and icon for setting them as meta
+        self.new_pkgname, self.new_appname, self.new_iconname = pkgnames[0], appnames[0], iconnames[0]
 
         # temporary hack
         pkgnames = self._fix_pkgnames(pkgnames)
@@ -255,6 +261,9 @@ class PackagekitBackend(GObject.GObject, InstallBackend):
 
     def install_multiple(self, pkgnames, appnames, iconnames,
         addons_install=[], addons_remove=[], metadatas=None):
+
+        # keep track of pkg, app and icon for setting them as meta
+        self.new_pkgname, self.new_appname, self.new_iconname = pkgnames[0], appnames[0], iconnames[0]
 
         # temporary hack
         pkgnames = self._fix_pkgnames(pkgnames)
@@ -303,6 +312,11 @@ class PackagekitBackend(GObject.GObject, InstallBackend):
             logging.debug("new transaction" + str(trans))
             # should add it to pending_transactions, but
             # i cannot get the pkgname here
+            trans.meta_data['sc_appname'] = self.new_appname
+            trans.meta_data['sc_pkgname'] = self.new_pkgname
+            trans.meta_data['sc_iconname'] = self.new_iconname
+            if self.new_pkgname not in self.pending_transactions:
+                self.pending_transactions[self.new_pkgname] = trans
 
         #logging.debug("Progress update %s %s %s %s" % (status, ptype, progress.get_property('transaction-id'),progress.get_property('status')))
 
@@ -317,11 +331,6 @@ class PackagekitBackend(GObject.GObject, InstallBackend):
         if ptype == packagekit.ProgressType.PACKAGE:
             # this should be done better
             package = progress.get_property('package')
-            name = package.get_name()
-            trans.meta_data['sc_appname'] = name
-            trans.meta_data['sc_pkgname'] = name
-            if name not in self.pending_transactions:
-                self.pending_transactions[name] = trans
             # fool sc ui about the name change
             trans.emit('role-changed', packagekit.RoleEnum.LAST)
 

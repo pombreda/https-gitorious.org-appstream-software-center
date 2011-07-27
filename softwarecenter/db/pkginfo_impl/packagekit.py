@@ -189,6 +189,7 @@ class PackagekitInfo(PackageInfo):
 
     """ private methods """
     def _get_package_details(self, packageid, cache=USE_CACHE):
+        print "package_details", packageid, self._cache.keys()
         if (packageid in self._cache.keys()) and cache:
             return self._cache[packageid]
 
@@ -196,10 +197,12 @@ class PackagekitInfo(PackageInfo):
         pkgs = result.get_details_array()
         if not pkgs:
             return None
+        packageid = pkgs[0].get_property('package-id')
         self._cache[packageid] = pkgs[0]
         return pkgs[0]
             
     def _get_one_package(self, pkgname, pfilter=packagekit.FilterEnum.NONE, cache=USE_CACHE):
+        print "package_one", pkgname, self._cache.keys()
         if (pkgname in self._cache.keys()) and cache:
             return self._cache[pkgname]
         ps = self._get_packages(pkgname, pfilter)
@@ -223,7 +226,7 @@ class PackagekitInfo(PackageInfo):
         # clean resolved packages cache
         # This is used after finishing a transaction, so that we always
         # have the latest package information
-        print "[reset_cache] here: ", self._cache.keys()
+        print "[reset_cache] here: ", self._cache.keys(), "name:", name
         # FIXME it doesn't work properly
         if name and (name in self._cache.keys()):
             del self._cache[name]
