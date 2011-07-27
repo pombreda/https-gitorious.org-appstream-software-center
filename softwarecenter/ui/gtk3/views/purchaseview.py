@@ -157,13 +157,14 @@ h1 {
     def _on_load_status_changed(self, view, property_spec):
         """ helper to give visual feedback while the page is loading """
         prop = view.get_property(property_spec.name)
-        if prop == webkit.LOAD_PROVISIONAL:
-            if self.window:
-                self.window.set_cursor(Gdk.Cursor.new(Gdk.WATCH))
-        elif (prop == webkit.LOAD_FIRST_VISUALLY_NON_EMPTY_LAYOUT or
-              prop == webkit.LOAD_FINISHED):
-            if self.window:
-                self.window.set_cursor(None)
+        window = self.get_window()
+        if prop == webkit.LoadStatus.PROVISIONAL:
+            if window:
+                window.set_cursor(Gdk.Cursor.new(Gdk.CursorType.WATCH))
+        elif (prop == webkit.LoadStatus.FIRST_VISUALLY_NON_EMPTY_LAYOUT or
+              prop == webkit.LoadStatus.FINISHED):
+            if window:
+                window.set_cursor(None)
 
     def _process_json(self, json_string):
         try:
