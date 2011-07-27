@@ -110,11 +110,11 @@ class PendingPane(Gtk.ScrolledWindow, BasePane):
     # subscribe to the back-forward navigation ...
     def on_nav_back_clicked(self, widget):
         vm = get_viewmanager()
-        vm.nav_back(self)
+        vm.nav_back()
 
     def on_nav_forward_clicked(self, widget):
         vm = get_viewmanager()
-        vm.nav_forward(self)
+        vm.nav_forward()
 
     # boring stuff
     def get_current_page(self):

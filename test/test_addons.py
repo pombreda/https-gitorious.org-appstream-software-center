@@ -36,7 +36,7 @@ class TestSCAddons(unittest.TestCase):
 
     def test_enhances(self):
         res = self.cache.get_addons("gwenview")
-        self.assertEqual(res, ([], ["kipi-plugins"]))
+        self.assertEqual(res, ([], ["svgpart", "kipi-plugins"]))
 
     def test_enhances_with_virtual_pkgs(self):
         res = self.cache.get_addons("bibletime")

@@ -18,9 +18,12 @@
 
 import gi
 gi.require_version("Gtk", "3.0")
-from gi.repository import Atk, Gtk, Gdk, GObject, GdkPixbuf
-
+from gi.repository import Atk
+from gi.repository import Gtk
+from gi.repository import Gdk
 from gi.repository import GObject
+from gi.repository import GdkPixbuf
+
 import datetime
 import gettext
 import gmenu
@@ -34,6 +37,7 @@ from softwarecenter.cmdfinder import CmdFinder
 from softwarecenter.netstatus import (NetState, get_network_watcher,
                                       network_state_is_connected)
 from softwarecenter.db.application import Application
+from softwarecenter.db.debfile import DebFileApplication
 from softwarecenter.backend.reviews import ReviewStats
 #from softwarecenter.backend.zeitgeist_simple import zeitgeist_singleton
 from softwarecenter.enums import (AppActions, PkgStates,
@@ -1206,7 +1210,7 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         self.addons_statusbar.configure()
         return
 
-    def _update_all(self, app_details):
+    def _update_all(self, app_details, skip_update_addons=False):
         # reset view to top left
         self.get_vadjustment().set_value(0)
         self.get_hadjustment().set_value(0)
@@ -1240,7 +1244,8 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         self._update_app_screenshot(app_details)
         self._update_weblive(app_details)
         self._update_pkg_info_table(app_details)
-        self._update_addons(app_details)
+        if not skip_update_addons:
+            self._update_addons(app_details)
         self._update_reviews(app_details)
 
         # show where it is
@@ -1292,9 +1297,6 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         self.installed_where_hbox.show_all()
 
     def _add_where_is_it_launcher(self, where):
-        # disable where-is-it under Unity as it does not apply there
-        if is_unity_running():
-            return
         # display launcher location
         label = Gtk.Label(label=_("Find it in the menu: "))
         self.installed_where_hbox.pack_start(label, False, False, 0)
@@ -1350,10 +1352,11 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
                       "/usr/share/applications/%s.desktop" % pkgname]:
                 if p and os.path.exists(p):
                     desktop_file = p
-            # try to show menu location if there is a desktop file,
-            # but never show commandline programs for apps with desktop 
-            # file to cover cases like "file-roller" that have NoDisplay=true
-            if desktop_file:
+            # try to show menu location if there is a desktop file (and only when this
+            # is not a Unity configuration), but never show commandline programs
+            # for apps with desktop file to cover cases like "file-roller" that
+            # have NoDisplay=true
+            if desktop_file and not is_unity_running():
                 where = searcher.get_main_menu_path(desktop_file)
                 if where:
                     self._add_where_is_it_launcher(where)
@@ -1397,7 +1400,11 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         if same_app and not force:
             self._update_minimal(self.app_details)
         else:
-            self._update_all(self.app_details)
+            # update all (but skip the addons calculation if this is a
+            # DebFileApplication as this is not useful for this case and it
+            # increases the view load time dramatically)
+            self._update_all(self.app_details,
+                             skip_update_addons=(type(self.app)==DebFileApplication))
 
         self.title.grab_focus()
 
@@ -1625,8 +1632,12 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
 
         # try to get it
         # FIXME
-        #~ zeitgeist_singleton.get_usage_counter(
-            #~ self.app_details.desktop_file, _zeitgeist_callback)
+        # try:
+        #     zeitgeist_singleton.get_usage_counter(
+        #         self.app_details.desktop_file, _zeitgeist_callback)
+        # except Exception, e:
+        #     LOG.warning("could not update the usage counter: %s " % e)
+        #     self.usage.hide()
 
 
 if __name__ == "__main__":

@@ -82,7 +82,8 @@ class ActionButtons:
 class Icons:
     APP_ICON_SIZE = 48
 
-    MISSING_APP = "applications-other"
+    FALLBACK = "applications-other"
+    MISSING_APP = FALLBACK
     MISSING_PKG = "dialog-question"   # XXX: Not used?
     GENERIC_MISSING = "gtk-missing-image"
 
@@ -92,7 +93,8 @@ class SortMethods:
      BY_ALPHABET,
      BY_SEARCH_RANKING,
      BY_CATALOGED_TIME,
-    ) = range(4)
+     BY_TOP_RATED,
+    ) = range(5)
 
 # values used in the database
 class XapianValues:
@@ -189,6 +191,9 @@ MOUSE_EVENT_BACK_BUTTON = 8
 
 # delimiter for directory path separator in app-install
 APP_INSTALL_PATH_DELIMITER = "__"
+
+#carousel app limit to override limit in .menu file for category
+TOP_RATED_CAROUSEL_LIMIT = 12
 
 from version import VERSION, DISTRO, RELEASE, CODENAME
 USER_AGENT="Software Center/%s (N;) %s/%s (%s)" % (VERSION, 

@@ -28,7 +28,6 @@ import random
 import subprocess
 import string
 import imp
-from gi.repository import GObject
 
 from threading import Thread, Event
 from weblive_pristine import WebLive

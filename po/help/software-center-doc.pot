@@ -7,13 +7,14 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2010-09-02 16:33+0300\n"
+"POT-Creation-Date: 2011-07-21 17:04+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=CHARSET\n"
-"Content-Transfer-Encoding: ENCODING"
+"Content-Transfer-Encoding: 8bit\n"
 
 #. type: Attribute 'lang' of: <book>
 #: help/C/software-center.xml:18
@@ -124,8 +125,8 @@ msgstr ""
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:77
 msgid ""
-"The Center also lets you examine the software installed on the computer "
-"already, and remove anything you no longer need."
+"You can also examine which software is installed on the computer already, "
+"and remove anything you no longer need."
 msgstr ""
 
 #. type: Content of: <book><chapter><title>
@@ -194,39 +195,31 @@ msgstr ""
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:132
 msgid ""
-"Most installed applications appear in the <guimenu>Applications</guimenu> "
-"menu in the corner of the screen, in the same category as they came from in "
-"the Software Center."
-msgstr ""
-
-#. type: Content of: <book><chapter><para>
-#: help/C/software-center.xml:137
-msgid ""
-"For example, if you installed a program from the <guilabel>Office</guilabel> "
-"department, it will appear inside "
-"<menuchoice><guimenu>Applications</guimenu> "
-"<guisubmenu>Office</guisubmenu></menuchoice>."
-msgstr ""
-
-#. type: Content of: <book><chapter><para>
-#: help/C/software-center.xml:143
-msgid ""
-"Utilities for changing settings may appear inside "
-"<menuchoice><guimenu>System</guimenu> "
+"For most programs, once they are installed, you can launch them from the "
+"<guimenu>Applications</guimenu> menu.  (Utilities for changing settings may "
+"appear inside <menuchoice><guimenu>System</guimenu> "
 "<guisubmenu>Preferences</guisubmenu></menuchoice> or "
 "<menuchoice><guimenu>System</guimenu> "
-"<guisubmenu>Administration</guisubmenu></menuchoice>."
+"<guisubmenu>Administration</guisubmenu></menuchoice> instead)."
 msgstr ""
 
 #. type: Content of: <book><chapter><para>
-#: help/C/software-center.xml:150
+#: help/C/software-center.xml:141
 msgid ""
-"If you are using Ubuntu Netbook Edition, an application appears in its "
-"category on the home screen."
+"To find out where to launch a new program, navigate to the screen for that "
+"program in Ubuntu Software Center, if it is not still being displayed.  The "
+"menu location should be displayed on that screen, below the colored bar."
 msgstr ""
 
 #. type: Content of: <book><chapter><para>
-#: help/C/software-center.xml:154
+#: help/C/software-center.xml:148
+msgid ""
+"If you are using Ubuntu Netbook Edition, an application appears in the "
+"appropriate category on the home screen."
+msgstr ""
+
+#. type: Content of: <book><chapter><para>
+#: help/C/software-center.xml:152
 msgid ""
 "Some items, such as media playback or Web browser plugins, do not appear in "
 "the menus.  They are used automatically when Ubuntu needs them.  For a Web "
@@ -235,33 +228,33 @@ msgid ""
 msgstr ""
 
 #. type: Content of: <book><chapter><title>
-#: help/C/software-center.xml:162
+#: help/C/software-center.xml:160
 msgid "Removing software"
 msgstr ""
 
 #. type: Content of: <book><chapter><para>
-#: help/C/software-center.xml:164
+#: help/C/software-center.xml:162
 msgid ""
 "To remove software, you need administrator access.  (If you set up Ubuntu on "
 "this computer yourself, you have administrator access automatically.)"
 msgstr ""
 
 #. type: Content of: <book><chapter><orderedlist><listitem><para>
-#: help/C/software-center.xml:171
+#: help/C/software-center.xml:169
 msgid ""
 "In the <guilabel>Installed Software</guilabel> section, find the item you "
 "want to remove."
 msgstr ""
 
 #. type: Content of: <book><chapter><orderedlist><listitem><para>
-#: help/C/software-center.xml:177
+#: help/C/software-center.xml:175
 msgid ""
 "Select the item in the list, and choose <guilabel>Remove</guilabel>.  You "
 "may need to enter your Ubuntu password."
 msgstr ""
 
 #. type: Content of: <book><chapter><para>
-#: help/C/software-center.xml:183
+#: help/C/software-center.xml:181
 msgid ""
 "If a program is open when you remove it, usually it will stay open even "
 "after it is removed.  As soon as you close it, it will no longer be "
@@ -269,32 +262,32 @@ msgid ""
 msgstr ""
 
 #. type: Content of: <book><chapter><itemizedlist><listitem><para>
-#: help/C/software-center.xml:188
+#: help/C/software-center.xml:186
 msgid "<xref linkend=\"metapackages\" endterm=\"metapackages-title\"/>"
 msgstr ""
 
 #. type: Content of: <book><chapter><title>
-#: help/C/software-center.xml:193
+#: help/C/software-center.xml:191
 msgid "Why is it asking me to remove several programs together?"
 msgstr ""
 
 #. type: Content of: <book><chapter><para>
-#: help/C/software-center.xml:195
+#: help/C/software-center.xml:193
 msgid ""
-"Sometimes if you try to remove one item, the Software Center will warn you "
-"that other items will be removed too.  There are two main reasons this "
+"Sometimes if you try to remove one item, Ubuntu Software Center will warn "
+"you that other items will be removed too.  There are two main reasons this "
 "happens."
 msgstr ""
 
 #. type: Content of: <book><chapter><itemizedlist><listitem><para>
-#: help/C/software-center.xml:202
+#: help/C/software-center.xml:200
 msgid ""
-"If you remove an application, any add-ons or accessories for that "
-"application usually will be removed too."
+"If you remove an application, any add-ons or plugins for that application "
+"usually will be removed too."
 msgstr ""
 
 #. type: Content of: <book><chapter><itemizedlist><listitem><para>
-#: help/C/software-center.xml:208
+#: help/C/software-center.xml:206
 msgid ""
 "Multiple applications are sometimes provided as a single package.  If any of "
 "them are installed, all of them are installed.  And if any of them are "
@@ -303,7 +296,7 @@ msgid ""
 msgstr ""
 
 #. type: Content of: <book><chapter><para>
-#: help/C/software-center.xml:217
+#: help/C/software-center.xml:215
 msgid ""
 "You can use the <guilabel>Main Menu</guilabel> settings to hide unwanted "
 "items without removing them from the computer.  In Ubuntu, you can find "
@@ -314,92 +307,116 @@ msgid ""
 msgstr ""
 
 #. type: Content of: <book><chapter><itemizedlist><listitem><para>
-#: help/C/software-center.xml:228
+#: help/C/software-center.xml:226
 msgid ""
 "<ulink url=\"ghelp:user-guide?menu-editor\" >Customizing the menu "
 "bar</ulink>"
 msgstr ""
 
 #. type: Content of: <book><chapter><title>
-#: help/C/software-center.xml:234
+#: help/C/software-center.xml:232
 msgid "What is &#8220;Canonical-maintained&#8221;?"
 msgstr ""
 
 #. type: Content of: <book><chapter><para>
-#: help/C/software-center.xml:236
+#: help/C/software-center.xml:234
 msgid ""
-"Some of the software available in Ubuntu Software Center is maintained by "
-"Canonical.  Canonical engineers ensure that security fixes and other "
-"critical updates are provided for these programs."
+"Some of the software available for Ubuntu is maintained by Canonical.  "
+"Canonical engineers ensure that security fixes and other critical updates "
+"are provided for these programs."
 msgstr ""
 
 #. type: Content of: <book><chapter><para>
-#: help/C/software-center.xml:242
+#: help/C/software-center.xml:240
 msgid ""
 "Other software is maintained by the Ubuntu developer community.  Any updates "
 "are provided on a best-effort basis."
 msgstr ""
 
 #. type: Content of: <book><chapter><title>
-#: help/C/software-center.xml:247
+#: help/C/software-center.xml:245
 msgid "What is &#8220;Canonical Partners&#8221;?"
 msgstr ""
 
 #. type: Content of: <book><chapter><para>
-#: help/C/software-center.xml:249
+#: help/C/software-center.xml:247
 msgid ""
 "<guilabel>Canonical Partners</guilabel> shows software from vendors who have "
 "worked with Canonical to make their software available for Ubuntu."
 msgstr ""
 
 #. type: Content of: <book><chapter><para>
-#: help/C/software-center.xml:253
+#: help/C/software-center.xml:251
 msgid ""
 "You can install this software in the same way as any other software in "
 "Ubuntu Software Center."
 msgstr ""
 
 #. type: Content of: <book><chapter><title>
+#: help/C/software-center.xml:256
+msgid "Do I need to pay anything?"
+msgstr ""
+
+#. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:258
-msgid "Why are all the programs free?"
+msgid "Most software in Ubuntu Software Center is free of charge."
 msgstr ""
 
 #. type: Content of: <book><chapter><para>
-#: help/C/software-center.xml:260
-msgid "Currently, all software in Ubuntu Software Center is free of charge."
-msgstr ""
-
-#. type: Content of: <book><chapter><para>
-#: help/C/software-center.xml:263
+#: help/C/software-center.xml:261
 msgid ""
-"Most of this software is developed as <firstterm>open source</firstterm>, "
-"which means anyone is allowed to alter it and redistribute it for any "
-"price.  Ubuntu developers, Debian developers, and others package the "
-"software available in Ubuntu Software Center, and make it available to you "
-"for free."
+"If something costs money, it has a <guilabel>Buy</guilabel> button instead "
+"of an <guilabel>Install</guilabel> button, and its price is shown on the "
+"screen for the individual item."
 msgstr ""
 
 #. type: Content of: <book><chapter><para>
-#: help/C/software-center.xml:271
+#: help/C/software-center.xml:267
 msgid ""
-"In a future version of Ubuntu, the Center will also allow software "
-"purchases."
+"To pay for commercial software, you need an Internet connection, and an "
+"Ubuntu Single Sign On account or Launchpad account.  If you do not have an "
+"account, Ubuntu Software Center will help you register one."
 msgstr ""
 
 #. type: Content of: <book><chapter><title>
-#: help/C/software-center.xml:277
+#: help/C/software-center.xml:275
+msgid "What if I paid for software and then lost it?"
+msgstr ""
+
+#. type: Content of: <book><chapter><para>
+#: help/C/software-center.xml:278
+msgid ""
+"If you accidentally removed software that you purchased, and you want it "
+"back, choose <menuchoice><guimenu>File</guimenu> <guimenuitem>Reinstall "
+"Previous Purchases</guimenuitem></menuchoice>."
+msgstr ""
+
+#. type: Content of: <book><chapter><para>
+#: help/C/software-center.xml:284
+msgid ""
+"Once you sign in to the account that you used to buy the software, Ubuntu "
+"Software Center will display your purchases for reinstalling."
+msgstr ""
+
+#. type: Content of: <book><chapter><para>
+#: help/C/software-center.xml:288
+msgid "This works even if you have reinstalled Ubuntu on the computer."
+msgstr ""
+
+#. type: Content of: <book><chapter><title>
+#: help/C/software-center.xml:293
 msgid "What if a program I want isn&#8217;t available?"
 msgstr ""
 
 #. type: Content of: <book><chapter><para>
-#: help/C/software-center.xml:279
+#: help/C/software-center.xml:295
 msgid ""
 "First, check that <menuchoice><guimenu>View</guimenu> <guimenuitem>All "
 "Software</guimenuitem></menuchoice> is selected."
 msgstr ""
 
 #. type: Content of: <book><chapter><para>
-#: help/C/software-center.xml:283
+#: help/C/software-center.xml:299
 msgid ""
 "If the software you want still isn&#8217;t there, but you know that it runs "
 "on Ubuntu, try contacting the original developers of the program to ask if "
@@ -407,7 +424,7 @@ msgid ""
 msgstr ""
 
 #. type: Content of: <book><chapter><para>
-#: help/C/software-center.xml:289
+#: help/C/software-center.xml:305
 msgid ""
 "If a program is available for other operating systems but not for Ubuntu, "
 "let the developers know that you&#8217;re interested in running it on "
@@ -415,12 +432,12 @@ msgid ""
 msgstr ""
 
 #. type: Content of: <book><chapter><title>
-#: help/C/software-center.xml:296
+#: help/C/software-center.xml:312
 msgid "What if a program doesn&#8217;t work?"
 msgstr ""
 
 #. type: Content of: <book><chapter><para>
-#: help/C/software-center.xml:298
+#: help/C/software-center.xml:314
 msgid ""
 "With tens of thousands of programs in Ubuntu Software Center, there&#8217;s "
 "always the chance that a few of them won&#8217;t work properly on your "
@@ -428,7 +445,7 @@ msgid ""
 msgstr ""
 
 #. type: Content of: <book><chapter><para>
-#: help/C/software-center.xml:303
+#: help/C/software-center.xml:319
 msgid ""
 "If you are familiar with reporting bugs in software, you can help out by "
 "reporting the problem to the Ubuntu developers.  Most programs have a "
@@ -437,12 +454,14 @@ msgid ""
 msgstr ""
 
 #. type: Content of: <book><chapter><para>
-#: help/C/software-center.xml:309
-msgid "Otherwise, look through the Center for another program to do what you want."
+#: help/C/software-center.xml:325
+msgid ""
+"Otherwise, look through Ubuntu Software Center for another program to do "
+"what you want."
 msgstr ""
 
 #. type: Content of: <book><chapter><itemizedlist><listitem><para>
-#: help/C/software-center.xml:312
+#: help/C/software-center.xml:329
 msgid "<xref linkend=\"removing\" endterm=\"removing-title\"/>"
 msgstr ""
 

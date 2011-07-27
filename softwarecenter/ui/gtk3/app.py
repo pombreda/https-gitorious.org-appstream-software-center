@@ -79,7 +79,9 @@ from softwarecenter.backend.reviews import get_review_loader, UsefulnessCache
 from softwarecenter.distro import get_distro
 from softwarecenter.db.pkginfo import get_pkg_info
 
-from gi.repository import Gtk, Gdk, Atk, GObject
+from gi.repository import Gtk
+from gi.repository import Gdk
+from gi.repository import Atk
 
 LOG = logging.getLogger(__name__)
 
@@ -238,7 +240,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
 
 
         # register view manager and create view panes/widgets
-        self.view_manager = ViewManager(self.notebook_view)
+        self.view_manager = ViewManager(self.notebook_view, options)
 
         self.global_pane = GlobalPane(self.view_manager, self.datadir, self.db, self.cache, self.icons)
         self.vbox1.pack_start(self.global_pane, False, False, 0)
@@ -362,7 +364,8 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             sc_agent_update = os.path.join(
                 self.datadir, "update-software-center-agent")
             (pid, stdin, stdout, stderr) = GObject.spawn_async(
-                [sc_agent_update], flags=GObject.SPAWN_DO_NOT_REAP_CHILD)
+                [sc_agent_update, "--datadir", datadir], 
+                flags=GObject.SPAWN_DO_NOT_REAP_CHILD)
             GObject.child_watch_add(
                 pid, self._on_update_software_center_agent_finished)
 
@@ -451,7 +454,10 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
 
     # callbacks
     def on_realize(self, widget):
-        GObject.idle_add(self.view_manager.set_active_view, ViewPages.AVAILABLE)
+        def display_lobby():
+            self.view_manager.set_active_view(ViewPages.AVAILABLE)
+            return
+        GObject.idle_add(display_lobby)
         return
 
     def on_available_pane_created(self, widget):
@@ -996,39 +1002,39 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
 
     def on_menuitem_view_supported_only_activate(self, widget):
         if (not self._block_menuitem_view and
-            self.active_pane.apps_filter and
-            not self.active_pane.apps_filter.get_supported_only()):
-            self.active_pane.apps_filter.set_supported_only(True)
+            self.active_pane.state and
+            not self.active_pane.state.filter.get_supported_only()):
+            self.active_pane.state.filter.set_supported_only(True)
             self.active_pane.refresh_apps()
 
             # navigate up if the details page is no longer available
-            ap = self.active_pane
-            if (ap and ap.is_app_details_view_showing and ap.app_details_view.app and
-                not self.distro.is_supported(self.cache, None, ap.app_details_view.app.pkgname)):
-                if len(ap.app_view.get_model()) == 0:
-                    ap.navigation_bar.navigate_up_twice()
-                else:
-                    ap.navigation_bar.navigate_up()
-                ap.on_application_selected(None, None)    
-
-            # navigate up if the list page is empty
-            elif (ap and ap.is_applist_view_showing() and 
-                len(ap.app_view.get_model()) == 0):
-                ap.navigation_bar.navigate_up()
-                ap.on_application_selected(None, None)    
-
-            # update recommended widget counter
-            if self.available_pane and self.available_pane.cat_view:
-                self.available_pane.cat_view._append_recommendations()
-
-            # update subcategory view
-            if (self.available_pane and
-                self.available_pane == self.active_pane and
-                self.available_pane.subcategories_view and
-                self.available_pane.subcategories_view.current_category):
-                self.available_pane.subcategories_view._append_subcat_departments(
-                    self.available_pane.subcategories_view.current_category,
-                    len(self.available_pane.app_view.get_model()))
+            #~ ap = self.active_pane
+            #~ if (ap and ap.is_app_details_view_showing and ap.app_details_view.app and
+                #~ not self.distro.is_supported(self.cache, None, ap.app_details_view.app.pkgname)):
+                #~ if len(ap.app_view.get_model()) == 0:
+                    #~ ap.navigation_bar.navigate_up_twice()
+                #~ else:
+                    #~ ap.navigation_bar.navigate_up()
+                #~ ap.on_application_selected(None, None)    
+#~ 
+            #~ # navigate up if the list page is empty
+            #~ elif (ap and ap.is_applist_view_showing() and 
+                #~ len(ap.app_view.get_model()) == 0):
+                #~ ap.navigation_bar.navigate_up()
+                #~ ap.on_application_selected(None, None)    
+#~ 
+            #~ # update recommended widget counter
+            #~ if self.available_pane and self.available_pane.cat_view:
+                #~ self.available_pane.cat_view._append_recommendations()
+#~ 
+            #~ # update subcategory view
+            #~ if (self.available_pane and
+                #~ self.available_pane == self.active_pane and
+                #~ self.available_pane.subcategories_view and
+                #~ self.available_pane.subcategories_view.current_category):
+                #~ self.available_pane.subcategories_view._append_subcat_departments(
+                    #~ self.available_pane.subcategories_view.current_category,
+                    #~ len(self.available_pane.app_view.get_model()))
 
     def on_navhistory_back_action_activate(self, navhistory_back_action=None):
         self.available_pane.nav_history.nav_back()

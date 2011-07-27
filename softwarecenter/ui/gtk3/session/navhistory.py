@@ -18,47 +18,43 @@
 
 import logging
 
-# FIXME: sucks, move elsewhere
-in_replay_history_mode = False
-
+LOG=logging.getLogger(__name__)
 
 class NavigationHistory(object):
     """
-    class to manage navigation history in the "Get Software" section (the
-    available pane).
+    class to manage navigation history
     """
     MAX_NAV_ITEMS = 25  # limit number of NavItems allowed in the NavStack
 
-    def __init__(self, back_forward):
-        self.stack = NavigationStack(self.MAX_NAV_ITEMS)
-        self.back_forward = back_forward
+    def __init__(self, back_forward_btn, options):
+        self.stack = NavigationStack(self.MAX_NAV_ITEMS, options)
+        self.back_forward = back_forward_btn
+        self.in_replay_history_mode = False
         return
-
-    def get_current(self, pane):
-        return self.stack[self.stack.cursor]
 
     def append(self, nav_item):
         """
         append a new NavigationItem to the history stack
         """
-        if in_replay_history_mode:
+        LOG.debug("appending: '%s'" % nav_item)
+        if self.in_replay_history_mode:
             return
 
         stack = self.stack
         # reset navigation forward stack items on a direct navigation
-        #~ stack.clear_forward_items()
+        stack.clear_forward_items()
         stack.append(nav_item)
 
         if stack.cursor > 1:
             self._nav_back_set_sensitive(True)
         self._nav_forward_set_sensitive(False)
 
-    def nav_forward(self, pane):
+    def nav_forward(self):
         """
         navigate forward one item in the history stack
         """
         stack = self.stack
-        nav_item = stack.step_forward()
+        nav_item, did_step = stack.step_forward()
         nav_item.navigate_to()
 
         self._nav_back_set_sensitive(True)
@@ -67,13 +63,13 @@ class NavigationHistory(object):
                 self.back_forward.left.grab_focus()
             self._nav_forward_set_sensitive(False)
 
-    def nav_back(self, pane):
+    def nav_back(self):
         """
         navigate back one item in the history stack
         """
 
         stack = self.stack
-        nav_item = stack.step_back()
+        nav_item, did_step = stack.step_back()
         nav_item.navigate_to()
 
         self._nav_forward_set_sensitive(True)
@@ -121,13 +117,14 @@ class NavigationItem(object):
         """
         navigate to the view that corresponds to this NavigationItem
         """
-        global in_replay_history_mode
-        in_replay_history_mode = True
+        # make sure we are in reply history mode
+        self.view_manager.navhistory.in_replay_history_mode = True
 
         self.view_manager.display_page(self.pane, self.page,
                        self.view_state, self.callback)
 
-        in_replay_history_mode = False
+        # and reset this mode again
+        self.view_manager.navhistory.in_replay_history_mode = False
 
 
 class NavigationStack(object):
@@ -135,10 +132,15 @@ class NavigationStack(object):
     a navigation history stack
     """
 
-    def __init__(self, max_length):
+    def __init__(self, max_length, options):
         self.max_length = max_length
         self.stack = []
         self.cursor = 0
+
+        if not options.display_navlog: return
+
+        import softwarecenter.ui.gtk3.widgets.navlog as navlog
+        self.navlog = navlog.NavLogUtilityWindow(self)
 
     def __len__(self):
         return len(self.stack)
@@ -159,49 +161,56 @@ class NavigationStack(object):
 
     def _isok(self, item):
         if item.page is not None and item.page < 0:
-            print 'not ok cos page is foobar'
             return False
         if len(self) == 0:
             return True
         last = self[-1]
         if str(item) == str(last):
-            print 'not ok cos str is foobar',  str(item), str(last)
             return False
         return True
 
     def append(self, item):
-        print item, self._isok(item)
         if not self._isok(item):
             self.cursor = len(self.stack)-1
             #~ logging.debug('A:%s' % repr(self))
-            print 'A:%s' % repr(self)
             return
         if len(self.stack) + 1 > self.max_length:
             self.stack.pop(1)
         self.stack.append(item)
         self.cursor = len(self.stack)-1
         #~ logging.debug('A:%s' % repr(self))
-        print 'A:%s' % repr(self)
+        if hasattr(self, "navlog"):
+            self.navlog.log.notify_append(item)
         return
 
     def step_back(self):
+        did_step = False
         if self.cursor > 0:
             self.cursor -= 1
+            did_step = True
         else:
             self.cursor = 0
-        logging.debug('B:%s' % repr(self))
-        return self.stack[self.cursor]
+        #~ logging.debug('B:%s' % repr(self))
+        if hasattr(self, "navlog") and did_step:
+            self.navlog.log.notify_step_back()
+        return self.stack[self.cursor], did_step
 
     def step_forward(self):
+        did_step = False
         if self.cursor < len(self.stack)-1:
             self.cursor += 1
+            did_step = True
         else:
             self.cursor = len(self.stack)-1
-        logging.debug('B:%s' % repr(self))
-        return self.stack[self.cursor]
+        #~ logging.debug('B:%s' % repr(self))
+        if hasattr(self, "navlog") and did_step:
+            self.navlog.log.notify_step_forward()
+        return self.stack[self.cursor], did_step
 
     def clear_forward_items(self):
         self.stack = self.stack[:(self.cursor + 1)]
+        if hasattr(self, "navlog"):
+            self.navlog.log.notify_clear_forward_items()
 
     def at_end(self):
         return self.cursor == len(self.stack)-1

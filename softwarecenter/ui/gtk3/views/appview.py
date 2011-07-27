@@ -16,7 +16,7 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from __future__ import with_statement
+#~ from __future__ import with_statement
 
 from gi.repository import GObject
 from gi.repository import Gtk, Gdk
@@ -686,7 +686,8 @@ if __name__ == "__main__":
     filter.set_installed_only(True)
 
     # appview
-    from softwarecenter.ui.gtk3.models.appstore2 import AppEnquire, AppListStore
+    from softwarecenter.ui.gtk3.models.appstore2 import AppListStore
+    from softwarecenter.db.enquire import AppEnquire
     enquirer = AppEnquire(cache, db)
     store = AppListStore(db, cache, icons)
     view = AppView(icons, show_ratings=True)

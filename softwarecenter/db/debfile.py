@@ -25,6 +25,7 @@ from mimetypes import guess_type
 
 from softwarecenter.db.application import Application, AppDetails
 from softwarecenter.enums import PkgStates
+from softwarecenter.utils import ExecutionTime
 
 class DebFileApplication(Application):
     def __init__(self, debfile):
@@ -36,7 +37,9 @@ class DebFileApplication(Application):
         self.pkgname = debname.split('_')[0].lower()
         self.request = debfile
     def get_details(self, db):
-        return AppDetailsDebFile(db, application=self)
+        with ExecutionTime("get_details for DebFileApplication"):
+            details = AppDetailsDebFile(db, application=self)
+        return details
 
 class AppDetailsDebFile(AppDetails):
     
@@ -48,7 +51,8 @@ class AppDetailsDebFile(AppDetails):
         try:
             # for some reason Cache() is much faster than "self._cache._cache"
             # on startup
-            self._deb = DebPackage(self._app.request, Cache())
+            with ExecutionTime("create DebPackage"):
+                self._deb = DebPackage(self._app.request, Cache())
         except:
             self._deb = None
             self._pkg = None
@@ -84,8 +88,9 @@ class AppDetailsDebFile(AppDetails):
                 pass
 
         # check deb and set failure state on error
-        if not self._deb.check():
-            self._error = self._deb._failure_string
+        with ExecutionTime("AppDetailsDebFile._deb.check()"):
+            if not self._deb.check():
+                self._error = self._deb._failure_string
 
     @property
     def description(self):

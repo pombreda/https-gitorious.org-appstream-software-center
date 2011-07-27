@@ -10,7 +10,8 @@ import time
 import unittest
 
 from softwarecenter.db.pkginfo import get_pkg_info
-from softwarecenter.backend.channel import AptChannelsManager, get_channels_manager, is_channel_available
+from softwarecenter.backend.channel import (AptChannelsManager,
+                                            is_channel_available)
 from softwarecenter.db.database import StoreDatabase
 from softwarecenter.paths import XAPIAN_BASE_PATH
 

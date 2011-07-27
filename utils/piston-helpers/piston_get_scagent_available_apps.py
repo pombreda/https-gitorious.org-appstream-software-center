@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-from gi.repository import GLib
+from gi.repository import GObject
 
 import argparse
 import logging
@@ -95,6 +95,10 @@ if __name__ == "__main__":
     # subscriptions
     command = subparser.add_parser("subscriptions_for_me")
     command.set_defaults(command="subscriptions_for_me")
+    # exhibits
+    command = subparser.add_parser("exhibits")
+    command.add_argument("lang")
+    command.set_defaults(command="exhibits")
 
     args = parser.parse_args()
 
@@ -145,6 +149,7 @@ if __name__ == "__main__":
         except:
             LOG.exception("available_apps")
             sys.exit(1)
+
     elif args.command == "available_apps_qa":
         try:
             piston_reply = scaclient.available_apps_qa(**kwargs)
@@ -162,6 +167,12 @@ if __name__ == "__main__":
                     setattr(item, k, v)
         except:
             LOG.exception("subscriptions_for_me")
+            sys.exit(1)
+    if args.command == "exhibits":
+        try:
+            piston_reply = scaclient.exhibits(lang=args.lang)
+        except:
+            LOG.exception("exhibits")
             sys.exit(1)
 
     if args.debug:
