@@ -25,8 +25,12 @@ class GlobalPane(Gtk.VBox):
 
     def __init__(self, view_manager, datadir, db, cache, icons):
         Gtk.VBox.__init__(self)
-        self.top_hbox = Gtk.HBox(spacing=StockEms.SMALL)
-        self.top_hbox.set_border_width(self.PADDING)
+
+        alignment = Gtk.Alignment()
+        alignment.set_padding(0, 0, StockEms.SMALL, StockEms.SMALL)
+
+        self.top_hbox = Gtk.HBox(spacing=StockEms.MEDIUM)
+        alignment.add(self.top_hbox)
         # add nav history back/forward buttons...
         # note:  this is hacky, would be much nicer to make the custom self/right
         # buttons in BackForwardButton to be Gtk.Activatable/Gtk.Widgets, then wire in the
@@ -44,7 +48,7 @@ class GlobalPane(Gtk.VBox):
         #~ self.init_atk_name(self.searchentry, "searchentry")
         self.searchentry = vm.get_global_searchentry()
         self.top_hbox.pack_end(self.searchentry, False, True, 0)
-        self.pack_start(self.top_hbox, False, True, 0)
+        self.pack_start(alignment, False, True, 0)
 
         self._cache_art_assets()
         self.connect("draw", self.on_draw, self._asset_cache)

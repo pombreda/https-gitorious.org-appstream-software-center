@@ -16,6 +16,8 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+import cairo
+
 from gi.repository import Gtk, Gdk, Pango, GObject, GdkPixbuf, PangoCairo
 from gettext import gettext as _
 
@@ -73,10 +75,11 @@ class TileButton(Gtk.Button, _Tile):
         return
 
 
-class TileToggleButton(Gtk.ToggleButton, _Tile):
+class TileToggleButton(Gtk.RadioButton, _Tile):
 
     def __init__(self):
-        Gtk.ToggleButton.__init__(self)
+        Gtk.RadioButton.__init__(self)
+        self.set_mode(False)
         _Tile.__init__(self)
         return
 
@@ -285,9 +288,20 @@ class SectionSelector(TileToggleButton):
     def do_draw(self, cr):
         if self.get_active():
             a = self.get_allocation()
-            cr.rectangle(0, 0, a.width, a.height)
-            cr.set_source_rgba(0, 0, 0, 0.5)
-            cr.fill()
+            cr.rectangle(0, -1, a.width, a.height+2)
+
+            lin = cairo.LinearGradient(0, 0, 0, a.height)
+            lin.add_color_stop_rgba(0.0, 0,0,0, 0.0)
+            lin.add_color_stop_rgba(0.25, 0,0,0, 0.3)
+            lin.add_color_stop_rgba(0.5, 0,0,0, 0.5)
+            lin.add_color_stop_rgba(0.75, 0,0,0, 0.3)
+            lin.add_color_stop_rgba(1.0, 0,0,0, 0.0)
+
+            cr.set_source(lin)
+            cr.fill_preserve()
+
+            cr.set_source_rgba(0,0,0, 0.6)
+            cr.stroke()
 
         for child in self: self.propagate_draw(child, cr)
         return

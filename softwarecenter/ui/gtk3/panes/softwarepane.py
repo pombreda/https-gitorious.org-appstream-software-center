@@ -118,10 +118,12 @@ class DisplayState(object):
     def __setattr__(self, name, val):
         attrs = self._attrs
         if name not in attrs:
-            raise AttributeError, "The attr name %s is not permitted" % name
+            raise AttributeError, "The attr name \"%s\" is not permitted" % name
+            Gtk.main_quit()
         if not isinstance(val, attrs[name]):
             msg = "Attribute %s expects %s, got %s" % (name, attrs[name], type(val))
             raise TypeError, msg
+            Gtk.main_quit()
         return object.__setattr__(self, name, val)
 
     def __str__(self):

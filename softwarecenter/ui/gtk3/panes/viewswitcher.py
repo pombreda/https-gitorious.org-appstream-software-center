@@ -40,6 +40,7 @@ import softwarecenter.ui.gtk3.dialogs as dialogs
 LOG = logging.getLogger(__name__)
 
 
+_last_button = None
 class ViewSwitcher(Gtk.Box):
 
     __gsignals__ = {
@@ -74,7 +75,7 @@ class ViewSwitcher(Gtk.Box):
         # Gui stuff
         self.view_buttons = {}
         self._handlers = []
-        self._prev_item = None
+        self._prev_view = None
 
         # order is important here!
         # first, the availablepane items
@@ -133,10 +134,9 @@ class ViewSwitcher(Gtk.Box):
         if result.success: self.on_channels_changed()
         return
 
-    def on_section_sel_toggled(self, button, view_id):
-        prev_active = self.get_active_section_selector()
-        if prev_active is not None:
-            prev_active.set_active(False)
+    def on_section_sel_clicked(self, button, view_id):
+        if self._prev_view == view_id:
+            return
         self.view_manager.set_active_view(view_id)
         return
 
@@ -159,8 +159,14 @@ class ViewSwitcher(Gtk.Box):
                               has_channel_sel)
         self.view_buttons[view_id] = btn
         self.pack_start(btn, False, False, 0)
-        btn.show()
-        btn.connect("toggled", self.on_section_sel_toggled, view_id)
+        btn.connect("clicked", self.on_section_sel_clicked, view_id)
+
+        global _last_button
+        if _last_button is not None:
+            print _last_button
+            btn.join_group(_last_button)
+
+        _last_button = btn
         return btn
 
     def build_channel_list(self, popup, view_id):
@@ -204,12 +210,6 @@ class ViewSwitcher(Gtk.Box):
             first.set_property("active", True)
             self._prev_item = first
         return
-
-    def get_active_section_selector(self):
-        for view_id, btn in self.view_buttons.iteritems():
-            if btn.get_active():
-                return btn
-        return None
 
     def on_channel_selected(self, item, event, channel, view_id):
 

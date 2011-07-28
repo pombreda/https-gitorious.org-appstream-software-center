@@ -135,7 +135,7 @@ class ButtonPart(Gtk.Button):
         self.set_size_request(*part_size)
 
         alignment = Gtk.Alignment.new(0.5,0.5,1.0,1.0)
-        alignment.set_padding(2,2,2,2)
+        #~ alignment.set_padding(2,2,2,2)
         self.add(alignment)
 
         arrow = Gtk.Arrow.new(arrow_type, Gtk.ShadowType.OUT)
