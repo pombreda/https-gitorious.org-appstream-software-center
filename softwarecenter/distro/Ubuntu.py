@@ -234,7 +234,7 @@ class Ubuntu(Debian):
             return "".join(downloadable_icon_url)
         else:
             #raise ValueError, "we currently support downloadable icons in ppa's only"
-            return None
+            return ''
 
 if __name__ == "__main__":
     import apt
