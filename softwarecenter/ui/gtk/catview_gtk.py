@@ -426,13 +426,12 @@ class LobbyViewGtk(CategoriesViewGtk):
                                                   toprated_apps,
                                                   _('Top Rated')
                                                   )
-        
-        appstore_args['limit'] = self.apps_limit
 
         if new_cat:
             self.apps_filter.set_available_only(True)
             self.apps_filter.set_not_installed_only(True)
-            appstore_args['search_query'] = new_cat.query 
+            appstore_args['search_query'] = new_cat.query
+            appstore_args['limit'] = new_cat.item_limit 
             appstore_args['sortmode'] = new_cat.sortmode
             new_apps = AppStore(**appstore_args)
             self.whatsnew_carousel = self._create_and_append_carousel(
@@ -445,6 +444,7 @@ class LobbyViewGtk(CategoriesViewGtk):
         
         if featured_cat:
             appstore_args['search_query'] = featured_cat.query 
+            appstore_args['limit'] = featured_cat.item_limit
             appstore_args['sortmode'] = featured_cat.sortmode
             featured_apps = AppStore(**appstore_args)
             self.featured_carousel = self._create_and_append_carousel(
