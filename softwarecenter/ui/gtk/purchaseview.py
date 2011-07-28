@@ -110,6 +110,7 @@ h1 {
             self.wk.webkit.connect("script-alert", self._on_script_alert)
             # FIXME: figure out if that is needed for paypal support
             self.wk.webkit.connect("create-web-view", self._on_create_web_view)
+            self.wk.webkit.connect("close-web-view", self._on_close_web_view)
             self.wk.webkit.connect("title-changed", self._on_title_changed)
             self.wk.webkit.connect("notify::load-status", self._on_load_status_changed)
         # unblock signal handlers if needed when showing the purchase webkit view in
@@ -147,12 +148,18 @@ h1 {
         view.policy_decision_ignore(policy)
         return True
 
+    def _on_close_web_view(self, view, frame):
+        win = view.get_data("win")
+        win.destroy()
+        
     def _on_create_web_view(self, view, frame):
         win = gtk.Window()
         win.set_size_request(400, 400)
         wk = ScrolledWebkitWindow()
         win.add(wk)
         win.show_all()
+        # make sure close will work later
+        wk.webkit.set_data("win", win)
         return wk.webkit
 
     def _on_script_alert(self, view, frame, message):
