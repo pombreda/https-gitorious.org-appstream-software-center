@@ -216,8 +216,8 @@ class ExhibitBanner(Gtk.EventBox):
                            )
         }
 
-    NORTHERN_DROPSHADOW = "softwarecenter/ui/gtk3/art/exhibit-dropshadow-n.png"
-    SOUTHERN_DROPSHADOW = "softwarecenter/ui/gtk3/art/exhibit-dropshadow-s.png"
+    NORTHERN_DROPSHADOW = "data/ui/gtk3/art/exhibit-dropshadow-n.png"
+    SOUTHERN_DROPSHADOW = "data/ui/gtk3/art/exhibit-dropshadow-s.png"
     DROPSHADOW_HEIGHT = 11
 
     MAX_HEIGHT = 200 # pixels
@@ -276,10 +276,10 @@ class ExhibitBanner(Gtk.EventBox):
         assets = _asset_cache
         if assets: return assets
 
-        surf = cairo.ImageSurface.create_from_png(self.NORTHERN_DROPSHADOW)
-        ptrn = cairo.SurfacePattern(surf)
-        ptrn.set_extend(cairo.EXTEND_REPEAT)
-        assets["n"] = ptrn
+        #~ surf = cairo.ImageSurface.create_from_png(self.NORTHERN_DROPSHADOW)
+        #~ ptrn = cairo.SurfacePattern(surf)
+        #~ ptrn.set_extend(cairo.EXTEND_REPEAT)
+        #~ assets["n"] = ptrn
 
         surf = cairo.ImageSurface.create_from_png(self.SOUTHERN_DROPSHADOW)
         ptrn = cairo.SurfacePattern(surf)
