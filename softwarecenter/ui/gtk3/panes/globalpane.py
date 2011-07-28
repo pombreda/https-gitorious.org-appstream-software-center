@@ -1,6 +1,9 @@
 import cairo
+import os
 
 from gi.repository import Gtk
+
+import softwarecenter.paths
 
 from softwarecenter.ui.gtk3.em import StockEms
 from softwarecenter.ui.gtk3.session.viewmanager import get_viewmanager
@@ -10,7 +13,8 @@ from softwarecenter.ui.gtk3.panes.viewswitcher import ViewSwitcher
 class GlobalPane(Gtk.VBox):
 
     # art assets
-    BACKGROUND = "softwarecenter/ui/gtk3/art/globalpane-bg.png"
+    BACKGROUND = os.path.join(softwarecenter.paths.datadir,
+                              "ui/gtk3/art/globalpane-bg.png")
 
     # colours
     LIGHT_AUBERGINE = "#d7d0d4"

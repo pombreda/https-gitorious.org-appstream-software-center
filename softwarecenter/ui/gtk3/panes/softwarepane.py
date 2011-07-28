@@ -16,6 +16,7 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+import copy
 from gi.repository import Atk
 import dbus
 import gettext
@@ -23,8 +24,8 @@ from gi.repository import GObject
 from gi.repository import Gtk, Gdk
 #~ from gi.repository import Cairo
 import logging
+import os
 import xapian
-import copy
 
 from gettext import gettext as _
 
@@ -32,6 +33,7 @@ import softwarecenter.utils
 import softwarecenter.ui.gtk3.dialogs as dialogs
 from softwarecenter.backend import get_install_backend
 from softwarecenter.db.database import Application
+from softwarecenter.db.enquire import AppEnquire
 from softwarecenter.enums import (ActionButtons,
                                   SortMethods,
                                   TransactionTypes,
@@ -43,7 +45,7 @@ from softwarecenter.utils import (ExecutionTime,
                                   wait_for_apt_cache_ready
                                   )
 
-from softwarecenter.ui.gtk3.models.appstore2 import AppListStore, AppEnquire
+from softwarecenter.ui.gtk3.models.appstore2 import AppListStore
 from softwarecenter.ui.gtk3.session.viewmanager import get_viewmanager
 from softwarecenter.ui.gtk3.widgets.actionbar import ActionBar
 from softwarecenter.ui.gtk3.widgets.spinner import SpinnerView
@@ -53,7 +55,6 @@ from softwarecenter.ui.gtk3.views.appview import AppView
 from softwarecenter.ui.gtk3.views.appdetailsview_gtk import (
                                                 AppDetailsViewGtk as
                                                 AppDetailsView)
-from softwarecenter.ui.gtk3.views.purchaseview import PurchaseView
 
 from basepane import BasePane
 
@@ -176,8 +177,7 @@ class SoftwarePane(Gtk.VBox, BasePane):
 
         # other classes we need        
         self.enquirer = AppEnquire(cache, db)
-        self.enquirer.set_query_complete_callback(
-                                            self.on_query_complete)
+        self.enquirer.connect("query-complete", self.on_query_complete)
 
         self.store = store or AppListStore(db, cache, icons)
         self.cache = cache
@@ -204,7 +204,8 @@ class SoftwarePane(Gtk.VBox, BasePane):
         self.back_forward = vm.get_global_backforward()
         # a notebook below
         self.notebook = Gtk.Notebook()
-        self.notebook.set_show_tabs(False)
+        if not "SOFTWARE_CENTER_DEBUG_TABS" in os.environ:
+            self.notebook.set_show_tabs(False)
         self.notebook.set_show_border(False)
         # make a spinner view to display while the applist is loading
         self.spinner_view = SpinnerView()
@@ -262,14 +263,7 @@ class SoftwarePane(Gtk.VBox, BasePane):
                                                self.cache, 
                                                self.datadir,
                                                self)
-        self.app_details_view.connect("purchase-requested",
-                                      self.on_purchase_requested)
         self.scroll_details.add(self.app_details_view)
-        # purchase view
-        self.purchase_view = PurchaseView()
-        self.purchase_view.connect("purchase-succeeded", self.on_purchase_succeeded)
-        self.purchase_view.connect("purchase-failed", self.on_purchase_failed)
-        self.purchase_view.connect("purchase-cancelled-by-user", self.on_purchase_cancelled_by_user)
         # when the cache changes, refresh the app list
         self.cache.connect("cache-ready", self.on_cache_ready)
 
@@ -327,35 +321,14 @@ class SoftwarePane(Gtk.VBox, BasePane):
         vm = get_viewmanager()
         vm.display_page(self, SoftwarePane.Pages.DETAILS, self.state, self.display_details_page)
 
-    def on_purchase_requested(self, widget, app, url):
-
-        self.appdetails = app.get_details(self.db)
-        iconname = self.appdetails.icon
-        self.purchase_view.initiate_purchase(app, iconname, url)
-        
-    def on_purchase_succeeded(self, widget):
-        # switch to the details page to display the transaction is in progress
-        self.notebook.set_current_page(SoftwarePane.Pages.DETAILS)
-        
-    def on_purchase_failed(self, widget):
-        # return to the the appdetails view via the button to reset it
-        self._click_appdetails_view()
-        dialogs.error(None,
-                      _("Failure in the purchase process."),
-                      _("Sorry, something went wrong. Your payment "
-                        "has been cancelled."))
-        
-    def on_purchase_cancelled_by_user(self, widget):
-        # return to the the appdetails view via the button to reset it
-        self._click_appdetails_view()
 
     def on_nav_back_clicked(self, widget):
         vm = get_viewmanager()
-        vm.nav_back(self)
+        vm.nav_back()
 
     def on_nav_forward_clicked(self, widget):
         vm = get_viewmanager()
-        vm.nav_forward(self)
+        vm.nav_forward()
 
     def on_transaction_started(self, backend, pkgname, appname, trans_id, 
                                trans_type):
@@ -428,7 +401,7 @@ class SoftwarePane(Gtk.VBox, BasePane):
                                    trans_id)
         self.action_bar.set_label(_("Add %s to the launcher?") % app.name)
 
-    def on_query_complete(self, enquirer, *user_data):
+    def on_query_complete(self, enquirer):
         self.emit("app-list-changed", len(enquirer.matches))
 
         with ExecutionTime("store.set_from_matches()"):
