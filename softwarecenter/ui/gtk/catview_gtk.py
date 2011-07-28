@@ -304,10 +304,7 @@ class LobbyViewGtk(CategoriesViewGtk):
         # these methods add sections to the page
         # changing order of methods changes order that they appear in the page
         self._append_departments()
-        self._append_toprated()
-        self._append_featured()
-        self._append_whatsnew()
-
+        self._setup_carousels()
         self._append_recommendations()
         return
 
@@ -374,127 +371,87 @@ class LobbyViewGtk(CategoriesViewGtk):
         self._on_category_clicked(self, rec_cat)
         return True # mutter..        
 
-    @wait_for_apt_cache_ready # be consistent with new apps
-    def _append_toprated(self):
-
-        # add some filler...
+    def _create_and_append_carousel(self, category, app_store, description):
+        carousel = CarouselView(self, app_store, _(description), self.icons)
+        carousel.more_btn.connect('clicked', self._on_category_clicked,
+                                                    category)        
+        # add some filler
         padding = gtk.VBox()
         padding.set_size_request(-1, 6)
-        self.vbox.pack_start(padding, False)
-
+        self.vbox.pack_start(padding, False)   
+        # pack featured carousel into hbox
+        self.vbox.pack_start(carousel, False)
+        return carousel
+    
+    @wait_for_apt_cache_ready # be consistent with new apps
+    def _setup_carousels(self):
+        # the spec says the carousel icons should be 4em
+        # however, by not using a stock icon size, icons sometimes dont
+        # look to great.
+        # so based on the value of 4*em we try to choose a sane stock
+        # icon size
+        best_stock_size = 64 #mkit.get_nearest_stock_size(64)
+        
+        if not self.apps_filter:
+            self.apps_filter = AppViewFilter(self.db, self.cache)
+        
+        appstore_args = {
+                        'cache':self.cache, 
+                        'db':self.db, 
+                        'icons':self.icons, 
+                        'search_query':None, 
+                        'limit':self.apps_limit,
+                        'sortmode':None,
+                        'filter':self.apps_filter,
+                        'icon_size':best_stock_size, 
+                        'global_icon_cache':False, 
+                        'nonapps_visible':AppStore.NONAPPS_MAYBE_VISIBLE,
+                        'nonblocking_load':False
+                        }
+        
         toprated_cat = get_category_by_name(self.categories,
-                                            'Top Rated')    # untranslated name
-
-        # the spec says the carousel icons should be 4em
-        # however, by not using a stock icon size, icons sometimes dont
-        # look to great.
-        if toprated_cat:
-            # so based on the value of 4*em we try to choose a sane stock
-            # icon size
-            best_stock_size = 64#mkit.get_nearest_stock_size(64)
-            toprated_apps = AppStore(self.cache,
-                                     self.db, 
-                                     self.icons,
-                                     toprated_cat.query,
-                                     TOP_RATED_CAROUSEL_LIMIT,  #to override .menu file 
-                                     toprated_cat.sortmode,
-                                     filter=self.apps_filter,
-                                     icon_size=best_stock_size,
-                                     global_icon_cache=False,
-                                     nonapps_visible=AppStore.NONAPPS_ALWAYS_VISIBLE,
-                                     nonblocking_load=False)
-
-
-            self.toprated_carousel = CarouselView(self,
-                                                  toprated_apps,
-                                                  _('Top Rated'),
-                                                  self.icons)
-
-            self.toprated_carousel.more_btn.connect('clicked',
-                                                    self._on_category_clicked,
-                                                    toprated_cat)
-            # pack featured carousel into hbox
-            self.vbox.pack_start(self.toprated_carousel, False)
-        return
-
-    @wait_for_apt_cache_ready # be consistent with new apps
-    def _append_featured(self):
-
-        # add some filler...
-        padding = gtk.VBox()
-        padding.set_size_request(-1, 6)
-        self.vbox.pack_start(padding, False)
-
+                                            'Top Rated')    # untranslated name        
         featured_cat = get_category_by_name(self.categories,
-                                            'Featured')    # untranslated name
-
-        # the spec says the carousel icons should be 4em
-        # however, by not using a stock icon size, icons sometimes dont
-        # look to great.
-        if featured_cat:
-            # so based on the value of 4*em we try to choose a sane stock
-            # icon size
-            best_stock_size = 64#mkit.get_nearest_stock_size(64)
-            featured_apps = AppStore(self.cache,
-                                     self.db, 
-                                     self.icons,
-                                     featured_cat.query,
-                                     self.apps_limit,
-                                     filter=self.apps_filter,
-                                     icon_size=best_stock_size,
-                                     global_icon_cache=False,
-                                     nonapps_visible=AppStore.NONAPPS_ALWAYS_VISIBLE,
-                                     nonblocking_load=False)
-
-            self.featured_carousel = CarouselView(self,
-                                                  featured_apps,
-                                                  _('Featured'),
-                                                  self.icons)
-
-            self.featured_carousel.more_btn.connect('clicked',
-                                                    self._on_category_clicked,
-                                                    featured_cat)
-            # pack featured carousel into hbox
-            self.vbox.pack_start(self.featured_carousel, False)
-        return
-
-    @wait_for_apt_cache_ready # required for the filter to work
-    def _append_whatsnew(self):
-        # create new-apps widget
+                                            'Featured')
         new_cat = get_category_by_name(self.categories, 
-                                       u"What\u2019s New")
+                                       _(u"What\u2019s New"))
+
+        if toprated_cat:
+            appstore_args['search_query'] = toprated_cat.query 
+            appstore_args['limit'] = TOP_RATED_CAROUSEL_LIMIT
+            appstore_args['sortmode'] = toprated_cat.sortmode
+            toprated_apps = AppStore(**appstore_args)
+            self.toprated_carousel = self._create_and_append_carousel(
+                                                  toprated_cat,
+                                                  toprated_apps,
+                                                  _('Top Rated')
+                                                  )
+        
+        appstore_args['limit'] = self.apps_limit
+
         if new_cat:
-            if not self.apps_filter:
-                self.apps_filter = AppViewFilter(self.db, self.cache)
             self.apps_filter.set_available_only(True)
             self.apps_filter.set_not_installed_only(True)
-            new_apps = AppStore(self.cache,
-                                self.db,
-                                self.icons,
-                                new_cat.query,
-                                new_cat.item_limit,
-                                new_cat.sortmode,
-                                self.apps_filter,
-                                icon_size=64,
-                                global_icon_cache=False,
-                                nonapps_visible=AppStore.NONAPPS_MAYBE_VISIBLE,
-                                nonblocking_load=False)
+            appstore_args['search_query'] = new_cat.query 
+            appstore_args['sortmode'] = new_cat.sortmode
+            new_apps = AppStore(**appstore_args)
+            self.whatsnew_carousel = self._create_and_append_carousel(
+                                                  new_cat,
+                                                  new_apps,
+                                                  _(u"What\u2019s New")
+                                                  )
             self.apps_filter.set_available_only(False)
             self.apps_filter.set_not_installed_only(False)
-
-            self.whatsnew_carousel = CarouselView(self,
-                                                  new_apps,
-                                                  _(u"What\u2019s New"),
-                                                  self.icons,
-                                                  start_random=False)
-
-            self.whatsnew_carousel.more_btn.connect('clicked',
-                                                    self._on_category_clicked,
-                                                    new_cat)
-
-            # pack whatsnew carousel into hbox
-            self.vbox.pack_start(self.whatsnew_carousel, False)
-        return
+        
+        if featured_cat:
+            appstore_args['search_query'] = featured_cat.query 
+            appstore_args['sortmode'] = featured_cat.sortmode
+            featured_apps = AppStore(**appstore_args)
+            self.featured_carousel = self._create_and_append_carousel(
+                                                  featured_cat,
+                                                  featured_apps,
+                                                  _('Featured')
+                                                  )
 
     def _append_departments(self):
 #        # create departments widget
