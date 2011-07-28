@@ -70,7 +70,7 @@ from softwarecenter.ui.gtk3.panes.availablepane import AvailablePane
 from softwarecenter.ui.gtk3.panes.historypane import HistoryPane
 from softwarecenter.ui.gtk3.panes.globalpane import GlobalPane
 from softwarecenter.ui.gtk3.panes.pendingpane import PendingPane
-from softwarecenter.ui.gtk3.session.viewmanager import ViewManager
+from softwarecenter.ui.gtk3.session.viewmanager import ViewManager, get_viewmanager
 
 from softwarecenter.config import get_config
 from softwarecenter.backend import get_install_backend
@@ -78,6 +78,7 @@ from softwarecenter.backend import get_install_backend
 from softwarecenter.backend.reviews import get_review_loader, UsefulnessCache
 from softwarecenter.distro import get_distro
 from softwarecenter.db.pkginfo import get_pkg_info
+
 
 from gi.repository import Gtk
 from gi.repository import Gdk
@@ -171,6 +172,10 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             LOG.exception("setlocale failed, resetting to C")
             locale.setlocale(locale.LC_ALL, "C")
 
+
+        if "SOFTWARE_CENTER_DEBUG_TABS" in os.environ:
+            self.notebook_view.set_show_tabs(True)
+
         # distro specific stuff
         self.distro = get_distro()
 
@@ -229,8 +234,8 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         Gtk.Window.set_default_icon_name("softwarecenter")
 
         # css provider
-        path = os.path.join(os.getcwd(),
-                            "softwarecenter/ui/gtk3/css/softwarecenter.css")
+        path = os.path.join(datadir,
+                            "ui/gtk3/css/softwarecenter.css")
         provider = Gtk.CssProvider()
         provider.load_from_path(path)
 
@@ -390,47 +395,12 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
 
         # view switcher
         # repurpose this code
-        self.view_switcher = ViewSwitcher(self.view_manager,
-                                          self.datadir, self.db,
-                                          self.cache, self.icons)
+        #self.view_switcher = ViewSwitcher(self.view_manager,
+        #                                  self.datadir, self.db,
+        #                                  self.cache, self.icons)
+
         #~ self.view_switcher.connect("view-changed", 
                                    #~ self.on_view_switcher_changed)
-        return
-
-        #~ # channel pane (view not fully initialized at this point)
-        #~ self.channel_pane = ChannelPane(self.cache,
-                                        #~ self.db,
-                                        #~ self.distro,
-                                        #~ self.icons,
-                                        #~ self.datadir)
-        #~ self.channel_pane.connect("channel-pane-created", self.on_channel_pane_created)
-        #~ self.view_manager.register(self.channel_pane, ViewPages.CHANNEL)
-
-        # installed pane (view not fully initialized at this point)
-        self.installed_pane = InstalledPane(self.cache,
-                                            self.db, 
-                                            self.distro,
-                                            self.icons,
-                                            self.datadir)
-        self.installed_pane.connect("installed-pane-created", self.on_installed_pane_created)
-        self.view_manager.register(self.installed_pane, ViewPages.INSTALLED)
-
-        #~ # history pane (not fully loaded at this point)
-        #~ self.history_pane = HistoryPane(self.cache,
-                                        #~ self.db,
-                                        #~ self.distro,
-                                        #~ self.icons,
-                                        #~ self.datadir)
-        #~ self.history_pane.connect("history-pane-created", self.on_history_pane_created)
-        #~ self.view_manager.register(self.history_pane, ViewPages.HISTORY)
-#~ 
-        #~ # pending view
-        #~ self.pending_pane = PendingPane(self.icons)
-        #~ self.view_manager.register(self.pending_pane, ViewPages.PENDING)
-        #~ 
-        #~ # keep track of the current active pane
-        #~ self.active_pane = self.available_pane
-        #~ self.window_main.connect("realize", self.on_realize)
 
         # XXX lp integration still uses gtk2
         # launchpad integration help, its ok if that fails
@@ -549,10 +519,10 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         """
         if (event.keyval == Gdk.keyval_from_name("BackSpace") and 
             self.active_pane and
-            hasattr(self.active_pane, 'navigation_bar') and
             not self.active_pane.searchentry.is_focus() and
+            # FIXME: figure out what ID_PURCHASE 
             not self.active_pane.navigation_bar.has_id(NavButtons.ID_PURCHASE)):
-            self.active_pane.navigation_bar.navigate_up()
+            self.on_navhistory_back_action_activate()
             
     def on_window_main_button_press_event(self, widget, event):
         """
@@ -561,12 +531,12 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         """
         if (event.button == MOUSE_EVENT_BACK_BUTTON and
             self.active_pane and
-            hasattr(self.active_pane, 'navigation_bar') and
+            # FIXME: figure out what ID_PURCHASE 
             not self.active_pane.navigation_bar.has_id(NavButtons.ID_PURCHASE)):
             self.on_navhistory_back_action_activate()
         elif (event.button == MOUSE_EVENT_FORWARD_BUTTON and
             self.active_pane and
-            hasattr(self.active_pane, 'navigation_bar') and
+            # FIXME: figure out what ID_PURCHASE             
             not self.active_pane.navigation_bar.has_id(NavButtons.ID_PURCHASE)):
             self.on_navhistory_forward_action_activate()
         
@@ -607,10 +577,6 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         self.update_app_list_view(channel)
         self.update_status_bar()
 
-    def on_viewswitcher_resized(self, widget, _):
-        allocation = widget.get_allocation()
-        self.view_switcher.width = allocation.width
-
     def _on_lp_login(self, lp, token):
         self._lp_login_successful = True
         private_archives = self.glaunchpad.get_subscribed_archives()
@@ -625,7 +591,8 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
 
     def _available_for_me_result(self, scagent, result_list):
         #print "available_for_me_result", result_list
-        from db.update import add_from_purchased_but_needs_reinstall_data
+        from softwarecenter.db.update import (
+            add_from_purchased_but_needs_reinstall_data)
         available_for_me_query = add_from_purchased_but_needs_reinstall_data(
             result_list, self.db, self.cache)
         self.available_pane.on_previous_purchases_activated(available_for_me_query) 
@@ -746,30 +713,18 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         d = LoginDialog(self.glaunchpad, self.datadir, parent=self.window_main)
         d.login()
 
-    def _create_buildin_sso_if_needed(self):
-        if not self.sso:
-            from backend.restfulclient import UbuntuSSOlogin
-            self.sso = UbuntuSSOlogin()
-            self.sso.connect("login-successful", self._on_sso_login)
-    def _login_via_buildin_sso(self):
-        self._create_buildin_sso_if_needed()
-        if "SOFTWARE_CENTER_TEST_REINSTALL_PURCHASED" in os.environ:
-            self.scagent.query_available_for_me("dummy", "mvo")
-        else:
-            from view.logindialog import LoginDialog
-            d = LoginDialog(self.sso, self.datadir, parent=self.window_main)
-            d.login()
-
     def _create_dbus_sso_if_needed(self):
         if not self.sso:
-            from backend.login_sso import get_sso_backend
+            from softwarecenter.backend.login_sso import get_sso_backend
             # see bug #773214 for the rational
             #appname = _("Ubuntu Software Center Store")
             appname = "Ubuntu Software Center Store"
             login_text = _("To reinstall previous purchases, sign in to the "
                            "Ubuntu Single Sign-On account you used to pay for them.")
             window = self.window_main.get_window()
-            self.sso = get_sso_backend(window.xid,
+            #xid = self.get_window().xid
+            xid = 0
+            self.sso = get_sso_backend(xid,
                                        appname,
                                        login_text)
             self.sso.connect("login-successful", self._on_sso_login)
@@ -780,18 +735,14 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
 
     def _create_scagent_if_needed(self):
         if not self.scagent:
-            from backend.restfulclient import SoftwareCenterAgent
+            from softwarecenter.backend.scagent import SoftwareCenterAgent
             self.scagent = SoftwareCenterAgent()
             self.scagent.connect("available-for-me", self._available_for_me_result)
             
     def on_menuitem_reinstall_purchases_activate(self, menuitem):
-        self.view_switcher.select_available_node()
+        #self.view_switcher.select_available_node()
         self._create_scagent_if_needed()
-        # support both buildin or ubuntu-sso-login
-        if "SOFTWARE_CENTER_USE_BUILTIN_LOGIN" in os.environ:
-            self._login_via_buildin_sso()
-        else:
-            self._login_via_dbus_sso()
+        self._login_via_dbus_sso()
             
     def on_menuitem_deauthorize_computer_activate(self, menuitem):
     
@@ -1037,14 +988,12 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
                     #~ len(self.available_pane.app_view.get_model()))
 
     def on_navhistory_back_action_activate(self, navhistory_back_action=None):
-        self.available_pane.nav_history.nav_back()
-        self.available_pane._status_text = ""
-        self.update_status_bar()
-        
+        vm = get_viewmanager()
+        vm.nav_back()
+
     def on_navhistory_forward_action_activate(self, navhistory_forward_action=None):
-        self.available_pane.nav_history.nav_forward()
-        self.available_pane._status_text = ""
-        self.update_status_bar()
+        vm = get_viewmanager()
+        vm.nav_forward()
             
     def _ask_and_repair_broken_cache(self):
         # wait until the window window is available
@@ -1246,12 +1195,6 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         if (self.config.has_option("general", "maximized") and
             self.config.getboolean("general", "maximized")):
             self.window_main.maximize()
-        #~ if (self.config.has_option("general", "installed-node-expanded") and
-            #~ self.config.getboolean("general", "installed-node-expanded")):
-            #~ self.view_switcher.expand_installed_node()
-        #~ if (self.config.has_option("general", "sidebar-width")):
-            #~ width = int(self.config.get("general", "sidebar-width"))
-            #~ self.hpaned_main.set_position(width)
 
     def save_state(self):
         LOG.debug("save_state")
@@ -1269,15 +1212,6 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             # size only matters when non-maximized
             size = self.window_main.get_size() 
             self.config.set("general","size", "%s, %s" % (size[0], size[1]))
-        #~ installed_node_expanded = self.view_switcher.is_installed_node_expanded()
-        #~ if installed_node_expanded:
-            #~ self.config.set("general", "installed-node-expanded", "True")
-        #~ else:
-            #~ self.config.set("general", "installed-node-expanded", "False")
-        #~ width = self.hpaned_main.get_position()
-        #~ # sanity check the sidebar width
-        #~ width = max(width, 2)
-        #~ self.config.set("general", "sidebar-width", str(width))
         self.config.write()
 
     def run(self, args):

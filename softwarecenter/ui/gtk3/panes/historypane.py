@@ -118,6 +118,7 @@ class HistoryPane(Gtk.VBox, BasePane):
         self._set_actions_sensitive(False)
 
         self.view = Gtk.TreeView()
+        self.view.set_headers_visible(False)
         self.view.show()
         self.history_view = Gtk.ScrolledWindow()
         self.history_view.set_policy(Gtk.PolicyType.AUTOMATIC,
@@ -256,11 +257,11 @@ class HistoryPane(Gtk.VBox, BasePane):
 
     def on_nav_back_clicked(self, widget):
         vm = get_viewmanager()
-        vm.nav_back(self)
+        vm.nav_back()
 
     def on_nav_forward_clicked(self, widget):
         vm = get_viewmanager()
-        vm.nav_forward(self)
+        vm.nav_forward()
 
     def change_filter(self, action, current):
         self.filter = action.get_current_value()

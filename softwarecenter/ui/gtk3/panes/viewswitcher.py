@@ -29,7 +29,6 @@ from softwarecenter.backend import get_install_backend
 from softwarecenter.db.database import StoreDatabase
 from softwarecenter.enums import ViewPages
 from softwarecenter.paths import XAPIAN_BASE_PATH
-from softwarecenter.distro import get_distro
 from softwarecenter.backend.channel import get_channels_manager
 from softwarecenter.ui.gtk3.widgets.buttons import SectionSelector
 from softwarecenter.ui.gtk3.em import StockEms
@@ -96,15 +95,11 @@ class ViewSwitcher(Gtk.Box):
 
         # the historypane item
         icon = SymbolicIcon("history")
-        history =  self.append_section(ViewPages.HISTORY,
-                                       _("History"),
-                                       icon)
+        self.append_section(ViewPages.HISTORY, _("History"), icon)
 
         # the pendingpane
         icon = PendingSymbolicIcon("pending")
-        pending = self.append_section(ViewPages.PENDING,
-                                      _("Progress"),
-                                      icon)
+        self.append_section(ViewPages.PENDING, _("Progress"), icon)
 
         # set sensible atk name
         atk_desc = self.get_accessible()
@@ -239,57 +234,24 @@ class ViewSwitcher(Gtk.Box):
         return
 
 
-if __name__ == "__main__":
+def get_test_window_viewswitcher():
     from softwarecenter.db.pkginfo import get_pkg_info
+    from softwarecenter.ui.gtk3.utils import get_sc_icon_theme
+    from softwarecenter.ui.gtk3.session.viewmanager import ViewManager
+    import softwarecenter.paths
+
     cache = get_pkg_info()
     cache.open()
 
-    # xapian
-    xapian_base_path = XAPIAN_BASE_PATH
-    pathname = os.path.join(xapian_base_path, "xapian")
-    try:
-        db = StoreDatabase(pathname, cache)
-        db.open()
-    except xapian.DatabaseOpeningError:
-        # Couldn't use that folder as a database
-        # This may be because we are in a bzr checkout and that
-        #   folder is empty. If the folder is empty, and we can find the
-        # script that does population, populate a database in it.
-        if os.path.isdir(pathname) and not os.listdir(pathname):
-            from softwarecenter.db.update import rebuild_database
-            logging.info("building local database")
-            rebuild_database(pathname)
-            db = StoreDatabase(pathname, cache)
-            db.open()
-    except xapian.DatabaseCorruptError, e:
-        logging.exception("xapian open failed")
-        dialogs.error(None, 
-                      _("Sorry, can not open the software database"),
-                      _("Please re-install the 'software-center' "
-                        "package."))
-        # FIXME: force rebuild by providing a dbus service for this
-        sys.exit(1)
+    db = StoreDatabase(softwarecenter.paths.XAPIAN_BASE_PATH+"/xapian", cache)
+    db.open()
 
-
-    logging.basicConfig(level=logging.DEBUG)
-    import sys
-
-    if len(sys.argv) > 1:
-        datadir = sys.argv[1]
-    elif os.path.exists("./data"):
-        datadir = "./data"
-    else:
-        datadir = "/usr/share/software-center"
-
-    from softwarecenter.ui.gtk3.utils import get_sc_icon_theme
-    icons = get_sc_icon_theme(datadir)
-
+    icons = get_sc_icon_theme(softwarecenter.paths.datadir)
     scroll = Gtk.ScrolledWindow()
 
-    from softwarecenter.ui.gtk3.session.viewmanager import ViewManager
     notebook = Gtk.Notebook()
     manager = ViewManager(notebook)
-    view = ViewSwitcher(manager, datadir, db, cache, icons)
+    view = ViewSwitcher(manager, softwarecenter.paths.datadir, db, cache, icons)
 
     box = Gtk.VBox()
     box.pack_start(scroll, True, True, 0)
@@ -298,8 +260,18 @@ if __name__ == "__main__":
     scroll.add_with_viewport(view)
 
     win.add(box)
-    win.set_size_request(400,400)
-    win.show_all()
+    win.set_size_request(400,200)
     win.connect("destroy", Gtk.main_quit)
+    win.show_all()
+    return win
+
+if __name__ == "__main__":
+    import sys    
+    import softwarecenter.paths
+    logging.basicConfig(level=logging.DEBUG)
+
+    softwarecenter.paths.datadir = "./data"
+    win = get_test_window_viewswitcher()
+
 
     Gtk.main()
