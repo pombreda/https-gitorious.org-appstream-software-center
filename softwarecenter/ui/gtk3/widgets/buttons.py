@@ -9,89 +9,104 @@ from softwarecenter.ui.gtk3.widgets.stars import Star
 _HAND = Gdk.Cursor.new(Gdk.CursorType.HAND2)
 
 
-class Tile(Gtk.Button):
+def _parse_icon(icon, icon_size):
+    if isinstance(icon, GdkPixbuf.Pixbuf):
+        image = Gtk.Image.new_from_pixbuf(icon)
+    elif isinstance(icon, Gtk.Image):
+        image = icon
+    elif isinstance(icon, str):
+        image = Gtk.Image.new_from_icon_name(icon, icon_size)
+    else:
+        msg = "Acceptable icon values: None, GdkPixbuf, GtkImage or str"
+        raise TypeError, msg
+    return image
+
+
+class _Tile(object):
 
     MIN_WIDTH  = em(7)
 
-    def __init__(self, label, icon, icon_size):
-        Gtk.Button.__init__(self)
+    def __init__(self):
         self.set_focus_on_click(False)
-
+        self.set_relief(Gtk.ReliefStyle.NONE)
         self.box = Gtk.Box.new(Gtk.Orientation.VERTICAL, 0)
+        self.box.set_size_request(self.MIN_WIDTH, -1)
+        self.add(self.box)
+        return
+
+    def build_default(self, label, icon, icon_size):
         self.image_box = Gtk.Box.new(Gtk.Orientation.HORIZONTAL,
                                      StockEms.SMALL)
 
-        self.add(self.box)
-
         if icon is not None:
-            if isinstance(icon, GdkPixbuf.Pixbuf):
-                self.image = Gtk.Image.new_from_pixbuf(icon)
-            elif isinstance(icon, Gtk.Image):
-                self.image = icon
-            elif isinstance(icon, str):
-                self.image = Gtk.Image.new_from_icon_name(icon, icon_size)
-            else:
-                msg = "Acceptable icon values: None, GdkPixbuf, GtkImage or str"
-                raise TypeError, msg
-
+            self.image = _parse_icon(icon, icon_size)
             self.image_box.pack_start(self.image, True, True, 0)
             self.box.pack_start(self.image_box, True, True, 0)
 
         self.label = Gtk.Label.new(label)
         self.box.pack_start(self.label, True, True, 0)
+        return
 
-        self.box.set_size_request(self.MIN_WIDTH, -1)
-        self.set_relief(Gtk.ReliefStyle.NONE)
+class TileButton(Gtk.Button, _Tile):
+
+    def __init__(self):
+        Gtk.Button.__init__(self)
+        _Tile.__init__(self)
         return
 
 
-class LabelTile(Tile):
+class TileToggleButton(Gtk.ToggleButton, _Tile):
+
+    def __init__(self):
+        Gtk.ToggleButton.__init__(self)
+        _Tile.__init__(self)
+        return
+
+
+class LabelTile(TileButton):
 
     MIN_WIDTH = -1
 
-    def __init__(self, label, iconname, icon_size=Gtk.IconSize.MENU):
-        Tile.__init__(self, label, iconname, icon_size)
+    def __init__(self, label, icon, icon_size=Gtk.IconSize.MENU):
+        TileButton.__init__(self)
+        self.build_default(label, icon, icon_size)
         self.set_name("label-tile")
         self.label.set_line_wrap(True)
         return
 
 
-class CategoryTile(Tile):
+class CategoryTile(TileButton):
 
     def __init__(self, label, iconname, icon_size=Gtk.IconSize.DIALOG):
-        Tile.__init__(self, label, iconname, icon_size)
+        TileButton.__init__(self)
         self.label.set_justify(Gtk.Justification.CENTER)
         self.label.set_line_wrap(True)
         self.box.set_border_width(StockEms.SMALL)
         self.set_name("category-tile")
+        self.build_default(label, icon, icon_size)
         return
 
 
-class FeaturedTile(Tile):
+class FeaturedTile(TileButton):
 
     MAX_WIDTH = em(10)
     _MARKUP = '<b>%s</b>'
 
     def __init__(self, label, icon, review_stats, icon_size=48):
-        Gtk.Button.__init__(self)
-        self.set_focus_on_click(False)
+        TileButton.__init__(self)
         self._pressed = False
 
-        self.box = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, StockEms.MEDIUM)
-        self.add(self.box)
+        self.box.set_orientation(Gtk.Orientation.HORIZONTAL)
+        self.box.set_spacing(StockEms.MEDIUM)
+
         self.content_left = Gtk.Box.new(Gtk.Orientation.VERTICAL, StockEms.MEDIUM)
         self.content_right = Gtk.Box.new(Gtk.Orientation.VERTICAL, StockEms.SMALL)
         self.box.pack_start(self.content_left, False, False, 0)
         self.box.pack_start(self.content_right, False, False, 0)
-
-        if isinstance(icon, GdkPixbuf.Pixbuf):
-            self.image = Gtk.Image.new_from_pixbuf(icon)
-        else:
-            raise TypeError, "Expects a GdkPixbuf got %s" % type(icon)
+        self.image = _parse_icon(icon, icon_size)
         self.content_left.pack_start(self.image, False, False, 0)
 
         self.title = Gtk.Label.new(self._MARKUP % label)
-        self.title.set_use_markup(True)
         self.title.set_alignment(0.0, 0.5)
         self.title.set_use_markup(True)
         self.title.set_ellipsize(Pango.EllipsizeMode.END)
@@ -120,7 +135,6 @@ class FeaturedTile(Tile):
         self.price.set_use_markup(True)
         self.content_left.pack_start(self.price, False, False, 0)
 
-        self.set_relief(Gtk.ReliefStyle.NONE)
         self.set_name("featured-tile")
 
         self.connect("enter-notify-event", self.on_enter)
@@ -209,100 +223,61 @@ class FeaturedTile(Tile):
         #~ return
 
 
-class SectionSelector(Tile):
+class SectionSelector(TileToggleButton):
 
     MIN_WIDTH  = em(5)
     _MARKUP = '<small>%s</small>'
 
-    def __init__(self, label, iconname, icon_size=Gtk.IconSize.DIALOG,
+    def __init__(self, label, icon, icon_size=Gtk.IconSize.DIALOG,
                     has_channel_sel=False):
         markup = self._MARKUP % label
-        Tile.__init__(self, markup, iconname, icon_size)
+        TileToggleButton.__init__(self)
+        self.build_default(label, icon, icon_size)
         self.set_size_request(-1, -1)
         self.set_name("channel-selector")
         self.label.set_use_markup(True)
         self.label.set_name("channel-selector")
         self.label.set_justify(Gtk.Justification.CENTER)
-
-        self.has_channel_sel = has_channel_sel
-        if not has_channel_sel: return
-
-        self.channel_request_func = None
-        self.popup = None
-        self.radius = None
-
-        self.channel_sel = Gtk.Arrow.new(Gtk.ArrowType.DOWN,
-                                         Gtk.ShadowType.IN)
-        self.channel_sel.set_name("channel-selector")
-        filler = Gtk.Box()
-        pref_w, _ = self.channel_sel.get_preferred_width()
-        filler.set_size_request(pref_w, -1)
-
-        self.image_box.pack_start(filler, False, False, 0)
-        self.image_box.reorder_child(filler, 0)
-        self.image_box.pack_start(self.channel_sel, False, False, 0)
-
-        self.add_events(Gdk.EventMask.POINTER_MOTION_MASK)
-
+#~ 
+        #~ self.has_channel_sel = has_channel_sel
+        #~ if not has_channel_sel: return
+#~ 
+        #~ self.popup = None
+        #~ self.channel_request_func = None
+        #~ self.radius = None
+#~ 
+        #~ self.channel_sel = Gtk.Arrow.new(Gtk.ArrowType.DOWN,
+                                         #~ Gtk.ShadowType.IN)
+        #~ self.channel_sel.set_name("channel-selector")
+        #~ filler = Gtk.Box()
+        #~ pref_w, _ = self.channel_sel.get_preferred_width()
+        #~ filler.set_size_request(pref_w, -1)
+#~ 
+        #~ self.image_box.pack_start(filler, False, False, 0)
+        #~ self.image_box.reorder_child(filler, 0)
+        #~ self.image_box.pack_start(self.channel_sel, False, False, 0)
+#~ 
+        #~ self.add_events(Gdk.EventMask.POINTER_MOTION_MASK)
+#~ 
         #~ self.connect("button-press-event", self.on_button_press)
-        self.connect('button-release-event', self.on_button_release)
+        #~ self.connect('button-release-event', self.on_button_release)
         #~ self.connect('motion-notify-event', self.on_motion)
-        self.connect("draw", self.on_draw)
         return
 
-    def on_draw(self, widget, cr):
-        if self.popup is None or not self.popup.get_visible(): return
+    def do_draw(self, cr):
+        if self.get_active():
+            a = self.get_allocation()
+            cr.rectangle(0, 0, a.width, a.height)
+            cr.set_source_rgba(0, 0, 0, 0.5)
+            cr.fill()
 
-        a = self.get_allocation()
-        context = self.get_style_context()
-        color = context.get_border_color(self.get_state_flags())
-
-        rounded_rect(cr, 0, 0, a.width, a.height, self.radius)
-        Gdk.cairo_set_source_rgba(cr, color)
-        #~ cr.set_line_width(1)
-        cr.fill()
+        for child in self: self.propagate_draw(child, cr)
         return
-
-    #~ def on_motion(self, button, event):
-        #~ dd = self.channel_sel
-        #~ dd_alloc = dd.get_allocation()
-        #~ x, y = dd.get_pointer()
-#~ 
-        #~ # point in
-        #~ if (x >= 0 and x <= dd_alloc.width and
-            #~ y >= 0 and y <= dd_alloc.height):
-            #~ if not dd.onhover:
-                #~ dd.set_onhover(True)
-#~ 
-        #~ elif dd.onhover:
-            #~ dd.set_onhover(False)
-#~ 
-        #~ return
-
-    #~ def on_button_press(self, button, event):
-        #~ dd = self.channel_sel
-        #~ dd_alloc = dd.get_allocation()
-        #~ x, y = dd.get_pointer()
-#~ 
-        #~ # point in
-        #~ if (x >= 0 and x <= dd_alloc.width and
-            #~ y >= 0 and y <= dd_alloc.height):
-            #~ return True
-        #~ return
 
     def on_button_release(self, button, event):
-        #~ dd = self.channel_sel
-        #~ dd_alloc = dd.get_allocation()
-        #~ x, y = dd.get_pointer()
-#~ 
-        #~ # point in
-        #~ if (x >= 0 and x <= dd_alloc.width and
-            #~ y >= 0 and y <= dd_alloc.height):
         if self.popup is None:
             self.build_channel_selector()
         self.show_channel_sel_popup(self, event)
-            #~ return True
-        #~ self.emit("clicked")
         return
 
     def on_popup_hide(self, widget):

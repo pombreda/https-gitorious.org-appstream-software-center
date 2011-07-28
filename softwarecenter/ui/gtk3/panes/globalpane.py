@@ -30,7 +30,9 @@ class GlobalPane(Gtk.VBox):
         # but couldn't seem to get this to work..so just wire things up directly
         vm = get_viewmanager()
         self.back_forward = vm.get_global_backforward()
-        self.top_hbox.pack_start(self.back_forward, False, True, 0)
+        a = Gtk.Alignment.new(0.5, 0.5, 1.0, 0.0)
+        a.add(self.back_forward)
+        self.top_hbox.pack_start(a, False, True, 0)
 
         self.view_switcher = ViewSwitcher(view_manager, datadir, db, cache, icons)
         self.top_hbox.pack_start(self.view_switcher, True, True, 0)

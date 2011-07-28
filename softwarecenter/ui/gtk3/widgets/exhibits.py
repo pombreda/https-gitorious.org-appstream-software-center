@@ -90,8 +90,8 @@ class Exhibit(object):
         #~ pb = GdkPixbuf.Pixbuf.new_from_file(path)
         #~ width, height = pb.get_width(), pb.get_height()
 
-        if height != ExhibitBanner.MAX_HEIGHT:
-            pb = self._get_scaled_pixbuf(pb, width, height)
+        #~ if height != ExhibitBanner.MAX_HEIGHT:
+            #~ pb = self._get_scaled_pixbuf(pb, width, height)
 #~ 
         #~ self.image = pb
         #~ self.banner.queue_draw()

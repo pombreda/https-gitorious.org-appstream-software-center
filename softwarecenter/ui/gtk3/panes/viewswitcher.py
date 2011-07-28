@@ -138,18 +138,10 @@ class ViewSwitcher(Gtk.Box):
         if result.success: self.on_channels_changed()
         return
 
-    def append_section(self, view_id, label, icon, has_channel_sel=False):
-        btn = SectionSelector(label, icon, self.ICON_SIZE,
-                              has_channel_sel)
-        self.view_buttons[view_id] = btn
-        self.pack_start(btn, False, False, 0)
-        btn.show()
-        btn.connect('clicked', self.on_view_switch, view_id)
-        return btn
-
-    def on_view_switch(self, button, view_id):
-        #~ pane = self.view_manager.get_view_widget(view_id)
-        #~ pane.state.reset()
+    def on_section_sel_toggled(self, button, view_id):
+        prev_active = self.get_active_section_selector()
+        if prev_active is not None:
+            prev_active.set_active(False)
         self.view_manager.set_active_view(view_id)
         return
 
@@ -166,6 +158,15 @@ class ViewSwitcher(Gtk.Box):
             # menu the next time the selector is clicked
             btn.popup = None
         return
+
+    def append_section(self, view_id, label, icon, has_channel_sel=False):
+        btn = SectionSelector(label, icon, self.ICON_SIZE,
+                              has_channel_sel)
+        self.view_buttons[view_id] = btn
+        self.pack_start(btn, False, False, 0)
+        btn.show()
+        btn.connect("toggled", self.on_section_sel_toggled, view_id)
+        return btn
 
     def build_channel_list(self, popup, view_id):
         # clean up old signal handlers
@@ -208,6 +209,12 @@ class ViewSwitcher(Gtk.Box):
             first.set_property("active", True)
             self._prev_item = first
         return
+
+    def get_active_section_selector(self):
+        for view_id, btn in self.view_buttons.iteritems():
+            if btn.get_active():
+                return btn
+        return None
 
     def on_channel_selected(self, item, event, channel, view_id):
 
