@@ -91,6 +91,8 @@ class ViewManager(object):
                 return k
 
     def set_active_view(self, view_id):
+        if not self.all_views: return
+
         page_id = self.all_views[view_id]
         view_widget = self.get_view_widget(view_id)
 

@@ -6,13 +6,13 @@
 }
 
 
-#channel-selector {
+#section-selector {
     color: #d7d0d4;      /* light aubergine */
     border-width: 0;
 }
 
 #symbolic-icon:hover,
-#channel-selector:hover {
+#section-selector:hover {
     color: #fff;        /* white */
 }
 

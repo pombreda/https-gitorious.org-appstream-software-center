@@ -218,7 +218,7 @@ class LobbyViewGtk(CategoriesViewGtk):
         self.top_hbox.pack_start(self.right_column, True, True, 0)
 
         self._append_featured()
-        self._append_recommendations()
+        #~ self._append_recommendations()
         self._append_top_rated()
 
         #self._append_video_clips()
@@ -343,7 +343,6 @@ class LobbyViewGtk(CategoriesViewGtk):
         featured_cat = get_category_by_name(self.categories, 
                                             u"Featured")  # unstranslated name
 
-
         enq = AppEnquire(self.cache, self.db)
         app_filter = AppViewFilter(self.db, self.cache)
         enq.set_query(featured_cat.query,
@@ -353,9 +352,10 @@ class LobbyViewGtk(CategoriesViewGtk):
                       nonblocking_load=False)
 
         self.featured = FlowableGrid()
-        #~ self.featured.row_spacing = StockEms.SMALL
-        frame = Frame()
-        frame.set_corner_label(_("New"))
+        frame = FramedHeaderBox()
+        #~ frame.set_corner_label(_("New"))
+        frame.set_header_label(_("New"))
+        frame.header_implements_more_button()
         frame.add(self.featured)
         self.right_column.pack_start(frame, True, True, 0)
 

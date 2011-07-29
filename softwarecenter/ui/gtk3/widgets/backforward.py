@@ -78,12 +78,6 @@ class BackForwardButton(Gtk.HBox):
 
     def do_draw(self, cr):
         a = self.get_allocation()
-
-        # paint etch
-        #~ rounded_rect(cr, 0, 0, a.width, a.height, self.BORDER_RADIUS)
-        #~ cr.set_source_rgba(1,1,1,0.6)
-        #~ cr.fill()
-
         # divider
         context = self.get_style_context()
         border_color = context.get_border_color(Gtk.StateFlags.NORMAL)
@@ -93,7 +87,6 @@ class BackForwardButton(Gtk.HBox):
         cr.stroke()
 
         for child in self: self.propagate_draw(child, cr)
-
         return
 
     def set_button_atk_info_ltr(self):

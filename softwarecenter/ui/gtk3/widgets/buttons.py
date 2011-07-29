@@ -55,13 +55,9 @@ class _Tile(object):
         return
 
     def build_default(self, label, icon, icon_size):
-        self.image_box = Gtk.Box.new(Gtk.Orientation.HORIZONTAL,
-                                     StockEms.SMALL)
-
         if icon is not None:
             self.image = _parse_icon(icon, icon_size)
-            self.image_box.pack_start(self.image, True, True, 0)
-            self.box.pack_start(self.image_box, True, True, 0)
+            self.box.pack_start(self.image, True, True, 0)
 
         self.label = Gtk.Label.new(label)
         self.box.pack_start(self.label, True, True, 0)
@@ -204,104 +200,36 @@ class FeaturedTile(TileButton):
         self._pressed = False
         return
 
-#~ class _ChannelSelectorArrow(Gtk.Alignment):    
-#~ 
-    #~ def __init__(self):
-        #~ Gtk.Alignment.__init__(self)
-        #~ self.set(0.5, 1.0, 0.0, 0.0)
-        #~ self.set_padding(1,1,1,1)
-#~ 
-        #~ self.onhover = False
-#~ 
-        #~ self.arrow = Gtk.Arrow.new(Gtk.ArrowType.DOWN, Gtk.ShadowType.IN)
-        #~ self.add(self.arrow)
-        #~ self.connect("draw", self.on_draw)
-        #~ return
-#~ 
-    #~ def do_get_preferred_width(self):
-        #~ pref_w, _ = self.arrow.get_preferred_width()
-        #~ pref_w += sum(self.get_padding()[:2])
-        #~ return pref_w, pref_w
-#~ 
-    #~ def set_onhover(self, is_onhover):
-        #~ self.onhover = is_onhover
-        #~ self.queue_draw()
-#~ 
-    #~ def on_draw(self, widget, cr):
-        #~ a = widget.get_allocation()
-        #~ rounded_rect(cr, 0.5, 0.5, a.width-1, a.height-1, 6)
-        #~ 
-        #~ if self.onhover and self.get_state_flags() == Gtk.StateFlags.PRELIGHT:
-            #~ alpha = 0.3
-        #~ else:
-            #~ return
-#~ 
-        #~ context = self.get_style_context()
-        #~ color = context.get_border_color(self.get_state_flags())
-        #~ cr.set_source_rgba(color.red, color.green, color.blue, alpha)
-        #~ cr.set_line_width(1)
-        #~ cr.fill()
-        #~ return
 
+class ChannelSelector(Gtk.Button):
 
-class SectionSelector(TileToggleButton):
+    PADDING = 0
 
-    MIN_WIDTH  = em(5)
-    _MARKUP = '<small>%s</small>'
+    def __init__(self, section_button):
+        Gtk.Button.__init__(self)
+        alignment = Gtk.Alignment.new(0.5, 0.5, 0.0, 1.0)
+        alignment.set_padding(self.PADDING, self.PADDING,
+                              self.PADDING, self.PADDING)
+        self.add(alignment)
+        self.arrow = Gtk.Arrow.new(Gtk.ArrowType.DOWN, Gtk.ShadowType.IN)
+        alignment.add(self.arrow)
+        self.set_name("section-selector")
+        self.arrow.set_name("section-selector")
 
-    def __init__(self, label, icon, icon_size=Gtk.IconSize.DIALOG,
-                    has_channel_sel=False):
-        markup = self._MARKUP % label
-        TileToggleButton.__init__(self)
-        self.build_default(label, icon, icon_size)
-        self.set_size_request(-1, -1)
-        self.set_name("channel-selector")
-        self.label.set_use_markup(True)
-        self.label.set_name("channel-selector")
-        self.label.set_justify(Gtk.Justification.CENTER)
-#~ 
-        #~ self.has_channel_sel = has_channel_sel
-        #~ if not has_channel_sel: return
-#~ 
-        #~ self.popup = None
-        #~ self.channel_request_func = None
-        #~ self.radius = None
-#~ 
-        #~ self.channel_sel = Gtk.Arrow.new(Gtk.ArrowType.DOWN,
-                                         #~ Gtk.ShadowType.IN)
-        #~ self.channel_sel.set_name("channel-selector")
-        #~ filler = Gtk.Box()
-        #~ pref_w, _ = self.channel_sel.get_preferred_width()
-        #~ filler.set_size_request(pref_w, -1)
-#~ 
-        #~ self.image_box.pack_start(filler, False, False, 0)
-        #~ self.image_box.reorder_child(filler, 0)
-        #~ self.image_box.pack_start(self.channel_sel, False, False, 0)
-#~ 
-        #~ self.add_events(Gdk.EventMask.POINTER_MOTION_MASK)
-#~ 
-        #~ self.connect("button-press-event", self.on_button_press)
-        #~ self.connect('button-release-event', self.on_button_release)
-        #~ self.connect('motion-notify-event', self.on_motion)
+        self.section_button = section_button
+        self.popup = None
+        self.connect("button-release-event", self.on_button_release)
         return
 
     def do_draw(self, cr):
-        if self.get_active():
-            a = self.get_allocation()
-            cr.rectangle(0, -1, a.width, a.height+2)
-
-            lin = cairo.LinearGradient(0, 0, 0, a.height)
-            lin.add_color_stop_rgba(0.0, 0,0,0, 0.0)
-            lin.add_color_stop_rgba(0.25, 0,0,0, 0.3)
-            lin.add_color_stop_rgba(0.5, 0,0,0, 0.5)
-            lin.add_color_stop_rgba(0.75, 0,0,0, 0.3)
-            lin.add_color_stop_rgba(1.0, 0,0,0, 0.0)
-
-            cr.set_source(lin)
-            cr.fill_preserve()
-
-            cr.set_source_rgba(0,0,0, 0.6)
-            cr.stroke()
+        a = self.get_allocation()
+        cr.set_line_width(1)
+        cr.rectangle(-0.5, -1.5, a.width, a.height+3)
+        cr.set_source_rgba(0,0,0, 0.6)
+        cr.stroke()
+        cr.rectangle(0.5, -1.5, a.width-2, a.height+3)
+        cr.set_source_rgba(1,1,1, 0.07)
+        cr.stroke()
 
         for child in self: self.propagate_draw(child, cr)
         return
@@ -312,25 +240,15 @@ class SectionSelector(TileToggleButton):
         self.show_channel_sel_popup(self, event)
         return
 
-    def on_popup_hide(self, widget):
-        self.queue_draw()
-
     def show_channel_sel_popup(self, widget, event):
 
         def position_func(menu, (window, a)):
-            #menu_alloc = menu.get_allocation()
             x, y = window.get_root_coords(a.x,
-                                          a.y + a.height - self.radius)
+                                          a.y + a.height)
             return (x, y, False)
 
-        a = widget.get_allocation()
-        window = widget.get_window()
-
-        if self.radius is None:
-            state = self.get_state_flags()
-            context = self.get_style_context()
-            self.radius = context.get_property("border-radius", state)
-
+        a = self.section_button.get_allocation()
+        window = self.section_button.get_window()
         self.popup.popup(None, None, position_func, (window, a),
                          event.button, event.time)
         return
@@ -342,8 +260,49 @@ class SectionSelector(TileToggleButton):
     def build_channel_selector(self):
         self.popup = Gtk.Menu()
         self.build_func(self.popup)
-        self.popup.attach_to_widget(self.channel_sel, None)
-        self.popup.connect("hide", self.on_popup_hide)
+        self.popup.attach_to_widget(self, None)
+        return
+
+
+class SectionSelector(TileToggleButton):
+
+    MIN_WIDTH  = em(5)
+    _MARKUP = '<small>%s</small>'
+
+    def __init__(self, label, icon, icon_size=Gtk.IconSize.DIALOG):
+        TileToggleButton.__init__(self)
+        markup = self._MARKUP % label
+        self.build_default(markup, icon, icon_size)
+        self.label.set_use_markup(True)
+        self.label.set_justify(Gtk.Justification.CENTER)
+        self.label.set_name("section-selector")
+        self.set_name("section-selector")
+        self.draw_hint_has_channel_selector = False
+        return
+
+    def do_draw(self, cr):
+        a = self.get_allocation()
+        if self.get_active():
+            cr.rectangle(0, -1, a.width, a.height+2)
+            lin = cairo.LinearGradient(0, 0, 0, a.height)
+            lin.add_color_stop_rgba(0.0, 0,0,0, 0.0)
+            lin.add_color_stop_rgba(0.25, 0,0,0, 0.3)
+            lin.add_color_stop_rgba(0.5, 0,0,0, 0.5)
+            lin.add_color_stop_rgba(0.75, 0,0,0, 0.3)
+            lin.add_color_stop_rgba(1.0, 0,0,0, 0.0)
+            cr.set_source(lin)
+            cr.fill_preserve()
+            cr.set_source_rgba(0,0,0, 0.6)
+            cr.stroke()
+
+        elif self.draw_hint_has_channel_selector:
+            cr.set_line_width(1)
+            cr.move_to(a.width-0.5, -1)
+            cr.rel_line_to(0, a.height+2)
+            cr.set_source_rgba(0,0,0,0.6)
+            cr.stroke()
+
+        for child in self: self.propagate_draw(child, cr)
         return
 
 

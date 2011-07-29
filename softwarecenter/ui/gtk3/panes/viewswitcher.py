@@ -30,7 +30,7 @@ from softwarecenter.db.database import StoreDatabase
 from softwarecenter.enums import ViewPages
 from softwarecenter.paths import XAPIAN_BASE_PATH
 from softwarecenter.backend.channel import get_channels_manager
-from softwarecenter.ui.gtk3.widgets.buttons import SectionSelector
+from softwarecenter.ui.gtk3.widgets.buttons import SectionSelector, ChannelSelector
 from softwarecenter.ui.gtk3.em import StockEms
 from softwarecenter.ui.gtk3.widgets.symbolic_icons import (
                                     SymbolicIcon, PendingSymbolicIcon)
@@ -70,29 +70,31 @@ class ViewSwitcher(Gtk.Box):
         # widgetry
         Gtk.Box.__init__(self)
         self.set_orientation(Gtk.Orientation.HORIZONTAL)
-        self.set_spacing(StockEms.SMALL)
+        #~ self.set_spacing(StockEms.SMALL)
 
         # Gui stuff
         self.view_buttons = {}
+        self._prev_view = None  # track the previous active section
+        self._prev_item = None  # track the previous active menu-item
         self._handlers = []
-        self._prev_view = None
+
 
         # order is important here!
         # first, the availablepane items
         icon = SymbolicIcon("available")
-        available = self.append_section(ViewPages.AVAILABLE,
-                                        _("All Software"),
-                                        icon,
-                                        True)
-        available.set_build_func(self.on_get_available_channels)
+        self.append_section_with_channel_sel(
+                                ViewPages.AVAILABLE,
+                                _("All Software"),
+                                icon,
+                                self.on_get_available_channels)
 
         # the installedpane items
         icon = SymbolicIcon("installed")
-        installed = self.append_section(ViewPages.INSTALLED,
-                                        _("Installed"),
-                                        icon,
-                                        True)
-        installed.set_build_func(self.on_get_installed_channels)
+        self.append_section_with_channel_sel(
+                                ViewPages.INSTALLED,
+                                _("Installed"),
+                                icon,
+                                self.on_get_installed_channels)
 
         # the historypane item
         icon = SymbolicIcon("history")
@@ -154,9 +156,8 @@ class ViewSwitcher(Gtk.Box):
             btn.popup = None
         return
 
-    def append_section(self, view_id, label, icon, has_channel_sel=False):
-        btn = SectionSelector(label, icon, self.ICON_SIZE,
-                              has_channel_sel)
+    def append_section(self, view_id, label, icon):
+        btn = SectionSelector(label, icon, self.ICON_SIZE)
         self.view_buttons[view_id] = btn
         self.pack_start(btn, False, False, 0)
         btn.connect("clicked", self.on_section_sel_clicked, view_id)
@@ -168,6 +169,19 @@ class ViewSwitcher(Gtk.Box):
 
         _last_button = btn
         return btn
+
+    def append_channel_selector(self, section_btn, view_id, build_func):
+        btn = ChannelSelector(section_btn)
+        btn.set_build_func(build_func)
+        self.pack_start(btn, False, False, 0)
+        btn.connect("clicked", self.on_section_sel_clicked, view_id)
+        return btn
+
+    def append_section_with_channel_sel(self, view_id, label, icon, build_func):
+        btn = self.append_section(view_id, label, icon)
+        btn.draw_hint_has_channel_selector = True
+        sel = self.append_channel_selector(btn, view_id, build_func)
+        return btn, sel
 
     def build_channel_list(self, popup, view_id):
         # clean up old signal handlers
@@ -212,6 +226,22 @@ class ViewSwitcher(Gtk.Box):
         return
 
     def on_channel_selected(self, item, event, channel, view_id):
+        vm = self.view_manager
+
+        def config_view():
+            # set active pane
+            pane = vm.set_active_view(view_id)
+            # configure DisplayState
+            state = pane.state.copy()
+            state.channel = channel
+            # decide which page we want to display
+            if channel.origin == "all":
+                page = pane.Pages.HOME
+            else:
+                page = pane.Pages.LIST
+            # request page change
+            vm.display_page(pane, page, state)
+            return False
 
         if self._prev_item is item:
             parent = item.get_parent()
@@ -220,24 +250,14 @@ class ViewSwitcher(Gtk.Box):
 
         if self._prev_item is not None:
             self._prev_item.set_property("active", False)
-
         self._prev_item = item
 
-        # set active pane
-        vm = self.view_manager
-        pane = vm.set_active_view(view_id)
+        # activate the section if need be
+        btn = self.view_buttons[view_id]
+        if not btn.get_active():
+            btn.set_active(True)
 
-        # configure DisplayState
-        state = pane.state.copy()
-        state.channel = channel
-
-        # request page change
-        if channel.origin == "all":
-            page = pane.Pages.HOME
-        else:
-            page = pane.Pages.LIST
-
-        GObject.idle_add(vm.display_page, pane, page, state)
+        GObject.idle_add(config_view)
         return
 
 
