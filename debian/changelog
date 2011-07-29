@@ -18,6 +18,10 @@ software-center (4.1.11) UNRELAED; urgency=low
   * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
     - port recent crash fixes and the standalone deb install
       startup time improvements to the gtk3 branch 
+  * softwarecenter/ui/gtk/appdetailsview_gtk.py,
+    softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
+    - fix incorrect display of command line launch details
+      (LP: #817524)
 
   [ Kiwinote ]
   * softwarecenter/distro/Ubuntu.py:
@@ -26,7 +30,7 @@ software-center (4.1.11) UNRELAED; urgency=low
     - lowlevel cache isn't available on startup, so query it only on demand
     - fix normal cache to correctly filter out unavailable pkgs (LP: #799713)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Tue, 26 Jul 2011 15:40:25 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Fri, 29 Jul 2011 18:49:08 -0400
 
 software-center (4.1.10) oneiric; urgency=low
 
