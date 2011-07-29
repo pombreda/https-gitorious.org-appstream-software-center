@@ -105,7 +105,7 @@ h1 {
     def init_view(self):
         if self.wk is None:
             self.wk = ScrolledWebkitWindow()
-            self.wk.webkit.connect("new-window-policy-decision-requested", self._on_new_window)
+            #self.wk.webkit.connect("new-window-policy-decision-requested", self._on_new_window)
             # a possible way to do IPC (script or title change)
             self.wk.webkit.connect("script-alert", self._on_script_alert)
             # FIXME: figure out if that is needed for paypal support
@@ -148,14 +148,16 @@ h1 {
         view.policy_decision_ignore(policy)
         return True
 
-    def _on_close_web_view(self, view, frame):
+    def _on_close_web_view(self, view):
         win = view.get_data("win")
         win.destroy()
+        return True
         
     def _on_create_web_view(self, view, frame):
         win = gtk.Window()
         win.set_size_request(400, 400)
         wk = ScrolledWebkitWindow()
+        wk.webkit.connect("close-web-view", self._on_close_web_view)
         win.add(wk)
         win.show_all()
         # make sure close will work later
