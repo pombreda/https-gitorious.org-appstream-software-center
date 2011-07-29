@@ -20,6 +20,8 @@ software-center (4.1.11) UNRELAED; urgency=low
       startup time improvements to the gtk3 branch 
 
   [ Kiwinote ]
+  * softwarecenter/distro/Ubuntu.py:
+    - ensure get_downloadable_icon_url() returns a string (LP: #810552)
   * softwarecenter/ui/gtk/appview.py:
     - lowlevel cache isn't available on startup, so query it only on demand
     - fix normal cache to correctly filter out unavailable pkgs (LP: #799713)
