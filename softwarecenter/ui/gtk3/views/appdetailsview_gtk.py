@@ -1336,6 +1336,9 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         self.installed_where_hbox.show_all()
 
     def _configure_where_is_it(self):
+        # display where-is-it for non-Unity configurations only
+        if is_unity_running():
+            return
         # remove old content
         self.installed_where_hbox.foreach(lambda c: c.destroy(), ())
         self.installed_where_hbox.set_property("can-focus", False)
@@ -1352,11 +1355,10 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
                       "/usr/share/applications/%s.desktop" % pkgname]:
                 if p and os.path.exists(p):
                     desktop_file = p
-            # try to show menu location if there is a desktop file (and only when this
-            # is not a Unity configuration), but never show commandline programs
-            # for apps with desktop file to cover cases like "file-roller" that
-            # have NoDisplay=true
-            if desktop_file and not is_unity_running():
+            # try to show menu location if there is a desktop file, but
+            # never show commandline programs for apps with a desktop file
+            # to cover cases like "file-roller" that have NoDisplay=true
+            if desktop_file:
                 where = searcher.get_main_menu_path(desktop_file)
                 if where:
                     self._add_where_is_it_launcher(where)
