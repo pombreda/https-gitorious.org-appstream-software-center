@@ -371,9 +371,12 @@ class LobbyViewGtk(CategoriesViewGtk):
         self._on_category_clicked(self, rec_cat)
         return True # mutter..        
 
-    def _create_and_append_carousel(self, category, app_store, description):
-        carousel = CarouselView(self, app_store, _(description), self.icons)
-        carousel.more_btn.connect('clicked', self._on_category_clicked,
+    def _create_and_append_carousel(self, category, app_store, 
+                                    description, more_button=True):
+        carousel = CarouselView(self, app_store, _(description), 
+                                self.icons, has_more_button=more_button)
+        if more_button:
+            carousel.more_btn.connect('clicked', self._on_category_clicked,
                                                     category)        
         # add some filler
         padding = gtk.VBox()
@@ -579,7 +582,8 @@ class SubCategoryViewGtk(LobbyViewGtk):
             self.toprated_carousel = self._create_and_append_carousel(
                                         category,
                                         toprated_apps,
-                                        _('Top Rated')
+                                        _('Top Rated %s' % self.header),
+                                        False  #don't want 'More/All' button
                                         )
         return
         
