@@ -561,17 +561,21 @@ class SubCategoryViewGtk(LobbyViewGtk):
         if self.section: self.section.render(cr, self, alignment.allocation)
 
         del cr
+        
         LobbyViewGtk._on_expose(self, widget, event, alignment)
 
     @wait_for_apt_cache_ready # be consistent with new apps
     def _append_sub_toprated(self, category):
-        best_stock_size = 64#mkit.get_nearest_stock_size(64)
+        #remove any old top rated carousel from previous sub categories first
+        if self.toprated_carousel:
+            self.vbox.remove(self.toprated_carousel)
+        best_stock_size = 64
         if category:
             toprated_apps = AppStore(self.cache,
                                      self.db, 
                                      self.icons,
                                      category.query,
-                                     TOP_RATED_CAROUSEL_LIMIT,  #to override .menu file 
+                                     TOP_RATED_CAROUSEL_LIMIT, 
                                      SortMethods.BY_TOP_RATED,
                                      filter=self.apps_filter,
                                      icon_size=best_stock_size,
@@ -638,9 +642,6 @@ class SubCategoryViewGtk(LobbyViewGtk):
         # append the cat buttons to the departments widget
         self.departments.set_widgets(buttons)
         
-        # add the top rated carousel for the sub category
-        self._append_sub_toprated(root_category)
-
         self.show_all()
         return
 
@@ -648,6 +649,7 @@ class SubCategoryViewGtk(LobbyViewGtk):
         # these methods add sections to the page
         # changing order of methods changes order that they appear in the page
         self._append_subcat_departments(root_category, num_items)
+        self._append_sub_toprated(root_category)
         return
 
     def set_subcategory(self, root_category, num_items=0, block=False):
