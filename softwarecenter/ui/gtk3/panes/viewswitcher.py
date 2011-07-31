@@ -70,10 +70,10 @@ class ViewSwitcher(Gtk.Box):
         # widgetry
         Gtk.Box.__init__(self)
         self.set_orientation(Gtk.Orientation.HORIZONTAL)
-        #~ self.set_spacing(StockEms.SMALL)
 
         # Gui stuff
         self.view_buttons = {}
+        self.selectors = {}
         self._prev_view = None  # track the previous active section
         self._prev_item = None  # track the previous active menu-item
         self._handlers = []
@@ -114,8 +114,13 @@ class ViewSwitcher(Gtk.Box):
         self.notify_icon_of_pending_count(pending)
         if pending > 0:
             self.start_icon_animation()
+            pending_btn = self.view_buttons[ViewPages.PENDING]
+            if not pending_btn.get_visible():
+                pending_btn.set_visible(True)
         else:
             self.stop_icon_animation()
+            pending_btn = self.view_buttons[ViewPages.PENDING]
+            pending_btn.set_visible(False)
         return
 
     def start_icon_animation(self):
@@ -149,11 +154,10 @@ class ViewSwitcher(Gtk.Box):
         return self.build_channel_list(popup, ViewPages.INSTALLED)
 
     def on_channels_changed(self):
-        for view_id, btn in self.view_buttons.iteritems():
-            if not btn.has_channel_sel: continue
+        for view_id, sel in self.selectors.iteritems():
             # setting popup to None will cause a rebuild of the popup
             # menu the next time the selector is clicked
-            btn.popup = None
+            sel.popup = None
         return
 
     def append_section(self, view_id, label, icon):
@@ -164,18 +168,18 @@ class ViewSwitcher(Gtk.Box):
 
         global _last_button
         if _last_button is not None:
-            print _last_button
             btn.join_group(_last_button)
 
         _last_button = btn
         return btn
 
     def append_channel_selector(self, section_btn, view_id, build_func):
-        btn = ChannelSelector(section_btn)
-        btn.set_build_func(build_func)
-        self.pack_start(btn, False, False, 0)
-        btn.connect("clicked", self.on_section_sel_clicked, view_id)
-        return btn
+        sel = ChannelSelector(section_btn)
+        self.selectors[view_id] = sel
+        sel.set_build_func(build_func)
+        self.pack_start(sel, False, False, 0)
+        #~ sel.connect("clicked", self.on_section_sel_clicked, view_id)
+        return sel
 
     def append_section_with_channel_sel(self, view_id, label, icon, build_func):
         btn = self.append_section(view_id, label, icon)

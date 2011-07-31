@@ -94,13 +94,13 @@ class LabelTile(TileButton):
 
 class CategoryTile(TileButton):
 
-    def __init__(self, label, iconname, icon_size=Gtk.IconSize.DIALOG):
+    def __init__(self, label, icon, icon_size=Gtk.IconSize.DIALOG):
         TileButton.__init__(self)
+        self.build_default(label, icon, icon_size)
         self.label.set_justify(Gtk.Justification.CENTER)
         self.label.set_line_wrap(True)
         self.box.set_border_width(StockEms.SMALL)
         self.set_name("category-tile")
-        self.build_default(label, icon, icon_size)
         return
 
 
@@ -278,6 +278,7 @@ class SectionSelector(TileToggleButton):
         self.label.set_name("section-selector")
         self.set_name("section-selector")
         self.draw_hint_has_channel_selector = False
+        self.label.connect("draw", self.on_label_draw)
         return
 
     def do_draw(self, cr):
@@ -304,6 +305,25 @@ class SectionSelector(TileToggleButton):
 
         for child in self: self.propagate_draw(child, cr)
         return
+
+    def on_label_draw(self, label, cr):
+        layout = label.get_layout()
+
+        a = self.label.get_allocation()
+        x, y = label.get_layout_offsets()
+        x -= a.x
+        y -= a.y
+
+        cr.move_to(x, y+1)
+        PangoCairo.layout_path(cr, layout)
+        cr.set_source_rgba(0,0,0,0.3)
+        cr.set_line_width(2.5)
+        cr.stroke()
+
+        context = self.get_style_context()
+        context.set_state(self.get_state_flags())
+        Gtk.render_layout(context, cr, x, y, layout)
+        return True
 
 
 class Link(Gtk.Label):

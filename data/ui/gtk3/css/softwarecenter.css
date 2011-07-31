@@ -1,10 +1,13 @@
 #view {
     background-color: #DED7DB;
-    /*  background-image: url('../art/stipple.png'); */
     border-radius: 0;
     border-width: 0;
 }
 
+#backforward {
+    border-width: 0;
+    border-radius: 0;
+}
 
 #section-selector {
     color: #d7d0d4;      /* light aubergine */

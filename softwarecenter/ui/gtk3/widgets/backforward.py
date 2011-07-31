@@ -86,6 +86,10 @@ class BackForwardButton(Gtk.HBox):
         cr.rel_line_to(0, a.height)
         cr.stroke()
 
+        # set the clip which is inherited by child draws
+        rounded_rect(cr, 0, 0, a.width, a.height, self.BORDER_RADIUS)
+        cr.clip()
+
         for child in self: self.propagate_draw(child, cr)
         return
 
@@ -138,29 +142,23 @@ class ButtonPart(Gtk.Button):
         self.border_radius = BackForwardButton.BORDER_RADIUS
         return
 
-    def render_background(self, context, cr, xo, wo, border_radius):
+    def render_background(self, context, cr):
         cr.save()
+        context.save()
 
+        context.set_state(self.get_state_flags())
+        context.add_class("button")
         a = self.get_allocation()
-        state = self.get_state_flags()
+        Gtk.render_background(context, cr, 0, 0, a.width, a.height)
 
-        border_color = context.get_border_color(state)
-
-        rounded_rect2(cr, xo, 0, a.width+wo, a.height, border_radius)
-        Gdk.cairo_set_source_rgba(cr, border_color)
-        cr.fill()
-
-        lin = cairo.LinearGradient(0, 0, 0, a.height)
-        lin.add_color_stop_rgba(0.0, 1,1,1, 0.5)
-        lin.add_color_stop_rgba(1.0, 1,1,1, 0.0)
-
-        rounded_rect2(cr, xo, 0, a.width+wo, a.height, border_radius)
-        cr.set_source(lin)
-        cr.fill()
-
+        context.restore()
         cr.restore()
         return
 
+    def do_draw(self, cr):
+        ButtonPart.render_background(self,
+                                     self.get_style_context(), cr)
+        for child in self: self.propagate_draw(child, cr)
 
 
 class Left(ButtonPart):
@@ -172,13 +170,6 @@ class Left(ButtonPart):
                             part_size)
         return
 
-    def do_draw(self, cr):
-        radii =  (self.border_radius, 0, 0, self.border_radius)
-        ButtonPart.render_background(self,
-                                     self.get_style_context(),
-                                     cr, 0, 2, radii)
-        for child in self: self.propagate_draw(child, cr)
-
 
 class Right(ButtonPart):
 
@@ -188,13 +179,6 @@ class Right(ButtonPart):
                             sig_name,
                             part_size)
         return
-
-    def do_draw(self, cr):
-        radii =  (0, self.border_radius, self.border_radius, 0)
-        ButtonPart.render_background(self,
-                                     self.get_style_context(),
-                                     cr, -2, 2, radii)
-        for child in self: self.propagate_draw(child, cr)
 
 
 # this is used in the automatic tests as well
