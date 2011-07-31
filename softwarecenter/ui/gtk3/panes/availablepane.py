@@ -37,6 +37,8 @@ from softwarecenter.paths import (APP_INSTALL_PATH,
 from softwarecenter.utils import wait_for_apt_cache_ready
 from softwarecenter.distro import get_distro
 from softwarecenter.ui.gtk3.views.appview import AppViewFilter
+from softwarecenter.ui.gtk3.views.purchaseview import PurchaseView
+
 from softwarecenter.ui.gtk3.views.catview_gtk import (LobbyViewGtk,
                                                       SubCategoryViewGtk)
 from softwarepane import SoftwarePane
@@ -91,7 +93,8 @@ class AvailablePane(SoftwarePane):
         self.pane_name = _("Get Software")
 
     def init_view(self):
-        if self.view_initialized: return
+        if self.view_initialized: 
+            return
         self.spinner_view.set_text(_('Loading Categories'))
         self.spinner_view.start()
         self.spinner_view.show()
@@ -107,6 +110,14 @@ class AvailablePane(SoftwarePane):
         GObject.idle_add(self.cache.open)
         
         SoftwarePane.init_view(self)
+        # setup purchase stuff
+        self.app_details_view.connect("purchase-requested",
+                                      self.on_purchase_requested)
+        # purchase view
+        self.purchase_view = PurchaseView()
+        self.purchase_view.connect("purchase-succeeded", self.on_purchase_succeeded)
+        self.purchase_view.connect("purchase-failed", self.on_purchase_failed)
+        self.purchase_view.connect("purchase-cancelled-by-user", self.on_purchase_cancelled_by_user)
         # categories, appview and details into the notebook in the bottom
         self.scroll_categories = Gtk.ScrolledWindow()
         self.scroll_categories.set_policy(Gtk.PolicyType.AUTOMATIC, 
@@ -176,6 +187,30 @@ class AvailablePane(SoftwarePane):
             window.set_cursor(None)
         self.spinner_view.set_text() 
         self.view_initialized = True
+
+    def on_purchase_requested(self, widget, app, url):
+
+        self.appdetails = app.get_details(self.db)
+        iconname = self.appdetails.icon
+        self.purchase_view.initiate_purchase(app, iconname, url)
+        vm = get_viewmanager()
+        vm.display_page(self, AvailablePane.Pages.PURCHASE, self.state, self.display_purchase)
+        
+    def on_purchase_succeeded(self, widget):
+        # switch to the details page to display the transaction is in progress
+        self.notebook.set_current_page(SoftwarePane.Pages.DETAILS)
+        
+    def on_purchase_failed(self, widget):
+        # return to the the appdetails view via the button to reset it
+        self._click_appdetails_view()
+        dialogs.error(None,
+                      _("Failure in the purchase process."),
+                      _("Sorry, something went wrong. Your payment "
+                        "has been cancelled."))
+        
+    def on_purchase_cancelled_by_user(self, widget):
+        # return to the the appdetails view via the button to reset it
+        self._click_appdetails_view()
 
     def get_query(self):
         """helper that gets the query for the current category/search mode"""
@@ -338,11 +373,12 @@ class AvailablePane(SoftwarePane):
         update buttons in the action bar to implement the custom package lists feature,
         see https://wiki.ubuntu.com/SoftwareCenter#Custom%20package%20lists
         '''
+        # FIXME: for the gtk3 port
         return
         if (self.state.search_term and
             ',' in self.state.search_term and
             self.notebook.get_current_page() == AvailablePane.Pages.LIST):
-            appstore = self.app_view.get_model()
+            #appstore = self.app_view.get_model()
 
             installable = []
             for app in self.enquirer.apps:
@@ -554,20 +590,19 @@ class AvailablePane(SoftwarePane):
         self.cat_view.stop_carousels()
         return True
         
-    def display_purchase(self):
+    def display_purchase(self, page, view_state):
         self.notebook.set_current_page(AvailablePane.Pages.PURCHASE)
-        self.searchentry.hide()
+        #self.searchentry.hide()
         self.action_bar.clear()
         self.cat_view.stop_carousels()
         return
         
-    def display_previous_purchases(self):
+    def display_previous_purchases(self, page, view_state):
         self.nonapps_visible = NonAppVisibility.ALWAYS_VISIBLE
         self.notebook.set_current_page(AvailablePane.Pages.LIST)
         # do not emit app-list-changed here, this is done async when
         # the new model is ready
         self.refresh_apps(query=self.previous_purchases_query)
-        self.searchentry.hide()
         self.action_bar.clear()
         self.cat_view.stop_carousels()
         return
@@ -629,6 +664,9 @@ class AvailablePane(SoftwarePane):
         #print cat_view, name, query
         LOG.debug("on_previous_purchases_activated with query: %s" % query)
         self.previous_purchases_query = query
+        vm = get_viewmanager()
+        vm.display_page(self, AvailablePane.Pages.LIST, self.state,
+                        self.display_previous_purchases)
 
     def is_category_view_showing(self):
         """ Return True if we are in the category page or if we display a

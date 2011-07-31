@@ -1,7 +1,9 @@
 import cairo
+import os
 
-from gi.repository import Gtk, Gdk, GdkPixbuf, Pango
-from gettext import gettext as _
+import softwarecenter.paths
+
+from gi.repository import Gtk, Pango
 from math import pi
 
 from buttons import MoreLink
@@ -35,13 +37,13 @@ class FlowableGrid(Gtk.Fixed):
 
         children = self.get_children()
         width = a.width
-        height = a.height
+        #height = a.height
 
         col_spacing = self.column_spacing
         row_spacing = self.row_spacing
 
         n_cols = self._get_n_columns_for_width(width, col_spacing)
-        _, cell_h = self.get_cell_size()
+        tmp, cell_h = self.get_cell_size()
         cell_w = width/n_cols
 
         if n_cols == 0: return
@@ -97,7 +99,7 @@ class FlowableGrid(Gtk.Fixed):
         if len(children) % n_cols:
             n_rows += 1
 
-        _, cell_h = self.get_cell_size()
+        tmp, cell_h = self.get_cell_size()
         pref_h = n_rows*cell_h + (n_rows-1)*self.row_spacing + 1
         pref_h = max(self.MIN_HEIGHT, pref_h)
         return pref_h, pref_h
@@ -203,8 +205,10 @@ _frame_asset_cache = {}
 class Frame(Gtk.Alignment):
 
     BORDER_RADIUS = 8
-    BORDER_IMAGE = "softwarecenter/ui/gtk3/art/frame-border-image.png"
-    CORNER_LABEL = "softwarecenter/ui/gtk3/art/corner-label.png"
+    BORDER_IMAGE = os.path.join(
+        softwarecenter.paths.datadir, "ui/gtk3/art/frame-border-image.png")
+    CORNER_LABEL = os.path.join(
+        softwarecenter.paths.datadir, "ui/gtk3/art/corner-label.png")
 
     def __init__(self, padding=3):
         Gtk.Alignment.__init__(self)

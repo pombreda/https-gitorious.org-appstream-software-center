@@ -106,7 +106,10 @@ h1 {
     def init_view(self):
         if self.wk is None:
             self.wk = ScrolledWebkitWindow()
-            self.wk.webkit.connect("new-window-policy-decision-requested", self._on_new_window)
+            #self.wk.webkit.connect("new-window-policy-decision-requested", self._on_new_window)
+            self.wk.webkit.connect("create-web-view", self._on_create_web_view)
+            self.wk.webkit.connect("close-web-view", self._on_close_web_view)
+
             # a possible way to do IPC (script or title change)
             self.wk.webkit.connect("script-alert", self._on_script_alert)
             self.wk.webkit.connect("title-changed", self._on_title_changed)
@@ -144,6 +147,22 @@ h1 {
         subprocess.Popen(['xdg-open', request.get_uri()])
         return True
 
+    def _on_close_web_view(self, view):
+        win = view.get_data("win")
+        win.destroy()
+        return True
+        
+    def _on_create_web_view(self, view, frame):
+        win = Gtk.Window()
+        win.set_size_request(400, 400)
+        wk = ScrolledWebkitWindow()
+        wk.webkit.connect("close-web-view", self._on_close_web_view)
+        win.add(wk)
+        win.show_all()
+        # make sure close will work later
+        wk.webkit.set_data("win", win)
+        return wk.webkit
+
     def _on_script_alert(self, view, frame, message):
         self._process_json(message)
         # stop further processing to avoid actually showing the alter
@@ -157,13 +176,14 @@ h1 {
     def _on_load_status_changed(self, view, property_spec):
         """ helper to give visual feedback while the page is loading """
         prop = view.get_property(property_spec.name)
-        if prop == webkit.LOAD_PROVISIONAL:
-            if self.window:
-                self.window.set_cursor(Gdk.Cursor.new(Gdk.WATCH))
-        elif (prop == webkit.LOAD_FIRST_VISUALLY_NON_EMPTY_LAYOUT or
-              prop == webkit.LOAD_FINISHED):
-            if self.window:
-                self.window.set_cursor(None)
+        window = self.get_window()
+        if prop == webkit.LoadStatus.PROVISIONAL:
+            if window:
+                window.set_cursor(Gdk.Cursor.new(Gdk.CursorType.WATCH))
+        elif (prop == webkit.LoadStatus.FIRST_VISUALLY_NON_EMPTY_LAYOUT or
+              prop == webkit.LoadStatus.FINISHED):
+            if window:
+                window.set_cursor(None)
 
     def _process_json(self, json_string):
         try:

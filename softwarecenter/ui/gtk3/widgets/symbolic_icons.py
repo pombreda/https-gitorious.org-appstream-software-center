@@ -1,8 +1,28 @@
+# Copyright (C) 2011 Canonical
+#
+# Authors:
+#  Matthew McGowan
+#
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; version 3.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+# details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
 import cairo
+import os
 
 from math import pi as PI
 from gi.repository import Gtk, Gdk, GObject
 
+import softwarecenter.paths
 from softwarecenter.ui.gtk3.drawing import rounded_rect
 
 # pi constants
@@ -16,17 +36,18 @@ def radian(deg):
 
 class SymbolicIcon(Gtk.Image):
 
-    SYMBOLIC_DIR = "softwarecenter/ui/gtk3/art/icons/"
     DROPSHADOW = "%s-dropshadow.png"
     ICON = "%s.png"
 
     def __init__(self, name):
         Gtk.Image.__init__(self)
         self.set_name("symbolic-icon")
-
-        drop_shadow_path = self.SYMBOLIC_DIR + self.DROPSHADOW % name
+        # get base dir
+        SYMBOLIC_DIR = os.path.join(
+            softwarecenter.paths.datadir, "ui/gtk3/art/icons/")
+        drop_shadow_path = SYMBOLIC_DIR + self.DROPSHADOW % name
         self.drop_shadow = cairo.ImageSurface.create_from_png(drop_shadow_path)
-        icon_path = self.SYMBOLIC_DIR + self.ICON % name
+        icon_path = SYMBOLIC_DIR + self.ICON % name
         self.icon = cairo.ImageSurface.create_from_png(icon_path)
 
         self.drop_shadow_x_offset = 0

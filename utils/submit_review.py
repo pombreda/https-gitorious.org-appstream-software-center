@@ -709,7 +709,7 @@ class SubmitReviewsApp(BaseApp):
     def _populate_review(self):
         try:
             review_data = self.retrieve_api.get_review(review_id=self.review_id)
-            app = Application(pkgname=review_data.package_name)
+            app = Application(appname=review_data.app_name, pkgname=review_data.package_name)
             self.app = app
             self.review_summary_entry.set_text(review_data.summary)
             self.star_rating.set_rating(review_data.rating)

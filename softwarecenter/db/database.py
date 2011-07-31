@@ -36,6 +36,22 @@ from softwarecenter.enums import (
 from softwarecenter.paths import XAPIAN_BASE_PATH_SOFTWARE_CENTER_AGENT
 from gettext import gettext as _
 
+def parse_axi_values_file(filename="/var/lib/apt-xapian-index/values"):
+    """ parse the apt-xapian-index "values" file and provide the 
+    information in the self._axi_values dict
+    """
+    axi_values = {}
+    if not os.path.exists(filename):
+        return axi_values
+    for raw_line in open(filename):
+        line = string.split(raw_line, "#", 1)[0]
+        if line.strip() == "":
+            continue
+        (key, value) = line.split()
+        axi_values[key] = int(value)
+    return axi_values
+
+
 class SearchQuery(list):
     """ a list wrapper for a search query. it can take a search string
         or a list of search strings
@@ -62,20 +78,14 @@ class SearchQuery(list):
     def __repr__(self):
         return "[%s]" % ",".join([str(q) for q in self])
 
-# class LocaleSorter(xapian.KeyMaker)
-#   ubuntu maverick does not have the KeyMakter yet, maintain compatibility
-#   for now by falling back to the old xapian.Sorter
-try:
-    parentClass = xapian.KeyMaker
-except AttributeError:
-    parentClass = xapian.Sorter
-class LocaleSorter(parentClass):
+class LocaleSorter(xapian.KeyMaker):
     """ Sort in a locale friendly way by using locale.xtrxfrm """
     def __init__(self, db):
         super(LocaleSorter, self).__init__()
         self.db = db
     def __call__(self, doc):
-        return locale.strxfrm(doc.get_value(self.db._axi_values["display_name"]))
+        return locale.strxfrm(
+            doc.get_value(self.db._axi_values["display_name"]))
 
 class TopRatedSorter(xapian.KeyMaker):
     """ Sort using the top rated data """
@@ -91,21 +101,6 @@ class TopRatedSorter(xapian.KeyMaker):
         if stats:
             return xapian.sortable_serialise(stats.dampened_rating)
         return xapian.sortable_serialise(0)
-
-def parse_axi_values_file(filename="/var/lib/apt-xapian-index/values"):
-    """ parse the apt-xapian-index "values" file and provide the 
-    information in the self._axi_values dict
-    """
-    axi_values = {}
-    if not os.path.exists(filename):
-        return axi_values
-    for raw_line in open(filename):
-        line = string.split(raw_line, "#", 1)[0]
-        if line.strip() == "":
-            continue
-        (key, value) = line.split()
-        axi_values[key] = int(value)
-    return axi_values
 
 class StoreDatabase(GObject.GObject):
     """thin abstraction for the xapian database with convenient functions"""
