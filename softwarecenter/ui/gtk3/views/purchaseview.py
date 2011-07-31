@@ -106,7 +106,10 @@ h1 {
     def init_view(self):
         if self.wk is None:
             self.wk = ScrolledWebkitWindow()
-            self.wk.webkit.connect("new-window-policy-decision-requested", self._on_new_window)
+            #self.wk.webkit.connect("new-window-policy-decision-requested", self._on_new_window)
+            self.wk.webkit.connect("create-web-view", self._on_create_web_view)
+            self.wk.webkit.connect("close-web-view", self._on_close_web_view)
+
             # a possible way to do IPC (script or title change)
             self.wk.webkit.connect("script-alert", self._on_script_alert)
             self.wk.webkit.connect("title-changed", self._on_title_changed)
@@ -143,6 +146,22 @@ h1 {
         import subprocess
         subprocess.Popen(['xdg-open', request.get_uri()])
         return True
+
+    def _on_close_web_view(self, view):
+        win = view.get_data("win")
+        win.destroy()
+        return True
+        
+    def _on_create_web_view(self, view, frame):
+        win = Gtk.Window()
+        win.set_size_request(400, 400)
+        wk = ScrolledWebkitWindow()
+        wk.webkit.connect("close-web-view", self._on_close_web_view)
+        win.add(wk)
+        win.show_all()
+        # make sure close will work later
+        wk.webkit.set_data("win", win)
+        return wk.webkit
 
     def _on_script_alert(self, view, frame, message):
         self._process_json(message)

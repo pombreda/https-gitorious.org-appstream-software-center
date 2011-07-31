@@ -3,7 +3,7 @@ import os
 
 import softwarecenter.paths
 
-from gi.repository import Gtk, Pango
+from gi.repository import Gtk, Gdk, Pango
 from math import pi
 
 from buttons import MoreLink
@@ -220,10 +220,19 @@ class Frame(Gtk.Alignment):
         self.layout.set_width(40960)
         self.layout.set_ellipsize(Pango.EllipsizeMode.END)
 
-        #~ _frame_surface_cache = None
         assets = self._cache_art_assets()
+        self._frame_surface_cache = None
         self.connect_after("draw", self.on_draw_after,
                            assets, self.layout)
+        self._allocation = Gdk.Rectangle()
+        self.connect("size-allocate", self.on_size_allocate)
+        return
+
+    def on_size_allocate(self, *args):
+        old = self._allocation
+        cur = self.get_allocation()
+        if cur.width != old.width:
+            self._frame_surface_cache = None
         return
 
     def _cache_art_assets(self):
@@ -293,7 +302,18 @@ class Frame(Gtk.Alignment):
 
     def on_draw(self, cr):
         a = self.get_allocation()
-        self.render_frame(cr, a, self.BORDER_RADIUS, _frame_asset_cache)
+
+        if self._frame_surface_cache is None:
+            print 'caching a draw surface'
+            surf = cairo.ImageSurface(cairo.FORMAT_ARGB32, a.width, a.height)
+            _cr = cairo.Context(surf)
+            self.render_frame(_cr, a, self.BORDER_RADIUS, _frame_asset_cache)
+            self._frame_surface_cache = surf
+            del _cr
+
+        cr.set_source_surface(self._frame_surface_cache, 0, 0)
+        cr.paint()
+
         for child in self: self.propagate_draw(child, cr)
         return
 
