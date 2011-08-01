@@ -16,6 +16,9 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+# order is import here, otherwise test/gtk3/test_purchase.py is unhappy
+from gi.repository import GObject
+from gi.repository import Gtk
 
 import atexit
 import locale
@@ -23,7 +26,6 @@ import dbus
 import dbus.service
 import gettext
 import logging
-from gi.repository import GObject
 import os
 import subprocess
 import sys
@@ -64,7 +66,6 @@ import softwarecenter.ui.gtk3.dialogs.deauthorize_dialog as deauthorize_dialog
 import softwarecenter.ui.gtk3.dialogs as dialogs
 
 from softwarecenter.ui.gtk3.SimpleGtkbuilderApp import SimpleGtkbuilderApp
-from softwarecenter.ui.gtk3.panes.viewswitcher import ViewSwitcher
 from softwarecenter.ui.gtk3.panes.installedpane import InstalledPane
 from softwarecenter.ui.gtk3.panes.availablepane import AvailablePane
 from softwarecenter.ui.gtk3.panes.historypane import HistoryPane
@@ -80,7 +81,6 @@ from softwarecenter.distro import get_distro
 from softwarecenter.db.pkginfo import get_pkg_info
 
 
-from gi.repository import Gtk
 from gi.repository import Gdk
 from gi.repository import Atk
 
@@ -721,7 +721,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             appname = "Ubuntu Software Center Store"
             login_text = _("To reinstall previous purchases, sign in to the "
                            "Ubuntu Single Sign-On account you used to pay for them.")
-            window = self.window_main.get_window()
+            #window = self.window_main.get_window()
             #xid = self.get_window().xid
             xid = 0
             self.sso = get_sso_backend(xid,

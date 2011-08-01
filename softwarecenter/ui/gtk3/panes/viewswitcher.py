@@ -19,22 +19,17 @@
 
 from gi.repository import Gtk, GObject
 import logging
-import os
-import sys
-import xapian
 
 from gettext import gettext as _
 
 from softwarecenter.backend import get_install_backend
 from softwarecenter.db.database import StoreDatabase
 from softwarecenter.enums import ViewPages
-from softwarecenter.paths import XAPIAN_BASE_PATH
 from softwarecenter.backend.channel import get_channels_manager
 from softwarecenter.ui.gtk3.widgets.buttons import SectionSelector
 from softwarecenter.ui.gtk3.em import StockEms
 from softwarecenter.ui.gtk3.widgets.symbolic_icons import (
                                     SymbolicIcon, PendingSymbolicIcon)
-import softwarecenter.ui.gtk3.dialogs as dialogs
 
 
 LOG = logging.getLogger(__name__)
@@ -266,7 +261,6 @@ def get_test_window_viewswitcher():
     return win
 
 if __name__ == "__main__":
-    import sys    
     import softwarecenter.paths
     logging.basicConfig(level=logging.DEBUG)
 
