@@ -164,7 +164,12 @@ class AvailablePane(SoftwarePane):
             self.cat_view.connect("category-selected", self.on_category_activated)
             self.cat_view.connect("application-selected", self.on_application_selected)
             self.cat_view.connect("application-activated", self.on_application_activated)
-
+            #next 2 signals are needed for the top rated section in subcategory views
+            self.subcategories_view.connect(
+                "application-selected", self.on_application_selected)
+            self.subcategories_view.connect(
+                "application-activated", self.on_application_activated)
+            
             # details
             self.notebook.append_page(self.scroll_details, gtk.Label(NavButtons.DETAILS))
 

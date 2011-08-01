@@ -37,11 +37,13 @@ class CarouselView(gtk.VBox):
     POSTER_MIN_WIDTH      = 15*EM
 
 
-    def __init__(self, view, carousel_apps, title, icons, start_random=True):
+    def __init__(self, view, carousel_apps, title, icons, 
+                 start_random=True, has_more_button=True):
         gtk.VBox.__init__(self, spacing=6)
 
         self.view = view
         self.cache = carousel_apps.cache
+        self.has_more_button = has_more_button
 
         self.header = gtk.HBox(spacing=12)
         self.pack_start(self.header)
@@ -69,20 +71,21 @@ class CarouselView(gtk.VBox):
         self.set_redraw_on_allocate(False)
         self.carousel_apps = carousel_apps  # an AppStore
 
-        label = _('All')
-        self.more_btn = LinkButtonLight()
-        self.more_btn.set_label(label)
+        if has_more_button:
+            label = _('All')
+            self.more_btn = LinkButtonLight()
+            self.more_btn.set_label(label)
 #        self.more_btn.set_subdued()
 
-        self.more_btn.a11y = self.more_btn.get_accessible()
-        self.more_btn.a11y.set_name(_("show all"))
-        self.more_btn.a11y.set_role(atk.ROLE_PUSH_BUTTON)
+            self.more_btn.a11y = self.more_btn.get_accessible()
+            self.more_btn.a11y.set_name(_("show all"))
+            self.more_btn.a11y.set_role(atk.ROLE_PUSH_BUTTON)
 
-        a = gtk.Alignment(1, 0.5)
-        a.set_padding(6, 6, 6, 6)
-        a.add(self.more_btn)
+            a = gtk.Alignment(1, 0.5)
+            a.set_padding(6, 6, 6, 6)
+            a.add(self.more_btn)
 
-        self.header.pack_end(a, False)
+            self.header.pack_end(a, False)
 
         if carousel_apps and len(carousel_apps) > 0:
             self._icon_size = carousel_apps.icon_size
@@ -308,7 +311,8 @@ class CarouselView(gtk.VBox):
     def draw(self, cr, a, expose_area):
         if not_overlapping(a, expose_area): return
 
-        self.more_btn.draw(cr, self.more_btn.allocation, expose_area)
+        if self.has_more_button:
+            self.more_btn.draw(cr, self.more_btn.allocation, expose_area)
 
         if not self.carousel_apps: return
         alpha = self._alpha

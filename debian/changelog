@@ -32,6 +32,11 @@ software-center (4.1.11) UNRELAED; urgency=low
   * softwarecenter/ui/gtk/appview.py:
     - lowlevel cache isn't available on startup, so query it only on demand
     - fix normal cache to correctly filter out unavailable pkgs (LP: #799713)
+  
+  [ Aaron Peachey ]
+  * lp:~aaronp/software-center/more-top-rated:
+    - support top rated carousel for subcategories like Games or 
+      Development Tools
 
  -- Gary Lasker <gary.lasker@canonical.com>  Fri, 29 Jul 2011 20:36:44 -0400
 
