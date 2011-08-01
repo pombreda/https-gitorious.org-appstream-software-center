@@ -172,7 +172,7 @@ class ExhibitBanner(Gtk.EventBox):
         alignment.add(self.index_hbox)
         hbox.pack_end(alignment, False, False, 0)
 
-        self.cursor = 0
+        self.cursor = -1
         self._timeout = 0
 
         self.alpha = 0.0
@@ -355,7 +355,7 @@ class ExhibitBanner(Gtk.EventBox):
 
     def set_exhibits(self, exhibits_list):
         self.exhibits = exhibits_list
-        self.cursor = 0
+        #~ self.cursor = 0
 
         for child in self.index_hbox:
             child.destroy()
