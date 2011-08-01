@@ -1,4 +1,4 @@
-software-center (4.1.11) UNRELAED; urgency=low
+software-center (4.1.11) oneiric; urgency=low
 
   [ Michael Vogt ]
   * utils/show_top_rated_for_various_powers.py:
@@ -38,7 +38,7 @@ software-center (4.1.11) UNRELAED; urgency=low
     - support top rated carousel for subcategories like Games or 
       Development Tools
 
- -- Gary Lasker <gary.lasker@canonical.com>  Fri, 29 Jul 2011 20:36:44 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 01 Aug 2011 16:15:31 +0200
 
 software-center (4.1.10) oneiric; urgency=low
 
