@@ -35,6 +35,7 @@ class ActionBar(gtk.HBox):
     See: https://wiki.ubuntu.com/SoftwareCenter#Main%20window
     https://wiki.ubuntu.com/SoftwareCenter#Custom%20package%20lists
     https://wiki.ubuntu.com/SoftwareCenter#software-list-view-disclosure
+    https://wiki.ubuntu.com/SoftwareCenter#Learning_how_to_launch_an_application
     """
     
     PADDING = 4
