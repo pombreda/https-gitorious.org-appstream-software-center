@@ -138,6 +138,9 @@ class ViewSwitcher(Gtk.Box):
         image.set_transaction_count(count)
 
     def introduce_button(self):
+
+        
+
         return
 
     def on_transaction_finished(self, backend, result):

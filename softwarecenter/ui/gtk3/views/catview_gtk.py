@@ -14,7 +14,7 @@ from softwarecenter.enums import NonAppVisibility
 from softwarecenter.ui.gtk3.models.appstore2 import AppPropertiesHelper
 from softwarecenter.ui.gtk3.widgets.containers import (
      FramedHeaderBox, HeaderPosition, FramedBox, FlowableGrid, Frame)
-from softwarecenter.ui.gtk3.widgets.exhibits import ExhibitBanner
+from softwarecenter.ui.gtk3.widgets.exhibits import ExhibitBanner, fake_banner_uris
 from softwarecenter.ui.gtk3.widgets.buttons import (LabelTile,
                                                     CategoryTile,
                                                     FeaturedTile)
@@ -278,7 +278,7 @@ class LobbyViewGtk(CategoriesViewGtk):
 
     def _append_banner_ads(self):
         exhibit_banner = ExhibitBanner()
-        #~ exhibit_banner.set_exhibits(exhibits_list)
+        exhibit_banner.set_exhibits(fake_banner_uris)
 
         a = Gtk.Alignment()
         a.set_padding(0,StockEms.MEDIUM,0,0)

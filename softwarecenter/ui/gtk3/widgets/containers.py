@@ -200,7 +200,8 @@ class FlowableGrid(Gtk.Fixed):
             self.remove(child)
         return
 
-
+# first tier of caching, cache component assets from which frames are
+# rendered
 _frame_asset_cache = {}
 class Frame(Gtk.Alignment):
 
@@ -221,6 +222,8 @@ class Frame(Gtk.Alignment):
         self.layout.set_ellipsize(Pango.EllipsizeMode.END)
 
         assets = self._cache_art_assets()
+        # second tier of caching, cache resultant surface of
+        # fully composed and rendered frame
         self._frame_surface_cache = None
         self.connect_after("draw", self.on_draw_after,
                            assets, self.layout)
@@ -233,7 +236,9 @@ class Frame(Gtk.Alignment):
         cur = self.get_allocation()
         if cur.width != old.width:
             self._frame_surface_cache = None
-        return
+            self._allocation = cur
+            return
+        return True
 
     def _cache_art_assets(self):
         global _frame_asset_cache
@@ -302,17 +307,7 @@ class Frame(Gtk.Alignment):
 
     def on_draw(self, cr):
         a = self.get_allocation()
-
-        if self._frame_surface_cache is None:
-            print 'caching a draw surface'
-            surf = cairo.ImageSurface(cairo.FORMAT_ARGB32, a.width, a.height)
-            _cr = cairo.Context(surf)
-            self.render_frame(_cr, a, self.BORDER_RADIUS, _frame_asset_cache)
-            self._frame_surface_cache = surf
-            del _cr
-
-        cr.set_source_surface(self._frame_surface_cache, 0, 0)
-        cr.paint()
+        self.render_frame(cr, a, self.BORDER_RADIUS, _frame_asset_cache)
 
         for child in self: self.propagate_draw(child, cr)
         return
@@ -367,74 +362,85 @@ class Frame(Gtk.Alignment):
         return
 
     def render_frame(self, cr, a, border_radius, assets):
+        # we cache as much of the drawing as possible
+        # store a copy of the rendered frame surface, so we only have to
+        # do a full redraw if the widget dimensions change
+        if self._frame_surface_cache is None:
+            surf = cairo.ImageSurface(cairo.FORMAT_ARGB32, a.width, a.height)
+            _cr = cairo.Context(surf)
+
+            width = a.width
+            height = a.height
+            cnr_slice = assets["corner-slice"]
+
+            # paint north-west corner
+            _cr.set_source_surface(assets["nw"], 0, 0)
+            _cr.paint()
+
+            # paint north length
+            _cr.save()
+            _cr.set_source(assets["n"])
+            _cr.rectangle(cnr_slice, 0, width-2*cnr_slice, cnr_slice)
+            _cr.clip()
+            _cr.paint()
+            _cr.restore()
+
+            # paint north-east corner
+            _cr.set_source_surface(assets["ne"], width-cnr_slice, 0)
+            _cr.paint()
+
+            # paint east length
+            _cr.save()
+            _cr.translate(width-cnr_slice, cnr_slice)
+            _cr.set_source(assets["e"])
+            _cr.rectangle(0, 0, cnr_slice, height-2*cnr_slice)
+            _cr.clip()
+            _cr.paint()
+            _cr.restore()
+
+            # paint south-east corner
+            _cr.set_source_surface(assets["se"], width-cnr_slice, height-cnr_slice)
+            _cr.paint()
+
+            # paint south length
+            _cr.save()
+            _cr.translate(cnr_slice, height-cnr_slice)
+            _cr.set_source(assets["s"])
+            _cr.rectangle(0, 0, width-2*cnr_slice, cnr_slice)
+            _cr.clip()
+            _cr.paint()
+            _cr.restore()
+
+            # paint south-west corner
+            _cr.set_source_surface(assets["sw"], 0, height-cnr_slice)
+            _cr.paint()
+
+            # paint west length
+            _cr.save()
+            _cr.translate(0, cnr_slice)
+            _cr.set_source(assets["w"])
+            _cr.rectangle(0, 0, cnr_slice, height-2*cnr_slice)
+            _cr.clip()
+            _cr.paint()
+            _cr.restore()
+
+            # fill interior
+            rounded_rect(_cr, 3, 2, a.width-6, a.height-6, border_radius)
+            _cr.set_source_rgba(0.992156863,0.984313725,0.988235294)  #FDFBFC
+            _cr.fill()
+
+            self._frame_surface_cache = surf
+            del _cr
+
+        # paint the cached surface and apply a rounded rect clip to
+        # child draw ops
         A = self.get_allocation()
         xo, yo = a.x-A.x, a.y-A.y
 
-        cr.reset_clip()
-
-        cr.save()
-        cr.translate(xo, yo)
-        width = a.width
-        height = a.height
-        cnr_slice = assets["corner-slice"]
-
-        # paint north-west corner
-        cr.set_source_surface(assets["nw"], 0, 0)
+        cr.set_source_surface(self._frame_surface_cache, xo, yo)
         cr.paint()
 
-        # paint north length
-        cr.save()
-        cr.set_source(assets["n"])
-        cr.rectangle(cnr_slice, 0, width-2*cnr_slice, cnr_slice)
-        cr.clip()
-        cr.paint()
-        cr.restore()
-
-        # paint north-east corner
-        cr.set_source_surface(assets["ne"], width-cnr_slice, 0)
-        cr.paint()
-
-        # paint east length
-        cr.save()
-        cr.translate(width-cnr_slice, cnr_slice)
-        cr.set_source(assets["e"])
-        cr.rectangle(0, 0, cnr_slice, height-2*cnr_slice)
-        cr.clip()
-        cr.paint()
-        cr.restore()
-
-        # paint south-east corner
-        cr.set_source_surface(assets["se"], width-cnr_slice, height-cnr_slice)
-        cr.paint()
-
-        # paint south length
-        cr.save()
-        cr.translate(cnr_slice, height-cnr_slice)
-        cr.set_source(assets["s"])
-        cr.rectangle(0, 0, width-2*cnr_slice, cnr_slice)
-        cr.clip()
-        cr.paint()
-        cr.restore()
-
-        # paint south-west corner
-        cr.set_source_surface(assets["sw"], 0, height-cnr_slice)
-        cr.paint()
-
-        # paint west length
-        cr.save()
-        cr.translate(0, cnr_slice)
-        cr.set_source(assets["w"])
-        cr.rectangle(0, 0, cnr_slice, height-2*cnr_slice)
-        cr.clip()
-        cr.paint()
-        cr.restore()
-
-        cr.restore()
-
-        # fill interior
         rounded_rect(cr, xo+3, yo+2, a.width-6, a.height-6, border_radius)
-        cr.set_source_rgba(0.992156863,0.984313725,0.988235294)  #FDFBFC
-        cr.fill_preserve()
         cr.clip()
         return
 
