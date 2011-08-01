@@ -19,7 +19,6 @@
 
 from gi.repository import Gtk, GObject
 import logging
-import sys
 
 from gettext import gettext as _
 
