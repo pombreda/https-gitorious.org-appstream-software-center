@@ -355,7 +355,7 @@ class ExhibitBanner(Gtk.EventBox):
 
     def set_exhibits(self, exhibits_list):
         self.exhibits = exhibits_list
-        #~ self.cursor = 0
+        self.cursor = -1
 
         for child in self.index_hbox:
             child.destroy()
