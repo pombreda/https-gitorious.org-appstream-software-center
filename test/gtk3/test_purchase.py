@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-from gi.repository import Gtk, GObject
+from gi.repository import GObject
 
 import os
 import sys

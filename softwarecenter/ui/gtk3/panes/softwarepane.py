@@ -30,7 +30,6 @@ import xapian
 from gettext import gettext as _
 
 import softwarecenter.utils
-import softwarecenter.ui.gtk3.dialogs as dialogs
 from softwarecenter.backend import get_install_backend
 from softwarecenter.db.database import Application
 from softwarecenter.db.enquire import AppEnquire

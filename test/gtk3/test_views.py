@@ -1,14 +1,13 @@
 #!/usr/bin/python
 
-from gi.repository import Gtk, GdkPixbuf, GObject
-import os
+from gi.repository import Gtk, GObject
 import sys
 import unittest
 
 sys.path.insert(0,"../..")
 sys.path.insert(0,"..")
 
-from mock import Mock
+#from mock import Mock
 
 from softwarecenter.ui.gtk3.panes.viewswitcher import get_test_window_viewswitcher
 
