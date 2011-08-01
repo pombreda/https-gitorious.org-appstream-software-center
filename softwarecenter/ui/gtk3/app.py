@@ -16,6 +16,9 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+# order is import here, otherwise test/gtk3/test_purchase.py is unhappy
+from gi.repository import GObject
+from gi.repository import Gtk
 
 import atexit
 import locale
@@ -23,7 +26,6 @@ import dbus
 import dbus.service
 import gettext
 import logging
-from gi.repository import GObject
 import os
 import subprocess
 import sys
@@ -79,7 +81,6 @@ from softwarecenter.distro import get_distro
 from softwarecenter.db.pkginfo import get_pkg_info
 
 
-from gi.repository import Gtk
 from gi.repository import Gdk
 from gi.repository import Atk
 
