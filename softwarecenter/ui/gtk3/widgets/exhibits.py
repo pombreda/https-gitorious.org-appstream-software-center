@@ -18,6 +18,7 @@
 
 import cairo
 from os.path import join
+from gettext import gettext as _
 
 from gi.repository import Gtk
 from gi.repository import Gdk
@@ -28,6 +29,7 @@ from gi.repository import WebKit
 from softwarecenter.utils import SimpleFileDownloader
 from softwarecenter.ui.gtk3.em import em, StockEms
 from softwarecenter.ui.gtk3.shapes import Circle
+from softwarecenter.ui.gtk3.drawing import rounded_rect
 import softwarecenter.paths
 
 
@@ -47,15 +49,20 @@ class _HtmlRenderer(Gtk.OffscreenWindow):
         self.add(self.view)
         self.show_all()
         self.loader = SimpleFileDownloader()
-        self.loader.connect("file-download-complete", self.on_download_complete)
+        self.loader.connect("file-download-complete",
+                            self.on_download_complete)
         return
 
     def on_download_complete(self, loader, path):
         self.view.load_uri('file://' + path)
         return
 
-    def set_banner_uri(self, banner_uri):
-        self.loader.download_file(banner_uri, use_cache=True)
+    def set_default(self, exhibit):
+        self.view.load_uri(exhibit.html)
+        return
+
+    def set_exhibit(self, exhbit):
+        self.loader.download_file(exhbit, use_cache=True)
         return 
 
 
@@ -115,6 +122,17 @@ class ExhibitArrowButton(ExhibitButton):
         return
 
 
+import os
+class DefaultExhbit(object):
+    id = 0
+    package_names = "apt,2vcard"
+    published = True
+    html = "file://localhost%s/data/default_banner/default.html" % os.getcwd()
+    atk_name = _("Default Banner")
+    atk_description = _("You see this banner because you have no cached banners")
+    print html
+
+
 class ExhibitBanner(Gtk.EventBox):
 
     __gsignals__ = {
@@ -144,10 +162,10 @@ class ExhibitBanner(Gtk.EventBox):
 
         next = ExhibitArrowButton(Gtk.ArrowType.RIGHT)
         previous = ExhibitArrowButton(Gtk.ArrowType.LEFT)
-        nextprev_hbox = Gtk.HBox()
-        nextprev_hbox.pack_start(previous, False, False, 0)
-        nextprev_hbox.pack_start(next, False, False, 0)
-        hbox.pack_end(nextprev_hbox, False, False, 0)
+        self.nextprev_hbox = Gtk.HBox()
+        self.nextprev_hbox.pack_start(previous, False, False, 0)
+        self.nextprev_hbox.pack_start(next, False, False, 0)
+        hbox.pack_end(self.nextprev_hbox, False, False, 0)
 
         self.index_hbox = Gtk.HBox(spacing=StockEms.SMALL)
         alignment = Gtk.Alignment.new(1.0, 1.0, 0.0, 1.0)
@@ -161,8 +179,8 @@ class ExhibitBanner(Gtk.EventBox):
         self.image = None
         self.old_image = None
         self.renderer = _HtmlRenderer()
-        self.renderer.view.connect("load-finished",
-                                   self.on_load, self.renderer)
+        self.renderer.set_default(DefaultExhbit)
+        self.renderer.view.connect("load-finished", self.on_banner_load, self.renderer)
 
         self.set_visible_window(False)
         self.set_size_request(-1, self.MAX_HEIGHT)
@@ -221,7 +239,7 @@ class ExhibitBanner(Gtk.EventBox):
             self.cursor += 1
 
         self.old_image = self.renderer.get_pixbuf()
-        self.renderer.set_banner_uri(self.exhibits[self.cursor])
+        self.renderer.set_exhibit(self.exhibits[self.cursor])
         return False
 
     def previous(self):
@@ -240,12 +258,21 @@ class ExhibitBanner(Gtk.EventBox):
                                     self.TIMEOUT_SECONDS, self.next)
         return self._timeout
 
-    def on_load(self, view, frame, renderer):
+    def on_banner_load(self, view, frame, renderer):
         self.image = renderer.get_surface()
+        print self.image.get_width()
+
+        if self.image.get_width() == 1:
+            print 'banner loaded but offscreenwindow content not ready'
+            GObject.timeout_add(750, self.on_banner_load, view, frame, renderer)
+            return
+
+        print 'banner loaded'
         self._fade_in()
         self.queue_next()
+        return False
 
-    def _fade_in(self, step=0.1):
+    def _fade_in(self, step=0.05):
         self.alpha = 0.0
 
         def fade_step():
@@ -291,7 +318,7 @@ class ExhibitBanner(Gtk.EventBox):
             x = (a.width - self.old_image.get_width()) / 2
             y = 0
             Gdk.cairo_set_source_pixbuf(cr, self.old_image, x, y)
-            cr.paint_with_alpha(1-self.alpha)
+            cr.paint()
 
         if self.image is not None:
             x = (a.width - self.image.get_width()) / 2
@@ -305,6 +332,7 @@ class ExhibitBanner(Gtk.EventBox):
         #~ cr.set_source(assets["n"])
         #~ cr.paint()
         #~ cr.reset_clip()
+
         cr.rectangle(0, a.height-self.DROPSHADOW_HEIGHT,
                      a.width, self.DROPSHADOW_HEIGHT)
         cr.clip()
@@ -338,7 +366,7 @@ class ExhibitBanner(Gtk.EventBox):
         self._dotsigs = []
         for i, exhibit in enumerate(self.exhibits):
             dot = ExhibitButton()
-            dot.set_size_request(StockEms.MEDIUM, StockEms.MEDIUM)
+            dot.set_size_request(StockEms.LARGE, StockEms.LARGE)
             self._dotsigs.append(
                 dot.connect("clicked",
                 self.on_paging_dot_clicked,
@@ -347,9 +375,10 @@ class ExhibitBanner(Gtk.EventBox):
             self.index_hbox.pack_end(dot, False, False, 0)
             self.index_hbox.show_all()
 
-        self.renderer.set_banner_uri(self.exhibits[self.cursor])
+        GObject.timeout_add_seconds(5000,
+                                    self.renderer.set_exhibit,
+                                    self.exhibits[self.cursor])
         return
-
 
 
 if __name__ == "__main__":
@@ -368,17 +397,10 @@ if __name__ == "__main__":
             #~ ("3 yet another title", "https://wiki.ubuntu.com/Brand?action=AttachFile&do=get&target=xubuntu.png"),
             #~ ]):
          #~ exhibit = Mock()
-         #~ exhibit.background_color = "#FFFFFF"
-         #~ exhibit.banner_url = url
-         #~ exhibit.date_created = "2011-07-20 08:49:15"
-         #~ exhibit.font_color = "#000000"
-         #~ exhibit.font_name = ""
-         #~ exhibit.font_size = 24
          #~ exhibit.id = i
          #~ exhibit.package_names = "apt,2vcard"
          #~ exhibit.published = True
-         #~ exhibit.title_coords = [10, 10]
-         #~ exhibit.title_translated = title
+         #~ exhibit.style = "some uri to html"
          #~ exhibits_list.append(exhibit)
 
     exhibit_banner.set_exhibits(fake_banner_uris)
