@@ -1,17 +1,21 @@
 #view {
-    border-width: 0;
     background-color: #DED7DB;
-    /*  background-image: url('../art/stipple.png'); */
+    border-radius: 0;
+    border-width: 0;
 }
 
+#backforward {
+    border-width: 0;
+    border-radius: 0;
+}
 
-#channel-selector {
+#section-selector {
     color: #d7d0d4;      /* light aubergine */
     border-width: 0;
 }
 
 #symbolic-icon:hover,
-#channel-selector:hover {
+#section-selector:hover {
     color: #fff;        /* white */
 }
 
@@ -35,3 +39,7 @@ GtkEntry {
     border-radius: 8;
 }
 
+#exhibit-button{
+    border-radius: 12;
+    color: #fff;
+}

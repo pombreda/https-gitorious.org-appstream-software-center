@@ -1,5 +1,15 @@
 software-center (4.1.12) UNRELEASED; urgency=low
 
+  [ Michael Vogt ]
+  * merged lp:~alexeftimie/software-center/backend-refactor,
+    many thanks
+  * test/gtk3/test_widgets.py:
+    - more widget test coverage
+  * merged lp:~mmcg069/software-center/the-aesthetics, lots
+    of really nice gtk3 work, many thanks!
+  * install gtk3 version as software-center-gtk3 tech preview
+
+  [ Gary Lasker ]
   * softwarecenter/ui/gtk/softwarepane.py:
     - small fix to action bar functionality in support of oneconf
 

@@ -1,12 +1,30 @@
+# Copyright (C) 2011 Canonical
+#
+# Authors:
+#  Matthew McGowan
+#
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; version 3.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+# details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
 import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, Gdk, Atk, GObject, GdkPixbuf
 
-
 import logging
-
-#from softwarecenter.enums import *
 import os
+import sys
+
+from softwarecenter.db.pkginfo import get_pkg_info
 from softwarecenter.utils import SimpleFileDownloader
 
 from imagedialog import SimpleShowImageDialog
@@ -522,12 +540,44 @@ class ScreenshotThumbnail(Gtk.Alignment):
             #~ cr.fill()
         return
 
+def get_test_screenshot_thumbnail_window():
+
+    icons = Gtk.IconTheme.get_default()
+    icons.append_search_path("/usr/share/app-install/icons/")
+
+    import softwarecenter.distro
+    distro = softwarecenter.distro.get_distro()
+
+    win = Gtk.Window()
+    win.set_border_width(10)
+
+    t = ScreenshotThumbnail(distro, icons)
+    t.connect('draw', t.draw)
+    win.set_data("screenshot_thumbnail_widget", t)
+
+    vb = Gtk.VBox(spacing=6)
+    win.add(vb)
+
+    vb.pack_start(Gtk.Button('A button for focus testing'), True, True, 0)
+    vb.pack_start(t, True, True, 0)
+
+    win.show_all()
+    win.connect('destroy', Gtk.main_quit)
+
+    from mock import Mock
+    app_details = Mock()
+    app_details.display_name = "display name"
+    app_details.pkgname = "pkgname"
+    url = "http://www.ubuntu.com/sites/default/themes/ubuntu10/images/footer_logo.png"
+    app_details.thumbnail = url
+    app_details.screenshot = url
+
+    t.configure(app_details)
+    t.download_and_display()
+
+    return win
 
 if __name__ == '__main__':
-
-    def testing_draw_handler(widget, cr):
-        #thumb.draw(widget, cr)
-        return
 
     def testing_cycle_apps(thumb, apps, db):
 
@@ -540,54 +590,24 @@ if __name__ == '__main__':
         thumb.download_and_display()
         return True
 
-
-    import sys, logging
     logging.basicConfig(level=logging.DEBUG)
 
-    if len(sys.argv) > 1:
-        datadir = sys.argv[1]
-    elif os.path.exists("./data"):
-        datadir = "./data"
-    else:
-        datadir = "/usr/share/software-center"
-
-    xapian_base_path = "/var/cache/software-center"
-    pathname = os.path.join(xapian_base_path, "xapian")
-    from softwarecenter.db.pkginfo_impl.aptcache import AptCache
-    cache = AptCache()
+    cache = get_pkg_info()
     cache.open()
 
     from softwarecenter.db.database import StoreDatabase
+    xapian_base_path = "/var/cache/software-center"
+    pathname = os.path.join(xapian_base_path, "xapian")
     db = StoreDatabase(pathname, cache)
     db.open()
-
-    icons = Gtk.IconTheme.get_default()
-    icons.append_search_path("/usr/share/app-install/icons/")
-
-    import softwarecenter.distro
-    distro = softwarecenter.distro.get_distro()
-
-    t = ScreenshotThumbnail(distro, icons)
-    t.connect('draw', t.draw)
-
-    w = Gtk.Window()
-    w.set_border_width(10)
-
-    vb = Gtk.VBox(spacing=6)
-    w.add(vb)
-
-    vb.pack_start(Gtk.Button('A button for focus testing'), True, True, 0)
-    vb.pack_start(t, True, True, 0)
-
-    w.show_all()
-    w.connect('destroy', Gtk.main_quit)
+   
+    w = get_test_screenshot_thumbnail_window()
+    t = w.get_data("screenshot_thumbnail_widget")
 
     from softwarecenter.db.application import Application
     apps = [Application("Movie Player", "totem"),
             Application("ACE", "uace")]
 
-    testing_cycle_apps(t, apps, db)
-
-    GObject.timeout_add(6000, testing_cycle_apps, t, apps, db)
+    GObject.timeout_add_seconds(6, testing_cycle_apps, t, apps, db)
 
     Gtk.main()

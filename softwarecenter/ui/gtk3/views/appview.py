@@ -74,7 +74,6 @@ class AppView(Gtk.TreeView):
     VARIANT_REMOVE = 1
     VARIANT_INSTALL = 2
 
-
     def __init__(self, icons, show_ratings, store=None):
         Gtk.TreeView.__init__(self)
         self._logger = logging.getLogger("softwarecenter.view.appview")

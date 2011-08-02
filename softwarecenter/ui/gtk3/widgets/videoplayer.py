@@ -21,8 +21,8 @@ import sys
 
 from gettext import gettext as _
 from gi.repository import Gdk
-from gi.repository import Gtk
 from gi.repository import Gst
+from gi.repository import Gtk
 from gi.repository import WebKit
 
 LOG = logging.getLogger(__name__)
@@ -107,11 +107,7 @@ class VideoPlayerGtk3(Gtk.VBox):
             Gdk.threads_leave()	
 
 
-if __name__ == "__main__":
-    logging.basicConfig()
-    Gdk.threads_init()
-    Gst.init(sys.argv)
-
+def get_test_videoplayer_window():
     win = Gtk.Window.new(Gtk.WindowType.TOPLEVEL)
     win.set_default_size(500, 400)
     win.connect("destroy", Gtk.main_quit)
@@ -122,4 +118,12 @@ if __name__ == "__main__":
     else:
         player.uri = sys.argv[1]
     win.show_all()
+    return win
+
+if __name__ == "__main__":
+    logging.basicConfig()
+    Gdk.threads_init()
+    Gst.init(sys.argv)
+
+    win = test_videoplayer_window()
     Gtk.main()
