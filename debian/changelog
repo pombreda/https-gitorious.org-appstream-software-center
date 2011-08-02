@@ -7,6 +7,7 @@ software-center (4.1.12) UNRELEASED; urgency=low
     - more widget test coverage
   * merged lp:~mmcg069/software-center/the-aesthetics, lots
     of really nice gtk3 work, many thanks!
+  * install gtk3 version as software-center-gtk3 tech preview
 
   [ Gary Lasker ]
   * softwarecenter/ui/gtk/softwarepane.py:
