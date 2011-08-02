@@ -327,7 +327,8 @@ class ExhibitBanner(Gtk.EventBox):
     def _cache_art_assets(self):
         global _asset_cache
         assets = _asset_cache
-        if assets: return assets
+        if assets: 
+            return assets
 
         #~ surf = cairo.ImageSurface.create_from_png(self.NORTHERN_DROPSHADOW)
         #~ ptrn = cairo.SurfacePattern(surf)
@@ -349,13 +350,15 @@ class ExhibitBanner(Gtk.EventBox):
         cr.paint()
 
         if self.old_image is not None:
-            x = (a.width - self.old_image.get_width()) / 2
+            #x = (a.width - self.old_image.get_width()) / 2
+            x = 0
             y = 0
             Gdk.cairo_set_source_pixbuf(cr, self.old_image, x, y)
             cr.paint()
 
         if self.image is not None:
-            x = (a.width - self.image.get_width()) / 2
+            #x = (a.width - self.image.get_width()) / 2
+            x = 0
             y = 0
             Gdk.cairo_set_source_pixbuf(cr, self.image, x, y)
             cr.paint_with_alpha(self.alpha)
