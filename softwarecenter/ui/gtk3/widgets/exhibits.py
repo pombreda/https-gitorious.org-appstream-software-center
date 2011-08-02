@@ -32,7 +32,6 @@ from softwarecenter.ui.gtk3.shapes import Circle
 from softwarecenter.ui.gtk3.drawing import rounded_rect
 import softwarecenter.paths
 
-
 fake_banner_uris = ('http://dl.dropbox.com/u/123544/banner-test.html',
                     'http://dl.dropbox.com/u/123544/banner-test2.html',
                     'http://dl.dropbox.com/u/123544/banner-test3.html')
@@ -68,10 +67,11 @@ class _HtmlRenderer(Gtk.OffscreenWindow):
 
 class ExhibitButton(Gtk.Button):
 
-    DROPSHADOW = GdkPixbuf.Pixbuf.new_from_file("data/ui/gtk3/art/circle-dropshadow.png")
-
     def __init__(self):
         Gtk.Button.__init__(self)
+        self.DROPSHADOW = GdkPixbuf.Pixbuf.new_from_file(
+            os.path.join(softwarecenter.paths.datadir,
+                         "ui/gtk3/art/circle-dropshadow.png"))
         self.set_focus_on_click(False)
         self.set_name("exhibit-button")
         self._dropshadow = None
@@ -142,21 +142,23 @@ class ExhibitBanner(Gtk.EventBox):
                            )
         }
 
-    NORTHERN_DROPSHADOW = "data/ui/gtk3/art/exhibit-dropshadow-n.png"
-    SOUTHERN_DROPSHADOW = "data/ui/gtk3/art/exhibit-dropshadow-s.png"
     DROPSHADOW_HEIGHT = 11
-
     MAX_HEIGHT = 200 # pixels
-
     TIMEOUT_SECONDS = 15
-    FALLBACK = "%s/data/default_banner/fallback.png" % os.getcwd()
 
+    NORTHERN_DROPSHADOW = os.path.join(softwarecenter.paths.datadir,
+                                       "ui/gtk3/art/exhibit-dropshadow-n.png")
+    SOUTHERN_DROPSHADOW = os.path.join(softwarecenter.paths.datadir,
+                                       "ui/gtk3/art/exhibit-dropshadow-s.png")
+    FALLBACK = os.path.join(softwarecenter.paths.datadir,
+                            "default_banner/fallback.png")
 
     def __init__(self):
         Gtk.EventBox.__init__(self)
         vbox = Gtk.VBox()
         vbox.set_border_width(StockEms.SMALL)
         self.add(vbox)
+
 
         hbox = Gtk.HBox(spacing=StockEms.SMALL)
         vbox.pack_end(hbox, False, False, 0)
@@ -378,10 +380,8 @@ class ExhibitBanner(Gtk.EventBox):
         self.renderer.set_exhibit(self.exhibits[self.cursor])
         return
 
-
-if __name__ == "__main__":
+def get_test_exhibits_window():
     from mock import Mock
-
 
     win = Gtk.Window()
     win.set_size_request(600, 400)
@@ -409,4 +409,8 @@ if __name__ == "__main__":
 
     win.show_all()
     win.connect("destroy", Gtk.main_quit)
+    return win
+
+if __name__ == "__main__":
+    win = get_test_exhibits_window()
     Gtk.main()

@@ -421,8 +421,7 @@ class MoreLink(Gtk.EventBox):
         self.queue_draw()
         return
 
-
-if __name__ == "__main__":
+def get_test_buttons_window():
     win = Gtk.Window()
     win.set_size_request(200,200)
 
@@ -434,4 +433,8 @@ if __name__ == "__main__":
 
     win.show_all()
     win.connect("destroy", Gtk.main_quit)
+    return win
+
+if __name__ == "__main__":
+    win = get_test_buttons_window()
     Gtk.main()

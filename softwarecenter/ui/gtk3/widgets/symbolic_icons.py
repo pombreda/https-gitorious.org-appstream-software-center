@@ -206,10 +206,7 @@ class PendingSymbolicIcon(SymbolicIcon, RotationAboutCenterAnimation):
         self.queue_draw()
         return
 
-
-if __name__ == "__main__":
-    softwarecenter.paths.datadir = os.path.join(os.getcwd(), 'data')
-
+def get_test_symbolic_icons_window():
     win = Gtk.Window()
     win.set_border_width(20)
     hb = Gtk.HBox(spacing=12)
@@ -226,4 +223,9 @@ if __name__ == "__main__":
     hb.add(ico)
     win.show_all()
     win.connect("destroy", Gtk.main_quit)
+    return win
+
+if __name__ == "__main__":
+    softwarecenter.paths.datadir = os.path.join(os.getcwd(), 'data')
+    win = get_test_symbolic_icons_window()
     Gtk.main()
