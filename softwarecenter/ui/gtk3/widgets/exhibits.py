@@ -145,7 +145,7 @@ class ExhibitBanner(Gtk.EventBox):
     MAX_HEIGHT = 200 # pixels
 
     TIMEOUT_SECONDS = 15
-    FALLBACK = "%s/data/default_banner/placeholder.png" % os.getcwd()
+    FALLBACK = "%s/data/default_banner/fallback.png" % os.getcwd()
 
 
     def __init__(self):
