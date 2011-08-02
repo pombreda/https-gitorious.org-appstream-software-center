@@ -296,6 +296,7 @@ class CellRendererAppView2(gtk.CellRendererText):
         # geometry-state values
         self.overlay_icon_name = overlay_icon_name
         self.pixbuf_width = 0
+        self.apptitle_width = 0
         self.normal_height = 0
         self.selected_height = 0
 
@@ -388,6 +389,8 @@ class CellRendererAppView2(gtk.CellRendererText):
             layout.set_width((max_layout_width)*pango.SCALE)
             layout.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
             lw = max_layout_width
+            
+        self.apptitle_width = layout.get_line(0).get_pixel_extents()[1][2]
 
         if direction != gtk.TEXT_DIR_RTL:
             x = 2*xpad+self.pixbuf_width
@@ -409,12 +412,15 @@ class CellRendererAppView2(gtk.CellRendererText):
         cr = window.cairo_create()
 
         # make the ratings x & width the same as the 'Install/Remove' button
+        # TODO: don't have this constraint anymore, set width directly
         sw = sh = self.get_button_by_name('action0').allocation.width/5
 
         if direction != gtk.TEXT_DIR_RTL:
-            x = cell_area.x + cell_area.width - xpad - (sw*self.MAX_STARS)
+            x = 4*xpad+self.pixbuf_width+self.apptitle_width
         else:
+            # TODO: implement RTL case for new star location
             x = cell_area.x + xpad
+#            x = cell_area.x + cell_area.width - xpad - (sw*self.MAX_STARS)
 
         y = cell_area.y + ypad
 
@@ -426,19 +432,14 @@ class CellRendererAppView2(gtk.CellRendererText):
                                         self.MAX_STARS,     # max stars
                                         self.rating)        # rating
 
-        # and nr-reviews below
-        s = gettext.ngettext(
-            "%(nr_ratings)i Rating",
-            "%(nr_ratings)i Ratings",
-            self.nreviews) % { 'nr_ratings' : self.nreviews, }
+        # and nr-reviews in parenthesis to the right of the title
+        s = "(%s)" % self.nreviews
 
         self._layout.set_markup("<small>%s</small>" % s)
         lw, lh = self._layout.get_pixel_extents()[1][2:]
 
         w = self.MAX_STARS*sw
-
-        x += (w-lw)/2
-        y += sh + ypad
+        x += 2*xpad+w
 
         widget.style.paint_layout(window, 
                                   state,
@@ -543,6 +544,8 @@ class CellRendererAppView2(gtk.CellRendererText):
         xpad = self.get_property('xpad')
         ypad = self.get_property('ypad')
         direction = widget.get_direction()
+        # TODO: remove this
+        # direction = gtk.TEXT_DIR_RTL
 
         # important! ensures correct text rendering, esp. when using hicolor theme
         if (flags & gtk.CELL_RENDERER_SELECTED) != 0:
