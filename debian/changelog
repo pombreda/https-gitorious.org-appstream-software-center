@@ -12,6 +12,10 @@ software-center (4.1.12) UNRELEASED; urgency=low
   * softwarecenter/ui/gtk/softwarepane.py:
     - small fix to action bar functionality in support of oneconf
 
+  [ Kiwinote ]
+  * softwarecenter/ui/gtk/widgets/carousel.py:
+    - ensure that carousel posters always display a title
+
  -- Gary Lasker <gary.lasker@canonical.com>  Mon, 01 Aug 2011 13:15:36 -0400
 
 software-center (4.1.11) oneiric; urgency=low
