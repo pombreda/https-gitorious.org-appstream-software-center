@@ -15,6 +15,8 @@ software-center (4.1.12) UNRELEASED; urgency=low
   [ Kiwinote ]
   * softwarecenter/ui/gtk/widgets/carousel.py:
     - ensure that carousel posters always display a title
+  * softwarecenter/ui/gtk3/views/catview_gtk.py:
+    - connect up the 'more' buttons
 
  -- Gary Lasker <gary.lasker@canonical.com>  Mon, 01 Aug 2011 13:15:36 -0400
 

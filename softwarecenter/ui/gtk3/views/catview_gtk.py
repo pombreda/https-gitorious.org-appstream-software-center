@@ -323,6 +323,7 @@ class LobbyViewGtk(CategoriesViewGtk):
         frame = FramedHeaderBox()
         frame.set_header_label(_("Top Rated"))
         frame.header_implements_more_button()
+        frame.more.connect('clicked', self.on_category_clicked, toprated_cat) 
         frame.add(self.toprated)
         self.right_column.pack_start(frame, True, True, 0)
 
@@ -356,6 +357,7 @@ class LobbyViewGtk(CategoriesViewGtk):
         #~ frame.set_corner_label(_("New"))
         frame.set_header_label(_("New"))
         frame.header_implements_more_button()
+        frame.more.connect('clicked', self.on_category_clicked, featured_cat) 
         frame.add(self.featured)
         self.right_column.pack_start(frame, True, True, 0)
 
