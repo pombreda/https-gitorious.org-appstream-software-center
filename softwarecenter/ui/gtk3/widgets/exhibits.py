@@ -61,23 +61,8 @@ class _HtmlRenderer(Gtk.OffscreenWindow):
     def on_download_complete(self, loader, path):
         image_name = os.path.basename(path)
         cache_dir = os.path.dirname(path)
-
-        html = """
-<html>
-<head>
- <title></title>
-</head>
-<body>
-<img src="%s" />
-%s
-
-</body>
-</html>
-""" % (image_name,
-       self.exhibit.html_text,
-       )
-        print html
-        print cache_dir
+        html = self.exhibit.html
+        html.replace(self.exhibit.banner_url, path)
         self.view.load_string(html, "text/html", "UTF-8", 
                               "file:///%s/" % cache_dir)
         return
@@ -153,10 +138,21 @@ class DefaultExhibit(object):
         self.id = 0
         self.package_names = "apt,2vcard"
         self.published = True
-        self.html_text = '<b>%s</b>' % _("Welcome to the Ubuntu Software Center")
         self.banner_url = "file://%s" % (os.path.abspath(os.path.join(softwarecenter.paths.datadir, "default_banner/fallback.png")))
-        self.atk_name = _("Default Banner")
-        self.atk_description = _("You see this banner because you have no cached banners")
+        self.html = """
+<html><head><title></title></head><body>
+
+<img  style="position:absolute; top:0; left:0;" src="%(banner_url)s">
+<b style="position:absolute; left: 10; top:20; font-size: 20px;
+          background-color: yellow;">%(title)s</b>
+
+</body></html>
+""" % { 'banner_url' : self.banner_url,
+        'title' : _("Welcome to the Ubuntu Software Center"),
+      }
+        # we should extract this automatically from the html
+        #self.atk_name = _("Default Banner")
+        #self.atk_description = _("You see this banner because you have no cached banners")
 
 
 class ExhibitBanner(Gtk.EventBox):
