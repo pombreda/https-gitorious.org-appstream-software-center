@@ -14,7 +14,7 @@ from softwarecenter.enums import NonAppVisibility
 from softwarecenter.ui.gtk3.models.appstore2 import AppPropertiesHelper
 from softwarecenter.ui.gtk3.widgets.containers import (
      FramedHeaderBox, HeaderPosition, FramedBox, FlowableGrid, Frame)
-from softwarecenter.ui.gtk3.widgets.exhibits import ExhibitBanner, fake_banner_uris
+from softwarecenter.ui.gtk3.widgets.exhibits import ExhibitBanner, DefaultExhibit
 from softwarecenter.ui.gtk3.widgets.buttons import (LabelTile,
                                                     CategoryTile,
                                                     FeaturedTile)
@@ -24,6 +24,7 @@ from softwarecenter.db.categories import (Category,
                                           CategoriesParser,
                                           get_category_by_name,
                                           categories_sorted_by_name)
+from softwarecenter.backend.scagent import SoftwareCenterAgent
 
 LOG_ALLOCATION = logging.getLogger("softwarecenter.ui.gtk.allocation")
 LOG=logging.getLogger(__name__)
@@ -278,7 +279,13 @@ class LobbyViewGtk(CategoriesViewGtk):
 
     def _append_banner_ads(self):
         exhibit_banner = ExhibitBanner()
-        exhibit_banner.set_exhibits(fake_banner_uris)
+        exhibit_banner.set_exhibits([DefaultExhibit()])
+
+        # query using the agent
+        scagent = SoftwareCenterAgent()
+        scagent.connect(
+            "exhibits", lambda sca,l: exhibit_banner.set_exhibits(l))
+        scagent.query_exhibits()
 
         a = Gtk.Alignment()
         a.set_padding(0,StockEms.MEDIUM,0,0)

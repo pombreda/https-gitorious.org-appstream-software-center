@@ -17,6 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import cairo
+import os
 from os.path import join
 from gettext import gettext as _
 
@@ -32,11 +33,54 @@ from softwarecenter.ui.gtk3.shapes import Circle
 from softwarecenter.ui.gtk3.drawing import rounded_rect
 import softwarecenter.paths
 
-fake_banner_uris = ('http://dl.dropbox.com/u/123544/banner-test.html',
-                    'http://dl.dropbox.com/u/123544/banner-test2.html',
-                    'http://dl.dropbox.com/u/123544/banner-test3.html')
-
 _asset_cache = {}
+
+EXHIBIT_HTML = """
+<html><head>
+<style type="text/css">
+.banner_text {
+font-size:1.7em;
+color:white;
+background:yellow;
+padding: 0.2em;
+text-shadow:0em 0em 0.075em black;
+position:absolute;
+top:30;
+left:20;
+}
+.banner_subtext {
+font-size:1.2em;
+color:white;
+padding: 1em;
+text-shadow:0em 0em 0.075em black;
+position:absolute;
+top:90;
+left:30;
+}
+</style>
+</head><body>
+
+<img style="position:absolute; top:0; left:0;" src="%(banner_url)s">
+<div class="banner_text">%(title)s</div>
+<div class="banner_subtext"> %(subtitle)s</div>
+
+</body></html>
+"""
+
+class DefaultExhibit(object):
+    def __init__(self):
+        self.id = 0
+        self.package_names = "apt,2vcard"
+        self.published = True
+        self.banner_url = "file://%s" % (os.path.abspath(os.path.join(softwarecenter.paths.datadir, "default_banner/fallback.png")))
+        self.html = EXHIBIT_HTML % { 
+            'banner_url' : self.banner_url,
+            'title' : _("Welcome to the Ubuntu Software Center"),
+            'subtitle' : _("Its a new day"),
+      }
+        # we should extract this automatically from the html
+        #self.atk_name = _("Default Banner")
+        #self.atk_description = _("You see this banner because you have no cached banners")
 
 
 class _HtmlRenderer(Gtk.OffscreenWindow):
@@ -54,14 +98,29 @@ class _HtmlRenderer(Gtk.OffscreenWindow):
         self.loader = SimpleFileDownloader()
         self.loader.connect("file-download-complete",
                             self.on_download_complete)
+        self.exhibit = None
         return
 
     def on_download_complete(self, loader, path):
-        self.view.load_uri('file://' + path)
+        image_name = os.path.basename(path)
+        cache_dir = os.path.dirname(path)
+        if hasattr(self.exhibit, "html") and self.exhibit.html:
+            html = self.exhibit.html
+        else:
+            html = EXHIBIT_HTML % { 'banner_url' : self.exhibit.banner_url,
+                                    'title' : self.exhibit.title_translated,
+                                    'subtitle' : "",
+                                    }
+        html = html.replace(self.exhibit.banner_url, image_name)
+        self.view.load_string(html, "text/html", "UTF-8", 
+                              "file:///%s/" % cache_dir)
         return
 
-    def set_exhibit(self, exhbit):
-        self.loader.download_file(exhbit, use_cache=True)
+    def set_exhibit(self, exhibit):
+        self.exhibit = exhibit
+        self.loader.download_file(exhibit.banner_url, 
+                                  use_cache=True,
+                                  simple_quoting_for_webkit=True)
         return 
 
 
@@ -107,7 +166,8 @@ class ExhibitButton(Gtk.Button):
         Gdk.cairo_set_source_rgba(cr, color)
         cr.fill()
 
-        for child in self: self.propagate_draw(child, cr)
+        for child in self: 
+            self.propagate_draw(child, cr)
         return
 
 
@@ -120,17 +180,6 @@ class ExhibitArrowButton(ExhibitButton):
         a.add(Gtk.Arrow.new(arrow_type, shadow_type))        
         self.add(a)
         return
-
-
-import os
-class DefaultExhbit(object):
-    id = 0
-    package_names = "apt,2vcard"
-    published = True
-    html = "file://localhost%s/data/default_banner/default.html" % os.getcwd()
-    atk_name = _("Default Banner")
-    atk_description = _("You see this banner because you have no cached banners")
-    print html
 
 
 class ExhibitBanner(Gtk.EventBox):
@@ -146,19 +195,22 @@ class ExhibitBanner(Gtk.EventBox):
     MAX_HEIGHT = 200 # pixels
     TIMEOUT_SECONDS = 15
 
-    NORTHERN_DROPSHADOW = os.path.join(softwarecenter.paths.datadir,
-                                       "ui/gtk3/art/exhibit-dropshadow-n.png")
-    SOUTHERN_DROPSHADOW = os.path.join(softwarecenter.paths.datadir,
-                                       "ui/gtk3/art/exhibit-dropshadow-s.png")
-    FALLBACK = os.path.join(softwarecenter.paths.datadir,
-                            "default_banner/fallback.png")
-
     def __init__(self):
         Gtk.EventBox.__init__(self)
         vbox = Gtk.VBox()
         vbox.set_border_width(StockEms.SMALL)
         self.add(vbox)
 
+        # defined to make overriding softwarecenter.paths.datadir possible
+        self.NORTHERN_DROPSHADOW = os.path.join(
+            softwarecenter.paths.datadir,
+            "ui/gtk3/art/exhibit-dropshadow-n.png")
+        self.SOUTHERN_DROPSHADOW = os.path.join(
+            softwarecenter.paths.datadir,
+            "ui/gtk3/art/exhibit-dropshadow-s.png")
+        self.FALLBACK = os.path.join(
+            softwarecenter.paths.datadir,
+            "default_banner/fallback.png")
 
         hbox = Gtk.HBox(spacing=StockEms.SMALL)
         vbox.pack_end(hbox, False, False, 0)
@@ -179,8 +231,8 @@ class ExhibitBanner(Gtk.EventBox):
         self._timeout = 0
 
         self.alpha = 1.0
-        self.image = GdkPixbuf.Pixbuf.new_from_file(self.FALLBACK)
-        self.old_image = self.image.copy()
+        self.image = None #GdkPixbuf.Pixbuf.new_from_file(self.FALLBACK)
+        self.old_image = None #self.image.copy()
         self.renderer = _HtmlRenderer()
         self.renderer.view.connect("load-finished", self.on_banner_load, self.renderer)
 
@@ -295,7 +347,8 @@ class ExhibitBanner(Gtk.EventBox):
     def _cache_art_assets(self):
         global _asset_cache
         assets = _asset_cache
-        if assets: return assets
+        if assets: 
+            return assets
 
         #~ surf = cairo.ImageSurface.create_from_png(self.NORTHERN_DROPSHADOW)
         #~ ptrn = cairo.SurfacePattern(surf)
@@ -317,13 +370,15 @@ class ExhibitBanner(Gtk.EventBox):
         cr.paint()
 
         if self.old_image is not None:
-            x = (a.width - self.old_image.get_width()) / 2
+            #x = (a.width - self.old_image.get_width()) / 2
+            x = 0
             y = 0
             Gdk.cairo_set_source_pixbuf(cr, self.old_image, x, y)
             cr.paint()
 
         if self.image is not None:
-            x = (a.width - self.image.get_width()) / 2
+            #x = (a.width - self.image.get_width()) / 2
+            x = 0
             y = 0
             Gdk.cairo_set_source_pixbuf(cr, self.image, x, y)
             cr.paint_with_alpha(self.alpha)
@@ -387,21 +442,24 @@ def get_test_exhibits_window():
     win.set_size_request(600, 400)
 
     exhibit_banner = ExhibitBanner()
-    #~ exhibits_list = []
 
-    #~ for (i, (title, url)) in enumerate([
-            #~ ("1 some title", "https://wiki.ubuntu.com/Brand?action=AttachFile&do=get&target=orangeubuntulogo.png"),
-            #~ ("2 another title", "https://wiki.ubuntu.com/Brand?action=AttachFile&do=get&target=blackeubuntulogo.png"),
-            #~ ("3 yet another title", "https://wiki.ubuntu.com/Brand?action=AttachFile&do=get&target=xubuntu.png"),
-            #~ ]):
-         #~ exhibit = Mock()
-         #~ exhibit.id = i
-         #~ exhibit.package_names = "apt,2vcard"
-         #~ exhibit.published = True
-         #~ exhibit.style = "some uri to html"
-         #~ exhibits_list.append(exhibit)
+    exhibits_list = [DefaultExhibit()]
+    for (i, (title, url)) in enumerate([
+            ("1 some title", "https://wiki.ubuntu.com/Brand?action=AttachFile&do=get&target=orangeubuntulogo.png"),
+            ("2 another title", "https://wiki.ubuntu.com/Brand?action=AttachFile&do=get&target=blackeubuntulogo.png"),
+            ("3 yet another title", "https://wiki.ubuntu.com/Brand?action=AttachFile&do=get&target=xubuntu.png"),
+            ]):
+         exhibit = Mock()
+         exhibit.id = i
+         exhibit.package_names = "apt,2vcard"
+         exhibit.published = True
+         exhibit.style = "some uri to html"
+         exhibit.title_translated = title
+         exhibit.banner_url = url
+         exhibit.html = None
+         exhibits_list.append(exhibit)
 
-    exhibit_banner.set_exhibits(fake_banner_uris)
+    exhibit_banner.set_exhibits(exhibits_list)
 
     scroll = Gtk.ScrolledWindow()
     scroll.add_with_viewport(exhibit_banner)
@@ -412,5 +470,6 @@ def get_test_exhibits_window():
     return win
 
 if __name__ == "__main__":
+    softwarecenter.paths.datadir = "./data"
     win = get_test_exhibits_window()
     Gtk.main()
