@@ -33,21 +33,55 @@ from softwarecenter.ui.gtk3.shapes import Circle
 from softwarecenter.ui.gtk3.drawing import rounded_rect
 import softwarecenter.paths
 
-fake_banner_uris = ('http://dl.dropbox.com/u/123544/banner-test.html',
-                    'http://dl.dropbox.com/u/123544/banner-test2.html',
-                    'http://dl.dropbox.com/u/123544/banner-test3.html')
-
 _asset_cache = {}
 
-HTML = """
-<html><head><title></title></head><body>
+EXHIBIT_HTML = """
+<html><head>
+<style type="text/css">
+.banner_text {
+font-size:1.7em;
+color:white;
+background:yellow;
+padding: 0.2em;
+text-shadow:0em 0em 0.075em black;
+position:absolute;
+top:30;
+left:20;
+}
+.banner_subtext {
+font-size:1.2em;
+color:white;
+padding: 1em;
+text-shadow:0em 0em 0.075em black;
+position:absolute;
+top:90;
+left:30;
+}
+</style>
+</head><body>
 
-<img  style="position:absolute; top:0; left:0;" src="%(banner_url)s">
-<b style="position:absolute; left: 10; top:20; font-size: 20px;
-          background-color: yellow;">%(title)s</b>
+<img style="position:absolute; top:0; left:0;" src="%(banner_url)s">
+<div class="banner_text">%(title)s</div>
+<div class="banner_subtext"> %(subtitle)s</div>
 
 </body></html>
 """
+
+class DefaultExhibit(object):
+    def __init__(self):
+        self.id = 0
+        self.package_names = "apt,2vcard"
+        self.published = True
+        self.banner_url = "file://%s" % (os.path.abspath(os.path.join(softwarecenter.paths.datadir, "default_banner/fallback.png")))
+        self.html = EXHIBIT_HTML % { 
+            'banner_url' : self.banner_url,
+            'title' : _("Welcome to the Ubuntu Software Center"),
+            'subtitle' : _("Its a new day"),
+      }
+        # we should extract this automatically from the html
+        #self.atk_name = _("Default Banner")
+        #self.atk_description = _("You see this banner because you have no cached banners")
+
 
 class _HtmlRenderer(Gtk.OffscreenWindow):
 
@@ -73,11 +107,11 @@ class _HtmlRenderer(Gtk.OffscreenWindow):
         if hasattr(self.exhibit, "html") and self.exhibit.html:
             html = self.exhibit.html
         else:
-            html = HTML % { 'banner_url' : self.exhibit.banner_url,
-                            'title' : self.exhibit.title
-                          }
+            html = EXHIBIT_HTML % { 'banner_url' : self.exhibit.banner_url,
+                                    'title' : self.exhibit.title,
+                                    'subtitle' : "",
+                                    }
         html = html.replace(self.exhibit.banner_url, image_name)
-        print html
         self.view.load_string(html, "text/html", "UTF-8", 
                               "file:///%s/" % cache_dir)
         return
@@ -146,20 +180,6 @@ class ExhibitArrowButton(ExhibitButton):
         a.add(Gtk.Arrow.new(arrow_type, shadow_type))        
         self.add(a)
         return
-
-
-class DefaultExhibit(object):
-    def __init__(self):
-        self.id = 0
-        self.package_names = "apt,2vcard"
-        self.published = True
-        self.banner_url = "file://%s" % (os.path.abspath(os.path.join(softwarecenter.paths.datadir, "default_banner/fallback.png")))
-        self.html = HTML % { 'banner_url' : self.banner_url,
-        'title' : _("Welcome to the Ubuntu Software Center"),
-      }
-        # we should extract this automatically from the html
-        #self.atk_name = _("Default Banner")
-        #self.atk_description = _("You see this banner because you have no cached banners")
 
 
 class ExhibitBanner(Gtk.EventBox):
