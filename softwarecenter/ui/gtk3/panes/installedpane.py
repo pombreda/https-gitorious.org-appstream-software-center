@@ -187,6 +187,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
             # node to tree_view
             if not self._use_category(cat): continue
             query = self.get_query_for_cat(cat)
+            print self.state.filter.installed_only
             enq.set_query(query,
                           sortmode=SortMethods.BY_ALPHABET,
                           nonapps_visible=self.nonapps_visible,
@@ -384,6 +385,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
                                     length) % { 'amount' : length, }
 
     def display_overview_page(self, page, view_state):
+        print view_state
         self._build_categorised_view()
 
         if self.state.search_term:

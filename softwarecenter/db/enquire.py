@@ -197,9 +197,9 @@ class AppEnquire(GObject.GObject):
                     
             #~ try:
             if self.limit == 0:
-                matches = enquire.get_mset(0, len(self.db))#, None, xfilter)
+                matches = enquire.get_mset(0, len(self.db), None, xfilter)
             else:
-                matches = enquire.get_mset(0, self.limit)#, None, xfilter)
+                matches = enquire.get_mset(0, self.limit, None, xfilter)
             LOG.debug("found ~%i matches" % matches.get_matches_estimated())
             #~ except:
                 #~ logging.exception("get_mset")

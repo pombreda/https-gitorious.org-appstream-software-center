@@ -25,8 +25,11 @@ from gettext import gettext as _
 from softwarecenter.backend import get_install_backend
 from softwarecenter.db.database import StoreDatabase
 from softwarecenter.enums import ViewPages
-from softwarecenter.backend.channel import get_channels_manager
-from softwarecenter.ui.gtk3.widgets.buttons import SectionSelector, ChannelSelector
+from softwarecenter.backend.channel import (get_channels_manager,
+                                            AllInstalledChannel,
+                                            AllAvailableChannel)
+from softwarecenter.ui.gtk3.widgets.buttons import (SectionSelector,
+                                                    ChannelSelector)
 from softwarecenter.ui.gtk3.em import StockEms
 from softwarecenter.ui.gtk3.widgets.symbolic_icons import (
                                     SymbolicIcon, PendingSymbolicIcon)
@@ -143,9 +146,28 @@ class ViewSwitcher(Gtk.Box):
         return
 
     def on_section_sel_clicked(self, button, view_id):
-        if self._prev_view == view_id:
-            return
-        self.view_manager.set_active_view(view_id)
+        if self._prev_view is view_id:
+            return True
+
+        vm = self.view_manager
+
+        def config_view():
+            # set active pane
+            pane = vm.set_active_view(view_id)
+            # configure DisplayState
+            state = pane.state.copy()
+            if view_id == ViewPages.INSTALLED:
+                state.channel = AllInstalledChannel()
+            else:
+                state.channel = AllAvailableChannel()
+            # decide which page we want to display
+            page = pane.Pages.HOME
+            # request page change
+            vm.display_page(pane, page, state)
+            return False
+
+        self._prev_view = view_id
+        GObject.idle_add(config_view)
         return
 
     def on_get_available_channels(self, popup):
