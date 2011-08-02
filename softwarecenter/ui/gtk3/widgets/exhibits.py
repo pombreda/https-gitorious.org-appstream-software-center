@@ -85,6 +85,14 @@ class DefaultExhibit(object):
 
 class _HtmlRenderer(Gtk.OffscreenWindow):
 
+    __gsignals__ = {
+        "render-finished" : (GObject.SignalFlags.RUN_LAST,
+                            None, 
+                            (),
+                           )
+        }
+
+
     def __init__(self):
         Gtk.OffscreenWindow.__init__(self)
         self.view = WebKit.WebView()
@@ -99,7 +107,14 @@ class _HtmlRenderer(Gtk.OffscreenWindow):
         self.loader.connect("file-download-complete",
                             self.on_download_complete)
         self.exhibit = None
+        self.view.connect("notify::load-status", self._on_load_status)
         return
+
+    def _on_load_status(self, view, prop):
+        if view.get_property("load-status") ==  WebKit.LoadStatus.FINISHED:
+            # this needs to run with a timeout because otherwise the 
+            # status is emited before the offscreen image is finihsed
+            GObject.timeout_add(1, lambda: self.emit("render-finished"))
 
     def on_download_complete(self, loader, path):
         image_name = os.path.basename(path)
@@ -238,7 +253,7 @@ class ExhibitBanner(Gtk.EventBox):
         self.image = None 
         self.old_image = None 
         self.renderer = _HtmlRenderer()
-        self.renderer.view.connect("load-finished", self.on_banner_load, self.renderer)
+        self.renderer.connect("render-finished", self.on_banner_rendered)
 
         self.set_visible_window(False)
         self.set_size_request(-1, self.MAX_HEIGHT)
@@ -294,7 +309,6 @@ class ExhibitBanner(Gtk.EventBox):
             self.old_image = self.image.copy()
         # set the rigth one
         self.renderer.set_exhibit(self.exhibits[self.cursor])
-        self.renderer
         # make sure the active button is having a different color
         for i, w in enumerate(self.index_hbox):
             w.is_active = (i == self.cursor)
@@ -325,14 +339,13 @@ class ExhibitBanner(Gtk.EventBox):
                                     self.TIMEOUT_SECONDS, self.next)
         return self._timeout
 
-    def on_banner_load(self, view, frame, renderer):
+    def on_banner_rendered(self, renderer):
         self.image = renderer.get_pixbuf()
 
         if self.image.get_width() == 1:
             # the offscreen window is not really as such content not
             # correctly rendered
-            GObject.timeout_add(500, self.on_banner_load,
-                                view, frame, renderer)
+            GObject.timeout_add(500, self.on_banner_rendered, renderer)
             return
 
         self._fade_in()
