@@ -91,16 +91,18 @@ class ViewManager(object):
                 return k
 
     def set_active_view(self, view_id):
+        if not self.all_views: 
+            return
         page_id = self.all_views[view_id]
         view_widget = self.get_view_widget(view_id)
 
         view_page = view_widget.get_current_page()
         view_state = view_widget.state
 
-        #~ if (self.search_entry.get_text() !=
-            #~ view_widget.state.search_terms):
-            #~ self.search_entry.set_text_with_no_signal(
-                                        #~ view_widget.state.search_terms)
+        if (self.search_entry.get_text() !=
+            view_widget.state.search_term):
+            self.search_entry.set_text_with_no_signal(
+                                        view_widget.state.search_terms)
     
         callback = view_widget.get_callback_for_page(view_page,
                                                      view_state)

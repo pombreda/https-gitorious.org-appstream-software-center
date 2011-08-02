@@ -223,13 +223,14 @@ class ShapeEndCap(Shape):
         return
 
 
-class ShapeCircle(Shape):
+class Circle(Shape):
 
     def __init__(self, direction=Gtk.TextDirection.LTR):
         Shape.__init__(self, direction)
         return
 
-    def layout(self, cr, x, y, w, h, *args, **kwargs):
+    @staticmethod
+    def layout(cr, x, y, w, h, *args, **kwargs):
         cr.new_path()
 
         r = min(w, h)*0.5

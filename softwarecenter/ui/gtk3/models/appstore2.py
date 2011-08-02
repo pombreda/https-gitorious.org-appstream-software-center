@@ -41,9 +41,6 @@ _app_icon_cache = {}
 
 LOG = logging.getLogger(__name__)
 
-
-
-
 class CategoryRowReference:
     """ A simple container for Category properties to be 
         displayed in a AppListStore or AppTreeStore

@@ -39,6 +39,8 @@ from softwarepane import SoftwarePane
 from softwarecenter.ui.gtk3.views.appview import AppViewFilter
 import softwarecenter.ui.gtk3.dialogs as dialogs
 
+LOG=logging.getLogger(__name__)
+
 def interrupt_build_and_wait(f):
     """ decorator that ensures that a build of the categorised installed apps
         is interrupted before a new build commences.
@@ -47,7 +49,7 @@ def interrupt_build_and_wait(f):
     def wrapper(*args, **kwargs):
         self = args[0]
         if self._build_in_progress:
-            print 'Waiting for build to exit...'
+            LOG.debug('Waiting for build to exit...')
             self._halt_build = True
             GObject.timeout_add(200, lambda: wrapper(*args, **kwargs))
             return False
@@ -174,7 +176,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
 
     #~ @interrupt_build_and_wait
     def _build_categorised_view(self):
-        print 'Rebuilding categorised installedview...'
+        LOG.debug('Rebuilding categorised installedview...')
         self.cat_docid_map = {}
         enq = self.enquirer
         model = self.base_model # base model not treefilter
@@ -187,6 +189,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
             # node to tree_view
             if not self._use_category(cat): continue
             query = self.get_query_for_cat(cat)
+            LOG.debug("filter.instaleld_only: %s" % self.state.filter.installed_only)
             enq.set_query(query,
                           sortmode=SortMethods.BY_ALPHABET,
                           nonapps_visible=self.nonapps_visible,
@@ -278,7 +281,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
                                         self.state.search_term)
 
     def get_query_for_cat(self, cat):
-        #~ print self.state.channel
+        LOG.debug("self.state.channel: %s" % self.state.channel)
         if self.state.channel and self.state.channel.query:
             query = xapian.Query(xapian.Query.OP_AND,
                                  cat.query,
@@ -384,6 +387,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
                                     length) % { 'amount' : length, }
 
     def display_overview_page(self, page, view_state):
+        LOG.debug("view_state: %s" % view_state)
         self._build_categorised_view()
 
         if self.state.search_term:

@@ -48,6 +48,7 @@ from softwarecenter.db.categories import Category, CategoriesParser
 LOG = logging.getLogger(__name__)
 
 
+
 class AvailablePane(SoftwarePane):
     """Widget that represents the available panel in software-center
        It contains a search entry and navigation buttons

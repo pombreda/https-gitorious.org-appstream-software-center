@@ -35,7 +35,6 @@ class SearchEntry(Gtk.Entry):
                                      (GObject.TYPE_STRING,))}
 
     SEARCH_TIMEOUT = 600
-    PLACEHOLDER_TEXT = _("Search all applications")
 
 
     def __init__(self, icon_theme=None):
@@ -44,7 +43,6 @@ class SearchEntry(Gtk.Entry):
         """
         Gtk.Entry.__init__(self)
         self.set_size_request(em(16), em(1.7))
-        self.set_placeholder_text(self.PLACEHOLDER_TEXT)
 
         if not icon_theme:
             icon_theme = Gtk.IconTheme.get_default()

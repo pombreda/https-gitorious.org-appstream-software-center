@@ -16,12 +16,15 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
+import cairo
 from gi.repository import Atk
 from gi.repository import Gtk
+from gi.repository import Gdk
 from gi.repository import GObject
 
 from gettext import gettext as _
+
+from softwarecenter.ui.gtk3.drawing import rounded_rect, rounded_rect2
 
 DEFAULT_PART_SIZE = (28, -1)
 
@@ -36,9 +39,13 @@ class BackForwardButton(Gtk.HBox):
                                     None,
                                     ())}
 
+
+    BORDER_RADIUS = 10
+
+
     def __init__(self, part_size=None):
         Gtk.HBox.__init__(self)
-        #~ self.set_spacing(1)
+        self.set_spacing(1)
 
         part_size = part_size or DEFAULT_PART_SIZE
 
@@ -61,7 +68,6 @@ class BackForwardButton(Gtk.HBox):
         self.pack_start(self.left, True, True, 0)
         self.pack_end(self.right, True, True, 0)
 
-        #~ self.connect("draw", self.on_draw)
         self.left.connect("clicked", self.on_clicked)
         self.right.connect("clicked", self.on_clicked)
         return
@@ -70,23 +76,21 @@ class BackForwardButton(Gtk.HBox):
         self.emit(button.signal_name)
         return
 
-    def on_draw(self, widget, cr):
-        #~ a = self.get_allocation()
-#~ 
-        #~ context = self.get_style_context()
-        #~ context.set_state(self.get_state_flags())
-        #~ context.save()
-        #~ context.add_class("button")
-#~ 
-        #~ # paint the separator vertical line
-        #~ cr.move_to(a.width*0.5, 1)
-        #~ cr.rel_line_to(0, a.height-2)
-        #~ rgba = context.get_border_color(Gtk.StateFlags.NORMAL)
-        #~ cr.set_source_rgb(rgba.red, rgba.green, rgba.blue)
-        #~ cr.set_line_width(1)
-        #~ cr.stroke()
-#~ 
-        #~ context.restore()
+    def do_draw(self, cr):
+        a = self.get_allocation()
+        # divider
+        context = self.get_style_context()
+        border_color = context.get_border_color(Gtk.StateFlags.NORMAL)
+        Gdk.cairo_set_source_rgba(cr, border_color)
+        cr.move_to(a.width*0.5, 0)
+        cr.rel_line_to(0, a.height)
+        cr.stroke()
+
+        # set the clip which is inherited by child draws
+        rounded_rect(cr, 0, 0, a.width, a.height, self.BORDER_RADIUS)
+        cr.clip()
+
+        for child in self: self.propagate_draw(child, cr)
         return
 
     def set_button_atk_info_ltr(self):
@@ -124,19 +128,37 @@ class ButtonPart(Gtk.Button):
 
     def __init__(self, arrow_type, signal_name, part_size):
         Gtk.Button.__init__(self)
-        #~ self.set_visible_window(False)
+        self.set_name("backforward")
         self.set_size_request(*part_size)
-        self.set_relief(Gtk.ReliefStyle.NONE)
 
         alignment = Gtk.Alignment.new(0.5,0.5,1.0,1.0)
-        alignment.set_padding(5,5,5,5)
+        #~ alignment.set_padding(2,2,2,2)
         self.add(alignment)
 
         arrow = Gtk.Arrow.new(arrow_type, Gtk.ShadowType.OUT)
         alignment.add(arrow)
 
         self.signal_name = signal_name
+        self.border_radius = BackForwardButton.BORDER_RADIUS
         return
+
+    def render_background(self, context, cr):
+        cr.save()
+        context.save()
+
+        context.set_state(self.get_state_flags())
+        context.add_class("button")
+        a = self.get_allocation()
+        Gtk.render_background(context, cr, 0, 0, a.width, a.height)
+
+        context.restore()
+        cr.restore()
+        return
+
+    def do_draw(self, cr):
+        ButtonPart.render_background(self,
+                                     self.get_style_context(), cr)
+        for child in self: self.propagate_draw(child, cr)
 
 
 class Left(ButtonPart):
@@ -146,18 +168,6 @@ class Left(ButtonPart):
                             arrow_type,
                             sig_name,
                             part_size)
-
-        self.set_name("left-bf-button")
-
-        #~ state = Gtk.StateFlags.NORMAL
-        #~ context = self.get_style_context()
-#~ 
-        #~ border = context.get_property("border-radius", state)
-        #~ provider = Gtk.CssProvider()
-#~ 
-        #~ provider.load_from_file(Gio.file_new_for_path("softwarecenter/ui/gtk3/panes/views/widgets/css/backforward.css"))
-        #~ Gtk.StyleContext.add_provider(context, provider, 800)
-        #~ context.get_style_property("border-radius", Gtk.StateFlags.NORMAL)
         return
 
 
@@ -168,23 +178,13 @@ class Right(ButtonPart):
                             arrow_type,
                             sig_name,
                             part_size)
-
-        self.set_name("right-bf-button")
-
-        #~ state = Gtk.StateFlags.NORMAL
-        #~ context = self.get_style_context()
-#~ 
-        #~ border = context.get_property("border-radius", state)
-        #~ provider = Gtk.CssProvider()
-#~ 
-        #~ provider.load_from_file(Gio.file_new_for_path("softwarecenter/ui/gtk3/panes/views/widgets/css/backforward.css"))
-        #~ Gtk.StyleContext.add_provider(context, provider, 800)
-        #~ context.get_style_property("border-radius", Gtk.StateFlags.NORMAL)
         return
+
 
 # this is used in the automatic tests as well
 def get_test_backforward_window():
     win = Gtk.Window()
+    win.set_border_width(20)
     win.connect("destroy", lambda x: Gtk.main_quit())
     win.set_default_size(300,100)
     backforward = BackForwardButton()
