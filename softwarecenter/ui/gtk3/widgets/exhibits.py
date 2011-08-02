@@ -57,10 +57,6 @@ class _HtmlRenderer(Gtk.OffscreenWindow):
         self.view.load_uri('file://' + path)
         return
 
-    def set_default(self, exhibit):
-        self.view.load_uri(exhibit.html)
-        return
-
     def set_exhibit(self, exhbit):
         self.loader.download_file(exhbit, use_cache=True)
         return 
@@ -149,6 +145,7 @@ class ExhibitBanner(Gtk.EventBox):
     MAX_HEIGHT = 200 # pixels
 
     TIMEOUT_SECONDS = 15
+    FALLBACK = "%s/data/default_banner/placeholder.png" % os.getcwd()
 
 
     def __init__(self):
@@ -175,11 +172,10 @@ class ExhibitBanner(Gtk.EventBox):
         self.cursor = -1
         self._timeout = 0
 
-        self.alpha = 0.0
-        self.image = None
-        self.old_image = None
+        self.alpha = 1.0
+        self.image = GdkPixbuf.Pixbuf.new_from_file(self.FALLBACK)
+        self.old_image = self.image.copy()
         self.renderer = _HtmlRenderer()
-        self.renderer.set_default(DefaultExhbit)
         self.renderer.view.connect("load-finished", self.on_banner_load, self.renderer)
 
         self.set_visible_window(False)
@@ -238,7 +234,7 @@ class ExhibitBanner(Gtk.EventBox):
         else:
             self.cursor += 1
 
-        self.old_image = self.renderer.get_pixbuf()
+        self.old_image = self.image.copy()
         self.renderer.set_exhibit(self.exhibits[self.cursor])
         return False
 
@@ -248,7 +244,7 @@ class ExhibitBanner(Gtk.EventBox):
         else:
             self.cursor -= 1
 
-        self.old_image = self.renderer.get_pixbuf()
+        self.old_image = self.image.copy()
         self.renderer.set_banner_uri(self.exhibits[self.cursor])
         return False
 
@@ -259,15 +255,15 @@ class ExhibitBanner(Gtk.EventBox):
         return self._timeout
 
     def on_banner_load(self, view, frame, renderer):
-        self.image = renderer.get_surface()
-        print self.image.get_width()
+        self.image = renderer.get_pixbuf()
 
         if self.image.get_width() == 1:
-            print 'banner loaded but offscreenwindow content not ready'
-            GObject.timeout_add(750, self.on_banner_load, view, frame, renderer)
+            # the offscreen window is not really as such content not
+            # correctly rendered
+            GObject.timeout_add(750, self.on_banner_load,
+                                view, frame, renderer)
             return
 
-        print 'banner loaded'
         self._fade_in()
         self.queue_next()
         return False
@@ -323,7 +319,7 @@ class ExhibitBanner(Gtk.EventBox):
         if self.image is not None:
             x = (a.width - self.image.get_width()) / 2
             y = 0
-            cr.set_source_surface(self.image, x, y)
+            Gdk.cairo_set_source_pixbuf(cr, self.image, x, y)
             cr.paint_with_alpha(self.alpha)
 
         # paint dropshadows last
@@ -375,9 +371,7 @@ class ExhibitBanner(Gtk.EventBox):
             self.index_hbox.pack_end(dot, False, False, 0)
             self.index_hbox.show_all()
 
-        GObject.timeout_add_seconds(5000,
-                                    self.renderer.set_exhibit,
-                                    self.exhibits[self.cursor])
+        self.renderer.set_exhibit(self.exhibits[self.cursor])
         return
 
 
