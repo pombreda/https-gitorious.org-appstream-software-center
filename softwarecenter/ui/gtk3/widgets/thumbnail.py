@@ -20,10 +20,10 @@ import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, Gdk, Atk, GObject, GdkPixbuf
 
-
 import logging
-
 import os
+import sys
+
 from softwarecenter.db.pkginfo import get_pkg_info
 from softwarecenter.utils import SimpleFileDownloader
 
@@ -542,9 +542,6 @@ class ScreenshotThumbnail(Gtk.Alignment):
 
 def get_test_screenshot_thumbnail_window():
 
-    cache = get_pkg_info()
-    cache.open()
-
     icons = Gtk.IconTheme.get_default()
     icons.append_search_path("/usr/share/app-install/icons/")
 
@@ -593,14 +590,15 @@ if __name__ == '__main__':
         thumb.download_and_display()
         return True
 
-    import sys
-    import logging
     logging.basicConfig(level=logging.DEBUG)
+
+    cache = get_pkg_info()
+    cache.open()
 
     from softwarecenter.db.database import StoreDatabase
     xapian_base_path = "/var/cache/software-center"
     pathname = os.path.join(xapian_base_path, "xapian")
-    db = StoreDatabase(pathname, get_pkg_info())
+    db = StoreDatabase(pathname, cache)
     db.open()
    
     w = get_test_screenshot_thumbnail_window()
