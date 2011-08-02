@@ -161,7 +161,10 @@ class ViewSwitcher(Gtk.Box):
             else:
                 state.channel = AllAvailableChannel()
             # decide which page we want to display
-            page = pane.Pages.HOME
+            if hasattr(pane, "Pages"):
+                page = pane.Pages.HOME
+            else:
+                page = None
             # request page change
             vm.display_page(pane, page, state)
             return False
@@ -187,13 +190,18 @@ class ViewSwitcher(Gtk.Box):
         btn = SectionSelector(label, icon, self.ICON_SIZE)
         self.view_buttons[view_id] = btn
         self.pack_start(btn, False, False, 0)
-        btn.connect("clicked", self.on_section_sel_clicked, view_id)
 
         global _last_button
         if _last_button is not None:
             btn.join_group(_last_button)
 
         _last_button = btn
+
+        # this must go last otherwise as the buttons are added
+        # to the group, toggled & clicked gets emitted... causing
+        # all panes to fully initialise on USC startup, which is
+        # undesirable!
+        btn.connect("clicked", self.on_section_sel_clicked, view_id)
         return btn
 
     def append_channel_selector(self, section_btn, view_id, build_func):
@@ -201,7 +209,6 @@ class ViewSwitcher(Gtk.Box):
         self.selectors[view_id] = sel
         sel.set_build_func(build_func)
         self.pack_start(sel, False, False, 0)
-        #~ sel.connect("clicked", self.on_section_sel_clicked, view_id)
         return sel
 
     def append_section_with_channel_sel(self, view_id, label, icon, build_func):
@@ -262,10 +269,13 @@ class ViewSwitcher(Gtk.Box):
             state = pane.state.copy()
             state.channel = channel
             # decide which page we want to display
-            if channel.origin == "all":
-                page = pane.Pages.HOME
+            if hasattr(pane, "Pages"):
+                if channel.origin == "all":
+                    page = pane.Pages.HOME
+                else:
+                    page = pane.Pages.LIST
             else:
-                page = pane.Pages.LIST
+                page = None
             # request page change
             vm.display_page(pane, page, state)
             return False
