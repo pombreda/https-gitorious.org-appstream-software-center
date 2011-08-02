@@ -17,6 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import cairo
+import os
 from os.path import join
 from gettext import gettext as _
 
@@ -54,14 +55,38 @@ class _HtmlRenderer(Gtk.OffscreenWindow):
         self.loader = SimpleFileDownloader()
         self.loader.connect("file-download-complete",
                             self.on_download_complete)
+        self.exhibit = None
         return
 
     def on_download_complete(self, loader, path):
-        self.view.load_uri('file://' + path)
+        image_name = os.path.basename(path)
+        cache_dir = os.path.dirname(path)
+
+        html = """
+<html>
+<head>
+ <title></title>
+</head>
+<body>
+<img src="%s" />
+%s
+
+</body>
+</html>
+""" % (image_name,
+       self.exhibit.html_text,
+       )
+        print html
+        print cache_dir
+        self.view.load_string(html, "text/html", "UTF-8", 
+                              "file:///%s/" % cache_dir)
         return
 
-    def set_exhibit(self, exhbit):
-        self.loader.download_file(exhbit, use_cache=True)
+    def set_exhibit(self, exhibit):
+        print "set", exhibit.banner_url
+        self.exhibit = exhibit
+        self.loader.download_file(exhibit.banner_url, use_cache=True,
+                                  simple_quoting_for_webkit=True)
         return 
 
 
@@ -107,7 +132,8 @@ class ExhibitButton(Gtk.Button):
         Gdk.cairo_set_source_rgba(cr, color)
         cr.fill()
 
-        for child in self: self.propagate_draw(child, cr)
+        for child in self: 
+            self.propagate_draw(child, cr)
         return
 
 
@@ -122,15 +148,15 @@ class ExhibitArrowButton(ExhibitButton):
         return
 
 
-import os
-class DefaultExhbit(object):
-    id = 0
-    package_names = "apt,2vcard"
-    published = True
-    html = "file://localhost%s/data/default_banner/default.html" % os.getcwd()
-    atk_name = _("Default Banner")
-    atk_description = _("You see this banner because you have no cached banners")
-    print html
+class DefaultExhibit(object):
+    def __init__(self):
+        self.id = 0
+        self.package_names = "apt,2vcard"
+        self.published = True
+        self.html_text = '<b>%s</b>' % _("Welcome to the Ubuntu Software Center")
+        self.banner_url = "file://%s" % (os.path.abspath(os.path.join(softwarecenter.paths.datadir, "default_banner/fallback.png")))
+        self.atk_name = _("Default Banner")
+        self.atk_description = _("You see this banner because you have no cached banners")
 
 
 class ExhibitBanner(Gtk.EventBox):
@@ -146,19 +172,22 @@ class ExhibitBanner(Gtk.EventBox):
     MAX_HEIGHT = 200 # pixels
     TIMEOUT_SECONDS = 15
 
-    NORTHERN_DROPSHADOW = os.path.join(softwarecenter.paths.datadir,
-                                       "ui/gtk3/art/exhibit-dropshadow-n.png")
-    SOUTHERN_DROPSHADOW = os.path.join(softwarecenter.paths.datadir,
-                                       "ui/gtk3/art/exhibit-dropshadow-s.png")
-    FALLBACK = os.path.join(softwarecenter.paths.datadir,
-                            "default_banner/fallback.png")
-
     def __init__(self):
         Gtk.EventBox.__init__(self)
         vbox = Gtk.VBox()
         vbox.set_border_width(StockEms.SMALL)
         self.add(vbox)
 
+        # defined to make overriding softwarecenter.paths.datadir possible
+        self.NORTHERN_DROPSHADOW = os.path.join(
+            softwarecenter.paths.datadir,
+            "ui/gtk3/art/exhibit-dropshadow-n.png")
+        self.SOUTHERN_DROPSHADOW = os.path.join(
+            softwarecenter.paths.datadir,
+            "ui/gtk3/art/exhibit-dropshadow-s.png")
+        self.FALLBACK = os.path.join(
+            softwarecenter.paths.datadir,
+            "default_banner/fallback.png")
 
         hbox = Gtk.HBox(spacing=StockEms.SMALL)
         vbox.pack_end(hbox, False, False, 0)
@@ -179,8 +208,8 @@ class ExhibitBanner(Gtk.EventBox):
         self._timeout = 0
 
         self.alpha = 1.0
-        self.image = GdkPixbuf.Pixbuf.new_from_file(self.FALLBACK)
-        self.old_image = self.image.copy()
+        self.image = None #GdkPixbuf.Pixbuf.new_from_file(self.FALLBACK)
+        self.old_image = None #self.image.copy()
         self.renderer = _HtmlRenderer()
         self.renderer.view.connect("load-finished", self.on_banner_load, self.renderer)
 
@@ -401,7 +430,8 @@ def get_test_exhibits_window():
          #~ exhibit.style = "some uri to html"
          #~ exhibits_list.append(exhibit)
 
-    exhibit_banner.set_exhibits(fake_banner_uris)
+    #exhibit_banner.set_exhibits(fake_banner_uris)
+    exhibit_banner.set_exhibits([DefaultExhibit()])
 
     scroll = Gtk.ScrolledWindow()
     scroll.add_with_viewport(exhibit_banner)
@@ -412,5 +442,6 @@ def get_test_exhibits_window():
     return win
 
 if __name__ == "__main__":
+    softwarecenter.paths.datadir = "./data"
     win = get_test_exhibits_window()
     Gtk.main()

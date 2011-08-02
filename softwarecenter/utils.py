@@ -474,7 +474,8 @@ class SimpleFileDownloader(GObject.GObject):
         GObject.GObject.__init__(self)
         self.tmpdir = None
 
-    def download_file(self, url, dest_file_path=None, use_cache=False):
+    def download_file(self, url, dest_file_path=None, use_cache=False,
+                      simple_quoting_for_webkit=False):
         """ download a url and emit the file-download-complete 
             once the file is there
             if dest_file_path is given, download to that specific
@@ -492,6 +493,8 @@ class SimpleFileDownloader(GObject.GObject):
             if not os.path.exists(cache_path):
                 os.makedirs(cache_path)
             dest_file_path = os.path.join(cache_path, uri_to_filename(url))
+            if simple_quoting_for_webkit:
+                dest_file_path = dest_file_path.replace("%", "")
 
         # no cache and no dest_file_path, use tempdir
         if dest_file_path is None:
