@@ -495,6 +495,7 @@ class SimpleFileDownloader(GObject.GObject):
             dest_file_path = os.path.join(cache_path, uri_to_filename(url))
             if simple_quoting_for_webkit:
                 dest_file_path = dest_file_path.replace("%", "")
+                dest_file_path = dest_file_path.replace("?", "")
 
         # no cache and no dest_file_path, use tempdir
         if dest_file_path is None:

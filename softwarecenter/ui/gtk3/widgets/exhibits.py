@@ -39,6 +39,15 @@ fake_banner_uris = ('http://dl.dropbox.com/u/123544/banner-test.html',
 
 _asset_cache = {}
 
+HTML = """
+<html><head><title></title></head><body>
+
+<img  style="position:absolute; top:0; left:0;" src="%(banner_url)s">
+<b style="position:absolute; left: 10; top:20; font-size: 20px;
+          background-color: yellow;">%(title)s</b>
+
+</body></html>
+"""
 
 class _HtmlRenderer(Gtk.OffscreenWindow):
 
@@ -61,8 +70,14 @@ class _HtmlRenderer(Gtk.OffscreenWindow):
     def on_download_complete(self, loader, path):
         image_name = os.path.basename(path)
         cache_dir = os.path.dirname(path)
-        html = self.exhibit.html
-        html.replace(self.exhibit.banner_url, path)
+        if hasattr(self.exhibit, "html") and self.exhibit.html:
+            html = self.exhibit.html
+        else:
+            html = HTML % { 'banner_url' : self.exhibit.banner_url,
+                            'title' : self.exhibit.title
+                          }
+        html = html.replace(self.exhibit.banner_url, image_name)
+        print html
         self.view.load_string(html, "text/html", "UTF-8", 
                               "file:///%s/" % cache_dir)
         return
@@ -139,15 +154,7 @@ class DefaultExhibit(object):
         self.package_names = "apt,2vcard"
         self.published = True
         self.banner_url = "file://%s" % (os.path.abspath(os.path.join(softwarecenter.paths.datadir, "default_banner/fallback.png")))
-        self.html = """
-<html><head><title></title></head><body>
-
-<img  style="position:absolute; top:0; left:0;" src="%(banner_url)s">
-<b style="position:absolute; left: 10; top:20; font-size: 20px;
-          background-color: yellow;">%(title)s</b>
-
-</body></html>
-""" % { 'banner_url' : self.banner_url,
+        self.html = HTML % { 'banner_url' : self.banner_url,
         'title' : _("Welcome to the Ubuntu Software Center"),
       }
         # we should extract this automatically from the html
@@ -412,22 +419,24 @@ def get_test_exhibits_window():
     win.set_size_request(600, 400)
 
     exhibit_banner = ExhibitBanner()
-    #~ exhibits_list = []
 
-    #~ for (i, (title, url)) in enumerate([
-            #~ ("1 some title", "https://wiki.ubuntu.com/Brand?action=AttachFile&do=get&target=orangeubuntulogo.png"),
-            #~ ("2 another title", "https://wiki.ubuntu.com/Brand?action=AttachFile&do=get&target=blackeubuntulogo.png"),
-            #~ ("3 yet another title", "https://wiki.ubuntu.com/Brand?action=AttachFile&do=get&target=xubuntu.png"),
-            #~ ]):
-         #~ exhibit = Mock()
-         #~ exhibit.id = i
-         #~ exhibit.package_names = "apt,2vcard"
-         #~ exhibit.published = True
-         #~ exhibit.style = "some uri to html"
-         #~ exhibits_list.append(exhibit)
+    exhibits_list = [DefaultExhibit()]
+    for (i, (title, url)) in enumerate([
+            ("1 some title", "https://wiki.ubuntu.com/Brand?action=AttachFile&do=get&target=orangeubuntulogo.png"),
+            ("2 another title", "https://wiki.ubuntu.com/Brand?action=AttachFile&do=get&target=blackeubuntulogo.png"),
+            ("3 yet another title", "https://wiki.ubuntu.com/Brand?action=AttachFile&do=get&target=xubuntu.png"),
+            ]):
+         exhibit = Mock()
+         exhibit.id = i
+         exhibit.package_names = "apt,2vcard"
+         exhibit.published = True
+         exhibit.style = "some uri to html"
+         exhibit.title = title
+         exhibit.banner_url = url
+         exhibit.html = None
+         exhibits_list.append(exhibit)
 
-    #exhibit_banner.set_exhibits(fake_banner_uris)
-    exhibit_banner.set_exhibits([DefaultExhibit()])
+    exhibit_banner.set_exhibits(exhibits_list)
 
     scroll = Gtk.ScrolledWindow()
     scroll.add_with_viewport(exhibit_banner)
