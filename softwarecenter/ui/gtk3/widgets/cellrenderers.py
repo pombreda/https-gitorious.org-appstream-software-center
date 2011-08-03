@@ -155,7 +155,7 @@ class CellRendererAppView(Gtk.CellRendererText):
             x = cell_area.x+2*xpad+self.pixbuf_width
         else:
             x = cell_area.x+cell_area.width-lw-self.pixbuf_width-2*xpad
-            layout.set_alignment(Pango.ALIGN_RIGHT)
+            layout.set_alignment(Pango.Alignment.RIGHT)
 
         y = cell_area.y+ypad
 
