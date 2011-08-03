@@ -133,7 +133,9 @@ class CellRendererAppView(Gtk.CellRendererText):
                             3*xpad - star_width)
                             
         max_layout_width = cell_area.width - self.pixbuf_width - 3*xpad
-        if self.show_ratings:
+        
+        stats = self.model.get_review_stats(app)
+        if self.show_ratings and stats:
             max_layout_width -= star_width+6*xpad
             
         if self.props.isactive and self.model.get_transaction_progress(app) > 0:
@@ -146,9 +148,16 @@ class CellRendererAppView(Gtk.CellRendererText):
             lw = max_layout_width
 
         # FIXME
-#        self.apptitle_width = layout.get_line(0).get_pixel_extents()[1].width
-#        self.apptitle_height = layout.get_line(0).get_pixel_extents()[1].height
-        self.apptitle_width = 50
+#        self.apptitle_width = layout.get_line_readonly(0).get_pixel_extents()[1].width
+#        self.apptitle_height = layout.get_line_readonly(0).get_pixel_extents()[1].height
+
+#        self.apptitle_width = layout.get_line_readonly(0)
+#        self.apptitle_height = layout.get_line_readonly(0)
+        
+#        print ">>> self.apptitle_width", self.apptitle_width
+#        print ">>> self.apptitle_height", self.apptitle_height
+        
+        self.apptitle_width = 100
         self.apptitle_height = 20
 
         if not is_rtl:
@@ -162,11 +171,11 @@ class CellRendererAppView(Gtk.CellRendererText):
         Gtk.render_layout(context, cr, x, y, layout)
         return
 
-    def _render_rating(self, context, cr, doc,
+    def _render_rating(self, context, cr, app,
                        cell_area, layout, xpad, ypad,
                        star_width, star_height, is_rtl):
 
-        stats = self.model.get_review_stats(doc)
+        stats = self.model.get_review_stats(app)
         if not stats: return
         sr = self._stars
 
