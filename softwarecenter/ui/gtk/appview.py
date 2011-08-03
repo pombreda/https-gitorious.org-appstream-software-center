@@ -575,7 +575,7 @@ class CellRendererAppView2(gtk.CellRendererText):
                                 direction)
 
         # only show ratings if we have one
-        if  self.rating > 0 and self.props.action_in_progress < 0:
+        if  self.rating > 0:
             self._render_rating(window, widget, state, cell_area, xpad, ypad, direction)
 
         # below is the stuff that is only done for the active cell
