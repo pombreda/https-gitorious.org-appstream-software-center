@@ -70,13 +70,30 @@ left:30;
 class DefaultExhibit(object):
     def __init__(self):
         self.id = 0
-        self.package_names = "apt,2vcard"
+        self.package_names = ""
+        self.title_translated = "Default exhibit"
         self.published = True
         self.banner_url = "file://%s" % (os.path.abspath(os.path.join(softwarecenter.paths.datadir, "default_banner/fallback.png")))
         self.html = EXHIBIT_HTML % { 
             'banner_url' : self.banner_url,
             'title' : _("Welcome to the Ubuntu Software Center"),
             'subtitle' : _("Its a new day"),
+      }
+        # we should extract this automatically from the html
+        #self.atk_name = _("Default Banner")
+        #self.atk_description = _("You see this banner because you have no cached banners")
+
+class FeaturedExhibit(object):
+    def __init__(self):
+        self.id = 0
+        self.package_names = "armagetronad,calibre,cheese,homebank,stellarium,gimp,inkscape,blender,audacity,gufw,frozen-bubble,fretsonfire,moovida,liferea,arista,gtg,freeciv-client-gtk,supertuxkart,tumiki-fighters,tuxpaint,webservice-office-zoho"
+        self.title_translated = "Featured exhibit"
+        self.published = True
+        self.banner_url = "file://%s" % (os.path.abspath(os.path.join(softwarecenter.paths.datadir, "default_banner/fallback2.png")))
+        self.html = EXHIBIT_HTML % { 
+            'banner_url' : self.banner_url,
+            'title' : _("Stuff we like"),
+            'subtitle' : _("Its just great, try it!"),
       }
         # we should extract this automatically from the html
         #self.atk_name = _("Default Banner")
@@ -284,7 +301,9 @@ class ExhibitBanner(Gtk.EventBox):
 
     def on_button_release(self, *args):
         exhibit = self.exhibits[self.cursor]
-        self.emit("show-exhibits", exhibit)
+        print exhibit.package_names, exhibit
+        if exhibit.package_names:
+            self.emit("show-exhibits", exhibit)
         return
 
     def on_next_clicked(self, *args):

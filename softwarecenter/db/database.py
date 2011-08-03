@@ -51,7 +51,6 @@ def parse_axi_values_file(filename="/var/lib/apt-xapian-index/values"):
         axi_values[key] = int(value)
     return axi_values
 
-
 class SearchQuery(list):
     """ a list wrapper for a search query. it can take a search string
         or a list of search strings

@@ -1,3 +1,21 @@
+# Copyright (C) 2009 Canonical
+#
+# Authors:
+#  Matthew McGowan
+#  Michael Vogt
+#
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; version 3.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+# details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import cairo
 import os
@@ -14,7 +32,8 @@ from softwarecenter.enums import NonAppVisibility
 from softwarecenter.ui.gtk3.models.appstore2 import AppPropertiesHelper
 from softwarecenter.ui.gtk3.widgets.containers import (
      FramedHeaderBox, HeaderPosition, FramedBox, FlowableGrid, Frame)
-from softwarecenter.ui.gtk3.widgets.exhibits import ExhibitBanner, DefaultExhibit
+from softwarecenter.ui.gtk3.widgets.exhibits import (
+    ExhibitBanner, DefaultExhibit, FeaturedExhibit)
 from softwarecenter.ui.gtk3.widgets.buttons import (LabelTile,
                                                     CategoryTile,
                                                     FeaturedTile)
@@ -24,6 +43,7 @@ from softwarecenter.db.categories import (Category,
                                           CategoriesParser,
                                           get_category_by_name,
                                           categories_sorted_by_name)
+from softwarecenter.db.utils import get_query_for_pkgnames
 from softwarecenter.backend.scagent import SoftwareCenterAgent
 
 LOG_ALLOCATION = logging.getLogger("softwarecenter.ui.gtk.allocation")
@@ -277,9 +297,17 @@ class LobbyViewGtk(CategoriesViewGtk):
         self.vbox.pack_start(alignment, False, False, 0)
         return
 
+    def _on_show_exhibits(self, exhibit_banner, exhibit):
+        query = get_query_for_pkgnames(exhibit.package_names.split(","))
+        title = exhibit.title_translated
+        # create a temp query
+        cat = Category(title, title, None, query)
+        self.emit("category-selected", cat)
+
     def _append_banner_ads(self):
         exhibit_banner = ExhibitBanner()
-        exhibit_banner.set_exhibits([DefaultExhibit()])
+        exhibit_banner.set_exhibits([DefaultExhibit(), FeaturedExhibit()])
+        exhibit_banner.connect("show-exhibits", self._on_show_exhibits)
 
         # query using the agent
         scagent = SoftwareCenterAgent()
@@ -330,6 +358,7 @@ class LobbyViewGtk(CategoriesViewGtk):
         frame = FramedHeaderBox()
         frame.set_header_label(_("Top Rated"))
         frame.header_implements_more_button()
+        frame.more.connect('clicked', self.on_category_clicked, toprated_cat) 
         frame.add(self.toprated)
         self.right_column.pack_start(frame, True, True, 0)
 
@@ -363,6 +392,7 @@ class LobbyViewGtk(CategoriesViewGtk):
         #~ frame.set_corner_label(_("New"))
         frame.set_header_label(_("New"))
         frame.header_implements_more_button()
+        frame.more.connect('clicked', self.on_category_clicked, featured_cat) 
         frame.add(self.featured)
         self.right_column.pack_start(frame, True, True, 0)
 
