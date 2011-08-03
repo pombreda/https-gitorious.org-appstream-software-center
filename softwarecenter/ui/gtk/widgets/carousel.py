@@ -505,7 +505,7 @@ class CarouselPoster2(Button):
 
         #nr_reviews = app[AppStore.COL_NR_REVIEWS]
 
-        name = app[AppStore.COL_APP_NAME]
+        name = app[AppStore.COL_APP_NAME] or app[AppStore.COL_PKGNAME]
 
         markup = '%s' % GObject.markup_escape_text(name)
         pb = app[AppStore.COL_ICON]

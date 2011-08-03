@@ -19,7 +19,13 @@ software-center (4.1.12) UNRELEASED; urgency=low
     - relocate the ratings stars in the list view to be next to the
       software item name, per the updated spec (LP: #802756)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Tue, 02 Aug 2011 22:01:14 -0400
+  [ Kiwinote ]
+  * softwarecenter/ui/gtk/widgets/carousel.py:
+    - ensure that carousel posters always display a title
+  * softwarecenter/ui/gtk3/views/catview_gtk.py:
+    - connect up the 'more' buttons
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 01 Aug 2011 13:15:36 -0400
 
 software-center (4.1.11) oneiric; urgency=low
 
