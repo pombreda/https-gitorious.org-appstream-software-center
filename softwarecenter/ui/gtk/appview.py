@@ -377,7 +377,9 @@ class CellRendererAppView2(gtk.CellRendererText):
         # work out max allowable layout width
         layout.set_width(-1)
         lw = self._layout_get_pixel_width(layout)
-        max_layout_width = cell_area.width - self.pixbuf_width - 3*xpad - self.MAX_STARS*self.STAR_SIZE
+        max_layout_width = cell_area.width - self.pixbuf_width - 3*xpad
+        if self.rating > 0:
+            max_layout_width -= self.MAX_STARS*self.STAR_SIZE+6*xpad
 
         if self.isactive and self.props.action_in_progress > 0:
             action_btn = self.get_button_by_name('action0')
@@ -576,7 +578,7 @@ class CellRendererAppView2(gtk.CellRendererText):
                                 direction)
 
         # only show ratings if we have one
-        if  self.rating > 0:
+        if self.rating > 0:
             self._render_rating(window, widget, state, cell_area, xpad, ypad, direction)
 
         # below is the stuff that is only done for the active cell
