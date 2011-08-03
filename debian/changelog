@@ -15,8 +15,11 @@ software-center (4.1.12) UNRELEASED; urgency=low
   [ Gary Lasker ]
   * softwarecenter/ui/gtk/softwarepane.py:
     - small fix to action bar functionality in support of oneconf
+  * softwarecenter/ui/gtk/appview.py:
+    - relocate the ratings stars in the list view to be next to the
+      software item name, per the updated spec (LP: #802756)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 01 Aug 2011 13:15:36 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 02 Aug 2011 22:01:14 -0400
 
 software-center (4.1.11) oneiric; urgency=low
 
