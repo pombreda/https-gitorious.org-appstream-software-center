@@ -397,6 +397,7 @@ class CellRendererAppView2(gtk.CellRendererText):
             x = 2*xpad+self.pixbuf_width
         else:
             x = cell_area.x+cell_area.width-lw-self.pixbuf_width-2*xpad
+            layout.set_alignment(pango.ALIGN_RIGHT)
 
         y = cell_area.y+ypad
 
@@ -415,9 +416,11 @@ class CellRendererAppView2(gtk.CellRendererText):
         if direction != gtk.TEXT_DIR_RTL:
             x = 4*xpad+self.pixbuf_width+self.apptitle_width
         else:
-            # TODO: implement RTL case for new star location
-            x = cell_area.x + xpad
-#            x = cell_area.x + cell_area.width - xpad - (self.STAR_SIZE*self.MAX_STARS)
+            x = (cell_area.x + cell_area.width
+                 - 4*xpad
+                 - self.pixbuf_width
+                 - self.apptitle_width 
+                 - (self.STAR_SIZE*self.MAX_STARS))
 
         y = cell_area.y + ypad + (self.apptitle_height-self.STAR_SIZE)/2
 
@@ -436,7 +439,10 @@ class CellRendererAppView2(gtk.CellRendererText):
         lw, lh = self._layout.get_pixel_extents()[1][2:]
 
         w = self.MAX_STARS*self.STAR_SIZE
-        x += 2*xpad+w
+        if direction != gtk.TEXT_DIR_RTL:
+            x += 2*xpad+w
+        else:
+            x -= xpad+lw
 
         widget.style.paint_layout(window, 
                                   state,
@@ -541,8 +547,6 @@ class CellRendererAppView2(gtk.CellRendererText):
         xpad = self.get_property('xpad')
         ypad = self.get_property('ypad')
         direction = widget.get_direction()
-        # TODO: remove this
-        # direction = gtk.TEXT_DIR_RTL
 
         # important! ensures correct text rendering, esp. when using hicolor theme
         if (flags & gtk.CELL_RENDERER_SELECTED) != 0:
