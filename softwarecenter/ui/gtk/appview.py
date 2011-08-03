@@ -296,6 +296,8 @@ class CellRendererAppView2(gtk.CellRendererText):
         # geometry-state values
         self.overlay_icon_name = overlay_icon_name
         self.pixbuf_width = 0
+        self.apptitle_width = 0
+        self.apptitle_height = 0
         self.normal_height = 0
         self.selected_height = 0
 
@@ -375,7 +377,9 @@ class CellRendererAppView2(gtk.CellRendererText):
         # work out max allowable layout width
         layout.set_width(-1)
         lw = self._layout_get_pixel_width(layout)
-        max_layout_width = cell_area.width - self.pixbuf_width - 3*xpad - self.MAX_STARS*self.STAR_SIZE
+        max_layout_width = cell_area.width - self.pixbuf_width - 3*xpad
+        if self.rating > 0:
+            max_layout_width -= self.MAX_STARS*self.STAR_SIZE+6*xpad
 
         if self.isactive and self.props.action_in_progress > 0:
             action_btn = self.get_button_by_name('action0')
@@ -388,11 +392,14 @@ class CellRendererAppView2(gtk.CellRendererText):
             layout.set_width((max_layout_width)*pango.SCALE)
             layout.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
             lw = max_layout_width
+            
+        self.apptitle_width, self.apptitle_height = layout.get_line(0).get_pixel_extents()[1][2:]
 
         if direction != gtk.TEXT_DIR_RTL:
             x = 2*xpad+self.pixbuf_width
         else:
             x = cell_area.x+cell_area.width-lw-self.pixbuf_width-2*xpad
+            layout.set_alignment(pango.ALIGN_RIGHT)
 
         y = cell_area.y+ypad
 
@@ -408,37 +415,36 @@ class CellRendererAppView2(gtk.CellRendererText):
         # draw stars on the top right
         cr = window.cairo_create()
 
-        # make the ratings x & width the same as the 'Install/Remove' button
-        sw = sh = self.get_button_by_name('action0').allocation.width/5
-
         if direction != gtk.TEXT_DIR_RTL:
-            x = cell_area.x + cell_area.width - xpad - (sw*self.MAX_STARS)
+            x = 4*xpad+self.pixbuf_width+self.apptitle_width
         else:
-            x = cell_area.x + xpad
+            x = (cell_area.x + cell_area.width
+                 - 4*xpad
+                 - self.pixbuf_width
+                 - self.apptitle_width 
+                 - (self.STAR_SIZE*self.MAX_STARS))
 
-        y = cell_area.y + ypad
+        y = cell_area.y + ypad + (self.apptitle_height-self.STAR_SIZE)/2
 
         self._star_painter.paint_rating(cr,
                                         widget,
                                         state,
                                         x, y,
-                                        (sw, sw),           # star size
-                                        self.MAX_STARS,     # max stars
-                                        self.rating)        # rating
+                                        (self.STAR_SIZE, self.STAR_SIZE), # star size
+                                        self.MAX_STARS,                   # max stars
+                                        self.rating)                      # rating
 
-        # and nr-reviews below
-        s = gettext.ngettext(
-            "%(nr_ratings)i Rating",
-            "%(nr_ratings)i Ratings",
-            self.nreviews) % { 'nr_ratings' : self.nreviews, }
+        # and nr-reviews in parenthesis to the right of the title
+        s = "(%s)" % self.nreviews
 
         self._layout.set_markup("<small>%s</small>" % s)
         lw, lh = self._layout.get_pixel_extents()[1][2:]
 
-        w = self.MAX_STARS*sw
-
-        x += (w-lw)/2
-        y += sh + ypad
+        w = self.MAX_STARS*self.STAR_SIZE
+        if direction != gtk.TEXT_DIR_RTL:
+            x += 2*xpad+w
+        else:
+            x -= xpad+lw
 
         widget.style.paint_layout(window, 
                                   state,
@@ -572,7 +578,7 @@ class CellRendererAppView2(gtk.CellRendererText):
                                 direction)
 
         # only show ratings if we have one
-        if  self.rating > 0 and self.props.action_in_progress < 0:
+        if self.rating > 0:
             self._render_rating(window, widget, state, cell_area, xpad, ypad, direction)
 
         # below is the stuff that is only done for the active cell
