@@ -297,6 +297,7 @@ class CellRendererAppView2(gtk.CellRendererText):
         self.overlay_icon_name = overlay_icon_name
         self.pixbuf_width = 0
         self.apptitle_width = 0
+        self.apptitle_height = 0
         self.normal_height = 0
         self.selected_height = 0
 
@@ -390,7 +391,7 @@ class CellRendererAppView2(gtk.CellRendererText):
             layout.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
             lw = max_layout_width
             
-        self.apptitle_width = layout.get_line(0).get_pixel_extents()[1][2]
+        self.apptitle_width, self.apptitle_height = layout.get_line(0).get_pixel_extents()[1][2:]
 
         if direction != gtk.TEXT_DIR_RTL:
             x = 2*xpad+self.pixbuf_width
@@ -410,16 +411,15 @@ class CellRendererAppView2(gtk.CellRendererText):
     def _render_rating(self, window, widget, state, cell_area, xpad, ypad, direction, spacing=3):
         # draw stars on the top right
         cr = window.cairo_create()
-        sw = sh = self.STAR_SIZE
 
         if direction != gtk.TEXT_DIR_RTL:
             x = 4*xpad+self.pixbuf_width+self.apptitle_width
         else:
             # TODO: implement RTL case for new star location
             x = cell_area.x + xpad
-#            x = cell_area.x + cell_area.width - xpad - (sw*self.MAX_STARS)
+#            x = cell_area.x + cell_area.width - xpad - (self.STAR_SIZE*self.MAX_STARS)
 
-        y = cell_area.y + ypad
+        y = cell_area.y + ypad + (self.apptitle_height-self.STAR_SIZE)/2
 
         self._star_painter.paint_rating(cr,
                                         widget,
