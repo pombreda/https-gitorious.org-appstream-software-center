@@ -186,13 +186,13 @@ class CellRendererAppView(Gtk.CellRendererText):
         
         # and nr-reviews in parenthesis to the right of the title
         nreviews = stats.ratings_total
-        s = "(%s)" % nreviews
+        s = "(%i)" % nreviews
 
         self._layout.set_markup("<small>%s</small>" % s, -1)
 
         lw = self._layout_get_pixel_width(layout)
         w = star_width
-        if is_rtl:
+        if not is_rtl:
             x += 2*xpad+w
         else:
             x -= xpad+lw
