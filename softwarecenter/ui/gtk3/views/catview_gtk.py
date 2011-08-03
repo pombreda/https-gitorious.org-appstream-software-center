@@ -32,7 +32,8 @@ from softwarecenter.enums import NonAppVisibility
 from softwarecenter.ui.gtk3.models.appstore2 import AppPropertiesHelper
 from softwarecenter.ui.gtk3.widgets.containers import (
      FramedHeaderBox, HeaderPosition, FramedBox, FlowableGrid, Frame)
-from softwarecenter.ui.gtk3.widgets.exhibits import ExhibitBanner, DefaultExhibit
+from softwarecenter.ui.gtk3.widgets.exhibits import (
+    ExhibitBanner, DefaultExhibit, FeaturedExhibit)
 from softwarecenter.ui.gtk3.widgets.buttons import (LabelTile,
                                                     CategoryTile,
                                                     FeaturedTile)
@@ -299,12 +300,13 @@ class LobbyViewGtk(CategoriesViewGtk):
     def _on_show_exhibits(self, exhibit_banner, exhibit):
         query = get_query_for_pkgnames(exhibit.package_names.split(","))
         title = exhibit.title_translated
+        # create a temp query
         cat = Category(title, title, None, query)
         self.emit("category-selected", cat)
 
     def _append_banner_ads(self):
         exhibit_banner = ExhibitBanner()
-        exhibit_banner.set_exhibits([DefaultExhibit()])
+        exhibit_banner.set_exhibits([DefaultExhibit(), FeaturedExhibit()])
         exhibit_banner.connect("show-exhibits", self._on_show_exhibits)
 
         # query using the agent
