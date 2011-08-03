@@ -410,10 +410,7 @@ class CellRendererAppView2(gtk.CellRendererText):
     def _render_rating(self, window, widget, state, cell_area, xpad, ypad, direction, spacing=3):
         # draw stars on the top right
         cr = window.cairo_create()
-
-        # make the ratings x & width the same as the 'Install/Remove' button
-        # TODO: don't have this constraint anymore, set width directly
-        sw = sh = self.get_button_by_name('action0').allocation.width/5
+        sw = sh = self.STAR_SIZE
 
         if direction != gtk.TEXT_DIR_RTL:
             x = 4*xpad+self.pixbuf_width+self.apptitle_width
@@ -428,9 +425,9 @@ class CellRendererAppView2(gtk.CellRendererText):
                                         widget,
                                         state,
                                         x, y,
-                                        (sw, sw),           # star size
-                                        self.MAX_STARS,     # max stars
-                                        self.rating)        # rating
+                                        (self.STAR_SIZE, self.STAR_SIZE), # star size
+                                        self.MAX_STARS,                   # max stars
+                                        self.rating)                      # rating
 
         # and nr-reviews in parenthesis to the right of the title
         s = "(%s)" % self.nreviews
@@ -438,7 +435,7 @@ class CellRendererAppView2(gtk.CellRendererText):
         self._layout.set_markup("<small>%s</small>" % s)
         lw, lh = self._layout.get_pixel_extents()[1][2:]
 
-        w = self.MAX_STARS*sw
+        w = self.MAX_STARS*self.STAR_SIZE
         x += 2*xpad+w
 
         widget.style.paint_layout(window, 
