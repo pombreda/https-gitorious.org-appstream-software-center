@@ -11,6 +11,8 @@ software-center (4.1.12) UNRELEASED; urgency=low
   * merged lp:~mvo/software-center/exhibit-api-use and cherry picked
     from lp:~mmcg069/software-center/exhibit-api-use, many thanks to
     Matthew McGowan
+  * make clicking on exhibits banner work and display the exhibits
+    list
 
   [ Gary Lasker ]
   * softwarecenter/ui/gtk/softwarepane.py:

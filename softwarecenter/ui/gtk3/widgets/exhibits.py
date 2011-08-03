@@ -70,7 +70,8 @@ left:30;
 class DefaultExhibit(object):
     def __init__(self):
         self.id = 0
-        self.package_names = "apt,2vcard"
+        self.package_names = "software-center"
+        self.title_translated = "Default exhibit"
         self.published = True
         self.banner_url = "file://%s" % (os.path.abspath(os.path.join(softwarecenter.paths.datadir, "default_banner/fallback.png")))
         self.html = EXHIBIT_HTML % { 
