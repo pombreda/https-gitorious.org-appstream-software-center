@@ -220,13 +220,16 @@ class UIReviewsList(Gtk.VBox):
             button.show()
             self.vbox.pack_start(button, True, True, 0)                
 
-        # only show the "More" button if there is a chance that there
-        # are more
-        if self.reviews and len(self.reviews) % REVIEWS_BATCH_PAGE_SIZE == 0:
-            button = Gtk.Button(_("Show more reviews"))
+        # aaronp: removed check to see if the length of reviews is divisible by
+        # the batch size to allow proper fixing of LP: #794060 as when a review
+        # is submitted and appears in the list, the pagination will break this
+        # check and make it unreliable
+        # if self.reviews and len(self.reviews) % REVIEWS_BATCH_PAGE_SIZE == 0:
+        if self.reviews:
+            button = gtk.Button(_("Check for more reviews"))
             button.connect("clicked", self._on_more_reviews_clicked)
             button.show()
-            self.vbox.pack_start(button, True, True, 0)                
+            self.vbox.pack_start(button)                
         return
 
     def _on_more_reviews_clicked(self, button):
