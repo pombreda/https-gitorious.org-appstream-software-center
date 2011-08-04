@@ -18,6 +18,7 @@
 
 import logging
 import os
+import sys
 
 # ensure we don't create directories in /home/$user
 if os.getuid() == 0 and "SUDO_USER" in os.environ and "HOME" in os.environ:
@@ -25,6 +26,16 @@ if os.getuid() == 0 and "SUDO_USER" in os.environ and "HOME" in os.environ:
 # the check above must be *before* xdg is imported
 from xdg import BaseDirectory as xdg
 
+# order is important
+def _current_toolkit():
+    if 'software-center-gtk3' in sys.argv[0]:
+        return 'gtk3'
+    elif 'software-center-gtk' in sys.argv[0]:
+        return 'gtk2'
+    elif 'software-center-qml' in sys.argv[0]:
+        return 'qml'
+    return 'gtk2'
+    
 # global datadir, this maybe overriden at startup
 datadir = "/usr/share/software-center/"
 
@@ -55,11 +66,19 @@ XAPIAN_BASE_PATH_SOFTWARE_CENTER_AGENT = os.path.join(
 
 # ratings&review
 # relative to datadir
-SUBMIT_REVIEW_APP = "submit_review.py"
-REPORT_REVIEW_APP = "report_review.py"
-SUBMIT_USEFULNESS_APP = "submit_usefulness.py"
-MODIFY_REVIEW_APP = "modify_review.py"
-DELETE_REVIEW_APP = "delete_review.py"
+class RNRApps:
+    if _current_toolkit() is 'gtk2':
+        SUBMIT_REVIEW = "submit_review.py"
+        REPORT_REVIEW = "report_review.py"
+        SUBMIT_USEFULNESS = "submit_usefulness.py"
+        MODIFY_REVIEW = "modify_review.py"
+        DELETE_REVIEW = "delete_review.py"
+    elif _current_toolkit() is 'gtk3':
+        SUBMIT_REVIEW = "submit_review_gtk3.py"
+        REPORT_REVIEW = "report_review_gtk3.py"
+        SUBMIT_USEFULNESS = "submit_usefulness_gtk3.py"
+        MODIFY_REVIEW = "modify_review_gtk3.py"
+        DELETE_REVIEW = "delete_review_gtk3.py"
 
 # piston helpers
 GET_REVIEWS_HELPER = "piston_get_reviews_helper.py"
@@ -92,3 +111,13 @@ try_to_fixup_root_owned_dir_via_remove(SOFTWARE_CENTER_CACHE_DIR)
 
 SOFTWARE_CENTER_CONFIG_FILE = os.path.join(SOFTWARE_CENTER_CONFIG_DIR, "softwarecenter.cfg") 
 SOFTWARE_CENTER_ICON_CACHE_DIR = os.path.join(SOFTWARE_CENTER_CACHE_DIR, "icons")
+
+
+
+if __name__ == '__main__':
+    import sys
+    print 'Gtk' in sys.modules
+    print 'gtk' in sys.modules
+    print os.getcwd()
+    print _current_toolkit()
+    print
