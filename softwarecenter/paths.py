@@ -26,16 +26,8 @@ if os.getuid() == 0 and "SUDO_USER" in os.environ and "HOME" in os.environ:
 # the check above must be *before* xdg is imported
 from xdg import BaseDirectory as xdg
 
-# order is important
-def _current_toolkit():
-    if 'software-center-gtk3' in sys.argv[0]:
-        return 'gtk3'
-    elif 'software-center-gtk' in sys.argv[0]:
-        return 'gtk2'
-    elif 'software-center-qml' in sys.argv[0]:
-        return 'qml'
-    return 'gtk2'
-    
+from softwarecenter.toolkit import CURRENT_TOOLKIT, UIToolkits
+
 # global datadir, this maybe overriden at startup
 datadir = "/usr/share/software-center/"
 
@@ -67,13 +59,13 @@ XAPIAN_BASE_PATH_SOFTWARE_CENTER_AGENT = os.path.join(
 # ratings&review
 # relative to datadir
 class RNRApps:
-    if _current_toolkit() is 'gtk2':
+    if CURRENT_TOOLKIT is UIToolkits.GTK2:
         SUBMIT_REVIEW = "submit_review.py"
         REPORT_REVIEW = "report_review.py"
         SUBMIT_USEFULNESS = "submit_usefulness.py"
         MODIFY_REVIEW = "modify_review.py"
         DELETE_REVIEW = "delete_review.py"
-    elif _current_toolkit() is 'gtk3':
+    elif CURRENT_TOOLKIT is UIToolkits.GTK3:
         SUBMIT_REVIEW = "submit_review_gtk3.py"
         REPORT_REVIEW = "report_review_gtk3.py"
         SUBMIT_USEFULNESS = "submit_usefulness_gtk3.py"
