@@ -190,7 +190,7 @@ class AppPropertiesHelper(_AppPropertiesHelper):
         self.cache = cache
 
         # reviews stats loader
-        self.review_loader = get_review_loader(cache)
+        self.review_loader = get_review_loader(cache, db)
 
         # icon jazz
         self.icons = icons
@@ -232,7 +232,7 @@ class AppGenericStore(_AppPropertiesHelper):
         self.cache = cache
 
         # reviews stats loader
-        self.review_loader = get_review_loader(cache)
+        self.review_loader = get_review_loader(cache, db)
 
         # backend stuff
         self.backend = get_install_backend()

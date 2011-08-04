@@ -47,16 +47,10 @@ from softwarecenter.utils import (upstream_version_compare,
                                   calc_dr,
                                   )
 from softwarecenter.paths import (SOFTWARE_CENTER_CACHE_DIR,
-                                  SUBMIT_REVIEW_APP,
-                                  REPORT_REVIEW_APP,
-                                  SUBMIT_USEFULNESS_APP,
-                                  DELETE_REVIEW_APP,
-                                  MODIFY_REVIEW_APP,
-                                  GET_REVIEWS_HELPER,
-                                  GET_REVIEW_STATS_HELPER,
-                                  GET_USEFUL_VOTES_HELPER,
                                   APP_INSTALL_PATH,
                                   XAPIAN_BASE_PATH,
+                                  RNRApps,
+                                  PistonHelpers,
                                   )
 #from softwarecenter.enums import *
 
@@ -114,7 +108,7 @@ class UsefulnessCache(object):
         
         # run the command and add watcher
         cmd = [os.path.join(
-                softwarecenter.paths.datadir, GET_USEFUL_VOTES_HELPER),
+                softwarecenter.paths.datadir, PistonHelpers.GET_USEFUL_VOTES),
                "--username", user, 
               ]
         spawn_helper = SpawnHelper()
@@ -365,7 +359,7 @@ class ReviewLoader(object):
         """ this spawns the UI for writing a new review and
             adds it automatically to the reviews DB """
         app = translated_app.get_untranslated_app(self.db)
-        cmd = [os.path.join(datadir, SUBMIT_REVIEW_APP), 
+        cmd = [os.path.join(datadir, RNRApps.SUBMIT_REVIEW), 
                "--pkgname", app.pkgname,
                "--iconname", iconname,
                "--parent-xid", "%s" % parent_xid,
@@ -402,7 +396,7 @@ class ReviewLoader(object):
             operation is complete it will call callback with the updated
             review list
         """
-        cmd = [os.path.join(datadir, REPORT_REVIEW_APP), 
+        cmd = [os.path.join(datadir, RNRApps.REPORT_REVIEW), 
                "--review-id", review_id,
                "--parent-xid", "%s" % parent_xid,
                "--datadir", datadir,
@@ -427,7 +421,7 @@ class ReviewLoader(object):
 
 
     def spawn_submit_usefulness_ui(self, review_id, is_useful, parent_xid, datadir, callback):
-        cmd = [os.path.join(datadir, SUBMIT_USEFULNESS_APP), 
+        cmd = [os.path.join(datadir, RNRApps.SUBMIT_USEFULNESS), 
                "--review-id", "%s" % review_id,
                "--is-useful", "%s" % int(is_useful),
                "--parent-xid", "%s" % parent_xid,
@@ -476,7 +470,7 @@ class ReviewLoader(object):
                         break
 
     def spawn_delete_review_ui(self, review_id, parent_xid, datadir, callback):
-        cmd = [os.path.join(datadir, DELETE_REVIEW_APP), 
+        cmd = [os.path.join(datadir, RNRApps.DELETE_REVIEW), 
                "--review-id", "%s" % review_id,
                "--parent-xid", "%s" % parent_xid,
                "--datadir", datadir,
@@ -515,7 +509,7 @@ class ReviewLoader(object):
     def spawn_modify_review_ui(self, parent_xid, iconname, datadir, review_id, callback):
         """ this spawns the UI for writing a new review and
             adds it automatically to the reviews DB """
-        cmd = [os.path.join(datadir, MODIFY_REVIEW_APP), 
+        cmd = [os.path.join(datadir, RNRApps.MODIFY_REVIEW), 
                "--parent-xid", "%s" % parent_xid,
                "--iconname", iconname,
                "--datadir", "%s" % datadir,
@@ -610,7 +604,7 @@ class ReviewLoaderSpawningRNRClient(ReviewLoader):
             return
         distroseries = self.distro.get_codename()
         # run the command and add watcher
-        cmd = [os.path.join(softwarecenter.paths.datadir, GET_REVIEWS_HELPER),
+        cmd = [os.path.join(softwarecenter.paths.datadir, PistonHelpers.GET_REVIEWS),
                "--language", language, 
                "--origin", origin, 
                "--distroseries", distroseries, 
@@ -645,7 +639,7 @@ class ReviewLoaderSpawningRNRClient(ReviewLoader):
         #origin = "any"
         #distroseries = self.distro.get_codename()
         cmd = [os.path.join(
-                softwarecenter.paths.datadir, GET_REVIEW_STATS_HELPER),
+                softwarecenter.paths.datadir, PistonHelpers.GET_REVIEW_STATS),
                # FIXME: the server currently has bug (#757695) so we
                #        can not turn this on just yet and need to use
                #        the old "catch-all" review-stats for now
@@ -948,7 +942,7 @@ et ea rebum stet clita kasd gubergren no sea takimata sanctus est lorem
 ipsum dolor sit amet"""
 
 review_loader = None
-def get_review_loader(cache, db=None):
+def get_review_loader(cache, db):
     """ 
     factory that returns a reviews loader singelton
     """
@@ -973,25 +967,34 @@ if __name__ == "__main__":
     def stats_callback(stats):
         print "stats callback:"
         print stats
-    import gtk
+    from gi.repository import GObject
 
     # cache
     from softwarecenter.db.pkginfo import get_pkg_info
     cache = get_pkg_info()
     cache.open()
+
+    from softwarecenter.db.database import StoreDatabase
+    db = StoreDatabase(XAPIAN_BASE_PATH+"/xapian", cache)
+    db.open()
+
     # rnrclient loader
     app = Application("ACE", "unace")
     #app = Application("", "2vcard")
-    loader = ReviewLoaderSpawningRNRClient(cache)
+
+    loader = ReviewLoaderSpawningRNRClient(cache, db)
     print loader.refresh_review_stats(stats_callback)
     print loader.get_reviews(app, callback)
-    
+
+    print "\n\n"
     print "default loader, press ctrl-c for next loader"
-    gtk.main()
+    context = GObject.main_context_default()
+    main = GObject.MainLoop(context)
+    main.run()
 
     # default loader
     app = Application("","2vcard")
     loader = get_review_loader(cache)
     loader.refresh_review_stats(stats_callback)
     loader.get_reviews(app, callback)
-    gtk.main()
+    main.run()

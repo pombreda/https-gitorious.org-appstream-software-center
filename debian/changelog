@@ -15,6 +15,11 @@ software-center (4.1.12) UNRELEASED; urgency=low
     list
   * add featured banner
 
+  [ Matthew McGowan ]
+  * lp:~mmcg069/software-center/rnr-dialogs-gtk3:
+    - support multiple toolkits for the submit review functionatlity
+    - port the submit review app to gtk3
+
   [ Gary Lasker ]
   * softwarecenter/ui/gtk/softwarepane.py:
     - small fix to action bar functionality in support of oneconf
