@@ -805,7 +805,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.app, self._reviews_ready_callback, 
             page=self._reviews_server_page,
             language=self._reviews_server_language)
-    
+
     def _review_update_single(self, action, review):
         if action == 'replace':
             self.reviews.replace_review(review)

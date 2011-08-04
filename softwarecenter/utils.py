@@ -157,7 +157,11 @@ def htmlize_package_description(desc):
 def get_parent_xid(widget):
     while widget.get_parent():
         widget = widget.get_parent()
-    return widget.window.xid
+    window = widget.get_window()
+    #print dir(window)
+    if hasattr(window, 'xid'):
+        return window.xid
+    return 0    # cannot figure out how to get the xid of gdkwindow under pygi
 
 def get_language():
     """Helper that returns the current language
