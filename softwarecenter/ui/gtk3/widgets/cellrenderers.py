@@ -147,13 +147,9 @@ class CellRendererAppView(Gtk.CellRendererText):
             layout.set_ellipsize(Pango.EllipsizeMode.MIDDLE)
             lw = max_layout_width
 
-        # FIXME
         apptitle_extents = layout.get_line_readonly(0).get_pixel_extents()[1]
         self.apptitle_width = apptitle_extents.width
         self.apptitle_height = apptitle_extents.height
-
-        print "self.apptitle_width: ", self.apptitle_width
-        print "self.apptitle_height: ", self.apptitle_height
 
         if not is_rtl:
             x = cell_area.x+2*xpad+self.pixbuf_width
