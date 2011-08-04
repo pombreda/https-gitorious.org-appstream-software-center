@@ -248,6 +248,7 @@ def get_channels_manager(db):
     return channels_manager
 
 def is_channel_available(channelname):
+    from softwarecenter.backend.aptchannels import AptChannelsManager
     return AptChannelsManager.channel_available(channelname)
 
 if __name__ == "__main__":
