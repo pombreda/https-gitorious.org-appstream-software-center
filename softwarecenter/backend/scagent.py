@@ -24,7 +24,7 @@ import logging
 import os
         
 import softwarecenter.paths
-from softwarecenter.paths import SOFTWARE_CENTER_AGENT_HELPER
+from softwarecenter.paths import PistonHelpers
 from spawn_helper import SpawnHelper
 from softwarecenter.utils import get_language
 from softwarecenter.distro import get_distro, get_current_arch
@@ -57,7 +57,7 @@ class SoftwareCenterAgent(GObject.GObject):
         self.distro = get_distro()
         self.ignore_cache = ignore_cache
         binary = os.path.join(
-            softwarecenter.paths.datadir, SOFTWARE_CENTER_AGENT_HELPER)
+            softwarecenter.paths.datadir, PistonHelpers.SOFTWARE_CENTER_AGENT)
         self.HELPER_CMD = [binary]
         if self.ignore_cache:
             self.HELPER_CMD.append("--ignore-cache")

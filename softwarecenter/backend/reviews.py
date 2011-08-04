@@ -47,12 +47,10 @@ from softwarecenter.utils import (upstream_version_compare,
                                   calc_dr,
                                   )
 from softwarecenter.paths import (SOFTWARE_CENTER_CACHE_DIR,
-                                  RNRApps,
-                                  GET_REVIEWS_HELPER,
-                                  GET_REVIEW_STATS_HELPER,
-                                  GET_USEFUL_VOTES_HELPER,
                                   APP_INSTALL_PATH,
                                   XAPIAN_BASE_PATH,
+                                  RNRApps,
+                                  PistonHelpers,
                                   )
 #from softwarecenter.enums import *
 
@@ -110,7 +108,7 @@ class UsefulnessCache(object):
         
         # run the command and add watcher
         cmd = [os.path.join(
-                softwarecenter.paths.datadir, GET_USEFUL_VOTES_HELPER),
+                softwarecenter.paths.datadir, PistonHelpers.GET_USEFUL_VOTES),
                "--username", user, 
               ]
         spawn_helper = SpawnHelper()
@@ -606,7 +604,7 @@ class ReviewLoaderSpawningRNRClient(ReviewLoader):
             return
         distroseries = self.distro.get_codename()
         # run the command and add watcher
-        cmd = [os.path.join(softwarecenter.paths.datadir, GET_REVIEWS_HELPER),
+        cmd = [os.path.join(softwarecenter.paths.datadir, PistonHelpers.GET_REVIEWS),
                "--language", language, 
                "--origin", origin, 
                "--distroseries", distroseries, 
@@ -641,7 +639,7 @@ class ReviewLoaderSpawningRNRClient(ReviewLoader):
         #origin = "any"
         #distroseries = self.distro.get_codename()
         cmd = [os.path.join(
-                softwarecenter.paths.datadir, GET_REVIEW_STATS_HELPER),
+                softwarecenter.paths.datadir, PistonHelpers.GET_REVIEW_STATS),
                # FIXME: the server currently has bug (#757695) so we
                #        can not turn this on just yet and need to use
                #        the old "catch-all" review-stats for now

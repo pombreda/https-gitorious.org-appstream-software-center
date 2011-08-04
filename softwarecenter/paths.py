@@ -73,10 +73,11 @@ class RNRApps:
         DELETE_REVIEW = "delete_review_gtk3.py"
 
 # piston helpers
-GET_REVIEWS_HELPER = "piston_get_reviews_helper.py"
-GET_REVIEW_STATS_HELPER = "piston_get_review_stats_helper.py"
-GET_USEFUL_VOTES_HELPER = "piston_get_useful_votes_helper.py"
-SOFTWARE_CENTER_AGENT_HELPER = "piston_get_scagent_available_apps.py"
+class PistonHelpers:
+    GET_REVIEWS = "piston_get_reviews_helper.py"
+    GET_REVIEW_STATS = "piston_get_review_stats_helper.py"
+    GET_USEFUL_VOTES = "piston_get_useful_votes_helper.py"
+    SOFTWARE_CENTER_AGENT = "piston_get_scagent_available_apps.py"
 
 X2GO_HELPER = "x2go_helper.py"
 

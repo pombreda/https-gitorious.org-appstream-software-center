@@ -239,8 +239,30 @@ class UIReviewsList(Gtk.VBox):
         self.vbox.remove(button)
         self.emit("different-review-language-clicked", language)
 
+    def get_all_review_ids(self):
+        ids = []
+        for review in self.reviews:
+            ids.append(review.id)
+        return ids 
+
     def add_review(self, review):
         self.reviews.append(review)
+        return
+
+    def replace_review(self, review):
+        for r in self.reviews:
+            if r.id == review.id:
+                pos = self.reviews.index(r)
+                self.reviews.remove(r)
+                self.reviews.insert(pos, review)
+                break
+        return
+
+    def remove_review(self, review):
+        for r in self.reviews:
+            if r.id == review.id:
+                self.reviews.remove(r)
+                break
         return
 
     def clear(self):
