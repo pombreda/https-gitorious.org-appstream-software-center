@@ -18,6 +18,11 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 
+# We have to import Gio before everything, for dynamic PK to work.
+try:
+    from gi.repository import Gio
+except: pass
+
 #import apt
 import locale
 import gettext

@@ -25,10 +25,10 @@ class FakeOrigin:
     def __init__(self, name):
         self.origin = name
         self.trusted = True
-        self.component = ''
+        self.component = 'unknown'
         self.site = ''
-        self.label = ''
-        self.archive = ''
+        self.label = name
+        self.archive = name
 
 class PackagekitVersion(_Version):
     def __init__(self, package, pkginfo):
