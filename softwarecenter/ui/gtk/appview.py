@@ -393,7 +393,7 @@ class CellRendererAppView2(gtk.CellRendererText):
             layout.set_ellipsize(pango.ELLIPSIZE_MIDDLE)
             lw = max_layout_width
             
-        self.apptitle_width, self.apptitle_height = layout.get_line(0).get_pixel_extents()[1][2:]
+        self.apptitle_width, self.apptitle_height = layout.get_line_readonly(0).get_pixel_extents()[1][2:]
 
         if direction != gtk.TEXT_DIR_RTL:
             x = 2*xpad+self.pixbuf_width
@@ -435,7 +435,7 @@ class CellRendererAppView2(gtk.CellRendererText):
                                         self.rating)                      # rating
 
         # and nr-reviews in parenthesis to the right of the title
-        s = "(%s)" % self.nreviews
+        s = "(%i)" % self.nreviews
 
         self._layout.set_markup("<small>%s</small>" % s)
         lw, lh = self._layout.get_pixel_extents()[1][2:]
