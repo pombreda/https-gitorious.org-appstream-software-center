@@ -148,17 +148,12 @@ class CellRendererAppView(Gtk.CellRendererText):
             lw = max_layout_width
 
         # FIXME
-#        self.apptitle_width = layout.get_line_readonly(0).get_pixel_extents()[1].width
-#        self.apptitle_height = layout.get_line_readonly(0).get_pixel_extents()[1].height
+        apptitle_extents = layout.get_line_readonly(0).get_pixel_extents()[1]
+        self.apptitle_width = apptitle_extents.width
+        self.apptitle_height = apptitle_extents.height
 
-#        self.apptitle_width = layout.get_line_readonly(0)
-#        self.apptitle_height = layout.get_line_readonly(0)
-        
-#        print ">>> self.apptitle_width", self.apptitle_width
-#        print ">>> self.apptitle_height", self.apptitle_height
-        
-        self.apptitle_width = 100
-        self.apptitle_height = 20
+        print "self.apptitle_width: ", self.apptitle_width
+        print "self.apptitle_height: ", self.apptitle_height
 
         if not is_rtl:
             x = cell_area.x+2*xpad+self.pixbuf_width
