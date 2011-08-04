@@ -197,7 +197,7 @@ class CellRendererAppView(Gtk.CellRendererText):
         nreviews = stats.ratings_total
         s = "(%i)" % nreviews
 
-        self._layout.set_markup("<small>%s</small>" % s, -1)
+        layout.set_markup("<small>%s</small>" % s, -1)
 
         lw = self._layout_get_pixel_width(layout)
         w = star_width
@@ -206,7 +206,7 @@ class CellRendererAppView(Gtk.CellRendererText):
         else:
             x -= xpad+lw
 
-        Gtk.render_layout(context, cr, x, y, self._layout)
+        Gtk.render_layout(context, cr, x, y, layout)
         return
 
     def _render_progress(self, context, cr, progress, cell_area, ypad, is_rtl):
