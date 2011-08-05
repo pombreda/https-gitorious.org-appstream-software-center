@@ -221,7 +221,7 @@ class ExhibitArrowButton(ExhibitButton):
 class ExhibitBanner(Gtk.EventBox):
 
     __gsignals__ = {
-        "show-exhibits" : (GObject.SignalFlags.RUN_LAST,
+        "show-exhibits-clicked" : (GObject.SignalFlags.RUN_LAST,
                            None, 
                            (GObject.TYPE_PYOBJECT,),
                            )

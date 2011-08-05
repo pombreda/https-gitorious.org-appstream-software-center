@@ -307,7 +307,7 @@ class LobbyViewGtk(CategoriesViewGtk):
     def _append_banner_ads(self):
         exhibit_banner = ExhibitBanner()
         exhibit_banner.set_exhibits([DefaultExhibit(), FeaturedExhibit()])
-        exhibit_banner.connect("show-exhibits", self._on_show_exhibits)
+        exhibit_banner.connect("show-exhibits-clicked", self._on_show_exhibits)
 
         # query using the agent
         scagent = SoftwareCenterAgent()
