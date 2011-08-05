@@ -226,7 +226,7 @@ class UIReviewsList(Gtk.VBox):
         # check and make it unreliable
         # if self.reviews and len(self.reviews) % REVIEWS_BATCH_PAGE_SIZE == 0:
         if self.reviews:
-            button = gtk.Button(_("Check for more reviews"))
+            button = Gtk.Button(_("Check for more reviews"))
             button.connect("clicked", self._on_more_reviews_clicked)
             button.show()
             self.vbox.pack_start(button)                
