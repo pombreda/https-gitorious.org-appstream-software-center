@@ -3,14 +3,7 @@
 all: check #mago_test
 
 check:
-	set -e; \
-	find . -name 'test_*.py' | \
-	while read file; do \
-	    if [ -f $$file ]; then \
-		echo "Testing $$file"; \
-	    	python $$file ; \
-	    fi \
-	done
+	./test-all.sh
 
 clean:
 	find  ../data/xapian/ ./data/aptroot/var/lib/apt/lists/ \

@@ -967,14 +967,12 @@ if __name__ == "__main__":
     def stats_callback(stats):
         print "stats callback:"
         print stats
-    from gi.repository import GObject
 
     # cache
     from softwarecenter.db.pkginfo import get_pkg_info
     cache = get_pkg_info()
     cache.open()
 
-    from softwarecenter.db.database import StoreDatabase
     db = StoreDatabase(XAPIAN_BASE_PATH+"/xapian", cache)
     db.open()
 

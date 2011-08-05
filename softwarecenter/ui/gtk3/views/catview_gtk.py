@@ -31,7 +31,7 @@ from appview import AppViewFilter
 from softwarecenter.enums import NonAppVisibility
 from softwarecenter.ui.gtk3.models.appstore2 import AppPropertiesHelper
 from softwarecenter.ui.gtk3.widgets.containers import (
-     FramedHeaderBox, HeaderPosition, FramedBox, FlowableGrid, Frame)
+     FramedHeaderBox, HeaderPosition, FramedBox, FlowableGrid)
 from softwarecenter.ui.gtk3.widgets.exhibits import (
     ExhibitBanner, DefaultExhibit, FeaturedExhibit)
 from softwarecenter.ui.gtk3.widgets.buttons import (LabelTile,
@@ -130,7 +130,7 @@ class CategoriesViewGtk(Gtk.Viewport, CategoriesParser):
         self._poster_sigs = []
         self._allocation = None
 
-        assets = self._cache_art_assets()
+        #~ assets = self._cache_art_assets()
         #~ self.vbox.connect("draw", self.on_draw, assets)
         self._prev_alloc = None
         self.connect("size-allocate", self.on_size_allocate)

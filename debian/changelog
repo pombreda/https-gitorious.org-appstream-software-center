@@ -17,6 +17,9 @@ software-center (4.1.12) UNRELEASED; urgency=low
   * softwarecenter/backend/spawn_helper.py:
     - remove io watch again if the child exited to ensure we do
       not run into a 100% loop
+  * pyflakes fixes
+  * test/test-all.sh:
+    - improve test runner
 
   [ Matthew McGowan ]
   * lp:~mmcg069/software-center/rnr-dialogs-gtk3:

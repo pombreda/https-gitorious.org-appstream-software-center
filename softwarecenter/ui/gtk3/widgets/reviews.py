@@ -41,7 +41,7 @@ from softwarecenter.utils import (
     )
 
 from softwarecenter.netstatus import network_state_is_connected
-from softwarecenter.enums import PkgStates, REVIEWS_BATCH_PAGE_SIZE
+from softwarecenter.enums import PkgStates
 from softwarecenter.backend.reviews import UsefulnessCache
 
 from softwarecenter.ui.gtk3.em import StockEms

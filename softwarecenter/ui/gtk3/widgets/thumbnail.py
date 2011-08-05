@@ -22,7 +22,6 @@ from gi.repository import Gtk, Gdk, Atk, GObject, GdkPixbuf
 
 import logging
 import os
-import sys
 
 from softwarecenter.db.pkginfo import get_pkg_info
 from softwarecenter.utils import SimpleFileDownloader

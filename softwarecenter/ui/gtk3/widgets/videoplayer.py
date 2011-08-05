@@ -102,7 +102,7 @@ class VideoPlayerGtk3(Gtk.VBox):
             Gdk.threads_enter()
             # FIXME: this is the way to do it, *but* get_xid() is not
             #        exported in the GIR
-            xid = player.movie_window.get_window().get_xid()
+            xid = self.player.movie_window.get_window().get_xid()
             imagesink.set_xwindow_id(xid)
             Gdk.threads_leave()	
 
@@ -125,5 +125,5 @@ if __name__ == "__main__":
     Gdk.threads_init()
     Gst.init(sys.argv)
 
-    win = test_videoplayer_window()
+    win = get_test_videoplayer_window()
     Gtk.main()

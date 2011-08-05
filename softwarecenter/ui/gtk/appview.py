@@ -18,7 +18,6 @@
 
 from __future__ import with_statement
 
-import gettext
 from gi.repository import GObject
 import gtk
 import logging
