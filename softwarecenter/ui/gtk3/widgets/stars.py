@@ -165,6 +165,7 @@ class StarRenderer(ShapeStar):
         return full_surf, empty_surf
 
     def update_cache_surfaces(self, context, size):
+        print 'update cache'
         global _star_surface_cache
 
         star_width = vis_height = self._size_map[size]()
@@ -187,9 +188,11 @@ class StarRenderer(ShapeStar):
         return surfs
 
     def lookup_surfaces_for_size(self, size):
-        if size not in _star_surface_cache:
+        full_key, empty_key = self._get_mangled_keys(size)
+        
+        if full_key not in _star_surface_cache:
             return None, None
-        full_key, empty_key = self._get_mangled_keys()
+
         full_surf = _star_surface_cache[full_key]
         empty_surf = _star_surface_cache[empty_key]
         return full_surf, empty_surf
