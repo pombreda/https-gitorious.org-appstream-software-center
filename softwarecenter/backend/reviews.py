@@ -942,7 +942,7 @@ et ea rebum stet clita kasd gubergren no sea takimata sanctus est lorem
 ipsum dolor sit amet"""
 
 review_loader = None
-def get_review_loader(cache, db):
+def get_review_loader(cache, db=None):
     """ 
     factory that returns a reviews loader singelton
     """
@@ -994,7 +994,7 @@ if __name__ == "__main__":
 
     # default loader
     app = Application("","2vcard")
-    loader = get_review_loader(cache)
+    loader = get_review_loader(cache, db)
     loader.refresh_review_stats(stats_callback)
     loader.get_reviews(app, callback)
     main.run()
