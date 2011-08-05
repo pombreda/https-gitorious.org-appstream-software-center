@@ -120,6 +120,8 @@ if __name__ == "__main__":
         print "_available: ", available
     def _available_for_me(agent, available_for_me):
         print "_availalbe_for_me: ", available_for_me
+    def _exhibits(agent, exhibits):
+        print "exhibits: ", exhibits
     def _error(agent, msg):
         print "got a error", msg
         #gtk.main_quit()
@@ -131,9 +133,11 @@ if __name__ == "__main__":
     scagent = SoftwareCenterAgent()
     scagent.connect("available-for-me", _available_for_me)
     scagent.connect("available", _available)
+    scagent.connect("exhibits", _exhibits)
     scagent.connect("error", _error)
-    scagent.query_available("natty", "i386")
-    scagent.query_available_for_me("dummy_oauth", "dummy openid")
+    #scagent.query_available("natty", "i386")
+    #scagent.query_available_for_me("dummy_oauth", "dummy openid")
+    scagent.query_exhibits()
 
     import gtk
     gtk.main()

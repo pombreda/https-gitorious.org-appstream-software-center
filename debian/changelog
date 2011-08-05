@@ -14,6 +14,9 @@ software-center (4.1.12) UNRELEASED; urgency=low
   * make clicking on exhibits banner work and display the exhibits
     list
   * add featured banner
+  * softwarecenter/backend/spawn_helper.py:
+    - remove io watch again if the child exited to ensure we do
+      not run into a 100% loop
 
   [ Matthew McGowan ]
   * lp:~mmcg069/software-center/rnr-dialogs-gtk3:
