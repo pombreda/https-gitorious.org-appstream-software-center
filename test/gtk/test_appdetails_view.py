@@ -86,7 +86,7 @@ class TestAppDetailsView(unittest.TestCase):
         self.assertFalse(
             self.appdetails.addons_statusbar.get_property("visible"))
         
-    # DISABLED until failures are reliably fixed 
+    # FIXME: disabled for now until failures can be fixed, timing issues?
 #    def test_show_app_simple_no_network(self):
 #        softwarecenter.netstatus.NETWORK_STATE = softwarecenter.netstatus.NetState.NM_STATE_DISCONNECTED
 #        app = Application("Freeciv", "freeciv-client-gtk")
@@ -167,7 +167,7 @@ class TestAppDetailsView(unittest.TestCase):
         #mock_app_details = self._get_mock_app_details()
         self.appdetails.show_app(app)
 
-    # DISABLED until failures are reliably fixed        
+    # FIXME: disabled for now until failures can be fixed, timing issues?     
 #    def test_enable_review_on_install(self):
 #        app = Application("Freeciv", "freeciv-client-gtk")
 #        mock_app_details = self._get_mock_app_details()
@@ -193,7 +193,7 @@ class TestAppDetailsView(unittest.TestCase):
 #        # now that the app is installed, check that the invitation to review the app is showing
 #        self.assertTrue(self.appdetails.reviews.new_review.get_property("visible"))
 
-    # DISABLED until failures are reliably fixed 
+    # FIXME: disabled for now until failures can be fixed, timing issues?
 #    def test_usefulness_submit_behaviour(self):
 #        #set up fake review for expected behaviour
 #        from softwarecenter.backend.fake_review_settings import FakeReviewSettings
