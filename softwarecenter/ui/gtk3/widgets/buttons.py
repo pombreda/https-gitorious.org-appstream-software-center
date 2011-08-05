@@ -22,7 +22,6 @@ from gi.repository import Gtk, Gdk, Pango, GObject, GdkPixbuf, PangoCairo
 from gettext import gettext as _
 
 from softwarecenter.ui.gtk3.em import StockEms, em
-from softwarecenter.ui.gtk3.drawing import rounded_rect
 from softwarecenter.ui.gtk3.widgets.stars import Star
 
 

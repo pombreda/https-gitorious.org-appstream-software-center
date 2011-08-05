@@ -88,7 +88,6 @@ class UnityLauncherInfo(object):
 
 # for DisplayState attribute type-checking
 from softwarecenter.db.categories import Category
-from softwarecenter.db.application import Application
 from softwarecenter.backend.channel import SoftwareChannel
 from softwarecenter.ui.gtk3.views.appview import AppViewFilter
 class DisplayState(object):

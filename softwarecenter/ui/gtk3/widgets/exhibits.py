@@ -18,7 +18,6 @@
 
 import cairo
 import os
-from os.path import join
 from gettext import gettext as _
 
 from gi.repository import Gtk
@@ -28,9 +27,8 @@ from gi.repository import GdkPixbuf
 from gi.repository import WebKit
 
 from softwarecenter.utils import SimpleFileDownloader
-from softwarecenter.ui.gtk3.em import em, StockEms
+from softwarecenter.ui.gtk3.em import StockEms
 from softwarecenter.ui.gtk3.shapes import Circle
-from softwarecenter.ui.gtk3.drawing import rounded_rect
 import softwarecenter.paths
 
 _asset_cache = {}
@@ -184,7 +182,7 @@ class ExhibitButton(Gtk.Button):
 
     def do_draw(self, cr):
         a = self.get_allocation()
-        state = self.get_state_flags()
+        #state = self.get_state_flags()
         context = self.get_style_context()
 
         ds_h = self._dropshadow.get_height()
@@ -221,7 +219,7 @@ class ExhibitArrowButton(ExhibitButton):
 class ExhibitBanner(Gtk.EventBox):
 
     __gsignals__ = {
-        "show-exhibits" : (GObject.SignalFlags.RUN_LAST,
+        "show-exhibits-clicked" : (GObject.SignalFlags.RUN_LAST,
                            None, 
                            (GObject.TYPE_PYOBJECT,),
                            )

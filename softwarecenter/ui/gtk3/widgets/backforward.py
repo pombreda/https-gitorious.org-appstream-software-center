@@ -16,7 +16,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import cairo
 from gi.repository import Atk
 from gi.repository import Gtk
 from gi.repository import Gdk
@@ -24,7 +23,7 @@ from gi.repository import GObject
 
 from gettext import gettext as _
 
-from softwarecenter.ui.gtk3.drawing import rounded_rect, rounded_rect2
+from softwarecenter.ui.gtk3.drawing import rounded_rect
 
 DEFAULT_PART_SIZE = (28, -1)
 
