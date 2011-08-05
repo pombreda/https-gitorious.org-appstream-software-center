@@ -77,11 +77,19 @@ if sys.argv[1] == "build":
 setup(name="software-center", version=VERSION,
       scripts=["software-center",
                "software-center-gtk3",
+               # gtk
                "utils/submit_review.py",
                "utils/report_review.py",
                "utils/submit_usefulness.py",
                "utils/delete_review.py",
                "utils/modify_review.py",
+               # gtk3
+               "utils/submit_review_gtk3.py",
+               "utils/report_review_gtk3.py",
+               "utils/submit_usefulness_gtk3.py",
+               "utils/delete_review_gtk3.py",
+               "utils/modify_review_gtk3.py",
+               # db helpers
                "utils/update-software-center",
                "utils/update-software-center-agent",
                ]+glob.glob("utils/piston-helpers/*.py"),
