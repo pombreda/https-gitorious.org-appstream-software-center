@@ -41,6 +41,10 @@ software-center (4.1.12) UNRELEASED; urgency=low
       software item name, per the updated spec (LP: #802756)
   * softwarecenter/ui/gtk3/widgets/reviews.py:
     - make 'more reviews' button work in gtk3 details view
+  * test/gtk/test_gui_buy_something.py,
+    test/gtk/test_unity_launcher_integration.py,
+    test/test_addons.py:
+    - fix up unit tests
 
   [ Kiwinote ]
   * softwarecenter/ui/gtk/widgets/carousel.py:

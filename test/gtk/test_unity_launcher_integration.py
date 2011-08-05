@@ -130,8 +130,9 @@ class TestUnityLauncherIntegration(unittest.TestCase):
         self.assertEqual(launcher_info.icon_name, "lincity-ng")
         self.assertTrue(launcher_info.icon_x > 20)
         self.assertTrue(launcher_info.icon_y > 20)
-        self.assertEqual(launcher_info.icon_size, 84)
-        self.assertEqual(launcher_info.app_install_desktop_file_path, "/usr/share/app-install/desktop/lincity-ng.desktop")
+        self.assertEqual(launcher_info.icon_size, 74)
+        self.assertEqual(launcher_info.app_install_desktop_file_path,
+                         "/usr/share/app-install/desktop/lincity-ng:lincity-ng.desktop")
         self.assertEqual(launcher_info.trans_id, "testid101")
         # finally, make sure the the app has been removed from the launcher queue        
         self.assertFalse(pkgname in self.s_c_app.available_pane.unity_launcher_items)
