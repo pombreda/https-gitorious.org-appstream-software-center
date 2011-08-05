@@ -229,7 +229,7 @@ class UIReviewsList(Gtk.VBox):
             button = Gtk.Button(_("Check for more reviews"))
             button.connect("clicked", self._on_more_reviews_clicked)
             button.show()
-            self.vbox.pack_start(button)                
+            self.vbox.pack_start(button, True, True, 0)                
         return
 
     def _on_more_reviews_clicked(self, button):
