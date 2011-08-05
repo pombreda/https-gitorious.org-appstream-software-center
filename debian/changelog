@@ -19,6 +19,8 @@ software-center (4.1.12) UNRELEASED; urgency=low
   * lp:~mmcg069/software-center/rnr-dialogs-gtk3:
     - support multiple toolkits for the submit review functionatlity
     - port the submit review app to gtk3
+  * lp:~mmcg069/software-center/gtk3fixes:
+    - fix star renderer not actually using cached star surfaces
 
   [ Gary Lasker ]
   * softwarecenter/ui/gtk/softwarepane.py:
