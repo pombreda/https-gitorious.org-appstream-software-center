@@ -20,6 +20,9 @@ software-center (4.1.12) UNRELEASED; urgency=low
   * pyflakes fixes
   * test/test-all.sh:
     - improve test runner
+  * softwarecenter/ui/gtk3/views/purchaseview.py:
+    - add LocaleAwareWebView that sends a "Accept-Language" http
+      header
 
   [ Matthew McGowan ]
   * lp:~mmcg069/software-center/rnr-dialogs-gtk3:
