@@ -1,5 +1,24 @@
+# Copyright (C) 2011 Canonical
+#
+# Authors:
+#  Matthew McGowan
+#
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; version 3.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+# details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
 import cairo
 
+import logging
 import gettext
 from gettext import gettext as _
 
@@ -11,6 +30,7 @@ from softwarecenter.ui.gtk3.em import StockEms, em, small_em, big_em
 
 _star_surface_cache = {}
 
+LOG=logging.getLogger(__name__)
 
 class StarSize:
     SMALL = 1
@@ -165,7 +185,7 @@ class StarRenderer(ShapeStar):
         return full_surf, empty_surf
 
     def update_cache_surfaces(self, context, size):
-        print 'update cache'
+        LOG.debug('update cache')
         global _star_surface_cache
 
         star_width = vis_height = self._size_map[size]()

@@ -14,11 +14,24 @@ software-center (4.1.12) UNRELEASED; urgency=low
   * make clicking on exhibits banner work and display the exhibits
     list
   * add featured banner
+  * softwarecenter/backend/spawn_helper.py:
+    - remove io watch again if the child exited to ensure we do
+      not run into a 100% loop
+  * pyflakes fixes
+  * test/test-all.sh:
+    - improve test runner
+  * softwarecenter/ui/gtk3/views/purchaseview.py:
+    - add LocaleAwareWebView that sends a "Accept-Language" http
+      header
+  * setup.py: 
+    - install gtk3 version as well
 
   [ Matthew McGowan ]
   * lp:~mmcg069/software-center/rnr-dialogs-gtk3:
     - support multiple toolkits for the submit review functionatlity
     - port the submit review app to gtk3
+  * lp:~mmcg069/software-center/gtk3fixes:
+    - fix star renderer not actually using cached star surfaces
 
   [ Gary Lasker ]
   * softwarecenter/ui/gtk/softwarepane.py:
@@ -28,6 +41,22 @@ software-center (4.1.12) UNRELEASED; urgency=low
       software item name, per the updated spec (LP: #802756)
   * softwarecenter/ui/gtk3/widgets/reviews.py:
     - make 'more reviews' button work in gtk3 details view
+  * test/gtk/test_gui_buy_something.py,
+    test/test_addons.py:
+    - unit test fixes
+  * softwarecenter/utils.py,
+    test/gtk/test_unity_launcher_integration.py:
+    - update unity launcher integration code to conform to
+      new app-install desktop file naming format, update
+      unit test
+  * softwarecenter/ui/gtk/appdetailsview_gtk.py,
+    softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
+    - change name of website link in the details view per
+      updated spec (LP: #715681)
+  * softwarecenter/ui/gtk/appdetailsview_gtk.py,
+    softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
+    - don't show addons in the details view for the
+      standalone deb installation case (LP: #821395)
 
   [ Kiwinote ]
   * softwarecenter/ui/gtk/widgets/carousel.py:
@@ -35,7 +64,7 @@ software-center (4.1.12) UNRELEASED; urgency=low
   * softwarecenter/ui/gtk3/views/catview_gtk.py:
     - connect up the 'more' buttons
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 04 Aug 2011 21:19:10 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Sat, 06 Aug 2011 01:36:46 -0400
 
 software-center (4.1.11) oneiric; urgency=low
 

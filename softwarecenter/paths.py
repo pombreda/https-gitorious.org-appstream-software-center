@@ -18,7 +18,6 @@
 
 import logging
 import os
-import sys
 
 # ensure we don't create directories in /home/$user
 if os.getuid() == 0 and "SUDO_USER" in os.environ and "HOME" in os.environ:

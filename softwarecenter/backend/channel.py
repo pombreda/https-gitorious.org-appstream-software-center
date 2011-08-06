@@ -17,20 +17,16 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import os
-from gi.repository import GObject
 import logging
 import xapian
 
 from gettext import gettext as _
 
-from softwarecenter.backend import get_install_backend
 from softwarecenter.distro import get_distro
 
 from softwarecenter.enums import (SortMethods, 
-                                  ViewPages,
                                   Icons,
-                                  AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME)
+                                 )
 
 LOG = logging.getLogger(__name__)
 

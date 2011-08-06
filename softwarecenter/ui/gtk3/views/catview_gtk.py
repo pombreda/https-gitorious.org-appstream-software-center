@@ -32,7 +32,7 @@ from softwarecenter.enums import NonAppVisibility
 from softwarecenter.utils import wait_for_apt_cache_ready
 from softwarecenter.ui.gtk3.models.appstore2 import AppPropertiesHelper
 from softwarecenter.ui.gtk3.widgets.containers import (
-     FramedHeaderBox, HeaderPosition, FramedBox, FlowableGrid, Frame)
+     FramedHeaderBox, HeaderPosition, FramedBox, FlowableGrid)
 from softwarecenter.ui.gtk3.widgets.exhibits import (
     ExhibitBanner, DefaultExhibit, FeaturedExhibit)
 from softwarecenter.ui.gtk3.widgets.buttons import (LabelTile,
@@ -308,7 +308,7 @@ class LobbyViewGtk(CategoriesViewGtk):
     def _append_banner_ads(self):
         exhibit_banner = ExhibitBanner()
         exhibit_banner.set_exhibits([DefaultExhibit(), FeaturedExhibit()])
-        exhibit_banner.connect("show-exhibits", self._on_show_exhibits)
+        exhibit_banner.connect("show-exhibits-clicked", self._on_show_exhibits)
 
         # query using the agent
         scagent = SoftwareCenterAgent()
