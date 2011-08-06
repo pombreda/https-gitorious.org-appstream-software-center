@@ -104,13 +104,3 @@ try_to_fixup_root_owned_dir_via_remove(SOFTWARE_CENTER_CACHE_DIR)
 
 SOFTWARE_CENTER_CONFIG_FILE = os.path.join(SOFTWARE_CENTER_CONFIG_DIR, "softwarecenter.cfg") 
 SOFTWARE_CENTER_ICON_CACHE_DIR = os.path.join(SOFTWARE_CENTER_CACHE_DIR, "icons")
-
-
-
-if __name__ == '__main__':
-    import sys
-    print 'Gtk' in sys.modules
-    print 'gtk' in sys.modules
-    print os.getcwd()
-    print _current_toolkit()
-    print

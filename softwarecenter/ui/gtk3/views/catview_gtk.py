@@ -29,6 +29,7 @@ from gettext import gettext as _
 import softwarecenter.paths
 from appview import AppViewFilter
 from softwarecenter.enums import NonAppVisibility
+from softwarecenter.utils import wait_for_apt_cache_ready
 from softwarecenter.ui.gtk3.models.appstore2 import AppPropertiesHelper
 from softwarecenter.ui.gtk3.widgets.containers import (
      FramedHeaderBox, HeaderPosition, FramedBox, FlowableGrid, Frame)
@@ -478,6 +479,46 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         # sections
         self.current_category = None
         self.departments = None
+        self.toprated = None
+        return
+
+    @wait_for_apt_cache_ready # be consistent with new apps
+    def _append_sub_toprated(self, category):
+        if self.toprated is None:
+            self.toprated = FlowableGrid(paint_grid_pattern=False)
+            self.toprated.set_row_spacing(6)
+            self.toprated.set_column_spacing(6)
+            frame = FramedHeaderBox()
+            # set x/y-alignment and x/y-expand
+            #~ frame.set(0.5, 0.0, 1.0, 1.0)
+            frame.set_header_label(_("Top Rated"))
+            frame.header_implements_more_button()
+            frame.more.connect('clicked', self.on_category_clicked, category) 
+            frame.pack_start(self.toprated, True, True, 0)
+            # append the departments section to the page
+            self.vbox.pack_start(frame, True, True, 0)
+            self.enquire = AppEnquire(self.cache, self.db)
+            self.helper = AppPropertiesHelper(self.db,
+                                              self.cache,
+                                              self.icons)
+        else:
+            self.toprated.remove_all()
+
+        self.enquire.set_query(category.query,
+                               limit=TOP_RATED_CAROUSEL_LIMIT,
+                               sortmode=SortMethods.BY_TOP_RATED,
+                               filter=self.apps_filter,
+                               nonapps_visible=AppStore.NONAPPS_ALWAYS_VISIBLE,
+                               nonblocking_load=False)
+
+        for doc in enq.get_documents()[0:8]:
+            name = helper.get_appname(doc)
+            icon_pb = helper.get_icon_at_size(doc, 48, 48)
+            stats = self.helper.get_review_stats(doc)
+            tile = FeaturedTile(name, icon_pb, stats)
+            tile.connect('clicked', self.on_app_clicked,
+                         helper.get_application(doc))
+            self.toprated.add_child(tile)
         return
 
     def _append_subcat_departments(self, root_category, num_items):
@@ -511,8 +552,7 @@ class SubCategoryViewGtk(CategoriesViewGtk):
 
         for cat in sorted_cats:
             # add the subcategory if and only if it is non-empty
-            enquire = xapian.Enquire(self.db.xapiandb)
-            enquire.set_query(cat.query)
+            self.enquire.set_query(cat.query)
 
             if len(enquire.get_mset(0,1)):
                 tile = CategoryTile(cat.name, cat.iconname)
@@ -521,10 +561,9 @@ class SubCategoryViewGtk(CategoriesViewGtk):
 
         # partialy work around a (quite rare) corner case
         if num_items == 0:
-            enquire = xapian.Enquire(self.db.xapiandb)
-            enquire.set_query(xapian.Query(xapian.Query.OP_AND, 
-                                           root_category.query,
-                                           xapian.Query("ATapplication")))
+            self.enquire.set_query(xapian.Query(xapian.Query.OP_AND, 
+                                    root_category.query,
+                                    xapian.Query("ATapplication")))
             # assuming that we only want apps is not always correct ^^^
             tmp_matches = enquire.get_mset(0, len(self.db))#, None, self.apps_filter)
             num_items = tmp_matches.get_matches_estimated()

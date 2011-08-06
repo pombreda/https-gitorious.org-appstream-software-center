@@ -497,6 +497,7 @@ class SoftwarePane(Gtk.VBox, BasePane):
         
     def _unmask_appview_spinner(self):
         self.spinner_view.start()
+        return False
         
     def hide_appview_spinner(self):
         """ hide the spinner and display the appview in the panel """
