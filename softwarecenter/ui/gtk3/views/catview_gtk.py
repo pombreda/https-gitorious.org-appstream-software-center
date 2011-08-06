@@ -28,7 +28,9 @@ from gettext import gettext as _
 
 import softwarecenter.paths
 from appview import AppViewFilter
-from softwarecenter.enums import NonAppVisibility
+from softwarecenter.enums import (NonAppVisibility,
+                                  SortMethods,
+                                  TOP_RATED_CAROUSEL_LIMIT)
 from softwarecenter.utils import wait_for_apt_cache_ready
 from softwarecenter.ui.gtk3.models.appstore2 import AppPropertiesHelper
 from softwarecenter.ui.gtk3.widgets.containers import (
@@ -475,11 +477,18 @@ class SubCategoryViewGtk(CategoriesViewGtk):
 
         # data
         self.root_category = root_category
+        self.enquire = AppEnquire(self.cache, self.db)
+        self.helper = AppPropertiesHelper(self.db,
+                                          self.cache,
+                                          self.icons)
 
         # sections
         self.current_category = None
         self.departments = None
         self.toprated = None
+
+        # widgetry
+        self.vbox.set_border_width(StockEms.SMALL)
         return
 
     @wait_for_apt_cache_ready # be consistent with new apps
@@ -497,10 +506,6 @@ class SubCategoryViewGtk(CategoriesViewGtk):
             frame.pack_start(self.toprated, True, True, 0)
             # append the departments section to the page
             self.vbox.pack_start(frame, True, True, 0)
-            self.enquire = AppEnquire(self.cache, self.db)
-            self.helper = AppPropertiesHelper(self.db,
-                                              self.cache,
-                                              self.icons)
         else:
             self.toprated.remove_all()
 
@@ -508,16 +513,16 @@ class SubCategoryViewGtk(CategoriesViewGtk):
                                limit=TOP_RATED_CAROUSEL_LIMIT,
                                sortmode=SortMethods.BY_TOP_RATED,
                                filter=self.apps_filter,
-                               nonapps_visible=AppStore.NONAPPS_ALWAYS_VISIBLE,
+                               nonapps_visible=NonAppVisibility.ALWAYS_VISIBLE,
                                nonblocking_load=False)
 
-        for doc in enq.get_documents()[0:8]:
-            name = helper.get_appname(doc)
-            icon_pb = helper.get_icon_at_size(doc, 48, 48)
+        for doc in self.enquire.get_documents()[0:8]:
+            name = self.helper.get_appname(doc)
+            icon_pb = self.helper.get_icon_at_size(doc, 48, 48)
             stats = self.helper.get_review_stats(doc)
             tile = FeaturedTile(name, icon_pb, stats)
             tile.connect('clicked', self.on_app_clicked,
-                         helper.get_application(doc))
+                         self.helper.get_application(doc))
             self.toprated.add_child(tile)
         return
 
@@ -550,9 +555,10 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         # sort Category.name's alphabetically
         sorted_cats = categories_sorted_by_name(self.categories)
 
+        enquire = xapian.Enquire(self.db.xapiandb)
         for cat in sorted_cats:
             # add the subcategory if and only if it is non-empty
-            self.enquire.set_query(cat.query)
+            enquire.set_query(cat.query)
 
             if len(enquire.get_mset(0,1)):
                 tile = CategoryTile(cat.name, cat.iconname)
@@ -561,9 +567,9 @@ class SubCategoryViewGtk(CategoriesViewGtk):
 
         # partialy work around a (quite rare) corner case
         if num_items == 0:
-            self.enquire.set_query(xapian.Query(xapian.Query.OP_AND, 
-                                    root_category.query,
-                                    xapian.Query("ATapplication")))
+            enquire.set_query(xapian.Query(xapian.Query.OP_AND, 
+                                root_category.query,
+                                xapian.Query("ATapplication")))
             # assuming that we only want apps is not always correct ^^^
             tmp_matches = enquire.get_mset(0, len(self.db))#, None, self.apps_filter)
             num_items = tmp_matches.get_matches_estimated()
@@ -576,10 +582,11 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         self.departments.add_child(tile)
         return
 
-    def _build_subcat_view(self, root_category, num_items):
+    def _build_subcat_view(self, category, num_items):
         # these methods add sections to the page
         # changing order of methods changes order that they appear in the page
-        self._append_subcat_departments(root_category, num_items)
+        self._append_subcat_departments(category, num_items)
+        self._append_sub_toprated(category)
         self.show_all()
         return
 
