@@ -42,9 +42,13 @@ software-center (4.1.12) UNRELEASED; urgency=low
   * softwarecenter/ui/gtk3/widgets/reviews.py:
     - make 'more reviews' button work in gtk3 details view
   * test/gtk/test_gui_buy_something.py,
-    test/gtk/test_unity_launcher_integration.py,
     test/test_addons.py:
-    - fix up unit tests
+    - unit test fixes
+  * softwarecenter/utils.py,
+    test/gtk/test_unity_launcher_integration.py:
+    - update unity launcher integration code to conform to
+      new app-install desktop file naming format, update
+      unit test
 
   [ Kiwinote ]
   * softwarecenter/ui/gtk/widgets/carousel.py:
@@ -52,7 +56,7 @@ software-center (4.1.12) UNRELEASED; urgency=low
   * softwarecenter/ui/gtk3/views/catview_gtk.py:
     - connect up the 'more' buttons
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 04 Aug 2011 21:19:10 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Fri, 05 Aug 2011 23:39:29 -0400
 
 software-center (4.1.11) oneiric; urgency=low
 
