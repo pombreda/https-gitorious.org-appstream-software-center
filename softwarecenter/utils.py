@@ -304,14 +304,16 @@ def get_file_path_from_iconname(icons, iconname=None, iconsize=Icons.APP_ICON_SI
         icon_info.free()
         return icon_file_path
         
-def convert_desktop_file_to_installed_location(app_install_data_file_path, pkgname=None):
+def convert_desktop_file_to_installed_location(app_install_data_file_path, pkgname):
     """ returns the installed desktop file path that corresponds to the
         given app-install-data file path, and will also check directly for
         the desktop file that corresponds to a given pkgname.
     """
-    if app_install_data_file_path:
+    if app_install_data_file_path and pkgname:
         # "normal" case
-        installed_desktop_file_path = app_install_data_file_path.replace("app-install/desktop", "applications")
+        installed_desktop_file_path = app_install_data_file_path.replace("app-install/desktop/"
+                                                                         + pkgname + ":",
+                                                                         "applications/")
         if os.path.exists(installed_desktop_file_path):
             return installed_desktop_file_path  
         # next, try case where a subdirectory is encoded in the app-install

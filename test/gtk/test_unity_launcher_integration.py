@@ -130,20 +130,21 @@ class TestUnityLauncherIntegration(unittest.TestCase):
         self.assertEqual(launcher_info.icon_name, "lincity-ng")
         self.assertTrue(launcher_info.icon_x > 20)
         self.assertTrue(launcher_info.icon_y > 20)
-        self.assertEqual(launcher_info.icon_size, 84)
-        self.assertEqual(launcher_info.app_install_desktop_file_path, "/usr/share/app-install/desktop/lincity-ng.desktop")
+        self.assertEqual(launcher_info.icon_size, 74)
+        self.assertEqual(launcher_info.app_install_desktop_file_path,
+                         "/usr/share/app-install/desktop/lincity-ng:lincity-ng.desktop")
         self.assertEqual(launcher_info.trans_id, "testid101")
         # finally, make sure the the app has been removed from the launcher queue        
         self.assertFalse(pkgname in self.s_c_app.available_pane.unity_launcher_items)
         
     def test_desktop_file_path_conversion(self):
         # test 'normal' case
-        app_install_desktop_path = "./data/app-install/desktop/deja-dup.desktop"
-        installed_desktop_path = convert_desktop_file_to_installed_location(app_install_desktop_path)
+        app_install_desktop_path = "./data/app-install/desktop/deja-dup:deja-dup.desktop"
+        installed_desktop_path = convert_desktop_file_to_installed_location(app_install_desktop_path, "deja-dup")
         self.assertEqual(installed_desktop_path, "./data/applications/deja-dup.desktop")
         # test encoded subdirectory case, e.g. e.g. kde4_soundkonverter.desktop
-        app_install_desktop_path = "./data/app-install/desktop/kde4__soundkonverter.desktop"
-        installed_desktop_path = convert_desktop_file_to_installed_location(app_install_desktop_path)
+        app_install_desktop_path = "./data/app-install/desktop/soundkonverter:kde4__soundkonverter.desktop"
+        installed_desktop_path = convert_desktop_file_to_installed_location(app_install_desktop_path, "soundkonverter")
         self.assertEqual(installed_desktop_path, "./data/applications/kde4/soundkonverter.desktop")
         # test the for-purchase case (uses "software-center-agent" as its appdetails.desktop_file value)
         # FIXME: this will only work if update-manager is installed

@@ -994,7 +994,7 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         #~ self.weblive.client.connect("warning", self.on_weblive_warning)
 
         # homepage link button
-        self.homepage_btn = Gtk.Button.new_with_label(_('Website'))
+        self.homepage_btn = Gtk.Button.new_with_label(_('Developer Web Site'))
         self.homepage_btn.connect('clicked', self._on_homepage_clicked)
 
         # add the links footer to the description widget
@@ -1259,6 +1259,10 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         self._update_pkg_info_table(app_details)
         if not skip_update_addons:
             self._update_addons(app_details)
+        else:
+            self.addon_view.hide()
+            if self.addon_view.get_parent():
+                self.info_vb.remove(self.addon_view)
         self._update_reviews(app_details)
 
         # show where it is

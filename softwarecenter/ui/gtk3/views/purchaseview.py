@@ -30,14 +30,32 @@ from gi.repository import WebKit as webkit
 from gettext import gettext as _
 
 from softwarecenter.backend import get_install_backend
+from softwarecenter.utils import get_language
 
 LOG = logging.getLogger(__name__)
+
+class LocaleAwareWebView(webkit.WebView):
+    
+    def __init__(self):
+        webkit.WebView.__init__(self)
+        self.connect("resource-request-starting", 
+                     self._on_resource_request_starting)
+
+    def _on_resource_request_starting(self, view, frame, res, req, resp):
+        lang = get_language()
+        if lang:
+            message = req.get_message()
+            headers = message.get_property("request-headers")
+            headers.append("Accept-Language", lang)
+        #def _show_header(name, value, data):
+        #    print name, value
+        #headers.foreach(_show_header, None)
 
 class ScrolledWebkitWindow(Gtk.ScrolledWindow):
 
     def __init__(self):
         super(ScrolledWebkitWindow, self).__init__()
-        self.webkit = webkit.WebView()
+        self.webkit = LocaleAwareWebView()
         settings = self.webkit.get_settings()
         settings.set_property("enable-plugins", False)
         self.webkit.show()
