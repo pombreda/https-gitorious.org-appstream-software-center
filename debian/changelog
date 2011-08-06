@@ -53,6 +53,10 @@ software-center (4.1.12) UNRELEASED; urgency=low
     softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
     - change name of website link in the details view per
       updated spec (LP: #715681)
+  * softwarecenter/ui/gtk/appdetailsview_gtk.py,
+    softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
+    - don't show addons in the details view for the
+      standalone deb installation case (LP: #821395)
 
   [ Kiwinote ]
   * softwarecenter/ui/gtk/widgets/carousel.py:
@@ -60,7 +64,7 @@ software-center (4.1.12) UNRELEASED; urgency=low
   * softwarecenter/ui/gtk3/views/catview_gtk.py:
     - connect up the 'more' buttons
 
- -- Gary Lasker <gary.lasker@canonical.com>  Sat, 06 Aug 2011 00:43:25 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Sat, 06 Aug 2011 01:36:46 -0400
 
 software-center (4.1.11) oneiric; urgency=low
 
