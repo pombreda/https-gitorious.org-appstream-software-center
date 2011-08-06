@@ -1387,6 +1387,10 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self._update_pkg_info_table(app_details)
         if not skip_update_addons:
             self._update_addons(app_details)
+        else:
+            self.addon_view.hide_all()
+            if self.addon_view.parent:
+                self.info_vb.remove(self.addon_view)
         self._update_reviews(app_details)
 
         # show where it is
