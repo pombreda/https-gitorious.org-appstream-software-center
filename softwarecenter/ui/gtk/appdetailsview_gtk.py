@@ -1113,7 +1113,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.weblive.client.connect("warning", self.on_weblive_warning)
 
         # homepage link button
-        self.homepage_btn = mkit.HLinkButton(_('Website'))
+        self.homepage_btn = mkit.HLinkButton(_('Developer Web Site'))
         self.homepage_btn.connect('clicked', self._on_homepage_clicked)
         self.homepage_btn.set_underline(True)
         self.homepage_btn.set_xmargin(0)

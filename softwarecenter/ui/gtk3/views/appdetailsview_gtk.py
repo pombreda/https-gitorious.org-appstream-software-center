@@ -994,7 +994,7 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         #~ self.weblive.client.connect("warning", self.on_weblive_warning)
 
         # homepage link button
-        self.homepage_btn = Gtk.Button.new_with_label(_('Website'))
+        self.homepage_btn = Gtk.Button.new_with_label(_('Developer Web Site'))
         self.homepage_btn.connect('clicked', self._on_homepage_clicked)
 
         # add the links footer to the description widget
