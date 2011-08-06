@@ -139,12 +139,12 @@ class TestUnityLauncherIntegration(unittest.TestCase):
         
     def test_desktop_file_path_conversion(self):
         # test 'normal' case
-        app_install_desktop_path = "./data/app-install/desktop/deja-dup.desktop"
-        installed_desktop_path = convert_desktop_file_to_installed_location(app_install_desktop_path)
+        app_install_desktop_path = "./data/app-install/desktop/deja-dup:deja-dup.desktop"
+        installed_desktop_path = convert_desktop_file_to_installed_location(app_install_desktop_path, "deja-dup")
         self.assertEqual(installed_desktop_path, "./data/applications/deja-dup.desktop")
         # test encoded subdirectory case, e.g. e.g. kde4_soundkonverter.desktop
-        app_install_desktop_path = "./data/app-install/desktop/kde4__soundkonverter.desktop"
-        installed_desktop_path = convert_desktop_file_to_installed_location(app_install_desktop_path)
+        app_install_desktop_path = "./data/app-install/desktop/soundkonverter:kde4__soundkonverter.desktop"
+        installed_desktop_path = convert_desktop_file_to_installed_location(app_install_desktop_path, "soundkonverter")
         self.assertEqual(installed_desktop_path, "./data/applications/kde4/soundkonverter.desktop")
         # test the for-purchase case (uses "software-center-agent" as its appdetails.desktop_file value)
         # FIXME: this will only work if update-manager is installed
