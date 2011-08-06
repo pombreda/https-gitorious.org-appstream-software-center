@@ -49,6 +49,10 @@ software-center (4.1.12) UNRELEASED; urgency=low
     - update unity launcher integration code to conform to
       new app-install desktop file naming format, update
       unit test
+  * softwarecenter/ui/gtk/appdetailsview_gtk.py,
+    softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
+    - change name of website link in the details view per
+      updated spec (LP: #715681)
 
   [ Kiwinote ]
   * softwarecenter/ui/gtk/widgets/carousel.py:
@@ -56,7 +60,7 @@ software-center (4.1.12) UNRELEASED; urgency=low
   * softwarecenter/ui/gtk3/views/catview_gtk.py:
     - connect up the 'more' buttons
 
- -- Gary Lasker <gary.lasker@canonical.com>  Fri, 05 Aug 2011 23:39:29 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Sat, 06 Aug 2011 00:43:25 -0400
 
 software-center (4.1.11) oneiric; urgency=low
 
