@@ -106,15 +106,6 @@ class FlowableGrid(Gtk.Fixed):
 
     # signal handlers
     def do_size_allocate(self, allocation):
-        #~ old = self.get_allocation()
-        #~ if (allocation.x == old.x and
-            #~ allocation.y == old.y and
-            #~ allocation.width == old.width and
-            #~ allocation.height == old.height):
-            #~ for child in self:
-                #~ child.size_allocate(child.get_allocation())
-            #~ return
-
         self.set_allocation(allocation)
         self._layout_children(allocation)
         return
