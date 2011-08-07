@@ -89,7 +89,7 @@ class UnityLauncherInfo(object):
 # for DisplayState attribute type-checking
 from softwarecenter.db.categories import Category
 from softwarecenter.backend.channel import SoftwareChannel
-from softwarecenter.ui.gtk3.views.appview import AppViewFilter
+from softwarecenter.db.appfilter import AppFilter
 class DisplayState(object):
 
     _attrs = {'category': (type(None), Category),
@@ -98,7 +98,7 @@ class DisplayState(object):
               'search_term': (str,),
               'application': (type(None), Application),
               'limit': (int,),
-              'filter': (type(None), AppViewFilter),
+              'filter': (type(None), AppFilter),
               'previous_purchases_query': (type(None), xapian.Query)
             }
 
@@ -240,14 +240,13 @@ class SoftwarePane(Gtk.VBox, BasePane):
         self.box_app_list.pack_start(self.search_aid, False, False, 0)
 
         self.app_view = AppView(self.icons, self.show_ratings)
+        self.app_view.sort_methods_combobox.connect(
+                    "changed",
+                    self.on_app_view_sort_method_changed)
         self.app_view.set_model(self.store)
 
         self.init_atk_name(self.app_view, "app_view")
-        self.scroll_app_list = Gtk.ScrolledWindow()
-        self.scroll_app_list.set_policy(Gtk.PolicyType.AUTOMATIC, 
-                                        Gtk.PolicyType.AUTOMATIC)
-        self.scroll_app_list.add(self.app_view)
-        self.box_app_list.pack_start(self.scroll_app_list, True, True, 0)
+        self.box_app_list.pack_start(self.app_view, True, True, 0)
         self.app_view.connect("application-selected", 
                               self.on_application_selected)
         self.app_view.connect("application-activated", 
@@ -300,16 +299,11 @@ class SoftwarePane(Gtk.VBox, BasePane):
         # refresh, otherwise we create a bunch of (not yet needed)
         # AppStore objects on startup when the cache sends its 
         # initial "cache-ready" signal
-        model = self.app_view.get_model()
+        model = self.app_view.tree_view.get_model()
         if model is None:
             return
         # FIXME: preserve selection too
-        # get previous vadjustment and reapply it
-        vadj = self.scroll_app_list.get_vadjustment()
         self.refresh_apps()
-        # needed otherwise we jump back to the beginning of the table
-        if vadj:
-            vadj.value_changed()
 
     @wait_for_apt_cache_ready
     def on_application_activated(self, appview, app):
@@ -408,9 +402,13 @@ class SoftwarePane(Gtk.VBox, BasePane):
             #~ self.app_view.clear_model()
             self.store.set_from_matches(self.enquirer.matches)
 
-        first = Gtk.TreePath.new_first()
-        self.app_view.set_cursor(first, None, False)
         self.hide_appview_spinner()
+        return
+
+    def on_app_view_sort_method_changed(self, combo):
+        self.app_view.clear_model()
+        query = self.get_query()
+        self._refresh_apps_with_apt_cache(query)
         return
 
     def on_add_to_launcher(self, pkgname, app, appdetails, trans_id):
@@ -629,7 +627,7 @@ class SoftwarePane(Gtk.VBox, BasePane):
                                 query,
                                 limit=self.get_app_items_limit(),
                                 nonapps_visible=self.nonapps_visible,
-                                nonblocking_load=True,
+                                nonblocking_load=False,
                                 filter=self.state.filter)
         return len(self.enquirer.matches)
 
@@ -665,9 +663,7 @@ class SoftwarePane(Gtk.VBox, BasePane):
     def get_sort_mode(self):
         if self.state.search_term and len(self.state.search_term) >= 2:
             return SortMethods.BY_SEARCH_RANKING
-        elif self.state.category:
-            return self.state.category.sortmode
-        return SortMethods.BY_ALPHABET
+        return self.app_view.get_sort_mode()
 
     def on_search_terms_changed(self, terms):
         " stub implementation "

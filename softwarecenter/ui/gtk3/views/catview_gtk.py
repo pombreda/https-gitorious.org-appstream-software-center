@@ -27,7 +27,6 @@ import xapian
 from gettext import gettext as _
 
 import softwarecenter.paths
-from appview import AppViewFilter
 from softwarecenter.enums import NonAppVisibility
 from softwarecenter.ui.gtk3.models.appstore2 import AppPropertiesHelper
 from softwarecenter.ui.gtk3.widgets.containers import (
@@ -38,6 +37,7 @@ from softwarecenter.ui.gtk3.widgets.buttons import (LabelTile,
                                                     CategoryTile,
                                                     FeaturedTile)
 from softwarecenter.ui.gtk3.em import StockEms
+from softwarecenter.db.appfilter import AppFilter
 from softwarecenter.db.enquire import AppEnquire
 from softwarecenter.db.categories import (Category,
                                           CategoriesParser,
@@ -345,9 +345,9 @@ class LobbyViewGtk(CategoriesViewGtk):
         toprated_cat = get_category_by_name(self.categories, 
                                             u"Top Rated")  # unstranslated name
         enq = AppEnquire(self.cache, self.db)
-        app_filter = AppViewFilter(self.db, self.cache)
+        app_filter = AppFilter(self.db, self.cache)
         enq.set_query(toprated_cat.query,
-                      limit=toprated_cat.item_limit,
+                      limit=8,
                       sortmode=toprated_cat.sortmode,
                       filter=app_filter,
                       nonapps_visible=NonAppVisibility.ALWAYS_VISIBLE,
@@ -363,7 +363,7 @@ class LobbyViewGtk(CategoriesViewGtk):
         self.right_column.pack_start(frame, True, True, 0)
 
         helper = AppPropertiesHelper(self.db, self.cache, self.icons)
-        for doc in enq.get_documents()[0:8]:
+        for doc in enq.get_documents():
             name = helper.get_appname(doc)
             icon_pb = helper.get_icon_at_size(doc, 48, 48)
             stats = helper.get_review_stats(doc)
@@ -380,9 +380,9 @@ class LobbyViewGtk(CategoriesViewGtk):
                                             u"Featured")  # unstranslated name
 
         enq = AppEnquire(self.cache, self.db)
-        app_filter = AppViewFilter(self.db, self.cache)
+        app_filter = AppFilter(self.db, self.cache)
         enq.set_query(featured_cat.query,
-                      limit=24,
+                      limit=12,
                       filter=app_filter,
                       nonapps_visible=NonAppVisibility.ALWAYS_VISIBLE,
                       nonblocking_load=False)
@@ -397,7 +397,7 @@ class LobbyViewGtk(CategoriesViewGtk):
         self.right_column.pack_start(frame, True, True, 0)
 
         helper = AppPropertiesHelper(self.db, self.cache, self.icons)
-        for doc in enq.get_documents()[15:21]:
+        for doc in enq.get_documents():
             name = helper.get_appname(doc)
             icon_pb = helper.get_icon_at_size(doc, 48, 48)
             stats = helper.get_review_stats(doc)
@@ -412,9 +412,9 @@ class LobbyViewGtk(CategoriesViewGtk):
                                             u"Featured")  # unstranslated name
 
         enq = AppEnquire(self.cache, self.db)
-        app_filter = AppViewFilter(self.db, self.cache)
+        app_filter = AppFilter(self.db, self.cache)
         enq.set_query(featured_cat.query,
-                      limit=6,
+                      limit=12,
                       filter=app_filter,
                       nonapps_visible=NonAppVisibility.ALWAYS_VISIBLE,
                       nonblocking_load=False)
@@ -535,6 +535,7 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         tile = CategoryTile(name, "category-show-all")
         tile.connect('clicked', self.on_category_clicked, all_cat)
         self.departments.add_child(tile)
+        self.departments.queue_draw()
         return
 
     def _build_subcat_view(self, root_category, num_items):
@@ -607,7 +608,7 @@ if __name__ == "__main__":
     import softwarecenter.distro
     distro = softwarecenter.distro.get_distro()
 
-    apps_filter = AppViewFilter(db, cache)
+    apps_filter = AppFilter(db, cache)
 
     # gui
     win = Gtk.Window()

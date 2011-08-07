@@ -36,7 +36,7 @@ from softwarecenter.paths import (APP_INSTALL_PATH,
                                   XAPIAN_BASE_PATH)
 from softwarecenter.utils import wait_for_apt_cache_ready
 from softwarecenter.distro import get_distro
-from softwarecenter.ui.gtk3.views.appview import AppViewFilter
+from softwarecenter.db.appfilter import AppFilter
 from softwarecenter.ui.gtk3.views.purchaseview import PurchaseView
 
 from softwarecenter.ui.gtk3.views.catview_gtk import (LobbyViewGtk,
@@ -85,7 +85,7 @@ class AvailablePane(SoftwarePane):
         self.navhistory_back_action = navhistory_back_action
         self.navhistory_forward_action = navhistory_forward_action
         # configure any initial state attrs
-        self.state.filter = AppViewFilter(db, cache)
+        self.state.filter = AppFilter(db, cache)
         # the spec says we mix installed/not installed
         #self.apps_filter.set_not_installed_only(True)
         self._status_text = ""
@@ -304,10 +304,10 @@ class AvailablePane(SoftwarePane):
            bar up-to-date by keeping track of the app-list-changed
            signals
         """
-
         super(AvailablePane, self).on_app_list_changed(pane, length)
         self._update_action_bar()
         self._update_status_text(length)
+        print 'applist-changed', length
 
     def _update_status_text_lobby(self):
         # SPECIAL CASE: in category page show all items in the DB
@@ -514,7 +514,7 @@ class AvailablePane(SoftwarePane):
             if state.search_term:
                 return self.display_search_page
             else:
-                return self.display_app_list_page
+                return self.display_app_view_page
 
         elif page == AvailablePane.Pages.SUBCATEGORY:
             return self.display_subcategory_page
@@ -536,7 +536,6 @@ class AvailablePane(SoftwarePane):
 
     def display_search_page(self, page, view_state):
         new_text = view_state.search_term
-        print new_text
         # DTRT if the search is reseted
         if not new_text:
             self._clear_search()
@@ -562,9 +561,21 @@ class AvailablePane(SoftwarePane):
         self.cat_view.stop_carousels()
         return True
 
-    def display_app_list_page(self, page, view_state):
+    def display_app_view_page(self, page, view_state):
         category = self.state.category
+        subcategory = self.state.subcategory
         self.set_category(category)
+
+        if view_state.channel is not None:
+            ch_name = GObject.markup_escape_text(view_state.channel.display_name)
+            self.app_view.set_header_labels(ch_name, None)
+        elif subcategory is not None:
+            cat_name = GObject.markup_escape_text(category.name)
+            subcat_name = GObject.markup_escape_text(subcategory.name)
+            self.app_view.set_header_labels(cat_name, subcat_name)
+        elif category is not None:
+            cat_name = GObject.markup_escape_text(category.name)
+            self.app_view.set_header_labels(cat_name, None)
 
         if view_state.search_term:
             self._clear_search()
@@ -618,7 +629,7 @@ class AvailablePane(SoftwarePane):
         page = AvailablePane.Pages.LIST
 
         vm = get_viewmanager()
-        vm.display_page(self, page, self.state, self.display_app_list_page)
+        vm.display_page(self, page, self.state, self.display_app_view_page)
 
     def on_category_activated(self, lobby_view, category):
         """ callback when a category is selected """
@@ -630,7 +641,7 @@ class AvailablePane(SoftwarePane):
             callback = self.display_subcategory_page
         else:
             page = AvailablePane.Pages.LIST
-            callback = self.display_app_list_page
+            callback = self.display_app_view_page
 
         self.state.category = category
         self.state.subcategory = None
@@ -689,7 +700,7 @@ class AvailablePane(SoftwarePane):
         self.state.category = category
         # apply any category based filters
         if not self.state.filter:
-            self.state.filter = AppViewFilter(self.db, self.cache)
+            self.state.filter = AppFilter(self.db, self.cache)
 
         if category and category.flags and 'available-only' in category.flags:
             self.state.filter.set_available_only(True)
@@ -702,7 +713,7 @@ class AvailablePane(SoftwarePane):
             self.state.filter.set_not_installed_only(False)
 
 if __name__ == "__main__":
-
+    from softwarecenter.ui.gtk3.session.viewmanager import ViewManager
     from softwarecenter.db.database import StoreDatabase
 
     #logging.basicConfig(level=logging.DEBUG)
@@ -750,8 +761,11 @@ if __name__ == "__main__":
         # FIXME: force rebuild by providing a dbus service for this
         sys.exit(1)
 
+    vm = ViewManager(Gtk.Notebook())
+
     navhistory_back_action = Gtk.Action("navhistory_back_action", "Back", "Back", None)
     navhistory_forward_action = Gtk.Action("navhistory_forward_action", "Forward", "Forward", None)
+    
     w = AvailablePane(cache, db, 'Ubuntu', icons, datadir, navhistory_back_action, navhistory_forward_action)
     w.show()
 

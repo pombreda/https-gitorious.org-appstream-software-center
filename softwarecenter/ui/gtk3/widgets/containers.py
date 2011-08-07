@@ -106,21 +106,21 @@ class FlowableGrid(Gtk.Fixed):
 
     # signal handlers
     def do_size_allocate(self, allocation):
-        old = self.get_allocation()
-        if (allocation.x == old.x and
-            allocation.y == old.y and
-            allocation.width == old.width and
-            allocation.height == old.height):
+        #~ old = self.get_allocation()
+        #~ if (allocation.x == old.x and
+            #~ allocation.y == old.y and
+            #~ allocation.width == old.width and
+            #~ allocation.height == old.height):
             #~ for child in self:
                 #~ child.size_allocate(child.get_allocation())
-            return
+            #~ return
 
         self.set_allocation(allocation)
         self._layout_children(allocation)
         return
 
     def do_draw(self, cr):
-        if not (self.n_columns and self.n_rows): return
+        #~ if not (self.n_columns and self.n_rows): return
 
         if self.paint_grid_pattern:
             self.render_grid(cr)
@@ -186,7 +186,6 @@ class FlowableGrid(Gtk.Fixed):
 
     def set_row_spacing(self, value):
         self.row_spacing = value
-        self._layout_children(self.get_allocation())
         return
 
     def set_column_spacing(self, value):
@@ -196,7 +195,7 @@ class FlowableGrid(Gtk.Fixed):
 
     def remove_all(self):
         self._cell_size = None
-        for child in self.get_children():
+        for child in self:
             self.remove(child)
         return
 
