@@ -234,7 +234,7 @@ class Frame(Gtk.Alignment):
     def on_size_allocate(self, *args):
         old = self._allocation
         cur = self.get_allocation()
-        if cur.width != old.width:
+        if cur.width != old.width or cur.height != old.height:
             self._frame_surface_cache = None
             self._allocation = cur
             return

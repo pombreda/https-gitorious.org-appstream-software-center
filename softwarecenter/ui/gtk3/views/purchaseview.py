@@ -354,7 +354,7 @@ def _generate_events(view):
 #    def _on_key_press(dialog, event):
 #        print event, event.keyval
 
-if __name__ == "__main__":
+def get_test_window_purchaseview():
     #url = "http://www.animiertegifs.de/java-scripts/alertbox.php"
     url = "http://www.ubuntu.cohtml=DUMMY_m"
     #d = PurchaseDialog(app=None, url="http://spiegel.de")
@@ -375,13 +375,15 @@ if __name__ == "__main__":
     widget.initiate_purchase(app=None, iconname=None, url=url)
     #widget.initiate_purchase(app=None, iconname=None, html=DUMMY_HTML)
 
+    win = Gtk.Window()
+    win.add(widget)
+    win.set_size_request(600, 500)
+    win.set_position(Gtk.WindowPosition.CENTER)
+    win.show_all()
+    win.connect('destroy', Gtk.main_quit)
+    return win
 
-    window = Gtk.Window()
-    window.add(widget)
-    window.set_size_request(600, 500)
-    window.set_position(Gtk.WindowPosition.CENTER)
-    window.show_all()
-    window.connect('destroy', Gtk.main_quit)
-
+if __name__ == "__main__":
+    win = get_test_window_purchaseview()
     Gtk.main()
 
