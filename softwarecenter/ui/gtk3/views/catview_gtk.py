@@ -646,7 +646,7 @@ def get_test_window_catview():
     view = SubCategoryViewGtk(datadir, APP_INSTALL_PATH, cache, db, icons,
                               apps_filter)
     view.connect("category-selected", on_category_selected)
-    view.set_subcategory(cat)
+    view.set_subcategory(subcat_cat)
     win.set_data("subcat", view)
 
     scroll = Gtk.ScrolledWindow()
@@ -660,7 +660,7 @@ def get_test_window_catview():
     return win
 
 if __name__ == "__main__":
-    import sys, os
+    import os
     logging.basicConfig(level=logging.DEBUG)
 
     win = get_test_window_catview()

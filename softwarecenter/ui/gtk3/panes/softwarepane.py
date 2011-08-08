@@ -55,6 +55,8 @@ from softwarecenter.ui.gtk3.views.appdetailsview_gtk import (
                                                 AppDetailsViewGtk as
                                                 AppDetailsView)
 
+from softwarecenter.enums import DEFAULT_SEARCH_LIMIT
+
 from basepane import BasePane
 
 LOG = logging.getLogger(__name__)

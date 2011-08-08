@@ -1,4 +1,4 @@
-from gi.repository import Gtk, GdkPixbuf, GObject
+from gi.repository import Gtk
 import os
 import sys
 import time
@@ -6,8 +6,6 @@ import unittest
 
 sys.path.insert(0,"../..")
 sys.path.insert(0,"..")
-
-from mock import Mock
 
 import softwarecenter.paths
 # ensure datadir is pointing to the right place

@@ -29,7 +29,6 @@ import gettext
 import gmenu
 import logging
 import os
-import sys
 
 from gettext import gettext as _
 
