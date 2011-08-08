@@ -419,6 +419,9 @@ class MoreLink(Gtk.EventBox):
         self._pressed = False
         self.queue_draw()
         return
+    
+    def clicked(self):
+        self.emit("clicked")
 
 def get_test_buttons_window():
     win = Gtk.Window()

@@ -898,13 +898,15 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         self.window_main.set_sensitive(False)
         # run software-properties-gtk
         window = self.window_main.get_window()
+        if hasattr(window, 'xid'):
+            xid = window.xid
+        else:
+            xid = 0
+
         p = subprocess.Popen(
-            ["gksu",
-             "--desktop", "/usr/share/applications/software-properties-Gtk.desktop",
-             "--",
-             "/usr/bin/software-properties-gtk", 
+            ["/usr/bin/software-properties-gtk", 
              "-n", 
-             "-t", str(window.xid)])
+             "-t", str(xid)])
         # Monitor the subprocess regularly
         GObject.timeout_add(100, self._poll_software_sources_subprocess, p)
 

@@ -12,7 +12,6 @@ import os
 os.environ["SOFTWARE_CENTER_FAKE_REVIEW_API"] = "1"
 
 import sys
-import time
 import unittest
 import datetime
 

@@ -1,10 +1,12 @@
-software-center (4.1.12) UNRELEASED; urgency=low
+software-center (4.1.12) oneiric; urgency=low
 
   [ Michael Vogt ]
   * merged lp:~alexeftimie/software-center/backend-refactor,
     many thanks
   * test/gtk3/test_widgets.py:
     - more widget test coverage
+  * test/gtk3/test_views.py:
+    - add basic tests for all gtk3 views
   * merged lp:~mmcg069/software-center/the-aesthetics, lots
     of really nice gtk3 work, many thanks to Matthew McGowan!
   * install gtk3 version as software-center-gtk3 tech preview
@@ -25,6 +27,10 @@ software-center (4.1.12) UNRELEASED; urgency=low
       header
   * setup.py: 
     - install gtk3 version as well
+  * softwarecenter/ui/{gtk,gtk3}/app.py:
+    - do not run software-properties-gtk3 with gksu anymore
+  * test/gtk3/test_catview.py:
+    - add test top-rated subcategory selection
 
   [ Matthew McGowan ]
   * lp:~mmcg069/software-center/rnr-dialogs-gtk3:
@@ -32,6 +38,8 @@ software-center (4.1.12) UNRELEASED; urgency=low
     - port the submit review app to gtk3
   * lp:~mmcg069/software-center/gtk3fixes:
     - fix star renderer not actually using cached star surfaces
+  * lp:~mmcg069/software-center/top-rated-subcats:
+    - add top-rated view for subcategories too
 
   [ Gary Lasker ]
   * softwarecenter/ui/gtk/softwarepane.py:
@@ -64,7 +72,7 @@ software-center (4.1.12) UNRELEASED; urgency=low
   * softwarecenter/ui/gtk3/views/catview_gtk.py:
     - connect up the 'more' buttons
 
- -- Gary Lasker <gary.lasker@canonical.com>  Sat, 06 Aug 2011 01:36:46 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 08 Aug 2011 11:05:58 +0200
 
 software-center (4.1.11) oneiric; urgency=low
 
