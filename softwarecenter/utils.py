@@ -599,9 +599,9 @@ class GMenuSearcher(object):
 
 # those helpers are packaging system specific
 from softwarecenter.db.pkginfo import get_pkg_info
-upstream_version_compare = get_pkg_info().upstream_version_compare
-upstream_version = get_pkg_info().upstream_version
-version_compare = get_pkg_info().version_compare
+upstream_version_compare = lambda: get_pkg_info().upstream_version_compare
+upstream_version = lambda: get_pkg_info().upstream_version
+version_compare = lambda: get_pkg_info().version_compare
 
 # only when needed
 try:
