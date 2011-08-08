@@ -143,8 +143,10 @@ class AppTreeView(Gtk.TreeView):
 #        return False
 
     def get_scrolled_window_vadjustment(self):
-        scroll = self.get_parent()
-        return scroll.get_vadjustment()
+        ancestor = self.get_ancestor(Gtk.ScrolledWindow)
+        if ancestor:
+            return ancestor.get_vadjustment()
+        return None
 
     def get_rowref(self, model, path):
         if path == None: return None

@@ -44,7 +44,6 @@ from softwarecenter.utils import (ExecutionTime,
                                   wait_for_apt_cache_ready
                                   )
 
-from softwarecenter.ui.gtk3.models.appstore2 import AppListStore
 from softwarecenter.ui.gtk3.session.viewmanager import get_viewmanager
 from softwarecenter.ui.gtk3.widgets.actionbar import ActionBar
 from softwarecenter.ui.gtk3.widgets.spinner import SpinnerView
@@ -170,7 +169,7 @@ class SoftwarePane(Gtk.VBox, BasePane):
     }
     PADDING = 6
 
-    def __init__(self, cache, db, distro, icons, datadir, show_ratings=True, store=None):
+    def __init__(self, cache, db, distro, icons, datadir, show_ratings=True):
 
         Gtk.VBox.__init__(self)
         BasePane.__init__(self)
@@ -179,7 +178,6 @@ class SoftwarePane(Gtk.VBox, BasePane):
         self.enquirer = AppEnquire(cache, db)
         self.enquirer.connect("query-complete", self.on_query_complete)
 
-        self.store = store or AppListStore(db, cache, icons)
         self.cache = cache
         self.db = db
         self.distro = distro
@@ -239,11 +237,11 @@ class SoftwarePane(Gtk.VBox, BasePane):
         self.search_aid = SearchAid(self)
         self.box_app_list.pack_start(self.search_aid, False, False, 0)
 
-        self.app_view = AppView(self.icons, self.show_ratings)
+        self.app_view = AppView(self.db, self.cache,
+                                self.icons, self.show_ratings)
         self.app_view.sort_methods_combobox.connect(
                     "changed",
                     self.on_app_view_sort_method_changed)
-        self.app_view.set_model(self.store)
 
         self.init_atk_name(self.app_view, "app_view")
         self.box_app_list.pack_start(self.app_view, True, True, 0)
@@ -397,11 +395,7 @@ class SoftwarePane(Gtk.VBox, BasePane):
 
     def on_query_complete(self, enquirer):
         self.emit("app-list-changed", len(enquirer.matches))
-
-        with ExecutionTime("store.set_from_matches()"):
-            #~ self.app_view.clear_model()
-            self.store.set_from_matches(self.enquirer.matches)
-
+        self.app_view.display_matches(enquirer)
         self.hide_appview_spinner()
         return
 
@@ -621,7 +615,7 @@ class SoftwarePane(Gtk.VBox, BasePane):
         self._refresh_apps_with_apt_cache(query)
 
     def quick_query(self, query):
-        # a blocking query does not call on_query_complete
+        # a blocking query and does not emit "query-complete"
         with ExecutionTime("enquirer.set_query() quick query"):
             self.enquirer.set_query(
                                 query,

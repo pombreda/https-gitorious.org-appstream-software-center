@@ -228,7 +228,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
             self.app_view.tree_view.set_cursor(Gtk.TreePath(),
                                                None, False)
             if i <= 10:
-                self.app_view.expand_all()
+                self.app_view.tree_view.expand_all()
 
         # cache the installed app count
         self.installed_count = i

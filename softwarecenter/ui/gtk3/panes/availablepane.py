@@ -25,6 +25,7 @@ import sys
 import xapian
 
 import softwarecenter.ui.gtk3.dialogs as dialogs
+from softwarecenter.ui.gtk3.models.appstore2 import AppListStore
 
 from gettext import gettext as _
 
@@ -96,6 +97,7 @@ class AvailablePane(SoftwarePane):
     def init_view(self):
         if self.view_initialized: 
             return
+
         self.spinner_view.set_text(_('Loading Categories'))
         self.spinner_view.start()
         self.spinner_view.show()
@@ -111,6 +113,9 @@ class AvailablePane(SoftwarePane):
         GObject.idle_add(self.cache.open)
         
         SoftwarePane.init_view(self)
+        # set the AppTreeView model, available pane uses list models
+        liststore = AppListStore(self.db, self.cache, self.icons)
+        self.app_view.set_model(liststore)
         # setup purchase stuff
         self.app_details_view.connect("purchase-requested",
                                       self.on_purchase_requested)
