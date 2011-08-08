@@ -29,6 +29,8 @@ software-center (4.1.12) UNRELEASED; urgency=low
     - install gtk3 version as well
   * softwarecenter/ui/{gtk,gtk3}/app.py:
     - do not run software-properties-gtk3 with gksu anymore
+  * test/gtk3/test_catview.py:
+    - add test top-rated subcategory selection
 
   [ Matthew McGowan ]
   * lp:~mmcg069/software-center/rnr-dialogs-gtk3:
@@ -36,6 +38,8 @@ software-center (4.1.12) UNRELEASED; urgency=low
     - port the submit review app to gtk3
   * lp:~mmcg069/software-center/gtk3fixes:
     - fix star renderer not actually using cached star surfaces
+  * lp:~mmcg069/software-center/top-rated-subcats:
+    - add top-rated view for subcategories too
 
   [ Gary Lasker ]
   * softwarecenter/ui/gtk/softwarepane.py:

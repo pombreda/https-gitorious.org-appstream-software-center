@@ -78,7 +78,9 @@ class Category(object):
         self.item_limit = item_limit
 
     def __str__(self):
-        return "* Category: %s" % self.name
+        return "<Category: name='%s', sortmode='%s', "\
+               "item_limit='%s'>" % (
+                   self.name, self.sortmode, self.item_limit)
 
 class CategoriesParser(object):
     """ 

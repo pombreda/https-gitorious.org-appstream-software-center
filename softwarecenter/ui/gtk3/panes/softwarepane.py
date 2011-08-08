@@ -496,6 +496,7 @@ class SoftwarePane(Gtk.VBox, BasePane):
         
     def _unmask_appview_spinner(self):
         self.spinner_view.start()
+        return False
         
     def hide_appview_spinner(self):
         """ hide the spinner and display the appview in the panel """
@@ -659,12 +660,19 @@ class SoftwarePane(Gtk.VBox, BasePane):
         return self.notebook.get_current_page()
 
     def get_app_items_limit(self):
-        " stub implementation "
+        if self.state.search_term:
+            return DEFAULT_SEARCH_LIMIT
+        elif self.state.subcategory and self.state.subcategory.item_limit > 0:
+            return self.state.subcategory.item_limit
+        elif self.state.category and self.state.category.item_limit > 0:
+            return self.state.category.item_limit
         return 0
 
     def get_sort_mode(self):
         if self.state.search_term and len(self.state.search_term) >= 2:
             return SortMethods.BY_SEARCH_RANKING
+        elif self.state.subcategory:
+            return self.state.subcategory.sortmode
         elif self.state.category:
             return self.state.category.sortmode
         return SortMethods.BY_ALPHABET
