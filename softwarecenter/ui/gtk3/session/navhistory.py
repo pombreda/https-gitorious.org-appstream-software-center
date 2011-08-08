@@ -30,6 +30,8 @@ class NavigationHistory(object):
         self.stack = NavigationStack(self.MAX_NAV_ITEMS, options)
         self.back_forward = back_forward_btn
         self.in_replay_history_mode = False
+        self._nav_back_set_sensitive(False)
+        self._nav_forward_set_sensitive(False)
         return
 
     def append(self, nav_item):
@@ -45,7 +47,7 @@ class NavigationHistory(object):
         stack.clear_forward_items()
         stack.append(nav_item)
 
-        if stack.cursor > 1:
+        if stack.cursor >= 1:
             self._nav_back_set_sensitive(True)
         self._nav_forward_set_sensitive(False)
 
