@@ -69,9 +69,11 @@ class PackagekitInfo(PackageInfo):
         super(PackagekitInfo, self).__init__()
         self.client = packagekit.Client()
         self._cache = {} # temporary hack for decent testing
+        self._notfound_cache = []
 
     def __contains__(self, pkgname):
-        return True # setting it like this for now
+        # setting it like this for now
+        return pkgname not in self._notfound_cache
 
     def is_installed(self, pkgname):
         p = self._get_one_package(pkgname)
@@ -207,6 +209,10 @@ class PackagekitInfo(PackageInfo):
             return self._cache[pkgname]
         ps = self._get_packages(pkgname, pfilter)
         if not ps:
+            # also keep it in not found, to prevent further calls of resolve
+            if pkgname not in self._notfound_cache:
+                print "blacklisted ", pkgname
+                self._notfound_cache.append(pkgname)
             return None
         self._cache[pkgname] = ps[0]
         return ps[0]
