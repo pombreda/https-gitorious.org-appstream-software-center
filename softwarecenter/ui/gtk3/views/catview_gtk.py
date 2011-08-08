@@ -130,7 +130,8 @@ class CategoriesViewGtk(Gtk.Viewport, CategoriesParser):
         self._poster_sigs = []
         self._allocation = None
 
-        #assets = self._cache_art_assets()
+        self._cache_art_assets()
+        #~ assets = self._cache_art_assets()
         #~ self.vbox.connect("draw", self.on_draw, assets)
         self._prev_alloc = None
         self.connect("size-allocate", self.on_size_allocate)
