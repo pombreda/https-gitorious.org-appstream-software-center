@@ -5,6 +5,8 @@ software-center (4.1.12) UNRELEASED; urgency=low
     many thanks
   * test/gtk3/test_widgets.py:
     - more widget test coverage
+  * test/gtk3/test_views.py:
+    - add basic tests for all gtk3 views
   * merged lp:~mmcg069/software-center/the-aesthetics, lots
     of really nice gtk3 work, many thanks to Matthew McGowan!
   * install gtk3 version as software-center-gtk3 tech preview

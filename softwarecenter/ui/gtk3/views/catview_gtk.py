@@ -190,24 +190,10 @@ class CategoriesViewGtk(Gtk.Viewport, CategoriesParser):
 
 class LobbyViewGtk(CategoriesViewGtk):
 
-    def __init__(self, 
-                 datadir,
-                 desktopdir, 
-                 cache,
-                 db,
-                 icons,
-                 apps_filter,
-                 apps_limit=0):
-        CategoriesViewGtk.__init__(self, 
-                 datadir,
-                 desktopdir, 
-                 cache,
-                 db,
-                 icons,
-                 apps_filter,
-                 apps_limit=0)
-
-#        self.enquire = xapian.Enquire(self.db.xapiandb)
+    def __init__(self, datadir, desktopdir, cache, db, icons,
+                 apps_filter, apps_limit=0):
+        CategoriesViewGtk.__init__(self, datadir, desktopdir, cache, db, icons,
+                                   apps_filter, apps_limit=0)
 
         # sections
         self.featured_carousel = None
@@ -563,47 +549,23 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         #self.set_subcategory(self.root_category)
         #return
 
+def get_test_window_catview():
 
-if __name__ == "__main__":
-    import sys, os
-    logging.basicConfig(level=logging.DEBUG)
-
-    if len(sys.argv) > 1:
-        datadir = sys.argv[1]
-    elif os.path.exists("./data"):
-        datadir = "./data"
-    else:
-        datadir = "/usr/share/software-center"
-
-    xapian_base_path = "/var/cache/software-center"
-    pathname = os.path.join(xapian_base_path, "xapian")
     from softwarecenter.db.pkginfo import get_pkg_info
     cache = get_pkg_info()
     cache.open()
 
     from softwarecenter.db.database import StoreDatabase
+    xapian_base_path = "/var/cache/software-center"
+    pathname = os.path.join(xapian_base_path, "xapian")
     db = StoreDatabase(pathname, cache)
     db.open()
 
-    from softwarecenter.paths import ICON_PATH
-    icons = Gtk.IconTheme.get_default()
-    icons.append_search_path(ICON_PATH)
-    icons.append_search_path(os.path.join(datadir,"icons"))
-    icons.append_search_path(os.path.join(datadir,"emblems"))
-    # HACK: make it more friendly for local installs (for mpt)
-    icons.append_search_path(datadir+"/icons/32x32/status")
-    # add the humanity icon theme to the iconpath, as not all icon 
-    # themes contain all the icons we need
-    # this *shouldn't* lead to any performance regressions
-    path = '/usr/share/icons/Humanity'
-    if os.path.exists(path):
-        for subpath in os.listdir(path):
-            subpath = os.path.join(path, subpath)
-            if os.path.isdir(subpath):
-                for subsubpath in os.listdir(subpath):
-                    subsubpath = os.path.join(subpath, subsubpath)
-                    if os.path.isdir(subsubpath):
-                        icons.append_search_path(subsubpath)
+    import softwarecenter.paths
+    datadir = softwarecenter.paths.datadir
+
+    from softwarecenter.ui.gtk3.utils import get_sc_icon_theme
+    icons = get_sc_icon_theme(datadir)
 
     import softwarecenter.distro
     distro = softwarecenter.distro.get_distro()
@@ -616,8 +578,7 @@ if __name__ == "__main__":
 
     from softwarecenter.paths import APP_INSTALL_PATH
     view = LobbyViewGtk(datadir, APP_INSTALL_PATH,
-                        cache, db, distro,
-                        icons, apps_filter)
+                        cache, db, icons, distro, apps_filter)
 
     l = Gtk.Label()
     l.set_text("Lobby")
@@ -650,6 +611,13 @@ if __name__ == "__main__":
     win.set_size_request(600,400)
     win.show_all()
     win.connect('destroy', Gtk.main_quit)
+    return win
+
+if __name__ == "__main__":
+    import sys, os
+    logging.basicConfig(level=logging.DEBUG)
+
+    win = get_test_window_catview()
 
     # run it
     Gtk.main()
