@@ -301,7 +301,7 @@ class ExhibitBanner(Gtk.EventBox):
         exhibit = self.exhibits[self.cursor]
         print exhibit.package_names, exhibit
         if exhibit.package_names:
-            self.emit("show-exhibits", exhibit)
+            self.emit("show-exhibits-clicked", exhibit)
         return
 
     def on_next_clicked(self, *args):
