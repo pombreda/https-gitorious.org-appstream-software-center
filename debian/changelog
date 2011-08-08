@@ -1,4 +1,4 @@
-software-center (4.1.12) UNRELEASED; urgency=low
+software-center (4.1.12) oneiric; urgency=low
 
   [ Michael Vogt ]
   * merged lp:~alexeftimie/software-center/backend-refactor,
@@ -72,7 +72,7 @@ software-center (4.1.12) UNRELEASED; urgency=low
   * softwarecenter/ui/gtk3/views/catview_gtk.py:
     - connect up the 'more' buttons
 
- -- Gary Lasker <gary.lasker@canonical.com>  Sat, 06 Aug 2011 01:36:46 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 08 Aug 2011 11:05:58 +0200
 
 software-center (4.1.11) oneiric; urgency=low
 
