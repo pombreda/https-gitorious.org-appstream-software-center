@@ -21,7 +21,7 @@ import base64
 from gi.repository import GObject
 import logging
 import os
-import simplejson
+import json
 import string
 import shutil
 import time
@@ -360,7 +360,7 @@ def update(db, cache, datadir=None):
 def update_from_json_string(db, cache, json_string, origin):
     """ index from a json string, should include origin url (free form string)
     """
-    for sec in simplejson.loads(json_string):
+    for sec in json.loads(json_string):
         parser = JsonTagSectionParser(sec, origin)
         index_app_info_from_parser(parser, db, cache)
     return True

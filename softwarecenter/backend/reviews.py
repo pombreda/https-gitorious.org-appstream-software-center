@@ -26,7 +26,7 @@ import logging
 import operator
 import os
 import random
-import simplejson
+import json
 import subprocess
 import time
 import urllib
@@ -680,7 +680,7 @@ class ReviewLoaderSpawningRNRClient(ReviewLoader):
             s.ratings_average = float(r.ratings_average)
             s.ratings_total = float(r.ratings_total)
             if r.histogram:
-                s.rating_spread = simplejson.loads(r.histogram)
+                s.rating_spread = json.loads(r.histogram)
             else:
                 s.rating_spread = [0,0,0,0,0]
             s.dampened_rating = calc_dr(s.rating_spread)
@@ -711,7 +711,7 @@ class ReviewLoaderJsonAsync(ReviewLoader):
         if json_str.startswith("\37\213"):
             gz=gzip.GzipFile(fileobj=StringIO(json_str))
             json_str = gz.read()
-        reviews_json = simplejson.loads(json_str)
+        reviews_json = json.loads(json_str)
         reviews = []
         for review_json in reviews_json:
             review = Review.from_json(review_json)
@@ -753,7 +753,7 @@ class ReviewLoaderJsonAsync(ReviewLoader):
         if json_str.startswith("\37\213"):
             gz=gzip.GzipFile(fileobj=StringIO(json_str))
             json_str = gz.read()
-        review_stats_json = simplejson.loads(json_str)
+        review_stats_json = json.loads(json_str)
         review_stats = {}
         for review_stat_json in review_stats_json:
             #appname = review_stat_json["app_name"]

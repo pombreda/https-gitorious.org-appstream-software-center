@@ -28,7 +28,7 @@ except ImportError:
 from gi.repository import GObject
 import logging
 import os
-import simplejson
+import json
 
 
 LOG = logging.getLogger(__name__)
@@ -104,7 +104,7 @@ class SpawnHelper(GObject.GObject):
                 LOG.exception("can not load pickle data: '%s'" % data)
         elif self._expect_format == "json":
             try:
-                data = simplejson.loads(data)
+                data = json.loads(data)
             except:
                 LOG.exception("can not load json: '%s'" % data)
         elif self._expect_format == "none":
