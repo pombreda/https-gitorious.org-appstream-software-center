@@ -152,7 +152,7 @@ class SearchEntry(Gtk.Entry):
             self.set_icon_from_stock(Gtk.EntryIconPosition.SECONDARY, None)
 
 def on_entry_changed(self, terms):
-    print terms
+    print(terms)
 
 def get_test_searchentry_window():
     icons = Gtk.IconTheme.get_default()

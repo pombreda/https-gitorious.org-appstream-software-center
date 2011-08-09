@@ -48,7 +48,7 @@ from softwarecenter.ui.gtk3.em import StockEms
 from softwarecenter.ui.gtk3.widgets.buttons import Link
 
 LOG_ALLOCATION = logging.getLogger("softwarecenter.ui.Gtk.get_allocation()")
-
+LOG = logging.getLogger(__name__)
 
 class UIReviewsList(Gtk.VBox):
 
@@ -444,8 +444,8 @@ class UIReview(Gtk.VBox):
         summary = Gtk.Label()
         try:
             summary.set_markup('<b>%s</b>' % GObject.markup_escape_text(review_data.summary))
-        except Exception, e:
-            print e
+        except Exception as e:
+            LOG.exception("_build() failed")
             summary.set_text("Error parsing summary")
 
         summary.set_ellipsize(Pango.EllipsizeMode.END)
@@ -640,8 +640,8 @@ class UIReview(Gtk.VBox):
                     dark_color,
                     GObject.markup_escape_text(correct_name),
                     GObject.markup_escape_text(nice_date))
-            except Exception, e:
-                print e
+            except Exception as e:
+                LOG.exception("_who_when_markup failed")
                 m = "Error parsing name"
 
         return m

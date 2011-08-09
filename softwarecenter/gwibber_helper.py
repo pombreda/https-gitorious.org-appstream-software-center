@@ -44,7 +44,7 @@ class GwibberHelper(object):
                                        "/com/gwibber/Accounts")
             accounts_iface = dbus.Interface(proxy_obj, "com.Gwibber.Accounts")
             for account in simplejson.loads(accounts_iface.List()):
-                if account.has_key('send_enabled') and account["send_enabled"]:
+                if 'send_enabled' in account and account["send_enabled"]:
                     accounts.append(account)
             return accounts
         except:

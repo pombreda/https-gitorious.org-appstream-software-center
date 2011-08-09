@@ -18,7 +18,6 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import cPickle
 import datetime
 import gio
 import gzip
@@ -28,10 +27,23 @@ import operator
 import os
 import random
 import simplejson
-import StringIO
 import subprocess
 import time
 import urllib
+
+# py3 compat
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
+
+# py3 compat
+try:
+    from io import StringIO
+    from urllib.parse import quote_plus
+except ImportError:
+    from StringIO import StringIO
+    from urllib import quote_plus
 
 
 from softwarecenter.backend.piston.rnrclient import RatingsAndReviewsAPI
@@ -92,7 +104,7 @@ class UsefulnessCache(object):
     def _retrieve_votes_from_cache(self):
         if os.path.exists(self.USEFULNESS_CACHE_FILE):
             try:
-                self.USEFULNESS_CACHE = cPickle.load(open(self.USEFULNESS_CACHE_FILE))
+                self.USEFULNESS_CACHE = pickle.load(open(self.USEFULNESS_CACHE_FILE))
             except:
                 LOG.exception("usefulness cache load fallback failure")
                 os.rename(self.USEFULNESS_CACHE_FILE, self.USEFULNESS_CACHE_FILE+".fail")
@@ -130,7 +142,7 @@ class UsefulnessCache(object):
         try:
             if not os.path.exists(cachedir):
                 os.makedirs(cachedir)
-            cPickle.dump(self.USEFULNESS_CACHE,
+            pickle.dump(self.USEFULNESS_CACHE,
                       open(self.USEFULNESS_CACHE_FILE, "w"))
             return True
         except:
@@ -198,7 +210,7 @@ class Review(object):
         """
         app = Application("", other.package_name)
         review = cls(app)
-        for (attr, value) in other.__dict__.iteritems():
+        for (attr, value) in other.__dict__.items():
             if not attr.startswith("_"):
                 setattr(review, attr, value)
         return review
@@ -208,7 +220,7 @@ class Review(object):
         """ convert json reviews into "out" review objects """
         app = Application("", other["package_name"])
         review = cls(app)
-        for k, v in other.iteritems():
+        for k, v in other.items():
             setattr(review, k, v)
         return review
 
@@ -232,7 +244,7 @@ class ReviewLoader(object):
         self.language = get_language()
         if os.path.exists(self.REVIEW_STATS_CACHE_FILE):
             try:
-                self.REVIEW_STATS_CACHE = cPickle.load(open(self.REVIEW_STATS_CACHE_FILE))
+                self.REVIEW_STATS_CACHE = pickle.load(open(self.REVIEW_STATS_CACHE_FILE))
                 self._cache_version_old = self._missing_histogram_in_cache()
             except:
                 LOG.exception("review stats cache load failure")
@@ -278,7 +290,7 @@ class ReviewLoader(object):
         cachedir = SOFTWARE_CENTER_CACHE_DIR
         if not os.path.exists(cachedir):
             os.makedirs(cachedir)
-        cPickle.dump(self.REVIEW_STATS_CACHE,
+        pickle.dump(self.REVIEW_STATS_CACHE,
                       open(self.REVIEW_STATS_CACHE_FILE, "w"))
     
     def get_top_rated_apps(self, quantity=12, category=None):
@@ -411,7 +423,7 @@ class ReviewLoader(object):
         """ called when report_absuse finished """
         LOG.debug("hide id %s " % review_id)
         if exitcode == 0:
-            for (app, reviews) in self._reviews.iteritems():
+            for (app, reviews) in self._reviews.items():
                 for review in reviews:
                     if str(review.id) == str(review_id):
                         # remove the one we don't want to see anymore
@@ -448,7 +460,7 @@ class ReviewLoader(object):
         LOG.debug("usefulness id %s " % review_id)
         useful_votes = UsefulnessCache()
         useful_votes.add_usefulness_vote(review_id, is_useful)
-        for (app, reviews) in self._reviews.iteritems():
+        for (app, reviews) in self._reviews.items():
             for review in reviews:
                 if str(review.id) == str(review_id):
                     # update usefulness, older servers do not send
@@ -462,7 +474,7 @@ class ReviewLoader(object):
     def _on_submit_usefulness_error(self, spawn_helper, error_str, review_id, callback):
             LOG.warn("submit usefulness id=%s failed with error: %s" %
                      (review_id, error_str))
-            for (app, reviews) in self._reviews.iteritems():
+            for (app, reviews) in self._reviews.items():
                 for review in reviews:
                     if str(review.id) == str(review_id):
                         review.usefulness_submit_error = True
@@ -486,7 +498,7 @@ class ReviewLoader(object):
     def _on_delete_review_finished(self, spawn_helper, res, review_id, callback):
         """ called when delete_review finished"""
         LOG.debug("delete id %s " % review_id)
-        for (app, reviews) in self._reviews.iteritems():
+        for (app, reviews) in self._reviews.items():
             for review in reviews:
                 if str(review.id) == str(review_id):
                     # remove the one we don't want to see anymore
@@ -497,7 +509,7 @@ class ReviewLoader(object):
     def _on_delete_review_error(self, spawn_helper, error_str, review_id, callback):
         """called if delete review errors"""
         LOG.warn("delete review id=%s failed with error: %s" % (review_id, error_str))
-        for (app, reviews) in self._reviews.iteritems():
+        for (app, reviews) in self._reviews.items():
             for review in reviews:
                 if str(review.id) == str(review_id):
                     review.delete_error = True
@@ -528,7 +540,7 @@ class ReviewLoader(object):
         LOG.debug("_on_modify_review_finished")
         #review_json = spawn_helper._stdout
         mod_review = ReviewDetails.from_dict(review_json)
-        for (app, reviews) in self._reviews.iteritems():
+        for (app, reviews) in self._reviews.items():
             for review in reviews:
                 if str(review.id) == str(review_id):
                     # remove the one we don't want to see anymore
@@ -542,7 +554,7 @@ class ReviewLoader(object):
     def _on_modify_review_error(self, spawn_helper, error_str, review_id, callback):
         """called if modify review errors"""
         LOG.debug("modify review id=%s failed with error: %s" % (review_id, error_str))
-        for (app, reviews) in self._reviews.iteritems():
+        for (app, reviews) in self._reviews.items():
             for review in reviews:
                 if str(review.id) == str(review_id):
                     review.modify_error = True
@@ -697,7 +709,7 @@ class ReviewLoaderJsonAsync(ReviewLoader):
             return callback(app, [])
         # check for gzip header
         if json_str.startswith("\37\213"):
-            gz=gzip.GzipFile(fileobj=StringIO.StringIO(json_str))
+            gz=gzip.GzipFile(fileobj=StringIO(json_str))
             json_str = gz.read()
         reviews_json = simplejson.loads(json_str)
         reviews = []
@@ -717,7 +729,7 @@ class ReviewLoaderJsonAsync(ReviewLoader):
         else:
             appname = ""
         url = self.distro.REVIEWS_URL % { 'pkgname' : app.pkgname,
-                                          'appname' : urllib.quote_plus(appname.encode("utf-8")),
+                                          'appname' : quote_plus(appname.encode("utf-8")),
                                           'language' : self.language,
                                           'origin' : origin,
                                           'distroseries' : distroseries,
@@ -739,7 +751,7 @@ class ReviewLoaderJsonAsync(ReviewLoader):
             return
         # check for gzip header
         if json_str.startswith("\37\213"):
-            gz=gzip.GzipFile(fileobj=StringIO.StringIO(json_str))
+            gz=gzip.GzipFile(fileobj=StringIO(json_str))
             json_str = gz.read()
         review_stats_json = simplejson.loads(json_str)
         review_stats = {}

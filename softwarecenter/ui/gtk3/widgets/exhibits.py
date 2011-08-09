@@ -299,13 +299,12 @@ class ExhibitBanner(Gtk.EventBox):
 
     def on_button_release(self, *args):
         exhibit = self.exhibits[self.cursor]
-        print exhibit.package_names, exhibit
         if exhibit.package_names:
             self.emit("show-exhibits-clicked", exhibit)
         return
 
     def on_next_clicked(self, *args):
-        self.next()
+        self.next_exhibit()
         self.queue_next()
         return
 
@@ -334,7 +333,8 @@ class ExhibitBanner(Gtk.EventBox):
         self.cursor = index
         self._render_exhibit_at_cursor()
 
-    def next(self):
+    # next() is a special function in py3 so we call this next_exhibit
+    def next_exhibit(self):
         if len(self.exhibits)-1 == self.cursor:
             self.cursor = 0
         else:
@@ -353,7 +353,7 @@ class ExhibitBanner(Gtk.EventBox):
     def queue_next(self):
         self.cleanup_timeout()
         self._timeout = GObject.timeout_add_seconds(
-                                    self.TIMEOUT_SECONDS, self.next)
+                                    self.TIMEOUT_SECONDS, self.next_exhibit)
         return self._timeout
 
     def on_banner_rendered(self, renderer):

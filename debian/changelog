@@ -1,3 +1,9 @@
+software-center (4.1.13) UNRELEASED; urgency=low
+
+  * py3 compat fixes,
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 09 Aug 2011 10:22:55 +0200
+
 software-center (4.1.12) oneiric; urgency=low
 
   [ Michael Vogt ]

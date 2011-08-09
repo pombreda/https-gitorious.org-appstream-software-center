@@ -180,7 +180,7 @@ class ViewSwitcher(Gtk.Box):
         return self.build_channel_list(popup, ViewPages.INSTALLED)
 
     def on_channels_changed(self, backend, res):
-        for view_id, sel in self.selectors.iteritems():
+        for view_id, sel in self.selectors.items():
             # setting popup to None will cause a rebuild of the popup
             # menu the next time the selector is clicked
             sel.popup = None

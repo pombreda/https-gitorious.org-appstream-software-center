@@ -18,7 +18,7 @@
 
 from gi.repository import GObject
 
-import dbus
+# FIXME: use gmenu GIR instead
 import gmenu
 import gettext
 import gio
@@ -31,6 +31,12 @@ import tempfile
 import traceback
 import time
 import xml.sax.saxutils
+
+# py3 compat
+try:
+    from urllib.parse import urlsplit
+except ImportError:
+    from urlparse import urlsplit
 
 from enums import Icons, APP_INSTALL_PATH_DELIMITER
 from paths import SOFTWARE_CENTER_CACHE_DIR
@@ -222,7 +228,6 @@ def uri_to_filename(uri):
 
 def human_readable_name_from_ppa_uri(ppa_uri):
     """ takes a PPA uri and returns a human readable name for it """
-    from urlparse import urlsplit
     name = urlsplit(ppa_uri).path
     if name.endswith("/ubuntu"):
         return name[0:-len("/ubuntu")]
@@ -244,7 +249,6 @@ def obfuscate_private_ppa_details(text):
     s = text.split()
     for item in s:
         if "private-ppa.launchpad.net" in item:
-            from urlparse import urlsplit
             url_parts = urlsplit(item)
             if url_parts.username:
                 result = result.replace(url_parts.username, "hidden")
@@ -266,6 +270,7 @@ def is_unity_running():
     """
     return True if Unity is currently running
     """
+    import dbus
     unity_running = False
     try:
         bus = dbus.SessionBus()
@@ -282,7 +287,7 @@ def get_icon_from_theme(icons, iconname=None, iconsize=Icons.APP_ICON_SIZE, miss
         iconname = missingicon
     try:
         icon = icons.load_icon(iconname, iconsize, 0)
-    except Exception, e:
+    except Exception as e:
         LOG.warning("could not load icon '%s', displaying missing icon instead: %s " % (iconname, e))
         icon = icons.load_icon(missingicon, iconsize, 0)
     return icon
@@ -530,7 +535,7 @@ class SimpleFileDownloader(GObject.GObject):
             self.LOG.debug("file reachable %s" % self.url)
             # url is reachable, now download the file
             f.load_contents_async(self._file_download_complete_cb)
-        except GObject.GError, e:
+        except GObject.GError as e:
             self.LOG.debug("file *not* reachable %s" % self.url)
             self.emit('file-url-reachable', False)
             self.emit('error', GObject.GError, e)
@@ -543,7 +548,7 @@ class SimpleFileDownloader(GObject.GObject):
         # The first element is the actual content so let's grab that
         try:
             content = f.load_contents_finish(result)[0]
-        except gio.Error, e:
+        except gio.Error as e:
             # i witnissed a strange error[1], so make the loader robust in this
             # situation
             # 1. content = f.load_contents_finish(result)[0]
@@ -620,6 +625,6 @@ except ImportError:
         
 if __name__ == "__main__":
     s = decode_xml_char_reference('Search&#x2026;')
-    print s
-    print type(s)
-    print unicode(s)
+    print(s)
+    print(type(s))
+    print(unicode(s))

@@ -503,7 +503,7 @@ class AddonsTable(Gtk.VBox):
 
     def get_addons(self):
         # filter all children widgets and return only Addons
-        return filter(lambda w: isinstance(w, Addon), self)
+        return [w for w in self if isinstance(w, Addon)]
 
     def clear(self):
         for addon in self.get_addons():
@@ -1563,7 +1563,7 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
             if self.icons.has_icon(app_details.icon):
                 try:
                     return self.icons.load_icon(app_details.icon, 84, 0)
-                except GObject.GError, e:
+                except GObject.GError as e:
                     logging.warn("failed to load '%s': %s" % (app_details.icon, e))
                     return self.icons.load_icon(Icons.MISSING_APP, 84, 0)
             elif app_details.icon_url:
@@ -1574,7 +1574,7 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
                     try:
                         pb = GdkPixbuf.Pixbuf.new_from_file(image_file_path)
                         self.icon.set_from_pixbuf(pb)
-                    except Exception, e:
+                    except Exception as e:
                         LOG.warning("couldn't load downloadable icon file '%s': %s" % (image_file_path, e))
                     
                 image_downloader = SimpleFileDownloader()

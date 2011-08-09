@@ -31,10 +31,20 @@ import sys
 import tempfile
 import time
 import threading
-import urllib
+
+# py3 
+try:
+    from urllib.request import urlopen
+    from queue import Queue
+except ImportError:
+    # py2 fallbacks
+    from urllib import urlopen
+    from Queue import Queue
+
+
+
 
 from gettext import gettext as _
-from Queue import Queue
 from optparse import OptionParser
 
 from softwarecenter.backend.restfulclient import get_ubuntu_sso_backend
@@ -375,10 +385,10 @@ class Worker(threading.Thread):
             server than rnr
         """
         try:
-            resp = urllib.urlopen(SERVER_STATUS_URL).read()
+            resp = urlopen(SERVER_STATUS_URL).read()
             if resp != "ok":
                 return False
-        except Exception, e:
+        except Exception as e:
             logging.error("exception from '%s': '%s'" % (SERVER_STATUS_URL, e))
             return False
         return True

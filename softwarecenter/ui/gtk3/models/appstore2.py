@@ -169,7 +169,7 @@ class _AppPropertiesHelper(object):
                         #~ icon_file_name)
                     #~ # display the missing icon while the real one downloads
                     #~ self.icon_cache[icon_name] = self._missing_icon
-        except GObject.GError, e:
+        except GObject.GError as e:
             LOG.debug("get_icon returned '%s'" % e)
         return self._missing_icon
 

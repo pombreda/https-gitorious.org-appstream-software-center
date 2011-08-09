@@ -231,7 +231,7 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
             trans = yield self.aptd_client.fix_broken_depends(defer=True)
             self.emit("transaction-started", "", "", trans.tid, TransactionTypes.REPAIR)
             yield self._run_transaction(trans, None, None, None)
-        except Exception, error:
+        except Exception as error:
             self._on_trans_error(error)
 
     # FIXME: upgrade add-ons here
@@ -243,7 +243,7 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
                                                             defer=True)
             self.emit("transaction-started", pkgname, appname, trans.tid, TransactionTypes.UPGRADE)
             yield self._run_transaction(trans, pkgname, appname, iconname, metadata)
-        except Exception, error:
+        except Exception as error:
             self._on_trans_error(error, pkgname)
 
 # broken
@@ -280,7 +280,7 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
                                                            defer=True)
             self.emit("transaction-started", pkgname, appname, trans.tid, TransactionTypes.REMOVE)
             yield self._run_transaction(trans, pkgname, appname, iconname, metadata)
-        except Exception, error:
+        except Exception as error:
             self._on_trans_error(error, pkgname)
 
     @inline_callbacks
@@ -315,7 +315,7 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
                 self.emit("transaction-started", pkgname, appname, trans.tid, TransactionTypes.INSTALL)
             yield self._run_transaction(
                 trans, pkgname, appname, iconname, metadata)
-        except Exception, error:
+        except Exception as error:
             self._on_trans_error(error, pkgname)
 
     @inline_callbacks
@@ -340,7 +340,7 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
                 defer=True)
             self.emit("transaction-started", pkgname, appname, trans.tid, TransactionTypes.APPLY)
             yield self._run_transaction(trans, pkgname, appname, iconname)
-        except Exception, error:
+        except Exception as error:
             self._on_trans_error(error)
 
     @inline_callbacks
@@ -359,7 +359,7 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
             trans = yield self.aptd_client.update_cache(
                 sources_list=sources_list, defer=True)
             yield self._run_transaction(trans, None, None, None, metadata)
-        except Exception, error:
+        except Exception as error:
             self._on_trans_error(error)
 
     @inline_callbacks
@@ -370,7 +370,7 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
             # don't use self._run_transaction() here, to avoid sending uneeded
             # signals
             yield trans.run(defer=True)
-        except Exception, error:
+        except Exception as error:
             self._on_trans_error(error, component)
             return_value(None)
         # now update the cache
@@ -409,7 +409,7 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
             trans = yield self.aptd_client.add_vendor_key_from_keyserver(
                 keyid, keyserver, defer=True)
             yield self._run_transaction(trans, None, None, None, metadata)
-        except Exception, error:
+        except Exception as error:
             self._on_trans_error(error)
 
     @inline_callbacks
@@ -419,7 +419,7 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
         elif isinstance(source_entry, SourceEntry):
             entry = source_entry
         else:
-            raise ValueError, "Unsupported entry type %s" % type(source_entry)
+            raise ValueError("Unsupported entry type %s" % type(source_entry))
 
         if not sourcepart:
             sourcepart = sources_filename_from_ppa_entry(entry)
@@ -584,7 +584,7 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
                 self._logger.info("run_transaction()")
                 yield self._run_transaction(trans, app.pkgname, app.appname,
                                             "", metadata)
-            except Exception, error:
+            except Exception as error:
                 self._on_trans_error(error, app.pkgname)
         else:
             # download failure
@@ -784,7 +784,7 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
             if metadata:
                 yield trans.set_meta_data(defer=True, **metadata)
             yield trans.run(defer=True)
-        except Exception, error:
+        except Exception as error:
             self._on_trans_error(error, pkgname)
             # on error we need to clean the pending purchases
             self._clean_pending_purchases(pkgname)

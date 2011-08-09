@@ -145,7 +145,7 @@ if __name__ == "__main__":
             rebuild_database(pathname)
             db = StoreDatabase(pathname, cache)
             db.open()
-    except xapian.DatabaseCorruptError, e:
+    except xapian.DatabaseCorruptError as e:
         logging.exception("xapian open failed")
         softwarecenter.ui.gtk3.dialogs.error(None, 
                            _("Sorry, can not open the software database"),

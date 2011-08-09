@@ -6,8 +6,6 @@ from softwarecenter.enums import ViewPages
 from softwarecenter.paths import datadir
 from mkit import floats_from_string
 
-print os.path.join(datadir, 'images/arrows.png')
-
 class SectionPainter(object):
     
     # specify background overlay image and color mappings for available and installed view ids
