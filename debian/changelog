@@ -1,10 +1,16 @@
 software-center (4.1.13) UNRELEASED; urgency=low
 
+  [ Michael Vogt ]
   * py3 compatibility fixes, this includes:
     - exceptions to use  "except Exception as e"
     - print function usage
     - various conditional imports like "import configparser"
     - use of json instead of simplejson (required py2.6+)
+  
+  [ Robert Roth ]
+  * lp:~evfool/software-center/hideabout:
+    - Hide the about dialog when clicking close in the GTK3 version 
+     (LP: #822662)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 09 Aug 2011 10:22:55 +0200
 

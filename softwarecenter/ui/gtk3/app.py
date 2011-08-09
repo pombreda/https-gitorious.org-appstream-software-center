@@ -344,8 +344,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         #~ self.aboutdialog.set_comments(about_description)
 
         #~ # about dialog
-        #~ self.aboutdialog.connect("response",
-                                 #~ lambda dialog, rid: dialog.hide())
+        self.aboutdialog.connect("response", lambda dialog, rid: dialog.hide())
         #~ self.aboutdialog.connect("delete_event", self.aboutdialog.hide_on_delete)
 
         #~ # restore state
