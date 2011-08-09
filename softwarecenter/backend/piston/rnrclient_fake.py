@@ -18,7 +18,7 @@ AUTHENTICATED_API_SCHEME = 'https'
 
 from rnrclient_pristine import ReviewRequest, ReviewsStats, ReviewDetails
 from softwarecenter.backend.fake_review_settings import FakeReviewSettings, network_delay
-import simplejson
+import json
 import random
 import time
 
@@ -52,7 +52,7 @@ class RatingsAndReviewsAPI(PistonAPI):
     def server_status(self):
         if self._fake_settings.get_setting('server_response_error'):
             raise APIError(self._exception_msg)
-        return simplejson.dumps('ok')
+        return json.dumps('ok')
 
 
     @validate_pattern('origin', r'[0-9a-z+-.:/]+', required=False)
@@ -80,7 +80,7 @@ class RatingsAndReviewsAPI(PistonAPI):
             }
             stats.append(s)
             
-        return simplejson.dumps(stats)
+        return json.dumps(stats)
 
     @validate_pattern('language', r'\w+', required=False)
     @validate_pattern('origin', r'[0-9a-z+-.:/]+', required=False)
@@ -106,7 +106,7 @@ class RatingsAndReviewsAPI(PistonAPI):
             raise APIError(self._exception_msg)
         
         reviews = self._make_fake_reviews(packagename, num_reviews)
-        return simplejson.dumps(reviews)
+        return json.dumps(reviews)
 
     @validate('review_id', int)
     @returns(ReviewDetails)
@@ -115,7 +115,7 @@ class RatingsAndReviewsAPI(PistonAPI):
         if self._fake_settings.get_setting('get_review_error'):
             raise APIError(self._exception_msg)
         review = self._make_fake_reviews(single_id=review_id)
-        return simplejson.dumps(review)
+        return json.dumps(review)
 
     @validate('review', ReviewRequest)
     @returns(ReviewDetails)
@@ -145,7 +145,7 @@ class RatingsAndReviewsAPI(PistonAPI):
                 "package_name": review.package_name,
                 "distroseries": review.distroseries
             }
-        return simplejson.dumps(r)
+        return json.dumps(r)
 
     @validate('review_id', int)
     @validate_pattern('reason', r'[^\n]+')
@@ -181,7 +181,7 @@ class RatingsAndReviewsAPI(PistonAPI):
             "id": mod_id
         }
 
-        return simplejson.dumps(f)
+        return json.dumps(f)
 
     @validate('review_id', int)
     @validate_pattern('useful', 'True|False')
@@ -190,7 +190,7 @@ class RatingsAndReviewsAPI(PistonAPI):
     def submit_usefulness(self, review_id, useful):
         if self._fake_settings.get_setting('submit_usefulness_error'):
             raise APIError(self._exception_msg)
-        return simplejson.dumps(self._fake_settings.get_setting('usefulness_response_string'))
+        return json.dumps(self._fake_settings.get_setting('usefulness_response_string'))
 
     @validate('review_id', int, required=False)
     @validate_pattern('username', r'[^\n]+', required=False)
@@ -215,7 +215,7 @@ class RatingsAndReviewsAPI(PistonAPI):
                 'useful':random.choice(['True','False']),
                 'review_id':review_id
                 }
-            return simplejson.dumps([response])
+            return json.dumps([response])
             
         #set up review ids to honour requested and also add randoms
         quantity = self._fake_settings.get_setting('votes_returned')
@@ -244,13 +244,13 @@ class RatingsAndReviewsAPI(PistonAPI):
                 }
             votes.append(u)
         
-        return simplejson.dumps(votes)
+        return json.dumps(votes)
 
     @validate('review_id', int)
     @returns_json
     def delete_review(self, review_id):
         """Delete a review"""
-        return simplejson.dumps(True)
+        return json.dumps(True)
 
     @validate('review_id', int)
     @validate('rating', int)
@@ -259,7 +259,7 @@ class RatingsAndReviewsAPI(PistonAPI):
     @returns(ReviewDetails)
     def modify_review(self, review_id, rating, summary, review_text):
         """Modify an existing review"""
-        return simplejson.dumps(self._make_fake_reviews()[0])
+        return json.dumps(self._make_fake_reviews()[0])
         
         
     def _make_fake_reviews(self, packagename='compiz-core', 

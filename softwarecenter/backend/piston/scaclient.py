@@ -47,10 +47,10 @@ if __name__ == "__main__":
     arch = "i386"
 
     available = sca.available_apps(lang=lang, series=series, arch=arch)
-    print available
+    print(available)
     
     available_for_qa = sca.available_apps_qa(lang=lang, series=series, arch=arch)
-    print available_for_qa
+    print(available_for_qa)
     
     for_me = sca.subscriptions_for_me()
-    print for_me
+    print(for_me)

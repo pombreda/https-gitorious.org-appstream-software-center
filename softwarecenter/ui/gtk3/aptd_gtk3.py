@@ -60,12 +60,12 @@ if __name__ == "__main__":
     # test config file prompt
     trans = Mock()
     res = aptd._config_file_conflict(trans, "/etc/group", "/etc/group-")
-    print res
+    print (res)
 
     # test medium required
     trans = Mock()
     res = aptd._medium_required(trans, "medium", "drive")
-    print res
+    print (res)
 
     # test error dialog
     trans = Mock()
@@ -73,5 +73,5 @@ if __name__ == "__main__":
     trans.error_details = "details"
     enum = 101
     res = aptd._show_transaction_failed_dialog(trans, enum)
-    print res
+    print (res)
 

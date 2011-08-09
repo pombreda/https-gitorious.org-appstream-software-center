@@ -529,7 +529,7 @@ class AvailablePane(SoftwarePane):
 
     def display_search_page(self, page, view_state):
         new_text = view_state.search_term
-        print new_text
+        #print(new_text)
         # DTRT if the search is reseted
         if not new_text:
             self._clear_search()
@@ -732,7 +732,7 @@ if __name__ == "__main__":
             rebuild_database(pathname)
             db = StoreDatabase(pathname, cache)
             db.open()
-    except xapian.DatabaseCorruptError, e:
+    except xapian.DatabaseCorruptError as e:
         logging.exception("xapian open failed")
         dialogs.error(None, 
                       _("Sorry, can not open the software database"),

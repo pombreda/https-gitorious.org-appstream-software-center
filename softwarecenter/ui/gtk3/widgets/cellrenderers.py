@@ -1,7 +1,24 @@
+# Copyright (C) 2011 Canonical
+#
+# Authors:
+#  Matthew McGowan
+#  Michael Vogt
+#
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; version 3.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+# details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
 import gettext
-#~ import logging
 from gi.repository import Gtk, Gdk, GObject, Pango
-print Pango.version()
 
 from softwarecenter.ui.gtk3.em import EM
 from softwarecenter.ui.gtk3.models.appstore2 import CategoryRowReference
@@ -276,7 +293,7 @@ class CellRendererAppView(Gtk.CellRendererText):
 
     def get_buttons(self):
         btns = ()
-        for k, v in self._buttons.iteritems():
+        for k, v in self._buttons.items():
             btns += tuple(v)
         return btns
 
@@ -427,7 +444,7 @@ class CellButtonRenderer:
         self._layout_reset(layout)
         max_size = (0,0)
 
-        for k, variant in self.markup_variants.iteritems():
+        for k, variant in self.markup_variants.items():
             layout.set_markup(GObject.markup_escape_text(variant), -1)
             size = layout.get_size()
             max_size = max(max_size, size)
@@ -458,7 +475,7 @@ class CellButtonRenderer:
     def set_state(self, state):
         if not isinstance(state, Gtk.StateFlags):
             msg = "state should be of type Gtk.StateFlags, got %s" % type(state)
-            raise TypeError, msg
+            raise TypeError(msg)
 
         elif state == self.state: return
 
@@ -481,7 +498,7 @@ class CellButtonRenderer:
     def set_markup_variants(self, markup_variants):
         if not isinstance(markup_variants, dict):
             msg = type(markup_variants)
-            raise TypeError, "Expects a dict object, got %s" % msg
+            raise TypeError("Expects a dict object, got %s" % msg)
 
         elif not markup_variants: return
 

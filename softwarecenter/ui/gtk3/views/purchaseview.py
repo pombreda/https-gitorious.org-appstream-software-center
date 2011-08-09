@@ -22,7 +22,7 @@ from gi.repository import Gtk
 from gi.repository import Gdk
 import logging
 import os
-import simplejson
+import json
 import sys
 import urllib
 from gi.repository import WebKit as webkit
@@ -206,7 +206,7 @@ h1 {
     def _process_json(self, json_string):
         try:
             LOG.debug("server returned: '%s'" % json_string)
-            res = simplejson.loads(json_string)
+            res = json.loads(json_string)
             #print res
         except:
             LOG.debug("error processing json: '%s'" % json_string)
@@ -299,7 +299,7 @@ DUMMY_HTML = """
 
 # synthetic key event generation
 def _send_keys(view, s):
-    print "_send_keys", s
+    print("_send_keys %s" % s)
     MAPPING = { '@'     : 'at',
                 '.'     : 'period',
                 '\t'    : 'Tab',
@@ -340,11 +340,11 @@ def _generate_events(view):
 
     (state, title, keys) = STATES[0]
 
-    print "_generate_events: in state", state
+    print("_generate_events: in state %s" % state)
 
     current_title = view.wk.webkit.get_property("title")
     if current_title and current_title.startswith(title):
-        print "found state", state
+        print("found state %s" % state)
         _send_keys(view, keys)
         STATES.pop(0)
 

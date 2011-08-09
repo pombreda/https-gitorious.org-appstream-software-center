@@ -64,26 +64,26 @@ if __name__ == "__main__":
 
     # dump all reviews
     rnr = RatingsAndReviewsAPI()
-    print rnr.server_status()
+    print(rnr.server_status())
     # dump all reviews
     for stat in rnr.review_stats():
-        print "stats for (pkg='%s', app: '%s'):  avg=%s total=%s" % (
-            stat.package_name, stat.app_name, stat.ratings_average, stat.ratings_total)
+        print("stats for (pkg='%s', app: '%s'):  avg=%s total=%s" % (
+            stat.package_name, stat.app_name, stat.ratings_average, stat.ratings_total))
         reviews = rnr.get_reviews(
             language="any", origin="ubuntu", distroseries="natty",
             packagename=stat.package_name,
             appname=urllib.quote_plus(stat.app_name.encode("utf-8")))
         for review in reviews:
-            print "rating: %s  user=%s" % (review.rating, review.reviewer_username)
-            print review.summary
-            print review.review_text
-            print
+            print("rating: %s  user=%s" % (review.rating, review.reviewer_username))
+            print(review.summary)
+            print(review.review_text)
+            print("\n")
         
     # get individual ones
-    reviews= rnr.get_reviews(language="en",origin="ubuntu",distroseries="maverick",
+    reviews = rnr.get_reviews(language="en",origin="ubuntu",distroseries="maverick",
                              packagename="unace", appname="ACE")
-    print reviews
-    print rnr.get_reviews(language="en",origin="ubuntu",distroseries="natty",
-                          packagename="aclock.app")
-    print rnr.get_reviews(language="en", origin="ubuntu", distroseries="natty",
-                          packagename="unace", appname="ACE")
+    print(reviews)
+    print(rnr.get_reviews(language="en",origin="ubuntu",distroseries="natty",
+                          packagename="aclock.app"))
+    print(rnr.get_reviews(language="en", origin="ubuntu", distroseries="natty",
+                          packagename="unace", appname="ACE"))

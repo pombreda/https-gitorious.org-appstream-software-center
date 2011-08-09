@@ -1,7 +1,7 @@
 
 import time
 import os
-import cPickle
+import pickle
 from softwarecenter.paths import SOFTWARE_CENTER_CACHE_DIR
 
 # decorator to add a fake network delay if set 
@@ -186,7 +186,7 @@ class FakeReviewSettings(object):
         '''Loads existing settings from cache file into _FAKE_SETTINGS dict'''
         if os.path.exists(self.LOCATION):
             try:
-                self._FAKE_SETTINGS = cPickle.load(open(self.LOCATION))
+                self._FAKE_SETTINGS = pickle.load(open(self.LOCATION))
             except:
                 os.rename(self.LOCATION, self.LOCATION+".fail")
         return
@@ -196,7 +196,7 @@ class FakeReviewSettings(object):
         try:
             if not os.path.exists(SOFTWARE_CENTER_CACHE_DIR):
                 os.makedirs(SOFTWARE_CENTER_CACHE_DIR)
-            cPickle.dump(self._FAKE_SETTINGS, open(self.LOCATION, "w"))
+            pickle.dump(self._FAKE_SETTINGS, open(self.LOCATION, "w"))
             return True
         except:
             return False

@@ -53,7 +53,7 @@ class ViewManager(object):
         global _viewmanager
         if _viewmanager is not None:
             msg = "Only one instance of ViewManager is allowed!"
-            raise SystemExit, msg
+            raise SystemExit(msg)
         else:
             _viewmanager = self
 
@@ -86,7 +86,7 @@ class ViewManager(object):
         return self.get_view_widget(current_view)
 
     def get_view_id_from_page_id(self, page_id):
-        for (k, v) in self.all_views.iteritems():
+        for (k, v) in self.all_views.items():
             if page_id == v:
                 return k
 
@@ -154,7 +154,7 @@ class ViewManager(object):
 
         if self.get_current_view_widget() != pane:
             view_id = None
-            for view_id, widget in self.view_to_pane.iteritems():
+            for view_id, widget in self.view_to_pane.items():
                 if widget == pane: break
     
             self.set_active_view(view_id)

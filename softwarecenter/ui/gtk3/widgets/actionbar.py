@@ -352,10 +352,10 @@ if __name__ == "__main__":
     btns = 0
 
     def perform(btn):
-        print "Clicked 'Perform %i'" % btn
+        print("Clicked 'Perform %i'" % btn)
 
     def perform_lbl():
-        print "Clicked label link"
+        print("Clicked label link")
 
     def add_func(*args):
         global btns

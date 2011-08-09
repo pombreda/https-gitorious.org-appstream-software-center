@@ -106,8 +106,8 @@ class AppEnquire(GObject.GObject):
 
         try:
             tmp_matches = enquire.get_mset(0, len(self.db), None, xfilter)
-        except Exception, e:
-            print e
+        except Exception as e:
+            LOG.exception("_get_estimate_nr_apps_and_nr_pkgs failed")
             return (0, 0)
 
         nr_apps = tmp_matches.get_matches_estimated()
@@ -175,7 +175,7 @@ class AppEnquire(GObject.GObject):
                     enquire.set_SortMethods.by_value(
                         self.db._axi_values["catalogedtime"], reverse=True)
                 else:
-                    logging.warning("no catelogedtime in axi")
+                    LOG.warning("no catelogedtime in axi")
             elif self.sortmode == SortMethods.BY_TOP_RATED:
                 review_loader = get_review_loader(self.cache, self.db)
                 sorter = TopRatedSorter(self.db, review_loader)

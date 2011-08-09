@@ -22,7 +22,10 @@ from gi.repository import GObject
 import logging
 import softwarecenter.ui.gtk3.dialogs as dialogs
 
-import urllib
+try:
+    from urllib.parse import urlencode
+except ImportError:
+    from urllib import urlencode
 
 from gettext import gettext as _
 
@@ -153,7 +156,7 @@ class AppDetailsViewBase(object):
         """ initiate the purchase transaction """
         lang = get_language()
         distro = self.distro.get_codename()
-        url = self.distro.PURCHASE_APP_URL % (lang, distro, urllib.urlencode({
+        url = self.distro.PURCHASE_APP_URL % (lang, distro, urlencode({
                     'archive_id' : self.appdetails.ppaname, 
                     'arch' : get_current_arch() ,
                     }))

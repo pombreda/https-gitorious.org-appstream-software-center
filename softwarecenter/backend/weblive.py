@@ -370,7 +370,7 @@ if __name__ == "__main__":
     weblive._ready.wait()
 
     # Show the currently available servers
-    print weblive.available_servers
+    print(weblive.available_servers)
 
     # Start firefox on the first available server and wait for it to finish
     weblive.create_automatic_user_and_run_session(serverid=weblive.available_servers[0].name,session="firefox",wait=True)
