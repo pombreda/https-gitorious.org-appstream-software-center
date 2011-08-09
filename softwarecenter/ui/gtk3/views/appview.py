@@ -25,7 +25,6 @@ from gettext import gettext as _
 
 from softwarecenter.enums import SortMethods
 from softwarecenter.ui.gtk3.em import StockEms
-from softwarecenter.ui.gtk3.widgets.buttons import FeaturedTile
 from softwarecenter.ui.gtk3.widgets.apptreeview import AppTreeView
 from softwarecenter.ui.gtk3.models.appstore2 import AppPropertiesHelper
 from softwarecenter.ui.gtk3.widgets.containers import FlowableGrid
@@ -51,8 +50,6 @@ class AppView(Gtk.VBox):
                                        ),
     }
 
-    GRID_VIEW_THRESHOLD = 20
-
     _SORT_METHOD_INDEX = (SortMethods.BY_ALPHABET,
                           SortMethods.BY_TOP_RATED)
     _SORT_BY_ALPHABET = 0
@@ -67,9 +64,7 @@ class AppView(Gtk.VBox):
         self.header_hbox.set_border_width(StockEms.XLARGE)
         self.pack_start(self.header_hbox, False, False, 0)
         self.tree_view_scroll = Gtk.ScrolledWindow()
-        self.grid_view_scroll = Gtk.ScrolledWindow()
         self.pack_start(self.tree_view_scroll, True, True, 0)
-        self.pack_start(self.grid_view_scroll, True, True, 0)
 
         # category label
         self.header_label = Gtk.Label()
@@ -83,11 +78,9 @@ class AppView(Gtk.VBox):
         self.header_hbox.pack_end(alignment, False, False, 0)
 
         # content views
-        self.grid_view = FlowableGrid(paint_grid_pattern=False)
         self.tree_view = AppTreeView(self, icons,
                                      show_ratings, store=None)
         self.tree_view_scroll.add(self.tree_view)
-        self.grid_view_scroll.add_with_viewport(self.grid_view)
         return
 
     def _get_sort_methods_combobox(self):
@@ -108,34 +101,16 @@ class AppView(Gtk.VBox):
         self.tree_view.set_model(model)
         return
 
-    def display_matches(self, enq):
-        n_matches = len(enq.matches)
-        if n_matches <= self.GRID_VIEW_THRESHOLD:
-            self.tree_view_scroll.set_visible(False)
-            self.grid_view_scroll.set_visible(True)
-
-            helper = self.helper
-            for doc in enq.get_documents():
-                name = helper.get_appname(doc)
-                icon_pb = helper.get_icon_at_size(doc, 48, 48)
-                stats = helper.get_review_stats(doc)
-                tile = FeaturedTile(name, icon_pb, stats)
-                self.grid_view.add_child(tile)
-            self.grid_view.show_all()
-        else:
-            self.tree_view_scroll.set_visible(True)
-            self.grid_view_scroll.set_visible(False)
-            model = self.tree_view.get_model()
-            model.set_from_matches(enq.matches)
+    def display_matches(self, matches):
+        model = self.tree_view.get_model()
+        model.set_from_matches(matches)
         return
 
     def clear_model(self):
-        self.tree_view.clear_model()
-        self.grid_view.remove_all()
+        return self.tree_view.clear_model()
 
     def get_sort_mode(self):
         combo = self.sort_methods_combobox
         active_index = self.sort_methods_combobox.get_active()
-        print active_index
         return self._SORT_METHOD_INDEX[active_index]
         

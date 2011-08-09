@@ -395,7 +395,7 @@ class SoftwarePane(Gtk.VBox, BasePane):
 
     def on_query_complete(self, enquirer):
         self.emit("app-list-changed", len(enquirer.matches))
-        self.app_view.display_matches(enquirer)
+        self.app_view.display_matches(enquirer.matches)
         self.hide_appview_spinner()
         return
 
