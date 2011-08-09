@@ -137,6 +137,11 @@ class _HtmlRenderer(Gtk.OffscreenWindow):
         if hasattr(self.exhibit, "html") and self.exhibit.html:
             html = self.exhibit.html
         else:
+            # special case, if there is no title, then the package_names
+            # is actually just a single string
+            if (not hasattr(self.exhibit, "title_translated") or
+                not self.exhibit.title_translated):
+                self.exhibit.title_translated = self.exhibit.package_names
             html = EXHIBIT_HTML % { 'banner_url' : self.exhibit.banner_url,
                                     'title' : self.exhibit.title_translated,
                                     'subtitle' : "",
