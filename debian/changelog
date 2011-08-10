@@ -7,6 +7,10 @@ software-center (4.1.13) UNRELEASED; urgency=low
     - various conditional imports like "import configparser"
     - use of json instead of simplejson (required py2.6+)
   
+  [ Matthew McGowan ]
+  * make the globalpane paint a theme derived base color 
+    then paint the diagonal lines
+  
   [ Robert Roth ]
   * lp:~evfool/software-center/hideabout:
     - Hide the about dialog when clicking close in the GTK3 version 
