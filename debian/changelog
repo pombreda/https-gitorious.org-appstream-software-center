@@ -6,6 +6,8 @@ software-center (4.1.13) UNRELEASED; urgency=low
     - print function usage
     - various conditional imports like "import configparser"
     - use of json instead of simplejson (required py2.6+)
+  * test/test-all.sh:
+    - improve tests 
   
   [ Matthew McGowan ]
   * make the globalpane paint a theme derived base color 
