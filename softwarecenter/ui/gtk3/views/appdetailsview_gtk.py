@@ -29,7 +29,6 @@ import gettext
 import gmenu
 import logging
 import os
-import sys
 
 from gettext import gettext as _
 
@@ -504,7 +503,7 @@ class AddonsTable(Gtk.VBox):
 
     def get_addons(self):
         # filter all children widgets and return only Addons
-        return filter(lambda w: isinstance(w, Addon), self)
+        return [w for w in self if isinstance(w, Addon)]
 
     def clear(self):
         for addon in self.get_addons():
@@ -1564,7 +1563,7 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
             if self.icons.has_icon(app_details.icon):
                 try:
                     return self.icons.load_icon(app_details.icon, 84, 0)
-                except GObject.GError, e:
+                except GObject.GError as e:
                     logging.warn("failed to load '%s': %s" % (app_details.icon, e))
                     return self.icons.load_icon(Icons.MISSING_APP, 84, 0)
             elif app_details.icon_url:
@@ -1575,7 +1574,7 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
                     try:
                         pb = GdkPixbuf.Pixbuf.new_from_file(image_file_path)
                         self.icon.set_from_pixbuf(pb)
-                    except Exception, e:
+                    except Exception as e:
                         LOG.warning("couldn't load downloadable icon file '%s': %s" % (image_file_path, e))
                     
                 image_downloader = SimpleFileDownloader()
@@ -1658,36 +1657,23 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         #     LOG.warning("could not update the usage counter: %s " % e)
         #     self.usage.hide()
 
+def get_test_window_appdetails():
 
-if __name__ == "__main__":
-    def _show_app(view):
-        if view.app.pkgname == "totem":
-            view.show_app(Application("Pithos", "pithos"))
-        else:
-            view.show_app(Application("Movie Player", "totem"))
-        return True
-    
-    logging.basicConfig(level=logging.DEBUG)
-
-    if len(sys.argv) > 1:
-        datadir = sys.argv[1]
-    elif os.path.exists("./data"):
-        datadir = "./data"
-    else:
-        datadir = "/usr/share/software-center"
-
-    xapian_base_path = "/var/cache/software-center"
-    pathname = os.path.join(xapian_base_path, "xapian")
     from softwarecenter.db.pkginfo import get_pkg_info
     cache = get_pkg_info()
     cache.open()
 
     from softwarecenter.db.database import StoreDatabase
+    xapian_base_path = "/var/cache/software-center"
+    pathname = os.path.join(xapian_base_path, "xapian")
     db = StoreDatabase(pathname, cache)
     db.open()
 
-    icons = Gtk.IconTheme.get_default()
-    icons.append_search_path("/usr/share/app-install/icons/")
+    import softwarecenter.paths 
+    datadir = softwarecenter.paths.datadir
+
+    from softwarecenter.ui.gtk3.utils import get_sc_icon_theme
+    icons = get_sc_icon_theme(datadir)
 
     import softwarecenter.distro
     distro = softwarecenter.distro.get_distro()
@@ -1715,10 +1701,23 @@ if __name__ == "__main__":
     win.set_size_request(600,400)
     win.show()
     win.connect('destroy', Gtk.main_quit)
+    win.set_data("view", view)
+    return win
+
+
+if __name__ == "__main__":
+    def _show_app(view):
+        if view.app.pkgname == "totem":
+            view.show_app(Application("Pithos", "pithos"))
+        else:
+            view.show_app(Application("Movie Player", "totem"))
+        return True
+    
+    win = get_test_window_appdetails()
 
     # keep it spinning to test for re-draw issues and memleaks
+    #view = win.get_data("view")
     #GObject.timeout_add_seconds(2, _show_app, view)
-
 
     # run it
     Gtk.main()

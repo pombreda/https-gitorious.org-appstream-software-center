@@ -21,6 +21,7 @@ from gi.repository import GObject
 from gi.repository import Gtk
 
 import atexit
+import collections
 import locale
 import dbus
 import dbus.service
@@ -86,6 +87,9 @@ from gi.repository import Atk
 
 LOG = logging.getLogger(__name__)
 
+# py3 compat
+def callable(func):
+    return isinstance(func, collections.Callable)
 
 class SoftwarecenterDbusController(dbus.service.Object):
     """ 
@@ -340,8 +344,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         #~ self.aboutdialog.set_comments(about_description)
 
         #~ # about dialog
-        #~ self.aboutdialog.connect("response",
-                                 #~ lambda dialog, rid: dialog.hide())
+        self.aboutdialog.connect("response", lambda dialog, rid: dialog.hide())
         #~ self.aboutdialog.connect("delete_event", self.aboutdialog.hide_on_delete)
 
         #~ # restore state
@@ -782,7 +785,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             # (private-ppa.launchpad.net_commercial-ppa-uploaders*)
             purchased_sources = glob.glob("/etc/apt/sources.list.d/private-ppa.launchpad.net_commercial-ppa-uploaders*")
             for source in purchased_sources:
-                print "source: ", source
+                print("source: %s" % source)
         
     def on_menuitem_install_activate(self, menuitem):
         app = self.active_pane.get_current_app()
@@ -898,13 +901,15 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         self.window_main.set_sensitive(False)
         # run software-properties-gtk
         window = self.window_main.get_window()
+        if hasattr(window, 'xid'):
+            xid = window.xid
+        else:
+            xid = 0
+
         p = subprocess.Popen(
-            ["gksu",
-             "--desktop", "/usr/share/applications/software-properties-Gtk.desktop",
-             "--",
-             "/usr/bin/software-properties-gtk", 
+            ["/usr/bin/software-properties-gtk", 
              "-n", 
-             "-t", str(window.xid)])
+             "-t", str(xid)])
         # Monitor the subprocess regularly
         GObject.timeout_add(100, self._poll_software_sources_subprocess, p)
 
@@ -1084,7 +1089,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             iface = dbus.Interface(proxy_obj, "com.ubuntu.Softwarecenter")
             res = iface.IsRebuilding()
             self._on_database_rebuilding_handler(res)
-        except Exception ,e:
+        except Exception as e:
             LOG.debug("query for the update-database exception '%s' (probably ok)" % e)
 
         # add signal handler

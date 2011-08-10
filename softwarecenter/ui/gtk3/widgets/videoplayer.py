@@ -69,7 +69,7 @@ class VideoPlayerGtk3(Gtk.VBox):
     def on_play_clicked(self, button):
         if self.button.get_label() == _("Play"):
             self.button.set_label("Stop")
-            print self.uri
+            print(self.uri)
             self.player.set_property("uri", self.uri)
             self.player.set_state(Gst.State.PLAYING)
         else:
@@ -77,11 +77,11 @@ class VideoPlayerGtk3(Gtk.VBox):
             self.button.set_label(_("Play"))
 						
     def on_message(self, bus, message):
-        print "message: ", bus, message
+        print("message: %s" % bus, message)
         if message is None:
             return
         t = message.type
-        print t
+        print(t)
         if t == Gst.MessageType.EOS:
             self.player.set_state(Gst.State.NULL)
             self.button.set_label(_("Play"))
@@ -92,7 +92,7 @@ class VideoPlayerGtk3(Gtk.VBox):
             self.button.set_label(_("Play"))
             
     def on_sync_message(self, bus, message):
-        print "sync: ", bus, message
+        print("sync: %s" % bus, message)
         if message is None or message.structure is None:
             return
         message_name = message.structure.get_name()

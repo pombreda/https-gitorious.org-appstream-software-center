@@ -21,13 +21,25 @@ import base64
 from gi.repository import GObject
 import logging
 import os
-import simplejson
+import json
 import string
 import shutil
 import time
 import xapian
 
-from ConfigParser import RawConfigParser, NoOptionError
+# py3 compat
+try:
+    from configparser import RawConfigParser, NoOptionError
+except ImportError:
+    from ConfigParser import RawConfigParser, NoOptionError
+
+# py3 compat
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
+
+
 from gettext import gettext as _
 from glob import glob
 
@@ -42,7 +54,7 @@ from softwarecenter.db.database import parse_axi_values_file
 
 from locale import getdefaultlocale
 import gettext
-import cPickle
+
 
 from softwarecenter.db.pkginfo import get_pkg_info
 from softwarecenter.distro import get_current_arch
@@ -70,7 +82,7 @@ cataloged_times = {}
 CF = "/var/lib/apt-xapian-index/cataloged_times.p"
 if os.path.exists(CF):
     try:
-        cataloged_times = cPickle.load(open(CF))
+        cataloged_times = pickle.load(open(CF))
     except EOFError as e:
         LOG.warn("failed to read %s (%s" % (CF, e))
 del CF
@@ -348,7 +360,7 @@ def update(db, cache, datadir=None):
 def update_from_json_string(db, cache, json_string, origin):
     """ index from a json string, should include origin url (free form string)
     """
-    for sec in simplejson.loads(json_string):
+    for sec in json.loads(json_string):
         parser = JsonTagSectionParser(sec, origin)
         index_app_info_from_parser(parser, db, cache)
     return True
@@ -404,7 +416,7 @@ def update_from_app_install_data(db, cache, datadir=None):
             parser = DesktopConfigParser()
             parser.read(desktopf)
             index_app_info_from_parser(parser, db, cache)
-        except Exception, e:
+        except Exception as e:
             # Print a warning, no error (Debian Bug #568941)
             LOG.debug("error processing: %s %s" % (desktopf, e))
             warning_text = _(
@@ -452,7 +464,7 @@ def add_from_purchased_but_needs_reinstall_data(purchased_but_may_need_reinstall
             item.name = _("%s (already purchased)") % item.name
             parser = SoftwareCenterAgentParser(item)
             index_app_info_from_parser(parser, db_purchased, cache)
-        except Exception, e:
+        except Exception as e:
             LOG.exception("error processing: %s " % e)
     # add new in memory db to the main db
     db.add_database(db_purchased)
@@ -516,7 +528,7 @@ def update_from_software_center_agent(db, cache, ignore_cache=False,
             # now the normal parser
             parser = SoftwareCenterAgentParser(entry)
             index_app_info_from_parser(parser, db, cache)
-        except Exception, e:
+        except Exception as e:
             LOG.warning("error processing: %s " % e)
     # return true if we have data entries
     return len(sca.available) > 0

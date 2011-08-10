@@ -126,6 +126,8 @@ setup(name="software-center", version=VERSION,
                    glob.glob("data/ui/gtk3/art/*.png")),
                   ('share/software-center/ui/gtk3/art/icons',
                    glob.glob("data/ui/gtk3/art/icons/*.png")),
+                  ('share/software-center/default_banner',
+                   glob.glob("data/default_banner/*")),
                   # html
                   ('share/software-center/templates/',
                    glob.glob("data/templates/*.html")),

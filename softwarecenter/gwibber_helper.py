@@ -21,7 +21,7 @@ import dbus
 import logging
 from xdg import BaseDirectory as xdg
 import os.path
-import simplejson
+import json
 import sys
 from random import random
 
@@ -43,8 +43,8 @@ class GwibberHelper(object):
             proxy_obj = bus.get_object("com.Gwibber.Accounts",
                                        "/com/gwibber/Accounts")
             accounts_iface = dbus.Interface(proxy_obj, "com.Gwibber.Accounts")
-            for account in simplejson.loads(accounts_iface.List()):
-                if account.has_key('send_enabled') and account["send_enabled"]:
+            for account in json.loads(accounts_iface.List()):
+                if 'send_enabled' in account and account["send_enabled"]:
                     accounts.append(account)
             return accounts
         except:
@@ -58,7 +58,7 @@ class GwibberHelper(object):
                                    "/com/gwibber/Service")
         service_iface = dbus.Interface(proxy_obj, "com.Gwibber.Service")
         if account_id:
-            json = simplejson.dumps({'message' : message,
+            json = json.dumps({'message' : message,
                                      'accounts' : [account_id],
                                      })
             service_iface.Send(json)

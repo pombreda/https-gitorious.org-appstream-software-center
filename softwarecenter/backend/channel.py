@@ -251,7 +251,7 @@ if __name__ == "__main__":
     distro = get_distro()
     channel = SoftwareChannel(distro.get_distro_channel_name(), 
                               None, None)
-    print channel
+    print(channel)
     channel = SoftwareChannel(distro.get_distro_channel_name(), None, "partner")
-    print channel
+    print(channel)
 

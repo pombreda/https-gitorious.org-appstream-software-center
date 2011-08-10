@@ -117,6 +117,6 @@ if __name__ == "__main__":
     if d.run() == Gtk.ResponseType.OK:
         for server in d.servers_vbox:
             if server.get_active():
-                print server.serverid
+                print(server.serverid)
                 break
     d.destroy()

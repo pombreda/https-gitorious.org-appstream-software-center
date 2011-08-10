@@ -11,7 +11,7 @@ sys.path.insert(0,"..")
 
 from softwarecenter.ui.gtk3.panes.viewswitcher import get_test_window_viewswitcher
 
-TIMEOUT=1
+TIMEOUT=300
 
 class TestViews(unittest.TestCase):
 
@@ -19,8 +19,33 @@ class TestViews(unittest.TestCase):
         import softwarecenter.paths
         softwarecenter.paths.datadir = "../data"
         win = get_test_window_viewswitcher()
-        GObject.timeout_add_seconds(TIMEOUT, lambda: win.destroy())
+        GObject.timeout_add(TIMEOUT, lambda: win.destroy())
         Gtk.main()
+
+    def test_catview(self):
+        from softwarecenter.ui.gtk3.views.catview_gtk import get_test_window_catview
+        win = get_test_window_catview()
+        GObject.timeout_add(TIMEOUT, lambda: win.destroy())
+        Gtk.main()
+
+    def test_appdetails(self):
+        from softwarecenter.ui.gtk3.views.appdetailsview_gtk import get_test_window_appdetails
+        win = get_test_window_appdetails()
+        GObject.timeout_add(TIMEOUT, lambda: win.destroy())
+        Gtk.main()
+    
+    def test_pkgsnames(self):
+        from softwarecenter.ui.gtk3.views.pkgnamesview import get_test_window_pkgnamesview
+        win = get_test_window_pkgnamesview()
+        GObject.timeout_add(TIMEOUT, lambda: win.destroy())
+        Gtk.main()
+
+    def test_purchaseview(self):
+        from softwarecenter.ui.gtk3.views.purchaseview import get_test_window_purchaseview
+        win = get_test_window_purchaseview()
+        GObject.timeout_add(TIMEOUT, lambda: win.destroy())
+        Gtk.main()
+        
 
 if __name__ == "__main__":
     import logging

@@ -37,7 +37,7 @@ def _parse_icon(icon, icon_size):
         image = Gtk.Image.new_from_icon_name(icon, icon_size)
     else:
         msg = "Acceptable icon values: None, GdkPixbuf, GtkImage or str"
-        raise TypeError, msg
+        raise TypeError(msg)
     return image
 
 
@@ -419,6 +419,9 @@ class MoreLink(Gtk.EventBox):
         self._pressed = False
         self.queue_draw()
         return
+    
+    def clicked(self):
+        self.emit("clicked")
 
 def get_test_buttons_window():
     win = Gtk.Window()

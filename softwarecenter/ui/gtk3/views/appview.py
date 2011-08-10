@@ -113,4 +113,3 @@ class AppView(Gtk.VBox):
         combo = self.sort_methods_combobox
         active_index = self.sort_methods_combobox.get_active()
         return self._SORT_METHOD_INDEX[active_index]
-        

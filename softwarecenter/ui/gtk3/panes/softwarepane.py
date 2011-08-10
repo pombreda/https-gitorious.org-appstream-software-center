@@ -54,6 +54,8 @@ from softwarecenter.ui.gtk3.views.appdetailsview_gtk import (
                                                 AppDetailsViewGtk as
                                                 AppDetailsView)
 
+from softwarecenter.enums import DEFAULT_SEARCH_LIMIT
+
 from basepane import BasePane
 
 LOG = logging.getLogger(__name__)
@@ -115,11 +117,11 @@ class DisplayState(object):
     def __setattr__(self, name, val):
         attrs = self._attrs
         if name not in attrs:
-            raise AttributeError, "The attr name \"%s\" is not permitted" % name
+            raise AttributeError("The attr name \"%s\" is not permitted" % name)
             Gtk.main_quit()
         if not isinstance(val, attrs[name]):
             msg = "Attribute %s expects %s, got %s" % (name, attrs[name], type(val))
-            raise TypeError, msg
+            raise TypeError(msg)
             Gtk.main_quit()
         return object.__setattr__(self, name, val)
 
@@ -468,7 +470,7 @@ class SoftwarePane(Gtk.VBox, BasePane):
                                                        launcher_info.icon_size,
                                                        launcher_info.installed_desktop_file_path,
                                                        launcher_info.trans_id)
-        except Exception, e:
+        except Exception as e:
             LOG.warn("could not send dbus signal to the Unity launcher: (%s)", e)
             
     def on_transaction_stopped(self, backend, result):
@@ -488,6 +490,7 @@ class SoftwarePane(Gtk.VBox, BasePane):
         
     def _unmask_appview_spinner(self):
         self.spinner_view.start()
+        return False
         
     def hide_appview_spinner(self):
         """ hide the spinner and display the appview in the panel """
@@ -651,7 +654,12 @@ class SoftwarePane(Gtk.VBox, BasePane):
         return self.notebook.get_current_page()
 
     def get_app_items_limit(self):
-        " stub implementation "
+        if self.state.search_term:
+            return DEFAULT_SEARCH_LIMIT
+        elif self.state.subcategory and self.state.subcategory.item_limit > 0:
+            return self.state.subcategory.item_limit
+        elif self.state.category and self.state.category.item_limit > 0:
+            return self.state.category.item_limit
         return 0
 
     def get_sort_mode(self):

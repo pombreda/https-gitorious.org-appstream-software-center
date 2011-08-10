@@ -33,7 +33,12 @@ from launchpadlib.launchpad import Launchpad
 from launchpadlib.credentials import RequestTokenAuthorizationEngine
 from launchpadlib.uris import EDGE_SERVICE_ROOT
 from softwarecenter.paths import SOFTWARE_CENTER_CACHE_DIR
-from Queue import Queue
+
+# py3 compat
+try:
+    from queue import Queue
+except ImportError:
+    from Queue import Queue
 
 from login import LoginBackend
 
@@ -127,7 +132,7 @@ class LaunchpadlibWorker(threading.Thread):
                 allow_access_levels = access_level,
                 authorizer_class=AuthorizeRequestTokenFromThread)
             self.display_name = self._launchpad.me.display_name
-        except Exception, e:
+        except Exception as e:
             if type(e) == UserCancelException:
                 return
             self._logger.exception("Launchpad.login_with()")
@@ -293,13 +298,13 @@ lp_worker_thread.daemon = True
 
 # test code
 def _login_success(lp):
-    print "success", lp
-    print lp.get_subscribed_archives()
-    print lp.get_subscribed_archives_async(_result_callback)
+    print ("success %s" % lp)
+    print(lp.get_subscribed_archives())
+    print(lp.get_subscribed_archives_async(_result_callback))
 def _login_failed(lp):
-    print "fail", lp
+    print ("fail %s" % lp)
 def _result_callback(result_list):
-    print "_result_callback", result_list
+    print("_result_callback %s" % result_list)
 def _login_need_user_and_password(lp):
     import sys
     sys.stdout.write("user: ")

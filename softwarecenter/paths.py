@@ -23,6 +23,15 @@ import os
 if os.getuid() == 0 and "SUDO_USER" in os.environ and "HOME" in os.environ:
     del os.environ["HOME"]
 # the check above must be *before* xdg is imported
+
+# py3 possible compat mode (there is no python3-xdg yet)
+# try:
+#     from xdg import BaseDirectory as xdg
+# except ImportError:
+#     import collections
+#     klass = collections.namedtuple('xdg', 'xdg_config_home, xdg_cache_home')
+#     xdg = klass(xdg_config_home=os.path.expanduser("~/.config"),
+#                 xdg_cache_home=os.path.expanduser("~/.cache"))
 from xdg import BaseDirectory as xdg
 
 from softwarecenter.toolkit import CURRENT_TOOLKIT, UIToolkits

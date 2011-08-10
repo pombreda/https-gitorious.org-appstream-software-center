@@ -30,10 +30,8 @@ class Spinner(object):
     """
     def __new__(cls, *args, **kwargs):
         try:
-            print "gtk"
             spinner = Gtk.Spinner()
         except AttributeError:
-            print "gif"
             spinner = GifSpinner()
         return spinner
 

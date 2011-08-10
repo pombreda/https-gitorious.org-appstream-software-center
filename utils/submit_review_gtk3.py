@@ -26,15 +26,25 @@ import gettext
 import locale
 import logging
 import os
-import simplejson
+import json
 import sys
 import tempfile
 import time
 import threading
-import urllib
+
+# py3 
+try:
+    from urllib.request import urlopen
+    from queue import Queue
+except ImportError:
+    # py2 fallbacks
+    from urllib import urlopen
+    from Queue import Queue
+
+
+
 
 from gettext import gettext as _
-from Queue import Queue
 from optparse import OptionParser
 
 from softwarecenter.backend.restfulclient import get_ubuntu_sso_backend
@@ -211,7 +221,7 @@ class Worker(threading.Thread):
                 res = self.rnrclient.submit_usefulness(
                     review_id=review_id, useful=str(is_useful))
                 self._transmit_state = TRANSMIT_STATE_DONE
-                sys.stdout.write(simplejson.dumps(res))
+                sys.stdout.write(json.dumps(res))
             except Exception as e:
                 logging.exception("submit_usefulness failed")
                 err_str = self._get_error_messages(e)
@@ -241,7 +251,7 @@ class Worker(threading.Thread):
                                                    review_text=review_text,
                                                    rating=rating)
                 self._transmit_state = TRANSMIT_STATE_DONE
-                sys.stdout.write(simplejson.dumps(vars(res)))
+                sys.stdout.write(json.dumps(vars(res)))
             except Exception as e:
                 logging.exception("modify_review")
                 err_str = self._get_error_messages(e)
@@ -265,7 +275,7 @@ class Worker(threading.Thread):
             try:
                 res = self.rnrclient.delete_review(review_id=review_id)
                 self._transmit_state = TRANSMIT_STATE_DONE
-                sys.stdout.write(simplejson.dumps(res))
+                sys.stdout.write(json.dumps(res))
             except Exception as e:
                 logging.exception("delete_review failed")
                 self._write_exception_html_log_if_needed(e)
@@ -290,7 +300,7 @@ class Worker(threading.Thread):
                                                  reason=summary,
                                                  text=text)
                 self._transmit_state = TRANSMIT_STATE_DONE
-                sys.stdout.write(simplejson.dumps(res))
+                sys.stdout.write(json.dumps(res))
             except Exception as e:
                 logging.exception("flag_review failed")
                 err_str = self._get_error_messages(e)
@@ -340,7 +350,7 @@ class Worker(threading.Thread):
                 self._transmit_state = TRANSMIT_STATE_DONE
                 # output the resulting ReviewDetails object as json so
                 # that the parent can read it
-                sys.stdout.write(simplejson.dumps(vars(res)))
+                sys.stdout.write(json.dumps(vars(res)))
             except Exception as e:
                 logging.exception("submit_review")
                 err_str = self._get_error_messages(e)
@@ -353,7 +363,7 @@ class Worker(threading.Thread):
         logging.warn(e.body)
         if type(e) is piston_mini_client.APIError:
             try:
-                error_msg = simplejson.loads(e.body)['errors']
+                error_msg = json.loads(e.body)['errors']
                 errs = error_msg["__all__"]
                 err_str = _("Server's response was:")
                 for err in errs:
@@ -375,10 +385,10 @@ class Worker(threading.Thread):
             server than rnr
         """
         try:
-            resp = urllib.urlopen(SERVER_STATUS_URL).read()
+            resp = urlopen(SERVER_STATUS_URL).read()
             if resp != "ok":
                 return False
-        except Exception, e:
+        except Exception as e:
             logging.error("exception from '%s': '%s'" % (SERVER_STATUS_URL, e))
             return False
         return True

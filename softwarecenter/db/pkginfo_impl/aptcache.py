@@ -708,31 +708,31 @@ class AptCache(PackageInfo):
 if __name__ == "__main__":
     c = AptCache()
     c.open()
-    print "deps of unrar"
-    print c._installed_dependencies(c["unrar"].name)
+    print("deps of unrar")
+    print(c._installed_dependencies(c["unrar"].name))
 
-    print "unused deps of 4g8"
+    print("unused deps of 4g8")
     pkg = c._cache["4g8"]
     pkg.mark_delete()
-    print c.get_installed_automatic_depends_for_pkg(pkg)
+    print(c.get_installed_automatic_depends_for_pkg(pkg))
 
     pkg = c["unace"]
-    print c.get_installed_automatic_depends_for_pkg(pkg)
-    print c.get_packages_removed_on_remove(pkg)
-    print c._get_installed_rrecommends(pkg)
-    print c._get_installed_rsuggests(pkg)
+    print(c.get_installed_automatic_depends_for_pkg(pkg))
+    print(c.get_packages_removed_on_remove(pkg))
+    print(c._get_installed_rrecommends(pkg))
+    print(c._get_installed_rsuggests(pkg))
     
-    print "deps of gimp"
+    print("deps of gimp")
     pkg = c["gimp"]
-    print c._get_depends(pkg)
-    print c._get_recommends(pkg)
-    print c._get_suggests(pkg)
-    print c._get_enhances(pkg)
-    print c._get_provides(pkg)
+    print(c._get_depends(pkg))
+    print(c._get_recommends(pkg))
+    print(c._get_suggests(pkg))
+    print(c._get_enhances(pkg))
+    print(c._get_provides(pkg))
     
-    print "rdeps of gimp"
-    print c._get_rdepends(pkg)
-    print c._get_rrecommends(pkg)
-    print c._get_rsuggests(pkg)
-    print c._get_renhances(pkg)
-    print c._get_rprovides(pkg)
+    print("rdeps of gimp")
+    print(c._get_rdepends(pkg))
+    print(c._get_rrecommends(pkg))
+    print(c._get_rsuggests(pkg))
+    print(c._get_renhances(pkg))
+    print(c._get_rprovides(pkg))

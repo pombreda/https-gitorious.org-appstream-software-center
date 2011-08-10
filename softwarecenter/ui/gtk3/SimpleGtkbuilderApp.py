@@ -34,8 +34,6 @@ class SimpleGtkbuilderApp:
             if issubclass(type(o), Gtk.Buildable):
                 name = Gtk.Buildable.get_name(o)
                 setattr(self, name, o)
-            else:
-                print >> sys.stderr, "WARNING: can not get name for '%s'" % o
 
     def run(self):
         """
