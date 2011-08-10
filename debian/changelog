@@ -18,6 +18,8 @@ software-center (4.1.13) UNRELEASED; urgency=low
     - reenable weblive events, thanks to Stephane Graber!
   * softwarecenter/ui/gtk3/app.py:
     - setup default mainloop
+  * debian/control:
+    - add recommends to oneconf
   
   [ Matthew McGowan ]
   * make the globalpane paint a theme derived base color 
