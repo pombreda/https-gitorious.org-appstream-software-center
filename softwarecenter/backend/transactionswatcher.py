@@ -70,6 +70,23 @@ class BaseTransactionsWatcher(GObject.GObject):
         """ should return a _Transaction object """
         return None
 
+class TransactionFinishedResult(object):
+    """ represents the result of a transaction """
+    def __init__(self, trans, success):
+        self.success = success
+        if trans:
+            self.pkgname = trans.meta_data.get("sc_pkgname")
+            self.meta_data = trans.meta_data
+        else:
+            self.pkgname = None
+            self.meta_data = None
+
+class TransactionProgress(object):
+    """ represents the progress of the transaction """
+    def __init__(self, trans):
+        self.pkgname = trans.meta_data.get("sc_pkgname")
+        self.meta_data = trans.meta_data
+        self.progress = trans.progress
 
 # singleton
 _tw = None
