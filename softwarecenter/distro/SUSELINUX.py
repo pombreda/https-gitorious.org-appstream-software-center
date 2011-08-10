@@ -57,7 +57,6 @@ class SUSELINUX(Distro):
         return (primary, button_text)
 
     def get_license_text(self, component):
-		# FIXME PK components
         if component in ("main", "universe", "independent"):
             return _("Open source")
         elif component in ("restricted", "commercial"):
@@ -68,7 +67,7 @@ class SUSELINUX(Distro):
         return False
 
     def get_supported_query(self):
-		# FIXME
+        # FIXME
         import xapian
         query1 = xapian.Query("XOL"+"Ubuntu")
         query2a = xapian.Query("XOC"+"main")
