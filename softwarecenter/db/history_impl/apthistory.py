@@ -18,6 +18,8 @@
 
 
 import apt_pkg
+apt_pkg.init_config()
+
 import gio
 from gi.repository import GObject
 import glob

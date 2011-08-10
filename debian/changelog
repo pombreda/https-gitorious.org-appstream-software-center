@@ -12,6 +12,8 @@ software-center (4.1.13) UNRELEASED; urgency=low
     - add basic tests for the various panes
   * softwarecenter/testutils.py:
     - add helper factory methods to make writing tests easier
+  * merged lp:~alexeftimie/software-center/backend-refactor,
+    many thanks!
   
   [ Matthew McGowan ]
   * make the globalpane paint a theme derived base color 

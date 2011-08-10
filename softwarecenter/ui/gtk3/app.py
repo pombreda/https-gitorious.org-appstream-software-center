@@ -42,7 +42,7 @@ softwarecenter.netstatus.NETWORK_STATE
 
 # db imports
 from softwarecenter.db.application import Application
-from softwarecenter.db.debfile import DebFileApplication
+from softwarecenter.db import DebFileApplication
 
 # misc imports
 from softwarecenter.enums import (Icons,
@@ -58,8 +58,11 @@ from softwarecenter.utils import (clear_token_from_ubuntu_sso,
 from softwarecenter.ui.gtk3.utils import get_sc_icon_theme
 from softwarecenter.version import VERSION
 from softwarecenter.db.database import StoreDatabase
-from softwarecenter.backend.aptd import TransactionFinishedResult
-from aptd_gtk3 import InstallBackendUI
+from softwarecenter.backend.transactionswatcher import TransactionFinishedResult
+try:
+    from aptd_gtk3 import InstallBackendUI
+except ImportError:
+    from softwarecenter.backend.installbackend import InstallBackendUI
 
 # ui imports
 import softwarecenter.ui.gtk3.dialogs.dependency_dialogs as dependency_dialogs
@@ -612,7 +615,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
                                                      self.db, self.icons):
                     # craft an instance of TransactionFinishedResult to send with the
                     # transaction-stopped signal
-                    result = TransactionFinishedResult(None, None)
+                    result = TransactionFinishedResult(None, False)
                     result.pkgname = app.pkgname
                     self.backend.emit("transaction-stopped", result)
                     return
@@ -624,7 +627,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
                                                       self.db, self.icons):
                     # craft an instance of TransactionFinishedResult to send with the
                     # transaction-stopped signal
-                    result = TransactionFinishedResult(None, None)
+                    result = TransactionFinishedResult(None, False)
                     result.pkgname = app.pkgname
                     self.backend.emit("transaction-stopped", result)
                     return
