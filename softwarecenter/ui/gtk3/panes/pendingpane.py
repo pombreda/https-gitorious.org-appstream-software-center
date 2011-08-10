@@ -123,21 +123,19 @@ class PendingPane(Gtk.ScrolledWindow, BasePane):
     def get_callback_for_page(self, page_id, view_state):
         return None
 
+def get_test_window():
 
-if __name__ == "__main__":
-    logging.basicConfig(level=logging.DEBUG)
+    from softwarecenter.testutils import (get_test_db,
+                                          get_test_datadir,
+                                          get_test_gtk3_viewmanager,
+                                          get_test_pkg_info,
+                                          get_test_gtk3_icon_cache,
+                                          )
+    db = get_test_db()
+    cache = get_test_pkg_info()
+    datadir = get_test_datadir()
+    icons = get_test_gtk3_icon_cache()
 
-    from softwarecenter.ui.gtk3.utils import get_sc_icon_theme
-
-    import sys, os
-    if len(sys.argv) > 1:
-        datadir = sys.argv[1]
-    elif os.path.exists("./data"):
-        datadir = "./data"
-    else:
-        datadir = "/usr/share/software-center"
-
-    icons = get_sc_icon_theme(datadir)
     view = PendingPane(icons)
 
     # gui
@@ -151,4 +149,10 @@ if __name__ == "__main__":
     win.show_all()
     win.connect("destroy", Gtk.main_quit)
 
+    return win
+
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.DEBUG)
+
+    win = get_test_window()
     Gtk.main()

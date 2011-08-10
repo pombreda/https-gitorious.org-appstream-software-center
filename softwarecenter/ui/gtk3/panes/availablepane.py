@@ -692,66 +692,39 @@ class AvailablePane(SoftwarePane):
         else:
             self.state.filter.set_not_installed_only(False)
 
-if __name__ == "__main__":
+def get_test_window():
 
-    from softwarecenter.db.database import StoreDatabase
-
-    #logging.basicConfig(level=logging.DEBUG)
-
-
-    from softwarecenter.ui.gtk3.utils import get_sc_icon_theme
-
-    if len(sys.argv) > 1:
-        datadir = sys.argv[1]
-    elif os.path.exists("./data"):
-        datadir = "./data"
-    else:
-        datadir = "/usr/share/software-center"
-
-    icons = get_sc_icon_theme(datadir)
-
-    Gtk.Window.set_default_icon_name("softwarecenter")
-    from softwarecenter.db.pkginfo import get_pkg_info
-    cache = get_pkg_info()
-    cache.open()
-
-    # xapian
-    xapian_base_path = XAPIAN_BASE_PATH
-    pathname = os.path.join(xapian_base_path, "xapian")
-    try:
-        db = StoreDatabase(pathname, cache)
-        db.open()
-    except xapian.DatabaseOpeningError:
-        # Couldn't use that folder as a database
-        # This may be because we are in a bzr checkout and that
-        #   folder is empty. If the folder is empty, and we can find the
-        # script that does population, populate a database in it.
-        if os.path.isdir(pathname) and not os.listdir(pathname):
-            from softwarecenter.db.update import rebuild_database
-            logging.info("building local database")
-            rebuild_database(pathname)
-            db = StoreDatabase(pathname, cache)
-            db.open()
-    except xapian.DatabaseCorruptError as e:
-        logging.exception("xapian open failed")
-        dialogs.error(None, 
-                      _("Sorry, can not open the software database"),
-                      _("Please re-install the 'software-center' "
-                        "package."))
-        # FIXME: force rebuild by providing a dbus service for this
-        sys.exit(1)
+    from softwarecenter.testutils import (get_test_db,
+                                          get_test_datadir,
+                                          get_test_gtk3_viewmanager,
+                                          get_test_pkg_info,
+                                          get_test_gtk3_icon_cache,
+                                          )
+    # needed because available pane will try to get it
+    vm = get_test_gtk3_viewmanager()
+    vm # make pyflakes happy
+    db = get_test_db()
+    cache = get_test_pkg_info()
+    datadir = get_test_datadir()
+    icons = get_test_gtk3_icon_cache()
 
     navhistory_back_action = Gtk.Action("navhistory_back_action", "Back", "Back", None)
     navhistory_forward_action = Gtk.Action("navhistory_forward_action", "Forward", "Forward", None)
+
     w = AvailablePane(cache, db, 'Ubuntu', icons, datadir, navhistory_back_action, navhistory_forward_action)
+    w.init_view()
     w.show()
 
     win = Gtk.Window()
-    win.connect("destroy", lambda x: Gtk.main_quit())
+    win.connect("destroy", Gtk.main_quit)
     win.add(w)
     win.set_size_request(800,600)
     win.show_all()
-    GObject.idle_add(w.init_view)
 
+
+    return win
+
+if __name__ == "__main__":
+    win = get_test_window()
     Gtk.main()
 

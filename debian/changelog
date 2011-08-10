@@ -8,6 +8,10 @@ software-center (4.1.13) UNRELEASED; urgency=low
     - use of json instead of simplejson (required py2.6+)
   * test/test-all.sh:
     - improve tests 
+  * test/gtk3/test_panes.py:
+    - add basic tests for the various panes
+  * softwarecenter/testutils.py:
+    - add helper factory methods to make writing tests easier
   
   [ Matthew McGowan ]
   * make the globalpane paint a theme derived base color 

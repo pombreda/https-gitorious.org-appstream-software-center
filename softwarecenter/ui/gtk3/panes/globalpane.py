@@ -102,3 +102,31 @@ class GlobalPane(Gtk.VBox):
         #~ cr.rel_line_to(a.width+1, 0)
         #~ cr.stroke()
         return
+
+def get_test_window():
+
+    from softwarecenter.testutils import (get_test_db,
+                                          get_test_datadir,
+                                          get_test_gtk3_viewmanager,
+                                          get_test_pkg_info,
+                                          get_test_gtk3_icon_cache,
+                                          )
+    vm = get_test_gtk3_viewmanager()
+    db = get_test_db()
+    cache = get_test_pkg_info()
+    datadir = get_test_datadir()
+    icons = get_test_gtk3_icon_cache()
+
+    p = GlobalPane(vm, datadir, db, cache, icons)
+
+    win = Gtk.Window()
+    win.connect("destroy", Gtk.main_quit)
+    win.add(p)
+    win.show_all()
+    return win
+
+if __name__ == "__main__":
+
+    win = get_test_window()
+    
+    Gtk.main()

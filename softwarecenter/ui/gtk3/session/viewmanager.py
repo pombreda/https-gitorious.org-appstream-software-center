@@ -23,11 +23,8 @@ from softwarecenter.ui.gtk3.widgets.backforward import BackForwardButton
 from softwarecenter.ui.gtk3.widgets.searchentry import SearchEntry
 
 _viewmanager = None # the gobal Viewmanager instance
-
-
 def get_viewmanager():
     return _viewmanager
-
 
 class ViewManager(object):
 

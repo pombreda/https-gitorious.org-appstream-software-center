@@ -299,24 +299,21 @@ class ViewSwitcher(Gtk.Box):
 
 
 def get_test_window_viewswitcher():
-    from softwarecenter.db.pkginfo import get_pkg_info
-    from softwarecenter.ui.gtk3.utils import get_sc_icon_theme
-    from softwarecenter.ui.gtk3.session.viewmanager import ViewManager
-    import softwarecenter.paths
+    from softwarecenter.testutils import (get_test_db,
+                                          get_test_datadir,
+                                          get_test_gtk3_viewmanager,
+                                          get_test_pkg_info,
+                                          get_test_gtk3_icon_cache,
+                                          )
+    cache = get_test_pkg_info()
+    db = get_test_db()
+    icons = get_test_gtk3_icon_cache()
+    datadir = get_test_datadir()
+    manager = get_test_gtk3_viewmanager()
 
-    cache = get_pkg_info()
-    cache.open()
+    view = ViewSwitcher(manager, datadir, db, cache, icons)
 
-    db = StoreDatabase(softwarecenter.paths.XAPIAN_BASE_PATH+"/xapian", cache)
-    db.open()
-
-    icons = get_sc_icon_theme(softwarecenter.paths.datadir)
     scroll = Gtk.ScrolledWindow()
-
-    notebook = Gtk.Notebook()
-    manager = ViewManager(notebook)
-    view = ViewSwitcher(manager, softwarecenter.paths.datadir, db, cache, icons)
-
     box = Gtk.VBox()
     box.pack_start(scroll, True, True, 0)
 

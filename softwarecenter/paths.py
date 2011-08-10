@@ -63,6 +63,7 @@ XAPIAN_BASE_PATH_SOFTWARE_CENTER_AGENT = os.path.join(
     xdg.xdg_cache_home,
     "software-center", 
     "software-center-agent.db")
+XAPIAN_PATH=os.path.join(XAPIAN_BASE_PATH, "xapian")
 
 # ratings&review
 # relative to datadir
