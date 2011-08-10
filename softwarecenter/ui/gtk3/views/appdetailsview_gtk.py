@@ -36,7 +36,7 @@ from softwarecenter.cmdfinder import CmdFinder
 from softwarecenter.netstatus import (NetState, get_network_watcher,
                                       network_state_is_connected)
 from softwarecenter.db.application import Application
-from softwarecenter.db.debfile import DebFileApplication
+from softwarecenter.db import DebFileApplication
 from softwarecenter.backend.reviews import ReviewStats
 #from softwarecenter.backend.zeitgeist_simple import zeitgeist_singleton
 from softwarecenter.enums import (AppActions, PkgStates,

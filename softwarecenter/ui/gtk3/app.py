@@ -59,7 +59,10 @@ from softwarecenter.ui.gtk3.utils import get_sc_icon_theme
 from softwarecenter.version import VERSION
 from softwarecenter.db.database import StoreDatabase
 from softwarecenter.backend.aptd import TransactionFinishedResult
-from aptd_gtk3 import InstallBackendUI
+try:
+    from aptd_gtk3 import InstallBackendUI
+except ImportError:
+    from softwarecenter.backend.installbackend import InstallBackendUI
 
 # ui imports
 import softwarecenter.ui.gtk3.dialogs.dependency_dialogs as dependency_dialogs
