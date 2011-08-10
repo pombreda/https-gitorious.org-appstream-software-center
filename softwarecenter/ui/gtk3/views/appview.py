@@ -174,16 +174,16 @@ class AppView(Gtk.TreeView):
         #  get visible range
         _, start, end = self.get_visible_range()
         # see if the the old 'active path' is outside the visible
-        # range, see comments within _cell_data_func_cb for more
+        # range. see comments within _cell_data_func_cb for more
         # explanation on why we do this...
-        if (old is not None and
-            (Gtk.TreePath.compare(old, start) == -1 or
-             Gtk.TreePath.compare(old, end) == 1)):
-            self._out_of_vis_range_expanded_paths.append(old)
-        elif old is not None:
-            model.row_changed(old, model.get_iter(old))
+        if old is not None:
+            if (Gtk.TreePath.compare(old, start) == -1 or
+                Gtk.TreePath.compare(old, end) == 1):
+                self._out_of_vis_range_expanded_paths.append(old)
+            else:
+                model.row_changed(old, model.get_iter(old))
 
-        print self._out_of_vis_range_expanded_paths
+        #~ print self._out_of_vis_range_expanded_paths
 
         if path is None: return
 
