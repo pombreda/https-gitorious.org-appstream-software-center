@@ -25,6 +25,9 @@ import collections
 import locale
 import dbus
 import dbus.service
+from dbus.mainloop.glib import DBusGMainLoop
+DBusGMainLoop(set_as_default=True)
+
 import gettext
 import logging
 import os

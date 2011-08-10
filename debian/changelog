@@ -16,6 +16,8 @@ software-center (4.1.13) UNRELEASED; urgency=low
     many thanks!
   * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
     - reenable weblive events, thanks to Stephane Graber!
+  * softwarecenter/ui/gtk3/app.py:
+    - setup default mainloop
   
   [ Matthew McGowan ]
   * make the globalpane paint a theme derived base color 
