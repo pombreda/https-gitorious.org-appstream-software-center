@@ -26,32 +26,14 @@ from gi.repository import GObject
 from gi.repository import PackageKitGlib as packagekit
 
 from softwarecenter.enums import TransactionTypes
-from softwarecenter.backend.transactionswatcher import BaseTransactionsWatcher, BaseTransaction
+from softwarecenter.backend.transactionswatcher import (BaseTransactionsWatcher,
+                                                        BaseTransaction,
+                                                        TransactionFinishedResult,
+                                                        TransactionProgress)
 from softwarecenter.backend.installbackend import InstallBackend
 
 # temporary, must think of better solution
 from softwarecenter.db.pkginfo import get_pkg_info
-
-# FIXME: move this to backend.transactionswatcher
-class TransactionFinishedResult(object):
-    """ represents the result of a transaction """
-    def __init__(self, trans, enum):
-        #self.success = (enum != enums.EXIT_FAILED)
-        self.success = True # FIXME
-        if trans:
-            self.pkgname = trans.meta_data.get("sc_pkgname")
-            self.meta_data = trans.meta_data
-        else:
-            self.pkgname = None
-            self.meta_data = None
-
-# FIXME: move this to backend or merge it with PackagekitTransaction/BaseTransaction
-class TransactionProgress(object):
-    """ represents the progress of the transaction """
-    def __init__(self, trans):
-        self.pkgname = trans.meta_data.get("sc_pkgname")
-        self.meta_data = trans.meta_data
-        self.progress = trans.progress
 
 class PackagekitTransaction(BaseTransaction):
     _meta_data = {}
@@ -322,11 +304,11 @@ class PackagekitBackend(GObject.GObject, InstallBackend):
 
         if status == packagekit.StatusEnum.FINISHED:
             logging.debug("Transaction finished %s" % tid)
-            self.emit("transaction-finished", TransactionFinishedResult(trans, status))
+            self.emit("transaction-finished", TransactionFinishedResult(trans, True))
 
         if status == packagekit.StatusEnum.CANCEL:
             logging.debug("Transaction canceled %s" % tid)
-            self.emit("transaction-stopped", TransactionFinishedResult(trans, status))
+            self.emit("transaction-stopped", TransactionFinishedResult(trans, True))
 
         if ptype == packagekit.ProgressType.PACKAGE:
             # this should be done better

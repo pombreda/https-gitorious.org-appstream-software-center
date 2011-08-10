@@ -60,7 +60,7 @@ from softwarecenter.version import VERSION
 from softwarecenter.db.database import StoreDatabase
 import dependency_dialogs as dependency_dialogs
 import deauthorize_dialog as deauthorize_dialog
-from softwarecenter.backend.packagekitd import TransactionFinishedResult
+from softwarecenter.backend.transactionswatcher import TransactionFinishedResult
 try:
     from aptd_gtk2 import InstallBackendUI
 except ImportError:
@@ -587,7 +587,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                                      self.db, self.icons):
                     # craft an instance of TransactionFinishedResult to send with the
                     # transaction-stopped signal
-                    result = TransactionFinishedResult(None, None)
+                    result = TransactionFinishedResult(None, False)
                     result.pkgname = app.pkgname
                     self.backend.emit("transaction-stopped", result)
                     return
@@ -599,7 +599,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                                       self.db, self.icons):
                     # craft an instance of TransactionFinishedResult to send with the
                     # transaction-stopped signal
-                    result = TransactionFinishedResult(None, None)
+                    result = TransactionFinishedResult(None, False)
                     result.pkgname = app.pkgname
                     self.backend.emit("transaction-stopped", result)
                     return
