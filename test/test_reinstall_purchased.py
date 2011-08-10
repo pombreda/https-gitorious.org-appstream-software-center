@@ -7,7 +7,7 @@ sys.path.insert(0,"../")
 import apt_pkg
 import apt
 import logging
-import simplejson
+import json
 import unittest
 import xapian
 
@@ -44,7 +44,7 @@ class MockAvailableForMeItem(object):
 class MockAvailableForMeList(list):
 
     def __init__(self):
-        alist = simplejson.loads(AVAILABLE_FOR_ME_JSON)
+        alist = json.loads(AVAILABLE_FOR_ME_JSON)
         for entry_dict in alist:
             self.append(MockAvailableForMeItem(entry_dict))
 

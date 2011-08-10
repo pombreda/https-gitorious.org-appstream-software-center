@@ -22,7 +22,7 @@ from gi.repository import Gtk
 from gi.repository import Gdk
 import logging
 import os
-import simplejson
+import json
 import sys
 import urllib
 from gi.repository import WebKit as webkit
@@ -206,7 +206,7 @@ h1 {
     def _process_json(self, json_string):
         try:
             LOG.debug("server returned: '%s'" % json_string)
-            res = simplejson.loads(json_string)
+            res = json.loads(json_string)
             #print res
         except:
             LOG.debug("error processing json: '%s'" % json_string)
@@ -299,7 +299,7 @@ DUMMY_HTML = """
 
 # synthetic key event generation
 def _send_keys(view, s):
-    print "_send_keys", s
+    print("_send_keys %s" % s)
     MAPPING = { '@'     : 'at',
                 '.'     : 'period',
                 '\t'    : 'Tab',
@@ -340,11 +340,11 @@ def _generate_events(view):
 
     (state, title, keys) = STATES[0]
 
-    print "_generate_events: in state", state
+    print("_generate_events: in state %s" % state)
 
     current_title = view.wk.webkit.get_property("title")
     if current_title and current_title.startswith(title):
-        print "found state", state
+        print("found state %s" % state)
         _send_keys(view, keys)
         STATES.pop(0)
 
@@ -354,7 +354,7 @@ def _generate_events(view):
 #    def _on_key_press(dialog, event):
 #        print event, event.keyval
 
-if __name__ == "__main__":
+def get_test_window_purchaseview():
     #url = "http://www.animiertegifs.de/java-scripts/alertbox.php"
     url = "http://www.ubuntu.cohtml=DUMMY_m"
     #d = PurchaseDialog(app=None, url="http://spiegel.de")
@@ -375,13 +375,15 @@ if __name__ == "__main__":
     widget.initiate_purchase(app=None, iconname=None, url=url)
     #widget.initiate_purchase(app=None, iconname=None, html=DUMMY_HTML)
 
+    win = Gtk.Window()
+    win.add(widget)
+    win.set_size_request(600, 500)
+    win.set_position(Gtk.WindowPosition.CENTER)
+    win.show_all()
+    win.connect('destroy', Gtk.main_quit)
+    return win
 
-    window = Gtk.Window()
-    window.add(widget)
-    window.set_size_request(600, 500)
-    window.set_position(Gtk.WindowPosition.CENTER)
-    window.show_all()
-    window.connect('destroy', Gtk.main_quit)
-
+if __name__ == "__main__":
+    win = get_test_window_purchaseview()
     Gtk.main()
 

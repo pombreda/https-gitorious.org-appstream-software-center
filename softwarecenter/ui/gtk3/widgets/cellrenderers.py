@@ -1,7 +1,24 @@
+# Copyright (C) 2011 Canonical
+#
+# Authors:
+#  Matthew McGowan
+#  Michael Vogt
+#
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; version 3.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+# details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
 import gettext
-#~ import logging
 from gi.repository import Gtk, Gdk, GObject, Pango
-print Pango.version()
 
 from softwarecenter.ui.gtk3.em import EM
 from softwarecenter.ui.gtk3.models.appstore2 import CategoryRowReference
@@ -43,6 +60,8 @@ class CellRendererAppView(Gtk.CellRendererText):
 
         # geometry-state values
         self.pixbuf_width = 0
+        self.apptitle_width = 0
+        self.apptitle_height = 0
         self.normal_height = 0
         self.selected_height = 0
         self.show_ratings = show_ratings
@@ -129,7 +148,13 @@ class CellRendererAppView(Gtk.CellRendererText):
         lw = self._layout_get_pixel_width(layout)
         max_layout_width = (cell_area.width - self.pixbuf_width -
                             3*xpad - star_width)
-
+                            
+        max_layout_width = cell_area.width - self.pixbuf_width - 3*xpad
+        
+        stats = self.model.get_review_stats(app)
+        if self.show_ratings and stats:
+            max_layout_width -= star_width+6*xpad
+            
         if self.props.isactive and self.model.get_transaction_progress(app) > 0:
             action_btn = self.get_button_by_name(CellButtonIDs.ACTION)
             max_layout_width -= (xpad + action_btn.width) 
@@ -139,52 +164,57 @@ class CellRendererAppView(Gtk.CellRendererText):
             layout.set_ellipsize(Pango.EllipsizeMode.MIDDLE)
             lw = max_layout_width
 
+        apptitle_extents = layout.get_line_readonly(0).get_pixel_extents()[1]
+        self.apptitle_width = apptitle_extents.width
+        self.apptitle_height = apptitle_extents.height
+
         if not is_rtl:
             x = cell_area.x+2*xpad+self.pixbuf_width
         else:
             x = cell_area.x+cell_area.width-lw-self.pixbuf_width-2*xpad
+            layout.set_alignment(Pango.Alignment.RIGHT)
 
         y = cell_area.y+ypad
 
         Gtk.render_layout(context, cr, x, y, layout)
         return
 
-    def _render_rating(self, context, cr, doc,
-                       cell_area, xpad, ypad,
+    def _render_rating(self, context, cr, app,
+                       cell_area, layout, xpad, ypad,
                        star_width, star_height, is_rtl):
 
-        stats = self.model.get_review_stats(doc)
+        stats = self.model.get_review_stats(app)
         if not stats: return
         sr = self._stars
 
-        # make the ratings x & width the same as the 'Install/Remove' button
-        btn = self.get_button_by_name(CellButtonIDs.ACTION)
-
         if not is_rtl:
-            x = (cell_area.x + cell_area.width - xpad - star_width -
-                 (star_width - btn.width)/2)
+            x = 4*xpad+self.pixbuf_width+self.apptitle_width
         else:
-            x = xpad + (star_width - btn.width)/2
+            x = (cell_area.x + cell_area.width
+                 - 4*xpad
+                 - self.pixbuf_width
+                 - self.apptitle_width 
+                 - star_width)
 
-        y = cell_area.y + ypad
+        y = cell_area.y + ypad + (self.apptitle_height-self.STAR_SIZE)/2
 
         sr.rating = stats.ratings_average
         sr.render_star(context, cr, x, y)
-
-        # and nr-reviews below
+        
+        # and nr-reviews in parenthesis to the right of the title
         nreviews = stats.ratings_total
-        s = gettext.ngettext(
-            "%(nr_ratings)i Rating",
-            "%(nr_ratings)i Ratings",
-            nreviews) % { 'nr_ratings' : nreviews, }
+        s = "(%i)" % nreviews
 
-        self._layout.set_markup("<small>%s</small>" % s, -1)
+        layout.set_markup("<small>%s</small>" % s, -1)
 
-        lw = self._layout.get_pixel_extents()[1].width
-        x += (star_width - lw) / 2
-        y += star_height + ypad
+        lw = self._layout_get_pixel_width(layout)
+        w = star_width
+        if not is_rtl:
+            x += 2*xpad+w
+        else:
+            x -= xpad+lw
 
-        Gtk.render_layout(context, cr, x, y, self._layout)
+        Gtk.render_layout(context, cr, x, y, layout)
         return
 
     def _render_progress(self, context, cr, progress, cell_area, ypad, is_rtl):
@@ -276,7 +306,7 @@ class CellRendererAppView(Gtk.CellRendererText):
 
     def get_buttons(self):
         btns = ()
-        for k, v in self._buttons.iteritems():
+        for k, v in self._buttons.items():
             btns += tuple(v)
         return btns
 
@@ -348,24 +378,25 @@ class CellRendererAppView(Gtk.CellRendererText):
                           xpad, ypad,
                           is_rtl)
 
-        # only show ratings if we have one
-        progress = self.model.get_transaction_progress(app)
-        #~ print progress
-        if self.show_ratings and progress < 0:
-            self._render_rating(context, cr, app,
-                                cell_area,
-                                xpad, ypad,
-                                star_width,
-                                star_height,
-                                is_rtl)
-
         self._render_summary(context, cr, app,
                              cell_area,
                              layout,
                              xpad, ypad,
                              star_width,
                              is_rtl)
+                             
+        # only show ratings if we have one
+        if self.show_ratings:
+            self._render_rating(context, cr, app,
+                                cell_area,
+                                layout,
+                                xpad, ypad,
+                                star_width,
+                                star_height,
+                                is_rtl)
 
+        progress = self.model.get_transaction_progress(app)
+        #~ print progress
         if progress > 0:
             self._render_progress(context, cr, progress,
                                   cell_area,
@@ -427,7 +458,7 @@ class CellButtonRenderer:
         self._layout_reset(layout)
         max_size = (0,0)
 
-        for k, variant in self.markup_variants.iteritems():
+        for k, variant in self.markup_variants.items():
             layout.set_markup(GObject.markup_escape_text(variant), -1)
             size = layout.get_size()
             max_size = max(max_size, size)
@@ -458,7 +489,7 @@ class CellButtonRenderer:
     def set_state(self, state):
         if not isinstance(state, Gtk.StateFlags):
             msg = "state should be of type Gtk.StateFlags, got %s" % type(state)
-            raise TypeError, msg
+            raise TypeError(msg)
 
         elif state == self.state: return
 
@@ -481,7 +512,7 @@ class CellButtonRenderer:
     def set_markup_variants(self, markup_variants):
         if not isinstance(markup_variants, dict):
             msg = type(markup_variants)
-            raise TypeError, "Expects a dict object, got %s" % msg
+            raise TypeError("Expects a dict object, got %s" % msg)
 
         elif not markup_variants: return
 

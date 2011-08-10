@@ -886,10 +886,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.window_main.set_sensitive(False)
         # run software-properties-gtk
         p = subprocess.Popen(
-            ["gksu",
-             "--desktop", "/usr/share/applications/software-properties-gtk.desktop",
-             "--",
-             "/usr/bin/software-properties-gtk", 
+            ["/usr/bin/software-properties-gtk", 
              "-n", 
              "-t", str(self.window_main.window.xid)])
         # Monitor the subprocess regularly

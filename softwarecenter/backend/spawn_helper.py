@@ -19,11 +19,16 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import cPickle
+# py3 compat
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
+
 from gi.repository import GObject
 import logging
 import os
-import simplejson
+import json
 
 
 LOG = logging.getLogger(__name__)
@@ -94,12 +99,12 @@ class SpawnHelper(GObject.GObject):
             # unpickle it, we should *always* get valid data here, so if
             # we don't this should raise a error
             try:
-                data = cPickle.loads(data)
+                data = pickle.loads(data)
             except:
                 LOG.exception("can not load pickle data: '%s'" % data)
         elif self._expect_format == "json":
             try:
-                data = simplejson.loads(data)
+                data = json.loads(data)
             except:
                 LOG.exception("can not load json: '%s'" % data)
         elif self._expect_format == "none":

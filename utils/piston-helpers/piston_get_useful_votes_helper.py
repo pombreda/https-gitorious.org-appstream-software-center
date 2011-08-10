@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 import pickle
-import simplejson
+import json
 import logging
 import sys
 
@@ -28,7 +28,7 @@ if __name__ == "__main__":
     if options.username:
         try:
             useful_votes = rnrclient.get_usefulness(username=options.username)
-        except simplejson.decoder.JSONDecodeError, e:
+        except json.decoder.JSONDecodeError, e:
             LOG.error("failed to parse '%s'" % e.doc)
         except APIError, e:
             LOG.warn("_get_useful_votes_helper: no usefulness able to be retrieved for username: %s" % (options.username))

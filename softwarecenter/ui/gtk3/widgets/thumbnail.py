@@ -342,8 +342,8 @@ class ScreenshotThumbnail(Gtk.Alignment):
         def setter_cb(path):
             try:
                 self.screenshot_pixbuf = GdkPixbuf.Pixbuf.new_from_file(path)
-            except Exception, e:
-                print e
+            except Exception as e:
+                LOG.exception("Pixbuf.new_from_file() failed")
                 return False
 
             # remove the spinner

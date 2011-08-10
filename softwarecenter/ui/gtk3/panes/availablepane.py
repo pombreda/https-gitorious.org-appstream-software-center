@@ -430,13 +430,6 @@ class AvailablePane(SoftwarePane):
                 iconnames.append(self.db.get_iconname(doc))
         self.backend.install_multiple(pkgnames, appnames, iconnames)
 
-    def get_app_items_limit(self):
-        if self.state.search_term:
-            return DEFAULT_SEARCH_LIMIT
-        elif self.state.category and self.state.category.item_limit > 0:
-            return self.state.category.item_limit
-        return 0
-
     def set_state(self, nav_item):
         return
 
@@ -625,10 +618,8 @@ class AvailablePane(SoftwarePane):
         return
 
     def on_subcategory_activated(self, subcat_view, category):
-        #print cat_view, name, query
         LOG.debug("on_subcategory_activated: %s %s" % (
                 category.name, category))
-
         self.state.subcategory = category
         self.state.application = None
         page = AvailablePane.Pages.LIST
@@ -757,7 +748,7 @@ if __name__ == "__main__":
             rebuild_database(pathname)
             db = StoreDatabase(pathname, cache)
             db.open()
-    except xapian.DatabaseCorruptError, e:
+    except xapian.DatabaseCorruptError as e:
         logging.exception("xapian open failed")
         dialogs.error(None, 
                       _("Sorry, can not open the software database"),

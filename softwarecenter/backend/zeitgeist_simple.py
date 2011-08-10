@@ -85,7 +85,7 @@ class SoftwareCenterZeitgeist():
             if not mimetypes:
                 callback([])
             # convert to result and sort
-            for k, v in mimetypes.iteritems():
+            for k, v in mimetypes.items():
                 results.append([v, k])
             results.sort(reverse = True)
             # tell the client about it
@@ -115,7 +115,7 @@ else:
 if __name__ == "__main__":
 
     def _callback_counter(events):
-        print "test _callback: ", events
+        print("test _callback: %s" % events)
     # all time gedit
     zeitgeist_singleton.get_usage_counter("gedit.desktop", _callback_counter)
 
@@ -127,9 +127,9 @@ if __name__ == "__main__":
     
     # most popular
     def _callback_popular(mimetypes):
-        print "test _callback: "
+        print("test _callback: ")
         for tuple in mimetypes:
-        	print tuple
+        	print(tuple)
     zeitgeist_singleton.get_popular_mimetypes(_callback_popular)
 
     import gtk

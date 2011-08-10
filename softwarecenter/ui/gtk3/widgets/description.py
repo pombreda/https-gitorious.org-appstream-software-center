@@ -51,7 +51,7 @@ class EventHelper(dict):
 
     def __setitem__(self, k, v):
         if k not in EventHelper.VALID_KEYS:
-            raise KeyError, '\"%s\" is not a valid key'
+            raise KeyError('\"%s\" is not a valid key' % k)
             return False
         return dict.__setitem__(self, k, v)
 

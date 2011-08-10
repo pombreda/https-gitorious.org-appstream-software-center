@@ -35,10 +35,6 @@
     border-color: #F89516;
 }
 
-GtkEntry {
-    border-radius: 8;
-}
-
 #exhibit-button{
     border-radius: 12;
     color: #fff;

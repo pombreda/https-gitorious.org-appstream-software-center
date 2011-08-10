@@ -88,10 +88,10 @@ def __init_network_state():
     # check is SOFTWARE_CENTER_NET_DISCONNECTED is in the environment variables
     # if so force the network status to be disconnected
     import os
-    if "SOFTWARE_CENTER_NET_DISCONNECTED" in os.environ and \
-        os.environ["SOFTWARE_CENTER_NET_DISCONNECTED"] == 1:
+    if ("SOFTWARE_CENTER_NET_DISCONNECTED" in os.environ and
+        os.environ["SOFTWARE_CENTER_NET_DISCONNECTED"] == 1):
         NETWORK_STATE = NetState.NM_STATE_DISCONNECTED
-        print 'forced netstate into disconnected mode...'
+        print('forced netstate into disconnected mode...')
         return
 
     dbus_loop = DBusGMainLoop()

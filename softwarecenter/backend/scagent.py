@@ -117,13 +117,13 @@ class SoftwareCenterAgent(GObject.GObject):
         
 if __name__ == "__main__":
     def _available(agent, available):
-        print "_available: ", available
+        print ("_available: %s" % available)
     def _available_for_me(agent, available_for_me):
-        print "_availalbe_for_me: ", available_for_me
+        print ("_availalbe_for_me: %s" % available_for_me)
     def _exhibits(agent, exhibits):
-        print "exhibits: ", exhibits
+        print ("exhibits: " % exhibits)
     def _error(agent, msg):
-        print "got a error", msg
+        print ("got a error" % msg)
         #gtk.main_quit()
 
     # test specific stuff

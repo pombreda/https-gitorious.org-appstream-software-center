@@ -22,7 +22,10 @@ import locale
 import logging
 import xapian
 
-from ConfigParser import ConfigParser
+try:
+    from configparser import ConfigParser
+except ImportError:
+    from ConfigParser import ConfigParser
 
 from xml.etree import ElementTree as ET
 from xml.sax.saxutils import escape as xml_escape
@@ -35,9 +38,9 @@ LOG = logging.getLogger(__name__)
 
 def get_category_by_name(categories, untrans_name):
     # find a specific category
-    cat = filter(lambda cat: cat.untranslated_name == untrans_name,
-                 categories)
-    if cat: return cat[0]
+    cat = [cat for cat in categories if cat.untranslated_name == untrans_name]
+    if cat: 
+        return cat[0]
     return None
 
 def categories_sorted_by_name(categories):
@@ -78,7 +81,9 @@ class Category(object):
         self.item_limit = item_limit
 
     def __str__(self):
-        return "* Category: %s" % self.name
+        return "<Category: name='%s', sortmode='%s', "\
+               "item_limit='%s'>" % (
+                   self.name, self.sortmode, self.item_limit)
 
 class CategoriesParser(object):
     """ 

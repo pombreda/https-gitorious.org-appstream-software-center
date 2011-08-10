@@ -234,7 +234,7 @@ class HistoryPane(Gtk.VBox, BasePane):
                        self.REMOVED: trans.remove,
                        self.UPGRADED: trans.upgrade,
                       }
-            for action, pkgs in actions.iteritems():
+            for action, pkgs in actions.items():
                 for pkgname in pkgs:
                     row = (when, action, pkgname)
                     last_row = self.store.insert_after(day, last_row, row)

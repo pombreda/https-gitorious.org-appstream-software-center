@@ -502,18 +502,18 @@ if __name__ == "__main__":
     else:
         search = sys.argv[1]
     query = db.get_query_list_from_search_entry(search)
-    print query
+    print(query)
     enquire = xapian.Enquire(db.xapiandb)
     enquire.set_query(query)
     matches = enquire.get_mset(0, len(db))
     for m in matches:
         doc = m.document
-        print doc.get_data()
+        print(doc.get_data())
 
     # test origin
     query = xapian.Query("XOL"+"Ubuntu")
     enquire = xapian.Enquire(db.xapiandb)
     enquire.set_query(query)
     matches = enquire.get_mset(0, len(db))
-    print "Ubuntu origin: ", len(matches)
+    print("Ubuntu origin: %s" % len(matches))
     
