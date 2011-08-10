@@ -16,7 +16,6 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import apt
 from gi.repository import GObject
 import gtk
 import pango
@@ -416,6 +415,7 @@ class ViewSwitcher(gtk.TreeView):
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
     import sys
+    import apt
 
     if len(sys.argv) > 1:
         datadir = sys.argv[1]

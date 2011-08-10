@@ -22,10 +22,6 @@ import sys
 from gi.repository import GObject
 from gi.repository import Gtk, Gdk
 import logging
-
-import apt_pkg
-apt_pkg.init_config()
-
 import os.path
 import datetime
 
@@ -142,7 +138,6 @@ class HistoryPane(Gtk.VBox, BasePane):
         self.store_filter.set_visible_func(self.filter_row, None)
         self.view.set_model(self.store_filter)
         all_action.set_active(True)
-        self.filename = apt_pkg.config.find_file("Dir::Log::History")
         self.last = None
         
         # to save (a lot of) time at startup we load history later, only when

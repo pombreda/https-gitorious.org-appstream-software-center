@@ -223,8 +223,11 @@ def unescape(text):
     return xml.sax.saxutils.unescape(text, ESCAPE_ENTITIES)
 
 def uri_to_filename(uri):
-    import apt_pkg
-    return apt_pkg.uri_to_filename(uri)
+    try:
+        import apt_pkg
+        return apt_pkg.uri_to_filename(uri)
+    except:
+        return uri
 
 def human_readable_name_from_ppa_uri(ppa_uri):
     """ takes a PPA uri and returns a human readable name for it """
@@ -611,9 +614,11 @@ class GMenuSearcher(object):
 
 # those helpers are packaging system specific
 from softwarecenter.db.pkginfo import get_pkg_info
-upstream_version_compare = get_pkg_info().upstream_version_compare
-upstream_version = get_pkg_info().upstream_version
-version_compare = get_pkg_info().version_compare
+# do not call here get_pkg_info, since package switch may not have been set
+# instead use an anonymous function delay
+upstream_version_compare = lambda: get_pkg_info().upstream_version_compare
+upstream_version = lambda: get_pkg_info().upstream_version
+version_compare = lambda: get_pkg_info().version_compare
 
 # only when needed
 try:

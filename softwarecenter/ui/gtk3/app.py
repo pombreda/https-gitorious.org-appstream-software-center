@@ -42,7 +42,7 @@ softwarecenter.netstatus.NETWORK_STATE
 
 # db imports
 from softwarecenter.db.application import Application
-from softwarecenter.db.debfile import DebFileApplication
+from softwarecenter.db import DebFileApplication
 
 # misc imports
 from softwarecenter.enums import (Icons,
