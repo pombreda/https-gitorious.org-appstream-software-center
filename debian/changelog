@@ -14,6 +14,8 @@ software-center (4.1.13) UNRELEASED; urgency=low
     - add helper factory methods to make writing tests easier
   * merged lp:~alexeftimie/software-center/backend-refactor,
     many thanks!
+  * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
+    - reenable weblive events, thanks to Stephane Graber!
   
   [ Matthew McGowan ]
   * make the globalpane paint a theme derived base color 
