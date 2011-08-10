@@ -74,7 +74,6 @@ class AppView(Gtk.TreeView):
     VARIANT_REMOVE = 1
     VARIANT_INSTALL = 2
 
-
     def __init__(self, icons, show_ratings, store=None):
         Gtk.TreeView.__init__(self)
         self._logger = logging.getLogger("softwarecenter.view.appview")
@@ -165,7 +164,7 @@ class AppView(Gtk.TreeView):
 
     def expand_path(self, path):
         if path is not None and not isinstance(path, Gtk.TreePath):
-            raise TypeError, "Expects Gtk.TreePath or None, got %s" % type(path)
+            raise TypeError("Expects Gtk.TreePath or None, got %s" % type(path))
 
         model = self.get_model()
         old = self.expanded_path

@@ -183,7 +183,7 @@ class InstalledPane(SoftwarePane):
         self.app_view.emit("application-selected", app)
 
 if __name__ == "__main__":
-
+    import apt
     from softwarecenter.db.database import StoreDatabase
     import apt
 

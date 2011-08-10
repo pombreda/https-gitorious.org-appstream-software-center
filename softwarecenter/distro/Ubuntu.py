@@ -29,6 +29,8 @@ from gettext import gettext as _
 from softwarecenter.distro.Debian import Debian
 from softwarecenter.enums import BUY_SOMETHING_HOST
 
+LOG = logging.getLogger(__name__)
+
 class Ubuntu(Debian):
 
     # see __init__.py description
@@ -155,7 +157,7 @@ class Ubuntu(Debian):
                     elif support_time.endswith("m"):
                         support_month = int(support_time.strip("m"))
                     else:
-                        logging.getLogger("softwarecenter.distro").warning("unsupported 'Supported' string '%s'" % support_time)
+                        LOG.warning("unsupported 'Supported' string '%s'" % support_time)
 
             # mvo: we do not define the end date very precisely
             #      currently this is why it will just display a end
@@ -236,7 +238,8 @@ class Ubuntu(Debian):
             return "".join(downloadable_icon_url)
         else:
             #raise ValueError, "we currently support downloadable icons in ppa's only"
-            return None
+            LOG.warning("downloadable icon is not supported for archive: '%s'" % full_archive_url)
+            return ''
 
 if __name__ == "__main__":
     import apt

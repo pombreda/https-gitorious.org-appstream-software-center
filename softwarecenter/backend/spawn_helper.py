@@ -19,11 +19,16 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import cPickle
+# py3 compat
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
+
 from gi.repository import GObject
 import logging
 import os
-import simplejson
+import json
 
 
 LOG = logging.getLogger(__name__)
@@ -50,14 +55,16 @@ class SpawnHelper(GObject.GObject):
         self._expect_format = format
         self._stdout = None
         self._stderr = None
+        self._io_watch = None
+        self._child_watch = None
 
     def run(self, cmd):
         (pid, stdin, stdout, stderr) = GObject.spawn_async(
             cmd, flags = GObject.SPAWN_DO_NOT_REAP_CHILD, 
             standard_output=True, standard_error=True)
-        GObject.child_watch_add(
+        self._child_watch = GObject.child_watch_add(
             pid, self._helper_finished, data=(stdout, stderr))
-        GObject.io_add_watch(
+        self._io_watch = GObject.io_add_watch(
             stdout, GObject.IO_IN, self._helper_io_ready, (stdout, ))
 
     def _helper_finished(self, pid, status, (stdout, stderr)):
@@ -74,6 +81,10 @@ class SpawnHelper(GObject.GObject):
                 LOG.warn("got error from helper: '%s'" % err)
             self.emit("error", err)
             os.close(stderr)
+        if self._io_watch:
+            GObject.source_remove(self._io_watch)
+        if self._child_watch:
+            GObject.source_remove(self._child_watch)
 
     def _helper_io_ready(self, source, condition, (stdout,)):
         # read the raw data
@@ -88,12 +99,12 @@ class SpawnHelper(GObject.GObject):
             # unpickle it, we should *always* get valid data here, so if
             # we don't this should raise a error
             try:
-                data = cPickle.loads(data)
+                data = pickle.loads(data)
             except:
                 LOG.exception("can not load pickle data: '%s'" % data)
         elif self._expect_format == "json":
             try:
-                data = simplejson.loads(data)
+                data = json.loads(data)
             except:
                 LOG.exception("can not load json: '%s'" % data)
         elif self._expect_format == "none":

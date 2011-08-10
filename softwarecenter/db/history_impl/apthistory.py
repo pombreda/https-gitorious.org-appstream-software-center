@@ -17,15 +17,21 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 
-import apt_pkg
-import cPickle
 from gi.repository import GObject
+
+import apt_pkg
+apt_pkg.init_config()
+
 import gio
 import glob
 import gzip
 import os.path
 import logging
 
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
 
 LOG = logging.getLogger(__name__)
 
@@ -68,7 +74,7 @@ class AptHistory(PackageHistory):
         if os.path.exists(p) and use_cache:
             with ExecutionTime("loading pickle cache"):
                 try:
-                    self._transactions = cPickle.load(open(p))
+                    self._transactions = pickle.load(open(p))
                     cachetime = os.path.getmtime(p)
                 except:
                     LOG.exception("failed to load cache")
@@ -80,14 +86,14 @@ class AptHistory(PackageHistory):
             self._scan(history_gz_file)
         self._scan(self.history_file)
         if use_cache:
-            cPickle.dump(self._transactions, open(p, "w"))
+            pickle.dump(self._transactions, open(p, "w"))
         self._history_ready = True
     
     def _scan(self, history_file, rescan = False):
         LOG.debug("_scan: '%s' (%s)" % (history_file, rescan))
         try:
             tagfile = apt_pkg.TagFile(open(history_file))
-        except (IOError, SystemError), ioe:
+        except (IOError, SystemError) as ioe:
             LOG.debug(ioe)
             return
         for stanza in tagfile:

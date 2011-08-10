@@ -20,7 +20,6 @@ class TestSCAddons(unittest.TestCase):
         # apt 
         (recommends, suggests) = self.cache.get_addons(
             "apt", ignore_installed=False)
-        self.assertEqual(set(recommends), set(['ubuntu-keyring']))
         self.assertEqual(set(suggests), set(
                 ['lzma', 'bzip2', 'apt-doc', 'wajig', 'aptitude', 'dpkg-dev', 
                  'python-apt', 'synaptic']))

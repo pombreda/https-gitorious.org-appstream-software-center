@@ -16,14 +16,18 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import ConfigParser
+# py3 compat
+try:
+    from configparser import SafeConfigParser
+except ImportError:
+    from ConfigParser import SafeConfigParser
 import os
 
 from paths import SOFTWARE_CENTER_CONFIG_FILE
 
-class SoftwareCenterConfig(ConfigParser.SafeConfigParser):
+class SoftwareCenterConfig(SafeConfigParser):
     def __init__(self, config):
-        ConfigParser.SafeConfigParser.__init__(self)
+        SafeConfigParser.__init__(self)
         if not os.path.exists(os.path.dirname(config)):
             os.makedirs(os.path.dirname(config))
         self.configfile = config
@@ -35,7 +39,7 @@ class SoftwareCenterConfig(ConfigParser.SafeConfigParser):
     def write(self):
         tmpname = self.configfile+".new"
         f=open(tmpname, "w")
-        ConfigParser.SafeConfigParser.write(self, f)
+        SafeConfigParser.write(self, f)
         f.close()
         os.rename(tmpname, self.configfile)
     

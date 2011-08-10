@@ -37,6 +37,11 @@ def rounded_rect(cr, x, y, w, h, r):
 def rounded_rect2(cr, x, y, w, h, radii):
     nw, ne, se, sw = radii
 
+    nw = max(0, nw)
+    ne = max(0, ne)
+    se = max(0, se)
+    sw = max(0, sw)
+
     cr.save()
     cr.translate(x, y)
     if nw:

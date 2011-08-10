@@ -18,7 +18,7 @@
 
 from gi.repository import GObject
 
-import dbus
+# FIXME: use gmenu GIR instead
 import gmenu
 import gettext
 import gio
@@ -31,6 +31,12 @@ import tempfile
 import traceback
 import time
 import xml.sax.saxutils
+
+# py3 compat
+try:
+    from urllib.parse import urlsplit
+except ImportError:
+    from urlparse import urlsplit
 
 from enums import Icons, APP_INSTALL_PATH_DELIMITER
 from paths import SOFTWARE_CENTER_CACHE_DIR
@@ -157,7 +163,11 @@ def htmlize_package_description(desc):
 def get_parent_xid(widget):
     while widget.get_parent():
         widget = widget.get_parent()
-    return widget.window.xid
+    window = widget.get_window()
+    #print dir(window)
+    if hasattr(window, 'xid'):
+        return window.xid
+    return 0    # cannot figure out how to get the xid of gdkwindow under pygi
 
 def get_language():
     """Helper that returns the current language
@@ -221,7 +231,6 @@ def uri_to_filename(uri):
 
 def human_readable_name_from_ppa_uri(ppa_uri):
     """ takes a PPA uri and returns a human readable name for it """
-    from urlparse import urlsplit
     name = urlsplit(ppa_uri).path
     if name.endswith("/ubuntu"):
         return name[0:-len("/ubuntu")]
@@ -243,7 +252,6 @@ def obfuscate_private_ppa_details(text):
     s = text.split()
     for item in s:
         if "private-ppa.launchpad.net" in item:
-            from urlparse import urlsplit
             url_parts = urlsplit(item)
             if url_parts.username:
                 result = result.replace(url_parts.username, "hidden")
@@ -265,6 +273,7 @@ def is_unity_running():
     """
     return True if Unity is currently running
     """
+    import dbus
     unity_running = False
     try:
         bus = dbus.SessionBus()
@@ -281,7 +290,7 @@ def get_icon_from_theme(icons, iconname=None, iconsize=Icons.APP_ICON_SIZE, miss
         iconname = missingicon
     try:
         icon = icons.load_icon(iconname, iconsize, 0)
-    except Exception, e:
+    except Exception as e:
         LOG.warning("could not load icon '%s', displaying missing icon instead: %s " % (iconname, e))
         icon = icons.load_icon(missingicon, iconsize, 0)
     return icon
@@ -303,14 +312,16 @@ def get_file_path_from_iconname(icons, iconname=None, iconsize=Icons.APP_ICON_SI
         icon_info.free()
         return icon_file_path
         
-def convert_desktop_file_to_installed_location(app_install_data_file_path, pkgname=None):
+def convert_desktop_file_to_installed_location(app_install_data_file_path, pkgname):
     """ returns the installed desktop file path that corresponds to the
         given app-install-data file path, and will also check directly for
         the desktop file that corresponds to a given pkgname.
     """
-    if app_install_data_file_path:
+    if app_install_data_file_path and pkgname:
         # "normal" case
-        installed_desktop_file_path = app_install_data_file_path.replace("app-install/desktop", "applications")
+        installed_desktop_file_path = app_install_data_file_path.replace("app-install/desktop/"
+                                                                         + pkgname + ":",
+                                                                         "applications/")
         if os.path.exists(installed_desktop_file_path):
             return installed_desktop_file_path  
         # next, try case where a subdirectory is encoded in the app-install
@@ -477,7 +488,8 @@ class SimpleFileDownloader(GObject.GObject):
         GObject.GObject.__init__(self)
         self.tmpdir = None
 
-    def download_file(self, url, dest_file_path=None, use_cache=False):
+    def download_file(self, url, dest_file_path=None, use_cache=False,
+                      simple_quoting_for_webkit=False):
         """ download a url and emit the file-download-complete 
             once the file is there
             if dest_file_path is given, download to that specific
@@ -495,6 +507,9 @@ class SimpleFileDownloader(GObject.GObject):
             if not os.path.exists(cache_path):
                 os.makedirs(cache_path)
             dest_file_path = os.path.join(cache_path, uri_to_filename(url))
+            if simple_quoting_for_webkit:
+                dest_file_path = dest_file_path.replace("%", "")
+                dest_file_path = dest_file_path.replace("?", "")
 
         # no cache and no dest_file_path, use tempdir
         if dest_file_path is None:
@@ -523,7 +538,7 @@ class SimpleFileDownloader(GObject.GObject):
             self.LOG.debug("file reachable %s" % self.url)
             # url is reachable, now download the file
             f.load_contents_async(self._file_download_complete_cb)
-        except GObject.GError, e:
+        except GObject.GError as e:
             self.LOG.debug("file *not* reachable %s" % self.url)
             self.emit('file-url-reachable', False)
             self.emit('error', GObject.GError, e)
@@ -536,7 +551,7 @@ class SimpleFileDownloader(GObject.GObject):
         # The first element is the actual content so let's grab that
         try:
             content = f.load_contents_finish(result)[0]
-        except gio.Error, e:
+        except gio.Error as e:
             # i witnissed a strange error[1], so make the loader robust in this
             # situation
             # 1. content = f.load_contents_finish(result)[0]
@@ -599,6 +614,8 @@ class GMenuSearcher(object):
 
 # those helpers are packaging system specific
 from softwarecenter.db.pkginfo import get_pkg_info
+# do not call here get_pkg_info, since package switch may not have been set
+# instead use an anonymous function delay
 upstream_version_compare = lambda: get_pkg_info().upstream_version_compare
 upstream_version = lambda: get_pkg_info().upstream_version
 version_compare = lambda: get_pkg_info().version_compare
@@ -613,6 +630,6 @@ except ImportError:
         
 if __name__ == "__main__":
     s = decode_xml_char_reference('Search&#x2026;')
-    print s
-    print type(s)
-    print unicode(s)
+    print(s)
+    print(type(s))
+    print(unicode(s))

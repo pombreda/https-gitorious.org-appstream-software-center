@@ -41,9 +41,6 @@ _app_icon_cache = {}
 
 LOG = logging.getLogger(__name__)
 
-
-
-
 class CategoryRowReference:
     """ A simple container for Category properties to be 
         displayed in a AppListStore or AppTreeStore
@@ -172,7 +169,7 @@ class _AppPropertiesHelper(object):
                         #~ icon_file_name)
                     #~ # display the missing icon while the real one downloads
                     #~ self.icon_cache[icon_name] = self._missing_icon
-        except GObject.GError, e:
+        except GObject.GError as e:
             LOG.debug("get_icon returned '%s'" % e)
         return self._missing_icon
 
@@ -193,7 +190,7 @@ class AppPropertiesHelper(_AppPropertiesHelper):
         self.cache = cache
 
         # reviews stats loader
-        self.review_loader = get_review_loader(cache)
+        self.review_loader = get_review_loader(cache, db)
 
         # icon jazz
         self.icons = icons
@@ -235,7 +232,7 @@ class AppGenericStore(_AppPropertiesHelper):
         self.cache = cache
 
         # reviews stats loader
-        self.review_loader = get_review_loader(cache)
+        self.review_loader = get_review_loader(cache, db)
 
         # backend stuff
         self.backend = get_install_backend()

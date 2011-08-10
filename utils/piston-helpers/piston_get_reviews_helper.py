@@ -2,7 +2,7 @@
 
 import os
 import pickle
-import simplejson
+import json
 import logging
 import sys
 
@@ -65,7 +65,7 @@ if __name__ == "__main__":
         # the backend sometimes returns None so we fix this here
         if piston_reviews is None:
             piston_reviews = []
-    except simplejson.decoder.JSONDecodeError, e:
+    except json.decoder.JSONDecodeError, e:
         LOG.error("failed to parse '%s'" % e.doc)
     #bug lp:709408 - don't print 404 errors as traceback when api request 
     #                returns 404 error

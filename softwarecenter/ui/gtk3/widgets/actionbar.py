@@ -35,6 +35,7 @@ class ActionBar(Gtk.HBox):
     See: https://wiki.ubuntu.com/SoftwareCenter#Main%20window
     https://wiki.ubuntu.com/SoftwareCenter#Custom%20package%20lists
     https://wiki.ubuntu.com/SoftwareCenter#software-list-view-disclosure
+    https://wiki.ubuntu.com/SoftwareCenter#Learning_how_to_launch_an_application
     """
     
     PADDING = 4
@@ -351,10 +352,10 @@ if __name__ == "__main__":
     btns = 0
 
     def perform(btn):
-        print "Clicked 'Perform %i'" % btn
+        print("Clicked 'Perform %i'" % btn)
 
     def perform_lbl():
-        print "Clicked label link"
+        print("Clicked label link")
 
     def add_func(*args):
         global btns

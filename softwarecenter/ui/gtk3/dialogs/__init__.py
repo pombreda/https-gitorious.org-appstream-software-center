@@ -36,8 +36,6 @@ class SimpleGtkbuilderDialog(object):
             if issubclass(type(o), Gtk.Buildable):
                 name = Gtk.Buildable.get_name(o)
                 setattr(self, name, o)
-            else:
-                print >> sys.stderr, "WARNING: can not get name for '%s'" % o
 
 
 def confirm_repair_broken_cache(parent, datadir):
@@ -111,15 +109,14 @@ def error(parent, primary, secondary, details=None, alternative_action=None):
 
 
 if __name__ == "__main__":
-    print "Running remove dialog"
-    
+    print("Running remove dialog")
                    
-    print "Running broken apt-cache dialog"               
+    print("Running broken apt-cache dialog")
     confirm_repair_broken_cache(None, "./data")
                    
-    print "Showing message dialog"
+    print("Showing message dialog")
     messagedialog(None, primary="first, no second")
-    print "showing error"
+    print("showing error")
     error(None, "first", "second")
     error(None, "first", "second", "details ......")
      

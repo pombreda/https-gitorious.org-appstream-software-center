@@ -41,14 +41,14 @@ from softwarecenter.utils import (
     )
 
 from softwarecenter.netstatus import network_state_is_connected
-from softwarecenter.enums import PkgStates, REVIEWS_BATCH_PAGE_SIZE
+from softwarecenter.enums import PkgStates
 from softwarecenter.backend.reviews import UsefulnessCache
 
 from softwarecenter.ui.gtk3.em import StockEms
 from softwarecenter.ui.gtk3.widgets.buttons import Link
 
 LOG_ALLOCATION = logging.getLogger("softwarecenter.ui.Gtk.get_allocation()")
-
+LOG = logging.getLogger(__name__)
 
 class UIReviewsList(Gtk.VBox):
 
@@ -220,10 +220,13 @@ class UIReviewsList(Gtk.VBox):
             button.show()
             self.vbox.pack_start(button, True, True, 0)                
 
-        # only show the "More" button if there is a chance that there
-        # are more
-        if self.reviews and len(self.reviews) % REVIEWS_BATCH_PAGE_SIZE == 0:
-            button = Gtk.Button(_("Show more reviews"))
+        # aaronp: removed check to see if the length of reviews is divisible by
+        # the batch size to allow proper fixing of LP: #794060 as when a review
+        # is submitted and appears in the list, the pagination will break this
+        # check and make it unreliable
+        # if self.reviews and len(self.reviews) % REVIEWS_BATCH_PAGE_SIZE == 0:
+        if self.reviews:
+            button = Gtk.Button(_("Check for more reviews"))
             button.connect("clicked", self._on_more_reviews_clicked)
             button.show()
             self.vbox.pack_start(button, True, True, 0)                
@@ -239,8 +242,30 @@ class UIReviewsList(Gtk.VBox):
         self.vbox.remove(button)
         self.emit("different-review-language-clicked", language)
 
+    def get_all_review_ids(self):
+        ids = []
+        for review in self.reviews:
+            ids.append(review.id)
+        return ids 
+
     def add_review(self, review):
         self.reviews.append(review)
+        return
+
+    def replace_review(self, review):
+        for r in self.reviews:
+            if r.id == review.id:
+                pos = self.reviews.index(r)
+                self.reviews.remove(r)
+                self.reviews.insert(pos, review)
+                break
+        return
+
+    def remove_review(self, review):
+        for r in self.reviews:
+            if r.id == review.id:
+                self.reviews.remove(r)
+                break
         return
 
     def clear(self):
@@ -419,8 +444,8 @@ class UIReview(Gtk.VBox):
         summary = Gtk.Label()
         try:
             summary.set_markup('<b>%s</b>' % GObject.markup_escape_text(review_data.summary))
-        except Exception, e:
-            print e
+        except Exception as e:
+            LOG.exception("_build() failed")
             summary.set_text("Error parsing summary")
 
         summary.set_ellipsize(Pango.EllipsizeMode.END)
@@ -615,9 +640,8 @@ class UIReview(Gtk.VBox):
                     dark_color,
                     GObject.markup_escape_text(correct_name),
                     GObject.markup_escape_text(nice_date))
-            except Exception, e:
-                print e
-            finally:
+            except Exception as e:
+                LOG.exception("_who_when_markup failed")
                 m = "Error parsing name"
 
         return m

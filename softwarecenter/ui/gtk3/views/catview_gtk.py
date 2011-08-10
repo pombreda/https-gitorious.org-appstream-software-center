@@ -1,18 +1,43 @@
+# Copyright (C) 2009 Canonical
+#
+# Authors:
+#  Matthew McGowan
+#  Michael Vogt
+#
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; version 3.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+# details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import cairo
+import copy
 from gi.repository import Gtk
 from gi.repository import GObject
 import logging
+import os
 import xapian
 
 from gettext import gettext as _
 
+import softwarecenter.paths
 from appview import AppViewFilter
-from softwarecenter.enums import NonAppVisibility
+from softwarecenter.enums import (NonAppVisibility,
+                                  SortMethods,
+                                  TOP_RATED_CAROUSEL_LIMIT)
+from softwarecenter.utils import wait_for_apt_cache_ready
 from softwarecenter.ui.gtk3.models.appstore2 import AppPropertiesHelper
 from softwarecenter.ui.gtk3.widgets.containers import (
-     FramedHeaderBox, HeaderPosition, FramedBox, FlowableGrid, Frame)
-from softwarecenter.ui.gtk3.widgets.exhibits import ExhibitBanner
+     FramedHeaderBox, HeaderPosition, FramedBox, FlowableGrid)
+from softwarecenter.ui.gtk3.widgets.exhibits import (
+    ExhibitBanner, DefaultExhibit, FeaturedExhibit)
 from softwarecenter.ui.gtk3.widgets.buttons import (LabelTile,
                                                     CategoryTile,
                                                     FeaturedTile)
@@ -22,34 +47,11 @@ from softwarecenter.db.categories import (Category,
                                           CategoriesParser,
                                           get_category_by_name,
                                           categories_sorted_by_name)
+from softwarecenter.db.utils import get_query_for_pkgnames
+from softwarecenter.backend.scagent import SoftwareCenterAgent
 
 LOG_ALLOCATION = logging.getLogger("softwarecenter.ui.gtk.allocation")
 LOG=logging.getLogger(__name__)
-
-# temp: fake exhibits
-exhibits_list = []
-try:
-     from mock import Mock
-     for (i, (title, url)) in enumerate([
-               ("1 some title", "https://wiki.ubuntu.com/Brand?action=AttachFile&do=get&target=orangeubuntulogo.png"),
-               ("2 another title", "https://wiki.ubuntu.com/Brand?action=AttachFile&do=get&target=blackeubuntulogo.png"),
-               ("3 yet another title", "https://wiki.ubuntu.com/Brand?action=AttachFile&do=get&target=xubuntu.png"),
-               ]):
-          exhibit = Mock()
-          exhibit.background_color = "#000000"
-          exhibit.banner_url = url
-          exhibit.date_created = "2011-07-20 08:49:15"
-          exhibit.font_color = "#000000"
-          exhibit.font_name = ""
-          exhibit.font_size = 24
-          exhibit.id = i
-          exhibit.package_names = "apt,2vcard"
-          exhibit.published = True
-          exhibit.title_coords = [10, 10]
-          exhibit.title_translated = title
-          exhibits_list.append(exhibit)
-except ImportError:
-     pass
 
 
 _asset_cache = {}
@@ -79,7 +81,8 @@ class CategoriesViewGtk(Gtk.Viewport, CategoriesParser):
     SPACING = PADDING = 3
 
     # art stuff
-    STIPPLE = "softwarecenter/ui/gtk3/art/stipple.png"
+    STIPPLE = os.path.join(softwarecenter.paths.datadir,
+                           "ui/gtk3/art/stipple.png")
 
     def __init__(self, 
                  datadir,
@@ -107,7 +110,6 @@ class CategoriesViewGtk(Gtk.Viewport, CategoriesParser):
 
         Gtk.Viewport.__init__(self)
         CategoriesParser.__init__(self, db)
-        self.set_shadow_type(Gtk.ShadowType.NONE)
 
         self.set_name("view")
 
@@ -115,7 +117,7 @@ class CategoriesViewGtk(Gtk.Viewport, CategoriesParser):
         # we have our own viewport so we know when the viewport grows/shrinks
         # setup widgets
 
-        self.vbox = Gtk.VBox(spacing=3)
+        self.vbox = Gtk.VBox()
         self.add(self.vbox)
 
         # atk stuff
@@ -132,8 +134,9 @@ class CategoriesViewGtk(Gtk.Viewport, CategoriesParser):
         self._poster_sigs = []
         self._allocation = None
 
-        assets = self._cache_art_assets()
-        self.vbox.connect("draw", self.on_draw, assets)
+        self._cache_art_assets()
+        #~ assets = self._cache_art_assets()
+        #~ self.vbox.connect("draw", self.on_draw, assets)
         self._prev_alloc = None
         self.connect("size-allocate", self.on_size_allocate)
         return
@@ -179,9 +182,10 @@ class CategoriesViewGtk(Gtk.Viewport, CategoriesParser):
     def build(self, desktopdir):
         pass
 
-    def on_draw(self, widget, cr, assets):
-        cr.set_source(assets["stipple"])
-        cr.paint()
+    def do_draw(self, cr):
+        cr.set_source(_asset_cache["stipple"])
+        cr.paint_with_alpha(0.5)
+        for child in self: self.propagate_draw(child, cr)
         return
 
     def set_section(self, section):
@@ -190,24 +194,10 @@ class CategoriesViewGtk(Gtk.Viewport, CategoriesParser):
 
 class LobbyViewGtk(CategoriesViewGtk):
 
-    def __init__(self, 
-                 datadir,
-                 desktopdir, 
-                 cache,
-                 db,
-                 icons,
-                 apps_filter,
-                 apps_limit=0):
-        CategoriesViewGtk.__init__(self, 
-                 datadir,
-                 desktopdir, 
-                 cache,
-                 db,
-                 icons,
-                 apps_filter,
-                 apps_limit=0)
-
-#        self.enquire = xapian.Enquire(self.db.xapiandb)
+    def __init__(self, datadir, desktopdir, cache, db, icons,
+                 apps_filter, apps_limit=0):
+        CategoriesViewGtk.__init__(self, datadir, desktopdir, cache, db, icons,
+                                   apps_filter, apps_limit=0)
 
         # sections
         self.featured_carousel = None
@@ -240,7 +230,7 @@ class LobbyViewGtk(CategoriesViewGtk):
         self.top_hbox.pack_start(self.right_column, True, True, 0)
 
         self._append_featured()
-        self._append_recommendations()
+        #~ self._append_recommendations()
         self._append_top_rated()
 
         #self._append_video_clips()
@@ -298,11 +288,29 @@ class LobbyViewGtk(CategoriesViewGtk):
         self.vbox.pack_start(alignment, False, False, 0)
         return
 
+    def _on_show_exhibits(self, exhibit_banner, exhibit):
+        query = get_query_for_pkgnames(exhibit.package_names.split(","))
+        title = exhibit.title_translated
+        # create a temp query
+        cat = Category(title, title, None, query)
+        self.emit("category-selected", cat)
+
     def _append_banner_ads(self):
         exhibit_banner = ExhibitBanner()
-        exhibit_banner.set_exhibits(exhibits_list)
-        exhibit_banner.set_size_request(-1, 200)
-        self.vbox.pack_start(exhibit_banner, False, False, 0)
+        exhibit_banner.set_exhibits([DefaultExhibit(), FeaturedExhibit()])
+        exhibit_banner.connect("show-exhibits-clicked", self._on_show_exhibits)
+
+        # query using the agent
+        scagent = SoftwareCenterAgent()
+        scagent.connect(
+            "exhibits", lambda sca,l: exhibit_banner.set_exhibits(l))
+        scagent.query_exhibits()
+
+        a = Gtk.Alignment()
+        a.set_padding(0,StockEms.MEDIUM,0,0)
+        a.add(exhibit_banner)
+
+        self.vbox.pack_start(a, False, False, 0)
         return
 
     def _append_departments(self):
@@ -341,6 +349,7 @@ class LobbyViewGtk(CategoriesViewGtk):
         frame = FramedHeaderBox()
         frame.set_header_label(_("Top Rated"))
         frame.header_implements_more_button()
+        frame.more.connect('clicked', self.on_category_clicked, toprated_cat) 
         frame.add(self.toprated)
         self.right_column.pack_start(frame, True, True, 0)
 
@@ -361,7 +370,6 @@ class LobbyViewGtk(CategoriesViewGtk):
         featured_cat = get_category_by_name(self.categories, 
                                             u"Featured")  # unstranslated name
 
-
         enq = AppEnquire(self.cache, self.db)
         app_filter = AppViewFilter(self.db, self.cache)
         enq.set_query(featured_cat.query,
@@ -371,9 +379,11 @@ class LobbyViewGtk(CategoriesViewGtk):
                       nonblocking_load=False)
 
         self.featured = FlowableGrid()
-        #~ self.featured.row_spacing = StockEms.SMALL
-        frame = Frame()
-        frame.set_corner_label(_("New"))
+        frame = FramedHeaderBox()
+        #~ frame.set_corner_label(_("New"))
+        frame.set_header_label(_("New"))
+        frame.header_implements_more_button()
+        frame.more.connect('clicked', self.on_category_clicked, featured_cat) 
         frame.add(self.featured)
         self.right_column.pack_start(frame, True, True, 0)
 
@@ -435,30 +445,74 @@ class LobbyViewGtk(CategoriesViewGtk):
 
 class SubCategoryViewGtk(CategoriesViewGtk):
 
-    def __init__(self, 
-                 datadir,
-                 desktopdir, 
-                 cache,
-                 db,
-                 icons,
-                 apps_filter,
-                 apps_limit=0,
-                 root_category=None):
-        CategoriesViewGtk.__init__(self, 
-                 datadir,
-                 desktopdir, 
-                 cache,
-                 db,
-                 icons,
-                 apps_filter,
-                 apps_limit)
+    def __init__(self, datadir, desktopdir, cache, db, icons,
+                 apps_filter, apps_limit=0, root_category=None):
+        CategoriesViewGtk.__init__(self, datadir, desktopdir, cache, db, icons,
+                                   apps_filter, apps_limit)
 
         # data
         self.root_category = root_category
+        self.enquire = AppEnquire(self.cache, self.db)
+        self.helper = AppPropertiesHelper(self.db,
+                                          self.cache,
+                                          self.icons)
 
         # sections
         self.current_category = None
         self.departments = None
+        self.toprated = None
+
+        # widgetry
+        self.vbox.set_border_width(StockEms.SMALL)
+        return
+
+    @wait_for_apt_cache_ready # be consistent with new apps
+    def _append_sub_toprated(self, category):
+        if self.toprated is None:
+            self.toprated = FlowableGrid(paint_grid_pattern=False)
+            self.toprated.set_row_spacing(6)
+            self.toprated.set_column_spacing(6)
+            frame = FramedHeaderBox()
+            # set x/y-alignment and x/y-expand
+            #~ frame.set(0.5, 0.0, 1.0, 1.0)
+            frame.set_header_label(_("Top Rated"))
+            frame.header_implements_more_button()
+            frame.pack_start(self.toprated, True, True, 0)
+            # append the departments section to the page
+            self.vbox.pack_start(frame, True, True, 0)
+            self.toprated_frame = frame
+        else:
+            self.toprated.remove_all()
+
+        # ensure that we update the more button
+        cat_with_toprated_search = copy.copy(category)
+        cat_with_toprated_search.sortmode = SortMethods.BY_TOP_RATED
+        cat_with_toprated_search.item_limit = TOP_RATED_CAROUSEL_LIMIT
+        # disconnect old handler (if there is one)
+        try:
+            self.toprated_frame.more.disconnect_by_func(
+                self.on_category_clicked)
+        except TypeError:
+            pass
+        self.toprated_frame.more.connect(
+            'clicked', self.on_category_clicked, cat_with_toprated_search)
+
+        # and fill the toprated grid
+        self.enquire.set_query(category.query,
+                               limit=TOP_RATED_CAROUSEL_LIMIT,
+                               sortmode=SortMethods.BY_TOP_RATED,
+                               filter=self.apps_filter,
+                               nonapps_visible=NonAppVisibility.ALWAYS_VISIBLE,
+                               nonblocking_load=False)
+
+        for doc in self.enquire.get_documents()[0:8]:
+            name = self.helper.get_appname(doc)
+            icon_pb = self.helper.get_icon_at_size(doc, 48, 48)
+            stats = self.helper.get_review_stats(doc)
+            tile = FeaturedTile(name, icon_pb, stats)
+            tile.connect('clicked', self.on_app_clicked,
+                         self.helper.get_application(doc))
+            self.toprated.add_child(tile)
         return
 
     def _append_subcat_departments(self, root_category, num_items):
@@ -490,9 +544,9 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         # sort Category.name's alphabetically
         sorted_cats = categories_sorted_by_name(self.categories)
 
+        enquire = xapian.Enquire(self.db.xapiandb)
         for cat in sorted_cats:
             # add the subcategory if and only if it is non-empty
-            enquire = xapian.Enquire(self.db.xapiandb)
             enquire.set_query(cat.query)
 
             if len(enquire.get_mset(0,1)):
@@ -502,10 +556,9 @@ class SubCategoryViewGtk(CategoriesViewGtk):
 
         # partialy work around a (quite rare) corner case
         if num_items == 0:
-            enquire = xapian.Enquire(self.db.xapiandb)
             enquire.set_query(xapian.Query(xapian.Query.OP_AND, 
-                                           root_category.query,
-                                           xapian.Query("ATapplication")))
+                                root_category.query,
+                                xapian.Query("ATapplication")))
             # assuming that we only want apps is not always correct ^^^
             tmp_matches = enquire.get_mset(0, len(self.db))#, None, self.apps_filter)
             num_items = tmp_matches.get_matches_estimated()
@@ -518,10 +571,11 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         self.departments.add_child(tile)
         return
 
-    def _build_subcat_view(self, root_category, num_items):
+    def _build_subcat_view(self, category, num_items):
         # these methods add sections to the page
         # changing order of methods changes order that they appear in the page
-        self._append_subcat_departments(root_category, num_items)
+        self._append_subcat_departments(category, num_items)
+        self._append_sub_toprated(category)
         self.show_all()
         return
 
@@ -543,47 +597,26 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         #self.set_subcategory(self.root_category)
         #return
 
+def get_test_window_catview():
 
-if __name__ == "__main__":
-    import sys, os
-    logging.basicConfig(level=logging.DEBUG)
+    def on_category_selected(view, cat):
+        print("on_category_selected %s %s" % view, cat)
 
-    if len(sys.argv) > 1:
-        datadir = sys.argv[1]
-    elif os.path.exists("./data"):
-        datadir = "./data"
-    else:
-        datadir = "/usr/share/software-center"
-
-    xapian_base_path = "/var/cache/software-center"
-    pathname = os.path.join(xapian_base_path, "xapian")
     from softwarecenter.db.pkginfo import get_pkg_info
     cache = get_pkg_info()
     cache.open()
 
     from softwarecenter.db.database import StoreDatabase
+    xapian_base_path = "/var/cache/software-center"
+    pathname = os.path.join(xapian_base_path, "xapian")
     db = StoreDatabase(pathname, cache)
     db.open()
 
-    from softwarecenter.paths import ICON_PATH
-    icons = Gtk.IconTheme.get_default()
-    icons.append_search_path(ICON_PATH)
-    icons.append_search_path(os.path.join(datadir,"icons"))
-    icons.append_search_path(os.path.join(datadir,"emblems"))
-    # HACK: make it more friendly for local installs (for mpt)
-    icons.append_search_path(datadir+"/icons/32x32/status")
-    # add the humanity icon theme to the iconpath, as not all icon 
-    # themes contain all the icons we need
-    # this *shouldn't* lead to any performance regressions
-    path = '/usr/share/icons/Humanity'
-    if os.path.exists(path):
-        for subpath in os.listdir(path):
-            subpath = os.path.join(path, subpath)
-            if os.path.isdir(subpath):
-                for subsubpath in os.listdir(subpath):
-                    subsubpath = os.path.join(subpath, subsubpath)
-                    if os.path.isdir(subsubpath):
-                        icons.append_search_path(subsubpath)
+    import softwarecenter.paths
+    datadir = softwarecenter.paths.datadir
+
+    from softwarecenter.ui.gtk3.utils import get_sc_icon_theme
+    icons = get_sc_icon_theme(datadir)
 
     import softwarecenter.distro
     distro = softwarecenter.distro.get_distro()
@@ -596,40 +629,41 @@ if __name__ == "__main__":
 
     from softwarecenter.paths import APP_INSTALL_PATH
     view = LobbyViewGtk(datadir, APP_INSTALL_PATH,
-                        cache, db, distro,
-                        icons, apps_filter)
-
-    l = Gtk.Label()
-    l.set_text("Lobby")
+                        cache, db, icons, distro, apps_filter)
+    win.set_data("lobby", view)
 
     scroll = Gtk.ScrolledWindow()
     scroll.add(view)
-    n.append_page(scroll, l)
+    n.append_page(scroll, Gtk.Label(label="Lobby"))
 
     # find a cat in the LobbyView that has subcategories
     subcat_cat = None
-    for cat in view.categories:
+    for cat in reversed(view.categories):
         if cat.subcategories:
             subcat_cat = cat
             break
 
-    view = SubCategoryViewGtk(datadir, APP_INSTALL_PATH,
-                              cache, db, distro,
-                              icons, apps_filter)
-
-    view.set_subcategory(cat)
-
-    l = Gtk.Label()
-    l.set_text("Subcats")
+    view = SubCategoryViewGtk(datadir, APP_INSTALL_PATH, cache, db, icons,
+                              apps_filter)
+    view.connect("category-selected", on_category_selected)
+    view.set_subcategory(subcat_cat)
+    win.set_data("subcat", view)
 
     scroll = Gtk.ScrolledWindow()
     scroll.add(view)
-    n.append_page(scroll, l)
+    n.append_page(scroll, Gtk.Label(label="Subcats"))
 
     win.add(n)
-    win.set_size_request(600,400)
+    win.set_size_request(800,600)
     win.show_all()
     win.connect('destroy', Gtk.main_quit)
+    return win
+
+if __name__ == "__main__":
+    import os
+    logging.basicConfig(level=logging.DEBUG)
+
+    win = get_test_window_catview()
 
     # run it
     Gtk.main()

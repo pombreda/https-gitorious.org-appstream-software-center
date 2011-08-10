@@ -3,6 +3,9 @@ from gi.repository import Pango
 from gi.repository import Gtk
 gi.require_version("Gtk", "3.0")
 
+import logging
+
+LOG=logging.getLogger(__name__)
 
 def get_em(size=""):
     # calc the height of a character, use as 1em
@@ -26,8 +29,7 @@ def get_big_em():
 EM = get_em()
 SMALL_EM = get_small_em()
 BIG_EM = get_big_em()
-
-print "EM's:", EM, SMALL_EM, BIG_EM
+LOG.info("EM's: %s %s %s" % (EM, SMALL_EM, BIG_EM))
 
 
 def em(multiplier=1, min=1):
@@ -39,10 +41,11 @@ def small_em(multiplier=1, min=1):
 def big_em(multiplier=1, min=1):
     return max(int(min), int(round(BIG_EM*multiplier, 0)))
 
-
 # common values
 class StockEms:
     XLARGE      = em(1.33, 5)
     LARGE       = em(min=3)
     MEDIUM      = em(0.666, 2)
     SMALL       = em(0.333, 1)
+
+

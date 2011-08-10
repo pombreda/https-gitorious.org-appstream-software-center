@@ -21,8 +21,8 @@ import sys
 
 from gettext import gettext as _
 from gi.repository import Gdk
-from gi.repository import Gtk
 from gi.repository import Gst
+from gi.repository import Gtk
 from gi.repository import WebKit
 
 LOG = logging.getLogger(__name__)
@@ -69,7 +69,7 @@ class VideoPlayerGtk3(Gtk.VBox):
     def on_play_clicked(self, button):
         if self.button.get_label() == _("Play"):
             self.button.set_label("Stop")
-            print self.uri
+            print(self.uri)
             self.player.set_property("uri", self.uri)
             self.player.set_state(Gst.State.PLAYING)
         else:
@@ -77,11 +77,11 @@ class VideoPlayerGtk3(Gtk.VBox):
             self.button.set_label(_("Play"))
 						
     def on_message(self, bus, message):
-        print "message: ", bus, message
+        print("message: %s" % bus, message)
         if message is None:
             return
         t = message.type
-        print t
+        print(t)
         if t == Gst.MessageType.EOS:
             self.player.set_state(Gst.State.NULL)
             self.button.set_label(_("Play"))
@@ -92,7 +92,7 @@ class VideoPlayerGtk3(Gtk.VBox):
             self.button.set_label(_("Play"))
             
     def on_sync_message(self, bus, message):
-        print "sync: ", bus, message
+        print("sync: %s" % bus, message)
         if message is None or message.structure is None:
             return
         message_name = message.structure.get_name()
@@ -102,16 +102,12 @@ class VideoPlayerGtk3(Gtk.VBox):
             Gdk.threads_enter()
             # FIXME: this is the way to do it, *but* get_xid() is not
             #        exported in the GIR
-            xid = player.movie_window.get_window().get_xid()
+            xid = self.player.movie_window.get_window().get_xid()
             imagesink.set_xwindow_id(xid)
             Gdk.threads_leave()	
 
 
-if __name__ == "__main__":
-    logging.basicConfig()
-    Gdk.threads_init()
-    Gst.init(sys.argv)
-
+def get_test_videoplayer_window():
     win = Gtk.Window.new(Gtk.WindowType.TOPLEVEL)
     win.set_default_size(500, 400)
     win.connect("destroy", Gtk.main_quit)
@@ -122,4 +118,12 @@ if __name__ == "__main__":
     else:
         player.uri = sys.argv[1]
     win.show_all()
+    return win
+
+if __name__ == "__main__":
+    logging.basicConfig()
+    Gdk.threads_init()
+    Gst.init(sys.argv)
+
+    win = get_test_videoplayer_window()
     Gtk.main()

@@ -23,7 +23,18 @@ import os
 if os.getuid() == 0 and "SUDO_USER" in os.environ and "HOME" in os.environ:
     del os.environ["HOME"]
 # the check above must be *before* xdg is imported
+
+# py3 possible compat mode (there is no python3-xdg yet)
+# try:
+#     from xdg import BaseDirectory as xdg
+# except ImportError:
+#     import collections
+#     klass = collections.namedtuple('xdg', 'xdg_config_home, xdg_cache_home')
+#     xdg = klass(xdg_config_home=os.path.expanduser("~/.config"),
+#                 xdg_cache_home=os.path.expanduser("~/.cache"))
 from xdg import BaseDirectory as xdg
+
+from softwarecenter.toolkit import CURRENT_TOOLKIT, UIToolkits
 
 # global datadir, this maybe overriden at startup
 datadir = "/usr/share/software-center/"
@@ -52,20 +63,30 @@ XAPIAN_BASE_PATH_SOFTWARE_CENTER_AGENT = os.path.join(
     xdg.xdg_cache_home,
     "software-center", 
     "software-center-agent.db")
+XAPIAN_PATH=os.path.join(XAPIAN_BASE_PATH, "xapian")
 
 # ratings&review
 # relative to datadir
-SUBMIT_REVIEW_APP = "submit_review.py"
-REPORT_REVIEW_APP = "report_review.py"
-SUBMIT_USEFULNESS_APP = "submit_usefulness.py"
-MODIFY_REVIEW_APP = "modify_review.py"
-DELETE_REVIEW_APP = "delete_review.py"
+class RNRApps:
+    if CURRENT_TOOLKIT is UIToolkits.GTK2:
+        SUBMIT_REVIEW = "submit_review.py"
+        REPORT_REVIEW = "report_review.py"
+        SUBMIT_USEFULNESS = "submit_usefulness.py"
+        MODIFY_REVIEW = "modify_review.py"
+        DELETE_REVIEW = "delete_review.py"
+    elif CURRENT_TOOLKIT is UIToolkits.GTK3:
+        SUBMIT_REVIEW = "submit_review_gtk3.py"
+        REPORT_REVIEW = "report_review_gtk3.py"
+        SUBMIT_USEFULNESS = "submit_usefulness_gtk3.py"
+        MODIFY_REVIEW = "modify_review_gtk3.py"
+        DELETE_REVIEW = "delete_review_gtk3.py"
 
 # piston helpers
-GET_REVIEWS_HELPER = "piston_get_reviews_helper.py"
-GET_REVIEW_STATS_HELPER = "piston_get_review_stats_helper.py"
-GET_USEFUL_VOTES_HELPER = "piston_get_useful_votes_helper.py"
-SOFTWARE_CENTER_AGENT_HELPER = "piston_get_scagent_available_apps.py"
+class PistonHelpers:
+    GET_REVIEWS = "piston_get_reviews_helper.py"
+    GET_REVIEW_STATS = "piston_get_review_stats_helper.py"
+    GET_USEFUL_VOTES = "piston_get_useful_votes_helper.py"
+    SOFTWARE_CENTER_AGENT = "piston_get_scagent_available_apps.py"
 
 X2GO_HELPER = "x2go_helper.py"
 

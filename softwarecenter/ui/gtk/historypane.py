@@ -22,11 +22,6 @@ from gi.repository import GObject
 import gtk
 import logging
 
-try:
-	import apt_pkg
-	apt_pkg.init_config()
-except: pass
-
 import os.path
 import datetime
 
@@ -122,18 +117,19 @@ class HistoryPane(gtk.VBox, BasePane):
         removals_action.set_group(all_action)
         removals_button = removals_action.create_tool_item()
         self.toolbar.insert(removals_button, 3)
-        
+
         self._actions_list = all_action.get_group()
         self._set_actions_sensitive(False)
 
         self.view = gtk.TreeView()
+        self.view.set_headers_visible(False)
         self.view.show()
         self.history_view = gtk.ScrolledWindow()
         self.history_view.set_policy(gtk.POLICY_AUTOMATIC,
                                       gtk.POLICY_AUTOMATIC)
         self.history_view.show()
         self.history_view.add(self.view)
-        
+
         # make a spinner to display while history is loading
         self.spinner_view = SpinnerView(_('Loading history'))
         self.spinner_notebook = gtk.Notebook()
@@ -150,12 +146,8 @@ class HistoryPane(gtk.VBox, BasePane):
         self.store_filter.set_visible_func(self.filter_row)
         self.view.set_model(self.store_filter)
         all_action.set_active(True)
-        try:
-            self.filename = apt_pkg.config.find_file("Dir::Log::History")
-        except:
-            self.filename = ''
         self.last = None
-        
+
         # to save (a lot of) time at startup we load history later, only when
         # it is selected to be viewed
         self.history = None

@@ -10,7 +10,7 @@ import time
 import unittest
 
 from softwarecenter.db.pkginfo import get_pkg_info
-from softwarecenter.backend.channel import (AptChannelsManager,
+from softwarecenter.backend.channel import (get_channels_manager,
                                             is_channel_available)
 from softwarecenter.db.database import StoreDatabase
 from softwarecenter.paths import XAPIAN_BASE_PATH
@@ -45,13 +45,13 @@ class TestSoftwareChannels(unittest.TestCase):
         self.assertEqual(origin, "ubuntu")
         
     def test_channels(self):
-        cm = AptChannelsManager(self.db)
+        cm = get_channels_manager(self.db)
         # ensure we have channels
         self.assertTrue(len(cm.channels) > 0)
         # test channel_available
         #for c in cm.channels:
         #     self.assertTrue(cm.channel_available(c.origin))
-        self.assertFalse(AptChannelsManager.channel_available('asfd12da098p'))
+        self.assertFalse(cm.channel_available('asfd12da098p'))
         self.assertFalse(is_channel_available('asfd12da098p'))
         # ensure we don't have any channel updates yet
         # FIXME: disabled for now as it
@@ -61,6 +61,7 @@ class TestSoftwareChannels(unittest.TestCase):
         self.assertTrue(cm._check_for_channel_updates())
 
     def test_channels_from_lp(self):
+        from softwarecenter.backend.aptchannels import AptChannelsManager
         cm = AptChannelsManager(self.db)
         len_now = len(cm.channels)
         cm._feed_in_private_sources_list_entry(self.repo_from_lp)

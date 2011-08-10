@@ -39,10 +39,7 @@ softwarecenter.netstatus.NETWORK_STATE
 
 from SimpleGtkbuilderApp import SimpleGtkbuilderApp
 from softwarecenter.db.application import Application
-try:
-	from softwarecenter.db.debfile import DebFileApplication
-except:
-	class DebFileApplication: pass
+from softwarecenter.db import DebFileApplication
 
 from softwarecenter.enums import (Icons,
                                   PkgStates,
@@ -64,11 +61,10 @@ from softwarecenter.db.database import StoreDatabase
 import dependency_dialogs as dependency_dialogs
 import deauthorize_dialog as deauthorize_dialog
 from softwarecenter.backend.packagekitd import TransactionFinishedResult
-
 try:
-	from aptd_gtk2 import InstallBackendUI
-except:
-	class InstallBackendUI: pass
+    from aptd_gtk2 import InstallBackendUI
+except ImportError:
+    from softwarecenter.backend.installbackend import InstallBackendUI
 
 from viewswitcher import ViewSwitcher
 from pendingview import PendingView
@@ -893,10 +889,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.window_main.set_sensitive(False)
         # run software-properties-gtk
         p = subprocess.Popen(
-            ["gksu",
-             "--desktop", "/usr/share/applications/software-properties-gtk.desktop",
-             "--",
-             "/usr/bin/software-properties-gtk", 
+            ["/usr/bin/software-properties-gtk", 
              "-n", 
              "-t", str(self.window_main.window.xid)])
         # Monitor the subprocess regularly

@@ -17,20 +17,17 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import os
-from gi.repository import GObject
 import logging
 import xapian
 
 from gettext import gettext as _
 
-from softwarecenter.backend import get_install_backend
 from softwarecenter.distro import get_distro
 
 from softwarecenter.enums import (SortMethods, 
-                                  ViewPages,
                                   Icons,
-                                  AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME)
+                                  ViewPages,
+                                 )
 
 LOG = logging.getLogger(__name__)
 
@@ -328,13 +325,14 @@ def get_channels_manager(db):
     return channels_manager
 
 def is_channel_available(channelname):
+    from softwarecenter.backend.aptchannels import AptChannelsManager
     return AptChannelsManager.channel_available(channelname)
 
 if __name__ == "__main__":
     distro = get_distro()
     channel = SoftwareChannel(distro.get_distro_channel_name(), 
                               None, None)
-    print channel
+    print(channel)
     channel = SoftwareChannel(distro.get_distro_channel_name(), None, "partner")
-    print channel
+    print(channel)
 

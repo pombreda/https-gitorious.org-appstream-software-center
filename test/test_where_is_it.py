@@ -44,7 +44,7 @@ class TestWhereIsit(unittest.TestCase):
         app = Application("Calculator", "gcalctool")
         details = app.get_details(self.db)
         self.assertEqual(details.desktop_file, 
-                         "/usr/share/app-install/desktop/gcalctool.desktop")
+                         "/usr/share/app-install/desktop/gcalctool:gcalctool.desktop")
         # search the settings menu
         searcher = GMenuSearcher()
         found = searcher.get_main_menu_path(
@@ -59,7 +59,7 @@ class TestWhereIsit(unittest.TestCase):
         app = Application("", "ark")
         details = app.get_details(self.db)
         self.assertEqual(details.desktop_file, 
-                         "/usr/share/app-install/desktop/kde4___ark.desktop")
+                         "/usr/share/app-install/desktop/ark:kde4__ark.desktop")
         # search the settings menu
         searcher = GMenuSearcher()
         found = searcher.get_main_menu_path(

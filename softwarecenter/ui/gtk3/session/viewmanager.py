@@ -23,15 +23,12 @@ from softwarecenter.ui.gtk3.widgets.backforward import BackForwardButton
 from softwarecenter.ui.gtk3.widgets.searchentry import SearchEntry
 
 _viewmanager = None # the gobal Viewmanager instance
-
-
 def get_viewmanager():
     return _viewmanager
 
-
 class ViewManager(object):
 
-    def __init__(self, notebook_view, options):
+    def __init__(self, notebook_view, options=None):
         self.notebook_view = notebook_view
         self.search_entry = SearchEntry()
         self.search_entry.connect(
@@ -53,7 +50,7 @@ class ViewManager(object):
         global _viewmanager
         if _viewmanager is not None:
             msg = "Only one instance of ViewManager is allowed!"
-            raise SystemExit, msg
+            raise SystemExit(msg)
         else:
             _viewmanager = self
 
@@ -86,21 +83,23 @@ class ViewManager(object):
         return self.get_view_widget(current_view)
 
     def get_view_id_from_page_id(self, page_id):
-        for (k, v) in self.all_views.iteritems():
+        for (k, v) in self.all_views.items():
             if page_id == v:
                 return k
 
     def set_active_view(self, view_id):
+        if not self.all_views: 
+            return
         page_id = self.all_views[view_id]
         view_widget = self.get_view_widget(view_id)
 
         view_page = view_widget.get_current_page()
         view_state = view_widget.state
 
-        #~ if (self.search_entry.get_text() !=
-            #~ view_widget.state.search_terms):
-            #~ self.search_entry.set_text_with_no_signal(
-                                        #~ view_widget.state.search_terms)
+        if (self.search_entry.get_text() !=
+            view_widget.state.search_term):
+            self.search_entry.set_text_with_no_signal(
+                                        view_widget.state.search_terms)
     
         callback = view_widget.get_callback_for_page(view_page,
                                                      view_state)
@@ -152,7 +151,7 @@ class ViewManager(object):
 
         if self.get_current_view_widget() != pane:
             view_id = None
-            for view_id, widget in self.view_to_pane.iteritems():
+            for view_id, widget in self.view_to_pane.items():
                 if widget == pane: break
     
             self.set_active_view(view_id)

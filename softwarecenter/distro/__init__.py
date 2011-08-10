@@ -167,4 +167,4 @@ distro_instance=_get_distro()
 
 
 if __name__ == "__main__":
-    print get_distro()
+    print(get_distro())

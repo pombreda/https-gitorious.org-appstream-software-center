@@ -17,8 +17,10 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 from gi.repository import Gtk, GdkPixbuf
-import logging
 from gi.repository import Pango
+
+import logging
+import os
 
 from softwarecenter.db.application import Application
 from softwarecenter.enums import Icons
@@ -55,11 +57,12 @@ class PackageNamesView(Gtk.TreeView):
             proposed_icon = app_details.icon
             if not proposed_icon or not icons.has_icon(proposed_icon):
                 proposed_icon = Icons.MISSING_APP
-            try:
-                pb = icons.load_icon(proposed_icon, icon_size, ()).scale_simple(icon_size, 
-                                      icon_size, GdkPixbuf.InterpType.BILINEAR)
-            except:
-                LOG.warning("cant set icon for '%s' " % pkgname)
+            if icons.has_icon(proposed_icon):
+                icon = icons.load_icon(proposed_icon, icon_size, 0)
+                pb = icon.scale_simple(
+                    icon_size, icon_size, GdkPixbuf.InterpType.BILINEAR)
+            else:
+                LOG.warn("cant set icon for '%s' " % pkgname)
                 pb = icons.load_icon(Icons.MISSING_APP,
                                      icon_size,
                                      Gtk.IconLookupFlags.GENERIC_FALLBACK) 
@@ -70,3 +73,41 @@ class PackageNamesView(Gtk.TreeView):
         # finally, we don't allow selection, it's just a simple display list
         tree_selection = self.get_selection()
         tree_selection.set_mode(Gtk.SelectionMode.NONE)
+
+
+def get_test_window_pkgnamesview():
+
+    from softwarecenter.db.pkginfo import get_pkg_info
+    cache = get_pkg_info()
+    cache.open()
+
+    from softwarecenter.db.database import StoreDatabase
+    xapian_base_path = "/var/cache/software-center"
+    pathname = os.path.join(xapian_base_path, "xapian")
+    db = StoreDatabase(pathname, cache)
+    db.open()
+
+    import softwarecenter.paths 
+    datadir = softwarecenter.paths.datadir
+
+    from softwarecenter.ui.gtk3.utils import get_sc_icon_theme
+    icons = get_sc_icon_theme(datadir)
+    
+    pkgs = ["apt", "software-center"]
+    view = PackageNamesView("header", cache, pkgs, icons, 32, db)
+    view.show()
+
+    win = Gtk.Window()
+    win.add(view)
+    win.set_size_request(600,400)
+    win.show()
+    win.connect('destroy', Gtk.main_quit)
+    return win
+
+
+if __name__ == "__main__":
+    import logging
+    logging.basicConfig()
+
+    win = get_test_window_pkgnamesview()
+    Gtk.main()

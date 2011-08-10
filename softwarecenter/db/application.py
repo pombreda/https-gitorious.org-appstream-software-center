@@ -144,7 +144,7 @@ class AppDetails(object):
             a xapian.Document or from a db.application.Application object
         """
         if not doc and not application:
-            raise ValueError, "Need either document or application"
+            raise ValueError("Need either document or application")
         self._db = db
         self._db.connect("reopen", self._on_db_reopen)
         self._cache = self._db._aptcache

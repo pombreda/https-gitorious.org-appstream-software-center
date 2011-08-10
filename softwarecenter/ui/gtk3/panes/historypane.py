@@ -22,10 +22,6 @@ import sys
 from gi.repository import GObject
 from gi.repository import Gtk, Gdk
 import logging
-
-import apt_pkg
-apt_pkg.init_config()
-
 import os.path
 import datetime
 
@@ -118,6 +114,7 @@ class HistoryPane(Gtk.VBox, BasePane):
         self._set_actions_sensitive(False)
 
         self.view = Gtk.TreeView()
+        self.view.set_headers_visible(False)
         self.view.show()
         self.history_view = Gtk.ScrolledWindow()
         self.history_view.set_policy(Gtk.PolicyType.AUTOMATIC,
@@ -141,7 +138,6 @@ class HistoryPane(Gtk.VBox, BasePane):
         self.store_filter.set_visible_func(self.filter_row, None)
         self.view.set_model(self.store_filter)
         all_action.set_active(True)
-        self.filename = apt_pkg.config.find_file("Dir::Log::History")
         self.last = None
         
         # to save (a lot of) time at startup we load history later, only when
@@ -233,7 +229,7 @@ class HistoryPane(Gtk.VBox, BasePane):
                        self.REMOVED: trans.remove,
                        self.UPGRADED: trans.upgrade,
                       }
-            for action, pkgs in actions.iteritems():
+            for action, pkgs in actions.items():
                 for pkgname in pkgs:
                     row = (when, action, pkgname)
                     last_row = self.store.insert_after(day, last_row, row)
@@ -369,37 +365,36 @@ class HistoryPane(Gtk.VBox, BasePane):
         cell.set_property('markup', text)
 
 
+def get_test_window():
 
-if __name__ == '__main__':
-    from softwarecenter.db.pkginfo import get_pkg_info
-    cache = get_pkg_info()
-
-    db_path = os.path.join(XAPIAN_BASE_PATH, "xapian")
-    db = StoreDatabase(db_path, cache)
-    db.open()
-
-    from softwarecenter.ui.gtk3.utils import get_sc_icon_theme
-
-    import os
-    if len(sys.argv) > 1:
-        datadir = sys.argv[1]
-    elif os.path.exists("./data"):
-        datadir = "./data"
-    else:
-        datadir = "/usr/share/software-center"
-
-    icons = get_sc_icon_theme(datadir)
+    from softwarecenter.testutils import (get_test_db,
+                                          get_test_datadir,
+                                          get_test_gtk3_viewmanager,
+                                          get_test_pkg_info,
+                                          get_test_gtk3_icon_cache,
+                                          )
+    # needed because available pane will try to get it
+    vm = get_test_gtk3_viewmanager()
+    vm # make pyflakes happy
+    db = get_test_db()
+    cache = get_test_pkg_info()
+    datadir = get_test_datadir()
+    icons = get_test_gtk3_icon_cache()
 
     widget = HistoryPane(cache, db, None, icons, None)
     widget.show()
 
-    window = Gtk.Window()
-    window.add(widget)
-    window.set_size_request(600, 500)
-    window.set_position(Gtk.WindowPosition.CENTER)
-    window.show_all()
-    widget.init_view()
-    window.connect('destroy', Gtk.main_quit)
+    win = Gtk.Window()
+    win.add(widget)
+    win.set_size_request(600, 500)
+    win.set_position(Gtk.WindowPosition.CENTER)
+    win.show_all()
+    win.connect('destroy', Gtk.main_quit)
 
+    widget.init_view()
+    return win
+
+if __name__ == '__main__':
+    win = get_test_window()
     Gtk.main()
 

@@ -415,6 +415,7 @@ class ViewSwitcher(gtk.TreeView):
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
     import sys
+    import apt
 
     import dbus
     import dbus.mainloop.glib
