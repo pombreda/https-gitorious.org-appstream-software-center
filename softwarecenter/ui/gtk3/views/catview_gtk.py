@@ -29,7 +29,8 @@ from gettext import gettext as _
 
 import softwarecenter.paths
 from softwarecenter.enums import (NonAppVisibility,
-                                  SortMethods)
+                                  SortMethods,
+                                  TOP_RATED_CAROUSEL_LIMIT)
 from softwarecenter.utils import wait_for_apt_cache_ready
 from softwarecenter.ui.gtk3.models.appstore2 import AppPropertiesHelper
 from softwarecenter.ui.gtk3.widgets.containers import (
