@@ -10,6 +10,8 @@ software-center (4.1.13) UNRELEASED; urgency=low
   [ Matthew McGowan ]
   * make the globalpane paint a theme derived base color 
     then paint the diagonal lines
+  * small fix to correct bf button sensitivity given cursor 
+    position within the navigation stack
   
   [ Robert Roth ]
   * lp:~evfool/software-center/hideabout:
