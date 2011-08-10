@@ -48,7 +48,7 @@ done;
 
 # gather the coverage data
 python-coverage combine
-python-coverage report --omit=/usr/share/pyshared,softwarecenter/backend/piston,test_ | tee coverage_summary | tail
+python-coverage report --omit=/usr/share/pyshared,*piston*,*test_ | tee coverage_summary | tail
 
 if [ -n "$FAILED" ]; then 
     echo "FAILED: $FAILED"; 
