@@ -51,7 +51,6 @@ def parse_axi_values_file(filename="/var/lib/apt-xapian-index/values"):
         axi_values[key] = int(value)
     return axi_values
 
-
 class SearchQuery(list):
     """ a list wrapper for a search query. it can take a search string
         or a list of search strings
@@ -503,18 +502,18 @@ if __name__ == "__main__":
     else:
         search = sys.argv[1]
     query = db.get_query_list_from_search_entry(search)
-    print query
+    print(query)
     enquire = xapian.Enquire(db.xapiandb)
     enquire.set_query(query)
     matches = enquire.get_mset(0, len(db))
     for m in matches:
         doc = m.document
-        print doc.get_data()
+        print(doc.get_data())
 
     # test origin
     query = xapian.Query("XOL"+"Ubuntu")
     enquire = xapian.Enquire(db.xapiandb)
     enquire.set_query(query)
     matches = enquire.get_mset(0, len(db))
-    print "Ubuntu origin: ", len(matches)
+    print("Ubuntu origin: %s" % len(matches))
     

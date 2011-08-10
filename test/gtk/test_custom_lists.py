@@ -40,9 +40,9 @@ class TestCustomLists(unittest.TestCase):
         logging.info("_run_search", search_text)
         self.app.available_pane.searchentry.delete_text(0, -1)
         self.app.available_pane.searchentry.insert_text(search_text)
-        self._p()
-        time.sleep(2)
-        self._p()
+        for i in range(5):
+            self._p()
+            time.sleep(0.5)
         return self.app.available_pane.app_view.get_model()
         
     def _debug(self, index, model, needle):

@@ -106,8 +106,8 @@ class AppEnquire(GObject.GObject):
 
         try:
             tmp_matches = enquire.get_mset(0, len(self.db), None, xfilter)
-        except Exception, e:
-            print e
+        except Exception as e:
+            LOG.exception("_get_estimate_nr_apps_and_nr_pkgs failed")
             return (0, 0)
 
         nr_apps = tmp_matches.get_matches_estimated()
@@ -175,9 +175,9 @@ class AppEnquire(GObject.GObject):
                     enquire.set_SortMethods.by_value(
                         self.db._axi_values["catalogedtime"], reverse=True)
                 else:
-                    logging.warning("no catelogedtime in axi")
+                    LOG.warning("no catelogedtime in axi")
             elif self.sortmode == SortMethods.BY_TOP_RATED:
-                review_loader = get_review_loader(self.cache)
+                review_loader = get_review_loader(self.cache, self.db)
                 sorter = TopRatedSorter(self.db, review_loader)
                 enquire.set_sort_by_key(sorter, reverse=True)
             # search ranking - when searching
@@ -195,16 +195,15 @@ class AppEnquire(GObject.GObject):
                 enquire.set_SortMethods.by_value_then_relevance(
                     XapianValues.PKGNAME, False)
                     
-            # set limit
-            try:
-                if self.limit == 0:
-                    matches = enquire.get_mset(0, len(self.db), None, xfilter)
-                else:
-                    matches = enquire.get_mset(0, self.limit, None, xfilter)
-                LOG.debug("found ~%i matches" % matches.get_matches_estimated())
-            except:
-                logging.exception("get_mset")
-                matches = []
+            #~ try:
+            if self.limit == 0:
+                matches = enquire.get_mset(0, len(self.db), None, xfilter)
+            else:
+                matches = enquire.get_mset(0, self.limit, None, xfilter)
+            LOG.debug("found ~%i matches" % matches.get_matches_estimated())
+            #~ except:
+                #~ logging.exception("get_mset")
+                #~ matches = []
                 
             # promote exact matches to a "app", this will make the 
             # show/hide technical items work correctly

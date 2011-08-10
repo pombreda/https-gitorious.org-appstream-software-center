@@ -805,7 +805,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.app, self._reviews_ready_callback, 
             page=self._reviews_server_page,
             language=self._reviews_server_language)
-    
+
     def _review_update_single(self, action, review):
         if action == 'replace':
             self.reviews.replace_review(review)
@@ -1113,7 +1113,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
             self.weblive.client.connect("warning", self.on_weblive_warning)
 
         # homepage link button
-        self.homepage_btn = mkit.HLinkButton(_('Website'))
+        self.homepage_btn = mkit.HLinkButton(_('Developer Web Site'))
         self.homepage_btn.connect('clicked', self._on_homepage_clicked)
         self.homepage_btn.set_underline(True)
         self.homepage_btn.set_xmargin(0)
@@ -1387,6 +1387,10 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self._update_pkg_info_table(app_details)
         if not skip_update_addons:
             self._update_addons(app_details)
+        else:
+            self.addon_view.hide_all()
+            if self.addon_view.parent:
+                self.info_vb.remove(self.addon_view)
         self._update_reviews(app_details)
 
         # show where it is
@@ -1477,6 +1481,9 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         self.installed_where_hbox.show_all()
 
     def _configure_where_is_it(self):
+        # display where-is-it for non-Unity configurations only
+        if is_unity_running():
+            return
         # remove old content
         self.installed_where_hbox.foreach(lambda c: c.destroy())
         self.installed_where_hbox.set_property("can-focus", False)
@@ -1493,11 +1500,10 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                       "/usr/share/applications/%s.desktop" % pkgname]:
                 if p and os.path.exists(p):
                     desktop_file = p
-            # try to show menu location if there is a desktop file (and only when this
-            # is not a Unity configuration), but never show commandline programs
-            # for apps with desktop file to cover cases like "file-roller" that
-            # have NoDisplay=true
-            if desktop_file and not is_unity_running():
+            # try to show menu location if there is a desktop file, but
+            # never show commandline programs for apps with a desktop file
+            # to cover cases like "file-roller" that have NoDisplay=true
+            if desktop_file:
                 where = searcher.get_main_menu_path(desktop_file)
                 if where:
                     self._add_where_is_it_launcher(where)

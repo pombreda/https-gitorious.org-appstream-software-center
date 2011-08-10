@@ -548,9 +548,13 @@ class SoftwarePane(gtk.VBox, BasePane):
         update the state of the show/hide non-applications control
         in the action_bar
         """
+        # first clear the action bar label (unless an active
+        # add-to-launcher prompt is showing)
+        if not self.action_bar.get_button(ActionButtons.ADD_TO_LAUNCHER):
+            self.action_bar.unset_label()
+            
         appstore = self.app_view.get_model()
         if not appstore:
-            self.action_bar.unset_label()
             return
         
         # calculate the number of apps/pkgs
@@ -563,9 +567,6 @@ class SoftwarePane(gtk.VBox, BasePane):
             else:
                 apps = appstore.nr_apps
                 pkgs = appstore.nr_pkgs
-                
-        if not self.is_app_details_view_showing():
-            self.action_bar.unset_label()
             
         if (appstore and 
             appstore.active and

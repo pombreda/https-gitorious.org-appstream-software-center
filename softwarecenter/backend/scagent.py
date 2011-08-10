@@ -24,7 +24,7 @@ import logging
 import os
         
 import softwarecenter.paths
-from softwarecenter.paths import SOFTWARE_CENTER_AGENT_HELPER
+from softwarecenter.paths import PistonHelpers
 from spawn_helper import SpawnHelper
 from softwarecenter.utils import get_language
 from softwarecenter.distro import get_distro, get_current_arch
@@ -57,7 +57,7 @@ class SoftwareCenterAgent(GObject.GObject):
         self.distro = get_distro()
         self.ignore_cache = ignore_cache
         binary = os.path.join(
-            softwarecenter.paths.datadir, SOFTWARE_CENTER_AGENT_HELPER)
+            softwarecenter.paths.datadir, PistonHelpers.SOFTWARE_CENTER_AGENT)
         self.HELPER_CMD = [binary]
         if self.ignore_cache:
             self.HELPER_CMD.append("--ignore-cache")
@@ -117,11 +117,13 @@ class SoftwareCenterAgent(GObject.GObject):
         
 if __name__ == "__main__":
     def _available(agent, available):
-        print "_available: ", available
+        print ("_available: %s" % available)
     def _available_for_me(agent, available_for_me):
-        print "_availalbe_for_me: ", available_for_me
+        print ("_availalbe_for_me: %s" % available_for_me)
+    def _exhibits(agent, exhibits):
+        print ("exhibits: " % exhibits)
     def _error(agent, msg):
-        print "got a error", msg
+        print ("got a error" % msg)
         #gtk.main_quit()
 
     # test specific stuff
@@ -131,9 +133,11 @@ if __name__ == "__main__":
     scagent = SoftwareCenterAgent()
     scagent.connect("available-for-me", _available_for_me)
     scagent.connect("available", _available)
+    scagent.connect("exhibits", _exhibits)
     scagent.connect("error", _error)
-    scagent.query_available("natty", "i386")
-    scagent.query_available_for_me("dummy_oauth", "dummy openid")
+    #scagent.query_available("natty", "i386")
+    #scagent.query_available_for_me("dummy_oauth", "dummy openid")
+    scagent.query_exhibits()
 
     import gtk
     gtk.main()

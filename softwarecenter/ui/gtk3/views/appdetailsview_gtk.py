@@ -29,7 +29,6 @@ import gettext
 import gmenu
 import logging
 import os
-import sys
 
 from gettext import gettext as _
 
@@ -504,7 +503,7 @@ class AddonsTable(Gtk.VBox):
 
     def get_addons(self):
         # filter all children widgets and return only Addons
-        return filter(lambda w: isinstance(w, Addon), self)
+        return [w for w in self if isinstance(w, Addon)]
 
     def clear(self):
         for addon in self.get_addons():
@@ -767,6 +766,13 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
             page=self._reviews_server_page,
             language=self._reviews_server_language)
 
+    def _review_update_single(self, action, review):
+        if action == 'replace':
+            self.reviews.replace_review(review)
+        elif action == 'remove':
+            self.reviews.remove_review(review)
+        return
+
     def _update_review_stats_widget(self, stats):
         if stats:
             # ensure that the review UI knows about the stats 
@@ -778,7 +784,8 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         else:
             self.review_stats_widget.hide()
 
-    def _reviews_ready_callback(self, app, reviews_data, my_votes=None):
+    def _reviews_ready_callback(self, app, reviews_data, my_votes=None,
+                                action=None, single_review=None):
         """ callback when new reviews are ready, cleans out the
             old ones
         """
@@ -811,8 +818,13 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         if my_votes:
             self.reviews.update_useful_votes(my_votes)
         
-        for review in reviews_data:
-            self.reviews.add_review(review)
+        if action:
+            self._review_update_single(action, single_review)
+        else:
+            curr_list = self.reviews.get_all_review_ids()
+            for review in reviews_data:
+                if not review.id in curr_list:
+                    self.reviews.add_review(review)
         self.reviews.configure_reviews_ui()
 
     def on_weblive_progress(self, weblive, progress):
@@ -981,7 +993,7 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         #~ self.weblive.client.connect("warning", self.on_weblive_warning)
 
         # homepage link button
-        self.homepage_btn = Gtk.Button.new_with_label(_('Website'))
+        self.homepage_btn = Gtk.Button.new_with_label(_('Developer Web Site'))
         self.homepage_btn.connect('clicked', self._on_homepage_clicked)
 
         # add the links footer to the description widget
@@ -1246,6 +1258,10 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         self._update_pkg_info_table(app_details)
         if not skip_update_addons:
             self._update_addons(app_details)
+        else:
+            self.addon_view.hide()
+            if self.addon_view.get_parent():
+                self.info_vb.remove(self.addon_view)
         self._update_reviews(app_details)
 
         # show where it is
@@ -1336,6 +1352,9 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         self.installed_where_hbox.show_all()
 
     def _configure_where_is_it(self):
+        # display where-is-it for non-Unity configurations only
+        if is_unity_running():
+            return
         # remove old content
         self.installed_where_hbox.foreach(lambda c: c.destroy(), ())
         self.installed_where_hbox.set_property("can-focus", False)
@@ -1352,11 +1371,10 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
                       "/usr/share/applications/%s.desktop" % pkgname]:
                 if p and os.path.exists(p):
                     desktop_file = p
-            # try to show menu location if there is a desktop file (and only when this
-            # is not a Unity configuration), but never show commandline programs
-            # for apps with desktop file to cover cases like "file-roller" that
-            # have NoDisplay=true
-            if desktop_file and not is_unity_running():
+            # try to show menu location if there is a desktop file, but
+            # never show commandline programs for apps with a desktop file
+            # to cover cases like "file-roller" that have NoDisplay=true
+            if desktop_file:
                 where = searcher.get_main_menu_path(desktop_file)
                 if where:
                     self._add_where_is_it_launcher(where)
@@ -1545,7 +1563,7 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
             if self.icons.has_icon(app_details.icon):
                 try:
                     return self.icons.load_icon(app_details.icon, 84, 0)
-                except GObject.GError, e:
+                except GObject.GError as e:
                     logging.warn("failed to load '%s': %s" % (app_details.icon, e))
                     return self.icons.load_icon(Icons.MISSING_APP, 84, 0)
             elif app_details.icon_url:
@@ -1556,7 +1574,7 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
                     try:
                         pb = GdkPixbuf.Pixbuf.new_from_file(image_file_path)
                         self.icon.set_from_pixbuf(pb)
-                    except Exception, e:
+                    except Exception as e:
                         LOG.warning("couldn't load downloadable icon file '%s': %s" % (image_file_path, e))
                     
                 image_downloader = SimpleFileDownloader()
@@ -1639,36 +1657,23 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         #     LOG.warning("could not update the usage counter: %s " % e)
         #     self.usage.hide()
 
+def get_test_window_appdetails():
 
-if __name__ == "__main__":
-    def _show_app(view):
-        if view.app.pkgname == "totem":
-            view.show_app(Application("Pithos", "pithos"))
-        else:
-            view.show_app(Application("Movie Player", "totem"))
-        return True
-    
-    logging.basicConfig(level=logging.DEBUG)
-
-    if len(sys.argv) > 1:
-        datadir = sys.argv[1]
-    elif os.path.exists("./data"):
-        datadir = "./data"
-    else:
-        datadir = "/usr/share/software-center"
-
-    xapian_base_path = "/var/cache/software-center"
-    pathname = os.path.join(xapian_base_path, "xapian")
     from softwarecenter.db.pkginfo import get_pkg_info
     cache = get_pkg_info()
     cache.open()
 
     from softwarecenter.db.database import StoreDatabase
+    xapian_base_path = "/var/cache/software-center"
+    pathname = os.path.join(xapian_base_path, "xapian")
     db = StoreDatabase(pathname, cache)
     db.open()
 
-    icons = Gtk.IconTheme.get_default()
-    icons.append_search_path("/usr/share/app-install/icons/")
+    import softwarecenter.paths 
+    datadir = softwarecenter.paths.datadir
+
+    from softwarecenter.ui.gtk3.utils import get_sc_icon_theme
+    icons = get_sc_icon_theme(datadir)
 
     import softwarecenter.distro
     distro = softwarecenter.distro.get_distro()
@@ -1696,10 +1701,23 @@ if __name__ == "__main__":
     win.set_size_request(600,400)
     win.show()
     win.connect('destroy', Gtk.main_quit)
+    win.set_data("view", view)
+    return win
+
+
+if __name__ == "__main__":
+    def _show_app(view):
+        if view.app.pkgname == "totem":
+            view.show_app(Application("Pithos", "pithos"))
+        else:
+            view.show_app(Application("Movie Player", "totem"))
+        return True
+    
+    win = get_test_window_appdetails()
 
     # keep it spinning to test for re-draw issues and memleaks
+    #view = win.get_data("view")
     #GObject.timeout_add_seconds(2, _show_app, view)
-
 
     # run it
     Gtk.main()

@@ -22,7 +22,7 @@ from gi.repository import Gtk
 from gi.repository import Gdk
 import logging
 import os
-import simplejson
+import json
 import sys
 import urllib
 from gi.repository import WebKit as webkit
@@ -30,14 +30,32 @@ from gi.repository import WebKit as webkit
 from gettext import gettext as _
 
 from softwarecenter.backend import get_install_backend
+from softwarecenter.utils import get_language
 
 LOG = logging.getLogger(__name__)
+
+class LocaleAwareWebView(webkit.WebView):
+    
+    def __init__(self):
+        webkit.WebView.__init__(self)
+        self.connect("resource-request-starting", 
+                     self._on_resource_request_starting)
+
+    def _on_resource_request_starting(self, view, frame, res, req, resp):
+        lang = get_language()
+        if lang:
+            message = req.get_message()
+            headers = message.get_property("request-headers")
+            headers.append("Accept-Language", lang)
+        #def _show_header(name, value, data):
+        #    print name, value
+        #headers.foreach(_show_header, None)
 
 class ScrolledWebkitWindow(Gtk.ScrolledWindow):
 
     def __init__(self):
         super(ScrolledWebkitWindow, self).__init__()
-        self.webkit = webkit.WebView()
+        self.webkit = LocaleAwareWebView()
         settings = self.webkit.get_settings()
         settings.set_property("enable-plugins", False)
         self.webkit.show()
@@ -106,7 +124,10 @@ h1 {
     def init_view(self):
         if self.wk is None:
             self.wk = ScrolledWebkitWindow()
-            self.wk.webkit.connect("new-window-policy-decision-requested", self._on_new_window)
+            #self.wk.webkit.connect("new-window-policy-decision-requested", self._on_new_window)
+            self.wk.webkit.connect("create-web-view", self._on_create_web_view)
+            self.wk.webkit.connect("close-web-view", self._on_close_web_view)
+
             # a possible way to do IPC (script or title change)
             self.wk.webkit.connect("script-alert", self._on_script_alert)
             self.wk.webkit.connect("title-changed", self._on_title_changed)
@@ -144,6 +165,22 @@ h1 {
         subprocess.Popen(['xdg-open', request.get_uri()])
         return True
 
+    def _on_close_web_view(self, view):
+        win = view.get_data("win")
+        win.destroy()
+        return True
+        
+    def _on_create_web_view(self, view, frame):
+        win = Gtk.Window()
+        win.set_size_request(400, 400)
+        wk = ScrolledWebkitWindow()
+        wk.webkit.connect("close-web-view", self._on_close_web_view)
+        win.add(wk)
+        win.show_all()
+        # make sure close will work later
+        wk.webkit.set_data("win", win)
+        return wk.webkit
+
     def _on_script_alert(self, view, frame, message):
         self._process_json(message)
         # stop further processing to avoid actually showing the alter
@@ -157,18 +194,19 @@ h1 {
     def _on_load_status_changed(self, view, property_spec):
         """ helper to give visual feedback while the page is loading """
         prop = view.get_property(property_spec.name)
-        if prop == webkit.LOAD_PROVISIONAL:
-            if self.window:
-                self.window.set_cursor(Gdk.Cursor.new(Gdk.WATCH))
-        elif (prop == webkit.LOAD_FIRST_VISUALLY_NON_EMPTY_LAYOUT or
-              prop == webkit.LOAD_FINISHED):
-            if self.window:
-                self.window.set_cursor(None)
+        window = self.get_window()
+        if prop == webkit.LoadStatus.PROVISIONAL:
+            if window:
+                window.set_cursor(Gdk.Cursor.new(Gdk.CursorType.WATCH))
+        elif (prop == webkit.LoadStatus.FIRST_VISUALLY_NON_EMPTY_LAYOUT or
+              prop == webkit.LoadStatus.FINISHED):
+            if window:
+                window.set_cursor(None)
 
     def _process_json(self, json_string):
         try:
             LOG.debug("server returned: '%s'" % json_string)
-            res = simplejson.loads(json_string)
+            res = json.loads(json_string)
             #print res
         except:
             LOG.debug("error processing json: '%s'" % json_string)
@@ -261,7 +299,7 @@ DUMMY_HTML = """
 
 # synthetic key event generation
 def _send_keys(view, s):
-    print "_send_keys", s
+    print("_send_keys %s" % s)
     MAPPING = { '@'     : 'at',
                 '.'     : 'period',
                 '\t'    : 'Tab',
@@ -302,11 +340,11 @@ def _generate_events(view):
 
     (state, title, keys) = STATES[0]
 
-    print "_generate_events: in state", state
+    print("_generate_events: in state %s" % state)
 
     current_title = view.wk.webkit.get_property("title")
     if current_title and current_title.startswith(title):
-        print "found state", state
+        print("found state %s" % state)
         _send_keys(view, keys)
         STATES.pop(0)
 
@@ -316,7 +354,7 @@ def _generate_events(view):
 #    def _on_key_press(dialog, event):
 #        print event, event.keyval
 
-if __name__ == "__main__":
+def get_test_window_purchaseview():
     #url = "http://www.animiertegifs.de/java-scripts/alertbox.php"
     url = "http://www.ubuntu.cohtml=DUMMY_m"
     #d = PurchaseDialog(app=None, url="http://spiegel.de")
@@ -337,13 +375,15 @@ if __name__ == "__main__":
     widget.initiate_purchase(app=None, iconname=None, url=url)
     #widget.initiate_purchase(app=None, iconname=None, html=DUMMY_HTML)
 
+    win = Gtk.Window()
+    win.add(widget)
+    win.set_size_request(600, 500)
+    win.set_position(Gtk.WindowPosition.CENTER)
+    win.show_all()
+    win.connect('destroy', Gtk.main_quit)
+    return win
 
-    window = Gtk.Window()
-    window.add(widget)
-    window.set_size_request(600, 500)
-    window.set_position(Gtk.WindowPosition.CENTER)
-    window.show_all()
-    window.connect('destroy', Gtk.main_quit)
-
+if __name__ == "__main__":
+    win = get_test_window_purchaseview()
     Gtk.main()
 

@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-import simplejson
+import json
 import subprocess
 import sys
 
@@ -14,7 +14,7 @@ if __name__ == "__main__":
     # means            1  2  3  4  5 stars
     histogram_total = [0, 0, 0, 0, 0]
     for s in piston_review_stats:
-        histogram = simplejson.loads(s.histogram)
+        histogram = json.loads(s.histogram)
         for i in range(5):
             histogram_total[i] += histogram[i]
     print "overall distribution: ", histogram_total

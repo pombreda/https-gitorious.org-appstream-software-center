@@ -39,6 +39,8 @@ from softwarepane import SoftwarePane
 from softwarecenter.ui.gtk3.views.appview import AppViewFilter
 import softwarecenter.ui.gtk3.dialogs as dialogs
 
+LOG=logging.getLogger(__name__)
+
 def interrupt_build_and_wait(f):
     """ decorator that ensures that a build of the categorised installed apps
         is interrupted before a new build commences.
@@ -47,7 +49,7 @@ def interrupt_build_and_wait(f):
     def wrapper(*args, **kwargs):
         self = args[0]
         if self._build_in_progress:
-            print 'Waiting for build to exit...'
+            LOG.debug('Waiting for build to exit...')
             self._halt_build = True
             GObject.timeout_add(200, lambda: wrapper(*args, **kwargs))
             return False
@@ -174,7 +176,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
 
     #~ @interrupt_build_and_wait
     def _build_categorised_view(self):
-        print 'Rebuilding categorised installedview...'
+        LOG.debug('Rebuilding categorised installedview...')
         self.cat_docid_map = {}
         enq = self.enquirer
         model = self.base_model # base model not treefilter
@@ -187,6 +189,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
             # node to tree_view
             if not self._use_category(cat): continue
             query = self.get_query_for_cat(cat)
+            LOG.debug("filter.instaleld_only: %s" % self.state.filter.installed_only)
             enq.set_query(query,
                           sortmode=SortMethods.BY_ALPHABET,
                           nonapps_visible=self.nonapps_visible,
@@ -278,7 +281,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
                                         self.state.search_term)
 
     def get_query_for_cat(self, cat):
-        #~ print self.state.channel
+        LOG.debug("self.state.channel: %s" % self.state.channel)
         if self.state.channel and self.state.channel.query:
             query = xapian.Query(xapian.Query.OP_AND,
                                  cat.query,
@@ -384,6 +387,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
                                     length) % { 'amount' : length, }
 
     def display_overview_page(self, page, view_state):
+        LOG.debug("view_state: %s" % view_state)
         self._build_categorised_view()
 
         if self.state.search_term:
@@ -423,52 +427,19 @@ class InstalledPane(SoftwarePane, CategoriesParser):
 
 if __name__ == "__main__":
 
-    from softwarecenter.paths import XAPIAN_BASE_PATH
-    from softwarecenter.db.database import StoreDatabase
-
-    #logging.basicConfig(level=logging.DEBUG)
-
-    if len(sys.argv) > 1:
-        datadir = sys.argv[1]
-    elif os.path.exists("./data"):
-        datadir = "./data"
-    else:
-        datadir = "/usr/share/software-center"
-
-    from softwarecenter.ui.gtk3.utils import get_sc_icon_theme
-    icons = get_sc_icon_theme(datadir)
-
-    Gtk.Window.set_default_icon_name("softwarecenter")
-
-    from softwarecenter.db.pkginfo import get_pkg_info
-    cache = get_pkg_info()
-    cache.open()
-
-    # xapian
-    xapian_base_path = XAPIAN_BASE_PATH
-    pathname = os.path.join(xapian_base_path, "xapian")
-    try:
-        db = StoreDatabase(pathname, cache)
-        db.open()
-    except xapian.DatabaseOpeningError:
-        # Couldn't use that folder as a database
-        # This may be because we are in a bzr checkout and that
-        #   folder is empty. If the folder is empty, and we can find the
-        # script that does population, populate a database in it.
-        if os.path.isdir(pathname) and not os.listdir(pathname):
-            from softwarecenter.db.update import rebuild_database
-            logging.info("building local database")
-            rebuild_database(pathname)
-            db = StoreDatabase(pathname, cache)
-            db.open()
-    except xapian.DatabaseCorruptError, e:
-        logging.exception("xapian open failed")
-        dialogs.error(None, 
-                      _("Sorry, can not open the software database"),
-                      _("Please re-install the 'software-center' "
-                        "package."))
-        # FIXME: force rebuild by providing a dbus service for this
-        sys.exit(1)
+    from softwarecenter.testutils import (get_test_db,
+                                          get_test_datadir,
+                                          get_test_gtk3_viewmanager,
+                                          get_test_pkg_info,
+                                          get_test_icon_cache,
+                                          )
+    # needed because available pane will try to get it
+    vm = get_test_gtk3_viewmanager()
+    vm # make pyflakes happy
+    db = get_test_db()
+    cache = get_test_pkg_info()
+    datadir = get_test_datadir()
+    icons = get_test_icon_cache()
 
     w = InstalledPane(cache, db, 'Ubuntu', icons, datadir)
     w.show()

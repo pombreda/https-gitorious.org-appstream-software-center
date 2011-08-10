@@ -18,7 +18,6 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import cPickle
 import datetime
 import gio
 import gzip
@@ -27,11 +26,24 @@ import logging
 import operator
 import os
 import random
-import simplejson
-import StringIO
+import json
 import subprocess
 import time
 import urllib
+
+# py3 compat
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
+
+# py3 compat
+try:
+    from io import StringIO
+    from urllib.parse import quote_plus
+except ImportError:
+    from StringIO import StringIO
+    from urllib import quote_plus
 
 
 from softwarecenter.backend.piston.rnrclient import RatingsAndReviewsAPI
@@ -47,16 +59,10 @@ from softwarecenter.utils import (upstream_version_compare,
                                   calc_dr,
                                   )
 from softwarecenter.paths import (SOFTWARE_CENTER_CACHE_DIR,
-                                  SUBMIT_REVIEW_APP,
-                                  REPORT_REVIEW_APP,
-                                  SUBMIT_USEFULNESS_APP,
-                                  DELETE_REVIEW_APP,
-                                  MODIFY_REVIEW_APP,
-                                  GET_REVIEWS_HELPER,
-                                  GET_REVIEW_STATS_HELPER,
-                                  GET_USEFUL_VOTES_HELPER,
                                   APP_INSTALL_PATH,
                                   XAPIAN_BASE_PATH,
+                                  RNRApps,
+                                  PistonHelpers,
                                   )
 #from softwarecenter.enums import *
 
@@ -98,7 +104,7 @@ class UsefulnessCache(object):
     def _retrieve_votes_from_cache(self):
         if os.path.exists(self.USEFULNESS_CACHE_FILE):
             try:
-                self.USEFULNESS_CACHE = cPickle.load(open(self.USEFULNESS_CACHE_FILE))
+                self.USEFULNESS_CACHE = pickle.load(open(self.USEFULNESS_CACHE_FILE))
             except:
                 LOG.exception("usefulness cache load fallback failure")
                 os.rename(self.USEFULNESS_CACHE_FILE, self.USEFULNESS_CACHE_FILE+".fail")
@@ -114,7 +120,7 @@ class UsefulnessCache(object):
         
         # run the command and add watcher
         cmd = [os.path.join(
-                softwarecenter.paths.datadir, GET_USEFUL_VOTES_HELPER),
+                softwarecenter.paths.datadir, PistonHelpers.GET_USEFUL_VOTES),
                "--username", user, 
               ]
         spawn_helper = SpawnHelper()
@@ -136,7 +142,7 @@ class UsefulnessCache(object):
         try:
             if not os.path.exists(cachedir):
                 os.makedirs(cachedir)
-            cPickle.dump(self.USEFULNESS_CACHE,
+            pickle.dump(self.USEFULNESS_CACHE,
                       open(self.USEFULNESS_CACHE_FILE, "w"))
             return True
         except:
@@ -204,7 +210,7 @@ class Review(object):
         """
         app = Application("", other.package_name)
         review = cls(app)
-        for (attr, value) in other.__dict__.iteritems():
+        for (attr, value) in other.__dict__.items():
             if not attr.startswith("_"):
                 setattr(review, attr, value)
         return review
@@ -214,7 +220,7 @@ class Review(object):
         """ convert json reviews into "out" review objects """
         app = Application("", other["package_name"])
         review = cls(app)
-        for k, v in other.iteritems():
+        for k, v in other.items():
             setattr(review, k, v)
         return review
 
@@ -238,7 +244,7 @@ class ReviewLoader(object):
         self.language = get_language()
         if os.path.exists(self.REVIEW_STATS_CACHE_FILE):
             try:
-                self.REVIEW_STATS_CACHE = cPickle.load(open(self.REVIEW_STATS_CACHE_FILE))
+                self.REVIEW_STATS_CACHE = pickle.load(open(self.REVIEW_STATS_CACHE_FILE))
                 self._cache_version_old = self._missing_histogram_in_cache()
             except:
                 LOG.exception("review stats cache load failure")
@@ -284,7 +290,7 @@ class ReviewLoader(object):
         cachedir = SOFTWARE_CENTER_CACHE_DIR
         if not os.path.exists(cachedir):
             os.makedirs(cachedir)
-        cPickle.dump(self.REVIEW_STATS_CACHE,
+        pickle.dump(self.REVIEW_STATS_CACHE,
                       open(self.REVIEW_STATS_CACHE_FILE, "w"))
     
     def get_top_rated_apps(self, quantity=12, category=None):
@@ -365,7 +371,7 @@ class ReviewLoader(object):
         """ this spawns the UI for writing a new review and
             adds it automatically to the reviews DB """
         app = translated_app.get_untranslated_app(self.db)
-        cmd = [os.path.join(datadir, SUBMIT_REVIEW_APP), 
+        cmd = [os.path.join(datadir, RNRApps.SUBMIT_REVIEW), 
                "--pkgname", app.pkgname,
                "--iconname", iconname,
                "--parent-xid", "%s" % parent_xid,
@@ -402,7 +408,7 @@ class ReviewLoader(object):
             operation is complete it will call callback with the updated
             review list
         """
-        cmd = [os.path.join(datadir, REPORT_REVIEW_APP), 
+        cmd = [os.path.join(datadir, RNRApps.REPORT_REVIEW), 
                "--review-id", review_id,
                "--parent-xid", "%s" % parent_xid,
                "--datadir", datadir,
@@ -417,7 +423,7 @@ class ReviewLoader(object):
         """ called when report_absuse finished """
         LOG.debug("hide id %s " % review_id)
         if exitcode == 0:
-            for (app, reviews) in self._reviews.iteritems():
+            for (app, reviews) in self._reviews.items():
                 for review in reviews:
                     if str(review.id) == str(review_id):
                         # remove the one we don't want to see anymore
@@ -427,7 +433,7 @@ class ReviewLoader(object):
 
 
     def spawn_submit_usefulness_ui(self, review_id, is_useful, parent_xid, datadir, callback):
-        cmd = [os.path.join(datadir, SUBMIT_USEFULNESS_APP), 
+        cmd = [os.path.join(datadir, RNRApps.SUBMIT_USEFULNESS), 
                "--review-id", "%s" % review_id,
                "--is-useful", "%s" % int(is_useful),
                "--parent-xid", "%s" % parent_xid,
@@ -454,7 +460,7 @@ class ReviewLoader(object):
         LOG.debug("usefulness id %s " % review_id)
         useful_votes = UsefulnessCache()
         useful_votes.add_usefulness_vote(review_id, is_useful)
-        for (app, reviews) in self._reviews.iteritems():
+        for (app, reviews) in self._reviews.items():
             for review in reviews:
                 if str(review.id) == str(review_id):
                     # update usefulness, older servers do not send
@@ -468,7 +474,7 @@ class ReviewLoader(object):
     def _on_submit_usefulness_error(self, spawn_helper, error_str, review_id, callback):
             LOG.warn("submit usefulness id=%s failed with error: %s" %
                      (review_id, error_str))
-            for (app, reviews) in self._reviews.iteritems():
+            for (app, reviews) in self._reviews.items():
                 for review in reviews:
                     if str(review.id) == str(review_id):
                         review.usefulness_submit_error = True
@@ -476,7 +482,7 @@ class ReviewLoader(object):
                         break
 
     def spawn_delete_review_ui(self, review_id, parent_xid, datadir, callback):
-        cmd = [os.path.join(datadir, DELETE_REVIEW_APP), 
+        cmd = [os.path.join(datadir, RNRApps.DELETE_REVIEW), 
                "--review-id", "%s" % review_id,
                "--parent-xid", "%s" % parent_xid,
                "--datadir", datadir,
@@ -492,7 +498,7 @@ class ReviewLoader(object):
     def _on_delete_review_finished(self, spawn_helper, res, review_id, callback):
         """ called when delete_review finished"""
         LOG.debug("delete id %s " % review_id)
-        for (app, reviews) in self._reviews.iteritems():
+        for (app, reviews) in self._reviews.items():
             for review in reviews:
                 if str(review.id) == str(review_id):
                     # remove the one we don't want to see anymore
@@ -503,7 +509,7 @@ class ReviewLoader(object):
     def _on_delete_review_error(self, spawn_helper, error_str, review_id, callback):
         """called if delete review errors"""
         LOG.warn("delete review id=%s failed with error: %s" % (review_id, error_str))
-        for (app, reviews) in self._reviews.iteritems():
+        for (app, reviews) in self._reviews.items():
             for review in reviews:
                 if str(review.id) == str(review_id):
                     review.delete_error = True
@@ -515,7 +521,7 @@ class ReviewLoader(object):
     def spawn_modify_review_ui(self, parent_xid, iconname, datadir, review_id, callback):
         """ this spawns the UI for writing a new review and
             adds it automatically to the reviews DB """
-        cmd = [os.path.join(datadir, MODIFY_REVIEW_APP), 
+        cmd = [os.path.join(datadir, RNRApps.MODIFY_REVIEW), 
                "--parent-xid", "%s" % parent_xid,
                "--iconname", iconname,
                "--datadir", "%s" % datadir,
@@ -534,7 +540,7 @@ class ReviewLoader(object):
         LOG.debug("_on_modify_review_finished")
         #review_json = spawn_helper._stdout
         mod_review = ReviewDetails.from_dict(review_json)
-        for (app, reviews) in self._reviews.iteritems():
+        for (app, reviews) in self._reviews.items():
             for review in reviews:
                 if str(review.id) == str(review_id):
                     # remove the one we don't want to see anymore
@@ -548,7 +554,7 @@ class ReviewLoader(object):
     def _on_modify_review_error(self, spawn_helper, error_str, review_id, callback):
         """called if modify review errors"""
         LOG.debug("modify review id=%s failed with error: %s" % (review_id, error_str))
-        for (app, reviews) in self._reviews.iteritems():
+        for (app, reviews) in self._reviews.items():
             for review in reviews:
                 if str(review.id) == str(review_id):
                     review.modify_error = True
@@ -610,7 +616,7 @@ class ReviewLoaderSpawningRNRClient(ReviewLoader):
             return
         distroseries = self.distro.get_codename()
         # run the command and add watcher
-        cmd = [os.path.join(softwarecenter.paths.datadir, GET_REVIEWS_HELPER),
+        cmd = [os.path.join(softwarecenter.paths.datadir, PistonHelpers.GET_REVIEWS),
                "--language", language, 
                "--origin", origin, 
                "--distroseries", distroseries, 
@@ -645,7 +651,7 @@ class ReviewLoaderSpawningRNRClient(ReviewLoader):
         #origin = "any"
         #distroseries = self.distro.get_codename()
         cmd = [os.path.join(
-                softwarecenter.paths.datadir, GET_REVIEW_STATS_HELPER),
+                softwarecenter.paths.datadir, PistonHelpers.GET_REVIEW_STATS),
                # FIXME: the server currently has bug (#757695) so we
                #        can not turn this on just yet and need to use
                #        the old "catch-all" review-stats for now
@@ -674,7 +680,7 @@ class ReviewLoaderSpawningRNRClient(ReviewLoader):
             s.ratings_average = float(r.ratings_average)
             s.ratings_total = float(r.ratings_total)
             if r.histogram:
-                s.rating_spread = simplejson.loads(r.histogram)
+                s.rating_spread = json.loads(r.histogram)
             else:
                 s.rating_spread = [0,0,0,0,0]
             s.dampened_rating = calc_dr(s.rating_spread)
@@ -703,9 +709,9 @@ class ReviewLoaderJsonAsync(ReviewLoader):
             return callback(app, [])
         # check for gzip header
         if json_str.startswith("\37\213"):
-            gz=gzip.GzipFile(fileobj=StringIO.StringIO(json_str))
+            gz=gzip.GzipFile(fileobj=StringIO(json_str))
             json_str = gz.read()
-        reviews_json = simplejson.loads(json_str)
+        reviews_json = json.loads(json_str)
         reviews = []
         for review_json in reviews_json:
             review = Review.from_json(review_json)
@@ -723,7 +729,7 @@ class ReviewLoaderJsonAsync(ReviewLoader):
         else:
             appname = ""
         url = self.distro.REVIEWS_URL % { 'pkgname' : app.pkgname,
-                                          'appname' : urllib.quote_plus(appname.encode("utf-8")),
+                                          'appname' : quote_plus(appname.encode("utf-8")),
                                           'language' : self.language,
                                           'origin' : origin,
                                           'distroseries' : distroseries,
@@ -745,9 +751,9 @@ class ReviewLoaderJsonAsync(ReviewLoader):
             return
         # check for gzip header
         if json_str.startswith("\37\213"):
-            gz=gzip.GzipFile(fileobj=StringIO.StringIO(json_str))
+            gz=gzip.GzipFile(fileobj=StringIO(json_str))
             json_str = gz.read()
-        review_stats_json = simplejson.loads(json_str)
+        review_stats_json = json.loads(json_str)
         review_stats = {}
         for review_stat_json in review_stats_json:
             #appname = review_stat_json["app_name"]
@@ -973,25 +979,32 @@ if __name__ == "__main__":
     def stats_callback(stats):
         print "stats callback:"
         print stats
-    import gtk
 
     # cache
     from softwarecenter.db.pkginfo import get_pkg_info
     cache = get_pkg_info()
     cache.open()
+
+    db = StoreDatabase(XAPIAN_BASE_PATH+"/xapian", cache)
+    db.open()
+
     # rnrclient loader
     app = Application("ACE", "unace")
     #app = Application("", "2vcard")
-    loader = ReviewLoaderSpawningRNRClient(cache)
+
+    loader = ReviewLoaderSpawningRNRClient(cache, db)
     print loader.refresh_review_stats(stats_callback)
     print loader.get_reviews(app, callback)
-    
+
+    print "\n\n"
     print "default loader, press ctrl-c for next loader"
-    gtk.main()
+    context = GObject.main_context_default()
+    main = GObject.MainLoop(context)
+    main.run()
 
     # default loader
     app = Application("","2vcard")
-    loader = get_review_loader(cache)
+    loader = get_review_loader(cache, db)
     loader.refresh_review_stats(stats_callback)
     loader.get_reviews(app, callback)
-    gtk.main()
+    main.run()

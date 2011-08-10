@@ -138,7 +138,7 @@ if __name__ == "__main__":
                     break
                 Gtk.main_iteration()
         time_to_visible = time.time() - time_entering_main
-        print time_to_visible
+        print(time_to_visible)
         sys.exit(0)
 
     # run it normally

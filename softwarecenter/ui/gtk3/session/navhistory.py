@@ -26,10 +26,12 @@ class NavigationHistory(object):
     """
     MAX_NAV_ITEMS = 25  # limit number of NavItems allowed in the NavStack
 
-    def __init__(self, back_forward_btn, options):
+    def __init__(self, back_forward_btn, options=None):
         self.stack = NavigationStack(self.MAX_NAV_ITEMS, options)
         self.back_forward = back_forward_btn
         self.in_replay_history_mode = False
+        self._nav_back_set_sensitive(False)
+        self._nav_forward_set_sensitive(False)
         return
 
     def append(self, nav_item):
@@ -45,7 +47,7 @@ class NavigationHistory(object):
         stack.clear_forward_items()
         stack.append(nav_item)
 
-        if stack.cursor > 1:
+        if stack.cursor >= 1:
             self._nav_back_set_sensitive(True)
         self._nav_forward_set_sensitive(False)
 
@@ -132,12 +134,13 @@ class NavigationStack(object):
     a navigation history stack
     """
 
-    def __init__(self, max_length, options):
+    def __init__(self, max_length, options=None):
         self.max_length = max_length
         self.stack = []
         self.cursor = 0
 
-        if not options.display_navlog: return
+        if not options or not options.display_navlog: 
+            return
 
         import softwarecenter.ui.gtk3.widgets.navlog as navlog
         self.navlog = navlog.NavLogUtilityWindow(self)

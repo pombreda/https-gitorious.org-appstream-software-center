@@ -24,8 +24,6 @@ import xapian
 
 from aptsources.sourceslist import SourceEntry, SourcesList
 
-from gettext import gettext as _
-
 from softwarecenter.backend import get_install_backend
 from softwarecenter.backend.channel import (ChannelsManager,
                                             SoftwareChannel,
@@ -34,10 +32,9 @@ from softwarecenter.backend.channel import (ChannelsManager,
 from softwarecenter.distro import get_distro
 from softwarecenter.utils import human_readable_name_from_ppa_uri
 
-from softwarecenter.enums import (SortMethods, 
-                                  ViewPages,
-                                  Icons,
-                                  AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME)
+from softwarecenter.enums import (ViewPages,
+                                  AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME,
+                                  )
 
 LOG = logging.getLogger(__name__)
 

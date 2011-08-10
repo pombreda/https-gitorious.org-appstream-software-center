@@ -16,6 +16,7 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+import copy
 from gi.repository import Atk
 import dbus
 import gettext
@@ -23,13 +24,12 @@ from gi.repository import GObject
 from gi.repository import Gtk, Gdk
 #~ from gi.repository import Cairo
 import logging
+import os
 import xapian
-import copy
 
 from gettext import gettext as _
 
 import softwarecenter.utils
-import softwarecenter.ui.gtk3.dialogs as dialogs
 from softwarecenter.backend import get_install_backend
 from softwarecenter.db.database import Application
 from softwarecenter.db.enquire import AppEnquire
@@ -54,7 +54,8 @@ from softwarecenter.ui.gtk3.views.appview import AppView
 from softwarecenter.ui.gtk3.views.appdetailsview_gtk import (
                                                 AppDetailsViewGtk as
                                                 AppDetailsView)
-from softwarecenter.ui.gtk3.views.purchaseview import PurchaseView
+
+from softwarecenter.enums import DEFAULT_SEARCH_LIMIT
 
 from basepane import BasePane
 
@@ -87,7 +88,21 @@ class UnityLauncherInfo(object):
         self.add_to_launcher_requested = False
 
 
+# for DisplayState attribute type-checking
+from softwarecenter.db.categories import Category
+from softwarecenter.backend.channel import SoftwareChannel
+from softwarecenter.ui.gtk3.views.appview import AppViewFilter
 class DisplayState(object):
+
+    _attrs = {'category': (type(None), Category),
+              'channel': (type(None), SoftwareChannel),
+              'subcategory': (type(None), Category),
+              'search_term': (str,),
+              'application': (type(None), Application),
+              'limit': (int,),
+              'filter': (type(None), AppViewFilter),
+              'previous_purchases_query': (type(None), xapian.Query)
+            }
 
     def __init__(self):
         self.category = None
@@ -99,6 +114,17 @@ class DisplayState(object):
         self.filter = None
         self.previous_purchases_query = None
         return
+
+    def __setattr__(self, name, val):
+        attrs = self._attrs
+        if name not in attrs:
+            raise AttributeError("The attr name \"%s\" is not permitted" % name)
+            Gtk.main_quit()
+        if not isinstance(val, attrs[name]):
+            msg = "Attribute %s expects %s, got %s" % (name, attrs[name], type(val))
+            raise TypeError(msg)
+            Gtk.main_quit()
+        return object.__setattr__(self, name, val)
 
     def __str__(self):
         s = '%s %s "%s" %s %s' % (self.category,
@@ -180,7 +206,8 @@ class SoftwarePane(Gtk.VBox, BasePane):
         self.back_forward = vm.get_global_backforward()
         # a notebook below
         self.notebook = Gtk.Notebook()
-        self.notebook.set_show_tabs(False)
+        if not "SOFTWARE_CENTER_DEBUG_TABS" in os.environ:
+            self.notebook.set_show_tabs(False)
         self.notebook.set_show_border(False)
         # make a spinner view to display while the applist is loading
         self.spinner_view = SpinnerView()
@@ -238,14 +265,7 @@ class SoftwarePane(Gtk.VBox, BasePane):
                                                self.cache, 
                                                self.datadir,
                                                self)
-        self.app_details_view.connect("purchase-requested",
-                                      self.on_purchase_requested)
         self.scroll_details.add(self.app_details_view)
-        # purchase view
-        self.purchase_view = PurchaseView()
-        self.purchase_view.connect("purchase-succeeded", self.on_purchase_succeeded)
-        self.purchase_view.connect("purchase-failed", self.on_purchase_failed)
-        self.purchase_view.connect("purchase-cancelled-by-user", self.on_purchase_cancelled_by_user)
         # when the cache changes, refresh the app list
         self.cache.connect("cache-ready", self.on_cache_ready)
 
@@ -303,27 +323,6 @@ class SoftwarePane(Gtk.VBox, BasePane):
         vm = get_viewmanager()
         vm.display_page(self, SoftwarePane.Pages.DETAILS, self.state, self.display_details_page)
 
-    def on_purchase_requested(self, widget, app, url):
-
-        self.appdetails = app.get_details(self.db)
-        iconname = self.appdetails.icon
-        self.purchase_view.initiate_purchase(app, iconname, url)
-        
-    def on_purchase_succeeded(self, widget):
-        # switch to the details page to display the transaction is in progress
-        self.notebook.set_current_page(SoftwarePane.Pages.DETAILS)
-        
-    def on_purchase_failed(self, widget):
-        # return to the the appdetails view via the button to reset it
-        self._click_appdetails_view()
-        dialogs.error(None,
-                      _("Failure in the purchase process."),
-                      _("Sorry, something went wrong. Your payment "
-                        "has been cancelled."))
-        
-    def on_purchase_cancelled_by_user(self, widget):
-        # return to the the appdetails view via the button to reset it
-        self._click_appdetails_view()
 
     def on_nav_back_clicked(self, widget):
         vm = get_viewmanager()
@@ -479,7 +478,7 @@ class SoftwarePane(Gtk.VBox, BasePane):
                                                        launcher_info.icon_size,
                                                        launcher_info.installed_desktop_file_path,
                                                        launcher_info.trans_id)
-        except Exception, e:
+        except Exception as e:
             LOG.warn("could not send dbus signal to the Unity launcher: (%s)", e)
             
     def on_transaction_stopped(self, backend, result):
@@ -499,6 +498,7 @@ class SoftwarePane(Gtk.VBox, BasePane):
         
     def _unmask_appview_spinner(self):
         self.spinner_view.start()
+        return False
         
     def hide_appview_spinner(self):
         """ hide the spinner and display the appview in the panel """
@@ -662,12 +662,19 @@ class SoftwarePane(Gtk.VBox, BasePane):
         return self.notebook.get_current_page()
 
     def get_app_items_limit(self):
-        " stub implementation "
+        if self.state.search_term:
+            return DEFAULT_SEARCH_LIMIT
+        elif self.state.subcategory and self.state.subcategory.item_limit > 0:
+            return self.state.subcategory.item_limit
+        elif self.state.category and self.state.category.item_limit > 0:
+            return self.state.category.item_limit
         return 0
 
     def get_sort_mode(self):
         if self.state.search_term and len(self.state.search_term) >= 2:
             return SortMethods.BY_SEARCH_RANKING
+        elif self.state.subcategory:
+            return self.state.subcategory.sortmode
         elif self.state.category:
             return self.state.category.sortmode
         return SortMethods.BY_ALPHABET

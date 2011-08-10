@@ -19,27 +19,26 @@
 
 from gi.repository import Gtk, GObject
 import logging
-import os
-import sys
-import xapian
 
 from gettext import gettext as _
 
 from softwarecenter.backend import get_install_backend
 from softwarecenter.db.database import StoreDatabase
 from softwarecenter.enums import ViewPages
-from softwarecenter.paths import XAPIAN_BASE_PATH
-from softwarecenter.backend.channel import get_channels_manager
-from softwarecenter.ui.gtk3.widgets.buttons import SectionSelector
+from softwarecenter.backend.channel import (get_channels_manager,
+                                            AllInstalledChannel,
+                                            AllAvailableChannel)
+from softwarecenter.ui.gtk3.widgets.buttons import (SectionSelector,
+                                                    ChannelSelector)
 from softwarecenter.ui.gtk3.em import StockEms
 from softwarecenter.ui.gtk3.widgets.symbolic_icons import (
                                     SymbolicIcon, PendingSymbolicIcon)
-import softwarecenter.ui.gtk3.dialogs as dialogs
 
 
 LOG = logging.getLogger(__name__)
 
 
+_last_button = None
 class ViewSwitcher(Gtk.Box):
 
     __gsignals__ = {
@@ -69,29 +68,31 @@ class ViewSwitcher(Gtk.Box):
         # widgetry
         Gtk.Box.__init__(self)
         self.set_orientation(Gtk.Orientation.HORIZONTAL)
-        self.set_spacing(StockEms.SMALL)
 
         # Gui stuff
         self.view_buttons = {}
+        self.selectors = {}
+        self._prev_view = None  # track the previous active section
+        self._prev_item = None  # track the previous active menu-item
         self._handlers = []
-        self._prev_item = None
+
 
         # order is important here!
         # first, the availablepane items
         icon = SymbolicIcon("available")
-        available = self.append_section(ViewPages.AVAILABLE,
-                                        _("All Software"),
-                                        icon,
-                                        True)
-        available.set_build_func(self.on_get_available_channels)
+        self.append_section_with_channel_sel(
+                                ViewPages.AVAILABLE,
+                                _("All Software"),
+                                icon,
+                                self.on_get_available_channels)
 
         # the installedpane items
         icon = SymbolicIcon("installed")
-        installed = self.append_section(ViewPages.INSTALLED,
-                                        _("Installed"),
-                                        icon,
-                                        True)
-        installed.set_build_func(self.on_get_installed_channels)
+        self.append_section_with_channel_sel(
+                                ViewPages.INSTALLED,
+                                _("Installed"),
+                                icon,
+                                self.on_get_installed_channels)
 
         # the historypane item
         icon = SymbolicIcon("history")
@@ -111,8 +112,13 @@ class ViewSwitcher(Gtk.Box):
         self.notify_icon_of_pending_count(pending)
         if pending > 0:
             self.start_icon_animation()
+            pending_btn = self.view_buttons[ViewPages.PENDING]
+            if not pending_btn.get_visible():
+                pending_btn.set_visible(True)
         else:
             self.stop_icon_animation()
+            pending_btn = self.view_buttons[ViewPages.PENDING]
+            pending_btn.set_visible(False)
         return
 
     def start_icon_animation(self):
@@ -129,23 +135,42 @@ class ViewSwitcher(Gtk.Box):
         image = self.view_buttons[ViewPages.PENDING].image
         image.set_transaction_count(count)
 
+    def introduce_button(self):
+
+        
+
+        return
+
     def on_transaction_finished(self, backend, result):
         if result.success: self.on_channels_changed()
         return
 
-    def append_section(self, view_id, label, icon, has_channel_sel=False):
-        btn = SectionSelector(label, icon, self.ICON_SIZE,
-                              has_channel_sel)
-        self.view_buttons[view_id] = btn
-        self.pack_start(btn, False, False, 0)
-        btn.show()
-        btn.connect('clicked', self.on_view_switch, view_id)
-        return btn
+    def on_section_sel_clicked(self, button, view_id):
+        if self._prev_view is view_id:
+            return True
 
-    def on_view_switch(self, button, view_id):
-        #~ pane = self.view_manager.get_view_widget(view_id)
-        #~ pane.state.reset()
-        self.view_manager.set_active_view(view_id)
+        vm = self.view_manager
+
+        def config_view():
+            # set active pane
+            pane = vm.set_active_view(view_id)
+            # configure DisplayState
+            state = pane.state.copy()
+            if view_id == ViewPages.INSTALLED:
+                state.channel = AllInstalledChannel()
+            else:
+                state.channel = AllAvailableChannel()
+            # decide which page we want to display
+            if hasattr(pane, "Pages"):
+                page = pane.Pages.HOME
+            else:
+                page = None
+            # request page change
+            vm.display_page(pane, page, state)
+            return False
+
+        self._prev_view = view_id
+        GObject.idle_add(config_view)
         return
 
     def on_get_available_channels(self, popup):
@@ -154,13 +179,43 @@ class ViewSwitcher(Gtk.Box):
     def on_get_installed_channels(self, popup):
         return self.build_channel_list(popup, ViewPages.INSTALLED)
 
-    def on_channels_changed(self):
-        for view_id, btn in self.view_buttons.iteritems():
-            if not btn.has_channel_sel: continue
+    def on_channels_changed(self, backend, res):
+        for view_id, sel in self.selectors.items():
             # setting popup to None will cause a rebuild of the popup
             # menu the next time the selector is clicked
-            btn.popup = None
+            sel.popup = None
         return
+
+    def append_section(self, view_id, label, icon):
+        btn = SectionSelector(label, icon, self.ICON_SIZE)
+        self.view_buttons[view_id] = btn
+        self.pack_start(btn, False, False, 0)
+
+        global _last_button
+        if _last_button is not None:
+            btn.join_group(_last_button)
+
+        _last_button = btn
+
+        # this must go last otherwise as the buttons are added
+        # to the group, toggled & clicked gets emitted... causing
+        # all panes to fully initialise on USC startup, which is
+        # undesirable!
+        btn.connect("clicked", self.on_section_sel_clicked, view_id)
+        return btn
+
+    def append_channel_selector(self, section_btn, view_id, build_func):
+        sel = ChannelSelector(section_btn)
+        self.selectors[view_id] = sel
+        sel.set_build_func(build_func)
+        self.pack_start(sel, False, False, 0)
+        return sel
+
+    def append_section_with_channel_sel(self, view_id, label, icon, build_func):
+        btn = self.append_section(view_id, label, icon)
+        btn.draw_hint_has_channel_selector = True
+        sel = self.append_channel_selector(btn, view_id, build_func)
+        return btn, sel
 
     def build_channel_list(self, popup, view_id):
         # clean up old signal handlers
@@ -205,6 +260,25 @@ class ViewSwitcher(Gtk.Box):
         return
 
     def on_channel_selected(self, item, event, channel, view_id):
+        vm = self.view_manager
+
+        def config_view():
+            # set active pane
+            pane = vm.set_active_view(view_id)
+            # configure DisplayState
+            state = pane.state.copy()
+            state.channel = channel
+            # decide which page we want to display
+            if hasattr(pane, "Pages"):
+                if channel.origin == "all":
+                    page = pane.Pages.HOME
+                else:
+                    page = pane.Pages.LIST
+            else:
+                page = None
+            # request page change
+            vm.display_page(pane, page, state)
+            return False
 
         if self._prev_item is item:
             parent = item.get_parent()
@@ -213,79 +287,33 @@ class ViewSwitcher(Gtk.Box):
 
         if self._prev_item is not None:
             self._prev_item.set_property("active", False)
-
         self._prev_item = item
 
-        # set active pane
-        vm = self.view_manager
-        pane = vm.set_active_view(view_id)
+        # activate the section if need be
+        btn = self.view_buttons[view_id]
+        if not btn.get_active():
+            btn.set_active(True)
 
-        # configure DisplayState
-        state = pane.state.copy()
-        state.channel = channel
-
-        # request page change
-        if channel.origin == "all":
-            page = pane.Pages.HOME
-        else:
-            page = pane.Pages.LIST
-
-        GObject.idle_add(vm.display_page, pane, page, state)
+        GObject.idle_add(config_view)
         return
 
 
-if __name__ == "__main__":
-    from softwarecenter.db.pkginfo import get_pkg_info
-    cache = get_pkg_info()
-    cache.open()
+def get_test_window_viewswitcher():
+    from softwarecenter.testutils import (get_test_db,
+                                          get_test_datadir,
+                                          get_test_gtk3_viewmanager,
+                                          get_test_pkg_info,
+                                          get_test_gtk3_icon_cache,
+                                          )
+    cache = get_test_pkg_info()
+    db = get_test_db()
+    icons = get_test_gtk3_icon_cache()
+    datadir = get_test_datadir()
+    manager = get_test_gtk3_viewmanager()
 
-    # xapian
-    xapian_base_path = XAPIAN_BASE_PATH
-    pathname = os.path.join(xapian_base_path, "xapian")
-    try:
-        db = StoreDatabase(pathname, cache)
-        db.open()
-    except xapian.DatabaseOpeningError:
-        # Couldn't use that folder as a database
-        # This may be because we are in a bzr checkout and that
-        #   folder is empty. If the folder is empty, and we can find the
-        # script that does population, populate a database in it.
-        if os.path.isdir(pathname) and not os.listdir(pathname):
-            from softwarecenter.db.update import rebuild_database
-            logging.info("building local database")
-            rebuild_database(pathname)
-            db = StoreDatabase(pathname, cache)
-            db.open()
-    except xapian.DatabaseCorruptError, e:
-        logging.exception("xapian open failed")
-        dialogs.error(None, 
-                      _("Sorry, can not open the software database"),
-                      _("Please re-install the 'software-center' "
-                        "package."))
-        # FIXME: force rebuild by providing a dbus service for this
-        sys.exit(1)
-
-
-    logging.basicConfig(level=logging.DEBUG)
-    import sys
-
-    if len(sys.argv) > 1:
-        datadir = sys.argv[1]
-    elif os.path.exists("./data"):
-        datadir = "./data"
-    else:
-        datadir = "/usr/share/software-center"
-
-    from softwarecenter.ui.gtk3.utils import get_sc_icon_theme
-    icons = get_sc_icon_theme(datadir)
-
-    scroll = Gtk.ScrolledWindow()
-
-    from softwarecenter.ui.gtk3.session.viewmanager import ViewManager
-    notebook = Gtk.Notebook()
-    manager = ViewManager(notebook)
     view = ViewSwitcher(manager, datadir, db, cache, icons)
 
+    scroll = Gtk.ScrolledWindow()
     box = Gtk.VBox()
     box.pack_start(scroll, True, True, 0)
 
@@ -293,8 +321,17 @@ if __name__ == "__main__":
     scroll.add_with_viewport(view)
 
     win.add(box)
-    win.set_size_request(400,400)
-    win.show_all()
+    win.set_size_request(400,200)
     win.connect("destroy", Gtk.main_quit)
+    win.show_all()
+    return win
+
+if __name__ == "__main__":
+    import softwarecenter.paths
+    logging.basicConfig(level=logging.DEBUG)
+
+    softwarecenter.paths.datadir = "./data"
+    win = get_test_window_viewswitcher()
+
 
     Gtk.main()
