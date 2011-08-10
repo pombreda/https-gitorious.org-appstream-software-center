@@ -587,7 +587,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                                      self.db, self.icons):
                     # craft an instance of TransactionFinishedResult to send with the
                     # transaction-stopped signal
-                    result = TransactionFinishedResult(None, None)
+                    result = TransactionFinishedResult(None, False)
                     result.pkgname = app.pkgname
                     self.backend.emit("transaction-stopped", result)
                     return
@@ -599,7 +599,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
                                                       self.db, self.icons):
                     # craft an instance of TransactionFinishedResult to send with the
                     # transaction-stopped signal
-                    result = TransactionFinishedResult(None, None)
+                    result = TransactionFinishedResult(None, False)
                     result.pkgname = app.pkgname
                     self.backend.emit("transaction-stopped", result)
                     return
