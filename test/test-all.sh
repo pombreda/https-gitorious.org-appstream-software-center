@@ -20,7 +20,7 @@ fi
 
 # clear coverage data
 # coverage erase will not erase the files from --parallel-mode 
-rm .coverage*
+rm -f .coverage*
 
 # run with xvfb and coverage
 PYTHON="python-coverage run --parallel-mode"
