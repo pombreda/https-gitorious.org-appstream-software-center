@@ -22,7 +22,7 @@
 from gi.repository import GLib, GObject
 
 import pygtk
-pygtk.require ("2.0")
+pygtk.require("2.0")
 
 import datetime
 import gettext
@@ -55,7 +55,8 @@ from softwarecenter.utils import clear_token_from_ubuntu_sso, get_language
 from softwarecenter.ui.gtk.SimpleGtkbuilderApp import SimpleGtkbuilderApp
 from softwarecenter.ui.gtk.dialogs import SimpleGtkbuilderDialog
 from softwarecenter.distro import get_distro, get_current_arch
-from softwarecenter.ui.gtk.widgets.reviews import StarRatingSelector, StarCaption
+from softwarecenter.ui.gtk.widgets.reviews import (
+    StarRatingSelector, StarCaption)
 from softwarecenter.gwibber_helper import GwibberHelper, GwibberHelperMock
 
 
@@ -67,20 +68,21 @@ from softwarecenter.backend.piston.rnrclient_pristine import ReviewRequest
 
 # get current distro and set default server root
 distro = get_distro()
-SERVER_ROOT=distro.REVIEWS_SERVER
-
+SERVER_ROOT = distro.REVIEWS_SERVER
 
 # server status URL
-SERVER_STATUS_URL = SERVER_ROOT+"/server-status/"
+SERVER_STATUS_URL = SERVER_ROOT + "/server-status/"
+
 
 class UserCancelException(Exception):
     """ user pressed cancel """
     pass
 
-TRANSMIT_STATE_NONE="transmit-state-none"
-TRANSMIT_STATE_INPROGRESS="transmit-state-inprogress"
-TRANSMIT_STATE_DONE="transmit-state-done"
-TRANSMIT_STATE_ERROR="transmit-state-error"
+TRANSMIT_STATE_NONE = "transmit-state-none"
+TRANSMIT_STATE_INPROGRESS = "transmit-state-inprogress"
+TRANSMIT_STATE_DONE = "transmit-state-done"
+TRANSMIT_STATE_ERROR = "transmit-state-error"
+
 
 class GRatingsAndReviews(GObject.GObject):
     """ Access ratings&reviews API as a gobject """
@@ -88,17 +90,17 @@ class GRatingsAndReviews(GObject.GObject):
     __gsignals__ = {
         # send when a transmit is started
         "transmit-start" : (GObject.SIGNAL_RUN_LAST,
-                            GObject.TYPE_NONE, 
+                            GObject.TYPE_NONE,
                             (GObject.TYPE_PYOBJECT, ),
                             ),
         # send when a transmit was successful
         "transmit-success" : (GObject.SIGNAL_RUN_LAST,
-                              GObject.TYPE_NONE, 
+                              GObject.TYPE_NONE,
                               (GObject.TYPE_PYOBJECT, ),
                               ),
         # send when a transmit failed
         "transmit-failure" : (GObject.SIGNAL_RUN_LAST,
-                              GObject.TYPE_NONE, 
+                              GObject.TYPE_NONE,
                               (GObject.TYPE_PYOBJECT, str),
                               ),
     }
