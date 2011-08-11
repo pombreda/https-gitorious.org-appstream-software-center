@@ -96,15 +96,6 @@ class TestWidgets(unittest.TestCase):
         GObject.timeout_add(TIMEOUT, lambda: d.destroy())
         d.run()
 
-    def test_show_pathbar(self):
-        from softwarecenter.ui.gtk3.widgets.pathbar import get_test_pathbar_window, PathPart
-        win = get_test_pathbar_window()
-        win.pb.append(PathPart("foo1"))
-        win.pb.append(PathPart("foo2"))
-        win.pb.pop()
-        GObject.timeout_add(TIMEOUT, lambda: win.destroy())
-        Gtk.main()
-
     def test_reviews(self):
         from softwarecenter.ui.gtk3.widgets.reviews import get_test_reviews_window
         win = get_test_reviews_window()
