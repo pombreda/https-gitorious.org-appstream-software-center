@@ -63,6 +63,7 @@ import deauthorize_dialog as deauthorize_dialog
 from softwarecenter.backend.transactionswatcher import TransactionFinishedResult
 try:
     from aptd_gtk2 import InstallBackendUI
+    InstallBackendUI # pyflakes
 except ImportError:
     from softwarecenter.backend.installbackend import InstallBackendUI
 

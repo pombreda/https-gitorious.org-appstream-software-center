@@ -23,7 +23,6 @@ import logging
 from gettext import gettext as _
 
 from softwarecenter.backend import get_install_backend
-from softwarecenter.db.database import StoreDatabase
 from softwarecenter.enums import ViewPages
 from softwarecenter.backend.channel import (get_channels_manager,
                                             AllInstalledChannel,

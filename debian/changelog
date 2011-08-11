@@ -1,4 +1,4 @@
-software-center (4.1.13) UNRELEASED; urgency=low
+software-center (4.1.13) oneiric; urgency=low
 
   [ Michael Vogt ]
   * py3 compatibility fixes, this includes:
@@ -6,6 +6,7 @@ software-center (4.1.13) UNRELEASED; urgency=low
     - print function usage
     - various conditional imports like "import configparser"
     - use of json instead of simplejson (required py2.6+)
+    - pyflake fixes
   * test/test-all.sh:
     - improve tests 
   * test/gtk3/test_panes.py:
@@ -42,7 +43,7 @@ software-center (4.1.13) UNRELEASED; urgency=low
     test/gtk3/test_navhistory.py:
     - unit test fixes
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 10 Aug 2011 21:29:35 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 11 Aug 2011 10:53:07 +0200
 
 software-center (4.1.12) oneiric; urgency=low
 

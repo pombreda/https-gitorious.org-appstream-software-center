@@ -58,10 +58,10 @@ class GwibberHelper(object):
                                    "/com/gwibber/Service")
         service_iface = dbus.Interface(proxy_obj, "com.Gwibber.Service")
         if account_id:
-            json = json.dumps({'message' : message,
+            json_str = json.dumps({'message' : message,
                                      'accounts' : [account_id],
                                      })
-            service_iface.Send(json)
+            service_iface.Send(json_str)
         else:
             service_iface.SendMessage(message)
         return True
