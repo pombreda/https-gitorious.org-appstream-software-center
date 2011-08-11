@@ -43,8 +43,11 @@ class TestNavhistory(unittest.TestCase):
         # create a NavHistory 
         pane = Mock()
         pane.pane_name = "pane_name"
+        # first we must initialize the NavHistory with the equivalent of the initial category view
+        item = NavigationItem(view_manager, pane, "cat_page", "cat_state", "cb")
+        navhistory.append(item)
         item = NavigationItem(view_manager, pane, "a_page", "a_state", "cb")
-        # add it and ensure that the button is now sensitive
+        # add a new item and ensure that the button is now sensitive
         navhistory.append(item)
         self.assertFalse(back_forward_btn.right.sensitive)
         self.assertTrue(back_forward_btn.left.sensitive)

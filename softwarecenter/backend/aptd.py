@@ -38,7 +38,9 @@ from defer import inline_callbacks, return_value
 
 from softwarecenter.backend.transactionswatcher import (
     BaseTransactionsWatcher, 
-    BaseTransaction)
+    BaseTransaction,
+    TransactionFinishedResult,
+    TransactionProgress)
 from softwarecenter.backend.installbackend import InstallBackend
 
 from gettext import gettext as _
@@ -49,26 +51,6 @@ class FakePurchaseTransaction(object):
         self.appname = app.appname
         self.iconname = iconname
         self.progress = 0
-
-# we use this instead of just exposing the aptdaemon Transaction object
-# so that we have a easier time porting it to a different backend
-class TransactionFinishedResult(object):
-    """ represents the result of a transaction """
-    def __init__(self, trans, enum):
-        self.success = (enum != enums.EXIT_FAILED)
-        if trans:
-            self.pkgname = trans.meta_data.get("sc_pkgname")
-            self.meta_data = trans.meta_data
-        else:
-            self.pkgname = None
-            self.meta_data = None
-
-class TransactionProgress(object):
-    """ represents the progress of the transaction """
-    def __init__(self, trans):
-        self.pkgname = trans.meta_data.get("sc_pkgname")
-        self.meta_data = trans.meta_data
-        self.progress = trans.progress
 
 class AptdaemonTransaction(BaseTransaction):
     def __init__(self, trans):
@@ -473,7 +455,7 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
             except:
                 self._logger.exception("authenticate_for_purchase failed")
                 self._clean_pending_purchases(app.pkgname)
-                result = TransactionFinishedResult(None, enums.EXIT_FAILED)
+                result = TransactionFinishedResult(None, False)
                 result.pkgname = app.pkgname
                 self.emit("transaction-stopped", result)
                 return
@@ -736,7 +718,7 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
             self.emit("reload-finished", trans, enum != enums.EXIT_FAILED)
         # send appropriate signals
         self.inject_fake_transactions_and_emit_changed_signal()
-        self.emit("transaction-finished", TransactionFinishedResult(trans, enum))
+        self.emit("transaction-finished", TransactionFinishedResult(trans, enum != enums.EXIT_FAILED))
 
     @inline_callbacks
     def _config_file_conflict(self, transaction, old, new):
@@ -800,7 +782,7 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
     def _on_trans_error(self, error, pkgname=None):
         self._logger.warn("_on_trans_error: %s", error)
         # re-enable the action button again if anything went wrong
-        result = TransactionFinishedResult(None, enums.EXIT_FAILED)
+        result = TransactionFinishedResult(None, False)
         result.pkgname = pkgname
 
         # clean up pending transactions

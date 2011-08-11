@@ -6,13 +6,43 @@ software-center (4.1.13) UNRELEASED; urgency=low
     - print function usage
     - various conditional imports like "import configparser"
     - use of json instead of simplejson (required py2.6+)
+  * test/test-all.sh:
+    - improve tests 
+  * test/gtk3/test_panes.py:
+    - add basic tests for the various panes
+  * softwarecenter/testutils.py:
+    - add helper factory methods to make writing tests easier
+  * merged lp:~alexeftimie/software-center/backend-refactor,
+    many thanks!
+  * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
+    - reenable weblive events, thanks to Stephane Graber!
+  * softwarecenter/ui/gtk3/app.py:
+    - setup default mainloop
+  * debian/control:
+    - add recommends to oneconf
+  
+  [ Matthew McGowan ]
+  * make the globalpane paint a theme derived base color 
+    then paint the diagonal lines
+  * small fix to correct bf button sensitivity given cursor 
+    position within the navigation stack
   
   [ Robert Roth ]
   * lp:~evfool/software-center/hideabout:
     - Hide the about dialog when clicking close in the GTK3 version 
      (LP: #822662)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 09 Aug 2011 10:22:55 +0200
+  [ Gary Lasker ]
+  * softwarecenter/ui/gtk3/widgets/cellrenderers.py:
+     - relocate the list view ratings stars per the latest
+       spec, for gtk3
+  * softwarecenter/utils.py:
+    - fix version_compare lambdas 
+  * test/gtk3/test_widgets.py,
+    test/gtk3/test_navhistory.py:
+    - unit test fixes
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 10 Aug 2011 21:29:35 -0400
 
 software-center (4.1.12) oneiric; urgency=low
 

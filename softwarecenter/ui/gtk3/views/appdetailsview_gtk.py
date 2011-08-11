@@ -36,7 +36,7 @@ from softwarecenter.cmdfinder import CmdFinder
 from softwarecenter.netstatus import (NetState, get_network_watcher,
                                       network_state_is_connected)
 from softwarecenter.db.application import Application
-from softwarecenter.db.debfile import DebFileApplication
+from softwarecenter.db import DebFileApplication
 from softwarecenter.backend.reviews import ReviewStats
 #from softwarecenter.backend.zeitgeist_simple import zeitgeist_singleton
 from softwarecenter.enums import (AppActions, PkgStates,
@@ -986,11 +986,11 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         right_vb.pack_start(self.test_drive, False, False, 0)
 
         # attach to all the WebLive events
-        #~ self.weblive.client.connect("progress", self.on_weblive_progress)
-        #~ self.weblive.client.connect("connected", self.on_weblive_connected)
-        #~ self.weblive.client.connect("disconnected", self.on_weblive_disconnected)
-        #~ self.weblive.client.connect("exception", self.on_weblive_exception)
-        #~ self.weblive.client.connect("warning", self.on_weblive_warning)
+        self.weblive.client.connect("progress", self.on_weblive_progress)
+        self.weblive.client.connect("connected", self.on_weblive_connected)
+        self.weblive.client.connect("disconnected", self.on_weblive_disconnected)
+        self.weblive.client.connect("exception", self.on_weblive_exception)
+        self.weblive.client.connect("warning", self.on_weblive_warning)
 
         # homepage link button
         self.homepage_btn = Gtk.Button.new_with_label(_('Developer Web Site'))
