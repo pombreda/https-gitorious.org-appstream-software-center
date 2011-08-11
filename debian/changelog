@@ -38,10 +38,11 @@ software-center (4.1.13) UNRELEASED; urgency=low
        spec, for gtk3
   * softwarecenter/utils.py:
     - fix version_compare lambdas 
-  * test/gtk3/test_widgets.py:
-    - fix broken unit test 
+  * test/gtk3/test_widgets.py,
+    test/gtk3/test_navhistory.py:
+    - unit test fixes
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 10 Aug 2011 20:56:12 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 10 Aug 2011 21:29:35 -0400
 
 software-center (4.1.12) oneiric; urgency=low
 
