@@ -141,7 +141,8 @@ class ViewSwitcher(Gtk.Box):
         return
 
     def on_transaction_finished(self, backend, result):
-        if result.success: self.on_channels_changed()
+        if result.success: 
+            self.on_channels_changed()
         return
 
     def on_section_sel_clicked(self, button, view_id):
@@ -178,7 +179,7 @@ class ViewSwitcher(Gtk.Box):
     def on_get_installed_channels(self, popup):
         return self.build_channel_list(popup, ViewPages.INSTALLED)
 
-    def on_channels_changed(self, backend, res):
+    def on_channels_changed(self, backend=None, res=None):
         for view_id, sel in self.selectors.items():
             # setting popup to None will cause a rebuild of the popup
             # menu the next time the selector is clicked

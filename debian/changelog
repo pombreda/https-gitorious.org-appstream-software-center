@@ -1,3 +1,10 @@
+software-center (4.1.14) oneiric; urgency=low
+
+  * softwarecenter/ui/gtk3/panes/viewswitcher.py:
+    - fix crash when a transaction finished in the gtk3 version
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 11 Aug 2011 11:57:08 +0200
+
 software-center (4.1.13) oneiric; urgency=low
 
   [ Michael Vogt ]
