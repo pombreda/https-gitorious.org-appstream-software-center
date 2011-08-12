@@ -26,6 +26,8 @@ class AppTreeView(Gtk.TreeView):
     VARIANT_REMOVE = 1
     VARIANT_INSTALL = 2
 
+    ACTION_BTNS = (VARIANT_REMOVE, VARIANT_INSTALL)
+
     def __init__(self, app_view, icons, show_ratings, store=None):
         Gtk.TreeView.__init__(self)
         self._logger = logging.getLogger("softwarecenter.view.appview")
@@ -207,13 +209,13 @@ class AppTreeView(Gtk.TreeView):
         app = model[path[0]][AppGenericStore.COL_ROW_DATA]
         if (not network_state_is_connected() and
             not self.appmodel.is_installed(app)):
-            action_btn = tr.get_button_by_name(CellButtonIDs.ACTION)
-            action_btn.set_sensitive(False)
-            return
+            for btn_id in self.ACTION_BTNS:
+                btn_id = tr.get_button_by_name(CellButtonIDs.ACTION)
+                btn_id.set_sensitive(False)
 
         use_hand = False
         for btn in tr.get_buttons():
-            if btn.state == Gtk.StateType.INSENSITIVE:
+            if btn.state == Gtk.StateFlags.INSENSITIVE:
                 continue
 
             if btn.point_in(x, y):
@@ -225,7 +227,6 @@ class AppTreeView(Gtk.TreeView):
             else:
                 if btn.state != Gtk.StateFlags.NORMAL:
                     btn.set_state(Gtk.StateFlags.NORMAL)
-        
 
         if use_hand:
             window.set_cursor(self._cursor_hand)

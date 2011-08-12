@@ -524,6 +524,9 @@ class CellButtonRenderer:
         self.current_variant = current_var
         return
 
+    def is_sensitive(self):
+        return self.state == Gtk.StateFlags.INSENSITIVE
+
     def render(self, context, cr, layout):
         x, y, width, height = self.allocation
 
