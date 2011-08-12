@@ -1,11 +1,17 @@
-software-center (4.1.14) UNRELEASEDoneiric; urgency=low
+software-center (4.1.14) UNRELEASED; urgency=low
 
+  [ Michael Vogt ]
   * softwarecenter/ui/gtk3/panes/viewswitcher.py:
     - fix crash when a transaction finished in the gtk3 version
   * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
     - weblive fix, thanks to Stephane Graber! (LP: #824567)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Fri, 12 Aug 2011 00:40:19 -0700
+  [ Gary Lasker ]
+  * softwarecenter/ui/gtk/appview.py,
+    softwarecenter/ui/gtk3/widgets/cellrenderers.py:
+    -lighten the color of the reviews count displayed in the list views 
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Fri, 12 Aug 2011 01:14:16 -0700
 
 software-center (4.1.13) oneiric; urgency=low
 
