@@ -3,6 +3,9 @@ software-center (4.1.14) UNRELEASED; urgency=low
   [ Michael Vogt ]
   * softwarecenter/ui/gtk3/panes/viewswitcher.py:
     - fix crash when a transaction finished in the gtk3 version
+  * data/ui/gtk3/dialogs.ui:
+    - fixes in the gtkbuilder file (adjust boxes to the right type
+      after opening with the new glade)
   * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
     - weblive fix, thanks to Stephane Graber! (LP: #824567)
 
