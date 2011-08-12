@@ -186,7 +186,6 @@ class AppTreeView(Gtk.TreeView):
 
     def _on_motion(self, tree, event, tr):
         window = self.get_window()
-
         x, y = int(event.x), int(event.y)
         if not self._xy_is_over_focal_row(x, y):
             window.set_cursor(None)
@@ -202,6 +201,14 @@ class AppTreeView(Gtk.TreeView):
 
         if self.rowref_is_category(rowref):
             window.set_cursor(None)
+            return
+
+        model = tree.get_model()
+        app = model[path[0]][AppGenericStore.COL_ROW_DATA]
+        if (not network_state_is_connected() and
+            not self.appmodel.is_installed(app)):
+            action_btn = tr.get_button_by_name(CellButtonIDs.ACTION)
+            action_btn.set_sensitive(False)
             return
 
         use_hand = False
@@ -267,10 +274,9 @@ class AppTreeView(Gtk.TreeView):
             action_btn.set_variant(self.VARIANT_REMOVE)
         else:
             action_btn.set_variant(self.VARIANT_INSTALL)
-
-        if not network_state_is_connected():
-            action_btn.set_sensitive(False)
-            return
+            if not network_state_is_connected():
+                action_btn.set_sensitive(False)
+                return
 
         if self.appmodel.get_transaction_progress(app) > 0:
             action_btn.set_sensitive(False)
