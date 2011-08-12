@@ -419,10 +419,6 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
 
     # callbacks
     def on_realize(self, widget):
-        def display_lobby():
-            self.view_manager.set_active_view(ViewPages.AVAILABLE)
-            return
-        GObject.idle_add(display_lobby)
         return
 
     def on_available_pane_created(self, widget):
@@ -1131,6 +1127,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         # allow s-c to be called with a search term
         if packages and packages[0].startswith("search:"):
             packages[0] = packages[0].partition("search:")[2]
+            self.available_pane.init_view()
             self.available_pane.searchentry.set_text(" ".join(packages))
             return
 
@@ -1162,12 +1159,15 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
                     self.available_pane.init_view()
                     self.available_pane.show_app(app)
             show_app(self, app)
-
-        if len(packages) > 1:
+            return    
+        elif len(packages) > 1:
             # turn multiple packages into a search with ","
+            self.available_pane.init_view()
             self.available_pane.searchentry.set_text(",".join(packages))
-            self.available_pane.notebook.set_current_page(
-                self.available_pane.PAGE_APPLIST)
+            return
+        # normal startup, queue showing the lobby when we are ready
+        GObject.idle_add(
+            lambda: self.view_manager.set_active_view(ViewPages.AVAILABLE))
 
     def restore_state(self):
         if self.config.has_option("general", "size"):
@@ -1214,9 +1214,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
 
         # FIXME: make this more predictable and less random
         # show args when the app is ready
-        def _delayed_show_available_packages():
-            GObject.timeout_add(500, self.show_available_packages, args)
-        GObject.idle_add(_delayed_show_available_packages)
+        self.show_available_packages(args)
 
         atexit.register(self.save_state)
         SimpleGtkbuilderApp.run(self)
