@@ -346,15 +346,15 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         # setup window name and about information (needs branding)
         name = self.distro.get_app_name()
         self.window_main.set_title(name)
-        #~ self.aboutdialog.set_name(name)
-        #~ about_description = self.distro.get_app_description()
-        #~ self.aboutdialog.set_comments(about_description)
+        self.aboutdialog.set_name(name)
+        about_description = self.distro.get_app_description()
+        self.aboutdialog.set_comments(about_description)
 
-        #~ # about dialog
+        # about dialog
         self.aboutdialog.connect("response", lambda dialog, rid: dialog.hide())
-        #~ self.aboutdialog.connect("delete_event", self.aboutdialog.hide_on_delete)
+        self.aboutdialog.connect("delete_event", lambda w,e: self.aboutdialog.hide_on_delete())
 
-        #~ # restore state
+        # restore state
         self.config = get_config()
         self.restore_state()
 
@@ -363,13 +363,6 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         self.status_box.a11y = self.status_box.get_accessible()
         self.status_box.a11y.set_role(Atk.Role.STATUSBAR)
         self.status_box.add(self.label_status)
-
-        # FIXME this stuff seems to be causing a segfault...
-        #~ # make the local cache directory if it doesn't already exist
-        #~ icon_cache_dir = SOFTWARE_CENTER_ICON_CACHE_DIR
-        #~ if not os.path.exists(icon_cache_dir):
-            #~ os.makedirs(icon_cache_dir)
-        #~ self.icons.append_search_path(icon_cache_dir)
 
         # run s-c-agent update
         if options.disable_buy:
@@ -383,13 +376,6 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
                 flags=GObject.SPAWN_DO_NOT_REAP_CHILD)
             GObject.child_watch_add(
                 pid, self._on_update_software_center_agent_finished)
-
-
-        # FIXME:  REMOVE THIS once launchpad integration is enabled
-        #         by default
-        #~ if not options.enable_lp:
-            #~ file_menu = self.builder.get_object("menu1")
-            #~ file_menu.remove(self.builder.get_object("menuitem_launchpad_private_ppas"))
 
         if options.disable_buy and not options.enable_lp:
             file_menu.remove(self.builder.get_object("separator_login"))
@@ -412,14 +398,13 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         #~ self.view_switcher.connect("view-changed", 
                                    #~ self.on_view_switcher_changed)
 
-        # XXX lp integration still uses gtk2
         # launchpad integration help, its ok if that fails
-        #~ try:
-            #~ import LaunchpadIntegration
-            #~ LaunchpadIntegration.set_sourcepackagename("software-center")
-            #~ LaunchpadIntegration.add_items(self.menu_help, 1, True, False)
-        #~ except Exception, e:
-            #~ LOG.debug("launchpad integration error: '%s'" % e)
+        try:
+            from gi.repository import LaunchpadIntegration
+            LaunchpadIntegration.set_sourcepackagename("software-center")
+            LaunchpadIntegration.add_items(self.menu_help, 1, True, False)
+        except Exception, e:
+            LOG.debug("launchpad integration error: '%s'" % e)
 
 
 
@@ -1146,11 +1131,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         # allow s-c to be called with a search term
         if packages and packages[0].startswith("search:"):
             packages[0] = packages[0].partition("search:")[2]
-            self.available_pane.navigation_bar.remove_all(animate=False) # animate *must* be false here
-            self.view_switcher.set_view(ViewPages.AVAILABLE)
-            self.available_pane.notebook.set_current_page(
-                self.available_pane.PAGE_APPLIST)
-            self.available_pane.searchentry.set_text(" ".join(packages))
+            self.global_pane.searchentry.set_text(" ".join(packages))
             return
 
         if len(packages) == 1:

@@ -8,6 +8,14 @@ software-center (4.1.14) UNRELEASED; urgency=low
       after opening with the new glade)
   * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
     - weblive fix, thanks to Stephane Graber! (LP: #824567)
+  * data/ui/gtk3/SoftwareCenter.ui:
+    - gtkbuilder file fixes (GtkVBox -> GtkBox with orientation property)
+  * softwarecenter/ui/gtk3/app.py:
+    - fixes in the about dialog
+    - remove hidden (and not well working) "menuitem_launchpad_private_ppas"
+    - add gtk3 launchpadintegration
+  * softwarecenter/ui/gtk3/utils.py:
+    - add local SOFTWARE_CENTER_ICON_CACHE_DIR search path
 
   [ Gary Lasker ]
   * softwarecenter/ui/gtk/appview.py,
