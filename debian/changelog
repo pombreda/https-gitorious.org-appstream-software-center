@@ -1,3 +1,12 @@
+software-center (4.1.15) UNRELEASED; urgency=low
+
+  [ Kiwinote ]
+  * data/ui/gtk3/SoftwareCenter.ui,
+    softwarecenter/ui/gtk3/app.py:
+    - few more tweaks to the about dialog
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 12 Aug 2011 22:10:32 +0200
+
 software-center (4.1.14) oneiric; urgency=low
 
   [ Michael Vogt ]
