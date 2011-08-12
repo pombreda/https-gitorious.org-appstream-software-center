@@ -147,6 +147,8 @@ class AvailablePane(SoftwarePane):
         self.subcategories_view.connect(
             "category-selected", self.on_subcategory_activated)
         self.subcategories_view.connect(
+            "application-activated", self.on_application_activated)
+        self.subcategories_view.connect(
             "show-category-applist", self.on_show_category_applist)
         self.scroll_subcategories = Gtk.ScrolledWindow()
         self.scroll_subcategories.set_policy(
