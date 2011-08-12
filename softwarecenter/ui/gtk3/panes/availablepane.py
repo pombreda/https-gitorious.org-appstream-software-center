@@ -244,21 +244,23 @@ class AvailablePane(SoftwarePane):
                 not self.state.search_term)
 
     def _get_header_for_view_state(self, view_state):
+        channel = view_state.channel
         category = view_state.category
         subcategory = view_state.subcategory
 
-        cat_name = None
-        subcat_name = None
-        if view_state.channel is not None:
-            ch_name = GObject.markup_escape_text(view_state.channel.display_name)
+        line1 = None
+        line2 = None
+        if channel is not None:
+            name = channel.display_name or channel.name
+            line1 = GObject.markup_escape_text(name)
         elif subcategory is not None:
-            cat_name = GObject.markup_escape_text(category.name)
-            subcat_name = GObject.markup_escape_text(subcategory.name)
+            line1 = GObject.markup_escape_text(category.name)
+            line2 = GObject.markup_escape_text(subcategory.name)
         elif category is not None:
-            cat_name = GObject.markup_escape_text(category.name)
+            line1 = GObject.markup_escape_text(category.name)
         else:
-            cat_name = _("All Software")
-        return cat_name, subcat_name
+            line1 = _("All Software")
+        return line1, line2
 
     #~ def _show_hide_subcategories(self, show_category_applist=False):
         #~ # check if have subcategories and are not in a subcategory

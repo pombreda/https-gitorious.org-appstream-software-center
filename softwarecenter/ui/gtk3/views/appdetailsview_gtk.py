@@ -1171,6 +1171,7 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         return
 
     def _update_weblive(self, app_details):
+        if self.weblive.client is None: return
         self.desktop_file = app_details.desktop_file
         # only enable test drive if we have a desktop file and exec line
         if (not self.weblive.ready or
