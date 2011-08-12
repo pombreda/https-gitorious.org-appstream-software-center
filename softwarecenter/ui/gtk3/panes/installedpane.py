@@ -326,8 +326,8 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         """callback when the search entry widget changes"""
         logging.debug("on_search_terms_changed: '%s'" % terms)
 
-        self.state.search_term = terms
         self._search(terms.strip())
+        self.state.search_term = terms
         self.notebook.set_current_page(InstalledPane.Pages.LIST)
         return
 
@@ -412,13 +412,13 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         """Return True if we are in the app_details view """
         return self.notebook.get_current_page() == InstalledPane.Pages.DETAILS
 
-if __name__ == "__main__":
 
+def get_test_window():
     from softwarecenter.testutils import (get_test_db,
                                           get_test_datadir,
                                           get_test_gtk3_viewmanager,
                                           get_test_pkg_info,
-                                          get_test_icon_cache,
+                                          get_test_gtk3_icon_cache,
                                           )
     # needed because available pane will try to get it
     vm = get_test_gtk3_viewmanager()
@@ -426,17 +426,29 @@ if __name__ == "__main__":
     db = get_test_db()
     cache = get_test_pkg_info()
     datadir = get_test_datadir()
-    icons = get_test_icon_cache()
+    icons = get_test_gtk3_icon_cache()
 
     w = InstalledPane(cache, db, 'Ubuntu', icons, datadir)
     w.show()
 
     win = Gtk.Window()
+    win.set_data("pane", w)
     win.add(w)
-    w.init_view()
     win.set_size_request(400, 600)
-    win.show_all()
     win.connect("destroy", lambda x: Gtk.main_quit())
 
+    # init the view
+    w.init_view()
+
+    from softwarecenter.backend.channel import AllInstalledChannel
+    w.state.channel = AllInstalledChannel()
+    w.display_overview_page(None, None)
+
+    win.show_all()
+    return win
+
+
+if __name__ == "__main__":
+    win = get_test_window()
     Gtk.main()
 

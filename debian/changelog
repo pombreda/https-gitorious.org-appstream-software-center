@@ -19,6 +19,10 @@ software-center (4.1.14) UNRELEASED; urgency=low
   * softwarecenter/ui/gtk3/app.py:
     - make "search:term", "apt:pkg" and "pkg" commandline args work
       again
+  * softwarecenter/ui/gtk3/panes/installedpane.py:
+    - fix installedpane test window, fix installed search
+  * test/gtk3/test_search.py:
+    - add search testcase
 
   [ Gary Lasker ]
   * softwarecenter/ui/gtk/appview.py,
