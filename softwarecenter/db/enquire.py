@@ -172,7 +172,7 @@ class AppEnquire(GObject.GObject):
             if self.sortmode == SortMethods.BY_CATALOGED_TIME:
                 if (self.db._axi_values and 
                     "catalogedtime" in self.db._axi_values):
-                    enquire.set_SortMethods.by_value(
+                    enquire.set_sort_by_value(
                         self.db._axi_values["catalogedtime"], reverse=True)
                 else:
                     LOG.warning("no catelogedtime in axi")
@@ -182,8 +182,8 @@ class AppEnquire(GObject.GObject):
                 enquire.set_sort_by_key(sorter, reverse=True)
             # search ranking - when searching
             elif self.sortmode == SortMethods.BY_SEARCH_RANKING:
-                #enquire.set_SortMethods.by_value(XapianValues.POPCON)
-                # use the default enquire.set_SortMethods.by_relevance()
+                #enquire.set_sort_by_value(XapianValues.POPCON)
+                # use the default enquire.set_sort_by_relevance()
                 pass
             # display name - all categories / channels
             elif (self.db._axi_values and 
@@ -192,7 +192,7 @@ class AppEnquire(GObject.GObject):
                 # fallback to pkgname - if needed?
             # fallback to pkgname - if needed?
             else:
-                enquire.set_SortMethods.by_value_then_relevance(
+                enquire.set_sort_by_value_then_relevance(
                     XapianValues.PKGNAME, False)
                     
             #~ try:
