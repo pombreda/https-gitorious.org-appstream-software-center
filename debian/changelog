@@ -1,4 +1,4 @@
-software-center (4.1.14) UNRELEASEDoneiric; urgency=low
+software-center (4.1.14) oneiric; urgency=low
 
   [ Michael Vogt ]
   * softwarecenter/ui/gtk3/panes/viewswitcher.py:
@@ -38,7 +38,7 @@ software-center (4.1.14) UNRELEASEDoneiric; urgency=low
   * softwarecenter/db/enquire.py:
     - fix incorrect substitution for set_sort_by_value
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 12 Aug 2011 21:52:41 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 12 Aug 2011 22:10:32 +0200
 
 software-center (4.1.13) oneiric; urgency=low
 

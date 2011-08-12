@@ -25,14 +25,12 @@ from gi.repository import GObject
 from gettext import gettext as _
 
 from softwarecenter.enums import (NonAppVisibility,
-                                  NavButtons, 
                                   SortMethods)
 from softwarecenter.utils import wait_for_apt_cache_ready
 from softwarecenter.db.categories import (CategoriesParser,
                                           categories_sorted_by_name)
 from softwarecenter.ui.gtk3.models.appstore2 import (
-                                                AppTreeStore,
-                                                 CategoryRowReference)
+    AppTreeStore, CategoryRowReference)
 from softwarepane import SoftwarePane
 from softwarecenter.ui.gtk3.views.appview import AppViewFilter
 

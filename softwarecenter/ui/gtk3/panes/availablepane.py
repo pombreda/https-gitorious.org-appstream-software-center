@@ -40,11 +40,8 @@ from softwarecenter.ui.gtk3.views.catview_gtk import (LobbyViewGtk,
                                                       SubCategoryViewGtk)
 from softwarepane import SoftwarePane
 from softwarecenter.ui.gtk3.session.viewmanager import get_viewmanager
-from softwarecenter.db.categories import Category, CategoriesParser
 
 LOG = logging.getLogger(__name__)
-
-
 
 class AvailablePane(SoftwarePane):
     """Widget that represents the available panel in software-center

@@ -37,7 +37,7 @@ class TestPurchase(unittest.TestCase):
         self._p()
         app.on_menuitem_reinstall_purchases_activate(None)
         # it can take a bit until the sso client is ready
-        for i in range(50):
+        for i in range(100):
             if (app.available_pane.get_current_page() == 
                 AvailablePane.Pages.LIST):
                 break
