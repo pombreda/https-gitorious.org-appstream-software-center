@@ -51,9 +51,12 @@ class AppView(Gtk.VBox):
     }
 
     _SORT_METHOD_INDEX = (SortMethods.BY_ALPHABET,
-                          SortMethods.BY_TOP_RATED)
+                          SortMethods.BY_TOP_RATED,
+                          SortMethods.BY_SEARCH_RANKING)
+    # indices that relate to the above tuple
     _SORT_BY_ALPHABET = 0
     _SORT_BY_TOP_RATED = 1
+    _SORT_BY_SEARCH_RANKING = 2
 
     def __init__(self, db, cache, icons, show_ratings):
         Gtk.VBox.__init__(self)
@@ -81,14 +84,31 @@ class AppView(Gtk.VBox):
         self.tree_view = AppTreeView(self, icons,
                                      show_ratings, store=None)
         self.tree_view_scroll.add(self.tree_view)
+
+        self.user_defined_sort_method = False
+        self._handler_changed = self.sort_methods_combobox.connect(
+                                    "changed",
+                                    self.on_sort_method_changed)
+        return
+
+    def on_sort_method_changed(self, *args):
+        self.user_defined_sort_method = True
         return
 
     def _get_sort_methods_combobox(self):
         combo = Gtk.ComboBoxText()
         combo.append_text(_("By Name"))
         combo.append_text(_("By Popularity"))
+        combo.append_text(_("By Relevance"))
         combo.set_active(self._SORT_BY_TOP_RATED)
         return combo
+
+    def set_sort_method_with_no_signal(self, sort_method):
+        combo = self.sort_methods_combobox
+        combo.handler_block(self._handler_changed)
+        combo.set_active(sort_method)
+        combo.handler_unblock(self._handler_changed)
+        return
 
     def set_header_labels(self, first_line, second_line):
         if second_line:
@@ -101,7 +121,13 @@ class AppView(Gtk.VBox):
         self.tree_view.set_model(model)
         return
 
-    def display_matches(self, matches):
+    def display_matches(self, matches, sort_by_relevance=False):
+        self.user_defined_sort_method = False
+        combo = self.sort_methods_combobox
+        if sort_by_relevance:
+            self.set_sort_method_with_no_signal(self._SORT_BY_SEARCH_RANKING)
+        elif self.get_sort_mode() == SortMethods.BY_SEARCH_RANKING:
+            self.set_sort_method_with_no_signal(self._SORT_BY_TOP_RATED)
         model = self.tree_view.get_model()
         model.set_from_matches(matches)
         return

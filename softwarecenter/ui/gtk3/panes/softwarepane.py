@@ -397,11 +397,16 @@ class SoftwarePane(Gtk.VBox, BasePane):
 
     def on_query_complete(self, enquirer):
         self.emit("app-list-changed", len(enquirer.matches))
-        self.app_view.display_matches(enquirer.matches)
+        sort_by_relevance = (self._is_in_search_mode() and
+                             not self.app_view.user_defined_sort_method)
+        
+        self.app_view.display_matches(enquirer.matches,
+                                      sort_by_relevance)
         self.hide_appview_spinner()
         return
 
     def on_app_view_sort_method_changed(self, combo):
+        print 'user defined sort method:', self.app_view.user_defined_sort_method
         self.app_view.clear_model()
         query = self.get_query()
         self._refresh_apps_with_apt_cache(query)
@@ -435,6 +440,10 @@ class SoftwarePane(Gtk.VBox, BasePane):
         
     def on_transaction_finished(self, backend, result):
         self._check_unity_launcher_transaction_finished(result)
+
+    def _is_in_search_mode(self):
+        return (self.state.search_term and
+                len(self.state.search_term) >= 2)
 
     def _check_unity_launcher_transaction_finished(self, result):
         # add the completed transaction details to the corresponding
@@ -663,7 +672,7 @@ class SoftwarePane(Gtk.VBox, BasePane):
         return 0
 
     def get_sort_mode(self):
-        if self.state.search_term and len(self.state.search_term) >= 2:
+        if (self._is_in_search_mode() and not self.app_view.user_defined_sort_method):
             return SortMethods.BY_SEARCH_RANKING
         return self.app_view.get_sort_mode()
 

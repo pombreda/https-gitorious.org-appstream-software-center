@@ -148,7 +148,8 @@ class ButtonPart(Gtk.Button):
         context.set_state(self.get_state_flags())
         context.add_class("button")
         a = self.get_allocation()
-        Gtk.render_background(context, cr, 0, 0, a.width, a.height)
+        Gtk.render_background(context, cr, -10, -10,
+                              a.width+20, a.height+20)
 
         context.restore()
         cr.restore()

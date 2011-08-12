@@ -243,8 +243,23 @@ class AvailablePane(SoftwarePane):
                 not self.state.subcategory and
                 not self.state.search_term)
 
-#~ <<<<<<< TREE
-#~ =======
+    def _get_header_for_view_state(self, view_state):
+        category = view_state.category
+        subcategory = view_state.subcategory
+
+        cat_name = None
+        subcat_name = None
+        if view_state.channel is not None:
+            ch_name = GObject.markup_escape_text(view_state.channel.display_name)
+        elif subcategory is not None:
+            cat_name = GObject.markup_escape_text(category.name)
+            subcat_name = GObject.markup_escape_text(subcategory.name)
+        elif category is not None:
+            cat_name = GObject.markup_escape_text(category.name)
+        else:
+            cat_name = _("All Software")
+        return cat_name, subcat_name
+
     #~ def _show_hide_subcategories(self, show_category_applist=False):
         #~ # check if have subcategories and are not in a subcategory
         #~ # view - if so, show it
@@ -260,8 +275,7 @@ class AvailablePane(SoftwarePane):
             #~ self.notebook.set_current_page(AvailablePane.Pages.SUBCATEGORY)
         #~ else:
             #~ self.notebook.set_current_page(AvailablePane.Pages.LIST)
-#~ 
-#~ >>>>>>> MERGE-SOURCE
+
     # status text woo
     def get_status_text(self):
         """return user readable status text suitable for a status bar"""
@@ -539,8 +553,13 @@ class AvailablePane(SoftwarePane):
             self._clear_search()
         else:
             self.state.limit = DEFAULT_SEARCH_LIMIT
+
+        header_strings = self._get_header_for_view_state(view_state)
+        self.app_view.set_header_labels(*header_strings)
+
         self.refresh_apps()
         self.searchentry.show()
+        self.cat_view.stop_carousels()
         return True
 
     def display_subcategory_page(self, page, view_state):
@@ -560,20 +579,11 @@ class AvailablePane(SoftwarePane):
         return True
 
     def display_app_view_page(self, page, view_state):
-        category = self.state.category
-        subcategory = self.state.subcategory
+        category = view_state.category
         self.set_category(category)
 
-        if view_state.channel is not None:
-            ch_name = GObject.markup_escape_text(view_state.channel.display_name)
-            self.app_view.set_header_labels(ch_name, None)
-        elif subcategory is not None:
-            cat_name = GObject.markup_escape_text(category.name)
-            subcat_name = GObject.markup_escape_text(subcategory.name)
-            self.app_view.set_header_labels(cat_name, subcat_name)
-        elif category is not None:
-            cat_name = GObject.markup_escape_text(category.name)
-            self.app_view.set_header_labels(cat_name, None)
+        header_strings = self._get_header_for_view_state(view_state)
+        self.app_view.set_header_labels(*header_strings)
 
         if view_state.search_term:
             self._clear_search()
