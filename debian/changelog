@@ -9,10 +9,10 @@ software-center (4.1.14) UNRELEASED; urgency=low
   [ Gary Lasker ]
   * softwarecenter/ui/gtk/appview.py,
     softwarecenter/ui/gtk3/widgets/cellrenderers.py:
-    -lighten the color of the reviews count as displayed in
-     the list views (see LP: #802756)
+    - lighten the color of the reviews count as displayed in
+      the list views (see LP: #802756)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Fri, 12 Aug 2011 01:28:48 -0700
+ -- Gary Lasker <gary.lasker@canonical.com>  Fri, 12 Aug 2011 01:34:41 -0700
 
 software-center (4.1.13) oneiric; urgency=low
 
