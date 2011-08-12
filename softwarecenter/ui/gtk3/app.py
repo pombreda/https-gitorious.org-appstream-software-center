@@ -1166,8 +1166,9 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             self.available_pane.searchentry.set_text(",".join(packages))
             return
         # normal startup, queue showing the lobby when we are ready
-        GObject.idle_add(
-            lambda: self.view_manager.set_active_view(ViewPages.AVAILABLE))
+        def show_lobby():
+            self.view_manager.set_active_view(ViewPages.AVAILABLE)
+        GObject.idle_add(show_lobby)
 
     def restore_state(self):
         if self.config.has_option("general", "size"):

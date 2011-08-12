@@ -248,7 +248,8 @@ class InstalledPane(SoftwarePane, CategoriesParser):
 
     def _search(self, terms=None):
         if not terms:
-            self.visible_docids = self.state.search_term = None
+            self.visible_docids = None
+            self.state.search_term = ""
             self._clear_search()
 
         elif self.state.search_term != terms:
