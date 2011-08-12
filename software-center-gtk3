@@ -97,7 +97,7 @@ if __name__ == "__main__":
 
     # override text direction for testing purposes
     if options.force_rtl:
-        Gtk.widget_set_default_direction(Gtk.TextDirection.RTL)
+        Gtk.Widget.set_default_direction(Gtk.TextDirection.RTL)
 
     # we are running in a local checkout, make life as easy as possible
     # for this
