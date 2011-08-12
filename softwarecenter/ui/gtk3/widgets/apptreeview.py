@@ -263,23 +263,23 @@ class AppTreeView(Gtk.TreeView):
                             CellButtonIDs.ACTION)
         #if not action_btn: return False
 
-        if not network_state_is_connected():
-            action_btn.set_sensitive(False)
-            return
-
         if self.appmodel.is_installed(app):
             action_btn.set_variant(self.VARIANT_REMOVE)
         else:
             action_btn.set_variant(self.VARIANT_INSTALL)
-#~ 
-        #~ if self.appmodel.get_transaction_progress(app) > 0:
-            #~ action_btn.set_sensitive(False)
-        #~ elif self.pressed and self.focal_btn == action_btn:
-            #~ action_btn.set_state(Gtk.StateFlags.ACTIVE)
-        #~ else:
-            #~ action_btn.set_state(Gtk.StateFlags.NORMAL)
 
-#        self.emit("application-selected", Application(name, pkgname, request))
+        if not network_state_is_connected():
+            action_btn.set_sensitive(False)
+            return
+
+        if self.appmodel.get_transaction_progress(app) > 0:
+            action_btn.set_sensitive(False)
+        elif self.pressed and self.focal_btn == action_btn:
+            action_btn.set_state(Gtk.StateFlags.ACTIVE)
+        else:
+            action_btn.set_state(Gtk.StateFlags.NORMAL)
+
+        self.emit("application-selected", self.appmodel.get_application(app))
         self.app_view.emit("application-selected", self.appmodel.get_application(app))
         return False
 
