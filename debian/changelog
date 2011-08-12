@@ -1,4 +1,4 @@
-software-center (4.1.14) UNRELEASED; urgency=low
+software-center (4.1.14) oneiric; urgency=low
 
   [ Michael Vogt ]
   * softwarecenter/ui/gtk3/panes/viewswitcher.py:
@@ -23,6 +23,8 @@ software-center (4.1.14) UNRELEASED; urgency=low
     - fix installedpane test window, fix installed search
   * test/gtk3/test_search.py:
     - add search testcase
+  * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
+    - fix double markup_escape()
 
   [ Gary Lasker ]
   * softwarecenter/ui/gtk/appview.py,
@@ -34,7 +36,7 @@ software-center (4.1.14) UNRELEASED; urgency=low
   * softwarecenter/db/enquire.py:
     - fix incorrect substitution for set_sort_by_value
 
- -- Gary Lasker <gary.lasker@canonical.com>  Fri, 12 Aug 2011 01:34:41 -0700
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 12 Aug 2011 21:52:41 +0200
 
 software-center (4.1.13) oneiric; urgency=low
 
