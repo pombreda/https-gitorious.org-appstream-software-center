@@ -325,7 +325,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         """callback when the search entry widget changes"""
         logging.debug("on_search_terms_changed: '%s'" % terms)
 
-        self.state.search_terms = terms
+        self.state.search_term = terms
         self._search(terms.strip())
         self.notebook.set_current_page(InstalledPane.Pages.LIST)
         return
@@ -410,17 +410,6 @@ class InstalledPane(SoftwarePane, CategoriesParser):
     def is_app_details_view_showing(self):
         """Return True if we are in the app_details view """
         return self.notebook.get_current_page() == InstalledPane.Pages.DETAILS
-
-    def show_app(self, app):
-        """ Display an application in the installed_pane """
-        self.navigation_bar.remove_all(do_callback=False, animate=False) # do_callback and animate *must* both be false here
-        details = app.get_details(self.db)
-        self.navigation_bar.add_with_id(details.display_name,
-                                        self.on_navigation_details,
-                                        NavButtons.DETAILS,
-                                        animate=False)
-        self.app_details_view.show_app(app)
-        self.app_view.emit("application-selected", app)
 
 if __name__ == "__main__":
 

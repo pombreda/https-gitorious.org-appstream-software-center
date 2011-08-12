@@ -1131,7 +1131,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         # allow s-c to be called with a search term
         if packages and packages[0].startswith("search:"):
             packages[0] = packages[0].partition("search:")[2]
-            self.global_pane.searchentry.set_text(" ".join(packages))
+            self.available_pane.searchentry.set_text(" ".join(packages))
             return
 
         if len(packages) == 1:
@@ -1156,15 +1156,11 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
                 # if the pkg is installed, show it in the installed pane
                 if (app.pkgname in self.cache and 
                     self.cache[app.pkgname].installed):
-                    self.installed_pane.loaded = True
-                    self.view_switcher.set_view(ViewPages.INSTALLED)
-                    self.installed_pane.loaded = False
-                    self.available_pane.bypassed = True
+                    self.installed_pane.init_view()
                     self.installed_pane.show_app(app)
                 else:
-                    self.view_switcher.set_view(ViewPages.AVAILABLE)
+                    self.available_pane.init_view()
                     self.available_pane.show_app(app)
-
             show_app(self, app)
 
         if len(packages) > 1:
@@ -1215,6 +1211,12 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
                 if "," in arg:
                     args.extend(arg.split(","))
                     del args[i]
-        self.show_available_packages(args)
+
+        # FIXME: make this more predictable and less random
+        # show args when the app is ready
+        def _delayed_show_available_packages():
+            GObject.timeout_add(500, self.show_available_packages, args)
+        GObject.idle_add(_delayed_show_available_packages)
+
         atexit.register(self.save_state)
         SimpleGtkbuilderApp.run(self)
