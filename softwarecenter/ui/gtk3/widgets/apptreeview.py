@@ -285,7 +285,7 @@ class AppTreeView(Gtk.TreeView):
         else:
             action_btn.set_state(Gtk.StateFlags.NORMAL)
 
-        self.emit("application-selected", self.appmodel.get_application(app))
+        #~ self.emit("application-selected", self.appmodel.get_application(app))
         self.app_view.emit("application-selected", self.appmodel.get_application(app))
         return False
 
