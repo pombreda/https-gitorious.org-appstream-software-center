@@ -591,6 +591,8 @@ class SubCategoryViewGtk(CategoriesViewGtk):
 
         self.categories = root_category.subcategories
         self._build_subcat_view(root_category, num_items)
+
+        GObject.idle_add(self.queue_draw)
         return
 
     #def build(self, desktopdir):

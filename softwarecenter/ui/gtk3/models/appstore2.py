@@ -391,7 +391,8 @@ class AppListStore(Gtk.ListStore, AppGenericStore):
             #~ print "Number of icons in cache: %s consuming: %sb" % (len(_app_icon_cache), cache_size)
             return False    # remove from sources on completion
 
-        GObject.idle_add(buffer_icons)
+        if self.current_matches is not None:
+            GObject.idle_add(buffer_icons)
         return
 
 
