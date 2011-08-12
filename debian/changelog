@@ -3,9 +3,9 @@ software-center (4.1.14) UNRELEASEDoneiric; urgency=low
   * softwarecenter/ui/gtk3/panes/viewswitcher.py:
     - fix crash when a transaction finished in the gtk3 version
   * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
-    - weblive fix, thanks to Stephane Graber!
+    - weblive fix, thanks to Stephane Graber! (LP: #824567)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 11 Aug 2011 11:57:08 +0200
+ -- Gary Lasker <gary.lasker@canonical.com>  Fri, 12 Aug 2011 00:40:19 -0700
 
 software-center (4.1.13) oneiric; urgency=low
 
