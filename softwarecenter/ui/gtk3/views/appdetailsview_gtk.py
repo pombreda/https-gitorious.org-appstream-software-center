@@ -36,7 +36,7 @@ from softwarecenter.cmdfinder import CmdFinder
 from softwarecenter.netstatus import (NetState, get_network_watcher,
                                       network_state_is_connected)
 from softwarecenter.db.application import Application
-from softwarecenter.db.debfile import DebFileApplication
+from softwarecenter.db import DebFileApplication
 from softwarecenter.backend.reviews import ReviewStats
 #from softwarecenter.backend.zeitgeist_simple import zeitgeist_singleton
 from softwarecenter.enums import (AppActions, PkgStates,
@@ -937,10 +937,8 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         #~ vb_inner.pack_start(self.usage, True, True, 0)
 
         # star rating widget
-        #~ a = Gtk.Alignment.new(0.0, 0.5, 1.0, 1.0)
         self.review_stats_widget = Star()
         self.review_stats_widget.set_size_as_pixel_value(title_fontsize)
-        self.review_stats_widget.set_nr_reviews(666)
         #~ a.add(self.review_stats_widget)
         #~ hb.pack_end(a, False, False, 0)
         hb.pack_end(self.review_stats_widget, False, True, 0)
@@ -981,18 +979,19 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
 
         # the weblive test-drive stuff
         self.weblive = get_weblive_backend()
-        self.test_drive = Gtk.Button(_("Test drive"))
-        self.test_drive.connect("clicked", self.on_test_drive_clicked)
-        right_vb.pack_start(self.test_drive, False, False, 0)
+        if self.weblive.client is not None:
+            self.test_drive = Gtk.Button(_("Test drive"))
+            self.test_drive.connect("clicked", self.on_test_drive_clicked)
+            right_vb.pack_start(self.test_drive, False, False, 0)
 
-        # attach to all the WebLive events
-        #~ self.weblive.client.connect("progress", self.on_weblive_progress)
-        #~ self.weblive.client.connect("connected", self.on_weblive_connected)
-        #~ self.weblive.client.connect("disconnected", self.on_weblive_disconnected)
-        #~ self.weblive.client.connect("exception", self.on_weblive_exception)
-        #~ self.weblive.client.connect("warning", self.on_weblive_warning)
+            # attach to all the WebLive events
+            self.weblive.client.connect("progress", self.on_weblive_progress)
+            self.weblive.client.connect("connected", self.on_weblive_connected)
+            self.weblive.client.connect("disconnected", self.on_weblive_disconnected)
+            self.weblive.client.connect("exception", self.on_weblive_exception)
+            self.weblive.client.connect("warning", self.on_weblive_warning)
 
-        # homepage link button
+            # homepage link button
         self.homepage_btn = Gtk.Button.new_with_label(_('Developer Web Site'))
         self.homepage_btn.connect('clicked', self._on_homepage_clicked)
 

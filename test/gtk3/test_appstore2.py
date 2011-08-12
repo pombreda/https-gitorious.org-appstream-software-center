@@ -15,15 +15,20 @@ from softwarecenter.db.database import StoreDatabase
 from softwarecenter.ui.gtk3.models.appstore2 import AppListStore
 from softwarecenter.db.enquire import AppEnquire
 
+from softwarecenter.testutils import (get_test_db,
+                                      get_test_datadir,
+                                      get_test_gtk3_viewmanager,
+                                      get_test_pkg_info,
+                                      get_test_gtk3_icon_cache,
+                                      )
+
 class TestAppstore(unittest.TestCase):
     """ test the appstore """
 
     def setUp(self):
-        self.cache = get_pkg_info()
-        self.cache.open()
-        self.icons = Gtk.IconTheme.get_default()
-        self.db = StoreDatabase(XAPIAN_BASE_PATH+"/xapian", self.cache)
-        self.db.open()
+        self.cache = get_test_pkg_info()
+        self.icons = get_test_gtk3_icon_cache()
+        self.db = get_test_db()
 
     def test_app_store(self):
         # get a enquire object

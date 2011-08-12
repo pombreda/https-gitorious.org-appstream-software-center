@@ -426,52 +426,19 @@ class InstalledPane(SoftwarePane, CategoriesParser):
 
 if __name__ == "__main__":
 
-    from softwarecenter.paths import XAPIAN_BASE_PATH
-    from softwarecenter.db.database import StoreDatabase
-
-    #logging.basicConfig(level=logging.DEBUG)
-
-    if len(sys.argv) > 1:
-        datadir = sys.argv[1]
-    elif os.path.exists("./data"):
-        datadir = "./data"
-    else:
-        datadir = "/usr/share/software-center"
-
-    from softwarecenter.ui.gtk3.utils import get_sc_icon_theme
-    icons = get_sc_icon_theme(datadir)
-
-    Gtk.Window.set_default_icon_name("softwarecenter")
-
-    from softwarecenter.db.pkginfo import get_pkg_info
-    cache = get_pkg_info()
-    cache.open()
-
-    # xapian
-    xapian_base_path = XAPIAN_BASE_PATH
-    pathname = os.path.join(xapian_base_path, "xapian")
-    try:
-        db = StoreDatabase(pathname, cache)
-        db.open()
-    except xapian.DatabaseOpeningError:
-        # Couldn't use that folder as a database
-        # This may be because we are in a bzr checkout and that
-        #   folder is empty. If the folder is empty, and we can find the
-        # script that does population, populate a database in it.
-        if os.path.isdir(pathname) and not os.listdir(pathname):
-            from softwarecenter.db.update import rebuild_database
-            logging.info("building local database")
-            rebuild_database(pathname)
-            db = StoreDatabase(pathname, cache)
-            db.open()
-    except xapian.DatabaseCorruptError as e:
-        logging.exception("xapian open failed")
-        dialogs.error(None, 
-                      _("Sorry, can not open the software database"),
-                      _("Please re-install the 'software-center' "
-                        "package."))
-        # FIXME: force rebuild by providing a dbus service for this
-        sys.exit(1)
+    from softwarecenter.testutils import (get_test_db,
+                                          get_test_datadir,
+                                          get_test_gtk3_viewmanager,
+                                          get_test_pkg_info,
+                                          get_test_icon_cache,
+                                          )
+    # needed because available pane will try to get it
+    vm = get_test_gtk3_viewmanager()
+    vm # make pyflakes happy
+    db = get_test_db()
+    cache = get_test_pkg_info()
+    datadir = get_test_datadir()
+    icons = get_test_icon_cache()
 
     w = InstalledPane(cache, db, 'Ubuntu', icons, datadir)
     w.show()
