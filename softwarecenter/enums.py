@@ -201,5 +201,5 @@ USER_AGENT="Software Center/%s (N;) %s/%s (%s)" % (VERSION,
                                                    RELEASE,
                                                    CODENAME)
 
-# experimental, only for testing FIXME: remove this
+# global backend switch
 USE_PACKAGEKIT_BACKEND = False

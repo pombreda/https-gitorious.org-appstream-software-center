@@ -75,7 +75,7 @@ class PackagekitTransaction(BaseTransaction):
         return self.get_status_description() # FIXME
     @property
     def meta_data(self):
-        return self._meta_data # FIXME
+        return self._meta_data
     @property
     def cancellable(self):
         return self._trans.get_property('allow-cancel')
@@ -206,7 +206,7 @@ class PackagekitBackend(GObject.GObject, InstallBackend):
 
     def upgrade(self, pkgname, appname, iconname, addons_install=[],
                 addons_remove=[], metadata=None):
-        pass # FIXME
+        pass # FIXME implement it
     def remove(self, pkgname, appname, iconname, addons_install=[],
                 addons_remove=[], metadata=None):
         self.remove_multiple((pkgname,), (appname,), (iconname,),

@@ -143,11 +143,10 @@ class PackagekitInfo(PackageInfo):
         return self.get_size(pkgname)
 
     def get_origins(self, pkgname):
-        # FIXME something
         return [FakeOrigin(self.distro.get_distro_channel_name(), self.distro.get_distro_channel_description())]
 
     def get_addons(self, pkgname, ignore_installed=True):
-        # FIXME
+        # FIXME implement it
         return ([], [])
 
     def get_packages_removed_on_remove(self, pkg):
@@ -185,7 +184,7 @@ class PackagekitInfo(PackageInfo):
         with disk size in KB calculated for pkgname installation
         plus addons change.
         """
-        # FIXME
+        # FIXME implement it
         return (0, 0)
 
     @property
@@ -233,16 +232,16 @@ class PackagekitInfo(PackageInfo):
         return pkgs
 
     def _reset_cache(self, name=None):
-        # clean resolved packages cache
+        # Clean resolved packages cache
         # This is used after finishing a transaction, so that we always
         # have the latest package information
         LOG.debug("[reset_cache] here: %s name: %s", self._cache.keys(), name)
-        # FIXME it doesn't work properly
         if name and (name in self._cache.keys()):
             del self._cache[name]
         else:
             # delete all
             self._cache = {}
+        # appdetails gets refreshed:
         self.emit('cache-ready')
 
     def _on_progress_changed(self, progress, ptype, data=None):
