@@ -39,7 +39,19 @@ class TestPanes(unittest.TestCase):
         win = get_test_window()
         GObject.timeout_add(TIMEOUT, lambda: win.destroy())
         Gtk.main()
-        
+
+    def test_installedpane(self):
+        from softwarecenter.ui.gtk3.panes.installedpane import get_test_window
+        win = get_test_window()
+        pane = win.get_data("pane")
+        # ensure it visible
+        self.assertTrue(pane.get_property("visible"))
+        # ensure the treeview is there and has data
+        self.assertTrue(len(pane.treefilter.get_model()) > 10)
+        # schedule close
+        GObject.timeout_add(TIMEOUT, lambda: win.destroy())
+        Gtk.main()
+
 
 if __name__ == "__main__":
     import logging

@@ -92,6 +92,7 @@ class UnityLauncherInfo(object):
 from softwarecenter.db.categories import Category
 from softwarecenter.backend.channel import SoftwareChannel
 from softwarecenter.ui.gtk3.views.appview import AppViewFilter
+
 class DisplayState(object):
 
     _attrs = {'category': (type(None), Category),
@@ -323,6 +324,8 @@ class SoftwarePane(Gtk.VBox, BasePane):
         vm = get_viewmanager()
         vm.display_page(self, SoftwarePane.Pages.DETAILS, self.state, self.display_details_page)
 
+    def show_app(self, app):
+        self.on_application_activated(None, app)
 
     def on_nav_back_clicked(self, widget):
         vm = get_viewmanager()
