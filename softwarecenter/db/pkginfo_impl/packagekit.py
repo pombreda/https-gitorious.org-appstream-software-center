@@ -191,7 +191,7 @@ class PackagekitInfo(PackageInfo):
 
     """ private methods """
     def _get_package_details(self, packageid, cache=USE_CACHE):
-        print "package_details", packageid, self._cache.keys()
+        print "package_details", packageid #, self._cache.keys()
         if (packageid in self._cache.keys()) and cache:
             return self._cache[packageid]
 
@@ -204,7 +204,7 @@ class PackagekitInfo(PackageInfo):
         return pkgs[0]
             
     def _get_one_package(self, pkgname, pfilter=packagekit.FilterEnum.NONE, cache=USE_CACHE):
-        print "package_one", pkgname, self._cache.keys()
+        print "package_one", pkgname #, self._cache.keys()
         if (pkgname in self._cache.keys()) and cache:
             return self._cache[pkgname]
         ps = self._get_packages(pkgname, pfilter)
