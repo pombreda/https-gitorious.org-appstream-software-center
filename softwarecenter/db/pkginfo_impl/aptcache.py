@@ -21,8 +21,8 @@
 import apt
 import apt_pkg
 import logging
-import gio
 from gi.repository import GObject
+import gio
 import os
 
 from softwarecenter.enums import PkgStates
