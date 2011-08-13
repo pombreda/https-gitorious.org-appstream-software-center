@@ -9,6 +9,8 @@ software-center (4.1.15) UNRELEASED; urgency=low
     - fix listviews in rtl setups (pango reverses LEFT and RIGHT itself)
   * softwarecenter/ui/gtk3/app.py:
     - fix rtl mode for testing
+  * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
+    - correctly show/hide website button
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 12 Aug 2011 22:10:32 +0200
 
