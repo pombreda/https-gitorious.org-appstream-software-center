@@ -20,14 +20,15 @@ from gi.repository import PackageKitGlib as packagekit
 import logging
 
 from softwarecenter.db.pkginfo import PackageInfo, _Version
+from softwarecenter.distro import get_distro
 
 class FakeOrigin:
-    def __init__(self, name):
+    def __init__(self, name, label = None):
         self.origin = name
         self.trusted = True
-        self.component = 'unknown'
+        self.component = 'unknown-component'
         self.site = ''
-        self.label = name
+        self.label = name.capitalize() if not label else label
         self.archive = name
 
 class PackagekitVersion(_Version):
@@ -70,6 +71,7 @@ class PackagekitInfo(PackageInfo):
         self.client = packagekit.Client()
         self._cache = {} # temporary hack for decent testing
         self._notfound_cache = []
+        self.distro = get_distro()
 
     def __contains__(self, pkgname):
         # setting it like this for now
@@ -140,7 +142,7 @@ class PackagekitInfo(PackageInfo):
 
     def get_origins(self, pkgname):
         # FIXME something
-        return [FakeOrigin('unknown')]
+        return [FakeOrigin(self.distro.get_distro_channel_name(), self.distro.get_distro_channel_description())]
 
     def get_addons(self, pkgname, ignore_installed=True):
         # FIXME
