@@ -22,6 +22,8 @@ import logging
 from softwarecenter.db.pkginfo import PackageInfo, _Version
 from softwarecenter.distro import get_distro
 
+LOG = logging.getLogger('softwarecenter.db.packagekit')
+
 class FakeOrigin:
     def __init__(self, name, label = None):
         self.origin = name
@@ -193,7 +195,7 @@ class PackagekitInfo(PackageInfo):
 
     """ private methods """
     def _get_package_details(self, packageid, cache=USE_CACHE):
-        print "package_details", packageid #, self._cache.keys()
+        LOG.debug("package_details %s", packageid) #, self._cache.keys()
         if (packageid in self._cache.keys()) and cache:
             return self._cache[packageid]
 
@@ -206,14 +208,14 @@ class PackagekitInfo(PackageInfo):
         return pkgs[0]
             
     def _get_one_package(self, pkgname, pfilter=packagekit.FilterEnum.NONE, cache=USE_CACHE):
-        print "package_one", pkgname #, self._cache.keys()
+        LOG.debug("package_one %s", pkgname) #, self._cache.keys()
         if (pkgname in self._cache.keys()) and cache:
             return self._cache[pkgname]
         ps = self._get_packages(pkgname, pfilter)
         if not ps:
             # also keep it in not found, to prevent further calls of resolve
             if pkgname not in self._notfound_cache:
-                print "blacklisted ", pkgname
+                LOG.debug("blacklisted %s", pkgname)
                 self._notfound_cache.append(pkgname)
             return None
         self._cache[pkgname] = ps[0]
@@ -234,7 +236,7 @@ class PackagekitInfo(PackageInfo):
         # clean resolved packages cache
         # This is used after finishing a transaction, so that we always
         # have the latest package information
-        print "[reset_cache] here: ", self._cache.keys(), "name:", name
+        LOG.debug("[reset_cache] here: %s name: %s", self._cache.keys(), name)
         # FIXME it doesn't work properly
         if name and (name in self._cache.keys()):
             del self._cache[name]
