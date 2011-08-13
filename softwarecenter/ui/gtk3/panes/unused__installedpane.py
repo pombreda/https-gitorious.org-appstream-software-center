@@ -19,8 +19,6 @@
 import gettext
 from gi.repository import Gtk
 import logging
-import os
-import sys
 import xapian
 from gi.repository import GObject
 
@@ -37,7 +35,6 @@ from softwarecenter.ui.gtk3.models.appstore2 import (
                                                  CategoryRowReference)
 from softwarepane import SoftwarePane
 from softwarecenter.ui.gtk3.views.appview import AppViewFilter
-import softwarecenter.ui.gtk3.dialogs as dialogs
 
 LOG=logging.getLogger(__name__)
 

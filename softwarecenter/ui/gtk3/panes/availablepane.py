@@ -20,8 +20,6 @@ import gettext
 from gi.repository import GObject
 from gi.repository import Gtk
 import logging
-import os
-import sys
 import xapian
 
 import softwarecenter.ui.gtk3.dialogs as dialogs
@@ -32,8 +30,7 @@ from softwarecenter.enums import (ActionButtons,
                                   NavButtons,
                                   NonAppVisibility,
                                   DEFAULT_SEARCH_LIMIT)
-from softwarecenter.paths import (APP_INSTALL_PATH,
-                                  XAPIAN_BASE_PATH)
+from softwarecenter.paths import APP_INSTALL_PATH
 from softwarecenter.utils import wait_for_apt_cache_ready
 from softwarecenter.distro import get_distro
 from softwarecenter.ui.gtk3.views.appview import AppViewFilter

@@ -5,28 +5,13 @@ import os
 import sys
 import unittest
 
-sys.path.insert(0,"../..")
-sys.path.insert(0,"..")
-
 from mock import Mock
 
-import softwarecenter.paths
-# ensure datadir is pointing to the right place
-softwarecenter.paths.datadir = os.path.join(
-    os.path.dirname(__file__), "..", "..", 'data')
 
-from gi.repository import Gtk, GdkPixbuf, GObject
-import os
-import sys
-import unittest
-
-sys.path.insert(0,"../..")
 sys.path.insert(0,"..")
 
-from mock import Mock
-
-import softwarecenter.paths
 # ensure datadir is pointing to the right place
+import softwarecenter.paths
 softwarecenter.paths.datadir = os.path.join(
     os.path.dirname(__file__), "..", "..", 'data')
 
@@ -95,15 +80,6 @@ class TestWidgets(unittest.TestCase):
         d = SimpleShowImageDialog("test caption", pix)
         GObject.timeout_add(TIMEOUT, lambda: d.destroy())
         d.run()
-
-    def test_show_pathbar(self):
-        from softwarecenter.ui.gtk3.widgets.pathbar import get_test_pathbar_window, PathPart
-        win = get_test_pathbar_window()
-        win.pb.append(PathPart("foo1"))
-        win.pb.append(PathPart("foo2"))
-        win.pb.pop()
-        GObject.timeout_add(TIMEOUT, lambda: win.destroy())
-        Gtk.main()
 
     def test_reviews(self):
         from softwarecenter.ui.gtk3.widgets.reviews import get_test_reviews_window

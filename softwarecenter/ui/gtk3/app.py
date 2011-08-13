@@ -25,6 +25,9 @@ import collections
 import locale
 import dbus
 import dbus.service
+from dbus.mainloop.glib import DBusGMainLoop
+DBusGMainLoop(set_as_default=True)
+
 import gettext
 import logging
 import os
@@ -61,6 +64,7 @@ from softwarecenter.db.database import StoreDatabase
 from softwarecenter.backend.transactionswatcher import TransactionFinishedResult
 try:
     from aptd_gtk3 import InstallBackendUI
+    InstallBackendUI # pyflakes
 except ImportError:
     from softwarecenter.backend.installbackend import InstallBackendUI
 

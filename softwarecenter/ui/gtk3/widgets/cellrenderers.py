@@ -17,7 +17,6 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import gettext
 from gi.repository import Gtk, Gdk, GObject, Pango
 
 from softwarecenter.ui.gtk3.em import EM
@@ -205,7 +204,7 @@ class CellRendererAppView(Gtk.CellRendererText):
         nreviews = stats.ratings_total
         s = "(%i)" % nreviews
 
-        layout.set_markup("<small>%s</small>" % s, -1)
+        layout.set_markup("<span color='darkgray'><small>%s</small></span>" % s, -1)
 
         lw = self._layout_get_pixel_width(layout)
         w = star_width

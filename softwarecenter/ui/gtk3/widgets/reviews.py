@@ -444,7 +444,7 @@ class UIReview(Gtk.VBox):
         summary = Gtk.Label()
         try:
             summary.set_markup('<b>%s</b>' % GObject.markup_escape_text(review_data.summary))
-        except Exception as e:
+        except Exception:
             LOG.exception("_build() failed")
             summary.set_text("Error parsing summary")
 
@@ -640,7 +640,7 @@ class UIReview(Gtk.VBox):
                     dark_color,
                     GObject.markup_escape_text(correct_name),
                     GObject.markup_escape_text(nice_date))
-            except Exception as e:
+            except Exception:
                 LOG.exception("_who_when_markup failed")
                 m = "Error parsing name"
 

@@ -106,7 +106,7 @@ class AppEnquire(GObject.GObject):
 
         try:
             tmp_matches = enquire.get_mset(0, len(self.db), None, xfilter)
-        except Exception as e:
+        except Exception:
             LOG.exception("_get_estimate_nr_apps_and_nr_pkgs failed")
             return (0, 0)
 

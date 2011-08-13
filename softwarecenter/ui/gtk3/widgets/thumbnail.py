@@ -342,7 +342,7 @@ class ScreenshotThumbnail(Gtk.Alignment):
         def setter_cb(path):
             try:
                 self.screenshot_pixbuf = GdkPixbuf.Pixbuf.new_from_file(path)
-            except Exception as e:
+            except Exception:
                 LOG.exception("Pixbuf.new_from_file() failed")
                 return False
 

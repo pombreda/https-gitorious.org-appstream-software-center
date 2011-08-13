@@ -35,6 +35,7 @@ import xml.sax.saxutils
 # py3 compat
 try:
     from urllib.parse import urlsplit
+    urlsplit # pyflakes
 except ImportError:
     from urlparse import urlsplit
 
@@ -616,9 +617,9 @@ class GMenuSearcher(object):
 from softwarecenter.db.pkginfo import get_pkg_info
 # do not call here get_pkg_info, since package switch may not have been set
 # instead use an anonymous function delay
-upstream_version_compare = lambda: get_pkg_info().upstream_version_compare
-upstream_version = lambda: get_pkg_info().upstream_version
-version_compare = lambda: get_pkg_info().version_compare
+upstream_version_compare = lambda v1, v2: get_pkg_info().upstream_version_compare(v1, v2)
+upstream_version = lambda v: get_pkg_info().upstream_version(v)
+version_compare = lambda v1, v2: get_pkg_info().version_compare(v1, v2)
 
 # only when needed
 try:

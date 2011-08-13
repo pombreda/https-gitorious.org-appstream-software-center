@@ -82,6 +82,7 @@ class AppView(Gtk.TreeView):
         self.focal_btn = None
         self._action_block_list = []
         self.expanded_path = None
+        self._out_of_vis_range_expanded_paths = []
 
         #~ # if this hacked mode is available everything will be fast
         #~ # and we can set fixed_height mode and still have growing rows
@@ -170,9 +171,21 @@ class AppView(Gtk.TreeView):
         old = self.expanded_path
         self.expanded_path = path
 
+        #  get visible range
+        _, start, end = self.get_visible_range()
+        # see if the the old 'active path' is outside the visible
+        # range. see comments within _cell_data_func_cb for more
+        # explanation on why we do this...
         if old is not None:
-            model.row_changed(old, model.get_iter(old))
-        if path == None: return
+            if (Gtk.TreePath.compare(old, start) == -1 or
+                Gtk.TreePath.compare(old, end) == 1):
+                self._out_of_vis_range_expanded_paths.append(old)
+            else:
+                model.row_changed(old, model.get_iter(old))
+
+        #~ print self._out_of_vis_range_expanded_paths
+
+        if path is None: return
 
         model.row_changed(path, model.get_iter(path))
         return
@@ -456,11 +469,22 @@ class AppView(Gtk.TreeView):
 
         path = model.get_path(it)
 
+        # because we do not check each row for height we need to
+        # check those rows that at one time were 'active rows' however
+        # subsequently became deactivated rows but were offscreen
+        # at the time of being deactivated and as such did not
+        # (fully?) receive the row_changed signal, we apply it now to
+        # ensure visible height is as expected
+        if path in self._out_of_vis_range_expanded_paths:
+            self._out_of_vis_range_expanded_paths.pop()
+            model.row_changed(path, model.get_iter(path))
+            return
+
         if model[path][0] is None:
             indices = path.get_indices()
             model.load_range(indices, 5)
 
-        is_active = path == self.expanded_path
+        is_active = path == self.expanded_path        
         cell.set_property('isactive', is_active)
         return
 

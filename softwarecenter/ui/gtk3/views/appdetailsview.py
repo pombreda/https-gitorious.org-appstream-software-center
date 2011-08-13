@@ -24,6 +24,7 @@ import softwarecenter.ui.gtk3.dialogs as dialogs
 
 try:
     from urllib.parse import urlencode
+    urlencode # pyflakes
 except ImportError:
     from urllib import urlencode
 
