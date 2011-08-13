@@ -1523,7 +1523,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                     self.app.pkgname and 
                     self.app.appname == app.appname and
                     self.app.pkgname == app.pkgname)
-        print 'SameApp:', same_app, "force", force
+        #print 'SameApp:', same_app, "force", force
 
         # init data
         self.app = app

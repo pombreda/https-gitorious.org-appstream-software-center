@@ -185,7 +185,6 @@ class InstalledPane(SoftwarePane):
 if __name__ == "__main__":
     import apt
     from softwarecenter.db.database import StoreDatabase
-    import apt
 
     #logging.basicConfig(level=logging.DEBUG)
 
