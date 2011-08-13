@@ -986,11 +986,12 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         right_vb.pack_start(self.test_drive, False, False, 0)
 
         # attach to all the WebLive events
-        #~ self.weblive.client.connect("progress", self.on_weblive_progress)
-        #~ self.weblive.client.connect("connected", self.on_weblive_connected)
-        #~ self.weblive.client.connect("disconnected", self.on_weblive_disconnected)
-        #~ self.weblive.client.connect("exception", self.on_weblive_exception)
-        #~ self.weblive.client.connect("warning", self.on_weblive_warning)
+        if self.weblive.client:
+            self.weblive.client.connect("progress", self.on_weblive_progress)
+            self.weblive.client.connect("connected", self.on_weblive_connected)
+            self.weblive.client.connect("disconnected", self.on_weblive_disconnected)
+            self.weblive.client.connect("exception", self.on_weblive_exception)
+            self.weblive.client.connect("warning", self.on_weblive_warning)
 
         # homepage link button
         self.homepage_btn = Gtk.Button.new_with_label(_('Developer Web Site'))
@@ -1100,8 +1101,7 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         # make title font size fixed as they should look good compared to the 
         # icon (also fixed).
         markup = '<span font_desc="bold 20">%s</span>\n<span font_desc="9">%s</span>'
-        markup = markup % (GObject.markup_escape_text(appname),
-                           GObject.markup_escape_text(summary))
+        markup = markup % (appname, summary)
 
         self.title.set_markup(markup)
         self.title.a11y.set_name(appname + '. ' + summary)
@@ -1238,7 +1238,7 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         if app_details.pkg_state == PkgStates.NOT_FOUND:
             summary = app_details._error_not_found
         else:
-            summary = app_details.display_summary
+            summary = GObject.markup_escape_text(app_details.display_summary)
         if not summary:
             summary = ""
 

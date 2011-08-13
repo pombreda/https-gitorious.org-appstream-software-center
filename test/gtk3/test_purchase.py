@@ -4,6 +4,7 @@ from gi.repository import GObject
 
 import os
 import sys
+import time
 import unittest
 
 from mock import Mock
@@ -32,15 +33,24 @@ class TestPurchase(unittest.TestCase):
         app = SoftwareCenterAppGtk3(
             softwarecenter.paths.datadir, xapiandb, mock_options)
         app.window_main.show_all()
-        app.on_menuitem_reinstall_purchases_activate(None)
+        app.available_pane.init_view()
         self._p()
+        app.on_menuitem_reinstall_purchases_activate(None)
+        # it can take a bit until the sso client is ready
+        for i in range(100):
+            if (app.available_pane.get_current_page() == 
+                AvailablePane.Pages.LIST):
+                break
+            self._p()
         self.assertEqual(
             app.available_pane.get_current_page(), AvailablePane.Pages.LIST)
 
     def _p(self):
         context = GObject.main_context_default()
-        while context.pending():
-            context.iteration()
+        for i in range(5):
+            time.sleep(0.1)
+            while context.pending():
+                context.iteration()
 
 if __name__ == "__main__":
     import logging

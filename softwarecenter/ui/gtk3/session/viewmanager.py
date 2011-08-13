@@ -99,7 +99,7 @@ class ViewManager(object):
         if (self.search_entry.get_text() !=
             view_widget.state.search_term):
             self.search_entry.set_text_with_no_signal(
-                                        view_widget.state.search_terms)
+                                        view_widget.state.search_term)
     
         callback = view_widget.get_callback_for_page(view_page,
                                                      view_state)

@@ -23,7 +23,6 @@ from gi.repository import Gtk, GObject
 
 
 from gettext import gettext as _
-import sys
 
 class SimpleGtkbuilderDialog(object):
     def __init__(self, datadir, domain):

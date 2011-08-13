@@ -30,6 +30,7 @@ import logging
 
 try:
     import cPickle as pickle
+    pickle # pyflakes
 except ImportError:
     import pickle
 

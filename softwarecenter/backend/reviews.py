@@ -30,18 +30,20 @@ import random
 import json
 import subprocess
 import time
-import urllib
 
 # py3 compat
 try:
     import cPickle as pickle
+    pickle # pyflakes
 except ImportError:
     import pickle
 
 # py3 compat
 try:
     from io import StringIO
+    StringIO # pyflakes
     from urllib.parse import quote_plus
+    quote_plus # pyflakes
 except ImportError:
     from StringIO import StringIO
     from urllib import quote_plus

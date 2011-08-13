@@ -9,6 +9,7 @@ from softwarecenter.enums import XAPIAN_VALUE_PKGNAME, XAPIAN_VALUE_APPNAME
 from softwarecenter.paths import XAPIAN_BASE_PATH
 from softwarecenter.utils import ExecutionTime
 
+
 def run_benchmark(db):
     # test postlist
     with ExecutionTime('postlist("")'):
@@ -26,15 +27,17 @@ def run_benchmark(db):
             doc = db.get_document(m.docid)
             doc.get_value(XAPIAN_VALUE_PKGNAME)
 
+
 def run_query(parser, search_term):
-    search_query = parser.parse_query(search_term, 
-                                      xapian.QueryParser.FLAG_PARTIAL|
+    search_query = parser.parse_query(search_term,
+                                      xapian.QueryParser.FLAG_PARTIAL |
                                       xapian.QueryParser.FLAG_BOOLEAN)
     enquire = xapian.Enquire(db)
     enquire.set_query(search_query)
     with ExecutionTime("enquire"):
         mset = enquire.get_mset(0, db.get_doccount())
         print "len mset: ", len(mset)
+
 
 if __name__ == "__main__":
 
@@ -43,7 +46,7 @@ if __name__ == "__main__":
 
     print "app db only"
     run_benchmark(db)
-    
+
     print "with apt-xapian-index"
     axi = xapian.Database("/var/lib/apt-xapian-index/index")
     db.add_database(axi)
@@ -64,8 +67,8 @@ if __name__ == "__main__":
     run_query(parser, "abc")
 
     print "query for all !ATapplication"
-    search_query = xapian.Query(xapian.Query.OP_AND_NOT, 
-                                xapian.Query(""), 
+    search_query = xapian.Query(xapian.Query.OP_AND_NOT,
+                                xapian.Query(""),
                                 xapian.Query("ATapplication"))
     enquire = xapian.Enquire(db)
     enquire.set_query(search_query)
@@ -74,8 +77,8 @@ if __name__ == "__main__":
         print "len mset: ", len(mset)
 
     print "look at all !ATapplication"
-    search_query = xapian.Query(xapian.Query.OP_AND_NOT, 
-                                xapian.Query(""), 
+    search_query = xapian.Query(xapian.Query.OP_AND_NOT,
+                                xapian.Query(""),
                                 xapian.Query("ATapplication"))
     enquire = xapian.Enquire(db)
     enquire.set_query(search_query)

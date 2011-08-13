@@ -36,7 +36,7 @@ BUY_SOMETHING_HOST_ANONYMOUS = os.environ.get("SOFTWARE_CENTER_BUY_HOST") or "ht
 
 # version of the database, every time something gets added (like 
 # terms for mime-type) increase this (but keep as a string!)
-DB_SCHEMA_VERSION = "2"
+DB_SCHEMA_VERSION = "3"
 
 # the default limit for a search
 DEFAULT_SEARCH_LIMIT = 10000

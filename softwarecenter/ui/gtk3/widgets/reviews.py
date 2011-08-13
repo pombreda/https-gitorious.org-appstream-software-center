@@ -443,8 +443,9 @@ class UIReview(Gtk.VBox):
 
         summary = Gtk.Label()
         try:
-            summary.set_markup('<b>%s</b>' % GObject.markup_escape_text(review_data.summary))
-        except Exception as e:
+            s = GObject.markup_escape_text(review_data.summary.encode("utf-8"))
+            summary.set_markup('<b>%s</b>' % s)
+        except Exception:
             LOG.exception("_build() failed")
             summary.set_text("Error parsing summary")
 
@@ -473,8 +474,8 @@ class UIReview(Gtk.VBox):
             app_version and
             upstream_version_compare(review_version, app_version) != 0):
             version_string = _("This review was written for a different version of %(app_name)s (Version: %(version)s)") % { 
-                'app_name' : app_name,
-                'version' : GObject.markup_escape_text(upstream_version(review_version))
+                'app_name' : app_name.encode("utf-8"),
+                'version' : GObject.markup_escape_text(upstream_version(review_version)),
                 }
 
             m = '<small><i><span color="%s">%s</span></i></small>'
@@ -638,9 +639,9 @@ class UIReview(Gtk.VBox):
             try:
                 m = '<span color="%s"><b>%s</b>, %s</span>' % (
                     dark_color,
-                    GObject.markup_escape_text(correct_name),
+                    GObject.markup_escape_text(correct_name.encode("utf-8")),
                     GObject.markup_escape_text(nice_date))
-            except Exception as e:
+            except Exception:
                 LOG.exception("_who_when_markup failed")
                 m = "Error parsing name"
 

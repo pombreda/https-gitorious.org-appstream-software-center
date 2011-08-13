@@ -35,7 +35,9 @@ import threading
 # py3 
 try:
     from urllib.request import urlopen
+    urlopen # pyflakes
     from queue import Queue
+    Queue # pyflakes
 except ImportError:
     # py2 fallbacks
     from urllib import urlopen
