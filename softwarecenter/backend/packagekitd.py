@@ -324,40 +324,6 @@ class PackagekitBackend(GObject.GObject, InstallBackend):
             else:
                 self.emit("transaction-progress-changed", pkgname, 0)
 
-        """
-        if ptype == packagekit.ProgressType.ROLE:
-            trans.emit('role-changed', progress.get_property('role'))
-        elif ptype == packagekit.ProgressType.STATUS:
-            trans.emit('status-changed', progress.get_property('status'))
-        elif ptype == packagekit.ProgressType.PERCENTAGE:
-            trans.emit('progress-changed', progress.get_property('percentage'))
-        elif ptype == packagekit.ProgressType.SUBPERCENTAGE:
-            #trans.emit('progress-changed', progress.get_property('subpercentage'))
-            # SC UI does not show subpercentages
-            logging.debug("subpercentage-changed ignored")
-        elif ptype == packagekit.ProgressType.PACKAGE:
-            # this should be done better
-            package = progress.get_property('package')
-            trans.meta_data['sc_appname'] = package.get_name()
-            trans.emit('role-changed', packagekit.RoleEnum.LAST)
-        elif ptype == packagekit.ProgressType.REMAINING_TIME:
-            eta = progress.get_property('remaining-time')
-            current_items, total_items, current_bytes, total_bytes, current_cps = 0,0,0,0,0
-            trans.emit('progress-details-changed', current_items, total_items, current_bytes, total_bytes, current_cps, eta)
-        elif ptype == packagekit.ProgressType.ELAPSED_TIME:
-            eta = progress.get_property('remaining-time')
-            current_items, total_items, current_bytes, total_bytes, current_cps = 0,0,0,0,0
-            trans.emit('progress-details-changed', current_items, total_items, current_bytes, total_bytes, current_cps, eta)
-        elif ptype == packagekit.ProgressType.PACKAGE_ID:
-            # ignore
-            logging.debug("package-id progress signal  ignored")
-        elif ptype == packagekit.ProgressType.ALLOW_CANCEL:
-            trans.emit('cancellable-changed', progress.get_property('allow-cancel'))
-        else:
-            print "Unimplemented: ProgressType", ptype
-            print progress.get_property('transaction-id'),progress.get_property('status'),
-        """
-
     def _on_lowlevel_transactions_changed(self, watcher, current, pending):
         # update self.pending_transactions
         self.pending_transactions.clear()
