@@ -20,7 +20,7 @@ import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
 
-from softwarecenter.paths import ICON_PATH
+from softwarecenter.paths import ICON_PATH, SOFTWARE_CENTER_ICON_CACHE_DIR
 
 import os
 
@@ -44,5 +44,11 @@ def get_sc_icon_theme(datadir):
                     subsubpath = os.path.join(subpath, subsubpath)
                     if os.path.isdir(subsubpath):
                         icons.append_search_path(subsubpath)
+
+    # make the local cache directory if it doesn't already exist
+    icon_cache_dir = SOFTWARE_CENTER_ICON_CACHE_DIR
+    if not os.path.exists(icon_cache_dir):
+        os.makedirs(icon_cache_dir)
+    icons.append_search_path(icon_cache_dir)
     return icons
 

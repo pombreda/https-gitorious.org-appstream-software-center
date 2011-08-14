@@ -1,13 +1,15 @@
 import apt_pkg
 import os
 
+
 class DisplayNames:
+
     def info(self):
         """
         Return general information about the plugin.
 
         The information returned is a dict with various keywords:
-         
+
          timestamp (required)
            the last modified timestamp of this data source.  This will be used
            to see if we need to update the database or not.  A timestamp of 0
@@ -22,12 +24,12 @@ class DisplayNames:
         """
         file = apt_pkg.config.find_file("Dir::Cache::pkgcache")
         if not os.path.exists(file):
-            return dict(timestamp = 0)
+            return dict(timestamp=0)
         return dict(
-                timestamp = os.path.getmtime(file),
-                values = [
-                    dict(name = "display_name", desc = "display name"),
-                    dict(name = "pkgname", desc = "Pkgname as value"),
+                timestamp=os.path.getmtime(file),
+                values=[
+                    dict(name="display_name", desc="display name"),
+                    dict(name="pkgname", desc="Pkgname as value"),
                 ])
 
     def doc(self):
@@ -40,14 +42,13 @@ class DisplayNames:
           fullDoc: the full description as a chapter in ReST format
         """
         return dict(
-            name = "DisplayNames",
-            shortDesc = "pkgname and package display names indexed as values",
-            fullDoc = """
+            name="DisplayNames",
+            shortDesc="pkgname and package display names indexed as values",
+            fullDoc="""
             The DisplayNames data source indexes the display name as the
             ``display_name`` Xapian value.
             ``pkgname`` Xapian value.
-            """
-        )
+            """)
 
     def init(self, info, progress):
         """
@@ -73,7 +74,7 @@ class DisplayNames:
         pkg       is the python-apt Package object for this package
         """
         ver = pkg.candidate
-        if ver is None: 
+        if ver is None:
             return
         if self.val_display_name != -1:
             name = ver.summary
@@ -92,6 +93,7 @@ class DisplayNames:
         pkg       is the Deb822 object for this package
         """
         return
+
 
 def init():
     """

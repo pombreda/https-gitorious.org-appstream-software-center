@@ -50,6 +50,5 @@ def get_test_pkg_info():
     return cache
 
 def get_test_datadir():
-    from softwarecenter.ui.gtk3.utils import get_sc_icon_theme
     import softwarecenter.paths
     return softwarecenter.paths.datadir

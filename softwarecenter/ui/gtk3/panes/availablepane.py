@@ -20,8 +20,6 @@ import gettext
 from gi.repository import GObject
 from gi.repository import Gtk
 import logging
-import os
-import sys
 import xapian
 
 import softwarecenter.ui.gtk3.dialogs as dialogs
@@ -33,8 +31,7 @@ from softwarecenter.enums import (ActionButtons,
                                   NavButtons,
                                   NonAppVisibility,
                                   DEFAULT_SEARCH_LIMIT)
-from softwarecenter.paths import (APP_INSTALL_PATH,
-                                  XAPIAN_BASE_PATH)
+from softwarecenter.paths import APP_INSTALL_PATH
 from softwarecenter.utils import wait_for_apt_cache_ready
 from softwarecenter.distro import get_distro
 from softwarecenter.db.appfilter import AppFilter
@@ -44,11 +41,8 @@ from softwarecenter.ui.gtk3.views.catview_gtk import (LobbyViewGtk,
                                                       SubCategoryViewGtk)
 from softwarepane import SoftwarePane
 from softwarecenter.ui.gtk3.session.viewmanager import get_viewmanager
-from softwarecenter.db.categories import Category, CategoriesParser
 
 LOG = logging.getLogger(__name__)
-
-
 
 class AvailablePane(SoftwarePane):
     """Widget that represents the available panel in software-center
@@ -455,29 +449,6 @@ class AvailablePane(SoftwarePane):
         self.searchentry.clear_with_no_signal()
         self.apps_limit = 0
         self.apps_search_term = ""
-
-    @wait_for_apt_cache_ready
-    def show_app(self, app):
-        """ Display an application in the available_pane """
-        cat_of_app = None
-        # FIXME: it would be great to extract this code so that
-        #        we can use it to show the category in search hits
-        #        as well
-        for cat in CategoriesParser.parse_applications_menu(self.cat_view, APP_INSTALL_PATH):
-            if (not cat_of_app and 
-                cat.untranslated_name != "New Applications" and 
-                cat.untranslated_name != "Featured Applications"):
-                if self.db.pkg_in_category(app.pkgname, cat.query):
-                    cat_of_app = cat
-                    continue
-
-        if cat_of_app:
-            self.apps_category = cat_of_app
-        else:
-            self.apps_category = Category("deb", "deb", None, None, False, True, None)
-        self.current_app_by_category[self.apps_category] = app
-        self.app_details_view.show_app(app)
-        self.display_details()
 
     # callbacks
     def on_cache_ready(self, cache):

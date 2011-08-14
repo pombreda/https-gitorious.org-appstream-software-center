@@ -991,7 +991,7 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
             self.weblive.client.connect("exception", self.on_weblive_exception)
             self.weblive.client.connect("warning", self.on_weblive_warning)
 
-            # homepage link button
+        # homepage link button
         self.homepage_btn = Gtk.Button.new_with_label(_('Developer Web Site'))
         self.homepage_btn.connect('clicked', self._on_homepage_clicked)
 
@@ -1099,8 +1099,7 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         # make title font size fixed as they should look good compared to the 
         # icon (also fixed).
         markup = '<span font_desc="bold 20">%s</span>\n<span font_desc="9">%s</span>'
-        markup = markup % (GObject.markup_escape_text(appname),
-                           GObject.markup_escape_text(summary))
+        markup = markup % (appname, summary)
 
         self.title.set_markup(markup)
         self.title.a11y.set_name(appname + '. ' + summary)
@@ -1238,7 +1237,7 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         if app_details.pkg_state == PkgStates.NOT_FOUND:
             summary = app_details._error_not_found
         else:
-            summary = app_details.display_summary
+            summary = GObject.markup_escape_text(app_details.display_summary)
         if not summary:
             summary = ""
 

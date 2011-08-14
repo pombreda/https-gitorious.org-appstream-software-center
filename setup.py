@@ -38,18 +38,17 @@ class PocketLint(distutils.cmd.Command):
             pyl = fnmatch.filter(files, "*.py")
             py_files.extend([os.path.join(root, f) for f in pyl
                              if os.path.exists(os.path.join(root, f))])
-        call(["pocketlint"]+py_files)
+        call(["pocketlint"] + py_files)
 
 
 def merge_authors_into_about_dialog():
-    fname="./data/ui/gtk/SoftwareCenter.ui"
+    fname = "./data/ui/gtk/SoftwareCenter.ui"
     authors = open("AUTHORS").read()
     gtkbuilder = open(fname).read()
     gtkbuilder = re.sub(r'<property name="authors">.*</property>',
                         r'<property name="authors">%s</property>' % authors,
                         gtkbuilder)
     open(fname, "w").write(gtkbuilder)
-    
 
 
 # update version.py
@@ -92,27 +91,27 @@ setup(name="software-center", version=VERSION,
                # db helpers
                "utils/update-software-center",
                "utils/update-software-center-agent",
-               ]+glob.glob("utils/piston-helpers/*.py"),
-      packages = ['softwarecenter',
-                  'softwarecenter.backend',
-                  'softwarecenter.backend.piston',
-                  'softwarecenter.db',
-                  'softwarecenter.db.pkginfo_impl',
-                  'softwarecenter.db.history_impl',
-                  'softwarecenter.distro',
-                  'softwarecenter.ui',
-                  'softwarecenter.ui.gtk',
-                  'softwarecenter.ui.gtk.models',
-                  'softwarecenter.ui.gtk.widgets',
-                  'softwarecenter.ui.gtk3',
-                  'softwarecenter.ui.gtk3.dialogs',
-                  'softwarecenter.ui.gtk3.models',
-                  'softwarecenter.ui.gtk3.panes',
-                  'softwarecenter.ui.gtk3.session',
-                  'softwarecenter.ui.gtk3.views',
-                  'softwarecenter.ui.gtk3.widgets',
-                  'softwarecenter.ui.qml',
-                 ],
+               ] + glob.glob("utils/piston-helpers/*.py"),
+      packages=['softwarecenter',
+                'softwarecenter.backend',
+                'softwarecenter.backend.piston',
+                'softwarecenter.db',
+                'softwarecenter.db.pkginfo_impl',
+                'softwarecenter.db.history_impl',
+                'softwarecenter.distro',
+                'softwarecenter.ui',
+                'softwarecenter.ui.gtk',
+                'softwarecenter.ui.gtk.models',
+                'softwarecenter.ui.gtk.widgets',
+                'softwarecenter.ui.gtk3',
+                'softwarecenter.ui.gtk3.dialogs',
+                'softwarecenter.ui.gtk3.models',
+                'softwarecenter.ui.gtk3.panes',
+                'softwarecenter.ui.gtk3.session',
+                'softwarecenter.ui.gtk3.views',
+                'softwarecenter.ui.gtk3.widgets',
+                'softwarecenter.ui.qml',
+                ],
       data_files=[
                   # gtk2
                   ('share/software-center/ui/gtk/',
@@ -136,7 +135,7 @@ setup(name="software-center", version=VERSION,
                    ["data/com.ubuntu.SoftwareCenter.conf"]),
                   # images
                   ('share/software-center/images/',
-                   glob.glob("data/images/*.png")+
+                   glob.glob("data/images/*.png") +
                    glob.glob("data/images/*.gif")),
                   ('share/software-center/icons/',
                    glob.glob("data/emblems/*.png")),
@@ -147,10 +146,10 @@ setup(name="software-center", version=VERSION,
                   ('share/apport/package-hooks/',
                    ['debian/source_software-center.py']),
                   ],
-      cmdclass = {"build": build_extra.build_extra,
-                  "build_i18n": build_i18n.build_i18n,
-                  "build_help": build_help.build_help,
-                  "build_icons": build_icons.build_icons,
-                  "lint": PocketLint,
-                 },
+      cmdclass={"build": build_extra.build_extra,
+                "build_i18n": build_i18n.build_i18n,
+                "build_help": build_help.build_help,
+                "build_icons": build_icons.build_icons,
+                "lint": PocketLint,
+                },
       )

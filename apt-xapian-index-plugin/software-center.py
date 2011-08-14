@@ -13,13 +13,15 @@ from softwarecenter.enums import (
 from softwarecenter.db.update import index_name
 from softwarecenter.distro import get_distro
 
+
 class SoftwareCenterMetadataPlugin:
+
     def info(self):
         """
         Return general information about the plugin.
 
         The information returned is a dict with various keywords:
-         
+
          timestamp (required)
            the last modified timestamp of this data source.  This will be used
            to see if we need to update the database or not.  A timestamp of 0
@@ -34,8 +36,8 @@ class SoftwareCenterMetadataPlugin:
         """
         file = apt.apt_pkg.config.find_file("Dir::Cache::pkgcache")
         if not os.path.exists(file):
-            return dict(timestamp = 0)
-        return dict(timestamp = os.path.getmtime(file))
+            return dict(timestamp=0)
+        return dict(timestamp=os.path.getmtime(file))
 
     def init(self, info, progress):
         """
@@ -60,25 +62,23 @@ class SoftwareCenterMetadataPlugin:
           fullDoc: the full description as a chapter in ReST format
         """
         return dict(
-            name = "SoftwareCenterMetadata",
-            shortDesc = "SoftwareCenter meta information",
-            fullDoc = """
-            Software-center metadata 
+            name="SoftwareCenterMetadata",
+            shortDesc="SoftwareCenter meta information",
+            fullDoc="""
+            Software-center metadata
             It uses the prefixes:
               AA for the Application name
               AP for the Package name
               AC for the categories
               AT to "application" for applications
-            It sets the following xapian values from the software-center 
+            It sets the following xapian values from the software-center
             enums:
               XapianValues.ICON
               XapianValues.ICON_NEEDS_DOWNLOAD
               XapianValues.ICON_URL
               XapianValues.SCREENSHOT_URL
               XapianValues.THUMBNAIL_URL
-            """
-        )
-
+            """)
 
     def index(self, document, pkg):
         """
@@ -92,18 +92,18 @@ class SoftwareCenterMetadataPlugin:
         # found we can skip the pkg
         if ver is None or not CustomKeys.APPNAME in ver.record:
             return
-        # we want to index the following custom fields: 
-        #   XB-AppName, 
-        #   XB-Icon, 
-        #   XB-Screenshot-Url, 
-        #   XB-Thumbnail-Url, 
+        # we want to index the following custom fields:
+        #   XB-AppName,
+        #   XB-Icon,
+        #   XB-Screenshot-Url,
+        #   XB-Thumbnail-Url,
         #   XB-Category
         if CustomKeys.APPNAME in ver.record:
             name = ver.record[CustomKeys.APPNAME]
             self.indexer.set_document(document)
             index_name(document, name, self.indexer)
             # we pretend to be an application
-            document.add_term("AT"+"application")
+            document.add_term("AT" + "application")
             # and we inject a custom component value to indicate "independent"
             document.add_value(XapianValues.ARCHIVE_SECTION, "independent")
         if CustomKeys.ICON in ver.record:
@@ -122,7 +122,7 @@ class SoftwareCenterMetadataPlugin:
             categories_str = ver.record[CustomKeys.CATEGORY]
             for cat in categories_str.split(";"):
                 if cat:
-                    document.add_term("AC"+cat.lower())
+                    document.add_term("AC" + cat.lower())
 
     def indexDeb822(self, document, pkg):
         """
