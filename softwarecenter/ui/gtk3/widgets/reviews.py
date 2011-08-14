@@ -68,6 +68,9 @@ class UIReviewsList(Gtk.VBox):
         'different-review-language-clicked':(GObject.SignalFlags.RUN_FIRST,
                                              None,
                                              (GObject.TYPE_STRING,) ),
+        'review-sort-changed':(GObject.SignalFlags.RUN_FIRST,
+                               None,
+                               (GObject.TYPE_INT,) ),
     }
 
     def __init__(self, parent):
@@ -84,19 +87,29 @@ class UIReviewsList(Gtk.VBox):
         self.logged_in_person = None
 
         label = Gtk.Label()
-        label.set_markup(_("Reviews"))
+        label.set_markup(_("<b>Reviews</b>"))
         label.set_padding(6, 6)
         label.set_use_markup(True)
         label.set_alignment(0, 0.5)
 
         self.new_review = Gtk.Button()
         self.new_review.set_label(_("Write your own review"))
+        
+        self.sort_combo = Gtk.ComboBoxText()
+        self._sort_methods = [_("Most helpful first"),_("Newest first")]
+        self._current_sort = 0
+        for sort_method in self._sort_methods:
+            self.sort_combo.append_text(sort_method)
+        self.sort_combo.set_active(self._current_sort)
+        
 
         self.header = hb = Gtk.HBox()
         self.header.set_spacing(StockEms.MEDIUM)
         self.pack_start(hb, False, False, 0)
         hb.pack_start(label, False, False, 0)
+        hb.pack_start(self.sort_combo, False, False, 3)
         hb.pack_end(self.new_review, False, False, 6)
+        
 
         self.vbox = Gtk.VBox()
         self.vbox.set_spacing(24)
@@ -104,11 +117,19 @@ class UIReviewsList(Gtk.VBox):
         self.pack_start(self.vbox, True, True, 0)
 
         self.new_review.connect('clicked', lambda w: self.emit('new-review'))
+        self.sort_combo.connect('changed', self._on_sort_method_changed)
         self.show_all()
         return
 
     def _on_button_new_clicked(self, button):
         self.emit("new-review")
+    
+    def _on_sort_method_changed(self, cb):
+        selection = self.sort_combo.get_active()
+        if selection == self._current_sort:
+            return
+        else:
+            self.emit("review-sort-changed", selection)
     
     def update_useful_votes(self, my_votes):
         self.useful_votes = my_votes

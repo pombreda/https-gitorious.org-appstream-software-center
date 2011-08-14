@@ -96,6 +96,11 @@ class SortMethods:
      BY_TOP_RATED,
     ) = range(5)
 
+class ReviewSortMethods:
+    (HELPFUL,
+    NEWEST,
+    ) = range(2)
+
 # values used in the database
 class XapianValues:
     APPNAME = 170
