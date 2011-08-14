@@ -30,12 +30,15 @@ import xapian
 # py3 compat
 try:
     from configparser import RawConfigParser, NoOptionError
+    RawConfigParser # pyflakes
+    NoOptionError # pyflakes
 except ImportError:
     from ConfigParser import RawConfigParser, NoOptionError
 
 # py3 compat
 try:
     import cPickle as pickle
+    pickle # pyflakes
 except ImportError:
     import pickle
 

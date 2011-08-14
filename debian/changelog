@@ -1,4 +1,46 @@
-software-center (4.1.13) UNRELEASED; urgency=low
+software-center (4.1.14) oneiric; urgency=low
+
+  [ Michael Vogt ]
+  * softwarecenter/ui/gtk3/panes/viewswitcher.py:
+    - fix crash when a transaction finished in the gtk3 version
+  * data/ui/gtk3/dialogs.ui:
+    - fixes in the gtkbuilder file (adjust boxes to the right type
+      after opening with the new glade)
+  * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
+    - weblive fix, thanks to Stephane Graber! (LP: #824567)
+  * data/ui/gtk3/SoftwareCenter.ui:
+    - gtkbuilder file fixes (GtkVBox -> GtkBox with orientation property)
+  * softwarecenter/ui/gtk3/app.py:
+    - fixes in the about dialog
+    - remove hidden (and not well working) "menuitem_launchpad_private_ppas"
+    - add gtk3 launchpadintegration
+  * softwarecenter/ui/gtk3/utils.py:
+    - add local SOFTWARE_CENTER_ICON_CACHE_DIR search path
+  * softwarecenter/ui/gtk3/app.py:
+    - make "search:term", "apt:pkg" and "pkg" commandline args work
+      again
+  * softwarecenter/ui/gtk3/panes/installedpane.py:
+    - fix installedpane test window, fix installed search
+  * test/gtk3/test_search.py:
+    - add search testcase
+  * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
+    - fix double markup_escape()
+  * softwarecenter/ui/gtk3/widgets/reviews.py:
+    - fix various utf-8 escape issues
+
+  [ Gary Lasker ]
+  * softwarecenter/ui/gtk/appview.py,
+    softwarecenter/ui/gtk3/widgets/cellrenderers.py:
+    - lighten the color of the reviews count as displayed in
+      the list views (see LP: #802756)
+
+  [ Kiwinote ]
+  * softwarecenter/db/enquire.py:
+    - fix incorrect substitution for set_sort_by_value
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 12 Aug 2011 22:10:32 +0200
+
+software-center (4.1.13) oneiric; urgency=low
 
   [ Michael Vogt ]
   * py3 compatibility fixes, this includes:
@@ -6,6 +48,7 @@ software-center (4.1.13) UNRELEASED; urgency=low
     - print function usage
     - various conditional imports like "import configparser"
     - use of json instead of simplejson (required py2.6+)
+    - pyflake fixes
   * test/test-all.sh:
     - improve tests 
   * test/gtk3/test_panes.py:
@@ -42,7 +85,7 @@ software-center (4.1.13) UNRELEASED; urgency=low
     test/gtk3/test_navhistory.py:
     - unit test fixes
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 10 Aug 2011 21:29:35 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 11 Aug 2011 10:53:07 +0200
 
 software-center (4.1.12) oneiric; urgency=low
 

@@ -37,6 +37,7 @@ from softwarecenter.paths import SOFTWARE_CENTER_CACHE_DIR
 # py3 compat
 try:
     from queue import Queue
+    Queue # pyflakes
 except ImportError:
     from Queue import Queue
 

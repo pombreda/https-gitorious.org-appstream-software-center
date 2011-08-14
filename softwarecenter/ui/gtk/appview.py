@@ -436,7 +436,7 @@ class CellRendererAppView2(gtk.CellRendererText):
         # and nr-reviews in parenthesis to the right of the title
         s = "(%i)" % self.nreviews
 
-        self._layout.set_markup("<small>%s</small>" % s)
+        self._layout.set_markup("<span color='darkgray'><small>%s</small></span>" % s)
         lw, lh = self._layout.get_pixel_extents()[1][2:]
 
         w = self.MAX_STARS*self.STAR_SIZE

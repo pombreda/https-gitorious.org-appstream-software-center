@@ -8,16 +8,10 @@ from gi.repository import Gtk
 sys.path.insert(0,"../..")
 sys.path.insert(0,"..")
 
-from softwarecenter.paths import XAPIAN_BASE_PATH
-from softwarecenter.db.pkginfo import get_pkg_info
-from softwarecenter.db.database import StoreDatabase
-
 from softwarecenter.ui.gtk3.models.appstore2 import AppListStore
 from softwarecenter.db.enquire import AppEnquire
 
 from softwarecenter.testutils import (get_test_db,
-                                      get_test_datadir,
-                                      get_test_gtk3_viewmanager,
                                       get_test_pkg_info,
                                       get_test_gtk3_icon_cache,
                                       )

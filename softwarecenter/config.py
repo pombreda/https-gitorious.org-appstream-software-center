@@ -19,6 +19,7 @@
 # py3 compat
 try:
     from configparser import SafeConfigParser
+    SafeConfigParser # pyflakes
 except ImportError:
     from ConfigParser import SafeConfigParser
 import os

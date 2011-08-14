@@ -17,12 +17,9 @@
 # You should have received a copy of the GNU General Public License along with
 # this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import sys
-
 from gi.repository import GObject
 from gi.repository import Gtk, Gdk
 import logging
-import os.path
 import datetime
 
 from gettext import gettext as _
@@ -30,8 +27,6 @@ from gettext import gettext as _
 from softwarecenter.ui.gtk3.widgets.spinner import SpinnerView
 from basepane import BasePane
 from softwarecenter.enums import Icons
-from softwarecenter.paths import XAPIAN_BASE_PATH
-from softwarecenter.db.database import StoreDatabase
 from softwarecenter.ui.gtk3.session.viewmanager import get_viewmanager
 from softwarepane import DisplayState
 
@@ -368,7 +363,6 @@ class HistoryPane(Gtk.VBox, BasePane):
 def get_test_window():
 
     from softwarecenter.testutils import (get_test_db,
-                                          get_test_datadir,
                                           get_test_gtk3_viewmanager,
                                           get_test_pkg_info,
                                           get_test_gtk3_icon_cache,
@@ -378,7 +372,6 @@ def get_test_window():
     vm # make pyflakes happy
     db = get_test_db()
     cache = get_test_pkg_info()
-    datadir = get_test_datadir()
     icons = get_test_gtk3_icon_cache()
 
     widget = HistoryPane(cache, db, None, icons, None)

@@ -35,6 +35,7 @@ import xml.sax.saxutils
 # py3 compat
 try:
     from urllib.parse import urlsplit
+    urlsplit # pyflakes
 except ImportError:
     from urlparse import urlsplit
 

@@ -24,6 +24,7 @@ import xapian
 
 try:
     from configparser import ConfigParser
+    ConfigParser # pyflakes
 except ImportError:
     from ConfigParser import ConfigParser
 

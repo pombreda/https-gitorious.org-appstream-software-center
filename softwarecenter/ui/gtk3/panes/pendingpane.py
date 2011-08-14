@@ -125,15 +125,7 @@ class PendingPane(Gtk.ScrolledWindow, BasePane):
 
 def get_test_window():
 
-    from softwarecenter.testutils import (get_test_db,
-                                          get_test_datadir,
-                                          get_test_gtk3_viewmanager,
-                                          get_test_pkg_info,
-                                          get_test_gtk3_icon_cache,
-                                          )
-    db = get_test_db()
-    cache = get_test_pkg_info()
-    datadir = get_test_datadir()
+    from softwarecenter.testutils import get_test_gtk3_icon_cache
     icons = get_test_gtk3_icon_cache()
 
     view = PendingPane(icons)
