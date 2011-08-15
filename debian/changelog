@@ -6,6 +6,11 @@ software-center (4.1.15) UNRELEASED; urgency=low
     - add "--dummy-backend" option start will start a fake
       aptdaemon in a private dbus for interactive testing of the
       installation/removal
+  * softwarecenter/backend/spawn_helper.py:
+    - make "--debug-filter softwarecenter.backend.spawn_helper"
+      more useful
+    - ensure that the io source is removed after any pending
+      reads are flushed
 
   [ Kiwinote ]
   * data/ui/gtk3/SoftwareCenter.ui,
