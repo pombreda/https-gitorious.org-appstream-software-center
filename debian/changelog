@@ -1,5 +1,9 @@
 software-center (4.1.15) UNRELEASED; urgency=low
 
+  [ Michael Vogt ]
+  * software-center-gtk3, software-center:
+    - fix PYTHONPATH when running from a local repo
+
   [ Kiwinote ]
   * data/ui/gtk3/SoftwareCenter.ui,
     softwarecenter/ui/gtk3/app.py:
@@ -12,7 +16,7 @@ software-center (4.1.15) UNRELEASED; urgency=low
   * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
     - correctly show/hide website button
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 12 Aug 2011 22:10:32 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 15 Aug 2011 10:07:23 +0200
 
 software-center (4.1.14) oneiric; urgency=low
 

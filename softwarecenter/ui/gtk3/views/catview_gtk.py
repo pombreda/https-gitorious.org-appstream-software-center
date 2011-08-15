@@ -335,6 +335,8 @@ class LobbyViewGtk(CategoriesViewGtk):
     def _append_top_rated(self):
         toprated_cat = get_category_by_name(self.categories, 
                                             u"Top Rated")  # unstranslated name
+        if toprated_cat is None:
+            return
         enq = AppEnquire(self.cache, self.db)
         app_filter = AppViewFilter(self.db, self.cache)
         enq.set_query(toprated_cat.query,
