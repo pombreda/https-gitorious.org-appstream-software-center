@@ -11,6 +11,8 @@ software-center (4.1.15) UNRELEASED; urgency=low
       more useful
     - ensure that the io source is removed after any pending
       reads are flushed
+  * software-center:
+    - fix startup with no PYTHONPATH
 
   [ Kiwinote ]
   * data/ui/gtk3/SoftwareCenter.ui,
