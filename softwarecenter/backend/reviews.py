@@ -66,7 +66,7 @@ from softwarecenter.paths import (SOFTWARE_CENTER_CACHE_DIR,
                                   RNRApps,
                                   PistonHelpers,
                                   )
-#from softwarecenter.enums import *
+from softwarecenter.enums import ReviewSortMethods
 
 from softwarecenter.netstatus import network_state_is_connected
 
@@ -232,6 +232,7 @@ class ReviewLoader(object):
     # cache the ReviewStats
     REVIEW_STATS_CACHE = {}
     _cache_version_old = False
+    _review_sort_methods = ReviewSortMethods.REVIEW_SORT_METHODS
 
     def __init__(self, cache, db, distro=None):
         self.cache = cache
@@ -261,7 +262,8 @@ class ReviewLoader(object):
                 return True
         return False
 
-    def get_reviews(self, application, callback, page=1, language=None):
+    def get_reviews(self, application, callback, page=1, language=None,
+                    sort=0):
         """run callback f(app, review_list) 
            with list of review objects for the given
            db.database.Application object
@@ -589,7 +591,8 @@ class ReviewLoaderSpawningRNRClient(ReviewLoader):
         self.rnrclient._offline_mode = not network_state_is_connected()
 
     # reviews
-    def get_reviews(self, translated_app, callback, page=1, language=None):
+    def get_reviews(self, translated_app, callback, page=1, 
+                    language=None, sort=0):
         """ public api, triggers fetching a review and calls callback
             when its ready
         """
@@ -597,6 +600,7 @@ class ReviewLoaderSpawningRNRClient(ReviewLoader):
         # pkgname to the server
         app = translated_app
         self._update_rnrclient_offline_state()
+        sort_method = self._review_sort_methods[sort]
         if language is None:
             language = self.language
         # gather args for the helper
@@ -624,6 +628,7 @@ class ReviewLoaderSpawningRNRClient(ReviewLoader):
                "--distroseries", distroseries, 
                "--pkgname", str(app.pkgname), # ensure its str, not unicode
                "--page", str(page),
+               "--sort", sort_method,
               ]
         spawn_helper = SpawnHelper()
         spawn_helper.connect(
@@ -721,7 +726,7 @@ class ReviewLoaderJsonAsync(ReviewLoader):
         # run callback
         callback(app, sorted(reviews, reverse=True))
 
-    def get_reviews(self, app, callback, page=1, language=None):
+    def get_reviews(self, app, callback, page=1, language=None, sort=0):
         """ get a specific review and call callback when its available"""
         # FIXME: get this from the app details
         origin = self.cache.get_origin(app.pkgname)
@@ -730,12 +735,16 @@ class ReviewLoaderJsonAsync(ReviewLoader):
             appname = ";"+app.appname
         else:
             appname = ""
+
+        sort_method = self._review_sort_methods[sort]
+        
         url = self.distro.REVIEWS_URL % { 'pkgname' : app.pkgname,
                                           'appname' : quote_plus(appname.encode("utf-8")),
                                           'language' : self.language,
                                           'origin' : origin,
                                           'distroseries' : distroseries,
                                           'version' : 'any',
+                                          'sort' : sort_method,
                                          }
         LOG.debug("looking for review at '%s'" % url)
         f=gio.File(url)

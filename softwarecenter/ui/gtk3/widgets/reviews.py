@@ -41,7 +41,12 @@ from softwarecenter.utils import (
     )
 
 from softwarecenter.netstatus import network_state_is_connected
-from softwarecenter.enums import PkgStates
+
+from softwarecenter.enums import (
+    PkgStates, 
+    ReviewSortMethods,
+    )
+    
 from softwarecenter.backend.reviews import UsefulnessCache
 
 from softwarecenter.ui.gtk3.em import StockEms
@@ -96,12 +101,10 @@ class UIReviewsList(Gtk.VBox):
         self.new_review.set_label(_("Write your own review"))
         
         self.sort_combo = Gtk.ComboBoxText()
-        self._sort_methods = [_("Most helpful first"),_("Newest first")]
         self._current_sort = 0
-        for sort_method in self._sort_methods:
+        for sort_method in ReviewSortMethods.REVIEW_SORT_LIST_ENTRIES:
             self.sort_combo.append_text(sort_method)
         self.sort_combo.set_active(self._current_sort)
-        
 
         self.header = hb = Gtk.HBox()
         self.header.set_spacing(StockEms.MEDIUM)
@@ -129,6 +132,7 @@ class UIReviewsList(Gtk.VBox):
         if selection == self._current_sort:
             return
         else:
+            self._current_sort = selection
             self.emit("review-sort-changed", selection)
     
     def update_useful_votes(self, my_votes):

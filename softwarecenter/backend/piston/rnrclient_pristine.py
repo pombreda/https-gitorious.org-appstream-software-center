@@ -102,9 +102,10 @@ class RatingsAndReviewsAPI(PistonAPI):
     @validate_pattern('packagename', r'[a-z0-9.+-]+')
     @validate('appname', str, required=False)
     @validate('page', int, required=False)
+    @validate('sort', str, required=False)
     @returns_list_of(ReviewDetails)
     def get_reviews(self, packagename, language='any', origin='any',
-        distroseries='any', version='any', appname='', page=1):
+        distroseries='any', version='any', appname='', page=1, sort='helpful'):
         """Fetch ratings and reviews for a particular package name.
 
         If any of the optional arguments are provided, fetch reviews for that
@@ -112,9 +113,9 @@ class RatingsAndReviewsAPI(PistonAPI):
         """
         if appname:
             appname = quote_plus(';' + appname)
-        return self._get('reviews/filter/%s/%s/%s/%s/%s%s/page/%s/' % (
+        return self._get('reviews/filter/%s/%s/%s/%s/%s%s/page/%s/%s/' % (
             language, origin, distroseries, version, packagename,
-            appname, page),
+            appname, page, sort), 
             scheme=PUBLIC_API_SCHEME)
 
     @validate('review_id', int)
@@ -184,4 +185,4 @@ class RatingsAndReviewsAPI(PistonAPI):
         """Modify an existing review"""
         data = {'rating':rating, 'summary':summary, 'review_text':review_text}
         return self._put('/reviews/modify/%s/' % review_id, data=data,
-            scheme=AUTHENTICATED_API_SCHEME)
+        scheme=AUTHENTICATED_API_SCHEME)

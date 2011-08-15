@@ -97,9 +97,8 @@ class SortMethods:
     ) = range(5)
 
 class ReviewSortMethods:
-    (HELPFUL,
-    NEWEST,
-    ) = range(2)
+    REVIEW_SORT_METHODS = ['helpful', 'newest']
+    REVIEW_SORT_LIST_ENTRIES = [_('Most helpful first'), _('Newest first')]
 
 # values used in the database
 class XapianValues:
