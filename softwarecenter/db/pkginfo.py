@@ -134,7 +134,7 @@ class PackageInfo(GObject.GObject):
     def get_origins(self, pkgname):
         return []
     def get_addons(self, pkgname, ignore_installed):
-        pass
+        return ([], [])
 
     def get_packages_removed_on_remove(self, pkg):
         """ Returns a package names list of reverse dependencies
