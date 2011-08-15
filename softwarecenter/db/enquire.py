@@ -17,6 +17,7 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+import sys
 import copy
 import logging
 import time
@@ -36,6 +37,9 @@ from softwarecenter.distro import get_distro
 from softwarecenter.utils import ExecutionTime
 
 LOG=logging.getLogger(__name__)
+# for testing only, force blocking queries
+TESTING_USE_BLOCKING_QUERIES_ONLY = 'TESTING_USE_BLOCKING_QUERIES_ONLY' in sys.argv
+
 
 class AppEnquire(GObject.GObject):
     """
@@ -269,7 +273,11 @@ class AppEnquire(GObject.GObject):
         # two models will not work
         self.filter = copy.copy(filter)
         self.exact = exact
-        self.nonblocking_load = nonblocking_load
+        if TESTING_USE_BLOCKING_QUERIES_ONLY:
+            self.nonblocking_load = False
+            LOG.debug("TESTING: Forcing _blocking_ queries")
+        else:
+            self.nonblocking_load = nonblocking_load
         self.nonapps_visible = nonapps_visible
 
         # no search query means "all"

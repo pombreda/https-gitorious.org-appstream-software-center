@@ -35,6 +35,7 @@ from softwarecenter.distro import get_distro
 from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
 
 
+
 # global cache icons to speed up rendering
 _app_icon_cache = {}
 
@@ -278,6 +279,32 @@ class AppGenericStore(_AppPropertiesHelper):
         self.transaction_path_map[pkgname] = (path, self.get_iter(path))
         return
 
+    def set_from_matches(self, matches):
+        """ set the content of the liststore based on a list of
+            xapian.MSetItems
+        """
+
+        self.current_matches = matches
+        n_matches = len(matches)
+        if n_matches == 0: return
+    
+        db = self.db.xapiandb
+        extent = min(self.LOAD_INITIAL, n_matches-1)
+
+        with ExecutionTime("store.append_initial"):
+            for doc in [db.get_document(m.docid) for m in matches][:extent]:
+                doc.available = doc.installed = None
+                self.append((doc,))
+
+        if n_matches == extent: return
+
+        with ExecutionTime("store.append_placeholders"):
+            for i in range(n_matches - extent):
+                self.append()
+
+        self.buffer_icons()
+        return
+
     # the following methods ensure that the contents data is refreshed
     # whenever a transaction potentially changes it: 
     def _on_transaction_started(self, backend, pkgname, appname, trans_id, trans_type):
@@ -315,32 +342,6 @@ class AppListStore(Gtk.ListStore, AppGenericStore):
         self.set_column_types(self.COL_TYPES)
 
         self.current_matches = None
-        return
-
-    def set_from_matches(self, matches):
-        """ set the content of the liststore based on a list of
-            xapian.MSetItems
-        """
-
-        self.current_matches = matches
-        n_matches = len(matches)
-        if n_matches == 0: return
-    
-        db = self.db.xapiandb
-        extent = min(self.LOAD_INITIAL, n_matches-1)
-
-        with ExecutionTime("store.append_initial"):
-            for doc in [db.get_document(m.docid) for m in matches][:extent]:
-                doc.available = doc.installed = None
-                self.append((doc,))
-
-        if n_matches == extent: return
-
-        with ExecutionTime("store.append_placeholders"):
-            for i in range(n_matches - extent):
-                self.append()
-
-        self.buffer_icons()
         return
 
     def load_range(self, indices, step):

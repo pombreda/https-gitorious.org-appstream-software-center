@@ -18,12 +18,14 @@ softwarecenter.paths.datadir = "../data"
 class TestSearch(unittest.TestCase):
 
     def test_installedpane(self):
+        sys.argv.append('TESTING_USE_BLOCKING_QUERIES_ONLY')
+
         from softwarecenter.ui.gtk3.panes.installedpane import get_test_window
         win = get_test_window()
         installedpane = win.get_data("pane")
         installedpane.on_search_terms_changed(None, "the")
         self._p()
-        model = installedpane.app_view.get_model()
+        model = installedpane.app_view.tree_view.get_model()
         len1 = len(model)
         installedpane.on_search_terms_changed(None, "nosuchsearchtermforsure")
         self._p()

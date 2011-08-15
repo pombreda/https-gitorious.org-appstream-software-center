@@ -262,7 +262,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
 
         self.treefilter.refilter()
         if terms:
-            self.app_view.expand_all()
+            self.app_view.tree_view.expand_all()
             #i = len(self.visible_docids)
         else:
             self._check_expand()
