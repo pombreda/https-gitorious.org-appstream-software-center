@@ -200,6 +200,8 @@ class SoftwarePane(Gtk.VBox, BasePane):
         # keep track of applications that are candidates to be added
         # to the Unity launcher
         self.unity_launcher_items = {}
+        # this should be initialized
+        self.apps_search_term = ""
         # Create the basic frame for the common view
         self.state = DisplayState()
         vm = get_viewmanager()

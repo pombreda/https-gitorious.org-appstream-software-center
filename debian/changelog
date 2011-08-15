@@ -1,3 +1,33 @@
+software-center (4.1.15) UNRELEASED; urgency=low
+
+  [ Michael Vogt ]
+  * software-center-gtk3, software-center:
+    - fix PYTHONPATH when running from a local repo
+    - add "--dummy-backend" option start will start a fake
+      aptdaemon in a private dbus for interactive testing of the
+      installation/removal
+  * softwarecenter/backend/spawn_helper.py:
+    - make "--debug-filter softwarecenter.backend.spawn_helper"
+      more useful
+    - ensure that the io source is removed after any pending
+      reads are flushed
+  * software-center:
+    - fix startup with no PYTHONPATH
+
+  [ Kiwinote ]
+  * data/ui/gtk3/SoftwareCenter.ui,
+    softwarecenter/ui/gtk3/app.py:
+    - few more tweaks to the about dialog
+  * softwarecenter/ui/gtk/appview.py,
+    softwarecenter/ui/gtk3/widgets/cellrenderers.py:
+    - fix listviews in rtl setups (pango reverses LEFT and RIGHT itself)
+  * softwarecenter/ui/gtk3/app.py:
+    - fix rtl mode for testing
+  * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
+    - correctly show/hide website button
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 15 Aug 2011 10:07:23 +0200
+
 software-center (4.1.14) oneiric; urgency=low
 
   [ Michael Vogt ]

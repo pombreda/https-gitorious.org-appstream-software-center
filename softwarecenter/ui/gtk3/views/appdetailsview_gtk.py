@@ -1154,12 +1154,11 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
 
     def _update_description_footer_links(self, app_details):        
         # show or hide the homepage button and set uri if homepage specified
-        # FIXME
-        #~ if app_details.website:
-            #~ self.homepage_btn.show()
-            #~ self.homepage_btn.set_tooltip_text(app_details.website)
-        #~ else:
-            #~ self.homepage_btn.hide()
+        if app_details.website:
+            self.homepage_btn.show()
+            self.homepage_btn.set_tooltip_text(app_details.website)
+        else:
+            self.homepage_btn.hide()
         return
 
     def _update_app_screenshot(self, app_details):
@@ -1683,9 +1682,16 @@ def get_test_window_appdetails():
     scroll = Gtk.ScrolledWindow()
     view = AppDetailsViewGtk(db, distro, icons, cache, datadir, win)
 
+    import sys
+    if len(sys.argv) > 1:
+        pkgname = sys.argv[1]
+    else:
+        pkgname = "totem"
+
+    view.show_app(Application("", pkgname))
     #view.show_app(Application("Pay App Example", "pay-app"))
     #view.show_app(Application("3D Chess", "3dchess"))
-    view.show_app(Application("Movie Player", "totem"))
+    #view.show_app(Application("Movie Player", "totem"))
     #view.show_app(Application("ACE", "unace"))
     #~ view.show_app(Application("", "apt"))
 
