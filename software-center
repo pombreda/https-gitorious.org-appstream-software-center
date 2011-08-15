@@ -102,7 +102,10 @@ if __name__ == "__main__":
     if os.path.exists("./data/ui/gtk/SoftwareCenter.ui"):
         logging.getLogger("softwarecenter").info("Using data (UI, xapian) from current dir")
         # set pythonpath for the various helpers
-        os.environ["PYTHONPATH"]=os.path.abspath(".") + ":"+os.environ.get("PYTHONPATH","")
+        if os.environ["PYTHONPATH"]:
+            os.environ["PYTHONPATH"]=os.path.abspath(".") + ":" + os.environ.get("PYTHONPATH","")
+        else:
+            os.environ["PYTHONPATH"]=os.path.abspath(".")
         datadir = "./data"
         xapian_base_path = datadir
         # set new global datadir

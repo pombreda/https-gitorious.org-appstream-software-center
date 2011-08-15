@@ -1,3 +1,10 @@
+software-center (4.1.15) UNRELEASED; urgency=low
+
+  * software-center-gtk3, software-center:
+    - fix PYTHONPATH when running from a local repo
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 15 Aug 2011 10:07:23 +0200
+
 software-center (4.1.14) oneiric; urgency=low
 
   [ Michael Vogt ]

@@ -1683,9 +1683,16 @@ def get_test_window_appdetails():
     scroll = Gtk.ScrolledWindow()
     view = AppDetailsViewGtk(db, distro, icons, cache, datadir, win)
 
+    import sys
+    if len(sys.argv) > 1:
+        pkgname = sys.argv[1]
+    else:
+        pkgname = "totem"
+
+    view.show_app(Application("", pkgname))
     #view.show_app(Application("Pay App Example", "pay-app"))
     #view.show_app(Application("3D Chess", "3dchess"))
-    view.show_app(Application("Movie Player", "totem"))
+    #view.show_app(Application("Movie Player", "totem"))
     #view.show_app(Application("ACE", "unace"))
     #~ view.show_app(Application("", "apt"))
 
