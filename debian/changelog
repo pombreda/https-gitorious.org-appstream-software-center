@@ -2,6 +2,9 @@ software-center (4.1.15) UNRELEASED; urgency=low
 
   * software-center-gtk3, software-center:
     - fix PYTHONPATH when running from a local repo
+    - add "--dummy-backend" option start will start a fake
+      aptdaemon in a private dbus for interactive testing of the
+      installation/removal
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 15 Aug 2011 10:07:23 +0200
 

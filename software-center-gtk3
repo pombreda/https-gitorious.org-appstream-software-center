@@ -78,6 +78,9 @@ if __name__ == "__main__":
     parser.add_option("--measure-startup-time", action="store_true",
                       help="open and wait until the window is visible, then close, only useful for profiling",
                       default=False)
+    parser.add_option("--dummy-backend", action="store_true",
+                      help="run with a dummy backend, this will not actually install or remove anything and is useful for testing",
+                      default=False)
 
     (options, args) = parser.parse_args()
 
@@ -94,6 +97,13 @@ if __name__ == "__main__":
         softwarecenter.log.root.setLevel(level=logging.DEBUG)
     else:
         softwarecenter.log.root.setLevel(level=logging.INFO)
+
+    # dummy backend
+    if options.dummy_backend:
+        import atexit
+        from softwarecenter.testutils import start_dummy_backend, stop_dummy_backend
+        start_dummy_backend()
+        atexit.register(stop_dummy_backend)
 
     # override text direction for testing purposes
     if options.force_rtl:
