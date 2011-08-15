@@ -23,7 +23,9 @@ m_dbus = m_polkit = m_aptd = None
 def start_dummy_backend():
     global m_dbus, m_polkit, m_aptd
     # start private dbus
-    m_dbus = subprocess.Popen(["dbus-daemon", "--session", "--nofork",
+    m_dbus = subprocess.Popen(["dbus-daemon", 
+                               "--session", 
+                               "--nofork",
                                "--print-address"], 
                               stdout=subprocess.PIPE)
     # get and store address
@@ -33,12 +35,14 @@ def start_dummy_backend():
     env = { "DBUS_SESSION_BUS_ADDRESS" : bus_address,
           }
     m_polkit = subprocess.Popen(
-        ["/usr/share/aptdaemon/tests/fake-polkitd.py"],
+        ["/usr/share/aptdaemon/tests/fake-polkitd.py", 
+         "--allowed-actions=all"],
         env=env)
     # start aptd in dummy mode
     m_aptd = subprocess.Popen(
         ["/usr/sbin/aptd","--dummy", "--session-bus", "--disable-timeout", 
-         "--debug"], env=env)
+         "--debug"], 
+        env=env)
 
 def stop_dummy_backend():
     global m_dbus, m_polkit, m_aptd

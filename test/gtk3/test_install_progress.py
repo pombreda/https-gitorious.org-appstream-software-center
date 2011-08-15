@@ -23,7 +23,6 @@ class TestViews(unittest.TestCase):
 
     def setUp(self):
         start_dummy_backend()
-        time.sleep(1)
         
     def tearDown(self):
         stop_dummy_backend()
@@ -37,12 +36,13 @@ class TestViews(unittest.TestCase):
         app = view.app
         view.backend.install(app.pkgname, app.appname, "")
         self._p()
-        #Gtk.main()
+        self.assertTrue(view.pkg_statusbar.progress.get_property("visible"))
 
     def _p(self):
-        while Gtk.events_pending():
-            Gtk.main_iteration()
-        
+        for i in range(5):
+            time.sleep(0.1)
+            while Gtk.events_pending():
+                Gtk.main_iteration()
 
 if __name__ == "__main__":
     import logging

@@ -49,7 +49,6 @@ def get_dbus_bus():
     if "SOFTWARE_CENTER_APTD_FAKE" in os.environ:
         dbus_address = os.environ["SOFTWARE_CENTER_APTD_FAKE"]
         bus = dbus.bus.BusConnection(dbus_address)
-        print bus
     else:
         bus = dbus.SystemBus()
     return bus

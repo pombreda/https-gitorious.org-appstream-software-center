@@ -104,7 +104,6 @@ if __name__ == "__main__":
         from softwarecenter.testutils import start_dummy_backend, stop_dummy_backend
         start_dummy_backend()
         atexit.register(stop_dummy_backend)
-        
 
     # override text direction for testing purposes
     if options.force_rtl:
