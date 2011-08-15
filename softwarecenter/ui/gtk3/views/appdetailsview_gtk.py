@@ -1154,12 +1154,11 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
 
     def _update_description_footer_links(self, app_details):        
         # show or hide the homepage button and set uri if homepage specified
-        # FIXME
-        #~ if app_details.website:
-            #~ self.homepage_btn.show()
-            #~ self.homepage_btn.set_tooltip_text(app_details.website)
-        #~ else:
-            #~ self.homepage_btn.hide()
+        if app_details.website:
+            self.homepage_btn.show()
+            self.homepage_btn.set_tooltip_text(app_details.website)
+        else:
+            self.homepage_btn.hide()
         return
 
     def _update_app_screenshot(self, app_details):
