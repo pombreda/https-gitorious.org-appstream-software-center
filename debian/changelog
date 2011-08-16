@@ -17,7 +17,11 @@ software-center (4.1.15) UNRELEASED; urgency=low
     - port to use gir1.2-gmenu-3.0
   * softwarecenter/ui/{gtk,gtk3}/views/appdetailsview_gtk.py:
     - updated for gir1.2-gmenu-3.0
-
+  
+  [ Matthew McGowan ]
+  * lp:~mmcg069/software-center/appdetails-tweaks:
+    - add a pretty frame around the thumbnail in the detailsview.
+  
   [ Kiwinote ]
   * data/ui/gtk3/SoftwareCenter.ui,
     softwarecenter/ui/gtk3/app.py:
