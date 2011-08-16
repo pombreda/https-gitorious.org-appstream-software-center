@@ -325,14 +325,20 @@ class ExhibitBanner(Gtk.EventBox):
         return
 
     def _render_exhibit_at_cursor(self):
+        # check the cursor is within range
+        n_exhibits = len(self.exhibits)
+        cursor = self.cursor
+        if n_exhibits == 0 or (cursor < 0 and cursor >= n_exhibits):
+            
+            return
         # copy old image for the fade
         if self.image:
             self.old_image = self.image.copy()
         # set the rigth one
-        self.renderer.set_exhibit(self.exhibits[self.cursor])
+        self.renderer.set_exhibit(self.exhibits[cursor])
         # make sure the active button is having a different color
         for i, w in enumerate(self.index_hbox):
-            w.is_active = (i == self.cursor)
+            w.is_active = (i == cursor)
 
     def on_paging_dot_clicked(self, dot, index):
         self.cursor = index
@@ -468,6 +474,8 @@ class ExhibitBanner(Gtk.EventBox):
         return
 
     def set_exhibits(self, exhibits_list):
+        if not exhibits_list: return
+
         self.exhibits = exhibits_list
         self.cursor = 0
 
