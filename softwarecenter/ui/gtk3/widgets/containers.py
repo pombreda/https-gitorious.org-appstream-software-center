@@ -445,6 +445,17 @@ class Frame(Gtk.Alignment):
         return
 
 
+class SmallBorderRadiusFrame(Frame):
+
+    BORDER_RADIUS = 2
+    BORDER_IMAGE = os.path.join(
+        softwarecenter.paths.datadir, "ui/gtk3/art/frame-border-image-2px-border-radius.png")
+
+    def __init__(self, padding=3):
+        Frame.__init__(self, padding)
+        return
+
+
 class FramedBox(Frame):
 
     def __init__(self, orientation=Gtk.Orientation.VERTICAL, spacing=0, padding=3):

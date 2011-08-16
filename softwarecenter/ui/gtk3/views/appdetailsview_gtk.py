@@ -54,6 +54,7 @@ from appdetailsview import AppDetailsViewBase
 from softwarecenter.ui.gtk3.em import StockEms, em
 
 from softwarecenter.ui.gtk3.widgets.reviews import UIReviewsList
+from softwarecenter.ui.gtk3.widgets.containers import SmallBorderRadiusFrame
 from softwarecenter.ui.gtk3.widgets.stars import Star
 from softwarecenter.ui.gtk3.widgets.description import AppDescription
 from softwarecenter.ui.gtk3.widgets.thumbnail import ScreenshotThumbnail
@@ -977,7 +978,9 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         right_vb = Gtk.VBox()
         right_vb.set_spacing(6)
         body_hb.pack_start(right_vb, False, False, 0)
-        right_vb.pack_start(self.screenshot, False, False, 0)
+        frame = SmallBorderRadiusFrame()
+        frame.add(self.screenshot)
+        right_vb.pack_start(frame, False, False, 0)
 
         # the weblive test-drive stuff
         self.weblive = get_weblive_backend()
