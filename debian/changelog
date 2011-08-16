@@ -25,7 +25,9 @@ software-center (4.1.15) UNRELEASED; urgency=low
     - fix so that markup is actually rendered by the submit_label
       when submitting usefulness (LP: #823233)
   * fix the annoying ascii codec error, #823363
-
+  * add some checks to ensure the exhibits list contains exhibits and
+    then some further checks within _render_exhbit_at_cursor to ensure
+    the cursor is within the bounds of the exhibits_list
   
   [ Kiwinote ]
   * data/ui/gtk3/SoftwareCenter.ui,
