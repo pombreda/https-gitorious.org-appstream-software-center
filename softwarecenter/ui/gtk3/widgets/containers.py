@@ -447,7 +447,7 @@ class Frame(Gtk.Alignment):
 
 class SmallBorderRadiusFrame(Frame):
 
-    BORDER_RADIUS = 2
+    BORDER_RADIUS = 3
     BORDER_IMAGE = os.path.join(
         softwarecenter.paths.datadir, "ui/gtk3/art/frame-border-image-2px-border-radius.png")
 
