@@ -16,7 +16,7 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import gmenu
+from gi.repository import GMenu
 import os
 from softwarecenter.enums import APP_INSTALL_PATH_DELIMITER
 
@@ -24,6 +24,7 @@ class GMenuSearcher(object):
 
     def __init__(self):
         self._found = None
+
     def _search_gmenu_dir(self, dirlist, needle):
         if not dirlist[-1]:
             return
@@ -57,7 +58,7 @@ class GMenuSearcher(object):
         if menu_files_list is None:
             menu_files_list = ["applications.menu", "settings.menu"]
         for n in menu_files_list:
-            tree = gmenu.lookup_tree(n)
+            tree = GMenu.Tree.new_for_path(n)
             self._search_gmenu_dir([tree.get_root_directory()], 
                                    os.path.basename(desktop_file))
             if self._found:
