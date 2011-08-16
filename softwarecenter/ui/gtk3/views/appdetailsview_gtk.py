@@ -718,7 +718,6 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         self._layout_page()
 
         self.connect('realize', self._on_realize)
-
         self.loaded = True
         return
 
@@ -1058,7 +1057,7 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         # signals!
         #~ vb.connect('draw', self._on_draw, alignment)
         vb.connect('key-press-event', self._on_key_press)
-        #~ self.connect('size-allocate', self._on_allocate, vb)
+        self.connect('size-allocate', lambda w,a: w.queue_draw())
         return
 
     def _on_key_press(self, widget, event):
