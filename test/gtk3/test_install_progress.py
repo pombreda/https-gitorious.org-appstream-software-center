@@ -10,6 +10,9 @@ sys.path.insert(0,"..")
 
 #from mock import Mock
 
+import softwarecenter.paths
+softwarecenter.paths.datadir = "../data"
+
 from softwarecenter.db.application import Application
 from softwarecenter.testutils import start_dummy_backend, stop_dummy_backend
 
