@@ -32,6 +32,7 @@ from softwarecenter.ui.gtk3.shapes import Circle
 import softwarecenter.paths
 
 _asset_cache = {}
+_HAND = Gdk.Cursor.new(Gdk.CursorType.HAND2)
 
 EXHIBIT_HTML = """
 <html><head>
@@ -292,14 +293,20 @@ class ExhibitBanner(Gtk.EventBox):
         self.set_events(Gdk.EventMask.BUTTON_RELEASE_MASK|
                         Gdk.EventMask.ENTER_NOTIFY_MASK|
                         Gdk.EventMask.LEAVE_NOTIFY_MASK)
-        #~ self.connect("enter-notify-event", self.on_enter_notify)
-        #~ self.connect("leave-notify-event", self.on_leave_notify)
+        self.connect("enter-notify-event", self.on_enter_notify)
+        self.connect("leave-notify-event", self.on_leave_notify)
         self.connect("button-release-event", self.on_button_release)
 
     def on_enter_notify(self, *args):
+        if not self.exhibits[self.cursor].package_names:
+            return
+        window = self.get_window()
+        window.set_cursor(_HAND)
         return
 
     def on_leave_notify(self, *args):
+        window = self.get_window()
+        window.set_cursor(None)
         return
 
     def on_button_release(self, *args):
