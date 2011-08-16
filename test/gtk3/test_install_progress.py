@@ -1,8 +1,6 @@
 #!/usr/bin/python
 
-from gi.repository import Gtk, GObject
-import os
-import subprocess
+from gi.repository import Gtk
 import sys
 import time
 import unittest
@@ -14,8 +12,6 @@ sys.path.insert(0,"..")
 
 from softwarecenter.db.application import Application
 from softwarecenter.testutils import start_dummy_backend, stop_dummy_backend
-from softwarecenter.ui.gtk3.panes.viewswitcher import (
-    get_test_window_viewswitcher)
 
 TIMEOUT=300
 

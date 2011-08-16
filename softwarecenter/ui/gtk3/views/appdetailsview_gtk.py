@@ -26,7 +26,6 @@ from gi.repository import GdkPixbuf
 
 import datetime
 import gettext
-import gmenu
 import logging
 import os
 

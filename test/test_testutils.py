@@ -27,6 +27,5 @@ class TestTestUtils(unittest.TestCase):
         stop_dummy_backend()
 
 if __name__ == "__main__":
-    import logging
     logging.basicConfig(level=logging.DEBUG)
     unittest.main()
