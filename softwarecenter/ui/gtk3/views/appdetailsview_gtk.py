@@ -1316,7 +1316,12 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         label = Gtk.Label(label=_("Find it in the menu: "))
         self.installed_where_hbox.pack_start(label, False, False, 0)
         for (i, item) in enumerate(where):
-            iconname = item.get_icon()
+            if hasattr(item, "get_icon"):
+                iconname = item.get_icon().get_names()[0]
+            elif hasattr(item, "get_app_info"):
+                app_info = item.get_app_info()
+                iconname = app_info.get_icon().get_names()[0]
+
             # check icontheme first
             if iconname and self.icons.has_icon(iconname) and i > 0:
                 image = Gtk.Image()
@@ -1331,10 +1336,12 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
                 self.installed_where_hbox.pack_start(image, False, False, 0)
 
             label_name = Gtk.Label()
-            if item.get_type() == gmenu.TYPE_ENTRY:
-                label_name.set_text(item.get_display_name())
-            else:
+            if hasattr(item, "get_name"):
                 label_name.set_text(item.get_name())
+            elif hasattr(item, "get_app_info"):
+                app_info = item.get_app_info()
+                label_name.set_text(app_info.get_name())
+
             self.installed_where_hbox.pack_start(label_name, False, False, 0)
             if i+1 < len(where):
                 right_arrow = Gtk.Arrow.new(Gtk.ArrowType.RIGHT, Gtk.ShadowType.NONE)
@@ -1355,7 +1362,7 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         if is_unity_running():
             return
         # remove old content
-        self.installed_where_hbox.foreach(lambda c: c.destroy(), ())
+        self.installed_where_hbox.foreach(lambda w, d: w.destroy(), None)
         self.installed_where_hbox.set_property("can-focus", False)
         self.installed_where_hbox.a11y.set_name('')
         # see if we have the location if its installed

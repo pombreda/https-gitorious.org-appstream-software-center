@@ -61,7 +61,10 @@ class GMenuSearcher(object):
         if menu_files_list is None:
             menu_files_list = ["applications.menu", "settings.menu"]
         for n in menu_files_list:
-            tree = GMenu.Tree.new_for_path(n, 0)
+            if n.startswith("/"):
+                tree = GMenu.Tree.new_for_path(n, 0)
+            else:
+                tree = GMenu.Tree.new(n, 0)
             tree.load_sync()
             root = tree.get_root_directory()
             self._search_gmenu_dir([root],

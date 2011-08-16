@@ -17,11 +17,11 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 from gi.repository import GObject
+from gi.repository import GMenu
 
 import atk
 import datetime
 import gettext
-import gmenu
 import gtk
 import logging
 import os
@@ -1445,7 +1445,11 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         label = gtk.Label(_("Find it in the menu: "))
         self.installed_where_hbox.pack_start(label, False, False)
         for (i, item) in enumerate(where):
-            iconname = item.get_icon()
+            if hasattr(item, "get_icon"):
+                iconname = item.get_icon().get_names()[0]
+            elif hasattr(item, "get_app_info"):
+                app_info = item.get_app_info()
+                iconname = app_info.get_icon().get_names()[0]
             # check icontheme first
             if iconname and self.icons.has_icon(iconname) and i > 0:
                 image = gtk.Image()
@@ -1460,10 +1464,12 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                 self.installed_where_hbox.pack_start(image, False, False)
 
             label_name = gtk.Label()
-            if item.get_type() == gmenu.TYPE_ENTRY:
-                label_name.set_text(item.get_display_name())
-            else:
+            if hasattr(item, "get_name"):
                 label_name.set_text(item.get_name())
+            elif hasattr(item, "get_app_info"):
+                app_info = item.get_app_info()
+                label_name.set_text(app_info.get_name())
+
             self.installed_where_hbox.pack_start(label_name, False, False)
             if i+1 < len(where):
                 right_arrow = gtk.Arrow(gtk.ARROW_RIGHT, gtk.SHADOW_NONE)

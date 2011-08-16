@@ -15,6 +15,8 @@ software-center (4.1.15) UNRELEASED; urgency=low
     - fix startup with no PYTHONPATH
   * softwarecenter/gmenusearch.py:
     - port to use gir1.2-gmenu-3.0
+  * softwarecenter/ui/{gtk,gtk3}/views/appdetailsview_gtk.py:
+    - updated for gir1.2-gmenu-3.0
 
   [ Kiwinote ]
   * data/ui/gtk3/SoftwareCenter.ui,
