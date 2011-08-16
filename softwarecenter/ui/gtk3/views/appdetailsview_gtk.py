@@ -41,9 +41,9 @@ from softwarecenter.backend.reviews import ReviewStats
 #from softwarecenter.backend.zeitgeist_simple import zeitgeist_singleton
 from softwarecenter.enums import (AppActions, PkgStates,
                                   Icons, SOFTWARE_CENTER_PKGNAME)
+from softwarecenter.gmenusearch import GMenuSearcher
 from softwarecenter.utils import (is_unity_running, 
                                   get_exec_line_from_desktop,
-                                  GMenuSearcher,
                                   SimpleFileDownloader,
                                   size_to_str)
 from softwarecenter.distro import get_distro

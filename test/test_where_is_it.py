@@ -6,7 +6,7 @@ import unittest
 sys.path.insert(0,"../")
 
 from softwarecenter.paths import XAPIAN_BASE_PATH
-from softwarecenter.utils import GMenuSearcher
+from softwarecenter.gmenusearch import GMenuSearcher
 from softwarecenter.db.pkginfo import get_pkg_info
 from softwarecenter.db.database import StoreDatabase
 from softwarecenter.db.application import Application
