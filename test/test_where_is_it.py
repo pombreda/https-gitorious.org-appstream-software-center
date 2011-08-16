@@ -51,9 +51,11 @@ class TestWhereIsit(unittest.TestCase):
             details.desktop_file,
             [os.path.abspath("./data/fake-applications.menu")])
         self.assertEqual(found[0].get_name(), "Applications")
-        self.assertEqual(found[0].get_icon(), "applications-other")
+        self.assertEqual(found[0].get_icon().get_names()[0], 
+                         "applications-other")
         self.assertEqual(found[1].get_name(), "Accessories")
-        self.assertEqual(found[1].get_icon(), "applications-utilities")
+        self.assertEqual(found[1].get_icon().get_names()[0], 
+                         "applications-utilities")
     
     def test_where_is_it_kde4(self):
         app = Application("", "ark")
@@ -66,9 +68,11 @@ class TestWhereIsit(unittest.TestCase):
             details.desktop_file,
             [os.path.abspath("./data/fake-applications.menu")])
         self.assertEqual(found[0].get_name(), "Applications")
-        self.assertEqual(found[0].get_icon(), "applications-other")
+        self.assertEqual(found[0].get_icon().get_names()[0], 
+                         "applications-other")
         self.assertEqual(found[1].get_name(), "Accessories")
-        self.assertEqual(found[1].get_icon(), "applications-utilities")
+        self.assertEqual(found[1].get_icon().get_names()[0], 
+                         "applications-utilities")
         
 
 if __name__ == "__main__":

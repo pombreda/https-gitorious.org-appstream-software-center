@@ -28,11 +28,14 @@ class GMenuSearcher(object):
     def _search_gmenu_dir(self, dirlist, needle):
         if not dirlist[-1]:
             return
-        for item in dirlist[-1].get_contents():
-            mtype = item.get_type()
-            if mtype == gmenu.TYPE_DIRECTORY:
-                self._search_gmenu_dir(dirlist+[item], needle)
-            elif item.get_type() == gmenu.TYPE_ENTRY:
+        dir_iter = dirlist[-1].iter()
+        current_type = dir_iter.next()
+        while current_type is not GMenu.TreeItemType.INVALID:
+            if current_type == GMenu.TreeItemType.DIRECTORY:
+                self._search_gmenu_dir(
+                    dirlist+[dir_iter.get_directory()], needle)
+            elif current_type == GMenu.TreeItemType.ENTRY:
+                item = dir_iter.get_entry()
                 desktop_file_path = item.get_desktop_file_path()
                 # direct match of the desktop file name and the installed
                 # desktop file name
@@ -48,7 +51,7 @@ class GMenuSearcher(object):
                     if needle == path_after_applications.replace("/", APP_INSTALL_PATH_DELIMITER):
                         self._found = dirlist+[item]
                         return
-
+            current_type = dir_iter.next()
                 
     def get_main_menu_path(self, desktop_file, menu_files_list=None):
         if not desktop_file:
@@ -58,8 +61,10 @@ class GMenuSearcher(object):
         if menu_files_list is None:
             menu_files_list = ["applications.menu", "settings.menu"]
         for n in menu_files_list:
-            tree = GMenu.Tree.new_for_path(n)
-            self._search_gmenu_dir([tree.get_root_directory()], 
+            tree = GMenu.Tree.new_for_path(n, 0)
+            tree.load_sync()
+            root = tree.get_root_directory()
+            self._search_gmenu_dir([root],
                                    os.path.basename(desktop_file))
             if self._found:
                 return self._found

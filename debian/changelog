@@ -13,6 +13,8 @@ software-center (4.1.15) UNRELEASED; urgency=low
       reads are flushed
   * software-center:
     - fix startup with no PYTHONPATH
+  * softwarecenter/gmenusearch.py:
+    - port to use gir1.2-gmenu-3.0
 
   [ Kiwinote ]
   * data/ui/gtk3/SoftwareCenter.ui,
