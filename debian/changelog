@@ -24,6 +24,8 @@ software-center (4.1.15) UNRELEASED; urgency=low
   * lp:~mmcg069/software-center/bugfix-823233:
     - fix so that markup is actually rendered by the submit_label
       when submitting usefulness (LP: #823233)
+  * fix the annoying ascii codec error, #823363
+
   
   [ Kiwinote ]
   * data/ui/gtk3/SoftwareCenter.ui,
