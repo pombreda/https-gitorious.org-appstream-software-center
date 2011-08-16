@@ -308,7 +308,8 @@ class ScreenshotThumbnail(Gtk.Alignment):
 
         if self.screenshot_pixbuf:
             title = _("%s - Screenshot") % self.appname
-            d = SimpleShowImageDialog(title, self.screenshot_pixbuf)
+            toplevel = self.get_toplevel()
+            d = SimpleShowImageDialog(title, self.screenshot_pixbuf, toplevel)
             d.run()
             d.destroy()
         return

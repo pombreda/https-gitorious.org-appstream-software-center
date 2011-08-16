@@ -26,7 +26,6 @@ from gi.repository import GdkPixbuf
 
 import datetime
 import gettext
-import gmenu
 import logging
 import os
 
@@ -41,9 +40,9 @@ from softwarecenter.backend.reviews import ReviewStats
 #from softwarecenter.backend.zeitgeist_simple import zeitgeist_singleton
 from softwarecenter.enums import (AppActions, PkgStates,
                                   Icons, SOFTWARE_CENTER_PKGNAME)
+from softwarecenter.gmenusearch import GMenuSearcher
 from softwarecenter.utils import (is_unity_running, 
                                   get_exec_line_from_desktop,
-                                  GMenuSearcher,
                                   SimpleFileDownloader,
                                   size_to_str)
 from softwarecenter.distro import get_distro
@@ -54,6 +53,7 @@ from appdetailsview import AppDetailsViewBase
 from softwarecenter.ui.gtk3.em import StockEms, em
 
 from softwarecenter.ui.gtk3.widgets.reviews import UIReviewsList
+from softwarecenter.ui.gtk3.widgets.containers import SmallBorderRadiusFrame
 from softwarecenter.ui.gtk3.widgets.stars import Star
 from softwarecenter.ui.gtk3.widgets.description import AppDescription
 from softwarecenter.ui.gtk3.widgets.thumbnail import ScreenshotThumbnail
@@ -717,7 +717,6 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         self._layout_page()
 
         self.connect('realize', self._on_realize)
-
         self.loaded = True
         return
 
@@ -977,7 +976,9 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         right_vb = Gtk.VBox()
         right_vb.set_spacing(6)
         body_hb.pack_start(right_vb, False, False, 0)
-        right_vb.pack_start(self.screenshot, False, False, 0)
+        frame = SmallBorderRadiusFrame()
+        frame.add(self.screenshot)
+        right_vb.pack_start(frame, False, False, 0)
 
         # the weblive test-drive stuff
         self.weblive = get_weblive_backend()
@@ -1053,7 +1054,7 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         # signals!
         #~ vb.connect('draw', self._on_draw, alignment)
         vb.connect('key-press-event', self._on_key_press)
-        #~ self.connect('size-allocate', self._on_allocate, vb)
+        self.connect('size-allocate', lambda w,a: w.queue_draw())
         return
 
     def _on_key_press(self, widget, event):
@@ -1154,12 +1155,11 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
 
     def _update_description_footer_links(self, app_details):        
         # show or hide the homepage button and set uri if homepage specified
-        # FIXME
-        #~ if app_details.website:
-            #~ self.homepage_btn.show()
-            #~ self.homepage_btn.set_tooltip_text(app_details.website)
-        #~ else:
-            #~ self.homepage_btn.hide()
+        if app_details.website:
+            self.homepage_btn.show()
+            self.homepage_btn.set_tooltip_text(app_details.website)
+        else:
+            self.homepage_btn.hide()
         return
 
     def _update_app_screenshot(self, app_details):
@@ -1317,7 +1317,12 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         label = Gtk.Label(label=_("Find it in the menu: "))
         self.installed_where_hbox.pack_start(label, False, False, 0)
         for (i, item) in enumerate(where):
-            iconname = item.get_icon()
+            if hasattr(item, "get_icon"):
+                iconname = item.get_icon().get_names()[0]
+            elif hasattr(item, "get_app_info"):
+                app_info = item.get_app_info()
+                iconname = app_info.get_icon().get_names()[0]
+
             # check icontheme first
             if iconname and self.icons.has_icon(iconname) and i > 0:
                 image = Gtk.Image()
@@ -1332,10 +1337,12 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
                 self.installed_where_hbox.pack_start(image, False, False, 0)
 
             label_name = Gtk.Label()
-            if item.get_type() == gmenu.TYPE_ENTRY:
-                label_name.set_text(item.get_display_name())
-            else:
+            if hasattr(item, "get_name"):
                 label_name.set_text(item.get_name())
+            elif hasattr(item, "get_app_info"):
+                app_info = item.get_app_info()
+                label_name.set_text(app_info.get_name())
+
             self.installed_where_hbox.pack_start(label_name, False, False, 0)
             if i+1 < len(where):
                 right_arrow = Gtk.Arrow.new(Gtk.ArrowType.RIGHT, Gtk.ShadowType.NONE)
@@ -1356,7 +1363,7 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         if is_unity_running():
             return
         # remove old content
-        self.installed_where_hbox.foreach(lambda c: c.destroy(), ())
+        self.installed_where_hbox.foreach(lambda w, d: w.destroy(), None)
         self.installed_where_hbox.set_property("can-focus", False)
         self.installed_where_hbox.a11y.set_name('')
         # see if we have the location if its installed
@@ -1683,9 +1690,16 @@ def get_test_window_appdetails():
     scroll = Gtk.ScrolledWindow()
     view = AppDetailsViewGtk(db, distro, icons, cache, datadir, win)
 
+    import sys
+    if len(sys.argv) > 1:
+        pkgname = sys.argv[1]
+    else:
+        pkgname = "totem"
+
+    view.show_app(Application("", pkgname))
     #view.show_app(Application("Pay App Example", "pay-app"))
     #view.show_app(Application("3D Chess", "3dchess"))
-    view.show_app(Application("Movie Player", "totem"))
+    #view.show_app(Application("Movie Player", "totem"))
     #view.show_app(Application("ACE", "unace"))
     #~ view.show_app(Application("", "apt"))
 

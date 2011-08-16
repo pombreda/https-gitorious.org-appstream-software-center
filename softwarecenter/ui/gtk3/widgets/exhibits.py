@@ -32,6 +32,7 @@ from softwarecenter.ui.gtk3.shapes import Circle
 import softwarecenter.paths
 
 _asset_cache = {}
+_HAND = Gdk.Cursor.new(Gdk.CursorType.HAND2)
 
 EXHIBIT_HTML = """
 <html><head>
@@ -292,14 +293,20 @@ class ExhibitBanner(Gtk.EventBox):
         self.set_events(Gdk.EventMask.BUTTON_RELEASE_MASK|
                         Gdk.EventMask.ENTER_NOTIFY_MASK|
                         Gdk.EventMask.LEAVE_NOTIFY_MASK)
-        #~ self.connect("enter-notify-event", self.on_enter_notify)
-        #~ self.connect("leave-notify-event", self.on_leave_notify)
+        self.connect("enter-notify-event", self.on_enter_notify)
+        self.connect("leave-notify-event", self.on_leave_notify)
         self.connect("button-release-event", self.on_button_release)
 
     def on_enter_notify(self, *args):
+        if not self.exhibits[self.cursor].package_names:
+            return
+        window = self.get_window()
+        window.set_cursor(_HAND)
         return
 
     def on_leave_notify(self, *args):
+        window = self.get_window()
+        window.set_cursor(None)
         return
 
     def on_button_release(self, *args):
@@ -325,14 +332,20 @@ class ExhibitBanner(Gtk.EventBox):
         return
 
     def _render_exhibit_at_cursor(self):
+        # check the cursor is within range
+        n_exhibits = len(self.exhibits)
+        cursor = self.cursor
+        if n_exhibits == 0 or (cursor < 0 and cursor >= n_exhibits):
+            
+            return
         # copy old image for the fade
         if self.image:
             self.old_image = self.image.copy()
         # set the rigth one
-        self.renderer.set_exhibit(self.exhibits[self.cursor])
+        self.renderer.set_exhibit(self.exhibits[cursor])
         # make sure the active button is having a different color
         for i, w in enumerate(self.index_hbox):
-            w.is_active = (i == self.cursor)
+            w.is_active = (i == cursor)
 
     def on_paging_dot_clicked(self, dot, index):
         self.cursor = index
@@ -468,6 +481,9 @@ class ExhibitBanner(Gtk.EventBox):
         return
 
     def set_exhibits(self, exhibits_list):
+        if not exhibits_list: 
+            return
+
         self.exhibits = exhibits_list
         self.cursor = 0
 

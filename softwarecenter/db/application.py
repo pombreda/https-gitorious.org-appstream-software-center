@@ -29,7 +29,6 @@ from softwarecenter.enums import PkgStates, XapianValues, Icons
 from softwarecenter.paths import (APP_INSTALL_CHANNELS_PATH,
                                   SOFTWARE_CENTER_ICON_CACHE_DIR,
                                   )
-from softwarecenter.utils import version_compare
 
 LOG = logging.getLogger(__name__)
 
@@ -504,6 +503,7 @@ class AppDetails(object):
                 minver_matches = re.findall(r'minver=[a-z,0-9,-,+,.,~]*', self._app.request)
                 if minver_matches and self.version:
                     minver = minver_matches[0][7:]
+                    from softwarecenter.utils import version_compare
                     if version_compare(minver, self.version) > 0:
                         return _("Version %s or later not available.") % minver
         # can we enable a source
