@@ -21,6 +21,9 @@ software-center (4.1.15) UNRELEASED; urgency=low
   [ Matthew McGowan ]
   * lp:~mmcg069/software-center/appdetails-tweaks:
     - add a pretty frame around the thumbnail in the detailsview.
+  * lp:~mmcg069/software-center/bugfix-823233:
+    - fix so that markup is actually rendered by the submit_label
+      when submitting usefulness (LP: #823233)
   
   [ Kiwinote ]
   * data/ui/gtk3/SoftwareCenter.ui,
