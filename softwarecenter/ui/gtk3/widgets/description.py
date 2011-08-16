@@ -1116,9 +1116,11 @@ class AppDescription(Gtk.VBox):
         self._prev_type = self.TYPE_BULLET
         return
 
-    def set_description(self, desc, pkgname):
+    def set_description(self, raw_desc, pkgname):
         self.clear()
-        desc = GObject.markup_escape_text(desc)
+        encoded_desc = unicode(raw_desc).encode('utf-8')
+        print encoded_desc
+        desc = GObject.markup_escape_text(encoded_desc)
         self._parse_desc(desc, pkgname)
         self.show_all()
         return
