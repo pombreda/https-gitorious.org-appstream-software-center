@@ -952,8 +952,6 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
 
         # the package status bar
         self.pkg_statusbar = PackageStatusBar(self)
-        frame = SmallBorderRadiusFrame()
-        frame.add(self.pkg_statusbar)
         vb.pack_start(self.pkg_statusbar, False, False, 0)
 
         # installed where widget
