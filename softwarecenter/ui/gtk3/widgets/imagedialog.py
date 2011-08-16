@@ -56,6 +56,7 @@ class SimpleShowImageDialog(Gtk.Dialog):
         # dialog
         self.set_title(title)
         self.set_transient_for(parent)
+        self.set_destroy_with_parent(True)
         self.set_position(Gtk.WindowPosition.CENTER_ON_PARENT)
         self.add_button(Gtk.STOCK_CLOSE, Gtk.ResponseType.CLOSE)
         self.set_default_size(SimpleShowImageDialog.DEFAULT_WIDTH,
