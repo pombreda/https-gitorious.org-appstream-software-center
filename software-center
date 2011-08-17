@@ -17,10 +17,6 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-# Hack needed for using both PackageKitGlib (dynamic) and gtk (static)
-try: from gi.repository import Gio
-except: pass
-
 # take time stamp as early as python allows this
 import time
 time_entering_main = time.time()
@@ -79,9 +75,6 @@ if __name__ == "__main__":
     parser.add_option("--measure-startup-time", action="store_true",
                       help="open and wait until the window is visible, then close, only useful for profiling",
                       default=False)
-    parser.add_option("--use-packagekit", action="store_true",
-                      help="use PackageKit backend (experimental)", 
-                      default=False)
     parser.add_option("--dummy-backend", action="store_true",
                       help="run with a dummy backend, this will not actually install or remove anything and is useful for testing",
                       default=False)
@@ -100,12 +93,6 @@ if __name__ == "__main__":
         softwarecenter.log.root.setLevel(level=logging.DEBUG)
     else:
         softwarecenter.log.root.setLevel(level=logging.INFO)
-
-    if options.use_packagekit:
-        softwarecenter.enums.USE_PACKAGEKIT_BACKEND = True
-        logging.info("Using PackageKit backend")
-    else:
-        softwarecenter.enums.USE_PACKAGEKIT_BACKEND = False
 
     # dummy backend
     if options.dummy_backend:
@@ -146,11 +133,6 @@ if __name__ == "__main__":
     # create the app
     from softwarecenter.ui.gtk.app import SoftwareCenterApp
     from softwarecenter.utils import ExecutionTime
-    import dbus
-    import dbus.mainloop.glib
-
-    loop = dbus.mainloop.glib.DBusGMainLoop()
-    dbus.set_default_main_loop(loop)
 
     with ExecutionTime("create SoftwareCenterApp"):
         app = SoftwareCenterApp(datadir, xapian_base_path, options, args)
