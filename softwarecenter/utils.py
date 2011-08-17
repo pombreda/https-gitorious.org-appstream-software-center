@@ -24,6 +24,8 @@ if 'gobject' in sys.modules:
     have_gi = False
     import gobject as GObject
     import gio as Gio
+    Gio # pyflakes
+    GObject # pyflakes
 else:
     have_gi = True
     from gi.repository import GObject

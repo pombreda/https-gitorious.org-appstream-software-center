@@ -28,6 +28,7 @@ from softwarecenter.db.application import Application
 
 if 'gobject' in sys.modules:
     import gobject as GObject
+    GObject #pyflakes
 else:
     from gi.repository import GObject
 
