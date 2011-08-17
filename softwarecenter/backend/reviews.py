@@ -57,7 +57,6 @@ except ImportError:
     from StringIO import StringIO
     from urllib import quote_plus
 
-
 from softwarecenter.backend.piston.rnrclient import RatingsAndReviewsAPI
 from softwarecenter.backend.piston.rnrclient_pristine import ReviewDetails
 from softwarecenter.db.categories import CategoriesParser

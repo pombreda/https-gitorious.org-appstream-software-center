@@ -6,16 +6,21 @@ sys.path.insert(0,"../")
 import logging
 import unittest
 
-from softwarecenter.db.pkginfo import get_pkg_info, _Package, _Version
+from softwarecenter.db.pkginfo import _Package, _Version
+from softwarecenter.db.pkginfo_impl.aptcache import AptCache
+from softwarecenter.db.pkginfo_impl.packagekit import PackagekitInfo
 
-class TestPkgInfo(unittest.TestCase):
+class TestPkgInfoAptCache(unittest.TestCase):
+
+    # the backend that we want to test
+    klass = AptCache
 
     def setUp(self):
-        pass
+        self.pkginfo = self.klass()
+        self.pkginfo.open()
 
     def test_pkg_version(self):
-        pkginfo = get_pkg_info()
-        pkginfo.open()
+        pkginfo = self.pkginfo
 
         pkg = pkginfo['coreutils']
         self.assertTrue(isinstance(pkg, _Package))
@@ -33,29 +38,44 @@ class TestPkgInfo(unittest.TestCase):
             self.assertTrue(isinstance(v, _Version))
 
     def test_pkg_info(self):
-        pkginfo = get_pkg_info()
-        pkginfo.open()
+        pkginfo = self.pkginfo
         self.assertTrue(pkginfo.is_installed("coreutils"))
         self.assertTrue(pkginfo.is_available("bash"))
-        self.assertTrue(len(pkginfo.get_addons("firefox")) > 0)
-        self.assertEqual(pkginfo.get_section('bash'), 'shells')
         self.assertTrue('GNU Bourne Again' in pkginfo.get_summary('bash'))
         self.assertTrue(pkginfo.get_description('bash') != '')
-        self.assertTrue(len(pkginfo.get_origins("firefox")) > 0)
         self.assertTrue(pkginfo.get_installed("coreutils") is not None)
         self.assertTrue(pkginfo.get_candidate("coreutils") is not None)
         self.assertTrue(len(pkginfo.get_versions("coreutils")) != 0)
 
         self.assertTrue('coreutils' in pkginfo)
-        
+
+        # test getitem
         pkg = pkginfo['coreutils']
-        self.assertTrue(len(pkginfo.get_packages_removed_on_remove(pkg)) != 0)
-        self.assertTrue(len(pkginfo.get_packages_removed_on_install(pkg)) == 0)
         self.assertTrue(pkg is not None)
         self.assertTrue(pkg.is_installed)
         self.assertTrue(len(pkg.versions) != 0)
-        self.assertEqual(pkg.section, "utils")
         self.assertEqual(pkg.website, 'http://gnu.org/software/coreutils')
+
+    def test_section(self):
+        self.assertEqual(self.pkginfo.get_section('bash'), 'shells')
+
+    def test_origins(self):
+        self.assertTrue(len(self.pkginfo.get_origins("firefox")) > 0)
+
+    def test_addons(self):
+        pkginfo = self.pkginfo
+        self.assertTrue(len(pkginfo.get_addons("firefox")) > 0)
+        pkg = pkginfo['firefox']
+        self.assertTrue(len(pkginfo.get_packages_removed_on_install(pkg)) == 0)
+        self.assertTrue(len(pkginfo.get_packages_removed_on_remove(pkg)) != 0)
+
+    def test_installed_files(self):
+        pkg = self.pkginfo['coreutils']
+        files = pkg.installed_files
+        self.assertTrue('/usr/bin/whoami' in files)
+
+class TestPkgInfoPackagekit(TestPkgInfoAptCache):
+    klass = PackagekitInfo
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)

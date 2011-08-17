@@ -415,8 +415,13 @@ class ViewSwitcher(gtk.TreeView):
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
     import sys
-    import apt
 
+    import dbus
+    import dbus.mainloop.glib
+
+    loop = dbus.mainloop.glib.DBusGMainLoop()
+    dbus.set_default_main_loop(loop)
+    
     if len(sys.argv) > 1:
         datadir = sys.argv[1]
     elif os.path.exists("./data"):
@@ -429,7 +434,10 @@ if __name__ == "__main__":
 
     xapian_base_path = XAPIAN_BASE_PATH
     pathname = os.path.join(xapian_base_path, "xapian")
-    cache = apt.Cache(apt.progress.text.OpProgress())
+
+    # cache
+    from softwarecenter.db.pkginfo import get_pkg_info
+    cache = get_pkg_info()
     db = StoreDatabase(pathname, cache)
     db.open()
 
@@ -447,4 +455,5 @@ if __name__ == "__main__":
     win.set_size_request(400,400)
     win.show_all()
 
+    view.backend.install_multiple(['cheese'],['cheese'],[''])
     gtk.main()

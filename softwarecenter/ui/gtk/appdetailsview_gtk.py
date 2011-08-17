@@ -1529,7 +1529,7 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
                     self.app.pkgname and 
                     self.app.appname == app.appname and
                     self.app.pkgname == app.pkgname)
-        #print 'SameApp:', same_app
+        #print 'SameApp:', same_app, "force", force
 
         # init data
         self.app = app
@@ -1827,15 +1827,25 @@ if __name__ == "__main__":
     import softwarecenter.distro
     distro = softwarecenter.distro.get_distro()
 
+    def handle_action(view, app, addons_install, addons_remove, action):
+        logging.debug('[action here] %s %s' % (action, app))
+        # action_func is one of:  "install", "remove", "upgrade", "apply_changes"
+        action_func = getattr(view.backend, action)
+        if callable(action_func):
+            action_func(app.pkgname, app.appname, '', addons_install=addons_install, addons_remove=addons_remove)
+        else:
+            LOG.error("Not a valid action in backend: '%s'" % action)
+
     # gui
     win = gtk.Window()
     scroll = gtk.ScrolledWindow()
     view = AppDetailsViewGtk(db, distro, icons, cache, datadir, win)
+    view.connect("application-request-action", handle_action)
     #view.show_app(Application("Pay App Example", "pay-app"))
     #view.show_app(Application("3D Chess", "3dchess"))
     #view.show_app(Application("Movie Player", "totem"))
     #view.show_app(Application("ACE", "unace"))
-    view.show_app(Application("", "apt"))
+    view.show_app(Application("", "firefox"))
 
     #view.show_app("AMOR")
     #view.show_app("Configuration Editor")
@@ -1853,6 +1863,17 @@ if __name__ == "__main__":
     # keep it spinning to test for re-draw issues and memleaks
     #GObject.timeout_add_seconds(2, _show_app, view)
 
+    # also  show pending view
+    from softwarecenter.ui.gtk.pendingview import PendingView
+    view2 = PendingView(icons)
+    scroll2 = gtk.ScrolledWindow()
+    scroll2.add(view2)
+    win2 = gtk.Window()
+    win2.add(scroll2)
+    view2.grab_focus()
+    win2.set_size_request(500,200)
+    win2.connect('delete-event', gtk.main_quit)
+    win2.show_all()
 
     # run it
     gtk.main()

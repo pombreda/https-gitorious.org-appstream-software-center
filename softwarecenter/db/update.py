@@ -226,6 +226,12 @@ class AppStreamXMLParser(AppInfoParserBase):
             return self._parse_with_lists(key)
         else:
             return self._parse_value(key)
+    def get_desktop_categories(self):
+        return self._get_desktop_list("Categories", split_str=',')
+    def get_desktop_mimetypes(self):
+        if not self.has_option_desktop("MimeType"):
+            return []
+        return self._get_desktop_list("MimeType", split_str=',')
     def _parse_value(self, key):
         for child in self.appinfo_xml.iter(key):
             # FIXME: deal with the i18n
@@ -525,7 +531,7 @@ def update_from_software_center_agent(db, cache, ignore_cache=False,
                 icondata = ""
             # write it if we have data
             if icondata:
-		# the iconcache gets mightly confused if there is a "." in the name
+            # the iconcache gets mightly confused if there is a "." in the name
                 iconname = "sc-agent-%s" % entry.package_name.replace(".", "__")
                 open(os.path.join(
                         softwarecenter.paths.SOFTWARE_CENTER_ICON_CACHE_DIR,
