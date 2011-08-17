@@ -48,7 +48,14 @@ done;
 
 # gather the coverage data
 python-coverage combine
-python-coverage report --omit=/usr/share/pyshared,*piston*,*test_ | tee coverage_summary | tail
+
+if [ -d coverage_html ]; then
+    rm -rf coverage_html
+fi
+# generate the coverage data 
+OMIT="/usr/share/pyshared,*piston*,*test_"
+python-coverage report --omit="$OMIT" | tee coverage_summary | tail
+python-coverage html   --omit="$OMIT" -d coverage_html
 
 if [ -n "$FAILED" ]; then 
     echo "FAILED: $FAILED"; 
