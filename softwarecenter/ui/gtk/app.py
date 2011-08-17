@@ -23,13 +23,14 @@ import dbus
 import dbus.service
 import gettext
 import logging
-from gi.repository import GObject
+import gobject as GObject
 import gtk
 import os
 import subprocess
 import sys
 import xapian
 import glob
+
 
 # purely to initialize the netstatus
 import softwarecenter.netstatus

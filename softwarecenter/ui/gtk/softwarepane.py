@@ -21,7 +21,7 @@ import cairo
 import dbus
 import gettext
 import dialogs
-from gi.repository import GObject
+import gobject as GObject
 import gtk
 import logging
 import xapian

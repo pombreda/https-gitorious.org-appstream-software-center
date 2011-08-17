@@ -23,7 +23,7 @@ import atk
 import gtk
 import cairo
 import pango
-from gi.repository import GObject
+import gobject as GObject
 import pangocairo
 from math import pi, cos, sin
 

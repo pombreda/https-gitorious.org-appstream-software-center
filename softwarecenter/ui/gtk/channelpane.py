@@ -23,7 +23,7 @@ import logging
 import os
 import sys
 import xapian
-from gi.repository import GObject
+import gobject as GObject
 
 from gettext import gettext as _
 
