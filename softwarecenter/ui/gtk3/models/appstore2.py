@@ -35,6 +35,7 @@ from softwarecenter.distro import get_distro
 from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
 
 
+
 # global cache icons to speed up rendering
 _app_icon_cache = {}
 
@@ -226,6 +227,9 @@ class AppGenericStore(_AppPropertiesHelper):
     # default icon size displayed in the treeview
     ICON_SIZE = 32
 
+    # the amount of items to initially lo
+    LOAD_INITIAL   = 75
+
     def __init__(self, db, cache, icons, icon_size, global_icon_cache):
         # the usual suspects
         self.db = db
@@ -278,6 +282,32 @@ class AppGenericStore(_AppPropertiesHelper):
         self.transaction_path_map[pkgname] = (path, self.get_iter(path))
         return
 
+    def set_from_matches(self, matches):
+        """ set the content of the liststore based on a list of
+            xapian.MSetItems
+        """
+
+        self.current_matches = matches
+        n_matches = len(matches)
+        if n_matches == 0: return
+    
+        db = self.db.xapiandb
+        extent = min(self.LOAD_INITIAL, n_matches-1)
+
+        with ExecutionTime("store.append_initial"):
+            for doc in [db.get_document(m.docid) for m in matches][:extent]:
+                doc.available = doc.installed = None
+                self.append((doc,))
+
+        if n_matches == extent: return
+
+        with ExecutionTime("store.append_placeholders"):
+            for i in range(n_matches - extent):
+                self.append()
+
+        self.buffer_icons()
+        return
+
     # the following methods ensure that the contents data is refreshed
     # whenever a transaction potentially changes it: 
     def _on_transaction_started(self, backend, pkgname, appname, trans_id, trans_type):
@@ -305,8 +335,6 @@ class AppListStore(Gtk.ListStore, AppGenericStore):
         three times faster than the AppTreeStore equivalent
     """
 
-    LOAD_INITIAL   = 75
-
     def __init__(self, db, cache, icons, icon_size=AppGenericStore.ICON_SIZE, 
                  global_icon_cache=True):
         AppGenericStore.__init__(
@@ -315,32 +343,6 @@ class AppListStore(Gtk.ListStore, AppGenericStore):
         self.set_column_types(self.COL_TYPES)
 
         self.current_matches = None
-        return
-
-    def set_from_matches(self, matches):
-        """ set the content of the liststore based on a list of
-            xapian.MSetItems
-        """
-
-        self.current_matches = matches
-        n_matches = len(matches)
-        if n_matches == 0: return
-    
-        db = self.db.xapiandb
-        extent = min(self.LOAD_INITIAL, n_matches-1)
-
-        with ExecutionTime("store.append_initial"):
-            for doc in [db.get_document(m.docid) for m in matches][:extent]:
-                doc.available = doc.installed = None
-                self.append((doc,))
-
-        if n_matches == extent: return
-
-        with ExecutionTime("store.append_placeholders"):
-            for i in range(n_matches - extent):
-                self.append()
-
-        self.buffer_icons()
         return
 
     def load_range(self, indices, step):
@@ -391,7 +393,8 @@ class AppListStore(Gtk.ListStore, AppGenericStore):
             #~ print "Number of icons in cache: %s consuming: %sb" % (len(_app_icon_cache), cache_size)
             return False    # remove from sources on completion
 
-        GObject.idle_add(buffer_icons)
+        if self.current_matches is not None:
+            GObject.idle_add(buffer_icons)
         return
 
 

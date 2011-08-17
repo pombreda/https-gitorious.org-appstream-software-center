@@ -17,6 +17,7 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+import sys
 import copy
 import logging
 import time
@@ -36,6 +37,7 @@ from softwarecenter.distro import get_distro
 from softwarecenter.utils import ExecutionTime
 
 LOG=logging.getLogger(__name__)
+
 
 class AppEnquire(GObject.GObject):
     """

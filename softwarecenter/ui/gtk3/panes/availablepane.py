@@ -23,6 +23,7 @@ import logging
 import xapian
 
 import softwarecenter.ui.gtk3.dialogs as dialogs
+from softwarecenter.ui.gtk3.models.appstore2 import AppListStore
 
 from gettext import gettext as _
 
@@ -33,7 +34,7 @@ from softwarecenter.enums import (ActionButtons,
 from softwarecenter.paths import APP_INSTALL_PATH
 from softwarecenter.utils import wait_for_apt_cache_ready
 from softwarecenter.distro import get_distro
-from softwarecenter.ui.gtk3.views.appview import AppViewFilter
+from softwarecenter.db.appfilter import AppFilter
 from softwarecenter.ui.gtk3.views.purchaseview import PurchaseView
 
 from softwarecenter.ui.gtk3.views.catview_gtk import (LobbyViewGtk,
@@ -79,7 +80,7 @@ class AvailablePane(SoftwarePane):
         self.navhistory_back_action = navhistory_back_action
         self.navhistory_forward_action = navhistory_forward_action
         # configure any initial state attrs
-        self.state.filter = AppViewFilter(db, cache)
+        self.state.filter = AppFilter(db, cache)
         # the spec says we mix installed/not installed
         #self.apps_filter.set_not_installed_only(True)
         self._status_text = ""
@@ -90,6 +91,7 @@ class AvailablePane(SoftwarePane):
     def init_view(self):
         if self.view_initialized: 
             return
+
         self.spinner_view.set_text(_('Loading Categories'))
         self.spinner_view.start()
         self.spinner_view.show()
@@ -105,6 +107,9 @@ class AvailablePane(SoftwarePane):
         GObject.idle_add(self.cache.open)
         
         SoftwarePane.init_view(self)
+        # set the AppTreeView model, available pane uses list models
+        liststore = AppListStore(self.db, self.cache, self.icons)
+        self.app_view.set_model(liststore)
         # setup purchase stuff
         self.app_details_view.connect("purchase-requested",
                                       self.on_purchase_requested)
@@ -135,6 +140,8 @@ class AvailablePane(SoftwarePane):
                                                  root_category=self.cat_view.categories[0])
         self.subcategories_view.connect(
             "category-selected", self.on_subcategory_activated)
+        self.subcategories_view.connect(
+            "application-activated", self.on_application_activated)
         self.subcategories_view.connect(
             "show-category-applist", self.on_show_category_applist)
         self.scroll_subcategories = Gtk.ScrolledWindow()
@@ -232,8 +239,25 @@ class AvailablePane(SoftwarePane):
                 not self.state.subcategory and
                 not self.state.search_term)
 
-#~ <<<<<<< TREE
-#~ =======
+    def _get_header_for_view_state(self, view_state):
+        channel = view_state.channel
+        category = view_state.category
+        subcategory = view_state.subcategory
+
+        line1 = None
+        line2 = None
+        if channel is not None:
+            name = channel.display_name or channel.name
+            line1 = GObject.markup_escape_text(name)
+        elif subcategory is not None:
+            line1 = GObject.markup_escape_text(category.name)
+            line2 = GObject.markup_escape_text(subcategory.name)
+        elif category is not None:
+            line1 = GObject.markup_escape_text(category.name)
+        else:
+            line1 = _("All Software")
+        return line1, line2
+
     #~ def _show_hide_subcategories(self, show_category_applist=False):
         #~ # check if have subcategories and are not in a subcategory
         #~ # view - if so, show it
@@ -249,8 +273,7 @@ class AvailablePane(SoftwarePane):
             #~ self.notebook.set_current_page(AvailablePane.Pages.SUBCATEGORY)
         #~ else:
             #~ self.notebook.set_current_page(AvailablePane.Pages.LIST)
-#~ 
-#~ >>>>>>> MERGE-SOURCE
+
     # status text woo
     def get_status_text(self):
         """return user readable status text suitable for a status bar"""
@@ -298,7 +321,7 @@ class AvailablePane(SoftwarePane):
            bar up-to-date by keeping track of the app-list-changed
            signals
         """
-
+        LOG.debug("applist-changed %s %s" % (pane, length))
         super(AvailablePane, self).on_app_list_changed(pane, length)
         self._update_action_bar()
         self._update_status_text(length)
@@ -478,7 +501,7 @@ class AvailablePane(SoftwarePane):
             if state.search_term:
                 return self.display_search_page
             else:
-                return self.display_app_list_page
+                return self.display_app_view_page
 
         elif page == AvailablePane.Pages.SUBCATEGORY:
             return self.display_subcategory_page
@@ -500,14 +523,18 @@ class AvailablePane(SoftwarePane):
 
     def display_search_page(self, page, view_state):
         new_text = view_state.search_term
-        #print(new_text)
         # DTRT if the search is reseted
         if not new_text:
             self._clear_search()
         else:
             self.state.limit = DEFAULT_SEARCH_LIMIT
+
+        header_strings = self._get_header_for_view_state(view_state)
+        self.app_view.set_header_labels(*header_strings)
+
         self.refresh_apps()
         self.searchentry.show()
+        self.cat_view.stop_carousels()
         return True
 
     def display_subcategory_page(self, page, view_state):
@@ -526,9 +553,12 @@ class AvailablePane(SoftwarePane):
         self.cat_view.stop_carousels()
         return True
 
-    def display_app_list_page(self, page, view_state):
-        category = self.state.category
+    def display_app_view_page(self, page, view_state):
+        category = view_state.category
         self.set_category(category)
+
+        header_strings = self._get_header_for_view_state(view_state)
+        self.app_view.set_header_labels(*header_strings)
 
         if view_state.search_term:
             self._clear_search()
@@ -580,7 +610,7 @@ class AvailablePane(SoftwarePane):
         page = AvailablePane.Pages.LIST
 
         vm = get_viewmanager()
-        vm.display_page(self, page, self.state, self.display_app_list_page)
+        vm.display_page(self, page, self.state, self.display_app_view_page)
 
     def on_category_activated(self, lobby_view, category):
         """ callback when a category is selected """
@@ -592,7 +622,7 @@ class AvailablePane(SoftwarePane):
             callback = self.display_subcategory_page
         else:
             page = AvailablePane.Pages.LIST
-            callback = self.display_app_list_page
+            callback = self.display_app_view_page
 
         self.state.category = category
         self.state.subcategory = None
@@ -651,7 +681,7 @@ class AvailablePane(SoftwarePane):
         self.state.category = category
         # apply any category based filters
         if not self.state.filter:
-            self.state.filter = AppViewFilter(self.db, self.cache)
+            self.state.filter = AppFilter(self.db, self.cache)
 
         if category and category.flags and 'available-only' in category.flags:
             self.state.filter.set_available_only(True)
@@ -664,7 +694,6 @@ class AvailablePane(SoftwarePane):
             self.state.filter.set_not_installed_only(False)
 
 def get_test_window():
-
     from softwarecenter.testutils import (get_test_db,
                                           get_test_datadir,
                                           get_test_gtk3_viewmanager,
@@ -691,8 +720,6 @@ def get_test_window():
     win.add(w)
     win.set_size_request(800,600)
     win.show_all()
-
-
     return win
 
 if __name__ == "__main__":
