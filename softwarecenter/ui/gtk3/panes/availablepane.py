@@ -720,6 +720,10 @@ def get_test_window():
     win.add(w)
     win.set_size_request(800,600)
     win.show_all()
+
+    # this is used later in tests
+    win.set_data("pane", w)
+
     return win
 
 if __name__ == "__main__":
