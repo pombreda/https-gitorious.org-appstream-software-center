@@ -45,16 +45,16 @@ from softwarecenter.backend.installbackend import InstallBackend
 
 from gettext import gettext as _
 
-# its important that we only have a single dbus BusConnection when
-# using the fake dbus aptd
-bus = None
+# its important that we only have a single dbus BusConnection
+# per address when using the fake dbus aptd
+buses = {}
 def get_dbus_bus():
-    global bus
-    if bus:
-        return bus
     if "SOFTWARE_CENTER_APTD_FAKE" in os.environ:
+        global buses
         dbus_address = os.environ["SOFTWARE_CENTER_APTD_FAKE"]
-        bus = dbus.bus.BusConnection(dbus_address)
+        if dbus_address in buses:
+            return buses[dbus_address]
+        bus = buses[dbus_address] = dbus.bus.BusConnection(dbus_address)
     else:
         bus = dbus.SystemBus()
     return bus
