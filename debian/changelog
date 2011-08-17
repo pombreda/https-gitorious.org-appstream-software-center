@@ -19,6 +19,8 @@ software-center (4.1.15) UNRELEASED; urgency=low
     - updated for gir1.2-gmenu-3.0
   * softwarecenter/ui/gtk3/widgets/exhibits.py:
     - show hand cursor if the exhibit has package_names
+  * setup.py:
+    - fix AUTHORS file merging
   
   [ Matthew McGowan ]
   * lp:~mmcg069/software-center/appdetails-tweaks:
@@ -45,7 +47,7 @@ software-center (4.1.15) UNRELEASED; urgency=low
   * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
     - correctly show/hide website button
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 15 Aug 2011 10:07:23 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 16 Aug 2011 18:35:43 +0200
 
 software-center (4.1.14) oneiric; urgency=low
 
