@@ -16,15 +16,20 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from gi.repository import GObject
 import locale
 import logging
 import os
 import re
 import string
 import threading
+import sys
 import xapian
 from softwarecenter.db.application import Application
+
+if 'gobject' in sys.modules:
+    import gobject as GObject
+else:
+    from gi.repository import GObject
 
 #from softwarecenter.utils import *
 from softwarecenter.enums import (

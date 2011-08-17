@@ -17,7 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import sys
-from gi.repository import GObject
+import gobject as GObject
 import gtk
 import logging
 import pygst

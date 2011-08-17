@@ -1,7 +1,7 @@
 import atk
 import cairo
 import gtk
-from gi.repository import GObject
+import gobject as GObject
 import logging
 import pangocairo
 import random
