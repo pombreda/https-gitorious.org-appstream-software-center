@@ -1,3 +1,10 @@
+software-center (4.1.16) UNRELEASED; urgency=low
+
+  * software-center: Import the static gobject, not the GI module, as this
+    uses pygtk.
+
+ -- Martin Pitt <martin.pitt@ubuntu.com>  Wed, 17 Aug 2011 12:37:23 +0200
+
 software-center (4.1.15) oneiric; urgency=low
 
   [ Michael Vogt ]
