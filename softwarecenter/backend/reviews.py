@@ -18,10 +18,8 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from gi.repository import GObject
-
+import sys
 import datetime
-import gio
 import gzip
 import logging
 import operator
@@ -30,6 +28,17 @@ import random
 import json
 import subprocess
 import time
+
+if 'gobject' in sys.modules:
+    have_gi = False
+    import gobject as GObject
+    import gio as Gio
+    GObject #pyflakes
+    Gio #pyflakes
+else:
+    have_gi = True
+    from gi.repository import GObject
+    from gi.repository import Gio
 
 # py3 compat
 try:
@@ -739,7 +748,10 @@ class ReviewLoaderJsonAsync(ReviewLoader):
                                           'version' : 'any',
                                          }
         LOG.debug("looking for review at '%s'" % url)
-        f=gio.File(url)
+        if have_gi:
+            f=Gio.File.new_for_uri(url)
+        else:
+            f=Gio.File(url)
         f.set_data("app", app)
         f.set_data("callback", callback)
         f.load_contents_async(self._gio_review_download_complete_callback)
@@ -774,7 +786,7 @@ class ReviewLoaderJsonAsync(ReviewLoader):
 
     def refresh_review_stats(self, callback):
         """ get the review statists and call callback when its there """
-        f=gio.File(self.distro.REVIEW_STATS_URL)
+        f=Gio.File(self.distro.REVIEW_STATS_URL)
         f.set_data("callback", callback)
         f.load_contents_async(self._gio_review_stats_download_finished_callback)
 

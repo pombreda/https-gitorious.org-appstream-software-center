@@ -16,12 +16,20 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from gi.repository import GObject
-
 # FIXME: use gmenu GIR instead
 import gmenu
 import gettext
-import gio
+import sys
+if 'gobject' in sys.modules:
+    have_gi = False
+    import gobject as GObject
+    import gio as Gio
+    Gio # pyflakes
+    GObject # pyflakes
+else:
+    have_gi = True
+    from gi.repository import GObject
+    from gi.repository import Gio
 import logging
 import math
 import os
@@ -526,19 +534,29 @@ class SimpleFileDownloader(GObject.GObject):
             self.emit("file-download-complete", self.dest_file_path)
             return
         
-        f = gio.File(url)
-        # first check if the url is reachable
-        f.query_info_async(gio.FILE_ATTRIBUTE_STANDARD_SIZE,
-                           self._check_url_reachable_and_then_download_cb)
+        if have_gi:
+            f = Gio.File.new_for_uri(url)
+            # first check if the url is reachable
+            f.query_info_async(Gio.FILE_ATTRIBUTE_STANDARD_SIZE, 0, 0, None,
+                               self._check_url_reachable_and_then_download_cb,
+                               None)
+        else:
+            f = Gio.File(url)
+            # first check if the url is reachable
+            f.query_info_async(Gio.FILE_ATTRIBUTE_STANDARD_SIZE,
+                               self._check_url_reachable_and_then_download_cb)
                            
-    def _check_url_reachable_and_then_download_cb(self, f, result):
+    def _check_url_reachable_and_then_download_cb(self, f, result, user_data=None):
         self.LOG.debug("_check_url_reachable_and_then_download_cb: %s" % f)
         try:
             result = f.query_info_finish(result)
             self.emit('file-url-reachable', True)
             self.LOG.debug("file reachable %s" % self.url)
             # url is reachable, now download the file
-            f.load_contents_async(self._file_download_complete_cb)
+            if have_gi:
+                f.load_contents_async(None, self._file_download_complete_cb, None)
+            else:
+                f.load_contents_async(self._file_download_complete_cb)
         except GObject.GError as e:
             self.LOG.debug("file *not* reachable %s" % self.url)
             self.emit('file-url-reachable', False)
@@ -552,13 +570,13 @@ class SimpleFileDownloader(GObject.GObject):
         # The first element is the actual content so let's grab that
         try:
             content = f.load_contents_finish(result)[0]
-        except gio.Error as e:
+        except Gio.Error as e:
             # i witnissed a strange error[1], so make the loader robust in this
             # situation
             # 1. content = f.load_contents_finish(result)[0]
-            #    gio.Error: DBus error org.freedesktop.DBus.Error.NoReply
+            #    Gio.Error: DBus error org.freedesktop.DBus.Error.NoReply
             self.LOG.debug(e)
-            self.emit('error', gio.Error, e)
+            self.emit('error', Gio.Error, e)
             return
 
         outputfile = open(self.dest_file_path, "w")

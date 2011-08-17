@@ -18,6 +18,7 @@
 
 import os
 import subprocess
+import time
 
 m_dbus = m_polkit = m_aptd = None
 def start_dummy_backend():
@@ -40,9 +41,11 @@ def start_dummy_backend():
         env=env)
     # start aptd in dummy mode
     m_aptd = subprocess.Popen(
-        ["/usr/sbin/aptd","--dummy", "--session-bus", "--disable-timeout", 
-         "--debug"], 
+        ["/usr/sbin/aptd","--dummy", "--session-bus", "--disable-timeout"],
         env=env)
+    # the sleep here is not ideal, but we need to wait a little bit
+    # to ensure that the fake daemon and fake polkit is ready
+    time.sleep(0.5)
 
 def stop_dummy_backend():
     global m_dbus, m_polkit, m_aptd

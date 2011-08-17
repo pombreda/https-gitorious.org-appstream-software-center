@@ -22,7 +22,7 @@
 # Place, Suite 330, Boston, MA 02111-1307 USA
 
 import gtk
-from gi.repository import GObject
+import gobject as GObject
 
 from gettext import gettext as _
 

@@ -18,7 +18,7 @@
 
 import gtk
 import logging
-from gi.repository import GObject
+import gobject as GObject
 
 LOG = logging.getLogger(__name__)
 

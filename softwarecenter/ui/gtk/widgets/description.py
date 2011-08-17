@@ -18,7 +18,7 @@
 
 import gtk
 import pango
-from gi.repository import GObject
+import gobject as GObject
 
 from softwarecenter.utils import normalize_package_description
 
