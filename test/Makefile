@@ -9,6 +9,7 @@ clean:
 	find  ../data/xapian/ ./data/aptroot/var/lib/apt/lists/ \
 	 ./data/aptroot/var/cache/apt/ ./data/test.db/ -type f | xargs rm -f
 	rm -f .coverage*
+	rm -rf coverage_html
 
 
 # mago tests

@@ -86,6 +86,7 @@ class Icons:
     MISSING_APP = FALLBACK
     MISSING_PKG = "dialog-question"   # XXX: Not used?
     GENERIC_MISSING = "gtk-missing-image"
+    INSTALLED_OVERLAY = "software-center-installed"
 
 # sorting
 class SortMethods:

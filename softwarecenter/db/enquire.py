@@ -37,6 +37,7 @@ from softwarecenter.utils import ExecutionTime
 
 LOG=logging.getLogger(__name__)
 
+
 class AppEnquire(GObject.GObject):
     """
     A interface to enquire data from a xapian database. 

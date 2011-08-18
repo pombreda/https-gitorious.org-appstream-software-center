@@ -35,6 +35,7 @@ from softwarecenter.distro import get_distro
 from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
 
 
+
 # global cache icons to speed up rendering
 _app_icon_cache = {}
 
@@ -226,6 +227,9 @@ class AppGenericStore(_AppPropertiesHelper):
     # default icon size displayed in the treeview
     ICON_SIZE = 32
 
+    # the amount of items to initially lo
+    LOAD_INITIAL   = 75
+
     def __init__(self, db, cache, icons, icon_size, global_icon_cache):
         # the usual suspects
         self.db = db
@@ -278,6 +282,10 @@ class AppGenericStore(_AppPropertiesHelper):
         self.transaction_path_map[pkgname] = (path, self.get_iter(path))
         return
 
+    def set_from_matches(self, matches):
+        # stub
+        raise NotImplementedError
+
     # the following methods ensure that the contents data is refreshed
     # whenever a transaction potentially changes it: 
     def _on_transaction_started(self, backend, pkgname, appname, trans_id, trans_type):
@@ -299,13 +307,36 @@ class AppGenericStore(_AppPropertiesHelper):
             self.row_changed(path, it)
             del self.transaction_path_map[pkgname]
 
+    def buffer_icons(self):
+        def buffer_icons():
+            #~ print "Buffering icons ..."
+            #t0 = GObject.get_current_time()
+            db = self.db.xapiandb
+            for m in self.current_matches:
+                doc = db.get_document(m.docid)
+
+                # calling get_icon is enough to cache the icon
+                self.get_icon(doc)
+
+                while Gtk.events_pending():
+                    Gtk.main_iteration()
+
+            #~ import sys
+            #~ t_lapsed = round(GObject.get_current_time() - t0, 3)
+            #~ print "Appstore buffered icons in %s seconds" % t_lapsed
+            #from softwarecenter.utils import get_nice_size
+            #~ cache_size = get_nice_size(sys.getsizeof(_app_icon_cache))
+            #~ print "Number of icons in cache: %s consuming: %sb" % (len(_app_icon_cache), cache_size)
+            return False    # remove from sources on completion
+
+        if self.current_matches is not None:
+            GObject.idle_add(buffer_icons)
+        return
 
 class AppListStore(Gtk.ListStore, AppGenericStore):
     """ use for flat applist views. for large lists this appends rows approx
         three times faster than the AppTreeStore equivalent
     """
-
-    LOAD_INITIAL   = 75
 
     def __init__(self, db, cache, icons, icon_size=AppGenericStore.ICON_SIZE, 
                  global_icon_cache=True):
@@ -316,6 +347,7 @@ class AppListStore(Gtk.ListStore, AppGenericStore):
 
         self.current_matches = None
         return
+
 
     def set_from_matches(self, matches):
         """ set the content of the liststore based on a list of
@@ -367,31 +399,6 @@ class AppListStore(Gtk.ListStore, AppGenericStore):
         self.transaction_path_map = {}
         self.current_matches = None
         Gtk.ListStore.clear(self)
-        return
-
-    def buffer_icons(self):
-        def buffer_icons():
-            #~ print "Buffering icons ..."
-            #t0 = GObject.get_current_time()
-            db = self.db.xapiandb
-            for m in self.current_matches:
-                doc = db.get_document(m.docid)
-
-                # calling get_icon is enough to cache the icon
-                self.get_icon(doc)
-
-                while Gtk.events_pending():
-                    Gtk.main_iteration()
-
-            #~ import sys
-            #~ t_lapsed = round(GObject.get_current_time() - t0, 3)
-            #~ print "Appstore buffered icons in %s seconds" % t_lapsed
-            #from softwarecenter.utils import get_nice_size
-            #~ cache_size = get_nice_size(sys.getsizeof(_app_icon_cache))
-            #~ print "Number of icons in cache: %s consuming: %sb" % (len(_app_icon_cache), cache_size)
-            return False    # remove from sources on completion
-
-        GObject.idle_add(buffer_icons)
         return
 
 

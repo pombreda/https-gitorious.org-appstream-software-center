@@ -1,5 +1,35 @@
 software-center (4.1.16) UNRELEASED; urgency=low
 
+  [ Michael Vogt ]
+  * softwarecenter/ui/gtk3/panes/availablepane.py, 
+    softwarecenter/ui/gtk3/views/catview_gtk.py:
+    - make clicking on top-rated app in a subcategory work
+  * softwarecenter/ui/gtk3/widgets/apptreeview.py:
+    - fix remove button in the tree (LP: #828064)
+  * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
+    - fix crash when scrolling (LP: #828440)
+  * softwarecenter/enums.py:
+    - add new Icons.INSTALLED_OVERLAY
+  * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
+    - show installed emblem for installed apps (LP: #828253)
+  * softwarecenter/ui/{gtk,gtk3}/views/appdetailsview_gtk.py:
+    - fixup for the latest GIcon API changes
+  * softwarecenter/ui/gtk3/widgets/exhibits.py:
+    - use the ubuntu color for the default exhibit LP: #827315
+  * softwarecenter/ui/gtk3/widgets/exhibits.py:
+    - use a longer exhibit timeout
+  * softwarecenter/ui/gtk3/widgets/exhibits.py:
+    - reinit mouse pointer when exhibits toggle
+  * softwarecenter/ui/gtk3/panes/viewswitcher.py:
+    - fix switching back to the main page when clicking on 
+      "All software" (LP: #828675)
+  
+  [ Matthew McGowan ]
+  * lp:~mmcg069/software-center/sortable-app-tree-view:
+    - add multiple sort options for the results
+    - fix crash if no weblive is available LP: #824603
+  
+  [ Martin Pitt ]
   * software-center: Import the static gobject, not the GI module, as this
     uses pygtk.
   * All files: Do not import the gi.repository.GObject module with static

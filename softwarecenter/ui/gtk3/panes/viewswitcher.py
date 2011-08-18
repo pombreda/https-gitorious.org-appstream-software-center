@@ -134,20 +134,15 @@ class ViewSwitcher(Gtk.Box):
         image = self.view_buttons[ViewPages.PENDING].image
         image.set_transaction_count(count)
 
-    def introduce_button(self):
-
-        
-
-        return
-
     def on_transaction_finished(self, backend, result):
         if result.success: 
             self.on_channels_changed()
         return
 
     def on_section_sel_clicked(self, button, view_id):
-        if self._prev_view is view_id:
-            return True
+        # mvo: this check causes bug LP: #828675
+        #if self._prev_view is view_id:
+        #    return True
 
         vm = self.view_manager
 

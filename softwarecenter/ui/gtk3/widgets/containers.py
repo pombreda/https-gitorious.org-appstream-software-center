@@ -27,8 +27,7 @@ class FlowableGrid(Gtk.Fixed):
         return
 
     # private
-    def _get_n_columns_for_width(self, width, col_spacing):
-        cell_w, cell_h = self.get_cell_size()
+    def _get_n_columns_for_width(self, width, cell_w, col_spacing):
         n_cols = width / (cell_w + col_spacing)
         return n_cols
 
@@ -39,22 +38,21 @@ class FlowableGrid(Gtk.Fixed):
         width = a.width
         #height = a.height
 
-        col_spacing = self.column_spacing
-        row_spacing = self.row_spacing
+        col_spacing = 0
+        row_spacing = 0
 
-        n_cols = self._get_n_columns_for_width(width, col_spacing)
-        tmp, cell_h = self.get_cell_size()
-        cell_w = width/n_cols
+        cell_w, cell_h = self.get_cell_size()
+        n_cols = self._get_n_columns_for_width(width, cell_w, col_spacing)
 
         if n_cols == 0: return
+        cell_w = width / n_cols
+        self.n_columns = n_cols
 
         #~ h_overhang = width - n_cols*cell_w - (n_cols-1)*col_spacing
         #~ if n_cols > 1:
             #~ xo = h_overhang / (n_cols-1)
         #~ else:
             #~ xo = h_overhang
-
-        self.n_columns = n_cols
         
         if len(children) % n_cols:
             self.n_rows = len(children)/n_cols + 1
@@ -87,8 +85,9 @@ class FlowableGrid(Gtk.Fixed):
         old = self.get_allocation()
         if width == old.width: old.height, old.height
 
+        cell_w, cell_h = self.get_cell_size()
         n_cols = self._get_n_columns_for_width(
-                        width, self.column_spacing)
+                        width, cell_w, self.column_spacing)
 
         if not n_cols: return self.MIN_HEIGHT, self.MIN_HEIGHT
 
@@ -99,22 +98,12 @@ class FlowableGrid(Gtk.Fixed):
         if len(children) % n_cols:
             n_rows += 1
 
-        tmp, cell_h = self.get_cell_size()
         pref_h = n_rows*cell_h + (n_rows-1)*self.row_spacing + 1
         pref_h = max(self.MIN_HEIGHT, pref_h)
         return pref_h, pref_h
 
     # signal handlers
     def do_size_allocate(self, allocation):
-        old = self.get_allocation()
-        if (allocation.x == old.x and
-            allocation.y == old.y and
-            allocation.width == old.width and
-            allocation.height == old.height):
-            #~ for child in self:
-                #~ child.size_allocate(child.get_allocation())
-            return
-
         self.set_allocation(allocation)
         self._layout_children(allocation)
         return
@@ -138,7 +127,7 @@ class FlowableGrid(Gtk.Fixed):
         cr.set_line_width(1)
 
         cell_w = a.width / self.n_columns
-        cell_h = a.height / self.n_rows
+        cell_h = self.get_cell_size()[1]
 
         for i in range(self.n_columns):
             for j in range(self.n_rows):
@@ -186,7 +175,6 @@ class FlowableGrid(Gtk.Fixed):
 
     def set_row_spacing(self, value):
         self.row_spacing = value
-        self._layout_children(self.get_allocation())
         return
 
     def set_column_spacing(self, value):
@@ -196,7 +184,7 @@ class FlowableGrid(Gtk.Fixed):
 
     def remove_all(self):
         self._cell_size = None
-        for child in self.get_children():
+        for child in self:
             self.remove(child)
         return
 
