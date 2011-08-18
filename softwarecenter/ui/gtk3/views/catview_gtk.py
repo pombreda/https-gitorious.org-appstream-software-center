@@ -360,7 +360,8 @@ class LobbyViewGtk(CategoriesViewGtk):
             name = helper.get_appname(doc)
             icon_pb = helper.get_icon_at_size(doc, 48, 48)
             stats = helper.get_review_stats(doc)
-            tile = FeaturedTile(name, icon_pb, stats)
+            categories = helper.get_categories(doc)
+            tile = FeaturedTile(name, icon_pb, stats, categories)
             tile.connect('clicked', self.on_app_clicked,
                          helper.get_application(doc))
             self.toprated.add_child(tile)
@@ -394,7 +395,8 @@ class LobbyViewGtk(CategoriesViewGtk):
             name = helper.get_appname(doc)
             icon_pb = helper.get_icon_at_size(doc, 48, 48)
             stats = helper.get_review_stats(doc)
-            tile = FeaturedTile(name, icon_pb, stats)
+            categories = helper.get_categories(doc)
+            tile = FeaturedTile(name, icon_pb, stats, categories)
             tile.connect('clicked', self.on_app_clicked,
                          helper.get_application(doc))
             self.featured.add_child(tile)
@@ -424,7 +426,8 @@ class LobbyViewGtk(CategoriesViewGtk):
             name = helper.get_appname(doc)
             icon_pb = helper.get_icon_at_size(doc, 48, 48)
             stats = helper.get_review_stats(doc)
-            tile = FeaturedTile(name, icon_pb, stats)
+            categories = helper.get_categories(doc)
+            tile = FeaturedTile(name, icon_pb, stats, categories)
             tile.connect('clicked', self.on_app_clicked,
                          helper.get_application(doc))
             self.featured.add_child(tile)
@@ -511,7 +514,8 @@ class SubCategoryViewGtk(CategoriesViewGtk):
             name = self.helper.get_appname(doc)
             icon_pb = self.helper.get_icon_at_size(doc, 48, 48)
             stats = self.helper.get_review_stats(doc)
-            tile = FeaturedTile(name, icon_pb, stats)
+            categories = self.helper.get_categories(doc)
+            tile = FeaturedTile(name, icon_pb, stats, categories)
             tile.connect('clicked', self.on_app_clicked,
                          self.helper.get_application(doc))
             self.toprated.add_child(tile)
