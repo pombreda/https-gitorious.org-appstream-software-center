@@ -162,12 +162,12 @@ class CategoriesViewGtk(Gtk.Viewport, CategoriesParser):
 
     def on_app_clicked(self, btn, app):
         """emit the category-selected signal when a category was clicked"""
-        def idle_emit():
+        def timeout_emit():
             self.emit("application-selected", app)
             self.emit("application-activated", app)
             return False
 
-        GObject.timeout_add(50, idle_emit)
+        GObject.timeout_add(50, timeout_emit)
         return
 
     def on_category_clicked(self, btn, cat):

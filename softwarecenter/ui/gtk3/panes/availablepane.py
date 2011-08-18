@@ -137,6 +137,11 @@ class AvailablePane(SoftwarePane):
             "category-selected", self.on_subcategory_activated)
         self.subcategories_view.connect(
             "show-category-applist", self.on_show_category_applist)
+        # FIXME: why do we have two application-{selected,activated] ?!?
+        self.subcategories_view.connect(
+            "application-selected", self.on_application_selected)
+        self.subcategories_view.connect(
+            "application-activated", self.on_application_activated)
         self.scroll_subcategories = Gtk.ScrolledWindow()
         self.scroll_subcategories.set_policy(
             Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
