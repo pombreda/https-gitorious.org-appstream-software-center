@@ -22,6 +22,7 @@
 
 from gi.repository import Gtk, GObject
 from gettext import gettext as _
+import gettext
 
 from softwarecenter.enums import SortMethods
 from softwarecenter.ui.gtk3.em import StockEms
@@ -84,12 +85,45 @@ class AppView(Gtk.VBox):
         # content views
         self.tree_view = AppTreeView(self, icons,
                                      show_ratings, store=None)
-        self.tree_view_scroll.add(self.tree_view)
+        self.vbox = Gtk.VBox()
+        self.vbox.pack_start(self.tree_view, False, True, 0)
+        self.tree_view_scroll.add_with_viewport(self.vbox)
+        vp = self.tree_view_scroll.get_children()[0]
+        vp.connect("draw", self.on_draw)
+
+        self.appcount = None
 
         self.user_defined_sort_method = False
         self._handler_changed = self.sort_methods_combobox.connect(
                                     "changed",
                                     self.on_sort_method_changed)
+        return
+
+    def _append_appcount(self, appcount, installed=False):
+
+        if installed:
+            text = gettext.ngettext("%(amount)s item installed",
+                                    "%(amount)s items installed",
+                                    appcount) % { 'amount' : appcount, }
+        else:
+            text = gettext.ngettext("%(amount)s item available",
+                                    "%(amount)s items available",
+                                    appcount) % { 'amount' : appcount, }
+
+        if not self.appcount:
+            self.appcount = Gtk.Label()
+            self.appcount.set_alignment(0.5, 0.5)
+            self.appcount.set_margin_top(4)
+            self.appcount.set_margin_bottom(3)
+            self.appcount.connect("draw", self.on_draw)
+            self.vbox.pack_start(self.appcount, False, False, 0)
+        self.appcount.set_text(text)
+        self.appcount.show()
+        return
+
+    def on_draw(self, widget, cr):
+        cr.set_source_rgb(1,1,1)
+        cr.paint()
         return
 
     def on_sort_method_changed(self, *args):

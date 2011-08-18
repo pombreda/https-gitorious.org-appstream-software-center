@@ -338,6 +338,15 @@ class AppListStore(Gtk.ListStore, AppGenericStore):
         three times faster than the AppTreeStore equivalent
     """
 
+    from gi.repository import GObject
+
+    __gsignals__ = {
+        "appcount-changed" : (GObject.SignalFlags.RUN_LAST,
+                              None, 
+                              (GObject.TYPE_PYOBJECT, ),
+                             ),
+        }
+
     def __init__(self, db, cache, icons, icon_size=AppGenericStore.ICON_SIZE, 
                  global_icon_cache=True):
         AppGenericStore.__init__(
@@ -371,6 +380,8 @@ class AppListStore(Gtk.ListStore, AppGenericStore):
         with ExecutionTime("store.append_placeholders"):
             for i in range(n_matches - extent):
                 self.append()
+
+        self.emit('appcount-changed', len(matches))
 
         self.buffer_icons()
         return

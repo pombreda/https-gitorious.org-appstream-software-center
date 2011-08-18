@@ -19,6 +19,7 @@
 
 import cairo
 import copy
+import gettext
 from gi.repository import Gtk
 from gi.repository import GObject
 import logging
@@ -48,6 +49,7 @@ from softwarecenter.db.categories import (Category,
                                           get_category_by_name,
                                           categories_sorted_by_name)
 from softwarecenter.db.utils import get_query_for_pkgnames
+from softwarecenter.distro import get_distro
 from softwarecenter.backend.scagent import SoftwareCenterAgent
 
 LOG_ALLOCATION = logging.getLogger("softwarecenter.ui.gtk.allocation")
@@ -203,6 +205,7 @@ class LobbyViewGtk(CategoriesViewGtk):
         self.featured_carousel = None
         self.whatsnew_carousel = None
         self.departments = None
+        self.appcount = None
 
         # this means that the departments don't jump down once the cache loads
         # it doesn't look odd if the recommends are never loaded
@@ -232,6 +235,8 @@ class LobbyViewGtk(CategoriesViewGtk):
         self._append_featured()
         #~ self._append_recommendations()
         self._append_top_rated()
+
+        self._append_appcount()
 
         #self._append_video_clips()
         #self._append_top_of_the_pops
@@ -430,6 +435,34 @@ class LobbyViewGtk(CategoriesViewGtk):
             self.featured.add_child(tile)
         return
 
+    def _append_appcount(self, supported_only=False):
+        enq = AppEnquire(self.cache, self.db)
+
+        distro = get_distro()
+        if supported_only:
+            query = distro.get_supported_query()
+        else:
+            query = xapian.Query('')
+
+        enq.set_query(query,
+                      limit=0,
+                      nonapps_visible=NonAppVisibility.ALWAYS_VISIBLE,
+                      nonblocking_load=True)
+
+        length = len(enq.matches)
+        text = gettext.ngettext("%(amount)s item", "%(amount)s items", length
+                                ) % { 'amount' : length, }
+
+        if not self.appcount:
+            self.appcount = Gtk.Label()
+            self.appcount.set_text(text)
+            self.appcount.set_alignment(0.5, 0.5)
+            self.appcount.set_margin_top(4)
+            self.appcount.set_margin_bottom(3)
+            self.vbox.pack_start(self.appcount, False, True, 0)
+        self.appcount.set_text(text)
+        return
+
     def build(self, desktopdir):
         self.categories = self.parse_applications_menu(desktopdir)
         self.header = _('Departments')
@@ -463,6 +496,7 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         self.current_category = None
         self.departments = None
         self.toprated = None
+        self.appcount = None
 
         # widgetry
         self.vbox.set_border_width(StockEms.SMALL)
@@ -481,7 +515,7 @@ class SubCategoryViewGtk(CategoriesViewGtk):
             frame.header_implements_more_button()
             frame.pack_start(self.toprated, True, True, 0)
             # append the departments section to the page
-            self.vbox.pack_start(frame, True, True, 0)
+            self.vbox.pack_start(frame, False, True, 0)
             self.toprated_frame = frame
         else:
             self.toprated.remove_all()
@@ -536,7 +570,7 @@ class SubCategoryViewGtk(CategoriesViewGtk):
             frame.pack_start(self.departments, True, True, 0)
 
             # append the departments section to the page
-            self.vbox.pack_start(frame, True, True, 0)
+            self.vbox.pack_start(frame, False, True, 0)
         else:
             self.departments.remove_all()
 
@@ -574,11 +608,27 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         self.departments.queue_draw()
         return
 
+    def _append_appcount(self, appcount):
+        text = gettext.ngettext("%(amount)s item available",
+                                "%(amount)s items available",
+                                appcount) % { 'amount' : appcount, }
+
+        if not self.appcount:
+            self.appcount = Gtk.Label()
+            self.appcount.set_text(text)
+            self.appcount.set_alignment(0.5, 0.5)
+            self.appcount.set_margin_top(4)
+            self.appcount.set_margin_bottom(3)
+            self.vbox.pack_start(self.appcount, False, False, 0)
+        self.appcount.set_text(text)
+        return
+
     def _build_subcat_view(self, category, num_items):
         # these methods add sections to the page
         # changing order of methods changes order that they appear in the page
         self._append_subcat_departments(category, num_items)
         self._append_sub_toprated(category)
+        self._append_appcount(num_items)
         self.show_all()
         return
 
