@@ -40,21 +40,21 @@ EXHIBIT_HTML = """
 .banner_text {
 font-size:1.7em;
 color:white;
-background:yellow;
+background: #dd4814;
 padding: 0.2em;
 text-shadow:0em 0em 0.075em black;
 position:absolute;
 top:30;
-left:20;
+left:100;
 }
 .banner_subtext {
 font-size:1.2em;
-color:white;
+color:black;
 padding: 1em;
-text-shadow:0em 0em 0.075em black;
+text-shadow:0em 0em 0.075em white;
 position:absolute;
 top:90;
-left:30;
+left:130;
 }
 </style>
 </head><body>

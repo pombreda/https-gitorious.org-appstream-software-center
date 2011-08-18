@@ -14,6 +14,8 @@ software-center (4.1.16) UNRELEASED; urgency=low
     - show installed emblem for installed apps (LP: #828253)
   * softwarecenter/ui/{gtk,gtk3}/views/appdetailsview_gtk.py:
     - fixup for the latest GIcon API changes
+  * softwarecenter/ui/gtk3/widgets/exhibits.py:
+    - use the ubuntu color for the default exhibit LP: #827315
   
   [ Matthew McGowan ]
   * lp:~mmcg069/software-center/sortable-app-tree-view:
