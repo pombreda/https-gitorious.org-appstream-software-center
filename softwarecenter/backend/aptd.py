@@ -45,6 +45,20 @@ from softwarecenter.backend.installbackend import InstallBackend
 
 from gettext import gettext as _
 
+# its important that we only have a single dbus BusConnection
+# per address when using the fake dbus aptd
+buses = {}
+def get_dbus_bus():
+    if "SOFTWARE_CENTER_APTD_FAKE" in os.environ:
+        global buses
+        dbus_address = os.environ["SOFTWARE_CENTER_APTD_FAKE"]
+        if dbus_address in buses:
+            return buses[dbus_address]
+        bus = buses[dbus_address] = dbus.bus.BusConnection(dbus_address)
+    else:
+        bus = dbus.SystemBus()
+    return bus
+
 class FakePurchaseTransaction(object):
     def __init__(self, app, iconname):
         self.pkgname = app.pkgname
@@ -118,13 +132,14 @@ class AptdaemonTransactionsWatcher(BaseTransactionsWatcher):
     def __init__(self):
         super(AptdaemonTransactionsWatcher, self).__init__()
         # watch the daemon exit and (re)register the signal
-        bus = dbus.SystemBus()
+        bus = get_dbus_bus()
         self._owner_watcher = bus.watch_name_owner(
             "org.debian.apt", self._register_active_transactions_watch)
 
     def _register_active_transactions_watch(self, connection):
         #print "_register_active_transactions_watch", connection
-        apt_daemon = client.get_aptdaemon()
+        bus = get_dbus_bus()
+        apt_daemon = client.get_aptdaemon(bus=bus)
         apt_daemon.connect_to_signal("ActiveTransactionsChanged", 
                                      self._on_transactions_changed)
         current, queued = apt_daemon.GetActiveTransactions()
@@ -171,7 +186,8 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
     def __init__(self):
         GObject.GObject.__init__(self)
         
-        self.aptd_client = client.AptClient()
+        bus = get_dbus_bus()
+        self.aptd_client = client.AptClient(bus=bus)
         self.pending_transactions = {}
         self._transactions_watcher = AptdaemonTransactionsWatcher()
         self._transactions_watcher.connect("lowlevel-transactions-changed",
@@ -189,7 +205,7 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
     # public methods
     def update_xapian_index(self):
         self._logger.debug("update_xapian_index")
-        system_bus = dbus.SystemBus()
+        system_bus = get_dbus_bus()
         # axi is optional, so just do nothing if its not installed
         try:
             axi = dbus.Interface(
@@ -421,7 +437,7 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
         """ 
         helper that authenticates with aptdaemon for a purchase operation 
         """
-        bus = dbus.SystemBus()
+        bus = get_dbus_bus()
         name = bus.get_unique_name()
         action = policykit1.PK_ACTION_INSTALL_PURCHASED_PACKAGES
         flags = policykit1.CHECK_AUTH_ALLOW_USER_INTERACTION

@@ -18,7 +18,7 @@
 
 from __future__ import with_statement
 
-from gi.repository import GObject
+import gobject as GObject
 import gtk
 import logging
 import os
@@ -398,7 +398,6 @@ class CellRendererAppView2(gtk.CellRendererText):
             x = 2*xpad+self.pixbuf_width
         else:
             x = cell_area.x+cell_area.width-lw-self.pixbuf_width-2*xpad
-            layout.set_alignment(pango.ALIGN_RIGHT)
 
         y = cell_area.y+ypad
 

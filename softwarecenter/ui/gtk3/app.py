@@ -346,7 +346,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         # setup window name and about information (needs branding)
         name = self.distro.get_app_name()
         self.window_main.set_title(name)
-        self.aboutdialog.set_name(name)
+        self.aboutdialog.set_program_name(name)
         about_description = self.distro.get_app_description()
         self.aboutdialog.set_comments(about_description)
 

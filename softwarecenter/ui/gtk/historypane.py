@@ -18,7 +18,7 @@
 # this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from gi.repository import GObject
+import gobject as GObject
 import gtk
 import logging
 

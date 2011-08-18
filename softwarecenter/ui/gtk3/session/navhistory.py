@@ -113,7 +113,8 @@ class NavigationItem(object):
 
     def __str__(self):
         facet = self.pane.pane_name.replace(' ', '')[:6]
-        return "%s:%s %s" % (facet, self.page, str(self.view_state))
+        state = unicode(self.view_state).encode('utf-8')
+        return "%s:%s %s" % (facet, self.page, state)
 
     def navigate_to(self):
         """

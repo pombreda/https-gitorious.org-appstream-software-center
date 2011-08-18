@@ -17,7 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import atk
-from gi.repository import GObject
+import gobject as GObject
 import gtk
 import logging
 import mkit

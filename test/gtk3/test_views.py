@@ -9,15 +9,15 @@ sys.path.insert(0,"..")
 
 #from mock import Mock
 
-from softwarecenter.ui.gtk3.panes.viewswitcher import get_test_window_viewswitcher
-
 TIMEOUT=300
+
+import softwarecenter.paths
+softwarecenter.paths.datadir = "../data"
 
 class TestViews(unittest.TestCase):
 
     def test_viewswitcher(self):
-        import softwarecenter.paths
-        softwarecenter.paths.datadir = "../data"
+        from softwarecenter.ui.gtk3.panes.viewswitcher import get_test_window_viewswitcher
         win = get_test_window_viewswitcher()
         GObject.timeout_add(TIMEOUT, lambda: win.destroy())
         Gtk.main()

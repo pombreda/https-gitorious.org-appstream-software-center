@@ -16,7 +16,12 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from gi.repository import GObject
+import sys
+if 'gobject' in sys.modules:
+    import gobject as GObject
+    GObject #pyflakes
+else:
+    from gi.repository import GObject
 
 class _Version:
     @property
@@ -134,7 +139,7 @@ class PackageInfo(GObject.GObject):
     def get_origins(self, pkgname):
         return []
     def get_addons(self, pkgname, ignore_installed):
-        pass
+        return ([], [])
 
     def get_packages_removed_on_remove(self, pkg):
         """ Returns a package names list of reverse dependencies

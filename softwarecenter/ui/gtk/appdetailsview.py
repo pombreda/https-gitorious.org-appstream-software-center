@@ -21,7 +21,7 @@ import logging
 import dialogs
 
 import urllib
-from gi.repository import GObject
+import gobject as GObject
 
 from gettext import gettext as _
 
