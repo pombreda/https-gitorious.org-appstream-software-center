@@ -122,7 +122,7 @@ class PackageStatusBar(StatusBar):
     def __init__(self, view):
         StatusBar.__init__(self, view)
         self.installed_icon  = Gtk.Image.new_from_icon_name(
-            Icons.INSTALLED_OVERLAY, Icons.APP_ICON_SIZE)
+            Icons.INSTALLED_OVERLAY, Gtk.IconSize.DIALOG)
         self.label = Gtk.Label()
         self.button = Gtk.Button()
         self.progress = Gtk.ProgressBar()
