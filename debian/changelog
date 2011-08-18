@@ -1,4 +1,4 @@
-software-center (4.1.16) UNRELEASED; urgency=low
+software-center (4.1.16) oneiric; urgency=low
 
   [ Michael Vogt ]
   * softwarecenter/ui/gtk3/panes/availablepane.py, 
