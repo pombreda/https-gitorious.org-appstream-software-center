@@ -36,7 +36,7 @@ BUY_SOMETHING_HOST_ANONYMOUS = os.environ.get("SOFTWARE_CENTER_BUY_HOST") or "ht
 
 # version of the database, every time something gets added (like 
 # terms for mime-type) increase this (but keep as a string!)
-DB_SCHEMA_VERSION = "3"
+DB_SCHEMA_VERSION = "4"
 
 # the default limit for a search
 DEFAULT_SEARCH_LIMIT = 10000
@@ -120,6 +120,7 @@ class XapianValues:
     SC_DESCRIPTION = 188
     APPNAME_UNTRANSLATED = 189
     ICON_URL = 190
+    CATEGORIES = 191
 
 # fake channels
 PURCHASED_NEEDS_REINSTALL_MAGIC_CHANNEL_NAME = "for-pay-needs-reinstall"

@@ -183,6 +183,13 @@ class _AppPropertiesHelper(object):
             return self.backend.pending_transactions[pkgname].progress
         return -1
 
+    def get_categories(self, doc):
+        categories = doc.get_value(XapianValues.CATEGORIES)
+        # FIXME: transform this into something useful that can also be
+        #        translated, currently it will be something like 
+        #        "System;Settings"
+        return categories
+
 
 class AppPropertiesHelper(_AppPropertiesHelper):
 
