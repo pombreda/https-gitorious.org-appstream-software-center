@@ -9,7 +9,7 @@ from cellrenderers import (CellRendererAppView, CellButtonRenderer,
                            CellButtonIDs)
 
 from softwarecenter.ui.gtk3.em import em
-from softwarecenter.enums import AppActions, NonAppVisibility
+from softwarecenter.enums import (AppActions, NonAppVisibility, Icons)
 from softwarecenter.utils import ExecutionTime
 from softwarecenter.backend import get_install_backend
 from softwarecenter.netstatus import (get_network_watcher,
@@ -57,7 +57,7 @@ class AppTreeView(Gtk.TreeView):
         # at by default
         tr = CellRendererAppView(icons,
                                  show_ratings,
-                                 "software-center-installed")
+                                 Icons.INSTALLED_OVERLAY)
         tr.set_pixbuf_width(32)
         tr.set_button_spacing(em(0.3))
 

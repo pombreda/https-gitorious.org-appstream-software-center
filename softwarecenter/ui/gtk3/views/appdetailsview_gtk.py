@@ -38,8 +38,10 @@ from softwarecenter.db.application import Application
 from softwarecenter.db import DebFileApplication
 from softwarecenter.backend.reviews import ReviewStats
 #from softwarecenter.backend.zeitgeist_simple import zeitgeist_singleton
-from softwarecenter.enums import (AppActions, PkgStates,
-                                  Icons, SOFTWARE_CENTER_PKGNAME)
+from softwarecenter.enums import (AppActions, 
+                                  PkgStates,
+                                  Icons, 
+                                  SOFTWARE_CENTER_PKGNAME)
 from softwarecenter.utils import (is_unity_running, 
                                   get_exec_line_from_desktop,
                                   SimpleFileDownloader,
@@ -119,6 +121,8 @@ class PackageStatusBar(StatusBar):
     
     def __init__(self, view):
         StatusBar.__init__(self, view)
+        self.installed_icon  = Gtk.Image.new_from_icon_name(
+            Icons.INSTALLED_OVERLAY, Icons.APP_ICON_SIZE)
         self.label = Gtk.Label()
         self.button = Gtk.Button()
         self.progress = Gtk.ProgressBar()
@@ -128,6 +132,7 @@ class PackageStatusBar(StatusBar):
 
         self.pkg_state = None
 
+        self.hbox.pack_start(self.installed_icon, False, False, 0)
         self.hbox.pack_start(self.label, False, False, 0)
         self.hbox.pack_end(self.button, False, False, 0)
         self.hbox.pack_end(self.progress, False, False, 0)
@@ -218,6 +223,7 @@ class PackageStatusBar(StatusBar):
             self.button.show()
             self.show()
             self.progress.hide()
+            self.installed_icon.hide()
 
         # FIXME:  Use a Gtk.Action for the Install/Remove/Buy/Add Source/Update Now action
         #         so that all UI controls (menu item, applist view button and appdetails
@@ -238,6 +244,7 @@ class PackageStatusBar(StatusBar):
             self.button.set_sensitive(False)
         elif state == PkgStates.INSTALLED or state == PkgStates.REINSTALLABLE:
             #special label only if the app being viewed is software centre itself
+            self.installed_icon.show()
             if app_details.pkgname== SOFTWARE_CENTER_PKGNAME:
                 self.set_label(_("Installed (you're using it right now)"))
             else:
