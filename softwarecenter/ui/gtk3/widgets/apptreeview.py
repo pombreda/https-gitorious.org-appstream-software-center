@@ -531,7 +531,7 @@ def on_entry_changed(widget, data):
                                   limit=100*1000,
                                   nonapps_visible=NonAppVisibility.ALWAYS_VISIBLE)
 
-            store = view.get_model()
+            store = view.tree_view.get_model()
             with ExecutionTime("store.clear()"):
                 store.clear()
 
@@ -575,6 +575,7 @@ if __name__ == "__main__":
     icons.prepend_search_path("/usr/share/software-center/icons/")
 
     # create a filter
+    from softwarecenter.db.appfilter import AppFilter
     filter = AppFilter(db, cache)
     filter.set_supported_only(False)
     filter.set_installed_only(True)
@@ -584,7 +585,9 @@ if __name__ == "__main__":
     from softwarecenter.db.enquire import AppEnquire
     enquirer = AppEnquire(cache, db)
     store = AppListStore(db, cache, icons)
-    view = AppView(icons, show_ratings=True)
+
+    from softwarecenter.ui.gtk3.views.appview import AppView
+    view = AppView(db, cache, icons, show_ratings=True)
     view.set_model(store)
 
     entry = Gtk.Entry()

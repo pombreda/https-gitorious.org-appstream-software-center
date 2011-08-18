@@ -321,10 +321,10 @@ class AvailablePane(SoftwarePane):
            bar up-to-date by keeping track of the app-list-changed
            signals
         """
+        LOG.debug("applist-changed %s %s" % (pane, length))
         super(AvailablePane, self).on_app_list_changed(pane, length)
         self._update_action_bar()
         self._update_status_text(length)
-        print 'applist-changed', length
 
     def _update_status_text_lobby(self):
         # SPECIAL CASE: in category page show all items in the DB
@@ -708,8 +708,6 @@ def get_test_window():
     datadir = get_test_datadir()
     icons = get_test_gtk3_icon_cache()
 
-    vm = ViewManager(Gtk.Notebook())
-
     navhistory_back_action = Gtk.Action("navhistory_back_action", "Back", "Back", None)
     navhistory_forward_action = Gtk.Action("navhistory_forward_action", "Forward", "Forward", None)
 
@@ -722,6 +720,10 @@ def get_test_window():
     win.add(w)
     win.set_size_request(800,600)
     win.show_all()
+
+    # this is used later in tests
+    win.set_data("pane", w)
+
     return win
 
 if __name__ == "__main__":
