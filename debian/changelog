@@ -12,6 +12,8 @@ software-center (4.1.16) UNRELEASED; urgency=low
     - add new Icons.INSTALLED_OVERLAY
   * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
     - show installed emblem for installed apps (LP: #828253)
+  * softwarecenter/ui/{gtk,gtk3}/views/appdetailsview_gtk.py:
+    - fixup for the latest GIcon API changes
   
   [ Martin Pitt ]
   * software-center: Import the static gobject, not the GI module, as this

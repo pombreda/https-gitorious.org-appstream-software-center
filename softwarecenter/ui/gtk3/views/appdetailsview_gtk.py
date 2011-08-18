@@ -1323,18 +1323,15 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         self.installed_where_hbox.pack_start(label, False, False, 0)
         for (i, item) in enumerate(where):
             if hasattr(item, "get_icon"):
-                iconname = item.get_icon().get_names()[0]
+                iconinfo = self.icons.lookup_by_gicon(item.get_icon(), 18, 0)
+                iconname = iconinfo.get_filename()
             elif hasattr(item, "get_app_info"):
                 app_info = item.get_app_info()
-                iconname = app_info.get_icon().get_names()[0]
+                iconinfo = self.icons.lookup_by_gicon(app_info.get_icon(), 18, 0)
+                iconname = iconinfo.get_filename()
 
-            # check icontheme first
-            if iconname and self.icons.has_icon(iconname) and i > 0:
-                image = Gtk.Image()
-                image.set_from_icon_name(iconname, Gtk.IconSize.SMALL_TOOLBAR)
-                self.installed_where_hbox.pack_start(image, False, False, 0)
-            # then see if its a path to a file on disk
-            elif iconname and os.path.exists(iconname):
+            # we get the right name from the lookup we did before
+            if iconname and os.path.exists(iconname):
                 image = Gtk.Image()
                 pb = GdkPixbuf.Pixbuf.new_from_file_at_size(iconname, 18, 18)
                 if pb:
