@@ -201,6 +201,8 @@ class SearchAidLogic(object):
         return None
 
     def get_unsupported_suggestion_text(self, term, category, state):
+        if state.filter is None:
+            return None
         supported_only = state.filter.get_supported_only()
         if not supported_only:
             return None

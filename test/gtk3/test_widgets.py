@@ -124,6 +124,13 @@ class TestWidgets(unittest.TestCase):
         win = get_test_videoplayer_window()
         GObject.timeout_add(TIMEOUT, lambda: win.destroy())
         Gtk.main()
+
+
+    def test_apptreeview(self):
+        from softwarecenter.ui.gtk3.widgets.apptreeview import get_test_window
+        win = get_test_window()
+        GObject.timeout_add(TIMEOUT, lambda: win.destroy())
+        Gtk.main()
         
         
 
