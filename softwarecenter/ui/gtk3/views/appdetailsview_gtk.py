@@ -1070,13 +1070,13 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
 
             # scroll up
             if kv in uppers:
-                v = max(v_adj.value - v_adj.step_increment,
-                        v_adj.lower)
+                v = max(v_adj.get_value() - v_adj.get_step_increment(),
+                        v_adj.get_lower())
 
             # scroll down 
             elif kv in downers:
-                v = min(v_adj.value + v_adj.step_increment,
-                        v_adj.upper - v_adj.page_size)
+                v = min(v_adj.get_value() + v_adj.get_step_increment(),
+                        v_adj.get_upper() - v_adj.get_page_size())
 
             # set our new value
             v_adj.set_value(v)
