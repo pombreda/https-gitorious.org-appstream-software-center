@@ -233,7 +233,7 @@ class ExhibitBanner(Gtk.EventBox):
 
     DROPSHADOW_HEIGHT = 11
     MAX_HEIGHT = 200 # pixels
-    TIMEOUT_SECONDS = 15
+    TIMEOUT_SECONDS = 300
 
     def __init__(self):
         Gtk.EventBox.__init__(self)
