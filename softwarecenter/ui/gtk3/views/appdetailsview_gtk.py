@@ -40,7 +40,6 @@ from softwarecenter.backend.reviews import ReviewStats
 #from softwarecenter.backend.zeitgeist_simple import zeitgeist_singleton
 from softwarecenter.enums import (AppActions, PkgStates,
                                   Icons, SOFTWARE_CENTER_PKGNAME)
-from softwarecenter.gmenusearch import GMenuSearcher
 from softwarecenter.utils import (is_unity_running, 
                                   get_exec_line_from_desktop,
                                   SimpleFileDownloader,
@@ -1361,6 +1360,7 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         # display where-is-it for non-Unity configurations only
         if is_unity_running():
             return
+        from softwarecenter.gmenusearch import GMenuSearcher
         # remove old content
         self.installed_where_hbox.foreach(lambda w, d: w.destroy(), None)
         self.installed_where_hbox.set_property("can-focus", False)
