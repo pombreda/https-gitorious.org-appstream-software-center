@@ -23,6 +23,10 @@ software-center (4.1.16) UNRELEASED; urgency=low
   * softwarecenter/ui/gtk3/panes/viewswitcher.py:
     - fix switching back to the main page when clicking on 
       "All software" (LP: #828675)
+  * softwarecenter/ui/gtk3/models/appstore2.py,
+    softwarecenter/ui/gtk3/views/catview_gtk.py,
+    softwarecenter/ui/gtk3/widgets/buttons.py:
+    - show (raw) categories info in the FeaturedTile()
   
   [ Matthew McGowan ]
   * lp:~mmcg069/software-center/sortable-app-tree-view:
@@ -36,7 +40,7 @@ software-center (4.1.16) UNRELEASED; urgency=low
     bindings like gtk, and vice versa. It is brittle now, and breaking with
     newer pygobject versions like 2.90.1.
 
- -- Martin Pitt <martin.pitt@ubuntu.com>  Wed, 17 Aug 2011 12:37:23 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 18 Aug 2011 18:36:04 +0200
 
 software-center (4.1.15) oneiric; urgency=low
 
