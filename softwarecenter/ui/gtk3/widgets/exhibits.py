@@ -297,11 +297,17 @@ class ExhibitBanner(Gtk.EventBox):
         self.connect("leave-notify-event", self.on_leave_notify)
         self.connect("button-release-event", self.on_button_release)
 
-    def on_enter_notify(self, *args):
-        if not self.exhibits[self.cursor].package_names:
-            return
+    def _init_mouse_pointer(self):
         window = self.get_window()
-        window.set_cursor(_HAND)
+        if not window:
+            return
+        if not self.exhibits[self.cursor].package_names:
+            window.set_cursor(None)
+        else:
+            window.set_cursor(_HAND)
+
+    def on_enter_notify(self, *args):
+        self._init_mouse_pointer()
         return
 
     def on_leave_notify(self, *args):
@@ -332,11 +338,12 @@ class ExhibitBanner(Gtk.EventBox):
         return
 
     def _render_exhibit_at_cursor(self):
+        # init the mouse pointer
+        self._init_mouse_pointer()
         # check the cursor is within range
         n_exhibits = len(self.exhibits)
         cursor = self.cursor
         if n_exhibits == 0 or (cursor < 0 and cursor >= n_exhibits):
-            
             return
         # copy old image for the fade
         if self.image:

@@ -134,12 +134,6 @@ class ViewSwitcher(Gtk.Box):
         image = self.view_buttons[ViewPages.PENDING].image
         image.set_transaction_count(count)
 
-    def introduce_button(self):
-
-        
-
-        return
-
     def on_transaction_finished(self, backend, result):
         if result.success: 
             self.on_channels_changed()
