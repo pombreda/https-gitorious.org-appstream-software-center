@@ -9,6 +9,8 @@ software-center (4.1.17) UNRELEASED; urgency=low
     - use a Gtk.IconSize rather than an int for Gtk.Image.new_from_icon_name
   * softwarecenter/ui/gtk3/widgets/buttons.py:
     - ellipsize category text in tile to avoid warnings
+    - show channel selector on button-press-event instead of
+      button-release-event for consistent menu behaviour (LP: #828317)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 18 Aug 2011 18:36:04 +0200
 
