@@ -33,7 +33,6 @@ from softwarecenter.ui.gtk3.models.appstore2 import (
     AppTreeStore, CategoryRowReference)
 from softwarepane import SoftwarePane
 from softwarecenter.db.appfilter import AppFilter
-import softwarecenter.ui.gtk3.dialogs as dialogs
 
 LOG=logging.getLogger(__name__)
 
@@ -263,10 +262,10 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         self.treefilter.refilter()
         if terms:
             self.app_view.tree_view.expand_all()
-            i = len(self.visible_docids)
+            #~ i = len(self.visible_docids)
         else:
             self._check_expand()
-            i = self.installed_count
+            #~ i = self.installed_count
 
         #~ self.emit("app-list-changed", i)
         return

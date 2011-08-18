@@ -131,7 +131,6 @@ class AppView(Gtk.VBox):
         if isinstance(self.tree_view.appmodel, AppTreeStore):
             return
 
-        combo = self.sort_methods_combobox
         if sort_by_relevance:
             self.set_sort_method_with_no_signal(self._SORT_BY_SEARCH_RANKING)
         else:
@@ -148,6 +147,5 @@ class AppView(Gtk.VBox):
         return self.tree_view.clear_model()
 
     def get_sort_mode(self):
-        combo = self.sort_methods_combobox
         active_index = self.sort_methods_combobox.get_active()
         return self._SORT_METHOD_INDEX[active_index]

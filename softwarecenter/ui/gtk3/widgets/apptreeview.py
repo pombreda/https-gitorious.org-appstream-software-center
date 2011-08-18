@@ -512,6 +512,11 @@ class AppTreeView(Gtk.TreeView):
             return False
         return self.get_path_at_pos(x, y)[0] == self.get_cursor()[0]
 
+
+
+
+
+
 def get_query_from_search_entry(search_term):
     if not search_term:
         return xapian.Query("")
@@ -523,11 +528,11 @@ def on_entry_changed(widget, data):
 
     def _work():
         new_text = widget.get_text()
-        (view, enquire) = data
+        (view, enquirer) = data
 
         with ExecutionTime("total time"):
             with ExecutionTime("enquire.set_query()"):
-                enquire.set_query(get_query_from_search_entry(new_text),
+                enquirer.set_query(get_query_from_search_entry(new_text),
                                   limit=100*1000,
                                   nonapps_visible=NonAppVisibility.ALWAYS_VISIBLE)
 
