@@ -9,7 +9,7 @@ from cellrenderers import (CellRendererAppView, CellButtonRenderer,
                            CellButtonIDs)
 
 from softwarecenter.ui.gtk3.em import em
-from softwarecenter.enums import AppActions, NonAppVisibility
+from softwarecenter.enums import (AppActions, NonAppVisibility, Icons)
 from softwarecenter.utils import ExecutionTime
 from softwarecenter.backend import get_install_backend
 from softwarecenter.netstatus import (get_network_watcher,
@@ -57,7 +57,7 @@ class AppTreeView(Gtk.TreeView):
         # at by default
         tr = CellRendererAppView(icons,
                                  show_ratings,
-                                 "software-center-installed")
+                                 Icons.INSTALLED_OVERLAY)
         tr.set_pixbuf_width(32)
         tr.set_button_spacing(em(0.3))
 
@@ -428,7 +428,14 @@ class AppTreeView(Gtk.TreeView):
         return
 
     def _app_activated_cb(self, btn, btn_id, app, store, path):
-        if self.rowref_is_category(app): return
+        if self.rowref_is_category(app): 
+            return
+        
+        # FIXME: would be nice if that would be more elegant
+        # because we use a treefilter we need to get the "real"
+        # model first
+        if type(store) is Gtk.TreeModelFilter:
+            store = store.get_model()
 
         pkgname = self.appmodel.get_pkgname(app)
 

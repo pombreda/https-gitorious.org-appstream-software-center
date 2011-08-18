@@ -661,6 +661,8 @@ def index_app_info_from_parser(parser, db, cache):
         # write out categories
         for cat in parser.get_desktop_categories():
             doc.add_term("AC"+cat.lower())
+        categories_string = ";".join(parser.get_desktop_categories())
+        doc.add_value(XapianValues.CATEGORIES, categories_string)
         for mime in parser.get_desktop_mimetypes():
             doc.add_term("AM"+mime.lower())
         # get type (to distinguish between apps and packages

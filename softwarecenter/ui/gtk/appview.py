@@ -26,7 +26,9 @@ import pangocairo
 import pango
 import xapian
 
-from softwarecenter.enums import (AppActions, XapianValues,
+from softwarecenter.enums import (AppActions, 
+                                  XapianValues,
+                                  Icons,
                                   AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME,
                                   MOUSE_EVENT_BACK_BUTTON,
                                   MOUSE_EVENT_FORWARD_BUTTON,
@@ -680,7 +682,7 @@ class AppView(gtk.TreeView):
         # it needs to be the first one, because that is what the tools look
         # at by default
 
-        tr = CellRendererAppView2(show_ratings, "software-center-installed")
+        tr = CellRendererAppView2(show_ratings, Icons.INSTALLED_OVERLAY)
         tr.set_pixbuf_width(32)
         tr.set_button_spacing(int(get_em_value()*0.3+0.5))
 
