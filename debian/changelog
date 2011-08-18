@@ -1,5 +1,11 @@
 software-center (4.1.16) UNRELEASED; urgency=low
 
+  [ Michael Vogt ]
+  * softwarecenter/ui/gtk3/panes/availablepane.py, 
+    softwarecenter/ui/gtk3/views/catview_gtk.py:
+    - make clicking on top-rated app in a subcategory work
+  
+  [ Martin Pitt ]
   * software-center: Import the static gobject, not the GI module, as this
     uses pygtk.
   * All files: Do not import the gi.repository.GObject module with static

@@ -936,10 +936,8 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         #~ vb_inner.pack_start(self.usage, True, True, 0)
 
         # star rating widget
-        #~ a = Gtk.Alignment.new(0.0, 0.5, 1.0, 1.0)
         self.review_stats_widget = Star()
         self.review_stats_widget.set_size_as_pixel_value(title_fontsize)
-        self.review_stats_widget.set_nr_reviews(666)
         #~ a.add(self.review_stats_widget)
         #~ hb.pack_end(a, False, False, 0)
         hb.pack_end(self.review_stats_widget, False, True, 0)
@@ -982,12 +980,12 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
 
         # the weblive test-drive stuff
         self.weblive = get_weblive_backend()
-        self.test_drive = Gtk.Button(_("Test drive"))
-        self.test_drive.connect("clicked", self.on_test_drive_clicked)
-        right_vb.pack_start(self.test_drive, False, False, 0)
+        if self.weblive.client is not None:
+            self.test_drive = Gtk.Button(_("Test drive"))
+            self.test_drive.connect("clicked", self.on_test_drive_clicked)
+            right_vb.pack_start(self.test_drive, False, False, 0)
 
-        # attach to all the WebLive events
-        if self.weblive.client:
+            # attach to all the WebLive events
             self.weblive.client.connect("progress", self.on_weblive_progress)
             self.weblive.client.connect("connected", self.on_weblive_connected)
             self.weblive.client.connect("disconnected", self.on_weblive_disconnected)
@@ -1172,6 +1170,7 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         return
 
     def _update_weblive(self, app_details):
+        if self.weblive.client is None: return
         self.desktop_file = app_details.desktop_file
         # only enable test drive if we have a desktop file and exec line
         if (not self.weblive.ready or
