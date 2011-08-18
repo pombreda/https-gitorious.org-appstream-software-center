@@ -140,8 +140,9 @@ class ViewSwitcher(Gtk.Box):
         return
 
     def on_section_sel_clicked(self, button, view_id):
-        if self._prev_view is view_id:
-            return True
+        # mvo: this check causes bug LP: #828675
+        #if self._prev_view is view_id:
+        #    return True
 
         vm = self.view_manager
 

@@ -20,6 +20,9 @@ software-center (4.1.16) UNRELEASED; urgency=low
     - use a longer exhibit timeout
   * softwarecenter/ui/gtk3/widgets/exhibits.py:
     - reinit mouse pointer when exhibits toggle
+  * softwarecenter/ui/gtk3/panes/viewswitcher.py:
+    - fix switching back to the main page when clicking on 
+      "All software" (LP: #828675)
   
   [ Matthew McGowan ]
   * lp:~mmcg069/software-center/sortable-app-tree-view:
