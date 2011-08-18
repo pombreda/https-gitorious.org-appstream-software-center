@@ -283,30 +283,8 @@ class AppGenericStore(_AppPropertiesHelper):
         return
 
     def set_from_matches(self, matches):
-        """ set the content of the liststore based on a list of
-            xapian.MSetItems
-        """
-
-        self.current_matches = matches
-        n_matches = len(matches)
-        if n_matches == 0: return
-    
-        db = self.db.xapiandb
-        extent = min(self.LOAD_INITIAL, n_matches-1)
-
-        with ExecutionTime("store.append_initial"):
-            for doc in [db.get_document(m.docid) for m in matches][:extent]:
-                doc.available = doc.installed = None
-                self.append((doc,))
-
-        if n_matches == extent: return
-
-        with ExecutionTime("store.append_placeholders"):
-            for i in range(n_matches - extent):
-                self.append()
-
-        self.buffer_icons()
-        return
+        # stub
+        raise NotImplementedError
 
     # the following methods ensure that the contents data is refreshed
     # whenever a transaction potentially changes it: 
@@ -368,6 +346,33 @@ class AppListStore(Gtk.ListStore, AppGenericStore):
         self.set_column_types(self.COL_TYPES)
 
         self.current_matches = None
+        return
+
+
+    def set_from_matches(self, matches):
+        """ set the content of the liststore based on a list of
+            xapian.MSetItems
+        """
+
+        self.current_matches = matches
+        n_matches = len(matches)
+        if n_matches == 0: return
+    
+        db = self.db.xapiandb
+        extent = min(self.LOAD_INITIAL, n_matches-1)
+
+        with ExecutionTime("store.append_initial"):
+            for doc in [db.get_document(m.docid) for m in matches][:extent]:
+                doc.available = doc.installed = None
+                self.append((doc,))
+
+        if n_matches == extent: return
+
+        with ExecutionTime("store.append_placeholders"):
+            for i in range(n_matches - extent):
+                self.append()
+
+        self.buffer_icons()
         return
 
     def load_range(self, indices, step):
@@ -432,12 +437,6 @@ class AppTreeStore(Gtk.TreeStore, AppGenericStore):
         it = self.append(None, (category,))
         self.set_documents(it, documents)
         return it
-
-    def append(self, *args):
-        if len(args) < 2:
-            super(AppTreeStore, self).append(None, *args)
-        else:
-            super(AppTreeStore, self).append(*args)
 
     def clear(self):
         # reset the tranaction map because it will now be invalid

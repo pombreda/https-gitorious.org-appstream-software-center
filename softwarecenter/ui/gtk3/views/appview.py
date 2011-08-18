@@ -25,9 +25,10 @@ from gettext import gettext as _
 
 from softwarecenter.enums import SortMethods
 from softwarecenter.ui.gtk3.em import StockEms
+from softwarecenter.ui.gtk3.models.appstore2 import AppTreeStore
 from softwarecenter.ui.gtk3.widgets.apptreeview import AppTreeView
 from softwarecenter.ui.gtk3.models.appstore2 import AppPropertiesHelper
-from softwarecenter.ui.gtk3.widgets.containers import FlowableGrid
+#~ from softwarecenter.ui.gtk3.widgets.containers import FlowableGrid
 
 
 class AppView(Gtk.VBox):
@@ -122,6 +123,14 @@ class AppView(Gtk.VBox):
         return
 
     def display_matches(self, matches, sort_by_relevance=False):
+        # FIXME: installedpane handles display of the trees intimately,
+        # so for the time being lets just return None in the case of our
+        # TreeView displaying an AppTreeStore ...    ;(
+        # ... also we dont currently support user sorting in the
+        # installedview, so issue is somewhat moot for the time being...
+        if isinstance(self.tree_view.appmodel, AppTreeStore):
+            return
+
         combo = self.sort_methods_combobox
         if sort_by_relevance:
             self.set_sort_method_with_no_signal(self._SORT_BY_SEARCH_RANKING)

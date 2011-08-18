@@ -169,6 +169,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
 
     #~ @interrupt_build_and_wait
     def _build_categorised_view(self):
+        print 'naskldfldsfgldlgsljfjlksjfcjfsjfcklsjvlkjskjvlksjvkl'
         LOG.debug('Rebuilding categorised installedview...')
         self.cat_docid_map = {}
         enq = self.enquirer
@@ -237,9 +238,9 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         while it:
             path = self.treefilter.get_path(it)
             if self.state.search_term:# or path in self._user_expanded_paths:
-                self.app_view.expand_row(path, False)
+                self.app_view.tree_view.expand_row(path, False)
             else:
-                self.app_view.collapse_row(path)
+                self.app_view.tree_view.collapse_row(path)
 
             it = self.treefilter.iter_next(it)
         return
@@ -263,10 +264,10 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         self.treefilter.refilter()
         if terms:
             self.app_view.tree_view.expand_all()
-            #i = len(self.visible_docids)
+            i = len(self.visible_docids)
         else:
             self._check_expand()
-            #i = self.installed_count
+            i = self.installed_count
 
         #~ self.emit("app-list-changed", i)
         return
