@@ -428,7 +428,14 @@ class AppTreeView(Gtk.TreeView):
         return
 
     def _app_activated_cb(self, btn, btn_id, app, store, path):
-        if self.rowref_is_category(app): return
+        if self.rowref_is_category(app): 
+            return
+        
+        # FIXME: would be nice if that would be more elegant
+        # because we use a treefilter we need to get the "real"
+        # model first
+        if type(store) is Gtk.TreeModelFilter:
+            store = store.get_model()
 
         pkgname = self.appmodel.get_pkgname(app)
 

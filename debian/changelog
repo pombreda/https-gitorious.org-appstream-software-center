@@ -4,6 +4,8 @@ software-center (4.1.16) UNRELEASED; urgency=low
   * softwarecenter/ui/gtk3/panes/availablepane.py, 
     softwarecenter/ui/gtk3/views/catview_gtk.py:
     - make clicking on top-rated app in a subcategory work
+  * softwarecenter/ui/gtk3/widgets/apptreeview.py:
+    - fix remove button in the tree (LP: #828064)
   
   [ Martin Pitt ]
   * software-center: Import the static gobject, not the GI module, as this
