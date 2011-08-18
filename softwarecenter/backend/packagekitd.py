@@ -19,8 +19,6 @@
 import logging
 import dbus
 import dbus.mainloop.glib
-import os
-from gettext import gettext as _
 
 from gi.repository import GObject
 from gi.repository import PackageKitGlib as packagekit
@@ -313,7 +311,8 @@ class PackagekitBackend(GObject.GObject, InstallBackend):
 
         if ptype == packagekit.ProgressType.PACKAGE:
             # this should be done better
-            package = progress.get_property('package')
+            # mvo: why getting package here at all?
+            #package = progress.get_property('package')
             # fool sc ui about the name change
             trans.emit('role-changed', packagekit.RoleEnum.LAST)
 

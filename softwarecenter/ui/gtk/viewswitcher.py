@@ -16,7 +16,7 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from gi.repository import GObject
+import gobject as GObject
 import gtk
 import pango
 import logging
@@ -415,7 +415,6 @@ class ViewSwitcher(gtk.TreeView):
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
     import sys
-    import apt
 
     import dbus
     import dbus.mainloop.glib
@@ -438,8 +437,6 @@ if __name__ == "__main__":
 
     # cache
     from softwarecenter.db.pkginfo import get_pkg_info
-    #import apt
-    #cache = apt.Cache(apt.progress.text.OpProgress())
     cache = get_pkg_info()
     db = StoreDatabase(pathname, cache)
     db.open()

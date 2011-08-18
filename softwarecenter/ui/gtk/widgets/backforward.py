@@ -19,7 +19,7 @@
 
 import atk
 import gtk
-from gi.repository import GObject
+import gobject as GObject
 import mkit
 
 from gettext import gettext as _

@@ -1,7 +1,7 @@
 
 import atk
 import gtk
-from gi.repository import GObject
+import gobject as GObject
 import mkit
 import pangocairo
 import logging

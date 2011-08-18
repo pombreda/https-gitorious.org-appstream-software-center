@@ -18,7 +18,7 @@
 
 from __future__ import with_statement
 
-from gi.repository import GObject
+import gobject as GObject
 import gtk
 import logging
 import os

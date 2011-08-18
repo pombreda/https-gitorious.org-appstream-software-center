@@ -38,12 +38,12 @@ class TestViews(unittest.TestCase):
         self.assertTrue(view.pkg_statusbar.progress.get_property("visible"))
 
     def _p(self):
-        for i in range(5):
+        for i in range(20):
             time.sleep(0.1)
             while Gtk.events_pending():
                 Gtk.main_iteration()
 
 if __name__ == "__main__":
     import logging
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.INFO)
     unittest.main()

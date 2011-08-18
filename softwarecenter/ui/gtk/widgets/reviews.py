@@ -23,7 +23,7 @@
 import pygtk
 pygtk.require ("2.0")
 import datetime
-from gi.repository import GObject
+import gobject as GObject
 import cairo
 import gtk
 import mkit

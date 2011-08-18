@@ -16,7 +16,7 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from gi.repository import GObject
+import gobject as GObject
 import dbus
 import gtk
 import logging
@@ -287,7 +287,9 @@ class PendingView(gtk.ScrolledWindow, BasePane):
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
 
-    import dbus, dbus.mainloop.glib; dbus.set_default_main_loop(dbus.mainloop.glib.DBusGMainLoop())
+    import  dbus.mainloop.glib
+    dbus.set_default_main_loop(dbus.mainloop.glib.DBusGMainLoop())
+
     icons = gtk.icon_theme_get_default()
     view = PendingView(icons)
 

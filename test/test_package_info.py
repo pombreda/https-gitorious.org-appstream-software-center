@@ -1,21 +1,22 @@
 #!/usr/bin/python
 
-from gi.repository import PackageKitGlib as packagekit
 import sys
 sys.path.insert(0,"../")
 
 import logging
 import unittest
 
-from softwarecenter.db.pkginfo import get_pkg_info, _Package, _Version
+from softwarecenter.db.pkginfo import _Package, _Version
 from softwarecenter.db.pkginfo_impl.aptcache import AptCache
 from softwarecenter.db.pkginfo_impl.packagekit import PackagekitInfo
 
 class TestPkgInfoAptCache(unittest.TestCase):
+
+    # the backend that we want to test
     klass = AptCache
 
     def setUp(self):
-        self.pkginfo = self.__class__.klass()
+        self.pkginfo = self.klass()
         self.pkginfo.open()
 
     def test_pkg_version(self):
