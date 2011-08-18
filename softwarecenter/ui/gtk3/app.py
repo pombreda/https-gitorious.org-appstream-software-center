@@ -65,7 +65,7 @@ from softwarecenter.backend.transactionswatcher import TransactionFinishedResult
 try:
     from aptd_gtk3 import InstallBackendUI
     InstallBackendUI # pyflakes
-except ImportError:
+except:
     from softwarecenter.backend.installbackend import InstallBackendUI
 
 # ui imports
