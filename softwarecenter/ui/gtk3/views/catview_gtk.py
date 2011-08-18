@@ -623,7 +623,7 @@ class SubCategoryViewGtk(CategoriesViewGtk):
             self.appcount.set_alignment(0.5, 0.5)
             self.appcount.set_margin_top(4)
             self.appcount.set_margin_bottom(3)
-            self.vbox.pack_start(self.appcount, False, False, 0)
+            self.vbox.pack_end(self.appcount, False, False, 0)
         self.appcount.set_text(text)
         return
 
