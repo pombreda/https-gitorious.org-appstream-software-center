@@ -145,6 +145,10 @@ class PackagekitInfo(PackageInfo):
     def get_origins(self, pkgname):
         return [FakeOrigin(self.distro.get_distro_channel_name(), self.distro.get_distro_channel_description())]
 
+    def component_available(self, distro_codename, component):
+        # FIXME stub
+        return True
+
     def get_addons(self, pkgname, ignore_installed=True):
         # FIXME implement it
         return ([], [])
