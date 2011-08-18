@@ -119,6 +119,8 @@ class XapianValues:
     SC_DESCRIPTION = 188
     APPNAME_UNTRANSLATED = 189
     ICON_URL = 190
+    LICENSE_KEY = 191
+    LICENSE_KEY_PATH = 192
 
 # fake channels
 PURCHASED_NEEDS_REINSTALL_MAGIC_CHANNEL_NAME = "for-pay-needs-reinstall"

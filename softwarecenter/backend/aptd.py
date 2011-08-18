@@ -443,6 +443,17 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
         flags = policykit1.CHECK_AUTH_ALLOW_USER_INTERACTION
         yield policykit1.check_authorization_by_name(name, action, flags=flags)
 
+    def add_license_key(self, license_key, license_key_path):
+        """ add a license key for a purchase """
+        print "add_license_key", license_key, license_key_path
+        if not os.access(license_key_path, os.W_OK):
+            raise NotImplementedError(
+                "can not write to '%s'" % license_key_path)
+        if not os.path.exists(license_key_path):
+            f = open(license_key_path, "w")
+            f.write(license_key)
+            f.close()
+
     @inline_callbacks
     def add_repo_add_key_and_install_app(self,
                                          deb_line,
