@@ -1,10 +1,16 @@
 software-center (4.1.17) UNRELEASED; urgency=low
 
-  [ Michael Vogt ]
+  [ Matthew McGowan ]
   * lp:~mmcg069/software-center/gtk3fix:
     - description.py, do not connect to the viewport size-allocate signal, 
       i think this should prevent the wierd spazz out when resize evetns 
       occur
+
+  [ Michael Vogt ]
+  * softwarecenter/utils.py:
+    - really remove old gmenusearcher code that uses the static gmenu
+      bindings
+
   [ Kiwinote ]
   * data/ui/gtk3/css/softwarecenter.css:
     - theme GtkViewports not to have a padding or a border - looks quite nice
