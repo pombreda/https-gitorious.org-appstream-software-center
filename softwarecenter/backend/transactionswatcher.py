@@ -121,9 +121,9 @@ def get_transactions_watcher():
     if _tw is None:
         from softwarecenter.enums import USE_PACKAGEKIT_BACKEND
         if not USE_PACKAGEKIT_BACKEND:
-            from aptd import AptdaemonTransactionsWatcher
+            from softwarecenter.backend.installbackend_impl.aptd import AptdaemonTransactionsWatcher
             _tw = AptdaemonTransactionsWatcher()
         else:
-            from softwarecenter.backend.packagekitd import PackagekitTransactionsWatcher
+            from softwarecenter.backend.installbackend_impl.packagekitd import PackagekitTransactionsWatcher
             _tw = PackagekitTransactionsWatcher()        
     return _tw
