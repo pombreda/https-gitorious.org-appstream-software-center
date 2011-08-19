@@ -18,10 +18,16 @@
 
 import apt_pkg
 import dbus
-from gi.repository import GObject
 import logging
 import os
 import re
+import sys
+
+if 'gobject' in sys.modules:
+    import gobject as GObject
+else:
+    from gi.repository import GObject
+
 from softwarecenter.utils import (sources_filename_from_ppa_entry,
                                   release_filename_in_lists_from_deb_line,
                                   obfuscate_private_ppa_details,
