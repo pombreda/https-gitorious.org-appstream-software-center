@@ -18,6 +18,9 @@
 
 import gobject as GObject
 
+import gmenu
+from softwarecenter.ui.gtk.gmenusearch import GMenuSearcher
+
 import atk
 import datetime
 import gettext
@@ -1443,33 +1446,29 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         label = gtk.Label(_("Find it in the menu: "))
         self.installed_where_hbox.pack_start(label, False, False)
         for (i, item) in enumerate(where):
-            if hasattr(item, "get_icon"):
-                iconinfo = self.icons.lookup_by_gicon(item.get_icon(), 18, 0)
-                iconname = iconinfo.get_filename()
-            elif hasattr(item, "get_app_info"):
-                app_info = item.get_app_info()
-                iconinfo = self.icons.lookup_by_gicon(app_info.get_icon(), 18, 0)
-                iconname = iconinfo.get_filename()
-
-            # we get the right name from the lookup we did before
-            if iconname and os.path.exists(iconname):
+            iconname = item.get_icon()
+            # check icontheme first
+            if iconname and self.icons.has_icon(iconname) and i > 0:
+                image = gtk.Image()
+                image.set_from_icon_name(iconname, gtk.ICON_SIZE_SMALL_TOOLBAR)
+                self.installed_where_hbox.pack_start(image, False, False)
+            # then see if its a path to a file on disk
+            elif iconname and os.path.exists(iconname):
                 image = gtk.Image()
                 pb = gtk.gdk.pixbuf_new_from_file_at_size(iconname, 18, 18)
                 if pb:
                     image.set_from_pixbuf(pb)
-                self.installed_where_hbox.pack_start(image, False, False, 0)
+                self.installed_where_hbox.pack_start(image, False, False)
 
             label_name = gtk.Label()
-            if hasattr(item, "get_name"):
+            if item.get_type() == gmenu.TYPE_ENTRY:
+                label_name.set_text(item.get_display_name())
+            else:
                 label_name.set_text(item.get_name())
-            elif hasattr(item, "get_app_info"):
-                app_info = item.get_app_info()
-                label_name.set_text(app_info.get_name())
-
             self.installed_where_hbox.pack_start(label_name, False, False)
             if i+1 < len(where):
                 right_arrow = gtk.Arrow(gtk.ARROW_RIGHT, gtk.SHADOW_NONE)
-                self.installed_where_hbox.pack_start(right_arrow, 
+                self.installed_where_hbox.pack_start(right_arrow,
                                                          False, False)
 
         # create our a11y text
@@ -1485,7 +1484,6 @@ class AppDetailsViewGtk(gtk.Viewport, AppDetailsViewBase):
         # display where-is-it for non-Unity configurations only
         if is_unity_running():
             return
-        from softwarecenter.gmenusearch import GMenuSearcher
         # remove old content
         self.installed_where_hbox.foreach(lambda c: c.destroy())
         self.installed_where_hbox.set_property("can-focus", False)

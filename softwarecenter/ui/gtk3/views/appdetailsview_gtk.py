@@ -60,6 +60,7 @@ from softwarecenter.ui.gtk3.widgets.description import AppDescription
 from softwarecenter.ui.gtk3.widgets.thumbnail import ScreenshotThumbnail
 from softwarecenter.ui.gtk3.widgets.weblivedialog import (
                                     ShowWebLiveServerChooserDialog)
+from softwarecenter.ui.gtk3.gmenusearch import GMenuSearcher
 
 #~ if os.path.exists("./softwarecenter/enums.py"):
     #~ sys.path.insert(0, ".")
@@ -1364,7 +1365,6 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         # display where-is-it for non-Unity configurations only
         if is_unity_running():
             return
-        from softwarecenter.gmenusearch import GMenuSearcher
         # remove old content
         self.installed_where_hbox.foreach(lambda w, d: w.destroy(), None)
         self.installed_where_hbox.set_property("can-focus", False)

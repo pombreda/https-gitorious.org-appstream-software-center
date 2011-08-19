@@ -16,7 +16,6 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from gi.repository import GMenu
 import os
 from softwarecenter.enums import APP_INSTALL_PATH_DELIMITER
 
@@ -28,6 +27,7 @@ class GMenuSearcher(object):
     def _search_gmenu_dir(self, dirlist, needle):
         if not dirlist[-1]:
             return
+        from gi.repository import GMenu
         dir_iter = dirlist[-1].iter()
         current_type = dir_iter.next()
         while current_type is not GMenu.TreeItemType.INVALID:
@@ -56,6 +56,7 @@ class GMenuSearcher(object):
     def get_main_menu_path(self, desktop_file, menu_files_list=None):
         if not desktop_file:
             return None
+        from gi.repository import GMenu
         # use the system ones by default, but allow override for
         # easier testing
         if menu_files_list is None:
@@ -77,7 +78,7 @@ class GMenuSearcher(object):
 # these are the old static bindinds that are no longer required
 # (this is just kept here in case of problems with the dynamic
 #  GIR and the old gtk2 gtk ui)
-class GMenuSearcherOldStaticBindings(object):
+class GMenuSearcherGtk2(object):
 
     def __init__(self):
         self._found = None

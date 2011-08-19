@@ -20,12 +20,23 @@
 import apt_pkg
 apt_pkg.init_config()
 
-import gio
+import sys
+if 'gobject' in sys.modules:
+    have_gi = False
+    import gobject as GObject
+    import gio as Gio
+    GObject #pyflakes
+    Gio #pyflakes
+else:
+    have_gi = True
+    from gi.repository import GObject
+    from gi.repository import Gio
+
+
 import glob
 import gzip
 import os.path
 import logging
-import gobject as GObject
 
 try:
     import cPickle as pickle
@@ -47,8 +58,14 @@ class AptHistory(PackageHistory):
         self.main_context = GObject.main_context_default()
         self.history_file = apt_pkg.config.find_file("Dir::Log::History")
         #Copy monitoring of history file changes from historypane.py
-        self.logfile = gio.File(self.history_file)
-        self.monitor = self.logfile.monitor_file()
+        if have_gi:
+            self.logfile = Gio.File.new_for_path(self.history_file)
+        else:
+            self.logfile = gio.File(self.history_file)
+        if have_gi:
+            self.monitor = self.logfile.monitor_file(0, None)
+        else:
+            self.monitor = self.logfile.monitor_file()
         self.monitor.connect("changed", self._on_apt_history_changed)
         self.update_callback = None
         LOG.debug("init history")

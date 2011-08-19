@@ -10,6 +10,11 @@ software-center (4.1.17) UNRELEASED; urgency=low
   * softwarecenter/utils.py:
     - really remove old gmenusearcher code that uses the static gmenu
       bindings (LP: #828535)
+  * softwarecenter/ui/{gtk,gtk3}/gmenusearch.py:
+    - split gmenusearch into gtk2 (static bindings) and gtk3 (gi bindings)
+    - update usage
+  * softwarecenter/db/history_impl/apthistory.py:
+    - add conditional use of gio.File() vs Gio.File.new_for_path()
 
   [ Kiwinote ]
   * data/ui/gtk3/css/softwarecenter.css:
