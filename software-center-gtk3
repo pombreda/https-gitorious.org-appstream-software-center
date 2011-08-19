@@ -81,6 +81,9 @@ if __name__ == "__main__":
     parser.add_option("--dummy-backend", action="store_true",
                       help="run with a dummy backend, this will not actually install or remove anything and is useful for testing",
                       default=False)
+    parser.add_option("--packagekit-backend", action="store_true",
+                      help="use PackageKit backend (experimental)", 
+                      default=False)
 
     (options, args) = parser.parse_args()
 
@@ -97,6 +100,13 @@ if __name__ == "__main__":
         softwarecenter.log.root.setLevel(level=logging.DEBUG)
     else:
         softwarecenter.log.root.setLevel(level=logging.INFO)
+    
+    # packagekit
+    if options.packagekit_backend:
+        softwarecenter.enums.USE_PACKAGEKIT_BACKEND = True
+        logging.info("Using PackageKit backend")
+    else:
+        softwarecenter.enums.USE_PACKAGEKIT_BACKEND = False
 
     # dummy backend
     if options.dummy_backend:

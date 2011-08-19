@@ -202,5 +202,9 @@ USER_AGENT="Software Center/%s (N;) %s/%s (%s)" % (VERSION,
                                                    DISTRO, 
                                                    RELEASE,
                                                    CODENAME)
-                                                   
 
+# global backend switch
+USE_PACKAGEKIT_BACKEND = False
+
+# history switch (useful on non apt based distros)
+USE_APT_HISTORY = True

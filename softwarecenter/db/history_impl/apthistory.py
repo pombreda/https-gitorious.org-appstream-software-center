@@ -46,7 +46,6 @@ try:
 except ImportError:
     import pickle
 
-
 LOG = logging.getLogger(__name__)
 
 from softwarecenter.paths import SOFTWARE_CENTER_CACHE_DIR
