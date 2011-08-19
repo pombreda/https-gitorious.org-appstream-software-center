@@ -155,6 +155,14 @@ class ViewManager(object):
                 if widget == pane: break
     
             self.set_active_view(view_id)
+
+        if (not pane.searchentry or
+            ((hasattr(pane, 'Pages') and
+             hasattr(pane.Pages, 'DETAILS') and
+             page == pane.Pages.DETAILS))):
+            self.search_entry.hide()
+        else:
+            self.search_entry.show()
         return
 
     def nav_back(self):

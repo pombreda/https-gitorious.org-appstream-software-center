@@ -40,21 +40,21 @@ EXHIBIT_HTML = """
 .banner_text {
 font-size:1.7em;
 color:white;
-background:yellow;
+background: #dd4814;
 padding: 0.2em;
 text-shadow:0em 0em 0.075em black;
 position:absolute;
 top:30;
-left:20;
+left:100;
 }
 .banner_subtext {
 font-size:1.2em;
-color:white;
+color:black;
 padding: 1em;
-text-shadow:0em 0em 0.075em black;
+text-shadow:0em 0em 0.075em white;
 position:absolute;
 top:90;
-left:30;
+left:130;
 }
 </style>
 </head><body>
@@ -233,7 +233,7 @@ class ExhibitBanner(Gtk.EventBox):
 
     DROPSHADOW_HEIGHT = 11
     MAX_HEIGHT = 200 # pixels
-    TIMEOUT_SECONDS = 15
+    TIMEOUT_SECONDS = 300
 
     def __init__(self):
         Gtk.EventBox.__init__(self)
@@ -297,11 +297,17 @@ class ExhibitBanner(Gtk.EventBox):
         self.connect("leave-notify-event", self.on_leave_notify)
         self.connect("button-release-event", self.on_button_release)
 
-    def on_enter_notify(self, *args):
-        if not self.exhibits[self.cursor].package_names:
-            return
+    def _init_mouse_pointer(self):
         window = self.get_window()
-        window.set_cursor(_HAND)
+        if not window:
+            return
+        if not self.exhibits[self.cursor].package_names:
+            window.set_cursor(None)
+        else:
+            window.set_cursor(_HAND)
+
+    def on_enter_notify(self, *args):
+        self._init_mouse_pointer()
         return
 
     def on_leave_notify(self, *args):
@@ -332,11 +338,12 @@ class ExhibitBanner(Gtk.EventBox):
         return
 
     def _render_exhibit_at_cursor(self):
+        # init the mouse pointer
+        self._init_mouse_pointer()
         # check the cursor is within range
         n_exhibits = len(self.exhibits)
         cursor = self.cursor
         if n_exhibits == 0 or (cursor < 0 and cursor >= n_exhibits):
-            
             return
         # copy old image for the fade
         if self.image:

@@ -76,6 +76,11 @@ class TestPkgInfoAptCache(unittest.TestCase):
 
 class TestPkgInfoPackagekit(TestPkgInfoAptCache):
     klass = PackagekitInfo
+	
+    def test_addons(self):
+        pass
+    def test_section(self):
+        pass
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
