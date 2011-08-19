@@ -17,8 +17,6 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 
-from gi.repository import GObject
-
 import apt_pkg
 apt_pkg.init_config()
 
@@ -27,6 +25,7 @@ import glob
 import gzip
 import os.path
 import logging
+import gobject as GObject
 
 try:
     import cPickle as pickle

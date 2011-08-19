@@ -122,7 +122,7 @@ class PackageStatusBar(StatusBar):
     def __init__(self, view):
         StatusBar.__init__(self, view)
         self.installed_icon  = Gtk.Image.new_from_icon_name(
-            Icons.INSTALLED_OVERLAY, Icons.APP_ICON_SIZE)
+            Icons.INSTALLED_OVERLAY, Gtk.IconSize.DIALOG)
         self.label = Gtk.Label()
         self.button = Gtk.Button()
         self.progress = Gtk.ProgressBar()
@@ -970,7 +970,7 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         vb.pack_start(body_hb, False, False, 0)
 
         # append the description widget, hold the formatted long description
-        self.desc = AppDescription(viewport=self)
+        self.desc = AppDescription()
         self.desc.description.set_property("can-focus", True)
         self.desc.description.a11y = self.desc.description.get_accessible()
         body_hb.pack_start(self.desc, True, True, 0)

@@ -18,9 +18,14 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import os
-from gi.repository import GObject
 import logging
 import xapian
+import sys
+
+if 'gobject' in sys.modules:
+    import gobject as GObject
+else:
+    from gi.repository import GObject
 
 from aptsources.sourceslist import SourceEntry, SourcesList
 

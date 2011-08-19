@@ -132,6 +132,7 @@ class FeaturedTile(TileButton):
             self.category = Gtk.Label.new('<span font_desc="Italic %i">%s</span>' % (em(0.45), category))
             self.category.set_use_markup(True)
             self.category.set_alignment(0.0, 0.0)
+            self.category.set_ellipsize(Pango.EllipsizeMode.END)
             self.content_right.pack_start(self.category, False, False, 4)
 
         if review_stats is not None:
@@ -218,7 +219,7 @@ class ChannelSelector(Gtk.Button):
 
         self.section_button = section_button
         self.popup = None
-        self.connect("button-release-event", self.on_button_release)
+        self.connect("button-press-event", self.on_button_press)
         return
 
     def do_draw(self, cr):
@@ -234,7 +235,7 @@ class ChannelSelector(Gtk.Button):
         for child in self: self.propagate_draw(child, cr)
         return
 
-    def on_button_release(self, button, event):
+    def on_button_press(self, button, event):
         if self.popup is None:
             self.build_channel_selector()
         self.show_channel_sel_popup(self, event)

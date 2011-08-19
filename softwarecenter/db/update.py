@@ -18,7 +18,6 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import base64
-from gi.repository import GObject
 import logging
 import os
 import json
@@ -26,6 +25,12 @@ import string
 import shutil
 import time
 import xapian
+import sys
+
+if 'gobject' in sys.modules:
+    import gobject as GObject
+else:
+    from gi.repository import GObject
 
 # py3 compat
 try:
