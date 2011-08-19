@@ -17,6 +17,8 @@ software-center (4.1.17) UNRELEASED; urgency=low
     - add conditional use of gio.File() vs Gio.File.new_for_path()
   * softwarecenter/utils.py, softwarecenter/backend/reviews.py:
     - fixes in subtle API changes for Gio vs gio
+  * softwarecenter/ui/gtk3/widgets/description.py:
+    - prepare for upcomming Gdk pygi changes in 2.90.x
 
   [ Kiwinote ]
   * data/ui/gtk3/css/softwarecenter.css:

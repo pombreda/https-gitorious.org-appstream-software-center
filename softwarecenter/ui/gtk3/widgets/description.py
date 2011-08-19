@@ -445,13 +445,20 @@ class TextBlock(Gtk.EventBox):
     def _on_style_updated(self, widget):
         #style = self.get_style()
     
+        # small helper to be consitent with the ever changing pygi API
+        def color_parse(s):
+            l = Gdk.color_parse(s)
+            if type(l) is tuple:
+                return l[1]
+            return l
+
         if self.has_focus():
-            tmp, self._bg = Gdk.color_parse('red')
-            tmp, self._fg = Gdk.color_parse('#000')
+            self._bg = color_parse('red')
+            self._fg = color_parse('#000')
         else:
             #~ _, self._bg = Gdk.color_parse('#E5E3E1')
-            tmp, self._bg = Gdk.color_parse('red')
-            tmp, self._fg = Gdk.color_parse('#000')
+            self._bg = color_parse('red')
+            self._fg = color_parse('#000')
         return
 
 #    def _on_drag_begin(self, widgets, context, event_helper):
