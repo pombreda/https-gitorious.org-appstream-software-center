@@ -11,13 +11,10 @@ from softwarecenter.db.pkginfo import get_pkg_info
 from softwarecenter.db.database import StoreDatabase
 from softwarecenter.db.application import Application
 
-import gmenu
-
 class TestWhereIsit(unittest.TestCase):
     """ tests the "where is it in the menu" code """
 
     def setUp(self):
-        datadir = "../data"
         cache = get_pkg_info()
         cache.open()
         xapian_base_path = XAPIAN_BASE_PATH
