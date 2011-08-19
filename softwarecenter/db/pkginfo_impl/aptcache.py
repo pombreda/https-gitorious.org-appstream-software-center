@@ -143,7 +143,7 @@ class AptCache(PackageInfo):
         # use the lowlevel cache here, twice as fast
         lowlevel_cache = self._cache._cache
         return (pkgname in lowlevel_cache and
-                lowlevel_cache[pkgname].current_ver)
+                lowlevel_cache[pkgname].current_ver is not None)
     def is_available(self, pkgname):
         return (pkgname in self._cache and
                 self._cache[pkgname].candidate)

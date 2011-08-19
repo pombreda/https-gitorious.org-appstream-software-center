@@ -7,6 +7,8 @@ software-center (4.1.18) UNRELEASED; urgency=low
     - pygi compat fix, Gtk.CheckMenuItem() != Gtk.CheckMenuItem.new()
   * lp:~mvo/software-center/license-key-infrastructure:
     - allow adding license keys during a purchase
+  * utils/submit_review_gtk3.py:
+    - gtk3 fixes
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 19 Aug 2011 14:52:03 +0200
 
