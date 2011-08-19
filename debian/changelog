@@ -1,4 +1,4 @@
-software-center (4.1.17) UNRELEASED; urgency=low
+software-center (4.1.17) oneiric; urgency=low
 
   [ Matthew McGowan ]
   * lp:~mmcg069/software-center/gtk3fix:
@@ -46,7 +46,7 @@ software-center (4.1.17) UNRELEASED; urgency=low
   * Fix some more places which need to conditionally import gobject or
     GObject. (LP: #829186)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 19 Aug 2011 09:38:46 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 19 Aug 2011 11:59:02 +0200
 
 software-center (4.1.16) oneiric; urgency=low
 
