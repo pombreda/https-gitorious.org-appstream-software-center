@@ -19,6 +19,7 @@
 
 import cairo
 import copy
+import gettext
 from gi.repository import Gtk
 from gi.repository import GObject
 import logging
@@ -28,7 +29,6 @@ import xapian
 from gettext import gettext as _
 
 import softwarecenter.paths
-from appview import AppViewFilter
 from softwarecenter.enums import (NonAppVisibility,
                                   SortMethods,
                                   TOP_RATED_CAROUSEL_LIMIT)
@@ -42,12 +42,14 @@ from softwarecenter.ui.gtk3.widgets.buttons import (LabelTile,
                                                     CategoryTile,
                                                     FeaturedTile)
 from softwarecenter.ui.gtk3.em import StockEms
+from softwarecenter.db.appfilter import AppFilter
 from softwarecenter.db.enquire import AppEnquire
 from softwarecenter.db.categories import (Category,
                                           CategoriesParser,
                                           get_category_by_name,
                                           categories_sorted_by_name)
 from softwarecenter.db.utils import get_query_for_pkgnames
+from softwarecenter.distro import get_distro
 from softwarecenter.backend.scagent import SoftwareCenterAgent
 
 LOG_ALLOCATION = logging.getLogger("softwarecenter.ui.gtk.allocation")
@@ -162,21 +164,21 @@ class CategoriesViewGtk(Gtk.Viewport, CategoriesParser):
 
     def on_app_clicked(self, btn, app):
         """emit the category-selected signal when a category was clicked"""
-        def idle_emit():
+        def timeout_emit():
             self.emit("application-selected", app)
             self.emit("application-activated", app)
             return False
 
-        GObject.timeout_add(50, idle_emit)
+        GObject.timeout_add(50, timeout_emit)
         return
 
     def on_category_clicked(self, btn, cat):
         """emit the category-selected signal when a category was clicked"""
-        def idle_emit():
+        def timeout_emit():
             self.emit("category-selected", cat)
             return False
 
-        GObject.timeout_add(50, idle_emit)
+        GObject.timeout_add(50, timeout_emit)
         return
 
     def build(self, desktopdir):
@@ -203,6 +205,7 @@ class LobbyViewGtk(CategoriesViewGtk):
         self.featured_carousel = None
         self.whatsnew_carousel = None
         self.departments = None
+        self.appcount = None
 
         # this means that the departments don't jump down once the cache loads
         # it doesn't look odd if the recommends are never loaded
@@ -232,6 +235,8 @@ class LobbyViewGtk(CategoriesViewGtk):
         self._append_featured()
         #~ self._append_recommendations()
         self._append_top_rated()
+
+        self._append_appcount()
 
         #self._append_video_clips()
         #self._append_top_of_the_pops
@@ -338,9 +343,9 @@ class LobbyViewGtk(CategoriesViewGtk):
         if toprated_cat is None:
             return
         enq = AppEnquire(self.cache, self.db)
-        app_filter = AppViewFilter(self.db, self.cache)
+        app_filter = AppFilter(self.db, self.cache)
         enq.set_query(toprated_cat.query,
-                      limit=toprated_cat.item_limit,
+                      limit=8,
                       sortmode=toprated_cat.sortmode,
                       filter=app_filter,
                       nonapps_visible=NonAppVisibility.ALWAYS_VISIBLE,
@@ -356,11 +361,12 @@ class LobbyViewGtk(CategoriesViewGtk):
         self.right_column.pack_start(frame, True, True, 0)
 
         helper = AppPropertiesHelper(self.db, self.cache, self.icons)
-        for doc in enq.get_documents()[0:8]:
+        for doc in enq.get_documents():
             name = helper.get_appname(doc)
             icon_pb = helper.get_icon_at_size(doc, 48, 48)
             stats = helper.get_review_stats(doc)
-            tile = FeaturedTile(name, icon_pb, stats)
+            categories = helper.get_categories(doc)
+            tile = FeaturedTile(name, icon_pb, stats, categories)
             tile.connect('clicked', self.on_app_clicked,
                          helper.get_application(doc))
             self.toprated.add_child(tile)
@@ -373,9 +379,9 @@ class LobbyViewGtk(CategoriesViewGtk):
                                             u"Featured")  # unstranslated name
 
         enq = AppEnquire(self.cache, self.db)
-        app_filter = AppViewFilter(self.db, self.cache)
+        app_filter = AppFilter(self.db, self.cache)
         enq.set_query(featured_cat.query,
-                      limit=24,
+                      limit=8,
                       filter=app_filter,
                       nonapps_visible=NonAppVisibility.ALWAYS_VISIBLE,
                       nonblocking_load=False)
@@ -390,11 +396,12 @@ class LobbyViewGtk(CategoriesViewGtk):
         self.right_column.pack_start(frame, True, True, 0)
 
         helper = AppPropertiesHelper(self.db, self.cache, self.icons)
-        for doc in enq.get_documents()[15:21]:
+        for doc in enq.get_documents():
             name = helper.get_appname(doc)
             icon_pb = helper.get_icon_at_size(doc, 48, 48)
             stats = helper.get_review_stats(doc)
-            tile = FeaturedTile(name, icon_pb, stats)
+            categories = helper.get_categories(doc)
+            tile = FeaturedTile(name, icon_pb, stats, categories)
             tile.connect('clicked', self.on_app_clicked,
                          helper.get_application(doc))
             self.featured.add_child(tile)
@@ -405,9 +412,9 @@ class LobbyViewGtk(CategoriesViewGtk):
                                             u"Featured")  # unstranslated name
 
         enq = AppEnquire(self.cache, self.db)
-        app_filter = AppViewFilter(self.db, self.cache)
+        app_filter = AppFilter(self.db, self.cache)
         enq.set_query(featured_cat.query,
-                      limit=6,
+                      limit=12,
                       filter=app_filter,
                       nonapps_visible=NonAppVisibility.ALWAYS_VISIBLE,
                       nonblocking_load=False)
@@ -424,10 +431,39 @@ class LobbyViewGtk(CategoriesViewGtk):
             name = helper.get_appname(doc)
             icon_pb = helper.get_icon_at_size(doc, 48, 48)
             stats = helper.get_review_stats(doc)
-            tile = FeaturedTile(name, icon_pb, stats)
+            categories = helper.get_categories(doc)
+            tile = FeaturedTile(name, icon_pb, stats, categories)
             tile.connect('clicked', self.on_app_clicked,
                          helper.get_application(doc))
             self.featured.add_child(tile)
+        return
+
+    def _append_appcount(self, supported_only=False):
+        enq = AppEnquire(self.cache, self.db)
+
+        distro = get_distro()
+        if supported_only:
+            query = distro.get_supported_query()
+        else:
+            query = xapian.Query('')
+
+        enq.set_query(query,
+                      limit=0,
+                      nonapps_visible=NonAppVisibility.ALWAYS_VISIBLE,
+                      nonblocking_load=True)
+
+        length = len(enq.matches)
+        text = gettext.ngettext("%(amount)s item", "%(amount)s items", length
+                                ) % { 'amount' : length, }
+
+        if not self.appcount:
+            self.appcount = Gtk.Label()
+            self.appcount.set_text(text)
+            self.appcount.set_alignment(0.5, 0.5)
+            self.appcount.set_margin_top(4)
+            self.appcount.set_margin_bottom(3)
+            self.vbox.pack_start(self.appcount, False, True, 0)
+        self.appcount.set_text(text)
         return
 
     def build(self, desktopdir):
@@ -463,6 +499,7 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         self.current_category = None
         self.departments = None
         self.toprated = None
+        self.appcount = None
 
         # widgetry
         self.vbox.set_border_width(StockEms.SMALL)
@@ -481,7 +518,7 @@ class SubCategoryViewGtk(CategoriesViewGtk):
             frame.header_implements_more_button()
             frame.pack_start(self.toprated, True, True, 0)
             # append the departments section to the page
-            self.vbox.pack_start(frame, True, True, 0)
+            self.vbox.pack_start(frame, False, True, 0)
             self.toprated_frame = frame
         else:
             self.toprated.remove_all()
@@ -511,7 +548,8 @@ class SubCategoryViewGtk(CategoriesViewGtk):
             name = self.helper.get_appname(doc)
             icon_pb = self.helper.get_icon_at_size(doc, 48, 48)
             stats = self.helper.get_review_stats(doc)
-            tile = FeaturedTile(name, icon_pb, stats)
+            categories = self.helper.get_categories(doc)
+            tile = FeaturedTile(name, icon_pb, stats, categories)
             tile.connect('clicked', self.on_app_clicked,
                          self.helper.get_application(doc))
             self.toprated.add_child(tile)
@@ -536,7 +574,7 @@ class SubCategoryViewGtk(CategoriesViewGtk):
             frame.pack_start(self.departments, True, True, 0)
 
             # append the departments section to the page
-            self.vbox.pack_start(frame, True, True, 0)
+            self.vbox.pack_start(frame, False, True, 0)
         else:
             self.departments.remove_all()
 
@@ -571,6 +609,22 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         tile = CategoryTile(name, "category-show-all")
         tile.connect('clicked', self.on_category_clicked, all_cat)
         self.departments.add_child(tile)
+        self.departments.queue_draw()
+        return
+
+    def _append_appcount(self, appcount):
+        text = gettext.ngettext("%(amount)s item available",
+                                "%(amount)s items available",
+                                appcount) % { 'amount' : appcount, }
+
+        if not self.appcount:
+            self.appcount = Gtk.Label()
+            self.appcount.set_text(text)
+            self.appcount.set_alignment(0.5, 0.5)
+            self.appcount.set_margin_top(4)
+            self.appcount.set_margin_bottom(3)
+            self.vbox.pack_end(self.appcount, False, False, 0)
+        self.appcount.set_text(text)
         return
 
     def _build_subcat_view(self, category, num_items):
@@ -578,6 +632,7 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         # changing order of methods changes order that they appear in the page
         self._append_subcat_departments(category, num_items)
         self._append_sub_toprated(category)
+        self._append_appcount(num_items)
         self.show_all()
         return
 
@@ -592,6 +647,8 @@ class SubCategoryViewGtk(CategoriesViewGtk):
 
         self.categories = root_category.subcategories
         self._build_subcat_view(root_category, num_items)
+
+        GObject.idle_add(self.queue_draw)
         return
 
     #def build(self, desktopdir):
@@ -623,7 +680,7 @@ def get_test_window_catview():
     import softwarecenter.distro
     distro = softwarecenter.distro.get_distro()
 
-    apps_filter = AppViewFilter(db, cache)
+    apps_filter = AppFilter(db, cache)
 
     # gui
     win = Gtk.Window()

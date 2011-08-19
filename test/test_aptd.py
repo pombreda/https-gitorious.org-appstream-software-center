@@ -5,7 +5,7 @@ sys.path.insert(0,"../")
 
 import unittest
 
-from softwarecenter.backend.aptd import AptdaemonBackend
+from softwarecenter.backend.installbackend_impl.aptd import AptdaemonBackend
 
 class TestAptdaemon(unittest.TestCase):
     """ tests the AptdaemonBackend """

@@ -26,11 +26,16 @@ try:
 except ImportError:
     import pickle
 
-from gi.repository import GObject
 import logging
 import os
+import sys
 import json
 
+if 'gobject' in sys.modules:
+    import gobject as GObject
+    GObject #pyflakes
+else:
+    from gi.repository import GObject
 
 LOG = logging.getLogger(__name__)
 
@@ -58,17 +63,21 @@ class SpawnHelper(GObject.GObject):
         self._stderr = None
         self._io_watch = None
         self._child_watch = None
+        self._cmd = None
 
     def run(self, cmd):
+        self._cmd = cmd
         (pid, stdin, stdout, stderr) = GObject.spawn_async(
             cmd, flags = GObject.SPAWN_DO_NOT_REAP_CHILD, 
             standard_output=True, standard_error=True)
+        LOG.debug("running: '%s' as pid: '%s'" % (cmd, pid))
         self._child_watch = GObject.child_watch_add(
             pid, self._helper_finished, data=(stdout, stderr))
         self._io_watch = GObject.io_add_watch(
             stdout, GObject.IO_IN, self._helper_io_ready, (stdout, ))
 
     def _helper_finished(self, pid, status, (stdout, stderr)):
+        LOG.debug("helper_finished: '%s' '%s'" % (pid, status))
         # get status code
         res = os.WEXITSTATUS(status)
         if res == 0:
@@ -83,7 +92,9 @@ class SpawnHelper(GObject.GObject):
             self.emit("error", err)
             os.close(stderr)
         if self._io_watch:
-            GObject.source_remove(self._io_watch)
+            # remove with a delay timeout delay to ensure that any
+            # pending data is still flused
+            GObject.timeout_add(100, GObject.source_remove, self._io_watch)
         if self._child_watch:
             GObject.source_remove(self._child_watch)
 
@@ -112,5 +123,6 @@ class SpawnHelper(GObject.GObject):
             pass
         else:
             LOG.error("unknown format: '%s'", self._expect_format)
+        LOG.debug("got data for cmd: '%s'='%s'" % (self._cmd, data))
         self.emit("data-available", data)
         return False

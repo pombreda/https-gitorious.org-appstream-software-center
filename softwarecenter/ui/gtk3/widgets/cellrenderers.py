@@ -171,7 +171,6 @@ class CellRendererAppView(Gtk.CellRendererText):
             x = cell_area.x+2*xpad+self.pixbuf_width
         else:
             x = cell_area.x+cell_area.width-lw-self.pixbuf_width-2*xpad
-            layout.set_alignment(Pango.Alignment.RIGHT)
 
         y = cell_area.y+ypad
 
@@ -522,6 +521,9 @@ class CellButtonRenderer:
     def set_variant(self, current_var):
         self.current_variant = current_var
         return
+
+    def is_sensitive(self):
+        return self.state == Gtk.StateFlags.INSENSITIVE
 
     def render(self, context, cr, layout):
         x, y, width, height = self.allocation

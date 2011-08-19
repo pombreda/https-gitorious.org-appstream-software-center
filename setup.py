@@ -42,13 +42,14 @@ class PocketLint(distutils.cmd.Command):
 
 
 def merge_authors_into_about_dialog():
-    fname = "./data/ui/gtk/SoftwareCenter.ui"
-    authors = open("AUTHORS").read()
-    gtkbuilder = open(fname).read()
-    gtkbuilder = re.sub(r'<property name="authors">.*</property>',
-                        r'<property name="authors">%s</property>' % authors,
-                        gtkbuilder)
-    open(fname, "w").write(gtkbuilder)
+    for fname in ["./data/ui/gtk/SoftwareCenter.ui", 
+                  "./data/ui/gtk3/SoftwareCenter.ui"]:
+        authors = open("AUTHORS").read()
+        gtkbuilder = open(fname).read()
+        gtkbuilder = re.sub(r'<property name="authors">.*?</property>',
+                            r'<property name="authors">%s</property>' % authors,
+                            gtkbuilder, flags=re.DOTALL)
+        open(fname, "w").write(gtkbuilder)
 
 
 # update version.py

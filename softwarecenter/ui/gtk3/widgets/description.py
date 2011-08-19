@@ -349,7 +349,7 @@ class TextBlock(Gtk.EventBox):
     INFOCUS_SEL  = 1
     OUTFOCUS_SEL = 2
 
-    def __init__(self, viewport=None):
+    def __init__(self):
         Gtk.EventBox.__init__(self)
         self.set_visible_window(False)
         self.set_size_request(200, -1)
@@ -361,8 +361,6 @@ class TextBlock(Gtk.EventBox):
                         Gdk.EventMask.LEAVE_NOTIFY_MASK|
                         Gdk.EventMask.BUTTON_RELEASE_MASK|
                         Gdk.EventMask.POINTER_MOTION_MASK)
-
-        self.viewport = viewport
 
         self._bullet = self._new_layout()
         self._bullet.set_markup(self.BULLET_POINT)
@@ -382,11 +380,7 @@ class TextBlock(Gtk.EventBox):
         self.clipboard = None
 
         #self._xterm = Gdk.Cursor.new(Gdk.XTERM)
-
-        if viewport:
-            viewport.connect('size-allocate', self._on_size_allocate)
-        else:
-            self.connect('size-allocate', self._on_size_allocate)
+        self.connect('size-allocate', self._on_size_allocate)
 
         self.connect('button-press-event', self._on_press, event_helper, cur, sel)
         self.connect('button-release-event', self._on_release, event_helper, cur, sel)
@@ -451,13 +445,20 @@ class TextBlock(Gtk.EventBox):
     def _on_style_updated(self, widget):
         #style = self.get_style()
     
+        # small helper to be consitent with the ever changing pygi API
+        def color_parse(s):
+            l = Gdk.color_parse(s)
+            if type(l) is tuple:
+                return l[1]
+            return l
+
         if self.has_focus():
-            tmp, self._bg = Gdk.color_parse('red')
-            tmp, self._fg = Gdk.color_parse('#000')
+            self._bg = color_parse('red')
+            self._fg = color_parse('#000')
         else:
             #~ _, self._bg = Gdk.color_parse('#E5E3E1')
-            tmp, self._bg = Gdk.color_parse('red')
-            tmp, self._fg = Gdk.color_parse('#000')
+            self._bg = color_parse('red')
+            self._fg = color_parse('#000')
         return
 
 #    def _on_drag_begin(self, widgets, context, event_helper):
@@ -1071,12 +1072,10 @@ class AppDescription(Gtk.VBox):
     TYPE_PARAGRAPH = 0
     TYPE_BULLET    = 1
 
-    def __init__(self, viewport=None):
+    def __init__(self):
         Gtk.VBox.__init__(self)
-
-        self.description = TextBlock(viewport)
+        self.description = TextBlock()
         self.pack_start(self.description, False, False, 0)
-
         self._prev_type = None
         return
 
@@ -1116,9 +1115,10 @@ class AppDescription(Gtk.VBox):
         self._prev_type = self.TYPE_BULLET
         return
 
-    def set_description(self, desc, pkgname):
+    def set_description(self, raw_desc, pkgname):
         self.clear()
-        desc = GObject.markup_escape_text(desc)
+        encoded_desc = unicode(raw_desc).encode('utf-8')
+        desc = GObject.markup_escape_text(encoded_desc)
         self._parse_desc(desc, pkgname)
         self.show_all()
         return

@@ -16,12 +16,18 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from gi.repository import GObject
-
-# FIXME: use gmenu GIR instead
-import gmenu
 import gettext
-import gio
+import sys
+if 'gobject' in sys.modules:
+    have_gi = False
+    import gobject as GObject
+    import gio as Gio
+    Gio # pyflakes
+    GObject # pyflakes
+else:
+    have_gi = True
+    from gi.repository import GObject
+    from gi.repository import Gio
 import logging
 import math
 import os
@@ -526,19 +532,29 @@ class SimpleFileDownloader(GObject.GObject):
             self.emit("file-download-complete", self.dest_file_path)
             return
         
-        f = gio.File(url)
-        # first check if the url is reachable
-        f.query_info_async(gio.FILE_ATTRIBUTE_STANDARD_SIZE,
-                           self._check_url_reachable_and_then_download_cb)
+        if have_gi:
+            f = Gio.File.new_for_uri(url)
+            # first check if the url is reachable
+            f.query_info_async(Gio.FILE_ATTRIBUTE_STANDARD_SIZE, 0, 0, None,
+                               self._check_url_reachable_and_then_download_cb,
+                               None)
+        else:
+            f = Gio.File(url)
+            # first check if the url is reachable
+            f.query_info_async(Gio.FILE_ATTRIBUTE_STANDARD_SIZE,
+                               self._check_url_reachable_and_then_download_cb)
                            
-    def _check_url_reachable_and_then_download_cb(self, f, result):
+    def _check_url_reachable_and_then_download_cb(self, f, result, user_data=None):
         self.LOG.debug("_check_url_reachable_and_then_download_cb: %s" % f)
         try:
             result = f.query_info_finish(result)
             self.emit('file-url-reachable', True)
             self.LOG.debug("file reachable %s" % self.url)
             # url is reachable, now download the file
-            f.load_contents_async(self._file_download_complete_cb)
+            if have_gi:
+                f.load_contents_async(None, self._file_download_complete_cb, None)
+            else:
+                f.load_contents_async(self._file_download_complete_cb)
         except GObject.GError as e:
             self.LOG.debug("file *not* reachable %s" % self.url)
             self.emit('file-url-reachable', False)
@@ -551,14 +567,17 @@ class SimpleFileDownloader(GObject.GObject):
         # elements (content, size, etag?)
         # The first element is the actual content so let's grab that
         try:
-            content = f.load_contents_finish(result)[0]
-        except gio.Error as e:
+            if have_gi:
+                content = f.load_contents_finish(result)[1]
+            else:
+                content = f.load_contents_finish(result)[0]
+        except Exception as e:
             # i witnissed a strange error[1], so make the loader robust in this
             # situation
             # 1. content = f.load_contents_finish(result)[0]
-            #    gio.Error: DBus error org.freedesktop.DBus.Error.NoReply
+            #    Gio.Error: DBus error org.freedesktop.DBus.Error.NoReply
             self.LOG.debug(e)
-            self.emit('error', gio.Error, e)
+            self.emit('error', Exception, e)
             return
 
         outputfile = open(self.dest_file_path, "w")
@@ -567,49 +586,6 @@ class SimpleFileDownloader(GObject.GObject):
         self.emit('file-download-complete', self.dest_file_path)
 
 
-class GMenuSearcher(object):
-
-    def __init__(self):
-        self._found = None
-    def _search_gmenu_dir(self, dirlist, needle):
-        if not dirlist[-1]:
-            return
-        for item in dirlist[-1].get_contents():
-            mtype = item.get_type()
-            if mtype == gmenu.TYPE_DIRECTORY:
-                self._search_gmenu_dir(dirlist+[item], needle)
-            elif item.get_type() == gmenu.TYPE_ENTRY:
-                desktop_file_path = item.get_desktop_file_path()
-                # direct match of the desktop file name and the installed
-                # desktop file name
-                if os.path.basename(desktop_file_path) == needle:
-                    self._found = dirlist+[item]
-                    return
-                # if there is no direct match, take the part of the path after 
-                # "applications" (e.g. kde4/amarok.desktop) and
-                # change "/" to "__" and do the match again - this is what
-                # the data extractor is doing
-                if "applications/" in desktop_file_path:
-                    path_after_applications = desktop_file_path.split("applications/")[1]
-                    if needle == path_after_applications.replace("/", APP_INSTALL_PATH_DELIMITER):
-                        self._found = dirlist+[item]
-                        return
-
-                
-    def get_main_menu_path(self, desktop_file, menu_files_list=None):
-        if not desktop_file:
-            return None
-        # use the system ones by default, but allow override for
-        # easier testing
-        if menu_files_list is None:
-            menu_files_list = ["applications.menu", "settings.menu"]
-        for n in menu_files_list:
-            tree = gmenu.lookup_tree(n)
-            self._search_gmenu_dir([tree.get_root_directory()], 
-                                   os.path.basename(desktop_file))
-            if self._found:
-                return self._found
-        return None
 
 
 

@@ -27,8 +27,7 @@ class FlowableGrid(Gtk.Fixed):
         return
 
     # private
-    def _get_n_columns_for_width(self, width, col_spacing):
-        cell_w, cell_h = self.get_cell_size()
+    def _get_n_columns_for_width(self, width, cell_w, col_spacing):
         n_cols = width / (cell_w + col_spacing)
         return n_cols
 
@@ -39,22 +38,21 @@ class FlowableGrid(Gtk.Fixed):
         width = a.width
         #height = a.height
 
-        col_spacing = self.column_spacing
-        row_spacing = self.row_spacing
+        col_spacing = 0
+        row_spacing = 0
 
-        n_cols = self._get_n_columns_for_width(width, col_spacing)
-        tmp, cell_h = self.get_cell_size()
-        cell_w = width/n_cols
+        cell_w, cell_h = self.get_cell_size()
+        n_cols = self._get_n_columns_for_width(width, cell_w, col_spacing)
 
         if n_cols == 0: return
+        cell_w = width / n_cols
+        self.n_columns = n_cols
 
         #~ h_overhang = width - n_cols*cell_w - (n_cols-1)*col_spacing
         #~ if n_cols > 1:
             #~ xo = h_overhang / (n_cols-1)
         #~ else:
             #~ xo = h_overhang
-
-        self.n_columns = n_cols
         
         if len(children) % n_cols:
             self.n_rows = len(children)/n_cols + 1
@@ -87,8 +85,9 @@ class FlowableGrid(Gtk.Fixed):
         old = self.get_allocation()
         if width == old.width: old.height, old.height
 
+        cell_w, cell_h = self.get_cell_size()
         n_cols = self._get_n_columns_for_width(
-                        width, self.column_spacing)
+                        width, cell_w, self.column_spacing)
 
         if not n_cols: return self.MIN_HEIGHT, self.MIN_HEIGHT
 
@@ -99,22 +98,12 @@ class FlowableGrid(Gtk.Fixed):
         if len(children) % n_cols:
             n_rows += 1
 
-        tmp, cell_h = self.get_cell_size()
         pref_h = n_rows*cell_h + (n_rows-1)*self.row_spacing + 1
         pref_h = max(self.MIN_HEIGHT, pref_h)
         return pref_h, pref_h
 
     # signal handlers
     def do_size_allocate(self, allocation):
-        old = self.get_allocation()
-        if (allocation.x == old.x and
-            allocation.y == old.y and
-            allocation.width == old.width and
-            allocation.height == old.height):
-            #~ for child in self:
-                #~ child.size_allocate(child.get_allocation())
-            return
-
         self.set_allocation(allocation)
         self._layout_children(allocation)
         return
@@ -138,7 +127,7 @@ class FlowableGrid(Gtk.Fixed):
         cr.set_line_width(1)
 
         cell_w = a.width / self.n_columns
-        cell_h = a.height / self.n_rows
+        cell_h = self.get_cell_size()[1]
 
         for i in range(self.n_columns):
             for j in range(self.n_rows):
@@ -186,7 +175,6 @@ class FlowableGrid(Gtk.Fixed):
 
     def set_row_spacing(self, value):
         self.row_spacing = value
-        self._layout_children(self.get_allocation())
         return
 
     def set_column_spacing(self, value):
@@ -196,7 +184,7 @@ class FlowableGrid(Gtk.Fixed):
 
     def remove_all(self):
         self._cell_size = None
-        for child in self.get_children():
+        for child in self:
             self.remove(child)
         return
 
@@ -206,6 +194,7 @@ _frame_asset_cache = {}
 class Frame(Gtk.Alignment):
 
     BORDER_RADIUS = 8
+    ASSET_TAG = "default"
     BORDER_IMAGE = os.path.join(
         softwarecenter.paths.datadir, "ui/gtk3/art/frame-border-image.png")
     CORNER_LABEL = os.path.join(
@@ -242,8 +231,9 @@ class Frame(Gtk.Alignment):
 
     def _cache_art_assets(self):
         global _frame_asset_cache
+        at = self.ASSET_TAG
         assets = _frame_asset_cache
-        if assets: return assets
+        if at in assets: return assets
 
         def cache_corner_surface(tag, xo, yo):
             sw = sh = cnr_slice
@@ -266,6 +256,9 @@ class Frame(Gtk.Alignment):
             del cr
             return
 
+        # register the asset tag within the asset_cache
+        assets[at] = 'loaded'
+
         # the basic stuff
         border_image = cairo.ImageSurface.create_from_png(self.BORDER_IMAGE)
         assets["corner-slice"] = cnr_slice = 10
@@ -274,27 +267,27 @@ class Frame(Gtk.Alignment):
 
         # caching ....
         # north-west corner of border image
-        cache_corner_surface("nw", 0, 0)
+        cache_corner_surface("%s-nw" % at, 0, 0)
         # northern edge pattern
-        cache_edge_pattern("n",
+        cache_edge_pattern("%s-n" % at,
                            -cnr_slice, 0,
                            w-2*cnr_slice, cnr_slice)
         # north-east corner
-        cache_corner_surface("ne", -(w-cnr_slice), 0)
+        cache_corner_surface("%s-ne" % at, -(w-cnr_slice), 0)
         # eastern edge pattern
-        cache_edge_pattern("e",
+        cache_edge_pattern("%s-e" % at,
                            -(w-cnr_slice), -cnr_slice,
                            cnr_slice, h-2*cnr_slice)
         # south-east corner
-        cache_corner_surface("se", -(w-cnr_slice), -(h-cnr_slice))
+        cache_corner_surface("%s-se" % at, -(w-cnr_slice), -(h-cnr_slice))
         # southern edge pattern
-        cache_edge_pattern("s",
+        cache_edge_pattern("%s-s" % at,
                            -cnr_slice, -(h-cnr_slice),
                            w-2*cnr_slice, cnr_slice)
         # south-west corner
-        cache_corner_surface("sw", 0, -(h-cnr_slice))
+        cache_corner_surface("%s-sw" % at, 0, -(h-cnr_slice))
         # western edge pattern
-        cache_edge_pattern("w", 0, -cnr_slice,
+        cache_edge_pattern("%s-w" % at, 0, -cnr_slice,
                            cnr_slice, h-2*cnr_slice)
         # all done!
         return assets
@@ -369,56 +362,62 @@ class Frame(Gtk.Alignment):
             surf = cairo.ImageSurface(cairo.FORMAT_ARGB32, a.width, a.height)
             _cr = cairo.Context(surf)
 
+            at = self.ASSET_TAG
+
             width = a.width
             height = a.height
             cnr_slice = assets["corner-slice"]
 
             # paint north-west corner
-            _cr.set_source_surface(assets["nw"], 0, 0)
+            _cr.set_source_surface(assets["%s-nw" % at], 0, 0)
             _cr.paint()
 
             # paint north length
             _cr.save()
-            _cr.set_source(assets["n"])
+            _cr.set_source(assets["%s-n" % at])
             _cr.rectangle(cnr_slice, 0, width-2*cnr_slice, cnr_slice)
             _cr.clip()
             _cr.paint()
             _cr.restore()
 
             # paint north-east corner
-            _cr.set_source_surface(assets["ne"], width-cnr_slice, 0)
+            _cr.set_source_surface(assets["%s-ne" % at],
+                                   width-cnr_slice, 0)
             _cr.paint()
 
             # paint east length
             _cr.save()
             _cr.translate(width-cnr_slice, cnr_slice)
-            _cr.set_source(assets["e"])
+            _cr.set_source(assets["%s-e" % at])
             _cr.rectangle(0, 0, cnr_slice, height-2*cnr_slice)
             _cr.clip()
             _cr.paint()
             _cr.restore()
 
             # paint south-east corner
-            _cr.set_source_surface(assets["se"], width-cnr_slice, height-cnr_slice)
+            _cr.set_source_surface(assets["%s-se" % at],
+                                   width-cnr_slice,
+                                   height-cnr_slice)
             _cr.paint()
 
             # paint south length
             _cr.save()
             _cr.translate(cnr_slice, height-cnr_slice)
-            _cr.set_source(assets["s"])
+            _cr.set_source(assets["%s-s" % at])
             _cr.rectangle(0, 0, width-2*cnr_slice, cnr_slice)
             _cr.clip()
             _cr.paint()
             _cr.restore()
 
             # paint south-west corner
-            _cr.set_source_surface(assets["sw"], 0, height-cnr_slice)
+            _cr.set_source_surface(assets["%s-sw" % at],
+                                   0, height-cnr_slice)
             _cr.paint()
 
             # paint west length
             _cr.save()
             _cr.translate(0, cnr_slice)
-            _cr.set_source(assets["w"])
+            _cr.set_source(assets["%s-w" % at])
             _cr.rectangle(0, 0, cnr_slice, height-2*cnr_slice)
             _cr.clip()
             _cr.paint()
@@ -442,6 +441,18 @@ class Frame(Gtk.Alignment):
 
         rounded_rect(cr, xo+3, yo+2, a.width-6, a.height-6, border_radius)
         cr.clip()
+        return
+
+
+class SmallBorderRadiusFrame(Frame):
+
+    BORDER_RADIUS = 3
+    ASSET_TAG = "small"
+    BORDER_IMAGE = os.path.join(
+        softwarecenter.paths.datadir, "ui/gtk3/art/frame-border-image-2px-border-radius.png")
+
+    def __init__(self, padding=3):
+        Frame.__init__(self, padding)
         return
 
 
@@ -551,6 +562,8 @@ class FramedHeaderBox(FramedBox):
         return
     
     def render_header(self, cr, a, border_radius, assets):
+        at = self.ASSET_TAG
+
         cr.save()
         A = self.get_allocation()
         cr.translate(a.x-A.x, a.y-A.y)
@@ -559,25 +572,25 @@ class FramedHeaderBox(FramedBox):
         cnr_slice = assets["corner-slice"]
 
         # paint north-west corner
-        cr.set_source_surface(assets["nw"], 0, 0)
+        cr.set_source_surface(assets["%s-nw" % at], 0, 0)
         cr.paint()
 
         # paint north length
         cr.save()
-        cr.set_source(assets["n"])
+        cr.set_source(assets["%s-n" % at])
         cr.rectangle(cnr_slice, 0, width-2*cnr_slice, cnr_slice)
         cr.clip()
         cr.paint()
         cr.restore()
 
         # paint north-east corner
-        cr.set_source_surface(assets["ne"], width-cnr_slice, 0)
+        cr.set_source_surface(assets["%s-ne" % at], width-cnr_slice, 0)
         cr.paint()
 
         # paint east length
         cr.save()
         cr.translate(width-cnr_slice, cnr_slice)
-        cr.set_source(assets["e"])
+        cr.set_source(assets["%s-e" % at])
         cr.rectangle(0, 0, cnr_slice, height)
         cr.clip()
         cr.paint()
@@ -586,7 +599,7 @@ class FramedHeaderBox(FramedBox):
         # paint west length
         cr.save()
         cr.translate(0, cnr_slice)
-        cr.set_source(assets["w"])
+        cr.set_source(assets["%s-w" % at])
         cr.rectangle(0, 0, cnr_slice, height)
         cr.clip()
         cr.paint()

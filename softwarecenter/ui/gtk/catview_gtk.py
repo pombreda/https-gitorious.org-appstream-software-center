@@ -1,6 +1,6 @@
 import atk
 import gtk
-from gi.repository import GObject
+import gobject as GObject
 import gettext
 import logging
 import xapian

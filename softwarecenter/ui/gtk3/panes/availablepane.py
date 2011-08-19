@@ -23,6 +23,7 @@ import logging
 import xapian
 
 import softwarecenter.ui.gtk3.dialogs as dialogs
+from softwarecenter.ui.gtk3.models.appstore2 import AppListStore
 
 from gettext import gettext as _
 
@@ -32,8 +33,7 @@ from softwarecenter.enums import (ActionButtons,
                                   DEFAULT_SEARCH_LIMIT)
 from softwarecenter.paths import APP_INSTALL_PATH
 from softwarecenter.utils import wait_for_apt_cache_ready
-from softwarecenter.distro import get_distro
-from softwarecenter.ui.gtk3.views.appview import AppViewFilter
+from softwarecenter.db.appfilter import AppFilter
 from softwarecenter.ui.gtk3.views.purchaseview import PurchaseView
 
 from softwarecenter.ui.gtk3.views.catview_gtk import (LobbyViewGtk,
@@ -79,10 +79,9 @@ class AvailablePane(SoftwarePane):
         self.navhistory_back_action = navhistory_back_action
         self.navhistory_forward_action = navhistory_forward_action
         # configure any initial state attrs
-        self.state.filter = AppViewFilter(db, cache)
+        self.state.filter = AppFilter(db, cache)
         # the spec says we mix installed/not installed
         #self.apps_filter.set_not_installed_only(True)
-        self._status_text = ""
         self.current_app_by_category = {}
         self.current_app_by_subcategory = {}
         self.pane_name = _("Get Software")
@@ -90,6 +89,7 @@ class AvailablePane(SoftwarePane):
     def init_view(self):
         if self.view_initialized: 
             return
+
         self.spinner_view.set_text(_('Loading Categories'))
         self.spinner_view.start()
         self.spinner_view.show()
@@ -105,6 +105,13 @@ class AvailablePane(SoftwarePane):
         GObject.idle_add(self.cache.open)
         
         SoftwarePane.init_view(self)
+        # set the AppTreeView model, available pane uses list models
+        liststore = AppListStore(self.db, self.cache, self.icons)
+        def on_appcount_changed(widget, appcount):
+            self.subcategories_view._append_appcount(appcount)
+            self.app_view._append_appcount(appcount)
+        liststore.connect('appcount-changed', on_appcount_changed)
+        self.app_view.set_model(liststore)
         # setup purchase stuff
         self.app_details_view.connect("purchase-requested",
                                       self.on_purchase_requested)
@@ -136,7 +143,14 @@ class AvailablePane(SoftwarePane):
         self.subcategories_view.connect(
             "category-selected", self.on_subcategory_activated)
         self.subcategories_view.connect(
+            "application-activated", self.on_application_activated)
+        self.subcategories_view.connect(
             "show-category-applist", self.on_show_category_applist)
+        # FIXME: why do we have two application-{selected,activated] ?!?
+        self.subcategories_view.connect(
+            "application-selected", self.on_application_selected)
+        self.subcategories_view.connect(
+            "application-activated", self.on_application_activated)
         self.scroll_subcategories = Gtk.ScrolledWindow()
         self.scroll_subcategories.set_policy(
             Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
@@ -161,9 +175,6 @@ class AvailablePane(SoftwarePane):
         # purchase view
         self.notebook.append_page(self.purchase_view, Gtk.Label(label=NavButtons.PURCHASE))
 
-        # set status text
-        self._update_status_text(len(self.db))
-                                        
         # install backend
         self.backend.connect("transactions-changed", self._on_transactions_changed)
         # now we are initialized
@@ -232,8 +243,25 @@ class AvailablePane(SoftwarePane):
                 not self.state.subcategory and
                 not self.state.search_term)
 
-#~ <<<<<<< TREE
-#~ =======
+    def _get_header_for_view_state(self, view_state):
+        channel = view_state.channel
+        category = view_state.category
+        subcategory = view_state.subcategory
+
+        line1 = None
+        line2 = None
+        if channel is not None:
+            name = channel.display_name or channel.name
+            line1 = GObject.markup_escape_text(name)
+        elif subcategory is not None:
+            line1 = GObject.markup_escape_text(category.name)
+            line2 = GObject.markup_escape_text(subcategory.name)
+        elif category is not None:
+            line1 = GObject.markup_escape_text(category.name)
+        else:
+            line1 = _("All Software")
+        return line1, line2
+
     #~ def _show_hide_subcategories(self, show_category_applist=False):
         #~ # check if have subcategories and are not in a subcategory
         #~ # view - if so, show it
@@ -249,16 +277,6 @@ class AvailablePane(SoftwarePane):
             #~ self.notebook.set_current_page(AvailablePane.Pages.SUBCATEGORY)
         #~ else:
             #~ self.notebook.set_current_page(AvailablePane.Pages.LIST)
-#~ 
-#~ >>>>>>> MERGE-SOURCE
-    # status text woo
-    def get_status_text(self):
-        """return user readable status text suitable for a status bar"""
-        # no status text in the details page
-        if (self.notebook.get_current_page() == AvailablePane.Pages.DETAILS or
-            self._in_no_display_category()):
-            return ""
-        return self._status_text
 
     def get_current_app(self):
         """return the current active application object"""
@@ -298,67 +316,9 @@ class AvailablePane(SoftwarePane):
            bar up-to-date by keeping track of the app-list-changed
            signals
         """
-
+        LOG.debug("applist-changed %s %s" % (pane, length))
         super(AvailablePane, self).on_app_list_changed(pane, length)
         self._update_action_bar()
-        self._update_status_text(length)
-
-    def _update_status_text_lobby(self):
-        # SPECIAL CASE: in category page show all items in the DB
-        distro = get_distro()
-        if self.state.filter.get_supported_only():
-            query = distro.get_supported_query()
-        else:
-            query = xapian.Query('')
-        enquire = xapian.Enquire(self.db.xapiandb)
-        # XD is the term for pkgs that have a desktop file
-        enquire.set_query(xapian.Query(xapian.Query.OP_AND_NOT, 
-                                       query,
-                                       xapian.Query("XD"),
-                                       )
-                         )
-        matches = enquire.get_mset(0, len(self.db))
-        length = len(matches)
-
-        self._status_text = gettext.ngettext("%(amount)s item available",
-                                             "%(amount)s items available",
-                                             length) % { 'amount' : length, }
-
-    def _update_status_text(self, length):
-        """
-        update the text in the status bar
-        """
-
-        # SPECIAL CASE: in category page show all items in the DB
-        if self.notebook.get_current_page() == AvailablePane.Pages.LOBBY:
-            distro = get_distro()
-            if self.state.filter.get_supported_only():
-                query = distro.get_supported_query()
-            else:
-                query = xapian.Query('')
-            enquire = xapian.Enquire(self.db.xapiandb)
-            # XD is the term for pkgs that have a desktop file
-            enquire.set_query(xapian.Query(xapian.Query.OP_AND_NOT, 
-                                           query,
-                                           xapian.Query("XD"),
-                                           )
-                             )
-            matches = enquire.get_mset(0, len(self.db))
-            length = len(matches)
-
-        if self.state.search_term and ',' in self.state.search_term:
-            length = self.enquirer.nr_apps
-            self._status_text = gettext.ngettext("%(amount)s item",
-                                                 "%(amount)s items",
-                                                 length) % { 'amount' : length, }
-        elif len(self.searchentry.get_text()) > 0:
-            self._status_text = gettext.ngettext("%(amount)s matching item",
-                                                 "%(amount)s matching items",
-                                                 length) % { 'amount' : length, }
-        else:
-            self._status_text = gettext.ngettext("%(amount)s item available",
-                                                 "%(amount)s items available",
-                                                 length) % { 'amount' : length, }
 
     def _update_action_bar(self):
         self._update_action_bar_buttons()
@@ -478,7 +438,7 @@ class AvailablePane(SoftwarePane):
             if state.search_term:
                 return self.display_search_page
             else:
-                return self.display_app_list_page
+                return self.display_app_view_page
 
         elif page == AvailablePane.Pages.SUBCATEGORY:
             return self.display_subcategory_page
@@ -493,21 +453,24 @@ class AvailablePane(SoftwarePane):
         self.hide_appview_spinner()
         self.emit("app-list-changed", len(self.db))
         self._clear_search()
-        self._update_status_text_lobby()
         self.searchentry.show()
         self.action_bar.clear()
         return True
 
     def display_search_page(self, page, view_state):
         new_text = view_state.search_term
-        #print(new_text)
         # DTRT if the search is reseted
         if not new_text:
             self._clear_search()
         else:
             self.state.limit = DEFAULT_SEARCH_LIMIT
+
+        header_strings = self._get_header_for_view_state(view_state)
+        self.app_view.set_header_labels(*header_strings)
+
         self.refresh_apps()
         self.searchentry.show()
+        self.cat_view.stop_carousels()
         return True
 
     def display_subcategory_page(self, page, view_state):
@@ -526,9 +489,12 @@ class AvailablePane(SoftwarePane):
         self.cat_view.stop_carousels()
         return True
 
-    def display_app_list_page(self, page, view_state):
-        category = self.state.category
+    def display_app_view_page(self, page, view_state):
+        category = view_state.category
         self.set_category(category)
+
+        header_strings = self._get_header_for_view_state(view_state)
+        self.app_view.set_header_labels(*header_strings)
 
         if view_state.search_term:
             self._clear_search()
@@ -580,7 +546,7 @@ class AvailablePane(SoftwarePane):
         page = AvailablePane.Pages.LIST
 
         vm = get_viewmanager()
-        vm.display_page(self, page, self.state, self.display_app_list_page)
+        vm.display_page(self, page, self.state, self.display_app_view_page)
 
     def on_category_activated(self, lobby_view, category):
         """ callback when a category is selected """
@@ -592,7 +558,7 @@ class AvailablePane(SoftwarePane):
             callback = self.display_subcategory_page
         else:
             page = AvailablePane.Pages.LIST
-            callback = self.display_app_list_page
+            callback = self.display_app_view_page
 
         self.state.category = category
         self.state.subcategory = None
@@ -651,7 +617,7 @@ class AvailablePane(SoftwarePane):
         self.state.category = category
         # apply any category based filters
         if not self.state.filter:
-            self.state.filter = AppViewFilter(self.db, self.cache)
+            self.state.filter = AppFilter(self.db, self.cache)
 
         if category and category.flags and 'available-only' in category.flags:
             self.state.filter.set_available_only(True)
@@ -664,7 +630,6 @@ class AvailablePane(SoftwarePane):
             self.state.filter.set_not_installed_only(False)
 
 def get_test_window():
-
     from softwarecenter.testutils import (get_test_db,
                                           get_test_datadir,
                                           get_test_gtk3_viewmanager,
@@ -692,6 +657,8 @@ def get_test_window():
     win.set_size_request(800,600)
     win.show_all()
 
+    # this is used later in tests
+    win.set_data("pane", w)
 
     return win
 

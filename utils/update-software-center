@@ -17,6 +17,11 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+# We have to import Gio before everything, for dynamic PK to work.
+try:
+    from gi.repository import Gio
+except: pass
+
 import locale
 import gettext
 import logging
@@ -31,7 +36,6 @@ from optparse import OptionParser
 from softwarecenter.enums import *
 from softwarecenter.paths import XAPIAN_BASE_PATH
 from softwarecenter.db.update import rebuild_database
-
 import softwarecenter.paths
 
 # dbus may not be available during a upgrade so we 
@@ -91,6 +95,9 @@ if __name__ == "__main__":
                       help="set different appstream xml rootdir")
     parser.add_option("--debug", "", action="store_true", default=False,
                       help="show debug output")
+    parser.add_option("--use-packagekit", action="store_true",
+                      help="use PackageKit backend (experimental)", 
+                      default=False)
     (options, args) = parser.parse_args()
 
     #logging.basicConfig(level=logging.INFO)
@@ -111,6 +118,10 @@ if __name__ == "__main__":
 
     if options.appstream_xml_path:
         softwarecenter.paths.APPSTREAM_XML_PATH = options.appstream_xml_path
+
+    if options.use_packagekit:
+        LOG.info("using the PackageKit backend")
+        softwarecenter.enums.USE_PACKAGEKIT_BACKEND = True
 
     # check if we are dpkg triggered because of langpack change
     # and avoid unneeded database rebuilds by checking the timestamp
@@ -168,4 +179,3 @@ if __name__ == "__main__":
             context = GObject.main_context_default()
             while context.pending():
                 context.iteration()
-    

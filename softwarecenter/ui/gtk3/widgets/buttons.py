@@ -108,7 +108,7 @@ class FeaturedTile(TileButton):
     MAX_WIDTH = em(10)
     _MARKUP = '<b>%s</b>'
 
-    def __init__(self, label, icon, review_stats, icon_size=48):
+    def __init__(self, label, icon, review_stats, category=None, icon_size=48):
         TileButton.__init__(self)
         self._pressed = False
 
@@ -128,10 +128,12 @@ class FeaturedTile(TileButton):
         self.title.set_ellipsize(Pango.EllipsizeMode.END)
         self.content_right.pack_start(self.title, False, False, 0)
 
-        self.category = Gtk.Label.new('<span font_desc="Italic %i">%s</span>' % (em(0.45), 'Category'))
-        self.category.set_use_markup(True)
-        self.category.set_alignment(0.0, 0.0)
-        self.content_right.pack_start(self.category, False, False, 4)
+        if category is not None:
+            self.category = Gtk.Label.new('<span font_desc="Italic %i">%s</span>' % (em(0.45), category))
+            self.category.set_use_markup(True)
+            self.category.set_alignment(0.0, 0.0)
+            self.category.set_ellipsize(Pango.EllipsizeMode.END)
+            self.content_right.pack_start(self.category, False, False, 4)
 
         if review_stats is not None:
             self.stars = Star()
@@ -217,7 +219,7 @@ class ChannelSelector(Gtk.Button):
 
         self.section_button = section_button
         self.popup = None
-        self.connect("button-release-event", self.on_button_release)
+        self.connect("button-press-event", self.on_button_press)
         return
 
     def do_draw(self, cr):
@@ -233,7 +235,7 @@ class ChannelSelector(Gtk.Button):
         for child in self: self.propagate_draw(child, cr)
         return
 
-    def on_button_release(self, button, event):
+    def on_button_press(self, button, event):
         if self.popup is None:
             self.build_channel_selector()
         self.show_channel_sel_popup(self, event)
@@ -302,7 +304,8 @@ class SectionSelector(TileToggleButton):
             cr.set_source_rgba(0,0,0,0.6)
             cr.stroke()
 
-        for child in self: self.propagate_draw(child, cr)
+        for child in self: 
+            self.propagate_draw(child, cr)
         return
 
     def on_label_draw(self, label, cr):

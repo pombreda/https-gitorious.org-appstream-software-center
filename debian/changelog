@@ -1,3 +1,158 @@
+software-center (4.1.18) UNRELEASED; urgency=low
+
+  * lp:~alexeftimie/software-center/packagekit-backend:
+    - add packagekit backend, thanks Alex Eftimie
+    - this allows using "software-center-gtk3 --packagekit-backend"
+  * softwarecenter/ui/gtk3/panes/viewswitcher.py:
+    - pygi compat fix, Gtk.CheckMenuItem() != Gtk.CheckMenuItem.new()
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 19 Aug 2011 14:52:03 +0200
+
+software-center (4.1.17) oneiric; urgency=low
+
+  [ Matthew McGowan ]
+  * lp:~mmcg069/software-center/gtk3fix:
+    - description.py, do not connect to the viewport size-allocate signal, 
+      i think this should prevent the wierd spazz out when resize evetns 
+      occur
+
+  [ Michael Vogt ]
+  * softwarecenter/utils.py:
+    - really remove old gmenusearcher code that uses the static gmenu
+      bindings (LP: #828535)
+  * softwarecenter/ui/{gtk,gtk3}/gmenusearch.py:
+    - split gmenusearch into gtk2 (static bindings) and gtk3 (gi bindings)
+    - update usage
+  * softwarecenter/db/history_impl/apthistory.py:
+    - add conditional use of gio.File() vs Gio.File.new_for_path()
+  * softwarecenter/utils.py, softwarecenter/backend/reviews.py:
+    - fixes in subtle API changes for Gio vs gio
+  * softwarecenter/ui/gtk3/widgets/description.py:
+    - prepare for upcomming Gdk pygi changes in 2.90.x
+  * debian/control:
+    - add python-gmenu back to the dependencies, the dynamic bindings
+      can not be used with the gtk2 version os software-center
+  * utils/piston-helpers/piston_get_useful_votes_helper.py,
+    utils/piston-helpers/piston_get_reviews_helper.py:
+    - fix exception type now that json is used (instead of simplejson)
+      LP: #828324
+
+  [ Kiwinote ]
+  * data/ui/gtk3/css/softwarecenter.css:
+    - theme GtkViewports not to have a padding or a border - looks quite nice
+      around the banners now
+  * many:
+    - transition from a status bar to internal status labels (LP: #445558)
+  * softwarecenter/ui/gtk3/session/viewmanager.py:
+    - show/hide search entry when needed (LP: #828790)
+  * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
+    - use a Gtk.IconSize rather than an int for Gtk.Image.new_from_icon_name
+  * softwarecenter/ui/gtk3/widgets/buttons.py:
+    - ellipsize category text in tile to avoid warnings
+    - show channel selector on button-press-event instead of
+      button-release-event for consistent menu behaviour (LP: #828317)
+
+  [ Martin Pitt ]
+  * Fix some more places which need to conditionally import gobject or
+    GObject. (LP: #829186)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 19 Aug 2011 11:59:02 +0200
+
+software-center (4.1.16) oneiric; urgency=low
+
+  [ Michael Vogt ]
+  * softwarecenter/ui/gtk3/panes/availablepane.py, 
+    softwarecenter/ui/gtk3/views/catview_gtk.py:
+    - make clicking on top-rated app in a subcategory work
+  * softwarecenter/ui/gtk3/widgets/apptreeview.py:
+    - fix remove button in the tree (LP: #828064)
+  * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
+    - fix crash when scrolling (LP: #828440)
+  * softwarecenter/enums.py:
+    - add new Icons.INSTALLED_OVERLAY
+  * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
+    - show installed emblem for installed apps (LP: #828253)
+  * softwarecenter/ui/{gtk,gtk3}/views/appdetailsview_gtk.py:
+    - fixup for the latest GIcon API changes
+  * softwarecenter/ui/gtk3/widgets/exhibits.py:
+    - use the ubuntu color for the default exhibit LP: #827315
+  * softwarecenter/ui/gtk3/widgets/exhibits.py:
+    - use a longer exhibit timeout
+  * softwarecenter/ui/gtk3/widgets/exhibits.py:
+    - reinit mouse pointer when exhibits toggle
+  * softwarecenter/ui/gtk3/panes/viewswitcher.py:
+    - fix switching back to the main page when clicking on 
+      "All software" (LP: #828675)
+  * softwarecenter/ui/gtk3/models/appstore2.py,
+    softwarecenter/ui/gtk3/views/catview_gtk.py,
+    softwarecenter/ui/gtk3/widgets/buttons.py:
+    - show (raw) categories info in the FeaturedTile()
+  
+  [ Matthew McGowan ]
+  * lp:~mmcg069/software-center/sortable-app-tree-view:
+    - add multiple sort options for the results
+    - fix crash if no weblive is available LP: #824603
+  
+  [ Martin Pitt ]
+  * software-center: Import the static gobject, not the GI module, as this
+    uses pygtk.
+  * All files: Do not import the gi.repository.GObject module with static
+    bindings like gtk, and vice versa. It is brittle now, and breaking with
+    newer pygobject versions like 2.90.1.
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 18 Aug 2011 18:36:04 +0200
+
+software-center (4.1.15) oneiric; urgency=low
+
+  [ Michael Vogt ]
+  * software-center-gtk3, software-center:
+    - fix PYTHONPATH when running from a local repo
+    - add "--dummy-backend" option start will start a fake
+      aptdaemon in a private dbus for interactive testing of the
+      installation/removal
+  * softwarecenter/backend/spawn_helper.py:
+    - make "--debug-filter softwarecenter.backend.spawn_helper"
+      more useful
+    - ensure that the io source is removed after any pending
+      reads are flushed
+  * software-center:
+    - fix startup with no PYTHONPATH
+  * softwarecenter/gmenusearch.py:
+    - port to use gir1.2-gmenu-3.0
+  * softwarecenter/ui/{gtk,gtk3}/views/appdetailsview_gtk.py:
+    - updated for gir1.2-gmenu-3.0
+  * softwarecenter/ui/gtk3/widgets/exhibits.py:
+    - show hand cursor if the exhibit has package_names
+  * setup.py:
+    - fix AUTHORS file merging
+  
+  [ Matthew McGowan ]
+  * lp:~mmcg069/software-center/appdetails-tweaks:
+    - add a pretty frame around the thumbnail in the detailsview.
+  * lp:~mmcg069/software-center/bugfix-823233:
+    - fix so that markup is actually rendered by the submit_label
+      when submitting usefulness (LP: #823233)
+  * fix the annoying ascii codec error, #823363
+  * add some checks to ensure the exhibits list contains exhibits and
+    then some further checks within _render_exhbit_at_cursor to ensure
+    the cursor is within the bounds of the exhibits_list
+  
+  [ Kiwinote ]
+  * data/ui/gtk3/SoftwareCenter.ui,
+    softwarecenter/ui/gtk3/app.py:
+    - few more tweaks to the about dialog
+  * softwarecenter/db/application.py:
+    - import version_compare on demand to make deb files work (LP: #824692)
+  * softwarecenter/ui/gtk/appview.py,
+    softwarecenter/ui/gtk3/widgets/cellrenderers.py:
+    - fix listviews in rtl setups (pango reverses LEFT and RIGHT itself)
+  * softwarecenter/ui/gtk3/app.py:
+    - fix rtl mode for testing
+  * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
+    - correctly show/hide website button
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 17 Aug 2011 10:21:25 +0200
+
 software-center (4.1.14) oneiric; urgency=low
 
   [ Michael Vogt ]

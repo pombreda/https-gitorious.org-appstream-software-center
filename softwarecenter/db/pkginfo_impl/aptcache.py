@@ -21,9 +21,19 @@
 import apt
 import apt_pkg
 import logging
-from gi.repository import GObject
-import gio
+import sys
 import os
+
+if 'gobject' in sys.modules:
+    have_gi = False
+    import gobject as GObject
+    import gio as Gio
+    GObject #pyflakes
+    Gio #pyflakes
+else:
+    have_gi = True
+    from gi.repository import GObject
+    from gi.repository import Gio
 
 from softwarecenter.enums import PkgStates
 
@@ -108,9 +118,11 @@ class AptCache(PackageInfo):
         self._ready = False
         self._timeout_id = None
         # setup monitor watch for install/remove changes
-        self.apt_finished_stamp=gio.File(self.APT_FINISHED_STAMP)
-        self.apt_finished_monitor = self.apt_finished_stamp.monitor_file(
-            gio.FILE_MONITOR_NONE)
+        if have_gi:
+            self.apt_finished_stamp=Gio.File.new_for_path(self.APT_FINISHED_STAMP)
+        else:
+            self.apt_finished_stamp=Gio.File(self.APT_FINISHED_STAMP)
+        self.apt_finished_monitor = self.apt_finished_stamp.monitor_file(0, None)
         self.apt_finished_monitor.connect(
             "changed", self._on_apt_finished_stamp_changed)
         # this is fast, so ok
@@ -128,8 +140,10 @@ class AptCache(PackageInfo):
         return apt_pkg.upstream_version(v)
 
     def is_installed(self, pkgname):
-        return (pkgname in self._cache and
-                self._cache[pkgname].is_installed)
+        # use the lowlevel cache here, twice as fast
+        lowlevel_cache = self._cache._cache
+        return (pkgname in lowlevel_cache and
+                lowlevel_cache[pkgname].current_ver)
     def is_available(self, pkgname):
         return (pkgname in self._cache and
                 self._cache[pkgname].candidate)
@@ -225,7 +239,7 @@ class AptCache(PackageInfo):
     def __contains__(self, k):
         return self._cache.__contains__(k)
     def _on_apt_finished_stamp_changed(self, monitor, afile, other_file, event):
-        if not event == gio.FILE_MONITOR_EVENT_CHANGES_DONE_HINT:
+        if not event == Gio.FILE_MONITOR_EVENT_CHANGES_DONE_HINT:
             return 
         if self._timeout_id:
             GObject.source_remove(self._timeout_id)

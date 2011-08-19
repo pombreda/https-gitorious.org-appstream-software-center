@@ -26,7 +26,6 @@ from gi.repository import GdkPixbuf
 
 import datetime
 import gettext
-import gmenu
 import logging
 import os
 
@@ -39,11 +38,12 @@ from softwarecenter.db.application import Application
 from softwarecenter.db import DebFileApplication
 from softwarecenter.backend.reviews import ReviewStats
 #from softwarecenter.backend.zeitgeist_simple import zeitgeist_singleton
-from softwarecenter.enums import (AppActions, PkgStates,
-                                  Icons, SOFTWARE_CENTER_PKGNAME)
+from softwarecenter.enums import (AppActions, 
+                                  PkgStates,
+                                  Icons, 
+                                  SOFTWARE_CENTER_PKGNAME)
 from softwarecenter.utils import (is_unity_running, 
                                   get_exec_line_from_desktop,
-                                  GMenuSearcher,
                                   SimpleFileDownloader,
                                   size_to_str)
 from softwarecenter.distro import get_distro
@@ -54,11 +54,13 @@ from appdetailsview import AppDetailsViewBase
 from softwarecenter.ui.gtk3.em import StockEms, em
 
 from softwarecenter.ui.gtk3.widgets.reviews import UIReviewsList
+from softwarecenter.ui.gtk3.widgets.containers import SmallBorderRadiusFrame
 from softwarecenter.ui.gtk3.widgets.stars import Star
 from softwarecenter.ui.gtk3.widgets.description import AppDescription
 from softwarecenter.ui.gtk3.widgets.thumbnail import ScreenshotThumbnail
 from softwarecenter.ui.gtk3.widgets.weblivedialog import (
                                     ShowWebLiveServerChooserDialog)
+from softwarecenter.ui.gtk3.gmenusearch import GMenuSearcher
 
 #~ if os.path.exists("./softwarecenter/enums.py"):
     #~ sys.path.insert(0, ".")
@@ -120,6 +122,8 @@ class PackageStatusBar(StatusBar):
     
     def __init__(self, view):
         StatusBar.__init__(self, view)
+        self.installed_icon  = Gtk.Image.new_from_icon_name(
+            Icons.INSTALLED_OVERLAY, Gtk.IconSize.DIALOG)
         self.label = Gtk.Label()
         self.button = Gtk.Button()
         self.progress = Gtk.ProgressBar()
@@ -129,6 +133,7 @@ class PackageStatusBar(StatusBar):
 
         self.pkg_state = None
 
+        self.hbox.pack_start(self.installed_icon, False, False, 0)
         self.hbox.pack_start(self.label, False, False, 0)
         self.hbox.pack_end(self.button, False, False, 0)
         self.hbox.pack_end(self.progress, False, False, 0)
@@ -219,6 +224,7 @@ class PackageStatusBar(StatusBar):
             self.button.show()
             self.show()
             self.progress.hide()
+            self.installed_icon.hide()
 
         # FIXME:  Use a Gtk.Action for the Install/Remove/Buy/Add Source/Update Now action
         #         so that all UI controls (menu item, applist view button and appdetails
@@ -239,6 +245,7 @@ class PackageStatusBar(StatusBar):
             self.button.set_sensitive(False)
         elif state == PkgStates.INSTALLED or state == PkgStates.REINSTALLABLE:
             #special label only if the app being viewed is software centre itself
+            self.installed_icon.show()
             if app_details.pkgname== SOFTWARE_CENTER_PKGNAME:
                 self.set_label(_("Installed (you're using it right now)"))
             else:
@@ -717,7 +724,6 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         self._layout_page()
 
         self.connect('realize', self._on_realize)
-
         self.loaded = True
         return
 
@@ -937,10 +943,8 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         #~ vb_inner.pack_start(self.usage, True, True, 0)
 
         # star rating widget
-        #~ a = Gtk.Alignment.new(0.0, 0.5, 1.0, 1.0)
         self.review_stats_widget = Star()
         self.review_stats_widget.set_size_as_pixel_value(title_fontsize)
-        self.review_stats_widget.set_nr_reviews(666)
         #~ a.add(self.review_stats_widget)
         #~ hb.pack_end(a, False, False, 0)
         hb.pack_end(self.review_stats_widget, False, True, 0)
@@ -967,7 +971,7 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         vb.pack_start(body_hb, False, False, 0)
 
         # append the description widget, hold the formatted long description
-        self.desc = AppDescription(viewport=self)
+        self.desc = AppDescription()
         self.desc.description.set_property("can-focus", True)
         self.desc.description.a11y = self.desc.description.get_accessible()
         body_hb.pack_start(self.desc, True, True, 0)
@@ -977,16 +981,18 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         right_vb = Gtk.VBox()
         right_vb.set_spacing(6)
         body_hb.pack_start(right_vb, False, False, 0)
-        right_vb.pack_start(self.screenshot, False, False, 0)
+        frame = SmallBorderRadiusFrame()
+        frame.add(self.screenshot)
+        right_vb.pack_start(frame, False, False, 0)
 
         # the weblive test-drive stuff
         self.weblive = get_weblive_backend()
-        self.test_drive = Gtk.Button(_("Test drive"))
-        self.test_drive.connect("clicked", self.on_test_drive_clicked)
-        right_vb.pack_start(self.test_drive, False, False, 0)
+        if self.weblive.client is not None:
+            self.test_drive = Gtk.Button(_("Test drive"))
+            self.test_drive.connect("clicked", self.on_test_drive_clicked)
+            right_vb.pack_start(self.test_drive, False, False, 0)
 
-        # attach to all the WebLive events
-        if self.weblive.client:
+            # attach to all the WebLive events
             self.weblive.client.connect("progress", self.on_weblive_progress)
             self.weblive.client.connect("connected", self.on_weblive_connected)
             self.weblive.client.connect("disconnected", self.on_weblive_disconnected)
@@ -1053,7 +1059,7 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         # signals!
         #~ vb.connect('draw', self._on_draw, alignment)
         vb.connect('key-press-event', self._on_key_press)
-        #~ self.connect('size-allocate', self._on_allocate, vb)
+        self.connect('size-allocate', lambda w,a: w.queue_draw())
         return
 
     def _on_key_press(self, widget, event):
@@ -1072,13 +1078,13 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
 
             # scroll up
             if kv in uppers:
-                v = max(v_adj.value - v_adj.step_increment,
-                        v_adj.lower)
+                v = max(v_adj.get_value() - v_adj.get_step_increment(),
+                        v_adj.get_lower())
 
             # scroll down 
             elif kv in downers:
-                v = min(v_adj.value + v_adj.step_increment,
-                        v_adj.upper - v_adj.page_size)
+                v = min(v_adj.get_value() + v_adj.get_step_increment(),
+                        v_adj.get_upper() - v_adj.get_page_size())
 
             # set our new value
             v_adj.set_value(v)
@@ -1154,12 +1160,11 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
 
     def _update_description_footer_links(self, app_details):        
         # show or hide the homepage button and set uri if homepage specified
-        # FIXME
-        #~ if app_details.website:
-            #~ self.homepage_btn.show()
-            #~ self.homepage_btn.set_tooltip_text(app_details.website)
-        #~ else:
-            #~ self.homepage_btn.hide()
+        if app_details.website:
+            self.homepage_btn.show()
+            self.homepage_btn.set_tooltip_text(app_details.website)
+        else:
+            self.homepage_btn.hide()
         return
 
     def _update_app_screenshot(self, app_details):
@@ -1172,6 +1177,7 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         return
 
     def _update_weblive(self, app_details):
+        if self.weblive.client is None: return
         self.desktop_file = app_details.desktop_file
         # only enable test drive if we have a desktop file and exec line
         if (not self.weblive.ready or
@@ -1317,14 +1323,16 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         label = Gtk.Label(label=_("Find it in the menu: "))
         self.installed_where_hbox.pack_start(label, False, False, 0)
         for (i, item) in enumerate(where):
-            iconname = item.get_icon()
-            # check icontheme first
-            if iconname and self.icons.has_icon(iconname) and i > 0:
-                image = Gtk.Image()
-                image.set_from_icon_name(iconname, Gtk.IconSize.SMALL_TOOLBAR)
-                self.installed_where_hbox.pack_start(image, False, False, 0)
-            # then see if its a path to a file on disk
-            elif iconname and os.path.exists(iconname):
+            if hasattr(item, "get_icon"):
+                iconinfo = self.icons.lookup_by_gicon(item.get_icon(), 18, 0)
+                iconname = iconinfo.get_filename()
+            elif hasattr(item, "get_app_info"):
+                app_info = item.get_app_info()
+                iconinfo = self.icons.lookup_by_gicon(app_info.get_icon(), 18, 0)
+                iconname = iconinfo.get_filename()
+
+            # we get the right name from the lookup we did before
+            if iconname and os.path.exists(iconname):
                 image = Gtk.Image()
                 pb = GdkPixbuf.Pixbuf.new_from_file_at_size(iconname, 18, 18)
                 if pb:
@@ -1332,10 +1340,12 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
                 self.installed_where_hbox.pack_start(image, False, False, 0)
 
             label_name = Gtk.Label()
-            if item.get_type() == gmenu.TYPE_ENTRY:
-                label_name.set_text(item.get_display_name())
-            else:
+            if hasattr(item, "get_name"):
                 label_name.set_text(item.get_name())
+            elif hasattr(item, "get_app_info"):
+                app_info = item.get_app_info()
+                label_name.set_text(app_info.get_name())
+
             self.installed_where_hbox.pack_start(label_name, False, False, 0)
             if i+1 < len(where):
                 right_arrow = Gtk.Arrow.new(Gtk.ArrowType.RIGHT, Gtk.ShadowType.NONE)
@@ -1356,7 +1366,7 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         if is_unity_running():
             return
         # remove old content
-        self.installed_where_hbox.foreach(lambda c: c.destroy(), ())
+        self.installed_where_hbox.foreach(lambda w, d: w.destroy(), None)
         self.installed_where_hbox.set_property("can-focus", False)
         self.installed_where_hbox.a11y.set_name('')
         # see if we have the location if its installed
@@ -1683,9 +1693,16 @@ def get_test_window_appdetails():
     scroll = Gtk.ScrolledWindow()
     view = AppDetailsViewGtk(db, distro, icons, cache, datadir, win)
 
+    import sys
+    if len(sys.argv) > 1:
+        pkgname = sys.argv[1]
+    else:
+        pkgname = "totem"
+
+    view.show_app(Application("", pkgname))
     #view.show_app(Application("Pay App Example", "pay-app"))
     #view.show_app(Application("3D Chess", "3dchess"))
-    view.show_app(Application("Movie Player", "totem"))
+    #view.show_app(Application("Movie Player", "totem"))
     #view.show_app(Application("ACE", "unace"))
     #~ view.show_app(Application("", "apt"))
 

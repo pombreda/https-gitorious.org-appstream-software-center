@@ -6,7 +6,7 @@ import unittest
 sys.path.insert(0,"../")
 
 from softwarecenter.paths import XAPIAN_BASE_PATH
-from softwarecenter.utils import GMenuSearcher
+from softwarecenter.ui.gtk3.gmenusearch import GMenuSearcher
 from softwarecenter.db.pkginfo import get_pkg_info
 from softwarecenter.db.database import StoreDatabase
 from softwarecenter.db.application import Application
@@ -51,9 +51,11 @@ class TestWhereIsit(unittest.TestCase):
             details.desktop_file,
             [os.path.abspath("./data/fake-applications.menu")])
         self.assertEqual(found[0].get_name(), "Applications")
-        self.assertEqual(found[0].get_icon(), "applications-other")
+        self.assertEqual(found[0].get_icon().get_names()[0], 
+                         "applications-other")
         self.assertEqual(found[1].get_name(), "Accessories")
-        self.assertEqual(found[1].get_icon(), "applications-utilities")
+        self.assertEqual(found[1].get_icon().get_names()[0], 
+                         "applications-utilities")
     
     def test_where_is_it_kde4(self):
         app = Application("", "ark")
@@ -66,9 +68,11 @@ class TestWhereIsit(unittest.TestCase):
             details.desktop_file,
             [os.path.abspath("./data/fake-applications.menu")])
         self.assertEqual(found[0].get_name(), "Applications")
-        self.assertEqual(found[0].get_icon(), "applications-other")
+        self.assertEqual(found[0].get_icon().get_names()[0], 
+                         "applications-other")
         self.assertEqual(found[1].get_name(), "Accessories")
-        self.assertEqual(found[1].get_icon(), "applications-utilities")
+        self.assertEqual(found[1].get_icon().get_names()[0], 
+                         "applications-utilities")
         
 
 if __name__ == "__main__":

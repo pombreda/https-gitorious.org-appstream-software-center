@@ -16,7 +16,7 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from gi.repository import GObject
+import gobject as GObject
 import dbus
 import gtk
 import logging
@@ -174,6 +174,13 @@ class PendingStore(gtk.ListStore):
                     status = _("Downloaded %sB of %sB") % \
                              (current_bytes_str, total_bytes_str)
                     row[self.COL_STATUS] = self._render_status_text(name, status)
+                elif trans.is_waiting():
+                    name = row[self.COL_NAME]
+                    if eta != 0:
+                        status = _("ETA: %s") % eta
+                        row[self.COL_STATUS] = self._render_status_text(name, status)
+                else:
+                    logging.debug("neither downloading or waiting")
 
     def _on_progress_changed(self, trans, progress):
         # print "_on_progress_changed: ", trans, progress
@@ -280,6 +287,9 @@ class PendingView(gtk.ScrolledWindow, BasePane):
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
 
+    import  dbus.mainloop.glib
+    dbus.set_default_main_loop(dbus.mainloop.glib.DBusGMainLoop())
+
     icons = gtk.icon_theme_get_default()
     view = PendingView(icons)
 
@@ -291,6 +301,14 @@ if __name__ == "__main__":
     win.add(scroll)
     view.grab_focus()
     win.set_size_request(500,200)
+    win.connect('delete-event', gtk.main_quit)
     win.show_all()
 
+    backend = view.tv.get_model().backend
+    #packages = ('cheese', 'firefox')
+    packages = ('firefox',)
+    if backend.pkginfo['firefox'].is_installed:
+        backend.remove_multiple(packages, packages, ('', ''))
+    else:
+        backend.install_multiple(packages, packages, ('', ''))
     gtk.main()

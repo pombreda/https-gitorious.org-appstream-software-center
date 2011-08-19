@@ -385,14 +385,16 @@ class UIReview(Gtk.VBox):
         if type == 'progress':
             self.submit_status_spinner.start()
             self.submit_status_spinner.show()
-            self.status_label = Gtk.Label.new("<small><b>%s</b></small>" % _(u"Submitting now\u2026"))
+            self.status_label = Gtk.Label.new("<small>%s</small>" % _(u"Submitting now\u2026"))
+            self.status_label.set_use_markup(True)
             self.status_box.pack_start(self.submit_status_spinner, False, False, 0)
             self.status_label.set_padding(2,0)
             self.status_box.pack_start(self.status_label, False, False, 0)
             self.status_label.show()
         if type == 'error':
             self.submit_error_img.show()
-            self.status_label = Gtk.Label.new("<small><b>%s</b></small>" % _("Error submitting usefulness"))
+            self.status_label = Gtk.Label.new("<small>%s</small>" % _("Error submitting usefulness"))
+            self.status_label.set_use_markup(True)
             self.status_box.pack_start(self.submit_error_img, False, False, 0)
             self.status_label.set_padding(2,0)
             self.status_box.pack_start(self.status_label, False, False, 0)

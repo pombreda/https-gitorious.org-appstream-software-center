@@ -16,12 +16,38 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from gi.repository import GObject
+import sys
+
+if 'gobject' in sys.modules:
+    import gobject as GObject
+    GObject #pyflakes
+else:
+    from gi.repository import GObject
 
 class BaseTransaction(GObject.GObject):
     """
     wrapper class for install backend dbus Transaction objects
     """
+    __gsignals__ = {'progress-details-changed':(GObject.SIGNAL_RUN_FIRST,
+                                            GObject.TYPE_NONE,
+                                            (int, int, int, int, int, int)),
+                    'progress-changed':(GObject.SIGNAL_RUN_FIRST,
+                                            GObject.TYPE_NONE,
+                                            (GObject.TYPE_PYOBJECT, )),
+                    'status-changed':(GObject.SIGNAL_RUN_FIRST,
+                                            GObject.TYPE_NONE,
+                                            (GObject.TYPE_PYOBJECT, )),
+                    'cancellable-changed':(GObject.SIGNAL_RUN_FIRST,
+                                            GObject.TYPE_NONE,
+                                            (GObject.TYPE_PYOBJECT, )),
+                    'role-changed':(GObject.SIGNAL_RUN_FIRST,
+                                            GObject.TYPE_NONE,
+                                            (GObject.TYPE_PYOBJECT, )),
+                    'deleted':(GObject.SIGNAL_RUN_FIRST,
+                                            GObject.TYPE_NONE,
+                                            []),
+    }
+
     @property
     def tid(self):
         pass
@@ -93,6 +119,11 @@ _tw = None
 def get_transactions_watcher():
     global _tw
     if _tw is None:
-        from aptd import AptdaemonTransactionsWatcher
-        _tw = AptdaemonTransactionsWatcher()
+        from softwarecenter.enums import USE_PACKAGEKIT_BACKEND
+        if not USE_PACKAGEKIT_BACKEND:
+            from aptd import AptdaemonTransactionsWatcher
+            _tw = AptdaemonTransactionsWatcher()
+        else:
+            from softwarecenter.backend.packagekitd import PackagekitTransactionsWatcher
+            _tw = PackagekitTransactionsWatcher()        
     return _tw

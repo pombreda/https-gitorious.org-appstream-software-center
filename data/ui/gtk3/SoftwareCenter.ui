@@ -12,13 +12,11 @@
     <signal name="activate" handler="on_navhistory_forward_action_activate" swapped="no"/>
   </object>
   <object class="GtkAboutDialog" id="aboutdialog">
-    <property name="can_focus">False</property>
-    <property name="border_width">5</property>
-    <property name="type_hint">normal</property>
-    <property name="version">0.3.4</property>
+    <property name="version">4.1.15</property>
     <property name="copyright" translatable="yes">©2009-2011 Canonical</property>
     <property name="website">http://launchpad.net/software-center</property>
-    <property name="authors">Michael Vogt - Coding, Fixes
+    <property name="website_label">launchpad.net/software-center</property>
+    <property name="authors">Michael Vogt - Coding
 Matthew Paul Thomas - UI Design
 Sebastian Heinlein - Coding, Fixes, Widgets
 Matthew McGowan - Pathbar, Widgets, Fixes, Coding
@@ -34,7 +32,7 @@ Ben Weissmann - Coding, Fixes
 Colin Watson - Coding, Fixes
 Geliy Sokolov - Coding, Fixes
 Jacob Johan Edwards - Coding, Fixes
-Olivier Tilloy - Coding, Fixesa
+Olivier Tilloy - Coding, Fixes
 Julian Andres Klode - Coding, Fixes, Packaging
 Ken VanDine - Coding, Gwibber
 Loïc Minier - Packaging Fixes
@@ -44,6 +42,7 @@ Seif Lotfy - Zeitgeist
 Stuart Langridge - Javascript magic
 Tomeu Vizoso  - i18n fixes
 Zygmunt Krynicki - Coding, Fixes
+Aaron Peachey - Coding, Fixes
 </property>
     <property name="translator_credits" translatable="yes">translator-credits</property>
     <property name="logo_icon_name">softwarecenter</property>
@@ -493,18 +492,6 @@ Zygmunt Krynicki - Coding, Fixes
             <property name="expand">True</property>
             <property name="fill">True</property>
             <property name="position">1</property>
-          </packing>
-        </child>
-        <child>
-          <object class="GtkEventBox" id="status_box">
-            <property name="visible">True</property>
-            <property name="can_focus">False</property>
-            <property name="border_width">3</property>
-          </object>
-          <packing>
-            <property name="expand">False</property>
-            <property name="fill">True</property>
-            <property name="position">2</property>
           </packing>
         </child>
       </object>

@@ -134,20 +134,15 @@ class ViewSwitcher(Gtk.Box):
         image = self.view_buttons[ViewPages.PENDING].image
         image.set_transaction_count(count)
 
-    def introduce_button(self):
-
-        
-
-        return
-
     def on_transaction_finished(self, backend, result):
         if result.success: 
             self.on_channels_changed()
         return
 
     def on_section_sel_clicked(self, button, view_id):
-        if self._prev_view is view_id:
-            return True
+        # mvo: this check causes bug LP: #828675
+        #if self._prev_view is view_id:
+        #    return True
 
         vm = self.view_manager
 
@@ -230,7 +225,14 @@ class ViewSwitcher(Gtk.Box):
             channels = self.channel_manager.channels
 
         for i, channel in enumerate(channels):
-            item = Gtk.CheckMenuItem()
+            # only calling it with a explicit new() makes it a really
+            # empty one, otherwise the following error is raised:
+            # """Attempting to add a widget with type GtkBox to a 
+            #    GtkCheckMenuItem, but as a GtkBin subclass a
+            #    GtkCheckMenuItem can only contain one widget at a time; 
+            #    it already contains a widget of type GtkAccelLabel """
+
+            item = Gtk.CheckMenuItem.new()
             item.set_draw_as_radio(True)
 
             label = Gtk.Label.new(channel.display_name)

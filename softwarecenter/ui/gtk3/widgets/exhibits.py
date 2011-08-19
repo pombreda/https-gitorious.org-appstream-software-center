@@ -32,6 +32,7 @@ from softwarecenter.ui.gtk3.shapes import Circle
 import softwarecenter.paths
 
 _asset_cache = {}
+_HAND = Gdk.Cursor.new(Gdk.CursorType.HAND2)
 
 EXHIBIT_HTML = """
 <html><head>
@@ -39,21 +40,21 @@ EXHIBIT_HTML = """
 .banner_text {
 font-size:1.7em;
 color:white;
-background:yellow;
+background: #dd4814;
 padding: 0.2em;
 text-shadow:0em 0em 0.075em black;
 position:absolute;
 top:30;
-left:20;
+left:100;
 }
 .banner_subtext {
 font-size:1.2em;
-color:white;
+color:black;
 padding: 1em;
-text-shadow:0em 0em 0.075em black;
+text-shadow:0em 0em 0.075em white;
 position:absolute;
 top:90;
-left:30;
+left:130;
 }
 </style>
 </head><body>
@@ -232,7 +233,7 @@ class ExhibitBanner(Gtk.EventBox):
 
     DROPSHADOW_HEIGHT = 11
     MAX_HEIGHT = 200 # pixels
-    TIMEOUT_SECONDS = 15
+    TIMEOUT_SECONDS = 300
 
     def __init__(self):
         Gtk.EventBox.__init__(self)
@@ -292,14 +293,26 @@ class ExhibitBanner(Gtk.EventBox):
         self.set_events(Gdk.EventMask.BUTTON_RELEASE_MASK|
                         Gdk.EventMask.ENTER_NOTIFY_MASK|
                         Gdk.EventMask.LEAVE_NOTIFY_MASK)
-        #~ self.connect("enter-notify-event", self.on_enter_notify)
-        #~ self.connect("leave-notify-event", self.on_leave_notify)
+        self.connect("enter-notify-event", self.on_enter_notify)
+        self.connect("leave-notify-event", self.on_leave_notify)
         self.connect("button-release-event", self.on_button_release)
 
+    def _init_mouse_pointer(self):
+        window = self.get_window()
+        if not window:
+            return
+        if not self.exhibits[self.cursor].package_names:
+            window.set_cursor(None)
+        else:
+            window.set_cursor(_HAND)
+
     def on_enter_notify(self, *args):
+        self._init_mouse_pointer()
         return
 
     def on_leave_notify(self, *args):
+        window = self.get_window()
+        window.set_cursor(None)
         return
 
     def on_button_release(self, *args):
@@ -325,14 +338,21 @@ class ExhibitBanner(Gtk.EventBox):
         return
 
     def _render_exhibit_at_cursor(self):
+        # init the mouse pointer
+        self._init_mouse_pointer()
+        # check the cursor is within range
+        n_exhibits = len(self.exhibits)
+        cursor = self.cursor
+        if n_exhibits == 0 or (cursor < 0 and cursor >= n_exhibits):
+            return
         # copy old image for the fade
         if self.image:
             self.old_image = self.image.copy()
         # set the rigth one
-        self.renderer.set_exhibit(self.exhibits[self.cursor])
+        self.renderer.set_exhibit(self.exhibits[cursor])
         # make sure the active button is having a different color
         for i, w in enumerate(self.index_hbox):
-            w.is_active = (i == self.cursor)
+            w.is_active = (i == cursor)
 
     def on_paging_dot_clicked(self, dot, index):
         self.cursor = index
@@ -468,6 +488,9 @@ class ExhibitBanner(Gtk.EventBox):
         return
 
     def set_exhibits(self, exhibits_list):
+        if not exhibits_list: 
+            return
+
         self.exhibits = exhibits_list
         self.cursor = 0
 

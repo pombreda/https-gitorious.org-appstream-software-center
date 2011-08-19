@@ -16,7 +16,12 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from gi.repository import GObject
+import sys
+if 'gobject' in sys.modules:
+    import gobject as GObject
+    GObject #pyflakes
+else:
+    from gi.repository import GObject
 
 class _Version:
     @property
@@ -133,7 +138,8 @@ class PackageInfo(GObject.GObject):
         return -1
     def get_origins(self, pkgname):
         return []
-    def get_addons(self, pkgname, ignore_installed):
+    def get_addons(self, pkgname, ignore_installed=False):
+        """ :return: a tuple of pkgnames (recommends, suggests) """
         return ([], [])
 
     def get_packages_removed_on_remove(self, pkg):
@@ -168,6 +174,11 @@ pkginfo = None
 def get_pkg_info():
     global pkginfo
     if pkginfo is None:
-        from softwarecenter.db.pkginfo_impl.aptcache import AptCache
-        pkginfo = AptCache()
+        from softwarecenter.enums import USE_PACKAGEKIT_BACKEND
+        if not USE_PACKAGEKIT_BACKEND:
+            from softwarecenter.db.pkginfo_impl.aptcache import AptCache
+            pkginfo = AptCache()
+        else:
+            from softwarecenter.db.pkginfo_impl.packagekit import PackagekitInfo
+            pkginfo = PackagekitInfo()        
     return pkginfo

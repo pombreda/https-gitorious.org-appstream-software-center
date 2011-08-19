@@ -18,7 +18,7 @@
 
 from __future__ import with_statement
 
-from gi.repository import GObject
+import gobject as GObject
 import gtk
 import logging
 import os
@@ -26,7 +26,9 @@ import pangocairo
 import pango
 import xapian
 
-from softwarecenter.enums import (AppActions, XapianValues,
+from softwarecenter.enums import (AppActions, 
+                                  XapianValues,
+                                  Icons,
                                   AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME,
                                   MOUSE_EVENT_BACK_BUTTON,
                                   MOUSE_EVENT_FORWARD_BUTTON,
@@ -398,7 +400,6 @@ class CellRendererAppView2(gtk.CellRendererText):
             x = 2*xpad+self.pixbuf_width
         else:
             x = cell_area.x+cell_area.width-lw-self.pixbuf_width-2*xpad
-            layout.set_alignment(pango.ALIGN_RIGHT)
 
         y = cell_area.y+ypad
 
@@ -681,7 +682,7 @@ class AppView(gtk.TreeView):
         # it needs to be the first one, because that is what the tools look
         # at by default
 
-        tr = CellRendererAppView2(show_ratings, "software-center-installed")
+        tr = CellRendererAppView2(show_ratings, Icons.INSTALLED_OVERLAY)
         tr.set_pixbuf_width(32)
         tr.set_button_spacing(int(get_em_value()*0.3+0.5))
 

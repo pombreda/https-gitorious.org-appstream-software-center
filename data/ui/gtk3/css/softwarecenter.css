@@ -39,3 +39,8 @@
     border-radius: 12;
     color: #fff;
 }
+
+GtkViewport{
+    border-width: 0;
+    padding: 0;
+}

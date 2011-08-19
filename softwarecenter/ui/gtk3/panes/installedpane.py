@@ -16,7 +16,6 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import gettext
 from gi.repository import Gtk
 import logging
 import xapian
@@ -32,7 +31,7 @@ from softwarecenter.db.categories import (CategoriesParser,
 from softwarecenter.ui.gtk3.models.appstore2 import (
     AppTreeStore, CategoryRowReference)
 from softwarepane import SoftwarePane
-from softwarecenter.ui.gtk3.views.appview import AppViewFilter
+from softwarecenter.db.appfilter import AppFilter
 
 LOG=logging.getLogger(__name__)
 
@@ -83,10 +82,6 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         self.loaded = False
         self.pane_name = _("Installed Software")
 
-        # state
-        self.state.filter = AppViewFilter(db, cache)
-        self.state.filter.set_installed_only(True)
-
         self.installed_apps = 0
 
         # switches to terminate build in progress
@@ -115,19 +110,20 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         self.treefilter.set_visible_func(self._row_visibility_func,
                                          AppTreeStore.COL_ROW_DATA)
         self.app_view.set_model(self.treefilter)
-        self.app_view.connect("row-collapsed", self._on_row_collapsed)
+        self.app_view.tree_view.connect("row-collapsed", self._on_row_collapsed)
 
         self.visible_docids = None
 
         self._all_cats = self.parse_applications_menu('/usr/share/app-install')
         self._all_cats = categories_sorted_by_name(self._all_cats)
 
-        # initial build of installed tree
-        #~ self._build_categorised_view()
-
         # now we are initialized
         self.emit("installed-pane-created")
         self.show_all()
+
+        # hacky, hide the header
+        self.app_view.header_hbox.hide()
+
         self.view_initialized = True
         return False
 
@@ -179,16 +175,18 @@ class InstalledPane(SoftwarePane, CategoriesParser):
 
         i = 0
 
+        xfilter = AppFilter(self.db, self.cache)
+        xfilter.set_installed_only(True)
         for cat in self._all_cats:
             # for each category do category query and append as a new
             # node to tree_view
             if not self._use_category(cat): continue
             query = self.get_query_for_cat(cat)
-            LOG.debug("filter.instaleld_only: %s" % self.state.filter.installed_only)
+            LOG.debug("filter.instaleld_only: %s" % xfilter.installed_only)
             enq.set_query(query,
                           sortmode=SortMethods.BY_ALPHABET,
                           nonapps_visible=self.nonapps_visible,
-                          filter=self.state.filter,
+                          filter=xfilter,
                           nonblocking_load=False,
                           persistent_duplicate_filter=(i>0))
 
@@ -199,13 +197,12 @@ class InstalledPane(SoftwarePane, CategoriesParser):
                 self.cat_docid_map[cat.untranslated_name] = \
                                     [doc.get_docid() for doc in docs]
                 model.set_category_documents(cat, docs)
-                #~ self._check_expand()
 
         # check for uncategorised pkgs
         enq.set_query(self.state.channel.query,
                       sortmode=SortMethods.BY_ALPHABET,
                       nonapps_visible=NonAppVisibility.MAYBE_VISIBLE,
-                      filter=self.state.filter,
+                      filter=xfilter,
                       nonblocking_load=False,
                       persistent_duplicate_filter=(i>0))
 
@@ -222,12 +219,15 @@ class InstalledPane(SoftwarePane, CategoriesParser):
             i += L
 
         if i:
-            self.app_view.set_cursor(Gtk.TreePath(), None, False)
+            self.app_view.tree_view.set_cursor(Gtk.TreePath(),
+                                               None, False)
             if i <= 10:
-                self.app_view.expand_all()
+                self.app_view.tree_view.expand_all()
 
         # cache the installed app count
         self.installed_count = i
+
+        self.app_view._append_appcount(self.installed_count, installed=True)
 
         self.emit("app-list-changed", i)
         return
@@ -237,9 +237,9 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         while it:
             path = self.treefilter.get_path(it)
             if self.state.search_term:# or path in self._user_expanded_paths:
-                self.app_view.expand_row(path, False)
+                self.app_view.tree_view.expand_row(path, False)
             else:
-                self.app_view.collapse_row(path)
+                self.app_view.tree_view.collapse_row(path)
 
             it = self.treefilter.iter_next(it)
         return
@@ -262,13 +262,9 @@ class InstalledPane(SoftwarePane, CategoriesParser):
 
         self.treefilter.refilter()
         if terms:
-            self.app_view.expand_all()
-            #i = len(self.visible_docids)
+            self.app_view.tree_view.expand_all()
         else:
             self._check_expand()
-            #i = self.installed_count
-
-        #~ self.emit("app-list-changed", i)
         return
 
     def get_query(self):
@@ -331,12 +327,13 @@ class InstalledPane(SoftwarePane, CategoriesParser):
 
     def _get_vis_cats(self, visids):
         vis_cats = {}
-
+        appcount = 0
         for cat_uname, docids in self.cat_docid_map.iteritems():
             children = len(set(docids) & set(visids))
             if children:
+                appcount += children
                 vis_cats[cat_uname] = children
-
+        self.app_view._append_appcount(appcount, installed=True)
         return vis_cats
 
     def on_db_reopen(self, db):
@@ -358,29 +355,6 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         if model:
             self.emit("app-list-changed", len(model))
         self.searchentry.show()
-    
-    def get_status_text(self):
-        """return user readable status text suitable for a status bar"""
-        # no status text in the details page
-        if (self.notebook.get_current_page() ==
-            InstalledPane.Pages.DETAILS):
-            return ""
-        # otherwise, show status based on search or not
-        model = self.app_view.get_model()
-        if not model:
-            return ""
-        if self.apps_search_term:
-            if self.visible_docids is None: 
-                return
-            length = len(self.visible_docids)
-            return gettext.ngettext("%(amount)s matching item",
-                                    "%(amount)s matching items",
-                                    length) % { 'amount' : length, }
-        else:
-            length = self.installed_count
-            return gettext.ngettext("%(amount)s item installed",
-                                    "%(amount)s items installed",
-                                    length) % { 'amount' : length, }
 
     def display_overview_page(self, page, view_state):
         LOG.debug("view_state: %s" % view_state)

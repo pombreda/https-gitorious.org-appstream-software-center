@@ -29,8 +29,8 @@ from decimal import Decimal
 # thread init is also required otherwise both gst and webkit are unhappy
 import pygtk
 pygtk.require ("2.0")
-from gi.repository import GObject
-GObject.threads_init()
+import gobject
+gobject.threads_init()
 import gtk
 
 import gettext
@@ -42,7 +42,6 @@ import sys
 
 from softwarecenter.enums import *
 from softwarecenter.paths import XAPIAN_BASE_PATH
-from softwarecenter.utils import ExecutionTime
 from softwarecenter.version import *
 
 import softwarecenter.log
@@ -76,7 +75,9 @@ if __name__ == "__main__":
     parser.add_option("--measure-startup-time", action="store_true",
                       help="open and wait until the window is visible, then close, only useful for profiling",
                       default=False)
-
+    parser.add_option("--dummy-backend", action="store_true",
+                      help="run with a dummy backend, this will not actually install or remove anything and is useful for testing",
+                      default=False)
     (options, args) = parser.parse_args()
 
     # statup time measure implies "performance" in debug filters
@@ -93,6 +94,13 @@ if __name__ == "__main__":
     else:
         softwarecenter.log.root.setLevel(level=logging.INFO)
 
+    # dummy backend
+    if options.dummy_backend:
+        import atexit
+        from softwarecenter.testutils import start_dummy_backend, stop_dummy_backend
+        start_dummy_backend()
+        atexit.register(stop_dummy_backend)
+
     # override text direction for testing purposes
     if options.force_rtl:
         gtk.widget_set_default_direction(gtk.TEXT_DIR_RTL)
@@ -102,7 +110,10 @@ if __name__ == "__main__":
     if os.path.exists("./data/ui/gtk/SoftwareCenter.ui"):
         logging.getLogger("softwarecenter").info("Using data (UI, xapian) from current dir")
         # set pythonpath for the various helpers
-        os.environ["PYTHONPATH"]=os.path.abspath(".") + ":"+os.environ.get("PYTHONPATH","")
+        if os.environ.get("PYTHONPATH", ""):
+            os.environ["PYTHONPATH"]=os.path.abspath(".") + ":" + os.environ.get("PYTHONPATH","")
+        else:
+            os.environ["PYTHONPATH"]=os.path.abspath(".")
         datadir = "./data"
         xapian_base_path = datadir
         # set new global datadir
@@ -121,6 +132,8 @@ if __name__ == "__main__":
 
     # create the app
     from softwarecenter.ui.gtk.app import SoftwareCenterApp
+    from softwarecenter.utils import ExecutionTime
+
     with ExecutionTime("create SoftwareCenterApp"):
         app = SoftwareCenterApp(datadir, xapian_base_path, options, args)
 
@@ -141,4 +154,3 @@ if __name__ == "__main__":
 
     # run it normally
     app.run(args)
-
