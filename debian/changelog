@@ -9,7 +9,7 @@ software-center (4.1.17) UNRELEASED; urgency=low
   [ Michael Vogt ]
   * softwarecenter/utils.py:
     - really remove old gmenusearcher code that uses the static gmenu
-      bindings
+      bindings (LP: #828535)
 
   [ Kiwinote ]
   * data/ui/gtk3/css/softwarecenter.css:
