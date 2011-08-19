@@ -970,7 +970,7 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         vb.pack_start(body_hb, False, False, 0)
 
         # append the description widget, hold the formatted long description
-        self.desc = AppDescription(viewport=self)
+        self.desc = AppDescription()
         self.desc.description.set_property("can-focus", True)
         self.desc.description.a11y = self.desc.description.get_accessible()
         body_hb.pack_start(self.desc, True, True, 0)
