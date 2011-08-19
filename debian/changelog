@@ -22,6 +22,10 @@ software-center (4.1.17) UNRELEASED; urgency=low
   * debian/control:
     - add python-gmenu back to the dependencies, the dynamic bindings
       can not be used with the gtk2 version os software-center
+  * utils/piston-helpers/piston_get_useful_votes_helper.py,
+    utils/piston-helpers/piston_get_reviews_helper.py:
+    - fix exception type now that json is used (instead of simplejson)
+      LP: #828324
 
   [ Kiwinote ]
   * data/ui/gtk3/css/softwarecenter.css:
