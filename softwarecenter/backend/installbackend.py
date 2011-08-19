@@ -62,10 +62,10 @@ def get_install_backend():
     if install_backend is None:
         from softwarecenter.enums import USE_PACKAGEKIT_BACKEND
         if not USE_PACKAGEKIT_BACKEND:
-            from softwarecenter.backend.aptd import AptdaemonBackend
+            from softwarecenter.backend.installbackend_impl.aptd import AptdaemonBackend
             install_backend = AptdaemonBackend()
         else:
-            from softwarecenter.backend.packagekitd import PackagekitBackend
+            from softwarecenter.backend.installbackend_impl.packagekitd import PackagekitBackend
             install_backend = PackagekitBackend()
     return install_backend
 
