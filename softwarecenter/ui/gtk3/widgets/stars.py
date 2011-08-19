@@ -438,6 +438,9 @@ class ReactiveStar(Star):
         return
 
     # public
+    def get_rating(self):
+        return self.rating
+
     def render_star(self, widget, cr, x, y):
         # paint focus
 
