@@ -1,7 +1,6 @@
 #!/usr/bin/python
 
 import pickle
-import json
 import logging
 import sys
 

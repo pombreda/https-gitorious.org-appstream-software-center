@@ -27,10 +27,12 @@ if 'gobject' in sys.modules:
     import gio as Gio
     GObject #pyflakes
     Gio #pyflakes
+    FILE_MONITOR_EVENT_CHANGES_DONE_HINT = Gio.FILE_MONITOR_EVENT_CHANGES_DONE_HINT
 else:
     have_gi = True
     from gi.repository import GObject
     from gi.repository import Gio
+    FILE_MONITOR_EVENT_CHANGES_DONE_HINT = Gio.FileMonitorEvent.CHANGES_DONE_HINT 
 
 
 import glob
@@ -51,6 +53,7 @@ from softwarecenter.paths import SOFTWARE_CENTER_CACHE_DIR
 from softwarecenter.utils import ExecutionTime
 from softwarecenter.db.history import Transaction, PackageHistory
 
+
 class AptHistory(PackageHistory):
 
     def __init__(self, use_cache=True):
@@ -61,7 +64,7 @@ class AptHistory(PackageHistory):
         if have_gi:
             self.logfile = Gio.File.new_for_path(self.history_file)
         else:
-            self.logfile = gio.File(self.history_file)
+            self.logfile = Gio.File(self.history_file)
         if have_gi:
             self.monitor = self.logfile.monitor_file(0, None)
         else:
@@ -135,7 +138,7 @@ class AptHistory(PackageHistory):
                 self._transactions.insert(0, trans)
             
     def _on_apt_history_changed(self, monitor, afile, other_file, event):
-        if event == gio.FILE_MONITOR_EVENT_CHANGES_DONE_HINT:
+        if event == FILE_MONITOR_EVENT_CHANGES_DONE_HINT:
             self._scan(self.history_file, rescan = True)
             if self.update_callback:
                 self.update_callback()
