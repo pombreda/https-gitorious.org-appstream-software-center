@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-07-21 17:04+0200\n"
+"POT-Creation-Date: 2011-08-19 19:21+0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,59 +18,59 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
-#: ../utils/submit_review.py:276 ../utils/submit_review.py:1283
+#: ../utils/submit_review.py:278 ../utils/submit_review.py:1285
 msgid "Failed to delete review"
 msgstr ""
 
-#: ../utils/submit_review.py:362
+#: ../utils/submit_review.py:364
 msgid "Server's response was:"
 msgstr ""
 
-#: ../utils/submit_review.py:364
+#: ../utils/submit_review.py:366
 #, python-format
 msgid ""
 "%s\n"
 "%s"
 msgstr ""
 
-#: ../utils/submit_review.py:366 ../utils/submit_review.py:370
+#: ../utils/submit_review.py:368 ../utils/submit_review.py:372
 msgid ""
 "Unknown error communicating with server. Check your log and consider raising "
 "a bug report if this problem persists"
 msgstr ""
 
-#: ../utils/submit_review.py:435
+#: ../utils/submit_review.py:437
 msgid "Signing in…"
 msgstr ""
 
-#: ../utils/submit_review.py:460
+#: ../utils/submit_review.py:462
 msgid ""
 "To review software or to report abuse you need to sign in to a Ubuntu Single "
 "Sign-On account."
 msgstr ""
 
-#: ../utils/submit_review.py:473
+#: ../utils/submit_review.py:475
 msgid "Login was canceled"
 msgstr ""
 
-#: ../utils/submit_review.py:510
+#: ../utils/submit_review.py:512
 msgid "Failed to log in"
 msgstr ""
 
-#: ../utils/submit_review.py:618
+#: ../utils/submit_review.py:620
 msgid "Submitting Review"
 msgstr ""
 
-#: ../utils/submit_review.py:619
+#: ../utils/submit_review.py:621
 msgid "Failed to submit review"
 msgstr ""
 
-#: ../utils/submit_review.py:620
+#: ../utils/submit_review.py:622
 msgid "Review submitted"
 msgstr ""
 
 #. legal fineprint, do not change without consulting a lawyer
-#: ../utils/submit_review.py:626
+#: ../utils/submit_review.py:628
 msgid ""
 "By submitting this review, you agree not to include anything defamatory, "
 "infringing, or illegal. Canonical may, at its discretion, publish your name "
@@ -78,96 +78,96 @@ msgid ""
 "or content author to publish it too."
 msgstr ""
 
-#: ../utils/submit_review.py:698
+#: ../utils/submit_review.py:700
 #, python-format
 msgid "Review %s"
 msgstr ""
 
-#: ../utils/submit_review.py:702
+#: ../utils/submit_review.py:704
 #, python-format
 msgid "Modify Your %s Review"
 msgstr ""
 
-#: ../utils/submit_review.py:703
+#: ../utils/submit_review.py:705
 msgid "Modify"
 msgstr ""
 
-#: ../utils/submit_review.py:704
+#: ../utils/submit_review.py:706
 msgid "Updating your review"
 msgstr ""
 
-#: ../utils/submit_review.py:705
+#: ../utils/submit_review.py:707
 msgid "Failed to edit review"
 msgstr ""
 
-#: ../utils/submit_review.py:706
+#: ../utils/submit_review.py:708
 msgid "Review updated"
 msgstr ""
 
 #. review label
-#: ../utils/submit_review.py:741
+#: ../utils/submit_review.py:743
 #, python-format
 msgid "Review by: %s"
 msgstr ""
 
 #. review summary label
-#: ../utils/submit_review.py:744
+#: ../utils/submit_review.py:746
 msgid "Summary:"
 msgstr ""
 
 #. rating label
-#: ../utils/submit_review.py:747
+#: ../utils/submit_review.py:749
 msgid "Rating:"
 msgstr ""
 
 #. error detail link label
-#: ../utils/submit_review.py:749 ../utils/submit_review.py:1223
+#: ../utils/submit_review.py:751 ../utils/submit_review.py:1225
 #: ../data/ui/gtk/submit_review.ui.h:3 ../data/ui/gtk/report_abuse.ui.h:1
 msgid "Error Details"
 msgstr ""
 
-#: ../utils/submit_review.py:791
+#: ../utils/submit_review.py:793
 msgid "Can't submit unmodified"
 msgstr ""
 
-#: ../utils/submit_review.py:943
+#: ../utils/submit_review.py:945
 #, python-format
 msgid "Also post this review to %s (@%s)"
 msgstr ""
 
 #. setup accounts combo
-#: ../utils/submit_review.py:957
+#: ../utils/submit_review.py:959
 msgid "Also post this review to: "
 msgstr ""
 
-#: ../utils/submit_review.py:980
+#: ../utils/submit_review.py:982
 #, python-format
 msgid "Posting to %s"
 msgstr ""
 
-#: ../utils/submit_review.py:1060
+#: ../utils/submit_review.py:1062
 msgid "Problems posting to Gwibber"
 msgstr ""
 
-#: ../utils/submit_review.py:1108
+#: ../utils/submit_review.py:1110
 #, python-format
 msgid "reviewed %(appname)s in Ubuntu: %(rating)s %(summary)s %(link)s"
 msgstr ""
 
-#: ../utils/submit_review.py:1150
+#: ../utils/submit_review.py:1152
 msgid "Sending report…"
 msgstr ""
 
-#: ../utils/submit_review.py:1151
+#: ../utils/submit_review.py:1153
 msgid "Failed to submit report"
 msgstr ""
 
 #. title
-#: ../utils/submit_review.py:1166
+#: ../utils/submit_review.py:1168
 msgid "Flag as Inappropriate"
 msgstr ""
 
-#: ../utils/submit_review.py:1181
+#: ../utils/submit_review.py:1183
 msgid "Please make a selection…"
 msgstr ""
 
@@ -175,7 +175,7 @@ msgstr ""
 #. located directly beneath a label asking 'Why is this review inappropriate?'.
 #. This text refers to a possible reason for why the corresponding
 #. review is being flagged as inappropriate.
-#: ../utils/submit_review.py:1186
+#: ../utils/submit_review.py:1188
 msgid "Offensive language"
 msgstr ""
 
@@ -183,7 +183,7 @@ msgstr ""
 #. located directly beneath a label asking 'Why is this review inappropriate?'.
 #. This text refers to a possible reason for why the corresponding
 #. review is being flagged as inappropriate.
-#: ../utils/submit_review.py:1191
+#: ../utils/submit_review.py:1193
 msgid "Infringes copyright"
 msgstr ""
 
@@ -191,7 +191,7 @@ msgstr ""
 #. located directly beneath a label asking 'Why is this review inappropriate?'.
 #. This text refers to a possible reason for why the corresponding
 #. review is being flagged as inappropriate.
-#: ../utils/submit_review.py:1196
+#: ../utils/submit_review.py:1198
 msgid "Contains inaccuracies"
 msgstr ""
 
@@ -199,37 +199,37 @@ msgstr ""
 #. located directly beneath a label asking 'Why is this review inappropriate?'.
 #. This text refers to a possible reason for why the corresponding
 #. review is being flagged as inappropriate.
-#: ../utils/submit_review.py:1201 ../softwarecenter/backend/channel.py:424
+#: ../utils/submit_review.py:1203 ../softwarecenter/backend/channel.py:229
 msgid "Other"
 msgstr ""
 
 #. report label
-#: ../utils/submit_review.py:1217
+#: ../utils/submit_review.py:1219
 msgid "Please give details:"
 msgstr ""
 
 #. review summary label
-#: ../utils/submit_review.py:1220
+#: ../utils/submit_review.py:1222
 msgid "Why is this review inappropriate?"
 msgstr ""
 
-#: ../utils/submit_review.py:1242
+#: ../utils/submit_review.py:1244
 msgid "Sending usefulness…"
 msgstr ""
 
-#: ../utils/submit_review.py:1282
+#: ../utils/submit_review.py:1284
 msgid "Deleting review…"
 msgstr ""
 
-#: ../utils/submit_review.py:1358
+#: ../utils/submit_review.py:1360
 msgid "Missing arguments"
 msgstr ""
 
-#: ../utils/submit_review.py:1387 ../utils/submit_review.py:1411
+#: ../utils/submit_review.py:1389 ../utils/submit_review.py:1413
 msgid "Missing review-id arguments"
 msgstr ""
 
-#: ../utils/submit_review.py:1435 ../utils/submit_review.py:1457
+#: ../utils/submit_review.py:1437 ../utils/submit_review.py:1459
 msgid "Missing review-id argument"
 msgstr ""
 
@@ -354,7 +354,7 @@ msgstr ""
 #: ../softwarecenter/ui/gtk/appdetailsview_gtk.py:288
 #: ../softwarecenter/ui/gtk/appdetailsview_webkit.py:451
 #: ../softwarecenter/ui/gtk/appdetailsview_webkit.py:467
-#: ../softwarecenter/ui/gtk/appview.py:690
+#: ../softwarecenter/ui/gtk/appview.py:696
 msgid "Remove"
 msgstr ""
 
@@ -447,7 +447,7 @@ msgstr ""
 #. aquired for purchase in utils/submit_review.py
 #. the other one in softwarecenter/app.py
 #: ../data/ubuntu-software-center.desktop.in.h:3
-#: ../softwarecenter/ui/gtk/app.py:756 ../softwarecenter/distro/Ubuntu.py:58
+#: ../softwarecenter/ui/gtk/app.py:761 ../softwarecenter/distro/Ubuntu.py:60
 msgid "Ubuntu Software Center"
 msgstr ""
 
@@ -456,11 +456,12 @@ msgid ""
 "Lets you choose from thousands of applications available for your system "
 msgstr ""
 
-#: ../data/featured.menu.in.h:1 ../softwarecenter/ui/gtk/catview_gtk.py:426
+#: ../data/featured.menu.in.h:1 ../softwarecenter/ui/gtk/catview_gtk.py:456
 msgid "Featured"
 msgstr ""
 
-#: ../data/new.menu.in.h:1 ../softwarecenter/ui/gtk/catview_gtk.py:462
+#: ../data/new.menu.in.h:1 ../softwarecenter/ui/gtk/catview_gtk.py:420
+#: ../softwarecenter/ui/gtk/catview_gtk.py:443
 msgid "What’s New"
 msgstr ""
 
@@ -692,69 +693,77 @@ msgstr ""
 msgid "Web Development"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk/app.py:182
-#: ../softwarecenter/ui/gtk/availablepane.py:771
-#: ../softwarecenter/ui/gtk/installedpane.py:230
+#: ../softwarecenter/ui/gtk/app.py:187
+#: ../softwarecenter/ui/gtk/availablepane.py:775
+#: ../softwarecenter/ui/gtk/installedpane.py:229
 msgid "Sorry, can not open the software database"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk/app.py:183
-#: ../softwarecenter/ui/gtk/availablepane.py:772
-#: ../softwarecenter/ui/gtk/installedpane.py:231
+#: ../softwarecenter/ui/gtk/app.py:188
+#: ../softwarecenter/ui/gtk/availablepane.py:776
+#: ../softwarecenter/ui/gtk/installedpane.py:230
 msgid "Please re-install the 'software-center' package."
 msgstr ""
 
-#: ../softwarecenter/ui/gtk/app.py:757
+#: ../softwarecenter/ui/gtk/app.py:762
 msgid "Ubuntu Software Center Store"
 msgstr ""
 
 #. display a "Loading" spinner until we actually display the
 #. details view for the deb file
-#: ../softwarecenter/ui/gtk/app.py:1159
-#: ../softwarecenter/ui/gtk/availablepane.py:116
+#: ../softwarecenter/ui/gtk/app.py:1161
+#: ../softwarecenter/ui/gtk/availablepane.py:115
 msgid "Loading"
 msgstr ""
 
-#: ../softwarecenter/backend/aptd.py:674
+#: ../softwarecenter/backend/channel.py:219
+msgid "Canonical Partners"
+msgstr ""
+
+#: ../softwarecenter/backend/channel.py:221
+#: ../softwarecenter/ui/gtk/appdetailsview_gtk.py:1320
+#: ../softwarecenter/ui/gtk/appdetailsview_gtk.py:1326
+#: ../softwarecenter/ui/gtk/appdetailsview_gtk.py:1330
+#: ../softwarecenter/ui/gtk/appdetailsview_gtk.py:1754
+msgid "Unknown"
+msgstr ""
+
+#: ../softwarecenter/backend/channel.py:225
+msgid "For Purchase"
+msgstr ""
+
+#: ../softwarecenter/backend/channel.py:227
+msgid "Independent"
+msgstr ""
+
+#: ../softwarecenter/backend/channel.py:306
+msgid "All Software"
+msgstr ""
+
+#: ../softwarecenter/backend/channel.py:312
+msgid "All Installed"
+msgstr ""
+
+#: ../softwarecenter/backend/installbackend_impl/aptd.py:679
 #: ../softwarecenter/ui/gtk/appdetailsview_gtk.py:323
 msgid "Error"
 msgstr ""
 
-#: ../softwarecenter/backend/aptd.py:708
+#: ../softwarecenter/backend/installbackend_impl/aptd.py:713
 msgid "_Ignore and install"
 msgstr ""
 
-#: ../softwarecenter/backend/channel.py:414
-msgid "Canonical Partners"
-msgstr ""
-
-#: ../softwarecenter/backend/channel.py:416
-#: ../softwarecenter/ui/gtk/appdetailsview_gtk.py:1320
-#: ../softwarecenter/ui/gtk/appdetailsview_gtk.py:1326
-#: ../softwarecenter/ui/gtk/appdetailsview_gtk.py:1330
-#: ../softwarecenter/ui/gtk/appdetailsview_gtk.py:1748
-msgid "Unknown"
-msgstr ""
-
-#: ../softwarecenter/backend/channel.py:420
-msgid "For Purchase"
-msgstr ""
-
-#: ../softwarecenter/backend/channel.py:422
-msgid "Independent"
+#: ../softwarecenter/db/application.py:197
+#: ../softwarecenter/db/application.py:297
+#: ../softwarecenter/db/application.py:424
+#: ../softwarecenter/db/application.py:438
+msgid "Not found"
 msgstr ""
 
 #: ../softwarecenter/db/application.py:198
 #: ../softwarecenter/db/application.py:298
 #: ../softwarecenter/db/application.py:425
 #: ../softwarecenter/db/application.py:439
-msgid "Not found"
-msgstr ""
-
-#: ../softwarecenter/db/application.py:199
-#: ../softwarecenter/db/application.py:299
-#: ../softwarecenter/db/application.py:426
-#: ../softwarecenter/db/application.py:440
 #, python-format
 msgid ""
 "There isn’t a software package called “%s” in your current software sources."
@@ -792,11 +801,11 @@ msgstr ""
 #. provide a list of words in your language that people are likely
 #. to include in a search but that should normally be ignored in
 #. the search.
-#: ../softwarecenter/db/database.py:104
+#: ../softwarecenter/db/database.py:118
 msgid "app;application;package;program;programme;suite;tool"
 msgstr ""
 
-#: ../softwarecenter/db/update.py:411
+#: ../softwarecenter/db/update.py:441
 #, python-format
 msgid ""
 "The file: '%s' could not be read correctly. The application associated with "
@@ -807,7 +816,7 @@ msgstr ""
 #. WARNING: item.name needs to be different than
 #. the item.name in the DB otherwise the DB
 #. gets confused about (appname, pkgname) duplication
-#: ../softwarecenter/db/update.py:452
+#: ../softwarecenter/db/update.py:482
 #, python-format
 msgid "%s (already purchased)"
 msgstr ""
@@ -816,18 +825,18 @@ msgstr ""
 msgid "Provided by Debian"
 msgstr ""
 
-#: ../softwarecenter/distro/Debian.py:43 ../softwarecenter/distro/Ubuntu.py:72
+#: ../softwarecenter/distro/Debian.py:43 ../softwarecenter/distro/Ubuntu.py:74
 #, python-format
 msgid "To remove %s, these items must be removed as well:"
 msgstr ""
 
 #: ../softwarecenter/distro/Debian.py:45
 #: ../softwarecenter/distro/__init__.py:138
-#: ../softwarecenter/distro/Ubuntu.py:74
+#: ../softwarecenter/distro/Ubuntu.py:76
 msgid "Remove All"
 msgstr ""
 
-#: ../softwarecenter/distro/Debian.py:50 ../softwarecenter/distro/Ubuntu.py:79
+#: ../softwarecenter/distro/Debian.py:50 ../softwarecenter/distro/Ubuntu.py:81
 #, python-format
 msgid ""
 "If you uninstall %s, future updates will not include new items in <b>%s</b> "
@@ -835,7 +844,7 @@ msgid ""
 msgstr ""
 
 #: ../softwarecenter/distro/Debian.py:53 ../softwarecenter/distro/Debian.py:64
-#: ../softwarecenter/distro/Ubuntu.py:82 ../softwarecenter/distro/Ubuntu.py:93
+#: ../softwarecenter/distro/Ubuntu.py:84 ../softwarecenter/distro/Ubuntu.py:95
 msgid "Remove Anyway"
 msgstr ""
 
@@ -847,7 +856,7 @@ msgid ""
 msgstr ""
 
 #: ../softwarecenter/distro/Debian.py:71
-#: ../softwarecenter/distro/Ubuntu.py:100
+#: ../softwarecenter/distro/Ubuntu.py:102
 msgid "Open source"
 msgstr ""
 
@@ -856,7 +865,7 @@ msgid "Open source, with proprietary parts"
 msgstr ""
 
 #: ../softwarecenter/distro/Debian.py:75
-#: ../softwarecenter/distro/Ubuntu.py:102
+#: ../softwarecenter/distro/Ubuntu.py:104
 msgid "Proprietary"
 msgstr ""
 
@@ -918,61 +927,61 @@ msgid ""
 "purchased software:"
 msgstr ""
 
-#: ../softwarecenter/distro/Ubuntu.py:61
+#: ../softwarecenter/distro/Ubuntu.py:63
 msgid "Lets you choose from thousands of applications available for Ubuntu."
 msgstr ""
 
-#: ../softwarecenter/distro/Ubuntu.py:69
+#: ../softwarecenter/distro/Ubuntu.py:71
 msgid "Provided by Ubuntu"
 msgstr ""
 
-#: ../softwarecenter/distro/Ubuntu.py:89
+#: ../softwarecenter/distro/Ubuntu.py:91
 #, python-format
 msgid ""
 "%s is a core application in Ubuntu. Uninstalling it may cause future "
 "upgrades to be incomplete. Are you sure you want to continue?"
 msgstr ""
 
-#: ../softwarecenter/distro/Ubuntu.py:169
-#: ../softwarecenter/distro/Ubuntu.py:181
+#: ../softwarecenter/distro/Ubuntu.py:173
+#: ../softwarecenter/distro/Ubuntu.py:185
 #, python-format
 msgid ""
 "Canonical does no longer provide updates for %s in Ubuntu %s. Updates may be "
 "available in a newer version of Ubuntu."
 msgstr ""
 
-#: ../softwarecenter/distro/Ubuntu.py:174
+#: ../softwarecenter/distro/Ubuntu.py:178
 #, python-format
 msgid ""
 "Canonical provides critical updates for %(appname)s until "
 "%(support_end_month_str)s %(support_end_year)s."
 msgstr ""
 
-#: ../softwarecenter/distro/Ubuntu.py:186
+#: ../softwarecenter/distro/Ubuntu.py:190
 #, python-format
 msgid ""
 "Canonical provides critical updates supplied by the developers of "
 "%(appname)s until %(support_end_month_str)s %(support_end_year)s."
 msgstr ""
 
-#: ../softwarecenter/distro/Ubuntu.py:197
+#: ../softwarecenter/distro/Ubuntu.py:201
 #, python-format
 msgid ""
 "Canonical does not provide updates for %s. Some updates may be provided by "
 "the third party vendor."
 msgstr ""
 
-#: ../softwarecenter/distro/Ubuntu.py:201
+#: ../softwarecenter/distro/Ubuntu.py:205
 #, python-format
 msgid "Canonical provides critical updates for %s."
 msgstr ""
 
-#: ../softwarecenter/distro/Ubuntu.py:203
+#: ../softwarecenter/distro/Ubuntu.py:207
 #, python-format
 msgid "Canonical provides critical updates supplied by the developers of %s."
 msgstr ""
 
-#: ../softwarecenter/distro/Ubuntu.py:206
+#: ../softwarecenter/distro/Ubuntu.py:210
 #, python-format
 msgid ""
 "Canonical does not provide updates for %s. Some updates may be provided by "
@@ -986,13 +995,13 @@ msgid ""
 msgstr ""
 
 #. less than 2 minute ago
-#: ../softwarecenter/utils.py:346
+#: ../softwarecenter/utils.py:367
 msgid "a few minutes ago"
 msgstr ""
 
 #. dont be fussy
 #. less than an hour ago
-#: ../softwarecenter/utils.py:349
+#: ../softwarecenter/utils.py:370
 #, python-format
 msgid "%(min)i minute ago"
 msgid_plural "%(min)i minutes ago"
@@ -1000,7 +1009,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. less than a day ago
-#: ../softwarecenter/utils.py:354
+#: ../softwarecenter/utils.py:375
 #, python-format
 msgid "%(hours)i hour ago"
 msgid_plural "%(hours)i hours ago"
@@ -1008,7 +1017,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #. less than a week ago
-#: ../softwarecenter/utils.py:359
+#: ../softwarecenter/utils.py:380
 #, python-format
 msgid "%(days)i day ago"
 msgid_plural "%(days)i days ago"
@@ -1085,8 +1094,8 @@ msgstr ""
 #. we want to re-enable the buy button if this is an app for purchase
 #. FIXME:  hacky, find a better approach
 #: ../softwarecenter/ui/gtk/appdetailsview_gtk.py:296
-#: ../softwarecenter/ui/gtk/availablepane.py:572
-#: ../softwarecenter/ui/gtk/channelpane.py:179
+#: ../softwarecenter/ui/gtk/availablepane.py:576
+#: ../softwarecenter/ui/gtk/channelpane.py:178
 msgid "Buy…"
 msgstr ""
 
@@ -1098,7 +1107,7 @@ msgstr ""
 #: ../softwarecenter/ui/gtk/appdetailsview_gtk.py:314
 #: ../softwarecenter/ui/gtk/appdetailsview_gtk.py:327
 #: ../softwarecenter/ui/gtk/appdetailsview_webkit.py:457
-#: ../softwarecenter/ui/gtk/appview.py:689
+#: ../softwarecenter/ui/gtk/appview.py:695
 msgid "Install"
 msgstr ""
 
@@ -1176,8 +1185,7 @@ msgstr ""
 
 #. homepage link button
 #: ../softwarecenter/ui/gtk/appdetailsview_gtk.py:1116
-#: ../softwarecenter/ui/gtk/appdetailsview_webkit.py:248
-msgid "Website"
+msgid "Developer Web Site"
 msgstr ""
 
 #: ../softwarecenter/ui/gtk/appdetailsview_gtk.py:1147
@@ -1201,48 +1209,48 @@ msgstr ""
 msgid "Calculating..."
 msgstr ""
 
-#: ../softwarecenter/ui/gtk/appdetailsview_gtk.py:1419
+#: ../softwarecenter/ui/gtk/appdetailsview_gtk.py:1423
 msgid "This program is run from a terminal: "
 msgstr ""
 
-#: ../softwarecenter/ui/gtk/appdetailsview_gtk.py:1420
+#: ../softwarecenter/ui/gtk/appdetailsview_gtk.py:1424
 msgid "These programs are run from a terminal: "
 msgstr ""
 
 #. display launcher location
-#: ../softwarecenter/ui/gtk/appdetailsview_gtk.py:1442
+#: ../softwarecenter/ui/gtk/appdetailsview_gtk.py:1446
 msgid "Find it in the menu: "
 msgstr ""
 
-#: ../softwarecenter/ui/gtk/appdetailsview_gtk.py:1731
+#: ../softwarecenter/ui/gtk/appdetailsview_gtk.py:1737
 #, python-format
 msgid "%sB to download, "
 msgstr ""
 
-#: ../softwarecenter/ui/gtk/appdetailsview_gtk.py:1734
+#: ../softwarecenter/ui/gtk/appdetailsview_gtk.py:1740
 #, python-format
 msgid "%sB when installed"
 msgstr ""
 
 #. FIXME: this is not really a good indication of the size on disk
-#: ../softwarecenter/ui/gtk/appdetailsview_gtk.py:1742
+#: ../softwarecenter/ui/gtk/appdetailsview_gtk.py:1748
 #, python-format
 msgid "%sB on disk"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk/appdetailsview_gtk.py:1745
+#: ../softwarecenter/ui/gtk/appdetailsview_gtk.py:1751
 #, python-format
 msgid "%sB to be freed"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk/appdetailsview_gtk.py:1770
+#: ../softwarecenter/ui/gtk/appdetailsview_gtk.py:1776
 #, python-format
 msgid "Used: one time"
 msgid_plural "Used: %(amount)s times"
 msgstr[0] ""
 msgstr[1] ""
 
-#: ../softwarecenter/ui/gtk/appdetailsview_gtk.py:1774
+#: ../softwarecenter/ui/gtk/appdetailsview_gtk.py:1780
 msgid "Used: over 100 times"
 msgstr ""
 
@@ -1287,6 +1295,10 @@ msgstr ""
 msgid "Installed since %s"
 msgstr ""
 
+#: ../softwarecenter/ui/gtk/appdetailsview_webkit.py:248
+msgid "Website"
+msgstr ""
+
 #: ../softwarecenter/ui/gtk/appdetailsview_webkit.py:251
 msgid "Share via microblog"
 msgstr ""
@@ -1321,77 +1333,70 @@ msgstr ""
 msgid "Buy for %s"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk/appview.py:431
-#, python-format
-msgid "%(nr_ratings)i Rating"
-msgid_plural "%(nr_ratings)i Ratings"
-msgstr[0] ""
-msgstr[1] ""
-
 #. translatable labels for cell buttons
 #. string for info button, currently does not need any variants
-#: ../softwarecenter/ui/gtk/appview.py:685
+#: ../softwarecenter/ui/gtk/appview.py:691
 msgid "More Info"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk/availablepane.py:92
+#: ../softwarecenter/ui/gtk/availablepane.py:91
 #: ../softwarecenter/ui/gtk/models/viewswitcherlist.py:79
 msgid "Get Software"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk/availablepane.py:246
+#: ../softwarecenter/ui/gtk/availablepane.py:250
 msgid "Custom List"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk/availablepane.py:248
-#: ../softwarecenter/ui/gtk/softwarepane.py:699
+#: ../softwarecenter/ui/gtk/availablepane.py:252
+#: ../softwarecenter/ui/gtk/softwarepane.py:700
 msgid "Search Results"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk/availablepane.py:331
+#: ../softwarecenter/ui/gtk/availablepane.py:335
 #, python-format
 msgid "%(amount)s item"
 msgid_plural "%(amount)s items"
 msgstr[0] ""
 msgstr[1] ""
 
-#: ../softwarecenter/ui/gtk/availablepane.py:335
-#: ../softwarecenter/ui/gtk/channelpane.py:220
-#: ../softwarecenter/ui/gtk/channelpane.py:229
-#: ../softwarecenter/ui/gtk/installedpane.py:145
+#: ../softwarecenter/ui/gtk/availablepane.py:339
+#: ../softwarecenter/ui/gtk/channelpane.py:219
+#: ../softwarecenter/ui/gtk/channelpane.py:228
+#: ../softwarecenter/ui/gtk/installedpane.py:144
 #, python-format
 msgid "%(amount)s matching item"
 msgid_plural "%(amount)s matching items"
 msgstr[0] ""
 msgstr[1] ""
 
-#: ../softwarecenter/ui/gtk/availablepane.py:339
-#: ../softwarecenter/ui/gtk/channelpane.py:233
+#: ../softwarecenter/ui/gtk/availablepane.py:343
+#: ../softwarecenter/ui/gtk/channelpane.py:232
 #, python-format
 msgid "%(amount)s item available"
 msgid_plural "%(amount)s items available"
 msgstr[0] ""
 msgstr[1] ""
 
-#: ../softwarecenter/ui/gtk/availablepane.py:364
+#: ../softwarecenter/ui/gtk/availablepane.py:368
 #, python-format
 msgid "Install %(amount)s Item"
 msgid_plural "Install %(amount)s Items"
 msgstr[0] ""
 msgstr[1] ""
 
-#: ../softwarecenter/ui/gtk/availablepane.py:677
+#: ../softwarecenter/ui/gtk/availablepane.py:681
 msgid "Previous Purchases"
 msgstr ""
 
 #: ../softwarecenter/ui/gtk/catview_gtk.py:100
-#: ../softwarecenter/ui/gtk/catview_gtk.py:524
+#: ../softwarecenter/ui/gtk/catview_gtk.py:513
 #: ../softwarecenter/ui/gtk/catview_webkit.py:62
 #: ../softwarecenter/ui/gtk/catview_webkit.py:72
 msgid "Departments"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk/catview_gtk.py:305
+#: ../softwarecenter/ui/gtk/catview_gtk.py:326
 #, python-format
 msgid "Welcome back! There is <a href=\"\">%i new recommendation</a> for you."
 msgid_plural ""
@@ -1399,36 +1404,40 @@ msgid_plural ""
 msgstr[0] ""
 msgstr[1] ""
 
-#: ../softwarecenter/ui/gtk/catview_gtk.py:316
+#: ../softwarecenter/ui/gtk/catview_gtk.py:337
 msgid "Recommendations"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk/catview_gtk.py:385
+#: ../softwarecenter/ui/gtk/catview_gtk.py:430
 msgid "Top Rated"
 msgstr ""
 
+#: ../softwarecenter/ui/gtk/catview_gtk.py:589
+#, python-format
+msgid "Top Rated %s"
+msgstr ""
+
 #. append an additional button to show all of the items in the category
-#. an AppStore
-#: ../softwarecenter/ui/gtk/catview_gtk.py:614
-#: ../softwarecenter/ui/gtk/catview_gtk.py:616
-#: ../softwarecenter/ui/gtk/widgets/carousel.py:72
+#: ../softwarecenter/ui/gtk/catview_gtk.py:636
+#: ../softwarecenter/ui/gtk/catview_gtk.py:638
+#: ../softwarecenter/ui/gtk/widgets/carousel.py:75
 msgid "All"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk/channelpane.py:65
+#: ../softwarecenter/ui/gtk/channelpane.py:64
 msgid "Software Channels"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk/channelpane.py:110
+#: ../softwarecenter/ui/gtk/channelpane.py:109
 msgid "Add channel"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk/channelpane.py:111
+#: ../softwarecenter/ui/gtk/channelpane.py:110
 msgid "The selected channel is not yet added. Do you want to add it now?"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk/channelpane.py:224
-#: ../softwarecenter/ui/gtk/installedpane.py:149
+#: ../softwarecenter/ui/gtk/channelpane.py:223
+#: ../softwarecenter/ui/gtk/installedpane.py:148
 #, python-format
 msgid "%(amount)s item installed"
 msgid_plural "%(amount)s items installed"
@@ -1440,76 +1449,76 @@ msgstr[1] ""
 msgid "Dependency"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk/historypane.py:87
+#: ../softwarecenter/ui/gtk/historypane.py:84
 msgid "<span size=\"x-large\">History</span>"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk/historypane.py:102
+#: ../softwarecenter/ui/gtk/historypane.py:99
 msgid "All Changes"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk/historypane.py:107
+#: ../softwarecenter/ui/gtk/historypane.py:104
 msgid "Installations"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk/historypane.py:113
+#: ../softwarecenter/ui/gtk/historypane.py:110
 msgid "Updates"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk/historypane.py:119
+#: ../softwarecenter/ui/gtk/historypane.py:116
 msgid "Removals"
 msgstr ""
 
 #. make a spinner to display while history is loading
-#: ../softwarecenter/ui/gtk/historypane.py:136
+#: ../softwarecenter/ui/gtk/historypane.py:134
 msgid "Loading history"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk/historypane.py:158
+#: ../softwarecenter/ui/gtk/historypane.py:155
 msgid "Date"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk/historypane.py:240
+#: ../softwarecenter/ui/gtk/historypane.py:237
 #, python-format
 msgid "%d changes"
 msgstr ""
 
 #. Translators : time displayed in history, display hours (0-12), minutes and AM/PM. %H should be used instead of %I to display hours 0-24
-#: ../softwarecenter/ui/gtk/historypane.py:321
+#: ../softwarecenter/ui/gtk/historypane.py:318
 msgid "%I:%M %p"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk/historypane.py:323
+#: ../softwarecenter/ui/gtk/historypane.py:320
 #, python-format
 msgid "%(pkgname)s installed %(time)s"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk/historypane.py:325
+#: ../softwarecenter/ui/gtk/historypane.py:322
 #, python-format
 msgid "%(pkgname)s removed %(time)s"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk/historypane.py:327
+#: ../softwarecenter/ui/gtk/historypane.py:324
 #, python-format
 msgid "%(pkgname)s updated %(time)s"
 msgstr ""
 
 #. Current week, display the name of the day
-#: ../softwarecenter/ui/gtk/historypane.py:333
+#: ../softwarecenter/ui/gtk/historypane.py:330
 msgid "%A"
 msgstr ""
 
 #. Current year, display the day and month
-#: ../softwarecenter/ui/gtk/historypane.py:337
+#: ../softwarecenter/ui/gtk/historypane.py:334
 msgid "%d %B"
 msgstr ""
 
 #. Display the full date: day, month, year
-#: ../softwarecenter/ui/gtk/historypane.py:340
+#: ../softwarecenter/ui/gtk/historypane.py:337
 msgid "%d %B %Y"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk/installedpane.py:57
+#: ../softwarecenter/ui/gtk/installedpane.py:56
 #: ../softwarecenter/ui/gtk/models/viewswitcherlist.py:86
 msgid "Installed Software"
 msgstr ""
@@ -1525,6 +1534,11 @@ msgstr ""
 #: ../softwarecenter/ui/gtk/pendingview.py:174
 #, python-format
 msgid "Downloaded %sB of %sB"
+msgstr ""
+
+#: ../softwarecenter/ui/gtk/pendingview.py:180
+#, python-format
+msgid "ETA: %s"
 msgstr ""
 
 #: ../softwarecenter/ui/gtk/purchaseview.py:86
@@ -1563,36 +1577,36 @@ msgstr ""
 
 #. TRANSLATORS: the text inbetween the underscores acts as a link
 #. In most/all languages you will want the whole string as a link
-#: ../softwarecenter/ui/gtk/softwarepane.py:578
+#: ../softwarecenter/ui/gtk/softwarepane.py:579
 #, python-format
 msgid "_Hide %(amount)i technical item_"
 msgid_plural "_Hide %(amount)i technical items_"
 msgstr[0] ""
 msgstr[1] ""
 
-#: ../softwarecenter/ui/gtk/softwarepane.py:583
+#: ../softwarecenter/ui/gtk/softwarepane.py:584
 #, python-format
 msgid "_Show %(amount)i technical item_"
 msgid_plural "_Show %(amount)i technical items_"
 msgstr[0] ""
 msgstr[1] ""
 
-#: ../softwarecenter/ui/gtk/softwarepane.py:600
+#: ../softwarecenter/ui/gtk/softwarepane.py:601
 #, python-format
 msgid "No results for \"%s\""
 msgstr ""
 
-#: ../softwarecenter/ui/gtk/softwarepane.py:603
+#: ../softwarecenter/ui/gtk/softwarepane.py:604
 #, python-format
 msgid "No items match \"%s\". Suggestions:"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk/softwarepane.py:605
+#: ../softwarecenter/ui/gtk/softwarepane.py:606
 #, python-format
 msgid "No items in %s match \"%s\". Suggestions:"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk/softwarepane.py:620
+#: ../softwarecenter/ui/gtk/softwarepane.py:621
 #, python-format
 msgid ""
 "Try <a href=\"search-parent:\">the item in %(category)s</a> that matches."
@@ -1602,7 +1616,7 @@ msgid_plural ""
 msgstr[0] ""
 msgstr[1] ""
 
-#: ../softwarecenter/ui/gtk/softwarepane.py:640
+#: ../softwarecenter/ui/gtk/softwarepane.py:641
 #, python-format
 msgid ""
 "Try <a href=\"search-unsupported:\">the %(amount)d item that matches</a> in "
@@ -1613,22 +1627,22 @@ msgid_plural ""
 msgstr[0] ""
 msgstr[1] ""
 
-#: ../softwarecenter/ui/gtk/softwarepane.py:646
+#: ../softwarecenter/ui/gtk/softwarepane.py:647
 msgid "Try searching in <a href=\"search-all:\">all categories</a> instead."
 msgstr ""
 
-#: ../softwarecenter/ui/gtk/softwarepane.py:650
+#: ../softwarecenter/ui/gtk/softwarepane.py:651
 #, python-format
 msgid "Check the search is spelled correctly. Did you mean: %s?"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk/softwarepane.py:651
+#: ../softwarecenter/ui/gtk/softwarepane.py:652
 msgid "Try using a different word."
 msgid_plural "Try using fewer words or different words"
 msgstr[0] ""
 msgstr[1] ""
 
-#: ../softwarecenter/ui/gtk/viewswitcher.py:212
+#: ../softwarecenter/ui/gtk/viewswitcher.py:211
 msgid "Software sources"
 msgstr ""
 
@@ -1668,11 +1682,11 @@ msgstr ""
 msgid "Navigates forward."
 msgstr ""
 
-#: ../softwarecenter/ui/gtk/widgets/carousel.py:78
+#: ../softwarecenter/ui/gtk/widgets/carousel.py:81
 msgid "show all"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk/widgets/carousel.py:665
+#: ../softwarecenter/ui/gtk/widgets/carousel.py:669
 #, python-format
 msgid "Go to page %d"
 msgstr ""
