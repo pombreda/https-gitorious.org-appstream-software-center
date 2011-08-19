@@ -1,3 +1,12 @@
+software-center (4.1.17) UNRELEASED; urgency=low
+
+  * lp:~mmcg069/software-center/gtk3fix:
+    - description.py, do not connect to the viewport size-allocate signal, 
+      i think this should prevent the wierd spazz out when resize evetns 
+      occur
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 19 Aug 2011 09:38:46 +0200
+
 software-center (4.1.16) oneiric; urgency=low
 
   [ Michael Vogt ]
