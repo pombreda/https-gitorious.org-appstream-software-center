@@ -38,9 +38,6 @@ class BasePane(object):
     def is_app_details_view_showing(self):
         return False
 
-    def get_status_text(self):
-        return ""
-
     def get_current_app(self):
         return None
         
