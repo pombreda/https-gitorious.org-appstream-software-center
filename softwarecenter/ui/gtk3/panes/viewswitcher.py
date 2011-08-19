@@ -225,7 +225,14 @@ class ViewSwitcher(Gtk.Box):
             channels = self.channel_manager.channels
 
         for i, channel in enumerate(channels):
-            item = Gtk.CheckMenuItem()
+            # only calling it with a explicit new() makes it a really
+            # empty one, otherwise the following error is raised:
+            # """Attempting to add a widget with type GtkBox to a 
+            #    GtkCheckMenuItem, but as a GtkBin subclass a
+            #    GtkCheckMenuItem can only contain one widget at a time; 
+            #    it already contains a widget of type GtkAccelLabel """
+
+            item = Gtk.CheckMenuItem.new()
             item.set_draw_as_radio(True)
 
             label = Gtk.Label.new(channel.display_name)

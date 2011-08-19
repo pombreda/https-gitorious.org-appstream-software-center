@@ -2,6 +2,9 @@ software-center (4.1.18) UNRELEASED; urgency=low
 
   * lp:~alexeftimie/software-center/packagekit-backend:
     - add packagekit backend, thanks Alex Eftimie
+    - this allows using "software-center-gtk3 --packagekit-backend"
+  * softwarecenter/ui/gtk3/panes/viewswitcher.py:
+    - pygi compat fix, Gtk.CheckMenuItem() != Gtk.CheckMenuItem.new()
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 19 Aug 2011 14:52:03 +0200
 
