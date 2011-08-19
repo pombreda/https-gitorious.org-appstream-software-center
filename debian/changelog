@@ -15,6 +15,8 @@ software-center (4.1.17) UNRELEASED; urgency=low
     - update usage
   * softwarecenter/db/history_impl/apthistory.py:
     - add conditional use of gio.File() vs Gio.File.new_for_path()
+  * softwarecenter/utils.py, softwarecenter/backend/reviews.py:
+    - fixes in subtle API changes for Gio vs gio
 
   [ Kiwinote ]
   * data/ui/gtk3/css/softwarecenter.css:

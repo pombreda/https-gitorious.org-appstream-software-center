@@ -567,14 +567,17 @@ class SimpleFileDownloader(GObject.GObject):
         # elements (content, size, etag?)
         # The first element is the actual content so let's grab that
         try:
-            content = f.load_contents_finish(result)[0]
-        except Gio.Error as e:
+            if have_gi:
+                content = f.load_contents_finish(result)[1]
+            else:
+                content = f.load_contents_finish(result)[0]
+        except Exception as e:
             # i witnissed a strange error[1], so make the loader robust in this
             # situation
             # 1. content = f.load_contents_finish(result)[0]
             #    Gio.Error: DBus error org.freedesktop.DBus.Error.NoReply
             self.LOG.debug(e)
-            self.emit('error', Gio.Error, e)
+            self.emit('error', Exception, e)
             return
 
         outputfile = open(self.dest_file_path, "w")
