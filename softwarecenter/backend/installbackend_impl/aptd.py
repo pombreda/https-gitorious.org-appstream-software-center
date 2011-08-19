@@ -451,6 +451,24 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
         yield policykit1.check_authorization_by_name(name, action, flags=flags)
 
     @inline_callbacks
+    def add_license_key(self, license_key, license_key_path):
+        """ add a license key for a purchase """
+        self._logger.debug("adding license_key of len: %i to %s" % (
+                len(license_key), license_key_path))
+        if os.access(license_key_path, os.W_OK):
+            if not os.path.exists(license_key_path):
+                f = open(license_key_path, "w")
+                f.write(license_key)
+                f.close()
+        else:
+            try:
+                trans = yield self.aptd_client.add_license_key(
+                    license_key, license_key_path)
+                yield self._run_transaction(trans, None, None, None)
+            except Exception as e:
+                self._logger.error("add_repository: '%s'" % e)
+
+    @inline_callbacks
     def add_repo_add_key_and_install_app(self,
                                          deb_line,
                                          signing_key_id,

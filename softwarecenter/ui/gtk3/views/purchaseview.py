@@ -236,9 +236,15 @@ h1 {
             # gather data from response
             deb_line = res["deb_line"]
             signing_key_id = res["signing_key_id"]
+            license_key = res.get("license_key")
+            license_key_path = res.get("license_key_path")
             # add repo and key
-            get_install_backend().add_repo_add_key_and_install_app(
+            backend = get_install_backend()
+            backend.add_repo_add_key_and_install_app(
                 deb_line, signing_key_id, self.app, self.iconname)
+            if license_key and license_key_path:
+                backend.add_license_key(license_key, license_key_path)
+
                                                                    
     def _block_wk_handlers(self):
         # we need to block webkit signal handlers when we hide the

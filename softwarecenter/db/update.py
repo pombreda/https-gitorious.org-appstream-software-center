@@ -144,6 +144,8 @@ class SoftwareCenterAgentParser(AppInfoParserBase):
                 'Deb-Line'   : 'deb_line',
                 'Signing-Key-Id' : 'signing_key_id',
                 'Purchased-Date' : 'purchase_date',
+                'License-Key' : 'license_key',
+                'License-Key-Path' : 'license_key_path',
                 'PPA'        : 'archive_id',
                 'Icon'       : 'icon',
                 'Screenshot-Url' : 'screenshot_url',
@@ -639,6 +641,14 @@ def index_app_info_from_parser(parser, db, cache):
         if parser.has_option_desktop("X-AppInstall-Deb-Line"):
             debline = parser.get_desktop("X-AppInstall-Deb-Line")
             doc.add_value(XapianValues.ARCHIVE_DEB_LINE, debline)
+        # license key (third party)
+        if parser.has_option_desktop("X-AppInstall-License-Key"):
+            key = parser.get_desktop("X-AppInstall-License-Key")
+            doc.add_value(XapianValues.LICENSE_KEY, key)
+        # license keypath (third party)
+        if parser.has_option_desktop("X-AppInstall-License-Key-Path"):
+            path = parser.get_desktop("X-AppInstall-License-Key-Path")
+            doc.add_value(XapianValues.LICENSE_KEY_PATH, path)
         # PPA (third party stuff)
         if parser.has_option_desktop("X-AppInstall-PPA"):
             archive_ppa = parser.get_desktop("X-AppInstall-PPA")
