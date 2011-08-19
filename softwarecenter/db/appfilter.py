@@ -63,8 +63,12 @@ class AppFilter(xapian.MatchDecider):
                 return False
         if self.installed_only:
             # use the lowlevel cache here, twice as fast
-            lowlevel_cache = self.cache._cache._cache
-            if (not pkgname in lowlevel_cache or
+            try:
+                lowlevel_cache = self.cache._cache._cache
+            except AttributeError:
+                lowlevel_cache = None
+            if lowlevel_cache and \
+                (not pkgname in lowlevel_cache or
                 not lowlevel_cache[pkgname].current_ver):
                 return False
         if self.not_installed_only:
