@@ -80,9 +80,12 @@ class TestPkgInfoAptCache(unittest.TestCase):
 class TestPkgInfoPackagekit(TestPkgInfoAptCache):
     klass = PackagekitInfo
 	
+    # FIXME: implement this in PK as well
     def test_addons(self):
         pass
     def test_section(self):
+        pass
+    def test_removal(self):
         pass
 
 if __name__ == "__main__":

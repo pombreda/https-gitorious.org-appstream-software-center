@@ -31,14 +31,14 @@ class TestAptdaemon(unittest.TestCase):
         os.remove(os.path.expanduser(target))
      
     # FIXME: merge when aptdaemon backend is there
-    #@inline_callbacks
-    #def _test_add_license_key_opt(self):
-    #    # test /opt
-    #    data = "some-data"
-    #    target = "/opt/foo.txt"
-    #    yield self.aptd.add_license_key(data, target)
-    #    self.assertEqual(open(os.path.expanduser(target)).read(), data)
-    #    os.remove(os.path.expanduser(target))
+    def test_add_license_key_opt(self):
+        # test /opt
+        data = "some-data"
+        target = "/opt/foo.txt"
+        defer = self.aptd.add_license_key(data, target)
+        self.assertTrue(defer.called)
+        #self.assertEqual(open(os.path.expanduser(target)).read(), data)
+        #os.remove(os.path.expanduser(target))
 
     def test_install_multiple(self):
         # FIXME: this test is not great, it should really 
