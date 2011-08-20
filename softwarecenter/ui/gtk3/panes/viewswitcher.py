@@ -40,19 +40,14 @@ LOG = logging.getLogger(__name__)
 _last_button = None
 class ViewSwitcher(Gtk.Box):
 
-    __gsignals__ = {
-        "view-changed" : (GObject.SignalFlags.RUN_LAST,
-                          None, 
-                          (GObject.TYPE_PYOBJECT, GObject.TYPE_PYOBJECT),
-                         ),
-    }
-
-
     ICON_SIZE = Gtk.IconSize.LARGE_TOOLBAR
 
     def __init__(self, view_manager, datadir, db, cache, icons):
         # boring stuff
         self.view_manager = view_manager
+        def on_view_changed(widget, view_id):
+            self.view_buttons[view_id].set_active(True)
+        self.view_manager.connect('view-changed', on_view_changed)
         self.channel_manager = get_channels_manager(db)
 
         # backend sig handlers ...
@@ -139,7 +134,7 @@ class ViewSwitcher(Gtk.Box):
             self.on_channels_changed()
         return
 
-    def on_section_sel_clicked(self, button, view_id):
+    def on_section_sel_clicked(self, button, event, view_id):
         # mvo: this check causes bug LP: #828675
         #if self._prev_view is view_id:
         #    return True
@@ -196,7 +191,7 @@ class ViewSwitcher(Gtk.Box):
         # to the group, toggled & clicked gets emitted... causing
         # all panes to fully initialise on USC startup, which is
         # undesirable!
-        btn.connect("clicked", self.on_section_sel_clicked, view_id)
+        btn.connect("button-release-event", self.on_section_sel_clicked, view_id)
         return btn
 
     def append_channel_selector(self, section_btn, view_id, build_func):
