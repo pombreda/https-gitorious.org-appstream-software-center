@@ -42,7 +42,6 @@ import sys
 
 from softwarecenter.enums import *
 from softwarecenter.paths import XAPIAN_BASE_PATH
-from softwarecenter.utils import ExecutionTime
 from softwarecenter.version import *
 
 import softwarecenter.log
@@ -79,7 +78,6 @@ if __name__ == "__main__":
     parser.add_option("--dummy-backend", action="store_true",
                       help="run with a dummy backend, this will not actually install or remove anything and is useful for testing",
                       default=False)
-
     (options, args) = parser.parse_args()
 
     # statup time measure implies "performance" in debug filters
@@ -134,6 +132,8 @@ if __name__ == "__main__":
 
     # create the app
     from softwarecenter.ui.gtk.app import SoftwareCenterApp
+    from softwarecenter.utils import ExecutionTime
+
     with ExecutionTime("create SoftwareCenterApp"):
         app = SoftwareCenterApp(datadir, xapian_base_path, options, args)
 
@@ -154,4 +154,3 @@ if __name__ == "__main__":
 
     # run it normally
     app.run(args)
-

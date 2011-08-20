@@ -65,7 +65,7 @@ from softwarecenter.backend.transactionswatcher import TransactionFinishedResult
 try:
     from aptd_gtk3 import InstallBackendUI
     InstallBackendUI # pyflakes
-except ImportError:
+except:
     from softwarecenter.backend.installbackend import InstallBackendUI
 
 # ui imports
@@ -90,7 +90,6 @@ from softwarecenter.db.pkginfo import get_pkg_info
 
 
 from gi.repository import Gdk
-from gi.repository import Atk
 
 LOG = logging.getLogger(__name__)
 
@@ -288,7 +287,6 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
                                         self.distro,
                                         self.icons,
                                         self.datadir)
-        self.history_pane.connect("history-pane-created", self.on_history_pane_created)
         self.view_manager.register(self.history_pane, ViewPages.HISTORY)
 
         # pending pane
@@ -358,12 +356,6 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         self.config = get_config()
         self.restore_state()
 
-        # create label_status for in our eventbox
-        self.label_status = Gtk.Label()
-        self.status_box.a11y = self.status_box.get_accessible()
-        self.status_box.a11y.set_role(Atk.Role.STATUSBAR)
-        self.status_box.add(self.label_status)
-
         # run s-c-agent update
         if options.disable_buy:
             file_menu = self.builder.get_object("menu1")
@@ -423,12 +415,6 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
 
     def on_available_pane_created(self, widget):
         # connect signals
-        self.available_pane.connect("app-list-changed", 
-                                    self.on_app_list_changed,
-                                    ViewPages.AVAILABLE)
-        self.available_pane.app_details_view.connect("selected", 
-                                                     self.on_app_details_changed,
-                                                     ViewPages.AVAILABLE)
         self.available_pane.app_details_view.connect("application-request-action", 
                                                      self.on_application_request_action)
         self.available_pane.app_view.connect("application-request-action", 
@@ -446,12 +432,6 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         #~ self.channel_pane.set_section(channel_section)
 
         # connect signals
-        self.channel_pane.connect("app-list-changed", 
-                                    self.on_app_list_changed,
-                                    ViewPages.CHANNEL)
-        self.channel_pane.app_details_view.connect("selected", 
-                                                   self.on_app_details_changed,
-                                                   ViewPages.CHANNEL)
         self.channel_pane.app_details_view.connect("application-request-action", 
                                                    self.on_application_request_action)
         self.channel_pane.app_view.connect("application-request-action", 
@@ -463,22 +443,10 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         #~ self.installed_pane.set_section(installed_section)
         
         # connect signals
-        self.installed_pane.connect("app-list-changed", 
-                                    self.on_app_list_changed,
-                                    ViewPages.INSTALLED)
-        self.installed_pane.app_details_view.connect("selected", 
-                                                     self.on_app_details_changed,
-                                                     ViewPages.INSTALLED)
         self.installed_pane.app_details_view.connect("application-request-action", 
                                                      self.on_application_request_action)
         self.installed_pane.app_view.connect("application-request-action", 
                                              self.on_application_request_action)
-                                             
-    def on_history_pane_created(self, widget):
-        # connect signal
-        self.history_pane.connect("app-list-changed", 
-                                  self.on_app_list_changed,
-                                  ViewPages.HISTORY)
     
     def _on_update_software_center_agent_finished(self, pid, condition):
         LOG.info("software-center-agent finished with status %i" % os.WEXITSTATUS(condition))
@@ -487,13 +455,6 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
 
     def on_review_stats_loaded(self, reviews):
         LOG.debug("on_review_stats_loaded: '%s'" % len(reviews))
-
-    def on_app_details_changed(self, widget, app, page):
-        self.update_status_bar()
-
-    def on_app_list_changed(self, pane, new_len, page):
-        if self.view_manager.get_active_view() == page:
-            self.update_status_bar()
 
     def on_window_main_delete_event(self, widget, event):
         if hasattr(self, "glaunchpad"):
@@ -566,7 +527,6 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             not self.installed_pane.get_current_app()):
             self.installed_pane.refresh_apps()
         self.update_app_list_view(channel)
-        self.update_status_bar()
 
     def _on_lp_login(self, lp, token):
         self._lp_login_successful = True
@@ -926,14 +886,16 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
 
     def on_menuitem_view_all_activate(self, widget):
         if (not self._block_menuitem_view and
-            self.active_pane.apps_filter and
-            self.active_pane.apps_filter.get_supported_only()):
-            self.active_pane.apps_filter.set_supported_only(False)
-            self.active_pane.refresh_apps()
+            self.active_pane.state.filter and
+            self.active_pane.state.filter.get_supported_only()):
+            self.active_pane.state.filter.set_supported_only(False)
 
-            # update recommended widget counter
+            # update recommended widget counter and appcount
             if self.available_pane and self.available_pane.cat_view:
                 self.available_pane.cat_view._append_recommendations()
+                self.available_pane.cat_view._append_appcount(False)
+
+            self.active_pane.refresh_apps()
 
             # update subcategory view
             if (self.available_pane and
@@ -949,6 +911,11 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             self.active_pane.state and
             not self.active_pane.state.filter.get_supported_only()):
             self.active_pane.state.filter.set_supported_only(True)
+
+            # update appcount
+            if self.available_pane and self.available_pane.cat_view:
+                self.available_pane.cat_view._append_appcount(True)
+
             self.active_pane.refresh_apps()
 
             # navigate up if the details page is no longer available
@@ -1014,7 +981,6 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             # are send and triggers "refresh_apps"
             # and refresh the displayed app in the details as well
             self.db.reopen()
-            self.update_status_bar()
 
     # helper
 
@@ -1022,22 +988,6 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         """update the apt cache (e.g. after new sources where added """
         self.backend.reload()
 
-    def update_status_bar(self):
-        "Helper that updates the status bar"
-        if self.active_pane:
-            s = self.active_pane.get_status_text()
-        else:
-            # FIXME: deal with the pending view status
-            s = ""
-        self.label_status.set_text(s)
-
-        # update a11y
-        if s:
-            self.status_box.a11y.set_name(s)
-            self.status_box.set_property('can-focus', True)
-        else:
-            self.status_box.set_property('can-focus', False)
-        
     def update_app_list_view(self, channel=None):
         """Helper that updates the app view list """
         if self.active_pane is None:

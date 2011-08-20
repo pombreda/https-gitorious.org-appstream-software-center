@@ -1,11 +1,13 @@
 #!/usr/bin/python
 
+import os
 import sys
-sys.path.insert(0,"../")
-
 import unittest
 
-from softwarecenter.backend.aptd import AptdaemonBackend
+
+sys.path.insert(0,"../")
+from softwarecenter.backend.installbackend_impl.aptd import AptdaemonBackend
+from defer import inline_callbacks
 
 class TestAptdaemon(unittest.TestCase):
     """ tests the AptdaemonBackend """
@@ -18,6 +20,25 @@ class TestAptdaemon(unittest.TestCase):
     
     def _mock_aptd_client_install_packages(self, pkgs, reply_handler, error_handler):
         self._pkgs_to_install.extend(pkgs)
+
+    @inline_callbacks
+    def test_add_license_key_home(self):
+        data = "some-data"
+        # test HOME
+        target = "~/.fasfasdfsdafdfsdafdsfa"
+        yield self.aptd.add_license_key(data, target)
+        self.assertEqual(open(os.path.expanduser(target)).read(), data)
+        os.remove(os.path.expanduser(target))
+     
+    # FIXME: merge when aptdaemon backend is there
+    def test_add_license_key_opt(self):
+        # test /opt
+        data = "some-data"
+        target = "/opt/foo.txt"
+        defer = self.aptd.add_license_key(data, target)
+        self.assertTrue(defer.called)
+        #self.assertEqual(open(os.path.expanduser(target)).read(), data)
+        #os.remove(os.path.expanduser(target))
 
     def test_install_multiple(self):
         # FIXME: this test is not great, it should really 
@@ -32,7 +53,7 @@ class TestAptdaemon(unittest.TestCase):
         self.assertEqual(self._pkgs_to_install, ["7zip", "2vcard"])
         self._pkgs_to_install = []
 
-    def _monkey_patched_add_vendor_key_from_keyserver(self, keyid, keyserver):
+    def _monkey_patched_add_vendor_key_from_keyserver(self, keyid, *args):
         self.assertTrue(keyid.startswith("0x"))
 
     def test_download_key_from_keyserver(self):

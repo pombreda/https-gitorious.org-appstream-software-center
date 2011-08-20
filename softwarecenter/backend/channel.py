@@ -26,22 +26,99 @@ from softwarecenter.distro import get_distro
 
 from softwarecenter.enums import (SortMethods, 
                                   Icons,
+                                  ViewPages,
                                  )
 
 LOG = logging.getLogger(__name__)
 
 class ChannelsManager(object):
+    def __init__(self, db, **kwargs):
+        self.distro = get_distro()
+        self.db = db
+
     @property
     def channels(self):
-        return []
+        return self._get_channels_from_db()
         
     @property
     def channels_installed_only(self):
-        return []
+        return self._get_channels_from_db(True)
 
-    @staticmethod
-    def channel_available(channelname):
+    @classmethod
+    def channel_available(kls, channelname):
         pass
+
+    def _get_channels_from_db(self, installed_only=False):
+        """
+        (internal) implements 'channels()' and 'channels_installed_only()' properties
+        """
+        distro_channel_name = self.distro.get_distro_channel_name()
+        
+        # gather the set of software channels and order them
+        other_channel_list = []
+        cached_origins = []
+        for channel_iter in self.db.xapiandb.allterms("XOL"):
+            if len(channel_iter.term) == 3:
+                continue
+            channel_name = channel_iter.term[3:]
+            channel_origin = ""
+            
+            # get origin information for this channel
+            m = self.db.xapiandb.postlist_begin(channel_iter.term)
+            doc = self.db.xapiandb.get_document(m.get_docid())
+            for term_iter in doc.termlist():
+                if term_iter.term.startswith("XOO") and len(term_iter.term) > 3: 
+                    channel_origin = term_iter.term[3:]
+                    break
+            LOG.debug("channel_name: %s" % channel_name)
+            LOG.debug("channel_origin: %s" % channel_origin)
+            if channel_origin not in cached_origins:
+                other_channel_list.append((channel_name, channel_origin))
+                cached_origins.append(channel_origin)
+        
+        dist_channel = None
+        other_channels = []
+        unknown_channel = []
+        local_channel = None
+
+        for (channel_name, channel_origin) in other_channel_list:
+            if not channel_name:
+                unknown_channel.append(SoftwareChannel(channel_name,
+                                                       channel_origin,
+                                                       None,
+                                                       installed_only=installed_only))
+            elif channel_name == distro_channel_name:
+                dist_channel = (SoftwareChannel(distro_channel_name,
+                                                channel_origin,
+                                                None,
+                                                installed_only=installed_only))
+            elif channel_name == "notdownloadable":
+                if installed_only:
+                    local_channel = SoftwareChannel(channel_name,
+                                                    None,
+                                                    None,
+                                                    installed_only=installed_only)
+            else:
+                other_channels.append(SoftwareChannel(channel_name,
+                                                      channel_origin,
+                                                      None,
+                                                      installed_only=installed_only))
+
+        # set them in order
+        channels = []
+        if dist_channel is not None:
+            channels.append(dist_channel)
+        channels.extend(other_channels)
+        channels.extend(unknown_channel)
+        if local_channel is not None:
+            channels.append(local_channel)
+
+        for channel in channels:
+            if installed_only:
+                channel._channel_view_id = ViewPages.INSTALLED
+            else:
+                channel._channel_view_id = ViewPages.AVAILABLE
+        return channels
 
 class SoftwareChannel(object):
     """
@@ -239,8 +316,12 @@ channels_manager = None
 def get_channels_manager(db):
     global channels_manager
     if channels_manager is None:
-        from softwarecenter.backend.aptchannels import AptChannelsManager
-        channels_manager = AptChannelsManager(db)
+        from softwarecenter.enums import USE_PACKAGEKIT_BACKEND
+        if not USE_PACKAGEKIT_BACKEND:
+            from softwarecenter.backend.aptchannels import AptChannelsManager
+            channels_manager = AptChannelsManager(db)
+        else:
+            channels_manager = ChannelsManager(db)
     return channels_manager
 
 def is_channel_available(channelname):

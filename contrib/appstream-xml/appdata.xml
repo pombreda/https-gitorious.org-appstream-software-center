@@ -30,5 +30,16 @@
     </mimetypes>
     <url type="homepage">http://www.mozilla.com</url>
   </application>
+  <application>
+    <id type="desktop">cheese.desktop</id>
+    <pkgname>cheese</pkgname>
+    <name>Cheese</name>
+    <summary>Take photos and videos with your webcam, with fun graphical effects</summary>
+    <icon type="local">cheese</icon>
+    <appcategories>
+      <appcategory>GNOME</appcategory>
+      <appcategory>AudioVideo</appcategory>
+    </appcategories>
+  </application>
   <!-- more applications here! -->
 </applications>

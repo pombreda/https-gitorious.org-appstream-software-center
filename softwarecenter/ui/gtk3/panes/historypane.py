@@ -150,7 +150,7 @@ class HistoryPane(Gtk.VBox, BasePane):
         
         # busy cursor
         self.busy_cursor = Gdk.Cursor.new(Gdk.CursorType.WATCH)
-        
+
     def init_view(self):
         if self.history == None:
             # if the history is not yet initialized we have to load and parse it
@@ -231,9 +231,6 @@ class HistoryPane(Gtk.VBox, BasePane):
         self.last = new_last
         self.update_view()
 
-    def get_status_text(self):
-        return _('%d changes') % self.visible_changes
-
     def get_current_page(self):
         # single page views can return None here
         return None
@@ -265,11 +262,14 @@ class HistoryPane(Gtk.VBox, BasePane):
             self.view.expand_all()
 
         # Compute the number of visible changes
-        self.visible_changes = 0
-        day = self.store_filter.get_iter_first()
-        while day is not None:
-            self.visible_changes += self.store_filter.iter_n_children(day)
-            day = self.store_filter.iter_next(day)
+        # don't do this atm - the spec doesn't mention that the history pane
+        # should have a status text and it gives us a noticable performance gain
+        # if we don't calculate this
+#        self.visible_changes = 0
+ #       day = self.store_filter.get_iter_first()
+  #      while day is not None:
+   #         self.visible_changes += self.store_filter.iter_n_children(day)
+    #        day = self.store_filter.iter_next(day)
             
         # Expand the most recent day
         day = self.store.get_iter_first()
@@ -278,7 +278,7 @@ class HistoryPane(Gtk.VBox, BasePane):
 	        self.view.expand_row(path, False)
 	        self.view.scroll_to_cell(path)
 
-        self.emit('app-list-changed', self.visible_changes)
+#        self.emit('app-list-changed', self.visible_changes)
 
     def _row_matches(self, store, iter):
         # Whether a child row matches the current filter and the search entry

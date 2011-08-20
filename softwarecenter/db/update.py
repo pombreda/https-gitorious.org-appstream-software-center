@@ -18,7 +18,6 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import base64
-from gi.repository import GObject
 import logging
 import os
 import json
@@ -26,6 +25,13 @@ import string
 import shutil
 import time
 import xapian
+import sys
+
+if 'gobject' in sys.modules:
+    import gobject as GObject
+    GObject #pyflakes
+else:
+    from gi.repository import GObject
 
 # py3 compat
 try:
@@ -138,6 +144,8 @@ class SoftwareCenterAgentParser(AppInfoParserBase):
                 'Deb-Line'   : 'deb_line',
                 'Signing-Key-Id' : 'signing_key_id',
                 'Purchased-Date' : 'purchase_date',
+                'License-Key' : 'license_key',
+                'License-Key-Path' : 'license_key_path',
                 'PPA'        : 'archive_id',
                 'Icon'       : 'icon',
                 'Screenshot-Url' : 'screenshot_url',
@@ -226,6 +234,12 @@ class AppStreamXMLParser(AppInfoParserBase):
             return self._parse_with_lists(key)
         else:
             return self._parse_value(key)
+    def get_desktop_categories(self):
+        return self._get_desktop_list("Categories", split_str=',')
+    def get_desktop_mimetypes(self):
+        if not self.has_option_desktop("MimeType"):
+            return []
+        return self._get_desktop_list("MimeType", split_str=',')
     def _parse_value(self, key):
         for child in self.appinfo_xml.iter(key):
             # FIXME: deal with the i18n
@@ -525,7 +539,7 @@ def update_from_software_center_agent(db, cache, ignore_cache=False,
                 icondata = ""
             # write it if we have data
             if icondata:
-		# the iconcache gets mightly confused if there is a "." in the name
+            # the iconcache gets mightly confused if there is a "." in the name
                 iconname = "sc-agent-%s" % entry.package_name.replace(".", "__")
                 open(os.path.join(
                         softwarecenter.paths.SOFTWARE_CENTER_ICON_CACHE_DIR,
@@ -627,6 +641,14 @@ def index_app_info_from_parser(parser, db, cache):
         if parser.has_option_desktop("X-AppInstall-Deb-Line"):
             debline = parser.get_desktop("X-AppInstall-Deb-Line")
             doc.add_value(XapianValues.ARCHIVE_DEB_LINE, debline)
+        # license key (third party)
+        if parser.has_option_desktop("X-AppInstall-License-Key"):
+            key = parser.get_desktop("X-AppInstall-License-Key")
+            doc.add_value(XapianValues.LICENSE_KEY, key)
+        # license keypath (third party)
+        if parser.has_option_desktop("X-AppInstall-License-Key-Path"):
+            path = parser.get_desktop("X-AppInstall-License-Key-Path")
+            doc.add_value(XapianValues.LICENSE_KEY_PATH, path)
         # PPA (third party stuff)
         if parser.has_option_desktop("X-AppInstall-PPA"):
             archive_ppa = parser.get_desktop("X-AppInstall-PPA")

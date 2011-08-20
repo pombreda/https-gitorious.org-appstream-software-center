@@ -595,10 +595,6 @@ class SoftwarePane(Gtk.VBox, BasePane):
         self.nonapps_visible = NonAppVisibility.MAYBE_VISIBLE
         self.refresh_apps()
 
-    def get_status_text(self):
-        """return user readable status text suitable for a status bar"""
-        raise NotImplementedError
-
     def get_query(self):
         channel_query = None
         #name = self.pane_name
