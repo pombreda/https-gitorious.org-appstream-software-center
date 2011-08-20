@@ -50,7 +50,8 @@ class _Package:
     def __init__(self, name, pkginfo):
         self.name = name
         self.pkginfo = pkginfo
-
+    def __str__(self):
+        return repr(self).replace('<',  '<pkgname=%s ' % self.name)
     @property
     def installed(self):
         """ returns a _Version object """
