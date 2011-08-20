@@ -57,7 +57,6 @@ except ImportError:
     from StringIO import StringIO
     from urllib import quote_plus
 
-
 from softwarecenter.backend.piston.rnrclient import RatingsAndReviewsAPI
 from softwarecenter.backend.piston.rnrclient_pristine import ReviewDetails
 from softwarecenter.db.categories import CategoriesParser
@@ -715,7 +714,10 @@ class ReviewLoaderJsonAsync(ReviewLoader):
         app = source.get_data("app")
         callback = source.get_data("callback")
         try:
-            (json_str, length, etag) = source.load_contents_finish(result)
+            if have_gi:
+                (success, json_str, etag) = source.load_contents_finish(result)
+            else:
+                (json_str, length, etag) = source.load_contents_finish(result)
         except GObject.GError:
             # ignore read errors, most likely transient
             return callback(app, [])

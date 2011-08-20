@@ -60,6 +60,7 @@ from softwarecenter.ui.gtk3.widgets.description import AppDescription
 from softwarecenter.ui.gtk3.widgets.thumbnail import ScreenshotThumbnail
 from softwarecenter.ui.gtk3.widgets.weblivedialog import (
                                     ShowWebLiveServerChooserDialog)
+from softwarecenter.ui.gtk3.gmenusearch import GMenuSearcher
 
 #~ if os.path.exists("./softwarecenter/enums.py"):
     #~ sys.path.insert(0, ".")
@@ -122,7 +123,7 @@ class PackageStatusBar(StatusBar):
     def __init__(self, view):
         StatusBar.__init__(self, view)
         self.installed_icon  = Gtk.Image.new_from_icon_name(
-            Icons.INSTALLED_OVERLAY, Icons.APP_ICON_SIZE)
+            Icons.INSTALLED_OVERLAY, Gtk.IconSize.DIALOG)
         self.label = Gtk.Label()
         self.button = Gtk.Button()
         self.progress = Gtk.ProgressBar()
@@ -970,7 +971,7 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         vb.pack_start(body_hb, False, False, 0)
 
         # append the description widget, hold the formatted long description
-        self.desc = AppDescription(viewport=self)
+        self.desc = AppDescription()
         self.desc.description.set_property("can-focus", True)
         self.desc.description.a11y = self.desc.description.get_accessible()
         body_hb.pack_start(self.desc, True, True, 0)
@@ -1364,7 +1365,6 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         # display where-is-it for non-Unity configurations only
         if is_unity_running():
             return
-        from softwarecenter.gmenusearch import GMenuSearcher
         # remove old content
         self.installed_where_hbox.foreach(lambda w, d: w.destroy(), None)
         self.installed_where_hbox.set_property("can-focus", False)

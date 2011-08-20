@@ -6,11 +6,10 @@ import unittest
 sys.path.insert(0,"../")
 
 from softwarecenter.paths import XAPIAN_BASE_PATH
-from softwarecenter.ui.gtk3.gmenusearch import GMenuSearcher
+from softwarecenter.ui.gtk.gmenusearch import GMenuSearcher
 from softwarecenter.db.pkginfo import get_pkg_info
 from softwarecenter.db.database import StoreDatabase
 from softwarecenter.db.application import Application
-
 
 class TestWhereIsit(unittest.TestCase):
     """ tests the "where is it in the menu" code """
@@ -23,23 +22,6 @@ class TestWhereIsit(unittest.TestCase):
         self.db = StoreDatabase(pathname, cache)
         self.db.open()
 
-    # mvo: disabled for now (2011-06-06) because the new gnome-panel
-    #      does not have "System" anymore and its not clear to me yet
-    #      where those items will appear. Once that is settled it
-    #      should be re-enabled
-    def disabled_for_now_test_where_is_it_in_system(self):
-        app = Application("Hardware Drivers", "jockey-gtk")
-        details = app.get_details(self.db)
-        self.assertEqual(details.desktop_file, 
-                         "/usr/share/app-install/desktop/jockey-gtk.desktop")
-        # search the settings menu
-        searcher = GMenuSearcher()
-        found = searcher.get_main_menu_path(details.desktop_file)
-        self.assertEqual(found[0].get_name(), "Desktop")
-        self.assertEqual(found[0].get_icon(), "preferences-other")
-        self.assertEqual(found[1].get_name(), "Administration")
-        self.assertEqual(found[1].get_icon(), "preferences-system")
-
     def test_where_is_it_in_applications(self):
         app = Application("Calculator", "gcalctool")
         details = app.get_details(self.db)
@@ -51,11 +33,9 @@ class TestWhereIsit(unittest.TestCase):
             details.desktop_file,
             [os.path.abspath("./data/fake-applications.menu")])
         self.assertEqual(found[0].get_name(), "Applications")
-        self.assertEqual(found[0].get_icon().get_names()[0], 
-                         "applications-other")
+        self.assertEqual(found[0].get_icon(), "applications-other")
         self.assertEqual(found[1].get_name(), "Accessories")
-        self.assertEqual(found[1].get_icon().get_names()[0], 
-                         "applications-utilities")
+        self.assertEqual(found[1].get_icon(), "applications-utilities")
     
     def test_where_is_it_kde4(self):
         app = Application("", "ark")
@@ -68,11 +48,9 @@ class TestWhereIsit(unittest.TestCase):
             details.desktop_file,
             [os.path.abspath("./data/fake-applications.menu")])
         self.assertEqual(found[0].get_name(), "Applications")
-        self.assertEqual(found[0].get_icon().get_names()[0], 
-                         "applications-other")
+        self.assertEqual(found[0].get_icon(), "applications-other")
         self.assertEqual(found[1].get_name(), "Accessories")
-        self.assertEqual(found[1].get_icon().get_names()[0], 
-                         "applications-utilities")
+        self.assertEqual(found[1].get_icon(), "applications-utilities")
         
 
 if __name__ == "__main__":

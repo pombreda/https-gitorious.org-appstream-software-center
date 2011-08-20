@@ -17,12 +17,24 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 
-from gi.repository import GObject
-
 import apt_pkg
 apt_pkg.init_config()
 
-import gio
+import sys
+if 'gobject' in sys.modules:
+    have_gi = False
+    import gobject as GObject
+    import gio as Gio
+    GObject #pyflakes
+    Gio #pyflakes
+    FILE_MONITOR_EVENT_CHANGES_DONE_HINT = Gio.FILE_MONITOR_EVENT_CHANGES_DONE_HINT
+else:
+    have_gi = True
+    from gi.repository import GObject
+    from gi.repository import Gio
+    FILE_MONITOR_EVENT_CHANGES_DONE_HINT = Gio.FileMonitorEvent.CHANGES_DONE_HINT 
+
+
 import glob
 import gzip
 import os.path
@@ -34,12 +46,12 @@ try:
 except ImportError:
     import pickle
 
-
 LOG = logging.getLogger(__name__)
 
 from softwarecenter.paths import SOFTWARE_CENTER_CACHE_DIR
 from softwarecenter.utils import ExecutionTime
 from softwarecenter.db.history import Transaction, PackageHistory
+
 
 class AptHistory(PackageHistory):
 
@@ -48,8 +60,14 @@ class AptHistory(PackageHistory):
         self.main_context = GObject.main_context_default()
         self.history_file = apt_pkg.config.find_file("Dir::Log::History")
         #Copy monitoring of history file changes from historypane.py
-        self.logfile = gio.File(self.history_file)
-        self.monitor = self.logfile.monitor_file()
+        if have_gi:
+            self.logfile = Gio.File.new_for_path(self.history_file)
+        else:
+            self.logfile = Gio.File(self.history_file)
+        if have_gi:
+            self.monitor = self.logfile.monitor_file(0, None)
+        else:
+            self.monitor = self.logfile.monitor_file()
         self.monitor.connect("changed", self._on_apt_history_changed)
         self.update_callback = None
         LOG.debug("init history")
@@ -119,7 +137,7 @@ class AptHistory(PackageHistory):
                 self._transactions.insert(0, trans)
             
     def _on_apt_history_changed(self, monitor, afile, other_file, event):
-        if event == gio.FILE_MONITOR_EVENT_CHANGES_DONE_HINT:
+        if event == FILE_MONITOR_EVENT_CHANGES_DONE_HINT:
             self._scan(self.history_file, rescan = True)
             if self.update_callback:
                 self.update_callback()

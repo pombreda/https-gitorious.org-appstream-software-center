@@ -105,6 +105,10 @@ def get_pkg_history():
     """ get the global PackageHistory() singleton object """
     global pkg_history
     if pkg_history is None:
-        from history_impl.apthistory import AptHistory
-        pkg_history = AptHistory()
+        from softwarecenter.enums import USE_APT_HISTORY
+        if USE_APT_HISTORY:
+            from history_impl.apthistory import AptHistory
+            pkg_history = AptHistory()
+        else:
+            pkg_history = PackageHistory()
     return pkg_history

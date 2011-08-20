@@ -11,7 +11,7 @@ import sys
 sys.path.insert(0,"../")
 
 from softwarecenter.testutils import start_dummy_backend, stop_dummy_backend
-from softwarecenter.backend.aptd import get_dbus_bus
+from softwarecenter.backend.installbackend_impl.aptd import get_dbus_bus
 
 
 class TestTestUtils(unittest.TestCase):

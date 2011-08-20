@@ -16,7 +16,6 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import gettext
 from gi.repository import Gtk
 import logging
 import xapian
@@ -228,6 +227,8 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         # cache the installed app count
         self.installed_count = i
 
+        self.app_view._append_appcount(self.installed_count, installed=True)
+
         self.emit("app-list-changed", i)
         return
 
@@ -262,12 +263,8 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         self.treefilter.refilter()
         if terms:
             self.app_view.tree_view.expand_all()
-            #~ i = len(self.visible_docids)
         else:
             self._check_expand()
-            #~ i = self.installed_count
-
-        #~ self.emit("app-list-changed", i)
         return
 
     def get_query(self):
@@ -330,12 +327,13 @@ class InstalledPane(SoftwarePane, CategoriesParser):
 
     def _get_vis_cats(self, visids):
         vis_cats = {}
-
+        appcount = 0
         for cat_uname, docids in self.cat_docid_map.iteritems():
             children = len(set(docids) & set(visids))
             if children:
+                appcount += children
                 vis_cats[cat_uname] = children
-
+        self.app_view._append_appcount(appcount, installed=True)
         return vis_cats
 
     def on_db_reopen(self, db):
@@ -357,29 +355,6 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         if model:
             self.emit("app-list-changed", len(model))
         self.searchentry.show()
-    
-    def get_status_text(self):
-        """return user readable status text suitable for a status bar"""
-        # no status text in the details page
-        if (self.notebook.get_current_page() ==
-            InstalledPane.Pages.DETAILS):
-            return ""
-        # otherwise, show status based on search or not
-        model = self.app_view.get_model()
-        if not model:
-            return ""
-        if self.apps_search_term:
-            if self.visible_docids is None: 
-                return
-            length = len(self.visible_docids)
-            return gettext.ngettext("%(amount)s matching item",
-                                    "%(amount)s matching items",
-                                    length) % { 'amount' : length, }
-        else:
-            length = self.installed_count
-            return gettext.ngettext("%(amount)s item installed",
-                                    "%(amount)s items installed",
-                                    length) % { 'amount' : length, }
 
     def display_overview_page(self, page, view_state):
         LOG.debug("view_state: %s" % view_state)

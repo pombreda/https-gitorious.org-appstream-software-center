@@ -1,3 +1,69 @@
+software-center (4.1.18) UNRELEASED; urgency=low
+
+  * lp:~alexeftimie/software-center/packagekit-backend:
+    - add packagekit backend, thanks Alex Eftimie
+    - this allows using "software-center-gtk3 --packagekit-backend"
+  * softwarecenter/ui/gtk3/panes/viewswitcher.py:
+    - pygi compat fix, Gtk.CheckMenuItem() != Gtk.CheckMenuItem.new()
+  * lp:~mvo/software-center/license-key-infrastructure:
+    - allow adding license keys during a purchase
+  * utils/submit_review_gtk3.py:
+    - gtk3 fixes
+  * softwarecenter/ui/gtk3/widgets/stars.py:
+    - add get_rating() to make the submit_review_gtk3.py work
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 19 Aug 2011 14:52:03 +0200
+
+software-center (4.1.17) oneiric; urgency=low
+
+  [ Matthew McGowan ]
+  * lp:~mmcg069/software-center/gtk3fix:
+    - description.py, do not connect to the viewport size-allocate signal, 
+      i think this should prevent the wierd spazz out when resize evetns 
+      occur
+
+  [ Michael Vogt ]
+  * softwarecenter/utils.py:
+    - really remove old gmenusearcher code that uses the static gmenu
+      bindings (LP: #828535)
+  * softwarecenter/ui/{gtk,gtk3}/gmenusearch.py:
+    - split gmenusearch into gtk2 (static bindings) and gtk3 (gi bindings)
+    - update usage
+  * softwarecenter/db/history_impl/apthistory.py:
+    - add conditional use of gio.File() vs Gio.File.new_for_path()
+  * softwarecenter/utils.py, softwarecenter/backend/reviews.py:
+    - fixes in subtle API changes for Gio vs gio
+  * softwarecenter/ui/gtk3/widgets/description.py:
+    - prepare for upcomming Gdk pygi changes in 2.90.x
+  * debian/control:
+    - add python-gmenu back to the dependencies, the dynamic bindings
+      can not be used with the gtk2 version os software-center
+  * utils/piston-helpers/piston_get_useful_votes_helper.py,
+    utils/piston-helpers/piston_get_reviews_helper.py:
+    - fix exception type now that json is used (instead of simplejson)
+      LP: #828324
+
+  [ Kiwinote ]
+  * data/ui/gtk3/css/softwarecenter.css:
+    - theme GtkViewports not to have a padding or a border - looks quite nice
+      around the banners now
+  * many:
+    - transition from a status bar to internal status labels (LP: #445558)
+  * softwarecenter/ui/gtk3/session/viewmanager.py:
+    - show/hide search entry when needed (LP: #828790)
+  * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
+    - use a Gtk.IconSize rather than an int for Gtk.Image.new_from_icon_name
+  * softwarecenter/ui/gtk3/widgets/buttons.py:
+    - ellipsize category text in tile to avoid warnings
+    - show channel selector on button-press-event instead of
+      button-release-event for consistent menu behaviour (LP: #828317)
+
+  [ Martin Pitt ]
+  * Fix some more places which need to conditionally import gobject or
+    GObject. (LP: #829186)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 19 Aug 2011 11:59:02 +0200
+
 software-center (4.1.16) oneiric; urgency=low
 
   [ Michael Vogt ]

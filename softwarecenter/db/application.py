@@ -534,6 +534,16 @@ class AppDetails(object):
     def website(self):
         if self._pkg:
             return self._pkg.website
+    
+    @property
+    def license_key(self):
+        if self._doc:
+            return self._doc.get_value(XapianValues.LICENSE_KEY)
+
+    @property
+    def license_key_path(self):
+        if self._doc:
+            return self._doc.get_value(XapianValues.LICENSE_KEY_PATH)
 
     def _unavailable_channel(self):
         """ Check if the given doc refers to a channel that is currently not enabled """

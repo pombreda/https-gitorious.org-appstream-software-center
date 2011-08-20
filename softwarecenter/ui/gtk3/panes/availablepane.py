@@ -33,7 +33,6 @@ from softwarecenter.enums import (ActionButtons,
                                   DEFAULT_SEARCH_LIMIT)
 from softwarecenter.paths import APP_INSTALL_PATH
 from softwarecenter.utils import wait_for_apt_cache_ready
-from softwarecenter.distro import get_distro
 from softwarecenter.db.appfilter import AppFilter
 from softwarecenter.ui.gtk3.views.purchaseview import PurchaseView
 
@@ -83,7 +82,6 @@ class AvailablePane(SoftwarePane):
         self.state.filter = AppFilter(db, cache)
         # the spec says we mix installed/not installed
         #self.apps_filter.set_not_installed_only(True)
-        self._status_text = ""
         self.current_app_by_category = {}
         self.current_app_by_subcategory = {}
         self.pane_name = _("Get Software")
@@ -109,6 +107,10 @@ class AvailablePane(SoftwarePane):
         SoftwarePane.init_view(self)
         # set the AppTreeView model, available pane uses list models
         liststore = AppListStore(self.db, self.cache, self.icons)
+        def on_appcount_changed(widget, appcount):
+            self.subcategories_view._append_appcount(appcount)
+            self.app_view._append_appcount(appcount)
+        liststore.connect('appcount-changed', on_appcount_changed)
         self.app_view.set_model(liststore)
         # setup purchase stuff
         self.app_details_view.connect("purchase-requested",
@@ -173,9 +175,6 @@ class AvailablePane(SoftwarePane):
         # purchase view
         self.notebook.append_page(self.purchase_view, Gtk.Label(label=NavButtons.PURCHASE))
 
-        # set status text
-        self._update_status_text(len(self.db))
-                                        
         # install backend
         self.backend.connect("transactions-changed", self._on_transactions_changed)
         # now we are initialized
@@ -279,15 +278,6 @@ class AvailablePane(SoftwarePane):
         #~ else:
             #~ self.notebook.set_current_page(AvailablePane.Pages.LIST)
 
-    # status text woo
-    def get_status_text(self):
-        """return user readable status text suitable for a status bar"""
-        # no status text in the details page
-        if (self.notebook.get_current_page() == AvailablePane.Pages.DETAILS or
-            self._in_no_display_category()):
-            return ""
-        return self._status_text
-
     def get_current_app(self):
         """return the current active application object"""
         if self.is_category_view_showing():
@@ -329,64 +319,6 @@ class AvailablePane(SoftwarePane):
         LOG.debug("applist-changed %s %s" % (pane, length))
         super(AvailablePane, self).on_app_list_changed(pane, length)
         self._update_action_bar()
-        self._update_status_text(length)
-
-    def _update_status_text_lobby(self):
-        # SPECIAL CASE: in category page show all items in the DB
-        distro = get_distro()
-        if self.state.filter.get_supported_only():
-            query = distro.get_supported_query()
-        else:
-            query = xapian.Query('')
-        enquire = xapian.Enquire(self.db.xapiandb)
-        # XD is the term for pkgs that have a desktop file
-        enquire.set_query(xapian.Query(xapian.Query.OP_AND_NOT, 
-                                       query,
-                                       xapian.Query("XD"),
-                                       )
-                         )
-        matches = enquire.get_mset(0, len(self.db))
-        length = len(matches)
-
-        self._status_text = gettext.ngettext("%(amount)s item available",
-                                             "%(amount)s items available",
-                                             length) % { 'amount' : length, }
-
-    def _update_status_text(self, length):
-        """
-        update the text in the status bar
-        """
-
-        # SPECIAL CASE: in category page show all items in the DB
-        if self.notebook.get_current_page() == AvailablePane.Pages.LOBBY:
-            distro = get_distro()
-            if self.state.filter.get_supported_only():
-                query = distro.get_supported_query()
-            else:
-                query = xapian.Query('')
-            enquire = xapian.Enquire(self.db.xapiandb)
-            # XD is the term for pkgs that have a desktop file
-            enquire.set_query(xapian.Query(xapian.Query.OP_AND_NOT, 
-                                           query,
-                                           xapian.Query("XD"),
-                                           )
-                             )
-            matches = enquire.get_mset(0, len(self.db))
-            length = len(matches)
-
-        if self.state.search_term and ',' in self.state.search_term:
-            length = self.enquirer.nr_apps
-            self._status_text = gettext.ngettext("%(amount)s item",
-                                                 "%(amount)s items",
-                                                 length) % { 'amount' : length, }
-        elif len(self.searchentry.get_text()) > 0:
-            self._status_text = gettext.ngettext("%(amount)s matching item",
-                                                 "%(amount)s matching items",
-                                                 length) % { 'amount' : length, }
-        else:
-            self._status_text = gettext.ngettext("%(amount)s item available",
-                                                 "%(amount)s items available",
-                                                 length) % { 'amount' : length, }
 
     def _update_action_bar(self):
         self._update_action_bar_buttons()
@@ -521,7 +453,6 @@ class AvailablePane(SoftwarePane):
         self.hide_appview_spinner()
         self.emit("app-list-changed", len(self.db))
         self._clear_search()
-        self._update_status_text_lobby()
         self.searchentry.show()
         self.action_bar.clear()
         return True

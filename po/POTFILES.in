@@ -13,13 +13,16 @@ data/unbranded-software-center.desktop.in
 [type: gettext/xml] data/new.menu.in
 [type: gettext/xml] data/software-center.menu.in
 softwarecenter/ui/gtk/app.py
-softwarecenter/backend/aptd.py
 softwarecenter/backend/channel.py
 softwarecenter/backend/login_sso.py
 softwarecenter/backend/reviews.py
+softwarecenter/backend/installbackend_impl/aptd.py
+softwarecenter/backend/installbackend_impl/packagekitd.py
 softwarecenter/db/application.py
 softwarecenter/db/database.py
 softwarecenter/db/update.py
+softwarecenter/db/pkginfo_impl/aptcache.py
+softwarecenter/db/pkginfo_impl/packagekit.py
 softwarecenter/distro/Debian.py
 softwarecenter/distro/__init__.py
 softwarecenter/distro/Ubuntu.py

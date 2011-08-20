@@ -117,7 +117,7 @@ class HistoryPane(gtk.VBox, BasePane):
         removals_action.set_group(all_action)
         removals_button = removals_action.create_tool_item()
         self.toolbar.insert(removals_button, 3)
-        
+
         self._actions_list = all_action.get_group()
         self._set_actions_sensitive(False)
 
@@ -129,7 +129,7 @@ class HistoryPane(gtk.VBox, BasePane):
                                       gtk.POLICY_AUTOMATIC)
         self.history_view.show()
         self.history_view.add(self.view)
-        
+
         # make a spinner to display while history is loading
         self.spinner_view = SpinnerView(_('Loading history'))
         self.spinner_notebook = gtk.Notebook()
@@ -147,7 +147,7 @@ class HistoryPane(gtk.VBox, BasePane):
         self.view.set_model(self.store_filter)
         all_action.set_active(True)
         self.last = None
-        
+
         # to save (a lot of) time at startup we load history later, only when
         # it is selected to be viewed
         self.history = None
