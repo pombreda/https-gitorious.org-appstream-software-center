@@ -21,6 +21,7 @@ import cairo
 from gi.repository import Gtk, Gdk, Pango, GObject, GdkPixbuf, PangoCairo
 from gettext import gettext as _
 
+from softwarecenter.enums import Icons
 from softwarecenter.ui.gtk3.em import StockEms, em
 from softwarecenter.ui.gtk3.widgets.stars import Star
 
@@ -106,11 +107,22 @@ class CategoryTile(TileButton):
 class FeaturedTile(TileButton):
 
     MAX_WIDTH = em(10)
+    INSTALLED_OVERLAY_SIZE = 22
     _MARKUP = '<b>%s</b>'
 
-    def __init__(self, label, icon, review_stats, category=None, icon_size=48):
+    def __init__(self, helper, doc, icon_size=48):
         TileButton.__init__(self)
         self._pressed = False
+
+        label = helper.get_appname(doc)
+        icon = helper.get_icon_at_size(doc, icon_size, icon_size)
+        stats = helper.get_review_stats(doc)
+        doc.installed = doc.available = None
+        self.is_installed = helper.is_installed(doc)
+        self._overlay = helper.icons.load_icon(Icons.INSTALLED_OVERLAY,
+                                               self.INSTALLED_OVERLAY_SIZE,
+                                               0) # flags
+        #~ categories = helper.get_categories(doc)
 
         self.box.set_orientation(Gtk.Orientation.HORIZONTAL)
         self.box.set_spacing(StockEms.MEDIUM)
@@ -135,15 +147,15 @@ class FeaturedTile(TileButton):
             #~ self.category.set_ellipsize(Pango.EllipsizeMode.END)
             #~ self.content_right.pack_start(self.category, False, False, 4)
 
-        if review_stats is not None:
+        if stats is not None:
             self.stars = Star()
             self.stars.set_name("featured-star")
             self.stars.render_outline = True
-            self.stars.set_rating(review_stats.ratings_average)
+            self.stars.set_rating(stats.ratings_average)
             self.content_right.pack_start(self.stars, False, False, 0)
 
             self.n_ratings = Gtk.Label.new('<span font_desc="Italic %i" color="%s">%i %s</span>' %
-                                           (em(0.45), '#8C8C8C', review_stats.ratings_total, 'Reviews'))
+                                           (em(0.45), '#8C8C8C', stats.ratings_total, 'Reviews'))
             self.n_ratings.set_use_markup(True)
             self.n_ratings.set_alignment(0.0, 0.0)
             self.content_right.pack_start(self.n_ratings, False, False, 0)
@@ -177,6 +189,13 @@ class FeaturedTile(TileButton):
                              A.width-6, A.height-6)
 
         for child in self: self.propagate_draw(child, cr)
+
+        if self.is_installed:
+            # paint installed tick overlay
+            x = y = 36
+            Gdk.cairo_set_source_pixbuf(cr, self._overlay, x, y)
+            cr.paint()
+
         cr.restore()
         return
 
