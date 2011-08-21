@@ -153,6 +153,11 @@ class InstalledPane(SoftwarePane, CategoriesParser):
 
         return True
 
+    def _hide_nonapp_pkgs(self):
+        print 'hide nonapp'
+        self.nonapps_visible = NonAppVisibility.NEVER_VISIBLE
+        self.refresh_apps()
+
     #~ @interrupt_build_and_wait
     def _build_categorised_view(self):
         LOG.debug('Rebuilding categorised installedview...')
@@ -274,35 +279,11 @@ class InstalledPane(SoftwarePane, CategoriesParser):
             return query
         return cat.query
 
-    def update_show_hide_nonapps(self, length=-1):
-        # override SoftwarePane.update_show_hide_nonapps
-        """
-        update the state of the show/hide non-applications control
-        in the action_bar
-        """
-        #~ appstore = self.app_view.get_model()
-        #~ if not appstore:
-            #~ self.action_bar.unset_label()
-            #~ return
-        
-        # first figure out if we are only showing installed
-        enquirer = self.enquirer
-        enquirer.filter = self.state.filter
-
-        self.action_bar.unset_label()
-
-        if self.nonapps_visible == NonAppVisibility.ALWAYS_VISIBLE:
-            label = _("_Hide technical software_")
-            self.action_bar.set_label(label, self._hide_nonapp_pkgs) 
-        else:
-            label = _("_Display technical software_")
-            self.action_bar.set_label(label, self._show_nonapp_pkgs)
-        return
-
     @wait_for_apt_cache_ready
     def refresh_apps(self, *args, **kwargs):
         """refresh the applist and update the navigation bar """
         logging.debug("installedpane refresh_apps")
+        self._build_categorised_view()
         return
 
     def _clear_search(self):
@@ -356,8 +337,6 @@ class InstalledPane(SoftwarePane, CategoriesParser):
 
         if self.state.search_term:
             self._search(self.state.search_term)
-
-        self.update_show_hide_nonapps()
         return True
 
     def get_current_app(self):
