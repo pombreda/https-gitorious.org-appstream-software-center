@@ -320,6 +320,8 @@ class AppGenericStore(_AppPropertiesHelper):
         def buffer_icons():
             #~ print "Buffering icons ..."
             #t0 = GObject.get_current_time()
+            if self.current_matches is not None:
+                return False
             db = self.db.xapiandb
             for m in self.current_matches:
                 doc = db.get_document(m.docid)

@@ -180,7 +180,8 @@ class SoftwarePane(Gtk.VBox, BasePane):
 
         # other classes we need        
         self.enquirer = AppEnquire(cache, db)
-        self.enquirer.connect("query-complete", self.on_query_complete)
+        self._query_complete_handler = self.enquirer.connect(
+                            "query-complete", self.on_query_complete)
 
         self.cache = cache
         self.db = db

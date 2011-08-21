@@ -153,79 +153,82 @@ class InstalledPane(SoftwarePane, CategoriesParser):
 
         return True
 
+    # override its SoftwarePane._hide_nonapp_pkgs...
     def _hide_nonapp_pkgs(self):
-        print 'hide nonapp'
         self.nonapps_visible = NonAppVisibility.NEVER_VISIBLE
         self.refresh_apps()
 
     #~ @interrupt_build_and_wait
     def _build_categorised_view(self):
         LOG.debug('Rebuilding categorised installedview...')
-        self.cat_docid_map = {}
-        enq = self.enquirer
         model = self.base_model # base model not treefilter
         model.clear()
 
-        i = 0
+        def rebuild_categorised_view():
+            self.cat_docid_map = {}
+            enq = self.enquirer
 
-        xfilter = AppFilter(self.db, self.cache)
-        xfilter.set_installed_only(True)
-        for cat in self._all_cats:
-            # for each category do category query and append as a new
-            # node to tree_view
-            if not self._use_category(cat): continue
-            query = self.get_query_for_cat(cat)
-            LOG.debug("filter.instaleld_only: %s" % xfilter.installed_only)
-            enq.set_query(query,
+            i = 0
+
+            xfilter = AppFilter(self.db, self.cache)
+            xfilter.set_installed_only(True)
+            for cat in self._all_cats:
+                # for each category do category query and append as a new
+                # node to tree_view
+                if not self._use_category(cat): continue
+                query = self.get_query_for_cat(cat)
+                LOG.debug("filter.instaleld_only: %s" % xfilter.installed_only)
+                enq.set_query(query,
+                              sortmode=SortMethods.BY_ALPHABET,
+                              nonapps_visible=self.nonapps_visible,
+                              filter=xfilter,
+                              nonblocking_load=False,
+                              persistent_duplicate_filter=(i>0))
+
+                L = len(enq.matches)
+                if L:
+                    i += L
+                    docs = enq.get_documents()
+                    self.cat_docid_map[cat.untranslated_name] = \
+                                        set([doc.get_docid() for doc in docs])
+                    model.set_category_documents(cat, docs)
+
+            # check for uncategorised pkgs
+            enq.set_query(self.state.channel.query,
                           sortmode=SortMethods.BY_ALPHABET,
                           nonapps_visible=self.nonapps_visible,
                           filter=xfilter,
                           nonblocking_load=False,
                           persistent_duplicate_filter=(i>0))
 
-            L = len(self.enquirer.matches)
+            L = len(enq.matches)
             if L:
-                i += L
+                # some foo for channels
+                # if no categorised results but in channel, then use
+                # the channel name for the category
+                channel_name = None
+                if not i and self.state.channel:
+                    channel_name = self.state.channel.display_name
                 docs = enq.get_documents()
-                self.cat_docid_map[cat.untranslated_name] = \
-                                    set([doc.get_docid() for doc in docs])
-                model.set_category_documents(cat, docs)
+                tag = channel_name or 'Uncategorized'
+                self.cat_docid_map[tag] = set([doc.get_docid() for doc in docs])
+                model.set_nocategory_documents(docs, untranslated_name=tag,
+                                               display_name=channel_name)
+                i += L
 
-        # check for uncategorised pkgs
-        enq.set_query(self.state.channel.query,
-                      sortmode=SortMethods.BY_ALPHABET,
-                      nonapps_visible=NonAppVisibility.MAYBE_VISIBLE,
-                      filter=xfilter,
-                      nonblocking_load=False,
-                      persistent_duplicate_filter=(i>0))
+            if i:
+                self.app_view.tree_view.set_cursor(Gtk.TreePath(),
+                                                   None, False)
+                if i <= 10:
+                    self.app_view.tree_view.expand_all()
 
-        L = len(enq.matches)
-        if L:
-            # some foo for channels
-            # if no categorised results but in channel, then use
-            # the channel name for the category
-            channel_name = None
-            if not i and self.state.channel:
-                channel_name = self.state.channel.display_name
-            docs = enq.get_documents()
-            tag = channel_name or 'Uncategorized'
-            self.cat_docid_map[tag] = set([doc.get_docid() for doc in docs])
-            model.set_nocategory_documents(docs, untranslated_name=tag,
-                                           display_name=channel_name)
-            i += L
+            # cache the installed app count
+            self.installed_count = i
+            self.app_view._append_appcount(self.installed_count, installed=True)
+            self.emit("app-list-changed", i)
+            return
 
-        if i:
-            self.app_view.tree_view.set_cursor(Gtk.TreePath(),
-                                               None, False)
-            if i <= 10:
-                self.app_view.tree_view.expand_all()
-
-        # cache the installed app count
-        self.installed_count = i
-
-        self.app_view._append_appcount(self.installed_count, installed=True)
-
-        self.emit("app-list-changed", i)
+        GObject.idle_add(rebuild_categorised_view)
         return
 
     def _check_expand(self):
