@@ -11,8 +11,15 @@ software-center (4.1.18) UNRELEASED; urgency=low
     - gtk3 fixes
   * softwarecenter/ui/gtk3/widgets/stars.py:
     - add get_rating() to make the submit_review_gtk3.py work
+    
+  [ Aaron Peachey ]
+  * softwarecenter/ui/gtk3/views/catview_gtk.py:
+    - remove 'More' button from sub-category top rated sections
+    - increase number of apps in top-rated feature frames from 8 to 12
+    - add sub category name into frame header for subcategory toprated
+     (LP: #830272)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 19 Aug 2011 14:52:03 +0200
+ -- Aaron Peachey <alpeachey@gmail.com>  Sun, 21 Aug 2011 21:24:42 +1000
 
 software-center (4.1.17) oneiric; urgency=low
 

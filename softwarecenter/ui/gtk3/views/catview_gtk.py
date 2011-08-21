@@ -345,7 +345,7 @@ class LobbyViewGtk(CategoriesViewGtk):
         enq = AppEnquire(self.cache, self.db)
         app_filter = AppFilter(self.db, self.cache)
         enq.set_query(toprated_cat.query,
-                      limit=8,
+                      limit=TOP_RATED_CAROUSEL_LIMIT,
                       sortmode=toprated_cat.sortmode,
                       filter=app_filter,
                       nonapps_visible=NonAppVisibility.ALWAYS_VISIBLE,
@@ -514,27 +514,14 @@ class SubCategoryViewGtk(CategoriesViewGtk):
             frame = FramedHeaderBox()
             # set x/y-alignment and x/y-expand
             #~ frame.set(0.5, 0.0, 1.0, 1.0)
-            frame.set_header_label(_("Top Rated"))
-            frame.header_implements_more_button()
+            frame.set_header_label(_('Top Rated %s' % self.header))
             frame.pack_start(self.toprated, True, True, 0)
             # append the departments section to the page
             self.vbox.pack_start(frame, False, True, 0)
             self.toprated_frame = frame
         else:
             self.toprated.remove_all()
-
-        # ensure that we update the more button
-        cat_with_toprated_search = copy.copy(category)
-        cat_with_toprated_search.sortmode = SortMethods.BY_TOP_RATED
-        cat_with_toprated_search.item_limit = TOP_RATED_CAROUSEL_LIMIT
-        # disconnect old handler (if there is one)
-        try:
-            self.toprated_frame.more.disconnect_by_func(
-                self.on_category_clicked)
-        except TypeError:
-            pass
-        self.toprated_frame.more.connect(
-            'clicked', self.on_category_clicked, cat_with_toprated_search)
+            self.toprated_frame.set_header_label(_('Top Rated %s' % self.header))
 
         # and fill the toprated grid
         self.enquire.set_query(category.query,
@@ -544,7 +531,7 @@ class SubCategoryViewGtk(CategoriesViewGtk):
                                nonapps_visible=NonAppVisibility.ALWAYS_VISIBLE,
                                nonblocking_load=False)
 
-        for doc in self.enquire.get_documents()[0:8]:
+        for doc in self.enquire.get_documents()[0:TOP_RATED_CAROUSEL_LIMIT]:
             name = self.helper.get_appname(doc)
             icon_pb = self.helper.get_icon_at_size(doc, 48, 48)
             stats = self.helper.get_review_stats(doc)
