@@ -116,10 +116,9 @@ class GRatingsAndReviews(GObject.GObject):
         # piston worker thread
         self.worker_thread = Worker(token)
         self.worker_thread.start()
-        GLib.timeout_add(GLib.PRIORITY_DEFAULT,
-                         500, 
-                         self._check_thread_status,
-                         None)
+        GObject.timeout_add(500, 
+                            self._check_thread_status,
+                            None)
     def submit_review(self, review):
         self.emit("transmit-start", review)
         self.worker_thread.pending_reviews.put(review)
@@ -1177,15 +1176,16 @@ class ReportReviewApp(BaseApp):
         self.submit_window.set_title(_("Flag as Inappropriate"))
 
         # parent xid
-        if parent_xid:
-            win = Gtk.gdk.window_foreign_new(int(parent_xid))
-            if win:
-                self.submit_window.realize()
-                self.submit_window.window.set_transient_for(win)
+        #if parent_xid:
+        #    #win = Gtk.gdk.window_foreign_new(int(parent_xid))
+        #    if win:
+        #        self.submit_window.realize()
+        #        self.submit_window.window.set_transient_for(win)
+
         # mousepos
-        self.submit_window.set_position(Gtk.WIN_POS_MOUSE)
+        self.submit_window.set_position(Gtk.WindowPosition.MOUSE)
         # simple APIs ftw!
-        self.combobox_report_summary = Gtk.combo_box_new_text()
+        self.combobox_report_summary = Gtk.ComboBoxText()
         self.report_body_vbox.pack_start(self.combobox_report_summary, False, False, 0)
         self.report_body_vbox.reorder_child(self.combobox_report_summary, 2)
         self.combobox_report_summary.show()

@@ -451,6 +451,34 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
         yield policykit1.check_authorization_by_name(name, action, flags=flags)
 
     @inline_callbacks
+    def add_license_key(self, license_key, license_key_path):
+        """ add a license key for a purchase """
+        self._logger.debug("adding license_key of len: %i to %s" % (
+                len(license_key), license_key_path))
+        # check destination
+        dest = os.path.normpath(license_key_path)
+        if not (dest.startswith("~") or
+                dest.startswith("/opt")):
+            raise Exception("License key file '%s' outside of HOME or /opt" % dest)
+        # check if its inside HOME and if so, just create it
+        if dest.startswith("~"):
+            dest = os.path.expanduser(dest)
+            dirname = os.path.dirname(dest)
+            if not os.path.exists(dirname):
+                os.makedirs(dirname)
+            f = open(dest, "w")
+            f.write(license_key)
+            f.close()
+        # check if its in /opt and hand over to apdaemon in this case
+        elif dest.startswith("/opt"):
+            try:
+                trans = yield self.aptd_client.add_license_key(
+                    license_key, dest)
+                yield self._run_transaction(trans, None, None, None)
+            except Exception as e:
+                self._logger.error("add_repository: '%s'" % e)
+
+    @inline_callbacks
     def add_repo_add_key_and_install_app(self,
                                          deb_line,
                                          signing_key_id,
