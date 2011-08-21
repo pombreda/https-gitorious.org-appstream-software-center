@@ -143,6 +143,25 @@ class CategoriesViewGtk(Gtk.Viewport, CategoriesParser):
         self.connect("size-allocate", self.on_size_allocate)
         return
 
+    def _add_tiles_to_flowgrid(self, docs, flowgrid, qty):
+        '''Adds application tiles to a FlowableGrid:
+           docs = xapian documents (apps)
+           flowgrid = the FlowableGrid to add tiles to
+           qty = number of tiles to add from start of doc range'''
+        if len(docs) < qty:
+            qty = len(docs)
+            
+        for doc in docs[0:qty]:
+            name = self.helper.get_appname(doc)
+            icon_pb = self.helper.get_icon_at_size(doc, 48, 48)
+            stats = self.helper.get_review_stats(doc)
+            categories = self.helper.get_categories(doc)
+            tile = FeaturedTile(name, icon_pb, stats, categories)
+            tile.connect('clicked', self.on_app_clicked,
+                         self.helper.get_application(doc))
+            flowgrid.add_child(tile)
+        return
+
     def on_size_allocate(self, widget, _):
         a = widget.get_allocation()
         prev = self._prev_alloc
@@ -360,16 +379,10 @@ class LobbyViewGtk(CategoriesViewGtk):
         frame.add(self.toprated)
         self.right_column.pack_start(frame, True, True, 0)
 
-        helper = AppPropertiesHelper(self.db, self.cache, self.icons)
-        for doc in enq.get_documents():
-            name = helper.get_appname(doc)
-            icon_pb = helper.get_icon_at_size(doc, 48, 48)
-            stats = helper.get_review_stats(doc)
-            categories = helper.get_categories(doc)
-            tile = FeaturedTile(name, icon_pb, stats, categories)
-            tile.connect('clicked', self.on_app_clicked,
-                         helper.get_application(doc))
-            self.toprated.add_child(tile)
+        self.helper = AppPropertiesHelper(self.db, self.cache, self.icons)
+        docs = enq.get_documents()
+        self._add_tiles_to_flowgrid(docs, self.toprated, TOP_RATED_CAROUSEL_LIMIT)
+        return
         
 
     def _append_featured(self):
@@ -395,16 +408,9 @@ class LobbyViewGtk(CategoriesViewGtk):
         frame.add(self.featured)
         self.right_column.pack_start(frame, True, True, 0)
 
-        helper = AppPropertiesHelper(self.db, self.cache, self.icons)
-        for doc in enq.get_documents():
-            name = helper.get_appname(doc)
-            icon_pb = helper.get_icon_at_size(doc, 48, 48)
-            stats = helper.get_review_stats(doc)
-            categories = helper.get_categories(doc)
-            tile = FeaturedTile(name, icon_pb, stats, categories)
-            tile.connect('clicked', self.on_app_clicked,
-                         helper.get_application(doc))
-            self.featured.add_child(tile)
+        self.helper = AppPropertiesHelper(self.db, self.cache, self.icons)
+        docs = enq.get_documents()
+        self._add_tiles_to_flowgrid(docs, self.featured, 8)
         return
 
     def _append_recommendations(self):
@@ -426,16 +432,9 @@ class LobbyViewGtk(CategoriesViewGtk):
         frame.header_implements_more_button()
         self.right_column.pack_start(frame, True, True, 0)
 
-        helper = AppPropertiesHelper(self.db, self.cache, self.icons)
-        for doc in enq.get_documents():
-            name = helper.get_appname(doc)
-            icon_pb = helper.get_icon_at_size(doc, 48, 48)
-            stats = helper.get_review_stats(doc)
-            categories = helper.get_categories(doc)
-            tile = FeaturedTile(name, icon_pb, stats, categories)
-            tile.connect('clicked', self.on_app_clicked,
-                         helper.get_application(doc))
-            self.featured.add_child(tile)
+        self.helper = AppPropertiesHelper(self.db, self.cache, self.icons)
+        docs = enq.get_documents()
+        self._add_tiles_to_flowgrid(docs, self.featured, 12)
         return
 
     def _append_appcount(self, supported_only=False):
@@ -531,15 +530,8 @@ class SubCategoryViewGtk(CategoriesViewGtk):
                                nonapps_visible=NonAppVisibility.ALWAYS_VISIBLE,
                                nonblocking_load=False)
 
-        for doc in self.enquire.get_documents()[0:TOP_RATED_CAROUSEL_LIMIT]:
-            name = self.helper.get_appname(doc)
-            icon_pb = self.helper.get_icon_at_size(doc, 48, 48)
-            stats = self.helper.get_review_stats(doc)
-            categories = self.helper.get_categories(doc)
-            tile = FeaturedTile(name, icon_pb, stats, categories)
-            tile.connect('clicked', self.on_app_clicked,
-                         self.helper.get_application(doc))
-            self.toprated.add_child(tile)
+        docs = self.enquire.get_documents()
+        self._add_tiles_to_flowgrid(docs, self.toprated, TOP_RATED_CAROUSEL_LIMIT)
         return
 
     def _append_subcat_departments(self, root_category, num_items):

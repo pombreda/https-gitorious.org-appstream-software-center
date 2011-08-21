@@ -18,8 +18,11 @@ software-center (4.1.18) UNRELEASED; urgency=low
     - increase number of apps in top-rated feature frames from 8 to 12
     - add sub category name into frame header for subcategory toprated
      (LP: #830272)
+  * softwarecenter/ui/gtk3/views/catview_gtk.py:
+    - provide standard method for adding tiles to Flowable grid to 
+      simplify repeated append code (and DRY)
 
- -- Aaron Peachey <alpeachey@gmail.com>  Sun, 21 Aug 2011 21:24:42 +1000
+ -- Aaron Peachey <alpeachey@gmail.com>  Sun, 21 Aug 2011 21:51:34 +1000
 
 software-center (4.1.17) oneiric; urgency=low
 
