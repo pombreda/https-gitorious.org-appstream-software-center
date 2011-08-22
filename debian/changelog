@@ -51,6 +51,7 @@ software-center (4.1.18) UNRELEASED; urgency=low
       navigation buttons
   * softwarecenter/ui/gtk3/panes/historypane.py:
     - draw border above treeview (LP: #831421)
+    - give action+time a grey color (LP: #831430)
   * softwarecenter/ui/gtk3/session/viewmanager.py:
     - make some changes so the navigation stack doesn't get multiple entries
       per view
