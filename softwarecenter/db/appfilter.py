@@ -62,7 +62,7 @@ class AppFilter(xapian.MatchDecider):
                 not doc.get_value(XapianValues.ARCHIVE_CHANNEL) == AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME):
                 return False
         if self.installed_only:
-            if (not pkgname in self.cache[pkgname] or
+            if (not pkgname in self.cache or
                 not self.cache[pkgname].is_installed):
                 return False
         if self.not_installed_only:

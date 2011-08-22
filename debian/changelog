@@ -1,5 +1,6 @@
 software-center (4.1.18) UNRELEASED; urgency=low
 
+  [ Michael Vogt ]
   * lp:~alexeftimie/software-center/packagekit-backend:
     - add packagekit backend, thanks Alex Eftimie
     - this allows using "software-center-gtk3 --packagekit-backend"
@@ -11,6 +12,21 @@ software-center (4.1.18) UNRELEASED; urgency=low
     - gtk3 fixes
   * softwarecenter/ui/gtk3/widgets/stars.py:
     - add get_rating() to make the submit_review_gtk3.py work
+
+  [ Kiwinote ]
+  * softwarecenter/ui/gtk3/panes/viewswitcher.py:
+    - link section_clicked to 'button-release-event' rather than 'clicked' to
+      avoid getting signals for the wrong pane (LP: #828821)
+  * softwarecenter/ui/gtk3/panes/viewswitcher.py,
+    softwarecenter/ui/gtk3/session/viewmanager.py:
+    - introduce a view-changed signal from the viewmanager to the viewswitcher
+      st we can shade the correct section button when we change pane via the
+      navigation buttons
+  * softwarecenter/ui/gtk3/session/viewmanager.py:
+    - make some changes so the navigation stack doesn't get multiple entries
+      per view
+  * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
+    - don't hide the version label (as we still want the pkgname) (LP: #830747)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 19 Aug 2011 14:52:03 +0200
 
