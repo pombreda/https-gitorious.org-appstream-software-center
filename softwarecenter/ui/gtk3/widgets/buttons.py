@@ -22,6 +22,7 @@ from gi.repository import Gtk, Gdk, Pango, GObject, GdkPixbuf, PangoCairo
 from gettext import gettext as _
 
 from softwarecenter.ui.gtk3.em import StockEms, em
+from softwarecenter.ui.gtk3.drawing import darken, BLACK
 from softwarecenter.ui.gtk3.widgets.stars import Star
 
 
@@ -219,6 +220,8 @@ class ChannelSelector(Gtk.Button):
 
         self.section_button = section_button
         self.popup = None
+        self._dark_color = Gdk.RGBA(red=0,green=0,blue=0)
+        self.connect('style-updated', self.on_style_updated)
         self.connect("button-press-event", self.on_button_press)
         return
 
@@ -226,7 +229,7 @@ class ChannelSelector(Gtk.Button):
         a = self.get_allocation()
         cr.set_line_width(1)
         cr.rectangle(-0.5, -1.5, a.width, a.height+3)
-        cr.set_source_rgba(0,0,0, 0.6)
+        Gdk.cairo_set_source_rgba(cr, self._dark_color)
         cr.stroke()
         cr.rectangle(0.5, -1.5, a.width-2, a.height+3)
         cr.set_source_rgba(1,1,1, 0.07)
@@ -239,6 +242,16 @@ class ChannelSelector(Gtk.Button):
         if self.popup is None:
             self.build_channel_selector()
         self.show_channel_sel_popup(self, event)
+        return
+
+    def on_style_updated(self, widget):
+        context = widget.get_style_context()
+        context.save()
+        context.add_class("menu")
+        bgcolor = context.get_background_color(Gtk.StateFlags.NORMAL)
+        context.restore()
+
+        self._dark_color = darken(bgcolor, 0.5)
         return
 
     def show_channel_sel_popup(self, widget, event):
@@ -279,33 +292,49 @@ class SectionSelector(TileToggleButton):
         self.label.set_name("section-selector")
         self.set_name("section-selector")
         self.draw_hint_has_channel_selector = False
+        self._dark_color = Gdk.RGBA(red=0,green=0,blue=0)
+        self.connect('style-updated', self.on_style_updated)
         self.label.connect("draw", self.on_label_draw)
         return
 
     def do_draw(self, cr):
         a = self.get_allocation()
         if self.get_active():
+            r, g, b = (self._dark_color.red,
+                       self._dark_color.green,
+                       self._dark_color.blue)
+
             cr.rectangle(0, -1, a.width, a.height+2)
             lin = cairo.LinearGradient(0, 0, 0, a.height)
-            lin.add_color_stop_rgba(0.0, 0,0,0, 0.0)
-            lin.add_color_stop_rgba(0.25, 0,0,0, 0.3)
-            lin.add_color_stop_rgba(0.5, 0,0,0, 0.5)
-            lin.add_color_stop_rgba(0.75, 0,0,0, 0.3)
-            lin.add_color_stop_rgba(1.0, 0,0,0, 0.0)
+            lin.add_color_stop_rgba(0.0, r,g,b, 0.0)
+            lin.add_color_stop_rgba(0.25, r,g,b, 0.3)
+            lin.add_color_stop_rgba(0.5, r,g,b, 0.5)
+            lin.add_color_stop_rgba(0.75, r,g,b, 0.3)
+            lin.add_color_stop_rgba(1.0, r,g,b, 0.0)
             cr.set_source(lin)
             cr.fill_preserve()
-            cr.set_source_rgba(0,0,0, 0.6)
+            cr.set_source_rgba(r,g,b)
             cr.stroke()
 
         elif self.draw_hint_has_channel_selector:
             cr.set_line_width(1)
             cr.move_to(a.width-0.5, -1)
             cr.rel_line_to(0, a.height+2)
-            cr.set_source_rgba(0,0,0,0.6)
+            Gdk.cairo_set_source_rgba(cr, self._dark_color)
             cr.stroke()
 
         for child in self: 
             self.propagate_draw(child, cr)
+        return
+
+    def on_style_updated(self, widget):
+        context = widget.get_style_context()
+        context.save()
+        context.add_class("menu")
+        bgcolor = context.get_background_color(Gtk.StateFlags.NORMAL)
+        context.restore()
+
+        self._dark_color = darken(bgcolor, 0.5)
         return
 
     def on_label_draw(self, label, cr):

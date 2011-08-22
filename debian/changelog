@@ -13,6 +13,13 @@ software-center (4.1.18) UNRELEASED; urgency=low
   * softwarecenter/ui/gtk3/widgets/stars.py:
     - add get_rating() to make the submit_review_gtk3.py work
 
+  [ Matthew McGowan ]
+  * lp:~mmcg069/software-center/small-fixes:
+    - theming improvements
+    - fix up installedpane search to include uncategorised items as well
+    - fix up the show-hide technical items in the installedpane
+    -  fix the description resizing, prevent wierd spazzing
+  
   [ Kiwinote ]
   * softwarecenter/ui/gtk3/panes/viewswitcher.py:
     - link section_clicked to 'button-release-event' rather than 'clicked' to

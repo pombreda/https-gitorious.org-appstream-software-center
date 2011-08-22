@@ -58,12 +58,14 @@ class CategoryRowReference:
 
 class UncategorisedRowRef(CategoryRowReference):
 
-    def __init__(self, pkg_count, display_name=None):
+    def __init__(self, untranslated_name=None, display_name=None, pkg_count=0):
+        if untranslated_name is None:
+            untranslated_name = 'Uncategorised'
         if display_name is None:
             display_name = _("Uncategorized")
 
         CategoryRowReference.__init__(self,
-                                      "uncategorized",
+                                      untranslated_name,
                                       display_name,
                                       None, pkg_count)
         return
@@ -318,6 +320,8 @@ class AppGenericStore(_AppPropertiesHelper):
         def buffer_icons():
             #~ print "Buffering icons ..."
             #t0 = GObject.get_current_time()
+            if self.current_matches is not None:
+                return False
             db = self.db.xapiandb
             for m in self.current_matches:
                 doc = db.get_document(m.docid)
@@ -450,8 +454,10 @@ class AppTreeStore(Gtk.TreeStore, AppGenericStore):
         self.set_documents(it, documents)
         return it
 
-    def set_nocategory_documents(self, documents, display_name=None):
-        category = UncategorisedRowRef(len(documents), display_name)
+    def set_nocategory_documents(self, documents, untranslated_name=None, display_name=None):
+        category = UncategorisedRowRef(untranslated_name,
+                                       display_name,
+                                       len(documents))
         it = self.append(None, (category,))
         self.set_documents(it, documents)
         return it
