@@ -41,6 +41,11 @@ software-center (4.1.18) UNRELEASED; urgency=low
   [ Kiwinote ]
   * softwarecenter/db/application.py:
     - never capitalize pkgname (LP: #828295)
+  * softwarecenter/ui/gtk3/panes/globalpane.py:
+    - fix left/right padding of toolbar to align with the listview (LP: #823213)
+  * softwarecenter/ui/gtk3/panes/historypane.py:
+    - draw border above treeview (LP: #831421)
+    - give action+time a grey color (LP: #831430)
   * softwarecenter/ui/gtk3/panes/viewswitcher.py:
     - link section_clicked to 'button-release-event' rather than 'clicked' to
       avoid getting signals for the wrong pane (LP: #828821)
@@ -49,9 +54,6 @@ software-center (4.1.18) UNRELEASED; urgency=low
     - introduce a view-changed signal from the viewmanager to the viewswitcher
       st we can shade the correct section button when we change pane via the
       navigation buttons
-  * softwarecenter/ui/gtk3/panes/historypane.py:
-    - draw border above treeview (LP: #831421)
-    - give action+time a grey color (LP: #831430)
   * softwarecenter/ui/gtk3/session/viewmanager.py:
     - make some changes so the navigation stack doesn't get multiple entries
       per view
