@@ -150,11 +150,7 @@ class CategoriesViewGtk(Gtk.Viewport, CategoriesParser):
            amount = number of tiles to add from start of doc range'''
         amount = min(len(docs), amount)
         for doc in docs[0:amount]:
-            name = self.helper.get_appname(doc)
-            icon_pb = self.helper.get_icon_at_size(doc, 48, 48)
-            stats = self.helper.get_review_stats(doc)
-            categories = self.helper.get_categories(doc)
-            tile = FeaturedTile(name, icon_pb, stats, categories)
+            tile = FeaturedTile(self.helper, doc)
             tile.connect('clicked', self.on_app_clicked,
                          self.helper.get_application(doc))
             flowgrid.add_child(tile)
@@ -381,7 +377,6 @@ class LobbyViewGtk(CategoriesViewGtk):
         docs = enq.get_documents()
         self._add_tiles_to_flowgrid(docs, self.toprated, TOP_RATED_CAROUSEL_LIMIT)
         return
-        
 
     def _append_featured(self):
         #~ featured_cat = get_category_by_name(self.categories, 
