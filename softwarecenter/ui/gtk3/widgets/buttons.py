@@ -152,17 +152,20 @@ class FeaturedTile(TileButton):
             self.content_right.pack_start(self.category, False, False, 4)
 
         if stats is not None:
+            hbox = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, StockEms.SMALL)
+            hbox.set_spacing(5)
             self.stars = Star()
             self.stars.set_name("featured-star")
             self.stars.render_outline = True
             self.stars.set_rating(stats.ratings_average)
-            self.content_right.pack_start(self.stars, False, False, 0)
+            hbox.pack_start(self.stars, False, False, 0)
 
-            self.n_ratings = Gtk.Label.new('<span font_desc="Italic %i" color="%s">%i %s</span>' %
-                                           (em(0.45), '#8C8C8C', stats.ratings_total, 'Reviews'))
+            self.n_ratings = Gtk.Label.new('<span font_desc="Italic %i" color="%s">(%i)</span>' %
+                                           (em(0.45), '#8C8C8C', stats.ratings_total))
             self.n_ratings.set_use_markup(True)
-            self.n_ratings.set_alignment(0.0, 0.0)
-            self.content_right.pack_start(self.n_ratings, False, False, 0)
+            self.n_ratings.set_alignment(0, 0.5)
+            hbox.pack_start(self.n_ratings, False, False, 0)
+            self.content_right.pack_start(hbox, False, False, 0)
 
         self.price = Gtk.Label.new('<span color="%s" font_desc="Bold %i">%s</span>' %
                                    ('#757575', em(0.6), 'FREE'))
