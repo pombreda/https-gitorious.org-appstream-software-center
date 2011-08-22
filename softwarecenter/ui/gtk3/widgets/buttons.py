@@ -24,6 +24,7 @@ from gettext import gettext as _
 from softwarecenter.enums import Icons
 from softwarecenter.ui.gtk3.em import StockEms, em
 from softwarecenter.ui.gtk3.widgets.stars import Star
+from softwarecenter.backend import get_install_backend
 
 
 _HAND = Gdk.Cursor.new(Gdk.CursorType.HAND2)
@@ -62,6 +63,7 @@ class _Tile(object):
         self.label = Gtk.Label.new(label)
         self.box.pack_start(self.label, True, True, 0)
         return
+
 
 class TileButton(Gtk.Button, _Tile):
 
@@ -167,6 +169,11 @@ class FeaturedTile(TileButton):
 
         self.set_name("featured-tile")
 
+        backend = get_install_backend()
+        backend.connect("transaction-finished",
+                        self.on_transaction_finished,
+                        helper, doc)
+
         self.connect("enter-notify-event", self.on_enter)
         self.connect("leave-notify-event", self.on_leave)
         self.connect("button-press-event", self.on_press)
@@ -197,6 +204,17 @@ class FeaturedTile(TileButton):
             cr.paint()
 
         cr.restore()
+        return
+
+    def on_transaction_finished(self, backend, result, helper, doc):
+        trans_pkgname = str(result.pkgname)
+        pkgname = helper.get_pkgname(doc)
+        if trans_pkgname != pkgname: return
+
+        # update installed state
+        helper.update_availability(doc)
+        self.is_installed = helper.is_installed(doc)
+        self.queue_draw()
         return
 
     def on_enter(self, widget, event):
