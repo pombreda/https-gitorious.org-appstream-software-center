@@ -139,6 +139,9 @@ class PackageInfo(GObject.GObject):
         return -1
     def get_origins(self, pkgname):
         return []
+    def get_origin(self, pkgname):
+        """ :return: unique origin as string """
+        return ''
     def get_addons(self, pkgname, ignore_installed=False):
         """ :return: a tuple of pkgnames (recommends, suggests) """
         return ([], [])

@@ -13,6 +13,10 @@ software-center (4.1.18) UNRELEASED; urgency=low
   * softwarecenter/ui/gtk3/widgets/stars.py:
     - add get_rating() to make the submit_review_gtk3.py work
 
+  [ Alex Eftimie ]
+  * lp:~alexeftimie/software-center/backend-refactor
+    - fixes in the abstract channels backend
+  
   [ Matthew McGowan ]
   * lp:~mmcg069/software-center/small-fixes:
     - theming improvements
