@@ -506,14 +506,14 @@ class SubCategoryViewGtk(CategoriesViewGtk):
             frame = FramedHeaderBox()
             # set x/y-alignment and x/y-expand
             #~ frame.set(0.5, 0.0, 1.0, 1.0)
-            frame.set_header_label(_('Top Rated %s') % self.header)
+            frame.set_header_label(_('Top Rated %s') % GObject.markup_escape_text(self.header))
             frame.pack_start(self.toprated, True, True, 0)
             # append the departments section to the page
             self.vbox.pack_start(frame, False, True, 0)
             self.toprated_frame = frame
         else:
             self.toprated.remove_all()
-            self.toprated_frame.set_header_label(_('Top Rated %s') % self.header)
+            self.toprated_frame.set_header_label(_('Top Rated %s') % GObject.markup_escape_text(self.header))
 
         # and fill the toprated grid
         self.enquire.set_query(category.query,
