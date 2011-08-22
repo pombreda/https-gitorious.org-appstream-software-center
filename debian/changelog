@@ -47,6 +47,8 @@ software-center (4.1.18) UNRELEASED; urgency=low
     - introduce a view-changed signal from the viewmanager to the viewswitcher
       st we can shade the correct section button when we change pane via the
       navigation buttons
+  * softwarecenter/ui/gtk3/panes/historypane.py:
+    - draw border above treeview (LP: #831421)
   * softwarecenter/ui/gtk3/session/viewmanager.py:
     - make some changes so the navigation stack doesn't get multiple entries
       per view

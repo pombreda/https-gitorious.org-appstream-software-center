@@ -104,6 +104,7 @@ class HistoryPane(Gtk.VBox, BasePane):
         removals_action.join_group(all_action)
         removals_button = removals_action.create_tool_item()
         self.toolbar.insert(removals_button, 3)
+        self.toolbar.connect('draw', self.on_toolbar_draw)
 
         self._actions_list = all_action.get_group()
         self._set_actions_sensitive(False)
@@ -166,6 +167,18 @@ class HistoryPane(Gtk.VBox, BasePane):
             self._set_actions_sensitive(True)
             window.set_cursor(None)
             self.emit("history-pane-created")
+
+    def on_toolbar_draw(self, widget, cr):
+        a = widget.get_allocation()
+        context = widget.get_style_context()
+
+        color = context.get_border_color(widget.get_state_flags())
+        cr.set_source_rgba(color.red, color.green, color.blue, 0.5)
+        cr.set_line_width(1)
+        cr.move_to(0.5, a.height - 0.5)
+        cr.rel_line_to(a.width-1, 0)
+        cr.stroke()
+        return
 
     def _get_emblems(self, icons):
         emblem_names = ("package-install",
