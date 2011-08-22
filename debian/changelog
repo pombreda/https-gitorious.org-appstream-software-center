@@ -57,6 +57,10 @@ software-center (4.1.18) UNRELEASED; urgency=low
       per view
   * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
     - don't hide the version label (as we still want the pkgname) (LP: #830747)
+  * softwarecenter/ui/gtk3/views/appview.py,
+    softwarecenter/ui/gtk3/widgets/cellrenderers.py:
+    - horizontally pixel align listview in ltr and rtl (LP: #830229)
+      includes multiple rtl fixes
 
  -- Aaron Peachey <alpeachey@gmail.com>  Sun, 21 Aug 2011 21:51:34 +1000
 
