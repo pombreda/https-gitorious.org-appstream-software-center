@@ -105,8 +105,6 @@ if __name__ == "__main__":
     if options.packagekit_backend:
         softwarecenter.enums.USE_PACKAGEKIT_BACKEND = True
         logging.info("Using PackageKit backend")
-    else:
-        softwarecenter.enums.USE_PACKAGEKIT_BACKEND = False
 
     # dummy backend
     if options.dummy_backend:

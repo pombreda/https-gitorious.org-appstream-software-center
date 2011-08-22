@@ -259,8 +259,9 @@ class AppTreeView(Gtk.TreeView):
         model, rows = sel.get_selected_rows()
         if not rows: 
             return False
-
         row = rows[0]
+        if self.rowref_is_category(row):
+            return False
 
         # update active app, use row-ref as argument
         self.expand_path(row)

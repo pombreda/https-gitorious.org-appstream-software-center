@@ -180,7 +180,8 @@ class SoftwarePane(Gtk.VBox, BasePane):
 
         # other classes we need        
         self.enquirer = AppEnquire(cache, db)
-        self.enquirer.connect("query-complete", self.on_query_complete)
+        self._query_complete_handler = self.enquirer.connect(
+                            "query-complete", self.on_query_complete)
 
         self.cache = cache
         self.db = db
@@ -555,7 +556,13 @@ class SoftwarePane(Gtk.VBox, BasePane):
             self.hide_nonapps()
             return
 
-        if enquirer.nonapps_visible == NonAppVisibility.ALWAYS_VISIBLE:
+        LOG.debug("nonapps_visible value=%s (always visible: %s)" % (
+                self.nonapps_visible, 
+                self.nonapps_visible == NonAppVisibility.ALWAYS_VISIBLE))
+
+        self.action_bar.unset_label()
+        if self.nonapps_visible == NonAppVisibility.ALWAYS_VISIBLE:
+            LOG.debug('non-apps-ALWAYS-visible')
             # TRANSLATORS: the text inbetween the underscores acts as a link
             # In most/all languages you will want the whole string as a link
             label = gettext.ngettext("_Hide %(amount)i technical item_",

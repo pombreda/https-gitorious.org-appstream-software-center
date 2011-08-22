@@ -36,10 +36,11 @@ class ChannelsManager(object):
         self.distro = get_distro()
         self.db = db
 
+    # public
     @property
     def channels(self):
         return self._get_channels_from_db()
-        
+
     @property
     def channels_installed_only(self):
         return self._get_channels_from_db(True)
@@ -48,6 +49,13 @@ class ChannelsManager(object):
     def channel_available(kls, channelname):
         pass
 
+    def get_available_channels(self):
+        return (AllAvailableChannel(),) + tuple(self.channels)
+
+    def get_installed_channels(self):
+        return (AllInstalledChannel(),) + tuple(self.channels_installed_only)
+
+    # private
     def _get_channels_from_db(self, installed_only=False):
         """
         (internal) implements 'channels()' and 'channels_installed_only()' properties

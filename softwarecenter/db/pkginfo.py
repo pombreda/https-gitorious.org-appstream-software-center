@@ -50,7 +50,8 @@ class _Package:
     def __init__(self, name, pkginfo):
         self.name = name
         self.pkginfo = pkginfo
-
+    def __str__(self):
+        return repr(self).replace('<',  '<pkgname=%s ' % self.name)
     @property
     def installed(self):
         """ returns a _Version object """
@@ -138,6 +139,9 @@ class PackageInfo(GObject.GObject):
         return -1
     def get_origins(self, pkgname):
         return []
+    def get_origin(self, pkgname):
+        """ :return: unique origin as string """
+        return ''
     def get_addons(self, pkgname, ignore_installed=False):
         """ :return: a tuple of pkgnames (recommends, suggests) """
         return ([], [])
