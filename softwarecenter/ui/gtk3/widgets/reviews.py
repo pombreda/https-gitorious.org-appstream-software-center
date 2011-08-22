@@ -72,6 +72,7 @@ class UIReviewsList(Gtk.VBox):
 
     def __init__(self, parent):
         GObject.GObject.__init__(self)
+        self.set_spacing(12)
         self.logged_in_person = get_person_from_config()
 
         self._parent = parent
@@ -85,7 +86,7 @@ class UIReviewsList(Gtk.VBox):
 
         label = Gtk.Label()
         label.set_markup(_("Reviews"))
-        label.set_padding(6, 6)
+        label.set_padding(0, 6)
         label.set_use_markup(True)
         label.set_alignment(0, 0.5)
 
@@ -96,11 +97,10 @@ class UIReviewsList(Gtk.VBox):
         self.header.set_spacing(StockEms.MEDIUM)
         self.pack_start(hb, False, False, 0)
         hb.pack_start(label, False, False, 0)
-        hb.pack_end(self.new_review, False, False, 6)
+        hb.pack_end(self.new_review, False, False, 0)
 
         self.vbox = Gtk.VBox()
         self.vbox.set_spacing(24)
-        self.vbox.set_border_width(6)
         self.pack_start(self.vbox, True, True, 0)
 
         self.new_review.connect('clicked', lambda w: self.emit('new-review'))
@@ -437,8 +437,7 @@ class UIReview(Gtk.VBox):
         useful_favorable = review_data.usefulness_favorable
         useful_submit_error = review_data.usefulness_submit_error
 
-        dark_color = '#000'
-        m = self._whom_when_markup(self.person, displayname, cur_t, dark_color)
+        m = self._whom_when_markup(self.person, displayname, cur_t)
 
         who_when = Gtk.Label()
         who_when.set_markup(m)
@@ -480,8 +479,8 @@ class UIReview(Gtk.VBox):
                 'version' : GObject.markup_escape_text(upstream_version(review_version)),
                 }
 
-            m = '<small><i><span color="%s">%s</span></i></small>'
-            version_lbl = Gtk.Label(label=m % (dark_color, version_string))
+            m = '<small><i>%s</i></small>'
+            version_lbl = Gtk.Label(label=m % version_string)
             version_lbl.set_use_markup(True)
             version_lbl.set_padding(0,3)
             version_lbl.set_ellipsize(1)
@@ -622,7 +621,7 @@ class UIReview(Gtk.VBox):
         
         return Gtk.Label(label='<small>%s</small>' % s)
 
-    def _whom_when_markup(self, person, displayname, cur_t, dark_color):
+    def _whom_when_markup(self, person, displayname, cur_t):
         nice_date = get_nice_date_string(cur_t)
         #dt = datetime.datetime.utcnow() - cur_t
 
@@ -639,8 +638,7 @@ class UIReview(Gtk.VBox):
                 GObject.markup_escape_text(nice_date))
         else:
             try:
-                m = '<span color="%s"><b>%s</b>, %s</span>' % (
-                    dark_color,
+                m = '<b>%s</b>, %s' % (
                     GObject.markup_escape_text(correct_name.encode("utf-8")),
                     GObject.markup_escape_text(nice_date))
             except Exception:

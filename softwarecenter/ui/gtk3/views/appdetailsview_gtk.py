@@ -18,11 +18,7 @@
 
 import gi
 gi.require_version("Gtk", "3.0")
-from gi.repository import Atk
-from gi.repository import Gtk
-from gi.repository import Gdk
-from gi.repository import GObject
-from gi.repository import GdkPixbuf
+from gi.repository import Atk, Gtk, Gdk, GObject, GdkPixbuf, Pango
 
 import datetime
 import gettext
@@ -52,7 +48,6 @@ from softwarecenter.ui.gtk3.dialogs import error
 from appdetailsview import AppDetailsViewBase
 
 from softwarecenter.ui.gtk3.em import StockEms, em
-
 from softwarecenter.ui.gtk3.widgets.reviews import UIReviewsList
 from softwarecenter.ui.gtk3.widgets.containers import SmallBorderRadiusFrame
 from softwarecenter.ui.gtk3.widgets.stars import Star
@@ -99,7 +94,6 @@ class StatusBar(Gtk.Alignment):
 
         self.view = view
 
-
     def draw(self, widget, cr):
         if not self.get_property('visible'): return
         cr.save()
@@ -139,25 +133,8 @@ class PackageStatusBar(StatusBar):
         self.hbox.pack_end(self.progress, False, False, 0)
         self.show_all()
 
-        self.view.connect('style-set', self._on_view_style_set)
         self.button.connect('clicked', self._on_button_clicked)
         GObject.timeout_add(500, self._pulse_helper)
-
-    def _on_view_style_set(self, view, old_style):
-        self._progress_modify_bg(view)
-        return
-
-    def create_colors(self, src_color=None):
-        #FIXME: portme
-        return
-
-    def _progress_modify_bg(self, view):
-        # more in relation to bug #606942
-        # for themes where "transparent-bg-hint" is not understood
-        #~ self.create_colors()
-        #~ self.progress.modify_bg(Gtk.StateType.NORMAL,
-                                #~ Gdk.Color(*self.bg_color))
-        return
 
     def _pulse_helper(self):
         if (self.pkg_state == PkgStates.INSTALLING_PURCHASED and
@@ -188,7 +165,7 @@ class PackageStatusBar(StatusBar):
         return
 
     def set_label(self, label):
-        m = '<span color="%s">%s</span>' % (COLOR_BLACK, label)
+        m = '<span>%s</span>' % label
         self.label.set_markup(m)
         return
 
@@ -201,8 +178,6 @@ class PackageStatusBar(StatusBar):
                 app_details.pkgname, state, app_details.pkg_state))
         self.pkg_state = state
         self.app_details = app_details
-
-        #~ self.create_colors()
 
         if state in (PkgStates.INSTALLING,
                      PkgStates.INSTALLING_PURCHASED,
@@ -355,30 +330,26 @@ class PackageInfo(Gtk.HBox):
         self.value_label.set_selectable(True)
         self.a11y = self.get_accessible()
 
-        self._allocation = None
-
         self.connect('realize', self._on_realize)
         return
 
     def _on_realize(self, widget):
         # key
         k = Gtk.Label()
-        # FIXME
-        dark = '#000'
-        key_markup = '<b><span color="%s">%s</span></b>'
-        k.set_markup(key_markup  % (dark, self.key))
+        key_markup = '<b>%s</b>'
+        k.set_markup(key_markup  % self.key)
         k.set_alignment(1, 0)
 
         # determine max width of all keys
-        max_lw = 0
-
-        for key in self.info_keys:
-            l = self.create_pango_layout("")
-            l.set_markup(key_markup % (dark, key), -1)
-            max_lw = max(max_lw, l.get_pixel_extents()[1].width)
-            del l
-
-        k.set_size_request(max_lw+12, -1)
+        #~ max_lw = 0
+#~ 
+        #~ for key in self.info_keys:
+            #~ l = self.create_pango_layout("")
+            #~ l.set_markup(key_markup % key, -1)
+            #~ max_lw = max(max_lw, l.get_pixel_extents()[1].width)
+            #~ del l
+#~ 
+        #~ k.set_size_request(max_lw+12, -1)
         self.pack_start(k, False, False, 0)
 
         # value
@@ -421,9 +392,6 @@ class Addon(Gtk.HBox):
         self.checkbutton = Gtk.CheckButton()
         self.checkbutton.pkgname = self.app.pkgname
         self.pack_start(self.checkbutton, False, False, 12)
-
-        self._allocation = None
-
         self.connect('realize', self._on_realize, icons, pkgname)
         return
 
@@ -448,15 +416,18 @@ class Addon(Gtk.HBox):
         if len(title) >= 2:
             title = title[0].upper() + title[1:]
 
-        m = ' <span color="%s"> (%s)</span>'
-        # FIXME color
-        pkgname = m%("#000", pkgname)
+        vp = self.get_ancestor('GtkViewport')
+        context = vp.get_style_context()
+        bg = context.get_background_color(Gtk.StateFlags.NORMAL)
+        print bg
 
+
+        m = ' (%s)'
         self.title = Gtk.Label()
-        self.title.set_markup(title+pkgname)
+        self.title.set_markup(title + m % pkgname)
         self.title.set_alignment(0.0, 0.5)
         self.title.set_line_wrap(True)
-        #~ self.title.set_ellipsize(Pango.EllipsizeMode.END)
+        self.title.set_ellipsize(Pango.EllipsizeMode.END)
         hbox.pack_start(self.title, True, True, 0)
 
         loader = self.get_ancestor(AppDetailsViewGtk).review_loader
@@ -502,7 +473,7 @@ class AddonsTable(Gtk.VBox):
 
         self.label = Gtk.Label()
         self.label.set_alignment(0, 0.5)
-        self.label.set_padding(6, 6)
+        self.label.set_padding(0, 6)
 
         markup = _('Add-ons')
         self.label.set_markup(markup)
@@ -1026,7 +997,7 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         # info header
         self.info_header = Gtk.Label(_("Details"))
         self.info_header.set_alignment(0, 0.5)
-        self.info_header.set_padding(6, 6)
+        self.info_header.set_padding(0, 6)
         self.info_header.set_use_markup(True)
         info_vb.pack_start(self.info_header, False, False, 0)
 
