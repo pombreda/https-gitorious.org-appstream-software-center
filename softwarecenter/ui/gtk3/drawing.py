@@ -12,6 +12,13 @@ def color_floats(spec):
     rgba.parse(spec)
     return rgba.red, rgba.green, rgba.blue
 
+def rgb_to_hex(r, g, b):
+    if isinstance(r, float):
+        r *= 255
+        g *= 255
+        b *= 255
+    return "#%02X%02X%02X" % (r,g,b)
+
 def mix(fgcolor, bgcolor, mix_alpha):
     """ Creates a composite rgb of a foreground rgba and a background rgb.
 

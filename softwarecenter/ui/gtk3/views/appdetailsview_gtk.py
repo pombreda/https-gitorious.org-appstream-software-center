@@ -47,6 +47,7 @@ from softwarecenter.backend.weblive import get_weblive_backend
 from softwarecenter.ui.gtk3.dialogs import error
 from appdetailsview import AppDetailsViewBase
 
+from softwarecenter.ui.gtk3.drawing import darken, rgb_to_hex
 from softwarecenter.ui.gtk3.em import StockEms, em
 from softwarecenter.ui.gtk3.widgets.reviews import UIReviewsList
 from softwarecenter.ui.gtk3.widgets.containers import SmallBorderRadiusFrame
@@ -419,12 +420,12 @@ class Addon(Gtk.HBox):
         vp = self.get_ancestor('GtkViewport')
         context = vp.get_style_context()
         bg = context.get_background_color(Gtk.StateFlags.NORMAL)
-        print bg
+        subtle = darken(bg)
 
-
-        m = ' (%s)'
+        m = ' <span color="%s">(%s)</span>'
         self.title = Gtk.Label()
-        self.title.set_markup(title + m % pkgname)
+        rgb = subtle.red, subtle.green, subtle.blue
+        self.title.set_markup(title + m % (rgb_to_hex(*rgb), pkgname))
         self.title.set_alignment(0.0, 0.5)
         self.title.set_line_wrap(True)
         self.title.set_ellipsize(Pango.EllipsizeMode.END)

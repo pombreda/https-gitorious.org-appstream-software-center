@@ -45,6 +45,7 @@ from softwarecenter.enums import PkgStates
 from softwarecenter.backend.reviews import UsefulnessCache
 
 from softwarecenter.ui.gtk3.em import StockEms
+from softwarecenter.ui.gtk3.drawing import darken, rgb_to_hex
 from softwarecenter.ui.gtk3.widgets.buttons import Link
 
 LOG_ALLOCATION = logging.getLogger("softwarecenter.ui.Gtk.get_allocation()")
@@ -356,7 +357,17 @@ class UIReview(Gtk.VBox):
         self._allocation = None
 
         if review_data:
-            self._build(review_data, app_version, logged_in_person, useful_votes)
+            self.connect('realize',
+                         self._on_realize,
+                         review_data,
+                         app_version,
+                         logged_in_person,
+                         useful_votes)
+
+    def _on_realize(self, widget, *content):
+        self._subtle = self._get_subtle_color_as_hex()
+        self._build(*content)
+        return
 
     def _on_allocate(self, widget, allocation, stars, summary, text, who_when, version_lbl, flag):
         return
@@ -479,8 +490,8 @@ class UIReview(Gtk.VBox):
                 'version' : GObject.markup_escape_text(upstream_version(review_version)),
                 }
 
-            m = '<small><i>%s</i></small>'
-            version_lbl = Gtk.Label(label=m % version_string)
+            m = '<span color="%s"><small><i>%s</i></small></span>'
+            version_lbl = Gtk.Label(label=m % (self._subtle, version_string))
             version_lbl.set_use_markup(True)
             version_lbl.set_padding(0,3)
             version_lbl.set_ellipsize(1)
@@ -630,7 +641,7 @@ class UIReview(Gtk.VBox):
 
         if person == self.logged_in_person:
             m = '<span color="%s"><b>%s (%s)</b>, %s</span>' % (
-                dark_color,
+                self._subtle,
                 GObject.markup_escape_text(correct_name),
                 # TRANSLATORS: displayed in a review after the persons name,
                 # e.g. "Wonderful text based app" mvo (that's you) 2011-02-11"
@@ -638,7 +649,8 @@ class UIReview(Gtk.VBox):
                 GObject.markup_escape_text(nice_date))
         else:
             try:
-                m = '<b>%s</b>, %s' % (
+                m = '<span color="%s"><b>%s</b></span>, %s' % (
+                    self._subtle,
                     GObject.markup_escape_text(correct_name.encode("utf-8")),
                     GObject.markup_escape_text(nice_date))
             except Exception:
@@ -646,6 +658,13 @@ class UIReview(Gtk.VBox):
                 m = "Error parsing name"
 
         return m
+
+    def _get_subtle_color_as_hex(self):
+        vp = self.get_ancestor('GtkViewport')
+        context = vp.get_style_context()
+        bg = context.get_background_color(Gtk.StateFlags.NORMAL)
+        subtle = darken(bg)
+        return rgb_to_hex(subtle.red, subtle.green, subtle.blue)
 
     def draw(self, widget, cr):
         return
