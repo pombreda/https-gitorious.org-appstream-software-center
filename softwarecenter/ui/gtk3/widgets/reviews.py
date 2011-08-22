@@ -510,7 +510,8 @@ class UIReview(Gtk.VBox):
         # Translators: This link is for flagging a review as inappropriate.
         # To minimize repetition, if at all possible, keep it to a single word.
         # If your language has an obvious verb, it won't need a question mark.
-        self.complain = Link('<small>%s</small>' % _('Inappropriate?'))
+        subtle = get_subtle_color_as_hex(self)
+        self.complain = Link('<span color="%s"><small>%s</small></span>' % (subtle, _('Inappropriate?')))
         self.footer.pack_end(self.complain, False, False, 0)
         self.complain.connect('clicked', self._on_report_abuse_clicked)
         # FIXME: dynamically update this on network changes
@@ -649,7 +650,7 @@ class UIReview(Gtk.VBox):
                 GObject.markup_escape_text(nice_date))
         else:
             try:
-                m = '<span color="%s"><b>%s</b></span>, %s' % (
+                m = '<span color="%s"><b>%s</b>, %s</span>' % (
                     self._subtle,
                     GObject.markup_escape_text(correct_name.encode("utf-8")),
                     GObject.markup_escape_text(nice_date))
