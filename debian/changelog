@@ -39,6 +39,8 @@ software-center (4.1.18) UNRELEASED; urgency=low
       simplify repeated append code (and DRY)
   
   [ Kiwinote ]
+  * softwarecenter/db/application.py:
+    - never capitalize pkgname (LP: #828295)
   * softwarecenter/ui/gtk3/panes/viewswitcher.py:
     - link section_clicked to 'button-release-event' rather than 'clicked' to
       avoid getting signals for the wrong pane (LP: #828821)
