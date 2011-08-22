@@ -92,6 +92,8 @@ class StatusBar(Gtk.Alignment):
 
     def __init__(self, view):
         GObject.GObject.__init__(self, xscale=1.0, yscale=1.0)
+        self.set_padding(2, 2,
+                         StockEms.SMALL, StockEms.SMALL)
 
         self.hbox = Gtk.HBox()
         self.hbox.set_spacing(StockEms.SMALL)
@@ -99,22 +101,12 @@ class StatusBar(Gtk.Alignment):
 
         self.view = view
 
-
-    def draw(self, widget, cr):
-        if not self.get_property('visible'): return
-        cr.save()
-
-        a = widget.get_allocation()
-        cr.rectangle(a.x, a.y, a.width, a.height)
-        cr.set_source_rgb(*self.bg_color)
-        cr.fill()
-
-        cr.set_line_width(1)
-        cr.translate(0.5, 0.5)
-        cr.rectangle(a.x, a.y, a.width-1, a.height-1)
-        cr.set_source_rgb(*self.line_color)
+    def do_draw(self, cr):
+        a = self.get_allocation()
+        cr.rectangle(0,0, a.width, a.height)
         cr.stroke()
-        cr.restore()
+
+        for child in self: self.propagate_draw(child, cr)
         return
 
 
