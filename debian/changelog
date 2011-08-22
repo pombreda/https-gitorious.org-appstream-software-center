@@ -22,7 +22,17 @@ software-center (4.1.18) UNRELEASED; urgency=low
     - theming improvements
     - fix up installedpane search to include uncategorised items as well
     - fix up the show-hide technical items in the installedpane
-    -  fix the description resizing, prevent wierd spazzing
+    - fix the description resizing, prevent wierd spazzing
+    
+  [ Aaron Peachey ]
+  * softwarecenter/ui/gtk3/views/catview_gtk.py:
+    - remove 'More' button from sub-category top rated sections
+    - increase number of apps in top-rated feature frames from 8 to 12
+    - add sub category name into frame header for subcategory toprated
+     (LP: #830272)
+  * softwarecenter/ui/gtk3/views/catview_gtk.py:
+    - provide standard method for adding tiles to Flowable grid to 
+      simplify repeated append code (and DRY)
   
   [ Kiwinote ]
   * softwarecenter/ui/gtk3/panes/viewswitcher.py:
@@ -39,7 +49,7 @@ software-center (4.1.18) UNRELEASED; urgency=low
   * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
     - don't hide the version label (as we still want the pkgname) (LP: #830747)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 19 Aug 2011 14:52:03 +0200
+ -- Aaron Peachey <alpeachey@gmail.com>  Sun, 21 Aug 2011 21:51:34 +1000
 
 software-center (4.1.17) oneiric; urgency=low
 
