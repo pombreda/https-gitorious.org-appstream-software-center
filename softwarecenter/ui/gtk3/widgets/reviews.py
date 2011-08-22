@@ -45,7 +45,7 @@ from softwarecenter.enums import PkgStates
 from softwarecenter.backend.reviews import UsefulnessCache
 
 from softwarecenter.ui.gtk3.em import StockEms
-from softwarecenter.ui.gtk3.drawing import darken, rgb_to_hex
+from softwarecenter.ui.gtk3.drawing import darken, get_subtle_color_as_hex
 from softwarecenter.ui.gtk3.widgets.buttons import Link
 
 LOG_ALLOCATION = logging.getLogger("softwarecenter.ui.Gtk.get_allocation()")
@@ -365,7 +365,7 @@ class UIReview(Gtk.VBox):
                          useful_votes)
 
     def _on_realize(self, widget, *content):
-        self._subtle = self._get_subtle_color_as_hex()
+        self._subtle = get_subtle_color_as_hex(self)
         self._build(*content)
         return
 
@@ -658,13 +658,6 @@ class UIReview(Gtk.VBox):
                 m = "Error parsing name"
 
         return m
-
-    def _get_subtle_color_as_hex(self):
-        vp = self.get_ancestor('GtkViewport')
-        context = vp.get_style_context()
-        bg = context.get_background_color(Gtk.StateFlags.NORMAL)
-        subtle = darken(bg)
-        return rgb_to_hex(subtle.red, subtle.green, subtle.blue)
 
     def draw(self, widget, cr):
         return

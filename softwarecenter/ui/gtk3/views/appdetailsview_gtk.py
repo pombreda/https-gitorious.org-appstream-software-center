@@ -47,7 +47,7 @@ from softwarecenter.backend.weblive import get_weblive_backend
 from softwarecenter.ui.gtk3.dialogs import error
 from appdetailsview import AppDetailsViewBase
 
-from softwarecenter.ui.gtk3.drawing import darken, rgb_to_hex
+from softwarecenter.ui.gtk3.drawing import darken, get_subtle_color_as_hex
 from softwarecenter.ui.gtk3.em import StockEms, em
 from softwarecenter.ui.gtk3.widgets.reviews import UIReviewsList
 from softwarecenter.ui.gtk3.widgets.containers import SmallBorderRadiusFrame
@@ -337,20 +337,19 @@ class PackageInfo(Gtk.HBox):
     def _on_realize(self, widget):
         # key
         k = Gtk.Label()
-        key_markup = '<b>%s</b>'
-        k.set_markup(key_markup  % self.key)
+        key_markup = '<span color="%s"><b>%s</b></span>'
+        subtle = get_subtle_color_as_hex(self)
+        k.set_markup(key_markup  % (subtle, self.key))
         k.set_alignment(1, 0)
 
         # determine max width of all keys
-        #~ max_lw = 0
-#~ 
-        #~ for key in self.info_keys:
-            #~ l = self.create_pango_layout("")
-            #~ l.set_markup(key_markup % key, -1)
-            #~ max_lw = max(max_lw, l.get_pixel_extents()[1].width)
-            #~ del l
-#~ 
-        #~ k.set_size_request(max_lw+12, -1)
+        max_lw = 0
+        for key in self.info_keys:
+            l = self.create_pango_layout("")
+            l.set_markup(key_markup % (subtle, key), -1)
+            max_lw = max(max_lw, l.get_pixel_extents()[1].width)
+            del l
+        k.set_size_request(max_lw+12, -1)
         self.pack_start(k, False, False, 0)
 
         # value
@@ -424,8 +423,8 @@ class Addon(Gtk.HBox):
 
         m = ' <span color="%s">(%s)</span>'
         self.title = Gtk.Label()
-        rgb = subtle.red, subtle.green, subtle.blue
-        self.title.set_markup(title + m % (rgb_to_hex(*rgb), pkgname))
+        subtle = get_subtle_color_as_hex(self)
+        self.title.set_markup(title + m % (subtle, pkgname))
         self.title.set_alignment(0.0, 0.5)
         self.title.set_line_wrap(True)
         self.title.set_ellipsize(Pango.EllipsizeMode.END)
