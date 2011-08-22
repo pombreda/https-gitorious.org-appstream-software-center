@@ -63,6 +63,8 @@ software-center (4.1.18) UNRELEASED; urgency=low
     softwarecenter/ui/gtk3/widgets/cellrenderers.py:
     - horizontally pixel align listview in ltr and rtl (LP: #830229)
       includes multiple rtl fixes
+  * softwarecenter/ui/gtk3/views/catview_gtk.py:
+    - realign the lobby view a bit
 
  -- Aaron Peachey <alpeachey@gmail.com>  Sun, 21 Aug 2011 21:51:34 +1000
 

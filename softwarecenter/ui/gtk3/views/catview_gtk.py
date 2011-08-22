@@ -234,9 +234,9 @@ class LobbyViewGtk(CategoriesViewGtk):
         #~ self._append_recommendations()
         self._append_banner_ads()
 
-        self.top_hbox = Gtk.HBox(spacing=self.SPACING)
+        self.top_hbox = Gtk.HBox(spacing=StockEms.SMALL)
         top_hbox_alignment = Gtk.Alignment()
-        top_hbox_alignment.set_padding(0, 0, self.PADDING, self.PADDING)
+        top_hbox_alignment.set_padding(0, 0, StockEms.LARGE-2, StockEms.LARGE-2)
         top_hbox_alignment.add(self.top_hbox)
         self.vbox.pack_start(top_hbox_alignment, False, False, 0)
 
@@ -325,7 +325,7 @@ class LobbyViewGtk(CategoriesViewGtk):
         scagent.query_exhibits()
 
         a = Gtk.Alignment()
-        a.set_padding(0,StockEms.MEDIUM,0,0)
+        a.set_padding(0,StockEms.SMALL,0,0)
         a.add(exhibit_banner)
 
         self.vbox.pack_start(a, False, False, 0)
@@ -344,6 +344,8 @@ class LobbyViewGtk(CategoriesViewGtk):
             if 'carousel-only' in cat.flags: continue
             category_name = mrkup % GObject.markup_escape_text(cat.name)
             label = LabelTile(category_name, None)
+            label.label.set_margin_left(StockEms.SMALL)
+            label.label.set_margin_right(StockEms.SMALL)
             label.label.set_alignment(0.0, 0.5)
             label.label.set_use_markup(True)
             label.connect('clicked', self.on_category_clicked, cat)
