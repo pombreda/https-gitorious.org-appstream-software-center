@@ -578,8 +578,10 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
 
         # wait for the cache to become ready (if needed)
         if not self.cache.ready:
-            GObject.timeout_add(100, lambda: self.on_menu_file_activate(menuitem))
+            GObject.timeout_add(
+                100, lambda: self.on_menu_file_activate(menuitem))
             return False
+
         # update menu items
         pkg_state = None
         error = None
@@ -602,7 +604,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         elif pkg_state == PkgStates.UNINSTALLED and not error:
             self.menuitem_install.set_sensitive(True)
         elif (not pkg_state and 
-              not pane.is_category_view_showing() and 
+              not self.active_pane.is_category_view_showing() and 
               app.pkgname in self.cache and 
               not app.pkgname in self.active_pane.app_view.tree_view._action_block_list and
               not error):

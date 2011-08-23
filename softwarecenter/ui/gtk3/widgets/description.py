@@ -991,8 +991,10 @@ class TextBlock(Gtk.EventBox):
         return self.order[self.selection.paragraph]
 
     def render(self, widget, cr):
-        if not self.order: return
+        if not self.order: 
+            return
 
+        a = self.get_allocation()
         for layout in self.order:
             lx, ly = layout.get_position()
 

@@ -55,7 +55,7 @@ from softwarecenter.ui.gtk3.em import StockEms, em
 
 from softwarecenter.ui.gtk3.widgets.reviews import UIReviewsList
 from softwarecenter.ui.gtk3.widgets.containers import SmallBorderRadiusFrame
-from softwarecenter.ui.gtk3.widgets.stars import StarRatingsWidget
+from softwarecenter.ui.gtk3.widgets.stars import (Star, StarRatingsWidget)
 from softwarecenter.ui.gtk3.widgets.description import AppDescription
 from softwarecenter.ui.gtk3.widgets.thumbnail import ScreenshotThumbnail
 from softwarecenter.ui.gtk3.widgets.weblivedialog import (

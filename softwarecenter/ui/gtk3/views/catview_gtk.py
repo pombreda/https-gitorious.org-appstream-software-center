@@ -18,7 +18,6 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import cairo
-import copy
 import gettext
 from gi.repository import Gtk
 from gi.repository import GObject

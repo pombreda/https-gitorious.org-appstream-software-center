@@ -25,7 +25,7 @@ from softwarecenter.backend import get_install_backend
 from softwarecenter.db.application import AppDetails
 from softwarecenter.enums import Icons
 from softwarecenter.ui.gtk3.em import StockEms, em
-from softwarecenter.ui.gtk3.drawing import darken, BLACK
+from softwarecenter.ui.gtk3.drawing import darken
 from softwarecenter.ui.gtk3.widgets.stars import Star, StarSize
 
 _HAND = Gdk.Cursor.new(Gdk.CursorType.HAND2)
