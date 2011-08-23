@@ -45,7 +45,7 @@ from softwarecenter.enums import PkgStates
 from softwarecenter.backend.reviews import UsefulnessCache
 
 from softwarecenter.ui.gtk3.em import StockEms
-from softwarecenter.ui.gtk3.drawing import darken, get_subtle_color_as_hex
+from softwarecenter.ui.gtk3.drawing import darken, get_subtle_color_as_hex, color_to_hex
 from softwarecenter.ui.gtk3.widgets.buttons import Link
 
 LOG_ALLOCATION = logging.getLogger("softwarecenter.ui.Gtk.get_allocation()")
@@ -540,7 +540,9 @@ class UIReview(Gtk.VBox):
             # add here, but only populate if its not the own review
             self.likebox = Gtk.HBox()
             if already_voted == None and not current_user_reviewer:
-                self.yes_like = Link('<small>%s</small>' % _('Yes'))
+                context = self.get_style_context()
+                dark = color_to_hex(context.get_color(Gtk.StateFlags.NORMAL))
+                self.yes_like = Link('<span color="%s"><small>%s</small></span>' % (dark, _('Yes')))
                 self.no_like = Link('<small>%s</small>' % _('No'))
                 self.yes_like.connect('clicked', self._on_useful_clicked, True)
                 self.no_like.connect('clicked', self._on_useful_clicked, False)
