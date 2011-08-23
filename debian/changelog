@@ -16,6 +16,8 @@ software-center (4.1.18) UNRELEASED; urgency=low
     - show correct price in the FeaturedTile (if there is one)
   * softwarecenter/ui/gtk3/widgets/reviews.py:
     - make the reviews UI more network change aware
+  * softwarecenter/db/pkginfo_impl/aptcache.py:
+    - fix file monitor const issues with gio vs Gio
 
   [ Alex Eftimie ]
   * lp:~alexeftimie/software-center/backend-refactor
