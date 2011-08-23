@@ -78,8 +78,13 @@ software-center (4.1.18) UNRELEASED; urgency=low
       includes multiple rtl fixes
   * softwarecenter/ui/gtk3/views/catview_gtk.py:
     - realign the lobby view a bit
+  
+  [ Robert Roth ]
+  * Update the help menu item to match the specs (LP: #828165)
+  * Show developer website as link instead of button (LP: #830740)
+  * Show today in history pane (LP: #831394)
 
- -- Aaron Peachey <alpeachey@gmail.com>  Sun, 21 Aug 2011 21:51:34 +1000
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 23 Aug 2011 19:07:30 +0200
 
 software-center (4.1.17) oneiric; urgency=low
 
