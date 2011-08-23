@@ -18,6 +18,8 @@ software-center (4.1.18) UNRELEASED; urgency=low
     - make the reviews UI more network change aware
   * softwarecenter/db/pkginfo_impl/aptcache.py:
     - fix file monitor const issues with gio vs Gio
+  * utils/piston-helpers/piston_get_reviews_helper.py:
+    - fix offline reviews
 
   [ Alex Eftimie ]
   * lp:~alexeftimie/software-center/backend-refactor
