@@ -372,6 +372,7 @@ class LobbyViewGtk(CategoriesViewGtk):
         frame.header_implements_more_button()
         frame.more.connect('clicked', self.on_category_clicked, toprated_cat) 
         frame.add(self.toprated)
+        self.toprated_frame = frame
         self.right_column.pack_start(frame, True, True, 0)
 
         self.helper = AppPropertiesHelper(self.db, self.cache, self.icons)
