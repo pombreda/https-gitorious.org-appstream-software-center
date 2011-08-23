@@ -39,6 +39,9 @@ software-center (4.1.18) UNRELEASED; urgency=low
   * softwarecenter/ui/gtk3/views/catview_gtk.py:
     - provide standard method for adding tiles to Flowable grid to 
       simplify repeated append code (and DRY)
+  * lp:~aaronp/software-center/gtk3-bugs:
+    - fix size request, make nr-reviews in the featured buttons
+      consistent with the applist
   
   [ Kiwinote ]
   * softwarecenter/ui/gtk3/panes/viewswitcher.py:
