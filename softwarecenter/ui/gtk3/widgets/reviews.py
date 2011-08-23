@@ -109,7 +109,6 @@ class UIReviewsList(Gtk.VBox):
 
 
         # ensure network state updates
-        self.connect("map", lambda w: self._on_network_state_change())
         watcher = get_network_watcher()
         watcher.connect(
             "changed", lambda w,s: self._on_network_state_change())
@@ -118,7 +117,8 @@ class UIReviewsList(Gtk.VBox):
         return
 
     def _on_network_state_change(self):
-        if network_state_is_connected():
+        is_connected = network_state_is_connected()
+        if is_connected:
             self.new_review.show()
             if self.no_network_msg:
                 self.no_network_msg.hide()
@@ -203,6 +203,8 @@ class UIReviewsList(Gtk.VBox):
         # only show new_review for installed stuff
         is_installed = (self._parent.app_details and
                         self._parent.app_details.pkg_state == PkgStates.INSTALLED)
+
+        # show/hide new review button
         if is_installed:
             self.new_review.show()
         else:
@@ -248,7 +250,11 @@ class UIReviewsList(Gtk.VBox):
             button = Gtk.Button(_("Check for more reviews"))
             button.connect("clicked", self._on_more_reviews_clicked)
             button.show()
-            self.vbox.pack_start(button, False, False, 0)                
+            self.vbox.pack_start(button, False, False, 0)
+
+        # always run this here to make update the current ui based on the
+        # network state
+        self._on_network_state_change()
         return
 
     def _on_more_reviews_clicked(self, button):
