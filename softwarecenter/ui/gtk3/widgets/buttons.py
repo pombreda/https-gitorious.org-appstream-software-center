@@ -21,12 +21,12 @@ import cairo
 from gi.repository import Gtk, Gdk, Pango, GObject, GdkPixbuf, PangoCairo
 from gettext import gettext as _
 
+from softwarecenter.backend import get_install_backend
+from softwarecenter.db.application import AppDetails
 from softwarecenter.enums import Icons
 from softwarecenter.ui.gtk3.em import StockEms, em
 from softwarecenter.ui.gtk3.drawing import darken, BLACK
-from softwarecenter.ui.gtk3.widgets.stars import Star
-from softwarecenter.backend import get_install_backend
-
+from softwarecenter.ui.gtk3.widgets.stars import Star, StarSize
 
 _HAND = Gdk.Cursor.new(Gdk.CursorType.HAND2)
 
@@ -152,20 +152,34 @@ class FeaturedTile(TileButton):
             self.content_right.pack_start(self.category, False, False, 4)
 
         if stats is not None:
-            self.stars = Star()
+            self.stars = Star(size=StarSize.SMALL)
             self.stars.set_name("featured-star")
             self.stars.render_outline = True
             self.stars.set_rating(stats.ratings_average)
-            self.content_right.pack_start(self.stars, False, False, 0)
-
-            self.n_ratings = Gtk.Label.new('<span font_desc="Italic %i" color="%s">%i %s</span>' %
-                                           (em(0.45), '#8C8C8C', stats.ratings_total, 'Reviews'))
+            self.rating_box = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, StockEms.SMALL)
+            self.rating_box.pack_start(self.stars, False, False, 0)
+            self.n_ratings = Gtk.Label.new(
+                '<span font_desc="%i" color="%s"> (%i)</span>' %  (
+                    em(0.45), '#8C8C8C', stats.ratings_total))
             self.n_ratings.set_use_markup(True)
-            self.n_ratings.set_alignment(0.0, 0.0)
-            self.content_right.pack_start(self.n_ratings, False, False, 0)
+            self.n_ratings.set_alignment(0.0, 0.5)
+            self.rating_box.pack_start(self.n_ratings, False, False, 0)
+            self.content_right.pack_start(self.rating_box, False, False, 0)
+        
+            #work out width tile needs to be to ensure ratings text is all visible
+            req_width = (self.stars.size_request().width +
+                         self.image.size_request().width +
+                         self.n_ratings.size_request().width +
+                         StockEms.MEDIUM * 3
+                         )
+        
+            self.MAX_WIDTH = max(self.MAX_WIDTH, req_width)
 
-        self.price = Gtk.Label.new('<span color="%s" font_desc="Bold %i">%s</span>' %
-                                   ('#757575', em(0.6), 'FREE'))
+        details = AppDetails(db=helper.db, doc=doc)
+        price = details.price or _("Free")
+        self.price = Gtk.Label.new(
+            '<span color="%s" font_desc="Bold %i">%s</span>' % (
+                '#757575', em(0.6), price))
         self.price.set_use_markup(True)
         self.content_left.pack_start(self.price, False, False, 0)
 

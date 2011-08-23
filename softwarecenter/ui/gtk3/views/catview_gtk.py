@@ -234,9 +234,9 @@ class LobbyViewGtk(CategoriesViewGtk):
         #~ self._append_recommendations()
         self._append_banner_ads()
 
-        self.top_hbox = Gtk.HBox(spacing=self.SPACING)
+        self.top_hbox = Gtk.HBox(spacing=StockEms.SMALL)
         top_hbox_alignment = Gtk.Alignment()
-        top_hbox_alignment.set_padding(0, 0, self.PADDING, self.PADDING)
+        top_hbox_alignment.set_padding(0, 0, StockEms.LARGE-2, StockEms.LARGE-2)
         top_hbox_alignment.add(self.top_hbox)
         self.vbox.pack_start(top_hbox_alignment, False, False, 0)
 
@@ -325,7 +325,7 @@ class LobbyViewGtk(CategoriesViewGtk):
         scagent.query_exhibits()
 
         a = Gtk.Alignment()
-        a.set_padding(0,StockEms.MEDIUM,0,0)
+        a.set_padding(0,StockEms.SMALL,0,0)
         a.add(exhibit_banner)
 
         self.vbox.pack_start(a, False, False, 0)
@@ -344,6 +344,8 @@ class LobbyViewGtk(CategoriesViewGtk):
             if 'carousel-only' in cat.flags: continue
             category_name = mrkup % GObject.markup_escape_text(cat.name)
             label = LabelTile(category_name, None)
+            label.label.set_margin_left(StockEms.SMALL)
+            label.label.set_margin_right(StockEms.SMALL)
             label.label.set_alignment(0.0, 0.5)
             label.label.set_use_markup(True)
             label.connect('clicked', self.on_category_clicked, cat)
@@ -506,14 +508,14 @@ class SubCategoryViewGtk(CategoriesViewGtk):
             frame = FramedHeaderBox()
             # set x/y-alignment and x/y-expand
             #~ frame.set(0.5, 0.0, 1.0, 1.0)
-            frame.set_header_label(_('Top Rated %s') % self.header)
+            frame.set_header_label(_('Top Rated %s') % GObject.markup_escape_text(self.header))
             frame.pack_start(self.toprated, True, True, 0)
             # append the departments section to the page
             self.vbox.pack_start(frame, False, True, 0)
             self.toprated_frame = frame
         else:
             self.toprated.remove_all()
-            self.toprated_frame.set_header_label(_('Top Rated %s') % self.header)
+            self.toprated_frame.set_header_label(_('Top Rated %s') % GObject.markup_escape_text(self.header))
 
         # and fill the toprated grid
         self.enquire.set_query(category.query,

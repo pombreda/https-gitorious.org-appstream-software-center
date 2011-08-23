@@ -66,7 +66,7 @@ class AppView(Gtk.VBox):
         self.helper = AppPropertiesHelper(db, cache, icons)
         # misc internal containers
         self.header_hbox = Gtk.HBox()
-        self.header_hbox.set_border_width(StockEms.XLARGE)
+        self.header_hbox.set_border_width(StockEms.LARGE)
         self.pack_start(self.header_hbox, False, False, 0)
         self.tree_view_scroll = Gtk.ScrolledWindow()
         self.pack_start(self.tree_view_scroll, True, True, 0)

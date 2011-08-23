@@ -1,8 +1,9 @@
 #!/usr/bin/python
 
+import httplib2
+import logging
 import os
 import pickle
-import logging
 import sys
 
 from optparse import OptionParser
@@ -15,6 +16,23 @@ from piston_mini_client import APIError
 
 LOG = logging.getLogger(__name__)
 
+def try_get_reviews(kwargs):
+    """ this tries to fetcher reviews and apply some heuristics if none
+        are found (like fallback to the previous distro series)
+    """
+    piston_reviews = rnrclient.get_reviews(**kwargs)
+
+    # test if we don't have reviews for the current distroseries
+    # and fallback to the previous oneif that is the case
+    if (piston_reviews == [] and
+        kwargs["distroseries"] == distro.DISTROSERIES[0]):
+        kwargs["distroseries"] = distro.DISTROSERIES[1]
+        piston_reviews = rnrclient.get_reviews(**kwargs)
+
+    # the backend sometimes returns None so we fix this here
+    if piston_reviews is None:
+        piston_reviews = []
+    return piston_reviews    
 
 if __name__ == "__main__":
     logging.basicConfig()
@@ -52,18 +70,7 @@ if __name__ == "__main__":
               }
     piston_reviews = []
     try:
-        piston_reviews = rnrclient.get_reviews(**kwargs)
-
-        # test if we don't have reviews for the current distroseries
-        # and fallback to the previous oneif that is the case
-        if (piston_reviews == [] and
-            kwargs["distroseries"] == distro.DISTROSERIES[0]):
-            kwargs["distroseries"] = distro.DISTROSERIES[1]
-            piston_reviews = rnrclient.get_reviews(**kwargs)
-
-        # the backend sometimes returns None so we fix this here
-        if piston_reviews is None:
-            piston_reviews = []
+        piston_reviews = try_get_reviews(kwargs)
     except ValueError as e:
         LOG.error("failed to parse '%s'" % e.doc)
     #bug lp:709408 - don't print 404 errors as traceback when api request 
@@ -71,6 +78,10 @@ if __name__ == "__main__":
     except APIError, e:
         LOG.warn("_get_reviews_threaded: no reviews able to be retrieved for package: %s (%s, origin: %s)" % (options.pkgname, options.distroseries, options.origin))
         LOG.debug("_get_reviews_threaded: no reviews able to be retrieved: %s" % e)
+    except httplib2.ServerNotFoundError:
+        # switch to offline mode and try again
+        rnrclient._offline_mode = True
+        piston_reviews = try_get_reviews(kwargs)
     except:
         LOG.exception("get_reviews")
         sys.exit(1)

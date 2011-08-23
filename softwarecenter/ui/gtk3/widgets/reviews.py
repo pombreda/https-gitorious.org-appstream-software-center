@@ -40,7 +40,7 @@ from softwarecenter.utils import (
     upstream_version, 
     )
 
-from softwarecenter.netstatus import network_state_is_connected
+from softwarecenter.netstatus import network_state_is_connected, get_network_watcher
 from softwarecenter.enums import PkgStates
 from softwarecenter.backend.reviews import UsefulnessCache
 
@@ -103,9 +103,29 @@ class UIReviewsList(Gtk.VBox):
         self.vbox.set_border_width(6)
         self.pack_start(self.vbox, True, True, 0)
 
+        self.no_network_msg = None
+
         self.new_review.connect('clicked', lambda w: self.emit('new-review'))
+
+
+        # ensure network state updates
+        watcher = get_network_watcher()
+        watcher.connect(
+            "changed", lambda w,s: self._on_network_state_change())
+
         self.show_all()
         return
+
+    def _on_network_state_change(self):
+        is_connected = network_state_is_connected()
+        if is_connected:
+            self.new_review.show()
+            if self.no_network_msg:
+                self.no_network_msg.hide()
+        else:
+            self.new_review.hide()
+            if self.no_network_msg:
+                self.no_network_msg.show()
 
     def _on_button_new_clicked(self, button):
         self.emit("new-review")
@@ -153,6 +173,7 @@ class UIReviewsList(Gtk.VBox):
         msg = _('Only saved reviews can be displayed')
         m = EmbeddedMessage(title, msg, 'network-offline')
         self.vbox.pack_start(m, True, True, 0)
+        return m
         
     def _clear_vbox(self, vbox):
         children = vbox.get_children()
@@ -177,13 +198,13 @@ class UIReviewsList(Gtk.VBox):
         # network sensitive stuff, only show write_review if connected,
         # add msg about offline cache usage if offline
         is_connected = network_state_is_connected()
-        self.new_review.set_sensitive(is_connected)
-        if not is_connected:
-            self._add_no_network_connection_msg()
+        self.no_network_msg = self._add_no_network_connection_msg()
 
         # only show new_review for installed stuff
         is_installed = (self._parent.app_details and
                         self._parent.app_details.pkg_state == PkgStates.INSTALLED)
+
+        # show/hide new review button
         if is_installed:
             self.new_review.show()
         else:
@@ -229,7 +250,11 @@ class UIReviewsList(Gtk.VBox):
             button = Gtk.Button(_("Check for more reviews"))
             button.connect("clicked", self._on_more_reviews_clicked)
             button.show()
-            self.vbox.pack_start(button, True, True, 0)                
+            self.vbox.pack_start(button, False, False, 0)
+
+        # always run this here to make update the current ui based on the
+        # network state
+        self._on_network_state_change()
         return
 
     def _on_more_reviews_clicked(self, button):
@@ -357,6 +382,8 @@ class UIReview(Gtk.VBox):
 
         if review_data:
             self._build(review_data, app_version, logged_in_person, useful_votes)
+        # when this is mapped, show/hide widgets that are network sensitive
+        # this ensures that even with show_all() we show the right stuff
 
     def _on_allocate(self, widget, allocation, stars, summary, text, who_when, version_lbl, flag):
         return
@@ -503,10 +530,12 @@ class UIReview(Gtk.VBox):
         self.complain = Link('<small>%s</small>' % _('Inappropriate?'))
         self.footer.pack_end(self.complain, False, False, 0)
         self.complain.connect('clicked', self._on_report_abuse_clicked)
-        # FIXME: dynamically update this on network changes
-        self.complain.set_sensitive(network_state_is_connected())
-        #~ self.body.connect('size-allocate', self._on_allocate, stars, 
-                          #~ summary, text, who_when, version_lbl, self.complain)
+
+        # connect network signals
+        self.connect("map", lambda w: self._on_network_state_change())
+        watcher = get_network_watcher()
+        watcher.connect(
+            "changed", lambda w,s: self._on_network_state_change())
         return
     
     def _build_usefulness_ui(self, current_user_reviewer, useful_total, 
@@ -543,23 +572,24 @@ class UIReview(Gtk.VBox):
                 self.likebox.pack_start(self.yes_no_separator, False, False, 0)
                 self.likebox.pack_start(self.no_like, False, False, 0)
                 self.footer.pack_start(self.likebox, False, False, 0)
-            # always update network status (to keep the code simple)
-            self._update_likebox_based_on_network_state()
         return
 
-    def _update_likebox_based_on_network_state(self):
-        """ show/hide yes/no based on network connection state """
+    def _on_network_state_change(self):
+        """ show/hide widgets based on network connection state """
         # FIXME: make this dynamic shode/hide on network changes
         # FIXME2: make ti actually work, later show_all() kill it
         #         currently
         if network_state_is_connected():
             self.likebox.show()
             self.useful.show()
+            self.complain.show()
         else:
             self.likebox.hide()
-            # showing "was this useful is not interessting"
-            if self.useful_total == 0:
-                self.useful.hide()
+            # we hide the useful box because if its there it says something
+            # like "10 people found this useful. Did you?" but you can't
+            # actually submit anything without network
+            self.useful.hide()
+            self.complain.hide()
     
     def _get_usefulness_label(self, current_user_reviewer, 
                               useful_total,  useful_favorable, already_voted):
