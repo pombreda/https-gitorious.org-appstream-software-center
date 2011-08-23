@@ -37,6 +37,9 @@ software-center (4.1.18) UNRELEASED; urgency=low
     - add installed ticks to the lobby and subcat tiles (Bug #828223)
   * lp:~mmcg069/software-center/Bug830691:
     - improve visual connection in the details (Bug #830691)
+  *lp:~mmcg069/software-center/details-tweaks
+   - add the ratings count to the bottom of the stars in the 
+     detailsview header
     
   [ Aaron Peachey ]
   * softwarecenter/ui/gtk3/views/catview_gtk.py:
