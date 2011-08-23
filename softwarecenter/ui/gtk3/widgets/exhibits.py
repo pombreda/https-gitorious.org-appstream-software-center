@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Copyright (C) 2011 Canonical
 #
 # Authors:
@@ -38,23 +39,27 @@ EXHIBIT_HTML = """
 <html><head>
 <style type="text/css">
 .banner_text {
+font-family: Ubuntu;
 font-size:1.7em;
-color:white;
-background: #dd4814;
+color: #dd4814;
+background-color: rgba(255,255,255, 0.9);
 padding: 0.2em;
-text-shadow:0em 0em 0.075em black;
-position:absolute;
-top:30;
-left:100;
-}
-.banner_subtext {
-font-size:1.2em;
-color:black;
-padding: 1em;
 text-shadow:0em 0em 0.075em white;
 position:absolute;
-top:90;
-left:130;
+top:30;
+left:17;
+}
+.banner_subtext {
+font-family: Ubuntu;
+font-size:1em;
+color:black;
+background-color: rgba(255,255,255, 0.9);
+padding: 0.4em;
+text-shadow:0em 0em 0.075em white;
+position:absolute;
+top:65;
+left:17;
+width:300;
 }
 </style>
 </head><body>
@@ -75,8 +80,8 @@ class DefaultExhibit(object):
         self.banner_url = "file://%s" % (os.path.abspath(os.path.join(softwarecenter.paths.datadir, "default_banner/fallback.png")))
         self.html = EXHIBIT_HTML % { 
             'banner_url' : self.banner_url,
-            'title' : _("Welcome to the Ubuntu Software Center"),
-            'subtitle' : _("Its a new day"),
+            'title' : _("It’s new! ›"),
+            'subtitle' : _("Software Center has just been given a fresh new look - please report any issues via the help menu!"),
       }
         # we should extract this automatically from the html
         #self.atk_name = _("Default Banner")
@@ -91,8 +96,8 @@ class FeaturedExhibit(object):
         self.banner_url = "file://%s" % (os.path.abspath(os.path.join(softwarecenter.paths.datadir, "default_banner/fallback2.png")))
         self.html = EXHIBIT_HTML % { 
             'banner_url' : self.banner_url,
-            'title' : _("Stuff we like"),
-            'subtitle' : _("Its just great, try it!"),
+            'title' : _("Stuff we like ›"),
+            'subtitle' : _("It’s just great, try it!"),
       }
         # we should extract this automatically from the html
         #self.atk_name = _("Default Banner")
@@ -238,7 +243,9 @@ class ExhibitBanner(Gtk.EventBox):
     def __init__(self):
         Gtk.EventBox.__init__(self)
         vbox = Gtk.VBox()
-        vbox.set_border_width(StockEms.SMALL)
+        vbox.set_margin_bottom(StockEms.SMALL)
+        vbox.set_margin_left(StockEms.LARGE)
+        vbox.set_margin_right(StockEms.LARGE)
         self.add(vbox)
 
         # defined to make overriding softwarecenter.paths.datadir possible

@@ -64,7 +64,7 @@ class Application(object):
         """Show user visible name"""
         if self.appname:
             return self.appname
-        return self.pkgname.capitalize()
+        return self.pkgname
     @property
     def popcon(self):
         return self._popcon
