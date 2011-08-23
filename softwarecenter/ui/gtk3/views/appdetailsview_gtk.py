@@ -901,7 +901,7 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
     def _on_homepage_clicked(self, label, link):
         import webbrowser
         webbrowser.open_new_tab(self.app_details.website)
-        return
+        return True
 
     def _layout_page(self):
         # setup widgets
