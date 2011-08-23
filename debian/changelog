@@ -23,6 +23,10 @@ software-center (4.1.18) UNRELEASED; urgency=low
     - fix up installedpane search to include uncategorised items as well
     - fix up the show-hide technical items in the installedpane
     - fix the description resizing, prevent wierd spazzing
+  * lp:~mmcg069/software-center/Bug828223:
+    - make feature tiles update the installed state overlay upon 
+      appropriate aptdaemon transactions
+    - add installed ticks to the lobby and subcat tiles (Bug #828223)
     
   [ Aaron Peachey ]
   * softwarecenter/ui/gtk3/views/catview_gtk.py:
