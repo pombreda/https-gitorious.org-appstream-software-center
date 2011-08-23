@@ -19,6 +19,9 @@ def rgb_to_hex(r, g, b):
         b *= 255
     return "#%02X%02X%02X" % (r,g,b)
 
+def color_to_hex(color):
+    return rgb_to_hex(color.red, color.green, color.blue)
+
 def mix(fgcolor, bgcolor, mix_alpha):
     """ Creates a composite rgb of a foreground rgba and a background rgb.
 

@@ -542,8 +542,9 @@ class UIReview(Gtk.VBox):
             if already_voted == None and not current_user_reviewer:
                 context = self.get_style_context()
                 dark = color_to_hex(context.get_color(Gtk.StateFlags.NORMAL))
+                del context
                 self.yes_like = Link('<span color="%s"><small>%s</small></span>' % (dark, _('Yes')))
-                self.no_like = Link('<small>%s</small>' % _('No'))
+                self.no_like = Link('<span color="%s"><small>%s</small></span>' % (dark, _('No')))
                 self.yes_like.connect('clicked', self._on_useful_clicked, True)
                 self.no_like.connect('clicked', self._on_useful_clicked, False)
                 self.yes_no_separator = Gtk.Label(label="<small>/</small>")
@@ -551,7 +552,7 @@ class UIReview(Gtk.VBox):
                 self.yes_like.show()
                 self.no_like.show()
                 self.yes_no_separator.show()
-                self.likebox.set_spacing(3)
+                self.likebox.set_spacing(4)
                 self.likebox.pack_start(self.yes_like, False, False, 0)
                 self.likebox.pack_start(self.yes_no_separator, False, False, 0)
                 self.likebox.pack_start(self.no_like, False, False, 0)
