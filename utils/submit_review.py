@@ -749,7 +749,6 @@ class SubmitReviewsApp(BaseApp):
         self.rating_label.set_markup(_('Rating:'))
         #error detail link label
         self.label_expander.set_markup('<small><u>%s</u></small>' % (_('Error Details')))
-
         return
 
     # force resize of the legal label when the app resizes, if not
@@ -826,7 +825,7 @@ class SubmitReviewsApp(BaseApp):
             self.summary_char_label.set_markup(markup)
         else:
             self.summary_char_label.set_text('')
-    
+
     def _check_review_character_count(self): 
         review_chars = self.review_buffer.get_char_count()
         if review_chars > self.REVIEW_CHAR_LIMITS[1] - 1:
