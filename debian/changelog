@@ -49,8 +49,12 @@ software-center (4.1.18) UNRELEASED; urgency=low
   * data/ui/gtk3/SoftwareCenter.ui,
     softwarecenter/ui/gtk3/app.py:
     - set back/forward menuitems sensitive at the correct times (LP: #830194)
+  * softwarecenter/db/appfilter.py:
+    - make the supported filter global
   * softwarecenter/db/application.py:
     - never capitalize pkgname (LP: #828295)
+  * softwarecenter/ui/gtk3/app.py:
+    - many fixes to file menu and view menu (LP: #831526)
   * softwarecenter/ui/gtk3/panes/globalpane.py:
     - fix left/right padding of toolbar to align with the listview (LP: #823213)
   * softwarecenter/ui/gtk3/panes/historypane.py:

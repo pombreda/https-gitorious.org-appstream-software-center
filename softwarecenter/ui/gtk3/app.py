@@ -381,15 +381,6 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         self.active_pane = self.available_pane
         self.window_main.connect("realize", self.on_realize)
 
-        # view switcher
-        # repurpose this code
-        #self.view_switcher = ViewSwitcher(self.view_manager,
-        #                                  self.datadir, self.db,
-        #                                  self.cache, self.icons)
-
-        #~ self.view_switcher.connect("view-changed", 
-                                   #~ self.on_view_switcher_changed)
-
         # launchpad integration help, its ok if that fails
         try:
             from gi.repository import LaunchpadIntegration
@@ -492,42 +483,6 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             not self.active_pane.navigation_bar.has_id(NavButtons.ID_PURCHASE)):
             self.on_navhistory_forward_action_activate()
         
-    def on_view_switcher_changed(self, view_switcher, view_id, channel):
-        LOG.debug("view_switcher_activated: %s %s" % (view_switcher, view_id))
-
-        # set active pane
-        self.active_pane = self.view_manager.get_view_widget(view_id)
-
-        # set menu sensitve
-        self.menuitem_view_supported_only.set_sensitive(self.active_pane != None)
-        self.menuitem_view_all.set_sensitive(self.active_pane != None)
-        # set menu state
-        if self.active_pane:
-            self._block_menuitem_view = True
-            if not self.active_pane.apps_filter:
-                self.menuitem_view_all.set_sensitive(False)
-                self.menuitem_view_supported_only.set_sensitive(False)
-            elif self.active_pane.apps_filter.get_supported_only():
-                self.menuitem_view_supported_only.activate()
-            else:
-                self.menuitem_view_all.activate()
-            self._block_menuitem_view = False
-        if view_id == ViewPages.AVAILABLE:
-            back_action = self.available_pane.nav_history.navhistory_back_action
-            forward_action = self.available_pane.nav_history.navhistory_forward_action
-            self.menuitem_go_back.set_sensitive(back_action.get_sensitive())
-            self.menuitem_go_forward.set_sensitive(forward_action.get_sensitive())
-        else:
-            self.menuitem_go_back.set_sensitive(False)
-            self.menuitem_go_forward.set_sensitive(False)
-         # switch to new page
-        self.view_manager.set_active_view(view_id)
-        if (view_id == ViewPages.INSTALLED and
-            not self.installed_pane.loaded and
-            not self.installed_pane.get_current_app()):
-            self.installed_pane.refresh_apps()
-        self.update_app_list_view(channel)
-
     def _on_lp_login(self, lp, token):
         self._lp_login_successful = True
         private_archives = self.glaunchpad.get_subscribed_archives()
@@ -605,14 +560,20 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
     def on_menu_file_activate(self, menuitem):
         """Enable/disable install/remove"""
         LOG.debug("on_menu_file_activate")
-        # check if we have a pkg for this page
-        app = None
-        if self.active_pane:
-            app = self.active_pane.get_current_app()
-        if app is None:
-            self.menuitem_install.set_sensitive(False)
-            self.menuitem_remove.set_sensitive(False)
+
+        # reset it all
+        self.menuitem_install.set_sensitive(False)
+        self.menuitem_remove.set_sensitive(False)
+
+        # get our active pane
+        vm = get_viewmanager()
+        self.active_pane = vm.get_view_widget(vm.get_active_view())
+
+        # determine the current app
+        app = self.active_pane.get_current_app()
+        if not app:
             return False
+
         # wait for the cache to become ready (if needed)
         if not self.cache.ready:
             GObject.timeout_add(100, lambda: self.on_menu_file_activate(menuitem))
@@ -629,30 +590,25 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         if appdetails:
             pkg_state = appdetails.pkg_state
             error = appdetails.error
-        if self.active_pane.app_view.is_action_in_progress_for_selected_app():
-            self.menuitem_install.set_sensitive(False)
-            self.menuitem_remove.set_sensitive(False)
+        if app.pkgname in self.active_pane.app_view.tree_view._action_block_list:
+            return False
         elif pkg_state == PkgStates.UPGRADABLE or pkg_state == PkgStates.REINSTALLABLE and not error:
             self.menuitem_install.set_sensitive(True)
             self.menuitem_remove.set_sensitive(True)
         elif pkg_state == PkgStates.INSTALLED:
-            self.menuitem_install.set_sensitive(False)
             self.menuitem_remove.set_sensitive(True)
         elif pkg_state == PkgStates.UNINSTALLED and not error:
             self.menuitem_install.set_sensitive(True)
-            self.menuitem_remove.set_sensitive(False)
         elif (not pkg_state and 
-              not self.active_pane.is_category_view_showing() and 
+              not pane.is_category_view_showing() and 
               app.pkgname in self.cache and 
-              not self.active_pane.app_view.is_action_in_progress_for_selected_app() and
+              not app.pkgname in self.active_pane.app_view.tree_view._action_block_list and
               not error):
+            # when does this happen?
             pkg = self.cache[app.pkgname]
             installed = bool(pkg.installed)
             self.menuitem_install.set_sensitive(not installed)
             self.menuitem_remove.set_sensitive(installed)
-        else:
-            self.menuitem_install.set_sensitive(False)
-            self.menuitem_remove.set_sensitive(False)
         # return False to ensure that a possible GObject.timeout_add ends
         return False
 
@@ -762,6 +718,11 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
                            self.menuitem_search]
         for item in edit_menu_items:
             item.set_sensitive(False)
+
+        # get our active pane
+        vm = get_viewmanager()
+        self.active_pane = vm.get_view_widget(vm.get_active_view())
+
         if (self.active_pane and 
             self.active_pane.searchentry and
             self.active_pane.searchentry.get_visible()):
@@ -880,43 +841,57 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         left_sensitive = vm.back_forward.left.get_sensitive()
         self.menuitem_go_back.set_sensitive(left_sensitive)
         right_sensitive = vm.back_forward.right.get_sensitive()
-        self.menuitem_go_forward.set_sensitive(right_sensitive) 
+        self.menuitem_go_forward.set_sensitive(right_sensitive)
+
+        # get our active pane
+        vm = get_viewmanager()
+        self.active_pane = vm.get_view_widget(vm.get_active_view())
+        if (self.active_pane == self.available_pane or
+            self.active_pane == self.installed_pane):
+            self.menuitem_view_all.set_sensitive(True)
+            self.menuitem_view_supported_only.set_sensitive(True)
+        else:
+            self.menuitem_view_all.set_sensitive(False)
+            self.menuitem_view_supported_only.set_sensitive(False)
 
     def on_menuitem_view_all_activate(self, widget):
-        # FIXME: installedpane
-        if (not self._block_menuitem_view and
-            self.active_pane.state.filter and
-            self.active_pane.state.filter.get_supported_only()):
-            self.active_pane.state.filter.set_supported_only(False)
+        from softwarecenter.db.appfilter import get_global_filter
+        if get_global_filter().supported_only == True:
+            get_global_filter().supported_only = False
 
-            # update recommended widget counter and appcount
+            # update appcount
             if self.available_pane and self.available_pane.cat_view:
-                self.available_pane.cat_view._append_recommendations()
                 self.available_pane.cat_view._append_appcount(False)
 
-            self.active_pane.refresh_apps()
+            self.available_pane.refresh_apps()
+            try:
+                self.installed_pane.refresh_apps()
+            except: # may not be initialised
+                pass
 
             # update subcategory view
-            if (self.available_pane and
-                self.available_pane == self.active_pane and
-                self.available_pane.subcategories_view and
-                self.available_pane.subcategories_view.current_category):
-                self.available_pane.subcategories_view._append_subcat_departments(
-                    self.available_pane.subcategories_view.current_category,
-                    len(self.available_pane.app_view.get_model()))
+#            if (self.available_pane and
+ #               self.available_pane == self.active_pane and
+  #              self.available_pane.subcategories_view and
+   #             self.available_pane.subcategories_view.current_category):
+    #            self.available_pane.subcategories_view._append_subcat_departments(
+     #               self.available_pane.subcategories_view.current_category,
+      #              len(self.available_pane.app_view.get_model()))
 
     def on_menuitem_view_supported_only_activate(self, widget):
-        # FIXME: installedpane
-        if (not self._block_menuitem_view and
-            self.active_pane.state and
-            not self.active_pane.state.filter.get_supported_only()):
-            self.active_pane.state.filter.set_supported_only(True)
+        from softwarecenter.db.appfilter import get_global_filter
+        if get_global_filter().supported_only == False:
+            get_global_filter().supported_only = True
 
             # update appcount
             if self.available_pane and self.available_pane.cat_view:
                 self.available_pane.cat_view._append_appcount(True)
 
-            self.active_pane.refresh_apps()
+            self.available_pane.refresh_apps()
+            try:
+                self.installed_pane.refresh_apps()
+            except: # may not be initialised
+                pass
 
             # navigate up if the details page is no longer available
             #~ ap = self.active_pane
@@ -927,17 +902,13 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
                 #~ else:
                     #~ ap.navigation_bar.navigate_up()
                 #~ ap.on_application_selected(None, None)    
-#~ 
+
             #~ # navigate up if the list page is empty
             #~ elif (ap and ap.is_applist_view_showing() and 
                 #~ len(ap.app_view.get_model()) == 0):
                 #~ ap.navigation_bar.navigate_up()
                 #~ ap.on_application_selected(None, None)    
-#~ 
-            #~ # update recommended widget counter
-            #~ if self.available_pane and self.available_pane.cat_view:
-                #~ self.available_pane.cat_view._append_recommendations()
-#~ 
+
             #~ # update subcategory view
             #~ if (self.available_pane and
                 #~ self.available_pane == self.active_pane and
