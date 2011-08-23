@@ -12,6 +12,8 @@ software-center (4.1.18) UNRELEASED; urgency=low
     - gtk3 fixes
   * softwarecenter/ui/gtk3/widgets/stars.py:
     - add get_rating() to make the submit_review_gtk3.py work
+  * softwarecenter/ui/gtk3/widgets/buttons.py:
+    - show correct price in the FeaturedTile (if there is one)
 
   [ Alex Eftimie ]
   * lp:~alexeftimie/software-center/backend-refactor
