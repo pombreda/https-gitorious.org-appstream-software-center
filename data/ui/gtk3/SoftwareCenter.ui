@@ -437,7 +437,6 @@ Aaron Peachey - Coding, Fixes
                     <property name="can_focus">False</property>
                     <child>
                       <object class="GtkImageMenuItem" id="menuitem_help">
-                        <property name="label" translatable="yes">Software Center _Help</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="use_action_appearance">False</property>

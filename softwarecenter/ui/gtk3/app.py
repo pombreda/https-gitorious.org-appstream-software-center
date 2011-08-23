@@ -326,6 +326,8 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
                                                  Gdk.keyval_from_name("KP_Right"),
                                                  Gdk.ModifierType.MOD1_MASK,
                                                  Gtk.AccelFlags.VISIBLE)
+        # TRANSLATORS: this is the help menuitem label, e.g. Ubuntu Software Center _Help
+        self.menuitem_help.set_label(_("%s _Help")%self.distro.get_app_name())
 
         # specify the smallest allowable window size
         self.window_main.set_default_size(700, 400)
