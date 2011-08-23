@@ -601,7 +601,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             iconinfo = self.icons.lookup_icon(Icons.MISSING_APP_ICON, iconsize, 0)
         return iconinfo.get_filename()
 
-    # Menu Items
+# File Menu
     def on_menu_file_activate(self, menuitem):
         """Enable/disable install/remove"""
         LOG.debug("on_menu_file_activate")
@@ -746,6 +746,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
     def on_menuitem_close_activate(self, widget):
         Gtk.main_quit()
 
+# Edit Menu
     def on_menu_edit_activate(self, menuitem):
         """
         Check whether the search field is focused and if so, focus some items
@@ -873,18 +874,16 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         # Stop monitoring
         return False
 
-    def on_menuitem_about_activate(self, widget):
-        self.aboutdialog.set_version(VERSION)
-        self.aboutdialog.set_transient_for(self.window_main)
-        self.aboutdialog.show()
-
-    def on_menuitem_help_activate(self, menuitem):
-        # run yelp
-        p = subprocess.Popen(["yelp","ghelp:software-center"])
-        # collect the exit status (otherwise we leave zombies)
-        GObject.timeout_add_seconds(1, lambda p: p.poll() == None, p)
+# View Menu
+    def on_menu_view_activate(self, menuitem):
+        vm = get_viewmanager()
+        left_sensitive = vm.back_forward.left.get_sensitive()
+        self.menuitem_go_back.set_sensitive(left_sensitive)
+        right_sensitive = vm.back_forward.right.get_sensitive()
+        self.menuitem_go_forward.set_sensitive(right_sensitive) 
 
     def on_menuitem_view_all_activate(self, widget):
+        # FIXME: installedpane
         if (not self._block_menuitem_view and
             self.active_pane.state.filter and
             self.active_pane.state.filter.get_supported_only()):
@@ -907,6 +906,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
                     len(self.available_pane.app_view.get_model()))
 
     def on_menuitem_view_supported_only_activate(self, widget):
+        # FIXME: installedpane
         if (not self._block_menuitem_view and
             self.active_pane.state and
             not self.active_pane.state.filter.get_supported_only()):
@@ -954,6 +954,18 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
     def on_navhistory_forward_action_activate(self, navhistory_forward_action=None):
         vm = get_viewmanager()
         vm.nav_forward()
+
+# Help Menu
+    def on_menuitem_about_activate(self, widget):
+        self.aboutdialog.set_version(VERSION)
+        self.aboutdialog.set_transient_for(self.window_main)
+        self.aboutdialog.show()
+
+    def on_menuitem_help_activate(self, menuitem):
+        # run yelp
+        p = subprocess.Popen(["yelp","ghelp:software-center"])
+        # collect the exit status (otherwise we leave zombies)
+        GObject.timeout_add_seconds(1, lambda p: p.poll() == None, p)
             
     def _ask_and_repair_broken_cache(self):
         # wait until the window window is available

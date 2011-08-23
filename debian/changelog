@@ -46,6 +46,9 @@ software-center (4.1.18) UNRELEASED; urgency=low
       consistent with the applist
   
   [ Kiwinote ]
+  * data/ui/gtk3/SoftwareCenter.ui,
+    softwarecenter/ui/gtk3/app.py:
+    - set back/forward menuitems sensitive at the correct times (LP: #830194)
   * softwarecenter/db/application.py:
     - never capitalize pkgname (LP: #828295)
   * softwarecenter/ui/gtk3/panes/globalpane.py:
