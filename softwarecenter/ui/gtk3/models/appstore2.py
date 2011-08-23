@@ -317,10 +317,11 @@ class AppGenericStore(_AppPropertiesHelper):
             del self.transaction_path_map[pkgname]
 
     def buffer_icons(self):
+
         def buffer_icons():
             #~ print "Buffering icons ..."
             #t0 = GObject.get_current_time()
-            if self.current_matches is not None:
+            if self.current_matches is None:
                 return False
             db = self.db.xapiandb
             for m in self.current_matches:
