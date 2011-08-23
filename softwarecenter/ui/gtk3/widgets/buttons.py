@@ -160,7 +160,7 @@ class FeaturedTile(TileButton):
             self.rating_box.pack_start(self.stars, False, False, 0)
             self.n_ratings = Gtk.Label.new(
                 '<span font_desc="%i" color="%s"> (%i)</span>' %  (
-                    em(0.40), '#000000', stats.ratings_total))
+                    em(0.45), '#8C8C8C', stats.ratings_total))
             self.n_ratings.set_use_markup(True)
             self.n_ratings.set_alignment(0.0, 0.5)
             self.rating_box.pack_start(self.n_ratings, False, False, 0)
