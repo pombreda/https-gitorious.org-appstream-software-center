@@ -437,7 +437,7 @@ class TextBlock(Gtk.EventBox):
             lh = layout.get_pixel_extents()[1].height
             height += lh + (l.vspacing or self.line_height)
 
-        height = min(1000, max(50, height))
+        height = min(1000, max(50, height)) + 5
         return height, height
 
     def do_draw(self, cr):
@@ -1070,7 +1070,7 @@ class TextBlock(Gtk.EventBox):
 class AppDescription(Gtk.VBox):
 
     # chars that serve as bullets in the description
-    BULLETS = ('- ', '* ', 'o ', '*',)
+    BULLETS = ('- ', '* ', 'o ',)
     TYPE_PARAGRAPH = 0
     TYPE_BULLET    = 1
 
@@ -1081,6 +1081,12 @@ class AppDescription(Gtk.VBox):
         self._prev_type = None
         return
 
+    def _part_is_bullet(self, part):
+        for bstyle in self.BULLETS:
+            if part.startswith(bstyle):
+                return True
+        return False
+
     def _parse_desc(self, desc, pkgname):
         """ Attempt to maintain original fixed width layout, while 
             reconstructing the description into text blocks 
@@ -1088,13 +1094,12 @@ class AppDescription(Gtk.VBox):
         """
         parts = normalize_package_description(desc).split('\n')
         for part in parts:
-            if part.startswith("* "):
+            if self._part_is_bullet(part):
                 self.append_bullet(part)
             else:
                 self.append_paragraph(part)
 
         self.description.finished()
-        return
         return
 
     def clear(self):

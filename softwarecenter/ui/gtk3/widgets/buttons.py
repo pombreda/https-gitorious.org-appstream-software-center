@@ -129,7 +129,7 @@ class FeaturedTile(TileButton):
         #~ categories = helper.get_categories(doc)
 
         self.box.set_orientation(Gtk.Orientation.HORIZONTAL)
-        self.box.set_spacing(StockEms.MEDIUM)
+        self.box.set_spacing(StockEms.SMALL)
 
         self.content_left = Gtk.Box.new(Gtk.Orientation.VERTICAL, StockEms.MEDIUM)
         self.content_right = Gtk.Box.new(Gtk.Orientation.VERTICAL, StockEms.SMALL)
