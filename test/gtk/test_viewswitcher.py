@@ -15,7 +15,7 @@ from softwarecenter.ui.gtk.viewswitcher import ViewSwitcher, ViewSwitcherList
 from softwarecenter.paths import XAPIAN_BASE_PATH
 
 
-class testViewSwitcher(unittest.TestCase):
+class TestViewSwitcher(unittest.TestCase):
     """ tests the ViewSwitcher """
 
     def setUp(self):
