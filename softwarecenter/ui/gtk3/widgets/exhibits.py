@@ -71,33 +71,17 @@ width:300;
 </body></html>
 """
 
-class DefaultExhibit(object):
-    def __init__(self):
-        self.id = 0
-        self.package_names = ""
-        self.title_translated = "Default exhibit"
-        self.published = True
-        self.banner_url = "file://%s" % (os.path.abspath(os.path.join(softwarecenter.paths.datadir, "default_banner/fallback.png")))
-        self.html = EXHIBIT_HTML % { 
-            'banner_url' : self.banner_url,
-            'title' : _("It’s new! ›"),
-            'subtitle' : _("Software Center has just been given a fresh new look - please report any issues via the help menu!"),
-      }
-        # we should extract this automatically from the html
-        #self.atk_name = _("Default Banner")
-        #self.atk_description = _("You see this banner because you have no cached banners")
-
 class FeaturedExhibit(object):
     def __init__(self):
         self.id = 0
         self.package_names = "armagetronad,calibre,cheese,homebank,stellarium,gimp,inkscape,blender,audacity,gufw,frozen-bubble,fretsonfire,moovida,liferea,arista,gtg,freeciv-client-gtk,supertuxkart,tumiki-fighters,tuxpaint,webservice-office-zoho"
         self.title_translated = "Featured exhibit"
         self.published = True
-        self.banner_url = "file://%s" % (os.path.abspath(os.path.join(softwarecenter.paths.datadir, "default_banner/fallback2.png")))
+        self.banner_url = "file://%s" % (os.path.abspath(os.path.join(softwarecenter.paths.datadir, "default_banner/fallback.jpg")))
         self.html = EXHIBIT_HTML % { 
             'banner_url' : self.banner_url,
-            'title' : _("Stuff we like ›"),
-            'subtitle' : _("It’s just great, try it!"),
+            'title' : _("Our picks ›"),
+            'subtitle' : _("Ubuntu's sweetest applications"),
       }
         # we should extract this automatically from the html
         #self.atk_name = _("Default Banner")
@@ -530,7 +514,7 @@ def get_test_exhibits_window():
 
     exhibit_banner = ExhibitBanner()
 
-    exhibits_list = [DefaultExhibit()]
+    exhibits_list = [FeaturedExhibit()]
     for (i, (title, url)) in enumerate([
             ("1 some title", "https://wiki.ubuntu.com/Brand?action=AttachFile&do=get&target=orangeubuntulogo.png"),
             ("2 another title", "https://wiki.ubuntu.com/Brand?action=AttachFile&do=get&target=blackeubuntulogo.png"),

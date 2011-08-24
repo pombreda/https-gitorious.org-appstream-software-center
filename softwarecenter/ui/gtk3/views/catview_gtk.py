@@ -36,7 +36,7 @@ from softwarecenter.ui.gtk3.models.appstore2 import AppPropertiesHelper
 from softwarecenter.ui.gtk3.widgets.containers import (
      FramedHeaderBox, FramedBox, FlowableGrid)
 from softwarecenter.ui.gtk3.widgets.exhibits import (
-    ExhibitBanner, DefaultExhibit, FeaturedExhibit)
+    ExhibitBanner, FeaturedExhibit)
 from softwarecenter.ui.gtk3.widgets.buttons import (LabelTile,
                                                     CategoryTile,
                                                     FeaturedTile)
@@ -312,7 +312,8 @@ class LobbyViewGtk(CategoriesViewGtk):
 
     def _append_banner_ads(self):
         exhibit_banner = ExhibitBanner()
-        exhibit_banner.set_exhibits([DefaultExhibit(), FeaturedExhibit()])
+        exhibit_banner.set_exhibits([FeaturedExhibit(),
+                                    ])
         exhibit_banner.connect("show-exhibits-clicked", self._on_show_exhibits)
 
         # query using the agent

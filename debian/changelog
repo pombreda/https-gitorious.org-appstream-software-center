@@ -106,6 +106,10 @@ software-center (4.1.18) UNRELEASED; urgency=low
   * Show developer website as link instead of button (LP: #830740)
   * Show today in history pane (LP: #831394)
 
+  [ Matthew Paul Thomas ]
+  * data/default_banner/fallback.jpg:
+    - new default banner and text
+  
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 23 Aug 2011 19:07:30 +0200
 
 software-center (4.1.17) oneiric; urgency=low
