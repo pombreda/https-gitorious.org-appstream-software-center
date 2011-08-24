@@ -900,21 +900,23 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
 
         # header
         hb = Gtk.HBox()
-        hb.set_spacing(12)
+        hb.set_spacing(StockEms.MEDIUM)
         vb.pack_start(hb, False, False, 0)
 
         # the app icon
         self.icon = Gtk.Image()
-        self.icon.set_size_request(self.APP_ICON_SIZE, self.APP_ICON_SIZE)
-        self.icon.set_from_icon_name(Icons.MISSING_APP, Gtk.IconSize.DIALOG)
         hb.pack_start(self.icon, False, False, 0)
 
         # the app title/summary
         self.title = Gtk.Label()
+        self.subtitle = Gtk.Label()
         self.title.set_alignment(0, 0.5)
-        self.title.set_line_wrap(True)
-        vb_inner=Gtk.VBox(spacing=StockEms.SMALL)
+        self.subtitle.set_alignment(0, 0.5)
+        self.title.set_ellipsize(True)
+        self.subtitle.set_ellipsize(True)
+        vb_inner=Gtk.VBox()
         vb_inner.pack_start(self.title, False, False, 0)
+        vb_inner.pack_start(self.subtitle, False, False, 0)
 
         # usage
         #~ self.usage = mkit.BubbleLabel()
@@ -922,14 +924,14 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
 
         # star rating widget
         self.review_stats_widget = StarRatingsWidget()
-        vb_inner.pack_start(self.review_stats_widget, False, False, 0)
+        vb_inner.pack_start(self.review_stats_widget, False, False, StockEms.SMALL)
 
-        vb_inner.set_property("can-focus", True)
+        #~ vb_inner.set_property("can-focus", True)
         self.title.a11y = vb_inner.get_accessible()
         self.title.a11y.set_role(Atk.Role.PANEL)
         a = Gtk.Alignment.new(0, 0.5, 0, 0)
         a.add(vb_inner)
-        hb.pack_start(a, True, True, 0)
+        hb.pack_start(a, False, False, 0)
 
         # the package status bar
         self.pkg_statusbar = PackageStatusBar(self)
@@ -1084,25 +1086,26 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
     def _update_title_markup(self, appname, summary):
         # make title font size fixed as they should look good compared to the 
         # icon (also fixed).
-        font_size = em(1.75)
-        markup = '<span font_desc="%s">%s</span>\n%s'
-        markup = markup % (font_size, appname, summary)
+        font_size = em(1.6) * Pango.SCALE
+        markup = '<span font_size="%s">%s</span>'
+        markup = markup % (font_size, appname)
         self.title.set_markup(markup)
         self.title.a11y.set_name(appname + '. ' + summary)
+        self.subtitle.set_markup(summary)
         return
 
     def _update_app_icon(self, app_details):
-
         pb = self._get_icon_as_pixbuf(app_details)
         # should we show the green tick?
 #        self._show_overlay = app_details.pkg_state == PkgStates.INSTALLED
         w, h = pb.get_width(), pb.get_height()
 
-        tw = self.APP_ICON_SIZE - 10 # bit of a fudge factor
+        tw = self.APP_ICON_SIZE # target width
         if pb.get_width() < tw:
             pb = pb.scale_simple(tw, tw, GdkPixbuf.InterpType.TILES)
 
         self.icon.set_from_pixbuf(pb)
+        self.icon.set_size_request(self.APP_ICON_SIZE, -1)
         return
 
     def _update_layout_error_status(self, pkg_error):

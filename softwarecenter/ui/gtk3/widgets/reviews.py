@@ -356,7 +356,6 @@ class UIReview(Gtk.VBox):
         self.header = Gtk.HBox()
         self.header.set_spacing(StockEms.MEDIUM)
         self.body = Gtk.VBox()
-        self.footer_split = Gtk.VBox()
         self.footer = Gtk.HBox()
 
         self.useful = None
@@ -370,14 +369,14 @@ class UIReview(Gtk.VBox):
         self.submit_status_spinner = Gtk.Spinner()
         self.submit_status_spinner.set_size_request(12,12)
         self.acknowledge_error = Gtk.Button()
-        self.acknowledge_error.set_label(_("<small>OK</small>"))
+        self.acknowledge_error.set_label('<small>%s</small>' % _("OK"))
         self.usefulness_error = False
 
         self.pack_start(self.version_label, False, False, 0)
         self.pack_start(self.header, False, False, 0)
         self.pack_start(self.body, False, False, 0)
-        self.pack_start(self.footer_split, False, False, 0)
-        
+        self.pack_start(self.footer, False, False, StockEms.SMALL)
+
         self.logged_in_person = logged_in_person
         self.person = None
         self.id = None
@@ -528,27 +527,6 @@ class UIReview(Gtk.VBox):
         self.header.pack_end(who_when, False, False, 0)
         self.body.pack_start(text, False, False, 0)
 
-        #if review version is different to version of app being displayed, 
-        # alert user
-        #~ version_lbl = None
-        #~ if (review_version and
-            #~ app_version and
-            #~ upstream_version_compare(review_version, app_version) != 0):
-            #~ version_string = _("This review was written for a different version of %(app_name)s (Version: %(version)s)") % { 
-                #~ 'app_name' : app_name.encode("utf-8"),
-                #~ 'version' : GObject.markup_escape_text(upstream_version(review_version)),
-                #~ }
-
-            #~ m = '<span color="%s"><small><i>%s</i></small></span>'
-            #~ version_lbl = Gtk.Label(label=m % (self._subtle, version_string))
-            #~ version_lbl.set_use_markup(True)
-            #~ version_lbl.set_padding(0,3)
-            #~ version_lbl.set_ellipsize(1)
-            #~ version_lbl.set_alignment(0, 0.5)
-            #~ self.footer_split.pack_start(version_lbl, False, False, 0)
-
-        #~ self.footer_split.pack_start(self.footer, False, False, 0)
-
         current_user_reviewer = False
         if self.person == self.logged_in_person:
             current_user_reviewer = True
@@ -559,8 +537,7 @@ class UIReview(Gtk.VBox):
         # Translators: This link is for flagging a review as inappropriate.
         # To minimize repetition, if at all possible, keep it to a single word.
         # If your language has an obvious verb, it won't need a question mark.
-        subtle = get_subtle_color_as_hex(self)
-        self.complain = Link('<span color="%s"><small>%s</small></span>' % (subtle, _('Inappropriate?')))
+        self.complain = Link('<span color="%s"><small>%s</small></span>' % (self._subtle, _('Inappropriate?')))
         self.footer.pack_end(self.complain, False, False, 0)
         self.complain.connect('clicked', self._on_report_abuse_clicked)
 
@@ -591,14 +568,13 @@ class UIReview(Gtk.VBox):
             # add here, but only populate if its not the own review
             self.likebox = Gtk.HBox()
             if already_voted == None and not current_user_reviewer:
-                context = self.get_style_context()
-                dark = color_to_hex(context.get_color(Gtk.StateFlags.NORMAL))
-                del context
-                self.yes_like = Link('<span color="%s"><small>%s</small></span>' % (dark, _('Yes')))
-                self.no_like = Link('<span color="%s"><small>%s</small></span>' % (dark, _('No')))
+                m = '<span color="%s"><small><b>%s</b></small></span>'
+                self.yes_like = Link(m % (self._subtle, _('Yes')))
+                self.no_like = Link(m % (self._subtle, _('No')))
                 self.yes_like.connect('clicked', self._on_useful_clicked, True)
                 self.no_like.connect('clicked', self._on_useful_clicked, False)
-                self.yes_no_separator = Gtk.Label(label="<small>/</small>")
+                markup = m % (self._subtle, _('/')) # separator character
+                self.yes_no_separator = Gtk.Label(label=markup)
                 self.yes_no_separator.set_use_markup(True)
                 self.yes_like.show()
                 self.no_like.show()
@@ -684,9 +660,11 @@ class UIReview(Gtk.VBox):
                         useful_total) % { 'useful_total' : useful_total,
                                     'useful_favorable' : useful_favorable,
                                     }
-                    
-        
-        return Gtk.Label(label='<small>%s</small>' % s)
+
+        m = '<span color="%s"><small><b>%s</b></small></span>'
+        label = Gtk.Label()
+        label.set_markup(m % (self._subtle, s))
+        return label
 
     def _whom_when_markup(self, person, displayname, cur_t):
         nice_date = get_nice_date_string(cur_t)
@@ -696,8 +674,7 @@ class UIReview(Gtk.VBox):
         correct_name = displayname or person
 
         if person == self.logged_in_person:
-            m = '<small><span color="%s"><b>%s (%s)</b>\n%s</span></small>' % (
-                self._subtle,
+            m = '<small><b>%s (%s)</b>\n%s</small>' % (
                 GObject.markup_escape_text(correct_name),
                 # TRANSLATORS: displayed in a review after the persons name,
                 # e.g. "Wonderful text based app" mvo (that's you) 2011-02-11"
@@ -705,8 +682,7 @@ class UIReview(Gtk.VBox):
                 GObject.markup_escape_text(nice_date))
         else:
             try:
-                m = '<small><span color="%s"><b>%s</b>\n%s</span></small>' % (
-                    self._subtle,
+                m = '<small><b>%s</b>\n%s</small>' % (
                     GObject.markup_escape_text(correct_name.encode("utf-8")),
                     GObject.markup_escape_text(nice_date))
             except Exception:
