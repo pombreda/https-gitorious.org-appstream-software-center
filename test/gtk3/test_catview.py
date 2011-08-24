@@ -13,7 +13,6 @@ softwarecenter.paths.datadir = os.path.join(
     os.path.dirname(__file__), "..", "..", 'data')
 
 from softwarecenter.enums import SortMethods
-from softwarecenter.db.categories import get_category_by_name
 
 class TestCatView(unittest.TestCase):
 

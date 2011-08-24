@@ -109,10 +109,7 @@ class GRatingsAndReviews(GObject.GObject):
         # piston worker thread
         self.worker_thread = Worker(token)
         self.worker_thread.start()
-        GLib.timeout_add(GLib.PRIORITY_DEFAULT,
-                         500, 
-                         self._check_thread_status,
-                         None)
+        GObject.timeout_add(500, self._check_thread_status, None)
     def submit_review(self, review):
         self.emit("transmit-start", review)
         self.worker_thread.pending_reviews.put(review)

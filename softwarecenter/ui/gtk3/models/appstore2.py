@@ -379,7 +379,6 @@ class AppListStore(Gtk.ListStore, AppGenericStore):
         if n_matches == 0: 
             return
     
-        db = self.db.xapiandb
         extent = min(self.LOAD_INITIAL, n_matches)
 
         with ExecutionTime("store.append_initial"):

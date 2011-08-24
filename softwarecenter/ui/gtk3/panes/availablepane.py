@@ -30,7 +30,6 @@ from gettext import gettext as _
 from softwarecenter.enums import (ActionButtons,
                                   NavButtons,
                                   NonAppVisibility,
-                                  SortMethods,
                                   DEFAULT_SEARCH_LIMIT)
 from softwarecenter.paths import APP_INSTALL_PATH
 from softwarecenter.utils import wait_for_apt_cache_ready

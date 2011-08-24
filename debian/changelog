@@ -20,7 +20,7 @@ software-center (4.1.18) UNRELEASED; urgency=low
     - fix file monitor const issues with gio vs Gio
   * utils/piston-helpers/piston_get_reviews_helper.py:
     - fix offline reviews
-  * fix "What's New" category sorting
+  * fix "What's New" category sorting (LP: #830188)
   * add new sort "By Newest First" combobox
   * hide sort combobox for if the category has a forced sort mode
     (like whats new) LP: #830234
