@@ -111,7 +111,7 @@ class FeaturedTile(TileButton):
 
     MAX_WIDTH = em(10)
     INSTALLED_OVERLAY_SIZE = 22
-    _MARKUP = '<b>%s</b>'
+    _MARKUP = '<b><small>%s</small></b>'
 
     def __init__(self, helper, doc, icon_size=48):
         TileButton.__init__(self)
