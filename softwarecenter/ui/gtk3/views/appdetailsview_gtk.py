@@ -647,7 +647,7 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
     """ The view that shows the application details """
 
     # the size of the icon on the left side
-    APP_ICON_SIZE = 84 # Gtk.IconSize.DIALOG ?
+    APP_ICON_SIZE = 96 # Gtk.IconSize.DIALOG ?
 
     # need to include application-request-action here also since we are multiple-inheriting
     __gsignals__ = {'selected':(GObject.SignalFlags.RUN_FIRST,
@@ -917,8 +917,8 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
 
         # the app icon
         self.icon = Gtk.Image()
-        self.icon.set_size_request(84, 84)
-        self.icon.set_from_icon_name(Icons.MISSING_APP, Gtk.IconSize.DIALOG)
+        self.icon.set_size_request(self.APP_ICON_SIZE, self.APP_ICON_SIZE)
+        #~ self.icon.set_from_icon_name(Icons.MISSING_APP, Gtk.IconSize.DIALOG)
         hb.pack_start(self.icon, False, False, 0)
 
         # the app title/summary
@@ -927,8 +927,8 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         self.title = Gtk.Label(markup)
         self.title.set_alignment(0, 0.5)
         self.title.set_line_wrap(True)
-        vb_inner=Gtk.VBox(spacing=6)
-        vb_inner.pack_start(self.title, True, True, 0)
+        vb_inner=Gtk.VBox(spacing=StockEms.SMALL)
+        vb_inner.pack_start(self.title, False, False, 0)
 
         # usage
         #~ self.usage = mkit.BubbleLabel()
@@ -936,15 +936,14 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
 
         # star rating widget
         self.review_stats_widget = StarRatingsWidget()
-        self.review_stats_widget.stars.set_size_as_pixel_value(title_fontsize)
-        #~ a.add(self.review_stats_widget)
-        #~ hb.pack_end(a, False, False, 0)
-        hb.pack_end(self.review_stats_widget, False, True, 0)
+        vb_inner.pack_start(self.review_stats_widget, False, False, 0)
 
         vb_inner.set_property("can-focus", True)
         self.title.a11y = vb_inner.get_accessible()
         self.title.a11y.set_role(Atk.Role.PANEL)
-        hb.pack_start(vb_inner, True, True, 0)
+        a = Gtk.Alignment.new(0, 0.5, 1, 1)
+        a.add(vb_inner)
+        hb.pack_start(a, True, True, 0)
 
         # the package status bar
         self.pkg_statusbar = PackageStatusBar(self)

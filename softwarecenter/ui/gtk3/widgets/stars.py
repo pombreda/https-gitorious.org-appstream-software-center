@@ -371,7 +371,7 @@ class Star(Gtk.EventBox, StarRenderer):
         return
 
 
-class StarRatingsWidget(Gtk.VBox):
+class StarRatingsWidget(Gtk.HBox):
 
     def __init__(self):
         Gtk.VBox.__init__(self)
@@ -392,7 +392,9 @@ class StarRatingsWidget(Gtk.VBox):
             "%(nr_ratings)i ratings",
             nr_reviews) % { 'nr_ratings' : nr_reviews, }
 
-        self.label.set_markup(s)
+        # FIXME don't use fixed color
+        m = '<span color="#8C8C8C">%s</span>'
+        self.label.set_markup(m % s)
         return
 
 
