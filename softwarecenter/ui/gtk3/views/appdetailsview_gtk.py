@@ -90,8 +90,8 @@ class StatusBar(Gtk.Alignment):
 
     def __init__(self, view):
         GObject.GObject.__init__(self, xscale=1.0, yscale=1.0)
-        self.set_padding(2, 2,
-                         StockEms.SMALL, StockEms.SMALL)
+        #~ self.set_padding(0, 0,
+                         #~ StockEms.SMALL, StockEms.SMALL)
 
         self.hbox = Gtk.HBox()
         self.hbox.set_spacing(StockEms.SMALL)
@@ -422,7 +422,7 @@ class Addon(Gtk.HBox):
         self.title.set_alignment(0.0, 0.5)
         self.title.set_line_wrap(True)
         self.title.set_ellipsize(Pango.EllipsizeMode.END)
-        hbox.pack_start(self.title, True, True, 0)
+        hbox.pack_start(self.title, False, False, 0)
 
         loader = self.get_ancestor(AppDetailsViewGtk).review_loader
         stats = loader.get_review_stats(self.app)
@@ -430,7 +430,7 @@ class Addon(Gtk.HBox):
             rating = Star()
             #~ rating.set_visible_window(False)
             rating.set_size_small()
-            self.pack_end(rating, False, False, 0)
+            self.pack_start(rating, False, False, 0)
             rating.set_rating(stats.ratings_average)
 
         self.checkbutton.add(hbox)
@@ -1549,10 +1549,12 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         if app_details.icon:
             if self.icons.has_icon(app_details.icon):
                 try:
-                    return self.icons.load_icon(app_details.icon, 84, 0)
+                    return self.icons.load_icon(app_details.icon,
+                                                self.APP_ICON_SIZE, 0)
                 except GObject.GError as e:
                     logging.warn("failed to load '%s': %s" % (app_details.icon, e))
-                    return self.icons.load_icon(Icons.MISSING_APP, 84, 0)
+                    return self.icons.load_icon(Icons.MISSING_APP,
+                                                self.APP_ICON_SIZE, 0)
             elif app_details.icon_url:
                 LOG.debug("did not find the icon locally, must download it")
 
@@ -1569,7 +1571,7 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
                     'file-download-complete', on_image_download_complete)
                 image_downloader.download_file(
                     app_details.icon_url, app_details.cached_icon_file_path)
-        return self.icons.load_icon(Icons.MISSING_APP, 84, 0)
+        return self.icons.load_icon(Icons.MISSING_APP, self.APP_ICON_SIZE, 0)
     
     def update_totalsize(self):
         if not self.totalsize_info.get_property('visible'):

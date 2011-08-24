@@ -86,19 +86,19 @@ class UIReviewsList(Gtk.VBox):
         self.logged_in_person = None
 
         label = Gtk.Label()
-        label.set_markup(_("Reviews"))
+        label.set_markup('<big><b>%s</b></big>' % _("Reviews"))
         label.set_padding(0, 6)
         label.set_use_markup(True)
         label.set_alignment(0, 0.5)
 
-        self.new_review = Gtk.Button()
-        self.new_review.set_label(_("Write your own review"))
-
         self.header = hb = Gtk.HBox()
         self.header.set_spacing(StockEms.MEDIUM)
-        self.pack_start(hb, False, False, 0)
         hb.pack_start(label, False, False, 0)
-        hb.pack_end(self.new_review, False, False, 0)
+        self.pack_start(hb, False, False, 0)
+
+        self.new_review = Gtk.Button()
+        self.new_review.set_label(_("Write your own review"))
+        self.pack_start(self.new_review, False, False, 0)
 
         self.vbox = Gtk.VBox()
         self.vbox.set_spacing(24)
@@ -348,7 +348,10 @@ class UIReview(Gtk.VBox):
     def __init__(self, review_data=None, app_version=None, 
                  logged_in_person=None, useful_votes=None):
         GObject.GObject.__init__(self)
-        self.set_spacing(StockEms.LARGE)
+        self.set_spacing(StockEms.SMALL)
+
+        self.version_label = Gtk.Label()
+        self.version_label.set_alignment(0, 0.5)
 
         self.header = Gtk.HBox()
         self.header.set_spacing(StockEms.MEDIUM)
@@ -370,6 +373,7 @@ class UIReview(Gtk.VBox):
         self.acknowledge_error.set_label(_("<small>OK</small>"))
         self.usefulness_error = False
 
+        self.pack_start(self.version_label, False, False, 0)
         self.pack_start(self.header, False, False, 0)
         self.pack_start(self.body, False, False, 0)
         self.pack_start(self.footer_split, False, False, 0)
@@ -460,7 +464,6 @@ class UIReview(Gtk.VBox):
         return datetime.datetime.strptime(raw_date_str, '%Y-%m-%d %H:%M:%S')
 
     def _build(self, review_data, app_version, logged_in_person, useful_votes):
-
         # all the attributes of review_data may need markup escape, 
         # depening on if they are used as text or markup
         self.id = review_data.id
@@ -475,9 +478,26 @@ class UIReview(Gtk.VBox):
         useful_favorable = review_data.usefulness_favorable
         useful_submit_error = review_data.usefulness_submit_error
 
-        m = self._whom_when_markup(self.person, displayname, cur_t)
+        #if review version is different to version of app being displayed, 
+        # alert user
+        version = GObject.markup_escape_text(upstream_version(review_version))
+        if (review_version and
+            app_version and
+            upstream_version_compare(review_version, app_version) != 0):
+            version_string = _("For version: (%(version)s)") % { 
+                    'version' : version,
+                    }
+        else:
+            version_string = _("For this version: (%(version)s)") % { 
+                    'version' : version,
+                    }
 
+        m = '<small>%s</small>'
+        self.version_label.set_markup(m % version_string)
+
+        m = self._whom_when_markup(self.person, displayname, cur_t)
         who_when = Gtk.Label()
+        who_when.set_justify(Gtk.Justification.RIGHT)
         who_when.set_markup(m)
 
         summary = Gtk.Label()
@@ -500,32 +520,34 @@ class UIReview(Gtk.VBox):
 
         stars = Star()
         stars.set_rating(review_data.rating)
+        a = Gtk.Alignment.new(0.5, 0.5, 0, 0)
+        a.add(stars)
 
-        self.header.pack_start(stars, False, False, 0)
+        self.header.pack_start(a, False, False, 0)
         self.header.pack_start(summary, False, False, 0)
         self.header.pack_end(who_when, False, False, 0)
         self.body.pack_start(text, False, False, 0)
-        
+
         #if review version is different to version of app being displayed, 
         # alert user
-        version_lbl = None
-        if (review_version and
-            app_version and
-            upstream_version_compare(review_version, app_version) != 0):
-            version_string = _("This review was written for a different version of %(app_name)s (Version: %(version)s)") % { 
-                'app_name' : app_name.encode("utf-8"),
-                'version' : GObject.markup_escape_text(upstream_version(review_version)),
-                }
+        #~ version_lbl = None
+        #~ if (review_version and
+            #~ app_version and
+            #~ upstream_version_compare(review_version, app_version) != 0):
+            #~ version_string = _("This review was written for a different version of %(app_name)s (Version: %(version)s)") % { 
+                #~ 'app_name' : app_name.encode("utf-8"),
+                #~ 'version' : GObject.markup_escape_text(upstream_version(review_version)),
+                #~ }
 
-            m = '<span color="%s"><small><i>%s</i></small></span>'
-            version_lbl = Gtk.Label(label=m % (self._subtle, version_string))
-            version_lbl.set_use_markup(True)
-            version_lbl.set_padding(0,3)
-            version_lbl.set_ellipsize(1)
-            version_lbl.set_alignment(0, 0.5)
-            self.footer_split.pack_start(version_lbl, False, False, 0)
+            #~ m = '<span color="%s"><small><i>%s</i></small></span>'
+            #~ version_lbl = Gtk.Label(label=m % (self._subtle, version_string))
+            #~ version_lbl.set_use_markup(True)
+            #~ version_lbl.set_padding(0,3)
+            #~ version_lbl.set_ellipsize(1)
+            #~ version_lbl.set_alignment(0, 0.5)
+            #~ self.footer_split.pack_start(version_lbl, False, False, 0)
 
-        self.footer_split.pack_start(self.footer, False, False, 0)
+        #~ self.footer_split.pack_start(self.footer, False, False, 0)
 
         current_user_reviewer = False
         if self.person == self.logged_in_person:
@@ -674,7 +696,7 @@ class UIReview(Gtk.VBox):
         correct_name = displayname or person
 
         if person == self.logged_in_person:
-            m = '<span color="%s"><b>%s (%s)</b>, %s</span>' % (
+            m = '<small><span color="%s"><b>%s (%s)</b>\n%s</span></small>' % (
                 self._subtle,
                 GObject.markup_escape_text(correct_name),
                 # TRANSLATORS: displayed in a review after the persons name,
@@ -683,7 +705,7 @@ class UIReview(Gtk.VBox):
                 GObject.markup_escape_text(nice_date))
         else:
             try:
-                m = '<span color="%s"><b>%s</b>, %s</span>' % (
+                m = '<small><span color="%s"><b>%s</b>\n%s</span></small>' % (
                     self._subtle,
                     GObject.markup_escape_text(correct_name.encode("utf-8")),
                     GObject.markup_escape_text(nice_date))
