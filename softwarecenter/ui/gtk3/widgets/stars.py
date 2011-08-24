@@ -380,6 +380,7 @@ class StarRatingsWidget(Gtk.VBox):
         self.stars = Star()
         self.pack_start(self.stars, False, False, 0)
         self.label = Gtk.Label()
+        self.label.set_alignment(0, 0.5)
         self.pack_start(self.label, False, False, 0)
         return
 
@@ -393,7 +394,9 @@ class StarRatingsWidget(Gtk.VBox):
             "%(nr_ratings)i ratings",
             nr_reviews) % { 'nr_ratings' : nr_reviews, }
 
-        self.label.set_markup(s)
+        # FIXME don't use fixed color
+        m = '<span color="#8C8C8C"><small><i>%s</i></small></span>'
+        self.label.set_markup(m % s)
         return
 
 

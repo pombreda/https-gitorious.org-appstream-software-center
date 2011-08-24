@@ -45,6 +45,7 @@ from softwarecenter.enums import PkgStates
 from softwarecenter.backend.reviews import UsefulnessCache
 
 from softwarecenter.ui.gtk3.em import StockEms
+from softwarecenter.ui.gtk3.drawing import get_subtle_color_as_hex
 from softwarecenter.ui.gtk3.widgets.buttons import Link
 
 LOG_ALLOCATION = logging.getLogger("softwarecenter.ui.Gtk.get_allocation()")
@@ -72,6 +73,7 @@ class UIReviewsList(Gtk.VBox):
 
     def __init__(self, parent):
         GObject.GObject.__init__(self)
+        self.set_spacing(12)
         self.logged_in_person = get_person_from_config()
 
         self._parent = parent
@@ -84,23 +86,23 @@ class UIReviewsList(Gtk.VBox):
         self.logged_in_person = None
 
         label = Gtk.Label()
-        label.set_markup(_("Reviews"))
-        label.set_padding(6, 6)
+        label.set_markup('<big><b>%s</b></big>' % _("Reviews"))
         label.set_use_markup(True)
         label.set_alignment(0, 0.5)
 
-        self.new_review = Gtk.Button()
-        self.new_review.set_label(_("Write your own review"))
-
-        self.header = hb = Gtk.HBox()
+        self.header = Gtk.HBox()
         self.header.set_spacing(StockEms.MEDIUM)
-        self.pack_start(hb, False, False, 0)
-        hb.pack_start(label, False, False, 0)
-        hb.pack_end(self.new_review, False, False, 6)
+        self.new_review = Gtk.Button(_('Write your own review'))
+
+        inner_vb = Gtk.VBox()
+        inner_vb.pack_start(label, False, False, 0)
+        inner_vb.pack_start(self.new_review, False, False, StockEms.SMALL)
+
+        self.header.pack_start(inner_vb, False, False, 0)
+        self.pack_start(self.header, False, False, 0)
 
         self.vbox = Gtk.VBox()
         self.vbox.set_spacing(24)
-        self.vbox.set_border_width(6)
         self.pack_start(self.vbox, True, True, 0)
 
         self.no_network_msg = None
@@ -119,11 +121,11 @@ class UIReviewsList(Gtk.VBox):
     def _on_network_state_change(self):
         is_connected = network_state_is_connected()
         if is_connected:
-            self.new_review.show()
+            self.new_review.set_sensitive(True)
             if self.no_network_msg:
                 self.no_network_msg.hide()
         else:
-            self.new_review.hide()
+            self.new_review.set_sensitive(False)
             if self.no_network_msg:
                 self.no_network_msg.show()
 
@@ -156,7 +158,8 @@ class UIReviewsList(Gtk.VBox):
         s = '<small><b>%s</b></small>' % _("You need to install this app before you can review it")
         self.install_first_label = Gtk.Label(label=s)
         self.install_first_label.set_use_markup(True)
-        self.header.pack_end(self.install_first_label, False, False, 2)
+        self.install_first_label.set_alignment(1.0, 0.5)
+        self.header.pack_end(self.install_first_label, False, False, 0)
         self.install_first_label.show()
         return
     
@@ -347,12 +350,14 @@ class UIReview(Gtk.VBox):
     def __init__(self, review_data=None, app_version=None, 
                  logged_in_person=None, useful_votes=None):
         GObject.GObject.__init__(self)
-        self.set_spacing(StockEms.LARGE)
+        self.set_spacing(StockEms.SMALL)
+
+        self.version_label = Gtk.Label()
+        self.version_label.set_alignment(0, 0.5)
 
         self.header = Gtk.HBox()
         self.header.set_spacing(StockEms.MEDIUM)
         self.body = Gtk.VBox()
-        self.footer_split = Gtk.VBox()
         self.footer = Gtk.HBox()
 
         self.useful = None
@@ -366,13 +371,16 @@ class UIReview(Gtk.VBox):
         self.submit_status_spinner = Gtk.Spinner()
         self.submit_status_spinner.set_size_request(12,12)
         self.acknowledge_error = Gtk.Button()
-        self.acknowledge_error.set_label(_("<small>OK</small>"))
+        label = Gtk.Label()
+        label.set_markup('<small>%s</small>' % _("OK"))
+        self.acknowledge_error.add(label)
         self.usefulness_error = False
 
+        self.pack_start(self.version_label, False, False, 0)
         self.pack_start(self.header, False, False, 0)
         self.pack_start(self.body, False, False, 0)
-        self.pack_start(self.footer_split, False, False, 0)
-        
+        self.pack_start(self.footer, False, False, StockEms.SMALL)
+
         self.logged_in_person = logged_in_person
         self.person = None
         self.id = None
@@ -381,9 +389,19 @@ class UIReview(Gtk.VBox):
         self._allocation = None
 
         if review_data:
-            self._build(review_data, app_version, logged_in_person, useful_votes)
         # when this is mapped, show/hide widgets that are network sensitive
         # this ensures that even with show_all() we show the right stuff
+            self.connect('realize',
+                         self._on_realize,
+                         review_data,
+                         app_version,
+                         logged_in_person,
+                         useful_votes)
+
+    def _on_realize(self, widget, *content):
+        self._subtle = get_subtle_color_as_hex(self)
+        self._build(*content)
+        return
 
     def _on_allocate(self, widget, allocation, stars, summary, text, who_when, version_lbl, flag):
         return
@@ -410,11 +428,11 @@ class UIReview(Gtk.VBox):
             self._build_usefulness_ui(current_user_reviewer, useful_total, useful_favorable, self.useful_votes)
             return
         if type == 'progress':
-            self.submit_status_spinner.start()
-            self.submit_status_spinner.show()
             self.status_label = Gtk.Label.new("<small>%s</small>" % _(u"Submitting now\u2026"))
             self.status_label.set_use_markup(True)
             self.status_box.pack_start(self.submit_status_spinner, False, False, 0)
+            self.submit_status_spinner.show()
+            self.submit_status_spinner.start()
             self.status_label.set_padding(2,0)
             self.status_box.pack_start(self.status_label, False, False, 0)
             self.status_label.show()
@@ -449,7 +467,6 @@ class UIReview(Gtk.VBox):
         return datetime.datetime.strptime(raw_date_str, '%Y-%m-%d %H:%M:%S')
 
     def _build(self, review_data, app_version, logged_in_person, useful_votes):
-
         # all the attributes of review_data may need markup escape, 
         # depening on if they are used as text or markup
         self.id = review_data.id
@@ -458,16 +475,31 @@ class UIReview(Gtk.VBox):
         # example raw_date str format: 2011-01-28 19:15:21
         cur_t = self._get_datetime_from_review_date(review_data.date_created)
 
-        app_name = review_data.app_name or review_data.package_name
         review_version = review_data.version
         self.useful_total = useful_total = review_data.usefulness_total
         useful_favorable = review_data.usefulness_favorable
         useful_submit_error = review_data.usefulness_submit_error
 
-        dark_color = '#000'
-        m = self._whom_when_markup(self.person, displayname, cur_t, dark_color)
+        #if review version is different to version of app being displayed, 
+        # alert user
+        version = GObject.markup_escape_text(upstream_version(review_version))
+        if (review_version and
+            app_version and
+            upstream_version_compare(review_version, app_version) != 0):
+            version_string = _("For version (%(version)s)") % { 
+                    'version' : version,
+                    }
+        else:
+            version_string = _("For this version (%(version)s)") % { 
+                    'version' : version,
+                    }
 
+        m = '<small>%s</small>'
+        self.version_label.set_markup(m % version_string)
+
+        m = self._whom_when_markup(self.person, displayname, cur_t)
         who_when = Gtk.Label()
+        who_when.set_justify(Gtk.Justification.RIGHT)
         who_when.set_markup(m)
 
         summary = Gtk.Label()
@@ -490,32 +522,13 @@ class UIReview(Gtk.VBox):
 
         stars = Star()
         stars.set_rating(review_data.rating)
+        a = Gtk.Alignment.new(0.5, 0.5, 0, 0)
+        a.add(stars)
 
-        self.header.pack_start(stars, False, False, 0)
+        self.header.pack_start(a, False, False, 0)
         self.header.pack_start(summary, False, False, 0)
         self.header.pack_end(who_when, False, False, 0)
         self.body.pack_start(text, False, False, 0)
-        
-        #if review version is different to version of app being displayed, 
-        # alert user
-        version_lbl = None
-        if (review_version and
-            app_version and
-            upstream_version_compare(review_version, app_version) != 0):
-            version_string = _("This review was written for a different version of %(app_name)s (Version: %(version)s)") % { 
-                'app_name' : app_name.encode("utf-8"),
-                'version' : GObject.markup_escape_text(upstream_version(review_version)),
-                }
-
-            m = '<small><i><span color="%s">%s</span></i></small>'
-            version_lbl = Gtk.Label(label=m % (dark_color, version_string))
-            version_lbl.set_use_markup(True)
-            version_lbl.set_padding(0,3)
-            version_lbl.set_ellipsize(1)
-            version_lbl.set_alignment(0, 0.5)
-            self.footer_split.pack_start(version_lbl, False, False, 0)
-
-        self.footer_split.pack_start(self.footer, False, False, 0)
 
         current_user_reviewer = False
         if self.person == self.logged_in_person:
@@ -527,12 +540,12 @@ class UIReview(Gtk.VBox):
         # Translators: This link is for flagging a review as inappropriate.
         # To minimize repetition, if at all possible, keep it to a single word.
         # If your language has an obvious verb, it won't need a question mark.
-        self.complain = Link('<small>%s</small>' % _('Inappropriate?'))
+        self.complain = Link('<span color="%s"><small>%s</small></span>' % (self._subtle, _('Inappropriate?')))
         self.footer.pack_end(self.complain, False, False, 0)
         self.complain.connect('clicked', self._on_report_abuse_clicked)
 
         # connect network signals
-        self.connect("map", lambda w: self._on_network_state_change())
+        self.connect("realize", lambda w: self._on_network_state_change())
         watcher = get_network_watcher()
         watcher.connect(
             "changed", lambda w,s: self._on_network_state_change())
@@ -558,16 +571,18 @@ class UIReview(Gtk.VBox):
             # add here, but only populate if its not the own review
             self.likebox = Gtk.HBox()
             if already_voted == None and not current_user_reviewer:
-                self.yes_like = Link('<small>%s</small>' % _('Yes'))
-                self.no_like = Link('<small>%s</small>' % _('No'))
+                m = '<span color="%s"><small><b>%s</b></small></span>'
+                self.yes_like = Link(m % (self._subtle, _('Yes')))
+                self.no_like = Link(m % (self._subtle, _('No')))
                 self.yes_like.connect('clicked', self._on_useful_clicked, True)
                 self.no_like.connect('clicked', self._on_useful_clicked, False)
-                self.yes_no_separator = Gtk.Label(label="<small>/</small>")
+                markup = m % (self._subtle, _('/')) # separator character
+                self.yes_no_separator = Gtk.Label(label=markup)
                 self.yes_no_separator.set_use_markup(True)
                 self.yes_like.show()
                 self.no_like.show()
                 self.yes_no_separator.show()
-                self.likebox.set_spacing(3)
+                self.likebox.set_spacing(4)
                 self.likebox.pack_start(self.yes_like, False, False, 0)
                 self.likebox.pack_start(self.yes_no_separator, False, False, 0)
                 self.likebox.pack_start(self.no_like, False, False, 0)
@@ -648,11 +663,13 @@ class UIReview(Gtk.VBox):
                         useful_total) % { 'useful_total' : useful_total,
                                     'useful_favorable' : useful_favorable,
                                     }
-                    
-        
-        return Gtk.Label(label='<small>%s</small>' % s)
 
-    def _whom_when_markup(self, person, displayname, cur_t, dark_color):
+        m = '<span color="%s"><small><b>%s</b></small></span>'
+        label = Gtk.Label()
+        label.set_markup(m % (self._subtle, s))
+        return label
+
+    def _whom_when_markup(self, person, displayname, cur_t):
         nice_date = get_nice_date_string(cur_t)
         #dt = datetime.datetime.utcnow() - cur_t
 
@@ -660,18 +677,18 @@ class UIReview(Gtk.VBox):
         correct_name = displayname or person
 
         if person == self.logged_in_person:
-            m = '<span color="%s"><b>%s (%s)</b>, %s</span>' % (
-                dark_color,
+            m = '<small><b>%s (%s)</b></small>\n<span font_size="%s">%s</span>' % (
                 GObject.markup_escape_text(correct_name),
                 # TRANSLATORS: displayed in a review after the persons name,
                 # e.g. "Wonderful text based app" mvo (that's you) 2011-02-11"
                 _("that's you"),
+                8 * Pango.SCALE,
                 GObject.markup_escape_text(nice_date))
         else:
             try:
-                m = '<span color="%s"><b>%s</b>, %s</span>' % (
-                    dark_color,
+                m = '<small><b>%s</b></small>\n<span font_size="%s">%s</span>' % (
                     GObject.markup_escape_text(correct_name.encode("utf-8")),
+                    8 * Pango.SCALE,
                     GObject.markup_escape_text(nice_date))
             except Exception:
                 LOG.exception("_who_when_markup failed")
@@ -716,12 +733,7 @@ class EmbeddedMessage(UIReview):
         return
 
     def draw(self, cr, a):
-        cr.save()
-        cr.rectangle(a)
-        #color = mkit.floats_from_gdkcolor(self.style.mid[self.state])
-        #cr.set_source_rgba(*color+(0.2,))
-        #cr.fill()
-        #cr.restore()
+        return
 
 
 class NoReviewYet(EmbeddedMessage):

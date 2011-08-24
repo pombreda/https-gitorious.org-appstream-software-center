@@ -18,19 +18,17 @@
 
 import gi
 gi.require_version("Gtk", "3.0")
-from gi.repository import Atk
-from gi.repository import Gtk
-from gi.repository import Gdk
-from gi.repository import GObject
-from gi.repository import GdkPixbuf
+from gi.repository import Atk, Gtk, Gdk, GObject, GdkPixbuf, Pango
 
 import datetime
 import gettext
 import logging
+import cairo
 import os
 
 from gettext import gettext as _
 
+import softwarecenter.paths
 from softwarecenter.cmdfinder import CmdFinder
 from softwarecenter.netstatus import (NetState, get_network_watcher,
                                       network_state_is_connected)
@@ -51,8 +49,8 @@ from softwarecenter.backend.weblive import get_weblive_backend
 from softwarecenter.ui.gtk3.dialogs import error
 from appdetailsview import AppDetailsViewBase
 
+from softwarecenter.ui.gtk3.drawing import darken, get_subtle_color_as_hex
 from softwarecenter.ui.gtk3.em import StockEms, em
-
 from softwarecenter.ui.gtk3.widgets.reviews import UIReviewsList
 from softwarecenter.ui.gtk3.widgets.containers import SmallBorderRadiusFrame
 from softwarecenter.ui.gtk3.widgets.stars import Star, StarRatingsWidget
@@ -76,6 +74,24 @@ LOG_ALLOCATION = logging.getLogger("softwarecenter.ui.Gtk.get_allocation()")
 COLOR_BLACK = '#323232'
 
 
+class HBar(Gtk.VBox):
+
+    def __init__(self):
+        Gtk.VBox.__init__(self)
+        self.set_size_request(-1, 1)
+        return
+
+    def do_draw(self, cr):
+        cr.save()
+        a = self.get_allocation()
+        cr.move_to(0,0)
+        cr.rel_line_to(a.width, 0)
+        cr.set_source_rgba(0.5, 0.5, 0.5, 0.4)
+        cr.set_dash((1, 1), 1)
+        cr.stroke()
+        cr.restore()
+        return
+
 
 class StatusBar(Gtk.Alignment):
 
@@ -92,8 +108,7 @@ class StatusBar(Gtk.Alignment):
 
     def __init__(self, view):
         GObject.GObject.__init__(self, xscale=1.0, yscale=1.0)
-        self.set_padding(2, 2,
-                         StockEms.SMALL, StockEms.SMALL)
+        self.set_padding(StockEms.SMALL, StockEms.SMALL, 0, 0)
 
         self.hbox = Gtk.HBox()
         self.hbox.set_spacing(StockEms.SMALL)
@@ -102,12 +117,15 @@ class StatusBar(Gtk.Alignment):
         self.view = view
 
     def do_draw(self, cr):
+        cr.save()
         a = self.get_allocation()
-        cr.rectangle(0,0, a.width, a.height)
+        cr.rectangle(-1,0, a.width+2, a.height)
+        cr.set_source_rgba(0.5, 0.5, 0.5, 0.4)
+        cr.set_dash((1, 1), 1)
         cr.stroke()
+        cr.restore()
 
         for child in self: self.propagate_draw(child, cr)
-        return
 
 
 class PackageStatusBar(StatusBar):
@@ -131,25 +149,8 @@ class PackageStatusBar(StatusBar):
         self.hbox.pack_end(self.progress, False, False, 0)
         self.show_all()
 
-        self.view.connect('style-set', self._on_view_style_set)
         self.button.connect('clicked', self._on_button_clicked)
         GObject.timeout_add(500, self._pulse_helper)
-
-    def _on_view_style_set(self, view, old_style):
-        self._progress_modify_bg(view)
-        return
-
-    def create_colors(self, src_color=None):
-        #FIXME: portme
-        return
-
-    def _progress_modify_bg(self, view):
-        # more in relation to bug #606942
-        # for themes where "transparent-bg-hint" is not understood
-        #~ self.create_colors()
-        #~ self.progress.modify_bg(Gtk.StateType.NORMAL,
-                                #~ Gdk.Color(*self.bg_color))
-        return
 
     def _pulse_helper(self):
         if (self.pkg_state == PkgStates.INSTALLING_PURCHASED and
@@ -180,7 +181,7 @@ class PackageStatusBar(StatusBar):
         return
 
     def set_label(self, label):
-        m = '<span color="%s">%s</span>' % (COLOR_BLACK, label)
+        m = '<big><b>%s</b></big>' % label
         self.label.set_markup(m)
         return
 
@@ -193,8 +194,6 @@ class PackageStatusBar(StatusBar):
                 app_details.pkgname, state, app_details.pkg_state))
         self.pkg_state = state
         self.app_details = app_details
-
-        #~ self.create_colors()
 
         if state in (PkgStates.INSTALLING,
                      PkgStates.INSTALLING_PURCHASED,
@@ -300,7 +299,6 @@ class PackageStatusBar(StatusBar):
             # we display the error in the description field
             self.set_button_label(_("Install"))
             self.set_label("")
-            self.create_colors(StatusBar.PKG_STATUS_ERROR_COLOR)
         elif state == PkgStates.NOT_FOUND:
             # this is used when the pkg is not in the cache and there is no request
             # we display the error in the summary field and hide the rest
@@ -319,7 +317,6 @@ class PackageStatusBar(StatusBar):
                 #        components that are not enabled or that just
                 #        lack the "Packages" files (but are in sources.list)
                 self.set_button_label(_("Update Now"))
-            self.create_colors(StatusBar.USER_ACTION_REQRD_COLOR)
         if (self.app_details.warning and not self.app_details.error and
            not state in (PkgStates.INSTALLING, PkgStates.INSTALLING_PURCHASED,
            PkgStates.REMOVING, PkgStates.UPGRADING, AppActions.APPLY)):
@@ -347,30 +344,25 @@ class PackageInfo(Gtk.HBox):
         self.value_label.set_selectable(True)
         self.a11y = self.get_accessible()
 
-        self._allocation = None
-
         self.connect('realize', self._on_realize)
         return
 
     def _on_realize(self, widget):
         # key
         k = Gtk.Label()
-        # FIXME
-        dark = '#000'
-        key_markup = '<b><span color="%s">%s</span></b>'
-        k.set_markup(key_markup  % (dark, self.key))
+        key_markup = '<span color="%s"><b>%s</b></span>'
+        subtle = get_subtle_color_as_hex(self)
+        k.set_markup(key_markup  % (subtle, self.key))
         k.set_alignment(1, 0)
 
         # determine max width of all keys
         max_lw = 0
-
         for key in self.info_keys:
             l = self.create_pango_layout("")
-            l.set_markup(key_markup % (dark, key), -1)
+            l.set_markup(key_markup % (subtle, key), -1)
             max_lw = max(max_lw, l.get_pixel_extents()[1].width)
             del l
-
-        k.set_size_request(max_lw+12, -1)
+        k.set_size_request(max_lw, -1)
         self.pack_start(k, False, False, 0)
 
         # value
@@ -413,9 +405,6 @@ class Addon(Gtk.HBox):
         self.checkbutton = Gtk.CheckButton()
         self.checkbutton.pkgname = self.app.pkgname
         self.pack_start(self.checkbutton, False, False, 12)
-
-        self._allocation = None
-
         self.connect('realize', self._on_realize, icons, pkgname)
         return
 
@@ -440,16 +429,19 @@ class Addon(Gtk.HBox):
         if len(title) >= 2:
             title = title[0].upper() + title[1:]
 
-        m = ' <span color="%s"> (%s)</span>'
-        # FIXME color
-        pkgname = m%("#000", pkgname)
+        vp = self.get_ancestor('GtkViewport')
+        context = vp.get_style_context()
+        bg = context.get_background_color(Gtk.StateFlags.NORMAL)
+        subtle = darken(bg)
 
+        m = ' <span color="%s">(%s)</span>'
         self.title = Gtk.Label()
-        self.title.set_markup(title+pkgname)
+        subtle = get_subtle_color_as_hex(self)
+        self.title.set_markup(title + m % (subtle, pkgname))
         self.title.set_alignment(0.0, 0.5)
         self.title.set_line_wrap(True)
-        #~ self.title.set_ellipsize(Pango.EllipsizeMode.END)
-        hbox.pack_start(self.title, True, True, 0)
+        self.title.set_ellipsize(Pango.EllipsizeMode.END)
+        hbox.pack_start(self.title, False, False, 0)
 
         loader = self.get_ancestor(AppDetailsViewGtk).review_loader
         stats = loader.get_review_stats(self.app)
@@ -457,7 +449,7 @@ class Addon(Gtk.HBox):
             rating = Star()
             #~ rating.set_visible_window(False)
             rating.set_size_small()
-            self.pack_end(rating, False, False, 0)
+            self.pack_start(rating, False, False, 0)
             rating.set_rating(stats.ratings_average)
 
         self.checkbutton.add(hbox)
@@ -494,9 +486,8 @@ class AddonsTable(Gtk.VBox):
 
         self.label = Gtk.Label()
         self.label.set_alignment(0, 0.5)
-        self.label.set_padding(6, 6)
 
-        markup = _('Add-ons')
+        markup = '<big><b>%s</b></big>' % _('Add-ons')
         self.label.set_markup(markup)
         self.pack_start(self.label, False, False, 0)
 
@@ -517,8 +508,10 @@ class AddonsTable(Gtk.VBox):
         self.suggested_addons = sorted(addons[1])
 
         if not self.recommended_addons and not self.suggested_addons:
+            self.addons_manager.view.addons_hbar.hide()
             return
 
+        self.addons_manager.view.addons_hbar.show()
         # clear any existing addons
         self.clear()
 
@@ -635,19 +628,17 @@ class AddonsManager():
                          priority=GObject.PRIORITY_LOW)
 
 
-class HFWBox(Gtk.Box):
-
-    def __init__(self, viewport):
-        Gtk.Box.__init__(self)
-        self.viewport = viewport
-
-
+_asset_cache = {}
 class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
 
     """ The view that shows the application details """
 
     # the size of the icon on the left side
-    APP_ICON_SIZE = 84 # Gtk.IconSize.DIALOG ?
+    APP_ICON_SIZE = 96 # Gtk.IconSize.DIALOG ?
+    # art stuff
+    STIPPLE = os.path.join(softwarecenter.paths.datadir,
+                           "ui/gtk3/art/stipple.png")
+
 
     # need to include application-request-action here also since we are multiple-inheriting
     __gsignals__ = {'selected':(GObject.SignalFlags.RUN_FIRST,
@@ -714,9 +705,26 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
 
         # page elements are packed into our very own lovely viewport
         self._layout_page()
-
+        self._cache_art_assets()
         self.connect('realize', self._on_realize)
         self.loaded = True
+        return
+
+    def _cache_art_assets(self):
+        global _asset_cache
+        if _asset_cache: return _asset_cache
+        assets = _asset_cache
+        # cache the bg pattern
+        surf = cairo.ImageSurface.create_from_png(self.STIPPLE)
+        ptrn = cairo.SurfacePattern(surf)
+        ptrn.set_extend(cairo.EXTEND_REPEAT)
+        assets["stipple"] = ptrn
+        return assets
+
+    def do_draw(self, cr):
+        cr.set_source(_asset_cache["stipple"])
+        cr.paint_with_alpha(0.5)
+        for child in self: self.propagate_draw(child, cr)
         return
 
     def _on_net_state_changed(self, watcher, state):
@@ -906,29 +914,29 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
     def _layout_page(self):
         # setup widgets
         vb = Gtk.VBox()
-        vb.set_spacing(18)
-        vb.set_border_width(20)
+        vb.set_spacing(StockEms.MEDIUM)
+        vb.set_border_width(StockEms.LARGE)
         self.add(vb)
 
         # header
         hb = Gtk.HBox()
-        hb.set_spacing(12)
+        hb.set_spacing(StockEms.MEDIUM)
         vb.pack_start(hb, False, False, 0)
 
         # the app icon
         self.icon = Gtk.Image()
-        self.icon.set_size_request(84, 84)
-        self.icon.set_from_icon_name(Icons.MISSING_APP, Gtk.IconSize.DIALOG)
         hb.pack_start(self.icon, False, False, 0)
 
         # the app title/summary
-        title_fontsize = em(2)
-        markup = '<span font_desc="bold %s">Title</span>\nSummary' % title_fontsize
-        self.title = Gtk.Label(markup)
+        self.title = Gtk.Label()
+        self.subtitle = Gtk.Label()
         self.title.set_alignment(0, 0.5)
-        self.title.set_line_wrap(True)
-        vb_inner=Gtk.VBox(spacing=6)
-        vb_inner.pack_start(self.title, True, True, 0)
+        self.subtitle.set_alignment(0, 0.5)
+        self.title.set_ellipsize(True)
+        self.subtitle.set_ellipsize(True)
+        vb_inner=Gtk.VBox()
+        vb_inner.pack_start(self.title, False, False, 0)
+        vb_inner.pack_start(self.subtitle, False, False, 0)
 
         # usage
         #~ self.usage = mkit.BubbleLabel()
@@ -936,15 +944,14 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
 
         # star rating widget
         self.review_stats_widget = StarRatingsWidget()
-        self.review_stats_widget.stars.set_size_as_pixel_value(title_fontsize)
-        #~ a.add(self.review_stats_widget)
-        #~ hb.pack_end(a, False, False, 0)
-        hb.pack_end(self.review_stats_widget, False, True, 0)
+        vb_inner.pack_start(self.review_stats_widget, False, False, StockEms.SMALL)
 
-        vb_inner.set_property("can-focus", True)
+        #~ vb_inner.set_property("can-focus", True)
         self.title.a11y = vb_inner.get_accessible()
         self.title.a11y.set_role(Atk.Role.PANEL)
-        hb.pack_start(vb_inner, True, True, 0)
+        a = Gtk.Alignment.new(0, 0.5, 0, 0)
+        a.add(vb_inner)
+        hb.pack_start(a, False, False, 0)
 
         # the package status bar
         self.pkg_statusbar = PackageStatusBar(self)
@@ -1000,6 +1007,8 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         footer_hb.pack_start(self.homepage_btn, False, False, 0)
         self.desc.pack_start(footer_hb, False, False, 0)
 
+        vb.pack_start(HBar(), False, False, 0)
+
         self.info_vb = info_vb = Gtk.VBox()
         info_vb.set_spacing(12)
         vb.pack_start(info_vb, False, False, 0)
@@ -1012,31 +1021,33 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         self.addon_view.pack_start(self.addons_statusbar, False, False, 0)
         self.addon_view.connect('table-built', self._on_addon_table_built)
 
+        self.addons_hbar = HBar()
+        info_vb.pack_start(self.addons_hbar, False, False, StockEms.SMALL)
+
         # package info
         self.info_keys = []
 
         # info header
-        self.info_header = Gtk.Label(_("Details"))
-        self.info_header.set_alignment(0, 0.5)
-        self.info_header.set_padding(6, 6)
-        self.info_header.set_use_markup(True)
-        info_vb.pack_start(self.info_header, False, False, 0)
+        #~ self.info_header = Gtk.Label()
+        #~ self.info_header.set_markup('<big><b>%s</b></big>' % _("Details"))
+        #~ self.info_header.set_alignment(0, 0.5)
+        #~ self.info_header.set_padding(0, 6)
+        #~ self.info_header.set_use_markup(True)
+        #~ info_vb.pack_start(self.info_header, False, False, 0)
 
-        self.totalsize_info = PackageInfo(_("Total size:"), self.info_keys)
+        self.totalsize_info = PackageInfo(_("Total size"), self.info_keys)
         info_vb.pack_start(self.totalsize_info, False, False, 0)
 
-        self.version_info = PackageInfo(_("Version:"), self.info_keys)
+        self.version_info = PackageInfo(_("Version"), self.info_keys)
         info_vb.pack_start(self.version_info, False, False, 0)
 
-        self.license_info = PackageInfo(_("License:"), self.info_keys)
+        self.license_info = PackageInfo(_("License"), self.info_keys)
         info_vb.pack_start(self.license_info, False, False, 0)
 
-        self.support_info = PackageInfo(_("Updates:"), self.info_keys)
+        self.support_info = PackageInfo(_("Updates"), self.info_keys)
         info_vb.pack_start(self.support_info, False, False, 0)
 
-        padding = Gtk.VBox()
-        padding.set_size_request(-1, 6)
-        info_vb.pack_end(padding, False, False, 0)
+        vb.pack_start(HBar(), False, False, 0)
 
         # reviews cascade
         self.reviews.connect("new-review", self._on_review_new)
@@ -1098,25 +1109,26 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
     def _update_title_markup(self, appname, summary):
         # make title font size fixed as they should look good compared to the 
         # icon (also fixed).
-        markup = '<span font_desc="bold 20">%s</span>\n<span font_desc="9">%s</span>'
-        markup = markup % (appname, summary)
-
+        font_size = em(1.6) * Pango.SCALE
+        markup = '<span font_size="%s">%s</span>'
+        markup = markup % (font_size, appname)
         self.title.set_markup(markup)
         self.title.a11y.set_name(appname + '. ' + summary)
+        self.subtitle.set_markup(summary)
         return
 
     def _update_app_icon(self, app_details):
-
         pb = self._get_icon_as_pixbuf(app_details)
         # should we show the green tick?
 #        self._show_overlay = app_details.pkg_state == PkgStates.INSTALLED
         w, h = pb.get_width(), pb.get_height()
 
-        tw = self.APP_ICON_SIZE - 10 # bit of a fudge factor
+        tw = self.APP_ICON_SIZE # target width
         if pb.get_width() < tw:
             pb = pb.scale_simple(tw, tw, GdkPixbuf.InterpType.TILES)
 
         self.icon.set_from_pixbuf(pb)
+        self.icon.set_size_request(self.APP_ICON_SIZE, self.APP_ICON_SIZE)
         return
 
     def _update_layout_error_status(self, pkg_error):
@@ -1126,13 +1138,13 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
             self.addon_view.hide()
             self.reviews.hide()
             self.screenshot.hide()
-            self.info_header.hide()
+            #~ self.info_header.hide()
             self.info_vb.hide()
         else:
             self.addon_view.show()
             self.reviews.show()
             self.screenshot.show()
-            self.info_header.show()
+            #~ self.info_header.show()
             self.info_vb.show()
         return
 
@@ -1563,10 +1575,12 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         if app_details.icon:
             if self.icons.has_icon(app_details.icon):
                 try:
-                    return self.icons.load_icon(app_details.icon, 84, 0)
+                    return self.icons.load_icon(app_details.icon,
+                                                self.APP_ICON_SIZE, 0)
                 except GObject.GError as e:
                     logging.warn("failed to load '%s': %s" % (app_details.icon, e))
-                    return self.icons.load_icon(Icons.MISSING_APP, 84, 0)
+                    return self.icons.load_icon(Icons.MISSING_APP,
+                                                self.APP_ICON_SIZE, 0)
             elif app_details.icon_url:
                 LOG.debug("did not find the icon locally, must download it")
 
@@ -1583,7 +1597,7 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
                     'file-download-complete', on_image_download_complete)
                 image_downloader.download_file(
                     app_details.icon_url, app_details.cached_icon_file_path)
-        return self.icons.load_icon(Icons.MISSING_APP, 84, 0)
+        return self.icons.load_icon(Icons.MISSING_APP, self.APP_ICON_SIZE, 0)
     
     def update_totalsize(self):
         if not self.totalsize_info.get_property('visible'):
