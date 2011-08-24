@@ -45,6 +45,7 @@ from softwarecenter.enums import PkgStates
 from softwarecenter.backend.reviews import UsefulnessCache
 
 from softwarecenter.ui.gtk3.em import StockEms
+from softwarecenter.ui.gtk3.drawing import darken, get_subtle_color_as_hex, color_to_hex
 from softwarecenter.ui.gtk3.widgets.buttons import Link
 
 LOG_ALLOCATION = logging.getLogger("softwarecenter.ui.Gtk.get_allocation()")
@@ -72,6 +73,7 @@ class UIReviewsList(Gtk.VBox):
 
     def __init__(self, parent):
         GObject.GObject.__init__(self)
+        self.set_spacing(12)
         self.logged_in_person = get_person_from_config()
 
         self._parent = parent
@@ -85,7 +87,7 @@ class UIReviewsList(Gtk.VBox):
 
         label = Gtk.Label()
         label.set_markup(_("Reviews"))
-        label.set_padding(6, 6)
+        label.set_padding(0, 6)
         label.set_use_markup(True)
         label.set_alignment(0, 0.5)
 
@@ -96,11 +98,10 @@ class UIReviewsList(Gtk.VBox):
         self.header.set_spacing(StockEms.MEDIUM)
         self.pack_start(hb, False, False, 0)
         hb.pack_start(label, False, False, 0)
-        hb.pack_end(self.new_review, False, False, 6)
+        hb.pack_end(self.new_review, False, False, 0)
 
         self.vbox = Gtk.VBox()
         self.vbox.set_spacing(24)
-        self.vbox.set_border_width(6)
         self.pack_start(self.vbox, True, True, 0)
 
         self.no_network_msg = None
@@ -381,9 +382,19 @@ class UIReview(Gtk.VBox):
         self._allocation = None
 
         if review_data:
-            self._build(review_data, app_version, logged_in_person, useful_votes)
         # when this is mapped, show/hide widgets that are network sensitive
         # this ensures that even with show_all() we show the right stuff
+            self.connect('realize',
+                         self._on_realize,
+                         review_data,
+                         app_version,
+                         logged_in_person,
+                         useful_votes)
+
+    def _on_realize(self, widget, *content):
+        self._subtle = get_subtle_color_as_hex(self)
+        self._build(*content)
+        return
 
     def _on_allocate(self, widget, allocation, stars, summary, text, who_when, version_lbl, flag):
         return
@@ -464,8 +475,7 @@ class UIReview(Gtk.VBox):
         useful_favorable = review_data.usefulness_favorable
         useful_submit_error = review_data.usefulness_submit_error
 
-        dark_color = '#000'
-        m = self._whom_when_markup(self.person, displayname, cur_t, dark_color)
+        m = self._whom_when_markup(self.person, displayname, cur_t)
 
         who_when = Gtk.Label()
         who_when.set_markup(m)
@@ -507,8 +517,8 @@ class UIReview(Gtk.VBox):
                 'version' : GObject.markup_escape_text(upstream_version(review_version)),
                 }
 
-            m = '<small><i><span color="%s">%s</span></i></small>'
-            version_lbl = Gtk.Label(label=m % (dark_color, version_string))
+            m = '<span color="%s"><small><i>%s</i></small></span>'
+            version_lbl = Gtk.Label(label=m % (self._subtle, version_string))
             version_lbl.set_use_markup(True)
             version_lbl.set_padding(0,3)
             version_lbl.set_ellipsize(1)
@@ -527,7 +537,8 @@ class UIReview(Gtk.VBox):
         # Translators: This link is for flagging a review as inappropriate.
         # To minimize repetition, if at all possible, keep it to a single word.
         # If your language has an obvious verb, it won't need a question mark.
-        self.complain = Link('<small>%s</small>' % _('Inappropriate?'))
+        subtle = get_subtle_color_as_hex(self)
+        self.complain = Link('<span color="%s"><small>%s</small></span>' % (subtle, _('Inappropriate?')))
         self.footer.pack_end(self.complain, False, False, 0)
         self.complain.connect('clicked', self._on_report_abuse_clicked)
 
@@ -558,8 +569,11 @@ class UIReview(Gtk.VBox):
             # add here, but only populate if its not the own review
             self.likebox = Gtk.HBox()
             if already_voted == None and not current_user_reviewer:
-                self.yes_like = Link('<small>%s</small>' % _('Yes'))
-                self.no_like = Link('<small>%s</small>' % _('No'))
+                context = self.get_style_context()
+                dark = color_to_hex(context.get_color(Gtk.StateFlags.NORMAL))
+                del context
+                self.yes_like = Link('<span color="%s"><small>%s</small></span>' % (dark, _('Yes')))
+                self.no_like = Link('<span color="%s"><small>%s</small></span>' % (dark, _('No')))
                 self.yes_like.connect('clicked', self._on_useful_clicked, True)
                 self.no_like.connect('clicked', self._on_useful_clicked, False)
                 self.yes_no_separator = Gtk.Label(label="<small>/</small>")
@@ -567,7 +581,7 @@ class UIReview(Gtk.VBox):
                 self.yes_like.show()
                 self.no_like.show()
                 self.yes_no_separator.show()
-                self.likebox.set_spacing(3)
+                self.likebox.set_spacing(4)
                 self.likebox.pack_start(self.yes_like, False, False, 0)
                 self.likebox.pack_start(self.yes_no_separator, False, False, 0)
                 self.likebox.pack_start(self.no_like, False, False, 0)
@@ -652,7 +666,7 @@ class UIReview(Gtk.VBox):
         
         return Gtk.Label(label='<small>%s</small>' % s)
 
-    def _whom_when_markup(self, person, displayname, cur_t, dark_color):
+    def _whom_when_markup(self, person, displayname, cur_t):
         nice_date = get_nice_date_string(cur_t)
         #dt = datetime.datetime.utcnow() - cur_t
 
@@ -661,7 +675,7 @@ class UIReview(Gtk.VBox):
 
         if person == self.logged_in_person:
             m = '<span color="%s"><b>%s (%s)</b>, %s</span>' % (
-                dark_color,
+                self._subtle,
                 GObject.markup_escape_text(correct_name),
                 # TRANSLATORS: displayed in a review after the persons name,
                 # e.g. "Wonderful text based app" mvo (that's you) 2011-02-11"
@@ -670,7 +684,7 @@ class UIReview(Gtk.VBox):
         else:
             try:
                 m = '<span color="%s"><b>%s</b>, %s</span>' % (
-                    dark_color,
+                    self._subtle,
                     GObject.markup_escape_text(correct_name.encode("utf-8")),
                     GObject.markup_escape_text(nice_date))
             except Exception:

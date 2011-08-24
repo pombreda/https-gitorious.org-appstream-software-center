@@ -1,7 +1,7 @@
 from math import pi as PI
 PI_OVER_180 = PI/180
 
-from gi.repository import Gdk
+from gi.repository import Gdk, Gtk
 
 BLACK = Gdk.RGBA(red=0,green=0,blue=0)
 WHITE = Gdk.RGBA(red=1,green=1,blue=1)
@@ -11,6 +11,16 @@ def color_floats(spec):
     rgba = Gdk.RGBA()
     rgba.parse(spec)
     return rgba.red, rgba.green, rgba.blue
+
+def rgb_to_hex(r, g, b):
+    if isinstance(r, float):
+        r *= 255
+        g *= 255
+        b *= 255
+    return "#%02X%02X%02X" % (r,g,b)
+
+def color_to_hex(color):
+    return rgb_to_hex(color.red, color.green, color.blue)
 
 def mix(fgcolor, bgcolor, mix_alpha):
     """ Creates a composite rgb of a foreground rgba and a background rgb.
@@ -35,6 +45,13 @@ def darken(color, amount=0.3):
 
 def lighten(color, amount=0.3):
     return mix(WHITE, color, amount)
+
+def get_subtle_color_as_hex(widget):
+    vp = widget.get_ancestor('GtkViewport')
+    context = vp.get_style_context()
+    bg = context.get_background_color(Gtk.StateFlags.NORMAL)
+    subtle = darken(bg)
+    return rgb_to_hex(subtle.red, subtle.green, subtle.blue)
 
 def rounded_rect(cr, x, y, w, h, r):
     cr.new_sub_path()
