@@ -260,6 +260,7 @@ class Star(Gtk.EventBox, StarRenderer):
     def __init__(self, size=StarSize.NORMAL):
         Gtk.EventBox.__init__(self)
         StarRenderer.__init__(self)
+        self.set_name("featured-star")
 
         self.label = None
         self.size = size
