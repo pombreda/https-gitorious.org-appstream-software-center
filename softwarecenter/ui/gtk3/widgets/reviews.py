@@ -91,14 +91,16 @@ class UIReviewsList(Gtk.VBox):
         label.set_use_markup(True)
         label.set_alignment(0, 0.5)
 
-        self.header = hb = Gtk.HBox()
+        self.header = Gtk.HBox()
         self.header.set_spacing(StockEms.MEDIUM)
-        hb.pack_start(label, False, False, 0)
-        self.pack_start(hb, False, False, 0)
+        self.new_review = Gtk.Button(_('Write your own review'))
 
-        self.new_review = Gtk.Button()
-        self.new_review.set_label(_("Write your own review"))
-        self.pack_start(self.new_review, False, False, 0)
+        inner_vb = Gtk.VBox()
+        inner_vb.pack_start(label, False, False, 0)
+        inner_vb.pack_start(self.new_review, False, False, StockEms.SMALL)
+
+        self.header.pack_start(inner_vb, False, False, 0)
+        self.pack_start(self.header, False, False, 0)
 
         self.vbox = Gtk.VBox()
         self.vbox.set_spacing(24)
@@ -120,11 +122,11 @@ class UIReviewsList(Gtk.VBox):
     def _on_network_state_change(self):
         is_connected = network_state_is_connected()
         if is_connected:
-            self.new_review.show()
+            self.new_review.set_sensitive(True)
             if self.no_network_msg:
                 self.no_network_msg.hide()
         else:
-            self.new_review.hide()
+            self.new_review.set_sensitive(False)
             if self.no_network_msg:
                 self.no_network_msg.show()
 
@@ -157,7 +159,8 @@ class UIReviewsList(Gtk.VBox):
         s = '<small><b>%s</b></small>' % _("You need to install this app before you can review it")
         self.install_first_label = Gtk.Label(label=s)
         self.install_first_label.set_use_markup(True)
-        self.header.pack_end(self.install_first_label, False, False, 2)
+        self.install_first_label.set_alignment(1.0, 0.5)
+        self.header.pack_end(self.install_first_label, False, False, 0)
         self.install_first_label.show()
         return
     
@@ -728,12 +731,7 @@ class EmbeddedMessage(UIReview):
         return
 
     def draw(self, cr, a):
-        cr.save()
-        cr.rectangle(a)
-        #color = mkit.floats_from_gdkcolor(self.style.mid[self.state])
-        #cr.set_source_rgba(*color+(0.2,))
-        #cr.fill()
-        #cr.restore()
+        return
 
 
 class NoReviewYet(EmbeddedMessage):
