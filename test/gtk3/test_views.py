@@ -45,6 +45,12 @@ class TestViews(unittest.TestCase):
         win = get_test_window_purchaseview()
         GObject.timeout_add(TIMEOUT, lambda: win.destroy())
         Gtk.main()
+
+    def test_appview(self):
+        from softwarecenter.ui.gtk3.views.appview import get_test_window
+        win = get_test_window()
+        GObject.timeout_add(TIMEOUT, lambda: win.destroy())
+        Gtk.main()
         
 
 if __name__ == "__main__":
