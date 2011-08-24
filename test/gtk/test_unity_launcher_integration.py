@@ -126,7 +126,7 @@ class TestUnityLauncherIntegration(unittest.TestCase):
         self.assertTrue(pkgname in self.s_c_app.available_pane.unity_launcher_items)
         launcher_info = self.s_c_app.available_pane.unity_launcher_items.pop(pkgname)
         # check the UnityLauncherInfo values themselves
-        self.assertEqual(launcher_info.name, "Lincity-ng")
+        self.assertEqual(launcher_info.name, "lincity-ng")
         self.assertEqual(launcher_info.icon_name, "lincity-ng")
         self.assertTrue(launcher_info.icon_x > 20)
         self.assertTrue(launcher_info.icon_y > 20)

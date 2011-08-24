@@ -55,7 +55,7 @@ from softwarecenter.ui.gtk3.em import StockEms, em
 
 from softwarecenter.ui.gtk3.widgets.reviews import UIReviewsList
 from softwarecenter.ui.gtk3.widgets.containers import SmallBorderRadiusFrame
-from softwarecenter.ui.gtk3.widgets.stars import StarRatingsWidget
+from softwarecenter.ui.gtk3.widgets.stars import Star, StarRatingsWidget
 from softwarecenter.ui.gtk3.widgets.description import AppDescription
 from softwarecenter.ui.gtk3.widgets.thumbnail import ScreenshotThumbnail
 from softwarecenter.ui.gtk3.widgets.weblivedialog import (
@@ -898,10 +898,10 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         self.addons_statusbar.hide()
         return
 
-    def _on_homepage_clicked(self, button):
+    def _on_homepage_clicked(self, label, link):
         import webbrowser
         webbrowser.open_new_tab(self.app_details.website)
-        return
+        return True
 
     def _layout_page(self):
         # setup widgets
@@ -992,8 +992,8 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
             self.weblive.client.connect("warning", self.on_weblive_warning)
 
         # homepage link button
-        self.homepage_btn = Gtk.Button.new_with_label(_('Developer Web Site'))
-        self.homepage_btn.connect('clicked', self._on_homepage_clicked)
+        self.homepage_btn = Gtk.Label()
+        self.homepage_btn.connect('activate-link', self._on_homepage_clicked)
 
         # add the links footer to the description widget
         footer_hb = Gtk.HBox(spacing=6)
@@ -1154,6 +1154,7 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         # show or hide the homepage button and set uri if homepage specified
         if app_details.website:
             self.homepage_btn.show()
+            self.homepage_btn.set_markup("<a href=\"%s\">%s</a>"%(self.app_details.website, _('Developer Web Site')))
             self.homepage_btn.set_tooltip_text(app_details.website)
         else:
             self.homepage_btn.hide()

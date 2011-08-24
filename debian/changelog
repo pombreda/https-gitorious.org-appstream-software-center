@@ -37,6 +37,9 @@ software-center (4.1.18) UNRELEASED; urgency=low
     - add installed ticks to the lobby and subcat tiles (Bug #828223)
   * lp:~mmcg069/software-center/Bug830691:
     - improve visual connection in the details (Bug #830691)
+  *lp:~mmcg069/software-center/details-tweaks
+   - add the ratings count to the bottom of the stars in the 
+     detailsview header
     
   [ Aaron Peachey ]
   * softwarecenter/ui/gtk3/views/catview_gtk.py:
@@ -52,8 +55,15 @@ software-center (4.1.18) UNRELEASED; urgency=low
       consistent with the applist
   
   [ Kiwinote ]
+  * data/ui/gtk3/SoftwareCenter.ui,
+    softwarecenter/ui/gtk3/app.py:
+    - set back/forward menuitems sensitive at the correct times (LP: #830194)
+  * softwarecenter/db/appfilter.py:
+    - make the supported filter global
   * softwarecenter/db/application.py:
     - never capitalize pkgname (LP: #828295)
+  * softwarecenter/ui/gtk3/app.py:
+    - many fixes to file menu and view menu (LP: #831526)
   * softwarecenter/ui/gtk3/panes/globalpane.py:
     - fix left/right padding of toolbar to align with the listview (LP: #823213)
   * softwarecenter/ui/gtk3/panes/historypane.py:
@@ -78,8 +88,13 @@ software-center (4.1.18) UNRELEASED; urgency=low
       includes multiple rtl fixes
   * softwarecenter/ui/gtk3/views/catview_gtk.py:
     - realign the lobby view a bit
+  
+  [ Robert Roth ]
+  * Update the help menu item to match the specs (LP: #828165)
+  * Show developer website as link instead of button (LP: #830740)
+  * Show today in history pane (LP: #831394)
 
- -- Aaron Peachey <alpeachey@gmail.com>  Sun, 21 Aug 2011 21:51:34 +1000
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 23 Aug 2011 19:07:30 +0200
 
 software-center (4.1.17) oneiric; urgency=low
 

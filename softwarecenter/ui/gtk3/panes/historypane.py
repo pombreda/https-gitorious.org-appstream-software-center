@@ -363,7 +363,9 @@ class HistoryPane(Gtk.VBox, BasePane):
         elif isinstance(when, datetime.date):
             today = datetime.date.today()
             monday = today - datetime.timedelta(days=today.weekday())
-            if when >= monday:
+            if when == today:
+                text = _("Today")
+            elif when >= monday:
                 # Current week, display the name of the day
                 text = when.strftime(_('%A'))
             else:
