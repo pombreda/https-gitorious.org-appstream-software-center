@@ -1070,7 +1070,7 @@ class TextBlock(Gtk.EventBox):
 class AppDescription(Gtk.VBox):
 
     # chars that serve as bullets in the description
-    BULLETS = ('- ', '* ', 'o ')
+    BULLETS = ('- ', '* ', 'o ', '*',)
     TYPE_PARAGRAPH = 0
     TYPE_BULLET    = 1
 
