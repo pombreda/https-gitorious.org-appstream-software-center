@@ -46,7 +46,9 @@ software-center (4.1.18) UNRELEASED; urgency=low
      detailsview header
   * lp:~mmcg069/software-center/Bug830218
     - remove category as per Bug LP: #830218
-    
+  * lp:~mmcg069/software-center/itemview-work:
+    - make review list look like mockup
+
   [ Aaron Peachey ]
   * softwarecenter/ui/gtk3/views/catview_gtk.py:
     - remove 'More' button from sub-category top rated sections
