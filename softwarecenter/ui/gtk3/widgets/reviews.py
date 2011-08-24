@@ -87,7 +87,6 @@ class UIReviewsList(Gtk.VBox):
 
         label = Gtk.Label()
         label.set_markup('<big><b>%s</b></big>' % _("Reviews"))
-        label.set_padding(0, 6)
         label.set_use_markup(True)
         label.set_alignment(0, 0.5)
 
