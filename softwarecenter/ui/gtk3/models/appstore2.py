@@ -374,20 +374,21 @@ class AppListStore(Gtk.ListStore, AppGenericStore):
         """ set the content of the liststore based on a list of
             xapian.MSetItems
         """
-
         self.current_matches = matches
         n_matches = len(matches)
-        if n_matches == 0: return
+        if n_matches == 0: 
+            return
     
         db = self.db.xapiandb
-        extent = min(self.LOAD_INITIAL, n_matches-1)
+        extent = min(self.LOAD_INITIAL, n_matches)
 
         with ExecutionTime("store.append_initial"):
-            for doc in [db.get_document(m.docid) for m in matches][:extent]:
+            for doc in [m.document for m in matches][:extent]:
                 doc.available = doc.installed = None
                 self.append((doc,))
 
-        if n_matches == extent: return
+        if n_matches == extent: 
+            return
 
         with ExecutionTime("store.append_placeholders"):
             for i in range(n_matches - extent):
