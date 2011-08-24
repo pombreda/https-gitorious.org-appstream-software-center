@@ -385,6 +385,8 @@ class LobbyViewGtk(CategoriesViewGtk):
 
         enq = AppEnquire(self.cache, self.db)
         app_filter = AppFilter(self.db, self.cache)
+        app_filter.set_available_only(True)
+        app_filter.set_not_installed_only(True)
         enq.set_query(whatsnew_cat.query,
                       limit=8,
                       filter=app_filter,

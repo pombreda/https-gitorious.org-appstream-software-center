@@ -299,7 +299,6 @@ class PackageStatusBar(StatusBar):
             # we display the error in the description field
             self.set_button_label(_("Install"))
             self.set_label("")
-            self.create_colors(StatusBar.PKG_STATUS_ERROR_COLOR)
         elif state == PkgStates.NOT_FOUND:
             # this is used when the pkg is not in the cache and there is no request
             # we display the error in the summary field and hide the rest
@@ -318,7 +317,6 @@ class PackageStatusBar(StatusBar):
                 #        components that are not enabled or that just
                 #        lack the "Packages" files (but are in sources.list)
                 self.set_button_label(_("Update Now"))
-            self.create_colors(StatusBar.USER_ACTION_REQRD_COLOR)
         if (self.app_details.warning and not self.app_details.error and
            not state in (PkgStates.INSTALLING, PkgStates.INSTALLING_PURCHASED,
            PkgStates.REMOVING, PkgStates.UPGRADING, AppActions.APPLY)):
