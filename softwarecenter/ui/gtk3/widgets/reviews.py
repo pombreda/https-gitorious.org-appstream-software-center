@@ -372,7 +372,9 @@ class UIReview(Gtk.VBox):
         self.submit_status_spinner = Gtk.Spinner()
         self.submit_status_spinner.set_size_request(12,12)
         self.acknowledge_error = Gtk.Button()
-        self.acknowledge_error.set_label('<small>%s</small>' % _("OK"))
+        label = Gtk.Label()
+        label.set_markup('<small>%s</small>' % _("OK"))
+        self.acknowledge_error.add(label)
         self.usefulness_error = False
 
         self.pack_start(self.version_label, False, False, 0)
@@ -427,11 +429,11 @@ class UIReview(Gtk.VBox):
             self._build_usefulness_ui(current_user_reviewer, useful_total, useful_favorable, self.useful_votes)
             return
         if type == 'progress':
-            self.submit_status_spinner.start()
-            self.submit_status_spinner.show()
             self.status_label = Gtk.Label.new("<small>%s</small>" % _(u"Submitting now\u2026"))
             self.status_label.set_use_markup(True)
             self.status_box.pack_start(self.submit_status_spinner, False, False, 0)
+            self.submit_status_spinner.show()
+            self.submit_status_spinner.start()
             self.status_label.set_padding(2,0)
             self.status_box.pack_start(self.status_label, False, False, 0)
             self.status_label.show()
@@ -544,7 +546,7 @@ class UIReview(Gtk.VBox):
         self.complain.connect('clicked', self._on_report_abuse_clicked)
 
         # connect network signals
-        self.connect("map", lambda w: self._on_network_state_change())
+        self.connect("realize", lambda w: self._on_network_state_change())
         watcher = get_network_watcher()
         watcher.connect(
             "changed", lambda w,s: self._on_network_state_change())
