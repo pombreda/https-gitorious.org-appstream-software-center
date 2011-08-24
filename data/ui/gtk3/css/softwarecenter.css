@@ -18,13 +18,6 @@
     color: #fff;        /* white */
 }
 
-#label-tile,
-#category-tile,
-#featured-tile {
-    border-width: 0;
-    border-radius: 0;
-}
-
 #placeholder {
     color: #FF00B3;
 }

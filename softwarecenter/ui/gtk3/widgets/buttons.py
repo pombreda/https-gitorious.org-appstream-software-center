@@ -90,7 +90,6 @@ class LabelTile(TileButton):
     def __init__(self, label, icon, icon_size=Gtk.IconSize.MENU):
         TileButton.__init__(self)
         self.build_default(label, icon, icon_size)
-        #~ self.set_name("label-tile")
         self.label.set_line_wrap(True)
         return
 
@@ -107,9 +106,11 @@ class CategoryTile(TileButton):
         self.label.set_justify(Gtk.Justification.CENTER)
         self.label.set_line_wrap(True)
         self.box.set_border_width(StockEms.SMALL)
-        self.set_name("category-tile")
         return
 
+    def do_draw(self, cr):
+        for child in self: self.propagate_draw(child, cr)
+        return
 
 class FeaturedTile(TileButton):
 
