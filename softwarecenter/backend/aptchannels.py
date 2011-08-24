@@ -32,9 +32,7 @@ from aptsources.sourceslist import SourceEntry, SourcesList
 
 from softwarecenter.backend import get_install_backend
 from softwarecenter.backend.channel import (ChannelsManager,
-                                            SoftwareChannel,
-                                            AllAvailableChannel,
-                                            AllInstalledChannel)
+                                            SoftwareChannel)
 from softwarecenter.distro import get_distro
 from softwarecenter.utils import human_readable_name_from_ppa_uri
 
@@ -69,12 +67,6 @@ class AptChannelsManager(ChannelsManager):
             Other channels alphabetically, Unknown channel last
         """
         return self._get_channels()
-
-    def get_available_channels(self):
-        return (AllAvailableChannel(),) + tuple(self.channels)
-
-    def get_installed_channels(self):
-        return (AllInstalledChannel(),) + tuple(self.channels_installed_only)
 
     @property
     def channels_installed_only(self):
