@@ -49,12 +49,6 @@ class ChannelsManager(object):
     def channel_available(kls, channelname):
         pass
 
-    def get_available_channels(self):
-        return (AllAvailableChannel(),) + tuple(self.channels)
-
-    def get_installed_channels(self):
-        return (AllInstalledChannel(),) + tuple(self.channels_installed_only)
-
     # private
     def _get_channels_from_db(self, installed_only=False):
         """

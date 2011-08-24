@@ -213,9 +213,9 @@ class ViewSwitcher(Gtk.Box):
             GObject.source_remove(sig)
 
         if view_id == ViewPages.AVAILABLE:
-            channels = self.channel_manager.get_available_channels()
+            channels = self.channel_manager.channels
         elif view_id == ViewPages.INSTALLED:
-            channels = self.channel_manager.get_installed_channels()
+            channels = self.channel_manager.channels_installed_only
         else:
             channels = self.channel_manager.channels
 
@@ -227,8 +227,7 @@ class ViewSwitcher(Gtk.Box):
             #    GtkCheckMenuItem can only contain one widget at a time; 
             #    it already contains a widget of type GtkAccelLabel """
 
-            item = Gtk.CheckMenuItem.new()
-            item.set_draw_as_radio(True)
+            item = Gtk.MenuItem.new()
 
             label = Gtk.Label.new(channel.display_name)
             image = Gtk.Image.new_from_icon_name(channel.icon, Gtk.IconSize.MENU)
@@ -249,11 +248,6 @@ class ViewSwitcher(Gtk.Box):
                 )
             )
             popup.attach(item, 0, 1, i, i+1)
-
-        if self.view_manager.is_active_view(view_id):
-            first = popup.get_children()[0]
-            first.set_property("active", True)
-            self._prev_item = first
         return
 
     def on_channel_selected(self, item, event, channel, view_id):
@@ -276,20 +270,6 @@ class ViewSwitcher(Gtk.Box):
             # request page change
             vm.display_page(pane, page, state)
             return False
-
-        if self._prev_item is item:
-            parent = item.get_parent()
-            parent.hide()
-            return True
-
-        if self._prev_item is not None:
-            self._prev_item.set_property("active", False)
-        self._prev_item = item
-
-        # activate the section if need be
-        btn = self.view_buttons[view_id]
-        if not btn.get_active():
-            btn.set_active(True)
 
         GObject.idle_add(config_view)
         return

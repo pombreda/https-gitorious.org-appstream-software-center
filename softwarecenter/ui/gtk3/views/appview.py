@@ -54,11 +54,13 @@ class AppView(Gtk.VBox):
 
     _SORT_METHOD_INDEX = (SortMethods.BY_ALPHABET,
                           SortMethods.BY_TOP_RATED,
-                          SortMethods.BY_SEARCH_RANKING)
+                          SortMethods.BY_SEARCH_RANKING,
+                          SortMethods.BY_CATALOGED_TIME)
     # indices that relate to the above tuple
     _SORT_BY_ALPHABET = 0
     _SORT_BY_TOP_RATED = 1
     _SORT_BY_SEARCH_RANKING = 2
+    _SORT_BY_NEWEST_FIRST = 3
 
     def __init__(self, db, cache, icons, show_ratings):
         Gtk.VBox.__init__(self)
@@ -135,6 +137,7 @@ class AppView(Gtk.VBox):
         combo.append_text(_("By Name"))
         combo.append_text(_("By Popularity"))
         combo.append_text(_("By Relevance"))
+        combo.append_text(_("By Newest First"))
         combo.set_active(self._SORT_BY_TOP_RATED)
         return combo
 
@@ -144,6 +147,12 @@ class AppView(Gtk.VBox):
         combo.set_active(sort_method)
         combo.handler_unblock(self._handler_changed)
         return
+
+    def set_allow_user_sorting(self, do_allow):
+        if do_allow:
+            self.sort_methods_combobox.show()
+        else:
+            self.sort_methods_combobox.hide()
 
     def set_header_labels(self, first_line, second_line):
         if second_line:
@@ -183,3 +192,44 @@ class AppView(Gtk.VBox):
     def get_sort_mode(self):
         active_index = self.sort_methods_combobox.get_active()
         return self._SORT_METHOD_INDEX[active_index]
+
+
+
+def get_test_window():
+    from softwarecenter.testutils import (
+        get_test_db, get_test_pkg_info, get_test_gtk3_icon_cache)
+    from softwarecenter.db.enquire import AppEnquire
+    from softwarecenter.ui.gtk3.models.appstore2 import AppListStore
+    import xapian
+
+    db = get_test_db()
+    cache = get_test_pkg_info()
+    icons = get_test_gtk3_icon_cache()
+
+    # create the view
+    appview = AppView(db, cache, icons, show_ratings=True)
+    liststore = AppListStore(db, cache, icons)
+    appview.set_model(liststore)
+
+    # do a simple query and display that
+    enquirer = AppEnquire(cache, db)
+    enquirer.set_query(xapian.Query(""),
+                       sortmode=SortMethods.BY_CATALOGED_TIME,
+                       limit=20,
+                       nonblocking_load=False)
+    appview.display_matches(enquirer.matches)
+
+    # and put it in the window
+    win = Gtk.Window()
+    win.add(appview)
+    win.set_data("appview", appview)
+
+    win.connect("destroy", lambda x: Gtk.main_quit())
+    win.set_size_request(600, 400)
+    win.show_all()
+
+    return win
+
+if __name__ == "__main__":
+    win = get_test_window()
+    Gtk.main()

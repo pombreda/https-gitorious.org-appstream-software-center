@@ -90,8 +90,11 @@ class LabelTile(TileButton):
     def __init__(self, label, icon, icon_size=Gtk.IconSize.MENU):
         TileButton.__init__(self)
         self.build_default(label, icon, icon_size)
-        self.set_name("label-tile")
         self.label.set_line_wrap(True)
+        return
+
+    def do_draw(self, cr):
+        for child in self: self.propagate_draw(child, cr)
         return
 
 
@@ -103,15 +106,17 @@ class CategoryTile(TileButton):
         self.label.set_justify(Gtk.Justification.CENTER)
         self.label.set_line_wrap(True)
         self.box.set_border_width(StockEms.SMALL)
-        self.set_name("category-tile")
         return
 
+    def do_draw(self, cr):
+        for child in self: self.propagate_draw(child, cr)
+        return
 
 class FeaturedTile(TileButton):
 
     MAX_WIDTH = em(10)
     INSTALLED_OVERLAY_SIZE = 22
-    _MARKUP = '<b>%s</b>'
+    _MARKUP = '<b><small>%s</small></b>'
 
     def __init__(self, helper, doc, icon_size=48):
         TileButton.__init__(self)
@@ -129,7 +134,7 @@ class FeaturedTile(TileButton):
         #~ categories = helper.get_categories(doc)
 
         self.box.set_orientation(Gtk.Orientation.HORIZONTAL)
-        self.box.set_spacing(StockEms.MEDIUM)
+        self.box.set_spacing(StockEms.SMALL)
 
         self.content_left = Gtk.Box.new(Gtk.Orientation.VERTICAL, StockEms.MEDIUM)
         self.content_right = Gtk.Box.new(Gtk.Orientation.VERTICAL, StockEms.SMALL)
@@ -144,12 +149,12 @@ class FeaturedTile(TileButton):
         self.title.set_ellipsize(Pango.EllipsizeMode.END)
         self.content_right.pack_start(self.title, False, False, 0)
 
-        if categories is not None:
-            self.category = Gtk.Label.new('<span font_desc="Italic %i">%s</span>' % (em(0.45), categories))
-            self.category.set_use_markup(True)
-            self.category.set_alignment(0.0, 0.0)
-            self.category.set_ellipsize(Pango.EllipsizeMode.END)
-            self.content_right.pack_start(self.category, False, False, 4)
+        # if categories is not None:
+        #     self.category = Gtk.Label.new('<span font_desc="Italic %i">%s</span>' % (em(0.45), categories))
+        #     self.category.set_use_markup(True)
+        #     self.category.set_alignment(0.0, 0.0)
+        #     self.category.set_ellipsize(Pango.EllipsizeMode.END)
+        #     self.content_right.pack_start(self.category, False, False, 4)
 
         if stats is not None:
             self.stars = Star(size=StarSize.SMALL)
