@@ -74,6 +74,24 @@ LOG_ALLOCATION = logging.getLogger("softwarecenter.ui.Gtk.get_allocation()")
 COLOR_BLACK = '#323232'
 
 
+class HBar(Gtk.VBox):
+
+    def __init__(self):
+        Gtk.VBox.__init__(self)
+        self.set_size_request(-1, 1)
+        return
+
+    def do_draw(self, cr):
+        cr.save()
+        a = self.get_allocation()
+        cr.move_to(0,0)
+        cr.rel_line_to(a.width, 0)
+        cr.set_source_rgba(0.5, 0.5, 0.5, 0.4)
+        cr.set_dash((1, 1), 1)
+        cr.stroke()
+        cr.restore()
+        return
+
 
 class StatusBar(Gtk.Alignment):
 
@@ -493,8 +511,10 @@ class AddonsTable(Gtk.VBox):
         self.suggested_addons = sorted(addons[1])
 
         if not self.recommended_addons and not self.suggested_addons:
+            self.addons_manager.view.addons_hbar.hide()
             return
 
+        self.addons_manager.view.addons_hbar.show()
         # clear any existing addons
         self.clear()
 
@@ -990,6 +1010,8 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         footer_hb.pack_start(self.homepage_btn, False, False, 0)
         self.desc.pack_start(footer_hb, False, False, 0)
 
+        vb.pack_start(HBar(), False, False, 0)
+
         self.info_vb = info_vb = Gtk.VBox()
         info_vb.set_spacing(12)
         vb.pack_start(info_vb, False, False, 0)
@@ -1002,9 +1024,8 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         self.addon_view.pack_start(self.addons_statusbar, False, False, 0)
         self.addon_view.connect('table-built', self._on_addon_table_built)
 
-        spacer = Gtk.VBox()
-        spacer.set_size_request(-1, StockEms.MEDIUM)
-        info_vb.pack_start(spacer, False, False, 0)
+        self.addons_hbar = HBar()
+        info_vb.pack_start(self.addons_hbar, False, False, StockEms.SMALL)
 
         # package info
         self.info_keys = []
@@ -1028,6 +1049,8 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
 
         self.support_info = PackageInfo(_("Updates"), self.info_keys)
         info_vb.pack_start(self.support_info, False, False, 0)
+
+        vb.pack_start(HBar(), False, False, 0)
 
         # reviews cascade
         self.reviews.connect("new-review", self._on_review_new)
