@@ -214,8 +214,6 @@ class LobbyViewGtk(CategoriesViewGtk):
                                    apps_filter, apps_limit=0)
 
         # sections
-        self.featured_carousel = None
-        self.whatsnew_carousel = None
         self.departments = None
         self.appcount = None
 
@@ -244,7 +242,7 @@ class LobbyViewGtk(CategoriesViewGtk):
         self.right_column = Gtk.Box.new(Gtk.Orientation.VERTICAL, self.SPACING)
         self.top_hbox.pack_start(self.right_column, True, True, 0)
 
-        self._append_featured()
+        self._append_new()
         #~ self._append_recommendations()
         self._append_top_rated()
 
@@ -380,27 +378,26 @@ class LobbyViewGtk(CategoriesViewGtk):
         self._add_tiles_to_flowgrid(docs, self.toprated, TOP_RATED_CAROUSEL_LIMIT)
         return
 
-    def _append_featured(self):
-        #~ featured_cat = get_category_by_name(self.categories, 
-                                            #~ u"What\u2019s New")  # unstranslated name
-        featured_cat = get_category_by_name(self.categories, 
-                                            u"Featured")  # unstranslated name
+    def _append_new(self):
+        whatsnew_cat = get_category_by_name(self.categories, 
+                                            u"What\u2019s New") # unstranslated name
 
         enq = AppEnquire(self.cache, self.db)
         app_filter = AppFilter(self.db, self.cache)
-        enq.set_query(featured_cat.query,
+        enq.set_query(whatsnew_cat.query,
                       limit=8,
                       filter=app_filter,
+                      sortmode=SortMethods.BY_CATALOGED_TIME,
                       nonapps_visible=NonAppVisibility.ALWAYS_VISIBLE,
                       nonblocking_load=False)
 
         self.featured = FlowableGrid()
         frame = FramedHeaderBox()
-        #~ frame.set_corner_label(_("New"))
         frame.set_header_label(_("New"))
         frame.header_implements_more_button()
-        frame.more.connect('clicked', self.on_category_clicked, featured_cat) 
+        frame.more.connect('clicked', self.on_category_clicked, whatsnew_cat) 
         frame.add(self.featured)
+        self.new_frame = frame
         self.right_column.pack_start(frame, True, True, 0)
 
         self.helper = AppPropertiesHelper(self.db, self.cache, self.icons)
@@ -467,13 +464,13 @@ class LobbyViewGtk(CategoriesViewGtk):
         self.show_all()
         return
 
-    # stubs for the time being
+    # stubs for the time being, we may reuse them if we get dynamic content 
+    # again
     def stop_carousels(self):
         pass
 
     def start_carousels(self):
         pass
-
 
 class SubCategoryViewGtk(CategoriesViewGtk):
 
