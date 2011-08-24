@@ -44,6 +44,8 @@ software-center (4.1.18) UNRELEASED; urgency=low
   *lp:~mmcg069/software-center/details-tweaks
    - add the ratings count to the bottom of the stars in the 
      detailsview header
+  * lp:~mmcg069/software-center/Bug830218
+    - remove category as per Bug LP: #830218
     
   [ Aaron Peachey ]
   * softwarecenter/ui/gtk3/views/catview_gtk.py:

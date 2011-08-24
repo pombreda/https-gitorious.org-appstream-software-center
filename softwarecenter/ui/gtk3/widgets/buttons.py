@@ -144,12 +144,12 @@ class FeaturedTile(TileButton):
         self.title.set_ellipsize(Pango.EllipsizeMode.END)
         self.content_right.pack_start(self.title, False, False, 0)
 
-        if categories is not None:
-            self.category = Gtk.Label.new('<span font_desc="Italic %i">%s</span>' % (em(0.45), categories))
-            self.category.set_use_markup(True)
-            self.category.set_alignment(0.0, 0.0)
-            self.category.set_ellipsize(Pango.EllipsizeMode.END)
-            self.content_right.pack_start(self.category, False, False, 4)
+        # if categories is not None:
+        #     self.category = Gtk.Label.new('<span font_desc="Italic %i">%s</span>' % (em(0.45), categories))
+        #     self.category.set_use_markup(True)
+        #     self.category.set_alignment(0.0, 0.0)
+        #     self.category.set_ellipsize(Pango.EllipsizeMode.END)
+        #     self.content_right.pack_start(self.category, False, False, 4)
 
         if stats is not None:
             self.stars = Star(size=StarSize.SMALL)
