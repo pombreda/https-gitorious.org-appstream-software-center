@@ -486,11 +486,11 @@ class UIReview(Gtk.VBox):
         if (review_version and
             app_version and
             upstream_version_compare(review_version, app_version) != 0):
-            version_string = _("For version: (%(version)s)") % { 
+            version_string = _("For version (%(version)s)") % { 
                     'version' : version,
                     }
         else:
-            version_string = _("For this version: (%(version)s)") % { 
+            version_string = _("For this version (%(version)s)") % { 
                     'version' : version,
                     }
 

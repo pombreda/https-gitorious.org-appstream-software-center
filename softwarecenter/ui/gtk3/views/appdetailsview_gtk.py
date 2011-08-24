@@ -90,8 +90,7 @@ class StatusBar(Gtk.Alignment):
 
     def __init__(self, view):
         GObject.GObject.__init__(self, xscale=1.0, yscale=1.0)
-        #~ self.set_padding(0, 0,
-                         #~ StockEms.SMALL, StockEms.SMALL)
+        self.set_padding(StockEms.SMALL, StockEms.SMALL, 0, 0)
 
         self.hbox = Gtk.HBox()
         self.hbox.set_spacing(StockEms.SMALL)
@@ -100,9 +99,13 @@ class StatusBar(Gtk.Alignment):
         self.view = view
 
     def do_draw(self, cr):
-        #~ a = self.get_allocation()
-        #~ cr.rectangle(0,0, a.width, a.height)
-        #~ cr.stroke()
+        cr.save()
+        a = self.get_allocation()
+        cr.rectangle(-1,0, a.width+2, a.height)
+        cr.set_source_rgba(0.5, 0.5, 0.5, 0.4)
+        cr.set_dash((1, 1), 1)
+        cr.stroke()
+        cr.restore()
 
         for child in self: self.propagate_draw(child, cr)
 
@@ -999,32 +1002,32 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         self.addon_view.pack_start(self.addons_statusbar, False, False, 0)
         self.addon_view.connect('table-built', self._on_addon_table_built)
 
+        spacer = Gtk.VBox()
+        spacer.set_size_request(-1, StockEms.MEDIUM)
+        info_vb.pack_start(spacer, False, False, 0)
+
         # package info
         self.info_keys = []
 
         # info header
-        self.info_header = Gtk.Label()
-        self.info_header.set_markup('<big><b>%s</b></big>' % _("Details"))
-        self.info_header.set_alignment(0, 0.5)
-        self.info_header.set_padding(0, 6)
-        self.info_header.set_use_markup(True)
-        info_vb.pack_start(self.info_header, False, False, 0)
+        #~ self.info_header = Gtk.Label()
+        #~ self.info_header.set_markup('<big><b>%s</b></big>' % _("Details"))
+        #~ self.info_header.set_alignment(0, 0.5)
+        #~ self.info_header.set_padding(0, 6)
+        #~ self.info_header.set_use_markup(True)
+        #~ info_vb.pack_start(self.info_header, False, False, 0)
 
-        self.totalsize_info = PackageInfo(_("Total size:"), self.info_keys)
+        self.totalsize_info = PackageInfo(_("Total size"), self.info_keys)
         info_vb.pack_start(self.totalsize_info, False, False, 0)
 
-        self.version_info = PackageInfo(_("Version:"), self.info_keys)
+        self.version_info = PackageInfo(_("Version"), self.info_keys)
         info_vb.pack_start(self.version_info, False, False, 0)
 
-        self.license_info = PackageInfo(_("License:"), self.info_keys)
+        self.license_info = PackageInfo(_("License"), self.info_keys)
         info_vb.pack_start(self.license_info, False, False, 0)
 
-        self.support_info = PackageInfo(_("Updates:"), self.info_keys)
+        self.support_info = PackageInfo(_("Updates"), self.info_keys)
         info_vb.pack_start(self.support_info, False, False, 0)
-
-        padding = Gtk.VBox()
-        padding.set_size_request(-1, 6)
-        info_vb.pack_end(padding, False, False, 0)
 
         # reviews cascade
         self.reviews.connect("new-review", self._on_review_new)
@@ -1115,13 +1118,13 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
             self.addon_view.hide()
             self.reviews.hide()
             self.screenshot.hide()
-            self.info_header.hide()
+            #~ self.info_header.hide()
             self.info_vb.hide()
         else:
             self.addon_view.show()
             self.reviews.show()
             self.screenshot.show()
-            self.info_header.show()
+            #~ self.info_header.show()
             self.info_vb.show()
         return
 
