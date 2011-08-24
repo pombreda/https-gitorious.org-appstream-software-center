@@ -20,6 +20,10 @@ software-center (4.1.18) UNRELEASED; urgency=low
     - fix file monitor const issues with gio vs Gio
   * utils/piston-helpers/piston_get_reviews_helper.py:
     - fix offline reviews
+  * fix "What's New" category sorting (LP: #830188)
+  * add new sort "By Newest First" combobox
+  * hide sort combobox for if the category has a forced sort mode
+    (like whats new) LP: #830234
 
   [ Alex Eftimie ]
   * lp:~alexeftimie/software-center/backend-refactor
@@ -40,6 +44,8 @@ software-center (4.1.18) UNRELEASED; urgency=low
   *lp:~mmcg069/software-center/details-tweaks
    - add the ratings count to the bottom of the stars in the 
      detailsview header
+  * lp:~mmcg069/software-center/Bug830218
+    - remove category as per Bug LP: #830218
     
   [ Aaron Peachey ]
   * softwarecenter/ui/gtk3/views/catview_gtk.py:
@@ -58,6 +64,9 @@ software-center (4.1.18) UNRELEASED; urgency=low
   * data/ui/gtk3/SoftwareCenter.ui,
     softwarecenter/ui/gtk3/app.py:
     - set back/forward menuitems sensitive at the correct times (LP: #830194)
+  * softwarecenter/backend/aptchannels.py,
+    softwarecenter/backend/channel.py:
+    - don't include an 'all available' or 'all installed' channel
   * softwarecenter/db/appfilter.py:
     - make the supported filter global
   * softwarecenter/db/application.py:
@@ -72,6 +81,7 @@ software-center (4.1.18) UNRELEASED; urgency=low
   * softwarecenter/ui/gtk3/panes/viewswitcher.py:
     - link section_clicked to 'button-release-event' rather than 'clicked' to
       avoid getting signals for the wrong pane (LP: #828821)
+    - menuitems rather than checkmenuitems (LP: #832275)
   * softwarecenter/ui/gtk3/panes/viewswitcher.py,
     softwarecenter/ui/gtk3/session/viewmanager.py:
     - introduce a view-changed signal from the viewmanager to the viewswitcher

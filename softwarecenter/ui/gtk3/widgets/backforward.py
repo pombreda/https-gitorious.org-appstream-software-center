@@ -39,7 +39,7 @@ class BackForwardButton(Gtk.HBox):
                                     ())}
 
 
-    BORDER_RADIUS = 10
+    BORDER_RADIUS = 4
 
 
     def __init__(self, part_size=None):
@@ -147,9 +147,10 @@ class ButtonPart(Gtk.Button):
 
         context.set_state(self.get_state_flags())
         context.add_class("button")
+        xo = BackForwardButton.BORDER_RADIUS
         a = self.get_allocation()
-        Gtk.render_background(context, cr, -10, -10,
-                              a.width+20, a.height+20)
+        Gtk.render_background(context, cr, -xo, -xo,
+                              a.width+2*xo, a.height+2*xo)
 
         context.restore()
         cr.restore()

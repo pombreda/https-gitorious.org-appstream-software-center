@@ -11,8 +11,6 @@ sys.path.insert(0,"..")
 
 from softwarecenter.db.enquire import AppEnquire
 from softwarecenter.enums import SortMethods
-from softwarecenter.ui.gtk3.views.appview import AppView
-
 
 from softwarecenter.testutils import (get_test_db,
                                       get_test_pkg_info,
