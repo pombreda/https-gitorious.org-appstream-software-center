@@ -647,7 +647,7 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
     """ The view that shows the application details """
 
     # the size of the icon on the left side
-    APP_ICON_SIZE = 96 # Gtk.IconSize.DIALOG ?
+    APP_ICON_SIZE = 128 # Gtk.IconSize.DIALOG ?
 
     # need to include application-request-action here also since we are multiple-inheriting
     __gsignals__ = {'selected':(GObject.SignalFlags.RUN_FIRST,
