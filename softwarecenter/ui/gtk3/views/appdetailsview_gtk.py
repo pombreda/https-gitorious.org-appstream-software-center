@@ -27,10 +27,12 @@ from gi.repository import GdkPixbuf
 import datetime
 import gettext
 import logging
+import cairo
 import os
 
 from gettext import gettext as _
 
+import softwarecenter.paths
 from softwarecenter.cmdfinder import CmdFinder
 from softwarecenter.netstatus import (NetState, get_network_watcher,
                                       network_state_is_connected)
@@ -102,9 +104,9 @@ class StatusBar(Gtk.Alignment):
         self.view = view
 
     def do_draw(self, cr):
-        a = self.get_allocation()
-        cr.rectangle(0,0, a.width, a.height)
-        cr.stroke()
+        #~ a = self.get_allocation()
+        #~ cr.rectangle(0,0, a.width, a.height)
+        #~ cr.stroke()
 
         for child in self: self.propagate_draw(child, cr)
         return
@@ -635,19 +637,17 @@ class AddonsManager():
                          priority=GObject.PRIORITY_LOW)
 
 
-class HFWBox(Gtk.Box):
-
-    def __init__(self, viewport):
-        Gtk.Box.__init__(self)
-        self.viewport = viewport
-
-
+_asset_cache = {}
 class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
 
     """ The view that shows the application details """
 
     # the size of the icon on the left side
-    APP_ICON_SIZE = 96 # Gtk.IconSize.DIALOG ?
+    APP_ICON_SIZE = 84 # Gtk.IconSize.DIALOG ?
+    # art stuff
+    STIPPLE = os.path.join(softwarecenter.paths.datadir,
+                           "ui/gtk3/art/stipple.png")
+
 
     # need to include application-request-action here also since we are multiple-inheriting
     __gsignals__ = {'selected':(GObject.SignalFlags.RUN_FIRST,
@@ -714,9 +714,26 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
 
         # page elements are packed into our very own lovely viewport
         self._layout_page()
-
+        self._cache_art_assets()
         self.connect('realize', self._on_realize)
         self.loaded = True
+        return
+
+    def _cache_art_assets(self):
+        global _asset_cache
+        if _asset_cache: return _asset_cache
+        assets = _asset_cache
+        # cache the bg pattern
+        surf = cairo.ImageSurface.create_from_png(self.STIPPLE)
+        ptrn = cairo.SurfacePattern(surf)
+        ptrn.set_extend(cairo.EXTEND_REPEAT)
+        assets["stipple"] = ptrn
+        return assets
+
+    def do_draw(self, cr):
+        cr.set_source(_asset_cache["stipple"])
+        cr.paint_with_alpha(0.5)
+        for child in self: self.propagate_draw(child, cr)
         return
 
     def _on_net_state_changed(self, watcher, state):
@@ -917,8 +934,8 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
 
         # the app icon
         self.icon = Gtk.Image()
-        self.icon.set_size_request(self.APP_ICON_SIZE, self.APP_ICON_SIZE)
-        #~ self.icon.set_from_icon_name(Icons.MISSING_APP, Gtk.IconSize.DIALOG)
+        self.icon.set_size_request(84, 84)
+        self.icon.set_from_icon_name(Icons.MISSING_APP, Gtk.IconSize.DIALOG)
         hb.pack_start(self.icon, False, False, 0)
 
         # the app title/summary
@@ -927,8 +944,8 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         self.title = Gtk.Label(markup)
         self.title.set_alignment(0, 0.5)
         self.title.set_line_wrap(True)
-        vb_inner=Gtk.VBox(spacing=StockEms.SMALL)
-        vb_inner.pack_start(self.title, False, False, 0)
+        vb_inner=Gtk.VBox(spacing=6)
+        vb_inner.pack_start(self.title, True, True, 0)
 
         # usage
         #~ self.usage = mkit.BubbleLabel()
@@ -936,14 +953,15 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
 
         # star rating widget
         self.review_stats_widget = StarRatingsWidget()
-        vb_inner.pack_start(self.review_stats_widget, False, False, 0)
+        self.review_stats_widget.stars.set_size_as_pixel_value(title_fontsize)
+        #~ a.add(self.review_stats_widget)
+        #~ hb.pack_end(a, False, False, 0)
+        hb.pack_end(self.review_stats_widget, False, True, 0)
 
         vb_inner.set_property("can-focus", True)
         self.title.a11y = vb_inner.get_accessible()
         self.title.a11y.set_role(Atk.Role.PANEL)
-        a = Gtk.Alignment.new(0, 0.5, 0, 0)
-        a.add(vb_inner)
-        hb.pack_start(a, True, True, 0)
+        hb.pack_start(vb_inner, True, True, 0)
 
         # the package status bar
         self.pkg_statusbar = PackageStatusBar(self)
