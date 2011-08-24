@@ -647,7 +647,7 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
     """ The view that shows the application details """
 
     # the size of the icon on the left side
-    APP_ICON_SIZE = 128 # Gtk.IconSize.DIALOG ?
+    APP_ICON_SIZE = 96 # Gtk.IconSize.DIALOG ?
 
     # need to include application-request-action here also since we are multiple-inheriting
     __gsignals__ = {'selected':(GObject.SignalFlags.RUN_FIRST,
@@ -941,7 +941,7 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         vb_inner.set_property("can-focus", True)
         self.title.a11y = vb_inner.get_accessible()
         self.title.a11y.set_role(Atk.Role.PANEL)
-        a = Gtk.Alignment.new(0, 0.5, 1, 1)
+        a = Gtk.Alignment.new(0, 0.5, 0, 0)
         a.add(vb_inner)
         hb.pack_start(a, True, True, 0)
 
