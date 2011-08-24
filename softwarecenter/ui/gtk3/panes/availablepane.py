@@ -30,6 +30,7 @@ from gettext import gettext as _
 from softwarecenter.enums import (ActionButtons,
                                   NavButtons,
                                   NonAppVisibility,
+                                  SortMethods,
                                   DEFAULT_SEARCH_LIMIT)
 from softwarecenter.paths import APP_INSTALL_PATH
 from softwarecenter.utils import wait_for_apt_cache_ready
@@ -495,6 +496,10 @@ class AvailablePane(SoftwarePane):
 
         header_strings = self._get_header_for_view_state(view_state)
         self.app_view.set_header_labels(*header_strings)
+        # hide the sort combobox headers if the category forces a
+        # custom sort mode
+        self.app_view.set_allow_user_sorting(
+            not  category.is_forced_sort_mode)
 
         if view_state.search_term:
             self._clear_search()

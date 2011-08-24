@@ -148,6 +148,12 @@ class AppView(Gtk.VBox):
         combo.handler_unblock(self._handler_changed)
         return
 
+    def set_allow_user_sorting(self, do_allow):
+        if do_allow:
+            self.sort_methods_combobox.show()
+        else:
+            self.sort_methods_combobox.hide()
+
     def set_header_labels(self, first_line, second_line):
         if second_line:
             markup = '%s\n<big><b>%s</b></big>' % (first_line, second_line)

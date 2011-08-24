@@ -81,6 +81,10 @@ class Category(object):
         self.sortmode = sortmode
         self.item_limit = item_limit
 
+    @property
+    def is_forced_sort_mode(self):
+        return (self.sortmode != SortMethods.BY_ALPHABET)
+
     def __str__(self):
         return "<Category: name='%s', sortmode='%s', "\
                "item_limit='%s'>" % (

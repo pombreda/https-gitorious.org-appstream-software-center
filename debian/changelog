@@ -22,6 +22,8 @@ software-center (4.1.18) UNRELEASED; urgency=low
     - fix offline reviews
   * fix "What's New" category sorting
   * add new sort "By Newest First" combobox
+  * hide sort combobox for if the category has a forced sort mode
+    (like whats new) LP: #830234
 
   [ Alex Eftimie ]
   * lp:~alexeftimie/software-center/backend-refactor

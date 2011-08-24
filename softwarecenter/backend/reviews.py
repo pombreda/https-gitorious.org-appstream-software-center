@@ -32,7 +32,7 @@ import time
 if 'gobject' in sys.modules:
     have_gi = False
     import gobject as GObject
-    import gio as Gio
+q    import gio as Gio
     GObject #pyflakes
     Gio #pyflakes
 else:
