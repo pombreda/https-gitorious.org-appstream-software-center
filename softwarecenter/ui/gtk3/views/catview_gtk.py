@@ -254,56 +254,56 @@ class LobbyViewGtk(CategoriesViewGtk):
         #self._append_top_of_the_pops
         return
 
-    def _append_top_of_the_pops(self):
-        self.totp_hbox = Gtk.HBox(spacing=self.SPACING)
+    #~ def _append_top_of_the_pops(self):
+        #~ self.totp_hbox = Gtk.HBox(spacing=self.SPACING)
+#~ 
+        #~ alignment = Gtk.Alignment()
+        #~ alignment.set_padding(0, 0, self.PADDING, self.PADDING)
+        #~ alignment.add(self.totp_hbox)
+#~ 
+        #~ frame = FramedHeaderBox()
+        #~ frame.header_implements_more_button()
+        #~ frame.set_header_label(_("Most Popular"))
+#~ 
+        #~ label = Gtk.Label.new("Soda pop!!!")
+        #~ label.set_name("placeholder")
+        #~ label.set_size_request(-1, 200)
+#~ 
+        #~ frame.add(label)
+        #~ self.totp_hbox.add(frame)
+#~ 
+        #~ frame = FramedHeaderBox()
+        #~ frame.header_implements_more_button()
+        #~ frame.set_header_label(_("Top Rated"))
+#~ 
+        #~ label = Gtk.Label.new("Demos ftw(?)")
+        #~ label.set_name("placeholder")
+        #~ label.set_size_request(-1, 200)
+#~ 
+        #~ frame.add(label)
+        #~ self.totp_hbox.add(frame)
+#~ 
+        #~ self.vbox.pack_start(alignment, False, False, 0)
+        #~ return
 
-        alignment = Gtk.Alignment()
-        alignment.set_padding(0, 0, self.PADDING, self.PADDING)
-        alignment.add(self.totp_hbox)
-
-        frame = FramedHeaderBox()
-        frame.header_implements_more_button()
-        frame.set_header_label(_("Most Popular"))
-
-        label = Gtk.Label.new("Soda pop!!!")
-        label.set_name("placeholder")
-        label.set_size_request(-1, 200)
-
-        frame.add(label)
-        self.totp_hbox.add(frame)
-
-        frame = FramedHeaderBox()
-        frame.header_implements_more_button()
-        frame.set_header_label(_("Top Rated"))
-
-        label = Gtk.Label.new("Demos ftw(?)")
-        label.set_name("placeholder")
-        label.set_size_request(-1, 200)
-
-        frame.add(label)
-        self.totp_hbox.add(frame)
-
-        self.vbox.pack_start(alignment, False, False, 0)
-        return
-
-    def _append_video_clips(self):
-        frame = FramedHeaderBox()
-        frame.set_header_expand(False)
-        frame.set_header_position(HeaderPosition.LEFT)
-        frame.set_header_label(_("Latest Demo Videos"))
-
-        label = Gtk.Label.new("Videos go here")
-        label.set_name("placeholder")
-        label.set_size_request(-1, 200)
-
-        frame.add(label)
-
-        alignment = Gtk.Alignment()
-        alignment.set_padding(0, 0, self.PADDING, self.PADDING)
-        alignment.add(frame)
-
-        self.vbox.pack_start(alignment, False, False, 0)
-        return
+    #~ def _append_video_clips(self):
+        #~ frame = FramedHeaderBox()
+        #~ frame.set_header_expand(False)
+        #~ frame.set_header_position(HeaderPosition.LEFT)
+        #~ frame.set_header_label(_("Latest Demo Videos"))
+#~ 
+        #~ label = Gtk.Label.new("Videos go here")
+        #~ label.set_name("placeholder")
+        #~ label.set_size_request(-1, 200)
+#~ 
+        #~ frame.add(label)
+#~ 
+        #~ alignment = Gtk.Alignment()
+        #~ alignment.set_padding(0, 0, self.PADDING, self.PADDING)
+        #~ alignment.add(frame)
+#~ 
+        #~ self.vbox.pack_start(alignment, False, False, 0)
+        #~ return
 
     def _on_show_exhibits(self, exhibit_banner, exhibit):
         query = get_query_for_pkgnames(exhibit.package_names.split(","))
@@ -408,29 +408,29 @@ class LobbyViewGtk(CategoriesViewGtk):
         self._add_tiles_to_flowgrid(docs, self.featured, 8)
         return
 
-    def _append_recommendations(self):
-        featured_cat = get_category_by_name(self.categories, 
-                                            u"Featured")  # unstranslated name
-
-        enq = AppEnquire(self.cache, self.db)
-        app_filter = AppFilter(self.db, self.cache)
-        enq.set_query(featured_cat.query,
-                      limit=12,
-                      filter=app_filter,
-                      nonapps_visible=NonAppVisibility.ALWAYS_VISIBLE,
-                      nonblocking_load=False)
-
-        self.featured = FlowableGrid()
-        frame = FramedHeaderBox(Gtk.Orientation.VERTICAL)
-        frame.add(self.featured)
-        frame.set_header_label(_("Recommended For You"))
-        frame.header_implements_more_button()
-        self.right_column.pack_start(frame, True, True, 0)
-
-        self.helper = AppPropertiesHelper(self.db, self.cache, self.icons)
-        docs = enq.get_documents()
-        self._add_tiles_to_flowgrid(docs, self.featured, 12)
-        return
+    #~ def _append_recommendations(self):
+        #~ featured_cat = get_category_by_name(self.categories, 
+                                            #~ u"Featured")  # unstranslated name
+#~ 
+        #~ enq = AppEnquire(self.cache, self.db)
+        #~ app_filter = AppFilter(self.db, self.cache)
+        #~ enq.set_query(featured_cat.query,
+                      #~ limit=12,
+                      #~ filter=app_filter,
+                      #~ nonapps_visible=NonAppVisibility.ALWAYS_VISIBLE,
+                      #~ nonblocking_load=False)
+#~ 
+        #~ self.featured = FlowableGrid()
+        #~ frame = FramedHeaderBox(Gtk.Orientation.VERTICAL)
+        #~ frame.add(self.featured)
+        #~ frame.set_header_label(_("Recommended For You"))
+        #~ frame.header_implements_more_button()
+        #~ self.right_column.pack_start(frame, True, True, 0)
+#~ 
+        #~ self.helper = AppPropertiesHelper(self.db, self.cache, self.icons)
+        #~ docs = enq.get_documents()
+        #~ self._add_tiles_to_flowgrid(docs, self.featured, 12)
+        #~ return
 
     def _append_appcount(self, supported_only=False):
         enq = AppEnquire(self.cache, self.db)

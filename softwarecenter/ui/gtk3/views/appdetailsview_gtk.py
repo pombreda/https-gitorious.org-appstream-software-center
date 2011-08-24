@@ -643,7 +643,7 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
     """ The view that shows the application details """
 
     # the size of the icon on the left side
-    APP_ICON_SIZE = 84 # Gtk.IconSize.DIALOG ?
+    APP_ICON_SIZE = 96 # Gtk.IconSize.DIALOG ?
     # art stuff
     STIPPLE = os.path.join(softwarecenter.paths.datadir,
                            "ui/gtk3/art/stipple.png")
@@ -923,8 +923,8 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
     def _layout_page(self):
         # setup widgets
         vb = Gtk.VBox()
-        vb.set_spacing(18)
-        vb.set_border_width(20)
+        vb.set_spacing(StockEms.MEDIUM)
+        vb.set_border_width(StockEms.LARGE)
         self.add(vb)
 
         # header
@@ -934,18 +934,16 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
 
         # the app icon
         self.icon = Gtk.Image()
-        self.icon.set_size_request(84, 84)
+        self.icon.set_size_request(self.APP_ICON_SIZE, self.APP_ICON_SIZE)
         self.icon.set_from_icon_name(Icons.MISSING_APP, Gtk.IconSize.DIALOG)
         hb.pack_start(self.icon, False, False, 0)
 
         # the app title/summary
-        title_fontsize = em(2)
-        markup = '<span font_desc="bold %s">Title</span>\nSummary' % title_fontsize
-        self.title = Gtk.Label(markup)
+        self.title = Gtk.Label()
         self.title.set_alignment(0, 0.5)
         self.title.set_line_wrap(True)
-        vb_inner=Gtk.VBox(spacing=6)
-        vb_inner.pack_start(self.title, True, True, 0)
+        vb_inner=Gtk.VBox(spacing=StockEms.SMALL)
+        vb_inner.pack_start(self.title, False, False, 0)
 
         # usage
         #~ self.usage = mkit.BubbleLabel()
@@ -953,15 +951,14 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
 
         # star rating widget
         self.review_stats_widget = StarRatingsWidget()
-        self.review_stats_widget.stars.set_size_as_pixel_value(title_fontsize)
-        #~ a.add(self.review_stats_widget)
-        #~ hb.pack_end(a, False, False, 0)
-        hb.pack_end(self.review_stats_widget, False, True, 0)
+        vb_inner.pack_start(self.review_stats_widget, False, False, 0)
 
         vb_inner.set_property("can-focus", True)
         self.title.a11y = vb_inner.get_accessible()
         self.title.a11y.set_role(Atk.Role.PANEL)
-        hb.pack_start(vb_inner, True, True, 0)
+        a = Gtk.Alignment.new(0, 0.5, 0, 0)
+        a.add(vb_inner)
+        hb.pack_start(a, True, True, 0)
 
         # the package status bar
         self.pkg_statusbar = PackageStatusBar(self)
@@ -1115,9 +1112,9 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
     def _update_title_markup(self, appname, summary):
         # make title font size fixed as they should look good compared to the 
         # icon (also fixed).
-        markup = '<span font_desc="bold 20">%s</span>\n<span font_desc="9">%s</span>'
-        markup = markup % (appname, summary)
-
+        font_size = em(1.75)
+        markup = '<span font_desc="%s">%s</span>\n%s'
+        markup = markup % (font_size, appname, summary)
         self.title.set_markup(markup)
         self.title.a11y.set_name(appname + '. ' + summary)
         return
