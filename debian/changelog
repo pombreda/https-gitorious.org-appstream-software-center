@@ -1,3 +1,11 @@
+software-center (4.1.19) UNRELEASED; urgency=low
+
+  [ Kiwinote ]
+  * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
+    - remove function calls to set the color of the pkgstatusbar (LP: #833195)
+  
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 24 Aug 2011 17:41:55 +0200
+
 software-center (4.1.18) oneiric; urgency=low
 
   [ Michael Vogt ]
