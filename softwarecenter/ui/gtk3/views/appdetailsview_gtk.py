@@ -182,7 +182,7 @@ class PackageStatusBar(StatusBar):
         return
 
     def set_label(self, label):
-        m = '<span color="%s">%s</span>' % (COLOR_BLACK, label)
+        m = '<big><b>%s</b></big>' % label
         self.label.set_markup(m)
         return
 
@@ -498,7 +498,7 @@ class AddonsTable(Gtk.VBox):
         self.label.set_alignment(0, 0.5)
         self.label.set_padding(6, 6)
 
-        markup = _('Add-ons')
+        markup = '<big><b>%s</b></big>' % _('Add-ons')
         self.label.set_markup(markup)
         self.pack_start(self.label, False, False, 0)
 
@@ -1030,7 +1030,8 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         self.info_keys = []
 
         # info header
-        self.info_header = Gtk.Label(_("Details"))
+        self.info_header = Gtk.Label()
+        self.info_header.set_markup('<big><b>%s</b></big>' % _("Details"))
         self.info_header.set_alignment(0, 0.5)
         self.info_header.set_padding(6, 6)
         self.info_header.set_use_markup(True)
