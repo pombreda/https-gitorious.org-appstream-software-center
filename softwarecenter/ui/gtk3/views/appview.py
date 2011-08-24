@@ -54,11 +54,13 @@ class AppView(Gtk.VBox):
 
     _SORT_METHOD_INDEX = (SortMethods.BY_ALPHABET,
                           SortMethods.BY_TOP_RATED,
-                          SortMethods.BY_SEARCH_RANKING)
+                          SortMethods.BY_SEARCH_RANKING,
+                          SortMethods.BY_CATALOGED_TIME)
     # indices that relate to the above tuple
     _SORT_BY_ALPHABET = 0
     _SORT_BY_TOP_RATED = 1
     _SORT_BY_SEARCH_RANKING = 2
+    _SORT_BY_NEWEST_FIRST = 3
 
     def __init__(self, db, cache, icons, show_ratings):
         Gtk.VBox.__init__(self)
@@ -135,6 +137,7 @@ class AppView(Gtk.VBox):
         combo.append_text(_("By Name"))
         combo.append_text(_("By Popularity"))
         combo.append_text(_("By Relevance"))
+        combo.append_text(_("By Newest First"))
         combo.set_active(self._SORT_BY_TOP_RATED)
         return combo
 
