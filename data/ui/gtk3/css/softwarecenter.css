@@ -6,7 +6,6 @@
 
 #backforward {
     border-width: 0;
-    border-radius: 0;
 }
 
 #section-selector {
@@ -17,13 +16,6 @@
 #symbolic-icon:hover,
 #section-selector:hover {
     color: #fff;        /* white */
-}
-
-#label-tile,
-#category-tile,
-#featured-tile {
-    border-width: 0;
-    border-radius: 0;
 }
 
 #placeholder {
