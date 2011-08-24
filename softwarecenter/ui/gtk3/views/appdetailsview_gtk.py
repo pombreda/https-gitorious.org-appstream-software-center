@@ -1105,7 +1105,7 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
             pb = pb.scale_simple(tw, tw, GdkPixbuf.InterpType.TILES)
 
         self.icon.set_from_pixbuf(pb)
-        self.icon.set_size_request(self.APP_ICON_SIZE, -1)
+        self.icon.set_size_request(self.APP_ICON_SIZE, self.APP_ICON_SIZE)
         return
 
     def _update_layout_error_status(self, pkg_error):
