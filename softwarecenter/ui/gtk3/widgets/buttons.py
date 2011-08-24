@@ -153,7 +153,6 @@ class FeaturedTile(TileButton):
 
         if stats is not None:
             self.stars = Star(size=StarSize.SMALL)
-            self.stars.set_name("featured-star")
             self.stars.render_outline = True
             self.stars.set_rating(stats.ratings_average)
             self.rating_box = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, StockEms.SMALL)
