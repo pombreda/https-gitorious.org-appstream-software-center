@@ -209,10 +209,11 @@ class FeaturedTile(TileButton):
         if price == '0.00':
             price = _("Free")
         self.price = Gtk.Label.new(
-            '<span color="%s" font_desc="Bold %i">%s</span>' % (
+            '<span color="%s" font_desc="%i">%s</span>' % (
                 '#757575', em(0.6), price))
         self.price.set_use_markup(True)
-        self.content_left.pack_start(self.price, False, False, 0)
+        self.price.set_alignment(0.0, 0.5)
+        self.content_right.pack_start(self.price, False, False, 0)
 
         self.set_name("featured-tile")
 

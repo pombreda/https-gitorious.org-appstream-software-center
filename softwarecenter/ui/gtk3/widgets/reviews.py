@@ -153,7 +153,7 @@ class UIReviewsList(Gtk.VBox):
         return
 
     def _install_to_review(self):
-        s = '<small><b>%s</b></small>' % _("You need to install this app before you can review it")
+        s = '<small>%s</small>' % _("You need to install this before you can review it")
         self.install_first_label = Gtk.Label(label=s)
         self.install_first_label.set_use_markup(True)
         self.install_first_label.set_alignment(1.0, 0.5)
@@ -170,8 +170,8 @@ class UIReviewsList(Gtk.VBox):
         return False
 
     def _add_no_network_connection_msg(self):
-        title = _('No Network Connection')
-        msg = _('Only saved reviews can be displayed')
+        title = _('No network connection')
+        msg = _('Connect to the Internet to see more reviews.')
         m = EmbeddedMessage(title, msg, 'network-offline')
         self.vbox.pack_start(m, True, True, 0)
         return m
@@ -674,18 +674,18 @@ class UIReview(Gtk.VBox):
         correct_name = displayname or person
 
         if person == self.logged_in_person:
-            m = '<small><b>%s (%s)</b></small>\n<span font_size="%s">%s</span>' % (
+            m = '<span color="%s">%s (%s), %s</span>' % (
+                self._subtle,
                 GObject.markup_escape_text(correct_name),
                 # TRANSLATORS: displayed in a review after the persons name,
-                # e.g. "Wonderful text based app" mvo (that's you) 2011-02-11"
-                _("that's you"),
-                8 * Pango.SCALE,
+                # e.g. "Jane Smith (that's you), 2011-02-11"
+                _(u"that\u2019s you"),
                 GObject.markup_escape_text(nice_date))
         else:
             try:
-                m = '<small><b>%s</b></small>\n<span font_size="%s">%s</span>' % (
+                m = '<span color="%s">%s, %s</span>' % (
+                    self._subtle,
                     GObject.markup_escape_text(correct_name.encode("utf-8")),
-                    8 * Pango.SCALE,
                     GObject.markup_escape_text(nice_date))
             except Exception:
                 LOG.exception("_who_when_markup failed")
@@ -739,7 +739,7 @@ class NoReviewYet(EmbeddedMessage):
         # TRANSLATORS: displayed if there are no reviews for the app yet
         #              and the user does not have it installed
         title = _("This app has not been reviewed yet")
-        msg = _('You need to install this app before you can review it')
+        msg = _('You need to install this before you can review it')
         EmbeddedMessage.__init__(self, title, msg)
 
 
