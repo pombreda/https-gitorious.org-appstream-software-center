@@ -1181,9 +1181,9 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
     def _update_pkg_info_table(self, app_details):
         # set the strings in the package info table
         if app_details.version:
-            version = '%s (%s)' % (app_details.version, app_details.pkgname)
+            version = '%s %s' % (app_details.pkgname, app_details.version)
         else:
-            version = _("Unknown") + ' (%s)' % app_details.pkgname
+            version = _("%s (unknown version)") % app_details.pkgname
         if app_details.license:
             license = app_details.license
         else:
