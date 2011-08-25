@@ -23,15 +23,13 @@
 import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, GObject, Pango
-
-from stars import Star
-
 import datetime
 import logging
 
 import gettext
 from gettext import gettext as _
 
+from stars import Star
 from softwarecenter.utils import (
     get_language,
     get_person_from_config,
@@ -486,11 +484,11 @@ class UIReview(Gtk.VBox):
         if (review_version and
             app_version and
             upstream_version_compare(review_version, app_version) != 0):
-            version_string = _("For version (%(version)s)") % { 
+            version_string = _("For version %(version)s") % { 
                     'version' : version,
                     }
         else:
-            version_string = _("For this version (%(version)s)") % { 
+            version_string = _("For this version %(version)s") % { 
                     'version' : version,
                     }
 
@@ -565,13 +563,12 @@ class UIReview(Gtk.VBox):
             self.useful.set_use_markup(True)
             #vertically centre so it lines up with the Yes and No buttons
             self.useful.set_alignment(0, 0.5)
-
             self.useful.show()
             self.footer.pack_start(self.useful, False, False, 3)
             # add here, but only populate if its not the own review
             self.likebox = Gtk.HBox()
             if already_voted == None and not current_user_reviewer:
-                m = '<span color="%s"><small><b>%s</b></small></span>'
+                m = '<span color="%s"><small>%s</small></span>'
                 self.yes_like = Link(m % (self._subtle, _('Yes')))
                 self.no_like = Link(m % (self._subtle, _('No')))
                 self.yes_like.connect('clicked', self._on_useful_clicked, True)
@@ -591,7 +588,7 @@ class UIReview(Gtk.VBox):
 
     def _on_network_state_change(self):
         """ show/hide widgets based on network connection state """
-        # FIXME: make this dynamic shode/hide on network changes
+        # FIXME: make this dynamic show/hide on network changes
         # FIXME2: make ti actually work, later show_all() kill it
         #         currently
         if network_state_is_connected():
@@ -664,7 +661,7 @@ class UIReview(Gtk.VBox):
                                     'useful_favorable' : useful_favorable,
                                     }
 
-        m = '<span color="%s"><small><b>%s</b></small></span>'
+        m = '<span color="%s"><small>%s</small></span>'
         label = Gtk.Label()
         label.set_markup(m % (self._subtle, s))
         return label

@@ -400,7 +400,8 @@ class TextBlock(Gtk.EventBox):
 
     def do_size_allocate(self, allocation):
         old = self.get_allocation()
-        if old.width == allocation.width and old.height == allocation.height:
+        if (old.x == allocation.x and old.y == allocation.y and
+            old.width == allocation.width and old.height == allocation.height):
             return
 
         width = allocation.width
