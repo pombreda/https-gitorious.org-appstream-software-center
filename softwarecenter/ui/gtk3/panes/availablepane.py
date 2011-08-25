@@ -497,8 +497,8 @@ class AvailablePane(SoftwarePane):
         self.app_view.set_header_labels(*header_strings)
         # hide the sort combobox headers if the category forces a
         # custom sort mode
-        self.app_view.set_allow_user_sorting(
-            not  category.is_forced_sort_mode)
+        allow_user_sort = category is None or not category.is_forced_sort_mode
+        self.app_view.set_allow_user_sorting(allow_user_sort)
 
         if view_state.search_term:
             self._clear_search()

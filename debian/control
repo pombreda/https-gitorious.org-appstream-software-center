@@ -54,13 +54,13 @@ Conflicts: gnome-app-install (<< 1)
 Replaces: gnome-app-install
 Provides: gnome-app-install
 Suggests: python-launchpadlib
-Description: Utility for browsing, installing, and removing applications
- The Ubuntu Software Center lets you browse and install thousands of 
- applications available for Ubuntu. You can view available 
- applications by category, or search quickly by name or description. 
- You can also examine the applications already installed, and remove
- those you no longer need.
+Description: Utility for browsing, installing, and removing software
+ Ubuntu Software Center lets you browse and install thousands of 
+ free and paid applications available for Ubuntu. You can view available 
+ software by category, or search quickly by name or description. 
+ You can also examine the software already installed, and remove items
+ you no longer need.
  .
- To install or remove software using the Center, you need administrator
- access on the computer.
+ To install or remove software using USC, you need administrator access
+ on the computer.
 
