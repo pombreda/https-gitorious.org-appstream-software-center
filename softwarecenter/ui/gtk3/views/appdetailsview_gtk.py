@@ -51,6 +51,7 @@ from appdetailsview import AppDetailsViewBase
 
 from softwarecenter.ui.gtk3.drawing import darken, get_subtle_color_as_hex
 from softwarecenter.ui.gtk3.em import StockEms, em
+from softwarecenter.ui.gtk3.widgets.separators import HBar
 from softwarecenter.ui.gtk3.widgets.reviews import UIReviewsList
 from softwarecenter.ui.gtk3.widgets.containers import SmallBorderRadiusFrame
 from softwarecenter.ui.gtk3.widgets.stars import Star, StarRatingsWidget
@@ -72,25 +73,6 @@ LOG_ALLOCATION = logging.getLogger("softwarecenter.ui.Gtk.get_allocation()")
 
 # fixed black for action bar label, taken from Ambiance gtk-theme
 COLOR_BLACK = '#323232'
-
-
-class HBar(Gtk.VBox):
-
-    def __init__(self):
-        Gtk.VBox.__init__(self)
-        self.set_size_request(-1, 1)
-        return
-
-    def do_draw(self, cr):
-        cr.save()
-        a = self.get_allocation()
-        cr.move_to(0,0)
-        cr.rel_line_to(a.width, 0)
-        cr.set_source_rgba(0.5, 0.5, 0.5, 0.4)
-        cr.set_dash((1, 2), 1)
-        cr.stroke()
-        cr.restore()
-        return
 
 
 class StatusBar(Gtk.Alignment):
