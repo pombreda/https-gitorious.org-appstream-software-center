@@ -547,6 +547,8 @@ class SoftwarePane(Gtk.VBox, BasePane):
         n_apps = enquirer.nr_apps
         n_pkgs = enquirer.nr_pkgs
 
+        print n_apps, n_pkgs
+
         # calculate the number of apps/pkgs
         if enquirer.limit > 0 and enquirer.limit < n_pkgs:
             n_apps = min(enquirer.limit, n_apps)
