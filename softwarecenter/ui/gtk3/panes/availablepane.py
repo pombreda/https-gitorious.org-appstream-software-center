@@ -224,7 +224,6 @@ class AvailablePane(SoftwarePane):
         vm = get_viewmanager()
         vm.nav_back()
 
-
     def get_query(self):
         """helper that gets the query for the current category/search mode"""
         # NoDisplay is a specal case
