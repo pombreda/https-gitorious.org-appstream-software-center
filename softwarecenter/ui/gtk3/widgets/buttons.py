@@ -161,7 +161,7 @@ class FeaturedTile(TileButton):
         self.box.set_spacing(StockEms.SMALL)
 
         self.content_left = Gtk.Box.new(Gtk.Orientation.VERTICAL, StockEms.MEDIUM)
-        self.content_right = Gtk.Box.new(Gtk.Orientation.VERTICAL, StockEms.SMALL)
+        self.content_right = Gtk.Box.new(Gtk.Orientation.VERTICAL, 1)
         self.box.pack_start(self.content_left, False, False, 0)
         self.box.pack_start(self.content_right, False, False, 0)
         self.image = _parse_icon(icon, icon_size)
@@ -173,13 +173,13 @@ class FeaturedTile(TileButton):
         self.title.set_ellipsize(Pango.EllipsizeMode.END)
         self.content_right.pack_start(self.title, False, False, 0)
 
-        #categories = helper.get_categories(doc)
-        # if categories is not None:
-        #     self.category = Gtk.Label.new('<span font_desc="Italic %i">%s</span>' % (em(0.45), categories))
-        #     self.category.set_use_markup(True)
-        #     self.category.set_alignment(0.0, 0.0)
-        #     self.category.set_ellipsize(Pango.EllipsizeMode.END)
-        #     self.content_right.pack_start(self.category, False, False, 4)
+        categories = helper.get_categories(doc)
+        if categories is not None:
+            self.category = Gtk.Label.new('<span font_desc="%i">%s</span>' % (em(0.6), GObject.markup_escape_text(categories)))
+            self.category.set_use_markup(True)
+            self.category.set_alignment(0.0, 0.5)
+            self.category.set_ellipsize(Pango.EllipsizeMode.END)
+            self.content_right.pack_start(self.category, False, False, 4)
 
         if stats is not None:
             self.stars = Star(size=StarSize.SMALL)
@@ -206,11 +206,14 @@ class FeaturedTile(TileButton):
 
         details = AppDetails(db=helper.db, doc=doc)
         price = details.price or _("Free")
+        if price == '0.00':
+            price = _("Free")
         self.price = Gtk.Label.new(
-            '<span color="%s" font_desc="Bold %i">%s</span>' % (
+            '<span color="%s" font_desc="%i">%s</span>' % (
                 '#757575', em(0.6), price))
         self.price.set_use_markup(True)
-        self.content_left.pack_start(self.price, False, False, 0)
+        self.price.set_alignment(0.0, 0.5)
+        self.content_right.pack_start(self.price, False, False, 0)
 
         self.set_name("featured-tile")
 

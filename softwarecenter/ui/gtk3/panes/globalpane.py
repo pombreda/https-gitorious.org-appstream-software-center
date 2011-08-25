@@ -73,21 +73,21 @@ class GlobalPane(Gtk.VBox):
         return
 
     def on_draw(self, widget, cr, assets):
-        a = widget.get_allocation()
+        #a = widget.get_allocation()
 
         # paint bg base color
         Gdk.cairo_set_source_rgba(cr, assets["bg-color"])
         cr.paint()
 
         # paint diagonal lines
-        cr.save()
-        bg = assets["bg"]
-        surf_height = bg.get_surface().get_width() - 5
-        cr.rectangle(0, 0, a.width, surf_height)
-        cr.clip()
-        cr.set_source(bg)
-        cr.paint_with_alpha(0.3)
-        cr.restore()
+        #~ cr.save()
+        #~ bg = assets["bg"]
+        #~ surf_height = bg.get_surface().get_width() - 5
+        #~ cr.rectangle(0, 0, a.width, surf_height)
+        #~ cr.clip()
+        #~ cr.set_source(bg)
+        #~ cr.paint_with_alpha(0.3)
+        #~ cr.restore()
 
         # paint bottom edge highlight
         #~ cr.set_line_width(1)

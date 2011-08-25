@@ -17,7 +17,6 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import copy
 import logging
 import time
 import threading
@@ -96,6 +95,7 @@ class AppEnquire(GObject.GObject):
             time.sleep(0.02) # 50 fps
             while context.pending():
                 context.iteration()
+        t.join()
 
         # call the query-complete callback
         self.emit("query-complete")
@@ -128,6 +128,9 @@ class AppEnquire(GObject.GObject):
         # use a unique instance of both enquire and xapian database
         # so concurrent queries dont result in an inconsistent database
 
+        # get lock
+        self.db.acquire_search_lock()
+
         # an alternative would be to serialise queries
         enquire = xapian.Enquire(self.db.xapiandb)
 
@@ -135,6 +138,7 @@ class AppEnquire(GObject.GObject):
             xfilter = self.filter
         else:
             xfilter = None
+
         # go over the queries
         self.nr_apps, self.nr_pkgs = 0, 0
         _matches = self._matches
@@ -219,6 +223,10 @@ class AppEnquire(GObject.GObject):
                         _matches.append(match)
                         match_docids.add(match.docid)
 
+        # release the lock here because the following check may trigger
+        # calling this function again (and we would deadlock otherwise)
+        self.db.release_search_lock()
+
         # if we have no results, try forcing pkgs to be displayed
         # if not NonAppVisibility.NEVER_VISIBLE is set
         if (not _matches and
@@ -266,9 +274,11 @@ class AppEnquire(GObject.GObject):
         self.search_query = SearchQuery(search_query)
         self.limit = limit
         self.sortmode = sortmode
-        # we need a copy of the filter here because otherwise comparing
-        # two models will not work
-        self.filter = copy.copy(filter)
+        # make a copy for good measure
+        if filter:
+            self.filter = filter.copy()
+        else:
+            self.filter = None
         self.exact = exact
         self.nonblocking_load = nonblocking_load
         self.nonapps_visible = nonapps_visible

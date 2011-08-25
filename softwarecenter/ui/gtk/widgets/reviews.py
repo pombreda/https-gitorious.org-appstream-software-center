@@ -788,7 +788,7 @@ class UIReviewsList(gtk.VBox):
         return
 
     def _install_to_review(self):
-        s = '<small><b>%s</b></small>' % _("You need to install this app before you can review it")
+        s = '<small>%s</small>' % _("You need to install this before you can review it")
         self.install_first_label = gtk.Label(s)
         self.install_first_label.set_use_markup(True)
         self.header.pack_end(self.install_first_label, False, padding=2)
@@ -1469,7 +1469,7 @@ class NoReviewYet(EmbeddedMessage):
         # TRANSLATORS: displayed if there are no reviews for the app yet
         #              and the user does not have it installed
         title = _("This app has not been reviewed yet")
-        msg = _('You need to install this app before you can review it')
+        msg = _('You need to install this before you can review it')
         EmbeddedMessage.__init__(self, title, msg)
 
 

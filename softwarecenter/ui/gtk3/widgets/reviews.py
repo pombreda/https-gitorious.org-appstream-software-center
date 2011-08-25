@@ -23,15 +23,13 @@
 import gi
 gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk, GObject, Pango
-
-from stars import Star
-
 import datetime
 import logging
 
 import gettext
 from gettext import gettext as _
 
+from stars import Star
 from softwarecenter.utils import (
     get_language,
     get_person_from_config,
@@ -155,7 +153,7 @@ class UIReviewsList(Gtk.VBox):
         return
 
     def _install_to_review(self):
-        s = '<small><b>%s</b></small>' % _("You need to install this app before you can review it")
+        s = '<small>%s</small>' % _("You need to install this before you can review it")
         self.install_first_label = Gtk.Label(label=s)
         self.install_first_label.set_use_markup(True)
         self.install_first_label.set_alignment(1.0, 0.5)
@@ -172,8 +170,8 @@ class UIReviewsList(Gtk.VBox):
         return False
 
     def _add_no_network_connection_msg(self):
-        title = _('No Network Connection')
-        msg = _('Only saved reviews can be displayed')
+        title = _('No network connection')
+        msg = _('Connect to the Internet to see more reviews.')
         m = EmbeddedMessage(title, msg, 'network-offline')
         self.vbox.pack_start(m, True, True, 0)
         return m
@@ -486,7 +484,7 @@ class UIReview(Gtk.VBox):
         if (review_version and
             app_version and
             upstream_version_compare(review_version, app_version) != 0):
-            version_string = _("For version (%(version)s)") % { 
+            version_string = _("For version %(version)s") % { 
                     'version' : version,
                     }
         else:
@@ -565,13 +563,12 @@ class UIReview(Gtk.VBox):
             self.useful.set_use_markup(True)
             #vertically centre so it lines up with the Yes and No buttons
             self.useful.set_alignment(0, 0.5)
-
             self.useful.show()
             self.footer.pack_start(self.useful, False, False, 3)
             # add here, but only populate if its not the own review
             self.likebox = Gtk.HBox()
             if already_voted == None and not current_user_reviewer:
-                m = '<span color="%s"><small><b>%s</b></small></span>'
+                m = '<span color="%s"><small>%s</small></span>'
                 self.yes_like = Link(m % (self._subtle, _('Yes')))
                 self.no_like = Link(m % (self._subtle, _('No')))
                 self.yes_like.connect('clicked', self._on_useful_clicked, True)
@@ -591,7 +588,7 @@ class UIReview(Gtk.VBox):
 
     def _on_network_state_change(self):
         """ show/hide widgets based on network connection state """
-        # FIXME: make this dynamic shode/hide on network changes
+        # FIXME: make this dynamic show/hide on network changes
         # FIXME2: make ti actually work, later show_all() kill it
         #         currently
         if network_state_is_connected():
@@ -664,7 +661,7 @@ class UIReview(Gtk.VBox):
                                     'useful_favorable' : useful_favorable,
                                     }
 
-        m = '<span color="%s"><small><b>%s</b></small></span>'
+        m = '<span color="%s"><small>%s</small></span>'
         label = Gtk.Label()
         label.set_markup(m % (self._subtle, s))
         return label
@@ -677,18 +674,18 @@ class UIReview(Gtk.VBox):
         correct_name = displayname or person
 
         if person == self.logged_in_person:
-            m = '<small><b>%s (%s)</b></small>\n<span font_size="%s">%s</span>' % (
+            m = '<span color="%s">%s (%s), %s</span>' % (
+                self._subtle,
                 GObject.markup_escape_text(correct_name),
                 # TRANSLATORS: displayed in a review after the persons name,
-                # e.g. "Wonderful text based app" mvo (that's you) 2011-02-11"
-                _("that's you"),
-                8 * Pango.SCALE,
+                # e.g. "Jane Smith (that's you), 2011-02-11"
+                _(u"that\u2019s you"),
                 GObject.markup_escape_text(nice_date))
         else:
             try:
-                m = '<small><b>%s</b></small>\n<span font_size="%s">%s</span>' % (
+                m = '<span color="%s">%s, %s</span>' % (
+                    self._subtle,
                     GObject.markup_escape_text(correct_name.encode("utf-8")),
-                    8 * Pango.SCALE,
                     GObject.markup_escape_text(nice_date))
             except Exception:
                 LOG.exception("_who_when_markup failed")
@@ -742,7 +739,7 @@ class NoReviewYet(EmbeddedMessage):
         # TRANSLATORS: displayed if there are no reviews for the app yet
         #              and the user does not have it installed
         title = _("This app has not been reviewed yet")
-        msg = _('You need to install this app before you can review it')
+        msg = _('You need to install this before you can review it')
         EmbeddedMessage.__init__(self, title, msg)
 
 

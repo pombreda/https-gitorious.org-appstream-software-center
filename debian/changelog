@@ -1,32 +1,61 @@
-software-center (4.1.19) UNRELEASED; urgency=low
+software-center (4.1.20) oneiric; urgency=low
+
+  [ Michael Vogt ]
+  * softwarecenter/ui/gtk3/views/purchaseview.py:
+    - fix crash in cancel a purchase (LP: #833898)
+  * softwarecenter/db/enquire.py:
+    - add database locking to avoid thread issues
+  * softwarecenter/db/enquire.py:
+    - fix crash by copy.copy(filter), provide a custom copy
+      method instead this fixes random crash in the lobby
+
+  [ Kiwinote ]
+  * display category on the tile
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 25 Aug 2011 20:51:11 +0200
+
+software-center (4.1.19) oneiric; urgency=low
 
   [ Kiwinote ]
   * data/piston-helpers/piston_get_reviews_helper.py:
     - get reviews for the base pkg, not the multiarch one
   * softwarecenter/ui/gtk3/widgets/buttons.py:
     - hand cursor for category tiles and subcategory tiles
+    - make a price of '0.00' render as 'free'
   * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
     - remove function calls to set the color of the pkgstatusbar (LP: #833195)
+    - render icons for addons correctly
   * softwarecenter/ui/gtk3/views/catview_gtk.py:
     - don't show unavailable or already installed apps in the 'new' tiles
     - align the subcat view
+  * softwarecenter/ui/gtk3/widgets/exhibits.py:
+    - only render paging dots if we have more than one
   
   [ Michael Vogt ]
   * softwarecenter/db/application.py:
     -ignore errors from incorrect utf8 (LP: #833534)
+  * data/ubuntu-software-center.desktop.in:
+    - set default UI to gtk3 (LP: #830901)
+  * add new icon LP: #432552
   
   [ Matthew Paul Thomas ]
   * softwarecenter/ui/gtk3/widgets/exhibits.py:
     - tweak the default banner presentation (LP: #833169)
   * debian/control:
     - improve package description
+  * lp:~mpt/software-center/text-tweaks: 
+    - text fixes
 
   [ Matthew McGowan ]
   * lp:~mmcg069/software-center/small-fixes:
     - fix available pane channels
     - change nonapp filter
   
- -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 24 Aug 2011 17:41:55 +0200
+  [ Jacob Johan Edwards ]
+  * lp:~j-johan-edwards/software-center/toolbar-quick-hack:
+    - comment out hatching from USC custom toolbar.
+  
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 25 Aug 2011 17:36:48 +0200
 
 software-center (4.1.18) oneiric; urgency=low
 

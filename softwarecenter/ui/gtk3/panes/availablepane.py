@@ -209,6 +209,7 @@ class AvailablePane(SoftwarePane):
     def on_purchase_failed(self, widget):
         # return to the the appdetails view via the button to reset it
         self._click_appdetails_view()
+        self.notebook.set_current_page(SoftwarePane.Pages.DETAILS)
         dialogs.error(None,
                       _("Failure in the purchase process."),
                       _("Sorry, something went wrong. Your payment "
@@ -217,6 +218,11 @@ class AvailablePane(SoftwarePane):
     def on_purchase_cancelled_by_user(self, widget):
         # return to the the appdetails view via the button to reset it
         self._click_appdetails_view()
+
+    def _click_appdetails_view(self):
+        # FIXME: 
+        vm = get_viewmanager()
+        vm.nav_back()
 
     def get_query(self):
         """helper that gets the query for the current category/search mode"""

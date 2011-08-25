@@ -16,7 +16,6 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import copy
 from gi.repository import Atk
 import dbus
 import gettext
@@ -143,7 +142,7 @@ class DisplayState(object):
         state.search_term = self.search_term
         state.application = self.application
         state.limit = self.limit
-        state.filter = copy.copy(self.filter)
+        state.filter = self.filter.copy()
         return state
 
     def reset(self):

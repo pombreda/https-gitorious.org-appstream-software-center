@@ -491,16 +491,17 @@ class ExhibitBanner(Gtk.EventBox):
             GObject.source_remove(sigid)
 
         self._dotsigs = []
-        for i, exhibit in enumerate(self.exhibits):
-            dot = ExhibitButton()
-            dot.set_size_request(StockEms.LARGE, StockEms.LARGE)
-            self._dotsigs.append(
-                dot.connect("clicked",
-                            self.on_paging_dot_clicked,
-                            len(self.exhibits) - 1 - i) # index
-            )
-            self.index_hbox.pack_end(dot, False, False, 0)
-            self.index_hbox.show_all()
+        if len(self.exhibits) > 1:
+            for i, exhibit in enumerate(self.exhibits):
+                dot = ExhibitButton()
+                dot.set_size_request(StockEms.LARGE, StockEms.LARGE)
+                self._dotsigs.append(
+                    dot.connect("clicked",
+                                self.on_paging_dot_clicked,
+                                len(self.exhibits) - 1 - i) # index
+                )
+                self.index_hbox.pack_end(dot, False, False, 0)
+                self.index_hbox.show_all()
 
         self._render_exhibit_at_cursor()
         return

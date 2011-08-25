@@ -81,3 +81,11 @@ class AppFilter(xapian.MatchDecider):
             if not self.distro.is_supported(self.cache, doc, pkgname):
                 return False
         return True
+    def copy(self):
+        """ create a new copy of the given filter """
+        new_filter= AppFilter(self.db, self.cache)
+        new_filter.available_only = self.available_only
+        new_filter.supported_only = self.supported_only
+        new_filter.installed_only = self.installed_only
+        new_filter.not_installed_only = self.not_installed_only
+        return new_filter

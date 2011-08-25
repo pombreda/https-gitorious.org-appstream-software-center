@@ -51,6 +51,7 @@ from appdetailsview import AppDetailsViewBase
 
 from softwarecenter.ui.gtk3.drawing import darken, get_subtle_color_as_hex
 from softwarecenter.ui.gtk3.em import StockEms, em
+from softwarecenter.ui.gtk3.widgets.separators import HBar
 from softwarecenter.ui.gtk3.widgets.reviews import UIReviewsList
 from softwarecenter.ui.gtk3.widgets.containers import SmallBorderRadiusFrame
 from softwarecenter.ui.gtk3.widgets.stars import Star, StarRatingsWidget
@@ -72,25 +73,6 @@ LOG_ALLOCATION = logging.getLogger("softwarecenter.ui.Gtk.get_allocation()")
 
 # fixed black for action bar label, taken from Ambiance gtk-theme
 COLOR_BLACK = '#323232'
-
-
-class HBar(Gtk.VBox):
-
-    def __init__(self):
-        Gtk.VBox.__init__(self)
-        self.set_size_request(-1, 1)
-        return
-
-    def do_draw(self, cr):
-        cr.save()
-        a = self.get_allocation()
-        cr.move_to(0,0)
-        cr.rel_line_to(a.width, 0)
-        cr.set_source_rgba(0.5, 0.5, 0.5, 0.4)
-        cr.set_dash((1, 1), 1)
-        cr.stroke()
-        cr.restore()
-        return
 
 
 class StatusBar(Gtk.Alignment):
@@ -120,7 +102,9 @@ class StatusBar(Gtk.Alignment):
         cr.save()
         a = self.get_allocation()
         cr.rectangle(-1,0, a.width+2, a.height)
-        cr.set_source_rgba(0.5, 0.5, 0.5, 0.4)
+        cr.set_source_rgba(1,1,1,0.3)
+        cr.fill_preserve()
+        cr.set_source_rgb(0.784313725, 0.784313725, 0.784313725)
         cr.set_dash((1, 1), 1)
         cr.stroke()
         cr.restore()
@@ -416,7 +400,7 @@ class Addon(Gtk.HBox):
         if not proposed_icon or not icons.has_icon(proposed_icon):
             proposed_icon = Icons.MISSING_APP
         try:
-            pixbuf = icons.load_icon(proposed_icon, 22, ())
+            pixbuf = icons.load_icon(proposed_icon, 22, 0)
             if pixbuf:
                 pixbuf.scale_simple(22, 22, GdkPixbuf.InterpType.BILINEAR)
             self.icon.set_from_pixbuf(pixbuf)
@@ -636,8 +620,8 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
     # the size of the icon on the left side
     APP_ICON_SIZE = 96 # Gtk.IconSize.DIALOG ?
     # art stuff
-    STIPPLE = os.path.join(softwarecenter.paths.datadir,
-                           "ui/gtk3/art/stipple.png")
+    BACKGROUND = os.path.join(softwarecenter.paths.datadir,
+                           "ui/gtk3/art/itemview-background.png")
 
 
     # need to include application-request-action here also since we are multiple-inheriting
@@ -715,15 +699,15 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         if _asset_cache: return _asset_cache
         assets = _asset_cache
         # cache the bg pattern
-        surf = cairo.ImageSurface.create_from_png(self.STIPPLE)
+        surf = cairo.ImageSurface.create_from_png(self.BACKGROUND)
         ptrn = cairo.SurfacePattern(surf)
         ptrn.set_extend(cairo.EXTEND_REPEAT)
-        assets["stipple"] = ptrn
+        assets["bg"] = ptrn
         return assets
 
     def do_draw(self, cr):
-        cr.set_source(_asset_cache["stipple"])
-        cr.paint_with_alpha(0.5)
+        cr.set_source(_asset_cache["bg"])
+        cr.paint_with_alpha(0.7)
         for child in self: self.propagate_draw(child, cr)
         return
 
@@ -1035,11 +1019,11 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         #~ self.info_header.set_use_markup(True)
         #~ info_vb.pack_start(self.info_header, False, False, 0)
 
-        self.totalsize_info = PackageInfo(_("Total size"), self.info_keys)
-        info_vb.pack_start(self.totalsize_info, False, False, 0)
-
         self.version_info = PackageInfo(_("Version"), self.info_keys)
         info_vb.pack_start(self.version_info, False, False, 0)
+
+        self.totalsize_info = PackageInfo(_("Total size"), self.info_keys)
+        info_vb.pack_start(self.totalsize_info, False, False, 0)
 
         self.license_info = PackageInfo(_("License"), self.info_keys)
         info_vb.pack_start(self.license_info, False, False, 0)
@@ -1110,7 +1094,7 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         # make title font size fixed as they should look good compared to the 
         # icon (also fixed).
         font_size = em(1.6) * Pango.SCALE
-        markup = '<span font_size="%s">%s</span>'
+        markup = '<span font_size="%s"><b>%s</b></span>'
         markup = markup % (font_size, appname)
         self.title.set_markup(markup)
         self.title.a11y.set_name(appname + '. ' + summary)
@@ -1197,9 +1181,9 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
     def _update_pkg_info_table(self, app_details):
         # set the strings in the package info table
         if app_details.version:
-            version = '%s (%s)' % (app_details.version, app_details.pkgname)
+            version = '%s %s' % (app_details.pkgname, app_details.version)
         else:
-            version = _("Unknown") + ' (%s)' % app_details.pkgname
+            version = _("%s (unknown version)") % app_details.pkgname
         if app_details.license:
             license = app_details.license
         else:
