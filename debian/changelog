@@ -5,6 +5,7 @@ software-center (4.1.19) UNRELEASED; urgency=low
     - get reviews for the base pkg, not the multiarch one
   * softwarecenter/ui/gtk3/widgets/buttons.py:
     - hand cursor for category tiles and subcategory tiles
+    - make a price of '0.00' render as 'free'
   * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
     - remove function calls to set the color of the pkgstatusbar (LP: #833195)
     - render icons for addons correctly
