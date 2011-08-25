@@ -122,7 +122,7 @@ class StatusBar(Gtk.Alignment):
         cr.rectangle(-1,0, a.width+2, a.height)
         cr.set_source_rgba(1,1,1,0.3)
         cr.fill_preserve()
-        cr.set_source_rgba(0.5, 0.5, 0.5, 0.4)
+        cr.set_source_rgb(0.784313725, 0.784313725, 0.784313725)
         cr.set_dash((1, 1), 1)
         cr.stroke()
         cr.restore()
