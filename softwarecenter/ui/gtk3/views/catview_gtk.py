@@ -396,7 +396,7 @@ class LobbyViewGtk(CategoriesViewGtk):
 
         self.featured = FlowableGrid()
         frame = FramedHeaderBox()
-        frame.set_header_label(_("New"))
+        frame.set_header_label(_(u"What\u2019s New"))
         frame.header_implements_more_button()
         frame.more.connect('clicked', self.on_category_clicked, whatsnew_cat) 
         frame.add(self.featured)
@@ -454,8 +454,8 @@ class LobbyViewGtk(CategoriesViewGtk):
             self.appcount = Gtk.Label()
             self.appcount.set_text(text)
             self.appcount.set_alignment(0.5, 0.5)
-            self.appcount.set_margin_top(4)
-            self.appcount.set_margin_bottom(3)
+            self.appcount.set_margin_top(1)
+            self.appcount.set_margin_bottom(4)
             self.vbox.pack_start(self.appcount, False, True, 0)
         self.appcount.set_text(text)
         return
@@ -496,7 +496,9 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         self.appcount = None
 
         # widgetry
-        self.vbox.set_border_width(StockEms.SMALL)
+        self.vbox.set_margin_left(StockEms.LARGE-2)
+        self.vbox.set_margin_right(StockEms.LARGE-2)
+        self.vbox.set_margin_top(StockEms.MEDIUM)
         return
 
     @wait_for_apt_cache_ready # be consistent with new apps
@@ -595,8 +597,8 @@ class SubCategoryViewGtk(CategoriesViewGtk):
             self.appcount = Gtk.Label()
             self.appcount.set_text(text)
             self.appcount.set_alignment(0.5, 0.5)
-            self.appcount.set_margin_top(4)
-            self.appcount.set_margin_bottom(3)
+            self.appcount.set_margin_top(1)
+            self.appcount.set_margin_bottom(4)
             self.vbox.pack_end(self.appcount, False, False, 0)
         self.appcount.set_text(text)
         return
