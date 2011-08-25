@@ -9,6 +9,7 @@ software-center (4.1.19) UNRELEASED; urgency=low
     - remove function calls to set the color of the pkgstatusbar (LP: #833195)
   * softwarecenter/ui/gtk3/views/catview_gtk.py:
     - don't show unavailable or already installed apps in the 'new' tiles
+    - align the subcat view
   
   [ Michael Vogt ]
   * softwarecenter/db/application.py:
