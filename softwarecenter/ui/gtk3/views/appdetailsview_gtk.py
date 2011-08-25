@@ -1019,11 +1019,11 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         #~ self.info_header.set_use_markup(True)
         #~ info_vb.pack_start(self.info_header, False, False, 0)
 
-        self.totalsize_info = PackageInfo(_("Total size"), self.info_keys)
-        info_vb.pack_start(self.totalsize_info, False, False, 0)
-
         self.version_info = PackageInfo(_("Version"), self.info_keys)
         info_vb.pack_start(self.version_info, False, False, 0)
+
+        self.totalsize_info = PackageInfo(_("Total size"), self.info_keys)
+        info_vb.pack_start(self.totalsize_info, False, False, 0)
 
         self.license_info = PackageInfo(_("License"), self.info_keys)
         info_vb.pack_start(self.license_info, False, False, 0)
@@ -1181,9 +1181,9 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
     def _update_pkg_info_table(self, app_details):
         # set the strings in the package info table
         if app_details.version:
-            version = '%s (%s)' % (app_details.version, app_details.pkgname)
+            version = '%s %s' % (app_details.pkgname, app_details.version)
         else:
-            version = _("Unknown") + ' (%s)' % app_details.pkgname
+            version = _("%s (unknown version)") % app_details.pkgname
         if app_details.license:
             license = app_details.license
         else:
