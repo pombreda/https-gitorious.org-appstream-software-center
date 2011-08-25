@@ -196,7 +196,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
             # check for uncategorised pkgs
             enq.set_query(self.state.channel.query,
                           sortmode=SortMethods.BY_ALPHABET,
-                          nonapps_visible=self.nonapps_visible,
+                          nonapps_visible=NonAppVisibility.MAYBE_VISIBLE,
                           filter=xfilter,
                           nonblocking_load=False,
                           persistent_duplicate_filter=(i>0))
