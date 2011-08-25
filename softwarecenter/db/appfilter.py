@@ -5,6 +5,14 @@ from softwarecenter.enums import (XapianValues,
                                   AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME,
                                   )
 
+class GlobalFilter(object):
+    def __init__(self):
+        self.supported_only = False
+
+global_filter = GlobalFilter()
+
+def get_global_filter():
+    return global_filter
 
 class AppFilter(xapian.MatchDecider):
     """
@@ -18,7 +26,7 @@ class AppFilter(xapian.MatchDecider):
         self.db = db
         self.cache = cache
         self.available_only = False
-        self.supported_only = False
+        self.supported_only = global_filter.supported_only
         self.installed_only = False
         self.not_installed_only = False
     @property

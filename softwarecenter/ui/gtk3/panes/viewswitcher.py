@@ -40,19 +40,14 @@ LOG = logging.getLogger(__name__)
 _last_button = None
 class ViewSwitcher(Gtk.Box):
 
-    __gsignals__ = {
-        "view-changed" : (GObject.SignalFlags.RUN_LAST,
-                          None, 
-                          (GObject.TYPE_PYOBJECT, GObject.TYPE_PYOBJECT),
-                         ),
-    }
-
-
     ICON_SIZE = Gtk.IconSize.LARGE_TOOLBAR
 
     def __init__(self, view_manager, datadir, db, cache, icons):
         # boring stuff
         self.view_manager = view_manager
+        def on_view_changed(widget, view_id):
+            self.view_buttons[view_id].set_active(True)
+        self.view_manager.connect('view-changed', on_view_changed)
         self.channel_manager = get_channels_manager(db)
 
         # backend sig handlers ...
@@ -139,7 +134,7 @@ class ViewSwitcher(Gtk.Box):
             self.on_channels_changed()
         return
 
-    def on_section_sel_clicked(self, button, view_id):
+    def on_section_sel_clicked(self, button, event, view_id):
         # mvo: this check causes bug LP: #828675
         #if self._prev_view is view_id:
         #    return True
@@ -196,7 +191,7 @@ class ViewSwitcher(Gtk.Box):
         # to the group, toggled & clicked gets emitted... causing
         # all panes to fully initialise on USC startup, which is
         # undesirable!
-        btn.connect("clicked", self.on_section_sel_clicked, view_id)
+        btn.connect("button-release-event", self.on_section_sel_clicked, view_id)
         return btn
 
     def append_channel_selector(self, section_btn, view_id, build_func):
@@ -218,9 +213,9 @@ class ViewSwitcher(Gtk.Box):
             GObject.source_remove(sig)
 
         if view_id == ViewPages.AVAILABLE:
-            channels = self.channel_manager.get_available_channels()
+            channels = self.channel_manager.channels
         elif view_id == ViewPages.INSTALLED:
-            channels = self.channel_manager.get_installed_channels()
+            channels = self.channel_manager.channels_installed_only
         else:
             channels = self.channel_manager.channels
 
@@ -232,8 +227,7 @@ class ViewSwitcher(Gtk.Box):
             #    GtkCheckMenuItem can only contain one widget at a time; 
             #    it already contains a widget of type GtkAccelLabel """
 
-            item = Gtk.CheckMenuItem.new()
-            item.set_draw_as_radio(True)
+            item = Gtk.MenuItem.new()
 
             label = Gtk.Label.new(channel.display_name)
             image = Gtk.Image.new_from_icon_name(channel.icon, Gtk.IconSize.MENU)
@@ -254,11 +248,6 @@ class ViewSwitcher(Gtk.Box):
                 )
             )
             popup.attach(item, 0, 1, i, i+1)
-
-        if self.view_manager.is_active_view(view_id):
-            first = popup.get_children()[0]
-            first.set_property("active", True)
-            self._prev_item = first
         return
 
     def on_channel_selected(self, item, event, channel, view_id):
@@ -281,20 +270,6 @@ class ViewSwitcher(Gtk.Box):
             # request page change
             vm.display_page(pane, page, state)
             return False
-
-        if self._prev_item is item:
-            parent = item.get_parent()
-            parent.hide()
-            return True
-
-        if self._prev_item is not None:
-            self._prev_item.set_property("active", False)
-        self._prev_item = item
-
-        # activate the section if need be
-        btn = self.view_buttons[view_id]
-        if not btn.get_active():
-            btn.set_active(True)
 
         GObject.idle_add(config_view)
         return

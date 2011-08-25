@@ -180,7 +180,8 @@ class SoftwarePane(Gtk.VBox, BasePane):
 
         # other classes we need        
         self.enquirer = AppEnquire(cache, db)
-        self.enquirer.connect("query-complete", self.on_query_complete)
+        self._query_complete_handler = self.enquirer.connect(
+                            "query-complete", self.on_query_complete)
 
         self.cache = cache
         self.db = db
@@ -555,7 +556,13 @@ class SoftwarePane(Gtk.VBox, BasePane):
             self.hide_nonapps()
             return
 
-        if enquirer.nonapps_visible == NonAppVisibility.ALWAYS_VISIBLE:
+        LOG.debug("nonapps_visible value=%s (always visible: %s)" % (
+                self.nonapps_visible, 
+                self.nonapps_visible == NonAppVisibility.ALWAYS_VISIBLE))
+
+        self.action_bar.unset_label()
+        if self.nonapps_visible == NonAppVisibility.ALWAYS_VISIBLE:
+            LOG.debug('non-apps-ALWAYS-visible')
             # TRANSLATORS: the text inbetween the underscores acts as a link
             # In most/all languages you will want the whole string as a link
             label = gettext.ngettext("_Hide %(amount)i technical item_",
@@ -674,8 +681,16 @@ class SoftwarePane(Gtk.VBox, BasePane):
         return 0
 
     def get_sort_mode(self):
-        if (self._is_in_search_mode() and not self.app_view.user_defined_sort_method):
+        # if the category sets a custom sort order, that wins, this
+        # is required for top-rated and whats-new
+        if (self.state.category and 
+            self.state.category.sortmode != SortMethods.BY_ALPHABET):
+            return self.state.category.sortmode
+        # searches are always by ranking unless the user decided differently
+        if (self._is_in_search_mode() and 
+            not self.app_view.user_defined_sort_method):
             return SortMethods.BY_SEARCH_RANKING
+        # use the appview combo
         return self.app_view.get_sort_mode()
 
     def on_search_terms_changed(self, terms):

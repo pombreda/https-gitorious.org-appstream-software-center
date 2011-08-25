@@ -47,10 +47,15 @@ class TestPanes(unittest.TestCase):
         # ensure it visible
         self.assertTrue(pane.get_property("visible"))
         # ensure the treeview is there and has data
+        self._p()
         self.assertTrue(len(pane.treefilter.get_model()) > 10)
         # schedule close
         GObject.timeout_add(TIMEOUT, lambda: win.destroy())
         Gtk.main()
+
+    def _p(self):
+        while Gtk.events_pending():
+            Gtk.main_iteration()
 
 
 if __name__ == "__main__":

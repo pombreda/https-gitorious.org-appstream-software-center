@@ -260,6 +260,7 @@ class Star(Gtk.EventBox, StarRenderer):
     def __init__(self, size=StarSize.NORMAL):
         Gtk.EventBox.__init__(self)
         StarRenderer.__init__(self)
+        self.set_name("featured-star")
 
         self.label = None
         self.size = size
@@ -334,20 +335,6 @@ class Star(Gtk.EventBox, StarRenderer):
         # compat for ratings container
         return self.set_rating(rating)
 
-    def set_nr_reviews(self, nr_reviews):
-        s = gettext.ngettext(
-            "%(nr_ratings)i rating",
-            "%(nr_ratings)i ratings",
-            nr_reviews) % { 'nr_ratings' : nr_reviews, }
-
-        if self.label is None:
-            self.label = Gtk.Label.new(s)
-            self.label.set_use_markup(True)
-            self.add(self.label)
-        else:
-            self.label.set_markup(s)
-        return
-
     def set_size(self, size):
         self.size = size
         self.queue_draw()
@@ -382,6 +369,34 @@ class Star(Gtk.EventBox, StarRenderer):
 
         self.pixel_value = pixel_value
         self.set_size(StarSize.PIXEL_VALUE)
+        return
+
+
+class StarRatingsWidget(Gtk.VBox):
+
+    def __init__(self):
+        Gtk.VBox.__init__(self)
+        self.set_spacing(StockEms.SMALL)
+        self.stars = Star()
+        self.pack_start(self.stars, False, False, 0)
+        self.label = Gtk.Label()
+        self.label.set_alignment(0, 0.5)
+        self.pack_start(self.label, False, False, 0)
+        return
+
+    def set_avg_rating(self, rating):
+        # compat for ratings container
+        return self.stars.set_rating(rating)
+
+    def set_nr_reviews(self, nr_reviews):
+        s = gettext.ngettext(
+            "%(nr_ratings)i rating",
+            "%(nr_ratings)i ratings",
+            nr_reviews) % { 'nr_ratings' : nr_reviews, }
+
+        # FIXME don't use fixed color
+        m = '<span color="#8C8C8C"><small><i>%s</i></small></span>'
+        self.label.set_markup(m % s)
         return
 
 

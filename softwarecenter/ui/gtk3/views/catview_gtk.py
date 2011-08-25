@@ -18,7 +18,6 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import cairo
-import copy
 import gettext
 from gi.repository import Gtk
 from gi.repository import GObject
@@ -35,9 +34,9 @@ from softwarecenter.enums import (NonAppVisibility,
 from softwarecenter.utils import wait_for_apt_cache_ready
 from softwarecenter.ui.gtk3.models.appstore2 import AppPropertiesHelper
 from softwarecenter.ui.gtk3.widgets.containers import (
-     FramedHeaderBox, HeaderPosition, FramedBox, FlowableGrid)
+     FramedHeaderBox, FramedBox, FlowableGrid)
 from softwarecenter.ui.gtk3.widgets.exhibits import (
-    ExhibitBanner, DefaultExhibit, FeaturedExhibit)
+    ExhibitBanner, FeaturedExhibit)
 from softwarecenter.ui.gtk3.widgets.buttons import (LabelTile,
                                                     CategoryTile,
                                                     FeaturedTile)
@@ -143,6 +142,19 @@ class CategoriesViewGtk(Gtk.Viewport, CategoriesParser):
         self.connect("size-allocate", self.on_size_allocate)
         return
 
+    def _add_tiles_to_flowgrid(self, docs, flowgrid, amount):
+        '''Adds application tiles to a FlowableGrid:
+           docs = xapian documents (apps)
+           flowgrid = the FlowableGrid to add tiles to
+           amount = number of tiles to add from start of doc range'''
+        amount = min(len(docs), amount)
+        for doc in docs[0:amount]:
+            tile = FeaturedTile(self.helper, doc)
+            tile.connect('clicked', self.on_app_clicked,
+                         self.helper.get_application(doc))
+            flowgrid.add_child(tile)
+        return
+
     def on_size_allocate(self, widget, _):
         a = widget.get_allocation()
         prev = self._prev_alloc
@@ -202,8 +214,6 @@ class LobbyViewGtk(CategoriesViewGtk):
                                    apps_filter, apps_limit=0)
 
         # sections
-        self.featured_carousel = None
-        self.whatsnew_carousel = None
         self.departments = None
         self.appcount = None
 
@@ -221,9 +231,9 @@ class LobbyViewGtk(CategoriesViewGtk):
         #~ self._append_recommendations()
         self._append_banner_ads()
 
-        self.top_hbox = Gtk.HBox(spacing=self.SPACING)
+        self.top_hbox = Gtk.HBox(spacing=StockEms.SMALL)
         top_hbox_alignment = Gtk.Alignment()
-        top_hbox_alignment.set_padding(0, 0, self.PADDING, self.PADDING)
+        top_hbox_alignment.set_padding(0, 0, StockEms.LARGE-2, StockEms.LARGE-2)
         top_hbox_alignment.add(self.top_hbox)
         self.vbox.pack_start(top_hbox_alignment, False, False, 0)
 
@@ -232,7 +242,7 @@ class LobbyViewGtk(CategoriesViewGtk):
         self.right_column = Gtk.Box.new(Gtk.Orientation.VERTICAL, self.SPACING)
         self.top_hbox.pack_start(self.right_column, True, True, 0)
 
-        self._append_featured()
+        self._append_new()
         #~ self._append_recommendations()
         self._append_top_rated()
 
@@ -242,56 +252,56 @@ class LobbyViewGtk(CategoriesViewGtk):
         #self._append_top_of_the_pops
         return
 
-    def _append_top_of_the_pops(self):
-        self.totp_hbox = Gtk.HBox(spacing=self.SPACING)
+    #~ def _append_top_of_the_pops(self):
+        #~ self.totp_hbox = Gtk.HBox(spacing=self.SPACING)
+#~ 
+        #~ alignment = Gtk.Alignment()
+        #~ alignment.set_padding(0, 0, self.PADDING, self.PADDING)
+        #~ alignment.add(self.totp_hbox)
+#~ 
+        #~ frame = FramedHeaderBox()
+        #~ frame.header_implements_more_button()
+        #~ frame.set_header_label(_("Most Popular"))
+#~ 
+        #~ label = Gtk.Label.new("Soda pop!!!")
+        #~ label.set_name("placeholder")
+        #~ label.set_size_request(-1, 200)
+#~ 
+        #~ frame.add(label)
+        #~ self.totp_hbox.add(frame)
+#~ 
+        #~ frame = FramedHeaderBox()
+        #~ frame.header_implements_more_button()
+        #~ frame.set_header_label(_("Top Rated"))
+#~ 
+        #~ label = Gtk.Label.new("Demos ftw(?)")
+        #~ label.set_name("placeholder")
+        #~ label.set_size_request(-1, 200)
+#~ 
+        #~ frame.add(label)
+        #~ self.totp_hbox.add(frame)
+#~ 
+        #~ self.vbox.pack_start(alignment, False, False, 0)
+        #~ return
 
-        alignment = Gtk.Alignment()
-        alignment.set_padding(0, 0, self.PADDING, self.PADDING)
-        alignment.add(self.totp_hbox)
-
-        frame = FramedHeaderBox()
-        frame.header_implements_more_button()
-        frame.set_header_label(_("Most Popular"))
-
-        label = Gtk.Label.new("Soda pop!!!")
-        label.set_name("placeholder")
-        label.set_size_request(-1, 200)
-
-        frame.add(label)
-        self.totp_hbox.add(frame)
-
-        frame = FramedHeaderBox()
-        frame.header_implements_more_button()
-        frame.set_header_label(_("Top Rated"))
-
-        label = Gtk.Label.new("Demos ftw(?)")
-        label.set_name("placeholder")
-        label.set_size_request(-1, 200)
-
-        frame.add(label)
-        self.totp_hbox.add(frame)
-
-        self.vbox.pack_start(alignment, False, False, 0)
-        return
-
-    def _append_video_clips(self):
-        frame = FramedHeaderBox()
-        frame.set_header_expand(False)
-        frame.set_header_position(HeaderPosition.LEFT)
-        frame.set_header_label(_("Latest Demo Videos"))
-
-        label = Gtk.Label.new("Videos go here")
-        label.set_name("placeholder")
-        label.set_size_request(-1, 200)
-
-        frame.add(label)
-
-        alignment = Gtk.Alignment()
-        alignment.set_padding(0, 0, self.PADDING, self.PADDING)
-        alignment.add(frame)
-
-        self.vbox.pack_start(alignment, False, False, 0)
-        return
+    #~ def _append_video_clips(self):
+        #~ frame = FramedHeaderBox()
+        #~ frame.set_header_expand(False)
+        #~ frame.set_header_position(HeaderPosition.LEFT)
+        #~ frame.set_header_label(_("Latest Demo Videos"))
+#~ 
+        #~ label = Gtk.Label.new("Videos go here")
+        #~ label.set_name("placeholder")
+        #~ label.set_size_request(-1, 200)
+#~ 
+        #~ frame.add(label)
+#~ 
+        #~ alignment = Gtk.Alignment()
+        #~ alignment.set_padding(0, 0, self.PADDING, self.PADDING)
+        #~ alignment.add(frame)
+#~ 
+        #~ self.vbox.pack_start(alignment, False, False, 0)
+        #~ return
 
     def _on_show_exhibits(self, exhibit_banner, exhibit):
         query = get_query_for_pkgnames(exhibit.package_names.split(","))
@@ -302,7 +312,8 @@ class LobbyViewGtk(CategoriesViewGtk):
 
     def _append_banner_ads(self):
         exhibit_banner = ExhibitBanner()
-        exhibit_banner.set_exhibits([DefaultExhibit(), FeaturedExhibit()])
+        exhibit_banner.set_exhibits([FeaturedExhibit(),
+                                    ])
         exhibit_banner.connect("show-exhibits-clicked", self._on_show_exhibits)
 
         # query using the agent
@@ -312,7 +323,7 @@ class LobbyViewGtk(CategoriesViewGtk):
         scagent.query_exhibits()
 
         a = Gtk.Alignment()
-        a.set_padding(0,StockEms.MEDIUM,0,0)
+        a.set_padding(0,StockEms.SMALL,0,0)
         a.add(exhibit_banner)
 
         self.vbox.pack_start(a, False, False, 0)
@@ -331,6 +342,8 @@ class LobbyViewGtk(CategoriesViewGtk):
             if 'carousel-only' in cat.flags: continue
             category_name = mrkup % GObject.markup_escape_text(cat.name)
             label = LabelTile(category_name, None)
+            label.label.set_margin_left(StockEms.SMALL)
+            label.label.set_margin_right(StockEms.SMALL)
             label.label.set_alignment(0.0, 0.5)
             label.label.set_use_markup(True)
             label.connect('clicked', self.on_category_clicked, cat)
@@ -345,7 +358,7 @@ class LobbyViewGtk(CategoriesViewGtk):
         enq = AppEnquire(self.cache, self.db)
         app_filter = AppFilter(self.db, self.cache)
         enq.set_query(toprated_cat.query,
-                      limit=8,
+                      limit=TOP_RATED_CAROUSEL_LIMIT,
                       sortmode=toprated_cat.sortmode,
                       filter=app_filter,
                       nonapps_visible=NonAppVisibility.ALWAYS_VISIBLE,
@@ -358,85 +371,66 @@ class LobbyViewGtk(CategoriesViewGtk):
         frame.header_implements_more_button()
         frame.more.connect('clicked', self.on_category_clicked, toprated_cat) 
         frame.add(self.toprated)
+        self.toprated_frame = frame
         self.right_column.pack_start(frame, True, True, 0)
 
-        helper = AppPropertiesHelper(self.db, self.cache, self.icons)
-        for doc in enq.get_documents():
-            name = helper.get_appname(doc)
-            icon_pb = helper.get_icon_at_size(doc, 48, 48)
-            stats = helper.get_review_stats(doc)
-            categories = helper.get_categories(doc)
-            tile = FeaturedTile(name, icon_pb, stats, categories)
-            tile.connect('clicked', self.on_app_clicked,
-                         helper.get_application(doc))
-            self.toprated.add_child(tile)
-        
+        self.helper = AppPropertiesHelper(self.db, self.cache, self.icons)
+        docs = enq.get_documents()
+        self._add_tiles_to_flowgrid(docs, self.toprated, TOP_RATED_CAROUSEL_LIMIT)
+        return
 
-    def _append_featured(self):
-        #~ featured_cat = get_category_by_name(self.categories, 
-                                            #~ u"What\u2019s New")  # unstranslated name
-        featured_cat = get_category_by_name(self.categories, 
-                                            u"Featured")  # unstranslated name
+    def _append_new(self):
+        whatsnew_cat = get_category_by_name(self.categories, 
+                                            u"What\u2019s New") # unstranslated name
 
         enq = AppEnquire(self.cache, self.db)
         app_filter = AppFilter(self.db, self.cache)
-        enq.set_query(featured_cat.query,
+        app_filter.set_available_only(True)
+        app_filter.set_not_installed_only(True)
+        enq.set_query(whatsnew_cat.query,
                       limit=8,
                       filter=app_filter,
+                      sortmode=SortMethods.BY_CATALOGED_TIME,
                       nonapps_visible=NonAppVisibility.ALWAYS_VISIBLE,
                       nonblocking_load=False)
 
         self.featured = FlowableGrid()
         frame = FramedHeaderBox()
-        #~ frame.set_corner_label(_("New"))
         frame.set_header_label(_("New"))
         frame.header_implements_more_button()
-        frame.more.connect('clicked', self.on_category_clicked, featured_cat) 
+        frame.more.connect('clicked', self.on_category_clicked, whatsnew_cat) 
         frame.add(self.featured)
+        self.new_frame = frame
         self.right_column.pack_start(frame, True, True, 0)
 
-        helper = AppPropertiesHelper(self.db, self.cache, self.icons)
-        for doc in enq.get_documents():
-            name = helper.get_appname(doc)
-            icon_pb = helper.get_icon_at_size(doc, 48, 48)
-            stats = helper.get_review_stats(doc)
-            categories = helper.get_categories(doc)
-            tile = FeaturedTile(name, icon_pb, stats, categories)
-            tile.connect('clicked', self.on_app_clicked,
-                         helper.get_application(doc))
-            self.featured.add_child(tile)
+        self.helper = AppPropertiesHelper(self.db, self.cache, self.icons)
+        docs = enq.get_documents()
+        self._add_tiles_to_flowgrid(docs, self.featured, 8)
         return
 
-    def _append_recommendations(self):
-        featured_cat = get_category_by_name(self.categories, 
-                                            u"Featured")  # unstranslated name
-
-        enq = AppEnquire(self.cache, self.db)
-        app_filter = AppFilter(self.db, self.cache)
-        enq.set_query(featured_cat.query,
-                      limit=12,
-                      filter=app_filter,
-                      nonapps_visible=NonAppVisibility.ALWAYS_VISIBLE,
-                      nonblocking_load=False)
-
-        self.featured = FlowableGrid()
-        frame = FramedHeaderBox(Gtk.Orientation.VERTICAL)
-        frame.add(self.featured)
-        frame.set_header_label(_("Recommended For You"))
-        frame.header_implements_more_button()
-        self.right_column.pack_start(frame, True, True, 0)
-
-        helper = AppPropertiesHelper(self.db, self.cache, self.icons)
-        for doc in enq.get_documents():
-            name = helper.get_appname(doc)
-            icon_pb = helper.get_icon_at_size(doc, 48, 48)
-            stats = helper.get_review_stats(doc)
-            categories = helper.get_categories(doc)
-            tile = FeaturedTile(name, icon_pb, stats, categories)
-            tile.connect('clicked', self.on_app_clicked,
-                         helper.get_application(doc))
-            self.featured.add_child(tile)
-        return
+    #~ def _append_recommendations(self):
+        #~ featured_cat = get_category_by_name(self.categories, 
+                                            #~ u"Featured")  # unstranslated name
+#~ 
+        #~ enq = AppEnquire(self.cache, self.db)
+        #~ app_filter = AppFilter(self.db, self.cache)
+        #~ enq.set_query(featured_cat.query,
+                      #~ limit=12,
+                      #~ filter=app_filter,
+                      #~ nonapps_visible=NonAppVisibility.ALWAYS_VISIBLE,
+                      #~ nonblocking_load=False)
+#~ 
+        #~ self.featured = FlowableGrid()
+        #~ frame = FramedHeaderBox(Gtk.Orientation.VERTICAL)
+        #~ frame.add(self.featured)
+        #~ frame.set_header_label(_("Recommended For You"))
+        #~ frame.header_implements_more_button()
+        #~ self.right_column.pack_start(frame, True, True, 0)
+#~ 
+        #~ self.helper = AppPropertiesHelper(self.db, self.cache, self.icons)
+        #~ docs = enq.get_documents()
+        #~ self._add_tiles_to_flowgrid(docs, self.featured, 12)
+        #~ return
 
     def _append_appcount(self, supported_only=False):
         enq = AppEnquire(self.cache, self.db)
@@ -473,13 +467,13 @@ class LobbyViewGtk(CategoriesViewGtk):
         self.show_all()
         return
 
-    # stubs for the time being
+    # stubs for the time being, we may reuse them if we get dynamic content 
+    # again
     def stop_carousels(self):
         pass
 
     def start_carousels(self):
         pass
-
 
 class SubCategoryViewGtk(CategoriesViewGtk):
 
@@ -514,27 +508,14 @@ class SubCategoryViewGtk(CategoriesViewGtk):
             frame = FramedHeaderBox()
             # set x/y-alignment and x/y-expand
             #~ frame.set(0.5, 0.0, 1.0, 1.0)
-            frame.set_header_label(_("Top Rated"))
-            frame.header_implements_more_button()
+            frame.set_header_label(_('Top Rated %s') % GObject.markup_escape_text(self.header))
             frame.pack_start(self.toprated, True, True, 0)
             # append the departments section to the page
             self.vbox.pack_start(frame, False, True, 0)
             self.toprated_frame = frame
         else:
             self.toprated.remove_all()
-
-        # ensure that we update the more button
-        cat_with_toprated_search = copy.copy(category)
-        cat_with_toprated_search.sortmode = SortMethods.BY_TOP_RATED
-        cat_with_toprated_search.item_limit = TOP_RATED_CAROUSEL_LIMIT
-        # disconnect old handler (if there is one)
-        try:
-            self.toprated_frame.more.disconnect_by_func(
-                self.on_category_clicked)
-        except TypeError:
-            pass
-        self.toprated_frame.more.connect(
-            'clicked', self.on_category_clicked, cat_with_toprated_search)
+            self.toprated_frame.set_header_label(_('Top Rated %s') % GObject.markup_escape_text(self.header))
 
         # and fill the toprated grid
         self.enquire.set_query(category.query,
@@ -544,15 +525,8 @@ class SubCategoryViewGtk(CategoriesViewGtk):
                                nonapps_visible=NonAppVisibility.ALWAYS_VISIBLE,
                                nonblocking_load=False)
 
-        for doc in self.enquire.get_documents()[0:8]:
-            name = self.helper.get_appname(doc)
-            icon_pb = self.helper.get_icon_at_size(doc, 48, 48)
-            stats = self.helper.get_review_stats(doc)
-            categories = self.helper.get_categories(doc)
-            tile = FeaturedTile(name, icon_pb, stats, categories)
-            tile.connect('clicked', self.on_app_clicked,
-                         self.helper.get_application(doc))
-            self.toprated.add_child(tile)
+        docs = self.enquire.get_documents()
+        self._add_tiles_to_flowgrid(docs, self.toprated, TOP_RATED_CAROUSEL_LIMIT)
         return
 
     def _append_subcat_departments(self, root_category, num_items):

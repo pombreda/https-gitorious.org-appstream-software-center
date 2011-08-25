@@ -19,7 +19,7 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from gi.repository import GLib, GObject, Gtk
+from gi.repository import GObject, Gtk
 
 import datetime
 import gettext
@@ -1217,7 +1217,8 @@ class ReportReviewApp(BaseApp):
             "changed", self._enable_or_disable_report_button)
 
     def _enable_or_disable_report_button(self, widget):
-        if self.textview_report.get_buffer().get_char_count() > 0 and self.combobox_report_summary.get_active() != 0:
+        if (self.textview_report.get_buffer().get_char_count() > 0 and
+            self.combobox_report_summary.get_active() != 0):
             self.button_post.set_sensitive(True)
         else:
             self.button_post.set_sensitive(False)
@@ -1240,7 +1241,8 @@ class ReportReviewApp(BaseApp):
         report_summary = self.combobox_report_summary.get_active_text()
         text_buffer = self.textview_report.get_buffer()
         report_text = text_buffer.get_text(text_buffer.get_start_iter(),
-                                           text_buffer.get_end_iter())
+                                           text_buffer.get_end_iter(),
+                                           include_hidden_chars=False)
         self.api.report_abuse(self.review_id, report_summary, report_text)
 
     def login_successful(self, display_name):
@@ -1248,6 +1250,7 @@ class ReportReviewApp(BaseApp):
         self.main_notebook.set_current_page(1)
         #self.label_reporter.set_text(display_name)
         self._setup_details(self.submit_window, display_name)
+
 
 class SubmitUsefulnessApp(BaseApp):
     SUBMIT_MESSAGE = _(u"Sending usefulness\u2026")

@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-from gi.repository import GObject
+import gobject as GObject
 
 import apt
 import gtk

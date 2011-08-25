@@ -1,5 +1,24 @@
-software-center (4.1.18) UNRELEASED; urgency=low
+software-center (4.1.19) UNRELEASED; urgency=low
 
+  [ Kiwinote ]
+  * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
+    - remove function calls to set the color of the pkgstatusbar (LP: #833195)
+  * softwarecenter/ui/gtk3/views/catview_gtk.py:
+    - don't show unavailable or already installed apps in the 'new' tiles
+  
+  [ Michael Vogt ]
+  * softwarecenter/db/application.py:
+    -ignore errors from incorrect utf8 (LP: #833534)
+  
+  [ Matthew Paul Thomas ]
+  * softwarecenter/ui/gtk3/widgets/exhibits.py:
+    - tweak the default banner presentation (LP: #833169)
+  
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 24 Aug 2011 17:41:55 +0200
+
+software-center (4.1.18) oneiric; urgency=low
+
+  [ Michael Vogt ]
   * lp:~alexeftimie/software-center/packagekit-backend:
     - add packagekit backend, thanks Alex Eftimie
     - this allows using "software-center-gtk3 --packagekit-backend"
@@ -11,8 +30,105 @@ software-center (4.1.18) UNRELEASED; urgency=low
     - gtk3 fixes
   * softwarecenter/ui/gtk3/widgets/stars.py:
     - add get_rating() to make the submit_review_gtk3.py work
+  * softwarecenter/ui/gtk3/widgets/buttons.py:
+    - show correct price in the FeaturedTile (if there is one)
+  * softwarecenter/ui/gtk3/widgets/reviews.py:
+    - make the reviews UI more network change aware
+  * softwarecenter/db/pkginfo_impl/aptcache.py:
+    - fix file monitor const issues with gio vs Gio
+  * utils/piston-helpers/piston_get_reviews_helper.py:
+    - fix offline reviews
+  * fix "What's New" category sorting (LP: #830188)
+  * add new sort "By Newest First" combobox
+  * hide sort combobox for if the category has a forced sort mode
+    (like whats new) LP: #830234
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 19 Aug 2011 14:52:03 +0200
+  [ Alex Eftimie ]
+  * lp:~alexeftimie/software-center/backend-refactor
+    - fixes in the abstract channels backend
+  
+  [ Matthew McGowan ]
+  * lp:~mmcg069/software-center/small-fixes:
+    - theming improvements
+    - fix up installedpane search to include uncategorised items as well
+    - fix up the show-hide technical items in the installedpane
+    - fix the description resizing, prevent wierd spazzing
+  * lp:~mmcg069/software-center/Bug828223:
+    - make feature tiles update the installed state overlay upon 
+      appropriate aptdaemon transactions
+    - add installed ticks to the lobby and subcat tiles (Bug #828223)
+  * lp:~mmcg069/software-center/Bug830691:
+    - improve visual connection in the details (Bug #830691)
+  *lp:~mmcg069/software-center/details-tweaks
+   - add the ratings count to the bottom of the stars in the 
+     detailsview header
+  * lp:~mmcg069/software-center/Bug830218
+    - remove category as per Bug LP: #830218
+  * lp:~mmcg069/software-center/itemview-work:
+    - make review list look like mockup
+
+  [ Aaron Peachey ]
+  * softwarecenter/ui/gtk3/views/catview_gtk.py:
+    - remove 'More' button from sub-category top rated sections
+    - increase number of apps in top-rated feature frames from 8 to 12
+    - add sub category name into frame header for subcategory toprated
+     (LP: #830272)
+  * softwarecenter/ui/gtk3/views/catview_gtk.py:
+    - provide standard method for adding tiles to Flowable grid to 
+      simplify repeated append code (and DRY)
+  * lp:~aaronp/software-center/gtk3-bugs:
+    - fix size request, make nr-reviews in the featured buttons
+      consistent with the applist
+  
+  [ Kiwinote ]
+  * data/ui/gtk3/SoftwareCenter.ui,
+    softwarecenter/ui/gtk3/app.py:
+    - set back/forward menuitems sensitive at the correct times (LP: #830194)
+  * softwarecenter/backend/aptchannels.py,
+    softwarecenter/backend/channel.py:
+    - don't include an 'all available' or 'all installed' channel
+  * softwarecenter/db/appfilter.py:
+    - make the supported filter global
+  * softwarecenter/db/application.py:
+    - never capitalize pkgname (LP: #828295)
+  * softwarecenter/ui/gtk3/app.py:
+    - many fixes to file menu and view menu (LP: #831526)
+  * softwarecenter/ui/gtk3/panes/globalpane.py:
+    - fix left/right padding of toolbar to align with the listview (LP: #823213)
+  * softwarecenter/ui/gtk3/panes/historypane.py:
+    - draw border above treeview (LP: #831421)
+    - give action+time a grey color (LP: #831430)
+  * softwarecenter/ui/gtk3/panes/viewswitcher.py:
+    - link section_clicked to 'button-release-event' rather than 'clicked' to
+      avoid getting signals for the wrong pane (LP: #828821)
+    - menuitems rather than checkmenuitems (LP: #832275)
+  * softwarecenter/ui/gtk3/panes/viewswitcher.py,
+    softwarecenter/ui/gtk3/session/viewmanager.py:
+    - introduce a view-changed signal from the viewmanager to the viewswitcher
+      st we can shade the correct section button when we change pane via the
+      navigation buttons
+  * softwarecenter/ui/gtk3/session/viewmanager.py:
+    - make some changes so the navigation stack doesn't get multiple entries
+      per view
+  * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
+    - don't hide the version label (as we still want the pkgname) (LP: #830747)
+  * softwarecenter/ui/gtk3/views/appview.py,
+    softwarecenter/ui/gtk3/widgets/cellrenderers.py:
+    - horizontally pixel align listview in ltr and rtl (LP: #830229)
+      includes multiple rtl fixes
+  * softwarecenter/ui/gtk3/views/catview_gtk.py:
+    - realign the lobby view a bit
+  
+  [ Robert Roth ]
+  * Update the help menu item to match the specs (LP: #828165)
+  * Show developer website as link instead of button (LP: #830740)
+  * Show today in history pane (LP: #831394)
+
+  [ Matthew Paul Thomas ]
+  * data/default_banner/fallback.jpg:
+    - new default banner and text
+  
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 24 Aug 2011 17:41:55 +0200
 
 software-center (4.1.17) oneiric; urgency=low
 

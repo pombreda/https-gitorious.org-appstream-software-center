@@ -16,33 +16,43 @@
     <property name="copyright" translatable="yes">©2009-2011 Canonical</property>
     <property name="website">http://launchpad.net/software-center</property>
     <property name="website_label">launchpad.net/software-center</property>
-    <property name="authors">Michael Vogt - Coding
+    <property name="authors">Michael Vogt - Code
 Matthew Paul Thomas - UI Design
-Sebastian Heinlein - Coding, Fixes, Widgets
-Matthew McGowan - Pathbar, Widgets, Fixes, Coding
-Andrew Higginson - Coding, Artwork, Bughelp, Design
+Sebastian Heinlein - Code
+Matthew McGowan - Code
+Andrew Higginson - Code
 K.Vishnoo Charan Reddy - Artwork, Bughelp, Design
-Gary Lasker - Coding, Fixes
-Peter Gardenier - Coding, Fixes
-Mohamed Amine IL Idrissi - Coding, Fixes
-Didier Roche - Coding, Fixes
-Andrea Cimitan - Coding, Fixes
-Ara Pulido - Coding, Fixes, Mago
-Ben Weissmann - Coding, Fixes
-Colin Watson - Coding, Fixes
-Geliy Sokolov - Coding, Fixes
-Jacob Johan Edwards - Coding, Fixes
-Olivier Tilloy - Coding, Fixes
-Julian Andres Klode - Coding, Fixes, Packaging
-Ken VanDine - Coding, Gwibber
+Gary Lasker - Code
+Peter Gardenier - Code
+Mohamed Amine IL Idrissi - Code
+Didier Roche - Code
+Andrea Cimitan - Code
+Ara Pulido - Code
+Ben Weissmann - Code
+Colin Watson - Code
+Geliy Sokolov - Code
+Jacob Johan Edwards - Code
+Olivier Tilloy - Code
+Julian Andres Klode - Code
+Ken VanDine - Code
 Loïc Minier - Packaging Fixes
-Michael Forrest  - UI work
-Luke Symes - Fixes
-Seif Lotfy - Zeitgeist
-Stuart Langridge - Javascript magic
-Tomeu Vizoso  - i18n fixes
-Zygmunt Krynicki - Coding, Fixes
-Aaron Peachey - Coding, Fixes
+Michael Forrest  - UI Design
+Luke Symes - Code
+Seif Lotfy - Code
+Stuart Langridge - Code
+Tomeu Vizoso  - i18n
+Zygmunt Krynicki - Codie
+Aaron Peachey - Code
+
+
+Includes artwork based on "Colorful Chocolate Candies" by Romain Guy.
+Used under the Creative Commons Attribution-ShareAlike 2.0 Generic license.
+
+"Romain Guy" linking to 
+http://www.flickr.com/photos/romainguy
+
+"Creative Commons Attribution-ShareAlike 2.0 Generic" linking to
+http://creativecommons.org/licenses/by-sa/2.0/deed.en
 </property>
     <property name="translator_credits" translatable="yes">translator-credits</property>
     <property name="logo_icon_name">softwarecenter</property>
@@ -360,12 +370,13 @@ Aaron Peachey - Coding, Fixes
               </object>
             </child>
             <child>
-              <object class="GtkMenuItem" id="menuitem8">
+              <object class="GtkMenuItem" id="menuitem_view">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="use_action_appearance">False</property>
                 <property name="label" translatable="yes">_View</property>
                 <property name="use_underline">True</property>
+                <signal name="activate" handler="on_menu_view_activate" swapped="no"/>
                 <child type="submenu">
                   <object class="GtkMenu" id="menu4">
                     <property name="visible">True</property>
@@ -437,7 +448,6 @@ Aaron Peachey - Coding, Fixes
                     <property name="can_focus">False</property>
                     <child>
                       <object class="GtkImageMenuItem" id="menuitem_help">
-                        <property name="label" translatable="yes">Software Center _Help</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="use_action_appearance">False</property>

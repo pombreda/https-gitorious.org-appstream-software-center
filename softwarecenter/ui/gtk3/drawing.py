@@ -1,7 +1,10 @@
 from math import pi as PI
 PI_OVER_180 = PI/180
 
-from gi.repository import Gdk
+from gi.repository import Gdk, Gtk
+
+BLACK = Gdk.RGBA(red=0,green=0,blue=0)
+WHITE = Gdk.RGBA(red=1,green=1,blue=1)
 
 
 def color_floats(spec):
@@ -9,21 +12,46 @@ def color_floats(spec):
     rgba.parse(spec)
     return rgba.red, rgba.green, rgba.blue
 
-#~ def alpha_composite(fgcolor, bgcolor):
-    #~ """ Creates a composite rgb of a foreground rgba and a background rgb.
-#~ 
-         #~ - fgcolor: an rgba of floats
-         #~ - bgcolor: an rgb of floats
-    #~ """
-#~ 
-    #~ src_r, src_g, src_b, src_a = fgcolor
-    #~ bg_r, bg_g, bg_b = bgcolor
-#~ 
-    #~ # Source: http://en.wikipedia.org/wiki/Alpha_compositing
-    #~ r = ((1 - src_a) * bg_r) + (src_a * src_r)
-    #~ g = ((1 - src_a) * bg_g) + (src_a * src_g)
-    #~ b = ((1 - src_a) * bg_b) + (src_a * src_b)
-    #~ return r, g, b
+def rgb_to_hex(r, g, b):
+    if isinstance(r, float):
+        r *= 255
+        g *= 255
+        b *= 255
+    return "#%02X%02X%02X" % (r,g,b)
+
+def color_to_hex(color):
+    return rgb_to_hex(color.red, color.green, color.blue)
+
+def mix(fgcolor, bgcolor, mix_alpha):
+    """ Creates a composite rgb of a foreground rgba and a background rgb.
+
+         - fgcolor: an rgb of floats
+         - bgcolor: an rgb of floats
+         - mix_alpha: (0.0 - 1.0) the proportion of fgcolor mixed
+                      into bgcolor
+    """
+
+    src_r, src_g, src_b = fgcolor.red, fgcolor.green, fgcolor.blue
+    bg_r, bg_g, bg_b = bgcolor.red, bgcolor.green, bgcolor.blue
+
+    # Source: http://en.wikipedia.org/wiki/Alpha_compositing
+    r = ((1 - mix_alpha) * bg_r) + (mix_alpha * src_r)
+    g = ((1 - mix_alpha) * bg_g) + (mix_alpha * src_g)
+    b = ((1 - mix_alpha) * bg_b) + (mix_alpha * src_b)
+    return Gdk.RGBA(red=r, green=g, blue=b)
+
+def darken(color, amount=0.3):
+    return mix(BLACK, color, amount)
+
+def lighten(color, amount=0.3):
+    return mix(WHITE, color, amount)
+
+def get_subtle_color_as_hex(widget):
+    vp = widget.get_ancestor('GtkViewport')
+    context = vp.get_style_context()
+    bg = context.get_background_color(Gtk.StateFlags.NORMAL)
+    subtle = darken(bg)
+    return rgb_to_hex(subtle.red, subtle.green, subtle.blue)
 
 def rounded_rect(cr, x, y, w, h, r):
     cr.new_sub_path()

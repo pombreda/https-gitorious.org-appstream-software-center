@@ -39,8 +39,8 @@ class ScreenshotThumbnail(Gtk.Alignment):
         and eventually the screenshot itself.
     """
 
-    MAX_SIZE = 225, 225
-    IDLE_SIZE = 225, 150
+    MAX_SIZE = 300, 300
+    IDLE_SIZE = 300, 150
     SPINNER_SIZE = 32, 32
 
     def __init__(self, distro, icons):

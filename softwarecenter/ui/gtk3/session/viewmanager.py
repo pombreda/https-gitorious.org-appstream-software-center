@@ -16,7 +16,7 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from gi.repository import Gtk
+from gi.repository import Gtk, GObject
 
 from navhistory import NavigationHistory, NavigationItem
 from softwarecenter.ui.gtk3.widgets.backforward import BackForwardButton
@@ -26,9 +26,17 @@ _viewmanager = None # the gobal Viewmanager instance
 def get_viewmanager():
     return _viewmanager
 
-class ViewManager(object):
+class ViewManager(GObject.GObject):
+
+    __gsignals__ = {
+        "view-changed" : (GObject.SignalFlags.RUN_LAST,
+                          None,
+                          (GObject.TYPE_PYOBJECT, ),
+                         ),
+    }
 
     def __init__(self, notebook_view, options=None):
+        GObject.GObject.__init__(self)
         self.notebook_view = notebook_view
         self.search_entry = SearchEntry()
         self.search_entry.connect(
@@ -90,23 +98,27 @@ class ViewManager(object):
     def set_active_view(self, view_id):
         if not self.all_views: 
             return
+        self.emit('view-changed', view_id)
         page_id = self.all_views[view_id]
         view_widget = self.get_view_widget(view_id)
 
-        view_page = view_widget.get_current_page()
-        view_state = view_widget.state
+        # it *seems* that this shouldn't be called here if we want the history
+        # to work, but I'm not familiar with the code, so I'll leave it here
+        # for the mean time
+#        view_page = view_widget.get_current_page()
+#        view_state = view_widget.state
 
         if (self.search_entry.get_text() !=
             view_widget.state.search_term):
             self.search_entry.set_text_with_no_signal(
                                         view_widget.state.search_term)
     
-        callback = view_widget.get_callback_for_page(view_page,
-                                                     view_state)
+#        callback = view_widget.get_callback_for_page(view_page,
+#                                                     view_state)
 
-        nav_item = NavigationItem(self, view_widget, view_page,
-                                  view_state.copy(), callback)
-        self.navhistory.append(nav_item)
+#        nav_item = NavigationItem(self, view_widget, view_page,
+#                                  view_state.copy(), callback)
+#        self.navhistory.append(nav_item)
 
         self.notebook_view.set_current_page(page_id)
         if view_widget:

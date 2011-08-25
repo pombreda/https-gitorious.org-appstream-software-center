@@ -21,9 +21,12 @@ import cairo
 from gi.repository import Gtk, Gdk, Pango, GObject, GdkPixbuf, PangoCairo
 from gettext import gettext as _
 
+from softwarecenter.backend import get_install_backend
+from softwarecenter.db.application import AppDetails
+from softwarecenter.enums import Icons
 from softwarecenter.ui.gtk3.em import StockEms, em
-from softwarecenter.ui.gtk3.widgets.stars import Star
-
+from softwarecenter.ui.gtk3.drawing import darken
+from softwarecenter.ui.gtk3.widgets.stars import Star, StarSize
 
 _HAND = Gdk.Cursor.new(Gdk.CursorType.HAND2)
 
@@ -62,6 +65,7 @@ class _Tile(object):
         self.box.pack_start(self.label, True, True, 0)
         return
 
+
 class TileButton(Gtk.Button, _Tile):
 
     def __init__(self):
@@ -86,8 +90,11 @@ class LabelTile(TileButton):
     def __init__(self, label, icon, icon_size=Gtk.IconSize.MENU):
         TileButton.__init__(self)
         self.build_default(label, icon, icon_size)
-        self.set_name("label-tile")
         self.label.set_line_wrap(True)
+        return
+
+    def do_draw(self, cr):
+        for child in self: self.propagate_draw(child, cr)
         return
 
 
@@ -99,21 +106,34 @@ class CategoryTile(TileButton):
         self.label.set_justify(Gtk.Justification.CENTER)
         self.label.set_line_wrap(True)
         self.box.set_border_width(StockEms.SMALL)
-        self.set_name("category-tile")
         return
 
+    def do_draw(self, cr):
+        for child in self: self.propagate_draw(child, cr)
+        return
 
 class FeaturedTile(TileButton):
 
     MAX_WIDTH = em(10)
-    _MARKUP = '<b>%s</b>'
+    INSTALLED_OVERLAY_SIZE = 22
+    _MARKUP = '<b><small>%s</small></b>'
 
-    def __init__(self, label, icon, review_stats, category=None, icon_size=48):
+    def __init__(self, helper, doc, icon_size=48):
         TileButton.__init__(self)
         self._pressed = False
 
+        label = helper.get_appname(doc)
+        icon = helper.get_icon_at_size(doc, icon_size, icon_size)
+        stats = helper.get_review_stats(doc)
+        doc.installed = doc.available = None
+        self.is_installed = helper.is_installed(doc)
+        self._overlay = helper.icons.load_icon(Icons.INSTALLED_OVERLAY,
+                                               self.INSTALLED_OVERLAY_SIZE,
+                                               0) # flags
+        #~ categories = helper.get_categories(doc)
+
         self.box.set_orientation(Gtk.Orientation.HORIZONTAL)
-        self.box.set_spacing(StockEms.MEDIUM)
+        self.box.set_spacing(StockEms.SMALL)
 
         self.content_left = Gtk.Box.new(Gtk.Orientation.VERTICAL, StockEms.MEDIUM)
         self.content_right = Gtk.Box.new(Gtk.Orientation.VERTICAL, StockEms.SMALL)
@@ -128,32 +148,51 @@ class FeaturedTile(TileButton):
         self.title.set_ellipsize(Pango.EllipsizeMode.END)
         self.content_right.pack_start(self.title, False, False, 0)
 
-        if category is not None:
-            self.category = Gtk.Label.new('<span font_desc="Italic %i">%s</span>' % (em(0.45), category))
-            self.category.set_use_markup(True)
-            self.category.set_alignment(0.0, 0.0)
-            self.category.set_ellipsize(Pango.EllipsizeMode.END)
-            self.content_right.pack_start(self.category, False, False, 4)
+        #categories = helper.get_categories(doc)
+        # if categories is not None:
+        #     self.category = Gtk.Label.new('<span font_desc="Italic %i">%s</span>' % (em(0.45), categories))
+        #     self.category.set_use_markup(True)
+        #     self.category.set_alignment(0.0, 0.0)
+        #     self.category.set_ellipsize(Pango.EllipsizeMode.END)
+        #     self.content_right.pack_start(self.category, False, False, 4)
 
-        if review_stats is not None:
-            self.stars = Star()
-            self.stars.set_name("featured-star")
+        if stats is not None:
+            self.stars = Star(size=StarSize.SMALL)
             self.stars.render_outline = True
-            self.stars.set_rating(review_stats.ratings_average)
-            self.content_right.pack_start(self.stars, False, False, 0)
-
-            self.n_ratings = Gtk.Label.new('<span font_desc="Italic %i" color="%s">%i %s</span>' %
-                                           (em(0.45), '#8C8C8C', review_stats.ratings_total, 'Reviews'))
+            self.stars.set_rating(stats.ratings_average)
+            self.rating_box = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, StockEms.SMALL)
+            self.rating_box.pack_start(self.stars, False, False, 0)
+            self.n_ratings = Gtk.Label.new(
+                '<span font_desc="%i" color="%s"> (%i)</span>' %  (
+                    em(0.45), '#8C8C8C', stats.ratings_total))
             self.n_ratings.set_use_markup(True)
-            self.n_ratings.set_alignment(0.0, 0.0)
-            self.content_right.pack_start(self.n_ratings, False, False, 0)
+            self.n_ratings.set_alignment(0.0, 0.5)
+            self.rating_box.pack_start(self.n_ratings, False, False, 0)
+            self.content_right.pack_start(self.rating_box, False, False, 0)
+        
+            #work out width tile needs to be to ensure ratings text is all visible
+            req_width = (self.stars.size_request().width +
+                         self.image.size_request().width +
+                         self.n_ratings.size_request().width +
+                         StockEms.MEDIUM * 3
+                         )
+        
+            self.MAX_WIDTH = max(self.MAX_WIDTH, req_width)
 
-        self.price = Gtk.Label.new('<span color="%s" font_desc="Bold %i">%s</span>' %
-                                   ('#757575', em(0.6), 'FREE'))
+        details = AppDetails(db=helper.db, doc=doc)
+        price = details.price or _("Free")
+        self.price = Gtk.Label.new(
+            '<span color="%s" font_desc="Bold %i">%s</span>' % (
+                '#757575', em(0.6), price))
         self.price.set_use_markup(True)
         self.content_left.pack_start(self.price, False, False, 0)
 
         self.set_name("featured-tile")
+
+        backend = get_install_backend()
+        backend.connect("transaction-finished",
+                        self.on_transaction_finished,
+                        helper, doc)
 
         self.connect("enter-notify-event", self.on_enter)
         self.connect("leave-notify-event", self.on_leave)
@@ -177,7 +216,25 @@ class FeaturedTile(TileButton):
                              A.width-6, A.height-6)
 
         for child in self: self.propagate_draw(child, cr)
+
+        if self.is_installed:
+            # paint installed tick overlay
+            x = y = 36
+            Gdk.cairo_set_source_pixbuf(cr, self._overlay, x, y)
+            cr.paint()
+
         cr.restore()
+        return
+
+    def on_transaction_finished(self, backend, result, helper, doc):
+        trans_pkgname = str(result.pkgname)
+        pkgname = helper.get_pkgname(doc)
+        if trans_pkgname != pkgname: return
+
+        # update installed state
+        helper.update_availability(doc)
+        self.is_installed = helper.is_installed(doc)
+        self.queue_draw()
         return
 
     def on_enter(self, widget, event):
@@ -219,6 +276,8 @@ class ChannelSelector(Gtk.Button):
 
         self.section_button = section_button
         self.popup = None
+        self._dark_color = Gdk.RGBA(red=0,green=0,blue=0)
+        self.connect('style-updated', self.on_style_updated)
         self.connect("button-press-event", self.on_button_press)
         return
 
@@ -226,7 +285,7 @@ class ChannelSelector(Gtk.Button):
         a = self.get_allocation()
         cr.set_line_width(1)
         cr.rectangle(-0.5, -1.5, a.width, a.height+3)
-        cr.set_source_rgba(0,0,0, 0.6)
+        Gdk.cairo_set_source_rgba(cr, self._dark_color)
         cr.stroke()
         cr.rectangle(0.5, -1.5, a.width-2, a.height+3)
         cr.set_source_rgba(1,1,1, 0.07)
@@ -239,6 +298,16 @@ class ChannelSelector(Gtk.Button):
         if self.popup is None:
             self.build_channel_selector()
         self.show_channel_sel_popup(self, event)
+        return
+
+    def on_style_updated(self, widget):
+        context = widget.get_style_context()
+        context.save()
+        context.add_class("menu")
+        bgcolor = context.get_background_color(Gtk.StateFlags.NORMAL)
+        context.restore()
+
+        self._dark_color = darken(bgcolor, 0.5)
         return
 
     def show_channel_sel_popup(self, widget, event):
@@ -279,33 +348,49 @@ class SectionSelector(TileToggleButton):
         self.label.set_name("section-selector")
         self.set_name("section-selector")
         self.draw_hint_has_channel_selector = False
+        self._dark_color = Gdk.RGBA(red=0,green=0,blue=0)
+        self.connect('style-updated', self.on_style_updated)
         self.label.connect("draw", self.on_label_draw)
         return
 
     def do_draw(self, cr):
         a = self.get_allocation()
         if self.get_active():
+            r, g, b = (self._dark_color.red,
+                       self._dark_color.green,
+                       self._dark_color.blue)
+
             cr.rectangle(0, -1, a.width, a.height+2)
             lin = cairo.LinearGradient(0, 0, 0, a.height)
-            lin.add_color_stop_rgba(0.0, 0,0,0, 0.0)
-            lin.add_color_stop_rgba(0.25, 0,0,0, 0.3)
-            lin.add_color_stop_rgba(0.5, 0,0,0, 0.5)
-            lin.add_color_stop_rgba(0.75, 0,0,0, 0.3)
-            lin.add_color_stop_rgba(1.0, 0,0,0, 0.0)
+            lin.add_color_stop_rgba(0.0, r,g,b, 0.0)
+            lin.add_color_stop_rgba(0.25, r,g,b, 0.3)
+            lin.add_color_stop_rgba(0.5, r,g,b, 0.5)
+            lin.add_color_stop_rgba(0.75, r,g,b, 0.3)
+            lin.add_color_stop_rgba(1.0, r,g,b, 0.0)
             cr.set_source(lin)
             cr.fill_preserve()
-            cr.set_source_rgba(0,0,0, 0.6)
+            cr.set_source_rgba(r,g,b)
             cr.stroke()
 
         elif self.draw_hint_has_channel_selector:
             cr.set_line_width(1)
             cr.move_to(a.width-0.5, -1)
             cr.rel_line_to(0, a.height+2)
-            cr.set_source_rgba(0,0,0,0.6)
+            Gdk.cairo_set_source_rgba(cr, self._dark_color)
             cr.stroke()
 
         for child in self: 
             self.propagate_draw(child, cr)
+        return
+
+    def on_style_updated(self, widget):
+        context = widget.get_style_context()
+        context.save()
+        context.add_class("menu")
+        bgcolor = context.get_background_color(Gtk.StateFlags.NORMAL)
+        context.restore()
+
+        self._dark_color = darken(bgcolor, 0.5)
         return
 
     def on_label_draw(self, label, cr):
@@ -338,8 +423,17 @@ class Link(Gtk.Label):
 
     def __init__(self, markup="", uri="none"):
         Gtk.Label.__init__(self)
-        self.set_markup('<a href="%s">%s</a>' % (uri, markup))
-        self.connect("activate-link", self.on_activate_link)
+        self._handler = 0
+        self.set_markup(markup, uri)
+        return
+
+    def set_markup(self, markup="", uri="none"):
+        if self._handler > 0:
+            GObject.source_remove(self._handler)
+            self._handler = 0
+
+        Gtk.Label.set_markup(self, '<a href="%s">%s</a>' % (uri, markup))
+        self._handler = self.connect("activate-link", self.on_activate_link)
         return
 
     def on_activate_link(self, uri, data):

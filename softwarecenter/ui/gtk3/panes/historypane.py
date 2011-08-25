@@ -104,6 +104,7 @@ class HistoryPane(Gtk.VBox, BasePane):
         removals_action.join_group(all_action)
         removals_button = removals_action.create_tool_item()
         self.toolbar.insert(removals_button, 3)
+        self.toolbar.connect('draw', self.on_toolbar_draw)
 
         self._actions_list = all_action.get_group()
         self._set_actions_sensitive(False)
@@ -166,6 +167,18 @@ class HistoryPane(Gtk.VBox, BasePane):
             self._set_actions_sensitive(True)
             window.set_cursor(None)
             self.emit("history-pane-created")
+
+    def on_toolbar_draw(self, widget, cr):
+        a = widget.get_allocation()
+        context = widget.get_style_context()
+
+        color = context.get_border_color(widget.get_state_flags())
+        cr.set_source_rgba(color.red, color.green, color.blue, 0.5)
+        cr.set_line_width(1)
+        cr.move_to(0.5, a.height - 0.5)
+        cr.rel_line_to(a.width-1, 0)
+        cr.stroke()
+        return
 
     def _get_emblems(self, icons):
         emblem_names = ("package-install",
@@ -337,17 +350,22 @@ class HistoryPane(Gtk.VBox, BasePane):
             action = store.get_value(iter, self.COL_ACTION)
             pkg = store.get_value(iter, self.COL_PKG)
         # Translators : time displayed in history, display hours (0-12), minutes and AM/PM. %H should be used instead of %I to display hours 0-24
-            subs = {'pkgname': pkg, 'time': when.time().strftime(_('%I:%M %p'))}
+            subs = {'pkgname': pkg,
+                    'color': '#8A8A8A',
+                    'time': when.time().strftime(_('%I:%M %p')),
+                   }
             if action == self.INSTALLED:
-                text = _('%(pkgname)s installed %(time)s') % subs
+                text = _('%(pkgname)s <span color="%(color)s">installed %(time)s</span>') % subs
             elif action == self.REMOVED:
-                text = _('%(pkgname)s removed %(time)s') % subs
+                text = _('%(pkgname)s <span color="%(color)s">removed %(time)s</span>') % subs
             elif action == self.UPGRADED:
-                text = _('%(pkgname)s updated %(time)s') % subs
+                text = _('%(pkgname)s <span color="%(color)s">updated %(time)s</span>') % subs
         elif isinstance(when, datetime.date):
             today = datetime.date.today()
             monday = today - datetime.timedelta(days=today.weekday())
-            if when >= monday:
+            if when == today:
+                text = _("Today")
+            elif when >= monday:
                 # Current week, display the name of the day
                 text = when.strftime(_('%A'))
             else:

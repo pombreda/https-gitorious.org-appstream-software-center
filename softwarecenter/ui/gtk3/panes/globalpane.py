@@ -27,7 +27,7 @@ class GlobalPane(Gtk.VBox):
         Gtk.VBox.__init__(self)
 
         alignment = Gtk.Alignment()
-        alignment.set_padding(0, 0, StockEms.SMALL, StockEms.SMALL)
+        alignment.set_padding(0, 0, StockEms.LARGE, StockEms.LARGE)
 
         self.top_hbox = Gtk.HBox(spacing=StockEms.MEDIUM)
         alignment.add(self.top_hbox)

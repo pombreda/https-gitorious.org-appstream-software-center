@@ -131,28 +131,16 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         return
 
     def _row_visibility_func(self, model, it, col):
-
+        row = model.get_value(it, col)
         if self.visible_docids is None:
-
-            row = model.get_value(it, col)
             if isinstance(row, CategoryRowReference):
                 row.vis_count = row.pkg_count
             return True
 
-        row = model.get_value(it, col)
-        if isinstance(row, CategoryRowReference):
-            visible = row.untranslated_name in self.visible_cats.keys()
+        elif isinstance(row, CategoryRowReference):
+            return row.untranslated_name in self.visible_cats.keys()
 
-            if visible:
-                row.vis_count = self.visible_cats[row.untranslated_name]
-
-            # process one event
-            while Gtk.events_pending():
-                Gtk.main_iteration()
-
-            return visible
-
-        if row is None: return False
+        elif row is None: return False
 
         return row.get_docid() in self.visible_docids
 
@@ -165,71 +153,82 @@ class InstalledPane(SoftwarePane, CategoriesParser):
 
         return True
 
+    # override its SoftwarePane._hide_nonapp_pkgs...
+    def _hide_nonapp_pkgs(self):
+        self.nonapps_visible = NonAppVisibility.NEVER_VISIBLE
+        self.refresh_apps()
+
     #~ @interrupt_build_and_wait
     def _build_categorised_view(self):
         LOG.debug('Rebuilding categorised installedview...')
-        self.cat_docid_map = {}
-        enq = self.enquirer
         model = self.base_model # base model not treefilter
         model.clear()
 
-        i = 0
+        def rebuild_categorised_view():
+            self.cat_docid_map = {}
+            enq = self.enquirer
 
-        xfilter = AppFilter(self.db, self.cache)
-        xfilter.set_installed_only(True)
-        for cat in self._all_cats:
-            # for each category do category query and append as a new
-            # node to tree_view
-            if not self._use_category(cat): continue
-            query = self.get_query_for_cat(cat)
-            LOG.debug("filter.instaleld_only: %s" % xfilter.installed_only)
-            enq.set_query(query,
+            i = 0
+
+            xfilter = AppFilter(self.db, self.cache)
+            xfilter.set_installed_only(True)
+            for cat in self._all_cats:
+                # for each category do category query and append as a new
+                # node to tree_view
+                if not self._use_category(cat): continue
+                query = self.get_query_for_cat(cat)
+                LOG.debug("filter.instaleld_only: %s" % xfilter.installed_only)
+                enq.set_query(query,
+                              sortmode=SortMethods.BY_ALPHABET,
+                              nonapps_visible=self.nonapps_visible,
+                              filter=xfilter,
+                              nonblocking_load=False,
+                              persistent_duplicate_filter=(i>0))
+
+                L = len(enq.matches)
+                if L:
+                    i += L
+                    docs = enq.get_documents()
+                    self.cat_docid_map[cat.untranslated_name] = \
+                                        set([doc.get_docid() for doc in docs])
+                    model.set_category_documents(cat, docs)
+
+            # check for uncategorised pkgs
+            enq.set_query(self.state.channel.query,
                           sortmode=SortMethods.BY_ALPHABET,
                           nonapps_visible=self.nonapps_visible,
                           filter=xfilter,
                           nonblocking_load=False,
                           persistent_duplicate_filter=(i>0))
 
-            L = len(self.enquirer.matches)
+            L = len(enq.matches)
             if L:
-                i += L
+                # some foo for channels
+                # if no categorised results but in channel, then use
+                # the channel name for the category
+                channel_name = None
+                if not i and self.state.channel:
+                    channel_name = self.state.channel.display_name
                 docs = enq.get_documents()
-                self.cat_docid_map[cat.untranslated_name] = \
-                                    [doc.get_docid() for doc in docs]
-                model.set_category_documents(cat, docs)
+                tag = channel_name or 'Uncategorized'
+                self.cat_docid_map[tag] = set([doc.get_docid() for doc in docs])
+                model.set_nocategory_documents(docs, untranslated_name=tag,
+                                               display_name=channel_name)
+                i += L
 
-        # check for uncategorised pkgs
-        enq.set_query(self.state.channel.query,
-                      sortmode=SortMethods.BY_ALPHABET,
-                      nonapps_visible=NonAppVisibility.MAYBE_VISIBLE,
-                      filter=xfilter,
-                      nonblocking_load=False,
-                      persistent_duplicate_filter=(i>0))
+            if i:
+                self.app_view.tree_view.set_cursor(Gtk.TreePath(),
+                                                   None, False)
+                if i <= 10:
+                    self.app_view.tree_view.expand_all()
 
-        L = len(enq.matches)
-        if L:
-            # some foo for channels
-            # if no categorised results but in channel, then use
-            # the channel name for the category
-            channel_name = None
-            if not i and self.state.channel:
-                channel_name = self.state.channel.display_name
-            model.set_nocategory_documents(enq.get_documents(),
-                                           display_name=channel_name)
-            i += L
+            # cache the installed app count
+            self.installed_count = i
+            self.app_view._append_appcount(self.installed_count, installed=True)
+            self.emit("app-list-changed", i)
+            return
 
-        if i:
-            self.app_view.tree_view.set_cursor(Gtk.TreePath(),
-                                               None, False)
-            if i <= 10:
-                self.app_view.tree_view.expand_all()
-
-        # cache the installed app count
-        self.installed_count = i
-
-        self.app_view._append_appcount(self.installed_count, installed=True)
-
-        self.emit("app-list-changed", i)
+        GObject.idle_add(rebuild_categorised_view)
         return
 
     def _check_expand(self):
@@ -252,9 +251,11 @@ class InstalledPane(SoftwarePane, CategoriesParser):
 
         elif self.state.search_term != terms:
             self.state.search_term = terms
+            xfilter = AppFilter(self.db, self.cache)
+            xfilter.set_installed_only(True)
             self.enquirer.set_query(self.get_query(),
                                     nonapps_visible=self.nonapps_visible,
-                                    filter=self.apps_filter,
+                                    filter=xfilter,
                                     nonblocking_load=True)
 
             self.visible_docids = self.enquirer.get_docids()
@@ -281,35 +282,11 @@ class InstalledPane(SoftwarePane, CategoriesParser):
             return query
         return cat.query
 
-    def update_show_hide_nonapps(self, length=-1):
-        # override SoftwarePane.update_show_hide_nonapps
-        """
-        update the state of the show/hide non-applications control
-        in the action_bar
-        """
-        #~ appstore = self.app_view.get_model()
-        #~ if not appstore:
-            #~ self.action_bar.unset_label()
-            #~ return
-        
-        # first figure out if we are only showing installed
-        enquirer = self.enquirer
-        enquirer.filter = self.state.filter
-
-        self.action_bar.unset_label()
-
-        if self.nonapps_visible == NonAppVisibility.ALWAYS_VISIBLE:
-            label = _("_Hide technical software_")
-            self.action_bar.set_label(label, self._hide_nonapp_pkgs) 
-        else:
-            label = _("_Display technical software_")
-            self.action_bar.set_label(label, self._show_nonapp_pkgs)
-        return
-
     @wait_for_apt_cache_ready
     def refresh_apps(self, *args, **kwargs):
         """refresh the applist and update the navigation bar """
         logging.debug("installedpane refresh_apps")
+        self._build_categorised_view()
         return
 
     def _clear_search(self):
@@ -328,8 +305,9 @@ class InstalledPane(SoftwarePane, CategoriesParser):
     def _get_vis_cats(self, visids):
         vis_cats = {}
         appcount = 0
+        visids = set(visids)
         for cat_uname, docids in self.cat_docid_map.iteritems():
-            children = len(set(docids) & set(visids))
+            children = len(docids & visids)
             if children:
                 appcount += children
                 vis_cats[cat_uname] = children
@@ -362,8 +340,6 @@ class InstalledPane(SoftwarePane, CategoriesParser):
 
         if self.state.search_term:
             self._search(self.state.search_term)
-
-        self.update_show_hide_nonapps()
         return True
 
     def get_current_app(self):

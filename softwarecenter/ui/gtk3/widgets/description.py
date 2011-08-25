@@ -379,8 +379,8 @@ class TextBlock(Gtk.EventBox):
         self.selection = sel = SelectionCursor(self.cursor)
         self.clipboard = None
 
+        self._test_layout = self.create_pango_layout('')
         #self._xterm = Gdk.Cursor.new(Gdk.XTERM)
-        self.connect('size-allocate', self._on_size_allocate)
 
         self.connect('button-press-event', self._on_press, event_helper, cur, sel)
         self.connect('button-release-event', self._on_release, event_helper, cur, sel)
@@ -390,21 +390,24 @@ class TextBlock(Gtk.EventBox):
         self.connect('key-release-event', self._on_key_release, cur, sel)
 
 #        self.connect('drag-begin', self._on_drag_begin)
-        self.connect('drag-data-get', self._on_drag_data_get, sel)
+        #~ self.connect('drag-data-get', self._on_drag_data_get, sel)
 
         self.connect('focus-in-event', self._on_focus_in)
         self.connect('focus-out-event', self._on_focus_out)
 
         self.connect('style-updated', self._on_style_updated)
-        self.connect('draw', self._on_draw)
         return
 
-    def _on_size_allocate(self, *args):
-        allocation = self.get_allocation()
+    def do_size_allocate(self, allocation):
+        old = self.get_allocation()
+        if old.width == allocation.width and old.height == allocation.height:
+            return
+
         width = allocation.width
 
         x = y = 0
         for layout in self.order:
+            layout.set_width(_PS*(width-layout.indent))
             if layout.index > 0:
                 y += (layout.vspacing or self.line_height)
 
@@ -417,6 +420,8 @@ class TextBlock(Gtk.EventBox):
                                       width-layout.indent, e.height)
 
             y += e.y + e.height
+
+        self.set_allocation(allocation)
         return
 
     # overrides
@@ -424,22 +429,19 @@ class TextBlock(Gtk.EventBox):
         return Gtk.SizeRequestMode.HEIGHT_FOR_WIDTH
 
     def do_get_preferred_height_for_width(self, width):
-        if not self.order:
-            a = self.get_allocation()
-            return a.height, a.height
-
         height = 0
-        for layout in self.order:
-            layout.set_width(_PS*(width-layout.indent))
-            lh = layout.get_pixel_extents().height
-            height += lh + (layout.vspacing or self.line_height)
+        layout = self._test_layout
+        for l in self.order:
+            layout.set_text(l.get_text(), -1)
+            layout.set_width(_PS*(width-l.indent))
+            lh = layout.get_pixel_extents()[1].height
+            height += lh + (l.vspacing or self.line_height)
 
-        height = min(1000, max(50, height))
-
+        height = min(1000, max(50, height)) + 5
         return height, height
 
-    def _on_draw(self, widget, cr):
-        self.render(widget, cr)
+    def do_draw(self, cr):
+        self.render(self, cr)
         return
 
     def _on_style_updated(self, widget):
@@ -989,10 +991,10 @@ class TextBlock(Gtk.EventBox):
         return self.order[self.selection.paragraph]
 
     def render(self, widget, cr):
-        if not self.order: return
+        if not self.order: 
+            return
 
         a = self.get_allocation()
-
         for layout in self.order:
             lx, ly = layout.get_position()
 
@@ -1068,7 +1070,6 @@ class TextBlock(Gtk.EventBox):
 class AppDescription(Gtk.VBox):
 
     # chars that serve as bullets in the description
-    BULLETS = ('- ', '* ', 'o ')
     TYPE_PARAGRAPH = 0
     TYPE_BULLET    = 1
 
@@ -1079,6 +1080,10 @@ class AppDescription(Gtk.VBox):
         self._prev_type = None
         return
 
+    def _part_is_bullet(self, part):
+        # normalize_description() ensures that we only have "* " bullets
+        return part.startswith("* ")
+
     def _parse_desc(self, desc, pkgname):
         """ Attempt to maintain original fixed width layout, while 
             reconstructing the description into text blocks 
@@ -1086,13 +1091,12 @@ class AppDescription(Gtk.VBox):
         """
         parts = normalize_package_description(desc).split('\n')
         for part in parts:
-            if part.startswith("* "):
+            if self._part_is_bullet(part):
                 self.append_bullet(part)
             else:
                 self.append_paragraph(part)
 
         self.description.finished()
-        return
         return
 
     def clear(self):

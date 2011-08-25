@@ -19,10 +19,9 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from gi.repository import GLib, GObject
-
 import pygtk
 pygtk.require("2.0")
+import gobject as GObject
 
 import datetime
 import gettext
@@ -110,10 +109,7 @@ class GRatingsAndReviews(GObject.GObject):
         # piston worker thread
         self.worker_thread = Worker(token)
         self.worker_thread.start()
-        GLib.timeout_add(GLib.PRIORITY_DEFAULT,
-                         500, 
-                         self._check_thread_status,
-                         None)
+        GObject.timeout_add(500, self._check_thread_status, None)
     def submit_review(self, review):
         self.emit("transmit-start", review)
         self.worker_thread.pending_reviews.put(review)
@@ -749,7 +745,6 @@ class SubmitReviewsApp(BaseApp):
         self.rating_label.set_markup(_('Rating:'))
         #error detail link label
         self.label_expander.set_markup('<small><u>%s</u></small>' % (_('Error Details')))
-
         return
 
     # force resize of the legal label when the app resizes, if not
@@ -826,7 +821,7 @@ class SubmitReviewsApp(BaseApp):
             self.summary_char_label.set_markup(markup)
         else:
             self.summary_char_label.set_text('')
-    
+
     def _check_review_character_count(self): 
         review_chars = self.review_buffer.get_char_count()
         if review_chars > self.REVIEW_CHAR_LIMITS[1] - 1:
