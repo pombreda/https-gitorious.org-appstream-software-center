@@ -175,6 +175,8 @@ class SoftwareCenterAgentParser(AppInfoParserBase):
         if key in self.STATIC_DATA:
             return self.STATIC_DATA[key]
         return getattr(self.sca_entry, self._apply_mapping(key))
+    def get_desktop_categories(self):
+        return ['SC_CATEGORY'] + self.sca_entry.department
     def has_option_desktop(self, key):
         return (key in self.STATIC_DATA or
                 hasattr(self.sca_entry, self._apply_mapping(key)))

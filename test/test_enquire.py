@@ -4,23 +4,11 @@
 import sys
 sys.path.insert(0,"../")
 
-import apt
-import os
-import re
 import time
 import unittest
 import xapian
 
-from softwarecenter.db.application import Application, AppDetails
-from softwarecenter.db.database import StoreDatabase
 from softwarecenter.db.enquire import AppEnquire
-from softwarecenter.db.database import parse_axi_values_file
-from softwarecenter.db.pkginfo import get_pkg_info
-from softwarecenter.db.update import update_from_app_install_data, update_from_var_lib_apt_lists, update_from_appstream_xml
-from softwarecenter.enums import (
-    XapianValues,
-    PkgStates,
-    )
 
 from gi.repository import Gtk
 from softwarecenter.testutils import get_test_db, get_test_pkg_info

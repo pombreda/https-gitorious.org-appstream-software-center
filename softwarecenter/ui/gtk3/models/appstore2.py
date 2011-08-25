@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Copyright (C) 2009,2010 Canonical
 #
 # Authors:
@@ -186,12 +187,20 @@ class _AppPropertiesHelper(object):
         return -1
 
     def get_categories(self, doc):
-        categories = doc.get_value(XapianValues.CATEGORIES)
-        # FIXME: transform this into something useful that can also be
-        #        translated, currently it will be something like 
-        #        "System;Settings"
-        return categories
-
+        categories = doc.get_value(XapianValues.CATEGORIES).split(';') or []
+        if categories and categories[0] == 'SC_CATEGORY':
+            return _(categories[-1])
+        from softwarecenter.db.categories import category_subcat, category_cat
+        for key in category_subcat:
+            if key in categories:
+                return _(category_subcat[key].split(';')[1])
+        for key in category_cat:
+            if key in categories:
+                return _(category_cat[key])
+        if categories:
+            return _('System')
+        else:
+            return ''
 
 class AppPropertiesHelper(_AppPropertiesHelper):
 
