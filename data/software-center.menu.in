@@ -419,7 +419,7 @@
       </And>
     </Include>
     <Menu>
-      <_Name>3D</_Name>
+      <_Name>3D Graphics</_Name>
       <SCIcon>applications-3D</SCIcon>
       <Include><And><Category>3DGraphics</Category></And></Include>
     </Menu>

@@ -188,74 +188,19 @@ class _AppPropertiesHelper(object):
 
     def get_categories(self, doc):
         categories = doc.get_value(XapianValues.CATEGORIES).split(';') or []
+        if categories and categories[0] == 'SC_CATEGORY':
+            return _(categories[-1])
+        from softwarecenter.db.categories import category_subcat, category_cat
         for key in category_subcat:
             if key in categories:
-                return category_subcat[key].replace(';', ' › ')
+                return _(category_subcat[key].split(';')[1])
         for key in category_cat:
             if key in categories:
-                return category_cat[key]
-        return 'System'
-
-category_cat = {
-'Utility': 'Accessories',
-'System': 'Accessories',
-'Education': 'Education',
-'Game': 'Games',
-'Sports': 'Games',
-'Graphics': 'Graphics',
-'Network': 'Internet',
-'Office': 'Office',
-'Science': 'Science & Engineering',
-'Audio': 'Sound & Video',
-'AudioVideo': 'Sound & Video',
-'Video': 'Sound & Video',
-'Settings': 'Themes & Tweaks',
-'Accessibility': 'Universal Access',
-'Development': 'Developer Tools',}
-
-category_subcat = {
-'BoardGame': 'Games;Board Games',
-'CardGame': 'Games;Card Games',
-'LogicGame': 'Games;Puzzles',
-'RolePlaying': 'Games;Role Playing',
-'SportsGame': 'Games;Sports',
-'3DGraphics': 'Graphics;3D',
-'VectorGraphics': 'Graphics;Drawing',
-'RasterGraphics': 'Graphics;Painting',
-'Photography': 'Graphics;Photography',
-'Publishing': 'Graphics;Publishing',
-'Scanning': 'Graphics;Scanning & OCR',
-'OCR': 'Graphics;Scanning & OCR',
-'Viewer': 'Graphics;Viewers',
-'InstantMessaging': 'Internet;Chat',
-'IRCClient': 'Internet;Chat',
-'FileTransfer': 'Internet;File Sharing',
-'Email': 'Internet;Mail',
-'WebBrowser': 'Internet;Web Browsers',
-'Astronomy': 'Science & Engineering;Astronomy',
-'Biology': 'Science & Engineering;Biology',
-'Chemistry': 'Science & Engineering;Chemistry',
-'ArtificialIntelligence': 'Science & Engineering;Computing & Robotics',
-'ComputerScience': 'Science & Engineering;Computing & Robotics',
-'Robotics': 'Science & Engineering;Computing & Robotics',
-'Electronics': 'Science & Engineering;Electronics',
-'Engineering': 'Science & Engineering;Engineering',
-'Geography': 'Science & Engineering;Geography',
-'Geology': 'Science & Engineering;Geology',
-'Geoscience': 'Science & Engineering;Geology',
-'DataVisualization': 'Science & Engineering;Mathematics',
-'Math': 'Science & Engineering;Mathematics',
-'NumericalAnalysis': 'Science & Engineering;Mathematics',
-'MedicalSoftware': 'Science & Engineering;Medicine',
-'Electricity': 'Science & Engineering;Physics',
-'Physics': 'Science & Engineering;Physics',
-'Debugger': 'Developer Tools;Debugging',
-'GUIDesigner': 'Developer Tools;Graphic Interface Design',
-'IDE': 'Developer Tools;IDEs',
-'Translation': 'Developer Tools;Localization',
-'Profiling': 'Developer Tools;Profiling',
-'RevisionControl': 'Developer Tools;Version Control',
-'WebDevelopment': 'Developer Tools;Web Development',}
+                return _(category_cat[key])
+        if categories:
+            return _('System')
+        else:
+            return ''
 
 class AppPropertiesHelper(_AppPropertiesHelper):
 
