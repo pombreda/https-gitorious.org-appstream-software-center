@@ -1019,11 +1019,11 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         #~ self.info_header.set_use_markup(True)
         #~ info_vb.pack_start(self.info_header, False, False, 0)
 
-        self.totalsize_info = PackageInfo(_("Total size"), self.info_keys)
-        info_vb.pack_start(self.totalsize_info, False, False, 0)
-
         self.version_info = PackageInfo(_("Version"), self.info_keys)
         info_vb.pack_start(self.version_info, False, False, 0)
+
+        self.totalsize_info = PackageInfo(_("Total size"), self.info_keys)
+        info_vb.pack_start(self.totalsize_info, False, False, 0)
 
         self.license_info = PackageInfo(_("License"), self.info_keys)
         info_vb.pack_start(self.license_info, False, False, 0)
