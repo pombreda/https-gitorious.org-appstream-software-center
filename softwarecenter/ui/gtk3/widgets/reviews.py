@@ -488,7 +488,7 @@ class UIReview(Gtk.VBox):
                     'version' : version,
                     }
         else:
-            version_string = _("For this version %(version)s") % { 
+            version_string = _("For this version (%(version)s)") % { 
                     'version' : version,
                     }
 
