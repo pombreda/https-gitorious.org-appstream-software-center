@@ -3,6 +3,8 @@ software-center (4.1.19) UNRELEASED; urgency=low
   [ Kiwinote ]
   * data/piston-helpers/piston_get_reviews_helper.py:
     - get reviews for the base pkg, not the multiarch one
+  * softwarecenter/ui/gtk3/widgets/buttons.py:
+    - hand cursor for category tiles and subcategory tiles
   * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
     - remove function calls to set the color of the pkgstatusbar (LP: #833195)
   * softwarecenter/ui/gtk3/views/catview_gtk.py:
