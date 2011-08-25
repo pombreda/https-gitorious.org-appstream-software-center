@@ -64,7 +64,7 @@ if __name__ == "__main__":
     kwargs = {"language": options.language, 
               "origin": options.origin,
               "distroseries": options.distroseries,
-              "packagename": options.pkgname,
+              "packagename": options.pkgname.split(':')[0], #multiarch..
               "version": options.version,
               "page": int(options.page),
               }

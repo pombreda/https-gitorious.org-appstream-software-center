@@ -91,12 +91,24 @@ class LabelTile(TileButton):
         TileButton.__init__(self)
         self.build_default(label, icon, icon_size)
         self.label.set_line_wrap(True)
+
+        self.connect("enter-notify-event", self.on_enter)
+        self.connect("leave-notify-event", self.on_leave)
         return
 
     def do_draw(self, cr):
         for child in self: self.propagate_draw(child, cr)
         return
 
+    def on_enter(self, widget, event):
+        window = self.get_window()
+        window.set_cursor(_HAND)
+        return
+
+    def on_leave(self, widget, event):
+        window = self.get_window()
+        window.set_cursor(None)
+        return
 
 class CategoryTile(TileButton):
 
@@ -106,10 +118,23 @@ class CategoryTile(TileButton):
         self.label.set_justify(Gtk.Justification.CENTER)
         self.label.set_line_wrap(True)
         self.box.set_border_width(StockEms.SMALL)
+
+        self.connect("enter-notify-event", self.on_enter)
+        self.connect("leave-notify-event", self.on_leave)
         return
 
     def do_draw(self, cr):
         for child in self: self.propagate_draw(child, cr)
+        return
+
+    def on_enter(self, widget, event):
+        window = self.get_window()
+        window.set_cursor(_HAND)
+        return
+
+    def on_leave(self, widget, event):
+        window = self.get_window()
+        window.set_cursor(None)
         return
 
 class FeaturedTile(TileButton):
