@@ -486,11 +486,11 @@ class UIReview(Gtk.VBox):
         if (review_version and
             app_version and
             upstream_version_compare(review_version, app_version) != 0):
-            version_string = _("For version (%(version)s)") % { 
+            version_string = _("For version %(version)s") % { 
                     'version' : version,
                     }
         else:
-            version_string = _("For this version (%(version)s)") % { 
+            version_string = _("For this version %(version)s") % { 
                     'version' : version,
                     }
 
@@ -571,7 +571,7 @@ class UIReview(Gtk.VBox):
             # add here, but only populate if its not the own review
             self.likebox = Gtk.HBox()
             if already_voted == None and not current_user_reviewer:
-                m = '<span color="%s"><small><b>%s</b></small></span>'
+                m = '<span color="%s"><small>%s</small></span>'
                 self.yes_like = Link(m % (self._subtle, _('Yes')))
                 self.no_like = Link(m % (self._subtle, _('No')))
                 self.yes_like.connect('clicked', self._on_useful_clicked, True)
@@ -582,7 +582,7 @@ class UIReview(Gtk.VBox):
                 self.yes_like.show()
                 self.no_like.show()
                 self.yes_no_separator.show()
-                self.likebox.set_spacing(4)
+                self.likebox.set_spacing(StockEms.SMALL)
                 self.likebox.pack_start(self.yes_like, False, False, 0)
                 self.likebox.pack_start(self.yes_no_separator, False, False, 0)
                 self.likebox.pack_start(self.no_like, False, False, 0)
@@ -664,7 +664,7 @@ class UIReview(Gtk.VBox):
                                     'useful_favorable' : useful_favorable,
                                     }
 
-        m = '<span color="%s"><small><b>%s</b></small></span>'
+        m = '<span color="%s"><small>%s</small></span>'
         label = Gtk.Label()
         label.set_markup(m % (self._subtle, s))
         return label
