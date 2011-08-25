@@ -20,6 +20,7 @@ software-center (4.1.19) UNRELEASED; urgency=low
     -ignore errors from incorrect utf8 (LP: #833534)
   * data/ubuntu-software-center.desktop.in:
     - set default UI to gtk3 (LP: #830901)
+  * add new icon LP: #432552
   
   [ Matthew Paul Thomas ]
   * softwarecenter/ui/gtk3/widgets/exhibits.py:

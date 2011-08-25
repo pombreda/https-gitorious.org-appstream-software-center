@@ -73,7 +73,7 @@ class GlobalPane(Gtk.VBox):
         return
 
     def on_draw(self, widget, cr, assets):
-        a = widget.get_allocation()
+        #a = widget.get_allocation()
 
         # paint bg base color
         Gdk.cairo_set_source_rgba(cr, assets["bg-color"])
