@@ -416,7 +416,7 @@ class Addon(Gtk.HBox):
         if not proposed_icon or not icons.has_icon(proposed_icon):
             proposed_icon = Icons.MISSING_APP
         try:
-            pixbuf = icons.load_icon(proposed_icon, 22, ())
+            pixbuf = icons.load_icon(proposed_icon, 22, 0)
             if pixbuf:
                 pixbuf.scale_simple(22, 22, GdkPixbuf.InterpType.BILINEAR)
             self.icon.set_from_pixbuf(pixbuf)

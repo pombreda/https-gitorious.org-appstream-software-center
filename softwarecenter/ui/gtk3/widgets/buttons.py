@@ -206,6 +206,8 @@ class FeaturedTile(TileButton):
 
         details = AppDetails(db=helper.db, doc=doc)
         price = details.price or _("Free")
+        if price == '0.00':
+            price = _("Free")
         self.price = Gtk.Label.new(
             '<span color="%s" font_desc="Bold %i">%s</span>' % (
                 '#757575', em(0.6), price))
