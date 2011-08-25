@@ -674,18 +674,18 @@ class UIReview(Gtk.VBox):
         correct_name = displayname or person
 
         if person == self.logged_in_person:
-            m = '<small><b>%s (%s)</b></small>\n<span font_size="%s">%s</span>' % (
+            m = '<span color="%s">%s (%s), %s</span>' % (
+                self._subtle,
                 GObject.markup_escape_text(correct_name),
                 # TRANSLATORS: displayed in a review after the persons name,
-                # e.g. "Wonderful text based app" mvo (that's you) 2011-02-11"
-                _("that's you"),
-                8 * Pango.SCALE,
+                # e.g. "Jane Smith (that's you), 2011-02-11"
+                _(u"that\u2019s you"),
                 GObject.markup_escape_text(nice_date))
         else:
             try:
-                m = '<small><b>%s</b></small>\n<span font_size="%s">%s</span>' % (
+                m = '<span color="%s">%s, %s</span>' % (
+                    self._subtle,
                     GObject.markup_escape_text(correct_name.encode("utf-8")),
-                    8 * Pango.SCALE,
                     GObject.markup_escape_text(nice_date))
             except Exception:
                 LOG.exception("_who_when_markup failed")
