@@ -396,7 +396,7 @@ class LobbyViewGtk(CategoriesViewGtk):
 
         self.featured = FlowableGrid()
         frame = FramedHeaderBox()
-        frame.set_header_label(_("New"))
+        frame.set_header_label(_(u"What\u2019s New"))
         frame.header_implements_more_button()
         frame.more.connect('clicked', self.on_category_clicked, whatsnew_cat) 
         frame.add(self.featured)
