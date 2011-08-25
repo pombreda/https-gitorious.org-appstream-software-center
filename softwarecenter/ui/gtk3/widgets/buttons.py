@@ -91,12 +91,24 @@ class LabelTile(TileButton):
         TileButton.__init__(self)
         self.build_default(label, icon, icon_size)
         self.label.set_line_wrap(True)
+
+        self.connect("enter-notify-event", self.on_enter)
+        self.connect("leave-notify-event", self.on_leave)
         return
 
     def do_draw(self, cr):
         for child in self: self.propagate_draw(child, cr)
         return
 
+    def on_enter(self, widget, event):
+        window = self.get_window()
+        window.set_cursor(_HAND)
+        return
+
+    def on_leave(self, widget, event):
+        window = self.get_window()
+        window.set_cursor(None)
+        return
 
 class CategoryTile(TileButton):
 
@@ -106,10 +118,23 @@ class CategoryTile(TileButton):
         self.label.set_justify(Gtk.Justification.CENTER)
         self.label.set_line_wrap(True)
         self.box.set_border_width(StockEms.SMALL)
+
+        self.connect("enter-notify-event", self.on_enter)
+        self.connect("leave-notify-event", self.on_leave)
         return
 
     def do_draw(self, cr):
         for child in self: self.propagate_draw(child, cr)
+        return
+
+    def on_enter(self, widget, event):
+        window = self.get_window()
+        window.set_cursor(_HAND)
+        return
+
+    def on_leave(self, widget, event):
+        window = self.get_window()
+        window.set_cursor(None)
         return
 
 class FeaturedTile(TileButton):
@@ -125,7 +150,6 @@ class FeaturedTile(TileButton):
         label = helper.get_appname(doc)
         icon = helper.get_icon_at_size(doc, icon_size, icon_size)
         stats = helper.get_review_stats(doc)
-        categories = helper.get_categories(doc)
         doc.installed = doc.available = None
         self.is_installed = helper.is_installed(doc)
         self._overlay = helper.icons.load_icon(Icons.INSTALLED_OVERLAY,
@@ -149,6 +173,7 @@ class FeaturedTile(TileButton):
         self.title.set_ellipsize(Pango.EllipsizeMode.END)
         self.content_right.pack_start(self.title, False, False, 0)
 
+        #categories = helper.get_categories(doc)
         # if categories is not None:
         #     self.category = Gtk.Label.new('<span font_desc="Italic %i">%s</span>' % (em(0.45), categories))
         #     self.category.set_use_markup(True)

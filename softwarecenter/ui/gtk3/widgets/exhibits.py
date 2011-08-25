@@ -39,27 +39,26 @@ EXHIBIT_HTML = """
 <html><head>
 <style type="text/css">
 .banner_text {
-font-family: Ubuntu;
-font-size:1.7em;
+font-family:Ubuntu;
+font-size:36px;
+font-weight:bold;
 color: #dd4814;
-background-color: rgba(255,255,255, 0.9);
 padding: 0.2em;
-text-shadow:0em 0em 0.075em white;
+text-shadow: 0 0 24px #fc0, 0 0 12px #fc0, 0 0 6px #fc0, 0 0 3px #fc0;
 position:absolute;
-top:30;
-left:17;
+top:30px;
+left:300px;
 }
 .banner_subtext {
-font-family: Ubuntu;
-font-size:1em;
+font-family:Ubuntu;
+font-size:24px;
+font-weight:bold;
 color:black;
-background-color: rgba(255,255,255, 0.9);
 padding: 0.4em;
-text-shadow:0em 0em 0.075em white;
+text-shadow: 0 0 24px #fc0, 0 0 12px #fc0, 0 0 6px #fc0, 0 0 3px #fc0;
 position:absolute;
-top:65;
-left:17;
-width:300;
+top:80px;
+left:350px;
 }
 </style>
 </head><body>
@@ -71,33 +70,17 @@ width:300;
 </body></html>
 """
 
-class DefaultExhibit(object):
-    def __init__(self):
-        self.id = 0
-        self.package_names = ""
-        self.title_translated = "Default exhibit"
-        self.published = True
-        self.banner_url = "file://%s" % (os.path.abspath(os.path.join(softwarecenter.paths.datadir, "default_banner/fallback.png")))
-        self.html = EXHIBIT_HTML % { 
-            'banner_url' : self.banner_url,
-            'title' : _("It’s new! ›"),
-            'subtitle' : _("Software Center has just been given a fresh new look - please report any issues via the help menu!"),
-      }
-        # we should extract this automatically from the html
-        #self.atk_name = _("Default Banner")
-        #self.atk_description = _("You see this banner because you have no cached banners")
-
 class FeaturedExhibit(object):
     def __init__(self):
         self.id = 0
         self.package_names = "armagetronad,calibre,cheese,homebank,stellarium,gimp,inkscape,blender,audacity,gufw,frozen-bubble,fretsonfire,moovida,liferea,arista,gtg,freeciv-client-gtk,supertuxkart,tumiki-fighters,tuxpaint,webservice-office-zoho"
-        self.title_translated = "Featured exhibit"
+        self.title_translated = "Our picks"
         self.published = True
-        self.banner_url = "file://%s" % (os.path.abspath(os.path.join(softwarecenter.paths.datadir, "default_banner/fallback2.png")))
+        self.banner_url = "file://%s" % (os.path.abspath(os.path.join(softwarecenter.paths.datadir, "default_banner/fallback.jpg")))
         self.html = EXHIBIT_HTML % { 
             'banner_url' : self.banner_url,
-            'title' : _("Stuff we like ›"),
-            'subtitle' : _("It’s just great, try it!"),
+            'title' : _("Our picks ›"),
+            'subtitle' : _("Ubuntu’s sweetest applications"),
       }
         # we should extract this automatically from the html
         #self.atk_name = _("Default Banner")
@@ -530,7 +513,7 @@ def get_test_exhibits_window():
 
     exhibit_banner = ExhibitBanner()
 
-    exhibits_list = [DefaultExhibit()]
+    exhibits_list = [FeaturedExhibit()]
     for (i, (title, url)) in enumerate([
             ("1 some title", "https://wiki.ubuntu.com/Brand?action=AttachFile&do=get&target=orangeubuntulogo.png"),
             ("2 another title", "https://wiki.ubuntu.com/Brand?action=AttachFile&do=get&target=blackeubuntulogo.png"),

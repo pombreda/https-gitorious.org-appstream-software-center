@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-08-19 19:21+0300\n"
+"POT-Creation-Date: 2011-08-24 17:40+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,59 +18,59 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
-#: ../utils/submit_review.py:278 ../utils/submit_review.py:1285
+#: ../utils/submit_review.py:274 ../utils/submit_review.py:1280
 msgid "Failed to delete review"
 msgstr ""
 
-#: ../utils/submit_review.py:364
+#: ../utils/submit_review.py:360
 msgid "Server's response was:"
 msgstr ""
 
-#: ../utils/submit_review.py:366
+#: ../utils/submit_review.py:362
 #, python-format
 msgid ""
 "%s\n"
 "%s"
 msgstr ""
 
-#: ../utils/submit_review.py:368 ../utils/submit_review.py:372
+#: ../utils/submit_review.py:364 ../utils/submit_review.py:368
 msgid ""
 "Unknown error communicating with server. Check your log and consider raising "
 "a bug report if this problem persists"
 msgstr ""
 
-#: ../utils/submit_review.py:437
+#: ../utils/submit_review.py:433
 msgid "Signing in…"
 msgstr ""
 
-#: ../utils/submit_review.py:462
+#: ../utils/submit_review.py:458
 msgid ""
 "To review software or to report abuse you need to sign in to a Ubuntu Single "
 "Sign-On account."
 msgstr ""
 
-#: ../utils/submit_review.py:475
+#: ../utils/submit_review.py:471
 msgid "Login was canceled"
 msgstr ""
 
-#: ../utils/submit_review.py:512
+#: ../utils/submit_review.py:508
 msgid "Failed to log in"
 msgstr ""
 
-#: ../utils/submit_review.py:620
+#: ../utils/submit_review.py:616
 msgid "Submitting Review"
 msgstr ""
 
-#: ../utils/submit_review.py:621
+#: ../utils/submit_review.py:617
 msgid "Failed to submit review"
 msgstr ""
 
-#: ../utils/submit_review.py:622
+#: ../utils/submit_review.py:618
 msgid "Review submitted"
 msgstr ""
 
 #. legal fineprint, do not change without consulting a lawyer
-#: ../utils/submit_review.py:628
+#: ../utils/submit_review.py:624
 msgid ""
 "By submitting this review, you agree not to include anything defamatory, "
 "infringing, or illegal. Canonical may, at its discretion, publish your name "
@@ -78,96 +78,96 @@ msgid ""
 "or content author to publish it too."
 msgstr ""
 
-#: ../utils/submit_review.py:700
+#: ../utils/submit_review.py:696
 #, python-format
 msgid "Review %s"
 msgstr ""
 
-#: ../utils/submit_review.py:704
+#: ../utils/submit_review.py:700
 #, python-format
 msgid "Modify Your %s Review"
 msgstr ""
 
-#: ../utils/submit_review.py:705
+#: ../utils/submit_review.py:701
 msgid "Modify"
 msgstr ""
 
-#: ../utils/submit_review.py:706
+#: ../utils/submit_review.py:702
 msgid "Updating your review"
 msgstr ""
 
-#: ../utils/submit_review.py:707
+#: ../utils/submit_review.py:703
 msgid "Failed to edit review"
 msgstr ""
 
-#: ../utils/submit_review.py:708
+#: ../utils/submit_review.py:704
 msgid "Review updated"
 msgstr ""
 
 #. review label
-#: ../utils/submit_review.py:743
+#: ../utils/submit_review.py:739
 #, python-format
 msgid "Review by: %s"
 msgstr ""
 
 #. review summary label
-#: ../utils/submit_review.py:746
+#: ../utils/submit_review.py:742
 msgid "Summary:"
 msgstr ""
 
 #. rating label
-#: ../utils/submit_review.py:749
+#: ../utils/submit_review.py:745
 msgid "Rating:"
 msgstr ""
 
 #. error detail link label
-#: ../utils/submit_review.py:751 ../utils/submit_review.py:1225
+#: ../utils/submit_review.py:747 ../utils/submit_review.py:1220
 #: ../data/ui/gtk/submit_review.ui.h:3 ../data/ui/gtk/report_abuse.ui.h:1
 msgid "Error Details"
 msgstr ""
 
-#: ../utils/submit_review.py:793
+#: ../utils/submit_review.py:788
 msgid "Can't submit unmodified"
 msgstr ""
 
-#: ../utils/submit_review.py:945
+#: ../utils/submit_review.py:940
 #, python-format
 msgid "Also post this review to %s (@%s)"
 msgstr ""
 
 #. setup accounts combo
-#: ../utils/submit_review.py:959
+#: ../utils/submit_review.py:954
 msgid "Also post this review to: "
 msgstr ""
 
-#: ../utils/submit_review.py:982
+#: ../utils/submit_review.py:977
 #, python-format
 msgid "Posting to %s"
 msgstr ""
 
-#: ../utils/submit_review.py:1062
+#: ../utils/submit_review.py:1057
 msgid "Problems posting to Gwibber"
 msgstr ""
 
-#: ../utils/submit_review.py:1110
+#: ../utils/submit_review.py:1105
 #, python-format
 msgid "reviewed %(appname)s in Ubuntu: %(rating)s %(summary)s %(link)s"
 msgstr ""
 
-#: ../utils/submit_review.py:1152
+#: ../utils/submit_review.py:1147
 msgid "Sending report…"
 msgstr ""
 
-#: ../utils/submit_review.py:1153
+#: ../utils/submit_review.py:1148
 msgid "Failed to submit report"
 msgstr ""
 
 #. title
-#: ../utils/submit_review.py:1168
+#: ../utils/submit_review.py:1163
 msgid "Flag as Inappropriate"
 msgstr ""
 
-#: ../utils/submit_review.py:1183
+#: ../utils/submit_review.py:1178
 msgid "Please make a selection…"
 msgstr ""
 
@@ -175,7 +175,7 @@ msgstr ""
 #. located directly beneath a label asking 'Why is this review inappropriate?'.
 #. This text refers to a possible reason for why the corresponding
 #. review is being flagged as inappropriate.
-#: ../utils/submit_review.py:1188
+#: ../utils/submit_review.py:1183
 msgid "Offensive language"
 msgstr ""
 
@@ -183,7 +183,7 @@ msgstr ""
 #. located directly beneath a label asking 'Why is this review inappropriate?'.
 #. This text refers to a possible reason for why the corresponding
 #. review is being flagged as inappropriate.
-#: ../utils/submit_review.py:1193
+#: ../utils/submit_review.py:1188
 msgid "Infringes copyright"
 msgstr ""
 
@@ -191,7 +191,7 @@ msgstr ""
 #. located directly beneath a label asking 'Why is this review inappropriate?'.
 #. This text refers to a possible reason for why the corresponding
 #. review is being flagged as inappropriate.
-#: ../utils/submit_review.py:1198
+#: ../utils/submit_review.py:1193
 msgid "Contains inaccuracies"
 msgstr ""
 
@@ -199,37 +199,37 @@ msgstr ""
 #. located directly beneath a label asking 'Why is this review inappropriate?'.
 #. This text refers to a possible reason for why the corresponding
 #. review is being flagged as inappropriate.
-#: ../utils/submit_review.py:1203 ../softwarecenter/backend/channel.py:229
+#: ../utils/submit_review.py:1198 ../softwarecenter/backend/channel.py:231
 msgid "Other"
 msgstr ""
 
 #. report label
-#: ../utils/submit_review.py:1219
+#: ../utils/submit_review.py:1214
 msgid "Please give details:"
 msgstr ""
 
 #. review summary label
-#: ../utils/submit_review.py:1222
+#: ../utils/submit_review.py:1217
 msgid "Why is this review inappropriate?"
 msgstr ""
 
-#: ../utils/submit_review.py:1244
+#: ../utils/submit_review.py:1239
 msgid "Sending usefulness…"
 msgstr ""
 
-#: ../utils/submit_review.py:1284
+#: ../utils/submit_review.py:1279
 msgid "Deleting review…"
 msgstr ""
 
-#: ../utils/submit_review.py:1360
+#: ../utils/submit_review.py:1355
 msgid "Missing arguments"
 msgstr ""
 
-#: ../utils/submit_review.py:1389 ../utils/submit_review.py:1413
+#: ../utils/submit_review.py:1384 ../utils/submit_review.py:1408
 msgid "Missing review-id arguments"
 msgstr ""
 
-#: ../utils/submit_review.py:1437 ../utils/submit_review.py:1459
+#: ../utils/submit_review.py:1432 ../utils/submit_review.py:1454
 msgid "Missing review-id argument"
 msgstr ""
 
@@ -716,11 +716,11 @@ msgstr ""
 msgid "Loading"
 msgstr ""
 
-#: ../softwarecenter/backend/channel.py:219
+#: ../softwarecenter/backend/channel.py:221
 msgid "Canonical Partners"
 msgstr ""
 
-#: ../softwarecenter/backend/channel.py:221
+#: ../softwarecenter/backend/channel.py:223
 #: ../softwarecenter/ui/gtk/appdetailsview_gtk.py:1320
 #: ../softwarecenter/ui/gtk/appdetailsview_gtk.py:1326
 #: ../softwarecenter/ui/gtk/appdetailsview_gtk.py:1330
@@ -728,28 +728,28 @@ msgstr ""
 msgid "Unknown"
 msgstr ""
 
-#: ../softwarecenter/backend/channel.py:225
+#: ../softwarecenter/backend/channel.py:227
 msgid "For Purchase"
 msgstr ""
 
-#: ../softwarecenter/backend/channel.py:227
+#: ../softwarecenter/backend/channel.py:229
 msgid "Independent"
 msgstr ""
 
-#: ../softwarecenter/backend/channel.py:306
+#: ../softwarecenter/backend/channel.py:308
 msgid "All Software"
 msgstr ""
 
-#: ../softwarecenter/backend/channel.py:312
+#: ../softwarecenter/backend/channel.py:314
 msgid "All Installed"
 msgstr ""
 
-#: ../softwarecenter/backend/installbackend_impl/aptd.py:679
+#: ../softwarecenter/backend/installbackend_impl/aptd.py:707
 #: ../softwarecenter/ui/gtk/appdetailsview_gtk.py:323
 msgid "Error"
 msgstr ""
 
-#: ../softwarecenter/backend/installbackend_impl/aptd.py:713
+#: ../softwarecenter/backend/installbackend_impl/aptd.py:741
 msgid "_Ignore and install"
 msgstr ""
 
@@ -805,7 +805,7 @@ msgstr ""
 msgid "app;application;package;program;programme;suite;tool"
 msgstr ""
 
-#: ../softwarecenter/db/update.py:441
+#: ../softwarecenter/db/update.py:443
 #, python-format
 msgid ""
 "The file: '%s' could not be read correctly. The application associated with "
@@ -816,7 +816,7 @@ msgstr ""
 #. WARNING: item.name needs to be different than
 #. the item.name in the DB otherwise the DB
 #. gets confused about (appname, pkgname) duplication
-#: ../softwarecenter/db/update.py:482
+#: ../softwarecenter/db/update.py:484
 #, python-format
 msgid "%s (already purchased)"
 msgstr ""
