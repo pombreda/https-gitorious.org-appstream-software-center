@@ -96,6 +96,7 @@ class AppEnquire(GObject.GObject):
             time.sleep(0.02) # 50 fps
             while context.pending():
                 context.iteration()
+        t.join()
 
         # call the query-complete callback
         self.emit("query-complete")
@@ -128,14 +129,14 @@ class AppEnquire(GObject.GObject):
         # use a unique instance of both enquire and xapian database
         # so concurrent queries dont result in an inconsistent database
 
-        # FIXME: don't we need to add locking just like in the old
-        #        gtk/appstore.py model code ?
+        # get lock
+        self.db.acquire_search_lock()
 
         # an alternative would be to serialise queries
         enquire = xapian.Enquire(self.db.xapiandb)
 
         if self.filter and self.filter.required:
-            xfilter = self.filter
+            xfilter = copy.copy(self.filter)
         else:
             xfilter = None
 
@@ -222,6 +223,10 @@ class AppEnquire(GObject.GObject):
                     if not match.docid in match_docids:
                         _matches.append(match)
                         match_docids.add(match.docid)
+
+        # release the lock here because the following check may trigger
+        # calling this function again (and we would deadlock otherwise)
+        self.db.release_search_lock()
 
         # if we have no results, try forcing pkgs to be displayed
         # if not NonAppVisibility.NEVER_VISIBLE is set
