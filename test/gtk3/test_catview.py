@@ -46,8 +46,6 @@ class TestCatView(unittest.TestCase):
         self.assertEqual(self._cat.name, u'What\u2019s New')
         self.assertEqual(self._cat.sortmode, SortMethods.BY_CATALOGED_TIME)
 
-        
-
     def _p(self):
         for i in range(5):
             time.sleep(0.1)

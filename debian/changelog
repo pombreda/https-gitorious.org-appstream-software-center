@@ -5,6 +5,9 @@ software-center (4.1.20) UNRELEASED; urgency=low
     - fix crash in cancel a purchase (LP: #833898)
   * softwarecenter/db/enquire.py:
     - add database locking to avoid thread issues
+  * softwarecenter/db/enquire.py:
+    - fix crash by copy.copy(filter), provide a custom copy
+      method instead this fixes random crash in the lobby
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 25 Aug 2011 18:51:28 +0200
 

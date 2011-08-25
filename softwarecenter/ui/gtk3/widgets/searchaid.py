@@ -207,8 +207,7 @@ class SearchAidLogic(object):
         if not supported_only:
             return None
 
-        import copy
-        unsupported = copy.copy(state.filter)
+        unsupported = state.filter.copy()
         unsupported.set_supported_only(False)
 
         #if category:

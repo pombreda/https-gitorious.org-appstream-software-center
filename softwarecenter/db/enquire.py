@@ -136,7 +136,7 @@ class AppEnquire(GObject.GObject):
         enquire = xapian.Enquire(self.db.xapiandb)
 
         if self.filter and self.filter.required:
-            xfilter = copy.copy(self.filter)
+            xfilter = self.filter
         else:
             xfilter = None
 
@@ -275,9 +275,11 @@ class AppEnquire(GObject.GObject):
         self.search_query = SearchQuery(search_query)
         self.limit = limit
         self.sortmode = sortmode
-        # we need a copy of the filter here because otherwise comparing
-        # two models will not work
-        self.filter = copy.copy(filter)
+        # make a copy for good measure
+        if filter:
+            self.filter = filter.copy()
+        else:
+            self.filter = None
         self.exact = exact
         self.nonblocking_load = nonblocking_load
         self.nonapps_visible = nonapps_visible
