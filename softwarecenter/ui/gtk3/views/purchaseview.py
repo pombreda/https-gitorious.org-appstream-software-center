@@ -251,7 +251,6 @@ h1 {
         # purchase webkit view, this prevents e.g. handling of signals on
         # title_change on reloads (see LP: #696861)
         if not self._wk_handlers_blocked:
-            self.wk.webkit.handler_block_by_func(self._on_new_window)
             self.wk.webkit.handler_block_by_func(self._on_script_alert)
             self.wk.webkit.handler_block_by_func(self._on_title_changed)
             self.wk.webkit.handler_block_by_func(self._on_load_status_changed)
@@ -259,7 +258,6 @@ h1 {
         
     def _unblock_wk_handlers(self):
         if self._wk_handlers_blocked:
-            self.wk.webkit.handler_unblock_by_func(self._on_new_window)
             self.wk.webkit.handler_unblock_by_func(self._on_script_alert)
             self.wk.webkit.handler_unblock_by_func(self._on_title_changed)
             self.wk.webkit.handler_unblock_by_func(self._on_load_status_changed)

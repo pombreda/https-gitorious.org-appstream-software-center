@@ -128,6 +128,9 @@ class AppEnquire(GObject.GObject):
         # use a unique instance of both enquire and xapian database
         # so concurrent queries dont result in an inconsistent database
 
+        # FIXME: don't we need to add locking just like in the old
+        #        gtk/appstore.py model code ?
+
         # an alternative would be to serialise queries
         enquire = xapian.Enquire(self.db.xapiandb)
 
@@ -135,6 +138,7 @@ class AppEnquire(GObject.GObject):
             xfilter = self.filter
         else:
             xfilter = None
+
         # go over the queries
         self.nr_apps, self.nr_pkgs = 0, 0
         _matches = self._matches
