@@ -362,7 +362,7 @@ class PackageInfo(Gtk.HBox):
             l.set_markup(key_markup % (subtle, key), -1)
             max_lw = max(max_lw, l.get_pixel_extents()[1].width)
             del l
-        k.set_size_request(max_lw+12, -1)
+        k.set_size_request(max_lw, -1)
         self.pack_start(k, False, False, 0)
 
         # value
@@ -486,7 +486,6 @@ class AddonsTable(Gtk.VBox):
 
         self.label = Gtk.Label()
         self.label.set_alignment(0, 0.5)
-        self.label.set_padding(0, 6)
 
         markup = '<big><b>%s</b></big>' % _('Add-ons')
         self.label.set_markup(markup)

@@ -39,27 +39,26 @@ EXHIBIT_HTML = """
 <html><head>
 <style type="text/css">
 .banner_text {
-font-family: Ubuntu;
-font-size:1.7em;
+font-family:Ubuntu;
+font-size:36px;
+font-weight:bold;
 color: #dd4814;
-background-color: rgba(255,255,255, 0.9);
 padding: 0.2em;
-text-shadow:0em 0em 0.075em white;
+text-shadow: 0 0 24px #fc0, 0 0 12px #fc0, 0 0 6px #fc0, 0 0 3px #fc0;
 position:absolute;
-top:30;
-left:17;
+top:30px;
+left:300px;
 }
 .banner_subtext {
-font-family: Ubuntu;
-font-size:1em;
+font-family:Ubuntu;
+font-size:24px;
+font-weight:bold;
 color:black;
-background-color: rgba(255,255,255, 0.9);
 padding: 0.4em;
-text-shadow:0em 0em 0.075em white;
+text-shadow: 0 0 24px #fc0, 0 0 12px #fc0, 0 0 6px #fc0, 0 0 3px #fc0;
 position:absolute;
-top:65;
-left:17;
-width:300;
+top:80px;
+left:350px;
 }
 </style>
 </head><body>
@@ -75,13 +74,13 @@ class FeaturedExhibit(object):
     def __init__(self):
         self.id = 0
         self.package_names = "armagetronad,calibre,cheese,homebank,stellarium,gimp,inkscape,blender,audacity,gufw,frozen-bubble,fretsonfire,moovida,liferea,arista,gtg,freeciv-client-gtk,supertuxkart,tumiki-fighters,tuxpaint,webservice-office-zoho"
-        self.title_translated = "Featured exhibit"
+        self.title_translated = "Our picks"
         self.published = True
         self.banner_url = "file://%s" % (os.path.abspath(os.path.join(softwarecenter.paths.datadir, "default_banner/fallback.jpg")))
         self.html = EXHIBIT_HTML % { 
             'banner_url' : self.banner_url,
             'title' : _("Our picks ›"),
-            'subtitle' : _("Ubuntu's sweetest applications"),
+            'subtitle' : _("Ubuntu’s sweetest applications"),
       }
         # we should extract this automatically from the html
         #self.atk_name = _("Default Banner")
