@@ -638,8 +638,8 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
     # the size of the icon on the left side
     APP_ICON_SIZE = 96 # Gtk.IconSize.DIALOG ?
     # art stuff
-    STIPPLE = os.path.join(softwarecenter.paths.datadir,
-                           "ui/gtk3/art/stipple.png")
+    BACKGROUND = os.path.join(softwarecenter.paths.datadir,
+                           "ui/gtk3/art/itemview-background.png")
 
 
     # need to include application-request-action here also since we are multiple-inheriting
@@ -717,15 +717,15 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         if _asset_cache: return _asset_cache
         assets = _asset_cache
         # cache the bg pattern
-        surf = cairo.ImageSurface.create_from_png(self.STIPPLE)
+        surf = cairo.ImageSurface.create_from_png(self.BACKGROUND)
         ptrn = cairo.SurfacePattern(surf)
         ptrn.set_extend(cairo.EXTEND_REPEAT)
-        assets["stipple"] = ptrn
+        assets["bg"] = ptrn
         return assets
 
     def do_draw(self, cr):
-        cr.set_source(_asset_cache["stipple"])
-        cr.paint_with_alpha(0.5)
+        cr.set_source(_asset_cache["bg"])
+        cr.paint_with_alpha(0.75)
         for child in self: self.propagate_draw(child, cr)
         return
 
