@@ -1,4 +1,4 @@
-software-center (4.1.19) UNRELEASED; urgency=low
+software-center (4.1.19) oneiric; urgency=low
 
   [ Kiwinote ]
   * data/piston-helpers/piston_get_reviews_helper.py:
@@ -39,7 +39,7 @@ software-center (4.1.19) UNRELEASED; urgency=low
   * lp:~j-johan-edwards/software-center/toolbar-quick-hack:
     - comment out hatching from USC custom toolbar.
   
- -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 24 Aug 2011 17:41:55 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 25 Aug 2011 17:36:48 +0200
 
 software-center (4.1.18) oneiric; urgency=low
 
