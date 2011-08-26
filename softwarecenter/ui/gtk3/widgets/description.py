@@ -378,6 +378,7 @@ class TextBlock(Gtk.EventBox):
                         Gdk.EventMask.BUTTON_RELEASE_MASK|
                         Gdk.EventMask.POINTER_MOTION_MASK)
 
+        self._is_new = False
         self._bullet = self._new_layout()
         self._bullet.set_markup(self.BULLET_POINT)
         font_desc = Pango.FontDescription()
@@ -415,11 +416,6 @@ class TextBlock(Gtk.EventBox):
         return
 
     def do_size_allocate(self, allocation):
-        old = self.get_allocation()
-        if (old.x == allocation.x and old.y == allocation.y and
-            old.width == allocation.width and old.height == allocation.height):
-            return
-
         width = allocation.width
 
         x = y = 0
@@ -1093,7 +1089,6 @@ class TextBlock(Gtk.EventBox):
 
 class AppDescription(Gtk.VBox):
 
-    # chars that serve as bullets in the description
     TYPE_PARAGRAPH = 0
     TYPE_BULLET    = 1
 
