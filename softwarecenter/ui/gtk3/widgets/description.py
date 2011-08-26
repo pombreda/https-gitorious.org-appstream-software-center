@@ -1021,9 +1021,10 @@ class TextBlock(Gtk.EventBox):
 
             if layout.is_bullet:
                 if self.get_direction() != Gtk.TextDirection.RTL:
-                    self._paint_bullet_point(cr, 0, ly)
+                    indent = layout.indent - self.indent
+                    self._paint_bullet_point(cr, indent, ly)
                 else:
-                    self._paint_bullet_point(cr, a.width-layout.indent, ly)
+                    self._paint_bullet_point(cr, a.width-indent, ly)
 
             if self.DEBUG_PAINT_BBOXES:
                 la = layout.allocation
@@ -1051,10 +1052,10 @@ class TextBlock(Gtk.EventBox):
         self.order.append(l)
         return
 
-    def append_bullet(self, point, vspacing=None):
+    def append_bullet(self, point, indent, vspacing=None):
         l = self._new_layout()
         l.index = len(self.order)
-        l.indent = self.indent
+        l.indent = self.indent + (indent * self.indent)
         l.vspacing = vspacing
         l.is_bullet = True
 
@@ -1107,22 +1108,23 @@ class AppDescription(Gtk.VBox):
 
     def _part_is_bullet(self, part):
         # normalize_description() ensures that we only have "* " bullets
-        return part.startswith("* ")
+        i = part.find("* ")
+        return i > -1, i
 
     def _parse_desc(self, desc, pkgname):
         """ Attempt to maintain original fixed width layout, while 
             reconstructing the description into text blocks 
             (either paragraphs or bullets) which are line-wrap friendly.
         """
-        print pkgname
         # pre-parse descrition if special case exists for the given pkgname
         desc = self._preparser.preparse(pkgname, desc)
 
         parts = normalize_package_description(desc).split('\n')
         for part in parts:
             if not part: continue
-            if self._part_is_bullet(part):
-                self.append_bullet(part)
+            is_bullet, indent = self._part_is_bullet(part)
+            if is_bullet:
+                self.append_bullet(part, indent)
             else:
                 self.append_paragraph(part)
 
@@ -1139,13 +1141,13 @@ class AppDescription(Gtk.VBox):
         self._prev_type = self.TYPE_PARAGRAPH
         return
 
-    def append_bullet(self, point):
+    def append_bullet(self, point, indent):
         if self._prev_type == self.TYPE_BULLET:
-            vspacing = int(0.8*self.description.line_height)
+            vspacing = int(0.3*self.description.line_height)
         else:
             vspacing = self.description.line_height
 
-        self.description.append_bullet(point[2:].strip(), vspacing)
+        self.description.append_bullet(point[2:], indent, vspacing)
         self._prev_type = self.TYPE_BULLET
         return
 

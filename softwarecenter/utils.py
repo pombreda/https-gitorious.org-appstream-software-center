@@ -119,35 +119,37 @@ def normalize_package_description(desc):
         * item1
         * item2 that may again be very very long
     """
+
+    def get_indent(part, whitespace=" "):
+        i = 0
+        for i, char in enumerate(part):
+            if char != whitespace:
+                break
+        return i
+
     BULLETS = ('- ', '* ', 'o ')
     norm_description = ""
     in_blist = False
     # process it
-    old_indent_level = 0
     for i, part in enumerate(desc.split("\n")):
-        print part
+        indent = get_indent(part)
         part = part.strip()
+        #~ print part, indent
         # explicit newline
         if not part:
             norm_description += "\n"
             continue
-        # get indent level
-        for j, c in enumerate(part):
-            if not c in string.whitespace+"".join([s.strip() for s in BULLETS]):
-                indent_level = j
-                break
         # check if in a enumeration
         if part[:2] in BULLETS:
             in_blist = True
-            norm_description += "\n* " + part[2:]
-        elif in_blist and old_indent_level == indent_level:
+            norm_description += "\n" + indent*'_' + "* " + part[2:]
+        elif in_blist:
             norm_description += " " + part
         else:
             in_blist = False
             if not norm_description.endswith("\n"):
                 norm_description += " "
             norm_description += part
-        old_indent_level = indent_level
     return norm_description.strip()
 
 def htmlize_package_description(desc):
