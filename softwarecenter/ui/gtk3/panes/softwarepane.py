@@ -142,7 +142,10 @@ class DisplayState(object):
         state.search_term = self.search_term
         state.application = self.application
         state.limit = self.limit
-        state.filter = self.filter.copy()
+        if self.filter:
+            state.filter = self.filter.copy()
+        else:
+            state.filter = None
         return state
 
     def reset(self):
