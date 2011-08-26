@@ -1122,7 +1122,10 @@ class AppDescription(Gtk.VBox):
 
     def set_description(self, raw_desc, pkgname):
         self.clear()
-        encoded_desc = unicode(raw_desc).encode('utf-8')
+        if type(raw_desc) == str:
+            encoded_desc = unicode(raw_desc, 'utf8').encode('utf8')
+        else:
+            encoded_desc = raw_desc.encode('utf8')
         desc = GObject.markup_escape_text(encoded_desc)
         self._parse_desc(desc, pkgname)
         self.show_all()

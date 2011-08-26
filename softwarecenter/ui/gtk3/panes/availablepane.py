@@ -263,7 +263,7 @@ class AvailablePane(SoftwarePane):
             line1 = GObject.markup_escape_text(category.name)
             line2 = GObject.markup_escape_text(subcategory.name)
         elif category is not None:
-            line1 = GObject.markup_escape_text(category.name.encode("utf-8"))
+            line1 = GObject.markup_escape_text(category.name)
         else:
             line1 = _("All Software")
         return line1, line2

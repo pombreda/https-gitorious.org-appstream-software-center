@@ -127,7 +127,7 @@ class DisplayState(object):
         return object.__setattr__(self, name, val)
 
     def __str__(self):
-        s = '%s %s "%s" %s %s' % (self.category,
+        s = unicode('%s %s "%s" %s %s', 'utf8').encode('utf8') % (self.category,
                                   self.subcategory,
                                   self.search_term,
                                   self.application,
