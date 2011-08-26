@@ -504,7 +504,7 @@ class SubCategoryViewGtk(CategoriesViewGtk):
     @wait_for_apt_cache_ready # be consistent with new apps
     def _append_sub_toprated(self, category):
         if self.toprated is None:
-            self.toprated = FlowableGrid(paint_grid_pattern=False)
+            self.toprated = FlowableGrid()
             self.toprated.set_row_spacing(6)
             self.toprated.set_column_spacing(6)
             frame = FramedHeaderBox()
