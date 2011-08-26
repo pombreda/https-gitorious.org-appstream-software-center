@@ -998,16 +998,20 @@ class TextBlock(Gtk.EventBox):
         a = self.get_allocation()
         for layout in self.order:
             lx, ly = layout.get_position()
-
-            self._selection_highlight(layout,
-                                      self.selection,
-                                      self._bg, self._fg)
+#~ 
+            #~ self._selection_highlight(layout,
+                                      #~ self.selection,
+                                      #~ self._bg, self._fg)
 
             if layout.is_bullet:
                 if self.get_direction() != Gtk.TextDirection.RTL:
                     self._paint_bullet_point(cr, 0, ly)
                 else:
                     self._paint_bullet_point(cr, a.width-layout.indent, ly)
+
+            la = layout.allocation
+            cr.rectangle(la.x, la.y, la.width, la.height)
+            cr.stroke()
 
             #~ # draw the layout
             Gtk.render_layout(self.get_style_context(),
@@ -1092,6 +1096,7 @@ class AppDescription(Gtk.VBox):
         """
         parts = normalize_package_description(desc).split('\n')
         for part in parts:
+            if not part: continue
             if self._part_is_bullet(part):
                 self.append_bullet(part)
             else:
