@@ -343,6 +343,8 @@ class SelectionCursor(Cursor):
 class TextBlock(Gtk.EventBox):
 
     PAINT_PRIMARY_CURSOR = True
+    DEBUG_PAINT_BBOXES = False
+
     BULLET_POINT = u'  \u2022  '
 
     INFOCUS_NORM = 0
@@ -1009,9 +1011,11 @@ class TextBlock(Gtk.EventBox):
                 else:
                     self._paint_bullet_point(cr, a.width-layout.indent, ly)
 
-            la = layout.allocation
-            cr.rectangle(la.x, la.y, la.width, la.height)
-            cr.stroke()
+            if self.DEBUG_PAINT_BBOXES:
+                la = layout.allocation
+                cr.rectangle(la.x, la.y, la.width, la.height)
+                cr.set_source_rgb(1,0,0)
+                cr.stroke()
 
             #~ # draw the layout
             Gtk.render_layout(self.get_style_context(),
@@ -1110,17 +1114,17 @@ class AppDescription(Gtk.VBox):
         return
 
     def append_paragraph(self, p):
-        if self._prev_type == self.TYPE_BULLET:
-            vspacing = int(1.2*self.description.line_height)
-        else:
-            vspacing = self.description.line_height
-
+        vspacing = self.description.line_height
         self.description.append_paragraph(p.strip(), vspacing)
         self._prev_type = self.TYPE_PARAGRAPH
         return
 
     def append_bullet(self, point):
-        vspacing = int(1.2*self.description.line_height)
+        if self._prev_type == self.TYPE_BULLET:
+            vspacing = int(0.8*self.description.line_height)
+        else:
+            vspacing = self.description.line_height
+
         self.description.append_bullet(point[2:].strip(), vspacing)
         self._prev_type = self.TYPE_BULLET
         return
