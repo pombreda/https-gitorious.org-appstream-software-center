@@ -1052,10 +1052,10 @@ class TextBlock(Gtk.EventBox):
         self.order.append(l)
         return
 
-    def append_bullet(self, point, indent, vspacing=None):
+    def append_bullet(self, point, indent_level, vspacing=None):
         l = self._new_layout()
         l.index = len(self.order)
-        l.indent = self.indent + (indent * self.indent)
+        l.indent = self.indent * (indent_level + 1)
         l.vspacing = vspacing
         l.is_bullet = True
 
@@ -1141,13 +1141,14 @@ class AppDescription(Gtk.VBox):
         self._prev_type = self.TYPE_PARAGRAPH
         return
 
-    def append_bullet(self, point, indent):
+    def append_bullet(self, point, indent_level):
         if self._prev_type == self.TYPE_BULLET:
-            vspacing = int(0.3*self.description.line_height)
+            vspacing = int(0.4*self.description.line_height)
         else:
             vspacing = self.description.line_height
 
-        self.description.append_bullet(point[2:], indent, vspacing)
+        self.description.append_bullet(
+                        point[indent_level+2:], indent_level, vspacing)
         self._prev_type = self.TYPE_BULLET
         return
 

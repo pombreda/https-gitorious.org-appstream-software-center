@@ -142,7 +142,7 @@ def normalize_package_description(desc):
         # check if in a enumeration
         if part[:2] in BULLETS:
             in_blist = True
-            norm_description += "\n" + indent*'_' + "* " + part[2:]
+            norm_description += "\n" + indent*' ' + "* " + part[2:]
         elif in_blist:
             norm_description += " " + part
         else:
