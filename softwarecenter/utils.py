@@ -125,6 +125,7 @@ def normalize_package_description(desc):
     # process it
     old_indent_level = 0
     for i, part in enumerate(desc.split("\n")):
+        print part
         part = part.strip()
         # explicit newline
         if not part:

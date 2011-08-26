@@ -34,6 +34,20 @@ def color_floats(color):
     return color.red/65535.0, color.green/65535.0, color.blue/65535.0
 
 
+class _SpecialCasePreParsers(object):
+
+    def preparse(self, k, desc):
+        func_name = '_%s_preparser' % k.lower()
+        if not hasattr(self, func_name):
+            return desc
+        f = getattr(self, func_name)
+        return f(desc)
+
+    # special case pre-parsers
+    def _skype_preparser(self, desc):
+        return desc.replace('. *', '.\n*')
+
+
 class EventHelper(dict):
 
     VALID_KEYS = (
@@ -1082,6 +1096,8 @@ class AppDescription(Gtk.VBox):
     TYPE_PARAGRAPH = 0
     TYPE_BULLET    = 1
 
+    _preparser = _SpecialCasePreParsers()
+
     def __init__(self):
         Gtk.VBox.__init__(self)
         self.description = TextBlock()
@@ -1098,6 +1114,10 @@ class AppDescription(Gtk.VBox):
             reconstructing the description into text blocks 
             (either paragraphs or bullets) which are line-wrap friendly.
         """
+        print pkgname
+        # pre-parse descrition if special case exists for the given pkgname
+        desc = self._preparser.preparse(pkgname, desc)
+
         parts = normalize_package_description(desc).split('\n')
         for part in parts:
             if not part: continue
