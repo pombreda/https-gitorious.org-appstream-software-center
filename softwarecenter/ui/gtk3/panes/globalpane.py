@@ -9,28 +9,21 @@ from softwarecenter.ui.gtk3.em import StockEms
 from softwarecenter.ui.gtk3.session.viewmanager import get_viewmanager
 from softwarecenter.ui.gtk3.panes.viewswitcher import ViewSwitcher
 
+def _widget_set_margins(widget, top=0, bottom=0, left=0, right=0):
+    widget.set_margin_top(top)
+    widget.set_margin_bottom(bottom)
+    widget.set_margin_left(left)
+    widget.set_margin_right(right)
+    return
 
-class GlobalPane(Gtk.VBox):
 
-    # art assets
-    BACKGROUND = os.path.join(softwarecenter.paths.datadir,
-                              "ui/gtk3/art/globalpane-bg.png")
-
-    # colours
-    LIGHT_AUBERGINE = "#d7d0d4"
-
-    PADDING = StockEms.SMALL
-
-    _asset_cache = {}
+class GlobalPane(Gtk.Toolbar):
 
     def __init__(self, view_manager, datadir, db, cache, icons):
-        Gtk.VBox.__init__(self)
+        Gtk.Toolbar.__init__(self)
+        context = self.get_style_context()
+        context.add_class(Gtk.STYLE_CLASS_PRIMARY_TOOLBAR)
 
-        alignment = Gtk.Alignment()
-        alignment.set_padding(0, 0, StockEms.LARGE, StockEms.LARGE)
-
-        self.top_hbox = Gtk.HBox(spacing=StockEms.MEDIUM)
-        alignment.add(self.top_hbox)
         # add nav history back/forward buttons...
         # note:  this is hacky, would be much nicer to make the custom self/right
         # buttons in BackForwardButton to be Gtk.Activatable/Gtk.Widgets, then wire in the
@@ -38,70 +31,31 @@ class GlobalPane(Gtk.VBox):
         # but couldn't seem to get this to work..so just wire things up directly
         vm = get_viewmanager()
         self.back_forward = vm.get_global_backforward()
-        a = Gtk.Alignment.new(0.5, 0.5, 1.0, 0.0)
-        a.add(self.back_forward)
-        self.top_hbox.pack_start(a, False, True, 0)
+        self.back_forward.set_vexpand(False)
+        self.back_forward.set_valign(Gtk.Align.CENTER)
+        _widget_set_margins(self.back_forward,
+                            left=StockEms.LARGE, right=StockEms.LARGE)
+        self._insert_as_tool_item(self.back_forward, 0)
 
         self.view_switcher = ViewSwitcher(view_manager, datadir, db, cache, icons)
-        self.top_hbox.pack_start(self.view_switcher, True, True, 0)
+        self._insert_as_tool_item(self.view_switcher, 1)
+
+        item = Gtk.ToolItem()
+        item.set_expand(True)
+        self.insert(item, -1)
 
         #~ self.init_atk_name(self.searchentry, "searchentry")
         self.searchentry = vm.get_global_searchentry()
-        self.top_hbox.pack_end(self.searchentry, False, True, 0)
-        self.pack_start(alignment, False, True, 0)
-
-        self._cache_art_assets()
-        self.connect("draw", self.on_draw, self._asset_cache)
+        self._insert_as_tool_item(self.searchentry, -1)
+        _widget_set_margins(self.searchentry, right=StockEms.LARGE)
         return
 
-    def _cache_art_assets(self):
-        assets = self._asset_cache
+    def _insert_as_tool_item(self, widget, pos):
+        item = Gtk.ToolItem()
+        item.add(widget)
+        self.insert(item, pos)
+        return item
 
-        # cache the bg color
-        context = self.get_style_context()
-        context.save()
-        context.add_class("menu")
-        color = context.get_background_color(Gtk.StateFlags.NORMAL)
-        context.restore()
-        assets["bg-color"] = color
-
-        # cache the bg pattern
-        surf = cairo.ImageSurface.create_from_png(self.BACKGROUND)
-        bg_ptrn = cairo.SurfacePattern(surf)
-        bg_ptrn.set_extend(cairo.EXTEND_REPEAT)
-        assets["bg"] = bg_ptrn
-        return
-
-    def on_draw(self, widget, cr, assets):
-        #a = widget.get_allocation()
-
-        # paint bg base color
-        Gdk.cairo_set_source_rgba(cr, assets["bg-color"])
-        cr.paint()
-
-        # paint diagonal lines
-        #~ cr.save()
-        #~ bg = assets["bg"]
-        #~ surf_height = bg.get_surface().get_width() - 5
-        #~ cr.rectangle(0, 0, a.width, surf_height)
-        #~ cr.clip()
-        #~ cr.set_source(bg)
-        #~ cr.paint_with_alpha(0.3)
-        #~ cr.restore()
-
-        # paint bottom edge highlight
-        #~ cr.set_line_width(1)
-        #~ cr.set_source_rgb(0.301960784, 0.301960784, 0.301960784) # grey
-        #~ cr.move_to(-0.5, a.height-1.5)
-        #~ cr.rel_line_to(a.width+1, 0)
-        #~ cr.stroke()
-#~ 
-        #~ # paint the bottom dark edge
-        #~ cr.set_source_rgb(0.141176471, 0.141176471, 0.141176471) # darkness
-        #~ cr.move_to(-0.5, a.height-0.5)
-        #~ cr.rel_line_to(a.width+1, 0)
-        #~ cr.stroke()
-        return
 
 def get_test_window():
 
