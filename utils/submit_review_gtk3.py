@@ -648,10 +648,10 @@ class SubmitReviewsApp(BaseApp):
         self.action = action
         self.review_id = int(review_id)
         # parent xid
-        if parent_xid:
+        #~ if parent_xid:
             #~ win = Gdk.Window.foreign_new(int(parent_xid))
-            wnck_get_xid_from_pid(os.getpid())
-            win = ''
+            #~ wnck_get_xid_from_pid(os.getpid())
+            #~ win = ''
             #~ self.review_buffer.set_text(str(win))
             #~ if win:
                 #~ self.submit_window.realize()
@@ -660,7 +660,7 @@ class SubmitReviewsApp(BaseApp):
         self.submit_window.set_position(Gtk.WindowPosition.MOUSE)
         
         self.review_summary_entry.connect('changed', self._on_mandatory_text_entry_changed)
-        #~ self.star_rating.connect('changed', self._on_mandatory_fields_changed)
+        self.star_rating.connect('changed', self._on_mandatory_fields_changed)
         self.review_buffer.connect('changed', self._on_text_entry_changed)
         
         # gwibber stuff
@@ -748,8 +748,9 @@ class SubmitReviewsApp(BaseApp):
     def on_submit_window_state_changed(self, *args):
         self._resize_legal_label()
     def _resize_legal_label(self):
-        width, height = self.submit_window.get_size()
-        self.label_legal_fineprint.set_size_request(width-24, -1)
+        return
+        #~ width, height = self.submit_window.get_size()
+        #~ self.label_legal_fineprint.set_size_request(width-24, -1)
 
     def _on_mandatory_fields_changed(self, widget):
         self._enable_or_disable_post_button()
@@ -767,7 +768,7 @@ class SubmitReviewsApp(BaseApp):
         review_chars = self.review_buffer.get_char_count()
         if (summary_chars and summary_chars <= self.SUMMARY_CHAR_LIMITS[0] and
             review_chars and review_chars <= self.REVIEW_CHAR_LIMITS[0] and
-            self.star_rating.get_rating()):
+            int(self.star_rating.get_rating()) > 0):
             self.button_post.set_sensitive(True)
             self._change_status("clear", "")
         else:
@@ -883,7 +884,7 @@ class SubmitReviewsApp(BaseApp):
         review.summary = self.review_summary_entry.get_text()
         review.date = datetime.datetime.now()
         review.language = get_language()
-        review.rating = self.star_rating.get_rating()
+        review.rating = int(self.star_rating.get_rating())
         review.package_version = self.version
         review.origin = self.origin
         
