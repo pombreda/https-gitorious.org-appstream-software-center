@@ -123,9 +123,17 @@ class ButtonPart(Gtk.Button):
         #~ self.set_name("backforward")
         self.set_relief(Gtk.ReliefStyle.NORMAL)
         self.arrow_type = arrow_type
-        arrow = Gtk.Arrow.new(arrow_type, Gtk.ShadowType.OUT)
-        arrow.set_margin_top(2)
-        arrow.set_margin_bottom(2)
+
+        if self.arrow_type == Gtk.ArrowType.LEFT:
+            arrow = Gtk.Image.new_from_icon_name('stock_left',
+                                                 Gtk.IconSize.BUTTON)
+        elif self.arrow_type == Gtk.ArrowType.RIGHT:
+            arrow = Gtk.Image.new_from_icon_name('stock_right',
+                                                 Gtk.IconSize.BUTTON)
+
+        #~ arrow = Gtk.Arrow.new(arrow_type, Gtk.ShadowType.OUT)
+        #~ arrow.set_margin_top(2)
+        #~ arrow.set_margin_bottom(2)
         arrow.set_margin_left(2)
         arrow.set_margin_right(2)
         self.add(arrow)
