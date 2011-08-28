@@ -548,6 +548,7 @@ class MoreLink(Gtk.EventBox):
     def clicked(self):
         self.emit("clicked")
 
+
 def get_test_buttons_window():
     win = Gtk.Window()
     win.set_size_request(200,200)
