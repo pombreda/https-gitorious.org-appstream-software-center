@@ -4,11 +4,11 @@
 }
 
 GtkViewport {
-    background-color: #DED7DB;
+    background-color: #DED7DB; /* light aubergine */
     border-width: 0;
     padding: 0;
 }
 
 GtkTreeView {
-    background-color: #DED7DB;
+    background-color: #F4F1F3; /* super-light aubergine */
 }

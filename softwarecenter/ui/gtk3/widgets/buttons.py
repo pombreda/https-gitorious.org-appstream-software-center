@@ -449,11 +449,11 @@ class SectionSelector(TileToggleButton):
 
         # gradient for masking
         lin = cairo.LinearGradient(0, 0, 0, a.height)
-        lin.add_color_stop_rgba(0.0, 1,1,1, 0.2)
-        lin.add_color_stop_rgba(0.3, 1,1,1, 0.7)
+        lin.add_color_stop_rgba(0.0, 1,1,1, 0.1)
+        lin.add_color_stop_rgba(0.25, 1,1,1, 0.7)
         lin.add_color_stop_rgba(0.5, 1,1,1, 1.0)
-        lin.add_color_stop_rgba(0.7, 1,1,1, 0.7)
-        lin.add_color_stop_rgba(1.0, 1,1,1, 0.2)
+        lin.add_color_stop_rgba(0.75, 1,1,1, 0.7)
+        lin.add_color_stop_rgba(1.0, 1,1,1, 0.1)
 
         cr.set_source_surface(_surf, 0, 0)
         cr.mask(lin)
