@@ -14,7 +14,11 @@ software-center (4.1.20.1) UNRELEASED; urgency=low
   * softwarecenter/ui/gtk3/widgets/buttons.py:
     - escape application name in tiles (LP: #835876)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 25 Aug 2011 20:51:11 +0200
+  [ Jacob Johan Edwards ]
+  * softwarecenter/ui/gtk3/panes/softwarepane.py:
+    - fix the spinner display when loading slow views (LP: #830682)
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 29 Aug 2011 18:15:16 -0400
 
 software-center (4.1.20) oneiric; urgency=low
 
