@@ -90,7 +90,7 @@ class AvailablePane(SoftwarePane):
         if self.view_initialized: 
             return
 
-        self.spinner_view.set_text(_('Loading Categories'))
+        self.spinner_view.set_text()
         self.spinner_view.start()
         self.spinner_view.show()
         self.spinner_notebook.set_current_page(AvailablePane.Pages.SPINNER)
