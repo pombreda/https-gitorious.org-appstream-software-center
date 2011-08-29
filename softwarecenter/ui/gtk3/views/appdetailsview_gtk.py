@@ -705,12 +705,6 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         assets["bg"] = ptrn
         return assets
 
-    def do_draw(self, cr):
-        cr.set_source(_asset_cache["bg"])
-        cr.paint_with_alpha(0.7)
-        for child in self: self.propagate_draw(child, cr)
-        return
-
     def _on_net_state_changed(self, watcher, state):
         if state in NetState.NM_STATE_DISCONNECTED_LIST:
             self._check_for_reviews()
