@@ -22,4 +22,5 @@ GtkViewport {
 
 GtkTreeView {
     background-color: @super-light-aubergine;
+    border-radius: 3;
 }

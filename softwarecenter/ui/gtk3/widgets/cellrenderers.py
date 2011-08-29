@@ -540,7 +540,7 @@ class CellButtonRenderer:
         context.set_state(self.state)
 
         Gtk.render_background(context, cr, x, y, width, height)
-        Gtk.render_frame(context, cr, x, y, width, height)
+        #~ Gtk.render_frame(context, cr, x, y, width, height)
 
         layout.set_markup(self.markup_variants[self.current_variant], -1)
         layout_width = layout.get_pixel_extents()[1].width
