@@ -127,7 +127,7 @@ class DisplayState(object):
         return object.__setattr__(self, name, val)
 
     def __str__(self):
-        s = '%s %s "%s" %s %s' % (self.category,
+        s = unicode('%s %s "%s" %s %s', 'utf8').encode('utf8') % (self.category,
                                   self.subcategory,
                                   self.search_term,
                                   self.application,
@@ -142,7 +142,10 @@ class DisplayState(object):
         state.search_term = self.search_term
         state.application = self.application
         state.limit = self.limit
-        state.filter = self.filter.copy()
+        if self.filter:
+            state.filter = self.filter.copy()
+        else:
+            state.filter = None
         return state
 
     def reset(self):

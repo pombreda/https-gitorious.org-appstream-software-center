@@ -47,7 +47,7 @@ class Application(object):
         # defaults
         self.pkgname = pkgname.replace("$kernel", os.uname()[2])
         if appname:
-            self.appname = unicode(appname, "utf8", "ignore")
+            self.appname = unicode(appname, "utf8", "ignore").encode('utf8')
         else:
             self.appname = ''
         # the request can take additional "request" data like apturl
@@ -115,7 +115,7 @@ class Application(object):
     def __cmp__(self, other):
         return self.apps_cmp(self, other)
     def __str__(self):
-        return "%s,%s" % (self.appname, self.pkgname)
+        return unicode("%s,%s", 'utf8').encode('utf8') % (self.appname, self.pkgname)
     def __repr__(self):
         return "[Application: appname=%s pkgname=%s]" % (self.appname, self.pkgname)
     @staticmethod

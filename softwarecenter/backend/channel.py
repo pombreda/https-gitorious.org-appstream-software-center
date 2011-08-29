@@ -282,7 +282,7 @@ class SoftwareChannel(object):
         details.append("  query: %s" % self.query)
         details.append("  sort_mode: %s" % self.sort_mode)
         details.append("  installed_only: %s" % self.installed_only)
-        return '\n'.join(details)
+        return unicode('\n'.join(details), 'utf8').encode('utf8')
 
 
 class AllChannel(SoftwareChannel):
