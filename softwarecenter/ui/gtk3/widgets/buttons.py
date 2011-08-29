@@ -304,24 +304,33 @@ class ChannelSelector(Gtk.Button):
 
         self.section_button = section_button
         self.popup = None
-        #~ self._dark_color = Gdk.RGBA(red=0,green=0,blue=0)
-        #~ self.connect('style-updated', self.on_style_updated)
         self.connect("button-press-event", self.on_button_press)
         return
 
-    #~ def do_draw(self, cr):
-        #~ a = self.get_allocation()
-        #~ cr.set_line_width(1)
-        #~ cr.rectangle(-0.5, -1.5, a.width, a.height+3)
-        #~ Gdk.cairo_set_source_rgba(cr, self._dark_color)
-        #~ cr.stroke()
-        #~ cr.rectangle(0.5, -1.5, a.width-2, a.height+3)
-        #~ cr.set_source_rgba(1,1,1, 0.07)
-        #~ cr.stroke()
-#~ 
-        #~ for child in self: self.propagate_draw(child, cr)
-        #~ return
-#~ 
+    def do_draw(self, cr):
+        context = self.get_style_context()
+        context.save()
+
+        state = self.get_state_flags()
+        context.set_state(Gtk.StateFlags.PRELIGHT)
+
+        a = self.get_allocation()
+
+        x = 0
+        y = 0
+        width = a.width
+        height = a.height
+
+        # FIXME: if x0 & x1 are the same things break, not sure why,
+        # perhaps a bug in Gtk or the theme engine???
+        Gtk.render_line(context, cr, x, y, x+0.01, height)
+        Gtk.render_line(context, cr, width, y, width+0.01, height)
+
+        context.restore()
+
+        for child in self: self.propagate_draw(child, cr)
+        return
+
     def on_button_press(self, button, event):
         if self.popup is None:
             self.build_channel_selector()
@@ -382,10 +391,10 @@ class SectionSelector(TileToggleButton):
         return
 
     def do_draw(self, cr):
-        a = self.get_allocation()
         if self.get_active():
             context = self.get_style_context()
             context.save()
+
             state = self.get_state_flags()
             context.set_state(state)
 
@@ -401,8 +410,8 @@ class SectionSelector(TileToggleButton):
                              x, y, width, height)
 
             context.restore()
-        for child in self: 
-            self.propagate_draw(child, cr)
+
+        for child in self: self.propagate_draw(child, cr)
         return
 #~ 
     #~ def on_style_updated(self, widget):
