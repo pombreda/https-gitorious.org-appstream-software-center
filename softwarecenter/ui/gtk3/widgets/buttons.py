@@ -400,10 +400,27 @@ class SectionSelector(TileToggleButton):
         self.label.set_justify(Gtk.Justification.CENTER)
 
         self.draw_hint_has_channel_selector = False
+        self._alloc = None
         self._bg_cache = {}
+
+        self.connect('size-allocate', self.on_size_allocate)
+        self.connect('style-updated', self.on_style_updated)
         return
 
     def on_size_allocate(self, *args):
+        alloc = self.get_allocation()
+        
+        if (self._alloc is None or
+            self._alloc.width != alloc.width or
+            self._alloc.height != alloc.height):
+            self._alloc = alloc
+            # reset the bg cache
+            self._bg_cache = {}
+            print 'recache'
+        return
+
+    def on_style_updated(self, *args):
+        # also reset the bg cache
         self._bg_cache = {}
         return
 
