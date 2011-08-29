@@ -112,7 +112,7 @@ class CategoriesViewGtk(Gtk.Viewport, CategoriesParser):
         Gtk.Viewport.__init__(self)
         CategoriesParser.__init__(self, db)
 
-        self.set_name("view")
+        self.set_name("category-view")
 
         # setup base widgets
         # we have our own viewport so we know when the viewport grows/shrinks

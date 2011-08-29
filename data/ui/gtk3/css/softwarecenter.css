@@ -1,14 +1,25 @@
+@define-color light-aubergine #DED7DB;
+@define-color super-light-aubergine #F4F1F3;
+
+#app-view {
+    background-color: @super-light-aubergine;
+}
+
+#category-view {
+    background-color: @light-aubergine;
+}
+
 #featured-star {
-    color: #FFC51D;
-    border-color: #F89516;
+    border-color: #F89516;  /* yellow */
+    color: #FFC51D;         /* orange */
 }
 
 GtkViewport {
-    background-color: #DED7DB; /* light aubergine */
+    background-color: @super-light-aubergine;
     border-width: 0;
     padding: 0;
 }
 
 GtkTreeView {
-    background-color: #F4F1F3; /* super-light aubergine */
+    background-color: @super-light-aubergine;
 }
