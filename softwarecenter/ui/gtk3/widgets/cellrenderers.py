@@ -233,8 +233,8 @@ class CellRendererAppView(Gtk.CellRendererText):
         context.save()
         context.add_class("trough")
 
-        Gtk.render_background (context, cr, x, y, w, h)
-        Gtk.render_frame (context, cr, x, y, w, h)
+        Gtk.render_background(context, cr, x, y, w, h)
+        Gtk.render_frame(context, cr, x, y, w, h)
 
         border = context.get_border(Gtk.StateFlags.NORMAL)
         padding = context.get_padding(Gtk.StateFlags.NORMAL)
@@ -242,19 +242,15 @@ class CellRendererAppView(Gtk.CellRendererText):
         context.restore ()
 
         bar_size = w * percent
-        if not is_rtl:
-          x += border.left + padding.left
-          y += border.top + padding.top
-          bar_size -= border.left + border.right + padding.left + padding.right
-          h -= border.top + border.bottom + padding.top + padding.bottom
-        else:
-            pass
+        #~ if not is_rtl:
+        #~ else:
+            #~ pass
 
         context.save ()
         context.add_class ("progressbar")
 
         if (bar_size > 0):
-            Gtk.render_activity (context, cr, x, y, bar_size, h)
+            Gtk.render_activity(context, cr, x, y, bar_size, h)
 
         context.restore ()
         return
