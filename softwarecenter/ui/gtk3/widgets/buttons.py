@@ -167,7 +167,7 @@ class FeaturedTile(TileButton):
         self.image = _parse_icon(icon, icon_size)
         self.content_left.pack_start(self.image, False, False, 0)
 
-        self.title = Gtk.Label.new(self._MARKUP % label)
+        self.title = Gtk.Label.new(self._MARKUP % GObject.markup_escape_text(label))
         self.title.set_alignment(0.0, 0.5)
         self.title.set_use_markup(True)
         self.title.set_ellipsize(Pango.EllipsizeMode.END)
