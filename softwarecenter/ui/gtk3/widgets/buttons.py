@@ -308,25 +308,43 @@ class ChannelSelector(Gtk.Button):
         return
 
     def do_draw(self, cr):
-        context = self.get_style_context()
-        context.save()
+        cr.save()
 
-        state = self.get_state_flags()
-        context.set_state(Gtk.StateFlags.PRELIGHT)
+        toolbar = self.get_ancestor('GtkToolbar')
+        context = toolbar.get_style_context()
+
+        color = darken(context.get_border_color(Gtk.StateFlags.ACTIVE), 0.2)
+
+        cr.set_line_width(1)
 
         a = self.get_allocation()
+        lin = cairo.LinearGradient(0,0,0,a.height)
+        lin.add_color_stop_rgba(0.0,
+                                color.red,
+                                color.green,
+                                color.blue,
+                                0.0)    # alpha
+        lin.add_color_stop_rgba(0.5,
+                                color.red,
+                                color.green,
+                                color.blue,
+                                1.0)    # alpha
+        lin.add_color_stop_rgba(1.0,
+                                color.red,
+                                color.green,
+                                color.blue,
+                                0.0)    # alpha
+        cr.set_source(lin)
 
-        x = 0
-        y = 0
-        width = a.width
-        height = a.height
+        cr.move_to(0.5, 0.5)
+        cr.rel_line_to(0, a.height)
+        cr.stroke()
 
-        # FIXME: if x0 & x1 are the same things break, not sure why,
-        # perhaps a bug in Gtk or the theme engine???
-        Gtk.render_line(context, cr, x, y, x+0.01, height)
-        Gtk.render_line(context, cr, width, y, width+0.01, height)
+        cr.move_to(a.width - 0.5, 0.5)
+        cr.rel_line_to(0, a.height)
+        cr.stroke()
 
-        context.restore()
+        cr.restore()
 
         for child in self: self.propagate_draw(child, cr)
         return

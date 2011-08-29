@@ -23,7 +23,7 @@ from gi.repository import GObject
 
 from gettext import gettext as _
 
-from softwarecenter.ui.gtk3.drawing import rounded_rect
+from softwarecenter.ui.gtk3.drawing import rounded_rect, darken
 
 DEFAULT_PART_SIZE = (28, -1)
 
@@ -42,7 +42,7 @@ class BackForwardButton(Gtk.HBox):
 
     def __init__(self, part_size=None):
         Gtk.HBox.__init__(self)
-        #~ self.set_spacing(1)
+        self.set_spacing(1)
 
         if self.get_direction() != Gtk.TextDirection.RTL:
             # ltr
@@ -70,20 +70,26 @@ class BackForwardButton(Gtk.HBox):
     def on_clicked(self, button):
         self.emit(button.signal_name)
         return
-#~ 
-    #~ def do_draw(self, cr):
-        #~ a = self.get_allocation()
-        #~ # divider
-        #~ context = self.get_style_context()
-        #~ border_color = context.get_border_color(Gtk.StateFlags.NORMAL)
-        #~ Gdk.cairo_set_source_rgba(cr, border_color)
-        #~ cr.set_line_width(1)
-        #~ cr.move_to(a.width/2+0.5, 0)
-        #~ cr.rel_line_to(0, a.height)
-        #~ cr.stroke()
-#~ 
-        #~ for child in self: self.propagate_draw(child, cr)
-        #~ return
+ 
+    def do_draw(self, cr):
+        cr.save()
+        a = self.get_allocation()
+        # divider
+        toolbar = self.get_ancestor('GtkToolbar')
+        context = toolbar.get_style_context()
+
+        color = darken(context.get_border_color(Gtk.StateFlags.ACTIVE), 0.2)
+
+        Gdk.cairo_set_source_rgba(cr, color)
+        cr.move_to(0.5*a.width, 1)
+        cr.rel_line_to(0, a.height-2)
+        cr.set_line_width(1)
+        cr.stroke()
+
+        cr.restore()
+
+        for child in self: self.propagate_draw(child, cr)
+        return
 
     def set_button_atk_info_ltr(self):
         # left button
@@ -142,14 +148,15 @@ class ButtonPart(Gtk.Button):
         self.border_radius = BackForwardButton.BORDER_RADIUS
         return
 
-    def render_background(self, context, cr):
+    def do_draw(self, cr):
         context = self.get_style_context()
         context.save()
         state = self.get_state_flags()
+        if (state & Gtk.StateFlags.NORMAL) == 0:
+            state = Gtk.StateFlags.PRELIGHT
         context.set_state(state)
 
         a = self.get_allocation()
-
         x = 0
         y = 0
         width = a.width
@@ -167,13 +174,9 @@ class ButtonPart(Gtk.Button):
                          x, y, width, height)
 
         context.restore()
-        return
 
-    def do_draw(self, cr):
-        ButtonPart.render_background(self,
-                                     self.get_style_context(), cr)
         for child in self: self.propagate_draw(child, cr)
-
+        return
 
 class Left(ButtonPart):
 
