@@ -416,7 +416,6 @@ class SectionSelector(TileToggleButton):
             self._alloc = alloc
             # reset the bg cache
             self._bg_cache = {}
-            print 'recache'
         return
 
     def on_style_updated(self, *args):
@@ -474,25 +473,6 @@ class SectionSelector(TileToggleButton):
 
         for child in self: self.propagate_draw(child, cr)
         return
-
-    #~ def on_label_draw(self, label, cr):
-        #~ layout = label.get_layout()
-#~ 
-        #~ a = self.label.get_allocation()
-        #~ x, y = label.get_layout_offsets()
-        #~ x -= a.x
-        #~ y -= a.y
-#~ 
-        #~ cr.move_to(x, y+1)
-        #~ PangoCairo.layout_path(cr, layout)
-        #~ cr.set_source_rgba(0,0,0,0.3)
-        #~ cr.set_line_width(2.5)
-        #~ cr.stroke()
-#~ 
-        #~ context = self.get_style_context()
-        #~ context.set_state(self.get_state_flags())
-        #~ Gtk.render_layout(context, cr, x, y, layout)
-        #~ return True
 
 
 class Link(Gtk.Label):
