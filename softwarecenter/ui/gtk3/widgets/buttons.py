@@ -299,8 +299,6 @@ class ChannelSelector(Gtk.Button):
         self.add(alignment)
         self.arrow = Gtk.Arrow.new(Gtk.ArrowType.DOWN, Gtk.ShadowType.IN)
         alignment.add(self.arrow)
-        self.set_name("section-selector")
-        self.arrow.set_name("section-selector")
 
         self.section_button = section_button
         self.popup = None
@@ -319,7 +317,7 @@ class ChannelSelector(Gtk.Button):
 
         a = self.get_allocation()
         lin = cairo.LinearGradient(0,0,0,a.height)
-        lin.add_color_stop_rgba(0.0,
+        lin.add_color_stop_rgba(0.1,
                                 color.red,
                                 color.green,
                                 color.blue,
@@ -333,7 +331,7 @@ class ChannelSelector(Gtk.Button):
                                 color.red,
                                 color.green,
                                 color.blue,
-                                0.0)    # alpha
+                                0.1)    # alpha
         cr.set_source(lin)
 
         cr.move_to(0.5, 0.5)
@@ -400,31 +398,62 @@ class SectionSelector(TileToggleButton):
         self.build_default(markup, icon, icon_size)
         self.label.set_use_markup(True)
         self.label.set_justify(Gtk.Justification.CENTER)
-        self.label.set_name("section-selector")
-        self.set_name("section-selector")
+
         self.draw_hint_has_channel_selector = False
+        self._bg_cache = {}
+        return
+
+    def on_size_allocate(self, *args):
+        self._bg_cache = {}
+        return
+
+    def _cache_bg_for_state(self, state):
+        a = self.get_allocation()
+        # tmp surface on which we render the button bg as per the gtk
+        # theme engine
+        _surf = cairo.ImageSurface(cairo.FORMAT_ARGB32,
+                                   a.width, a.height)
+        cr = cairo.Context(_surf)
+
+        context = self.get_style_context()
+        context.save()
+        context.set_state(state)
+
+        Gtk.render_background(context, cr,
+                          -5, -5, a.width+10, a.height+10)
+        Gtk.render_frame(context, cr,
+                          -5, -5, a.width+10, a.height+10)
+        del cr
+
+        # new surface which will be cached which
+        surf = cairo.ImageSurface(cairo.FORMAT_ARGB32,
+                                  a.width, a.height)
+        cr = cairo.Context(surf)
+
+        # gradient for masking
+        lin = cairo.LinearGradient(0, 0, 0, a.height)
+        lin.add_color_stop_rgba(0.0, 1,1,1, 0.2)
+        lin.add_color_stop_rgba(0.3, 1,1,1, 0.7)
+        lin.add_color_stop_rgba(0.5, 1,1,1, 1.0)
+        lin.add_color_stop_rgba(0.7, 1,1,1, 0.7)
+        lin.add_color_stop_rgba(1.0, 1,1,1, 0.2)
+
+        cr.set_source_surface(_surf, 0, 0)
+        cr.mask(lin)
+        del cr
+
+        # cache the resulting surf...
+        self._bg_cache[state] = surf
         return
 
     def do_draw(self, cr):
+        state = self.get_state_flags()
         if self.get_active():
-            context = self.get_style_context()
-            context.save()
+            if state not in self._bg_cache:
+                self._cache_bg_for_state(state)
 
-            state = self.get_state_flags()
-            context.set_state(state)
-
-            a = self.get_allocation()
-
-            x = 0
-            y = -5
-            width = a.width
-            height = a.height + 10
-            Gtk.render_background(context, cr,
-                                  x, y, width, height)
-            Gtk.render_frame(context, cr,
-                             x, y, width, height)
-
-            context.restore()
+            cr.set_source_surface(self._bg_cache[state], 0, 0)
+            cr.paint()
 
         for child in self: self.propagate_draw(child, cr)
         return
