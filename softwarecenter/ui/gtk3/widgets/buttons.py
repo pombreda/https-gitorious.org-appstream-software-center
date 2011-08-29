@@ -403,9 +403,6 @@ class SectionSelector(TileToggleButton):
         self.label.set_name("section-selector")
         self.set_name("section-selector")
         self.draw_hint_has_channel_selector = False
-        #~ self._dark_color = Gdk.RGBA(red=0,green=0,blue=0)
-        #~ self.connect('style-updated', self.on_style_updated)
-        self.label.connect("draw", self.on_label_draw)
         return
 
     def do_draw(self, cr):
@@ -431,35 +428,25 @@ class SectionSelector(TileToggleButton):
 
         for child in self: self.propagate_draw(child, cr)
         return
+
+    #~ def on_label_draw(self, label, cr):
+        #~ layout = label.get_layout()
 #~ 
-    #~ def on_style_updated(self, widget):
-        #~ context = widget.get_style_context()
-        #~ context.save()
-        #~ context.add_class("menu")
-        #~ bgcolor = context.get_background_color(Gtk.StateFlags.NORMAL)
-        #~ context.restore()
+        #~ a = self.label.get_allocation()
+        #~ x, y = label.get_layout_offsets()
+        #~ x -= a.x
+        #~ y -= a.y
 #~ 
-        #~ self._dark_color = darken(bgcolor, 0.5)
-        #~ return
-
-    def on_label_draw(self, label, cr):
-        layout = label.get_layout()
-
-        a = self.label.get_allocation()
-        x, y = label.get_layout_offsets()
-        x -= a.x
-        y -= a.y
-
-        cr.move_to(x, y+1)
-        PangoCairo.layout_path(cr, layout)
-        cr.set_source_rgba(0,0,0,0.3)
-        cr.set_line_width(2.5)
-        cr.stroke()
-
-        context = self.get_style_context()
-        context.set_state(self.get_state_flags())
-        Gtk.render_layout(context, cr, x, y, layout)
-        return True
+        #~ cr.move_to(x, y+1)
+        #~ PangoCairo.layout_path(cr, layout)
+        #~ cr.set_source_rgba(0,0,0,0.3)
+        #~ cr.set_line_width(2.5)
+        #~ cr.stroke()
+#~ 
+        #~ context = self.get_style_context()
+        #~ context.set_state(self.get_state_flags())
+        #~ Gtk.render_layout(context, cr, x, y, layout)
+        #~ return True
 
 
 class Link(Gtk.Label):

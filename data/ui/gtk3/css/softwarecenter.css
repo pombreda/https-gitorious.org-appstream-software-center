@@ -1,39 +1,14 @@
-#view {
-    background-color: #DED7DB;
-    border-radius: 0;
-    border-width: 0;
-}
-
-#backforward {
-    border-width: 0;
-}
-
-#section-selector {
-    color: #d7d0d4;      /* light aubergine */
-    border-width: 0;
-}
-
-#symbolic-icon:hover,
-#section-selector:hover {
-    color: #fff;        /* white */
-}
-
-#placeholder {
-    color: #FF00B3;
-}
-
 #featured-star {
     color: #FFC51D;
     border-color: #F89516;
 }
 
-#exhibit-button{
-    border-radius: 12;
-    color: #fff;
-}
-
-GtkViewport{
+GtkViewport {
+    background-color: #DED7DB;
     border-width: 0;
     padding: 0;
 }
 
+GtkTreeView {
+    background-color: #DED7DB;
+}
