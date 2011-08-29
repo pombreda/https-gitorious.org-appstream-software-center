@@ -540,6 +540,7 @@ class AvailablePane(SoftwarePane):
         
     def display_previous_purchases(self, page, view_state):
         self.nonapps_visible = NonAppVisibility.ALWAYS_VISIBLE
+        self.app_view.set_header_labels(_("Previous Purchases"), None)
         self.notebook.set_current_page(AvailablePane.Pages.LIST)
         # do not emit app-list-changed here, this is done async when
         # the new model is ready
