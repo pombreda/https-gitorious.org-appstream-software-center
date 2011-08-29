@@ -1,6 +1,8 @@
 software-center (4.1.20.1) UNRELEASED; urgency=low
 
   [ Kiwinote ]
+  * AUTHORS:
+    - add credits for the new icon (LP: #834882)
   * a stash of unicode fixes to make s-c-gtk3 usable around the world
     (LP: #831865, LP: #834409, LP: #834312)
   * softwarecenter/db/update.py:
