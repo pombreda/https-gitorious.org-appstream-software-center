@@ -3,6 +3,8 @@ software-center (4.1.20.1) UNRELEASED; urgency=low
   [ Kiwinote ]
   * a stash of unicode fixes to make s-c-gtk3 usable around the world
     (LP: #831865, LP: #834409, LP: #834312)
+  * softwarecenter/db/update.py:
+    - fix reinstall previous purchases (LP: #834984)
   * softwarecenter/ui/gtk3/panes/softwarepane.py:
     - fix None.copy() such that switching panes works again (LP: #834196)
   * softwarecenter/ui/gtk3/widgets/buttons.py:
