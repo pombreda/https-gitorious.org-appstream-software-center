@@ -30,12 +30,15 @@ software-center (4.1.20.1) UNRELEASED; urgency=low
     softwarecenter/ui/gtk3/widgets/containers.py:
     - disable the rendering of the checkboard pattern in the
       grid views (at request of mpt)
+   * lp:~mmcg069/software-center/description-tweaks:
+     - fix badly rendered package descriptions, other tweaks
+       (LP: #833954)
 
   [ Gary Lasker ]
   * po/software-center.pot:
     - refresh .pot file 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Tue, 30 Aug 2011 16:24:02 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 30 Aug 2011 17:20:11 -0400
 
 software-center (4.1.20) oneiric; urgency=low
 
