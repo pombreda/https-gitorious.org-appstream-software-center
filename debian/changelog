@@ -18,7 +18,12 @@ software-center (4.1.20.1) UNRELEASED; urgency=low
   * softwarecenter/ui/gtk3/panes/softwarepane.py:
     - fix the spinner display when loading slow views (LP: #830682)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 29 Aug 2011 18:15:16 -0400
+  [ Gabor Kelemen ]
+  * po/POTFILES.in,
+    po/POTFILES.skip:
+    - update per latest configuration, add new gtk3 files
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 30 Aug 2011 15:02:59 -0400
 
 software-center (4.1.20) oneiric; urgency=low
 
