@@ -23,11 +23,15 @@ software-center (4.1.20.1) UNRELEASED; urgency=low
     po/POTFILES.skip:
     - update per latest configuration, add new gtk3 files
 
+  [ Matthew McGowan ]
+  * softwarecenter/ui/gtk3/widgets/buttons.py :
+    - Resize fixes for Top Rated and What's New tiles (LP: #833697)
+
   [ Gary Lasker ]
   * po/software-center.pot:
     - refresh .pot file 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Tue, 30 Aug 2011 15:06:38 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 30 Aug 2011 16:07:45 -0400
 
 software-center (4.1.20) oneiric; urgency=low
 
