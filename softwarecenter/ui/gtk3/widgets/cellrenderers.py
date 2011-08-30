@@ -119,9 +119,9 @@ class CellRendererAppView(Gtk.CellRendererText):
         xo = (self.pixbuf_width - icon.get_width())/2
 
         if not is_rtl:
-            x = cell_area.x+xo
+            x = cell_area.x + xo + xpad
         else:
-            x = cell_area.x+cell_area.width+xo-self.pixbuf_width
+            x = cell_area.x + cell_area.width+xo - self.pixbuf_width - xpad
 
         # draw appicon pixbuf
         Gdk.cairo_set_source_pixbuf(cr, icon, x, cell_area.y+ypad)
@@ -267,11 +267,11 @@ class CellRendererAppView(Gtk.CellRendererText):
             start = Gtk.PackType.START
             end = Gtk.PackType.END
             xs = cell_area.x + 2*xpad + self.pixbuf_width
-            xb = cell_area.x + cell_area.width
+            xb = cell_area.x + cell_area.width - xpad
         else:
             start = Gtk.PackType.END
             end = Gtk.PackType.START
-            xs = cell_area.x
+            xs = cell_area.x + xpad
             xb = cell_area.x + cell_area.width - 2*xpad - self.pixbuf_width
 
         for btn in self._buttons[start]:
@@ -344,9 +344,6 @@ class CellRendererAppView(Gtk.CellRendererText):
         ypad = self.get_property('ypad')
         star_width, star_height = self._stars.get_visible_size(context)
         is_rtl = widget.get_direction() == Gtk.TextDirection.RTL
-
-        cell_area.width = widget.get_allocation().width - 2 * StockEms.LARGE
-        cell_area.x = StockEms.LARGE
 
         if not self._layout:
             self._layout = widget.create_pango_layout('')

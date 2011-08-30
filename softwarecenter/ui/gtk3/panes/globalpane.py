@@ -34,7 +34,7 @@ class GlobalPane(Gtk.Toolbar):
         self.back_forward.set_vexpand(False)
         self.back_forward.set_valign(Gtk.Align.CENTER)
         _widget_set_margins(self.back_forward,
-                            left=StockEms.LARGE, right=StockEms.LARGE)
+                            left=StockEms.MEDIUM, right=StockEms.MEDIUM+2)
         self._insert_as_tool_item(self.back_forward, 0)
 
         self.view_switcher = ViewSwitcher(view_manager, datadir, db, cache, icons)
@@ -47,7 +47,7 @@ class GlobalPane(Gtk.Toolbar):
         #~ self.init_atk_name(self.searchentry, "searchentry")
         self.searchentry = vm.get_global_searchentry()
         self._insert_as_tool_item(self.searchentry, -1)
-        _widget_set_margins(self.searchentry, right=StockEms.LARGE)
+        _widget_set_margins(self.searchentry, right=StockEms.MEDIUM)
         return
 
     def _insert_as_tool_item(self, widget, pos):

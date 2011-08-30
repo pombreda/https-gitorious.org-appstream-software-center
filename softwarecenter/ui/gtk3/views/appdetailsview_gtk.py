@@ -893,7 +893,7 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         # setup widgets
         vb = Gtk.VBox()
         vb.set_spacing(StockEms.MEDIUM)
-        vb.set_border_width(StockEms.LARGE)
+        vb.set_border_width(StockEms.MEDIUM)
         self.add(vb)
 
         # header
