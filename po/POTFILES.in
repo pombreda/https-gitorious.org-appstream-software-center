@@ -55,3 +55,45 @@ softwarecenter/ui/gtk/widgets/reviews.py
 softwarecenter/ui/gtk/widgets/searchentry.py
 softwarecenter/ui/gtk/widgets/thumbnail.py
 softwarecenter/ui/gtk/widgets/weblivedialog.py
+[type: gettext/glade]data/ui/gtk3/SoftwareCenter.ui
+[type: gettext/glade]data/ui/gtk3/dialogs.ui
+[type: gettext/glade]data/ui/gtk3/login.ui
+[type: gettext/glade]data/ui/gtk3/report_abuse.ui
+[type: gettext/glade]data/ui/gtk3/submit_review.ui
+[type: gettext/glade]data/ui/gtk3/submit_usefulness.ui
+softwarecenter/db/debfile.py
+softwarecenter/distro/SUSELINUX.py
+softwarecenter/ui/gtk/widgets/videoplayer.py
+softwarecenter/ui/gtk3/app.py
+softwarecenter/ui/gtk3/dialogs/__init__.py
+softwarecenter/ui/gtk3/dialogs/dependency_dialogs.py
+softwarecenter/ui/gtk3/models/viewstore.py
+softwarecenter/ui/gtk3/panes/availablepane.py
+softwarecenter/ui/gtk3/panes/historypane.py
+softwarecenter/ui/gtk3/panes/pendingpane.py
+softwarecenter/ui/gtk3/panes/unused__channelpane.py
+softwarecenter/ui/gtk3/panes/viewswitcher.py
+softwarecenter/ui/gtk3/views/appdetailsview.py
+softwarecenter/ui/gtk3/views/appdetailsview_gtk.py
+softwarecenter/ui/gtk3/views/appview.py
+softwarecenter/ui/gtk3/views/catview_gtk.py
+softwarecenter/ui/gtk3/widgets/apptreeview.py
+softwarecenter/ui/gtk3/widgets/backforward.py
+softwarecenter/ui/gtk3/widgets/buttons.py
+softwarecenter/ui/gtk3/widgets/exhibits.py
+softwarecenter/ui/gtk3/widgets/reviews.py
+softwarecenter/ui/gtk3/widgets/searchaid.py
+softwarecenter/ui/gtk3/widgets/stars.py
+softwarecenter/ui/gtk3/widgets/thumbnail.py
+softwarecenter/ui/gtk3/widgets/unused__pathbar.py
+softwarecenter/ui/gtk3/widgets/videoplayer.py
+softwarecenter/ui/gtk3/widgets/weblivedialog.py
+utils/delete_review.py
+utils/delete_review_gtk3.py
+utils/modify_review.py
+utils/modify_review_gtk3.py
+utils/report_review.py
+utils/report_review_gtk3.py
+utils/submit_review_gtk3.py
+utils/submit_usefulness.py
+utils/submit_usefulness_gtk3.py
