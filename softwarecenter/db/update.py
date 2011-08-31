@@ -96,6 +96,9 @@ if os.path.exists(CF):
         LOG.warn("failed to read %s (%s" % (CF, e))
 del CF
 
+# Enable Xapian's CJK tokenizer (see LP: #745243)
+os.environ['XAPIAN_CJK_NGRAM'] = '1'
+
 class AppInfoParserBase(object):
     """ base class for reading AppInfo meta-data """
 
