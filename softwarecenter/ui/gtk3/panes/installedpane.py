@@ -83,13 +83,14 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         SoftwarePane.__init__(self, cache, db, distro, icons, datadir, show_ratings=False)
         CategoriesParser.__init__(self, db)
 
-        self.oneconf_inventory_shown = None 
         self.current_appview_selection = None
         self.icons = icons
         self.loaded = False
         self.pane_name = _("Installed Software")
 
         self.installed_apps = 0
+        # None is local
+        self.current_hostid = None
 
         # switches to terminate build in progress
         self._build_in_progress = False
@@ -107,16 +108,35 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         self.oneconf_viewpickler = OneConfViews(self.icons)
         self.oneconf_viewpickler.register_computer(None, _("This computer (%s)") % platform.node())
         self.oneconf_viewpickler.select_first()
+        self.oneconf_viewpickler.connect('computer-changed', self._selected_computer_changed)
         
         # Start OneConf
         self.oneconf_handler = get_oneconf_handler(self.oneconf_viewpickler)
         self.oneconf_handler.connect('show-oneconf-changed', self._show_oneconf_changed)
+        self.oneconf_handler.connect('last-time-sync-changed', self._last_time_sync_oneconf_changed)
         
+        # OneConf pane
         self.computerpane = Gtk.Paned.new(Gtk.Orientation.HORIZONTAL)
-        self.oneconfcontrol = Gtk.Box(Gtk.Orientation.VERTICAL)
+        self.oneconfcontrol = Gtk.Box()
+        self.oneconfcontrol.set_orientation(Gtk.Orientation.VERTICAL)
         self.computerpane.add1(self.oneconfcontrol)
         self.box_app_list.pack_start(self.computerpane, True, True, 0)
         self.oneconfcontrol.pack_start(self.oneconf_viewpickler, True, True, 0)
+        
+        oneconftoolbar = Gtk.Box()
+        oneconftoolbar.set_orientation(Gtk.Orientation.HORIZONTAL)
+        self.oneconfproperty = Gtk.MenuToolButton.new(Gtk.Image.new_from_stock(Gtk.STOCK_PROPERTIES, 22), "")
+        oneconfpropertymenu = Gtk.Menu()
+        stop_oneconf_share_menuitem = Gtk.MenuItem(_("Stop Syncing (%s)") % platform.node())
+        stop_oneconf_share_menuitem.connect("activate", self._on_stop_showing_oneconf_clicked)
+        stop_oneconf_share_menuitem.show()
+        oneconfpropertymenu.append(stop_oneconf_share_menuitem)
+        self.oneconfproperty.set_menu(oneconfpropertymenu)
+        self.oneconfcontrol.pack_start(oneconftoolbar, False, False, 1)
+        self.oneconf_last_sync = Gtk.Label()
+        self.oneconf_last_sync.set_line_wrap(True)
+        oneconftoolbar.pack_start(self.oneconfproperty, False, False, 0)
+        oneconftoolbar.pack_start(self.oneconf_last_sync, True, True, 1)
 
         self.search_aid.set_no_show_all(True)
         self.notebook.append_page(self.box_app_list, Gtk.Label(label="list"))
@@ -151,26 +171,18 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         self.view_initialized = True
         return False
         
-    def set_latest_oneconf_sync(self, timestamp):
-        LOG.debug("refresh latest sync date")
+    def _selected_computer_changed(self, oneconf_pickler, hostid, hostname):
+        if self.current_hostid == hostid:
+            return
+        LOG.debug("Selected computer changed to %s (%s)" % (hostid, hostname))
+        self.current_hostid = hostid
+        self.refresh_apps()
         
-        try:
-            last_sync = datetime.datetime.fromtimestamp(float(timestamp))
-            today = datetime.datetime.strptime(str(datetime.date.today()), '%Y-%m-%d')
-            the_daybefore = today - datetime.timedelta(days=1)
-
-            if last_sync > today:
-                msg = _("Last sync %s") % last_sync.strftime('%H:%M')
-            elif last_sync < today and last_sync > the_daybefore:
-                msg = _("Last sync yesterday %s") % last_sync.strftime('%H:%M')
-            else:
-                msg = _("Last sync %s") % last_sync.strftime('%Y-%m-%d  %H:%M')                    
-        except (TypeError, ValueError), e:
-            msg = _("Was never synced successfully")
-        #self.label_latest_sync_date.set_label(msg)
+    def _last_time_sync_oneconf_changed(self, oneconf_handler, msg):
+        LOG.debug("refresh latest sync date")
+        self.oneconf_last_sync.set_label(msg)
         
     def _show_oneconf_changed(self, oneconf_handler, oneconf_inventory_shown):
-        self.oneconf_inventory_shown = oneconf_inventory_shown
         LOG.debug('Share inventory status changed')
         if oneconf_inventory_shown:
             # FIXME: would be better to avoid that, but needed to hide the handler?
@@ -178,11 +190,15 @@ class InstalledPane(SoftwarePane, CategoriesParser):
             self.computerpane.add2(self.app_view)
             self.computerpane.show()
         else:
+            self.oneconf_viewpickler.select_first()
             self.computerpane.hide()
             self.app_view.reparent(self.box_app_list)
             self.box_app_list.pack_start(self.app_view, True, True, 0)
-            # TODO: focus the first item
-            self.refresh_apps()
+
+            
+    def _on_stop_showing_oneconf_clicked(self, widget):
+        LOG.debug("Stop sharing the current computer inventory")
+        self.oneconf_handler.sync_between_computers(False)
 
     def _on_row_collapsed(self, view, it, path):
         return
@@ -389,7 +405,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
     def refresh_apps(self, *args, **kwargs):
         """refresh the applist and update the navigation bar """
         logging.debug("installedpane refresh_apps")
-        if self.oneconf_inventory_shown:
+        if self.current_hostid:
             self._build_oneconfview()
         else:
             self._build_categorised_installedview()
@@ -442,7 +458,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
 
     def display_overview_page(self, page, view_state):
         LOG.debug("view_state: %s" % view_state)
-        if self.oneconf_inventory_shown:
+        if self.current_hostid:
             self._build_oneconfview()
         else:
             self._build_categorised_installedview()

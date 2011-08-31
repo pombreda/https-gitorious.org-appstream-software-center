@@ -25,7 +25,7 @@ LOG = logging.getLogger(__name__)
 class OneConfViews(Gtk.TreeView):
 
     __gsignals__ = {
-        "view-changed" : (GObject.SIGNAL_RUN_LAST,
+        "computer-changed" : (GObject.SIGNAL_RUN_LAST,
                           GObject.TYPE_NONE, 
                           (GObject.TYPE_PYOBJECT, GObject.TYPE_PYOBJECT),
                          ),
@@ -70,22 +70,22 @@ class OneConfViews(Gtk.TreeView):
 
         
     def on_cursor_changed(self, widget):
-   
+
         (path, column) = self.get_cursor()
         if not path:
             return
         model = self.get_model()
         if not model:
-            return
+            return                
         hostid = model[path][self.COL_HOSTID]
         hostname = model[path][self.COL_HOSTNAME]
         if hostid != self.current_hostid:
             self.current_hostid = hostid
-            self.emit("view-changed", hostid, hostname)
+            self.emit("computer-changed", hostid, hostname)
             
     def select_first(self):
         '''Select first item'''
-        self.get_selection().select_path(0)
+        self.set_cursor(Gtk.TreePath.new_first(), None, False)
         
     def _sort_hosts(self, model, iter1, iter2, user_data):
         '''Sort hosts, with "this computer" (NONE HOSTID) as first'''
@@ -129,7 +129,7 @@ def get_test_window():
     def print_selected_hostid(widget, hostid, hostname):
         print "%s selected for %s" % (hostid, hostname)
     
-    w.connect("view-changed", print_selected_hostid)
+    w.connect("computer-changed", print_selected_hostid)
     win.show_all()
     return win
 

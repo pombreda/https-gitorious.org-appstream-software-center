@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Copyright (C) 2011 Canonical
 #
 # Authors:
@@ -24,12 +25,11 @@ from softwarecenter.backend.login_sso import get_sso_backend
 from softwarecenter.backend.restfulclient import get_ubuntu_sso_backend
 from softwarecenter.utils import clear_token_from_ubuntu_sso
 
-ONECONF_DATADIR = '/usr/share/oneconf/data'
-
+import datetime
 from gi.repository import GObject
+import logging
 
 from gettext import gettext as _
-import logging
 
 LOG = logging.getLogger(__name__)
 
@@ -40,6 +40,10 @@ class OneConfHandler(GObject.GObject):
                                   GObject.TYPE_NONE,
                                   (GObject.TYPE_PYOBJECT,),
                                  ),
+        "last-time-sync-changed" : (GObject.SIGNAL_RUN_LAST,
+                                    GObject.TYPE_NONE,
+                                    (GObject.TYPE_PYOBJECT,),
+                                   ),
         }
         
     def __init__(self, oneconfviewpickler):
@@ -48,9 +52,8 @@ class OneConfHandler(GObject.GObject):
         LOG.debug("OneConf Handler init")
         super(OneConfHandler, self).__init__()
         
-        self.latest_oneconf_sync = None
         # FIXME: should be an enum common to OneConf and here
-        self.appname = "Ubuntu Software Centerr"
+        self.appname = "Ubuntu Software Center"
         
         # OneConf stuff
         self.oneconf = DbusConnect()
@@ -58,7 +61,6 @@ class OneConfHandler(GObject.GObject):
                                                          self.refresh_hosts)
         self.already_registered_hostids = []
         self.is_current_registered = False
-        self.installed_pane = None
         
         self.oneconfviewpickler = oneconfviewpickler
         
@@ -95,17 +97,29 @@ class OneConfHandler(GObject.GObject):
         # ensure we are logged to ubuntu sso to activate the view
         if self.is_current_registered != is_current_registered:
             self.sync_between_computers(is_current_registered)
-            
+        
         self._refreshing_hosts = False
 
     def get_latest_oneconf_sync(self):
         '''Get latest sync state in OneConf.
         
         This function is also the "ping" letting OneConf service alive'''
-        logging.debug("get latest sync state")        
-        self.latest_oneconf_sync = self.oneconf.get_last_sync_date()
-        if self.installed_pane:
-            self.installed_pane.set_latest_oneconf_sync(self.latest_oneconf_sync)
+        LOG.debug("get latest sync state")
+        timestamp = self.oneconf.get_last_sync_date()
+        try:
+            last_sync = datetime.datetime.fromtimestamp(float(timestamp))
+            today = datetime.datetime.strptime(str(datetime.date.today()), '%Y-%m-%d')
+            the_daybefore = today - datetime.timedelta(days=1)
+
+            if last_sync > today:
+                msg = _("Last sync %s") % last_sync.strftime('%H:%M')
+            elif last_sync < today and last_sync > the_daybefore:
+                msg = _("Last sync yesterday %s") % last_sync.strftime('%H:%M')
+            else:
+                msg = _("Last sync %s") % last_sync.strftime('%Y-%m-%d  %H:%M')                    
+        except (TypeError, ValueError), e:
+            msg = _("To sync with another computer, choose “Sync Between Computers” from that computer.")
+        self.emit("last-time-sync-changed", msg)
         return True
 
     def _share_inventory(self, share_inventory):
@@ -114,7 +128,7 @@ class OneConfHandler(GObject.GObject):
         if share_inventory == self.is_current_registered:
             return
         self.is_current_registered = share_inventory
-        logging.debug("change share inventory state to %s", share_inventory)        
+        LOG.debug("change share inventory state to %s", share_inventory)        
         self.oneconf.set_share_inventory(share_inventory)
         self.get_latest_oneconf_sync()
         self.emit("show-oneconf-changed", share_inventory)
