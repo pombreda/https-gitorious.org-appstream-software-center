@@ -130,11 +130,11 @@ class CellRendererAppView(Gtk.CellRendererText):
         # draw overlay if application is installed
         if self.model.is_installed(app):
             if not is_rtl:
-                x = cell_area.x + self.OFFSET_X
+                x = cell_area.x + xpad + self.OFFSET_X
             else:
-                x = cell_area.x+cell_area.width-self.pixbuf_width+self.OFFSET_X
+                x = cell_area.x+cell_area.width-xpad-self.OFFSET_X
 
-            y = cell_area.y + self.OFFSET_Y
+            y = cell_area.y + ypad + self.OFFSET_Y
             Gdk.cairo_set_source_pixbuf(cr, self._installed, x, y)
             cr.paint()
         return
