@@ -46,13 +46,6 @@ def darken(color, amount=0.3):
 def lighten(color, amount=0.3):
     return mix(WHITE, color, amount)
 
-def get_subtle_color_as_hex(widget):
-    vp = widget.get_ancestor('GtkViewport')
-    context = vp.get_style_context()
-    bg = context.get_background_color(Gtk.StateFlags.NORMAL)
-    subtle = darken(bg)
-    return rgb_to_hex(subtle.red, subtle.green, subtle.blue)
-
 def rounded_rect(cr, x, y, w, h, r):
     cr.new_sub_path()
     cr.arc(r+x, r+y, r, PI, 270*PI_OVER_180)

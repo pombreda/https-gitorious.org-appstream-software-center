@@ -43,7 +43,6 @@ from softwarecenter.enums import PkgStates
 from softwarecenter.backend.reviews import UsefulnessCache
 
 from softwarecenter.ui.gtk3.em import StockEms
-from softwarecenter.ui.gtk3.drawing import get_subtle_color_as_hex
 from softwarecenter.ui.gtk3.widgets.buttons import Link
 
 LOG_ALLOCATION = logging.getLogger("softwarecenter.ui.Gtk.get_allocation()")
@@ -397,7 +396,6 @@ class UIReview(Gtk.VBox):
                          useful_votes)
 
     def _on_realize(self, widget, *content):
-        self._subtle = get_subtle_color_as_hex(self)
         self._build(*content)
         return
 
@@ -497,6 +495,7 @@ class UIReview(Gtk.VBox):
 
         m = self._whom_when_markup(self.person, displayname, cur_t)
         who_when = Gtk.Label()
+        who_when.set_name("subtle-label")
         who_when.set_justify(Gtk.Justification.RIGHT)
         who_when.set_markup(m)
 
@@ -538,7 +537,8 @@ class UIReview(Gtk.VBox):
         # Translators: This link is for flagging a review as inappropriate.
         # To minimize repetition, if at all possible, keep it to a single word.
         # If your language has an obvious verb, it won't need a question mark.
-        self.complain = Link('<span color="%s"><small>%s</small></span>' % (self._subtle, _('Inappropriate?')))
+        self.complain = Link('<small>%s</small>' % _('Inappropriate?'))
+        self.complain.set_name("subtle-label")
         self.footer.pack_end(self.complain, False, False, 0)
         self.complain.connect('clicked', self._on_report_abuse_clicked)
 
@@ -568,14 +568,16 @@ class UIReview(Gtk.VBox):
             # add here, but only populate if its not the own review
             self.likebox = Gtk.HBox()
             if already_voted == None and not current_user_reviewer:
-                m = '<span color="%s"><small>%s</small></span>'
-                self.yes_like = Link(m % (self._subtle, _('Yes')))
-                self.no_like = Link(m % (self._subtle, _('No')))
+                m = '<small>%s</small>'
+                self.yes_like = Link(m % _('Yes'))
+                self.yes_like.set_name("subtle-label")
+                self.no_like = Link(m % _('No'))
+                self.no_like.set_name("subtle-label")
                 self.yes_like.connect('clicked', self._on_useful_clicked, True)
                 self.no_like.connect('clicked', self._on_useful_clicked, False)
-                markup = m % (self._subtle, _('/')) # separator character
-                self.yes_no_separator = Gtk.Label(label=markup)
-                self.yes_no_separator.set_use_markup(True)
+                self.yes_no_separator = Gtk.Label()
+                self.yes_no_separator.set_name("subtle-label")
+                self.yes_no_separator.set_markup(m % _('/'))
                 self.yes_like.show()
                 self.no_like.show()
                 self.yes_no_separator.show()
@@ -661,9 +663,10 @@ class UIReview(Gtk.VBox):
                                     'useful_favorable' : useful_favorable,
                                     }
 
-        m = '<span color="%s"><small>%s</small></span>'
+        m = '<small>%s</small>'
         label = Gtk.Label()
-        label.set_markup(m % (self._subtle, s))
+        label.set_name("subtle-label")
+        label.set_markup(m % s)
         return label
 
     def _whom_when_markup(self, person, displayname, cur_t):
@@ -674,8 +677,7 @@ class UIReview(Gtk.VBox):
         correct_name = displayname or person
 
         if person == self.logged_in_person:
-            m = '<span color="%s">%s (%s), %s</span>' % (
-                self._subtle,
+            m = '%s (%s), %s' % (
                 GObject.markup_escape_text(correct_name),
                 # TRANSLATORS: displayed in a review after the persons name,
                 # e.g. "Jane Smith (that's you), 2011-02-11"
@@ -683,8 +685,7 @@ class UIReview(Gtk.VBox):
                 GObject.markup_escape_text(nice_date))
         else:
             try:
-                m = '<span color="%s">%s, %s</span>' % (
-                    self._subtle,
+                m = '%s, %s' % (
                     GObject.markup_escape_text(correct_name.encode("utf-8")),
                     GObject.markup_escape_text(nice_date))
             except Exception:
