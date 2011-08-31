@@ -85,6 +85,7 @@ from softwarecenter.config import get_config
 from softwarecenter.backend import get_install_backend
 
 from softwarecenter.backend.reviews import get_review_loader, UsefulnessCache
+from softwarecenter.backend.oneconfhandler import get_oneconf_handler
 from softwarecenter.distro import get_distro
 from softwarecenter.db.pkginfo import get_pkg_info
 
@@ -694,6 +695,9 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             purchased_sources = glob.glob("/etc/apt/sources.list.d/private-ppa.launchpad.net_commercial-ppa-uploaders*")
             for source in purchased_sources:
                 print("source: %s" % source)
+
+    def on_menuitem_sync_between_computers_activate(self, menuitem):
+        get_oneconf_handler().sync_between_computers(True)
         
     def on_menuitem_install_activate(self, menuitem):
         app = self.active_pane.get_current_app()

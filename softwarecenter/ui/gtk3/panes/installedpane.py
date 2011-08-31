@@ -1,7 +1,8 @@
-# Copyright (C) 2009 Canonical
+# Copyright (C) 2009-2011 Canonical
 #
 # Authors:
 #  Michael Vogt
+#  Didier Roche
 #
 # This program is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
@@ -23,6 +24,8 @@ from gi.repository import GObject
 
 from gettext import gettext as _
 
+import platform
+
 from softwarecenter.enums import (NonAppVisibility,
                                   SortMethods)
 from softwarecenter.utils import wait_for_apt_cache_ready
@@ -30,7 +33,9 @@ from softwarecenter.db.categories import (CategoriesParser,
                                           categories_sorted_by_name)
 from softwarecenter.ui.gtk3.models.appstore2 import (
     AppTreeStore, CategoryRowReference)
+from softwarecenter.ui.gtk3.widgets.oneconfviews import OneConfViews
 from softwarepane import SoftwarePane
+from softwarecenter.backend.oneconfhandler import get_oneconf_handler
 from softwarecenter.db.appfilter import AppFilter
 
 LOG=logging.getLogger(__name__)
@@ -78,7 +83,9 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         SoftwarePane.__init__(self, cache, db, distro, icons, datadir, show_ratings=False)
         CategoriesParser.__init__(self, db)
 
+        self.oneconf_inventory_shown = None 
         self.current_appview_selection = None
+        self.icons = icons
         self.loaded = False
         self.pane_name = _("Installed Software")
 
@@ -89,14 +96,30 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         self._halt_build = False
 
         self.nonapps_visible = NonAppVisibility.NEVER_VISIBLE
+        
+        #TODO: self.oneconf.hosts_dbus_object.connect_to_signal('packagelist_changed', self._on_store_packagelist_changed)
 
     def init_view(self):
         if self.view_initialized: return
 
         SoftwarePane.init_view(self)
+        
+        self.oneconf_viewpickler = OneConfViews(self.icons)
+        self.oneconf_viewpickler.register_computer(None, _("This computer (%s)") % platform.node())
+        self.oneconf_viewpickler.select_first()
+        
+        # Start OneConf
+        self.oneconf_handler = get_oneconf_handler(self.oneconf_viewpickler)
+        self.oneconf_handler.connect('show-oneconf-changed', self._show_oneconf_changed)
+        
+        self.computerpane = Gtk.Paned.new(Gtk.Orientation.HORIZONTAL)
+        self.oneconfcontrol = Gtk.Box(Gtk.Orientation.VERTICAL)
+        self.computerpane.add1(self.oneconfcontrol)
+        self.box_app_list.pack_start(self.computerpane, True, True, 0)
+        self.oneconfcontrol.pack_start(self.oneconf_viewpickler, True, True, 0)
 
         self.search_aid.set_no_show_all(True)
-        self.notebook.append_page(self.box_app_list, Gtk.Label(label="installed"))
+        self.notebook.append_page(self.box_app_list, Gtk.Label(label="list"))
 
         # details
         self.notebook.append_page(self.scroll_details, Gtk.Label(label="details"))
@@ -120,12 +143,46 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         # now we are initialized
         self.emit("installed-pane-created")
         self.show_all()
+        self.computerpane.hide()
 
         # hacky, hide the header
         self.app_view.header_hbox.hide()
 
         self.view_initialized = True
         return False
+        
+    def set_latest_oneconf_sync(self, timestamp):
+        LOG.debug("refresh latest sync date")
+        
+        try:
+            last_sync = datetime.datetime.fromtimestamp(float(timestamp))
+            today = datetime.datetime.strptime(str(datetime.date.today()), '%Y-%m-%d')
+            the_daybefore = today - datetime.timedelta(days=1)
+
+            if last_sync > today:
+                msg = _("Last sync %s") % last_sync.strftime('%H:%M')
+            elif last_sync < today and last_sync > the_daybefore:
+                msg = _("Last sync yesterday %s") % last_sync.strftime('%H:%M')
+            else:
+                msg = _("Last sync %s") % last_sync.strftime('%Y-%m-%d  %H:%M')                    
+        except (TypeError, ValueError), e:
+            msg = _("Was never synced successfully")
+        #self.label_latest_sync_date.set_label(msg)
+        
+    def _show_oneconf_changed(self, oneconf_handler, oneconf_inventory_shown):
+        self.oneconf_inventory_shown = oneconf_inventory_shown
+        LOG.debug('Share inventory status changed')
+        if oneconf_inventory_shown:
+            # FIXME: would be better to avoid that, but needed to hide the handler?
+            self.app_view.reparent(self.computerpane)
+            self.computerpane.add2(self.app_view)
+            self.computerpane.show()
+        else:
+            self.computerpane.hide()
+            self.app_view.reparent(self.box_app_list)
+            self.box_app_list.pack_start(self.app_view, True, True, 0)
+            # TODO: focus the first item
+            self.refresh_apps()
 
     def _on_row_collapsed(self, view, it, path):
         return
@@ -159,7 +216,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         self.refresh_apps()
 
     #~ @interrupt_build_and_wait
-    def _build_categorised_view(self):
+    def _build_categorised_installedview(self):
         LOG.debug('Rebuilding categorised installedview...')
         model = self.base_model # base model not treefilter
         model.clear()
@@ -230,6 +287,52 @@ class InstalledPane(SoftwarePane, CategoriesParser):
 
         GObject.idle_add(rebuild_categorised_view)
         return
+        
+    def _build_oneconfview(self):
+        LOG.debug('Rebuilding oneconfview...')
+        model = self.base_model # base model not treefilter
+        model.clear()
+
+        def rebuild_oneconfview():
+            self.cat_docid_map = {}
+            enq = self.enquirer
+            query = xapian.Query("")
+
+            i = 0
+
+            xfilter = AppFilter(self.db, self.cache)
+            xfilter.set_installed_only(False)
+            
+            enq.set_query(query,
+                          sortmode=SortMethods.BY_ALPHABET,
+                          nonapps_visible=self.nonapps_visible,
+                          filter=xfilter,
+                          nonblocking_load=False,
+                          persistent_duplicate_filter=(i>0))
+
+            L = len(enq.matches)
+            if L:
+                i += L
+                docs = enq.get_documents()
+                self.cat_docid_map["foo"] = set([doc.get_docid() for doc in docs])
+                model.set_nocategory_documents(docs, untranslated_name="foo",
+                                               display_name="bar")
+
+
+            if i:
+                self.app_view.tree_view.set_cursor(Gtk.TreePath(),
+                                                   None, False)
+                if i <= 10:
+                    self.app_view.tree_view.expand_all()
+
+            # cache the installed app count
+            self.installed_count = i
+            self.app_view._append_appcount(self.installed_count, installed=True)
+            self.emit("app-list-changed", i)
+            return
+
+        GObject.idle_add(rebuild_oneconfview)
+        return
 
     def _check_expand(self):
         it = self.treefilter.get_iter_first()
@@ -286,7 +389,10 @@ class InstalledPane(SoftwarePane, CategoriesParser):
     def refresh_apps(self, *args, **kwargs):
         """refresh the applist and update the navigation bar """
         logging.debug("installedpane refresh_apps")
-        self._build_categorised_view()
+        if self.oneconf_inventory_shown:
+            self._build_oneconfview()
+        else:
+            self._build_categorised_installedview()
         return
 
     def _clear_search(self):
@@ -336,7 +442,10 @@ class InstalledPane(SoftwarePane, CategoriesParser):
 
     def display_overview_page(self, page, view_state):
         LOG.debug("view_state: %s" % view_state)
-        self._build_categorised_view()
+        if self.oneconf_inventory_shown:
+            self._build_oneconfview()
+        else:
+            self._build_categorised_installedview()
 
         if self.state.search_term:
             self._search(self.state.search_term)
