@@ -34,6 +34,20 @@ def color_floats(color):
     return color.red/65535.0, color.green/65535.0, color.blue/65535.0
 
 
+class _SpecialCasePreParsers(object):
+
+    def preparse(self, k, desc):
+        func_name = '_%s_preparser' % k.lower()
+        if not hasattr(self, func_name):
+            return desc
+        f = getattr(self, func_name)
+        return f(desc)
+
+    # special case pre-parsers
+    def _skype_preparser(self, desc):
+        return desc.replace('. *', '.\n*')
+
+
 class EventHelper(dict):
 
     VALID_KEYS = (
@@ -343,6 +357,8 @@ class SelectionCursor(Cursor):
 class TextBlock(Gtk.EventBox):
 
     PAINT_PRIMARY_CURSOR = True
+    DEBUG_PAINT_BBOXES = False
+
     BULLET_POINT = u'  \u2022  '
 
     INFOCUS_NORM = 0
@@ -362,6 +378,7 @@ class TextBlock(Gtk.EventBox):
                         Gdk.EventMask.BUTTON_RELEASE_MASK|
                         Gdk.EventMask.POINTER_MOTION_MASK)
 
+        self._is_new = False
         self._bullet = self._new_layout()
         self._bullet.set_markup(self.BULLET_POINT)
         font_desc = Pango.FontDescription()
@@ -399,11 +416,6 @@ class TextBlock(Gtk.EventBox):
         return
 
     def do_size_allocate(self, allocation):
-        old = self.get_allocation()
-        if (old.x == allocation.x and old.y == allocation.y and
-            old.width == allocation.width and old.height == allocation.height):
-            return
-
         width = allocation.width
 
         x = y = 0
@@ -998,16 +1010,23 @@ class TextBlock(Gtk.EventBox):
         a = self.get_allocation()
         for layout in self.order:
             lx, ly = layout.get_position()
-
-            self._selection_highlight(layout,
-                                      self.selection,
-                                      self._bg, self._fg)
+#~ 
+            #~ self._selection_highlight(layout,
+                                      #~ self.selection,
+                                      #~ self._bg, self._fg)
 
             if layout.is_bullet:
                 if self.get_direction() != Gtk.TextDirection.RTL:
-                    self._paint_bullet_point(cr, 0, ly)
+                    indent = layout.indent - self.indent
+                    self._paint_bullet_point(cr, indent, ly)
                 else:
-                    self._paint_bullet_point(cr, a.width-layout.indent, ly)
+                    self._paint_bullet_point(cr, a.width-indent, ly)
+
+            if self.DEBUG_PAINT_BBOXES:
+                la = layout.allocation
+                cr.rectangle(la.x, la.y, la.width, la.height)
+                cr.set_source_rgb(1,0,0)
+                cr.stroke()
 
             #~ # draw the layout
             Gtk.render_layout(self.get_style_context(),
@@ -1029,10 +1048,10 @@ class TextBlock(Gtk.EventBox):
         self.order.append(l)
         return
 
-    def append_bullet(self, point, vspacing=None):
+    def append_bullet(self, point, indent_level, vspacing=None):
         l = self._new_layout()
         l.index = len(self.order)
-        l.indent = self.indent
+        l.indent = self.indent * (indent_level + 1)
         l.vspacing = vspacing
         l.is_bullet = True
 
@@ -1070,9 +1089,10 @@ class TextBlock(Gtk.EventBox):
 
 class AppDescription(Gtk.VBox):
 
-    # chars that serve as bullets in the description
     TYPE_PARAGRAPH = 0
     TYPE_BULLET    = 1
+
+    _preparser = _SpecialCasePreParsers()
 
     def __init__(self):
         Gtk.VBox.__init__(self)
@@ -1083,17 +1103,23 @@ class AppDescription(Gtk.VBox):
 
     def _part_is_bullet(self, part):
         # normalize_description() ensures that we only have "* " bullets
-        return part.startswith("* ")
+        i = part.find("* ")
+        return i > -1, i
 
     def _parse_desc(self, desc, pkgname):
         """ Attempt to maintain original fixed width layout, while 
             reconstructing the description into text blocks 
             (either paragraphs or bullets) which are line-wrap friendly.
         """
+        # pre-parse descrition if special case exists for the given pkgname
+        desc = self._preparser.preparse(pkgname, desc)
+
         parts = normalize_package_description(desc).split('\n')
         for part in parts:
-            if self._part_is_bullet(part):
-                self.append_bullet(part)
+            if not part: continue
+            is_bullet, indent = self._part_is_bullet(part)
+            if is_bullet:
+                self.append_bullet(part, indent)
             else:
                 self.append_paragraph(part)
 
@@ -1105,24 +1131,28 @@ class AppDescription(Gtk.VBox):
         return
 
     def append_paragraph(self, p):
-        if self._prev_type == self.TYPE_BULLET:
-            vspacing = int(1.2*self.description.line_height)
-        else:
-            vspacing = self.description.line_height
-
+        vspacing = self.description.line_height
         self.description.append_paragraph(p.strip(), vspacing)
         self._prev_type = self.TYPE_PARAGRAPH
         return
 
-    def append_bullet(self, point):
-        vspacing = int(1.2*self.description.line_height)
-        self.description.append_bullet(point[2:].strip(), vspacing)
+    def append_bullet(self, point, indent_level):
+        if self._prev_type == self.TYPE_BULLET:
+            vspacing = int(0.4*self.description.line_height)
+        else:
+            vspacing = self.description.line_height
+
+        self.description.append_bullet(
+                        point[indent_level+2:], indent_level, vspacing)
         self._prev_type = self.TYPE_BULLET
         return
 
     def set_description(self, raw_desc, pkgname):
         self.clear()
-        encoded_desc = unicode(raw_desc).encode('utf-8')
+        if type(raw_desc) == str:
+            encoded_desc = unicode(raw_desc, 'utf8').encode('utf8')
+        else:
+            encoded_desc = raw_desc.encode('utf8')
         desc = GObject.markup_escape_text(encoded_desc)
         self._parse_desc(desc, pkgname)
         self.show_all()

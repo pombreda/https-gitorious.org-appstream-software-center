@@ -137,9 +137,10 @@ class CategoryTile(TileButton):
         window.set_cursor(None)
         return
 
+
+_global_featured_tile_width = em(11)
 class FeaturedTile(TileButton):
 
-    MAX_WIDTH = em(10)
     INSTALLED_OVERLAY_SIZE = 22
     _MARKUP = '<b><small>%s</small></b>'
 
@@ -167,7 +168,7 @@ class FeaturedTile(TileButton):
         self.image = _parse_icon(icon, icon_size)
         self.content_left.pack_start(self.image, False, False, 0)
 
-        self.title = Gtk.Label.new(self._MARKUP % label)
+        self.title = Gtk.Label.new(self._MARKUP % GObject.markup_escape_text(label))
         self.title.set_alignment(0.0, 0.5)
         self.title.set_use_markup(True)
         self.title.set_ellipsize(Pango.EllipsizeMode.END)
@@ -201,8 +202,9 @@ class FeaturedTile(TileButton):
                          self.n_ratings.size_request().width +
                          StockEms.MEDIUM * 3
                          )
-        
-            self.MAX_WIDTH = max(self.MAX_WIDTH, req_width)
+            global _global_featured_tile_width
+            _global_featured_tile_width = max(_global_featured_tile_width,
+                                              req_width)
 
         details = AppDetails(db=helper.db, doc=doc)
         price = details.price or _("Free")
@@ -229,7 +231,8 @@ class FeaturedTile(TileButton):
         return
 
     def do_get_preferred_width(self):
-        return self.MAX_WIDTH, self.MAX_WIDTH
+        w = _global_featured_tile_width
+        return w, w
 
     def do_draw(self, cr):
         cr.save()

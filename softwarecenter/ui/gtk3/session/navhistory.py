@@ -113,8 +113,9 @@ class NavigationItem(object):
 
     def __str__(self):
         facet = self.pane.pane_name.replace(' ', '')[:6]
-        state = unicode(self.view_state).encode('utf-8')
-        return "%s:%s %s" % (facet, self.page, state)
+        return unicode("%s:%s %s", 'utf8').encode('utf8') % (facet,
+                                                             self.page,
+                                                             self.view_state)
 
     def navigate_to(self):
         """
@@ -169,7 +170,7 @@ class NavigationStack(object):
         if len(self) == 0:
             return True
         last = self[-1]
-        if str(item) == str(last):
+        if item.__str__() == last.__str__():
             return False
         return True
 

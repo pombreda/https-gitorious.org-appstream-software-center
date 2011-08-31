@@ -15,7 +15,7 @@ class FlowableGrid(Gtk.Fixed):
 
     MIN_HEIGHT = 100
 
-    def __init__(self, paint_grid_pattern=True):
+    def __init__(self, paint_grid_pattern=False):
         Gtk.Fixed.__init__(self)
         self.set_size_request(100, -1)
         self.row_spacing = 0
