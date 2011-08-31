@@ -26,9 +26,12 @@ class OneConfViews(Gtk.TreeView):
 
     __gsignals__ = {
         "computer-changed" : (GObject.SIGNAL_RUN_LAST,
-                          GObject.TYPE_NONE, 
-                          (GObject.TYPE_PYOBJECT, GObject.TYPE_PYOBJECT),
+                              GObject.TYPE_NONE, 
+                              (GObject.TYPE_PYOBJECT, GObject.TYPE_PYOBJECT),
                          ),
+        "current-inventory-refreshed" : (GObject.SIGNAL_RUN_LAST,
+                                         GObject.TYPE_NONE,
+                                         (),),
     }
     
     (COL_ICON, COL_HOSTID, COL_HOSTNAME) = range(3)
@@ -68,6 +71,10 @@ class OneConfViews(Gtk.TreeView):
         LOG.debug("register new computer: %s, %s" % (hostname, hostid))
         model.append([self.default_computer_icon, hostid, hostname])
 
+    def store_packagelist_changed(self, hostid):
+        '''Emit a signal for refreshing the installedpane if current view is concerned'''
+        if hostid == self.current_hostid:
+            self.emit("current-inventory-refreshed")
         
     def on_cursor_changed(self, widget):
 

@@ -46,6 +46,7 @@ class OneConfHandler(GObject.GObject):
                                    ),
         }
         
+        
     def __init__(self, oneconfviewpickler):
         '''Controller of the installed pane'''
     
@@ -59,6 +60,8 @@ class OneConfHandler(GObject.GObject):
         self.oneconf = DbusConnect()
         self.oneconf.hosts_dbus_object.connect_to_signal("hostlist_changed",
                                                          self.refresh_hosts)
+        self.oneconf.hosts_dbus_object.connect_to_signal('packagelist_changed',
+                                                         self._on_store_packagelist_changed)
         self.already_registered_hostids = []
         self.is_current_registered = False
         
@@ -141,6 +144,10 @@ class OneConfHandler(GObject.GObject):
             self._try_login()
         else:
             self._share_inventory(False)
+            
+    def _on_store_packagelist_changed(self, hostid):
+        '''pass the message to the view controller'''
+        self.oneconfviewpickler.store_packagelist_changed(hostid)
     
 
     # SSO login part    

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Copyright (C) 2009-2011 Canonical
 #
 # Authors:
@@ -23,6 +24,7 @@ import xapian
 from gi.repository import GObject
 
 from gettext import gettext as _
+from gettext import ngettext
 
 import platform
 
@@ -34,6 +36,7 @@ from softwarecenter.db.categories import (CategoriesParser,
 from softwarecenter.ui.gtk3.models.appstore2 import (
     AppTreeStore, CategoryRowReference)
 from softwarecenter.ui.gtk3.widgets.oneconfviews import OneConfViews
+from softwarecenter.ui.gtk3.views.appview import AppView
 from softwarepane import SoftwarePane
 from softwarecenter.backend.oneconfhandler import get_oneconf_handler
 from softwarecenter.db.appfilter import AppFilter
@@ -91,14 +94,15 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         self.installed_apps = 0
         # None is local
         self.current_hostid = None
+        self.current_hostname = None
+        self.oneconf_additional_pkg = set()
+        self.oneconf_missing_pkg = set()
 
         # switches to terminate build in progress
         self._build_in_progress = False
         self._halt_build = False
 
         self.nonapps_visible = NonAppVisibility.NEVER_VISIBLE
-        
-        #TODO: self.oneconf.hosts_dbus_object.connect_to_signal('packagelist_changed', self._on_store_packagelist_changed)
 
     def init_view(self):
         if self.view_initialized: return
@@ -109,6 +113,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         self.oneconf_viewpickler.register_computer(None, _("This computer (%s)") % platform.node())
         self.oneconf_viewpickler.select_first()
         self.oneconf_viewpickler.connect('computer-changed', self._selected_computer_changed)
+        self.oneconf_viewpickler.connect('current-inventory-refreshed', self._current_inventory_need_refresh)             
         
         # Start OneConf
         self.oneconf_handler = get_oneconf_handler(self.oneconf_viewpickler)
@@ -176,6 +181,9 @@ class InstalledPane(SoftwarePane, CategoriesParser):
             return
         LOG.debug("Selected computer changed to %s (%s)" % (hostid, hostname))
         self.current_hostid = hostid
+        self.current_hostname = hostname
+        if self.current_hostid:
+            (self.oneconf_additional_pkg, self.oneconf_missing_pkg) = self.oneconf_handler.oneconf.diff(self.current_hostid, '')
         self.refresh_apps()
         
     def _last_time_sync_oneconf_changed(self, oneconf_handler, msg):
@@ -194,11 +202,15 @@ class InstalledPane(SoftwarePane, CategoriesParser):
             self.computerpane.hide()
             self.app_view.reparent(self.box_app_list)
             self.box_app_list.pack_start(self.app_view, True, True, 0)
-
             
     def _on_stop_showing_oneconf_clicked(self, widget):
         LOG.debug("Stop sharing the current computer inventory")
         self.oneconf_handler.sync_between_computers(False)
+        
+    def _current_inventory_need_refresh(self, oneconfviews):
+        if self.current_hostid:
+            (self.oneconf_additional_pkg, self.oneconf_missing_pkg) = self.oneconf_handler.oneconf.diff(self.current_hostid, '')
+        self.refresh_apps()
 
     def _on_row_collapsed(self, view, it, path):
         return
@@ -297,7 +309,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
 
             # cache the installed app count
             self.installed_count = i
-            self.app_view._append_appcount(self.installed_count, installed=True)
+            self.app_view._append_appcount(self.installed_count, mode=AppView.INSTALLED_MODE)
             self.emit("app-list-changed", i)
             return
 
@@ -305,7 +317,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         return
         
     def _build_oneconfview(self):
-        LOG.debug('Rebuilding oneconfview...')
+        LOG.debug('Rebuilding oneconfview for %s...' % self.current_hostid)
         model = self.base_model # base model not treefilter
         model.clear()
 
@@ -313,11 +325,17 @@ class InstalledPane(SoftwarePane, CategoriesParser):
             self.cat_docid_map = {}
             enq = self.enquirer
             query = xapian.Query("")
+            if self.state.channel and self.state.channel.query:
+                query = xapian.Query(xapian.Query.OP_AND,
+                                     query,
+                                     self.state.channel.query)
 
             i = 0
 
+            # First search: missing apps only
             xfilter = AppFilter(self.db, self.cache)
-            xfilter.set_installed_only(False)
+            xfilter.set_restricted_list(self.oneconf_additional_pkg)
+            xfilter.set_not_installed_only(True)
             
             enq.set_query(query,
                           sortmode=SortMethods.BY_ALPHABET,
@@ -328,11 +346,36 @@ class InstalledPane(SoftwarePane, CategoriesParser):
 
             L = len(enq.matches)
             if L:
+                cat_title = ngettext('%(amount)s item on “%(machine)s” not on this computer',
+                                     '%(amount)s items on “%(machine)s” not on this computer',
+                                     L) % { 'amount' : L, 'machine': self.current_hostname}
                 i += L
                 docs = enq.get_documents()
-                self.cat_docid_map["foo"] = set([doc.get_docid() for doc in docs])
-                model.set_nocategory_documents(docs, untranslated_name="foo",
-                                               display_name="bar")
+                self.cat_docid_map["missingpkg"] = set([doc.get_docid() for doc in docs])
+                model.set_nocategory_documents(docs, untranslated_name="additionalpkg",
+                                               display_name=cat_title)
+
+            # Second search: additional apps
+            xfilter.set_restricted_list(self.oneconf_missing_pkg)
+            xfilter.set_not_installed_only(False)
+            xfilter.set_installed_only(True)
+            enq.set_query(query,
+                          sortmode=SortMethods.BY_ALPHABET,
+                          nonapps_visible=self.nonapps_visible,
+                          filter=xfilter,
+                          nonblocking_load=False,
+                          persistent_duplicate_filter=(i>0))
+
+            L = len(enq.matches)
+            if L:
+                cat_title = ngettext('%(amount)s item on this computer not on “%(machine)s”',
+                                     '%(amount)s items on this computer not on “%(machine)s”',
+                                     L) % { 'amount' : L, 'machine': self.current_hostname}
+                i += L
+                docs = enq.get_documents()
+                self.cat_docid_map["additionalpkg"] = set([doc.get_docid() for doc in docs])
+                model.set_nocategory_documents(docs, untranslated_name="additionalpkg",
+                                               display_name=cat_title)
 
 
             if i:
@@ -343,7 +386,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
 
             # cache the installed app count
             self.installed_count = i
-            self.app_view._append_appcount(self.installed_count, installed=True)
+            self.app_view._append_appcount(self.installed_count, mode=AppView.DIFF_MODE)
             self.emit("app-list-changed", i)
             return
 
@@ -433,7 +476,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
             if children:
                 appcount += children
                 vis_cats[cat_uname] = children
-        self.app_view._append_appcount(appcount, installed=True)
+        self.app_view._append_appcount(appcount, mode=AppView.DIFF_MODE)
         return vis_cats
 
     def on_db_reopen(self, db):

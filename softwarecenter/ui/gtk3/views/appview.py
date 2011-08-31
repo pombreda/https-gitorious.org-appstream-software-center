@@ -51,6 +51,8 @@ class AppView(Gtk.VBox):
                                          str),
                                        ),
     }
+    
+    (INSTALLED_MODE, AVAILABLE_MODE, DIFF_MODE) = range(3)
 
     _SORT_METHOD_INDEX = (SortMethods.BY_ALPHABET,
                           SortMethods.BY_TOP_RATED,
@@ -101,12 +103,16 @@ class AppView(Gtk.VBox):
                                     self.on_sort_method_changed)
         return
 
-    def _append_appcount(self, appcount, installed=False):
+    def _append_appcount(self, appcount, mode=AVAILABLE_MODE):
 
-        if installed:
+        if mode == self.INSTALLED_MODE:
             text = gettext.ngettext("%(amount)s item installed",
                                     "%(amount)s items installed",
                                     appcount) % { 'amount' : appcount, }
+        elif mode == self.DIFF_MODE:
+            text = gettext.ngettext("%(amount)s item",
+                                    "%(amount)s items",
+                                    appcount) % { 'amount' : appcount, }        
         else:
             text = gettext.ngettext("%(amount)s item available",
                                     "%(amount)s items available",
