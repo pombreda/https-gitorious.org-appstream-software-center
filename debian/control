@@ -42,6 +42,7 @@ Depends: ${python:Depends},
 	 python-lazr.restfulclient,
          ubuntu-sso-client (>= 0.99.6),
          python-piston-mini-client (>= 0.1+bzr29),
+         oneconf (>= 0.2.6),
 Recommends: lsb-release, 
             python-launchpad-integration, 
             apt-xapian-index (>= 0.38ubuntu1), 
@@ -49,7 +50,6 @@ Recommends: lsb-release,
             software-properties-gtk,
             sessioninstaller, 
             zeitgeist-core, 
-            oneconf,
 Conflicts: gnome-app-install (<< 1)
 Replaces: gnome-app-install
 Provides: gnome-app-install
