@@ -155,8 +155,8 @@ class OneConfHandler(GObject.GObject):
     def _try_login(self):
         '''Try to get the credential or login on ubuntu sso'''
         logging.debug("OneConf login()")
-        login_text = _("With multiple Ubuntu computers, you can compare the software installed on each. You need an Ubuntu Single Sign-On account.\n"
-                       "No-one else can see what you have installed.")
+        login_text = _("With multiple Ubuntu computers, you can publish their inventories online to compare the software installed on each\n"
+                       "No-one else will be able to see what you have installed.")
         self.sso = get_sso_backend(0,
                                    self.appname, login_text)
         self.sso.connect("login-successful", self._maybe_login_successful)

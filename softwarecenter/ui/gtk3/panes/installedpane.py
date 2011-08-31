@@ -132,7 +132,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         oneconftoolbar.set_orientation(Gtk.Orientation.HORIZONTAL)
         self.oneconfproperty = Gtk.MenuToolButton.new(Gtk.Image.new_from_stock(Gtk.STOCK_PROPERTIES, 22), "")
         oneconfpropertymenu = Gtk.Menu()
-        stop_oneconf_share_menuitem = Gtk.MenuItem(label=_("Stop Syncing (%s)") % platform.node())
+        stop_oneconf_share_menuitem = Gtk.MenuItem(label=_("Stop Syncing “%s”") % platform.node())
         stop_oneconf_share_menuitem.connect("activate", self._on_stop_showing_oneconf_clicked)
         stop_oneconf_share_menuitem.show()
         oneconfpropertymenu.append(stop_oneconf_share_menuitem)
