@@ -1,38 +1,32 @@
-#view {
-    background-color: #DED7DB;
-    border-radius: 0;
-    border-width: 0;
+@define-color light-aubergine #DED7DB;
+@define-color super-light-aubergine #F4F1F3;
+
+#app-view {
+    background-color: @super-light-aubergine;
 }
 
-#backforward {
-    border-width: 0;
-}
-
-#section-selector {
-    color: #d7d0d4;      /* light aubergine */
-    border-width: 0;
-}
-
-#symbolic-icon:hover,
-#section-selector:hover {
-    color: #fff;        /* white */
-}
-
-#placeholder {
-    color: #FF00B3;
+#category-view {
+    background-color: @light-aubergine;
 }
 
 #featured-star {
-    color: #FFC51D;
-    border-color: #F89516;
+    border-color: #F89516;  /* yellow */
+    color: #FFC51D;         /* orange */
 }
 
-#exhibit-button{
-    border-radius: 12;
-    color: #fff;
+#subtle-label {
+    -GtkWidget-link-color: shade (@super-light-aubergine, 0.4);
+    -GtkWidget-visited-link-color: shade (@super-light-aubergine, 0.5);
+    color: shade (@super-light-aubergine, 0.6); /* non-link text color */
 }
 
-GtkViewport{
+GtkViewport {
+    background-color: @super-light-aubergine;
     border-width: 0;
     padding: 0;
+}
+
+GtkTreeView {
+    background-color: @super-light-aubergine;
+    border-radius: 3;
 }

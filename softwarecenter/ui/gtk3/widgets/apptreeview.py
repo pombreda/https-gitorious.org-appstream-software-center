@@ -8,7 +8,7 @@ from gettext import gettext as _
 from cellrenderers import (CellRendererAppView, CellButtonRenderer,
                            CellButtonIDs)
 
-from softwarecenter.ui.gtk3.em import em
+from softwarecenter.ui.gtk3.em import em, StockEms
 from softwarecenter.enums import (AppActions, NonAppVisibility, Icons)
 from softwarecenter.utils import ExecutionTime
 from softwarecenter.backend import get_install_backend
@@ -168,9 +168,9 @@ class AppTreeView(Gtk.TreeView):
         return
 
     def _calc_row_heights(self, tr):
-        pad = em(0.3)
-        tr.set_property('xpad', pad)
-        tr.set_property('ypad', pad)
+        ypad = StockEms.SMALL
+        tr.set_property('xpad', StockEms.MEDIUM)
+        tr.set_property('ypad', ypad)
 
         for btn in tr.get_buttons():
             # recalc button geometry and cache
@@ -178,8 +178,8 @@ class AppTreeView(Gtk.TreeView):
 
         btn_h = btn.height
 
-        tr.normal_height = max(32 + 2*pad, em(2.5) + pad)
-        tr.selected_height = tr.normal_height + btn_h + 3*pad
+        tr.normal_height = max(32 + 2*ypad, em(2.5) + ypad)
+        tr.selected_height = tr.normal_height + btn_h + StockEms.MEDIUM
         return
 
     def _on_style_updated(self, widget, tr):

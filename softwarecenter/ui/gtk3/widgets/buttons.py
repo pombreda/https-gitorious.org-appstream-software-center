@@ -302,25 +302,50 @@ class ChannelSelector(Gtk.Button):
         self.add(alignment)
         self.arrow = Gtk.Arrow.new(Gtk.ArrowType.DOWN, Gtk.ShadowType.IN)
         alignment.add(self.arrow)
-        self.set_name("section-selector")
-        self.arrow.set_name("section-selector")
 
         self.section_button = section_button
         self.popup = None
-        self._dark_color = Gdk.RGBA(red=0,green=0,blue=0)
-        self.connect('style-updated', self.on_style_updated)
         self.connect("button-press-event", self.on_button_press)
         return
 
     def do_draw(self, cr):
-        a = self.get_allocation()
+        cr.save()
+
+        toolbar = self.get_ancestor('GtkToolbar')
+        context = toolbar.get_style_context()
+
+        color = darken(context.get_border_color(Gtk.StateFlags.ACTIVE), 0.2)
+
         cr.set_line_width(1)
-        cr.rectangle(-0.5, -1.5, a.width, a.height+3)
-        Gdk.cairo_set_source_rgba(cr, self._dark_color)
+
+        a = self.get_allocation()
+        lin = cairo.LinearGradient(0,0,0,a.height)
+        lin.add_color_stop_rgba(0.1,
+                                color.red,
+                                color.green,
+                                color.blue,
+                                0.0)    # alpha
+        lin.add_color_stop_rgba(0.5,
+                                color.red,
+                                color.green,
+                                color.blue,
+                                1.0)    # alpha
+        lin.add_color_stop_rgba(1.0,
+                                color.red,
+                                color.green,
+                                color.blue,
+                                0.1)    # alpha
+        cr.set_source(lin)
+
+        cr.move_to(0.5, 0.5)
+        cr.rel_line_to(0, a.height)
         cr.stroke()
-        cr.rectangle(0.5, -1.5, a.width-2, a.height+3)
-        cr.set_source_rgba(1,1,1, 0.07)
+
+        cr.move_to(a.width - 0.5, 0.5)
+        cr.rel_line_to(0, a.height)
         cr.stroke()
+
+        cr.restore()
 
         for child in self: self.propagate_draw(child, cr)
         return
@@ -330,16 +355,16 @@ class ChannelSelector(Gtk.Button):
             self.build_channel_selector()
         self.show_channel_sel_popup(self, event)
         return
-
-    def on_style_updated(self, widget):
-        context = widget.get_style_context()
-        context.save()
-        context.add_class("menu")
-        bgcolor = context.get_background_color(Gtk.StateFlags.NORMAL)
-        context.restore()
-
-        self._dark_color = darken(bgcolor, 0.5)
-        return
+#~ 
+    #~ def on_style_updated(self, widget):
+        #~ context = widget.get_style_context()
+        #~ context.save()
+        #~ context.add_class("menu")
+        #~ bgcolor = context.get_background_color(Gtk.StateFlags.NORMAL)
+        #~ context.restore()
+#~ 
+        #~ self._dark_color = darken(bgcolor, 0.5)
+        #~ return
 
     def show_channel_sel_popup(self, widget, event):
 
@@ -376,72 +401,81 @@ class SectionSelector(TileToggleButton):
         self.build_default(markup, icon, icon_size)
         self.label.set_use_markup(True)
         self.label.set_justify(Gtk.Justification.CENTER)
-        self.label.set_name("section-selector")
-        self.set_name("section-selector")
+
         self.draw_hint_has_channel_selector = False
-        self._dark_color = Gdk.RGBA(red=0,green=0,blue=0)
+        self._alloc = None
+        self._bg_cache = {}
+
+        self.connect('size-allocate', self.on_size_allocate)
         self.connect('style-updated', self.on_style_updated)
-        self.label.connect("draw", self.on_label_draw)
+        return
+
+    def on_size_allocate(self, *args):
+        alloc = self.get_allocation()
+        
+        if (self._alloc is None or
+            self._alloc.width != alloc.width or
+            self._alloc.height != alloc.height):
+            self._alloc = alloc
+            # reset the bg cache
+            self._bg_cache = {}
+        return
+
+    def on_style_updated(self, *args):
+        # also reset the bg cache
+        self._bg_cache = {}
+        return
+
+    def _cache_bg_for_state(self, state):
+        a = self.get_allocation()
+        # tmp surface on which we render the button bg as per the gtk
+        # theme engine
+        _surf = cairo.ImageSurface(cairo.FORMAT_ARGB32,
+                                   a.width, a.height)
+        cr = cairo.Context(_surf)
+
+        context = self.get_style_context()
+        context.save()
+        context.set_state(state)
+
+        Gtk.render_background(context, cr,
+                          -5, -5, a.width+10, a.height+10)
+        Gtk.render_frame(context, cr,
+                          -5, -5, a.width+10, a.height+10)
+        del cr
+
+        # new surface which will be cached which
+        surf = cairo.ImageSurface(cairo.FORMAT_ARGB32,
+                                  a.width, a.height)
+        cr = cairo.Context(surf)
+
+        # gradient for masking
+        lin = cairo.LinearGradient(0, 0, 0, a.height)
+        lin.add_color_stop_rgba(0.0, 1,1,1, 0.1)
+        lin.add_color_stop_rgba(0.25, 1,1,1, 0.7)
+        lin.add_color_stop_rgba(0.5, 1,1,1, 1.0)
+        lin.add_color_stop_rgba(0.75, 1,1,1, 0.7)
+        lin.add_color_stop_rgba(1.0, 1,1,1, 0.1)
+
+        cr.set_source_surface(_surf, 0, 0)
+        cr.mask(lin)
+        del cr
+
+        # cache the resulting surf...
+        self._bg_cache[state] = surf
         return
 
     def do_draw(self, cr):
-        a = self.get_allocation()
+        state = self.get_state_flags()
         if self.get_active():
-            r, g, b = (self._dark_color.red,
-                       self._dark_color.green,
-                       self._dark_color.blue)
+            if state not in self._bg_cache:
+                self._cache_bg_for_state(state)
 
-            cr.rectangle(0, -1, a.width, a.height+2)
-            lin = cairo.LinearGradient(0, 0, 0, a.height)
-            lin.add_color_stop_rgba(0.0, r,g,b, 0.0)
-            lin.add_color_stop_rgba(0.25, r,g,b, 0.3)
-            lin.add_color_stop_rgba(0.5, r,g,b, 0.5)
-            lin.add_color_stop_rgba(0.75, r,g,b, 0.3)
-            lin.add_color_stop_rgba(1.0, r,g,b, 0.0)
-            cr.set_source(lin)
-            cr.fill_preserve()
-            cr.set_source_rgba(r,g,b)
-            cr.stroke()
+            cr.set_source_surface(self._bg_cache[state], 0, 0)
+            cr.paint()
 
-        elif self.draw_hint_has_channel_selector:
-            cr.set_line_width(1)
-            cr.move_to(a.width-0.5, -1)
-            cr.rel_line_to(0, a.height+2)
-            Gdk.cairo_set_source_rgba(cr, self._dark_color)
-            cr.stroke()
-
-        for child in self: 
-            self.propagate_draw(child, cr)
+        for child in self: self.propagate_draw(child, cr)
         return
-
-    def on_style_updated(self, widget):
-        context = widget.get_style_context()
-        context.save()
-        context.add_class("menu")
-        bgcolor = context.get_background_color(Gtk.StateFlags.NORMAL)
-        context.restore()
-
-        self._dark_color = darken(bgcolor, 0.5)
-        return
-
-    def on_label_draw(self, label, cr):
-        layout = label.get_layout()
-
-        a = self.label.get_allocation()
-        x, y = label.get_layout_offsets()
-        x -= a.x
-        y -= a.y
-
-        cr.move_to(x, y+1)
-        PangoCairo.layout_path(cr, layout)
-        cr.set_source_rgba(0,0,0,0.3)
-        cr.set_line_width(2.5)
-        cr.stroke()
-
-        context = self.get_style_context()
-        context.set_state(self.get_state_flags())
-        Gtk.render_layout(context, cr, x, y, layout)
-        return True
 
 
 class Link(Gtk.Label):
@@ -550,6 +584,7 @@ class MoreLink(Gtk.EventBox):
     
     def clicked(self):
         self.emit("clicked")
+
 
 def get_test_buttons_window():
     win = Gtk.Window()

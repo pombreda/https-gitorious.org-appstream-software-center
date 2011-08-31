@@ -119,9 +119,9 @@ class CellRendererAppView(Gtk.CellRendererText):
         xo = (self.pixbuf_width - icon.get_width())/2
 
         if not is_rtl:
-            x = cell_area.x+xo
+            x = cell_area.x + xo + xpad
         else:
-            x = cell_area.x+cell_area.width+xo-self.pixbuf_width
+            x = cell_area.x + cell_area.width+xo - self.pixbuf_width - xpad
 
         # draw appicon pixbuf
         Gdk.cairo_set_source_pixbuf(cr, icon, x, cell_area.y+ypad)
@@ -130,11 +130,11 @@ class CellRendererAppView(Gtk.CellRendererText):
         # draw overlay if application is installed
         if self.model.is_installed(app):
             if not is_rtl:
-                x = cell_area.x + self.OFFSET_X
+                x = cell_area.x + xpad + self.OFFSET_X
             else:
-                x = cell_area.x+cell_area.width-self.pixbuf_width+self.OFFSET_X
+                x = cell_area.x+cell_area.width-xpad-self.OFFSET_X
 
-            y = cell_area.y + self.OFFSET_Y
+            y = cell_area.y + ypad + self.OFFSET_Y
             Gdk.cairo_set_source_pixbuf(cr, self._installed, x, y)
             cr.paint()
         return
@@ -233,8 +233,8 @@ class CellRendererAppView(Gtk.CellRendererText):
         context.save()
         context.add_class("trough")
 
-        Gtk.render_background (context, cr, x, y, w, h)
-        Gtk.render_frame (context, cr, x, y, w, h)
+        Gtk.render_background(context, cr, x, y, w, h)
+        Gtk.render_frame(context, cr, x, y, w, h)
 
         border = context.get_border(Gtk.StateFlags.NORMAL)
         padding = context.get_padding(Gtk.StateFlags.NORMAL)
@@ -242,19 +242,15 @@ class CellRendererAppView(Gtk.CellRendererText):
         context.restore ()
 
         bar_size = w * percent
-        if not is_rtl:
-          x += border.left + padding.left
-          y += border.top + padding.top
-          bar_size -= border.left + border.right + padding.left + padding.right
-          h -= border.top + border.bottom + padding.top + padding.bottom
-        else:
-            pass
+        #~ if not is_rtl:
+        #~ else:
+            #~ pass
 
         context.save ()
         context.add_class ("progressbar")
 
         if (bar_size > 0):
-            Gtk.render_activity (context, cr, x, y, bar_size, h)
+            Gtk.render_activity(context, cr, x, y, bar_size, h)
 
         context.restore ()
         return
@@ -271,11 +267,11 @@ class CellRendererAppView(Gtk.CellRendererText):
             start = Gtk.PackType.START
             end = Gtk.PackType.END
             xs = cell_area.x + 2*xpad + self.pixbuf_width
-            xb = cell_area.x + cell_area.width
+            xb = cell_area.x + cell_area.width - xpad
         else:
             start = Gtk.PackType.END
             end = Gtk.PackType.START
-            xs = cell_area.x
+            xs = cell_area.x + xpad
             xb = cell_area.x + cell_area.width - 2*xpad - self.pixbuf_width
 
         for btn in self._buttons[start]:
@@ -348,9 +344,6 @@ class CellRendererAppView(Gtk.CellRendererText):
         ypad = self.get_property('ypad')
         star_width, star_height = self._stars.get_visible_size(context)
         is_rtl = widget.get_direction() == Gtk.TextDirection.RTL
-
-        cell_area.width = widget.get_allocation().width - 2 * StockEms.LARGE
-        cell_area.x = StockEms.LARGE
 
         if not self._layout:
             self._layout = widget.create_pango_layout('')
@@ -540,7 +533,7 @@ class CellButtonRenderer:
         context.set_state(self.state)
 
         Gtk.render_background(context, cr, x, y, width, height)
-        Gtk.render_frame(context, cr, x, y, width, height)
+        #~ Gtk.render_frame(context, cr, x, y, width, height)
 
         layout.set_markup(self.markup_variants[self.current_variant], -1)
         layout_width = layout.get_pixel_extents()[1].width
