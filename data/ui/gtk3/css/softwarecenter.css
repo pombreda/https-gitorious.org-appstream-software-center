@@ -17,7 +17,7 @@
 #subtle-label {
     -GtkWidget-link-color: shade (@super-light-aubergine, 0.4);
     -GtkWidget-visited-link-color: shade (@super-light-aubergine, 0.5);
-    color: shade (@super-light-aubergine, 0.6);
+    color: shade (@super-light-aubergine, 0.6); /* non-link text color */
 }
 
 GtkViewport {
