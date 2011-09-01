@@ -49,6 +49,9 @@ import softwarecenter.paths
 
 from optparse import OptionParser
 
+# Enable Xapian's CJK tokenizer (see LP: #745243)
+os.environ['XAPIAN_CJK_NGRAM'] = '1'
+
 if __name__ == "__main__":
 
     parser = OptionParser("usage: %prog [options] [package-name | apturl | deb-file]", 
