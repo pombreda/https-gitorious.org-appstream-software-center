@@ -38,12 +38,17 @@ software-center (4.1.20.1) UNRELEASED; urgency=low
        LP: #830738 and LP: #838382)
 
   [ Gary Lasker ]
-  * po/software-center.pot:
-    - refresh .pot file 
   * softwarecenter/db/update.py:
-    - enable Xapian's CJK support (LP: #745243) 
+    - enable CJK support in Xapian (LP: #745243) 
+  * po/software-center.pot:
+    - refresh .pot file
+  * softwarecenter/ui/gtk/widgets/thumbnail.py:
+    - fix missing icon in theme to let non-gtk3 version
+      launch again, also fixes all gtk unit tests 
+  * test/test_database.py:
+    - update unit test
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 31 Aug 2011 18:47:00 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 01 Sep 2011 01:29:31 -0400
 
 software-center (4.1.20) oneiric; urgency=low
 

@@ -161,7 +161,7 @@ class TestDatabase(unittest.TestCase):
         self.assertEqual(appdetails.pkg_state, PkgStates.INSTALLED)
         # FIXME: test description for unavailable pkg
         self.assertTrue(
-            appdetails.description.startswith("The Ubuntu Software Center"))
+            appdetails.description.startswith("Ubuntu Software Center lets you"))
         # FIXME: test appdetails.website
         self.assertEqual(appdetails.icon, "softwarecenter")
         # crude, crude
