@@ -35,6 +35,7 @@ from softwarecenter.db.categories import (CategoriesParser,
                                           categories_sorted_by_name)
 from softwarecenter.ui.gtk3.models.appstore2 import (
     AppTreeStore, CategoryRowReference)
+from softwarecenter.ui.gtk3.widgets.menubutton import MenuButton
 from softwarecenter.ui.gtk3.widgets.oneconfviews import OneConfViews
 from softwarecenter.ui.gtk3.views.appview import AppView
 from softwarepane import SoftwarePane
@@ -113,7 +114,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         self.oneconf_viewpickler.register_computer(None, _("This computer (%s)") % platform.node())
         self.oneconf_viewpickler.select_first()
         self.oneconf_viewpickler.connect('computer-changed', self._selected_computer_changed)
-        self.oneconf_viewpickler.connect('current-inventory-refreshed', self._current_inventory_need_refresh)             
+        self.oneconf_viewpickler.connect('current-inventory-refreshed', self._current_inventory_need_refresh)
         
         # Start OneConf
         self.oneconf_handler = get_oneconf_handler(self.oneconf_viewpickler)
@@ -134,13 +135,12 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         
         oneconftoolbar = Gtk.Box()
         oneconftoolbar.set_orientation(Gtk.Orientation.HORIZONTAL)
-        self.oneconfproperty = Gtk.MenuToolButton.new(Gtk.Image.new_from_stock(Gtk.STOCK_PROPERTIES, 22), "")
         oneconfpropertymenu = Gtk.Menu()
+        self.oneconfproperty = MenuButton(oneconfpropertymenu, Gtk.Image.new_from_stock(Gtk.STOCK_PROPERTIES, Gtk.IconSize.BUTTON))
         stop_oneconf_share_menuitem = Gtk.MenuItem(label=_("Stop Syncing “%s”") % platform.node())
         stop_oneconf_share_menuitem.connect("activate", self._on_stop_showing_oneconf_clicked)
         stop_oneconf_share_menuitem.show()
         oneconfpropertymenu.append(stop_oneconf_share_menuitem)
-        self.oneconfproperty.set_menu(oneconfpropertymenu)
         self.oneconfcontrol.pack_start(oneconftoolbar, False, False, 1)
         self.oneconf_last_sync = Gtk.Label()
         self.oneconf_last_sync.set_line_wrap(True)
