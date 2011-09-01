@@ -112,7 +112,7 @@ class CategoriesViewGtk(Gtk.Viewport, CategoriesParser):
         Gtk.Viewport.__init__(self)
         CategoriesParser.__init__(self, db)
 
-        self.set_name("view")
+        self.set_name("category-view")
 
         # setup base widgets
         # we have our own viewport so we know when the viewport grows/shrinks
@@ -233,7 +233,7 @@ class LobbyViewGtk(CategoriesViewGtk):
 
         self.top_hbox = Gtk.HBox(spacing=StockEms.SMALL)
         top_hbox_alignment = Gtk.Alignment()
-        top_hbox_alignment.set_padding(0, 0, StockEms.LARGE-2, StockEms.LARGE-2)
+        top_hbox_alignment.set_padding(0, 0, StockEms.MEDIUM-2, StockEms.MEDIUM-2)
         top_hbox_alignment.add(self.top_hbox)
         self.vbox.pack_start(top_hbox_alignment, False, False, 0)
 
@@ -496,15 +496,15 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         self.appcount = None
 
         # widgetry
-        self.vbox.set_margin_left(StockEms.LARGE-2)
-        self.vbox.set_margin_right(StockEms.LARGE-2)
+        self.vbox.set_margin_left(StockEms.MEDIUM-2)
+        self.vbox.set_margin_right(StockEms.MEDIUM-2)
         self.vbox.set_margin_top(StockEms.MEDIUM)
         return
 
     @wait_for_apt_cache_ready # be consistent with new apps
     def _append_sub_toprated(self, category):
         if self.toprated is None:
-            self.toprated = FlowableGrid(paint_grid_pattern=False)
+            self.toprated = FlowableGrid()
             self.toprated.set_row_spacing(6)
             self.toprated.set_column_spacing(6)
             frame = FramedHeaderBox()
@@ -538,11 +538,11 @@ class SubCategoryViewGtk(CategoriesViewGtk):
             self.subcat_label.set_alignment(0, 0.5)
 
             self.departments = FlowableGrid(paint_grid_pattern=False)
-            self.departments.set_row_spacing(6)
-            self.departments.set_column_spacing(6)
+            self.departments.set_row_spacing(StockEms.SMALL)
+            self.departments.set_column_spacing(StockEms.SMALL)
 
             frame = FramedBox(spacing=StockEms.MEDIUM,
-                              padding=StockEms.LARGE)
+                              padding=StockEms.MEDIUM)
             # set x/y-alignment and x/y-expand
             frame.set(0.5, 0.0, 1.0, 1.0)
 

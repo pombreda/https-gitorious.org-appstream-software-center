@@ -49,7 +49,6 @@ from softwarecenter.backend.weblive import get_weblive_backend
 from softwarecenter.ui.gtk3.dialogs import error
 from appdetailsview import AppDetailsViewBase
 
-from softwarecenter.ui.gtk3.drawing import darken, get_subtle_color_as_hex
 from softwarecenter.ui.gtk3.em import StockEms, em
 from softwarecenter.ui.gtk3.widgets.separators import HBar
 from softwarecenter.ui.gtk3.widgets.reviews import UIReviewsList
@@ -334,16 +333,16 @@ class PackageInfo(Gtk.HBox):
     def _on_realize(self, widget):
         # key
         k = Gtk.Label()
-        key_markup = '<span color="%s"><b>%s</b></span>'
-        subtle = get_subtle_color_as_hex(self)
-        k.set_markup(key_markup  % (subtle, self.key))
+        k.set_name("subtle-label")
+        key_markup = '<b>%s</b>'
+        k.set_markup(key_markup  % self.key)
         k.set_alignment(1, 0)
 
         # determine max width of all keys
         max_lw = 0
         for key in self.info_keys:
             l = self.create_pango_layout("")
-            l.set_markup(key_markup % (subtle, key), -1)
+            l.set_markup(key_markup % key, -1)
             max_lw = max(max_lw, l.get_pixel_extents()[1].width)
             del l
         k.set_size_request(max_lw, -1)
@@ -413,15 +412,9 @@ class Addon(Gtk.HBox):
         if len(title) >= 2:
             title = title[0].upper() + title[1:]
 
-        vp = self.get_ancestor('GtkViewport')
-        context = vp.get_style_context()
-        bg = context.get_background_color(Gtk.StateFlags.NORMAL)
-        subtle = darken(bg)
-
-        m = ' <span color="%s">(%s)</span>'
         self.title = Gtk.Label()
-        subtle = get_subtle_color_as_hex(self)
-        self.title.set_markup(title + m % (subtle, pkgname))
+        self.title.set_name("subtle-label")
+        self.title.set_markup(title + ' (%s)' % pkgname)
         self.title.set_alignment(0.0, 0.5)
         self.title.set_line_wrap(True)
         self.title.set_ellipsize(Pango.EllipsizeMode.END)
@@ -705,12 +698,6 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         assets["bg"] = ptrn
         return assets
 
-    def do_draw(self, cr):
-        cr.set_source(_asset_cache["bg"])
-        cr.paint_with_alpha(0.7)
-        for child in self: self.propagate_draw(child, cr)
-        return
-
     def _on_net_state_changed(self, watcher, state):
         if state in NetState.NM_STATE_DISCONNECTED_LIST:
             self._check_for_reviews()
@@ -899,7 +886,7 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         # setup widgets
         vb = Gtk.VBox()
         vb.set_spacing(StockEms.MEDIUM)
-        vb.set_border_width(StockEms.LARGE)
+        vb.set_border_width(StockEms.MEDIUM)
         self.add(vb)
 
         # header
@@ -984,6 +971,7 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
 
         # homepage link button
         self.homepage_btn = Gtk.Label()
+        self.homepage_btn.set_name("subtle-label")
         self.homepage_btn.connect('activate-link', self._on_homepage_clicked)
 
         # add the links footer to the description widget
@@ -1244,7 +1232,7 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         self._update_layout_error_status(pkg_ambiguous_error)
         self._update_title_markup(appname, summary)
         self._update_app_icon(app_details)
-        self._update_app_description(app_details, appname)
+        self._update_app_description(app_details, app_details.pkgname)
         self._update_description_footer_links(app_details)
         self._update_app_screenshot(app_details)
         self._update_weblive(app_details)

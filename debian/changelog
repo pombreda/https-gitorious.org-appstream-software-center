@@ -18,7 +18,37 @@ software-center (4.1.20.1) UNRELEASED; urgency=low
   * softwarecenter/ui/gtk3/panes/softwarepane.py:
     - fix the spinner display when loading slow views (LP: #830682)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 29 Aug 2011 18:15:16 -0400
+  [ Gabor Kelemen ]
+  * po/POTFILES.in,
+    po/POTFILES.skip:
+    - update per latest configuration, add new gtk3 files
+
+  [ Matthew McGowan ]
+  * softwarecenter/ui/gtk3/widgets/buttons.py :
+    - resize fix for Top Rated and What's New tiles (LP: #833697)
+  * softwarecenter/ui/gtk3/views/catview_gtk.py,
+    softwarecenter/ui/gtk3/widgets/containers.py:
+    - disable the rendering of the checkboard pattern in the
+      grid views (at request of mpt)
+   * lp:~mmcg069/software-center/description-tweaks:
+     - fix badly rendered package descriptions, other tweaks
+       (LP: #833954)
+   * lp:~mmcg069/software-center/globalpane-themeability:
+     - various theming fixes (LP: #828092, LP: #830681,
+       LP: #830738 and LP: #838382)
+
+  [ Gary Lasker ]
+  * softwarecenter/db/update.py:
+    - enable CJK support in Xapian (LP: #745243) 
+  * po/software-center.pot:
+    - refresh .pot file
+  * softwarecenter/ui/gtk/widgets/thumbnail.py:
+    - fix missing icon in theme to let non-gtk3 version
+      launch again, also fixes all gtk unit tests 
+  * test/test_database.py:
+    - update unit test
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 01 Sep 2011 01:29:31 -0400
 
 software-center (4.1.20) oneiric; urgency=low
 

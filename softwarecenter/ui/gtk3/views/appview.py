@@ -20,7 +20,7 @@
 
 
 
-from gi.repository import Gtk, GObject
+from gi.repository import Gtk, Gdk, GObject
 from gettext import gettext as _
 import gettext
 
@@ -66,11 +66,12 @@ class AppView(Gtk.VBox):
 
     def __init__(self, db, cache, icons, show_ratings):
         Gtk.VBox.__init__(self)
+        self.set_name("app-view")
         # app properties helper
         self.helper = AppPropertiesHelper(db, cache, icons)
         # misc internal containers
         self.header_hbox = Gtk.HBox()
-        self.header_hbox.set_border_width(StockEms.LARGE)
+        self.header_hbox.set_border_width(StockEms.MEDIUM)
         self.pack_start(self.header_hbox, False, False, 0)
         self.tree_view_scroll = Gtk.ScrolledWindow()
         self.pack_start(self.tree_view_scroll, True, True, 0)
@@ -127,11 +128,6 @@ class AppView(Gtk.VBox):
             self.vbox.pack_start(self.appcount, False, False, 0)
         self.appcount.set_text(text)
         self.appcount.show()
-        return
-
-    def on_draw(self, widget, cr):
-        cr.set_source_rgb(1,1,1)
-        cr.paint()
         return
 
     def on_sort_method_changed(self, *args):
