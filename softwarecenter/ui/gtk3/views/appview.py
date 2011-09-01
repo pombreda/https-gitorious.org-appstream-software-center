@@ -93,7 +93,7 @@ class AppView(Gtk.VBox):
         self.vbox.pack_start(self.tree_view, False, True, 0)
         self.tree_view_scroll.add_with_viewport(self.vbox)
         vp = self.tree_view_scroll.get_children()[0]
-        vp.connect("draw", self.on_draw)
+        #~ vp.connect("draw", self.on_draw)
 
         self.appcount = None
 
@@ -123,7 +123,7 @@ class AppView(Gtk.VBox):
             self.appcount.set_alignment(0.5, 0.5)
             self.appcount.set_margin_top(4)
             self.appcount.set_margin_bottom(3)
-            self.appcount.connect("draw", self.on_draw)
+            #~ self.appcount.connect("draw", self.on_draw)
             self.vbox.pack_start(self.appcount, False, False, 0)
         self.appcount.set_text(text)
         self.appcount.show()
