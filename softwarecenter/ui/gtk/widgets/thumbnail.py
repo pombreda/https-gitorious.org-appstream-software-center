@@ -45,7 +45,7 @@ class ScreenshotThumbnail(gtk.Alignment):
 
         # zoom cursor
         theme = gtk.icon_theme_get_default()
-        zoom_pb = theme.load_icon(gtk.STOCK_ZOOM_IN, 22, 0)
+        zoom_pb = theme.load_icon(gtk.STOCK_ZOOM_FIT, 22, 0)
         self._zoom_cursor = gtk.gdk.Cursor(gtk.gdk.display_get_default(),
                                            zoom_pb, 0, 0)
                                            
