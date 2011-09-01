@@ -1,7 +1,9 @@
-# Copyright (C) 2009 Canonical
+# -*- coding: utf-8 -*-
+# Copyright (C) 2009-2011 Canonical
 #
 # Authors:
 #  Michael Vogt
+#  Didier Roche
 #
 # This program is free software; you can redistribute it and/or modify it under
 # the terms of the GNU General Public License as published by the Free Software
@@ -22,6 +24,9 @@ import xapian
 from gi.repository import GObject
 
 from gettext import gettext as _
+from gettext import ngettext
+
+import platform
 
 from softwarecenter.enums import (NonAppVisibility,
                                   SortMethods)
@@ -30,7 +35,11 @@ from softwarecenter.db.categories import (CategoriesParser,
                                           categories_sorted_by_name)
 from softwarecenter.ui.gtk3.models.appstore2 import (
     AppTreeStore, CategoryRowReference)
+from softwarecenter.ui.gtk3.widgets.menubutton import MenuButton
+from softwarecenter.ui.gtk3.widgets.oneconfviews import OneConfViews
+from softwarecenter.ui.gtk3.views.appview import AppView
 from softwarepane import SoftwarePane
+from softwarecenter.backend.oneconfhandler import get_oneconf_handler
 from softwarecenter.db.appfilter import AppFilter
 
 LOG=logging.getLogger(__name__)
@@ -79,10 +88,16 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         CategoriesParser.__init__(self, db)
 
         self.current_appview_selection = None
+        self.icons = icons
         self.loaded = False
         self.pane_name = _("Installed Software")
 
         self.installed_apps = 0
+        # None is local
+        self.current_hostid = None
+        self.current_hostname = None
+        self.oneconf_additional_pkg = set()
+        self.oneconf_missing_pkg = set()
 
         # switches to terminate build in progress
         self._build_in_progress = False
@@ -94,9 +109,48 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         if self.view_initialized: return
 
         SoftwarePane.init_view(self)
+        
+        self.oneconf_viewpickler = OneConfViews(self.icons)
+        self.oneconf_viewpickler.register_computer(None, _("This computer (%s)") % platform.node())
+        self.oneconf_viewpickler.select_first()
+        self.oneconf_viewpickler.connect('computer-changed', self._selected_computer_changed)
+        self.oneconf_viewpickler.connect('current-inventory-refreshed', self._current_inventory_need_refresh)
+        
+        # Start OneConf
+        self.oneconf_handler = get_oneconf_handler(self.oneconf_viewpickler)
+        self.oneconf_handler.connect('show-oneconf-changed', self._show_oneconf_changed)
+        self.oneconf_handler.connect('last-time-sync-changed', self._last_time_sync_oneconf_changed)
+        
+        # OneConf pane
+        self.computerpane = Gtk.Paned.new(Gtk.Orientation.HORIZONTAL)
+        self.oneconfcontrol = Gtk.Box()
+        self.oneconfcontrol.set_orientation(Gtk.Orientation.VERTICAL)
+        self.computerpane.pack1(self.oneconfcontrol, False, False)
+        # size negociation takes everything for the first one
+        self.oneconfcontrol.set_property('width-request', 200)
+        self.box_app_list.pack_start(self.computerpane, True, True, 0)
+
+        scroll = Gtk.ScrolledWindow()
+        scroll.set_shadow_type(Gtk.ShadowType.IN)
+        scroll.add(self.oneconf_viewpickler)
+        self.oneconfcontrol.pack_start(scroll, True, True, 0)
+        
+        oneconftoolbar = Gtk.Box()
+        oneconftoolbar.set_orientation(Gtk.Orientation.HORIZONTAL)
+        oneconfpropertymenu = Gtk.Menu()
+        self.oneconfproperty = MenuButton(oneconfpropertymenu, Gtk.Image.new_from_stock(Gtk.STOCK_PROPERTIES, Gtk.IconSize.BUTTON))
+        stop_oneconf_share_menuitem = Gtk.MenuItem(label=_("Stop Syncing “%s”") % platform.node())
+        stop_oneconf_share_menuitem.connect("activate", self._on_stop_showing_oneconf_clicked)
+        stop_oneconf_share_menuitem.show()
+        oneconfpropertymenu.append(stop_oneconf_share_menuitem)
+        self.oneconfcontrol.pack_start(oneconftoolbar, False, False, 1)
+        self.oneconf_last_sync = Gtk.Label()
+        self.oneconf_last_sync.set_line_wrap(True)
+        oneconftoolbar.pack_start(self.oneconfproperty, False, False, 0)
+        oneconftoolbar.pack_start(self.oneconf_last_sync, True, True, 1)
 
         self.search_aid.set_no_show_all(True)
-        self.notebook.append_page(self.box_app_list, Gtk.Label(label="installed"))
+        self.notebook.append_page(self.box_app_list, Gtk.Label(label="list"))
 
         # details
         self.notebook.append_page(self.scroll_details, Gtk.Label(label="details"))
@@ -120,12 +174,49 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         # now we are initialized
         self.emit("installed-pane-created")
         self.show_all()
+        self.computerpane.hide()
 
         # hacky, hide the header
         self.app_view.header_hbox.hide()
 
         self.view_initialized = True
         return False
+        
+    def _selected_computer_changed(self, oneconf_pickler, hostid, hostname):
+        if self.current_hostid == hostid:
+            return
+        LOG.debug("Selected computer changed to %s (%s)" % (hostid, hostname))
+        self.current_hostid = hostid
+        self.current_hostname = hostname
+        if self.current_hostid:
+            (self.oneconf_additional_pkg, self.oneconf_missing_pkg) = self.oneconf_handler.oneconf.diff(self.current_hostid, '')
+        self.refresh_apps()
+        
+    def _last_time_sync_oneconf_changed(self, oneconf_handler, msg):
+        LOG.debug("refresh latest sync date")
+        self.oneconf_last_sync.set_label(msg)
+        
+    def _show_oneconf_changed(self, oneconf_handler, oneconf_inventory_shown):
+        LOG.debug('Share inventory status changed')
+        if oneconf_inventory_shown:
+            # FIXME: would be better to avoid that, but needed to hide the handler?
+            self.app_view.reparent(self.computerpane)
+            self.computerpane.pack2(self.app_view, True, True)
+            self.computerpane.show()
+        else:
+            self.oneconf_viewpickler.select_first()
+            self.computerpane.hide()
+            self.app_view.reparent(self.box_app_list)
+            self.box_app_list.pack_start(self.app_view, True, True, 0)
+            
+    def _on_stop_showing_oneconf_clicked(self, widget):
+        LOG.debug("Stop sharing the current computer inventory")
+        self.oneconf_handler.sync_between_computers(False)
+        
+    def _current_inventory_need_refresh(self, oneconfviews):
+        if self.current_hostid:
+            (self.oneconf_additional_pkg, self.oneconf_missing_pkg) = self.oneconf_handler.oneconf.diff(self.current_hostid, '')
+        self.refresh_apps()
 
     def _on_row_collapsed(self, view, it, path):
         return
@@ -159,7 +250,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         self.refresh_apps()
 
     #~ @interrupt_build_and_wait
-    def _build_categorised_view(self):
+    def _build_categorised_installedview(self):
         LOG.debug('Rebuilding categorised installedview...')
         model = self.base_model # base model not treefilter
         model.clear()
@@ -224,11 +315,88 @@ class InstalledPane(SoftwarePane, CategoriesParser):
 
             # cache the installed app count
             self.installed_count = i
-            self.app_view._append_appcount(self.installed_count, installed=True)
+            self.app_view._append_appcount(self.installed_count, mode=AppView.INSTALLED_MODE)
             self.emit("app-list-changed", i)
             return
 
         GObject.idle_add(rebuild_categorised_view)
+        return
+        
+    def _build_oneconfview(self):
+        LOG.debug('Rebuilding oneconfview for %s...' % self.current_hostid)
+        model = self.base_model # base model not treefilter
+        model.clear()
+
+        def rebuild_oneconfview():
+            self.cat_docid_map = {}
+            enq = self.enquirer
+            query = xapian.Query("")
+            if self.state.channel and self.state.channel.query:
+                query = xapian.Query(xapian.Query.OP_AND,
+                                     query,
+                                     self.state.channel.query)
+
+            i = 0
+
+            # First search: missing apps only
+            xfilter = AppFilter(self.db, self.cache)
+            xfilter.set_restricted_list(self.oneconf_additional_pkg)
+            xfilter.set_not_installed_only(True)
+            
+            enq.set_query(query,
+                          sortmode=SortMethods.BY_ALPHABET,
+                          nonapps_visible=self.nonapps_visible,
+                          filter=xfilter,
+                          nonblocking_load=False,
+                          persistent_duplicate_filter=(i>0))
+
+            L = len(enq.matches)
+            if L:
+                cat_title = ngettext('%(amount)s item on “%(machine)s” not on this computer',
+                                     '%(amount)s items on “%(machine)s” not on this computer',
+                                     L) % { 'amount' : L, 'machine': self.current_hostname}
+                i += L
+                docs = enq.get_documents()
+                self.cat_docid_map["missingpkg"] = set([doc.get_docid() for doc in docs])
+                model.set_nocategory_documents(docs, untranslated_name="additionalpkg",
+                                               display_name=cat_title)
+
+            # Second search: additional apps
+            xfilter.set_restricted_list(self.oneconf_missing_pkg)
+            xfilter.set_not_installed_only(False)
+            xfilter.set_installed_only(True)
+            enq.set_query(query,
+                          sortmode=SortMethods.BY_ALPHABET,
+                          nonapps_visible=self.nonapps_visible,
+                          filter=xfilter,
+                          nonblocking_load=False,
+                          persistent_duplicate_filter=(i>0))
+
+            L = len(enq.matches)
+            if L:
+                cat_title = ngettext('%(amount)s item on this computer not on “%(machine)s”',
+                                     '%(amount)s items on this computer not on “%(machine)s”',
+                                     L) % { 'amount' : L, 'machine': self.current_hostname}
+                i += L
+                docs = enq.get_documents()
+                self.cat_docid_map["additionalpkg"] = set([doc.get_docid() for doc in docs])
+                model.set_nocategory_documents(docs, untranslated_name="additionalpkg",
+                                               display_name=cat_title)
+
+
+            if i:
+                self.app_view.tree_view.set_cursor(Gtk.TreePath(),
+                                                   None, False)
+                if i <= 10:
+                    self.app_view.tree_view.expand_all()
+
+            # cache the installed app count
+            self.installed_count = i
+            self.app_view._append_appcount(self.installed_count, mode=AppView.DIFF_MODE)
+            self.emit("app-list-changed", i)
+            return
+
+        GObject.idle_add(rebuild_oneconfview)
         return
 
     def _check_expand(self):
@@ -286,7 +454,10 @@ class InstalledPane(SoftwarePane, CategoriesParser):
     def refresh_apps(self, *args, **kwargs):
         """refresh the applist and update the navigation bar """
         logging.debug("installedpane refresh_apps")
-        self._build_categorised_view()
+        if self.current_hostid:
+            self._build_oneconfview()
+        else:
+            self._build_categorised_installedview()
         return
 
     def _clear_search(self):
@@ -311,7 +482,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
             if children:
                 appcount += children
                 vis_cats[cat_uname] = children
-        self.app_view._append_appcount(appcount, installed=True)
+        self.app_view._append_appcount(appcount, mode=AppView.DIFF_MODE)
         return vis_cats
 
     def on_db_reopen(self, db):
@@ -336,7 +507,10 @@ class InstalledPane(SoftwarePane, CategoriesParser):
 
     def display_overview_page(self, page, view_state):
         LOG.debug("view_state: %s" % view_state)
-        self._build_categorised_view()
+        if self.current_hostid:
+            self._build_oneconfview()
+        else:
+            self._build_categorised_installedview()
 
         if self.state.search_term:
             self._search(self.state.search_term)
