@@ -128,6 +128,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         self.box_app_list.pack_start(self.computerpane, True, True, 0)
 
         scroll = Gtk.ScrolledWindow()
+        scroll.set_shadow_type(Gtk.ShadowType.IN)
         scroll.add(self.oneconf_viewpickler)
         self.oneconfcontrol.pack_start(scroll, True, True, 0)
         
