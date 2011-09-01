@@ -104,6 +104,10 @@ class AppView(Gtk.VBox):
                                     self.on_sort_method_changed)
         return
 
+    def on_draw(self, w, cr):
+        cr.set_source_rgb(1,1,1)
+        cr.paint()
+
     def _append_appcount(self, appcount, mode=AVAILABLE_MODE):
 
         if mode == self.INSTALLED_MODE:
@@ -124,7 +128,7 @@ class AppView(Gtk.VBox):
             self.appcount.set_alignment(0.5, 0.5)
             self.appcount.set_margin_top(4)
             self.appcount.set_margin_bottom(3)
-            #~ self.appcount.connect("draw", self.on_draw)
+            self.appcount.connect("draw", self.on_draw)
             self.vbox.pack_start(self.appcount, False, False, 0)
         self.appcount.set_text(text)
         self.appcount.show()
