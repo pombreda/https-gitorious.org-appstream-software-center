@@ -29,13 +29,15 @@ class AppFilter(xapian.MatchDecider):
         self.supported_only = global_filter.supported_only
         self.installed_only = False
         self.not_installed_only = False
+        self.restricted_list = set()
     @property
     def required(self):
         """ True if the filter is in a state that it should be part of a query """
         return (self.available_only or
                 self.supported_only or
                 self.installed_only or 
-                self.not_installed_only)
+                self.not_installed_only or
+                self.restricted_list)
     def set_available_only(self, v):
         self.available_only = v
     def set_supported_only(self, v):
@@ -44,6 +46,8 @@ class AppFilter(xapian.MatchDecider):
         self.installed_only = v
     def set_not_installed_only(self, v):
         self.not_installed_only = v
+    def set_restricted_list(self, v):
+        self.restricted_list = v
     def get_supported_only(self):
         return self.supported_only
     def __eq__(self, other):
@@ -53,7 +57,8 @@ class AppFilter(xapian.MatchDecider):
             return False
         return (self.installed_only == other.installed_only and
                 self.not_installed_only == other.not_installed_only and
-                self.supported_only == other.supported_only)
+                self.supported_only == other.supported_only and
+                self.restricted_list == other.restricted_list)
     def __ne__(self, other):
         return not self.__eq__(other)
     def __call__(self, doc):
@@ -80,6 +85,9 @@ class AppFilter(xapian.MatchDecider):
         if self.supported_only:
             if not self.distro.is_supported(self.cache, doc, pkgname):
                 return False
+        if self.restricted_list:
+            if not pkgname in self.restricted_list:
+                return False
         return True
     def copy(self):
         """ create a new copy of the given filter """
@@ -88,4 +96,6 @@ class AppFilter(xapian.MatchDecider):
         new_filter.supported_only = self.supported_only
         new_filter.installed_only = self.installed_only
         new_filter.not_installed_only = self.not_installed_only
+        new_filter.restricted_list = self.restricted_list
         return new_filter
+        

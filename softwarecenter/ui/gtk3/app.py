@@ -84,7 +84,9 @@ from softwarecenter.ui.gtk3.session.viewmanager import ViewManager, get_viewmana
 from softwarecenter.config import get_config
 from softwarecenter.backend import get_install_backend
 
+from softwarecenter.backend.channel import AllInstalledChannel
 from softwarecenter.backend.reviews import get_review_loader, UsefulnessCache
+from softwarecenter.backend.oneconfhandler import get_oneconf_handler
 from softwarecenter.distro import get_distro
 from softwarecenter.db.pkginfo import get_pkg_info
 
@@ -694,6 +696,16 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             purchased_sources = glob.glob("/etc/apt/sources.list.d/private-ppa.launchpad.net_commercial-ppa-uploaders*")
             for source in purchased_sources:
                 print("source: %s" % source)
+
+    def on_menuitem_sync_between_computers_activate(self, menuitem):
+        if self.view_manager.get_active_view() != ViewPages.INSTALLED:
+            pane = self.view_manager.set_active_view(ViewPages.INSTALLED)
+            state = pane.state.copy()
+            state.channel = AllInstalledChannel()
+            page = None
+            self.view_manager.display_page(pane, page, state)
+            self.installed_pane.refresh_apps()
+        get_oneconf_handler().sync_between_computers(True)
         
     def on_menuitem_install_activate(self, menuitem):
         app = self.active_pane.get_current_app()
