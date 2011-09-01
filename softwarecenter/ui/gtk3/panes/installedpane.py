@@ -123,9 +123,11 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         
         # OneConf pane
         self.computerpane = Gtk.Paned.new(Gtk.Orientation.HORIZONTAL)
+        align = Gtk.Alignment()
+        self.computerpane.add1(align)
         self.oneconfcontrol = Gtk.Box()
         self.oneconfcontrol.set_orientation(Gtk.Orientation.VERTICAL)
-        self.computerpane.add1(self.oneconfcontrol)
+        align.add(self.oneconfcontrol)
         self.oneconfcontrol.set_property('width-request', 200)
         self.box_app_list.pack_start(self.computerpane, True, True, 0)
 
