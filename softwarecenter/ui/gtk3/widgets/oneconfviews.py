@@ -54,9 +54,12 @@ class OneConfViews(Gtk.TreeView):
         self.append_column(self.col)
         self.current_hostid = None
         self.hostids = []
-        
+
         # TODO: load the dynamic one (if present), later
         self.default_computer_icon = icons.load_icon("computer", 22, 0)
+
+        context = self.get_style_context()
+        context.add_class("super-light-aubergine-bg")
         
         self.connect("cursor-changed", self.on_cursor_changed)
         

@@ -126,7 +126,10 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         self.oneconfcontrol.set_orientation(Gtk.Orientation.VERTICAL)
         self.computerpane.add1(self.oneconfcontrol)
         self.box_app_list.pack_start(self.computerpane, True, True, 0)
-        self.oneconfcontrol.pack_start(self.oneconf_viewpickler, True, True, 0)
+
+        scroll = Gtk.ScrolledWindow()
+        scroll.add(self.oneconf_viewpickler)
+        self.oneconfcontrol.pack_start(scroll, True, True, 0)
         
         oneconftoolbar = Gtk.Box()
         oneconftoolbar.set_orientation(Gtk.Orientation.HORIZONTAL)

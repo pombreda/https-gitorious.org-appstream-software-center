@@ -289,13 +289,6 @@ class SoftwarePane(Gtk.VBox, BasePane):
         if self.db:
             self.db.connect("reopen", self.on_db_reopen)
 
-        self.connect("draw", self.on_draw)
-
-    def on_draw(self, widget, cr):
-        cr.set_source_rgb(1,1,1)
-        cr.paint()
-        return
-
     def init_atk_name(self, widget, name):
         """ init the atk name for a given gtk widget based on parent-pane
             and variable name (used for the mago tests)
