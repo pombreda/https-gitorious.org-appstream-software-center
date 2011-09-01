@@ -125,7 +125,8 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         self.computerpane = Gtk.Paned.new(Gtk.Orientation.HORIZONTAL)
         self.oneconfcontrol = Gtk.Box()
         self.oneconfcontrol.set_orientation(Gtk.Orientation.VERTICAL)
-        self.computerpane.add1(self.oneconfcontrol)
+        self.computerpane.pack1(self.oneconfcontrol, False, False)
+        # size negociation takes everything for the first one
         self.oneconfcontrol.set_property('width-request', 200)
         self.box_app_list.pack_start(self.computerpane, True, True, 0)
 
@@ -200,7 +201,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         if oneconf_inventory_shown:
             # FIXME: would be better to avoid that, but needed to hide the handler?
             self.app_view.reparent(self.computerpane)
-            self.computerpane.add2(self.app_view)
+            self.computerpane.pack2(self.app_view, True, True)
             self.computerpane.show()
         else:
             self.oneconf_viewpickler.select_first()
