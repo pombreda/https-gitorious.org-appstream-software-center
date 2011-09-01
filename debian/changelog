@@ -38,10 +38,12 @@ software-center (4.1.20.1) UNRELEASED; urgency=low
        LP: #830738 and LP: #838382)
 
   [ Gary Lasker ]
+  * softwarecenter/db/update.py:
+    - enable CJK support in Xapian (LP: #745243) 
   * po/software-center.pot:
-    - refresh .pot file 
+    - refresh .pot file
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 31 Aug 2011 17:48:24 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 31 Aug 2011 20:59:17 -0400
 
 software-center (4.1.20) oneiric; urgency=low
 
