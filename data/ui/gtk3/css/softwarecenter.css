@@ -20,6 +20,10 @@
     color: shade (@super-light-aubergine, 0.6); /* non-link text color */
 }
 
+.cellrenderer-button {
+    border-radius: 3
+}
+
 GtkViewport {
     background-color: @super-light-aubergine;
     border-width: 0;
@@ -28,5 +32,5 @@ GtkViewport {
 
 GtkTreeView {
     background-color: @super-light-aubergine;
-    border-radius: 3;
 }
+
