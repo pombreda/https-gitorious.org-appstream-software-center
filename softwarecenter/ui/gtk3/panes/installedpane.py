@@ -126,6 +126,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         self.oneconfcontrol = Gtk.Box()
         self.oneconfcontrol.set_orientation(Gtk.Orientation.VERTICAL)
         self.computerpane.add1(self.oneconfcontrol)
+        self.oneconfcontrol.set_property('width-request', 200)
         self.box_app_list.pack_start(self.computerpane, True, True, 0)
 
         scroll = Gtk.ScrolledWindow()
