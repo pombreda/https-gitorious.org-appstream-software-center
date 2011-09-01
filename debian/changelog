@@ -1,3 +1,55 @@
+software-center (4.1.20.1) UNRELEASED; urgency=low
+
+  [ Kiwinote ]
+  * AUTHORS:
+    - add credits for the new icon (LP: #834882)
+  * a stash of unicode fixes to make s-c-gtk3 usable around the world
+    (LP: #831865, LP: #834409, LP: #834312)
+  * softwarecenter/db/update.py:
+    - fix reinstall previous purchases (LP: #834984)
+  * softwarecenter/ui/gtk3/panes/availablepane.py:
+    - set title for 'previous purchases' list view (LP: #833960)
+  * softwarecenter/ui/gtk3/panes/softwarepane.py:
+    - fix None.copy() such that switching panes works again (LP: #834196)
+  * softwarecenter/ui/gtk3/widgets/buttons.py:
+    - escape application name in tiles (LP: #835876)
+
+  [ Jacob Johan Edwards ]
+  * softwarecenter/ui/gtk3/panes/softwarepane.py:
+    - fix the spinner display when loading slow views (LP: #830682)
+
+  [ Gabor Kelemen ]
+  * po/POTFILES.in,
+    po/POTFILES.skip:
+    - update per latest configuration, add new gtk3 files
+
+  [ Matthew McGowan ]
+  * softwarecenter/ui/gtk3/widgets/buttons.py :
+    - resize fix for Top Rated and What's New tiles (LP: #833697)
+  * softwarecenter/ui/gtk3/views/catview_gtk.py,
+    softwarecenter/ui/gtk3/widgets/containers.py:
+    - disable the rendering of the checkboard pattern in the
+      grid views (at request of mpt)
+   * lp:~mmcg069/software-center/description-tweaks:
+     - fix badly rendered package descriptions, other tweaks
+       (LP: #833954)
+   * lp:~mmcg069/software-center/globalpane-themeability:
+     - various theming fixes (LP: #828092, LP: #830681,
+       LP: #830738 and LP: #838382)
+
+  [ Gary Lasker ]
+  * softwarecenter/db/update.py:
+    - enable CJK support in Xapian (LP: #745243) 
+  * po/software-center.pot:
+    - refresh .pot file
+  * softwarecenter/ui/gtk/widgets/thumbnail.py:
+    - fix missing icon in theme to let non-gtk3 version
+      launch again, also fixes all gtk unit tests 
+  * test/test_database.py:
+    - update unit test
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 01 Sep 2011 01:29:31 -0400
+
 software-center (4.1.20) oneiric; urgency=low
 
   [ Michael Vogt ]

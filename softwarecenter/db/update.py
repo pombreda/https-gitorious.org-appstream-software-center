@@ -96,6 +96,9 @@ if os.path.exists(CF):
         LOG.warn("failed to read %s (%s" % (CF, e))
 del CF
 
+# Enable Xapian's CJK tokenizer (see LP: #745243)
+os.environ['XAPIAN_CJK_NGRAM'] = '1'
+
 class AppInfoParserBase(object):
     """ base class for reading AppInfo meta-data """
 
@@ -176,7 +179,10 @@ class SoftwareCenterAgentParser(AppInfoParserBase):
             return self.STATIC_DATA[key]
         return getattr(self.sca_entry, self._apply_mapping(key))
     def get_desktop_categories(self):
-        return ['SC_CATEGORY'] + self.sca_entry.department
+        try:
+            return ['SC_CATEGORY'] + self.sca_entry.department
+        except:
+            return []
     def has_option_desktop(self, key):
         return (key in self.STATIC_DATA or
                 hasattr(self.sca_entry, self._apply_mapping(key)))

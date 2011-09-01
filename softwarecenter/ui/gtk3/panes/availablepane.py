@@ -90,7 +90,7 @@ class AvailablePane(SoftwarePane):
         if self.view_initialized: 
             return
 
-        self.spinner_view.set_text(_('Loading Categories'))
+        self.spinner_view.set_text()
         self.spinner_view.start()
         self.spinner_view.show()
         self.spinner_notebook.set_current_page(AvailablePane.Pages.SPINNER)
@@ -263,7 +263,7 @@ class AvailablePane(SoftwarePane):
             line1 = GObject.markup_escape_text(category.name)
             line2 = GObject.markup_escape_text(subcategory.name)
         elif category is not None:
-            line1 = GObject.markup_escape_text(category.name.encode("utf-8"))
+            line1 = GObject.markup_escape_text(category.name)
         else:
             line1 = _("All Software")
         return line1, line2
@@ -540,6 +540,7 @@ class AvailablePane(SoftwarePane):
         
     def display_previous_purchases(self, page, view_state):
         self.nonapps_visible = NonAppVisibility.ALWAYS_VISIBLE
+        self.app_view.set_header_labels(_("Previous Purchases"), None)
         self.notebook.set_current_page(AvailablePane.Pages.LIST)
         # do not emit app-list-changed here, this is done async when
         # the new model is ready

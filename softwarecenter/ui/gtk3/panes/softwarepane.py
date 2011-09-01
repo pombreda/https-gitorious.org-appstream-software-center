@@ -127,7 +127,7 @@ class DisplayState(object):
         return object.__setattr__(self, name, val)
 
     def __str__(self):
-        s = '%s %s "%s" %s %s' % (self.category,
+        s = unicode('%s %s "%s" %s %s', 'utf8').encode('utf8') % (self.category,
                                   self.subcategory,
                                   self.search_term,
                                   self.application,
@@ -142,7 +142,10 @@ class DisplayState(object):
         state.search_term = self.search_term
         state.application = self.application
         state.limit = self.limit
-        state.filter = self.filter.copy()
+        if self.filter:
+            state.filter = self.filter.copy()
+        else:
+            state.filter = None
         return state
 
     def reset(self):
@@ -211,12 +214,16 @@ class SoftwarePane(Gtk.VBox, BasePane):
         if not "SOFTWARE_CENTER_DEBUG_TABS" in os.environ:
             self.notebook.set_show_tabs(False)
         self.notebook.set_show_border(False)
+        # an empty notebook, where the details view will eventually go
+        self.details_notebook = Gtk.Notebook()
+        self.details_notebook.set_show_border(False)
         # make a spinner view to display while the applist is loading
         self.spinner_view = SpinnerView()
         self.spinner_notebook = Gtk.Notebook()
         self.spinner_notebook.set_show_tabs(False)
         self.spinner_notebook.set_show_border(False)
         self.spinner_notebook.append_page(self.notebook, None)
+        self.spinner_notebook.append_page(self.details_notebook, None)
         self.spinner_notebook.append_page(self.spinner_view, None)
         
         self.pack_start(self.spinner_notebook, True, True, 0)
