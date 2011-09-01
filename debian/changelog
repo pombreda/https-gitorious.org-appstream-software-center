@@ -45,8 +45,10 @@ software-center (4.1.20.1) UNRELEASED; urgency=low
   * softwarecenter/ui/gtk/widgets/thumbnail.py:
     - fix missing icon in theme to let non-gtk3 version
       launch again, also fixes all gtk unit tests 
+  * test/test_database.py:
+    - unit test fix
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 31 Aug 2011 23:37:59 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 31 Aug 2011 23:39:31 -0400
 
 software-center (4.1.20) oneiric; urgency=low
 
