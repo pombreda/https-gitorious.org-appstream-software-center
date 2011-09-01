@@ -50,6 +50,7 @@ from softwarecenter.ui.gtk3.dialogs import error
 from appdetailsview import AppDetailsViewBase
 
 from softwarecenter.ui.gtk3.em import StockEms, em
+from softwarecenter.ui.gtk3.drawing import color_to_hex
 from softwarecenter.ui.gtk3.widgets.separators import HBar
 from softwarecenter.ui.gtk3.widgets.reviews import UIReviewsList
 from softwarecenter.ui.gtk3.widgets.containers import SmallBorderRadiusFrame
@@ -413,8 +414,14 @@ class Addon(Gtk.HBox):
             title = title[0].upper() + title[1:]
 
         self.title = Gtk.Label()
-        self.title.set_name("subtle-label")
-        self.title.set_markup(title + ' (%s)' % pkgname)
+
+        context = self.get_style_context()
+        context.save()
+        context.add_class("subtle")
+        color = color_to_hex(context.get_color(Gtk.StateFlags.NORMAL))
+        context.restore()
+
+        self.title.set_markup(title + ' <span color="%s">(%s)</span>' % (color, pkgname))
         self.title.set_alignment(0.0, 0.5)
         self.title.set_line_wrap(True)
         self.title.set_ellipsize(Pango.EllipsizeMode.END)
