@@ -44,17 +44,24 @@ class MenuButton(Gtk.Button):
         x_position = x + button.get_allocation().x
         y_position = y + button.get_allocation().y + button.get_allocated_height()
         
-        # if pressed by the mouse, show it at the X position of it
+        # if pressed by the mouse, center the X position to it
         if x_cursor_pos:
-            x_position += int(x_cursor_pos)
+            x_position += x_cursor_pos
+            x_position = x_position - menu.get_allocated_width() * 0.5
 
         # computer current monitor height
         current_screen = button.get_screen()
         num_monitor = current_screen.get_monitor_at_point(x_position, y_position)
-        monitor_height = current_screen.get_monitor_geometry(num_monitor).height
+        monitor_geo = current_screen.get_monitor_geometry(num_monitor)
         
-        # if the menu is too long for the monitor, put it above the widget
-        if monitor_height < y_position + menu.get_allocated_height():
+        # if the menu width is of the current monitor, shift is a little
+        if x_position < monitor_geo.x:
+            x_position = monitor_geo.x
+        if x_position + menu.get_allocated_width() > monitor_geo.x + monitor_geo.width:
+            x_position = monitor_geo.x + monitor_geo.width - menu.get_allocated_width()
+        
+        # if the menu height is too long for the monitor, put it above the widget
+        if monitor_geo.height < y_position + menu.get_allocated_height():
             y_position = y_position - button.get_allocated_height() - menu.get_allocated_height()
             
         return (x_position, y_position, True)
@@ -81,7 +88,7 @@ if __name__ == "__main__":
 
     menu = Gtk.Menu()
     menuitem = Gtk.MenuItem(label="foo")
-    menuitem2 = Gtk.MenuItem(label="bar")
+    menuitem2 = Gtk.MenuItem(label="long long long bar message")
     menu.append(menuitem)
     menu.append(menuitem2)
     menuitem.show()
