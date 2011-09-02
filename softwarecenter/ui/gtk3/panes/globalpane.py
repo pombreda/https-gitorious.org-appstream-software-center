@@ -1,9 +1,4 @@
-import cairo
-import os
-
-from gi.repository import Gtk, Gdk
-
-import softwarecenter.paths
+from gi.repository import Gtk
 
 from softwarecenter.ui.gtk3.em import StockEms
 from softwarecenter.ui.gtk3.session.viewmanager import get_viewmanager

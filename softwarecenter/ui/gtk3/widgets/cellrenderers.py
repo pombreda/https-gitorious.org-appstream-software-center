@@ -19,7 +19,7 @@
 
 from gi.repository import Gtk, Gdk, GObject, Pango
 
-from softwarecenter.ui.gtk3.em import EM, StockEms
+from softwarecenter.ui.gtk3.em import EM
 from softwarecenter.ui.gtk3.models.appstore2 import CategoryRowReference
 
 from stars import StarRenderer, StarSize
@@ -235,9 +235,6 @@ class CellRendererAppView(Gtk.CellRendererText):
 
         Gtk.render_background(context, cr, x, y, w, h)
         Gtk.render_frame(context, cr, x, y, w, h)
-
-        border = context.get_border(Gtk.StateFlags.NORMAL)
-        padding = context.get_padding(Gtk.StateFlags.NORMAL)
 
         context.restore ()
 
