@@ -1,9 +1,16 @@
 software-center (4.1.21.1) UNRELEASED; urgency=low
 
+  [ Gary Lasker ]
   * merged lp:~gary-lasker/software-center/pyflakes-fixes, no
     user visible changes, only code cleanup
 
- -- Gary Lasker <gary.lasker@canonical.com>  Fri, 02 Sep 2011 00:04:44 -0400
+  [ Matthew McGowan ]
+  * data/ui/gtk3/css/softwarecenter.css,
+    softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
+    - fix grey addon label, only pkgname should be grey
+      (LP: #838607)
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Fri, 02 Sep 2011 00:18:08 -0400
 
 software-center (4.1.21) oneiric; urgency=low
 
