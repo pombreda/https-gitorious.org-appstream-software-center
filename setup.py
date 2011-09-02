@@ -76,6 +76,7 @@ if sys.argv[1] == "build":
 # real setup
 setup(name="software-center", version=VERSION,
       scripts=["software-center",
+               "software-center-gtk2",
                "software-center-gtk3",
                # gtk
                "utils/submit_review.py",
