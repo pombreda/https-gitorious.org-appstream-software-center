@@ -74,8 +74,8 @@ class SymbolicIcon(Gtk.Image):
         # dropshadow
         x = (a.width - drop_shadow.get_width()) * 0.5 + ds_xo + xo
         y = (a.height - drop_shadow.get_height()) * 0.5 + ds_yo + yo
-        cr.set_source_surface(drop_shadow, x, y)
-        cr.paint_with_alpha(0.55)
+        cr.set_source_surface(drop_shadow, int(x), int(y))
+        cr.paint_with_alpha(0.4)
 
         # colorised icon
         state = widget.get_state_flags()
@@ -84,7 +84,7 @@ class SymbolicIcon(Gtk.Image):
         Gdk.cairo_set_source_rgba(cr, color)
         x = (a.width - icon.get_width()) * 0.5 + xo
         y = (a.height - icon.get_height()) * 0.5 + yo
-        cr.mask_surface(icon, x, y)
+        cr.mask_surface(icon, int(x), int(y))
         return
 
 
