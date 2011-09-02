@@ -18,7 +18,11 @@ software-center (4.1.21.1) UNRELEASED; urgency=low
     - fix grey addon label, only pkgname should be grey
       (LP: #838607)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Fri, 02 Sep 2011 18:43:50 -0400
+  [ Andrea Cimitan ]
+  * softwarecenter/ui/gtk3/widgets/symbolic_icons.py:
+    - Fix blurriness of toolbar icons, reduce shadow alpha level
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Fri, 02 Sep 2011 19:19:59 -0400
 
 software-center (4.1.21) oneiric; urgency=low
 
