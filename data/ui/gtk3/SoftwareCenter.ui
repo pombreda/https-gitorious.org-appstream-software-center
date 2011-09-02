@@ -12,6 +12,8 @@
     <signal name="activate" handler="on_navhistory_forward_action_activate" swapped="no"/>
   </object>
   <object class="GtkAboutDialog" id="aboutdialog">
+    <property name="can_focus">False</property>
+    <property name="type_hint">normal</property>
     <property name="version">4.1.15</property>
     <property name="copyright" translatable="yes">©2009-2011 Canonical</property>
     <property name="website">http://launchpad.net/software-center</property>
@@ -184,6 +186,16 @@ http://creativecommons.org/licenses/by-sa/2.0/deed.en
                         <property name="label" translatable="yes">Deauthorize Computer…</property>
                         <property name="use_underline">True</property>
                         <signal name="activate" handler="on_menuitem_deauthorize_computer_activate" swapped="no"/>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkMenuItem" id="menuitem_sync_between_computers">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="use_action_appearance">False</property>
+                        <property name="label" translatable="yes">Sync Between Computers…</property>
+                        <property name="use_underline">True</property>
+                        <signal name="activate" handler="on_menuitem_sync_between_computers_activate" swapped="no"/>
                       </object>
                     </child>
                     <child>

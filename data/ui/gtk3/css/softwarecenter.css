@@ -14,6 +14,7 @@
     color: #FFC51D;         /* orange */
 }
 
+.subtle,
 #subtle-label {
     -GtkWidget-link-color: shade (@super-light-aubergine, 0.4);
     -GtkWidget-visited-link-color: shade (@super-light-aubergine, 0.5);
@@ -26,7 +27,6 @@ GtkViewport {
     padding: 0;
 }
 
-GtkTreeView {
+.super-light-aubergine-bg {
     background-color: @super-light-aubergine;
-    border-radius: 3;
 }

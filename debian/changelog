@@ -1,4 +1,18 @@
-software-center (4.1.20.1) UNRELEASED; urgency=low
+software-center (4.1.21.1) UNRELEASED; urgency=low
+
+  [ Gary Lasker ]
+  * merged lp:~gary-lasker/software-center/pyflakes-fixes, no
+    user visible changes, only code cleanup
+
+  [ Matthew McGowan ]
+  * data/ui/gtk3/css/softwarecenter.css,
+    softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
+    - fix grey addon label, only pkgname should be grey
+      (LP: #838607)
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Fri, 02 Sep 2011 00:18:08 -0400
+
+software-center (4.1.21) oneiric; urgency=low
 
   [ Kiwinote ]
   * AUTHORS:
@@ -49,6 +63,19 @@ software-center (4.1.20.1) UNRELEASED; urgency=low
       launch again, also fixes all gtk unit tests 
   * test/test_database.py:
     - update unit test
+
+  [ Didier Roche ]
+  * softwarecenter/ui/gtk3/panes/installedpane.py,
+    softwarecenter/ui/gtk3/views/appview.py,
+    softwarecenter/ui/gtk3/widgets/menubutton.py,
+    softwarecenter/ui/gtk3/widgets/oneconfviews.py,
+    softwarecenter/db/appfilter.py,
+    softwarecenter/ui/gtk3/app.py,
+    data/ui/gtk3/SoftwareCenter.ui:
+    - brings back OneConf to software center gtk3 with a fresh new design
+      (LP: #838623)
+  * debian/control:
+    - depends on latest oneconf 
 
  -- Gary Lasker <gary.lasker@canonical.com>  Thu, 01 Sep 2011 11:55:14 -0400
 

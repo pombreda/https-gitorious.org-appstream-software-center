@@ -23,7 +23,7 @@ from gi.repository import GObject
 
 from gettext import gettext as _
 
-from softwarecenter.ui.gtk3.drawing import rounded_rect, darken
+from softwarecenter.ui.gtk3.drawing import darken
 
 DEFAULT_PART_SIZE = (28, -1)
 

@@ -20,7 +20,7 @@
 
 
 
-from gi.repository import Gtk, Gdk, GObject
+from gi.repository import Gtk, GObject
 from gettext import gettext as _
 import gettext
 
@@ -51,6 +51,8 @@ class AppView(Gtk.VBox):
                                          str),
                                        ),
     }
+    
+    (INSTALLED_MODE, AVAILABLE_MODE, DIFF_MODE) = range(3)
 
     _SORT_METHOD_INDEX = (SortMethods.BY_ALPHABET,
                           SortMethods.BY_TOP_RATED,
@@ -91,7 +93,9 @@ class AppView(Gtk.VBox):
         self.vbox = Gtk.VBox()
         self.vbox.pack_start(self.tree_view, False, True, 0)
         self.tree_view_scroll.add_with_viewport(self.vbox)
-        vp = self.tree_view_scroll.get_children()[0]
+        #~ vp = self.tree_view_scroll.get_children()[0]
+        #~ vp.connect("draw", self.on_draw)
+
         self.appcount = None
 
         self.user_defined_sort_method = False
@@ -100,20 +104,20 @@ class AppView(Gtk.VBox):
                                     self.on_sort_method_changed)
         return
 
-    def do_draw(self, cr):
-        context = self.get_style_context()
-        bgcolor = context.get_background_color(Gtk.StateFlags.NORMAL)
-        Gdk.cairo_set_source_rgba(cr, bgcolor)
+    def on_draw(self, w, cr):
+        cr.set_source_rgb(1,1,1)
         cr.paint()
-        for child in self: self.propagate_draw(child, cr)
-        return
 
-    def _append_appcount(self, appcount, installed=False):
+    def _append_appcount(self, appcount, mode=AVAILABLE_MODE):
 
-        if installed:
+        if mode == self.INSTALLED_MODE:
             text = gettext.ngettext("%(amount)s item installed",
                                     "%(amount)s items installed",
                                     appcount) % { 'amount' : appcount, }
+        elif mode == self.DIFF_MODE:
+            text = gettext.ngettext("%(amount)s item",
+                                    "%(amount)s items",
+                                    appcount) % { 'amount' : appcount, }        
         else:
             text = gettext.ngettext("%(amount)s item available",
                                     "%(amount)s items available",
@@ -124,6 +128,7 @@ class AppView(Gtk.VBox):
             self.appcount.set_alignment(0.5, 0.5)
             self.appcount.set_margin_top(4)
             self.appcount.set_margin_bottom(3)
+            self.appcount.connect("draw", self.on_draw)
             self.vbox.pack_start(self.appcount, False, False, 0)
         self.appcount.set_text(text)
         self.appcount.show()
