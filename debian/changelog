@@ -1,3 +1,10 @@
+software-center (4.1.21.1) UNRELEASED; urgency=low
+
+  * merged lp:~gary-lasker/software-center/pyflakes-fixes, no
+    user visible changes, only code cleanup
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Fri, 02 Sep 2011 00:04:44 -0400
+
 software-center (4.1.21) oneiric; urgency=low
 
   [ Kiwinote ]
