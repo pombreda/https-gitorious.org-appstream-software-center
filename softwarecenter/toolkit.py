@@ -4,7 +4,7 @@ class UIToolkits:
     GTK2 = 0
     GTK3 = 1
     QML = 2
-    FALLBACK = GTK2
+    FALLBACK = GTK3
 
 
 if 'software-center-gtk3' in sys.argv[0]:

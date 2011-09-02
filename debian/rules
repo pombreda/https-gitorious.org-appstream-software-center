@@ -20,7 +20,6 @@ override_dh_install:
 	dh_installmime -i
 
 	dh_link $(share)/software-center usr/bin/software-center \
-		$(share)/software-center-gtk3 usr/bin/software-center-gtk3 \
 	        $(share)/update-software-center usr/sbin/update-software-center
 
 	# Drop Ubuntu stuff if not on Ubuntu
