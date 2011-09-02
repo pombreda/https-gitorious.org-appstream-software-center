@@ -44,13 +44,14 @@ Users should pick an input and a target device, choose a file to save to and go.
 * Rip straight from v4l devices.
 * Simple terminal client for scripting.
 * Automatic preset updating.""")
+        # note: bullet indentation
         self.assertEqual(
             normalize_package_description(cache["aa3d"].description),
             """This program generates the well-known and popular random dot stereograms in ASCII art.
 Features:
-* High quality ASCII art stereogram rendering
-* Highly configurable
-* User friendly command line interface (including full online help)""")
+ * High quality ASCII art stereogram rendering
+ * Highly configurable
+ * User friendly command line interface (including full online help)""")
 
     def test_description_parser_all(self):
         import re
