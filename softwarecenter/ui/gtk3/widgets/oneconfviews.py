@@ -106,14 +106,6 @@ class OneConfViews(Gtk.TreeView):
             return -1
         
 def get_test_window():
-    from softwarecenter.testutils import (get_test_db,
-                                          get_test_datadir,
-                                          get_test_gtk3_viewmanager,
-                                          get_test_pkg_info,
-                                          get_test_gtk3_icon_cache,
-                                          )
-    datadir = get_test_datadir()
-    icons = get_test_gtk3_icon_cache()
 
     w = OneConfViews(Gtk.IconTheme.get_default())
     w.show()

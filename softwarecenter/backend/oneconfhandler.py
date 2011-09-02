@@ -83,9 +83,6 @@ class OneConfHandler(GObject.GObject):
 
         #view_switcher = self.app.view_switcher
         #model = view_switcher.get_model()
-        icon = None
-        parent_iter = None
-        channel = None
         #previous_iter = model.installed_iter
 
         all_hosts = self.oneconf.get_all_hosts()
@@ -120,7 +117,7 @@ class OneConfHandler(GObject.GObject):
                 msg = _("Last sync yesterday %s") % last_sync.strftime('%H:%M')
             else:
                 msg = _("Last sync %s") % last_sync.strftime('%Y-%m-%d  %H:%M')                    
-        except (TypeError, ValueError), e:
+        except (TypeError, ValueError):
             msg = _("To sync with another computer, choose “Sync Between Computers” from that computer.")
         self.emit("last-time-sync-changed", msg)
         return True

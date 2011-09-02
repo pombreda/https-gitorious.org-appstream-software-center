@@ -20,7 +20,7 @@
 
 
 
-from gi.repository import Gtk, Gdk, GObject
+from gi.repository import Gtk, GObject
 from gettext import gettext as _
 import gettext
 
@@ -93,7 +93,7 @@ class AppView(Gtk.VBox):
         self.vbox = Gtk.VBox()
         self.vbox.pack_start(self.tree_view, False, True, 0)
         self.tree_view_scroll.add_with_viewport(self.vbox)
-        vp = self.tree_view_scroll.get_children()[0]
+        #~ vp = self.tree_view_scroll.get_children()[0]
         #~ vp.connect("draw", self.on_draw)
 
         self.appcount = None
