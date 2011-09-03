@@ -359,7 +359,7 @@ class TextBlock(Gtk.EventBox):
     PAINT_PRIMARY_CURSOR = True
     DEBUG_PAINT_BBOXES = False
 
-    BULLET_POINT = u'  \u2022  '
+    BULLET_POINT = u' \u2022  '
 
     INFOCUS_NORM = 0
     INFOCUS_SEL  = 1
