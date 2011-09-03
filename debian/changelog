@@ -23,6 +23,9 @@ software-center (4.1.21.1) UNRELEASED; urgency=low
     softwarecenter/utils.py,
     test/test_description_norm.py:
     - description formatting improvements, update unit test
+  * data/ui/gtk3/css/softwarecenter.css,
+    softwarecenter/ui/gtk3/widgets/cellrenderers.py:
+    - use css to set border-radius of cellrenderer button
 
   [ Andrea Cimitan ]
   * softwarecenter/ui/gtk3/widgets/symbolic_icons.py:
@@ -32,7 +35,7 @@ software-center (4.1.21.1) UNRELEASED; urgency=low
   * po/POTFILES.in:
     - additional i18n fixes (LP: #836346)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Sat, 03 Sep 2011 00:19:20 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Sat, 03 Sep 2011 00:29:07 -0400
 
 software-center (4.1.21) oneiric; urgency=low
 
