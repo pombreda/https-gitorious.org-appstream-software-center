@@ -24,7 +24,11 @@ software-center (4.1.21.1) UNRELEASED; urgency=low
   * softwarecenter/ui/gtk3/widgets/symbolic_icons.py:
     - Fix blurriness of toolbar icons, reduce shadow alpha level
 
- -- Gary Lasker <gary.lasker@canonical.com>  Fri, 02 Sep 2011 20:32:03 -0400
+  [ Gabor Kelemen ]
+  * po/POTFILES.in:
+    - additional i18n fixes (LP: #836346)
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Fri, 02 Sep 2011 20:41:08 -0400
 
 software-center (4.1.21) oneiric; urgency=low
 
