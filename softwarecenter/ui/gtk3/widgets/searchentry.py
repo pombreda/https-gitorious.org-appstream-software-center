@@ -52,7 +52,7 @@ class SearchEntry(Gtk.Entry):
 
         self.connect("icon-press", self._on_icon_pressed)
 
-        self.set_icon_from_stock(Gtk.EntryIconPosition.PRIMARY, Gtk.STOCK_FIND)
+        self.set_icon_from_icon_name(Gtk.EntryIconPosition.PRIMARY, 'edit-find-symbolic')
         self.set_icon_from_stock(Gtk.EntryIconPosition.SECONDARY, None)
 
         # set sensible atk name
