@@ -11,6 +11,8 @@ software-center (4.1.21.1) UNRELEASED; urgency=low
       to launch the old version if feeling nostalgic (LP: #839257)
   * merged lp:~gary-lasker/software-center/pyflakes-fixes, no
     user visible changes, only code cleanup
+  * po/software-center.pot:
+    - refresh .pot file
 
   [ Matthew McGowan ]
   * data/ui/gtk3/css/softwarecenter.css,
@@ -22,7 +24,7 @@ software-center (4.1.21.1) UNRELEASED; urgency=low
   * softwarecenter/ui/gtk3/widgets/symbolic_icons.py:
     - Fix blurriness of toolbar icons, reduce shadow alpha level
 
- -- Gary Lasker <gary.lasker@canonical.com>  Fri, 02 Sep 2011 19:19:59 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Fri, 02 Sep 2011 20:32:03 -0400
 
 software-center (4.1.21) oneiric; urgency=low
 
