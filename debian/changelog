@@ -19,6 +19,10 @@ software-center (4.1.21.1) UNRELEASED; urgency=low
     softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
     - fix grey addon label, only pkgname should be grey
       (LP: #838607)
+  * softwarecenter/ui/gtk3/widgets/description.py,
+    softwarecenter/utils.py,
+    test/test_description_norm.py:
+    - description formatting improvements, update unit test
 
   [ Andrea Cimitan ]
   * softwarecenter/ui/gtk3/widgets/symbolic_icons.py:
@@ -28,7 +32,7 @@ software-center (4.1.21.1) UNRELEASED; urgency=low
   * po/POTFILES.in:
     - additional i18n fixes (LP: #836346)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Fri, 02 Sep 2011 20:41:08 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Sat, 03 Sep 2011 00:19:20 -0400
 
 software-center (4.1.21) oneiric; urgency=low
 
