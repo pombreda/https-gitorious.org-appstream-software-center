@@ -35,6 +35,14 @@ software-center (4.1.21.1) UNRELEASED; urgency=low
   * po/POTFILES.in:
     - additional i18n fixes (LP: #836346)
 
+  [ Kiwinote ]
+  * softwarecenter/ui/gtk3/widgets/buttons.py:
+    - add currency to paid app tiles (LP: #833801)
+  * softwarecenter/ui/gtk3/widgets/exhibits.py:
+    - fix text corruption in the default banner (LP: #838244)
+  * softwarecenter/ui/gtk3/widgets/searchentry.py:
+    - use symbolic variant for the search icon (LP: #835529)
+
  -- Gary Lasker <gary.lasker@canonical.com>  Sat, 03 Sep 2011 00:29:07 -0400
 
 software-center (4.1.21) oneiric; urgency=low
