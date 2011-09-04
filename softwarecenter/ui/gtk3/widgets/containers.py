@@ -8,7 +8,7 @@ from math import pi
 
 from buttons import MoreLink
 from softwarecenter.ui.gtk3.em import StockEms
-from softwarecenter.ui.gtk3.drawing import rounded_rect
+from softwarecenter.ui.gtk3.drawing import rounded_rect, rounded_rect2
 
 
 class FlowableGrid(Gtk.Fixed):
@@ -197,25 +197,25 @@ class Frame(Gtk.Alignment):
     ASSET_TAG = "default"
     BORDER_IMAGE = os.path.join(
         softwarecenter.paths.datadir, "ui/gtk3/art/frame-border-image.png")
-    CORNER_LABEL = os.path.join(
-        softwarecenter.paths.datadir, "ui/gtk3/art/corner-label.png")
+    #~ CORNER_LABEL = os.path.join(
+        #~ softwarecenter.paths.datadir, "ui/gtk3/art/corner-label.png")
 
-    def __init__(self, padding=3):
+    def __init__(self, padding=0):
         Gtk.Alignment.__init__(self)
-        self.set_padding(padding-1, padding, padding, padding)
+        self.set_padding(padding, padding, padding, padding)
 
         # corner lable jazz
-        self.show_corner_label = False
-        self.layout = self.create_pango_layout("")
-        self.layout.set_width(40960)
-        self.layout.set_ellipsize(Pango.EllipsizeMode.END)
+        #~ self.show_corner_label = False
+        #~ self.layout = self.create_pango_layout("")
+        #~ self.layout.set_width(40960)
+        #~ self.layout.set_ellipsize(Pango.EllipsizeMode.END)
 
         assets = self._cache_art_assets()
         # second tier of caching, cache resultant surface of
         # fully composed and rendered frame
         self._frame_surface_cache = None
-        self.connect_after("draw", self.on_draw_after,
-                           assets, self.layout)
+        #~ self.connect_after("draw", self.on_draw_after,
+                           #~ assets, self.layout)
         self._allocation = Gdk.Rectangle()
         self.connect("size-allocate", self.on_size_allocate)
         return
@@ -458,7 +458,7 @@ class SmallBorderRadiusFrame(Frame):
 
 class FramedBox(Frame):
 
-    def __init__(self, orientation=Gtk.Orientation.VERTICAL, spacing=0, padding=3):
+    def __init__(self, orientation=Gtk.Orientation.VERTICAL, spacing=0, padding=0):
         Frame.__init__(self, padding)
         self.box = Gtk.Box.new(orientation, spacing)
         Gtk.Alignment.add(self, self.box)
@@ -482,13 +482,12 @@ class HeaderPosition:
 
 class FramedHeaderBox(FramedBox):
 
-    MARKUP = '<span color="white"><b>%s</b></span>'
+    MARKUP = '<b>%s</b>'
 
-    def __init__(self, orientation=Gtk.Orientation.VERTICAL, spacing=0, padding=3):
+    def __init__(self, orientation=Gtk.Orientation.VERTICAL, spacing=0, padding=0):
         FramedBox.__init__(self, Gtk.Orientation.VERTICAL, spacing, padding)
         self.header = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, spacing)
         self.header_alignment = Gtk.Alignment()
-        self.header_alignment.set_padding(StockEms.SMALL+2, 2, StockEms.SMALL, StockEms.SMALL)
         self.header_alignment.add(self.header)
         self.box.pack_start(self.header_alignment, False, False, 0)
         self.content_box = Gtk.Box.new(orientation, spacing)
@@ -496,27 +495,11 @@ class FramedHeaderBox(FramedBox):
         return
 
     def on_draw(self, cr):
-        assets = _frame_asset_cache
-        a = self.header_alignment.get_allocation()
-        ha = self.header.get_allocation()
-        a.x = ha.x
-        a.width = ha.width
-        a.height += assets["corner-slice"]
-        self.render_header(cr, a, Frame.BORDER_RADIUS, assets)
-
         a = self.get_allocation()
-        for child in self.header:
-            cr.save()
-            ca = child.get_allocation()
-            cr.translate(ca.x-a.x, ca.y-a.y)
-            child.draw(cr)
-            cr.restore()
+        self.render_frame(cr, a, Frame.BORDER_RADIUS, _frame_asset_cache)
+        a = self.header_alignment.get_allocation()
+        self.render_header(cr, a, Frame.BORDER_RADIUS, _frame_asset_cache)
 
-        a = self.content_box.get_allocation()
-        a.x -= 3
-        a.width += 6
-        a.height += 3
-        self.render_frame(cr, a, Frame.BORDER_RADIUS, assets)
         for child in self: self.propagate_draw(child, cr)
         return
 
@@ -529,15 +512,16 @@ class FramedHeaderBox(FramedBox):
     def pack_end(self, *args, **kwargs):
         return self.content_box.pack_end(*args, **kwargs)
 
-    def set_header_expand(self, expand):
-        alignment = self.header_alignment
-        if expand:
-            expand = 1.0
-        else:
-            expand = 0.0
-        alignment.set(alignment.get_property("xalign"),
-                      alignment.get_property("yalign"),
-                      expand, 1.0)
+    # XXX: non-functional with current code...
+    #~ def set_header_expand(self, expand):
+        #~ alignment = self.header_alignment
+        #~ if expand:
+            #~ expand = 1.0
+        #~ else:
+            #~ expand = 0.0
+        #~ alignment.set(alignment.get_property("xalign"),
+                      #~ alignment.get_property("yalign"),
+                      #~ expand, 1.0)
 
     def set_header_position(self, position):
         alignment = self.header_alignment
@@ -548,7 +532,9 @@ class FramedHeaderBox(FramedBox):
     def set_header_label(self, label):
         if not hasattr(self, "title"):
             self.title = Gtk.Label()
-            self.title.set_padding(StockEms.MEDIUM, 0)
+            self.title.set_padding(StockEms.MEDIUM, StockEms.SMALL)
+            context = self.title.get_style_context()
+            context.add_class("frame-header-title")
             self.header.pack_start(self.title, False, False, 0)
             self.title.show()
 
@@ -562,80 +548,31 @@ class FramedHeaderBox(FramedBox):
         return
     
     def render_header(self, cr, a, border_radius, assets):
-        at = self.ASSET_TAG
-
         cr.save()
-        A = self.get_allocation()
-        cr.translate(a.x-A.x, a.y-A.y)
-        width = a.width
-        height = a.height
-        cnr_slice = assets["corner-slice"]
-
-        # paint north-west corner
-        cr.set_source_surface(assets["%s-nw" % at], 0, 0)
-        cr.paint()
-
-        # paint north length
-        cr.save()
-        cr.set_source(assets["%s-n" % at])
-        cr.rectangle(cnr_slice, 0, width-2*cnr_slice, cnr_slice)
-        cr.clip()
-        cr.paint()
-        cr.restore()
-
-        # paint north-east corner
-        cr.set_source_surface(assets["%s-ne" % at], width-cnr_slice, 0)
-        cr.paint()
-
-        # paint east length
-        cr.save()
-        cr.translate(width-cnr_slice, cnr_slice)
-        cr.set_source(assets["%s-e" % at])
-        cr.rectangle(0, 0, cnr_slice, height)
-        cr.clip()
-        cr.paint()
-        cr.restore()
-
-        # paint west length
-        cr.save()
-        cr.translate(0, cnr_slice)
-        cr.set_source(assets["%s-w" % at])
-        cr.rectangle(0, 0, cnr_slice, height)
-        cr.clip()
-        cr.paint()
-        cr.restore()
 
         # fill interior
-        if hasattr(self, "more"):
-            rounded_rect(cr, 4, 3, a.width-7, a.height, border_radius)
-            cr.set_source_rgb(0.866666667,0.282352941,0.078431373)  #DD4814
-            cr.fill_preserve()
-            cr.clip()
+        context = self.get_style_context()
+        state = self.get_state_flags()
 
-            ta = self.more.get_allocation()
-            cr.set_source_rgb(0.521568627,0.168627451,0.047058824)  #852B0C
+        context.save()
+        context.add_class("super-light-aubergine-bg")
+        color = context.get_background_color(state)
 
-            # the arrow shape stuff
-            cr.move_to(ta.x-a.x-StockEms.MEDIUM, 3)
-            cr.rel_line_to(ta.width+StockEms.MEDIUM, 0)
-            cr.rel_line_to(0, a.height-cnr_slice)
-            cr.rel_line_to(-1*(ta.width+StockEms.MEDIUM), 0)
-            cr.rel_line_to(StockEms.MEDIUM, -(a.height-cnr_slice)*0.5)
-            cr.close_path()
-            cr.fill()
+        cr.rectangle(0, 0, a.width, a.height)
+        Gdk.cairo_set_source_rgba(cr, color)
+        cr.fill()
 
-            cr.reset_clip()
-            rounded_rect(cr, 4, 3, a.width-7, a.height, border_radius)
-            cr.set_source_rgb(0.992156863,0.984313725,0.988235294)  #FDFBFC
-            cr.stroke()
+        for child in self: self.propagate_draw(child, cr)
+#~ 
+        #~ # draw high-light
+        #~ cr.set_source_rgba(1,1,1,0.5)
+        #~ cr.move_to(0, a.height-1)
+        #~ cr.rel_line_to(a.width, 0)
+        #~ cr.stroke()
+        # draw bottom line
+        Gtk.render_line(context, cr, 0, a.height-1, a.width, a.height-1)
 
-        else:
-            rounded_rect(cr, 4, 3, a.width-7, a.height, border_radius)
-            cr.set_source_rgb(0.866666667,0.282352941,0.078431373)  #DD4814
-            cr.fill_preserve()
-            cr.set_source_rgb(0.992156863,0.984313725,0.988235294)  #FDFBFC
-            cr.stroke()
-
+        context.restore()
         cr.restore()
         return
 

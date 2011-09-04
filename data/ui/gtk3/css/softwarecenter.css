@@ -1,13 +1,6 @@
 @define-color light-aubergine #DED7DB;
 @define-color super-light-aubergine #F4F1F3;
 
-#app-view {
-    background-color: @super-light-aubergine;
-}
-
-#category-view {
-    background-color: @light-aubergine;
-}
 
 #featured-star {
     border-color: #F89516;  /* yellow */
@@ -16,13 +9,27 @@
 
 .subtle,
 #subtle-label {
-    -GtkWidget-link-color: shade (@super-light-aubergine, 0.4);
-    -GtkWidget-visited-link-color: shade (@super-light-aubergine, 0.5);
-    color: shade (@super-light-aubergine, 0.6); /* non-link text color */
+    -GtkWidget-link-color: shade (@super-light-aubergine, 0.5);
+    -GtkWidget-visited-link-color: shade (@super-light-aubergine, 0.6);
+    color: shade (@super-light-aubergine, 0.5); /* non-link text color */
+    text-shadow: 0 1 2 lighter (@super-light-aubergine);
 }
 
 .cellrenderer-button {
     border-radius: 3
+}
+
+.more-link {
+    -GtkButton-inner-border: 0;
+    -GtkButton-default-border: 0;
+    -GtkButton-default-outside-border: 0;
+    color: darker (@light-aubergine);
+    background-color: shade (@super-light-aubergine, 0.925);
+    text-shadow: 0 1 2 @super-light-aubergine;
+}
+
+.frame-header-title {
+    text-shadow: 0 1 2 white;
 }
 
 GtkViewport {
@@ -31,7 +38,12 @@ GtkViewport {
     padding: 0;
 }
 
+.light-aubergine-bg {
+    background-color: @light-aubergine;
+}
+
 .super-light-aubergine-bg {
     background-color: @super-light-aubergine;
+    border-color: shade (@super-light-aubergine, 0.975)
 }
 

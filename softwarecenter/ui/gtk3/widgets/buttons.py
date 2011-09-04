@@ -156,7 +156,6 @@ class FeaturedTile(TileButton):
         self._overlay = helper.icons.load_icon(Icons.INSTALLED_OVERLAY,
                                                self.INSTALLED_OVERLAY_SIZE,
                                                0) # flags
-        #~ categories = helper.get_categories(doc)
 
         self.box.set_orientation(Gtk.Orientation.HORIZONTAL)
         self.box.set_spacing(StockEms.SMALL)
@@ -508,84 +507,61 @@ class Link(Gtk.Label):
         return
 
 
-class MoreLink(Gtk.EventBox):
+class MoreLink(Gtk.Button):
 
-    __gsignals__ = {
-        "clicked" : (GObject.SignalFlags.RUN_LAST,
-                     None, 
-                     (),)
-        }
-
-    _MARKUP = '<span color="white"><b>%s</b></span>'
+    _MARKUP = '<b>%s</b>'
     _MORE = _("More")
 
     def __init__(self):
-        Gtk.EventBox.__init__(self)
-        self.set_visible_window(False)
+        Gtk.Button.__init__(self)
         self.label = Gtk.Label()
+        self.label.set_margin_left(int(1.5 * StockEms.MEDIUM))
+        self.label.set_margin_right(StockEms.SMALL)
         self.label.set_markup(self._MARKUP % self._MORE)
-        self.label.set_padding(StockEms.MEDIUM, 0)
         self.add(self.label)
         self._init_event_handling()
-        return
-
-    def do_draw(self, cr):
-        cr.save()
-        if self._pressed: cr.translate(1, 1)
-        a = self.get_allocation()
-        xo, yo = self.label.get_layout_offsets()
-
-        xo -= a.x
-        yo -= a.y
-
-        cr.move_to(xo, yo+1)
-        PangoCairo.layout_path(cr, self.label.get_layout())
-        cr.set_source_rgb(0,0,0)
-        cr.fill()
-
-        Gtk.render_layout(self.get_style_context(),
-                          cr, xo, yo, self.label.get_layout())
-        cr.restore()
+        context = self.get_style_context()
+        context.add_class("more-link")
         return
 
     def _init_event_handling(self):
-        self.set_property("can-focus", True)
-        self._pressed = False
-        self.set_events(Gdk.EventMask.BUTTON_RELEASE_MASK|
-                        Gdk.EventMask.ENTER_NOTIFY_MASK|
-                        Gdk.EventMask.LEAVE_NOTIFY_MASK)
-
         self.connect("enter-notify-event", self.on_enter)
         self.connect("leave-notify-event", self.on_leave)
-        self.connect("button-press-event", self.on_press)
-        self.connect("button-release-event", self.on_release)
+
+    def do_draw(self, cr):
+        context = self.get_style_context()
+        state = self.get_state_flags()
+
+        # the arrow color
+        color = context.get_background_color(state)
+        Gdk.cairo_set_source_rgba(cr, color)
+
+        # the arrow shape paths
+        a = self.get_allocation()
+        cr.move_to(0, 0)
+        cr.rel_line_to(a.width, 0)
+        cr.rel_line_to(0, a.height)
+        cr.rel_line_to(-a.width, 0)
+        cr.rel_line_to(StockEms.MEDIUM, -(a.height)*0.5+1)
+        cr.close_path()
+        cr.fill_preserve()
+
+        Gdk.cairo_set_source_rgba(cr, darken(color, 0.04))
+        cr.set_line_width(1)
+        cr.stroke()
+
+        for child in self: self.propagate_draw(child, cr)
+        return
 
     def on_enter(self, widget, event):
         window = self.get_window()
         window.set_cursor(_HAND)
-        return True
+        return
 
     def on_leave(self, widget, event):
         window = self.get_window()
         window.set_cursor(None)
-        self._pressed = False
-        self.queue_draw()
-        return True
-
-    def on_press(self, widget, event):
-        self._pressed = True
-        self.queue_draw()
         return
-
-    def on_release(self, widget, event):
-        if not self._pressed: return
-        self.emit("clicked")
-        self._pressed = False
-        self.queue_draw()
-        return
-    
-    def clicked(self):
-        self.emit("clicked")
 
 
 def get_test_buttons_window():
