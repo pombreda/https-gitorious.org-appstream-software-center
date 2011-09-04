@@ -155,11 +155,12 @@ def htmlize_package_description(desc):
     html = ""
     inside_li = False
     for part in normalize_package_description(desc).split("\n"):
-        if part.startswith("* "):
+        stripped_part = part.strip()
+        if stripped_part.startswith("* "):
             if not inside_li:
                 html += "<ul>"
                 inside_li = True
-            html += '<li>%s</li>' % part[2:]
+            html += '<li>%s</li>' % stripped_part[2:]
         else:
             if inside_li:
                 html += "</ul>"

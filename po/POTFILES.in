@@ -1,3 +1,4 @@
+[encoding: UTF-8]
 software-center
 utils/submit_review.py
 utils/update-software-center
@@ -16,6 +17,7 @@ softwarecenter/ui/gtk/app.py
 softwarecenter/backend/channel.py
 softwarecenter/backend/login_sso.py
 softwarecenter/backend/reviews.py
+softwarecenter/backend/oneconfhandler.py
 softwarecenter/backend/installbackend_impl/aptd.py
 softwarecenter/backend/installbackend_impl/packagekitd.py
 softwarecenter/db/application.py
@@ -46,7 +48,9 @@ softwarecenter/ui/gtk/pendingview.py
 softwarecenter/ui/gtk/purchaseview.py
 softwarecenter/ui/gtk/softwarepane.py
 softwarecenter/ui/gtk/viewswitcher.py
+softwarecenter/ui/gtk/models/appstore.py
 softwarecenter/ui/gtk/models/viewswitcherlist.py
+softwarecenter/ui/gtk/widgets/actionbar2.py
 softwarecenter/ui/gtk/widgets/backforward.py
 softwarecenter/ui/gtk/widgets/carousel.py
 softwarecenter/ui/gtk/widgets/pathbar_gtk_atk.py
@@ -66,23 +70,30 @@ softwarecenter/distro/SUSELINUX.py
 softwarecenter/ui/gtk/widgets/videoplayer.py
 softwarecenter/ui/gtk3/app.py
 softwarecenter/ui/gtk3/dialogs/__init__.py
+softwarecenter/ui/gtk3/dialogs/deauthorize_dialog.py
 softwarecenter/ui/gtk3/dialogs/dependency_dialogs.py
+softwarecenter/ui/gtk3/models/appstore2.py
+softwarecenter/ui/gtk3/models/pendingstore.py
 softwarecenter/ui/gtk3/models/viewstore.py
 softwarecenter/ui/gtk3/panes/availablepane.py
 softwarecenter/ui/gtk3/panes/historypane.py
+softwarecenter/ui/gtk3/panes/installedpane.py
 softwarecenter/ui/gtk3/panes/pendingpane.py
+softwarecenter/ui/gtk3/panes/softwarepane.py
 softwarecenter/ui/gtk3/panes/unused__channelpane.py
 softwarecenter/ui/gtk3/panes/viewswitcher.py
 softwarecenter/ui/gtk3/views/appdetailsview.py
 softwarecenter/ui/gtk3/views/appdetailsview_gtk.py
 softwarecenter/ui/gtk3/views/appview.py
 softwarecenter/ui/gtk3/views/catview_gtk.py
+softwarecenter/ui/gtk3/views/purchaseview.py
 softwarecenter/ui/gtk3/widgets/apptreeview.py
 softwarecenter/ui/gtk3/widgets/backforward.py
 softwarecenter/ui/gtk3/widgets/buttons.py
 softwarecenter/ui/gtk3/widgets/exhibits.py
 softwarecenter/ui/gtk3/widgets/reviews.py
 softwarecenter/ui/gtk3/widgets/searchaid.py
+softwarecenter/ui/gtk3/widgets/searchentry.py
 softwarecenter/ui/gtk3/widgets/stars.py
 softwarecenter/ui/gtk3/widgets/thumbnail.py
 softwarecenter/ui/gtk3/widgets/unused__pathbar.py
