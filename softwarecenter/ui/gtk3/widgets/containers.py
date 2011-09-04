@@ -8,7 +8,7 @@ from math import pi
 
 from buttons import MoreLink
 from softwarecenter.ui.gtk3.em import StockEms
-from softwarecenter.ui.gtk3.drawing import rounded_rect, rounded_rect2
+from softwarecenter.ui.gtk3.drawing import rounded_rect
 
 
 class FlowableGrid(Gtk.Fixed):
@@ -305,32 +305,32 @@ class Frame(Gtk.Alignment):
         for child in self: self.propagate_draw(child, cr)
         return
 
-    def on_draw_after(self, widget, cr, assets, layout):
-        if not self.show_corner_label: return
-        cr.save()
-        surf = assets["corner-label"]
-        w = surf.get_width()
-        h = surf.get_height()
-        cr.reset_clip()
-        # the following arbitrary adjustments are specific to the
-        # corner-label.png image...
+    #~ def on_draw_after(self, widget, cr, assets, layout):
+        #~ if not self.show_corner_label: return
+        #~ cr.save()
+        #~ surf = assets["corner-label"]
+        #~ w = surf.get_width()
+        #~ h = surf.get_height()
+        #~ cr.reset_clip()
+        #~ # the following arbitrary adjustments are specific to the
+        #~ # corner-label.png image...
 
-        # alter the to allow drawing outside of the widget bounds
-        cr.rectangle(-10, -10, w+4, h+4)
-        cr.clip()
-        cr.set_source_surface(surf, -7, -8)
-        cr.paint()
-        # render label
-        ex = layout.get_pixel_extents()[1]
-        # transalate to the visual center of the corner-label
-        cr.translate(19, 18)
-        # rotate counter-clockwise
-        cr.rotate(-pi*0.25)
-        # paint normal markup
-        Gtk.render_layout(widget.get_style_context(),
-                          cr, -ex.width/2, -ex.height/2, layout)
-        cr.restore()
-        return
+        #~ # alter the to allow drawing outside of the widget bounds
+        #~ cr.rectangle(-10, -10, w+4, h+4)
+        #~ cr.clip()
+        #~ cr.set_source_surface(surf, -7, -8)
+        #~ cr.paint()
+        #~ # render label
+        #~ ex = layout.get_pixel_extents()[1]
+        #~ # transalate to the visual center of the corner-label
+        #~ cr.translate(19, 18)
+        #~ # rotate counter-clockwise
+        #~ cr.rotate(-pi*0.25)
+        #~ # paint normal markup
+        #~ Gtk.render_layout(widget.get_style_context(),
+                          #~ cr, -ex.width/2, -ex.height/2, layout)
+        #~ cr.restore()
+        #~ return
 
     def set_show_corner_label(self, show_label):
         if (not self.layout.get_text() and
@@ -347,12 +347,12 @@ class Frame(Gtk.Alignment):
         self.queue_draw()
         return
 
-    def set_corner_label(self, markup):
-        markup = '<span font_desc="12" color="white"><b>%s</b></span>' % markup
-        self.set_show_corner_label(True)
-        self.layout.set_markup(markup, -1)
-        self.queue_draw()
-        return
+    #~ def set_corner_label(self, markup):
+        #~ markup = '<span font_desc="12" color="white"><b>%s</b></span>' % markup
+        #~ self.set_show_corner_label(True)
+        #~ self.layout.set_markup(markup, -1)
+        #~ self.queue_draw()
+        #~ return
 
     def render_frame(self, cr, a, border_radius, assets):
         # we cache as much of the drawing as possible
@@ -548,32 +548,7 @@ class FramedHeaderBox(FramedBox):
         return
     
     def render_header(self, cr, a, border_radius, assets):
-        cr.save()
-
-        # fill interior
-        context = self.get_style_context()
-        state = self.get_state_flags()
-
-        context.save()
-        context.add_class("super-light-aubergine-bg")
-        color = context.get_background_color(state)
-
-        cr.rectangle(0, 0, a.width, a.height)
-        Gdk.cairo_set_source_rgba(cr, color)
-        cr.fill()
-
         for child in self: self.propagate_draw(child, cr)
-#~ 
-        #~ # draw high-light
-        #~ cr.set_source_rgba(1,1,1,0.5)
-        #~ cr.move_to(0, a.height-1)
-        #~ cr.rel_line_to(a.width, 0)
-        #~ cr.stroke()
-        # draw bottom line
-        Gtk.render_line(context, cr, 0, a.height-1, a.width, a.height-1)
-
-        context.restore()
-        cr.restore()
         return
 
 

@@ -25,7 +25,7 @@ from softwarecenter.backend import get_install_backend
 from softwarecenter.db.application import AppDetails
 from softwarecenter.enums import Icons
 from softwarecenter.ui.gtk3.em import StockEms, em
-from softwarecenter.ui.gtk3.drawing import darken
+from softwarecenter.ui.gtk3.drawing import darken, rounded_rect2
 from softwarecenter.ui.gtk3.widgets.stars import Star, StarSize
 
 _HAND = Gdk.Cursor.new(Gdk.CursorType.HAND2)
@@ -515,8 +515,7 @@ class MoreLink(Gtk.Button):
     def __init__(self):
         Gtk.Button.__init__(self)
         self.label = Gtk.Label()
-        self.label.set_margin_left(int(1.5 * StockEms.MEDIUM))
-        self.label.set_margin_right(StockEms.SMALL)
+        self.label.set_padding(StockEms.SMALL, 0)
         self.label.set_markup(self._MARKUP % self._MORE)
         self.add(self.label)
         self._init_event_handling()
@@ -529,27 +528,6 @@ class MoreLink(Gtk.Button):
         self.connect("leave-notify-event", self.on_leave)
 
     def do_draw(self, cr):
-        context = self.get_style_context()
-        state = self.get_state_flags()
-
-        # the arrow color
-        color = context.get_background_color(state)
-        Gdk.cairo_set_source_rgba(cr, color)
-
-        # the arrow shape paths
-        a = self.get_allocation()
-        cr.move_to(0, 0)
-        cr.rel_line_to(a.width, 0)
-        cr.rel_line_to(0, a.height)
-        cr.rel_line_to(-a.width, 0)
-        cr.rel_line_to(StockEms.MEDIUM, -(a.height)*0.5+1)
-        cr.close_path()
-        cr.fill_preserve()
-
-        Gdk.cairo_set_source_rgba(cr, darken(color, 0.04))
-        cr.set_line_width(1)
-        cr.stroke()
-
         for child in self: self.propagate_draw(child, cr)
         return
 
