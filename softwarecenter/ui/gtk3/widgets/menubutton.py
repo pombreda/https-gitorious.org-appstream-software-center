@@ -22,14 +22,20 @@ class MenuButton(Gtk.Button):
 
     def __init__(self, menu, icon=None, label=None):
         super(MenuButton, self).__init__()
+        
+        box = Gtk.Box()
+        self.add(box)
 
+        if icon:
+            box.pack_start(icon, False, True, 1)
+        if label:
+            box.pack_start(Gtk.Label(label), True, True, 0)
+            
+        arrow = Gtk.Arrow.new(Gtk.ArrowType.DOWN, Gtk.ShadowType.OUT)
+        box.pack_start(arrow, False, False, 1)
+            
         self.connect("button-press-event", self.on_button_pressed, menu)
         self.connect("clicked", self.on_keyboard_clicked, menu)
-        if icon:
-            self.set_image(icon)
-        if label:
-            self.set_label(label)
-        #self.connect("draw", self.on_draw)        
 
     def on_button_pressed(self, button, event, menu):
         menu.popup(None, None, self.menu_positionner, (button, event.x), event.button, event.time)
@@ -44,34 +50,27 @@ class MenuButton(Gtk.Button):
         x_position = x + button.get_allocation().x
         y_position = y + button.get_allocation().y + button.get_allocated_height()
         
-        # if pressed by the mouse, show it at the X position of it
+        # if pressed by the mouse, center the X position to it
         if x_cursor_pos:
-            x_position += int(x_cursor_pos)
+            x_position += x_cursor_pos
+            x_position = x_position - menu.get_allocated_width() * 0.5
 
         # computer current monitor height
         current_screen = button.get_screen()
         num_monitor = current_screen.get_monitor_at_point(x_position, y_position)
-        monitor_height = current_screen.get_monitor_geometry(num_monitor).height
+        monitor_geo = current_screen.get_monitor_geometry(num_monitor)
         
-        # if the menu is too long for the monitor, put it above the widget
-        if monitor_height < y_position + menu.get_allocated_height():
+        # if the menu width is of the current monitor, shift is a little
+        if x_position < monitor_geo.x:
+            x_position = monitor_geo.x
+        if x_position + menu.get_allocated_width() > monitor_geo.x + monitor_geo.width:
+            x_position = monitor_geo.x + monitor_geo.width - menu.get_allocated_width()
+        
+        # if the menu height is too long for the monitor, put it above the widget
+        if monitor_geo.height < y_position + menu.get_allocated_height():
             y_position = y_position - button.get_allocated_height() - menu.get_allocated_height()
             
         return (x_position, y_position, True)
-
-    # TODO:
-    # would be nice to draw an arrow, but for that, we should connect to get_preferred_width
-    # to add the necessary space (what signal? there is none in gtkwidget)
-    # and see why it draws behing the button.
-    def on_draw(self, widget, cr):
-        state = widget.get_state_flags()
-        context = widget.get_style_context()
-        context.save()
-        context.set_state(state)
-        Gtk.render_arrow (context, cr, 90,
-                          10, 3,
-                          150)
-        context.restore()
 
 
 if __name__ == "__main__":
@@ -81,7 +80,7 @@ if __name__ == "__main__":
 
     menu = Gtk.Menu()
     menuitem = Gtk.MenuItem(label="foo")
-    menuitem2 = Gtk.MenuItem(label="bar")
+    menuitem2 = Gtk.MenuItem(label="long long long bar message")
     menu.append(menuitem)
     menu.append(menuitem2)
     menuitem.show()
