@@ -31,6 +31,8 @@ software-center (4.1.21.1) UNRELEASED; urgency=low
       for now to allow keyboard scrolling to work (LP: #830258)
   * lp:~mmcg069/software-center/lobby-tweaks:
     - small tweaks to the lobby
+  * merge lp:~mmcg069/software-center/image-data-cleanup:
+    - cleanup unused image files (LP: #839736)
 
   [ Andrea Cimitan ]
   * softwarecenter/ui/gtk3/widgets/symbolic_icons.py:
@@ -52,7 +54,7 @@ software-center (4.1.21.1) UNRELEASED; urgency=low
   * softwarecenter/ui/gtk3/widgets/menubutton.py:
     - improvements to menubutton widget (used in OneConf view) 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 05 Sep 2011 17:39:32 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 05 Sep 2011 17:51:09 -0400
 
 software-center (4.1.21) oneiric; urgency=low
 
