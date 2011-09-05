@@ -22,14 +22,20 @@ class MenuButton(Gtk.Button):
 
     def __init__(self, menu, icon=None, label=None):
         super(MenuButton, self).__init__()
+        
+        box = Gtk.Box()
+        self.add(box)
 
+        if icon:
+            box.pack_start(icon, False, True, 1)
+        if label:
+            box.pack_start(Gtk.Label(label), True, True, 0)
+            
+        arrow = Gtk.Arrow.new(Gtk.ArrowType.DOWN, Gtk.ShadowType.OUT)
+        box.pack_start(arrow, False, False, 1)
+            
         self.connect("button-press-event", self.on_button_pressed, menu)
         self.connect("clicked", self.on_keyboard_clicked, menu)
-        if icon:
-            self.set_image(icon)
-        if label:
-            self.set_label(label)
-        #self.connect("draw", self.on_draw)        
 
     def on_button_pressed(self, button, event, menu):
         menu.popup(None, None, self.menu_positionner, (button, event.x), event.button, event.time)
@@ -65,20 +71,6 @@ class MenuButton(Gtk.Button):
             y_position = y_position - button.get_allocated_height() - menu.get_allocated_height()
             
         return (x_position, y_position, True)
-
-    # TODO:
-    # would be nice to draw an arrow, but for that, we should connect to get_preferred_width
-    # to add the necessary space (what signal? there is none in gtkwidget)
-    # and see why it draws behing the button.
-    def on_draw(self, widget, cr):
-        state = widget.get_state_flags()
-        context = widget.get_style_context()
-        context.save()
-        context.set_state(state)
-        Gtk.render_arrow (context, cr, 90,
-                          10, 3,
-                          150)
-        context.restore()
 
 
 if __name__ == "__main__":
