@@ -36,6 +36,8 @@ software-center (4.1.21.1) UNRELEASED; urgency=low
     - small tweaks to the lobby
   * merge lp:~mmcg069/software-center/image-data-cleanup:
     - cleanup unused image files (LP: #839736)
+  * softwarecenter/ui/gtk3/panes/softwarepane.py:
+    - fix doubled search results (LP: #840235)
 
   [ Andrea Cimitan ]
   * softwarecenter/ui/gtk3/widgets/symbolic_icons.py:
@@ -62,7 +64,7 @@ software-center (4.1.21.1) UNRELEASED; urgency=low
   * softwarecenter/ui/gtk3/widgets/menubutton.py:
     - improvements to menubutton widget (used in OneConf view) 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 05 Sep 2011 21:33:10 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 06 Sep 2011 11:14:51 -0400
 
 software-center (4.1.21) oneiric; urgency=low
 
