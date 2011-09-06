@@ -412,7 +412,9 @@ class SoftwarePane(Gtk.VBox, BasePane):
         return
 
     def on_app_view_sort_method_changed(self, combo):
-        print 'user defined sort method:', self.app_view.user_defined_sort_method
+        if self.app_view.get_sort_mode() == self.enquirer.sortmode:
+            return
+
         self.app_view.clear_model()
         query = self.get_query()
         self._refresh_apps_with_apt_cache(query)
