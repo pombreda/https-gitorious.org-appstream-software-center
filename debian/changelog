@@ -52,6 +52,10 @@ software-center (4.1.21.1) UNRELEASED; urgency=low
   [ Kiwinote ]
   * remove the old webkit ui
   * remove the need for dummy-screenshot-ubuntu.png (LP: #837223)
+  * softwarecenter/db/appfilter.py,
+    softwarecenter/ui/gtk3/app.py,
+    softwarecenter/ui/gtk3/widgets/searchaid.py:
+    - stack of improvements to the supported_only filter and the searchaid
   * softwarecenter/ui/gtk3/widgets/buttons.py:
     - add currency to paid app tiles (LP: #833801)
   * softwarecenter/ui/gtk3/widgets/apptreeview.py,
