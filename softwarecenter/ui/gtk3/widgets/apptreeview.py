@@ -274,11 +274,19 @@ class AppTreeView(Gtk.TreeView):
 
         if self.appmodel.is_installed(app):
             action_btn.set_variant(self.VARIANT_REMOVE)
-        else:
+            action_btn.set_sensitive(True)
+            action_btn.show()
+        elif self.appmodel.is_available(app):
             action_btn.set_variant(self.VARIANT_INSTALL)
+            action_btn.set_sensitive(True)
+            action_btn.show()
             if not network_state_is_connected():
                 action_btn.set_sensitive(False)
                 return
+        else:
+            action_btn.set_sensitive(False)
+            action_btn.hide()
+            return
 
         if self.appmodel.get_transaction_progress(app) > 0:
             action_btn.set_sensitive(False)

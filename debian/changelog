@@ -50,6 +50,9 @@ software-center (4.1.21.1) UNRELEASED; urgency=low
   * remove the need for dummy-screenshot-ubuntu.png (LP: #837223)
   * softwarecenter/ui/gtk3/widgets/buttons.py:
     - add currency to paid app tiles (LP: #833801)
+  * softwarecenter/ui/gtk3/widgets/apptreeview.py,
+    softwarecenter/ui/gtk3/widgets/cellrenderers.py:
+    - hide the action button when the pkg is not available (LP: #841459)
   * softwarecenter/ui/gtk3/widgets/exhibits.py:
     - fix text corruption in the default banner (LP: #838244)
   * softwarecenter/ui/gtk3/widgets/searchentry.py:
