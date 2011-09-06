@@ -1,9 +1,63 @@
 software-center (4.1.21.1) UNRELEASED; urgency=low
 
+  [ Gary Lasker ]
+  * data/ubuntu-software-center.desktop.in,
+    debian/rules,
+    setup.py,
+    software-center,
+    software-center-gtk2,
+    softwarecenter/toolkit.py:
+    - launch the new UI using 'software-center', add script
+      to launch the old version if feeling nostalgic (LP: #839257)
   * merged lp:~gary-lasker/software-center/pyflakes-fixes, no
     user visible changes, only code cleanup
+  * po/software-center.pot:
+    - refresh .pot file
+  * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
+    - fix incorrect ellipsize for title and summary in the
+      details view (LP: #842271)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Fri, 02 Sep 2011 00:04:44 -0400
+  [ Matthew McGowan ]
+  * data/ui/gtk3/css/softwarecenter.css,
+    softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
+    - fix grey addon label, only pkgname should be grey
+      (LP: #838607)
+  * softwarecenter/ui/gtk3/widgets/description.py,
+    softwarecenter/utils.py,
+    test/test_description_norm.py:
+    - description formatting improvements, update unit test
+  * data/ui/gtk3/css/softwarecenter.css,
+    softwarecenter/ui/gtk3/widgets/cellrenderers.py:
+    - use css to set border-radius of cellrenderer button
+  * softwarecenter/ui/gtk3/views/appview.py:
+    - disable appcount display at the bottom of list views
+      for now to allow keyboard scrolling to work (LP: #830258)
+  * lp:~mmcg069/software-center/lobby-tweaks:
+    - small tweaks to the lobby
+  * merge lp:~mmcg069/software-center/image-data-cleanup:
+    - cleanup unused image files (LP: #839736)
+
+  [ Andrea Cimitan ]
+  * softwarecenter/ui/gtk3/widgets/symbolic_icons.py:
+    - Fix blurriness of toolbar icons, reduce shadow alpha level
+
+  [ Gabor Kelemen ]
+  * po/POTFILES.in:
+    - additional i18n fixes (LP: #836346)
+
+  [ Kiwinote ]
+  * softwarecenter/ui/gtk3/widgets/buttons.py:
+    - add currency to paid app tiles (LP: #833801)
+  * softwarecenter/ui/gtk3/widgets/exhibits.py:
+    - fix text corruption in the default banner (LP: #838244)
+  * softwarecenter/ui/gtk3/widgets/searchentry.py:
+    - use symbolic variant for the search icon (LP: #835529)
+
+  [ Didier Roche ]
+  * softwarecenter/ui/gtk3/widgets/menubutton.py:
+    - improvements to menubutton widget (used in OneConf view) 
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 05 Sep 2011 21:33:10 -0400
 
 software-center (4.1.21) oneiric; urgency=low
 

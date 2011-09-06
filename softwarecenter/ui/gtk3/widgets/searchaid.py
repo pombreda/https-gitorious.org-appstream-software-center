@@ -289,12 +289,6 @@ class SearchAid(Gtk.Table, SearchAidLogic):
                     StockEms.MEDIUM, StockEms.MEDIUM)
 
         self.suggestion.connect("activate-link", self.on_link_activate)
-        self.connect("draw", self.on_draw)
-        return
-
-    def on_draw(self, widget, cr):
-        cr.set_source_rgb(1,1,1)
-        cr.paint()
         return
 
     def on_update_search_help(self, state):

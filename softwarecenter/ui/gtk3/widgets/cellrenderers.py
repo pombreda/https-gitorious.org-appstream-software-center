@@ -527,6 +527,7 @@ class CellButtonRenderer:
 
         context.save()
         context.add_class("button")
+        context.add_class("cellrenderer-button")
         context.set_state(self.state)
 
         Gtk.render_background(context, cr, x, y, width, height)

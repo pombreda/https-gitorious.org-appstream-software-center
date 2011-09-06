@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# Copyright (C) 2011 Canonical
+# Copyright (C) 2009 Canonical
 #
 # Authors:
 #  Michael Vogt
@@ -27,10 +27,11 @@ time_entering_main = time.time()
 from decimal import Decimal
 
 # thread init is also required otherwise both gst and webkit are unhappy
-
-from gi.repository import GObject
-GObject.threads_init()
-from gi.repository import Gtk
+import pygtk
+pygtk.require ("2.0")
+import gobject
+gobject.threads_init()
+import gtk
 
 import gettext
 import glob
@@ -41,7 +42,6 @@ import sys
 
 from softwarecenter.enums import *
 from softwarecenter.paths import XAPIAN_BASE_PATH
-from softwarecenter.utils import ExecutionTime
 from softwarecenter.version import *
 
 import softwarecenter.log
@@ -64,9 +64,6 @@ if __name__ == "__main__":
     parser.add_option("--force-rtl", action="store_true",
                       help="force rtl mode (useful for debugging)", 
                       default=False)
-    parser.add_option("--display-navlog", action="store_true",
-                      help="display a navigation history log (useful for debugging)", 
-                      default=False)
     # FIXME:  REMOVE THIS option once launchpad integration is enabled
     #         by default
     parser.add_option("--enable-lp", action="store_true",
@@ -84,10 +81,6 @@ if __name__ == "__main__":
     parser.add_option("--dummy-backend", action="store_true",
                       help="run with a dummy backend, this will not actually install or remove anything and is useful for testing",
                       default=False)
-    parser.add_option("--packagekit-backend", action="store_true",
-                      help="use PackageKit backend (experimental)", 
-                      default=False)
-
     (options, args) = parser.parse_args()
 
     # statup time measure implies "performance" in debug filters
@@ -103,11 +96,6 @@ if __name__ == "__main__":
         softwarecenter.log.root.setLevel(level=logging.DEBUG)
     else:
         softwarecenter.log.root.setLevel(level=logging.INFO)
-    
-    # packagekit
-    if options.packagekit_backend:
-        softwarecenter.enums.USE_PACKAGEKIT_BACKEND = True
-        logging.info("Using PackageKit backend")
 
     # dummy backend
     if options.dummy_backend:
@@ -118,14 +106,14 @@ if __name__ == "__main__":
 
     # override text direction for testing purposes
     if options.force_rtl:
-        Gtk.Widget.set_default_direction(Gtk.TextDirection.RTL)
+        gtk.widget_set_default_direction(gtk.TEXT_DIR_RTL)
 
     # we are running in a local checkout, make life as easy as possible
     # for this
-    if os.path.exists("./data/ui/gtk3/SoftwareCenter.ui"):
+    if os.path.exists("./data/ui/gtk/SoftwareCenter.ui"):
         logging.getLogger("softwarecenter").info("Using data (UI, xapian) from current dir")
         # set pythonpath for the various helpers
-        if os.environ.get("PYTHONPATH",""):
+        if os.environ.get("PYTHONPATH", ""):
             os.environ["PYTHONPATH"]=os.path.abspath(".") + ":" + os.environ.get("PYTHONPATH","")
         else:
             os.environ["PYTHONPATH"]=os.path.abspath(".")
@@ -143,28 +131,29 @@ if __name__ == "__main__":
         xapian_base_path = XAPIAN_BASE_PATH
 
     # ensure we can actually run
-    Gtk.init_check(sys.argv)
+    gtk.init_check()
 
     # create the app
-    from softwarecenter.ui.gtk3.app import SoftwareCenterAppGtk3
+    from softwarecenter.ui.gtk.app import SoftwareCenterApp
+    from softwarecenter.utils import ExecutionTime
+
     with ExecutionTime("create SoftwareCenterApp"):
-        app = SoftwareCenterAppGtk3(datadir, xapian_base_path, options, args)
+        app = SoftwareCenterApp(datadir, xapian_base_path, options, args)
 
     # DEBUG/PROFILE mode 
     if options.measure_startup_time:
         with ExecutionTime("show() & gtk events until visible"):
 #            app.window_main.show_all()
-            while Gtk.events_pending():
+            while gtk.events_pending():
                 # test visible area
-                if (app.window_main.flags() & Gtk.VISIBLE and
-                    app.available_pane.searchentry.flags() & Gtk.VISIBLE and
-                    app.available_pane.back_forward.flags() & Gtk.VISIBLE):
+                if (app.window_main.flags() & gtk.VISIBLE and
+                    app.available_pane.searchentry.flags() & gtk.VISIBLE and
+                    app.available_pane.back_forward.flags() & gtk.VISIBLE):
                     break
-                Gtk.main_iteration()
+                gtk.main_iteration()
         time_to_visible = time.time() - time_entering_main
-        print(time_to_visible)
+        print time_to_visible
         sys.exit(0)
 
     # run it normally
     app.run(args)
-

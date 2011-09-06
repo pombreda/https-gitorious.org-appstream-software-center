@@ -1153,8 +1153,6 @@ class SubmitReviewsApp(BaseApp):
 class ReportReviewApp(BaseApp):
     """ report a given application or package """
 
-    LOGIN_IMAGE = "/usr/share/software-center/images/ubuntu-cof.png"
-
     APP_ICON_SIZE = 48
     
     SUBMIT_MESSAGE = _(u"Sending report\u2026")
