@@ -100,9 +100,9 @@ class AppView(Gtk.VBox):
                                     self.on_sort_method_changed)
         return
 
-    def on_draw(self, w, cr):
-        cr.set_source_rgb(1,1,1)
-        cr.paint()
+    #~ def on_draw(self, w, cr):
+        #~ cr.set_source_rgb(1,1,1)
+        #~ cr.paint()
 
     def _append_appcount(self, appcount, mode=AVAILABLE_MODE):
 #~ 
