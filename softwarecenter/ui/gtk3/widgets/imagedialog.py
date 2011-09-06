@@ -71,5 +71,5 @@ class SimpleShowImageDialog(Gtk.Dialog):
 if __name__ == "__main__":
 
     # pixbuf
-    d = SimpleShowImageDialog("Synaptic Screenshot",  GdkPixbuf.Pixbuf.new_from_file("/usr/share/software-center/images/dummy-screenshot-ubuntu.png"))
+    d = SimpleShowImageDialog("Synaptic Screenshot",  GdkPixbuf.Pixbuf.new_from_file("/usr/share/software-center/images/arrows.png"))
     d.run()

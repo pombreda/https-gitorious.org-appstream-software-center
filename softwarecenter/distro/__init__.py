@@ -33,9 +33,6 @@ class Distro(object):
     # are found
     DISTROSERIES = []
 
-    # missing thumbnail
-    IMAGE_FULL_MISSING = "/usr/share/software-center/images/dummy-screenshot-ubuntu.png"
-
     # base path for the review summary, the JS will append %i.png (with i={1,5})
     REVIEW_SUMMARY_STARS_BASE_PATH = "/usr/share/software-center/images/review-summary"
     REVIEWS_SERVER = os.environ.get("SOFTWARE_CENTER_REVIEWS_HOST") or "http://localhost:8000"
