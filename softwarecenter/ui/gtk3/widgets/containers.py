@@ -3,8 +3,7 @@ import os
 
 import softwarecenter.paths
 
-from gi.repository import Gtk, Gdk, Pango
-from math import pi
+from gi.repository import Gtk, Gdk
 
 from buttons import MoreLink
 from softwarecenter.ui.gtk3.em import StockEms
@@ -210,7 +209,8 @@ class Frame(Gtk.Alignment):
         #~ self.layout.set_width(40960)
         #~ self.layout.set_ellipsize(Pango.EllipsizeMode.END)
 
-        assets = self._cache_art_assets()
+        #~ assets = self._cache_art_assets()
+        self._cache_art_assets()
         # second tier of caching, cache resultant surface of
         # fully composed and rendered frame
         self._frame_surface_cache = None

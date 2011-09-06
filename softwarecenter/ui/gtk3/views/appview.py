@@ -22,7 +22,7 @@
 
 from gi.repository import Gtk, GObject
 from gettext import gettext as _
-import gettext
+#~ import gettext
 
 from softwarecenter.enums import SortMethods
 from softwarecenter.ui.gtk3.em import StockEms
