@@ -46,6 +46,7 @@ software-center (4.1.21.1) UNRELEASED; urgency=low
     - additional i18n fixes (LP: #836346)
 
   [ Kiwinote ]
+  * remove the old webkit ui
   * softwarecenter/ui/gtk3/widgets/buttons.py:
     - add currency to paid app tiles (LP: #833801)
   * softwarecenter/ui/gtk3/widgets/exhibits.py:
