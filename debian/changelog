@@ -33,7 +33,9 @@ software-center (4.1.21.1) UNRELEASED; urgency=low
     - disable appcount display at the bottom of list views
       for now to allow keyboard scrolling to work (LP: #830258)
   * lp:~mmcg069/software-center/lobby-tweaks:
-    - small tweaks to the lobby
+    - restore tile borders but disable the checkerboard
+      rendering, color tweaks and other improvements to the
+      title area visuals
   * merge lp:~mmcg069/software-center/image-data-cleanup:
     - cleanup unused image files (LP: #839736)
   * softwarecenter/ui/gtk3/panes/softwarepane.py:
@@ -64,7 +66,7 @@ software-center (4.1.21.1) UNRELEASED; urgency=low
   * softwarecenter/ui/gtk3/widgets/menubutton.py:
     - improvements to menubutton widget (used in OneConf view) 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Tue, 06 Sep 2011 11:14:51 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 06 Sep 2011 17:13:42 -0400
 
 software-center (4.1.21) oneiric; urgency=low
 
