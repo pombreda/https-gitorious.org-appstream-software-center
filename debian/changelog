@@ -13,6 +13,9 @@ software-center (4.1.21.1) UNRELEASED; urgency=low
     user visible changes, only code cleanup
   * po/software-center.pot:
     - refresh .pot file
+  * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
+    - fix incorrect ellipsize for title and summary in the
+      details view (LP: #842271)
 
   [ Matthew McGowan ]
   * data/ui/gtk3/css/softwarecenter.css,
@@ -26,6 +29,13 @@ software-center (4.1.21.1) UNRELEASED; urgency=low
   * data/ui/gtk3/css/softwarecenter.css,
     softwarecenter/ui/gtk3/widgets/cellrenderers.py:
     - use css to set border-radius of cellrenderer button
+  * softwarecenter/ui/gtk3/views/appview.py:
+    - disable appcount display at the bottom of list views
+      for now to allow keyboard scrolling to work (LP: #830258)
+  * lp:~mmcg069/software-center/lobby-tweaks:
+    - small tweaks to the lobby
+  * merge lp:~mmcg069/software-center/image-data-cleanup:
+    - cleanup unused image files (LP: #839736)
 
   [ Andrea Cimitan ]
   * softwarecenter/ui/gtk3/widgets/symbolic_icons.py:
@@ -43,7 +53,11 @@ software-center (4.1.21.1) UNRELEASED; urgency=low
   * softwarecenter/ui/gtk3/widgets/searchentry.py:
     - use symbolic variant for the search icon (LP: #835529)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Sat, 03 Sep 2011 00:29:07 -0400
+  [ Didier Roche ]
+  * softwarecenter/ui/gtk3/widgets/menubutton.py:
+    - improvements to menubutton widget (used in OneConf view) 
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 05 Sep 2011 21:33:10 -0400
 
 software-center (4.1.21) oneiric; urgency=low
 
