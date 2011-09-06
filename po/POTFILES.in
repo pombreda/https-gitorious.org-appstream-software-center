@@ -32,11 +32,9 @@ softwarecenter/enums.py
 softwarecenter/utils.py
 softwarecenter/ui/gtk/appdetailsview.py
 softwarecenter/ui/gtk/appdetailsview_gtk.py
-softwarecenter/ui/gtk/appdetailsview_webkit.py
 softwarecenter/ui/gtk/appview.py
 softwarecenter/ui/gtk/availablepane.py
 softwarecenter/ui/gtk/catview_gtk.py
-softwarecenter/ui/gtk/catview_webkit.py
 softwarecenter/ui/gtk/channelpane.py
 softwarecenter/ui/gtk/dependency_dialogs.py
 softwarecenter/ui/gtk/deauthorize_dialog.py

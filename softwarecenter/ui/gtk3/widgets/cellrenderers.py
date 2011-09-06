@@ -428,6 +428,7 @@ class CellButtonRenderer:
         self.allocation = [0, 0, 1, 1]
         self.state = Gtk.StateFlags.NORMAL
         self.has_focus = False
+        self.visible = True
 
         self.widget = widget
         return
@@ -500,6 +501,12 @@ class CellButtonRenderer:
         self.set_state(state)
         return
 
+    def show(self):
+        self.visible = True
+
+    def hide(self):
+        self.visible = False
+
     def set_markup(self, markup):
         self.markup_variant = (markup,)
         return
@@ -523,6 +530,9 @@ class CellButtonRenderer:
         return self.state == Gtk.StateFlags.INSENSITIVE
 
     def render(self, context, cr, layout):
+        if not self.visible:
+            return
+
         x, y, width, height = self.allocation
 
         context.save()

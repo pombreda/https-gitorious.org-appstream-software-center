@@ -289,7 +289,7 @@ class ScreenshotThumbnail(gtk.Alignment):
         title = _("%s - Screenshot") % self.appname
         d = ShowImageDialog(
             title, url,
-            self.distro.IMAGE_FULL_MISSING,
+            None,
             os.path.join(self.loader.tmpdir, uri_to_filename(url)))
         d.run()
         d.destroy()
