@@ -25,11 +25,11 @@
     -GtkButton-default-outside-border: 0;
     color: darker (@light-aubergine);
     background-color: shade (@super-light-aubergine, 0.925);
-    text-shadow: 0 1 2 @super-light-aubergine;
+    text-shadow: 0 1 2 white;
 }
 
 .frame-header-title {
-    text-shadow: 0 1 2 @super-light-aubergine;
+    text-shadow: 0 1 2 white;
 }
 
 GtkViewport {
