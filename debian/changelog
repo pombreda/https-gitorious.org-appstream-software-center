@@ -13,6 +13,9 @@ software-center (4.1.21.1) UNRELEASED; urgency=low
     user visible changes, only code cleanup
   * po/software-center.pot:
     - refresh .pot file
+  * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
+    - fix incorrect ellipsize for title and summary in the
+      details view (LP: #842271)
 
   [ Matthew McGowan ]
   * data/ui/gtk3/css/softwarecenter.css,
@@ -54,7 +57,7 @@ software-center (4.1.21.1) UNRELEASED; urgency=low
   * softwarecenter/ui/gtk3/widgets/menubutton.py:
     - improvements to menubutton widget (used in OneConf view) 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 05 Sep 2011 17:51:09 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 05 Sep 2011 21:33:10 -0400
 
 software-center (4.1.21) oneiric; urgency=low
 
