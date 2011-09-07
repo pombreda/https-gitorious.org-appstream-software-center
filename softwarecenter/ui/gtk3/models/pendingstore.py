@@ -81,7 +81,7 @@ class PendingStore(Gtk.ListStore):
             appname = self.backend.pending_purchases[pkgname].appname
             status_text = self._render_status_text(
                 appname or pkgname, _(u'Installing purchase\u2026'))
-            self.append([pkgname, icon, pkgname, status_text, 0, 1, None])
+            self.append([pkgname, icon, pkgname, status_text, float(0), 1, None])
 
     def _pulse_purchase_helper(self):
         for item in self:
