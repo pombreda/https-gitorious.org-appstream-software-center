@@ -43,7 +43,8 @@ class TestCatView(unittest.TestCase):
         lobby.new_frame.more.clicked()
         self._p()
         self.assertNotEqual(self._cat, None)
-        self.assertEqual(self._cat.name, u'What\u2019s New')
+        # encoding is utf-8 (since r2218, see category.py)
+        self.assertEqual(self._cat.name, 'What\xe2\x80\x99s New')
         self.assertEqual(self._cat.sortmode, SortMethods.BY_CATALOGED_TIME)
 
     def _p(self):
