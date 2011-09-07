@@ -403,7 +403,6 @@ class AppListStore(Gtk.ListStore, AppGenericStore):
                 self.append()
 
         self.emit('appcount-changed', len(matches))
-
         self.buffer_icons()
         return
 

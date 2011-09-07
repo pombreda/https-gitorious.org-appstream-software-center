@@ -44,8 +44,7 @@ class ShowImageDialog(gtk.Dialog):
             while parent:
                 parent = parent.get_parent()
         # missing
-        self._missing_img = missing_img
-        self.image_filename = self._missing_img
+        self.image_filename = ''
         
         # create a spinner view to display while the screenshot it loading
         self.spinner_view = SpinnerView()
@@ -103,7 +102,7 @@ class ShowImageDialog(gtk.Dialog):
             pixbuf = gtk.gdk.pixbuf_new_from_file(self.image_filename)
         except:
             logging.debug("The image format couldn't be determined")
-            pixbuf = gtk.gdk.pixbuf_new_from_file(self._missing_img)
+            return
             
         # Set the screenshot image
         self.img.set_from_pixbuf(pixbuf)
@@ -124,7 +123,7 @@ class ShowImageDialog(gtk.Dialog):
     def _on_screenshot_query_complete(self, loader, reachable):
         # show generic image if missing
         if not reachable:
-            self.image_filename = self._missing_img
+            self.image_filename = ''
             self._finished = True
 
     def _on_screenshot_download_complete(self, loader, screenshot_path):
@@ -141,10 +140,10 @@ class ShowImageDialog(gtk.Dialog):
 
 if __name__ == "__main__":
     # invalid url
-    d = ShowImageDialog("Synaptic Screenshot", "http://not-htere", "/usr/share/software-center/images/dummy-screenshot-ubuntu.png")
+    d = ShowImageDialog("Synaptic Screenshot", "http://not-htere", None)
     d.run()
 
     # valid url
     url = "http://screenshots.ubuntu.com/screenshot/synaptic"
-    d = ShowImageDialog("Synaptic Screenshot", url, "/usr/share/software-center/images/dummy-screenshot-ubuntu.png")
+    d = ShowImageDialog("Synaptic Screenshot", url, None)
     d.run()

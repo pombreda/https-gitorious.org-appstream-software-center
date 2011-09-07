@@ -7,14 +7,14 @@ from gi.repository import Gtk, Gdk
 
 from buttons import MoreLink
 from softwarecenter.ui.gtk3.em import StockEms
-from softwarecenter.ui.gtk3.drawing import rounded_rect
+from softwarecenter.ui.gtk3.drawing import rounded_rect, darken
 
 
 class FlowableGrid(Gtk.Fixed):
 
     MIN_HEIGHT = 100
 
-    def __init__(self, paint_grid_pattern=False):
+    def __init__(self, paint_grid_pattern=True):
         Gtk.Fixed.__init__(self)
         self.set_size_request(100, -1)
         self.row_spacing = 0
@@ -131,12 +131,12 @@ class FlowableGrid(Gtk.Fixed):
         for i in range(self.n_columns):
             for j in range(self.n_rows):
                 # paint checker if need be
-                if not (i + j%2)%2:
-                    cr.save()
-                    cr.set_source_rgba(0.976470588, 0.956862745, 0.960784314, 0.85) #F9F4F5
-                    cr.rectangle(i*cell_w, j*cell_h, cell_w, cell_h)
-                    cr.fill()
-                    cr.restore()
+                #~ if not (i + j%2)%2:
+                    #~ cr.save()
+                    #~ cr.set_source_rgba(0.976470588, 0.956862745, 0.960784314, 0.85) #F9F4F5
+                    #~ cr.rectangle(i*cell_w, j*cell_h, cell_w, cell_h)
+                    #~ cr.fill()
+                    #~ cr.restore()
 
                 # paint rows
                 if not j: continue
@@ -548,6 +548,49 @@ class FramedHeaderBox(FramedBox):
         return
     
     def render_header(self, cr, a, border_radius, assets):
+        context = self.get_style_context()
+        Gtk.render_background(context, cr,
+                              0, 0, a.width, a.height)
+
+        cr.save()
+        lin = cairo.LinearGradient(0, 0, 0, a.height)
+        lin.add_color_stop_rgba(0, 1,1,1, 0.5)
+        lin.add_color_stop_rgba(1, 1,1,1, 0.0)
+        cr.set_source(lin)
+        cr.rectangle(0, 0, a.width, a.height)
+        cr.fill()
+
+        cr.set_source_rgb(0.905882353,0.894117647,0.901960784)  # gridline color
+        cr.move_to(0, a.height-0.5)
+        cr.rel_line_to(a.width, 0)
+        cr.set_line_width(1)
+        cr.stroke()
+        cr.restore()
+
+        if hasattr(self, "more"):
+            # set the arrow fill color
+            context = self.get_style_context()
+            cr.save()
+
+            bg = darken(context.get_background_color(self.get_state_flags()))
+            bg.alpha = 0.3
+            Gdk.cairo_set_source_rgba(cr, bg)
+
+            # the arrow shape stuff
+            ta = self.more.get_allocation()
+            cr.move_to(ta.x-a.x-StockEms.MEDIUM, 0)
+            cr.rel_line_to(ta.width+StockEms.MEDIUM, 0)
+            cr.rel_line_to(0, a.height)
+            cr.rel_line_to(-(ta.width+StockEms.MEDIUM), 0)
+            cr.rel_line_to(StockEms.MEDIUM, -(a.height)*0.5)
+            cr.close_path()
+            cr.clip_preserve()
+            cr.fill_preserve()
+            cr.stroke()
+
+            cr.restore()
+
+        # paint the containers children
         for child in self: self.propagate_draw(child, cr)
         return
 

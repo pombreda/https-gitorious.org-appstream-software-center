@@ -33,9 +33,13 @@ software-center (4.1.21.1) UNRELEASED; urgency=low
     - disable appcount display at the bottom of list views
       for now to allow keyboard scrolling to work (LP: #830258)
   * lp:~mmcg069/software-center/lobby-tweaks:
-    - small tweaks to the lobby
+    - restore tile borders but disable the checkerboard
+      rendering, color tweaks and other improvements to the
+      title area visuals
   * merge lp:~mmcg069/software-center/image-data-cleanup:
     - cleanup unused image files (LP: #839736)
+  * softwarecenter/ui/gtk3/panes/softwarepane.py:
+    - fix doubled search results (LP: #840235)
 
   [ Andrea Cimitan ]
   * softwarecenter/ui/gtk3/widgets/symbolic_icons.py:
@@ -46,8 +50,17 @@ software-center (4.1.21.1) UNRELEASED; urgency=low
     - additional i18n fixes (LP: #836346)
 
   [ Kiwinote ]
+  * remove the old webkit ui
+  * remove the need for dummy-screenshot-ubuntu.png (LP: #837223)
+  * softwarecenter/db/appfilter.py,
+    softwarecenter/ui/gtk3/app.py,
+    softwarecenter/ui/gtk3/widgets/searchaid.py:
+    - stack of improvements to the supported_only filter and the searchaid
   * softwarecenter/ui/gtk3/widgets/buttons.py:
     - add currency to paid app tiles (LP: #833801)
+  * softwarecenter/ui/gtk3/widgets/apptreeview.py,
+    softwarecenter/ui/gtk3/widgets/cellrenderers.py:
+    - hide the action button when the pkg is not available (LP: #841459)
   * softwarecenter/ui/gtk3/widgets/exhibits.py:
     - fix text corruption in the default banner (LP: #838244)
   * softwarecenter/ui/gtk3/widgets/searchentry.py:
@@ -57,7 +70,7 @@ software-center (4.1.21.1) UNRELEASED; urgency=low
   * softwarecenter/ui/gtk3/widgets/menubutton.py:
     - improvements to menubutton widget (used in OneConf view) 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 05 Sep 2011 21:33:10 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 06 Sep 2011 17:13:42 -0400
 
 software-center (4.1.21) oneiric; urgency=low
 

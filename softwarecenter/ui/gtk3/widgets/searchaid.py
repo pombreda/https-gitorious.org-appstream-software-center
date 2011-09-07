@@ -32,7 +32,8 @@ class Suggestions(Gtk.VBox):
 
     def on_link_activate(self, widget, uri):
         self.reset_all()
-        return self.emit("activate-link", widget, uri)
+        self.emit("activate-link", widget, uri)
+        return True #silences the gtk-warning
 
     def foreach(self, label_func, *args):
         for label in [self.title,] + self._labels:
@@ -207,8 +208,7 @@ class SearchAidLogic(object):
         if not supported_only:
             return None
 
-        unsupported = state.filter.copy()
-        unsupported.set_supported_only(False)
+        state.filter.set_supported_only(False)
 
         #if category:
         #    category_query = category.query
@@ -220,8 +220,10 @@ class SearchAidLogic(object):
                       limit=self.pane.get_app_items_limit(),
                       sortmode=self.pane.get_sort_mode(),
                       nonapps_visible=True,
-                      filter=unsupported,
+                      filter=state.filter,
                       nonblocking_load=False)
+
+        state.filter.set_supported_only(True)
 
         if enq.nr_apps > 0:
             text = self.BULLET % gettext.ngettext("Try "
@@ -335,7 +337,7 @@ class SearchAid(Gtk.Table, SearchAidLogic):
         elif uri.startswith("search-parent/"):
             self.state.subcategory = None
             self.refresh_apps()
-        elif uri.startswith("search-unsupported/"):
+        elif uri.startswith("search-unsupported:"):
             self.state.filter.set_supported_only(False)
             self.refresh_apps()
         # FIXME: add ability to remove categories restriction here

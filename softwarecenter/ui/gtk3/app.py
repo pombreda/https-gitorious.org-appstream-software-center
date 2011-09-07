@@ -859,6 +859,8 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         right_sensitive = vm.back_forward.right.get_sensitive()
         self.menuitem_go_forward.set_sensitive(right_sensitive)
 
+        self.menuitem_view.blocked = True
+
         # get our active pane
         vm = get_viewmanager()
         self.active_pane = vm.get_view_widget(vm.get_active_view())
@@ -866,11 +868,20 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             self.active_pane == self.installed_pane):
             self.menuitem_view_all.set_sensitive(True)
             self.menuitem_view_supported_only.set_sensitive(True)
+
+            from softwarecenter.db.appfilter import get_global_filter
+            supported_only = get_global_filter().supported_only
+            self.menuitem_view_all.set_active(not supported_only)
+            self.menuitem_view_supported_only.set_active(supported_only)
         else:
             self.menuitem_view_all.set_sensitive(False)
             self.menuitem_view_supported_only.set_sensitive(False)
 
+        self.menuitem_view.blocked = False
+
     def on_menuitem_view_all_activate(self, widget):
+        if self.menuitem_view.blocked:
+            return
         from softwarecenter.db.appfilter import get_global_filter
         if get_global_filter().supported_only == True:
             get_global_filter().supported_only = False
@@ -895,6 +906,8 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
       #              len(self.available_pane.app_view.get_model()))
 
     def on_menuitem_view_supported_only_activate(self, widget):
+        if self.menuitem_view.blocked:
+            return
         from softwarecenter.db.appfilter import get_global_filter
         if get_global_filter().supported_only == False:
             get_global_filter().supported_only = True

@@ -34,14 +34,14 @@ class AppFilter(xapian.MatchDecider):
     def required(self):
         """ True if the filter is in a state that it should be part of a query """
         return (self.available_only or
-                self.supported_only or
+                global_filter.supported_only or
                 self.installed_only or 
                 self.not_installed_only or
-                self.restricted_list)
+                len(self.restricted_list) > 0)
     def set_available_only(self, v):
         self.available_only = v
     def set_supported_only(self, v):
-        self.supported_only = v
+        global_filter.supported_only = v
     def set_installed_only(self, v):
         self.installed_only = v
     def set_not_installed_only(self, v):
@@ -49,7 +49,7 @@ class AppFilter(xapian.MatchDecider):
     def set_restricted_list(self, v):
         self.restricted_list = v
     def get_supported_only(self):
-        return self.supported_only
+        return global_filter.supported_only
     def __eq__(self, other):
         if self is None and other is not None: 
             return True
@@ -57,7 +57,7 @@ class AppFilter(xapian.MatchDecider):
             return False
         return (self.installed_only == other.installed_only and
                 self.not_installed_only == other.not_installed_only and
-                self.supported_only == other.supported_only and
+                global_filter.supported_only == other.supported_only and
                 self.restricted_list == other.restricted_list)
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -82,7 +82,7 @@ class AppFilter(xapian.MatchDecider):
             if (pkgname in self.cache and
                 self.cache[pkgname].is_installed):
                 return False
-        if self.supported_only:
+        if global_filter.supported_only:
             if not self.distro.is_supported(self.cache, doc, pkgname):
                 return False
         if self.restricted_list:
@@ -93,7 +93,6 @@ class AppFilter(xapian.MatchDecider):
         """ create a new copy of the given filter """
         new_filter= AppFilter(self.db, self.cache)
         new_filter.available_only = self.available_only
-        new_filter.supported_only = self.supported_only
         new_filter.installed_only = self.installed_only
         new_filter.not_installed_only = self.not_installed_only
         new_filter.restricted_list = self.restricted_list
