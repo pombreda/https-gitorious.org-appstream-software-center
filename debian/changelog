@@ -9,13 +9,18 @@ software-center (4.1.21.1) UNRELEASED; urgency=low
     softwarecenter/toolkit.py:
     - launch the new UI using 'software-center', add script
       to launch the old version if feeling nostalgic (LP: #839257)
+  * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
+    - fix incorrect ellipsize for title and summary in the
+      details view (LP: #842271)
+  * test/gtk3/test_catview.py,
+    test/gtk3/test_panes.py,
+    test/test_addons.py,
+    test/test_package_info.py:
+    - fix unit tests
   * merged lp:~gary-lasker/software-center/pyflakes-fixes, no
     user visible changes, only code cleanup
   * po/software-center.pot:
     - refresh .pot file
-  * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
-    - fix incorrect ellipsize for title and summary in the
-      details view (LP: #842271)
 
   [ Matthew McGowan ]
   * data/ui/gtk3/css/softwarecenter.css,
@@ -70,7 +75,7 @@ software-center (4.1.21.1) UNRELEASED; urgency=low
   * softwarecenter/ui/gtk3/widgets/menubutton.py:
     - improvements to menubutton widget (used in OneConf view) 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Tue, 06 Sep 2011 17:13:42 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 07 Sep 2011 01:31:08 -0400
 
 software-center (4.1.21) oneiric; urgency=low
 
