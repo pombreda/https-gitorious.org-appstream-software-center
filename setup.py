@@ -48,7 +48,7 @@ def merge_authors_into_about_dialog():
         gtkbuilder = open(fname).read()
         gtkbuilder = re.sub(r'<property name="authors">.*?</property>',
                             r'<property name="authors">%s</property>' % authors,
-                            gtkbuilder, flags=re.DOTALL)
+                            gtkbuilder)
         open(fname, "w").write(gtkbuilder)
 
 
