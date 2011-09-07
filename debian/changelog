@@ -77,7 +77,11 @@ software-center (4.1.21.1) UNRELEASED; urgency=low
   * softwarecenter/ui/gtk3/widgets/menubutton.py:
     - improvements to menubutton widget (used in OneConf view) 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 07 Sep 2011 02:18:44 -0400
+  [ Robert Roth ]
+  * softwarecenter/ui/gtk3/models/pendingstore.py:
+    - fix crash when reinstalling previous purchases (LP: #843766)
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 07 Sep 2011 12:23:32 -0400
 
 software-center (4.1.21) oneiric; urgency=low
 
