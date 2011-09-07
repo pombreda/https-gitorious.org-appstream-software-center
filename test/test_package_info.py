@@ -8,7 +8,7 @@ import unittest
 
 from softwarecenter.db.pkginfo import _Package, _Version
 from softwarecenter.db.pkginfo_impl.aptcache import AptCache
-from softwarecenter.db.pkginfo_impl.packagekit import PackagekitInfo
+# from softwarecenter.db.pkginfo_impl.packagekit import PackagekitInfo
 
 class TestPkgInfoAptCache(unittest.TestCase):
 
@@ -77,16 +77,17 @@ class TestPkgInfoAptCache(unittest.TestCase):
         files = pkg.installed_files
         self.assertTrue('/usr/bin/whoami' in files)
 
-class TestPkgInfoPackagekit(TestPkgInfoAptCache):
-    klass = PackagekitInfo
+# FIXME: Enable packagekit tests when implemented
+# class TestPkgInfoPackagekit(TestPkgInfoAptCache):
+#     klass = PackagekitInfo
 	
-    # FIXME: implement this in PK as well
-    def test_addons(self):
-        pass
-    def test_section(self):
-        pass
-    def test_removal(self):
-        pass
+#     # FIXME: implement this in PK as well
+#     def test_addons(self):
+#         pass
+#     def test_section(self):
+#         pass
+#     def test_removal(self):
+#         pass
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
