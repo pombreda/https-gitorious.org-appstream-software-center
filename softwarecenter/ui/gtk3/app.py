@@ -814,8 +814,10 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
     def on_menuitem_copy_web_link_activate(self, menuitem):
         app = self.active_pane.get_current_app()
         if app:
-            clipboard = Gtk.Clipboard()
-            clipboard.set_text(self.WEBLINK_URL % app.pkgname)
+            display = Gdk.Display.get_default()
+            selection = Gdk.Atom.intern ("CLIPBOARD", False)
+            clipboard = Gtk.Clipboard.get_for_display(display, selection)
+            clipboard.set_text(self.WEBLINK_URL % app.pkgname, -1)
 
     def on_menuitem_search_activate(self, widget):
         if self.active_pane:
