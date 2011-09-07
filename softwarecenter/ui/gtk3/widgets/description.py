@@ -37,6 +37,8 @@ def color_floats(color):
 class _SpecialCasePreParsers(object):
 
     def preparse(self, k, desc):
+        if k is None:
+            return desc
         func_name = '_%s_preparser' % k.lower()
         if not hasattr(self, func_name):
             return desc
