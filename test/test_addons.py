@@ -26,10 +26,8 @@ class TestSCAddons(unittest.TestCase):
         # synaptic
         (recommends, suggests) = self.cache.get_addons(
             "synaptic", ignore_installed=False)
-        # FIXME: kdebase?!?!?! that is rather unneeded (kdesu brings that in)
         self.assertEqual(set(recommends), set(
-                ["kdebase-bin", "apt-xapian-index", "gksu", "kdebase-bin", 
-                 'libgtk2-perl', 'rarian-compat', 'software-properties-gtk']))
+                ["apt-xapian-index", 'libgtk2-perl', 'rarian-compat', 'software-properties-gtk']))
         self.assertEqual(set(suggests), set(["dwww", "deborphan", "menu"]))
 
 
