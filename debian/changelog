@@ -47,6 +47,8 @@ software-center (4.1.21.1) UNRELEASED; urgency=low
     - cleanup unused image files (LP: #839736)
   * softwarecenter/ui/gtk3/panes/softwarepane.py:
     - fix doubled search results (LP: #840235)
+  * softwarecenter/ui/gtk3/app.py:
+    - fix "Copy Web Link" feature (LP: #830291)
 
   [ Andrea Cimitan ]
   * softwarecenter/ui/gtk3/widgets/symbolic_icons.py:
@@ -81,7 +83,7 @@ software-center (4.1.21.1) UNRELEASED; urgency=low
   * softwarecenter/ui/gtk3/models/pendingstore.py:
     - fix crash when reinstalling previous purchases (LP: #843766)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 07 Sep 2011 12:23:32 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 07 Sep 2011 12:29:32 -0400
 
 software-center (4.1.21) oneiric; urgency=low
 
