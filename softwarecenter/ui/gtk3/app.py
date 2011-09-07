@@ -332,7 +332,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         self.menuitem_help.set_label(_("%s _Help")%self.distro.get_app_name())
 
         # specify the smallest allowable window size
-        self.window_main.set_default_size(700, 400)
+        self.window_main.set_size_request(730, 470)
 
         # reviews
         self.review_loader = get_review_loader(self.cache, self.db)
