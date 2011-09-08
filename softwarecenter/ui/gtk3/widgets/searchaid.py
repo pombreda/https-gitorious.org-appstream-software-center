@@ -89,7 +89,8 @@ class SearchAidLogic(object):
 
     HEADER_ICON_NAME = "face-sad"
     HEADER_MARKUP = '<b><big>%s</big></b>'
-    BULLET = u"\t\u2022  %s"
+    #TRANSLATORS: this is the layout of an indented line starting with a bullet point
+    BULLET = unicode(_("\t• %s"), 'utf8').encode('utf8')
 
     def __init__(self, pane):
         self.pane = pane
