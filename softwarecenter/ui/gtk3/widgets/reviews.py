@@ -209,7 +209,10 @@ class UIReviewsList(Gtk.VBox):
             self.new_review.show()
         else:
             self.new_review.hide()
-            self._install_to_review()
+            # if there are no reviews, the install to review text appears 
+            # where the reviews usually are (LP #823255)
+            if self.reviews:
+                self._install_to_review()
 
         # always hide spinner and call _fill (fine if there is nothing to do)
         self.hide_spinner()
