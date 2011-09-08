@@ -522,10 +522,6 @@ class AvailablePane(SoftwarePane):
                                                 self.state.search_term)
 
         self.action_bar.clear()
-        # we want to re-enable the buy button if this is an app for purchase
-        # FIXME:  hacky, find a better approach
-        if self.app_details_view.pkg_statusbar.button.get_label() == _(u'Buy\u2026'):
-            self.app_details_view.pkg_statusbar.button.set_sensitive(True)
 
         SoftwarePane.display_details_page(self, page, view_state)
         self.cat_view.stop_carousels()
