@@ -295,39 +295,6 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         self.pending_pane = PendingPane(self.icons)
         self.view_manager.register(self.pending_pane, ViewPages.PENDING)
 
-        # set up accelerator keys for navigation history actions
-        accel_group = Gtk.AccelGroup()
-        self.window_main.add_accel_group(accel_group)
-        self.menuitem_go_back.add_accelerator("activate",
-                                              accel_group,
-                                              ord('['),
-                                              Gdk.ModifierType.CONTROL_MASK,
-                                              Gtk.AccelFlags.VISIBLE)
-        self.menuitem_go_forward.add_accelerator("activate",
-                                                 accel_group,
-                                                 ord(']'),
-                                                 Gdk.ModifierType.CONTROL_MASK,
-                                                 Gtk.AccelFlags.VISIBLE)
-        self.menuitem_go_back.add_accelerator("activate",
-                                              accel_group,
-                                              Gdk.keyval_from_name("Left"),
-                                              Gdk.ModifierType.MOD1_MASK,
-                                              Gtk.AccelFlags.VISIBLE)
-        self.menuitem_go_forward.add_accelerator("activate",
-                                                 accel_group,
-                                                 Gdk.keyval_from_name("Right"),
-                                                 Gdk.ModifierType.MOD1_MASK,
-                                                 Gtk.AccelFlags.VISIBLE)
-        self.menuitem_go_back.add_accelerator("activate",
-                                              accel_group,
-                                              Gdk.keyval_from_name("KP_Left"),
-                                              Gdk.ModifierType.MOD1_MASK,
-                                              Gtk.AccelFlags.VISIBLE)
-        self.menuitem_go_forward.add_accelerator("activate",
-                                                 accel_group,
-                                                 Gdk.keyval_from_name("KP_Right"),
-                                                 Gdk.ModifierType.MOD1_MASK,
-                                                 Gtk.AccelFlags.VISIBLE)
         # TRANSLATORS: this is the help menuitem label, e.g. Ubuntu Software Center _Help
         self.menuitem_help.set_label(_("%s _Help")%self.distro.get_app_name())
 
@@ -458,34 +425,102 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         Gtk.main_quit()
         
     def on_window_main_key_press_event(self, widget, event):
-        """
-        Implement the backspace key as a hotkey to back up one level in
-        the navigation heirarchy.  This works everywhere except when
-        purchasing software in the purchase_view where backspace works
-        as expected in the webkit text fields.
-        """
-        if (event.keyval == Gdk.keyval_from_name("BackSpace") and 
-            self.active_pane and
-            not self.active_pane.searchentry.is_focus() and
-            # FIXME: figure out what ID_PURCHASE 
-            not self.active_pane.navigation_bar.has_id(NavButtons.ID_PURCHASE)):
-            self.on_navhistory_back_action_activate()
+        """ Define all the accelerator keys here - slightly messy, but the ones
+            defined in the menu don't seem to work.. """
+
+        # close
+        if ((event.keyval == Gdk.keyval_from_name("w") or
+             event.keyval == Gdk.keyval_from_name("q")) and
+            event.state == Gdk.ModifierType.CONTROL_MASK):
+            self.menuitem_close.activate()
+
+        # undo/redo
+        if (event.keyval == Gdk.keyval_from_name("z") and
+            event.state == Gdk.ModifierType.CONTROL_MASK):
+            self.menuitem_edit.activate()
+            if self.menuitem_undo.get_sensitive():
+                self.menuitem_undo.activate()
+
+        if (event.keyval == Gdk.keyval_from_name("Z") and
+            event.state == (Gdk.ModifierType.SHIFT_MASK | Gdk.ModifierType.CONTROL_MASK)):
+            self.menuitem_edit.activate()
+            if self.menuitem_redo.get_sensitive():
+                self.menuitem_redo.activate()
+
+        # cut/copy/paste
+        if (event.keyval == Gdk.keyval_from_name("x") and
+            event.state == Gdk.ModifierType.CONTROL_MASK):
+            self.menuitem_edit.activate()
+            if self.menuitem_cut.get_sensitive():
+                self.menuitem_cut.activate()
+
+        if (event.keyval == Gdk.keyval_from_name("c") and
+            event.state == Gdk.ModifierType.CONTROL_MASK):
+            self.menuitem_edit.activate()
+            if self.menuitem_copy.get_sensitive():
+                self.menuitem_copy.activate()
+
+        if (event.keyval == Gdk.keyval_from_name("v") and
+            event.state == Gdk.ModifierType.CONTROL_MASK):
+            self.menuitem_edit.activate()
+            if self.menuitem_paste.get_sensitive():
+                self.menuitem_paste.activate()
+
+        # copy web link
+        if (event.keyval == Gdk.keyval_from_name("C") and
+            event.state == (Gdk.ModifierType.SHIFT_MASK | Gdk.ModifierType.CONTROL_MASK)):
+            self.menuitem_edit.activate()
+            if self.menuitem_copy_web_link.get_sensitive():
+                self.menuitem_copy_web_link.activate()
+
+        # select all
+        if (event.keyval == Gdk.keyval_from_name("a") and
+            event.state == Gdk.ModifierType.CONTROL_MASK):
+            self.menuitem_edit.activate()
+            if self.menuitem_select_all.get_sensitive():
+                self.menuitem_select_all.activate()
+
+        # search
+        if (event.keyval == Gdk.keyval_from_name("f") and
+            event.state == Gdk.ModifierType.CONTROL_MASK):
+            self.menuitem_edit.activate()
+            if self.menuitem_search.get_sensitive():
+                self.menuitem_search.activate()
+
+        # back
+        if ((event.keyval == Gdk.keyval_from_name("bracketleft") and
+             event.state == Gdk.ModifierType.CONTROL_MASK) or
+            ((event.keyval == Gdk.keyval_from_name("Left") or
+              event.keyval == Gdk.keyval_from_name("KP_Left")) and
+             event.state == Gdk.ModifierType.MOD1_MASK) or
+            event.keyval == Gdk.keyval_from_name("BackSpace")):
+            self.menuitem_view.activate()
+            if self.menuitem_go_back.get_sensitive():
+                self.menuitem_go_back.activate()
+
+        # forward
+        if ((event.keyval == Gdk.keyval_from_name("bracketright") and
+             event.state == Gdk.ModifierType.CONTROL_MASK) or
+            ((event.keyval == Gdk.keyval_from_name("Right") or
+              event.keyval == Gdk.keyval_from_name("KP_Right")) and
+             event.state == Gdk.ModifierType.MOD1_MASK)):
+            self.menuitem_view.activate()
+            if self.menuitem_go_forward.get_sensitive():
+                self.menuitem_go_forward.activate()
             
     def on_window_main_button_press_event(self, widget, event):
         """
         Implement back/forward navigation via mouse navigation keys using
         the same button codes as used in Nautilus.
         """
-        if (event.button == MOUSE_EVENT_BACK_BUTTON and
-            self.active_pane and
-            # FIXME: figure out what ID_PURCHASE 
-            not self.active_pane.navigation_bar.has_id(NavButtons.ID_PURCHASE)):
-            self.on_navhistory_back_action_activate()
-        elif (event.button == MOUSE_EVENT_FORWARD_BUTTON and
-            self.active_pane and
-            # FIXME: figure out what ID_PURCHASE             
-            not self.active_pane.navigation_bar.has_id(NavButtons.ID_PURCHASE)):
-            self.on_navhistory_forward_action_activate()
+        if event.button == MOUSE_EVENT_BACK_BUTTON:
+            self.menuitem_view.activate()
+            if self.menuitem_go_back.get_sensitive():
+                self.menuitem_go_back.activate()
+        elif event.button == MOUSE_EVENT_FORWARD_BUTTON:
+            self.menuitem_view.activate()
+            if self.menuitem_go_forward.get_sensitive():
+                self.menuitem_go_forward.activate()
         
     def _on_lp_login(self, lp, token):
         self._lp_login_successful = True

@@ -59,6 +59,10 @@ software-center (4.1.21.1) UNRELEASED; urgency=low
   [ Kiwinote ]
   * remove the old webkit ui
   * remove the need for dummy-screenshot-ubuntu.png (LP: #837223)
+  * data/ui/gtk3/SoftwareCenter.ui,
+    softwarecenter/ui/gtk3/app.py:
+    - make all the accelerators work again (LP: #640426, LP: #660050,
+      LP: #828233, LP: #830238, LP: #834988, LP: #843682)
   * softwarecenter/db/appfilter.py,
     softwarecenter/ui/gtk3/app.py,
     softwarecenter/ui/gtk3/widgets/searchaid.py:
