@@ -47,6 +47,8 @@ software-center (4.1.21.1) UNRELEASED; urgency=low
     - cleanup unused image files (LP: #839736)
   * softwarecenter/ui/gtk3/panes/softwarepane.py:
     - fix doubled search results (LP: #840235)
+  * softwarecenter/ui/gtk3/app.py:
+    - fix "Copy Web Link" feature (LP: #830291)
 
   [ Andrea Cimitan ]
   * softwarecenter/ui/gtk3/widgets/symbolic_icons.py:
@@ -81,7 +83,21 @@ software-center (4.1.21.1) UNRELEASED; urgency=low
   * softwarecenter/ui/gtk3/widgets/menubutton.py:
     - improvements to menubutton widget (used in OneConf view) 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 07 Sep 2011 02:18:44 -0400
+  [ Robert Roth ]
+  * softwarecenter/ui/gtk3/models/pendingstore.py:
+    - fix crash when reinstalling previous purchases (LP: #843766)
+  * data/ui/gtk3/dialogs.ui:
+    - add missing border in dialog frame (LP: #844028)
+  * softwarecenter/ui/gtk3/app.py:
+    - set minimum window size (LP: #842684)
+  * softwarecenter/ui/gtk3/widgets/description.py:
+    - fix crash when installing standalone debs (LP: #839113)
+    - update description focus methods to fix crash (LP: #843317) 
+  * softwarecenter/ui/gtk3/widgets/reviews.py:
+    - fix duplicated label in reviews area of the details
+      view  (LP: #823255)
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 07 Sep 2011 22:18:34 -0400
 
 software-center (4.1.21) oneiric; urgency=low
 
