@@ -169,9 +169,12 @@ class ViewManager(GObject.GObject):
             self.set_active_view(view_id)
 
         if (not pane.searchentry or
-            ((hasattr(pane, 'Pages') and
+            (hasattr(pane, 'Pages') and
              hasattr(pane.Pages, 'DETAILS') and
-             page == pane.Pages.DETAILS))):
+             page == pane.Pages.DETAILS) or
+            (hasattr(pane, 'Pages') and
+             hasattr(pane.Pages, 'PURCHASE') and
+             page == pane.Pages.PURCHASE)):
             self.search_entry.hide()
         else:
             self.search_entry.show()

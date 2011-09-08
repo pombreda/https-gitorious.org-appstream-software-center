@@ -12,17 +12,21 @@ software-center (4.1.21.1) UNRELEASED; urgency=low
   * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
     - fix incorrect ellipsize for title and summary in the
       details view (LP: #842271)
+  * softwarecenter/ui/gtk3/panes/availablepane.py,
+    softwarecenter/ui/gtk3/session/viewmanager.py:
+    - hide the search field when in the purchase
+      view (LP: #844883)
   * test/gtk3/test_catview.py,
     test/gtk3/test_panes.py,
     test/test_addons.py,
     test/test_package_info.py:
     - fix unit tests
+  * setup.py:
+    - fix build error when merging authors list
   * merged lp:~gary-lasker/software-center/pyflakes-fixes, no
     user visible changes, only code cleanup
   * po/software-center.pot:
     - refresh .pot file
-  * setup.py:
-    - fix build error when merging authors list
 
   [ Matthew McGowan ]
   * data/ui/gtk3/css/softwarecenter.css,
@@ -105,7 +109,7 @@ software-center (4.1.21.1) UNRELEASED; urgency=low
     - fix duplicated label in reviews area of the details
       view  (LP: #823255)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 07 Sep 2011 22:18:34 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 08 Sep 2011 19:17:08 -0400
 
 software-center (4.1.21) oneiric; urgency=low
 
