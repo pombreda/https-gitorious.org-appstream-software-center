@@ -184,5 +184,9 @@ class PendingStore(Gtk.ListStore):
     def _render_status_text(self, name, status):
         if not name:
             name = ""
+        if type(name) == str:
+            pass
+        else:
+            name = name.encode('utf8')
         return "%s\n<small>%s</small>" % (name, status)
 
