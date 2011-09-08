@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from gi.repository import Gtk, GObject
 
 import gettext
@@ -90,9 +91,6 @@ class SearchAidLogic(object):
     HEADER_MARKUP = '<b><big>%s</big></b>'
     BULLET = u"\t\u2022  %s"
 
-    LEFT_QUOTE_MARK = u"\u201C"
-    RIGHT_QUOTE_MARK = u"\u201D"
-
     LTR_ARROW = u"\u2192"
     #~ RTL_ARROW = u""   # not used...
 
@@ -120,16 +118,12 @@ class SearchAidLogic(object):
                                 state.subcategory.name)
 
         if not category:
-            sub = _(u'No items match %s%s%s')
-            sub = sub % (self.LEFT_QUOTE_MARK,
-                         term, self.RIGHT_QUOTE_MARK)
+            sub = unicode(_("No items match “%s”"), 'utf8').encode('utf8') % term
         else:
-            sub = _(u'No items in %s match %s%s%s')
-            sub = sub % (build_category_path(),
-                         self.LEFT_QUOTE_MARK,
-                         term, self.RIGHT_QUOTE_MARK)
+            sub = unicode(_("No items in %s match “%s”"), 'utf8').encode('utf8')
+            sub = sub % (build_category_path(), term)
 
-        return self.HEADER_MARKUP % sub
+        return self.HEADER_MARKUP % GObject.markup_escape_text(sub)
 
     def get_suggestions(self, term, category, state):
         correction = self.get_correction(term)

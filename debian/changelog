@@ -76,6 +76,8 @@ software-center (4.1.21.1) UNRELEASED; urgency=low
     - hide the action button when the pkg is not available (LP: #841459)
   * softwarecenter/ui/gtk3/widgets/exhibits.py:
     - fix text corruption in the default banner (LP: #838244)
+  * softwarecenter/ui/gtk3/widgets/searchaid.py:
+    - fix UnicodeDecodeError in get_title_text() (LP: #843032)
   * softwarecenter/ui/gtk3/widgets/searchentry.py:
     - use symbolic variant for the search icon (LP: #835529)
 
