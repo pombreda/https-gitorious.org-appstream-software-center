@@ -84,6 +84,8 @@ software-center (4.1.21.1) UNRELEASED; urgency=low
     - fix UnicodeDecodeError in get_title_text() (LP: #843032)
   * softwarecenter/ui/gtk3/widgets/searchentry.py:
     - use symbolic variant for the search icon (LP: #835529)
+  * utils/submit_review_gtk3.py:
+    - fix UnicodeDecodeError in _setup_details() (LP: #834233)
 
   [ Didier Roche ]
   * softwarecenter/ui/gtk3/widgets/menubutton.py:

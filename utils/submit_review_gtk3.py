@@ -748,7 +748,7 @@ class SubmitReviewsApp(BaseApp):
         self.review_title.set_markup(m % (app.name, version))
 
         # review label
-        self.review_label.set_markup(_('Review by: %s') % display_name)
+        self.review_label.set_markup(_('Review by: %s') % display_name.encode('utf8'))
 
         # review summary label
         self.review_summary_label.set_markup(_('Summary:'))
