@@ -459,7 +459,6 @@ class AvailablePane(SoftwarePane):
         self.hide_appview_spinner()
         self.emit("app-list-changed", len(self.db))
         self._clear_search()
-        self.searchentry.show()
         self.action_bar.clear()
         return True
 
@@ -475,7 +474,6 @@ class AvailablePane(SoftwarePane):
         self.app_view.set_header_labels(*header_strings)
 
         self.refresh_apps()
-        self.searchentry.show()
         self.cat_view.stop_carousels()
         return True
 
@@ -491,7 +489,6 @@ class AvailablePane(SoftwarePane):
         self.subcategories_view.set_subcategory(category, n_matches)
 
         self.action_bar.clear()
-        self.searchentry.show()
         self.cat_view.stop_carousels()
         return True
 
@@ -510,13 +507,10 @@ class AvailablePane(SoftwarePane):
             self._clear_search()
 
         self.refresh_apps()
-        self.searchentry.show()
         self.cat_view.stop_carousels()
         return True
 
     def display_details_page(self, page, view_state):
-        #~ self._clear_search()
-        #~ self.searchentry.hide()
         if self.searchentry.get_text() != self.state.search_term:
             self.searchentry.set_text_with_no_signal(
                                                 self.state.search_term)
@@ -529,7 +523,6 @@ class AvailablePane(SoftwarePane):
         
     def display_purchase(self, page, view_state):
         self.notebook.set_current_page(AvailablePane.Pages.PURCHASE)
-        #self.searchentry.hide()
         self.action_bar.clear()
         self.cat_view.stop_carousels()
         return
