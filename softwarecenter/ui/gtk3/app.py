@@ -51,7 +51,6 @@ from softwarecenter.db import DebFileApplication
 from softwarecenter.enums import (Icons,
                                   PkgStates,
                                   ViewPages,
-                                  NavButtons,
                                   AppActions,
                                   DB_SCHEMA_VERSION,
                                   MOUSE_EVENT_FORWARD_BUTTON,
