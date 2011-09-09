@@ -370,8 +370,12 @@ class ChannelSelector(Gtk.Button):
     def show_channel_sel_popup(self, widget, event):
 
         def position_func(menu, (window, a)):
-            x, y = window.get_root_coords(a.x,
-                                          a.y + a.height)
+            if self.get_direction() != Gtk.TextDirection.RTL:
+                tmpx = a.x
+            else:
+                tmpx = a.x + a.width - self.popup.get_allocation().width
+            x, y = window.get_root_coords(tmpx,
+                                          a.y + a.height + 1)
             return (x, y, False)
 
         a = self.section_button.get_allocation()

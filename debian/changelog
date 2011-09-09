@@ -94,6 +94,7 @@ software-center (4.1.21.1) UNRELEASED; urgency=low
   * softwarecenter/ui/gtk3/widgets/backforward.py:
     - fix rtl breakage (LP: #842848, LP: #842858)
   * softwarecenter/ui/gtk3/widgets/buttons.py:
+    - place channel selector popup at correct location for rtl (LP: #842872)
     - add currency to paid app tiles (LP: #833801)
   * softwarecenter/ui/gtk3/widgets/apptreeview.py,
     softwarecenter/ui/gtk3/widgets/cellrenderers.py:
