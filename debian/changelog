@@ -1,4 +1,4 @@
-software-center (4.1.21.1) UNRELEASED; urgency=low
+software-center (4.1.22) oneiric; urgency=low
 
   [ Gary Lasker ]
   * data/ubuntu-software-center.desktop.in,
@@ -126,7 +126,7 @@ software-center (4.1.21.1) UNRELEASED; urgency=low
     - fix duplicated label in reviews area of the details
       view  (LP: #823255)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Fri, 09 Sep 2011 11:26:08 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Fri, 09 Sep 2011 11:46:15 -0400
 
 software-center (4.1.21) oneiric; urgency=low
 
