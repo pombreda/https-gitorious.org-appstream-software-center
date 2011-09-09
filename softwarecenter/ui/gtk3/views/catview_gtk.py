@@ -355,6 +355,7 @@ class LobbyViewGtk(CategoriesViewGtk):
                                             u"Top Rated")  # unstranslated name
         if toprated_cat is None:
             return
+
         enq = AppEnquire(self.cache, self.db)
         app_filter = AppFilter(self.db, self.cache)
         enq.set_query(toprated_cat.query,
@@ -382,6 +383,8 @@ class LobbyViewGtk(CategoriesViewGtk):
     def _append_new(self):
         whatsnew_cat = get_category_by_name(self.categories, 
                                             u"What\u2019s New") # unstranslated name
+        if whatsnew_cat is None:
+            return
 
         enq = AppEnquire(self.cache, self.db)
         app_filter = AppFilter(self.db, self.cache)
