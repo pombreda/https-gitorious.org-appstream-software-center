@@ -798,7 +798,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         # weblink
         if self.active_pane:
             app = self.active_pane.get_current_app()
-            if app and app.pkgname in self.cache:
+            if app and app.pkgname:
                 self.menuitem_copy_web_link.set_sensitive(True)
 
         # details view

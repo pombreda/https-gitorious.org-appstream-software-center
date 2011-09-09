@@ -76,7 +76,7 @@ left:350px;
 class FeaturedExhibit(object):
     def __init__(self):
         self.id = 0
-        self.package_names = "armagetronad,calibre,cheese,homebank,stellarium,gimp,inkscape,blender,audacity,gufw,frozen-bubble,fretsonfire,moovida,liferea,arista,gtg,freeciv-client-gtk,supertuxkart,tumiki-fighters,tuxpaint,webservice-office-zoho"
+        self.package_names = "armagetronad,calibre,cheese,homebank,stellarium,gimp,inkscape,blender,audacity,gufw,frozen-bubble,fretsonfire,moovida,liferea,arista,gtg,freeciv-client-gtk,openshot,supertuxkart,tumiki-fighters,tuxpaint,webservice-office-zoho"
         self.title_translated = "Our picks"
         self.published = True
         self.banner_url = "file://%s" % (os.path.abspath(os.path.join(softwarecenter.paths.datadir, "default_banner/fallback.jpg")))
