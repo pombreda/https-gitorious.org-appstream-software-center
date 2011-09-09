@@ -51,8 +51,8 @@ class BackForwardButton(Gtk.HBox):
             self.set_button_atk_info_ltr()
         else:
             # rtl
-            self.left = Right('left-clicked', arrow_type=Gtk.ArrowType.LEFT)
-            self.right = Left('right-clicked', arrow_type=Gtk.ArrowType.RIGHT)
+            self.left = Left('left-clicked', arrow_type=Gtk.ArrowType.RIGHT)
+            self.right = Right('right-clicked', arrow_type=Gtk.ArrowType.LEFT)
             self.set_button_atk_info_rtl()
 
         atk_obj = self.get_accessible()
