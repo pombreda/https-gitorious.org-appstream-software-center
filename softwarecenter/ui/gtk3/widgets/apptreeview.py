@@ -282,10 +282,14 @@ class AppTreeView(Gtk.TreeView):
             action_btn.show()
             if not network_state_is_connected():
                 action_btn.set_sensitive(False)
+                self.app_view.emit("application-selected",
+                                   self.appmodel.get_application(app))
                 return
         else:
             action_btn.set_sensitive(False)
             action_btn.hide()
+            self.app_view.emit("application-selected",
+                               self.appmodel.get_application(app))
             return
 
         if self.appmodel.get_transaction_progress(app) > 0:

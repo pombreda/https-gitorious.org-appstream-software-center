@@ -56,7 +56,7 @@ class ActionBar(Gtk.HBox):
         self._btn_bin.add(self._btns)
         # Buttons go on the right, labels on the left (in LTR mode)
         super(ActionBar, self).pack_start(self._label, False, False, 10)
-        super(ActionBar, self).pack_start(self._btn_bin, True, True, 0)
+        super(ActionBar, self).pack_start(self._btn_bin, False, True, 0)
 
         # Don't show_all() by default.
         self.set_no_show_all(True)
@@ -89,7 +89,7 @@ class ActionBar(Gtk.HBox):
         btn.connect("clicked", self._callback(result, result_args))
         btn.id = id
         btn.show()
-        self._btns.pack_start(btn, True, True, 0)
+        self._btns.pack_start(btn, False, True, 0)
 
         if not self._visible:
             # always animate with buttons

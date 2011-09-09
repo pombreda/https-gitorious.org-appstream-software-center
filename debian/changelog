@@ -75,13 +75,26 @@ software-center (4.1.21.1) UNRELEASED; urgency=low
     softwarecenter/ui/gtk3/app.py:
     - make all the accelerators work again (LP: #640426, LP: #660050,
       LP: #828233, LP: #830238, LP: #834988, LP: #843682)
+      also fixes (LP: #823094, LP: #837062)
   * softwarecenter/db/appfilter.py,
     softwarecenter/ui/gtk3/app.py,
     softwarecenter/ui/gtk3/widgets/searchaid.py:
     - stack of improvements to the supported_only filter and the searchaid
+  * softwarecenter/ui/gtk3/app.py,
+    softwarecenter/ui/gtk3/widgets/apptreeview.py:
+    - make copy web link work for 'for purchase items' (LP: #820999)
   * softwarecenter/ui/gtk3/models/pendingstore.py:
     - fix UnicodeDecodeError in _render_status_text() (LP: #827495)
+  * softwarecenter/ui/gtk3/panes/globalpane.py:
+    - fix halignment of searchbox and backforward in rtl (LP: #842881)
+  * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
+    - don't use ascii apostrophe (LP: #844799)
+  * softwarecenter/ui/gtk3/widgets/actionbar.py:
+    - don't overly expand the button width
+  * softwarecenter/ui/gtk3/widgets/backforward.py:
+    - fix rtl breakage (LP: #842848, LP: #842858)
   * softwarecenter/ui/gtk3/widgets/buttons.py:
+    - place channel selector popup at correct location for rtl (LP: #842872)
     - add currency to paid app tiles (LP: #833801)
   * softwarecenter/ui/gtk3/widgets/apptreeview.py,
     softwarecenter/ui/gtk3/widgets/cellrenderers.py:
