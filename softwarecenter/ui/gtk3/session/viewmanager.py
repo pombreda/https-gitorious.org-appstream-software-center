@@ -21,7 +21,6 @@ from gi.repository import Gtk, GObject
 from navhistory import NavigationHistory, NavigationItem
 from softwarecenter.ui.gtk3.widgets.backforward import BackForwardButton
 from softwarecenter.ui.gtk3.widgets.searchentry import SearchEntry
-from softwarecenter.enums import ViewPages
 
 _viewmanager = None # the global Viewmanager instance
 def get_viewmanager():
@@ -95,8 +94,6 @@ class ViewManager(GObject.GObject):
         for (k, v) in self.all_views.items():
             if page_id == v:
                 return k
-        # default to the availablepane (LP: #834425 and LP: #830233)
-        return ViewPages.AVAILABLE
 
     def set_active_view(self, view_id):
         if not self.all_views: 

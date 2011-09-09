@@ -22,8 +22,6 @@ software-center (4.1.21.1) UNRELEASED; urgency=low
   * softwarecenter/ui/gtk3/panes/installedpane.py:
     - fix crash in rebuild_categorised_view while viewing
       installed items (LP: #834260)
-  * softwarecenter/ui/gtk3/session/viewmanager.py:
-    - fix intermittent crash at startup (LP: #834425, LP: #830233)
   * test/gtk3/test_catview.py,
     test/gtk3/test_panes.py,
     test/test_addons.py,
@@ -128,7 +126,7 @@ software-center (4.1.21.1) UNRELEASED; urgency=low
     - fix duplicated label in reviews area of the details
       view  (LP: #823255)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Fri, 09 Sep 2011 11:09:41 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Fri, 09 Sep 2011 11:26:08 -0400
 
 software-center (4.1.21) oneiric; urgency=low
 
