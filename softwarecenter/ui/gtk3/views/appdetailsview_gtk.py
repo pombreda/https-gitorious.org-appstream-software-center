@@ -223,7 +223,7 @@ class PackageStatusBar(StatusBar):
             #special label only if the app being viewed is software centre itself
             self.installed_icon.show()
             if app_details.pkgname== SOFTWARE_CENTER_PKGNAME:
-                self.set_label(_("Installed (you’re using it right now)"))
+                self.set_label(_("Installed (you're using it right now)"))
             else:
                 if app_details.purchase_date:
                     # purchase_date is a string, must first convert to datetime.datetime
