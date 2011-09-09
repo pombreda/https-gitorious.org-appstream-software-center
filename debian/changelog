@@ -110,7 +110,8 @@ software-center (4.1.22) oneiric; urgency=low
 
   [ Didier Roche ]
   * softwarecenter/ui/gtk3/widgets/menubutton.py:
-    - improvements to menubutton widget (used in OneConf view) 
+    - improvements to menubutton widget (used in OneConf view)
+  * Add openshot to "Our pick" (LP: #845370)
 
   [ Robert Roth ]
   * softwarecenter/ui/gtk3/models/pendingstore.py:
