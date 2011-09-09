@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-09-09 10:23-0400\n"
+"POT-Creation-Date: 2011-09-09 11:12-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1346,7 +1346,7 @@ msgstr ""
 
 #: ../softwarecenter/ui/gtk/appdetailsview_gtk.py:268
 #: ../softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:226
-msgid "Installed (you’re using it right now)"
+msgid "Installed (you're using it right now)"
 msgstr ""
 
 #. TRANSLATORS : %Y-%m-%d formats the date as 2011-03-31, please specify a format per your
