@@ -285,27 +285,28 @@ class InstalledPane(SoftwarePane, CategoriesParser):
                     model.set_category_documents(cat, docs)
 
             # check for uncategorised pkgs
-            enq.set_query(self.state.channel.query,
-                          sortmode=SortMethods.BY_ALPHABET,
-                          nonapps_visible=NonAppVisibility.MAYBE_VISIBLE,
-                          filter=xfilter,
-                          nonblocking_load=False,
-                          persistent_duplicate_filter=(i>0))
+            if self.state.channel:
+                enq.set_query(self.state.channel.query,
+                              sortmode=SortMethods.BY_ALPHABET,
+                              nonapps_visible=NonAppVisibility.MAYBE_VISIBLE,
+                              filter=xfilter,
+                              nonblocking_load=False,
+                              persistent_duplicate_filter=(i>0))
 
-            L = len(enq.matches)
-            if L:
-                # some foo for channels
-                # if no categorised results but in channel, then use
-                # the channel name for the category
-                channel_name = None
-                if not i and self.state.channel:
-                    channel_name = self.state.channel.display_name
-                docs = enq.get_documents()
-                tag = channel_name or 'Uncategorized'
-                self.cat_docid_map[tag] = set([doc.get_docid() for doc in docs])
-                model.set_nocategory_documents(docs, untranslated_name=tag,
-                                               display_name=channel_name)
-                i += L
+                L = len(enq.matches)
+                if L:
+                    # some foo for channels
+                    # if no categorised results but in channel, then use
+                    # the channel name for the category
+                    channel_name = None
+                    if not i and self.state.channel:
+                        channel_name = self.state.channel.display_name
+                    docs = enq.get_documents()
+                    tag = channel_name or 'Uncategorized'
+                    self.cat_docid_map[tag] = set([doc.get_docid() for doc in docs])
+                    model.set_nocategory_documents(docs, untranslated_name=tag,
+                                                   display_name=channel_name)
+                    i += L
 
             if i:
                 self.app_view.tree_view.set_cursor(Gtk.TreePath(),

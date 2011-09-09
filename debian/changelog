@@ -19,6 +19,9 @@ software-center (4.1.21.1) UNRELEASED; urgency=low
   * softwarecenter/ui/gtk3/views/catview_gtk.py:
     - don't create the what's new panel if we don't have the
       corresponding category (LP: #835129)
+  * softwarecenter/ui/gtk3/panes/installedpane.py:
+    - fix crash in rebuild_categorised_view while viewing
+      installed items (LP: #834260)
   * test/gtk3/test_catview.py,
     test/gtk3/test_panes.py,
     test/test_addons.py,
@@ -112,7 +115,7 @@ software-center (4.1.21.1) UNRELEASED; urgency=low
     - fix duplicated label in reviews area of the details
       view  (LP: #823255)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 08 Sep 2011 21:20:35 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 08 Sep 2011 22:23:16 -0400
 
 software-center (4.1.21) oneiric; urgency=low
 
