@@ -85,6 +85,8 @@ software-center (4.1.21.1) UNRELEASED; urgency=low
     - make copy web link work for 'for purchase items' (LP: #820999)
   * softwarecenter/ui/gtk3/models/pendingstore.py:
     - fix UnicodeDecodeError in _render_status_text() (LP: #827495)
+  * softwarecenter/ui/gtk3/panes/globalpane.py:
+    - fix halignment of searchbox and backforward in rtl (LP: #842881)
   * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
     - don't use ascii apostrophe (LP: #844799)
   * softwarecenter/ui/gtk3/widgets/actionbar.py:
