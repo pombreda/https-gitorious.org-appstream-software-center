@@ -80,6 +80,9 @@ software-center (4.1.21.1) UNRELEASED; urgency=low
     softwarecenter/ui/gtk3/app.py,
     softwarecenter/ui/gtk3/widgets/searchaid.py:
     - stack of improvements to the supported_only filter and the searchaid
+  * softwarecenter/ui/gtk3/app.py,
+    softwarecenter/ui/gtk3/widgets/apptreeview.py:
+    - make copy web link work for 'for purchase items' (LP: #820999)
   * softwarecenter/ui/gtk3/models/pendingstore.py:
     - fix UnicodeDecodeError in _render_status_text() (LP: #827495)
   * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
