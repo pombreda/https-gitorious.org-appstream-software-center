@@ -254,6 +254,9 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         context = self.window_main.get_style_context()
         context.add_provider_for_screen(screen, provider, 800)
 
+        # inhibit the error-bell, Bug #846138...
+        settings = Gtk.Settings.get_default()
+        settings.set_property("gtk-error-bell", False)
 
         # register view manager and create view panes/widgets
         self.view_manager = ViewManager(self.notebook_view, options)
