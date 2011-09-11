@@ -8,7 +8,7 @@
 }
 
 .grid-lines {
-    border-color: @light-aubergine;
+    border-color: shade (@light-aubergine, 1.025);
 }
 
 .subtle,
