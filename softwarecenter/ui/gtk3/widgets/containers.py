@@ -225,6 +225,11 @@ class Frame(Gtk.Alignment):
                            #~ assets, self.layout)
         self._allocation = Gdk.Rectangle()
         self.connect("size-allocate", self.on_size_allocate)
+        self.connect("style-updated", self.on_style_updated)
+        return
+
+    def on_style_updated(self, widget):
+        self._frame_surface_cache = None
         return
 
     def on_size_allocate(self, *args):
