@@ -188,9 +188,10 @@ class FeaturedTile(TileButton):
             self.rating_box = Gtk.Box.new(Gtk.Orientation.HORIZONTAL, StockEms.SMALL)
             self.rating_box.pack_start(self.stars, False, False, 0)
             self.n_ratings = Gtk.Label.new(
-                '<span font_desc="%i" color="%s"> (%i)</span>' %  (
-                    em(0.45), '#8C8C8C', stats.ratings_total))
+                '<span font_desc="%i"> (%i)</span>' %  (
+                    em(0.45), stats.ratings_total))
             self.n_ratings.set_use_markup(True)
+            self.n_ratings.set_name("subtle-label")
             self.n_ratings.set_alignment(0.0, 0.5)
             self.rating_box.pack_start(self.n_ratings, False, False, 0)
             self.content_right.pack_start(self.rating_box, False, False, 0)
@@ -212,9 +213,9 @@ class FeaturedTile(TileButton):
         if price != _("Free"):
             price = 'US$ ' + price
         self.price = Gtk.Label.new(
-            '<span color="%s" font_desc="%i">%s</span>' % (
-                '#757575', em(0.6), price))
+            '<span font_desc="%i">%s</span>' % (em(0.6), price))
         self.price.set_use_markup(True)
+        self.price.set_name("subtle-label")
         self.price.set_alignment(0.0, 0.5)
         self.content_right.pack_start(self.price, False, False, 0)
 

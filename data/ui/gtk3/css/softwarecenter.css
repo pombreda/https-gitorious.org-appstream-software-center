@@ -7,6 +7,10 @@
     color: #FFC51D;         /* orange */
 }
 
+.grid-lines {
+    border-color: @light-aubergine;
+}
+
 .subtle,
 #subtle-label {
     -GtkWidget-link-color: shade (@super-light-aubergine, 0.5);
@@ -25,6 +29,7 @@
     -GtkButton-default-outside-border: 0;
     color: darker (@light-aubergine);
     background-color: shade (@super-light-aubergine, 0.925);
+    border-color: shade (@super-light-aubergine, 0.875);
     text-shadow: 0 1 2 white;
 }
 
