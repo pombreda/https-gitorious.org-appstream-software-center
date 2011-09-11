@@ -1,10 +1,6 @@
-.featured-star-full {
+#featured-star {
     border-color: #ED0000;      /* darkish red */
-    background-color: #ED0000   /* darkish red */
-}
-
-.featured-star-empty {
-    border-color: #ED0000;  /* darkish red */
+    color: #ED0000   /* darkish red */
 }
 
 .cellrenderer-button {
