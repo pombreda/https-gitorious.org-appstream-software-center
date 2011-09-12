@@ -1,3 +1,22 @@
+software-center (4.1.22.1) UNRELEASED; urgency=low
+
+  [ Matthew McGowan ]
+  * softwarecenter/ui/gtk3/app.py:
+    - inhibit system error bell (LP: #846138)
+
+  [ Gary Lasker ]
+  * softwarecenter/ui/gtk3/session/viewmanager.py:
+    - fix startup crash in get_view_widget
+      (LP: #830233, LP: #834425) 
+  * data/icons/scalable/apps/softwarecenter.svg:
+    - update the scalable icon to the new software-center
+      icon (LP: #842275) 
+  * softwarecenter/ui/gtk/widgets/thumbnail.py,
+    softwarecenter/ui/gtk3/widgets/thumbnail.py:
+    - restore hover cursor for details view screenshot thumbnail  
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Sun, 11 Sep 2011 21:48:00 -0400
+
 software-center (4.1.22) oneiric; urgency=low
 
   [ Gary Lasker ]

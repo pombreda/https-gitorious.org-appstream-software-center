@@ -64,8 +64,7 @@ class ScreenshotThumbnail(Gtk.Alignment):
 
         # zoom cursor
         try:
-            theme = Gtk.IconTheme.get_default()
-            zoom_pb = theme.load_icon(Gtk.STOCK_ZOOM_IN, 22, 0)
+            zoom_pb = self.icons.load_icon("zoom-in", 22, 0)
             # FIXME
             self._zoom_cursor = Gdk.Cursor.new_from_pixbuf(
                                     Gdk.Display.get_default(),
