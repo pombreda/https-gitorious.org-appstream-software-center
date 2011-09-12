@@ -17,9 +17,9 @@ software-center (4.1.22.1) UNRELEASED; urgency=low
   * setup.py,
     debian/control:
     - add back flags when merging authors list, specify
-      python version to fix build
+      python version for happier build
 
- -- Gary Lasker <gary.lasker@canonical.com>  Sun, 11 Sep 2011 23:34:59 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 12 Sep 2011 08:59:26 -0400
 
 software-center (4.1.22) oneiric; urgency=low
 
