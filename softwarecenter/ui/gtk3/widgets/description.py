@@ -39,7 +39,7 @@ class _SpecialCasePreParsers(object):
     def preparse(self, k, desc):
         if k is None:
             return desc
-        func_name = '_%s_preparser' % k.lower()
+        func_name = '_%s_preparser' % k.lower().replace('-', '_')
         if not hasattr(self, func_name):
             return desc
         f = getattr(self, func_name)
@@ -48,6 +48,9 @@ class _SpecialCasePreParsers(object):
     # special case pre-parsers
     def _skype_preparser(self, desc):
         return desc.replace('. *', '.\n*')
+
+    def _texlive_fonts_extra_preparser(self, desc):
+        return desc.replace(')\n', ').\n').replace('--\n', '--\n\n')
 
 
 class EventHelper(dict):
@@ -452,7 +455,7 @@ class TextBlock(Gtk.EventBox):
             lh = layout.get_pixel_extents()[1].height
             height += lh + (l.vspacing or self.line_height)
 
-        height = min(1000, max(50, height)) + 5
+        height = max(50, height)
         return height, height
 
     def do_draw(self, cr):

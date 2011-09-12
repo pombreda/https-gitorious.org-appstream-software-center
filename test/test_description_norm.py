@@ -36,7 +36,7 @@ GAME FEATURES
         self.assertEqual(
             normalize_package_description(cache["arista"].description),
             """Arista is a simple multimedia transcoder, it focuses on being easy to use by making complex task of encoding for various devices simple.
-Users should pick an input and a target device, choose a file to save to and go. Features:
+Users should pick an input and a target device, choose a file to save to and go. Features:\n
 * Presets for iPod, computer, DVD player, PSP, Playstation 3, and more.
 * Live preview to see encoded quality.
 * Automatically discover available DVD media and Video 4 Linux (v4l) devices.
@@ -48,7 +48,7 @@ Users should pick an input and a target device, choose a file to save to and go.
         self.assertEqual(
             normalize_package_description(cache["aa3d"].description),
             """This program generates the well-known and popular random dot stereograms in ASCII art.
-Features:
+Features:\n
  * High quality ASCII art stereogram rendering
  * Highly configurable
  * User friendly command line interface (including full online help)""")

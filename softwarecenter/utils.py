@@ -136,7 +136,6 @@ def normalize_package_description(desc):
         #~ print part, indent
         # explicit newline
         if not part:
-            norm_description += "\n"
             continue
         # check if in a enumeration
         if part[:2] in BULLETS:
@@ -144,6 +143,8 @@ def normalize_package_description(desc):
             norm_description += "\n" + indent*' ' + "* " + part[2:]
         elif in_blist:
             norm_description += " " + part
+        elif part.endswith('.') or part.endswith(':'):
+            norm_description += part + '\n'
         else:
             in_blist = False
             if not norm_description.endswith("\n"):
