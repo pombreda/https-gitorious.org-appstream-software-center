@@ -3,6 +3,13 @@ software-center (4.1.22.1) UNRELEASED; urgency=low
   [ Matthew McGowan ]
   * softwarecenter/ui/gtk3/app.py:
     - inhibit system error bell (LP: #846138)
+  * softwarecenter/utils.py,
+    softwarecenter/ui/gtk3/widgets/description.py,
+    test/test_description_norm.py:
+    - tweak the description parser to not omit linebreaks when
+      a newline follows a terminator (e.g. "." or ":"), add a
+      preparser special case for texlive-fonts-extra, update
+      unit test (LP: #846944)
 
   [ Gary Lasker ]
   * softwarecenter/ui/gtk3/session/viewmanager.py:
@@ -19,7 +26,7 @@ software-center (4.1.22.1) UNRELEASED; urgency=low
     - add back flags when merging authors list, specify
       python version for happier build
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 12 Sep 2011 08:59:26 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 12 Sep 2011 09:21:28 -0400
 
 software-center (4.1.22) oneiric; urgency=low
 
