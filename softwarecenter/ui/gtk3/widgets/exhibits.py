@@ -43,25 +43,22 @@ width: 10000px;
 }
 .banner_text {
 font-family:Ubuntu;
-font-size:36px;
+font-size:48px;
 font-weight:bold;
-color: #dd4814;
+color:white;
 padding: 0.2em;
-text-shadow: 0 0 24px #fc0, 0 0 12px #fc0, 0 0 6px #fc0, 0 0 3px #fc0;
 position:absolute;
-top:30px;
-left:300px;
+top:40px;
+left:20px;
 }
 .banner_subtext {
 font-family:Ubuntu;
-font-size:24px;
-font-weight:bold;
-color:black;
+font-size:28px;
+color:white;
 padding: 0.4em;
-text-shadow: 0 0 24px #fc0, 0 0 12px #fc0, 0 0 6px #fc0, 0 0 3px #fc0;
 position:absolute;
-top:80px;
-left:350px;
+top:100px;
+left:20px;
 }
 </style>
 </head><body>
@@ -74,16 +71,17 @@ left:350px;
 """
 
 class FeaturedExhibit(object):
+
     def __init__(self):
         self.id = 0
         self.package_names = "armagetronad,calibre,cheese,homebank,stellarium,gimp,inkscape,blender,audacity,gufw,frozen-bubble,fretsonfire,moovida,liferea,arista,gtg,freeciv-client-gtk,openshot,supertuxkart,tumiki-fighters,tuxpaint,webservice-office-zoho"
-        self.title_translated = "Our picks"
+        self.title_translated = "Our star apps"
         self.published = True
-        self.banner_url = "file://%s" % (os.path.abspath(os.path.join(softwarecenter.paths.datadir, "default_banner/fallback.jpg")))
+        self.banner_url = "file://%s" % (os.path.abspath(os.path.join(softwarecenter.paths.datadir, "default_banner/fallback.png")))
         self.html = EXHIBIT_HTML % { 
             'banner_url' : self.banner_url,
-            'title' : _("Our picks ›"),
-            'subtitle' : _("Ubuntu’s sweetest applications"),
+            'title' : _("Our star apps"),
+            'subtitle' : _("Come and explore our favourites"),
       }
         # we should extract this automatically from the html
         #self.atk_name = _("Default Banner")
