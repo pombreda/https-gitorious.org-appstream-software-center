@@ -4,7 +4,12 @@ software-center (4.1.22.1) UNRELEASED; urgency=low
   * softwarecenter/ui/gtk3/app.py:
     - inhibit system error bell (LP: #846138)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Sun, 11 Sep 2011 18:26:41 -0400
+  [ Gary Lasker ]
+  * softwarecenter/ui/gtk3/session/viewmanager.py:
+    - fix startup crash in get_view_widget
+      (LP: #830233, LP: #834425) 
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Sun, 11 Sep 2011 20:41:22 -0400
 
 software-center (4.1.22) oneiric; urgency=low
 
