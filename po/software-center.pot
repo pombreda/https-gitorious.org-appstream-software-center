@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-09-09 11:12-0400\n"
+"POT-Creation-Date: 2011-09-12 09:45+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -671,7 +671,7 @@ msgstr ""
 #. the other one in softwarecenter/app.py
 #: ../data/ubuntu-software-center.desktop.in.h:3
 #: ../softwarecenter/ui/gtk/app.py:761 ../softwarecenter/distro/Ubuntu.py:60
-#: ../softwarecenter/ui/gtk3/app.py:715
+#: ../softwarecenter/ui/gtk3/app.py:718
 msgid "Ubuntu Software Center"
 msgstr ""
 
@@ -939,7 +939,7 @@ msgstr ""
 msgid "Please re-install the 'software-center' package."
 msgstr ""
 
-#: ../softwarecenter/ui/gtk/app.py:762 ../softwarecenter/ui/gtk3/app.py:716
+#: ../softwarecenter/ui/gtk/app.py:762 ../softwarecenter/ui/gtk3/app.py:719
 msgid "Ubuntu Software Center Store"
 msgstr ""
 
@@ -1262,7 +1262,7 @@ msgid ""
 "the Ubuntu community."
 msgstr ""
 
-#: ../softwarecenter/enums.py:28 ../softwarecenter/ui/gtk3/app.py:669
+#: ../softwarecenter/enums.py:28 ../softwarecenter/ui/gtk3/app.py:672
 msgid ""
 "To reinstall previous purchases, sign in to the Ubuntu Single Sign-On "
 "account you used to pay for them."
@@ -2254,34 +2254,34 @@ msgstr ""
 msgid "Search"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk/widgets/thumbnail.py:59
+#: ../softwarecenter/ui/gtk/widgets/thumbnail.py:58
 msgid "Click for fullsize screenshot"
 msgstr ""
 
 #. unavailable layout
-#: ../softwarecenter/ui/gtk/widgets/thumbnail.py:104
-#: ../softwarecenter/ui/gtk3/widgets/thumbnail.py:127
+#: ../softwarecenter/ui/gtk/widgets/thumbnail.py:103
+#: ../softwarecenter/ui/gtk3/widgets/thumbnail.py:126
 msgid "No screenshot"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk/widgets/thumbnail.py:289
-#: ../softwarecenter/ui/gtk3/widgets/thumbnail.py:310
+#: ../softwarecenter/ui/gtk/widgets/thumbnail.py:288
+#: ../softwarecenter/ui/gtk3/widgets/thumbnail.py:309
 #, python-format
 msgid "%s - Screenshot"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk/widgets/thumbnail.py:409
-#: ../softwarecenter/ui/gtk3/widgets/thumbnail.py:428
+#: ../softwarecenter/ui/gtk/widgets/thumbnail.py:408
+#: ../softwarecenter/ui/gtk3/widgets/thumbnail.py:427
 msgid "No screenshot available"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk/widgets/thumbnail.py:417
-#: ../softwarecenter/ui/gtk3/widgets/thumbnail.py:436
+#: ../softwarecenter/ui/gtk/widgets/thumbnail.py:416
+#: ../softwarecenter/ui/gtk3/widgets/thumbnail.py:435
 msgid "Screenshot"
 msgstr ""
 
-#: ../softwarecenter/ui/gtk/widgets/thumbnail.py:433
-#: ../softwarecenter/ui/gtk3/widgets/thumbnail.py:452
+#: ../softwarecenter/ui/gtk/widgets/thumbnail.py:432
+#: ../softwarecenter/ui/gtk3/widgets/thumbnail.py:451
 msgid "Fetching screenshot ..."
 msgstr ""
 
@@ -2358,7 +2358,7 @@ msgid "Play"
 msgstr ""
 
 #. TRANSLATORS: this is the help menuitem label, e.g. Ubuntu Software Center _Help
-#: ../softwarecenter/ui/gtk3/app.py:298
+#: ../softwarecenter/ui/gtk3/app.py:301
 #, python-format
 msgid "%s _Help"
 msgstr ""
