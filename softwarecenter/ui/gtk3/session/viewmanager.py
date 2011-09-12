@@ -136,7 +136,7 @@ class ViewManager(GObject.GObject):
         return self.all_views[view_id]
         
     def get_view_widget(self, view_id):
-        return self.view_to_pane[view_id]
+        return self.view_to_pane.get(view_id, None)
 
     def get_latest_nav_item(self):
         return self.navhistory.stack[-1]
