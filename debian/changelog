@@ -1,5 +1,9 @@
 software-center (4.1.22.1) UNRELEASED; urgency=low
 
+  [ Michael Vogt ]
+  * new default exhibit image from Marcus Haslam, many thanks
+  * tweak html for the default text layout
+  
   [ Matthew McGowan ]
   * softwarecenter/ui/gtk3/app.py:
     - inhibit system error bell (LP: #846138)
