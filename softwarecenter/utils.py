@@ -136,7 +136,6 @@ def normalize_package_description(desc):
         #~ print part, indent
         # explicit newline
         if not part:
-            norm_description += "\n"
             continue
         # check if in a enumeration
         if part[:2] in BULLETS:
