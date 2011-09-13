@@ -537,6 +537,8 @@ class SimpleFileDownloader(GObject.GObject):
         self.url = url
         self.dest_file_path = dest_file_path
 
+        # FIXME: we actually need to do etag based checking here to see
+        #        if the source needs refreshing
         if os.path.exists(self.dest_file_path):
             self.emit('file-url-reachable', True)
             self.emit("file-download-complete", self.dest_file_path)
@@ -557,7 +559,8 @@ class SimpleFileDownloader(GObject.GObject):
     def _check_url_reachable_and_then_download_cb(self, f, result, user_data=None):
         self.LOG.debug("_check_url_reachable_and_then_download_cb: %s" % f)
         try:
-            result = f.query_info_finish(result)
+            info = f.query_info_finish(result)
+            etag = info.get_etag()
             self.emit('file-url-reachable', True)
             self.LOG.debug("file reachable %s" % self.url)
             # url is reachable, now download the file
@@ -578,9 +581,9 @@ class SimpleFileDownloader(GObject.GObject):
         # The first element is the actual content so let's grab that
         try:
             if have_gi:
-                content = f.load_contents_finish(result)[1]
+                res, content, etag = f.load_contents_finish(result)
             else:
-                content = f.load_contents_finish(result)[0]
+                content, size, etag = f.load_contents_finish(result)
         except Exception as e:
             # i witnissed a strange error[1], so make the loader robust in this
             # situation
@@ -589,7 +592,7 @@ class SimpleFileDownloader(GObject.GObject):
             self.LOG.debug(e)
             self.emit('error', Exception, e)
             return
-
+        # write out the data
         outputfile = open(self.dest_file_path, "w")
         outputfile.write(content)
         outputfile.close()
