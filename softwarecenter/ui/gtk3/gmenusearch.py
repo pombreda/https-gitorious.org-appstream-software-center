@@ -17,7 +17,10 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import os
+import logging
 from softwarecenter.enums import APP_INSTALL_PATH_DELIMITER
+
+LOG = logging.getLogger(__name__)
 
 class GMenuSearcher(object):
 
@@ -57,6 +60,7 @@ class GMenuSearcher(object):
         if not desktop_file:
             return None
         from gi.repository import GMenu
+        from gi.repository import GObject
         # use the system ones by default, but allow override for
         # easier testing
         if menu_files_list is None:
@@ -66,7 +70,12 @@ class GMenuSearcher(object):
                 tree = GMenu.Tree.new_for_path(n, 0)
             else:
                 tree = GMenu.Tree.new(n, 0)
-            tree.load_sync()
+            try:
+                tree.load_sync()
+            except GObject.GError as e:
+                LOG.warning("could not load GMenu path: %s" % e)
+                return None
+                
             root = tree.get_root_directory()
             self._search_gmenu_dir([root],
                                    os.path.basename(desktop_file))
