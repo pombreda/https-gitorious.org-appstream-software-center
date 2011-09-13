@@ -45,6 +45,9 @@ software-center (4.1.22.1) UNRELEASED; urgency=low
       a newline follows a terminator (e.g. "." or ":"), add a
       preparser special case for texlive-fonts-extra, update
       unit test (LP: #846944)
+  * softwarecenter/ui/gtk3/session/navhistory.py:
+    - fix multiple navigation items generated during search
+      (LP: #842734)
 
   [ Gary Lasker ]
   * softwarecenter/ui/gtk3/session/viewmanager.py:
@@ -63,7 +66,7 @@ software-center (4.1.22.1) UNRELEASED; urgency=low
   * softwarecenter/ui/gtk3/gmenusearch.py:
     - fix crash when loading gmenu for 'where is it' (LP: #834450)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Tue, 13 Sep 2011 14:44:04 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 13 Sep 2011 17:46:59 -0400
 
 software-center (4.1.22) oneiric; urgency=low
 
