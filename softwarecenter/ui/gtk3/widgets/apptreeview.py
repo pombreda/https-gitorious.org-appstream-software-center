@@ -5,7 +5,8 @@ import xapian
 
 from gettext import gettext as _
 
-from cellrenderers import (CellRendererAppView, CellButtonRenderer,
+from cellrenderers import (CellRendererAppView,
+                           CellButtonRenderer,
                            CellButtonIDs)
 
 from softwarecenter.ui.gtk3.em import em, StockEms
@@ -372,15 +373,15 @@ class AppTreeView(Gtk.TreeView):
         #print kv
         r = False
         if kv == Gdk.KEY_Right: # right-key
-            btn = tr.get_button_by_name('action0')
+            btn = tr.get_button_by_name(CellButtonIDs.ACTION)
             if btn.state != Gtk.StateType.INSENSITIVE:
                 btn.has_focus = True
-                btn = tr.get_button_by_name('info')
+                btn = tr.get_button_by_name(CellButtonIDs.INFO)
                 btn.has_focus = False
         elif kv == Gdk.KEY_Left: # left-key
-            btn = tr.get_button_by_name('action0')
+            btn = tr.get_button_by_name(CellButtonIDs.ACTION)
             btn.has_focus = False
-            btn = tr.get_button_by_name('info')
+            btn = tr.get_button_by_name(CellButtonIDs.INFO)
             btn.has_focus = True
         elif kv == Gdk.KEY_space:  # spacebar
             for btn in tr.get_buttons():
@@ -484,7 +485,7 @@ class AppTreeView(Gtk.TreeView):
 
     def _on_transaction_started(self, backend, pkgname, appname, trans_id, trans_type, tr):
         """ callback when an application install/remove transaction has started """
-        action_btn = tr.get_button_by_name('action0')
+        action_btn = tr.get_button_by_name(CellButtonIDs.ACTION)
         if action_btn:
             action_btn.set_sensitive(False)
             self._set_cursor(action_btn, None)
@@ -496,7 +497,7 @@ class AppTreeView(Gtk.TreeView):
         # remove pkg from the block list
         self._check_remove_pkg_from_blocklist(result.pkgname)
 
-        action_btn = tr.get_button_by_name('action0')
+        action_btn = tr.get_button_by_name(CellButtonIDs.ACTION)
         if action_btn:
             action_btn.set_sensitive(True)
             self._set_cursor(action_btn, self._cursor_hand)
@@ -506,7 +507,7 @@ class AppTreeView(Gtk.TreeView):
         # remove pkg from the block list
         self._check_remove_pkg_from_blocklist(result.pkgname)
 
-        action_btn = tr.get_button_by_name('action0')
+        action_btn = tr.get_button_by_name(CellButtonIDs.ACTION)
         if action_btn:
             # this should be a function that decides action button state label...
             if action_btn.current_variant == 2:
