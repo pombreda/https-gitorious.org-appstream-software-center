@@ -224,7 +224,7 @@ class ExhibitBanner(Gtk.EventBox):
 
     DROPSHADOW_HEIGHT = 11
     MAX_HEIGHT = 200 # pixels
-    TIMEOUT_SECONDS = 300
+    TIMEOUT_SECONDS = 10
 
     def __init__(self):
         Gtk.EventBox.__init__(self)
@@ -280,6 +280,8 @@ class ExhibitBanner(Gtk.EventBox):
 
         self._cache_art_assets()
         self._init_event_handling()
+        # fill this in later
+        self._toplevel_window = None
 
     def _init_event_handling(self):
         self.set_can_focus(True)
@@ -423,6 +425,9 @@ class ExhibitBanner(Gtk.EventBox):
         return assets
 
     def do_draw(self, cr):
+        # ensure that we pause the exhibits carousel if the window goes
+        # into the background
+        self._init_pause_handling_if_needed()
 
         # hide the next/prev buttons if needed
         if len(self.exhibits) == 1:
@@ -480,7 +485,34 @@ class ExhibitBanner(Gtk.EventBox):
             self.propagate_draw(child, cr)
         return
 
+    def _init_pause_handling_if_needed(self):
+        # nothing todo if we have the toplevel already
+        if self._toplevel_window:
+            return
+        # find toplevel Gtk.Window
+        w = self
+        while w.get_parent():
+            w = w.get_parent()
+        # paranoia, should never happen
+        if not isinstance(w, Gtk.Window):
+            return
+        # connect to property changes for the toplevel focus
+        w.connect("notify::has-toplevel-focus", 
+                  self._on_main_window_is_active_changed)
+        self._toplevel_window = w
+
+    def _on_main_window_is_active_changed(self, win, gparamspec):
+        """ this tracks focus of the main window and pauses the exhibits
+            cycling if the window does not have the toplevel focus
+        """
+        is_active = win.get_property("has-toplevel-focus")
+        if is_active:
+            self.queue_next()
+        else:
+            self.cleanup_timeout()
+
     def set_exhibits(self, exhibits_list):
+
         if not exhibits_list: 
             return
 

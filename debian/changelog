@@ -18,6 +18,9 @@ software-center (4.1.22.1) UNRELEASED; urgency=low
     - updated to the gtk3 version
   * softwarecenter/backend/scagent.py:
     - generically deal with exhibts without a title
+  * softwarecenter/ui/gtk3/widgets/exhibits.py:
+    - set the default exhibit cycle time to 10s but do not cycle if
+      the main application does not have the active toplevel focus
   
   [ Matthew McGowan ]
   * softwarecenter/ui/gtk3/app.py:
