@@ -28,6 +28,9 @@ software-center (4.1.22.1) UNRELEASED; urgency=low
     softwarecenter/ui/gtk3/views/catview_gtk.py:
     - when showing a exhibts list, show with flags=["nonapps-visible"]
       (LP: #849035)
+  * softwarecenter/backend/scagent.py:
+    - if the server does not provide a title for a exhibit, just extract
+      the first h1 text and use that as the title
   
   [ Matthew McGowan ]
   * softwarecenter/ui/gtk3/app.py:

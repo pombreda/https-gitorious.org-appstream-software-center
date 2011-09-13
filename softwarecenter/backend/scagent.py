@@ -114,10 +114,17 @@ class SoftwareCenterAgent(GObject.GObject):
         spawner.run(cmd)
     def _on_exhibits_data_available(self, spawner, exhibits):
         for exhibit in exhibits:
-            # special case, if there is no title, just set a empty str
-            if (not hasattr(exhibit, "title_translated") or
-                not exhibit.title_translated):
-                exhibit.title_translated = ""
+            # special case, if there is no title provided by the server
+            # just extract the title from the first "h1" html
+            if not hasattr(exhibit, "title_translated"):
+                if exhibit.html:
+                    import lxml.etree
+                    root = lxml.etree.XML(exhibit.html)
+                    h1 = root.findall(".//h1")
+                    if h1:
+                        exhibit.title_translated = h1[0].text
+                else:
+                    exhibit.title_translated = ""
         self.emit("exhibits", exhibits)
         
 if __name__ == "__main__":
