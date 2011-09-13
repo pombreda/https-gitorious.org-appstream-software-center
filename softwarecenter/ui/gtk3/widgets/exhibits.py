@@ -79,7 +79,7 @@ class FeaturedExhibit(object):
         self.package_names = "armagetronad,calibre,cheese,homebank,stellarium,gimp,inkscape,blender,audacity,gufw,frozen-bubble,fretsonfire,moovida,liferea,arista,gtg,freeciv-client-gtk,openshot,supertuxkart,tumiki-fighters,tuxpaint,webservice-office-zoho"
         self.title_translated = "Our star apps"
         self.published = True
-        self.banner_url = "file://%s" % (os.path.abspath(os.path.join(softwarecenter.paths.datadir, "default_banner/fallback.png")))
+        self.banner_url = "file:%s" % (os.path.abspath(os.path.join(softwarecenter.paths.datadir, "default_banner/fallback.png")))
         self.html = EXHIBIT_HTML % { 
             'banner_url' : self.banner_url,
             'title' : _("Our star apps"),
