@@ -21,6 +21,9 @@ software-center (4.1.22.1) UNRELEASED; urgency=low
   * softwarecenter/ui/gtk3/widgets/exhibits.py:
     - set the default exhibit cycle time to 10s but do not cycle if
       the main application does not have the active toplevel focus
+  * softwarecenter/ui/gtk3/views/catview_gtk.py:
+    - if there is only a single app in a exhibit, show that on
+      click (LP: #848995)
   
   [ Matthew McGowan ]
   * softwarecenter/ui/gtk3/app.py:
