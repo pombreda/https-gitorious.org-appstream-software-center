@@ -174,8 +174,10 @@ class NavigationStack(object):
         last_vs = last.view_state
         item_vs = item.view_state
         # HACK: special case, check for subsequent searches
-        # if subsequent search, update previous item.search_term
-        # to current
+        # if subsequent search, update previous item_vs.search_term
+        # to current.
+
+        # do import of Pages enum here: else drama!
         from softwarecenter.ui.gtk3.panes.availablepane import AvailablePane
         if (item.page == AvailablePane.Pages.LIST and
             last.page == AvailablePane.Pages.LIST and
