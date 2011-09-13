@@ -314,7 +314,8 @@ class LobbyViewGtk(CategoriesViewGtk):
             title = "" # no exhibit.translated_title anymore
             untranslated_name = exhibit.package_names
             # create a temp query
-            cat = Category(untranslated_name, title, None, query)
+            cat = Category(untranslated_name, title, None, query,
+                           flags=['nonapps-visible'])
             self.emit("category-selected", cat)
 
     def _append_banner_ads(self):

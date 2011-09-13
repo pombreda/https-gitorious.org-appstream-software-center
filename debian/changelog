@@ -24,6 +24,10 @@ software-center (4.1.22.1) UNRELEASED; urgency=low
   * softwarecenter/ui/gtk3/views/catview_gtk.py:
     - if there is only a single app in a exhibit, show that on
       click (LP: #848995)
+  * softwarecenter/ui/gtk3/panes/availablepane.py,
+    softwarecenter/ui/gtk3/views/catview_gtk.py:
+    - when showing a exhibts list, show with flags=["nonapps-visible"]
+      (LP: #849035)
   
   [ Matthew McGowan ]
   * softwarecenter/ui/gtk3/app.py:

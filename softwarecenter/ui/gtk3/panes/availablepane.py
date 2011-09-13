@@ -615,6 +615,13 @@ class AvailablePane(SoftwarePane):
     def set_category(self, category):
         LOG.debug('set_category: %s' % category)
         self.state.category = category
+
+        # apply flags
+        if 'nonapps-visible' in category.flags:
+            self.nonapps_visible = NonAppVisibility.ALWAYS_VISIBLE
+        else:
+            self.nonapps_visible = NonAppVisibility.MAYBE_VISIBLE
+
         # apply any category based filters
         if not self.state.filter:
             self.state.filter = AppFilter(self.db, self.cache)
