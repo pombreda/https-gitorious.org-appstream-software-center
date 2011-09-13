@@ -65,8 +65,9 @@ software-center (4.1.22.1) UNRELEASED; urgency=low
       python version for happier build
   * softwarecenter/ui/gtk3/gmenusearch.py:
     - fix crash when loading gmenu for 'where is it' (LP: #834450)
+  * pyflakes cleanup 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Tue, 13 Sep 2011 17:46:59 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 13 Sep 2011 17:52:17 -0400
 
 software-center (4.1.22) oneiric; urgency=low
 

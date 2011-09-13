@@ -1,11 +1,9 @@
 
-from gi.repository import Gtk, GObject
+from gi.repository import GObject
 import sys
 
 import softwarecenter.plugin
 
-
-from gettext import gettext as _
 
 class ExamplePlugin(softwarecenter.plugin.Plugin):
     """ example plugin that will hide the exhibits banner """
