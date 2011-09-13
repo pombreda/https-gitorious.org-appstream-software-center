@@ -3,6 +3,8 @@ software-center (4.1.22.1) UNRELEASED; urgency=low
   [ Michael Vogt ]
   * new default exhibit image from Marcus Haslam, many thanks
   * tweak html for the default text layout
+  * softwarecenter/utils.py:
+    - never cache local urls in the SimpleFileDownloader
   
   [ Matthew McGowan ]
   * softwarecenter/ui/gtk3/app.py:

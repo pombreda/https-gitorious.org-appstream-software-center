@@ -511,8 +511,14 @@ class SimpleFileDownloader(GObject.GObject):
         self.LOG.debug("download_file: %s %s %s" % (
                 url, dest_file_path, use_cache))
 
+        # no need to cache file urls and no need to really download
+        # them, its enough to adjust the dest_file_path
+        if url.startswith("file:"):
+            dest_file_path = url[len("file:"):]
+            use_cache = False
+
         # if the cache is used, we use that as the dest_file_path
-        if use_cache and not url.startswith("file:"):
+        if use_cache:
             cache_path = os.path.join(
                 SOFTWARE_CENTER_CACHE_DIR, "download-cache")
             if not os.path.exists(cache_path):
