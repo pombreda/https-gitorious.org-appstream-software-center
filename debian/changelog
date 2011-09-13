@@ -16,6 +16,8 @@ software-center (4.1.22.1) UNRELEASED; urgency=low
       ~/.local/share/software-center/plugins (LP: #631457)
   * doc/example_plugin.py:
     - updated to the gtk3 version
+  * softwarecenter/backend/scagent.py:
+    - generically deal with exhibts without a title
   
   [ Matthew McGowan ]
   * softwarecenter/ui/gtk3/app.py:

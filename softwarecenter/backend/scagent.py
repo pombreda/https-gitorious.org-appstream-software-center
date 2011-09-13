@@ -113,6 +113,12 @@ class SoftwareCenterAgent(GObject.GObject):
         spawner.connect("error", lambda spawner, err: self.emit("error", err))
         spawner.run(cmd)
     def _on_exhibits_data_available(self, spawner, exhibits):
+        for exhibit in exhibits:
+            # special case, if there is no title, then the package_names
+            # is actually just a single string
+            if (not hasattr(exhibit, "title_translated") or
+                not exhibit.title_translated):
+                exhibit.title_translated = exhibit.package_names
         self.emit("exhibits", exhibits)
         
 if __name__ == "__main__":
