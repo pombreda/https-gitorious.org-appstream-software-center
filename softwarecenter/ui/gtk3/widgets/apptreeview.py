@@ -386,7 +386,7 @@ class AppTreeView(Gtk.TreeView):
         elif kv == Gdk.KEY_space:  # spacebar
             for btn in tr.get_buttons():
                 if btn.has_focus and btn.state != Gtk.StateType.INSENSITIVE:
-                    btn.set_state(Gtk.StateType.ACTIVE)
+                    btn.set_state(Gtk.StateFlags.ACTIVE)
                     sel = self.get_selection()
                     model, it = sel.get_selected()
                     path = model.get_path(it)
@@ -404,7 +404,7 @@ class AppTreeView(Gtk.TreeView):
         if kv == 32:    # spacebar
             for btn in tr.get_buttons():
                 if btn.has_focus and btn.state != Gtk.StateType.INSENSITIVE:
-                    btn.set_state(Gtk.StateType.NORMAL)
+                    btn.set_state(Gtk.StateFlags.NORMAL)
                     sel = self.get_selection()
                     model, it = sel.get_selected()
                     path = model.get_path(it)
