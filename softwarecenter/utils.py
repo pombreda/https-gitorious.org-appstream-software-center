@@ -562,7 +562,9 @@ class SimpleFileDownloader(GObject.GObject):
             info = f.query_info_finish(result)
             etag = info.get_etag()
             self.emit('file-url-reachable', True)
-            self.LOG.debug("file reachable %s" % self.url)
+            self.LOG.debug("file reachable %s %s %s" % (self.url,
+                                                        info, 
+                                                        etag))
             # url is reachable, now download the file
             if have_gi:
                 f.load_contents_async(None, self._file_download_complete_cb, None)

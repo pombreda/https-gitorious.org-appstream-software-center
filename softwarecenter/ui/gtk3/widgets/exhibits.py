@@ -27,6 +27,8 @@ from gi.repository import GObject
 from gi.repository import GdkPixbuf
 from gi.repository import WebKit
 
+from urlparse import urlparse
+
 from softwarecenter.utils import SimpleFileDownloader
 from softwarecenter.ui.gtk3.em import StockEms
 from softwarecenter.ui.gtk3.shapes import Circle
@@ -136,9 +138,14 @@ class _HtmlRenderer(Gtk.OffscreenWindow):
                                     'title' : self.exhibit.title_translated,
                                     'subtitle' : "",
                                     }
-        html = html.replace(self.exhibit.banner_url, image_name)
+        # replace the server side path with the local image name, this 
+        # assumes that the image always comes from the same server as
+        # the html
+        scheme, netloc, server_path, para, query, frag = urlparse(
+            self.exhibit.banner_url)
+        html = html.replace(server_path, image_name)
         self.view.load_string(html, "text/html", "UTF-8", 
-                              "file:///%s/" % cache_dir)
+                              "file:%s/" % cache_dir)
         return
 
     def set_exhibit(self, exhibit):

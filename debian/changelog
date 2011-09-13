@@ -5,6 +5,8 @@ software-center (4.1.22.1) UNRELEASED; urgency=low
   * tweak html for the default text layout
   * softwarecenter/utils.py:
     - never cache local urls in the SimpleFileDownloader
+  * softwarecenter/ui/gtk3/widgets/exhibits.py:
+    - fix bug in banner image rendering when the agent serves the images
   
   [ Matthew McGowan ]
   * softwarecenter/ui/gtk3/app.py:
