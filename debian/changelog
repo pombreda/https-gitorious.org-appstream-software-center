@@ -7,6 +7,15 @@ software-center (4.1.22.1) UNRELEASED; urgency=low
     - never cache local urls in the SimpleFileDownloader
   * softwarecenter/ui/gtk3/widgets/exhibits.py:
     - fix bug in banner image rendering when the agent serves the images
+  * softwarecenter/ui/gtk3/app.py, debian/control:
+    - renenable plugin loader 
+    - add conflict against older oneconf as the old oneconf plugin
+      will crash softwarecenter because of mixing pygtk with pygi
+    - load plugins from $SOFTWARE_CENTER_PLUGINS_DIR, 
+      /usr/share/software-center/plugins, 
+      ~/.local/share/software-center/plugins (LP: #631457)
+  * doc/example_plugin.py:
+    - updated to the gtk3 version
   
   [ Matthew McGowan ]
   * softwarecenter/ui/gtk3/app.py:

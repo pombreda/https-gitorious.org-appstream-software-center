@@ -48,9 +48,11 @@ APPSTREAM_BASE_PATH = "/usr/share/app-info"
 APPSTREAM_XML_PATH = APPSTREAM_BASE_PATH + "/xmls/"
 
 SOFTWARE_CENTER_BASE = "/usr/share/software-center"
-SOFTWARE_CENTER_PLUGIN_DIR = os.environ.get(
-    "SOFTWARE_CENTER_PLUGINS_DIR",
-    os.path.join(SOFTWARE_CENTER_BASE, "plugins"))
+SOFTWARE_CENTER_PLUGIN_DIRS = [
+    os.environ.get("SOFTWARE_CENTER_PLUGINS_DIR", ""),
+    os.path.join(SOFTWARE_CENTER_BASE, "plugins"),
+    os.path.join(xdg.xdg_data_home, "software-center", "plugins"),
+    ]
 
 # FIXME: use relative paths here
 INSTALLED_ICON = "/usr/share/software-center/icons/software-center-installed.png"
