@@ -308,7 +308,7 @@ class LobbyViewGtk(CategoriesViewGtk):
         pkgs = exhibit.package_names.split(",")
         if len(pkgs) == 1:
             app = Application("", pkgs[0])
-            self.emit("application-selected", app)
+            self.emit("application-activated", app)
         else:
             query = get_query_for_pkgnames(pkgs)
             title = exhibit.title_translated
