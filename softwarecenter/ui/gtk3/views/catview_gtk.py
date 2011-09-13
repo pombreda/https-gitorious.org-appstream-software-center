@@ -311,7 +311,7 @@ class LobbyViewGtk(CategoriesViewGtk):
             self.emit("application-selected", app)
         else:
             query = get_query_for_pkgnames(pkgs)
-            title = "" # no exhibit.translated_title anymore
+            title = exhibit.title_translated
             untranslated_name = exhibit.package_names
             # create a temp query
             cat = Category(untranslated_name, title, None, query,
