@@ -18,11 +18,56 @@
 
 #import gi
 #gi.require_version("Gtk", "3.0")
+import os
+import logging
+
 from gi.repository import Gtk
 
 from softwarecenter.paths import ICON_PATH, SOFTWARE_CENTER_ICON_CACHE_DIR
 
-import os
+LOG = logging.getLogger(__name__)
+
+
+def init_sc_css_provider(toplevel, settings, screen, datadir):
+    context = toplevel.get_style_context()
+    theme_name = settings.get_property("gtk-theme-name").lower()
+
+    if hasattr(toplevel, '_css_provider'):
+        # check old provider, see if we can skip setting or remove old
+        # style provider
+        if toplevel._css_provider._theme_name == theme_name:
+            return
+        else: # clean up old css provider if exixts
+            context.remove_provider_for_screen(screen, toplevel._css_provider)
+
+    # munge css path for theme-name
+    css_path = os.path.join(datadir,
+                            "ui/gtk3/css/softwarecenter.%s.css" % \
+                            theme_name)
+
+    # if no css for theme-name try fallback css
+    if not os.path.exists(css_path):
+        css_path = os.path.join(datadir, "ui/gtk3/css/softwarecenter.css")
+
+    if not os.path.exists(css_path):
+        # check fallback exists as well... if not return None but warn
+        # its not the end of the world if there is no fallback, just some
+        # styling will be derived from the plain ol' Gtk theme
+        msg = "Could not set software-center CSS provider. File '%s' does not exist!"
+        LOG.warn(msg % css_path)
+        return None
+
+    # things seem ok, now set the css provider for softwarecenter
+    msg = "Softwarecenter style provider for %s Gtk theme: %s"
+    LOG.info(msg % (theme_name, css_path))
+
+    provider = Gtk.CssProvider()
+    provider._theme_name = theme_name
+    toplevel._css_provider = provider
+
+    provider.load_from_path(css_path)
+    context.add_provider_for_screen(screen, provider, 800)
+    return css_path
 
 def get_sc_icon_theme(datadir):
     # additional icons come from app-install-data

@@ -59,7 +59,8 @@ from softwarecenter.enums import (Icons,
                                   MOUSE_EVENT_BACK_BUTTON)
 from softwarecenter.utils import (clear_token_from_ubuntu_sso,
                                   wait_for_apt_cache_ready)
-from softwarecenter.ui.gtk3.utils import get_sc_icon_theme
+from softwarecenter.ui.gtk3.utils import (get_sc_icon_theme,
+                                          init_sc_css_provider)
 from softwarecenter.version import VERSION
 from softwarecenter.db.database import StoreDatabase
 from softwarecenter.backend.transactionswatcher import TransactionFinishedResult
@@ -246,19 +247,17 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         self.icons = get_sc_icon_theme(self.datadir)
         Gtk.Window.set_default_icon_name("softwarecenter")
 
-        # css provider
-        path = os.path.join(datadir,
-                            "ui/gtk3/css/softwarecenter.css")
-        provider = Gtk.CssProvider()
-        provider.load_from_path(path)
-
-        screen = Gdk.Screen.get_default()
-        context = self.window_main.get_style_context()
-        context.add_provider_for_screen(screen, provider, 800)
-
         # inhibit the error-bell, Bug #846138...
         settings = Gtk.Settings.get_default()
         settings.set_property("gtk-error-bell", False)
+
+        # wire up the css provider to reconfigure on theme-changes
+        self.window_main.connect("style-updated",
+                                 self._on_style_updated,
+                                 init_sc_css_provider,
+                                 settings,
+                                 Gdk.Screen.get_default(),
+                                 datadir)
 
         # register view manager and create view panes/widgets
         self.view_manager = ViewManager(self.notebook_view, options)
@@ -538,6 +537,10 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         # consumer key is the openid identifier
         self.scagent.query_available_for_me(oauth_result["token"],
                                             oauth_result["consumer_key"])
+
+    def _on_style_updated(self, widget, init_css_callback, *args):
+        init_css_callback(widget, *args)
+        return
 
     def _available_for_me_result(self, scagent, result_list):
         #print "available_for_me_result", result_list

@@ -7,6 +7,10 @@
     color: #FFC51D;         /* orange */
 }
 
+.grid-lines {
+    border-color: shade (@light-aubergine, 1.025);
+}
+
 .subtle,
 #subtle-label {
     -GtkWidget-link-color: shade (@super-light-aubergine, 0.5);
@@ -25,6 +29,7 @@
     -GtkButton-default-outside-border: 0;
     color: darker (@light-aubergine);
     background-color: shade (@super-light-aubergine, 0.925);
+    border-color: shade (@super-light-aubergine, 0.875);
     text-shadow: 0 1 2 white;
 }
 
@@ -32,10 +37,9 @@
     text-shadow: 0 1 2 white;
 }
 
-GtkViewport {
-    background-color: @super-light-aubergine;
-    border-width: 0;
-    padding: 0;
+.item-view-separator {
+    border-color: shade (@light-aubergine, 0.9);
+    border-width: 1;
 }
 
 .light-aubergine-bg {
@@ -47,3 +51,8 @@ GtkViewport {
     border-color: shade (@super-light-aubergine, 0.975)
 }
 
+GtkViewport {
+    background-color: @super-light-aubergine;
+    border-width: 0;
+    padding: 0;
+}

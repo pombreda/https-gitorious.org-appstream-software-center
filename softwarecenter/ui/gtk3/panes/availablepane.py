@@ -420,6 +420,12 @@ class AvailablePane(SoftwarePane):
                            self.state,
                            self.display_lobby_page)
             return False
+
+        elif (self.state.subcategory and not new_text):
+            vm.display_page(self, AvailablePane.Pages.LIST, self.state,
+                            self.display_app_view_page)
+            return False
+
         elif (self.state.category and 
                 self.state.category.subcategories and not new_text):
             vm.display_page(self,
