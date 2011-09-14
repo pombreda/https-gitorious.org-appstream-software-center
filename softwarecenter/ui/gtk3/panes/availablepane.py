@@ -623,10 +623,11 @@ class AvailablePane(SoftwarePane):
         self.state.category = category
 
         # apply flags
-        if 'nonapps-visible' in category.flags:
-            self.nonapps_visible = NonAppVisibility.ALWAYS_VISIBLE
-        else:
-            self.nonapps_visible = NonAppVisibility.MAYBE_VISIBLE
+        if category:
+            if 'nonapps-visible' in category.flags:
+                self.nonapps_visible = NonAppVisibility.ALWAYS_VISIBLE
+            else:
+                self.nonapps_visible = NonAppVisibility.MAYBE_VISIBLE
 
         # apply any category based filters
         if not self.state.filter:
