@@ -510,8 +510,8 @@ class AppTreeView(Gtk.TreeView):
         action_btn = tr.get_button_by_name(CellButtonIDs.ACTION)
         if action_btn:
             # this should be a function that decides action button state label...
-            if action_btn.current_variant == 2:
-                action_btn.set_markup_variant_n(1)
+            if action_btn.current_variant == self.VARIANT_INSTALL:
+                action_btn.set_markup(self.VARIANT_REMOVE)
             action_btn.set_sensitive(True)
             self._set_cursor(action_btn, self._cursor_hand)
 
