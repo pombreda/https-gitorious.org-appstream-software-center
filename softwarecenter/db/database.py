@@ -131,12 +131,6 @@ class StoreDatabase(GObject.GObject):
         self._db_pathname = pathname
         self._aptcache = cache
         self._additional_databases = []
-        # xapian.Database is not thread safe (its however safe to 
-        # have multiple xapian.Databases. if this lock becomes a bottleneck
-        # we need to replace it with a solution that creates a DB per
-        # search query)
-        self._search_lock = threading.Lock()
-
         # the xapian values as read from /var/lib/apt-xapian-index/values
         self._axi_values = {}
         self._logger = logging.getLogger("softwarecenter.db")
