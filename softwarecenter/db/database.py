@@ -140,18 +140,63 @@ class StoreDatabase(GObject.GObject):
         # the xapian values as read from /var/lib/apt-xapian-index/values
         self._axi_values = {}
         self._logger = logging.getLogger("softwarecenter.db")
+        # we open one db per thread, thread names are reused eventually
+        # so no memory leak
+        self._db_per_thread = {} 
+        self._parser_per_thread = {} 
 
-    def acquire_search_lock(self):
-        self._search_lock.acquire()
+    @property
+    def xapiandb(self):
+        """ returns a per thread db """
+        thread_name = threading.current_thread().name
+        if not thread_name in self._db_per_thread:
+            self._db_per_thread[thread_name] = self._get_new_xapiandb()
+        return self._db_per_thread[thread_name]
 
-    def release_search_lock(self):
-        self._search_lock.release()
+    @property
+    def xapian_parser(self):
+        """ returns a per thread query parser """
+        thread_name = threading.current_thread().name
+        if not thread_name in self._parser_per_thread:
+            self._parser_per_thread[thread_name] = self._get_new_xapian_parser()
+        return self._parser_per_thread[thread_name]
 
+    def _get_new_xapiandb(self):
+        xapiandb = xapian.Database(self._db_pathname)
+        if self._use_axi:
+            try:
+                axi = xapian.Database("/var/lib/apt-xapian-index/index")
+                xapiandb.add_database(axi)
+            except:
+                self._logger.exception("failed to add apt-xapian-index")
+        if (self._use_agent and 
+            os.path.exists(XAPIAN_BASE_PATH_SOFTWARE_CENTER_AGENT)):
+            try:
+                sca = xapian.Database(XAPIAN_BASE_PATH_SOFTWARE_CENTER_AGENT)
+                xapiandb.add_database(sca)
+            except Exception as e:
+                logging.warn("failed to add sca db %s" % e)
+        for db in self._additional_databases:
+            xapiandb.add_database(db)
+        return xapiandb
+
+    def _get_new_xapian_parser(self):
+        xapian_parser = xapian.QueryParser()
+        xapian_parser.set_database(self.xapiandb)
+        xapian_parser.add_boolean_prefix("pkg", "XP")
+        xapian_parser.add_boolean_prefix("pkg", "AP")
+        xapian_parser.add_boolean_prefix("mime", "AM")
+        xapian_parser.add_boolean_prefix("section", "XS")
+        xapian_parser.add_boolean_prefix("origin", "XOC")
+        xapian_parser.add_prefix("pkg_wildcard", "XP")
+        xapian_parser.add_prefix("pkg_wildcard", "AP")
+        xapian_parser.set_default_op(xapian.Query.OP_AND)
+        return xapian_parser
+        
     def open(self, pathname=None, use_axi=True, use_agent=True):
         """ open the database """
         if pathname:
             self._db_pathname = pathname
-        self.xapiandb = xapian.Database(self._db_pathname)
         # add the apt-xapian-database for here (we don't do this
         # for now as we do not have a good way to integrate non-apps
         # with the UI)
@@ -159,35 +204,13 @@ class StoreDatabase(GObject.GObject):
         self._use_axi = use_axi
         self._use_agent = use_agent
         if use_axi:
-            try:
-                axi = xapian.Database("/var/lib/apt-xapian-index/index")
-                self.xapiandb.add_database(axi)
-                self._axi_values = parse_axi_values_file()
-                self.nr_databases += 1
-            except:
-                self._logger.exception("failed to add apt-xapian-index")
+            self._axi_values = parse_axi_values_file()
+            self.nr_databases += 1
         if use_agent:
-            try:
-                sca = xapian.Database(XAPIAN_BASE_PATH_SOFTWARE_CENTER_AGENT)
-                self.xapiandb.add_database(sca)
-                self.nr_databases += 1
-            except Exception as e:
-                logging.warn("failed to add sca db %s" % e)
+            self.nr_databases += 1
         # additional dbs
         for db in self._additional_databases:
-            self.xapiandb.add_database(db)
             self.nr_databases += 1
-        # parser etc
-        self.xapian_parser = xapian.QueryParser()
-        self.xapian_parser.set_database(self.xapiandb)
-        self.xapian_parser.add_boolean_prefix("pkg", "XP")
-        self.xapian_parser.add_boolean_prefix("pkg", "AP")
-        self.xapian_parser.add_boolean_prefix("mime", "AM")
-        self.xapian_parser.add_boolean_prefix("section", "XS")
-        self.xapian_parser.add_boolean_prefix("origin", "XOC")
-        self.xapian_parser.add_prefix("pkg_wildcard", "XP")
-        self.xapian_parser.add_prefix("pkg_wildcard", "AP")
-        self.xapian_parser.set_default_op(xapian.Query.OP_AND)
         self.emit("open", self._db_pathname)
 
     def add_database(self, database):
