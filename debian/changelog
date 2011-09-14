@@ -34,6 +34,8 @@ software-center (4.1.22.1) UNRELEASED; urgency=low
   * software-center-gtk3:
     - removed, the gtk3 version is now default and identical to 
       the software-center command
+  * softwarecenter/utils.py:
+    - avoid race condition on slow connections (LP: #839462)
   
   [ Matthew McGowan ]
   * softwarecenter/ui/gtk3/app.py:

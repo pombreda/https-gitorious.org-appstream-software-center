@@ -523,18 +523,27 @@ class SimpleFileDownloader(GObject.GObject):
     def __init__(self):
         GObject.GObject.__init__(self)
         self.tmpdir = None
+        self._cancellable = None
 
     def download_file(self, url, dest_file_path=None, use_cache=False,
                       simple_quoting_for_webkit=False):
-        """ download a url and emit the file-download-complete 
-            once the file is there
-            if dest_file_path is given, download to that specific
-            local filename 
-            if use_cache is given it will not use a tempdir, but
-            instead a permanent cache dir
+        """ Download a url and emit the file-download-complete 
+            once the file is there. Note that calling this twice
+            will cancel the previous pending operation.
+            If dest_file_path is given, download to that specific
+            local filename.
+            If use_cache is given it will not use a tempdir, but
+            instead a permanent cache dir - no etag or timestamp
+            checks are performed.
         """
         self.LOG.debug("download_file: %s %s %s" % (
                 url, dest_file_path, use_cache))
+
+        # cancel anything pending to avoid race conditions
+        # like bug #839462
+        if self._cancellable:
+            self._cancellable.cancel()
+        self._cancellable = Gio.Cancellable()
 
         # no need to cache file urls and no need to really download
         # them, its enough to adjust the dest_file_path
@@ -568,11 +577,12 @@ class SimpleFileDownloader(GObject.GObject):
             self.emit('file-url-reachable', True)
             self.emit("file-download-complete", self.dest_file_path)
             return
-        
+
         if have_gi:
             f = Gio.File.new_for_uri(url)
             # first check if the url is reachable
-            f.query_info_async(Gio.FILE_ATTRIBUTE_STANDARD_SIZE, 0, 0, None,
+            f.query_info_async(Gio.FILE_ATTRIBUTE_STANDARD_SIZE, 0, 0, 
+                               self._cancellable,
                                self._check_url_reachable_and_then_download_cb,
                                None)
         else:
@@ -592,7 +602,8 @@ class SimpleFileDownloader(GObject.GObject):
                                                         etag))
             # url is reachable, now download the file
             if have_gi:
-                f.load_contents_async(None, self._file_download_complete_cb, None)
+                f.load_contents_async(
+                    self._cancellable, self._file_download_complete_cb, None)
             else:
                 f.load_contents_async(self._file_download_complete_cb)
         except GObject.GError as e:
