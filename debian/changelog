@@ -36,6 +36,9 @@ software-center (4.1.22.1) UNRELEASED; urgency=low
       the software-center command
   * softwarecenter/utils.py:
     - avoid race condition on slow connections (LP: #839462)
+  * lp:~mvo/software-center/per-thread-xapiandb:
+    - create per-thread xapian.Database objects to avoid race 
+      condition with multiple threads
   
   [ Matthew McGowan ]
   * softwarecenter/ui/gtk3/app.py:
