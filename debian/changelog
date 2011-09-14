@@ -48,6 +48,10 @@ software-center (4.1.22.1) UNRELEASED; urgency=low
   * softwarecenter/ui/gtk3/session/navhistory.py:
     - fix multiple navigation items generated during search
       (LP: #842734)
+  * lp:~mmcg069/software-center/bug844068:
+    - if search is cleared by the user whilst the search context is a 
+      subcategory, return to the unfiltered subcategory list not the 
+      category page (bug 844068).
 
   [ Gary Lasker ]
   * softwarecenter/ui/gtk3/session/viewmanager.py:
