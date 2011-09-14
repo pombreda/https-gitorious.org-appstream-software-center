@@ -22,7 +22,6 @@
 from gi.repository import GObject
 import logging
 import os
-import re
 
 import softwarecenter.paths
 from softwarecenter.paths import PistonHelpers
