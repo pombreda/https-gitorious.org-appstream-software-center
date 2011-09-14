@@ -1,4 +1,4 @@
-software-center (4.1.22.1) UNRELEASED; urgency=low
+software-center (4.1.23) oneiric; urgency=low
 
   [ Michael Vogt ]
   * new default exhibit image from Marcus Haslam, many thanks
@@ -88,7 +88,7 @@ software-center (4.1.22.1) UNRELEASED; urgency=low
     - re-enable the list view action button after a transaction
       is cancelled
 
- -- Gary Lasker <gary.lasker@canonical.com>  Tue, 13 Sep 2011 20:10:38 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 14 Sep 2011 20:18:40 +0200
 
 software-center (4.1.22) oneiric; urgency=low
 

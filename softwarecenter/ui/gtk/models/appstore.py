@@ -187,7 +187,15 @@ class AppStore(gtk.GenericTreeModel):
 
     def _threaded_perform_search(self):
         self._perform_search_complete = False
-        t = threading.Thread(target=self._blocking_perform_search)
+        # generate a name and ensure we never have two threads
+        # with the same name
+        names = [thread.name for thread in threading.enumerate()]
+        for i in range(threading.active_count()+1, 0, -1):
+            thread_name = 'ThreadedQuery-%s' % i
+            if not thread_name in names:
+                break
+        t = threading.Thread(
+            target=self._blocking_perform_search, name = thread_name)
         t.start()
         # don't block the UI while the thread is running
         while not self._perform_search_complete:
@@ -238,10 +246,6 @@ class AppStore(gtk.GenericTreeModel):
         self.matches = []
         self.match_docids = set()
         
-        # acquire lock before performing the search or block until the
-        # lock becomes available
-        self.db.acquire_search_lock()
-
         # now do the search
         for q in self.search_query:
             enquire = xapian.Enquire(self.db.xapiandb)
@@ -321,10 +325,6 @@ class AppStore(gtk.GenericTreeModel):
                     if not match.docid in self.match_docids:
                         self.matches.append(match)
                         self.match_docids.add(match.docid)
-
-        # release the lock here because the following check may trigger
-        # calling this function again (and we would deadlock otherwise)
-        self.db.release_search_lock()
 
         # if we have no results, try forcing pkgs to be displayed
         # if not NONAPPS_NEVER_VISIBLE is set
