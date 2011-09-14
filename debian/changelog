@@ -66,8 +66,13 @@ software-center (4.1.22.1) UNRELEASED; urgency=low
   * softwarecenter/ui/gtk3/gmenusearch.py:
     - fix crash when loading gmenu for 'where is it' (LP: #834450)
   * pyflakes cleanup 
+  * softwarecenter/ui/gtk3/widgets/apptreeview.py:
+    - fix crash when using arrow keys in the list view, other
+      cellbutton fixes (LP: #843409)
+    - re-enable the list view action button after a transaction
+      cancel
 
- -- Gary Lasker <gary.lasker@canonical.com>  Tue, 13 Sep 2011 17:52:17 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 13 Sep 2011 20:02:34 -0400
 
 software-center (4.1.22) oneiric; urgency=low
 
