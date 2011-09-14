@@ -85,7 +85,14 @@ class AppEnquire(GObject.GObject):
 
     def _threaded_perform_search(self):
         self._perform_search_complete = False
-        thread_name = 'ThreadedQuery-%s' % (threading.active_count()+1)
+        # generate a name and ensure we never have two threads
+        # with the same name
+        names = [thread.name for thread in threading.enumerate()]
+        for i in range(threading.active_count()+1, 0, -1):
+            thread_name = 'ThreadedQuery-%s' % i
+            if not thread_name in names:
+                break
+        # create and start it
         t = threading.Thread(
             target=self._blocking_perform_search, name=thread_name)
         t.start()
@@ -127,9 +134,6 @@ class AppEnquire(GObject.GObject):
 
         # use a unique instance of both enquire and xapian database
         # so concurrent queries dont result in an inconsistent database
-
-        # get lock
-        self.db.acquire_search_lock()
 
         # an alternative would be to serialise queries
         enquire = xapian.Enquire(self.db.xapiandb)
@@ -222,10 +226,6 @@ class AppEnquire(GObject.GObject):
                     if not match.docid in match_docids:
                         _matches.append(match)
                         match_docids.add(match.docid)
-
-        # release the lock here because the following check may trigger
-        # calling this function again (and we would deadlock otherwise)
-        self.db.release_search_lock()
 
         # if we have no results, try forcing pkgs to be displayed
         # if not NonAppVisibility.NEVER_VISIBLE is set

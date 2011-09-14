@@ -44,20 +44,20 @@ EXHIBIT_HTML = """
 font-family:Ubuntu;
 font-size:48px;
 font-weight:bold;
-color:white;
+color:red;
 padding: 0.2em;
 position:absolute;
 top:40px;
-left:20px;
+left:232px;
 }
 .banner_subtext {
 font-family:Ubuntu;
 font-size:28px;
-color:white;
+color:red;
 padding: 0.4em;
 position:absolute;
 top:100px;
-left:20px;
+left:232px;
 }
 </style>
 </head><body>
