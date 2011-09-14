@@ -16,6 +16,7 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+import os
 
 from gi.repository import GObject
 
@@ -35,8 +36,7 @@ from softwarecenter.backend.reviews import get_review_loader
 from softwarecenter.backend import get_install_backend
 from softwarecenter.enums import AppActions
 from softwarecenter.distro import get_current_arch
-from softwarecenter.utils import get_parent_xid, get_language
-
+from softwarecenter.utils import get_language
 
 LOG=logging.getLogger(__name__)
 
@@ -119,19 +119,22 @@ class AppDetailsViewBase(object):
         if pkg.installed:
             version = pkg.installed.version
         # call the loader to do call out the right helper and collect the result
-        #~ parent_xid = get_parent_xid(self)
+        parent_xid = ''
+        #parent_xid = get_parent_xid(self)
         self.review_loader.spawn_write_new_review_ui(
             self.app, version, self.appdetails.icon, origin,
-            None, self.datadir,
+            parent_xid, self.datadir,
             self._reviews_ready_callback)
                          
     def _review_report_abuse(self, review_id):
-        parent_xid = get_parent_xid(self)
+        parent_xid = ''
+        #parent_xid = get_parent_xid(self)
         self.review_loader.spawn_report_abuse_ui(
             review_id, parent_xid, self.datadir, self._reviews_ready_callback)
 
     def _review_submit_usefulness(self, review_id, is_useful):
-        parent_xid = get_parent_xid(self)
+        parent_xid = ''
+        #parent_xid = get_parent_xid(self)
         self.review_loader.spawn_submit_usefulness_ui(
             review_id, is_useful, parent_xid, self.datadir,
             self._reviews_ready_callback)

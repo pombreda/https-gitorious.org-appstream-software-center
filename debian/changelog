@@ -57,6 +57,10 @@ software-center (4.1.22.1) UNRELEASED; urgency=low
   * lp:~mmcg069/software-center/themeing-improvements:
     - provide theming css for highcontrast and highcontrastinverse
     - fix dynamic theme updates
+  * lp:~mmcg069/software-center/submit-review-fixes:
+    - add changed sig to star rating widget and correctly ensure the
+      user has set a star rating prior to allowing submition
+    - cleanup
 
   [ Gary Lasker ]
   * softwarecenter/ui/gtk3/session/viewmanager.py:

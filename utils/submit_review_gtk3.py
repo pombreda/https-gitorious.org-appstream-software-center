@@ -19,7 +19,7 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from gi.repository import GObject, Gtk
+from gi.repository import GObject, Gtk, Gdk
 
 import datetime
 import gettext
@@ -434,7 +434,9 @@ class BaseApp(SimpleGtkbuilderApp):
         self.label_transmit_status.set_size_request(-1, Gtk.icon_size_lookup(Gtk.IconSize.SMALL_TOOLBAR)[1])
 
     def _get_parent_xid_for_login_window(self):
-        return self.submit_window.window.xid
+        # no get_xid() yet in gir world
+        #return self.submit_window.get_window().get_xid()
+        return ""
 
     def run(self):
         # initially display a 'Connecting...' page
@@ -463,9 +465,7 @@ class BaseApp(SimpleGtkbuilderApp):
 
     def login(self, show_register=True):
         logging.debug("login()")
-        # either
-        #~ login_window_xid = self._get_parent_xid_for_login_window()
-        login_window_xid = 0
+        login_window_xid = self._get_parent_xid_for_login_window()
         login_text = _("To review software or to report abuse you need to "
                        "sign in to a Ubuntu Single Sign-On account.")
         self.sso = get_sso_backend(login_window_xid,
@@ -583,32 +583,17 @@ class BaseApp(SimpleGtkbuilderApp):
     def _clear_status_imagery(self):
         self.detail_expander.hide()
         self.detail_expander.set_expanded(False)
-        
-        #clears spinner or error image from dialog submission label before trying to display one or the other
-        try: 
-            self.status_hbox.query_child_packing(self.submit_spinner)
+
+        #clears spinner or error image from dialog submission label 
+        # before trying to display one or the other
+        if self.submit_spinner.get_parent():
             self.status_hbox.remove(self.submit_spinner)
-        except TypeError:
-            pass
-        
-        try: 
-            self.status_hbox.query_child_packing(self.submit_error_img)
+        if self.submit_error_img.get_window():
             self.status_hbox.remove(self.submit_error_img)
-        except TypeError:
-            pass
-            
-        try: 
-            self.status_hbox.query_child_packing(self.submit_success_img)
+        if self.submit_success_img.get_window():
             self.status_hbox.remove(self.submit_success_img)
-        except TypeError:
-            pass
-        
-        try: 
-            self.status_hbox.query_child_packing(self.submit_warn_img)
+        if self.submit_warn_img.get_window():
             self.status_hbox.remove(self.submit_warn_img)
-        except TypeError:
-            pass
-        
         return
 
 
@@ -660,7 +645,6 @@ class SubmitReviewsApp(BaseApp):
         
         self.retrieve_api = RatingsAndReviewsAPI()
 
-        
         # data
         self.app = app
         self.version = version
@@ -668,18 +652,20 @@ class SubmitReviewsApp(BaseApp):
         self.iconname = iconname
         self.action = action
         self.review_id = int(review_id)
-        
         # parent xid
         #~ if parent_xid:
-            #~ win = Gtk.gdk.window_foreign_new(int(parent_xid))
+            #~ win = Gdk.Window.foreign_new(int(parent_xid))
+            #~ wnck_get_xid_from_pid(os.getpid())
+            #~ win = ''
+            #~ self.review_buffer.set_text(str(win))
             #~ if win:
                 #~ self.submit_window.realize()
-                #~ self.submit_window.window.set_transient_for(win)
+                #~ self.submit_window.get_window().set_transient_for(win)
 
         self.submit_window.set_position(Gtk.WindowPosition.MOUSE)
         
         self.review_summary_entry.connect('changed', self._on_mandatory_text_entry_changed)
-        #~ self.star_rating.connect('changed', self._on_mandatory_fields_changed)
+        self.star_rating.connect('changed', self._on_mandatory_fields_changed)
         self.review_buffer.connect('changed', self._on_text_entry_changed)
         
         # gwibber stuff
@@ -760,17 +746,7 @@ class SubmitReviewsApp(BaseApp):
 
         return
 
-    # force resize of the legal label when the app resizes, if not
-    # done it looks really bad, thanks gtk for not doing this for me
-    def on_submit_window_size_allocate(self, *args):
-        self._resize_legal_label()
-    def on_submit_window_state_changed(self, *args):
-        self._resize_legal_label()
-    def _resize_legal_label(self):
-        width, height = self.submit_window.get_size()
-        self.label_legal_fineprint.set_size_request(width-24, -1)
-
-    def _on_mandatory_fields_changed(self, widget):
+    def _on_mandatory_fields_changed(self, *args):
         self._enable_or_disable_post_button()
     
     def _on_mandatory_text_entry_changed(self, widget):
@@ -786,7 +762,7 @@ class SubmitReviewsApp(BaseApp):
         review_chars = self.review_buffer.get_char_count()
         if (summary_chars and summary_chars <= self.SUMMARY_CHAR_LIMITS[0] and
             review_chars and review_chars <= self.REVIEW_CHAR_LIMITS[0] and
-            self.star_rating.get_rating()):
+            int(self.star_rating.get_rating()) > 0):
             self.button_post.set_sensitive(True)
             self._change_status("clear", "")
         else:
@@ -816,8 +792,9 @@ class SubmitReviewsApp(BaseApp):
         if self.review_summary_entry.get_text() != self.orig_summary_text:
             return False
         #compare review text
-        if self.review_buffer.get_text(self.review_buffer.get_start_iter(),
-                                           self.review_buffer.get_end_iter()) != self.orig_review_text:
+        if self.review_buffer.get_text(
+            self.review_buffer.get_start_iter(),
+            self.review_buffer.get_end_iter() ) != self.orig_review_text:
             return False
         return True
         
@@ -897,11 +874,12 @@ class SubmitReviewsApp(BaseApp):
         review = Review(self.app)
         text_buffer = self.textview_review.get_buffer()
         review.text = text_buffer.get_text(text_buffer.get_start_iter(),
-                                           text_buffer.get_end_iter())
+                                           text_buffer.get_end_iter(),
+                                           False) # include_hidden_chars
         review.summary = self.review_summary_entry.get_text()
         review.date = datetime.datetime.now()
         review.language = get_language()
-        review.rating = self.star_rating.get_rating()
+        review.rating = int(self.star_rating.get_rating())
         review.package_version = self.version
         review.origin = self.origin
         
@@ -1351,8 +1329,6 @@ if __name__ == "__main__":
     parser = OptionParser()
     parser.add_option("", "--datadir", default=default_datadir)
 
-
-
     # run review personality
     if "submit_review" in sys.argv[0]:
         # check options
@@ -1362,9 +1338,18 @@ if __name__ == "__main__":
         parser.add_option("-V", "--version")
         parser.add_option("-O", "--origin")
         parser.add_option("", "--parent-xid")
+        parser.add_option("", "--test", action="store_true", default=False)
         parser.add_option("", "--debug",
                           action="store_true", default=False)
         (options, args) = parser.parse_args()
+
+        if options.test:
+            options.pkgname = options.pkgname or 'apt'
+            options.appname = options.appname or 'Apt'
+            options.iconname = options.iconname or 'folder'
+            options.version = options.version or '1.0'
+            options.origin = options.origin or 'Ubuntu'
+            options.parent_xid = options.parent_xid or '1'
 
         if not (options.pkgname and options.version):
             parser.error(_("Missing arguments"))
