@@ -152,6 +152,31 @@ def normalize_package_description(desc):
             norm_description += part
     return norm_description.strip()
 
+def get_title_from_html(html):
+    """ takes a html string and returns the document title,
+        if the document has no title it uses the first h1
+        (but only if that has no further html tags)
+        
+        returns "" if it can't find anything or can't parse the html
+    """
+    import xml.etree.ElementTree
+    try:
+        root = xml.etree.ElementTree.fromstring(html)
+    except Exception as e:
+        logging.warn("failed to parse: '%s' (%s)" % (html, e))
+        return ""
+    title = root.findall(".//title")
+    if title:
+        text = title[0].text
+        return text
+    all_h1 = root.findall(".//h1")
+    if all_h1:
+        h1 = all_h1[0]
+        # we don't support any sub html in the h1 when 
+        if len(h1) == 0:
+            return h1.text
+    return ""
+
 def htmlize_package_description(desc):
     html = ""
     inside_li = False

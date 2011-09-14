@@ -29,8 +29,8 @@ software-center (4.1.22.1) UNRELEASED; urgency=low
     - when showing a exhibts list, show with flags=["nonapps-visible"]
       (LP: #849035)
   * softwarecenter/backend/scagent.py:
-    - if the server does not provide a title for a exhibit, just extract
-      the first h1 text and use that as the title
+    - if the server does not provide a title for a exhibit use the
+      html title tag or the first h1
   * software-center-gtk3:
     - removed, the gtk3 version is now default and identical to 
       the software-center command

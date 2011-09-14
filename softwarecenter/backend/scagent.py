@@ -22,7 +22,8 @@
 from gi.repository import GObject
 import logging
 import os
-        
+import re
+
 import softwarecenter.paths
 from softwarecenter.paths import PistonHelpers
 from spawn_helper import SpawnHelper
@@ -118,11 +119,8 @@ class SoftwareCenterAgent(GObject.GObject):
             # just extract the title from the first "h1" html
             if not hasattr(exhibit, "title_translated"):
                 if exhibit.html:
-                    import lxml.etree
-                    root = lxml.etree.XML(exhibit.html)
-                    h1 = root.findall(".//h1")
-                    if h1:
-                        exhibit.title_translated = h1[0].text
+                    from softwarecenter.utils import get_title_from_html
+                    exhibit.title_translated = get_title_from_html(exhibit.html)
                 else:
                     exhibit.title_translated = ""
         self.emit("exhibits", exhibits)
