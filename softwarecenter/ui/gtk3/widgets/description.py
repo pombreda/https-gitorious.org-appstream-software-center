@@ -376,7 +376,7 @@ class TextBlock(Gtk.EventBox):
         self.set_size_request(200, -1)
         #~ self.set_redraw_on_allocate(False)
 
-        self.set_can_focus(True)
+        #~ self.set_can_focus(True)
         self.set_events(Gdk.EventMask.KEY_PRESS_MASK|
                         Gdk.EventMask.ENTER_NOTIFY_MASK|
                         Gdk.EventMask.LEAVE_NOTIFY_MASK|
@@ -384,38 +384,30 @@ class TextBlock(Gtk.EventBox):
                         Gdk.EventMask.POINTER_MOTION_MASK)
 
         self._is_new = False
-        self._bullet = self._new_layout()
-        self._bullet.set_markup(self.BULLET_POINT)
-        font_desc = Pango.FontDescription()
-
-        font_desc.set_weight(Pango.Weight.BOLD)
-        self._bullet.set_font_description(font_desc)
-
-        event_helper = EventHelper()
-
-        e = self._bullet.get_pixel_extents()
-        self.indent, self.line_height  = e.width, e.height
 
         self.order = []
         self.cursor = cur = PrimaryCursor(self)
         self.selection = sel = SelectionCursor(self.cursor)
         self.clipboard = None
 
+        #~ event_helper = EventHelper()
+        self._update_cached_layouts()
         self._test_layout = self.create_pango_layout('')
+
         #self._xterm = Gdk.Cursor.new(Gdk.XTERM)
+#~ 
+        #~ self.connect('button-press-event', self._on_press, event_helper, cur, sel)
+        #~ self.connect('button-release-event', self._on_release, event_helper, cur, sel)
+        #~ self.connect('motion-notify-event', self._on_motion, event_helper, cur, sel)
 
-        self.connect('button-press-event', self._on_press, event_helper, cur, sel)
-        self.connect('button-release-event', self._on_release, event_helper, cur, sel)
-        self.connect('motion-notify-event', self._on_motion, event_helper, cur, sel)
-
-        self.connect('key-press-event', self._on_key_press, cur, sel)
-        self.connect('key-release-event', self._on_key_release, cur, sel)
+        #~ self.connect('key-press-event', self._on_key_press, cur, sel)
+        #~ self.connect('key-release-event', self._on_key_release, cur, sel)
 
 #        self.connect('drag-begin', self._on_drag_begin)
         #~ self.connect('drag-data-get', self._on_drag_data_get, sel)
 
-        self.connect('focus-in-event', self._on_focus_in)
-        self.connect('focus-out-event', self._on_focus_out)
+        #~ self.connect('focus-in-event', self._on_focus_in)
+        #~ self.connect('focus-out-event', self._on_focus_out)
 
         self.connect('style-updated', self._on_style_updated)
         return
@@ -470,14 +462,16 @@ class TextBlock(Gtk.EventBox):
         return l
 
     def _on_style_updated(self, widget):
+        print 'description style-updated'
         #style = self.get_style()
-        if self.has_focus():
-            self._bg = self._color_parse('red')
-            self._fg = self._color_parse('#000')
-        else:
+        #~ if self.has_focus():
+            #~ self._bg = self._color_parse('red')
+            #~ self._fg = self._color_parse('#000')
+        #~ else:
             #~ _, self._bg = Gdk.color_parse('#E5E3E1')
-            self._bg = self._color_parse('red')
-            self._fg = self._color_parse('#000')
+            #~ self._bg = self._color_parse('red')
+            #~ self._fg = self._color_parse('#000')
+        self._update_cached_layouts()
         return
 
 #    def _on_drag_begin(self, widgets, context, event_helper):
@@ -965,6 +959,18 @@ class TextBlock(Gtk.EventBox):
         layout = Layout(self, text)
         layout.set_wrap(Pango.WrapMode.WORD_CHAR)
         return layout
+
+    def _update_cached_layouts(self):
+        self._bullet = self._new_layout()
+        self._bullet.set_markup(self.BULLET_POINT)
+        font_desc = Pango.FontDescription()
+
+        font_desc.set_weight(Pango.Weight.BOLD)
+        self._bullet.set_font_description(font_desc)
+
+        e = self._bullet.get_pixel_extents()
+        self.indent, self.line_height  = e.width, e.height
+        return
 
     def _selection_highlight(self, layout, sel, bg, fg):
         i = layout.index
