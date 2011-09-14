@@ -1,0 +1,22 @@
+#featured-star {
+    border-color: #ED0000;  /* darkish red */
+    color: #ED0000;         /* darkish red */
+}
+
+.cellrenderer-button {
+    border-radius: 0
+}
+
+.more-link {
+    -GtkButton-inner-border: 0;
+    -GtkButton-default-border: 0;
+    -GtkButton-default-outside-border: 0;
+    background-color: #FF8888;  /* pinkish */
+}
+
+GtkViewport {
+    border-width: 0;
+    padding: 0;
+}
+
+

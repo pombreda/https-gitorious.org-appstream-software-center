@@ -272,7 +272,7 @@ class Star(Gtk.EventBox, StarRenderer):
 
         self.set_visible_window(False)
         self.connect("draw", self.on_draw)
-        #~ self.connect("style-updated", self.on_style_updated)
+        self.connect("style-updated", self.on_style_updated)
         return
 
     def do_get_preferred_width(self):
@@ -303,6 +303,7 @@ class Star(Gtk.EventBox, StarRenderer):
     def on_style_updated(self, widget):
         global _star_surface_cache
         _star_surface_cache = {}
+        self.queue_draw()
         return
 
     def on_draw(self, widget, cr):

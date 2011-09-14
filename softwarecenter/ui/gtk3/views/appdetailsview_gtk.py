@@ -99,15 +99,39 @@ class StatusBar(Gtk.Alignment):
 
         self.view = view
 
+        self.connect("style-updated", self.on_style_updated)
+        return
+
+    def on_style_updated(self, widget):
+        context = self.get_style_context()
+        context.add_class("item-view-separator")
+        context = widget.get_style_context()
+        border = context.get_border(Gtk.StateFlags.NORMAL)
+        self._border_width = max(1, max(border.top, border.bottom))
+        return
+
     def do_draw(self, cr):
         cr.save()
         a = self.get_allocation()
-        cr.rectangle(-1,0, a.width+2, a.height)
-        cr.set_source_rgba(1,1,1,0.3)
+        width = self._border_width
+
+        # fill bg
+        cr.rectangle(-width, 0, a.width+2*width, a.height)
+        cr.set_source_rgba(1, 1, 1, 0.3)
         cr.fill_preserve()
-        cr.set_source_rgb(0.784313725, 0.784313725, 0.784313725)
-        cr.set_dash((1, 1), 1)
+
+        # paint dashed top/bottom borders
+        context = self.get_style_context()
+        context.save()
+        context.add_class("item-view-separator")
+        bc = context.get_border_color(self.get_state_flags())
+        context.restore()
+
+        Gdk.cairo_set_source_rgba(cr, bc)
+        cr.set_dash((width, 2*width), 1)
+        cr.set_line_width(2*width)
         cr.stroke()
+
         cr.restore()
 
         for child in self: self.propagate_draw(child, cr)

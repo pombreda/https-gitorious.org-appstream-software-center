@@ -118,11 +118,18 @@ class FlowableGrid(Gtk.Fixed):
 
     # public
     def render_grid(self, cr):
+        context = self.get_style_context()
+        context.save()
+        context.add_class("grid-lines")
+        bg = context.get_border_color(self.get_state_flags())
+        context.restore()
+
         cr.save()
         a = self.get_allocation()
         rounded_rect(cr, 0, 0, a.width, a.height-1, Frame.BORDER_RADIUS)
         cr.clip()
-        cr.set_source_rgb(0.905882353,0.894117647,0.901960784) #E7E4E6
+
+        Gdk.cairo_set_source_rgba(cr, bg)
         cr.set_line_width(1)
 
         cell_w = a.width / self.n_columns
@@ -218,6 +225,11 @@ class Frame(Gtk.Alignment):
                            #~ assets, self.layout)
         self._allocation = Gdk.Rectangle()
         self.connect("size-allocate", self.on_size_allocate)
+        self.connect("style-updated", self.on_style_updated)
+        return
+
+    def on_style_updated(self, widget):
+        self._frame_surface_cache = None
         return
 
     def on_size_allocate(self, *args):
@@ -425,7 +437,9 @@ class Frame(Gtk.Alignment):
 
             # fill interior
             rounded_rect(_cr, 3, 2, a.width-6, a.height-6, border_radius)
-            _cr.set_source_rgba(0.992156863,0.984313725,0.988235294)  #FDFBFC
+            context = self.get_style_context()
+            bg = context.get_background_color(self.get_state_flags())
+            Gdk.cairo_set_source_rgba(_cr, bg)
             _cr.fill()
 
             self._frame_surface_cache = surf
@@ -560,7 +574,13 @@ class FramedHeaderBox(FramedBox):
         cr.rectangle(0, 0, a.width, a.height)
         cr.fill()
 
-        cr.set_source_rgb(0.905882353,0.894117647,0.901960784)  # gridline color
+        # gridline color
+        context.save()
+        context.add_class("grid-lines")
+        bc = context.get_border_color(self.get_state_flags())
+        Gdk.cairo_set_source_rgba(cr, bc)
+        context.restore()
+
         cr.move_to(0, a.height-0.5)
         cr.rel_line_to(a.width, 0)
         cr.set_line_width(1)
@@ -569,11 +589,10 @@ class FramedHeaderBox(FramedBox):
 
         if hasattr(self, "more"):
             # set the arrow fill color
-            context = self.get_style_context()
+            context = self.more.get_style_context()
             cr.save()
 
-            bg = darken(context.get_background_color(self.get_state_flags()))
-            bg.alpha = 0.3
+            bg = context.get_background_color(self.get_state_flags())
             Gdk.cairo_set_source_rgba(cr, bg)
 
             # the arrow shape stuff
@@ -586,6 +605,9 @@ class FramedHeaderBox(FramedBox):
             cr.close_path()
             cr.clip_preserve()
             cr.fill_preserve()
+
+            bc = context.get_border_color(self.get_state_flags())
+            Gdk.cairo_set_source_rgba(cr, bc)
             cr.stroke()
 
             cr.restore()

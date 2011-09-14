@@ -42,7 +42,6 @@ class BackForwardButton(Gtk.HBox):
 
     def __init__(self, part_size=None):
         Gtk.HBox.__init__(self)
-        self.set_spacing(1)
 
         if self.get_direction() != Gtk.TextDirection.RTL:
             # ltr
@@ -65,6 +64,14 @@ class BackForwardButton(Gtk.HBox):
 
         self.left.connect("clicked", self.on_clicked)
         self.right.connect("clicked", self.on_clicked)
+        self.connect("style-updated", self.on_style_updated)
+        return
+
+    def on_style_updated(self, widget):
+        # set the spacing between back/forward buttons on style changes
+        context = self.left.get_style_context()
+        border = context.get_border(Gtk.StateFlags.NORMAL)
+        self.set_spacing(max(1, max(border.left, border.right)))
         return
 
     def on_clicked(self, button):
@@ -75,11 +82,8 @@ class BackForwardButton(Gtk.HBox):
         cr.save()
         a = self.get_allocation()
         # divider
-        toolbar = self.get_ancestor('GtkToolbar')
-        context = toolbar.get_style_context()
-
-        color = darken(context.get_border_color(Gtk.StateFlags.ACTIVE), 0.2)
-
+        context = self.left.get_style_context()
+        color = context.get_border_color(Gtk.StateFlags.ACTIVE)
         Gdk.cairo_set_source_rgba(cr, color)
         cr.move_to(0.5*a.width, 1)
         cr.rel_line_to(0, a.height-2)
