@@ -40,9 +40,6 @@ _HAND = Gdk.Cursor.new(Gdk.CursorType.HAND2)
 EXHIBIT_HTML = """
 <html><head>
 <style type="text/css">
-body {
-width: 10000px;
-}
 .banner_text {
 font-family:Ubuntu;
 font-size:48px;
