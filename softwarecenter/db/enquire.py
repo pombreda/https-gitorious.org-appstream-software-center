@@ -85,7 +85,14 @@ class AppEnquire(GObject.GObject):
 
     def _threaded_perform_search(self):
         self._perform_search_complete = False
-        thread_name = 'ThreadedQuery-%s' % (threading.active_count()+1)
+        # generate a name and ensure we never have two threads
+        # with the same name
+        names = [thread.name for thread in threading.enumerate()]
+        for i in range(threading.active_count()+1, 0, -1):
+            thread_name = 'ThreadedQuery-%s' % i
+            if not thread_name in names:
+                break
+        # create and start it
         t = threading.Thread(
             target=self._blocking_perform_search, name=thread_name)
         t.start()
