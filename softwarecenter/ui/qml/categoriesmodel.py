@@ -19,6 +19,11 @@
 
 import os
 
+# this is a bit silly, but *something* imports gtk2 symbols, so if we 
+# force gtk3 here it crashes - the only reason we need this at all is to
+# get the icon path
+import gi
+gi.require_version("Gtk", "2.0")
 from gi.repository import Gtk
 
 from PySide.QtCore import QAbstractListModel, QModelIndex
