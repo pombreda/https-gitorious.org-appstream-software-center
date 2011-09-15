@@ -73,7 +73,8 @@ class PendingStore(Gtk.ListStore):
             # other clear() is run before the "_append_transaction" handler
             # is run and we end up with two (or more) _append_transactions
             trans = self._transactions_watcher.get_transaction(tid)
-            self._append_transaction(trans)
+            if trans:
+                self._append_transaction(trans)
         # add pending purchases as pseudo transactions
         for pkgname in self.backend.pending_purchases:
             iconname = self.backend.pending_purchases[pkgname].iconname

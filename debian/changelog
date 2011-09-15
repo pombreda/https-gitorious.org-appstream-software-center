@@ -17,6 +17,10 @@ software-center (4.1.23.2) UNRELEASED; urgency=low
     - make the locale code more robust (LP: #846038)
   * softwarecenter/db/history_impl/apthistory.py:
     - be more robust against broken history.log files (LP: #666449)
+  * softwarecenter/backend/installbackend_impl/aptd.py:
+    - be more robust about potential races (LP: #848676)
+  * softwarecenter/ui/gtk3/models/pendingstore.py:
+    - only add transactions if we get meaningful data
   
   [ Matthew McGowan ]
   * lp:~mmcg069/software-center/highcontrast-theme-improvements:
