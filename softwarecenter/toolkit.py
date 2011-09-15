@@ -7,9 +7,9 @@ class UIToolkits:
     FALLBACK = GTK3
 
 
-if 'software-center-gtk3' in sys.argv[0]:
+if 'software-center' in sys.argv[0]:
     CURRENT_TOOLKIT = UIToolkits.GTK3
-elif 'software-center-gtk' in sys.argv[0]:
+elif 'software-center-gtk2' in sys.argv[0]:
     CURRENT_TOOLKIT = UIToolkits.GTK2
 elif 'software-center-qml' in sys.argv[0]:
     CURRENT_TOOLKIT = UIToolkits.QML
