@@ -76,6 +76,16 @@ class ExecutionTime(object):
         logger = logging.getLogger("softwarecenter.performance")
         logger.debug("%s: %s" % (self.info, time.time() - self.now))
 
+def utf8(s):
+    """
+    Takes a string or unicode object and returns a utf-8 encoded
+    string, errors are ignored
+    """
+    if isinstance(s, unicode):
+        return s.encode("utf-8", "ignore")
+    return unicode(s, "utf8", "ignore").encode("utf8")
+
+
 def log_traceback(info):
     """
     Helper that can be used as a debug helper to show what called
