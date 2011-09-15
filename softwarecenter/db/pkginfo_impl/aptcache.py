@@ -21,7 +21,6 @@
 import apt
 import apt_pkg
 import logging
-import sys
 import os
 
 from gi.repository import GObject

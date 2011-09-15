@@ -19,7 +19,6 @@
 
 
 import dbus
-import sys
 import logging
 
 from dbus.mainloop.glib import DBusGMainLoop

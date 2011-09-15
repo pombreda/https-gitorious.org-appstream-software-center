@@ -27,7 +27,6 @@ import random
 import subprocess
 import string
 import imp
-import sys
 
 from gi.repository import GObject
 

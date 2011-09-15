@@ -42,7 +42,7 @@ class PocketLint(distutils.cmd.Command):
 
 
 def merge_authors_into_about_dialog():
-    fname = "./data/ui/gtk3/SoftwareCenter.ui":
+    fname = "./data/ui/gtk3/SoftwareCenter.ui"
     authors = open("AUTHORS").read()
     gtkbuilder = open(fname).read()
     gtkbuilder = re.sub(r'<property name="authors">.*?</property>',

@@ -25,7 +25,6 @@ import string
 import shutil
 import time
 import xapian
-import sys
 
 from gi.repository import GObject
 

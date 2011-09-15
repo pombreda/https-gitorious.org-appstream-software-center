@@ -2,12 +2,6 @@
 software-center
 utils/submit_review.py
 utils/update-software-center
-[type: gettext/glade] data/ui/gtk/SoftwareCenter.ui
-[type: gettext/glade] data/ui/gtk/dialogs.ui
-[type: gettext/glade] data/ui/gtk/login.ui
-[type: gettext/glade] data/ui/gtk/submit_review.ui
-[type: gettext/glade] data/ui/gtk/submit_usefulness.ui
-[type: gettext/glade] data/ui/gtk/report_abuse.ui
 data/ubuntu-software-center.desktop.in
 data/unbranded-software-center.desktop.in
 [type: gettext/xml] data/featured.menu.in
@@ -30,33 +24,6 @@ softwarecenter/distro/__init__.py
 softwarecenter/distro/Ubuntu.py
 softwarecenter/enums.py
 softwarecenter/utils.py
-softwarecenter/ui/gtk/appdetailsview.py
-softwarecenter/ui/gtk/appdetailsview_gtk.py
-softwarecenter/ui/gtk/appview.py
-softwarecenter/ui/gtk/availablepane.py
-softwarecenter/ui/gtk/catview_gtk.py
-softwarecenter/ui/gtk/channelpane.py
-softwarecenter/ui/gtk/dependency_dialogs.py
-softwarecenter/ui/gtk/deauthorize_dialog.py
-softwarecenter/ui/gtk/dialogs.py
-softwarecenter/ui/gtk/historypane.py
-softwarecenter/ui/gtk/installedpane.py
-softwarecenter/ui/gtk/logindialog.py
-softwarecenter/ui/gtk/pendingview.py
-softwarecenter/ui/gtk/purchaseview.py
-softwarecenter/ui/gtk/softwarepane.py
-softwarecenter/ui/gtk/viewswitcher.py
-softwarecenter/ui/gtk/models/appstore.py
-softwarecenter/ui/gtk/models/viewswitcherlist.py
-softwarecenter/ui/gtk/widgets/actionbar2.py
-softwarecenter/ui/gtk/widgets/backforward.py
-softwarecenter/ui/gtk/widgets/carousel.py
-softwarecenter/ui/gtk/widgets/pathbar_gtk_atk.py
-softwarecenter/ui/gtk/widgets/packagenamesview.py
-softwarecenter/ui/gtk/widgets/reviews.py
-softwarecenter/ui/gtk/widgets/searchentry.py
-softwarecenter/ui/gtk/widgets/thumbnail.py
-softwarecenter/ui/gtk/widgets/weblivedialog.py
 [type: gettext/glade]data/ui/gtk3/SoftwareCenter.ui
 [type: gettext/glade]data/ui/gtk3/dialogs.ui
 [type: gettext/glade]data/ui/gtk3/login.ui

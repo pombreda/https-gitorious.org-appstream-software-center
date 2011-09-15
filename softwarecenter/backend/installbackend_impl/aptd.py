@@ -21,7 +21,6 @@ import dbus
 import logging
 import os
 import re
-import sys
 
 from gi.repository import GObject
 

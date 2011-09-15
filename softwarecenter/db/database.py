@@ -22,7 +22,6 @@ import os
 import re
 import string
 import threading
-import sys
 import xapian
 from softwarecenter.db.application import Application
 

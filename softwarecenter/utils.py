@@ -17,7 +17,6 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import gettext
-import sys
 from gi.repository import GObject
 from gi.repository import Gio
 import logging

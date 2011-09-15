@@ -20,8 +20,6 @@
 import apt_pkg
 apt_pkg.init_config()
 
-import sys
-
 from gi.repository import GObject
 from gi.repository import Gio
 

@@ -28,7 +28,6 @@ except ImportError:
 
 import logging
 import os
-import sys
 import json
 
 from gi.repository import GObject

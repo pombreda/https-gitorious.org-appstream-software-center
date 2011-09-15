@@ -1,1 +1,0 @@
-../utils/submit_usefulness.py

@@ -20,7 +20,6 @@
 import os
 import logging
 import xapian
-import sys
 
 from gi.repository import GObject
 
