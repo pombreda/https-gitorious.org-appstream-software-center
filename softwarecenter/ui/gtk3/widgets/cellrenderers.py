@@ -348,17 +348,17 @@ class CellRendererAppView(Gtk.CellRendererText):
         layout = self._layout
 
         # important! ensures correct text rendering, esp. when using hicolor theme
-        if (flags & Gtk.CellRendererState.SELECTED) != 0:
-            # this follows the behaviour that gtk+ uses for states in treeviews
-            if widget.has_focus():
-                state = Gtk.StateFlags.SELECTED
-            else:
-                state = Gtk.StateFlags.ACTIVE
-        else:
-            state = Gtk.StateFlags.NORMAL
+        #~ if (flags & Gtk.CellRendererState.SELECTED) != 0:
+            #~ # this follows the behaviour that gtk+ uses for states in treeviews
+            #~ if widget.has_focus():
+                #~ state = Gtk.StateFlags.SELECTED
+            #~ else:
+                #~ state = Gtk.StateFlags.ACTIVE
+        #~ else:
+            #~ state = Gtk.StateFlags.NORMAL
 
         context.save()
-        context.set_state(state)
+        #~ context.set_state(state)
 
         if isinstance(app, CategoryRowReference):
             self._render_category(context, cr, app,

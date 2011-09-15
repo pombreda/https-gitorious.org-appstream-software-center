@@ -3,6 +3,18 @@
     color: #ED0000   /* darkish red */
 }
 
+.section-sel-bg {
+    background-color: #666699;
+}
+
+GtkArrow:hover,
+.section-sel:hover,
+.symbolic-icon:hover,
+.label-tile:hover,
+.category-tile:hover {
+    color: pink;
+}
+
 .cellrenderer-button {
     border-radius: 0
 }
@@ -14,6 +26,7 @@
 .subtle,
 #subtle-label {
     color: pink; /* non-link text color */
+    background-color: #666699; /* link hover bg color */
 }
 
 .item-view-separator {
