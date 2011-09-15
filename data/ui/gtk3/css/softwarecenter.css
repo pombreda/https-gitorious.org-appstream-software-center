@@ -11,6 +11,15 @@
     border-color: shade (@light-aubergine, 1.025);
 }
 
+
+.backforward-left-button {
+    border-radius: 3 0 0 3;
+}
+
+.backforward-right-button {
+    border-radius: 0 3 3 0;
+}
+
 .subtle,
 #subtle-label {
     -GtkWidget-link-color: shade (@super-light-aubergine, 0.5);

@@ -28,6 +28,7 @@ class GlobalPane(Gtk.Toolbar):
         self.back_forward = vm.get_global_backforward()
         self.back_forward.set_vexpand(False)
         self.back_forward.set_valign(Gtk.Align.CENTER)
+
         if self.get_direction() != Gtk.TextDirection.RTL:
             _widget_set_margins(self.back_forward,
                                 left=StockEms.MEDIUM, right=StockEms.MEDIUM+2)
