@@ -333,9 +333,9 @@ class InstalledPane(SoftwarePane, CategoriesParser):
             # cache the installed app count
             self.installed_count = i
             self.app_view._append_appcount(self.installed_count, mode=AppView.INSTALLED_MODE)
-            self.emit("app-list-changed", i)
-            self.spinner_view.stop()
             self.spinner_notebook.set_current_page(InstalledPane.Pages.APPVIEW)
+            self.spinner_view.stop()
+            self.emit("app-list-changed", i)
             return
 
         GObject.idle_add(rebuild_categorised_view)
