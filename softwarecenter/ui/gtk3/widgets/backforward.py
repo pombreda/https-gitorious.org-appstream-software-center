@@ -38,8 +38,6 @@ class BackForwardButton(Gtk.HBox):
                                     None,
                                     ())}
 
-    BORDER_RADIUS = 4
-
     def __init__(self, part_size=None):
         Gtk.HBox.__init__(self)
 
@@ -64,35 +62,10 @@ class BackForwardButton(Gtk.HBox):
 
         self.left.connect("clicked", self.on_clicked)
         self.right.connect("clicked", self.on_clicked)
-        self.connect("style-updated", self.on_style_updated)
-        return
-
-    def on_style_updated(self, widget):
-        # set the spacing between back/forward buttons on style changes
-        context = self.left.get_style_context()
-        border = context.get_border(Gtk.StateFlags.NORMAL)
-        self.set_spacing(max(1, max(border.left, border.right)))
         return
 
     def on_clicked(self, button):
         self.emit(button.signal_name)
-        return
- 
-    def do_draw(self, cr):
-        cr.save()
-        a = self.get_allocation()
-        # divider
-        context = self.left.get_style_context()
-        color = context.get_border_color(Gtk.StateFlags.ACTIVE)
-        Gdk.cairo_set_source_rgba(cr, color)
-        cr.move_to(0.5*a.width, 1)
-        cr.rel_line_to(0, a.height-2)
-        cr.set_line_width(1)
-        cr.stroke()
-
-        cr.restore()
-
-        for child in self: self.propagate_draw(child, cr)
         return
 
     def set_button_atk_info_ltr(self):
@@ -135,26 +108,25 @@ class ButtonPart(Gtk.Button):
         self.arrow_type = arrow_type
 
         if self.arrow_type == Gtk.ArrowType.LEFT:
-            arrow = Gtk.Image.new_from_icon_name('stock_left',
+            self.arrow = Gtk.Image.new_from_icon_name('stock_left',
                                                  Gtk.IconSize.BUTTON)
         elif self.arrow_type == Gtk.ArrowType.RIGHT:
-            arrow = Gtk.Image.new_from_icon_name('stock_right',
+            self.arrow = Gtk.Image.new_from_icon_name('stock_right',
                                                  Gtk.IconSize.BUTTON)
 
         #~ arrow = Gtk.Arrow.new(arrow_type, Gtk.ShadowType.OUT)
         #~ arrow.set_margin_top(2)
         #~ arrow.set_margin_bottom(2)
-        arrow.set_margin_left(2)
-        arrow.set_margin_right(2)
-        self.add(arrow)
-
+        self.arrow.set_margin_left(2)
+        self.arrow.set_margin_right(2)
+        self.add(self.arrow)
         self.signal_name = signal_name
-        self.border_radius = BackForwardButton.BORDER_RADIUS
         return
 
     def do_draw(self, cr):
         context = self.get_style_context()
         context.save()
+
         state = self.get_state_flags()
         if (state & Gtk.StateFlags.NORMAL) == 0:
             state = Gtk.StateFlags.PRELIGHT
@@ -166,11 +138,13 @@ class ButtonPart(Gtk.Button):
         width = a.width
         height = a.height
 
+        border = context.get_border(Gtk.StateFlags.PRELIGHT)
+
         if self.arrow_type == Gtk.ArrowType.LEFT:
-            width += 10
+            width += 2 * border.right
         elif self.arrow_type == Gtk.ArrowType.RIGHT:
-            x -= 10
-            width += 10
+            x -= border.left
+            width += border.left
 
         Gtk.render_background(context, cr,
                               x, y, width, height)
@@ -182,10 +156,13 @@ class ButtonPart(Gtk.Button):
         for child in self: self.propagate_draw(child, cr)
         return
 
+
 class Left(ButtonPart):
 
     def __init__(self, sig_name, arrow_type=Gtk.ArrowType.LEFT):
         ButtonPart.__init__(self, arrow_type, sig_name)
+        context = self.get_style_context()
+        context.add_class("backforward-left-button")
         return
 
 
@@ -193,6 +170,8 @@ class Right(ButtonPart):
 
     def __init__(self, sig_name, arrow_type=Gtk.ArrowType.RIGHT):
         ButtonPart.__init__(self, arrow_type, sig_name)
+        context = self.get_style_context()
+        context.add_class("backforward-right-button")
         return
 
 
