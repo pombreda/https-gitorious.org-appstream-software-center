@@ -22,39 +22,36 @@ Architecture: all
 Depends: ${python:Depends},
          ${misc:Depends},
          app-install-data (>= 0.4.0),
+         aptdaemon (>= 0.40),
          humanity-icon-theme,
          gir1.2-glib-2.0,
-         gnome-menus,
+         gir1.2-gtk-3.0,
+         gir1.2-gmenu-3.0 (>= 3.1.5),
+         gir1.2-webkit-3.0,
+         python-gobject,
          python-xapian,
          python-apt (>= 0.7.93.1),
          python-aptdaemon (>= 0.40),
-         python-aptdaemon-gtk,
+         python-aptdaemon.gtk3widgets
          python-dbus,
          python-defer,
          policykit-1,
          policykit-1-gnome | policykit-1-kde,
-         python-gtk2,
-         python-gobject,
-         python-webkit,
          python-xdg,
-         python-gmenu,
-         gir1.2-gmenu-3.0 (>= 3.1.5),
-         aptdaemon (>= 0.40),
 	 python-lazr.restfulclient,
          ubuntu-sso-client (>= 0.99.6),
          python-piston-mini-client (>= 0.1+bzr29),
          oneconf (>= 0.2.6),
 Recommends: lsb-release, 
-            python-launchpad-integration, 
+            gir1.2-launchpad-integration-3.0, 
             apt-xapian-index (>= 0.38ubuntu1), 
             update-notifier, 
             software-properties-gtk,
             sessioninstaller, 
-            zeitgeist-core, 
+            zeitgeist-core,
 Conflicts: gnome-app-install (<< 1), oneconf (<< 0.2.6.1)
 Replaces: gnome-app-install
 Provides: gnome-app-install
-Suggests: python-launchpadlib
 Description: Utility for browsing, installing, and removing software
  Ubuntu Software Center lets you browse and install thousands of 
  free and paid applications available for Ubuntu. You can view available 
