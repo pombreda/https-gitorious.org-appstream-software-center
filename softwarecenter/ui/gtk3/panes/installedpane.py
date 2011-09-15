@@ -68,7 +68,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
        It contains a search entry and navigation buttons
     """
 
-    class Pages:
+    class Pages(SoftwarePane.Pages):
         # page names, useful for debuggin
         NAMES = ('list', 'details')
         # the actual page id's
@@ -181,7 +181,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
 
         self.view_initialized = True
         return False
-        
+
     def _selected_computer_changed(self, oneconf_pickler, hostid, hostname):
         if self.current_hostid == hostid:
             return
@@ -191,11 +191,11 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         if self.current_hostid:
             (self.oneconf_additional_pkg, self.oneconf_missing_pkg) = self.oneconf_handler.oneconf.diff(self.current_hostid, '')
         self.refresh_apps()
-        
+
     def _last_time_sync_oneconf_changed(self, oneconf_handler, msg):
         LOG.debug("refresh latest sync date")
         self.oneconf_last_sync.set_label(msg)
-        
+
     def _show_oneconf_changed(self, oneconf_handler, oneconf_inventory_shown):
         LOG.debug('Share inventory status changed')
         if oneconf_inventory_shown:
@@ -208,7 +208,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
             self.computerpane.hide()
             self.app_view.reparent(self.box_app_list)
             self.box_app_list.pack_start(self.app_view, True, True, 0)
-            
+
     def _on_stop_showing_oneconf_clicked(self, widget):
         LOG.debug("Stop sharing the current computer inventory")
         self.oneconf_handler.sync_between_computers(False)
@@ -252,6 +252,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
     #~ @interrupt_build_and_wait
     def _build_categorised_installedview(self):
         LOG.debug('Rebuilding categorised installedview...')
+        self.spinner_notebook.set_current_page(InstalledPane.Pages.SPINNER)
         model = self.base_model # base model not treefilter
         model.clear()
 
@@ -318,6 +319,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
             self.installed_count = i
             self.app_view._append_appcount(self.installed_count, mode=AppView.INSTALLED_MODE)
             self.emit("app-list-changed", i)
+            self.spinner_notebook.set_current_page(InstalledPane.Pages.APPVIEW)
             return
 
         GObject.idle_add(rebuild_categorised_view)
@@ -352,6 +354,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
                           persistent_duplicate_filter=(i>0))
 
             L = len(enq.matches)
+
             if L:
                 cat_title = ngettext('%(amount)s item on “%(machine)s” not on this computer',
                                      '%(amount)s items on “%(machine)s” not on this computer',
@@ -383,7 +386,6 @@ class InstalledPane(SoftwarePane, CategoriesParser):
                 self.cat_docid_map["additionalpkg"] = set([doc.get_docid() for doc in docs])
                 model.set_nocategory_documents(docs, untranslated_name="additionalpkg",
                                                display_name=cat_title)
-
 
             if i:
                 self.app_view.tree_view.set_cursor(Gtk.TreePath(),
