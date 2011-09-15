@@ -32,7 +32,7 @@ Depends: ${python:Depends},
          python-xapian,
          python-apt (>= 0.7.93.1),
          python-aptdaemon (>= 0.40),
-         python-aptdaemon.gtk3widgets
+         python-aptdaemon.gtk3widgets,
          python-dbus,
          python-defer,
          policykit-1,
