@@ -10,6 +10,8 @@ software-center (4.1.23.2) UNRELEASED; urgency=low
   * lp:~mmcg069/software-center/bug848845:
     - use the stock_zoom-page cursor, which in the currernt icon 
       theme still presents as a magnifying glass (LP: #848845)
+  * lp:~mmcg069/software-center/minor-vis-fixes:
+    - even up the borders around a Frame
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 15 Sep 2011 14:49:34 +0200
 

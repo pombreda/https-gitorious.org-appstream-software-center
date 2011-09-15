@@ -208,7 +208,10 @@ class Frame(Gtk.Alignment):
 
     def __init__(self, padding=0):
         Gtk.Alignment.__init__(self)
-        self.set_padding(padding, padding, padding, padding)
+        # set padding + some additional padding in the bottom, left and
+        # right edges to factor in the dropshadow width, and ensure even
+        # visual border
+        self.set_padding(padding, padding+2, padding+1, padding+1)
 
         # corner lable jazz
         #~ self.show_corner_label = False
