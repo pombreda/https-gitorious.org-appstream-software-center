@@ -282,9 +282,12 @@ class ReviewLoader(object):
            as it is called a lot during tree view display
         """
         # check cache
-        application = Application("", translated_application.pkgname)
-        if application in self.REVIEW_STATS_CACHE:
-            return self.REVIEW_STATS_CACHE[application]
+        try:
+            application = Application("", translated_application.pkgname)
+            if application in self.REVIEW_STATS_CACHE:
+                return self.REVIEW_STATS_CACHE[application]
+        except ValueError:
+            pass
         return None
 
     def refresh_review_stats(self, callback):
