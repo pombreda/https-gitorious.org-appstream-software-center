@@ -22,11 +22,7 @@
 import os
 import sys
 
-if 'gobject' in sys.modules:
-    import gobject as GObject
-    GObject #pyflakes
-else:
-    from gi.repository import GObject
+from gi.repository import GObject
 GObject.threads_init()
 
 import logging

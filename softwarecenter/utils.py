@@ -18,16 +18,8 @@
 
 import gettext
 import sys
-if 'gobject' in sys.modules:
-    have_gi = False
-    import gobject as GObject
-    import gio as Gio
-    Gio # pyflakes
-    GObject # pyflakes
-else:
-    have_gi = True
-    from gi.repository import GObject
-    from gi.repository import Gio
+from gi.repository import GObject
+from gi.repository import Gio
 import logging
 import math
 import os
@@ -579,18 +571,12 @@ class SimpleFileDownloader(GObject.GObject):
             self.emit("file-download-complete", self.dest_file_path)
             return
 
-        if have_gi:
-            f = Gio.File.new_for_uri(url)
-            # first check if the url is reachable
-            f.query_info_async(Gio.FILE_ATTRIBUTE_STANDARD_SIZE, 0, 0, 
-                               self._cancellable,
-                               self._check_url_reachable_and_then_download_cb,
-                               None)
-        else:
-            f = Gio.File(url)
-            # first check if the url is reachable
-            f.query_info_async(Gio.FILE_ATTRIBUTE_STANDARD_SIZE,
-                               self._check_url_reachable_and_then_download_cb)
+        f = Gio.File.new_for_uri(url)
+        # first check if the url is reachable
+        f.query_info_async(Gio.FILE_ATTRIBUTE_STANDARD_SIZE, 0, 0, 
+                           self._cancellable,
+                           self._check_url_reachable_and_then_download_cb,
+                           None)
                            
     def _check_url_reachable_and_then_download_cb(self, f, result, user_data=None):
         self.LOG.debug("_check_url_reachable_and_then_download_cb: %s" % f)
@@ -602,11 +588,8 @@ class SimpleFileDownloader(GObject.GObject):
                                                         info, 
                                                         etag))
             # url is reachable, now download the file
-            if have_gi:
-                f.load_contents_async(
-                    self._cancellable, self._file_download_complete_cb, None)
-            else:
-                f.load_contents_async(self._file_download_complete_cb)
+            f.load_contents_async(
+                self._cancellable, self._file_download_complete_cb, None)
         except GObject.GError as e:
             self.LOG.debug("file *not* reachable %s" % self.url)
             self.emit('file-url-reachable', False)
@@ -619,10 +602,7 @@ class SimpleFileDownloader(GObject.GObject):
         # elements (content, size, etag?)
         # The first element is the actual content so let's grab that
         try:
-            if have_gi:
-                res, content, etag = f.load_contents_finish(result)
-            else:
-                content, size, etag = f.load_contents_finish(result)
+            res, content, etag = f.load_contents_finish(result)
         except Exception as e:
             # i witnissed a strange error[1], so make the loader robust in this
             # situation

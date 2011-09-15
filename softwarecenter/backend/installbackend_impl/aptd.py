@@ -23,11 +23,7 @@ import os
 import re
 import sys
 
-if 'gobject' in sys.modules:
-    import gobject as GObject
-    GObject #pyflakes
-else:
-    from gi.repository import GObject
+from gi.repository import GObject
 
 from softwarecenter.utils import (sources_filename_from_ppa_entry,
                                   release_filename_in_lists_from_deb_line,
@@ -857,6 +853,6 @@ if __name__ == "__main__":
     backend = AptdaemonBackend()
     #backend.reload()
     backend.enable_component("multiverse")
-    import gtk
-    gtk.main()
+    from gi.repository import Gtk
+    Gtk.main()
 

@@ -372,6 +372,7 @@ if __name__ == "__main__":
     else:
         backend.install(package, package, '')
         backend.remove(package, package, '')
-    import gtk;gtk.main()
+    from gi.repository import Gtk
+    Gtk.main()
     #print backend._fix_pkgnames(('cheese',))
 
