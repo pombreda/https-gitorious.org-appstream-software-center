@@ -1,3 +1,12 @@
+software-center (4.1.23.1) oneiric; urgency=low
+
+  * debian/software-center.links:
+    - add software-center-gtk3 compat link
+  * setup.py:
+    - remove software-center-gtk3 from scripts
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 15 Sep 2011 13:28:31 +0200
+
 software-center (4.1.23) oneiric; urgency=low
 
   [ Michael Vogt ]
