@@ -68,6 +68,7 @@ from softwarecenter.utils import (upstream_version_compare,
                                   save_person_to_config,
                                   get_person_from_config,
                                   calc_dr,
+                                  wilson_score,
                                   )
 from softwarecenter.paths import (SOFTWARE_CENTER_CACHE_DIR,
                                   APP_INSTALL_PATH,
@@ -199,7 +200,7 @@ class Review(object):
     def __repr__(self):
         return "[Review id=%s review_text='%s' reviewer_username='%s']" % (
             self.id, self.review_text, self.reviewer_username)
-        
+
     @classmethod
     def from_piston_mini_client(cls, other):
         """ converts the rnrclieent reviews we get into
