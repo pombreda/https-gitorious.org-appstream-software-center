@@ -31,7 +31,11 @@ software-center (4.1.23.2) UNRELEASED; urgency=low
   * lp:~mmcg069/software-center/minor-vis-fixes:
     - even up the borders around a Frame (LP: #850780)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 15 Sep 2011 14:49:34 +0200
+  [ Gary Lasker ]
+  * softwarecenter/ui/gtk3/panes/installedpane.py:
+    - implement a spinner for the installed view 
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 15 Sep 2011 15:01:26 -0400
 
 software-center (4.1.23.1) oneiric; urgency=low
 
