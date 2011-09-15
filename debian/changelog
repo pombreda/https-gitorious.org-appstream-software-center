@@ -1,4 +1,4 @@
-software-center (4.1.23.2) UNRELEASED; urgency=low
+software-center (4.1.23.2) oneiric; urgency=low
 
   [ Michael Vogt ]
   * softwarecenter/backend/reviews.py:
@@ -35,7 +35,7 @@ software-center (4.1.23.2) UNRELEASED; urgency=low
   * softwarecenter/ui/gtk3/panes/installedpane.py:
     - implement a spinner for the installed view 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 15 Sep 2011 15:01:26 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 15 Sep 2011 22:09:59 +0200
 
 software-center (4.1.23.1) oneiric; urgency=low
 
