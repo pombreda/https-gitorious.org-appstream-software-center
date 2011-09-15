@@ -199,19 +199,6 @@ class Review(object):
     def __repr__(self):
         return "[Review id=%s review_text='%s' reviewer_username='%s']" % (
             self.id, self.review_text, self.reviewer_username)
-    def __cmp__(self, other):
-        # first compare version, high version number first
-        vc = upstream_version_compare(self.version, other.version)
-        if vc != 0:
-            return vc
-        # then usefulness
-        uc = cmp(self.usefulness_favorable, other.usefulness_favorable)
-        if uc != 0:
-            return uc
-        # last is date
-        t1 = datetime.datetime.strptime(self.date_created, '%Y-%m-%d %H:%M:%S')
-        t2 = datetime.datetime.strptime(other.date_created, '%Y-%m-%d %H:%M:%S')
-        return cmp(t1, t2)
         
     @classmethod
     def from_piston_mini_client(cls, other):
@@ -645,7 +632,7 @@ class ReviewLoaderSpawningRNRClient(ReviewLoader):
         for r in piston_reviews:
             reviews.append(Review.from_piston_mini_client(r))
         # add to our dicts and run callback
-        self._reviews[app] = sorted(reviews, reverse=True)
+        self._reviews[app] = reviews
         callback(app, self._reviews[app])
         return False
 
@@ -731,7 +718,7 @@ class ReviewLoaderJsonAsync(ReviewLoader):
             review = Review.from_json(review_json)
             reviews.append(review)
         # run callback
-        callback(app, sorted(reviews, reverse=True))
+        callback(app, reviews)
 
     def get_reviews(self, app, callback, page=1, language=None):
         """ get a specific review and call callback when its available"""
