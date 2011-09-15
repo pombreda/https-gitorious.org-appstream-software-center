@@ -42,7 +42,9 @@ class SymbolicIcon(Gtk.Image):
 
     def __init__(self, name):
         Gtk.Image.__init__(self)
-        self.set_name("symbolic-icon")
+
+        context = self.get_style_context()
+        context.add_class("symbolic-icon")
 
         # get base dir
         SYMBOLIC_DIR = os.path.join(

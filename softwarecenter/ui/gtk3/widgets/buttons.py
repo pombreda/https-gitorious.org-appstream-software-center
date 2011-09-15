@@ -92,6 +92,9 @@ class LabelTile(TileButton):
         self.build_default(label, icon, icon_size)
         self.label.set_line_wrap(True)
 
+        context = self.label.get_style_context()
+        context.add_class("label-tile")
+
         self.connect("enter-notify-event", self.on_enter)
         self.connect("leave-notify-event", self.on_leave)
         return
@@ -118,6 +121,9 @@ class CategoryTile(TileButton):
         self.label.set_justify(Gtk.Justification.CENTER)
         self.label.set_line_wrap(True)
         self.box.set_border_width(StockEms.SMALL)
+
+        context = self.label.get_style_context()
+        context.add_class("category-tile")
 
         self.connect("enter-notify-event", self.on_enter)
         self.connect("leave-notify-event", self.on_leave)
@@ -407,6 +413,12 @@ class SectionSelector(TileToggleButton):
         self.build_default(markup, icon, icon_size)
         self.label.set_use_markup(True)
         self.label.set_justify(Gtk.Justification.CENTER)
+
+        context = self.get_style_context()
+        context.add_class("section-sel-bg")
+        
+        context = self.label.get_style_context()
+        context.add_class("section-sel")
 
         self.draw_hint_has_channel_selector = False
         self._alloc = None
