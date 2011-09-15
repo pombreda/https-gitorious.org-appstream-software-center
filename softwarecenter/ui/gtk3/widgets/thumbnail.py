@@ -43,6 +43,9 @@ class ScreenshotThumbnail(Gtk.Alignment):
     IDLE_SIZE = 300, 150
     SPINNER_SIZE = 32, 32
 
+    ZOOM_ICON = "stock_zoom-page"
+
+
     def __init__(self, distro, icons):
         Gtk.Alignment.__init__(self)
         self.set(0.5, 0.0, 1.0, 1.0)
@@ -64,7 +67,7 @@ class ScreenshotThumbnail(Gtk.Alignment):
 
         # zoom cursor
         try:
-            zoom_pb = self.icons.load_icon("zoom-in", 22, 0)
+            zoom_pb = self.icons.load_icon(self.ZOOM_ICON, 22, 0)
             # FIXME
             self._zoom_cursor = Gdk.Cursor.new_from_pixbuf(
                                     Gdk.Display.get_default(),
