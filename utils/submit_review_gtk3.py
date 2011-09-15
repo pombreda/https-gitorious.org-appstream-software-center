@@ -399,7 +399,7 @@ class BaseApp(SimpleGtkbuilderApp):
 
     def __init__(self, datadir, uifile):
         SimpleGtkbuilderApp.__init__(
-            self, os.path.join(datadir,"ui/gtk",uifile), "software-center")
+            self, os.path.join(datadir,"ui/gtk3",uifile), "software-center")
         # generic data
         # see bug #773214 for the rational
         #self.appname = _("Ubuntu Software Center")
@@ -1320,7 +1320,7 @@ if __name__ == "__main__":
     gettext.bindtextdomain("software-center", "/usr/share/locale")
     gettext.textdomain("software-center")
 
-    if os.path.exists("./data/ui/gtk/reviews.ui"):
+    if os.path.exists("./data/ui/gtk3/submit_review.ui"):
         default_datadir = "./data"
     else:
         default_datadir = "/usr/share/software-center/"
