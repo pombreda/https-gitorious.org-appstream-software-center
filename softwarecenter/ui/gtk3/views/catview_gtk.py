@@ -28,6 +28,7 @@ import xapian
 from gettext import gettext as _
 
 import softwarecenter.paths
+from softwarecenter.db.application import Application
 from softwarecenter.enums import (NonAppVisibility,
                                   SortMethods,
                                   TOP_RATED_CAROUSEL_LIMIT)
@@ -304,11 +305,18 @@ class LobbyViewGtk(CategoriesViewGtk):
         #~ return
 
     def _on_show_exhibits(self, exhibit_banner, exhibit):
-        query = get_query_for_pkgnames(exhibit.package_names.split(","))
-        title = exhibit.title_translated
-        # create a temp query
-        cat = Category(title, title, None, query)
-        self.emit("category-selected", cat)
+        pkgs = exhibit.package_names.split(",")
+        if len(pkgs) == 1:
+            app = Application("", pkgs[0])
+            self.emit("application-activated", app)
+        else:
+            query = get_query_for_pkgnames(pkgs)
+            title = exhibit.title_translated
+            untranslated_name = exhibit.package_names
+            # create a temp query
+            cat = Category(untranslated_name, title, None, query,
+                           flags=['nonapps-visible'])
+            self.emit("category-selected", cat)
 
     def _append_banner_ads(self):
         exhibit_banner = ExhibitBanner()

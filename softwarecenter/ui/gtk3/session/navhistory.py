@@ -169,9 +169,29 @@ class NavigationStack(object):
             return False
         if len(self) == 0:
             return True
+
         last = self[-1]
-        if item.__str__() == last.__str__():
+        last_vs = last.view_state
+        item_vs = item.view_state
+        # HACK: special case, check for subsequent searches
+        # if subsequent search, update previous item_vs.search_term
+        # to current.
+
+        # do import of Pages enum here: else drama!
+        from softwarecenter.ui.gtk3.panes.availablepane import AvailablePane
+        if (item.page == AvailablePane.Pages.LIST and
+            last.page == AvailablePane.Pages.LIST and
+            item_vs.search_term and last_vs.search_term and
+            item_vs.search_term != last_vs.search_term):
+            # update last search term with current search_term
+            last.view_state.search_term = item_vs.search_term
+            # ... but return False, resulting in 'item' not being
+            # appended
             return False
+
+        elif item.__str__() == last.__str__():
+            return False
+
         return True
 
     def append(self, item):

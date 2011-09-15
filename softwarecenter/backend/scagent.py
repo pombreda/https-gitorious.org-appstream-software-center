@@ -22,7 +22,7 @@
 from gi.repository import GObject
 import logging
 import os
-        
+
 import softwarecenter.paths
 from softwarecenter.paths import PistonHelpers
 from spawn_helper import SpawnHelper
@@ -113,6 +113,15 @@ class SoftwareCenterAgent(GObject.GObject):
         spawner.connect("error", lambda spawner, err: self.emit("error", err))
         spawner.run(cmd)
     def _on_exhibits_data_available(self, spawner, exhibits):
+        for exhibit in exhibits:
+            # special case, if there is no title provided by the server
+            # just extract the title from the first "h1" html
+            if not hasattr(exhibit, "title_translated"):
+                if exhibit.html:
+                    from softwarecenter.utils import get_title_from_html
+                    exhibit.title_translated = get_title_from_html(exhibit.html)
+                else:
+                    exhibit.title_translated = ""
         self.emit("exhibits", exhibits)
         
 if __name__ == "__main__":

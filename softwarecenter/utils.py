@@ -136,7 +136,6 @@ def normalize_package_description(desc):
         #~ print part, indent
         # explicit newline
         if not part:
-            norm_description += "\n"
             continue
         # check if in a enumeration
         if part[:2] in BULLETS:
@@ -144,12 +143,39 @@ def normalize_package_description(desc):
             norm_description += "\n" + indent*' ' + "* " + part[2:]
         elif in_blist:
             norm_description += " " + part
+        elif part.endswith('.') or part.endswith(':'):
+            norm_description += part + '\n'
         else:
             in_blist = False
             if not norm_description.endswith("\n"):
                 norm_description += " "
             norm_description += part
     return norm_description.strip()
+
+def get_title_from_html(html):
+    """ takes a html string and returns the document title,
+        if the document has no title it uses the first h1
+        (but only if that has no further html tags)
+        
+        returns "" if it can't find anything or can't parse the html
+    """
+    import xml.etree.ElementTree
+    try:
+        root = xml.etree.ElementTree.fromstring(html)
+    except Exception as e:
+        logging.warn("failed to parse: '%s' (%s)" % (html, e))
+        return ""
+    title = root.findall(".//title")
+    if title:
+        text = title[0].text
+        return text
+    all_h1 = root.findall(".//h1")
+    if all_h1:
+        h1 = all_h1[0]
+        # we don't support any sub html in the h1 when 
+        if len(h1) == 0:
+            return h1.text
+    return ""
 
 def htmlize_package_description(desc):
     html = ""
@@ -497,18 +523,33 @@ class SimpleFileDownloader(GObject.GObject):
     def __init__(self):
         GObject.GObject.__init__(self)
         self.tmpdir = None
+        self._cancellable = None
 
     def download_file(self, url, dest_file_path=None, use_cache=False,
                       simple_quoting_for_webkit=False):
-        """ download a url and emit the file-download-complete 
-            once the file is there
-            if dest_file_path is given, download to that specific
-            local filename 
-            if use_cache is given it will not use a tempdir, but
-            instead a permanent cache dir
+        """ Download a url and emit the file-download-complete 
+            once the file is there. Note that calling this twice
+            will cancel the previous pending operation.
+            If dest_file_path is given, download to that specific
+            local filename.
+            If use_cache is given it will not use a tempdir, but
+            instead a permanent cache dir - no etag or timestamp
+            checks are performed.
         """
         self.LOG.debug("download_file: %s %s %s" % (
                 url, dest_file_path, use_cache))
+
+        # cancel anything pending to avoid race conditions
+        # like bug #839462
+        if self._cancellable:
+            self._cancellable.cancel()
+        self._cancellable = Gio.Cancellable()
+
+        # no need to cache file urls and no need to really download
+        # them, its enough to adjust the dest_file_path
+        if url.startswith("file:"):
+            dest_file_path = url[len("file:"):]
+            use_cache = False
 
         # if the cache is used, we use that as the dest_file_path
         if use_cache:
@@ -530,15 +571,18 @@ class SimpleFileDownloader(GObject.GObject):
         self.url = url
         self.dest_file_path = dest_file_path
 
+        # FIXME: we actually need to do etag based checking here to see
+        #        if the source needs refreshing
         if os.path.exists(self.dest_file_path):
             self.emit('file-url-reachable', True)
             self.emit("file-download-complete", self.dest_file_path)
             return
-        
+
         if have_gi:
             f = Gio.File.new_for_uri(url)
             # first check if the url is reachable
-            f.query_info_async(Gio.FILE_ATTRIBUTE_STANDARD_SIZE, 0, 0, None,
+            f.query_info_async(Gio.FILE_ATTRIBUTE_STANDARD_SIZE, 0, 0, 
+                               self._cancellable,
                                self._check_url_reachable_and_then_download_cb,
                                None)
         else:
@@ -550,12 +594,16 @@ class SimpleFileDownloader(GObject.GObject):
     def _check_url_reachable_and_then_download_cb(self, f, result, user_data=None):
         self.LOG.debug("_check_url_reachable_and_then_download_cb: %s" % f)
         try:
-            result = f.query_info_finish(result)
+            info = f.query_info_finish(result)
+            etag = info.get_etag()
             self.emit('file-url-reachable', True)
-            self.LOG.debug("file reachable %s" % self.url)
+            self.LOG.debug("file reachable %s %s %s" % (self.url,
+                                                        info, 
+                                                        etag))
             # url is reachable, now download the file
             if have_gi:
-                f.load_contents_async(None, self._file_download_complete_cb, None)
+                f.load_contents_async(
+                    self._cancellable, self._file_download_complete_cb, None)
             else:
                 f.load_contents_async(self._file_download_complete_cb)
         except GObject.GError as e:
@@ -571,9 +619,9 @@ class SimpleFileDownloader(GObject.GObject):
         # The first element is the actual content so let's grab that
         try:
             if have_gi:
-                content = f.load_contents_finish(result)[1]
+                res, content, etag = f.load_contents_finish(result)
             else:
-                content = f.load_contents_finish(result)[0]
+                content, size, etag = f.load_contents_finish(result)
         except Exception as e:
             # i witnissed a strange error[1], so make the loader robust in this
             # situation
@@ -582,7 +630,7 @@ class SimpleFileDownloader(GObject.GObject):
             self.LOG.debug(e)
             self.emit('error', Exception, e)
             return
-
+        # write out the data
         outputfile = open(self.dest_file_path, "w")
         outputfile.write(content)
         outputfile.close()

@@ -7,7 +7,7 @@ from gi.repository import Gtk, Gdk
 
 from buttons import MoreLink
 from softwarecenter.ui.gtk3.em import StockEms
-from softwarecenter.ui.gtk3.drawing import rounded_rect, darken
+from softwarecenter.ui.gtk3.drawing import rounded_rect
 
 
 class FlowableGrid(Gtk.Fixed):

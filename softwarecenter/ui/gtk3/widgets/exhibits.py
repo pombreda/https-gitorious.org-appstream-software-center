@@ -27,6 +27,8 @@ from gi.repository import GObject
 from gi.repository import GdkPixbuf
 from gi.repository import WebKit
 
+from urlparse import urlparse
+
 from softwarecenter.utils import SimpleFileDownloader
 from softwarecenter.ui.gtk3.em import StockEms
 from softwarecenter.ui.gtk3.shapes import Circle
@@ -38,30 +40,24 @@ _HAND = Gdk.Cursor.new(Gdk.CursorType.HAND2)
 EXHIBIT_HTML = """
 <html><head>
 <style type="text/css">
-body {
-width: 10000px;
-}
 .banner_text {
 font-family:Ubuntu;
-font-size:36px;
+font-size:48px;
 font-weight:bold;
-color: #dd4814;
+color:red;
 padding: 0.2em;
-text-shadow: 0 0 24px #fc0, 0 0 12px #fc0, 0 0 6px #fc0, 0 0 3px #fc0;
 position:absolute;
-top:30px;
-left:300px;
+top:40px;
+left:232px;
 }
 .banner_subtext {
 font-family:Ubuntu;
-font-size:24px;
-font-weight:bold;
-color:black;
+font-size:28px;
+color:red;
 padding: 0.4em;
-text-shadow: 0 0 24px #fc0, 0 0 12px #fc0, 0 0 6px #fc0, 0 0 3px #fc0;
 position:absolute;
-top:80px;
-left:350px;
+top:100px;
+left:232px;
 }
 </style>
 </head><body>
@@ -74,16 +70,17 @@ left:350px;
 """
 
 class FeaturedExhibit(object):
+
     def __init__(self):
         self.id = 0
         self.package_names = "armagetronad,calibre,cheese,homebank,stellarium,gimp,inkscape,blender,audacity,gufw,frozen-bubble,fretsonfire,moovida,liferea,arista,gtg,freeciv-client-gtk,openshot,supertuxkart,tumiki-fighters,tuxpaint,webservice-office-zoho"
-        self.title_translated = "Our picks"
+        self.title_translated = "Our star apps"
         self.published = True
-        self.banner_url = "file://%s" % (os.path.abspath(os.path.join(softwarecenter.paths.datadir, "default_banner/fallback.jpg")))
+        self.banner_url = "file:%s" % (os.path.abspath(os.path.join(softwarecenter.paths.datadir, "default_banner/fallback.png")))
         self.html = EXHIBIT_HTML % { 
             'banner_url' : self.banner_url,
-            'title' : _("Our picks ›"),
-            'subtitle' : _("Ubuntu’s sweetest applications"),
+            'title' : _("Our star apps"),
+            'subtitle' : _("Come and explore our favourites"),
       }
         # we should extract this automatically from the html
         #self.atk_name = _("Default Banner")
@@ -129,18 +126,18 @@ class _HtmlRenderer(Gtk.OffscreenWindow):
         if hasattr(self.exhibit, "html") and self.exhibit.html:
             html = self.exhibit.html
         else:
-            # special case, if there is no title, then the package_names
-            # is actually just a single string
-            if (not hasattr(self.exhibit, "title_translated") or
-                not self.exhibit.title_translated):
-                self.exhibit.title_translated = self.exhibit.package_names
             html = EXHIBIT_HTML % { 'banner_url' : self.exhibit.banner_url,
                                     'title' : self.exhibit.title_translated,
                                     'subtitle' : "",
                                     }
-        html = html.replace(self.exhibit.banner_url, image_name)
+        # replace the server side path with the local image name, this 
+        # assumes that the image always comes from the same server as
+        # the html
+        scheme, netloc, server_path, para, query, frag = urlparse(
+            self.exhibit.banner_url)
+        html = html.replace(server_path, image_name)
         self.view.load_string(html, "text/html", "UTF-8", 
-                              "file:///%s/" % cache_dir)
+                              "file:%s/" % cache_dir)
         return
 
     def set_exhibit(self, exhibit):
@@ -224,7 +221,7 @@ class ExhibitBanner(Gtk.EventBox):
 
     DROPSHADOW_HEIGHT = 11
     MAX_HEIGHT = 200 # pixels
-    TIMEOUT_SECONDS = 300
+    TIMEOUT_SECONDS = 10
 
     def __init__(self):
         Gtk.EventBox.__init__(self)
@@ -280,6 +277,8 @@ class ExhibitBanner(Gtk.EventBox):
 
         self._cache_art_assets()
         self._init_event_handling()
+        # fill this in later
+        self._toplevel_window = None
 
     def _init_event_handling(self):
         self.set_can_focus(True)
@@ -423,6 +422,9 @@ class ExhibitBanner(Gtk.EventBox):
         return assets
 
     def do_draw(self, cr):
+        # ensure that we pause the exhibits carousel if the window goes
+        # into the background
+        self._init_pause_handling_if_needed()
 
         # hide the next/prev buttons if needed
         if len(self.exhibits) == 1:
@@ -480,7 +482,34 @@ class ExhibitBanner(Gtk.EventBox):
             self.propagate_draw(child, cr)
         return
 
+    def _init_pause_handling_if_needed(self):
+        # nothing todo if we have the toplevel already
+        if self._toplevel_window:
+            return
+        # find toplevel Gtk.Window
+        w = self
+        while w.get_parent():
+            w = w.get_parent()
+        # paranoia, should never happen
+        if not isinstance(w, Gtk.Window):
+            return
+        # connect to property changes for the toplevel focus
+        w.connect("notify::has-toplevel-focus", 
+                  self._on_main_window_is_active_changed)
+        self._toplevel_window = w
+
+    def _on_main_window_is_active_changed(self, win, gparamspec):
+        """ this tracks focus of the main window and pauses the exhibits
+            cycling if the window does not have the toplevel focus
+        """
+        is_active = win.get_property("has-toplevel-focus")
+        if is_active:
+            self.queue_next()
+        else:
+            self.cleanup_timeout()
+
     def set_exhibits(self, exhibits_list):
+
         if not exhibits_list: 
             return
 

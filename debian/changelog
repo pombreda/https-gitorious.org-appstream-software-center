@@ -1,3 +1,95 @@
+software-center (4.1.23) oneiric; urgency=low
+
+  [ Michael Vogt ]
+  * new default exhibit image from Marcus Haslam, many thanks
+  * tweak html for the default text layout
+  * softwarecenter/utils.py:
+    - never cache local urls in the SimpleFileDownloader
+  * softwarecenter/ui/gtk3/widgets/exhibits.py:
+    - fix bug in banner image rendering when the agent serves the images
+  * softwarecenter/ui/gtk3/app.py, debian/control:
+    - renenable plugin loader 
+    - add conflict against older oneconf as the old oneconf plugin
+      will crash softwarecenter because of mixing pygtk with pygi
+    - load plugins from $SOFTWARE_CENTER_PLUGINS_DIR, 
+      /usr/share/software-center/plugins, 
+      ~/.local/share/software-center/plugins (LP: #631457)
+  * doc/example_plugin.py:
+    - updated to the gtk3 version
+  * softwarecenter/backend/scagent.py:
+    - generically deal with exhibts without a title
+  * softwarecenter/ui/gtk3/widgets/exhibits.py:
+    - set the default exhibit cycle time to 10s but do not cycle if
+      the main application does not have the active toplevel focus
+  * softwarecenter/ui/gtk3/views/catview_gtk.py:
+    - if there is only a single app in a exhibit, show that on
+      click (LP: #848995)
+  * softwarecenter/ui/gtk3/panes/availablepane.py,
+    softwarecenter/ui/gtk3/views/catview_gtk.py:
+    - when showing a exhibts list, show with flags=["nonapps-visible"]
+      (LP: #849035)
+  * softwarecenter/backend/scagent.py:
+    - if the server does not provide a title for a exhibit use the
+      html title tag or the first h1
+  * software-center-gtk3:
+    - removed, the gtk3 version is now default and identical to 
+      the software-center command
+  * softwarecenter/utils.py:
+    - avoid race condition on slow connections (LP: #839462)
+  * lp:~mvo/software-center/per-thread-xapiandb:
+    - create per-thread xapian.Database objects to avoid race 
+      condition with multiple threads
+  
+  [ Matthew McGowan ]
+  * softwarecenter/ui/gtk3/app.py:
+    - inhibit system error bell (LP: #846138)
+  * softwarecenter/utils.py,
+    softwarecenter/ui/gtk3/widgets/description.py,
+    test/test_description_norm.py:
+    - tweak the description parser to not omit linebreaks when
+      a newline follows a terminator (e.g. "." or ":"), add a
+      preparser special case for texlive-fonts-extra, update
+      unit test (LP: #846944)
+  * softwarecenter/ui/gtk3/session/navhistory.py:
+    - fix multiple navigation items generated during search
+      (LP: #842734)
+  * lp:~mmcg069/software-center/bug844068:
+    - if search is cleared by the user whilst the search context is a 
+      subcategory, return to the unfiltered subcategory list not the 
+      category page (bug 844068).
+  * lp:~mmcg069/software-center/themeing-improvements:
+    - provide theming css for highcontrast and highcontrastinverse
+    - fix dynamic theme updates
+  * lp:~mmcg069/software-center/submit-review-fixes:
+    - add changed sig to star rating widget and correctly ensure the
+      user has set a star rating prior to allowing submition
+    - cleanup
+
+  [ Gary Lasker ]
+  * softwarecenter/ui/gtk3/session/viewmanager.py:
+    - fix startup crash in get_view_widget
+      (LP: #830233, LP: #834425) 
+  * data/icons/scalable/apps/softwarecenter.svg:
+    - update the scalable icon to the new software-center
+      icon (LP: #842275) 
+  * softwarecenter/ui/gtk/widgets/thumbnail.py,
+    softwarecenter/ui/gtk3/widgets/thumbnail.py:
+    - restore hover cursor for details view screenshot thumbnail  
+  * setup.py,
+    debian/control:
+    - add back flags when merging authors list, specify
+      python version for happier build
+  * softwarecenter/ui/gtk3/gmenusearch.py:
+    - fix crash when loading gmenu for 'where is it' (LP: #834450)
+  * pyflakes cleanup 
+  * softwarecenter/ui/gtk3/widgets/apptreeview.py:
+    - fix crash when using arrow keys in the list view, other
+      cellbutton fixes (LP: #843409)
+    - re-enable the list view action button after a transaction
+      is cancelled
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 14 Sep 2011 20:18:40 +0200
+
 software-center (4.1.22) oneiric; urgency=low
 
   [ Gary Lasker ]

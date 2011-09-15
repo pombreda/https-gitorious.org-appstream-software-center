@@ -59,6 +59,35 @@ class TestSCUtils(unittest.TestCase):
         proxy = get_http_proxy_string_from_libproxy(url)
         self.assertEqual(proxy, "http://user:pass@localhost:3128/")
 
+    def test_get_title_from_html(self):
+        from softwarecenter.utils import get_title_from_html
+        html = """
+<html>
+<head>
+<title>Title &amp; text</title>
+</head>
+<body>
+ <h1>header1</h1>
+</body>
+</html>"""
+        # get the title from the html
+        self.assertEqual(get_title_from_html(html),
+                         "Title & text")
+        # fallback to the first h1 if there is no title
+        html = "<body><h1>foo &gt;</h1><h1>bar</h1></body>"
+        self.assertEqual(get_title_from_html(html), "foo >")
+        # broken
+        html = "<sadfsa>dsf"
+        self.assertEqual(get_title_from_html(html),
+                         "")
+        # not supported to have sub-html tags in the extractor
+        html = "<body><h1>foo <emph>bar</emph></h1></body>"
+        self.assertEqual(get_title_from_html(html),
+                         "")
+        html = "<body><h1>foo <emph>bar</emph> x</h1><h2>some text</h2></body>"
+        self.assertEqual(get_title_from_html(html),
+                         "")
+
 if __name__ == "__main__":
     import logging
     logging.basicConfig(level=logging.DEBUG)

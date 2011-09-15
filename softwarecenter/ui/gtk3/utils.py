@@ -53,9 +53,8 @@ def init_sc_css_provider(toplevel, settings, screen, datadir):
         # check fallback exists as well... if not return None but warn
         # its not the end of the world if there is no fallback, just some
         # styling will be derived from the plain ol' Gtk theme
-        import warnings
-        msg = 'Could not set software-center CSS provider. File %s does not exist!'
-        warnings.warn(msg % css_path)
+        msg = "Could not set software-center CSS provider. File '%s' does not exist!"
+        LOG.warn(msg % css_path)
         return None
 
     # things seem ok, now set the css provider for softwarecenter

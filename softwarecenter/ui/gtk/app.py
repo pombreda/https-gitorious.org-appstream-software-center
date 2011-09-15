@@ -54,7 +54,7 @@ from softwarecenter.enums import (Icons,
                                   SOFTWARE_CENTER_SSO_DESCRIPTION,
                                  )
 
-from softwarecenter.paths import SOFTWARE_CENTER_PLUGIN_DIR, ICON_PATH
+from softwarecenter.paths import SOFTWARE_CENTER_PLUGIN_DIRS, ICON_PATH
 from softwarecenter.utils import (clear_token_from_ubuntu_sso,
                                   wait_for_apt_cache_ready)
 from softwarecenter.version import VERSION
@@ -358,7 +358,7 @@ class SoftwareCenterApp(SimpleGtkbuilderApp):
         self.status_box.add(self.label_status)
 
         # open plugin manager and load plugins
-        self.plugin_manager = PluginManager(self, SOFTWARE_CENTER_PLUGIN_DIR)
+        self.plugin_manager = PluginManager(self, SOFTWARE_CENTER_PLUGIN_DIRS)
         self.plugin_manager.load_plugins()
         
         # make the local cache directory if it doesn't already exist

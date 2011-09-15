@@ -48,6 +48,8 @@ from softwarecenter.db.application import Application
 from softwarecenter.db import DebFileApplication
 
 # misc imports
+from softwarecenter.plugin import PluginManager
+from softwarecenter.paths import SOFTWARE_CENTER_PLUGIN_DIRS
 from softwarecenter.enums import (Icons,
                                   PkgStates,
                                   ViewPages,
@@ -154,7 +156,7 @@ class SoftwarecenterDbusController(dbus.service.Object):
         #~ self.useful_cache = UsefulnessCache(True)
         #~ self.setup_database_rebuilding_listener()
         #~ # open plugin manager and load plugins
-        #~ self.plugin_manager = PluginManager(self, SOFTWARE_CENTER_PLUGIN_DIR)
+        #~ self.plugin_manager = PluginManager(self, SOFTWARE_CENTER_PLUGIN_DIRS)
         #~ self.plugin_manager.load_plugins()
 
 
@@ -249,7 +251,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         settings = Gtk.Settings.get_default()
         settings.set_property("gtk-error-bell", False)
 
-        # wire up the css provider to recondfdfigure on theme-changes
+        # wire up the css provider to reconfigure on theme-changes
         self.window_main.connect("style-updated",
                                  self._on_style_updated,
                                  init_sc_css_provider,
@@ -309,9 +311,10 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         #load usefulness votes from server when app starts
         self.useful_cache = UsefulnessCache(True)
         self.setup_database_rebuilding_listener()
-        #~ # open plugin manager and load plugins
-        #~ self.plugin_manager = PluginManager(self, SOFTWARE_CENTER_PLUGIN_DIR)
-        #~ self.plugin_manager.load_plugins()
+
+        # open plugin manager and load plugins
+        self.plugin_manager = PluginManager(self, SOFTWARE_CENTER_PLUGIN_DIRS)
+        self.plugin_manager.load_plugins()
 
         # setup window name and about information (needs branding)
         name = self.distro.get_app_name()

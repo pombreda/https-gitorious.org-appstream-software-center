@@ -22,7 +22,7 @@ import logging
 import gettext
 from gettext import gettext as _
 
-from gi.repository import Gtk, Gdk
+from gi.repository import Gtk, Gdk, GObject
 
 from softwarecenter.ui.gtk3.shapes import ShapeStar
 from softwarecenter.ui.gtk3.em import StockEms, em, small_em, big_em
@@ -404,9 +404,16 @@ class StarRatingsWidget(Gtk.HBox):
 
 class ReactiveStar(Star):
 
+    __gsignals__ = {
+        "changed" : (GObject.SignalFlags.RUN_LAST,
+                     None, 
+                     (),)
+        }
+
     def __init__(self, size=StarSize.BIG):
         Star.__init__(self, size)
         self.hints = StarRenderHints.REACTIVE
+        self.set_rating(0)
 
         self.set_can_focus(True)
         self.set_events(Gdk.EventMask.BUTTON_PRESS_MASK|
@@ -438,8 +445,10 @@ class ReactiveStar(Star):
 
     def on_button_release(self, widget, event):
         star_index = self.get_star_at_xy(event.x, event.y)
-        if star_index is None: return
+        if star_index is None: 
+            return
         self.set_rating(star_index)
+        self.emit('changed')
         return
 
     def on_key_press(self, widget, event):
