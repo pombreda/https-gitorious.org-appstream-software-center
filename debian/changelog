@@ -1,3 +1,10 @@
+software-center (4.1.23.2) UNRELEASED; urgency=low
+
+  * softwarecenter/backend/reviews.py:
+    - update review sorting to follow spec (wilson score)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 15 Sep 2011 14:49:34 +0200
+
 software-center (4.1.23.1) oneiric; urgency=low
 
   * debian/software-center.links:

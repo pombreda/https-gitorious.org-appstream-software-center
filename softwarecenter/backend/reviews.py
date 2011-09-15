@@ -68,6 +68,7 @@ from softwarecenter.utils import (upstream_version_compare,
                                   save_person_to_config,
                                   get_person_from_config,
                                   calc_dr,
+                                  wilson_score,
                                   )
 from softwarecenter.paths import (SOFTWARE_CENTER_CACHE_DIR,
                                   APP_INSTALL_PATH,
@@ -204,8 +205,11 @@ class Review(object):
         vc = upstream_version_compare(self.version, other.version)
         if vc != 0:
             return vc
-        # then usefulness
-        uc = cmp(self.usefulness_favorable, other.usefulness_favorable)
+        # then wilson score
+        uc = cmp(wilson_score(self.usefulness_favorable, 
+                              self.usefulness_total),
+                 wilson_score(other.usefulness_favorable,
+                              other.usefulness_total))
         if uc != 0:
             return uc
         # last is date

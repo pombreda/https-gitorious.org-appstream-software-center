@@ -478,7 +478,7 @@ def pnormaldist(qn):
     else:
         return -math.sqrt(w1*w3)
 
-def ci_lower_bound(pos, n, power):
+def wilson_score(pos, n, power=0.2):
     if n == 0:
         return 0
     z = pnormaldist(1-power/2)
@@ -496,10 +496,11 @@ def calc_dr(ratings, power=0.1):
       
     sum_scores = 0.0
     for i in range (0,5):
-        wilson_score = ci_lower_bound(ratings[i], tot_ratings, power)
-        sum_scores = sum_scores + float((i+1)-3) * wilson_score
+        ws = wilson_score(ratings[i], tot_ratings, power)
+        sum_scores = sum_scores + float((i+1)-3) * ws
    
     return sum_scores + 3
+
 
 class SimpleFileDownloader(GObject.GObject):
 
