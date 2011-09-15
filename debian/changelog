@@ -90,7 +90,7 @@ software-center (4.1.23) oneiric; urgency=low
     - re-enable the list view action button after a transaction
       is cancelled
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 14 Sep 2011 20:18:40 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 15 Sep 2011 11:54:11 +0200
 
 software-center (4.1.22) oneiric; urgency=low
 
