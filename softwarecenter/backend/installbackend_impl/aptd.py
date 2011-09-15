@@ -152,8 +152,11 @@ class AptdaemonTransactionsWatcher(BaseTransactionsWatcher):
 
     def get_transaction(self, tid):
         """ synchroneously return a transaction """
-        trans = client.get_transaction(tid)
-        return AptdaemonTransaction(trans)
+        try:
+            trans = client.get_transaction(tid)
+            return AptdaemonTransaction(trans)
+        except dbus.DBusException:
+            return None
 
 
 class AptdaemonBackend(GObject.GObject, InstallBackend):
