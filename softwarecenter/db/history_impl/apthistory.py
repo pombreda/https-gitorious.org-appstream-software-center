@@ -20,20 +20,8 @@
 import apt_pkg
 apt_pkg.init_config()
 
-import sys
-if 'gobject' in sys.modules:
-    have_gi = False
-    import gobject as GObject
-    import gio as Gio
-    GObject #pyflakes
-    Gio #pyflakes
-    FILE_MONITOR_EVENT_CHANGES_DONE_HINT = Gio.FILE_MONITOR_EVENT_CHANGES_DONE_HINT
-else:
-    have_gi = True
-    from gi.repository import GObject
-    from gi.repository import Gio
-    FILE_MONITOR_EVENT_CHANGES_DONE_HINT = Gio.FileMonitorEvent.CHANGES_DONE_HINT 
-
+from gi.repository import GObject
+from gi.repository import Gio
 
 import glob
 import gzip
@@ -60,14 +48,8 @@ class AptHistory(PackageHistory):
         self.main_context = GObject.main_context_default()
         self.history_file = apt_pkg.config.find_file("Dir::Log::History")
         #Copy monitoring of history file changes from historypane.py
-        if have_gi:
-            self.logfile = Gio.File.new_for_path(self.history_file)
-        else:
-            self.logfile = Gio.File(self.history_file)
-        if have_gi:
-            self.monitor = self.logfile.monitor_file(0, None)
-        else:
-            self.monitor = self.logfile.monitor_file()
+        self.logfile = Gio.File.new_for_path(self.history_file)
+        self.monitor = self.logfile.monitor_file(0, None)
         self.monitor.connect("changed", self._on_apt_history_changed)
         self.update_callback = None
         LOG.debug("init history")
@@ -137,7 +119,7 @@ class AptHistory(PackageHistory):
                 self._transactions.insert(0, trans)
             
     def _on_apt_history_changed(self, monitor, afile, other_file, event):
-        if event == FILE_MONITOR_EVENT_CHANGES_DONE_HINT:
+        if event ==  Gio.FileMonitorEvent.CHANGES_DONE_HINT:
             self._scan(self.history_file, rescan = True)
             if self.update_callback:
                 self.update_callback()

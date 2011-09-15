@@ -3,6 +3,10 @@ software-center (4.1.23.2) UNRELEASED; urgency=low
   [ Michael Vogt ]
   * softwarecenter/backend/reviews.py:
     - update review sorting to follow spec (wilson score)
+  * lp:~mvo/software-center/retire-gtk2:
+    - remove (no longer used) gtk2 code, this has the added benefit
+      that all the checks for pygtk vs pygi are gone as well
+    - update gir1.2-* dependencies (LP: #842616)
   
   [ Matthew McGowan ]
   * lp:~mmcg069/software-center/highcontrast-theme-improvements:

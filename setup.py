@@ -42,14 +42,13 @@ class PocketLint(distutils.cmd.Command):
 
 
 def merge_authors_into_about_dialog():
-    for fname in ["./data/ui/gtk/SoftwareCenter.ui", 
-                  "./data/ui/gtk3/SoftwareCenter.ui"]:
-        authors = open("AUTHORS").read()
-        gtkbuilder = open(fname).read()
-        gtkbuilder = re.sub(r'<property name="authors">.*?</property>',
-                            r'<property name="authors">%s</property>' % authors,
-                            gtkbuilder, flags=re.DOTALL)
-        open(fname, "w").write(gtkbuilder)
+    fname = "./data/ui/gtk3/SoftwareCenter.ui"
+    authors = open("AUTHORS").read()
+    gtkbuilder = open(fname).read()
+    gtkbuilder = re.sub(r'<property name="authors">.*?</property>',
+                        r'<property name="authors">%s</property>' % authors,
+                        gtkbuilder, flags=re.DOTALL)
+    open(fname, "w").write(gtkbuilder)
 
 
 # update version.py
@@ -76,13 +75,6 @@ if sys.argv[1] == "build":
 # real setup
 setup(name="software-center", version=VERSION,
       scripts=["software-center",
-               "software-center-gtk2",
-               # gtk
-               "utils/submit_review.py",
-               "utils/report_review.py",
-               "utils/submit_usefulness.py",
-               "utils/delete_review.py",
-               "utils/modify_review.py",
                # gtk3
                "utils/submit_review_gtk3.py",
                "utils/report_review_gtk3.py",
@@ -102,9 +94,6 @@ setup(name="software-center", version=VERSION,
                 'softwarecenter.db.history_impl',
                 'softwarecenter.distro',
                 'softwarecenter.ui',
-                'softwarecenter.ui.gtk',
-                'softwarecenter.ui.gtk.models',
-                'softwarecenter.ui.gtk.widgets',
                 'softwarecenter.ui.gtk3',
                 'softwarecenter.ui.gtk3.dialogs',
                 'softwarecenter.ui.gtk3.models',
@@ -115,9 +104,6 @@ setup(name="software-center", version=VERSION,
                 'softwarecenter.ui.qml',
                 ],
       data_files=[
-                  # gtk2
-                  ('share/software-center/ui/gtk/',
-                   glob.glob("data/ui/gtk/*.ui")),
                   # gtk3
                   ('share/software-center/ui/gtk3/',
                    glob.glob("data/ui/gtk3/*.ui")),

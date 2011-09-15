@@ -25,13 +25,8 @@ import string
 import shutil
 import time
 import xapian
-import sys
 
-if 'gobject' in sys.modules:
-    import gobject as GObject
-    GObject #pyflakes
-else:
-    from gi.repository import GObject
+from gi.repository import GObject
 
 # py3 compat
 try:

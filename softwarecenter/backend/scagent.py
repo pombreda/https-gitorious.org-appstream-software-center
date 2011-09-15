@@ -148,5 +148,5 @@ if __name__ == "__main__":
     #scagent.query_available_for_me("dummy_oauth", "dummy openid")
     scagent.query_exhibits()
 
-    import gtk
-    gtk.main()
+    from gi.repository import Gtk
+    Gtk.main()

@@ -156,5 +156,5 @@ if __name__ == "__main__":
     login = get_sso_backend(0, SOFTWARE_CENTER_NAME_KEYRING, "login-text")
     login.login()
 
-    import gtk
-    gtk.main()
+    from gi.repository import Gtk
+    Gtk.main()

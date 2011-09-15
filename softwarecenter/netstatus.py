@@ -19,16 +19,11 @@
 
 
 import dbus
-import sys
 import logging
 
 from dbus.mainloop.glib import DBusGMainLoop
 
-if 'gobject' in sys.modules:
-    import gobject as GObject
-    GObject # pyflakes
-else:
-    from gi.repository import GObject
+from gi.repository import GObject
 
 # enums
 class NetState(object):

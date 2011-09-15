@@ -132,5 +132,5 @@ if __name__ == "__main__":
         	print(tuple)
     zeitgeist_singleton.get_popular_mimetypes(_callback_popular)
 
-    import gtk
-    gtk.main()
+    from gi.repository import Gtk
+    Gtk.main()

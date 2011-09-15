@@ -22,15 +22,10 @@ import os
 import re
 import string
 import threading
-import sys
 import xapian
 from softwarecenter.db.application import Application
 
-if 'gobject' in sys.modules:
-    import gobject as GObject
-    GObject #pyflakes
-else:
-    from gi.repository import GObject
+from gi.repository import GObject
 
 #from softwarecenter.utils import *
 from softwarecenter.enums import (

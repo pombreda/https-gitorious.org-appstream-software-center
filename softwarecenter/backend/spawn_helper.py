@@ -28,14 +28,9 @@ except ImportError:
 
 import logging
 import os
-import sys
 import json
 
-if 'gobject' in sys.modules:
-    import gobject as GObject
-    GObject #pyflakes
-else:
-    from gi.repository import GObject
+from gi.repository import GObject
 
 LOG = logging.getLogger(__name__)
 
