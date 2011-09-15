@@ -61,7 +61,7 @@ class CategoriesModel(QAbstractListModel):
         cat = self._categories[index.row()]
         role = self.COLUMNS[role]
         if role == "_name":
-            return unicode(cat.name)
+            return unicode(cat.name, "utf8", "ignore")
         elif role == "_iconname":
             # funny, but it appears like Qt does not have something
             # to lookup the icon path in QIcon
