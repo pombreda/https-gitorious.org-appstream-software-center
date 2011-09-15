@@ -13,6 +13,8 @@ software-center (4.1.23.2) UNRELEASED; urgency=low
     - update to current code
   * softwarecenter/backend/reviews.py:
     - do not crash for unknown deb names
+  * softwarecenter/ui/gtk3/app.py:
+    - make the locale code more robust (LP: #846038)
   
   [ Matthew McGowan ]
   * lp:~mmcg069/software-center/highcontrast-theme-improvements:

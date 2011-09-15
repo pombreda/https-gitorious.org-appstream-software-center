@@ -182,6 +182,9 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
 
         try:
             locale.setlocale(locale.LC_ALL, "")
+            # we need this for bug #846038, with en_NG setlocale() is fine
+            # but the next getlocale() will crash (fun!)
+            locale.getlocale()
         except:
             LOG.exception("setlocale failed, resetting to C")
             locale.setlocale(locale.LC_ALL, "C")
