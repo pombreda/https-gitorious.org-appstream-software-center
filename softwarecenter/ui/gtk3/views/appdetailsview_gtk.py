@@ -935,8 +935,13 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         self.subtitle = Gtk.Label()
         self.title.set_alignment(0, 0.5)
         self.subtitle.set_alignment(0, 0.5)
-        self.title.set_line_wrap(True)
-        self.subtitle.set_line_wrap(True)
+        #mvo: actually we should use line wrap here, but gtk3 still does
+        #     not get this right and creates a huge vertical spacing in
+        #     the header if this is enabled
+        #self.title.set_line_wrap(True)
+        #self.subtitle.set_line_wrap(True)
+        self.title.set_ellipsize(Pango.EllipsizeMode.END)
+        self.subtitle.set_ellipsize(Pango.EllipsizeMode.END)
         vb_inner=Gtk.VBox()
         vb_inner.pack_start(self.title, False, False, 0)
         vb_inner.pack_start(self.subtitle, False, False, 0)
