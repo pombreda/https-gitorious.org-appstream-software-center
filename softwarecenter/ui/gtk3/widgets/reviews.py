@@ -311,23 +311,26 @@ class UIReviewsList(Gtk.VBox):
             pass
         
         a = Gtk.Alignment.new(0.5, 0.5, 1.0, 1.0)
-
         hb = Gtk.HBox(spacing=12)
+        hb.show()
         a.add(hb)
+        a.show()
 
         spinner = Gtk.Spinner()
         spinner.start()
+        spinner.show()
 
         hb.pack_start(spinner, False, False, 0)
 
         l = Gtk.Label()
         l.set_markup(message)
         l.set_use_markup(True)
+        l.show()
 
         hb.pack_start(l, False, False, 0)
 
         self.vbox.pack_start(a, False, False, 0)
-        self.vbox.show_all()
+        self.vbox.show()
         return
 
     def hide_spinner(self):

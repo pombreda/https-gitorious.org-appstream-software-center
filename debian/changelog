@@ -18,6 +18,9 @@ software-center (4.1.23.3) UNRELEASED; urgency=low
     softwarecenter/ui/gtk3/widgets/actionbar.py:
     - fix show/hide nonapps count when doing searches
     - add tests
+  * softwarecenter/ui/gtk3/widgets/reviews.py:
+    - do not show "no network connection" message when checking for
+      new reviews (LP: #848480)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 16 Sep 2011 08:12:00 +0200
 
