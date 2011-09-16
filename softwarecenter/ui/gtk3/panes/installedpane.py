@@ -339,7 +339,6 @@ class InstalledPane(SoftwarePane, CategoriesParser):
             # reapply search if needed
             if self.state.search_term:
                 self._do_search(self.state.search_term)
-                self.treefilter.refilter()
 
             self.emit("app-list-changed", i)
             return
@@ -447,21 +446,19 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         
         self.visible_docids = self.enquirer.get_docids()
         self.visible_cats = self._get_vis_cats(self.visible_docids)
+        self.treefilter.refilter()
+        self.app_view.tree_view.expand_all()
 
     def _search(self, terms=None):
         if not terms:
             self.visible_docids = None
             self.state.search_term = ""
             self._clear_search()
-
+            # mvo: shouldn't we simply do a self.refresh_apps() here?
+            self.treefilter.refilter()
+            self._check_expand()
         elif self.state.search_term != terms:
             self._do_search(terms)
-
-        self.treefilter.refilter()
-        if terms:
-            self.app_view.tree_view.expand_all()
-        else:
-            self._check_expand()
         return
 
     def get_query(self):

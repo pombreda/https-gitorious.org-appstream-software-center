@@ -10,7 +10,7 @@ sys.path.insert(0,"..")
 
 #from mock import Mock
 
-TIMEOUT=3000
+TIMEOUT=300
 
 import softwarecenter.paths
 softwarecenter.paths.datadir = "../data"
@@ -26,12 +26,25 @@ class TestSearch(unittest.TestCase):
         installedpane.on_search_terms_changed(None, "foo")
         self._p()
         model = installedpane.app_view.tree_view.get_model()
+        # FIXME: len(model) *only* counts the size of the top level
+        #        (category) hits. thats still ok, as non-apps will 
+        #        add the "system" category
         len_only_apps = len(model)
         # set to show nonapps
         installedpane._show_nonapp_pkgs()
         self._p()
         len_with_nonapps = len(model)
         self.assertTrue(len_with_nonapps > len_only_apps)
+        # set to hide nonapps again and ensure the size matches the
+        # previous one
+        installedpane._hide_nonapp_pkgs()
+        self._p()
+        self.assertEqual(len(model), len_only_apps)
+        # clear sarch and ensure we get a expanded size again
+        installedpane.on_search_terms_changed(None, "")
+        self._p()
+        all_apps = len(model)
+        self.assertTrue(all_apps > len_only_apps)
         GObject.timeout_add(TIMEOUT, lambda: win.destroy())
         Gtk.main()
 
