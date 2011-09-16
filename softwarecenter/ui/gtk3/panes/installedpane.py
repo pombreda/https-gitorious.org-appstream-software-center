@@ -302,13 +302,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
 
             # check for uncategorised pkgs
             if self.state.channel:
-                enq.set_query(self.state.channel.query,
-                              sortmode=SortMethods.BY_ALPHABET,
-                              nonapps_visible=NonAppVisibility.MAYBE_VISIBLE,
-                              filter=xfilter,
-                              nonblocking_load=False,
-                              persistent_duplicate_filter=(i>0))
-
+                self._run_channel_enquirer(persistent_duplicate_filter=(i>0))
                 L = len(enq.matches)
                 if L:
                     # some foo for channels
@@ -449,14 +443,30 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         self.treefilter.refilter()
         self.app_view.tree_view.expand_all()
 
+    def _run_channel_enquirer(self, persistent_duplicate_filter=True):
+        xfilter = AppFilter(self.db, self.cache)
+        xfilter.set_installed_only(True)
+        if self.state.channel:
+            self.enquirer.set_query(
+                self.state.channel.query,
+                sortmode=SortMethods.BY_ALPHABET,
+                nonapps_visible=NonAppVisibility.MAYBE_VISIBLE,
+                filter=xfilter,
+                nonblocking_load=False,
+                persistent_duplicate_filter=persistent_duplicate_filter)
+
     def _search(self, terms=None):
         if not terms:
             self.visible_docids = None
             self.state.search_term = ""
             self._clear_search()
-            # mvo: shouldn't we simply do a self.refresh_apps() here?
             self.treefilter.refilter()
             self._check_expand()
+            # run channel enquirer to ensure that the channel specific
+            # info for show/hide nonapps is actually correct
+            self._run_channel_enquirer()
+            # trigger update of the show/hide
+            self.emit("app-list-changed", 0)
         elif self.state.search_term != terms:
             self._do_search(terms)
         return

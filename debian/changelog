@@ -13,6 +13,11 @@ software-center (4.1.23.3) UNRELEASED; urgency=low
     test/gtk3/test_installedpane.py:
     - fix show/hide technical items when in search mode in the installed
       pane and add regression test
+  * softwarecenter/ui/gtk3/panes/installedpane.py:
+    test/gtk3/test_installedpane.py, 
+    softwarecenter/ui/gtk3/widgets/actionbar.py:
+    - fix show/hide nonapps count when doing searches
+    - add tests
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 16 Sep 2011 08:12:00 +0200
 

@@ -123,6 +123,7 @@ class ActionBar(Gtk.HBox):
         """
         sections = text.split("_")
         LOG.debug("got sections '%s'" % sections)
+        self._label_text = text
 
         # Unfortunately, gtk has no native method for embedding a link
         # in a Gtk.Label with non-link elements. To represent the label,
@@ -162,6 +163,8 @@ class ActionBar(Gtk.HBox):
         Removes the currently set label, hiding the actionbar if no
         buttons are displayed.
         """
+        self._label_text = ""
+
         # Destroy all event boxes holding text segments.
         while len(self._label):
             last = self._label.get_children()[-1]

@@ -22,6 +22,8 @@ class TestSearch(unittest.TestCase):
         win = get_test_window()
         installedpane = win.get_data("pane")
         self._p()
+        # safe initial show/hide label for later
+        initial_actionbar_label = installedpane.action_bar._label_text
         # do simple search
         installedpane.on_search_terms_changed(None, "foo")
         self._p()
@@ -45,6 +47,9 @@ class TestSearch(unittest.TestCase):
         self._p()
         all_apps = len(model)
         self.assertTrue(all_apps > len_only_apps)
+        # ensure we have the same show/hide info as initially
+        self.assertEqual(initial_actionbar_label,
+                         installedpane.action_bar._label_text)
         GObject.timeout_add(TIMEOUT, lambda: win.destroy())
         Gtk.main()
 
