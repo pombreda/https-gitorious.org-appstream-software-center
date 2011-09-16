@@ -647,8 +647,12 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
             self._progress_signal = None
         # attach progress-changed signal for current transaction
         if current:
-            trans = client.get_transaction(current)
-            self._progress_signal = trans.connect("progress-changed", self._on_progress_changed)
+            try:
+                trans = client.get_transaction(current)
+                self._progress_signal = trans.connect("progress-changed", self._on_progress_changed)
+            except dbus.DBusException:
+                pass
+
         # now update pending transactions
         self.pending_transactions.clear()
         for tid in [current] + pending:
