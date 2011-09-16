@@ -7,6 +7,8 @@ software-center (4.1.23.3) UNRELEASED; urgency=low
   * softwarecenter/backend/installbackend_impl/aptd.py:
     - be more robust against a race when the transaction disappears
       between notify and fetching details #804444)
+  * data/ui/gtk3/submit_usefulness.ui:
+    - remove not needed cancel/post click handlers (LP: #830830)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 16 Sep 2011 08:12:00 +0200
 
