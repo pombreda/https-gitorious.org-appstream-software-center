@@ -418,17 +418,21 @@ def get_nice_date_string(cur_t):
     return s
 
 def _get_from_desktop_file(desktop_file, key):
-    for line in open(desktop_file):
-        if line.startswith(key+"="):
-            return line.split(key+"=")[1].strip()
-    return None
+    import ConfigParser
+    config = ConfigParser.ConfigParser()
+    config.read(desktop_file)
+    try:
+        return config.get("Desktop Entry", key)
+    except ConfigParser.NoOptionError:
+        return None
 
 def get_exec_line_from_desktop(desktop_file):
     return _get_from_desktop_file(desktop_file, "Exec")
 
 def is_no_display_desktop_file(desktop_file):
-    nd = _get_from_desktop_file(desktop_file, "NoDisplay")
-    if nd and nd.lower() == "true":
+    nd =  _get_from_desktop_file(desktop_file, "NoDisplay")
+    # desktop spec says the booleans are always either "true" or "false
+    if nd == "true":
         return True
     return False
 
