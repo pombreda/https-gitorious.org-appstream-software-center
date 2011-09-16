@@ -1328,12 +1328,15 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         label = Gtk.Label(label=_("Find it in the menu: "))
         self.installed_where_hbox.pack_start(label, False, False, 0)
         for (i, item) in enumerate(where):
+            icon = None
+            iconname = None
             if hasattr(item, "get_icon"):
-                iconinfo = self.icons.lookup_by_gicon(item.get_icon(), 18, 0)
-                iconname = iconinfo.get_filename()
+                icon = item.get_icon()
             elif hasattr(item, "get_app_info"):
                 app_info = item.get_app_info()
-                iconinfo = self.icons.lookup_by_gicon(app_info.get_icon(), 18, 0)
+                icon = app_info.get_icon()
+            if icon:
+                iconinfo = self.icons.lookup_by_gicon(icon, 18, 0)
                 iconname = iconinfo.get_filename()
 
             # we get the right name from the lookup we did before

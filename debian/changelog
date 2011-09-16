@@ -3,6 +3,7 @@ software-center (4.1.23.3) UNRELEASED; urgency=low
   * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
     - fix r2344 (line wrap for header) as it leaves overly
       huge margins, thanks to Matthew McGowan
+    - fix crash if get_icon() returns None (LP: #846508)
   * softwarecenter/backend/installbackend_impl/aptd.py:
     - be more robust against a race when the transaction disappears
       between notify and fetching details #804444)
