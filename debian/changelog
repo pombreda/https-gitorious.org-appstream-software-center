@@ -9,6 +9,10 @@ software-center (4.1.23.3) UNRELEASED; urgency=low
       between notify and fetching details #804444)
   * data/ui/gtk3/submit_usefulness.ui:
     - remove not needed cancel/post click handlers (LP: #830830)
+  * softwarecenter/ui/gtk3/panes/installedpane.py,
+    test/gtk3/test_installedpane.py:
+    - fix show/hide technical items when in search mode in the installed
+      pane and add regression test
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 16 Sep 2011 08:12:00 +0200
 

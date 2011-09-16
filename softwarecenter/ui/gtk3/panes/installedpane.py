@@ -335,6 +335,12 @@ class InstalledPane(SoftwarePane, CategoriesParser):
             self.app_view._append_appcount(self.installed_count, mode=AppView.INSTALLED_MODE)
             self.spinner_notebook.set_current_page(InstalledPane.Pages.APPVIEW)
             self.spinner_view.stop()
+            
+            # reapply search if needed
+            if self.state.search_term:
+                self._do_search(self.state.search_term)
+                self.treefilter.refilter()
+
             self.emit("app-list-changed", i)
             return
 
@@ -430,6 +436,18 @@ class InstalledPane(SoftwarePane, CategoriesParser):
             it = self.treefilter.iter_next(it)
         return
 
+    def _do_search(self, terms):
+        self.state.search_term = terms
+        xfilter = AppFilter(self.db, self.cache)
+        xfilter.set_installed_only(True)
+        self.enquirer.set_query(self.get_query(),
+                                nonapps_visible=self.nonapps_visible,
+                                filter=xfilter,
+                                nonblocking_load=True)
+        
+        self.visible_docids = self.enquirer.get_docids()
+        self.visible_cats = self._get_vis_cats(self.visible_docids)
+
     def _search(self, terms=None):
         if not terms:
             self.visible_docids = None
@@ -437,16 +455,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
             self._clear_search()
 
         elif self.state.search_term != terms:
-            self.state.search_term = terms
-            xfilter = AppFilter(self.db, self.cache)
-            xfilter.set_installed_only(True)
-            self.enquirer.set_query(self.get_query(),
-                                    nonapps_visible=self.nonapps_visible,
-                                    filter=xfilter,
-                                    nonblocking_load=True)
-
-            self.visible_docids = self.enquirer.get_docids()
-            self.visible_cats = self._get_vis_cats(self.visible_docids)
+            self._do_search(terms)
 
         self.treefilter.refilter()
         if terms:
@@ -585,7 +594,7 @@ def get_test_window():
     w.state.channel = AllInstalledChannel()
     w.display_overview_page(None, None)
 
-    win.show_all()
+    win.show()
     return win
 
 
