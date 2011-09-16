@@ -935,13 +935,8 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         self.subtitle = Gtk.Label()
         self.title.set_alignment(0, 0.5)
         self.subtitle.set_alignment(0, 0.5)
-        #mvo: actually we should use line wrap here, but gtk3 still does
-        #     not get this right and creates a huge vertical spacing in
-        #     the header if this is enabled
-        #self.title.set_line_wrap(True)
-        #self.subtitle.set_line_wrap(True)
-        self.title.set_ellipsize(Pango.EllipsizeMode.END)
-        self.subtitle.set_ellipsize(Pango.EllipsizeMode.END)
+        self.title.set_line_wrap(True)
+        self.subtitle.set_line_wrap(True)
         vb_inner=Gtk.VBox()
         vb_inner.pack_start(self.title, False, False, 0)
         vb_inner.pack_start(self.subtitle, False, False, 0)
@@ -957,9 +952,7 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         #~ vb_inner.set_property("can-focus", True)
         self.title.a11y = vb_inner.get_accessible()
         self.title.a11y.set_role(Atk.Role.PANEL)
-        a = Gtk.Alignment.new(0, 0.5, 0, 0)
-        a.add(vb_inner)
-        hb.pack_start(a, False, False, 0)
+        hb.pack_start(vb_inner, False, False, 0)
 
         # the package status bar
         self.pkg_statusbar = PackageStatusBar(self)

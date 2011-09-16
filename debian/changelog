@@ -1,7 +1,7 @@
 software-center (4.1.23.3) UNRELEASED; urgency=low
 
   * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
-    - revert r2344 (line wrap for header) as it leaves overly
+    - fix r2344 (line wrap for header) as it leaves overly
       huge margins, thanks to Matthew McGowan
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 16 Sep 2011 08:12:00 +0200
