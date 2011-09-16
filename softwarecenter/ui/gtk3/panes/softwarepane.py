@@ -35,6 +35,7 @@ from softwarecenter.db.enquire import AppEnquire
 from softwarecenter.enums import (ActionButtons,
                                   SortMethods,
                                   TransactionTypes,
+                                  DEFAULT_SEARCH_LIMIT,
                                   NonAppVisibility)
 
 from softwarecenter.utils import (ExecutionTime,
@@ -53,7 +54,7 @@ from softwarecenter.ui.gtk3.views.appdetailsview_gtk import (
                                                 AppDetailsViewGtk as
                                                 AppDetailsView)
 
-from softwarecenter.enums import DEFAULT_SEARCH_LIMIT
+from softwarecenter.utils import is_no_display_desktop_file
 
 from basepane import BasePane
 
@@ -389,6 +390,10 @@ class SoftwarePane(Gtk.VBox, BasePane):
         # we only show the prompt for apps with a desktop file
         if not appdetails.desktop_file:
             return
+        # do not add apps without a exec line (like wine, see #848437)
+        if (os.path.exists(appdetails.desktop_file) and
+            is_no_display_desktop_file(appdetails.desktop_file)):
+                return
         self.action_bar.add_button(ActionButtons.CANCEL_ADD_TO_LAUNCHER,
                                     _("Not Now"), 
                                     self.on_cancel_add_to_launcher, 

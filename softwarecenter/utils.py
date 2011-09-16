@@ -417,10 +417,20 @@ def get_nice_date_string(cur_t):
 
     return s
 
-def get_exec_line_from_desktop(desktop_file):
+def _get_from_desktop_file(desktop_file, key):
     for line in open(desktop_file):
-        if line.startswith("Exec="):
-            return line.split("Exec=")[1]
+        if line.startswith(key+"="):
+            return line.split(key+"=")[1].strip()
+    return None
+
+def get_exec_line_from_desktop(desktop_file):
+    return _get_from_desktop_file(desktop_file, "Exec")
+
+def is_no_display_desktop_file(desktop_file):
+    nd = _get_from_desktop_file(desktop_file, "NoDisplay")
+    if nd and nd.lower() == "true":
+        return True
+    return False
 
 def get_nice_size(n_bytes):
     nice_size = lambda s:[(s%1024**i and "%.1f"%(s/1024.0**i) or \

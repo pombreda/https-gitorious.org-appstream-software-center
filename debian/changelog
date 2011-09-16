@@ -21,6 +21,10 @@ software-center (4.1.23.3) UNRELEASED; urgency=low
   * softwarecenter/ui/gtk3/widgets/reviews.py:
     - do not show "no network connection" message when checking for
       new reviews (LP: #848480)
+  * softwarecenter/ui/gtk3/panes/softwarepane.py, softwarecenter/utils.py,
+    test/test_utils.py:
+    - do not offer to add NoDisplay=true desktop files like wine to the
+      launcher (LP: #848437)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 16 Sep 2011 08:12:00 +0200
 
