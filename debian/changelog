@@ -1,4 +1,4 @@
-software-center (4.1.23.3) UNRELEASED; urgency=low
+software-center (4.1.23.3) oneiric; urgency=low
 
   * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
     - fix r2344 (line wrap for header) as it leaves overly
@@ -26,7 +26,7 @@ software-center (4.1.23.3) UNRELEASED; urgency=low
     - do not offer to add NoDisplay=true desktop files like wine to the
       launcher (LP: #848437)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 16 Sep 2011 08:12:00 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 16 Sep 2011 21:12:26 +0200
 
 software-center (4.1.23.2) oneiric; urgency=low
 
