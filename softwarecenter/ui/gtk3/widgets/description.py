@@ -192,7 +192,8 @@ class Layout(PangoLayoutProxy):
     def index_at(self, px, py):
         #wa = self.widget.get_allocation()
         x, y = self.get_position() # layout allocation
-        return point_in(self.allocation, px, py), sum(self.xy_to_index((px-x)*_PS, (py-y)*_PS))
+        (_, index, k) = self.xy_to_index((px-x)*_PS, (py-y)*_PS)
+        return point_in(self.allocation, px, py), index + k
 
     def reset_attrs(self):
         #~ self.set_attributes(Pango.AttrList())
