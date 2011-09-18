@@ -28,11 +28,8 @@ _PS = Pango.SCALE
 
 
 def point_in(rect, px, py):
-    return (px >= rect.x and px <= rect.x + rect.width and
-            py >= rect.y and py <= rect.y + rect.height)
-
-def color_floats(color):
-    return color.red/65535.0, color.green/65535.0, color.blue/65535.0
+    return (rect.x <= px <= rect.x + rect.width and
+            rect.y <= py <= rect.y + rect.height)
 
 
 class _SpecialCasePreParsers(object):
@@ -422,6 +419,19 @@ class TextBlock(Gtk.EventBox):
         self._test_layout = self.create_pango_layout('')
         #self._xterm = Gdk.Cursor.new(Gdk.XTERM)
 
+        # popup menu and menuitem's
+        self.copy_menuitem = Gtk.ImageMenuItem.new_from_stock(
+                                            Gtk.STOCK_COPY, None)
+        self.select_all_menuitem = Gtk.ImageMenuItem.new_from_stock(
+                                            Gtk.STOCK_SELECT_ALL, None)
+        self.menu = Gtk.Menu()
+        self.menu.attach_to_widget(self, None)
+        self.menu.append(self.copy_menuitem)
+        self.menu.append(self.select_all_menuitem)
+        self.menu.show_all()
+        self.copy_menuitem.connect('select', self._menu_do_copy, sel)
+        self.select_all_menuitem.connect('select', self._menu_do_select_all, cur, sel)
+
         self.connect('button-press-event', self._on_press, event_helper, cur, sel)
         self.connect('button-release-event', self._on_release, event_helper, cur, sel)
         self.connect('motion-notify-event', self._on_motion, event_helper, cur, sel)
@@ -558,7 +568,6 @@ class TextBlock(Gtk.EventBox):
                 break
 
     def _on_press(self, widget, event, event_helper, cur, sel):
-
         if sel and not self.has_focus():
             self.grab_focus()
             return  # spot the difference
@@ -578,7 +587,8 @@ class TextBlock(Gtk.EventBox):
             point_in, index = layout.index_at(x, y)
 
             if point_in:
-                within_sel = sel.within_selection((layout.index, index))
+                within_sel = False
+                #~ within_sel = sel.within_selection((layout.index, index))
 
                 if not within_sel:
                     cur.set_position(layout.index, index)
@@ -618,32 +628,23 @@ class TextBlock(Gtk.EventBox):
         self._select_all(cur, sel)
 
     def _button3_action(self, cur, sel, event):
-        copy = Gtk.ImageMenuItem.new_from_stock(Gtk.STOCK_COPY, None)
-        sel_all = Gtk.ImageMenuItem.new_from_stock(Gtk.STOCK_SELECT_ALL, None)
-
-        menu = Gtk.Menu()
-        menu.attach_to_widget(self, None)
-        menu.append(copy)
-        menu.append(sel_all)
-        menu.show_all()
-
         start, end = sel.get_range()
+
+        self.copy_menuitem.set_sensitive(True)
+        self.select_all_menuitem.set_sensitive(True)
+
         if not sel:
-            copy.set_sensitive(False)
+            self.copy_menuitem.set_sensitive(False)
         elif start == (0, 0) and \
             end == (len(self.order)-1, len(self.order[-1])):
-            sel_all.set_sensitive(False)
+            self.select_all_menuitem.set_sensitive(False)
 
-        copy.connect('select', self._menu_do_copy, sel)
-        sel_all.connect('select', self._menu_do_select_all, cur, sel)
-
-        menu.popup(None, # parent_menu_shell,
-                   None, # parent_menu_item,
-                   None, # GtkMenuPositionFunc func,
-                   None, # data,
-                   event.button,
-                   event.time)
-        menu.show_all()
+        self.menu.popup(None, # parent_menu_shell,
+                        None, # parent_menu_item,
+                        None, # GtkMenuPositionFunc func,
+                        None, # data,
+                        event.button,
+                        event.time)
         return
 
     def _on_key_press(self, widget, event, cur, sel):
@@ -1208,7 +1209,7 @@ class AppDescription(Gtk.VBox):
 
 
 def get_test_description_window():
-    EXAMPLE = """
+    EXAMPLE0 = """
 p7zip is the Unix port of 7-Zip, a file archiver that archives with very high compression ratios.
 
 p7zip-full provides:
@@ -1220,17 +1221,224 @@ p7zip-full provides:
    BZIP2, TAR, CPIO, RPM, ISO and DEB archives. 7z compression is 30-50% better than ZIP compression.
 
 p7zip provides 7zr, a light version of 7za, and p7zip a gzip like wrapper around 7zr.""".strip()
+
+
+    EXAMPLE1 = """Transmageddon supports almost any format as its input and can generate a very large host of output files. The goal of the application was to help people to create the files they need to be able to play on their mobile devices and for people not hugely experienced with multimedia to generate a multimedia file without having to resort to command line tools with ungainly syntaxes.
+The currently supported codecs are:
+ * Containers:
+  - Ogg
+  - Matroska
+  - AVI
+  - MPEG TS
+  - flv
+  - QuickTime
+  - MPEG4
+  - 3GPP
+  - MXT
+ * Audio encoders:
+  - Vorbis
+  - FLAC
+  - MP3
+  - AAC
+  - AC3
+  - Speex
+  - Celt
+ * Video encoders:
+  - Theora
+  - Dirac
+  - H264
+  - MPEG2
+  - MPEG4/DivX5
+  - xvid
+  - DNxHD
+It also provide the support for the GStreamer's plugins auto-search."""
+
+
+    EXAMPLE2 = """File-roller is an archive manager for the GNOME environment. It allows you to:
+ * Create and modify archives.
+ * View the content of an archive.
+ * View a file contained in an archive.
+ * Extract files from the archive.
+File-roller supports the following formats:
+ * Tar (.tar) archives, including those compressed with
+   gzip (.tar.gz, .tgz), bzip (.tar.bz, .tbz), bzip2 (.tar.bz2, .tbz2),
+   compress (.tar.Z, .taz), lzip (.tar.lz, .tlz), lzop (.tar.lzo, .tzo),
+   lzma (.tar.lzma) and xz (.tar.xz)
+ * Zip archives (.zip)
+ * Jar archives (.jar, .ear, .war)
+ * 7z archives (.7z)
+ * iso9660 CD images (.iso)
+ * Lha archives (.lzh)
+ * Single files compressed with gzip (.gz), bzip (.bz), bzip2 (.bz2),
+   compress (.Z), lzip (.lz), lzop (.lzo), lzma (.lzma) and xz (.xz)
+File-roller doesn't perform archive operations by itself, but relies on standard tools for this."""
+
+    EXAMPLE3 = """This package includes the following CTAN packages:
+ Asana-Math -- A font to typeset maths in Xe(La)TeX.
+ albertus --
+ allrunes -- Fonts and LaTeX package for almost all runes.
+ antiqua -- the URW Antiqua Condensed Font.
+ antp -- Antykwa Poltawskiego: a Type 1 family of Polish traditional type.
+ antt -- Antykwa Torunska: a Type 1 family of a Polish traditional type.
+ apl -- Fonts for typesetting APL programs.
+ ar -- Capital A and capital R ligature for Apsect Ratio.
+ archaic -- A collection of archaic fonts.
+ arev -- Fonts and LaTeX support files for Arev Sans.
+ ascii -- Support for IBM "standard ASCII" font.
+ astro -- Astronomical (planetary) symbols.
+ atqolive --
+ augie -- Calligraphic font for typesetting handwriting.
+ auncial-new -- Artificial Uncial font and LaTeX support macros.
+ aurical -- Calligraphic fonts for use with LaTeX in T1 encoding.
+ barcodes -- Fonts for making barcodes.
+ bayer -- Herbert Bayers Universal Font For Metafont.
+ bbding -- A symbol (dingbat) font and LaTeX macros for its use.
+ bbm -- "Blackboard-style" cm fonts.
+ bbm-macros -- LaTeX support for "blackboard-style" cm fonts.
+ bbold -- Sans serif blackboard bold.
+ belleek -- Free replacement for basic MathTime fonts.
+ bera -- Bera fonts.
+ blacklettert1 -- T1-encoded versions of Haralambous old German fonts.
+ boisik -- A font inspired by Baskerville design.
+ bookhands -- A collection of book-hand fonts.
+ braille -- Support for braille.
+ brushscr -- A handwriting script font.
+ calligra -- Calligraphic font.
+ carolmin-ps -- Adobe Type 1 format of Carolingian Minuscule fonts.
+ cherokee -- A font for the Cherokee script.
+ clarendo --
+ cm-lgc -- Type 1 CM-based fonts for Latin, Greek and Cyrillic.
+ cmbright -- Computer Modern Bright fonts.
+ cmll -- Symbols for linear logic.
+ cmpica -- A Computer Modern Pica variant.
+ coronet --
+ courier-scaled -- Provides a scaled Courier font.
+ cryst -- Font for graphical symbols used in crystallography.
+ cyklop -- The Cyclop typeface.
+ dancers -- Font for Conan Doyle's "The Dancing Men".
+ dice -- A font for die faces.
+ dictsym -- DictSym font and macro package
+ dingbat -- Two dingbat symbol fonts.
+ doublestroke -- Typeset mathematical double stroke symbols.
+ dozenal -- Typeset documents using base twelve numbering (also called
+  "dozenal")
+ duerer -- Computer Duerer fonts.
+ duerer-latex -- LaTeX support for the Duerer fonts.
+ ean -- Macros for making EAN barcodes.
+ ecc -- Sources for the European Concrete fonts.
+ eco -- Oldstyle numerals using EC fonts.
+ eiad -- Traditional style Irish fonts.
+ eiad-ltx -- LaTeX support for the eiad font.
+ elvish -- Fonts for typesetting Tolkien Elvish scripts.
+ epigrafica -- A Greek and Latin font.
+ epsdice -- A scalable dice "font".
+ esvect -- Vector arrows.
+ eulervm -- Euler virtual math fonts.
+ euxm --
+ feyn -- A font for in-text Feynman diagrams.
+ fge -- A font for Frege's Grundgesetze der Arithmetik.
+ foekfont -- The title font of the Mads Fok magazine.
+ fonetika -- Support for the danish "Dania" phonetic system.
+ fourier -- Using Utopia fonts in LaTeX documents.
+ fouriernc -- Use New Century Schoolbook text with Fourier maths fonts.
+ frcursive -- French cursive hand fonts.
+ garamond --
+ genealogy -- A compilation genealogy font.
+ gfsartemisia -- A modern Greek font design.
+ gfsbodoni -- A Greek and Latin font based on Bodoni.
+ gfscomplutum -- A Greek font with a long history.
+ gfsdidot -- A Greek font based on Didot's work.
+ gfsneohellenic -- A Greek font in the Neo-Hellenic style.
+ gfssolomos -- A Greek-alphabet font.
+ gothic -- A collection of old German-style fonts.
+ greenpoint -- The Green Point logo.
+ groff --
+ grotesq -- the URW Grotesk Bold Font.
+ hands -- Pointing hand font.
+ hfbright -- The hfbright fonts.
+ hfoldsty -- Old style numerals with EC fonts.
+ ifsym -- A collection of symbols.
+ inconsolata -- A monospaced font, with support files for use with TeX.
+ initials -- Adobe Type 1 decorative initial fonts.
+ iwona -- A two-element sans-serif font.
+ junicode -- A TrueType font for mediaevalists.
+ kixfont -- A font for KIX codes.
+ knuthotherfonts --
+ kpfonts -- A complete set of fonts for text and mathematics.
+ kurier -- A two-element sans-serif typeface.
+ lettrgth --
+ lfb -- A Greek font with normal and bold variants.
+ libertine -- Use the font Libertine with LaTeX.
+ libris -- Libris ADF fonts, with LaTeX support.
+ linearA -- Linear A script fonts.
+ logic -- A font for electronic logic design.
+ lxfonts -- Set of slide fonts based on CM.
+ ly1 -- Support for LY1 LaTeX encoding.
+ marigold --
+ mathabx -- Three series of mathematical symbols.
+ mathdesign -- Mathematical fonts to fit with particular text fonts.
+ mnsymbol -- Mathematical symbol font for Adobe MinionPro.
+ nkarta -- A "new" version of the karta cartographic fonts.
+ ocherokee -- LaTeX Support for the Cherokee language.
+ ogham -- Fonts for typesetting Ogham script.
+ oinuit -- LaTeX Support for the Inuktitut Language.
+ optima --
+ orkhun -- A font for orkhun script.
+ osmanian -- Osmanian font for writing Somali.
+ pacioli -- Fonts designed by Fra Luca de Pacioli in 1497.
+ pclnfss -- Font support for current PCL printers.
+ phaistos -- Disk of Phaistos font.
+ phonetic -- MetaFont Phonetic fonts, based on Computer Modern.
+ pigpen -- A font for the pigpen (or masonic) cipher.
+ psafm --
+ punk -- Donald Knuth's punk font.
+ recycle -- A font providing the "recyclable" logo.
+ sauter -- Wide range of design sizes for CM fonts.
+ sauterfonts -- Use sauter fonts in LaTeX.
+ semaphor -- Semaphore alphabet font.
+ simpsons -- MetaFont source for Simpsons characters.
+ skull -- A font to draw a skull.
+ staves -- Typeset Icelandic staves and runic letters.
+ tapir -- A simple geometrical font.
+ tengwarscript -- LaTeX support for using Tengwar fonts.
+ trajan -- Fonts from the Trajan column in Rome.
+ umtypewriter -- Fonts to typeset with the xgreek package.
+ univers --
+ universa -- Herbert Bayer's 'universal' font.
+ venturisadf -- Venturis ADF fonts collection.
+ wsuipa -- International Phonetic Alphabet fonts.
+ yfonts -- Support for old German fonts.
+ zefonts -- Virtual fonts to provide T1 encoding from existing fonts."""
+
+    def on_clicked(widget, desc_widget, descs):
+        widget.position += 1
+        if widget.position >= len(descs):
+            widget.position = 0
+        desc_widget.set_description(*descs[widget.position])
+        return
+
+    descs = ((EXAMPLE0,''),
+             (EXAMPLE1,''),
+             (EXAMPLE2,''),
+             (EXAMPLE3,'texlive-fonts-extra'))
+
     win = Gtk.Window()
-    win.set_size_request(400, -1)
+    win.set_default_size(300, 400)
     win.set_has_resize_grip(True)
     vb = Gtk.VBox()
     win.add(vb)
-    b = Gtk.Button('Focus stealer')
-    vb.add(b)
+    b = Gtk.Button('Next test description >>')
+    b.position = 0
+    vb.pack_start(b, False, False, 0)
+    scroll = Gtk.ScrolledWindow()
+    vb.add(scroll)
     d = AppDescription()
-    d.set_description(EXAMPLE, pkgname='')
-    vb.add(d)
+    #~ d.description.DEBUG_PAINT_BBOXES = True
+    d.set_description(EXAMPLE0, pkgname='')
+    scroll.add_with_viewport(d)
     win.show_all()
+
+    b.connect("clicked", on_clicked, d, descs)
     win.connect('destroy',lambda x: Gtk.main_quit())
     return win
 
