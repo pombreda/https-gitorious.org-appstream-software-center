@@ -387,7 +387,7 @@ class TextBlock(Gtk.EventBox):
 
     def __init__(self):
         Gtk.EventBox.__init__(self)
-        self.set_visible_window(False)
+        #~ self.set_visible_window(True)
         self.set_size_request(200, -1)
         #~ self.set_redraw_on_allocate(False)
 
@@ -448,10 +448,12 @@ class TextBlock(Gtk.EventBox):
         self.connect('focus-in-event', self._on_focus_in)
         self.connect('focus-out-event', self._on_focus_out)
 
+        self.connect("size-allocate", self.on_size_allocate)
         self.connect('style-updated', self._on_style_updated)
         return
 
-    def do_size_allocate(self, allocation):
+    def on_size_allocate(self, *args):
+        allocation = self.get_allocation()
         width = allocation.width
 
         x = y = 0
@@ -469,8 +471,6 @@ class TextBlock(Gtk.EventBox):
                                       width-layout.indent, e.height)
 
             y += e.y + e.height
-
-        self.set_allocation(allocation)
         return
 
     # overrides
@@ -561,7 +561,7 @@ class TextBlock(Gtk.EventBox):
             #~ return
 
         for layout in self.order:
-            point_in, index = layout.index_at(int(event.x), int(event.y))
+            point_in, index = layout.index_at(cur_x, cur_y)
             if point_in:
                 cur.set_position(layout.index, index)
                 self.queue_draw()
@@ -1057,9 +1057,9 @@ class TextBlock(Gtk.EventBox):
             if layout.is_bullet:
                 if self.get_direction() != Gtk.TextDirection.RTL:
                     indent = layout.indent - self.indent
-                    self._paint_bullet_point(cr, indent, ly)
                 else:
-                    self._paint_bullet_point(cr, a.width-indent, ly)
+                    indent = a.width - layout.indent
+                self._paint_bullet_point(cr, indent, ly)
 
             if self.DEBUG_PAINT_BBOXES:
                 la = layout.allocation
@@ -1067,7 +1067,7 @@ class TextBlock(Gtk.EventBox):
                 cr.set_source_rgb(1,0,0)
                 cr.stroke()
 
-            #~ # draw the layout
+            # draw the layout
             Gtk.render_layout(self.get_style_context(),
                                 cr,
                                 lx,             # x coord
@@ -1410,6 +1410,17 @@ File-roller doesn't perform archive operations by itself, but relies on standard
  yfonts -- Support for old German fonts.
  zefonts -- Virtual fonts to provide T1 encoding from existing fonts."""
 
+
+    EXAMPLE4 = """Arista is a simple multimedia transcoder, it focuses on being easy to use by making complex task of encoding for various devices simple.
+Users should pick an input and a target device, choose a file to save to and go. Features:
+* Presets for iPod, computer, DVD player, PSP, Playstation 3, and more.
+* Live preview to see encoded quality.
+* Automatically discover available DVD media and Video 4 Linux (v4l) devices.
+* Rip straight from DVD media easily (requires libdvdcss).
+* Rip straight from v4l devices.
+* Simple terminal client for scripting.
+* Automatic preset updating."""
+
     def on_clicked(widget, desc_widget, descs):
         widget.position += 1
         if widget.position >= len(descs):
@@ -1420,7 +1431,8 @@ File-roller doesn't perform archive operations by itself, but relies on standard
     descs = ((EXAMPLE0,''),
              (EXAMPLE1,''),
              (EXAMPLE2,''),
-             (EXAMPLE3,'texlive-fonts-extra'))
+             (EXAMPLE3,'texlive-fonts-extra'),
+             (EXAMPLE4,''))
 
     win = Gtk.Window()
     win.set_default_size(300, 400)
