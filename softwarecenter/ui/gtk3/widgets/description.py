@@ -22,6 +22,7 @@ from gi.repository import GObject
 from gi.repository import Pango
 
 from softwarecenter.utils import normalize_package_description
+from softwarecenter.ui.gtk3.drawing import color_to_hex
 
 _PS = Pango.SCALE
 
@@ -96,6 +97,9 @@ class PangoLayoutProxy(object):
     def xy_to_index(self, x, y):
         return self._layout.xy_to_index(x, y)
 
+    def index_to_pos(self, *args):
+        return self._layout.index_to_pos(*args)
+
     # setter proxies
     def set_attributes(self, attrs):
         return self._layout.set_attributes(attrs)
@@ -124,6 +128,9 @@ class PangoLayoutProxy(object):
 
     def get_iter(self):
         return self._layout.get_iter()
+
+    def get_extents(self):
+        return self._layout.get_extents()
 
 
 class Layout(PangoLayoutProxy):
@@ -162,23 +169,25 @@ class Layout(PangoLayoutProxy):
 
     def cursor_up(self, cursor, target_x=-1):
         layout = self.widget.order[cursor.paragraph]
-        x, y = layout.index_to_pos(cursor.index)[:2]
+        pos = layout.index_to_pos(cursor.index)
+        x, y = pos.x, pos.y
 
         if target_x >= 0:
             x = target_x
 
         y -= _PS*self.widget.line_height
-        return sum(layout.xy_to_index(x, y)), (x, y)
+        return layout.xy_to_index(x, y), (x, y)
 
     def cursor_down(self, cursor, target_x=-1):
         layout = self.widget.order[cursor.paragraph]
-        x, y = layout.index_to_pos(cursor.index)[:2]
+        pos = layout.index_to_pos(cursor.index)
+        x, y = pos.x, pos.y
 
         if target_x >= 0:
             x = target_x
 
         y += _PS*self.widget.line_height
-        return sum(layout.xy_to_index(x, y)), (x, y)
+        return layout.xy_to_index(x, y), (x, y)
 
     def index_at(self, px, py):
         #wa = self.widget.get_allocation()
@@ -186,7 +195,8 @@ class Layout(PangoLayoutProxy):
         return point_in(self.allocation, px, py), sum(self.xy_to_index((px-x)*_PS, (py-y)*_PS))
 
     def reset_attrs(self):
-        self.set_attributes(Pango.AttrList())
+        #~ self.set_attributes(Pango.AttrList())
+        self.set_markup(self.get_text())
         self._default_attrs = True
         return
 
@@ -196,6 +206,13 @@ class Layout(PangoLayoutProxy):
         #~ attrs.insert(Pango.AttrBackground(bg.red, bg.green, bg.blue, start, end))
         #~ attrs.insert(Pango.AttrForeground(fg.red, fg.green, fg.blue, start, end))
         #~ self.set_attributes(attrs)
+
+        # XXX: workaround
+        text = self.get_text()
+        new_text = text[:start] + '<span background="%s" foreground="%s">' % (bg, fg)
+        new_text += text[start:end]
+        new_text += '</span>' + text[end:]
+        self.set_markup(new_text)
         self._default_attrs = False
         return
 
@@ -205,6 +222,10 @@ class Layout(PangoLayoutProxy):
         #~ attrs.insert(Pango.AttrBackground(bg.red, bg.green, bg.blue, 0, -1))
         #~ attrs.insert(Pango.AttrForeground(fg.red, fg.green, fg.blue, 0, -1))
         #~ self.set_attributes(attrs)
+
+        # XXX: workaround
+        text = self.get_text()
+        self.set_markup('<span background="%s" foreground="%s">%s</span>' % (bg, fg, text))
         self._default_attrs = False
         return
 
@@ -246,7 +267,7 @@ class Cursor(object):
             if i >= ls and i <= le:
                 if not it.at_last_line():
                     le -= 1
-                return (self.paragraph, ln), (ls, le), l
+                return (self.paragraph, ln), (ls, le)
             ln += 1
             keep_going = it.next_line()
         return None, None, None
@@ -361,14 +382,10 @@ class SelectionCursor(Cursor):
 
 class TextBlock(Gtk.EventBox):
 
-    PAINT_PRIMARY_CURSOR = True
+    PAINT_PRIMARY_CURSOR = False
     DEBUG_PAINT_BBOXES = False
 
     BULLET_POINT = u' \u2022  '
-
-    INFOCUS_NORM = 0
-    INFOCUS_SEL  = 1
-    OUTFOCUS_SEL = 2
 
     def __init__(self):
         Gtk.EventBox.__init__(self)
@@ -411,7 +428,10 @@ class TextBlock(Gtk.EventBox):
         self.connect('key-press-event', self._on_key_press, cur, sel)
         self.connect('key-release-event', self._on_key_release, cur, sel)
 
-#        self.connect('drag-begin', self._on_drag_begin)
+        #~ Gtk.drag_source_set(self, Gdk.ModifierType.BUTTON1_MASK,
+                            #~ None, Gdk.DragAction.COPY)
+        #~ Gtk.drag_source_add_text_targets(self)
+        #~ self.connect('drag-begin', self._on_drag_begin)
         #~ self.connect('drag-data-get', self._on_drag_data_get, sel)
 
         self.connect('focus-in-event', self._on_focus_in)
@@ -461,23 +481,22 @@ class TextBlock(Gtk.EventBox):
     def do_draw(self, cr):
         self.render(self, cr)
         return
-     
-    # small helper to be consitent with the ever changing pygi API
-    def _color_parse(self, s):
-        l = Gdk.color_parse(s)
-        if type(l) is tuple:
-            return l[1]
-        return l
+
+    def _config_colors(self):
+        context = self.get_style_context()
+        context.save()
+        context.add_class(Gtk.STYLE_CLASS_HIGHLIGHT)
+        state = self.get_state_flags()
+        if self.has_focus():
+            state |= Gtk.StateFlags.FOCUSED
+        context.set_state(state)
+        self._bg = color_to_hex(context.get_background_color(state))
+        self._fg = color_to_hex(context.get_color(state))
+        context.restore()
+        return
 
     def _on_style_updated(self, widget):
-        #style = self.get_style()
-        if self.has_focus():
-            self._bg = self._color_parse('red')
-            self._fg = self._color_parse('#000')
-        else:
-            #~ _, self._bg = Gdk.color_parse('#E5E3E1')
-            self._bg = self._color_parse('red')
-            self._fg = self._color_parse('#000')
+        self._config_colors()
         return
 
 #    def _on_drag_begin(self, widgets, context, event_helper):
@@ -491,22 +510,16 @@ class TextBlock(Gtk.EventBox):
         return
 
     def _on_focus_in(self, widget, event):
-        #~ _, self._bg = self.style.base[Gtk.StateType.SELECTED]
-        self._bg = self._color_parse('red')
-        self._fg = self._color_parse('#000')
+        self._config_colors()
         return
 
     def _on_focus_out(self, widget, event):
-        #~ _, self._bg = Gdk.color_parse('#E5E3E1')
-        self._bg = self._color_parse('red')
-        self._fg = self._color_parse('#000')
+        self._config_colors()
         return
 
     def _on_motion(self, widget, event, event_helper, cur, sel):
 
-        state = event.get_state().value_nicks
-
-        if not (state and state[0] == 'button1_mask'):# or not self.has_focus():
+        if not (event.state == Gdk.ModifierType.BUTTON1_MASK):# or not self.has_focus():
             return
 
         # check if we have moved enough to count as a drag
@@ -521,10 +534,9 @@ class TextBlock(Gtk.EventBox):
             self.drag_check_threshold(start_x, start_y, cur_x, cur_y)):
             event_helper['drag-active'] = True
 
-            # FIXME
-        #~ if not event_helper['drag-active']: 
-            #~ return
-#~ 
+        if not event_helper['drag-active']: 
+            return
+
         #~ if (event_helper['within-selection'] and 
             #~ not event_helper['drag-context']):
             #~ target_list = Gtk.TargetList()
@@ -535,7 +547,7 @@ class TextBlock(Gtk.EventBox):
                                   #~ event)                    # event
 #~ 
             #~ event_helper['drag-context'] = ctx
-            return
+            #~ return
 
         for layout in self.order:
             point_in, index = layout.index_at(int(event.x), int(event.y))
@@ -546,12 +558,12 @@ class TextBlock(Gtk.EventBox):
 
     def _on_press(self, widget, event, event_helper, cur, sel):
 
-        #~ if sel and not self.has_focus():
-            #~ self.grab_focus()
-            #~ return  # spot the difference
-#~ 
-        #~ if not self.has_focus():
-            #~ self.grab_focus()
+        if sel and not self.has_focus():
+            self.grab_focus()
+            return  # spot the difference
+
+        if not self.has_focus():
+            self.grab_focus()
 
         if event.button == 3:
             self._button3_action(cur, sel, event)
@@ -605,10 +617,11 @@ class TextBlock(Gtk.EventBox):
         self._select_all(cur, sel)
 
     def _button3_action(self, cur, sel, event):
-        copy = Gtk.ImageMenuItem(stock_id=Gtk.STOCK_COPY, accel_group=None)
-        sel_all = Gtk.ImageMenuItem(stock_id=Gtk.STOCK_SELECT_ALL, accel_group=None)
+        copy = Gtk.ImageMenuItem.new_from_stock(Gtk.STOCK_COPY, None)
+        sel_all = Gtk.ImageMenuItem.new_from_stock(Gtk.STOCK_SELECT_ALL, None)
 
         menu = Gtk.Menu()
+        menu.attach_to_widget(self, None)
         menu.append(copy)
         menu.append(sel_all)
         menu.show_all()
@@ -623,9 +636,13 @@ class TextBlock(Gtk.EventBox):
         copy.connect('select', self._menu_do_copy, sel)
         sel_all.connect('select', self._menu_do_select_all, cur, sel)
 
-        menu.popup(None, None, None,
-                   event.button, event.time,
-                   data=None)
+        menu.popup(None, # parent_menu_shell,
+                   None, # parent_menu_item,
+                   None, # GtkMenuPositionFunc func,
+                   None, # data,
+                   event.button,
+                   event.time)
+        menu.show_all()
         return
 
     def _on_key_press(self, widget, event, cur, sel):
@@ -633,9 +650,8 @@ class TextBlock(Gtk.EventBox):
         s, i = cur.paragraph, cur.index
 
         handled_keys = True
-        state = event.get_state().value_nicks
-        ctrl = state and state[0] == 'control_mask'
-        shift = state and state[0] == 'shift_mask'
+        ctrl = (event.state & Gdk.ModifierType.CONTROL_MASK) > 0
+        shift = (event.state & Gdk.ModifierType.SHIFT_MASK) > 0
 
         if not self.PAINT_PRIMARY_CURSOR and \
             kv in (Gdk.KEY_uparrow, Gdk.KEY_downarrow) and not sel:
@@ -652,7 +668,8 @@ class TextBlock(Gtk.EventBox):
 
             if shift:
                 layout = self._get_cursor_layout()
-                sel.set_target_x(layout.index_to_pos(cur.index)[0], layout.indent)
+                pos = layout.index_to_pos(cur.index)
+                sel.set_target_x(pos.x, layout.indent)
 
         elif kv == Gdk.KEY_Right: 
             if ctrl:
@@ -662,7 +679,8 @@ class TextBlock(Gtk.EventBox):
 
             if shift:
                 layout = self._get_cursor_layout()
-                sel.set_target_x(layout.index_to_pos(cur.index)[0], layout.indent)
+                pos = layout.index_to_pos(cur.index)
+                sel.set_target_x(pos.x, layout.indent)
 
         elif kv == Gdk.KEY_Up:
             if ctrl:
@@ -711,7 +729,7 @@ class TextBlock(Gtk.EventBox):
 
     def _on_key_release(self, widget, event, cur, sel):
         state = event.get_state().value_nicks
-        ctrl = state and state[0] == 'control_mask'
+        ctrl = (event.state & Gdk.ModifierType.CONTROL_MASK) > 0
         if ctrl:
             if event.keyval == Gdk.KEY_a:
                 self._select_all(cur, sel)
@@ -723,68 +741,75 @@ class TextBlock(Gtk.EventBox):
         return
 
     def _select_up(self, cur, sel):
-        if sel and not cur.is_min(sel) and cur.same_line(sel):
-            cur.switch(sel)
-        s = cur.paragraph
+        #~ if sel and not cur.is_min(sel) and cur.same_line(sel):
+            #~ cur.switch(sel)
 
+        s = cur.paragraph
         layout = self._get_layout(cur)
 
         if sel.target_x:
-            x = sel.target_x + (sel.target_x_indent - layout.indent)*_PS
-            j, xy = layout.cursor_up(cur, x)
+            x = sel.target_x
+            if sel.target_x_indent:
+                x += (sel.target_x_indent - layout.indent) * _PS
+            (_, j, k), (x, y) = layout.cursor_up(cur, x)
+            j += k
+
         else:
-            j, xy = layout.cursor_up(cur)
-            sel.set_target_x(xy[0], layout.indent)
+            (_, j, k), (x, y) = layout.cursor_up(cur)
+            j += k
+            sel.set_target_x(x, layout.indent)
 
         if (s, j) != cur.get_position():
             cur.set_position(s, j)
-        else:
-            if s > 0:
-                cur.paragraph -= 1
-            else:
-                cur.set_position(0, 0)
-                return False
 
-            layout1 = self._get_layout(cur)
-            x = sel.target_x + (sel.target_x_indent - layout1.indent)*_PS
-            y = layout1.get_extents()[1][3]
-            j = sum(layout1.xy_to_index(x, y))
-            cur.set_position(s-1, j)
-        return
+        elif s > 0:
+            indent = layout.indent
+            cur.paragraph = s-1
+            layout = self._get_layout(cur)
+            if sel.target_x_indent:
+                x += (sel.target_x_indent - layout.indent) * _PS
+            y = layout.get_extents()[0].height
+            (_, j, k) = layout.xy_to_index(x, y)
+            cur.set_position(s-1, j+k)
+
+        else:
+            return False
+        return True
 
     def _select_down(self, cur, sel):
-        if sel and not cur.is_max(sel) and cur.same_line(sel):
-            cur.switch(sel)
-        s = cur.paragraph
+        #~ if sel and not cur.is_max(sel) and cur.same_line(sel):
+            #~ cur.switch(sel)
 
+        s = cur.paragraph
         layout = self._get_layout(cur)
 
         if sel.target_x:
-            x = sel.target_x + (sel.target_x_indent - layout.indent)*_PS
-            # special case for when we sel all of top line after hitting
-            # top line extent
-            if cur.get_position() == (0, 0) and x != 0:
-                j = sum(layout.xy_to_index(x, 0))
-                xy = (x,0)
-            else:
-                j, xy = layout.cursor_down(cur, x)
+            x = sel.target_x
+            if sel.target_x_indent:
+                x += (sel.target_x_indent - layout.indent) * _PS
+            (_, j, k), (x, y) = layout.cursor_down(cur, x)
+            j += k
+
         else:
-            j, xy = layout.cursor_down(cur)
-            sel.set_target_x(xy[0], layout.indent)
+            (_, j, k), (x, y) = layout.cursor_down(cur)
+            j += k
+            sel.set_target_x(x, layout.indent)
 
         if (s, j) != cur.get_position():
             cur.set_position(s, j)
-        else:
-            if s+1 < len(self.order):
-                cur.paragraph += 1
-            else:
-                cur.set_position(s, len(layout))
-                return False
 
+        elif s < len(self.order) - 1:
+            indent = layout.indent
+            cur.paragraph = s+1
             layout = self._get_layout(cur)
-            x = sel.target_x + (sel.target_x_indent - layout.indent)*_PS
-            j = sum(layout.xy_to_index(x, 0))
-            cur.set_position(s+1, j)
+            if sel.target_x_indent:
+                x += (sel.target_x_indent - layout.indent) * _PS
+            y = 0
+            (_, j, k) = layout.xy_to_index(x, y)
+            cur.set_position(s+1, j+k)
+
+        else:
+            return False
         return True
 
     def _2click_select(self, cursor, sel):
@@ -792,7 +817,14 @@ class TextBlock(Gtk.EventBox):
         return
 
     def _3click_select(self, cursor, sel):
+        # XXX:
+        # _select_line seems to expose the following Pango issue:
+        # (description.py:3892): Pango-CRITICAL **:
+        # pango_layout_line_unref: assertion `private->ref_count > 0'
+        # failed
+        # ... which can result in a segfault
         #~ self._select_line(cursor, sel)
+        self._select_all(cursor, sel)
         return
 
     def _copy_text(self, sel):
@@ -800,10 +832,12 @@ class TextBlock(Gtk.EventBox):
         text = self.get_selected_text(sel)
 
         if not self.clipboard:
-            self.clipboard = self.get_clipboard(Gdk.SELECTION_CLIPBOARD)
+            display = Gdk.Display.get_default()
+            selection = Gdk.Atom.intern("CLIPBOARD", False)
+            self.clipboard = Gtk.Clipboard.get_for_display(display, selection)
 
         self.clipboard.clear()
-        self.clipboard.set_text(text, -1)
+        self.clipboard.set_text(text.strip(), -1)
         return
 
     def _select_end(self, cur, sel, layout):
@@ -919,7 +953,7 @@ class TextBlock(Gtk.EventBox):
         return
 
     def _select_line(self, cursor, sel):
-        n, r, line = self.cursor.get_current_line()
+        n, r = self.cursor.get_current_line()
         sel.set_position(n[0], r[0])
         cursor.set_position(n[0], r[1])
         if self.get_direction() == Gtk.TextDirection.RTL:
@@ -970,7 +1004,6 @@ class TextBlock(Gtk.EventBox):
         i = layout.index
         start, end = sel.get_range()
         if sel and i >= start[0] and i <= end[0]:
-
             if i == start[0]:
                 if end[0] > i:
                     layout.highlight(start[1], len(layout), bg, fg)
@@ -1014,10 +1047,10 @@ class TextBlock(Gtk.EventBox):
         a = self.get_allocation()
         for layout in self.order:
             lx, ly = layout.get_position()
-#~ 
-            #~ self._selection_highlight(layout,
-                                      #~ self.selection,
-                                      #~ self._bg, self._fg)
+
+            self._selection_highlight(layout,
+                                      self.selection,
+                                      self._bg, self._fg)
 
             if layout.is_bullet:
                 if self.get_direction() != Gtk.TextDirection.RTL:
@@ -1189,9 +1222,14 @@ p7zip provides 7zr, a light version of 7za, and p7zip a gzip like wrapper around
     win = Gtk.Window()
     win.set_size_request(400, -1)
     win.set_has_resize_grip(True)
+    vb = Gtk.VBox()
+    win.add(vb)
+    b = Gtk.Button('Focus stealer')
+    vb.add(b)
     d = AppDescription()
     d.set_description(EXAMPLE, pkgname='')
-    win.add(d)
+    vb.add(d)
+    win.show_all()
     win.connect('destroy',lambda x: Gtk.main_quit())
     return win
 
