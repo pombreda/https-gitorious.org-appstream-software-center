@@ -1156,7 +1156,6 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
             description = app_details.error
         else:
             description = app_details.description
-            print description
         if not description:
             description = " "
         self.desc.set_description(description, appname)
