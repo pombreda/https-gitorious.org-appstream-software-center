@@ -141,7 +141,18 @@ class CategoryTile(TileButton):
         return
 
     def do_draw(self, cr):
+        cr.save()
+        A = self.get_allocation()
+
+        if self.has_focus():
+            Gtk.render_focus(self.get_style_context(),
+                             cr,
+                             3, 3,
+                             A.width-6, A.height-6)
+
         for child in self: self.propagate_draw(child, cr)
+
+        cr.restore()
         return
 
     def on_enter(self, widget, event):
