@@ -133,7 +133,6 @@ class StatusBar(Gtk.Alignment):
         cr.stroke()
 
         cr.restore()
-
         for child in self: self.propagate_draw(child, cr)
 
 
@@ -1009,6 +1008,7 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         footer_hb.pack_start(self.homepage_btn, False, False, 0)
         self.desc.pack_start(footer_hb, False, False, 0)
 
+z
         vb.pack_start(HBar(), False, False, 0)
 
         self.info_vb = info_vb = Gtk.VBox()
