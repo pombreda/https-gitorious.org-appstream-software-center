@@ -397,6 +397,7 @@ class PackageInfo(Gtk.HBox):
         self.value_label.set_markup(value)
         self.a11y.set_name(self.key + ' ' + value)
 
+
 class Addon(Gtk.HBox):
     """ Widget to select addons: CheckButton - Icon - Title (pkgname) """
 
@@ -1008,8 +1009,8 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         footer_hb.pack_start(self.homepage_btn, False, False, 0)
         self.desc.pack_start(footer_hb, False, False, 0)
 
-z
-        vb.pack_start(HBar(), False, False, 0)
+        self._hbars = [HBar(), HBar(), HBar()]
+        vb.pack_start(self._hbars[0], False, False, 0)
 
         self.info_vb = info_vb = Gtk.VBox()
         info_vb.set_spacing(12)
@@ -1023,7 +1024,7 @@ z
         self.addon_view.pack_start(self.addons_statusbar, False, False, 0)
         self.addon_view.connect('table-built', self._on_addon_table_built)
 
-        self.addons_hbar = HBar()
+        self.addons_hbar = self._hbars[1]
         info_vb.pack_start(self.addons_hbar, False, False, StockEms.SMALL)
 
         # package info
@@ -1049,7 +1050,7 @@ z
         self.support_info = PackageInfo(_("Updates"), self.info_keys)
         info_vb.pack_start(self.support_info, False, False, 0)
 
-        vb.pack_start(HBar(), False, False, 0)
+        vb.pack_start(self._hbars[2], False, False, 0)
 
         # reviews cascade
         self.reviews.connect("new-review", self._on_review_new)
@@ -1142,12 +1143,16 @@ z
             self.screenshot.hide()
             #~ self.info_header.hide()
             self.info_vb.hide()
+            for hbar in self._hbars:
+                hbar.hide()
         else:
             self.addon_view.show()
             self.reviews.show()
             self.screenshot.show()
             #~ self.info_header.show()
             self.info_vb.show()
+            for hbar in self._hbars:
+                hbar.show()
         return
 
     def _update_app_description(self, app_details, appname):
