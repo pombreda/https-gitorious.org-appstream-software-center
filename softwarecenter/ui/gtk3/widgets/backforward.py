@@ -39,13 +39,25 @@ class BackForwardButton(Gtk.HBox):
 
         if self.get_direction() != Gtk.TextDirection.RTL:
             # ltr
-            self.left = Left('left-clicked')
-            self.right = Right('right-clicked')
+            self.left = ButtonPart('left-clicked', arrow_type=Gtk.ArrowType.LEFT)
+            self.right = ButtonPart('right-clicked', arrow_type=Gtk.ArrowType.RIGHT)
+
+            context = self.left.get_style_context()
+            context.add_class("backforward-left-button")
+            context = self.right.get_style_context()
+            context.add_class("backforward-right-button")
+
             self.set_button_atk_info_ltr()
         else:
             # rtl
-            self.left = Left('left-clicked', arrow_type=Gtk.ArrowType.RIGHT)
-            self.right = Right('right-clicked', arrow_type=Gtk.ArrowType.LEFT)
+            self.left = ButtonPart('left-clicked', arrow_type=Gtk.ArrowType.RIGHT)
+            self.right = ButtonPart('right-clicked', arrow_type=Gtk.ArrowType.LEFT)
+
+            context = self.left.get_style_context()
+            context.add_class("backforward-right-button")
+            context = self.right.get_style_context()
+            context.add_class("backforward-left-button")
+
             self.set_button_atk_info_rtl()
 
         atk_obj = self.get_accessible()
@@ -97,10 +109,9 @@ class BackForwardButton(Gtk.HBox):
 
 class ButtonPart(Gtk.Button):
 
-    def __init__(self, arrow_type, signal_name):
+    def __init__(self, signal_name, arrow_type):
         Gtk.Button.__init__(self)
-        #~ self.set_name("backforward")
-        self.set_relief(Gtk.ReliefStyle.NORMAL)
+        #~ self.set_relief(Gtk.ReliefStyle.NORMAL)
         self.arrow_type = arrow_type
 
         if self.arrow_type == Gtk.ArrowType.LEFT:
@@ -110,9 +121,6 @@ class ButtonPart(Gtk.Button):
             self.arrow = Gtk.Image.new_from_icon_name('stock_right',
                                                  Gtk.IconSize.BUTTON)
 
-        #~ arrow = Gtk.Arrow.new(arrow_type, Gtk.ShadowType.OUT)
-        #~ arrow.set_margin_top(2)
-        #~ arrow.set_margin_bottom(2)
         self.arrow.set_margin_left(2)
         self.arrow.set_margin_right(2)
         self.add(self.arrow)
@@ -150,24 +158,6 @@ class ButtonPart(Gtk.Button):
         context.restore()
 
         for child in self: self.propagate_draw(child, cr)
-        return
-
-
-class Left(ButtonPart):
-
-    def __init__(self, sig_name, arrow_type=Gtk.ArrowType.LEFT):
-        ButtonPart.__init__(self, arrow_type, sig_name)
-        context = self.get_style_context()
-        context.add_class("backforward-left-button")
-        return
-
-
-class Right(ButtonPart):
-
-    def __init__(self, sig_name, arrow_type=Gtk.ArrowType.RIGHT):
-        ButtonPart.__init__(self, arrow_type, sig_name)
-        context = self.get_style_context()
-        context.add_class("backforward-right-button")
         return
 
 

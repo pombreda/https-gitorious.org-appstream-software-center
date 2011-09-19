@@ -258,7 +258,12 @@ class FeaturedTile(TileButton):
 
         if self.is_installed:
             # paint installed tick overlay
-            x = y = 36
+            if self.get_direction() != Gtk.TextDirection.RTL:
+                x = y = 36
+            else:
+                x = A.width - 56
+                y = 36
+
             Gdk.cairo_set_source_pixbuf(cr, self._overlay, x, y)
             cr.paint()
 
