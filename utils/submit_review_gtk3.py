@@ -1041,9 +1041,9 @@ class SubmitReviewsApp(BaseApp):
         """Updates status area to show success for 2 seconds then allows window to proceed"""
         self._change_status("success", self.SUCCESS_MESSAGE)
         while Gtk.events_pending():
-            Gtk.main_iteration(False)
+            Gtk.main_iteration()
         time.sleep(2)
-    
+
     def _on_gwibber_fail(self, api, trans, failed_accounts, error):
         self._change_status("fail",_("Problems posting to Gwibber"))
         #list to hold service strings in the format: "Service (@username)"
