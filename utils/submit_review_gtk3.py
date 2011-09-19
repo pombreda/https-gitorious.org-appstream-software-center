@@ -361,9 +361,9 @@ class Worker(threading.Thread):
             self.pending_reviews.task_done()
     
     def _get_error_messages(self, e):
-        logging.warn(e.body)
         if type(e) is piston_mini_client.APIError:
             try:
+                logging.warning(e.body)
                 error_msg = json.loads(e.body)['errors']
                 errs = error_msg["__all__"]
                 err_str = _("Server's response was:")

@@ -1024,7 +1024,7 @@ class TextBlock(Gtk.EventBox):
                     indent = layout.indent - self.indent
                     self._paint_bullet_point(cr, indent, ly)
                 else:
-                    self._paint_bullet_point(cr, a.width-indent, ly)
+                    self._paint_bullet_point(cr, a.width-self.indent, ly)
 
             if self.DEBUG_PAINT_BBOXES:
                 la = layout.allocation
