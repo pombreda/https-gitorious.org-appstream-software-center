@@ -211,6 +211,7 @@ class ExhibitArrowButton(ExhibitButton):
 
 
 class ExhibitBanner(Gtk.EventBox):
+    # FIXME: sometimes despite set_exhibit being called the new exhibit isn't actually displayed
 
     __gsignals__ = {
         "show-exhibits-clicked" : (GObject.SignalFlags.RUN_LAST,
@@ -288,6 +289,7 @@ class ExhibitBanner(Gtk.EventBox):
         self.connect("enter-notify-event", self.on_enter_notify)
         self.connect("leave-notify-event", self.on_leave_notify)
         self.connect("button-release-event", self.on_button_release)
+        self.connect("key-press-event", self.on_key_press)
 
     def _init_mouse_pointer(self):
         window = self.get_window()
@@ -312,6 +314,27 @@ class ExhibitBanner(Gtk.EventBox):
         if exhibit.package_names:
             self.emit("show-exhibits-clicked", exhibit)
         return
+
+    def on_key_press(self, widget, event):
+        # activate
+        if (event.keyval == Gdk.keyval_from_name("space") or
+            event.keyval == Gdk.keyval_from_name("Return") or
+            event.keyval == Gdk.keyval_from_name("KP_Enter")):
+            exhibit = self.exhibits[self.cursor]
+            if exhibit.package_names:
+                self.emit("show-exhibits-clicked", exhibit)
+            return True
+        # previous
+        if (event.keyval == Gdk.keyval_from_name("Left") or
+            event.keyval == Gdk.keyval_from_name("KP_Left")):
+            self.on_previous_clicked()
+            return True
+        # next
+        if (event.keyval == Gdk.keyval_from_name("Right") or
+            event.keyval == Gdk.keyval_from_name("KP_Right")):
+            self.on_next_clicked()
+            return True
+        return False
 
     def on_next_clicked(self, *args):
         self.next_exhibit()
@@ -382,6 +405,9 @@ class ExhibitBanner(Gtk.EventBox):
             GObject.timeout_add(500, self.on_banner_rendered, renderer)
             return
 
+        from gi.repository import Atk
+        self.get_accessible().set_name(self.exhibits[self.cursor].title_translated)
+        self.get_accessible().set_role(Atk.Role.PUSH_BUTTON)
         self._fade_in()
         self.queue_next()
         return False

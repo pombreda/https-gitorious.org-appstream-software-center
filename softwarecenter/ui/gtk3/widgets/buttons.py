@@ -100,7 +100,18 @@ class LabelTile(TileButton):
         return
 
     def do_draw(self, cr):
+        cr.save()
+        A = self.get_allocation()
+
+        if self.has_focus():
+            Gtk.render_focus(self.get_style_context(),
+                             cr,
+                             3, 3,
+                             A.width-6, A.height-6)
+
         for child in self: self.propagate_draw(child, cr)
+
+        cr.restore()
         return
 
     def on_enter(self, widget, event):
@@ -130,7 +141,18 @@ class CategoryTile(TileButton):
         return
 
     def do_draw(self, cr):
+        cr.save()
+        A = self.get_allocation()
+
+        if self.has_focus():
+            Gtk.render_focus(self.get_style_context(),
+                             cr,
+                             3, 3,
+                             A.width-6, A.height-6)
+
         for child in self: self.propagate_draw(child, cr)
+
+        cr.restore()
         return
 
     def on_enter(self, widget, event):
@@ -187,6 +209,7 @@ class FeaturedTile(TileButton):
             self.category.set_ellipsize(Pango.EllipsizeMode.END)
             self.content_right.pack_start(self.category, False, False, 4)
 
+        stats_a11y = None
         if stats is not None:
             self.stars = Star(size=StarSize.SMALL)
             self.stars.render_outline = True
@@ -201,6 +224,10 @@ class FeaturedTile(TileButton):
             self.n_ratings.set_alignment(0.0, 0.5)
             self.rating_box.pack_start(self.n_ratings, False, False, 0)
             self.content_right.pack_start(self.rating_box, False, False, 0)
+            # TRANSLATORS: this is an accessibility description for eg orca and
+            # is not visible in the ui
+            stats_a11y = _('%(stars)d stars - %(reviews)d reviews') % {
+                'stars': stats.ratings_average, 'reviews': stats.ratings_total}
         
             #work out width tile needs to be to ensure ratings text is all visible
             req_width = (self.stars.size_request().width +
@@ -226,6 +253,9 @@ class FeaturedTile(TileButton):
         self.content_right.pack_start(self.price, False, False, 0)
 
         self.set_name("featured-tile")
+
+        a11y_name = '. '.join([t for t in [label, categories, stats_a11y, price] if t])    
+        self.get_accessible().set_name(a11y_name)
 
         backend = get_install_backend()
         backend.connect("transaction-finished",
@@ -258,7 +288,12 @@ class FeaturedTile(TileButton):
 
         if self.is_installed:
             # paint installed tick overlay
-            x = y = 36
+            if self.get_direction() != Gtk.TextDirection.RTL:
+                x = y = 36
+            else:
+                x = A.width - 56
+                y = 36
+
             Gdk.cairo_set_source_pixbuf(cr, self._overlay, x, y)
             cr.paint()
 
