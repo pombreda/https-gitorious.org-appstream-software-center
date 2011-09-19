@@ -1,3 +1,11 @@
+software-center (4.1.23.4) UNRELEASED; urgency=low
+
+  [ Matthew McGowan ]
+  * utils/submit_review_gtk3.py:
+    - fix crash when submitting a review (LP: #852016)
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 19 Sep 2011 00:01:31 -0400
+
 software-center (4.1.23.3) oneiric; urgency=low
 
   * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
