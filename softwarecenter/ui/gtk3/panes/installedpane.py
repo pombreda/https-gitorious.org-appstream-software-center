@@ -37,6 +37,7 @@ from softwarecenter.ui.gtk3.models.appstore2 import (
     AppTreeStore, CategoryRowReference)
 from softwarecenter.ui.gtk3.widgets.menubutton import MenuButton
 from softwarecenter.ui.gtk3.widgets.oneconfviews import OneConfViews
+from softwarecenter.ui.gtk3.widgets.spinner import SpinnerView
 from softwarecenter.ui.gtk3.views.appview import AppView
 from softwarepane import SoftwarePane
 from softwarecenter.backend.oneconfhandler import get_oneconf_handler
@@ -76,6 +77,10 @@ class InstalledPane(SoftwarePane, CategoriesParser):
          DETAILS) = range(2)
         # the default page
         HOME = LIST
+        
+    # pages for the installed view spinner notebook
+    (PAGE_SPINNER,
+     PAGE_INSTALLED) = range(2)
 
     __gsignals__ = {'installed-pane-created':(GObject.SignalFlags.RUN_FIRST,
                                               None,
@@ -175,10 +180,20 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         self._all_cats = self.parse_applications_menu('/usr/share/app-install')
         self._all_cats = categories_sorted_by_name(self._all_cats)
         
-        # FIXME: could use some proper refactoring of app_view with SoftwarePane
-        #        to avoid this need to reparent
-        self.app_view.reparent(self.computerpane)
-        self.computerpane.pack2(self.app_view, True, True)
+        # create a local spinner notebook for the installed view
+        self.installed_spinner_view = SpinnerView()
+        self.installed_spinner_notebook = Gtk.Notebook()
+        self.installed_spinner_notebook.set_show_tabs(False)
+        self.installed_spinner_notebook.set_show_border(False)
+        self.installed_spinner_notebook.append_page(self.installed_spinner_view, None)
+        # FIXME: could use some refactoring with SoftwarePane to avoid reparenting
+        self.app_view.reparent(self.installed_spinner_notebook)
+        self.installed_spinner_notebook.append_page(self.app_view, None)
+        
+        self.computerpane.pack2(self.installed_spinner_notebook, True, True)
+        self.installed_spinner_view.start()
+        self.installed_spinner_notebook.set_current_page(self.PAGE_SPINNER)
+        
         self.show_all()
         
         # initialize view to hide the oneconf computer selector
@@ -260,9 +275,9 @@ class InstalledPane(SoftwarePane, CategoriesParser):
     def _build_categorised_installedview(self):
         LOG.debug('Rebuilding categorised installedview...')
         
-#        # display a spinner while we build the view
-#        self.spinner_view.start()
-#        self.spinner_notebook.set_current_page(InstalledPane.Pages.SPINNER)
+        # display the local spinner while we build the view
+        self.installed_spinner_view.start()
+        self.installed_spinner_notebook.set_current_page(self.PAGE_SPINNER)
         
         model = self.base_model # base model not treefilter
         model.clear()
@@ -283,7 +298,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
                 # node to tree_view
                 if not self._use_category(cat): continue
                 query = self.get_query_for_cat(cat)
-                LOG.debug("filter.instaleld_only: %s" % xfilter.installed_only)
+                LOG.debug("xfilter.installed_only: %s" % xfilter.installed_only)
                 enq.set_query(query,
                               sortmode=SortMethods.BY_ALPHABET,
                               nonapps_visible=self.nonapps_visible,
@@ -332,6 +347,10 @@ class InstalledPane(SoftwarePane, CategoriesParser):
             # cache the installed app count
             self.installed_count = i
             self.app_view._append_appcount(self.installed_count, mode=AppView.INSTALLED_MODE)
+            
+            # hide the local spinner
+            self.installed_spinner_notebook.set_current_page(self.PAGE_INSTALLED)
+            self.installed_spinner_view.stop()
             
             # hide the main spinner
             self.spinner_notebook.set_current_page(InstalledPane.Pages.APPVIEW)
