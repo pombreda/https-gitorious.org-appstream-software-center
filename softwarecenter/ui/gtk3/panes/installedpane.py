@@ -170,15 +170,22 @@ class InstalledPane(SoftwarePane, CategoriesParser):
 
         self._all_cats = self.parse_applications_menu('/usr/share/app-install')
         self._all_cats = categories_sorted_by_name(self._all_cats)
-
-        # now we are initialized
-        self.emit("installed-pane-created")
+        
+        # FIXME: don't reparent, needs proper refactoring with SoftwarePane
+        self.app_view.reparent(self.computerpane)
+        self.computerpane.pack2(self.app_view, True, True)
         self.show_all()
-        self.computerpane.hide()
+        
+        # initialize view to hide the oneconf computer selector
+        self.oneconf_viewpickler.select_first()
+        self.oneconfcontrol.hide()
 
         # hacky, hide the header
         self.app_view.header_hbox.hide()
 
+        # now we are initialized
+        self.emit("installed-pane-created")
+        
         self.view_initialized = True
         return False
 
@@ -199,15 +206,10 @@ class InstalledPane(SoftwarePane, CategoriesParser):
     def _show_oneconf_changed(self, oneconf_handler, oneconf_inventory_shown):
         LOG.debug('Share inventory status changed')
         if oneconf_inventory_shown:
-            # FIXME: would be better to avoid that, but needed to hide the handler?
-            self.app_view.reparent(self.computerpane)
-            self.computerpane.pack2(self.app_view, True, True)
-            self.computerpane.show()
+            self.oneconfcontrol.show()
         else:
             self.oneconf_viewpickler.select_first()
-            self.computerpane.hide()
-            self.app_view.reparent(self.box_app_list)
-            self.box_app_list.pack_start(self.app_view, True, True, 0)
+            self.oneconfcontrol.hide()
 
     def _on_stop_showing_oneconf_clicked(self, widget):
         LOG.debug("Stop sharing the current computer inventory")
