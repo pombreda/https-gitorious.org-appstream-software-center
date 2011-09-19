@@ -110,6 +110,10 @@ class InstalledPane(SoftwarePane, CategoriesParser):
 
         SoftwarePane.init_view(self)
         
+        # display the main spinner while we build the view
+        self.spinner_view.start()
+        self.spinner_notebook.set_current_page(InstalledPane.Pages.SPINNER)
+        
         self.oneconf_viewpickler = OneConfViews(self.icons)
         self.oneconf_viewpickler.register_computer(None, _("This computer (%s)") % platform.node())
         self.oneconf_viewpickler.select_first()
@@ -255,11 +259,9 @@ class InstalledPane(SoftwarePane, CategoriesParser):
     def _build_categorised_installedview(self):
         LOG.debug('Rebuilding categorised installedview...')
         
-        # display a spinner while we build the view
-        self.spinner_view.set_text()
-        self.spinner_view.start()
-        self.spinner_view.show()
-        self.spinner_notebook.set_current_page(InstalledPane.Pages.SPINNER)
+#        # display a spinner while we build the view
+#        self.spinner_view.start()
+#        self.spinner_notebook.set_current_page(InstalledPane.Pages.SPINNER)
         
         model = self.base_model # base model not treefilter
         model.clear()
@@ -329,6 +331,8 @@ class InstalledPane(SoftwarePane, CategoriesParser):
             # cache the installed app count
             self.installed_count = i
             self.app_view._append_appcount(self.installed_count, mode=AppView.INSTALLED_MODE)
+            
+            # hide the main spinner
             self.spinner_notebook.set_current_page(InstalledPane.Pages.APPVIEW)
             self.spinner_view.stop()
             
