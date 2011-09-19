@@ -37,6 +37,21 @@ class BackForwardButton(Gtk.HBox):
     def __init__(self, part_size=None):
         Gtk.HBox.__init__(self)
 
+        atk_obj = self.get_accessible()
+        atk_obj.set_name(_('History Navigation'))
+        atk_obj.set_description(_('Navigate forwards and backwards.'))
+        atk_obj.set_role(Atk.Role.PANEL)
+
+        self._build_left_right_buttons()
+
+        self.pack_start(self.left, True, True, 0)
+        self.pack_end(self.right, True, True, 0)
+
+        self.left.connect("clicked", self.on_clicked)
+        self.right.connect("clicked", self.on_clicked)
+        return
+
+    def _build_left_right_buttons(self):
         if self.get_direction() != Gtk.TextDirection.RTL:
             # ltr
             self.left = ButtonPart('left-clicked', arrow_type=Gtk.ArrowType.LEFT)
@@ -59,17 +74,6 @@ class BackForwardButton(Gtk.HBox):
             context.add_class("backforward-left-button")
 
             self.set_button_atk_info_rtl()
-
-        atk_obj = self.get_accessible()
-        atk_obj.set_name(_('History Navigation'))
-        atk_obj.set_description(_('Navigate forwards and backwards.'))
-        atk_obj.set_role(Atk.Role.PANEL)
-
-        self.pack_start(self.left, True, True, 0)
-        self.pack_end(self.right, True, True, 0)
-
-        self.left.connect("clicked", self.on_clicked)
-        self.right.connect("clicked", self.on_clicked)
         return
 
     def on_clicked(self, button):
