@@ -3,6 +3,14 @@ software-center (4.1.23.4) UNRELEASED; urgency=low
   [ Matthew McGowan ]
   * utils/submit_review_gtk3.py:
     - fix crash when submitting a review (LP: #852016)
+  * fix the overlay icon position in the (lobby|subcat) featured tiles
+  * fix the backforward button such that the border-radius is switched 
+    when in rtl mode.
+
+  [ Kiwinote ]
+  * softwarecenter/ui/gtk3/widgets/buttons.py:
+    - draw focus-line for category tiles (labeltiles)
+    - make featuredtiles accessible
 
  -- Gary Lasker <gary.lasker@canonical.com>  Mon, 19 Sep 2011 00:01:31 -0400
 
