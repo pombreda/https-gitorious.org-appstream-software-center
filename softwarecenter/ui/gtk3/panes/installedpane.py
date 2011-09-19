@@ -175,7 +175,8 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         self._all_cats = self.parse_applications_menu('/usr/share/app-install')
         self._all_cats = categories_sorted_by_name(self._all_cats)
         
-        # FIXME: don't reparent, needs proper refactoring with SoftwarePane
+        # FIXME: could use some proper refactoring of app_view with SoftwarePane
+        #        to avoid this need to reparent
         self.app_view.reparent(self.computerpane)
         self.computerpane.pack2(self.app_view, True, True)
         self.show_all()
