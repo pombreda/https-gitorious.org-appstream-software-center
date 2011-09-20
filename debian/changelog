@@ -26,6 +26,9 @@ software-center (4.1.23.4) UNRELEASED; urgency=low
       mode
     - also improve the positioning of the installed overlay icon in both ltr 
       and rtl modes.
+  * lp:~mmcg069/software-center/nav-improvements
+    - correct the navhistory behaviour when a user clears the search_entry,
+      remove spurious navhistory items, improve unit test (LP: #854047)
 
   [ Kiwinote ]
   * softwarecenter/db/application.py:
@@ -79,7 +82,7 @@ software-center (4.1.23.4) UNRELEASED; urgency=low
   * softwarecenter/ui/gtk3/panes/installedpane.py:
     - use the same load blocking parameters than other calls
 
- -- Gary Lasker <gary.lasker@canonical.com>  Tue, 20 Sep 2011 00:07:51 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 20 Sep 2011 13:03:21 -0400
 
 software-center (4.1.23.3) oneiric; urgency=low
 
