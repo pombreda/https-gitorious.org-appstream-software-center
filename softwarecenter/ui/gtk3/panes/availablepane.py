@@ -107,10 +107,10 @@ class AvailablePane(SoftwarePane):
         SoftwarePane.init_view(self)
         # set the AppTreeView model, available pane uses list models
         liststore = AppListStore(self.db, self.cache, self.icons)
-        def on_appcount_changed(widget, appcount):
-            self.subcategories_view._append_appcount(appcount)
-            self.app_view._append_appcount(appcount)
-        liststore.connect('appcount-changed', on_appcount_changed)
+        #~ def on_appcount_changed(widget, appcount):
+            #~ self.subcategories_view._append_appcount(appcount)
+            #~ self.app_view._append_appcount(appcount)
+        #~ liststore.connect('appcount-changed', on_appcount_changed)
         self.app_view.set_model(liststore)
         # setup purchase stuff
         self.app_details_view.connect("purchase-requested",
@@ -642,6 +642,14 @@ class AvailablePane(SoftwarePane):
             self.state.filter.set_not_installed_only(True)
         else:
             self.state.filter.set_not_installed_only(False)
+
+    def refresh_apps(self, query=None):
+        SoftwarePane.refresh_apps(self, query)
+        # tell the lobby to update its content
+        self.cat_view.refresh_apps()
+        # and the subcat view as well...
+        self.subcategories_view.refresh_apps()
+
 
 def get_test_window():
     from softwarecenter.testutils import (get_test_db,

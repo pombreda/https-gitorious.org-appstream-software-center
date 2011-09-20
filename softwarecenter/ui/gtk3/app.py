@@ -934,24 +934,11 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         if get_global_filter().supported_only == True:
             get_global_filter().supported_only = False
 
-            # update appcount
-            if self.available_pane and self.available_pane.cat_view:
-                self.available_pane.cat_view._append_appcount(False)
-
             self.available_pane.refresh_apps()
             try:
                 self.installed_pane.refresh_apps()
             except: # may not be initialised
                 pass
-
-            # update subcategory view
-#            if (self.available_pane and
- #               self.available_pane == self.active_pane and
-  #              self.available_pane.subcategories_view and
-   #             self.available_pane.subcategories_view.current_category):
-    #            self.available_pane.subcategories_view._append_subcat_departments(
-     #               self.available_pane.subcategories_view.current_category,
-      #              len(self.available_pane.app_view.get_model()))
 
     def on_menuitem_view_supported_only_activate(self, widget):
         if self.menuitem_view.blocked:
@@ -959,10 +946,6 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         from softwarecenter.db.appfilter import get_global_filter
         if get_global_filter().supported_only == False:
             get_global_filter().supported_only = True
-
-            # update appcount
-            if self.available_pane and self.available_pane.cat_view:
-                self.available_pane.cat_view._append_appcount(True)
 
             self.available_pane.refresh_apps()
             try:
@@ -985,15 +968,6 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
                 #~ len(ap.app_view.get_model()) == 0):
                 #~ ap.navigation_bar.navigate_up()
                 #~ ap.on_application_selected(None, None)    
-
-            #~ # update subcategory view
-            #~ if (self.available_pane and
-                #~ self.available_pane == self.active_pane and
-                #~ self.available_pane.subcategories_view and
-                #~ self.available_pane.subcategories_view.current_category):
-                #~ self.available_pane.subcategories_view._append_subcat_departments(
-                    #~ self.available_pane.subcategories_view.current_category,
-                    #~ len(self.available_pane.app_view.get_model()))
 
     def on_navhistory_back_action_activate(self, navhistory_back_action=None):
         vm = get_viewmanager()
