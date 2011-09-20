@@ -290,9 +290,6 @@ class InstalledPane(SoftwarePane, CategoriesParser):
             self.cat_docid_map = {}
             enq = self.enquirer
             
-            while Gtk.events_pending():
-                Gtk.main_iteration()
-
             i = 0
 
             xfilter = AppFilter(self.db, self.cache)
@@ -310,9 +307,6 @@ class InstalledPane(SoftwarePane, CategoriesParser):
                               nonblocking_load=False,
                               persistent_duplicate_filter=(i>0))
                               
-                while Gtk.events_pending():
-                    Gtk.main_iteration()
-
                 L = len(enq.matches)
                 if L:
                     i += L
@@ -320,9 +314,6 @@ class InstalledPane(SoftwarePane, CategoriesParser):
                     self.cat_docid_map[cat.untranslated_name] = \
                                         set([doc.get_docid() for doc in docs])
                     model.set_category_documents(cat, docs)
-                    
-            while Gtk.events_pending():
-                Gtk.main_iteration()
 
             # check for uncategorised pkgs
             if self.state.channel:
@@ -396,9 +387,6 @@ class InstalledPane(SoftwarePane, CategoriesParser):
 
             i = 0
             
-            while Gtk.events_pending():
-                Gtk.main_iteration()
-
             # First search: missing apps only
             xfilter = AppFilter(self.db, self.cache)
             xfilter.set_restricted_list(self.oneconf_additional_pkg)
@@ -408,7 +396,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
                           sortmode=SortMethods.BY_ALPHABET,
                           nonapps_visible=self.nonapps_visible,
                           filter=xfilter,
-                          nonblocking_load=False,
+                          nonblocking_load=True,
                           persistent_duplicate_filter=(i>0))
 
             L = len(enq.matches)
