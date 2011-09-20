@@ -198,6 +198,13 @@ class TestNavhistory(unittest.TestCase):
         self.assertFalse(back_forward_btn.right.sensitive)
         self.assertTrue(len(navhistory.stack) == 3)
 
+        # verify that navhistory item 2 is LIST page
+        self.assertTrue(navhistory.stack[2].page == AvailablePane.Pages.LIST)
+        # verify that navhistory item 1 is SUBCATEGORY page
+        self.assertTrue(navhistory.stack[1].page == AvailablePane.Pages.SUBCATEGORY)
+        # verify that navhistory item 0 is LOBBY page
+        self.assertTrue(navhistory.stack[0].page == AvailablePane.Pages.LOBBY)
+
 
 
 if __name__ == "__main__":
