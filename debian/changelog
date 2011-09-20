@@ -55,6 +55,9 @@ software-center (4.1.23.4) UNRELEASED; urgency=low
   * softwarecenter/backend/aptchannels.py:
     - move to softwarecenter/backend/channel_impl/aptchannels.py to make
       more clear that this is a implementation of a interface
+  * softwarecenter/backend/channel_impl/aptchannels.py:
+    - only rebuild the a-x-i DB is we have new origins in the cache
+      (LP: #798632)
 
  -- Gary Lasker <gary.lasker@canonical.com>  Tue, 20 Sep 2011 00:07:51 -0400
 
