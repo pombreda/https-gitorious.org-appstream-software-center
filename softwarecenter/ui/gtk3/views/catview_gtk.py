@@ -42,7 +42,7 @@ from softwarecenter.ui.gtk3.widgets.buttons import (LabelTile,
                                                     CategoryTile,
                                                     FeaturedTile)
 from softwarecenter.ui.gtk3.em import StockEms
-from softwarecenter.db.appfilter import AppFilter
+from softwarecenter.db.appfilter import AppFilter, get_global_filter
 from softwarecenter.db.enquire import AppEnquire
 from softwarecenter.db.categories import (Category,
                                           CategoriesParser,
@@ -483,11 +483,11 @@ class LobbyViewGtk(CategoriesViewGtk):
         #~ self._add_tiles_to_flowgrid(docs, self.featured, 12)
         #~ return
 
-    def _append_appcount(self, supported_only=False):
+    def _update_appcount(self):
         enq = AppEnquire(self.cache, self.db)
 
         distro = get_distro()
-        if supported_only:
+        if get_global_filter().supported_only:
             query = distro.get_supported_query()
         else:
             query = xapian.Query('')
@@ -500,15 +500,15 @@ class LobbyViewGtk(CategoriesViewGtk):
         length = len(enq.matches)
         text = gettext.ngettext("%(amount)s item", "%(amount)s items", length
                                 ) % { 'amount' : length, }
-
-        if not self.appcount:
-            self.appcount = Gtk.Label()
-            self.appcount.set_text(text)
-            self.appcount.set_alignment(0.5, 0.5)
-            self.appcount.set_margin_top(1)
-            self.appcount.set_margin_bottom(4)
-            self.vbox.pack_start(self.appcount, False, True, 0)
         self.appcount.set_text(text)
+
+    def _append_appcount(self):
+        self.appcount = Gtk.Label()
+        self.appcount.set_alignment(0.5, 0.5)
+        self.appcount.set_margin_top(1)
+        self.appcount.set_margin_bottom(4)
+        self.vbox.pack_start(self.appcount, False, True, 0)
+        self._update_appcount()
         return
 
     def build(self, desktopdir):
@@ -521,6 +521,7 @@ class LobbyViewGtk(CategoriesViewGtk):
     def refresh_apps(self):
         self._update_toprated_content()
         self._update_new_content()
+        self._update_appcount()
         return
 
     # stubs for the time being, we may reuse them if we get dynamic content 
