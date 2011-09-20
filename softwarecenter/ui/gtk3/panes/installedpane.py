@@ -189,8 +189,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         self.installed_spinner_notebook.set_show_tabs(False)
         self.installed_spinner_notebook.set_show_border(False)
         self.installed_spinner_notebook.append_page(self.installed_spinner_view, None)
-        # FIXME: could use some refactoring with SoftwarePane to avoid reparenting
-        self.app_view.reparent(self.installed_spinner_notebook)
+        self.box_app_list.remove(self.app_view)
         self.installed_spinner_notebook.append_page(self.app_view, None)
         
         self.computerpane.pack2(self.installed_spinner_notebook, True, True)
