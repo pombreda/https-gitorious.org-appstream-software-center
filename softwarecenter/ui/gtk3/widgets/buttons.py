@@ -580,6 +580,16 @@ class MoreLink(Gtk.Button):
         self.connect("leave-notify-event", self.on_leave)
 
     def do_draw(self, cr):
+
+        if self.has_focus():
+            layout = self.label.get_layout()
+            a = self.get_allocation()
+            e = layout.get_pixel_extents()[1]
+            xo, yo = self.label.get_layout_offsets()
+            Gtk.render_focus(self.get_style_context(), cr,
+                             xo-a.x-3, yo-a.y-1,
+                             e.width+6, e.height+2)
+
         for child in self: self.propagate_draw(child, cr)
         return
 
