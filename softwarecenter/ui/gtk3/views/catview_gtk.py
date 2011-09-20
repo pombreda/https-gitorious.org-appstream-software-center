@@ -128,8 +128,10 @@ class CategoriesViewGtk(Gtk.Viewport, CategoriesParser):
         # appstore stuff
         self.categories = []
         self.header = ""
-        self.apps_filter = apps_filter
+        #~ self.apps_filter = apps_filter
         self.apps_limit = apps_limit
+        # for comparing on refreshes
+        self._supported_only = False
 
         # more stuff
         self._poster_sigs = []
@@ -519,6 +521,11 @@ class LobbyViewGtk(CategoriesViewGtk):
         return
 
     def refresh_apps(self):
+        supported_only = get_global_filter().supported_only
+        if (self._supported_only == supported_only):
+            return
+        self._supported_only = supported_only
+
         self._update_toprated_content()
         self._update_new_content()
         self._update_appcount()
@@ -690,7 +697,12 @@ class SubCategoryViewGtk(CategoriesViewGtk):
         return
 
     def refresh_apps(self):
-        if self.current_category is None: return
+        supported_only = get_global_filter().supported_only
+        if (self.current_category is None or
+            self._supported_only == supported_only):
+            return
+        self._supported_only = supported_only
+
         if not self._built: self._build_subcat_view()
         self._update_subcat_view(self.current_category)
         GObject.idle_add(self.queue_draw)
