@@ -21,6 +21,11 @@ software-center (4.1.23.4) UNRELEASED; urgency=low
     to the Gtk3 correct StateFlags'
   * reimplement the focal frames for focal CellRendererButtons 
     in the apptreeview
+  * lp:~mmcg069/software-center/rtl-improvements
+    - make the appview progress bar fill in the correct direction when in rtl 
+      mode
+    - also improve the positioning of the installed overlay icon in both ltr 
+      and rtl modes.
 
   [ Kiwinote ]
   * softwarecenter/db/application.py:
@@ -60,6 +65,15 @@ software-center (4.1.23.4) UNRELEASED; urgency=low
   * softwarecenter/backend/channel_impl/aptchannels.py:
     - only rebuild the a-x-i DB is we have new origins in the cache
       (LP: #798632)
+  * softwarecenter/db/categories.py:
+    - do not crash if a directory tag can not be parsed or if the 
+      directory file is not there (LP: #854087)
+
+  [ Didier Roche ]
+  * softwarecenter/db/appfilter.py:
+    - fix an issue when no diff in a category show all available results
+  * softwarecenter/ui/gtk3/panes/installedpane.py:
+    - use the same load blocking parameters than other calls
 
  -- Gary Lasker <gary.lasker@canonical.com>  Tue, 20 Sep 2011 00:07:51 -0400
 

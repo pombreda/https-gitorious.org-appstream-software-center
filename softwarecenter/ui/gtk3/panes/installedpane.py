@@ -405,7 +405,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
                           sortmode=SortMethods.BY_ALPHABET,
                           nonapps_visible=self.nonapps_visible,
                           filter=xfilter,
-                          nonblocking_load=True,
+                          nonblocking_load=False,
                           persistent_duplicate_filter=(i>0))
 
             L = len(enq.matches)
