@@ -643,6 +643,13 @@ class AvailablePane(SoftwarePane):
         else:
             self.state.filter.set_not_installed_only(False)
 
+    def refresh_apps(self, query=None):
+        SoftwarePane.refresh_apps(self, query)
+        # tell the lobby to update its content
+        self.cat_view.refresh_apps()
+        # and the subcat view as well...
+
+
 def get_test_window():
     from softwarecenter.testutils import (get_test_db,
                                           get_test_datadir,

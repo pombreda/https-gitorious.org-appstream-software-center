@@ -52,7 +52,6 @@ from softwarecenter.db.utils import get_query_for_pkgnames
 from softwarecenter.distro import get_distro
 from softwarecenter.backend.scagent import SoftwareCenterAgent
 
-LOG_ALLOCATION = logging.getLogger("softwarecenter.ui.gtk.allocation")
 LOG=logging.getLogger(__name__)
 
 
@@ -206,6 +205,9 @@ class CategoriesViewGtk(Gtk.Viewport, CategoriesParser):
     def set_section(self, section):
         self.section = section
 
+    def refresh_apps(self):
+        raise NotImplemented
+
 
 class LobbyViewGtk(CategoriesViewGtk):
 
@@ -358,11 +360,12 @@ class LobbyViewGtk(CategoriesViewGtk):
             cat_vbox.pack_start(label, False, False, 0)
         return
 
-    def _append_top_rated(self):
+    def _get_toprated_category_content(self):
         toprated_cat = get_category_by_name(self.categories, 
                                             u"Top Rated")  # unstranslated name
         if toprated_cat is None:
-            return
+            LOG.warn("No 'toprated' category found!!")
+            return None, []
 
         enq = AppEnquire(self.cache, self.db)
         app_filter = AppFilter(self.db, self.cache)
@@ -373,26 +376,46 @@ class LobbyViewGtk(CategoriesViewGtk):
                       nonapps_visible=NonAppVisibility.ALWAYS_VISIBLE,
                       nonblocking_load=False)
 
+        if not hasattr(self, "helper"):
+            self.helper = AppPropertiesHelper(self.db,
+                                              self.cache,
+                                              self.icons)
+
+        return toprated_cat, enq.get_documents()
+
+    def _update_toprated_content(self):
+        # remove any existing children from the grid widget
+        self.toprated.remove_all()
+        # get toprated category and docs
+        toprated_cat, docs = self._get_toprated_category_content()
+        # display docs
+        self._add_tiles_to_flowgrid(docs, self.toprated,
+                                    TOP_RATED_CAROUSEL_LIMIT)
+        self.toprated.show_all()
+        return toprated_cat
+
+    def _append_top_rated(self):
         self.toprated = FlowableGrid()
         #~ self.featured.row_spacing = StockEms.SMALL
         frame = FramedHeaderBox()
         frame.set_header_label(_("Top Rated"))
-        frame.header_implements_more_button()
-        frame.more.connect('clicked', self.on_category_clicked, toprated_cat) 
         frame.add(self.toprated)
         self.toprated_frame = frame
         self.right_column.pack_start(frame, True, True, 0)
 
-        self.helper = AppPropertiesHelper(self.db, self.cache, self.icons)
-        docs = enq.get_documents()
-        self._add_tiles_to_flowgrid(docs, self.toprated, TOP_RATED_CAROUSEL_LIMIT)
+        toprated_cat = self._update_toprated_content()
+        # only display the 'More' LinkButton if we have toprated content
+        if toprated_cat is not None:
+            frame.header_implements_more_button()
+            frame.more.connect('clicked', self.on_category_clicked, toprated_cat) 
         return
 
-    def _append_new(self):
+    def _get_new_category_content(self):
         whatsnew_cat = get_category_by_name(self.categories, 
                                             u"What\u2019s New") # unstranslated name
         if whatsnew_cat is None:
-            return
+            LOG.warn("No 'new' category found!!")
+            return None, []
 
         enq = AppEnquire(self.cache, self.db)
         app_filter = AppFilter(self.db, self.cache)
@@ -405,18 +428,35 @@ class LobbyViewGtk(CategoriesViewGtk):
                       nonapps_visible=NonAppVisibility.ALWAYS_VISIBLE,
                       nonblocking_load=False)
 
+        if not hasattr(self, "helper"):
+            self.helper = AppPropertiesHelper(self.db,
+                                              self.cache,
+                                              self.icons)
+
+        return whatsnew_cat, enq.get_documents()
+
+    def _update_new_content(self):
+        # remove any existing children from the grid widget
+        self.featured.remove_all()
+        # get toprated category and docs
+        whatsnew_cat, docs = self._get_new_category_content()
+        # display docs
+        self._add_tiles_to_flowgrid(docs, self.featured, 8)
+        self.featured.show_all()
+        return whatsnew_cat
+
+    def _append_new(self):
         self.featured = FlowableGrid()
         frame = FramedHeaderBox()
         frame.set_header_label(_(u"What\u2019s New"))
-        frame.header_implements_more_button()
-        frame.more.connect('clicked', self.on_category_clicked, whatsnew_cat) 
         frame.add(self.featured)
         self.new_frame = frame
         self.right_column.pack_start(frame, True, True, 0)
 
-        self.helper = AppPropertiesHelper(self.db, self.cache, self.icons)
-        docs = enq.get_documents()
-        self._add_tiles_to_flowgrid(docs, self.featured, 8)
+        whatsnew_cat = self._update_new_content()
+        if whatsnew_cat is not None:
+            frame.header_implements_more_button()
+            frame.more.connect('clicked', self.on_category_clicked, whatsnew_cat) 
         return
 
     #~ def _append_recommendations(self):
@@ -476,6 +516,11 @@ class LobbyViewGtk(CategoriesViewGtk):
         self.header = _('Departments')
         self._build_homepage_view()
         self.show_all()
+        return
+
+    def refresh_apps(self):
+        self._update_toprated_content()
+        self._update_new_content()
         return
 
     # stubs for the time being, we may reuse them if we get dynamic content 
