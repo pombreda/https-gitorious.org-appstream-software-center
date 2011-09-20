@@ -320,14 +320,14 @@ def get_channels_manager(db):
     if channels_manager is None:
         from softwarecenter.enums import USE_PACKAGEKIT_BACKEND
         if not USE_PACKAGEKIT_BACKEND:
-            from softwarecenter.backend.aptchannels import AptChannelsManager
+            from softwarecenter.backend.channel_impl.aptchannels import AptChannelsManager
             channels_manager = AptChannelsManager(db)
         else:
             channels_manager = ChannelsManager(db)
     return channels_manager
 
 def is_channel_available(channelname):
-    from softwarecenter.backend.aptchannels import AptChannelsManager
+    from softwarecenter.backend.channel_impl.aptchannels import AptChannelsManager
     return AptChannelsManager.channel_available(channelname)
 
 if __name__ == "__main__":
