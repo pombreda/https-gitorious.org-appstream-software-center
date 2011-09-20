@@ -346,7 +346,7 @@ class AppTreeView(Gtk.TreeView):
         self.pressed = True
         x, y = int(event.x), int(event.y)
         for btn in tr.get_buttons():
-            if btn.point_in(x, y) and (btn.state != Gtk.StateType.INSENSITIVE):
+            if btn.point_in(x, y) and (btn.state != Gtk.StateFlags.INSENSITIVE):
                 self.focal_btn = btn
                 btn.set_state(Gtk.StateFlags.ACTIVE)
                 view.queue_draw()
@@ -378,18 +378,21 @@ class AppTreeView(Gtk.TreeView):
         r = False
         if kv == Gdk.KEY_Right: # right-key
             btn = tr.get_button_by_name(CellButtonIDs.ACTION)
-            if btn.state != Gtk.StateType.INSENSITIVE:
+            if btn is None: return  # Bug #846779
+            if btn.state != Gtk.StateFlags.INSENSITIVE:
                 btn.has_focus = True
                 btn = tr.get_button_by_name(CellButtonIDs.INFO)
                 btn.has_focus = False
         elif kv == Gdk.KEY_Left: # left-key
             btn = tr.get_button_by_name(CellButtonIDs.ACTION)
+            if btn is None: return  # Bug #846779
             btn.has_focus = False
             btn = tr.get_button_by_name(CellButtonIDs.INFO)
             btn.has_focus = True
         elif kv == Gdk.KEY_space:  # spacebar
             for btn in tr.get_buttons():
-                if btn.has_focus and btn.state != Gtk.StateType.INSENSITIVE:
+                if (btn is not None and btn.has_focus and
+                    btn.state != Gtk.StateFlags.INSENSITIVE):
                     btn.set_state(Gtk.StateFlags.ACTIVE)
                     sel = self.get_selection()
                     model, it = sel.get_selected()
@@ -407,7 +410,7 @@ class AppTreeView(Gtk.TreeView):
         r = False
         if kv == 32:    # spacebar
             for btn in tr.get_buttons():
-                if btn.has_focus and btn.state != Gtk.StateType.INSENSITIVE:
+                if btn.has_focus and btn.state != Gtk.StateFlags.INSENSITIVE:
                     btn.set_state(Gtk.StateFlags.NORMAL)
                     sel = self.get_selection()
                     model, it = sel.get_selected()
