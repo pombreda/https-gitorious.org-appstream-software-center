@@ -70,7 +70,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
     """
 
     class Pages(SoftwarePane.Pages):
-        # page names, useful for debuggin
+        # page names, useful for debugging
         NAMES = ('list', 'details')
         # the actual page id's
         (LIST,
@@ -117,7 +117,8 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         
         # show a busy cursor and display the main spinner while we build the view
         window = self.get_window()
-        window.set_cursor(self.busy_cursor)
+        if window:
+            window.set_cursor(self.busy_cursor)
         self.spinner_view.start()
         self.spinner_notebook.set_current_page(InstalledPane.Pages.SPINNER)
         
@@ -279,7 +280,8 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         
         # display the busy cursor and a local spinner while we build the view
         window = self.get_window()
-        window.set_cursor(self.busy_cursor)
+        if window:
+            window.set_cursor(self.busy_cursor)
         self.installed_spinner_view.start()
         self.installed_spinner_notebook.set_current_page(self.PAGE_SPINNER)
         
@@ -357,8 +359,8 @@ class InstalledPane(SoftwarePane, CategoriesParser):
             self.spinner_notebook.set_current_page(InstalledPane.Pages.APPVIEW)
             self.spinner_view.stop()
             
-            window = self.get_window()
-            window.set_cursor(None)
+            if window:
+                window.set_cursor(None)
             
             # reapply search if needed
             if self.state.search_term:
@@ -375,7 +377,8 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         
         # display the busy cursor and the local spinner while we build the view
         window = self.get_window()
-        window.set_cursor(self.busy_cursor)
+        if window:
+            window.set_cursor(self.busy_cursor)
         self.installed_spinner_view.start()
         self.installed_spinner_notebook.set_current_page(self.PAGE_SPINNER)
         
@@ -453,8 +456,8 @@ class InstalledPane(SoftwarePane, CategoriesParser):
             self.installed_spinner_notebook.set_current_page(self.PAGE_INSTALLED)
             self.installed_spinner_view.stop()
             
-            window = self.get_window()
-            window.set_cursor(None)
+            if window:
+                window.set_cursor(None)
             
             self.emit("app-list-changed", i)
             return
