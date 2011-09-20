@@ -170,16 +170,16 @@ class AptChannelsManager(ChannelsManager):
         returns True is a update is needed
         """
         # the operation get_origins can take some time (~60s?)
-        cache_origins = self.db._aptcache.get_all_origins()
-        db_origins = set()
-        for channel in self.channels:
-            origin = channel.origin
-            if origin:
-                db_origins.add(origin)
+        cache_origins = set(self.db._aptcache.get_all_origins())
+        db_origins = set(self.db.get_origins_from_db())
         # origins
         self._logger.debug("cache_origins: %s" % cache_origins)
         self._logger.debug("db_origins: %s" % db_origins)
-        if cache_origins != db_origins:
+        # the db_origins will contain origins from the s-c-agent, so
+        # we don't need to rebuild if the db has more origins then
+        # the cache, but we need to rebuild if the cache has origins
+        # that a-x-i does not have
+        if not cache_origins.issubset(db_origins):
             return True
         return False
     
