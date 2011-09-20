@@ -33,9 +33,8 @@ class CellButtonIDs:
 # custom cell renderer to support dynamic grow
 class CellRendererAppView(Gtk.CellRendererText):
 
-    # offset of the install overlay icon
-    OFFSET_X = 20
-    OFFSET_Y = 20
+    # x, y offsets for the overlay icon
+    OVERLAY_XO = OVERLAY_YO = 2
 
     # size of the install overlay icon
     OVERLAY_SIZE = 16
@@ -121,20 +120,20 @@ class CellRendererAppView(Gtk.CellRendererText):
         if not is_rtl:
             x = cell_area.x + xo + xpad
         else:
-            x = cell_area.x + cell_area.width+xo - self.pixbuf_width - xpad
+            x = cell_area.x + cell_area.width + xo - self.pixbuf_width - xpad
+        y = cell_area.y + ypad
 
         # draw appicon pixbuf
-        Gdk.cairo_set_source_pixbuf(cr, icon, x, cell_area.y+ypad)
+        Gdk.cairo_set_source_pixbuf(cr, icon, x, y)
         cr.paint()
 
         # draw overlay if application is installed
         if self.model.is_installed(app):
             if not is_rtl:
-                x = cell_area.x + xpad + self.OFFSET_X
+                x += (self.pixbuf_width - self.OVERLAY_SIZE + self.OVERLAY_XO)
             else:
-                x = cell_area.x+cell_area.width-xpad-self.OFFSET_X
-
-            y = cell_area.y + ypad + self.OFFSET_Y
+                x -= self.OVERLAY_XO
+            y += (self.pixbuf_width - self.OVERLAY_SIZE + self.OVERLAY_YO)
             Gdk.cairo_set_source_pixbuf(cr, self._installed, x, y)
             cr.paint()
         return
@@ -219,8 +218,6 @@ class CellRendererAppView(Gtk.CellRendererText):
         return
 
     def _render_progress(self, context, cr, progress, cell_area, ypad, is_rtl):
-        #FIXME: progress bar presumably needs reversing for rtl
-        # as seen in gtk's cellprogress.c
         percent = progress * 0.01
         # per the spec, the progressbar should be the width of the action button
         action_btn = self.get_button_by_name(CellButtonIDs.ACTION)
@@ -229,7 +226,6 @@ class CellRendererAppView(Gtk.CellRendererText):
         # shift the bar to the top edge
         y = cell_area.y + ypad
 
-        #context = widget.get_style_context()
         context.save()
         context.add_class("trough")
 
@@ -239,14 +235,13 @@ class CellRendererAppView(Gtk.CellRendererText):
         context.restore ()
 
         bar_size = w * percent
-        #~ if not is_rtl:
-        #~ else:
-            #~ pass
 
         context.save ()
         context.add_class ("progressbar")
 
         if (bar_size > 0):
+            if is_rtl:
+                x += (w - bar_size)
             Gtk.render_activity(context, cr, x, y, bar_size, h)
 
         context.restore ()
