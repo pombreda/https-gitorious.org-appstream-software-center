@@ -171,13 +171,14 @@ class AppDetailsViewBase(object):
         appdetails = self.app.get_details(self.db)
         iconname = appdetails.icon
         deb_line = appdetails.deb_line
+        license_key = appdetails.license_key
         signing_key_id = appdetails.signing_key_id
         backend = get_install_backend()
         backend.add_repo_add_key_and_install_app(deb_line,
                                                  signing_key_id,
                                                  self.app,
                                                  iconname,
-                                                 licensekey)
+                                                 license_key)
         
 
     # internal callbacks
