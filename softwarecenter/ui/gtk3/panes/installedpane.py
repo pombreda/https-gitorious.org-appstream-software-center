@@ -291,6 +291,9 @@ class InstalledPane(SoftwarePane, CategoriesParser):
             enq = self.enquirer
             
             i = 0
+            
+            while Gtk.events_pending():
+                Gtk.main_iteration()
 
             xfilter = AppFilter(self.db, self.cache)
             xfilter.set_installed_only(True)
@@ -314,6 +317,9 @@ class InstalledPane(SoftwarePane, CategoriesParser):
                     self.cat_docid_map[cat.untranslated_name] = \
                                         set([doc.get_docid() for doc in docs])
                     model.set_category_documents(cat, docs)
+                    
+            while Gtk.events_pending():
+                Gtk.main_iteration()
 
             # check for uncategorised pkgs
             if self.state.channel:
