@@ -404,7 +404,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
                           sortmode=SortMethods.BY_ALPHABET,
                           nonapps_visible=self.nonapps_visible,
                           filter=xfilter,
-                          nonblocking_load=True,
+                          nonblocking_load=True, # we don't block this one for better oneconf responsiveness
                           persistent_duplicate_filter=(i>0))
 
             L = len(enq.matches)
