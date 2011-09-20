@@ -27,7 +27,7 @@ class NavigationHistory(object):
     MAX_NAV_ITEMS = 25  # limit number of NavItems allowed in the NavStack
 
     def __init__(self, back_forward_btn, options=None):
-        self.stack = NavigationStack(self.MAX_NAV_ITEMS, options)
+        self.stack = NavigationStack(self, self.MAX_NAV_ITEMS, options)
         self.back_forward = back_forward_btn
         self.in_replay_history_mode = False
         self._nav_back_set_sensitive(False)
@@ -136,7 +136,8 @@ class NavigationStack(object):
     a navigation history stack
     """
 
-    def __init__(self, max_length, options=None):
+    def __init__(self, history, max_length, options=None):
+        self.history = history
         self.max_length = max_length
         self.stack = []
         self.cursor = 0
@@ -173,23 +174,48 @@ class NavigationStack(object):
         last = self[-1]
         last_vs = last.view_state
         item_vs = item.view_state
-        # HACK: special case, check for subsequent searches
+        # FIXME: This is getting messy, this stuff should be cleaned up somehow...
+        # hacky: special case, check for subsequent searches
         # if subsequent search, update previous item_vs.search_term
         # to current.
 
         # do import of Pages enum here: else drama!
         from softwarecenter.ui.gtk3.panes.availablepane import AvailablePane
+        # check if both current and previous views were list views
         if (item.page == AvailablePane.Pages.LIST and
-            last.page == AvailablePane.Pages.LIST and
-            item_vs.search_term and last_vs.search_term and
-            item_vs.search_term != last_vs.search_term):
-            # update last search term with current search_term
-            last.view_state.search_term = item_vs.search_term
-            # ... but return False, resulting in 'item' not being
-            # appended
+            last.page == AvailablePane.Pages.LIST):
+            # first case, previous search and new seach
+            if (item_vs.search_term and last_vs.search_term and
+                item_vs.search_term != last_vs.search_term):
+                # update last search term with current search_term
+                last.view_state.search_term = item_vs.search_term
+                # ... but return False, resulting in 'item' not being
+                # appended
+                return False
+
+            elif (last_vs.search_term and not item_vs.search_term):
+                LOG.debug("search has been cleared. ignoring history item")
+                if len(self) > 1:
+                    del self.stack[-1]
+                    if len(self) == 1:
+                        self.history._nav_back_set_sensitive(False)
+                        self.history._nav_forward_set_sensitive(False)
+                    LOG.debug("also remove 'spurious' list navigation item (Bug #854047)")
+                return False
+
+        elif (item.page != AvailablePane.Pages.LIST and
+              last.page == AvailablePane.Pages.LIST and 
+              not item_vs.search_term and last_vs.search_term):
+            LOG.debug("search has been cleared. ignoring history item")
+            if len(self) > 1:
+                del self.stack[-1]
+                if len(self) == 1:
+                    self.history._nav_back_set_sensitive(False)
+                    self.history._nav_forward_set_sensitive(False)
+                LOG.debug("also remove 'spurious' list navigation item (Bug #854047)")
             return False
 
-        elif item.__str__() == last.__str__():
+        if item.__str__() == last.__str__():
             return False
 
         return True
@@ -197,13 +223,15 @@ class NavigationStack(object):
     def append(self, item):
         if not self._isok(item):
             self.cursor = len(self.stack)-1
-            #~ logging.debug('A:%s' % repr(self))
+            LOG.debug('A:%s' % repr(self))
+            #~ print ('A:%s' % repr(self))
             return
         if len(self.stack) + 1 > self.max_length:
             self.stack.pop(1)
         self.stack.append(item)
         self.cursor = len(self.stack)-1
-        #~ logging.debug('A:%s' % repr(self))
+        LOG.debug('A:%s' % repr(self))
+        #~ print ('A:%s' % repr(self))
         if hasattr(self, "navlog"):
             self.navlog.log.notify_append(item)
         return
@@ -215,7 +243,8 @@ class NavigationStack(object):
             did_step = True
         else:
             self.cursor = 0
-        #~ logging.debug('B:%s' % repr(self))
+        LOG.debug('B:%s' % repr(self))
+        #~ print ('B:%s' % repr(self))
         if hasattr(self, "navlog") and did_step:
             self.navlog.log.notify_step_back()
         return self.stack[self.cursor], did_step
@@ -227,7 +256,8 @@ class NavigationStack(object):
             did_step = True
         else:
             self.cursor = len(self.stack)-1
-        #~ logging.debug('B:%s' % repr(self))
+        LOG.debug('B:%s' % repr(self))
+        #~ print ('B:%s' % repr(self))
         if hasattr(self, "navlog") and did_step:
             self.navlog.log.notify_step_forward()
         return self.stack[self.cursor], did_step
