@@ -20,7 +20,6 @@
 from gi.repository import Gtk, Gdk, GObject, Pango
 
 from softwarecenter.ui.gtk3.em import EM
-from softwarecenter.ui.gtk3.drawing import rounded_rect
 from softwarecenter.ui.gtk3.models.appstore2 import CategoryRowReference
 
 from stars import StarRenderer, StarSize

@@ -247,7 +247,6 @@ h1 {
             deb_line = res["deb_line"]
             signing_key_id = res["signing_key_id"]
             license_key = res.get("license_key")
-            license_key_path = res.get("license_key_path")
             # add repo and key
             backend = get_install_backend()
             backend.add_repo_add_key_and_install_app(
