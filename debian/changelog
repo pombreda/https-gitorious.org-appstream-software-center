@@ -34,6 +34,14 @@ software-center (4.1.23.4) UNRELEASED; urgency=low
   * softwarecenter/ui/gtk3/panes/installedpane.py:
     - display a spinner while loading the oneconf
       list view
+  
+  [ Michael Vogt ]
+  * softwarecenter/ui/gtk3/views/purchaseview.py,
+    test/gtk3/test_purchase.py:
+    - ensure to never log sensitive oauth token data to the console
+      from webkit and add test
+  * debian/control:
+    - tighten dependency on python-gobject (LP: #845280)
 
  -- Gary Lasker <gary.lasker@canonical.com>  Tue, 20 Sep 2011 00:07:51 -0400
 
