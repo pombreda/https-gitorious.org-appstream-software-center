@@ -176,10 +176,8 @@ class AppDetailsViewBase(object):
         backend.add_repo_add_key_and_install_app(deb_line,
                                                  signing_key_id,
                                                  self.app,
-                                                 iconname)
-        if appdetails.license_key and appdetails.license_key_path:
-            backend.add_license_key(
-                appdetails.license_key, appdetails.license_key_path)
+                                                 iconname,
+                                                 licensekey)
         
 
     # internal callbacks

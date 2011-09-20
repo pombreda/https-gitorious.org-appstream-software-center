@@ -251,10 +251,7 @@ h1 {
             # add repo and key
             backend = get_install_backend()
             backend.add_repo_add_key_and_install_app(
-                deb_line, signing_key_id, self.app, self.iconname)
-            if license_key and license_key_path:
-                backend.add_license_key(license_key, license_key_path)
-
+                deb_line, signing_key_id, self.app, self.iconname, license_key)
                                                                    
     def _block_wk_handlers(self):
         # we need to block webkit signal handlers when we hide the

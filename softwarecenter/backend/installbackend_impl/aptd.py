@@ -449,32 +449,19 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
         yield policykit1.check_authorization_by_name(name, action, flags=flags)
 
     @inline_callbacks
-    def add_license_key(self, license_key, license_key_path):
-        """ add a license key for a purchase """
-        self._logger.debug("adding license_key of len: %i to %s" % (
-                len(license_key), license_key_path))
-        # check destination
-        dest = os.path.normpath(license_key_path)
-        if not (dest.startswith("~") or
-                dest.startswith("/opt")):
-            raise Exception("License key file '%s' outside of HOME or /opt" % dest)
-        # check if its inside HOME and if so, just create it
-        if dest.startswith("~"):
-            dest = os.path.expanduser(dest)
-            dirname = os.path.dirname(dest)
-            if not os.path.exists(dirname):
-                os.makedirs(dirname)
-            f = open(dest, "w")
-            f.write(license_key)
-            f.close()
-        # check if its in /opt and hand over to apdaemon in this case
-        elif dest.startswith("/opt"):
-            try:
-                trans = yield self.aptd_client.add_license_key(
-                    license_key, dest)
-                yield self._run_transaction(trans, None, None, None)
-            except Exception as e:
-                self._logger.error("add_repository: '%s'" % e)
+    def add_license_key(self, pkgname, license_key):
+        """ add a license key for a purchase. Note that currently only
+            system wide license keys are supported.
+        """
+        self._logger.debug(
+            "adding license_key for pkg '%s' of len: %i" % (
+                pkgname, len(license_key)))
+        try:
+            trans = yield self.aptd_client.add_license_key(
+                pkgname, license_key)
+            yield self._run_transaction(trans, None, None, None)
+        except Exception as e:
+            self._logger.error("add_repository: '%s'" % e)
 
     @inline_callbacks
     def add_repo_add_key_and_install_app(self,
@@ -482,6 +469,7 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
                                          signing_key_id,
                                          app,
                                          iconname,
+                                         license_key,
                                          purchase=True):
         """ 
         a convenience method that combines all of the steps needed
@@ -522,6 +510,7 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
                           'sc_add_repo_and_install_deb_line' : deb_line,
                           'sc_iconname' : iconname,
                           'sc_add_repo_and_install_try' : "1",
+                          'sc_add_repo_and_install_license_key' : license_key,
                          }
 
         self._logger.info("add_sources_list_entry()")
@@ -582,6 +571,7 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
 
         # get the debline and check if we have a release.gpg file
         deb_line = trans.meta_data["sc_add_repo_and_install_deb_line"]
+        license_key = trans.meta_data["sc_add_repo_and_install_license_key"]
         release_filename = release_filename_in_lists_from_deb_line(deb_line)
         lists_dir = apt_pkg.config.find_dir("Dir::State::lists")
         release_signature = os.path.join(lists_dir, release_filename)+".gpg"
@@ -615,6 +605,8 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
                 self._logger.info("run_transaction()")
                 yield self._run_transaction(trans, app.pkgname, app.appname,
                                             "", metadata)
+                if license_key:
+                    yield self.add_license_key(app.pkgname, license_key)
             except Exception as error:
                 self._on_trans_error(error, app.pkgname)
         else:
