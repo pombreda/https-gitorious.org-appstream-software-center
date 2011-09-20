@@ -115,7 +115,9 @@ class InstalledPane(SoftwarePane, CategoriesParser):
 
         SoftwarePane.init_view(self)
         
-        # display the main spinner while we build the view
+        # show a busy cursor and display the main spinner while we build the view
+        window = self.get_window()
+        window.set_cursor(self.busy_cursor)
         self.spinner_view.start()
         self.spinner_notebook.set_current_page(InstalledPane.Pages.SPINNER)
         
@@ -275,7 +277,9 @@ class InstalledPane(SoftwarePane, CategoriesParser):
     def _build_categorised_installedview(self):
         LOG.debug('Rebuilding categorised installedview...')
         
-        # display the local spinner while we build the view
+        # display the busy cursor and a local spinner while we build the view
+        window = self.get_window()
+        window.set_cursor(self.busy_cursor)
         self.installed_spinner_view.start()
         self.installed_spinner_notebook.set_current_page(self.PAGE_SPINNER)
         
@@ -356,6 +360,9 @@ class InstalledPane(SoftwarePane, CategoriesParser):
             self.spinner_notebook.set_current_page(InstalledPane.Pages.APPVIEW)
             self.spinner_view.stop()
             
+            window = self.get_window()
+            window.set_cursor(None)
+            
             # reapply search if needed
             if self.state.search_term:
                 self._do_search(self.state.search_term)
@@ -369,7 +376,9 @@ class InstalledPane(SoftwarePane, CategoriesParser):
     def _build_oneconfview(self):
         LOG.debug('Rebuilding oneconfview for %s...' % self.current_hostid)
         
-        # display the local spinner while we build the view
+        # display the busy cursor and the local spinner while we build the view
+        window = self.get_window()
+        window.set_cursor(self.busy_cursor)
         self.installed_spinner_view.start()
         self.installed_spinner_notebook.set_current_page(self.PAGE_SPINNER)
         
@@ -445,10 +454,13 @@ class InstalledPane(SoftwarePane, CategoriesParser):
             # cache the installed app count
             self.installed_count = i
             self.app_view._append_appcount(self.installed_count, mode=AppView.DIFF_MODE)
-            
+                
             # hide the local spinner
             self.installed_spinner_notebook.set_current_page(self.PAGE_INSTALLED)
             self.installed_spinner_view.stop()
+            
+            window = self.get_window()
+            window.set_cursor(None)
             
             self.emit("app-list-changed", i)
             return
