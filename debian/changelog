@@ -21,6 +21,11 @@ software-center (4.1.23.4) UNRELEASED; urgency=low
     to the Gtk3 correct StateFlags'
   * reimplement the focal frames for focal CellRendererButtons 
     in the apptreeview
+  * lp:~mmcg069/software-center/rtl-improvements
+    - make the appview progress bar fill in the correct direction when in rtl 
+      mode
+    - also improve the positioning of the installed overlay icon in both ltr 
+      and rtl modes.
 
   [ Kiwinote ]
   * softwarecenter/ui/gtk3/widgets/buttons.py:
