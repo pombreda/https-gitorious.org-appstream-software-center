@@ -28,6 +28,10 @@ from softwarecenter.paths import ICON_PATH, SOFTWARE_CENTER_ICON_CACHE_DIR
 LOG = logging.getLogger(__name__)
 
 
+def point_in(rect, px, py):
+    return (rect.x <= px <= rect.x + rect.width and
+            rect.y <= py <= rect.y + rect.height)
+
 def init_sc_css_provider(toplevel, settings, screen, datadir):
     context = toplevel.get_style_context()
     theme_name = settings.get_property("gtk-theme-name").lower()

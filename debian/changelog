@@ -14,6 +14,13 @@ software-center (4.1.23.4) UNRELEASED; urgency=low
       home screen (LP: #854177)
   * softwarecenter/ui/gtk3/widgets/exhibits.py:
     - add a focus ring for the exhibits banner (LP: #854168)
+  * check the button-release occurs within the exhibit banner 
+    (LP: #848805)
+  * add additional checks to ensure we bail on a NoneType within 
+    apptreeview._on_button_press_event. also switch some StateType's
+    to the Gtk3 correct StateFlags'
+  * reimplement the focal frames for focal CellRendererButtons 
+    in the apptreeview
 
   [ Kiwinote ]
   * softwarecenter/ui/gtk3/widgets/buttons.py:
@@ -42,6 +49,12 @@ software-center (4.1.23.4) UNRELEASED; urgency=low
       from webkit and add test
   * debian/control:
     - tighten dependency on python-gobject (LP: #845280)
+  * softwarecenter/db/database.py:
+    - fix db reopen when a new database is added (like the 
+      software-center-agent DB)
+  * softwarecenter/backend/aptchannels.py:
+    - move to softwarecenter/backend/channel_impl/aptchannels.py to make
+      more clear that this is a implementation of a interface
 
  -- Gary Lasker <gary.lasker@canonical.com>  Tue, 20 Sep 2011 00:07:51 -0400
 
