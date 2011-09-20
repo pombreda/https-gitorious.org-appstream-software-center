@@ -133,7 +133,6 @@ class StatusBar(Gtk.Alignment):
         cr.stroke()
 
         cr.restore()
-
         for child in self: self.propagate_draw(child, cr)
 
 

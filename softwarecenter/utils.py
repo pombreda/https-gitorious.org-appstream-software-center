@@ -134,17 +134,21 @@ def normalize_package_description(desc):
     for i, part in enumerate(desc.split("\n")):
         indent = get_indent(part)
         part = part.strip()
-        #~ print part, indent
+
         # explicit newline
         if not part:
+            norm_description += '\n'
             continue
         # check if in a enumeration
         if part[:2] in BULLETS:
             in_blist = True
             norm_description += "\n" + indent*' ' + "* " + part[2:]
-        elif in_blist:
+        elif in_blist and indent > 0:
             norm_description += " " + part
         elif part.endswith('.') or part.endswith(':'):
+            if in_blist:
+                in_blist = False
+                norm_description += '\n'
             norm_description += part + '\n'
         else:
             in_blist = False
@@ -183,6 +187,7 @@ def htmlize_package_description(desc):
     inside_li = False
     for part in normalize_package_description(desc).split("\n"):
         stripped_part = part.strip()
+        if not stripped_part: continue
         if stripped_part.startswith("* "):
             if not inside_li:
                 html += "<ul>"

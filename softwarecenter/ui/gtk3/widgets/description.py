@@ -23,12 +23,10 @@ from gi.repository import Pango
 
 from softwarecenter.ui.gtk3.utils import point_in
 from softwarecenter.utils import normalize_package_description
+from softwarecenter.ui.gtk3.drawing import color_to_hex
+from softwarecenter.ui.gtk3.utils import point_in
 
 _PS = Pango.SCALE
-
-
-def color_floats(color):
-    return color.red/65535.0, color.green/65535.0, color.blue/65535.0
 
 
 class _SpecialCasePreParsers(object):
@@ -93,6 +91,9 @@ class PangoLayoutProxy(object):
     def xy_to_index(self, x, y):
         return self._layout.xy_to_index(x, y)
 
+    def index_to_pos(self, *args):
+        return self._layout.index_to_pos(*args)
+
     # setter proxies
     def set_attributes(self, attrs):
         return self._layout.set_attributes(attrs)
@@ -121,6 +122,9 @@ class PangoLayoutProxy(object):
 
     def get_iter(self):
         return self._layout.get_iter()
+
+    def get_extents(self):
+        return self._layout.get_extents()
 
 
 class Layout(PangoLayoutProxy):
@@ -159,31 +163,35 @@ class Layout(PangoLayoutProxy):
 
     def cursor_up(self, cursor, target_x=-1):
         layout = self.widget.order[cursor.paragraph]
-        x, y = layout.index_to_pos(cursor.index)[:2]
+        pos = layout.index_to_pos(cursor.index)
+        x, y = pos.x, pos.y
 
         if target_x >= 0:
             x = target_x
 
         y -= _PS*self.widget.line_height
-        return sum(layout.xy_to_index(x, y)), (x, y)
+        return layout.xy_to_index(x, y), (x, y)
 
     def cursor_down(self, cursor, target_x=-1):
         layout = self.widget.order[cursor.paragraph]
-        x, y = layout.index_to_pos(cursor.index)[:2]
+        pos = layout.index_to_pos(cursor.index)
+        x, y = pos.x, pos.y
 
         if target_x >= 0:
             x = target_x
 
         y += _PS*self.widget.line_height
-        return sum(layout.xy_to_index(x, y)), (x, y)
+        return layout.xy_to_index(x, y), (x, y)
 
     def index_at(self, px, py):
         #wa = self.widget.get_allocation()
         x, y = self.get_position() # layout allocation
-        return point_in(self.allocation, px, py), sum(self.xy_to_index((px-x)*_PS, (py-y)*_PS))
+        (_, index, k) = self.xy_to_index((px-x)*_PS, (py-y)*_PS)
+        return point_in(self.allocation, px, py), index + k
 
     def reset_attrs(self):
-        self.set_attributes(Pango.AttrList())
+        #~ self.set_attributes(Pango.AttrList())
+        self.set_markup(self.get_text())
         self._default_attrs = True
         return
 
@@ -193,6 +201,13 @@ class Layout(PangoLayoutProxy):
         #~ attrs.insert(Pango.AttrBackground(bg.red, bg.green, bg.blue, start, end))
         #~ attrs.insert(Pango.AttrForeground(fg.red, fg.green, fg.blue, start, end))
         #~ self.set_attributes(attrs)
+
+        # XXX: workaround
+        text = self.get_text()
+        new_text = text[:start] + '<span background="%s" foreground="%s">' % (bg, fg)
+        new_text += text[start:end]
+        new_text += '</span>' + text[end:]
+        self.set_markup(new_text)
         self._default_attrs = False
         return
 
@@ -202,6 +217,10 @@ class Layout(PangoLayoutProxy):
         #~ attrs.insert(Pango.AttrBackground(bg.red, bg.green, bg.blue, 0, -1))
         #~ attrs.insert(Pango.AttrForeground(fg.red, fg.green, fg.blue, 0, -1))
         #~ self.set_attributes(attrs)
+
+        # XXX: workaround
+        text = self.get_text()
+        self.set_markup('<span background="%s" foreground="%s">%s</span>' % (bg, fg, text))
         self._default_attrs = False
         return
 
@@ -243,7 +262,7 @@ class Cursor(object):
             if i >= ls and i <= le:
                 if not it.at_last_line():
                     le -= 1
-                return (self.paragraph, ln), (ls, le), l
+                return (self.paragraph, ln), (ls, le)
             ln += 1
             keep_going = it.next_line()
         return None, None, None
@@ -358,18 +377,14 @@ class SelectionCursor(Cursor):
 
 class TextBlock(Gtk.EventBox):
 
-    PAINT_PRIMARY_CURSOR = True
+    PAINT_PRIMARY_CURSOR = False
     DEBUG_PAINT_BBOXES = False
 
     BULLET_POINT = u' \u2022  '
 
-    INFOCUS_NORM = 0
-    INFOCUS_SEL  = 1
-    OUTFOCUS_SEL = 2
-
     def __init__(self):
         Gtk.EventBox.__init__(self)
-        self.set_visible_window(False)
+        #~ self.set_visible_window(True)
         self.set_size_request(200, -1)
         #~ self.set_redraw_on_allocate(False)
 
@@ -401,6 +416,19 @@ class TextBlock(Gtk.EventBox):
         self._test_layout = self.create_pango_layout('')
         #self._xterm = Gdk.Cursor.new(Gdk.XTERM)
 
+        # popup menu and menuitem's
+        self.copy_menuitem = Gtk.ImageMenuItem.new_from_stock(
+                                            Gtk.STOCK_COPY, None)
+        self.select_all_menuitem = Gtk.ImageMenuItem.new_from_stock(
+                                            Gtk.STOCK_SELECT_ALL, None)
+        self.menu = Gtk.Menu()
+        self.menu.attach_to_widget(self, None)
+        self.menu.append(self.copy_menuitem)
+        self.menu.append(self.select_all_menuitem)
+        self.menu.show_all()
+        self.copy_menuitem.connect('select', self._menu_do_copy, sel)
+        self.select_all_menuitem.connect('select', self._menu_do_select_all, cur, sel)
+
         self.connect('button-press-event', self._on_press, event_helper, cur, sel)
         self.connect('button-release-event', self._on_release, event_helper, cur, sel)
         self.connect('motion-notify-event', self._on_motion, event_helper, cur, sel)
@@ -408,16 +436,21 @@ class TextBlock(Gtk.EventBox):
         self.connect('key-press-event', self._on_key_press, cur, sel)
         self.connect('key-release-event', self._on_key_release, cur, sel)
 
-#        self.connect('drag-begin', self._on_drag_begin)
+        #~ Gtk.drag_source_set(self, Gdk.ModifierType.BUTTON1_MASK,
+                            #~ None, Gdk.DragAction.COPY)
+        #~ Gtk.drag_source_add_text_targets(self)
+        #~ self.connect('drag-begin', self._on_drag_begin)
         #~ self.connect('drag-data-get', self._on_drag_data_get, sel)
 
         self.connect('focus-in-event', self._on_focus_in)
         self.connect('focus-out-event', self._on_focus_out)
 
+        self.connect("size-allocate", self.on_size_allocate)
         self.connect('style-updated', self._on_style_updated)
         return
 
-    def do_size_allocate(self, allocation):
+    def on_size_allocate(self, *args):
+        allocation = self.get_allocation()
         width = allocation.width
 
         x = y = 0
@@ -435,8 +468,6 @@ class TextBlock(Gtk.EventBox):
                                       width-layout.indent, e.height)
 
             y += e.y + e.height
-
-        self.set_allocation(allocation)
         return
 
     # overrides
@@ -458,23 +489,22 @@ class TextBlock(Gtk.EventBox):
     def do_draw(self, cr):
         self.render(self, cr)
         return
-     
-    # small helper to be consitent with the ever changing pygi API
-    def _color_parse(self, s):
-        l = Gdk.color_parse(s)
-        if type(l) is tuple:
-            return l[1]
-        return l
+
+    def _config_colors(self):
+        context = self.get_style_context()
+        context.save()
+        context.add_class(Gtk.STYLE_CLASS_HIGHLIGHT)
+        state = self.get_state_flags()
+        if self.has_focus():
+            state |= Gtk.StateFlags.FOCUSED
+        context.set_state(state)
+        self._bg = color_to_hex(context.get_background_color(state))
+        self._fg = color_to_hex(context.get_color(state))
+        context.restore()
+        return
 
     def _on_style_updated(self, widget):
-        #style = self.get_style()
-        if self.has_focus():
-            self._bg = self._color_parse('red')
-            self._fg = self._color_parse('#000')
-        else:
-            #~ _, self._bg = Gdk.color_parse('#E5E3E1')
-            self._bg = self._color_parse('red')
-            self._fg = self._color_parse('#000')
+        self._config_colors()
         return
 
 #    def _on_drag_begin(self, widgets, context, event_helper):
@@ -488,22 +518,16 @@ class TextBlock(Gtk.EventBox):
         return
 
     def _on_focus_in(self, widget, event):
-        #~ _, self._bg = self.style.base[Gtk.StateType.SELECTED]
-        self._bg = self._color_parse('red')
-        self._fg = self._color_parse('#000')
+        self._config_colors()
         return
 
     def _on_focus_out(self, widget, event):
-        #~ _, self._bg = Gdk.color_parse('#E5E3E1')
-        self._bg = self._color_parse('red')
-        self._fg = self._color_parse('#000')
+        self._config_colors()
         return
 
     def _on_motion(self, widget, event, event_helper, cur, sel):
 
-        state = event.get_state().value_nicks
-
-        if not (state and state[0] == 'button1_mask'):# or not self.has_focus():
+        if not (event.state == Gdk.ModifierType.BUTTON1_MASK):# or not self.has_focus():
             return
 
         # check if we have moved enough to count as a drag
@@ -518,10 +542,9 @@ class TextBlock(Gtk.EventBox):
             self.drag_check_threshold(start_x, start_y, cur_x, cur_y)):
             event_helper['drag-active'] = True
 
-            # FIXME
-        #~ if not event_helper['drag-active']: 
-            #~ return
-#~ 
+        if not event_helper['drag-active']: 
+            return
+
         #~ if (event_helper['within-selection'] and 
             #~ not event_helper['drag-context']):
             #~ target_list = Gtk.TargetList()
@@ -532,23 +555,22 @@ class TextBlock(Gtk.EventBox):
                                   #~ event)                    # event
 #~ 
             #~ event_helper['drag-context'] = ctx
-            return
+            #~ return
 
         for layout in self.order:
-            point_in, index = layout.index_at(int(event.x), int(event.y))
+            point_in, index = layout.index_at(cur_x, cur_y)
             if point_in:
                 cur.set_position(layout.index, index)
                 self.queue_draw()
                 break
 
     def _on_press(self, widget, event, event_helper, cur, sel):
+        if sel and not self.has_focus():
+            self.grab_focus()
+            return  # spot the difference
 
-        #~ if sel and not self.has_focus():
-            #~ self.grab_focus()
-            #~ return  # spot the difference
-#~ 
-        #~ if not self.has_focus():
-            #~ self.grab_focus()
+        if not self.has_focus():
+            self.grab_focus()
 
         if event.button == 3:
             self._button3_action(cur, sel, event)
@@ -562,7 +584,8 @@ class TextBlock(Gtk.EventBox):
             point_in, index = layout.index_at(x, y)
 
             if point_in:
-                within_sel = sel.within_selection((layout.index, index))
+                within_sel = False
+                #~ within_sel = sel.within_selection((layout.index, index))
 
                 if not within_sel:
                     cur.set_position(layout.index, index)
@@ -602,27 +625,23 @@ class TextBlock(Gtk.EventBox):
         self._select_all(cur, sel)
 
     def _button3_action(self, cur, sel, event):
-        copy = Gtk.ImageMenuItem(stock_id=Gtk.STOCK_COPY, accel_group=None)
-        sel_all = Gtk.ImageMenuItem(stock_id=Gtk.STOCK_SELECT_ALL, accel_group=None)
-
-        menu = Gtk.Menu()
-        menu.append(copy)
-        menu.append(sel_all)
-        menu.show_all()
-
         start, end = sel.get_range()
+
+        self.copy_menuitem.set_sensitive(True)
+        self.select_all_menuitem.set_sensitive(True)
+
         if not sel:
-            copy.set_sensitive(False)
+            self.copy_menuitem.set_sensitive(False)
         elif start == (0, 0) and \
             end == (len(self.order)-1, len(self.order[-1])):
-            sel_all.set_sensitive(False)
+            self.select_all_menuitem.set_sensitive(False)
 
-        copy.connect('select', self._menu_do_copy, sel)
-        sel_all.connect('select', self._menu_do_select_all, cur, sel)
-
-        menu.popup(None, None, None,
-                   event.button, event.time,
-                   data=None)
+        self.menu.popup(None, # parent_menu_shell,
+                        None, # parent_menu_item,
+                        None, # GtkMenuPositionFunc func,
+                        None, # data,
+                        event.button,
+                        event.time)
         return
 
     def _on_key_press(self, widget, event, cur, sel):
@@ -630,9 +649,8 @@ class TextBlock(Gtk.EventBox):
         s, i = cur.paragraph, cur.index
 
         handled_keys = True
-        state = event.get_state().value_nicks
-        ctrl = state and state[0] == 'control_mask'
-        shift = state and state[0] == 'shift_mask'
+        ctrl = (event.state & Gdk.ModifierType.CONTROL_MASK) > 0
+        shift = (event.state & Gdk.ModifierType.SHIFT_MASK) > 0
 
         if not self.PAINT_PRIMARY_CURSOR and \
             kv in (Gdk.KEY_uparrow, Gdk.KEY_downarrow) and not sel:
@@ -649,7 +667,8 @@ class TextBlock(Gtk.EventBox):
 
             if shift:
                 layout = self._get_cursor_layout()
-                sel.set_target_x(layout.index_to_pos(cur.index)[0], layout.indent)
+                pos = layout.index_to_pos(cur.index)
+                sel.set_target_x(pos.x, layout.indent)
 
         elif kv == Gdk.KEY_Right: 
             if ctrl:
@@ -659,7 +678,8 @@ class TextBlock(Gtk.EventBox):
 
             if shift:
                 layout = self._get_cursor_layout()
-                sel.set_target_x(layout.index_to_pos(cur.index)[0], layout.indent)
+                pos = layout.index_to_pos(cur.index)
+                sel.set_target_x(pos.x, layout.indent)
 
         elif kv == Gdk.KEY_Up:
             if ctrl:
@@ -708,7 +728,7 @@ class TextBlock(Gtk.EventBox):
 
     def _on_key_release(self, widget, event, cur, sel):
         state = event.get_state().value_nicks
-        ctrl = state and state[0] == 'control_mask'
+        ctrl = (event.state & Gdk.ModifierType.CONTROL_MASK) > 0
         if ctrl:
             if event.keyval == Gdk.KEY_a:
                 self._select_all(cur, sel)
@@ -720,68 +740,75 @@ class TextBlock(Gtk.EventBox):
         return
 
     def _select_up(self, cur, sel):
-        if sel and not cur.is_min(sel) and cur.same_line(sel):
-            cur.switch(sel)
-        s = cur.paragraph
+        #~ if sel and not cur.is_min(sel) and cur.same_line(sel):
+            #~ cur.switch(sel)
 
+        s = cur.paragraph
         layout = self._get_layout(cur)
 
         if sel.target_x:
-            x = sel.target_x + (sel.target_x_indent - layout.indent)*_PS
-            j, xy = layout.cursor_up(cur, x)
+            x = sel.target_x
+            if sel.target_x_indent:
+                x += (sel.target_x_indent - layout.indent) * _PS
+            (_, j, k), (x, y) = layout.cursor_up(cur, x)
+            j += k
+
         else:
-            j, xy = layout.cursor_up(cur)
-            sel.set_target_x(xy[0], layout.indent)
+            (_, j, k), (x, y) = layout.cursor_up(cur)
+            j += k
+            sel.set_target_x(x, layout.indent)
 
         if (s, j) != cur.get_position():
             cur.set_position(s, j)
-        else:
-            if s > 0:
-                cur.paragraph -= 1
-            else:
-                cur.set_position(0, 0)
-                return False
 
-            layout1 = self._get_layout(cur)
-            x = sel.target_x + (sel.target_x_indent - layout1.indent)*_PS
-            y = layout1.get_extents()[1][3]
-            j = sum(layout1.xy_to_index(x, y))
-            cur.set_position(s-1, j)
-        return
+        elif s > 0:
+            indent = layout.indent
+            cur.paragraph = s-1
+            layout = self._get_layout(cur)
+            if sel.target_x_indent:
+                x += (sel.target_x_indent - layout.indent) * _PS
+            y = layout.get_extents()[0].height
+            (_, j, k) = layout.xy_to_index(x, y)
+            cur.set_position(s-1, j+k)
+
+        else:
+            return False
+        return True
 
     def _select_down(self, cur, sel):
-        if sel and not cur.is_max(sel) and cur.same_line(sel):
-            cur.switch(sel)
-        s = cur.paragraph
+        #~ if sel and not cur.is_max(sel) and cur.same_line(sel):
+            #~ cur.switch(sel)
 
+        s = cur.paragraph
         layout = self._get_layout(cur)
 
         if sel.target_x:
-            x = sel.target_x + (sel.target_x_indent - layout.indent)*_PS
-            # special case for when we sel all of top line after hitting
-            # top line extent
-            if cur.get_position() == (0, 0) and x != 0:
-                j = sum(layout.xy_to_index(x, 0))
-                xy = (x,0)
-            else:
-                j, xy = layout.cursor_down(cur, x)
+            x = sel.target_x
+            if sel.target_x_indent:
+                x += (sel.target_x_indent - layout.indent) * _PS
+            (_, j, k), (x, y) = layout.cursor_down(cur, x)
+            j += k
+
         else:
-            j, xy = layout.cursor_down(cur)
-            sel.set_target_x(xy[0], layout.indent)
+            (_, j, k), (x, y) = layout.cursor_down(cur)
+            j += k
+            sel.set_target_x(x, layout.indent)
 
         if (s, j) != cur.get_position():
             cur.set_position(s, j)
-        else:
-            if s+1 < len(self.order):
-                cur.paragraph += 1
-            else:
-                cur.set_position(s, len(layout))
-                return False
 
+        elif s < len(self.order) - 1:
+            indent = layout.indent
+            cur.paragraph = s+1
             layout = self._get_layout(cur)
-            x = sel.target_x + (sel.target_x_indent - layout.indent)*_PS
-            j = sum(layout.xy_to_index(x, 0))
-            cur.set_position(s+1, j)
+            if sel.target_x_indent:
+                x += (sel.target_x_indent - layout.indent) * _PS
+            y = 0
+            (_, j, k) = layout.xy_to_index(x, y)
+            cur.set_position(s+1, j+k)
+
+        else:
+            return False
         return True
 
     def _2click_select(self, cursor, sel):
@@ -789,7 +816,14 @@ class TextBlock(Gtk.EventBox):
         return
 
     def _3click_select(self, cursor, sel):
+        # XXX:
+        # _select_line seems to expose the following Pango issue:
+        # (description.py:3892): Pango-CRITICAL **:
+        # pango_layout_line_unref: assertion `private->ref_count > 0'
+        # failed
+        # ... which can result in a segfault
         #~ self._select_line(cursor, sel)
+        self._select_all(cursor, sel)
         return
 
     def _copy_text(self, sel):
@@ -797,10 +831,12 @@ class TextBlock(Gtk.EventBox):
         text = self.get_selected_text(sel)
 
         if not self.clipboard:
-            self.clipboard = self.get_clipboard(Gdk.SELECTION_CLIPBOARD)
+            display = Gdk.Display.get_default()
+            selection = Gdk.Atom.intern("CLIPBOARD", False)
+            self.clipboard = Gtk.Clipboard.get_for_display(display, selection)
 
         self.clipboard.clear()
-        self.clipboard.set_text(text, -1)
+        self.clipboard.set_text(text.strip(), -1)
         return
 
     def _select_end(self, cur, sel, layout):
@@ -916,7 +952,7 @@ class TextBlock(Gtk.EventBox):
         return
 
     def _select_line(self, cursor, sel):
-        n, r, line = self.cursor.get_current_line()
+        n, r = self.cursor.get_current_line()
         sel.set_position(n[0], r[0])
         cursor.set_position(n[0], r[1])
         if self.get_direction() == Gtk.TextDirection.RTL:
@@ -967,7 +1003,6 @@ class TextBlock(Gtk.EventBox):
         i = layout.index
         start, end = sel.get_range()
         if sel and i >= start[0] and i <= end[0]:
-
             if i == start[0]:
                 if end[0] > i:
                     layout.highlight(start[1], len(layout), bg, fg)
@@ -1011,17 +1046,17 @@ class TextBlock(Gtk.EventBox):
         a = self.get_allocation()
         for layout in self.order:
             lx, ly = layout.get_position()
-#~ 
-            #~ self._selection_highlight(layout,
-                                      #~ self.selection,
-                                      #~ self._bg, self._fg)
+
+            self._selection_highlight(layout,
+                                      self.selection,
+                                      self._bg, self._fg)
 
             if layout.is_bullet:
                 if self.get_direction() != Gtk.TextDirection.RTL:
                     indent = layout.indent - self.indent
-                    self._paint_bullet_point(cr, indent, ly)
                 else:
-                    self._paint_bullet_point(cr, a.width-self.indent, ly)
+                    indent = a.width - layout.indent
+                self._paint_bullet_point(cr, indent, ly)
 
             if self.DEBUG_PAINT_BBOXES:
                 la = layout.allocation
@@ -1029,7 +1064,7 @@ class TextBlock(Gtk.EventBox):
                 cr.set_source_rgb(1,0,0)
                 cr.stroke()
 
-            #~ # draw the layout
+            # draw the layout
             Gtk.render_layout(self.get_style_context(),
                                 cr,
                                 lx,             # x coord
@@ -1171,7 +1206,7 @@ class AppDescription(Gtk.VBox):
 
 
 def get_test_description_window():
-    EXAMPLE = """
+    EXAMPLE0 = """
 p7zip is the Unix port of 7-Zip, a file archiver that archives with very high compression ratios.
 
 p7zip-full provides:
@@ -1183,12 +1218,236 @@ p7zip-full provides:
    BZIP2, TAR, CPIO, RPM, ISO and DEB archives. 7z compression is 30-50% better than ZIP compression.
 
 p7zip provides 7zr, a light version of 7za, and p7zip a gzip like wrapper around 7zr.""".strip()
+
+
+    EXAMPLE1 = """Transmageddon supports almost any format as its input and can generate a very large host of output files. The goal of the application was to help people to create the files they need to be able to play on their mobile devices and for people not hugely experienced with multimedia to generate a multimedia file without having to resort to command line tools with ungainly syntaxes.
+The currently supported codecs are:
+ * Containers:
+  - Ogg
+  - Matroska
+  - AVI
+  - MPEG TS
+  - flv
+  - QuickTime
+  - MPEG4
+  - 3GPP
+  - MXT
+ * Audio encoders:
+  - Vorbis
+  - FLAC
+  - MP3
+  - AAC
+  - AC3
+  - Speex
+  - Celt
+ * Video encoders:
+  - Theora
+  - Dirac
+  - H264
+  - MPEG2
+  - MPEG4/DivX5
+  - xvid
+  - DNxHD
+It also provide the support for the GStreamer's plugins auto-search."""
+
+
+    EXAMPLE2 = """File-roller is an archive manager for the GNOME environment. It allows you to:
+ * Create and modify archives.
+ * View the content of an archive.
+ * View a file contained in an archive.
+ * Extract files from the archive.
+File-roller supports the following formats:
+ * Tar (.tar) archives, including those compressed with
+   gzip (.tar.gz, .tgz), bzip (.tar.bz, .tbz), bzip2 (.tar.bz2, .tbz2),
+   compress (.tar.Z, .taz), lzip (.tar.lz, .tlz), lzop (.tar.lzo, .tzo),
+   lzma (.tar.lzma) and xz (.tar.xz)
+ * Zip archives (.zip)
+ * Jar archives (.jar, .ear, .war)
+ * 7z archives (.7z)
+ * iso9660 CD images (.iso)
+ * Lha archives (.lzh)
+ * Single files compressed with gzip (.gz), bzip (.bz), bzip2 (.bz2),
+   compress (.Z), lzip (.lz), lzop (.lzo), lzma (.lzma) and xz (.xz)
+File-roller doesn't perform archive operations by itself, but relies on standard tools for this."""
+
+    EXAMPLE3 = """This package includes the following CTAN packages:
+ Asana-Math -- A font to typeset maths in Xe(La)TeX.
+ albertus --
+ allrunes -- Fonts and LaTeX package for almost all runes.
+ antiqua -- the URW Antiqua Condensed Font.
+ antp -- Antykwa Poltawskiego: a Type 1 family of Polish traditional type.
+ antt -- Antykwa Torunska: a Type 1 family of a Polish traditional type.
+ apl -- Fonts for typesetting APL programs.
+ ar -- Capital A and capital R ligature for Apsect Ratio.
+ archaic -- A collection of archaic fonts.
+ arev -- Fonts and LaTeX support files for Arev Sans.
+ ascii -- Support for IBM "standard ASCII" font.
+ astro -- Astronomical (planetary) symbols.
+ atqolive --
+ augie -- Calligraphic font for typesetting handwriting.
+ auncial-new -- Artificial Uncial font and LaTeX support macros.
+ aurical -- Calligraphic fonts for use with LaTeX in T1 encoding.
+ barcodes -- Fonts for making barcodes.
+ bayer -- Herbert Bayers Universal Font For Metafont.
+ bbding -- A symbol (dingbat) font and LaTeX macros for its use.
+ bbm -- "Blackboard-style" cm fonts.
+ bbm-macros -- LaTeX support for "blackboard-style" cm fonts.
+ bbold -- Sans serif blackboard bold.
+ belleek -- Free replacement for basic MathTime fonts.
+ bera -- Bera fonts.
+ blacklettert1 -- T1-encoded versions of Haralambous old German fonts.
+ boisik -- A font inspired by Baskerville design.
+ bookhands -- A collection of book-hand fonts.
+ braille -- Support for braille.
+ brushscr -- A handwriting script font.
+ calligra -- Calligraphic font.
+ carolmin-ps -- Adobe Type 1 format of Carolingian Minuscule fonts.
+ cherokee -- A font for the Cherokee script.
+ clarendo --
+ cm-lgc -- Type 1 CM-based fonts for Latin, Greek and Cyrillic.
+ cmbright -- Computer Modern Bright fonts.
+ cmll -- Symbols for linear logic.
+ cmpica -- A Computer Modern Pica variant.
+ coronet --
+ courier-scaled -- Provides a scaled Courier font.
+ cryst -- Font for graphical symbols used in crystallography.
+ cyklop -- The Cyclop typeface.
+ dancers -- Font for Conan Doyle's "The Dancing Men".
+ dice -- A font for die faces.
+ dictsym -- DictSym font and macro package
+ dingbat -- Two dingbat symbol fonts.
+ doublestroke -- Typeset mathematical double stroke symbols.
+ dozenal -- Typeset documents using base twelve numbering (also called
+  "dozenal")
+ duerer -- Computer Duerer fonts.
+ duerer-latex -- LaTeX support for the Duerer fonts.
+ ean -- Macros for making EAN barcodes.
+ ecc -- Sources for the European Concrete fonts.
+ eco -- Oldstyle numerals using EC fonts.
+ eiad -- Traditional style Irish fonts.
+ eiad-ltx -- LaTeX support for the eiad font.
+ elvish -- Fonts for typesetting Tolkien Elvish scripts.
+ epigrafica -- A Greek and Latin font.
+ epsdice -- A scalable dice "font".
+ esvect -- Vector arrows.
+ eulervm -- Euler virtual math fonts.
+ euxm --
+ feyn -- A font for in-text Feynman diagrams.
+ fge -- A font for Frege's Grundgesetze der Arithmetik.
+ foekfont -- The title font of the Mads Fok magazine.
+ fonetika -- Support for the danish "Dania" phonetic system.
+ fourier -- Using Utopia fonts in LaTeX documents.
+ fouriernc -- Use New Century Schoolbook text with Fourier maths fonts.
+ frcursive -- French cursive hand fonts.
+ garamond --
+ genealogy -- A compilation genealogy font.
+ gfsartemisia -- A modern Greek font design.
+ gfsbodoni -- A Greek and Latin font based on Bodoni.
+ gfscomplutum -- A Greek font with a long history.
+ gfsdidot -- A Greek font based on Didot's work.
+ gfsneohellenic -- A Greek font in the Neo-Hellenic style.
+ gfssolomos -- A Greek-alphabet font.
+ gothic -- A collection of old German-style fonts.
+ greenpoint -- The Green Point logo.
+ groff --
+ grotesq -- the URW Grotesk Bold Font.
+ hands -- Pointing hand font.
+ hfbright -- The hfbright fonts.
+ hfoldsty -- Old style numerals with EC fonts.
+ ifsym -- A collection of symbols.
+ inconsolata -- A monospaced font, with support files for use with TeX.
+ initials -- Adobe Type 1 decorative initial fonts.
+ iwona -- A two-element sans-serif font.
+ junicode -- A TrueType font for mediaevalists.
+ kixfont -- A font for KIX codes.
+ knuthotherfonts --
+ kpfonts -- A complete set of fonts for text and mathematics.
+ kurier -- A two-element sans-serif typeface.
+ lettrgth --
+ lfb -- A Greek font with normal and bold variants.
+ libertine -- Use the font Libertine with LaTeX.
+ libris -- Libris ADF fonts, with LaTeX support.
+ linearA -- Linear A script fonts.
+ logic -- A font for electronic logic design.
+ lxfonts -- Set of slide fonts based on CM.
+ ly1 -- Support for LY1 LaTeX encoding.
+ marigold --
+ mathabx -- Three series of mathematical symbols.
+ mathdesign -- Mathematical fonts to fit with particular text fonts.
+ mnsymbol -- Mathematical symbol font for Adobe MinionPro.
+ nkarta -- A "new" version of the karta cartographic fonts.
+ ocherokee -- LaTeX Support for the Cherokee language.
+ ogham -- Fonts for typesetting Ogham script.
+ oinuit -- LaTeX Support for the Inuktitut Language.
+ optima --
+ orkhun -- A font for orkhun script.
+ osmanian -- Osmanian font for writing Somali.
+ pacioli -- Fonts designed by Fra Luca de Pacioli in 1497.
+ pclnfss -- Font support for current PCL printers.
+ phaistos -- Disk of Phaistos font.
+ phonetic -- MetaFont Phonetic fonts, based on Computer Modern.
+ pigpen -- A font for the pigpen (or masonic) cipher.
+ psafm --
+ punk -- Donald Knuth's punk font.
+ recycle -- A font providing the "recyclable" logo.
+ sauter -- Wide range of design sizes for CM fonts.
+ sauterfonts -- Use sauter fonts in LaTeX.
+ semaphor -- Semaphore alphabet font.
+ simpsons -- MetaFont source for Simpsons characters.
+ skull -- A font to draw a skull.
+ staves -- Typeset Icelandic staves and runic letters.
+ tapir -- A simple geometrical font.
+ tengwarscript -- LaTeX support for using Tengwar fonts.
+ trajan -- Fonts from the Trajan column in Rome.
+ umtypewriter -- Fonts to typeset with the xgreek package.
+ univers --
+ universa -- Herbert Bayer's 'universal' font.
+ venturisadf -- Venturis ADF fonts collection.
+ wsuipa -- International Phonetic Alphabet fonts.
+ yfonts -- Support for old German fonts.
+ zefonts -- Virtual fonts to provide T1 encoding from existing fonts."""
+
+
+    EXAMPLE4 = """Arista is a simple multimedia transcoder, it focuses on being easy to use by making complex task of encoding for various devices simple.
+Users should pick an input and a target device, choose a file to save to and go. Features:
+* Presets for iPod, computer, DVD player, PSP, Playstation 3, and more.
+* Live preview to see encoded quality.
+* Automatically discover available DVD media and Video 4 Linux (v4l) devices.
+* Rip straight from DVD media easily (requires libdvdcss).
+* Rip straight from v4l devices.
+* Simple terminal client for scripting.
+* Automatic preset updating."""
+
+    def on_clicked(widget, desc_widget, descs):
+        widget.position += 1
+        if widget.position >= len(descs):
+            widget.position = 0
+        desc_widget.set_description(*descs[widget.position])
+        return
+
+    descs = ((EXAMPLE0,''),
+             (EXAMPLE1,''),
+             (EXAMPLE2,''),
+             (EXAMPLE3,'texlive-fonts-extra'),
+             (EXAMPLE4,''))
+
     win = Gtk.Window()
-    win.set_size_request(400, -1)
+    win.set_default_size(300, 400)
     win.set_has_resize_grip(True)
+    vb = Gtk.VBox()
+    win.add(vb)
+    b = Gtk.Button('Next test description >>')
+    b.position = 0
+    vb.pack_start(b, False, False, 0)
+    scroll = Gtk.ScrolledWindow()
+    vb.add(scroll)
     d = AppDescription()
-    d.set_description(EXAMPLE, pkgname='')
-    win.add(d)
+    #~ d.description.DEBUG_PAINT_BBOXES = True
+    d.set_description(EXAMPLE0, pkgname='')
+    scroll.add_with_viewport(d)
+    win.show_all()
+
+    b.connect("clicked", on_clicked, d, descs)
     win.connect('destroy',lambda x: Gtk.main_quit())
     return win
 
