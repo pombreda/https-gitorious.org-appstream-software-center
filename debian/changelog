@@ -28,6 +28,10 @@ software-center (4.1.23.4) UNRELEASED; urgency=low
       and rtl modes.
 
   [ Kiwinote ]
+  * softwarecenter/db/application.py:
+    - fix UnicodeDecodeError in __init__ (LP: #838791)
+  * softwarecenter/db/debfile.py:
+    - fix UnicodeDecodeError in __init__ (LP: #835887)
   * softwarecenter/ui/gtk3/widgets/buttons.py:
     - draw focus-line for category tiles and subcategory tiles
     - make featuredtiles accessible

@@ -29,6 +29,7 @@ from softwarecenter.enums import PkgStates, XapianValues, Icons
 from softwarecenter.paths import (APP_INSTALL_CHANNELS_PATH,
                                   SOFTWARE_CENTER_ICON_CACHE_DIR,
                                   )
+from softwarecenter.utils import utf8
 
 LOG = logging.getLogger(__name__)
 
@@ -195,7 +196,7 @@ class AppDetails(object):
                     not channel_matches and 
                     not section_matches):
                     self._error = _("Not found")
-                    self._error_not_found = _(u"There isn\u2019t a software package called \u201c%s\u201D in your current software sources.") % self.pkgname
+                    self._error_not_found = utf8(_(u"There isn\u2019t a software package called \u201c%s\u201D in your current software sources.")) % utf8(self.pkgname)
 
     def same_app(self, other):
         return self.pkgname == other.pkgname
@@ -295,7 +296,7 @@ class AppDetails(object):
         # this may have changed since we inited the appdetails
         elif self.pkg_state == PkgStates.NOT_FOUND:
             self._error =  _("Not found")
-            self._error_not_found = _(u"There isn\u2019t a software package called \u201c%s\u201D in your current software sources.") % self.pkgname
+            self._error_not_found = utf8(_(u"There isn\u2019t a software package called \u201c%s\u201D in your current software sources.")) % utf8(self.pkgname)
             return self._error_not_found
 
     @property
@@ -422,7 +423,7 @@ class AppDetails(object):
                     return PkgStates.NEEDS_SOURCE
                 else:
                     self._error =  _("Not found")
-                    self._error_not_found = _(u"There isn\u2019t a software package called \u201c%s\u201D in your current software sources.") % self.pkgname
+                    self._error_not_found = utf8(_(u"There isn\u2019t a software package called \u201c%s\u201D in your current software sources.")) % utf8(self.pkgname)
                     return PkgStates.NOT_FOUND
             else:
                 if self.price:
@@ -436,7 +437,7 @@ class AppDetails(object):
                         if component and self._unavailable_component(component_to_check=component):
                             return PkgStates.NEEDS_SOURCE
                 self._error =  _("Not found")
-                self._error_not_found = _(u"There isn\u2019t a software package called \u201c%s\u201D in your current software sources.") % self.pkgname
+                self._error_not_found = utf8(_(u"There isn\u2019t a software package called \u201c%s\u201D in your current software sources.")) % utf8(self.pkgname)
                 return PkgStates.NOT_FOUND
         return PkgStates.UNKNOWN
 
