@@ -449,7 +449,7 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
         yield policykit1.check_authorization_by_name(name, action, flags=flags)
 
     @inline_callbacks
-    def add_license_key(self, pkgname, license_key):
+    def add_license_key(self, license_key, pkgname):
         """ add a license key for a purchase. Note that currently only
             system wide license keys are supported.
         """
@@ -458,7 +458,7 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
                 pkgname, len(license_key)))
         try:
             trans = yield self.aptd_client.add_license_key(
-                pkgname, license_key)
+                license_key, pkgname)
             yield self._run_transaction(trans, None, None, None)
         except Exception as e:
             self._logger.error("add_repository: '%s'" % e)
@@ -606,7 +606,7 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
                 yield self._run_transaction(trans, app.pkgname, app.appname,
                                             "", metadata)
                 if license_key:
-                    yield self.add_license_key(app.pkgname, license_key)
+                    yield self.add_license_key(license_key, app.pkgname)
             except Exception as error:
                 self._on_trans_error(error, app.pkgname)
         else:
