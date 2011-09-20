@@ -21,7 +21,6 @@ from gi.repository import Gtk, Gdk
 from gi.repository import GObject
 from gi.repository import Pango
 
-from softwarecenter.ui.gtk3.utils import point_in
 from softwarecenter.utils import normalize_package_description
 from softwarecenter.ui.gtk3.drawing import color_to_hex
 from softwarecenter.ui.gtk3.utils import point_in
@@ -727,7 +726,6 @@ class TextBlock(Gtk.EventBox):
         return handled_keys
 
     def _on_key_release(self, widget, event, cur, sel):
-        state = event.get_state().value_nicks
         ctrl = (event.state & Gdk.ModifierType.CONTROL_MASK) > 0
         if ctrl:
             if event.keyval == Gdk.KEY_a:
@@ -762,7 +760,6 @@ class TextBlock(Gtk.EventBox):
             cur.set_position(s, j)
 
         elif s > 0:
-            indent = layout.indent
             cur.paragraph = s-1
             layout = self._get_layout(cur)
             if sel.target_x_indent:
@@ -798,7 +795,6 @@ class TextBlock(Gtk.EventBox):
             cur.set_position(s, j)
 
         elif s < len(self.order) - 1:
-            indent = layout.indent
             cur.paragraph = s+1
             layout = self._get_layout(cur)
             if sel.target_x_indent:
