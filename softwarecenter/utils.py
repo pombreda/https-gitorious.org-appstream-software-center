@@ -187,6 +187,7 @@ def htmlize_package_description(desc):
     inside_li = False
     for part in normalize_package_description(desc).split("\n"):
         stripped_part = part.strip()
+        if not stripped_part: continue
         if stripped_part.startswith("* "):
             if not inside_li:
                 html += "<ul>"

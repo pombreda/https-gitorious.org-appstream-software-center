@@ -26,8 +26,8 @@ GAME FEATURES
         description_text = normalize_package_description(s)
         self.assertEqual(
             description_text,
-            """A challenging 3D block puzzle game.
-Puzzle Moppet is a challenging 3D puzzle game featuring a diminutive and apparently mute creature who is lost in a mysterious floating landscape.
+            """A challenging 3D block puzzle game.\n
+Puzzle Moppet is a challenging 3D puzzle game featuring a diminutive and apparently mute creature who is lost in a mysterious floating landscape.\n
 GAME FEATURES
 * Save the Moppet from itself""")
 
@@ -35,7 +35,7 @@ GAME FEATURES
         cache = apt.Cache()
         self.assertEqual(
             normalize_package_description(cache["arista"].description),
-            """Arista is a simple multimedia transcoder, it focuses on being easy to use by making complex task of encoding for various devices simple.
+            """Arista is a simple multimedia transcoder, it focuses on being easy to use by making complex task of encoding for various devices simple.\n
 Users should pick an input and a target device, choose a file to save to and go. Features:\n
 * Presets for iPod, computer, DVD player, PSP, Playstation 3, and more.
 * Live preview to see encoded quality.
@@ -47,7 +47,7 @@ Users should pick an input and a target device, choose a file to save to and go.
         # note: bullet indentation
         self.assertEqual(
             normalize_package_description(cache["aa3d"].description),
-            """This program generates the well-known and popular random dot stereograms in ASCII art.
+            """This program generates the well-known and popular random dot stereograms in ASCII art.\n
 Features:\n
  * High quality ASCII art stereogram rendering
  * Highly configurable
@@ -87,7 +87,6 @@ GAME FEATURES
 * Save the Moppet from itself
 """
         description_text = htmlize_package_description(s)
-        print description_text
         self.assertEqual(
             description_text,
             """<p tabindex="0">A challenging 3D block puzzle game.</p><p tabindex="0">Puzzle Moppet is a challenging 3D puzzle game featuring a diminutive and apparently mute creature who is lost in a mysterious floating landscape.</p><p tabindex="0">GAME FEATURES</p><ul><li>Save the Moppet from itself</li></ul>""")
