@@ -20,6 +20,7 @@ import gettext
 import glob
 import locale
 import logging
+import os
 import xapian
 
 try:
@@ -146,6 +147,8 @@ class CategoriesParser(object):
     def _parse_directory_tag(self, element):
         cp = ConfigParser()
         fname = "/usr/share/desktop-directories/%s" % element.text
+        if not os.path.exists(fname):
+            return None
         LOG.debug("reading '%s'" % fname)
         cp.read(fname)
         try:
@@ -267,7 +270,9 @@ class CategoriesParser(object):
             elif element.tag == 'Flags':
                 flags = self._parse_flags_tag(element)
             elif element.tag == "Directory":
-                (untranslated_name, name, gettext_domain, icon) = self._parse_directory_tag(element)
+                l = self._parse_directory_tag(element)
+                if l:
+                    (untranslated_name, name, gettext_domain, icon) = l
             elif element.tag == "Include":
                 query = self._parse_include_tag(element)
             elif element.tag == "OnlyUnallocated":
