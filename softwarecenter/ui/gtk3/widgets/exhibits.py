@@ -32,6 +32,7 @@ from urlparse import urlparse
 from softwarecenter.utils import SimpleFileDownloader
 from softwarecenter.ui.gtk3.em import StockEms
 from softwarecenter.ui.gtk3.shapes import Circle
+from softwarecenter.ui.gtk3.drawing import rounded_rect
 import softwarecenter.paths
 
 _asset_cache = {}
@@ -479,6 +480,19 @@ class ExhibitBanner(Gtk.EventBox):
             y = 0
             Gdk.cairo_set_source_pixbuf(cr, self.image, x, y)
             cr.paint_with_alpha(self.alpha)
+
+        if self.has_focus():
+            # paint a focal border/frame
+            context = self.get_style_context()
+            context.save()
+            context.add_class(Gtk.STYLE_CLASS_HIGHLIGHT)
+            highlight = context.get_background_color(self.get_state_flags())
+            context.restore()
+
+            rounded_rect(cr, 1, 1, a.width-2, a.height-3, 5)
+            Gdk.cairo_set_source_rgba(cr, highlight)
+            cr.set_line_width(6)
+            cr.stroke()
 
         # paint dropshadows last
         #~ cr.rectangle(0, 0, a.width, self.DROPSHADOW_HEIGHT)
