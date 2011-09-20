@@ -49,6 +49,9 @@ software-center (4.1.23.4) UNRELEASED; urgency=low
       from webkit and add test
   * debian/control:
     - tighten dependency on python-gobject (LP: #845280)
+  * softwarecenter/db/database.py:
+    - fix db reopen when a new database is added (like the 
+      software-center-agent DB)
 
  -- Gary Lasker <gary.lasker@canonical.com>  Tue, 20 Sep 2011 00:07:51 -0400
 
