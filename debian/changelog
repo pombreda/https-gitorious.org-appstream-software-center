@@ -32,6 +32,9 @@ software-center (4.1.23.4) UNRELEASED; urgency=low
   * lp:~mmcg069/software-center/lobby-work
     - update the lobby and subcat views when selecting to view "Canonical
       Maintained Software", other lobby fixes and cleanup (LP: #835025)
+  * lp:~mmcg069/software-center/description-improvements:
+    - improvements to the description area in the details view, make
+      description text selectable, update unit test (LP: #854368)
 
   [ Kiwinote ]
   * softwarecenter/db/application.py:
@@ -85,7 +88,7 @@ software-center (4.1.23.4) UNRELEASED; urgency=low
   * softwarecenter/ui/gtk3/panes/installedpane.py:
     - use the same load blocking parameters than other calls
 
- -- Gary Lasker <gary.lasker@canonical.com>  Tue, 20 Sep 2011 16:47:58 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 20 Sep 2011 17:18:43 -0400
 
 software-center (4.1.23.3) oneiric; urgency=low
 
