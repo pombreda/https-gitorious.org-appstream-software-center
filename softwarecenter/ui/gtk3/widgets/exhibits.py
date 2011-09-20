@@ -33,6 +33,7 @@ from softwarecenter.utils import SimpleFileDownloader
 from softwarecenter.ui.gtk3.em import StockEms
 from softwarecenter.ui.gtk3.shapes import Circle
 from softwarecenter.ui.gtk3.drawing import rounded_rect
+from softwarecenter.ui.gtk3.utils import point_in
 import softwarecenter.paths
 
 _asset_cache = {}
@@ -310,7 +311,11 @@ class ExhibitBanner(Gtk.EventBox):
         window.set_cursor(None)
         return
 
-    def on_button_release(self, *args):
+    def on_button_release(self, widget, event):
+        if not point_in(self.get_allocation(),
+                        int(event.x), int(event.y)):
+            return
+
         exhibit = self.exhibits[self.cursor]
         if exhibit.package_names:
             self.emit("show-exhibits-clicked", exhibit)

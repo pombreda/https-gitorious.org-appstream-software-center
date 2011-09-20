@@ -31,6 +31,9 @@
 .cellrenderer-button {
     border-radius: 3
 }
+.cellrenderer-button:focus {
+    border-color: pink;
+}
 
 .more-link {
     -GtkButton-inner-border: 0;

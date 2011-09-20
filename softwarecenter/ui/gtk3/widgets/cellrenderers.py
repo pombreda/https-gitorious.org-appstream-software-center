@@ -20,6 +20,7 @@
 from gi.repository import Gtk, Gdk, GObject, Pango
 
 from softwarecenter.ui.gtk3.em import EM
+from softwarecenter.ui.gtk3.drawing import rounded_rect
 from softwarecenter.ui.gtk3.models.appstore2 import CategoryRowReference
 
 from stars import StarRenderer, StarSize
@@ -536,18 +537,31 @@ class CellButtonRenderer:
         x, y, width, height = self.allocation
 
         context.save()
-        context.add_class("button")
         context.add_class("cellrenderer-button")
-        context.set_state(self.state)
 
+        if self.has_focus:
+            context.set_state(self.state | Gtk.StateFlags.FOCUSED)
+        else:
+            context.set_state(self.state)
+
+        # render background and focal frame if has-focus
+        context.save()
+        context.add_class(Gtk.STYLE_CLASS_BUTTON)
         Gtk.render_background(context, cr, x, y, width, height)
-        #~ Gtk.render_frame(context, cr, x, y, width, height)
+        context.restore()
 
+        if self.has_focus:
+            Gtk.render_focus(context, cr, x+3, y+3, width-6, height-6)
+
+        # position and render layout markup
+        context.save()
+        context.add_class(Gtk.STYLE_CLASS_BUTTON)
         layout.set_markup(self.markup_variants[self.current_variant], -1)
         layout_width = layout.get_pixel_extents()[1].width
         x = x + (width - layout_width)/2
         y += self.ypad
         Gtk.render_layout(context, cr, x, y, layout)
+        context.restore()
 
         context.restore()
         return

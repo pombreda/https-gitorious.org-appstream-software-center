@@ -21,14 +21,11 @@ from gi.repository import Gtk, Gdk
 from gi.repository import GObject
 from gi.repository import Pango
 
+from softwarecenter.ui.gtk3.utils import point_in
 from softwarecenter.utils import normalize_package_description
 
 _PS = Pango.SCALE
 
-
-def point_in(rect, px, py):
-    return (px >= rect.x and px <= rect.x + rect.width and
-            py >= rect.y and py <= rect.y + rect.height)
 
 def color_floats(color):
     return color.red/65535.0, color.green/65535.0, color.blue/65535.0

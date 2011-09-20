@@ -186,6 +186,9 @@ class StoreDatabase(GObject.GObject):
         """ open the database """
         if pathname:
             self._db_pathname = pathname
+        # clean existing DBs on open
+        self._db_per_thread = {} 
+        self._parser_per_thread = {} 
         # add the apt-xapian-database for here (we don't do this
         # for now as we do not have a good way to integrate non-apps
         # with the UI)
