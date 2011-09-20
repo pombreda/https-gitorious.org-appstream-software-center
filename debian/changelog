@@ -50,6 +50,12 @@ software-center (4.1.23.4) UNRELEASED; urgency=low
   * debian/control:
     - tighten dependency on python-gobject (LP: #845280)
 
+  [ Didier Roche ]
+  * softwarecenter/db/appfilter.py:
+    - fix an issue when no diff in a category show all available results
+  * softwarecenter/ui/gtk3/panes/installedpane.py:
+    - use the same load blocking parameters than other calls
+
  -- Gary Lasker <gary.lasker@canonical.com>  Tue, 20 Sep 2011 00:07:51 -0400
 
 software-center (4.1.23.3) oneiric; urgency=low
