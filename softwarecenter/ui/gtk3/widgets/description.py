@@ -21,6 +21,7 @@ from gi.repository import Gtk, Gdk
 from gi.repository import GObject
 from gi.repository import Pango
 
+from softwarecenter.ui.gtk3.utils import point_in
 from softwarecenter.utils import normalize_package_description
 from softwarecenter.ui.gtk3.drawing import color_to_hex
 from softwarecenter.ui.gtk3.utils import point_in

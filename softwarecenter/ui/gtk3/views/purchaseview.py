@@ -45,8 +45,9 @@ class LocaleAwareWebView(webkit.WebView):
         lang = get_language()
         if lang:
             message = req.get_message()
-            headers = message.get_property("request-headers")
-            headers.append("Accept-Language", lang)
+            if message:
+                headers = message.get_property("request-headers")
+                headers.append("Accept-Language", lang)
         #def _show_header(name, value, data):
         #    print name, value
         #headers.foreach(_show_header, None)
@@ -127,6 +128,7 @@ h1 {
             #self.wk.webkit.connect("new-window-policy-decision-requested", self._on_new_window)
             self.wk.webkit.connect("create-web-view", self._on_create_web_view)
             self.wk.webkit.connect("close-web-view", self._on_close_web_view)
+            self.wk.webkit.connect("console-message", self._on_console_message)
 
             # a possible way to do IPC (script or title change)
             self.wk.webkit.connect("script-alert", self._on_script_alert)
@@ -180,6 +182,14 @@ h1 {
         # make sure close will work later
         wk.webkit.set_data("win", win)
         return wk.webkit
+
+    def _on_console_message(self, view, message, line, source_id):
+        for k in ["token_key", "token_secret", "consumer_secret"]:
+            if k in message:
+                LOG.debug("skipping console message that contains sensitive data")
+                return True
+        LOG.debug("_on_console_message '%s'" % message)
+        return False
 
     def _on_script_alert(self, view, frame, message):
         self._process_json(message)
@@ -237,14 +247,10 @@ h1 {
             deb_line = res["deb_line"]
             signing_key_id = res["signing_key_id"]
             license_key = res.get("license_key")
-            license_key_path = res.get("license_key_path")
             # add repo and key
             backend = get_install_backend()
             backend.add_repo_add_key_and_install_app(
-                deb_line, signing_key_id, self.app, self.iconname)
-            if license_key and license_key_path:
-                backend.add_license_key(license_key, license_key_path)
-
+                deb_line, signing_key_id, self.app, self.iconname, license_key)
                                                                    
     def _block_wk_handlers(self):
         # we need to block webkit signal handlers when we hide the
@@ -380,6 +386,7 @@ def get_test_window_purchaseview():
     #widget.initiate_purchase(app=None, iconname=None, html=DUMMY_HTML)
 
     win = Gtk.Window()
+    win.set_data("view", widget)
     win.add(widget)
     win.set_size_request(600, 500)
     win.set_position(Gtk.WindowPosition.CENTER)

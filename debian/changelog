@@ -12,8 +12,29 @@ software-center (4.1.23.4) UNRELEASED; urgency=low
   * softwarecenter/ui/gtk3/widgets/buttons.py:
     - add a focus ring for the "More" buttons on the
       home screen (LP: #854177)
+  * softwarecenter/ui/gtk3/widgets/exhibits.py:
+    - add a focus ring for the exhibits banner (LP: #854168)
+  * check the button-release occurs within the exhibit banner 
+    (LP: #848805)
+  * add additional checks to ensure we bail on a NoneType within 
+    apptreeview._on_button_press_event. also switch some StateType's
+    to the Gtk3 correct StateFlags'
+  * reimplement the focal frames for focal CellRendererButtons 
+    in the apptreeview
+  * lp:~mmcg069/software-center/rtl-improvements
+    - make the appview progress bar fill in the correct direction when in rtl 
+      mode
+    - also improve the positioning of the installed overlay icon in both ltr 
+      and rtl modes.
+  * lp:~mmcg069/software-center/nav-improvements
+    - correct the navhistory behaviour when a user clears the search_entry,
+      remove spurious navhistory items, improve unit test (LP: #854047)
 
   [ Kiwinote ]
+  * softwarecenter/db/application.py:
+    - fix UnicodeDecodeError in __init__ (LP: #838791)
+  * softwarecenter/db/debfile.py:
+    - fix UnicodeDecodeError in __init__ (LP: #835887)
   * softwarecenter/ui/gtk3/widgets/buttons.py:
     - draw focus-line for category tiles and subcategory tiles
     - make featuredtiles accessible
@@ -32,8 +53,36 @@ software-center (4.1.23.4) UNRELEASED; urgency=low
   * softwarecenter/ui/gtk3/panes/installedpane.py:
     - display a spinner while loading the oneconf
       list view
+  
+  [ Michael Vogt ]
+  * softwarecenter/ui/gtk3/views/purchaseview.py,
+    test/gtk3/test_purchase.py:
+    - ensure to never log sensitive oauth token data to the console
+      from webkit and add test
+  * debian/control:
+    - tighten dependency on python-gobject (LP: #845280)
+  * softwarecenter/db/database.py:
+    - fix db reopen when a new database is added (like the 
+      software-center-agent DB)
+  * softwarecenter/backend/aptchannels.py:
+    - move to softwarecenter/backend/channel_impl/aptchannels.py to make
+      more clear that this is a implementation of a interface
+  * softwarecenter/backend/channel_impl/aptchannels.py:
+    - only rebuild the a-x-i DB is we have new origins in the cache
+      (LP: #798632)
+  * softwarecenter/db/categories.py:
+    - do not crash if a directory tag can not be parsed or if the 
+      directory file is not there (LP: #854087)
+  * fix systemwide license key handling (needs 
+    lp:~aptdaemon-developers/aptdaemon/add-license-key-call)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 19 Sep 2011 21:32:46 -0400
+  [ Didier Roche ]
+  * softwarecenter/db/appfilter.py:
+    - fix an issue when no diff in a category show all available results
+  * softwarecenter/ui/gtk3/panes/installedpane.py:
+    - use the same load blocking parameters than other calls
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 20 Sep 2011 13:03:21 -0400
 
 software-center (4.1.23.3) oneiric; urgency=low
 

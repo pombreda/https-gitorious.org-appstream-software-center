@@ -25,7 +25,7 @@ from mimetypes import guess_type
 
 from softwarecenter.db.application import Application, AppDetails
 from softwarecenter.enums import PkgStates
-from softwarecenter.utils import ExecutionTime
+from softwarecenter.utils import ExecutionTime, utf8
 
 class DebFileApplication(Application):
     def __init__(self, debfile):
@@ -58,16 +58,16 @@ class AppDetailsDebFile(AppDetails):
             self._pkg = None
             if not os.path.exists(self._app.request):
                 self._error = _("Not found")
-                self._error_not_found = _(u"The file \u201c%s\u201d does not exist.") % self._app.request
+                self._error_not_found = utf8(_(u"The file \u201c%s\u201d does not exist.")) % utf8(self._app.request)
             else:
                 mimetype = guess_type(self._app.request)
                 if mimetype[0] != "application/x-debian-package":
                     self._error =  _("Not found")
-                    self._error_not_found = _(u"The file \u201c%s\u201d is not a software package.") % self._app.request
+                    self._error_not_found = utf8(_(u"The file \u201c%s\u201d is not a software package.")) % utf8(self._app.request)
                 else:
-                    # hm, deb files from launchpad get this error..
+                    # deb files which are corrupt
                     self._error =  _("Internal Error")
-                    self._error_not_found = _(u"The file \u201c%s\u201d could not be opened.") % self._app.request
+                    self._error_not_found = utf8(_(u"The file \u201c%s\u201d could not be opened.")) % utf8(self._app.request)
             return
 
         if self.pkgname and self.pkgname != self._app.pkgname:

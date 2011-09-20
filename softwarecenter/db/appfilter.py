@@ -29,7 +29,7 @@ class AppFilter(xapian.MatchDecider):
         self.supported_only = global_filter.supported_only
         self.installed_only = False
         self.not_installed_only = False
-        self.restricted_list = set()
+        self.restricted_list = False
     @property
     def required(self):
         """ True if the filter is in a state that it should be part of a query """
@@ -37,7 +37,7 @@ class AppFilter(xapian.MatchDecider):
                 global_filter.supported_only or
                 self.installed_only or 
                 self.not_installed_only or
-                len(self.restricted_list) > 0)
+                self.restricted_list)
     def set_available_only(self, v):
         self.available_only = v
     def set_supported_only(self, v):
@@ -85,7 +85,7 @@ class AppFilter(xapian.MatchDecider):
         if global_filter.supported_only:
             if not self.distro.is_supported(self.cache, doc, pkgname):
                 return False
-        if self.restricted_list:
+        if self.restricted_list != False: # keep != False as the set can be empty
             if not pkgname in self.restricted_list:
                 return False
         return True

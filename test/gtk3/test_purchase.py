@@ -23,6 +23,31 @@ from softwarecenter.ui.gtk3.panes.availablepane import (
 
 class TestPurchase(unittest.TestCase):
 
+    def test_purchase_view_log_cleaner(self):
+        import softwarecenter.ui.gtk3.views.purchaseview
+        from softwarecenter.ui.gtk3.views.purchaseview import get_test_window_purchaseview
+        win = get_test_window_purchaseview()
+        self._p()
+        # get the view
+        view = win.get_data("view")
+        # install the mock
+        softwarecenter.ui.gtk3.views.purchaseview.LOG = mock = Mock()
+        # run a "harmless" log message and ensure its logged normally
+        view.wk.webkit.execute_script('console.log("foo")')
+        self.assertTrue("foo" in mock.debug.call_args[0][0])
+        mock.reset_mock()
+
+        # run a message that contains token info
+        s = 'http://sca.razorgirl.info/subscriptions/19077/checkout_complete/ @10: {"token_key": "hiddenXXXXXXXXXX", "consumer_secret": "hiddenXXXXXXXXXXXX", "api_version": 2.0, "subscription_id": 19077, "consumer_key": "rKhNPBw", "token_secret": "hiddenXXXXXXXXXXXXXXX"}'
+        view.wk.webkit.execute_script("console.log('%s')" % s)
+        self.assertTrue("skipping" in mock.debug.call_args[0][0])
+        self.assertFalse("consumer_secret" in mock.debug.call_args[0][0])
+        mock.reset_mock()
+        
+        # run another one
+        win.destroy()
+
+
     def test_reinstall_previous_purchase_display(self):
         os.environ["PYTHONPATH"]=".."
         mock_options = Mock()
