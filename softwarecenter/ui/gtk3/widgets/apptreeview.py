@@ -269,6 +269,10 @@ class AppTreeView(Gtk.TreeView):
 
         app = model[row][AppGenericStore.COL_ROW_DATA]
 
+        # make sure this is not a category (LP: #848085)
+        if self.rowref_is_category(app):
+            return False
+
         action_btn = tr.get_button_by_name(
                             CellButtonIDs.ACTION)
         #if not action_btn: return False
