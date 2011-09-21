@@ -1,4 +1,4 @@
-software-center (4.1.23.4) UNRELEASED; urgency=low
+software-center (4.1.23.4) oneiric; urgency=low
 
   [ Matthew McGowan ]
   * utils/submit_review_gtk3.py:
@@ -91,7 +91,7 @@ software-center (4.1.23.4) UNRELEASED; urgency=low
   * softwarecenter/ui/gtk3/panes/installedpane.py:
     - use the same load blocking parameters than other calls
 
- -- Gary Lasker <gary.lasker@canonical.com>  Tue, 20 Sep 2011 17:28:53 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 21 Sep 2011 09:11:30 +0200
 
 software-center (4.1.23.3) oneiric; urgency=low
 

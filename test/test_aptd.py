@@ -1,13 +1,11 @@
 #!/usr/bin/python
 
-import os
 import sys
 import unittest
 
 
 sys.path.insert(0,"../")
 from softwarecenter.backend.installbackend_impl.aptd import AptdaemonBackend
-from defer import inline_callbacks
 
 class TestAptdaemon(unittest.TestCase):
     """ tests the AptdaemonBackend """
