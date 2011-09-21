@@ -31,8 +31,13 @@
 .cellrenderer-button {
     border-radius: 3
 }
-.cellrenderer-button:focus {
-    border-color: pink;
+
+.cellrenderer-avgrating-label {
+    color: #8E8E8E; /* dark gray */
+}
+
+.cellrenderer-avgrating-label:selected {
+    color: white;
 }
 
 .more-link {

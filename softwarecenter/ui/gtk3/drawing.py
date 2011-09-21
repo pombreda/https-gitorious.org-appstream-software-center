@@ -3,6 +3,7 @@ PI_OVER_180 = PI/180
 
 from gi.repository import Gdk
 
+
 BLACK = Gdk.RGBA(red=0,green=0,blue=0)
 WHITE = Gdk.RGBA(red=1,green=1,blue=1)
 

@@ -205,16 +205,19 @@ class CellRendererAppView(Gtk.CellRendererText):
         nreviews = stats.ratings_total
         s = "(%i)" % nreviews
 
-        layout.set_markup("<span color='darkgray'><small>%s</small></span>" % s, -1)
+        layout.set_markup("<small>%s</small>" % s, -1)
 
         lw = self._layout_get_pixel_width(layout)
         w = star_width
         if not is_rtl:
-            x += 2*xpad+w
+            x += xpad+w
         else:
             x -= xpad+lw
 
+        context.save()
+        context.add_class("cellrenderer-avgrating-label")
         Gtk.render_layout(context, cr, x, y, layout)
+        context.restore()
         return
 
     def _render_progress(self, context, cr, progress, cell_area, ypad, is_rtl):

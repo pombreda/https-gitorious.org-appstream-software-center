@@ -383,7 +383,7 @@ class TextBlock(Gtk.EventBox):
 
     def __init__(self):
         Gtk.EventBox.__init__(self)
-        #~ self.set_visible_window(True)
+        self.set_visible_window(False)
         self.set_size_request(200, -1)
         #~ self.set_redraw_on_allocate(False)
 
