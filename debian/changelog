@@ -13,10 +13,10 @@ software-center (4.1.23.5) UNRELEASED; urgency=low
 
   [ Gary Lasker ]
   * softwarecenter/ui/gtk3/panes/availablepane.py:
-    - check that the cat and subcat views have been created
-      when refresh_apps, fixes crash at startup (LP: #855622)
+    - prevent potential crash at startup if views have not yet
+      been created at a call to refresh_apps (LP: #855622)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 21 Sep 2011 11:52:49 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 21 Sep 2011 12:25:01 -0400
 
 software-center (4.1.23.4) oneiric; urgency=low
 
