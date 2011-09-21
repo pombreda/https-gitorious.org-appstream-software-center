@@ -646,9 +646,11 @@ class AvailablePane(SoftwarePane):
     def refresh_apps(self, query=None):
         SoftwarePane.refresh_apps(self, query)
         # tell the lobby to update its content
-        self.cat_view.refresh_apps()
+        if self.cat_view:
+            self.cat_view.refresh_apps()
         # and the subcat view as well...
-        self.subcategories_view.refresh_apps()
+        if self.subcategories_view:
+            self.subcategories_view.refresh_apps()
 
 
 def get_test_window():
