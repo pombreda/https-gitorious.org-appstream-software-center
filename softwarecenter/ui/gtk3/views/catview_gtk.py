@@ -34,6 +34,7 @@ from softwarecenter.enums import (NonAppVisibility,
                                   TOP_RATED_CAROUSEL_LIMIT)
 from softwarecenter.utils import wait_for_apt_cache_ready
 from softwarecenter.ui.gtk3.models.appstore2 import AppPropertiesHelper
+from softwarecenter.ui.gtk3.widgets.viewport import Viewport
 from softwarecenter.ui.gtk3.widgets.containers import (
      FramedHeaderBox, FramedBox, FlowableGrid)
 from softwarecenter.ui.gtk3.widgets.exhibits import (
@@ -56,7 +57,7 @@ LOG=logging.getLogger(__name__)
 
 
 _asset_cache = {}
-class CategoriesViewGtk(Gtk.Viewport, CategoriesParser):
+class CategoriesViewGtk(Viewport, CategoriesParser):
 
     __gsignals__ = {
         "category-selected" : (GObject.SignalFlags.RUN_LAST,
@@ -109,7 +110,7 @@ class CategoriesViewGtk(Gtk.Viewport, CategoriesParser):
         self.icons = icons
         self.section = None
 
-        Gtk.Viewport.__init__(self)
+        Viewport.__init__(self)
         CategoriesParser.__init__(self, db)
 
         self.set_name("category-view")

@@ -53,6 +53,7 @@ from appdetailsview import AppDetailsViewBase
 from softwarecenter.ui.gtk3.em import StockEms, em
 from softwarecenter.ui.gtk3.drawing import color_to_hex
 from softwarecenter.ui.gtk3.widgets.separators import HBar
+from softwarecenter.ui.gtk3.widgets.viewport import Viewport
 from softwarecenter.ui.gtk3.widgets.reviews import UIReviewsList
 from softwarecenter.ui.gtk3.widgets.containers import SmallBorderRadiusFrame
 from softwarecenter.ui.gtk3.widgets.stars import Star, StarRatingsWidget
@@ -638,7 +639,7 @@ class AddonsManager():
 
 
 _asset_cache = {}
-class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
+class AppDetailsViewGtk(Viewport, AppDetailsViewBase):
 
     """ The view that shows the application details """
 
@@ -669,7 +670,7 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
 
     def __init__(self, db, distro, icons, cache, datadir, pane):
         AppDetailsViewBase.__init__(self, db, distro, icons, cache, datadir)
-        GObject.GObject.__init__(self)
+        Viewport.__init__(self)
         self.set_shadow_type(Gtk.ShadowType.NONE)
 
         self.set_name("view")
@@ -1063,42 +1064,8 @@ class AppDetailsViewGtk(Gtk.Viewport, AppDetailsViewBase):
         self.show_all()
 
         # signals!
-        #~ vb.connect('draw', self._on_draw, alignment)
-        vb.connect('key-press-event', self._on_key_press)
         self.connect('size-allocate', lambda w,a: w.queue_draw())
         return
-
-    def _on_key_press(self, widget, event):
-        kv = event.keyval
-
-        # key values we want to respond to
-        uppers = (Gdk.KEY_KP_Up, Gdk.KEY_Up)
-        downers = (Gdk.KEY_KP_Down, Gdk.KEY_Down)
-
-        if kv in uppers or kv in downers:
-            # get the ScrolledWindow adjustments and tweak them appropriately
-            if not self.get_parent(): return False
-
-            # the ScrolledWindow vertical-adjustment
-            v_adj = self.get_parent().get_vadjustment()
-
-            # scroll up
-            if kv in uppers:
-                v = max(v_adj.get_value() - v_adj.get_step_increment(),
-                        v_adj.get_lower())
-
-            # scroll down 
-            elif kv in downers:
-                v = min(v_adj.get_value() + v_adj.get_step_increment(),
-                        v_adj.get_upper() - v_adj.get_page_size())
-
-            # set our new value
-            v_adj.set_value(v)
-
-            # do not share the event with other widgets
-            return True
-        # share the event with other widgets
-        return False
 
     def _on_review_new(self, button):
         self._review_write_new()
