@@ -6,10 +6,7 @@ import sys
 import xapian
 
 sys.path.insert(0, "../")
-from softwarecenter.enums import (XAPIAN_VALUE_PKGNAME, 
-                                  XAPIAN_VALUE_APPNAME, 
-                                  XAPIAN_VALUE_SUMMARY, 
-                                  XAPIAN_VALUE_POPCON)
+from softwarecenter.enums import XapianValues
 from softwarecenter.paths import XAPIAN_BASE_PATH
 
 if __name__ == "__main__":
@@ -24,10 +21,10 @@ if __name__ == "__main__":
     heap = []
     for m in db.postlist(""):
         doc = db.get_document(m.docid)
-        pkgname = doc.get_value(XAPIAN_VALUE_PKGNAME)
-        appname = doc.get_value(XAPIAN_VALUE_APPNAME)
-        summary = doc.get_value(XAPIAN_VALUE_SUMMARY)
-        popcon = xapian.sortable_unserialise(doc.get_value(XAPIAN_VALUE_POPCON))
+        pkgname = doc.get_value(XapianValues.PKGNAME)
+        appname = doc.get_value(XapianValues.APPNAME)
+        summary = doc.get_value(XapianValues.SUMMARY)
+        popcon = xapian.sortable_unserialise(doc.get_value(XapianValues.POPCON))
         heapq.heappush(heap, (popcon, appname, pkgname, summary))
 
     for (popcon, appname, pkgname, summary) in heapq.nlargest(topn, heap):
