@@ -94,10 +94,7 @@ class AvailablePane(SoftwarePane):
         if self.view_initialized: 
             return
 
-        self.spinner_view.set_text()
-        self.spinner_view.start()
-        self.spinner_view.show()
-        self.spinner_notebook.set_current_page(AvailablePane.Pages.SPINNER)
+        self._show_spinner()
         window = self.get_window()
         if window is not None:
             window.set_cursor(self.busy_cursor)
@@ -185,7 +182,7 @@ class AvailablePane(SoftwarePane):
         self.searchentry.set_sensitive(True)
         self.emit("available-pane-created")
         self.show_all()
-        self.spinner_view.stop()
+        self._hide_spinner()
         self.spinner_notebook.set_current_page(AvailablePane.Pages.APPVIEW)
 
         vm = get_viewmanager()
@@ -195,7 +192,6 @@ class AvailablePane(SoftwarePane):
 
         if window is not None:
             window.set_cursor(None)
-        self.spinner_view.set_text() 
         self.view_initialized = True
 
     def on_purchase_requested(self, widget, app, url):
@@ -396,6 +392,14 @@ class AvailablePane(SoftwarePane):
         self.searchentry.clear_with_no_signal()
         self.apps_limit = 0
         self.apps_search_term = ""
+        
+    def _show_spinner(self):
+        self.spinner_view.start()
+        self.spinner_notebook.set_current_page(AvailablePane.Pages.SPINNER)
+        
+    def _hide_spinner(self):
+        self.spinner_notebook.set_current_page(AvailablePane.Pages.APPVIEW)
+        self.spinner_view.stop()
 
     # callbacks
     def on_cache_ready(self, cache):
