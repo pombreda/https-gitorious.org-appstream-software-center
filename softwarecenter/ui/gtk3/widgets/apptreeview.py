@@ -131,8 +131,8 @@ class AppTreeView(Gtk.TreeView):
             try:
                 # lazy solution to Bug #846204
                 model.row_changed(old, model.get_iter(old))
-            except Exception, e:
-                msg = "apptreeview.expand_path: Supplied 'old' path is an invalid tree path: '%s'" % path
+            except:
+                msg = "apptreeview.expand_path: Supplied 'old' path is an invalid tree path: '%s'" % old
                 logging.debug(msg)
         if path == None: return
 
