@@ -440,7 +440,8 @@ class AvailablePane(SoftwarePane):
         " called when the database is reopened"
         #print "on_db_open"
         self.refresh_apps()
-        self.app_details_view.refresh_app()
+        if self.app_details_view:
+            self.app_details_view.refresh_app()
 
     def get_callback_for_page(self, page, state):
         if page == AvailablePane.Pages.LOBBY:
