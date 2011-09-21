@@ -33,7 +33,7 @@
 }
 
 .cellrenderer-avgrating-label {
-    color: #8E8E8E;
+    color: #8E8E8E; /* dark gray */
 }
 
 .cellrenderer-avgrating-label:selected {
