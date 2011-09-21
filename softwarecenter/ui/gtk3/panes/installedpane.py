@@ -137,7 +137,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         self.oneconfcontrol = Gtk.Box()
         self.oneconfcontrol.set_orientation(Gtk.Orientation.VERTICAL)
         self.computerpane.pack1(self.oneconfcontrol, False, False)
-        # size negociation takes everything for the first one
+        # size negotiation takes everything for the first one
         self.oneconfcontrol.set_property('width-request', 200)
         self.box_app_list.pack_start(self.computerpane, True, True, 0)
 
@@ -192,8 +192,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         self.installed_spinner_notebook.append_page(self.app_view, None)
         
         self.computerpane.pack2(self.installed_spinner_notebook, True, True)
-        self.installed_spinner_view.start()
-        self.installed_spinner_notebook.set_current_page(self.PAGE_SPINNER)
+        self.show_installed_view_spinner()
         
         self.show_all()
         
@@ -209,6 +208,23 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         
         self.view_initialized = True
         return False
+        
+    def show_installed_view_spinner(self):
+        """ display the local spinner for the installed view panel """
+        self.installed_spinner_view.stop()
+        self.installed_spinner_notebook.set_current_page(self.PAGE_SPINNER)
+        # "mask" the spinner view momentarily to prevent it from flashing into
+        # view in the case of short delays where it isn't actually needed
+        GObject.timeout_add(100, self._unmask_installed_view_spinner)
+        
+    def _unmask_installed_view_spinner(self):
+        self.installed_spinner_view.start()
+        return False
+        
+    def hide_installed_view_spinner(self):
+        """ hide the local spinner for the installed view panel """
+        self.installed_spinner_notebook.set_current_page(self.PAGE_INSTALLED)
+        self.installed_spinner_view.stop()
 
     def _selected_computer_changed(self, oneconf_pickler, hostid, hostname):
         if self.current_hostid == hostid:
@@ -280,8 +296,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         window = self.get_window()
         if window:
             window.set_cursor(self.busy_cursor)
-        self.installed_spinner_view.start()
-        self.installed_spinner_notebook.set_current_page(self.PAGE_SPINNER)
+        self.show_installed_view_spinner()
         
         model = self.base_model # base model not treefilter
         model.clear()
@@ -350,8 +365,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
             self.app_view._append_appcount(self.installed_count, mode=AppView.INSTALLED_MODE)
             
             # hide the local spinner
-            self.installed_spinner_notebook.set_current_page(self.PAGE_INSTALLED)
-            self.installed_spinner_view.stop()
+            self.hide_installed_view_spinner()
             
             # hide the main spinner (if it's showing)
             self.hide_appview_spinner()
@@ -376,8 +390,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         window = self.get_window()
         if window:
             window.set_cursor(self.busy_cursor)
-        self.installed_spinner_view.start()
-        self.installed_spinner_notebook.set_current_page(self.PAGE_SPINNER)
+        self.show_installed_view_spinner()
         
         model = self.base_model # base model not treefilter
         model.clear()
@@ -450,8 +463,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
             self.app_view._append_appcount(self.installed_count, mode=AppView.DIFF_MODE)
                 
             # hide the local spinner
-            self.installed_spinner_notebook.set_current_page(self.PAGE_INSTALLED)
-            self.installed_spinner_view.stop()
+            self.hide_installed_view_spinner()
             
             if window:
                 window.set_cursor(None)
