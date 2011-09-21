@@ -85,6 +85,10 @@ class AvailablePane(SoftwarePane):
         self.current_app_by_category = {}
         self.current_app_by_subcategory = {}
         self.pane_name = _("Get Software")
+        
+        # views to be created in init_view
+        self.cat_view = None
+        self.subcategories_view = None
 
     def init_view(self):
         if self.view_initialized: 
@@ -440,7 +444,8 @@ class AvailablePane(SoftwarePane):
         " called when the database is reopened"
         #print "on_db_open"
         self.refresh_apps()
-        self.app_details_view.refresh_app()
+        if self.app_details_view:
+            self.app_details_view.refresh_app()
 
     def get_callback_for_page(self, page, state):
         if page == AvailablePane.Pages.LOBBY:
@@ -646,9 +651,11 @@ class AvailablePane(SoftwarePane):
     def refresh_apps(self, query=None):
         SoftwarePane.refresh_apps(self, query)
         # tell the lobby to update its content
-        self.cat_view.refresh_apps()
+        if self.cat_view:
+            self.cat_view.refresh_apps()
         # and the subcat view as well...
-        self.subcategories_view.refresh_apps()
+        if self.subcategories_view:
+            self.subcategories_view.refresh_apps()
 
 
 def get_test_window():
