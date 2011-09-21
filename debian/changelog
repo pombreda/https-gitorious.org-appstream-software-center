@@ -11,8 +11,12 @@ software-center (4.1.23.5) UNRELEASED; urgency=low
     - make the up/down -arrow behaviour available to both
       detailsview_gtk and the catview_gtk (LP: #635994)
 
+  [ Gary Lasker ]
+  * softwarecenter/ui/gtk3/panes/availablepane.py:
+    - check that the cat and subcat views have been created
+      when refresh_apps, fixes crash at startup (LP: #855622)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 21 Sep 2011 16:06:31 +0200
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 21 Sep 2011 11:52:49 -0400
 
 software-center (4.1.23.4) oneiric; urgency=low
 
