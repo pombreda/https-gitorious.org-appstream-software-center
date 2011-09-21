@@ -3,6 +3,10 @@ software-center (4.1.23.5) UNRELEASED; urgency=low
   [ Robert Roth ]
   *  Fix inconsistent colors in banner (LP: #855417)
   
+  [ Kiwinote ]
+  * correctly index desktop files which refer to packages for which we must
+    install a version for a foreign architecture (eg skype)
+
   [ Matthew McGowan ]
   * lp:~mmcg069/software-center/tweaks:
     - mak the avg-rating label white when a row is selected
@@ -17,7 +21,7 @@ software-center (4.1.23.5) UNRELEASED; urgency=low
     - prevent potential crash at startup if views have not yet
       been created on a call to refresh_apps (LP: #855622)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 21 Sep 2011 12:42:10 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 21 Sep 2011 09:11:30 +0200
 
 software-center (4.1.23.4) oneiric; urgency=low
 

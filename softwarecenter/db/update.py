@@ -61,7 +61,7 @@ import gettext
 
 
 from softwarecenter.db.pkginfo import get_pkg_info
-from softwarecenter.distro import get_current_arch
+from softwarecenter.distro import get_current_arch, get_foreign_architectures
 
 # weights for the different fields
 WEIGHT_DESKTOP_NAME = 10
@@ -597,8 +597,18 @@ def index_app_info_from_parser(parser, db, cache):
             if ignore.strip().lower() == "true":
                 LOG.debug("X-AppInstall-Ignore found for '%s'" % parser.desktopf)
                 return
+        # architecture
+        pkgname_extension = ''
+        if parser.has_option_desktop("X-AppInstall-Architectures"):
+            arches = parser.get_desktop("X-AppInstall-Architectures")
+            doc.add_value(XapianValues.ARCHIVE_ARCH, arches)
+            native_archs = get_current_arch() in arches.split(',')
+            foreign_archs = list(set(arches.split(',')) & set(get_foreign_architectures()))
+            if not (native_archs or foreign_archs): return
+            if not native_archs and foreign_archs:
+                pkgname_extension = ':' + foreign_archs[0]
         # package name
-        pkgname = parser.get_desktop("X-AppInstall-Package")
+        pkgname = parser.get_desktop("X-AppInstall-Package") + pkgname_extension
         doc.add_term("AP"+pkgname)
         if '-' in pkgname:
             # we need this to work around xapian oddness
@@ -698,12 +708,6 @@ def index_app_info_from_parser(parser, db, cache):
         if parser.has_option_desktop("X-Ubuntu-Gettext-Domain"):
             domain = parser.get_desktop("X-Ubuntu-Gettext-Domain")
             doc.add_value(XapianValues.GETTEXT_DOMAIN, domain)
-        # architecture
-        if parser.has_option_desktop("X-AppInstall-Architectures"):
-            arches = parser.get_desktop("X-AppInstall-Architectures")
-            doc.add_value(XapianValues.ARCHIVE_ARCH, arches)
-            if get_current_arch() not in arches:
-                return
         # Description (software-center extension)
         if parser.has_option_desktop("X-AppInstall-Description"):
             descr = parser.get_desktop("X-AppInstall-Description")

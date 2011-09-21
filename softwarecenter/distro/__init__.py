@@ -158,6 +158,9 @@ def get_distro():
 def get_current_arch():
     return get_distro().get_architecture()
 
+def get_foreign_architectures():
+    return get_distro().get_foreign_architectures()
+
 # singelton
 distro_instance=_get_distro()
 
