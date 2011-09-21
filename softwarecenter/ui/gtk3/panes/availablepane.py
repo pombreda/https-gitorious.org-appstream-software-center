@@ -85,6 +85,10 @@ class AvailablePane(SoftwarePane):
         self.current_app_by_category = {}
         self.current_app_by_subcategory = {}
         self.pane_name = _("Get Software")
+        
+        # views to be created in init_view
+        self.cat_view = None
+        self.subcategories_view = None
 
     def init_view(self):
         if self.view_initialized: 

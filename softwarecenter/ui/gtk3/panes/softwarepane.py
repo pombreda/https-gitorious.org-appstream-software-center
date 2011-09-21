@@ -236,6 +236,10 @@ class SoftwarePane(Gtk.VBox, BasePane):
 
         # cursor
         self.busy_cursor = Gdk.Cursor.new(Gdk.CursorType.WATCH)
+        
+        # views to be created in init_view
+        self.app_view = None
+        self.app_details_view = None
 
     def init_view(self):
         """
