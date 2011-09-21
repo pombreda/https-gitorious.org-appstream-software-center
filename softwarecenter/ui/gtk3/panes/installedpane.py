@@ -119,8 +119,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         window = self.get_window()
         if window:
             window.set_cursor(self.busy_cursor)
-        self.spinner_view.start()
-        self.spinner_notebook.set_current_page(InstalledPane.Pages.SPINNER)
+        self.show_appview_spinner()
         
         self.oneconf_viewpickler = OneConfViews(self.icons)
         self.oneconf_viewpickler.register_computer(None, _("This computer (%s)") % platform.node())
@@ -355,8 +354,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
             self.installed_spinner_view.stop()
             
             # hide the main spinner (if it's showing)
-            self.spinner_notebook.set_current_page(InstalledPane.Pages.APPVIEW)
-            self.spinner_view.stop()
+            self.hide_appview_spinner()
             
             if window:
                 window.set_cursor(None)
