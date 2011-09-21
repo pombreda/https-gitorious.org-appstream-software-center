@@ -301,6 +301,17 @@ class ReviewLoader(object):
             os.makedirs(cachedir)
         pickle.dump(self.REVIEW_STATS_CACHE,
                       open(self.REVIEW_STATS_CACHE_FILE, "w"))
+        # dump out in c-friendly dbm format for unity
+        import dbm, struct
+        db = dbm.open(self.REVIEW_STATS_CACHE_FILE+".dbm", "n")
+        for (pkg, stats) in self.REVIEW_STATS_CACHE.iteritems():
+            db[str(pkg)] = struct.pack('iii', 
+                                       stats.ratings_average or 0,
+                                       stats.ratings_total,
+                                       stats.dampened_rating)
+        db.close()
+                                       
+
     
     def get_top_rated_apps(self, quantity=12, category=None):
         """Returns a list of the packages with the highest 'rating' based on
