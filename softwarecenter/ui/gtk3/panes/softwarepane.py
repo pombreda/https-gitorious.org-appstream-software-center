@@ -161,7 +161,7 @@ class DisplayState(object):
         return
 
 class SoftwarePane(Gtk.VBox, BasePane):
-    """ Common base class for InstalledPane, AvailablePane and ChannelPane"""
+    """ Common base class for AvailablePane and InstalledPane"""
 
     class Pages:
         NAMES = ('appview', 'details', 'spinner')
@@ -521,9 +521,9 @@ class SoftwarePane(Gtk.VBox, BasePane):
         
     def hide_appview_spinner(self):
         """ hide the spinner and display the appview in the panel """
-        self.spinner_view.stop()
         self.spinner_notebook.set_current_page(
                                         SoftwarePane.Pages.APPVIEW)
+        self.spinner_view.stop()
 
     def set_section(self, section):
         self.section = section
