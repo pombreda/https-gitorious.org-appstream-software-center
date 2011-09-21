@@ -80,6 +80,14 @@ class Debian(Distro):
     def get_architecture(self):
         return apt.apt_pkg.config.find("Apt::Architecture")
 
+    def get_foreign_architectures(self):
+        import subprocess
+        out = subprocess.Popen(['dpkg', '--print-foreign-architectures'],
+              stdout=subprocess.PIPE).communicate()[0].rstrip('\n')
+        if out:
+            return out.split(' ')
+        return []
+
 if __name__ == "__main__":
     cache = apt.Cache()
     print(cache.get_maintenance_status(cache, "synaptic app", "synaptic", "main", None))
