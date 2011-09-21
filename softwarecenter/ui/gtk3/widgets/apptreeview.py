@@ -128,7 +128,12 @@ class AppTreeView(Gtk.TreeView):
         self.expanded_path = path
 
         if old is not None:
-            model.row_changed(old, model.get_iter(old))
+            try:
+                # lazy solution to Bug #846204
+                model.row_changed(old, model.get_iter(old))
+            except Exception, e:
+                msg = "apptreeview.expand_path: Supplied 'old' path is an invalid tree path: '%s'" % path
+                logging.debug(msg)
         if path == None: return
 
         model.row_changed(path, model.get_iter(path))
