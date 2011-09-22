@@ -369,15 +369,14 @@ class AvailablePane(SoftwarePane):
         pkgnames = []
         appnames = []
         iconnames = []
-        appstore = self.app_view.get_model()
-        for app in appstore.apps:
-            if (app.pkgname in self.cache and
-                not self.cache[app.pkgname].is_installed and
-                app.pkgname not in self.backend.pending_transactions):
-                pkgnames.append(app.pkgname)
-                appnames.append(app.appname)
+        for doc in self.enquirer.get_documents():
+            pkgname = self.db.get_pkgname(doc)
+            if (pkgname in self.cache and
+                not self.cache[pkgname].is_installed and
+                pkgname not in self.backend.pending_transactions):
+                pkgnames.append(pkgname)
+                appnames.append(self.db.get_appname(doc))
                 # add iconnames
-                doc = self.db.get_xapian_document(app.appname, app.pkgname)
                 iconnames.append(self.db.get_iconname(doc))
         self.backend.install_multiple(pkgnames, appnames, iconnames)
 
