@@ -303,11 +303,13 @@ class ReviewLoader(object):
                       open(self.REVIEW_STATS_CACHE_FILE, "w"))
         # dump out in c-friendly dbm format for unity
         self._dump_bsddbm_for_unity(
-            self.REVIEW_STATS_CACHE_FILE+".db")
+            self.REVIEW_STATS_CACHE_FILE)
                                        
-    def _dump_bsddbm_for_unity(self, outfile):
+    def _dump_bsddbm_for_unity(self, outbase):
         from bsddb import db as bdb
         import struct
+        outfile = outbase + "__%s.%s.db" % (bdb.DB_VERSION_MAJOR,
+                                           bdb.DB_VERSION_MINOR)
         env = bdb.DBEnv()
         outdir = outfile+".dbenv/"
         if not os.path.exists(outdir):
