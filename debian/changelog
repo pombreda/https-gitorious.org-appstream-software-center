@@ -2,6 +2,10 @@ software-center (4.1.23.5) UNRELEASED; urgency=low
 
   [ Robert Roth ]
   *  Fix inconsistent colors in banner (LP: #855417)
+  * softwarecenter/db/debfile.py,
+    softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
+    - display total size in the details view for standalone
+      deb files (LP: #851222)
   
   [ Kiwinote ]
   * correctly index desktop files which refer to packages for which we must
@@ -29,7 +33,7 @@ software-center (4.1.23.5) UNRELEASED; urgency=low
   * softwarecenter/ui/gtk3/app.py:
     - display spinner while loading previous purchases list
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 21 Sep 2011 23:56:30 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 22 Sep 2011 00:32:13 -0400
 
 software-center (4.1.23.4) oneiric; urgency=low
 
