@@ -135,7 +135,7 @@ class AppView(Gtk.VBox):
         return
 
     def _get_sort_methods_combobox(self):
-        combo = Gtk.ComboBoxText()
+        combo = Gtk.ComboBoxText.new()
         combo.append_text(_("By Name"))
         combo.append_text(_("By Top Rated"))
         combo.append_text(_("By Relevance"))

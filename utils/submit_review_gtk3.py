@@ -670,7 +670,7 @@ class SubmitReviewsApp(BaseApp):
         self.review_buffer.connect('changed', self._on_text_entry_changed)
         
         # gwibber stuff
-        self.gwibber_combo = Gtk.ComboBoxText()
+        self.gwibber_combo = Gtk.ComboBoxText.new()
         #cells = self.gwibber_combo.get_cells()
         #cells[0].set_property("ellipsize", pango.ELLIPSIZE_END)
         self.gwibber_hbox.pack_start(self.gwibber_combo, True, True, 0)
@@ -1162,7 +1162,7 @@ class ReportReviewApp(BaseApp):
         # mousepos
         self.submit_window.set_position(Gtk.WindowPosition.MOUSE)
         # simple APIs ftw!
-        self.combobox_report_summary = Gtk.ComboBoxText()
+        self.combobox_report_summary = Gtk.ComboBoxText.new()
         self.report_body_vbox.pack_start(self.combobox_report_summary, False, False, 0)
         self.report_body_vbox.reorder_child(self.combobox_report_summary, 2)
         self.combobox_report_summary.show()
