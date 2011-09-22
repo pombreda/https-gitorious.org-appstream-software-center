@@ -10,6 +10,8 @@ software-center (4.1.23.5) UNRELEASED; urgency=low
   [ Kiwinote ]
   * correctly index desktop files which refer to packages for which we must
     install a version for a foreign architecture (eg skype)
+  * softwarecenter/backend/reviews.py:
+    - allow us to write reviews for apps with unicode appname (LP: #856052)
 
   [ Matthew McGowan ]
   * lp:~mmcg069/software-center/tweaks:

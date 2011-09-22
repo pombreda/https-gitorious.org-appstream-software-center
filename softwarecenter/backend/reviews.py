@@ -60,6 +60,7 @@ from softwarecenter.utils import (upstream_version_compare,
                                   get_person_from_config,
                                   calc_dr,
                                   wilson_score,
+                                  utf8,
                                   )
 from softwarecenter.paths import (SOFTWARE_CENTER_CACHE_DIR,
                                   APP_INSTALL_PATH,
@@ -390,7 +391,7 @@ class ReviewLoader(object):
                ]
         if app.appname:
             # needs to be (utf8 encoded) str, otherwise call fails
-            cmd += ["--appname", app.appname.encode("utf-8")]
+            cmd += ["--appname", utf8(app.appname)]
         spawn_helper = SpawnHelper(format="json")
         spawn_helper.connect(
             "data-available", self._on_submit_review_data, app, callback)
