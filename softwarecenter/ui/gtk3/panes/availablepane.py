@@ -313,7 +313,7 @@ class AvailablePane(SoftwarePane):
         """internal helper that keeps the action bar up-to-date by
            keeping track of the transaction-started signals
         """
-        if self.apps_search_term and ',' in self.apps_search_term:
+        if self._is_custom_list_search():
             self._update_action_bar()
 
     def on_app_list_changed(self, pane, length):
