@@ -33,7 +33,12 @@ software-center (4.1.23.5) UNRELEASED; urgency=low
   * softwarecenter/ui/gtk3/app.py:
     - display spinner while loading previous purchases list
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 22 Sep 2011 00:32:13 -0400
+  [ Didier Roche ]  
+  * lp:~didrocks/software-center/new-oneconf-sync-signal:
+    - enable getting a last sync accurate date as soon as the sync 
+      is done (LP: #855345)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 22 Sep 2011 15:37:33 +0200
 
 software-center (4.1.23.4) oneiric; urgency=low
 
