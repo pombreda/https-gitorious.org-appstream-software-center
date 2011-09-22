@@ -322,11 +322,12 @@ class ReviewLoader(object):
                  dbtype=bdb.DB_HASH,
                  mode=0600,
                  flags=bdb.DB_CREATE)
-        for (pkg, stats) in self.REVIEW_STATS_CACHE.iteritems():
-            db[str(pkg)] = struct.pack('iii', 
-                                       stats.ratings_average or 0,
-                                       stats.ratings_total,
-                                       stats.dampened_rating)
+        for (app, stats) in self.REVIEW_STATS_CACHE.iteritems():
+            # pkgname is ascii by policy, so its fine to use str() here
+            db[str(app.pkgname)] = struct.pack('iii', 
+                                               stats.ratings_average or 0,
+                                               stats.ratings_total,
+                                               stats.dampened_rating)
         db.close ()
         env.close ()
     
