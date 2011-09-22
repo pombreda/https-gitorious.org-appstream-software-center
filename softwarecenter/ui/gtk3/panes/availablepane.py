@@ -333,12 +333,11 @@ class AvailablePane(SoftwarePane):
         update buttons in the action bar to implement the custom package lists feature,
         see https://wiki.ubuntu.com/SoftwareCenter#Custom%20package%20lists
         '''
-        # FIXME: for the gtk3 port
-        return
-        if (self.state.search_term and
-            ',' in self.state.search_term and
-            self.notebook.get_current_page() == AvailablePane.Pages.LIST):
+        if self._is_custom_list_search(self.state.search_term):
             #appstore = self.app_view.get_model()
+            
+            # FIXME: for the gtk3 port
+            return
 
             installable = []
             for app in self.enquirer.apps:
@@ -392,6 +391,11 @@ class AvailablePane(SoftwarePane):
         self.apps_limit = 0
         self.apps_search_term = ""
         
+    def _is_custom_list_search(self, search_term):
+        return (search_term and
+                ',' in search_term and
+                self.notebook.get_current_page() == AvailablePane.Pages.LIST)
+        
     # callbacks
     def on_cache_ready(self, cache):
         """ refresh the application list when the cache is re-opened """
@@ -407,8 +411,7 @@ class AvailablePane(SoftwarePane):
         self.state.search_term = new_text
         
         # do not hide technical items for a custom list search
-        if (self.state.search_term and
-            ',' in self.state.search_term):
+        if self._is_custom_list_search(self.state.search_term):
             self.nonapps_visible = NonAppVisibility.ALWAYS_VISIBLE
 
         vm = get_viewmanager()
