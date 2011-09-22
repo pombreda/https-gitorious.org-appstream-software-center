@@ -58,10 +58,12 @@ class OneConfHandler(GObject.GObject):
         
         # OneConf stuff
         self.oneconf = DbusConnect()
-        self.oneconf.hosts_dbus_object.connect_to_signal("hostlist_changed",
+        self.oneconf.hosts_dbus_object.connect_to_signal('hostlist_changed',
                                                          self.refresh_hosts)
         self.oneconf.hosts_dbus_object.connect_to_signal('packagelist_changed',
                                                          self._on_store_packagelist_changed)
+        self.oneconf.hosts_dbus_object.connect_to_signal('latestsync_changed',
+                                                          self.on_new_latest_oneconf_sync_timestamp)
         self.already_registered_hostids = []
         self.is_current_registered = False
         
@@ -106,6 +108,11 @@ class OneConfHandler(GObject.GObject):
         This function is also the "ping" letting OneConf service alive'''
         LOG.debug("get latest sync state")
         timestamp = self.oneconf.get_last_sync_date()
+        self.on_new_latest_oneconf_sync_timestamp(timestamp)
+        return True
+        
+    def on_new_latest_oneconf_sync_timestamp(self, timestamp):
+        '''Callback computing the right message for latest sync time'''
         try:
             last_sync = datetime.datetime.fromtimestamp(float(timestamp))
             today = datetime.datetime.strptime(str(datetime.date.today()), '%Y-%m-%d')
@@ -120,7 +127,6 @@ class OneConfHandler(GObject.GObject):
         except (TypeError, ValueError):
             msg = _("To sync with another computer, choose “Sync Between Computers” from that computer.")
         self.emit("last-time-sync-changed", msg)
-        return True
 
     def _share_inventory(self, share_inventory):
         '''set oneconf state and emit signal for installed view to show or not oneconf'''
