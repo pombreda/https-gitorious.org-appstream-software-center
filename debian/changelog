@@ -20,8 +20,16 @@ software-center (4.1.23.5) UNRELEASED; urgency=low
     softwarecenter/ui/gtk3/panes/softwarepane.py:
     - prevent potential crash at startup if views have not yet
       been created on a call to refresh_apps (LP: #855622)
+  * softwarecenter/ui/gtk3/panes/availablepane.py,
+    softwarecenter/ui/gtk3/panes/installedpane.py:
+    - consolidate spinner code, add timeout mask for installed
+      view spinner
+  * softwarecenter/ui/gtk3/panes/softwarepane.py:
+    - display spinner while changing list view sort method
+  * softwarecenter/ui/gtk3/app.py:
+    - display spinner while loading previous purchases list
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 21 Sep 2011 09:11:30 +0200
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 21 Sep 2011 23:56:30 -0400
 
 software-center (4.1.23.4) oneiric; urgency=low
 
