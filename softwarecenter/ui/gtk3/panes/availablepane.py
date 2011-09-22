@@ -34,6 +34,7 @@ from softwarecenter.enums import (ActionButtons,
 from softwarecenter.paths import APP_INSTALL_PATH
 from softwarecenter.utils import wait_for_apt_cache_ready
 from softwarecenter.db.appfilter import AppFilter
+from softwarecenter.db.database import Application
 from softwarecenter.ui.gtk3.views.purchaseview import PurchaseView
 
 from softwarecenter.ui.gtk3.views.catview_gtk import (LobbyViewGtk,
@@ -313,7 +314,7 @@ class AvailablePane(SoftwarePane):
         """internal helper that keeps the action bar up-to-date by
            keeping track of the transaction-started signals
         """
-        if self._is_custom_list_search():
+        if self._is_custom_list_search(self.state.search_term):
             self._update_action_bar()
 
     def on_app_list_changed(self, pane, length):
@@ -334,16 +335,13 @@ class AvailablePane(SoftwarePane):
         see https://wiki.ubuntu.com/SoftwareCenter#Custom%20package%20lists
         '''
         if self._is_custom_list_search(self.state.search_term):
-            #appstore = self.app_view.get_model()
-            
-            # FIXME: for the gtk3 port
-            return
-
             installable = []
-            for app in self.enquirer.apps:
-                if (app.pkgname in self.cache and
-                    not self.cache[app.pkgname].is_installed and
-                    app.pkgname not in self.backend.pending_transactions):
+            for doc in self.enquirer.get_documents():
+                pkgname = self.db.get_pkgname(doc)
+                if (pkgname in self.cache and
+                    not self.cache[pkgname].is_installed and
+                    pkgname not in self.backend.pending_transactions):
+                    app = Application(pkgname=pkgname)
                     installable.append(app)
             button_text = gettext.ngettext("Install %(amount)s Item",
                                            "Install %(amount)s Items",
