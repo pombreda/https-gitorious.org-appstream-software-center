@@ -42,6 +42,9 @@ software-center (4.1.23.5) UNRELEASED; urgency=low
   * utils/submit_review_gtk3.py:
     - setup logging from the helper to xdg
       ~/.cache/software-center/reviews-helper.log
+  * utils/submit_review_gtk3.py, softwarecenter/ui/gtk3/views/appview.py:
+    - use Gtk.ComboBoxText.new() instead of Gtk.ComboBoxText(). This makes
+      get_active_text() actually work on the combobox (LP: #856429)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 22 Sep 2011 15:37:33 +0200
 
