@@ -699,7 +699,8 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             self.scagent.connect("available-for-me", self._available_for_me_result)
             
     def on_menuitem_reinstall_purchases_activate(self, menuitem):
-        #self.view_switcher.select_available_node()
+        self.view_manager.set_active_view(ViewPages.AVAILABLE)
+        self.available_pane.show_appview_spinner()
         self._create_scagent_if_needed()
         self._login_via_dbus_sso()
             

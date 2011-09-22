@@ -183,7 +183,6 @@ class AvailablePane(SoftwarePane):
         self.emit("available-pane-created")
         self.show_all()
         self.hide_appview_spinner()
-        self.spinner_notebook.set_current_page(AvailablePane.Pages.APPVIEW)
 
         vm = get_viewmanager()
         vm.display_page(
