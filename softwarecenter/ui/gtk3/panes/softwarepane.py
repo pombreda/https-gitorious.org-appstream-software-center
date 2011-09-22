@@ -425,6 +425,7 @@ class SoftwarePane(Gtk.VBox, BasePane):
         if self.app_view.get_sort_mode() == self.enquirer.sortmode:
             return
 
+        self.show_appview_spinner()
         self.app_view.clear_model()
         query = self.get_query()
         self._refresh_apps_with_apt_cache(query)
