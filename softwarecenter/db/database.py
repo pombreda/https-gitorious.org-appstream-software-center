@@ -24,6 +24,7 @@ import string
 import threading
 import xapian
 from softwarecenter.db.application import Application
+from softwarecenter.db.utils import get_query_for_pkgnames
 
 from gi.repository import GObject
 
@@ -269,11 +270,14 @@ class StoreDatabase(GObject.GObject):
         # different results for e.g. 'font ' and 'font' (LP: #506419)
         search_term = search_term.strip()
         # get a pkg query
-        pkg_query = xapian.Query()
-        for term in search_term.split():
-            pkg_query = xapian.Query(xapian.Query.OP_OR,
-                                     xapian.Query("XP"+term),
-                                     pkg_query)
+        if "," in search_term:
+            pkg_query = get_query_for_pkgnames(search_term.split(","))
+        else:
+            pkg_query = xapian.Query()
+            for term in search_term.split():
+                pkg_query = xapian.Query(xapian.Query.OP_OR,
+                                         xapian.Query("XP"+term),
+                                         pkg_query)
         pkg_query = _add_category_to_query(pkg_query)
 
         # get a search query
