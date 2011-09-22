@@ -6,6 +6,8 @@ software-center (4.1.23.5) UNRELEASED; urgency=low
     softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
     - display total size in the details view for standalone
       deb files (LP: #851222)
+  * softwarecenter/db/database.py:
+    - restore support for custom list searches (LP: #835069)
   
   [ Kiwinote ]
   * correctly index desktop files which refer to packages for which we must
@@ -54,7 +56,7 @@ software-center (4.1.23.5) UNRELEASED; urgency=low
   * softwarecenter/utils.py:
     - fix writing new config before using it (LP: #827527)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 22 Sep 2011 19:22:56 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 22 Sep 2011 19:27:59 -0400
 
 software-center (4.1.23.4) oneiric; urgency=low
 
