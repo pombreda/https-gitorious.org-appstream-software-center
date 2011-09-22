@@ -405,6 +405,11 @@ class AvailablePane(SoftwarePane):
         LOG.debug("on_search_terms_changed: %s" % new_text)
 
         self.state.search_term = new_text
+        
+        # do not hide technical items for a custom list search
+        if (self.state.search_term and
+            ',' in self.state.search_term):
+            self.nonapps_visible = NonAppVisibility.ALWAYS_VISIBLE
 
         vm = get_viewmanager()
 
