@@ -25,6 +25,7 @@ import datetime
 import gettext
 import locale
 import logging
+import logging.handlers
 import os
 import json
 import sys
@@ -53,7 +54,7 @@ from softwarecenter.backend.restfulclient import get_ubuntu_sso_backend
 
 import piston_mini_client
 
-from softwarecenter.paths import SOFTWARE_CENTER_CONFIG_DIR
+from softwarecenter.paths import SOFTWARE_CENTER_CONFIG_DIR, SOFTWARE_CENTER_CACHE_DIR
 from softwarecenter.enums import Icons
 from softwarecenter.config import get_config
 from softwarecenter.distro import get_distro, get_current_arch
@@ -1328,6 +1329,13 @@ if __name__ == "__main__":
     # common options for optparse go here
     parser = OptionParser()
     parser.add_option("", "--datadir", default=default_datadir)
+
+    logfile_path = os.path.join(SOFTWARE_CENTER_CACHE_DIR, "reviews-helper.log")
+    logfile_handler = logging.handlers.RotatingFileHandler(logfile_path,
+                                                           maxBytes=100*1000,
+                                                           backupCount=5)
+    logfile_handler.setLevel(logging.INFO)
+    logging.getLogger().addHandler(logfile_handler)
 
     # run review personality
     if "submit_review" in sys.argv[0]:
