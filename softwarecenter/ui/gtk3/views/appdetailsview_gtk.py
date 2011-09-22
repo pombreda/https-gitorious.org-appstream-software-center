@@ -1182,7 +1182,7 @@ class AppDetailsViewGtk(Viewport, AppDetailsViewBase):
             support = app_details.maintenance_status
         else:
             support = _("Unknown")
-
+        self.update_totalsize()
         self.version_info.set_value(version)
         self.license_info.set_value(license)
         self.support_info.set_value(support)
@@ -1590,7 +1590,8 @@ class AppDetailsViewGtk(Viewport, AppDetailsViewBase):
                 self.addons_manager.addons_to_remove
         )
         total_download_size, total_install_size = res
-
+        if res==(0,0) and type(self.app)==DebFileApplication:
+            total_install_size = self.app_details.installed_size
         if total_download_size > 0:
             download_size = size_to_str(total_download_size)
             label_string += _("%sB to download, ") % (download_size)

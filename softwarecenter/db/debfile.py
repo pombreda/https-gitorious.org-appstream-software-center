@@ -153,6 +153,16 @@ class AppDetailsDebFile(AppDetails):
     def version(self):
         if self._deb:
             return self._deb._sections["Version"]
+    
+    @property
+    def installed_size(self):
+        installed_size = 0
+        if self._deb:
+            try:
+                installed_size = long(self._deb._sections["Installed-Size"])
+            except:
+                pass
+        return installed_size * 1024
 
     @property
     def warning(self):
