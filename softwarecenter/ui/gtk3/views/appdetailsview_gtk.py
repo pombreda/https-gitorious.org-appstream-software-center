@@ -1182,7 +1182,6 @@ class AppDetailsViewGtk(Viewport, AppDetailsViewBase):
             support = app_details.maintenance_status
         else:
             support = _("Unknown")
-        self.update_totalsize()
         self.version_info.set_value(version)
         self.license_info.set_value(license)
         self.support_info.set_value(support)
@@ -1245,6 +1244,9 @@ class AppDetailsViewGtk(Viewport, AppDetailsViewBase):
             self.addon_view.hide()
             if self.addon_view.get_parent():
                 self.info_vb.remove(self.addon_view)
+            self.totalsize_info.set_value(_("Calculating..."))
+            GObject.idle_add(self.update_totalsize,
+                             priority=GObject.PRIORITY_LOW)
         self._update_reviews(app_details)
 
         # show where it is
