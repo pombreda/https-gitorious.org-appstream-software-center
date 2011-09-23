@@ -502,10 +502,12 @@ def update_from_software_center_agent(db, cache, ignore_cache=False,
         # print "available: ", available
         LOG.debug("available: '%s'" % available)
         sca.available = available
+        sca.good_data = True
         loop.quit()
     def _error_cb(sca, error):
         LOG.warn("error: %s" % error)
         sca.available = []
+        sca.good_data = False
         loop.quit()
     # use the anonymous interface to s-c-agent, scales much better and is
     # much cache friendlier
@@ -553,8 +555,9 @@ def update_from_software_center_agent(db, cache, ignore_cache=False,
             index_app_info_from_parser(parser, db, cache)
         except Exception as e:
             LOG.warning("error processing: %s " % e)
-    # return true if we have data entries
-    return len(sca.available) > 0
+    # return true if we have updated entries (this can also be an empty list)
+    # but only if we did not got a error from the agent
+    return sca.good_data
         
 def index_app_info_from_parser(parser, db, cache):
         term_generator = xapian.TermGenerator()
