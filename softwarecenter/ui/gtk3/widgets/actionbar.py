@@ -56,7 +56,7 @@ class ActionBar(Gtk.HBox):
         self._btn_bin.add(self._btns)
         # Buttons go on the right, labels on the left (in LTR mode)
         super(ActionBar, self).pack_start(self._label, False, False, 10)
-        super(ActionBar, self).pack_start(self._btn_bin, False, True, 0)
+        super(ActionBar, self).pack_end(self._btn_bin, False, True, 0)
 
         # Don't show_all() by default.
         self.set_no_show_all(True)

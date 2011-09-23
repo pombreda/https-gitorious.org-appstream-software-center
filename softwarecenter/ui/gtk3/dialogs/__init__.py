@@ -19,7 +19,7 @@
 
 import gi
 gi.require_version("Gtk", "3.0")
-from gi.repository import Gtk, GObject
+from gi.repository import Gtk
 
 
 from gettext import gettext as _
@@ -57,9 +57,9 @@ class DetailsMessageDialog(Gtk.MessageDialog):
                  primary=None, 
                  secondary=None, 
                  details=None,
-                 buttons=Gtk.ResponseType.OK, 
+                 buttons=Gtk.ButtonsType.OK, 
                  type=Gtk.MessageType.INFO):
-        GObject.GObject.__init__(self, parent, 0, type, buttons, primary)
+        Gtk.MessageDialog.__init__(self, parent, 0, type, buttons, primary)
         self.set_title(title)
         if secondary:
             self.format_secondary_markup(secondary)
@@ -70,7 +70,7 @@ class DetailsMessageDialog(Gtk.MessageDialog):
             scroll = Gtk.ScrolledWindow()
             scroll.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
             scroll.add(textview)
-            expand = Gtk.Expander(_("Details"))
+            expand = Gtk.Expander().new(_("Details"))
             expand.add(scroll)
             expand.show_all()
             self.get_content_area().pack_start(expand, True, True, 0)
@@ -83,7 +83,7 @@ def messagedialog(parent=None,
                   primary=None, 
                   secondary=None, 
                   details=None,
-                  buttons=Gtk.ResponseType.OK, 
+                  buttons=Gtk.ButtonsType.OK, 
                   type=Gtk.MessageType.INFO,
                   alternative_action=None):
     """ run a dialog """
