@@ -6,6 +6,8 @@ software-center (4.1.23.5) UNRELEASED; urgency=low
     softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
     - display total size in the details view for standalone
       deb files (LP: #851222)
+  * softwarecenter/db/database.py:
+    - restore support for custom list searches (LP: #835069)
   
   [ Kiwinote ]
   * correctly index desktop files which refer to packages for which we must
@@ -34,6 +36,12 @@ software-center (4.1.23.5) UNRELEASED; urgency=low
     - display spinner while changing list view sort method
   * softwarecenter/ui/gtk3/app.py:
     - display spinner while loading previous purchases list
+  * softwarecenter/ui/gtk3/widgets/actionbar.py:
+    - fix regression in action bar button alignment (LP: #856872)
+  * softwarecenter/ui/gtk3/panes/availablepane.py:
+    - restore action bar functionality for custom lists
+      (LP: #835069)
+    - don't hide technical items during a custom list search
 
   [ Didier Roche ]  
   * lp:~didrocks/software-center/new-oneconf-sync-signal:
@@ -50,7 +58,7 @@ software-center (4.1.23.5) UNRELEASED; urgency=low
   * softwarecenter/utils.py:
     - fix writing new config before using it (LP: #827527)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 22 Sep 2011 15:37:33 +0200
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 22 Sep 2011 19:27:59 -0400
 
 software-center (4.1.23.4) oneiric; urgency=low
 
