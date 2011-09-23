@@ -185,6 +185,11 @@ class AvailablePane(SoftwarePane):
         self.show_all()
         self.hide_appview_spinner()
 
+        # consider the view initialized here already as display_page()
+        # may run into a endless recurison otherwise (it will call init_view())
+        # again (LP: #851671)
+        self.view_initialized = True
+
         vm = get_viewmanager()
         vm.display_page(
             self, AvailablePane.Pages.LOBBY,
@@ -192,7 +197,7 @@ class AvailablePane(SoftwarePane):
 
         if window is not None:
             window.set_cursor(None)
-        self.view_initialized = True
+
 
     def on_purchase_requested(self, widget, app, url):
 
