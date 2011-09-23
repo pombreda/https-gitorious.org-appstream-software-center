@@ -1,4 +1,4 @@
-software-center (4.1.23.5) UNRELEASED; urgency=low
+software-center (4.1.23.5) oneiric; urgency=low
 
   [ Robert Roth ]
   *  Fix inconsistent colors in banner (LP: #855417)
@@ -69,7 +69,7 @@ software-center (4.1.23.5) UNRELEASED; urgency=low
   * softwarecenter/ui/gtk3/panes/availablepane.py:
     - fix endless recursion (LP: #851671)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Fri, 23 Sep 2011 00:47:29 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 23 Sep 2011 11:58:02 +0200
 
 software-center (4.1.23.4) oneiric; urgency=low
 
