@@ -25,8 +25,12 @@ import operator
 import os
 import random
 import json
+import struct
 import subprocess
 import time
+import threading
+
+from bsddb import db as bdb
 
 from gi.repository import GObject
 from gi.repository import Gio
@@ -247,6 +251,11 @@ class ReviewLoader(object):
                            "review-stats-pkgnames.p")
         self.REVIEW_STATS_CACHE_FILE = os.path.join(SOFTWARE_CENTER_CACHE_DIR,
                                                     fname)
+        self.REVIEW_STATS_BSDDB_FILE = "%s__%s.%s.db" % (
+            self.REVIEW_STATS_CACHE_FILE, 
+            bdb.DB_VERSION_MAJOR, 
+            bdb.DB_VERSION_MINOR)
+
         self.language = get_language()
         if os.path.exists(self.REVIEW_STATS_CACHE_FILE):
             try:
@@ -294,22 +303,30 @@ class ReviewLoader(object):
         """ get the review statists and call callback when its there """
         pass
 
-    def save_review_stats_cache_file(self):
+    def save_review_stats_cache_file(self, nonblocking=True):
         """ save review stats cache file in xdg cache dir """
         cachedir = SOFTWARE_CENTER_CACHE_DIR
         if not os.path.exists(cachedir):
             os.makedirs(cachedir)
+        # write out the stats
+        if nonblocking:
+            t = threading.Thread(target=self._save_review_stats_cache_blocking)
+            t.run()
+        else:
+            self._save_review_stats_cache_blocking()
+
+    def _save_review_stats_cache_blocking(self):
+        # dump out for software-center in simple pickle
+        self._dump_pickle_for_sc()
+        # dump out in c-friendly dbm format for unity
+        self._dump_bsddbm_for_unity()
+
+    def _dump_pickle_for_sc(self):
         pickle.dump(self.REVIEW_STATS_CACHE,
                       open(self.REVIEW_STATS_CACHE_FILE, "w"))
-        # dump out in c-friendly dbm format for unity
-        self._dump_bsddbm_for_unity(
-            self.REVIEW_STATS_CACHE_FILE)
                                        
-    def _dump_bsddbm_for_unity(self, outbase):
-        from bsddb import db as bdb
-        import struct
-        outfile = outbase + "__%s.%s.db" % (bdb.DB_VERSION_MAJOR,
-                                           bdb.DB_VERSION_MINOR)
+    def _dump_bsddbm_for_unity(self):
+        outfile = self.REVIEW_STATS_BSDDB_FILE
         env = bdb.DBEnv()
         outdir = outfile+".dbenv/"
         if not os.path.exists(outdir):

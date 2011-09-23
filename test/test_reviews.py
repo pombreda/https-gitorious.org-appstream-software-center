@@ -26,7 +26,7 @@ class TestReviewLoader(unittest.TestCase):
         self._stats_ready = True
         self._review_stats = review_stats
 
-    def test_review_loader(self):
+    def test_review_stats_caching(self):
         self._stats_ready = False
         self._review_stats = []
         review_loader = ReviewLoader(self.cache, self.db)
@@ -35,6 +35,7 @@ class TestReviewLoader(unittest.TestCase):
             self._p()
         self.assertTrue(len(self._review_stats) > 0)
         self.assertTrue(os.path.exists(review_loader.REVIEW_STATS_CACHE_FILE))
+        self.assertTrue(os.path.exists(review_loader.REVIEW_STATS_BSDDB_FILE))
     
     def _p(self):
         main_loop = GObject.main_context_default()
