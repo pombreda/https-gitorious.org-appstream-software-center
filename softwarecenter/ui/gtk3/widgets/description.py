@@ -582,7 +582,8 @@ class TextBlock(Gtk.EventBox):
                     cur.set_position(layout.index, index)
                     sel.clear()
 
-                event_helper.new_press(event.copy(), layout, index, within_sel)
+				#~ event_helper.new_press(event.copy(), layout, index, within_sel)
+                event_helper.new_press(event, layout, index, within_sel)
                 break
         return
 
