@@ -340,7 +340,7 @@ class AvailablePane(SoftwarePane):
                 pkgname = self.db.get_pkgname(doc)
                 if (pkgname in self.cache and
                     not self.cache[pkgname].is_installed and
-                    pkgname not in self.backend.pending_transactions):
+                    not len(self.backend.pending_transactions) > 0):
                     app = Application(pkgname=pkgname)
                     installable.append(app)
             button_text = gettext.ngettext("Install %(amount)s Item",
@@ -369,6 +369,7 @@ class AvailablePane(SoftwarePane):
         pkgnames = []
         appnames = []
         iconnames = []
+        self.action_bar.remove_button(ActionButtons.INSTALL)
         for doc in self.enquirer.get_documents():
             pkgname = self.db.get_pkgname(doc)
             if (pkgname in self.cache and
