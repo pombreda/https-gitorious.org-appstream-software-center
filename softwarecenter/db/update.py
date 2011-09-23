@@ -553,8 +553,9 @@ def update_from_software_center_agent(db, cache, ignore_cache=False,
             index_app_info_from_parser(parser, db, cache)
         except Exception as e:
             LOG.warning("error processing: %s " % e)
-    # return true if we have data entries
-    return len(sca.available) > 0
+    # return true if we have updated entries (this can also be an empty list)
+    # this returns true all the time until we have info about etag checking
+    return True
         
 def index_app_info_from_parser(parser, db, cache):
         term_generator = xapian.TermGenerator()
