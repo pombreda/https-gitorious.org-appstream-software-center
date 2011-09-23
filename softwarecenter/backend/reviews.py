@@ -25,8 +25,12 @@ import operator
 import os
 import random
 import json
+import struct
 import subprocess
 import time
+import threading
+
+from bsddb import db as bdb
 
 from gi.repository import GObject
 from gi.repository import Gio
@@ -248,6 +252,11 @@ class ReviewLoader(object):
                            "review-stats-pkgnames.p")
         self.REVIEW_STATS_CACHE_FILE = os.path.join(SOFTWARE_CENTER_CACHE_DIR,
                                                     fname)
+        self.REVIEW_STATS_BSDDB_FILE = "%s__%s.%s.db" % (
+            self.REVIEW_STATS_CACHE_FILE, 
+            bdb.DB_VERSION_MAJOR, 
+            bdb.DB_VERSION_MINOR)
+
         self.language = get_language()
         if os.path.exists(self.REVIEW_STATS_CACHE_FILE):
             try:
@@ -295,13 +304,54 @@ class ReviewLoader(object):
         """ get the review statists and call callback when its there """
         pass
 
-    def save_review_stats_cache_file(self):
+    def save_review_stats_cache_file(self, nonblocking=True):
         """ save review stats cache file in xdg cache dir """
         cachedir = SOFTWARE_CENTER_CACHE_DIR
         if not os.path.exists(cachedir):
             os.makedirs(cachedir)
+        # write out the stats
+        if nonblocking:
+            t = threading.Thread(target=self._save_review_stats_cache_blocking)
+            t.run()
+        else:
+            self._save_review_stats_cache_blocking()
+
+    def _save_review_stats_cache_blocking(self):
+        # dump out for software-center in simple pickle
+        self._dump_pickle_for_sc()
+        # dump out in c-friendly dbm format for unity
+        self._dump_bsddbm_for_unity()
+
+    def _dump_pickle_for_sc(self):
+        """ write out the full REVIEWS_STATS_CACHE as a pickle """
         pickle.dump(self.REVIEW_STATS_CACHE,
                       open(self.REVIEW_STATS_CACHE_FILE, "w"))
+                                       
+    def _dump_bsddbm_for_unity(self):
+        """ write out the subset that unity needs of the REVIEW_STATS_CACHE
+            as a C friendly (using struct) bsddb
+        """
+        outfile = self.REVIEW_STATS_BSDDB_FILE
+        env = bdb.DBEnv()
+        outdir = outfile+".dbenv/"
+        if not os.path.exists(outdir):
+            os.makedirs(outdir)
+        env.open (outdir,
+                  bdb.DB_CREATE | bdb.DB_INIT_CDB | bdb.DB_INIT_MPOOL,
+                  0600)
+        db = bdb.DB (env)
+        db.open (outfile,
+                 dbtype=bdb.DB_HASH,
+                 mode=0600,
+                 flags=bdb.DB_CREATE)
+        for (app, stats) in self.REVIEW_STATS_CACHE.iteritems():
+            # pkgname is ascii by policy, so its fine to use str() here
+            db[str(app.pkgname)] = struct.pack('iii', 
+                                               stats.ratings_average or 0,
+                                               stats.ratings_total,
+                                               stats.dampened_rating)
+        db.close ()
+        env.close ()
     
     def get_top_rated_apps(self, quantity=12, category=None):
         """Returns a list of the packages with the highest 'rating' based on

@@ -1,4 +1,4 @@
-software-center (4.1.23.5) UNRELEASED; urgency=low
+software-center (4.1.23.5) oneiric; urgency=low
 
   [ Robert Roth ]
   *  Fix inconsistent colors in banner (LP: #855417)
@@ -6,6 +6,9 @@ software-center (4.1.23.5) UNRELEASED; urgency=low
     softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
     - display total size in the details view for standalone
       deb files (LP: #851222)
+  * softwarecenter/db/database.py:
+    - restore support for custom list searches
+      (LP: #835069, LP: #828281)
   
   [ Kiwinote ]
   * correctly index desktop files which refer to packages for which we must
@@ -20,6 +23,8 @@ software-center (4.1.23.5) UNRELEASED; urgency=low
   * lp:~mmcg069/software-center/bug635994-again:
     - make the up/down -arrow behaviour available to both
       detailsview_gtk and the catview_gtk (LP: #635994)
+  * lp:~mmcg069/software-center/re-fixes:
+    - additional fixes for the detailsview
 
   [ Gary Lasker ]
   * softwarecenter/ui/gtk3/panes/availablepane.py,
@@ -34,6 +39,15 @@ software-center (4.1.23.5) UNRELEASED; urgency=low
     - display spinner while changing list view sort method
   * softwarecenter/ui/gtk3/app.py:
     - display spinner while loading previous purchases list
+  * softwarecenter/ui/gtk3/widgets/actionbar.py:
+    - fix regression in action bar button alignment (LP: #856872)
+  * softwarecenter/ui/gtk3/panes/availablepane.py:
+    - restore action bar functionality for custom lists
+      (LP: #835069)
+    - don't hide technical items during a custom list search
+    - restore custom list search using apt url syntax (LP: #828281)
+  * softwarecenter/ui/gtk3/dialogs/__init__.py:
+    - fix crash when showing error dialog (LP: #842678)
 
   [ Didier Roche ]  
   * lp:~didrocks/software-center/new-oneconf-sync-signal:
@@ -49,8 +63,13 @@ software-center (4.1.23.5) UNRELEASED; urgency=low
       get_active_text() actually work on the combobox (LP: #856429)
   * softwarecenter/utils.py:
     - fix writing new config before using it (LP: #827527)
+  * softwarecenter/backend/reviews.py:
+    - write out the review stats in a C friendly bsddb so that unity
+      can use it too (thanks to Mikkel Kamstrup)
+  * softwarecenter/ui/gtk3/panes/availablepane.py:
+    - fix endless recursion (LP: #851671)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 22 Sep 2011 15:37:33 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 23 Sep 2011 11:58:02 +0200
 
 software-center (4.1.23.4) oneiric; urgency=low
 
