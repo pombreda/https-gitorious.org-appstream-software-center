@@ -42,6 +42,8 @@ software-center (4.1.23.5) UNRELEASED; urgency=low
     - restore action bar functionality for custom lists
       (LP: #835069)
     - don't hide technical items during a custom list search
+  * softwarecenter/ui/gtk3/dialogs/__init__.py:
+    - fix crash when showing error dialog (LP: #842678)
 
   [ Didier Roche ]  
   * lp:~didrocks/software-center/new-oneconf-sync-signal:
@@ -58,7 +60,7 @@ software-center (4.1.23.5) UNRELEASED; urgency=low
   * softwarecenter/utils.py:
     - fix writing new config before using it (LP: #827527)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 22 Sep 2011 19:27:59 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 22 Sep 2011 23:07:30 -0400
 
 software-center (4.1.23.4) oneiric; urgency=low
 
