@@ -390,9 +390,8 @@ class AvailablePane(SoftwarePane):
         self.apps_search_term = ""
         
     def _is_custom_list_search(self, search_term):
-        return (search_term and
-                ',' in search_term and
-                self.notebook.get_current_page() == AvailablePane.Pages.LIST)
+        return (search_term and 
+                ',' in search_term)
         
     # callbacks
     def on_cache_ready(self, cache):

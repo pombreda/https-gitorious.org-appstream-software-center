@@ -7,7 +7,8 @@ software-center (4.1.23.5) UNRELEASED; urgency=low
     - display total size in the details view for standalone
       deb files (LP: #851222)
   * softwarecenter/db/database.py:
-    - restore support for custom list searches (LP: #835069)
+    - restore support for custom list searches
+      (LP: #835069, LP: #828281)
   
   [ Kiwinote ]
   * correctly index desktop files which refer to packages for which we must
@@ -44,6 +45,7 @@ software-center (4.1.23.5) UNRELEASED; urgency=low
     - restore action bar functionality for custom lists
       (LP: #835069)
     - don't hide technical items during a custom list search
+    - restore custom list search using apt url syntax (LP: #828281)
   * softwarecenter/ui/gtk3/dialogs/__init__.py:
     - fix crash when showing error dialog (LP: #842678)
 
@@ -62,7 +64,7 @@ software-center (4.1.23.5) UNRELEASED; urgency=low
   * softwarecenter/utils.py:
     - fix writing new config before using it (LP: #827527)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 22 Sep 2011 23:36:15 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Fri, 23 Sep 2011 00:47:29 -0400
 
 software-center (4.1.23.4) oneiric; urgency=low
 
