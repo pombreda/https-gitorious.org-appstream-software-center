@@ -385,9 +385,8 @@ class TextBlock(Gtk.EventBox):
         Gtk.EventBox.__init__(self)
         self.set_visible_window(False)
         self.set_size_request(200, -1)
-        #~ self.set_redraw_on_allocate(False)
 
-        #~ self.set_can_focus(True)
+        self.set_can_focus(True)
         self.set_events(Gdk.EventMask.KEY_PRESS_MASK|
                         Gdk.EventMask.ENTER_NOTIFY_MASK|
                         Gdk.EventMask.LEAVE_NOTIFY_MASK|
@@ -426,8 +425,15 @@ class TextBlock(Gtk.EventBox):
         #~ self.connect('drag-begin', self._on_drag_begin)
         #~ self.connect('drag-data-get', self._on_drag_data_get, sel)
 
-        #~ self.connect('focus-in-event', self._on_focus_in)
-        #~ self.connect('focus-out-event', self._on_focus_out)
+        event_helper = EventHelper()
+
+        self.connect('button-press-event', self._on_press, event_helper, cur, sel)
+        self.connect('button-release-event', self._on_release, event_helper, cur, sel) 
+        self.connect('motion-notify-event', self._on_motion, event_helper, cur, sel)
+        self.connect('key-press-event', self._on_key_press, cur, sel)
+        self.connect('key-release-event', self._on_key_release, cur, sel)
+        self.connect('focus-in-event', self._on_focus_in)
+        self.connect('focus-out-event', self._on_focus_out)
 
         self.connect("size-allocate", self.on_size_allocate)
         self.connect('style-updated', self._on_style_updated)
