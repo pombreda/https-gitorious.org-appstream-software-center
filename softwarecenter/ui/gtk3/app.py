@@ -786,8 +786,6 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
 
         # get our active pane
         vm = get_viewmanager()
-        if vm is None:
-            return
         self.active_pane = vm.get_view_widget(vm.get_active_view())
 
         if (self.active_pane and 
@@ -907,8 +905,6 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
 # View Menu
     def on_menu_view_activate(self, menuitem):
         vm = get_viewmanager()
-        if vm is None:
-            return
         left_sensitive = vm.back_forward.left.get_sensitive()
         self.menuitem_go_back.set_sensitive(left_sensitive)
         right_sensitive = vm.back_forward.right.get_sensitive()
