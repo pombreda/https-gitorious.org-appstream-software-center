@@ -618,8 +618,11 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         # get our active pane
         vm = get_viewmanager()
         if vm is None:
-            return
+            return False
+            
         self.active_pane = vm.get_view_widget(vm.get_active_view())
+        if self.active_pane is None:
+            return False
 
         # determine the current app
         app = self.active_pane.get_current_app()
