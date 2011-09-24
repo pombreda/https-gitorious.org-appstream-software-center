@@ -36,6 +36,8 @@ import sys
 import xapian
 import glob
 
+import webbrowser
+
 from gettext import gettext as _
 
 # purely to initialize the netstatus
@@ -363,7 +365,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         try:
             from gi.repository import LaunchpadIntegration
             LaunchpadIntegration.set_sourcepackagename("software-center")
-            LaunchpadIntegration.add_items(self.menu_help, 1, True, False)
+            LaunchpadIntegration.add_items(self.menu_help, 3, True, False)
         except Exception, e:
             LOG.debug("launchpad integration error: '%s'" % e)
 
@@ -993,6 +995,9 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         p = subprocess.Popen(["yelp","ghelp:software-center"])
         # collect the exit status (otherwise we leave zombies)
         GObject.timeout_add_seconds(1, lambda p: p.poll() == None, p)
+
+    def on_menuitem_developer_activate(self, menuitem):
+        webbrowser.open("http://developer.ubuntu.com/")
             
     def _ask_and_repair_broken_cache(self):
         # wait until the window window is available
