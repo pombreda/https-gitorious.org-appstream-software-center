@@ -26,6 +26,7 @@ import os
 import random
 import json
 import struct
+import shutil
 import subprocess
 import time
 import threading
@@ -320,24 +321,35 @@ class ReviewLoader(object):
         # dump out for software-center in simple pickle
         self._dump_pickle_for_sc()
         # dump out in c-friendly dbm format for unity
-        self._dump_bsddbm_for_unity()
+        try:
+            outfile = self.REVIEW_STATS_BSDDB_FILE
+            outdir = self.REVIEW_STATS_BSDDB_FILE + ".dbenv/"
+            self._dump_bsddbm_for_unity(outfile, outdir)
+        except bdb.DBError as e:
+            # see bug #858437, db corruption seems to be rather common
+            # on ecryptfs
+            LOG.warn("error creating bsddb: '%s' (corrupted?)" % e)
+            try:
+                shutil.rmtree(outdir)
+                self._dump_bsddbm_for_unity(outfile, outdir)
+            except:
+                LOG.exception("trying to repair DB failed")
 
     def _dump_pickle_for_sc(self):
         """ write out the full REVIEWS_STATS_CACHE as a pickle """
         pickle.dump(self.REVIEW_STATS_CACHE,
                       open(self.REVIEW_STATS_CACHE_FILE, "w"))
                                        
-    def _dump_bsddbm_for_unity(self):
+    def _dump_bsddbm_for_unity(self, outfile, outdir):
         """ write out the subset that unity needs of the REVIEW_STATS_CACHE
             as a C friendly (using struct) bsddb
         """
-        outfile = self.REVIEW_STATS_BSDDB_FILE
         env = bdb.DBEnv()
-        outdir = outfile+".dbenv/"
         if not os.path.exists(outdir):
             os.makedirs(outdir)
         env.open (outdir,
-                  bdb.DB_CREATE | bdb.DB_INIT_CDB | bdb.DB_INIT_MPOOL,
+                  bdb.DB_CREATE | bdb.DB_INIT_CDB | bdb.DB_INIT_MPOOL |
+                  bdb.DB_NOMMAP, # be gentle on e.g. nfs mounts
                   0600)
         db = bdb.DB (env)
         db.open (outfile,
