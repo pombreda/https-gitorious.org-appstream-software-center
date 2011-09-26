@@ -69,7 +69,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
        It contains a search entry and navigation buttons
     """
 
-    class Pages(SoftwarePane.Pages):
+    class Pages():
         # page names, useful for debugging
         NAMES = ('list', 'details')
         # the actual page id's

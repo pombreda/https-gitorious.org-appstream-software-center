@@ -49,7 +49,7 @@ class AvailablePane(SoftwarePane):
        It contains a search entry and navigation buttons
     """
 
-    class Pages(SoftwarePane.Pages):
+    class Pages():
         # page names, useful for debuggin
         NAMES = ('lobby', 'subcategory', 'list', 'details', 'purchase')
         # actual page id's
