@@ -8,12 +8,13 @@ software-center (4.1.23.7) UNRELEASED; urgency=low
     softwarecenter/ui/gtk3/dialogs/__init__.py:
     - implement the error() method of InstallBackendUI to display the
       required error dialog in the event of a transaction error
+      (LP: #860137)
   * softwarecenter/backend/installbackend_impl/aptd.py:
     - add unicode handling for the transaction error dialog 
   * softwarecenter/utils.py:
     - let the utf8() method handle None as an input value 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 26 Sep 2011 19:15:27 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 26 Sep 2011 19:36:02 -0400
 
 software-center (4.1.23.6) oneiric; urgency=low
 
