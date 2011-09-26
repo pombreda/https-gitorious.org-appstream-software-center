@@ -27,6 +27,7 @@ from gi.repository import GObject
 from softwarecenter.utils import (sources_filename_from_ppa_entry,
                                   release_filename_in_lists_from_deb_line,
                                   obfuscate_private_ppa_details,
+                                  utf8,
                                   )
 from softwarecenter.enums import TransactionTypes
 
@@ -697,11 +698,11 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
         # hide any private ppa details in the error message since it may
         # appear in the logs for LP bugs and potentially in screenshots as well
         cleaned_error_details = obfuscate_private_ppa_details(trans.error_details)
-        msg = "%s: %s\n%s\n\n%s" % (
-            _("Error"),
-            enums.get_error_string_from_enum(trans.error_code),
-            enums.get_error_description_from_enum(trans.error_code),
-            cleaned_error_details)
+        msg = utf8("%s: %s\n%s\n\n%s") % (
+              utf8(_("Error")),
+              utf8(enums.get_error_string_from_enum(trans.error_code)),
+              utf8(enums.get_error_description_from_enum(trans.error_code)),
+              utf8(cleaned_error_details))
         self._logger.error("error in _on_trans_finished '%s'" % msg)
         # show dialog to the user and exit (no need to reopen the cache)
         if not trans.error_code:
@@ -725,7 +726,6 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
         """callback when a aptdaemon transaction finished"""
         self._logger.debug("_on_transaction_finished: %s %s %s" % (
                 trans, enum, trans.meta_data))
-
 
         # show error
         if enum == enums.EXIT_FAILED:
