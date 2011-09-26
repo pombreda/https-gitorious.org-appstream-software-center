@@ -10,8 +10,10 @@ software-center (4.1.23.7) UNRELEASED; urgency=low
       required error dialog in the event of a transaction error
   * softwarecenter/backend/installbackend_impl/aptd.py:
     - add unicode handling for the transaction error dialog 
+  * softwarecenter/utils.py:
+    - let the utf8() method handle None as an input value 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 26 Sep 2011 19:13:15 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 26 Sep 2011 19:15:27 -0400
 
 software-center (4.1.23.6) oneiric; urgency=low
 
