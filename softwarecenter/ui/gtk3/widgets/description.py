@@ -49,6 +49,14 @@ class _SpecialCasePreParsers(object):
 
 class EventHelper(dict):
 
+    # FIXME: workaround for broken event.copy()
+    class ButtonEvent(object):
+        def __init__(self, event):
+            self.x = event.x
+            self.y = event.y
+            self.type = event.type
+            self.button = event.button
+
     VALID_KEYS = (
         'event',
         'layout',
@@ -69,7 +77,13 @@ class EventHelper(dict):
         return dict.__setitem__(self, k, v)
 
     def new_press(self, event, layout, index, within_sel):
-        self['event'] = event
+        if event is None:
+            self['event'] = None
+        else:
+            # this should be simply event.copy() but that appears broken 
+            # currently(?)
+            self['event'] = EventHelper.ButtonEvent(event)
+
         self['layout'] = layout
         self['index'] = index
         self['within-selection'] = within_sel
