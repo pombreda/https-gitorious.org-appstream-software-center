@@ -467,10 +467,10 @@ class BaseApp(SimpleGtkbuilderApp):
     def login(self, show_register=True):
         logging.debug("login()")
         login_window_xid = self._get_parent_xid_for_login_window()
-        login_text = _("To review software or to report abuse you need to "
-                       "sign in to a Ubuntu Single Sign-On account.")
+        help_text = _("To review software or to report abuse you need to "
+                      "sign in to a Ubuntu Single Sign-On account.")
         self.sso = get_sso_backend(login_window_xid,
-                                       self.appname, login_text)
+                                       self.appname, help_text)
         self.sso.connect("login-successful", self._maybe_login_successful)
         self.sso.connect("login-canceled", self._login_canceled)
         if show_register:

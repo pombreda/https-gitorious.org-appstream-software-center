@@ -38,10 +38,10 @@ LOG = logging.getLogger(__name__)
 
 class LoginBackendDbusSSO(LoginBackend):
 
-    def __init__(self, window_id, appname, login_text):
+    def __init__(self, window_id, appname, help_text):
         super(LoginBackendDbusSSO, self).__init__()
         self.appname = appname
-        self.login_text = login_text
+        self.help_text = help_text
         self.bus = dbus.SessionBus()
         self.proxy = self.bus.get_object(
             'com.ubuntu.sso', '/com/ubuntu/sso/credentials')
@@ -56,8 +56,8 @@ class LoginBackendDbusSSO(LoginBackend):
 
     def _get_params(self):
         p = {}
-        if self.login_text:
-            p['login_text'] = utf8(self.login_text)
+        if self.help_text:
+            p['help_text'] = utf8(self.help_text)
         if self._window_id:
             p['window_id'] = self._window_id
         return p
@@ -100,10 +100,10 @@ class LoginBackendDbusSSO(LoginBackend):
 
 class LoginBackendDbusSSOFake(LoginBackend):
 
-    def __init__(self, window_id, appname, login_text):
+    def __init__(self, window_id, appname, help_text):
         super(LoginBackendDbusSSOFake, self).__init__()
         self.appname = appname
-        self.login_text = login_text
+        self.help_text = help_text
         self._window_id = window_id
         self._fake_settings = FakeReviewSettings()
     
@@ -144,15 +144,15 @@ class LoginBackendDbusSSOFake(LoginBackend):
              )
         return c
 
-def get_sso_backend(window_id, appname, login_text):
+def get_sso_backend(window_id, appname, help_text):
     """ 
     factory that returns an sso loader singelton
     """
     if "SOFTWARE_CENTER_FAKE_REVIEW_API" in os.environ:
-        sso_class = LoginBackendDbusSSOFake(window_id, appname, login_text)
+        sso_class = LoginBackendDbusSSOFake(window_id, appname, help_text)
         LOG.warn('Using fake login SSO functionality. Only meant for testing purposes')
     else:
-        sso_class = LoginBackendDbusSSO(window_id, appname, login_text)
+        sso_class = LoginBackendDbusSSO(window_id, appname, help_text)
     return sso_class
    
 if __name__ == "__main__":

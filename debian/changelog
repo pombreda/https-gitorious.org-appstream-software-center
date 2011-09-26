@@ -23,7 +23,12 @@ software-center (4.1.23.6) UNRELEASED; urgency=low
     - be more robust against db corruption when writing out 
       the bsddb for unity (LP: #858437)
   * softwarecenter/backend/login_sso.py:
-    - port to the new SSO dbus API
+    - port to the new SSO dbus API  (LP: #857514)
+
+  [ Didier Roche ]
+  * lp:~didrocks/software-center/replace_logintext_by_helptext:
+    - use help_text internally to be aligned with the new ubuntu SSO
+      parameter name (LP: #857514)
 
  -- Gary Lasker <gary.lasker@canonical.com>  Sat, 24 Sep 2011 00:14:08 -0400
 

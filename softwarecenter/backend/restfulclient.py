@@ -338,7 +338,7 @@ if __name__ == "__main__":
             sso.connect("error", _error)
             sso.whoami()
         from login_sso import get_sso_backend
-        backend = get_sso_backend("", "appname", "login_text")
+        backend = get_sso_backend("", "appname", "help_text")
         backend.connect("login-successful", _dbus_maybe_login_successful)
         backend.login_or_register()
 

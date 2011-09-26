@@ -683,14 +683,14 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             # see bug #773214 for the rational
             #appname = _("Ubuntu Software Center Store")
             appname = "Ubuntu Software Center Store"
-            login_text = _("To reinstall previous purchases, sign in to the "
-                           "Ubuntu Single Sign-On account you used to pay for them.")
+            help_text = _("To reinstall previous purchases, sign in to the "
+                          "Ubuntu Single Sign-On account you used to pay for them.")
             #window = self.window_main.get_window()
             #xid = self.get_window().xid
             xid = 0
             self.sso = get_sso_backend(xid,
                                        appname,
-                                       login_text)
+                                       help_text)
             self.sso.connect("login-successful", self._on_sso_login)
 
     def _login_via_dbus_sso(self):
