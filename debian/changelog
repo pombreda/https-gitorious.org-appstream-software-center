@@ -1,4 +1,4 @@
-software-center (4.1.23.6) UNRELEASED; urgency=low
+software-center (4.1.23.6) oneiric; urgency=low
 
   [ Kiwinote ]
   * softwarecenter/db/update.py:
@@ -30,7 +30,7 @@ software-center (4.1.23.6) UNRELEASED; urgency=low
     - use help_text internally to be aligned with the new ubuntu SSO
       parameter name (LP: #857514)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Sat, 24 Sep 2011 00:14:08 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 26 Sep 2011 16:59:33 +0200
 
 software-center (4.1.23.5) oneiric; urgency=low
 
