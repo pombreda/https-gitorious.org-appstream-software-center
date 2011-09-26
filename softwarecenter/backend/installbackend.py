@@ -53,6 +53,10 @@ class InstallBackendUI(object):
             return True if medium is provided, False to cancel
         """
         raise UnimplementedError("need custom ask_medium_required method")
+        
+    def error(self, parent, primary, secondary, details=None, alternative_action=None):
+        """ show an error dialog """
+        raise UnimplementedError("need custom error method")
 
 
 # singleton

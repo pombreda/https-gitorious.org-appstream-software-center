@@ -716,10 +716,10 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
         # show dialog to the user and exit (no need to reopen
         # the cache)
         res = self.ui.error(None,
-                            enums.get_error_string_from_enum(trans.error_code),
-                            enums.get_error_description_from_enum(trans.error_code),
-                            cleaned_error_details,
-                            alternative_action)
+                            utf8(enums.get_error_string_from_enum(trans.error_code)),
+                            utf8(enums.get_error_description_from_enum(trans.error_code)),
+                            utf8(cleaned_error_details),
+                            utf8(alternative_action))
         return res
 
     def _on_trans_finished(self, trans, enum):

@@ -72,6 +72,8 @@ def utf8(s):
     Takes a string or unicode object and returns a utf-8 encoded
     string, errors are ignored
     """
+    if s is None:
+        return None
     if isinstance(s, unicode):
         return s.encode("utf-8", "ignore")
     return unicode(s, "utf8", "ignore").encode("utf8")
