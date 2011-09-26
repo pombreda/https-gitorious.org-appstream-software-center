@@ -214,7 +214,6 @@ class AvailablePane(SoftwarePane):
     def on_purchase_failed(self, widget):
         # return to the the appdetails view via the button to reset it
         self._click_appdetails_view()
-        self.notebook.set_current_page(SoftwarePane.Pages.DETAILS)
         dialogs.error(None,
                       _("Failure in the purchase process."),
                       _("Sorry, something went wrong. Your payment "
