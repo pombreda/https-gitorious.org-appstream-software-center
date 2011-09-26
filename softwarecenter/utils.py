@@ -333,7 +333,8 @@ def get_icon_from_theme(icons, iconname=None, iconsize=Icons.APP_ICON_SIZE, miss
     try:
         icon = icons.load_icon(iconname, iconsize, 0)
     except Exception as e:
-        LOG.warning("could not load icon '%s', displaying missing icon instead: %s " % (iconname, e))
+        LOG.warning(utf8("could not load icon '%s', displaying missing icon instead: %s "
+                        ) % (utf8(iconname), utf8(e.message)))
         icon = icons.load_icon(missingicon, iconsize, 0)
     return icon
     
