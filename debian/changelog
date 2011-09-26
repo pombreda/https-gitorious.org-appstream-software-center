@@ -22,6 +22,8 @@ software-center (4.1.23.6) UNRELEASED; urgency=low
   * softwarecenter/backend/reviews.py:
     - be more robust against db corruption when writing out 
       the bsddb for unity (LP: #858437)
+  * softwarecenter/backend/login_sso.py:
+    - port to the new SSO dbus API
 
  -- Gary Lasker <gary.lasker@canonical.com>  Sat, 24 Sep 2011 00:14:08 -0400
 

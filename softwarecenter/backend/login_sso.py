@@ -28,6 +28,7 @@ import os
 from dbus.mainloop.glib import DBusGMainLoop
 DBusGMainLoop(set_as_default=True)
 
+from softwarecenter.utils import utf8
 from login import LoginBackend
 
 # mostly for testing
@@ -42,7 +43,8 @@ class LoginBackendDbusSSO(LoginBackend):
         self.appname = appname
         self.login_text = login_text
         self.bus = dbus.SessionBus()
-        self.proxy = self.bus.get_object('com.ubuntu.sso', '/credentials')
+        self.proxy = self.bus.get_object(
+            'com.ubuntu.sso', '/com/ubuntu/sso/credentials')
         self.proxy.connect_to_signal("CredentialsFound", 
                                      self._on_credentials_found)
         self.proxy.connect_to_signal("CredentialsError", 
@@ -52,21 +54,23 @@ class LoginBackendDbusSSO(LoginBackend):
         self._window_id = window_id
         self._credentials = None
 
+    def _get_params(self):
+        p = {}
+        if self.login_text:
+            p['login_text'] = utf8(self.login_text)
+        if self._window_id:
+            p['window_id'] = self._window_id
+        return p
+
     def login(self, username=None, password=None):
         LOG.debug("login()")
         self._credentials = None
-        # alternatively use:
-        #  login_or_register_to_get_credentials(appname, tc, help, xid)
-        self.proxy.login_to_get_credentials(
-            self.appname, self.login_text,
-            self._window_id)
+        self.proxy.login(self.appname, self._get_params())
         
     def login_or_register(self):
         LOG.debug("login_or_register()")
         self._credentials = None
-        self.proxy.login_or_register_to_get_credentials(
-            self.appname, "", self.login_text,
-            self._window_id)
+        self.proxy.register(self.appname, self._get_params())
 
     def _on_credentials_found(self, app_name, credentials):
         if app_name != self.appname:
