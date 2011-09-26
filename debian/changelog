@@ -13,8 +13,10 @@ software-center (4.1.23.7) UNRELEASED; urgency=low
     - add unicode handling for the transaction error dialog 
   * softwarecenter/utils.py:
     - let the utf8() method handle None as an input value 
+  * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
+    - fix UnicodeDecodeError in set_value() (LP: #846600) 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 26 Sep 2011 19:36:02 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 26 Sep 2011 19:51:02 -0400
 
 software-center (4.1.23.6) oneiric; urgency=low
 
