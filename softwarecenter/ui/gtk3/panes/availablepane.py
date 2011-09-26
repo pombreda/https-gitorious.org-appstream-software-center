@@ -209,24 +209,20 @@ class AvailablePane(SoftwarePane):
         
     def on_purchase_succeeded(self, widget):
         # switch to the details page to display the transaction is in progress
-        self.notebook.set_current_page(SoftwarePane.Pages.DETAILS)
+        self._return_to_appdetails_view()
         
     def on_purchase_failed(self, widget):
-        # return to the the appdetails view via the button to reset it
-        self._click_appdetails_view()
+        self._return_to_appdetails_view()
         dialogs.error(None,
                       _("Failure in the purchase process."),
                       _("Sorry, something went wrong. Your payment "
                         "has been cancelled."))
         
     def on_purchase_cancelled_by_user(self, widget):
-        # return to the the appdetails view via the button to reset it
-        self._click_appdetails_view()
+        self._return_to_appdetails_view()
 
-    def _click_appdetails_view(self):
-        # FIXME: 
-        vm = get_viewmanager()
-        vm.nav_back()
+    def _return_to_appdetails_view(self):
+        self.notebook.set_current_page(AvailablePane.Pages.DETAILS)
 
     def get_query(self):
         """helper that gets the query for the current category/search mode"""
