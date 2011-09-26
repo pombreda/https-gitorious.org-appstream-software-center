@@ -917,7 +917,8 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
 
         # get our active pane
         self.active_pane = vm.get_view_widget(vm.get_active_view())
-        if (self.active_pane == self.available_pane or
+        if (self.active_pane and
+            self.active_pane == self.available_pane or
             self.active_pane == self.installed_pane):
             self.menuitem_view_all.set_sensitive(True)
             self.menuitem_view_supported_only.set_sensitive(True)
