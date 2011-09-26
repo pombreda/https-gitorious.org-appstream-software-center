@@ -3,6 +3,8 @@ software-center (4.1.23.6) UNRELEASED; urgency=low
   [ Kiwinote ]
   * softwarecenter/db/update.py:
     - update the sc-agent db even if there are no apps available (LP: #857268)
+  * softwarecenter/utils.py:
+    - fix UnicodeDecodeError in get_icon_from_theme() (LP: #839391)
   * utils/submit_review_gtk3.py:
     - fix UnicodeDecodeError in _on_one_gwibber_account() (LP: #836911)
 
