@@ -929,8 +929,9 @@ class SubmitReviewsApp(BaseApp):
         account = self.gwibber_accounts[0]
         self.gwibber_hbox.show()
         self.gwibber_combo.hide()
-        acct_text = _("Also post this review to %s (@%s)")  % (
-            account['service'].capitalize(), account['username'] )
+        from softwarecenter.utils import utf8
+        acct_text = utf8(_("Also post this review to %s (@%s)"))  % (
+            utf8(account['service'].capitalize()), utf8(account['username']) )
         self.gwibber_checkbutton.set_label(acct_text)
         # simplifies on_transmit_successful later
         self.gwibber_combo.append_text(acct_text)
