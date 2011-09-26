@@ -3,8 +3,13 @@ software-center (4.1.23.7) UNRELEASED; urgency=low
   * softwarecenter/backend/installbackend_impl/aptd.py:
     - fix UnicodeDecodeError in _show_transaction_failed_dialog
       (LP: #858193)
+  * softwarecenter/backend/installbackend.py,
+    softwarecenter/ui/gtk3/aptd_gtk3.py,
+    softwarecenter/ui/gtk3/dialogs/__init__.py:
+    - implement the error() method of InstallBackendUI to display the
+      required error dialog in the event of a transaction error
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 26 Sep 2011 19:02:25 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 26 Sep 2011 19:11:16 -0400
 
 software-center (4.1.23.6) oneiric; urgency=low
 
