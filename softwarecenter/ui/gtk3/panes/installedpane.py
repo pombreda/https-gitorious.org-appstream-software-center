@@ -563,6 +563,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         self._search(terms.strip())
         self.state.search_term = terms
         self.notebook.set_current_page(InstalledPane.Pages.LIST)
+        self.hide_installed_view_spinner()
         return
 
     def _get_vis_cats(self, visids):
