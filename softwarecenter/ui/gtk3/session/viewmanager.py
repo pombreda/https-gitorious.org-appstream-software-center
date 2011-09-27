@@ -185,6 +185,9 @@ class ViewManager(GObject.GObject):
 
     def nav_forward(self):
         self.navhistory.nav_forward()
+        
+    def clear_forward_history(self):
+        self.navhistory.clear_forward_history()
 
     def get_global_searchentry(self):
         return self.search_entry
