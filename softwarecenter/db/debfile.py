@@ -170,16 +170,16 @@ class AppDetailsDebFile(AppDetails):
         if self._deb:
             deb_state = self._deb.compare_to_version_in_cache(use_installed=False)
             if deb_state == DebPackage.VERSION_NONE:
-                return _("Only install this file if you trust the origin.")
+                return utf8(_("Only install this file if you trust the origin."))
             elif (not self._cache[self.pkgname].installed and
                   self._cache[self.pkgname].candidate and
                   self._cache[self.pkgname].candidate.downloadable): 
                 if deb_state == DebPackage.VERSION_OUTDATED:
-                    return _("Please install \"%s\" via your normal software channels. Only install this file if you trust the origin.") % self.name
+                    return utf8(_("Please install \"%s\" via your normal software channels. Only install this file if you trust the origin.")) % utf8(self.name)
                 elif deb_state == DebPackage.VERSION_SAME:
-                    return _("Please install \"%s\" via your normal software channels. Only install this file if you trust the origin.") % self.name
+                    return utf8(_("Please install \"%s\" via your normal software channels. Only install this file if you trust the origin.")) % utf8(self.name)
                 elif deb_state == DebPackage.VERSION_NEWER:
-                    return _("An older version of \"%s\" is available in your normal software channels. Only install this file if you trust the origin.") % self.name
+                    return utf8(_("An older version of \"%s\" is available in your normal software channels. Only install this file if you trust the origin.")) % utf8(self.name)
 
     @property
     def website(self):
