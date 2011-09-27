@@ -160,7 +160,6 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         oneconftoolbar.pack_start(self.oneconfproperty, False, False, 0)
         oneconftoolbar.pack_start(self.oneconf_last_sync, True, True, 1)
 
-        self.search_aid.set_no_show_all(True)
         self.notebook.append_page(self.box_app_list, Gtk.Label(label="list"))
 
         # details
@@ -181,6 +180,9 @@ class InstalledPane(SoftwarePane, CategoriesParser):
 
         self._all_cats = self.parse_applications_menu('/usr/share/app-install')
         self._all_cats = categories_sorted_by_name(self._all_cats)
+        
+        # we do not support the search aid feature in the installedview
+        self.box_app_list.remove(self.search_aid)
         
         # create a local spinner notebook for the installed view
         self.installed_spinner_view = SpinnerView()
