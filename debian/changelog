@@ -19,8 +19,13 @@ software-center (4.1.23.7) UNRELEASED; urgency=low
     - fix UnicodeDecodeError in warning() (LP: #845298) 
   * softwarecenter/ui/gtk3/app.py:
     - fix intermittent crash at shutdown (LP: #728973) 
+  * softwarecenter/ui/gtk3/panes/availablepane.py,
+    softwarecenter/ui/gtk3/session/navhistory.py,
+    softwarecenter/ui/gtk3/session/viewmanager.py: 
+    - navigate back to the details view when cancelling
+      a purchase or on a purchase error (LP: #859790)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 26 Sep 2011 21:33:20 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 27 Sep 2011 00:31:52 -0400
 
 software-center (4.1.23.6) oneiric; urgency=low
 
