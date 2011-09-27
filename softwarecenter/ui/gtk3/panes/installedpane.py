@@ -234,6 +234,11 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         self.current_hostname = hostname
         if self.current_hostid:
             (self.oneconf_additional_pkg, self.oneconf_missing_pkg) = self.oneconf_handler.oneconf.diff(self.current_hostid, '')
+            # FIXME for P: oneconf views don't support search
+            if self.state.search_term:  
+                self._search()
+        else:
+            self.searchentry.show()
         self.refresh_apps()
 
     def _last_time_sync_oneconf_changed(self, oneconf_handler, msg):
@@ -396,6 +401,10 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         model.clear()
 
         def rebuild_oneconfview():
+        
+            # FIXME for P: hide the search entry
+            self.searchentry.hide()
+            
             self.cat_docid_map = {}
             enq = self.enquirer
             query = xapian.Query("")
@@ -600,6 +609,11 @@ class InstalledPane(SoftwarePane, CategoriesParser):
     def display_overview_page(self, page, view_state):
         LOG.debug("view_state: %s" % view_state)
         if self.current_hostid:
+            # FIXME for P: oneconf views don't support search    
+            # this one ensure that even when switching between pane, we
+            # don't have the search item
+            if self.state.search_term:
+                self._search()
             self._build_oneconfview()
         else:
             self._build_categorised_installedview()
