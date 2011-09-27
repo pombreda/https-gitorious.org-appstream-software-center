@@ -63,32 +63,10 @@ from softwarecenter.ui.gtk3.widgets.weblivedialog import (
                                     ShowWebLiveServerChooserDialog)
 from softwarecenter.ui.gtk3.gmenusearch import GMenuSearcher
 
-#~ if os.path.exists("./softwarecenter/enums.py"):
-    #~ sys.path.insert(0, ".")
-
-# default socket timeout to deal with unreachable screenshot site
-DEFAULT_SOCKET_TIMEOUT=4
-
 LOG = logging.getLogger(__name__)
-LOG_ALLOCATION = logging.getLogger("softwarecenter.ui.Gtk.get_allocation()")
-
-
-# fixed black for action bar label, taken from Ambiance gtk-theme
-COLOR_BLACK = '#323232'
 
 
 class StatusBar(Gtk.Alignment):
-
-    # mid-gray: when no section color is available
-    SECTION_FALLBACK_COLOR = '#808080'
-
-    # action colours, taken from synaptic
-    # red: used for pkg_status errors or serious warnings
-    PKG_STATUS_ERROR_COLOR = '#FF9595'
-
-    # yellow: some user action is required outside of install or remove
-    USER_ACTION_REQRD_COLOR = '#FFC61A'
-
 
     def __init__(self, view):
         GObject.GObject.__init__(self, xscale=1.0, yscale=1.0)
