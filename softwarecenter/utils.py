@@ -247,6 +247,28 @@ def get_http_proxy_string_from_libproxy(url):
     else:
         return proxy
 
+def get_http_proxy_string_from_gsettings():
+    """Helper that gets the http proxy from gsettings
+
+    Returns: string with http://auth:pw@proxy:port/ or None
+    """
+    try:
+        from gi.repository import Gio
+        settings = Gio.Settings.new("org.gnome.system.proxy.http")
+        if settings.get_boolean("enabled"):
+            authentication = ""
+            if settings.get_boolean("use-authentication"):
+                user = settings.get_string("authentication-user")
+                password = settings.get_string("authentication-password")
+                authentication = "%s:%s@" % (user, password)
+            host = settings.get_string("host")
+            port = settings.get_int("port")
+            http_proxy = "http://%s%s:%s/" %  (authentication, host, port)
+            if host:
+                return http_proxy
+    except Exception:
+        logging.exception("failed to get proxy from gconf")
+
 def encode_for_xml(unicode_data, encoding="ascii"):
     """ encode a given string for xml """
     return unicode_data.encode(encoding, 'xmlcharrefreplace')

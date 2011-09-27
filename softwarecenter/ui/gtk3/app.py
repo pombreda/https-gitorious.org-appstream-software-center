@@ -58,6 +58,7 @@ from softwarecenter.enums import (Icons,
                                   MOUSE_EVENT_FORWARD_BUTTON,
                                   MOUSE_EVENT_BACK_BUTTON)
 from softwarecenter.utils import (clear_token_from_ubuntu_sso,
+                                  get_http_proxy_string_from_gsettings,
                                   wait_for_apt_cache_ready)
 from softwarecenter.ui.gtk3.utils import (get_sc_icon_theme,
                                           init_sc_css_provider)
@@ -195,6 +196,9 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
 
         # distro specific stuff
         self.distro = get_distro()
+
+        # setup proxy
+        self._setup_proxy_initially()
 
         # Disable software-properties if it does not exist
         if not os.path.exists("/usr/bin/software-properties-gtk"):
@@ -377,6 +381,20 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         rebuild_database(pathname)
         self.db = StoreDatabase(pathname, self.cache)
         self.db.open(use_axi=self._use_axi)
+
+    def _setup_proxy_initially(self):
+        from gi.repository import Gio
+        self._setup_proxy()
+        self._gsettings = Gio.Settings.new("org.gnome.system.proxy.http")
+        self._gsettings.connect("changed", self._setup_proxy)
+
+    def _setup_proxy(self, setting=None, key=None):
+        proxy = get_http_proxy_string_from_gsettings()
+        if proxy:
+            os.environ["http_proxy"] = proxy
+        elif "http_proxy" in os.environ:
+            del os.environ["http_proxy"]
+
 
     # callbacks
     def on_realize(self, widget):
