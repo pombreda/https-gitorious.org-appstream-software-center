@@ -198,7 +198,6 @@ class AvailablePane(SoftwarePane):
         if window is not None:
             window.set_cursor(None)
 
-
     def on_purchase_requested(self, widget, app, url):
 
         self.appdetails = app.get_details(self.db)
@@ -227,6 +226,9 @@ class AvailablePane(SoftwarePane):
         # don't keep the purchase view in navigation history
         # as its contents are no longer valid
         vm.clear_forward_history()
+        window = self.get_window()
+        if window is not None:
+            window.set_cursor(None)
 
     def get_query(self):
         """helper that gets the query for the current category/search mode"""
