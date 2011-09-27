@@ -1,5 +1,6 @@
 software-center (4.1.23.7) UNRELEASED; urgency=low
 
+  [ Gary Lasker ]
   * softwarecenter/backend/installbackend_impl/aptd.py:
     - fix UnicodeDecodeError in _show_transaction_failed_dialog
       (LP: #858193)
@@ -24,6 +25,10 @@ software-center (4.1.23.7) UNRELEASED; urgency=low
     softwarecenter/ui/gtk3/session/viewmanager.py: 
     - navigate back to the application details view on
       a purchase cancellation or a purchase error (LP: #859790)
+  
+  [ Michael Vogt ]
+  * softwarecenter/ui/gtk3/widgets/searchentry.py:
+    - merge header fix
 
  -- Gary Lasker <gary.lasker@canonical.com>  Tue, 27 Sep 2011 00:37:03 -0400
 
