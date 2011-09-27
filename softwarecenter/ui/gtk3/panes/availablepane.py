@@ -222,7 +222,11 @@ class AvailablePane(SoftwarePane):
         self._return_to_appdetails_view()
 
     def _return_to_appdetails_view(self):
-        self.notebook.set_current_page(AvailablePane.Pages.DETAILS)
+        vm = get_viewmanager()
+        vm.nav_back()
+        # don't keep the purchase view in navigation history
+        # as its contents are no longer valid
+        vm.clear_forward_history()
 
     def get_query(self):
         """helper that gets the query for the current category/search mode"""

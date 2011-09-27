@@ -79,6 +79,16 @@ class NavigationHistory(object):
             if self.back_forward.left.has_focus():
                 self.back_forward.right.grab_focus()
             self._nav_back_set_sensitive(False)
+            
+    def clear_forward_history(self):
+        """
+        clear the forward history and set the corresponding forward
+        navigation button insensitive, useful when navigating away
+        from a pane whose contents are no longer valid (e.g. the
+        purchase pane after a purchase is completed, cancelled, etc.)
+        """
+        self.stack.clear_forward_items()
+        self._nav_forward_set_sensitive(False)
 
     def reset(self):
         """
