@@ -17,8 +17,10 @@ software-center (4.1.23.7) UNRELEASED; urgency=low
     - fix UnicodeDecodeError in set_value() (LP: #846600) 
   * softwarecenter/db/debfile.py:
     - fix UnicodeDecodeError in warning() (LP: #845298) 
+  * softwarecenter/ui/gtk3/app.py:
+    - fix intermittent crash at shutdown (LP: #728973) 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 26 Sep 2011 20:05:14 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 26 Sep 2011 21:33:20 -0400
 
 software-center (4.1.23.6) oneiric; urgency=low
 

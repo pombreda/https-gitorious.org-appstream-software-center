@@ -429,7 +429,10 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         if hasattr(self, "glaunchpad"):
             self.glaunchpad.shutdown()
         self.save_state()
-        Gtk.main_quit()
+        try:
+            Gtk.main_quit()
+        except Exception as e:
+            LOG.warning(e)
         
     def on_window_main_key_press_event(self, widget, event):
         """ Define all the accelerator keys here - slightly messy, but the ones
