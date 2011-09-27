@@ -32,7 +32,11 @@ software-center (4.1.23.7) UNRELEASED; urgency=low
   * softwarecenter/ui/gtk3/app.py, softwarecenter/utils.py:
     - add support for proxy setup from gsettings
 
- -- Gary Lasker <gary.lasker@canonical.com>  Tue, 27 Sep 2011 00:37:03 -0400
+  [ Didier Roche ]
+  * softwarecenter/ui/gtk3/panes/installedpane.py:
+    - disable search when viewing oneconfviews
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 27 Sep 2011 11:42:28 -0400
 
 software-center (4.1.23.6) oneiric; urgency=low
 
