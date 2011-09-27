@@ -25,6 +25,10 @@ software-center (4.1.23.7) UNRELEASED; urgency=low
     softwarecenter/ui/gtk3/session/viewmanager.py: 
     - navigate back to the application details view on
       a purchase cancellation or a purchase error (LP: #859790)
+  * softwarecenter/ui/gtk3/panes/installedpane.py:
+    - fix empty installed view after clearing search (LP: #860810)
+    - fix rendering glitch when searching with OneConf
+      active (LP: #860818)
   
   [ Michael Vogt ]
   * softwarecenter/ui/gtk3/widgets/searchentry.py:
@@ -36,7 +40,7 @@ software-center (4.1.23.7) UNRELEASED; urgency=low
   * softwarecenter/ui/gtk3/panes/installedpane.py:
     - disable search when viewing oneconfviews
 
- -- Gary Lasker <gary.lasker@canonical.com>  Tue, 27 Sep 2011 11:42:28 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 27 Sep 2011 15:29:07 -0400
 
 software-center (4.1.23.6) oneiric; urgency=low
 
