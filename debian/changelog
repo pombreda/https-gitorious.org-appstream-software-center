@@ -1,4 +1,28 @@
-software-center (4.1.23.6) UNRELEASED; urgency=low
+software-center (4.1.23.7) UNRELEASED; urgency=low
+
+  * softwarecenter/backend/installbackend_impl/aptd.py:
+    - fix UnicodeDecodeError in _show_transaction_failed_dialog
+      (LP: #858193)
+  * softwarecenter/backend/installbackend.py,
+    softwarecenter/ui/gtk3/aptd_gtk3.py,
+    softwarecenter/ui/gtk3/dialogs/__init__.py:
+    - implement the error() method of InstallBackendUI to display the
+      required error dialog in the event of a transaction error
+      (LP: #860137)
+  * softwarecenter/backend/installbackend_impl/aptd.py:
+    - add unicode handling for the transaction error dialog 
+  * softwarecenter/utils.py:
+    - let the utf8() method handle None as an input value 
+  * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
+    - fix UnicodeDecodeError in set_value() (LP: #846600) 
+  * softwarecenter/db/debfile.py:
+    - fix UnicodeDecodeError in warning() (LP: #845298) 
+  * softwarecenter/ui/gtk3/app.py:
+    - fix intermittent crash at shutdown (LP: #728973) 
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 26 Sep 2011 21:33:20 -0400
+
+software-center (4.1.23.6) oneiric; urgency=low
 
   [ Kiwinote ]
   * softwarecenter/db/update.py:
@@ -30,7 +54,7 @@ software-center (4.1.23.6) UNRELEASED; urgency=low
     - use help_text internally to be aligned with the new ubuntu SSO
       parameter name (LP: #857514)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Sat, 24 Sep 2011 00:14:08 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 26 Sep 2011 16:59:33 +0200
 
 software-center (4.1.23.5) oneiric; urgency=low
 

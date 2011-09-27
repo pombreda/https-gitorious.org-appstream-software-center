@@ -118,5 +118,8 @@ if __name__ == "__main__":
     print("showing error")
     error(None, "first", "second")
     error(None, "first", "second", "details ......")
+    res = error(None, "first", "second", "details ......", alternative_action="Do Something Else")
+    print "res: ", res
+    
      
 

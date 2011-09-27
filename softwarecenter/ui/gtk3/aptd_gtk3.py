@@ -45,9 +45,17 @@ class InstallBackendUI(InstallBackendUI):
         else:
             return False
     
-    def error(self, parent, primary, secondary, details, alternative_action):
-        # FIXME: do something here
-        pass
+    def error(self, parent, primary, secondary, details=None, alternative_action=None):
+        from dialogs import error
+        res = "ok"
+        res = error(parent=parent,
+                    primary=primary, 
+                    secondary=secondary,
+                    details=details,
+                    alternative_action=alternative_action)
+        if res == Gtk.ResponseType.YES:
+            res = "yes"
+        return res
 
 if __name__ == "__main__":
     from softwarecenter.backend import get_install_backend
