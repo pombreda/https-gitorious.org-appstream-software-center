@@ -425,9 +425,6 @@ class UIReview(Gtk.VBox):
         self._build(*content)
         return
 
-    def _on_allocate(self, widget, allocation, stars, summary, text, who_when, version_lbl, flag):
-        return
-
     def _on_report_abuse_clicked(self, button):
         reviews = self.get_ancestor(UIReviewsList)
         if reviews:
@@ -620,7 +617,6 @@ class UIReview(Gtk.VBox):
         self.flagbox = Gtk.HBox()
         self._build_delete_flag_ui(current_user_reviewer, delete_error, modify_error)
         self.footer.pack_end(self.flagbox, False, False, 0)
-        self.body.connect('size-allocate', self._on_allocate, stars, summary, text, who_when, version_lbl, self.flagbox)
 
         # connect network signals
         self.connect("realize", lambda w: self._on_network_state_change())
