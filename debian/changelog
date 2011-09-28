@@ -29,6 +29,10 @@ software-center (4.1.23.7) UNRELEASED; urgency=low
     - fix empty installed view after clearing search (LP: #860810)
     - fix rendering glitch when searching with OneConf
       active (LP: #860818)
+  * softwarecenter/utils.py:
+    - fix crash in save_person_to_config() (LP: #858403)
+  * softwarecenter/ui/gtk3/widgets/reviews.py:
+    - fix UnicodeDecodeError in _whom_when_markup(
   
   [ Michael Vogt ]
   * softwarecenter/ui/gtk3/widgets/searchentry.py:
@@ -43,7 +47,7 @@ software-center (4.1.23.7) UNRELEASED; urgency=low
   * softwarecenter/ui/gtk3/panes/installedpane.py:
     - disable search when viewing oneconfviews
 
- -- Gary Lasker <gary.lasker@canonical.com>  Tue, 27 Sep 2011 15:29:07 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 28 Sep 2011 10:24:55 -0400
 
 software-center (4.1.23.6) oneiric; urgency=low
 
