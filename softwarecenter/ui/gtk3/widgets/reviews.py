@@ -35,7 +35,8 @@ from softwarecenter.utils import (
     get_person_from_config,
     get_nice_date_string, 
     upstream_version_compare, 
-    upstream_version, 
+    upstream_version,
+    utf8,
     )
 
 from softwarecenter.netstatus import network_state_is_connected, get_network_watcher
@@ -684,11 +685,11 @@ class UIReview(Gtk.VBox):
 
         if person == self.logged_in_person:
             m = '%s (%s), %s' % (
-                GObject.markup_escape_text(correct_name),
+                GObject.markup_escape_text(utf8(correct_name)),
                 # TRANSLATORS: displayed in a review after the persons name,
                 # e.g. "Jane Smith (that's you), 2011-02-11"
-                _(u"that\u2019s you"),
-                GObject.markup_escape_text(nice_date))
+                utf8(_(u"that\u2019s you")),
+                GObject.markup_escape_text(utf8(nice_date)))
         else:
             try:
                 m = '%s, %s' % (
