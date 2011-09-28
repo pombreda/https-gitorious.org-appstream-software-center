@@ -484,7 +484,6 @@ def save_person_to_config(username):
             config.add_section("reviews")
         config.set("reviews", "username", username)
         config.write()
-        config.close()
         # refresh usefulness cache in the background once we know
         # the person 
         from backend.reviews import UsefulnessCache
