@@ -385,7 +385,7 @@ class UIReview(Gtk.VBox):
                                 Gtk.IconSize.SMALL_TOOLBAR)
         self.submit_status_spinner = Gtk.Spinner()
         self.submit_status_spinner.set_size_request(12,12)
-        self.delete_status_spinner = gtk.Spinner()
+        self.delete_status_spinner = Gtk.Spinner()
         self.delete_status_spinner.set_size_request(12,12)
         self.acknowledge_error = Gtk.Button()
         label = Gtk.Label()
@@ -755,13 +755,12 @@ class UIReview(Gtk.VBox):
         elif modify_error:
             self._delete_ui_update('error', current_user_reviewer, 'modifying')
         else:
+            m = '<small>%s</small>'
             if current_user_reviewer:
-                self.edit = mkit.VLinkButton('<small>%s</small>' %_('Edit'))
-                self.delete = mkit.VLinkButton('<small>%s</small>' %_('Delete'))
-                self.edit.set_underline(True)
-                self.delete.set_underline(True)
-                self.edit.set_subdued(True)
-                self.delete.set_subdued(True)
+                self.edit = Link(m % _('Edit'))
+                self.edit.set_name("subtle-label")
+                self.delete = Link(m % _('Delete'))
+                self.edit.set_name("subtle-label")
                 self.flagbox.pack_start(self.edit, False)
                 self.flagbox.pack_start(self.delete, False)
                 self.edit.connect('clicked', self._on_modify_clicked)
@@ -770,9 +769,8 @@ class UIReview(Gtk.VBox):
                 # Translators: This link is for flagging a review as inappropriate.
                 # To minimize repetition, if at all possible, keep it to a single word.
                 # If your language has an obvious verb, it won't need a question mark.
-                self.complain = mkit.VLinkButton('<small>%s</small>' % _('Inappropriate?'))
-                self.complain.set_subdued(True)
-                self.complain.set_underline(True)
+                self.complain = Link(m % _('Inappropriate?'))
+                self.complain.set_name("subtle-label")
                 self.complain.set_sensitive(network_state_is_connected())
                 self.flagbox.pack_start(self.complain, False)
                 self.complain.connect('clicked', self._on_report_abuse_clicked)
