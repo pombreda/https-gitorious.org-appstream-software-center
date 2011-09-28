@@ -757,8 +757,8 @@ class UIReview(Gtk.VBox):
                 self.edit.set_name("subtle-label")
                 self.delete = Link(m % _('Delete'))
                 self.edit.set_name("subtle-label")
-                self.flagbox.pack_start(self.edit, False)
-                self.flagbox.pack_start(self.delete, False)
+                self.flagbox.pack_start(self.edit, False, False, 0)
+                self.flagbox.pack_start(self.delete, False, False, 0)
                 self.edit.connect('clicked', self._on_modify_clicked)
                 self.delete.connect('clicked', self._on_delete_clicked)
             else:
