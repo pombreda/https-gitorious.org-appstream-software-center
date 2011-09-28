@@ -254,7 +254,12 @@ def get_http_proxy_string_from_gsettings():
     """
     try:
         from gi.repository import Gio
-        settings = Gio.Settings.new("org.gnome.system.proxy.http")
+        # check if this is actually available and usable. if not
+        # well ... it segfaults (thanks pygi)
+        key = "org.gnome.system.proxy.http"
+        if not key in Gio.Settings.list_schemas():
+            return None
+        settings = Gio.Settings.new(key)
         if settings.get_boolean("enabled"):
             authentication = ""
             if settings.get_boolean("use-authentication"):
