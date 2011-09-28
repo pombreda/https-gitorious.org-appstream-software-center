@@ -35,6 +35,9 @@ software-center (4.1.23.7) UNRELEASED; urgency=low
     - merge header fix
   * softwarecenter/ui/gtk3/app.py, softwarecenter/utils.py:
     - add support for proxy setup from gsettings (LP: #742564)
+  
+  [ Juhana Jauhiainen ]
+  * Added For Software developers link to Help menu. (LP #722366)
 
   [ Didier Roche ]
   * softwarecenter/ui/gtk3/panes/installedpane.py:
