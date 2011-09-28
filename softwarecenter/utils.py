@@ -253,7 +253,6 @@ def get_http_proxy_string_from_gsettings():
     Returns: string with http://auth:pw@proxy:port/ or None
     """
     try:
-        from gi.repository import Gio
         # check if this is actually available and usable. if not
         # well ... it segfaults (thanks pygi)
         key = "org.gnome.system.proxy.http"

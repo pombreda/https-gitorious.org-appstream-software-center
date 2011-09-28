@@ -46,6 +46,7 @@ class TestSCUtils(unittest.TestCase):
         # FIXME: do something more meaningful here once I figured out
         #        how to create a private fake gsettings
         proxy = get_http_proxy_string_from_gsettings()
+        self.assertNotEqual(proxy, None)
 
     def test_get_http_proxy_from_libproxy(self):
         # test url
