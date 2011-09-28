@@ -43,6 +43,11 @@ software-center (4.1.23.7) UNRELEASED; urgency=low
   * softwarecenter/ui/gtk3/panes/installedpane.py:
     - disable search when viewing oneconfviews
 
+  [ Kiwinote ]
+  * softwarecenter/ui/gtk3/panes/viewswitcher.py:
+    - if we're in the 'in progress' view and all the transactions finish, then
+      navigate back (LP: #831524)
+
  -- Gary Lasker <gary.lasker@canonical.com>  Tue, 27 Sep 2011 15:29:07 -0400
 
 software-center (4.1.23.6) oneiric; urgency=low

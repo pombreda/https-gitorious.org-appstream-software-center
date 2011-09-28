@@ -112,6 +112,11 @@ class ViewSwitcher(Gtk.Box):
         else:
             self.stop_icon_animation()
             pending_btn = self.view_buttons[ViewPages.PENDING]
+            from softwarecenter.ui.gtk3.session.viewmanager import get_viewmanager
+            vm = get_viewmanager()
+            if vm.get_active_view() == 'view-page-pending':
+                vm.nav_back()
+                vm.clear_forward_history()
             pending_btn.set_visible(False)
         return
 
