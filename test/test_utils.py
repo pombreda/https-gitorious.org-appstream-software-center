@@ -41,7 +41,16 @@ class TestSCUtils(unittest.TestCase):
         os.environ["LC_ALL"] = "C"
         self.assertEqual(get_language(), "en")
 
-    def test_get_http_proxy_from_libproxy(self):
+    def test_get_http_proxy_from_gsettings(self):
+        from softwarecenter.utils import get_http_proxy_string_from_gsettings
+        # FIXME: do something more meaningful here once I figured out
+        #        how to create a private fake gsettings
+        proxy = get_http_proxy_string_from_gsettings()
+        self.assertTrue(type(proxy) in [type(None), type("")])
+
+    # disabled, we don't use libproxy currently, its really rather
+    # out of date
+    def disabled_test_get_http_proxy_from_libproxy(self):
         # test url
         url = "http://archive.ubuntu.com"
         # ensure we look at environment first
