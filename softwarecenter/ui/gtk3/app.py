@@ -58,6 +58,7 @@ from softwarecenter.enums import (Icons,
                                   MOUSE_EVENT_FORWARD_BUTTON,
                                   MOUSE_EVENT_BACK_BUTTON)
 from softwarecenter.utils import (clear_token_from_ubuntu_sso,
+                                  get_http_proxy_string_from_gsettings,
                                   wait_for_apt_cache_ready)
 from softwarecenter.ui.gtk3.utils import (get_sc_icon_theme,
                                           init_sc_css_provider)
@@ -195,6 +196,9 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
 
         # distro specific stuff
         self.distro = get_distro()
+
+        # setup proxy
+        self._setup_proxy_initially()
 
         # Disable software-properties if it does not exist
         if not os.path.exists("/usr/bin/software-properties-gtk"):
@@ -378,6 +382,20 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         self.db = StoreDatabase(pathname, self.cache)
         self.db.open(use_axi=self._use_axi)
 
+    def _setup_proxy_initially(self):
+        from gi.repository import Gio
+        self._setup_proxy()
+        self._gsettings = Gio.Settings.new("org.gnome.system.proxy.http")
+        self._gsettings.connect("changed", self._setup_proxy)
+
+    def _setup_proxy(self, setting=None, key=None):
+        proxy = get_http_proxy_string_from_gsettings()
+        if proxy:
+            os.environ["http_proxy"] = proxy
+        elif "http_proxy" in os.environ:
+            del os.environ["http_proxy"]
+
+
     # callbacks
     def on_realize(self, widget):
         return
@@ -429,7 +447,10 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         if hasattr(self, "glaunchpad"):
             self.glaunchpad.shutdown()
         self.save_state()
-        Gtk.main_quit()
+        try:
+            Gtk.main_quit()
+        except Exception as e:
+            LOG.warning(e)
         
     def on_window_main_key_press_event(self, widget, event):
         """ Define all the accelerator keys here - slightly messy, but the ones
@@ -683,14 +704,14 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             # see bug #773214 for the rational
             #appname = _("Ubuntu Software Center Store")
             appname = "Ubuntu Software Center Store"
-            login_text = _("To reinstall previous purchases, sign in to the "
-                           "Ubuntu Single Sign-On account you used to pay for them.")
+            help_text = _("To reinstall previous purchases, sign in to the "
+                          "Ubuntu Single Sign-On account you used to pay for them.")
             #window = self.window_main.get_window()
             #xid = self.get_window().xid
             xid = 0
             self.sso = get_sso_backend(xid,
                                        appname,
-                                       login_text)
+                                       help_text)
             self.sso.connect("login-successful", self._on_sso_login)
 
     def _login_via_dbus_sso(self):

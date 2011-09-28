@@ -69,7 +69,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
        It contains a search entry and navigation buttons
     """
 
-    class Pages(SoftwarePane.Pages):
+    class Pages():
         # page names, useful for debugging
         NAMES = ('list', 'details')
         # the actual page id's
@@ -160,7 +160,6 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         oneconftoolbar.pack_start(self.oneconfproperty, False, False, 0)
         oneconftoolbar.pack_start(self.oneconf_last_sync, True, True, 1)
 
-        self.search_aid.set_no_show_all(True)
         self.notebook.append_page(self.box_app_list, Gtk.Label(label="list"))
 
         # details
@@ -181,6 +180,9 @@ class InstalledPane(SoftwarePane, CategoriesParser):
 
         self._all_cats = self.parse_applications_menu('/usr/share/app-install')
         self._all_cats = categories_sorted_by_name(self._all_cats)
+        
+        # we do not support the search aid feature in the installedview
+        self.box_app_list.remove(self.search_aid)
         
         # create a local spinner notebook for the installed view
         self.installed_spinner_view = SpinnerView()
@@ -234,6 +236,11 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         self.current_hostname = hostname
         if self.current_hostid:
             (self.oneconf_additional_pkg, self.oneconf_missing_pkg) = self.oneconf_handler.oneconf.diff(self.current_hostid, '')
+            # FIXME for P: oneconf views don't support search
+            if self.state.search_term:  
+                self._search()
+        else:
+            self.searchentry.show()
         self.refresh_apps()
 
     def _last_time_sync_oneconf_changed(self, oneconf_handler, msg):
@@ -396,6 +403,10 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         model.clear()
 
         def rebuild_oneconfview():
+        
+            # FIXME for P: hide the search entry
+            self.searchentry.hide()
+            
             self.cat_docid_map = {}
             enq = self.enquirer
             query = xapian.Query("")
@@ -563,6 +574,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         self._search(terms.strip())
         self.state.search_term = terms
         self.notebook.set_current_page(InstalledPane.Pages.LIST)
+        self.hide_installed_view_spinner()
         return
 
     def _get_vis_cats(self, visids):
@@ -600,6 +612,11 @@ class InstalledPane(SoftwarePane, CategoriesParser):
     def display_overview_page(self, page, view_state):
         LOG.debug("view_state: %s" % view_state)
         if self.current_hostid:
+            # FIXME for P: oneconf views don't support search    
+            # this one ensure that even when switching between pane, we
+            # don't have the search item
+            if self.state.search_term:
+                self._search()
             self._build_oneconfview()
         else:
             self._build_categorised_installedview()

@@ -44,7 +44,8 @@ from softwarecenter.enums import (AppActions,
 from softwarecenter.utils import (is_unity_running, 
                                   get_exec_line_from_desktop,
                                   SimpleFileDownloader,
-                                  size_to_str)
+                                  size_to_str,
+                                  utf8)
 from softwarecenter.distro import get_distro
 from softwarecenter.backend.weblive import get_weblive_backend
 from softwarecenter.ui.gtk3.dialogs import error
@@ -396,7 +397,7 @@ class PackageInfo(Gtk.HBox):
 
     def set_value(self, value):
         self.value_label.set_markup(value)
-        self.a11y.set_name(self.key + ' ' + value)
+        self.a11y.set_name(utf8(self.key) + ' ' + utf8(value))
 
 
 class Addon(Gtk.HBox):

@@ -1,8 +1,56 @@
-software-center (4.1.23.6) UNRELEASED; urgency=low
+software-center (4.1.23.7) UNRELEASED; urgency=low
+
+  [ Gary Lasker ]
+  * softwarecenter/backend/installbackend_impl/aptd.py:
+    - fix UnicodeDecodeError in _show_transaction_failed_dialog
+      (LP: #858193)
+  * softwarecenter/backend/installbackend.py,
+    softwarecenter/ui/gtk3/aptd_gtk3.py,
+    softwarecenter/ui/gtk3/dialogs/__init__.py:
+    - implement the error() method of InstallBackendUI to display the
+      required error dialog in the event of a transaction error
+      (LP: #860137)
+  * softwarecenter/backend/installbackend_impl/aptd.py:
+    - add unicode handling for the transaction error dialog 
+  * softwarecenter/utils.py:
+    - let the utf8() method handle None as an input value 
+  * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
+    - fix UnicodeDecodeError in set_value() (LP: #846600) 
+  * softwarecenter/db/debfile.py:
+    - fix UnicodeDecodeError in warning() (LP: #845298) 
+  * softwarecenter/ui/gtk3/app.py:
+    - fix intermittent crash at shutdown (LP: #728973) 
+  * softwarecenter/ui/gtk3/panes/availablepane.py,
+    softwarecenter/ui/gtk3/session/navhistory.py,
+    softwarecenter/ui/gtk3/session/viewmanager.py: 
+    - navigate back to the application details view on
+      a purchase cancellation or a purchase error (LP: #859790)
+  * softwarecenter/ui/gtk3/panes/installedpane.py:
+    - fix empty installed view after clearing search (LP: #860810)
+    - fix rendering glitch when searching with OneConf
+      active (LP: #860818)
+  
+  [ Michael Vogt ]
+  * softwarecenter/ui/gtk3/widgets/searchentry.py:
+    - merge header fix
+  * softwarecenter/ui/gtk3/app.py, softwarecenter/utils.py:
+    - add support for proxy setup from gsettings
+
+  [ Didier Roche ]
+  * softwarecenter/ui/gtk3/panes/installedpane.py:
+    - disable search when viewing oneconfviews
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 27 Sep 2011 15:29:07 -0400
+
+software-center (4.1.23.6) oneiric; urgency=low
 
   [ Kiwinote ]
   * softwarecenter/db/update.py:
     - update the sc-agent db even if there are no apps available (LP: #857268)
+  * softwarecenter/utils.py:
+    - fix UnicodeDecodeError in get_icon_from_theme() (LP: #839391)
+  * utils/submit_review_gtk3.py:
+    - fix UnicodeDecodeError in _on_one_gwibber_account() (LP: #836911)
 
   [ Gary Lasker ]
   * softwarecenter/ui/gtk3/app.py:
@@ -18,8 +66,15 @@ software-center (4.1.23.6) UNRELEASED; urgency=low
   * softwarecenter/backend/reviews.py:
     - be more robust against db corruption when writing out 
       the bsddb for unity (LP: #858437)
+  * softwarecenter/backend/login_sso.py:
+    - port to the new SSO dbus API  (LP: #857514)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Sat, 24 Sep 2011 00:14:08 -0400
+  [ Didier Roche ]
+  * lp:~didrocks/software-center/replace_logintext_by_helptext:
+    - use help_text internally to be aligned with the new ubuntu SSO
+      parameter name (LP: #857514)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 26 Sep 2011 16:59:33 +0200
 
 software-center (4.1.23.5) oneiric; urgency=low
 
