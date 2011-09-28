@@ -1,4 +1,4 @@
-software-center (4.1.23.7) UNRELEASED; urgency=low
+software-center (4.1.23.7) oneiric; urgency=low
 
   [ Gary Lasker ]
   * softwarecenter/backend/installbackend_impl/aptd.py:
@@ -52,7 +52,7 @@ software-center (4.1.23.7) UNRELEASED; urgency=low
     - if we're in the 'in progress' view and all the transactions finish, then
       navigate back (LP: #831524)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 28 Sep 2011 11:02:43 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 28 Sep 2011 18:02:08 +0200
 
 software-center (4.1.23.6) oneiric; urgency=low
 
