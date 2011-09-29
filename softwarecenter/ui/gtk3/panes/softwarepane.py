@@ -41,7 +41,8 @@ from softwarecenter.enums import (ActionButtons,
 from softwarecenter.utils import (ExecutionTime,
                                   convert_desktop_file_to_installed_location,
                                   get_file_path_from_iconname,
-                                  wait_for_apt_cache_ready
+                                  wait_for_apt_cache_ready,
+                                  utf8
                                   )
 
 from softwarecenter.ui.gtk3.session.viewmanager import get_viewmanager
@@ -409,7 +410,7 @@ class SoftwarePane(Gtk.VBox, BasePane):
                                    app,
                                    appdetails,
                                    trans_id)
-        self.action_bar.set_label(_("Add %s to the launcher?") % app.name)
+        self.action_bar.set_label(utf8(_("Add %s to the launcher?")) % utf8(app.name))
 
     def on_query_complete(self, enquirer):
         self.emit("app-list-changed", len(enquirer.matches))
