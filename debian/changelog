@@ -11,6 +11,8 @@ software-center (5.0) UNRELEASED; urgency=low
     - fix TypeError in __init__ (LP: #825729)
   * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
     - fix crash in _get_app_icon_xy_position_on_screen (LP: #843565)
+  * softwarecenter/ui/gtk3/panes/softwarepane.py:
+    - fix UnicodeDecodeError in on_add_to_launcher (LP: #835337)
 
   [ Michael Vogt ]
   * add support for license keys in $HOME
@@ -28,7 +30,7 @@ software-center (5.0) UNRELEASED; urgency=low
   * data/ui/gtk3/dialogs.ui:
     - fix incorrect sizing of dialogs (LP: #825959, LP: #844014)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 29 Sep 2011 12:32:04 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 29 Sep 2011 13:46:49 -0400
 
 software-center (4.1.23.7) oneiric; urgency=low
 
