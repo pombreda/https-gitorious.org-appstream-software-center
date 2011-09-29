@@ -21,7 +21,11 @@ software-center (5.0) UNRELEASED; urgency=low
     - display canonical support text again (LP: #862388)
       (no new strings - there was just some 'if False, display the text' code)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 29 Sep 2011 11:40:27 -0400
+  [ Matthew McGowan ]
+  * data/ui/gtk3/dialogs.ui:
+    - fix incorrect sizing of dialogs (LP: #825959, LP: #844014)
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 29 Sep 2011 12:32:04 -0400
 
 software-center (4.1.23.7) oneiric; urgency=low
 
