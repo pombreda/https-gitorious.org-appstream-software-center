@@ -795,7 +795,8 @@ class SubmitReviewsApp(BaseApp):
         #compare review text
         if self.review_buffer.get_text(
             self.review_buffer.get_start_iter(),
-            self.review_buffer.get_end_iter() ) != self.orig_review_text:
+            self.review_buffer.get_end_iter(),
+            include_hidden_chars=False) != self.orig_review_text:
             return False
         return True
         
