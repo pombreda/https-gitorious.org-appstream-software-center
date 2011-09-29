@@ -124,12 +124,15 @@ class LabelTile(TileButton):
         window.set_cursor(None)
         return
 
+
 class CategoryTile(TileButton):
 
     def __init__(self, label, icon, icon_size=Gtk.IconSize.DIALOG):
         TileButton.__init__(self)
+        self.set_size_request(em(8), -1)
         self.build_default(label, icon, icon_size)
         self.label.set_justify(Gtk.Justification.CENTER)
+        self.label.set_alignment(0.5, 0.0)
         self.label.set_line_wrap(True)
         self.box.set_border_width(StockEms.SMALL)
 

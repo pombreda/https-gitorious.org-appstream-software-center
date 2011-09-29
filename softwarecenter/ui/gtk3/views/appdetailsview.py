@@ -136,6 +136,19 @@ class AppDetailsViewBase(object):
         self.review_loader.spawn_submit_usefulness_ui(
             review_id, is_useful, parent_xid, self.datadir,
             self._reviews_ready_callback)
+            
+    def _review_modify(self, review_id):
+        parent_xid = ''
+        #parent_xid = get_parent_xid(self)
+        self.review_loader.spawn_modify_review_ui(
+            parent_xid, self.appdetails.icon, self.datadir, review_id,
+            self._reviews_ready_callback)
+
+    def _review_delete(self, review_id):
+        parent_xid = ''
+        #parent_xid = get_parent_xid(self)
+        self.review_loader.spawn_delete_review_ui(
+            review_id, parent_xid, self.datadir, self._reviews_ready_callback)
 
     # public interface
     def reload(self):
@@ -172,13 +185,15 @@ class AppDetailsViewBase(object):
         iconname = appdetails.icon
         deb_line = appdetails.deb_line
         license_key = appdetails.license_key
+        license_key_path = appdetails.license_key_path
         signing_key_id = appdetails.signing_key_id
         backend = get_install_backend()
         backend.add_repo_add_key_and_install_app(deb_line,
                                                  signing_key_id,
                                                  self.app,
                                                  iconname,
-                                                 license_key)
+                                                 license_key,
+                                                 license_key_path)
         
 
     # internal callbacks

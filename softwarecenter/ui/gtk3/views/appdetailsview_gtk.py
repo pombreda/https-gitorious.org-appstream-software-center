@@ -64,32 +64,10 @@ from softwarecenter.ui.gtk3.widgets.weblivedialog import (
                                     ShowWebLiveServerChooserDialog)
 from softwarecenter.ui.gtk3.gmenusearch import GMenuSearcher
 
-#~ if os.path.exists("./softwarecenter/enums.py"):
-    #~ sys.path.insert(0, ".")
-
-# default socket timeout to deal with unreachable screenshot site
-DEFAULT_SOCKET_TIMEOUT=4
-
 LOG = logging.getLogger(__name__)
-LOG_ALLOCATION = logging.getLogger("softwarecenter.ui.Gtk.get_allocation()")
-
-
-# fixed black for action bar label, taken from Ambiance gtk-theme
-COLOR_BLACK = '#323232'
 
 
 class StatusBar(Gtk.Alignment):
-
-    # mid-gray: when no section color is available
-    SECTION_FALLBACK_COLOR = '#808080'
-
-    # action colours, taken from synaptic
-    # red: used for pkg_status errors or serious warnings
-    PKG_STATUS_ERROR_COLOR = '#FF9595'
-
-    # yellow: some user action is required outside of install or remove
-    USER_ACTION_REQRD_COLOR = '#FFC61A'
-
 
     def __init__(self, view):
         GObject.GObject.__init__(self, xscale=1.0, yscale=1.0)
@@ -1058,6 +1036,8 @@ class AppDetailsViewGtk(Viewport, AppDetailsViewBase):
         self.reviews.connect("new-review", self._on_review_new)
         self.reviews.connect("report-abuse", self._on_review_report_abuse)
         self.reviews.connect("submit-usefulness", self._on_review_submit_usefulness)
+        self.reviews.connect("modify-review", self._on_review_modify)
+        self.reviews.connect("delete-review", self._on_review_delete)
         self.reviews.connect("more-reviews-clicked", self._on_more_reviews_clicked)
         self.reviews.connect("different-review-language-clicked", self._on_reviews_in_different_language_clicked)
         vb.pack_start(self.reviews, False, False, 0)
@@ -1070,6 +1050,12 @@ class AppDetailsViewGtk(Viewport, AppDetailsViewBase):
 
     def _on_review_new(self, button):
         self._review_write_new()
+        
+    def _on_review_modify(self, button, review_id):
+        self._review_modify(review_id)
+
+    def _on_review_delete(self, button, review_id):
+        self._review_delete(review_id)
 
     def _on_review_report_abuse(self, button, review_id):
         self._review_report_abuse(str(review_id))
@@ -1345,35 +1331,47 @@ class AppDetailsViewGtk(Viewport, AppDetailsViewBase):
         self.installed_where_hbox.show_all()
 
     def _configure_where_is_it(self):
-        # display where-is-it for non-Unity configurations only
-        if is_unity_running():
-            return
-        # remove old content
-        self.installed_where_hbox.foreach(lambda w, d: w.destroy(), None)
-        self.installed_where_hbox.set_property("can-focus", False)
-        self.installed_where_hbox.a11y.set_name('')
-        # see if we have the location if its installed
-        if self.app_details.pkg_state == PkgStates.INSTALLED:
-            # first try the desktop file from the DB, then see if
-            # there is a local desktop file with the same name as 
-            # the package
+
+        def get_desktop_file():
             desktop_file = None
-            searcher = GMenuSearcher()
             pkgname = self.app_details.pkgname
             for p in [self.app_details.desktop_file,
                       "/usr/share/applications/%s.desktop" % pkgname]:
                 if p and os.path.exists(p):
                     desktop_file = p
+            return desktop_file
+
+        # remove old content
+        self.installed_where_hbox.foreach(lambda w, d: w.destroy(), None)
+        self.installed_where_hbox.set_property("can-focus", False)
+        self.installed_where_hbox.a11y.set_name('')
+
+        # display where-is-it for non-Unity configurations only
+        if is_unity_running():
+            # but still display available commands, even in unity
+            # because these are not easily discoverable and we don't
+            # offer a launcher
+            if not get_desktop_file():
+                self._add_where_is_it_commandline(self.app_details.pkgname)
+            return
+
+        # see if we have the location if its installed
+        if self.app_details.pkg_state == PkgStates.INSTALLED:
+            # first try the desktop file from the DB, then see if
+            # there is a local desktop file with the same name as 
+            # the package
+            searcher = GMenuSearcher()
             # try to show menu location if there is a desktop file, but
             # never show commandline programs for apps with a desktop file
             # to cover cases like "file-roller" that have NoDisplay=true
+            desktop_file = get_desktop_file()
             if desktop_file:
                 where = searcher.get_main_menu_path(desktop_file)
                 if where:
                     self._add_where_is_it_launcher(where)
             # if there is no desktop file, show commandline
             else:
-                self._add_where_is_it_commandline(pkgname)
+                self._add_where_is_it_commandline(self.app_details.pkgname)
         return
 
     # public API
@@ -1539,14 +1537,20 @@ class AppDetailsViewGtk(Viewport, AppDetailsViewBase):
                 
     def _get_app_icon_xy_position_on_screen(self):
         """ helper for unity dbus support to get the x,y position of
-            the application icon as it is displayed on-screen
+            the application icon as it is displayed on-screen. if the icon's
+            position cannot be determined for any reason, then the value (0,0)
+            is returned
         """
         # find toplevel parent
         parent = self
         while parent.get_parent():
             parent = parent.get_parent()
         # get x, y relative to toplevel
-        (x,y) = self.icon.translate_coordinates(parent, 0, 0)
+        try:
+            (x,y) = self.icon.translate_coordinates(parent, 0, 0)
+        except Exception as e:
+            LOG.warning("couldn't translate icon coordinates on-screen for unity dbus message: %s" % e)
+            return (0,0)
         # get toplevel window position
         (px, py) = parent.get_position()
         return (px+x, py+y)

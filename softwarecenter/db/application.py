@@ -48,7 +48,7 @@ class Application(object):
         # defaults
         self.pkgname = pkgname.replace("$kernel", os.uname()[2])
         if appname:
-            self.appname = unicode(appname, "utf8", "ignore").encode('utf8')
+            self.appname = utf8(appname)
         else:
             self.appname = ''
         # the request can take additional "request" data like apturl

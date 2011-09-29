@@ -27,8 +27,9 @@ class TestSCAddons(unittest.TestCase):
         (recommends, suggests) = self.cache.get_addons(
             "synaptic", ignore_installed=False)
         self.assertEqual(set(recommends), set(
-                ["apt-xapian-index", 'libgtk2-perl', 'rarian-compat', 'software-properties-gtk']))
-        self.assertEqual(set(suggests), set(["dwww", "deborphan", "menu"]))
+                ['libgtk2-perl', 'rarian-compat', 'software-properties-gtk']))
+        self.assertEqual(set(suggests), set(
+                ["apt-xapian-index", "dwww", "deborphan", "menu"]))
 
 
     def test_enhances(self):
