@@ -20,6 +20,9 @@ software-center (5.0) UNRELEASED; urgency=low
   * utils/submit_review_gtk3.py:
     - translate app name in review title, thanks to Gabor Kelemen 
       (LP: #782146)
+  * softwarecenter/backend/reviews.py:
+    - leave the review sorting to the server now that the rnr-server
+      is deployed that sorts properly by wilson_score
 
   [ Kiwinote ]
   * softwarecenter/distro/Ubuntu.py:
