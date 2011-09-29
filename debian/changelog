@@ -9,6 +9,8 @@ software-center (5.0) UNRELEASED; urgency=low
       review (LP: #861999)
   * softwarecenter/db/application.py:
     - fix TypeError in __init__ (LP: #825729)
+  * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
+    - fix crash in _get_app_icon_xy_position_on_screen (LP: #843565)
 
   [ Michael Vogt ]
   * add support for license keys in $HOME
@@ -19,7 +21,7 @@ software-center (5.0) UNRELEASED; urgency=low
     - display canonical support text again (LP: #862388)
       (no new strings - there was just some 'if False, display the text' code)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 28 Sep 2011 23:28:40 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 29 Sep 2011 11:40:27 -0400
 
 software-center (4.1.23.7) oneiric; urgency=low
 
