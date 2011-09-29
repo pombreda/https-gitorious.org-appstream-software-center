@@ -615,6 +615,7 @@ class UIReview(Gtk.VBox):
                                   useful_favorable, useful_votes, useful_submit_error)
 
         self.flagbox = Gtk.HBox()
+        self.flagbox.set_spacing(4)
         self._build_delete_flag_ui(current_user_reviewer, delete_error, modify_error)
         self.footer.pack_end(self.flagbox, False, False, 0)
 
