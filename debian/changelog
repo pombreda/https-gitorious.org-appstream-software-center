@@ -23,6 +23,9 @@ software-center (5.0) UNRELEASED; urgency=low
   * softwarecenter/backend/reviews.py:
     - leave the review sorting to the server now that the rnr-server
       is deployed that sorts properly by wilson_score
+  * fix None vs "" crashes
+  * fix another dbus exception when a tid vanishes (LP: #848676), thanks
+    to Marc Deslauriers 
 
   [ Kiwinote ]
   * softwarecenter/distro/Ubuntu.py:
@@ -33,7 +36,7 @@ software-center (5.0) UNRELEASED; urgency=low
   * data/ui/gtk3/dialogs.ui:
     - fix incorrect sizing of dialogs (LP: #825959, LP: #844014)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 29 Sep 2011 13:46:49 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 29 Sep 2011 20:01:26 +0200
 
 software-center (4.1.23.7) oneiric; urgency=low
 

@@ -671,7 +671,10 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
         for tid in [current] + pending:
             if not tid:
                 continue
-            trans = client.get_transaction(tid, error_handler=lambda x: True)
+            try:
+                trans = client.get_transaction(tid, error_handler=lambda x: True)
+            except dbus.DBusException:
+                continue
             trans_progress = TransactionProgress(trans)
             try:
                 self.pending_transactions[trans_progress.pkgname] = trans_progress
