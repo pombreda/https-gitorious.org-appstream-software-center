@@ -1,3 +1,13 @@
+software-center (4.1.23.8) UNRELEASED; urgency=low
+
+  * softwarecenter/ui/gtk3/views/appdetailsview.py,
+    softwarecenter/ui/gtk3/views/appdetailsview_gtk.py,
+    softwarecenter/ui/gtk3/widgets/reviews.py,
+    utils/submit_review_gtk3.py:
+    - restore the ability to edit and delete your own review
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 28 Sep 2011 22:58:58 -0400
+
 software-center (4.1.23.7) oneiric; urgency=low
 
   [ Gary Lasker ]
