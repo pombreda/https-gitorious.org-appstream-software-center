@@ -1,3 +1,16 @@
+software-center (4.1.23.8) UNRELEASED; urgency=low
+
+  * softwarecenter/ui/gtk3/views/appdetailsview.py,
+    softwarecenter/ui/gtk3/views/appdetailsview_gtk.py,
+    softwarecenter/ui/gtk3/widgets/reviews.py,
+    utils/submit_review_gtk3.py:
+    - restore the ability to edit or delete your own
+      review (LP: #861999)
+  * softwarecenter/db/application.py:
+    - fix TypeError in __init__ (LP: #825729)
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 28 Sep 2011 23:28:40 -0400
+
 software-center (4.1.23.7) oneiric; urgency=low
 
   [ Gary Lasker ]
