@@ -40,6 +40,8 @@ software-center (5.0) UNRELEASED; urgency=low
   * set a minimum size for the CategoryTile so all english category 
     names fit to two lines (Computer Science and Robotics took 3 lines 
     to display).
+  * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
+    - cleanup dead code
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 29 Sep 2011 20:01:26 +0200
 
