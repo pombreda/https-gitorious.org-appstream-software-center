@@ -1,4 +1,4 @@
-software-center (5.0) UNRELEASED; urgency=low
+software-center (5.0) oneiric; urgency=low
 
   [ Gary Lasker ]
   * softwarecenter/ui/gtk3/views/appdetailsview.py,
@@ -43,7 +43,7 @@ software-center (5.0) UNRELEASED; urgency=low
   * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
     - cleanup dead code
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 29 Sep 2011 20:01:26 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 29 Sep 2011 20:45:22 +0200
 
 software-center (4.1.23.7) oneiric; urgency=low
 
