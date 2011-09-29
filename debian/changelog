@@ -10,6 +10,9 @@ software-center (4.1.23.8) UNRELEASED; urgency=low
   * softwarecenter/db/application.py:
     - fix TypeError in __init__ (LP: #825729)
 
+  [ Michael Vogt ]
+  * add support for license keys in $HOME
+
   [ Kiwinote ]
   * softwarecenter/distro/Ubuntu.py:
     - display canonical support text again (LP: #862388)
