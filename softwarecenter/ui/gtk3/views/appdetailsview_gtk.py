@@ -1547,14 +1547,20 @@ class AppDetailsViewGtk(Viewport, AppDetailsViewBase):
                 
     def _get_app_icon_xy_position_on_screen(self):
         """ helper for unity dbus support to get the x,y position of
-            the application icon as it is displayed on-screen
+            the application icon as it is displayed on-screen. if the icon's
+            position cannot be determined for any reason, then the value (0,0)
+            is returned
         """
         # find toplevel parent
         parent = self
         while parent.get_parent():
             parent = parent.get_parent()
         # get x, y relative to toplevel
-        (x,y) = self.icon.translate_coordinates(parent, 0, 0)
+        try:
+            (x,y) = self.icon.translate_coordinates(parent, 0, 0)
+        except Exception as e:
+            LOG.warning("couldn't translate icon coordinates on-screen for unity dbus message: %s" % e)
+            return (0,0)
         # get toplevel window position
         (px, py) = parent.get_position()
         return (px+x, py+y)
