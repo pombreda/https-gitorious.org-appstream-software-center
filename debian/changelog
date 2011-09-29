@@ -1,4 +1,4 @@
-software-center (4.1.23.8) UNRELEASED; urgency=low
+software-center (5.0) UNRELEASED; urgency=low
 
   [ Gary Lasker ]
   * softwarecenter/ui/gtk3/views/appdetailsview.py,
@@ -12,6 +12,7 @@ software-center (4.1.23.8) UNRELEASED; urgency=low
 
   [ Michael Vogt ]
   * add support for license keys in $HOME
+  * set correct version number
 
   [ Kiwinote ]
   * softwarecenter/distro/Ubuntu.py:
