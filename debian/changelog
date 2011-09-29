@@ -35,6 +35,8 @@ software-center (5.0) UNRELEASED; urgency=low
   [ Matthew McGowan ]
   * data/ui/gtk3/dialogs.ui:
     - fix incorrect sizing of dialogs (LP: #825959, LP: #844014)
+  * display 'where is it' command line helper for installed apps with
+    no desktop_files even when unity is running.'
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 29 Sep 2011 20:01:26 +0200
 
