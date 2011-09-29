@@ -29,23 +29,23 @@ class TestAptdaemon(unittest.TestCase):
         pkgname = "2vcard"
         yield self.aptd.add_license_key(data, target, pkgname)
         self.assertEqual(open(os.path.expanduser(target)).read(), data)
-        #os.remove(os.path.expanduser(target))
+        # ensure its not written twice
+        data2 = "other-data"
+        yield self.aptd.add_license_key(data2, target, pkgname)
+        self.assertEqual(open(os.path.expanduser(target)).read(), data)
+        # cleanup
+        os.remove(os.path.expanduser(target))
 
     # disabled until aptdaemon support is merged
     def disabled_test_add_license_key_opt(self):
-        # test $HOME
+        # test /opt
         data = "some-data"
         pkgname = "2vcard"
         path = "/opt"
         defer = self.aptd.add_license_key(data, path, pkgname)
         self.assertTrue(defer.called)
-        self.assertEqual(open(os.path.expanduser(target)).read(), data)
-        # ensure its not written twice
-        data2 = "other-data"
-        defer = self.aptd.add_license_key(data2, path, pkgname)
-        self.assertEqual(open(os.path.expanduser(target)).read(), data)
-        # cleanup
-        os.remove(os.path.expanduser(target))
+        #self.assertEqual(open(os.path.expanduser(target)).read(), data)
+        #os.remove(os.path.expanduser(target))
 
     def test_install_multiple(self):
         # FIXME: this test is not great, it should really 
