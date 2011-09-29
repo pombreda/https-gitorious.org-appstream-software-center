@@ -516,7 +516,7 @@ class UIReview(Gtk.VBox):
             self.delete_status_box.pack_start(self.delete_acknowledge_error, False, False, 0)
             self.delete_acknowledge_error.connect('clicked', self._on_delete_error_acknowledged, current_user_reviewer)
         self.delete_status_box.show()
-        self.footer.pack_end(self.delete_status_box, False)
+        self.footer.pack_end(self.delete_status_box, False, False, 0)
         return
 
     def _on_delete_clicked(self, btn):
