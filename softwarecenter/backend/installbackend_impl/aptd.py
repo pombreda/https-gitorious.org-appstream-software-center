@@ -529,8 +529,8 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
                           'sc_add_repo_and_install_deb_line' : deb_line,
                           'sc_iconname' : iconname,
                           'sc_add_repo_and_install_try' : "1",
-                          'sc_add_repo_and_install_license_key' : license_key,
-                          'sc_add_repo_and_install_license_key_path' : license_key_path,
+                          'sc_add_repo_and_install_license_key' : license_key or "",
+                          'sc_add_repo_and_install_license_key_path' : license_key_path or "",
                          }
 
         self._logger.info("add_sources_list_entry()")
