@@ -146,7 +146,7 @@ class PendingStore(Gtk.ListStore):
         #print "_on_progress_changed: ", trans, role
         for row in self:
             if row[self.COL_TID] == trans.tid:
-                row[self.COL_NAME] = trans.get_role_description(role)
+                row[self.COL_NAME] = trans.get_role_description(role) or ""
 
     def _on_progress_details_changed(self, trans, current_items, total_items,
                                      current_bytes, total_bytes, current_cps,

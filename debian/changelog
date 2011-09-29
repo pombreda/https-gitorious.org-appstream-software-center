@@ -15,6 +15,9 @@ software-center (5.0) UNRELEASED; urgency=low
   [ Michael Vogt ]
   * add support for license keys in $HOME
   * set correct version number
+  * utils/submit_review_gtk3.py:
+    - translate app name in review title, thanks to Gabor Kelemen 
+      (LP: #782146)
 
   [ Kiwinote ]
   * softwarecenter/distro/Ubuntu.py:
