@@ -1371,7 +1371,7 @@ class AppDetailsViewGtk(Viewport, AppDetailsViewBase):
                     self._add_where_is_it_launcher(where)
             # if there is no desktop file, show commandline
             else:
-                self._add_where_is_it_commandline(pkgname)
+                self._add_where_is_it_commandline(self.app_details.pkgname)
         return
 
     # public API
