@@ -7,6 +7,8 @@ software-center (5.0.1) UNRELEASED; urgency=low
   * softwarecenter/db/database.py:
     - when adding a new database (e.g. on reinstall-previous purchases)
       trigger a "reopen" to ensure that the db docids are reinitialized
+  * apt-xapian-index-plugin/software-center.py:
+    - do not crash if a apt.Package.candidate has no url (LP: #819907)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 30 Sep 2011 09:52:55 +0200
 
