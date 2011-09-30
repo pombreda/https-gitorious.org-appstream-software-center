@@ -1,5 +1,6 @@
-software-center (4.1.23.8) UNRELEASED; urgency=low
+software-center (5.0) oneiric; urgency=low
 
+  [ Gary Lasker ]
   * softwarecenter/ui/gtk3/views/appdetailsview.py,
     softwarecenter/ui/gtk3/views/appdetailsview_gtk.py,
     softwarecenter/ui/gtk3/widgets/reviews.py,
@@ -8,8 +9,41 @@ software-center (4.1.23.8) UNRELEASED; urgency=low
       review (LP: #861999)
   * softwarecenter/db/application.py:
     - fix TypeError in __init__ (LP: #825729)
+  * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
+    - fix crash in _get_app_icon_xy_position_on_screen (LP: #843565)
+  * softwarecenter/ui/gtk3/panes/softwarepane.py:
+    - fix UnicodeDecodeError in on_add_to_launcher (LP: #835337)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 28 Sep 2011 23:28:40 -0400
+  [ Michael Vogt ]
+  * add support for license keys in $HOME
+  * set correct version number
+  * utils/submit_review_gtk3.py:
+    - translate app name in review title, thanks to Gabor Kelemen 
+      (LP: #782146)
+  * softwarecenter/backend/reviews.py:
+    - leave the review sorting to the server now that the rnr-server
+      is deployed that sorts properly by wilson_score
+  * fix None vs "" crashes
+  * fix another dbus exception when a tid vanishes (LP: #848676), thanks
+    to Marc Deslauriers 
+
+  [ Kiwinote ]
+  * softwarecenter/distro/Ubuntu.py:
+    - display canonical support text again (LP: #862388)
+      (no new strings - there was just some 'if False, display the text' code)
+
+  [ Matthew McGowan ]
+  * data/ui/gtk3/dialogs.ui:
+    - fix incorrect sizing of dialogs (LP: #825959, LP: #844014)
+  * display 'where is it' command line helper for installed apps with
+    no desktop_files even when unity is running.'
+  * set a minimum size for the CategoryTile so all english category 
+    names fit to two lines (Computer Science and Robotics took 3 lines 
+    to display).
+  * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
+    - cleanup dead code
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 29 Sep 2011 20:45:22 +0200
 
 software-center (4.1.23.7) oneiric; urgency=low
 

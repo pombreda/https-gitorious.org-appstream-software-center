@@ -59,88 +59,77 @@
           </packing>
         </child>
         <child>
-          <object class="GtkAlignment" id="alignment4">
+          <object class="GtkGrid" id="grid1">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="top_padding">6</property>
-            <property name="bottom_padding">6</property>
-            <property name="left_padding">6</property>
-            <property name="right_padding">6</property>
+            <property name="row_spacing">24</property>
+            <property name="column_spacing">12</property>
+            <property name="n_rows">2</property>
+            <property name="n_columns">2</property>
             <child>
-              <object class="GtkTable" id="table3">
+              <object class="GtkLabel" id="label_broken_cache">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="n_rows">2</property>
-                <property name="n_columns">2</property>
-                <child>
-                  <object class="GtkLabel" id="label_broken_cache">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="xalign">0</property>
-                    <property name="label" translatable="yes">&lt;span weight="bold" font_size="large"&gt;Items cannot be installed or removed 
+                <property name="xalign">0</property>
+                <property name="label" translatable="yes">&lt;span weight="bold" font_size="large"&gt;Items cannot be installed or removed 
 until the package catalog is repaired. Do you want to repair it now?&lt;/span&gt;</property>
-                    <property name="use_markup">True</property>
-                    <property name="wrap">True</property>
-                  </object>
-                  <packing>
-                    <property name="left_attach">1</property>
-                    <property name="right_attach">2</property>
-                    <property name="y_options"></property>
-                    <property name="x_padding">6</property>
-                    <property name="y_padding">6</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkImage" id="image_package_icon2">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="pixel_size">48</property>
-                    <property name="icon_name">softwarecenter</property>
-                  </object>
-                  <packing>
-                    <property name="x_options"></property>
-                    <property name="y_options"></property>
-                    <property name="x_padding">6</property>
-                    <property name="y_padding">6</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkLabel" id="label_broken_cache1">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="xalign">0</property>
-                    <property name="label" translatable="yes">Once Update Manager has finished the repairs, you can close it and return to the store.</property>
-                    <property name="use_markup">True</property>
-                    <property name="wrap">True</property>
-                  </object>
-                  <packing>
-                    <property name="left_attach">1</property>
-                    <property name="right_attach">2</property>
-                    <property name="top_attach">1</property>
-                    <property name="bottom_attach">2</property>
-                    <property name="y_options"></property>
-                    <property name="y_padding">6</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkLabel" id="label1">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="label" translatable="yes"> </property>
-                  </object>
-                  <packing>
-                    <property name="top_attach">1</property>
-                    <property name="bottom_attach">2</property>
-                    <property name="x_options"></property>
-                    <property name="y_options"></property>
-                  </packing>
-                </child>
+                <property name="use_markup">True</property>
+                <property name="wrap">True</property>
               </object>
+              <packing>
+                <property name="left_attach">1</property>
+                <property name="top_attach">0</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkImage" id="image_package_icon2">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="pixel_size">48</property>
+                <property name="icon_name">softwarecenter</property>
+              </object>
+              <packing>
+                <property name="left_attach">0</property>
+                <property name="top_attach">0</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="label_broken_cache1">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="xalign">0</property>
+                <property name="label" translatable="yes">Once Update Manager has finished the repairs, you can close it and return to the store.</property>
+                <property name="use_markup">True</property>
+                <property name="wrap">True</property>
+              </object>
+              <packing>
+                <property name="left_attach">1</property>
+                <property name="top_attach">1</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="label1">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes"> </property>
+              </object>
+              <packing>
+                <property name="left_attach">0</property>
+                <property name="top_attach">1</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
+              </packing>
             </child>
           </object>
           <packing>
-            <property name="expand">False</property>
-            <property name="fill">False</property>
+            <property name="expand">True</property>
+            <property name="fill">True</property>
             <property name="position">1</property>
           </packing>
         </child>
@@ -302,10 +291,12 @@ until the package catalog is repaired. Do you want to repair it now?&lt;/span&gt
     <property name="can_focus">False</property>
     <property name="border_width">5</property>
     <property name="title"> </property>
+    <property name="resizable">False</property>
     <property name="modal">True</property>
-    <property name="window_position">center</property>
+    <property name="window_position">center-on-parent</property>
     <property name="type_hint">dialog</property>
     <property name="skip_taskbar_hint">True</property>
+    <property name="deletable">False</property>
     <child internal-child="vbox">
       <object class="GtkBox" id="dialog-vbox6">
         <property name="visible">True</property>
@@ -356,95 +347,86 @@ until the package catalog is repaired. Do you want to repair it now?&lt;/span&gt
           </packing>
         </child>
         <child>
-          <object class="GtkAlignment" id="alignment2">
+          <object class="GtkGrid" id="grid2">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="top_padding">6</property>
-            <property name="bottom_padding">6</property>
-            <property name="left_padding">6</property>
-            <property name="right_padding">6</property>
+            <property name="row_spacing">6</property>
+            <property name="column_spacing">6</property>
+            <property name="n_rows">2</property>
+            <property name="n_columns">2</property>
             <child>
-              <object class="GtkTable" id="table1">
+              <object class="GtkImage" id="image_package_icon">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="n_rows">2</property>
-                <property name="n_columns">2</property>
+                <property name="pixel_size">48</property>
+                <property name="icon_name">applications-other</property>
+              </object>
+              <packing>
+                <property name="left_attach">0</property>
+                <property name="top_attach">0</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="label_dependency_primary">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="xalign">0</property>
+                <property name="use_markup">True</property>
+                <property name="wrap">True</property>
+              </object>
+              <packing>
+                <property name="left_attach">1</property>
+                <property name="top_attach">0</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkViewport" id="viewport1">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="resize_mode">queue</property>
                 <child>
-                  <object class="GtkImage" id="image_package_icon">
+                  <object class="GtkScrolledWindow" id="scrolledwindow_dependencies">
+                    <property name="height_request">150</property>
                     <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="pixel_size">48</property>
-                    <property name="icon_name">applications-other</property>
-                  </object>
-                  <packing>
-                    <property name="x_options"></property>
-                    <property name="y_options"></property>
-                    <property name="x_padding">6</property>
-                    <property name="y_padding">6</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkLabel" id="label_dependency_primary">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="xalign">0</property>
-                    <property name="use_markup">True</property>
-                    <property name="wrap">True</property>
-                  </object>
-                  <packing>
-                    <property name="left_attach">1</property>
-                    <property name="right_attach">2</property>
-                    <property name="x_options">GTK_FILL</property>
-                    <property name="y_options"></property>
-                    <property name="x_padding">6</property>
-                    <property name="y_padding">6</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkViewport" id="viewport1">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="resize_mode">queue</property>
+                    <property name="can_focus">True</property>
+                    <property name="hscrollbar_policy">never</property>
+                    <property name="shadow_type">etched-in</property>
                     <child>
-                      <object class="GtkScrolledWindow" id="scrolledwindow_dependencies">
-                        <property name="height_request">150</property>
-                        <property name="visible">True</property>
-                        <property name="shadow_type">GTK_SHADOW_ETCHED_IN</property>
-                        <property name="can_focus">True</property>
-                        <property name="hscrollbar_policy">never</property>
-                        <child>
-                          <placeholder/>
-                        </child>
-                      </object>
+                      <placeholder/>
                     </child>
                   </object>
-                  <packing>
-                    <property name="left_attach">1</property>
-                    <property name="right_attach">2</property>
-                    <property name="top_attach">1</property>
-                    <property name="bottom_attach">2</property>
-                    <property name="x_padding">6</property>
-                    <property name="y_padding">6</property>
-                  </packing>
-                </child>
-                <child>
-                  <object class="GtkLabel" id="label2">
-                    <property name="visible">True</property>
-                    <property name="can_focus">False</property>
-                    <property name="label" translatable="yes"> </property>
-                  </object>
-                  <packing>
-                    <property name="top_attach">1</property>
-                    <property name="bottom_attach">2</property>
-                    <property name="x_options"></property>
-                    <property name="y_options"></property>
-                  </packing>
                 </child>
               </object>
+              <packing>
+                <property name="left_attach">1</property>
+                <property name="top_attach">1</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="label2">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes"> </property>
+              </object>
+              <packing>
+                <property name="left_attach">1</property>
+                <property name="top_attach">0</property>
+                <property name="width">1</property>
+                <property name="height">1</property>
+              </packing>
+            </child>
+            <child>
+              <placeholder/>
             </child>
           </object>
           <packing>
-            <property name="expand">False</property>
+            <property name="expand">True</property>
             <property name="fill">True</property>
             <property name="position">1</property>
           </packing>

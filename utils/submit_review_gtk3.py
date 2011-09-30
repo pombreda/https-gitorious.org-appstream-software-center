@@ -692,7 +692,7 @@ class SubmitReviewsApp(BaseApp):
             self._init_modify()
 
     def _init_submit(self):
-        self.submit_window.set_title(_("Review %s" % self.app.name))
+        self.submit_window.set_title(_("Review %s") % gettext.dgettext("app-install-data", self.app.name))
     
     def _init_modify(self):
         self._populate_review()
@@ -732,7 +732,8 @@ class SubmitReviewsApp(BaseApp):
 
         # title
         m = '<b><span size="x-large">%s</span></b>\n%s'
-        self.review_title.set_markup(m % (app.name, version))
+        self.review_title.set_markup(m % (
+                gettext.dgettext("app-install-data", app.name), version))
 
         # review label
         self.review_label.set_markup(_('Review by: %s') % display_name.encode('utf8'))

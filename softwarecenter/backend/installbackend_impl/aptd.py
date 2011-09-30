@@ -450,19 +450,36 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
         yield policykit1.check_authorization_by_name(name, action, flags=flags)
 
     @inline_callbacks
-    def add_license_key(self, license_key, pkgname):
+    def add_license_key(self, license_key, license_key_path, pkgname):
         """ add a license key for a purchase. Note that currently only
             system wide license keys are supported.
         """
         self._logger.debug(
             "adding license_key for pkg '%s' of len: %i" % (
                 pkgname, len(license_key)))
-        try:
-            trans = yield self.aptd_client.add_license_key(
-                license_key, pkgname)
-            yield self._run_transaction(trans, None, None, None)
-        except Exception as e:
-            self._logger.error("add_repository: '%s'" % e)
+        
+        # HOME based license keys
+        if license_key_path and license_key_path.startswith("~"):
+            # check if its inside HOME and if so, just create it
+            dest = os.path.expanduser(os.path.normpath(license_key_path))
+            dirname = os.path.dirname(dest)
+            if not os.path.exists(dirname):
+                os.makedirs(dirname)
+            if not os.path.exists(dest):
+                f = open(dest, "w")
+                f.write(license_key)
+                f.close()
+                os.chmod(dest, 0600)
+            else:
+                self._logger.warn("license file '%s' already exists" % dest)
+        else:
+            # system-wide keys
+            try:
+                trans = yield self.aptd_client.add_license_key(
+                    license_key, pkgname)
+                yield self._run_transaction(trans, None, None, None)
+            except Exception as e:
+                self._logger.error("add_repository: '%s'" % e)
 
     @inline_callbacks
     def add_repo_add_key_and_install_app(self,
@@ -471,6 +488,7 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
                                          app,
                                          iconname,
                                          license_key,
+                                         license_key_path,
                                          purchase=True):
         """ 
         a convenience method that combines all of the steps needed
@@ -511,7 +529,8 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
                           'sc_add_repo_and_install_deb_line' : deb_line,
                           'sc_iconname' : iconname,
                           'sc_add_repo_and_install_try' : "1",
-                          'sc_add_repo_and_install_license_key' : license_key,
+                          'sc_add_repo_and_install_license_key' : license_key or "",
+                          'sc_add_repo_and_install_license_key_path' : license_key_path or "",
                          }
 
         self._logger.info("add_sources_list_entry()")
@@ -573,6 +592,7 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
         # get the debline and check if we have a release.gpg file
         deb_line = trans.meta_data["sc_add_repo_and_install_deb_line"]
         license_key = trans.meta_data["sc_add_repo_and_install_license_key"]
+        license_key_path = trans.meta_data["sc_add_repo_and_install_license_key_path"]
         release_filename = release_filename_in_lists_from_deb_line(deb_line)
         lists_dir = apt_pkg.config.find_dir("Dir::State::lists")
         release_signature = os.path.join(lists_dir, release_filename)+".gpg"
@@ -607,7 +627,7 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
                 yield self._run_transaction(trans, app.pkgname, app.appname,
                                             "", metadata)
                 if license_key:
-                    yield self.add_license_key(license_key, app.pkgname)
+                    yield self.add_license_key(license_key, license_key_path, app.pkgname)
             except Exception as error:
                 self._on_trans_error(error, app.pkgname)
         else:
@@ -651,7 +671,10 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
         for tid in [current] + pending:
             if not tid:
                 continue
-            trans = client.get_transaction(tid, error_handler=lambda x: True)
+            try:
+                trans = client.get_transaction(tid, error_handler=lambda x: True)
+            except dbus.DBusException:
+                continue
             trans_progress = TransactionProgress(trans)
             try:
                 self.pending_transactions[trans_progress.pkgname] = trans_progress
