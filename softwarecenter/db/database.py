@@ -209,9 +209,11 @@ class StoreDatabase(GObject.GObject):
     def add_database(self, database):
         self._additional_databases.append(database)
         self.xapiandb.add_database(database)
+        self.reopen()
 
     def del_database(self, database):
         self._additional_databases.remove(database)
+        self.reopen()
 
     def schema_version(self):
         """Return the version of the database layout
