@@ -506,7 +506,16 @@ class UIReview(Gtk.VBox):
             self.delete_status_label.show()
         if type == 'error':
             self.delete_error_img.show()
-            self.delete_status_label = Gtk.Label("<small><b>%s</b></small>" % _("Error %s review" % action))
+            # build full strings for easier i18n 
+            if action == 'deleting':
+                s = _("Error deleting review")
+            elif action == 'modifying':
+                s = _("Error modifying review")
+            else:
+                # or unknown error, but we are in string freeze, 
+                # should never happen anyway
+                s = _("Internal Error")
+            self.delete_status_label = Gtk.Label("<small><b>%s</b></small>" % s)
             self.delete_status_box.pack_start(self.delete_error_img, False, False, 0)
             self.delete_status_label.set_use_markup(True)
             self.delete_status_label.set_padding(2,0)
