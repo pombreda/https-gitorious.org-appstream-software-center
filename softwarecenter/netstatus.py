@@ -125,7 +125,7 @@ def __init_network_state():
         else:
             # get a host to ping
             host = source_list.list[0].uri
-            # get the uri into a format that will make ping happy
+            # get the host uri into a format that will make ping happy
             host = host.lstrip("htps:/").split('/')[0]
 
             msg = ("Attempting one time ping of %s to test if internet "
@@ -134,14 +134,14 @@ def __init_network_state():
 
             ping = subprocess.Popen(
                 ["ping", "-c", "1", host],
-                stdout = subprocess.PIPE,
-                stderr = subprocess.PIPE
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE
             )
 
             out, error = ping.communicate()
             if len(error.splitlines()):
                 NETWORK_STATE = NetState.NM_STATE_DISCONNECTED
-                msg = "Could not detect and internet connection\n%s" % error
+                msg = "Could not detect an internet connection\n%s" % error
             else:
                 NETWORK_STATE = NetState.NM_STATE_CONNECTED_GLOBAL
                 msg = "Internet connection available!\n%s" % out
