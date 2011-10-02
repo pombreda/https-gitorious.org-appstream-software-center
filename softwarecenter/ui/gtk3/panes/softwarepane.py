@@ -412,11 +412,8 @@ class SoftwarePane(Gtk.VBox, BasePane):
 
     def on_query_complete(self, enquirer):
         self.emit("app-list-changed", len(enquirer.matches))
-        sort_by_relevance = (self._is_in_search_mode() and
-                             not self.app_view.user_defined_sort_method)
-        
         self.app_view.display_matches(enquirer.matches,
-                                      sort_by_relevance)
+                                      self._is_in_search_mode())
         self.hide_appview_spinner()
         return
 

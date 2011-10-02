@@ -88,10 +88,10 @@ class AppView(Gtk.VBox):
 
         # sort methods comboboxs
         # variant 1 includes sort by search relevance
-        self.sort_methods_combobox1 = self._get_sort_methods_combobox_variant1()
-        self.sort_methods_combobox2 = self._get_sort_methods_combobox_variant2()
-        self.combo_alignment = Gtk.Alignment.new(0.5, 0.5, 1.0, 0.0)
-        self.header_hbox.pack_end(self.combo_alignment, False, False, 0)
+        self.sort_methods_combobox = self._get_sort_methods_combobox()
+        combo_alignment = Gtk.Alignment.new(0.5, 0.5, 1.0, 0.0)
+        combo_alignment.add(self.sort_methods_combobox)
+        self.header_hbox.pack_end(combo_alignment, False, False, 0)
 
         # content views
         self.tree_view = AppTreeView(self, icons,
@@ -101,16 +101,10 @@ class AppView(Gtk.VBox):
         self.appcount = None
 
         self.user_defined_sort_method = False
-        self._handler = 0
+        self._handler = self.sort_methods_combobox.connect(
+                                    "changed",
+                                    self.on_sort_method_changed)
         return
-
-    @property
-    def sort_methods_combobox(self):
-        if self.sort_methods_combobox1.get_visible():
-            return self.sort_methods_combobox1
-        elif self.sort_methods_combobox2.get_visible():
-            return self.sort_methods_combobox2
-        return None
 
     #~ def on_draw(self, w, cr):
         #~ cr.set_source_rgb(1,1,1)
@@ -147,7 +141,7 @@ class AppView(Gtk.VBox):
         self.emit("sort-method-changed", self.sort_methods_combobox)
         return
 
-    def _get_sort_methods_combobox_variant1(self):
+    def _get_sort_methods_combobox(self):
         combo = Gtk.ComboBoxText.new()
         combo.append_text(_("By Name"))
         combo.append_text(_("By Top Rated"))
@@ -156,62 +150,31 @@ class AppView(Gtk.VBox):
         combo.set_active(self._SORT_BY_TOP_RATED)
         return combo
 
-    def _get_sort_methods_combobox_variant2(self):
-        combo = Gtk.ComboBoxText.new()
-        combo.append_text(_("By Name"))
-        combo.append_text(_("By Top Rated"))
-        combo.append_text(_("By Newest First"))
-        combo.set_active(self._SORT_BY_TOP_RATED)
-        return combo
+    def _get_combo_children(self):
+        return len(self.sort_methods_combobox.get_model())
 
-    def _use_combobox_variant1(self):
-        if self.sort_methods_combobox1.get_parent():
+    def _use_combobox_with_sort_by_search_ranking(self):
+        if self._get_combo_children() == 4:
             return
-
-        if self._handler > 0:
-            GObject.source_remove(self._handler)
-
-        self._handler = self.sort_methods_combobox1.connect(
-                                    "changed",
-                                    self.on_sort_method_changed)
-
-        if self.sort_methods_combobox2.get_parent():
-            self.combo_alignment.remove(self.sort_methods_combobox2)
-
-        self.combo_alignment.add(self.sort_methods_combobox1)
-        self.sort_methods_combobox1.show()
+        self.sort_methods_combobox.append_text(_("By Relevance"))
         return
 
-    def _use_combobox_variant2(self):
-        if self.sort_methods_combobox2.get_parent():
+    def _use_combobox_without_sort_by_search_ranking(self):
+        if self._get_combo_children() == 3:
             return
-
-        if self._handler > 0:
-            GObject.source_remove(self._handler)
-
-        self._handler = self.sort_methods_combobox2.connect(
-                                    "changed",
-                                    self.on_sort_method_changed)
-
-        if self.sort_methods_combobox1.get_parent():
-            self.combo_alignment.remove(self.sort_methods_combobox1)
-
-        self.combo_alignment.add(self.sort_methods_combobox2)
-        self.sort_methods_combobox2.show()
+        self.sort_methods_combobox.remove(self._SORT_BY_SEARCH_RANKING)
+        self.set_sort_method_with_no_signal(self._SORT_BY_TOP_RATED)
         return
 
     def set_sort_method_with_no_signal(self, sort_method):
         combo = self.sort_methods_combobox
-        is_connected = combo.handler_is_connected(self._handler)
-        if is_connected:
-            combo.handler_block(self._handler)
+        combo.handler_block(self._handler)
         combo.set_active(sort_method)
-        if is_connected:
-            combo.handler_unblock(self._handler)
+        combo.handler_unblock(self._handler)
         return
 
     def set_allow_user_sorting(self, do_allow):
-        self.combo_alignment.set_visible(do_allow)
+        self.sort_methods_combobox.set_visible(do_allow)
         return
 
     def set_header_labels(self, first_line, second_line):
@@ -225,7 +188,7 @@ class AppView(Gtk.VBox):
         self.tree_view.set_model(model)
         return
 
-    def display_matches(self, matches, sort_by_relevance=False):
+    def display_matches(self, matches, is_search=False):
         # FIXME: installedpane handles display of the trees intimately,
         # so for the time being lets just return None in the case of our
         # TreeView displaying an AppTreeStore ...    ;(
@@ -234,11 +197,14 @@ class AppView(Gtk.VBox):
         if isinstance(self.tree_view.appmodel, AppTreeStore):
             return
 
+        sort_by_relevance = is_search and not self.user_defined_sort_method
+
         if sort_by_relevance:
-            self._use_combobox_variant1()
+            self._use_combobox_with_sort_by_search_ranking()
             self.set_sort_method_with_no_signal(self._SORT_BY_SEARCH_RANKING)
         else:
-            self._use_combobox_variant2()
+            if not is_search:
+                self._use_combobox_without_sort_by_search_ranking()
             if (self.get_sort_mode() == SortMethods.BY_SEARCH_RANKING and \
                 not self.user_defined_sort_method):
                 self.set_sort_method_with_no_signal(self._SORT_BY_TOP_RATED)
@@ -252,10 +218,8 @@ class AppView(Gtk.VBox):
         return self.tree_view.clear_model()
 
     def get_sort_mode(self):
-        if self.sort_methods_combobox is not None:
-            active_index = self.sort_methods_combobox.get_active()
-            return self._SORT_METHOD_INDEX[active_index]
-        return None
+        active_index = self.sort_methods_combobox.get_active()
+        return self._SORT_METHOD_INDEX[active_index]
 
 
 def get_test_window():
