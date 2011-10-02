@@ -104,9 +104,58 @@ def __init_network_state():
         bus.add_signal_receiver(__connection_state_changed_handler,
                                 dbus_interface="org.freedesktop.NetworkManager",
                                 signal_name="StateChanged")
+        return
+
     except Exception as e:
         logging.warn("failed to init network state watcher '%s'" % e)
-        NETWORK_STATE = NetState.NM_STATE_UNKNOWN
+
+    def test_ping():
+        global NETWORK_STATE
+        import subprocess
+
+        # ping the main deb repository from the sources.list
+        import aptsources
+        source_list = aptsources.apt_pkg.SourceList()
+        source_list.read_main_list()
+
+        if not source_list.list:
+            log.warn("apt sourcelist had no sources!!!")
+            NETWORK_STATE = NetState.NM_STATE_DISCONNECTED
+
+        else:
+            host = source_list.list[0].uri
+            host = host.replace("http://", "").replace("https://", "").split('/')[0]
+
+            msg = ("Attempting one time ping of %s to test if internet "
+                   "connectivity is avaialble." % host)
+            logging.info(msg)
+
+            ping = subprocess.Popen(
+                ["ping", "-c", "1", host],
+                stdout = subprocess.PIPE,
+                stderr = subprocess.PIPE
+            )
+
+            out, error = ping.communicate()
+            if len(error.splitlines()):
+                NETWORK_STATE = NetState.NM_STATE_DISCONNECTED
+                msg = "Could not detect and internet connection\n%s" % error
+            else:
+                NETWORK_STATE = NetState.NM_STATE_CONNECTED_GLOBAL
+                msg = "Internet connection available!\n%s" % out
+
+        __WATCHER__.emit("changed", NETWORK_STATE)
+        logging.info(msg)
+        return
+
+    NETWORK_STATE = NetState.NM_STATE_UNKNOWN
+    # test ping to check if there is internet connectivity despite
+    # NetworkManager not being available
+    import threading
+    thread = threading.Thread(target=test_ping, name='test_ping')
+    thread.start()
+    return
+
 
 # global watcher
 __WATCHER__ = NetworkStatusWatcher()
