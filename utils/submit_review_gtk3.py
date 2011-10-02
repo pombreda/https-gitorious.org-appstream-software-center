@@ -667,6 +667,7 @@ class SubmitReviewsApp(BaseApp):
 
         self._confirm_cancel_yes_handler = 0
         self._confirm_cancel_no_handler = 0
+        self._displaying_cancel_confirmation = False
         self.submit_window.connect("key-press-event", self._on_key_press_event)
 
         self.review_summary_entry.connect('changed', self._on_mandatory_text_entry_changed)
@@ -902,7 +903,9 @@ class SubmitReviewsApp(BaseApp):
 
     def login_successful(self, display_name):
         self.main_notebook.set_current_page(1)
-        self._setup_details(self.submit_window, self.app, self.iconname, self.version, display_name)
+        self._setup_details(self.submit_window, self.app,
+                            self.iconname, self.version, display_name)
+        self.textview_review.grab_focus()
         return
     
     def _setup_gwibber_gui(self):
@@ -989,17 +992,21 @@ class SubmitReviewsApp(BaseApp):
         return
 
     def _confirm_cancellation(self):
-        if self._has_user_started_reviewing():
+        if (self._has_user_started_reviewing() and not
+            self._displaying_cancel_confirmation):
+
             def do_cancel(widget):
                 self.submit_window.destroy()
                 self.quit()
             def undo_cancel(widget):
+                self._displaying_cancel_confirmation = False
                 self.response_hbuttonbox.set_visible(True)
                 self.main_notebook.set_current_page(1)
 
             self.response_hbuttonbox.set_visible(False)
             self.confirm_cancel_yes.grab_focus()
             self.main_notebook.set_current_page(2)
+            self._displaying_cancel_confirmation = True
 
             if not self._confirm_cancel_yes_handler:
                 tag = self.confirm_cancel_yes.connect("clicked", do_cancel)
@@ -1055,7 +1062,7 @@ class SubmitReviewsApp(BaseApp):
         if gwibber_success:
             self._success_status()
             BaseApp.on_transmit_success(self, api, trans)
-    
+
     def _gwibber_retry_some(self, api, trans, accounts):
         """ perform selective retrying of gwibber posting, using only
             accounts passed in
