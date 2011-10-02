@@ -992,6 +992,7 @@ class SubmitReviewsApp(BaseApp):
         if self._has_user_started_reviewing():
             def do_cancel(widget):
                 self.submit_window.destroy()
+                self.quit()
             def undo_cancel(widget):
                 self.response_hbuttonbox.set_visible(True)
                 self.main_notebook.set_current_page(1)
@@ -1008,6 +1009,7 @@ class SubmitReviewsApp(BaseApp):
                 self._confirm_cancel_no_handler = tag
         else:
             self.submit_window.destroy()
+            self.quit()
         return
 
     def _get_send_accounts(self, sel_index):
