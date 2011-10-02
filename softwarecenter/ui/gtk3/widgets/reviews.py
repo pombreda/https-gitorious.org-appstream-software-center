@@ -96,7 +96,7 @@ class UIReviewsList(Gtk.VBox):
 
         self.header = Gtk.HBox()
         self.header.set_spacing(StockEms.MEDIUM)
-        self.new_review = Gtk.Button(_('Write your own review'))
+        self.new_review = Link(_('Write your own review'))
 
         inner_vb = Gtk.VBox()
         inner_vb.pack_start(label, False, False, 0)
