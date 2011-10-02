@@ -123,11 +123,13 @@ def __init_network_state():
             NETWORK_STATE = NetState.NM_STATE_DISCONNECTED
 
         else:
+            # get a host to ping
             host = source_list.list[0].uri
-            host = host.replace("http://", "").replace("https://", "").split('/')[0]
+            # get the uri into a format that will make ping happy
+            host = host.lstrip("htps:/").split('/')[0]
 
             msg = ("Attempting one time ping of %s to test if internet "
-                   "connectivity is avaialble." % host)
+                   "connectivity exists." % host)
             logging.info(msg)
 
             ping = subprocess.Popen(
