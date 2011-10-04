@@ -1,5 +1,6 @@
 software-center (5.0.1) UNRELEASED; urgency=low
 
+  [ Michael Vogt ]
   * softwarecenter/ui/gtk3/widgets/reviews.py:
     - Fix i18n bug in the error string for the reviews. This 
       adds two new strings for a rare error message in the UI that 
@@ -10,7 +11,12 @@ software-center (5.0.1) UNRELEASED; urgency=low
   * apt-xapian-index-plugin/software-center.py:
     - do not crash if a apt.Package.candidate has no url (LP: #819907)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 30 Sep 2011 09:52:55 +0200
+  [ Gary Lasker ]
+  * debian/control:
+    - add dependency on python-gobject-cairo to prevent crash
+      at startup (LP: #829067) 
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 04 Oct 2011 00:41:24 -0400
 
 software-center (5.0) oneiric; urgency=low
 
