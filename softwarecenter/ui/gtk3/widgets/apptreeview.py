@@ -115,7 +115,8 @@ class AppTreeView(Gtk.TreeView):
         
     def clear_model(self):
         vadjustment = self.get_scrolled_window_vadjustment()
-        vadjustment.set_value(0)
+        if vadjustment:
+            vadjustment.set_value(0)
         self.expanded_path = None
         self.appmodel.clear()
 

@@ -11,12 +11,16 @@ software-center (5.0.1) UNRELEASED; urgency=low
   * apt-xapian-index-plugin/software-center.py:
     - do not crash if a apt.Package.candidate has no url (LP: #819907)
 
+  [ Robert Roth ]
+  * softwarecenter/ui/gtk3/widgets/apptreeview.py:
+    - fix crash in clear_model() (LP: #863233)
+
   [ Gary Lasker ]
   * debian/control:
     - add dependency on python-gobject-cairo to prevent crash
       at startup (LP: #829067) 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Tue, 04 Oct 2011 00:41:24 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 04 Oct 2011 01:10:09 -0400
 
 software-center (5.0) oneiric; urgency=low
 
