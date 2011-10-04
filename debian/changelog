@@ -23,6 +23,9 @@ software-center (5.0.1) UNRELEASED; urgency=low
   [ Matthew McGowan ]
   * lp:~mmcg069/software-center/bug855666:
     - add missing linewrap (LP: #855666)
+  * lp:~mmcg069/software-center/bug858639 :
+    - fix crash when data can not be parsed from the remote reviews server
+      LP: #858639
 
  -- Gary Lasker <gary.lasker@canonical.com>  Tue, 04 Oct 2011 01:10:09 -0400
 
