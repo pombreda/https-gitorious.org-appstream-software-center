@@ -72,10 +72,10 @@ if __name__ == "__main__":
     try:
         piston_reviews = try_get_reviews(kwargs)
     except ValueError as e:
-        LOG.error("failed to parse '%s'" % e.doc)
+        LOG.error("failed to parse '%s'" % e)
     #bug lp:709408 - don't print 404 errors as traceback when api request 
     #                returns 404 error
-    except APIError, e:
+    except APIError as e:
         LOG.warn("_get_reviews_threaded: no reviews able to be retrieved for package: %s (%s, origin: %s)" % (options.pkgname, options.distroseries, options.origin))
         LOG.debug("_get_reviews_threaded: no reviews able to be retrieved: %s" % e)
     except httplib2.ServerNotFoundError:
