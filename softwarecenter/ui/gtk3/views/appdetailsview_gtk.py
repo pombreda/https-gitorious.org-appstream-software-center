@@ -123,6 +123,7 @@ class PackageStatusBar(StatusBar):
         self.installed_icon  = Gtk.Image.new_from_icon_name(
             Icons.INSTALLED_OVERLAY, Gtk.IconSize.DIALOG)
         self.label = Gtk.Label()
+        self.label.set_line_wrap(True)
         self.button = Gtk.Button()
         self.progress = Gtk.ProgressBar()
 
