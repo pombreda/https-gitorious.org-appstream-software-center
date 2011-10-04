@@ -20,6 +20,10 @@ software-center (5.0.1) UNRELEASED; urgency=low
     - add dependency on python-gobject-cairo to prevent crash
       at startup (LP: #829067) 
 
+  [ Matthew McGowan ]
+  * lp:~mmcg069/software-center/bug855666:
+    - add missing linewrap (LP: #855666)
+
  -- Gary Lasker <gary.lasker@canonical.com>  Tue, 04 Oct 2011 01:10:09 -0400
 
 software-center (5.0) oneiric; urgency=low
