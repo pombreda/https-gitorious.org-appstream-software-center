@@ -123,6 +123,7 @@ class XapianValues:
     CATEGORIES = 191
     LICENSE_KEY = 192
     LICENSE_KEY_PATH = 193           # no longer used
+    LICENSE = 194
 
 # fake channels
 PURCHASED_NEEDS_REINSTALL_MAGIC_CHANNEL_NAME = "for-pay-needs-reinstall"

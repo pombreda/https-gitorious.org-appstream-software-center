@@ -1,3 +1,43 @@
+software-center (5.0.1) oneiric; urgency=low
+
+  [ Michael Vogt ]
+  * softwarecenter/ui/gtk3/widgets/reviews.py:
+    - Fix i18n bug in the error string for the reviews. This 
+      adds two new strings for a rare error message in the UI that 
+      was previously not translatable. Thanks to David Planella
+  * softwarecenter/db/database.py:
+    - when adding a new database (e.g. on reinstall-previous purchases)
+      trigger a "reopen" to ensure that the db docids are reinitialized
+  * apt-xapian-index-plugin/software-center.py:
+    - do not crash if a apt.Package.candidate has no url (LP: #819907)
+  * softwarecenter/ui/gtk3/views/catview_gtk.py:
+    - only show the frame with new apps if we actually have information
+      about new applications (LP: #862382)
+
+  [ Robert Roth ]
+  * softwarecenter/ui/gtk3/widgets/apptreeview.py:
+    - fix crash in clear_model() (LP: #863233)
+
+  [ Gary Lasker ]
+  * debian/control:
+    - add dependency on python-gobject-cairo to prevent crash
+      at startup (LP: #829067) 
+  * softwarecenter/db/application.py,
+    softwarecenter/db/update.py,
+    softwarecenter/distro/Ubuntu.py,
+    softwarecenter/enums.py:
+    - display the correct license type for commercial apps as
+      specified via the software-center-agent (LP: #864706)
+
+  [ Matthew McGowan ]
+  * lp:~mmcg069/software-center/bug855666:
+    - add missing linewrap (LP: #855666)
+  * lp:~mmcg069/software-center/bug858639 :
+    - fix crash when data can not be parsed from the remote reviews server
+      LP: #858639
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 05 Oct 2011 11:24:05 +0200
+
 software-center (5.0) oneiric; urgency=low
 
   [ Gary Lasker ]

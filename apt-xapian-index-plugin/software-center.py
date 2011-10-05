@@ -109,9 +109,13 @@ class SoftwareCenterMetadataPlugin:
         if CustomKeys.ICON in ver.record:
             icon = ver.record[CustomKeys.ICON]
             document.add_value(XapianValues.ICON, icon)
-            # calculate the url and add it
-            url = get_distro().get_downloadable_icon_url(ver.uri, icon)
-            document.add_value(XapianValues.ICON_URL, url)
+            # calculate the url and add it (but only if there actually is
+            # a url)
+            try:
+                url = get_distro().get_downloadable_icon_url(ver.uri, icon)
+                document.add_value(XapianValues.ICON_URL, url)
+            except StopIteration:
+                pass
         if CustomKeys.SCREENSHOT_URL in ver.record:
             screenshot_url = ver.record[CustomKeys.SCREENSHOT_URL]
             document.add_value(XapianValues.SCREENSHOT_URL, screenshot_url)
