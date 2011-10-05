@@ -27,6 +27,8 @@ from softwarecenter.ui.gtk3.panes.softwarepane import DisplayState
 from softwarecenter.ui.gtk3.models.pendingstore import PendingStore
 from softwarecenter.ui.gtk3.session.viewmanager import get_viewmanager
 
+LOG = logging.getLogger(__name__)
+
 
 class PendingPane(Gtk.ScrolledWindow, BasePane):
     
@@ -80,6 +82,7 @@ class PendingPane(Gtk.ScrolledWindow, BasePane):
         # add it
         store = PendingStore(icons)
         self.tv.set_model(store)
+        
     def _on_button_pressed(self, widget, event):
         """button press handler to capture clicks on the cancel button"""
         #print "_on_clicked: ", event
@@ -104,8 +107,8 @@ class PendingPane(Gtk.ScrolledWindow, BasePane):
         trans = model._transactions_watcher.get_transaction(tid)
         try:
             trans.cancel()
-        except dbus.exceptions.DBusException:
-            logging.exception("transaction cancel failed")
+        except Exception as e:
+            LOG.warning("transaction cancel failed: %s" % e)
 
     # subscribe to the back-forward navigation ...
     def on_nav_back_clicked(self, widget):
