@@ -141,6 +141,7 @@ class SoftwareCenterAgentParser(AppInfoParserBase):
                 'Channel'    : 'channel',
                 'Deb-Line'   : 'deb_line',
                 'Signing-Key-Id' : 'signing_key_id',
+                'License'    : 'license',
                 'Purchased-Date' : 'purchase_date',
                 'License-Key' : 'license_key',
                 'License-Key-Path' : 'license_key_path',
@@ -148,7 +149,7 @@ class SoftwareCenterAgentParser(AppInfoParserBase):
                 'Icon'       : 'icon',
                 'Screenshot-Url' : 'screenshot_url',
                 'Thumbnail-Url' : 'thumbnail_url',
-                'Icon-Url' : 'icon_url',
+                'Icon-Url'   : 'icon_url',
               }
 
     # map from requested key to a static data element
@@ -644,10 +645,14 @@ def index_app_info_from_parser(parser, db, cache):
             archive_channel = parser.get_desktop("X-AppInstall-Channel")
             doc.add_term("AH"+archive_channel)
             doc.add_value(XapianValues.ARCHIVE_CHANNEL, archive_channel)
-        # singing key (third party)
+        # signing key (third party)
         if parser.has_option_desktop("X-AppInstall-Signing-Key-Id"):
             keyid = parser.get_desktop("X-AppInstall-Signing-Key-Id")
             doc.add_value(XapianValues.ARCHIVE_SIGNING_KEY_ID, keyid)
+        # license (third party)
+        if parser.has_option_desktop("X-AppInstall-License"):
+            license = parser.get_desktop("X-AppInstall-License")
+            doc.add_value(XapianValues.LICENSE, license)
         # purchased date
         if parser.has_option_desktop("X-AppInstall-Purchased-Date"):
             date = parser.get_desktop("X-AppInstall-Purchased-Date")

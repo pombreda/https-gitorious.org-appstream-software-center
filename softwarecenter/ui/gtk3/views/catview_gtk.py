@@ -454,10 +454,11 @@ class LobbyViewGtk(CategoriesViewGtk):
         frame.set_header_label(_(u"What\u2019s New"))
         frame.add(self.featured)
         self.new_frame = frame
-        self.right_column.pack_start(frame, True, True, 0)
 
         whatsnew_cat = self._update_new_content()
         if whatsnew_cat is not None:
+            # only add to the visible right_frame if we actually have it
+            self.right_column.pack_start(frame, True, True, 0)
             frame.header_implements_more_button()
             frame.more.connect('clicked', self.on_category_clicked, whatsnew_cat) 
         return

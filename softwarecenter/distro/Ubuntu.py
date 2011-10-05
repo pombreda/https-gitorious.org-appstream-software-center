@@ -100,8 +100,13 @@ class Ubuntu(Debian):
     def get_license_text(self, component):
         if component in ("main", "universe", "independent"):
             return _("Open source")
-        elif component in ("restricted", "commercial"):
+        elif component == "restricted":
             return _("Proprietary")
+        else:
+            # commercial apps provide license info via the software-center-agent,
+            # but if a given commercial app does not provide this for some reason,
+            # default to a license type of "Unknown"
+            return _("Unknown")
 
     def is_supported(self, cache, doc, pkgname):
         # the doc does not by definition contain correct data regarding the

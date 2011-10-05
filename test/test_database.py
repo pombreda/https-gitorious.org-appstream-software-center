@@ -118,7 +118,23 @@ class TestDatabase(unittest.TestCase):
                             "ARCHIVE_PPA value incorrect, got '%s'" % ppa)
             self.assertTrue(
                 doc.get_value(XapianValues.ICON).startswith("sc-agent"))
-        
+
+    def test_license_string_data_from_software_center_agent(self):
+        from softwarecenter.db.update import update_from_software_center_agent
+        from softwarecenter.testutils import get_test_pkg_info
+        os.environ["SOFTWARE_CENTER_BUY_HOST"] = "http://sca.razorgirl.info/"
+        cache = get_test_pkg_info()
+        db = xapian.WritableDatabase("./data/test.db", 
+                                     xapian.DB_CREATE_OR_OVERWRITE)
+        res = update_from_software_center_agent(db, cache, ignore_cache=True)
+        self.assertTrue(res)
+        for p in db.postlist(""):
+            doc = db.get_document(p.docid)
+            license = doc.get_value(XapianValues.LICENSE)
+            self.assertNotEqual(license, "")
+            self.assertNotEqual(license, None)
+        del os.environ["SOFTWARE_CENTER_BUY_HOST"]
+
     def test_application(self):
         db = StoreDatabase("/var/cache/software-center/xapian", self.cache)
         # fail if AppDetails(db) without document= or application=

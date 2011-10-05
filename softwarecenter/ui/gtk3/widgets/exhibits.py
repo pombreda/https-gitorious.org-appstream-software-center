@@ -51,6 +51,7 @@ padding: 0.2em;
 position:absolute;
 top:40px;
 left:232px;
+white-space: nowrap;
 }
 .banner_subtext {
 font-family:Ubuntu;
