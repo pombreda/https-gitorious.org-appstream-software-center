@@ -10,6 +10,9 @@ software-center (5.0.1) UNRELEASED; urgency=low
       trigger a "reopen" to ensure that the db docids are reinitialized
   * apt-xapian-index-plugin/software-center.py:
     - do not crash if a apt.Package.candidate has no url (LP: #819907)
+  * softwarecenter/ui/gtk3/views/catview_gtk.py:
+    - only show the frame with new apps if we actually have information
+      about new applications (LP: #862382)
 
   [ Robert Roth ]
   * softwarecenter/ui/gtk3/widgets/apptreeview.py:
