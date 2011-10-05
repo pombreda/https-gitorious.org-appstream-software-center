@@ -1,3 +1,10 @@
+software-center (5.0.1.2) UNRELEASED; urgency=low
+
+  * softwarecenter/ui/gtk3/widgets/exhibits.py:
+    - force no line wrap for the header (LP: #867821)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 05 Oct 2011 17:42:33 +0200
+
 software-center (5.0.1.1) oneiric; urgency=low
 
   * softwarecenter/db/application.py:
