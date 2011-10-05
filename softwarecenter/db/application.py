@@ -336,7 +336,9 @@ class AppDetails(object):
 
     @property
     def license(self):
-        xapian_license = self._doc.get_value(XapianValues.LICENSE)
+        xapian_license = None
+        if self._doc:
+            xapian_license = self._doc.get_value(XapianValues.LICENSE)
         if xapian_license:
             return xapian_license
         else:
