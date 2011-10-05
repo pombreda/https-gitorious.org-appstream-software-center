@@ -133,7 +133,7 @@ class PkgListModel(QAbstractListModel):
         self.clear()
         docs = self.db.get_docs_from_query(
             str(querystr), start=0, end=500, category=self._category)
-        self.beginInsertRows(QModelIndex(), 0, len(docs))
+        self.beginInsertRows(QModelIndex(), 0, len(docs)-1)
         self._docs = docs
         self.endInsertRows()
 
