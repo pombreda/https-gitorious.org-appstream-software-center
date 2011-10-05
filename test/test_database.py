@@ -127,6 +127,7 @@ class TestDatabase(unittest.TestCase):
         db = xapian.WritableDatabase("./data/test.db", 
                                      xapian.DB_CREATE_OR_OVERWRITE)
         res = update_from_software_center_agent(db, cache, ignore_cache=True)
+        self.assertTrue(res)
         for p in db.postlist(""):
             doc = db.get_document(p.docid)
             license = doc.get_value(XapianValues.LICENSE)

@@ -1,4 +1,4 @@
-software-center (5.0.1) UNRELEASED; urgency=low
+software-center (5.0.1) oneiric; urgency=low
 
   [ Michael Vogt ]
   * softwarecenter/ui/gtk3/widgets/reviews.py:
@@ -36,7 +36,7 @@ software-center (5.0.1) UNRELEASED; urgency=low
     - fix crash when data can not be parsed from the remote reviews server
       LP: #858639
 
- -- Gary Lasker <gary.lasker@canonical.com>  Tue, 04 Oct 2011 21:03:47 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 05 Oct 2011 11:24:05 +0200
 
 software-center (5.0) oneiric; urgency=low
 
