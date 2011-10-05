@@ -19,6 +19,12 @@ software-center (5.0.1) UNRELEASED; urgency=low
   * debian/control:
     - add dependency on python-gobject-cairo to prevent crash
       at startup (LP: #829067) 
+  * softwarecenter/db/application.py,
+    softwarecenter/db/update.py,
+    softwarecenter/distro/Ubuntu.py,
+    softwarecenter/enums.py:
+    - display the correct license type for commercial apps as
+      specified via the software-center-agent (LP: #864706)
 
   [ Matthew McGowan ]
   * lp:~mmcg069/software-center/bug855666:
@@ -27,7 +33,7 @@ software-center (5.0.1) UNRELEASED; urgency=low
     - fix crash when data can not be parsed from the remote reviews server
       LP: #858639
 
- -- Gary Lasker <gary.lasker@canonical.com>  Tue, 04 Oct 2011 01:10:09 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 04 Oct 2011 21:03:47 -0400
 
 software-center (5.0) oneiric; urgency=low
 
