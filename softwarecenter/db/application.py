@@ -336,7 +336,11 @@ class AppDetails(object):
 
     @property
     def license(self):
-        return self._distro.get_license_text(self.component)
+        xapian_license = self._doc.get_value(XapianValues.LICENSE)
+        if xapian_license:
+            return xapian_license
+        else:
+            return self._distro.get_license_text(self.component)
 
     @property
     def maintenance_status(self):
