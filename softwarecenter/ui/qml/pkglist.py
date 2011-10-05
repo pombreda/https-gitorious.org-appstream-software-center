@@ -70,8 +70,8 @@ class PkgListModel(QAbstractListModel):
             return None
         doc = self._docs[index.row()]
         role = self.COLUMNS[role]
-        pkgname = unicode(self.db.get_pkgname(doc))
-        appname =  unicode(self.db.get_appname(doc))
+        pkgname = unicode(self.db.get_pkgname(doc), "utf8", "ignore")
+        appname =  unicode(self.db.get_appname(doc), "utf8", "ignore")
         if role == "_pkgname":
             return pkgname 
         elif role == "_appname":
@@ -123,6 +123,8 @@ class PkgListModel(QAbstractListModel):
         return path
         
     def clear(self):
+        if self._docs == []:
+            return
         self.beginRemoveRows(QModelIndex(), 0, self.rowCount()-1)
         self._docs = []
         self.endRemoveRows()
@@ -131,7 +133,7 @@ class PkgListModel(QAbstractListModel):
         self.clear()
         docs = self.db.get_docs_from_query(
             str(querystr), start=0, end=500, category=self._category)
-        self.beginInsertRows(QModelIndex(), len(docs), len(docs))
+        self.beginInsertRows(QModelIndex(), 0, len(docs))
         self._docs = docs
         self.endInsertRows()
 
@@ -172,3 +174,25 @@ class PkgListModel(QAbstractListModel):
                 raise Exception("Can not find category '%s'" % catname)
         # and trigger a query
         self._runQuery(self._query)
+
+if __name__ == "__main__":
+    from PySide.QtGui import QApplication
+    from PySide.QtDeclarative import QDeclarativeView 
+    import sys
+
+    app = QApplication(sys.argv)
+    app.cache = get_pkg_info()
+    app.cache.open()
+    view = QDeclarativeView()
+    model = PkgListModel()
+    rc = view.rootContext()
+    rc.setContextProperty('pkglistmodel', model)
+
+    # load the main QML file into the view
+    qmlpath = os.path.join(os.path.dirname(__file__), "AppListView.qml")
+    view.setSource(qmlpath)
+
+    # show it
+    view.show()
+    sys.exit(app.exec_())
+

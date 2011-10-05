@@ -74,6 +74,9 @@ class _Package:
     @property
     def installed_files(self):
         return self.pkginfo.get_installed_files(self.name)
+    @property
+    def description(self):
+        return self.pkginfo.get_description(self.name)
 
 class PackageInfo(GObject.GObject):
     """ abstract interface for the packageinfo information """
