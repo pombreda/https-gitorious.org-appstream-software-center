@@ -1,4 +1,4 @@
-software-center (5.0.1.1) UNRELEASED; urgency=low
+software-center (5.0.1.1) oneiric; urgency=low
 
   * softwarecenter/db/application.py:
     - fix crash when installing a standalone deb (LP: #868333)
