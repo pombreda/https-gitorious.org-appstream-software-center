@@ -155,6 +155,7 @@ FocusScope {
                     id: ratingstars
                     anchors.top: parent.top
                     anchors.right: parent.right
+                    height: 16
                     ratings_average: ratingsaverage
                 }
 

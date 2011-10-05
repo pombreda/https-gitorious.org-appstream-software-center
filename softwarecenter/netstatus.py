@@ -19,10 +19,11 @@
 
 
 import dbus
-import gobject
 import logging
 
 from dbus.mainloop.glib import DBusGMainLoop
+
+from gi.repository import GObject
 
 # enums
 class NetState(object):
@@ -61,15 +62,15 @@ class NetState(object):
                                    NM_STATE_DISCONNECTED]
 
 
-class NetworkStatusWatcher(gobject.GObject):
+class NetworkStatusWatcher(GObject.GObject):
     """ simple watcher which notifys subscribers to network events..."""
-    __gsignals__ = {'changed':(gobject.SIGNAL_RUN_FIRST,
-                               gobject.TYPE_NONE,
+    __gsignals__ = {'changed':(GObject.SIGNAL_RUN_FIRST,
+                               GObject.TYPE_NONE,
                                (int,)),
                    }
 
     def __init__(self):
-        gobject.GObject.__init__(self)
+        GObject.GObject.__init__(self)
         return
 
 # internal helper
@@ -88,10 +89,10 @@ def __init_network_state():
     # check is SOFTWARE_CENTER_NET_DISCONNECTED is in the environment variables
     # if so force the network status to be disconnected
     import os
-    if "SOFTWARE_CENTER_NET_DISCONNECTED" in os.environ and \
-        os.environ["SOFTWARE_CENTER_NET_DISCONNECTED"] == 1:
+    if ("SOFTWARE_CENTER_NET_DISCONNECTED" in os.environ and
+        os.environ["SOFTWARE_CENTER_NET_DISCONNECTED"] == 1):
         NETWORK_STATE = NetState.NM_STATE_DISCONNECTED
-        print 'forced netstate into disconnected mode...'
+        print('forced netstate into disconnected mode...')
         return
 
     dbus_loop = DBusGMainLoop()
@@ -129,6 +130,6 @@ def network_state_is_connected():
 __init_network_state()
 
 if __name__ == '__main__':
-    loop = gobject.MainLoop()
+    loop = GObject.MainLoop()
     loop.run()
 

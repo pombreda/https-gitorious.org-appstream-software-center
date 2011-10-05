@@ -18,14 +18,21 @@
 
 
 import apt_pkg
-import cPickle
-import gio
-import glib
+apt_pkg.init_config()
+
+from gi.repository import GObject
+from gi.repository import Gio
+
 import glob
 import gzip
 import os.path
 import logging
 
+try:
+    import cPickle as pickle
+    pickle # pyflakes
+except ImportError:
+    import pickle
 
 LOG = logging.getLogger(__name__)
 
@@ -33,22 +40,23 @@ from softwarecenter.paths import SOFTWARE_CENTER_CACHE_DIR
 from softwarecenter.utils import ExecutionTime
 from softwarecenter.db.history import Transaction, PackageHistory
 
+
 class AptHistory(PackageHistory):
 
     def __init__(self, use_cache=True):
         LOG.debug("AptHistory.__init__()")
-        self.main_context = glib.main_context_default()
+        self.main_context = GObject.main_context_default()
         self.history_file = apt_pkg.config.find_file("Dir::Log::History")
         #Copy monitoring of history file changes from historypane.py
-        self.logfile = gio.File(self.history_file)
-        self.monitor = self.logfile.monitor_file()
+        self.logfile = Gio.File.new_for_path(self.history_file)
+        self.monitor = self.logfile.monitor_file(0, None)
         self.monitor.connect("changed", self._on_apt_history_changed)
         self.update_callback = None
         LOG.debug("init history")
         # this takes a long time, run it in the idle handler
         self._transactions = []
         self._history_ready = False
-        glib.idle_add(self._rescan, use_cache)
+        GObject.idle_add(self._rescan, use_cache)
 
     @property
     def transactions(self):
@@ -68,7 +76,7 @@ class AptHistory(PackageHistory):
         if os.path.exists(p) and use_cache:
             with ExecutionTime("loading pickle cache"):
                 try:
-                    self._transactions = cPickle.load(open(p))
+                    self._transactions = pickle.load(open(p))
                     cachetime = os.path.getmtime(p)
                 except:
                     LOG.exception("failed to load cache")
@@ -80,14 +88,14 @@ class AptHistory(PackageHistory):
             self._scan(history_gz_file)
         self._scan(self.history_file)
         if use_cache:
-            cPickle.dump(self._transactions, open(p, "w"))
+            pickle.dump(self._transactions, open(p, "w"))
         self._history_ready = True
     
     def _scan(self, history_file, rescan = False):
         LOG.debug("_scan: '%s' (%s)" % (history_file, rescan))
         try:
             tagfile = apt_pkg.TagFile(open(history_file))
-        except (IOError, SystemError), ioe:
+        except (IOError, SystemError) as ioe:
             LOG.debug(ioe)
             return
         for stanza in tagfile:
@@ -97,7 +105,7 @@ class AptHistory(PackageHistory):
             # ignore records with 
             try:
                 trans = Transaction(stanza)
-            except KeyError:
+            except (KeyError, ValueError):
                 continue
             # ignore the ones we have already
             if (rescan and
@@ -111,7 +119,7 @@ class AptHistory(PackageHistory):
                 self._transactions.insert(0, trans)
             
     def _on_apt_history_changed(self, monitor, afile, other_file, event):
-        if event == gio.FILE_MONITOR_EVENT_CHANGES_DONE_HINT:
+        if event ==  Gio.FileMonitorEvent.CHANGES_DONE_HINT:
             self._scan(self.history_file, rescan = True)
             if self.update_callback:
                 self.update_callback()

@@ -19,7 +19,12 @@
 
 import os
 
-import gtk
+# this is a bit silly, but *something* imports gtk2 symbols, so if we 
+# force gtk3 here it crashes - the only reason we need this at all is to
+# get the icon path
+import gi
+gi.require_version("Gtk", "2.0")
+from gi.repository import Gtk
 
 from PySide.QtCore import QAbstractListModel, QModelIndex
 #from PySide.QtGui import QIcon
@@ -61,11 +66,11 @@ class CategoriesModel(QAbstractListModel):
         cat = self._categories[index.row()]
         role = self.COLUMNS[role]
         if role == "_name":
-            return unicode(cat.name)
+            return unicode(cat.name, "utf8", "ignore")
         elif role == "_iconname":
             # funny, but it appears like Qt does not have something
             # to lookup the icon path in QIcon
-            icons = gtk.icon_theme_get_default()
+            icons = Gtk.IconTheme.get_default()
             info = icons.lookup_icon(cat.iconname, 48, 0)
             if info:
                 return info.get_filename()

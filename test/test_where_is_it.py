@@ -6,7 +6,7 @@ import unittest
 sys.path.insert(0,"../")
 
 from softwarecenter.paths import XAPIAN_BASE_PATH
-from softwarecenter.utils import GMenuSearcher
+from softwarecenter.ui.gtk3.gmenusearch import GMenuSearcher
 from softwarecenter.db.pkginfo import get_pkg_info
 from softwarecenter.db.database import StoreDatabase
 from softwarecenter.db.application import Application
@@ -44,31 +44,35 @@ class TestWhereIsit(unittest.TestCase):
         app = Application("Calculator", "gcalctool")
         details = app.get_details(self.db)
         self.assertEqual(details.desktop_file, 
-                         "/usr/share/app-install/desktop/gcalctool.desktop")
+                         "/usr/share/app-install/desktop/gcalctool:gcalctool.desktop")
         # search the settings menu
         searcher = GMenuSearcher()
         found = searcher.get_main_menu_path(
             details.desktop_file,
             [os.path.abspath("./data/fake-applications.menu")])
         self.assertEqual(found[0].get_name(), "Applications")
-        self.assertEqual(found[0].get_icon(), "applications-other")
+        self.assertEqual(found[0].get_icon().get_names()[0], 
+                         "applications-other")
         self.assertEqual(found[1].get_name(), "Accessories")
-        self.assertEqual(found[1].get_icon(), "applications-utilities")
+        self.assertEqual(found[1].get_icon().get_names()[0], 
+                         "applications-utilities")
     
     def test_where_is_it_kde4(self):
         app = Application("", "ark")
         details = app.get_details(self.db)
         self.assertEqual(details.desktop_file, 
-                         "/usr/share/app-install/desktop/kde4___ark.desktop")
+                         "/usr/share/app-install/desktop/ark:kde4__ark.desktop")
         # search the settings menu
         searcher = GMenuSearcher()
         found = searcher.get_main_menu_path(
             details.desktop_file,
             [os.path.abspath("./data/fake-applications.menu")])
         self.assertEqual(found[0].get_name(), "Applications")
-        self.assertEqual(found[0].get_icon(), "applications-other")
+        self.assertEqual(found[0].get_icon().get_names()[0], 
+                         "applications-other")
         self.assertEqual(found[1].get_name(), "Accessories")
-        self.assertEqual(found[1].get_icon(), "applications-utilities")
+        self.assertEqual(found[1].get_icon().get_names()[0], 
+                         "applications-utilities")
         
 
 if __name__ == "__main__":

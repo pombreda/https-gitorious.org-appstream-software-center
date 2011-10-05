@@ -19,29 +19,34 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import cPickle
-import glib
-import gobject
+# py3 compat
+try:
+    import cPickle as pickle
+    pickle # pyflakes
+except ImportError:
+    import pickle
+
 import logging
 import os
-import simplejson
+import json
 
+from gi.repository import GObject
 
 LOG = logging.getLogger(__name__)
 
-class SpawnHelper(gobject.GObject):
+class SpawnHelper(GObject.GObject):
     
     __gsignals__ = {
-        "data-available" : (gobject.SIGNAL_RUN_LAST,
-                            gobject.TYPE_NONE, 
-                            (gobject.TYPE_PYOBJECT,),
+        "data-available" : (GObject.SIGNAL_RUN_LAST,
+                            GObject.TYPE_NONE, 
+                            (GObject.TYPE_PYOBJECT,),
                             ),
-        "exited" : (gobject.SIGNAL_RUN_LAST,
-                    gobject.TYPE_NONE, 
+        "exited" : (GObject.SIGNAL_RUN_LAST,
+                    GObject.TYPE_NONE, 
                     (int,),
                     ),
-        "error" : (gobject.SIGNAL_RUN_LAST,
-                   gobject.TYPE_NONE, 
+        "error" : (GObject.SIGNAL_RUN_LAST,
+                   GObject.TYPE_NONE, 
                    (str,),
                   ),
         }
@@ -51,29 +56,42 @@ class SpawnHelper(gobject.GObject):
         self._expect_format = format
         self._stdout = None
         self._stderr = None
+        self._io_watch = None
+        self._child_watch = None
+        self._cmd = None
 
     def run(self, cmd):
-        (pid, stdin, stdout, stderr) = glib.spawn_async(
-            cmd, flags = glib.SPAWN_DO_NOT_REAP_CHILD, 
+        self._cmd = cmd
+        (pid, stdin, stdout, stderr) = GObject.spawn_async(
+            cmd, flags = GObject.SPAWN_DO_NOT_REAP_CHILD, 
             standard_output=True, standard_error=True)
-        glib.child_watch_add(
+        LOG.debug("running: '%s' as pid: '%s'" % (cmd, pid))
+        self._child_watch = GObject.child_watch_add(
             pid, self._helper_finished, data=(stdout, stderr))
-        glib.io_add_watch(
-            stdout, glib.IO_IN, self._helper_io_ready, (stdout, ))
+        self._io_watch = GObject.io_add_watch(
+            stdout, GObject.IO_IN, self._helper_io_ready, (stdout, ))
 
     def _helper_finished(self, pid, status, (stdout, stderr)):
+        LOG.debug("helper_finished: '%s' '%s'" % (pid, status))
         # get status code
         res = os.WEXITSTATUS(status)
-        if res != 0:
+        if res == 0:
+            self.emit("exited", res)
+        else:
             LOG.warn("exit code %s from helper" % res)
-        # check stderr
-        err = os.read(stderr, 4*1024)
-        self._stderr = err
-        if err:
-            LOG.warn("got error from helper: '%s'" % err)
+            # check stderr
+            err = os.read(stderr, 4*1024)
+            self._stderr = err
+            if err:
+                LOG.warn("got error from helper: '%s'" % err)
             self.emit("error", err)
-        os.close(stderr)
-        self.emit("exited", res)
+            os.close(stderr)
+        if self._io_watch:
+            # remove with a delay timeout delay to ensure that any
+            # pending data is still flused
+            GObject.timeout_add(100, GObject.source_remove, self._io_watch)
+        if self._child_watch:
+            GObject.source_remove(self._child_watch)
 
     def _helper_io_ready(self, source, condition, (stdout,)):
         # read the raw data
@@ -88,17 +106,18 @@ class SpawnHelper(gobject.GObject):
             # unpickle it, we should *always* get valid data here, so if
             # we don't this should raise a error
             try:
-                data = cPickle.loads(data)
+                data = pickle.loads(data)
             except:
                 LOG.exception("can not load pickle data: '%s'" % data)
         elif self._expect_format == "json":
             try:
-                data = simplejson.loads(data)
+                data = json.loads(data)
             except:
                 LOG.exception("can not load json: '%s'" % data)
         elif self._expect_format == "none":
             pass
         else:
             LOG.error("unknown format: '%s'", self._expect_format)
+        LOG.debug("got data for cmd: '%s'='%s'" % (self._cmd, data))
         self.emit("data-available", data)
         return False

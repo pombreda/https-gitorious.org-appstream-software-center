@@ -20,23 +20,21 @@ class TestSCAddons(unittest.TestCase):
         # apt 
         (recommends, suggests) = self.cache.get_addons(
             "apt", ignore_installed=False)
-        self.assertEqual(set(recommends), set(['ubuntu-keyring']))
         self.assertEqual(set(suggests), set(
                 ['lzma', 'bzip2', 'apt-doc', 'wajig', 'aptitude', 'dpkg-dev', 
                  'python-apt', 'synaptic']))
         # synaptic
         (recommends, suggests) = self.cache.get_addons(
             "synaptic", ignore_installed=False)
-        # FIXME: kdebase?!?!?! that is rather unneeded (kdesu brings that in)
         self.assertEqual(set(recommends), set(
-                ["kdebase-bin", "apt-xapian-index", "gksu", "kdebase-bin", 
-                 'libgtk2-perl', 'rarian-compat', 'software-properties-gtk']))
-        self.assertEqual(set(suggests), set(["dwww", "deborphan", "menu"]))
+                ['libgtk2-perl', 'rarian-compat', 'software-properties-gtk']))
+        self.assertEqual(set(suggests), set(
+                ["apt-xapian-index", "dwww", "deborphan", "menu"]))
 
 
     def test_enhances(self):
         res = self.cache.get_addons("gwenview")
-        self.assertEqual(res, ([], ["kipi-plugins"]))
+        self.assertEqual(res, ([], ["svgpart", "kipi-plugins"]))
 
     def test_enhances_with_virtual_pkgs(self):
         res = self.cache.get_addons("bibletime")

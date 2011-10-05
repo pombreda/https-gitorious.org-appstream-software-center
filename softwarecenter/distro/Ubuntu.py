@@ -29,6 +29,8 @@ from gettext import gettext as _
 from softwarecenter.distro.Debian import Debian
 from softwarecenter.enums import BUY_SOMETHING_HOST
 
+LOG = logging.getLogger(__name__)
+
 class Ubuntu(Debian):
 
     # see __init__.py description
@@ -98,8 +100,13 @@ class Ubuntu(Debian):
     def get_license_text(self, component):
         if component in ("main", "universe", "independent"):
             return _("Open source")
-        elif component in ("restricted", "commercial"):
+        elif component == "restricted":
             return _("Proprietary")
+        else:
+            # commercial apps provide license info via the software-center-agent,
+            # but if a given commercial app does not provide this for some reason,
+            # default to a license type of "Unknown"
+            return _("Unknown")
 
     def is_supported(self, cache, doc, pkgname):
         # the doc does not by definition contain correct data regarding the
@@ -127,6 +134,8 @@ class Ubuntu(Debian):
         # (to exclude stuff in ubuntu-updates for the support time 
         # calculation because the "Release" file time for that gets
         # updated regularly)
+        if not hasattr(cache, '_cache') or not pkgname:
+            return
         releasef = get_release_filename_for_pkg(cache._cache, pkgname, 
                                                 "Ubuntu", 
                                                 self.get_codename())
@@ -146,14 +155,14 @@ class Ubuntu(Debian):
             # see if we have a "Supported" entry in the pkg record
             if (pkgname in cache and
                 cache[pkgname].candidate):
-                support_time = cache[pkgname].candidate.record.get("Supported")
+                support_time = cache._cache[pkgname].candidate.record.get("Supported")
                 if support_time:
                     if support_time.endswith("y"):
                         support_month = 12*int(support_time.strip("y"))
                     elif support_time.endswith("m"):
                         support_month = int(support_time.strip("m"))
                     else:
-                        logging.getLogger("softwarecenter.distro").warning("unsupported 'Supported' string '%s'" % support_time)
+                        LOG.warning("unsupported 'Supported' string '%s'" % support_time)
 
             # mvo: we do not define the end date very precisely
             #      currently this is why it will just display a end
@@ -234,7 +243,8 @@ class Ubuntu(Debian):
             return "".join(downloadable_icon_url)
         else:
             #raise ValueError, "we currently support downloadable icons in ppa's only"
-            return None
+            LOG.warning("downloadable icon is not supported for archive: '%s'" % full_archive_url)
+            return ''
 
 if __name__ == "__main__":
     import apt

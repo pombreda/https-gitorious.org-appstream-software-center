@@ -16,24 +16,50 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import gobject
+from gi.repository import GObject
+
+class _Version:
+    @property
+    def description(self):
+        pass
+    @property
+    def downloadable(self):
+        pass
+    @property
+    def summary(self):
+        pass
+    @property
+    def size(self):
+        return self.pkginfo.get_size(self.name)
+    @property
+    def installed_size(self):
+        return 0
+    @property
+    def version(self):
+        pass
+    @property
+    def origins(self):
+        return []
 
 class _Package:
     def __init__(self, name, pkginfo):
         self.name = name
         self.pkginfo = pkginfo
-
+    def __str__(self):
+        return repr(self).replace('<',  '<pkgname=%s ' % self.name)
     @property
     def installed(self):
+        """ returns a _Version object """
         if not self.pkginfo.is_installed(self.name):
             return None
         return self.pkginfo.get_installed(self.name)
     @property
     def candidate(self):
+        """ returns a _Version object """
         return self.pkginfo.get_candidate(self.name)
     @property
     def versions(self):
-        """ a list of available versions to install """
+        """ a list of available versions (as _Version) to install """
         return self.pkginfo.get_versions(self.name)
 
     @property
@@ -43,38 +69,23 @@ class _Package:
     def section(self):
         return self.pkginfo.get_section(self.name)
     @property
-    def summary(self):
-        return self.pkginfo.get_summary(self.name)
-    @property
-    def description(self):
-        return self.pkginfo.get_description(self.name)
-    @property
     def website(self):
         return self.pkginfo.get_website(self.name)
     @property
     def installed_files(self):
         return self.pkginfo.get_installed_files(self.name)
-    @property
-    def size(self):
-        return self.pkginfo.get_size(self.name)
-    @property
-    def installed_size(self):
-        return self.pkginfo.get_installed_size(self.name)
-    @property
-    def origins(self):
-        return self.pkginfo.get_origins(self.name)
 
-class PackageInfo(gobject.GObject):
+class PackageInfo(GObject.GObject):
     """ abstract interface for the packageinfo information """
 
-    __gsignals__ = {'cache-ready':  (gobject.SIGNAL_RUN_FIRST,
-                                     gobject.TYPE_NONE,
+    __gsignals__ = {'cache-ready':  (GObject.SIGNAL_RUN_FIRST,
+                                     GObject.TYPE_NONE,
                                      ()),
-                    'cache-invalid':(gobject.SIGNAL_RUN_FIRST,
-                                     gobject.TYPE_NONE,
+                    'cache-invalid':(GObject.SIGNAL_RUN_FIRST,
+                                     GObject.TYPE_NONE,
                                      ()),
-                    'cache-broken':(gobject.SIGNAL_RUN_FIRST,
-                                     gobject.TYPE_NONE,
+                    'cache-broken':(GObject.SIGNAL_RUN_FIRST,
+                                     GObject.TYPE_NONE,
                                      ()),
                     }
 
@@ -123,8 +134,12 @@ class PackageInfo(gobject.GObject):
         return -1
     def get_origins(self, pkgname):
         return []
-    def get_addons(self, pkgname, ignore_installed):
-        pass
+    def get_origin(self, pkgname):
+        """ :return: unique origin as string """
+        return ''
+    def get_addons(self, pkgname, ignore_installed=False):
+        """ :return: a tuple of pkgnames (recommends, suggests) """
+        return ([], [])
 
     def get_packages_removed_on_remove(self, pkg):
         """ Returns a package names list of reverse dependencies
@@ -158,6 +173,11 @@ pkginfo = None
 def get_pkg_info():
     global pkginfo
     if pkginfo is None:
-        from softwarecenter.db.pkginfo_impl.aptcache import AptCache
-        pkginfo = AptCache()
+        from softwarecenter.enums import USE_PACKAGEKIT_BACKEND
+        if not USE_PACKAGEKIT_BACKEND:
+            from softwarecenter.db.pkginfo_impl.aptcache import AptCache
+            pkginfo = AptCache()
+        else:
+            from softwarecenter.db.pkginfo_impl.packagekit import PackagekitInfo
+            pkginfo = PackagekitInfo()        
     return pkginfo

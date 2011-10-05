@@ -1,8 +1,8 @@
 #!/usr/bin/python
 
 import pickle
-import simplejson
 import logging
+import sys
 
 from optparse import OptionParser
 from softwarecenter.backend.piston.rnrclient import RatingsAndReviewsAPI
@@ -27,13 +27,14 @@ if __name__ == "__main__":
     if options.username:
         try:
             useful_votes = rnrclient.get_usefulness(username=options.username)
-        except simplejson.decoder.JSONDecodeError, e:
+        except ValueError as e:
             LOG.error("failed to parse '%s'" % e.doc)
         except APIError, e:
             LOG.warn("_get_useful_votes_helper: no usefulness able to be retrieved for username: %s" % (options.username))
             LOG.debug("_get_reviews_threaded: no reviews able to be retrieved: %s" % e)
         except:
             LOG.exception("_get_useful_votes_helper")
+            sys.exit(1)
 
     # print to stdout where its consumed by the parent
     try:

@@ -1,4 +1,1330 @@
-software-center (4.1.7) UNRELEASED; urgency=low
+software-center (5.0.1) oneiric; urgency=low
+
+  [ Michael Vogt ]
+  * softwarecenter/ui/gtk3/widgets/reviews.py:
+    - Fix i18n bug in the error string for the reviews. This 
+      adds two new strings for a rare error message in the UI that 
+      was previously not translatable. Thanks to David Planella
+  * softwarecenter/db/database.py:
+    - when adding a new database (e.g. on reinstall-previous purchases)
+      trigger a "reopen" to ensure that the db docids are reinitialized
+  * apt-xapian-index-plugin/software-center.py:
+    - do not crash if a apt.Package.candidate has no url (LP: #819907)
+  * softwarecenter/ui/gtk3/views/catview_gtk.py:
+    - only show the frame with new apps if we actually have information
+      about new applications (LP: #862382)
+
+  [ Robert Roth ]
+  * softwarecenter/ui/gtk3/widgets/apptreeview.py:
+    - fix crash in clear_model() (LP: #863233)
+
+  [ Gary Lasker ]
+  * debian/control:
+    - add dependency on python-gobject-cairo to prevent crash
+      at startup (LP: #829067) 
+  * softwarecenter/db/application.py,
+    softwarecenter/db/update.py,
+    softwarecenter/distro/Ubuntu.py,
+    softwarecenter/enums.py:
+    - display the correct license type for commercial apps as
+      specified via the software-center-agent (LP: #864706)
+
+  [ Matthew McGowan ]
+  * lp:~mmcg069/software-center/bug855666:
+    - add missing linewrap (LP: #855666)
+  * lp:~mmcg069/software-center/bug858639 :
+    - fix crash when data can not be parsed from the remote reviews server
+      LP: #858639
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 05 Oct 2011 11:24:05 +0200
+
+software-center (5.0) oneiric; urgency=low
+
+  [ Gary Lasker ]
+  * softwarecenter/ui/gtk3/views/appdetailsview.py,
+    softwarecenter/ui/gtk3/views/appdetailsview_gtk.py,
+    softwarecenter/ui/gtk3/widgets/reviews.py,
+    utils/submit_review_gtk3.py:
+    - restore the ability to edit or delete your own
+      review (LP: #861999)
+  * softwarecenter/db/application.py:
+    - fix TypeError in __init__ (LP: #825729)
+  * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
+    - fix crash in _get_app_icon_xy_position_on_screen (LP: #843565)
+  * softwarecenter/ui/gtk3/panes/softwarepane.py:
+    - fix UnicodeDecodeError in on_add_to_launcher (LP: #835337)
+
+  [ Michael Vogt ]
+  * add support for license keys in $HOME
+  * set correct version number
+  * utils/submit_review_gtk3.py:
+    - translate app name in review title, thanks to Gabor Kelemen 
+      (LP: #782146)
+  * softwarecenter/backend/reviews.py:
+    - leave the review sorting to the server now that the rnr-server
+      is deployed that sorts properly by wilson_score
+  * fix None vs "" crashes
+  * fix another dbus exception when a tid vanishes (LP: #848676), thanks
+    to Marc Deslauriers 
+
+  [ Kiwinote ]
+  * softwarecenter/distro/Ubuntu.py:
+    - display canonical support text again (LP: #862388)
+      (no new strings - there was just some 'if False, display the text' code)
+
+  [ Matthew McGowan ]
+  * data/ui/gtk3/dialogs.ui:
+    - fix incorrect sizing of dialogs (LP: #825959, LP: #844014)
+  * display 'where is it' command line helper for installed apps with
+    no desktop_files even when unity is running.'
+  * set a minimum size for the CategoryTile so all english category 
+    names fit to two lines (Computer Science and Robotics took 3 lines 
+    to display).
+  * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
+    - cleanup dead code
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 29 Sep 2011 20:45:22 +0200
+
+software-center (4.1.23.7) oneiric; urgency=low
+
+  [ Gary Lasker ]
+  * softwarecenter/backend/installbackend_impl/aptd.py:
+    - fix UnicodeDecodeError in _show_transaction_failed_dialog
+      (LP: #858193)
+  * softwarecenter/backend/installbackend.py,
+    softwarecenter/ui/gtk3/aptd_gtk3.py,
+    softwarecenter/ui/gtk3/dialogs/__init__.py:
+    - implement the error() method of InstallBackendUI to display the
+      required error dialog in the event of a transaction error
+      (LP: #860137)
+  * softwarecenter/backend/installbackend_impl/aptd.py:
+    - add unicode handling for the transaction error dialog 
+  * softwarecenter/utils.py:
+    - let the utf8() method handle None as an input value 
+  * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
+    - fix UnicodeDecodeError in set_value() (LP: #846600) 
+  * softwarecenter/db/debfile.py:
+    - fix UnicodeDecodeError in warning() (LP: #845298) 
+  * softwarecenter/ui/gtk3/app.py:
+    - fix intermittent crash at shutdown (LP: #728973) 
+  * softwarecenter/ui/gtk3/panes/availablepane.py,
+    softwarecenter/ui/gtk3/session/navhistory.py,
+    softwarecenter/ui/gtk3/session/viewmanager.py: 
+    - navigate back to the application details view on
+      a purchase cancellation or a purchase error (LP: #859790)
+  * softwarecenter/ui/gtk3/panes/installedpane.py:
+    - fix empty installed view after clearing search (LP: #860810)
+    - fix rendering glitch when searching with OneConf
+      active (LP: #860818)
+  * softwarecenter/utils.py:
+    - fix crash in save_person_to_config() (LP: #858403)
+  * softwarecenter/ui/gtk3/widgets/reviews.py:
+    - fix UnicodeDecodeError in _whom_when_markup()
+  
+  [ Michael Vogt ]
+  * softwarecenter/ui/gtk3/widgets/searchentry.py:
+    - merge header fix
+  * softwarecenter/ui/gtk3/app.py, softwarecenter/utils.py:
+    - add support for proxy setup from gsettings (LP: #742564)
+  
+  [ Juhana Jauhiainen ]
+  * Added For Software developers link to Help menu. (LP #722366)
+
+  [ Didier Roche ]
+  * softwarecenter/ui/gtk3/panes/installedpane.py:
+    - disable search when viewing oneconfviews
+
+  [ Kiwinote ]
+  * softwarecenter/ui/gtk3/panes/viewswitcher.py:
+    - if we're in the 'in progress' view and all the transactions finish, then
+      navigate back (LP: #831524)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 28 Sep 2011 18:02:08 +0200
+
+software-center (4.1.23.6) oneiric; urgency=low
+
+  [ Kiwinote ]
+  * softwarecenter/db/update.py:
+    - update the sc-agent db even if there are no apps available (LP: #857268)
+  * softwarecenter/utils.py:
+    - fix UnicodeDecodeError in get_icon_from_theme() (LP: #839391)
+  * utils/submit_review_gtk3.py:
+    - fix UnicodeDecodeError in _on_one_gwibber_account() (LP: #836911)
+
+  [ Gary Lasker ]
+  * softwarecenter/ui/gtk3/app.py:
+    - fix intermittent startup crashes (LP: #846674, LP: #857989) 
+  
+  [ Matthew McGowan ]
+  * work around some oddness that seems to have broken 
+    Gdk.EventButton.copy().
+  
+  [ Michael Vogt ]
+  * softwarecenter/ui/gtk3/app.py:
+    - do not crash if there is no active pane
+  * softwarecenter/backend/reviews.py:
+    - be more robust against db corruption when writing out 
+      the bsddb for unity (LP: #858437)
+  * softwarecenter/backend/login_sso.py:
+    - port to the new SSO dbus API  (LP: #857514)
+
+  [ Didier Roche ]
+  * lp:~didrocks/software-center/replace_logintext_by_helptext:
+    - use help_text internally to be aligned with the new ubuntu SSO
+      parameter name (LP: #857514)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 26 Sep 2011 16:59:33 +0200
+
+software-center (4.1.23.5) oneiric; urgency=low
+
+  [ Robert Roth ]
+  *  Fix inconsistent colors in banner (LP: #855417)
+  * softwarecenter/db/debfile.py,
+    softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
+    - display total size in the details view for standalone
+      deb files (LP: #851222)
+  * softwarecenter/db/database.py:
+    - restore support for custom list searches
+      (LP: #835069, LP: #828281)
+  
+  [ Kiwinote ]
+  * correctly index desktop files which refer to packages for which we must
+    install a version for a foreign architecture (eg skype)
+  * softwarecenter/backend/reviews.py:
+    - allow us to write reviews for apps with unicode appname (LP: #856052)
+
+  [ Matthew McGowan ]
+  * lp:~mmcg069/software-center/tweaks:
+    - mak the avg-rating label white when a row is selected
+    - TextBlock.set_visible_window to False. add a css comment
+  * lp:~mmcg069/software-center/bug635994-again:
+    - make the up/down -arrow behaviour available to both
+      detailsview_gtk and the catview_gtk (LP: #635994)
+  * lp:~mmcg069/software-center/re-fixes:
+    - additional fixes for the detailsview
+
+  [ Gary Lasker ]
+  * softwarecenter/ui/gtk3/panes/availablepane.py,
+    softwarecenter/ui/gtk3/panes/softwarepane.py:
+    - prevent potential crash at startup if views have not yet
+      been created on a call to refresh_apps (LP: #855622)
+  * softwarecenter/ui/gtk3/panes/availablepane.py,
+    softwarecenter/ui/gtk3/panes/installedpane.py:
+    - consolidate spinner code, add timeout mask for installed
+      view spinner
+  * softwarecenter/ui/gtk3/panes/softwarepane.py:
+    - display spinner while changing list view sort method
+  * softwarecenter/ui/gtk3/app.py:
+    - display spinner while loading previous purchases list
+  * softwarecenter/ui/gtk3/widgets/actionbar.py:
+    - fix regression in action bar button alignment (LP: #856872)
+  * softwarecenter/ui/gtk3/panes/availablepane.py:
+    - restore action bar functionality for custom lists
+      (LP: #835069)
+    - don't hide technical items during a custom list search
+    - restore custom list search using apt url syntax (LP: #828281)
+  * softwarecenter/ui/gtk3/dialogs/__init__.py:
+    - fix crash when showing error dialog (LP: #842678)
+
+  [ Didier Roche ]  
+  * lp:~didrocks/software-center/new-oneconf-sync-signal:
+    - enable getting a last sync accurate date as soon as the sync 
+      is done (LP: #855345)
+  
+  [ Michael Vogt ]
+  * utils/submit_review_gtk3.py:
+    - setup logging from the helper to xdg
+      ~/.cache/software-center/reviews-helper.log
+  * utils/submit_review_gtk3.py, softwarecenter/ui/gtk3/views/appview.py:
+    - use Gtk.ComboBoxText.new() instead of Gtk.ComboBoxText(). This makes
+      get_active_text() actually work on the combobox (LP: #856429)
+  * softwarecenter/utils.py:
+    - fix writing new config before using it (LP: #827527)
+  * softwarecenter/backend/reviews.py:
+    - write out the review stats in a C friendly bsddb so that unity
+      can use it too (thanks to Mikkel Kamstrup)
+  * softwarecenter/ui/gtk3/panes/availablepane.py:
+    - fix endless recursion (LP: #851671)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 23 Sep 2011 11:58:02 +0200
+
+software-center (4.1.23.4) oneiric; urgency=low
+
+  [ Matthew McGowan ]
+  * utils/submit_review_gtk3.py:
+    - fix crash when submitting a review (LP: #852016)
+  * fix the overlay icon position in the (lobby|subcat) featured tiles
+  * fix the backforward button such that the border-radius is switched 
+    when in rtl mode.
+  * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
+    - fix stray dotted lines at bottom of the "not found"
+      screen (LP: #853514)
+  * softwarecenter/ui/gtk3/widgets/buttons.py:
+    - add a focus ring for the "More" buttons on the
+      home screen (LP: #854177)
+  * softwarecenter/ui/gtk3/widgets/exhibits.py:
+    - add a focus ring for the exhibits banner (LP: #854168)
+  * check the button-release occurs within the exhibit banner 
+    (LP: #848805)
+  * add additional checks to ensure we bail on a NoneType within 
+    apptreeview._on_button_press_event. also switch some StateType's
+    to the Gtk3 correct StateFlags'
+  * reimplement the focal frames for focal CellRendererButtons 
+    in the apptreeview
+  * lp:~mmcg069/software-center/rtl-improvements
+    - make the appview progress bar fill in the correct direction when in rtl 
+      mode
+    - also improve the positioning of the installed overlay icon in both ltr 
+      and rtl modes.
+  * lp:~mmcg069/software-center/nav-improvements
+    - correct the navhistory behaviour when a user clears the search_entry,
+      remove spurious navhistory items, improve unit test (LP: #854047)
+  * lp:~mmcg069/software-center/lobby-work
+    - update the lobby and subcat views when selecting to view "Canonical
+      Maintained Software", other lobby fixes and cleanup (LP: #835025)
+  * lp:~mmcg069/software-center/description-improvements:
+    - improvements to the description area in the details view, make
+      description text selectable, update unit test (LP: #854368)
+  * lp:~mmcg069/software-center/Bug846204:
+    - a solution to LP: #846204
+
+  [ Kiwinote ]
+  * softwarecenter/db/application.py:
+    - fix UnicodeDecodeError in __init__ (LP: #838791)
+  * softwarecenter/db/debfile.py:
+    - fix UnicodeDecodeError in __init__ (LP: #835887)
+  * softwarecenter/ui/gtk3/widgets/buttons.py:
+    - draw focus-line for category tiles and subcategory tiles
+    - make featuredtiles accessible
+  * softwarecenter/ui/gtk3/widgets/description.py:
+    - fix crash in rendering bullet points in rtl layouts
+  * softwarecenter/ui/gtk3/widgets/exhibits.py:
+    - make exhibits accessible
+
+  [ Gary Lasker ]
+  * utils/submit_review_gtk3.py:
+    - fix crash if an error occurs while submitting
+      a review (LP: #854187) 
+  * softwarecenter/ui/gtk3/widgets/apptreeview.py:
+    - check that a category is not selected before updating,
+      fixes a crash on e.g. a network change event (LP: #848085) 
+  * softwarecenter/ui/gtk3/panes/installedpane.py:
+    - display a spinner while loading the oneconf
+      list view
+  * pyflakes fixes
+  
+  [ Michael Vogt ]
+  * softwarecenter/ui/gtk3/views/purchaseview.py,
+    test/gtk3/test_purchase.py:
+    - ensure to never log sensitive oauth token data to the console
+      from webkit and add test
+  * debian/control:
+    - tighten dependency on python-gobject (LP: #845280)
+  * softwarecenter/db/database.py:
+    - fix db reopen when a new database is added (like the 
+      software-center-agent DB)
+  * softwarecenter/backend/aptchannels.py:
+    - move to softwarecenter/backend/channel_impl/aptchannels.py to make
+      more clear that this is a implementation of a interface
+  * softwarecenter/backend/channel_impl/aptchannels.py:
+    - only rebuild the a-x-i DB is we have new origins in the cache
+      (LP: #798632)
+  * softwarecenter/db/categories.py:
+    - do not crash if a directory tag can not be parsed or if the 
+      directory file is not there (LP: #854087)
+  * fix systemwide license key handling (needs 
+    lp:~aptdaemon-developers/aptdaemon/add-license-key-call)
+
+  [ Didier Roche ]
+  * softwarecenter/db/appfilter.py:
+    - fix an issue when no diff in a category show all available results
+  * softwarecenter/ui/gtk3/panes/installedpane.py:
+    - use the same load blocking parameters than other calls
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 21 Sep 2011 09:11:30 +0200
+
+software-center (4.1.23.3) oneiric; urgency=low
+
+  * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
+    - fix r2344 (line wrap for header) as it leaves overly
+      huge margins, thanks to Matthew McGowan
+    - fix crash if get_icon() returns None (LP: #846508)
+  * softwarecenter/backend/installbackend_impl/aptd.py:
+    - be more robust against a race when the transaction disappears
+      between notify and fetching details #804444)
+  * data/ui/gtk3/submit_usefulness.ui:
+    - remove not needed cancel/post click handlers (LP: #830830)
+  * softwarecenter/ui/gtk3/panes/installedpane.py,
+    test/gtk3/test_installedpane.py:
+    - fix show/hide technical items when in search mode in the installed
+      pane and add regression test
+  * softwarecenter/ui/gtk3/panes/installedpane.py:
+    test/gtk3/test_installedpane.py, 
+    softwarecenter/ui/gtk3/widgets/actionbar.py:
+    - fix show/hide nonapps count when doing searches
+    - add tests
+  * softwarecenter/ui/gtk3/widgets/reviews.py:
+    - do not show "no network connection" message when checking for
+      new reviews (LP: #848480)
+  * softwarecenter/ui/gtk3/panes/softwarepane.py, softwarecenter/utils.py,
+    test/test_utils.py:
+    - do not offer to add NoDisplay=true desktop files like wine to the
+      launcher (LP: #848437)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 16 Sep 2011 21:12:26 +0200
+
+software-center (4.1.23.2) oneiric; urgency=low
+
+  [ Michael Vogt ]
+  * softwarecenter/backend/reviews.py:
+    - update review sorting to follow spec (wilson score)
+  * lp:~mvo/software-center/retire-gtk2:
+    - remove (no longer used) gtk2 code, this has the added benefit
+      that all the checks for pygtk vs pygi are gone as well
+    - update gir1.2-* dependencies (LP: #842616)
+  * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
+    - wrap title instead of ellipsize (LP: #850857)
+  * softwarecenter/toolkit.py:
+    - update to current code
+  * softwarecenter/backend/reviews.py:
+    - do not crash for unknown deb names
+  * softwarecenter/ui/gtk3/app.py:
+    - make the locale code more robust (LP: #846038)
+  * softwarecenter/db/history_impl/apthistory.py:
+    - be more robust against broken history.log files (LP: #666449)
+  * softwarecenter/backend/installbackend_impl/aptd.py:
+    - be more robust about potential races (LP: #848676)
+  * softwarecenter/ui/gtk3/models/pendingstore.py:
+    - only add transactions if we get meaningful data
+  
+  [ Matthew McGowan ]
+  * lp:~mmcg069/software-center/highcontrast-theme-improvements:
+    - a host of improvements to the highcontrast themes
+  * lp:~mmcg069/software-center/bug848845:
+    - use the stock_zoom-page cursor, which in the currernt icon 
+      theme still presents as a magnifying glass (LP: #848845)
+  * lp:~mmcg069/software-center/minor-vis-fixes:
+    - even up the borders around a Frame (LP: #850780)
+
+  [ Gary Lasker ]
+  * softwarecenter/ui/gtk3/panes/installedpane.py:
+    - implement a spinner for the installed view 
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 15 Sep 2011 22:09:59 +0200
+
+software-center (4.1.23.1) oneiric; urgency=low
+
+  * debian/software-center.links:
+    - add software-center-gtk3 compat link
+  * setup.py:
+    - remove software-center-gtk3 from scripts
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 15 Sep 2011 13:28:31 +0200
+
+software-center (4.1.23) oneiric; urgency=low
+
+  [ Michael Vogt ]
+  * new default exhibit image from Marcus Haslam, many thanks
+  * tweak html for the default text layout
+  * softwarecenter/utils.py:
+    - never cache local urls in the SimpleFileDownloader
+  * softwarecenter/ui/gtk3/widgets/exhibits.py:
+    - fix bug in banner image rendering when the agent serves the images
+  * softwarecenter/ui/gtk3/app.py, debian/control:
+    - renenable plugin loader 
+    - add conflict against older oneconf as the old oneconf plugin
+      will crash softwarecenter because of mixing pygtk with pygi
+    - load plugins from $SOFTWARE_CENTER_PLUGINS_DIR, 
+      /usr/share/software-center/plugins, 
+      ~/.local/share/software-center/plugins (LP: #631457)
+  * doc/example_plugin.py:
+    - updated to the gtk3 version
+  * softwarecenter/backend/scagent.py:
+    - generically deal with exhibts without a title
+  * softwarecenter/ui/gtk3/widgets/exhibits.py:
+    - set the default exhibit cycle time to 10s but do not cycle if
+      the main application does not have the active toplevel focus
+  * softwarecenter/ui/gtk3/views/catview_gtk.py:
+    - if there is only a single app in a exhibit, show that on
+      click (LP: #848995)
+  * softwarecenter/ui/gtk3/panes/availablepane.py,
+    softwarecenter/ui/gtk3/views/catview_gtk.py:
+    - when showing a exhibts list, show with flags=["nonapps-visible"]
+      (LP: #849035)
+  * softwarecenter/backend/scagent.py:
+    - if the server does not provide a title for a exhibit use the
+      html title tag or the first h1
+  * software-center-gtk3:
+    - removed, the gtk3 version is now default and identical to 
+      the software-center command
+  * softwarecenter/utils.py:
+    - avoid race condition on slow connections (LP: #839462)
+  * lp:~mvo/software-center/per-thread-xapiandb:
+    - create per-thread xapian.Database objects to avoid race 
+      condition with multiple threads
+  
+  [ Matthew McGowan ]
+  * softwarecenter/ui/gtk3/app.py:
+    - inhibit system error bell (LP: #846138)
+  * softwarecenter/utils.py,
+    softwarecenter/ui/gtk3/widgets/description.py,
+    test/test_description_norm.py:
+    - tweak the description parser to not omit linebreaks when
+      a newline follows a terminator (e.g. "." or ":"), add a
+      preparser special case for texlive-fonts-extra, update
+      unit test (LP: #846944)
+  * softwarecenter/ui/gtk3/session/navhistory.py:
+    - fix multiple navigation items generated during search
+      (LP: #842734)
+  * lp:~mmcg069/software-center/bug844068:
+    - if search is cleared by the user whilst the search context is a 
+      subcategory, return to the unfiltered subcategory list not the 
+      category page (bug 844068).
+  * lp:~mmcg069/software-center/themeing-improvements:
+    - provide theming css for highcontrast and highcontrastinverse
+    - fix dynamic theme updates
+  * lp:~mmcg069/software-center/submit-review-fixes:
+    - add changed sig to star rating widget and correctly ensure the
+      user has set a star rating prior to allowing submition
+    - cleanup
+  * lp:~mmcg069/software-center/bug850033:
+    - improve the back_forward button rendering in response to LP: #850033
+
+  [ Gary Lasker ]
+  * softwarecenter/ui/gtk3/session/viewmanager.py:
+    - fix startup crash in get_view_widget
+      (LP: #830233, LP: #834425) 
+  * data/icons/scalable/apps/softwarecenter.svg:
+    - update the scalable icon to the new software-center
+      icon (LP: #842275) 
+  * softwarecenter/ui/gtk/widgets/thumbnail.py,
+    softwarecenter/ui/gtk3/widgets/thumbnail.py:
+    - restore hover cursor for details view screenshot thumbnail  
+  * setup.py,
+    debian/control:
+    - add back flags when merging authors list, specify
+      python version for happier build
+  * softwarecenter/ui/gtk3/gmenusearch.py:
+    - fix crash when loading gmenu for 'where is it' (LP: #834450)
+  * pyflakes cleanup 
+  * softwarecenter/ui/gtk3/widgets/apptreeview.py:
+    - fix crash when using arrow keys in the list view, other
+      cellbutton fixes (LP: #843409)
+    - re-enable the list view action button after a transaction
+      is cancelled
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 15 Sep 2011 11:54:11 +0200
+
+software-center (4.1.22) oneiric; urgency=low
+
+  [ Gary Lasker ]
+  * data/ubuntu-software-center.desktop.in,
+    debian/rules,
+    setup.py,
+    software-center,
+    software-center-gtk2,
+    softwarecenter/toolkit.py:
+    - launch the new UI using 'software-center', add script
+      to launch the old version if feeling nostalgic (LP: #839257)
+  * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
+    - fix incorrect ellipsize for title and summary in the
+      details view (LP: #842271)
+  * softwarecenter/ui/gtk3/panes/availablepane.py,
+    softwarecenter/ui/gtk3/session/viewmanager.py:
+    - hide the search field when in the purchase
+      view (LP: #844883)
+  * softwarecenter/ui/gtk3/views/catview_gtk.py:
+    - don't create the what's new panel if we don't have the
+      corresponding category (LP: #835129)
+  * softwarecenter/ui/gtk3/panes/installedpane.py:
+    - fix crash in rebuild_categorised_view while viewing
+      installed items (LP: #834260)
+  * test/gtk3/test_catview.py,
+    test/gtk3/test_panes.py,
+    test/test_addons.py,
+    test/test_package_info.py:
+    - fix unit tests
+  * setup.py:
+    - fix build error when merging authors list
+  * merged lp:~gary-lasker/software-center/pyflakes-fixes, no
+    user visible changes, only code cleanup
+  * po/software-center.pot:
+    - refresh .pot file
+
+  [ Matthew McGowan ]
+  * data/ui/gtk3/css/softwarecenter.css,
+    softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
+    - fix grey addon label, only pkgname should be grey
+      (LP: #838607)
+  * softwarecenter/ui/gtk3/widgets/description.py,
+    softwarecenter/utils.py,
+    test/test_description_norm.py:
+    - description formatting improvements, update unit test
+  * data/ui/gtk3/css/softwarecenter.css,
+    softwarecenter/ui/gtk3/widgets/cellrenderers.py:
+    - use css to set border-radius of cellrenderer button
+  * softwarecenter/ui/gtk3/views/appview.py:
+    - disable appcount display at the bottom of list views
+      for now to allow keyboard scrolling to work (LP: #830258)
+  * lp:~mmcg069/software-center/lobby-tweaks:
+    - restore tile borders but disable the checkerboard
+      rendering, color tweaks and other improvements to the
+      title area visuals
+  * merge lp:~mmcg069/software-center/image-data-cleanup:
+    - cleanup unused image files (LP: #839736)
+  * softwarecenter/ui/gtk3/panes/softwarepane.py:
+    - fix doubled search results (LP: #840235)
+  * softwarecenter/ui/gtk3/app.py:
+    - fix "Copy Web Link" feature (LP: #830291)
+
+  [ Andrea Cimitan ]
+  * softwarecenter/ui/gtk3/widgets/symbolic_icons.py:
+    - Fix blurriness of toolbar icons, reduce shadow alpha level
+
+  [ Gabor Kelemen ]
+  * po/POTFILES.in:
+    - additional i18n fixes (LP: #836346)
+
+  [ Kiwinote ]
+  * remove the old webkit ui
+  * remove the need for dummy-screenshot-ubuntu.png (LP: #837223)
+  * data/ui/gtk3/SoftwareCenter.ui,
+    softwarecenter/ui/gtk3/app.py:
+    - make all the accelerators work again (LP: #640426, LP: #660050,
+      LP: #828233, LP: #830238, LP: #834988, LP: #843682)
+      also fixes (LP: #823094, LP: #837062)
+  * softwarecenter/db/appfilter.py,
+    softwarecenter/ui/gtk3/app.py,
+    softwarecenter/ui/gtk3/widgets/searchaid.py:
+    - stack of improvements to the supported_only filter and the searchaid
+  * softwarecenter/ui/gtk3/app.py,
+    softwarecenter/ui/gtk3/widgets/apptreeview.py:
+    - make copy web link work for 'for purchase items' (LP: #820999)
+  * softwarecenter/ui/gtk3/models/pendingstore.py:
+    - fix UnicodeDecodeError in _render_status_text() (LP: #827495)
+  * softwarecenter/ui/gtk3/panes/globalpane.py:
+    - fix halignment of searchbox and backforward in rtl (LP: #842881)
+  * softwarecenter/ui/gtk3/widgets/actionbar.py:
+    - don't overly expand the button width
+  * softwarecenter/ui/gtk3/widgets/backforward.py:
+    - fix rtl breakage (LP: #842848, LP: #842858)
+  * softwarecenter/ui/gtk3/widgets/buttons.py:
+    - place channel selector popup at correct location for rtl (LP: #842872)
+    - add currency to paid app tiles (LP: #833801)
+  * softwarecenter/ui/gtk3/widgets/apptreeview.py,
+    softwarecenter/ui/gtk3/widgets/cellrenderers.py:
+    - hide the action button when the pkg is not available (LP: #841459)
+  * softwarecenter/ui/gtk3/widgets/exhibits.py:
+    - fix text corruption in the default banner (LP: #838244)
+  * softwarecenter/ui/gtk3/widgets/searchaid.py:
+    - fix UnicodeDecodeError in build_category_path() (LP: #844031)
+    - fix UnicodeDecodeError in get_suggestions() (LP: #843195, LP: #844639)
+    - fix UnicodeDecodeError in get_title_text() (LP: #843032)
+  * softwarecenter/ui/gtk3/widgets/searchentry.py:
+    - use symbolic variant for the search icon (LP: #835529)
+  * utils/submit_review_gtk3.py:
+    - fix UnicodeDecodeError in _setup_details() (LP: #834233)
+
+  [ Didier Roche ]
+  * softwarecenter/ui/gtk3/widgets/menubutton.py:
+    - improvements to menubutton widget (used in OneConf view)
+  * Add openshot to "Our pick" (LP: #845370)
+
+  [ Robert Roth ]
+  * softwarecenter/ui/gtk3/models/pendingstore.py:
+    - fix crash when reinstalling previous purchases (LP: #843766)
+  * data/ui/gtk3/dialogs.ui:
+    - add missing border in dialog frame (LP: #844028)
+  * softwarecenter/ui/gtk3/app.py:
+    - set minimum window size (LP: #842684)
+  * softwarecenter/ui/gtk3/widgets/description.py:
+    - fix crash when installing standalone debs (LP: #839113)
+    - update description focus methods to fix crash (LP: #843317) 
+  * softwarecenter/ui/gtk3/widgets/reviews.py:
+    - fix duplicated label in reviews area of the details
+      view  (LP: #823255)
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Fri, 09 Sep 2011 11:46:15 -0400
+
+software-center (4.1.21) oneiric; urgency=low
+
+  [ Kiwinote ]
+  * AUTHORS:
+    - add credits for the new icon (LP: #834882)
+  * a stash of unicode fixes to make s-c-gtk3 usable around the world
+    (LP: #831865, LP: #834409, LP: #834312)
+  * softwarecenter/db/update.py:
+    - fix reinstall previous purchases (LP: #834984)
+  * softwarecenter/ui/gtk3/panes/availablepane.py:
+    - set title for 'previous purchases' list view (LP: #833960)
+  * softwarecenter/ui/gtk3/panes/softwarepane.py:
+    - fix None.copy() such that switching panes works again (LP: #834196)
+  * softwarecenter/ui/gtk3/widgets/buttons.py:
+    - escape application name in tiles (LP: #835876)
+
+  [ Jacob Johan Edwards ]
+  * softwarecenter/ui/gtk3/panes/softwarepane.py:
+    - fix the spinner display when loading slow views (LP: #830682)
+
+  [ Gabor Kelemen ]
+  * po/POTFILES.in,
+    po/POTFILES.skip:
+    - update per latest configuration, add new gtk3 files
+
+  [ Matthew McGowan ]
+  * softwarecenter/ui/gtk3/widgets/buttons.py :
+    - resize fix for Top Rated and What's New tiles (LP: #833697)
+  * softwarecenter/ui/gtk3/views/catview_gtk.py,
+    softwarecenter/ui/gtk3/widgets/containers.py:
+    - disable the rendering of the checkboard pattern in the
+      grid views (at request of mpt)
+   * lp:~mmcg069/software-center/description-tweaks:
+     - fix badly rendered package descriptions, other tweaks
+       (LP: #833954)
+   * lp:~mmcg069/software-center/globalpane-themeability:
+     - various theming fixes (LP: #828092, LP: #830681,
+       LP: #830738 and LP: #838382)
+
+  [ Gary Lasker ]
+  * software-center,
+    software-center-gtk3,
+    softwarecenter/db/update.py:
+    - enable CJK support in Xapian (LP: #745243) 
+  * po/software-center.pot:
+    - refresh .pot file
+  * softwarecenter/ui/gtk/widgets/thumbnail.py:
+    - fix missing icon in theme to let non-gtk3 version
+      launch again, also fixes all gtk unit tests 
+  * test/test_database.py:
+    - update unit test
+
+  [ Didier Roche ]
+  * softwarecenter/ui/gtk3/panes/installedpane.py,
+    softwarecenter/ui/gtk3/views/appview.py,
+    softwarecenter/ui/gtk3/widgets/menubutton.py,
+    softwarecenter/ui/gtk3/widgets/oneconfviews.py,
+    softwarecenter/db/appfilter.py,
+    softwarecenter/ui/gtk3/app.py,
+    data/ui/gtk3/SoftwareCenter.ui:
+    - brings back OneConf to software center gtk3 with a fresh new design
+      (LP: #838623)
+  * debian/control:
+    - depends on latest oneconf 
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Thu, 01 Sep 2011 11:55:14 -0400
+
+software-center (4.1.20) oneiric; urgency=low
+
+  [ Michael Vogt ]
+  * softwarecenter/ui/gtk3/views/purchaseview.py:
+    - fix crash in cancel a purchase (LP: #833898)
+  * softwarecenter/db/enquire.py:
+    - add database locking to avoid thread issues
+  * softwarecenter/db/enquire.py:
+    - fix crash by copy.copy(filter), provide a custom copy
+      method instead this fixes random crash in the lobby
+
+  [ Kiwinote ]
+  * display category on the tile
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 25 Aug 2011 20:51:11 +0200
+
+software-center (4.1.19) oneiric; urgency=low
+
+  [ Kiwinote ]
+  * data/piston-helpers/piston_get_reviews_helper.py:
+    - get reviews for the base pkg, not the multiarch one
+  * softwarecenter/ui/gtk3/widgets/buttons.py:
+    - hand cursor for category tiles and subcategory tiles
+    - make a price of '0.00' render as 'free'
+  * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
+    - remove function calls to set the color of the pkgstatusbar (LP: #833195)
+    - render icons for addons correctly
+  * softwarecenter/ui/gtk3/views/catview_gtk.py:
+    - don't show unavailable or already installed apps in the 'new' tiles
+    - align the subcat view
+  * softwarecenter/ui/gtk3/widgets/exhibits.py:
+    - only render paging dots if we have more than one
+  
+  [ Michael Vogt ]
+  * softwarecenter/db/application.py:
+    -ignore errors from incorrect utf8 (LP: #833534)
+  * data/ubuntu-software-center.desktop.in:
+    - set default UI to gtk3 (LP: #830901)
+  * add new icon LP: #432552
+  
+  [ Matthew Paul Thomas ]
+  * softwarecenter/ui/gtk3/widgets/exhibits.py:
+    - tweak the default banner presentation (LP: #833169)
+  * debian/control:
+    - improve package description
+  * lp:~mpt/software-center/text-tweaks: 
+    - text fixes
+
+  [ Matthew McGowan ]
+  * lp:~mmcg069/software-center/small-fixes:
+    - fix available pane channels
+    - change nonapp filter
+  
+  [ Jacob Johan Edwards ]
+  * lp:~j-johan-edwards/software-center/toolbar-quick-hack:
+    - comment out hatching from USC custom toolbar.
+  
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 25 Aug 2011 17:36:48 +0200
+
+software-center (4.1.18) oneiric; urgency=low
+
+  [ Michael Vogt ]
+  * lp:~alexeftimie/software-center/packagekit-backend:
+    - add packagekit backend, thanks Alex Eftimie
+    - this allows using "software-center-gtk3 --packagekit-backend"
+  * softwarecenter/ui/gtk3/panes/viewswitcher.py:
+    - pygi compat fix, Gtk.CheckMenuItem() != Gtk.CheckMenuItem.new()
+  * lp:~mvo/software-center/license-key-infrastructure:
+    - allow adding license keys during a purchase
+  * utils/submit_review_gtk3.py:
+    - gtk3 fixes
+  * softwarecenter/ui/gtk3/widgets/stars.py:
+    - add get_rating() to make the submit_review_gtk3.py work
+  * softwarecenter/ui/gtk3/widgets/buttons.py:
+    - show correct price in the FeaturedTile (if there is one)
+  * softwarecenter/ui/gtk3/widgets/reviews.py:
+    - make the reviews UI more network change aware
+  * softwarecenter/db/pkginfo_impl/aptcache.py:
+    - fix file monitor const issues with gio vs Gio
+  * utils/piston-helpers/piston_get_reviews_helper.py:
+    - fix offline reviews
+  * fix "What's New" category sorting (LP: #830188)
+  * add new sort "By Newest First" combobox
+  * hide sort combobox for if the category has a forced sort mode
+    (like whats new) LP: #830234
+
+  [ Alex Eftimie ]
+  * lp:~alexeftimie/software-center/backend-refactor
+    - fixes in the abstract channels backend
+  
+  [ Matthew McGowan ]
+  * lp:~mmcg069/software-center/small-fixes:
+    - theming improvements
+    - fix up installedpane search to include uncategorised items as well
+    - fix up the show-hide technical items in the installedpane
+    - fix the description resizing, prevent wierd spazzing
+  * lp:~mmcg069/software-center/Bug828223:
+    - make feature tiles update the installed state overlay upon 
+      appropriate aptdaemon transactions
+    - add installed ticks to the lobby and subcat tiles (Bug #828223)
+  * lp:~mmcg069/software-center/Bug830691:
+    - improve visual connection in the details (Bug #830691)
+  *lp:~mmcg069/software-center/details-tweaks
+   - add the ratings count to the bottom of the stars in the 
+     detailsview header
+  * lp:~mmcg069/software-center/Bug830218
+    - remove category as per Bug LP: #830218
+  * lp:~mmcg069/software-center/itemview-work:
+    - make review list look like mockup
+
+  [ Aaron Peachey ]
+  * softwarecenter/ui/gtk3/views/catview_gtk.py:
+    - remove 'More' button from sub-category top rated sections
+    - increase number of apps in top-rated feature frames from 8 to 12
+    - add sub category name into frame header for subcategory toprated
+     (LP: #830272)
+  * softwarecenter/ui/gtk3/views/catview_gtk.py:
+    - provide standard method for adding tiles to Flowable grid to 
+      simplify repeated append code (and DRY)
+  * lp:~aaronp/software-center/gtk3-bugs:
+    - fix size request, make nr-reviews in the featured buttons
+      consistent with the applist
+  
+  [ Kiwinote ]
+  * data/ui/gtk3/SoftwareCenter.ui,
+    softwarecenter/ui/gtk3/app.py:
+    - set back/forward menuitems sensitive at the correct times (LP: #830194)
+  * softwarecenter/backend/aptchannels.py,
+    softwarecenter/backend/channel.py:
+    - don't include an 'all available' or 'all installed' channel
+  * softwarecenter/db/appfilter.py:
+    - make the supported filter global
+  * softwarecenter/db/application.py:
+    - never capitalize pkgname (LP: #828295)
+  * softwarecenter/ui/gtk3/app.py:
+    - many fixes to file menu and view menu (LP: #831526)
+  * softwarecenter/ui/gtk3/panes/globalpane.py:
+    - fix left/right padding of toolbar to align with the listview (LP: #823213)
+  * softwarecenter/ui/gtk3/panes/historypane.py:
+    - draw border above treeview (LP: #831421)
+    - give action+time a grey color (LP: #831430)
+  * softwarecenter/ui/gtk3/panes/viewswitcher.py:
+    - link section_clicked to 'button-release-event' rather than 'clicked' to
+      avoid getting signals for the wrong pane (LP: #828821)
+    - menuitems rather than checkmenuitems (LP: #832275)
+  * softwarecenter/ui/gtk3/panes/viewswitcher.py,
+    softwarecenter/ui/gtk3/session/viewmanager.py:
+    - introduce a view-changed signal from the viewmanager to the viewswitcher
+      st we can shade the correct section button when we change pane via the
+      navigation buttons
+  * softwarecenter/ui/gtk3/session/viewmanager.py:
+    - make some changes so the navigation stack doesn't get multiple entries
+      per view
+  * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
+    - don't hide the version label (as we still want the pkgname) (LP: #830747)
+  * softwarecenter/ui/gtk3/views/appview.py,
+    softwarecenter/ui/gtk3/widgets/cellrenderers.py:
+    - horizontally pixel align listview in ltr and rtl (LP: #830229)
+      includes multiple rtl fixes
+  * softwarecenter/ui/gtk3/views/catview_gtk.py:
+    - realign the lobby view a bit
+  
+  [ Robert Roth ]
+  * Update the help menu item to match the specs (LP: #828165)
+  * Show developer website as link instead of button (LP: #830740)
+  * Show today in history pane (LP: #831394)
+
+  [ Matthew Paul Thomas ]
+  * data/default_banner/fallback.jpg:
+    - new default banner and text
+  
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 24 Aug 2011 17:41:55 +0200
+
+software-center (4.1.17) oneiric; urgency=low
+
+  [ Matthew McGowan ]
+  * lp:~mmcg069/software-center/gtk3fix:
+    - description.py, do not connect to the viewport size-allocate signal, 
+      i think this should prevent the wierd spazz out when resize evetns 
+      occur
+
+  [ Michael Vogt ]
+  * softwarecenter/utils.py:
+    - really remove old gmenusearcher code that uses the static gmenu
+      bindings (LP: #828535)
+  * softwarecenter/ui/{gtk,gtk3}/gmenusearch.py:
+    - split gmenusearch into gtk2 (static bindings) and gtk3 (gi bindings)
+    - update usage
+  * softwarecenter/db/history_impl/apthistory.py:
+    - add conditional use of gio.File() vs Gio.File.new_for_path()
+  * softwarecenter/utils.py, softwarecenter/backend/reviews.py:
+    - fixes in subtle API changes for Gio vs gio
+  * softwarecenter/ui/gtk3/widgets/description.py:
+    - prepare for upcomming Gdk pygi changes in 2.90.x
+  * debian/control:
+    - add python-gmenu back to the dependencies, the dynamic bindings
+      can not be used with the gtk2 version os software-center
+  * utils/piston-helpers/piston_get_useful_votes_helper.py,
+    utils/piston-helpers/piston_get_reviews_helper.py:
+    - fix exception type now that json is used (instead of simplejson)
+      LP: #828324
+
+  [ Kiwinote ]
+  * data/ui/gtk3/css/softwarecenter.css:
+    - theme GtkViewports not to have a padding or a border - looks quite nice
+      around the banners now
+  * many:
+    - transition from a status bar to internal status labels (LP: #445558)
+  * softwarecenter/ui/gtk3/session/viewmanager.py:
+    - show/hide search entry when needed (LP: #828790)
+  * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
+    - use a Gtk.IconSize rather than an int for Gtk.Image.new_from_icon_name
+  * softwarecenter/ui/gtk3/widgets/buttons.py:
+    - ellipsize category text in tile to avoid warnings
+    - show channel selector on button-press-event instead of
+      button-release-event for consistent menu behaviour (LP: #828317)
+
+  [ Martin Pitt ]
+  * Fix some more places which need to conditionally import gobject or
+    GObject. (LP: #829186)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 19 Aug 2011 11:59:02 +0200
+
+software-center (4.1.16) oneiric; urgency=low
+
+  [ Michael Vogt ]
+  * softwarecenter/ui/gtk3/panes/availablepane.py, 
+    softwarecenter/ui/gtk3/views/catview_gtk.py:
+    - make clicking on top-rated app in a subcategory work
+  * softwarecenter/ui/gtk3/widgets/apptreeview.py:
+    - fix remove button in the tree (LP: #828064)
+  * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
+    - fix crash when scrolling (LP: #828440)
+  * softwarecenter/enums.py:
+    - add new Icons.INSTALLED_OVERLAY
+  * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
+    - show installed emblem for installed apps (LP: #828253)
+  * softwarecenter/ui/{gtk,gtk3}/views/appdetailsview_gtk.py:
+    - fixup for the latest GIcon API changes
+  * softwarecenter/ui/gtk3/widgets/exhibits.py:
+    - use the ubuntu color for the default exhibit LP: #827315
+  * softwarecenter/ui/gtk3/widgets/exhibits.py:
+    - use a longer exhibit timeout
+  * softwarecenter/ui/gtk3/widgets/exhibits.py:
+    - reinit mouse pointer when exhibits toggle
+  * softwarecenter/ui/gtk3/panes/viewswitcher.py:
+    - fix switching back to the main page when clicking on 
+      "All software" (LP: #828675)
+  * softwarecenter/ui/gtk3/models/appstore2.py,
+    softwarecenter/ui/gtk3/views/catview_gtk.py,
+    softwarecenter/ui/gtk3/widgets/buttons.py:
+    - show (raw) categories info in the FeaturedTile()
+  
+  [ Matthew McGowan ]
+  * lp:~mmcg069/software-center/sortable-app-tree-view:
+    - add multiple sort options for the results
+    - fix crash if no weblive is available LP: #824603
+  
+  [ Martin Pitt ]
+  * software-center: Import the static gobject, not the GI module, as this
+    uses pygtk.
+  * All files: Do not import the gi.repository.GObject module with static
+    bindings like gtk, and vice versa. It is brittle now, and breaking with
+    newer pygobject versions like 2.90.1.
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 18 Aug 2011 18:36:04 +0200
+
+software-center (4.1.15) oneiric; urgency=low
+
+  [ Michael Vogt ]
+  * software-center-gtk3, software-center:
+    - fix PYTHONPATH when running from a local repo
+    - add "--dummy-backend" option start will start a fake
+      aptdaemon in a private dbus for interactive testing of the
+      installation/removal
+  * softwarecenter/backend/spawn_helper.py:
+    - make "--debug-filter softwarecenter.backend.spawn_helper"
+      more useful
+    - ensure that the io source is removed after any pending
+      reads are flushed
+  * software-center:
+    - fix startup with no PYTHONPATH
+  * softwarecenter/gmenusearch.py:
+    - port to use gir1.2-gmenu-3.0
+  * softwarecenter/ui/{gtk,gtk3}/views/appdetailsview_gtk.py:
+    - updated for gir1.2-gmenu-3.0
+  * softwarecenter/ui/gtk3/widgets/exhibits.py:
+    - show hand cursor if the exhibit has package_names
+  * setup.py:
+    - fix AUTHORS file merging
+  
+  [ Matthew McGowan ]
+  * lp:~mmcg069/software-center/appdetails-tweaks:
+    - add a pretty frame around the thumbnail in the detailsview.
+  * lp:~mmcg069/software-center/bugfix-823233:
+    - fix so that markup is actually rendered by the submit_label
+      when submitting usefulness (LP: #823233)
+  * fix the annoying ascii codec error, #823363
+  * add some checks to ensure the exhibits list contains exhibits and
+    then some further checks within _render_exhbit_at_cursor to ensure
+    the cursor is within the bounds of the exhibits_list
+  
+  [ Kiwinote ]
+  * data/ui/gtk3/SoftwareCenter.ui,
+    softwarecenter/ui/gtk3/app.py:
+    - few more tweaks to the about dialog
+  * softwarecenter/db/application.py:
+    - import version_compare on demand to make deb files work (LP: #824692)
+  * softwarecenter/ui/gtk/appview.py,
+    softwarecenter/ui/gtk3/widgets/cellrenderers.py:
+    - fix listviews in rtl setups (pango reverses LEFT and RIGHT itself)
+  * softwarecenter/ui/gtk3/app.py:
+    - fix rtl mode for testing
+  * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
+    - correctly show/hide website button
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 17 Aug 2011 10:21:25 +0200
+
+software-center (4.1.14) oneiric; urgency=low
+
+  [ Michael Vogt ]
+  * softwarecenter/ui/gtk3/panes/viewswitcher.py:
+    - fix crash when a transaction finished in the gtk3 version
+  * data/ui/gtk3/dialogs.ui:
+    - fixes in the gtkbuilder file (adjust boxes to the right type
+      after opening with the new glade)
+  * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
+    - weblive fix, thanks to Stephane Graber! (LP: #824567)
+  * data/ui/gtk3/SoftwareCenter.ui:
+    - gtkbuilder file fixes (GtkVBox -> GtkBox with orientation property)
+  * softwarecenter/ui/gtk3/app.py:
+    - fixes in the about dialog
+    - remove hidden (and not well working) "menuitem_launchpad_private_ppas"
+    - add gtk3 launchpadintegration
+  * softwarecenter/ui/gtk3/utils.py:
+    - add local SOFTWARE_CENTER_ICON_CACHE_DIR search path
+  * softwarecenter/ui/gtk3/app.py:
+    - make "search:term", "apt:pkg" and "pkg" commandline args work
+      again
+  * softwarecenter/ui/gtk3/panes/installedpane.py:
+    - fix installedpane test window, fix installed search
+  * test/gtk3/test_search.py:
+    - add search testcase
+  * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
+    - fix double markup_escape()
+  * softwarecenter/ui/gtk3/widgets/reviews.py:
+    - fix various utf-8 escape issues
+
+  [ Gary Lasker ]
+  * softwarecenter/ui/gtk/appview.py,
+    softwarecenter/ui/gtk3/widgets/cellrenderers.py:
+    - lighten the color of the reviews count as displayed in
+      the list views (see LP: #802756)
+
+  [ Kiwinote ]
+  * softwarecenter/db/enquire.py:
+    - fix incorrect substitution for set_sort_by_value
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 12 Aug 2011 22:10:32 +0200
+
+software-center (4.1.13) oneiric; urgency=low
+
+  [ Michael Vogt ]
+  * py3 compatibility fixes, this includes:
+    - exceptions to use  "except Exception as e"
+    - print function usage
+    - various conditional imports like "import configparser"
+    - use of json instead of simplejson (required py2.6+)
+    - pyflake fixes
+  * test/test-all.sh:
+    - improve tests 
+  * test/gtk3/test_panes.py:
+    - add basic tests for the various panes
+  * softwarecenter/testutils.py:
+    - add helper factory methods to make writing tests easier
+  * merged lp:~alexeftimie/software-center/backend-refactor,
+    many thanks!
+  * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
+    - reenable weblive events, thanks to Stephane Graber!
+  * softwarecenter/ui/gtk3/app.py:
+    - setup default mainloop
+  * debian/control:
+    - add recommends to oneconf
+  
+  [ Matthew McGowan ]
+  * make the globalpane paint a theme derived base color 
+    then paint the diagonal lines
+  * small fix to correct bf button sensitivity given cursor 
+    position within the navigation stack
+  
+  [ Robert Roth ]
+  * lp:~evfool/software-center/hideabout:
+    - Hide the about dialog when clicking close in the GTK3 version 
+     (LP: #822662)
+
+  [ Gary Lasker ]
+  * softwarecenter/ui/gtk3/widgets/cellrenderers.py:
+     - relocate the list view ratings stars per the latest
+       spec, for gtk3
+  * softwarecenter/utils.py:
+    - fix version_compare lambdas 
+  * test/gtk3/test_widgets.py,
+    test/gtk3/test_navhistory.py:
+    - unit test fixes
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 11 Aug 2011 10:53:07 +0200
+
+software-center (4.1.12) oneiric; urgency=low
+
+  [ Michael Vogt ]
+  * merged lp:~alexeftimie/software-center/backend-refactor,
+    many thanks
+  * test/gtk3/test_widgets.py:
+    - more widget test coverage
+  * test/gtk3/test_views.py:
+    - add basic tests for all gtk3 views
+  * merged lp:~mmcg069/software-center/the-aesthetics, lots
+    of really nice gtk3 work, many thanks to Matthew McGowan!
+  * install gtk3 version as software-center-gtk3 tech preview
+  * merged lp:~mvo/software-center/exhibit-api-use and cherry picked
+    from lp:~mmcg069/software-center/exhibit-api-use, many thanks to
+    Matthew McGowan
+  * make clicking on exhibits banner work and display the exhibits
+    list
+  * add featured banner
+  * softwarecenter/backend/spawn_helper.py:
+    - remove io watch again if the child exited to ensure we do
+      not run into a 100% loop
+  * pyflakes fixes
+  * test/test-all.sh:
+    - improve test runner
+  * softwarecenter/ui/gtk3/views/purchaseview.py:
+    - add LocaleAwareWebView that sends a "Accept-Language" http
+      header
+  * setup.py: 
+    - install gtk3 version as well
+  * softwarecenter/ui/{gtk,gtk3}/app.py:
+    - do not run software-properties-gtk3 with gksu anymore
+  * test/gtk3/test_catview.py:
+    - add test top-rated subcategory selection
+
+  [ Matthew McGowan ]
+  * lp:~mmcg069/software-center/rnr-dialogs-gtk3:
+    - support multiple toolkits for the submit review functionatlity
+    - port the submit review app to gtk3
+  * lp:~mmcg069/software-center/gtk3fixes:
+    - fix star renderer not actually using cached star surfaces
+  * lp:~mmcg069/software-center/top-rated-subcats:
+    - add top-rated view for subcategories too
+
+  [ Gary Lasker ]
+  * softwarecenter/ui/gtk/softwarepane.py:
+    - small fix to action bar functionality in support of oneconf
+  * softwarecenter/ui/gtk/appview.py:
+    - relocate the ratings stars in the list view to be next to the
+      software item name, per the updated spec (LP: #802756)
+  * softwarecenter/ui/gtk3/widgets/reviews.py:
+    - make 'more reviews' button work in gtk3 details view
+  * test/gtk/test_gui_buy_something.py,
+    test/test_addons.py:
+    - unit test fixes
+  * softwarecenter/utils.py,
+    test/gtk/test_unity_launcher_integration.py:
+    - update unity launcher integration code to conform to
+      new app-install desktop file naming format, update
+      unit test
+  * softwarecenter/ui/gtk/appdetailsview_gtk.py,
+    softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
+    - change name of website link in the details view per
+      updated spec (LP: #715681)
+  * softwarecenter/ui/gtk/appdetailsview_gtk.py,
+    softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
+    - don't show addons in the details view for the
+      standalone deb installation case (LP: #821395)
+
+  [ Kiwinote ]
+  * softwarecenter/ui/gtk/widgets/carousel.py:
+    - ensure that carousel posters always display a title
+  * softwarecenter/ui/gtk3/views/catview_gtk.py:
+    - connect up the 'more' buttons
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 08 Aug 2011 11:05:58 +0200
+
+software-center (4.1.11) oneiric; urgency=low
+
+  [ Michael Vogt ]
+  * utils/show_top_rated_for_various_powers.py:
+    - add helper to help with the parameterization of the top-rated
+      algorithm
+  * some cleanup and new test/gtk3/test_navhistory.py
+  * merged from lp:~aaronp/software-center/more-top-rated, many
+    thanks to Aaron Peachey!
+  * move the AppEnquire code from ui.gtk3 into the generic db space
+    and add gobject query-complete signal
+  * test/gtk3/test_purchase.py:
+    - add tests for reinstall previous purchase
+  * softwarecenter/ui/gtk3:
+    - use datadir for the gtk3 art and css
+
+  [ Gary Lasker ]
+  * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
+    - port recent crash fixes and the standalone deb install
+      startup time improvements to the gtk3 branch 
+  * softwarecenter/ui/gtk/appdetailsview_gtk.py,
+    softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
+    - fix incorrect display of command line launch details
+      (LP: #817524)
+  * utils/submit_review.py:
+    - display app name rather than package name in the edit
+      review dialog title (LP: #818306)
+
+  [ Kiwinote ]
+  * softwarecenter/distro/Ubuntu.py:
+    - ensure get_downloadable_icon_url() returns a string (LP: #810552)
+  * softwarecenter/ui/gtk/appview.py:
+    - lowlevel cache isn't available on startup, so query it only on demand
+    - fix normal cache to correctly filter out unavailable pkgs (LP: #799713)
+  
+  [ Aaron Peachey ]
+  * lp:~aaronp/software-center/more-top-rated:
+    - support top rated carousel for subcategories like Games or 
+      Development Tools
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 01 Aug 2011 16:15:31 +0200
+
+software-center (4.1.10) oneiric; urgency=low
+
+  [ Michael Vogt ]
+  * merged lp:~alexeftimie/software-center/backend-refactor,
+    many thanks
+  * merged lp:~mmcg069/software-center/search-aid-improvments,
+    many thanks
+  * add generic "use_cache" to SimpleFileDownloader
+  * softwarecenter/ui/gtk3/widgets/exhibits.py:
+    - add basic ExhibitBanner widget
+  * merged lp:~roignac/software-center/bug-805969, 
+    many thanks to  Vadim Rutkovsky (LP: #805969)
+  * merged lp:~aaronp/software-center/more-top-rated, many thanks
+    to Aaron Peachey
+  * add top rated carousel
+
+  [ Gary Lasker ]
+  * softwarecenter/ui/gtk/app.py,
+    softwarecenter/ui/gtk/availablepane.py,
+    softwarecenter/ui/gtk/catview_gtk.py,
+    softwarecenter/ui/gtk/softwarepane.py:
+    - improvement for a local debian package install, display a
+      "loading" spinner while the package loads and do not show
+      the main categories view momentarily
+  * softwarecenter/backend/reviews.py:
+    - fix crash on an undefined histogram value (LP: #812923) 
+  * softwarecenter/ui/gtk/historypane.py,
+    softwarecenter/ui/gtk3/panes/historypane.py:
+    - apply patch from Michael Terry to fix a crash when
+      initializing the history pane, many thanks! (LP: #746984)
+  * softwarecenter/db/debfile.py,
+    softwarecenter/ui/gtk/appdetailsview_gtk.py,
+    softwarecenter/ui/gtk/availablepane.py:
+    - reduce startup time when installing a deb file by ~50%
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 22 Jul 2011 15:43:43 +0200
+
+software-center (4.1.9) oneiric; urgency=low
+
+  [ Michael Vogt ]
+  * data/ui/*.ui:
+    - move into data/ui/gtk preparing the gtk3 merge
+  * utils/piston-helpers/*.py:
+    - return exitcode 1 on expections
+  * softwarecenter/backend/scagent.py:
+    - properly copy when building the command
+
+  [ Gary Lasker ]
+  * merge lp:~evfool/software-center/nonetworkfixes to fix menu
+    item network state bugs, many thanks to Robert Roth
+    (LP: #802919, LP: #802920)
+  * softwarecenter/ui/gtk/appview.py:
+    - fix crash on a network change event (LP: #804414)
+  * softwarecenter/ui/gtk/appdetailsview_gtk.py:
+    - gracefully handle AttributeError from zeitgeist pending
+      fix in zeitgeist itself, fixes crasher (LP: #807282)
+  * softwarecenter/ui/gtk/appdetailsview_gtk.py,
+    softwarecenter/utils.py:
+    - fix crash when searching gmenu paths (LP: #793024)
+
+  [ Aaron Peachey ]
+  * softwarecenter/backend/reviews.py, 
+    softwarecenter/backend/spawn_helper.py:
+    - correct modify/delete UI callback behaviour with
+      new spawn helper and pagination code (LP: #807010)
+    - fix submit_usefulness and report_abuse callbacks
+      to work with the new spawn_helper and pagination code
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 13 Jul 2011 16:11:35 +0200
+
+software-center (4.1.8) oneiric; urgency=low
+
+  [ Michael Vogt ]
+  * refactor to move gtk2 UI out of InstallBackend and replace
+    with generic InstallBackendUI
+
+  [ Gary Lasker ]
+  * debian/source_software-center.py:
+    - remove extraneous '.txt' for the logfile upload in the
+      apport hook
+  * softwarecenter/backend/reviews.py:
+    - fix crash if ratings and reviews server does not provide
+      a histogram value (LP: #805421) 
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 05 Jul 2011 09:11:38 +0200
+
+software-center (4.1.7) oneiric; urgency=low
 
   [ Aaron Peachey ]
   * Add fake-review API that can be used for GUI testing and
@@ -44,7 +1370,7 @@ software-center (4.1.7) UNRELEASED; urgency=low
   [ Steve Langasek ]
   * debian/control: point Vcs-Bzr field at the right branch.
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 29 Jun 2011 14:29:22 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 04 Jul 2011 07:41:36 +0100
 
 software-center (4.1.6) oneiric; urgency=low
 
@@ -408,7 +1734,7 @@ software-center (3.1.26.5) natty; urgency=low
     - fix pyflakes warnins
   * softwarecenter/db/reviews.py:
     - ensure pkgname is a str (and not unicode), otherwise 
-      glib.spawn_async crashes (LP: #761357)
+      GObject.spawn_async crashes (LP: #761357)
   * softwarecenter/backend/zeitgeist_simple.py:
     - do not crash if a zeitgeist has no subjects (LP: #761905)
 
@@ -479,7 +1805,7 @@ software-center (3.1.26.2) natty; urgency=low
     - do not crash if /var/lib/apt-xapian-index/cataloged_times.p can
       not be read (LP: #636049)
   * merged lp:~mvo/software-center/get-reviews-subprocess (LP: #743020):
-    - don't use multiprocessing anymore, instead glib.spawn_async()
+    - don't use multiprocessing anymore, instead GObject.spawn_async()
       a helper app, this finally fixes the crashes with accessibility
       turned on (LP: #743020)
     - update rnrclient_pristine.py to the latest upstream version
@@ -487,7 +1813,7 @@ software-center (3.1.26.2) natty; urgency=low
     - add support for getting all the origins of the DB, this is
       needed for the new rnrclient_pristine.py functionatlity
     - ship get_reviews_helper.py, get_review_stats_helper.py for
-      the glib.spawn_async() change
+      the GObject.spawn_async() change
     - this also makes the reviews fully work in the guest session again
 
   [ Gary Lasker ]
@@ -3470,7 +4796,7 @@ software-center (1.1.20) lucid; urgency=low
     - show correct maintenance status for packages in the partner 
       channel 
   * softwarecenter/app.py:
-    - use glib.timeout_add_seconds()
+    - use GObject.timeout_add_seconds()
   * softwarecenter/distro/__init__.py, softwarecenter/distro/Ubuntu.py:
     - add/implement "is_supported()"
   * softwarecenter/view/appview.py:

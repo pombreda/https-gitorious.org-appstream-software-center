@@ -13,6 +13,7 @@ Build-Depends: debhelper (>= 7.0.50),
                python-setuptools,
                python-scour
 Standards-Version: 3.8.4
+X-Python-Version: >= 2.7
 Vcs-Bzr: https://code.launchpad.net/~software-store-developers/software-center/trunk
 Homepage: https://launchpad.net/software-center
 
@@ -21,42 +22,44 @@ Architecture: all
 Depends: ${python:Depends},
          ${misc:Depends},
          app-install-data (>= 0.4.0),
+         aptdaemon (>= 0.40),
          humanity-icon-theme,
-         gnome-menus,
+         gir1.2-glib-2.0,
+         gir1.2-gtk-3.0,
+         gir1.2-gmenu-3.0 (>= 3.1.5),
+         gir1.2-webkit-3.0,
+         python-gobject (>= 2.90),
+         python-gobject-cairo,
          python-xapian,
          python-apt (>= 0.7.93.1),
          python-aptdaemon (>= 0.40),
-         python-aptdaemon-gtk,
+         python-aptdaemon.gtk3widgets,
          python-dbus,
          python-defer,
          policykit-1,
          policykit-1-gnome | policykit-1-kde,
-         python-gtk2,
-         python-webkit,
          python-xdg,
-         python-gmenu,
-         aptdaemon (>= 0.40),
 	 python-lazr.restfulclient,
          ubuntu-sso-client (>= 0.99.6),
          python-piston-mini-client (>= 0.1+bzr29),
+         oneconf (>= 0.2.6),
 Recommends: lsb-release, 
-            python-launchpad-integration, 
+            gir1.2-launchpad-integration-3.0, 
             apt-xapian-index (>= 0.38ubuntu1), 
             update-notifier, 
             software-properties-gtk,
             sessioninstaller, 
-            zeitgeist-core, 
-Conflicts: gnome-app-install (<< 1)
+            zeitgeist-core,
+Conflicts: gnome-app-install (<< 1), oneconf (<< 0.2.6.1)
 Replaces: gnome-app-install
 Provides: gnome-app-install
-Suggests: python-launchpadlib
-Description: Utility for browsing, installing, and removing applications
- The Ubuntu Software Center lets you browse and install thousands of 
- applications available for Ubuntu. You can view available 
- applications by category, or search quickly by name or description. 
- You can also examine the applications already installed, and remove
- those you no longer need.
+Description: Utility for browsing, installing, and removing software
+ Ubuntu Software Center lets you browse and install thousands of 
+ free and paid applications available for Ubuntu. You can view available 
+ software by category, or search quickly by name or description. 
+ You can also examine the software already installed, and remove items
+ you no longer need.
  .
- To install or remove software using the Center, you need administrator
- access on the computer.
+ To install or remove software using USC, you need administrator access
+ on the computer.
 

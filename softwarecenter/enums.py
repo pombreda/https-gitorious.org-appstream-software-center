@@ -36,7 +36,7 @@ BUY_SOMETHING_HOST_ANONYMOUS = os.environ.get("SOFTWARE_CENTER_BUY_HOST") or "ht
 
 # version of the database, every time something gets added (like 
 # terms for mime-type) increase this (but keep as a string!)
-DB_SCHEMA_VERSION = "2"
+DB_SCHEMA_VERSION = "5"
 
 # the default limit for a search
 DEFAULT_SEARCH_LIMIT = 10000
@@ -82,9 +82,11 @@ class ActionButtons:
 class Icons:
     APP_ICON_SIZE = 48
 
-    MISSING_APP = "applications-other"
+    FALLBACK = "applications-other"
+    MISSING_APP = FALLBACK
     MISSING_PKG = "dialog-question"   # XXX: Not used?
     GENERIC_MISSING = "gtk-missing-image"
+    INSTALLED_OVERLAY = "software-center-installed"
 
 # sorting
 class SortMethods:
@@ -92,7 +94,8 @@ class SortMethods:
      BY_ALPHABET,
      BY_SEARCH_RANKING,
      BY_CATALOGED_TIME,
-    ) = range(4)
+     BY_TOP_RATED,
+    ) = range(5)
 
 # values used in the database
 class XapianValues:
@@ -117,6 +120,10 @@ class XapianValues:
     SC_DESCRIPTION = 188
     APPNAME_UNTRANSLATED = 189
     ICON_URL = 190
+    CATEGORIES = 191
+    LICENSE_KEY = 192
+    LICENSE_KEY_PATH = 193           # no longer used
+    LICENSE = 194
 
 # fake channels
 PURCHASED_NEEDS_REINSTALL_MAGIC_CHANNEL_NAME = "for-pay-needs-reinstall"
@@ -158,6 +165,12 @@ class PkgStates:
     UNKNOWN,
     ) = range(15)
 
+# visibility of non applications in the search results
+class NonAppVisibility:
+    (ALWAYS_VISIBLE,
+     MAYBE_VISIBLE,
+     NEVER_VISIBLE) = range (3)
+
 # application actions
 class AppActions:
     INSTALL = "install"
@@ -184,10 +197,17 @@ MOUSE_EVENT_BACK_BUTTON = 8
 # delimiter for directory path separator in app-install
 APP_INSTALL_PATH_DELIMITER = "__"
 
-from version import VERSION, DISTRO, RELEASE, CODENAME
+#carousel app limit to override limit in .menu file for category
+TOP_RATED_CAROUSEL_LIMIT = 12
+
+from .version import VERSION, DISTRO, RELEASE, CODENAME
 USER_AGENT="Software Center/%s (N;) %s/%s (%s)" % (VERSION, 
                                                    DISTRO, 
                                                    RELEASE,
                                                    CODENAME)
-                                                   
 
+# global backend switch
+USE_PACKAGEKIT_BACKEND = False
+
+# history switch (useful on non apt based distros)
+USE_APT_HISTORY = True

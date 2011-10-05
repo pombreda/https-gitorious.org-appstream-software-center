@@ -12,6 +12,7 @@ import xapian
 
 from softwarecenter.db.application import Application, AppDetails
 from softwarecenter.db.database import StoreDatabase
+from softwarecenter.db.enquire import AppEnquire
 from softwarecenter.db.database import parse_axi_values_file
 from softwarecenter.db.pkginfo import get_pkg_info
 from softwarecenter.db.update import update_from_app_install_data, update_from_var_lib_apt_lists, update_from_appstream_xml
@@ -117,7 +118,23 @@ class TestDatabase(unittest.TestCase):
                             "ARCHIVE_PPA value incorrect, got '%s'" % ppa)
             self.assertTrue(
                 doc.get_value(XapianValues.ICON).startswith("sc-agent"))
-        
+
+    def test_license_string_data_from_software_center_agent(self):
+        from softwarecenter.db.update import update_from_software_center_agent
+        from softwarecenter.testutils import get_test_pkg_info
+        os.environ["SOFTWARE_CENTER_BUY_HOST"] = "http://sca.razorgirl.info/"
+        cache = get_test_pkg_info()
+        db = xapian.WritableDatabase("./data/test.db", 
+                                     xapian.DB_CREATE_OR_OVERWRITE)
+        res = update_from_software_center_agent(db, cache, ignore_cache=True)
+        self.assertTrue(res)
+        for p in db.postlist(""):
+            doc = db.get_document(p.docid)
+            license = doc.get_value(XapianValues.LICENSE)
+            self.assertNotEqual(license, "")
+            self.assertNotEqual(license, None)
+        del os.environ["SOFTWARE_CENTER_BUY_HOST"]
+
     def test_application(self):
         db = StoreDatabase("/var/cache/software-center/xapian", self.cache)
         # fail if AppDetails(db) without document= or application=
@@ -160,7 +177,7 @@ class TestDatabase(unittest.TestCase):
         self.assertEqual(appdetails.pkg_state, PkgStates.INSTALLED)
         # FIXME: test description for unavailable pkg
         self.assertTrue(
-            appdetails.description.startswith("The Ubuntu Software Center"))
+            appdetails.description.startswith("Ubuntu Software Center lets you"))
         # FIXME: test appdetails.website
         self.assertEqual(appdetails.icon, "softwarecenter")
         # crude, crude
@@ -194,9 +211,10 @@ class TestDatabase(unittest.TestCase):
         self.assertEqual(appdetails.installation_date, None)
         # then we need to wait until the history is loaded in the idle
         # handler
-        import gtk
-        while gtk.events_pending():
-            gtk.main_iteration()
+        from gi.repository import GObject
+        context = GObject.main_context_default()
+        while context.pending():
+            context.iteration()
         # ... and finally we test that its really there
         # FIXME: this will only work if software-center is installed
         self.assertNotEqual(appdetails.installation_date, None)
@@ -303,6 +321,15 @@ app-popcon	4	# app-install .desktop popcon rank
         self.assertNotEqual(axi_values, {})
         print axi_values
 
+    def test_app_enquire(self):
+        db = StoreDatabase("/var/cache/software-center/xapian", self.cache)
+        db.open()
+        # test the AppEnquire engine
+        enquirer = AppEnquire(self.cache, db)
+        enquirer.set_query(xapian.Query("a"),
+                           nonblocking_load=False)
+        self.assertTrue(len(enquirer.get_docids()) > 0)
+        # FIXME: test more of the interface
 
 if __name__ == "__main__":
     import logging

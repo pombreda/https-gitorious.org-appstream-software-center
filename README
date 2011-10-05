@@ -40,6 +40,7 @@ SOFTWARE_CENTER_NET_DISCONNECTED - make software-center's netstatus module belie
 SOFTWARE_CENTER_WEBLIVE_HOST - overwrite default weblive server
 SOFTWARE_CENTER_DISTRO_CODENAME - overwrite "lsb_release -c -s" output
 SOFTWARE_CENTER_NO_SC_AGENT - disable the software-center-agent
+SOFTWARE_CENTER_DEBUG_TABS - show notebook tabs for debugging
 
 == applications.menu ==
 

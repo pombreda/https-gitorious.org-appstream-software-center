@@ -1,7 +1,8 @@
 #!/usr/bin/python
 
+from gi.repository import GObject
+
 import argparse
-import glib
 import logging
 import os
 import pickle
@@ -26,7 +27,7 @@ class SSOLoginHelper(object):
     def __init__(self, xid=0):
         self.oauth = None
         self.xid = xid
-        self.loop = glib.MainLoop(glib.main_context_default())
+        self.loop = GObject.MainLoop(GObject.main_context_default())
     
     def _login_successful(self, sso_backend, oauth_result):
         self.oauth = oauth_result
@@ -94,6 +95,10 @@ if __name__ == "__main__":
     # subscriptions
     command = subparser.add_parser("subscriptions_for_me")
     command.set_defaults(command="subscriptions_for_me")
+    # exhibits
+    command = subparser.add_parser("exhibits")
+    command.add_argument("lang")
+    command.set_defaults(command="exhibits")
 
     args = parser.parse_args()
 
@@ -143,11 +148,14 @@ if __name__ == "__main__":
             piston_reply = scaclient.available_apps(**kwargs)
         except:
             LOG.exception("available_apps")
+            sys.exit(1)
+
     elif args.command == "available_apps_qa":
         try:
             piston_reply = scaclient.available_apps_qa(**kwargs)
         except:
             LOG.exception("available_apps_qa")
+            sys.exit(1)
     elif args.command == "subscriptions_for_me":
         try:
             piston_reply = scaclient.subscriptions_for_me(complete_only=True)
@@ -159,6 +167,13 @@ if __name__ == "__main__":
                     setattr(item, k, v)
         except:
             LOG.exception("subscriptions_for_me")
+            sys.exit(1)
+    if args.command == "exhibits":
+        try:
+            piston_reply = scaclient.exhibits(lang=args.lang)
+        except:
+            LOG.exception("exhibits")
+            sys.exit(1)
 
     if args.debug:
         LOG.debug("reply: %s" % piston_reply)

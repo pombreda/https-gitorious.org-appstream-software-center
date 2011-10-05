@@ -23,8 +23,7 @@ import subprocess
 
 from gettext import gettext as _
 
-class UnimplementedError(Exception):
-    pass
+from softwarecenter.utils import UnimplementedError
 
 class Distro(object):
     """ abstract base class for a distribution """
@@ -33,10 +32,6 @@ class Distro(object):
     # used e.g. in the reviews loader if no reviews for the current codename
     # are found
     DISTROSERIES = []
-
-    # missing thumbnail
-    IMAGE_THUMBNAIL_MISSING = "/usr/share/software-center/images/dummy-thumbnail-ubuntu.png"
-    IMAGE_FULL_MISSING = "/usr/share/software-center/images/dummy-screenshot-ubuntu.png"
 
     # base path for the review summary, the JS will append %i.png (with i={1,5})
     REVIEW_SUMMARY_STARS_BASE_PATH = "/usr/share/software-center/images/review-summary"
@@ -146,7 +141,8 @@ class Distro(object):
 
 def _get_distro():
     distro_id = subprocess.Popen(["lsb_release","-i","-s"], 
-                                 stdout=subprocess.PIPE).communicate()[0].strip()
+                                 stdout=subprocess.PIPE).communicate()[0]
+    distro_id = distro_id.strip().replace(' ', '')
     logging.getLogger("softwarecenter.distro").debug("get_distro: '%s'" % distro_id)
     # start with a import, this gives us only a softwarecenter module
     module =  __import__(distro_id, globals(), locals(), [], -1)
@@ -162,9 +158,12 @@ def get_distro():
 def get_current_arch():
     return get_distro().get_architecture()
 
+def get_foreign_architectures():
+    return get_distro().get_foreign_architectures()
+
 # singelton
 distro_instance=_get_distro()
 
 
 if __name__ == "__main__":
-    print get_distro()
+    print(get_distro())

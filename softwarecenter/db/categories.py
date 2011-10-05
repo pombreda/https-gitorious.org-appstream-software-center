@@ -20,9 +20,14 @@ import gettext
 import glob
 import locale
 import logging
+import os
 import xapian
 
-from ConfigParser import ConfigParser
+try:
+    from configparser import ConfigParser
+    ConfigParser # pyflakes
+except ImportError:
+    from ConfigParser import ConfigParser
 
 from xml.etree import ElementTree as ET
 from xml.sax.saxutils import escape as xml_escape
@@ -35,9 +40,9 @@ LOG = logging.getLogger(__name__)
 
 def get_category_by_name(categories, untrans_name):
     # find a specific category
-    cat = filter(lambda cat: cat.untranslated_name == untrans_name,
-                 categories)
-    if cat: return cat[0]
+    cat = [cat for cat in categories if cat.untranslated_name == untrans_name]
+    if cat: 
+        return cat[0]
     return None
 
 def categories_sorted_by_name(categories):
@@ -64,7 +69,10 @@ class Category(object):
                  only_unallocated=True, dont_display=False, flags=[], 
                  subcategories=[], sortmode=SortMethods.BY_ALPHABET,
                  item_limit=0):
-        self.name = name
+        if type(name) == str:
+            self.name = unicode(name, 'utf8').encode('utf8')
+        else:
+            self.name = name.encode('utf8')
         self.untranslated_name = untranslated_name
         self.iconname = iconname
         for subcategory in subcategories:
@@ -77,8 +85,14 @@ class Category(object):
         self.sortmode = sortmode
         self.item_limit = item_limit
 
+    @property
+    def is_forced_sort_mode(self):
+        return (self.sortmode != SortMethods.BY_ALPHABET)
+
     def __str__(self):
-        return "* Category: %s" % self.name
+        return "<Category: name='%s', sortmode='%s', "\
+               "item_limit='%s'>" % (
+                   self.name, self.sortmode, self.item_limit)
 
 class CategoriesParser(object):
     """ 
@@ -133,6 +147,8 @@ class CategoriesParser(object):
     def _parse_directory_tag(self, element):
         cp = ConfigParser()
         fname = "/usr/share/desktop-directories/%s" % element.text
+        if not os.path.exists(fname):
+            return None
         LOG.debug("reading '%s'" % fname)
         cp.read(fname)
         try:
@@ -254,7 +270,9 @@ class CategoriesParser(object):
             elif element.tag == 'Flags':
                 flags = self._parse_flags_tag(element)
             elif element.tag == "Directory":
-                (untranslated_name, name, gettext_domain, icon) = self._parse_directory_tag(element)
+                l = self._parse_directory_tag(element)
+                if l:
+                    (untranslated_name, name, gettext_domain, icon) = l
             elif element.tag == "Include":
                 query = self._parse_include_tag(element)
             elif element.tag == "OnlyUnallocated":
@@ -288,6 +306,7 @@ class CategoriesParser(object):
         # always supported
         if sortmode in (SortMethods.UNSORTED, 
                         SortMethods.BY_ALPHABET, 
+                        SortMethods.BY_TOP_RATED, 
                         SortMethods.BY_SEARCH_RANKING):
             return True
         # only supported with a apt-xapian-index version that has the
@@ -312,3 +331,66 @@ class CategoriesParser(object):
                     cat_unalloc.query = xapian.Query(xapian.Query.OP_AND_NOT, cat_unalloc.query, cat.query)
             #print cat_unalloc.name, cat_unalloc.query
         return
+
+# static category mapping for the tiles
+
+category_cat = {
+'Utility': 'Accessories',
+'System': 'Accessories',
+'Education': 'Education',
+'Game': 'Games',
+'Sports': 'Games',
+'Graphics': 'Graphics',
+'Network': 'Internet',
+'Office': 'Office',
+'Science': 'Science & Engineering',
+'Audio': 'Sound & Video',
+'AudioVideo': 'Sound & Video',
+'Video': 'Sound & Video',
+'Settings': 'Themes & Tweaks',
+'Accessibility': 'Universal Access',
+'Development': 'Developer Tools',}
+
+category_subcat = {
+'BoardGame': 'Games;Board Games',
+'CardGame': 'Games;Card Games',
+'LogicGame': 'Games;Puzzles',
+'RolePlaying': 'Games;Role Playing',
+'SportsGame': 'Games;Sports',
+'3DGraphics': 'Graphics;3D Graphics',
+'VectorGraphics': 'Graphics;Drawing',
+'RasterGraphics': 'Graphics;Painting',
+'Photography': 'Graphics;Photography',
+'Publishing': 'Graphics;Publishing',
+'Scanning': 'Graphics;Scanning & OCR',
+'OCR': 'Graphics;Scanning & OCR',
+'Viewer': 'Graphics;Viewers',
+'InstantMessaging': 'Internet;Chat',
+'IRCClient': 'Internet;Chat',
+'FileTransfer': 'Internet;File Sharing',
+'Email': 'Internet;Mail',
+'WebBrowser': 'Internet;Web Browsers',
+'Astronomy': 'Science & Engineering;Astronomy',
+'Biology': 'Science & Engineering;Biology',
+'Chemistry': 'Science & Engineering;Chemistry',
+'ArtificialIntelligence': 'Science & Engineering;Computing & Robotics',
+'ComputerScience': 'Science & Engineering;Computing & Robotics',
+'Robotics': 'Science & Engineering;Computing & Robotics',
+'Electronics': 'Science & Engineering;Electronics',
+'Engineering': 'Science & Engineering;Engineering',
+'Geography': 'Science & Engineering;Geography',
+'Geology': 'Science & Engineering;Geology',
+'Geoscience': 'Science & Engineering;Geology',
+'DataVisualization': 'Science & Engineering;Mathematics',
+'Math': 'Science & Engineering;Mathematics',
+'NumericalAnalysis': 'Science & Engineering;Mathematics',
+'MedicalSoftware': 'Science & Engineering;Medicine',
+'Electricity': 'Science & Engineering;Physics',
+'Physics': 'Science & Engineering;Physics',
+'Debugger': 'Developer Tools;Debugging',
+'GUIDesigner': 'Developer Tools;Graphic Interface Design',
+'IDE': 'Developer Tools;IDEs',
+'Translation': 'Developer Tools;Localization',
+'Profiling': 'Developer Tools;Profiling',
+'RevisionControl': 'Developer Tools;Version Control',
+'WebDevelopment': 'Developer Tools;Web Development',}

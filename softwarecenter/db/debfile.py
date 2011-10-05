@@ -25,6 +25,7 @@ from mimetypes import guess_type
 
 from softwarecenter.db.application import Application, AppDetails
 from softwarecenter.enums import PkgStates
+from softwarecenter.utils import ExecutionTime, utf8
 
 class DebFileApplication(Application):
     def __init__(self, debfile):
@@ -36,7 +37,9 @@ class DebFileApplication(Application):
         self.pkgname = debname.split('_')[0].lower()
         self.request = debfile
     def get_details(self, db):
-        return AppDetailsDebFile(db, application=self)
+        with ExecutionTime("get_details for DebFileApplication"):
+            details = AppDetailsDebFile(db, application=self)
+        return details
 
 class AppDetailsDebFile(AppDetails):
     
@@ -48,22 +51,23 @@ class AppDetailsDebFile(AppDetails):
         try:
             # for some reason Cache() is much faster than "self._cache._cache"
             # on startup
-            self._deb = DebPackage(self._app.request, Cache())
+            with ExecutionTime("create DebPackage"):
+                self._deb = DebPackage(self._app.request, Cache())
         except:
             self._deb = None
             self._pkg = None
             if not os.path.exists(self._app.request):
                 self._error = _("Not found")
-                self._error_not_found = _(u"The file \u201c%s\u201d does not exist.") % self._app.request
+                self._error_not_found = utf8(_(u"The file \u201c%s\u201d does not exist.")) % utf8(self._app.request)
             else:
                 mimetype = guess_type(self._app.request)
                 if mimetype[0] != "application/x-debian-package":
                     self._error =  _("Not found")
-                    self._error_not_found = _(u"The file \u201c%s\u201d is not a software package.") % self._app.request
+                    self._error_not_found = utf8(_(u"The file \u201c%s\u201d is not a software package.")) % utf8(self._app.request)
                 else:
-                    # hm, deb files from launchpad get this error..
+                    # deb files which are corrupt
                     self._error =  _("Internal Error")
-                    self._error_not_found = _(u"The file \u201c%s\u201d could not be opened.") % self._app.request
+                    self._error_not_found = utf8(_(u"The file \u201c%s\u201d could not be opened.")) % utf8(self._app.request)
             return
 
         if self.pkgname and self.pkgname != self._app.pkgname:
@@ -84,8 +88,9 @@ class AppDetailsDebFile(AppDetails):
                 pass
 
         # check deb and set failure state on error
-        if not self._deb.check():
-            self._error = self._deb._failure_string
+        with ExecutionTime("AppDetailsDebFile._deb.check()"):
+            if not self._deb.check():
+                self._error = self._deb._failure_string
 
     @property
     def description(self):
@@ -148,6 +153,16 @@ class AppDetailsDebFile(AppDetails):
     def version(self):
         if self._deb:
             return self._deb._sections["Version"]
+    
+    @property
+    def installed_size(self):
+        installed_size = 0
+        if self._deb:
+            try:
+                installed_size = long(self._deb._sections["Installed-Size"])
+            except:
+                pass
+        return installed_size * 1024
 
     @property
     def warning(self):
@@ -155,16 +170,16 @@ class AppDetailsDebFile(AppDetails):
         if self._deb:
             deb_state = self._deb.compare_to_version_in_cache(use_installed=False)
             if deb_state == DebPackage.VERSION_NONE:
-                return _("Only install this file if you trust the origin.")
+                return utf8(_("Only install this file if you trust the origin."))
             elif (not self._cache[self.pkgname].installed and
                   self._cache[self.pkgname].candidate and
                   self._cache[self.pkgname].candidate.downloadable): 
                 if deb_state == DebPackage.VERSION_OUTDATED:
-                    return _("Please install \"%s\" via your normal software channels. Only install this file if you trust the origin.") % self.name
+                    return utf8(_("Please install \"%s\" via your normal software channels. Only install this file if you trust the origin.")) % utf8(self.name)
                 elif deb_state == DebPackage.VERSION_SAME:
-                    return _("Please install \"%s\" via your normal software channels. Only install this file if you trust the origin.") % self.name
+                    return utf8(_("Please install \"%s\" via your normal software channels. Only install this file if you trust the origin.")) % utf8(self.name)
                 elif deb_state == DebPackage.VERSION_NEWER:
-                    return _("An older version of \"%s\" is available in your normal software channels. Only install this file if you trust the origin.") % self.name
+                    return utf8(_("An older version of \"%s\" is available in your normal software channels. Only install this file if you trust the origin.")) % utf8(self.name)
 
     @property
     def website(self):

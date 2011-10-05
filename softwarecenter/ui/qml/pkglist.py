@@ -22,7 +22,6 @@ import os
 from PySide import QtCore
 from PySide.QtCore import Property, QAbstractListModel, QModelIndex, Slot
 
-
 from softwarecenter.db.database import StoreDatabase, Application
 from softwarecenter.db.pkginfo import get_pkg_info
 from softwarecenter.db.categories import CategoriesParser

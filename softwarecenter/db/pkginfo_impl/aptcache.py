@@ -21,22 +21,23 @@
 import apt
 import apt_pkg
 import logging
-import gio
-import glib
-import gtk
 import os
+
+from gi.repository import GObject
+from gi.repository import Gio
 
 from softwarecenter.enums import PkgStates
 
-from softwarecenter.db.pkginfo import PackageInfo
+from softwarecenter.db.pkginfo import PackageInfo, _Version
 
 LOG = logging.getLogger(__name__)
 
 class GtkMainIterationProgress(apt.progress.base.OpProgress):
     """Progress that just runs the main loop"""
     def update(self, percent=0):
-        while gtk.events_pending():
-            gtk.main_iteration()
+        context = GObject.main_context_default()
+        while context.pending():
+            context.iteration()
 
 def convert_package_argument(f):
     """ decorator converting _Package argument to Package object from cache """
@@ -57,6 +58,32 @@ def pkg_downloaded(pkg_version):
     filename = os.path.basename(pkg_version.filename)
     # FIXME: use relative path here
     return os.path.exists("/var/cache/apt/archives/" + filename)
+
+class AptCacheVersion(_Version):
+    def __init__(self, version):
+        self.ver = version
+
+    @property
+    def description(self):
+        return self.ver.description
+    @property
+    def summary(self):
+        return self.ver.summary
+    @property
+    def size(self):
+        return self.ver.size
+    @property
+    def installed_size(self):
+        return self.ver.installed_size
+    @property
+    def version(self):
+        return self.ver.version
+    @property
+    def origins(self):
+        return self.ver.origins
+    @property
+    def downloadable(self):
+        return self.ver.downloadable
 
 class AptCache(PackageInfo):
     """ 
@@ -82,9 +109,8 @@ class AptCache(PackageInfo):
         self._ready = False
         self._timeout_id = None
         # setup monitor watch for install/remove changes
-        self.apt_finished_stamp=gio.File(self.APT_FINISHED_STAMP)
-        self.apt_finished_monitor = self.apt_finished_stamp.monitor_file(
-            gio.FILE_MONITOR_NONE)
+        self.apt_finished_stamp=Gio.File.new_for_path(self.APT_FINISHED_STAMP)
+        self.apt_finished_monitor = self.apt_finished_stamp.monitor_file(0, None)
         self.apt_finished_monitor.connect(
             "changed", self._on_apt_finished_stamp_changed)
         # this is fast, so ok
@@ -102,8 +128,10 @@ class AptCache(PackageInfo):
         return apt_pkg.upstream_version(v)
 
     def is_installed(self, pkgname):
-        return (pkgname in self._cache and
-                self._cache[pkgname].is_installed)
+        # use the lowlevel cache here, twice as fast
+        lowlevel_cache = self._cache._cache
+        return (pkgname in lowlevel_cache and
+                lowlevel_cache[pkgname].current_ver is not None)
     def is_available(self, pkgname):
         return (pkgname in self._cache and
                 self._cache[pkgname].candidate)
@@ -112,19 +140,19 @@ class AptCache(PackageInfo):
         if (pkgname not in self._cache or
             not self._cache[pkgname].is_installed):
             return None
-        return self._cache[pkgname].installed
+        return AptCacheVersion(self._cache[pkgname].installed)
 
     def get_candidate(self, pkgname):
         if (pkgname not in self._cache or
             not self._cache[pkgname].candidate):
             return None
-        return self._cache[pkgname].candidate
+        return AptCacheVersion(self._cache[pkgname].candidate)
 
     def get_versions(self, pkgname):
         if (pkgname not in self._cache or
             not self._cache[pkgname].candidate):
             return []
-        return self._cache[pkgname].versions
+        return [AptCacheVersion(v) for v in self._cache[pkgname].versions]
 
     def get_section(self, pkgname):
         if (pkgname not in self._cache or 
@@ -199,12 +227,12 @@ class AptCache(PackageInfo):
     def __contains__(self, k):
         return self._cache.__contains__(k)
     def _on_apt_finished_stamp_changed(self, monitor, afile, other_file, event):
-        if not event == gio.FILE_MONITOR_EVENT_CHANGES_DONE_HINT:
+        if not event == Gio.FileMonitorEvent.CHANGES_DONE_HINT:
             return 
         if self._timeout_id:
-            glib.source_remove(self._timeout_id)
+            GObject.source_remove(self._timeout_id)
             self._timeout_id = None
-        self._timeout_id = glib.timeout_add_seconds(10, self.open)
+        self._timeout_id = GObject.timeout_add_seconds(10, self.open)
     def _get_rdepends_by_type(self, pkg, type, onlyInstalled):
         rdeps = set()
         # make sure this is a apt.Package object
@@ -271,8 +299,9 @@ class AptCache(PackageInfo):
             if not pkg.candidate:
                 continue
             for item in pkg.candidate.origins:
-                while gtk.events_pending():
-                    gtk.main_iteration()
+                context = GObject.main_context_default()
+                while context.pending():
+                    context.iteration()
                 if item.origin:
                     origins.add(item.origin)
         return origins
@@ -619,8 +648,9 @@ class AptCache(PackageInfo):
             renhances = self._get_renhances_lowlevel_apt_pkg(virtual_aptpkg_pkg)
             LOG.debug("renhances of %s: %s" % (provide, renhances))
             addons_sug += renhances
-            while gtk.events_pending():
-                gtk.main_iteration()
+            context = GObject.main_context_default()
+            while context.pending():
+                context.iteration()
 
         # get more addons, the idea is that if a package foo-data
         # just depends on foo we want to get the info about
@@ -650,8 +680,9 @@ class AptCache(PackageInfo):
                             pkgdep, pkgdep_enh))
                     addons_sug += pkgdep_enh
 
-            while gtk.events_pending():
-                gtk.main_iteration()
+            context = GObject.main_context_default()
+            while context.pending():
+                context.iteration()
 
         # remove duplicates from suggests (sets are great!)
         addons_sug = list(set(addons_sug)-set(addons_rec))
@@ -679,31 +710,31 @@ class AptCache(PackageInfo):
 if __name__ == "__main__":
     c = AptCache()
     c.open()
-    print "deps of unrar"
-    print c._installed_dependencies(c["unrar"].name)
+    print("deps of unrar")
+    print(c._installed_dependencies(c["unrar"].name))
 
-    print "unused deps of 4g8"
+    print("unused deps of 4g8")
     pkg = c._cache["4g8"]
     pkg.mark_delete()
-    print c.get_installed_automatic_depends_for_pkg(pkg)
+    print(c.get_installed_automatic_depends_for_pkg(pkg))
 
     pkg = c["unace"]
-    print c.get_installed_automatic_depends_for_pkg(pkg)
-    print c.get_packages_removed_on_remove(pkg)
-    print c._get_installed_rrecommends(pkg)
-    print c._get_installed_rsuggests(pkg)
+    print(c.get_installed_automatic_depends_for_pkg(pkg))
+    print(c.get_packages_removed_on_remove(pkg))
+    print(c._get_installed_rrecommends(pkg))
+    print(c._get_installed_rsuggests(pkg))
     
-    print "deps of gimp"
+    print("deps of gimp")
     pkg = c["gimp"]
-    print c._get_depends(pkg)
-    print c._get_recommends(pkg)
-    print c._get_suggests(pkg)
-    print c._get_enhances(pkg)
-    print c._get_provides(pkg)
+    print(c._get_depends(pkg))
+    print(c._get_recommends(pkg))
+    print(c._get_suggests(pkg))
+    print(c._get_enhances(pkg))
+    print(c._get_provides(pkg))
     
-    print "rdeps of gimp"
-    print c._get_rdepends(pkg)
-    print c._get_rrecommends(pkg)
-    print c._get_rsuggests(pkg)
-    print c._get_renhances(pkg)
-    print c._get_rprovides(pkg)
+    print("rdeps of gimp")
+    print(c._get_rdepends(pkg))
+    print(c._get_rrecommends(pkg))
+    print(c._get_rsuggests(pkg))
+    print(c._get_renhances(pkg))
+    print(c._get_rprovides(pkg))

@@ -22,14 +22,14 @@ import os
 import re
 
 from gettext import gettext as _
-from softwarecenter.backend.channel import ChannelsManager
+from softwarecenter.backend.channel import is_channel_available
 from softwarecenter.distro import get_distro
 from softwarecenter.enums import PkgStates, XapianValues, Icons
 
 from softwarecenter.paths import (APP_INSTALL_CHANNELS_PATH,
                                   SOFTWARE_CENTER_ICON_CACHE_DIR,
                                   )
-from softwarecenter.utils import version_compare
+from softwarecenter.utils import utf8
 
 LOG = logging.getLogger(__name__)
 
@@ -48,7 +48,7 @@ class Application(object):
         # defaults
         self.pkgname = pkgname.replace("$kernel", os.uname()[2])
         if appname:
-            self.appname = unicode(appname)
+            self.appname = utf8(appname)
         else:
             self.appname = ''
         # the request can take additional "request" data like apturl
@@ -65,7 +65,7 @@ class Application(object):
         """Show user visible name"""
         if self.appname:
             return self.appname
-        return self.pkgname.capitalize()
+        return self.pkgname
     @property
     def popcon(self):
         return self._popcon
@@ -116,7 +116,7 @@ class Application(object):
     def __cmp__(self, other):
         return self.apps_cmp(self, other)
     def __str__(self):
-        return "%s,%s" % (self.appname, self.pkgname)
+        return unicode("%s,%s", 'utf8').encode('utf8') % (self.appname, self.pkgname)
     def __repr__(self):
         return "[Application: appname=%s pkgname=%s]" % (self.appname, self.pkgname)
     @staticmethod
@@ -144,7 +144,7 @@ class AppDetails(object):
             a xapian.Document or from a db.application.Application object
         """
         if not doc and not application:
-            raise ValueError, "Need either document or application"
+            raise ValueError("Need either document or application")
         self._db = db
         self._db.connect("reopen", self._on_db_reopen)
         self._cache = self._db._aptcache
@@ -196,7 +196,7 @@ class AppDetails(object):
                     not channel_matches and 
                     not section_matches):
                     self._error = _("Not found")
-                    self._error_not_found = _(u"There isn\u2019t a software package called \u201c%s\u201D in your current software sources.") % self.pkgname
+                    self._error_not_found = utf8(_(u"There isn\u2019t a software package called \u201c%s\u201D in your current software sources.")) % utf8(self.pkgname)
 
     def same_app(self, other):
         return self.pkgname == other.pkgname
@@ -296,7 +296,7 @@ class AppDetails(object):
         # this may have changed since we inited the appdetails
         elif self.pkg_state == PkgStates.NOT_FOUND:
             self._error =  _("Not found")
-            self._error_not_found = _(u"There isn\u2019t a software package called \u201c%s\u201D in your current software sources.") % self.pkgname
+            self._error_not_found = utf8(_(u"There isn\u2019t a software package called \u201c%s\u201D in your current software sources.")) % utf8(self.pkgname)
             return self._error_not_found
 
     @property
@@ -336,7 +336,11 @@ class AppDetails(object):
 
     @property
     def license(self):
-        return self._distro.get_license_text(self.component)
+        xapian_license = self._doc.get_value(XapianValues.LICENSE)
+        if xapian_license:
+            return xapian_license
+        else:
+            return self._distro.get_license_text(self.component)
 
     @property
     def maintenance_status(self):
@@ -423,7 +427,7 @@ class AppDetails(object):
                     return PkgStates.NEEDS_SOURCE
                 else:
                     self._error =  _("Not found")
-                    self._error_not_found = _(u"There isn\u2019t a software package called \u201c%s\u201D in your current software sources.") % self.pkgname
+                    self._error_not_found = utf8(_(u"There isn\u2019t a software package called \u201c%s\u201D in your current software sources.")) % utf8(self.pkgname)
                     return PkgStates.NOT_FOUND
             else:
                 if self.price:
@@ -437,7 +441,7 @@ class AppDetails(object):
                         if component and self._unavailable_component(component_to_check=component):
                             return PkgStates.NEEDS_SOURCE
                 self._error =  _("Not found")
-                self._error_not_found = _(u"There isn\u2019t a software package called \u201c%s\u201D in your current software sources.") % self.pkgname
+                self._error_not_found = utf8(_(u"There isn\u2019t a software package called \u201c%s\u201D in your current software sources.")) % utf8(self.pkgname)
                 return PkgStates.NOT_FOUND
         return PkgStates.UNKNOWN
 
@@ -504,6 +508,7 @@ class AppDetails(object):
                 minver_matches = re.findall(r'minver=[a-z,0-9,-,+,.,~]*', self._app.request)
                 if minver_matches and self.version:
                     minver = minver_matches[0][7:]
+                    from softwarecenter.utils import version_compare
                     if version_compare(minver, self.version) > 0:
                         return _("Version %s or later not available.") % minver
         # can we enable a source
@@ -534,10 +539,20 @@ class AppDetails(object):
     def website(self):
         if self._pkg:
             return self._pkg.website
+    
+    @property
+    def license_key(self):
+        if self._doc:
+            return self._doc.get_value(XapianValues.LICENSE_KEY)
+
+    @property
+    def license_key_path(self):
+        if self._doc:
+            return self._doc.get_value(XapianValues.LICENSE_KEY_PATH)
 
     def _unavailable_channel(self):
         """ Check if the given doc refers to a channel that is currently not enabled """
-        return not ChannelsManager.channel_available(self.channelname)
+        return not is_channel_available(self.channelname)
 
     def _unavailable_component(self, component_to_check=None):
         """ Check if the given doc refers to a component that is currently not enabled """

@@ -20,24 +20,35 @@
 
 import QtQuick 1.0
 
-
 Row {
     property double ratings_average
 
     Repeater {
+        height: parent.height
         model: Math.floor(ratings_average)
         Image {
-            source: "../../../data/images/star-yellow.png"
+            source: (height <= 16) ? "star-small-full.png" : "star-large-full.png"
+            smooth: true
+            height: parent.height
+            width: height
         }
     }
     Image {
-        source: "../../../data/images/star-half.png"
         visible: Math.floor(ratings_average) != Math.ceil(ratings_average)
+        source: (height <= 16) ? "star-small-half.png" : "star-large-half.png"
+        smooth: true
+        height: parent.height
+        width: height
     }
     Repeater {
+        height: parent.height
         model: 5 - Math.ceil(ratings_average)
         Image {
-            source: "../../../data/images/star-dark.png"
+            source: (height <= 16) ? "star-small-empty.png" : "star-large-empty.png"
+            smooth: true
+            height: parent.height
+            width: height
         }
     }
 }
+

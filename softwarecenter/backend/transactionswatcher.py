@@ -16,12 +16,32 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import gobject
+from gi.repository import GObject
 
-class BaseTransaction(gobject.GObject):
+class BaseTransaction(GObject.GObject):
     """
     wrapper class for install backend dbus Transaction objects
     """
+    __gsignals__ = {'progress-details-changed':(GObject.SIGNAL_RUN_FIRST,
+                                            GObject.TYPE_NONE,
+                                            (int, int, int, int, int, int)),
+                    'progress-changed':(GObject.SIGNAL_RUN_FIRST,
+                                            GObject.TYPE_NONE,
+                                            (GObject.TYPE_PYOBJECT, )),
+                    'status-changed':(GObject.SIGNAL_RUN_FIRST,
+                                            GObject.TYPE_NONE,
+                                            (GObject.TYPE_PYOBJECT, )),
+                    'cancellable-changed':(GObject.SIGNAL_RUN_FIRST,
+                                            GObject.TYPE_NONE,
+                                            (GObject.TYPE_PYOBJECT, )),
+                    'role-changed':(GObject.SIGNAL_RUN_FIRST,
+                                            GObject.TYPE_NONE,
+                                            (GObject.TYPE_PYOBJECT, )),
+                    'deleted':(GObject.SIGNAL_RUN_FIRST,
+                                            GObject.TYPE_NONE,
+                                            []),
+    }
+
     @property
     def tid(self):
         pass
@@ -53,7 +73,7 @@ class BaseTransaction(gobject.GObject):
     def cancel(self):
         pass
 
-class BaseTransactionsWatcher(gobject.GObject):
+class BaseTransactionsWatcher(GObject.GObject):
     """ 
     base class for objects that need to watch the install backend 
     for transaction changes.
@@ -61,21 +81,43 @@ class BaseTransactionsWatcher(gobject.GObject):
     provides a "lowlevel-transactions-changed" signal
     """
 
-    __gsignals__ = {'lowlevel-transactions-changed': (gobject.SIGNAL_RUN_FIRST,
-                                                     gobject.TYPE_NONE,
-                                                     (str,gobject.TYPE_PYOBJECT)),
+    __gsignals__ = {'lowlevel-transactions-changed': (GObject.SIGNAL_RUN_FIRST,
+                                                     GObject.TYPE_NONE,
+                                                     (str,GObject.TYPE_PYOBJECT)),
                     }
 
     def get_transaction(self, tid):
         """ should return a _Transaction object """
         return None
 
+class TransactionFinishedResult(object):
+    """ represents the result of a transaction """
+    def __init__(self, trans, success):
+        self.success = success
+        if trans:
+            self.pkgname = trans.meta_data.get("sc_pkgname")
+            self.meta_data = trans.meta_data
+        else:
+            self.pkgname = None
+            self.meta_data = None
+
+class TransactionProgress(object):
+    """ represents the progress of the transaction """
+    def __init__(self, trans):
+        self.pkgname = trans.meta_data.get("sc_pkgname")
+        self.meta_data = trans.meta_data
+        self.progress = trans.progress
 
 # singleton
 _tw = None
 def get_transactions_watcher():
     global _tw
     if _tw is None:
-        from aptd import AptdaemonTransactionsWatcher
-        _tw = AptdaemonTransactionsWatcher()
+        from softwarecenter.enums import USE_PACKAGEKIT_BACKEND
+        if not USE_PACKAGEKIT_BACKEND:
+            from softwarecenter.backend.installbackend_impl.aptd import AptdaemonTransactionsWatcher
+            _tw = AptdaemonTransactionsWatcher()
+        else:
+            from softwarecenter.backend.installbackend_impl.packagekitd import PackagekitTransactionsWatcher
+            _tw = PackagekitTransactionsWatcher()        
     return _tw

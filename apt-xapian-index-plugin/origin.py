@@ -3,13 +3,15 @@
 import apt
 import os
 
+
 class OriginPlugin:
+
     def info(self):
         """
         Return general information about the plugin.
 
         The information returned is a dict with various keywords:
-         
+
          timestamp (required)
            the last modified timestamp of this data source.  This will be used
            to see if we need to update the database or not.  A timestamp of 0
@@ -24,8 +26,8 @@ class OriginPlugin:
         """
         file = apt.apt_pkg.config.find_file("Dir::Cache::pkgcache")
         if not os.path.exists(file):
-            return dict(timestamp = 0)
-        return dict(timestamp = os.path.getmtime(file))
+            return dict(timestamp=0)
+        return dict(timestamp=os.path.getmtime(file))
 
     def init(self, info, progress):
         """
@@ -50,14 +52,12 @@ class OriginPlugin:
           fullDoc: the full description as a chapter in ReST format
         """
         return dict(
-            name = "Origin",
-            shortDesc = "Origin information",
-            fullDoc = """
+            name="Origin",
+            shortDesc="Origin information",
+            fullDoc="""
             The Origin data source indexes origin information
             It uses the prefix XO
-            """
-        )
-
+            """)
 
     def index(self, document, pkg):
         """
@@ -67,23 +67,23 @@ class OriginPlugin:
         pkg       is the python-apt Package object for this package
         """
         ver = pkg.candidate
-        if ver is None: 
+        if ver is None:
             return
         if not ver.downloadable:
-            document.add_term("XOL"+"notdownloadable")
+            document.add_term("XOL" + "notdownloadable")
         for origin in ver.origins:
-            document.add_term("XOA"+origin.archive)
-            document.add_term("XOC"+origin.component)
-            document.add_term("XOL"+origin.label)
-            document.add_term("XOO"+origin.origin)
-            document.add_term("XOS"+origin.site)
+            document.add_term("XOA" + origin.archive)
+            document.add_term("XOC" + origin.component)
+            document.add_term("XOL" + origin.label)
+            document.add_term("XOO" + origin.origin)
+            document.add_term("XOS" + origin.site)
 
         # FIXME: this doesn't really belong in this file, but we can put it in
         #        here until we get a display_name/display_summary plugin which
         #        is being prepared in the experimental-fastlist branch.
         if '-' in pkg.name:
             # we need this to work around xapian oddness
-            document.add_term(pkg.name.replace('-','_'))
+            document.add_term(pkg.name.replace('-', '_'))
 
     def indexDeb822(self, document, pkg):
         """

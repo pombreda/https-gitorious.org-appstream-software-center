@@ -16,7 +16,6 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import gobject
 import locale
 import logging
 import os
@@ -25,6 +24,9 @@ import string
 import threading
 import xapian
 from softwarecenter.db.application import Application
+from softwarecenter.db.utils import get_query_for_pkgnames
+
+from gi.repository import GObject
 
 #from softwarecenter.utils import *
 from softwarecenter.enums import (
@@ -35,6 +37,21 @@ from softwarecenter.enums import (
 
 from softwarecenter.paths import XAPIAN_BASE_PATH_SOFTWARE_CENTER_AGENT
 from gettext import gettext as _
+
+def parse_axi_values_file(filename="/var/lib/apt-xapian-index/values"):
+    """ parse the apt-xapian-index "values" file and provide the 
+    information in the self._axi_values dict
+    """
+    axi_values = {}
+    if not os.path.exists(filename):
+        return axi_values
+    for raw_line in open(filename):
+        line = string.split(raw_line, "#", 1)[0]
+        if line.strip() == "":
+            continue
+        (key, value) = line.split()
+        axi_values[key] = int(value)
+    return axi_values
 
 class SearchQuery(list):
     """ a list wrapper for a search query. it can take a search string
@@ -62,38 +79,31 @@ class SearchQuery(list):
     def __repr__(self):
         return "[%s]" % ",".join([str(q) for q in self])
 
-# class LocaleSorter(xapian.KeyMaker)
-#   ubuntu maverick does not have the KeyMakter yet, maintain compatibility
-#   for now by falling back to the old xapian.Sorter
-try:
-    parentClass = xapian.KeyMaker
-except AttributeError:
-    parentClass = xapian.Sorter
-class LocaleSorter(parentClass):
+class LocaleSorter(xapian.KeyMaker):
     """ Sort in a locale friendly way by using locale.xtrxfrm """
     def __init__(self, db):
         super(LocaleSorter, self).__init__()
         self.db = db
     def __call__(self, doc):
-        return locale.strxfrm(doc.get_value(self.db._axi_values["display_name"]))
+        return locale.strxfrm(
+            doc.get_value(self.db._axi_values["display_name"]))
 
+class TopRatedSorter(xapian.KeyMaker):
+    """ Sort using the top rated data """
+    def __init__(self, db, review_loader):
+        super(TopRatedSorter, self).__init__()
+        self.db = db
+        self.review_loader = review_loader
+    def __call__(self, doc):
+        app = Application(self.db.get_appname(doc),
+                          self.db.get_pkgname(doc))
+        stats = self.review_loader.get_review_stats(app)
+        import xapian
+        if stats:
+            return xapian.sortable_serialise(stats.dampened_rating)
+        return xapian.sortable_serialise(0)
 
-def parse_axi_values_file(filename="/var/lib/apt-xapian-index/values"):
-    """ parse the apt-xapian-index "values" file and provide the 
-    information in the self._axi_values dict
-    """
-    axi_values = {}
-    if not os.path.exists(filename):
-        return axi_values
-    for raw_line in open(filename):
-        line = string.split(raw_line, "#", 1)[0]
-        if line.strip() == "":
-            continue
-        (key, value) = line.split()
-        axi_values[key] = int(value)
-    return axi_values
-
-class StoreDatabase(gobject.GObject):
+class StoreDatabase(GObject.GObject):
     """thin abstraction for the xapian database with convenient functions"""
 
     # TRANSLATORS: List of "grey-listed" words sperated with ";"
@@ -105,39 +115,81 @@ class StoreDatabase(gobject.GObject):
                             "suite;tool")
 
     # signal emited
-    __gsignals__ = {"reopen" : (gobject.SIGNAL_RUN_FIRST,
-                                gobject.TYPE_NONE,
+    __gsignals__ = {"reopen" : (GObject.SIGNAL_RUN_FIRST,
+                                GObject.TYPE_NONE,
                                 ()),
-                    "open" : (gobject.SIGNAL_RUN_FIRST,
-                              gobject.TYPE_NONE,
-                              (gobject.TYPE_STRING,)),
+                    "open" : (GObject.SIGNAL_RUN_FIRST,
+                              GObject.TYPE_NONE,
+                              (GObject.TYPE_STRING,)),
                     }
     def __init__(self, pathname, cache):
-        gobject.GObject.__init__(self)
+        GObject.GObject.__init__(self)
         self._db_pathname = pathname
         self._aptcache = cache
         self._additional_databases = []
-        # xapian.Database is not thread safe (its however safe to 
-        # have multiple xapian.Databases. if this lock becomes a bottleneck
-        # we need to replace it with a solution that creates a DB per
-        # search query)
-        self._search_lock = threading.Lock()
-
         # the xapian values as read from /var/lib/apt-xapian-index/values
         self._axi_values = {}
         self._logger = logging.getLogger("softwarecenter.db")
+        # we open one db per thread, thread names are reused eventually
+        # so no memory leak
+        self._db_per_thread = {} 
+        self._parser_per_thread = {} 
 
-    def acquire_search_lock(self):
-        self._search_lock.acquire()
+    @property
+    def xapiandb(self):
+        """ returns a per thread db """
+        thread_name = threading.current_thread().name
+        if not thread_name in self._db_per_thread:
+            self._db_per_thread[thread_name] = self._get_new_xapiandb()
+        return self._db_per_thread[thread_name]
 
-    def release_search_lock(self):
-        self._search_lock.release()
+    @property
+    def xapian_parser(self):
+        """ returns a per thread query parser """
+        thread_name = threading.current_thread().name
+        if not thread_name in self._parser_per_thread:
+            self._parser_per_thread[thread_name] = self._get_new_xapian_parser()
+        return self._parser_per_thread[thread_name]
 
+    def _get_new_xapiandb(self):
+        xapiandb = xapian.Database(self._db_pathname)
+        if self._use_axi:
+            try:
+                axi = xapian.Database("/var/lib/apt-xapian-index/index")
+                xapiandb.add_database(axi)
+            except:
+                self._logger.exception("failed to add apt-xapian-index")
+        if (self._use_agent and 
+            os.path.exists(XAPIAN_BASE_PATH_SOFTWARE_CENTER_AGENT)):
+            try:
+                sca = xapian.Database(XAPIAN_BASE_PATH_SOFTWARE_CENTER_AGENT)
+                xapiandb.add_database(sca)
+            except Exception as e:
+                logging.warn("failed to add sca db %s" % e)
+        for db in self._additional_databases:
+            xapiandb.add_database(db)
+        return xapiandb
+
+    def _get_new_xapian_parser(self):
+        xapian_parser = xapian.QueryParser()
+        xapian_parser.set_database(self.xapiandb)
+        xapian_parser.add_boolean_prefix("pkg", "XP")
+        xapian_parser.add_boolean_prefix("pkg", "AP")
+        xapian_parser.add_boolean_prefix("mime", "AM")
+        xapian_parser.add_boolean_prefix("section", "XS")
+        xapian_parser.add_boolean_prefix("origin", "XOC")
+        xapian_parser.add_prefix("pkg_wildcard", "XP")
+        xapian_parser.add_prefix("pkg_wildcard", "AP")
+        xapian_parser.set_default_op(xapian.Query.OP_AND)
+        return xapian_parser
+        
     def open(self, pathname=None, use_axi=True, use_agent=True):
         """ open the database """
         if pathname:
             self._db_pathname = pathname
-        self.xapiandb = xapian.Database(self._db_pathname)
+        # clean existing DBs on open
+        self._db_per_thread = {} 
+        self._parser_per_thread = {} 
         # add the apt-xapian-database for here (we don't do this
         # for now as we do not have a good way to integrate non-apps
         # with the UI)
@@ -145,43 +197,23 @@ class StoreDatabase(gobject.GObject):
         self._use_axi = use_axi
         self._use_agent = use_agent
         if use_axi:
-            try:
-                axi = xapian.Database("/var/lib/apt-xapian-index/index")
-                self.xapiandb.add_database(axi)
-                self._axi_values = parse_axi_values_file()
-                self.nr_databases += 1
-            except:
-                self._logger.exception("failed to add apt-xapian-index")
+            self._axi_values = parse_axi_values_file()
+            self.nr_databases += 1
         if use_agent:
-            try:
-                sca = xapian.Database(XAPIAN_BASE_PATH_SOFTWARE_CENTER_AGENT)
-                self.xapiandb.add_database(sca)
-                self.nr_databases += 1
-            except Exception as e:
-                logging.warn("failed to add sca db %s" % e)
+            self.nr_databases += 1
         # additional dbs
         for db in self._additional_databases:
-            self.xapiandb.add_database(db)
             self.nr_databases += 1
-        # parser etc
-        self.xapian_parser = xapian.QueryParser()
-        self.xapian_parser.set_database(self.xapiandb)
-        self.xapian_parser.add_boolean_prefix("pkg", "XP")
-        self.xapian_parser.add_boolean_prefix("pkg", "AP")
-        self.xapian_parser.add_boolean_prefix("mime", "AM")
-        self.xapian_parser.add_boolean_prefix("section", "XS")
-        self.xapian_parser.add_boolean_prefix("origin", "XOC")
-        self.xapian_parser.add_prefix("pkg_wildcard", "XP")
-        self.xapian_parser.add_prefix("pkg_wildcard", "AP")
-        self.xapian_parser.set_default_op(xapian.Query.OP_AND)
         self.emit("open", self._db_pathname)
 
     def add_database(self, database):
         self._additional_databases.append(database)
         self.xapiandb.add_database(database)
+        self.reopen()
 
     def del_database(self, database):
         self._additional_databases.remove(database)
+        self.reopen()
 
     def schema_version(self):
         """Return the version of the database layout
@@ -240,11 +272,14 @@ class StoreDatabase(gobject.GObject):
         # different results for e.g. 'font ' and 'font' (LP: #506419)
         search_term = search_term.strip()
         # get a pkg query
-        pkg_query = xapian.Query()
-        for term in search_term.split():
-            pkg_query = xapian.Query(xapian.Query.OP_OR,
-                                     xapian.Query("XP"+term),
-                                     pkg_query)
+        if "," in search_term:
+            pkg_query = get_query_for_pkgnames(search_term.split(","))
+        else:
+            pkg_query = xapian.Query()
+            for term in search_term.split():
+                pkg_query = xapian.Query(xapian.Query.OP_OR,
+                                         xapian.Query("XP"+term),
+                                         pkg_query)
         pkg_query = _add_category_to_query(pkg_query)
 
         # get a search query
@@ -494,18 +529,18 @@ if __name__ == "__main__":
     else:
         search = sys.argv[1]
     query = db.get_query_list_from_search_entry(search)
-    print query
+    print(query)
     enquire = xapian.Enquire(db.xapiandb)
     enquire.set_query(query)
     matches = enquire.get_mset(0, len(db))
     for m in matches:
         doc = m.document
-        print doc.get_data()
+        print(doc.get_data())
 
     # test origin
     query = xapian.Query("XOL"+"Ubuntu")
     enquire = xapian.Enquire(db.xapiandb)
     enquire.set_query(query)
     matches = enquire.get_mset(0, len(db))
-    print "Ubuntu origin: ", len(matches)
+    print("Ubuntu origin: %s" % len(matches))
     

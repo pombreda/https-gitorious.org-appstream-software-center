@@ -41,7 +41,16 @@ class TestSCUtils(unittest.TestCase):
         os.environ["LC_ALL"] = "C"
         self.assertEqual(get_language(), "en")
 
-    def test_get_http_proxy_from_libproxy(self):
+    def test_get_http_proxy_from_gsettings(self):
+        from softwarecenter.utils import get_http_proxy_string_from_gsettings
+        # FIXME: do something more meaningful here once I figured out
+        #        how to create a private fake gsettings
+        proxy = get_http_proxy_string_from_gsettings()
+        self.assertTrue(type(proxy) in [type(None), type("")])
+
+    # disabled, we don't use libproxy currently, its really rather
+    # out of date
+    def disabled_test_get_http_proxy_from_libproxy(self):
         # test url
         url = "http://archive.ubuntu.com"
         # ensure we look at environment first
@@ -58,6 +67,42 @@ class TestSCUtils(unittest.TestCase):
         os.environ["http_proxy"] = "http://user:pass@localhost:3128/"
         proxy = get_http_proxy_string_from_libproxy(url)
         self.assertEqual(proxy, "http://user:pass@localhost:3128/")
+
+    def test_get_title_from_html(self):
+        from softwarecenter.utils import get_title_from_html
+        html = """
+<html>
+<head>
+<title>Title &amp; text</title>
+</head>
+<body>
+ <h1>header1</h1>
+</body>
+</html>"""
+        # get the title from the html
+        self.assertEqual(get_title_from_html(html),
+                         "Title & text")
+        # fallback to the first h1 if there is no title
+        html = "<body><h1>foo &gt;</h1><h1>bar</h1></body>"
+        self.assertEqual(get_title_from_html(html), "foo >")
+        # broken
+        html = "<sadfsa>dsf"
+        self.assertEqual(get_title_from_html(html),
+                         "")
+        # not supported to have sub-html tags in the extractor
+        html = "<body><h1>foo <emph>bar</emph></h1></body>"
+        self.assertEqual(get_title_from_html(html),
+                         "")
+        html = "<body><h1>foo <emph>bar</emph> x</h1><h2>some text</h2></body>"
+        self.assertEqual(get_title_from_html(html),
+                         "")
+
+    def test_no_display_desktop_file(self):
+        from softwarecenter.utils import is_no_display_desktop_file
+        d = "/usr/share/app-install/desktop/wine1.3:wine.desktop"
+        self.assertTrue(is_no_display_desktop_file(d))
+        d = "/usr/share/app-install/desktop/software-center:ubuntu-software-center.desktop"
+        self.assertFalse(is_no_display_desktop_file(d))
 
 if __name__ == "__main__":
     import logging

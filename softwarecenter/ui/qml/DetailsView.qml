@@ -23,8 +23,6 @@ import QtQuick 1.0
 FocusScope {
     id: detailsview
 
-    signal backClicked
-
     Rectangle {
         id: detailsframe
         anchors.fill: parent
@@ -78,6 +76,7 @@ FocusScope {
             anchors.top: parent.top
             anchors.right: parent.right
             anchors.margins: 12
+            height: 32
             ratings_average: list.currentItem != null ? list.currentItem.ratingsaverage : 0
         }
         Text {
@@ -116,7 +115,7 @@ FocusScope {
                 anchors.fill: installbtn
                 width: 200
                 progress: list.currentItem != null ? list.currentItem.installremoveprogress : 0
-                visible: list.currentItem && (list.currentItem.installremoveprogress != -1)
+                visible: (list.currentItem != null) && (list.currentItem.installremoveprogress != -1)
             }
         }
 
@@ -145,7 +144,9 @@ FocusScope {
             MouseArea {
                 anchors.fill: parent
                 onClicked: {
-                    screenshotview.loadScreenshot("http://screenshots.ubuntu.com/screenshot/" + list.currentItem.pkgname)
+                    if (screenshotthumb.status == Image.Ready) {
+                        screenshotview.loadScreenshot("http://screenshots.ubuntu.com/screenshot/" + list.currentItem.pkgname)
+                    }
                 }
             }
         }
@@ -166,7 +167,7 @@ FocusScope {
             anchors.right: parent.right
             anchors.margins: 15
             anchors.top: reviewsheadertxt.bottom
-            anchors.bottom: backbtn.top
+            anchors.bottom: parent.bottom
             clip: true
 
             ScrollBar {
@@ -199,11 +200,12 @@ FocusScope {
                     // FIXME: can this be automatically calculated?
                     //        if I ommit it its getting cramped togehter 
                     //        in funny ways
-                    height: reviewsummarytxt.height + reviewtxt.height + 10
+                    height: reviewsummarytxt.height + reviewtxt.height + 20
                     width: reviewslist.width
 
                     Stars {
                         id: stars
+                        height: 16
                         ratings_average: rating
                     }
                     Text {
@@ -233,15 +235,6 @@ FocusScope {
                 }
             }
         }
-        
-        Button {
-            id: backbtn
-            anchors.left: parent.left
-            anchors.bottom: parent.bottom
-            anchors.margins: 15
-            text: qsTr("Back")
-            onClicked: detailsview.backClicked()
-        }
     }
 
     function loadThumbnail() {
@@ -252,6 +245,9 @@ FocusScope {
     }
     function loadReviews() {
          reviewslistmodel.getReviews(list.currentItem.pkgname)
+    }
+    function hideScreenshot() {
+        screenshotview.fadeOut()
     }
 
     Rectangle {

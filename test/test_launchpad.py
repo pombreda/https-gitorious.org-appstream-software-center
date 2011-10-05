@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
-import glib
+from gi.repository import GObject
+
 import sys
 sys.path.insert(0,"../")
 
@@ -23,7 +24,7 @@ class testUbuntuSSO(unittest.TestCase):
         lp.login = lambda u,p: True
         lp.login("user", "password")
         lp.emit("login-successful", None)
-        main_loop = glib.main_context_default()
+        main_loop = GObject.main_context_default()
         while main_loop.pending():
             main_loop.iteration()
         self.assertTrue(self._login_successful)
