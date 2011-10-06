@@ -109,6 +109,9 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         self._halt_build = False
 
         self.nonapps_visible = NonAppVisibility.NEVER_VISIBLE
+        
+        self.visible_docids = None
+        self.visible_cats = {}
 
     def init_view(self):
         if self.view_initialized: return
@@ -175,8 +178,6 @@ class InstalledPane(SoftwarePane, CategoriesParser):
                                          AppTreeStore.COL_ROW_DATA)
         self.app_view.set_model(self.treefilter)
         self.app_view.tree_view.connect("row-collapsed", self._on_row_collapsed)
-
-        self.visible_docids = None
 
         self._all_cats = self.parse_applications_menu('/usr/share/app-install')
         self._all_cats = categories_sorted_by_name(self._all_cats)
