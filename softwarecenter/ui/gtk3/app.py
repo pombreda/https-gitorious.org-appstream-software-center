@@ -934,7 +934,10 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         if vm is None:
             self.menuitem_view_all.set_sensitive(False)
             self.menuitem_view_supported_only.set_sensitive(False)
+            self.menuitem_go_back.set_sensitive(False)
+            self.menuitem_go_forward.set_sensitive(False)
             return False
+            
         left_sensitive = vm.back_forward.left.get_sensitive()
         self.menuitem_go_back.set_sensitive(left_sensitive)
         right_sensitive = vm.back_forward.right.get_sensitive()
