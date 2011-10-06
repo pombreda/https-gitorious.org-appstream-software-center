@@ -901,7 +901,6 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             self.active_pane.searchentry.select_region(0, -1)
 
     def on_menuitem_software_sources_activate(self, widget):
-        #print "on_menu_item_software_sources_activate"
         self.window_main.set_sensitive(False)
         # run software-properties-gtk
         window = self.window_main.get_window()
@@ -933,6 +932,8 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
     def on_menu_view_activate(self, menuitem):
         vm = get_viewmanager()
         if vm is None:
+            self.menuitem_view_all.set_sensitive(False)
+            self.menuitem_view_supported_only.set_sensitive(False)
             return False
         left_sensitive = vm.back_forward.left.get_sensitive()
         self.menuitem_go_back.set_sensitive(left_sensitive)
