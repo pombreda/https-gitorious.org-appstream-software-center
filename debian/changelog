@@ -15,6 +15,9 @@ software-center (5.0.1.3) UNRELEASED; urgency=low
   * softwarecenter/ui/gtk3/widgets/buttons.py:
     - fix incorrect i18n for the "More" button in the main screen
       (LP: #868952), thanks to David Planella
+  * softwarecenter/db/categories.py:
+    - fix regression when reading translated category names for
+      directory types with no X-Ubuntu-Gettext-Domain (LP: #868963)
 
  -- Gary Lasker <gary.lasker@canonical.com>  Wed, 05 Oct 2011 23:30:18 -0400
 
