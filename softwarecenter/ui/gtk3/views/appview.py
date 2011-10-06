@@ -184,7 +184,8 @@ class AppView(Gtk.VBox):
                 not self.user_defined_sort_method):
                 self.set_sort_method_with_no_signal(self._SORT_BY_TOP_RATED)
         model = self.tree_view.appmodel
-        model.set_from_matches(matches)
+        if model:
+            model.set_from_matches(matches)
         self.user_defined_sort_method = False
         return
 

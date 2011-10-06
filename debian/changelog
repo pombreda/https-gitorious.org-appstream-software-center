@@ -1,3 +1,17 @@
+software-center (5.0.1.3) UNRELEASED; urgency=low
+
+  * softwarecenter/ui/gtk3/panes/pendingpane.py:
+    - be more robust about errors when cancelling a transaction
+      from the pending pane (LP: #861129)
+  * softwarecenter/ui/gtk3/app.py:
+    - fix crash in on_menu_edit_activate() (LP: #861862) 
+  * softwarecenter/ui/gtk3/panes/installedpane.py:
+    - fix crash in _row_visibility_func() (LP: #834893) 
+  * softwarecenter/ui/gtk3/views/appview.py:
+    - fix crash in display_matches() (LP: #843795) 
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 05 Oct 2011 23:30:18 -0400
+
 software-center (5.0.1.2) oneiric; urgency=low
 
   * softwarecenter/ui/gtk3/widgets/exhibits.py:
