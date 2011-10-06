@@ -189,10 +189,15 @@ class _AppPropertiesHelper(object):
         return -1
 
     def _category_translate(self, catname):
+        """ helper that will look into the categories we got from the 
+            parser and returns the translated name if it find it,
+            otherwise it resorts to plain gettext
+        """
+        # look into parsed categories that use .directory translation 
         for cat in self.all_categories:
             if cat.untranslated_name == catname:
                 return cat.name
-        # else
+        # else just use plain gettext
         return _(catname)
 
     def get_categories(self, doc):

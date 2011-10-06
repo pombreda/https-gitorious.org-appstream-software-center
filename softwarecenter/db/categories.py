@@ -23,12 +23,6 @@ import logging
 import os
 import xapian
 
-try:
-    from configparser import ConfigParser
-    ConfigParser # pyflakes
-except ImportError:
-    from ConfigParser import ConfigParser
-
 from xml.etree import ElementTree as ET
 from xml.sax.saxutils import escape as xml_escape
 from xml.sax.saxutils import unescape as xml_unescape
