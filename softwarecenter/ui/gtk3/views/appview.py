@@ -35,6 +35,10 @@ from softwarecenter.ui.gtk3.models.appstore2 import AppPropertiesHelper
 class AppView(Gtk.VBox):
 
     __gsignals__ = {
+        "sort-method-changed": (GObject.SignalFlags.RUN_LAST,
+                                   None,
+                                   (GObject.TYPE_PYOBJECT, ),
+                                  ),
         "application-activated" : (GObject.SignalFlags.RUN_LAST,
                                    None,
                                    (GObject.TYPE_PYOBJECT, ),
@@ -56,13 +60,14 @@ class AppView(Gtk.VBox):
 
     _SORT_METHOD_INDEX = (SortMethods.BY_ALPHABET,
                           SortMethods.BY_TOP_RATED,
-                          SortMethods.BY_SEARCH_RANKING,
-                          SortMethods.BY_CATALOGED_TIME)
+                          SortMethods.BY_CATALOGED_TIME,
+                          SortMethods.BY_SEARCH_RANKING,)
+
     # indices that relate to the above tuple
     _SORT_BY_ALPHABET = 0
     _SORT_BY_TOP_RATED = 1
-    _SORT_BY_SEARCH_RANKING = 2
-    _SORT_BY_NEWEST_FIRST = 3
+    _SORT_BY_NEWEST_FIRST = 2
+    _SORT_BY_SEARCH_RANKING = 3
 
     def __init__(self, db, cache, icons, show_ratings):
         Gtk.VBox.__init__(self)
@@ -81,11 +86,12 @@ class AppView(Gtk.VBox):
         self.header_label.set_use_markup(True)
         self.header_hbox.pack_start(self.header_label, False, False, 0)
 
-        # sort methods combobox
+        # sort methods comboboxs
+        # variant 1 includes sort by search relevance
         self.sort_methods_combobox = self._get_sort_methods_combobox()
-        alignment = Gtk.Alignment.new(0.5, 0.5, 1.0, 0.0)
-        alignment.add(self.sort_methods_combobox)
-        self.header_hbox.pack_end(alignment, False, False, 0)
+        combo_alignment = Gtk.Alignment.new(0.5, 0.5, 1.0, 0.0)
+        combo_alignment.add(self.sort_methods_combobox)
+        self.header_hbox.pack_end(combo_alignment, False, False, 0)
 
         # content views
         self.tree_view = AppTreeView(self, icons,
@@ -95,7 +101,7 @@ class AppView(Gtk.VBox):
         self.appcount = None
 
         self.user_defined_sort_method = False
-        self._handler_changed = self.sort_methods_combobox.connect(
+        self._handler = self.sort_methods_combobox.connect(
                                     "changed",
                                     self.on_sort_method_changed)
         return
@@ -132,29 +138,44 @@ class AppView(Gtk.VBox):
 
     def on_sort_method_changed(self, *args):
         self.user_defined_sort_method = True
+        self.emit("sort-method-changed", self.sort_methods_combobox)
         return
 
     def _get_sort_methods_combobox(self):
         combo = Gtk.ComboBoxText.new()
         combo.append_text(_("By Name"))
         combo.append_text(_("By Top Rated"))
-        combo.append_text(_("By Relevance"))
         combo.append_text(_("By Newest First"))
+        combo.append_text(_("By Relevance"))
         combo.set_active(self._SORT_BY_TOP_RATED)
         return combo
 
+    def _get_combo_children(self):
+        return len(self.sort_methods_combobox.get_model())
+
+    def _use_combobox_with_sort_by_search_ranking(self):
+        if self._get_combo_children() == 4:
+            return
+        self.sort_methods_combobox.append_text(_("By Relevance"))
+        return
+
+    def _use_combobox_without_sort_by_search_ranking(self):
+        if self._get_combo_children() == 3:
+            return
+        self.sort_methods_combobox.remove(self._SORT_BY_SEARCH_RANKING)
+        self.set_sort_method_with_no_signal(self._SORT_BY_TOP_RATED)
+        return
+
     def set_sort_method_with_no_signal(self, sort_method):
         combo = self.sort_methods_combobox
-        combo.handler_block(self._handler_changed)
+        combo.handler_block(self._handler)
         combo.set_active(sort_method)
-        combo.handler_unblock(self._handler_changed)
+        combo.handler_unblock(self._handler)
         return
 
     def set_allow_user_sorting(self, do_allow):
-        if do_allow:
-            self.sort_methods_combobox.show()
-        else:
-            self.sort_methods_combobox.hide()
+        self.sort_methods_combobox.set_visible(do_allow)
+        return
 
     def set_header_labels(self, first_line, second_line):
         if second_line:
@@ -167,7 +188,7 @@ class AppView(Gtk.VBox):
         self.tree_view.set_model(model)
         return
 
-    def display_matches(self, matches, sort_by_relevance=False):
+    def display_matches(self, matches, is_search=False):
         # FIXME: installedpane handles display of the trees intimately,
         # so for the time being lets just return None in the case of our
         # TreeView displaying an AppTreeStore ...    ;(
@@ -176,13 +197,18 @@ class AppView(Gtk.VBox):
         if isinstance(self.tree_view.appmodel, AppTreeStore):
             return
 
+        sort_by_relevance = is_search and not self.user_defined_sort_method
+
         if sort_by_relevance:
+            self._use_combobox_with_sort_by_search_ranking()
             self.set_sort_method_with_no_signal(self._SORT_BY_SEARCH_RANKING)
         else:
-            #~ combo.remove(-1)
-            if (self.get_sort_mode() == SortMethods.BY_SEARCH_RANKING and\
+            if not is_search:
+                self._use_combobox_without_sort_by_search_ranking()
+            if (self.get_sort_mode() == SortMethods.BY_SEARCH_RANKING and \
                 not self.user_defined_sort_method):
                 self.set_sort_method_with_no_signal(self._SORT_BY_TOP_RATED)
+
         model = self.tree_view.appmodel
         if model:
             model.set_from_matches(matches)
@@ -197,10 +223,10 @@ class AppView(Gtk.VBox):
         return self._SORT_METHOD_INDEX[active_index]
 
 
-
 def get_test_window():
     from softwarecenter.testutils import (
-        get_test_db, get_test_pkg_info, get_test_gtk3_icon_cache)
+        get_test_db, get_test_pkg_info, get_test_gtk3_icon_cache,
+        get_test_enquirer_matches)
     from softwarecenter.db.enquire import AppEnquire
     from softwarecenter.ui.gtk3.models.appstore2 import AppListStore
     import xapian
@@ -215,12 +241,7 @@ def get_test_window():
     appview.set_model(liststore)
 
     # do a simple query and display that
-    enquirer = AppEnquire(cache, db)
-    enquirer.set_query(xapian.Query(""),
-                       sortmode=SortMethods.BY_CATALOGED_TIME,
-                       limit=20,
-                       nonblocking_load=False)
-    appview.display_matches(enquirer.matches)
+    appview.display_matches(get_test_enquirer_matches(db))
 
     # and put it in the window
     win = Gtk.Window()
