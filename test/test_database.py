@@ -122,7 +122,10 @@ class TestDatabase(unittest.TestCase):
     def test_license_string_data_from_software_center_agent(self):
         from softwarecenter.db.update import update_from_software_center_agent
         from softwarecenter.testutils import get_test_pkg_info
-        os.environ["SOFTWARE_CENTER_BUY_HOST"] = "http://sca.razorgirl.info/"
+        #os.environ["SOFTWARE_CENTER_DEBUG_HTTP"] = "1"
+        os.environ["SOFTWARE_CENTER_BUY_HOST"] = "http://sc.staging.ubuntu.com/"
+        # staging does not have a valid cert
+        os.environ["PISTON_MINI_CLIENT_DISABLE_SSL_VALIDATION"] = "1"
         cache = get_test_pkg_info()
         db = xapian.WritableDatabase("./data/test.db", 
                                      xapian.DB_CREATE_OR_OVERWRITE)
