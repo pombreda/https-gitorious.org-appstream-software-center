@@ -330,6 +330,12 @@ class DesktopConfigParser(RawConfigParser, AppInfoParserBase):
                 translated_value = gettext.dgettext(domain, value)
                 if value != translated_value:
                     return translated_value
+        # then try app-install-data 
+        value = self.get(self.DE, key)
+        if value:
+            translated_value = gettext.dgettext("app-install-data", value)
+            if value != translated_value:
+                return translated_value
         # then try the i18n version of the key (in [de_DE] or
         # [de]) but ignore errors and return the untranslated one then
         try:

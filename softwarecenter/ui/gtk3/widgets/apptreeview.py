@@ -118,7 +118,8 @@ class AppTreeView(Gtk.TreeView):
         if vadjustment:
             vadjustment.set_value(0)
         self.expanded_path = None
-        self.appmodel.clear()
+        if self.appmodel:
+            self.appmodel.clear()
 
     def expand_path(self, path):
         if path is not None and not isinstance(path, Gtk.TreePath):
