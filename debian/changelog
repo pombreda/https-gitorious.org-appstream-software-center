@@ -7,8 +7,14 @@ software-center (5.0.1.4) UNRELEASED; urgency=low
   * merge po/help from rosetta to ensure that the translated 
     manual is there, this is not delivered via langpacks
     (LP: #869935)
+  * test/test_database.py:
+    - use sc.staging.ubuntu.com for the testing of the license 
+      string data
+  * softwarecenter/db/application.py:
+    - fix missing i18n for license send from the software-center-agent
+      server
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 07 Oct 2011 14:25:18 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 07 Oct 2011 16:24:53 +0200
 
 software-center (5.0.1.3) oneiric; urgency=low
 

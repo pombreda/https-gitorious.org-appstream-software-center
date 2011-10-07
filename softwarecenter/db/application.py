@@ -340,7 +340,10 @@ class AppDetails(object):
         if self._doc:
             xapian_license = self._doc.get_value(XapianValues.LICENSE)
         if xapian_license:
-            return xapian_license
+            # try to i18n this, the server side does not yet support
+            # translations, but fortunately for the most common ones
+            # like "Properitary" we have translations in s-c
+            return _(xapian_license)
         else:
             return self._distro.get_license_text(self.component)
 
