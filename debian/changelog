@@ -4,6 +4,9 @@ software-center (5.0.1.4) UNRELEASED; urgency=low
     - do not crash if self.appmodel is not available yet (LP: #869699)
   * softwarecenter/db/update.py:
     - fix missing i18n lookup for app-install-data (LP: #869851)
+  * merge po/help from rosetta to ensure that the translated 
+    manual is there, this is not delivered via langpacks
+    (LP: #869935)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 07 Oct 2011 14:25:18 +0200
 
