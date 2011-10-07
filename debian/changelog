@@ -1,4 +1,4 @@
-software-center (5.0.1.4) UNRELEASED; urgency=low
+software-center (5.0.1.4) oneiric; urgency=low
 
   * softwarecenter/ui/gtk3/widgets/apptreeview.py:
     - do not crash if self.appmodel is not available yet (LP: #869699)
