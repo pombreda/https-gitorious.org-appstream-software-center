@@ -23,12 +23,6 @@ import logging
 import os
 import xapian
 
-try:
-    from configparser import ConfigParser
-    ConfigParser # pyflakes
-except ImportError:
-    from ConfigParser import ConfigParser
-
 from xml.etree import ElementTree as ET
 from xml.sax.saxutils import escape as xml_escape
 from xml.sax.saxutils import unescape as xml_unescape
@@ -145,7 +139,8 @@ class CategoriesParser(object):
         return locale.strcoll(a.name, b.name)
 
     def _parse_directory_tag(self, element):
-        cp = ConfigParser()
+        from softwarecenter.db.update import DesktopConfigParser
+        cp = DesktopConfigParser()
         fname = "/usr/share/desktop-directories/%s" % element.text
         if not os.path.exists(fname):
             return None
@@ -164,8 +159,7 @@ class CategoriesParser(object):
             icon = cp.get("Desktop Entry","Icon")
         except Exception:
             icon = "applications-other"
-        if gettext_domain:
-            name = gettext.dgettext(gettext_domain, untranslated_name)
+        name = cp.get_desktop("Name", translated=True)
         return (untranslated_name, name, gettext_domain, icon)
 
     def _parse_flags_tag(self, element):

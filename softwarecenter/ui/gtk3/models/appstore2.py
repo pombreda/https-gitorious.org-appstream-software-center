@@ -35,7 +35,9 @@ from softwarecenter.db.database import Application
 from softwarecenter.distro import get_distro
 from softwarecenter.paths import SOFTWARE_CENTER_ICON_CACHE_DIR
 
-
+import softwarecenter.paths
+from softwarecenter.db.categories import (
+    category_subcat, category_cat, CategoriesParser)
 
 # global cache icons to speed up rendering
 _app_icon_cache = {}
@@ -186,17 +188,30 @@ class _AppPropertiesHelper(object):
             return self.backend.pending_transactions[pkgname].progress
         return -1
 
+    def _category_translate(self, catname):
+        """ helper that will look into the categories we got from the 
+            parser and returns the translated name if it find it,
+            otherwise it resorts to plain gettext
+        """
+        # look into parsed categories that use .directory translation 
+        for cat in self.all_categories:
+            if cat.untranslated_name == catname:
+                return cat.name
+        # else just use plain gettext
+        return _(catname)
+
     def get_categories(self, doc):
         categories = doc.get_value(XapianValues.CATEGORIES).split(';') or []
         if categories and categories[0] == 'SC_CATEGORY':
             return _(categories[-1])
-        from softwarecenter.db.categories import category_subcat, category_cat
         for key in category_subcat:
             if key in categories:
-                return _(category_subcat[key].split(';')[1])
+                visible_category = category_subcat[key].split(';')[1]
+                return self._category_translate(visible_category)
         for key in category_cat:
             if key in categories:
-                return _(category_cat[key])
+                visible_category = category_cat[key]
+                return self._category_translate(visible_category)
         if categories:
             return _('System')
         else:
@@ -207,6 +222,10 @@ class AppPropertiesHelper(_AppPropertiesHelper):
     def __init__(self, db, cache, icons, icon_size=48, global_icon_cache=False):
         self.db = db
         self.cache = cache
+
+        cat_parser = CategoriesParser(db)
+        self.all_categories = cat_parser.parse_applications_menu(
+            softwarecenter.paths.APP_INSTALL_PATH)
 
         # reviews stats loader
         self.review_loader = get_review_loader(cache, db)

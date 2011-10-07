@@ -1,3 +1,44 @@
+software-center (5.0.1.3) oneiric; urgency=low
+
+  [ Gary Lasker ]
+  * softwarecenter/ui/gtk3/panes/pendingpane.py:
+    - be more robust about errors when cancelling a transaction
+      from the pending pane (LP: #861129)
+  * softwarecenter/ui/gtk3/app.py:
+    - fix crash in on_menu_edit_activate() (LP: #861862) 
+  * softwarecenter/ui/gtk3/panes/installedpane.py:
+    - fix crash in _row_visibility_func() (LP: #834893) 
+  * softwarecenter/ui/gtk3/views/appview.py:
+    - fix crash in display_matches() (LP: #843795) 
+  
+  [ Michael Vogt ]
+  * softwarecenter/ui/gtk3/widgets/buttons.py:
+    - fix incorrect i18n for the "More" button in the main screen
+      (LP: #868952), thanks to David Planella
+  * softwarecenter/db/categories.py:
+    - fix regression when reading translated category names for
+      directory types with no X-Ubuntu-Gettext-Domain (LP: #868963)
+
+  [ Gabor Kelemen ]
+  * Translate Our star apps heading on the list of the star apps. 
+    LP: #869038
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 06 Oct 2011 14:35:02 +0200
+
+software-center (5.0.1.2) oneiric; urgency=low
+
+  * softwarecenter/ui/gtk3/widgets/exhibits.py:
+    - force no line wrap for the header (LP: #867821)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 05 Oct 2011 18:22:28 +0200
+
+software-center (5.0.1.1) oneiric; urgency=low
+
+  * softwarecenter/db/application.py:
+    - fix crash when installing a standalone deb (LP: #868333)
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 05 Oct 2011 11:07:40 -0400
+
 software-center (5.0.1) oneiric; urgency=low
 
   [ Michael Vogt ]

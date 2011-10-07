@@ -571,7 +571,7 @@ class MoreLink(Gtk.Button):
         Gtk.Button.__init__(self)
         self.label = Gtk.Label()
         self.label.set_padding(StockEms.SMALL, 0)
-        self.label.set_markup(self._MARKUP % self._MORE)
+        self.label.set_markup(self._MARKUP % _(self._MORE))
         self.add(self.label)
         self._init_event_handling()
         context = self.get_style_context()
