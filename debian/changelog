@@ -5,6 +5,11 @@ software-center (5.0.1.5) UNRELEASED; urgency=low
     - Mark the For Software Developers menu item label from the Help
       menu translatable to fix bug #870595.
 
+  [ Kiwinote ]
+  * softwarecenter/ui/gtk3/widgets/searchaid.py:
+    - make 'no items match <searchterm>' display translated (LP: #870604)
+    - fix markup error which causes spelling suggestions not to be displayed
+
  -- Michael Vogt <michael.vogt@ubuntu.com>  Sat, 08 Oct 2011 19:14:09 +0200
 
 software-center (5.0.1.4) oneiric; urgency=low
