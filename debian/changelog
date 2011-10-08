@@ -1,3 +1,12 @@
+software-center (5.0.1.5) UNRELEASED; urgency=low
+
+  [ Robert Roth ]
+  * lp:~evfool/software-center/fixlp870595:
+    - Mark the For Software Developers menu item label from the Help
+      menu translatable to fix bug #870595.
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Sat, 08 Oct 2011 19:14:09 +0200
+
 software-center (5.0.1.4) oneiric; urgency=low
 
   * softwarecenter/ui/gtk3/widgets/apptreeview.py:
