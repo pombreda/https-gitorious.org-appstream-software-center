@@ -477,7 +477,7 @@ http://creativecommons.org/licenses/by-sa/2.0/deed.en
                     </child>
                     <child>
                       <object class="GtkImageMenuItem" id="menuitem_developer">
-                        <property name="label">For Software Developers</property>
+                        <property name="label" translatable="yes">For Software Developers</property>
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="use_action_appearance">False</property>
