@@ -1,6 +1,7 @@
 import cairo
 import os
-
+from math import pi as PI
+PI_OVER_180 = PI/180
 import softwarecenter.paths
 
 from gi.repository import Gtk, Gdk
@@ -125,36 +126,23 @@ class FlowableGrid(Gtk.Fixed):
         context.restore()
 
         cr.save()
-        a = self.get_allocation()
-        rounded_rect(cr, 0, 0, a.width, a.height-1, Frame.BORDER_RADIUS)
-        cr.clip()
 
         Gdk.cairo_set_source_rgba(cr, bg)
         cr.set_line_width(1)
 
-        cell_w = a.width / self.n_columns
-        cell_h = self.get_cell_size()[1]
+        a = self.get_allocation()
+        w = a.width / self.n_columns
 
         for i in range(self.n_columns):
-            for j in range(self.n_rows):
-                # paint checker if need be
-                #~ if not (i + j%2)%2:
-                    #~ cr.save()
-                    #~ cr.set_source_rgba(0.976470588, 0.956862745, 0.960784314, 0.85) #F9F4F5
-                    #~ cr.rectangle(i*cell_w, j*cell_h, cell_w, cell_h)
-                    #~ cr.fill()
-                    #~ cr.restore()
+            cr.move_to(i*w+0.5, 0)
+            cr.rel_line_to(0, a.height-3)
+            cr.stroke()
 
-                # paint rows
-                if not j: continue
-                cr.move_to(0, j*cell_h + 0.5)
-                cr.rel_line_to(a.width-1, 0)
-                cr.stroke()
+        w = a.height / self.n_rows
 
-            # paint columns
-            if not i: continue
-            cr.move_to(i*cell_w + 0.5, 0)
-            cr.rel_line_to(0, a.height-1)
+        for i in range(self.n_rows):
+            cr.move_to(2, i*w+0.5)
+            cr.rel_line_to(a.width-4, 0)
             cr.stroke()
 
         cr.restore()
@@ -442,7 +430,14 @@ class Frame(Gtk.Alignment):
             rounded_rect(_cr, 3, 2, a.width-6, a.height-6, border_radius)
             context = self.get_style_context()
             bg = context.get_background_color(self.get_state_flags())
+
             Gdk.cairo_set_source_rgba(_cr, bg)
+            _cr.fill_preserve()
+
+            lin = cairo.LinearGradient(0, 0, 0, max(300, a.height))
+            lin.add_color_stop_rgba(0, 1, 1, 1, 0.02)
+            lin.add_color_stop_rgba(1, 0, 0, 0, 0.06)
+            _cr.set_source(lin)
             _cr.fill()
 
             self._frame_surface_cache = surf
@@ -456,8 +451,8 @@ class Frame(Gtk.Alignment):
         cr.set_source_surface(self._frame_surface_cache, xo, yo)
         cr.paint()
 
-        rounded_rect(cr, xo+3, yo+2, a.width-6, a.height-6, border_radius)
-        cr.clip()
+        #~ rounded_rect(cr, xo+3, yo+2, a.width-6, a.height-6, border_radius)
+        #~ cr.clip()
         return
 
 
@@ -563,34 +558,12 @@ class FramedHeaderBox(FramedBox):
             self.more = MoreLink()
             self.header.pack_end(self.more, False, False, 0)
         return
-    
+
     def render_header(self, cr, a, border_radius, assets):
-        context = self.get_style_context()
-        Gtk.render_background(context, cr,
-                              0, 0, a.width, a.height)
-
-        cr.save()
-        lin = cairo.LinearGradient(0, 0, 0, a.height)
-        lin.add_color_stop_rgba(0, 1,1,1, 0.5)
-        lin.add_color_stop_rgba(1, 1,1,1, 0.0)
-        cr.set_source(lin)
-        cr.rectangle(0, 0, a.width, a.height)
-        cr.fill()
-
-        # gridline color
-        context.save()
-        context.add_class("grid-lines")
-        bc = context.get_border_color(self.get_state_flags())
-        Gdk.cairo_set_source_rgba(cr, bc)
-        context.restore()
-
-        cr.move_to(0, a.height-0.5)
-        cr.rel_line_to(a.width, 0)
-        cr.set_line_width(1)
-        cr.stroke()
-        cr.restore()
 
         if hasattr(self, "more"):
+            context = self.get_style_context()
+
             # set the arrow fill color
             context = self.more.get_style_context()
             cr.save()
@@ -599,18 +572,29 @@ class FramedHeaderBox(FramedBox):
             Gdk.cairo_set_source_rgba(cr, bg)
 
             # the arrow shape stuff
+            r = Frame.BORDER_RADIUS
             ta = self.more.get_allocation()
-            cr.move_to(ta.x-a.x-StockEms.MEDIUM, 0)
-            cr.rel_line_to(ta.width+StockEms.MEDIUM, 0)
-            cr.rel_line_to(0, a.height)
-            cr.rel_line_to(-(ta.width+StockEms.MEDIUM), 0)
-            cr.rel_line_to(StockEms.MEDIUM, -(a.height)*0.5)
+            x = ta.x - a.x - StockEms.MEDIUM
+            y = ta.y - a.y + 2
+            w = ta.width + StockEms.MEDIUM - 1
+            h = ta.height - 2
+
+            cr.move_to(x, y)
+            cr.arc(x+w-r, y+r, r, 270*PI_OVER_180, 0)
+            cr.line_to(x+w, y+h)
+            cr.line_to(x, y+h)
+            cr.line_to(x + StockEms.MEDIUM, y + h/2)
             cr.close_path()
-            cr.clip_preserve()
-            cr.fill_preserve()
+
+            cr.fill()
+
+            cr.move_to(x, y)
+            cr.line_to(x + StockEms.MEDIUM, y + h/2)
+            cr.line_to(x, y+h)
 
             bc = context.get_border_color(self.get_state_flags())
             Gdk.cairo_set_source_rgba(cr, bc)
+            cr.set_line_width(1)
             cr.stroke()
 
             cr.restore()

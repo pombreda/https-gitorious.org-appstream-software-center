@@ -10,6 +10,9 @@ software-center (5.0.2) UNRELEASED; urgency=low
       as per bug LP: #844025
     - make dialog-dependency-alert dialog use a gtkgrid instead of 
       gtktable to fix overly big spacing
+  * lp:~mmcg069/software-center/container-frame-render-fix:
+    - remove the use a clip -> provide a fix for blurry font 
+      rendering LP: #864855
   
   [ Michael Vogt ]
   * test/gtk3/test_appview.py:
