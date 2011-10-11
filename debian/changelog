@@ -21,6 +21,8 @@ software-center (5.0.2) UNRELEASED; urgency=low
     - add basic test for dependency dialogs
   * softwarecenter/ui/gtk3/dialogs/dependency_dialogs.py:
     - simplfy test setup code
+  * software-center:
+    - fix --measure-startup-time
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 07 Oct 2011 12:24:55 +0200
 

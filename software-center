@@ -156,9 +156,9 @@ if __name__ == "__main__":
 #            app.window_main.show_all()
             while Gtk.events_pending():
                 # test visible area
-                if (app.window_main.flags() & Gtk.VISIBLE and
-                    app.available_pane.searchentry.flags() & Gtk.VISIBLE and
-                    app.available_pane.back_forward.flags() & Gtk.VISIBLE):
+                if (app.window_main.get_visible() and
+                    app.available_pane.searchentry.get_visible() and
+                    app.available_pane.back_forward.get_visible):
                     break
                 Gtk.main_iteration()
         time_to_visible = time.time() - time_entering_main
