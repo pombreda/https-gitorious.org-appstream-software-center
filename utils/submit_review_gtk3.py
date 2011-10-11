@@ -19,7 +19,7 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from gi.repository import GObject, Gtk
+from gi.repository import GObject, Gtk, Gdk
 
 import datetime
 import gettext
@@ -664,7 +664,12 @@ class SubmitReviewsApp(BaseApp):
                 #~ self.submit_window.get_window().set_transient_for(win)
 
         self.submit_window.set_position(Gtk.WindowPosition.MOUSE)
-        
+
+        self._confirm_cancel_yes_handler = 0
+        self._confirm_cancel_no_handler = 0
+        self._displaying_cancel_confirmation = False
+        self.submit_window.connect("key-press-event", self._on_key_press_event)
+
         self.review_summary_entry.connect('changed', self._on_mandatory_text_entry_changed)
         self.star_rating.connect('changed', self._on_mandatory_fields_changed)
         self.review_buffer.connect('changed', self._on_text_entry_changed)
@@ -690,6 +695,7 @@ class SubmitReviewsApp(BaseApp):
             self._init_submit()
         elif self.action == "modify":
             self._init_modify()
+
 
     def _init_submit(self):
         self.submit_window.set_title(_("Review %s") % gettext.dgettext("app-install-data", self.app.name))
@@ -745,8 +751,12 @@ class SubmitReviewsApp(BaseApp):
         self.rating_label.set_markup(_('Rating:'))
         #error detail link label
         self.label_expander.set_markup('<small><u>%s</u></small>' % (_('Error Details')))
-
         return
+
+    def _has_user_started_reviewing(self):
+        summary_chars = self.review_summary_entry.get_text_length()
+        review_chars = self.review_buffer.get_char_count()
+        return summary_chars > 0 or review_chars > 0
 
     def _on_mandatory_fields_changed(self, *args):
         self._enable_or_disable_post_button()
@@ -800,10 +810,7 @@ class SubmitReviewsApp(BaseApp):
             include_hidden_chars=False) != self.orig_review_text:
             return False
         return True
-        
-            
-            
-    
+
     def _check_summary_character_count(self):
         summary_chars = self.review_summary_entry.get_text_length()
         if summary_chars > self.SUMMARY_CHAR_LIMITS[1] - 1:
@@ -896,7 +903,9 @@ class SubmitReviewsApp(BaseApp):
 
     def login_successful(self, display_name):
         self.main_notebook.set_current_page(1)
-        self._setup_details(self.submit_window, self.app, self.iconname, self.version, display_name)
+        self._setup_details(self.submit_window, self.app,
+                            self.iconname, self.version, display_name)
+        self.textview_review.grab_focus()
         return
     
     def _setup_gwibber_gui(self):
@@ -976,7 +985,40 @@ class SubmitReviewsApp(BaseApp):
     def on_transmit_success(self, api, trans):
         """on successful submission of a review, try to send to gwibber as well"""
         self._run_gwibber_submits(api,trans)
-    
+
+    def _on_key_press_event(self, widget, event):
+        if event.keyval == Gdk.KEY_Escape:
+            self._confirm_cancellation()
+        return
+
+    def _confirm_cancellation(self):
+        if (self._has_user_started_reviewing() and not
+            self._displaying_cancel_confirmation):
+
+            def do_cancel(widget):
+                self.submit_window.destroy()
+                self.quit()
+            def undo_cancel(widget):
+                self._displaying_cancel_confirmation = False
+                self.response_hbuttonbox.set_visible(True)
+                self.main_notebook.set_current_page(1)
+
+            self.response_hbuttonbox.set_visible(False)
+            self.confirm_cancel_yes.grab_focus()
+            self.main_notebook.set_current_page(2)
+            self._displaying_cancel_confirmation = True
+
+            if not self._confirm_cancel_yes_handler:
+                tag = self.confirm_cancel_yes.connect("clicked", do_cancel)
+                self._confirm_cancel_yes_handler = tag
+            if not self._confirm_cancel_no_handler:
+                tag = self.confirm_cancel_no.connect("clicked", undo_cancel)
+                self._confirm_cancel_no_handler = tag
+        else:
+            self.submit_window.destroy()
+            self.quit()
+        return
+
     def _get_send_accounts(self, sel_index):
         """return the account referenced by the passed in index, or all accounts
             if the index of the combo points to the pseudo-sc-all string"""
@@ -1020,7 +1062,7 @@ class SubmitReviewsApp(BaseApp):
         if gwibber_success:
             self._success_status()
             BaseApp.on_transmit_success(self, api, trans)
-    
+
     def _gwibber_retry_some(self, api, trans, accounts):
         """ perform selective retrying of gwibber posting, using only
             accounts passed in
