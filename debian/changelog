@@ -1,4 +1,4 @@
-software-center (5.0.1.5) UNRELEASED; urgency=low
+software-center (5.0.1.5) oneiric-proposed; urgency=low
 
   [ Robert Roth ]
   * lp:~evfool/software-center/fixlp870595:
@@ -10,7 +10,7 @@ software-center (5.0.1.5) UNRELEASED; urgency=low
     - make 'no items match <searchterm>' display translated (LP: #870604)
     - fix markup error which causes spelling suggestions not to be displayed
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Sat, 08 Oct 2011 19:14:09 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 11 Oct 2011 16:50:08 +0200
 
 software-center (5.0.1.4) oneiric; urgency=low
 
