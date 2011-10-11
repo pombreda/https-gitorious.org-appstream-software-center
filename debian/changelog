@@ -7,7 +7,10 @@ software-center (5.1.0) UNRELEASED; urgency=low
   * lp:~mmcg069/software-center/no-nm-net-detect:
     - improve the internet connectivity awareness if network-manager 
       is not available
-
+  * lp:~mmcg069/software-center/bitesize:
+    - convert the 'Write your own review' Gtk.Button to a Link style button
+      (UI change)
+  
   [ Michael Vogt ]
   * test/gtk3/test_appview.py:
     - add regression test for bug #861778
