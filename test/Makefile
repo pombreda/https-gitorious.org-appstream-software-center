@@ -3,7 +3,7 @@
 all: check #mago_test
 
 check:
-	./test-all.sh
+	xvfb-run ./test-all.sh
 
 clean:
 	find  ../data/xapian/ ./data/aptroot/var/lib/apt/lists/ \
