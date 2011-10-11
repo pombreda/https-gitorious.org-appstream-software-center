@@ -4,10 +4,16 @@ software-center (5.0.2) UNRELEASED; urgency=low
   * lp:~mmcg069/software-center/bug861778:
     - improved method, use less widgets and fix case where user 
       changes sort method in a search results list (LP: #861778)
+  * lp:~mmcg069/software-center/no-nm-net-detect:
+    - improve the internet connectivity awareness if network-manager 
+      is not available
+
   
   [ Michael Vogt ]
   * test/gtk3/test_appview.py:
     - add regression test for bug #861778
+  * test/test_netstatus.py:
+    - add basic test for the netstatus code
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 07 Oct 2011 12:24:55 +0200
 
