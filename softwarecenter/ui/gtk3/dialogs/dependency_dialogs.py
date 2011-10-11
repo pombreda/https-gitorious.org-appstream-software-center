@@ -50,7 +50,7 @@ def confirm_install(parent, datadir, app, db, icons):
     if not depends:
         return True
     (primary, button_text) = distro.get_install_warning_text(cache, appdetails.pkg, app.name, depends)
-    return _confirm_remove_internal(parent, datadir, app, db, icons, primary, button_text, depends, cache)
+    return _confirm_internal(parent, datadir, app, db, icons, primary, button_text, depends, cache)
 
 def confirm_remove(parent, datadir, app, db, icons):
     """ Confirm removing of the given app """
@@ -68,9 +68,9 @@ def confirm_remove(parent, datadir, app, db, icons):
         return True
     (primary, button_text) = distro.get_removal_warning_text(
         db._aptcache, appdetails.pkg, app.name, depends)
-    return _confirm_remove_internal(parent, datadir, app, db, icons, primary, button_text, depends, cache)
+    return _confirm_internal(parent, datadir, app, db, icons, primary, button_text, depends, cache)
 
-def _confirm_remove_internal(parent, datadir, app, db, icons, primary, button_text, depends, cache):
+def _get_confirm_internal_dialog(parent, datadir, app, db, icons, primary, button_text, depends, cache):
     glade_dialog = SimpleGtkbuilderDialog(datadir, domain="software-center")
     dialog = glade_dialog.dialog_dependency_alert
     dialog.set_resizable(True)
@@ -97,7 +97,10 @@ def _confirm_remove_internal(parent, datadir, app, db, icons, primary, button_te
     # FIXME: work out how not to select?/focus?/activate? first item
     glade_dialog.scrolledwindow_dependencies.add(view)
     glade_dialog.scrolledwindow_dependencies.show_all()
-        
+    return dialog
+
+def _confirm_internal(*args):
+    dialog = _get_confirm_internal_dialog(*args)
     result = dialog.run()
     dialog.hide()
     if result == Gtk.ResponseType.ACCEPT:
@@ -105,64 +108,34 @@ def _confirm_remove_internal(parent, datadir, app, db, icons, primary, button_te
     return False
 
 
+
+
+def get_test_dialog():
+    import softwarecenter
+    from softwarecenter.db.application import Application
+    from softwarecenter.testutils import (
+        get_test_gtk3_icon_cache, get_test_db)
+
+    icons = get_test_gtk3_icon_cache()
+    db = get_test_db()
+
+    depends = ["apt", "synaptic"]
+    app = Application("", "software-center")
+    primary = "primary text"
+    button_text = "button_text"
+    dia = _get_confirm_internal_dialog(
+        parent=None, datadir=softwarecenter.paths.datadir, app=app,
+        db=db, icons=icons, primary=primary, button_text=button_text,
+        depends=depends, cache=db._aptcache)
+    return dia
+   
+
 if __name__ == "__main__":
-    import sys, os
 
-    if len(sys.argv) > 1:
-        datadir = sys.argv[1]
-    elif os.path.exists("./data"):
-        datadir = "./data"
-    else:
-        datadir = "/usr/share/software-center"
-
-
-    from softwarecenter.ui.gtk3.utils import get_sc_icon_theme
-    icons = get_sc_icon_theme(datadir)
-
-    Gtk.Window.set_default_icon_name("softwarecenter")
-
-    from softwarecenter.db.pkginfo import get_pkg_info
-    cache = get_pkg_info()
-    cache.open()
-
-    # xapian
-    import xapian
-    from softwarecenter.paths import XAPIAN_BASE_PATH
-    from softwarecenter.db.database import StoreDatabase
-    xapian_base_path = XAPIAN_BASE_PATH
-    pathname = os.path.join(xapian_base_path, "xapian")
-    try:
-        db = StoreDatabase(pathname, cache)
-        db.open()
-    except xapian.DatabaseOpeningError:
-        # Couldn't use that folder as a database
-        # This may be because we are in a bzr checkout and that
-        #   folder is empty. If the folder is empty, and we can find the
-        # script that does population, populate a database in it.
-        if os.path.isdir(pathname) and not os.listdir(pathname):
-            from softwarecenter.db.update import rebuild_database
-            logging.info("building local database")
-            rebuild_database(pathname)
-            db = StoreDatabase(pathname, cache)
-            db.open()
-    except xapian.DatabaseCorruptError as e:
-        logging.exception("xapian open failed")
-        softwarecenter.ui.gtk3.dialogs.error(None, 
-                           _("Sorry, can not open the software database"),
-                           _("Please re-install the 'software-center' "
-                             "package."))
-        # FIXME: force rebuild by providing a dbus service for this
-        sys.exit(1)
-
-    confirm_install(None, 
-                   "./data", 
-                   Application("", "gourmet"),
-                   db,
-                   icons)
-
-    confirm_remove(None, 
-                   "./data", 
-                   Application("", "p7zip-full"),
-                   db,
-                   icons)
-
+    # test real remove dialog
+    from softwarecenter.testutils import (
+        get_test_gtk3_icon_cache, get_test_db)
+    icons = get_test_gtk3_icon_cache()
+    db = get_test_db()
+    app = Application("", "p7zip-full")
+    confirm_remove(None, softwarecenter.paths.datadir, app, db, icons)
