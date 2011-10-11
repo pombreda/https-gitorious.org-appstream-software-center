@@ -1,4 +1,4 @@
-software-center (5.0.2) UNRELEASED; urgency=low
+software-center (5.1.0) UNRELEASED; urgency=low
 
   [ Matthew McGowan ]
   * lp:~mmcg069/software-center/bug861778:
@@ -8,7 +8,6 @@ software-center (5.0.2) UNRELEASED; urgency=low
     - improve the internet connectivity awareness if network-manager 
       is not available
 
-  
   [ Michael Vogt ]
   * test/gtk3/test_appview.py:
     - add regression test for bug #861778
