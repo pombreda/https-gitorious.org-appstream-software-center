@@ -36,13 +36,16 @@ class SimpleGtkbuilderDialog(object):
                 name = Gtk.Buildable.get_name(o)
                 setattr(self, name, o)
 
+# for unitesting only
+_DIALOG=None
 
 def confirm_repair_broken_cache(parent, datadir):
     glade_dialog = SimpleGtkbuilderDialog(datadir, domain="software-center")
     dialog = glade_dialog.dialog_broken_cache
+    global _DIALOG
+    _DIALOG=dialog
     dialog.set_default_size(380, -1)
     dialog.set_transient_for(parent)
-
     result = dialog.run()
     dialog.destroy()
     if result == Gtk.ResponseType.ACCEPT:
@@ -91,6 +94,8 @@ def messagedialog(parent=None,
                                   primary=primary, secondary=secondary,
                                   details=details, type=type, 
                                   buttons=buttons)
+    global _DIALOG
+    _DIALOG=dialog
     if alternative_action:
         dialog.add_button(alternative_action, Gtk.ResponseType.YES)
     result = dialog.run()

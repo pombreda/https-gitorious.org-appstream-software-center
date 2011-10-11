@@ -34,6 +34,8 @@ LOG = logging.getLogger(__name__)
 #FIXME: These need to come from the main app
 ICON_SIZE = 24
 
+# for the unittests only
+_DIALOG=None
 def confirm_install(parent, datadir, app, db, icons):
     """Confirm install of the given app
        
@@ -101,6 +103,8 @@ def _get_confirm_internal_dialog(parent, datadir, app, db, icons, primary, butto
 
 def _confirm_internal(*args):
     dialog = _get_confirm_internal_dialog(*args)
+    global _DIALOG
+    _DIALOG=dialog
     result = dialog.run()
     dialog.hide()
     if result == Gtk.ResponseType.ACCEPT:
