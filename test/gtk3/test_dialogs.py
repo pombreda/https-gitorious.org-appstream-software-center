@@ -1,11 +1,9 @@
 #!/usr/bin/python
 
-from gi.repository import Gtk, GdkPixbuf, GObject
+from gi.repository import Gtk, GObject
 import os
 import sys
 import unittest
-
-from mock import Mock
 
 sys.path.insert(0,"..")
 
@@ -37,7 +35,6 @@ class TestDialogs(unittest.TestCase):
         self.assertEqual(res, False)
         
     def test_error_dialog(self):
-        datadir = softwarecenter.paths.datadir
         GObject.timeout_add(TIMEOUT, self._close_dialog)
         res = softwarecenter.ui.gtk3.dialogs.error(
             parent=None, primary="primary", secondary="secondary")

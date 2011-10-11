@@ -227,9 +227,7 @@ def get_test_window():
     from softwarecenter.testutils import (
         get_test_db, get_test_pkg_info, get_test_gtk3_icon_cache,
         get_test_enquirer_matches)
-    from softwarecenter.db.enquire import AppEnquire
     from softwarecenter.ui.gtk3.models.appstore2 import AppListStore
-    import xapian
 
     db = get_test_db()
     cache = get_test_pkg_info()
