@@ -106,6 +106,7 @@ class SearchAidLogic(object):
         return self.db.get_spelling_correction(term)
 
     def get_title_text(self, term, category, state):
+        from softwarecenter.utils import utf8
 
         def build_category_path():
             if not category:
@@ -118,9 +119,9 @@ class SearchAidLogic(object):
                                   'subcategory_name': state.subcategory.name}
 
         if not category:
-            sub = unicode(_("No items match “%s”"), 'utf8').encode('utf8') % term
+            sub = utf8(_(u"No items match “%s”")) % term
         else:
-            sub = unicode(_("No items in %s match “%s”"), 'utf8').encode('utf8')
+            sub = utf8(_(u"No items in %s match “%s”"))
             sub = sub % (build_category_path(), term)
 
         return self.HEADER_MARKUP % GObject.markup_escape_text(sub)
@@ -154,6 +155,7 @@ class SearchAidLogic(object):
 
         # If spelling correction, offer alternative term(s)
         if correction:
+            correction = GObject.markup_escape_text(correction)
             ref = "<a href=\"search/%s\">%s</a>" % (correction, correction)
             new_text = self.BULLET % _("Check that your spelling is correct.  "
                                 "Did you mean: %s?") % ref

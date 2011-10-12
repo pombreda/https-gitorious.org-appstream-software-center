@@ -47,7 +47,7 @@ class AptChannelsManager(ChannelsManager):
                              self._remove_no_longer_needed_extra_channels)
         # kick off a background check for changes that may have been made
         # in the channels list
-        GObject.timeout_add(300, self._check_for_channel_updates_timer)
+        GObject.timeout_add_seconds(10, self._check_for_channel_updates_timer)
         # extra channels from e.g. external sources
         self.extra_channels = []
         self._logger = LOG
