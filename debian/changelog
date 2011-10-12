@@ -10,6 +10,10 @@ software-center (5.0.1.5) oneiric-proposed; urgency=low
     - make 'no items match <searchterm>' display translated (LP: #870604)
     - fix markup error which causes spelling suggestions not to be displayed
 
+  [ Michael Vogt ]
+  * software-center:
+    - fix --measure-startup-time
+  
  -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 11 Oct 2011 16:50:08 +0200
 
 software-center (5.0.1.4) oneiric; urgency=low
