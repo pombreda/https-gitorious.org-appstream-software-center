@@ -58,9 +58,9 @@ from softwarecenter.backend.piston.rnrclient_pristine import ReviewDetails
 from softwarecenter.db.categories import CategoriesParser
 from softwarecenter.db.database import Application, StoreDatabase
 import softwarecenter.distro
+from softwarecenter.i18n import get_language
 from softwarecenter.utils import (upstream_version_compare,
                                   uri_to_filename,
-                                  get_language,
                                   save_person_to_config,
                                   get_person_from_config,
                                   calc_dr,

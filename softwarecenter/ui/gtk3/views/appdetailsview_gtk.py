@@ -1706,7 +1706,7 @@ def get_test_window_appdetails():
     scroll.add(view)
     scroll.show()
     win.add(scroll)
-    win.set_size_request(600,400)
+    win.set_size_request(600,800)
     win.show()
     win.connect('destroy', Gtk.main_quit)
     win.set_data("view", view)

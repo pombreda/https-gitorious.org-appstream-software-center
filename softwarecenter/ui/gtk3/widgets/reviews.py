@@ -31,13 +31,15 @@ from gettext import gettext as _
 
 from stars import Star
 from softwarecenter.utils import (
-    get_language,
     get_person_from_config,
     get_nice_date_string, 
     upstream_version_compare, 
     upstream_version,
     utf8,
     )
+
+from softwarecenter.i18n import get_language, get_languages
+
 
 from softwarecenter.netstatus import network_state_is_connected, get_network_watcher
 from softwarecenter.enums import PkgStates
@@ -96,6 +98,7 @@ class UIReviewsList(Gtk.VBox):
 
         self.header = Gtk.HBox()
         self.header.set_spacing(StockEms.MEDIUM)
+
         self.new_review = Gtk.Button(_('Write your own review'))
 
         inner_vb = Gtk.VBox()
@@ -104,6 +107,15 @@ class UIReviewsList(Gtk.VBox):
 
         self.header.pack_start(inner_vb, False, False, 0)
         self.pack_start(self.header, False, False, 0)
+
+        self.review_language = Gtk.ComboBoxText.new()
+        for lang in get_languages():
+            self.review_language.append_text(lang)
+        self.review_language.set_active(0)
+        self.review_language.connect(
+            "changed", self._on_different_review_language_clicked)
+        self.header.pack_end(self.review_language, False, True, 0)
+
 
         self.vbox = Gtk.VBox()
         self.vbox.set_spacing(24)
@@ -247,7 +259,7 @@ class UIReviewsList(Gtk.VBox):
             language != "en"):
             button = Gtk.Button(_("Show reviews in english"))
             button.connect(
-                "clicked", self._on_different_review_language_clicked)
+                "clicked", self._on_show_reviews_in_english_clicked)
             button.show()
             self.vbox.pack_start(button, True, True, 0)                
 
@@ -272,9 +284,15 @@ class UIReviewsList(Gtk.VBox):
         self.vbox.remove(button)
         self.emit("more-reviews-clicked")
 
-    def _on_different_review_language_clicked(self, button):
-        language = "en"
+    def _on_show_reviews_in_english_clicked(self, button):
         self.vbox.remove(button)
+        self.emit("different-review-language-clicked", "en")
+
+    def _on_different_review_language_clicked(self, combo):
+        # and set them
+        language = combo.get_active_text()
+        # clean reviews so that we can show the new language
+        self.clear()
         self.emit("different-review-language-clicked", language)
 
     def get_all_review_ids(self):
