@@ -473,17 +473,21 @@ class ExhibitBanner(Gtk.EventBox):
         cr.set_source_rgb(1,1,1)
         cr.paint()
 
+        # workaround a really odd bug in the offscreen window of the
+        # webkit view that leaves a 8px white border around the rendered
+        # image
+        OFFSET = -8
         if self.old_image is not None:
             #x = (a.width - self.old_image.get_width()) / 2
-            x = 0
-            y = 0
+            x = OFFSET
+            y = OFFSET
             Gdk.cairo_set_source_pixbuf(cr, self.old_image, x, y)
             cr.paint()
 
         if self.image is not None:
             #x = (a.width - self.image.get_width()) / 2
-            x = 0
-            y = 0
+            x = OFFSET
+            y = OFFSET
             Gdk.cairo_set_source_pixbuf(cr, self.image, x, y)
             cr.paint_with_alpha(self.alpha)
 
