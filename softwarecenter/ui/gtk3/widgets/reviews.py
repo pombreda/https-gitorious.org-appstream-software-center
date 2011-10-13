@@ -38,11 +38,17 @@ from softwarecenter.utils import (
     utf8,
     )
 
-from softwarecenter.i18n import get_language, get_languages
 
+from softwarecenter.i18n import get_language, get_languages
 
 from softwarecenter.netstatus import network_state_is_connected, get_network_watcher
 from softwarecenter.enums import PkgStates
+
+from softwarecenter.enums import (
+    PkgStates, 
+    ReviewSortMethods,
+    )
+    
 from softwarecenter.backend.reviews import UsefulnessCache
 
 from softwarecenter.ui.gtk3.em import StockEms
@@ -75,6 +81,9 @@ class UIReviewsList(Gtk.VBox):
         'different-review-language-clicked':(GObject.SignalFlags.RUN_FIRST,
                                              None,
                                              (GObject.TYPE_STRING,) ),
+        'review-sort-changed':(GObject.SignalFlags.RUN_FIRST,
+                               None,
+                               (GObject.TYPE_INT,) ),
     }
 
     def __init__(self, parent):
@@ -93,21 +102,33 @@ class UIReviewsList(Gtk.VBox):
 
         label = Gtk.Label()
         label.set_markup('<big><b>%s</b></big>' % _("Reviews"))
+        label.set_padding(6, 6)
         label.set_use_markup(True)
         label.set_alignment(0, 0.5)
 
         self.header = Gtk.HBox()
+
         self.header.set_spacing(StockEms.MEDIUM)
 
+        # new review
         self.new_review = Gtk.Button(_('Write your own review'))
-
+        self.new_review.connect('clicked', lambda w: self.emit('new-review'))
         inner_vb = Gtk.VBox()
         inner_vb.pack_start(label, False, False, 0)
         inner_vb.pack_start(self.new_review, False, False, StockEms.SMALL)
-
         self.header.pack_start(inner_vb, False, False, 0)
         self.pack_start(self.header, False, False, 0)
 
+        # review sort method
+        self.sort_combo = Gtk.ComboBoxText()
+        self._current_sort = 0
+        for sort_method in ReviewSortMethods.REVIEW_SORT_LIST_ENTRIES:
+            self.sort_combo.append_text(sort_method)
+        self.sort_combo.set_active(self._current_sort)
+        self.sort_combo.connect('changed', self._on_sort_method_changed)
+        self.header.pack_end(self.sort_combo, False, False, 3)
+
+        # change language
         self.review_language = Gtk.ComboBoxText.new()
         for lang in get_languages():
             self.review_language.append_text(lang)
@@ -116,17 +137,13 @@ class UIReviewsList(Gtk.VBox):
             "changed", self._on_different_review_language_clicked)
         self.header.pack_end(self.review_language, False, True, 0)
 
-
+        # this is where the reviews end up
         self.vbox = Gtk.VBox()
         self.vbox.set_spacing(24)
         self.pack_start(self.vbox, True, True, 0)
 
-        self.no_network_msg = None
-
-        self.new_review.connect('clicked', lambda w: self.emit('new-review'))
-
-
         # ensure network state updates
+        self.no_network_msg = None
         watcher = get_network_watcher()
         watcher.connect(
             "changed", lambda w,s: self._on_network_state_change())
@@ -147,6 +164,14 @@ class UIReviewsList(Gtk.VBox):
 
     def _on_button_new_clicked(self, button):
         self.emit("new-review")
+    
+    def _on_sort_method_changed(self, cb):
+        selection = self.sort_combo.get_active()
+        if selection == self._current_sort:
+            return
+        else:
+            self._current_sort = selection
+            self.emit("review-sort-changed", selection)
     
     def update_useful_votes(self, my_votes):
         self.useful_votes = my_votes
@@ -924,6 +949,9 @@ def get_test_reviews_window():
     return win
 
 if __name__ == "__main__":
+    import softwarecenter.paths
+    softwarecenter.paths.datadir = "./data"
+
     win = get_test_reviews_window()
 
     Gtk.main()

@@ -89,10 +89,11 @@ class RatingsAndReviewsAPI(PistonAPI):
     @validate_pattern('packagename', r'[a-z0-9.+-]+')
     @validate('appname', str, required=False)
     @validate('page', int, required=False)
+    @validate('sort', str, required=False)
     @returns_list_of(ReviewDetails)
     @network_delay
     def get_reviews(self, packagename, language='any', origin='any',
-        distroseries='any', version='any', appname='', page=1):
+        distroseries='any', version='any', appname='', page=1, sort='helpful'):
         
         # work out how many reviews to return for pagination
         if page <= self._fake_settings.get_setting('review_pages'):

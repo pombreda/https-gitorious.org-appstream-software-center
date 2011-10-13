@@ -53,6 +53,7 @@ if __name__ == "__main__":
                       action="store_true", default=False)
     parser.add_option("--no-pickle",
                       action="store_true", default=False)
+    parser.add_option("--sort", default="helpful")
     (options, args) = parser.parse_args()
 
     if options.debug:
@@ -67,6 +68,7 @@ if __name__ == "__main__":
               "packagename": options.pkgname.split(':')[0], #multiarch..
               "version": options.version,
               "page": int(options.page),
+              "sort" : options.sort,
               }
     piston_reviews = []
     try:
