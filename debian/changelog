@@ -19,6 +19,39 @@ software-center (5.1.0) UNRELEASED; urgency=low
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 07 Oct 2011 12:24:55 +0200
 
+software-center (5.0.2) UNRELEASED; urgency=low
+
+  [ Matthew McGowan ]
+  * lp:~mmcg069/software-center/bug861778:
+    - improved method, use less widgets and fix case where user 
+      changes sort method in a search results list (LP: #861778)
+  * lp:~mmcg069/software-center/dialog-improvements:
+    - improve the widget packing of the submit_review dialog
+    - make the dialog-dep-warning dialog neither closable or maximisable
+      as per bug LP: #844025
+    - make dialog-dependency-alert dialog use a gtkgrid instead of 
+      gtktable to fix overly big spacing
+  * lp:~mmcg069/software-center/container-frame-render-fix:
+    - remove the use a clip -> provide a fix for blurry font 
+      rendering LP: #864855
+  
+  [ Michael Vogt ]
+  * test/gtk3/test_appview.py:
+    - add regression test for bug #861778
+  * test/gtk3/test_dialogs.py:
+    - add basic test for dependency dialogs
+  * softwarecenter/ui/gtk3/dialogs/dependency_dialogs.py:
+    - simplfy test setup code
+  * software-center:
+    - fix --measure-startup-time
+  * softwarecenter/backend/channel_impl/aptchannels.py:
+    - delay channel update check 10s to improve startup time
+  * softwarecenter/ui/gtk3/widgets/exhibits.py:
+    - add workaround for rendering bug of the webkit offscreen window
+      that leaves a 8px border around the image
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 07 Oct 2011 12:24:55 +0200
+
 software-center (5.0.1.5) UNRELEASED; urgency=low
 
   [ Robert Roth ]
