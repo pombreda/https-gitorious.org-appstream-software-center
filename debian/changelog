@@ -30,6 +30,10 @@ software-center (5.0.2) UNRELEASED; urgency=low
       that leaves a 8px border around the image
 
   [ Kiwinote ]
+  * softwarecenter/db/update.py,
+    softwarecenter/enums.py,
+    softwarecenter/ui/gtk3/models/appstore2.py:
+    - make apps from the canonical store appear in the categories (LP: #874330)
   * softwarecenter/ui/gtk3/panes/availablepane.py:
     - when search is cleared, don't navigate back to lobby if we're in a
       channel view (LP: #875786)
