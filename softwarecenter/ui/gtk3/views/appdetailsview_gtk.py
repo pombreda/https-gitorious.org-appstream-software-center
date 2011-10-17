@@ -1161,7 +1161,7 @@ class AppDetailsViewGtk(Viewport, AppDetailsViewBase):
         if app_details.version:
             version = '%s %s' % (app_details.pkgname, app_details.version)
         else:
-            version = _("%s (unknown version)") % app_details.pkgname
+            version = utf8(_("%s (unknown version)")) % utf8(app_details.pkgname)
         if app_details.license:
             license = app_details.license
         else:
