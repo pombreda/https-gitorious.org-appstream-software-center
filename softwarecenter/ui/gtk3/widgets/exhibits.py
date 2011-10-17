@@ -263,6 +263,7 @@ class ExhibitBanner(Gtk.EventBox):
 
         self.cursor = 0
         self._timeout = 0
+        self.pressed = False
 
         self.alpha = 1.0
         self.image = None 
@@ -287,10 +288,12 @@ class ExhibitBanner(Gtk.EventBox):
     def _init_event_handling(self):
         self.set_can_focus(True)
         self.set_events(Gdk.EventMask.BUTTON_RELEASE_MASK|
+                        Gdk.EventMask.BUTTON_PRESS_MASK|
                         Gdk.EventMask.ENTER_NOTIFY_MASK|
                         Gdk.EventMask.LEAVE_NOTIFY_MASK)
         self.connect("enter-notify-event", self.on_enter_notify)
         self.connect("leave-notify-event", self.on_leave_notify)
+        self.connect("button-press-event", self.on_button_press)
         self.connect("button-release-event", self.on_button_release)
         self.connect("key-press-event", self.on_key_press)
 
@@ -315,11 +318,20 @@ class ExhibitBanner(Gtk.EventBox):
     def on_button_release(self, widget, event):
         if not point_in(self.get_allocation(),
                         int(event.x), int(event.y)):
+            self.pressed = False
             return
 
         exhibit = self.exhibits[self.cursor]
-        if exhibit.package_names:
+        if exhibit.package_names and self.pressed:
             self.emit("show-exhibits-clicked", exhibit)
+        self.pressed = False
+        return
+
+    def on_button_press(self, widget, event):
+        if not point_in(self.get_allocation(),
+                        int(event.x), int(event.y)):
+            return
+        self.pressed = True
         return
 
     def on_key_press(self, widget, event):

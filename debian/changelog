@@ -44,6 +44,11 @@ software-center (5.0.2) UNRELEASED; urgency=low
   * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
     - fix UnicodeDecodeError in _update_pkg_info_table() (LP: #868834)
       this indirectly makes banners work again in certain locales (LP: #873078)
+  
+  [ Robert Roth ]
+  * Only catch button release in exhibit if button was also pressed on
+    exhibit (LP: #875043)
+
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 07 Oct 2011 12:24:55 +0200
 
