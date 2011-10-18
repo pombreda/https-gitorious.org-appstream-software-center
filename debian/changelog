@@ -49,8 +49,12 @@ software-center (5.0.2) UNRELEASED; urgency=low
   * Only catch button release in exhibit if button was also pressed on
     exhibit (LP: #875043)
 
+  [ Gary Lasker ]
+  * softwarecenter/db/update.py:
+    - fix reinstall previous purchases functionality for locales
+      that require unicode (LP: #873917) 
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 07 Oct 2011 12:24:55 +0200
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 17 Oct 2011 21:15:09 -0400
 
 software-center (5.0.1.5) UNRELEASED; urgency=low
 
