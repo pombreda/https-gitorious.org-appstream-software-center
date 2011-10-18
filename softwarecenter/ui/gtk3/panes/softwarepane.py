@@ -259,9 +259,7 @@ class SoftwarePane(Gtk.VBox, BasePane):
 
         self.app_view = AppView(self.db, self.cache,
                                 self.icons, self.show_ratings)
-        self.app_view.sort_methods_combobox.connect(
-                    "changed",
-                    self.on_app_view_sort_method_changed)
+        self.app_view.connect("sort-method-changed", self.on_app_view_sort_method_changed)
 
         self.init_atk_name(self.app_view, "app_view")
         self.box_app_list.pack_start(self.app_view, True, True, 0)
@@ -414,20 +412,17 @@ class SoftwarePane(Gtk.VBox, BasePane):
 
     def on_query_complete(self, enquirer):
         self.emit("app-list-changed", len(enquirer.matches))
-        sort_by_relevance = (self._is_in_search_mode() and
-                             not self.app_view.user_defined_sort_method)
-        
         self.app_view.display_matches(enquirer.matches,
-                                      sort_by_relevance)
+                                      self._is_in_search_mode())
         self.hide_appview_spinner()
         return
 
-    def on_app_view_sort_method_changed(self, combo):
-        if self.app_view.get_sort_mode() == self.enquirer.sortmode:
+    def on_app_view_sort_method_changed(self, app_view, combo):
+        if app_view.get_sort_mode() == self.enquirer.sortmode:
             return
 
         self.show_appview_spinner()
-        self.app_view.clear_model()
+        app_view.clear_model()
         query = self.get_query()
         self._refresh_apps_with_apt_cache(query)
         return

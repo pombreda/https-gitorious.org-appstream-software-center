@@ -92,3 +92,15 @@ def get_test_pkg_info():
 def get_test_datadir():
     import softwarecenter.paths
     return softwarecenter.paths.datadir
+
+def get_test_enquirer_matches(db, query=None, limit=20, sortmode=0):
+    from softwarecenter.db.enquire import AppEnquire
+    import xapian
+    if query is None:
+        query = xapian.Query("")
+    enquirer = AppEnquire(db._aptcache, db)
+    enquirer.set_query(query,
+                       sortmode=sortmode,
+                       limit=limit,
+                       nonblocking_load=False)
+    return enquirer.matches

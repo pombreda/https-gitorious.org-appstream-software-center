@@ -131,7 +131,7 @@ class TestWidgets(unittest.TestCase):
         win = get_test_window()
         GObject.timeout_add(TIMEOUT, lambda: win.destroy())
         Gtk.main()
-        
+
         
 
 if __name__ == "__main__":

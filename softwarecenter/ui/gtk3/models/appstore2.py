@@ -202,8 +202,8 @@ class _AppPropertiesHelper(object):
 
     def get_categories(self, doc):
         categories = doc.get_value(XapianValues.CATEGORIES).split(';') or []
-        if categories and categories[0] == 'SC_CATEGORY':
-            return _(categories[-1])
+        if categories and categories[0].startswith('DEPARTMENT:'):
+            return _(categories[0].split('DEPARTMENT:')[1])
         for key in category_subcat:
             if key in categories:
                 visible_category = category_subcat[key].split(';')[1]

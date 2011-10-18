@@ -40,6 +40,8 @@ class TestSearch(unittest.TestCase):
         self._p()
         pane.on_search_terms_changed(None, "the")
         self._p()
+        sortmode = pane.app_view.sort_methods_combobox.get_active_text()
+        self.assertEqual(sortmode, "By Relevance")
         model = pane.app_view.tree_view.get_model()
         len1 = len(model)
         pane.on_search_terms_changed(None, "nosuchsearchtermforsure")
