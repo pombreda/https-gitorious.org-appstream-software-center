@@ -50,6 +50,7 @@ Recommends: lsb-release,
             software-properties-gtk,
             sessioninstaller, 
             zeitgeist-core,
+            lzma
 Conflicts: gnome-app-install (<< 1), oneconf (<< 0.2.6.1)
 Replaces: gnome-app-install
 Provides: gnome-app-install

@@ -30,6 +30,10 @@ software-center (5.0.2) UNRELEASED; urgency=low
       that leaves a 8px border around the image
   * debian/control:
     - update Vcs-Bzr to point to the 5.0 branch
+    - add "lzma" to the recommends to ensure that opening opera and
+      chrome debs works (LP: #868188). python-apt is expecting to
+      have a helper that can be called with "lzma -d" to open these
+      debs.
 
   [ Kiwinote ]
   * softwarecenter/db/update.py,
