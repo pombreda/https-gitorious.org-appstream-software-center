@@ -1,4 +1,4 @@
-software-center (5.0.2) UNRELEASED; urgency=low
+software-center (5.0.2) oneiric-proposed; urgency=low
 
   [ Matthew McGowan ]
   * lp:~mmcg069/software-center/bug861778:
@@ -21,8 +21,6 @@ software-center (5.0.2) UNRELEASED; urgency=low
     - add basic test for dependency dialogs
   * softwarecenter/ui/gtk3/dialogs/dependency_dialogs.py:
     - simplfy test setup code
-  * software-center:
-    - fix --measure-startup-time
   * softwarecenter/backend/channel_impl/aptchannels.py:
     - delay channel update check 10s to improve startup time
   * softwarecenter/ui/gtk3/widgets/exhibits.py:
@@ -61,7 +59,7 @@ software-center (5.0.2) UNRELEASED; urgency=low
     - force 11.10 as the release as this is the target
       version of 5.0
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 17 Oct 2011 21:15:09 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 18 Oct 2011 17:43:01 +0200
 
 software-center (5.0.1.5) oneiric-proposed; urgency=low
 
