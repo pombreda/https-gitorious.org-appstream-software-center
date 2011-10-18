@@ -1,3 +1,11 @@
+software-center (5.0.1.6) UNRELEASED; urgency=low
+
+  * setup.py:
+    - force 11.10 as the release as this is the target
+      version of 5.0
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 18 Oct 2011 11:03:08 -0400
+
 software-center (5.0.1.5) oneiric-proposed; urgency=low
 
   [ Robert Roth ]
