@@ -57,6 +57,9 @@ software-center (5.0.2) UNRELEASED; urgency=low
   * softwarecenter/db/update.py:
     - fix reinstall previous purchases functionality for locales
       that require unicode (LP: #873917) 
+  * setup.py:
+    - force 11.10 as the release as this is the target
+      version of 5.0
 
  -- Gary Lasker <gary.lasker@canonical.com>  Mon, 17 Oct 2011 21:15:09 -0400
 
