@@ -58,8 +58,7 @@ VERSION = m.group(1)
 CODENAME = m.group(2)
 DISTRO = Popen(
     ["lsb_release", "-s", "-i"], stdout=PIPE).communicate()[0].strip()
-RELEASE = Popen(
-    ["lsb_release", "-s", "-r"], stdout=PIPE).communicate()[0].strip()
+RELEASE = "11.10"
 open("softwarecenter/version.py", "w").write("""
 VERSION='%s'
 CODENAME='%s'
