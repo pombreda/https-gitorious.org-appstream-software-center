@@ -25,6 +25,8 @@ from dbus.mainloop.glib import DBusGMainLoop
 
 from gi.repository import GObject
 
+LOG=logging.getLogger(__name__)
+
 # enums
 class NetState(object):
     """ enums for network manager status """
@@ -128,7 +130,7 @@ def test_ping():
     source_list.read_main_list()
 
     if not source_list.list:
-        log.warn("apt sourcelist had no sources!!!")
+        LOG.warn("apt sourcelist had no sources!!!")
         NETWORK_STATE = NetState.NM_STATE_DISCONNECTED
     else:
         # get a host to ping
