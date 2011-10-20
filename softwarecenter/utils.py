@@ -558,8 +558,8 @@ def split_icon_ext(iconname):
     """ return the basename of a icon if it matches a known icon 
         extenstion like tiff, gif, jpg, svg, png, xpm, ico
     """
-    SUPPORTED_EXTENSIONS = ["tiff", "tif", "gif", "jpg", "jpeg", "svg", 
-                            "png", "xpm", "ico"]
+    SUPPORTED_EXTENSIONS = [".tiff", ".tif", ".gif", ".jpg", ".jpeg", ".svg", 
+                            ".png", ".xpm", ".ico"]
     basename, ext = os.path.splitext(iconname)
     if ext.lower() in SUPPORTED_EXTENSIONS:
         return basename

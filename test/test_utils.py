@@ -108,9 +108,9 @@ class TestSCUtils(unittest.TestCase):
         from softwarecenter.utils import split_icon_ext
         for unchanged in ["foo.bar.baz", "foo.bar", "foo", 
                           "foo.pngx", "foo.png.xxx"]:
-            self.assertTrue(split_icon_ext(unchanged), unchanged)
+            self.assertEqual(split_icon_ext(unchanged), unchanged)
         for changed in ["foo.png", "foo.tiff", "foo.jpg", "foo.jpeg"]:
-            self.assertTrue(split_icon_ext(changed), 
+            self.assertEqual(split_icon_ext(changed), 
                             os.path.splitext(changed)[0])
 
 
