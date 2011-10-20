@@ -104,6 +104,16 @@ class TestSCUtils(unittest.TestCase):
         d = "/usr/share/app-install/desktop/software-center:ubuntu-software-center.desktop"
         self.assertFalse(is_no_display_desktop_file(d))
 
+    def test_split_icon_ext(self):
+        from softwarecenter.utils import split_icon_ext
+        for unchanged in ["foo.bar.baz", "foo.bar", "foo", 
+                          "foo.pngx", "foo.png.xxx"]:
+            self.assertTrue(split_icon_ext(unchanged), unchanged)
+        for changed in ["foo.png", "foo.tiff", "foo.jpg", "foo.jpeg"]:
+            self.assertTrue(split_icon_ext(changed), 
+                            os.path.splitext(changed)[0])
+
+
 if __name__ == "__main__":
     import logging
     logging.basicConfig(level=logging.DEBUG)

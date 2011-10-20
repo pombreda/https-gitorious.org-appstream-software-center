@@ -550,6 +550,20 @@ def calc_dr(ratings, power=0.1):
    
     return sum_scores + 3
 
+# we need this because some iconnames have already split off the extension
+# (the desktop file standard suggests this) but still have a "." in the name.
+# From other sources we get icons with a full extension so a simple splitext()
+# is not good enough
+def split_icon_ext(iconname):
+    """ return the basename of a icon if it matches a known icon 
+        extenstion like tiff, gif, jpg, svg, png, xpm, ico
+    """
+    SUPPORTED_EXTENSIONS = ["tiff", "tif", "gif", "jpg", "jpeg", "svg", 
+                            "png", "xpm", "ico"]
+    basename, ext = os.path.splitext(iconname)
+    if ext.lower() in SUPPORTED_EXTENSIONS:
+        return basename
+    return iconname
 
 class SimpleFileDownloader(GObject.GObject):
 
