@@ -1,8 +1,14 @@
-software-center (5.0.2.1) UNRELEASED; urgency=low
+software-center (5.0.3) UNRELEASED; urgency=low
 
+  [ Michael Vogt ]
   * Improve icon extenstion detection, some iconnames are already
     without extenstion with still with a "." in the name, some are not.
     This fixes the icons display for wesnoth and xpuzzles (LP: #878707)
+
+  [ Gary Lasker ]
+  * softwarecenter/ui/gtk3/app.py:
+    - fix potential dbus crash when accessing the list of previous
+      purchases (LP: #863898)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 20 Oct 2011 10:07:25 +0200
 
