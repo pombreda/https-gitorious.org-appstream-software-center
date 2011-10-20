@@ -1,3 +1,11 @@
+software-center (5.0.2.1) UNRELEASED; urgency=low
+
+  * Improve icon extenstion detection, some iconnames are already
+    without extenstion with still with a "." in the name, some are not.
+    This fixes the icons display for wesnoth and xpuzzles
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 20 Oct 2011 10:07:25 +0200
+
 software-center (5.0.2) oneiric-proposed; urgency=low
 
   [ Matthew McGowan ]
