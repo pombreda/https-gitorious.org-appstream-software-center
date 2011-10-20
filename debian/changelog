@@ -1,4 +1,20 @@
-software-center (5.0.2) UNRELEASED; urgency=low
+software-center (5.0.3) UNRELEASED; urgency=low
+
+  [ Michael Vogt ]
+  * debian/control:
+    - add "lzma" to the recommends to ensure that opening opera and
+      chrome debs works (LP: #868188). python-apt is expecting to
+      have a helper that can be called with "lzma -d" to open these
+      debs. 
+
+  [ Gary Lasker ]
+  * softwarecenter/ui/gtk3/app.py:
+    - fix potential dbus crash when accessing the list of previous
+      purchases (LP: #863898)
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 19 Oct 2011 22:16:22 -0400
+
+software-center (5.0.2) oneiric-proposed; urgency=low
 
   [ Matthew McGowan ]
   * lp:~mmcg069/software-center/bug861778:
@@ -30,10 +46,6 @@ software-center (5.0.2) UNRELEASED; urgency=low
       that leaves a 8px border around the image
   * debian/control:
     - update Vcs-Bzr to point to the 5.0 branch
-    - add "lzma" to the recommends to ensure that opening opera and
-      chrome debs works (LP: #868188). python-apt is expecting to
-      have a helper that can be called with "lzma -d" to open these
-      debs.
 
   [ Kiwinote ]
   * softwarecenter/db/update.py,
@@ -58,7 +70,7 @@ software-center (5.0.2) UNRELEASED; urgency=low
     - fix reinstall previous purchases functionality for locales
       that require unicode (LP: #873917) 
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 17 Oct 2011 21:15:09 -0400
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 19 Oct 2011 22:03:42 -0400
 
 software-center (5.0.1.5) UNRELEASED; urgency=low
 
