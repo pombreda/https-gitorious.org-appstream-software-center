@@ -252,6 +252,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         # for use when viewing previous purchases
         self.scagent = None
         self.sso = None
+        self.available_for_me_query = None
 
         # additional icons come from app-install-data
         self.icons = get_sc_icon_theme(self.datadir)
@@ -573,9 +574,9 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         #print "available_for_me_result", result_list
         from softwarecenter.db.update import (
             add_from_purchased_but_needs_reinstall_data)
-        available_for_me_query = add_from_purchased_but_needs_reinstall_data(
+        self.available_for_me_query = add_from_purchased_but_needs_reinstall_data(
             result_list, self.db, self.cache)
-        self.available_pane.on_previous_purchases_activated(available_for_me_query) 
+        self.available_pane.on_previous_purchases_activated(self.available_for_me_query) 
         
     def on_application_request_action(self, widget, app, addons_install, addons_remove, action):
         """callback when an app action is requested from the appview,
@@ -727,8 +728,13 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
     def on_menuitem_reinstall_purchases_activate(self, menuitem):
         self.view_manager.set_active_view(ViewPages.AVAILABLE)
         self.available_pane.show_appview_spinner()
-        self._create_scagent_if_needed()
-        self._login_via_dbus_sso()
+        if self.available_for_me_query:
+            # we already have the list of available items, so just show it
+            self.available_pane.on_previous_purchases_activated(self.available_for_me_query)
+        else:
+            # fetch the list of available items and show it
+            self._create_scagent_if_needed()
+            self._login_via_dbus_sso()
             
     def on_menuitem_deauthorize_computer_activate(self, menuitem):
     
