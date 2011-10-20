@@ -88,6 +88,7 @@ from softwarecenter.ui.gtk3.session.viewmanager import ViewManager, get_viewmana
 
 from softwarecenter.config import get_config
 from softwarecenter.backend import get_install_backend
+from softwarecenter.backend.login_sso import get_sso_backend
 
 from softwarecenter.backend.channel import AllInstalledChannel
 from softwarecenter.backend.reviews import get_review_loader, UsefulnessCache
@@ -699,24 +700,22 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         d = LoginDialog(self.glaunchpad, self.datadir, parent=self.window_main)
         d.login()
 
-    def _create_dbus_sso_if_needed(self):
-        if not self.sso:
-            from softwarecenter.backend.login_sso import get_sso_backend
-            # see bug #773214 for the rational
-            #appname = _("Ubuntu Software Center Store")
-            appname = "Ubuntu Software Center Store"
-            help_text = _("To reinstall previous purchases, sign in to the "
-                          "Ubuntu Single Sign-On account you used to pay for them.")
-            #window = self.window_main.get_window()
-            #xid = self.get_window().xid
-            xid = 0
-            self.sso = get_sso_backend(xid,
-                                       appname,
-                                       help_text)
-            self.sso.connect("login-successful", self._on_sso_login)
+    def _create_dbus_sso(self):
+        # see bug #773214 for the rationale
+        #appname = _("Ubuntu Software Center Store")
+        appname = "Ubuntu Software Center Store"
+        help_text = _("To reinstall previous purchases, sign in to the "
+                      "Ubuntu Single Sign-On account you used to pay for them.")
+        #window = self.window_main.get_window()
+        #xid = self.get_window().xid
+        xid = 0
+        self.sso = get_sso_backend(xid,
+                                   appname,
+                                   help_text)
+        self.sso.connect("login-successful", self._on_sso_login)
 
     def _login_via_dbus_sso(self):
-        self._create_dbus_sso_if_needed()
+        self._create_dbus_sso()
         self.sso.login()
 
     def _create_scagent_if_needed(self):
