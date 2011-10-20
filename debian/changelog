@@ -1,4 +1,4 @@
-software-center (5.1.0) UNRELEASED; urgency=low
+software-center (5.1.0) precise; urgency=low
 
   [ Matthew McGowan ]
   * lp:~mmcg069/software-center/bug861778:
@@ -17,7 +17,7 @@ software-center (5.1.0) UNRELEASED; urgency=low
   * test/test_netstatus.py:
     - add basic test for the netstatus code
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 07 Oct 2011 12:24:55 +0200
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 20 Oct 2011 18:35:14 +0200
 
 software-center (5.0.3) UNRELEASED; urgency=low
 
