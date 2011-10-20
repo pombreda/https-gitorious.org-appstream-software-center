@@ -7,9 +7,10 @@ sys.path.insert(0,"../")
 
 from softwarecenter.utils import (decode_xml_char_reference,
                                   release_filename_in_lists_from_deb_line,
-                                  get_language,
                                   get_http_proxy_string_from_libproxy,
                                   )
+from softwarecenter.i18n import get_language
+
 
 class TestSCUtils(unittest.TestCase):
     """ tests the sc utils """

@@ -97,6 +97,10 @@ class SortMethods:
      BY_TOP_RATED,
     ) = range(5)
 
+class ReviewSortMethods:
+    REVIEW_SORT_METHODS = ['helpful', 'newest']
+    REVIEW_SORT_LIST_ENTRIES = [_('Most helpful first'), _('Newest first')]
+
 # values used in the database
 class XapianValues:
     APPNAME = 170

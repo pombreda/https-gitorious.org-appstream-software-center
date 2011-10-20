@@ -213,27 +213,6 @@ def get_parent_xid(widget):
         return window.xid
     return 0    # cannot figure out how to get the xid of gdkwindow under pygi
 
-def get_language():
-    """Helper that returns the current language
-    """
-    import locale
-    # fallback if locale parsing fails
-    FALLBACK = "en"
-    # those languages need the full language-code, the other ones
-    # can be abbreved
-    FULL = ["pt_BR", 
-            "zh_CN", "zh_TW"]
-    try:
-        language = locale.getdefaultlocale(('LANGUAGE','LANG','LC_CTYPE','LC_ALL'))[0]
-    except Exception as e:
-        LOG.warn("Failed to get language: '%s'" % e)
-        language = "C"
-    # use fallback if we can't determine the language
-    if language is None or language == "C":
-        return FALLBACK
-    if language in FULL:
-        return language
-    return language.split("_")[0]
 
 def get_http_proxy_string_from_libproxy(url):
     """Helper that uses libproxy to get the http proxy for the given url """
