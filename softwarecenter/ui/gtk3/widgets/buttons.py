@@ -549,13 +549,18 @@ class Link(Gtk.Label):
         return
 
     def set_markup(self, markup="", uri="none"):
-        if self._handler > 0:
-            GObject.source_remove(self._handler)
-            self._handler = 0
-
-        Gtk.Label.set_markup(self, '<a href="%s">%s</a>' % (uri, markup))
-        self._handler = self.connect("activate-link", self.on_activate_link)
+        markup = '<a href="%s">%s</a>' % (uri, markup)
+        Gtk.Label.set_markup(self, markup)
+        if self._handler == 0:
+            self._handler = self.connect("activate-link", self.on_activate_link)
         return
+
+    # synonyms for set_markup
+    def set_label(self, label):
+        return self.set_markup(label)
+
+    def set_text(self, text):
+        return self.set_markup(text)
 
     def on_activate_link(self, uri, data):
         self.emit("clicked")

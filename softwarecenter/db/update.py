@@ -28,6 +28,8 @@ import xapian
 
 from gi.repository import GObject
 
+from softwarecenter.utils import utf8
+
 # py3 compat
 try:
     from configparser import RawConfigParser, NoOptionError
@@ -176,9 +178,9 @@ class SoftwareCenterAgentParser(AppInfoParserBase):
         return getattr(self.sca_entry, self._apply_mapping(key))
     def get_desktop_categories(self):
         try:
-            return ['SC_CATEGORY'] + self.sca_entry.department
+            return ['DEPARTMENT:' + self.sca_entry.department[-1]] + self._get_desktop_list("Categories")
         except:
-            return []
+            return self._get_desktop_list("Categories")
     def has_option_desktop(self, key):
         return (key in self.STATIC_DATA or
                 hasattr(self.sca_entry, self._apply_mapping(key)))
@@ -491,7 +493,7 @@ def add_from_purchased_but_needs_reinstall_data(purchased_but_may_need_reinstall
             # WARNING: item.name needs to be different than
             #          the item.name in the DB otherwise the DB
             #          gets confused about (appname, pkgname) duplication
-            item.name = _("%s (already purchased)") % item.name
+            item.name = utf8(_("%s (already purchased)")) % utf8(item.name)
             parser = SoftwareCenterAgentParser(item)
             index_app_info_from_parser(parser, db_purchased, cache)
         except Exception as e:

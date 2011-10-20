@@ -263,6 +263,8 @@ class ViewSwitcher(Gtk.Box):
             pane = vm.set_active_view(view_id)
             # configure DisplayState
             state = pane.state.copy()
+            state.category = None
+            state.subcategory = None
             state.channel = channel
             # decide which page we want to display
             if hasattr(pane, "Pages"):

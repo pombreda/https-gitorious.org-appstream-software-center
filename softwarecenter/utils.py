@@ -213,27 +213,6 @@ def get_parent_xid(widget):
         return window.xid
     return 0    # cannot figure out how to get the xid of gdkwindow under pygi
 
-def get_language():
-    """Helper that returns the current language
-    """
-    import locale
-    # fallback if locale parsing fails
-    FALLBACK = "en"
-    # those languages need the full language-code, the other ones
-    # can be abbreved
-    FULL = ["pt_BR", 
-            "zh_CN", "zh_TW"]
-    try:
-        language = locale.getdefaultlocale(('LANGUAGE','LANG','LC_CTYPE','LC_ALL'))[0]
-    except Exception as e:
-        LOG.warn("Failed to get language: '%s'" % e)
-        language = "C"
-    # use fallback if we can't determine the language
-    if language is None or language == "C":
-        return FALLBACK
-    if language in FULL:
-        return language
-    return language.split("_")[0]
 
 def get_http_proxy_string_from_libproxy(url):
     """Helper that uses libproxy to get the http proxy for the given url """
@@ -550,6 +529,20 @@ def calc_dr(ratings, power=0.1):
    
     return sum_scores + 3
 
+# we need this because some iconnames have already split off the extension
+# (the desktop file standard suggests this) but still have a "." in the name.
+# From other sources we get icons with a full extension so a simple splitext()
+# is not good enough
+def split_icon_ext(iconname):
+    """ return the basename of a icon if it matches a known icon 
+        extenstion like tiff, gif, jpg, svg, png, xpm, ico
+    """
+    SUPPORTED_EXTENSIONS = [".tiff", ".tif", ".gif", ".jpg", ".jpeg", ".svg", 
+                            ".png", ".xpm", ".ico"]
+    basename, ext = os.path.splitext(iconname)
+    if ext.lower() in SUPPORTED_EXTENSIONS:
+        return basename
+    return iconname
 
 class SimpleFileDownloader(GObject.GObject):
 

@@ -1,4 +1,39 @@
-software-center (5.0.2) UNRELEASED; urgency=low
+software-center (5.1.0) precise; urgency=low
+
+  [ Matthew McGowan ]
+  * lp:~mmcg069/software-center/bug861778:
+    - improved method, use less widgets and fix case where user 
+      changes sort method in a search results list (LP: #861778)
+  * lp:~mmcg069/software-center/no-nm-net-detect:
+    - improve the internet connectivity awareness if network-manager 
+      is not available
+  * lp:~mmcg069/software-center/bitesize:
+    - convert the 'Write your own review' Gtk.Button to a Link style button
+      (UI change)
+  
+  [ Michael Vogt ]
+  * test/gtk3/test_appview.py:
+    - add regression test for bug #861778
+  * test/test_netstatus.py:
+    - add basic test for the netstatus code
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 20 Oct 2011 18:35:14 +0200
+
+software-center (5.0.3) UNRELEASED; urgency=low
+
+  [ Michael Vogt ]
+  * Improve icon extenstion detection, some iconnames are already
+    without extenstion with still with a "." in the name, some are not.
+    This fixes the icons display for wesnoth and xpuzzles (LP: #878707)
+
+  [ Gary Lasker ]
+  * softwarecenter/ui/gtk3/app.py:
+    - fix potential dbus crash when accessing the list of previous
+      purchases (LP: #863898)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 20 Oct 2011 10:07:25 +0200
+
+software-center (5.0.2) oneiric-proposed; urgency=low
 
   [ Matthew McGowan ]
   * lp:~mmcg069/software-center/bug861778:
@@ -21,29 +56,63 @@ software-center (5.0.2) UNRELEASED; urgency=low
     - add basic test for dependency dialogs
   * softwarecenter/ui/gtk3/dialogs/dependency_dialogs.py:
     - simplfy test setup code
-  * software-center:
-    - fix --measure-startup-time
   * softwarecenter/backend/channel_impl/aptchannels.py:
     - delay channel update check 10s to improve startup time
   * softwarecenter/ui/gtk3/widgets/exhibits.py:
     - add workaround for rendering bug of the webkit offscreen window
       that leaves a 8px border around the image
+  * debian/control:
+    - update Vcs-Bzr to point to the 5.0 branch
+    - add "lzma" to the recommends to ensure that opening opera and
+      chrome debs works (LP: #868188). python-apt is expecting to
+      have a helper that can be called with "lzma -d" to open these
+      debs.
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 07 Oct 2011 12:24:55 +0200
+  [ Kiwinote ]
+  * softwarecenter/db/update.py,
+    softwarecenter/enums.py,
+    softwarecenter/ui/gtk3/models/appstore2.py:
+    - make apps from the canonical store appear in the categories (LP: #874330)
+  * softwarecenter/ui/gtk3/panes/availablepane.py:
+    - when search is cleared, don't navigate back to lobby if we're in a
+      channel view (LP: #875786)
+  * softwarecenter/ui/gtk3/panes/viewswitcher.py:
+    - don't inherit state.category or state.subcategory upon channel selection
+  * softwarecenter/ui/gtk3/views/appdetailsview_gtk.py:
+    - fix UnicodeDecodeError in _update_pkg_info_table() (LP: #868834)
+      this indirectly makes banners work again in certain locales (LP: #873078)
+  
+  [ Robert Roth ]
+  * Only catch button release in exhibit if button was also pressed on
+    exhibit (LP: #875043)
 
-software-center (5.0.1.5) UNRELEASED; urgency=low
+  [ Gary Lasker ]
+  * softwarecenter/db/update.py:
+    - fix reinstall previous purchases functionality for locales
+      that require unicode (LP: #873917) 
+  * setup.py:
+    - force 11.10 as the release as this is the target
+      version of 5.0
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 18 Oct 2011 17:43:01 +0200
+
+software-center (5.0.1.5) oneiric-proposed; urgency=low
 
   [ Robert Roth ]
   * lp:~evfool/software-center/fixlp870595:
     - Mark the For Software Developers menu item label from the Help
-      menu translatable to fix bug #870595.
+      menu translatable to fix bug LP: #870595.
 
   [ Kiwinote ]
   * softwarecenter/ui/gtk3/widgets/searchaid.py:
     - make 'no items match <searchterm>' display translated (LP: #870604)
     - fix markup error which causes spelling suggestions not to be displayed
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Sat, 08 Oct 2011 19:14:09 +0200
+  [ Michael Vogt ]
+  * software-center:
+    - fix --measure-startup-time
+  
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 12 Oct 2011 09:11:15 +0200
 
 software-center (5.0.1.4) oneiric; urgency=low
 

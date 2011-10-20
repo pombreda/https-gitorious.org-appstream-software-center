@@ -421,8 +421,8 @@ class AvailablePane(SoftwarePane):
 
         # yeah for special cases - as discussed on irc, mpt
         # wants this to return to the category screen *if*
-        # we are searching but we are not in any category
-        if not self.state.category and not new_text:
+        # we are searching but we are not in any category or channel
+        if not self.state.category and not self.state.channel and not new_text:
             # category activate will clear search etc
             self.state.reset()
             vm.display_page(self,

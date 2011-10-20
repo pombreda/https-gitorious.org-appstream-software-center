@@ -689,6 +689,7 @@ class AppDetailsViewGtk(Viewport, AppDetailsViewBase):
         # reviews
         self._reviews_server_page = 1
         self._reviews_server_language = None
+        self._review_sort_method = 0
         
         # switches
         self._show_overlay = False
@@ -744,9 +745,16 @@ class AppDetailsViewGtk(Viewport, AppDetailsViewBase):
     def _on_more_reviews_clicked(self, uilist):
         self._reviews_server_page += 1
         self._do_load_reviews()
+    
+    def _on_review_sort_method_changed(self, uilist, sort_method):
+        self._review_server_page = 1
+        self._review_sort_method = sort_method
+        self.reviews.clear()
+        self._do_load_reviews()
 
     def _on_reviews_in_different_language_clicked(self, uilist, language):
         self._reviews_server_language = language
+        self.reviews.clear()
         self._do_load_reviews()
 
     def _do_load_reviews(self):
@@ -754,7 +762,8 @@ class AppDetailsViewGtk(Viewport, AppDetailsViewBase):
         self.review_loader.get_reviews(
             self.app, self._reviews_ready_callback, 
             page=self._reviews_server_page,
-            language=self._reviews_server_language)
+            language=self._reviews_server_language,
+            sort=self._review_sort_method)
 
     def _review_update_single(self, action, review):
         if action == 'replace':
@@ -1041,6 +1050,7 @@ class AppDetailsViewGtk(Viewport, AppDetailsViewBase):
         self.reviews.connect("delete-review", self._on_review_delete)
         self.reviews.connect("more-reviews-clicked", self._on_more_reviews_clicked)
         self.reviews.connect("different-review-language-clicked", self._on_reviews_in_different_language_clicked)
+        self.reviews.connect("review-sort-changed", self._on_review_sort_method_changed)
         vb.pack_start(self.reviews, False, False, 0)
 
         self.show_all()
@@ -1161,7 +1171,7 @@ class AppDetailsViewGtk(Viewport, AppDetailsViewBase):
         if app_details.version:
             version = '%s %s' % (app_details.pkgname, app_details.version)
         else:
-            version = _("%s (unknown version)") % app_details.pkgname
+            version = utf8(_("%s (unknown version)")) % utf8(app_details.pkgname)
         if app_details.license:
             license = app_details.license
         else:
@@ -1706,7 +1716,7 @@ def get_test_window_appdetails():
     scroll.add(view)
     scroll.show()
     win.add(scroll)
-    win.set_size_request(600,400)
+    win.set_size_request(600,800)
     win.show()
     win.connect('destroy', Gtk.main_quit)
     win.set_data("view", view)

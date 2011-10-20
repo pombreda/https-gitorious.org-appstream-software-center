@@ -30,7 +30,7 @@ from gi.repository import WebKit as webkit
 from gettext import gettext as _
 
 from softwarecenter.backend import get_install_backend
-from softwarecenter.utils import get_language
+from softwarecenter.i18n import get_language
 
 LOG = logging.getLogger(__name__)
 

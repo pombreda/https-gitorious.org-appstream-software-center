@@ -28,7 +28,7 @@ from softwarecenter.enums import (Icons,
                                   XapianValues)
 
 
-from softwarecenter.utils import ExecutionTime, SimpleFileDownloader
+from softwarecenter.utils import ExecutionTime, SimpleFileDownloader, split_icon_ext
 from softwarecenter.backend import get_install_backend
 from softwarecenter.backend.reviews import get_review_loader
 from softwarecenter.db.database import Application
@@ -87,7 +87,7 @@ class _AppPropertiesHelper(object):
                                                       self.icon_size,
                                                       self.icon_size)
             # replace the icon in the icon_cache now that we've got the real one
-            icon_file = os.path.splitext(os.path.basename(image_file_path))[0]
+            icon_file = split_icon_ext(os.path.basename(image_file_path))
             self.icon_cache[icon_file] = pb
         
         url = get_distro().get_downloadable_icon_url(cache, pkgname, icon_file_name)
@@ -153,9 +153,9 @@ class _AppPropertiesHelper(object):
 
     def get_icon(self, doc):
         try:
-            icon_file_name = self.db.get_iconname(doc)
+            icon_file_name = split_icon_ext(self.db.get_iconname(doc))
             if icon_file_name:
-                icon_name = os.path.splitext(icon_file_name)[0]
+                icon_name = icon_file_name
                 if icon_name in self.icon_cache:
                     return self.icon_cache[icon_name]
                 # icons.load_icon takes between 0.001 to 0.01s on my
@@ -202,8 +202,8 @@ class _AppPropertiesHelper(object):
 
     def get_categories(self, doc):
         categories = doc.get_value(XapianValues.CATEGORIES).split(';') or []
-        if categories and categories[0] == 'SC_CATEGORY':
-            return _(categories[-1])
+        if categories and categories[0].startswith('DEPARTMENT:'):
+            return _(categories[0].split('DEPARTMENT:')[1])
         for key in category_subcat:
             if key in categories:
                 visible_category = category_subcat[key].split(';')[1]

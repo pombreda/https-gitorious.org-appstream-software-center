@@ -7,9 +7,10 @@ sys.path.insert(0,"../")
 
 from softwarecenter.utils import (decode_xml_char_reference,
                                   release_filename_in_lists_from_deb_line,
-                                  get_language,
                                   get_http_proxy_string_from_libproxy,
                                   )
+from softwarecenter.i18n import get_language
+
 
 class TestSCUtils(unittest.TestCase):
     """ tests the sc utils """
@@ -103,6 +104,16 @@ class TestSCUtils(unittest.TestCase):
         self.assertTrue(is_no_display_desktop_file(d))
         d = "/usr/share/app-install/desktop/software-center:ubuntu-software-center.desktop"
         self.assertFalse(is_no_display_desktop_file(d))
+
+    def test_split_icon_ext(self):
+        from softwarecenter.utils import split_icon_ext
+        for unchanged in ["foo.bar.baz", "foo.bar", "foo", 
+                          "foo.pngx", "foo.png.xxx"]:
+            self.assertEqual(split_icon_ext(unchanged), unchanged)
+        for changed in ["foo.png", "foo.tiff", "foo.jpg", "foo.jpeg"]:
+            self.assertEqual(split_icon_ext(changed), 
+                            os.path.splitext(changed)[0])
+
 
 if __name__ == "__main__":
     import logging

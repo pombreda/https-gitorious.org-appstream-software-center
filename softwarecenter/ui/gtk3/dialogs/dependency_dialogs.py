@@ -63,11 +63,9 @@ def confirm_remove(parent, datadir, app, db, icons):
     #  backend = get_install_backend()
     #  backend.simulate_remove(app.pkgname)
     # once it works
-    print appdetails.pkg
     if not appdetails.pkg:
         return True
     depends = cache.get_packages_removed_on_remove(appdetails.pkg)
-    print depends
     if not depends:
         return True
     (primary, button_text) = distro.get_removal_warning_text(

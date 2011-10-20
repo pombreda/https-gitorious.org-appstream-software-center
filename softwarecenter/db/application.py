@@ -29,7 +29,7 @@ from softwarecenter.enums import PkgStates, XapianValues, Icons
 from softwarecenter.paths import (APP_INSTALL_CHANNELS_PATH,
                                   SOFTWARE_CENTER_ICON_CACHE_DIR,
                                   )
-from softwarecenter.utils import utf8
+from softwarecenter.utils import utf8, split_icon_ext
 
 LOG = logging.getLogger(__name__)
 
@@ -304,7 +304,7 @@ class AppDetails(object):
         if self.pkg_state == PkgStates.NOT_FOUND:
             return Icons.MISSING_PKG
         if self._doc:
-            return os.path.splitext(self._db.get_iconname(self._doc))[0]
+            return split_icon_ext(self._db.get_iconname(self._doc))
         if not self.summary:
             return Icons.MISSING_PKG
             
