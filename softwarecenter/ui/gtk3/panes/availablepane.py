@@ -115,6 +115,8 @@ class AvailablePane(SoftwarePane):
         #~ liststore.connect('appcount-changed', on_appcount_changed)
         self.app_view.set_model(liststore)
         # setup purchase stuff
+        self.app_view.connect("purchase-requested",
+                              self.on_purchase_requested)
         self.app_details_view.connect("purchase-requested",
                                       self.on_purchase_requested)
         # purchase view
@@ -199,7 +201,6 @@ class AvailablePane(SoftwarePane):
             window.set_cursor(None)
 
     def on_purchase_requested(self, widget, app, url):
-
         self.appdetails = app.get_details(self.db)
         iconname = self.appdetails.icon
         self.purchase_view.initiate_purchase(app, iconname, url)

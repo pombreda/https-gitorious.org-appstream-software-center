@@ -5,6 +5,18 @@ import xapian
 
 from gettext import gettext as _
 
+try:
+    from urllib.parse import urlencode
+    urlencode # pyflakes
+except ImportError:
+    from urllib import urlencode
+
+from softwarecenter.db.application import AppDetails
+from softwarecenter.distro import get_current_arch
+from softwarecenter.i18n import get_language
+from softwarecenter.distro import get_distro
+
+
 from cellrenderers import (CellRendererAppView,
                            CellButtonRenderer,
                            CellButtonIDs)
@@ -30,11 +42,12 @@ class AppTreeView(Gtk.TreeView):
 
     ACTION_BTNS = (VARIANT_REMOVE, VARIANT_INSTALL, VARIANT_PURCHASE)
 
-    def __init__(self, app_view, icons, show_ratings, store=None):
+    def __init__(self, app_view, db, icons, show_ratings, store=None):
         Gtk.TreeView.__init__(self)
         self._logger = logging.getLogger("softwarecenter.view.appview")
 
         self.app_view = app_view
+        self.db = db
 
         self.pressed = False
         self.focal_btn = None
@@ -326,16 +339,18 @@ class AppTreeView(Gtk.TreeView):
     def _on_row_activated(self, view, path, column, tr):
         rowref = self.get_rowref(view.get_model(), path)
 
-        if not rowref: return
-
-        if self.rowref_is_category(rowref): return
+        if not rowref:
+            return
+        elif self.rowref_is_category(rowref):
+            return
 
         x, y = self.get_pointer()
         for btn in tr.get_buttons():
             if btn.point_in(x, y): 
                 return
 
-        self.app_view.emit("application-activated", self.appmodel.get_application(rowref))
+        if self.appmodel.get_application(rowref):
+            self.app_view.emit("application-activated", app)
         return
 
     def _on_button_event_get_path(self, view, event):
@@ -487,6 +502,11 @@ class AppTreeView(Gtk.TreeView):
             self._action_block_list.append(pkgname)
             if self.appmodel.is_installed(app):
                 perform_action = AppActions.REMOVE
+
+            elif self.appmodel.is_purchasable(app):
+                self.buy_app(self.appmodel.get_application(app))
+                store.notify_action_request(app, path)
+                return
             else:
                 perform_action = AppActions.INSTALL
 
@@ -496,6 +516,19 @@ class AppTreeView(Gtk.TreeView):
                       self.appmodel.get_application(app),
                       [], [], perform_action)
         return False
+
+    def buy_app(self, app):
+        """ initiate the purchase transaction """
+        appdetails = AppDetails(self.db, application=app)
+        lang = get_language()
+        distro = get_distro()
+        codename = distro.get_codename()
+        url = distro.PURCHASE_APP_URL % (lang, codename, urlencode({
+                    'archive_id' : appdetails.ppaname, 
+                    'arch' : get_current_arch() ,
+                    }))
+        
+        self.app_view.emit("purchase-requested", app, url)
 
     def _set_cursor(self, btn, cursor):
         # make sure we have a window instance (LP: #617004)

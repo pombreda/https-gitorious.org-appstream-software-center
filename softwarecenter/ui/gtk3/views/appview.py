@@ -54,6 +54,10 @@ class AppView(Gtk.VBox):
                                          GObject.TYPE_PYOBJECT,
                                          str),
                                        ),
+        "purchase-requested" : (GObject.SignalFlags.RUN_LAST,
+                                 None,
+                                 (GObject.TYPE_PYOBJECT,
+                                  str,)),
     }
     
     (INSTALLED_MODE, AVAILABLE_MODE, DIFF_MODE) = range(3)
@@ -71,7 +75,7 @@ class AppView(Gtk.VBox):
 
     def __init__(self, db, cache, icons, show_ratings):
         Gtk.VBox.__init__(self)
-        self.set_name("app-view")
+        #~ self.set_name("app-view")
         # app properties helper
         self.helper = AppPropertiesHelper(db, cache, icons)
         # misc internal containers
@@ -94,7 +98,7 @@ class AppView(Gtk.VBox):
         self.header_hbox.pack_end(combo_alignment, False, False, 0)
 
         # content views
-        self.tree_view = AppTreeView(self, icons,
+        self.tree_view = AppTreeView(self, db, icons,
                                      show_ratings, store=None)
         self.tree_view_scroll.add(self.tree_view)
 
