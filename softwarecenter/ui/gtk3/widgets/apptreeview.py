@@ -349,7 +349,8 @@ class AppTreeView(Gtk.TreeView):
             if btn.point_in(x, y): 
                 return
 
-        if self.appmodel.get_application(rowref):
+        app = self.appmodel.get_application(rowref)
+        if app:
             self.app_view.emit("application-activated", app)
         return
 
