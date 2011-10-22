@@ -26,8 +26,9 @@ class AppTreeView(Gtk.TreeView):
     VARIANT_INFO = 0
     VARIANT_REMOVE = 1
     VARIANT_INSTALL = 2
+    VARIANT_PURCHASE = 3
 
-    ACTION_BTNS = (VARIANT_REMOVE, VARIANT_INSTALL)
+    ACTION_BTNS = (VARIANT_REMOVE, VARIANT_INSTALL, VARIANT_PURCHASE)
 
     def __init__(self, app_view, icons, show_ratings, store=None):
         Gtk.TreeView.__init__(self)
@@ -57,6 +58,7 @@ class AppTreeView(Gtk.TreeView):
         # it needs to be the first one, because that is what the tools look
         # at by default
         tr = CellRendererAppView(icons,
+                                 self.create_pango_layout(''),
                                  show_ratings,
                                  Icons.INSTALLED_OVERLAY)
         tr.set_pixbuf_width(32)
@@ -72,7 +74,8 @@ class AppTreeView(Gtk.TreeView):
                                     name=CellButtonIDs.ACTION)
         action.set_markup_variants(
                 {self.VARIANT_INSTALL: _('Install'),
-                 self.VARIANT_REMOVE: _('Remove')})
+                 self.VARIANT_REMOVE: _('Remove'),
+                 self.VARIANT_PURCHASE: _('Buy')})
 
         tr.button_pack_start(info)
         tr.button_pack_end(action)
@@ -289,9 +292,14 @@ class AppTreeView(Gtk.TreeView):
             action_btn.set_sensitive(True)
             action_btn.show()
         elif self.appmodel.is_available(app):
-            action_btn.set_variant(self.VARIANT_INSTALL)
+            if self.appmodel.is_purchasable(app):
+                action_btn.set_variant(self.VARIANT_PURCHASE)
+            else:
+                action_btn.set_variant(self.VARIANT_INSTALL)
+
             action_btn.set_sensitive(True)
             action_btn.show()
+
             if not network_state_is_connected():
                 action_btn.set_sensitive(False)
                 self.app_view.emit("application-selected",

@@ -182,7 +182,7 @@ class FeaturedTile(TileButton):
         label = helper.get_appname(doc)
         icon = helper.get_icon_at_size(doc, icon_size, icon_size)
         stats = helper.get_review_stats(doc)
-        doc.installed = doc.available = None
+        helper.update_availability(doc)
         self.is_installed = helper.is_installed(doc)
         self._overlay = helper.icons.load_icon(Icons.INSTALLED_OVERLAY,
                                                self.INSTALLED_OVERLAY_SIZE,

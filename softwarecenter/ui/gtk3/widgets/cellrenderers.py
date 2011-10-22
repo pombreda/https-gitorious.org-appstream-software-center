@@ -53,7 +53,7 @@ class CellRendererAppView(Gtk.CellRendererText):
                      }
 
 
-    def __init__(self, icons, show_ratings, overlay_icon_name):
+    def __init__(self, icons, layout, show_ratings, overlay_icon_name):
         GObject.GObject.__init__(self)
 
         # geometry-state values
@@ -71,7 +71,7 @@ class CellRendererAppView(Gtk.CellRendererText):
         self._all_buttons = {}
 
         # cache a layout
-        self._layout = None
+        self._layout = layout
         # star painter, paints stars
         self._stars = StarRenderer()
         self._stars.size = StarSize.SMALL
@@ -250,9 +250,8 @@ class CellRendererAppView(Gtk.CellRendererText):
         context.restore ()
         return
 
-    def _render_buttons(self,
-            context, cr, cell_area, layout, xpad, ypad,
-            is_rtl, is_available):
+    def _render_buttons(
+            self, context, cr, cell_area, layout, xpad, ypad, is_rtl):
 
         # layout buttons and paint
         y = cell_area.y+cell_area.height-ypad
@@ -261,13 +260,13 @@ class CellRendererAppView(Gtk.CellRendererText):
         if not is_rtl:
             start = Gtk.PackType.START
             end = Gtk.PackType.END
-            xs = cell_area.x + 2*xpad + self.pixbuf_width
+            xs = cell_area.x + 2 * xpad + self.pixbuf_width
             xb = cell_area.x + cell_area.width - xpad
         else:
             start = Gtk.PackType.END
             end = Gtk.PackType.START
             xs = cell_area.x + xpad
-            xb = cell_area.x + cell_area.width - 2*xpad - self.pixbuf_width
+            xb = cell_area.x + cell_area.width - 2 * xpad - self.pixbuf_width
 
         for btn in self._buttons[start]:
             btn.set_position(xs, y-btn.height)
@@ -277,8 +276,6 @@ class CellRendererAppView(Gtk.CellRendererText):
         for btn in self._buttons[end]:
             xb -= btn.width
             btn.set_position(xb, y-btn.height)
-            #~ if not is_available:
-                #~ btn.set_sensitive(False)
             btn.render(context, cr, layout)
 
             xb -= spacing
@@ -334,15 +331,13 @@ class CellRendererAppView(Gtk.CellRendererText):
         if not app: return
 
         self.model = widget.appmodel
+        #~ print self.model.is_available(app), self.model.is_purchasable(app)
+
         context = widget.get_style_context()
         xpad = self.get_property('xpad')
         ypad = self.get_property('ypad')
         star_width, star_height = self._stars.get_visible_size(context)
         is_rtl = widget.get_direction() == Gtk.TextDirection.RTL
-
-        if not self._layout:
-            self._layout = widget.create_pango_layout('')
-
         layout = self._layout
 
         # important! ensures correct text rendering, esp. when using hicolor theme
@@ -389,7 +384,6 @@ class CellRendererAppView(Gtk.CellRendererText):
                                 is_rtl)
 
         progress = self.model.get_transaction_progress(app)
-        #~ print progress
         if progress > 0:
             self._render_progress(context, cr, progress,
                                   cell_area,
@@ -400,13 +394,11 @@ class CellRendererAppView(Gtk.CellRendererText):
         if not self.props.isactive:
             return
 
-        is_available = self.model.is_available(app)
         self._render_buttons(context, cr,
                              cell_area,
                              layout,
                              xpad, ypad,
-                             is_rtl,
-                             is_available)
+                             is_rtl)
 
         context.restore()
         return
@@ -548,14 +540,16 @@ class CellButtonRenderer:
         context.restore()
 
         if self.has_focus:
-            Gtk.render_focus(context, cr, x+3, y+3, width-6, height-6)
+            Gtk.render_focus(context, cr,
+                             x + 3, y + 3,
+                             width - 6, height - 6)
 
         # position and render layout markup
         context.save()
         context.add_class(Gtk.STYLE_CLASS_BUTTON)
         layout.set_markup(self.markup_variants[self.current_variant], -1)
         layout_width = layout.get_pixel_extents()[1].width
-        x = x + (width - layout_width)/2
+        x = x + (width - layout_width) / 2
         y += self.ypad
         Gtk.render_layout(context, cr, x, y, layout)
         context.restore()
