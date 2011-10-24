@@ -14,6 +14,7 @@ software-center (5.0.3) UNRELEASED; urgency=low
   * Fix misplaced parentheses and localize the app name
     using the app-install-data-ubuntu domain.
     (LP: #880257)
+  * Display the success message properly localized. LP: #872823
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 20 Oct 2011 10:07:25 +0200
 
