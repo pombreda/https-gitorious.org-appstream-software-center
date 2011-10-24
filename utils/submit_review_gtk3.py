@@ -567,7 +567,7 @@ class BaseApp(SimpleGtkbuilderApp):
             self.status_hbox.pack_start(self.submit_error_img, False, False, 0)
             self.status_hbox.reorder_child(self.submit_error_img, 0)
             self.submit_error_img.show()
-            self.label_transmit_status.set_text(self.FAILURE_MESSAGE)
+            self.label_transmit_status.set_text(_(self.FAILURE_MESSAGE))
             self.error_textview.get_buffer().set_text(_(message))  
             self.detail_expander.show()
         elif type == "success":
