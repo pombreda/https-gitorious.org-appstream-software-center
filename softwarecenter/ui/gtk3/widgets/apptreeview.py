@@ -85,6 +85,7 @@ class AppTreeView(Gtk.TreeView):
 
         action = CellButtonRenderer(self,
                                     name=CellButtonIDs.ACTION)
+
         action.set_markup_variants(
                 {self.VARIANT_INSTALL: _('Install'),
                  self.VARIANT_REMOVE: _('Remove'),

@@ -185,13 +185,15 @@ class CellRendererAppView(Gtk.CellRendererText):
 
         stats = self.model.get_review_stats(app)
         if not stats: return
+
         sr = self._stars
 
         if not is_rtl:
-            x = cell_area.x+3*xpad+self.pixbuf_width+self.apptitle_width
+            x = (cell_area.x + 3 * xpad + self.pixbuf_width +
+                 self.apptitle_width)
         else:
             x = (cell_area.x + cell_area.width
-                 - 3*xpad
+                 - 3 * xpad
                  - self.pixbuf_width
                  - self.apptitle_width 
                  - star_width)
@@ -207,12 +209,10 @@ class CellRendererAppView(Gtk.CellRendererText):
 
         layout.set_markup("<small>%s</small>" % s, -1)
 
-        lw = self._layout_get_pixel_width(layout)
-        w = star_width
         if not is_rtl:
-            x += xpad+w
+            x += xpad+star_width
         else:
-            x -= xpad+lw
+            x -= xpad+self._layout_get_pixel_width(layout)
 
         context.save()
         context.add_class("cellrenderer-avgrating-label")
@@ -331,7 +331,6 @@ class CellRendererAppView(Gtk.CellRendererText):
         if not app: return
 
         self.model = widget.appmodel
-        #~ print self.model.is_available(app), self.model.is_purchasable(app)
 
         context = widget.get_style_context()
         xpad = self.get_property('xpad')
@@ -390,6 +389,12 @@ class CellRendererAppView(Gtk.CellRendererText):
                                   ypad,
                                   is_rtl)
 
+        elif self.model.is_purchasable(app):
+            layout.set_markup(self.model.get_price(app), -1)
+            Gtk.render_layout(context, cr,
+                              cell_area.x+cell_area.width-xpad - self._layout_get_pixel_width(layout),
+                              ypad+cell_area.y, layout)
+
         # below is the stuff that is only done for the active cell
         if not self.props.isactive:
             return
@@ -404,7 +409,7 @@ class CellRendererAppView(Gtk.CellRendererText):
         return
 
 
-class CellButtonRenderer:
+class CellButtonRenderer(object):
 
     def __init__(self, widget, name, use_max_variant_width=True):
         # use_max_variant_width is currently ignored. assumed to be True

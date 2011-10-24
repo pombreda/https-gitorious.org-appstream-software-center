@@ -121,7 +121,7 @@ class _AppPropertiesHelper(object):
 
     def is_purchasable(self, doc):
         if doc.purchasable is None:
-            doc.purchasable = doc.get_value(XapianValues.PRICE) not in _FREE_AS_IN_BEER 
+            doc.purchasable = doc.get_value(XapianValues.PRICE) not in _FREE_AS_IN_BEER
         return doc.purchasable
 
     def get_pkgname(self, doc):
@@ -157,6 +157,9 @@ class _AppPropertiesHelper(object):
         return "%s\n<small>%s</small>" % (
                  GObject.markup_escape_text(appname),
                  GObject.markup_escape_text(summary))
+
+    def get_price(self, doc):
+        return doc.get_value(XapianValues.PRICE)
 
     def get_icon(self, doc):
         try:
