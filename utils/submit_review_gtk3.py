@@ -568,7 +568,7 @@ class BaseApp(SimpleGtkbuilderApp):
             self.status_hbox.pack_start(self.submit_error_img, False, False, 0)
             self.status_hbox.reorder_child(self.submit_error_img, 0)
             self.submit_error_img.show()
-            self.label_transmit_status.set_text(self.FAILURE_MESSAGE)
+            self.label_transmit_status.set_text(_(self.FAILURE_MESSAGE))
             self.error_textview.get_buffer().set_text(_(message))  
             self.detail_expander.show()
         elif type == "success":
@@ -703,7 +703,7 @@ class SubmitReviewsApp(BaseApp):
     
     def _init_modify(self):
         self._populate_review()
-        self.submit_window.set_title(_("Modify Your %s Review" % self.app.name))
+	self.submit_window.set_title(_("Modify Your %s Review") % gettext.dgettext("app-install-data", self.app.name))
         self.button_post.set_label(_("Modify"))
         self.SUBMIT_MESSAGE = _("Updating your review")
         self.FAILURE_MESSAGE = _("Failed to edit review")
@@ -1086,7 +1086,7 @@ class SubmitReviewsApp(BaseApp):
     
     def _success_status(self):
         """Updates status area to show success for 2 seconds then allows window to proceed"""
-        self._change_status("success", self.SUCCESS_MESSAGE)
+        self._change_status("success", _(self.SUCCESS_MESSAGE))
         while Gtk.events_pending():
             Gtk.main_iteration()
         time.sleep(2)
