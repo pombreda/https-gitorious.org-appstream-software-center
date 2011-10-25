@@ -106,10 +106,21 @@ class CellRendererAppView(Gtk.CellRendererText):
         else:
             x = cell_area.x + cell_area.width - lw
         y = cell_area.y + (cell_area.height - lh)/2
-        #w = cell_area.width
-        #h = cell_area.height
 
         Gtk.render_layout(context, cr, x, y, layout)
+        return
+
+    def _render_price(self, context, cr, app, layout, cell_area, xpad, ypad, is_rtl):
+        layout.set_markup("US$ %s" % self.model.get_price(app), -1)
+
+        if is_rtl:
+            x = cell_area.x + xpad
+        else:
+            x = (cell_area.x + cell_area.width - xpad -
+                 self._layout_get_pixel_width(layout))
+
+        Gtk.render_layout(context, cr,
+                          x, ypad + cell_area.y, layout)
         return
 
     def _render_icon(self, cr, app, cell_area, xpad, ypad, is_rtl):
@@ -390,10 +401,8 @@ class CellRendererAppView(Gtk.CellRendererText):
                                   is_rtl)
 
         elif self.model.is_purchasable(app):
-            layout.set_markup(self.model.get_price(app), -1)
-            Gtk.render_layout(context, cr,
-                              cell_area.x+cell_area.width-xpad - self._layout_get_pixel_width(layout),
-                              ypad+cell_area.y, layout)
+            self._render_price(context, cr, app, layout,
+                               cell_area, xpad, ypad, is_rtl)
 
         # below is the stuff that is only done for the active cell
         if not self.props.isactive:

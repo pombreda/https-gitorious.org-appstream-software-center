@@ -158,17 +158,6 @@ class AppTreeView(Gtk.TreeView):
         model.row_changed(path, model.get_iter(path))
         return
 
-#    def is_action_in_progress_for_selected_app(self):
-#        """
-#        return True if an install or remove of the current package
-#        is in progress
-#        """
-#        (path, column) = self.get_cursor()
-#        if path:
-#            model = self.get_model()
-#            return (model[path][AppGenericStore.COL_ROW_DATA].transaction_progress != -1)
-#        return False
-
     def get_scrolled_window_vadjustment(self):
         ancestor = self.get_ancestor(Gtk.ScrolledWindow)
         if ancestor:
