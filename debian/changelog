@@ -31,6 +31,12 @@ software-center (5.0.3) UNRELEASED; urgency=low
     - fix potential dbus crash when accessing the list of previous
       purchases (LP: #863898)
 
+  [ Gabor Kelemen ]
+  * Fix misplaced parentheses and localize the app name
+    using the app-install-data-ubuntu domain. LP: #880257
+  * Display the success message properly localized. LP: #872823
+  * Display failure message properly localized. LP: #872812
+
  -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 20 Oct 2011 10:07:25 +0200
 
 software-center (5.0.2) oneiric-proposed; urgency=low
