@@ -23,7 +23,7 @@ import subprocess
 
 from gettext import gettext as _
 
-from softwarecenter.utils import UnimplementedError
+from softwarecenter.utils import UnimplementedError, utf8
 
 class Distro(object):
     """ abstract base class for a distribution """
@@ -90,15 +90,15 @@ class Distro(object):
         return xapian.Query()
 
     def get_install_warning_text(self, cache, pkg, appname, depends):
-        primary = _("To install %s, these items must be removed:") % appname
+        primary = utf8(_("To install %s, these items must be removed:")) % utf8(appname)
         button_text = _("Install Anyway")
 
         # alter it if a meta-package is affected
         for m in depends:
             if cache[m].section == "metapackages":
-                primary = _("If you install %s, future updates will not "
-                              "include new items in <b>%s</b> set. "
-                              "Are you sure you want to continue?") % (appname, cache[m].installed.summary)
+                primary = utf8(_("If you install %s, future updates will not "
+                                 "include new items in <b>%s</b> set. "
+                                 "Are you sure you want to continue?")) % (utf8(appname), cache[m].installed.summary)
                 button_text = _("Install Anyway")
                 depends = []
                 break
@@ -106,9 +106,9 @@ class Distro(object):
         # alter it if an important meta-package is affected
         for m in self.IMPORTANT_METAPACKAGES:
             if m in depends:
-                primary = _("Installing %s may cause core applications to "
-                            "be removed. "
-                            "Are you sure you want to continue?") % appname
+                primary = utf8(_("Installing %s may cause core applications to "
+                                 "be removed. "
+                                 "Are you sure you want to continue?")) % utf8(appname)
                 button_text = _("Install Anyway")
                 depends = None
                 break
