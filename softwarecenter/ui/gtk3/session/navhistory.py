@@ -16,6 +16,8 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+from softwarecenter.utils import utf8
+
 import logging
 
 LOG=logging.getLogger(__name__)
@@ -123,9 +125,9 @@ class NavigationItem(object):
 
     def __str__(self):
         facet = self.pane.pane_name.replace(' ', '')[:6]
-        return unicode("%s:%s %s", 'utf8').encode('utf8') % (facet,
-                                                             self.page,
-                                                             self.view_state)
+        return utf8("%s:%s %s") % (facet,
+                                   self.page,
+                                   self.view_state)
 
     def navigate_to(self):
         """
