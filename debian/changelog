@@ -9,6 +9,16 @@ software-center (5.0.3) UNRELEASED; urgency=low
   * softwarecenter/ui/gtk3/app.py:
     - fix potential dbus crash when accessing the list of previous
       purchases (LP: #863898)
+  * softwarecenter/ui/gtk3/session/navhistory.py:
+    - fix UnicodeDecodeError in NavigationItem __str__ (LP: #847050) 
+  * softwarecenter/ui/gtk3/panes/softwarepane.py:
+    - fix UnicodeDecodeError in DisplayState __str__ (LP: #873046) 
+  * softwarecenter/ui/gtk3/models/pendingstore.py:
+    - fix UnicodeDecodeError in _render_status_text (LP: #862029)
+  * softwarecenter/distro/__init__.py:
+    - fix UnicodeDecodeError in get_install_warning_text (LP: #857416)
+  * softwarecenter/db/application.py:
+    - fix UnicodeDecodeError in __str__ (LP: #871088)
 
   [ Gabor Kelemen ]
   * Fix misplaced parentheses and localize the app name
@@ -16,7 +26,7 @@ software-center (5.0.3) UNRELEASED; urgency=low
   * Display the success message properly localized. LP: #872823
   * Display failure message properly localized. LP: #872812
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 20 Oct 2011 10:07:25 +0200
+ -- Gary Lasker <gary.lasker@canonical.com>  Tue, 25 Oct 2011 14:32:59 -0400
 
 software-center (5.0.2) oneiric-proposed; urgency=low
 

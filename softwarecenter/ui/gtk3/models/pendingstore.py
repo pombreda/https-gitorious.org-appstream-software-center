@@ -5,7 +5,7 @@ from gi.repository import GObject
 
 import logging
 
-from softwarecenter.utils import get_icon_from_theme, size_to_str
+from softwarecenter.utils import get_icon_from_theme, size_to_str, utf8
 from softwarecenter.backend import get_install_backend
 from softwarecenter.backend.transactionswatcher import get_transactions_watcher
 
@@ -185,9 +185,5 @@ class PendingStore(Gtk.ListStore):
     def _render_status_text(self, name, status):
         if not name:
             name = ""
-        if type(name) == str:
-            pass
-        else:
-            name = name.encode('utf8')
-        return "%s\n<small>%s</small>" % (name, status)
+        return "%s\n<small>%s</small>" % (utf8(name), utf8(status))
 
