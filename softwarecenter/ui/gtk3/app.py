@@ -343,7 +343,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         self.restore_state()
 
         # run s-c-agent update
-        if options.disable_buy:
+        if options.disable_buy or not self.distro.PURCHASE_APP_URL:
             file_menu = self.builder.get_object("menu1")
             file_menu.remove(self.builder.get_object("menuitem_reinstall_purchases"))
         else:

@@ -37,6 +37,9 @@ class Distro(object):
     REVIEW_SUMMARY_STARS_BASE_PATH = "/usr/share/software-center/images/review-summary"
     REVIEWS_SERVER = os.environ.get("SOFTWARE_CENTER_REVIEWS_HOST") or "http://localhost:8000"
 
+    # You need to set this var to enable purchases
+    PURCHASE_APP_URL = ""
+
     def get_app_name(self):
         """ 
         The name of the application (as displayed in the main window and 
