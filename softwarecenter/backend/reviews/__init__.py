@@ -725,6 +725,26 @@ aliquyam erat sed diam voluptua at vero eos et accusam et justo duo dolores
 et ea rebum stet clita kasd gubergren no sea takimata sanctus est lorem
 ipsum dolor sit amet"""
 
+
+class ReviewLoaderNull(ReviewLoader):
+
+    """A dummy review loader which just returns empty results."""
+
+    def __init__(self, cache, db):
+        self._review_stats_cache = {}
+        self._reviews_cache = {}
+
+    def get_reviews(self, application, callback, page=1, language=None, sort=0):
+        callback(application, [])
+
+    def get_review_stats(self, application):
+        return None
+
+    def refresh_review_stats(self, callback):
+        review_stats = []
+        callback(review_stats)
+
+
 review_loader = None
 def get_review_loader(cache, db=None):
     """ 
@@ -744,7 +764,7 @@ def get_review_loader(cache, db=None):
             try:
                 from softwarecenter.backend.reviews.rnr import ReviewLoaderSpawningRNRClient
             except ImportError:
-                review_loader = ReviewLoaderFortune(cache, db)
+                review_loader = ReviewLoaderNull(cache, db)
             else:
                 review_loader = ReviewLoaderSpawningRNRClient(cache, db)
     return review_loader
