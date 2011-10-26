@@ -108,8 +108,7 @@ class Debian(Distro):
     def get_supported_query(self):
         import xapian
         query1 = xapian.Query("XOL"+"Debian")
-        query2a = xapian.Query("XOC"+"main")
-        query2 = xapian.Query(xapian.Query.OP_OR, query2a, query2b)
+        query2 = xapian.Query("XOC"+"main")
         return xapian.Query(xapian.Query.OP_AND, query1, query2)
 
 
