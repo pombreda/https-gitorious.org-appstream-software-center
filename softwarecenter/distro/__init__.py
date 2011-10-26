@@ -19,9 +19,9 @@
 
 import logging
 import os
-import subprocess
 
 from gettext import gettext as _
+import lsb_release
 
 from softwarecenter.utils import UnimplementedError, utf8
 
@@ -66,9 +66,8 @@ class Distro(object):
             return os.environ["SOFTWARE_CENTER_DISTRO_CODENAME"]
         # normal behavior
         if not hasattr(self, "_distro_code_name"):
-            self._distro_code_name = subprocess.Popen(
-                ["lsb_release","-c","-s"], 
-                stdout=subprocess.PIPE).communicate()[0].strip()
+            self._distro_code_name = \
+                    lsb_release.get_distro_information()["CODENAME"]
         return self._distro_code_name
 
     def get_maintenance_status(self, cache, appname, pkgname, component, channelname):
@@ -140,9 +139,7 @@ class Distro(object):
 
 
 def _get_distro():
-    distro_id = subprocess.Popen(["lsb_release","-i","-s"], 
-                                 stdout=subprocess.PIPE).communicate()[0]
-    distro_id = distro_id.strip().replace(' ', '')
+    distro_id = lsb_release.get_distro_information()["ID"]
     logging.getLogger("softwarecenter.distro").debug("get_distro: '%s'" % distro_id)
     # start with a import, this gives us only a softwarecenter module
     module =  __import__(distro_id, globals(), locals(), [], -1)
