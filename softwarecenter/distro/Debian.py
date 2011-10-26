@@ -81,6 +81,8 @@ class Debian(Distro):
         return apt.apt_pkg.config.find("Apt::Architecture")
 
     def get_foreign_architectures(self):
+        return []
+        # Not yet in unstable
         import subprocess
         out = subprocess.Popen(['dpkg', '--print-foreign-architectures'],
               stdout=subprocess.PIPE).communicate()[0].rstrip('\n')
