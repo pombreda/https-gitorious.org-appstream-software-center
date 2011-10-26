@@ -21,43 +21,24 @@ from gi.repository import GObject
 import logging
 import softwarecenter.ui.gtk3.dialogs as dialogs
 
-try:
-    from urllib.parse import urlencode
-    urlencode # pyflakes
-except ImportError:
-    from urllib import urlencode
-
 from gettext import gettext as _
 
 from softwarecenter.db.application import AppDetails
 from softwarecenter.backend.reviews import get_review_loader
 from softwarecenter.backend import get_install_backend
 from softwarecenter.enums import AppActions
-from softwarecenter.distro import get_current_arch
-from softwarecenter.i18n import get_language
+
 
 LOG=logging.getLogger(__name__)
 
 class AppDetailsViewBase(object):
-
-    __gsignals__ = {
-        "application-request-action" : (GObject.SignalFlags.RUN_LAST,
-                                        None,
-                                        (GObject.TYPE_PYOBJECT, 
-                                         GObject.TYPE_PYOBJECT, 
-                                         GObject.TYPE_PYOBJECT, 
-                                         str,)),
-         "purchase-requested" : (GObject.SignalFlags.RUN_LAST,
-                                 None,
-                                 (GObject.TYPE_PYOBJECT,
-                                  str,)),
-    }
 
     def __init__(self, db, distro, icons, cache, datadir):
         self.db = db
         self.distro = distro
         self.icons = icons
         self.cache = cache
+        self.backend = get_install_backend()
         self.cache.connect("cache-ready", self._on_cache_ready)
         self.datadir = datadir
         self.app = None
@@ -67,13 +48,13 @@ class AppDetailsViewBase(object):
         # reviews
         self.review_loader = get_review_loader(self.cache, self.db)
         # aptdaemon
-        self.backend = get_install_backend()
-        
+
     def _draw(self):
         """ draw the current app into the window, maybe the function
             you need to overwrite
         """
         pass
+
     # public API
     def show_app(self, app):
         """ show the given application """
@@ -86,6 +67,7 @@ class AppDetailsViewBase(object):
         self._draw()
         self._check_for_reviews()
         self.emit("selected", self.app)
+
     def refresh_app(self):
         self.show_app(self.app)
 
@@ -149,52 +131,6 @@ class AppDetailsViewBase(object):
         #parent_xid = get_parent_xid(self)
         self.review_loader.spawn_delete_review_ui(
             review_id, parent_xid, self.datadir, self._reviews_ready_callback)
-
-    # public interface
-    def reload(self):
-        """ reload the package cache, this goes straight to the backend """
-        self.backend.reload()
-    def install(self):
-        """ install the current application, fire an action request """
-        self.emit("application-request-action", self.app, self.addons_to_install, self.addons_to_remove, AppActions.INSTALL)
-    def remove(self):
-        """ remove the current application, , fire an action request """
-        self.emit("application-request-action", self.app, self.addons_to_install, self.addons_to_remove, AppActions.REMOVE)
-    def upgrade(self):
-        """ upgrade the current application, fire an action request """
-        self.emit("application-request-action", self.app, self.addons_to_install, self.addons_to_remove, AppActions.UPGRADE)
-    def apply_changes(self):
-        """ apply changes concerning add-ons """
-        self.emit("application-request-action", self.app, self.addons_to_install, self.addons_to_remove, AppActions.APPLY)
-
-    def buy_app(self):
-        """ initiate the purchase transaction """
-        lang = get_language()
-        distro = self.distro.get_codename()
-        url = self.distro.PURCHASE_APP_URL % (lang, distro, urlencode({
-                    'archive_id' : self.appdetails.ppaname, 
-                    'arch' : get_current_arch() ,
-                    }))
-        
-        self.emit("purchase-requested", self.app, url)
-
-    def reinstall_purchased(self):
-        """ reinstall a purchased app """
-        LOG.debug("reinstall_purchased %s" % self.app)
-        appdetails = self.app.get_details(self.db)
-        iconname = appdetails.icon
-        deb_line = appdetails.deb_line
-        license_key = appdetails.license_key
-        license_key_path = appdetails.license_key_path
-        signing_key_id = appdetails.signing_key_id
-        backend = get_install_backend()
-        backend.add_repo_add_key_and_install_app(deb_line,
-                                                 signing_key_id,
-                                                 self.app,
-                                                 iconname,
-                                                 license_key,
-                                                 license_key_path)
-        
 
     # internal callbacks
     def _on_cache_ready(self, cache):

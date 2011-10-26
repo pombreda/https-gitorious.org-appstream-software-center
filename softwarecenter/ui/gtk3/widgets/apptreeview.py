@@ -15,6 +15,7 @@ from softwarecenter.db.application import AppDetails
 from softwarecenter.distro import get_current_arch
 from softwarecenter.i18n import get_language
 from softwarecenter.distro import get_distro
+from softwarecenter.ui.gtk3.session.appmanager import get_appmanager
 
 
 from cellrenderers import (CellRendererAppView,
@@ -482,44 +483,34 @@ class AppTreeView(Gtk.TreeView):
         pkgname = self.appmodel.get_pkgname(app)
 
         if btn_id == CellButtonIDs.INFO:
-            self.app_view.emit("application-activated", self.appmodel.get_application(app))
+            self.app_view.emit("application-activated",
+                               self.appmodel.get_application(app))
         elif btn_id == CellButtonIDs.ACTION:
             btn.set_sensitive(False)
             store.row_changed(path, store.get_iter(path))
-            # be sure we dont request an action for a pkg with pre-existing actions
+            app_manager = get_appmanager()
+            # be sure we dont request an action for a pkg with
+            # pre-existing actions
             if pkgname in self._action_block_list:
-                logging.debug("Action already in progress for package: '%s'" % pkgname)
+                logging.debug("Action already in progress for package:"
+                              " '%s'" % pkgname)
                 return False
             self._action_block_list.append(pkgname)
             if self.appmodel.is_installed(app):
-                perform_action = AppActions.REMOVE
-
+                action = AppActions.REMOVE
             elif self.appmodel.is_purchasable(app):
-                self.buy_app(self.appmodel.get_application(app))
+                app_manager.buy_app(self.appmodel.get_application(app))
                 store.notify_action_request(app, path)
                 return
             else:
-                perform_action = AppActions.INSTALL
+                action = AppActions.INSTALL
 
             store.notify_action_request(app, path)
-
-            self.app_view.emit("application-request-action",
-                      self.appmodel.get_application(app),
-                      [], [], perform_action)
+            
+            app_manager.request_action(
+                self.appmodel.get_application(app), [], [],
+                action)
         return False
-
-    def buy_app(self, app):
-        """ initiate the purchase transaction """
-        appdetails = AppDetails(self.db, application=app)
-        lang = get_language()
-        distro = get_distro()
-        codename = distro.get_codename()
-        url = distro.PURCHASE_APP_URL % (lang, codename, urlencode({
-                    'archive_id' : appdetails.ppaname, 
-                    'arch' : get_current_arch() ,
-                    }))
-        
-        self.app_view.emit("purchase-requested", app, url)
 
     def _set_cursor(self, btn, cursor):
         # make sure we have a window instance (LP: #617004)

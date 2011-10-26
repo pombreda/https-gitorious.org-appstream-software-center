@@ -53,6 +53,7 @@ from appdetailsview import AppDetailsViewBase
 
 from softwarecenter.ui.gtk3.em import StockEms, em
 from softwarecenter.ui.gtk3.drawing import color_to_hex
+from softwarecenter.ui.gtk3.session.appmanager import get_appmanager
 from softwarecenter.ui.gtk3.widgets.separators import HBar
 from softwarecenter.ui.gtk3.widgets.viewport import Viewport
 from softwarecenter.ui.gtk3.widgets.reviews import UIReviewsList
@@ -150,23 +151,28 @@ class PackageStatusBar(StatusBar):
     def _on_button_clicked(self, button):
         button.set_sensitive(False)
         state = self.pkg_state
-        self.view.addons_to_install = self.view.addons_manager.addons_to_install
-        self.view.addons_to_remove = self.view.addons_manager.addons_to_remove
+        app = self.view.app
+        app_manager = get_appmanager()
+        addons_to_install = self.view.addons_manager.addons_to_install
+        addons_to_remove = self.view.addons_manager.addons_to_remove
         if state == PkgStates.INSTALLED:
-            AppDetailsViewBase.remove(self.view)
+            app_manager.remove(
+                app, addons_to_install, addons_to_remove)
         elif state == PkgStates.PURCHASED_BUT_REPO_MUST_BE_ENABLED:
-            AppDetailsViewBase.reinstall_purchased(self.view)
+            app_manager.reinstall_purchased(app)
         elif state == PkgStates.NEEDS_PURCHASE:
-            AppDetailsViewBase.buy_app(self.view)
+            app_manager.buy_app(app)
         elif state == PkgStates.UNINSTALLED:
-            AppDetailsViewBase.install(self.view)
+            app_manager.install(
+                app, addons_to_install, addons_to_remove)
         elif state == PkgStates.REINSTALLABLE:
-            AppDetailsViewBase.install(self.view)
+            app_manager.install(
+                app, addons_to_install, addons_to_remove)
         elif state == PkgStates.UPGRADABLE:
-            AppDetailsViewBase.upgrade(self.view)
+            app_manager.upgrade(
+                app, addons_to_install, addons_to_remove)
         elif state == PkgStates.NEEDS_SOURCE:
-            # FIXME:  This should be in AppDetailsViewBase
-            self.view.use_this_source()
+            app_manager.enable_software_source(app)
         return
 
     def set_label(self, label):
@@ -1430,15 +1436,6 @@ class AppDetailsViewGtk(Viewport, AppDetailsViewBase):
 
         self.emit("selected", self.app)
         return
-
-    # public interface
-    def use_this_source(self):
-        if self.app_details.channelfile and self.app_details._unavailable_channel():
-            self.backend.enable_channel(self.app_details.channelfile)
-        elif self.app_details.component:
-            components = self.app_details.component.split('&')
-            for component in components:
-                self.backend.enable_component(component)
 
     # internal callback
     def _update_interface_on_trans_ended(self, result):

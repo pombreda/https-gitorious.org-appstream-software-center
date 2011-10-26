@@ -36,9 +36,9 @@ class AppView(Gtk.VBox):
 
     __gsignals__ = {
         "sort-method-changed": (GObject.SignalFlags.RUN_LAST,
-                                   None,
-                                   (GObject.TYPE_PYOBJECT, ),
-                                  ),
+                                None,
+                                (GObject.TYPE_PYOBJECT, ),
+                                ),
         "application-activated" : (GObject.SignalFlags.RUN_LAST,
                                    None,
                                    (GObject.TYPE_PYOBJECT, ),
@@ -47,18 +47,7 @@ class AppView(Gtk.VBox):
                                    None,
                                    (GObject.TYPE_PYOBJECT, ),
                                   ),
-        "application-request-action" : (GObject.SignalFlags.RUN_LAST,
-                                        None,
-                                        (GObject.TYPE_PYOBJECT,
-                                         GObject.TYPE_PYOBJECT, 
-                                         GObject.TYPE_PYOBJECT,
-                                         str),
-                                       ),
-        "purchase-requested" : (GObject.SignalFlags.RUN_LAST,
-                                 None,
-                                 (GObject.TYPE_PYOBJECT,
-                                  str,)),
-    }
+        }
     
     (INSTALLED_MODE, AVAILABLE_MODE, DIFF_MODE) = range(3)
 
