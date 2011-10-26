@@ -285,7 +285,8 @@ class AptChannelsManager(ChannelsManager):
             channels.append(dist_channel)
         if partner_channel is not None:
             channels.append(partner_channel)
-        channels.append(for_purchase_channel)
+        if get_distro().PURCHASE_APP_URL:
+            channels.append(for_purchase_channel)
         if new_apps_channel is not None:
             channels.append(new_apps_channel)
         channels.extend(ppa_channels)
