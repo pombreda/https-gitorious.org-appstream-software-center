@@ -31,6 +31,8 @@ class Debian(Distro):
     SCREENSHOT_THUMB_URL =  "http://screenshots.debian.net/thumbnail/%(pkgname)s"
     SCREENSHOT_LARGE_URL = "http://screenshots.debian.net/screenshot/%(pkgname)s"
 
+    REVIEWS_SERVER = ""
+
     def get_distro_channel_name(self):
         """ The name in the Release file """
         return "Debian"
