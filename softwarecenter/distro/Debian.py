@@ -92,6 +92,25 @@ class Debian(Distro):
             return out.split(' ')
         return []
 
+    def is_supported(self, cache, doc, pkgname):
+        # the doc does not by definition contain correct data regarding the
+        # section. Looking up in the cache seems just as fast/slow.
+        if pkgname in cache and cache[pkgname].candidate:
+            for origin in cache[pkgname].candidate.origins:
+                if (origin.origin == "Debian" and
+                    origin.trusted and
+                    origin.component == "main"):
+                    return True
+        return False
+
+    def get_supported_query(self):
+        import xapian
+        query1 = xapian.Query("XOL"+"Debian")
+        query2a = xapian.Query("XOC"+"main")
+        query2 = xapian.Query(xapian.Query.OP_OR, query2a, query2b)
+        return xapian.Query(xapian.Query.OP_AND, query1, query2)
+
+
 if __name__ == "__main__":
     cache = apt.Cache()
     print(cache.get_maintenance_status(cache, "synaptic app", "synaptic", "main", None))
