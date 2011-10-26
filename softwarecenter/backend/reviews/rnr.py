@@ -25,7 +25,7 @@ import json
 import time
 
 from softwarecenter.backend.spawn_helper import SpawnHelper
-from softwarecenter.backends.reviews import ReviewLoader
+from softwarecenter.backend.reviews import ReviewLoader, Review, ReviewStats
 from softwarecenter.backend.piston.rnrclient import RatingsAndReviewsAPI
 from softwarecenter.backend.piston.rnrclient_pristine import ReviewDetails
 from softwarecenter.db.database import Application
@@ -33,6 +33,7 @@ import softwarecenter.distro
 from softwarecenter.netstatus import network_state_is_connected
 from softwarecenter.paths import (SOFTWARE_CENTER_CACHE_DIR,
                                   PistonHelpers,
+                                  RNRApps,
                                   )
 from softwarecenter.utils import calc_dr
 

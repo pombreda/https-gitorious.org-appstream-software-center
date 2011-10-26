@@ -742,7 +742,7 @@ def get_review_loader(cache, db=None):
             review_loader = ReviewLoaderJsonAsync(cache, db)
         else:
             try:
-                from softwarecenter.backends.reviews.rnr import ReviewLoaderSpawningRNRClient
+                from softwarecenter.backend.reviews.rnr import ReviewLoaderSpawningRNRClient
             except ImportError:
                 review_loader = ReviewLoaderFortune(cache, db)
             else:
