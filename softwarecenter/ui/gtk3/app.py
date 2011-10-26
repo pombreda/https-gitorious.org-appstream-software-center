@@ -342,10 +342,19 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         self.config = get_config()
         self.restore_state()
 
+        # Used to remove not needed menuitems
+        file_menu = self.builder.get_object("menu1")
+
+        # Check if oneconf is available
+        och = get_oneconf_handler()
+        if not och:
+            file_menu.remove(self.builder.get_object("menuitem_sync_between_computers"))
+
         # run s-c-agent update
         if options.disable_buy or not self.distro.PURCHASE_APP_URL:
-            file_menu = self.builder.get_object("menu1")
             file_menu.remove(self.builder.get_object("menuitem_reinstall_purchases"))
+            if not (options.enable_lp or och):
+                file_menu.remove(self.builder.get_object("separator_login"))
         else:
             sc_agent_update = os.path.join(
                 self.datadir, "update-software-center-agent")
@@ -355,9 +364,6 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             GObject.child_watch_add(
                 pid, self._on_update_software_center_agent_finished)
 
-        if options.disable_buy and not options.enable_lp:
-            file_menu.remove(self.builder.get_object("separator_login"))
-            
         # TODO: Remove the following two lines once we have remove repository
         #       support in aptdaemon (see LP: #723911)
         file_menu = self.builder.get_object("menu1")
