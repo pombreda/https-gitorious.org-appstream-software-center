@@ -266,7 +266,7 @@ class AptChannelsManager(ChannelsManager):
                                                       installed_only=installed_only))
 
         # always display the partner channel, even if its source is not enabled                                                       
-        if not partner_channel:
+        if not partner_channel and distro_channel_name == "Ubuntu":
             partner_channel = SoftwareChannel("Partner archive",
                                               "Canonical",
                                               "partner", 
