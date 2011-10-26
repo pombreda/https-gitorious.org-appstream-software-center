@@ -174,3 +174,202 @@ class ReviewLoaderSpawningRNRClient(ReviewLoader):
         if not supported:
             return False
         return True
+
+    # writing new reviews spawns external helper
+    # FIXME: instead of the callback we should add proper gobject signals
+    def spawn_write_new_review_ui(self, translated_app, version, iconname, 
+                                  origin, parent_xid, datadir, callback):
+        """ this spawns the UI for writing a new review and
+            adds it automatically to the reviews DB """
+        app = translated_app.get_untranslated_app(self.db)
+        cmd = [os.path.join(datadir, RNRApps.SUBMIT_REVIEW), 
+               "--pkgname", app.pkgname,
+               "--iconname", iconname,
+               "--parent-xid", "%s" % parent_xid,
+               "--version", version,
+               "--origin", origin,
+               "--datadir", datadir,
+               ]
+        if app.appname:
+            # needs to be (utf8 encoded) str, otherwise call fails
+            cmd += ["--appname", utf8(app.appname)]
+        spawn_helper = SpawnHelper(format="json")
+        spawn_helper.connect(
+            "data-available", self._on_submit_review_data, app, callback)
+        spawn_helper.run(cmd)
+
+    def _on_submit_review_data(self, spawn_helper, review_json, app, callback):
+        """ called when submit_review finished, when the review was send
+            successfully the callback is triggered with the new reviews
+        """
+        LOG.debug("_on_submit_review_data")
+        return
+        # read stdout from submit_review
+        review = ReviewDetails.from_dict(review_json)
+        # FIXME: ideally this would be stored in ubuntu-sso-client
+        #        but it dosn't so we store it here
+        save_person_to_config(review.reviewer_username)
+        if not app in self._reviews: 
+            self._reviews[app] = []
+        self._reviews[app].insert(0, Review.from_piston_mini_client(review))
+        callback(app, self._reviews[app])
+
+    def spawn_report_abuse_ui(self, review_id, parent_xid, datadir, callback):
+        """ this spawns the UI for reporting a review as inappropriate
+            and adds the review-id to the internal hide list. once the
+            operation is complete it will call callback with the updated
+            review list
+        """
+        cmd = [os.path.join(datadir, RNRApps.REPORT_REVIEW), 
+               "--review-id", review_id,
+               "--parent-xid", "%s" % parent_xid,
+               "--datadir", datadir,
+              ]
+        spawn_helper = SpawnHelper("json")
+        spawn_helper.connect("exited", 
+                             self._on_report_abuse_finished, 
+                             review_id, callback)
+        spawn_helper.run(cmd)
+
+    def _on_report_abuse_finished(self, spawn_helper, exitcode, review_id, callback):
+        """ called when report_absuse finished """
+        LOG.debug("hide id %s " % review_id)
+        if exitcode == 0:
+            for (app, reviews) in self._reviews.items():
+                for review in reviews:
+                    if str(review.id) == str(review_id):
+                        # remove the one we don't want to see anymore
+                        self._reviews[app].remove(review)
+                        callback(app, self._reviews[app], None, 'remove', review)
+                        break
+
+
+    def spawn_submit_usefulness_ui(self, review_id, is_useful, parent_xid, datadir, callback):
+        cmd = [os.path.join(datadir, RNRApps.SUBMIT_USEFULNESS), 
+               "--review-id", "%s" % review_id,
+               "--is-useful", "%s" % int(is_useful),
+               "--parent-xid", "%s" % parent_xid,
+               "--datadir", datadir,
+              ]
+        spawn_helper = SpawnHelper(format="none")
+        spawn_helper.connect("exited", 
+                             self._on_submit_usefulness_finished, 
+                             review_id, is_useful, callback)
+        spawn_helper.connect("error",
+                             self._on_submit_usefulness_error,
+                             review_id, callback)
+        spawn_helper.run(cmd)
+
+    def _on_submit_usefulness_finished(self, spawn_helper, res, review_id, is_useful, callback):
+        """ called when report_usefulness finished """
+        # "Created", "Updated", "Not modified" - 
+        # once lp:~mvo/rnr-server/submit-usefulness-result-strings makes it
+        response = spawn_helper._stdout
+        if response == '"Not modified"':
+            self._on_submit_usefulness_error(spawn_helper, response, review_id, callback)
+            return
+
+        LOG.debug("usefulness id %s " % review_id)
+        useful_votes = UsefulnessCache()
+        useful_votes.add_usefulness_vote(review_id, is_useful)
+        for (app, reviews) in self._reviews.items():
+            for review in reviews:
+                if str(review.id) == str(review_id):
+                    # update usefulness, older servers do not send
+                    # usefulness_{total,favorable} so we use getattr
+                    review.usefulness_total = getattr(review, "usefulness_total", 0) + 1
+                    if is_useful:
+                        review.usefulness_favorable = getattr(review, "usefulness_favorable", 0) + 1
+                        callback(app, self._reviews[app], useful_votes, 'replace', review)
+                        break
+
+    def _on_submit_usefulness_error(self, spawn_helper, error_str, review_id, callback):
+            LOG.warn("submit usefulness id=%s failed with error: %s" %
+                     (review_id, error_str))
+            for (app, reviews) in self._reviews.items():
+                for review in reviews:
+                    if str(review.id) == str(review_id):
+                        review.usefulness_submit_error = True
+                        callback(app, self._reviews[app], None, 'replace', review)
+                        break
+
+    def spawn_delete_review_ui(self, review_id, parent_xid, datadir, callback):
+        cmd = [os.path.join(datadir, RNRApps.DELETE_REVIEW), 
+               "--review-id", "%s" % review_id,
+               "--parent-xid", "%s" % parent_xid,
+               "--datadir", datadir,
+              ]
+        spawn_helper = SpawnHelper(format="none")
+        spawn_helper.connect("exited", 
+                             self._on_delete_review_finished, 
+                             review_id, callback)
+        spawn_helper.connect("error", self._on_delete_review_error,
+                             review_id, callback)
+        spawn_helper.run(cmd)
+
+    def _on_delete_review_finished(self, spawn_helper, res, review_id, callback):
+        """ called when delete_review finished"""
+        LOG.debug("delete id %s " % review_id)
+        for (app, reviews) in self._reviews.items():
+            for review in reviews:
+                if str(review.id) == str(review_id):
+                    # remove the one we don't want to see anymore
+                    self._reviews[app].remove(review)
+                    callback(app, self._reviews[app], None, 'remove', review)
+                    break                    
+
+    def _on_delete_review_error(self, spawn_helper, error_str, review_id, callback):
+        """called if delete review errors"""
+        LOG.warn("delete review id=%s failed with error: %s" % (review_id, error_str))
+        for (app, reviews) in self._reviews.items():
+            for review in reviews:
+                if str(review.id) == str(review_id):
+                    review.delete_error = True
+                    callback(app, self._reviews[app], action='replace', 
+                             single_review=review)
+                    break
+
+    def spawn_modify_review_ui(self, parent_xid, iconname, datadir, review_id, callback):
+        """ this spawns the UI for writing a new review and
+            adds it automatically to the reviews DB """
+        cmd = [os.path.join(datadir, RNRApps.MODIFY_REVIEW), 
+               "--parent-xid", "%s" % parent_xid,
+               "--iconname", iconname,
+               "--datadir", "%s" % datadir,
+               "--review-id", "%s" % review_id,
+               ]
+        spawn_helper = SpawnHelper(format="json")
+        spawn_helper.connect("data-available", 
+                             self._on_modify_review_finished, 
+                             review_id, callback)
+        spawn_helper.connect("error", self._on_modify_review_error,
+                             review_id, callback)
+        spawn_helper.run(cmd)
+
+    def _on_modify_review_finished(self, spawn_helper, review_json, review_id, callback):
+        """called when modify_review finished"""
+        LOG.debug("_on_modify_review_finished")
+        return
+        #review_json = spawn_helper._stdout
+        mod_review = ReviewDetails.from_dict(review_json)
+        for (app, reviews) in self._reviews.items():
+            for review in reviews:
+                if str(review.id) == str(review_id):
+                    # remove the one we don't want to see anymore
+                    self._reviews[app].remove(review)
+                    new_review = Review.from_piston_mini_client(mod_review)
+                    self._reviews[app].insert(0, new_review)
+                    callback(app, self._reviews[app], action='replace', 
+                             single_review=new_review)
+                    break
+
+    def _on_modify_review_error(self, spawn_helper, error_str, review_id, callback):
+        """called if modify review errors"""
+        LOG.debug("modify review id=%s failed with error: %s" % (review_id, error_str))
+        for (app, reviews) in self._reviews.items():
+            for review in reviews:
+                if str(review.id) == str(review_id):
+                    review.modify_error = True
+                    callback(app, self._reviews[app], action='replace', 
+                             single_review=review)
+                    break
