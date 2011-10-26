@@ -33,6 +33,8 @@ class Debian(Distro):
 
     REVIEWS_SERVER = ""
 
+    DEVELOPER_URL = "http://www.debian.org/devel/"
+
     def get_distro_channel_name(self):
         """ The name in the Release file """
         return "Debian"
