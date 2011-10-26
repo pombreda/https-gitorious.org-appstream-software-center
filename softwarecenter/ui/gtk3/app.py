@@ -301,7 +301,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
                                             self.distro,
                                             self.icons,
                                             self.datadir)
-        self.installed_pane.connect("installed-pane-created", self.on_installed_pane_created)
+        #~ self.installed_pane.connect("installed-pane-created", self.on_installed_pane_created)
         self.view_manager.register(self.installed_pane, ViewPages.INSTALLED)
 
         # history pane (not fully loaded at this point)
@@ -414,8 +414,8 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
     def on_available_pane_created(self, widget):
         self.available_pane.searchentry.grab_focus()
     
-    def on_installed_pane_created(self, widget):
-        pass
+    #~ def on_installed_pane_created(self, widget):
+        #~ pass
     
     def _on_update_software_center_agent_finished(self, pid, condition):
         LOG.info("software-center-agent finished with status %i" % os.WEXITSTATUS(condition))
