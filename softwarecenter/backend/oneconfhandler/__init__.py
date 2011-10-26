@@ -17,15 +17,15 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-try:
-    from och import OnceConfHandler
-except ImportError:
-    from null import OneConfHandler
 
 # singleton
 oneconf_handler = None
 def get_oneconf_handler(oneconfviewpickler = None):
     global oneconf_handler
+    try:
+        from softwarecenter.backend.oneconfhandler.core import OnceConfHandler
+    except ImportError:
+        return None
     if oneconf_handler is None and oneconfviewpickler:
         oneconf_handler = OneConfHandler(oneconfviewpickler)
     return oneconf_handler
