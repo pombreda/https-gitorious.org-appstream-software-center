@@ -56,6 +56,9 @@ class Ubuntu(Debian):
     # FIXME: does that make sense?!?
     REVIEW_STATS_URL = REVIEWS_SERVER+"/review-stats"
 
+    # Starting point for Ubuntu app developers
+    DEVELOPER_URL = "http://developer.ubuntu.com/"
+
     def get_app_name(self):
         return _("Ubuntu Software Center")
 

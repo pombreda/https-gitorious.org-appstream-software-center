@@ -40,6 +40,9 @@ class Distro(object):
     # You need to set this var to enable purchases
     PURCHASE_APP_URL = ""
 
+    # Point developers to a web page
+    DEVELOPER_URL = ""
+
     def get_app_name(self):
         """ 
         The name of the application (as displayed in the main window and 

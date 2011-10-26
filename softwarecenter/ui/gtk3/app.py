@@ -347,6 +347,13 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         supported_menuitem.set_label(self.distro.get_supported_filter_name())
         file_menu = self.builder.get_object("menu1")
 
+        if not self.distro.DEVELOPER_URL:
+            help_menu = self.builder.get_object("menu_help")
+            developer_separator = self.builder.get_object("separator_developer")
+            help_menu.remove(developer_separator)
+            developer_menuitem = self.builder.get_object("menuitem_developer")
+            help_menu.remove(developer_menuitem)
+
         # Check if oneconf is available
         och = get_oneconf_handler()
         if not och:
@@ -1039,8 +1046,8 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         GObject.timeout_add_seconds(1, lambda p: p.poll() == None, p)
 
     def on_menuitem_developer_activate(self, menuitem):
-        webbrowser.open("http://developer.ubuntu.com/")
-            
+        webbrowser.open(self.distro.DEVELOPER_URL)
+
     def _ask_and_repair_broken_cache(self):
         # wait until the window window is available
         if self.window_main.props.visible == False:
