@@ -412,27 +412,10 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         return
 
     def on_available_pane_created(self, widget):
-        # connect signals
-        #~ self.available_pane.app_details_view.connect("application-request-action", 
-                                                     #~ self.on_application_request_action)
-        #~ self.available_pane.app_view.connect("application-request-action", 
-                                             #~ self.on_application_request_action)
-        # FIXME
-        #~ self.available_pane.app_view.connect("mouse-nav-requested", 
-                                             #~ self.on_window_main_button_press_event)
         self.available_pane.searchentry.grab_focus()
     
     def on_installed_pane_created(self, widget):
         pass
-        #~ installed_section = SoftwareSection()
-        #~ installed_section.set_view_id(ViewPages.INSTALLED)
-        #~ self.installed_pane.set_section(installed_section)
-        
-        # connect signals
-        #~ self.installed_pane.app_details_view.connect("application-request-action", 
-                                                     #~ self.on_application_request_action)
-        #~ self.installed_pane.app_view.connect("application-request-action", 
-                                             #~ self.on_application_request_action)
     
     def _on_update_software_center_agent_finished(self, pid, condition):
         LOG.info("software-center-agent finished with status %i" % os.WEXITSTATUS(condition))

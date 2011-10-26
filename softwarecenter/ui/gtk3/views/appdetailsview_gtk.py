@@ -643,14 +643,6 @@ class AppDetailsViewGtk(Viewport, AppDetailsViewBase):
                     "application-selected" : (GObject.SignalFlags.RUN_LAST,
                                    None,
                                    (GObject.TYPE_PYOBJECT, )),
-                    'application-request-action' : (GObject.SignalFlags.RUN_LAST,
-                                        None,
-                                        (GObject.TYPE_PYOBJECT, GObject.TYPE_PYOBJECT, GObject.TYPE_PYOBJECT, str),
-                                       ),
-                    'purchase-requested' : (GObject.SignalFlags.RUN_LAST,
-                                            None,
-                                            (GObject.TYPE_PYOBJECT,
-                                             str,)),
                     }
 
 
