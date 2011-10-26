@@ -91,6 +91,9 @@ class Distro(object):
         import xapian
         return xapian.Query()
 
+    def get_supported_filter_name(self):
+        return _("Supported Software")
+
     def get_install_warning_text(self, cache, pkg, appname, depends):
         primary = utf8(_("To install %s, these items must be removed:")) % utf8(appname)
         button_text = _("Install Anyway")

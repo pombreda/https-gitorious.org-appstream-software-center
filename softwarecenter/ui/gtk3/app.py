@@ -342,7 +342,9 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         self.config = get_config()
         self.restore_state()
 
-        # Used to remove not needed menuitems
+        # Adapt menu entries
+        supported_menuitem = self.builder.get_object("menuitem_view_supported_only")
+        supported_menuitem.set_label(self.distro.get_supported_filter_name())
         file_menu = self.builder.get_object("menu1")
 
         # Check if oneconf is available
