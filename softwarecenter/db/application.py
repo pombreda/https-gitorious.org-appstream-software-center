@@ -116,7 +116,7 @@ class Application(object):
     def __cmp__(self, other):
         return self.apps_cmp(self, other)
     def __str__(self):
-        return unicode("%s,%s", 'utf8').encode('utf8') % (self.appname, self.pkgname)
+        return utf8("%s,%s") % (utf8(self.appname), utf8(self.pkgname))
     def __repr__(self):
         return "[Application: appname=%s pkgname=%s]" % (self.appname, self.pkgname)
     @staticmethod
