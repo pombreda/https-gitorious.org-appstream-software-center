@@ -572,25 +572,46 @@ class FramedHeaderBox(FramedBox):
             Gdk.cairo_set_source_rgba(cr, bg)
 
             # the arrow shape stuff
-            r = Frame.BORDER_RADIUS
+            r = Frame.BORDER_RADIUS - 1
             ta = self.more.get_allocation()
-            x = ta.x - a.x - StockEms.MEDIUM
+
             y = ta.y - a.y + 2
-            w = ta.width + StockEms.MEDIUM - 1
             h = ta.height - 2
 
-            cr.move_to(x, y)
-            cr.arc(x+w-r, y+r, r, 270*PI_OVER_180, 0)
-            cr.line_to(x+w, y+h)
-            cr.line_to(x, y+h)
-            cr.line_to(x + StockEms.MEDIUM, y + h/2)
-            cr.close_path()
+            if self.get_direction() == Gtk.TextDirection.RTL:
+                x = ta.x - a.x + 3
+                w = ta.width + StockEms.MEDIUM
 
-            cr.fill()
+                cr.new_sub_path()
+                cr.arc(r+x, r+y, r, PI, 270*PI_OVER_180)
+                cr.line_to(x+w, y)
+                cr.line_to(x+w - StockEms.MEDIUM, y + h/2)
+                cr.line_to(x+w, y+h)
+                cr.line_to(x, y+h)
+                cr.close_path()
 
-            cr.move_to(x, y)
-            cr.line_to(x + StockEms.MEDIUM, y + h/2)
-            cr.line_to(x, y+h)
+                cr.fill()
+
+                cr.move_to(x+w, y)
+                cr.line_to(x+w - StockEms.MEDIUM, y + h/2)
+                cr.line_to(x+w, y+h)
+
+            else:
+                x = ta.x - a.x - StockEms.MEDIUM
+                w = ta.width + StockEms.MEDIUM - 1
+
+                cr.move_to(x, y)
+                cr.arc(x+w-r, y+r, r, 270*PI_OVER_180, 0)
+                cr.line_to(x+w, y+h)
+                cr.line_to(x, y+h)
+                cr.line_to(x + StockEms.MEDIUM, y + h/2)
+                cr.close_path()
+
+                cr.fill()
+
+                cr.move_to(x, y)
+                cr.line_to(x + StockEms.MEDIUM, y + h/2)
+                cr.line_to(x, y+h)
 
             bc = context.get_border_color(self.get_state_flags())
             Gdk.cairo_set_source_rgba(cr, bc)
