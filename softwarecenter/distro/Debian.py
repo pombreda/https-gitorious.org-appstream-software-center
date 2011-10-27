@@ -78,9 +78,6 @@ class Debian(Distro):
         elif component == "restricted":
             return _("Proprietary")
 
-    def get_maintenance_status(self, cache, appname, pkgname, component, channel):
-        return ""
-
     def get_architecture(self):
         return apt.apt_pkg.config.find("Apt::Architecture")
 
