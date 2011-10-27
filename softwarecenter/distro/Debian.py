@@ -72,11 +72,13 @@ class Debian(Distro):
         
     def get_license_text(self, component):
         if component in ("main",):
-            return _("Open source")
+            return _("Meets the Debian Free Software Guidelines")
         elif component == "contrib":
-            return _("Open source, with proprietary parts")
-        elif component == "restricted":
-            return _("Proprietary")
+            return _("Meets the Debian Free Software Guidelines itself "
+                     "but requires additional non-free software to work")
+        elif component == "non-free":
+            return _("Non-free since it is either restricted "
+                     "in use, redistribution or modification.")
 
     def get_architecture(self):
         return apt.apt_pkg.config.find("Apt::Architecture")
