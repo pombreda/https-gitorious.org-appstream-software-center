@@ -105,6 +105,45 @@ class Debian(Distro):
                     return True
         return False
 
+    def get_maintenance_status(self, cache, appname, pkgname, component, channelname):
+        """Return the maintenance status of a package."""
+        if not hasattr(cache, '_cache') or not pkgname:
+            return
+        try:
+            origins = cache[pkgname].candidate.origins
+        except KeyError, AttributeError:
+            return
+        else:
+            for origin in origins:
+                if (origin.origin == "Debian" and origin.trusted):
+                    pkg_comp = origin.component
+                    pkg_archive = origin.archive
+                    break
+            else:
+                return
+        if pkg_comp in ("contrib", "non-free"):
+            if pkg_archive == "oldstable":
+                return _("Debian does not provide critical updates.")
+            else:
+                return _("Debian does not provide critical updates. "
+                         "Some updates may be provided by the developers "
+                         "of %s and redistributed by Debian.") % appname
+        elif pkg_comp == "main":
+            if pkg_archive == "stable":
+                return _("Debian provides critical updates for %s.") % appname
+            elif pkg_archive == "oldstable":
+                return _("Debian only provides updates for %s during "
+                         "a transition phase. "
+                         "Please consider upgrading to a later stable "
+                         "release of Debian.") % appname
+            elif pkg_archive == "testing":
+                return _("Debian provides critical updates for %s. But "
+                         "updates could be delayed or skipped.") % appname
+            elif pkg_archive == "unstable":
+                return _("Debian doens't provides critical updates "
+                         "for %s") % appname
+        return
+
     def get_supported_query(self):
         import xapian
         query1 = xapian.Query("XOL"+"Debian")
