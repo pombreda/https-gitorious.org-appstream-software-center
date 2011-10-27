@@ -25,6 +25,9 @@ import lsb_release
 
 from softwarecenter.utils import UnimplementedError, utf8
 
+log = logging.getLogger(__name__)
+
+
 class Distro(object):
     """ abstract base class for a distribution """
 
@@ -42,6 +45,10 @@ class Distro(object):
 
     # Point developers to a web page
     DEVELOPER_URL = ""
+
+    def __init__(self, lsb_info):
+        """Return a new generic Distro instance."""
+        self.lsb_info = lsb_info
 
     def get_app_name(self):
         """ 
@@ -148,13 +155,14 @@ class Distro(object):
 
 
 def _get_distro():
-    distro_id = lsb_release.get_distro_information()["ID"]
-    logging.getLogger("softwarecenter.distro").debug("get_distro: '%s'" % distro_id)
+    lsb_info = lsb_release.get_distro_information()
+    distro_id = lsb_info["ID"]
+    log.debug("get_distro: '%s'", distro_id)
     # start with a import, this gives us only a softwarecenter module
     module =  __import__(distro_id, globals(), locals(), [], -1)
     # get the right class and instanciate it
     distro_class = getattr(module, distro_id)
-    instance = distro_class()
+    instance = distro_class(lsb_info)
     return instance
 
 def get_distro():
