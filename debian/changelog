@@ -1,3 +1,10 @@
+software-center (5.1.1) UNRELEASED; urgency=low
+
+  [ Matthew McGowan ]
+  * fix the rtl rendering of the "more label arrow"
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 27 Oct 2011 16:47:38 -0400
+
 software-center (5.1.0) precise; urgency=low
 
   [ Matthew McGowan ]
