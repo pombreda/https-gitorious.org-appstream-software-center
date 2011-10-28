@@ -35,6 +35,8 @@ from pkglist import PkgListModel
 from reviewslist import ReviewsListModel
 from categoriesmodel import CategoriesModel
 
+from softwarecenter.utils import mangle_paths_if_running_in_local_checkout
+
 if __name__ == '__main__':
     app = QApplication(sys.argv)
 
@@ -46,6 +48,9 @@ if __name__ == '__main__':
     view.setWindowTitle(view.tr("Ubuntu Software Center"))
     view.setWindowIcon(QIcon(os.path.join(os.path.dirname(__file__), "../../../data/icons/scalable/apps/softwarecenter.svg")))
     view.setResizeMode(QtDeclarative.QDeclarativeView.SizeRootObjectToView)
+
+    # if running locally, fixup softwarecenter.paths
+    mangle_paths_if_running_in_local_checkout()
 
     # ideally this should be part of the qml by using a qmlRegisterType()
     # but that does not seem to be supported in pyside yet(?) so we need

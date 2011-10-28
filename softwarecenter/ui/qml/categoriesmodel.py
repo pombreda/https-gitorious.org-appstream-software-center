@@ -33,6 +33,7 @@ from softwarecenter.db.categories import CategoriesParser
 from softwarecenter.db.database import StoreDatabase
 from softwarecenter.db.pkginfo import get_pkg_info
 from softwarecenter.paths import XAPIAN_BASE_PATH
+import softwarecenter.paths
 
 class CategoriesModel(QAbstractListModel):
 
@@ -54,7 +55,7 @@ class CategoriesModel(QAbstractListModel):
         # /FIXME
         self.catparser = CategoriesParser(db)
         self._categories = self.catparser.parse_applications_menu(
-            '/usr/share/app-install')
+            softwarecenter.paths.APP_INSTALL_PATH)
 
     # QAbstractListModel code
     def rowCount(self, parent=QModelIndex()):
