@@ -69,7 +69,7 @@ class ReviewsListModel(QAbstractListModel):
     def _on_reviews_ready_callback(self, loader, reviews):
         self.beginInsertRows(QModelIndex(),
                              self.rowCount(), # first
-                             self.rowCount() + len(reviews)) # last
+                             self.rowCount() + len(reviews)-1) # last
         self._reviews += reviews
         self.endInsertRows()
 
