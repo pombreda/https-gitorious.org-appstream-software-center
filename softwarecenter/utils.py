@@ -544,6 +544,33 @@ def split_icon_ext(iconname):
         return basename
     return iconname
 
+
+def mangle_paths_if_running_in_local_checkout():
+    import softwarecenter.paths
+    # we are running in a local checkout, make life as easy as possible
+    # for this
+    if os.path.exists("./data/ui/gtk3/SoftwareCenter.ui"):
+        logging.getLogger("softwarecenter").info("Using data (UI, xapian) from current dir")
+        # set pythonpath for the various helpers
+        if os.environ.get("PYTHONPATH",""):
+            os.environ["PYTHONPATH"]=os.path.abspath(".") + ":" + os.environ.get("PYTHONPATH","")
+        else:
+            os.environ["PYTHONPATH"]=os.path.abspath(".")
+        datadir = "./data"
+        xapian_base_path = datadir
+        # set new global datadir
+        softwarecenter.paths.datadir = datadir
+        # also alter the app-install path
+        path =  "%s/desktop/software-center.menu" % softwarecenter.paths.APP_INSTALL_PATH
+        if not os.path.exists(path):
+            softwarecenter.paths.APP_INSTALL_PATH = './build/share/app-install'
+            logging.warn("using local APP_INSTALL_PATH: %s" % softwarecenter.paths.APP_INSTALL_PATH)
+    else:
+        datadir = softwarecenter.paths.datadir
+        xapian_base_path = XAPIAN_BASE_PATH
+    return (datadir, xapian_base_path)
+
+
 class SimpleFileDownloader(GObject.GObject):
 
     LOG = logging.getLogger("softwarecenter.simplefiledownloader")
