@@ -52,6 +52,7 @@ class LocaleAwareWebView(webkit.WebView):
         #    print name, value
         #headers.foreach(_show_header, None)
 
+
 class ScrolledWebkitWindow(Gtk.ScrolledWindow):
 
     def __init__(self):
@@ -63,6 +64,7 @@ class ScrolledWebkitWindow(Gtk.ScrolledWindow):
         # embed the webkit view in a scrolled window
         self.add(self.webkit)
         self.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
+
 
 class PurchaseView(Gtk.VBox):
     """ 
