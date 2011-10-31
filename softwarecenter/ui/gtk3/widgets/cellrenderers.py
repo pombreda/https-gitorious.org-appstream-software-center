@@ -19,6 +19,7 @@
 
 from gi.repository import Gtk, Gdk, GObject, Pango
 
+from softwarecenter.utils import utf8
 from softwarecenter.ui.gtk3.em import EM
 from softwarecenter.ui.gtk3.models.appstore2 import CategoryRowReference
 
@@ -459,7 +460,8 @@ class CellButtonRenderer(object):
         max_size = (0,0)
 
         for k, variant in self.markup_variants.items():
-            layout.set_markup(GObject.markup_escape_text(variant), -1)
+            safe_markup = GObject.markup_escape_text(utf8(variant))
+            layout.set_markup(safe_markup, -1)
             size = layout.get_size()
             max_size = max(max_size, size)
 

@@ -90,7 +90,7 @@ class AppTreeView(Gtk.TreeView):
         action.set_markup_variants(
                 {self.VARIANT_INSTALL: _('Install'),
                  self.VARIANT_REMOVE: _('Remove'),
-                 self.VARIANT_PURCHASE: _('Buy Now')})
+                 self.VARIANT_PURCHASE: _(u'Buy\u2026')})
 
         tr.button_pack_start(info)
         tr.button_pack_end(action)
