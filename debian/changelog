@@ -2,6 +2,12 @@ software-center (5.1.1) UNRELEASED; urgency=low
 
   [ Matthew McGowan ]
   * fix the rtl rendering of the "more label arrow"
+  
+  [ Nicolas Delvaux ]
+  * lp:~malizor/software-center/fix-lp813803:
+    - Time format in historypane: The translators comment was not 
+      extracted, which led to poor translations (eg. as reported 
+      in bug LP: #813803)
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 27 Oct 2011 16:47:38 -0400
 
