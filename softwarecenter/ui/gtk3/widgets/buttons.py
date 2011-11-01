@@ -243,9 +243,12 @@ class FeaturedTile(TileButton):
                                               req_width)
 
         details = AppDetails(db=helper.db, doc=doc)
+        # TRANSLATORS: Free here means Gratis
         price = details.price or _("Free")
         if price == '0.00':
+            # TRANSLATORS: Free here means Gratis
             price = _("Free")
+	# TRANSLATORS: Free here means Gratis
         if price != _("Free"):
             price = 'US$ ' + price
         self.price = Gtk.Label.new(
