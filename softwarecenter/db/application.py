@@ -133,6 +133,10 @@ class Application(object):
         else:
             return cmp(x.pkgname, y.pkgname)
 
+
+SCREENSHOTS_URL = "http://screenshots.ubuntu.com/json/package/%s"
+
+
 # the details
 class AppDetails(object):
     """ The details for a Application. This contains all the information
@@ -479,6 +483,32 @@ class AppDetails(object):
         # else use the default
         return self._distro.SCREENSHOT_LARGE_URL % { 'pkgname' : self.pkgname, 
                                                      'version' : self.version or 0 }
+
+    @property
+    def screenshots(self):
+        url = SCREENSHOTS_URL % self._app.pkgname
+        content = None
+        try:
+            from gi.repository import Gio
+            content = Gio.file_new_for_uri(url).load_contents(None)[1]
+        except Exception, e:
+            print 'err', e
+
+        if content is not None:
+            import json
+            content = json.loads(content)
+
+        if isinstance(content, dict):
+            # a list of screenshots as listsed online
+            screenshot_list = content['screenshots']
+        else:
+            # fallback to a list of screenshots as supplied by the axi
+            screenshot_list = [
+                {'small_image_url': self.thumbnail,
+                 'large_image_url': self.screenshot,
+                 'version': self.version},]
+
+        return screenshot_list
 
     @property
     def summary(self):

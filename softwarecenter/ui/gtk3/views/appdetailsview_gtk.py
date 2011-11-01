@@ -59,7 +59,7 @@ from softwarecenter.ui.gtk3.widgets.reviews import UIReviewsList
 from softwarecenter.ui.gtk3.widgets.containers import SmallBorderRadiusFrame
 from softwarecenter.ui.gtk3.widgets.stars import Star, StarRatingsWidget
 from softwarecenter.ui.gtk3.widgets.description import AppDescription
-from softwarecenter.ui.gtk3.widgets.thumbnail import ScreenshotThumbnail
+from softwarecenter.ui.gtk3.widgets.thumbnail import ScreenshotGallery
 from softwarecenter.ui.gtk3.widgets.weblivedialog import (
                                     ShowWebLiveServerChooserDialog)
 from softwarecenter.ui.gtk3.gmenusearch import GMenuSearcher
@@ -967,7 +967,7 @@ class AppDetailsViewGtk(Viewport, AppDetailsViewBase):
         body_hb.pack_start(self.desc, True, True, 0)
 
         # the thumbnail/screenshot
-        self.screenshot = ScreenshotThumbnail(get_distro(), self.icons)
+        self.screenshot = ScreenshotGallery(get_distro(), self.icons)
         right_vb = Gtk.VBox()
         right_vb.set_spacing(6)
         body_hb.pack_start(right_vb, False, False, 0)
