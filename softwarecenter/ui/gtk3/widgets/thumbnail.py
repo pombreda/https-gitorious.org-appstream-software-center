@@ -416,6 +416,10 @@ class Thumbnail(Gtk.EventBox):
                     None)  # error handler
 
         im = Gtk.Image.new_from_pixbuf(pixbuf)
+        im.set_margin_left(2)
+        im.set_margin_right(2)
+        im.set_margin_top(2)
+        im.set_margin_bottom(2)
         self.add(im)
         self.id_ = id_
         self.set_property("can-focus", True)
