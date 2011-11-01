@@ -11,6 +11,12 @@
     border-color: shade (@light-aubergine, 1.025);
 }
 
+#screenshot-preview {
+    border-color: #000;
+    color: #000;
+    border-width: 2;
+    border-radius: 3;
+}
 
 .backforward-left-button {
     border-radius: 3 0 0 3;
