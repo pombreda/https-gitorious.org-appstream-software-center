@@ -76,13 +76,17 @@ class ReviewsListModel(QAbstractListModel):
     # getReviews interface (for qml)
     @pyqtSlot(str)
     def getReviews(self, pkgname, page=1):
-        appname = ""
+        # pkgname is a QString, so we need to convert it to a old-fashioned str
+        pkgname = unicode(pkgname).encode("utf-8")
+        app = Application("", pkgname)
         # support pagination by not cleaning _reviews for subsequent pages
         if page == 1:
             self.clear()
+
         # load in the eventloop to ensure that animations are not delayed
-        GObject.timeout_add(10, self.reviews.get_reviews,
-                         Application(appname, pkgname), self._on_reviews_ready_callback, page)
+        GObject.timeout_add(
+            10, self.reviews.get_reviews, app,
+            self._on_reviews_ready_callback, page)
 
     # refresh review-stats (for qml)
     @pyqtSlot()
