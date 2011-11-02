@@ -24,10 +24,10 @@ GObject.threads_init()
 import os
 import sys
 
-from PySide import QtDeclarative
-from PySide.QtCore import QUrl
-from PySide.QtGui import QApplication, QIcon
-from PySide.QtDeclarative import QDeclarativeView 
+from PyQt4 import QtDeclarative
+from PyQt4.QtCore import QUrl
+from PyQt4.QtGui import QApplication, QIcon
+from PyQt4.QtDeclarative import QDeclarativeView 
 
 from softwarecenter.db.pkginfo import get_pkg_info
 

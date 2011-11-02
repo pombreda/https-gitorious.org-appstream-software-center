@@ -26,8 +26,8 @@ import gi
 gi.require_version("Gtk", "2.0")
 from gi.repository import Gtk
 
-from PySide.QtCore import QAbstractListModel, QModelIndex
-#from PySide.QtGui import QIcon
+from PyQt4.QtCore import QAbstractListModel, QModelIndex
+#from PyQt4.QtGui import QIcon
 
 from softwarecenter.db.categories import CategoriesParser
 from softwarecenter.db.database import StoreDatabase
@@ -78,8 +78,8 @@ class CategoriesModel(QAbstractListModel):
             return ""
         
 if __name__ == "__main__":
-    from PySide.QtGui import QApplication
-    from PySide.QtDeclarative import QDeclarativeView 
+    from PyQt4.QtGui import QApplication
+    from PyQt4.QtDeclarative import QDeclarativeView 
     import sys
 
     app = QApplication(sys.argv)

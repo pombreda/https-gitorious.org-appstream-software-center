@@ -20,7 +20,7 @@
 from gi.repository import GObject
 from datetime import datetime
 
-from PySide.QtCore import QAbstractListModel, QModelIndex, Slot, Signal
+from PyQt4.QtCore import QAbstractListModel, QModelIndex, pyqtSignal, pyqtSlot
 
 from softwarecenter.db.database import Application
 from softwarecenter.db.pkginfo import get_pkg_info
@@ -74,18 +74,19 @@ class ReviewsListModel(QAbstractListModel):
         self.endInsertRows()
 
     # getReviews interface (for qml)
-    @Slot(str)
+    @pyqtSlot(str)
     def getReviews(self, pkgname, page=1):
         appname = ""
         # support pagination by not cleaning _reviews for subsequent pages
         if page == 1:
             self.clear()
         # load in the eventloop to ensure that animations are not delayed
+        print "***", pkgname
         GObject.timeout_add(10, self.reviews.get_reviews,
                          Application(appname, pkgname), self._on_reviews_ready_callback, page)
 
     # refresh review-stats (for qml)
-    @Slot()
+    @pyqtSlot()
     def refreshReviewStats(self):
         def _on_refresh_reviews_ready_callback(loader):
             self.reviewStatsChanged.emit()
@@ -94,6 +95,6 @@ class ReviewsListModel(QAbstractListModel):
 
     # FIXME: how is this signal actually used in the qml JS?
     # signals
-    reviewStatsChanged = Signal()
+    reviewStatsChanged = pyqtSignal()
 
 
