@@ -113,7 +113,6 @@ class ScreenshotWidget(Gtk.VBox):
 
         # the image
         self.image = Gtk.Image()
-        self.image.set_size_request(-1, self.MAX_SIZE_CONSTRAINTS[1])
         self.image.set_redraw_on_allocate(False)
         event.add(self.image)
         self.eventbox = event
@@ -150,6 +149,7 @@ class ScreenshotWidget(Gtk.VBox):
                     self.show_all()
 
             self.image.set_from_pixbuf(pb)
+            self.screenshot.set_size_request(-1, self.MAX_SIZE_CONSTRAINTS[1])
 
             # start the fade in
             #~ GObject.timeout_add(50, self._fade_in)
@@ -207,6 +207,7 @@ class ScreenshotWidget(Gtk.VBox):
         if not self.spinner.get_parent():
             self.screenshot.add(self.spinner)
 
+        self.screenshot.set_size_request(*self.MAX_SIZE_CONSTRAINTS)
         self.spinner.start()
         return
 
@@ -230,9 +231,7 @@ class ScreenshotWidget(Gtk.VBox):
                 self.image.hide()
                 self.eventbox.remove(self.image)
                 self.eventbox.add(self.unavailable)
-                # set the size of the unavailable placeholder
-                # 160 pixels is the fixed width of the thumbnails
-                self.unavailable.set_size_request(*self.MAX_SIZE_CONSTRAINTS)
+                self.screenshot.set_size_request(*self.MAX_SIZE_CONSTRAINTS)
 
             acc = self.get_accessible()
             acc.set_name(self.NOT_AVAILABLE_STRING)
@@ -596,6 +595,7 @@ if __name__ == '__main__':
 
     from softwarecenter.db.application import Application
     apps = [Application("Movie Player", "totem"),
+            Application("Comix", "comix"),
             Application("Gimp", "gimp"),
             Application("ACE", "uace")]
 
