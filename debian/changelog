@@ -2,6 +2,17 @@ software-center (5.1.1) UNRELEASED; urgency=low
 
   [ Matthew McGowan ]
   * fix the rtl rendering of the "more label arrow"
+  
+  [ Nicolas Delvaux ]
+  * lp:~malizor/software-center/fix-lp813803:
+    - Time format in historypane: The translators comment was not 
+      extracted, which led to poor translations (eg. as reported 
+      in bug LP: #813803)
+
+  [ Gabor Kelemen ]
+  * lp:~kelemeng/software-center/bug875306:
+    - Add translator comment: Free means Gratis, as it is used as price.
+      LP: #875306
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 27 Oct 2011 16:47:38 -0400
 

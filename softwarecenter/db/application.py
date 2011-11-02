@@ -16,6 +16,8 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+from gi.repository import GObject
+
 import locale
 import logging
 import os
@@ -30,6 +32,7 @@ from softwarecenter.paths import (APP_INSTALL_CHANNELS_PATH,
                                   SOFTWARE_CENTER_ICON_CACHE_DIR,
                                   )
 from softwarecenter.utils import utf8, split_icon_ext
+from softwarecenter.distro import get_distro
 
 LOG = logging.getLogger(__name__)
 
@@ -133,20 +136,23 @@ class Application(object):
         else:
             return cmp(x.pkgname, y.pkgname)
 
-
-SCREENSHOTS_URL = "http://screenshots.ubuntu.com/json/package/%s"
-
-
 # the details
-class AppDetails(object):
+class AppDetails(GObject.GObject):
     """ The details for a Application. This contains all the information
         we have available like website etc
     """
+
+    __gsignals__ = {"screenshots-available" : (GObject.SIGNAL_RUN_FIRST,
+                                               GObject.TYPE_NONE,
+                                               (GObject.TYPE_PYOBJECT,),
+                                              ),
+                    }
 
     def __init__(self, db, doc=None, application=None):
         """ Create a new AppDetails object. It can be created from
             a xapian.Document or from a db.application.Application object
         """
+        GObject.GObject.__init__(self)
         if not doc and not application:
             raise ValueError("Need either document or application")
         self._db = db
@@ -162,6 +168,7 @@ class AppDetails(object):
         # FIXME: why two error states ?
         self._error = None
         self._error_not_found = None
+        self._screenshot_list = None
 
         # load application
         self._app = application
@@ -476,6 +483,7 @@ class AppDetails(object):
 
     @property
     def screenshot(self):
+        """ return screenshot url """
         # if there is a custom screenshot url provided, use that
         if self._doc:
             if self._doc.get_value(XapianValues.SCREENSHOT_URL):
@@ -486,14 +494,43 @@ class AppDetails(object):
 
     @property
     def screenshots(self):
-        url = SCREENSHOTS_URL % self._app.pkgname
-        content = None
+        """ return list of screenshots, this requies that
+            "query_multiple_screenshos" was run before and emited the signal
+         """
+        if not self._screenshot_list:
+            return [ {'small_image_url': self.thumbnail,
+                      'large_image_url': self.screenshot,
+                      'version': self.version},
+                   ]
+        return self._screenshot_list
+
+    def query_multiple_screenshots(self):
+        """ query if multiple screenshots for the given app are available
+            and if so, emit "screenshots-available" signal
+        """
+        # check if we have it cached
+        if self._screenshot_list:
+            self.emit("screenshots-available", self._screenshot_list)
+            return
+        # download it
+        distro = get_distro()
+        url = distro.SCREENSHOT_JSON_URL % self._app.pkgname
         try:
             from gi.repository import Gio
-            content = Gio.file_new_for_uri(url).load_contents(None)[1]
-        except Exception, e:
-            print 'err', e
+            # FIXME: this needs to be async
+            f = Gio.File.new_for_uri(url)
+            f.load_contents_async(
+                None, self._gio_screenshots_json_download_complete_cb, None)
+        except:
+            LOG.exception("failed to load content")
 
+
+    def _gio_screenshots_json_download_complete_cb(self, source, result, path):
+        try:
+            res, content, etag = source.load_contents_finish(result)
+        except GObject.GError:
+            # ignore read errors, most likely transient
+            return
         if content is not None:
             import json
             content = json.loads(content)
@@ -503,12 +540,12 @@ class AppDetails(object):
             screenshot_list = content['screenshots']
         else:
             # fallback to a list of screenshots as supplied by the axi
-            screenshot_list = [
-                {'small_image_url': self.thumbnail,
-                 'large_image_url': self.screenshot,
-                 'version': self.version},]
+            screenshot_list = []
 
-        return screenshot_list
+        # save for later and emit
+        self._screenshot_list = screenshot_list
+        self.emit("screenshots-available", screenshot_list)
+        return
 
     @property
     def summary(self):

@@ -349,9 +349,9 @@ class HistoryPane(Gtk.VBox, BasePane):
         if isinstance(when, datetime.datetime):
             action = store.get_value(iter, self.COL_ACTION)
             pkg = store.get_value(iter, self.COL_PKG)
-        # Translators : time displayed in history, display hours (0-12), minutes and AM/PM. %H should be used instead of %I to display hours 0-24
             subs = {'pkgname': pkg,
                     'color': '#8A8A8A',
+                    # Translators : time displayed in history, display hours (0-12), minutes and AM/PM. %H should be used instead of %I to display hours 0-24
                     'time': when.time().strftime(_('%I:%M %p')),
                    }
             if action == self.INSTALLED:
