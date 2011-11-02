@@ -30,6 +30,7 @@ from softwarecenter.paths import (APP_INSTALL_CHANNELS_PATH,
                                   SOFTWARE_CENTER_ICON_CACHE_DIR,
                                   )
 from softwarecenter.utils import utf8, split_icon_ext
+from softwarecenter.distro import get_distro
 
 LOG = logging.getLogger(__name__)
 
@@ -479,6 +480,34 @@ class AppDetails(object):
         # else use the default
         return self._distro.SCREENSHOT_LARGE_URL % { 'pkgname' : self.pkgname, 
                                                      'version' : self.version or 0 }
+
+    @property
+    def screenshots(self):
+        distro = get_distro()
+        url = distro.SCREENSHOT_JSON_URL % self._app.pkgname
+        content = None
+        try:
+            from gi.repository import Gio
+            # FIXME: this needs to be async
+            content = Gio.file_new_for_uri(url).load_contents(None)[1]
+        except:
+            LOG.exception("failed to load content")
+
+        if content is not None:
+            import json
+            content = json.loads(content)
+
+        if isinstance(content, dict):
+            # a list of screenshots as listsed online
+            screenshot_list = content['screenshots']
+        else:
+            # fallback to a list of screenshots as supplied by the axi
+            screenshot_list = [
+                {'small_image_url': self.thumbnail,
+                 'large_image_url': self.screenshot,
+                 'version': self.version},]
+
+        return screenshot_list
 
     @property
     def summary(self):
