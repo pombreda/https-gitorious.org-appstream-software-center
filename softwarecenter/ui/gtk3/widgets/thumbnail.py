@@ -38,8 +38,7 @@ class ScreenshotData(GObject.GObject):
 
     __gsignals__ = {"screenshots-available" : (GObject.SIGNAL_RUN_FIRST,
                                                GObject.TYPE_NONE,
-                                               (GObject.TYPE_PYOBJECT,),
-                                              ),
+                                               (),),
                     }
 
     def __init__(self, app_details):
@@ -55,7 +54,7 @@ class ScreenshotData(GObject.GObject):
 
     def _on_screenshots_available(self, screenshot_data, screenshots):
         self.screenshots = screenshots
-        self.emit("screenshots-available", screenshots)
+        self.emit("screenshots-available")
 
     def get_n_screenshots(self):
         return len(self.screenshots)
@@ -124,54 +123,35 @@ class ScreenshotWidget(Gtk.VBox):
         self.spinner.set_size_request(*self.SPINNER_SIZE)
         self.spinner.set_valign(Gtk.Align.CENTER)
         self.spinner.set_halign(Gtk.Align.CENTER)
+        self.screenshot.add(self.spinner)
 
         # the image
         self.image = Gtk.Image()
-        self.image.set_redraw_on_allocate(False)
         event.add(self.image)
         self.eventbox = event
-
-        self.screenshot.pack_start(event, False, False, 0)
+        self.screenshot.add(self.eventbox)
 
         # unavailable layout
         self.unavailable = Gtk.Label(label=self.NOT_AVAILABLE_STRING)
         self.unavailable.set_alignment(0.5, 0.5)
         # force the label state to INSENSITIVE so we get the nice subtle etched in look
         self.unavailable.set_state(Gtk.StateType.INSENSITIVE)
+        self.screenshot.add(self.unavailable)
+        self.show_all()
 
     def _on_screenshot_download_complete(self, loader, screenshot_path):
-
-        def setter_cb(path):
-            try:
-                self.screenshot_pixbuf = GdkPixbuf.Pixbuf.new_from_file(path)
-            except Exception, e:
-                LOG.exception("Pixbuf.new_from_file() failed")
-                self.loader.emit('error', GObject.GError, e)
-                return False
-
-            # remove the spinner
-            if self.spinner.get_parent():
-                self.spinner.stop()
-                self.spinner.hide()
-                self.screenshot.remove(self.spinner)
-
-            pb = self._downsize_pixbuf(self.screenshot_pixbuf, *self.MAX_SIZE_CONSTRAINTS)
-
-            if not self.eventbox.get_parent():
-                self.screenshot.add(self.eventbox)
-                if self.get_property("visible"):
-                    self.show_all()
-
-            self.image.set_from_pixbuf(pb)
-            self.screenshot.set_size_request(-1, self.MAX_SIZE_CONSTRAINTS[1])
-
-            # start the fade in
-            #~ GObject.timeout_add(50, self._fade_in)
-            self.ready = True
+        try:
+            self.screenshot_pixbuf = GdkPixbuf.Pixbuf.new_from_file(screenshot_path)
+        except Exception, e:
+            LOG.exception("Pixbuf.new_from_file() failed")
+            self.loader.emit('error', GObject.GError, e)
             return False
 
-        setter_cb(screenshot_path)
-        #~ GObject.timeout_add(500, setter_cb, screenshot_path)
+        pb = self._downsize_pixbuf(self.screenshot_pixbuf, *self.MAX_SIZE_CONSTRAINTS)
+        self.image.set_from_pixbuf(pb)
+        self.ready = True
+
+        self.display_image()
         return
 
     def _on_screenshot_load_error(self, loader, err_type, err_message):
@@ -181,7 +161,8 @@ class ScreenshotWidget(Gtk.VBox):
 
     def _on_screenshot_query_complete(self, loader, reachable):
         self.set_screenshot_available(reachable)
-        if not reachable: self.ready = True
+        if not reachable:
+            self.ready = True
         return
 
     def _downsize_pixbuf(self, pb, target_w, target_h):
@@ -200,10 +181,6 @@ class ScreenshotWidget(Gtk.VBox):
 
     def download_and_display_from_url(self, url):
         self.loader.download_file(url, use_cache=self.USE_CACHING)
-
-        # show it
-        if self.get_property('visible'):
-            self.show_all()
         return
 
     def clear(self):
@@ -213,16 +190,37 @@ class ScreenshotWidget(Gtk.VBox):
 
         self.screenshot_available = True
         self.ready = False
+        self.display_spinner()
+        return
 
-        if self.eventbox.get_parent():
-            self.eventbox.hide()
-            self.screenshot.remove(self.eventbox)
-
-        if not self.spinner.get_parent():
-            self.screenshot.add(self.spinner)
-
+    def display_spinner(self):
+        self.image.clear()
+        self.eventbox.hide()
+        self.unavailable.hide()
+        self.spinner.show()
         self.screenshot.set_size_request(*self.MAX_SIZE_CONSTRAINTS)
         self.spinner.start()
+        return
+
+    def display_unavailable(self):
+        self.spinner.hide()
+        self.spinner.stop()
+        self.unavailable.show()
+        self.eventbox.hide()
+        self.screenshot.set_size_request(*self.MAX_SIZE_CONSTRAINTS)
+
+        acc = self.get_accessible()
+        acc.set_name(self.NOT_AVAILABLE_STRING)
+        acc.set_role(Atk.Role.LABEL)
+        return
+
+    def display_image(self):
+        self.unavailable.hide()
+        self.spinner.stop()
+        self.spinner.hide()
+        self.eventbox.show_all()
+        self.screenshot.set_size_request(-1, self.MAX_SIZE_CONSTRAINTS[1])
+        self.thumbnails.show()
         return
 
     def get_is_actionable(self):
@@ -236,32 +234,9 @@ class ScreenshotWidget(Gtk.VBox):
             is a screenshot available.
         """
         if not available:
-            if not self.eventbox.get_parent():
-                self.screenshot.remove(self.spinner)
-                self.spinner.stop()
-                self.screenshot.add(self.eventbox)
-
-            if self.image.get_parent():
-                self.image.hide()
-                self.eventbox.remove(self.image)
-                self.eventbox.add(self.unavailable)
-                self.screenshot.set_size_request(*self.MAX_SIZE_CONSTRAINTS)
-
-            acc = self.get_accessible()
-            acc.set_name(self.NOT_AVAILABLE_STRING)
-            acc.set_role(Atk.Role.LABEL)
-        else:
-            if self.unavailable.get_parent():
-                self.unavailable.hide()
-                self.eventbox.remove(self.unavailable)
-                self.eventbox.add(self.image)
-
-            acc = self.get_accessible()
-            acc.set_name(_('Screenshot'))
-            acc.set_role(Atk.Role.PUSH_BUTTON)
-
-        if self.get_property("visible"):
-            self.show_all()
+            self.display_unavailable()
+        elif available and self.unavailable.get_property("visible"):
+            self.display_spinner()
         self.screenshot_available = available
         return
 
@@ -284,6 +259,7 @@ class ScreenshotGallery(ScreenshotWidget):
         self.thumbnails.set_halign(Gtk.Align.CENTER)
         self.pack_end(self.thumbnails, False, False, 0)
         self.thumbnails.connect("thumb-selected", self.on_thumbnail_selected)
+        self.show_all()
         return
 
     def _init_signals(self):
@@ -367,21 +343,23 @@ class ScreenshotGallery(ScreenshotWidget):
             d.destroy()
         return
 
-    def configure(self, app_details):
+    def fetch_screenshots(self, app_details):
         """ Called to configure the screenshotview for a new application.
             The existing screenshot is cleared and the process of fetching a
             new screenshot is instigated.
         """
+        self.clear()
         acc = self.get_accessible()
         acc.set_name(_('Fetching screenshot ...'))
-        self.clear()
         self.data = ScreenshotData(app_details)
         self.data.connect(
             "screenshots-available", self._on_screenshots_available)
+        self.display_spinner()
+        self.download_and_display_from_url(app_details.screenshot)
         return
 
-    def _on_screenshots_available(self, screenshots, data):
-        self.download_and_display()
+    def _on_screenshots_available(self, screenshots):
+        self.thumbnails.set_thumbnails_from_data(screenshots)
 
     def clear(self):
         self.thumbnails.clear()
@@ -391,23 +369,6 @@ class ScreenshotGallery(ScreenshotWidget):
         ScreenshotWidget.clear(self)
         large_url = self.data.get_nth_large_screenshot(id_)
         self.download_and_display_from_url(large_url)
-        return
-
-    def download_and_display(self):
-        """ Download then displays the screenshot.
-            This actually does a query on the URL first to check if its
-            reachable, if so it downloads the thumbnail.
-            If not, it emits "file-url-reachable" False, then exits.
-        """
-
-        if self.data.get_n_screenshots() == 0:
-            self.set_screenshot_available(False)
-            return
-
-        self.thumbnails.set_thumbnails_from_data(self.data)
-
-        first = self.data.get_nth_large_screenshot(0)
-        self.download_and_display_from_url(first)
         return
 
     def draw(self, widget, cr):
@@ -492,6 +453,9 @@ class ThumbnailGallery(Gtk.HBox):
         return
 
     def clear(self):
+        self.cancel.cancel()
+        self.cancel.reset()
+
         for sig in self._handlers:
             GObject.source_remove(sig)
 
@@ -500,28 +464,31 @@ class ThumbnailGallery(Gtk.HBox):
         return
 
     def set_thumbnails_from_data(self, data):
-        self.cancel.cancel()
-        self.cancel.reset()
+        self.clear()
 
         # if there are multiple screenshots
         n = data.get_n_screenshots()
-        if n > 1:
-            # get a random selection of thumbnails from those avaialble
-            import random
-            seq = random.sample(
-                range(n),
-                min(n, ThumbnailGallery.THUMBNAIL_MAX_COUNT))
 
-            seq.sort()
+        if n == 1:
+            return
 
-            for i in seq:
-                url = data.get_nth_small_screenshot(i)
-                self._create_thumbnail_for_url(i, url)
+        # get a random selection of thumbnails from those avaialble
+        import random
+        seq = random.sample(
+            range(n),
+            min(n, ThumbnailGallery.THUMBNAIL_MAX_COUNT))
 
-            # set first child to selected
-            self._prev = self.get_children()[0]
-            self._prev.set_state_flags(Gtk.StateFlags.SELECTED, False)
-            self.show_all()
+        seq.sort()
+
+        for i in seq:
+            url = data.get_nth_small_screenshot(i)
+            self._create_thumbnail_for_url(i, url)
+
+        # set first child to selected
+        self._prev = self.get_children()[0]
+        self._prev.set_state_flags(Gtk.StateFlags.SELECTED, False)
+
+        self.show_all()
         return
 
     def _create_thumbnail_for_url(self, index, url):
@@ -563,22 +530,6 @@ def get_test_screenshot_thumbnail_window():
     win.show_all()
     win.connect('destroy', Gtk.main_quit)
 
-    from mock import Mock
-    app_details = Mock()
-    app_details.display_name = "display name"
-    app_details.pkgname = "pkgname"
-
-    url = "http://www.ubuntu.com/sites/default/themes/ubuntu10/images/footer_logo.png"
-    app_details.thumbnail = url
-    app_details.screenshot = url
-    app_details.screenshots = [
-        {'small_image_url': url,
-         'large_image_url': url,
-         'version': 1},]
-
-    t.configure(app_details)
-    t.download_and_display()
-
     return win
 
 if __name__ == '__main__':
@@ -594,8 +545,7 @@ if __name__ == '__main__':
         else:
             app_n = 0
 
-        thumb.configure(d)
-        thumb.download_and_display()
+        thumb.fetch_screenshots(d)
         return True
 
     logging.basicConfig(level=logging.DEBUG)

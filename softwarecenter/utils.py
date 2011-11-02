@@ -613,7 +613,9 @@ class SimpleFileDownloader(GObject.GObject):
         # like bug #839462
         if self._cancellable:
             self._cancellable.cancel()
-        self._cancellable = Gio.Cancellable()
+            self._cancellable.reset()
+        else:
+            self._cancellable = Gio.Cancellable()
 
         # no need to cache file urls and no need to really download
         # them, its enough to adjust the dest_file_path

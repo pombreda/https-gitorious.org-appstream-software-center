@@ -1149,10 +1149,7 @@ class AppDetailsViewGtk(Viewport, AppDetailsViewBase):
     def _update_app_screenshot(self, app_details):
         # get screenshot urls and configure the ScreenshotView...
         if app_details.thumbnail and app_details.screenshot:
-            self.screenshot.configure(app_details)
-
-            # inititate the download and display series of callbacks
-            self.screenshot.download_and_display()
+            self.screenshot.fetch_screenshots(app_details)
         return
 
     def _update_weblive(self, app_details):
