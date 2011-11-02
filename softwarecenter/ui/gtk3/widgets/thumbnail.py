@@ -34,14 +34,28 @@ LOG = logging.getLogger(__name__)
 
 
 
-class ScreenshotData(object):
+class ScreenshotData(GObject.GObject):
+
+    __gsignals__ = {"screenshots-available" : (GObject.SIGNAL_RUN_FIRST,
+                                               GObject.TYPE_NONE,
+                                               (GObject.TYPE_PYOBJECT,),
+                                              ),
+                    }
 
     def __init__(self, app_details):
+        GObject.GObject.__init__(self)
         self.app_details = app_details
         self.appname = app_details.display_name
         self.pkgname = app_details.pkgname
-        self.screenshots = self.app_details.screenshots
+        self.app_details.connect(
+            "screenshots-available", self._on_screenshots_available)
+        self.app_details.query_multiple_screenshots()
+        self.screenshots = []
         return
+
+    def _on_screenshots_available(self, screenshot_data, screenshots):
+        self.screenshots = screenshots
+        self.emit("screenshots-available", screenshots)
 
     def get_n_screenshots(self):
         return len(self.screenshots)
@@ -363,7 +377,12 @@ class ScreenshotGallery(ScreenshotWidget):
         acc.set_name(_('Fetching screenshot ...'))
         self.clear()
         self.data = ScreenshotData(app_details)
+        self.data.connect(
+            "screenshots-available", self._on_screenshots_available)
         return
+
+    def _on_screenshots_available(self, screenshots, data):
+        self.download_and_display()
 
     def clear(self):
         self.thumbnails.clear()
