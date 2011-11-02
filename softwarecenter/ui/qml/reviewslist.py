@@ -81,7 +81,6 @@ class ReviewsListModel(QAbstractListModel):
         if page == 1:
             self.clear()
         # load in the eventloop to ensure that animations are not delayed
-        print "***", pkgname
         GObject.timeout_add(10, self.reviews.get_reviews,
                          Application(appname, pkgname), self._on_reviews_ready_callback, page)
 
