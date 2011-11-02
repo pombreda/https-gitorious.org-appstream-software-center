@@ -272,6 +272,7 @@ class PackageStatusBar(StatusBar):
                 if app_details.price:
                     self.set_label(app_details.price)
                 else:
+                    # TRANSLATORS: Free here means Gratis
                     self.set_label(_("Free"))
             self.set_button_label(_('Install'))
         elif state == PkgStates.UPGRADABLE:
@@ -533,6 +534,7 @@ class AddonsStatusBar(StatusBar):
 
         self.applying = False
         
+	# TRANSLATORS: Free here means Gratis
         self.label_price = Gtk.Label(_("Free"))
         self.hbox.pack_start(self.label_price, False, False, 0)
         
