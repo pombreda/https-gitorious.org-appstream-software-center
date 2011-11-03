@@ -75,7 +75,7 @@ class ScreenshotWidget(Gtk.VBox):
     ZOOM_ICON = "stock_zoom-page"
     NOT_AVAILABLE_STRING = _('No screenshot available')
 
-    USE_CACHING = True
+    USE_CACHING = False
 
     def __init__(self, distro, icons):
         Gtk.VBox.__init__(self)
@@ -141,10 +141,12 @@ class ScreenshotWidget(Gtk.VBox):
             self.loader.emit('error', GObject.GError, e)
             return False
 
-        pb = self._downsize_pixbuf(self.screenshot_pixbuf, *self.MAX_SIZE_CONSTRAINTS)
+        context = self.button.get_style_context()
+
+        tw, th = self.MAX_SIZE_CONSTRAINTS
+        pb = self._downsize_pixbuf(self.screenshot_pixbuf, tw, th)
         self.button.image.set_from_pixbuf(pb)
         self.ready = True
-
         self.display_image()
         return
 
@@ -192,7 +194,7 @@ class ScreenshotWidget(Gtk.VBox):
         self.button.hide()
         self.unavailable.hide()
         self.spinner.show()
-        self.screenshot.set_size_request(*self.MAX_SIZE_CONSTRAINTS)
+        self.determine_size()
         self.spinner.start()
         return
 
@@ -201,10 +203,31 @@ class ScreenshotWidget(Gtk.VBox):
         self.spinner.stop()
         self.unavailable.show()
         self.button.hide()
-        self.screenshot.set_size_request(*self.MAX_SIZE_CONSTRAINTS)
+        self.determine_size()
         acc = self.get_accessible()
         acc.set_name(self.NOT_AVAILABLE_STRING)
         acc.set_role(Atk.Role.LABEL)
+        return
+
+    def determine_size(self):
+        has_thumbnails = self.thumbnails.get_children()
+        #~ is_actionable = self.screenshot_available
+        w_contraint, h_constraint = self.MAX_SIZE_CONSTRAINTS
+        if not self.ready and not has_thumbnails:
+            # no thumbs or main image, spinner
+            self.screenshot.set_size_request(w_contraint, h_constraint)
+        elif not self.ready and has_thumbnails:
+            # still spinner vis but thumbs loaded
+            self.screenshot.set_size_request(w_contraint, h_constraint)
+        elif self.ready and not has_thumbnails:
+            # main image loaded no thumbs
+            self.screenshot.set_size_request(-1, -1)
+        elif self.ready and has_thumbnails:
+            # main image loaded with thumbs
+            self.screenshot.set_size_request(-1, h_constraint)
+        else:
+            self.screenshot.set_size_request(w_contraint, h_constraint)
+            print 'unhandled case', has_thumbnails, self.ready
         return
 
     def display_image(self):
@@ -213,6 +236,7 @@ class ScreenshotWidget(Gtk.VBox):
         self.spinner.hide()
         self.button.show_all()
         self.thumbnails.show()
+        self.determine_size()
         return
 
     def get_is_actionable(self):
@@ -338,11 +362,7 @@ class ScreenshotGallery(ScreenshotWidget):
 
     def _on_screenshots_available(self, screenshots):
         self.thumbnails.set_thumbnails_from_data(screenshots)
-        if self.ready and self.get_is_actionable():
-            self.screenshot.set_size_request(
-                -1, ScreenshotWidget.MAX_SIZE_CONSTRAINTS[1])
-        else:
-            self.screenshot.set_size_request(*self.MAX_SIZE_CONSTRAINTS)
+        self.determine_size()
 
     def clear(self):
         self.thumbnails.clear()
@@ -406,7 +426,6 @@ class ThumbnailGallery(Gtk.HBox):
 
     def __init__(self, gallery):
         Gtk.HBox.__init__(self)
-        self.set_spacing(3)
         self.gallery = gallery
         self.distro = gallery.distro
         self.icons = gallery.icons
