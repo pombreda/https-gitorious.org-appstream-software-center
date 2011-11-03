@@ -202,7 +202,6 @@ class ScreenshotWidget(Gtk.VBox):
         self.unavailable.show()
         self.button.hide()
         self.screenshot.set_size_request(*self.MAX_SIZE_CONSTRAINTS)
-
         acc = self.get_accessible()
         acc.set_name(self.NOT_AVAILABLE_STRING)
         acc.set_role(Atk.Role.LABEL)
@@ -213,10 +212,6 @@ class ScreenshotWidget(Gtk.VBox):
         self.spinner.stop()
         self.spinner.hide()
         self.button.show_all()
-        if self.thumbnails.get_children():
-            self.screenshot.set_size_request(-1, self.MAX_SIZE_CONSTRAINTS[1])
-        else:
-            self.screenshot.set_size_request(-1, -1)
         self.thumbnails.show()
         return
 
@@ -343,7 +338,7 @@ class ScreenshotGallery(ScreenshotWidget):
 
     def _on_screenshots_available(self, screenshots):
         self.thumbnails.set_thumbnails_from_data(screenshots)
-        if self.ready:
+        if self.ready and self.get_is_actionable():
             self.screenshot.set_size_request(
                 -1, ScreenshotWidget.MAX_SIZE_CONSTRAINTS[1])
         else:
@@ -405,7 +400,7 @@ class ThumbnailGallery(Gtk.HBox):
                            GObject.TYPE_NONE,
                            (int,),),}
 
-    THUMBNAIL_SIZE_CONTRAINTS = 100, 80
+    THUMBNAIL_SIZE_CONTRAINTS = 90, 80
     THUMBNAIL_MAX_COUNT = 3
 
 
@@ -475,7 +470,6 @@ class ThumbnailGallery(Gtk.HBox):
 
 
 def get_test_screenshot_thumbnail_window():
-
     icons = Gtk.IconTheme.get_default()
     icons.append_search_path("/usr/share/app-install/icons/")
 
