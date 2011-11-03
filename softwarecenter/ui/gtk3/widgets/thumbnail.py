@@ -381,23 +381,6 @@ class Thumbnail(Gtk.EventBox):
     def __init__(self, id_, url, cancellable=None):
         Gtk.EventBox.__init__(self)
         self.set_visible_window(False)
-
-        gfile = Gio.file_new_for_uri(url)
-        stream = gfile.read(cancellable)
-        width, height = ThumbnailGallery.THUMBNAIL_SIZE_CONTRAINTS
-        pixbuf = GdkPixbuf.Pixbuf.new_from_stream_at_scale(
-                    stream,
-                    width, height,  # width, height constraints
-                    True,  # respect image proportionality
-                    None)  # error handler
-
-        im = Gtk.Image.new_from_pixbuf(pixbuf)
-        #~ im.set_margin_left(2)
-        #~ im.set_margin_right(2)
-        #~ im.set_margin_top(2)
-        #~ im.set_margin_bottom(2)
-        self.add(im)
-        self.id_ = id_
         self.set_can_focus(True)
         self.set_events(Gdk.EventMask.BUTTON_PRESS_MASK|
             Gdk.EventMask.BUTTON_RELEASE_MASK)#|
@@ -405,6 +388,25 @@ class Thumbnail(Gtk.EventBox):
             #~ Gdk.EventMask.KEY_PRESS_MASK|
             #~ Gdk.EventMask.ENTER_NOTIFY_MASK|
             #~ Gdk.EventMask.LEAVE_NOTIFY_MASK)
+        #~ gfile = Gio.file_new_for_uri(url)
+        #~ stream = gfile.read(cancellable)
+        self.id_ = id_
+
+
+        def download_complete_cb(loader, path):
+            width, height = ThumbnailGallery.THUMBNAIL_SIZE_CONTRAINTS
+            pixbuf = GdkPixbuf.Pixbuf.new_from_file_at_scale(
+                        path,
+                        width, height,  # width, height constraints
+                        True)  # respect image proportionality
+            im = Gtk.Image.new_from_pixbuf(pixbuf)
+            self.add(im)
+            self.show_all()
+            return
+
+        loader = SimpleFileDownloader()
+        loader.connect("file-download-complete", download_complete_cb)
+        loader.download_file(url, use_cache=ScreenshotWidget.USE_CACHING)
         return
 
     def do_draw(self, cr):
@@ -524,7 +526,9 @@ def get_test_screenshot_thumbnail_window():
     vb = Gtk.VBox(spacing=6)
     win.add(vb)
 
-    vb.pack_start(Gtk.Button('A button for focus testing'), True, True, 0)
+    b = Gtk.Button('A button for focus testing')
+    vb.pack_start(b, True, True, 0)
+    win.set_data("screenshot_button_widget", b)
     vb.pack_start(t, True, True, 0)
 
     win.show_all()
@@ -536,7 +540,7 @@ if __name__ == '__main__':
 
     app_n = 0
 
-    def testing_cycle_apps(thumb, apps, db):
+    def testing_cycle_apps(_, thumb, apps, db):
         global app_n
         d = apps[app_n].get_details(db)
 
@@ -561,6 +565,7 @@ if __name__ == '__main__':
 
     w = get_test_screenshot_thumbnail_window()
     t = w.get_data("screenshot_thumbnail_widget")
+    b = w.get_data("screenshot_button_widget")
 
     from softwarecenter.db.application import Application
     apps = [Application("Movie Player", "totem"),
@@ -568,6 +573,6 @@ if __name__ == '__main__':
             Application("Gimp", "gimp"),
             Application("ACE", "uace")]
 
-    GObject.timeout_add_seconds(6, testing_cycle_apps, t, apps, db)
+    b.connect("clicked", testing_cycle_apps, t, apps, db)
 
     Gtk.main()
