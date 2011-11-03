@@ -115,22 +115,15 @@ class ScreenshotWidget(Gtk.VBox):
         self.screenshot = Gtk.VBox()
         self.pack_start(self.screenshot, True, True, 0)
 
-        # eventbox so we can connect to event signals
-        event = Gtk.EventBox()
-        event.set_visible_window(False)
-
         self.spinner = Gtk.Spinner()
         self.spinner.set_size_request(*self.SPINNER_SIZE)
         self.spinner.set_valign(Gtk.Align.CENTER)
         self.spinner.set_halign(Gtk.Align.CENTER)
         self.screenshot.add(self.spinner)
 
-        # the image
-        self.image = Gtk.Image()
-        event.add(self.image)
-        self.eventbox = event
-        self.eventbox.set_valign(Gtk.Align.CENTER)
-        self.screenshot.pack_start(self.eventbox, True, False, 0)
+        # clickable screenshot button
+        self.button = ScreenshotButton()
+        self.screenshot.pack_start(self.button, True, False, 0)
 
         # unavailable layout
         self.unavailable = Gtk.Label(label=self.NOT_AVAILABLE_STRING)
@@ -149,7 +142,7 @@ class ScreenshotWidget(Gtk.VBox):
             return False
 
         pb = self._downsize_pixbuf(self.screenshot_pixbuf, *self.MAX_SIZE_CONSTRAINTS)
-        self.image.set_from_pixbuf(pb)
+        self.button.image.set_from_pixbuf(pb)
         self.ready = True
 
         self.display_image()
@@ -195,8 +188,8 @@ class ScreenshotWidget(Gtk.VBox):
         return
 
     def display_spinner(self):
-        self.image.clear()
-        self.eventbox.hide()
+        self.button.image.clear()
+        self.button.hide()
         self.unavailable.hide()
         self.spinner.show()
         self.screenshot.set_size_request(*self.MAX_SIZE_CONSTRAINTS)
@@ -207,7 +200,7 @@ class ScreenshotWidget(Gtk.VBox):
         self.spinner.hide()
         self.spinner.stop()
         self.unavailable.show()
-        self.eventbox.hide()
+        self.button.hide()
         self.screenshot.set_size_request(*self.MAX_SIZE_CONSTRAINTS)
 
         acc = self.get_accessible()
@@ -219,7 +212,7 @@ class ScreenshotWidget(Gtk.VBox):
         self.unavailable.hide()
         self.spinner.stop()
         self.spinner.hide()
-        self.eventbox.show_all()
+        self.button.show_all()
         if self.thumbnails.get_children():
             self.screenshot.set_size_request(-1, self.MAX_SIZE_CONSTRAINTS[1])
         else:
@@ -245,6 +238,22 @@ class ScreenshotWidget(Gtk.VBox):
         return
 
 
+class ScreenshotButton(Gtk.Button):
+
+    def __init__(self):
+        Gtk.Button.__init__(self)
+        self.set_focus_on_click(False)
+        self.set_valign(Gtk.Align.CENTER)
+        self.image = Gtk.Image()
+        self.add(self.image)
+        return
+
+    def do_draw(self, cr):
+        for child in self:
+            self.propagate_draw(child, cr)
+        return
+
+
 class ScreenshotGallery(ScreenshotWidget):
 
     """ Widget that displays screenshot availability, download prrogress,
@@ -253,66 +262,23 @@ class ScreenshotGallery(ScreenshotWidget):
 
     def __init__(self, distro, icons):
         ScreenshotWidget.__init__(self, distro, icons)
-        self._init_signals()
         self._thumbnail_sigs = []
         return
 
     def _build_ui(self):
         ScreenshotWidget._build_ui(self)
-        self.thumbnails = ThumbnailGallery(self.distro, self.icons)
+        self.thumbnails = ThumbnailGallery(self)
         self.thumbnails.set_margin_top(5)
         self.thumbnails.set_halign(Gtk.Align.CENTER)
         self.pack_end(self.thumbnails, False, False, 0)
         self.thumbnails.connect("thumb-selected", self.on_thumbnail_selected)
+        self.button.connect("clicked", self.on_clicked)
         self.show_all()
         return
 
-    def _init_signals(self):
-        # set the widget to be reactive to events
-        self.set_property("can-focus", True)
-        event = self.eventbox
-        event.set_events(Gdk.EventMask.BUTTON_PRESS_MASK|
-                         Gdk.EventMask.BUTTON_RELEASE_MASK|
-                         Gdk.EventMask.KEY_RELEASE_MASK|
-                         Gdk.EventMask.KEY_PRESS_MASK|
-                         Gdk.EventMask.ENTER_NOTIFY_MASK|
-                         Gdk.EventMask.LEAVE_NOTIFY_MASK)
-
-        # connect events to signal handlers
-        event.connect('enter-notify-event', self._on_enter)
-        event.connect('leave-notify-event', self._on_leave)
-        event.connect('button-press-event', self._on_press)
-        event.connect('button-release-event', self._on_release)
-
-        self.connect('focus-in-event', self._on_focus_in)
-#        self.connect('focus-out-event', self._on_focus_out)
-        self.connect("key-press-event", self._on_key_press)
-        self.connect("key-release-event", self._on_key_release)
-        return
-
-    # signal handlers
-    def _on_enter(self, widget, event):
-        if not self.get_is_actionable(): return
-
-        self.get_window().set_cursor(self._zoom_cursor)
-        #~ self.show_tip(hide_after=3000)
-        return
-
-    def _on_leave(self, widget, event):
-        self.get_window().set_cursor(None)
-        #~ self.hide_tip()
-        return
-
-    def _on_press(self, widget, event):
-        if event.button != 1 or not self.get_is_actionable():
+    def on_clicked(self, button):
+        if not self.get_is_actionable():
             return
-        self.set_state(Gtk.StateType.ACTIVE)
-        return
-
-    def _on_release(self, widget, event):
-        if event.button != 1 or not self.get_is_actionable():
-            return
-        self.set_state(Gtk.StateType.NORMAL)
         self._show_image_dialog()
         return
 
@@ -385,20 +351,10 @@ class ScreenshotGallery(ScreenshotWidget):
         return
 
 
-class Thumbnail(Gtk.EventBox):
+class Thumbnail(Gtk.Button):
 
-    def __init__(self, id_, url, cancellable=None):
-        Gtk.EventBox.__init__(self)
-        self.set_visible_window(False)
-        self.set_can_focus(True)
-        self.set_events(Gdk.EventMask.BUTTON_PRESS_MASK|
-            Gdk.EventMask.BUTTON_RELEASE_MASK|
-            Gdk.EventMask.KEY_RELEASE_MASK|
-            Gdk.EventMask.KEY_PRESS_MASK)
-            #~ Gdk.EventMask.ENTER_NOTIFY_MASK|
-            #~ Gdk.EventMask.LEAVE_NOTIFY_MASK)
-        #~ gfile = Gio.file_new_for_uri(url)
-        #~ stream = gfile.read(cancellable)
+    def __init__(self, id_, url, cancellable, gallery):
+        Gtk.Button.__init__(self)
         self.id_ = id_
 
         def download_complete_cb(loader, path):
@@ -415,29 +371,18 @@ class Thumbnail(Gtk.EventBox):
         loader = SimpleFileDownloader()
         loader.connect("file-download-complete", download_complete_cb)
         loader.download_file(url, use_cache=ScreenshotWidget.USE_CACHING)
+
+        self.connect("draw", self.on_draw)
         return
 
-    def do_draw(self, cr):
+    def on_draw(self, thumb, cr):
+        state = self.get_state_flags()
+        if self.has_focus() or (state & Gtk.StateFlags.ACTIVE) > 0:
+            return
+
         for child in self:
             self.propagate_draw(child, cr)
-
-        state = self.get_state_flags()
-        if (Gtk.StateFlags.SELECTED & state) > 0 or self.has_focus():
-            a = self.get_allocation()
-            #~ context = self.get_style_context()
-            #~ context.save()
-            #~ context.set_state(Gtk.StateFlags.NORMAL)
-            #~ Gtk.render_frame(
-                #~ context, cr,
-                #~ 0, 0,
-                #~ a.width,
-                #~ a.height)
-            #~ context.restore()
-            cr.set_line_width(2)
-            cr.rectangle(1, 1, a.width-2, a.height-2)
-            cr.set_source_rgb(1,0,0)
-            cr.stroke()
-        return
+        return True
 
 
 class ThumbnailGallery(Gtk.HBox):
@@ -451,13 +396,13 @@ class ThumbnailGallery(Gtk.HBox):
     THUMBNAIL_MAX_COUNT = 3
 
 
-    def __init__(self, distro, icons):
+    def __init__(self, gallery):
         Gtk.HBox.__init__(self)
         self.set_spacing(3)
-        self.distro = distro
-        self.icons = icons
+        self.gallery = gallery
+        self.distro = gallery.distro
+        self.icons = gallery.icons
         self.cancel = Gio.Cancellable()
-
         self._prev = None
         self._handlers = []
         return
@@ -502,16 +447,16 @@ class ThumbnailGallery(Gtk.HBox):
         return
 
     def _create_thumbnail_for_url(self, index, url):
-        thumbnail = Thumbnail(index, url, self.cancel)
+        thumbnail = Thumbnail(index, url, self.cancel, self.gallery)
         self.pack_start(thumbnail, False, False, 0)
-        sig = thumbnail.connect("button-release-event", self.on_release)
+        sig = thumbnail.connect("clicked", self.on_clicked)
         self._handlers.append(sig)
         return
 
-    def on_release(self, thumb, event):
+    def on_clicked(self, thumb):
         if self._prev is not None:
             self._prev.set_state_flags(Gtk.StateFlags.NORMAL, True)
-        thumb.set_state_flags(Gtk.StateFlags.SELECTED, True)
+        thumb.set_state_flags(Gtk.StateFlags.SELECTED, False)
         self._prev = thumb
         self.emit("thumb-selected", thumb.id_)
 
