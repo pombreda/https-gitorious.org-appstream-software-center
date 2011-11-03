@@ -25,6 +25,7 @@ import os
 
 from softwarecenter.db.pkginfo import get_pkg_info
 from softwarecenter.utils import SimpleFileDownloader
+from softwarecenter.ui.gtk3.drawing import rounded_rect
 
 from imagedialog import SimpleShowImageDialog
 
@@ -112,7 +113,7 @@ class ScreenshotWidget(Gtk.VBox):
         # the frame around the screenshot (placeholder)
         self.set_border_width(3)
         self.screenshot = Gtk.VBox()
-        self.pack_start(self.screenshot, False, False, 0)
+        self.pack_start(self.screenshot, True, True, 0)
 
         # eventbox so we can connect to event signals
         event = Gtk.EventBox()
@@ -128,7 +129,8 @@ class ScreenshotWidget(Gtk.VBox):
         self.image = Gtk.Image()
         event.add(self.image)
         self.eventbox = event
-        self.screenshot.add(self.eventbox)
+        self.eventbox.set_valign(Gtk.Align.CENTER)
+        self.screenshot.pack_start(self.eventbox, True, False, 0)
 
         # unavailable layout
         self.unavailable = Gtk.Label(label=self.NOT_AVAILABLE_STRING)
@@ -258,7 +260,7 @@ class ScreenshotGallery(ScreenshotWidget):
     def _build_ui(self):
         ScreenshotWidget._build_ui(self)
         self.thumbnails = ThumbnailGallery(self.distro, self.icons)
-        self.thumbnails.set_margin_top(3)
+        self.thumbnails.set_margin_top(5)
         self.thumbnails.set_halign(Gtk.Align.CENTER)
         self.pack_end(self.thumbnails, False, False, 0)
         self.thumbnails.connect("thumb-selected", self.on_thumbnail_selected)
@@ -315,7 +317,6 @@ class ScreenshotGallery(ScreenshotWidget):
         return
 
     def _on_focus_in(self, widget, event):
-        self.show_tip(hide_after=3000)
         return
 
     def _on_key_press(self, widget, event):
