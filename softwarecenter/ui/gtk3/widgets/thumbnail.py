@@ -111,8 +111,7 @@ class ScreenshotWidget(Gtk.VBox):
     def _build_ui(self):
         # the frame around the screenshot (placeholder)
         self.set_border_width(3)
-        self.screenshot = Gtk.VBox(spacing=4)
-        self.screenshot.set_size_request(-1, self.MAX_SIZE_CONSTRAINTS[1])
+        self.screenshot = Gtk.VBox()
         self.pack_start(self.screenshot, False, False, 0)
 
         # eventbox so we can connect to event signals
@@ -259,6 +258,7 @@ class ScreenshotGallery(ScreenshotWidget):
     def _build_ui(self):
         ScreenshotWidget._build_ui(self)
         self.thumbnails = ThumbnailGallery(self.distro, self.icons)
+        self.thumbnails.set_margin_top(3)
         self.thumbnails.set_halign(Gtk.Align.CENTER)
         self.pack_end(self.thumbnails, False, False, 0)
         self.thumbnails.connect("thumb-selected", self.on_thumbnail_selected)
@@ -363,7 +363,11 @@ class ScreenshotGallery(ScreenshotWidget):
 
     def _on_screenshots_available(self, screenshots):
         self.thumbnails.set_thumbnails_from_data(screenshots)
-        self.screenshot.set_size_request(-1, ScreenshotWidget.MAX_SIZE_CONSTRAINTS[1])
+        if self.ready:
+            self.screenshot.set_size_request(
+                -1, ScreenshotWidget.MAX_SIZE_CONSTRAINTS[1])
+        else:
+            self.screenshot.set_size_request(*self.MAX_SIZE_CONSTRAINTS)
 
     def clear(self):
         self.thumbnails.clear()
@@ -387,15 +391,14 @@ class Thumbnail(Gtk.EventBox):
         self.set_visible_window(False)
         self.set_can_focus(True)
         self.set_events(Gdk.EventMask.BUTTON_PRESS_MASK|
-            Gdk.EventMask.BUTTON_RELEASE_MASK)#|
-            #~ Gdk.EventMask.KEY_RELEASE_MASK|
-            #~ Gdk.EventMask.KEY_PRESS_MASK|
+            Gdk.EventMask.BUTTON_RELEASE_MASK|
+            Gdk.EventMask.KEY_RELEASE_MASK|
+            Gdk.EventMask.KEY_PRESS_MASK)
             #~ Gdk.EventMask.ENTER_NOTIFY_MASK|
             #~ Gdk.EventMask.LEAVE_NOTIFY_MASK)
         #~ gfile = Gio.file_new_for_uri(url)
         #~ stream = gfile.read(cancellable)
         self.id_ = id_
-
 
         def download_complete_cb(loader, path):
             width, height = ThumbnailGallery.THUMBNAIL_SIZE_CONTRAINTS
