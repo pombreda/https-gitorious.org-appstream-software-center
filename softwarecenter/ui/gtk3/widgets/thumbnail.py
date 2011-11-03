@@ -249,6 +249,19 @@ class ScreenshotButton(Gtk.Button):
         return
 
     def do_draw(self, cr):
+        if self.has_focus():
+            context = self.get_style_context()
+            _a = self.get_allocation()
+            a = self.image.get_allocation()
+            pb = self.image.get_pixbuf()
+            pbw, pbh = pb.get_width(), pb.get_height()
+            Gtk.render_focus(
+                context,
+                cr,
+                a.x - _a.x + (a.width-pbw)/2 - 4,
+                a.y - _a.y + (a.height-pbh)/2 - 4,
+                pbw+8, pbh+8)
+
         for child in self:
             self.propagate_draw(child, cr)
         return
