@@ -219,7 +219,10 @@ class ScreenshotWidget(Gtk.VBox):
         self.spinner.stop()
         self.spinner.hide()
         self.eventbox.show_all()
-        self.screenshot.set_size_request(-1, self.MAX_SIZE_CONSTRAINTS[1])
+        if self.thumbnails.get_children():
+            self.screenshot.set_size_request(-1, self.MAX_SIZE_CONSTRAINTS[1])
+        else:
+            self.screenshot.set_size_request(-1, -1)
         self.thumbnails.show()
         return
 
@@ -360,6 +363,7 @@ class ScreenshotGallery(ScreenshotWidget):
 
     def _on_screenshots_available(self, screenshots):
         self.thumbnails.set_thumbnails_from_data(screenshots)
+        self.screenshot.set_size_request(-1, ScreenshotWidget.MAX_SIZE_CONSTRAINTS[1])
 
     def clear(self):
         self.thumbnails.clear()
