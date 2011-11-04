@@ -544,7 +544,8 @@ class ReviewLoaderJsonAsync(ReviewLoader):
         """ get the review statists and call callback when its there """
         f=Gio.File(self.distro.REVIEW_STATS_URL)
         f.set_data("callback", callback)
-        f.load_contents_async(self._gio_review_stats_download_finished_callback)
+        f.load_contents_async(
+            None, self._gio_review_stats_download_finished_callback, None)
 
 class ReviewLoaderFake(ReviewLoader):
 

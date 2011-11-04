@@ -46,6 +46,9 @@ class Ubuntu(Debian):
     SCREENSHOT_THUMB_URL =  "http://screenshots.ubuntu.com/thumbnail-with-version/%(pkgname)s/%(version)s"
     SCREENSHOT_LARGE_URL = "http://screenshots.ubuntu.com/screenshot-with-version/%(pkgname)s/%(version)s"
 
+    # the json description of the available screenshots
+    SCREENSHOT_JSON_URL = "http://screenshots.ubuntu.com/json/package/%s"
+
     # purchase subscription
     PURCHASE_APP_URL = BUY_SOMETHING_HOST+"/subscriptions/%s/ubuntu/%s/+new/?%s"
 

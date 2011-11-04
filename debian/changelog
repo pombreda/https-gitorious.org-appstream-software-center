@@ -17,6 +17,10 @@ software-center (5.1.1) UNRELEASED; urgency=low
   [ Sebastian Heinlein ]
   * lp:~glatzor/software-center/portability:
     - improve portability
+  
+  [ Matthew McGowan ]
+  * lp:~mmcg069/software-center/multi-screenshot-gallery:
+    - add support for multiple screenshots for the main archive
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 27 Oct 2011 16:47:38 -0400
 

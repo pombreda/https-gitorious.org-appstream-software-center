@@ -30,6 +30,8 @@ class Debian(Distro):
     # screenshot handling
     SCREENSHOT_THUMB_URL =  "http://screenshots.debian.net/thumbnail/%(pkgname)s"
     SCREENSHOT_LARGE_URL = "http://screenshots.debian.net/screenshot/%(pkgname)s"
+    # the json description of the available screenshots
+    SCREENSHOT_JSON_URL = "http://screenshots.debian.net/json/package/%s"
 
     REVIEWS_SERVER = ""
 
