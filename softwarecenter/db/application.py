@@ -252,7 +252,8 @@ class AppDetails(object):
         # try apt first
         if self._pkg:
             for origin in self._pkg.candidate.origins:
-                if (origin.origin == "Ubuntu" and origin.trusted and origin.component):
+                if (origin.origin == get_distro().get_distro_channel_name() and
+                    origin.trusted and origin.component):
                     return origin.component
         # then xapian
         elif self._doc:

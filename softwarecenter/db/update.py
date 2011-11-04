@@ -401,7 +401,7 @@ def update_from_var_lib_apt_lists(db, cache, listsdir=None):
     except ImportError:
         return False
     if not listsdir:
-        listsdir = apt_pkg.Config.find_dir("Dir::State::lists")
+        listsdir = apt_pkg.config.find_dir("Dir::State::lists")
     context = GObject.main_context_default()
     for appinfo in glob("%s/*AppInfo" % listsdir):
         LOG.debug("processing %s" % appinfo)

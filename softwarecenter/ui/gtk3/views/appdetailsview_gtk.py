@@ -1053,7 +1053,8 @@ class AppDetailsViewGtk(Viewport, AppDetailsViewBase):
         self.reviews.connect("more-reviews-clicked", self._on_more_reviews_clicked)
         self.reviews.connect("different-review-language-clicked", self._on_reviews_in_different_language_clicked)
         self.reviews.connect("review-sort-changed", self._on_review_sort_method_changed)
-        vb.pack_start(self.reviews, False, False, 0)
+        if get_distro().REVIEWS_SERVER:
+            vb.pack_start(self.reviews, False, False, 0)
 
         self.show_all()
 

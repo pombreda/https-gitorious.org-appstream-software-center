@@ -194,13 +194,3 @@ class OneConfHandler(GObject.GObject):
             clear_token_from_ubuntu_sso(self.appname)
             self._share_inventory(False)
             return
-
-
-# singleton
-oneconf_handler = None
-def get_oneconf_handler(oneconfviewpickler = None):
-    global oneconf_handler
-    if oneconf_handler is None and oneconfviewpickler:
-        oneconf_handler = OneConfHandler(oneconfviewpickler)
-    return oneconf_handler
-

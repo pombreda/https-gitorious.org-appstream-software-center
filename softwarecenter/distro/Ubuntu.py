@@ -56,6 +56,9 @@ class Ubuntu(Debian):
     # FIXME: does that make sense?!?
     REVIEW_STATS_URL = REVIEWS_SERVER+"/review-stats"
 
+    # Starting point for Ubuntu app developers
+    DEVELOPER_URL = "http://developer.ubuntu.com/"
+
     def get_app_name(self):
         return _("Ubuntu Software Center")
 
@@ -127,6 +130,9 @@ class Ubuntu(Debian):
         query2b = xapian.Query("XOC"+"restricted")
         query2 = xapian.Query(xapian.Query.OP_OR, query2a, query2b)
         return xapian.Query(xapian.Query.OP_AND, query1, query2)
+
+    def get_supported_filter_name(self):
+        return _("Canonical-Maintained Software")
 
     def get_maintenance_status(self, cache, appname, pkgname, component, channelname):
         # try to figure out the support dates of the release and make

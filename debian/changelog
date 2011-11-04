@@ -13,6 +13,10 @@ software-center (5.1.1) UNRELEASED; urgency=low
   * lp:~kelemeng/software-center/bug875306:
     - Add translator comment: Free means Gratis, as it is used as price.
       LP: #875306
+  
+  [ Sebastian Heinlein ]
+  * lp:~glatzor/software-center/portability:
+    - improve portability
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 27 Oct 2011 16:47:38 -0400
 

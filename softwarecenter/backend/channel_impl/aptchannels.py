@@ -266,7 +266,7 @@ class AptChannelsManager(ChannelsManager):
                                                       installed_only=installed_only))
 
         # always display the partner channel, even if its source is not enabled                                                       
-        if not partner_channel:
+        if not partner_channel and distro_channel_name == "Ubuntu":
             partner_channel = SoftwareChannel("Partner archive",
                                               "Canonical",
                                               "partner", 
@@ -285,7 +285,8 @@ class AptChannelsManager(ChannelsManager):
             channels.append(dist_channel)
         if partner_channel is not None:
             channels.append(partner_channel)
-        channels.append(for_purchase_channel)
+        if get_distro().PURCHASE_APP_URL:
+            channels.append(for_purchase_channel)
         if new_apps_channel is not None:
             channels.append(new_apps_channel)
         channels.extend(ppa_channels)
