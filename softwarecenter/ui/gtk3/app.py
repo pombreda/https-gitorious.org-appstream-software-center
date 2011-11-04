@@ -92,7 +92,7 @@ from softwarecenter.backend.login_sso import get_sso_backend
 
 from softwarecenter.backend.channel import AllInstalledChannel
 from softwarecenter.backend.reviews import get_review_loader, UsefulnessCache
-from softwarecenter.backend.oneconfhandler import get_oneconf_handler
+from softwarecenter.backend.oneconfhandler import get_oneconf_handler, is_oneconf_available
 from softwarecenter.distro import get_distro
 from softwarecenter.db.pkginfo import get_pkg_info
 
@@ -355,7 +355,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             help_menu.remove(developer_menuitem)
 
         # Check if oneconf is available
-        och = get_oneconf_handler()
+        och = is_oneconf_available()
         if not och:
             file_menu.remove(self.builder.get_object("menuitem_sync_between_computers"))
 
