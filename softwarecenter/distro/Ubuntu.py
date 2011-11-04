@@ -34,7 +34,8 @@ LOG = logging.getLogger(__name__)
 class Ubuntu(Debian):
 
     # see __init__.py description
-    DISTROSERIES = ["oneiric",
+    DISTROSERIES = ["precise",
+                    "oneiric",
                     "natty",
                    ]
 
