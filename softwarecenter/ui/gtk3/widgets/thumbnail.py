@@ -25,7 +25,6 @@ import os
 
 from softwarecenter.db.pkginfo import get_pkg_info
 from softwarecenter.utils import SimpleFileDownloader
-from softwarecenter.ui.gtk3.drawing import rounded_rect
 
 from imagedialog import SimpleShowImageDialog
 
