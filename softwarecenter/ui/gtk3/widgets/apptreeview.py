@@ -38,6 +38,7 @@ class AppTreeView(Gtk.TreeView):
         self.pressed = False
         self.focal_btn = None
         self._action_block_list = []
+        self._needs_collapse = []
         self.expanded_path = None
 
         #~ # if this hacked mode is available everything will be fast
@@ -123,19 +124,27 @@ class AppTreeView(Gtk.TreeView):
 
     def expand_path(self, path):
         if path is not None and not isinstance(path, Gtk.TreePath):
-            raise TypeError, "Expects Gtk.TreePath or None, got %s" % type(path)
+            raise TypeError, ("Expects Gtk.TreePath or None, got %s" %
+                              type(path))
 
         model = self.get_model()
         old = self.expanded_path
         self.expanded_path = path
 
         if old is not None:
-            try:
-                # lazy solution to Bug #846204
-                model.row_changed(old, model.get_iter(old))
-            except:
-                msg = "apptreeview.expand_path: Supplied 'old' path is an invalid tree path: '%s'" % old
-                logging.debug(msg)
+            ok, start, end = self.get_visible_range()
+            if (ok and start.compare(old) != -1 or
+                end.compare(old) != 1):
+                self._needs_collapse.append(old)
+            else:
+                try:
+                    # lazy solution to Bug #846204
+                    model.row_changed(old, model.get_iter(old))
+                except:
+                    msg = ("apptreeview.expand_path: Supplied 'old' "
+                           "path is an invalid tree path: '%s'" % old)
+                    logging.debug(msg)
+
         if path == None: return
 
         model.row_changed(path, model.get_iter(path))
@@ -451,8 +460,16 @@ class AppTreeView(Gtk.TreeView):
             indices = path.get_indices()
             model.load_range(indices, 5)
 
-        is_active = path == self.expanded_path
-        cell.set_property('isactive', is_active)
+        if path in self._needs_collapse:
+            # collapse rows that were outside the visible range and
+            # thus not immediately collapsed when expand_path was called
+            cell.set_property('isactive', False)
+            i = self._needs_collapse.index(path)
+            del self._needs_collapse[i]
+            model.row_changed(path, it)
+            return
+
+        cell.set_property('isactive', path == self.expanded_path)
         return
 
     def _app_activated_cb(self, btn, btn_id, app, store, path):
