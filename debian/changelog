@@ -1,7 +1,9 @@
-software-center (5.1.1) UNRELEASED; urgency=low
+software-center (5.1.1) precise; urgency=low
 
   [ Matthew McGowan ]
   * fix the rtl rendering of the "more label arrow"
+  * lp:~mmcg069/software-center/multi-screenshot-gallery:
+    - add support for multiple screenshots for the main archive
   
   [ Nicolas Delvaux ]
   * lp:~malizor/software-center/fix-lp813803:
@@ -18,11 +20,10 @@ software-center (5.1.1) UNRELEASED; urgency=low
   * lp:~glatzor/software-center/portability:
     - improve portability
   
-  [ Matthew McGowan ]
-  * lp:~mmcg069/software-center/multi-screenshot-gallery:
-    - add support for multiple screenshots for the main archive
-
- -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 27 Oct 2011 16:47:38 -0400
+  [ Michael Vogt ]
+  * more portability fixes
+  
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 07 Nov 2011 14:58:40 +0100
 
 software-center (5.1.0) precise; urgency=low
 
