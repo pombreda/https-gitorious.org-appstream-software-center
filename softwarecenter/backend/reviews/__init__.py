@@ -658,11 +658,12 @@ def get_review_loader(cache, db=None):
             review_loader = ReviewLoaderTechspeak(cache, db)
         else:
             try:
-                from softwarecenter.backend.reviews.rnr import ReviewLoaderSpawningRNRClient
-            except ImportError:
-                review_loader = ReviewLoaderNull(cache, db)
-            else:
+                from softwarecenter.backend.reviews.rnr import (
+                    ReviewLoaderSpawningRNRClient)
+                # no service_root will raise ValueError
                 review_loader = ReviewLoaderSpawningRNRClient(cache, db)
+            except (ImportError, ValueError):
+                review_loader = ReviewLoaderNull(cache, db)
     return review_loader
 
 if __name__ == "__main__":
