@@ -24,7 +24,7 @@ import os
 import time
 
 from softwarecenter.backend.spawn_helper import SpawnHelper
-from softwarecenter.backend.reviews import ReviewLoader, Review, ReviewStats
+from softwarecenter.backend.reviews import ReviewLoader, Review, ReviewStats, UsefulnessCache
 from softwarecenter.backend.piston.rnrclient import RatingsAndReviewsAPI
 from softwarecenter.backend.piston.rnrclient_pristine import ReviewDetails
 from softwarecenter.db.database import Application
@@ -34,7 +34,8 @@ from softwarecenter.paths import (SOFTWARE_CENTER_CACHE_DIR,
                                   PistonHelpers,
                                   RNRApps,
                                   )
-from softwarecenter.utils import calc_dr
+from softwarecenter.utils import calc_dr, utf8, save_person_to_config
+
 
 LOG = logging.getLogger(__name__)
 

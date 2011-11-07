@@ -32,7 +32,6 @@ from softwarecenter.paths import (APP_INSTALL_CHANNELS_PATH,
                                   SOFTWARE_CENTER_ICON_CACHE_DIR,
                                   )
 from softwarecenter.utils import utf8, split_icon_ext
-from softwarecenter.distro import get_distro
 
 LOG = logging.getLogger(__name__)
 

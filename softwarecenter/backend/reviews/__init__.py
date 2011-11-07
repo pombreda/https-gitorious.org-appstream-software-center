@@ -19,12 +19,10 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import datetime
-import gzip
 import logging
 import operator
 import os
 import random
-import json
 import struct
 import shutil
 import subprocess
@@ -34,7 +32,6 @@ import threading
 from bsddb import db as bdb
 
 from gi.repository import GObject
-from gi.repository import Gio
 
 # py3 compat
 try:
@@ -43,15 +40,6 @@ try:
 except ImportError:
     import pickle
 
-# py3 compat
-try:
-    from io import StringIO
-    StringIO # pyflakes
-    from urllib.parse import quote_plus
-    quote_plus # pyflakes
-except ImportError:
-    from StringIO import StringIO
-    from urllib import quote_plus
 
 from softwarecenter.db.categories import CategoriesParser
 from softwarecenter.db.database import Application, StoreDatabase
@@ -59,21 +47,15 @@ import softwarecenter.distro
 from softwarecenter.i18n import get_language
 from softwarecenter.utils import (upstream_version_compare,
                                   uri_to_filename,
-                                  save_person_to_config,
                                   get_person_from_config,
-                                  calc_dr,
                                   wilson_score,
-                                  utf8,
                                   )
 from softwarecenter.paths import (SOFTWARE_CENTER_CACHE_DIR,
                                   APP_INSTALL_PATH,
                                   XAPIAN_BASE_PATH,
-                                  RNRApps,
                                   PistonHelpers,
                                   )
 from softwarecenter.enums import ReviewSortMethods
-
-from softwarecenter.netstatus import network_state_is_connected
 
 from softwarecenter.backend.spawn_helper import SpawnHelper
 
@@ -674,8 +656,6 @@ def get_review_loader(cache, db=None):
             review_loader = ReviewLoaderFortune(cache, db)
         elif "SOFTWARE_CENTER_TECHSPEAK_REVIEWS" in os.environ:
             review_loader = ReviewLoaderTechspeak(cache, db)
-        elif "SOFTWARE_CENTER_GIO_REVIEWS" in os.environ:
-            review_loader = ReviewLoaderJsonAsync(cache, db)
         else:
             try:
                 from softwarecenter.backend.reviews.rnr import ReviewLoaderSpawningRNRClient
@@ -705,6 +685,7 @@ if __name__ == "__main__":
     app = Application("ACE", "unace")
     #app = Application("", "2vcard")
 
+    from softwarecenter.backend.reviews.rnr import ReviewLoaderSpawningRNRClient
     loader = ReviewLoaderSpawningRNRClient(cache, db)
     print loader.refresh_review_stats(stats_callback)
     print loader.get_reviews(app, callback)

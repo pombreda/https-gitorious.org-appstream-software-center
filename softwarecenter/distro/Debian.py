@@ -112,7 +112,7 @@ class Debian(Distro):
             return
         try:
             origins = cache[pkgname].candidate.origins
-        except KeyError, AttributeError:
+        except (KeyError, AttributeError):
             return
         else:
             for origin in origins:

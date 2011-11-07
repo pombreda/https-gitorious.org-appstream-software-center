@@ -567,7 +567,7 @@ def mangle_paths_if_running_in_local_checkout():
             logging.warn("using local APP_INSTALL_PATH: %s" % softwarecenter.paths.APP_INSTALL_PATH)
     else:
         datadir = softwarecenter.paths.datadir
-        xapian_base_path = XAPIAN_BASE_PATH
+        xapian_base_path = softwarecenter.paths.XAPIAN_BASE_PATH
     return (datadir, xapian_base_path)
 
 

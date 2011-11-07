@@ -140,8 +140,7 @@ class ScreenshotWidget(Gtk.VBox):
             self.loader.emit('error', GObject.GError, e)
             return False
 
-        context = self.button.get_style_context()
-
+        #context = self.button.get_style_context()
         tw, th = self.MAX_SIZE_CONSTRAINTS
         pb = self._downsize_pixbuf(self.screenshot_pixbuf, tw, th)
         self.button.image.set_from_pixbuf(pb)
