@@ -1,3 +1,11 @@
+software-center (5.1.1.1) precise; urgency=low
+
+  * setup.py:
+    - list sc.backend.oneconfhandler and sc.backend.reviews as packages
+      this allows s-c to startup on the development release (LP: #887392)
+
+ -- Kiwinote <kiwinote@gmail.com>  Tue, 08 Nov 2011 16:49:29 +0000
+
 software-center (5.1.1) precise; urgency=low
 
   [ Matthew McGowan ]
