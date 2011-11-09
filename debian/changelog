@@ -3,8 +3,16 @@ software-center (5.1.2) UNRELEASED; urgency=low
   [ Michael Vogt ]
   * test/test_channels.py:
     - add unit test for channels backend
+  * lp:~mvo/software-center/app-treeview-buy-plus-refactor:
+    - add unit test for ApplicationManager, additional tweaks
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 09 Nov 2011 13:39:00 -0500
+  [ Matthew McGowan ]
+  * lp:~mmcg069/software-center/app-treeview-buy-plus-refactor:
+    - implement the ability to initiate a purchase from the application
+      list directly and display the price there, include some nice
+      refactoring
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 09 Nov 2011 15:08:22 -0500
 
 software-center (5.1.1.1) precise; urgency=low
 
