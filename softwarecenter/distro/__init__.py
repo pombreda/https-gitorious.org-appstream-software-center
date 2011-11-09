@@ -19,11 +19,14 @@
 
 import logging
 import os
-import subprocess
 
 from gettext import gettext as _
+import lsb_release
 
 from softwarecenter.utils import UnimplementedError, utf8
+
+log = logging.getLogger(__name__)
+
 
 class Distro(object):
     """ abstract base class for a distribution """
@@ -36,6 +39,16 @@ class Distro(object):
     # base path for the review summary, the JS will append %i.png (with i={1,5})
     REVIEW_SUMMARY_STARS_BASE_PATH = "/usr/share/software-center/images/review-summary"
     REVIEWS_SERVER = os.environ.get("SOFTWARE_CENTER_REVIEWS_HOST") or "http://localhost:8000"
+
+    # You need to set this var to enable purchases
+    PURCHASE_APP_URL = ""
+
+    # Point developers to a web page
+    DEVELOPER_URL = ""
+
+    def __init__(self, lsb_info):
+        """Return a new generic Distro instance."""
+        self.lsb_info = lsb_info
 
     def get_app_name(self):
         """ 
@@ -66,9 +79,8 @@ class Distro(object):
             return os.environ["SOFTWARE_CENTER_DISTRO_CODENAME"]
         # normal behavior
         if not hasattr(self, "_distro_code_name"):
-            self._distro_code_name = subprocess.Popen(
-                ["lsb_release","-c","-s"], 
-                stdout=subprocess.PIPE).communicate()[0].strip()
+            self._distro_code_name = \
+                    lsb_release.get_distro_information()["CODENAME"]
         return self._distro_code_name
 
     def get_maintenance_status(self, cache, appname, pkgname, component, channelname):
@@ -88,6 +100,9 @@ class Distro(object):
         """ return a xapian query that gives all supported documents """
         import xapian
         return xapian.Query()
+
+    def get_supported_filter_name(self):
+        return _("Supported Software")
 
     def get_install_warning_text(self, cache, pkg, appname, depends):
         primary = utf8(_("To install %s, these items must be removed:")) % utf8(appname)
@@ -140,15 +155,14 @@ class Distro(object):
 
 
 def _get_distro():
-    distro_id = subprocess.Popen(["lsb_release","-i","-s"], 
-                                 stdout=subprocess.PIPE).communicate()[0]
-    distro_id = distro_id.strip().replace(' ', '')
-    logging.getLogger("softwarecenter.distro").debug("get_distro: '%s'" % distro_id)
+    lsb_info = lsb_release.get_distro_information()
+    distro_id = lsb_info["ID"]
+    log.debug("get_distro: '%s'", distro_id)
     # start with a import, this gives us only a softwarecenter module
     module =  __import__(distro_id, globals(), locals(), [], -1)
     # get the right class and instanciate it
     distro_class = getattr(module, distro_id)
-    instance = distro_class()
+    instance = distro_class(lsb_info)
     return instance
 
 def get_distro():

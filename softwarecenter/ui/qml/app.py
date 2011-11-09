@@ -24,10 +24,10 @@ GObject.threads_init()
 import os
 import sys
 
-from PySide import QtDeclarative
-from PySide.QtCore import QUrl
-from PySide.QtGui import QApplication, QIcon
-from PySide.QtDeclarative import QDeclarativeView 
+from PyQt4 import QtDeclarative
+from PyQt4.QtCore import QUrl
+from PyQt4.QtGui import QApplication, QIcon
+from PyQt4.QtDeclarative import QDeclarativeView 
 
 from softwarecenter.db.pkginfo import get_pkg_info
 
@@ -53,7 +53,7 @@ if __name__ == '__main__':
     mangle_paths_if_running_in_local_checkout()
 
     # ideally this should be part of the qml by using a qmlRegisterType()
-    # but that does not seem to be supported in pyside yet(?) so we need
+    # but that does not seem to be supported in pyqt yet(?) so we need
     # to cowboy it in here
     pkglistmodel = PkgListModel()
     reviewslistmodel = ReviewsListModel()

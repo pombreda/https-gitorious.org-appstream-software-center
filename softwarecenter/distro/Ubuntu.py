@@ -34,7 +34,8 @@ LOG = logging.getLogger(__name__)
 class Ubuntu(Debian):
 
     # see __init__.py description
-    DISTROSERIES = ["oneiric",
+    DISTROSERIES = ["precise",
+                    "oneiric",
                     "natty",
                    ]
 
@@ -44,6 +45,9 @@ class Ubuntu(Debian):
     # screenshot handling
     SCREENSHOT_THUMB_URL =  "http://screenshots.ubuntu.com/thumbnail-with-version/%(pkgname)s/%(version)s"
     SCREENSHOT_LARGE_URL = "http://screenshots.ubuntu.com/screenshot-with-version/%(pkgname)s/%(version)s"
+
+    # the json description of the available screenshots
+    SCREENSHOT_JSON_URL = "http://screenshots.ubuntu.com/json/package/%s"
 
     # purchase subscription
     PURCHASE_APP_URL = BUY_SOMETHING_HOST+"/subscriptions/%s/ubuntu/%s/+new/?%s"
@@ -55,6 +59,9 @@ class Ubuntu(Debian):
     #REVIEW_STATS_URL = REVIEWS_SERVER+"/reviews/api/1.0/%(language)s/%(origin)s/%(distroseries)s/review-stats/"
     # FIXME: does that make sense?!?
     REVIEW_STATS_URL = REVIEWS_SERVER+"/review-stats"
+
+    # Starting point for Ubuntu app developers
+    DEVELOPER_URL = "http://developer.ubuntu.com/"
 
     def get_app_name(self):
         return _("Ubuntu Software Center")
@@ -127,6 +134,9 @@ class Ubuntu(Debian):
         query2b = xapian.Query("XOC"+"restricted")
         query2 = xapian.Query(xapian.Query.OP_OR, query2a, query2b)
         return xapian.Query(xapian.Query.OP_AND, query1, query2)
+
+    def get_supported_filter_name(self):
+        return _("Canonical-Maintained Software")
 
     def get_maintenance_status(self, cache, appname, pkgname, component, channelname):
         # try to figure out the support dates of the release and make

@@ -19,8 +19,8 @@
 
 import os
 
-from PySide import QtCore
-from PySide.QtCore import Property, QAbstractListModel, QModelIndex, Slot
+from PyQt4 import QtCore
+from PyQt4.QtCore import QAbstractListModel, QModelIndex, pyqtSlot
 
 from softwarecenter.db.database import StoreDatabase, Application
 from softwarecenter.db.pkginfo import get_pkg_info
@@ -138,12 +138,12 @@ class PkgListModel(QAbstractListModel):
         self.endInsertRows()
 
     # install/remove interface (for qml)
-    @Slot(str)
+    @pyqtSlot(str)
     def installPackage(self, pkgname):
         appname = ""
         iconname = ""
         self.backend.install(pkgname, appname, iconname)
-    @Slot(str)
+    @pyqtSlot(str)
     def removePackage(self, pkgname):
         appname = ""
         iconname = ""
@@ -155,11 +155,11 @@ class PkgListModel(QAbstractListModel):
     def setSearchQuery(self, query):
         self._query = query
         self._runQuery(query)
-    searchQueryChanged = QtCore.Signal()
-    searchQuery = Property(unicode, getSearchQuery, setSearchQuery, notify=searchQueryChanged)
+    searchQueryChanged = QtCore.pyqtSignal()
+    searchQuery = QtCore.pyqtProperty(unicode, getSearchQuery, setSearchQuery, notify=searchQueryChanged)
 
     # allow to refine searches for specific categories
-    @Slot(str)
+    @pyqtSlot(str)
     def setCategory(self, catname):
         # empty category resets it
         if not catname:
@@ -176,8 +176,8 @@ class PkgListModel(QAbstractListModel):
         self._runQuery(self._query)
 
 if __name__ == "__main__":
-    from PySide.QtGui import QApplication
-    from PySide.QtDeclarative import QDeclarativeView 
+    from PyQt4.QtGui import QApplication
+    from PyQt4.QtDeclarative import QDeclarativeView 
     import sys
 
     app = QApplication(sys.argv)

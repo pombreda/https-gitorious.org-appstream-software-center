@@ -46,11 +46,6 @@ Tomeu Vizoso  - i18n
 Zygmunt Krynicki - Code
 Aaron Peachey - Code
 Konstantin Datz - Icon
-
-Includes artwork based on "Colorful Chocolate Candies" by Romain Guy.
-http://www.flickr.com/photos/romainguy
-Used under the Creative Commons Attribution-ShareAlike 2.0 Generic license.
-http://creativecommons.org/licenses/by-sa/2.0/deed.en
 </property>
     <property name="translator_credits" translatable="yes">translator-credits</property>
     <property name="logo_icon_name">softwarecenter</property>
@@ -470,7 +465,7 @@ http://creativecommons.org/licenses/by-sa/2.0/deed.en
                       </object>
                     </child>
                     <child>
-                      <object class="GtkSeparatorMenuItem" id="menuitem3">
+                      <object class="GtkSeparatorMenuItem" id="separator_developer">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                       </object>

@@ -448,7 +448,12 @@ class AppListStore(Gtk.ListStore, AppGenericStore):
             end = n_matches
 
         for i in range(start, end):
-            if self[(i,)][0]: continue
+            try:
+                row_content = self[(i,)][0]
+            except IndexError:
+                break
+
+            if row_content: continue
             doc = db.get_document(matches[i].docid)
             doc.available = doc.installed = doc.purchasable = None
             self[(i,)][0] = doc

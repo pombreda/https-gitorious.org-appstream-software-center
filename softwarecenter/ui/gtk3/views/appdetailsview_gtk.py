@@ -60,7 +60,7 @@ from softwarecenter.ui.gtk3.widgets.reviews import UIReviewsList
 from softwarecenter.ui.gtk3.widgets.containers import SmallBorderRadiusFrame
 from softwarecenter.ui.gtk3.widgets.stars import Star, StarRatingsWidget
 from softwarecenter.ui.gtk3.widgets.description import AppDescription
-from softwarecenter.ui.gtk3.widgets.thumbnail import ScreenshotThumbnail
+from softwarecenter.ui.gtk3.widgets.thumbnail import ScreenshotGallery
 from softwarecenter.ui.gtk3.widgets.weblivedialog import (
                                     ShowWebLiveServerChooserDialog)
 from softwarecenter.ui.gtk3.gmenusearch import GMenuSearcher
@@ -278,6 +278,7 @@ class PackageStatusBar(StatusBar):
                 if app_details.price:
                     self.set_label(app_details.price)
                 else:
+                    # TRANSLATORS: Free here means Gratis
                     self.set_label(_("Free"))
             self.set_button_label(_('Install'))
         elif state == PkgStates.UPGRADABLE:
@@ -539,6 +540,7 @@ class AddonsStatusBar(StatusBar):
 
         self.applying = False
         
+	# TRANSLATORS: Free here means Gratis
         self.label_price = Gtk.Label(_("Free"))
         self.hbox.pack_start(self.label_price, False, False, 0)
         
@@ -965,7 +967,7 @@ class AppDetailsViewGtk(Viewport, AppDetailsViewBase):
         body_hb.pack_start(self.desc, True, True, 0)
 
         # the thumbnail/screenshot
-        self.screenshot = ScreenshotThumbnail(get_distro(), self.icons)
+        self.screenshot = ScreenshotGallery(get_distro(), self.icons)
         right_vb = Gtk.VBox()
         right_vb.set_spacing(6)
         body_hb.pack_start(right_vb, False, False, 0)
@@ -1049,7 +1051,8 @@ class AppDetailsViewGtk(Viewport, AppDetailsViewBase):
         self.reviews.connect("more-reviews-clicked", self._on_more_reviews_clicked)
         self.reviews.connect("different-review-language-clicked", self._on_reviews_in_different_language_clicked)
         self.reviews.connect("review-sort-changed", self._on_review_sort_method_changed)
-        vb.pack_start(self.reviews, False, False, 0)
+        if get_distro().REVIEWS_SERVER:
+            vb.pack_start(self.reviews, False, False, 0)
 
         self.show_all()
 
@@ -1145,10 +1148,7 @@ class AppDetailsViewGtk(Viewport, AppDetailsViewBase):
     def _update_app_screenshot(self, app_details):
         # get screenshot urls and configure the ScreenshotView...
         if app_details.thumbnail and app_details.screenshot:
-            self.screenshot.configure(app_details)
-
-            # inititate the download and display series of callbacks
-            self.screenshot.download_and_display()
+            self.screenshot.fetch_screenshots(app_details)
         return
 
     def _update_weblive(self, app_details):

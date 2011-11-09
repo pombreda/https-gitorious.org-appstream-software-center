@@ -1,9 +1,37 @@
-software-center (5.1.1) UNRELEASED; urgency=low
+software-center (5.1.1.1) precise; urgency=low
+
+  * setup.py:
+    - list sc.backend.oneconfhandler and sc.backend.reviews as packages
+      this allows s-c to startup on the development release (LP: #887392)
+
+ -- Kiwinote <kiwinote@gmail.com>  Tue, 08 Nov 2011 16:49:29 +0000
+
+software-center (5.1.1) precise; urgency=low
 
   [ Matthew McGowan ]
   * fix the rtl rendering of the "more label arrow"
+  * lp:~mmcg069/software-center/multi-screenshot-gallery:
+    - add support for multiple screenshots for the main archive
+  
+  [ Nicolas Delvaux ]
+  * lp:~malizor/software-center/fix-lp813803:
+    - Time format in historypane: The translators comment was not 
+      extracted, which led to poor translations (eg. as reported 
+      in bug LP: #813803)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 27 Oct 2011 16:47:38 -0400
+  [ Gabor Kelemen ]
+  * lp:~kelemeng/software-center/bug875306:
+    - Add translator comment: Free means Gratis, as it is used as price.
+      LP: #875306
+  
+  [ Sebastian Heinlein ]
+  * lp:~glatzor/software-center/portability:
+    - improve portability
+  
+  [ Michael Vogt ]
+  * more portability fixes
+  
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 07 Nov 2011 14:58:40 +0100
 
 software-center (5.1.0) precise; urgency=low
 

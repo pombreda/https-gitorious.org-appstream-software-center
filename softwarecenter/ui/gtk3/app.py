@@ -92,7 +92,7 @@ from softwarecenter.backend.login_sso import get_sso_backend
 
 from softwarecenter.backend.channel import AllInstalledChannel
 from softwarecenter.backend.reviews import get_review_loader, UsefulnessCache
-from softwarecenter.backend.oneconfhandler import get_oneconf_handler
+from softwarecenter.backend.oneconfhandler import get_oneconf_handler, is_oneconf_available
 from softwarecenter.distro import get_distro
 from softwarecenter.db.pkginfo import get_pkg_info
 
@@ -348,10 +348,28 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         self.config = get_config()
         self.restore_state()
 
+        # Adapt menu entries
+        supported_menuitem = self.builder.get_object("menuitem_view_supported_only")
+        supported_menuitem.set_label(self.distro.get_supported_filter_name())
+        file_menu = self.builder.get_object("menu1")
+
+        if not self.distro.DEVELOPER_URL:
+            help_menu = self.builder.get_object("menu_help")
+            developer_separator = self.builder.get_object("separator_developer")
+            help_menu.remove(developer_separator)
+            developer_menuitem = self.builder.get_object("menuitem_developer")
+            help_menu.remove(developer_menuitem)
+
+        # Check if oneconf is available
+        och = is_oneconf_available()
+        if not och:
+            file_menu.remove(self.builder.get_object("menuitem_sync_between_computers"))
+
         # run s-c-agent update
-        if options.disable_buy:
-            file_menu = self.builder.get_object("menu1")
+        if options.disable_buy or not self.distro.PURCHASE_APP_URL:
             file_menu.remove(self.builder.get_object("menuitem_reinstall_purchases"))
+            if not (options.enable_lp or och):
+                file_menu.remove(self.builder.get_object("separator_login"))
         else:
             sc_agent_update = os.path.join(
                 self.datadir, "update-software-center-agent")
@@ -361,9 +379,6 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             GObject.child_watch_add(
                 pid, self._on_update_software_center_agent_finished)
 
-        if options.disable_buy and not options.enable_lp:
-            file_menu.remove(self.builder.get_object("separator_login"))
-            
         # TODO: Remove the following two lines once we have remove repository
         #       support in aptdaemon (see LP: #723911)
         file_menu = self.builder.get_object("menu1")
@@ -961,8 +976,8 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         GObject.timeout_add_seconds(1, lambda p: p.poll() == None, p)
 
     def on_menuitem_developer_activate(self, menuitem):
-        webbrowser.open("http://developer.ubuntu.com/")
-            
+        webbrowser.open(self.distro.DEVELOPER_URL)
+
     def _ask_and_repair_broken_cache(self):
         # wait until the window window is available
         if self.window_main.props.visible == False:

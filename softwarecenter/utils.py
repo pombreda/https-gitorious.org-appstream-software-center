@@ -567,7 +567,7 @@ def mangle_paths_if_running_in_local_checkout():
             logging.warn("using local APP_INSTALL_PATH: %s" % softwarecenter.paths.APP_INSTALL_PATH)
     else:
         datadir = softwarecenter.paths.datadir
-        xapian_base_path = XAPIAN_BASE_PATH
+        xapian_base_path = softwarecenter.paths.XAPIAN_BASE_PATH
     return (datadir, xapian_base_path)
 
 
@@ -613,7 +613,9 @@ class SimpleFileDownloader(GObject.GObject):
         # like bug #839462
         if self._cancellable:
             self._cancellable.cancel()
-        self._cancellable = Gio.Cancellable()
+            self._cancellable.reset()
+        else:
+            self._cancellable = Gio.Cancellable()
 
         # no need to cache file urls and no need to really download
         # them, its enough to adjust the dest_file_path
