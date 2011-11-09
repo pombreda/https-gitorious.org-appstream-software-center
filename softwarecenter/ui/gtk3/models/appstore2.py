@@ -481,7 +481,7 @@ class AppTreeStore(Gtk.TreeStore, AppGenericStore):
 
     def set_documents(self, parent, documents):
         for doc in documents:
-            doc.available = None; doc.installed = doc.purchaseable = None
+            doc.available = None; doc.installed = doc.purchasable = None
             self.append(parent, (doc,))
 
         self.transaction_path_map = {}
