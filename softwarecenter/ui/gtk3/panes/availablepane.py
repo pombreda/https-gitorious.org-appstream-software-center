@@ -41,6 +41,7 @@ from softwarecenter.ui.gtk3.views.catview_gtk import (LobbyViewGtk,
                                                       SubCategoryViewGtk)
 from softwarepane import SoftwarePane
 from softwarecenter.ui.gtk3.session.viewmanager import get_viewmanager
+from softwarecenter.ui.gtk3.session.appmanager import get_appmanager
 
 LOG = logging.getLogger(__name__)
 
@@ -114,11 +115,10 @@ class AvailablePane(SoftwarePane):
             #~ self.app_view._append_appcount(appcount)
         #~ liststore.connect('appcount-changed', on_appcount_changed)
         self.app_view.set_model(liststore)
-        # setup purchase stuff
-        self.app_details_view.connect("purchase-requested",
-                                      self.on_purchase_requested)
         # purchase view
         self.purchase_view = PurchaseView()
+        app_manager = get_appmanager()
+        app_manager.connect("purchase-requested", self.on_purchase_requested)
         self.purchase_view.connect("purchase-succeeded", self.on_purchase_succeeded)
         self.purchase_view.connect("purchase-failed", self.on_purchase_failed)
         self.purchase_view.connect("purchase-cancelled-by-user", self.on_purchase_cancelled_by_user)
@@ -198,14 +198,14 @@ class AvailablePane(SoftwarePane):
         if window is not None:
             window.set_cursor(None)
 
-    def on_purchase_requested(self, widget, app, url):
-
-        self.appdetails = app.get_details(self.db)
-        iconname = self.appdetails.icon
+    def on_purchase_requested(self, appmanager, app, iconname, url):
         self.purchase_view.initiate_purchase(app, iconname, url)
         vm = get_viewmanager()
-        vm.display_page(self, AvailablePane.Pages.PURCHASE, self.state, self.display_purchase)
-        
+        vm.display_page(
+            self, AvailablePane.Pages.PURCHASE, self.state,
+            self.display_purchase)
+        return
+
     def on_purchase_succeeded(self, widget):
         # switch to the details page to display the transaction is in progress
         self._return_to_appdetails_view()
@@ -604,7 +604,7 @@ class AvailablePane(SoftwarePane):
 
     def on_show_category_applist(self, widget):
         self._show_hide_subcategories(show_category_applist=True)
-        
+
     def on_previous_purchases_activated(self, query):
         """ called to activate the previous purchases view """
         #print cat_view, name, query
@@ -667,6 +667,7 @@ class AvailablePane(SoftwarePane):
 def get_test_window():
     from softwarecenter.testutils import (get_test_db,
                                           get_test_datadir,
+                                          get_test_install_backend,
                                           get_test_gtk3_viewmanager,
                                           get_test_pkg_info,
                                           get_test_gtk3_icon_cache,
@@ -678,6 +679,11 @@ def get_test_window():
     cache = get_test_pkg_info()
     datadir = get_test_datadir()
     icons = get_test_gtk3_icon_cache()
+    backend = get_test_install_backend()
+
+    # create global AppManager instance
+    from softwarecenter.ui.gtk3.session.appmanager import ApplicationManager
+    ApplicationManager(db, backend, icons)
 
     navhistory_back_action = Gtk.Action("navhistory_back_action", "Back", "Back", None)
     navhistory_forward_action = Gtk.Action("navhistory_forward_action", "Forward", "Forward", None)

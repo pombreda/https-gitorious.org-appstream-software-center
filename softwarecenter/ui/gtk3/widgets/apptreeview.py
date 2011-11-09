@@ -5,6 +5,9 @@ import xapian
 
 from gettext import gettext as _
 
+from softwarecenter.ui.gtk3.session.appmanager import get_appmanager
+
+
 from cellrenderers import (CellRendererAppView,
                            CellButtonRenderer,
                            CellButtonIDs)
@@ -26,14 +29,16 @@ class AppTreeView(Gtk.TreeView):
     VARIANT_INFO = 0
     VARIANT_REMOVE = 1
     VARIANT_INSTALL = 2
+    VARIANT_PURCHASE = 3
 
-    ACTION_BTNS = (VARIANT_REMOVE, VARIANT_INSTALL)
+    ACTION_BTNS = (VARIANT_REMOVE, VARIANT_INSTALL, VARIANT_PURCHASE)
 
-    def __init__(self, app_view, icons, show_ratings, store=None):
+    def __init__(self, app_view, db, icons, show_ratings, store=None):
         Gtk.TreeView.__init__(self)
         self._logger = logging.getLogger("softwarecenter.view.appview")
 
         self.app_view = app_view
+        self.db = db
 
         self.pressed = False
         self.focal_btn = None
@@ -57,6 +62,7 @@ class AppTreeView(Gtk.TreeView):
         # it needs to be the first one, because that is what the tools look
         # at by default
         tr = CellRendererAppView(icons,
+                                 self.create_pango_layout(''),
                                  show_ratings,
                                  Icons.INSTALLED_OVERLAY)
         tr.set_pixbuf_width(32)
@@ -70,9 +76,11 @@ class AppTreeView(Gtk.TreeView):
 
         action = CellButtonRenderer(self,
                                     name=CellButtonIDs.ACTION)
+
         action.set_markup_variants(
                 {self.VARIANT_INSTALL: _('Install'),
-                 self.VARIANT_REMOVE: _('Remove')})
+                 self.VARIANT_REMOVE: _('Remove'),
+                 self.VARIANT_PURCHASE: _(u'Buy\u2026')})
 
         tr.button_pack_start(info)
         tr.button_pack_end(action)
@@ -140,17 +148,6 @@ class AppTreeView(Gtk.TreeView):
 
         model.row_changed(path, model.get_iter(path))
         return
-
-#    def is_action_in_progress_for_selected_app(self):
-#        """
-#        return True if an install or remove of the current package
-#        is in progress
-#        """
-#        (path, column) = self.get_cursor()
-#        if path:
-#            model = self.get_model()
-#            return (model[path][AppGenericStore.COL_ROW_DATA].transaction_progress != -1)
-#        return False
 
     def get_scrolled_window_vadjustment(self):
         ancestor = self.get_ancestor(Gtk.ScrolledWindow)
@@ -289,9 +286,14 @@ class AppTreeView(Gtk.TreeView):
             action_btn.set_sensitive(True)
             action_btn.show()
         elif self.appmodel.is_available(app):
-            action_btn.set_variant(self.VARIANT_INSTALL)
+            if self.appmodel.is_purchasable(app):
+                action_btn.set_variant(self.VARIANT_PURCHASE)
+            else:
+                action_btn.set_variant(self.VARIANT_INSTALL)
+
             action_btn.set_sensitive(True)
             action_btn.show()
+
             if not network_state_is_connected():
                 action_btn.set_sensitive(False)
                 self.app_view.emit("application-selected",
@@ -318,16 +320,19 @@ class AppTreeView(Gtk.TreeView):
     def _on_row_activated(self, view, path, column, tr):
         rowref = self.get_rowref(view.get_model(), path)
 
-        if not rowref: return
-
-        if self.rowref_is_category(rowref): return
+        if not rowref:
+            return
+        elif self.rowref_is_category(rowref):
+            return
 
         x, y = self.get_pointer()
         for btn in tr.get_buttons():
             if btn.point_in(x, y): 
                 return
 
-        self.app_view.emit("application-activated", self.appmodel.get_application(rowref))
+        app = self.appmodel.get_application(rowref)
+        if app:
+            self.app_view.emit("application-activated", app)
         return
 
     def _on_button_event_get_path(self, view, event):
@@ -468,25 +473,33 @@ class AppTreeView(Gtk.TreeView):
         pkgname = self.appmodel.get_pkgname(app)
 
         if btn_id == CellButtonIDs.INFO:
-            self.app_view.emit("application-activated", self.appmodel.get_application(app))
+            self.app_view.emit("application-activated",
+                               self.appmodel.get_application(app))
         elif btn_id == CellButtonIDs.ACTION:
             btn.set_sensitive(False)
             store.row_changed(path, store.get_iter(path))
-            # be sure we dont request an action for a pkg with pre-existing actions
+            app_manager = get_appmanager()
+            # be sure we dont request an action for a pkg with
+            # pre-existing actions
             if pkgname in self._action_block_list:
-                logging.debug("Action already in progress for package: '%s'" % pkgname)
+                logging.debug("Action already in progress for package:"
+                              " '%s'" % pkgname)
                 return False
             self._action_block_list.append(pkgname)
             if self.appmodel.is_installed(app):
-                perform_action = AppActions.REMOVE
+                action = AppActions.REMOVE
+            elif self.appmodel.is_purchasable(app):
+                app_manager.buy_app(self.appmodel.get_application(app))
+                store.notify_action_request(app, path)
+                return
             else:
-                perform_action = AppActions.INSTALL
+                action = AppActions.INSTALL
 
             store.notify_action_request(app, path)
-
-            self.app_view.emit("application-request-action",
-                      self.appmodel.get_application(app),
-                      [], [], perform_action)
+            
+            app_manager.request_action(
+                self.appmodel.get_application(app), [], [],
+                action)
         return False
 
     def _set_cursor(self, btn, cursor):

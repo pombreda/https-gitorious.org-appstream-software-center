@@ -181,6 +181,7 @@ class AppActions:
     REMOVE = "remove"
     UPGRADE = "upgrade"
     APPLY = "apply_changes"
+    PURCHASE = "purchase"
 
 # transaction types
 class TransactionTypes:

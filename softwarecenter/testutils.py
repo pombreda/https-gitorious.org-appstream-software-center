@@ -77,6 +77,11 @@ def get_test_db():
     db.open()
     return db
 
+def get_test_install_backend():
+    from softwarecenter.backend.installbackend import get_install_backend
+    backend = get_install_backend()
+    return backend
+
 def get_test_gtk3_icon_cache():
     from softwarecenter.ui.gtk3.utils import get_sc_icon_theme
     import softwarecenter.paths
@@ -104,3 +109,9 @@ def get_test_enquirer_matches(db, query=None, limit=20, sortmode=0):
                        limit=limit,
                        nonblocking_load=False)
     return enquirer.matches
+
+def do_events():
+    from gi.repository import GObject
+    main_loop = GObject.main_context_default()
+    while main_loop.pending():
+        main_loop.iteration()
