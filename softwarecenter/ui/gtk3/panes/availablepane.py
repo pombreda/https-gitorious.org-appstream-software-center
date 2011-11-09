@@ -667,6 +667,7 @@ class AvailablePane(SoftwarePane):
 def get_test_window():
     from softwarecenter.testutils import (get_test_db,
                                           get_test_datadir,
+                                          get_test_install_backend,
                                           get_test_gtk3_viewmanager,
                                           get_test_pkg_info,
                                           get_test_gtk3_icon_cache,
@@ -678,6 +679,11 @@ def get_test_window():
     cache = get_test_pkg_info()
     datadir = get_test_datadir()
     icons = get_test_gtk3_icon_cache()
+    backend = get_test_install_backend()
+
+    # create global AppManager instance
+    from softwarecenter.ui.gtk3.session.appmanager import ApplicationManager
+    ApplicationManager(db, backend, icons)
 
     navhistory_back_action = Gtk.Action("navhistory_back_action", "Back", "Back", None)
     navhistory_forward_action = Gtk.Action("navhistory_forward_action", "Forward", "Forward", None)

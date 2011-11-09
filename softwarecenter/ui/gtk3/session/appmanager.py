@@ -26,11 +26,11 @@ from gi.repository import GObject
 
 from softwarecenter.enums import AppActions
 from softwarecenter.db import DebFileApplication
-from softwarecenter.distro import get_current_arch
+from softwarecenter.distro import get_current_arch, get_distro
 from softwarecenter.i18n import get_language
 from softwarecenter.ui.gtk3.dialogs import dependency_dialogs
 from softwarecenter.backend.transactionswatcher import TransactionFinishedResult
-
+import softwarecenter.paths
 
 _appmanager = None  # the global AppManager instance
 def get_appmanager():
@@ -47,13 +47,13 @@ class ApplicationManager(GObject.GObject):
                                 ),
     }
 
-    def __init__(self, db, backend, distro, datadir, icons):
+    def __init__(self, db, backend, icons):
         GObject.GObject.__init__(self)
         self._globalise_instance()
         self.db = db
         self.backend = backend
-        self.distro = distro
-        self.datadir = datadir
+        self.distro = get_distro()
+        self.datadir = softwarecenter.paths.datadir
         self.icons = icons
 
     def _globalise_instance(self):

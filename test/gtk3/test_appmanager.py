@@ -27,7 +27,7 @@ class TestAppManager(unittest.TestCase):
         # create it once, it becomes global instance
         if get_appmanager() is None:
             ApplicationManager(
-                self.db, self.backend, self.distro, self.datadir, self.icons)
+                self.db, self.backend, self.icons)
 
     def test_get_appmanager(self):
         app_manager = get_appmanager()
@@ -37,8 +37,7 @@ class TestAppManager(unittest.TestCase):
         self.assertEqual(app_manager, app_manager2)
         # test creating it twice raises a error
         self.assertRaises(
-            ValueError, ApplicationManager, self.db, self.backend, self.distro,
-            self.datadir, self.icons)
+            ValueError, ApplicationManager, self.db, self.backend, self.icons)
         
     def test_appmanager(self):
         app_manager = get_appmanager()

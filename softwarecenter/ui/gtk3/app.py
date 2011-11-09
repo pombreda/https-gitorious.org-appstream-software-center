@@ -250,9 +250,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         self.backend.connect("channels-changed", self.on_channels_changed)
 
         # high level app management
-        self.app_manager = ApplicationManager(self.db, self.backend,
-                                              self.distro, datadir,
-                                              self.icons)
+        self.app_manager = ApplicationManager(self.db, self.backend, self.icons)
 
         # misc state
         self._block_menuitem_view = False
