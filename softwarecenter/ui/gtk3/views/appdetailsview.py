@@ -16,8 +16,6 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from gi.repository import GObject
-
 import logging
 import softwarecenter.ui.gtk3.dialogs as dialogs
 
@@ -26,7 +24,6 @@ from gettext import gettext as _
 from softwarecenter.db.application import AppDetails
 from softwarecenter.backend.reviews import get_review_loader
 from softwarecenter.backend import get_install_backend
-from softwarecenter.enums import AppActions
 
 
 LOG=logging.getLogger(__name__)

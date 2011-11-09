@@ -5,16 +5,6 @@ import xapian
 
 from gettext import gettext as _
 
-try:
-    from urllib.parse import urlencode
-    urlencode # pyflakes
-except ImportError:
-    from urllib import urlencode
-
-from softwarecenter.db.application import AppDetails
-from softwarecenter.distro import get_current_arch
-from softwarecenter.i18n import get_language
-from softwarecenter.distro import get_distro
 from softwarecenter.ui.gtk3.session.appmanager import get_appmanager
 
 

@@ -1,6 +1,5 @@
 #!/usr/bin/python
 
-from gi.repository import Gtk
 from mock import Mock
 import unittest
 
@@ -11,8 +10,7 @@ import softwarecenter.paths
 from softwarecenter.db.application import Application
 from softwarecenter.distro import get_distro
 from softwarecenter.testutils import (
-    get_test_db, get_test_install_backend, get_test_gtk3_icon_cache,
-    do_events)
+    get_test_db, get_test_gtk3_icon_cache, do_events)
 from softwarecenter.ui.gtk3.session.appmanager import (
     ApplicationManager, get_appmanager)
 
@@ -28,7 +26,7 @@ class TestAppManager(unittest.TestCase):
         self.icons = get_test_gtk3_icon_cache()
         # create it once, it becomes global instance
         if get_appmanager() is None:
-            app_manager = ApplicationManager(
+            ApplicationManager(
                 self.db, self.backend, self.distro, self.datadir, self.icons)
 
     def test_get_appmanager(self):

@@ -66,7 +66,6 @@ from softwarecenter.ui.gtk3.utils import (get_sc_icon_theme,
                                           init_sc_css_provider)
 from softwarecenter.version import VERSION
 from softwarecenter.db.database import StoreDatabase
-from softwarecenter.backend.transactionswatcher import TransactionFinishedResult
 try:
     from aptd_gtk3 import InstallBackendUI
     InstallBackendUI # pyflakes
