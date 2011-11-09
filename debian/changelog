@@ -1,3 +1,11 @@
+software-center (5.1.2) UNRELEASED; urgency=low
+
+  [ Michael Vogt ]
+  * test/test_channels.py:
+    - add unit test for channels backend
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 09 Nov 2011 13:39:00 -0500
+
 software-center (5.1.1.1) precise; urgency=low
 
   * setup.py:
