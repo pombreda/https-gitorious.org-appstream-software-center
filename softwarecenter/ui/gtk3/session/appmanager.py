@@ -1,3 +1,21 @@
+# Copyright (C) 2011 Canonical
+#
+# Authors:
+#  Matthew McGowan
+#
+# This program is free software; you can redistribute it and/or modify it under
+# the terms of the GNU General Public License as published by the Free Software
+# Foundation; version 3.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more
+# details.
+#
+# You should have received a copy of the GNU General Public License along with
+# this program; if not, write to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
+
 try:
     from urllib.parse import urlencode
     urlencode  # pyflakes
@@ -7,7 +25,6 @@ except ImportError:
 from gi.repository import GObject
 
 from softwarecenter.enums import AppActions
-from softwarecenter.db.application import Application
 from softwarecenter.db import DebFileApplication
 from softwarecenter.distro import get_current_arch
 from softwarecenter.i18n import get_language
@@ -16,6 +33,7 @@ from softwarecenter.ui.gtk3.dialogs import dependency_dialogs
 
 _appmanager = None  # the global AppManager instance
 def get_appmanager():
+    """ get a existing appmanager instance (or None if none is created yet) """
     return _appmanager
 
 
@@ -151,6 +169,7 @@ class ApplicationManager(GObject.GObject):
                                                       license_key_path)
 
     def enable_software_source(self, app):
+        """ enable the software source for the given app """
         appdetails = app.get_details(self.db)
         if appdetails.channelfile and appdetails._unavailable_channel():
             self.backend.enable_channel(appdetails.channelfile)
