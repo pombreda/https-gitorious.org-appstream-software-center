@@ -29,6 +29,7 @@ from softwarecenter.db import DebFileApplication
 from softwarecenter.distro import get_current_arch
 from softwarecenter.i18n import get_language
 from softwarecenter.ui.gtk3.dialogs import dependency_dialogs
+from softwarecenter.backend.transactionswatcher import TransactionFinishedResult
 
 
 _appmanager = None  # the global AppManager instance
@@ -59,7 +60,7 @@ class ApplicationManager(GObject.GObject):
         global _appmanager
         if _appmanager is not None:
             msg = "Only one instance of ApplicationManager is allowed!"
-            raise SystemExit(msg)
+            raise ValueError(msg)
         else:
             _appmanager = self
 
@@ -130,7 +131,7 @@ class ApplicationManager(GObject.GObject):
         self.request_action(
             app, addons_to_install, addons_to_remove, AppActions.REMOVE)
 
-    def upgrade(self):
+    def upgrade(self, app, addons_to_install, addons_to_remove):
         """ upgrade the current application, fire an action request """
         self.request_action(
             app, addons_to_install, addons_to_remove, AppActions.UPGRADE)
