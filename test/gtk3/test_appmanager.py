@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 from gi.repository import Gtk
+from mock import Mock
 import unittest
 
 import sys
@@ -11,7 +12,7 @@ from softwarecenter.db.application import Application
 from softwarecenter.distro import get_distro
 from softwarecenter.testutils import (
     get_test_db, get_test_install_backend, get_test_gtk3_icon_cache,
-    start_dummy_backend, stop_dummy_backend)
+    do_events)
 from softwarecenter.ui.gtk3.session.appmanager import (
     ApplicationManager, get_appmanager)
 
@@ -19,11 +20,9 @@ class TestAppManager(unittest.TestCase):
     """ tests the appmanager  """
 
     def setUp(self):
-        # create dummy daemon so that we can run all commands for real
-        start_dummy_backend()
         # get required test stuff
         self.db = get_test_db()
-        self.backend = get_test_install_backend()
+        self.backend = Mock()
         self.distro = get_distro()
         self.datadir = softwarecenter.paths.datadir
         self.icons = get_test_gtk3_icon_cache()
@@ -31,9 +30,6 @@ class TestAppManager(unittest.TestCase):
         if get_appmanager() is None:
             app_manager = ApplicationManager(
                 self.db, self.backend, self.distro, self.datadir, self.icons)
-
-    def tearDown(self):
-        stop_dummy_backend()
 
     def test_get_appmanager(self):
         app_manager = get_appmanager()
@@ -49,19 +45,36 @@ class TestAppManager(unittest.TestCase):
     def test_appmanager(self):
         app_manager = get_appmanager()
         self.assertNotEqual(app_manager, None)
-        # dummy app
-        app = Application("", "2vcard")
         # test interface
         app_manager.reload()
+        app = Application("", "2vcard")
+        # call and ensure the stuff is passed to the backend
         app_manager.install(app, [], [])
+        self.assertTrue(self.backend.install.called)
+
         app_manager.remove(app, [], [])
+        self.assertTrue(self.backend.remove.called)
+
         app_manager.upgrade(app, [], [])
+        self.assertTrue(self.backend.upgrade.called)
+
         app_manager.apply_changes(app, [], [])
-        app_manager.buy_app(app)
-        app_manager.reinstall_purchased(app)
+        self.assertTrue(self.backend.apply_changes.called)
+
         app_manager.enable_software_source(app)
-        while Gtk.events_pending():
-            Gtk.main_iteration()
+        self.assertTrue(self.backend.enable_component.called)
+
+        app_manager.reinstall_purchased(app)
+        self.assertTrue(self.backend.add_repo_add_key_and_install_app.called)
+
+        # buy is special as it needs help from the purchase view
+        app_manager.connect("purchase-requested", self._on_purchase_requested)
+        app_manager.buy_app(app)
+        self.assertTrue(self._purchase_requested_signal)
+        do_events()
+
+    def _on_purchase_requested(self, *args):
+        self._purchase_requested_signal = True
 
 if __name__ == "__main__":
     import logging

@@ -109,3 +109,9 @@ def get_test_enquirer_matches(db, query=None, limit=20, sortmode=0):
                        limit=limit,
                        nonblocking_load=False)
     return enquirer.matches
+
+def do_events():
+    from gi.repository import GObject
+    main_loop = GObject.main_context_default()
+    while main_loop.pending():
+        main_loop.iteration()
