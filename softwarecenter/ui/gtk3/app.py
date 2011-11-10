@@ -66,7 +66,6 @@ from softwarecenter.ui.gtk3.utils import (get_sc_icon_theme,
                                           init_sc_css_provider)
 from softwarecenter.version import VERSION
 from softwarecenter.db.database import StoreDatabase
-from softwarecenter.backend.transactionswatcher import TransactionFinishedResult
 try:
     from aptd_gtk3 import InstallBackendUI
     InstallBackendUI # pyflakes
@@ -74,7 +73,6 @@ except:
     from softwarecenter.backend.installbackend import InstallBackendUI
 
 # ui imports
-import softwarecenter.ui.gtk3.dialogs.dependency_dialogs as dependency_dialogs
 import softwarecenter.ui.gtk3.dialogs.deauthorize_dialog as deauthorize_dialog
 import softwarecenter.ui.gtk3.dialogs as dialogs
 
@@ -84,7 +82,9 @@ from softwarecenter.ui.gtk3.panes.availablepane import AvailablePane
 from softwarecenter.ui.gtk3.panes.historypane import HistoryPane
 from softwarecenter.ui.gtk3.panes.globalpane import GlobalPane
 from softwarecenter.ui.gtk3.panes.pendingpane import PendingPane
-from softwarecenter.ui.gtk3.session.viewmanager import ViewManager, get_viewmanager
+from softwarecenter.ui.gtk3.session.appmanager import ApplicationManager
+from softwarecenter.ui.gtk3.session.viewmanager import (
+    ViewManager, get_viewmanager)
 
 from softwarecenter.config import get_config
 from softwarecenter.backend import get_install_backend
@@ -92,7 +92,7 @@ from softwarecenter.backend.login_sso import get_sso_backend
 
 from softwarecenter.backend.channel import AllInstalledChannel
 from softwarecenter.backend.reviews import get_review_loader, UsefulnessCache
-from softwarecenter.backend.oneconfhandler import get_oneconf_handler
+from softwarecenter.backend.oneconfhandler import get_oneconf_handler, is_oneconf_available
 from softwarecenter.distro import get_distro
 from softwarecenter.db.pkginfo import get_pkg_info
 
@@ -240,11 +240,17 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             # FIXME: force rebuild by providing a dbus service for this
             sys.exit(1)
 
+        # additional icons come from app-install-data
+        self.icons = get_sc_icon_theme(self.datadir)
+
         # backend
         self.backend = get_install_backend()
         self.backend.ui = InstallBackendUI()
         self.backend.connect("transaction-finished", self._on_transaction_finished)
         self.backend.connect("channels-changed", self.on_channels_changed)
+
+        # high level app management
+        self.app_manager = ApplicationManager(self.db, self.backend, self.icons)
 
         # misc state
         self._block_menuitem_view = False
@@ -254,8 +260,6 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         self.sso = None
         self.available_for_me_query = None
 
-        # additional icons come from app-install-data
-        self.icons = get_sc_icon_theme(self.datadir)
         Gtk.Window.set_default_icon_name("softwarecenter")
 
         # inhibit the error-bell, Bug #846138...
@@ -294,7 +298,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
                                             self.distro,
                                             self.icons,
                                             self.datadir)
-        self.installed_pane.connect("installed-pane-created", self.on_installed_pane_created)
+        #~ self.installed_pane.connect("installed-pane-created", self.on_installed_pane_created)
         self.view_manager.register(self.installed_pane, ViewPages.INSTALLED)
 
         # history pane (not fully loaded at this point)
@@ -342,10 +346,28 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         self.config = get_config()
         self.restore_state()
 
+        # Adapt menu entries
+        supported_menuitem = self.builder.get_object("menuitem_view_supported_only")
+        supported_menuitem.set_label(self.distro.get_supported_filter_name())
+        file_menu = self.builder.get_object("menu1")
+
+        if not self.distro.DEVELOPER_URL:
+            help_menu = self.builder.get_object("menu_help")
+            developer_separator = self.builder.get_object("separator_developer")
+            help_menu.remove(developer_separator)
+            developer_menuitem = self.builder.get_object("menuitem_developer")
+            help_menu.remove(developer_menuitem)
+
+        # Check if oneconf is available
+        och = is_oneconf_available()
+        if not och:
+            file_menu.remove(self.builder.get_object("menuitem_sync_between_computers"))
+
         # run s-c-agent update
-        if options.disable_buy:
-            file_menu = self.builder.get_object("menu1")
+        if options.disable_buy or not self.distro.PURCHASE_APP_URL:
             file_menu.remove(self.builder.get_object("menuitem_reinstall_purchases"))
+            if not (options.enable_lp or och):
+                file_menu.remove(self.builder.get_object("separator_login"))
         else:
             sc_agent_update = os.path.join(
                 self.datadir, "update-software-center-agent")
@@ -355,9 +377,6 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             GObject.child_watch_add(
                 pid, self._on_update_software_center_agent_finished)
 
-        if options.disable_buy and not options.enable_lp:
-            file_menu.remove(self.builder.get_object("separator_login"))
-            
         # TODO: Remove the following two lines once we have remove repository
         #       support in aptdaemon (see LP: #723911)
         file_menu = self.builder.get_object("menu1")
@@ -405,39 +424,10 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         return
 
     def on_available_pane_created(self, widget):
-        # connect signals
-        self.available_pane.app_details_view.connect("application-request-action", 
-                                                     self.on_application_request_action)
-        self.available_pane.app_view.connect("application-request-action", 
-                                             self.on_application_request_action)
-        # FIXME
-        #~ self.available_pane.app_view.connect("mouse-nav-requested", 
-                                             #~ self.on_window_main_button_press_event)
         self.available_pane.searchentry.grab_focus()
     
-    def on_channel_pane_created(self, widget):
-        #~ channel_section = SoftwareSection()
-        # note that the view_id for each channel's section is set later
-        # depending on whether the channel view will display available or
-        # installed items
-        #~ self.channel_pane.set_section(channel_section)
-
-        # connect signals
-        self.channel_pane.app_details_view.connect("application-request-action", 
-                                                   self.on_application_request_action)
-        self.channel_pane.app_view.connect("application-request-action", 
-                                           self.on_application_request_action)
-                                           
-    def on_installed_pane_created(self, widget):
-        #~ installed_section = SoftwareSection()
-        #~ installed_section.set_view_id(ViewPages.INSTALLED)
-        #~ self.installed_pane.set_section(installed_section)
-        
-        # connect signals
-        self.installed_pane.app_details_view.connect("application-request-action", 
-                                                     self.on_application_request_action)
-        self.installed_pane.app_view.connect("application-request-action", 
-                                             self.on_application_request_action)
+    #~ def on_installed_pane_created(self, widget):
+        #~ pass
     
     def _on_update_software_center_agent_finished(self, pid, condition):
         LOG.info("software-center-agent finished with status %i" % os.WEXITSTATUS(condition))
@@ -577,54 +567,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         self.available_for_me_query = add_from_purchased_but_needs_reinstall_data(
             result_list, self.db, self.cache)
         self.available_pane.on_previous_purchases_activated(self.available_for_me_query) 
-        
-    def on_application_request_action(self, widget, app, addons_install, addons_remove, action):
-        """callback when an app action is requested from the appview,
-           if action is "remove", must check if other dependencies have to be
-           removed as well and show a dialog in that case
-        """
-        LOG.debug("on_application_action_requested: '%s' %s" % (app, action))
-        appdetails = app.get_details(self.db)
-        if action == "remove":
-            if not dependency_dialogs.confirm_remove(None, self.datadir, app,
-                                                     self.db, self.icons):
-                    # craft an instance of TransactionFinishedResult to send with the
-                    # transaction-stopped signal
-                    result = TransactionFinishedResult(None, False)
-                    result.pkgname = app.pkgname
-                    self.backend.emit("transaction-stopped", result)
-                    return
-        elif action == "install":
-            # If we are installing a package, check for dependencies that will 
-            # also be removed and show a dialog for confirmation
-            # generic removal text (fixing LP bug #554319)
-            if not dependency_dialogs.confirm_install(None, self.datadir, app, 
-                                                      self.db, self.icons):
-                    # craft an instance of TransactionFinishedResult to send with the
-                    # transaction-stopped signal
-                    result = TransactionFinishedResult(None, False)
-                    result.pkgname = app.pkgname
-                    self.backend.emit("transaction-stopped", result)
-                    return
 
-        # this allows us to 'upgrade' deb files
-        if action == 'upgrade' and app.request and type(app) == DebFileApplication:
-            action = 'install'
- 
-        # action_func is one of:  "install", "remove", "upgrade", "apply_changes"
-        action_func = getattr(self.backend, action)
-        if action == 'install':
-            # the package.deb path name is in the request
-            if app.request and type(app) == DebFileApplication:
-                debfile_name = app.request
-            else:
-                debfile_name = None
-            action_func(app.pkgname, app.appname, appdetails.icon, debfile_name, addons_install, addons_remove)
-        elif callable(action_func):
-            action_func(app.pkgname, app.appname, appdetails.icon, addons_install=addons_install, addons_remove=addons_remove)
-        else:
-            LOG.error("Not a valid action in AptdaemonBackend: '%s'" % action)
-            
     def get_icon_filename(self, iconname, iconsize):
         iconinfo = self.icons.lookup_icon(iconname, iconsize, 0)
         if not iconinfo:
@@ -1031,8 +974,8 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         GObject.timeout_add_seconds(1, lambda p: p.poll() == None, p)
 
     def on_menuitem_developer_activate(self, menuitem):
-        webbrowser.open("http://developer.ubuntu.com/")
-            
+        webbrowser.open(self.distro.DEVELOPER_URL)
+
     def _ask_and_repair_broken_cache(self):
         # wait until the window window is available
         if self.window_main.props.visible == False:

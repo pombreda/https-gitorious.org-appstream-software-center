@@ -30,6 +30,12 @@ class Debian(Distro):
     # screenshot handling
     SCREENSHOT_THUMB_URL =  "http://screenshots.debian.net/thumbnail/%(pkgname)s"
     SCREENSHOT_LARGE_URL = "http://screenshots.debian.net/screenshot/%(pkgname)s"
+    # the json description of the available screenshots
+    SCREENSHOT_JSON_URL = "http://screenshots.debian.net/json/package/%s"
+
+    REVIEWS_SERVER = ""
+
+    DEVELOPER_URL = "http://www.debian.org/devel/"
 
     def get_distro_channel_name(self):
         """ The name in the Release file """
@@ -68,25 +74,83 @@ class Debian(Distro):
         
     def get_license_text(self, component):
         if component in ("main",):
-            return _("Open source")
+            return _("Meets the Debian Free Software Guidelines")
         elif component == "contrib":
-            return _("Open source, with proprietary parts")
-        elif component == "restricted":
-            return _("Proprietary")
-
-    def get_maintenance_status(self, cache, appname, pkgname, component, channel):
-        return ""
+            return _("Meets the Debian Free Software Guidelines itself "
+                     "but requires additional non-free software to work")
+        elif component == "non-free":
+            return _("Non-free since it is either restricted "
+                     "in use, redistribution or modification.")
 
     def get_architecture(self):
         return apt.apt_pkg.config.find("Apt::Architecture")
 
     def get_foreign_architectures(self):
+        return []
+        # Not yet in unstable
         import subprocess
         out = subprocess.Popen(['dpkg', '--print-foreign-architectures'],
               stdout=subprocess.PIPE).communicate()[0].rstrip('\n')
         if out:
             return out.split(' ')
         return []
+
+    def is_supported(self, cache, doc, pkgname):
+        # the doc does not by definition contain correct data regarding the
+        # section. Looking up in the cache seems just as fast/slow.
+        if pkgname in cache and cache[pkgname].candidate:
+            for origin in cache[pkgname].candidate.origins:
+                if (origin.origin == "Debian" and
+                    origin.trusted and
+                    origin.component == "main"):
+                    return True
+        return False
+
+    def get_maintenance_status(self, cache, appname, pkgname, component, channelname):
+        """Return the maintenance status of a package."""
+        if not hasattr(cache, '_cache') or not pkgname:
+            return
+        try:
+            origins = cache[pkgname].candidate.origins
+        except (KeyError, AttributeError):
+            return
+        else:
+            for origin in origins:
+                if (origin.origin == "Debian" and origin.trusted):
+                    pkg_comp = origin.component
+                    pkg_archive = origin.archive
+                    break
+            else:
+                return
+        if pkg_comp in ("contrib", "non-free"):
+            if pkg_archive == "oldstable":
+                return _("Debian does not provide critical updates.")
+            else:
+                return _("Debian does not provide critical updates. "
+                         "Some updates may be provided by the developers "
+                         "of %s and redistributed by Debian.") % appname
+        elif pkg_comp == "main":
+            if pkg_archive == "stable":
+                return _("Debian provides critical updates for %s.") % appname
+            elif pkg_archive == "oldstable":
+                return _("Debian only provides updates for %s during "
+                         "a transition phase. "
+                         "Please consider upgrading to a later stable "
+                         "release of Debian.") % appname
+            elif pkg_archive == "testing":
+                return _("Debian provides critical updates for %s. But "
+                         "updates could be delayed or skipped.") % appname
+            elif pkg_archive == "unstable":
+                return _("Debian doens't provides critical updates "
+                         "for %s") % appname
+        return
+
+    def get_supported_query(self):
+        import xapian
+        query1 = xapian.Query("XOL"+"Debian")
+        query2 = xapian.Query("XOC"+"main")
+        return xapian.Query(xapian.Query.OP_AND, query1, query2)
+
 
 if __name__ == "__main__":
     cache = apt.Cache()

@@ -40,7 +40,7 @@ for file in $FILES; do
 	    FAILED="$FAILED $file"
 	    echo " FAIL"
 	else 
-            echo " SUCCESS"
+            echo " success"
 	    rm -f ${OUTPUT}/$file.out; 
 	fi 
     fi 

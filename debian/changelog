@@ -1,7 +1,33 @@
-software-center (5.1.1) UNRELEASED; urgency=low
+software-center (5.1.2) UNRELEASED; urgency=low
+
+  [ Michael Vogt ]
+  * test/test_channels.py:
+    - add unit test for channels backend
+  * lp:~mvo/software-center/app-treeview-buy-plus-refactor:
+    - add unit test for ApplicationManager, additional tweaks
+
+  [ Matthew McGowan ]
+  * lp:~mmcg069/software-center/app-treeview-buy-plus-refactor:
+    - implement the ability to initiate a purchase from the application
+      list directly and display the price there, include some nice
+      refactoring
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 09 Nov 2011 15:08:22 -0500
+
+software-center (5.1.1.1) precise; urgency=low
+
+  * setup.py:
+    - list sc.backend.oneconfhandler and sc.backend.reviews as packages
+      this allows s-c to startup on the development release (LP: #887392)
+
+ -- Kiwinote <kiwinote@gmail.com>  Tue, 08 Nov 2011 16:49:29 +0000
+
+software-center (5.1.1) precise; urgency=low
 
   [ Matthew McGowan ]
   * fix the rtl rendering of the "more label arrow"
+  * lp:~mmcg069/software-center/multi-screenshot-gallery:
+    - add support for multiple screenshots for the main archive
   
   [ Nicolas Delvaux ]
   * lp:~malizor/software-center/fix-lp813803:
@@ -13,8 +39,15 @@ software-center (5.1.1) UNRELEASED; urgency=low
   * lp:~kelemeng/software-center/bug875306:
     - Add translator comment: Free means Gratis, as it is used as price.
       LP: #875306
-
- -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 27 Oct 2011 16:47:38 -0400
+  
+  [ Sebastian Heinlein ]
+  * lp:~glatzor/software-center/portability:
+    - improve portability
+  
+  [ Michael Vogt ]
+  * more portability fixes
+  
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 07 Nov 2011 14:58:40 +0100
 
 software-center (5.1.0) precise; urgency=low
 

@@ -132,8 +132,9 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         
         # Start OneConf
         self.oneconf_handler = get_oneconf_handler(self.oneconf_viewpickler)
-        self.oneconf_handler.connect('show-oneconf-changed', self._show_oneconf_changed)
-        self.oneconf_handler.connect('last-time-sync-changed', self._last_time_sync_oneconf_changed)
+        if self.oneconf_handler:
+            self.oneconf_handler.connect('show-oneconf-changed', self._show_oneconf_changed)
+            self.oneconf_handler.connect('last-time-sync-changed', self._last_time_sync_oneconf_changed)
         
         # OneConf pane
         self.computerpane = Gtk.Paned.new(Gtk.Orientation.HORIZONTAL)

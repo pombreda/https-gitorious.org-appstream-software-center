@@ -40,6 +40,7 @@ class TestSCUtils(unittest.TestCase):
         # LC_ALL, no language
         del os.environ["LANGUAGE"]
         os.environ["LC_ALL"] = "C"
+        os.environ["LANG"] = "C"
         self.assertEqual(get_language(), "en")
 
     def test_get_http_proxy_from_gsettings(self):

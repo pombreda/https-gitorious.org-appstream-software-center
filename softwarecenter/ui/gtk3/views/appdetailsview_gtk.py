@@ -53,13 +53,14 @@ from appdetailsview import AppDetailsViewBase
 
 from softwarecenter.ui.gtk3.em import StockEms, em
 from softwarecenter.ui.gtk3.drawing import color_to_hex
+from softwarecenter.ui.gtk3.session.appmanager import get_appmanager
 from softwarecenter.ui.gtk3.widgets.separators import HBar
 from softwarecenter.ui.gtk3.widgets.viewport import Viewport
 from softwarecenter.ui.gtk3.widgets.reviews import UIReviewsList
 from softwarecenter.ui.gtk3.widgets.containers import SmallBorderRadiusFrame
 from softwarecenter.ui.gtk3.widgets.stars import Star, StarRatingsWidget
 from softwarecenter.ui.gtk3.widgets.description import AppDescription
-from softwarecenter.ui.gtk3.widgets.thumbnail import ScreenshotThumbnail
+from softwarecenter.ui.gtk3.widgets.thumbnail import ScreenshotGallery
 from softwarecenter.ui.gtk3.widgets.weblivedialog import (
                                     ShowWebLiveServerChooserDialog)
 from softwarecenter.ui.gtk3.gmenusearch import GMenuSearcher
@@ -150,23 +151,28 @@ class PackageStatusBar(StatusBar):
     def _on_button_clicked(self, button):
         button.set_sensitive(False)
         state = self.pkg_state
-        self.view.addons_to_install = self.view.addons_manager.addons_to_install
-        self.view.addons_to_remove = self.view.addons_manager.addons_to_remove
+        app = self.view.app
+        app_manager = get_appmanager()
+        addons_to_install = self.view.addons_manager.addons_to_install
+        addons_to_remove = self.view.addons_manager.addons_to_remove
         if state == PkgStates.INSTALLED:
-            AppDetailsViewBase.remove(self.view)
+            app_manager.remove(
+                app, addons_to_install, addons_to_remove)
         elif state == PkgStates.PURCHASED_BUT_REPO_MUST_BE_ENABLED:
-            AppDetailsViewBase.reinstall_purchased(self.view)
+            app_manager.reinstall_purchased(app)
         elif state == PkgStates.NEEDS_PURCHASE:
-            AppDetailsViewBase.buy_app(self.view)
+            app_manager.buy_app(app)
         elif state == PkgStates.UNINSTALLED:
-            AppDetailsViewBase.install(self.view)
+            app_manager.install(
+                app, addons_to_install, addons_to_remove)
         elif state == PkgStates.REINSTALLABLE:
-            AppDetailsViewBase.install(self.view)
+            app_manager.install(
+                app, addons_to_install, addons_to_remove)
         elif state == PkgStates.UPGRADABLE:
-            AppDetailsViewBase.upgrade(self.view)
+            app_manager.upgrade(
+                app, addons_to_install, addons_to_remove)
         elif state == PkgStates.NEEDS_SOURCE:
-            # FIXME:  This should be in AppDetailsViewBase
-            self.view.use_this_source()
+            app_manager.enable_software_source(app)
         return
 
     def set_label(self, label):
@@ -639,14 +645,6 @@ class AppDetailsViewGtk(Viewport, AppDetailsViewBase):
                     "application-selected" : (GObject.SignalFlags.RUN_LAST,
                                    None,
                                    (GObject.TYPE_PYOBJECT, )),
-                    'application-request-action' : (GObject.SignalFlags.RUN_LAST,
-                                        None,
-                                        (GObject.TYPE_PYOBJECT, GObject.TYPE_PYOBJECT, GObject.TYPE_PYOBJECT, str),
-                                       ),
-                    'purchase-requested' : (GObject.SignalFlags.RUN_LAST,
-                                            None,
-                                            (GObject.TYPE_PYOBJECT,
-                                             str,)),
                     }
 
 
@@ -969,7 +967,7 @@ class AppDetailsViewGtk(Viewport, AppDetailsViewBase):
         body_hb.pack_start(self.desc, True, True, 0)
 
         # the thumbnail/screenshot
-        self.screenshot = ScreenshotThumbnail(get_distro(), self.icons)
+        self.screenshot = ScreenshotGallery(get_distro(), self.icons)
         right_vb = Gtk.VBox()
         right_vb.set_spacing(6)
         body_hb.pack_start(right_vb, False, False, 0)
@@ -1053,7 +1051,8 @@ class AppDetailsViewGtk(Viewport, AppDetailsViewBase):
         self.reviews.connect("more-reviews-clicked", self._on_more_reviews_clicked)
         self.reviews.connect("different-review-language-clicked", self._on_reviews_in_different_language_clicked)
         self.reviews.connect("review-sort-changed", self._on_review_sort_method_changed)
-        vb.pack_start(self.reviews, False, False, 0)
+        if get_distro().REVIEWS_SERVER:
+            vb.pack_start(self.reviews, False, False, 0)
 
         self.show_all()
 
@@ -1149,10 +1148,7 @@ class AppDetailsViewGtk(Viewport, AppDetailsViewBase):
     def _update_app_screenshot(self, app_details):
         # get screenshot urls and configure the ScreenshotView...
         if app_details.thumbnail and app_details.screenshot:
-            self.screenshot.configure(app_details)
-
-            # inititate the download and display series of callbacks
-            self.screenshot.download_and_display()
+            self.screenshot.fetch_screenshots(app_details)
         return
 
     def _update_weblive(self, app_details):
@@ -1432,15 +1428,6 @@ class AppDetailsViewGtk(Viewport, AppDetailsViewBase):
 
         self.emit("selected", self.app)
         return
-
-    # public interface
-    def use_this_source(self):
-        if self.app_details.channelfile and self.app_details._unavailable_channel():
-            self.backend.enable_channel(self.app_details.channelfile)
-        elif self.app_details.component:
-            components = self.app_details.component.split('&')
-            for component in components:
-                self.backend.enable_component(component)
 
     # internal callback
     def _update_interface_on_trans_ended(self, result):

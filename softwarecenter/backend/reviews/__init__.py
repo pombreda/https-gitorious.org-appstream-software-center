@@ -19,12 +19,10 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import datetime
-import gzip
 import logging
 import operator
 import os
 import random
-import json
 import struct
 import shutil
 import subprocess
@@ -34,7 +32,6 @@ import threading
 from bsddb import db as bdb
 
 from gi.repository import GObject
-from gi.repository import Gio
 
 # py3 compat
 try:
@@ -43,41 +40,24 @@ try:
 except ImportError:
     import pickle
 
-# py3 compat
-try:
-    from io import StringIO
-    StringIO # pyflakes
-    from urllib.parse import quote_plus
-    quote_plus # pyflakes
-except ImportError:
-    from StringIO import StringIO
-    from urllib import quote_plus
 
-from softwarecenter.backend.piston.rnrclient import RatingsAndReviewsAPI
-from softwarecenter.backend.piston.rnrclient_pristine import ReviewDetails
 from softwarecenter.db.categories import CategoriesParser
 from softwarecenter.db.database import Application, StoreDatabase
 import softwarecenter.distro
 from softwarecenter.i18n import get_language
 from softwarecenter.utils import (upstream_version_compare,
                                   uri_to_filename,
-                                  save_person_to_config,
                                   get_person_from_config,
-                                  calc_dr,
                                   wilson_score,
-                                  utf8,
                                   )
 from softwarecenter.paths import (SOFTWARE_CENTER_CACHE_DIR,
                                   APP_INSTALL_PATH,
                                   XAPIAN_BASE_PATH,
-                                  RNRApps,
                                   PistonHelpers,
                                   )
 from softwarecenter.enums import ReviewSortMethods
 
-from softwarecenter.netstatus import network_state_is_connected
-
-from spawn_helper import SpawnHelper
+from softwarecenter.backend.spawn_helper import SpawnHelper
 
 LOG = logging.getLogger(__name__)
 
@@ -100,7 +80,6 @@ class UsefulnessCache(object):
     USEFULNESS_CACHE = {}
     
     def __init__(self, try_server=False):
-        self.rnrclient = RatingsAndReviewsAPI()
         fname = "usefulness.p"
         self.USEFULNESS_CACHE_FILE = os.path.join(SOFTWARE_CENTER_CACHE_DIR,
                                                     fname)
@@ -438,43 +417,12 @@ class ReviewLoader(object):
             applist.append(db.get_pkgname(doc))
         return applist
 
-    # writing new reviews spawns external helper
-    # FIXME: instead of the callback we should add proper gobject signals
     def spawn_write_new_review_ui(self, translated_app, version, iconname, 
                                   origin, parent_xid, datadir, callback):
-        """ this spawns the UI for writing a new review and
-            adds it automatically to the reviews DB """
-        app = translated_app.get_untranslated_app(self.db)
-        cmd = [os.path.join(datadir, RNRApps.SUBMIT_REVIEW), 
-               "--pkgname", app.pkgname,
-               "--iconname", iconname,
-               "--parent-xid", "%s" % parent_xid,
-               "--version", version,
-               "--origin", origin,
-               "--datadir", datadir,
-               ]
-        if app.appname:
-            # needs to be (utf8 encoded) str, otherwise call fails
-            cmd += ["--appname", utf8(app.appname)]
-        spawn_helper = SpawnHelper(format="json")
-        spawn_helper.connect(
-            "data-available", self._on_submit_review_data, app, callback)
-        spawn_helper.run(cmd)
-
-    def _on_submit_review_data(self, spawn_helper, review_json, app, callback):
-        """ called when submit_review finished, when the review was send
-            successfully the callback is triggered with the new reviews
+        """Spawn the UI for writing a new review and adds it automatically
+        to the reviews DB.
         """
-        LOG.debug("_on_submit_review_data")
-        # read stdout from submit_review
-        review = ReviewDetails.from_dict(review_json)
-        # FIXME: ideally this would be stored in ubuntu-sso-client
-        #        but it dosn't so we store it here
-        save_person_to_config(review.reviewer_username)
-        if not app in self._reviews: 
-            self._reviews[app] = []
-        self._reviews[app].insert(0, Review.from_piston_mini_client(review))
-        callback(app, self._reviews[app])
+        pass
 
     def spawn_report_abuse_ui(self, review_id, parent_xid, datadir, callback):
         """ this spawns the UI for reporting a review as inappropriate
@@ -482,379 +430,20 @@ class ReviewLoader(object):
             operation is complete it will call callback with the updated
             review list
         """
-        cmd = [os.path.join(datadir, RNRApps.REPORT_REVIEW), 
-               "--review-id", review_id,
-               "--parent-xid", "%s" % parent_xid,
-               "--datadir", datadir,
-              ]
-        spawn_helper = SpawnHelper("json")
-        spawn_helper.connect("exited", 
-                             self._on_report_abuse_finished, 
-                             review_id, callback)
-        spawn_helper.run(cmd)
-
-    def _on_report_abuse_finished(self, spawn_helper, exitcode, review_id, callback):
-        """ called when report_absuse finished """
-        LOG.debug("hide id %s " % review_id)
-        if exitcode == 0:
-            for (app, reviews) in self._reviews.items():
-                for review in reviews:
-                    if str(review.id) == str(review_id):
-                        # remove the one we don't want to see anymore
-                        self._reviews[app].remove(review)
-                        callback(app, self._reviews[app], None, 'remove', review)
-                        break
-
+        pass
 
     def spawn_submit_usefulness_ui(self, review_id, is_useful, parent_xid, datadir, callback):
-        cmd = [os.path.join(datadir, RNRApps.SUBMIT_USEFULNESS), 
-               "--review-id", "%s" % review_id,
-               "--is-useful", "%s" % int(is_useful),
-               "--parent-xid", "%s" % parent_xid,
-               "--datadir", datadir,
-              ]
-        spawn_helper = SpawnHelper(format="none")
-        spawn_helper.connect("exited", 
-                             self._on_submit_usefulness_finished, 
-                             review_id, is_useful, callback)
-        spawn_helper.connect("error",
-                             self._on_submit_usefulness_error,
-                             review_id, callback)
-        spawn_helper.run(cmd)
-
-    def _on_submit_usefulness_finished(self, spawn_helper, res, review_id, is_useful, callback):
-        """ called when report_usefulness finished """
-        # "Created", "Updated", "Not modified" - 
-        # once lp:~mvo/rnr-server/submit-usefulness-result-strings makes it
-        response = spawn_helper._stdout
-        if response == '"Not modified"':
-            self._on_submit_usefulness_error(spawn_helper, response, review_id, callback)
-            return
-
-        LOG.debug("usefulness id %s " % review_id)
-        useful_votes = UsefulnessCache()
-        useful_votes.add_usefulness_vote(review_id, is_useful)
-        for (app, reviews) in self._reviews.items():
-            for review in reviews:
-                if str(review.id) == str(review_id):
-                    # update usefulness, older servers do not send
-                    # usefulness_{total,favorable} so we use getattr
-                    review.usefulness_total = getattr(review, "usefulness_total", 0) + 1
-                    if is_useful:
-                        review.usefulness_favorable = getattr(review, "usefulness_favorable", 0) + 1
-                        callback(app, self._reviews[app], useful_votes, 'replace', review)
-                        break
-
-    def _on_submit_usefulness_error(self, spawn_helper, error_str, review_id, callback):
-            LOG.warn("submit usefulness id=%s failed with error: %s" %
-                     (review_id, error_str))
-            for (app, reviews) in self._reviews.items():
-                for review in reviews:
-                    if str(review.id) == str(review_id):
-                        review.usefulness_submit_error = True
-                        callback(app, self._reviews[app], None, 'replace', review)
-                        break
+        """Spawn a helper to submit a usefulness vote."""
+        pass
 
     def spawn_delete_review_ui(self, review_id, parent_xid, datadir, callback):
-        cmd = [os.path.join(datadir, RNRApps.DELETE_REVIEW), 
-               "--review-id", "%s" % review_id,
-               "--parent-xid", "%s" % parent_xid,
-               "--datadir", datadir,
-              ]
-        spawn_helper = SpawnHelper(format="none")
-        spawn_helper.connect("exited", 
-                             self._on_delete_review_finished, 
-                             review_id, callback)
-        spawn_helper.connect("error", self._on_delete_review_error,
-                             review_id, callback)
-        spawn_helper.run(cmd)
+        """Spawn a helper to delete a review."""
+        pass
 
-    def _on_delete_review_finished(self, spawn_helper, res, review_id, callback):
-        """ called when delete_review finished"""
-        LOG.debug("delete id %s " % review_id)
-        for (app, reviews) in self._reviews.items():
-            for review in reviews:
-                if str(review.id) == str(review_id):
-                    # remove the one we don't want to see anymore
-                    self._reviews[app].remove(review)
-                    callback(app, self._reviews[app], None, 'remove', review)
-                    break                    
-
-    def _on_delete_review_error(self, spawn_helper, error_str, review_id, callback):
-        """called if delete review errors"""
-        LOG.warn("delete review id=%s failed with error: %s" % (review_id, error_str))
-        for (app, reviews) in self._reviews.items():
-            for review in reviews:
-                if str(review.id) == str(review_id):
-                    review.delete_error = True
-                    callback(app, self._reviews[app], action='replace', 
-                             single_review=review)
-                    break
-
-    
     def spawn_modify_review_ui(self, parent_xid, iconname, datadir, review_id, callback):
-        """ this spawns the UI for writing a new review and
-            adds it automatically to the reviews DB """
-        cmd = [os.path.join(datadir, RNRApps.MODIFY_REVIEW), 
-               "--parent-xid", "%s" % parent_xid,
-               "--iconname", iconname,
-               "--datadir", "%s" % datadir,
-               "--review-id", "%s" % review_id,
-               ]
-        spawn_helper = SpawnHelper(format="json")
-        spawn_helper.connect("data-available", 
-                             self._on_modify_review_finished, 
-                             review_id, callback)
-        spawn_helper.connect("error", self._on_modify_review_error,
-                             review_id, callback)
-        spawn_helper.run(cmd)
+        """Spawn a helper to modify a review."""
+        pass
 
-    def _on_modify_review_finished(self, spawn_helper, review_json, review_id, callback):
-        """called when modify_review finished"""
-        LOG.debug("_on_modify_review_finished")
-        #review_json = spawn_helper._stdout
-        mod_review = ReviewDetails.from_dict(review_json)
-        for (app, reviews) in self._reviews.items():
-            for review in reviews:
-                if str(review.id) == str(review_id):
-                    # remove the one we don't want to see anymore
-                    self._reviews[app].remove(review)
-                    new_review = Review.from_piston_mini_client(mod_review)
-                    self._reviews[app].insert(0, new_review)
-                    callback(app, self._reviews[app], action='replace', 
-                             single_review=new_review)
-                    break
-                    
-    def _on_modify_review_error(self, spawn_helper, error_str, review_id, callback):
-        """called if modify review errors"""
-        LOG.debug("modify review id=%s failed with error: %s" % (review_id, error_str))
-        for (app, reviews) in self._reviews.items():
-            for review in reviews:
-                if str(review.id) == str(review_id):
-                    review.modify_error = True
-                    callback(app, self._reviews[app], action='replace', 
-                             single_review=review)
-                    break
-
-
-# this code had several incernations: 
-# - python threads, slow and full of latency (GIL)
-# - python multiprocesing, crashed when accessibility was turned on, 
-#                          does not work in the quest session (#743020)
-# - GObject.spawn_async() looks good so far (using the SpawnHelper code)
-class ReviewLoaderSpawningRNRClient(ReviewLoader):
-    """ loader that uses multiprocessing to call rnrclient and
-        a glib timeout watcher that polls periodically for the
-        data 
-    """
-
-    def __init__(self, cache, db, distro=None):
-        super(ReviewLoaderSpawningRNRClient, self).__init__(cache, db, distro)
-        cachedir = os.path.join(SOFTWARE_CENTER_CACHE_DIR, "rnrclient")
-        self.rnrclient = RatingsAndReviewsAPI(cachedir=cachedir)
-        cachedir = os.path.join(SOFTWARE_CENTER_CACHE_DIR, "rnrclient")
-        self.rnrclient = RatingsAndReviewsAPI(cachedir=cachedir)
-        self._reviews = {}
-
-    def _update_rnrclient_offline_state(self):
-        # this needs the lp:~mvo/piston-mini-client/offline-mode branch
-        self.rnrclient._offline_mode = not network_state_is_connected()
-
-    # reviews
-    def get_reviews(self, translated_app, callback, page=1, 
-                    language=None, sort=0):
-        """ public api, triggers fetching a review and calls callback
-            when its ready
-        """
-        # its fine to use the translated appname here, we only submit the
-        # pkgname to the server
-        app = translated_app
-        self._update_rnrclient_offline_state()
-        sort_method = self._review_sort_methods[sort]
-        if language is None:
-            language = self.language
-        # gather args for the helper
-        try:
-            origin = self.cache.get_origin(app.pkgname)
-        except:
-            # this can happen if e.g. the app has multiple origins, this
-            # will be handled later
-            origin = None
-        # special case for not-enabled PPAs
-        if not origin and self.db:
-            details = app.get_details(self.db)
-            ppa = details.ppaname
-            if ppa:
-                origin = "lp-ppa-%s" % ppa.replace("/", "-")
-        # if there is no origin, there is nothing to do
-        if not origin:
-            callback(app, [])
-            return
-        distroseries = self.distro.get_codename()
-        # run the command and add watcher
-        cmd = [os.path.join(softwarecenter.paths.datadir, PistonHelpers.GET_REVIEWS),
-               "--language", language, 
-               "--origin", origin, 
-               "--distroseries", distroseries, 
-               "--pkgname", str(app.pkgname), # ensure its str, not unicode
-               "--page", str(page),
-               "--sort", sort_method,
-              ]
-        spawn_helper = SpawnHelper()
-        spawn_helper.connect(
-            "data-available", self._on_reviews_helper_data, app, callback)
-        spawn_helper.run(cmd)
-
-    def _on_reviews_helper_data(self, spawn_helper, piston_reviews, app, callback):
-        # convert into our review objects
-        reviews = []
-        for r in piston_reviews:
-            reviews.append(Review.from_piston_mini_client(r))
-        # add to our dicts and run callback
-        self._reviews[app] = reviews
-        callback(app, self._reviews[app])
-        return False
-
-    # stats
-    def refresh_review_stats(self, callback):
-        """ public api, refresh the available statistics """
-        try:
-            mtime = os.path.getmtime(self.REVIEW_STATS_CACHE_FILE)
-            days_delta = int((time.time() - mtime) // (24*60*60))
-            days_delta += 1
-        except OSError:
-            days_delta = 0
-        LOG.debug("refresh with days_delta: %s" % days_delta)
-        #origin = "any"
-        #distroseries = self.distro.get_codename()
-        cmd = [os.path.join(
-                softwarecenter.paths.datadir, PistonHelpers.GET_REVIEW_STATS),
-               # FIXME: the server currently has bug (#757695) so we
-               #        can not turn this on just yet and need to use
-               #        the old "catch-all" review-stats for now
-               #"--origin", origin, 
-               #"--distroseries", distroseries, 
-              ]
-        if days_delta:
-            cmd += ["--days-delta", str(days_delta)]
-        spawn_helper = SpawnHelper()
-        spawn_helper.connect("data-available", self._on_review_stats_data, callback)
-        spawn_helper.run(cmd)
-
-    def _on_review_stats_data(self, spawn_helper, piston_review_stats, callback):
-        """ process stdout from the helper """
-        review_stats = self.REVIEW_STATS_CACHE
-
-        if self._cache_version_old and self._server_has_histogram(piston_review_stats):
-            self.REVIEW_STATS_CACHE = {}
-            self.save_review_stats_cache_file()
-            self.refresh_review_stats(callback)
-            return
-        
-        # convert to the format that s-c uses
-        for r in piston_review_stats:
-            s = ReviewStats(Application("", r.package_name))
-            s.ratings_average = float(r.ratings_average)
-            s.ratings_total = float(r.ratings_total)
-            if r.histogram:
-                s.rating_spread = json.loads(r.histogram)
-            else:
-                s.rating_spread = [0,0,0,0,0]
-            s.dampened_rating = calc_dr(s.rating_spread)
-            review_stats[s.app] = s
-        self.REVIEW_STATS_CACHE = review_stats
-        callback(review_stats)
-        self.save_review_stats_cache_file()
-    
-    def _server_has_histogram(self, piston_review_stats):
-        '''check response from server to see if histogram is supported'''
-        supported = getattr(piston_review_stats[0], "histogram", False)
-        if not supported:
-            return False
-        return True
-
-class ReviewLoaderJsonAsync(ReviewLoader):
-    """ get json (or gzip compressed json) """
-
-    def _gio_review_download_complete_callback(self, source, result):
-        app = source.get_data("app")
-        callback = source.get_data("callback")
-        try:
-            (success, json_str, etag) = source.load_contents_finish(result)
-        except GObject.GError:
-            # ignore read errors, most likely transient
-            return callback(app, [])
-        # check for gzip header
-        if json_str.startswith("\37\213"):
-            gz=gzip.GzipFile(fileobj=StringIO(json_str))
-            json_str = gz.read()
-        reviews_json = json.loads(json_str)
-        reviews = []
-        for review_json in reviews_json:
-            review = Review.from_json(review_json)
-            reviews.append(review)
-        # run callback
-        callback(app, reviews)
-
-    def get_reviews(self, app, callback, page=1, language=None, sort=0):
-        """ get a specific review and call callback when its available"""
-        # FIXME: get this from the app details
-        origin = self.cache.get_origin(app.pkgname)
-        distroseries = self.distro.get_codename()
-        if app.appname:
-            appname = ";"+app.appname
-        else:
-            appname = ""
-
-        sort_method = self._review_sort_methods[sort]
-        
-        url = self.distro.REVIEWS_URL % { 'pkgname' : app.pkgname,
-                                          'appname' : quote_plus(appname.encode("utf-8")),
-                                          'language' : self.language,
-                                          'origin' : origin,
-                                          'distroseries' : distroseries,
-                                          'version' : 'any',
-                                          'sort' : sort_method,
-                                         }
-        LOG.debug("looking for review at '%s'" % url)
-        f=Gio.File.new_for_uri(url)
-        f.set_data("app", app)
-        f.set_data("callback", callback)
-        f.load_contents_async(self._gio_review_download_complete_callback)
-
-    # review stats code
-    def _gio_review_stats_download_finished_callback(self, source, result):
-        callback = source.get_data("callback")
-        try:
-            (json_str, length, etag) = source.load_contents_finish(result)
-        except GObject.GError:
-            # ignore read errors, most likely transient
-            return
-        # check for gzip header
-        if json_str.startswith("\37\213"):
-            gz=gzip.GzipFile(fileobj=StringIO(json_str))
-            json_str = gz.read()
-        review_stats_json = json.loads(json_str)
-        review_stats = {}
-        for review_stat_json in review_stats_json:
-            #appname = review_stat_json["app_name"]
-            pkgname = review_stat_json["package_name"]
-            app = Application('', pkgname)
-            stats = ReviewStats(app)
-            stats.ratings_total = int(review_stat_json["ratings_total"])
-            stats.ratings_average = float(review_stat_json["ratings_average"])
-            review_stats[app] = stats
-        # update review_stats dict
-        self.REVIEW_STATS_CACHE = review_stats
-        self.save_review_stats_cache_file()
-        # run callback
-        callback(review_stats)
-
-    def refresh_review_stats(self, callback):
-        """ get the review statists and call callback when its there """
-        f=Gio.File(self.distro.REVIEW_STATS_URL)
-        f.set_data("callback", callback)
-        f.load_contents_async(self._gio_review_stats_download_finished_callback)
 
 class ReviewLoaderFake(ReviewLoader):
 
@@ -871,7 +460,7 @@ class ReviewLoaderFake(ReviewLoader):
         return random.choice(self.LOREM.split("\n\n"))
     def _random_summary(self):
         return random.choice(self.SUMMARIES)
-    def get_reviews(self, application, callback, page=1, language=None):
+    def get_reviews(self, application, callback, page=1, language=None, sort=0):
         if not application in self._review_stats_cache:
             self.get_review_stats(application)
         stats = self._review_stats_cache[application]
@@ -1034,6 +623,26 @@ aliquyam erat sed diam voluptua at vero eos et accusam et justo duo dolores
 et ea rebum stet clita kasd gubergren no sea takimata sanctus est lorem
 ipsum dolor sit amet"""
 
+
+class ReviewLoaderNull(ReviewLoader):
+
+    """A dummy review loader which just returns empty results."""
+
+    def __init__(self, cache, db):
+        self._review_stats_cache = {}
+        self._reviews_cache = {}
+
+    def get_reviews(self, application, callback, page=1, language=None, sort=0):
+        callback(application, [])
+
+    def get_review_stats(self, application):
+        return None
+
+    def refresh_review_stats(self, callback):
+        review_stats = []
+        callback(review_stats)
+
+
 review_loader = None
 def get_review_loader(cache, db=None):
     """ 
@@ -1047,10 +656,14 @@ def get_review_loader(cache, db=None):
             review_loader = ReviewLoaderFortune(cache, db)
         elif "SOFTWARE_CENTER_TECHSPEAK_REVIEWS" in os.environ:
             review_loader = ReviewLoaderTechspeak(cache, db)
-        elif "SOFTWARE_CENTER_GIO_REVIEWS" in os.environ:
-            review_loader = ReviewLoaderJsonAsync(cache, db)
         else:
-            review_loader = ReviewLoaderSpawningRNRClient(cache, db)
+            try:
+                from softwarecenter.backend.reviews.rnr import (
+                    ReviewLoaderSpawningRNRClient)
+                # no service_root will raise ValueError
+                review_loader = ReviewLoaderSpawningRNRClient(cache, db)
+            except (ImportError, ValueError):
+                review_loader = ReviewLoaderNull(cache, db)
     return review_loader
 
 if __name__ == "__main__":
@@ -1073,6 +686,7 @@ if __name__ == "__main__":
     app = Application("ACE", "unace")
     #app = Application("", "2vcard")
 
+    from softwarecenter.backend.reviews.rnr import ReviewLoaderSpawningRNRClient
     loader = ReviewLoaderSpawningRNRClient(cache, db)
     print loader.refresh_review_stats(stats_callback)
     print loader.get_reviews(app, callback)

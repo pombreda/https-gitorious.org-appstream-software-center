@@ -52,7 +52,7 @@ except ImportError:
     LOG.error("need python-piston-mini client\n"
               "available in natty or from:\n"
               "   ppa:software-store-developers/daily-build ")
-    sys.exit(1)
+    raise
 
 
 if __name__ == "__main__":

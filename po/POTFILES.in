@@ -8,8 +8,10 @@ data/unbranded-software-center.desktop.in
 [type: gettext/xml] data/software-center.menu.in
 softwarecenter/backend/channel.py
 softwarecenter/backend/login_sso.py
-softwarecenter/backend/reviews.py
-softwarecenter/backend/oneconfhandler.py
+softwarecenter/backend/reviews/__init__.py
+softwarecenter/backend/reviews/rnr.py
+softwarecenter/backend/oneconfhandler/__init__.py
+softwarecenter/backend/oneconfhandler/core.py
 softwarecenter/backend/installbackend_impl/aptd.py
 softwarecenter/backend/installbackend_impl/packagekitd.py
 softwarecenter/db/application.py
