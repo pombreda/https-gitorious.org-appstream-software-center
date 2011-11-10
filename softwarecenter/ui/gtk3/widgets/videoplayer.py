@@ -31,14 +31,24 @@ class VideoPlayer(Gtk.VBox):
     def __init__(self):
         super(VideoPlayer, self).__init__()
         self.webkit = WebKit.WebView()
+        self.webkit.connect("new-window-policy-decision-requested", self._on_new_window)
         self.pack_start(self.webkit, True, True, 0)
         self._uri = ""
+
+    # helper required to follow ToS about the "back" link
+    def _on_new_window(self, view, frame, request, action, policy):
+        import subprocess
+        subprocess.Popen(['xdg-open', request.get_uri()])
+        return True
+
+    # uri property
     def _set_uri(self, v):
         self._uri = v
         self.webkit.load_uri(v)
     def _get_uri(self):
         return self._uri
     uri = property(_get_uri, _set_uri, None, "uri property")
+
     def load_html_string(self, html):
         """ Instead of a video URI use a html embedded video like e.g.
             youtube or vimeo. Note that on a default install not all
