@@ -151,6 +151,7 @@ class SoftwareCenterAgentParser(AppInfoParserBase):
                 'Icon'       : 'icon',
                 'Screenshot-Url' : 'screenshot_url',
                 'Thumbnail-Url' : 'thumbnail_url',
+                'Video-Url' :  'video_url',
                 'Icon-Url'   : 'icon_url',
               }
 
@@ -693,6 +694,10 @@ def index_app_info_from_parser(parser, db, cache):
         if parser.has_option_desktop("X-AppInstall-Thumbnail-Url"):
             url = parser.get_desktop("X-AppInstall-Thumbnail-Url")
             doc.add_value(XapianValues.THUMBNAIL_URL, url)
+        # video support (for third party mostly)
+        if parser.has_option_desktop("X-AppInstall-Video-Url"):
+            url = parser.get_desktop("X-AppInstall-Video-Url")
+            doc.add_value(XapianValues.VIDEO_URL, url)
         # icon (for third party)
         if parser.has_option_desktop("X-AppInstall-Icon-Url"):
             url = parser.get_desktop("X-AppInstall-Icon-Url")

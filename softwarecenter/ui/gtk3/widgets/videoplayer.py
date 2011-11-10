@@ -39,7 +39,14 @@ class VideoPlayer(Gtk.VBox):
     def _get_uri(self):
         return self._uri
     uri = property(_get_uri, _set_uri, None, "uri property")
-    
+    def load_html_string(self, html):
+        """ Instead of a video URI use a html embedded video like e.g.
+            youtube or vimeo. Note that on a default install not all
+            video codecs will play (no flash!), so be careful!
+        """
+        # FIXME: add something more useful here
+        base_uri = "http://www.ubuntu.com"
+        self.webkit.load_html_string(html, base_uri)
 
 # AKA the-segfault-edition-with-no-documentation
 class VideoPlayerGtk3(Gtk.VBox):
@@ -108,6 +115,9 @@ class VideoPlayerGtk3(Gtk.VBox):
 
 
 def get_test_videoplayer_window():
+    html = """
+    <iframe width="640" height="390" src="http://www.youtube.com/embed/h3oBU0NZJuA" frameborder="0" allowfullscreen></iframe>
+"""
     win = Gtk.Window.new(Gtk.WindowType.TOPLEVEL)
     win.set_default_size(500, 400)
     win.connect("destroy", Gtk.main_quit)
@@ -115,6 +125,7 @@ def get_test_videoplayer_window():
     win.add(player)
     if len(sys.argv) < 2:
         player.uri = "http://upload.wikimedia.org/wikipedia/commons/9/9b/Pentagon_News_Sample.ogg"
+        #player.load_html_string(html)
     else:
         player.uri = sys.argv[1]
     win.show_all()
