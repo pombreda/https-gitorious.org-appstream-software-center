@@ -104,3 +104,20 @@ def get_test_enquirer_matches(db, query=None, limit=20, sortmode=0):
                        limit=limit,
                        nonblocking_load=False)
     return enquirer.matches
+
+def get_mock_app_from_real_app(real_app):
+    """ take a application and return a app where the details are a mock
+        of the real details so they can easily be modified
+    """
+    from mock import Mock
+    import copy
+    app = copy.copy(real_app)
+    db = get_test_db()
+    details = app.get_details(db)
+    details_mock = Mock()
+    for a in dir(details):
+        if a.startswith("_"): continue
+        setattr(details_mock, a, getattr(details, a))
+    app._details = details_mock
+    app.get_details = lambda db: app._details
+    return app
