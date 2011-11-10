@@ -18,8 +18,8 @@ from softwarecenter.utils import ExecutionTime
 from softwarecenter.backend import get_install_backend
 from softwarecenter.netstatus import (get_network_watcher,
                                       network_state_is_connected)
-from softwarecenter.ui.gtk3.models.appstore2 import (AppGenericStore,
-                                                     CategoryRowReference)
+from softwarecenter.ui.gtk3.models.appstore2 import (
+    AppGenericStore, CategoryRowReference)
 
 
 class AppTreeView(Gtk.TreeView):
@@ -127,6 +127,7 @@ class AppTreeView(Gtk.TreeView):
         if vadjustment:
             vadjustment.set_value(0)
         self.expanded_path = None
+        self._needs_collapse = []
         if self.appmodel:
             self.appmodel.clear()
 
@@ -145,8 +146,7 @@ class AppTreeView(Gtk.TreeView):
                 end.compare(old) != 1):
                 self._needs_collapse.append(old)
             else:
-                try:
-                    # lazy solution to Bug #846204
+                try:  # try... a lazy solution to Bug #846204
                     model.row_changed(old, model.get_iter(old))
                 except:
                     msg = ("apptreeview.expand_path: Supplied 'old' "
@@ -322,8 +322,8 @@ class AppTreeView(Gtk.TreeView):
         else:
             action_btn.set_state(Gtk.StateFlags.NORMAL)
 
-        #~ self.emit("application-selected", self.appmodel.get_application(app))
-        self.app_view.emit("application-selected", self.appmodel.get_application(app))
+        self.app_view.emit(
+            "application-selected", self.appmodel.get_application(app))
         return False
 
     def _on_row_activated(self, view, path, column, tr):
@@ -576,10 +576,6 @@ class AppTreeView(Gtk.TreeView):
         if not res:
             return False
         return self.get_path_at_pos(x, y)[0] == self.get_cursor()[0]
-
-
-
-
 
 
 def get_query_from_search_entry(search_term):
