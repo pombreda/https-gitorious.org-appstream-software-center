@@ -134,8 +134,8 @@ def get_test_videoplayer_window():
     player = VideoPlayer()
     win.add(player)
     if len(sys.argv) < 2:
-        player.uri = "http://upload.wikimedia.org/wikipedia/commons/9/9b/Pentagon_News_Sample.ogg"
-        #player.load_html_string(html)
+        # player.uri = "http://upload.wikimedia.org/wikipedia/commons/9/9b/Pentagon_News_Sample.ogg"
+        player.load_html_string(html)
     else:
         player.uri = sys.argv[1]
     win.show_all()

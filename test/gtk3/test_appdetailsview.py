@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-from gi.repository import Gtk, GObject
+from gi.repository import Gtk
 import sys
 import unittest
 
@@ -13,7 +13,7 @@ import softwarecenter.paths
 softwarecenter.paths.datadir = "../data"
 
 from softwarecenter.db.application import Application
-from softwarecenter.testutils import get_test_db, get_mock_app_from_real_app
+from softwarecenter.testutils import get_mock_app_from_real_app
 from softwarecenter.ui.gtk3.views.appdetailsview_gtk import get_test_window_appdetails
 class TestAppdetailsViews(unittest.TestCase):
 
