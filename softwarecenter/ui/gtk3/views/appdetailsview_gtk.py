@@ -994,6 +994,11 @@ class AppDetailsViewGtk(Viewport, AppDetailsViewBase):
         self.homepage_btn.set_name("subtle-label")
         self.homepage_btn.connect('activate-link', self._on_homepage_clicked)
 
+        # video
+        from softwarecenter.ui.gtk3.widgets.videoplayer import VideoPlayer
+        self.videoplayer = VideoPlayer()
+        vb.pack_start(self.videoplayer, False, False, 0)
+
         # add the links footer to the description widget
         footer_hb = Gtk.HBox(spacing=6)
         footer_hb.pack_start(self.homepage_btn, False, False, 0)
@@ -1145,6 +1150,13 @@ class AppDetailsViewGtk(Viewport, AppDetailsViewBase):
             self.homepage_btn.hide()
         return
 
+    def _update_app_video(self, app_details):
+        if app_details.video_url:
+            self.videoplayer.uri = app_details.video_url
+            self.videoplayer.show()
+        else:
+            self.videoplayer.hide()
+
     def _update_app_screenshot(self, app_details):
         # get screenshot urls and configure the ScreenshotView...
         if app_details.thumbnail and app_details.screenshot:
@@ -1232,6 +1244,7 @@ class AppDetailsViewGtk(Viewport, AppDetailsViewBase):
         self._update_app_description(app_details, app_details.pkgname)
         self._update_description_footer_links(app_details)
         self._update_app_screenshot(app_details)
+        self._update_app_video(app_details)
         self._update_weblive(app_details)
         self._update_pkg_info_table(app_details)
         if not skip_update_addons:

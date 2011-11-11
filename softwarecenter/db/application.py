@@ -563,6 +563,17 @@ class AppDetails(GObject.GObject):
                                                      'version' : self.version or 0}
 
     @property
+    def video_url(self):
+        # if there is a custom video url provided, use that
+        if self._doc:
+            if self._doc.get_value(XapianValues.VIDEO_URL):
+                return self._doc.get_value(XapianValues.VIDEO_URL)
+        # else use the video server
+        #return self._distro.VIDEO_URL % { 'pkgname' : self.pkgname, 
+        #                                  'version' : self.version or 0}
+        return None
+        
+    @property
     def version(self):
         if self._pkg:
             if self._pkg.installed:
