@@ -33,12 +33,11 @@ from gettext import gettext as _
 LOG = logging.getLogger(__name__)
 
 
-
 class ScreenshotData(GObject.GObject):
 
-    __gsignals__ = {"screenshots-available" : (GObject.SIGNAL_RUN_FIRST,
-                                               GObject.TYPE_NONE,
-                                               (),),
+    __gsignals__ = {"screenshots-available": (GObject.SIGNAL_RUN_FIRST,
+                                              GObject.TYPE_NONE,
+                                              (),),
                     }
 
     def __init__(self):
@@ -54,10 +53,10 @@ class ScreenshotData(GObject.GObject):
         self.app_details = app_details
         self.appname = app_details.display_name
         self.pkgname = app_details.pkgname
-        
+
         self._sig = self.app_details.connect(
             "screenshots-available", self._on_screenshots_available)
-        
+
         self.app_details.query_multiple_screenshots()
         self.screenshots = []
         return
@@ -96,9 +95,9 @@ class ScreenshotButton(Gtk.Button):
             Gtk.render_focus(
                 context,
                 cr,
-                a.x - _a.x + (a.width-pbw)/2 - 4,
-                a.y - _a.y + (a.height-pbh)/2 - 4,
-                pbw+8, pbh+8)
+                a.x - _a.x + (a.width - pbw) / 2 - 4,
+                a.y - _a.y + (a.height - pbh) / 2 - 4,
+                pbw + 8, pbh + 8)
 
         for child in self:
             self.propagate_draw(child, cr)
@@ -107,7 +106,7 @@ class ScreenshotButton(Gtk.Button):
 
 class ScreenshotGallery(Gtk.VBox):
 
-    """ Widget that displays screenshot availability, download prrogress,
+    """ Widget that displays screenshot availability, download progress,
         and eventually the screenshot itself.
     """
 
@@ -118,7 +117,6 @@ class ScreenshotGallery(Gtk.VBox):
     NOT_AVAILABLE_STRING = _('No screenshot available')
 
     USE_CACHING = True
-
 
     def __init__(self, distro, icons):
         Gtk.VBox.__init__(self)
@@ -147,11 +145,18 @@ class ScreenshotGallery(Gtk.VBox):
         except:
             self._zoom_cursor = None
 
-        # convienience class for handling the downloading (or not) of any screenshot
+        # convienience class for handling the downloading (or not) of
+        # any screenshot
         self.loader = SimpleFileDownloader()
-        self.loader.connect('error', self._on_screenshot_load_error)
-        self.loader.connect('file-url-reachable', self._on_screenshot_query_complete)
-        self.loader.connect('file-download-complete', self._on_screenshot_download_complete)
+        self.loader.connect(
+            'error',
+            self._on_screenshot_load_error)
+        self.loader.connect(
+            'file-url-reachable',
+            self._on_screenshot_query_complete)
+        self.loader.connect(
+            'file-download-complete',
+            self._on_screenshot_download_complete)
 
         self._build_ui()
         return
@@ -202,7 +207,8 @@ class ScreenshotGallery(Gtk.VBox):
         # unavailable layout
         self.unavailable = Gtk.Label(label=self.NOT_AVAILABLE_STRING)
         self.unavailable.set_alignment(0.5, 0.5)
-        # force the label state to INSENSITIVE so we get the nice subtle etched in look
+        # force the label state to INSENSITIVE so we get the nice
+        # subtle etched in look
         self.unavailable.set_state(Gtk.StateType.INSENSITIVE)
         self.screenshot.add(self.unavailable)
 
@@ -210,24 +216,23 @@ class ScreenshotGallery(Gtk.VBox):
         self.thumbnails.set_margin_top(5)
         self.thumbnails.set_halign(Gtk.Align.CENTER)
         self.pack_end(self.thumbnails, False, False, 0)
-        self.thumbnails.connect("thumb-selected", self.on_thumbnail_selected)
+        self.thumbnails.connect(
+            "thumb-selected", self.on_thumbnail_selected)
         self.button.connect("clicked", self.on_clicked)
         self.show_all()
         return
 
     def _on_key_press(self, widget, event):
         # react to spacebar, enter, numpad-enter
-        if event.keyval in (Gdk.KEY_space,
-                            Gdk.KEY_Return,
-                            Gdk.KEY_KP_Enter) and self.get_is_actionable():
+        if (event.keyval in (Gdk.KEY_space, Gdk.KEY_Return,
+            Gdk.KEY_KP_Enter) and self.get_is_actionable()):
             self.set_state(Gtk.StateType.ACTIVE)
         return
 
     def _on_key_release(self, widget, event):
         # react to spacebar, enter, numpad-enter
-        if event.keyval in (Gdk.KEY_space,
-                            Gdk.KEY_Return,
-                            Gdk.KEY_KP_Enter) and self.get_is_actionable():
+        if (event.keyval in (Gdk.KEY_space, Gdk.KEY_Return,
+            Gdk.KEY_KP_Enter) and self.get_is_actionable()):
             self.set_state(Gtk.StateType.NORMAL)
             self._show_image_dialog()
         return
@@ -238,7 +243,8 @@ class ScreenshotGallery(Gtk.VBox):
         if self.data and self.screenshot_pixbuf:
             title = _("%s - Screenshot") % self.data.appname
             toplevel = self.get_toplevel()
-            d = SimpleShowImageDialog(title, self.screenshot_pixbuf, toplevel)
+            d = SimpleShowImageDialog(
+                title, self.screenshot_pixbuf, toplevel)
             d.run()
             d.destroy()
         return
@@ -277,8 +283,8 @@ class ScreenshotGallery(Gtk.VBox):
         w = pb.get_width()
         h = pb.get_height()
         sf = min(float(target_w) / w, float(target_h) / h)
-        sw = int(w*sf)
-        sh = int(h*sf)
+        sw = int(w * sf)
+        sh = int(h * sf)
         return pb.scale_simple(sw, sh, GdkPixbuf.InterpType.BILINEAR)
 
     # public
@@ -292,14 +298,14 @@ class ScreenshotGallery(Gtk.VBox):
         """
         self._height = 0
         self.clear_main_screenshot()
-        self.thumbnails.clear() 
+        self.thumbnails.clear()
         return
 
     def clear_main_screenshot(self):
         self.screenshot_available = True
         self.ready = False
         self.display_spinner()
-        return        
+        return
 
     def display_spinner(self):
         self.button.image.clear()
@@ -352,8 +358,8 @@ class ScreenshotGallery(Gtk.VBox):
 
     def fetch_screenshots(self, app_details):
         """ Called to configure the screenshotview for a new application.
-            The existing screenshot is cleared and the process of fetching a
-            new screenshot is instigated.
+            The existing screenshot is cleared and the process of
+            fetching a new screenshot is instigated.
         """
         self.clear()
         acc = self.get_accessible()
@@ -393,7 +399,8 @@ class Thumbnail(Gtk.Button):
 
         loader = SimpleFileDownloader()
         loader.connect("file-download-complete", download_complete_cb)
-        loader.download_file(url, use_cache=ScreenshotGallery.USE_CACHING)
+        loader.download_file(
+            url, use_cache=ScreenshotGallery.USE_CACHING)
 
         self.connect("draw", self.on_draw)
         return
@@ -413,7 +420,7 @@ class ThumbnailGallery(Gtk.HBox):
     __gsignals__ = {
         "thumb-selected": (GObject.SIGNAL_RUN_LAST,
                            GObject.TYPE_NONE,
-                           (int,),),}
+                           (int,),), }
 
     THUMBNAIL_SIZE_CONTRAINTS = 90, 80
     THUMBNAIL_MAX_COUNT = 3
