@@ -371,7 +371,7 @@ class AppDetails(GObject.GObject):
             the property display_name instead
         """
         return self._app.name
-    
+
     @property
     def display_name(self):
         """ Return the application name as it should be displayed in the UI
@@ -572,7 +572,7 @@ class AppDetails(GObject.GObject):
         #return self._distro.VIDEO_URL % { 'pkgname' : self.pkgname, 
         #                                  'version' : self.version or 0}
         return None
-        
+
     @property
     def version(self):
         if self._pkg:

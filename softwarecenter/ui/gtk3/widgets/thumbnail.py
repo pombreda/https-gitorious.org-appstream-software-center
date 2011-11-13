@@ -41,13 +41,23 @@ class ScreenshotData(GObject.GObject):
                                                (),),
                     }
 
-    def __init__(self, app_details):
+    def __init__(self):
         GObject.GObject.__init__(self)
+        self._sig = 0
+        self.screenshots = []
+        return
+
+    def set_app_details(self, app_details):
+        if self._sig > 0:
+            GObject.source_remove(self._sig)
+
         self.app_details = app_details
         self.appname = app_details.display_name
         self.pkgname = app_details.pkgname
-        self.app_details.connect(
+        
+        self._sig = self.app_details.connect(
             "screenshots-available", self._on_screenshots_available)
+        
         self.app_details.query_multiple_screenshots()
         self.screenshots = []
         return
@@ -64,195 +74,6 @@ class ScreenshotData(GObject.GObject):
 
     def get_nth_small_screenshot(self, index):
         return self.screenshots[index]['small_image_url']
-
-
-class ScreenshotWidget(Gtk.VBox):
-
-    MAX_SIZE_CONSTRAINTS = 300, 250
-    SPINNER_SIZE = 32, 32
-
-    ZOOM_ICON = "stock_zoom-page"
-    NOT_AVAILABLE_STRING = _('No screenshot available')
-
-    USE_CACHING = False
-
-    def __init__(self, distro, icons):
-        Gtk.VBox.__init__(self)
-        # data
-        self.distro = distro
-        self.icons = icons
-        self.data = None
-
-        # state tracking
-        self.ready = False
-        self.screenshot_pixbuf = None
-        self.screenshot_available = False
-
-        # zoom cursor
-        try:
-            zoom_pb = self.icons.load_icon(self.ZOOM_ICON, 22, 0)
-            # FIXME
-            self._zoom_cursor = Gdk.Cursor.new_from_pixbuf(
-                                    Gdk.Display.get_default(),
-                                    zoom_pb,
-                                    0, 0)  # x, y
-        except:
-            self._zoom_cursor = None
-
-        # convienience class for handling the downloading (or not) of any screenshot
-        self.loader = SimpleFileDownloader()
-        self.loader.connect('error', self._on_screenshot_load_error)
-        self.loader.connect('file-url-reachable', self._on_screenshot_query_complete)
-        self.loader.connect('file-download-complete', self._on_screenshot_download_complete)
-
-        self._build_ui()
-        return
-
-    def _build_ui(self):
-        # the frame around the screenshot (placeholder)
-        self.set_border_width(3)
-        self.screenshot = Gtk.VBox()
-        self.pack_start(self.screenshot, True, True, 0)
-
-        self.spinner = Gtk.Spinner()
-        self.spinner.set_size_request(*self.SPINNER_SIZE)
-        self.spinner.set_valign(Gtk.Align.CENTER)
-        self.spinner.set_halign(Gtk.Align.CENTER)
-        self.screenshot.add(self.spinner)
-
-        # clickable screenshot button
-        self.button = ScreenshotButton()
-        self.screenshot.pack_start(self.button, True, False, 0)
-
-        # unavailable layout
-        self.unavailable = Gtk.Label(label=self.NOT_AVAILABLE_STRING)
-        self.unavailable.set_alignment(0.5, 0.5)
-        # force the label state to INSENSITIVE so we get the nice subtle etched in look
-        self.unavailable.set_state(Gtk.StateType.INSENSITIVE)
-        self.screenshot.add(self.unavailable)
-        self.show_all()
-
-    def _on_screenshot_download_complete(self, loader, screenshot_path):
-        try:
-            self.screenshot_pixbuf = GdkPixbuf.Pixbuf.new_from_file(screenshot_path)
-        except Exception, e:
-            LOG.exception("Pixbuf.new_from_file() failed")
-            self.loader.emit('error', GObject.GError, e)
-            return False
-
-        #context = self.button.get_style_context()
-        tw, th = self.MAX_SIZE_CONSTRAINTS
-        pb = self._downsize_pixbuf(self.screenshot_pixbuf, tw, th)
-        self.button.image.set_from_pixbuf(pb)
-        self.ready = True
-        self.display_image()
-        return
-
-    def _on_screenshot_load_error(self, loader, err_type, err_message):
-        self.set_screenshot_available(False)
-        self.ready = True
-        return
-
-    def _on_screenshot_query_complete(self, loader, reachable):
-        self.set_screenshot_available(reachable)
-        if not reachable:
-            self.ready = True
-        return
-
-    def _downsize_pixbuf(self, pb, target_w, target_h):
-        w = pb.get_width()
-        h = pb.get_height()
-
-        if w > h:
-            sf = float(target_w) / w
-        else:
-            sf = float(target_h) / h
-
-        sw = int(w*sf)
-        sh = int(h*sf)
-
-        return pb.scale_simple(sw, sh, GdkPixbuf.InterpType.BILINEAR)
-
-    def download_and_display_from_url(self, url):
-        self.loader.download_file(url, use_cache=self.USE_CACHING)
-        return
-
-    def clear(self):
-        """ All state trackers are set to their intitial states, and
-            the old screenshot is cleared from the view.
-        """
-
-        self.screenshot_available = True
-        self.ready = False
-        self.display_spinner()
-        return
-
-    def display_spinner(self):
-        self.button.image.clear()
-        self.button.hide()
-        self.unavailable.hide()
-        self.spinner.show()
-        self.determine_size()
-        self.spinner.start()
-        return
-
-    def display_unavailable(self):
-        self.spinner.hide()
-        self.spinner.stop()
-        self.unavailable.show()
-        self.button.hide()
-        self.determine_size()
-        acc = self.get_accessible()
-        acc.set_name(self.NOT_AVAILABLE_STRING)
-        acc.set_role(Atk.Role.LABEL)
-        return
-
-    def determine_size(self):
-        has_thumbnails = self.thumbnails.get_children()
-        #~ is_actionable = self.screenshot_available
-        w_contraint, h_constraint = self.MAX_SIZE_CONSTRAINTS
-        if not self.ready and not has_thumbnails:
-            # no thumbs or main image, spinner
-            self.screenshot.set_size_request(w_contraint, h_constraint)
-        elif not self.ready and has_thumbnails:
-            # still spinner vis but thumbs loaded
-            self.screenshot.set_size_request(w_contraint, h_constraint)
-        elif self.ready and not has_thumbnails:
-            # main image loaded no thumbs
-            self.screenshot.set_size_request(-1, -1)
-        elif self.ready and has_thumbnails:
-            # main image loaded with thumbs
-            self.screenshot.set_size_request(-1, h_constraint)
-        else:
-            self.screenshot.set_size_request(w_contraint, h_constraint)
-            print 'unhandled case', has_thumbnails, self.ready
-        return
-
-    def display_image(self):
-        self.unavailable.hide()
-        self.spinner.stop()
-        self.spinner.hide()
-        self.button.show_all()
-        self.thumbnails.show()
-        self.determine_size()
-        return
-
-    def get_is_actionable(self):
-        """ Returns true if there is a screenshot available and
-            the download has completed
-        """
-        return self.screenshot_available and self.ready
-
-    def set_screenshot_available(self, available):
-        """ Configures the ScreenshotView depending on whether there
-            is a screenshot available.
-        """
-        if not available:
-            self.display_unavailable()
-        elif available and self.unavailable.get_property("visible"):
-            self.display_spinner()
-        self.screenshot_available = available
-        return
 
 
 class ScreenshotButton(Gtk.Button):
@@ -284,19 +105,107 @@ class ScreenshotButton(Gtk.Button):
         return
 
 
-class ScreenshotGallery(ScreenshotWidget):
+class ScreenshotGallery(Gtk.VBox):
 
     """ Widget that displays screenshot availability, download prrogress,
         and eventually the screenshot itself.
     """
 
+    MAX_SIZE_CONSTRAINTS = 300, 250
+    SPINNER_SIZE = 32, 32
+
+    ZOOM_ICON = "stock_zoom-page"
+    NOT_AVAILABLE_STRING = _('No screenshot available')
+
+    USE_CACHING = True
+
+
     def __init__(self, distro, icons):
-        ScreenshotWidget.__init__(self, distro, icons)
+        Gtk.VBox.__init__(self)
+        # data
+        self.distro = distro
+        self.icons = icons
+        self.data = ScreenshotData()
+        self.data.connect(
+            "screenshots-available", self._on_screenshots_available)
+
+        # state tracking
+        self.ready = False
+        self.screenshot_pixbuf = None
+        self.screenshot_available = False
         self._thumbnail_sigs = []
+        self._height = 0
+
+        # zoom cursor
+        try:
+            zoom_pb = self.icons.load_icon(self.ZOOM_ICON, 22, 0)
+            # FIXME
+            self._zoom_cursor = Gdk.Cursor.new_from_pixbuf(
+                                    Gdk.Display.get_default(),
+                                    zoom_pb,
+                                    0, 0)  # x, y
+        except:
+            self._zoom_cursor = None
+
+        # convienience class for handling the downloading (or not) of any screenshot
+        self.loader = SimpleFileDownloader()
+        self.loader.connect('error', self._on_screenshot_load_error)
+        self.loader.connect('file-url-reachable', self._on_screenshot_query_complete)
+        self.loader.connect('file-download-complete', self._on_screenshot_download_complete)
+
+        self._build_ui()
         return
 
+    # overrides
+    def do_get_preferred_width(self):
+        if self.data.get_n_screenshots() <= 1:
+            pb = self.button.image.get_pixbuf()
+            if pb:
+                width = pb.get_width() + 20
+                return width, width
+        return 320, 320
+
+    def do_get_preferred_height(self):
+        pb = self.button.image.get_pixbuf()
+        if pb:
+            height = pb.get_height()
+            if self.data.get_n_screenshots() <= 1:
+                height += 20
+                height = max(self._height, height)
+                self._height = height
+                return height, height
+            else:
+                height += 110
+                height = max(self._height, height)
+                self._height = height
+                return height, height
+        self._height = max(self._height, 250)
+        return self._height, self._height
+
+    # private
     def _build_ui(self):
-        ScreenshotWidget._build_ui(self)
+        self.set_border_width(3)
+        # the frame around the screenshot (placeholder)
+        self.screenshot = Gtk.VBox()
+        self.pack_start(self.screenshot, True, True, 0)
+
+        self.spinner = Gtk.Spinner()
+        self.spinner.set_size_request(*self.SPINNER_SIZE)
+        self.spinner.set_valign(Gtk.Align.CENTER)
+        self.spinner.set_halign(Gtk.Align.CENTER)
+        self.screenshot.add(self.spinner)
+
+        # clickable screenshot button
+        self.button = ScreenshotButton()
+        self.screenshot.pack_start(self.button, True, False, 0)
+
+        # unavailable layout
+        self.unavailable = Gtk.Label(label=self.NOT_AVAILABLE_STRING)
+        self.unavailable.set_alignment(0.5, 0.5)
+        # force the label state to INSENSITIVE so we get the nice subtle etched in look
+        self.unavailable.set_state(Gtk.StateType.INSENSITIVE)
+        self.screenshot.add(self.unavailable)
+
         self.thumbnails = ThumbnailGallery(self)
         self.thumbnails.set_margin_top(5)
         self.thumbnails.set_halign(Gtk.Align.CENTER)
@@ -304,15 +213,6 @@ class ScreenshotGallery(ScreenshotWidget):
         self.thumbnails.connect("thumb-selected", self.on_thumbnail_selected)
         self.button.connect("clicked", self.on_clicked)
         self.show_all()
-        return
-
-    def on_clicked(self, button):
-        if not self.get_is_actionable():
-            return
-        self._show_image_dialog()
-        return
-
-    def _on_focus_in(self, widget, event):
         return
 
     def _on_key_press(self, widget, event):
@@ -343,6 +243,113 @@ class ScreenshotGallery(ScreenshotWidget):
             d.destroy()
         return
 
+    def _on_screenshots_available(self, screenshots):
+        self.thumbnails.set_thumbnails_from_data(screenshots)
+
+    def _on_screenshot_download_complete(self, loader, screenshot_path):
+        try:
+            self.screenshot_pixbuf = GdkPixbuf.Pixbuf.new_from_file(screenshot_path)
+        except Exception, e:
+            LOG.exception("Pixbuf.new_from_file() failed")
+            self.loader.emit('error', GObject.GError, e)
+            return False
+
+        #context = self.button.get_style_context()
+        tw, th = self.MAX_SIZE_CONSTRAINTS
+        pb = self._downsize_pixbuf(self.screenshot_pixbuf, tw, th)
+        self.button.image.set_from_pixbuf(pb)
+        self.ready = True
+        self.display_image()
+        return
+
+    def _on_screenshot_load_error(self, loader, err_type, err_message):
+        self.set_screenshot_available(False)
+        self.ready = True
+        return
+
+    def _on_screenshot_query_complete(self, loader, reachable):
+        self.set_screenshot_available(reachable)
+        if not reachable:
+            self.ready = True
+        return
+
+    def _downsize_pixbuf(self, pb, target_w, target_h):
+        w = pb.get_width()
+        h = pb.get_height()
+        sf = min(float(target_w) / w, float(target_h) / h)
+        sw = int(w*sf)
+        sh = int(h*sf)
+        return pb.scale_simple(sw, sh, GdkPixbuf.InterpType.BILINEAR)
+
+    # public
+    def download_and_display_from_url(self, url):
+        self.loader.download_file(url, use_cache=self.USE_CACHING)
+        return
+
+    def clear(self):
+        """ All state trackers are set to their intitial states, and
+            the old screenshot is cleared from the view.
+        """
+        self._height = 0
+        self.clear_main_screenshot()
+        self.thumbnails.clear() 
+        return
+
+    def clear_main_screenshot(self):
+        self.screenshot_available = True
+        self.ready = False
+        self.display_spinner()
+        return        
+
+    def display_spinner(self):
+        self.button.image.clear()
+        self.button.hide()
+        self.unavailable.hide()
+        self.spinner.show()
+        self.spinner.start()
+        return
+
+    def display_unavailable(self):
+        self.spinner.hide()
+        self.spinner.stop()
+        self.unavailable.show()
+        self.button.hide()
+        acc = self.get_accessible()
+        acc.set_name(self.NOT_AVAILABLE_STRING)
+        acc.set_role(Atk.Role.LABEL)
+        return
+
+    def display_image(self):
+        self.unavailable.hide()
+        self.spinner.stop()
+        self.spinner.hide()
+        self.button.show_all()
+        self.thumbnails.show()
+        return
+
+    def get_is_actionable(self):
+        """ Returns true if there is a screenshot available and
+            the download has completed
+        """
+        return self.screenshot_available and self.ready
+
+    def set_screenshot_available(self, available):
+        """ Configures the ScreenshotView depending on whether there
+            is a screenshot available.
+        """
+        if not available:
+            self.display_unavailable()
+        elif available and self.unavailable.get_property("visible"):
+            self.display_spinner()
+        self.screenshot_available = available
+        return
+
+    def on_clicked(self, button):
+        if not self.get_is_actionable():
+            return
+        self._show_image_dialog()
+        return
+
     def fetch_screenshots(self, app_details):
         """ Called to configure the screenshotview for a new application.
             The existing screenshot is cleared and the process of fetching a
@@ -351,23 +358,13 @@ class ScreenshotGallery(ScreenshotWidget):
         self.clear()
         acc = self.get_accessible()
         acc.set_name(_('Fetching screenshot ...'))
-        self.data = ScreenshotData(app_details)
-        self.data.connect(
-            "screenshots-available", self._on_screenshots_available)
+        self.data.set_app_details(app_details)
         self.display_spinner()
         self.download_and_display_from_url(app_details.screenshot)
         return
 
-    def _on_screenshots_available(self, screenshots):
-        self.thumbnails.set_thumbnails_from_data(screenshots)
-        self.determine_size()
-
-    def clear(self):
-        self.thumbnails.clear()
-        ScreenshotWidget.clear(self)
-
     def on_thumbnail_selected(self, gallery, id_):
-        ScreenshotWidget.clear(self)
+        self.clear_main_screenshot()
         large_url = self.data.get_nth_large_screenshot(id_)
         self.download_and_display_from_url(large_url)
         return
@@ -396,7 +393,7 @@ class Thumbnail(Gtk.Button):
 
         loader = SimpleFileDownloader()
         loader.connect("file-download-complete", download_complete_cb)
-        loader.download_file(url, use_cache=ScreenshotWidget.USE_CACHING)
+        loader.download_file(url, use_cache=ScreenshotGallery.USE_CACHING)
 
         self.connect("draw", self.on_draw)
         return
@@ -420,7 +417,6 @@ class ThumbnailGallery(Gtk.HBox):
 
     THUMBNAIL_SIZE_CONTRAINTS = 90, 80
     THUMBNAIL_MAX_COUNT = 3
-
 
     def __init__(self, gallery):
         Gtk.HBox.__init__(self)
@@ -496,8 +492,16 @@ def get_test_screenshot_thumbnail_window():
     win = Gtk.Window()
     win.set_border_width(10)
 
+    from gi.repository import Gdk
+    from softwarecenter.ui.gtk3.utils import init_sc_css_provider
+    from softwarecenter.ui.gtk3.widgets.containers import FramedBox
+    init_sc_css_provider(win, Gtk.Settings.get_default(),
+                         Gdk.Screen.get_default(), "data")
+
     t = ScreenshotGallery(distro, icons)
     t.connect('draw', t.draw)
+    frame = FramedBox()
+    frame.add(t)
     win.set_data("screenshot_thumbnail_widget", t)
 
     vb = Gtk.VBox(spacing=6)
@@ -506,7 +510,7 @@ def get_test_screenshot_thumbnail_window():
     b = Gtk.Button('A button for focus testing')
     vb.pack_start(b, True, True, 0)
     win.set_data("screenshot_button_widget", b)
-    vb.pack_start(t, True, True, 0)
+    vb.pack_start(frame, True, True, 0)
 
     win.show_all()
     win.connect('destroy', Gtk.main_quit)
