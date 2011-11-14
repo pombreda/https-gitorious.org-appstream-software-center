@@ -17,6 +17,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import logging
+import subprocess
 import sys
 
 from gettext import gettext as _
@@ -31,15 +32,27 @@ class VideoPlayer(Gtk.VBox):
     def __init__(self):
         super(VideoPlayer, self).__init__()
         self.webkit = WebKit.WebView()
+        settings = self.webkit.get_settings()
+        settings.set_property("enable-plugins", False)
         self.webkit.connect("new-window-policy-decision-requested", self._on_new_window)
+        self.webkit.connect("create-web-view", self._on_create_web_view)
         self.pack_start(self.webkit, True, True, 0)
         self._uri = ""
 
-    # helper required to follow ToS about the "back" link
+    # helper required to follow ToS about the "back" link (flash version)
     def _on_new_window(self, view, frame, request, action, policy):
-        import subprocess
         subprocess.Popen(['xdg-open', request.get_uri()])
         return True
+    # helper for the embedded html5 viewer
+    def _on_create_web_view(self, view, frame):
+        # mvo: this is not ideal, the trouble is that we do not get the
+        #      url that the new view points to until after the view was
+        #      created. But we don't want to be a full blow internal 
+        #      webbrowser so we simply go back to the youtube url here
+        #      and the user needs to click "youtube" there again :/
+        uri = frame.get_uri()
+        subprocess.Popen(['xdg-open', uri])
+        return None
 
     # uri property
     def _set_uri(self, v):
