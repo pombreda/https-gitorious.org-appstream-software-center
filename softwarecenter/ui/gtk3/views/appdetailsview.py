@@ -354,7 +354,7 @@ class PackageInfo(Gtk.HBox):
     """
 
     def __init__(self, key, info_keys):
-        GObject.GObject.__init__(self)
+        Gtk.HBox.__init__(self)
         self.set_spacing(StockEms.LARGE)
 
         self.key = key
@@ -414,7 +414,7 @@ class Addon(Gtk.HBox):
     """ Widget to select addons: CheckButton - Icon - Title (pkgname) """
 
     def __init__(self, db, icons, pkgname):
-        GObject.GObject.__init__(self)
+        Gtk.HBox.__init__(self)
         self.set_spacing(StockEms.SMALL)
         self.set_border_width(2)
 
@@ -458,7 +458,8 @@ class Addon(Gtk.HBox):
         color = color_to_hex(context.get_color(Gtk.StateFlags.NORMAL))
         context.restore()
 
-        self.title.set_markup(title + ' <span color="%s">(%s)</span>' % (color, pkgname))
+        self.title.set_markup(
+            title + ' <span color="%s">(%s)</span>' % (color, pkgname))
         self.title.set_alignment(0.0, 0.5)
         self.title.set_line_wrap(True)
         self.title.set_ellipsize(Pango.EllipsizeMode.END)
@@ -495,7 +496,7 @@ class AddonsTable(Gtk.VBox):
                    }
 
     def __init__(self, addons_manager):
-        GObject.GObject.__init__(self)
+        Gtk.VBox.__init__(self)
         self.set_spacing(12)
 
         self.addons_manager = addons_manager
@@ -556,6 +557,10 @@ class AddonsTable(Gtk.VBox):
 
 
 class AddonsStatusBar(StatusBar):
+    """ Statusbar for the addons.
+        This will become visible if any addons are scheduled for install
+        or remove.
+    """
     
     def __init__(self, addons_manager):
         StatusBar.__init__(self, addons_manager.view)
@@ -600,10 +605,19 @@ class AddonsStatusBar(StatusBar):
         self.view.addons_to_remove = self.addons_manager.addons_to_remove
         LOG.debug("ApplyButtonClicked: inst=%s rm=%s" % (
                 self.view.addons_to_install, self.view.addons_to_remove))
-        AppDetailsViewBase.apply_changes(self.view)
+        # apply
+        app_manager = get_appmanager()
+        app_manager.apply_changes(self.view.app,
+                                  self.view.addons_to_install,
+                                  self.view.addons_to_remove)
 
 
-class AddonsManager():
+class AddonsManager(object):
+    """ Addons manager component.
+        This component deals with keeping track of what is marked
+        for install or removal.
+    """
+
     def __init__(self, view):
         self.view = view
 
@@ -652,7 +666,6 @@ class AddonsManager():
 
 _asset_cache = {}
 class AppDetailsView(Viewport):
-
     """ The view that shows the application details """
 
     # the size of the icon on the left side
@@ -662,7 +675,8 @@ class AppDetailsView(Viewport):
                            "ui/gtk3/art/itemview-background.png")
 
 
-    # need to include application-request-action here also since we are multiple-inheriting
+    # need to include application-request-action here also since we are 
+    # multiple-inheriting
     __gsignals__ = {'selected':(GObject.SignalFlags.RUN_FIRST,
                                 None,
                                 (GObject.TYPE_PYOBJECT,)),
@@ -709,10 +723,15 @@ class AppDetailsView(Viewport):
         self.a11y.set_name("app_details pane")
 
         # aptdaemon
-        self.backend.connect("transaction-started", self._on_transaction_started)
-        self.backend.connect("transaction-stopped", self._on_transaction_stopped)
-        self.backend.connect("transaction-finished", self._on_transaction_finished)
-        self.backend.connect("transaction-progress-changed", self._on_transaction_progress_changed)
+        self.backend.connect(
+            "transaction-started", self._on_transaction_started)
+        self.backend.connect(
+            "transaction-stopped", self._on_transaction_stopped)
+        self.backend.connect(
+            "transaction-finished", self._on_transaction_finished)
+        self.backend.connect(
+            "transaction-progress-changed", 
+            self._on_transaction_progress_changed)
 
         # network status watcher
         watcher = get_network_watcher()
@@ -771,7 +790,8 @@ class AppDetailsView(Viewport):
         return
 
     def _check_for_reviews(self):
-        # self.app may be undefined on network state change events (LP: #742635)
+        # self.app may be undefined on network state change events 
+        # (LP: #742635)
         if not self.app:
             return
         # review stats is fast and syncronous
@@ -839,7 +859,8 @@ class AppDetailsView(Viewport):
         # stats we update manually
         old_stats = self.review_loader.get_review_stats(self.app)
         if ((old_stats is None and len(reviews_data) > 0) or
-            (old_stats is not None and old_stats.ratings_total < len(reviews_data))):
+            (old_stats is not None and
+             old_stats.ratings_total < len(reviews_data))):
             # generate new stats
             stats = ReviewStats(app)
             stats.ratings_total = len(reviews_data)
@@ -903,9 +924,13 @@ class AppDetailsView(Viewport):
             servers = self.weblive.get_servers_for_pkgname(self.app.pkgname)
 
             if len(servers) == 0:
-                error(None,"No available server", "There is currently no available WebLive server for this application.\nPlease try again later.")
+                error(None,
+                      "No available server", 
+                      "There is currently no available WebLive server "
+                      "for this application.\nPlease try again later.")
             elif len(servers) == 1:
-                self.weblive.create_automatic_user_and_run_session(session=cmd,serverid=servers[0].name)
+                self.weblive.create_automatic_user_and_run_session(
+                    session=cmd,serverid=servers[0].name)
                 button.set_sensitive(False)
             else:
                 d = ShowWebLiveServerChooserDialog(servers, self.app.pkgname)
@@ -918,7 +943,8 @@ class AppDetailsView(Viewport):
                 d.destroy()
 
                 if serverid:
-                    self.weblive.create_automatic_user_and_run_session(session=cmd,serverid=serverid)
+                    self.weblive.create_automatic_user_and_run_session(
+                        session=cmd, serverid=serverid)
                     button.set_sensitive(False)
 
         elif self.weblive.client.state == "connected":
@@ -975,7 +1001,8 @@ class AppDetailsView(Viewport):
 
         # star rating widget
         self.review_stats_widget = StarRatingsWidget()
-        vb_inner.pack_start(self.review_stats_widget, False, False, StockEms.SMALL)
+        vb_inner.pack_start(
+            self.review_stats_widget, False, False, StockEms.SMALL)
 
         #~ vb_inner.set_property("can-focus", True)
         self.title.a11y = vb_inner.get_accessible()
@@ -1023,7 +1050,8 @@ class AppDetailsView(Viewport):
             # attach to all the WebLive events
             self.weblive.client.connect("progress", self.on_weblive_progress)
             self.weblive.client.connect("connected", self.on_weblive_connected)
-            self.weblive.client.connect("disconnected", self.on_weblive_disconnected)
+            self.weblive.client.connect(
+                "disconnected", self.on_weblive_disconnected)
             self.weblive.client.connect("exception", self.on_weblive_exception)
             self.weblive.client.connect("warning", self.on_weblive_warning)
 
@@ -1091,9 +1119,12 @@ class AppDetailsView(Viewport):
         self.reviews.connect("submit-usefulness", self._on_review_submit_usefulness)
         self.reviews.connect("modify-review", self._on_review_modify)
         self.reviews.connect("delete-review", self._on_review_delete)
-        self.reviews.connect("more-reviews-clicked", self._on_more_reviews_clicked)
-        self.reviews.connect("different-review-language-clicked", self._on_reviews_in_different_language_clicked)
-        self.reviews.connect("review-sort-changed", self._on_review_sort_method_changed)
+        self.reviews.connect("more-reviews-clicked",
+                             self._on_more_reviews_clicked)
+        self.reviews.connect("different-review-language-clicked", 
+                             self._on_reviews_in_different_language_clicked)
+        self.reviews.connect("review-sort-changed", 
+                             self._on_review_sort_method_changed)
         if get_distro().REVIEWS_SERVER:
             vb.pack_start(self.reviews, False, False, 0)
 
@@ -1182,7 +1213,8 @@ class AppDetailsView(Viewport):
         # show or hide the homepage button and set uri if homepage specified
         if app_details.website:
             self.homepage_btn.show()
-            self.homepage_btn.set_markup("<a href=\"%s\">%s</a>"%(self.app_details.website, _('Developer Web Site')))
+            self.homepage_btn.set_markup("<a href=\"%s\">%s</a>" % (
+                    self.app_details.website, _('Developer Web Site')))
             self.homepage_btn.set_tooltip_text(app_details.website)
         else:
             self.homepage_btn.hide()
@@ -1219,7 +1251,8 @@ class AppDetailsView(Viewport):
         if app_details.version:
             version = '%s %s' % (app_details.pkgname, app_details.version)
         else:
-            version = utf8(_("%s (unknown version)")) % utf8(app_details.pkgname)
+            version = utf8(_("%s (unknown version)")) % utf8(
+                app_details.pkgname)
         if app_details.license:
             license = app_details.license
         else:
@@ -1278,7 +1311,7 @@ class AppDetailsView(Viewport):
 
         self._update_layout_error_status(pkg_ambiguous_error)
         self._update_title_markup(appname, summary)
-        self._update_app_icon(app_details)
+
         self._update_app_description(app_details, app_details.pkgname)
         self._update_description_footer_links(app_details)
         self._update_app_screenshot(app_details)
@@ -1590,7 +1623,8 @@ class AppDetailsView(Viewport):
 
         return False
 
-    def _on_transaction_started(self, backend, pkgname, appname, trans_id, trans_type):
+    def _on_transaction_started(self, backend, pkgname, appname, trans_id, 
+                                trans_type):
         if self.addons_statusbar.applying:
             self.pkg_statusbar.configure(self.app_details, AppActions.APPLY)
             return
@@ -1598,7 +1632,8 @@ class AppDetailsView(Viewport):
         state = self.pkg_statusbar.pkg_state
         LOG.debug("_on_transaction_started %s" % state)
         if state == PkgStates.NEEDS_PURCHASE:
-            self.pkg_statusbar.configure(self.app_details, PkgStates.INSTALLING_PURCHASED)
+            self.pkg_statusbar.configure(self.app_details, 
+                                         PkgStates.INSTALLING_PURCHASED)
         elif state == PkgStates.UNINSTALLED:
             self.pkg_statusbar.configure(self.app_details, PkgStates.INSTALLING)
         elif state == PkgStates.INSTALLED:
@@ -1608,7 +1643,8 @@ class AppDetailsView(Viewport):
         elif state == PkgStates.REINSTALLABLE:
             self.pkg_statusbar.configure(self.app_details, PkgStates.INSTALLING)
             # FIXME: is there a way to tell if we are installing/removing?
-            # we will assume that it is being installed, but this means that during removals we get the text "Installing.."
+            # we will assume that it is being installed, but this means that
+            # during removals we get the text "Installing.."
             # self.pkg_statusbar.configure(self.app_details, PkgStates.REMOVING)
         return
 
@@ -1623,7 +1659,9 @@ class AppDetailsView(Viewport):
         return
 
     def _on_transaction_progress_changed(self, backend, pkgname, progress):
-        if self.app_details and self.app_details.pkgname and self.app_details.pkgname == pkgname:
+        if (self.app_details and
+            self.app_details.pkgname and
+            self.app_details.pkgname == pkgname):
             if not self.pkg_statusbar.progress.get_property('visible'):
                 self.pkg_statusbar.button.hide()
                 self.pkg_statusbar.progress.show()
@@ -1635,8 +1673,8 @@ class AppDetailsView(Viewport):
         return
 
     def get_app_icon_details(self):
-        """ helper for unity dbus support to provide details about the application
-            icon as it is displayed on-screen
+        """ helper for unity dbus support to provide details about the
+            application icon as it is displayed on-screen
         """
         icon_size = self._get_app_icon_size_on_screen()
         (icon_x, icon_y) = self._get_app_icon_xy_position_on_screen()
@@ -1669,7 +1707,8 @@ class AppDetailsView(Viewport):
         try:
             (x,y) = self.icon.translate_coordinates(parent, 0, 0)
         except Exception as e:
-            LOG.warning("couldn't translate icon coordinates on-screen for unity dbus message: %s" % e)
+            LOG.warning("couldn't translate icon coordinates on-screen "
+                        "for unity dbus message: %s" % e)
             return (0,0)
         # get toplevel window position
         (px, py) = parent.get_position()
@@ -1682,14 +1721,16 @@ class AppDetailsView(Viewport):
                     return self.icons.load_icon(app_details.icon,
                                                 self.APP_ICON_SIZE, 0)
                 except GObject.GError as e:
-                    logging.warn("failed to load '%s': %s" % (app_details.icon, e))
+                    logging.warn("failed to load '%s': %s" % (
+                            app_details.icon, e))
                     return self.icons.load_icon(Icons.MISSING_APP,
                                                 self.APP_ICON_SIZE, 0)
             elif app_details.icon_url:
                 LOG.debug("did not find the icon locally, must download it")
 
                 def on_image_download_complete(downloader, image_file_path):
-                    # when the download is complete, replace the icon in the view with the downloaded one
+                    # when the download is complete, replace the icon in the 
+                    # view with the downloaded one
                     try:
                         pb = GdkPixbuf.Pixbuf.new_from_file(image_file_path)
                         self.icon.set_from_pixbuf(pb)
