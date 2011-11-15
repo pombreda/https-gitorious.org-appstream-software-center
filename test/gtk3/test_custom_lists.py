@@ -8,7 +8,7 @@ import unittest
 sys.path.insert(0,"../..")
 sys.path.insert(0,"..")
 
-from softwarecenter.enums import XapianValues
+from softwarecenter.enums import XapianValues, ActionButtons
 
 #from mock import Mock
 
@@ -37,12 +37,19 @@ class TestSearch(unittest.TestCase):
         pane.on_search_terms_changed(None, "ark,artha,software-center")
         self._p()
         model = pane.app_view.tree_view.get_model()
+        
         # custom list should return three items
         self.assertTrue(len(model) == 3)
+        
         # check package names, ordering is default "by relevance"
         self.assertPkgInListAtIndex(0, model, "ark")
         self.assertPkgInListAtIndex(1, model, "software-center")
         self.assertPkgInListAtIndex(2, model, "artha")
+        
+        # check that the status bar offers to install the packages
+        install_button = pane.action_bar.get_button(ActionButtons.INSTALL)
+        self.assertNotEqual(install_button, None)
+        
         GObject.timeout_add(TIMEOUT, lambda: win.destroy())
         Gtk.main()
         
