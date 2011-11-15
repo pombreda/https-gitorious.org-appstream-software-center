@@ -42,6 +42,7 @@ class TestAppdetailsView(unittest.TestCase):
         self.assertTrue(view.videoplayer.get_property("visible"))
     
     def test_pkgstatus_bar(self):
+        # make sure configure is run with the various states
         # test
         win = get_test_window_appdetails()
         view = win.get_data("view")
@@ -49,7 +50,16 @@ class TestAppdetailsView(unittest.TestCase):
         app = Application("", "software-center")
         view.show_app(app)
         do_events()
-        # make sure the various states are run
+
+        # run the configure on the various states
+        for var in vars(PkgStates):
+            # FIXME: this just ensures we are not crashing, also
+            # add functional tests to ensure on error we show
+            # the right info etc
+            state = getattr(PkgStates, var)
+            view.pkg_statusbar.configure(view.app_details, state)
+
+        # make sure the various states are tested on click
         view.pkg_statusbar.app_manager = mock = Mock()
         mock_button = Mock()
         button_to_function_tests = (
@@ -59,7 +69,7 @@ class TestAppdetailsView(unittest.TestCase):
             (PkgStates.UNINSTALLED, "install"),
             (PkgStates.REINSTALLABLE, "install"),
             (PkgStates.UPGRADABLE, "upgrade"),
-            (PkgStates.NEEDS_SOURCE, "enable_software_source") 
+            (PkgStates.NEEDS_SOURCE, "enable_software_source")
         )
         for state, func in button_to_function_tests:
             view.pkg_statusbar.pkg_state = state
