@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2009 Canonical
+# Copyright (C) 2009-2011 Canonical
 #
 # Authors:
+#  Matthew McGowan
 #  Michael Vogt
 #
 # This program is free software; you can redistribute it and/or modify it under
@@ -17,8 +18,6 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import gi
-gi.require_version("Gtk", "3.0")
 from gi.repository import Atk, Gtk, Gdk, GObject, GdkPixbuf, Pango
 
 import datetime
@@ -72,14 +71,13 @@ from softwarecenter.backend import get_install_backend
 
 LOG=logging.getLogger(__name__)
 
-
-LOG = logging.getLogger(__name__)
-
-
 class StatusBar(Gtk.Alignment):
+    """ Subclass of Gtk.Alignment that draws a small dash border 
+        around the rectangle.
+    """
 
     def __init__(self, view):
-        GObject.GObject.__init__(self, xscale=1.0, yscale=1.0)
+        Gtk.Alignment.__init__(self, xscale=1.0, yscale=1.0)
         self.set_padding(StockEms.SMALL, StockEms.SMALL, 0, 0)
 
         self.hbox = Gtk.HBox()
@@ -122,11 +120,15 @@ class StatusBar(Gtk.Alignment):
         cr.stroke()
 
         cr.restore()
-        for child in self: self.propagate_draw(child, cr)
+        for child in self: 
+            self.propagate_draw(child, cr)
 
 
 class PackageStatusBar(StatusBar):
-    
+    """ Package specific status bar that contains a state label,
+        a action button and a progress bar.
+    """
+
     def __init__(self, view):
         StatusBar.__init__(self, view)
         self.installed_icon  = Gtk.Image.new_from_icon_name(
@@ -220,9 +222,10 @@ class PackageStatusBar(StatusBar):
             self.progress.hide()
             self.installed_icon.hide()
 
-        # FIXME:  Use a Gtk.Action for the Install/Remove/Buy/Add Source/Update Now action
-        #         so that all UI controls (menu item, applist view button and appdetails
-        #         view button) are managed centrally:  button text, button sensitivity,
+        # FIXME:  Use a Gtk.Action for the Install/Remove/Buy/Add 
+        #         Source/Update Now action so that all UI controls
+        #         (menu item, applist view button and appdetails view button) 
+        #         are managed centrally:  button text, button sensitivity,
         #         and the associated callback.
         if state == PkgStates.INSTALLING:
             self.set_label(_('Installing...'))
@@ -244,18 +247,23 @@ class PackageStatusBar(StatusBar):
                 self.set_label(_("Installed (you're using it right now)"))
             else:
                 if app_details.purchase_date:
-                    # purchase_date is a string, must first convert to datetime.datetime
-                    pdate = self._convert_purchase_date_str_to_datetime(app_details.purchase_date)
-                    # TRANSLATORS : %Y-%m-%d formats the date as 2011-03-31, please specify a format per your
-                    # locale (if you prefer, %x can be used to provide a default locale-specific date 
+                    # purchase_date is a string, must first convert to 
+                    # datetime.datetime
+                    pdate = self._convert_purchase_date_str_to_datetime(
+                        app_details.purchase_date)
+                    # TRANSLATORS : %Y-%m-%d formats the date as 2011-03-31, 
+                    # please specify a format per your locale (if you prefer, 
+                    # %x can be used to provide a default locale-specific date 
                     # representation)
                     self.set_label(pdate.strftime(_('Purchased on %Y-%m-%d')))
                 elif app_details.installation_date:
-                    # TRANSLATORS : %Y-%m-%d formats the date as 2011-03-31, please specify a format per your
-                    # locale (if you prefer, %x can be used to provide a default locale-specific date 
+                    # TRANSLATORS : %Y-%m-%d formats the date as 2011-03-31, 
+                    # please specify a format per your locale (if you prefer, 
+                    # %x can be used to provide a default locale-specific date 
                     # representation)
                     template = _('Installed on %Y-%m-%d')
-                    self.set_label(app_details.installation_date.strftime(template))
+                    self.set_label(app_details.installation_date.strftime(
+                            template))
                 else:
                     self.set_label(_('Installed'))
             if state == PkgStates.REINSTALLABLE: # only deb files atm
@@ -264,22 +272,26 @@ class PackageStatusBar(StatusBar):
                 self.set_button_label(_('Remove'))
         elif state == PkgStates.NEEDS_PURCHASE:
             # FIXME:  need to determine the currency dynamically once we can
-            #         get that info from the software-center-agent/payments service.
-            # NOTE:  the currency string for this label is purposely not translatable
-            #        when hardcoded, since it (currently) won't vary based on locale
-            #        and as such we don't want it translated
+            #         get that info from the software-center-agent/payments
+            #         service.
+            # NOTE:  the currency string for this label is purposely not
+            #        translatable when hardcoded, since it (currently) 
+            #        won't vary based on locale and as such we don't want
+            #        it translated
             self.set_label("US$ %s" % app_details.price)
             self.set_button_label(_(u'Buy\u2026'))
         elif state == PkgStates.PURCHASED_BUT_REPO_MUST_BE_ENABLED:
             # purchase_date is a string, must first convert to datetime.datetime
-            pdate = self._convert_purchase_date_str_to_datetime(app_details.purchase_date)
-            # TRANSLATORS : %Y-%m-%d formats the date as 2011-03-31, please specify a format per your
-            # locale (if you prefer, %x can be used to provide a default locale-specific date 
-            # representation)
+            pdate = self._convert_purchase_date_str_to_datetime(
+                app_details.purchase_date)
+            # TRANSLATORS : %Y-%m-%d formats the date as 2011-03-31, please 
+            # specify a format per your locale (if you prefer, %x can be used 
+            # to provide a default locale-specific date representation)
             self.set_label(pdate.strftime(_('Purchased on %Y-%m-%d')))
             self.set_button_label(_('Install'))
         elif state == PkgStates.UNINSTALLED:
-            #special label only if the app being viewed is software centre itself
+            #special label only if the app being viewed is software centre
+            # itself
             if app_details.pkgname== SOFTWARE_CENTER_PKGNAME:
                 self.set_label(_("Removed (close it and it'll be gone)"))
             else:
@@ -304,8 +316,9 @@ class PackageStatusBar(StatusBar):
             self.set_button_label(_("Install"))
             self.set_label("")
         elif state == PkgStates.NOT_FOUND:
-            # this is used when the pkg is not in the cache and there is no request
-            # we display the error in the summary field and hide the rest
+            # this is used when the pkg is not in the cache and there is no
+            # request we display the error in the summary field and hide the 
+            # rest
             pass
         elif state == PkgStates.NEEDS_SOURCE:
             channelfile = self.app_details.channelfile
@@ -332,10 +345,13 @@ class PackageStatusBar(StatusBar):
         
     def _convert_purchase_date_str_to_datetime(self, purchase_date):
         if purchase_date is not None:
-            return datetime.datetime.strptime(purchase_date, "%Y-%m-%d %H:%M:%S")
+            return datetime.datetime.strptime(
+                purchase_date, "%Y-%m-%d %H:%M:%S")
 
 
 class PackageInfo(Gtk.HBox):
+    """ Box with labels for package specific information like version info
+    """
 
     def __init__(self, key, info_keys):
         GObject.GObject.__init__(self)
