@@ -29,7 +29,7 @@ class TestViews(unittest.TestCase):
         Gtk.main()
 
     def test_appdetails(self):
-        from softwarecenter.ui.gtk3.views.appdetailsview_gtk import get_test_window_appdetails
+        from softwarecenter.ui.gtk3.views.appdetailsview import get_test_window_appdetails
         win = get_test_window_appdetails()
         GObject.timeout_add(TIMEOUT, lambda: win.destroy())
         Gtk.main()

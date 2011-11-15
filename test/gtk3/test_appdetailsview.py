@@ -14,7 +14,7 @@ softwarecenter.paths.datadir = "../data"
 
 from softwarecenter.db.application import Application
 from softwarecenter.testutils import get_mock_app_from_real_app
-from softwarecenter.ui.gtk3.views.appdetailsview_gtk import get_test_window_appdetails
+from softwarecenter.ui.gtk3.views.appdetailsview import get_test_window_appdetails
 class TestAppdetailsViews(unittest.TestCase):
 
     def test_videoplayer(self):
