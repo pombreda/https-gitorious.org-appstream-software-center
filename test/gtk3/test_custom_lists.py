@@ -9,20 +9,17 @@ sys.path.insert(0,"../..")
 sys.path.insert(0,"..")
 
 from softwarecenter.enums import XapianValues, ActionButtons
-
-#from mock import Mock
-
-TIMEOUT=300
-
 import softwarecenter.paths
 softwarecenter.paths.datadir = "../data"
+
+TIMEOUT=300
 
 class TestSearch(unittest.TestCase):
 
     def _debug(self, index, model, needle):
-        print "Expected '%s' at index '%s', and custom list contained: '%s'" % (needle,
-                                                                                index,
-                                                                                model[index][0].get_value(XapianValues.PKGNAME))
+        print ("Expected '%s' at index '%s', " +
+               "and custom list contained: '%s'") % (
+                needle, index, model[index][0].get_value(XapianValues.PKGNAME))
 
     def assertPkgInListAtIndex(self, index, model, needle):
         doc = model[index][0]
