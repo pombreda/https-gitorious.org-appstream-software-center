@@ -7,15 +7,17 @@ import unittest
 sys.path.insert(0,"../..")
 sys.path.insert(0,"..")
 
-#from mock import Mock
+from mock import Mock
 
 import softwarecenter.paths
 softwarecenter.paths.datadir = "../data"
 
 from softwarecenter.db.application import Application
-from softwarecenter.testutils import get_mock_app_from_real_app
+from softwarecenter.testutils import get_mock_app_from_real_app, do_events
 from softwarecenter.ui.gtk3.views.appdetailsview import get_test_window_appdetails
-class TestAppdetailsViews(unittest.TestCase):
+from softwarecenter.enums import PkgStates
+
+class TestAppdetailsView(unittest.TestCase):
 
     def test_videoplayer(self):
         # get the widget
@@ -36,9 +38,37 @@ class TestAppdetailsViews(unittest.TestCase):
         # this is a example html - any html5 video will do
         details.video_url = "http://people.canonical.com/~mvo/totem.html"
         view.show_app(mock)
-        while Gtk.events_pending():
-            Gtk.main_iteration()
+        do_events()
         self.assertTrue(view.videoplayer.get_property("visible"))
+    
+    def test_pkgstatus_bar(self):
+        # test
+        win = get_test_window_appdetails()
+        view = win.get_data("view")
+        # show app 
+        app = Application("", "software-center")
+        view.show_app(app)
+        do_events()
+        # make sure the various states are run
+        view.pkg_statusbar.app_manager = mock = Mock()
+        mock_button = Mock()
+        button_to_function_tests = (
+            (PkgStates.INSTALLED, "remove"),
+            (PkgStates.PURCHASED_BUT_REPO_MUST_BE_ENABLED, "reinstall_purchased"),
+            (PkgStates.NEEDS_PURCHASE, "buy_app"),
+            (PkgStates.UNINSTALLED, "install"),
+            (PkgStates.REINSTALLABLE, "install"),
+            (PkgStates.UPGRADABLE, "upgrade"),
+            (PkgStates.NEEDS_SOURCE, "enable_software_source") 
+        )
+        for state, func in button_to_function_tests:
+            view.pkg_statusbar.pkg_state = state
+            view.pkg_statusbar._on_button_clicked(mock_button)
+            self.assertTrue(
+                getattr(mock, func).called,
+                "for state %s the function %s was not called" % (state, func))
+            mock.reset()
+
 
 if __name__ == "__main__":
     import logging

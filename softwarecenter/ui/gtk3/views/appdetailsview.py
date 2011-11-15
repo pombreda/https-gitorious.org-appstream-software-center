@@ -149,6 +149,8 @@ class PackageStatusBar(StatusBar):
         self.hbox.pack_end(self.progress, False, False, 0)
         self.show_all()
 
+        self.app_manager = get_appmanager()
+
         self.button.connect('clicked', self._on_button_clicked)
         GObject.timeout_add(500, self._pulse_helper)
 
@@ -162,9 +164,9 @@ class PackageStatusBar(StatusBar):
         button.set_sensitive(False)
         state = self.pkg_state
         app = self.view.app
-        app_manager = get_appmanager()
         addons_to_install = self.view.addons_manager.addons_to_install
         addons_to_remove = self.view.addons_manager.addons_to_remove
+        app_manager = self.app_manager
         if state == PkgStates.INSTALLED:
             app_manager.remove(
                 app, addons_to_install, addons_to_remove)
