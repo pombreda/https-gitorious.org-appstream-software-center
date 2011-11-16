@@ -27,8 +27,7 @@ class TestAppdetailsView(unittest.TestCase):
         # show app with no video
         app = Application("", "2vcard")
         view.show_app(app)
-        while Gtk.events_pending():
-            Gtk.main_iteration()
+        do_events()
         self.assertFalse(view.videoplayer.get_property("visible"))
 
         # create app with video and ensure its visible
@@ -51,15 +50,26 @@ class TestAppdetailsView(unittest.TestCase):
         view.show_app(app)
         do_events()
 
-        # run the configure on the various states
+        # create mock app
+        mock_app = get_mock_app_from_real_app(app)
+        view.app = mock_app
+        mock_details = mock_app.get_details(None)
+        mock_details.purchase_date = "2011-11-20 17:45:01"
+        view.app_details = mock_details
+
+        # run the configure on the various states for the pkgstatus bar
         for var in vars(PkgStates):
             # FIXME: this just ensures we are not crashing, also
             # add functional tests to ensure on error we show
             # the right info etc
             state = getattr(PkgStates, var)
-            view.pkg_statusbar.configure(view.app_details, state)
+            mock_details.pkg_state = state
+            # FIXME2: we should make configure simpler and/or explain
+            #         why it gets the state instead of just reading it
+            #         from the app_details
+            view.pkg_statusbar.configure(mock_details, state)
 
-        # make sure the various states are tested on click
+        # make sure the various states are tested for click
         view.pkg_statusbar.app_manager = mock = Mock()
         mock_button = Mock()
         button_to_function_tests = (

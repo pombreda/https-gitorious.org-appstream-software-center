@@ -216,6 +216,7 @@ class PackageStatusBar(StatusBar):
             self.button.show()
             self.show()
         else:
+            # mvo: why do we override state here again?
             state = app_details.pkg_state
             self.pkg_state = state
             self.button.set_sensitive(True)
