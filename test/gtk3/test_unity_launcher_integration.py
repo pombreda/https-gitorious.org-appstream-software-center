@@ -109,7 +109,8 @@ class TestUnityLauncherIntegration(unittest.TestCase):
         # click the button 
         button.clicked()
 
-        # check that a correct UnityLauncherInfo object has been created and added to the queue
+        # check that a correct UnityLauncherInfo object has been created and
+        # added to the queue
         self.assertTrue(test_pkgname in available_pane.unity_launcher_items)
         launcher_info = available_pane.unity_launcher_items.pop(test_pkgname)
         # check the UnityLauncherInfo values themselves
@@ -119,32 +120,43 @@ class TestUnityLauncherIntegration(unittest.TestCase):
         self.assertTrue(launcher_info.icon_y > 20)
         self.assertEqual(launcher_info.icon_size, 96)
         self.assertEqual(launcher_info.app_install_desktop_file_path,
-                         "/usr/share/app-install/desktop/lincity-ng:lincity-ng.desktop")
+            "/usr/share/app-install/desktop/lincity-ng:lincity-ng.desktop")
         self.assertEqual(launcher_info.trans_id, "testid101")
-        # finally, make sure the the app has been removed from the launcher queue        
+        # finally, make sure the the app has been removed from the launcher
+        # queue        
         self.assertFalse(test_pkgname in available_pane.unity_launcher_items)
         
     def test_desktop_file_path_conversion(self):
         # test 'normal' case
-        app_install_desktop_path = "./data/app-install/desktop/deja-dup:deja-dup.desktop"
-        installed_desktop_path = convert_desktop_file_to_installed_location(app_install_desktop_path, "deja-dup")
-        self.assertEqual(installed_desktop_path, "./data/applications/deja-dup.desktop")
+        app_install_desktop_path = ("./data/app-install/desktop/" +
+                                    "deja-dup:deja-dup.desktop")
+        installed_desktop_path = convert_desktop_file_to_installed_location(
+                app_install_desktop_path, "deja-dup")
+        self.assertEqual(installed_desktop_path,
+                         "./data/applications/deja-dup.desktop")
         # test encoded subdirectory case, e.g. e.g. kde4_soundkonverter.desktop
-        app_install_desktop_path = "./data/app-install/desktop/soundkonverter:kde4__soundkonverter.desktop"
-        installed_desktop_path = convert_desktop_file_to_installed_location(app_install_desktop_path, "soundkonverter")
-        self.assertEqual(installed_desktop_path, "./data/applications/kde4/soundkonverter.desktop")
-        # test the for-purchase case (uses "software-center-agent" as its appdetails.desktop_file value)
+        app_install_desktop_path = ("./data/app-install/desktop/" +
+                                    "soundkonverter:" +
+                                    "kde4__soundkonverter.desktop")
+        installed_desktop_path = convert_desktop_file_to_installed_location(
+                app_install_desktop_path, "soundkonverter")
+        self.assertEqual(installed_desktop_path,
+                         "./data/applications/kde4/soundkonverter.desktop")
+        # test the for-purchase case (uses "software-center-agent" as its
+        # appdetails.desktop_file value)
         # FIXME: this will only work if update-manager is installed
         app_install_desktop_path = "software-center-agent"
-        installed_desktop_path = convert_desktop_file_to_installed_location(app_install_desktop_path,
-                                                                            "update-manager")
-        self.assertEqual(installed_desktop_path, "/usr/share/applications/update-manager.desktop")
-        # test case where we don't have a value for app_install_desktop_path (e.g. for a local .deb
-        # install, see bug LP: #768158)
-        installed_desktop_path = convert_desktop_file_to_installed_location(None,
-                                                                            "update-manager")
+        installed_desktop_path = convert_desktop_file_to_installed_location(
+                app_install_desktop_path, "update-manager")
+        self.assertEqual(installed_desktop_path,
+                         "/usr/share/applications/update-manager.desktop")
+        # test case where we don't have a value for app_install_desktop_path
+        # (e.g. for a local .deb install, see bug LP: #768158)
+        installed_desktop_path = convert_desktop_file_to_installed_location(
+                None, "update-manager")
         # FIXME: this will only work if update-manager is installed
-        self.assertEqual(installed_desktop_path, "/usr/share/applications/update-manager.desktop")
+        self.assertEqual(installed_desktop_path,
+                         "/usr/share/applications/update-manager.desktop")
         
 
 if __name__ == "__main__":
