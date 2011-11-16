@@ -18,6 +18,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import cairo
+import logging
 import os
 from gettext import gettext as _
 
@@ -35,6 +36,8 @@ from softwarecenter.ui.gtk3.shapes import Circle
 from softwarecenter.ui.gtk3.drawing import rounded_rect
 from softwarecenter.ui.gtk3.utils import point_in
 import softwarecenter.paths
+
+LOG=logging.getLogger(__name__)
 
 _asset_cache = {}
 _HAND = Gdk.Cursor.new(Gdk.CursorType.HAND2)
@@ -113,6 +116,8 @@ class _HtmlRenderer(Gtk.OffscreenWindow):
         self.loader = SimpleFileDownloader()
         self.loader.connect("file-download-complete",
                             self.on_download_complete)
+        self.loader.connect("error",
+                            self.on_download_error)
         self.exhibit = None
         self.view.connect("notify::load-status", self._on_load_status)
         return
@@ -122,6 +127,9 @@ class _HtmlRenderer(Gtk.OffscreenWindow):
             # this needs to run with a timeout because otherwise the 
             # status is emited before the offscreen image is finihsed
             GObject.timeout_add(1, lambda: self.emit("render-finished"))
+
+    def on_download_error(self, loader, exception, error):
+        LOG.warn("download failed: '%s', '%s'" % (exception, error))
 
     def on_download_complete(self, loader, path):
         image_name = os.path.basename(path)
