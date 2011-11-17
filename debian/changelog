@@ -8,6 +8,8 @@ software-center (5.1.2) UNRELEASED; urgency=low
   * lp:~mvo/software-center/video-support:
     - implement the ability to display embedded videos in
       the application details view
+  * softwarecenter/ui/gtk3/widgets/exhibits.py:
+    - add basic error reporting for exhibits downloading
 
   [ Matthew McGowan ]
   * lp:~mmcg069/software-center/app-treeview-buy-plus-refactor:
@@ -17,7 +19,7 @@ software-center (5.1.2) UNRELEASED; urgency=low
   * softwarecenter/ui/gtk3/widgets/apptreeview.py:
     - make hidden rows collapse properly when unselected (LP: #888463)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Thu, 10 Nov 2011 22:06:39 -0500
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 16 Nov 2011 15:23:17 -0500
 
 software-center (5.1.1.1) precise; urgency=low
 
