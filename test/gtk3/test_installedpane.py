@@ -15,7 +15,7 @@ TIMEOUT=300
 import softwarecenter.paths
 softwarecenter.paths.datadir = "../data"
 
-class TestSearch(unittest.TestCase):
+class TestInstalledPane(unittest.TestCase):
 
     def test_installedpane(self):
         from softwarecenter.ui.gtk3.panes.installedpane import get_test_window
