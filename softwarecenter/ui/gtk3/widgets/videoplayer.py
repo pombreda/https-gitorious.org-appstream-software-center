@@ -33,8 +33,14 @@ class VideoPlayer(Gtk.VBox):
         super(VideoPlayer, self).__init__()
         self.webkit = WebKit.WebView()
         settings = self.webkit.get_settings()
+        # this disables the flash and other plugins so that we force html5
+        # video on the system. This is works currently (11/2011) fine with
+        # dailymotion and vimeo but youtube is opt-in only so we need 
+        # to monitor the situation
         settings.set_property("enable-plugins", False)
-        self.webkit.connect("new-window-policy-decision-requested", self._on_new_window)
+        # on navigation/new window etc, just use the proper browser
+        self.webkit.connect(
+            "new-window-policy-decision-requested", self._on_new_window)
         self.webkit.connect("create-web-view", self._on_create_web_view)
         self.pack_start(self.webkit, True, True, 0)
         self._uri = ""
@@ -138,17 +144,27 @@ class VideoPlayerGtk3(Gtk.VBox):
 
 
 def get_test_videoplayer_window():
+    # youtube example fragment
     html = """
     <iframe width="640" height="390" src="http://www.youtube.com/embed/h3oBU0NZJuA" frameborder="0" allowfullscreen></iframe>
 """
+    # vimeo example video fragment
+    html = """
+<iframe src="http://player.vimeo.com/video/2891554?title=0&amp;byline=0&amp;portrait=0" width="400" height="308" frameborder="0" webkitAllowFullScreen allowFullScreen></iframe><p><a href="http://vimeo.com/2891554">Supertuxkart 0.6</a> from <a href="http://vimeo.com/user1183699">constantin pelikan</a> on <a href="http://vimeo.com">Vimeo</a>.</p>
+"""
+    # dailymotion example video fragment
+    html = """
+<iframe frameborder="0" width="480" height="270" src="http://www.dailymotion.com/embed/video/xm4ysu"></iframe>"""
+    html = """<iframe frameborder="0" width="480" height="379" src="http://www.dailymotion.com/embed/video/xdiktp"></iframe>"""
     win = Gtk.Window.new(Gtk.WindowType.TOPLEVEL)
     win.set_default_size(500, 400)
     win.connect("destroy", Gtk.main_quit)
     player = VideoPlayer()
     win.add(player)
     if len(sys.argv) < 2:
-        # player.uri = "http://upload.wikimedia.org/wikipedia/commons/9/9b/Pentagon_News_Sample.ogg"
-        player.load_html_string(html)
+        #player.uri = "http://upload.wikimedia.org/wikipedia/commons/9/9b/Pentagon_News_Sample.ogg"
+        player.uri = "http://people.canonical.com/~mvo/totem.html"
+        #player.load_html_string(html)
     else:
         player.uri = sys.argv[1]
     win.show_all()

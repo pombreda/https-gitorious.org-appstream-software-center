@@ -123,6 +123,7 @@ h1 {
         GObject.GObject.__init__(self)
         self.wk = None
         self._wk_handlers_blocked = False
+        self._json_token = None
 
     def init_view(self):
         if self.wk is None:
@@ -186,6 +187,10 @@ h1 {
         return wk.webkit
 
     def _on_console_message(self, view, message, line, source_id):
+        try:
+            self._json_token = json.loads(message)
+        except ValueError:
+            pass
         for k in ["token_key", "token_secret", "consumer_secret"]:
             if k in message:
                 LOG.debug("skipping console message that contains sensitive data")
@@ -254,7 +259,7 @@ h1 {
             backend = get_install_backend()
             backend.add_repo_add_key_and_install_app(
                 deb_line, signing_key_id, self.app, self.iconname, 
-                license_key, license_key_path)
+                license_key, license_key_path, self._json_token)
                                                                    
     def _block_wk_handlers(self):
         # we need to block webkit signal handlers when we hide the
