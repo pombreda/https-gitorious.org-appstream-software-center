@@ -598,7 +598,6 @@ class AvailablePane(SoftwarePane):
         """callback when an app is clicked"""
         LOG.debug("on_application_activated: '%s'" % app)
         self.state.application = app
-        print ">>> app: ", app
         vm = get_viewmanager()
         vm.display_page(self, AvailablePane.Pages.DETAILS, self.state,
                         self.display_details_page)

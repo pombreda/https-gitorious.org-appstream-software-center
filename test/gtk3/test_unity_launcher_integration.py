@@ -24,6 +24,10 @@ from softwarecenter.db.application import Application
 from softwarecenter.testutils import get_mock_app_from_real_app
 from softwarecenter.ui.gtk3.panes.availablepane import get_test_window
 
+# we can only have one instance of availablepane, so create it here
+win = get_test_window()
+available_pane = win.get_data("pane")
+
 # see https://wiki.ubuntu.com/SoftwareCenter#Learning%20how%20to%20launch%20an%20application
 
 class TestUnityLauncherIntegration(unittest.TestCase):
@@ -41,10 +45,7 @@ class TestUnityLauncherIntegration(unittest.TestCase):
         # monkey patch is_unity_running
         softwarecenter.utils.is_unity_running = lambda: True
 
-    def _navigate_to_pkgname_and_click_install(self, pkgname):
-        win = get_test_window()
-        available_pane = win.get_data("pane")
-        self._p()
+    def _navigate_to_appdetails_and_install(self, pkgname):
         app = Application("", pkgname)
         available_pane.app_view.emit("application-activated",
                                      app)
@@ -57,38 +58,34 @@ class TestUnityLauncherIntegration(unittest.TestCase):
                                     TransactionTypes.INSTALL)
         # wait a wee bit
         self._zzz()
-        return available_pane
         
-#    def test_unity_launcher_stays_after_install_finished(self):
-#        pkgname = "gl-117"
-#        mock_result = Mock()
-#        mock_result.pkgname = pkgname
-#        mock_result.success = True
-#        # now pretend
-#        self._navigate_to_pkgname_and_click_install(pkgname)
-#        # pretend we are done
-#        self.s_c_app.backend.emit("transaction-finished", mock_result)
-#        # this is normally set in the transaction-finished call but our
-#        # app is not really installed so we need to mock it here
-#        available_pane.unity_launcher_items[pkgname].installed_desktop_file_path = "/some/path"
-#        # wait a wee bit
-#        self._zzz()
-#        # ensure we still have the button
-#        button = available_pane.action_bar.get_button(
-#            ActionButtons.ADD_TO_LAUNCHER)
-#        self.assertNotEqual(button, None)
-#        self.assertTrue(button.get_property("visible"))
-#        # ensure we haven't called the launcher prematurely
-#        self.assertFalse(available_pane._send_dbus_signal_to_unity_launcher.called)
-#        # now click it and ensure its added even though the transaction is over
-#        button.clicked()
-#        self._zzz()
-#        # ensure the button is gone
-#        button = available_pane.action_bar.get_button(
-#            ActionButtons.ADD_TO_LAUNCHER)
-#        self.assertEqual(button, None)
-#        self.assertTrue(available_pane._send_dbus_signal_to_unity_launcher.called)
-
+    def test_unity_launcher_stays_after_install_finished(self):
+        test_pkgname = "gl-117"
+        mock_result = Mock()
+        mock_result.pkgname = test_pkgname
+        mock_result.success = True
+        # now pretend
+        # now pretend
+        self._navigate_to_appdetails_and_install(test_pkgname)
+        # pretend we are done
+        available_pane.backend.emit("transaction-finished", mock_result)
+        # this is normally set in the transaction-finished call but our
+        # app is not really installed so we need to mock it here
+        available_pane.unity_launcher_items[test_pkgname].installed_desktop_file_path = "/some/path"
+        # wait a wee bit
+        self._zzz()
+        # ensure we still have the button
+        button = available_pane.action_bar.get_button(
+                ActionButtons.ADD_TO_LAUNCHER)
+        self.assertNotEqual(button, None)
+        self.assertTrue(button.get_property("visible"))
+        # now click it even though the transaction is over
+        button.clicked()
+        self._zzz()
+        # ensure the add to launcher button is now hidden
+        button = available_pane.action_bar.get_button(
+                ActionButtons.ADD_TO_LAUNCHER)
+        self.assertEqual(button, None)
 
     def test_unity_launcher_integration(self):
         test_pkgname = "lincity-ng"
@@ -96,10 +93,7 @@ class TestUnityLauncherIntegration(unittest.TestCase):
         mock_result.pkgname = test_pkgname
         mock_result.success = True
         # now pretend
-        available_pane = self._navigate_to_pkgname_and_click_install(
-                                                                test_pkgname)
-        
-        self._p()
+        self._navigate_to_appdetails_and_install(test_pkgname)
         
         # verify that the panel is shown offering to add the app to the launcher
         self.assertTrue(available_pane.action_bar.get_property("visible"))
