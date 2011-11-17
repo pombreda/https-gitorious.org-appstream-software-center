@@ -106,8 +106,8 @@ class TestUnityLauncherIntegration(unittest.TestCase):
         # check the UnityLauncherInfo values themselves
         self.assertEqual(launcher_info.name, "lincity-ng")
         self.assertEqual(launcher_info.icon_name, "lincity-ng")
-        self.assertTrue(launcher_info.icon_x > 20)
-        self.assertTrue(launcher_info.icon_y > 20)
+        self.assertTrue(launcher_info.icon_x > 5)
+        self.assertTrue(launcher_info.icon_y > 5)
         self.assertEqual(launcher_info.icon_size, 96)
         self.assertEqual(launcher_info.app_install_desktop_file_path,
             "/usr/share/app-install/desktop/lincity-ng:lincity-ng.desktop")
