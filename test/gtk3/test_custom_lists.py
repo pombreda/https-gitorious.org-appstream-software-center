@@ -14,7 +14,7 @@ softwarecenter.paths.datadir = "../data"
 
 TIMEOUT=300
 
-class TestSearch(unittest.TestCase):
+class TestCustomLists(unittest.TestCase):
 
     def _debug(self, index, model, needle):
         print ("Expected '%s' at index '%s', " +
