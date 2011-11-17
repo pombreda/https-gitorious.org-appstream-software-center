@@ -18,6 +18,10 @@ software-center (5.1.2) UNRELEASED; urgency=low
       refactoring
   * softwarecenter/ui/gtk3/widgets/apptreeview.py:
     - make hidden rows collapse properly when unselected (LP: #888463)
+  
+  [ Gary Lasker ]
+  * lp:~gary-lasker/software-center/unit-tests:
+    - update tests for custom lists and for launcher integration
 
  -- Gary Lasker <gary.lasker@canonical.com>  Wed, 16 Nov 2011 15:23:17 -0500
 
