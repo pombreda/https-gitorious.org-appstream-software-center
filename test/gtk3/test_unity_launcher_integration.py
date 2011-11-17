@@ -1,8 +1,6 @@
 #!/usr/bin/python
 
 from gi.repository import Gtk
-import apt
-import logging
 import sys
 import time
 import unittest
@@ -17,11 +15,9 @@ import softwarecenter.paths
 import softwarecenter.utils
 softwarecenter.paths.datadir = "../data"
 
-from softwarecenter.paths import XAPIAN_BASE_PATH
 from softwarecenter.enums import ActionButtons, TransactionTypes
 from softwarecenter.utils import convert_desktop_file_to_installed_location
 from softwarecenter.db.application import Application
-from softwarecenter.testutils import get_mock_app_from_real_app
 from softwarecenter.ui.gtk3.panes.availablepane import get_test_window
 
 # we can only have one instance of availablepane, so create it here
