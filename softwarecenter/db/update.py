@@ -89,7 +89,7 @@ CF = "/var/lib/apt-xapian-index/cataloged_times.p"
 if os.path.exists(CF):
     try:
         cataloged_times = pickle.load(open(CF))
-    except EOFError as e:
+    except Exception as e:
         LOG.warn("failed to read %s (%s" % (CF, e))
 del CF
 
