@@ -21,7 +21,9 @@ import sys
 
 from gettext import gettext as _
 from gi.repository import Gdk
-from gi.repository import Gst
+# FIXME: uncomment this import and add a dependency on gir1.2-gstreamer-0.10
+#        if we start using VideoPlayerGtk3
+# from gi.repository import Gst
 from gi.repository import Gtk
 from gi.repository import WebKit
 
@@ -144,7 +146,7 @@ def get_test_videoplayer_window():
 if __name__ == "__main__":
     logging.basicConfig()
     Gdk.threads_init()
-    Gst.init(sys.argv)
+    # Gst.init(sys.argv)
 
     win = get_test_videoplayer_window()
     Gtk.main()
