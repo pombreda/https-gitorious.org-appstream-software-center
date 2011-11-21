@@ -629,9 +629,9 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
                 yield self._run_transaction(trans, app.pkgname, app.appname,
                                             "", metadata)
                 if license_key:
-                    server = "ubuntu-production"
                     yield self.add_license_key(
-                        app.pkgname, license_key_oauth, server)
+                        license_key, license_key_path, license_key_oauth, 
+                        app.pkgname)
             except Exception as error:
                 self._on_trans_error(error, app.pkgname)
         else:
