@@ -450,10 +450,8 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
         yield policykit1.check_authorization_by_name(name, action, flags=flags)
 
     @inline_callbacks
-    def add_license_key(self, license_key, license_key_path, pkgname):
-        """ add a license key for a purchase. Note that currently only
-            system wide license keys are supported.
-        """
+    def add_license_key(self, license_key, license_key_path, license_key_oauth, pkgname):
+        """ add a license key for a purchase. """
         self._logger.debug(
             "adding license_key for pkg '%s' of len: %i" % (
                 pkgname, len(license_key)))
@@ -476,7 +474,7 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
             # system-wide keys
             try:
                 trans = yield self.aptd_client.add_license_key(
-                    license_key, pkgname)
+                    license_key, license_key_oauth, pkgname)
                 yield self._run_transaction(trans, None, None, None)
             except Exception as e:
                 self._logger.error("add_repository: '%s'" % e)
@@ -489,6 +487,7 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
                                          iconname,
                                          license_key,
                                          license_key_path,
+                                         oauth_token=None,
                                          purchase=True):
         """ 
         a convenience method that combines all of the steps needed
@@ -531,6 +530,7 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
                           'sc_add_repo_and_install_try' : "1",
                           'sc_add_repo_and_install_license_key' : license_key or "",
                           'sc_add_repo_and_install_license_key_path' : license_key_path or "",
+                          'sc_add_repo_and_install_license_key_token' : oauth_token or "",
                          }
 
         self._logger.info("add_sources_list_entry()")
@@ -593,6 +593,7 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
         deb_line = trans.meta_data["sc_add_repo_and_install_deb_line"]
         license_key = trans.meta_data["sc_add_repo_and_install_license_key"]
         license_key_path = trans.meta_data["sc_add_repo_and_install_license_key_path"]
+        license_key_oauth = trans.meta_data["sc_add_repo_and_install_license_key_token"]  
         release_filename = release_filename_in_lists_from_deb_line(deb_line)
         lists_dir = apt_pkg.config.find_dir("Dir::State::lists")
         release_signature = os.path.join(lists_dir, release_filename)+".gpg"
@@ -627,7 +628,7 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
                 yield self._run_transaction(trans, app.pkgname, app.appname,
                                             "", metadata)
                 if license_key:
-                    yield self.add_license_key(license_key, license_key_path, app.pkgname)
+                    yield self.add_license_key(license_key, license_key_path, license_key_oauth, app.pkgname)
             except Exception as error:
                 self._on_trans_error(error, app.pkgname)
         else:
