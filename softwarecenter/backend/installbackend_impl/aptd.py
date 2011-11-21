@@ -473,8 +473,9 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
         else:
             # system-wide keys
             try:
+                server = "ubuntu-production"
                 trans = yield self.aptd_client.add_license_key(
-                    license_key, license_key_oauth, pkgname)
+                    pkgname, license_key_oauth, server)
                 yield self._run_transaction(trans, None, None, None)
             except Exception as e:
                 self._logger.error("add_repository: '%s'" % e)
@@ -628,7 +629,9 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
                 yield self._run_transaction(trans, app.pkgname, app.appname,
                                             "", metadata)
                 if license_key:
-                    yield self.add_license_key(license_key, license_key_path, license_key_oauth, app.pkgname)
+                    server = "ubuntu-production"
+                    yield self.add_license_key(
+                        app.pkgname, license_key_oauth, server)
             except Exception as error:
                 self._on_trans_error(error, app.pkgname)
         else:
