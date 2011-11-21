@@ -1,4 +1,4 @@
-software-center (5.1.2) UNRELEASEDprecise; urgency=low
+software-center (5.1.2) precise; urgency=low
 
   [ Michael Vogt ]
   * test/test_channels.py:
@@ -26,7 +26,7 @@ software-center (5.1.2) UNRELEASEDprecise; urgency=low
     - be more robust about problems reading the cataloged_times file 
       as problems here can hang the UI (LP: #891499)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 21 Nov 2011 13:28:25 +0100
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 21 Nov 2011 13:45:29 +0100
 
 software-center (5.1.1.1) precise; urgency=low
 
