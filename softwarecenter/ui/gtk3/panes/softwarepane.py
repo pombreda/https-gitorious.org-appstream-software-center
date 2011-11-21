@@ -30,6 +30,7 @@ from gettext import gettext as _
 
 import softwarecenter.utils
 from softwarecenter.backend import get_install_backend
+from softwarecenter.backend.unity_launcher import UnityLauncherInfo
 from softwarecenter.db.database import Application
 from softwarecenter.db.enquire import AppEnquire
 from softwarecenter.enums import (ActionButtons,
@@ -60,33 +61,6 @@ from softwarecenter.utils import is_no_display_desktop_file
 from basepane import BasePane
 
 LOG = logging.getLogger(__name__)
-
-
-class UnityLauncherInfo(object):
-    """ Simple class to keep track of application details needed for
-        Unity launcher integration
-    """
-    def __init__(self,
-                 name,
-                 icon_name,
-                 icon_file_path,
-                 icon_x,
-                 icon_y,
-                 icon_size,
-                 app_install_desktop_file_path,
-                 installed_desktop_file_path,
-                 trans_id):
-        self.name = name
-        self.icon_name = icon_name
-        self.icon_file_path = icon_file_path
-        self.icon_x = icon_x
-        self.icon_y = icon_y
-        self.icon_size = icon_size
-        self.app_install_desktop_file_path = app_install_desktop_file_path
-        self.installed_desktop_file_path = installed_desktop_file_path
-        self.trans_id = trans_id
-        self.add_to_launcher_requested = False
-
 
 # for DisplayState attribute type-checking
 from softwarecenter.db.categories import Category
