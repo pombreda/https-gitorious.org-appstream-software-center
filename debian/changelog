@@ -1,4 +1,4 @@
-software-center (5.1.2) UNRELEASED; urgency=low
+software-center (5.1.2) UNRELEASEDprecise; urgency=low
 
   [ Michael Vogt ]
   * test/test_channels.py:
@@ -22,8 +22,11 @@ software-center (5.1.2) UNRELEASED; urgency=low
   [ Gary Lasker ]
   * lp:~gary-lasker/software-center/unit-tests:
     - update tests for custom lists and for launcher integration
+  * lp:~gary-lasker/software-center/fix-lp891499:
+    - be more robust about problems reading the cataloged_times file 
+      as problems here can hang the UI (LP: #891499)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 16 Nov 2011 15:23:17 -0500
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 21 Nov 2011 13:28:25 +0100
 
 software-center (5.1.1.1) precise; urgency=low
 
