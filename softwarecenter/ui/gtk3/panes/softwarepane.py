@@ -29,8 +29,10 @@ import xapian
 from gettext import gettext as _
 
 import softwarecenter.utils
+
 from softwarecenter.backend import get_install_backend
-from softwarecenter.backend.unity_launcher import UnityLauncherInfo
+from softwarecenter.backend.unity_launcher import (UnityLauncher,
+                                                   UnityLauncherInfo)
 from softwarecenter.db.database import Application
 from softwarecenter.db.enquire import AppEnquire
 from softwarecenter.enums import (ActionButtons,
@@ -176,9 +178,8 @@ class SoftwarePane(Gtk.VBox, BasePane):
         # request (e.g. people click on ubuntu channel, get impatient, click
         # on partner channel)
         self.refresh_seq_nr = 0
-        # keep track of applications that are candidates to be added
-        # to the Unity launcher
-        self.unity_launcher_items = {}
+        # integrate with the Unity launcher
+        self.unity_launcher = UnityLauncher()
         # this should be initialized
         self.apps_search_term = ""
         # Create the basic frame for the common view
@@ -334,8 +335,8 @@ class SoftwarePane(Gtk.VBox, BasePane):
             return
         # we only care about getting the launcher information on an install
         if not trans_type == TransactionTypes.INSTALL:
-            if pkgname in self.unity_launcher_items:
-                self.unity_launcher_items.pop(pkgname)
+            if pkgname in self.unity_launcher.items:
+                self.unity_launcher.items.pop(pkgname)
                 self.action_bar.clear()
             return
         # gather details for this transaction and create the launcher_info object
@@ -351,7 +352,7 @@ class SoftwarePane(Gtk.VBox, BasePane):
                                           appdetails.desktop_file,
                                           "",        # we set the installed_desktop_file_path *after* install
                                           trans_id)
-        self.unity_launcher_items[app.pkgname] = launcher_info
+        self.unity_launcher.items[app.pkgname] = launcher_info
         self.show_add_to_launcher_panel(backend, pkgname, appname, app, appdetails, trans_id, trans_type)
                 
     def show_add_to_launcher_panel(self, backend, pkgname, appname, app, appdetails, trans_id, trans_type):
@@ -406,11 +407,11 @@ class SoftwarePane(Gtk.VBox, BasePane):
         callback indicating the user has chosen to add the indicated application
         to the launcher
         """
-        if pkgname in self.unity_launcher_items:
-            launcher_info = self.unity_launcher_items[pkgname]
+        if pkgname in self.unity_launcher.items:
+            launcher_info = self.unity_launcher.items[pkgname]
             if launcher_info.installed_desktop_file_path:
                 # package install is complete, we can add to the launcher immediately
-                self.unity_launcher_items.pop(pkgname)
+                self.unity_launcher.items.pop(pkgname)
                 self.action_bar.clear()
                 self._send_dbus_signal_to_unity_launcher(launcher_info)
             else:
@@ -423,8 +424,8 @@ class SoftwarePane(Gtk.VBox, BasePane):
                 self.action_bar.remove_button(ActionButtons.ADD_TO_LAUNCHER)
 
     def on_cancel_add_to_launcher(self, pkgname):
-        if pkgname in self.unity_launcher_items:
-            self.unity_launcher_items.pop(pkgname)
+        if pkgname in self.unity_launcher.items:
+            self.unity_launcher.items.pop(pkgname)
         self.action_bar.clear()
         
     def on_transaction_finished(self, backend, result):
@@ -437,8 +438,8 @@ class SoftwarePane(Gtk.VBox, BasePane):
     def _check_unity_launcher_transaction_finished(self, result):
         # add the completed transaction details to the corresponding
         # launcher_item
-        if result.pkgname in self.unity_launcher_items:
-            launcher_info = self.unity_launcher_items[result.pkgname]
+        if result.pkgname in self.unity_launcher.items:
+            launcher_info = self.unity_launcher.items[result.pkgname]
             launcher_info.icon_file_path = get_file_path_from_iconname(
                 self.icons, launcher_info.icon_name)
             installed_path = convert_desktop_file_to_installed_location(
@@ -448,7 +449,7 @@ class SoftwarePane(Gtk.VBox, BasePane):
             if launcher_info.add_to_launcher_requested:
                 if result.success:
                     self._send_dbus_signal_to_unity_launcher(launcher_info)
-                self.unity_launcher_items.pop(result.pkgname)
+                self.unity_launcher.items.pop(result.pkgname)
                 self.action_bar.clear()
             
     def _send_dbus_signal_to_unity_launcher(self, launcher_info):
@@ -472,8 +473,8 @@ class SoftwarePane(Gtk.VBox, BasePane):
             LOG.warn("could not send dbus signal to the Unity launcher: (%s)", e)
             
     def on_transaction_stopped(self, backend, result):
-        if result.pkgname in self.unity_launcher_items:
-            self.unity_launcher_items.pop(result.pkgname)
+        if result.pkgname in self.unity_launcher.items:
+            self.unity_launcher.items.pop(result.pkgname)
         self.action_bar.clear()
 
     def show_appview_spinner(self):
