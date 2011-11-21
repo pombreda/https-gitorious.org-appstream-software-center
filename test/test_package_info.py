@@ -31,8 +31,8 @@ class TestPkgInfoAptCache(unittest.TestCase):
         self.assertNotEqual(len(pkg.installed.origins), 0)
         self.assertNotEqual(len(pkg.installed.summary), '')
         self.assertNotEqual(len(pkg.installed.description), '')
-        self.assertNotEqual(pkg.installed.size, 0)
-        self.assertNotEqual(pkg.installed.installed_size, 0)
+        self.assertNotEqual(pkg.candidate.size, 0)
+        self.assertNotEqual(pkg.candidate.installed_size, 0)
 
         for v in pkg.versions:
             self.assertTrue(isinstance(v, _Version))
