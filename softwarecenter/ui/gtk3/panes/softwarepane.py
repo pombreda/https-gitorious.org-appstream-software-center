@@ -413,7 +413,7 @@ class SoftwarePane(Gtk.VBox, BasePane):
                 # package install is complete, we can add to the launcher immediately
                 self.unity_launcher.items.pop(pkgname)
                 self.action_bar.clear()
-                self._send_dbus_signal_to_unity_launcher(launcher_info)
+                self.unity_launcher.add_application_to_launcher(launcher_info)
             else:
                 # package is not yet installed, it will be added to the launcher
                 # once the installation is complete
@@ -448,30 +448,10 @@ class SoftwarePane(Gtk.VBox, BasePane):
             # if the request to add to launcher has already been made, do it now
             if launcher_info.add_to_launcher_requested:
                 if result.success:
-                    self._send_dbus_signal_to_unity_launcher(launcher_info)
+                    self.unity_launcher.add_application_to_launcher(launcher_info)
                 self.unity_launcher.items.pop(result.pkgname)
                 self.action_bar.clear()
-            
-    def _send_dbus_signal_to_unity_launcher(self, launcher_info):
-        LOG.debug("sending dbus signal to Unity launcher for application: ", launcher_info.name)
-        LOG.debug("  launcher_info.icon_file_path: ", launcher_info.icon_file_path)
-        LOG.debug("  launcher_info.installed_desktop_file_path: ", launcher_info.installed_desktop_file_path)
-        LOG.debug("  launcher_info.trans_id: ", launcher_info.trans_id)
-        try:
-            bus = dbus.SessionBus()
-            launcher_obj = bus.get_object('com.canonical.Unity.Launcher',
-                                          '/com/canonical/Unity/Launcher')
-            launcher_iface = dbus.Interface(launcher_obj, 'com.canonical.Unity.Launcher')
-            launcher_iface.AddLauncherItemFromPosition(launcher_info.name,
-                                                       launcher_info.icon_file_path,
-                                                       launcher_info.icon_x,
-                                                       launcher_info.icon_y,
-                                                       launcher_info.icon_size,
-                                                       launcher_info.installed_desktop_file_path,
-                                                       launcher_info.trans_id)
-        except Exception as e:
-            LOG.warn("could not send dbus signal to the Unity launcher: (%s)", e)
-            
+
     def on_transaction_stopped(self, backend, result):
         if result.pkgname in self.unity_launcher.items:
             self.unity_launcher.items.pop(result.pkgname)

@@ -16,6 +16,11 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+import dbus
+import logging
+
+LOG = logging.getLogger(__name__)
+
 class UnityLauncherInfo(object):
     """ Simple class to keep track of application details needed for
         Unity launcher integration
@@ -49,3 +54,23 @@ class UnityLauncher(object):
         # keep track of applications that are candidates to be added
         # to the Unity launcher
         self.items = {}
+        
+    def add_application_to_launcher(self, launcher_info):
+        LOG.debug("sending dbus signal to Unity launcher for application: ", launcher_info.name)
+        LOG.debug("  launcher_info.icon_file_path: ", launcher_info.icon_file_path)
+        LOG.debug("  launcher_info.installed_desktop_file_path: ", launcher_info.installed_desktop_file_path)
+        LOG.debug("  launcher_info.trans_id: ", launcher_info.trans_id)
+        try:
+            bus = dbus.SessionBus()
+            launcher_obj = bus.get_object('com.canonical.Unity.Launcher',
+                                          '/com/canonical/Unity/Launcher')
+            launcher_iface = dbus.Interface(launcher_obj, 'com.canonical.Unity.Launcher')
+            launcher_iface.AddLauncherItemFromPosition(launcher_info.name,
+                                                       launcher_info.icon_file_path,
+                                                       launcher_info.icon_x,
+                                                       launcher_info.icon_y,
+                                                       launcher_info.icon_size,
+                                                       launcher_info.installed_desktop_file_path,
+                                                       launcher_info.trans_id)
+        except Exception as e:
+            LOG.warn("could not send dbus signal to the Unity launcher: (%s)", e)
