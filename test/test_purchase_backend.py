@@ -51,8 +51,8 @@ class TestPurchaseBackend(unittest.TestCase):
 		while Gtk.events_pending():
 			Gtk.main_iteration()
 		time.sleep(0.1)
-        self.assertTrue(os.path.exists(self.LICENSE_KEY_PATH))
-        self.assertEqual(open(self.LICENSE_KEY_PATH).read(), self.LICENSE_KEY)
+            self.assertTrue(os.path.exists(self.LICENSE_KEY_PATH))
+            self.assertEqual(open(self.LICENSE_KEY_PATH).read(), self.LICENSE_KEY)
         #time.sleep(10)
         
     def _add_pw_to_commercial_repo(self):
