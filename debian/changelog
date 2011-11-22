@@ -5,6 +5,12 @@ software-center (5.1.2.1) UNRELEASED; urgency=low
     - don't import Gst - we don't use it at the moment
       this unbreaks startup for those who don't have gir1.2-gstreamer-0.10
       installed (LP: #893247)
+  
+  [ Michael Vogt ]
+  * SECURITY UPDATE: MITM via incorrect ssl cert validation (LP: #874242)
+    - softwarecenter/ui/gtk3/views/purchaseview.py: Set the ssl-ca-file
+      libsoup property so ssl cert validation works.
+    - CVE-2011-3150
 
  -- Kiwinote <kiwinote@gmail.com>  Mon, 21 Nov 2011 20:29:35 +0000
 
