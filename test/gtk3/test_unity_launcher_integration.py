@@ -67,7 +67,7 @@ class TestUnityLauncherIntegration(unittest.TestCase):
         available_pane.backend.emit("transaction-finished", mock_result)
         # this is normally set in the transaction-finished call but our
         # app is not really installed so we need to mock it here
-        available_pane.unity_launcher.items[test_pkgname].installed_desktop_file_path = "/some/path"
+        available_pane.unity_launcher.candidates[test_pkgname].installed_desktop_file_path = "/some/path"
         # wait a wee bit
         self._zzz()
         # ensure we still have the button
@@ -101,8 +101,8 @@ class TestUnityLauncherIntegration(unittest.TestCase):
 
         # check that a correct UnityLauncherInfo object has been created and
         # added to the queue
-        self.assertTrue(test_pkgname in available_pane.unity_launcher.items)
-        launcher_info = available_pane.unity_launcher.items.pop(test_pkgname)
+        self.assertTrue(test_pkgname in available_pane.unity_launcher.candidates)
+        launcher_info = available_pane.unity_launcher.remove_candidate(test_pkgname)
         # check the UnityLauncherInfo values themselves
         self.assertEqual(launcher_info.name, "lincity-ng")
         self.assertEqual(launcher_info.icon_name, "lincity-ng")
@@ -114,7 +114,7 @@ class TestUnityLauncherIntegration(unittest.TestCase):
         self.assertEqual(launcher_info.trans_id, "testid101")
         # finally, make sure the the app has been removed from the launcher
         # queue        
-        self.assertFalse(test_pkgname in available_pane.unity_launcher.items)
+        self.assertFalse(test_pkgname in available_pane.unity_launcher.candidates)
         
     def test_desktop_file_path_conversion(self):
         # test 'normal' case
