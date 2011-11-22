@@ -21,9 +21,14 @@ import sys
 
 from gettext import gettext as _
 from gi.repository import Gdk
-# FIXME: uncomment this import and add a dependency on gir1.2-gstreamer-0.10
-#        if we start using VideoPlayerGtk3
-# from gi.repository import Gst
+
+# FIXME: remove this try/except and add a dependency on gir1.2-gstreamer-0.10
+#        if we (ever) start using VideoPlayerGtk3
+try:
+    from gi.repository import Gst
+except ImportError:
+    pass
+
 from gi.repository import Gtk
 from gi.repository import WebKit
 

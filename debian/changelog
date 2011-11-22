@@ -1,4 +1,4 @@
-software-center (5.1.2.1) UNRELEASED; urgency=low
+software-center (5.1.2.1) precise; urgency=low
 
   [ Kiwinote ]
   * sc/ui/gtk3/widgets/videoplayer.py:
@@ -12,7 +12,7 @@ software-center (5.1.2.1) UNRELEASED; urgency=low
       libsoup property so ssl cert validation works.
     - CVE-2011-3150
 
- -- Kiwinote <kiwinote@gmail.com>  Mon, 21 Nov 2011 20:29:35 +0000
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 22 Nov 2011 18:23:09 +0100
 
 software-center (5.1.2) precise; urgency=low
 
