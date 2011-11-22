@@ -4,6 +4,10 @@ software-center (5.0.3) UNRELEASED; urgency=low
   * Improve icon extenstion detection, some iconnames are already
     without extenstion with still with a "." in the name, some are not.
     This fixes the icons display for wesnoth and xpuzzles (LP: #878707)
+  * SECURITY UPDATE: MITM via incorrect ssl cert validation (LP: #874242)
+    - softwarecenter/ui/gtk3/views/purchaseview.py: Set the ssl-ca-file
+      libsoup property so ssl cert validation works.
+    - CVE-2011-3150
 
   [ Gary Lasker ]
   * softwarecenter/ui/gtk3/app.py:
