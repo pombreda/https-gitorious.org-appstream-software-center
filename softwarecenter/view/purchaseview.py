@@ -24,14 +24,27 @@ import os
 import simplejson
 import sys
 import urllib
-import webkit
 import gobject
 
 from gettext import gettext as _
-
 from softwarecenter.backend import get_install_backend
 
 LOG = logging.getLogger(__name__)
+
+def init_ssl():
+    # get the ctypes stuff
+    from ctypes import cdll, c_char_p
+    # load webkit and get the default session
+    webkit = cdll.LoadLibrary("libwebkitgtk-1.0.so.0")
+    session = webkit.webkit_get_default_session()
+    # load gobject and set the default ca-ssl-file
+    gobject = cdll.LoadLibrary("libgobject-2.0.so.0")
+    name = c_char_p("ssl-ca-file")
+    value = c_char_p("/etc/ssl/certs/ca-certificates.crt")
+    gobject.g_object_set(session, name, value, None)
+# load webkit *and* ensure its doing proper ssl checking
+import webkit
+init_ssl()
 
 class ScrolledWebkitWindow(gtk.ScrolledWindow):
 

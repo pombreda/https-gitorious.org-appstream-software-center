@@ -1,3 +1,12 @@
+software-center (4.0.5ubuntu0.1) natty-security; urgency=low
+
+  * SECURITY UPDATE: MITM via incorrect ssl cert validation (LP: #874242)
+    - softwarecenter/view/purchaseview.py: Set the ssl-ca-file libsoup
+      property so ssl cert validation works.
+    - CVE-2011-3150
+
+ -- Marc Deslauriers <marc.deslauriers@ubuntu.com>  Fri, 18 Nov 2011 08:36:12 -0500
+
 software-center (4.0.5) natty-proposed; urgency=low
 
   [ Aaron Peachey ]
