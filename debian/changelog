@@ -1,7 +1,8 @@
 software-center (4.0.6) UNRELEASEDnatty-proposed; urgency=low
 
   * cherry pick fix to allow webkit to create additional windows
-    during the purchase
+    during the purchase - this is needed to support PayPal in the
+    purchase process
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 23 Nov 2011 13:29:15 +0100
 
