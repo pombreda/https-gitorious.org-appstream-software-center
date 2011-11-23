@@ -609,9 +609,10 @@ class UIReview(Gtk.VBox):
         #if review version is different to version of app being displayed, 
         # alert user
         version = GObject.markup_escape_text(upstream_version(review_version))
-        if (review_version and
+        if ((review_version and
             app_version and
-            upstream_version_compare(review_version, app_version) != 0):
+            upstream_version_compare(review_version, app_version) != 0)
+            or not app_version):
             version_string = _("For version %(version)s") % { 
                     'version' : version,
                     }
