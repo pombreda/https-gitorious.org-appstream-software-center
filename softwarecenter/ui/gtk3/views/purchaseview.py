@@ -175,8 +175,14 @@ h1 {
         return True
         
     def _on_create_web_view(self, view, frame):
-        win = Gtk.Window()
-        win.set_size_request(400, 400)
+        win = gtk.Window()
+        win.set_size_request(500, 400)
+        # set transient parent
+        parent = self
+        while parent.get_parent():
+            parent = parent.get_parent()
+        win.set_transient_for(parent)
+        # and add the webkit view
         wk = ScrolledWebkitWindow()
         wk.webkit.connect("close-web-view", self._on_close_web_view)
         win.add(wk)

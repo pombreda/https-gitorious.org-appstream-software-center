@@ -1,3 +1,10 @@
+software-center (5.0.4) UNRELEASED; urgency=low
+
+  * softwarecenter/ui/gtk3/views/purchaseview.py:
+    - set transient parent when creating a new webview
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Wed, 23 Nov 2011 14:00:02 +0100
+
 software-center (5.0.3) oneiric-proposed; urgency=low
 
   [ Michael Vogt ]
