@@ -489,7 +489,7 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
                                          iconname,
                                          license_key,
                                          license_key_path,
-                                         oauth_token=None,
+                                         json_oauth_token=None,
                                          purchase=True):
         """ 
         a convenience method that combines all of the steps needed
@@ -532,7 +532,7 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
                           'sc_add_repo_and_install_try' : "1",
                           'sc_add_repo_and_install_license_key' : license_key or "",
                           'sc_add_repo_and_install_license_key_path' : license_key_path or "",
-                          'sc_add_repo_and_install_license_key_token' : oauth_token or "",
+                          'sc_add_repo_and_install_license_key_token' : json_oauth_token or "",
                          }
 
         self._logger.info("add_sources_list_entry()")
