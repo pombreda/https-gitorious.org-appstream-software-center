@@ -175,7 +175,7 @@ h1 {
         return True
         
     def _on_create_web_view(self, view, frame):
-        win = gtk.Window()
+        win = Gtk.Window()
         win.set_size_request(500, 400)
         # set transient parent
         parent = self
