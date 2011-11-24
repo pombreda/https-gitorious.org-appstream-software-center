@@ -8,6 +8,7 @@ import unittest
 sys.path.insert(0,"../")
 from softwarecenter.backend.installbackend_impl.aptd import AptdaemonBackend
 from defer import inline_callbacks
+from mock import Mock
 
 class TestAptdaemon(unittest.TestCase):
     """ tests the AptdaemonBackend """
@@ -27,11 +28,12 @@ class TestAptdaemon(unittest.TestCase):
         # test HOME
         target = "~/.fasfasdfsdafdfsdafdsfa"
         pkgname = "2vcard"
-        yield self.aptd.add_license_key(data, target, pkgname)
+        json_auth = ""
+        yield self.aptd.add_license_key(data, target, json_auth, pkgname)
         self.assertEqual(open(os.path.expanduser(target)).read(), data)
         # ensure its not written twice
         data2 = "other-data"
-        yield self.aptd.add_license_key(data2, target, pkgname)
+        yield self.aptd.add_license_key(data2, target, json_auth, pkgname)
         self.assertEqual(open(os.path.expanduser(target)).read(), data)
         # cleanup
         os.remove(os.path.expanduser(target))
@@ -42,7 +44,8 @@ class TestAptdaemon(unittest.TestCase):
         data = "some-data"
         pkgname = "2vcard"
         path = "/opt"
-        defer = self.aptd.add_license_key(data, path, pkgname)
+        json_auth = "no-json-auth"
+        defer = self.aptd.add_license_key(data, path, json_auth, pkgname)
         self.assertTrue(defer.called)
         #self.assertEqual(open(os.path.expanduser(target)).read(), data)
         #os.remove(os.path.expanduser(target))
@@ -60,8 +63,10 @@ class TestAptdaemon(unittest.TestCase):
         self.assertEqual(self._pkgs_to_install, ["7zip", "2vcard"])
         self._pkgs_to_install = []
 
-    def _monkey_patched_add_vendor_key_from_keyserver(self, keyid, *args):
+    def _monkey_patched_add_vendor_key_from_keyserver(self, keyid, 
+                                                      *args, **kwargs):
         self.assertTrue(keyid.startswith("0x"))
+        return Mock()
 
     def test_download_key_from_keyserver(self):
         keyid = "0EB12F05"
