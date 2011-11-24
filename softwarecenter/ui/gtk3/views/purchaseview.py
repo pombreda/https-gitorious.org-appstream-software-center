@@ -188,7 +188,10 @@ h1 {
 
     def _on_console_message(self, view, message, line, source_id):
         try:
+            # load the token from the console message
             self._json_token = json.loads(message)
+            # compat with the regular oauth naming
+            self._json_token["token"] = self._json_token["token_key"]
         except ValueError:
             pass
         for k in ["token_key", "token_secret", "consumer_secret"]:

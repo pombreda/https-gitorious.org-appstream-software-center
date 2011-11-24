@@ -42,6 +42,9 @@ class TestAptdaemon(unittest.TestCase):
         os.remove(os.path.expanduser(target))
 
     def test_add_license_key_opt(self):
+        if os.getuid() != 0:
+            logging.info("skipping add_license_key_opt test")
+            return
         # test /opt
         data = "some-data"
         pkgname = "hellox"
