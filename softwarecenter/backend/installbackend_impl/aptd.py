@@ -473,12 +473,13 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
         else:
             # system-wide keys
             try:
+                self._logger.info("adding license key for '%s'" % pkgname)
                 server = "ubuntu-production"
                 trans = yield self.aptd_client.add_license_key(
                     pkgname, license_key_oauth, server)
                 yield self._run_transaction(trans, None, None, None)
             except Exception as e:
-                self._logger.error("add_repository: '%s'" % e)
+                self._logger.error("add_license_key: '%s'" % e)
 
     @inline_callbacks
     def add_repo_add_key_and_install_app(self,
@@ -628,12 +629,14 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
                 self._logger.info("run_transaction()")
                 yield self._run_transaction(trans, app.pkgname, app.appname,
                                             "", metadata)
-                if license_key:
-                    yield self.add_license_key(
-                        license_key, license_key_path, license_key_oauth, 
-                        app.pkgname)
             except Exception as error:
                 self._on_trans_error(error, app.pkgname)
+            # add license_key
+            if license_key:
+                res = yield self.add_license_key(
+                    license_key, license_key_path, license_key_oauth, 
+                    app.pkgname)
+
         else:
             # download failure
             # ok, here is the fun! we can not reload() immediately, because

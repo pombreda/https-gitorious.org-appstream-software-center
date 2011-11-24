@@ -2,6 +2,7 @@
 
 import os
 import sys
+import time
 import unittest
 
 
@@ -9,6 +10,8 @@ sys.path.insert(0,"../")
 from softwarecenter.backend.installbackend_impl.aptd import AptdaemonBackend
 from defer import inline_callbacks
 from mock import Mock
+
+import aptdaemon.loop 
 
 class TestAptdaemon(unittest.TestCase):
     """ tests the AptdaemonBackend """
@@ -38,15 +41,26 @@ class TestAptdaemon(unittest.TestCase):
         # cleanup
         os.remove(os.path.expanduser(target))
 
-    # disabled until aptdaemon support is merged
-    def disabled_test_add_license_key_opt(self):
+    def test_add_license_key_opt(self):
         # test /opt
         data = "some-data"
-        pkgname = "2vcard"
-        path = "/opt"
-        json_auth = "no-json-auth"
-        defer = self.aptd.add_license_key(data, path, json_auth, pkgname)
-        self.assertTrue(defer.called)
+        pkgname = "hellox"
+        path = "/opt/hellox/conf/license-key.txt"
+        json_auth = os.environ.get("SC_TEST_JSON") or "no-json-auth"
+        def _error(*args):
+            print "errror", args
+        self.aptd.ui = Mock()
+        self.aptd.ui.error = _error
+        @inline_callbacks
+        def run():
+            res = yield self.aptd.add_license_key(data, path, json_auth, pkgname)
+            aptdaemon.loop.mainloop.quit()
+        # run the callback
+        run()
+        aptdaemon.loop.mainloop.run()
+        # give the daemon time to write the file
+        time.sleep(0.5)
+        self.assertTrue(os.path.exists(path))
         #self.assertEqual(open(os.path.expanduser(target)).read(), data)
         #os.remove(os.path.expanduser(target))
 
