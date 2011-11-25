@@ -606,16 +606,16 @@ class UIReview(Gtk.VBox):
         delete_error = review_data.delete_error
         modify_error = review_data.modify_error
 
-        #if review version is different to version of app being displayed, 
-        # alert user
+        # upstream version
         version = GObject.markup_escape_text(upstream_version(review_version))
+        # default string
+        version_string = _("For version %(version)s") % { 
+            'version' : version,
+            }
+        # If its for the same version, show it as such
         if (review_version and
             app_version and
-            upstream_version_compare(review_version, app_version) != 0):
-            version_string = _("For version %(version)s") % { 
-                    'version' : version,
-                    }
-        else:
+            upstream_version_compare(review_version, app_version) == 0):
             version_string = _("For this version (%(version)s)") % { 
                     'version' : version,
                     }

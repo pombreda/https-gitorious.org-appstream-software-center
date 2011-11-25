@@ -1,3 +1,11 @@
+software-center (5.1.2.2) unstable; urgency=low
+
+  [ Robert Roth ]
+  * Show For version x string instead of for this version when the 
+    app version is unknown (LP: #889080)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 25 Nov 2011 13:00:38 +0100
+
 software-center (5.1.2.1) precise; urgency=low
 
   [ Kiwinote ]
