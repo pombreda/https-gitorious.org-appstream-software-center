@@ -335,7 +335,7 @@ class SoftwarePane(Gtk.VBox, BasePane):
             return
         # we only care about getting the launcher information on an install
         if not trans_type == TransactionTypes.INSTALL:
-            self.unity_launcher.remove_candidate(pkgname)
+            self.unity_launcher.remove_from_launcher_queue(pkgname)
             self.action_bar.clear()
             return
         # gather details for this transaction and create the launcher_info object
@@ -351,7 +351,7 @@ class SoftwarePane(Gtk.VBox, BasePane):
                                           appdetails.desktop_file,
                                           "",        # we set the installed_desktop_file_path *after* install
                                           trans_id)
-        self.unity_launcher.add_candidate(app.pkgname, launcher_info)
+        self.unity_launcher.add_to_launcher_queue(app.pkgname, launcher_info)
         self.show_add_to_launcher_panel(backend, pkgname, appname, app, appdetails, trans_id, trans_type)
                 
     def show_add_to_launcher_panel(self, backend, pkgname, appname, app, appdetails, trans_id, trans_type):
@@ -406,8 +406,8 @@ class SoftwarePane(Gtk.VBox, BasePane):
         callback indicating the user has chosen to add the indicated application
         to the launcher
         """
-        if pkgname in self.unity_launcher.candidates:
-            launcher_info = self.unity_launcher.candidates[pkgname]
+        if pkgname in self.unity_launcher.launcher_queue:
+            launcher_info = self.unity_launcher.launcher_queue[pkgname]
             if launcher_info.installed_desktop_file_path:
                 # package install is complete, we can add to the launcher immediately
                 self.action_bar.clear()
@@ -422,7 +422,7 @@ class SoftwarePane(Gtk.VBox, BasePane):
                 self.action_bar.remove_button(ActionButtons.ADD_TO_LAUNCHER)
 
     def on_cancel_add_to_launcher(self, pkgname):
-        self.unity_launcher.remove_candidate(pkgname)
+        self.unity_launcher.remove_from_launcher_queue(pkgname)
         self.action_bar.clear()
         
     def on_transaction_finished(self, backend, result):
@@ -435,8 +435,8 @@ class SoftwarePane(Gtk.VBox, BasePane):
     def _check_unity_launcher_transaction_finished(self, result):
         # add the completed transaction details to the corresponding
         # launcher_item
-        if result.pkgname in self.unity_launcher.candidates:
-            launcher_info = self.unity_launcher.candidates[result.pkgname]
+        if result.pkgname in self.unity_launcher.launcher_queue:
+            launcher_info = self.unity_launcher.launcher_queue[result.pkgname]
             launcher_info.icon_file_path = get_file_path_from_iconname(
                 self.icons, launcher_info.icon_name)
             installed_path = convert_desktop_file_to_installed_location(
@@ -447,11 +447,11 @@ class SoftwarePane(Gtk.VBox, BasePane):
                 if result.success:
                     self.unity_launcher.add_application_to_launcher(launcher_info)
                 else:
-                    self.unity_launcher.remove_candidate(result.pkgname)
+                    self.unity_launcher.remove_from_launcher_queue(result.pkgname)
                 self.action_bar.clear()
 
     def on_transaction_stopped(self, backend, result):
-        self.unity_launcher.remove_candidate(result.pkgname)
+        self.unity_launcher.remove_from_launcher_queue(result.pkgname)
         self.action_bar.clear()
 
     def show_appview_spinner(self):

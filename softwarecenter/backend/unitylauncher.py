@@ -53,20 +53,20 @@ class UnityLauncher(object):
     def __init__(self):
         # keep track of applications that are candidates for adding
         # to the Unity launcher
-        self.candidates = {}
+        self.launcher_queue = {}
         
-    def add_candidate(self, pkgname, launcher_info):
+    def add_to_launcher_queue(self, pkgname, launcher_info):
         """ add an application to the set of candidates for adding to the
             Unity launcher
         """
-        self.candidates[pkgname] = launcher_info
+        self.launcher_queue[pkgname] = launcher_info
         
-    def remove_candidate(self, pkgname):
+    def remove_from_launcher_queue(self, pkgname):
         """ remove an application from the set of candidates for adding to the
             Unity launcher
         """
-        if pkgname in self.candidates:
-            return self.candidates.pop(pkgname)
+        if pkgname in self.launcher_queue:
+            return self.launcher_queue.pop(pkgname)
         
     def send_application_to_launcher(self, pkgname, launcher_info):
         LOG.debug("sending dbus signal to Unity launcher for application: ", 
@@ -77,8 +77,8 @@ class UnityLauncher(object):
                      launcher_info.installed_desktop_file_path)
         LOG.debug("  launcher_info.trans_id: ", launcher_info.trans_id)
         # the application is being added to the launcher, so clear it from the
-        # list of candidates
-        self.remove_candidate(pkgname)
+        # list of candidates in the launcher queue
+        self.remove_from_launcher_queue(pkgname)
         # add the application by sending a dbus signal to the Unity launcher
         try:
             bus = dbus.SessionBus()
