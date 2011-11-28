@@ -16,6 +16,8 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+import json
+
 try:
     from urllib.parse import urlencode
     urlencode  # pyflakes
@@ -55,6 +57,7 @@ class ApplicationManager(GObject.GObject):
         self.distro = get_distro()
         self.datadir = softwarecenter.paths.datadir
         self.icons = icons
+        self.oauth_token = ""
 
     def _globalise_instance(self):
         global _appmanager
@@ -162,12 +165,14 @@ class ApplicationManager(GObject.GObject):
         license_key = appdetails.license_key
         license_key_path = appdetails.license_key_path
         signing_key_id = appdetails.signing_key_id
+        oauth_token = json.dumps(self.oauth_token)
         self.backend.add_repo_add_key_and_install_app(deb_line,
                                                       signing_key_id,
                                                       app,
                                                       iconname,
                                                       license_key,
-                                                      license_key_path)
+                                                      license_key_path,
+                                                      oauth_token)
 
     def enable_software_source(self, app):
         """ enable the software source for the given app """

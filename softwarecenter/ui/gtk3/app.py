@@ -552,6 +552,9 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
 
     def _on_sso_login(self, sso, oauth_result):
         self._sso_login_successful = True
+        # appmanager needs to know about the oauth token for the reinstall
+        # previous purchases add_license_key call
+        self.app_manager.oauth_token = oauth_result
         # consumer key is the openid identifier
         self.scagent.query_available_for_me(oauth_result["token"],
                                             oauth_result["consumer_key"])
