@@ -635,7 +635,7 @@ class AptdaemonBackend(GObject.GObject, InstallBackend):
             # FIXME: aptd fails if there is a license_key_path already
             #        but I wonder if we should ease that restriction
             if license_key and not os.path.exists(license_key_path):
-                res = yield self.add_license_key(
+                yield self.add_license_key(
                     license_key, license_key_path, license_key_oauth, 
                     app.pkgname)
 

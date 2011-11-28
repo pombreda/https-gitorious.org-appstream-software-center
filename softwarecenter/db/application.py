@@ -669,7 +669,7 @@ class AppDetails(GObject.GObject):
         details.append("   installation_date: %s" % self.installation_date)
         details.append("       purchase_date: %s" % self.purchase_date)
         details.append("             license: %s" % self.license)
-        details.append("         license_key: %s" % self.license_key[0:3] + len(license_key)*"*")
+        details.append("         license_key: %s" % self.license_key[0:3] + len(self.license_key)*"*")
         details.append("    license_key_path: %s" % self.license_key_path)
         details.append("  maintenance_status: %s" % self.maintenance_status)
         details.append("           pkg_state: %s" % self.pkg_state)
