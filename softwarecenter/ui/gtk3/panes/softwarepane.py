@@ -31,8 +31,8 @@ from gettext import gettext as _
 import softwarecenter.utils
 
 from softwarecenter.backend import get_install_backend
-from softwarecenter.backend.unity_launcher import (UnityLauncher,
-                                                   UnityLauncherInfo)
+from softwarecenter.backend.unitylauncher import (UnityLauncher,
+                                                  UnityLauncherInfo)
 from softwarecenter.db.database import Application
 from softwarecenter.db.enquire import AppEnquire
 from softwarecenter.enums import (ActionButtons,
