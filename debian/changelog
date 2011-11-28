@@ -1,12 +1,31 @@
-software-center (5.1.2.1) UNRELEASED; urgency=low
+software-center (5.1.2.2) unstable; urgency=low
+
+  [ Robert Roth ]
+  * Show For version x string instead of for this version when the 
+    app version is unknown (LP: #889080)
+
+  [ Michael Vogt ]
+  * lp:~mvo/software-center/system-wide-license-key-fixes:
+    - add support for installing system-wide license keys
+      via aptdaemon
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 28 Nov 2011 10:49:45 -0500
+
+software-center (5.1.2.1) precise; urgency=low
 
   [ Kiwinote ]
   * sc/ui/gtk3/widgets/videoplayer.py:
     - don't import Gst - we don't use it at the moment
       this unbreaks startup for those who don't have gir1.2-gstreamer-0.10
       installed (LP: #893247)
+  
+  [ Michael Vogt ]
+  * SECURITY UPDATE: MITM via incorrect ssl cert validation (LP: #874242)
+    - softwarecenter/ui/gtk3/views/purchaseview.py: Set the ssl-ca-file
+      libsoup property so ssl cert validation works.
+    - CVE-2011-3150
 
- -- Kiwinote <kiwinote@gmail.com>  Mon, 21 Nov 2011 20:29:35 +0000
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 22 Nov 2011 18:23:09 +0100
 
 software-center (5.1.2) precise; urgency=low
 

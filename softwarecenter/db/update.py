@@ -90,7 +90,7 @@ if os.path.exists(CF):
     try:
         cataloged_times = pickle.load(open(CF))
     except Exception as e:
-        LOG.warn("failed to read %s (%s" % (CF, e))
+        LOG.warn("failed to load %s: %s" % (CF, e))
 del CF
 
 # Enable Xapian's CJK tokenizer (see LP: #745243)
