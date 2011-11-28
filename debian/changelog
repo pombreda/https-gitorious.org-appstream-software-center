@@ -4,7 +4,12 @@ software-center (5.1.2.2) unstable; urgency=low
   * Show For version x string instead of for this version when the 
     app version is unknown (LP: #889080)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 25 Nov 2011 13:00:38 +0100
+  [ Michael Vogt ]
+  * lp:~mvo/software-center/system-wide-license-key-fixes:
+    - add support for installing system-wide license keys
+      via aptdaemon
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 28 Nov 2011 10:49:45 -0500
 
 software-center (5.1.2.1) precise; urgency=low
 
