@@ -1,3 +1,11 @@
+software-center (5.0.3.2) UNRELEASED; urgency=low
+
+  * lp:~gary-lasker/software-center/fix-lp891499-for-5.0:
+    - be more robust about problems reading the cataloged_times file 
+      as problems here can hang the UI (LP: #891499)
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 28 Nov 2011 14:22:24 -0500
+
 software-center (5.0.3.1) oneiric-proposed; urgency=low
 
   * softwarecenter/ui/gtk3/views/purchaseview.py:
