@@ -420,9 +420,9 @@ Konstantin Datz - Icon
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="related_action">navhistory_back_action</property>
+                        <property name="use_action_appearance">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">False</property>
-                        <property name="use_action_appearance">False</property>
                         <accelerator key="bracketleft" signal="activate" modifiers="GDK_CONTROL_MASK"/>
                       </object>
                     </child>
@@ -432,10 +432,26 @@ Konstantin Datz - Icon
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="related_action">navhistory_forward_action</property>
+                        <property name="use_action_appearance">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">False</property>
-                        <property name="use_action_appearance">False</property>
                         <accelerator key="bracketright" signal="activate" modifiers="GDK_CONTROL_MASK"/>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkSeparatorMenuItem" id="add_to_launcher_separator">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkCheckMenuItem" id="menuitem_add_to_launcher">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="use_action_appearance">False</property>
+                        <property name="label" translatable="yes">_New Applications in Launcher</property>
+                        <property name="use_underline">True</property>
+                        <property name="active">True</property>
                       </object>
                     </child>
                   </object>
@@ -476,7 +492,7 @@ Konstantin Datz - Icon
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="use_action_appearance">False</property>
-                        <property name="use_underline">False</property>
+                        <property name="use_stock">False</property>
                         <signal name="activate" handler="on_menuitem_developer_activate" swapped="no"/>
                       </object>
                     </child>
