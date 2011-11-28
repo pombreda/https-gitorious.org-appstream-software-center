@@ -56,7 +56,7 @@ class TestAptdaemon(unittest.TestCase):
         self.aptd.ui.error = _error
         @inline_callbacks
         def run():
-            res = yield self.aptd.add_license_key(data, path, json_auth, pkgname)
+            yield self.aptd.add_license_key(data, path, json_auth, pkgname)
             aptdaemon.loop.mainloop.quit()
         # run the callback
         run()
