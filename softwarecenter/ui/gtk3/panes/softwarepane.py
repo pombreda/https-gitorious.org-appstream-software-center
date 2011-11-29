@@ -325,7 +325,7 @@ class SoftwarePane(Gtk.VBox, BasePane):
     def _register_unity_launcher_transaction_started(self, backend, pkgname, 
                                                      appname, trans_id, 
                                                      trans_type):
-        # mvo: use use softwarecenter.utils explictely so that we can monkey
+        # mvo: use use softwarecenter.utils explictly so that we can monkey
         #      patch it in the test
         if not softwarecenter.utils.is_unity_running():
             return

@@ -56,14 +56,14 @@ class UnityLauncher(object):
         self.launcher_queue = {}
         
     def add_to_launcher_queue(self, pkgname, launcher_info):
-        """ add an application to the set of candidates for adding to the
-            Unity launcher
+        """ add an application and its associated info to the set of candidates
+            for adding to the Unity launcher
         """
         self.launcher_queue[pkgname] = launcher_info
         
     def remove_from_launcher_queue(self, pkgname):
-        """ remove an application from the set of candidates for adding to the
-            Unity launcher
+        """ remove an application and its associated info from the set of
+            candidates for adding to the Unity launcher
         """
         if pkgname in self.launcher_queue:
             return self.launcher_queue.pop(pkgname)
