@@ -1380,7 +1380,11 @@ class AppDetailsView(Viewport):
         vb.pack_start(cmd_label, False, False, 0)
         self.installed_where_hbox.show_all()
 
-    def _add_where_is_it_launcher(self, where):
+    def _add_where_is_it_launcher(self, desktop_file):
+        searcher = GMenuSearcher()
+        where = searcher.get_main_menu_path(desktop_file)
+        if not where:
+            return
         # display launcher location
         label = Gtk.Label(label=_("Find it in the menu: "))
         self.installed_where_hbox.pack_start(label, False, False, 0)
@@ -1456,15 +1460,12 @@ class AppDetailsView(Viewport):
             # first try the desktop file from the DB, then see if
             # there is a local desktop file with the same name as 
             # the package
-            searcher = GMenuSearcher()
             # try to show menu location if there is a desktop file, but
             # never show commandline programs for apps with a desktop file
             # to cover cases like "file-roller" that have NoDisplay=true
             desktop_file = get_desktop_file()
             if desktop_file:
-                where = searcher.get_main_menu_path(desktop_file)
-                if where:
-                    self._add_where_is_it_launcher(where)
+                self._add_where_is_it_launcher(desktop_file)
             # if there is no desktop file, show commandline
             else:
                 self._add_where_is_it_commandline(self.app_details.pkgname)

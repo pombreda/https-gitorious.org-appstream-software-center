@@ -1,7 +1,10 @@
 #!/usr/bin/python
 
 from gi.repository import Gtk
+
+import os
 import sys
+import time
 import unittest
 
 sys.path.insert(0,"../..")
@@ -67,7 +70,35 @@ class TestAppdetailsView(unittest.TestCase):
             view.app = None
             # show it
             view.show_app(mock_app)
-        
+
+    def test_app_icon_loading(self):
+        win = get_test_window_appdetails()
+        view = win.get_data("view")
+        # get icon
+        app = Application("", "software-center")
+        mock_app = get_mock_app_from_real_app(app)
+        view.app = mock_app
+        mock_details = mock_app.get_details(None)
+        mock_details.cached_icon_file_path = "download-icon-test"
+        mock_details.icon = "favicon.ico"
+        mock_details.icon_url = "http://de.wikipedia.org/favicon.ico"
+        view.app_details = mock_details
+        view.show_app(mock_app)
+        do_events()
+        # ensure the icon is there
+        # FIXME: ensure that the icon is really downloaded
+        #self.assertTrue(os.path.exists(mock_details.cached_icon_file_path))
+        #os.unlink(mock_details.cached_icon_file_path)
+
+    def test_add_where_is_it(self):
+        win = get_test_window_appdetails()
+        view = win.get_data("view")
+        app = Application("", "software-center")
+        view.show_app(app)
+        view._add_where_is_it_commandline("apt")
+        do_events()
+        view._add_where_is_it_launcher("/usr/share/applications/software-center.desktop")
+        do_events()
 
     def test_pkgstatus_bar(self):
         # make sure configure is run with the various states
