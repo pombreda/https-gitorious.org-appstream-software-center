@@ -356,11 +356,6 @@ class AvailablePane(SoftwarePane):
         #      patch it in the test
         if not softwarecenter.utils.is_unity_running():
             return
-        if not self.add_to_launcher_enabled:
-            return
-        # add to launcher only applies in the details view currently
-        if not self.is_app_details_view_showing():
-            return
         # we only care about getting the launcher information on an install
         if not trans_type == TransactionTypes.INSTALL:
             self.unity_launcher.remove_from_launcher_queue(pkgname)
@@ -380,7 +375,12 @@ class AvailablePane(SoftwarePane):
                                           "",        # we set the installed_desktop_file_path *after* install
                                           trans_id)
         self.unity_launcher.add_to_launcher_queue(app.pkgname, launcher_info)
-        self.show_add_to_launcher_panel(backend, pkgname, appname, app, appdetails, trans_id, trans_type)
+        if self.add_to_launcher_enabled:
+            # don't prompt for install if we've enabled automatic adding to
+            # the launcher, and instead just add it
+            self.on_add_to_launcher(pkgname, app, appdetails, trans_id)           
+        elif self.is_app_details_view_showing():
+            self.show_add_to_launcher_panel(backend, pkgname, appname, app, appdetails, trans_id, trans_type)
         
     def _get_onscreen_icon_details_for_launcher_service(self, app):
         if self.is_app_details_view_showing():

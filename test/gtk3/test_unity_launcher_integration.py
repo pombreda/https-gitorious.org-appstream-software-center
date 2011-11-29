@@ -56,6 +56,9 @@ class TestUnityLauncherIntegration(unittest.TestCase):
         self._zzz()
         
     def test_unity_launcher_stays_after_install_finished(self):
+        # we are testing the prompted add to launcher enabled functionality,
+        # so shut off the automatic adds
+        available_pane.add_to_launcher_enabled = False
         test_pkgname = "gl-117"
         mock_result = Mock()
         mock_result.pkgname = test_pkgname
@@ -84,6 +87,9 @@ class TestUnityLauncherIntegration(unittest.TestCase):
         self.assertEqual(button, None)
 
     def test_unity_launcher_integration(self):
+        # we are testing the prompted add to launcher enabled functionality,
+        # so shut off the automatic adds
+        available_pane.add_to_launcher_enabled = False
         test_pkgname = "lincity-ng"
         mock_result = Mock()
         mock_result.pkgname = test_pkgname
@@ -98,6 +104,38 @@ class TestUnityLauncherIntegration(unittest.TestCase):
         self.assertTrue(button is not None)
         # click the button 
         button.clicked()
+
+        # check that a correct UnityLauncherInfo object has been created and
+        # added to the queue
+        self.assertTrue(test_pkgname in available_pane.unity_launcher.launcher_queue)
+        launcher_info = available_pane.unity_launcher.remove_from_launcher_queue(test_pkgname)
+        # check the UnityLauncherInfo values themselves
+        self.assertEqual(launcher_info.name, "lincity-ng")
+        self.assertEqual(launcher_info.icon_name, "lincity-ng")
+        self.assertTrue(launcher_info.icon_x > 5)
+        self.assertTrue(launcher_info.icon_y > 5)
+        self.assertEqual(launcher_info.icon_size, 96)
+        self.assertEqual(launcher_info.app_install_desktop_file_path,
+            "/usr/share/app-install/desktop/lincity-ng:lincity-ng.desktop")
+        self.assertEqual(launcher_info.trans_id, "testid101")
+        # finally, make sure the the app has been removed from the launcher
+        # queue        
+        self.assertFalse(test_pkgname in available_pane.unity_launcher.launcher_queue)
+        
+    def test_automatic_unity_launcher_integration(self):
+        # we are testing the automatic add to launcher enabled functionality
+        available_pane.add_to_launcher_enabled = True
+        test_pkgname = "lincity-ng"
+        mock_result = Mock()
+        mock_result.pkgname = test_pkgname
+        mock_result.success = True
+        # now pretend
+        self._navigate_to_appdetails_and_install(test_pkgname)
+        
+        # verify that the panel is *not* shown offering to add the app to the launcher
+        button = available_pane.action_bar.get_button(
+            ActionButtons.ADD_TO_LAUNCHER)
+        self.assertTrue(button is None)
 
         # check that a correct UnityLauncherInfo object has been created and
         # added to the queue
