@@ -1735,6 +1735,7 @@ class AppDetailsView(Viewport):
                 def on_image_download_complete(downloader, image_file_path):
                     # when the download is complete, replace the icon in the 
                     # view with the downloaded one
+                    logging.debug("_get_icon_as_pixbuf:image_downloaded() %s" % image_file_path)
                     try:
                         pb = GdkPixbuf.Pixbuf.new_from_file(image_file_path)
                         self.icon.set_from_pixbuf(pb)
