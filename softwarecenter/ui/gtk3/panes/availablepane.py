@@ -38,8 +38,7 @@ from softwarecenter.paths import APP_INSTALL_PATH
 from softwarecenter.utils import (wait_for_apt_cache_ready,
                                   is_no_display_desktop_file,
                                   convert_desktop_file_to_installed_location,
-                                  get_file_path_from_iconname,
-                                  utf8)
+                                  get_file_path_from_iconname)
 from softwarecenter.db.appfilter import AppFilter
 from softwarecenter.db.database import Application
 from softwarecenter.ui.gtk3.views.purchaseview import PurchaseView
@@ -352,18 +351,26 @@ class AvailablePane(SoftwarePane):
     def _register_unity_launcher_transaction_started(self, backend, pkgname, 
                                                      appname, trans_id, 
                                                      trans_type):
+        if not self.add_to_launcher_enabled:
+            return
         # mvo: use use softwarecenter.utils explictly so that we can monkey
         #      patch it in the test
         if not softwarecenter.utils.is_unity_running():
             return
         # we only care about getting the launcher information on an install
         if not trans_type == TransactionTypes.INSTALL:
-            self.unity_launcher.remove_from_launcher_queue(pkgname)
-            self.action_bar.clear()
             return
         # gather details for this transaction and create the launcher_info object
         app = Application(pkgname=pkgname, appname=appname)
         appdetails = app.get_details(self.db)
+        # we only add items to the launcher that have a desktop file
+        if not appdetails.desktop_file:
+            return
+        # do not add apps without a exec line (like wine, see #848437)
+        if (os.path.exists(appdetails.desktop_file) and
+            is_no_display_desktop_file(appdetails.desktop_file)):
+            return
+
         (icon_size, icon_x, icon_y) = self._get_onscreen_icon_details_for_launcher_service(app)
         launcher_info = UnityLauncherInfo(app.name,
                                           appdetails.icon,
@@ -375,74 +382,14 @@ class AvailablePane(SoftwarePane):
                                           "",        # we set the installed_desktop_file_path *after* install
                                           trans_id)
         self.unity_launcher.add_to_launcher_queue(app.pkgname, launcher_info)
-        if self.add_to_launcher_enabled:
-            # don't prompt for install if we've enabled automatic adding to
-            # the launcher, and instead just add it
-            self.on_add_to_launcher(pkgname, app, appdetails, trans_id)           
-        elif self.is_app_details_view_showing():
-            self.show_add_to_launcher_panel(backend, pkgname, appname, app, appdetails, trans_id, trans_type)
-        
+
     def _get_onscreen_icon_details_for_launcher_service(self, app):
         if self.is_app_details_view_showing():
             return self.app_details_view.get_app_icon_details()
         else:
             # TODO: implement the app list view case once it has been specified
             return (0, 0, 0)
-                       
-    def show_add_to_launcher_panel(self, backend, pkgname, appname, app, appdetails, trans_id, trans_type):
-        """
-        if Unity is currently running, display a panel to allow the user
-        the choose whether to add a newly-installed application to the
-        launcher
-        """
-        # TODO: handle local deb install case
-        # TODO: implement the list view case (once it is specified)
-        # only show the panel if unity is running and this is a package install
-        #
-        # we only show the prompt for apps with a desktop file
-        if not appdetails.desktop_file:
-            return
-        # do not add apps without a exec line (like wine, see #848437)
-        if (os.path.exists(appdetails.desktop_file) and
-            is_no_display_desktop_file(appdetails.desktop_file)):
-                return
-        self.action_bar.add_button(ActionButtons.CANCEL_ADD_TO_LAUNCHER,
-                                    _("Not Now"), 
-                                    self.on_cancel_add_to_launcher, 
-                                    pkgname)
-        self.action_bar.add_button(ActionButtons.ADD_TO_LAUNCHER,
-                                   _("Add to Launcher"),
-                                   self.on_add_to_launcher,
-                                   pkgname,
-                                   app,
-                                   appdetails,
-                                   trans_id)
-        self.action_bar.set_label(utf8(_("Add %s to the launcher?")) % utf8(app.name))
-        
-    def on_add_to_launcher(self, pkgname, app, appdetails, trans_id):
-        """
-        callback indicating the user has chosen to add the indicated application
-        to the launcher
-        """
-        if pkgname in self.unity_launcher.launcher_queue:
-            launcher_info = self.unity_launcher.launcher_queue[pkgname]
-            if launcher_info.installed_desktop_file_path:
-                # package install is complete, we can add to the launcher immediately
-                self.action_bar.clear()
-                self.unity_launcher.send_application_to_launcher(pkgname, launcher_info)
-            else:
-                # package is not yet installed, it will be added to the launcher
-                # once the installation is complete
-                LOG.debug("the application '%s' will be added to the Unity launcher when installation is complete" % app.name)
-                launcher_info.add_to_launcher_requested = True
-                self.action_bar.set_label(_("%s will be added to the launcher when installation completes.") % app.name)
-                self.action_bar.remove_button(ActionButtons.CANCEL_ADD_TO_LAUNCHER)
-                self.action_bar.remove_button(ActionButtons.ADD_TO_LAUNCHER)
 
-    def on_cancel_add_to_launcher(self, pkgname):
-        self.unity_launcher.remove_from_launcher_queue(pkgname)
-        self.action_bar.clear()
-        
     def on_transaction_finished(self, backend, result):
         self._check_unity_launcher_transaction_finished(result)
         
@@ -456,18 +403,14 @@ class AvailablePane(SoftwarePane):
             installed_path = convert_desktop_file_to_installed_location(
                 launcher_info.app_install_desktop_file_path, result.pkgname)
             launcher_info.installed_desktop_file_path = installed_path
-            # if the request to add to launcher has already been made, do it now
-            if launcher_info.add_to_launcher_requested:
-                if result.success:
-                    self.unity_launcher.send_application_to_launcher(
-                                                result.pkgname, launcher_info)
-                else:
-                    self.unity_launcher.remove_from_launcher_queue(result.pkgname)
-                self.action_bar.clear()
+            if result.success:
+                self.unity_launcher.send_application_to_launcher(
+                                            result.pkgname, launcher_info)
+            else:
+                self.unity_launcher.remove_from_launcher_queue(result.pkgname)
 
     def on_transaction_stopped(self, backend, result):
         self.unity_launcher.remove_from_launcher_queue(result.pkgname)
-        self.action_bar.clear()
 
     def on_app_list_changed(self, pane, length):
         """internal helper that keeps the status text and the action

@@ -44,7 +44,6 @@ class UnityLauncherInfo(object):
         self.app_install_desktop_file_path = app_install_desktop_file_path
         self.installed_desktop_file_path = installed_desktop_file_path
         self.trans_id = trans_id
-        self.add_to_launcher_requested = False
         
 class UnityLauncher(object):
     """ Implements the integration between Software Center and the Unity
