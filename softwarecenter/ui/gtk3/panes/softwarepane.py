@@ -25,24 +25,14 @@ import logging
 import os
 import xapian
 
-from gettext import gettext as _
-
-import softwarecenter.utils
-
 from softwarecenter.backend import get_install_backend
-from softwarecenter.backend.unitylauncher import (UnityLauncher,
-                                                  UnityLauncherInfo)
 from softwarecenter.db.database import Application
 from softwarecenter.db.enquire import AppEnquire
-from softwarecenter.enums import (ActionButtons,
-                                  SortMethods,
-                                  TransactionTypes,
+from softwarecenter.enums import (SortMethods,
                                   DEFAULT_SEARCH_LIMIT,
                                   NonAppVisibility)
 
 from softwarecenter.utils import (ExecutionTime,
-                                  convert_desktop_file_to_installed_location,
-                                  get_file_path_from_iconname,
                                   wait_for_apt_cache_ready,
                                   utf8
                                   )
@@ -56,8 +46,6 @@ from softwarecenter.ui.gtk3.views.appview import AppView
 from softwarecenter.ui.gtk3.views.appdetailsview_gtk import (
                                                 AppDetailsViewGtk as
                                                 AppDetailsView)
-
-from softwarecenter.utils import is_no_display_desktop_file
 
 from basepane import BasePane
 
@@ -177,8 +165,6 @@ class SoftwarePane(Gtk.VBox, BasePane):
         # request (e.g. people click on ubuntu channel, get impatient, click
         # on partner channel)
         self.refresh_seq_nr = 0
-        # integrate with the Unity launcher
-        self.unity_launcher = UnityLauncher()
         # this should be initialized
         self.apps_search_term = ""
         # Create the basic frame for the common view
@@ -256,14 +242,9 @@ class SoftwarePane(Gtk.VBox, BasePane):
         # when the cache changes, refresh the app list
         self.cache.connect("cache-ready", self.on_cache_ready)
 
-        # aptdaemon
-        self.backend.connect("transaction-started", self.on_transaction_started)
-        self.backend.connect("transaction-finished", self.on_transaction_finished)
-        self.backend.connect("transaction-stopped", self.on_transaction_stopped)
-        
         # connect signals
         self.connect("app-list-changed", self.on_app_list_changed)
-        
+
         # db reopen
         if self.db:
             self.db.connect("reopen", self.on_db_reopen)
@@ -309,80 +290,6 @@ class SoftwarePane(Gtk.VBox, BasePane):
         vm = get_viewmanager()
         vm.nav_forward()
 
-    def on_transaction_started(self, backend, pkgname, appname, trans_id, 
-                               trans_type):
-        self._register_unity_launcher_transaction_started(
-            backend, pkgname, appname, trans_id, trans_type)
-
-        
-    def _get_onscreen_icon_details_for_launcher_service(self, app):
-        if self.is_app_details_view_showing():
-            return self.app_details_view.get_app_icon_details()
-        else:
-            # TODO: implement the app list view case once it has been specified
-            return (0, 0, 0)
-       
-    def _register_unity_launcher_transaction_started(self, backend, pkgname, 
-                                                     appname, trans_id, 
-                                                     trans_type):
-        # mvo: use use softwarecenter.utils explictly so that we can monkey
-        #      patch it in the test
-        if not softwarecenter.utils.is_unity_running():
-            return
-        # add to launcher only applies in the details view currently
-        if not self.is_app_details_view_showing():
-            return
-        # we only care about getting the launcher information on an install
-        if not trans_type == TransactionTypes.INSTALL:
-            self.unity_launcher.remove_from_launcher_queue(pkgname)
-            self.action_bar.clear()
-            return
-        # gather details for this transaction and create the launcher_info object
-        app = Application(pkgname=pkgname, appname=appname)
-        appdetails = app.get_details(self.db)
-        (icon_size, icon_x, icon_y) = self._get_onscreen_icon_details_for_launcher_service(app)
-        launcher_info = UnityLauncherInfo(app.name,
-                                          appdetails.icon,
-                                          "",        # we set the icon_file_path value *after* install
-                                          icon_x,
-                                          icon_y,
-                                          icon_size,
-                                          appdetails.desktop_file,
-                                          "",        # we set the installed_desktop_file_path *after* install
-                                          trans_id)
-        self.unity_launcher.add_to_launcher_queue(app.pkgname, launcher_info)
-        self.show_add_to_launcher_panel(backend, pkgname, appname, app, appdetails, trans_id, trans_type)
-                
-    def show_add_to_launcher_panel(self, backend, pkgname, appname, app, appdetails, trans_id, trans_type):
-        """
-        if Unity is currently running, display a panel to allow the user
-        the choose whether to add a newly-installed application to the
-        launcher
-        """
-        # TODO: handle local deb install case
-        # TODO: implement the list view case (once it is specified)
-        # only show the panel if unity is running and this is a package install
-        #
-        # we only show the prompt for apps with a desktop file
-        if not appdetails.desktop_file:
-            return
-        # do not add apps without a exec line (like wine, see #848437)
-        if (os.path.exists(appdetails.desktop_file) and
-            is_no_display_desktop_file(appdetails.desktop_file)):
-                return
-        self.action_bar.add_button(ActionButtons.CANCEL_ADD_TO_LAUNCHER,
-                                    _("Not Now"), 
-                                    self.on_cancel_add_to_launcher, 
-                                    pkgname)
-        self.action_bar.add_button(ActionButtons.ADD_TO_LAUNCHER,
-                                   _("Add to Launcher"),
-                                   self.on_add_to_launcher,
-                                   pkgname,
-                                   app,
-                                   appdetails,
-                                   trans_id)
-        self.action_bar.set_label(utf8(_("Add %s to the launcher?")) % utf8(app.name))
-
     def on_query_complete(self, enquirer):
         self.emit("app-list-changed", len(enquirer.matches))
         self.app_view.display_matches(enquirer.matches,
@@ -400,58 +307,9 @@ class SoftwarePane(Gtk.VBox, BasePane):
         self._refresh_apps_with_apt_cache(query)
         return
 
-    def on_add_to_launcher(self, pkgname, app, appdetails, trans_id):
-        """
-        callback indicating the user has chosen to add the indicated application
-        to the launcher
-        """
-        if pkgname in self.unity_launcher.launcher_queue:
-            launcher_info = self.unity_launcher.launcher_queue[pkgname]
-            if launcher_info.installed_desktop_file_path:
-                # package install is complete, we can add to the launcher immediately
-                self.action_bar.clear()
-                self.unity_launcher.send_application_to_launcher(pkgname, launcher_info)
-            else:
-                # package is not yet installed, it will be added to the launcher
-                # once the installation is complete
-                LOG.debug("the application '%s' will be added to the Unity launcher when installation is complete" % app.name)
-                launcher_info.add_to_launcher_requested = True
-                self.action_bar.set_label(_("%s will be added to the launcher when installation completes.") % app.name)
-                self.action_bar.remove_button(ActionButtons.CANCEL_ADD_TO_LAUNCHER)
-                self.action_bar.remove_button(ActionButtons.ADD_TO_LAUNCHER)
-
-    def on_cancel_add_to_launcher(self, pkgname):
-        self.unity_launcher.remove_from_launcher_queue(pkgname)
-        self.action_bar.clear()
-        
-    def on_transaction_finished(self, backend, result):
-        self._check_unity_launcher_transaction_finished(result)
-
     def _is_in_search_mode(self):
         return (self.state.search_term and
                 len(self.state.search_term) >= 2)
-
-    def _check_unity_launcher_transaction_finished(self, result):
-        # add the completed transaction details to the corresponding
-        # launcher_item
-        if result.pkgname in self.unity_launcher.launcher_queue:
-            launcher_info = self.unity_launcher.launcher_queue[result.pkgname]
-            launcher_info.icon_file_path = get_file_path_from_iconname(
-                self.icons, launcher_info.icon_name)
-            installed_path = convert_desktop_file_to_installed_location(
-                launcher_info.app_install_desktop_file_path, result.pkgname)
-            launcher_info.installed_desktop_file_path = installed_path
-            # if the request to add to launcher has already been made, do it now
-            if launcher_info.add_to_launcher_requested:
-                if result.success:
-                    self.unity_launcher.add_application_to_launcher(launcher_info)
-                else:
-                    self.unity_launcher.remove_from_launcher_queue(result.pkgname)
-                self.action_bar.clear()
-
-    def on_transaction_stopped(self, backend, result):
-        self.unity_launcher.remove_from_launcher_queue(result.pkgname)
-        self.action_bar.clear()
 
     def show_appview_spinner(self):
         """ display the spinner in the appview panel """

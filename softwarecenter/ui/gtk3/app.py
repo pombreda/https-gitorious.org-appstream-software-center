@@ -369,7 +369,8 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         add_to_launcher_menuitem = self.builder.get_object(
                                                     "menuitem_add_to_launcher")
         if is_unity_running():
-            add_to_launcher_menuitem.set_active(self.add_to_launcher_enabled)
+            add_to_launcher_menuitem.set_active(
+                                self.available_pane.add_to_launcher_enabled)
         else:
             view_menu = self.builder.get_object("menu_view")
             add_to_launcher_separator = self.builder.get_object(
@@ -979,7 +980,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         vm.nav_forward()
         
     def on_menuitem_add_to_launcher_toggled(self, menu_item):
-        self.add_to_launcher_enabled = menu_item.get_active()
+        self.available_pane.add_to_launcher_enabled = menu_item.get_active()
 
 # Help Menu
     def on_menuitem_about_activate(self, widget):
@@ -1178,12 +1179,13 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             self.config.getboolean("general", "maximized")):
             self.window_main.maximize()
         if self.config.has_option("general", "add_to_launcher"):
-            self.add_to_launcher_enabled = self.config.getboolean(
-                                                           "general",
-                                                           "add_to_launcher")
+            self.available_pane.add_to_launcher_enabled = (
+                    self.config.getboolean(
+                    "general",
+                    "add_to_launcher"))
         else:
             # initial default state is to add to launcher, per spec
-            self.add_to_launcher_enabled = True
+            self.available_pane.add_to_launcher_enabled = True
 
     def save_state(self):
         LOG.debug("save_state")
@@ -1201,7 +1203,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             # size only matters when non-maximized
             size = self.window_main.get_size() 
             self.config.set("general","size", "%s, %s" % (size[0], size[1]))
-        if self.add_to_launcher_enabled:
+        if self.available_pane.add_to_launcher_enabled:
             self.config.set("general", "add_to_launcher", "True")
         else:
             self.config.set("general", "add_to_launcher", "False")
