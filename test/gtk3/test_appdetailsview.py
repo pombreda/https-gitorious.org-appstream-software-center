@@ -40,6 +40,35 @@ class TestAppdetailsView(unittest.TestCase):
         do_events()
         self.assertTrue(view.videoplayer.get_property("visible"))
     
+    def test_page(self):
+        win = get_test_window_appdetails()
+        view = win.get_data("view")
+        # show app 
+        app = Application("", "software-center")
+        view.show_app(app)
+        do_events()
+
+        # create mock app
+        mock_app = get_mock_app_from_real_app(app)
+        view.app = mock_app
+        mock_details = mock_app.get_details(None)
+        mock_details.purchase_date = "2011-11-20 17:45:01"
+        mock_details._error_not_found = "error not found"
+        view.app_details = mock_details
+
+        # show a app through the various states
+        for var in vars(PkgStates):
+            # FIXME: this just ensures we are not crashing, also
+            # add functional tests to ensure on error we show
+            # the right info etc
+            state = getattr(PkgStates, var)
+            mock_details.pkg_state = state
+            # reset app to ensure its shown again
+            view.app = None
+            # show it
+            view.show_app(mock_app)
+        
+
     def test_pkgstatus_bar(self):
         # make sure configure is run with the various states
         # test
