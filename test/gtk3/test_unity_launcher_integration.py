@@ -56,8 +56,7 @@ class TestUnityLauncherIntegration(unittest.TestCase):
         self._zzz()
 
     def test_unity_launcher_integration(self):
-        # we are testing the prompted add to launcher enabled functionality,
-        # so shut off the automatic adds
+        # test the automatic add to launcher enabled functionality
         available_pane.add_to_launcher_enabled = True
         test_pkgname = "lincity-ng"
         mock_result = Mock()
@@ -81,6 +80,20 @@ class TestUnityLauncherIntegration(unittest.TestCase):
         self.assertEqual(launcher_info.trans_id, "testid101")
         # finally, make sure the the app has been removed from the launcher
         # queue        
+        self.assertFalse(test_pkgname in available_pane.unity_launcher.launcher_queue)
+        
+    def test_unity_launcher_integration_disabled(self):
+        # test the case where automatic add to launcher is disabled
+        available_pane.add_to_launcher_enabled = False
+        test_pkgname = "lincity-ng"
+        mock_result = Mock()
+        mock_result.pkgname = test_pkgname
+        mock_result.success = True
+        # now pretend
+        self._navigate_to_appdetails_and_install(test_pkgname)
+        
+        # check that no corresponding unity_launcher info object has been added
+        # to the queue
         self.assertFalse(test_pkgname in available_pane.unity_launcher.launcher_queue)
 
     def test_desktop_file_path_conversion(self):
