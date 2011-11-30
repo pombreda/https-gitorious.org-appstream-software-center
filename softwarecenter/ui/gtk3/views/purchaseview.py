@@ -26,6 +26,7 @@ import os
 import json
 import sys
 import urllib
+import urlparse
 from gi.repository import WebKit as webkit
 session = webkit.get_default_session()
 session.set_property("ssl-ca-file", "/etc/ssl/certs/ca-certificates.crt")
@@ -69,7 +70,7 @@ class ScrolledWebkitWindow(Gtk.VBox):
         # add a url to the toolbar
         self.url = Gtk.Label()
         self.url.set_ellipsize(Pango.EllipsizeMode.END)
-        self.url.set_text(_("unknown"))
+        self.url.set_text("")
         self.header.pack_start(self.url, True, True, 6)
         # create main webkitview
         self.scroll = Gtk.ScrolledWindow()
@@ -88,7 +89,11 @@ class ScrolledWebkitWindow(Gtk.VBox):
     def _on_uri_changed(self, view, pspec):
         prop = pspec.name
         uri = view.get_property(prop)
-        self.url.set_text(uri)
+        # the full uri is irellevant for the purchase view, but it is
+        # interessting to know what protocol/netloc is in use so that the
+        # user can verify its https on sites he is expecting
+        scheme, netloc, path, params, query, frag = urlparse.urlparse(uri)
+        self.url.set_text("%s://%s" % (scheme, netloc))
         # start spinner when the uri changes
         #self.spinner.start()
     def _on_load_status_changed(self, view, pspec):
