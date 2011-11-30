@@ -70,6 +70,7 @@ class ScrolledWebkitWindow(Gtk.VBox):
         # add a url to the toolbar
         self.url = Gtk.Label()
         self.url.set_ellipsize(Pango.EllipsizeMode.END)
+        self.url.set_alignment(0.0, 0.5)
         self.url.set_text("")
         self.header.pack_start(self.url, True, True, 6)
         # create main webkitview
