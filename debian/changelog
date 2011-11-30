@@ -1,4 +1,4 @@
-software-center (5.1.2.2) unstable; urgency=low
+software-center (5.1.2.2) UNRELEASED; urgency=low
 
   [ Robert Roth ]
   * Show For version x string instead of for this version when the 
@@ -8,6 +8,10 @@ software-center (5.1.2.2) unstable; urgency=low
   * lp:~mvo/software-center/system-wide-license-key-fixes:
     - add support for installing system-wide license keys
       via aptdaemon
+  
+  [ Gary Lasker ]
+  * lp:~gary-lasker/software-center/launcher-integration-for-p:
+    - change unity launcher integration method to follow the spec
 
  -- Gary Lasker <gary.lasker@canonical.com>  Mon, 28 Nov 2011 10:49:45 -0500
 

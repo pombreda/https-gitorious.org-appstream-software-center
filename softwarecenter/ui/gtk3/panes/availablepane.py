@@ -21,7 +21,9 @@ from gi.repository import GObject
 from gi.repository import Gtk
 import logging
 import xapian
+import os
 
+import softwarecenter.utils
 import softwarecenter.ui.gtk3.dialogs as dialogs
 from softwarecenter.ui.gtk3.models.appstore2 import AppListStore
 
@@ -30,9 +32,13 @@ from gettext import gettext as _
 from softwarecenter.enums import (ActionButtons,
                                   NavButtons,
                                   NonAppVisibility,
-                                  DEFAULT_SEARCH_LIMIT)
+                                  DEFAULT_SEARCH_LIMIT,
+                                  TransactionTypes)
 from softwarecenter.paths import APP_INSTALL_PATH
-from softwarecenter.utils import wait_for_apt_cache_ready
+from softwarecenter.utils import (wait_for_apt_cache_ready,
+                                  is_no_display_desktop_file,
+                                  convert_desktop_file_to_installed_location,
+                                  get_file_path_from_iconname)
 from softwarecenter.db.appfilter import AppFilter
 from softwarecenter.db.database import Application
 from softwarecenter.ui.gtk3.views.purchaseview import PurchaseView
@@ -42,6 +48,8 @@ from softwarecenter.ui.gtk3.views.catview_gtk import (LobbyViewGtk,
 from softwarepane import SoftwarePane
 from softwarecenter.ui.gtk3.session.viewmanager import get_viewmanager
 from softwarecenter.ui.gtk3.session.appmanager import get_appmanager
+from softwarecenter.backend.unitylauncher import (UnityLauncher,
+                                                  UnityLauncherInfo)
 
 LOG = logging.getLogger(__name__)
 
@@ -91,6 +99,14 @@ class AvailablePane(SoftwarePane):
         # views to be created in init_view
         self.cat_view = None
         self.subcategories_view = None
+        
+        # integrate with the Unity launcher
+        self.unity_launcher = UnityLauncher()
+        
+        # flag to indicate whether applications should be added to the
+        # unity launcher when installed (this value is initialized by
+        # the config load in app.py)
+        self.add_to_launcher_enabled = True
 
     def init_view(self):
         if self.view_initialized: 
@@ -179,6 +195,10 @@ class AvailablePane(SoftwarePane):
 
         # install backend
         self.backend.connect("transactions-changed", self._on_transactions_changed)
+        self.backend.connect("transaction-started", self.on_transaction_started)
+        self.backend.connect("transaction-finished", self.on_transaction_finished)
+        self.backend.connect("transaction-stopped", self.on_transaction_stopped)
+        
         # now we are initialized
         self.searchentry.set_sensitive(True)
         self.emit("available-pane-created")
@@ -322,6 +342,75 @@ class AvailablePane(SoftwarePane):
         """
         if self._is_custom_list_search(self.state.search_term):
             self._update_action_bar()
+            
+    def on_transaction_started(self, backend, pkgname, appname, trans_id, 
+                               trans_type):
+        self._register_unity_launcher_transaction_started(
+            backend, pkgname, appname, trans_id, trans_type)
+
+    def _register_unity_launcher_transaction_started(self, backend, pkgname, 
+                                                     appname, trans_id, 
+                                                     trans_type):
+        if not self.add_to_launcher_enabled:
+            return
+        # mvo: use use softwarecenter.utils explictly so that we can monkey
+        #      patch it in the test
+        if not softwarecenter.utils.is_unity_running():
+            return
+        # we only care about getting the launcher information on an install
+        if not trans_type == TransactionTypes.INSTALL:
+            return
+        # gather details for this transaction and create the launcher_info object
+        app = Application(pkgname=pkgname, appname=appname)
+        appdetails = app.get_details(self.db)
+        # we only add items to the launcher that have a desktop file
+        if not appdetails.desktop_file:
+            return
+        # do not add apps without a exec line (like wine, see #848437)
+        if (os.path.exists(appdetails.desktop_file) and
+            is_no_display_desktop_file(appdetails.desktop_file)):
+            return
+
+        (icon_size, icon_x, icon_y) = self._get_onscreen_icon_details_for_launcher_service(app)
+        launcher_info = UnityLauncherInfo(app.name,
+                                          appdetails.icon,
+                                          "",        # we set the icon_file_path value *after* install
+                                          icon_x,
+                                          icon_y,
+                                          icon_size,
+                                          appdetails.desktop_file,
+                                          "",        # we set the installed_desktop_file_path *after* install
+                                          trans_id)
+        self.unity_launcher.add_to_launcher_queue(app.pkgname, launcher_info)
+
+    def _get_onscreen_icon_details_for_launcher_service(self, app):
+        if self.is_app_details_view_showing():
+            return self.app_details_view.get_app_icon_details()
+        else:
+            # TODO: implement the app list view case once it has been specified
+            return (0, 0, 0)
+
+    def on_transaction_finished(self, backend, result):
+        self._check_unity_launcher_transaction_finished(result)
+        
+    def _check_unity_launcher_transaction_finished(self, result):
+        # add the completed transaction details to the corresponding
+        # launcher_item
+        if result.pkgname in self.unity_launcher.launcher_queue:
+            launcher_info = self.unity_launcher.launcher_queue[result.pkgname]
+            launcher_info.icon_file_path = get_file_path_from_iconname(
+                self.icons, launcher_info.icon_name)
+            installed_path = convert_desktop_file_to_installed_location(
+                launcher_info.app_install_desktop_file_path, result.pkgname)
+            launcher_info.installed_desktop_file_path = installed_path
+            if result.success:
+                self.unity_launcher.send_application_to_launcher(
+                                            result.pkgname, launcher_info)
+            else:
+                self.unity_launcher.remove_from_launcher_queue(result.pkgname)
+
+    def on_transaction_stopped(self, backend, result):
+        self.unity_launcher.remove_from_launcher_queue(result.pkgname)
 
     def on_app_list_changed(self, pane, length):
         """internal helper that keeps the status text and the action
