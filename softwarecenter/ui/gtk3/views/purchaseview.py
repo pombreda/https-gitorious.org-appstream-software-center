@@ -20,6 +20,7 @@
 from gi.repository import GObject
 from gi.repository import Gtk
 from gi.repository import Gdk
+from gi.repository import Pango
 import logging
 import os
 import json
@@ -67,6 +68,7 @@ class ScrolledWebkitWindow(Gtk.VBox):
         self.header.pack_start(self.spinner, False, False, 6)
         # add a url to the toolbar
         self.url = Gtk.Label()
+        self.url.set_ellipsize(Pango.EllipsizeMode.END)
         self.url.set_text(_("unknown"))
         self.header.pack_start(self.url, True, True, 6)
         # create main webkitview
