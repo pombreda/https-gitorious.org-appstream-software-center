@@ -61,7 +61,8 @@ from softwarecenter.enums import (Icons,
                                   MOUSE_EVENT_BACK_BUTTON)
 from softwarecenter.utils import (clear_token_from_ubuntu_sso,
                                   get_http_proxy_string_from_gsettings,
-                                  wait_for_apt_cache_ready)
+                                  wait_for_apt_cache_ready,
+                                  is_unity_running)
 from softwarecenter.ui.gtk3.utils import (get_sc_icon_theme,
                                           init_sc_css_provider)
 from softwarecenter.version import VERSION
@@ -350,7 +351,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         supported_menuitem = self.builder.get_object("menuitem_view_supported_only")
         supported_menuitem.set_label(self.distro.get_supported_filter_name())
         file_menu = self.builder.get_object("menu1")
-
+        
         if not self.distro.DEVELOPER_URL:
             help_menu = self.builder.get_object("menu_help")
             developer_separator = self.builder.get_object("separator_developer")
@@ -362,6 +363,20 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         och = is_oneconf_available()
         if not och:
             file_menu.remove(self.builder.get_object("menuitem_sync_between_computers"))
+            
+        # restore the state of the add to launcher menu item, or remove the menu
+        # item if Unity is not currently running
+        add_to_launcher_menuitem = self.builder.get_object(
+                                                    "menuitem_add_to_launcher")
+        if is_unity_running():
+            add_to_launcher_menuitem.set_active(
+                                self.available_pane.add_to_launcher_enabled)
+        else:
+            view_menu = self.builder.get_object("menu_view")
+            add_to_launcher_separator = self.builder.get_object(
+                                                    "add_to_launcher_separator")
+            view_menu.remove(add_to_launcher_separator)
+            view_menu.remove(add_to_launcher_menuitem)
 
         # run s-c-agent update
         if options.disable_buy or not self.distro.PURCHASE_APP_URL:
@@ -963,6 +978,9 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
     def on_navhistory_forward_action_activate(self, navhistory_forward_action=None):
         vm = get_viewmanager()
         vm.nav_forward()
+        
+    def on_menuitem_add_to_launcher_toggled(self, menu_item):
+        self.available_pane.add_to_launcher_enabled = menu_item.get_active()
 
 # Help Menu
     def on_menuitem_about_activate(self, widget):
@@ -1154,11 +1172,20 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             # in case of a crazy-huge monitor)
             screen_height = Gdk.Screen.height()
             screen_width = Gdk.Screen.width()
-            self.window_main.set_default_size(min(int(.85 * screen_width), 1200),
-                                              min(int(.85 * screen_height), 800))
+            self.window_main.set_default_size(
+                                        min(int(.85 * screen_width), 1200),
+                                        min(int(.85 * screen_height), 800))
         if (self.config.has_option("general", "maximized") and
             self.config.getboolean("general", "maximized")):
             self.window_main.maximize()
+        if self.config.has_option("general", "add_to_launcher"):
+            self.available_pane.add_to_launcher_enabled = (
+                    self.config.getboolean(
+                    "general",
+                    "add_to_launcher"))
+        else:
+            # initial default state is to add to launcher, per spec
+            self.available_pane.add_to_launcher_enabled = True
 
     def save_state(self):
         LOG.debug("save_state")
@@ -1176,6 +1203,10 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             # size only matters when non-maximized
             size = self.window_main.get_size() 
             self.config.set("general","size", "%s, %s" % (size[0], size[1]))
+        if self.available_pane.add_to_launcher_enabled:
+            self.config.set("general", "add_to_launcher", "True")
+        else:
+            self.config.set("general", "add_to_launcher", "False")
         self.config.write()
 
     def run(self, args):

@@ -55,17 +55,52 @@ class LocaleAwareWebView(webkit.WebView):
         #headers.foreach(_show_header, None)
 
 
-class ScrolledWebkitWindow(Gtk.ScrolledWindow):
+class ScrolledWebkitWindow(Gtk.VBox):
 
     def __init__(self):
         super(ScrolledWebkitWindow, self).__init__()
+        # create toolbar box
+        self.header = Gtk.HBox()
+        self.pack_start(self.header, False, False, 6)
+        # add spinner
+        self.spinner = Gtk.Spinner()
+        self.header.pack_start(self.spinner, False, False, 6)
+        # add a url to the toolbar
+        self.url = Gtk.Label()
+        self.url.set_text(_("unknown"))
+        self.header.pack_start(self.url, True, True, 6)
+        # create main webkitview
+        self.scroll = Gtk.ScrolledWindow()
+        self.scroll.set_policy(Gtk.PolicyType.AUTOMATIC, 
+                               Gtk.PolicyType.AUTOMATIC)
+        self.pack_start(self.scroll, True, True, 0)
+        # get the webkit
         self.webkit = LocaleAwareWebView()
+        self.webkit.connect("notify::uri", self._on_uri_changed)
+        self.webkit.connect("notify::load-status", self._on_load_status_changed)
         settings = self.webkit.get_settings()
         settings.set_property("enable-plugins", False)
-        self.webkit.show()
         # embed the webkit view in a scrolled window
-        self.add(self.webkit)
-        self.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
+        self.scroll.add(self.webkit)
+        self.show_all()
+    def _on_uri_changed(self, view, pspec):
+        prop = pspec.name
+        uri = view.get_property(prop)
+        self.url.set_text(uri)
+        # start spinner when the uri changes
+        #self.spinner.start()
+    def _on_load_status_changed(self, view, pspec):
+        prop = pspec.name
+        status = view.get_property(prop)
+        #print status
+        if status == webkit.LoadStatus.PROVISIONAL:
+            self.spinner.start()
+            self.spinner.show()
+        if (status == webkit.LoadStatus.FINISHED or
+            status == webkit.LoadStatus.FAILED):
+            self.spinner.stop()
+            self.spinner.hide()
+        
 
 
 class PurchaseView(Gtk.VBox):
