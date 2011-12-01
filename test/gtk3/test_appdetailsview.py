@@ -1,10 +1,7 @@
 #!/usr/bin/python
 
-from gi.repository import Gtk
-
 import os
 import sys
-import time
 import unittest
 
 sys.path.insert(0,"../..")
