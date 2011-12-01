@@ -1,4 +1,4 @@
-software-center (5.1.3) UNRELEASEDprecise; urgency=low
+software-center (5.1.3) precise; urgency=low
 
   [ Robert Roth ]
   * Show For version x string instead of for this version when the 
