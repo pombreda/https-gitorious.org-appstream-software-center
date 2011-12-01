@@ -1,4 +1,4 @@
-software-center (5.1.3) UNRELEASED; urgency=low
+software-center (5.1.3) UNRELEASEDprecise; urgency=low
 
   [ Robert Roth ]
   * Show For version x string instead of for this version when the 
@@ -23,8 +23,12 @@ software-center (5.1.3) UNRELEASED; urgency=low
   * test/graph/gen-test-coverage-data.sh,
     test/graph/plot-test-coverage.py:
     - create a graph to track unit test coverage 
+  
+  [ Kiwinote ]
+  * lp:~kiwinote/software-center/fix-icon-updating:
+    - fix _update_app_icon() regression
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 30 Nov 2011 23:33:48 -0500
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 01 Dec 2011 16:03:34 +0100
 
 software-center (5.1.2.1) precise; urgency=low
 

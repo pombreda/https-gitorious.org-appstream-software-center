@@ -1314,7 +1314,7 @@ class AppDetailsView(Viewport):
 
         self._update_layout_error_status(pkg_ambiguous_error)
         self._update_title_markup(appname, summary)
-
+        self._update_app_icon(app_details)
         self._update_app_description(app_details, app_details.pkgname)
         self._update_description_footer_links(app_details)
         self._update_app_screenshot(app_details)
