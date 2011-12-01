@@ -27,7 +27,7 @@ class TestViews(unittest.TestCase):
         stop_dummy_backend()
 
     def test_install_appdetails(self):
-        from softwarecenter.ui.gtk3.views.appdetailsview_gtk import get_test_window_appdetails
+        from softwarecenter.ui.gtk3.views.appdetailsview import get_test_window_appdetails
         win = get_test_window_appdetails()
         view = win.get_data("view")
         view.show_app(Application("", "2vcard"))

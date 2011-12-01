@@ -43,9 +43,7 @@ from softwarecenter.ui.gtk3.widgets.spinner import SpinnerView
 from softwarecenter.ui.gtk3.widgets.searchaid import SearchAid
 
 from softwarecenter.ui.gtk3.views.appview import AppView
-from softwarecenter.ui.gtk3.views.appdetailsview_gtk import (
-                                                AppDetailsViewGtk as
-                                                AppDetailsView)
+from softwarecenter.ui.gtk3.views.appdetailsview import AppDetailsView
 
 from basepane import BasePane
 

@@ -1,4 +1,4 @@
-software-center (5.1.2.2) unstable; urgency=low
+software-center (5.1.3) precise; urgency=low
 
   [ Robert Roth ]
   * Show For version x string instead of for this version when the 
@@ -8,8 +8,27 @@ software-center (5.1.2.2) unstable; urgency=low
   * lp:~mvo/software-center/system-wide-license-key-fixes:
     - add support for installing system-wide license keys
       via aptdaemon
+  * lp:~mvo/software-center/appdetailsview-cleanup:
+    - lots of cleanup for the details view code, merges appdetailsview
+      and appdetailsview_gtk, increases unit test coverage
+  * debian/control:
+    - update dependency from python-gobject to python-gi
+  
+  [ Gary Lasker ]
+  * lp:~gary-lasker/software-center/launcher-integration-for-p:
+    - implement automatic adding of all newly installed applications to
+      the Unity launcher per the latest specification, this can be
+      disabled via menu item "View->Add Applications in Launcher"
+      (LP: #761851, LP: #756599, LP: #756701, LP: #773769)
+  * test/graph/gen-test-coverage-data.sh,
+    test/graph/plot-test-coverage.py:
+    - create a graph to track unit test coverage 
+  
+  [ Kiwinote ]
+  * lp:~kiwinote/software-center/fix-icon-updating:
+    - fix _update_app_icon() regression
 
- -- Gary Lasker <gary.lasker@canonical.com>  Mon, 28 Nov 2011 10:49:45 -0500
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 01 Dec 2011 16:03:34 +0100
 
 software-center (5.1.2.1) precise; urgency=low
 

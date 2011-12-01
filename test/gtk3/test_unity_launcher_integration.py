@@ -15,7 +15,7 @@ import softwarecenter.paths
 import softwarecenter.utils
 softwarecenter.paths.datadir = "../data"
 
-from softwarecenter.enums import ActionButtons, TransactionTypes
+from softwarecenter.enums import TransactionTypes
 from softwarecenter.utils import convert_desktop_file_to_installed_location
 from softwarecenter.db.application import Application
 from softwarecenter.ui.gtk3.panes.availablepane import get_test_window
