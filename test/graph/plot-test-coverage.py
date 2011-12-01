@@ -5,8 +5,6 @@ import sys
 
 if __name__ == "__main__":
 
-    print "generate the graph here"
-
     # write out gnuplot
     f=open("test-coverage.gnuplot", "w")
     f.write("""
