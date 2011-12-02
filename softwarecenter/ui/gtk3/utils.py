@@ -79,8 +79,11 @@ def get_sc_icon_theme(datadir):
     icons.append_search_path(ICON_PATH)
     icons.append_search_path(os.path.join(datadir,"icons"))
     icons.append_search_path(os.path.join(datadir,"emblems"))
-    # HACK: make it more friendly for local installs (for mpt)
-    icons.append_search_path(datadir+"/icons/32x32/status")
+
+    # uninstalled run
+    if os.path.exists('./data/app-stream/icons'):
+        icons.append_search_path('./data/app-stream/icons')
+
     # add the humanity icon theme to the iconpath, as not all icon 
     # themes contain all the icons we need
     # this *shouldn't* lead to any performance regressions
@@ -93,6 +96,10 @@ def get_sc_icon_theme(datadir):
                     subsubpath = os.path.join(subpath, subsubpath)
                     if os.path.isdir(subsubpath):
                         icons.append_search_path(subsubpath)
+    # add the gnome-packagekit icons
+    path = '/usr/share/gnome-packagekit/icons'
+    if os.path.exists(path):
+        icons.append_search_path(path)
 
     # make the local cache directory if it doesn't already exist
     icon_cache_dir = SOFTWARE_CENTER_ICON_CACHE_DIR

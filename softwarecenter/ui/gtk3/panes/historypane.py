@@ -181,9 +181,9 @@ class HistoryPane(Gtk.VBox, BasePane):
         return
 
     def _get_emblems(self, icons):
-        emblem_names = ("package-install",
-                        "package-remove",
-                        "package-upgrade")
+        emblem_names = ("pk-package-add",
+                        "pk-package-delete",
+                        "pk-package-update")
 
         for i, emblem in enumerate(emblem_names):
             pb = icons.load_icon(emblem, self.ICON_SIZE, 0)
