@@ -37,7 +37,6 @@ from softwarecenter.enums import (ActionButtons,
 from softwarecenter.paths import APP_INSTALL_PATH
 from softwarecenter.utils import (wait_for_apt_cache_ready,
                                   is_no_display_desktop_file,
-                                  convert_desktop_file_to_installed_location,
                                   get_file_path_from_iconname)
 from softwarecenter.db.appfilter import AppFilter
 from softwarecenter.db.database import Application
