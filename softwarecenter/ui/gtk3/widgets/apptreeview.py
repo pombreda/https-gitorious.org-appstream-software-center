@@ -142,8 +142,8 @@ class AppTreeView(Gtk.TreeView):
 
         if old is not None:
             ok, start, end = self.get_visible_range()
-            if (ok and start.compare(old) != -1 or
-                end.compare(old) != 1):
+            if (start and start.compare(old) != -1) or \
+               (end and end.compare(old) != 1):
                 self._needs_collapse.append(old)
             else:
                 try:  # try... a lazy solution to Bug #846204
