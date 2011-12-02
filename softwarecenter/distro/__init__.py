@@ -21,7 +21,7 @@ import logging
 import os
 
 from gettext import gettext as _
-import lsb_release
+import platform
 
 from softwarecenter.utils import UnimplementedError, utf8
 
@@ -46,9 +46,8 @@ class Distro(object):
     # Point developers to a web page
     DEVELOPER_URL = ""
 
-    def __init__(self, lsb_info):
+    def __init__(self):
         """Return a new generic Distro instance."""
-        self.lsb_info = lsb_info
 
     def get_app_name(self):
         """ 
@@ -79,8 +78,7 @@ class Distro(object):
             return os.environ["SOFTWARE_CENTER_DISTRO_CODENAME"]
         # normal behavior
         if not hasattr(self, "_distro_code_name"):
-            self._distro_code_name = \
-                    lsb_release.get_distro_information()["CODENAME"]
+            self._distro_code_name = platform.dist()[2]
         return self._distro_code_name
 
     def get_maintenance_status(self, cache, appname, pkgname, component, channelname):
@@ -155,14 +153,14 @@ class Distro(object):
 
 
 def _get_distro():
-    lsb_info = lsb_release.get_distro_information()
-    distro_id = lsb_info["ID"]
+    distro_info = platform.linux_distribution()
+    distro_id = distro_info[0]
     log.debug("get_distro: '%s'", distro_id)
     # start with a import, this gives us only a softwarecenter module
     module =  __import__(distro_id, globals(), locals(), [], -1)
     # get the right class and instanciate it
     distro_class = getattr(module, distro_id)
-    instance = distro_class(lsb_info)
+    instance = distro_class()
     return instance
 
 def get_distro():
