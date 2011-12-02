@@ -16,18 +16,9 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from datetime import datetime
-
 import logging
-import re
-import string
 
 LOG = logging.getLogger(__name__)
-
-def ascii_lower(key):
-    ascii_trans_table = string.maketrans(string.ascii_uppercase,
-                                        string.ascii_lowercase)
-    return key.translate(ascii_trans_table)
 
 class Transaction(object):
     """ Represents an pkg transaction 
@@ -40,19 +31,9 @@ o    Attributes:
 
     PKGACTIONS=["Install", "Upgrade", "Downgrade", "Remove", "Purge"]
 
-    def __init__(self, sec):
-        self.start_date = datetime.strptime(sec["Start-Date"],
-                                            "%Y-%m-%d  %H:%M:%S")
-        # set the object attributes "install", "upgrade", "downgrade",
-        #                           "remove", "purge", error
-        for k in self.PKGACTIONS+["Error"]:
-            # we use ascii_lower for issues described in LP: #581207
-            attr = ascii_lower(k)
-            if k in sec:
-                value = map(self._fixup_history_item, sec[k].split("),"))
-            else:
-                value = []
-            setattr(self, attr, value)
+    def __init__(self):
+        pass
+
     def __len__(self):
         count=0
         for k in self.PKGACTIONS:
@@ -62,15 +43,6 @@ o    Attributes:
         return ('<Transaction: start_date:%s install:%s upgrade:%s downgrade:%s remove:%s purge:%s' % (self.start_date, self.install, self.upgrade, self.downgrade, self.remove, self.purge))
     def __cmp__(self, other):
         return cmp(self.start_date, other.start_date)
-    @staticmethod
-    def _fixup_history_item(s):
-        """ strip history item string and add missing ")" if needed """
-        s=s.strip()
-        # remove the infomation about the architecture
-        s = re.sub(":\w+", "", s)
-        if "(" in s and not s.endswith(")"):
-            s+=")"
-        return s
                
 class PackageHistory(object):
     """ Represents the history of the transactions """    
@@ -110,5 +82,6 @@ def get_pkg_history():
             from history_impl.apthistory import AptHistory
             pkg_history = AptHistory()
         else:
-            pkg_history = PackageHistory()
+            from history_impl.packagekit import PackagekitHistory
+            pkg_history = PackagekitHistory()
     return pkg_history
