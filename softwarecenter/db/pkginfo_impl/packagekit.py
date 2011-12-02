@@ -94,6 +94,11 @@ class PackagekitVersion(_Version):
     def origins(self):
         return self.pkginfo.get_origins(self.package.get_name())
 
+def make_locale_string():
+    loc = locale.getlocale(locale.LC_MESSAGES)
+    if loc[1]:
+        return loc[0] + '.' + loc[1]
+    return loc[0]
 
 class PackagekitInfo(PackageInfo):
     USE_CACHE = True
@@ -101,8 +106,10 @@ class PackagekitInfo(PackageInfo):
     def __init__(self):
         super(PackagekitInfo, self).__init__()
         self.client = packagekit.Client()
+        self.client.set_locale(make_locale_string())
         self._cache = {} # temporary hack for decent testing
         self._notfound_cache = []
+        self._repocache = {}
         self.distro = get_distro()
 
     def __contains__(self, pkgname):
@@ -143,7 +150,7 @@ class PackagekitInfo(PackageInfo):
 
     def get_description(self, packageid):
         p = self._get_package_details(packageid)
-        return p.get_property('description') if p else ''
+        return p.get_property('description').replace('\n', ' ') if p else ''
 
     def get_website(self, pkgname):
         p = self._get_one_package(pkgname)
