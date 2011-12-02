@@ -1,11 +1,12 @@
 
+from gi.repository import GLib
 from gi.repository import Gtk
 from gi.repository import GdkPixbuf
 from gi.repository import GObject
 
 import logging
 
-from softwarecenter.utils import get_icon_from_theme, size_to_str, utf8
+from softwarecenter.utils import get_icon_from_theme, utf8
 from softwarecenter.backend import get_install_backend
 from softwarecenter.backend.transactionswatcher import get_transactions_watcher
 
@@ -156,9 +157,9 @@ class PendingStore(Gtk.ListStore):
             if row[self.COL_TID] == trans.tid:
                 if trans.is_downloading():
                     name = row[self.COL_NAME]
-                    current_bytes_str = size_to_str(current_bytes)
-                    total_bytes_str = size_to_str(total_bytes)
-                    status = _("Downloaded %sB of %sB") % \
+                    current_bytes_str = GLib.format_size(current_bytes)
+                    total_bytes_str = GLib.format_size(total_bytes)
+                    status = _("Downloaded %s of %s") % \
                              (current_bytes_str, total_bytes_str)
                     row[self.COL_STATUS] = self._render_status_text(name, status)
 
