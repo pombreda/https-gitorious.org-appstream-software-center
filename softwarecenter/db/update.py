@@ -240,20 +240,28 @@ class AppStreamXMLParser(AppInfoParserBase):
         if key in self.LISTS:
             return self._parse_with_lists(key)
         else:
-            return self._parse_value(key)
+            return self._parse_value(key, translated)
     def get_desktop_categories(self):
         return self._get_desktop_list("Categories", split_str=',')
     def get_desktop_mimetypes(self):
         if not self.has_option_desktop("MimeType"):
             return []
         return self._get_desktop_list("MimeType", split_str=',')
-    def _parse_value(self, key):
+    def _parse_value(self, key, translated):
+        locale = getdefaultlocale(('LANGUAGE','LANG','LC_CTYPE','LC_ALL'))[0]
         for child in self.appinfo_xml.iter(key):
-            # FIXME: deal with the i18n
-            if child.get("lang"):
+            if translated:
+                if child.get("lang") == locale:
+                    return child.text
+                if child.get("lang") == locale.split('_')[0]:
+                    return child.text
                 continue
-            return child.text
-        return None
+            elif not child.get("lang"):
+                return child.text
+        if translated:
+            return self._parse_value(key, False)
+        else:
+            return None
     def _parse_with_lists(self, key):
         l=[]
         for listroot in self.appinfo_xml.iter(key):
@@ -415,24 +423,33 @@ def update_from_var_lib_apt_lists(db, cache, listsdir=None):
             index_app_info_from_parser(parser, db, cache)
     return True
 
+def update_from_single_appstream_file(db, cache, filename):
+    from lxml import etree
+
+    tree = etree.parse(open(filename))
+    root = tree.getroot()
+    if not root.tag == "applications":
+        LOG.error("failed to read '%s' expected Applications root tag" % filename)
+        return
+    for appinfo in root.iter("application"):
+        parser = AppStreamXMLParser(appinfo, filename)
+        index_app_info_from_parser(parser, db, cache)
+
 def update_from_appstream_xml(db, cache, xmldir=None):
     if not xmldir:
         xmldir = softwarecenter.paths.APPSTREAM_XML_PATH
-    from lxml import etree
     context = GObject.main_context_default()
+
+    if os.path.isfile(xmldir):
+        update_from_single_appstream_file(db, cache, xmldir)
+        return True
+
     for appstream_xml in glob(os.path.join(xmldir, "*.xml")):
         LOG.debug("processing %s" % appstream_xml)
         # process events
         while context.pending():
             context.iteration()
-        tree = etree.parse(open(appstream_xml))
-        root = tree.getroot()
-        if not root.tag == "applications":
-            LOG.error("failed to read '%s' expected Applications root tag" % appstream_xml)
-            continue
-        for appinfo in root.iter("application"):
-            parser = AppStreamXMLParser(appinfo, appstream_xml)
-            index_app_info_from_parser(parser, db, cache)
+        update_from_single_appstream_file(db, cache, appstream_xml)
     return True
         
 def update_from_app_install_data(db, cache, datadir=None):
@@ -836,7 +853,10 @@ def rebuild_database(pathname, debian_sources=True, appstream_sources=False):
     if debian_sources:
         update(db, cache)
     if appstream_sources:
-        update_from_appstream_xml(db, cache)
+        if os.path.exists('./data/app-stream/appdata.xml'):
+            update_from_appstream_xml(db, cache, './data/app-stream/appdata.xml');
+        else:
+            update_from_appstream_xml(db, cache)
 
     # write the database version into the filep
     db.set_metadata("db-schema-version", DB_SCHEMA_VERSION)
