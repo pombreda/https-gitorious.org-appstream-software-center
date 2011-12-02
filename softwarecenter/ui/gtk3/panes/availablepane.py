@@ -35,7 +35,10 @@ from softwarecenter.paths import APP_INSTALL_PATH
 from softwarecenter.utils import wait_for_apt_cache_ready
 from softwarecenter.db.appfilter import AppFilter
 from softwarecenter.db.database import Application
-from softwarecenter.ui.gtk3.views.purchaseview import PurchaseView
+
+# FIXME: PurchaseView causes a segfault because it uses WebKit
+# (which uses an atexit() handler)
+#from softwarecenter.ui.gtk3.views.purchaseview import PurchaseView
 
 from softwarecenter.ui.gtk3.views.catview_gtk import (LobbyViewGtk,
                                                       SubCategoryViewGtk)
@@ -115,13 +118,15 @@ class AvailablePane(SoftwarePane):
             #~ self.app_view._append_appcount(appcount)
         #~ liststore.connect('appcount-changed', on_appcount_changed)
         self.app_view.set_model(liststore)
-        # purchase view
-        self.purchase_view = PurchaseView()
-        app_manager = get_appmanager()
-        app_manager.connect("purchase-requested", self.on_purchase_requested)
-        self.purchase_view.connect("purchase-succeeded", self.on_purchase_succeeded)
-        self.purchase_view.connect("purchase-failed", self.on_purchase_failed)
-        self.purchase_view.connect("purchase-cancelled-by-user", self.on_purchase_cancelled_by_user)
+
+        # purchase view (see FIXME above)
+        #self.purchase_view = PurchaseView()
+        #app_manager = get_appmanager()
+        #app_manager.connect("purchase-requested", self.on_purchase_requested)
+        #self.purchase_view.connect("purchase-succeeded", self.on_purchase_succeeded)
+        #self.purchase_view.connect("purchase-failed", self.on_purchase_failed)
+        #self.purchase_view.connect("purchase-cancelled-by-user", self.on_purchase_cancelled_by_user)
+
         # categories, appview and details into the notebook in the bottom
         self.scroll_categories = Gtk.ScrolledWindow()
         self.scroll_categories.set_policy(Gtk.PolicyType.AUTOMATIC, 
@@ -175,7 +180,7 @@ class AvailablePane(SoftwarePane):
         self.notebook.append_page(self.scroll_details, Gtk.Label(label=NavButtons.DETAILS))
 
         # purchase view
-        self.notebook.append_page(self.purchase_view, Gtk.Label(label=NavButtons.PURCHASE))
+        #self.notebook.append_page(self.purchase_view, Gtk.Label(label=NavButtons.PURCHASE))
 
         # install backend
         self.backend.connect("transactions-changed", self._on_transactions_changed)

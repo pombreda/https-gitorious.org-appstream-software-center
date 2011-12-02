@@ -26,8 +26,12 @@ import json
 import sys
 import urllib
 from gi.repository import WebKit as webkit
+
 session = webkit.get_default_session()
 session.set_property("ssl-ca-file", "/etc/ssl/certs/ca-certificates.crt")
+
+# prevent pygobject from keeping this alive until webkit's atexit() runs
+del session
 
 from gettext import gettext as _
 
