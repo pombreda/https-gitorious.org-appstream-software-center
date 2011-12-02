@@ -188,13 +188,25 @@ class PackagekitInfo(PackageInfo):
         with disk size in KB calculated for pkgname installation
         plus addons change.
         """
-        # FIXME implement it
-        return (0, 0)
+        # FIXME: PackageKit reports only one size at a time
+        if self.is_installed(pkgname):
+            return (0, self.get_size(pkgname))
+        else:
+            return (self.get_size(pkgname), 0)
 
     @property
     def ready(self):
         """ No PK equivalent, simply returning True """
         return True
+
+    def get_license(self, pkgname):
+        p = self._get_one_package(pkgname)
+        if not p:
+            return ""
+        details = self._get_package_details(p.get_property('package-id'))
+        if not details:
+            return ""
+        return details.get_property('license')
 
     """ private methods """
     def _get_package_details(self, packageid, cache=USE_CACHE):
@@ -209,7 +221,7 @@ class PackagekitInfo(PackageInfo):
         packageid = pkgs[0].get_property('package-id')
         self._cache[packageid] = pkgs[0]
         return pkgs[0]
-            
+ 
     def _get_one_package(self, pkgname, pfilter=packagekit.FilterEnum.NONE, cache=USE_CACHE):
         LOG.debug("package_one %s", pkgname) #, self._cache.keys()
         if (pkgname in self._cache.keys()) and cache:

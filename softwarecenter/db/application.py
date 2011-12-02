@@ -355,6 +355,8 @@ class AppDetails(GObject.GObject):
             # translations, but fortunately for the most common ones
             # like "Properitary" we have translations in s-c
             return _(xapian_license)
+        elif self._pkg and self._pkg.license:
+            return self._pkg.license
         else:
             return self._distro.get_license_text(self.component)
 
