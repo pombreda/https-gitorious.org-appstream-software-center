@@ -1354,12 +1354,12 @@ class AppDetailsViewGtk(Viewport, AppDetailsViewBase):
     def _configure_where_is_it(self):
 
         def get_desktop_file():
-            desktop_file = None
+            if self.app_details.desktop_file:
+                return self.app_details.desktop_file
             pkgname = self.app_details.pkgname
-            for p in [self.app_details.desktop_file,
-                      "/usr/share/applications/%s.desktop" % pkgname]:
-                if p and os.path.exists(p):
-                    desktop_file = p
+            desktop_file = "/usr/share/applications/%s.desktop" % pkgname
+            if not os.path.exists(desktop_file):
+                    return None
             return desktop_file
 
         # remove old content
