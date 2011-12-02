@@ -196,8 +196,6 @@ class AvailablePane(SoftwarePane):
         # install backend
         self.backend.connect("transactions-changed", self._on_transactions_changed)
         self.backend.connect("transaction-started", self.on_transaction_started)
-        self.backend.connect("transaction-finished", self.on_transaction_finished)
-        self.backend.connect("transaction-stopped", self.on_transaction_stopped)
         
         # now we are initialized
         self.searchentry.set_sensitive(True)
@@ -360,7 +358,7 @@ class AvailablePane(SoftwarePane):
         # we only care about getting the launcher information on an install
         if not trans_type == TransactionTypes.INSTALL:
             return
-        # gather details for this transaction and create the launcher_info object
+            
         app = Application(pkgname=pkgname, appname=appname)
         appdetails = app.get_details(self.db)
         # we only add items to the launcher that have a desktop file
@@ -371,17 +369,22 @@ class AvailablePane(SoftwarePane):
             is_no_display_desktop_file(appdetails.desktop_file)):
             return
 
-        (icon_size, icon_x, icon_y) = self._get_onscreen_icon_details_for_launcher_service(app)
+        # now gather up the unity launcher info items and send the app to the
+        # launcher service
+        (icon_size, icon_x, icon_y) = (
+                self._get_onscreen_icon_details_for_launcher_service(app))
+        icon_path = get_file_path_from_iconname(
+                                self.icons,
+                                iconname=appdetails.icon_file_name)
         launcher_info = UnityLauncherInfo(app.name,
                                           appdetails.icon,
-                                          "",        # we set the icon_file_path value *after* install
+                                          icon_path,
                                           icon_x,
                                           icon_y,
                                           icon_size,
                                           appdetails.desktop_file,
-                                          "",        # we set the installed_desktop_file_path *after* install
                                           trans_id)
-        self.unity_launcher.add_to_launcher_queue(app.pkgname, launcher_info)
+        self.unity_launcher.send_application_to_launcher(pkgname, launcher_info)
 
     def _get_onscreen_icon_details_for_launcher_service(self, app):
         if self.is_app_details_view_showing():
@@ -389,28 +392,6 @@ class AvailablePane(SoftwarePane):
         else:
             # TODO: implement the app list view case once it has been specified
             return (0, 0, 0)
-
-    def on_transaction_finished(self, backend, result):
-        self._check_unity_launcher_transaction_finished(result)
-        
-    def _check_unity_launcher_transaction_finished(self, result):
-        # add the completed transaction details to the corresponding
-        # launcher_item
-        if result.pkgname in self.unity_launcher.launcher_queue:
-            launcher_info = self.unity_launcher.launcher_queue[result.pkgname]
-            launcher_info.icon_file_path = get_file_path_from_iconname(
-                self.icons, launcher_info.icon_name)
-            installed_path = convert_desktop_file_to_installed_location(
-                launcher_info.app_install_desktop_file_path, result.pkgname)
-            launcher_info.installed_desktop_file_path = installed_path
-            if result.success:
-                self.unity_launcher.send_application_to_launcher(
-                                            result.pkgname, launcher_info)
-            else:
-                self.unity_launcher.remove_from_launcher_queue(result.pkgname)
-
-    def on_transaction_stopped(self, backend, result):
-        self.unity_launcher.remove_from_launcher_queue(result.pkgname)
 
     def on_app_list_changed(self, pane, length):
         """internal helper that keeps the status text and the action
