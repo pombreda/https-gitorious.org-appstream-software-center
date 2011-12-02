@@ -29,6 +29,7 @@ from softwarecenter.backend.transactionswatcher import (BaseTransactionsWatcher,
                                                         TransactionFinishedResult,
                                                         TransactionProgress)
 from softwarecenter.backend.installbackend import InstallBackend
+from softwarecenter.backend.installbackend_impl import packagekit_enums
 
 # temporary, must think of better solution
 from softwarecenter.db.pkginfo import get_pkg_info
@@ -83,11 +84,12 @@ class PackagekitTransaction(BaseTransaction):
 
     def get_role_description(self, role=None):
         role = role if role is not None else self._trans.get_property('role')
-        return self.meta_data.get('sc_appname', packagekit.role_enum_to_string(role))
+        return self.meta_data.get('sc_appname', packagekit_enums.role_enum_to_localised_present(role))
 
     def get_status_description(self, status=None):
         status = status if status is not None else self._trans.get_property('status')
-        return packagekit.status_enum_to_string(status)
+
+        return packagekit_enums.status_enum_to_localised_text(status)
 
     def is_waiting(self):
         """ return true if a time consuming task is taking place """
@@ -249,7 +251,13 @@ class PackagekitBackend(GObject.GObject, InstallBackend):
         # temporary hack
         pkgnames = self._fix_pkgnames(pkgnames)
 
-        self.client.install_packages_async(False, # only trusted
+        LOG.debug("Installing multiple packages: " + str(pkgnames))
+
+        # FIXME we set the only_trusted flag, which will prevent
+        # PackageKit from installing untrusted packages
+        # (in general, all enabled repos should have GPG signatures,
+        # which is enough for being marked "trusted", but still)
+        self.client.install_packages_async(True, # only trusted
                     pkgnames,
                     None, # cancellable
                     self._on_progress_changed,
@@ -351,10 +359,8 @@ class PackagekitBackend(GObject.GObject, InstallBackend):
         res = []
         for p in pkgnames:
             if not is_pk_id(p):
-                version = self.pkginfo[p].candidate.version
-                p = '{name};{version};{arch};{source}'.format(name=p,
-                            version=version, arch='', source=''
-                )
+                candidate = self.pkginfo[p].candidate
+                p = candidate.package.get_id()
             res.append(p)
         return res
 
