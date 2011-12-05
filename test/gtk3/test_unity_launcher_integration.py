@@ -5,8 +5,6 @@ import sys
 import time
 import unittest
 
-from mock import Mock
-
 sys.path.insert(0,"../..")
 sys.path.insert(0,"..")
 
