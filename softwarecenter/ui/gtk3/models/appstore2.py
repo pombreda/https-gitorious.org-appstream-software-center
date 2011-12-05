@@ -44,6 +44,7 @@ _app_icon_cache = {}
 
 
 LOG = logging.getLogger(__name__)
+_FREE_AS_IN_BEER = ("0.00", "")
 
 class CategoryRowReference:
     """ A simple container for Category properties to be 
@@ -100,22 +101,28 @@ class _AppPropertiesHelper(object):
     def update_availability(self, doc):
         doc.available = None
         doc.installed = None
+        doc.purchasable = None
         self.is_installed(doc)
         return
 
     def is_available(self, doc):
         if doc.available is None:
             pkgname = self.get_pkgname(doc)
-            doc.available = pkgname in self.cache
+            doc.available = (pkgname in self.cache or
+                             self.is_purchasable(doc))
         return doc.available
 
     def is_installed(self, doc):
         if doc.installed is None:
             pkgname = self.get_pkgname(doc)
-            if doc.available is None:
-                doc.available = pkgname in self.cache
-            doc.installed = doc.available and self.cache[pkgname].is_installed
+            doc.installed = (self.is_available(doc) and
+                             self.cache[pkgname].is_installed)
         return doc.installed
+
+    def is_purchasable(self, doc):
+        if doc.purchasable is None:
+            doc.purchasable = doc.get_value(XapianValues.PRICE) not in _FREE_AS_IN_BEER
+        return doc.purchasable
 
     def get_pkgname(self, doc):
         return self.db.get_pkgname(doc)
@@ -150,6 +157,9 @@ class _AppPropertiesHelper(object):
         return "%s\n<small>%s</small>" % (
                  GObject.markup_escape_text(appname),
                  GObject.markup_escape_text(summary))
+
+    def get_price(self, doc):
+        return doc.get_value(XapianValues.PRICE)
 
     def get_icon(self, doc):
         try:
@@ -411,7 +421,7 @@ class AppListStore(Gtk.ListStore, AppGenericStore):
 
         with ExecutionTime("store.append_initial"):
             for doc in [m.document for m in matches][:extent]:
-                doc.available = doc.installed = None
+                doc.available = doc.installed = doc.purchasable = None
                 self.append((doc,))
 
         if n_matches == extent: 
@@ -438,9 +448,14 @@ class AppListStore(Gtk.ListStore, AppGenericStore):
             end = n_matches
 
         for i in range(start, end):
-            if self[(i,)][0]: continue
+            try:
+                row_content = self[(i,)][0]
+            except IndexError:
+                break
+
+            if row_content: continue
             doc = db.get_document(matches[i].docid)
-            doc.available = doc.installed = None
+            doc.available = doc.installed = doc.purchasable = None
             self[(i,)][0] = doc
         return
 
@@ -466,7 +481,7 @@ class AppTreeStore(Gtk.TreeStore, AppGenericStore):
 
     def set_documents(self, parent, documents):
         for doc in documents:
-            doc.available = None; doc.installed = None
+            doc.available = None; doc.installed = doc.purchasable = None
             self.append(parent, (doc,))
 
         self.transaction_path_map = {}

@@ -21,7 +21,14 @@ import sys
 
 from gettext import gettext as _
 from gi.repository import Gdk
-from gi.repository import Gst
+
+# FIXME: remove this try/except and add a dependency on gir1.2-gstreamer-0.10
+#        if we (ever) start using VideoPlayerGtk3
+try:
+    from gi.repository import Gst
+except ImportError:
+    pass
+
 from gi.repository import Gtk
 from gi.repository import WebKit
 
@@ -31,15 +38,32 @@ class VideoPlayer(Gtk.VBox):
     def __init__(self):
         super(VideoPlayer, self).__init__()
         self.webkit = WebKit.WebView()
+        self.webkit.connect("new-window-policy-decision-requested", self._on_new_window)
         self.pack_start(self.webkit, True, True, 0)
         self._uri = ""
+
+    # helper required to follow ToS about the "back" link
+    def _on_new_window(self, view, frame, request, action, policy):
+        import subprocess
+        subprocess.Popen(['xdg-open', request.get_uri()])
+        return True
+
+    # uri property
     def _set_uri(self, v):
         self._uri = v
         self.webkit.load_uri(v)
     def _get_uri(self):
         return self._uri
     uri = property(_get_uri, _set_uri, None, "uri property")
-    
+
+    def load_html_string(self, html):
+        """ Instead of a video URI use a html embedded video like e.g.
+            youtube or vimeo. Note that on a default install not all
+            video codecs will play (no flash!), so be careful!
+        """
+        # FIXME: add something more useful here
+        base_uri = "http://www.ubuntu.com"
+        self.webkit.load_html_string(html, base_uri)
 
 # AKA the-segfault-edition-with-no-documentation
 class VideoPlayerGtk3(Gtk.VBox):
@@ -108,13 +132,17 @@ class VideoPlayerGtk3(Gtk.VBox):
 
 
 def get_test_videoplayer_window():
+    html = """
+    <iframe width="640" height="390" src="http://www.youtube.com/embed/h3oBU0NZJuA" frameborder="0" allowfullscreen></iframe>
+"""
     win = Gtk.Window.new(Gtk.WindowType.TOPLEVEL)
     win.set_default_size(500, 400)
     win.connect("destroy", Gtk.main_quit)
     player = VideoPlayer()
     win.add(player)
     if len(sys.argv) < 2:
-        player.uri = "http://upload.wikimedia.org/wikipedia/commons/9/9b/Pentagon_News_Sample.ogg"
+        # player.uri = "http://upload.wikimedia.org/wikipedia/commons/9/9b/Pentagon_News_Sample.ogg"
+        player.load_html_string(html)
     else:
         player.uri = sys.argv[1]
     win.show_all()
@@ -123,7 +151,7 @@ def get_test_videoplayer_window():
 if __name__ == "__main__":
     logging.basicConfig()
     Gdk.threads_init()
-    Gst.init(sys.argv)
+    # Gst.init(sys.argv)
 
     win = get_test_videoplayer_window()
     Gtk.main()

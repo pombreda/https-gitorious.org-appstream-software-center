@@ -11,7 +11,7 @@ from softwarecenter.plugin import PluginManager
 class MockApp(object):
     """ mock app """
 
-class testPlugin(unittest.TestCase):
+class TestPlugin(unittest.TestCase):
 
     def setUp(self):
         pass

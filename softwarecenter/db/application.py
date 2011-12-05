@@ -16,6 +16,8 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+from gi.repository import GObject, Gio
+
 import locale
 import logging
 import os
@@ -134,15 +136,22 @@ class Application(object):
             return cmp(x.pkgname, y.pkgname)
 
 # the details
-class AppDetails(object):
+class AppDetails(GObject.GObject):
     """ The details for a Application. This contains all the information
         we have available like website etc
     """
+
+    __gsignals__ = {"screenshots-available" : (GObject.SIGNAL_RUN_FIRST,
+                                               GObject.TYPE_NONE,
+                                               (GObject.TYPE_PYOBJECT,),
+                                              ),
+                    }
 
     def __init__(self, db, doc=None, application=None):
         """ Create a new AppDetails object. It can be created from
             a xapian.Document or from a db.application.Application object
         """
+        GObject.GObject.__init__(self)
         if not doc and not application:
             raise ValueError("Need either document or application")
         self._db = db
@@ -158,6 +167,7 @@ class AppDetails(object):
         # FIXME: why two error states ?
         self._error = None
         self._error_not_found = None
+        self._screenshot_list = None
 
         # load application
         self._app = application
@@ -252,7 +262,8 @@ class AppDetails(object):
         # try apt first
         if self._pkg:
             for origin in self._pkg.candidate.origins:
-                if (origin.origin == "Ubuntu" and origin.trusted and origin.component):
+                if (origin.origin == get_distro().get_distro_channel_name() and
+                    origin.trusted and origin.component):
                     return origin.component
         # then xapian
         elif self._doc:
@@ -360,7 +371,7 @@ class AppDetails(object):
             the property display_name instead
         """
         return self._app.name
-    
+
     @property
     def display_name(self):
         """ Return the application name as it should be displayed in the UI
@@ -472,6 +483,7 @@ class AppDetails(object):
 
     @property
     def screenshot(self):
+        """ return screenshot url """
         # if there is a custom screenshot url provided, use that
         if self._doc:
             if self._doc.get_value(XapianValues.SCREENSHOT_URL):
@@ -479,6 +491,59 @@ class AppDetails(object):
         # else use the default
         return self._distro.SCREENSHOT_LARGE_URL % { 'pkgname' : self.pkgname, 
                                                      'version' : self.version or 0 }
+
+    @property
+    def screenshots(self):
+        """ return list of screenshots, this requies that
+            "query_multiple_screenshos" was run before and emited the signal
+         """
+        if not self._screenshot_list:
+            return [ {'small_image_url': self.thumbnail,
+                      'large_image_url': self.screenshot,
+                      'version': self.version},
+                   ]
+        return self._screenshot_list
+
+    def query_multiple_screenshots(self):
+        """ query if multiple screenshots for the given app are available
+            and if so, emit "screenshots-available" signal
+        """
+        # check if we have it cached
+        if self._screenshot_list:
+            self.emit("screenshots-available", self._screenshot_list)
+            return
+        # download it
+        distro = get_distro()
+        url = distro.SCREENSHOT_JSON_URL % self._app.pkgname
+        try:
+            f = Gio.File.new_for_uri(url)
+            f.load_contents_async(
+                None, self._gio_screenshots_json_download_complete_cb, None)
+        except:
+            LOG.exception("failed to load content")
+
+
+    def _gio_screenshots_json_download_complete_cb(self, source, result, path):
+        try:
+            res, content, etag = source.load_contents_finish(result)
+        except GObject.GError:
+            # ignore read errors, most likely transient
+            return
+        if content is not None:
+            import json
+            content = json.loads(content)
+
+        if isinstance(content, dict):
+            # a list of screenshots as listsed online
+            screenshot_list = content['screenshots']
+        else:
+            # fallback to a list of screenshots as supplied by the axi
+            screenshot_list = []
+
+        # save for later and emit
+        self._screenshot_list = screenshot_list
+        self.emit("screenshots-available", screenshot_list)
+        return
 
     @property
     def summary(self):
@@ -496,6 +561,17 @@ class AppDetails(object):
         # else use the default
         return self._distro.SCREENSHOT_THUMB_URL % { 'pkgname' : self.pkgname, 
                                                      'version' : self.version or 0}
+
+    @property
+    def video_url(self):
+        # if there is a custom video url provided, use that
+        if self._doc:
+            if self._doc.get_value(XapianValues.VIDEO_URL):
+                return self._doc.get_value(XapianValues.VIDEO_URL)
+        # else use the video server
+        #return self._distro.VIDEO_URL % { 'pkgname' : self.pkgname, 
+        #                                  'version' : self.version or 0}
+        return None
 
     @property
     def version(self):
@@ -593,6 +669,8 @@ class AppDetails(object):
         details.append("   installation_date: %s" % self.installation_date)
         details.append("       purchase_date: %s" % self.purchase_date)
         details.append("             license: %s" % self.license)
+        details.append("         license_key: %s" % self.license_key[0:3] + len(self.license_key)*"*")
+        details.append("    license_key_path: %s" % self.license_key_path)
         details.append("  maintenance_status: %s" % self.maintenance_status)
         details.append("           pkg_state: %s" % self.pkg_state)
         details.append("               price: %s" % self.price)

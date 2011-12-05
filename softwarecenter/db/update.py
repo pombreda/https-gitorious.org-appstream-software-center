@@ -89,8 +89,8 @@ CF = "/var/lib/apt-xapian-index/cataloged_times.p"
 if os.path.exists(CF):
     try:
         cataloged_times = pickle.load(open(CF))
-    except EOFError as e:
-        LOG.warn("failed to read %s (%s" % (CF, e))
+    except Exception as e:
+        LOG.warn("failed to load %s: %s" % (CF, e))
 del CF
 
 # Enable Xapian's CJK tokenizer (see LP: #745243)
@@ -151,6 +151,7 @@ class SoftwareCenterAgentParser(AppInfoParserBase):
                 'Icon'       : 'icon',
                 'Screenshot-Url' : 'screenshot_url',
                 'Thumbnail-Url' : 'thumbnail_url',
+                'Video-Url' :  'video_url',
                 'Icon-Url'   : 'icon_url',
               }
 
@@ -401,7 +402,7 @@ def update_from_var_lib_apt_lists(db, cache, listsdir=None):
     except ImportError:
         return False
     if not listsdir:
-        listsdir = apt_pkg.Config.find_dir("Dir::State::lists")
+        listsdir = apt_pkg.config.find_dir("Dir::State::lists")
     context = GObject.main_context_default()
     for appinfo in glob("%s/*AppInfo" % listsdir):
         LOG.debug("processing %s" % appinfo)
@@ -693,6 +694,10 @@ def index_app_info_from_parser(parser, db, cache):
         if parser.has_option_desktop("X-AppInstall-Thumbnail-Url"):
             url = parser.get_desktop("X-AppInstall-Thumbnail-Url")
             doc.add_value(XapianValues.THUMBNAIL_URL, url)
+        # video support (for third party mostly)
+        if parser.has_option_desktop("X-AppInstall-Video-Url"):
+            url = parser.get_desktop("X-AppInstall-Video-Url")
+            doc.add_value(XapianValues.VIDEO_URL, url)
         # icon (for third party)
         if parser.has_option_desktop("X-AppInstall-Icon-Url"):
             url = parser.get_desktop("X-AppInstall-Icon-Url")

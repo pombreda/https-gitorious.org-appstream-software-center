@@ -1,7 +1,95 @@
-software-center (5.1.1) UNRELEASED; urgency=low
+software-center (5.1.3) precise; urgency=low
+
+  [ Robert Roth ]
+  * Show For version x string instead of for this version when the 
+    app version is unknown (LP: #889080)
+
+  [ Michael Vogt ]
+  * lp:~mvo/software-center/system-wide-license-key-fixes:
+    - add support for installing system-wide license keys
+      via aptdaemon
+  * lp:~mvo/software-center/appdetailsview-cleanup:
+    - lots of cleanup for the details view code, merges appdetailsview
+      and appdetailsview_gtk, increases unit test coverage
+  * debian/control:
+    - update dependency from python-gobject to python-gi
+  
+  [ Gary Lasker ]
+  * lp:~gary-lasker/software-center/launcher-integration-for-p:
+    - implement automatic adding of all newly installed applications to
+      the Unity launcher per the latest specification, this can be
+      disabled via menu item "View->Add Applications in Launcher"
+      (LP: #761851, LP: #756599, LP: #756701, LP: #773769)
+  * test/graph/gen-test-coverage-data.sh,
+    test/graph/plot-test-coverage.py:
+    - create a graph to track unit test coverage 
+  
+  [ Kiwinote ]
+  * lp:~kiwinote/software-center/fix-icon-updating:
+    - fix _update_app_icon() regression
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 01 Dec 2011 16:03:34 +0100
+
+software-center (5.1.2.1) precise; urgency=low
+
+  [ Kiwinote ]
+  * sc/ui/gtk3/widgets/videoplayer.py:
+    - don't import Gst - we don't use it at the moment
+      this unbreaks startup for those who don't have gir1.2-gstreamer-0.10
+      installed (LP: #893247)
+  
+  [ Michael Vogt ]
+  * SECURITY UPDATE: MITM via incorrect ssl cert validation (LP: #874242)
+    - softwarecenter/ui/gtk3/views/purchaseview.py: Set the ssl-ca-file
+      libsoup property so ssl cert validation works.
+    - CVE-2011-3150
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 22 Nov 2011 18:23:09 +0100
+
+software-center (5.1.2) precise; urgency=low
+
+  [ Michael Vogt ]
+  * test/test_channels.py:
+    - add unit test for channels backend
+  * lp:~mvo/software-center/app-treeview-buy-plus-refactor:
+    - add unit test for ApplicationManager, additional tweaks
+  * lp:~mvo/software-center/video-support:
+    - implement the ability to display embedded videos in
+      the application details view
+  * softwarecenter/ui/gtk3/widgets/exhibits.py:
+    - add basic error reporting for exhibits downloading
+
+  [ Matthew McGowan ]
+  * lp:~mmcg069/software-center/app-treeview-buy-plus-refactor:
+    - implement the ability to initiate a purchase from the application
+      list directly and display the price there, include some nice
+      refactoring
+  * softwarecenter/ui/gtk3/widgets/apptreeview.py:
+    - make hidden rows collapse properly when unselected (LP: #888463)
+  
+  [ Gary Lasker ]
+  * lp:~gary-lasker/software-center/unit-tests:
+    - update tests for custom lists and for launcher integration
+  * lp:~gary-lasker/software-center/fix-lp891499:
+    - be more robust about problems reading the cataloged_times file 
+      as problems here can hang the UI (LP: #891499)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 21 Nov 2011 13:45:29 +0100
+
+software-center (5.1.1.1) precise; urgency=low
+
+  * setup.py:
+    - list sc.backend.oneconfhandler and sc.backend.reviews as packages
+      this allows s-c to startup on the development release (LP: #887392)
+
+ -- Kiwinote <kiwinote@gmail.com>  Tue, 08 Nov 2011 16:49:29 +0000
+
+software-center (5.1.1) precise; urgency=low
 
   [ Matthew McGowan ]
   * fix the rtl rendering of the "more label arrow"
+  * lp:~mmcg069/software-center/multi-screenshot-gallery:
+    - add support for multiple screenshots for the main archive
   
   [ Nicolas Delvaux ]
   * lp:~malizor/software-center/fix-lp813803:
@@ -13,8 +101,15 @@ software-center (5.1.1) UNRELEASED; urgency=low
   * lp:~kelemeng/software-center/bug875306:
     - Add translator comment: Free means Gratis, as it is used as price.
       LP: #875306
-
- -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 27 Oct 2011 16:47:38 -0400
+  
+  [ Sebastian Heinlein ]
+  * lp:~glatzor/software-center/portability:
+    - improve portability
+  
+  [ Michael Vogt ]
+  * more portability fixes
+  
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Mon, 07 Nov 2011 14:58:40 +0100
 
 software-center (5.1.0) precise; urgency=low
 

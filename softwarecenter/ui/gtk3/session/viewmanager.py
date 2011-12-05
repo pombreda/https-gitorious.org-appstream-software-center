@@ -58,7 +58,7 @@ class ViewManager(GObject.GObject):
         global _viewmanager
         if _viewmanager is not None:
             msg = "Only one instance of ViewManager is allowed!"
-            raise SystemExit(msg)
+            raise ValueError(msg)
         else:
             _viewmanager = self
 

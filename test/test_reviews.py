@@ -12,7 +12,7 @@ from gi.repository import GObject
 import softwarecenter.paths
 softwarecenter.paths.SOFTWARE_CENTER_CACHE_DIR = tempfile.mkdtemp()
 
-from softwarecenter.backend.reviews import (
+from softwarecenter.backend.reviews.rnr import (
     ReviewLoaderSpawningRNRClient as ReviewLoader)
 from softwarecenter.testutils import (get_test_pkg_info, get_test_db)
 

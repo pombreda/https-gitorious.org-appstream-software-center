@@ -46,11 +46,6 @@ Tomeu Vizoso  - i18n
 Zygmunt Krynicki - Code
 Aaron Peachey - Code
 Konstantin Datz - Icon
-
-Includes artwork based on "Colorful Chocolate Candies" by Romain Guy.
-http://www.flickr.com/photos/romainguy
-Used under the Creative Commons Attribution-ShareAlike 2.0 Generic license.
-http://creativecommons.org/licenses/by-sa/2.0/deed.en
 </property>
     <property name="translator_credits" translatable="yes">translator-credits</property>
     <property name="logo_icon_name">softwarecenter</property>
@@ -386,7 +381,7 @@ http://creativecommons.org/licenses/by-sa/2.0/deed.en
                 <property name="use_underline">True</property>
                 <signal name="activate" handler="on_menu_view_activate" swapped="no"/>
                 <child type="submenu">
-                  <object class="GtkMenu" id="menu4">
+                  <object class="GtkMenu" id="menu_view">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <child>
@@ -425,9 +420,9 @@ http://creativecommons.org/licenses/by-sa/2.0/deed.en
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="related_action">navhistory_back_action</property>
+                        <property name="use_action_appearance">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">False</property>
-                        <property name="use_action_appearance">False</property>
                         <accelerator key="bracketleft" signal="activate" modifiers="GDK_CONTROL_MASK"/>
                       </object>
                     </child>
@@ -437,10 +432,26 @@ http://creativecommons.org/licenses/by-sa/2.0/deed.en
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="related_action">navhistory_forward_action</property>
+                        <property name="use_action_appearance">False</property>
                         <property name="use_underline">True</property>
                         <property name="use_stock">False</property>
-                        <property name="use_action_appearance">False</property>
                         <accelerator key="bracketright" signal="activate" modifiers="GDK_CONTROL_MASK"/>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkSeparatorMenuItem" id="add_to_launcher_separator">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkCheckMenuItem" id="menuitem_add_to_launcher">
+                        <property name="visible">True</property>
+                        <property name="can_focus">False</property>
+                        <property name="use_action_appearance">False</property>
+                        <property name="label" translatable="yes">_New Applications in Launcher</property>
+                        <property name="use_underline">True</property>
+                        <signal name="toggled" handler="on_menuitem_add_to_launcher_toggled" swapped="no"/>
                       </object>
                     </child>
                   </object>
@@ -470,7 +481,7 @@ http://creativecommons.org/licenses/by-sa/2.0/deed.en
                       </object>
                     </child>
                     <child>
-                      <object class="GtkSeparatorMenuItem" id="menuitem3">
+                      <object class="GtkSeparatorMenuItem" id="separator_developer">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                       </object>
@@ -481,7 +492,7 @@ http://creativecommons.org/licenses/by-sa/2.0/deed.en
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <property name="use_action_appearance">False</property>
-                        <property name="use_underline">False</property>
+                        <property name="use_stock">False</property>
                         <signal name="activate" handler="on_menuitem_developer_activate" swapped="no"/>
                       </object>
                     </child>

@@ -5,6 +5,9 @@ import xapian
 
 from gettext import gettext as _
 
+from softwarecenter.ui.gtk3.session.appmanager import get_appmanager
+
+
 from cellrenderers import (CellRendererAppView,
                            CellButtonRenderer,
                            CellButtonIDs)
@@ -15,8 +18,8 @@ from softwarecenter.utils import ExecutionTime
 from softwarecenter.backend import get_install_backend
 from softwarecenter.netstatus import (get_network_watcher,
                                       network_state_is_connected)
-from softwarecenter.ui.gtk3.models.appstore2 import (AppGenericStore,
-                                                     CategoryRowReference)
+from softwarecenter.ui.gtk3.models.appstore2 import (
+    AppGenericStore, CategoryRowReference)
 
 
 class AppTreeView(Gtk.TreeView):
@@ -26,18 +29,21 @@ class AppTreeView(Gtk.TreeView):
     VARIANT_INFO = 0
     VARIANT_REMOVE = 1
     VARIANT_INSTALL = 2
+    VARIANT_PURCHASE = 3
 
-    ACTION_BTNS = (VARIANT_REMOVE, VARIANT_INSTALL)
+    ACTION_BTNS = (VARIANT_REMOVE, VARIANT_INSTALL, VARIANT_PURCHASE)
 
-    def __init__(self, app_view, icons, show_ratings, store=None):
+    def __init__(self, app_view, db, icons, show_ratings, store=None):
         Gtk.TreeView.__init__(self)
         self._logger = logging.getLogger("softwarecenter.view.appview")
 
         self.app_view = app_view
+        self.db = db
 
         self.pressed = False
         self.focal_btn = None
         self._action_block_list = []
+        self._needs_collapse = []
         self.expanded_path = None
 
         #~ # if this hacked mode is available everything will be fast
@@ -57,6 +63,7 @@ class AppTreeView(Gtk.TreeView):
         # it needs to be the first one, because that is what the tools look
         # at by default
         tr = CellRendererAppView(icons,
+                                 self.create_pango_layout(''),
                                  show_ratings,
                                  Icons.INSTALLED_OVERLAY)
         tr.set_pixbuf_width(32)
@@ -70,9 +77,11 @@ class AppTreeView(Gtk.TreeView):
 
         action = CellButtonRenderer(self,
                                     name=CellButtonIDs.ACTION)
+
         action.set_markup_variants(
                 {self.VARIANT_INSTALL: _('Install'),
-                 self.VARIANT_REMOVE: _('Remove')})
+                 self.VARIANT_REMOVE: _('Remove'),
+                 self.VARIANT_PURCHASE: _(u'Buy\u2026')})
 
         tr.button_pack_start(info)
         tr.button_pack_end(action)
@@ -118,39 +127,36 @@ class AppTreeView(Gtk.TreeView):
         if vadjustment:
             vadjustment.set_value(0)
         self.expanded_path = None
+        self._needs_collapse = []
         if self.appmodel:
             self.appmodel.clear()
 
     def expand_path(self, path):
         if path is not None and not isinstance(path, Gtk.TreePath):
-            raise TypeError, "Expects Gtk.TreePath or None, got %s" % type(path)
+            raise TypeError, ("Expects Gtk.TreePath or None, got %s" %
+                              type(path))
 
         model = self.get_model()
         old = self.expanded_path
         self.expanded_path = path
 
         if old is not None:
-            try:
-                # lazy solution to Bug #846204
-                model.row_changed(old, model.get_iter(old))
-            except:
-                msg = "apptreeview.expand_path: Supplied 'old' path is an invalid tree path: '%s'" % old
-                logging.debug(msg)
+            ok, start, end = self.get_visible_range()
+            if (ok and start.compare(old) != -1 or
+                end.compare(old) != 1):
+                self._needs_collapse.append(old)
+            else:
+                try:  # try... a lazy solution to Bug #846204
+                    model.row_changed(old, model.get_iter(old))
+                except:
+                    msg = ("apptreeview.expand_path: Supplied 'old' "
+                           "path is an invalid tree path: '%s'" % old)
+                    logging.debug(msg)
+
         if path == None: return
 
         model.row_changed(path, model.get_iter(path))
         return
-
-#    def is_action_in_progress_for_selected_app(self):
-#        """
-#        return True if an install or remove of the current package
-#        is in progress
-#        """
-#        (path, column) = self.get_cursor()
-#        if path:
-#            model = self.get_model()
-#            return (model[path][AppGenericStore.COL_ROW_DATA].transaction_progress != -1)
-#        return False
 
     def get_scrolled_window_vadjustment(self):
         ancestor = self.get_ancestor(Gtk.ScrolledWindow)
@@ -289,9 +295,14 @@ class AppTreeView(Gtk.TreeView):
             action_btn.set_sensitive(True)
             action_btn.show()
         elif self.appmodel.is_available(app):
-            action_btn.set_variant(self.VARIANT_INSTALL)
+            if self.appmodel.is_purchasable(app):
+                action_btn.set_variant(self.VARIANT_PURCHASE)
+            else:
+                action_btn.set_variant(self.VARIANT_INSTALL)
+
             action_btn.set_sensitive(True)
             action_btn.show()
+
             if not network_state_is_connected():
                 action_btn.set_sensitive(False)
                 self.app_view.emit("application-selected",
@@ -311,23 +322,26 @@ class AppTreeView(Gtk.TreeView):
         else:
             action_btn.set_state(Gtk.StateFlags.NORMAL)
 
-        #~ self.emit("application-selected", self.appmodel.get_application(app))
-        self.app_view.emit("application-selected", self.appmodel.get_application(app))
+        self.app_view.emit(
+            "application-selected", self.appmodel.get_application(app))
         return False
 
     def _on_row_activated(self, view, path, column, tr):
         rowref = self.get_rowref(view.get_model(), path)
 
-        if not rowref: return
-
-        if self.rowref_is_category(rowref): return
+        if not rowref:
+            return
+        elif self.rowref_is_category(rowref):
+            return
 
         x, y = self.get_pointer()
         for btn in tr.get_buttons():
             if btn.point_in(x, y): 
                 return
 
-        self.app_view.emit("application-activated", self.appmodel.get_application(rowref))
+        app = self.appmodel.get_application(rowref)
+        if app:
+            self.app_view.emit("application-activated", app)
         return
 
     def _on_button_event_get_path(self, view, event):
@@ -451,8 +465,16 @@ class AppTreeView(Gtk.TreeView):
             indices = path.get_indices()
             model.load_range(indices, 5)
 
-        is_active = path == self.expanded_path
-        cell.set_property('isactive', is_active)
+        if path in self._needs_collapse:
+            # collapse rows that were outside the visible range and
+            # thus not immediately collapsed when expand_path was called
+            cell.set_property('isactive', False)
+            i = self._needs_collapse.index(path)
+            del self._needs_collapse[i]
+            model.row_changed(path, it)
+            return
+
+        cell.set_property('isactive', path == self.expanded_path)
         return
 
     def _app_activated_cb(self, btn, btn_id, app, store, path):
@@ -468,25 +490,33 @@ class AppTreeView(Gtk.TreeView):
         pkgname = self.appmodel.get_pkgname(app)
 
         if btn_id == CellButtonIDs.INFO:
-            self.app_view.emit("application-activated", self.appmodel.get_application(app))
+            self.app_view.emit("application-activated",
+                               self.appmodel.get_application(app))
         elif btn_id == CellButtonIDs.ACTION:
             btn.set_sensitive(False)
             store.row_changed(path, store.get_iter(path))
-            # be sure we dont request an action for a pkg with pre-existing actions
+            app_manager = get_appmanager()
+            # be sure we dont request an action for a pkg with
+            # pre-existing actions
             if pkgname in self._action_block_list:
-                logging.debug("Action already in progress for package: '%s'" % pkgname)
+                logging.debug("Action already in progress for package:"
+                              " '%s'" % pkgname)
                 return False
             self._action_block_list.append(pkgname)
             if self.appmodel.is_installed(app):
-                perform_action = AppActions.REMOVE
+                action = AppActions.REMOVE
+            elif self.appmodel.is_purchasable(app):
+                app_manager.buy_app(self.appmodel.get_application(app))
+                store.notify_action_request(app, path)
+                return
             else:
-                perform_action = AppActions.INSTALL
+                action = AppActions.INSTALL
 
             store.notify_action_request(app, path)
-
-            self.app_view.emit("application-request-action",
-                      self.appmodel.get_application(app),
-                      [], [], perform_action)
+            
+            app_manager.request_action(
+                self.appmodel.get_application(app), [], [],
+                action)
         return False
 
     def _set_cursor(self, btn, cursor):
@@ -546,10 +576,6 @@ class AppTreeView(Gtk.TreeView):
         if not res:
             return False
         return self.get_path_at_pos(x, y)[0] == self.get_cursor()[0]
-
-
-
-
 
 
 def get_query_from_search_entry(search_term):
