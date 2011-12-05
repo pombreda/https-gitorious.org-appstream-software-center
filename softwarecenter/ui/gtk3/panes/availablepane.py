@@ -342,19 +342,19 @@ class AvailablePane(SoftwarePane):
             
     def on_transaction_started(self, backend, pkgname, appname, trans_id, 
                                trans_type):
-        self._register_unity_launcher_transaction_started(
-            backend, pkgname, appname, trans_id, trans_type)
+        self._add_application_to_unity_launcher(
+                backend, pkgname, appname, trans_id, trans_type)
 
-    def _register_unity_launcher_transaction_started(self, backend, pkgname, 
-                                                     appname, trans_id, 
-                                                     trans_type):
+    def _add_application_to_unity_launcher(self, backend, pkgname, 
+                                           appname, trans_id, 
+                                           trans_type):
         if not self.add_to_launcher_enabled:
             return
         # mvo: use use softwarecenter.utils explictly so that we can monkey
         #      patch it in the test
         if not softwarecenter.utils.is_unity_running():
             return
-        # we only care about getting the launcher information on an install
+        # we only care about installs
         if not trans_type == TransactionTypes.INSTALL:
             return
             
@@ -370,6 +370,10 @@ class AvailablePane(SoftwarePane):
 
         # now gather up the unity launcher info items and send the app to the
         # launcher service
+        launcher_info = self._get_unity_launcher_info(app, appdetails, trans_id)
+        self.unity_launcher.send_application_to_launcher(pkgname, launcher_info)
+        
+    def _get_unity_launcher_info(self, app, appdetails, trans_id):
         (icon_size, icon_x, icon_y) = (
                 self._get_onscreen_icon_details_for_launcher_service(app))
         icon_path = get_file_path_from_iconname(
@@ -383,7 +387,7 @@ class AvailablePane(SoftwarePane):
                                           icon_size,
                                           appdetails.desktop_file,
                                           trans_id)
-        self.unity_launcher.send_application_to_launcher(pkgname, launcher_info)
+        return launcher_info
 
     def _get_onscreen_icon_details_for_launcher_service(self, app):
         if self.is_app_details_view_showing():

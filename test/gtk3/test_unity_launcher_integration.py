@@ -19,6 +19,7 @@ from softwarecenter.enums import TransactionTypes
 from softwarecenter.utils import convert_desktop_file_to_installed_location
 from softwarecenter.db.application import Application
 from softwarecenter.ui.gtk3.panes.availablepane import get_test_window
+from softwarecenter.backend.unitylauncher import UnityLauncherInfo
 
 # we can only have one instance of availablepane, so create it here
 win = get_test_window()
@@ -54,47 +55,58 @@ class TestUnityLauncherIntegration(unittest.TestCase):
                                     TransactionTypes.INSTALL)
         # wait a wee bit
         self._zzz()
+        
+    def _fake_send_application_to_launcher_and_check(self,
+                                                     pkgname, launcher_info):
+        self.assertEqual(pkgname, self.expected_pkgname)
+        self.assertEqual(launcher_info.name, self.expected_launcher_info.name)
+        self.assertEqual(launcher_info.icon_name,
+                         self.expected_launcher_info.icon_name)
+        self.assertTrue(launcher_info.icon_x > 5)
+        self.assertTrue(launcher_info.icon_y > 5)
+        self.assertEqual(launcher_info.icon_size, 96)
+        self.assertEqual(launcher_info.app_install_desktop_file_path,
+                self.expected_launcher_info.app_install_desktop_file_path)
+        self.assertEqual(launcher_info.trans_id,
+                self.expected_launcher_info.trans_id)
 
     def test_unity_launcher_integration(self):
         # test the automatic add to launcher enabled functionality
         available_pane.add_to_launcher_enabled = True
         test_pkgname = "lincity-ng"
-        mock_result = Mock()
-        mock_result.pkgname = test_pkgname
-        mock_result.success = True
         # now pretend
+        # for testing, we substitute a mock version of UnityLauncher's
+        # send_application_to_launcher method that lets us check for the
+        # correct values and also avoids firing the actual dbus signal
+        # to the unity launcher service
+        self.expected_pkgname = test_pkgname
+        self.expected_launcher_info = UnityLauncherInfo("lincity-ng",
+                 "lincity-ng",
+                 0, 0, 0, 0, # these values are set in availablepane
+                 "/usr/share/app-install/desktop/lincity-ng:lincity-ng.desktop",
+                 "testid101")
+        available_pane.unity_launcher.send_application_to_launcher = (
+                self._fake_send_application_to_launcher_and_check)
         self._navigate_to_appdetails_and_install(test_pkgname)
-        
-        # check that a correct UnityLauncherInfo object has been created and
-        # added to the queue
-        self.assertTrue(test_pkgname in available_pane.unity_launcher.launcher_queue)
-        launcher_info = available_pane.unity_launcher.remove_from_launcher_queue(test_pkgname)
-        # check the UnityLauncherInfo values themselves
-        self.assertEqual(launcher_info.name, "lincity-ng")
-        self.assertEqual(launcher_info.icon_name, "lincity-ng")
-        self.assertTrue(launcher_info.icon_x > 5)
-        self.assertTrue(launcher_info.icon_y > 5)
-        self.assertEqual(launcher_info.icon_size, 96)
-        self.assertEqual(launcher_info.app_install_desktop_file_path,
-            "/usr/share/app-install/desktop/lincity-ng:lincity-ng.desktop")
-        self.assertEqual(launcher_info.trans_id, "testid101")
-        # finally, make sure the the app has been removed from the launcher
-        # queue        
-        self.assertFalse(test_pkgname in available_pane.unity_launcher.launcher_queue)
         
     def test_unity_launcher_integration_disabled(self):
         # test the case where automatic add to launcher is disabled
         available_pane.add_to_launcher_enabled = False
         test_pkgname = "lincity-ng"
-        mock_result = Mock()
-        mock_result.pkgname = test_pkgname
-        mock_result.success = True
         # now pretend
+        # for testing, we substitute a mock version of UnityLauncher's
+        # send_application_to_launcher method that lets us check for the
+        # correct values and also avoids firing the actual dbus signal
+        # to the unity launcher service
+        # in the disabled add to launcher case, we just want to insure
+        # that we never call send_application_to_launcher, so we can just
+        # plug in bogus values and we will catch a call if it occurs
+        self.expected_pkgname = ""
+        self.expected_launcher_info = UnityLauncherInfo("", "",
+                 0, 0, 0, 0, "", "")
+        available_pane.unity_launcher.send_application_to_launcher = (
+                self._fake_send_application_to_launcher_and_check)
         self._navigate_to_appdetails_and_install(test_pkgname)
-        
-        # check that no corresponding unity_launcher info object has been added
-        # to the queue
-        self.assertFalse(test_pkgname in available_pane.unity_launcher.launcher_queue)
 
     def test_desktop_file_path_conversion(self):
         # test 'normal' case
