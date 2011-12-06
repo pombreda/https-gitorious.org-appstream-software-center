@@ -23,7 +23,6 @@ import os
 import json
 import string
 import shutil
-import time
 import xapian
 
 from gi.repository import GObject
