@@ -339,7 +339,7 @@ class AppDetails(GObject.GObject):
         from softwarecenter.db.history import get_pkg_history
         self._history = get_pkg_history()
         return self._history.get_installed_date(self.pkgname)
-        
+
     @property
     def purchase_date(self):
         if self._doc:
@@ -357,6 +357,11 @@ class AppDetails(GObject.GObject):
             return _(xapian_license)
         else:
             return self._distro.get_license_text(self.component)
+
+    @property
+    def date_published(self):
+        if self._doc:
+            return self._doc.get_value(XapianValues.DATE_PUBLISHED)
 
     @property
     def maintenance_status(self):

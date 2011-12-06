@@ -144,6 +144,7 @@ class SoftwareCenterAgentParser(AppInfoParserBase):
                 'Deb-Line'   : 'deb_line',
                 'Signing-Key-Id' : 'signing_key_id',
                 'License'    : 'license',
+                'Date-Published' : 'date_published',
                 'Purchased-Date' : 'purchase_date',
                 'License-Key' : 'license_key',
                 'License-Key-Path' : 'license_key_path',
@@ -544,7 +545,7 @@ def update_from_software_center_agent(db, cache, ignore_cache=False,
         try:
             # magic channel
             entry.channel = AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME
-            # icon is transmited inline
+            # icon is transmitted inline
             if hasattr(entry, "icon_data") and entry.icon_data:
                 icondata = base64.b64decode(entry.icon_data)
             elif hasattr(entry, "icon_64_data") and entry.icon_64_data:
@@ -636,10 +637,6 @@ def index_app_info_from_parser(parser, db, cache):
             if pkgname in cataloged_times:
                 doc.add_value(axi_values["catalogedtime"], 
                               xapian.sortable_serialise(cataloged_times[pkgname]))
-            else:
-                # also catalog apps not found in axi (e.g. for-purchase apps)
-                doc.add_value(axi_values["catalogedtime"], 
-                              xapian.sortable_serialise(time.time()))
         # pocket (main, restricted, ...)
         if parser.has_option_desktop("X-AppInstall-Section"):
             archive_section = parser.get_desktop("X-AppInstall-Section")
@@ -662,6 +659,19 @@ def index_app_info_from_parser(parser, db, cache):
         if parser.has_option_desktop("X-AppInstall-License"):
             license = parser.get_desktop("X-AppInstall-License")
             doc.add_value(XapianValues.LICENSE, license)
+        # date published
+        if parser.has_option_desktop("X-AppInstall-Date-Published"):
+            date_published = parser.get_desktop("X-AppInstall-Date-Published")
+            # strip the subseconds from the end of the published date string
+            doc.add_value(XapianValues.DATE_PUBLISHED,
+                          str(date_published).split(".")[0])
+            # we use the date published value for the cataloged time as well
+            if "catalogedtime" in axi_values:
+                LOG.debug(
+                        ("pkgname: %s, date_published cataloged time is: %s" %
+                             (pkgname, parser.get_desktop("date_published"))))
+                doc.add_value(axi_values["catalogedtime"], 
+                              xapian.sortable_serialise(date_published))
         # purchased date
         if parser.has_option_desktop("X-AppInstall-Purchased-Date"):
             date = parser.get_desktop("X-AppInstall-Purchased-Date")
