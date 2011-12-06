@@ -676,6 +676,7 @@ class AppDetails(GObject.GObject):
         details.append("             license: %s" % self.license)
         details.append("         license_key: %s" % self.license_key[0:3] + len(self.license_key)*"*")
         details.append("    license_key_path: %s" % self.license_key_path)
+        details.append("      date_published: %s" % self.date_published)
         details.append("  maintenance_status: %s" % self.maintenance_status)
         details.append("           pkg_state: %s" % self.pkg_state)
         details.append("               price: %s" % self.price)
