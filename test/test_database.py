@@ -15,7 +15,10 @@ from softwarecenter.db.database import StoreDatabase
 from softwarecenter.db.enquire import AppEnquire
 from softwarecenter.db.database import parse_axi_values_file
 from softwarecenter.db.pkginfo import get_pkg_info
-from softwarecenter.db.update import update_from_app_install_data, update_from_var_lib_apt_lists, update_from_appstream_xml
+from softwarecenter.db.update import (update_from_app_install_data,
+                                      update_from_var_lib_apt_lists,
+                                      update_from_appstream_xml,
+                                      update_from_software_center_agent)
 from softwarecenter.enums import (
     XapianValues,
     PkgStates,
@@ -94,7 +97,6 @@ class TestDatabase(unittest.TestCase):
         self.assertEqual(db.get_doccount(), 1)
 
     def test_build_from_software_center_agent(self):
-        from softwarecenter.db.update import update_from_software_center_agent
         db = xapian.WritableDatabase("./data/test.db", 
                                      xapian.DB_CREATE_OR_OVERWRITE)
         cache = apt.Cache()
@@ -120,7 +122,6 @@ class TestDatabase(unittest.TestCase):
                 doc.get_value(XapianValues.ICON).startswith("sc-agent"))
 
     def test_license_string_data_from_software_center_agent(self):
-        from softwarecenter.db.update import update_from_software_center_agent
         from softwarecenter.testutils import get_test_pkg_info
         #os.environ["SOFTWARE_CENTER_DEBUG_HTTP"] = "1"
         os.environ["SOFTWARE_CENTER_BUY_HOST"] = "http://sc.staging.ubuntu.com/"
@@ -279,24 +280,29 @@ class TestDatabase(unittest.TestCase):
             doc.get_value(value_time) >= last_time
             last_time = doc.get_value(value_time)
             
-    def test_non_axi_apps_cataloged_time(self):
+    def test_for_purchase_apps_cataloged_time(self):
+        from softwarecenter.testutils import get_test_pkg_info
+        #os.environ["SOFTWARE_CENTER_DEBUG_HTTP"] = "1"
+        os.environ["SOFTWARE_CENTER_BUY_HOST"] = "http://sc.staging.ubuntu.com/"
+        # staging does not have a valid cert
+        os.environ["PISTON_MINI_CLIENT_DISABLE_SSL_VALIDATION"] = "1"
+        cache = get_test_pkg_info()
         db = xapian.WritableDatabase("./data/test.db", 
                                      xapian.DB_CREATE_OR_OVERWRITE)
-        res = update_from_app_install_data(db, self.cache, datadir="./data/desktop")
+        res = update_from_software_center_agent(db, cache, ignore_cache=True)
         self.assertTrue(res)
-        db = StoreDatabase("./data/test.db", self.cache)
-        db.open(use_axi=True)
-
-        axi_value_time = db._axi_values["catalogedtime"]
-        sc_app = Application("Ubuntu Software Center Test", "software-center")
-        sc_doc = db.get_xapian_document(sc_app.appname, sc_app.pkgname)
-        sc_cataloged_time = sc_doc.get_value(axi_value_time)
-        so_app = Application("Scintillant Orange", "scintillant-orange")
-        so_doc = db.get_xapian_document(so_app.appname, so_app.pkgname)
-        so_cataloged_time = so_doc.get_value(axi_value_time)
-        # the test package Scintillant Orange should be cataloged at a
-        # later time than axi package Ubuntu Software Center
-        self.assertTrue(so_cataloged_time > sc_cataloged_time)
+        
+        for p in db.postlist(""):
+            doc = db.get_document(p.docid)
+            date_published = doc.get_value(XapianValues.DATE_PUBLISHED)
+            # make sure that a date_published value is provided
+            self.assertNotEqual(date_published, "")
+            self.assertNotEqual(date_published, None)
+            # TODO: Compare cataloged times for apps in the staging server,
+            #       once we have given them date_published values
+            print "Package name: ", doc.get_value(XapianValues.PKGNAME)
+            print "date_published: ", date_published
+        del os.environ["SOFTWARE_CENTER_BUY_HOST"]
 
     def test_parse_axi_values_file(self):
         s = """
