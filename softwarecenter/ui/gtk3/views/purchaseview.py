@@ -236,6 +236,11 @@ h1 {
         win.show_all()
         # make sure close will work later
         wk.webkit.set_data("win", win)
+        # find and set parent
+        w = self.wk.get_parent()
+        while w.get_parent():
+            w = w.get_parent()
+        win.set_transient_for(w)
         return wk.webkit
 
     def _on_console_message(self, view, message, line, source_id):
