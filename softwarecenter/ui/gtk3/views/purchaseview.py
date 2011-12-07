@@ -63,7 +63,6 @@ class ScrolledWebkitWindow(Gtk.VBox):
         super(ScrolledWebkitWindow, self).__init__()
         # create toolbar box
         self.header = Gtk.HBox()
-        self.pack_start(self.header, False, False, 6)
         # add spinner
         self.spinner = Gtk.Spinner()
         self.header.pack_start(self.spinner, False, False, 6)
@@ -72,7 +71,12 @@ class ScrolledWebkitWindow(Gtk.VBox):
         self.url.set_ellipsize(Pango.EllipsizeMode.END)
         self.url.set_alignment(0.0, 0.5)
         self.url.set_text("")
-        self.header.pack_start(self.url, True, True, 6)
+        self.header.pack_start(self.url, True, True, 0)
+        # frame around the box
+        self.frame = Gtk.Frame()
+        self.frame.set_border_width(3)
+        self.frame.add(self.header)
+        self.pack_start(self.frame, False, False, 6)
         # create main webkitview
         self.scroll = Gtk.ScrolledWindow()
         self.scroll.set_policy(Gtk.PolicyType.AUTOMATIC, 
