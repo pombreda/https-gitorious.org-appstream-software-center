@@ -59,8 +59,24 @@ class LocaleAwareWebView(webkit.WebView):
 
 class ScrolledWebkitWindow(Gtk.VBox):
 
-    def __init__(self):
+    def __init__(self, include_progress_ui=False):
         super(ScrolledWebkitWindow, self).__init__()
+        # get webkit
+        self.webkit = LocaleAwareWebView()
+        settings = self.webkit.get_settings()
+        settings.set_property("enable-plugins", False)
+        # add progress UI if needed
+        if include_progress_ui:
+            self._add_progress_ui()
+        # create main webkitview
+        self.scroll = Gtk.ScrolledWindow()
+        self.scroll.set_policy(Gtk.PolicyType.AUTOMATIC, 
+                               Gtk.PolicyType.AUTOMATIC)
+        self.pack_start(self.scroll, True, True, 0)
+        # embed the webkit view in a scrolled window
+        self.scroll.add(self.webkit)
+        self.show_all()
+    def _add_progress_ui(self):
         # create toolbar box
         self.header = Gtk.HBox()
         # add spinner
@@ -77,20 +93,9 @@ class ScrolledWebkitWindow(Gtk.VBox):
         self.frame.set_border_width(3)
         self.frame.add(self.header)
         self.pack_start(self.frame, False, False, 6)
-        # create main webkitview
-        self.scroll = Gtk.ScrolledWindow()
-        self.scroll.set_policy(Gtk.PolicyType.AUTOMATIC, 
-                               Gtk.PolicyType.AUTOMATIC)
-        self.pack_start(self.scroll, True, True, 0)
-        # get the webkit
-        self.webkit = LocaleAwareWebView()
+        # connect the webkit stuff
         self.webkit.connect("notify::uri", self._on_uri_changed)
         self.webkit.connect("notify::load-status", self._on_load_status_changed)
-        settings = self.webkit.get_settings()
-        settings.set_property("enable-plugins", False)
-        # embed the webkit view in a scrolled window
-        self.scroll.add(self.webkit)
-        self.show_all()
     def _on_uri_changed(self, view, pspec):
         prop = pspec.name
         uri = view.get_property(prop)
@@ -169,6 +174,10 @@ h1 {
          'purchase-cancelled-by-user' : (GObject.SignalFlags.RUN_LAST,
                                          None,
                                          ()),
+         'purchase-needs-spinner' : (GObject.SignalFlags.RUN_LAST,
+                                      None,
+                                     (bool, )),
+                                     
     }
 
     def __init__(self):
@@ -230,7 +239,7 @@ h1 {
     def _on_create_web_view(self, view, frame):
         win = Gtk.Window()
         win.set_size_request(400, 400)
-        wk = ScrolledWebkitWindow()
+        wk = ScrolledWebkitWindow(include_progress_ui=True)
         wk.webkit.connect("close-web-view", self._on_close_web_view)
         win.add(wk)
         win.show_all()
@@ -273,10 +282,13 @@ h1 {
         prop = view.get_property(property_spec.name)
         window = self.get_window()
         if prop == webkit.LoadStatus.PROVISIONAL:
+            self.emit("purchase-needs-spinner", True)
             if window:
                 window.set_cursor(Gdk.Cursor.new(Gdk.CursorType.WATCH))
         elif (prop == webkit.LoadStatus.FIRST_VISUALLY_NON_EMPTY_LAYOUT or
+              prop == webkit.LoadStatus.FAILED or
               prop == webkit.LoadStatus.FINISHED):
+            self.emit("purchase-needs-spinner", False)
             if window:
                 window.set_cursor(None)
 

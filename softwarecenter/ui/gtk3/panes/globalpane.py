@@ -47,6 +47,12 @@ class GlobalPane(Gtk.Toolbar):
         #~ self.init_atk_name(self.searchentry, "searchentry")
         self.searchentry = vm.get_global_searchentry()
         self._insert_as_tool_item(self.searchentry, -1)
+
+        # spinner
+        spinner = vm.get_global_spinner()
+        spinner.set_size_request(StockEms.XLARGE, StockEms.XLARGE)
+        self._insert_as_tool_item(spinner, -1)
+
         if self.get_direction() != Gtk.TextDirection.RTL:
             _widget_set_margins(self.searchentry, right=StockEms.MEDIUM)
         else:
