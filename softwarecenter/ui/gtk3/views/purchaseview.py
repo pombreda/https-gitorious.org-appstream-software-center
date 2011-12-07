@@ -94,7 +94,10 @@ class ScrolledWebkitWindow(Gtk.VBox):
         # interessting to know what protocol/netloc is in use so that the
         # user can verify its https on sites he is expecting
         scheme, netloc, path, params, query, frag = urlparse.urlparse(uri)
-        self.url.set_text("%s://%s" % (scheme, netloc))
+        if scheme == "file" and netloc == "":
+            self.url.set_text("")
+        else:
+            self.url.set_text("%s://%s" % (scheme, netloc))
         # start spinner when the uri changes
         #self.spinner.start()
     def _on_load_status_changed(self, view, pspec):
