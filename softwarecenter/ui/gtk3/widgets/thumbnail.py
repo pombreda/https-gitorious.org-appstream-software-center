@@ -145,7 +145,7 @@ class ScreenshotGallery(Gtk.VBox):
         except:
             self._zoom_cursor = None
 
-        # convienience class for handling the downloading (or not) of
+        # convenience class for handling the downloading (or not) of
         # any screenshot
         self.loader = SimpleFileDownloader()
         self.loader.connect(
@@ -219,7 +219,18 @@ class ScreenshotGallery(Gtk.VBox):
         self.thumbnails.connect(
             "thumb-selected", self.on_thumbnail_selected)
         self.button.connect("clicked", self.on_clicked)
+        self.button.connect('enter-notify-event', self._on_enter)
+        self.button.connect('leave-notify-event', self._on_leave)
         self.show_all()
+        return
+        
+    def _on_enter(self, widget, event):
+        if self.get_is_actionable():
+            self.get_window().set_cursor(self._zoom_cursor)
+        return
+
+    def _on_leave(self, widget, event):
+        self.get_window().set_cursor(None)
         return
 
     def _on_key_press(self, widget, event):
