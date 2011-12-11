@@ -1,17 +1,17 @@
-# Basque translation for software-center
-# Copyright (c) 2011 Rosetta Contributors and Canonical Ltd 2011
+# Romanian translation for software-center
+# Copyright (c) 2010 Rosetta Contributors and Canonical Ltd 2010
 # This file is distributed under the same license as the software-center package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2011.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2010.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: software-center\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-07-21 17:04+0300\n"
-"PO-Revision-Date: 2011-05-28 10:39+0000\n"
-"Last-Translator: Asier Sarasua Garmendia <Unknown>\n"
-"Language-Team: Basque <eu@li.org>\n"
-"Language: eu\n"
+"PO-Revision-Date: 2010-04-05 17:31+0000\n"
+"Last-Translator: Lucian Adrian Grijincu <lucian.grijincu@gmail.com>\n"
+"Language-Team: Romanian <ro@li.org>\n"
+"Language: ro\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -21,12 +21,12 @@ msgstr ""
 #. type: Attribute 'lang' of: <book>
 #: help/C/software-center.xml:18
 msgid "en"
-msgstr ""
+msgstr "en"
 
 #. type: Content of: <book><bookinfo><title>
 #: help/C/software-center.xml:22
 msgid "Ubuntu Software Center"
-msgstr "Ubunturen software-biltegia"
+msgstr "Centrul Software Ubuntu"
 
 #. translators: uncomment this:
 #. <copyright>
@@ -100,12 +100,12 @@ msgstr "rugby471@gmail.com"
 #. type: Content of: <book><bookinfo><abstract><para>
 #: help/C/software-center.xml:60
 msgid "How to install and remove software in Ubuntu."
-msgstr ""
+msgstr "Cum se instalează și cum se elimină software în Ubuntu."
 
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:67
 msgid "What is Ubuntu Software Center?"
-msgstr "Zer da Ubuntu software-zentroa?"
+msgstr "Ce este Centrul Software Ubuntu?"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:69
@@ -113,6 +113,8 @@ msgid ""
 "Ubuntu Software Center is a virtual catalog of thousands of free "
 "applications and other software to make your Ubuntu computer more useful."
 msgstr ""
+"Centrul Software Ubuntu este un catalog virtual ce conține mii de aplicații "
+"și alte pachete software pentru a vă face calculatorul mai util."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:73
@@ -120,6 +122,8 @@ msgid ""
 "You can find software by category or by searching, and you can install an "
 "item with the click of a button."
 msgstr ""
+"Puteți găsi software după categorie sau după căutare, și puteți instala un "
+"element doar prin apăsarea unui clic."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:77
@@ -127,11 +131,13 @@ msgid ""
 "You can also examine which software is installed on the computer already, "
 "and remove anything you no longer need."
 msgstr ""
+"De asemenea puteți verifica ce software este deja instalat pe calculator, și "
+"puteți elimina orice nu mai este necesar."
 
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:83
 msgid "Installing software"
-msgstr "Softwarea instalatzen"
+msgstr "Instalarea de software"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:85
@@ -140,6 +146,10 @@ msgid ""
 "access and a working Internet connection.  (If you set up Ubuntu on this "
 "computer yourself, you have administrator access automatically.)"
 msgstr ""
+"Pentru a instala ceva cu Centrul Software Ubuntu, vă trebuie acces de "
+"administrator și o conexiune funcțională la internet. (Dacă sunteți cel care "
+"a instalat Ubuntu pe acest calculator, atunci aveți acces de administrator "
+"în mod automat)"
 
 #. type: Content of: <book><chapter><orderedlist><listitem><para>
 #: help/C/software-center.xml:93
@@ -154,6 +164,8 @@ msgstr ""
 #: help/C/software-center.xml:103
 msgid "Select the item in the list, and choose <guilabel>More Info</guilabel>."
 msgstr ""
+"Selectați elementul din listă, și apăsați <guilabel>Mai multe informații</"
+"guilabel>."
 
 #. type: Content of: <book><chapter><orderedlist><listitem><para>
 #: help/C/software-center.xml:109
@@ -179,17 +191,17 @@ msgstr ""
 #. type: Content of: <book><chapter><itemizedlist><listitem><para>
 #: help/C/software-center.xml:124
 msgid "<xref linkend=\"launching\" endterm=\"launching-title\"/>"
-msgstr ""
+msgstr "<xref linkend=\"launching\" endterm=\"launching-title\"/>"
 
 #. type: Content of: <book><chapter><itemizedlist><listitem><para>
 #: help/C/software-center.xml:125
 msgid "<xref linkend=\"missing\" endterm=\"missing-title\"/>"
-msgstr ""
+msgstr "<xref linkend=\"missing\" endterm=\"missing-title\"/>"
 
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:130
 msgid "Using a program once it&#8217;s installed"
-msgstr ""
+msgstr "Folosirea unui program, odată instalat"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:132
@@ -228,7 +240,7 @@ msgstr ""
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:160
 msgid "Removing software"
-msgstr ""
+msgstr "Eliminarea de software"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:162
@@ -243,6 +255,8 @@ msgid ""
 "In the <guilabel>Installed Software</guilabel> section, find the item you "
 "want to remove."
 msgstr ""
+"În secțiunea <guilabel>Software instalat</guilabel>, căutați elementul pe "
+"care doriți să îl eliminați."
 
 #. type: Content of: <book><chapter><orderedlist><listitem><para>
 #: help/C/software-center.xml:175
@@ -262,12 +276,13 @@ msgstr ""
 #. type: Content of: <book><chapter><itemizedlist><listitem><para>
 #: help/C/software-center.xml:186
 msgid "<xref linkend=\"metapackages\" endterm=\"metapackages-title\"/>"
-msgstr ""
+msgstr "<xref linkend=\"metapackages\" endterm=\"metapackages-title\"/>"
 
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:191
 msgid "Why is it asking me to remove several programs together?"
 msgstr ""
+"De primesc notificarea legată de ștegerea mai multor programe la un loc?"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:193
@@ -309,6 +324,8 @@ msgstr ""
 msgid ""
 "<ulink url=\"ghelp:user-guide?menu-editor\" >Customizing the menu bar</ulink>"
 msgstr ""
+"<ulink url=\"ghelp:user-guide?menu-editor\" >Personalizarea barei de meniu</"
+"ulink>"
 
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:232
@@ -329,6 +346,8 @@ msgid ""
 "Other software is maintained by the Ubuntu developer community.  Any updates "
 "are provided on a best-effort basis."
 msgstr ""
+"Celelalte programe sunt întreținute de către comunitatea de dezvoltatori a "
+"Ubuntu. Actualizările sunt oferite în măsura timpului disponibil."
 
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:245
@@ -352,12 +371,13 @@ msgstr ""
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:256
 msgid "Do I need to pay anything?"
-msgstr ""
+msgstr "Trebuie să plătesc?"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:258
 msgid "Most software in Ubuntu Software Center is free of charge."
 msgstr ""
+"Majoritatea programelor software din Centrul Software Ubuntu sunt gratuite."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:261
@@ -378,7 +398,7 @@ msgstr ""
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:275
 msgid "What if I paid for software and then lost it?"
-msgstr ""
+msgstr "Ce fac dacă am plătit pentru software și apoi l-am pierdut?"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:278
@@ -387,6 +407,10 @@ msgid ""
 "back, choose <menuchoice><guimenu>File</guimenu> <guimenuitem>Reinstall "
 "Previous Purchases</guimenuitem></menuchoice>."
 msgstr ""
+"Dacă ați eliminat în mod accidental un program software pe care l-ați "
+"cumpărat, și vreți să îl instalați din nou, selectați "
+"<menuchoice><guimenu>Fișier</guimenu> <guimenuitem>Reinstalează "
+"cumpărăturile vechi</guimenuitem></menuchoice>."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:284
@@ -490,6 +514,11 @@ msgid ""
 "aware of those trademarks, then the names are in capital letters or initial "
 "capital letters."
 msgstr ""
+"Multe dintre numele folosite de către companii pentru a-și distinge "
+"produsele și serviciile sunt revendicate ca mărci comerciale. Când aceste "
+"nume apar in orice documentație GNOME, și membrii Proiectului de "
+"Documentație GNOME au cunoștință despre aceste mărci comerciale, atunci "
+"aceste nume sunt scrise cu literă mare sau cu inițiala literă mare."
 
 #. type: Content of: <legalnotice><para><orderedlist><listitem><para>
 #: help/C/legal.xml:35
@@ -506,6 +535,20 @@ msgid ""
 "ESSENTIAL PART OF THIS LICENSE. NO USE OF ANY DOCUMENT OR MODIFIED VERSION "
 "OF THE DOCUMENT IS AUTHORIZED HEREUNDER EXCEPT UNDER THIS DISCLAIMER; AND"
 msgstr ""
+"DOCUMENTUL ESTE PUS LA DISPOZIȚIE PE BAZA „AȘA CUM ESTE”, FĂRĂ GARANȚII DE "
+"NICI UN FEL, EXPRESE SAU IMPLICITE, INCLUZÂND, FĂRĂ RESTRICȚII, GARANȚII "
+"PRIN CARE DOCUMENTUL SAU VERSIUNI MODIFICATE ALE DOCUMENTULUI ESTE LIPSIT DE "
+"DEFECTE COMERCIALE, POTRIVIT UNUI SCOP SPECIFIC SAU NU ÎNCALCĂ NICI UN "
+"DREPT. VĂ APARȚIN ÎN TOTALITATE RISCURILE  REFERITOARE LA CALITATE, "
+"ACURATEȚE ȘI PERFORMANȚA DOCUMENTULUI SAU A VERSIUNILOR  ACESTUIA. DACĂ "
+"ORICE DOCUMENT SAU VERSIUNE MODIFICATĂ SE DOVEDEȘTE DEFECTUOS ÎN ORICE "
+"PRIVINȚĂ, DUMNEAVOASTRĂ (NU INIȚIATORUL, AUTORUL SAU ORICARE ALT "
+"COLABORATOR) VĂ ASUMAȚI COSTURILE ORICĂRUI SERVICE NECESAR, REPARAȚIE SAU "
+"MODIFICARE.ACEASTĂ DECLARAȚIE DE NEASUMARE A RESPONSABILITĂȚII CONSTITUIE O "
+"PARTE ESENȚIALĂ A ACESTEI LICENȚE. NU ESTE AUTORIZATĂ FOLOSIREA VREUNUI "
+"DOCUMENT SAU A VREUNEI VERSIUNI MODIFICATE A DOCUMENTULUI DE AICI ÎNCOLO CU "
+"EXCEPȚIA CAZULUI ÎN CARE URMEAZĂ ACEASTĂ DECLARAȚIE DE NEASUMARE A "
+"RESPONSABILITĂȚII; ȘI"
 
 #. type: Content of: <legalnotice><para><orderedlist><listitem><para>
 #: help/C/legal.xml:55
@@ -521,6 +564,17 @@ msgid ""
 "VERSIONS OF THE DOCUMENT, EVEN IF SUCH PARTY SHALL HAVE BEEN INFORMED OF THE "
 "POSSIBILITY OF SUCH DAMAGES."
 msgstr ""
+"ÎN NICI UN CAZ ȘI ÎN NICI O TEORIE LEGISLATIVĂ, FIE ÎN PREJUDICIU (INCLUZÂND "
+"NEGLIJENȚA), PRIN CONTRACT, SAU ALTFEL, AUTORUL, INIȚIATORUL, ORICE "
+"COLABORATOR, SAU ORICARE DISTRIBUITOR AL DOCUMENTULUI SAU A VERSIUNILOR "
+"MODIFICATE ALE DOCUMENTULUI,SAU ORICARE FURNIZOR AL ORICĂREI PĂRȚI, NU SUNT "
+"RESPONSABILI IN FAȚA NIMĂNUI PENTRU ORICE PREJUDICIU DIRECT, INDIRECT, "
+"SPECIAL SAU CONSECUTIV DE ORICE FEL INCLUZÂND, FĂRĂ RESTRICȚII, PREJUDICII "
+"PENTRU PIERDEREA POSESIUNILOR, OPRIREA LUCRULUI, RATEURI IN LUCRUL CU "
+"CALCULATORUL SAU FUNCȚIONARE DEFECTUOASĂ, SAU ORICARE ȘI TOATE CELELALTE "
+"DAUNE SAU PIERDERI REZULTATE SAU RELAȚIONATE UTILIZĂRII DOCUMENTULUI ȘI "
+"VERSIUNILOR MODIFICATE ALE DOCUMENTULUI, CHIAR DACĂ PĂRȚILE TEBUIAU SĂ FI "
+"FOST INFORMATE DESPRE POSIBILITATEA UNOR ASTFEL DE DAUNE"
 
 #. type: Content of: <legalnotice><para>
 #: help/C/legal.xml:29
@@ -529,3 +583,26 @@ msgid ""
 "OF THE GNU FREE DOCUMENTATION LICENSE WITH THE FURTHER UNDERSTANDING THAT: "
 "<placeholder type=\"orderedlist\" id=\"0\"/>"
 msgstr ""
+"ACEST DOCUMENT ȘI VERSIUNILE MODIFICATE ALE ACESTUI DOCUMENT SUNT OFERITE "
+"SUB TERMENII LICENȚEI GNU PENTRU DOCUMENTAȚIA LIBERĂ, PRESUPUNÂND "
+"ÎNȚELEGEREA CĂ: <placeholder type=\"orderedlist\" id=\"0\"/>"
+
+#~ msgid ""
+#~ "Most installed applications appear in the <guimenu>Applications</guimenu> "
+#~ "menu in the corner of the screen, in the same category as they came from "
+#~ "in the Software Center."
+#~ msgstr ""
+#~ "Majoritatea aplicațiilor instalate apar în meniul <guimenu>Aplicații</"
+#~ "guimenu> din colțul ecranului, în aceeași categorie în care apar și în "
+#~ "Centrul Software."
+
+#~ msgid ""
+#~ "For example, if you installed a program from the <guilabel>Office</"
+#~ "guilabel> department, it will appear inside "
+#~ "<menuchoice><guimenu>Applications</guimenu> <guisubmenu>Office</"
+#~ "guisubmenu></menuchoice>."
+#~ msgstr ""
+#~ "De exemplu, dacă ați instalat un program din departamentul "
+#~ "<guilabel>Birou</guilabel>, va apărea în submeniul: "
+#~ "<menuchoice><guimenu>Aplicații</guimenu> <guisubmenu>Birou</guisubmenu></"
+#~ "menuchoice>."

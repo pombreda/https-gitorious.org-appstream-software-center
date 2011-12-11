@@ -1,17 +1,17 @@
-# Basque translation for software-center
-# Copyright (c) 2011 Rosetta Contributors and Canonical Ltd 2011
+# Malayalam translation for software-center
+# Copyright (c) 2010 Rosetta Contributors and Canonical Ltd 2010
 # This file is distributed under the same license as the software-center package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2011.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2010.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: software-center\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-07-21 17:04+0300\n"
-"PO-Revision-Date: 2011-05-28 10:39+0000\n"
-"Last-Translator: Asier Sarasua Garmendia <Unknown>\n"
-"Language-Team: Basque <eu@li.org>\n"
-"Language: eu\n"
+"PO-Revision-Date: 2011-10-13 10:05+0000\n"
+"Last-Translator: Aslam Muhammad <Unknown>\n"
+"Language-Team: Malayalam <ml@li.org>\n"
+"Language: ml\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -26,7 +26,7 @@ msgstr ""
 #. type: Content of: <book><bookinfo><title>
 #: help/C/software-center.xml:22
 msgid "Ubuntu Software Center"
-msgstr "Ubunturen software-biltegia"
+msgstr "ഉബുണ്ടു സോഫ്റ്റ്‌‌വെയർ സെന്റർ"
 
 #. translators: uncomment this:
 #. <copyright>
@@ -46,16 +46,18 @@ msgid ""
 "<publisher> <publishername>Ubuntu Documentation Project</publishername> </"
 "publisher> &legal;"
 msgstr ""
+"<publisher> <publishername>ഉബുണ്ടു പ്രമാ​ണ നിര്‍മ്മാണ പദ്ധതി</publishername> </"
+"publisher> &legal;"
 
 #. type: Content of: <book><bookinfo><authorgroup><author><firstname>
 #: help/C/software-center.xml:43
 msgid "Michael"
-msgstr "Michael"
+msgstr "മൈക്കിള്‍"
 
 #. type: Content of: <book><bookinfo><authorgroup><author><surname>
 #: help/C/software-center.xml:44
 msgid "Vogt"
-msgstr "Vogt"
+msgstr "വോഗ്"
 
 #. type: Content of: <book><bookinfo><authorgroup><author><email>
 #: help/C/software-center.xml:45
@@ -65,17 +67,17 @@ msgstr "mvo@ubuntu.com"
 #. type: Content of: <book><bookinfo><authorgroup><author><firstname>
 #: help/C/software-center.xml:48
 msgid "Matthew"
-msgstr "Matthew"
+msgstr "മാത്യു"
 
 #. type: Content of: <book><bookinfo><authorgroup><author><firstname>
 #: help/C/software-center.xml:49
 msgid "Paul"
-msgstr "Paul"
+msgstr "പോള്‍"
 
 #. type: Content of: <book><bookinfo><authorgroup><author><surname>
 #: help/C/software-center.xml:50
 msgid "Thomas"
-msgstr "Thomas"
+msgstr "തോമസ്"
 
 #. type: Content of: <book><bookinfo><authorgroup><author><email>
 #: help/C/software-center.xml:51
@@ -85,12 +87,12 @@ msgstr "mpt@ubuntu.com"
 #. type: Content of: <book><bookinfo><authorgroup><author><firstname>
 #: help/C/software-center.xml:54
 msgid "Andrew"
-msgstr "Andrew"
+msgstr "ആന്‍ഡ്ര്യു"
 
 #. type: Content of: <book><bookinfo><authorgroup><author><surname>
 #: help/C/software-center.xml:55
 msgid "Higginson"
-msgstr "Higginson"
+msgstr "ഹിഗ്ഗിന്‍സണ്‍"
 
 #. type: Content of: <book><bookinfo><authorgroup><author><email>
 #: help/C/software-center.xml:56
@@ -100,12 +102,12 @@ msgstr "rugby471@gmail.com"
 #. type: Content of: <book><bookinfo><abstract><para>
 #: help/C/software-center.xml:60
 msgid "How to install and remove software in Ubuntu."
-msgstr ""
+msgstr "ഉബുണ്ടുവില്‍ സോഫ്റ്റ്‌വെയര്‍ സ്ഥാപിക്കുകയോ നീക്കം ചെയ്യുകയോ ചെയ്യുന്നത് എങ്ങിനെ."
 
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:67
 msgid "What is Ubuntu Software Center?"
-msgstr "Zer da Ubuntu software-zentroa?"
+msgstr "എന്താണ് 'ഉബുണ്ടു സോഫ്റ്റ്‌വെയര്‍ സെന്റര്‍'"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:69
@@ -113,6 +115,8 @@ msgid ""
 "Ubuntu Software Center is a virtual catalog of thousands of free "
 "applications and other software to make your Ubuntu computer more useful."
 msgstr ""
+"നിങ്ങളു‌ടെ ഉബുണ്ടു കംപ്യൂട്ടര്‍ കൂടുതല്‍ ഉപയോഗപ്രഥമാക്കാനായി ആയിരക്കണക്കിന് സ്വതന്ത്രമോ അല്ലാത്തതോ ആയ "
+"സോഫ്റ്റ്‌വെയറുകളുടെ സഞ്ചയമാണ് 'ഉബുണ്ടു സോഫ്റ്റി‌വെയര്‍ സെന്റര്‍'"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:73
@@ -120,6 +124,8 @@ msgid ""
 "You can find software by category or by searching, and you can install an "
 "item with the click of a button."
 msgstr ""
+"വര്‍ഗ്ഗീകരിച്ച സോഫ്റ്റ്‌വെയര്‍ നിങ്ങള്‍ക്ക് എളുപ്പം തെരഞ്ഞ് കണ്ടെത്താം, അവയെ ഒരു ബട്ടണില്‍ ക്ലിക്ക് ചെയ്ത് "
+"കംപ്യൂട്ടറില്‍ സ്ഥാപിക്കുകയും ആവാം."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:77
@@ -127,11 +133,13 @@ msgid ""
 "You can also examine which software is installed on the computer already, "
 "and remove anything you no longer need."
 msgstr ""
+"നിങ്ങള്‍ക്ക് കംപ്യൂട്ടറില്‍ സ്ഥാപിച്ചിട്ടുള്ള സോഫ്റ്റ്‌വെയറുകള്‍ ഏതെല്ലാമാണെന്ന് പരിശോധിക്കുകയോ, "
+"ആവശ്യമില്ലാത്തവ നീക്കം ചെയ്യുകയോ ചെയ്യാം."
 
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:83
 msgid "Installing software"
-msgstr "Softwarea instalatzen"
+msgstr "സോഫ്റ്റ്ടവെയര്‍ കംപ്യൂട്ടറില്‍ സ്ഥാപിക്കുന്നു"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:85

@@ -1,17 +1,17 @@
-# Basque translation for software-center
-# Copyright (c) 2011 Rosetta Contributors and Canonical Ltd 2011
+# Latvian translation for software-center
+# Copyright (c) 2010 Rosetta Contributors and Canonical Ltd 2010
 # This file is distributed under the same license as the software-center package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2011.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2010.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: software-center\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-07-21 17:04+0300\n"
-"PO-Revision-Date: 2011-05-28 10:39+0000\n"
-"Last-Translator: Asier Sarasua Garmendia <Unknown>\n"
-"Language-Team: Basque <eu@li.org>\n"
-"Language: eu\n"
+"PO-Revision-Date: 2010-04-16 09:27+0000\n"
+"Last-Translator: Pēteris Krišjānis <pecisk@gmail.com>\n"
+"Language-Team: Latvian <lv@li.org>\n"
+"Language: lv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -21,12 +21,12 @@ msgstr ""
 #. type: Attribute 'lang' of: <book>
 #: help/C/software-center.xml:18
 msgid "en"
-msgstr ""
+msgstr "lv"
 
 #. type: Content of: <book><bookinfo><title>
 #: help/C/software-center.xml:22
 msgid "Ubuntu Software Center"
-msgstr "Ubunturen software-biltegia"
+msgstr "Ubuntu programmatūras centrs"
 
 #. translators: uncomment this:
 #. <copyright>
@@ -46,6 +46,8 @@ msgid ""
 "<publisher> <publishername>Ubuntu Documentation Project</publishername> </"
 "publisher> &legal;"
 msgstr ""
+"<publisher> <publishername>Ubuntu Documentation Project</publishername> </"
+"publisher> &legal;"
 
 #. type: Content of: <book><bookinfo><authorgroup><author><firstname>
 #: help/C/software-center.xml:43
@@ -100,12 +102,12 @@ msgstr "rugby471@gmail.com"
 #. type: Content of: <book><bookinfo><abstract><para>
 #: help/C/software-center.xml:60
 msgid "How to install and remove software in Ubuntu."
-msgstr ""
+msgstr "Kā instalēt un izņemt programmatūru Ubuntu vidē."
 
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:67
 msgid "What is Ubuntu Software Center?"
-msgstr "Zer da Ubuntu software-zentroa?"
+msgstr "Kas ir Ubuntu programmatūras centrs?"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:69
@@ -113,6 +115,9 @@ msgid ""
 "Ubuntu Software Center is a virtual catalog of thousands of free "
 "applications and other software to make your Ubuntu computer more useful."
 msgstr ""
+"Ubuntu programmatūras centrs ir virtuāls katalogs ar tūkstošiem brīvi "
+"pieejamu lietotņu un citu programmatūru, lai padarītu jūsu Ubuntu sistēmu "
+"vēl lielderīgāku."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:73
@@ -120,6 +125,8 @@ msgid ""
 "You can find software by category or by searching, and you can install an "
 "item with the click of a button."
 msgstr ""
+"Jūs varat atrast programmatūru pēc kategorijas vai veicot meklēšanu, un jūs "
+"to varat uzinstalēt ar vienu pogas klikšķi."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:77
@@ -131,7 +138,7 @@ msgstr ""
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:83
 msgid "Installing software"
-msgstr "Softwarea instalatzen"
+msgstr "Programmatūras instalēšana"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:85
@@ -140,6 +147,10 @@ msgid ""
 "access and a working Internet connection.  (If you set up Ubuntu on this "
 "computer yourself, you have administrator access automatically.)"
 msgstr ""
+"Lai uzinstalētu kaut ko izmantojot Ubuntu programmatūras centru, jums ir "
+"nepieciešama administratora pieeja un strādājošs savienojums ar Internet (Ja "
+"pats esat iestatījis Ubuntu uz šī datora, administratora pieeja jums ir "
+"piešķirta automātiski.)"
 
 #. type: Content of: <book><chapter><orderedlist><listitem><para>
 #: help/C/software-center.xml:93
@@ -149,11 +160,18 @@ msgid ""
 "field.  Or try searching for the type of program you want (like &#8220;"
 "spreadsheet&#8221;).  Otherwise, browse the list of departments."
 msgstr ""
+"<guilabel>Iegūt programmatūru</guilabel> sekcijā atrodiet to, ko jūs "
+"vēlaties instalēt.  Ja jūs jau zināt nosaukumu, mēģiniet ierakstīt to "
+"meklēšanas laukā. Vai arī mēģiniet meklēt pēc programmas veida, kas jums "
+"nepieciešama (piemēram, izklājlapa).  Pašās beigās varat pārlūkot nodaļu "
+"sarakstu."
 
 #. type: Content of: <book><chapter><orderedlist><listitem><para>
 #: help/C/software-center.xml:103
 msgid "Select the item in the list, and choose <guilabel>More Info</guilabel>."
 msgstr ""
+"Izvēlieties vienību no saraksta, un klikšķiniet <guilabel>Vairāk "
+"informācijas</guilabel>."
 
 #. type: Content of: <book><chapter><orderedlist><listitem><para>
 #: help/C/software-center.xml:109
@@ -161,6 +179,8 @@ msgid ""
 "Choose <guilabel>Install</guilabel>.  You may need to enter your Ubuntu "
 "password before the installation can begin."
 msgstr ""
+"Izvēlieties <guilabel>Instalēt</guilabel>.  Jums varētu būt nepieciešams "
+"ievadīt jūsu Ubuntu paroli pirms instalēšanas turpināšanas."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:116
@@ -168,6 +188,8 @@ msgid ""
 "How long something takes to install depends on how large it is, and the "
 "speed of your computer and Internet connection."
 msgstr ""
+"Cik ilgi notiks instalēšana ir atkarīgs no cik apjomīga programma tā ir, cik "
+"ātrs ir jūsu dators, kā arī savienojums ar Internet."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:120
@@ -175,21 +197,23 @@ msgid ""
 "When the screen changes to say &#8220;Installed&#8221;, the software is "
 "ready to use."
 msgstr ""
+"Kad uz ekrāna parādās &#8220;Instalēts&#8221;, programmatūra ir gatava "
+"lietošanai."
 
 #. type: Content of: <book><chapter><itemizedlist><listitem><para>
 #: help/C/software-center.xml:124
 msgid "<xref linkend=\"launching\" endterm=\"launching-title\"/>"
-msgstr ""
+msgstr "<xref linkend=\"launching\" endterm=\"launching-title\"/>"
 
 #. type: Content of: <book><chapter><itemizedlist><listitem><para>
 #: help/C/software-center.xml:125
 msgid "<xref linkend=\"missing\" endterm=\"missing-title\"/>"
-msgstr ""
+msgstr "<xref linkend=\"missing\" endterm=\"missing-title\"/>"
 
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:130
 msgid "Using a program once it&#8217;s installed"
-msgstr ""
+msgstr "Programmas izmantošana pēc tās uzinstalēšanas"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:132
@@ -224,11 +248,16 @@ msgid ""
 "browser plugin, you may need to close the browser and reopen it before the "
 "plugin will be used."
 msgstr ""
+"Dažas vienības, tādas kā mēdiju atskaņošana vai tīmekļa pārlūku spraudņi, "
+"neparādās izvēlnēs. Tie tiek automātiski izmantoti atkarībā pēc "
+"nepieciešamības. Lai sāktu lietot tīmekļa pārlūka spraudni varētu būt "
+"nepieciešams pārstartēt pārlūku un atvērt to vēlreiz pirms spraudņa "
+"izmantošanas."
 
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:160
 msgid "Removing software"
-msgstr ""
+msgstr "Programmatūras noņemšana"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:162
@@ -236,6 +265,9 @@ msgid ""
 "To remove software, you need administrator access.  (If you set up Ubuntu on "
 "this computer yourself, you have administrator access automatically.)"
 msgstr ""
+"Lai izņemtu programmatūru no šī datora, jums ir nepieciešama administratora "
+"pieeja un strādājošs savienojums ar Internet (Ja pats esat iestatījis Ubuntu "
+"uz šī datora, administratora pieeja jums ir piešķirta automātiski.)"
 
 #. type: Content of: <book><chapter><orderedlist><listitem><para>
 #: help/C/software-center.xml:169
@@ -243,6 +275,8 @@ msgid ""
 "In the <guilabel>Installed Software</guilabel> section, find the item you "
 "want to remove."
 msgstr ""
+"Sekcijā <guilabel>Instalētā programmatūra</guilabel> atrodiet vienību, ko "
+"jūs vēlētos izņemt."
 
 #. type: Content of: <book><chapter><orderedlist><listitem><para>
 #: help/C/software-center.xml:175
@@ -250,6 +284,8 @@ msgid ""
 "Select the item in the list, and choose <guilabel>Remove</guilabel>.  You "
 "may need to enter your Ubuntu password."
 msgstr ""
+"Izvēlieties vienību no saraksta, un klikšķiniet <guilabel>Izņemt</guilabel>. "
+"Jums, iespējams, vajadzēs ievadīt jūsu Ubuntu paroli."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:181
@@ -258,16 +294,19 @@ msgid ""
 "after it is removed.  As soon as you close it, it will no longer be "
 "available."
 msgstr ""
+"Ja programma ir atvērta laikā, kad mēģinat to izņemt no sistēmas, parasti tā "
+"paliks atvērta pat pēc izņemšanas darbības beigām. Tiklīdz jūs to "
+"aizvērsiet, tā vairāk nebūs pieejama."
 
 #. type: Content of: <book><chapter><itemizedlist><listitem><para>
 #: help/C/software-center.xml:186
 msgid "<xref linkend=\"metapackages\" endterm=\"metapackages-title\"/>"
-msgstr ""
+msgstr "<xref linkend=\"metapackages\" endterm=\"metapackages-title\"/>"
 
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:191
 msgid "Why is it asking me to remove several programs together?"
-msgstr ""
+msgstr "Kāpēc tas vaicā man par vairāku programmu izņemšanu vienlaicīgi?"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:193
@@ -292,6 +331,10 @@ msgid ""
 "removed, all of them are removed.  Ubuntu Software Center cannot remove them "
 "individually, because it has no instructions on how to separate them."
 msgstr ""
+"Vairākas lietotnes dažreiz tiek piedāvātas kā viena pakotne. Ja kāda no "
+"viņām tiek instalēta, tad pārējās arī tiek. Attiecīgi ja kāda no tām tiek "
+"izņemta, pārējās seko. Ubuntu programmatūras centrs nevar izņemt tās "
+"atsevišķi pa vienai, tāpēc ka tam nav instrukcijas, kā tās atdalīt."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:215
@@ -303,17 +346,20 @@ msgid ""
 "Edition, it is in <menuchoice><guimenu>Settings</guimenu> "
 "<guisubmenu>Preferences</guisubmenu></menuchoice>."
 msgstr ""
+"<ulink url=\"ghelp:user-guide?menu-editor\" >Customizing the menu bar</ulink>"
 
 #. type: Content of: <book><chapter><itemizedlist><listitem><para>
 #: help/C/software-center.xml:226
 msgid ""
 "<ulink url=\"ghelp:user-guide?menu-editor\" >Customizing the menu bar</ulink>"
 msgstr ""
+"<ulink url=\"ghelp:user-guide?menu-editor\" >Izvēlnes joslas pielāgošana</"
+"ulink>"
 
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:232
 msgid "What is &#8220;Canonical-maintained&#8221;?"
-msgstr ""
+msgstr "Ko nozīmē &#8220;Canonical uzturētā programmatūra&#8221;?"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:234
@@ -329,11 +375,14 @@ msgid ""
 "Other software is maintained by the Ubuntu developer community.  Any updates "
 "are provided on a best-effort basis."
 msgstr ""
+"Citu daļu no programmatūras uztur Ubuntu izstrādātāju kopiena. Jebkuri "
+"atjauninājumi šai programmatūrai tiek nodrošināti vadoties pēc labākajām "
+"iespējām."
 
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:245
 msgid "What is &#8220;Canonical Partners&#8221;?"
-msgstr ""
+msgstr "Kas ir &#8220;Canonical partneri&#8221;?"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:247
@@ -341,6 +390,9 @@ msgid ""
 "<guilabel>Canonical Partners</guilabel> shows software from vendors who have "
 "worked with Canonical to make their software available for Ubuntu."
 msgstr ""
+"<guilabel>Canonical partneri</guilabel> satur programmatūru no "
+"piegādātājiem, kas ir sadarbojušies ar Canonical, lai padarītu savu "
+"programmatūru pieejamu Ubuntu videi."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:251
@@ -348,6 +400,8 @@ msgid ""
 "You can install this software in the same way as any other software in "
 "Ubuntu Software Center."
 msgstr ""
+"Jūs varat instalēt šo programmatūru tāpat kā jebkuru citu Ubuntu "
+"programmatūras centrā."
 
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:256
@@ -403,7 +457,7 @@ msgstr ""
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:293
 msgid "What if a program I want isn&#8217;t available?"
-msgstr ""
+msgstr "Ko darīt, ja programma, ko es vēlos iegūt, nav pieejama?"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:295
@@ -411,6 +465,8 @@ msgid ""
 "First, check that <menuchoice><guimenu>View</guimenu> <guimenuitem>All "
 "Software</guimenuitem></menuchoice> is selected."
 msgstr ""
+"Vispirms pārbaudiet, ka <menuchoice><guimenu>Skats</guimenu> "
+"<guimenuitem>Visa programmatūra</guimenuitem></menuchoice> ir izvēlēts."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:299
@@ -419,6 +475,9 @@ msgid ""
 "on Ubuntu, try contacting the original developers of the program to ask if "
 "they can help make it available."
 msgstr ""
+"Ja programmatūra, ko jūs vēlaties izmantot vēl joprojām nav tur atrodama, "
+"bet jūs zināt, ka tā strādā Ubuntu vidē, mēģiniet sazināties ar programmas "
+"izstrādātājiem un vaicājiet, vai tie var palīdzēt jums ar pieejamību."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:305
@@ -426,11 +485,13 @@ msgid ""
 "If a program is available for other operating systems but not for Ubuntu, "
 "let the developers know that you&#8217;re interested in running it on Ubuntu."
 msgstr ""
+"Ja programma ir pieejama citām operētājsistēmām, bet ne Ubuntu, informējiet "
+"izstrādātājus, ka jūs esat ieinteresēti tās lietošanā Ubuntu vidē."
 
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:312
 msgid "What if a program doesn&#8217;t work?"
-msgstr ""
+msgstr "Ko darīt, ja programma nestrādā?"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:314
@@ -439,6 +500,8 @@ msgid ""
 "always the chance that a few of them won&#8217;t work properly on your "
 "computer."
 msgstr ""
+"Tā kā Ubuntu programmatūras centrs piedāvā tūkstošiem programmu, vienmēr "
+"pastāv iespēja ka dažas no tām jūsu datorā nestrādās korekti."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:319
@@ -448,6 +511,10 @@ msgid ""
 "<guimenuitem>Report a Problem</guimenuitem> item in their <guimenu>Help</"
 "guimenu> menu."
 msgstr ""
+"Ja jūs zināt, kā ziņot par kļūdām programmatūrā, jūs varat palīdzēt ar "
+"problēmas apraksta nosūtīšanu Ubuntu izstrādātājiem. Lielākoties visām "
+"programmām ir pieejama <guimenuitem>Report a Problem</guimenuitem> izvēle "
+"<guimenu>Palīdzība</guimenu> izvēlnē."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:325
@@ -459,7 +526,7 @@ msgstr ""
 #. type: Content of: <book><chapter><itemizedlist><listitem><para>
 #: help/C/software-center.xml:329
 msgid "<xref linkend=\"removing\" endterm=\"removing-title\"/>"
-msgstr ""
+msgstr "<xref linkend=\"removing\" endterm=\"removing-title\"/>"
 
 #. type: Content of: <legalnotice><para>
 #: help/C/legal.xml:3
@@ -529,3 +596,59 @@ msgid ""
 "OF THE GNU FREE DOCUMENTATION LICENSE WITH THE FURTHER UNDERSTANDING THAT: "
 "<placeholder type=\"orderedlist\" id=\"0\"/>"
 msgstr ""
+
+#~ msgid ""
+#~ "Most installed applications appear in the <guimenu>Applications</guimenu> "
+#~ "menu in the corner of the screen, in the same category as they came from "
+#~ "in the Software Center."
+#~ msgstr ""
+#~ "Vairums instalēto lietotņu parādās <guimenu>Lietotnes</guimenu> izvēlnē "
+#~ "ekrāna stūrī, tajā pašā kategorijā kurā tā atradās programmatūras centrā."
+
+#~ msgid ""
+#~ "For example, if you installed a program from the <guilabel>Office</"
+#~ "guilabel> department, it will appear inside "
+#~ "<menuchoice><guimenu>Applications</guimenu> <guisubmenu>Office</"
+#~ "guisubmenu></menuchoice>."
+#~ msgstr ""
+#~ "Piemēram, ja jūs instalējāt programmu no <guilabel>Birojs</guilabel> "
+#~ "nodaļas, tā parādīsies <menuchoice><guimenu>Lietotnes</guimenu> "
+#~ "<guisubmenu>Birojs</guisubmenu></menuchoice>."
+
+#~ msgid ""
+#~ "If you remove an application, any add-ons or accessories for that "
+#~ "application usually will be removed too."
+#~ msgstr ""
+#~ "Ja jūs izņemat lietotni, jebkuri lietotnes pievienojumi vai rīki parasti "
+#~ "arī tiks izņemti."
+
+#~ msgid "Currently, all software in Ubuntu Software Center is free of charge."
+#~ msgstr ""
+#~ "Šobrīd, visa programmatūra Ubuntu programmatūras centrā ir pa brīvu."
+
+#~ msgid ""
+#~ "Most of this software is developed as <firstterm>open source</firstterm>, "
+#~ "which means anyone is allowed to alter it and redistribute it for any "
+#~ "price.  Ubuntu developers, Debian developers, and others package the "
+#~ "software available in Ubuntu Software Center, and make it available to "
+#~ "you for free."
+#~ msgstr ""
+#~ "Lielākā daļa programmatūras ir izstrādāta pēc <firstterm>atvērta koda</"
+#~ "firstterm> principiem, kas nozīmē, ka ikvienam ir atļauts to izmainīt un "
+#~ "izplatīt par jebkuru cenu. Ubuntu un Debian izstrādātāji, kā arī citi "
+#~ "sapako Ubuntu programmatūras centrā pieejamo programmatūru, un padara to "
+#~ "jums pieejamu pa brīvu."
+
+#~ msgid ""
+#~ "In a future version of Ubuntu, the Center will also allow software "
+#~ "purchases."
+#~ msgstr ""
+#~ "Nākošajās Ubuntu versijās centrā varēs iegādāties arī maksas "
+#~ "programmatūru."
+
+#~ msgid ""
+#~ "Otherwise, look through the Center for another program to do what you "
+#~ "want."
+#~ msgstr ""
+#~ "Un beigās, jūs varat pārlūkot centra piedāvāto programmatūru, lai atrastu "
+#~ "citu programmu, kas dara to, ko jūs vēlaties."

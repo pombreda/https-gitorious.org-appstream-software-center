@@ -1,17 +1,17 @@
-# Basque translation for software-center
-# Copyright (c) 2011 Rosetta Contributors and Canonical Ltd 2011
+# Luxembourgish translation for software-center
+# Copyright (c) 2010 Rosetta Contributors and Canonical Ltd 2010
 # This file is distributed under the same license as the software-center package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2011.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2010.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: software-center\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-07-21 17:04+0300\n"
-"PO-Revision-Date: 2011-05-28 10:39+0000\n"
-"Last-Translator: Asier Sarasua Garmendia <Unknown>\n"
-"Language-Team: Basque <eu@li.org>\n"
-"Language: eu\n"
+"PO-Revision-Date: 2010-08-31 21:03+0000\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: Luxembourgish <lb@li.org>\n"
+"Language: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -21,12 +21,12 @@ msgstr ""
 #. type: Attribute 'lang' of: <book>
 #: help/C/software-center.xml:18
 msgid "en"
-msgstr ""
+msgstr "en"
 
 #. type: Content of: <book><bookinfo><title>
 #: help/C/software-center.xml:22
 msgid "Ubuntu Software Center"
-msgstr "Ubunturen software-biltegia"
+msgstr "Ubuntu Software Center"
 
 #. translators: uncomment this:
 #. <copyright>
@@ -46,6 +46,8 @@ msgid ""
 "<publisher> <publishername>Ubuntu Documentation Project</publishername> </"
 "publisher> &legal;"
 msgstr ""
+"<publisher> <publishername>Ubuntu Documentatiouns Projet</publishername> </"
+"publisher> &legal;"
 
 #. type: Content of: <book><bookinfo><authorgroup><author><firstname>
 #: help/C/software-center.xml:43
@@ -100,12 +102,12 @@ msgstr "rugby471@gmail.com"
 #. type: Content of: <book><bookinfo><abstract><para>
 #: help/C/software-center.xml:60
 msgid "How to install and remove software in Ubuntu."
-msgstr ""
+msgstr "Wéi een Software am Ubuntu installéiert a läscht."
 
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:67
 msgid "What is Ubuntu Software Center?"
-msgstr "Zer da Ubuntu software-zentroa?"
+msgstr "Wat ass den Ubuntu Software Center"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:69
@@ -113,6 +115,9 @@ msgid ""
 "Ubuntu Software Center is a virtual catalog of thousands of free "
 "applications and other software to make your Ubuntu computer more useful."
 msgstr ""
+"Ubuntu Software Center ass e virtuelle Katalog mat dausende vu gratis "
+"Applikatiounen an anerer Software fir däin Ubuntu Computer méi nëtzlech ze "
+"maachen."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:73
@@ -120,6 +125,8 @@ msgid ""
 "You can find software by category or by searching, and you can install an "
 "item with the click of a button."
 msgstr ""
+"Du kanns Software no Kategorien oder duerch siche fannen, an se "
+"installéieren andeems de op e Knäppche klicks."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:77
@@ -131,7 +138,7 @@ msgstr ""
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:83
 msgid "Installing software"
-msgstr "Softwarea instalatzen"
+msgstr "Software installéieren"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:85
@@ -140,6 +147,10 @@ msgid ""
 "access and a working Internet connection.  (If you set up Ubuntu on this "
 "computer yourself, you have administrator access automatically.)"
 msgstr ""
+"Fir eppes mam Ubuntu Software Center ze installéieren, brauchs de een "
+"Administrator-Konto an eng funktionéiernd Internet Connectioun. (Wann s de "
+"Ubuntu selwer op dësem Computer installéiert hues, hues de automatesch een "
+"Administrator-Konto.)"
 
 #. type: Content of: <book><chapter><orderedlist><listitem><para>
 #: help/C/software-center.xml:93
@@ -154,6 +165,7 @@ msgstr ""
 #: help/C/software-center.xml:103
 msgid "Select the item in the list, and choose <guilabel>More Info</guilabel>."
 msgstr ""
+"Selektionéier d'Element an der Lëscht, an wiel <guilabel>Méi Info</guilabel>."
 
 #. type: Content of: <book><chapter><orderedlist><listitem><para>
 #: help/C/software-center.xml:109
@@ -161,6 +173,8 @@ msgid ""
 "Choose <guilabel>Install</guilabel>.  You may need to enter your Ubuntu "
 "password before the installation can begin."
 msgstr ""
+"Wiel <guilabel>Installéieren>/guilabel>. Du muss eventuell däin Ubuntu "
+"Passwuert uginn ier d'Installatioun ufänkt."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:116
@@ -168,6 +182,8 @@ msgid ""
 "How long something takes to install depends on how large it is, and the "
 "speed of your computer and Internet connection."
 msgstr ""
+"Wéi laang eppes brauch fir ze installéieren hänkt dovun of wéi grouss et "
+"ass, a vun der Vitesse vun dengem Computer an der Internet Verbindung."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:120
@@ -175,21 +191,23 @@ msgid ""
 "When the screen changes to say &#8220;Installed&#8221;, the software is "
 "ready to use."
 msgstr ""
+"Wann de Schierm op soe mer &#8220;Installéiert&#8221; wiesselt, ass "
+"d'Software prett fir benotzt ze ginn."
 
 #. type: Content of: <book><chapter><itemizedlist><listitem><para>
 #: help/C/software-center.xml:124
 msgid "<xref linkend=\"launching\" endterm=\"launching-title\"/>"
-msgstr ""
+msgstr "<xref linkend=\"launching\" endterm=\"launching-title\"/>"
 
 #. type: Content of: <book><chapter><itemizedlist><listitem><para>
 #: help/C/software-center.xml:125
 msgid "<xref linkend=\"missing\" endterm=\"missing-title\"/>"
-msgstr ""
+msgstr "<xref linkend=\"missing\" endterm=\"missing-title\"/>"
 
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:130
 msgid "Using a program once it&#8217;s installed"
-msgstr ""
+msgstr "E Programm benotzen soubal en installéiert ass."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:132
@@ -228,7 +246,7 @@ msgstr ""
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:160
 msgid "Removing software"
-msgstr ""
+msgstr "Software läschen"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:162
@@ -236,6 +254,9 @@ msgid ""
 "To remove software, you need administrator access.  (If you set up Ubuntu on "
 "this computer yourself, you have administrator access automatically.)"
 msgstr ""
+"Fir Software ze läsche brauchs de een Administrator-Konto. (Wann s de Ubuntu "
+"selwer op dësem Computer installéiert hues, hues de automatesch een "
+"Administrator-Konto.)"
 
 #. type: Content of: <book><chapter><orderedlist><listitem><para>
 #: help/C/software-center.xml:169
@@ -243,6 +264,8 @@ msgid ""
 "In the <guilabel>Installed Software</guilabel> section, find the item you "
 "want to remove."
 msgstr ""
+"An der <guilabel>Installéiert Software</guilabel> Sektioun, sich d'Element "
+"dat s de läsche wëlls."
 
 #. type: Content of: <book><chapter><orderedlist><listitem><para>
 #: help/C/software-center.xml:175
@@ -250,6 +273,8 @@ msgid ""
 "Select the item in the list, and choose <guilabel>Remove</guilabel>.  You "
 "may need to enter your Ubuntu password."
 msgstr ""
+"Selektionéier d'Element an der Lëscht, a wiel <guilabel>Läschen</guilabel>. "
+"Du muss eventuell däin Ubuntu Passwuert uginn."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:181
@@ -258,16 +283,18 @@ msgid ""
 "after it is removed.  As soon as you close it, it will no longer be "
 "available."
 msgstr ""
+"Wann e Programm op ass wann s de e läschs, bleift e normalerweis op nodeems "
+"e geläscht gouf. Soubal s de en zoumëss, ass en net méi verfügbar."
 
 #. type: Content of: <book><chapter><itemizedlist><listitem><para>
 #: help/C/software-center.xml:186
 msgid "<xref linkend=\"metapackages\" endterm=\"metapackages-title\"/>"
-msgstr ""
+msgstr "<xref linkend=\"metapackages\" endterm=\"metapackages-title\"/>"
 
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:191
 msgid "Why is it asking me to remove several programs together?"
-msgstr ""
+msgstr "Firwat ginn ech gefrot fir e puer Programmer mat en een ze läschen?"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:193
@@ -309,11 +336,13 @@ msgstr ""
 msgid ""
 "<ulink url=\"ghelp:user-guide?menu-editor\" >Customizing the menu bar</ulink>"
 msgstr ""
+"<ulink url=\"ghelp:user-guide?menu-editor\" >D'Menü-Bar personifizéieren</"
+"ulink>"
 
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:232
 msgid "What is &#8220;Canonical-maintained&#8221;?"
-msgstr ""
+msgstr "Wat bedeit &#8220;Canonical-maintained&#8221;?"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:234
@@ -333,7 +362,7 @@ msgstr ""
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:245
 msgid "What is &#8220;Canonical Partners&#8221;?"
-msgstr ""
+msgstr "Wat si &#8220;Canonical Partners&#8221;?"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:247
@@ -348,6 +377,8 @@ msgid ""
 "You can install this software in the same way as any other software in "
 "Ubuntu Software Center."
 msgstr ""
+"Du kanns dës Software d'selwecht wéi all déi aner Software am Ubuntu "
+"Software Center installéieren."
 
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:256
@@ -403,7 +434,7 @@ msgstr ""
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:293
 msgid "What if a program I want isn&#8217;t available?"
-msgstr ""
+msgstr "Wat maache wann e Programm deen ech well hunn net verfügbar ass?"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:295
@@ -411,6 +442,8 @@ msgid ""
 "First, check that <menuchoice><guimenu>View</guimenu> <guimenuitem>All "
 "Software</guimenuitem></menuchoice> is selected."
 msgstr ""
+"Als éischt, kontrolléier op <menuchoice><guimenu>Usiicht</guimenu> "
+"<guimenuitem>All Software</guimenuitem></menuchoice> selectionéiert ass."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:299
@@ -419,6 +452,9 @@ msgid ""
 "on Ubuntu, try contacting the original developers of the program to ask if "
 "they can help make it available."
 msgstr ""
+"Wann d'Software déi s de wëlls nach net do ass, mee s du weess dass se op "
+"Ubuntu leeft, probéier d'original Entwéckler vum Programm ze kontaktéieren a "
+"se ze froen op se et verfügbar maache kënnen."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:305
@@ -430,7 +466,7 @@ msgstr ""
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:312
 msgid "What if a program doesn&#8217;t work?"
-msgstr ""
+msgstr "Wat maache wann e Programm net funktionéiert?"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:314
@@ -459,7 +495,7 @@ msgstr ""
 #. type: Content of: <book><chapter><itemizedlist><listitem><para>
 #: help/C/software-center.xml:329
 msgid "<xref linkend=\"removing\" endterm=\"removing-title\"/>"
-msgstr ""
+msgstr "<xref linkend=\"removing\" endterm=\"removing-title\"/>"
 
 #. type: Content of: <legalnotice><para>
 #: help/C/legal.xml:3
@@ -529,3 +565,40 @@ msgid ""
 "OF THE GNU FREE DOCUMENTATION LICENSE WITH THE FURTHER UNDERSTANDING THAT: "
 "<placeholder type=\"orderedlist\" id=\"0\"/>"
 msgstr ""
+
+#~ msgid ""
+#~ "If you remove an application, any add-ons or accessories for that "
+#~ "application usually will be removed too."
+#~ msgstr ""
+#~ "Wann s de eng Applikatioun läschs, ginn all Add-onen oder Accessoiren fir "
+#~ "déi Applikatioun normalerweis och geläscht."
+
+#~ msgid ""
+#~ "Most installed applications appear in the <guimenu>Applications</guimenu> "
+#~ "menu in the corner of the screen, in the same category as they came from "
+#~ "in the Software Center."
+#~ msgstr ""
+#~ "Déi meescht installéiert Applikatiounen dauchen am "
+#~ "<guilmenu>Applikatiounen</guimenu> Menü am Eck vum Schierm op, an der "
+#~ "selwechter Kategorie wéi se am Software Center waren."
+
+#~ msgid ""
+#~ "For example, if you installed a program from the <guilabel>Office</"
+#~ "guilabel> department, it will appear inside "
+#~ "<menuchoice><guimenu>Applications</guimenu> <guisubmenu>Office</"
+#~ "guisubmenu></menuchoice>."
+#~ msgstr ""
+#~ "Als Beispill, wann s de e Programm aus der <guilabel>Office</guilabel> "
+#~ "Kategorie installéiert hues, wäert en am "
+#~ "<menuchoice><guimenu>Applikatiounen</guimenu> <guisubmenu>Office</"
+#~ "guisubmenu></menuchoice> opdauchen."
+
+#~ msgid "Currently, all software in Ubuntu Software Center is free of charge."
+#~ msgstr "Aktuell ass all d'Software am Ubuntu Software Center gratis."
+
+#~ msgid ""
+#~ "In a future version of Ubuntu, the Center will also allow software "
+#~ "purchases."
+#~ msgstr ""
+#~ "An zukünftege Versiounen Ubuntu wäert den Center och erlaben Software ze "
+#~ "kafen."

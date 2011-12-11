@@ -1,4 +1,4 @@
-# Basque translation for software-center
+# Albanian translation for software-center
 # Copyright (c) 2011 Rosetta Contributors and Canonical Ltd 2011
 # This file is distributed under the same license as the software-center package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, 2011.
@@ -8,10 +8,10 @@ msgstr ""
 "Project-Id-Version: software-center\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-07-21 17:04+0300\n"
-"PO-Revision-Date: 2011-05-28 10:39+0000\n"
-"Last-Translator: Asier Sarasua Garmendia <Unknown>\n"
-"Language-Team: Basque <eu@li.org>\n"
-"Language: eu\n"
+"PO-Revision-Date: 2011-10-12 03:58+0000\n"
+"Last-Translator: Vilson Gjeci <vilsongjeci@gmail.com>\n"
+"Language-Team: Albanian <sq@li.org>\n"
+"Language: sq\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -21,12 +21,12 @@ msgstr ""
 #. type: Attribute 'lang' of: <book>
 #: help/C/software-center.xml:18
 msgid "en"
-msgstr ""
+msgstr "en"
 
 #. type: Content of: <book><bookinfo><title>
 #: help/C/software-center.xml:22
 msgid "Ubuntu Software Center"
-msgstr "Ubunturen software-biltegia"
+msgstr "Qendra e Programeve të Ubuntu"
 
 #. translators: uncomment this:
 #. <copyright>
@@ -100,12 +100,12 @@ msgstr "rugby471@gmail.com"
 #. type: Content of: <book><bookinfo><abstract><para>
 #: help/C/software-center.xml:60
 msgid "How to install and remove software in Ubuntu."
-msgstr ""
+msgstr "Si të instalomë dhe çinstalojmë programet në Ubuntu."
 
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:67
 msgid "What is Ubuntu Software Center?"
-msgstr "Zer da Ubuntu software-zentroa?"
+msgstr "Çfarë është qendra e programeve Ubuntu?"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:69
@@ -113,6 +113,9 @@ msgid ""
 "Ubuntu Software Center is a virtual catalog of thousands of free "
 "applications and other software to make your Ubuntu computer more useful."
 msgstr ""
+"Qendra e programeve Ubuntu është një katalog virtual me mijëra aplikacione "
+"falas dhe programe të tjera për ta bërë kompjuterin tuaj me Ubuntu më të "
+"dobishëm."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:73
@@ -120,6 +123,8 @@ msgid ""
 "You can find software by category or by searching, and you can install an "
 "item with the click of a button."
 msgstr ""
+"Ju mund të gjeni programe sipas kategorisë ose duke kerkuar, dhe ju mund të "
+"instaloni një program me klikimin e një butoni."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:77
@@ -127,11 +132,13 @@ msgid ""
 "You can also examine which software is installed on the computer already, "
 "and remove anything you no longer need."
 msgstr ""
+"Ju gjithashtu mund të shikoni cilat programe janë të instaluara në "
+"kompjuter, dhe të hiqni çdo gjë që nuk është më i nevojshëm për ju."
 
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:83
 msgid "Installing software"
-msgstr "Softwarea instalatzen"
+msgstr "Instalimi i programeve"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:85
@@ -179,12 +186,12 @@ msgstr ""
 #. type: Content of: <book><chapter><itemizedlist><listitem><para>
 #: help/C/software-center.xml:124
 msgid "<xref linkend=\"launching\" endterm=\"launching-title\"/>"
-msgstr ""
+msgstr "<xref linkend=\"launching\" endterm=\"launching-title\"/>"
 
 #. type: Content of: <book><chapter><itemizedlist><listitem><para>
 #: help/C/software-center.xml:125
 msgid "<xref linkend=\"missing\" endterm=\"missing-title\"/>"
-msgstr ""
+msgstr "<xref linkend=\"missing\" endterm=\"missing-title\"/>"
 
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:130
@@ -228,7 +235,7 @@ msgstr ""
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:160
 msgid "Removing software"
-msgstr ""
+msgstr "Duke hequr programet"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:162
@@ -352,7 +359,7 @@ msgstr ""
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:256
 msgid "Do I need to pay anything?"
-msgstr ""
+msgstr "Duhet të paguaj ndonjë gjë?"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:258
@@ -459,7 +466,7 @@ msgstr ""
 #. type: Content of: <book><chapter><itemizedlist><listitem><para>
 #: help/C/software-center.xml:329
 msgid "<xref linkend=\"removing\" endterm=\"removing-title\"/>"
-msgstr ""
+msgstr "<xref linkend=\"removing\" endterm=\"removing-title\"/>"
 
 #. type: Content of: <legalnotice><para>
 #: help/C/legal.xml:3

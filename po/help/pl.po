@@ -1,17 +1,17 @@
-# Basque translation for software-center
-# Copyright (c) 2011 Rosetta Contributors and Canonical Ltd 2011
+# Polish translation for software-center
+# Copyright (c) 2010 Rosetta Contributors and Canonical Ltd 2010
 # This file is distributed under the same license as the software-center package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2011.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2010.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: software-center\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-07-21 17:04+0300\n"
-"PO-Revision-Date: 2011-05-28 10:39+0000\n"
-"Last-Translator: Asier Sarasua Garmendia <Unknown>\n"
-"Language-Team: Basque <eu@li.org>\n"
-"Language: eu\n"
+"PO-Revision-Date: 2010-03-14 11:39+0000\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: Polish <pl@li.org>\n"
+"Language: pl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -26,7 +26,7 @@ msgstr ""
 #. type: Content of: <book><bookinfo><title>
 #: help/C/software-center.xml:22
 msgid "Ubuntu Software Center"
-msgstr "Ubunturen software-biltegia"
+msgstr ""
 
 #. translators: uncomment this:
 #. <copyright>
@@ -50,52 +50,52 @@ msgstr ""
 #. type: Content of: <book><bookinfo><authorgroup><author><firstname>
 #: help/C/software-center.xml:43
 msgid "Michael"
-msgstr "Michael"
+msgstr ""
 
 #. type: Content of: <book><bookinfo><authorgroup><author><surname>
 #: help/C/software-center.xml:44
 msgid "Vogt"
-msgstr "Vogt"
+msgstr ""
 
 #. type: Content of: <book><bookinfo><authorgroup><author><email>
 #: help/C/software-center.xml:45
 msgid "mvo@ubuntu.com"
-msgstr "mvo@ubuntu.com"
+msgstr ""
 
 #. type: Content of: <book><bookinfo><authorgroup><author><firstname>
 #: help/C/software-center.xml:48
 msgid "Matthew"
-msgstr "Matthew"
+msgstr ""
 
 #. type: Content of: <book><bookinfo><authorgroup><author><firstname>
 #: help/C/software-center.xml:49
 msgid "Paul"
-msgstr "Paul"
+msgstr ""
 
 #. type: Content of: <book><bookinfo><authorgroup><author><surname>
 #: help/C/software-center.xml:50
 msgid "Thomas"
-msgstr "Thomas"
+msgstr ""
 
 #. type: Content of: <book><bookinfo><authorgroup><author><email>
 #: help/C/software-center.xml:51
 msgid "mpt@ubuntu.com"
-msgstr "mpt@ubuntu.com"
+msgstr ""
 
 #. type: Content of: <book><bookinfo><authorgroup><author><firstname>
 #: help/C/software-center.xml:54
 msgid "Andrew"
-msgstr "Andrew"
+msgstr ""
 
 #. type: Content of: <book><bookinfo><authorgroup><author><surname>
 #: help/C/software-center.xml:55
 msgid "Higginson"
-msgstr "Higginson"
+msgstr ""
 
 #. type: Content of: <book><bookinfo><authorgroup><author><email>
 #: help/C/software-center.xml:56
 msgid "rugby471@gmail.com"
-msgstr "rugby471@gmail.com"
+msgstr ""
 
 #. type: Content of: <book><bookinfo><abstract><para>
 #: help/C/software-center.xml:60
@@ -105,7 +105,7 @@ msgstr ""
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:67
 msgid "What is Ubuntu Software Center?"
-msgstr "Zer da Ubuntu software-zentroa?"
+msgstr ""
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:69
@@ -131,7 +131,7 @@ msgstr ""
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:83
 msgid "Installing software"
-msgstr "Softwarea instalatzen"
+msgstr ""
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:85

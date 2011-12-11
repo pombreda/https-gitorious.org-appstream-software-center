@@ -6,21 +6,22 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: software-center\n"
-"Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
+"Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-07-21 17:04+0300\n"
-"PO-Revision-Date: 2011-09-27 14:09+0000\n"
-"Last-Translator: Darknautilus <Unknown>\n"
+"PO-Revision-Date: 2011-07-17 10:24+0000\n"
+"Last-Translator: Pierre Slamich <pierre.slamich@gmail.com>\n"
 "Language-Team: French <fr@li.org>\n"
+"Language: fr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Launchpad-Export-Date: 2011-09-28 05:23+0000\n"
-"X-Generator: Launchpad (build 14049)\n"
+"X-Launchpad-Export-Date: 2011-12-10 13:12+0000\n"
+"X-Generator: Launchpad (build 14450)\n"
 
 #. type: Attribute 'lang' of: <book>
 #: help/C/software-center.xml:18
 msgid "en"
-msgstr ""
+msgstr "fr"
 
 #. type: Content of: <book><bookinfo><title>
 #: help/C/software-center.xml:22
@@ -32,7 +33,7 @@ msgstr "Logithèque Ubuntu"
 #. <year>2000</year>
 #. <holder>ME-THE-TRANSLATOR (Latin translation)</holder>
 #. </copyright>
-#. 
+#.
 #. An address can be added to the publisher information.  If a role is
 #. not specified, the publisher/author is the same for all versions of the
 #. document.
@@ -42,8 +43,8 @@ msgstr "Logithèque Ubuntu"
 #. type: Content of: <book><bookinfo>
 #: help/C/software-center.xml:34
 msgid ""
-"<publisher> <publishername>Ubuntu Documentation Project</publishername> "
-"</publisher> &legal;"
+"<publisher> <publishername>Ubuntu Documentation Project</publishername> </"
+"publisher> &legal;"
 msgstr ""
 "<publisher> <publishername>Le Projet de Documentation Ubuntu</publishername> "
 "</publisher> &legal;"
@@ -133,11 +134,13 @@ msgid ""
 "You can also examine which software is installed on the computer already, "
 "and remove anything you no longer need."
 msgstr ""
+"Vous pouvez aussi examiner les logiciels déjà installés sur votre ordinateur "
+"et supprimer ceux dont vous n'avez plus besoin."
 
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:83
 msgid "Installing software"
-msgstr ""
+msgstr "Installer des logiciels"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:85
@@ -146,20 +149,29 @@ msgid ""
 "access and a working Internet connection.  (If you set up Ubuntu on this "
 "computer yourself, you have administrator access automatically.)"
 msgstr ""
+"Afin de procéder à une installation depuis la logithèque Ubuntu, vous devez "
+"disposer des droits administrateur  (si vous avez procédé vous même à "
+"l'installation d'Ubuntu sur l'ordinateur concerné, vous possédez "
+"automatiquement les droits administrateur) et d'une connexion Internet "
+"fonctionnelle."
 
 #. type: Content of: <book><chapter><orderedlist><listitem><para>
 #: help/C/software-center.xml:93
 msgid ""
 "In the <guilabel>Get Software</guilabel> section, find the thing you want to "
 "install.  If you already know its name, try typing the name in the search "
-"field.  Or try searching for the type of program you want (like "
-"&#8220;spreadsheet&#8221;).  Otherwise, browse the list of departments."
+"field.  Or try searching for the type of program you want (like &#8220;"
+"spreadsheet&#8221;).  Otherwise, browse the list of departments."
 msgstr ""
+"Dans la section <guilabel>Obtenir un logiciel</guilabel>, trouvez celui qui "
+"vous intéresse. Si vous connaissez déjà son nom, essayez de le taper "
+"directement dans le champ de recherche. Ou essayez une recherche en fonction "
+"du type de programme désiré (comme&#8220;tableur&#8221;). Sinon, parcourez "
+"la liste des catégories."
 
 #. type: Content of: <book><chapter><orderedlist><listitem><para>
 #: help/C/software-center.xml:103
-msgid ""
-"Select the item in the list, and choose <guilabel>More Info</guilabel>."
+msgid "Select the item in the list, and choose <guilabel>More Info</guilabel>."
 msgstr ""
 "Sélectionnez le programme dans la liste et cliquez sur <guilabel>Plus "
 "d'informations</guilabel>."
@@ -170,6 +182,8 @@ msgid ""
 "Choose <guilabel>Install</guilabel>.  You may need to enter your Ubuntu "
 "password before the installation can begin."
 msgstr ""
+"Cliquez sur <guilabel>Installer</guilabel>.  Vous devrez peut-être entrer "
+"votre mot de passe Ubuntu pour pouvoir lancer l'installation."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:116
@@ -177,6 +191,8 @@ msgid ""
 "How long something takes to install depends on how large it is, and the "
 "speed of your computer and Internet connection."
 msgstr ""
+"La durée de l'installation dépend de la taille du logiciel ainsi que de la "
+"vitesse de votre ordinateur et de votre connexion Internet."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:120
@@ -184,11 +200,13 @@ msgid ""
 "When the screen changes to say &#8220;Installed&#8221;, the software is "
 "ready to use."
 msgstr ""
+"Quand le message &#8220;Installé&#8221; apparaît à l'écran, le logiciel est "
+"prêt à l'emploi."
 
 #. type: Content of: <book><chapter><itemizedlist><listitem><para>
 #: help/C/software-center.xml:124
 msgid "<xref linkend=\"launching\" endterm=\"launching-title\"/>"
-msgstr ""
+msgstr "<xref linkend=\"launching\" endterm=\"launching-title\"/>"
 
 #. type: Content of: <book><chapter><itemizedlist><listitem><para>
 #: help/C/software-center.xml:125
@@ -205,11 +223,16 @@ msgstr "Utilisation d&#8217;un programme une fois qu&#8217;il est installé"
 msgid ""
 "For most programs, once they are installed, you can launch them from the "
 "<guimenu>Applications</guimenu> menu.  (Utilities for changing settings may "
-"appear inside <menuchoice><guimenu>System</guimenu> "
-"<guisubmenu>Preferences</guisubmenu></menuchoice> or "
-"<menuchoice><guimenu>System</guimenu> "
+"appear inside <menuchoice><guimenu>System</guimenu> <guisubmenu>Preferences</"
+"guisubmenu></menuchoice> or <menuchoice><guimenu>System</guimenu> "
 "<guisubmenu>Administration</guisubmenu></menuchoice> instead)."
 msgstr ""
+"Pour la plupart des programmes, une fois qu'ils sont installés, vous pouvez "
+"les lancer depuis le menu <guimenu>Applications</guimenu>. (Les utilitaires "
+"permettant de changer des préférences pourraient se trouver dans "
+"<menuchoice><guimenu>Système</guimenu> <guisubmenu>Préférences</guisubmenu></"
+"menuchoice> ou bien <menuchoice><guimenu>Système</guimenu> "
+"<guisubmenu>Administration</guisubmenu></menuchoice>.)"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:141
@@ -218,6 +241,10 @@ msgid ""
 "program in Ubuntu Software Center, if it is not still being displayed.  The "
 "menu location should be displayed on that screen, below the colored bar."
 msgstr ""
+"Pour trouver comment lancer un nouveau programme, parcourez la Logithèque "
+"Ubuntu jusqu'à l'écran de ce programme, s'il n'est pas déjà affiché. "
+"L'emplacement dans le menu devrait être affiché sur cet écran, sous la barre "
+"colorée."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:148
@@ -236,6 +263,11 @@ msgid ""
 "browser plugin, you may need to close the browser and reopen it before the "
 "plugin will be used."
 msgstr ""
+"Certains éléments tels que les modules de lecture de média ou liés aux "
+"navigateurs Web, n'apparaissent pas dans les menus. Ils sont utilisés "
+"automatiquement quand Ubuntu en a besoin. Dans le cas des modules pour "
+"navigateur Web, il est parfois nécessaire de fermer et de relancer le "
+"navigateur pour que le module fonctionne."
 
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:160
@@ -248,6 +280,10 @@ msgid ""
 "To remove software, you need administrator access.  (If you set up Ubuntu on "
 "this computer yourself, you have administrator access automatically.)"
 msgstr ""
+"Afin de supprimer des logiciels, vous devez disposer des droits "
+"d'administrateur (si vous avez procédé vous même à l'installation d'Ubuntu "
+"sur l'ordinateur concerné, vous possédez automatiquement les droits "
+"d'administrateur)."
 
 #. type: Content of: <book><chapter><orderedlist><listitem><para>
 #: help/C/software-center.xml:169
@@ -255,6 +291,8 @@ msgid ""
 "In the <guilabel>Installed Software</guilabel> section, find the item you "
 "want to remove."
 msgstr ""
+"Dans la section <guilabel>Logiciels installés</guilabel>, repérez l'élément "
+"que vous désirez supprimer."
 
 #. type: Content of: <book><chapter><orderedlist><listitem><para>
 #: help/C/software-center.xml:175
@@ -262,6 +300,8 @@ msgid ""
 "Select the item in the list, and choose <guilabel>Remove</guilabel>.  You "
 "may need to enter your Ubuntu password."
 msgstr ""
+"Sélectionnez cet élément dans la liste et cliquez sur <guilabel>Supprimer</"
+"guilabel>. Votre mot de passe Ubuntu vous sera peut-être demandé."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:181
@@ -270,6 +310,9 @@ msgid ""
 "after it is removed.  As soon as you close it, it will no longer be "
 "available."
 msgstr ""
+"Si un programme est en cours d'exécution quand vous le désinstallez, il "
+"restera généralement ouvert même après sa suppression. Il cessera d'être "
+"disponible dès que vous le fermerez."
 
 #. type: Content of: <book><chapter><itemizedlist><listitem><para>
 #: help/C/software-center.xml:186
@@ -279,8 +322,7 @@ msgstr "<xref linkend=\"metapackages\" endterm=\"metapackages-title\"/>"
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:191
 msgid "Why is it asking me to remove several programs together?"
-msgstr ""
-"Pourquoi m'est-il demandé de supprimer plusieurs programmes à la fois?"
+msgstr "Pourquoi m'est-il demandé de supprimer plusieurs programmes à la fois?"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:193
@@ -289,6 +331,9 @@ msgid ""
 "you that other items will be removed too.  There are two main reasons this "
 "happens."
 msgstr ""
+"Parfois, si vous essayez de supprimer un élément, la Logithèque Ubuntu vous "
+"avertira que d'autres éléments seront également supprimés. Cela peut arriver "
+"pour deux raisons."
 
 #. type: Content of: <book><chapter><itemizedlist><listitem><para>
 #: help/C/software-center.xml:200
@@ -296,6 +341,8 @@ msgid ""
 "If you remove an application, any add-ons or plugins for that application "
 "usually will be removed too."
 msgstr ""
+"Généralement, si vous supprimez une application, tous les add-ons ou "
+"greffons de cette application seront également supprimés."
 
 #. type: Content of: <book><chapter><itemizedlist><listitem><para>
 #: help/C/software-center.xml:206
@@ -305,6 +352,11 @@ msgid ""
 "removed, all of them are removed.  Ubuntu Software Center cannot remove them "
 "individually, because it has no instructions on how to separate them."
 msgstr ""
+"Certaines applications sont parfois livrées sous forme de paquet unique. Si "
+"l'une d'entre elles est installée, toutes les autres sont installées en même "
+"temps. Si l'une d'entre elles est supprimée, les autres le sont aussi. La "
+"logithèque Ubuntu ne peut les supprimer individuellement car elle ne dispose "
+"d'aucune instruction pour les séparer."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:215
@@ -316,17 +368,26 @@ msgid ""
 "Edition, it is in <menuchoice><guimenu>Settings</guimenu> "
 "<guisubmenu>Preferences</guisubmenu></menuchoice>."
 msgstr ""
+"Vous pouvez modifier les paramètres du <guilabel>Menu principal</guilabel> "
+"pour cacher les éléments indésirables sans les supprimer de l'ordinateur. "
+"Dans Ubuntu, vous trouverez le <guilabel>Menu principal</guilabel> dans "
+"<menuchoice><guimenu>Système</guimenu> <guisubmenu>Préférences</guisubmenu></"
+"menuchoice>. Dans Ubuntu Netbook Edition, il se trouve dans "
+"<menuchoice><guimenu>Réglages</guimenu> <guisubmenu>Préférences</"
+"guisubmenu></menuchoice>."
 
 #. type: Content of: <book><chapter><itemizedlist><listitem><para>
 #: help/C/software-center.xml:226
 msgid ""
 "<ulink url=\"ghelp:user-guide?menu-editor\" >Customizing the menu bar</ulink>"
 msgstr ""
+"<ulink url=\"ghelp:user-guide?menu-editor\">Personnaliser la barre de menu</"
+"ulink>"
 
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:232
 msgid "What is &#8220;Canonical-maintained&#8221;?"
-msgstr ""
+msgstr "Que signifie &#8220;maintenu par Canonical&#8221; ?"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:234
@@ -335,6 +396,9 @@ msgid ""
 "Canonical engineers ensure that security fixes and other critical updates "
 "are provided for these programs."
 msgstr ""
+"Certains logiciels disponibles pour Ubuntu sont mis à jour par Canonical. "
+"Les ingénieurs de Canonical s'assurent que des correctifs de sécurité et "
+"autres mises à jour critiques sont fournis pour ces programmes."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:240
@@ -342,11 +406,13 @@ msgid ""
 "Other software is maintained by the Ubuntu developer community.  Any updates "
 "are provided on a best-effort basis."
 msgstr ""
+"Les autres logiciels sont maintenus par la communauté des développeurs "
+"Ubuntu. Les mises à jour sont fournies dès que possible."
 
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:245
 msgid "What is &#8220;Canonical Partners&#8221;?"
-msgstr ""
+msgstr "Qui sont les &#8220;partenaires Canonical&#8221; ?"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:247
@@ -354,6 +420,9 @@ msgid ""
 "<guilabel>Canonical Partners</guilabel> shows software from vendors who have "
 "worked with Canonical to make their software available for Ubuntu."
 msgstr ""
+"<guilabel>Partenaires de Canonical</guilabel> signale les logiciels publiés "
+"par des éditeurs qui ont collaboré avec Canonical pour rendre leur logiciel "
+"disponible sous Ubuntu."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:251
@@ -361,16 +430,19 @@ msgid ""
 "You can install this software in the same way as any other software in "
 "Ubuntu Software Center."
 msgstr ""
+"Vous pouvez installer ce logiciel de la même manière que n'importe quel "
+"autre logiciel de la logithèque Ubuntu."
 
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:256
 msgid "Do I need to pay anything?"
-msgstr ""
+msgstr "Ai-je besoin de payer quoi que ce soit ?"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:258
 msgid "Most software in Ubuntu Software Center is free of charge."
 msgstr ""
+"La plupart des logiciels présents dans la Logithèque Ubuntu sont gratuits."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:261
@@ -379,6 +451,9 @@ msgid ""
 "of an <guilabel>Install</guilabel> button, and its price is shown on the "
 "screen for the individual item."
 msgstr ""
+"Si quelque chose est payant, il a un bouton <guilabel>Acheter</guilabel> au "
+"lieu du bouton <guilabel>Installer</guilabel>, et son prix est affiché à "
+"l'écran pour l'élément en question."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:267
@@ -387,11 +462,14 @@ msgid ""
 "Ubuntu Single Sign On account or Launchpad account.  If you do not have an "
 "account, Ubuntu Software Center will help you register one."
 msgstr ""
+"Pour acheter des logiciels commerciaux, vous avez besoin d'une connexion "
+"Internet, d'un compte Ubuntu Single Sign On ou Launchpad. Si vous n'avez pas "
+"de tel compte, la Logithèque Ubuntu vous aidera à en créer un."
 
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:275
 msgid "What if I paid for software and then lost it?"
-msgstr ""
+msgstr "Qu'arrive t'il si je paie un logiciel et que je le perds ensuite ?"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:278
@@ -400,6 +478,10 @@ msgid ""
 "back, choose <menuchoice><guimenu>File</guimenu> <guimenuitem>Reinstall "
 "Previous Purchases</guimenuitem></menuchoice>."
 msgstr ""
+"Si, accidentellement, vous avez supprimé un logiciel que vous aviez acheté "
+"et que vous voulez le récupérer, cliquez sur <menuchoice><guimenu>Fichier</"
+"guimenu> <guimenuitem>Réinstaller Précédents Achats</guimenuitem></"
+"menuchoice>."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:284
@@ -407,16 +489,19 @@ msgid ""
 "Once you sign in to the account that you used to buy the software, Ubuntu "
 "Software Center will display your purchases for reinstalling."
 msgstr ""
+"Une fois que vous vous êtes connecté au compte que vous aviez utilisé pour "
+"acheter le logiciel, la Logithèque Ubuntu affichera vos achats pour les "
+"réinstaller."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:288
 msgid "This works even if you have reinstalled Ubuntu on the computer."
-msgstr ""
+msgstr "Cela fonctionne même si vous avez réinstallé Ubuntu sur l'ordinateur."
 
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:293
 msgid "What if a program I want isn&#8217;t available?"
-msgstr ""
+msgstr "Et si un programme qui m'intéresse n'est pas disponible ?"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:295
@@ -424,6 +509,9 @@ msgid ""
 "First, check that <menuchoice><guimenu>View</guimenu> <guimenuitem>All "
 "Software</guimenuitem></menuchoice> is selected."
 msgstr ""
+"Tout d'abord, assurez-vous que <menuchoice><guimenu>Affichage</guimenu> "
+"<guimenuitem>Tous les logiciels</guimenuitem></menuchoice> est bien "
+"sélectionné."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:299
@@ -432,6 +520,9 @@ msgid ""
 "on Ubuntu, try contacting the original developers of the program to ask if "
 "they can help make it available."
 msgstr ""
+"Si le logiciel que vous recherchez n'apparait toujours pas et si vous êtes "
+"sûr qu'il fonctionne avec Ubuntu, essayez de contacter les développeurs du "
+"programme et demandez leur s'ils peuvent aider à le rendre disponible."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:305
@@ -439,6 +530,9 @@ msgid ""
 "If a program is available for other operating systems but not for Ubuntu, "
 "let the developers know that you&#8217;re interested in running it on Ubuntu."
 msgstr ""
+"Si un programme existe pour d'autres systèmes d'exploitation mais pas pour "
+"Ubuntu, faîtes savoir aux développeurs que son portage sous Ubuntu vous "
+"intéresse."
 
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:312
@@ -452,15 +546,22 @@ msgid ""
 "always the chance that a few of them won&#8217;t work properly on your "
 "computer."
 msgstr ""
+"Avec les dizaines de milliers de programmes disponibles dans la bibliothèque "
+"Ubuntu, vous risquez toujours d'en rencontrer quelques uns qui ne "
+"fonctionneront pas correctement sur votre ordinateur."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:319
 msgid ""
 "If you are familiar with reporting bugs in software, you can help out by "
 "reporting the problem to the Ubuntu developers.  Most programs have a "
-"<guimenuitem>Report a Problem</guimenuitem> item in their "
-"<guimenu>Help</guimenu> menu."
+"<guimenuitem>Report a Problem</guimenuitem> item in their <guimenu>Help</"
+"guimenu> menu."
 msgstr ""
+"Si vous avez l'habitude de signaler les bogues dans les logiciels, vous "
+"pouvez vous rendre utile en signalant le problème aux développeurs Ubuntu. "
+"La plupart des programmes possèdent une entrée <guimenuitem>Signaler un "
+"bogue</guimenuitem> dans leur menu <guimenu>Aide</guimenu>."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:325
@@ -468,11 +569,13 @@ msgid ""
 "Otherwise, look through Ubuntu Software Center for another program to do "
 "what you want."
 msgstr ""
+"Dans le cas contraire, cherchez dans la Logithèque Ubuntu un autre programme "
+"pouvant faire ce que vous souhaitez."
 
 #. type: Content of: <book><chapter><itemizedlist><listitem><para>
 #: help/C/software-center.xml:329
 msgid "<xref linkend=\"removing\" endterm=\"removing-title\"/>"
-msgstr ""
+msgstr "<xref linkend=\"removing\" endterm=\"removing-title\"/>"
 
 #. type: Content of: <legalnotice><para>
 #: help/C/legal.xml:3
@@ -484,6 +587,12 @@ msgid ""
 "copy of the GFDL at this <ulink type=\"help\" url=\"ghelp:fdl\">link</ulink> "
 "or in the file COPYING-DOCS distributed with this manual."
 msgstr ""
+"Permission is granted to copy, distribute and/or modify this document under "
+"the terms of the GNU Free Documentation License (GFDL), Version 1.1 or any "
+"later version published by the Free Software Foundation with no Invariant "
+"Sections, no Front-Cover Texts, and no Back-Cover Texts.  You can find a "
+"copy of the GFDL at this <ulink type=\"help\" url=\"ghelp:fdl\">link</ulink> "
+"or in the file COPYING-DOCS distributed with this manual."
 
 #. type: Content of: <legalnotice><para>
 #: help/C/legal.xml:12
@@ -493,6 +602,10 @@ msgid ""
 "you can do so by adding a copy of the license to the manual, as described in "
 "section 6 of the license."
 msgstr ""
+"Ce manuel fait partie d'une collection de manuels GNOME distribués sous la "
+"licence GFDL. Si vous voulez le distribuer en dehors de la collection, vous "
+"pouvez le faire lui annexant une copie de la licence, comme décrit dans la "
+"section 6 de cette licence."
 
 #. type: Content of: <legalnotice><para>
 #: help/C/legal.xml:20
@@ -570,23 +683,64 @@ msgid ""
 "OF THE GNU FREE DOCUMENTATION LICENSE WITH THE FURTHER UNDERSTANDING THAT: "
 "<placeholder type=\"orderedlist\" id=\"0\"/>"
 msgstr ""
+"CE DOCUMENT ET SES VERSIONS MODIFIÉES SONT FOURNIS DANS LE CADRE DE LA "
+"LICENCE DE DOCUMENTATION LIBRE GNU ET SOUS LES CONDITIONS SUPPLÉMENTAIRES "
+"SUIVANTES : <placeholder type=\"orderedlist\" id=\"0\"/>"
 
 #~ msgid ""
 #~ "Most installed applications appear in the <guimenu>Applications</guimenu> "
-#~ "menu in the corner of the screen, in the same category as they came from in "
-#~ "the Software Center."
+#~ "menu in the corner of the screen, in the same category as they came from "
+#~ "in the Software Center."
 #~ msgstr ""
 #~ "La plupart des logiciels installés apparaissent dans le menu "
-#~ "<guimenu>Applications</guimenu> dans le coin de l'écran, dans leur rubrique "
-#~ "d'origine dans la Logithèque Ubuntu."
+#~ "<guimenu>Applications</guimenu> dans le coin de l'écran, dans leur "
+#~ "rubrique d'origine dans la Logithèque Ubuntu."
 
 #~ msgid ""
-#~ "For example, if you installed a program from the <guilabel>Office</guilabel> "
-#~ "department, it will appear inside "
-#~ "<menuchoice><guimenu>Applications</guimenu> <guisubmenu>Office</guisubmenu></"
-#~ "menuchoice>."
+#~ "For example, if you installed a program from the <guilabel>Office</"
+#~ "guilabel> department, it will appear inside "
+#~ "<menuchoice><guimenu>Applications</guimenu> <guisubmenu>Office</"
+#~ "guisubmenu></menuchoice>."
 #~ msgstr ""
 #~ "Par exemple, si vous avez installé un logiciel de la rubrique "
 #~ "<guilabel>Bureautique</guilabel>, il figurera dans "
-#~ "<menuchoice><guimenu>Applications</guimenu><guisubmenu>Bureautique</guisubmen"
-#~ "u></menuchoice>"
+#~ "<menuchoice><guimenu>Applications</guimenu><guisubmenu>Bureautique</"
+#~ "guisubmenu></menuchoice>"
+
+#~ msgid ""
+#~ "If you remove an application, any add-ons or accessories for that "
+#~ "application usually will be removed too."
+#~ msgstr ""
+#~ "Si vous supprimez une application, tous les add-ons ou accessoires "
+#~ "utilisés par cette application seront également effacés."
+
+#~ msgid "Currently, all software in Ubuntu Software Center is free of charge."
+#~ msgstr ""
+#~ "Actuellement, tous les logiciels de la logithèque Ubuntu sont gratuits."
+
+#~ msgid ""
+#~ "Most of this software is developed as <firstterm>open source</firstterm>, "
+#~ "which means anyone is allowed to alter it and redistribute it for any "
+#~ "price.  Ubuntu developers, Debian developers, and others package the "
+#~ "software available in Ubuntu Software Center, and make it available to "
+#~ "you for free."
+#~ msgstr ""
+#~ "La plupart de ces logiciels sont développés en <firstterm>open source</"
+#~ "firstterm>, ce qui signifie que tout le monde a le droit de les modifier "
+#~ "et de les redistribuer au prix qu'il veut. Les développeurs Ubuntu, "
+#~ "Debian ou autres mettent en forme les logiciels disponibles dans la "
+#~ "logithèque Ubuntu et les mettent à votre disposition gratuitement."
+
+#~ msgid ""
+#~ "In a future version of Ubuntu, the Center will also allow software "
+#~ "purchases."
+#~ msgstr ""
+#~ "Dans une prochaine version d'Ubuntu, la logithèque permettra également "
+#~ "l'achat de logiciels."
+
+#~ msgid ""
+#~ "Otherwise, look through the Center for another program to do what you "
+#~ "want."
+#~ msgstr ""
+#~ "Sinon, consultez la logithèque pour trouver un autre programme qui fasse "
+#~ "ce que vous voulez."
