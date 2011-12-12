@@ -1,17 +1,17 @@
-# Basque translation for software-center
-# Copyright (c) 2011 Rosetta Contributors and Canonical Ltd 2011
+# Malay translation for software-center
+# Copyright (c) 2010 Rosetta Contributors and Canonical Ltd 2010
 # This file is distributed under the same license as the software-center package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2011.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2010.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: software-center\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-07-21 17:04+0300\n"
-"PO-Revision-Date: 2011-05-28 10:39+0000\n"
-"Last-Translator: Asier Sarasua Garmendia <Unknown>\n"
-"Language-Team: Basque <eu@li.org>\n"
-"Language: eu\n"
+"PO-Revision-Date: 2011-11-06 23:55+0000\n"
+"Last-Translator: abuyop <Unknown>\n"
+"Language-Team: Malay <ms@li.org>\n"
+"Language: ms\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -21,12 +21,12 @@ msgstr ""
 #. type: Attribute 'lang' of: <book>
 #: help/C/software-center.xml:18
 msgid "en"
-msgstr ""
+msgstr "en"
 
 #. type: Content of: <book><bookinfo><title>
 #: help/C/software-center.xml:22
 msgid "Ubuntu Software Center"
-msgstr "Ubunturen software-biltegia"
+msgstr "Pusat Perisian Ubuntu"
 
 #. translators: uncomment this:
 #. <copyright>
@@ -46,6 +46,8 @@ msgid ""
 "<publisher> <publishername>Ubuntu Documentation Project</publishername> </"
 "publisher> &legal;"
 msgstr ""
+"<publisher> <publishername>Projek Pendokumentasian Ubuntu</publishername> </"
+"publisher> &legal;"
 
 #. type: Content of: <book><bookinfo><authorgroup><author><firstname>
 #: help/C/software-center.xml:43
@@ -100,12 +102,12 @@ msgstr "rugby471@gmail.com"
 #. type: Content of: <book><bookinfo><abstract><para>
 #: help/C/software-center.xml:60
 msgid "How to install and remove software in Ubuntu."
-msgstr ""
+msgstr "Cara memasang dan membuang perisian di dalam Ubuntu"
 
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:67
 msgid "What is Ubuntu Software Center?"
-msgstr "Zer da Ubuntu software-zentroa?"
+msgstr "Apa itu Pusat Perisian Ubuntu?"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:69
@@ -113,6 +115,9 @@ msgid ""
 "Ubuntu Software Center is a virtual catalog of thousands of free "
 "applications and other software to make your Ubuntu computer more useful."
 msgstr ""
+"Pusat Perisian Ubuntu ialah katalog maya yang mengandungi beribu-ribu "
+"perisian bebas atau percuma dan lain-lain perisian  untuk menjadikan "
+"komputer Ubuntu anda lebih berguna."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:73
@@ -120,6 +125,8 @@ msgid ""
 "You can find software by category or by searching, and you can install an "
 "item with the click of a button."
 msgstr ""
+"Anda dapat mencari perisian mengikut kategori atau dengan cara menggelintar, "
+"dan juga anda boleh memasang item dengan mengklik butang."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:77
@@ -127,11 +134,13 @@ msgid ""
 "You can also examine which software is installed on the computer already, "
 "and remove anything you no longer need."
 msgstr ""
+"Anda juga boleh memeriksa perisian yang manakah sudah dipasang didalam "
+"komputer, dan buang apa-apa yang anda tidak perlukan."
 
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:83
 msgid "Installing software"
-msgstr "Softwarea instalatzen"
+msgstr "Memasang perisian"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:85
@@ -140,6 +149,10 @@ msgid ""
 "access and a working Internet connection.  (If you set up Ubuntu on this "
 "computer yourself, you have administrator access automatically.)"
 msgstr ""
+"Untuk memasang perisian dengan menggunakan Pusat Perisian Ubuntu, anda "
+"memerlukan capaian pentadbir dan sambungan internet. (Jika anda memasang "
+"Ubuntu di komputer sendiri, anda mempunyai capaian pentadbir secara "
+"automatik.)"
 
 #. type: Content of: <book><chapter><orderedlist><listitem><para>
 #: help/C/software-center.xml:93
@@ -149,11 +162,18 @@ msgid ""
 "field.  Or try searching for the type of program you want (like &#8220;"
 "spreadsheet&#8221;).  Otherwise, browse the list of departments."
 msgstr ""
+"Pada bahagian <guilabel>Dapatkan Perisian</guilabel>, cari perisian anda "
+"ingin memasang. Jika anda sudah mengetahui namanya, cuba taip nama pada "
+"ruangan gelintar. Atau cuba gelintar jenis program yang anda inginkan "
+"(seperti &#8220;spreadsheet&#8221;). Jika tidak, lungsur pada senarai "
+"kategori."
 
 #. type: Content of: <book><chapter><orderedlist><listitem><para>
 #: help/C/software-center.xml:103
 msgid "Select the item in the list, and choose <guilabel>More Info</guilabel>."
 msgstr ""
+"Pilih item di dalam senarai, dan pilih <guilabel> Maklumat lanjutan </"
+"guilabel>."
 
 #. type: Content of: <book><chapter><orderedlist><listitem><para>
 #: help/C/software-center.xml:109
@@ -161,6 +181,8 @@ msgid ""
 "Choose <guilabel>Install</guilabel>.  You may need to enter your Ubuntu "
 "password before the installation can begin."
 msgstr ""
+"Pilih<guilabel> pasang</guilabel>. Anda mungkin perlu masukkan kata laluan "
+"Ubuntu anda sebelum pemasangan dapat dijalankan."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:116
@@ -168,6 +190,8 @@ msgid ""
 "How long something takes to install depends on how large it is, and the "
 "speed of your computer and Internet connection."
 msgstr ""
+"Berapa lamakah diperlukan untuk memasang bergantung pada saiz perisian "
+"tersebut, kelajuan komputer anda dan sambungan internet."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:120
@@ -175,21 +199,23 @@ msgid ""
 "When the screen changes to say &#8220;Installed&#8221;, the software is "
 "ready to use."
 msgstr ""
+"Apabila paparan skrin berubah mengatakan &#8220;Dipasang&#8221;, perisian "
+"sedia digunakan."
 
 #. type: Content of: <book><chapter><itemizedlist><listitem><para>
 #: help/C/software-center.xml:124
 msgid "<xref linkend=\"launching\" endterm=\"launching-title\"/>"
-msgstr ""
+msgstr "<xref linkend=\"launching\" endterm=\"launching-title\"/>"
 
 #. type: Content of: <book><chapter><itemizedlist><listitem><para>
 #: help/C/software-center.xml:125
 msgid "<xref linkend=\"missing\" endterm=\"missing-title\"/>"
-msgstr ""
+msgstr "<xref linkend=\"missing\" endterm=\"missing-title\"/>"
 
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:130
 msgid "Using a program once it&#8217;s installed"
-msgstr ""
+msgstr "Buka program selepas ia dipasang"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:132
@@ -200,6 +226,11 @@ msgid ""
 "guisubmenu></menuchoice> or <menuchoice><guimenu>System</guimenu> "
 "<guisubmenu>Administration</guisubmenu></menuchoice> instead)."
 msgstr ""
+"Bagi kebanyakan program, bilamana ia dipasang, anda boleh lancarkannya dari "
+"<guimenu>Aplikasi</guimenu> menu. (Utiliti untuk menukar tetapan mungkin "
+"muncul didalam <menuchoice><guimenu>Sistem</guimenu> <guisubmenu>Keutamaan</"
+"guisubmenu></menuchoice> atau <menuchoice><guimenu>Sistem</guimenu> "
+"<guisubmenu>Pentadbiran</guisubmenu></menuchoice>)."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:141
@@ -208,6 +239,10 @@ msgid ""
 "program in Ubuntu Software Center, if it is not still being displayed.  The "
 "menu location should be displayed on that screen, below the colored bar."
 msgstr ""
+"Untuk mencari dimana hendak lancarkan program baru, navigasi ke skrin untuk "
+"program tersebut didalam Pusat Perisian Ubuntu, jika ia tidak dapat "
+"dipaparkan. Lokasi menu patut dipaparkan pada skrin tersebut, dibawah palang "
+"berwarna."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:148
@@ -215,6 +250,8 @@ msgid ""
 "If you are using Ubuntu Netbook Edition, an application appears in the "
 "appropriate category on the home screen."
 msgstr ""
+"Jika anda menggunakan Ubuntu Edisi Netbook, sebuah aplikasi akan muncul pada "
+"kategori yang sesuai di skrin rumah."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:152
@@ -224,11 +261,15 @@ msgid ""
 "browser plugin, you may need to close the browser and reopen it before the "
 "plugin will be used."
 msgstr ""
+"Beberapa item, seperti main balik media atau pemalam pelungsur sesawang, "
+"tidak akan muncul dalam menu. Ia digunakan secara automatik apabila Ubuntu "
+"memerlukannya. Untuk pemalam pelungsur sesawang, anda perlu menutup "
+"pelungsur tersebut dan membukanya semula sebelum pemalam digunakan."
 
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:160
 msgid "Removing software"
-msgstr ""
+msgstr "Membuang perisian"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:162
@@ -236,6 +277,9 @@ msgid ""
 "To remove software, you need administrator access.  (If you set up Ubuntu on "
 "this computer yourself, you have administrator access automatically.)"
 msgstr ""
+"Untuk membuang perisian, anda memerlukan capaian pentadbir. (Jika anda "
+"memasang Ubuntu di komputer anda sendiri, anda mempunyai capaian pentadbir "
+"secara automatik.)"
 
 #. type: Content of: <book><chapter><orderedlist><listitem><para>
 #: help/C/software-center.xml:169
@@ -243,6 +287,8 @@ msgid ""
 "In the <guilabel>Installed Software</guilabel> section, find the item you "
 "want to remove."
 msgstr ""
+"Dalam  bahagian <guilabel>Perisian Dipasang </guilabel>, cari item yang anda "
+"ingin buang."
 
 #. type: Content of: <book><chapter><orderedlist><listitem><para>
 #: help/C/software-center.xml:175
@@ -250,6 +296,8 @@ msgid ""
 "Select the item in the list, and choose <guilabel>Remove</guilabel>.  You "
 "may need to enter your Ubuntu password."
 msgstr ""
+"Pilih item dalam senarai, dan pilih <guilabel> Buang </ guilabel>. Anda "
+"perlu memasukkan kata laluan Ubuntu anda."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:181
@@ -258,16 +306,19 @@ msgid ""
 "after it is removed.  As soon as you close it, it will no longer be "
 "available."
 msgstr ""
+"Jika sebuah perisian masih akftif ketika anda membuangnya, biasanya perisian "
+"tersebut akan tetap terbuka walaupun telah dibuang. Apabila anda menutupnya, "
+"ia tidak boleh digunakan."
 
 #. type: Content of: <book><chapter><itemizedlist><listitem><para>
 #: help/C/software-center.xml:186
 msgid "<xref linkend=\"metapackages\" endterm=\"metapackages-title\"/>"
-msgstr ""
+msgstr "<xref linkend=\"metapackages\" endterm=\"metapackages-title\"/>"
 
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:191
 msgid "Why is it asking me to remove several programs together?"
-msgstr ""
+msgstr "Mengapa ia meminta saya memadam beberapa perisian serentak?"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:193
@@ -276,6 +327,9 @@ msgid ""
 "you that other items will be removed too.  There are two main reasons this "
 "happens."
 msgstr ""
+"Kadangkala, jika anda cuba membuang satu item, Pusat Perisian Ubuntu akan "
+"memberi amaran yang mana item lain akan dibuang. Terdapat dua sebab kenapa "
+"ini berlaku."
 
 #. type: Content of: <book><chapter><itemizedlist><listitem><para>
 #: help/C/software-center.xml:200
@@ -283,6 +337,8 @@ msgid ""
 "If you remove an application, any add-ons or plugins for that application "
 "usually will be removed too."
 msgstr ""
+"Jika anda buang aplikasi, sebarang tambahan atau pemalam untuk aplikasi "
+"tersebut biasanya akan dibuang juga."
 
 #. type: Content of: <book><chapter><itemizedlist><listitem><para>
 #: help/C/software-center.xml:206
@@ -292,6 +348,11 @@ msgid ""
 "removed, all of them are removed.  Ubuntu Software Center cannot remove them "
 "individually, because it has no instructions on how to separate them."
 msgstr ""
+"Beberapa aplikasi kadang-kala disediakan di dalam satu pakej. Jika salah "
+"satu aplikasi dipasang, semua aplikasi dalam pakej yang sama akan dipasang."
+"Sebaliknya jika salah satu aplikasi tersebut akan dibuang, semuanya dibuang. "
+"Pusat Perisian Ubuntu tidak akan membuangnya secara individu, Ini kerana ia "
+"tidak mempunyai arahan seperti itu."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:215
@@ -303,17 +364,25 @@ msgid ""
 "Edition, it is in <menuchoice><guimenu>Settings</guimenu> "
 "<guisubmenu>Preferences</guisubmenu></menuchoice>."
 msgstr ""
+"Anda boleh menggunakan tetapan <guilabel> Menu Utama </guilabel> untuk "
+"menyembunyikan item yang tidak diingini tanpa membuangnya dari komputer. "
+"Pada Ubuntu, anda boleh dapatkan <guilabel>Menu Utama</guilabel> melalui "
+"<menuchoice><guimenu>Sistem</guimenu> <guisubmenu>Keutamaan</guisubmenu></"
+"menuchoice>. Manakala Ubuntu edisi Netbook, boleh diperoleh di dalam "
+"<menuchoice><guimenu>Tetapan</guimenu> <guisubmenu>Keutamaan</guisubmenu></"
+"menuchoice>."
 
 #. type: Content of: <book><chapter><itemizedlist><listitem><para>
 #: help/C/software-center.xml:226
 msgid ""
 "<ulink url=\"ghelp:user-guide?menu-editor\" >Customizing the menu bar</ulink>"
 msgstr ""
+"<ulink url=\"ghelp:user-guide?menu-editor\" >Mengubahsuai palang menu</ulink>"
 
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:232
 msgid "What is &#8220;Canonical-maintained&#8221;?"
-msgstr ""
+msgstr "Apakah &#8220;Canonical-maintained&#8221;?"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:234
@@ -322,6 +391,9 @@ msgid ""
 "Canonical engineers ensure that security fixes and other critical updates "
 "are provided for these programs."
 msgstr ""
+"Beberapa perisian yang tersedia untuk Ubuntu diselenggara oleh Canonical. "
+"Jurutera perisian Canonical memastikan pembaikan keselamatan dan kemaskini "
+"kritikal lain-lain yang disediakan untuk program ini."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:240
@@ -329,11 +401,13 @@ msgid ""
 "Other software is maintained by the Ubuntu developer community.  Any updates "
 "are provided on a best-effort basis."
 msgstr ""
+"Perisian lain akan dikendalikan oleh komuniti pembangunan Ubuntu. Setiap "
+"kemaskini disediakan atas dasar usaha terbaik masing-masing."
 
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:245
 msgid "What is &#8220;Canonical Partners&#8221;?"
-msgstr ""
+msgstr "Apa itu &#8220;Canonical Partners&#8221;?"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:247
@@ -341,6 +415,9 @@ msgid ""
 "<guilabel>Canonical Partners</guilabel> shows software from vendors who have "
 "worked with Canonical to make their software available for Ubuntu."
 msgstr ""
+"<guilabel>Canonical Patner</guilabel> merupakan perisian dari vendor yang "
+"telah bekerjasama dengan Canonical untuk memastikan perisian mereka sedia "
+"ada untuk Ubuntu."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:251
@@ -348,16 +425,19 @@ msgid ""
 "You can install this software in the same way as any other software in "
 "Ubuntu Software Center."
 msgstr ""
+"Anda boleh memasang perisian ini dengan cara yang sama seperti perisian lain "
+"di Pusat Perisian Ubuntu."
 
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:256
 msgid "Do I need to pay anything?"
-msgstr ""
+msgstr "Adakah saya perlu membayar apa-apa?"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:258
 msgid "Most software in Ubuntu Software Center is free of charge."
 msgstr ""
+"Kebanyakan perisian di Pusat Perisian Ubuntu adalah percuma dari segi kos."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:261
@@ -366,6 +446,9 @@ msgid ""
 "of an <guilabel>Install</guilabel> button, and its price is shown on the "
 "screen for the individual item."
 msgstr ""
+"Jika ada perisian yang memerlukan pembelian, ia akan paparkan butang "
+"<guilabel>Beli</guilabel> selain dari butang <guilabel>Pasang</guilabel>, "
+"dan harganya akan dipaparkan pada skrin untuk item secara individu."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:267
@@ -374,11 +457,16 @@ msgid ""
 "Ubuntu Single Sign On account or Launchpad account.  If you do not have an "
 "account, Ubuntu Software Center will help you register one."
 msgstr ""
+"Untuk membayar perisian komersial, anda perlukan talian Internet dan sebuah "
+"akaun 'Ubuntu Single Sign On' atau akaun Launchpad. Jika anda tidak "
+"mempunyai kedua-dua akaun tersebut, anda boleh mendaftar di Pusat Perisian "
+"Ubuntu."
 
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:275
 msgid "What if I paid for software and then lost it?"
 msgstr ""
+"Bagaimana sekiranya saya membayar sesebuah perisian kemudian kehilangannya?"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:278
@@ -387,6 +475,9 @@ msgid ""
 "back, choose <menuchoice><guimenu>File</guimenu> <guimenuitem>Reinstall "
 "Previous Purchases</guimenuitem></menuchoice>."
 msgstr ""
+"Jika anda buang perisian yang dibeli secara tidak sengaja, dan anda ingin "
+"gunakannya semula, pilih <menuchoice><guimenu>Fail</guimenu> "
+"<guimenuitem>Pasang Semula Pembelian Terdahulu</guimenuitem></menuchoice>."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:284
@@ -394,16 +485,19 @@ msgid ""
 "Once you sign in to the account that you used to buy the software, Ubuntu "
 "Software Center will display your purchases for reinstalling."
 msgstr ""
+"Setelah anda mendaftar masuk ke dalam akaun yang telah digunakan untuk "
+"membeli sesebuah perisian, Pusat Perisian Ubuntu akan memaparkan pembelian "
+"anda untuk pemasangan semula."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:288
 msgid "This works even if you have reinstalled Ubuntu on the computer."
-msgstr ""
+msgstr "Ia berkesan walaupun anda telah memasang semula Ubuntu."
 
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:293
 msgid "What if a program I want isn&#8217;t available?"
-msgstr ""
+msgstr "Bagaimana jika program yang saya inginkan tidak disediakan?"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:295
@@ -411,6 +505,8 @@ msgid ""
 "First, check that <menuchoice><guimenu>View</guimenu> <guimenuitem>All "
 "Software</guimenuitem></menuchoice> is selected."
 msgstr ""
+"Pertama, lihat <menuchoice><guimenu>Papar</guimenu> <guimenuitem>Semua "
+"Perisian</guimenuitem></menuchoice> telah ditanda."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:299
@@ -419,6 +515,9 @@ msgid ""
 "on Ubuntu, try contacting the original developers of the program to ask if "
 "they can help make it available."
 msgstr ""
+"Jika perisian yang anda inginkan tiada, tetapi anda tahu perisian tersebut "
+"disediakan untuk Ubuntu, cuba menghubungi para pembangunan asal program "
+"tersebut dan mohon mereka sediakannya."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:305
@@ -426,11 +525,14 @@ msgid ""
 "If a program is available for other operating systems but not for Ubuntu, "
 "let the developers know that you&#8217;re interested in running it on Ubuntu."
 msgstr ""
+"Jika sebuah program disediakan untuk sistem operasi selain daripada Ubuntu, "
+"beritahu para pembangun perisian tersebut bahawa anda berminat "
+"menggunakannya pada Ubuntu."
 
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:312
 msgid "What if a program doesn&#8217;t work?"
-msgstr ""
+msgstr "Bagaimana jika program tidak berfungsi?"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:314
@@ -439,6 +541,9 @@ msgid ""
 "always the chance that a few of them won&#8217;t work properly on your "
 "computer."
 msgstr ""
+"Dengan puluhan ribu program di Pusat Perisian Ubuntu, memang ada kemungkinan "
+"beberapa perisian tidak akan berfungsi seperti yang diharapkan di komputer "
+"anda."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:319
@@ -448,6 +553,10 @@ msgid ""
 "<guimenuitem>Report a Problem</guimenuitem> item in their <guimenu>Help</"
 "guimenu> menu."
 msgstr ""
+"Jika anda sudah biasa membuat laporan pepijat sesebuah perisian, anda juga "
+"boleh membantu dengan melaporkan masalah tersebut kepada para pembangun "
+"Ubuntu. Kebanyakan program mempunyai item guimenuitem>Lapor Masalah</"
+"guimenuitem> di dalam menu <guimenu>Bantuan</guimenu> masing-masing."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:325
@@ -455,11 +564,12 @@ msgid ""
 "Otherwise, look through Ubuntu Software Center for another program to do "
 "what you want."
 msgstr ""
+"Jika tidak, cari di Pusat Perisian Ubuntu program lain yang anda ingini."
 
 #. type: Content of: <book><chapter><itemizedlist><listitem><para>
 #: help/C/software-center.xml:329
 msgid "<xref linkend=\"removing\" endterm=\"removing-title\"/>"
-msgstr ""
+msgstr "<xref linkend=\"removing\" endterm=\"removing-title\"/>"
 
 #. type: Content of: <legalnotice><para>
 #: help/C/legal.xml:3
@@ -471,6 +581,13 @@ msgid ""
 "copy of the GFDL at this <ulink type=\"help\" url=\"ghelp:fdl\">link</ulink> "
 "or in the file COPYING-DOCS distributed with this manual."
 msgstr ""
+"Keizinan diberikan untuk menyalin, mengedar dan/atau mengubahsuai dokumen "
+"ini di bawah terma GNU Free Documentation License (GFDL), Versi 1.1 atau "
+"versi berikutnya yang diterbitkan oleh Free Software Foundation tanpa "
+"seksyen yang berbeza, tanpa Teks Muka Depan, dan tidak ada Mesej Muka "
+"Belakang. Anda boleh peroleh salinan GFDL di <ulink type=\"help\" url="
+"\"ghelp:fdl\">pautan</ulink> ini atau dalam fail COPYING DOCS diedarkan "
+"bersama-sama manual ini."
 
 #. type: Content of: <legalnotice><para>
 #: help/C/legal.xml:12
@@ -480,6 +597,11 @@ msgid ""
 "you can do so by adding a copy of the license to the manual, as described in "
 "section 6 of the license."
 msgstr ""
+"Manual ini merupakan sebahagian dari koleksi manual GNOME yang diedarkan di "
+"bawah GFDL. Jika anda ingin mengedarkan Manual ini secara berasingan "
+"daripada koleksinya, anda boleh melakukannya dengan menambah satu salinan "
+"lesen ke dalam manual seperti yang dinyatakan di dalam bahagian 6 bahagian "
+"di dalam lesen."
 
 #. type: Content of: <legalnotice><para>
 #: help/C/legal.xml:20
@@ -490,6 +612,12 @@ msgid ""
 "aware of those trademarks, then the names are in capital letters or initial "
 "capital letters."
 msgstr ""
+"Pelbagai Jenama yang digunakan oleh syarikat untuk membezakan produk dan "
+"perkhidmatan yang dituntut sebagai cap dagang. Jika Jenama itu muncul dalam "
+"setiap dokumentasi GNOME, maka ahli-ahli Projek Dokumentasi GNOME berhati-"
+"hati menggunakan tanda dagangan tersebut, oleh itu Jenama tersebut "
+"dinyatakan dalam huruf besar sepenuhnya atau huruf besar pada permulaan "
+"huruf ."
 
 #. type: Content of: <legalnotice><para><orderedlist><listitem><para>
 #: help/C/legal.xml:35
@@ -529,3 +657,61 @@ msgid ""
 "OF THE GNU FREE DOCUMENTATION LICENSE WITH THE FURTHER UNDERSTANDING THAT: "
 "<placeholder type=\"orderedlist\" id=\"0\"/>"
 msgstr ""
+
+#~ msgid ""
+#~ "Most installed applications appear in the <guimenu>Applications</guimenu> "
+#~ "menu in the corner of the screen, in the same category as they came from "
+#~ "in the Software Center."
+#~ msgstr ""
+#~ "Kebanyakan aplikasi yang dipasang akan muncul pada menu "
+#~ "<guimenu>Aplikasi</guimenu> di sudut skrin, dalam kategori yang sama "
+#~ "seperti kategori di dalam Pusat Perisian."
+
+#~ msgid ""
+#~ "For example, if you installed a program from the <guilabel>Office</"
+#~ "guilabel> department, it will appear inside "
+#~ "<menuchoice><guimenu>Applications</guimenu> <guisubmenu>Office</"
+#~ "guisubmenu></menuchoice>."
+#~ msgstr ""
+#~ "Contohnya, jika anda memasang program dari kategori pejabat, maka "
+#~ "perisian tersebut akan tampil di dalam <menuchoice><guimenu>Aplikasi</"
+#~ "guimenu> <guisubmenu>Pejabat</guisubmenu></menuchoice>."
+
+#~ msgid ""
+#~ "If you remove an application, any add-ons or accessories for that "
+#~ "application usually will be removed too."
+#~ msgstr ""
+#~ "Jika anda membuang sesebuah aplikasi, ada add-on atau aksesori berkaitan "
+#~ "dengan aplikasi tersebut akan dihapuskan."
+
+#~ msgid "Currently, all software in Ubuntu Software Center is free of charge."
+#~ msgstr ""
+#~ "Buat masa ini, kesemua perisian yang ada di dalam Pusat Perisian Ubuntu "
+#~ "adalah percuma."
+
+#~ msgid ""
+#~ "Most of this software is developed as <firstterm>open source</firstterm>, "
+#~ "which means anyone is allowed to alter it and redistribute it for any "
+#~ "price.  Ubuntu developers, Debian developers, and others package the "
+#~ "software available in Ubuntu Software Center, and make it available to "
+#~ "you for free."
+#~ msgstr ""
+#~ "Sebahagian besar perisian ini telah dibangunkan sebagai <firstterm>sumber "
+#~ "terbuka</firstterm>, yang bererti sesiapapun dibenarkan  mengubah dan "
+#~ "mengedar semula untuk apa-apa harga. Ubuntu developers, Debian "
+#~ "developers, dan pakej perisian lain yang terdapat di Pusat Perisian "
+#~ "Ubuntu, disediakan untuk anda secara percuma."
+
+#~ msgid ""
+#~ "In a future version of Ubuntu, the Center will also allow software "
+#~ "purchases."
+#~ msgstr ""
+#~ "Untuk versi Ubuntu yang akan datang, Pusat Perisian Ubuntu juga akan "
+#~ "membolehkan pembelian perisian."
+
+#~ msgid ""
+#~ "Otherwise, look through the Center for another program to do what you "
+#~ "want."
+#~ msgstr ""
+#~ "Ataupun, cuba cari perisian lain melalui Pusat Perisian Ubuntu yang "
+#~ "memenuhi kehendak anda."
