@@ -300,6 +300,7 @@ class TestDatabase(unittest.TestCase):
             self.assertNotEqual(date_published, None)
             # TODO: Compare cataloged times for apps in the staging server,
             #       once we have given them date_published values
+            
             print "Package name: ", doc.get_value(XapianValues.PKGNAME)
             print "date_published: ", date_published
         del os.environ["SOFTWARE_CENTER_BUY_HOST"]
