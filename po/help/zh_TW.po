@@ -6,16 +6,17 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: software-center\n"
-"Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
+"Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-07-21 17:04+0300\n"
-"PO-Revision-Date: 2010-09-04 07:45+0000\n"
+"PO-Revision-Date: 2011-07-17 10:22+0000\n"
 "Last-Translator: Cheng-Chia Tseng <pswo10680@gmail.com>\n"
 "Language-Team: Chinese (Traditional) <zh_TW@li.org>\n"
+"Language: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Launchpad-Export-Date: 2011-07-22 04:48+0000\n"
-"X-Generator: Launchpad (build 13405)\n"
+"X-Launchpad-Export-Date: 2011-12-10 13:12+0000\n"
+"X-Generator: Launchpad (build 14450)\n"
 
 #. type: Attribute 'lang' of: <book>
 #: help/C/software-center.xml:18
@@ -32,7 +33,7 @@ msgstr "Ubuntu 軟體中心"
 #. <year>2000</year>
 #. <holder>ME-THE-TRANSLATOR (Latin translation)</holder>
 #. </copyright>
-#. 
+#.
 #. An address can be added to the publisher information.  If a role is
 #. not specified, the publisher/author is the same for all versions of the
 #. document.
@@ -42,10 +43,11 @@ msgstr "Ubuntu 軟體中心"
 #. type: Content of: <book><bookinfo>
 #: help/C/software-center.xml:34
 msgid ""
-"<publisher> <publishername>Ubuntu Documentation Project</publishername> "
-"</publisher> &legal;"
+"<publisher> <publishername>Ubuntu Documentation Project</publishername> </"
+"publisher> &legal;"
 msgstr ""
-"<publisher> <publishername>Ubuntu 文件專案</publishername> </publisher> &legal;"
+"<publisher> <publishername>Ubuntu 文件專案</publishername> </publisher> "
+"&legal;"
 
 #. type: Content of: <book><bookinfo><authorgroup><author><firstname>
 #: help/C/software-center.xml:43
@@ -100,12 +102,12 @@ msgstr "rugby471@gmail.com"
 #. type: Content of: <book><bookinfo><abstract><para>
 #: help/C/software-center.xml:60
 msgid "How to install and remove software in Ubuntu."
-msgstr ""
+msgstr "如何在 Ubuntu 安裝及移除軟體"
 
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:67
 msgid "What is Ubuntu Software Center?"
-msgstr ""
+msgstr "Ubuntu 軟體中心什麼是？"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:69
@@ -113,25 +115,27 @@ msgid ""
 "Ubuntu Software Center is a virtual catalog of thousands of free "
 "applications and other software to make your Ubuntu computer more useful."
 msgstr ""
+"Ubuntu 軟體中心是包含數千種自由應用程式及其他軟體的虛擬目錄，讓您的 Ubuntu 電"
+"腦更有用。"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:73
 msgid ""
 "You can find software by category or by searching, and you can install an "
 "item with the click of a button."
-msgstr ""
+msgstr "您可藉由目錄或搜尋來找到軟體，按一下就能安裝。"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:77
 msgid ""
 "You can also examine which software is installed on the computer already, "
 "and remove anything you no longer need."
-msgstr ""
+msgstr "您也可看看閣下電腦安裝了哪些軟體，又或移除您不要的。"
 
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:83
 msgid "Installing software"
-msgstr ""
+msgstr "安裝軟體"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:85
@@ -140,21 +144,25 @@ msgid ""
 "access and a working Internet connection.  (If you set up Ubuntu on this "
 "computer yourself, you have administrator access automatically.)"
 msgstr ""
+"要透過 Ubuntu 軟體中心安裝軟體，您需要有管理者權限以及可用的網際網路連線（若"
+"您自己在這部電腦上安裝 Ubuntu，您已自動擁有管理者權限）。"
 
 #. type: Content of: <book><chapter><orderedlist><listitem><para>
 #: help/C/software-center.xml:93
 msgid ""
 "In the <guilabel>Get Software</guilabel> section, find the thing you want to "
 "install.  If you already know its name, try typing the name in the search "
-"field.  Or try searching for the type of program you want (like "
-"&#8220;spreadsheet&#8221;).  Otherwise, browse the list of departments."
+"field.  Or try searching for the type of program you want (like &#8220;"
+"spreadsheet&#8221;).  Otherwise, browse the list of departments."
 msgstr ""
+"在 <guilabel>取得軟體</guilabel> 部份，找出您想安裝的軟體。若您已經知道名稱，"
+"試試在搜尋列中打出名稱。或者您也可以搜尋您想找的類別（如「試算表」）。此外，"
+"也可瀏覽各分類列表。"
 
 #. type: Content of: <book><chapter><orderedlist><listitem><para>
 #: help/C/software-center.xml:103
-msgid ""
-"Select the item in the list, and choose <guilabel>More Info</guilabel>."
-msgstr ""
+msgid "Select the item in the list, and choose <guilabel>More Info</guilabel>."
+msgstr "選擇列表中的條目，並選擇 <guilabel>更多資訊</guilabel>。"
 
 #. type: Content of: <book><chapter><orderedlist><listitem><para>
 #: help/C/software-center.xml:109
@@ -162,20 +170,21 @@ msgid ""
 "Choose <guilabel>Install</guilabel>.  You may need to enter your Ubuntu "
 "password before the installation can begin."
 msgstr ""
+"選擇 <guilabel>安裝</guilabel>。您可能需要於安裝前輸入您的 Ubuntu 密碼。"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:116
 msgid ""
 "How long something takes to install depends on how large it is, and the "
 "speed of your computer and Internet connection."
-msgstr ""
+msgstr "安裝所需時間取決於軟體的大小、您的電腦及網路連線速度。"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:120
 msgid ""
 "When the screen changes to say &#8220;Installed&#8221;, the software is "
 "ready to use."
-msgstr ""
+msgstr "當畫面顯示「已安裝」，軟體就準備好已可使用了。"
 
 #. type: Content of: <book><chapter><itemizedlist><listitem><para>
 #: help/C/software-center.xml:124
@@ -197,11 +206,14 @@ msgstr "一旦安裝好就使用程式"
 msgid ""
 "For most programs, once they are installed, you can launch them from the "
 "<guimenu>Applications</guimenu> menu.  (Utilities for changing settings may "
-"appear inside <menuchoice><guimenu>System</guimenu> "
-"<guisubmenu>Preferences</guisubmenu></menuchoice> or "
-"<menuchoice><guimenu>System</guimenu> "
+"appear inside <menuchoice><guimenu>System</guimenu> <guisubmenu>Preferences</"
+"guisubmenu></menuchoice> or <menuchoice><guimenu>System</guimenu> "
 "<guisubmenu>Administration</guisubmenu></menuchoice> instead)."
 msgstr ""
+"大部份軟體安裝後就可於 <guimenu>應用程式</guimenu> 選單開啟（用於變更設定之工"
+"具可能在 <menuchoice><guimenu>系統</guimenu> <guisubmenu>偏好設定</"
+"guisubmenu></menuchoice> 或 <menuchoice><guimenu>系統</guimenu> <guisubmenu>"
+"管理</guisubmenu></menuchoice>）。"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:141
@@ -216,7 +228,7 @@ msgstr ""
 msgid ""
 "If you are using Ubuntu Netbook Edition, an application appears in the "
 "appropriate category on the home screen."
-msgstr ""
+msgstr "若您用的是 Ubuntu Netbook Edition，應用程式見於主畫面的對應類別。"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:152
@@ -226,13 +238,14 @@ msgid ""
 "browser plugin, you may need to close the browser and reopen it before the "
 "plugin will be used."
 msgstr ""
-"有些項目，像是媒體播放控制或網頁瀏覽器的外掛程式，並不會出現在選單裡面。它們會在 Ubuntu "
-"需要它們的時候自動被使用。以網頁瀏覽器外掛程式為例，您可能需要關閉瀏覽器並接著重新啟動它，才能讓外掛程式發揮作用。"
+"有些項目，像是媒體播放控制或網頁瀏覽器的外掛程式，並不會出現在選單裡面。它們"
+"會在 Ubuntu 需要它們的時候自動被使用。以網頁瀏覽器外掛程式為例，您可能需要關"
+"閉瀏覽器並接著重新啟動它，才能讓外掛程式發揮作用。"
 
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:160
 msgid "Removing software"
-msgstr ""
+msgstr "移除軟體"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:162
@@ -240,13 +253,15 @@ msgid ""
 "To remove software, you need administrator access.  (If you set up Ubuntu on "
 "this computer yourself, you have administrator access automatically.)"
 msgstr ""
+"欲移除軟體，您需要管理者權限。（若您自己在此電腦上安裝 Ubuntu，您將自動擁有管"
+"理者權限。）"
 
 #. type: Content of: <book><chapter><orderedlist><listitem><para>
 #: help/C/software-center.xml:169
 msgid ""
 "In the <guilabel>Installed Software</guilabel> section, find the item you "
 "want to remove."
-msgstr ""
+msgstr "在 <guilabel>已安裝軟體</guilabel> 部份，找出要移除的軟體。"
 
 #. type: Content of: <book><chapter><orderedlist><listitem><para>
 #: help/C/software-center.xml:175
@@ -254,6 +269,8 @@ msgid ""
 "Select the item in the list, and choose <guilabel>Remove</guilabel>.  You "
 "may need to enter your Ubuntu password."
 msgstr ""
+"在列表中選擇項目，並點選 <guilabel>移除</guilabel>。您可能需要輸入您的 "
+"Ubuntu 密碼。"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:181
@@ -262,6 +279,8 @@ msgid ""
 "after it is removed.  As soon as you close it, it will no longer be "
 "available."
 msgstr ""
+"若程式在移除時仍然開啟，通常即使在移除後依然會保持開啟狀態。一旦關閉將不再能"
+"使用。"
 
 #. type: Content of: <book><chapter><itemizedlist><listitem><para>
 #: help/C/software-center.xml:186
@@ -280,13 +299,15 @@ msgid ""
 "you that other items will be removed too.  There are two main reasons this "
 "happens."
 msgstr ""
+"有時您只想移除一款應用程式，Ubuntu 軟體中心會警告您其他程式也會被移除。這主要"
+"有兩個原因。"
 
 #. type: Content of: <book><chapter><itemizedlist><listitem><para>
 #: help/C/software-center.xml:200
 msgid ""
 "If you remove an application, any add-ons or plugins for that application "
 "usually will be removed too."
-msgstr ""
+msgstr "如移除某應用程式，其附加元件或外掛程式也會一併移除。"
 
 #. type: Content of: <book><chapter><itemizedlist><listitem><para>
 #: help/C/software-center.xml:206
@@ -296,6 +317,9 @@ msgid ""
 "removed, all of them are removed.  Ubuntu Software Center cannot remove them "
 "individually, because it has no instructions on how to separate them."
 msgstr ""
+"多個應用程式有時會以單一套件方式提供。若安裝其中任何一個，其他所有也將一併安"
+"裝。若其中任何一個移除，則其它所有也將一併移除。Ubuntu 軟體中心無法將其個別移"
+"除，因為並沒有如何分別移除的指令。"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:215
@@ -307,6 +331,11 @@ msgid ""
 "Edition, it is in <menuchoice><guimenu>Settings</guimenu> "
 "<guisubmenu>Preferences</guisubmenu></menuchoice>."
 msgstr ""
+"您可以用 <guilabel>主選單</guilabel> 設定來隱藏不想要的元件而毋需移除。在 "
+"Ubuntu，您可以在 <menuchoice><guimenu>系統</guimenu> <guisubmenu>偏好設定</"
+"guisubmenu></menuchoice> 找到 <guilabel>主選單</guilabel>。在 Ubuntu Netbook "
+"Edition，其位於 <menuchoice><guimenu>設定</guimenu> <guisubmenu>偏好設定</"
+"guisubmenu></menuchoice>。"
 
 #. type: Content of: <book><chapter><itemizedlist><listitem><para>
 #: help/C/software-center.xml:226
@@ -317,7 +346,7 @@ msgstr "<ulink url=\"ghelp:user-guide?menu-editor\" >自訂選單列</ulink>"
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:232
 msgid "What is &#8220;Canonical-maintained&#8221;?"
-msgstr ""
+msgstr "何謂「由 Canonical 維護」？"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:234
@@ -326,18 +355,21 @@ msgid ""
 "Canonical engineers ensure that security fixes and other critical updates "
 "are provided for these programs."
 msgstr ""
+"某些 Ubuntu 軟體由 Canonical 維護。Canonical 工程人員確保提供其保安修補及其他"
+"重要更新。"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:240
 msgid ""
 "Other software is maintained by the Ubuntu developer community.  Any updates "
 "are provided on a best-effort basis."
-msgstr "其它軟體是由 Ubuntu 的開發社群所維護，任何更新都會以最大的努力為基礎上推出。"
+msgstr ""
+"其它軟體是由 Ubuntu 的開發社群所維護，任何更新都會以最大的努力為基礎上推出。"
 
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:245
 msgid "What is &#8220;Canonical Partners&#8221;?"
-msgstr ""
+msgstr "何謂「Canonical 伙伴」？"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:247
@@ -345,23 +377,25 @@ msgid ""
 "<guilabel>Canonical Partners</guilabel> shows software from vendors who have "
 "worked with Canonical to make their software available for Ubuntu."
 msgstr ""
+"<guilabel>Canonical 伙伴</guilabel> 顯示 Canonical 合作廠商為 Ubuntu 推出的軟"
+"體。"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:251
 msgid ""
 "You can install this software in the same way as any other software in "
 "Ubuntu Software Center."
-msgstr ""
+msgstr "您可以如其他軟體一樣於 Ubuntu 軟體中心安裝這個軟體。"
 
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:256
 msgid "Do I need to pay anything?"
-msgstr ""
+msgstr "我要付錢嗎？"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:258
 msgid "Most software in Ubuntu Software Center is free of charge."
-msgstr ""
+msgstr "Ubuntu 軟體中心絕大部份軟體都免費。"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:261
@@ -370,6 +404,8 @@ msgid ""
 "of an <guilabel>Install</guilabel> button, and its price is shown on the "
 "screen for the individual item."
 msgstr ""
+"如某些軟體要付錢，其有 <guilabel>購買</guilabel> 而非 <guilabel>安裝</"
+"guilabel> 按鈕；其價錢顯示於項目底部。"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:267
@@ -378,11 +414,13 @@ msgid ""
 "Ubuntu Single Sign On account or Launchpad account.  If you do not have an "
 "account, Ubuntu Software Center will help you register one."
 msgstr ""
+"要購買商業軟體，您要有網路連線以及 Ubuntu Single Sign On 帳號或 Launchpad 帳"
+"號。如無帳號，Ubuntu 軟體中心可讓您建立。"
 
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:275
 msgid "What if I paid for software and then lost it?"
-msgstr ""
+msgstr "買了軟體又丟失了怎辦？"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:278
@@ -391,6 +429,8 @@ msgid ""
 "back, choose <menuchoice><guimenu>File</guimenu> <guimenuitem>Reinstall "
 "Previous Purchases</guimenuitem></menuchoice>."
 msgstr ""
+"不小心刪除了購買的軟體又想重新安裝，選 <menuchoice><guimenu>檔案</guimenu> "
+"<guimenuitem>重新安裝已購項目</guimenuitem></menuchoice>。"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:284
@@ -407,7 +447,7 @@ msgstr ""
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:293
 msgid "What if a program I want isn&#8217;t available?"
-msgstr ""
+msgstr "我得不到想要的軟體怎麼辦？"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:295
@@ -415,6 +455,8 @@ msgid ""
 "First, check that <menuchoice><guimenu>View</guimenu> <guimenuitem>All "
 "Software</guimenuitem></menuchoice> is selected."
 msgstr ""
+"首先, 先檢查您是否已勾選 <menuchoice><guimenu>檢視</guimenu> <guimenuitem>所"
+"有軟體</guimenuitem></menuchoice>。"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:299
@@ -423,6 +465,8 @@ msgid ""
 "on Ubuntu, try contacting the original developers of the program to ask if "
 "they can help make it available."
 msgstr ""
+"如果您想要的軟體仍未顯示出來，但您知道它可於 Ubuntu 上執行，您可以嘗試聯繫軟"
+"體的原始開發者並詢問是否能協助讓其可選用。"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:305
@@ -430,7 +474,8 @@ msgid ""
 "If a program is available for other operating systems but not for Ubuntu, "
 "let the developers know that you&#8217;re interested in running it on Ubuntu."
 msgstr ""
-"如果某程式不在其他操作系統上可用，但是在 Ubuntu 內卻沒有，請讓那些開發者知道您對於讓他們所開發的程式是否能在 Ubuntu 上運行相當有興趣。"
+"如果某程式不在其他操作系統上可用，但是在 Ubuntu 內卻沒有，請讓那些開發者知道"
+"您對於讓他們所開發的程式是否能在 Ubuntu 上運行相當有興趣。"
 
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:312
@@ -444,17 +489,20 @@ msgid ""
 "always the chance that a few of them won&#8217;t work properly on your "
 "computer."
 msgstr ""
+"Ubuntu 軟體中心擁有數以萬計的程式，非常有可能其中少數某些無法正確在您的電腦上"
+"運作。"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:319
 msgid ""
 "If you are familiar with reporting bugs in software, you can help out by "
 "reporting the problem to the Ubuntu developers.  Most programs have a "
-"<guimenuitem>Report a Problem</guimenuitem> item in their "
-"<guimenu>Help</guimenu> menu."
+"<guimenuitem>Report a Problem</guimenuitem> item in their <guimenu>Help</"
+"guimenu> menu."
 msgstr ""
-"如果您度回報軟體內的臭蟲相當熟悉，您可以藉由回報問題給 Ubuntu 開發者來幫助所有的使用者。大部分的程式都會在 "
-"<guimenu>求助</guimenu> 選單內提供 <guimenuitem>回報問題</guimenuitem> 的功能。"
+"如果您度回報軟體內的臭蟲相當熟悉，您可以藉由回報問題給 Ubuntu 開發者來幫助所"
+"有的使用者。大部分的程式都會在 <guimenu>求助</guimenu> 選單內提供 "
+"<guimenuitem>回報問題</guimenuitem> 的功能。"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:325
@@ -487,8 +535,9 @@ msgid ""
 "you can do so by adding a copy of the license to the manual, as described in "
 "section 6 of the license."
 msgstr ""
-"此手冊是 GNOME 手冊集合中的一部分，依據 GFDL "
-"條款進行散布。如果您想要從集合中單獨散布此手冊的話，您可以藉由加入一份該條款的副本到手冊內來達成目的，詳細情況在授權條款的第六節內有描述。"
+"此手冊是 GNOME 手冊集合中的一部分，依據 GFDL 條款進行散布。如果您想要從集合中"
+"單獨散布此手冊的話，您可以藉由加入一份該條款的副本到手冊內來達成目的，詳細情"
+"況在授權條款的第六節內有描述。"
 
 #. type: Content of: <legalnotice><para>
 #: help/C/legal.xml:20
@@ -539,220 +588,51 @@ msgid ""
 "<placeholder type=\"orderedlist\" id=\"0\"/>"
 msgstr ""
 
-#~ msgid "What is the Ubuntu Software Center?"
-#~ msgstr "什麼是 Ubuntu 軟體中心 ?"
-
-#~ msgid "Removing a program"
-#~ msgstr "移除程式"
-
-#~ msgid "Why are all the programs free?"
-#~ msgstr "為甚麼這些軟體都是免費的?"
-
-#~ msgid ""
-#~ "The Software Center also lets you examine the applications installed on the "
-#~ "computer already, and remove those you no longer need."
-#~ msgstr "「軟體中心」也可以讓您檢視目前已經安裝在您電腦上的應用程式，並移除您再也不需要的程式。"
-
-#~ msgid ""
-#~ "The Ubuntu Software Center is a virtual catalog of thousands of free "
-#~ "applications available for Ubuntu &#8212; software to make your computer "
-#~ "more useful."
-#~ msgstr ""
-#~ "「Ubuntu 軟體中心」是一款為 Ubuntu &#8212; 軟體設計的虛擬型錄，其中包含數以千計的免費應用程式。這些軟體可以替您的電腦加值。"
-
-#~ msgid ""
-#~ "This manual explains how to use <application>Software Center</application>."
-#~ msgstr "本手冊將會指導您如何使用 <application> 軟體中心 </application>。"
-
-#~ msgid ""
-#~ "To install a program from the Software Center, you need administrator access "
-#~ "and a working Internet connection.  (If you set up Ubuntu on this computer "
-#~ "yourself, you have administrator access automatically.)"
-#~ msgstr ""
-#~ "要從「軟體中心」安裝程式，您需要系統管理員的存取權和一個可以運作的網際網路連線。（如果您是自己本身安裝 Ubuntu "
-#~ "的話，您的帳號會自動擁有系統管理員的存取權。）"
-
-#~ msgid "Installing a program"
-#~ msgstr "安裝一套程式"
-
-#~ msgid ""
-#~ "You can find applications by category or by searching, and you can install "
-#~ "an application with the click of a button."
-#~ msgstr "您可以使用類別瀏覽或是搜尋來尋找您想要的應用程式，要安裝軟體只需要在按鈕上點擊一下就可以了。"
-
 #~ msgid ""
 #~ "Most installed applications appear in the <guimenu>Applications</guimenu> "
-#~ "menu in the corner of the screen, in the same category as they came from in "
-#~ "the Software Center."
+#~ "menu in the corner of the screen, in the same category as they came from "
+#~ "in the Software Center."
 #~ msgstr ""
-#~ "大多數已經安裝的應用程式會出現在畫面角落的 <guimenu>應用程式</guimenu> 選單內，位於它們在軟體中心中所屬的相同分類內。"
+#~ "大多數已經安裝的應用程式會出現在畫面角落的 <guimenu>應用程式</guimenu> 選"
+#~ "單內，位於它們在軟體中心中所屬的相同分類內。"
 
 #~ msgid ""
-#~ "For example, if you installed a program from the <guilabel>Office</guilabel> "
-#~ "department, it will appear inside "
-#~ "<menuchoice><guimenu>Applications</guimenu> <guisubmenu>Office</guisubmenu></"
-#~ "menuchoice>."
+#~ "For example, if you installed a program from the <guilabel>Office</"
+#~ "guilabel> department, it will appear inside "
+#~ "<menuchoice><guimenu>Applications</guimenu> <guisubmenu>Office</"
+#~ "guisubmenu></menuchoice>."
 #~ msgstr ""
-#~ "舉例來說，如果您安裝好來自 <guilabel>辦公</guilabel> 部門的程式，那麼它就會出現在 "
-#~ "<menuchoice><guimenu>應用程式</guimenu> <guisubmenu>辦公</guisubmenu></menuchoice> "
-#~ "之內。"
-
-#~ msgid ""
-#~ "Click the <guilabel>Install</guilabel> button.  You may need to enter your "
-#~ "Ubuntu password before the installation can begin."
-#~ msgstr "點擊 <guilabel>安裝</guilabel> 按鈕。在安裝開始之前，您也許需要輸入您的 Ubuntu 密碼。"
-
-#~ msgid ""
-#~ "How long a program takes to install depends on how large it is, and the "
-#~ "speed of your computer and Internet connection."
-#~ msgstr "程式安裝的時間取決於該軟體的大小，以及您的電腦與網際網路連線的速度。"
-
-#~ msgid ""
-#~ "While a program is being installed, it appears in the Software "
-#~ "Center&#8217;s <guilabel>In Progress</guilabel> section.  As soon as it "
-#~ "disappears, the program is installed."
-#~ msgstr ""
-#~ "當程式正在安裝的時候，它會出現在軟體中心的 <guilabel>進行中</guilabel> 區塊當中。當它消失在該區塊中時，就代表程式已經安裝完畢。"
-
-#~ msgid ""
-#~ "Click the program in the list, and click the arrow button to go to the "
-#~ "screen for the program."
-#~ msgstr "點擊清單內的程式，接著點擊旁邊的箭頭圖示按扭來前往為該程式提供的畫面。"
-
-#~ msgid ""
-#~ "In the <guilabel>Get Free Software</guilabel> section, find the program you "
-#~ "want to install.  If you already know its name, try typing the name in the "
-#~ "search field.  Or try searching for the type of program you want (like "
-#~ "&#8220;spreadsheet&#8221;).  Otherwise, browse the Software Center "
-#~ "departments to find the program."
-#~ msgstr ""
-#~ "在 <guilabel>取得軟體</guilabel> "
-#~ "區塊內尋找您想要安裝的程式。如果您已經知道它的名稱，您可以在搜尋欄位內輸入它的名稱。或試著搜尋您像要安裝的程式類型 (像是 "
-#~ "&#8220;試算表&#8221;) 。若都沒有，那就瀏覽軟體中心的各個部門來尋找它吧！"
-
-#~ msgid ""
-#~ "Utilities for configuring the computer system may appear inside "
-#~ "<menuchoice><guimenu>System</guimenu> "
-#~ "<guisubmenu>Preferences</guisubmenu></menuchoice> or "
-#~ "<menuchoice><guimenu>System</guimenu> "
-#~ "<guisubmenu>Administration</guisubmenu></menuchoice>."
-#~ msgstr ""
-#~ "用來調整電腦系統的公用程式，可能會出現在 <menuchoice><guimenu>系統</guimenu> "
-#~ "<guisubmenu>偏好設定</guisubmenu></menuchoice> 或是 "
-#~ "<menuchoice><guimenu>系統</guimenu> <guisubmenu>管理</guisubmenu></menuchoice> "
-#~ "選單內。"
-
-#~ msgid ""
-#~ "If you are using Ubuntu Netbook Remix, an application appears in its "
-#~ "category on the home screen."
-#~ msgstr "如果您正在使用 Ubuntu Netbook Remix，應用程式會出現在主畫面的型錄內。"
-
-#~ msgid ""
-#~ "In the <guilabel>Installed Software</guilabel> section, find the program you "
-#~ "want to remove."
-#~ msgstr "在 <guilabel>已安裝軟體</guilabel> 區塊內尋找您想要移除的程式。"
-
-#~ msgid ""
-#~ "To remove a program, you need administrator access.  (If you set up Ubuntu "
-#~ "on this computer yourself, you have administrator access automatically.)"
-#~ msgstr "若要移除程式，您會需要系統管理員的存取權。（如果您是自己本身安裝 Ubuntu 的話，您便自動擁有系統管理員的存取權）"
-
-#~ msgid ""
-#~ "If a program is open when you remove it, usually it will stay open after it "
-#~ "is removed.  As soon as you close it, it will no longer be available."
-#~ msgstr "如果您正在執行您要移除的程式，在該程式被移除之後您所執行的程式仍會保持開啟狀態。一旦您關閉它之後，它就不能再被開啟和使用。"
-
-#~ msgid ""
-#~ "Click the <guilabel>Remove</guilabel> button.  You may need to enter your "
-#~ "Ubuntu password."
-#~ msgstr "點擊 <guilabel>移除</guilabel> 按鈕。這時您可能需要輸入 Ubuntu 密碼。"
-
-#~ msgid "What does &#8220;Canonical-maintained&#8221; mean?"
-#~ msgstr "甚麼是 「Canonical 所維護」?"
-
-#~ msgid ""
-#~ "Multiple applications are sometimes provided as a single package.  If any of "
-#~ "them are installed, all of them are installed.  And if any of them are "
-#~ "removed, all of them are removed.  The Software Center cannot remove them "
-#~ "individually, because it has no instructions on how to separate them."
-#~ msgstr ""
-#~ "有時候多個應用程式會被包裝為一個套件。若它們之中的任一個程式被安裝，那麼其它的程式也會一併安裝；而它們之中的任一個程式被移除的話，其餘的也必須要被移除。軟"
-#~ "體中心無法將它們個別移除，因為這種套件沒有提供如何分開它們的指示。"
-
-#~ msgid ""
-#~ "You can use <menuchoice><guimenu>System</guimenu> "
-#~ "<guisubmenu>Preferences</guisubmenu> <guimenuitem>Main "
-#~ "Menu</guimenuitem></menuchoice> to hide unwanted items from the "
-#~ "<guimenu>Applications</guimenu> menu without removing the actual programs."
-#~ msgstr ""
-#~ "您可以使用 <menuchoice><guimenu>系統</guimenu> <guisubmenu>偏好設定</guisubmenu> "
-#~ "<guimenuitem>主選單</guimenuitem></menuchoice> 的 <guimenu>應用程式</guimenu> "
-#~ "選單內隱藏不想要顯示的項目，而不必真的移除這些程式。"
-
-#~ msgid ""
-#~ "Currently, all software in the Ubuntu Software Center is free of charge."
-#~ msgstr "目前來說，所有「Ubuntu 軟體中心」內的軟體都是免費的。"
-
-#~ msgid ""
-#~ "Some of the software available in the Ubuntu Software Center is maintained "
-#~ "by Canonical.  Canonical engineers ensure that security fixes and other "
-#~ "critical updates are provided for these programs."
-#~ msgstr ""
-#~ "有一些在「Ubuntu 軟體中心」內提供的軟體是由 Canonical 所維護的。Canonical "
-#~ "的工程師們確保這些程式會提供安全性修正或是其他重大更新。"
+#~ "舉例來說，如果您安裝好來自 <guilabel>辦公</guilabel> 部門的程式，那麼它就"
+#~ "會出現在 <menuchoice><guimenu>應用程式</guimenu> <guisubmenu>辦公</"
+#~ "guisubmenu></menuchoice> 之內。"
 
 #~ msgid ""
 #~ "If you remove an application, any add-ons or accessories for that "
 #~ "application usually will be removed too."
-#~ msgstr "如果您移除一款應用程式，所有該應用程式的附加元件，或是其附屬程式都會一併被移除。"
+#~ msgstr ""
+#~ "如果您移除一款應用程式，所有該應用程式的附加元件，或是其附屬程式都會一併被"
+#~ "移除。"
 
-#~ msgid ""
-#~ "Sometimes if you try to remove one program, the Software Center will warn "
-#~ "you that other programs will be removed too.  There are two main reasons "
-#~ "this happens."
-#~ msgstr "有時候在您移除程式的時候，軟體中心會警告您其他的相關程式也會被移除。造成這樣的情況可能有兩種原因。"
+#~ msgid "Currently, all software in Ubuntu Software Center is free of charge."
+#~ msgstr "目前所有在 Ubuntu 軟體中心的軟體都是免費的。"
 
 #~ msgid ""
 #~ "Most of this software is developed as <firstterm>open source</firstterm>, "
-#~ "which means anyone is allowed to alter it and redistribute it for any price. "
-#~ " Ubuntu developers, Debian developers, and others package the software "
-#~ "available in the Software Center, and make it available to you for free."
+#~ "which means anyone is allowed to alter it and redistribute it for any "
+#~ "price.  Ubuntu developers, Debian developers, and others package the "
+#~ "software available in Ubuntu Software Center, and make it available to "
+#~ "you for free."
 #~ msgstr ""
-#~ "大多數的軟體都是以 <firstterm>開放源碼</firstterm> "
-#~ "的方式開發，這代表任何人都被允許任意修改它，並以任何價格重新散布它。Ubuntu 的開發者、Debian "
-#~ "的開發者，和其他開發者將這些軟體中心內可用的軟體包裝起來，並且確保它們對於您來說是免費的！"
+#~ "這些軟體中大多數都是以 <firstterm>開放原始碼</firstterm> 方式所開發，這意"
+#~ "味著任何人都允許以任何價格修改及散佈之。Ubuntu 開發者、Debian 開發者以及其"
+#~ "他人們將軟體包裝至 Ubuntu 軟體中心，並使它能讓您免費使用。"
 
 #~ msgid ""
-#~ "In a future version of Ubuntu, the Software Center will also allow software "
+#~ "In a future version of Ubuntu, the Center will also allow software "
 #~ "purchases."
-#~ msgstr "在未來的 Ubuntu 版本，軟體中心也將會提供需要購買的軟體。"
+#~ msgstr "於未來的 Ubuntu 版本，軟體中心也將允許軟體的購買。"
 
 #~ msgid ""
-#~ "Otherwise, look through the Software Center for another program to do what "
-#~ "you want."
-#~ msgstr "否則的話，請再看看軟體中心內是否有提供另一套能完成您想要做的事的程式。"
-
-#~ msgid ""
-#~ "With thousands of applications in the Software Center, there&#8217;s always "
-#~ "the chance that a few of them won&#8217;t work properly on your computer."
-#~ msgstr "在軟體中心數以千計的軟體之中，都有可能有一些應用程式無法在您的電腦上正確地運行。"
-
-#~ msgid ""
-#~ "If a program isn&#8217;t in the Software Center, but you know that it runs "
-#~ "on Ubuntu, try contacting the original developers of the program to ask if "
-#~ "they can help make it available."
-#~ msgstr ""
-#~ "如果某程式在軟體中心內沒有提供，但是您知道它可以在 Ubuntu "
-#~ "上執行，請嘗試聯絡該程式的原始開發者，向他們詢問是否他們可以協助讓該程式在軟體中心內可用。"
-
-#~ msgid ""
-#~ "First, check that <menuchoice><guimenu>View</guimenu> <guimenuitem>All "
-#~ "Applications</guimenuitem></menuchoice> is selected.  That ensures you can "
-#~ "see all the software available in the Software Center."
-#~ msgstr ""
-#~ "首先，請檢查一下 <menuchoice><guimenu>檢視</guimenu> "
-#~ "<guimenuitem>所有應用程式</guimenuitem></menuchoice> "
-#~ "已經被選取。這麼做可以確保您能在軟體中心內看見所有可供使用的軟體。"
-
-#~ msgid "What if a program I want isn&#8217;t in the Software Center?"
-#~ msgstr "萬一我想要的程式在軟體中心內沒有提供，那該怎麼辦？"
+#~ "Otherwise, look through the Center for another program to do what you "
+#~ "want."
+#~ msgstr "否則您可檢視軟體中心尋找其他的替代軟體來達成您的目的。"

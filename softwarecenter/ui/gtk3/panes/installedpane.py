@@ -154,7 +154,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         oneconftoolbar.set_orientation(Gtk.Orientation.HORIZONTAL)
         oneconfpropertymenu = Gtk.Menu()
         self.oneconfproperty = MenuButton(oneconfpropertymenu, Gtk.Image.new_from_stock(Gtk.STOCK_PROPERTIES, Gtk.IconSize.BUTTON))
-        stop_oneconf_share_menuitem = Gtk.MenuItem(label=_("Stop Syncing “%s”") % platform.node())
+        stop_oneconf_share_menuitem = Gtk.MenuItem(label=_(u"Stop Syncing “%s”") % platform.node())
         stop_oneconf_share_menuitem.connect("activate", self._on_stop_showing_oneconf_clicked)
         stop_oneconf_share_menuitem.show()
         oneconfpropertymenu.append(stop_oneconf_share_menuitem)
@@ -434,8 +434,8 @@ class InstalledPane(SoftwarePane, CategoriesParser):
             L = len(enq.matches)
 
             if L:
-                cat_title = ngettext('%(amount)s item on “%(machine)s” not on this computer',
-                                     '%(amount)s items on “%(machine)s” not on this computer',
+                cat_title = ngettext(u'%(amount)s item on “%(machine)s” not on this computer',
+                                     u'%(amount)s items on “%(machine)s” not on this computer',
                                      L) % { 'amount' : L, 'machine': self.current_hostname}
                 i += L
                 docs = enq.get_documents()
@@ -456,8 +456,8 @@ class InstalledPane(SoftwarePane, CategoriesParser):
 
             L = len(enq.matches)
             if L:
-                cat_title = ngettext('%(amount)s item on this computer not on “%(machine)s”',
-                                     '%(amount)s items on this computer not on “%(machine)s”',
+                cat_title = ngettext(u'%(amount)s item on this computer not on “%(machine)s”',
+                                     u'%(amount)s items on this computer not on “%(machine)s”',
                                      L) % { 'amount' : L, 'machine': self.current_hostname}
                 i += L
                 docs = enq.get_documents()
