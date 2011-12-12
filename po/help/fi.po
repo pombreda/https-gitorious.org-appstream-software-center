@@ -6,16 +6,17 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: software-center\n"
-"Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
+"Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-07-21 17:04+0300\n"
-"PO-Revision-Date: 2011-08-31 11:32+0000\n"
-"Last-Translator: Jiri Grönroos <Unknown>\n"
+"PO-Revision-Date: 2011-09-02 15:38+0000\n"
+"Last-Translator: Aleksi Kinnunen <Unknown>\n"
 "Language-Team: Finnish <fi@li.org>\n"
+"Language: fi\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Launchpad-Export-Date: 2011-09-01 04:58+0000\n"
-"X-Generator: Launchpad (build 13827)\n"
+"X-Launchpad-Export-Date: 2011-12-10 13:12+0000\n"
+"X-Generator: Launchpad (build 14450)\n"
 
 #. type: Attribute 'lang' of: <book>
 #: help/C/software-center.xml:18
@@ -32,7 +33,7 @@ msgstr "Ubuntun sovellusvalikoima"
 #. <year>2000</year>
 #. <holder>ME-THE-TRANSLATOR (Latin translation)</holder>
 #. </copyright>
-#. 
+#.
 #. An address can be added to the publisher information.  If a role is
 #. not specified, the publisher/author is the same for all versions of the
 #. document.
@@ -42,11 +43,11 @@ msgstr "Ubuntun sovellusvalikoima"
 #. type: Content of: <book><bookinfo>
 #: help/C/software-center.xml:34
 msgid ""
-"<publisher> <publishername>Ubuntu Documentation Project</publishername> "
-"</publisher> &legal;"
+"<publisher> <publishername>Ubuntu Documentation Project</publishername> </"
+"publisher> &legal;"
 msgstr ""
-"<publisher> <publishername>Ubuntun dokumentaatioprojekti</publishername> "
-"</publisher> &legal;"
+"<publisher> <publishername>Ubuntun dokumentaatioprojekti</publishername> </"
+"publisher> &legal;"
 
 #. type: Content of: <book><bookinfo><authorgroup><author><firstname>
 #: help/C/software-center.xml:43
@@ -158,8 +159,8 @@ msgstr ""
 msgid ""
 "In the <guilabel>Get Software</guilabel> section, find the thing you want to "
 "install.  If you already know its name, try typing the name in the search "
-"field.  Or try searching for the type of program you want (like "
-"&#8220;spreadsheet&#8221;).  Otherwise, browse the list of departments."
+"field.  Or try searching for the type of program you want (like &#8220;"
+"spreadsheet&#8221;).  Otherwise, browse the list of departments."
 msgstr ""
 "Etsi <guilabel>Hae ohjelmistoja</guilabel> -osiosta sovellus, jonka haluat "
 "asentaa. Jos tiedät jo sen nimen, kokeile kirjoittamalla sen nimeä "
@@ -169,8 +170,7 @@ msgstr ""
 
 #. type: Content of: <book><chapter><orderedlist><listitem><para>
 #: help/C/software-center.xml:103
-msgid ""
-"Select the item in the list, and choose <guilabel>More Info</guilabel>."
+msgid "Select the item in the list, and choose <guilabel>More Info</guilabel>."
 msgstr ""
 "Valitse kohde luettelosta ja valitse <guilabel>Lisätietoja</ guilabel>."
 
@@ -220,11 +220,17 @@ msgstr "Ohjelman käyttäminen asentamisen jälkeen"
 msgid ""
 "For most programs, once they are installed, you can launch them from the "
 "<guimenu>Applications</guimenu> menu.  (Utilities for changing settings may "
-"appear inside <menuchoice><guimenu>System</guimenu> "
-"<guisubmenu>Preferences</guisubmenu></menuchoice> or "
-"<menuchoice><guimenu>System</guimenu> "
+"appear inside <menuchoice><guimenu>System</guimenu> <guisubmenu>Preferences</"
+"guisubmenu></menuchoice> or <menuchoice><guimenu>System</guimenu> "
 "<guisubmenu>Administration</guisubmenu></menuchoice> instead)."
 msgstr ""
+"Useimmat sovellukset käynnistetään asennuksen jälkeen perinteisellä Gnome-"
+"työpöydällä <guimenu>Sovellukset</guimenu>-valikosta (järjestelmäasetuksia "
+"muokkaavat sovellukset saattavat löytyä myös "
+"<menuchoice><guimenu>Järjestelmä</guimenu> <guisubmenu>Asetukset</"
+"guisubmenu></menuchoice> tai <menuchoice><guimenu>Järjestelmä</guimenu> "
+"<guisubmenu>Ylläpito</guisubmenu></menuchoice>). Uudella Unity-työpöydällä "
+"kannattaa alkaa kirjoittamaan sovelluksen nimeä <gui>Dashin</gui> hakuun."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:141
@@ -233,6 +239,8 @@ msgid ""
 "program in Ubuntu Software Center, if it is not still being displayed.  The "
 "menu location should be displayed on that screen, below the colored bar."
 msgstr ""
+"Sovelluksen käynnistysohjeet ovat luultavasti sovelluksen sivuilla "
+"Sovellusvalikoimassa."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:148
@@ -240,6 +248,8 @@ msgid ""
 "If you are using Ubuntu Netbook Edition, an application appears in the "
 "appropriate category on the home screen."
 msgstr ""
+"Ubuntu Netbook Editionissa sovellus ilmestyy sille parhaiten sopivaan "
+"luokkaan kotinäytölläsi."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:152
@@ -350,6 +360,13 @@ msgid ""
 "Edition, it is in <menuchoice><guimenu>Settings</guimenu> "
 "<guisubmenu>Preferences</guisubmenu></menuchoice>."
 msgstr ""
+"Voit poistaa vanhalla Gnome-työpöydällä ei-toivotun sovelluksen näkyvistä "
+"päävalikosta kuitenkaan poistamatta sovellusta <guilabel>Päävalikon "
+"asetusten</guilabel> avulla. Löydät sen nimellä <guilabel>Päävalikko</"
+"guilabel> sijainnista <menuchoice><guimenu>Järjestelmä</guimenu> "
+"<guisubmenu>Asetukset</guisubmenu></menuchoice> tai Ubuntu Netbook "
+"Editionissa <menuchoice><guimenu>Järjestelmä</guimenu> "
+"<guisubmenu>Asetukset</guisubmenu></menuchoice>."
 
 #. type: Content of: <book><chapter><itemizedlist><listitem><para>
 #: help/C/software-center.xml:226
@@ -370,6 +387,9 @@ msgid ""
 "Canonical engineers ensure that security fixes and other critical updates "
 "are provided for these programs."
 msgstr ""
+"Jotkut Ubuntulle saatavilla olevat ohjelmistot ovat Canonicalin ylläpitämiä. "
+"Canonicalin insinöörit takaavat tietoturva- ja muut kriittiset päivitykset "
+"näille ohjelmille."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:240
@@ -383,7 +403,7 @@ msgstr ""
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:245
 msgid "What is &#8220;Canonical Partners&#8221;?"
-msgstr ""
+msgstr "Keitä ovat &#8220;Canonicalin kumppanit&#8221;?"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:247
@@ -391,6 +411,9 @@ msgid ""
 "<guilabel>Canonical Partners</guilabel> shows software from vendors who have "
 "worked with Canonical to make their software available for Ubuntu."
 msgstr ""
+"<guilabel>Canonicalin kumppanit</guilabel> -osio näyttää sinulle vain "
+"sellaisia ohjelmistoja, jotka on tehty Canonicalin valvonnassa varta vasten "
+"Ubuntulle."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:251
@@ -428,8 +451,8 @@ msgid ""
 "Ubuntu Single Sign On account or Launchpad account.  If you do not have an "
 "account, Ubuntu Software Center will help you register one."
 msgstr ""
-"Maksullisten ohjelmien lataaminen edellyttää internet-yhteyttä ja Ubuntu SSO-"
-" tai Launcpad-tilin. Jos sinulla ei ole vielä tiliä, voit helposti luoda "
+"Maksullisten ohjelmien lataaminen edellyttää internet-yhteyttä ja Ubuntu "
+"SSO- tai Launcpad-tilin. Jos sinulla ei ole vielä tiliä, voit helposti luoda "
 "sellaisen Ubuntun Sovellusvalikoiman avulla."
 
 #. type: Content of: <book><chapter><title>
@@ -462,6 +485,8 @@ msgstr ""
 #: help/C/software-center.xml:288
 msgid "This works even if you have reinstalled Ubuntu on the computer."
 msgstr ""
+"Tämä toimii myös silloin, kun asennat Ubuntun uudelleen tietokoneeseesi tai "
+"toiseen tietokoneeseen."
 
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:293
@@ -517,8 +542,8 @@ msgstr ""
 msgid ""
 "If you are familiar with reporting bugs in software, you can help out by "
 "reporting the problem to the Ubuntu developers.  Most programs have a "
-"<guimenuitem>Report a Problem</guimenuitem> item in their "
-"<guimenu>Help</guimenu> menu."
+"<guimenuitem>Report a Problem</guimenuitem> item in their <guimenu>Help</"
+"guimenu> menu."
 msgstr ""
 "Jos virheraporttien tekeminen on tuttua, voit auttaa Ubuntun kehittäjiä "
 "selvittämään ongelman tekemällä ongelmasta vikailmoituksen. Useimpien "
@@ -553,8 +578,8 @@ msgstr ""
 "Documentation License (GFDL) -lisenssin ehtojen mukaisesti. Voit käyttää "
 "lisenssin versiota 1.1 tai mitä tahansa Free Software Foundationin "
 "julkaisemaa myöhempää versiota. Lisenssin ehtoja vakioluvuista ja etu- ja "
-"takakansiteksteistä ei sovelleta. Kopio GFDL-lisenssistä löytyy <ulink "
-"type=\"help\" url=\"ghelp:fdl\">täältä</ulink> tai tämän ohjeen mukana "
+"takakansiteksteistä ei sovelleta. Kopio GFDL-lisenssistä löytyy <ulink type="
+"\"help\" url=\"ghelp:fdl\">täältä</ulink> tai tämän ohjeen mukana "
 "toimitetusta COPYING-DOCS-tiedostosta."
 
 #. type: Content of: <legalnotice><para>
@@ -649,26 +674,38 @@ msgstr ""
 
 #~ msgid ""
 #~ "Most installed applications appear in the <guimenu>Applications</guimenu> "
-#~ "menu in the corner of the screen, in the same category as they came from in "
-#~ "the Software Center."
+#~ "menu in the corner of the screen, in the same category as they came from "
+#~ "in the Software Center."
 #~ msgstr ""
 #~ "Useimmat asennetut ohjelmat löytyvät <guimenu>Sovellukset</guimenu>-"
 #~ "valikoista näytön yläreunasta samasta kategoriasta kuin Ubuntun "
 #~ "sovellusvalikoimassa."
 
 #~ msgid ""
-#~ "For example, if you installed a program from the <guilabel>Office</guilabel> "
-#~ "department, it will appear inside "
-#~ "<menuchoice><guimenu>Applications</guimenu> <guisubmenu>Office</guisubmenu></"
-#~ "menuchoice>."
+#~ "For example, if you installed a program from the <guilabel>Office</"
+#~ "guilabel> department, it will appear inside "
+#~ "<menuchoice><guimenu>Applications</guimenu> <guisubmenu>Office</"
+#~ "guisubmenu></menuchoice>."
 #~ msgstr ""
-#~ "Jos esimerkiksi asensit ohjelman <guilabel>Toimisto</guilabel>-osiosta, se "
-#~ "löytyy valikosta <menuchoice><guimenu>Sovellukset</guimenu> "
+#~ "Jos esimerkiksi asensit ohjelman <guilabel>Toimisto</guilabel>-osiosta, "
+#~ "se löytyy valikosta <menuchoice><guimenu>Sovellukset</guimenu> "
 #~ "<guisubmenu>Toimisto</guisubmenu></menuchoice>."
 
 #~ msgid ""
 #~ "If you remove an application, any add-ons or accessories for that "
 #~ "application usually will be removed too."
 #~ msgstr ""
-#~ "Ohjelmaa poistettaessa poistetaan yleensä samalla myös ohjelman liitännäiset "
-#~ "ja muut lisäosat."
+#~ "Ohjelmaa poistettaessa poistetaan yleensä samalla myös ohjelman "
+#~ "liitännäiset ja muut lisäosat."
+
+#~ msgid "Currently, all software in Ubuntu Software Center is free of charge."
+#~ msgstr ""
+#~ "Tällä hetkellä kaikki ohjelmistot Ubuntun sovellusvalikoimassa ovat "
+#~ "maksuttomia."
+
+#~ msgid ""
+#~ "In a future version of Ubuntu, the Center will also allow software "
+#~ "purchases."
+#~ msgstr ""
+#~ "Tulevissa Ubuntun versioissa sovellusvalikoima mahdollistaa myös "
+#~ "ohjelmistojen ostamisen."

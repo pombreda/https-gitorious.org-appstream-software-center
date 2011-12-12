@@ -6,16 +6,17 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: software-center\n"
-"Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
+"Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-07-21 17:04+0300\n"
-"PO-Revision-Date: 2011-07-25 13:13+0000\n"
-"Last-Translator: Loki <Unknown>\n"
+"PO-Revision-Date: 2011-07-17 10:23+0000\n"
+"Last-Translator: David Planella <david.planella@ubuntu.com>\n"
 "Language-Team: Kannada <kn@li.org>\n"
+"Language: kn\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Launchpad-Export-Date: 2011-07-26 04:47+0000\n"
-"X-Generator: Launchpad (build 13405)\n"
+"X-Launchpad-Export-Date: 2011-12-10 13:12+0000\n"
+"X-Generator: Launchpad (build 14450)\n"
 
 #. type: Attribute 'lang' of: <book>
 #: help/C/software-center.xml:18
@@ -32,7 +33,7 @@ msgstr ""
 #. <year>2000</year>
 #. <holder>ME-THE-TRANSLATOR (Latin translation)</holder>
 #. </copyright>
-#. 
+#.
 #. An address can be added to the publisher information.  If a role is
 #. not specified, the publisher/author is the same for all versions of the
 #. document.
@@ -42,8 +43,8 @@ msgstr ""
 #. type: Content of: <book><bookinfo>
 #: help/C/software-center.xml:34
 msgid ""
-"<publisher> <publishername>Ubuntu Documentation Project</publishername> "
-"</publisher> &legal;"
+"<publisher> <publishername>Ubuntu Documentation Project</publishername> </"
+"publisher> &legal;"
 msgstr ""
 
 #. type: Content of: <book><bookinfo><authorgroup><author><firstname>
@@ -145,14 +146,13 @@ msgstr ""
 msgid ""
 "In the <guilabel>Get Software</guilabel> section, find the thing you want to "
 "install.  If you already know its name, try typing the name in the search "
-"field.  Or try searching for the type of program you want (like "
-"&#8220;spreadsheet&#8221;).  Otherwise, browse the list of departments."
+"field.  Or try searching for the type of program you want (like &#8220;"
+"spreadsheet&#8221;).  Otherwise, browse the list of departments."
 msgstr ""
 
 #. type: Content of: <book><chapter><orderedlist><listitem><para>
 #: help/C/software-center.xml:103
-msgid ""
-"Select the item in the list, and choose <guilabel>More Info</guilabel>."
+msgid "Select the item in the list, and choose <guilabel>More Info</guilabel>."
 msgstr ""
 
 #. type: Content of: <book><chapter><orderedlist><listitem><para>
@@ -196,9 +196,8 @@ msgstr ""
 msgid ""
 "For most programs, once they are installed, you can launch them from the "
 "<guimenu>Applications</guimenu> menu.  (Utilities for changing settings may "
-"appear inside <menuchoice><guimenu>System</guimenu> "
-"<guisubmenu>Preferences</guisubmenu></menuchoice> or "
-"<menuchoice><guimenu>System</guimenu> "
+"appear inside <menuchoice><guimenu>System</guimenu> <guisubmenu>Preferences</"
+"guisubmenu></menuchoice> or <menuchoice><guimenu>System</guimenu> "
 "<guisubmenu>Administration</guisubmenu></menuchoice> instead)."
 msgstr ""
 
@@ -446,8 +445,8 @@ msgstr ""
 msgid ""
 "If you are familiar with reporting bugs in software, you can help out by "
 "reporting the problem to the Ubuntu developers.  Most programs have a "
-"<guimenuitem>Report a Problem</guimenuitem> item in their "
-"<guimenu>Help</guimenu> menu."
+"<guimenuitem>Report a Problem</guimenuitem> item in their <guimenu>Help</"
+"guimenu> menu."
 msgstr ""
 
 #. type: Content of: <book><chapter><para>
@@ -530,17 +529,3 @@ msgid ""
 "OF THE GNU FREE DOCUMENTATION LICENSE WITH THE FURTHER UNDERSTANDING THAT: "
 "<placeholder type=\"orderedlist\" id=\"0\"/>"
 msgstr ""
-
-#~ msgid "What is the Ubuntu Software Center?"
-#~ msgstr "ಉಬುಂಟು ತಂತ್ರಾಂಶ ಕೇಂದ್ರ ಎಂದರೆ ಏನು?"
-
-#~ msgid "Installing a program"
-#~ msgstr "ಒಂದು ಕ್ರಮವಿಧಿಯನ್ನು ಅನುಸ್ಥಾಪಿಸಲಾಗುತ್ತಿದೆ"
-
-#~ msgid ""
-#~ "How long a program takes to install depends on how large it is, and the "
-#~ "speed of your computer and Internet connection."
-#~ msgstr ""
-#~ "ಒಂದು ಕ್ರಮವಿಧಿಯನ್ನು ಅನುಸ್ಥಾಪಿಸಲು ಎಷ್ಟು ಸಮಯ ತೆಗೆದುಕೊಳ್ಳುತ್ತದೆ ಎನ್ನುವುದು ಅದು "
-#~ "ಎಷ್ಟು ದೊಡ್ಡದಿದೆ, ನಿಮ್ಮ ಗಣಕದ ವೇಗ ಮತ್ತು ಅಂತರ್ಜಾಲ ಸಂಪರ್ಕದ ಮೇಲೆ "
-#~ "ನಿರ್ಧರಿತವಾಗಿರುತ್ತದೆ."

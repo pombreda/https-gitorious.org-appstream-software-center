@@ -6,16 +6,17 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: software-center\n"
-"Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
+"Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-07-21 17:04+0300\n"
-"PO-Revision-Date: 2011-04-16 19:22+0000\n"
-"Last-Translator: BloodDw <Unknown>\n"
+"PO-Revision-Date: 2010-08-25 12:23+0000\n"
+"Last-Translator: mahfiaz <mahfiaz@gmail.com>\n"
 "Language-Team: Estonian <et@li.org>\n"
+"Language: et\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Launchpad-Export-Date: 2011-07-22 04:47+0000\n"
-"X-Generator: Launchpad (build 13405)\n"
+"X-Launchpad-Export-Date: 2011-12-10 13:12+0000\n"
+"X-Generator: Launchpad (build 14450)\n"
 
 #. type: Attribute 'lang' of: <book>
 #: help/C/software-center.xml:18
@@ -32,7 +33,7 @@ msgstr "Ubuntu tarkvarakeskus"
 #. <year>2000</year>
 #. <holder>ME-THE-TRANSLATOR (Latin translation)</holder>
 #. </copyright>
-#. 
+#.
 #. An address can be added to the publisher information.  If a role is
 #. not specified, the publisher/author is the same for all versions of the
 #. document.
@@ -42,8 +43,8 @@ msgstr "Ubuntu tarkvarakeskus"
 #. type: Content of: <book><bookinfo>
 #: help/C/software-center.xml:34
 msgid ""
-"<publisher> <publishername>Ubuntu Documentation Project</publishername> "
-"</publisher> &legal;"
+"<publisher> <publishername>Ubuntu Documentation Project</publishername> </"
+"publisher> &legal;"
 msgstr ""
 
 #. type: Content of: <book><bookinfo><authorgroup><author><firstname>
@@ -150,14 +151,13 @@ msgstr ""
 msgid ""
 "In the <guilabel>Get Software</guilabel> section, find the thing you want to "
 "install.  If you already know its name, try typing the name in the search "
-"field.  Or try searching for the type of program you want (like "
-"&#8220;spreadsheet&#8221;).  Otherwise, browse the list of departments."
+"field.  Or try searching for the type of program you want (like &#8220;"
+"spreadsheet&#8221;).  Otherwise, browse the list of departments."
 msgstr ""
 
 #. type: Content of: <book><chapter><orderedlist><listitem><para>
 #: help/C/software-center.xml:103
-msgid ""
-"Select the item in the list, and choose <guilabel>More Info</guilabel>."
+msgid "Select the item in the list, and choose <guilabel>More Info</guilabel>."
 msgstr ""
 "Vali nimekirjast programm ja vajuta nupule <guilabel>Rohkem infot</guilabel>."
 
@@ -206,9 +206,8 @@ msgstr ""
 msgid ""
 "For most programs, once they are installed, you can launch them from the "
 "<guimenu>Applications</guimenu> menu.  (Utilities for changing settings may "
-"appear inside <menuchoice><guimenu>System</guimenu> "
-"<guisubmenu>Preferences</guisubmenu></menuchoice> or "
-"<menuchoice><guimenu>System</guimenu> "
+"appear inside <menuchoice><guimenu>System</guimenu> <guisubmenu>Preferences</"
+"guisubmenu></menuchoice> or <menuchoice><guimenu>System</guimenu> "
 "<guisubmenu>Administration</guisubmenu></menuchoice> instead)."
 msgstr ""
 
@@ -461,8 +460,8 @@ msgstr ""
 msgid ""
 "If you are familiar with reporting bugs in software, you can help out by "
 "reporting the problem to the Ubuntu developers.  Most programs have a "
-"<guimenuitem>Report a Problem</guimenuitem> item in their "
-"<guimenu>Help</guimenu> menu."
+"<guimenuitem>Report a Problem</guimenuitem> item in their <guimenu>Help</"
+"guimenu> menu."
 msgstr ""
 
 #. type: Content of: <book><chapter><para>
@@ -546,14 +545,12 @@ msgid ""
 "<placeholder type=\"orderedlist\" id=\"0\"/>"
 msgstr ""
 
-#~ msgid "Why are all the programs free?"
-#~ msgstr "Miks on kõik programmid tasuta?"
-
 #~ msgid "Currently, all software in Ubuntu Software Center is free of charge."
 #~ msgstr "Praegu on kogu tarkvara Ubuntu tarkvarakeskuses tasuta."
 
 #~ msgid ""
-#~ "Otherwise, look through the Center for another program to do what you want."
+#~ "Otherwise, look through the Center for another program to do what you "
+#~ "want."
 #~ msgstr ""
 #~ "Vastasel juhul otsi tarkvarakeskusest teine programm, mis teeb seda, mida "
 #~ "tahad."

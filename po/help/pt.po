@@ -6,21 +6,22 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: software-center\n"
-"Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
+"Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-07-21 17:04+0300\n"
-"PO-Revision-Date: 2010-03-26 00:12+0000\n"
-"Last-Translator: Rui Moreira <rui.f.moreira@gmail.com>\n"
+"PO-Revision-Date: 2011-10-17 17:32+0000\n"
+"Last-Translator: Pedro Machado Santa <pedro.santa@gmail.com>\n"
 "Language-Team: Portuguese <pt@li.org>\n"
+"Language: pt\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Launchpad-Export-Date: 2011-07-22 04:47+0000\n"
-"X-Generator: Launchpad (build 13405)\n"
+"X-Launchpad-Export-Date: 2011-12-10 13:12+0000\n"
+"X-Generator: Launchpad (build 14450)\n"
 
 #. type: Attribute 'lang' of: <book>
 #: help/C/software-center.xml:18
 msgid "en"
-msgstr ""
+msgstr "pt"
 
 #. type: Content of: <book><bookinfo><title>
 #: help/C/software-center.xml:22
@@ -32,7 +33,7 @@ msgstr "Centro de Software Ubuntu"
 #. <year>2000</year>
 #. <holder>ME-THE-TRANSLATOR (Latin translation)</holder>
 #. </copyright>
-#. 
+#.
 #. An address can be added to the publisher information.  If a role is
 #. not specified, the publisher/author is the same for all versions of the
 #. document.
@@ -42,9 +43,11 @@ msgstr "Centro de Software Ubuntu"
 #. type: Content of: <book><bookinfo>
 #: help/C/software-center.xml:34
 msgid ""
-"<publisher> <publishername>Ubuntu Documentation Project</publishername> "
-"</publisher> &legal;"
+"<publisher> <publishername>Ubuntu Documentation Project</publishername> </"
+"publisher> &legal;"
 msgstr ""
+"<publisher> <publishername>Projecto de Documentação do Ubuntu</"
+"publishername> </publisher> &legal;"
 
 #. type: Content of: <book><bookinfo><authorgroup><author><firstname>
 #: help/C/software-center.xml:43
@@ -99,12 +102,12 @@ msgstr "rugby471@gmail.com"
 #. type: Content of: <book><bookinfo><abstract><para>
 #: help/C/software-center.xml:60
 msgid "How to install and remove software in Ubuntu."
-msgstr ""
+msgstr "Como instalar e remover software no Ubuntu."
 
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:67
 msgid "What is Ubuntu Software Center?"
-msgstr ""
+msgstr "O que é o Centro de Software Ubuntu?"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:69
@@ -112,6 +115,9 @@ msgid ""
 "Ubuntu Software Center is a virtual catalog of thousands of free "
 "applications and other software to make your Ubuntu computer more useful."
 msgstr ""
+"O Centro de Software do Ubuntu é um catálogo virtual de milhares de "
+"aplicações livres e outro software para tornar o seu computador Ubuntu mais "
+"útil."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:73
@@ -119,6 +125,8 @@ msgid ""
 "You can find software by category or by searching, and you can install an "
 "item with the click of a button."
 msgstr ""
+"Pode encontrar o software por categoria ou através da procura e pode "
+"instalar um item com o clique de um botão."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:77
@@ -126,11 +134,13 @@ msgid ""
 "You can also examine which software is installed on the computer already, "
 "and remove anything you no longer need."
 msgstr ""
+"Pode também examinar qual o software que tem instalado no computador e "
+"remover algum que já não necessite."
 
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:83
 msgid "Installing software"
-msgstr ""
+msgstr "A instalar software"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:85
@@ -139,21 +149,29 @@ msgid ""
 "access and a working Internet connection.  (If you set up Ubuntu on this "
 "computer yourself, you have administrator access automatically.)"
 msgstr ""
+"Para instalar algum programa com o Centro de Software Ubuntu é necessário "
+"ter privilégios de administrador e ligação à Internet. (Se foi você que "
+"instalou o Ubuntu neste computador a sua conta já tem privilégios de "
+"administrador.)"
 
 #. type: Content of: <book><chapter><orderedlist><listitem><para>
 #: help/C/software-center.xml:93
 msgid ""
 "In the <guilabel>Get Software</guilabel> section, find the thing you want to "
 "install.  If you already know its name, try typing the name in the search "
-"field.  Or try searching for the type of program you want (like "
-"&#8220;spreadsheet&#8221;).  Otherwise, browse the list of departments."
+"field.  Or try searching for the type of program you want (like &#8220;"
+"spreadsheet&#8221;).  Otherwise, browse the list of departments."
 msgstr ""
+"Na secção <guilabel>Obter Software</guilabel>, procure o que pretende "
+"instalar.  Se sabe o nome, experimente colocá-lo no campo de procura.  Ou "
+"tente procurar pelo tipo de programa que pretende (por exemplo &#8220;"
+"cálculo&#8221;).  Em último caso, navegue pela lista de departamentos."
 
 #. type: Content of: <book><chapter><orderedlist><listitem><para>
 #: help/C/software-center.xml:103
-msgid ""
-"Select the item in the list, and choose <guilabel>More Info</guilabel>."
+msgid "Select the item in the list, and choose <guilabel>More Info</guilabel>."
 msgstr ""
+"Seleccione o item da lista, e escolha <guilabel>Mais Informação</guilabel>."
 
 #. type: Content of: <book><chapter><orderedlist><listitem><para>
 #: help/C/software-center.xml:109
@@ -161,6 +179,8 @@ msgid ""
 "Choose <guilabel>Install</guilabel>.  You may need to enter your Ubuntu "
 "password before the installation can begin."
 msgstr ""
+"Escolha <guilabel>Instalar</guilabel>.  É possível que tenha que colocar a "
+"sua password antes que a instalação possa iniciar."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:116
@@ -168,6 +188,8 @@ msgid ""
 "How long something takes to install depends on how large it is, and the "
 "speed of your computer and Internet connection."
 msgstr ""
+"O tempo que algo demora a instalar depende do seu tamanho e da velocidade da "
+"sua máquina e da sua ligação à Internet."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:120
@@ -175,30 +197,31 @@ msgid ""
 "When the screen changes to say &#8220;Installed&#8221;, the software is "
 "ready to use."
 msgstr ""
+"Quando o ecrã mudar para &#8220;Instalado&#8221;, o software está pronto a "
+"usar."
 
 #. type: Content of: <book><chapter><itemizedlist><listitem><para>
 #: help/C/software-center.xml:124
 msgid "<xref linkend=\"launching\" endterm=\"launching-title\"/>"
-msgstr ""
+msgstr "<xref linkend=\"launching\" endterm=\"launching-title\"/>"
 
 #. type: Content of: <book><chapter><itemizedlist><listitem><para>
 #: help/C/software-center.xml:125
 msgid "<xref linkend=\"missing\" endterm=\"missing-title\"/>"
-msgstr ""
+msgstr "<xref linkend=\"missing\" endterm=\"missing-title\"/>"
 
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:130
 msgid "Using a program once it&#8217;s installed"
-msgstr ""
+msgstr "Utilizando um programa assim que estiver instalado"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:132
 msgid ""
 "For most programs, once they are installed, you can launch them from the "
 "<guimenu>Applications</guimenu> menu.  (Utilities for changing settings may "
-"appear inside <menuchoice><guimenu>System</guimenu> "
-"<guisubmenu>Preferences</guisubmenu></menuchoice> or "
-"<menuchoice><guimenu>System</guimenu> "
+"appear inside <menuchoice><guimenu>System</guimenu> <guisubmenu>Preferences</"
+"guisubmenu></menuchoice> or <menuchoice><guimenu>System</guimenu> "
 "<guisubmenu>Administration</guisubmenu></menuchoice> instead)."
 msgstr ""
 
@@ -259,6 +282,9 @@ msgid ""
 "after it is removed.  As soon as you close it, it will no longer be "
 "available."
 msgstr ""
+"Se um programa estiver a correr e o remover, normalmente permanecerá a "
+"correr mesmo depois de ser removido. Assim que o terminar, deixará de estar "
+"disponível."
 
 #. type: Content of: <book><chapter><itemizedlist><listitem><para>
 #: help/C/software-center.xml:186
@@ -269,6 +295,7 @@ msgstr ""
 #: help/C/software-center.xml:191
 msgid "Why is it asking me to remove several programs together?"
 msgstr ""
+"Porque é que me está a pedir para remover vários programas de uma só vez?"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:193
@@ -446,8 +473,8 @@ msgstr ""
 msgid ""
 "If you are familiar with reporting bugs in software, you can help out by "
 "reporting the problem to the Ubuntu developers.  Most programs have a "
-"<guimenuitem>Report a Problem</guimenuitem> item in their "
-"<guimenu>Help</guimenu> menu."
+"<guimenuitem>Report a Problem</guimenuitem> item in their <guimenu>Help</"
+"guimenu> menu."
 msgstr ""
 
 #. type: Content of: <book><chapter><para>
@@ -530,9 +557,3 @@ msgid ""
 "OF THE GNU FREE DOCUMENTATION LICENSE WITH THE FURTHER UNDERSTANDING THAT: "
 "<placeholder type=\"orderedlist\" id=\"0\"/>"
 msgstr ""
-
-#~ msgid ""
-#~ "This manual explains how to use <application>Software Center</application>."
-#~ msgstr ""
-#~ "Este manual ensina-o a usar o <application>Centro de Software "
-#~ "Ubuntu</application>."

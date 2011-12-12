@@ -1,17 +1,17 @@
-# Basque translation for software-center
-# Copyright (c) 2011 Rosetta Contributors and Canonical Ltd 2011
+# Bosnian translation for software-center
+# Copyright (c) 2010 Rosetta Contributors and Canonical Ltd 2010
 # This file is distributed under the same license as the software-center package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2011.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2010.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: software-center\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-07-21 17:04+0300\n"
-"PO-Revision-Date: 2011-05-28 10:39+0000\n"
-"Last-Translator: Asier Sarasua Garmendia <Unknown>\n"
-"Language-Team: Basque <eu@li.org>\n"
-"Language: eu\n"
+"PO-Revision-Date: 2010-12-05 12:39+0000\n"
+"Last-Translator: Samir Ribić <Unknown>\n"
+"Language-Team: Bosnian <bs@li.org>\n"
+"Language: bs\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -21,12 +21,12 @@ msgstr ""
 #. type: Attribute 'lang' of: <book>
 #: help/C/software-center.xml:18
 msgid "en"
-msgstr ""
+msgstr "en"
 
 #. type: Content of: <book><bookinfo><title>
 #: help/C/software-center.xml:22
 msgid "Ubuntu Software Center"
-msgstr "Ubunturen software-biltegia"
+msgstr "Ubuntu Programski Centar"
 
 #. translators: uncomment this:
 #. <copyright>
@@ -46,6 +46,8 @@ msgid ""
 "<publisher> <publishername>Ubuntu Documentation Project</publishername> </"
 "publisher> &legal;"
 msgstr ""
+"<publisher> <publishername>Ubuntu Dokumentacija</publishername> </publisher> "
+"&legal;"
 
 #. type: Content of: <book><bookinfo><authorgroup><author><firstname>
 #: help/C/software-center.xml:43
@@ -100,12 +102,12 @@ msgstr "rugby471@gmail.com"
 #. type: Content of: <book><bookinfo><abstract><para>
 #: help/C/software-center.xml:60
 msgid "How to install and remove software in Ubuntu."
-msgstr ""
+msgstr "Kako se instalira i izbriše softver u Ubuntu."
 
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:67
 msgid "What is Ubuntu Software Center?"
-msgstr "Zer da Ubuntu software-zentroa?"
+msgstr "Šta je to Ubuntu Programski Centar?"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:69
@@ -113,6 +115,9 @@ msgid ""
 "Ubuntu Software Center is a virtual catalog of thousands of free "
 "applications and other software to make your Ubuntu computer more useful."
 msgstr ""
+"Ubuntu Programski Centar je virtualni katalog sa hiljadama besplatnih "
+"aplikacija i ostalih programa koji će pomoći da Vaš Ubuntu kompjuter bude "
+"korisniji."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:73
@@ -120,6 +125,8 @@ msgid ""
 "You can find software by category or by searching, and you can install an "
 "item with the click of a button."
 msgstr ""
+"Možete pronaći programe po kategoriji ili pretragom, instalirajući ih sa "
+"jednostavnim klikom na dugme."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:77
@@ -127,11 +134,13 @@ msgid ""
 "You can also examine which software is installed on the computer already, "
 "and remove anything you no longer need."
 msgstr ""
+"Također, možete provjeriti koji je softver već instaliran na vašem računalu, "
+"te ukloniti ono što vam više ne treba."
 
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:83
 msgid "Installing software"
-msgstr "Softwarea instalatzen"
+msgstr "Instaliranje programa"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:85
@@ -140,6 +149,9 @@ msgid ""
 "access and a working Internet connection.  (If you set up Ubuntu on this "
 "computer yourself, you have administrator access automatically.)"
 msgstr ""
+"Da bi instalirali nešto sa Ubuntu Programskim Centrom, morate imati "
+"administrativni pristup i ispravnu internet konekciju. (Ako ste podesili "
+"Ubuntu na ovom računaru lično, već imate administrativni pristup.)"
 
 #. type: Content of: <book><chapter><orderedlist><listitem><para>
 #: help/C/software-center.xml:93
@@ -149,11 +161,16 @@ msgid ""
 "field.  Or try searching for the type of program you want (like &#8220;"
 "spreadsheet&#8221;).  Otherwise, browse the list of departments."
 msgstr ""
+"U <guilabel>Preuzmi Programe</guilabel> sekciji, pronađite koje programe "
+"želite instalirati.  Ako već znate njegovo ime, pokušajte upisati ime u "
+"polje za pretragu. Ili pokušajte pronaći program koji želite (npr. &#8220;"
+"tablice&#8221;).  U suprotnom, pretražite liste preko kategorija."
 
 #. type: Content of: <book><chapter><orderedlist><listitem><para>
 #: help/C/software-center.xml:103
 msgid "Select the item in the list, and choose <guilabel>More Info</guilabel>."
 msgstr ""
+"Odaberi svari na listi, i odaberite <guilabel>Više Informacija</guilabel>."
 
 #. type: Content of: <book><chapter><orderedlist><listitem><para>
 #: help/C/software-center.xml:109
@@ -161,6 +178,8 @@ msgid ""
 "Choose <guilabel>Install</guilabel>.  You may need to enter your Ubuntu "
 "password before the installation can begin."
 msgstr ""
+"Izaberite <guilabel>Instaliraj</guilabel>.  Možda ćete morati unijeti vašu "
+"šifru da instalacija programa može početi."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:116
@@ -168,6 +187,8 @@ msgid ""
 "How long something takes to install depends on how large it is, and the "
 "speed of your computer and Internet connection."
 msgstr ""
+"Vrijeme preuzimanja i instalacije uveliko zavisi od veličine i brzine vašeg "
+"računara i internet konekcije."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:120
@@ -175,21 +196,23 @@ msgid ""
 "When the screen changes to say &#8220;Installed&#8221;, the software is "
 "ready to use."
 msgstr ""
+"Kada se ekran promjeni u npr.  &#8220;Instalirano&#8221;, program je spreman "
+"za upotrebu."
 
 #. type: Content of: <book><chapter><itemizedlist><listitem><para>
 #: help/C/software-center.xml:124
 msgid "<xref linkend=\"launching\" endterm=\"launching-title\"/>"
-msgstr ""
+msgstr "<xref linkend=\"launching\" endterm=\"launching-title\"/>"
 
 #. type: Content of: <book><chapter><itemizedlist><listitem><para>
 #: help/C/software-center.xml:125
 msgid "<xref linkend=\"missing\" endterm=\"missing-title\"/>"
-msgstr ""
+msgstr "<xref linkend=\"missing\" endterm=\"missing-title\"/>"
 
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:130
 msgid "Using a program once it&#8217;s installed"
-msgstr ""
+msgstr "Korištenje programa nakon instalacije"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:132
@@ -200,6 +223,11 @@ msgid ""
 "guisubmenu></menuchoice> or <menuchoice><guimenu>System</guimenu> "
 "<guisubmenu>Administration</guisubmenu></menuchoice> instead)."
 msgstr ""
+"Nakon instalacije, većinu programa možete pokrenuti iz menija "
+"<guimenu>Programi</guimenu>.  (Alati za promjenu postavki mogu se pojaviti "
+"pod <menuchoice><guimenu>Sistem</guimenu> <guisubmenu>Postavke</guisubmenu></"
+"menuchoice> ili <menuchoice><guimenu>Sustav</guimenu> "
+"<guisubmenu>Administracija</guisubmenu></menuchoice>)."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:141
@@ -208,6 +236,9 @@ msgid ""
 "program in Ubuntu Software Center, if it is not still being displayed.  The "
 "menu location should be displayed on that screen, below the colored bar."
 msgstr ""
+"Da biste saznali gdje možete pokrenuti novi program, posjetite stranicu tog "
+"programa u Ubuntu centru softvera, ako već nije prikazana.  Lokacija u "
+"izborniku bi trebala biti navedena na toj stranici, ispod obojane trake."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:148
@@ -215,6 +246,8 @@ msgid ""
 "If you are using Ubuntu Netbook Edition, an application appears in the "
 "appropriate category on the home screen."
 msgstr ""
+"Ako koristite Ubuntu Netbook Edition, program se pojavljuje u pripadajućoj "
+"kategoriji na početnom zaslonu."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:152
@@ -224,11 +257,15 @@ msgid ""
 "browser plugin, you may need to close the browser and reopen it before the "
 "plugin will be used."
 msgstr ""
+"Neke se stavke, poput  kodeka ili priključaka za web preglednike, ne "
+"pojavljuju u menijima.  One se koriste automatski, kada ih Ubuntu zatreba.  "
+"Prije korištenja priključka za web preglednik, možda ćete terbati zatvoriti "
+"preglednik i ponovno ga otvoriti."
 
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:160
 msgid "Removing software"
-msgstr ""
+msgstr "Uklanjam softver"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:162
@@ -236,6 +273,8 @@ msgid ""
 "To remove software, you need administrator access.  (If you set up Ubuntu on "
 "this computer yourself, you have administrator access automatically.)"
 msgstr ""
+"Da biste uklonili program, potreban vam je administratorski pristup (ako ste "
+"sami podesili ovo računalo, već imate administratorski pristup)."
 
 #. type: Content of: <book><chapter><orderedlist><listitem><para>
 #: help/C/software-center.xml:169
@@ -243,6 +282,8 @@ msgid ""
 "In the <guilabel>Installed Software</guilabel> section, find the item you "
 "want to remove."
 msgstr ""
+"U kategoriji <guilabel>Instalirani softver</guilabel>, pronađite program "
+"kojeg želite ukloniti."
 
 #. type: Content of: <book><chapter><orderedlist><listitem><para>
 #: help/C/software-center.xml:175
@@ -250,6 +291,8 @@ msgid ""
 "Select the item in the list, and choose <guilabel>Remove</guilabel>.  You "
 "may need to enter your Ubuntu password."
 msgstr ""
+"Označite stavku na popisu i odaberite <guilabel>Ukloni</guilabel>.  Možda "
+"ćete biti upitani za unos vaše Ubuntu lozinke."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:181
@@ -258,16 +301,18 @@ msgid ""
 "after it is removed.  As soon as you close it, it will no longer be "
 "available."
 msgstr ""
+"Ako je program pokrenut dok ga uklanjate, obično će ostati aktivan čak i "
+"nakon uklanjanja.  Čim program zatvorite, on postaje nedostupan."
 
 #. type: Content of: <book><chapter><itemizedlist><listitem><para>
 #: help/C/software-center.xml:186
 msgid "<xref linkend=\"metapackages\" endterm=\"metapackages-title\"/>"
-msgstr ""
+msgstr "<xref linkend=\"metapackages\" endterm=\"metapackages-title\"/>"
 
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:191
 msgid "Why is it asking me to remove several programs together?"
-msgstr ""
+msgstr "Zašto me pita za uklanjanje nekoliko programa zajedno?"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:193
@@ -276,6 +321,9 @@ msgid ""
 "you that other items will be removed too.  There are two main reasons this "
 "happens."
 msgstr ""
+"Ponekad, kada uklanjate jednu stavku, Centar softvera će vas upozoriti kako "
+"će također biti uklonjene i neke druge stavke. Ovo se događa zbog dva glavna "
+"razloga."
 
 #. type: Content of: <book><chapter><itemizedlist><listitem><para>
 #: help/C/software-center.xml:200
@@ -283,6 +331,8 @@ msgid ""
 "If you remove an application, any add-ons or plugins for that application "
 "usually will be removed too."
 msgstr ""
+"Ako uklonite aplikaciju, bilo koji dodaci ili pomagala za tu aplikaciju će "
+"također biti uklonjeni."
 
 #. type: Content of: <book><chapter><itemizedlist><listitem><para>
 #: help/C/software-center.xml:206
@@ -292,6 +342,10 @@ msgid ""
 "removed, all of them are removed.  Ubuntu Software Center cannot remove them "
 "individually, because it has no instructions on how to separate them."
 msgstr ""
+"Više različitih programa ponekad su ponuđeni u jednom paketu.  Ako se jedan "
+"od njih instalira, svi se instaliraju.  Ako se jedan od tih programa "
+"uklanja, svi se uklanjaju.  Ubuntu centar softvera ih ne može ukloniti "
+"individualno jer nema upute kako ih razdvojiti."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:215
@@ -303,17 +357,25 @@ msgid ""
 "Edition, it is in <menuchoice><guimenu>Settings</guimenu> "
 "<guisubmenu>Preferences</guisubmenu></menuchoice>."
 msgstr ""
+"Ako želite sakriti neželjene stavke bez uklanjanja, možete iskoristiti "
+"postavke <guilabel>Glavnog menija</guilabel>.  U Ubuntuu,  <guilabel>Glavni "
+"meni</guilabel> možete pronaći unutar <menuchoice><guimenu>Sistem</guimenu> "
+"<guisubmenu>Postavke</guisubmenu></menuchoice>.  Kod Ubuntu Netbook "
+"Editiona, on se nalazi pod <menuchoice><guimenu>Postavke</guimenu> "
+"<guisubmenu>Mogućnosti</guisubmenu></menuchoice>."
 
 #. type: Content of: <book><chapter><itemizedlist><listitem><para>
 #: help/C/software-center.xml:226
 msgid ""
 "<ulink url=\"ghelp:user-guide?menu-editor\" >Customizing the menu bar</ulink>"
 msgstr ""
+"<ulink url=\"ghelp:user-guide?menu-editor\" >Prilagođavanje trake menija</"
+"ulink>"
 
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:232
 msgid "What is &#8220;Canonical-maintained&#8221;?"
-msgstr ""
+msgstr "Što znači &#8220;Održava Canonical&#8221;?"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:234
@@ -322,6 +384,9 @@ msgid ""
 "Canonical engineers ensure that security fixes and other critical updates "
 "are provided for these programs."
 msgstr ""
+"Neke od programa dostupnih u Ubuntu centru softvera održava Canonical.  "
+"Canonicalovi inženjeri brinu se da su vam za takve programe dostupne "
+"sigurnosne dopune ."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:240
@@ -329,11 +394,13 @@ msgid ""
 "Other software is maintained by the Ubuntu developer community.  Any updates "
 "are provided on a best-effort basis."
 msgstr ""
+"Ostatak softvera održava zajednica Ubuntu programera.  Sve dopune su "
+"osigurane na temelju dobre volje."
 
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:245
 msgid "What is &#8220;Canonical Partners&#8221;?"
-msgstr ""
+msgstr "Što znači &#8220;Canonicalovi partneri&#8221;?"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:247
@@ -341,6 +408,8 @@ msgid ""
 "<guilabel>Canonical Partners</guilabel> shows software from vendors who have "
 "worked with Canonical to make their software available for Ubuntu."
 msgstr ""
+"<guilabel>Canonicalovi partneri</guilabel> prikazuje softver prodavača koji "
+"surađuju s Canonicalom kako bi njihovi proizvodi bili dostupni za Ubuntu."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:251
@@ -348,16 +417,18 @@ msgid ""
 "You can install this software in the same way as any other software in "
 "Ubuntu Software Center."
 msgstr ""
+"Taj softver možete instalirati na isti način kao i bilo koji drugi softver u "
+"Ubuntu centru softvera."
 
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:256
 msgid "Do I need to pay anything?"
-msgstr ""
+msgstr "Trebam li šta platiti?"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:258
 msgid "Most software in Ubuntu Software Center is free of charge."
-msgstr ""
+msgstr "Većina stvari u Ubuntu centru softvera je besplatna."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:261
@@ -366,6 +437,9 @@ msgid ""
 "of an <guilabel>Install</guilabel> button, and its price is shown on the "
 "screen for the individual item."
 msgstr ""
+"Ako se nešto naplaćuje, tada ima dugme <guilabel>Kupi</guilabel> umjesto "
+"dugmeta <guilabel>Instaliraj</guilabel>, te ima navedenu cijenu na "
+"pripadajućoj stranici."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:267
@@ -374,11 +448,14 @@ msgid ""
 "Ubuntu Single Sign On account or Launchpad account.  If you do not have an "
 "account, Ubuntu Software Center will help you register one."
 msgstr ""
+"Da biste platili komercijalni softver trebate imati Internet vezu i Ubuntu "
+"Single Sign On korisnički račun ili Launchpad korisnički račun.  Ako nemate "
+"korisnički račun, Ubuntu centar softvera će vam pomoći oko otvaranja novog."
 
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:275
 msgid "What if I paid for software and then lost it?"
-msgstr ""
+msgstr "Što ako platim softver, te ga izgubim?"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:278
@@ -387,6 +464,9 @@ msgid ""
 "back, choose <menuchoice><guimenu>File</guimenu> <guimenuitem>Reinstall "
 "Previous Purchases</guimenuitem></menuchoice>."
 msgstr ""
+"Ako slučajno uklonite softver kojeg ste platili i želite ga vratiti, "
+"odaberite <menuchoice><guimenu>Datoteka</guimenu> <guimenuitem>Ponovno "
+"instaliraj prethodne kupovine</guimenuitem></menuchoice>."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:284
@@ -394,16 +474,20 @@ msgid ""
 "Once you sign in to the account that you used to buy the software, Ubuntu "
 "Software Center will display your purchases for reinstalling."
 msgstr ""
+"Nakon što se prijavite s korisničkim računom s kojim ste kupili softver, "
+"Ubuntu centar softvera će vam prikazati plaćeni softver kojeg možete ponovno "
+"instalirati."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:288
 msgid "This works even if you have reinstalled Ubuntu on the computer."
 msgstr ""
+"Ovo funkcioniše čak i ako ste ponovno instalirali Ubuntu na svoj računar."
 
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:293
 msgid "What if a program I want isn&#8217;t available?"
-msgstr ""
+msgstr "Što ako program kojeg želim nije dostupan?"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:295
@@ -411,6 +495,8 @@ msgid ""
 "First, check that <menuchoice><guimenu>View</guimenu> <guimenuitem>All "
 "Software</guimenuitem></menuchoice> is selected."
 msgstr ""
+"Najprije provjerite da je opcija <menuchoice><guimenu>Prikaz</guimenu> "
+"<guimenuitem>Sav softver</guimenuitem></menuchoice> označena."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:299
@@ -419,6 +505,9 @@ msgid ""
 "on Ubuntu, try contacting the original developers of the program to ask if "
 "they can help make it available."
 msgstr ""
+"Ako softver kojeg želite još uvijek nije dostupan, ali znate da ga je moguće "
+"pokrenuti na Ubuntuu, pokušajte kontaktirati izvorne razvijatelje programa i "
+"upitajte ih ako mogu pomoći po pitanju dostupnosti za Ubuntu."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:305
@@ -426,11 +515,14 @@ msgid ""
 "If a program is available for other operating systems but not for Ubuntu, "
 "let the developers know that you&#8217;re interested in running it on Ubuntu."
 msgstr ""
+"Ako je program dostupan za ostale operativne sisteme, ali ne i Ubuntu, dajte "
+"programerima do znanja da ste zainteresirani da se program može pokrenuti na "
+"Ubuntuu."
 
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:312
 msgid "What if a program doesn&#8217;t work?"
-msgstr ""
+msgstr "Što ako program ne radi?"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:314
@@ -439,6 +531,8 @@ msgid ""
 "always the chance that a few of them won&#8217;t work properly on your "
 "computer."
 msgstr ""
+"Uz desetine hiljada programa u Ubuntu centru softvera, uvijek postoji šansa "
+"da neki od njih neće ispravno funkcionisati na vašem računaru."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:319
@@ -448,6 +542,10 @@ msgid ""
 "<guimenuitem>Report a Problem</guimenuitem> item in their <guimenu>Help</"
 "guimenu> menu."
 msgstr ""
+"Ako ste upoznati s prijavljivanjem grešaka u softveru, možete pomoći na "
+"način da prijavite problem Ubuntu razvijateljima.  Većina programa ima "
+"opciju <guimenuitem>Prijavite problem</guimenuitem> u meniju <guimenu>Pomoć</"
+"guimenu>."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:325
@@ -455,11 +553,13 @@ msgid ""
 "Otherwise, look through Ubuntu Software Center for another program to do "
 "what you want."
 msgstr ""
+"U suprotnom, pretražite Ubuntu centar softvera za drugi program iste ili "
+"slične namjene."
 
 #. type: Content of: <book><chapter><itemizedlist><listitem><para>
 #: help/C/software-center.xml:329
 msgid "<xref linkend=\"removing\" endterm=\"removing-title\"/>"
-msgstr ""
+msgstr "<xref linkend=\"removing\" endterm=\"removing-title\"/>"
 
 #. type: Content of: <legalnotice><para>
 #: help/C/legal.xml:3
@@ -471,6 +571,12 @@ msgid ""
 "copy of the GFDL at this <ulink type=\"help\" url=\"ghelp:fdl\">link</ulink> "
 "or in the file COPYING-DOCS distributed with this manual."
 msgstr ""
+"Dopušteno je kopiranje, distribucija i/ili izmjena ovog dokumenta pod "
+"uslovima GNU licence slobodne dokumentacije (GFDL), inačice 1.1 ili novije, "
+"koju je izdala Fundacija slobodnog softvera sa \"bez nepromijenjive sekcije"
+"\", \"bez teksta na naslovnici\" i \"bez teksta na koricama\".  Kopiju GFDL "
+"licence možete pronaći <ulink type=\"help\" url=\"ghelp:fdl\">ovdje</ulink> "
+"ili u datoteci COPYING-DOCS, distribuiranu uz ovaj priručnik."
 
 #. type: Content of: <legalnotice><para>
 #: help/C/legal.xml:12
@@ -480,6 +586,10 @@ msgid ""
 "you can do so by adding a copy of the license to the manual, as described in "
 "section 6 of the license."
 msgstr ""
+"Ovaj priručnik je treći dio kolekcije GNOME priručnika distribuiranih pod "
+"GFDL licencom.  Ako želite distribuirati ovaj priručnik odvojeno od ove "
+"kolekcije, to možete učiniti dodavanje kopije ove licence uz priručnik, kao "
+"što je objašnjeno u članku 6 ove licence."
 
 #. type: Content of: <legalnotice><para>
 #: help/C/legal.xml:20
@@ -490,6 +600,11 @@ msgid ""
 "aware of those trademarks, then the names are in capital letters or initial "
 "capital letters."
 msgstr ""
+"Mnoga od imena koja koriste kompanije za razlikovanje svojih proizvoda i "
+"usluga su proglašena zaštitnim znacima. gdje se ta imena pojave u bilo kom "
+"GNOME dokumentu, a članovi Projekta GNOME dokumentacije su svesni tih "
+"zaštitnih znakova, onda su imena ispisana velikim slovima ili velikim "
+"početnim slovom."
 
 #. type: Content of: <legalnotice><para><orderedlist><listitem><para>
 #: help/C/legal.xml:35
@@ -506,6 +621,17 @@ msgid ""
 "ESSENTIAL PART OF THIS LICENSE. NO USE OF ANY DOCUMENT OR MODIFIED VERSION "
 "OF THE DOCUMENT IS AUTHORIZED HEREUNDER EXCEPT UNDER THIS DISCLAIMER; AND"
 msgstr ""
+"DOKUMENT JE DAT NA OSNOVI \"TAKAV JE KAKAV JE\", BEZ GARANCIJE BILO KOJE "
+"VRSTE, BILO IZRAŽENE ILI PRIMJENJENE, UKLJUČUJUĆI BEZ OGRANIČENJA, GARANCIJE "
+"DA JE DOKUMENT ILI IZMJENJENA VERZIJA OVOG DOKUMENTA BEZ NEDOSTATAKA "
+"PODESNOSTI, PRILAGOĐENOSTI ODREĐENOJ NAMJENI ILI NEZAKONITOSTI.SAV RIZIK NA "
+"KVALITET, TAČNOST I PERFORMANSE DOKUMENTA ILI IZMJENJENE VERZIJE DOKUMENTA "
+"JE SAMO VAŠ.AKO BILO KOJI DOKUMENT ILI IZMJENJENA VERZIJA POKAŽE "
+"NEISPRAVNOST U BILO KOJEM POGLEDU, VI( NE POČETNI PISAC, AUTOR ILI BILO KOJI "
+"SARADNIK ) VI PREUZIMATE TROŠKOVE POTREBA SERVISIRANJA, POPRAVKE ILI "
+"KOREKCIJE. OVO ODRICANJE OD GARANCIJE PREDSTAVLJA BITAN DIO OVE LICENCE. "
+"NIKAKVA UPOTREBA BILO KOJEG DOKUMENTA ILI IZMJENJENE VERZIJE DOKUMENTA NIJE "
+"OVLAŠTENA OSIM POD OVI IZUZETKOM; I"
 
 #. type: Content of: <legalnotice><para><orderedlist><listitem><para>
 #: help/C/legal.xml:55
@@ -521,6 +647,16 @@ msgid ""
 "VERSIONS OF THE DOCUMENT, EVEN IF SUCH PARTY SHALL HAVE BEEN INFORMED OF THE "
 "POSSIBILITY OF SUCH DAMAGES."
 msgstr ""
+"NI POD KAKVIM USLOVIMA I NI PO KAKVOJ PRAVNOJ TEORIJI, BILO DA JE U KRIVU "
+"(UKLJUČUJUĆI NEMAR), UGOVORU, ILI DRUGAČIJE; AUTOR, PRVOBITNI PISAC, BILO "
+"KOJI SARADNIK ILI BILO KOJI DOSTAVLJAČ DOKUMENTA ILI IZMENJENE VERZIJE "
+"DOKUMENTA, ILI BILO KOJI DOBAVLJAČ BILO KOJE OD OVIH STRANA, NEĆE BITI "
+"PODLEŽAN NIKOME ZA BILO KAKVU DIREKTNU, INDIREKTNU, POSEBNU, SLUČAJNU ILI "
+"POSLEDIČNU ŠTETU BILO KAKVE VRSTE UKLJUČUJUĆI, BEZ OGRANIČENJA, ŠTETU ZA "
+"GUBITAK DOBRE VOLJE, OBUSTAVU RADA, KVAR RAČUNARA I NEFUNKCIONISANJE, ILI "
+"BILO KOJE I SVIH DRUGIH ŠTETA ILI GUBITAKA KOJI PROISTEKNU ILI SU U VEZI SA "
+"UPOTREBOM DOKUMENTA I IZMENJENE VERZIJE DOKUMENTA, ČAK I AKO SU TE STRANE "
+"BILE OBAVEŠTENE O MOGUĆNOSTI TAKVIH ŠTETA."
 
 #. type: Content of: <legalnotice><para>
 #: help/C/legal.xml:29
@@ -529,3 +665,6 @@ msgid ""
 "OF THE GNU FREE DOCUMENTATION LICENSE WITH THE FURTHER UNDERSTANDING THAT: "
 "<placeholder type=\"orderedlist\" id=\"0\"/>"
 msgstr ""
+"DOKUMENT I IZMIJENJENE VERZIJE DOKUMENTA SU DOSTUPNE POD USLOVIMA LICENCE "
+"GNU SLOBODNE DOKUMENTACIJE  S DALJNJIM SHVAĆANJEM DA: <placeholder type="
+"\"orderedlist\" id=\"0\"/>"
