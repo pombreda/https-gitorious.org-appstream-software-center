@@ -637,6 +637,16 @@ def index_app_info_from_parser(parser, db, cache):
             if pkgname in cataloged_times:
                 doc.add_value(axi_values["catalogedtime"], 
                               xapian.sortable_serialise(cataloged_times[pkgname]))
+            else:
+                #####################################################
+                # TODO: This is just a fallback so that we keep our current
+                #       behavior of having new items for-purchase appear in
+                #       what's new...THIS SHOULD BE REMOVED after support
+                #       for date_purchased in the agent has been deployed
+                #       to the production server
+                doc.add_value(axi_values["catalogedtime"], 
+                              xapian.sortable_serialise(time.time()))
+                #####################################################
         # pocket (main, restricted, ...)
         if parser.has_option_desktop("X-AppInstall-Section"):
             archive_section = parser.get_desktop("X-AppInstall-Section")
