@@ -6,16 +6,17 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: software-center\n"
-"Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
+"Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-07-21 17:04+0300\n"
-"PO-Revision-Date: 2011-05-23 19:49+0000\n"
-"Last-Translator: Cihan <Unknown>\n"
+"PO-Revision-Date: 2011-07-17 10:22+0000\n"
+"Last-Translator: David Planella <david.planella@ubuntu.com>\n"
 "Language-Team: Turkish <tr@li.org>\n"
+"Language: tr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Launchpad-Export-Date: 2011-07-22 04:48+0000\n"
-"X-Generator: Launchpad (build 13405)\n"
+"X-Launchpad-Export-Date: 2011-12-10 13:12+0000\n"
+"X-Generator: Launchpad (build 14450)\n"
 
 #. type: Attribute 'lang' of: <book>
 #: help/C/software-center.xml:18
@@ -32,7 +33,7 @@ msgstr "Ubuntu Yazılım Merkezi"
 #. <year>2000</year>
 #. <holder>ME-THE-TRANSLATOR (Latin translation)</holder>
 #. </copyright>
-#. 
+#.
 #. An address can be added to the publisher information.  If a role is
 #. not specified, the publisher/author is the same for all versions of the
 #. document.
@@ -42,11 +43,11 @@ msgstr "Ubuntu Yazılım Merkezi"
 #. type: Content of: <book><bookinfo>
 #: help/C/software-center.xml:34
 msgid ""
-"<publisher> <publishername>Ubuntu Documentation Project</publishername> "
-"</publisher> &legal;"
+"<publisher> <publishername>Ubuntu Documentation Project</publishername> </"
+"publisher> &legal;"
 msgstr ""
-"<publisher> <publishername>Ubuntu Belgeleme Projesi</publishername> "
-"</publisher> &yasal;"
+"<publisher> <publishername>Ubuntu Belgeleme Projesi</publishername> </"
+"publisher> &yasal;"
 
 #. type: Content of: <book><bookinfo><authorgroup><author><firstname>
 #: help/C/software-center.xml:43
@@ -133,6 +134,8 @@ msgid ""
 "You can also examine which software is installed on the computer already, "
 "and remove anything you no longer need."
 msgstr ""
+"Ayrıca bilgisayarınıza hangi yazılımların kurulu olduğunu inceleyebilir ve "
+"artık ihtiyaç duymadıklarınızı kaldırabilirsiniz."
 
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:83
@@ -155,8 +158,8 @@ msgstr ""
 msgid ""
 "In the <guilabel>Get Software</guilabel> section, find the thing you want to "
 "install.  If you already know its name, try typing the name in the search "
-"field.  Or try searching for the type of program you want (like "
-"&#8220;spreadsheet&#8221;).  Otherwise, browse the list of departments."
+"field.  Or try searching for the type of program you want (like &#8220;"
+"spreadsheet&#8221;).  Otherwise, browse the list of departments."
 msgstr ""
 "<guilabel>Yazılım Al</guilabel> bölümünde yüklemek istediğinizi bulun. Eğer "
 "adını biliyorsanız, arama alanına adı yazın veya istediğiniz program türünü "
@@ -165,8 +168,7 @@ msgstr ""
 
 #. type: Content of: <book><chapter><orderedlist><listitem><para>
 #: help/C/software-center.xml:103
-msgid ""
-"Select the item in the list, and choose <guilabel>More Info</guilabel>."
+msgid "Select the item in the list, and choose <guilabel>More Info</guilabel>."
 msgstr ""
 "Listeden öğeyi seçin, ve <guilabel>Daha Fazla Bilgi</guilabel>yi seçin."
 
@@ -216,9 +218,8 @@ msgstr "Yüklenen bir programın kullanımı"
 msgid ""
 "For most programs, once they are installed, you can launch them from the "
 "<guimenu>Applications</guimenu> menu.  (Utilities for changing settings may "
-"appear inside <menuchoice><guimenu>System</guimenu> "
-"<guisubmenu>Preferences</guisubmenu></menuchoice> or "
-"<menuchoice><guimenu>System</guimenu> "
+"appear inside <menuchoice><guimenu>System</guimenu> <guisubmenu>Preferences</"
+"guisubmenu></menuchoice> or <menuchoice><guimenu>System</guimenu> "
 "<guisubmenu>Administration</guisubmenu></menuchoice> instead)."
 msgstr ""
 
@@ -229,6 +230,9 @@ msgid ""
 "program in Ubuntu Software Center, if it is not still being displayed.  The "
 "menu location should be displayed on that screen, below the colored bar."
 msgstr ""
+"Eğer hala gözükmüyorsa, bir programın nereden açılacağını bulabilmek için o "
+"programın Ubuntu Yazılım Merkezindeki sayfasına gidin. Oradaki ekranda "
+"renkli çubuğun altında programın menüdeki yeri gösteriliyor olacaktır."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:148
@@ -236,6 +240,8 @@ msgid ""
 "If you are using Ubuntu Netbook Edition, an application appears in the "
 "appropriate category on the home screen."
 msgstr ""
+"Eğer Ubuntu Netbook Edition kullanıyorsanız uygulama ana ekranında uygun "
+"kategori görünür"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:152
@@ -310,6 +316,9 @@ msgid ""
 "you that other items will be removed too.  There are two main reasons this "
 "happens."
 msgstr ""
+"Eğer bir öğeyi kaldırmaya çalışırsanız Bazen Ubuntu Yazılım Merkezi diğer "
+"öğelerin de kaldırılacağı konusunda sizi uyarır.  Bu durumun iki temel "
+"nedeni vardır."
 
 #. type: Content of: <book><chapter><itemizedlist><listitem><para>
 #: help/C/software-center.xml:200
@@ -317,6 +326,8 @@ msgid ""
 "If you remove an application, any add-ons or plugins for that application "
 "usually will be removed too."
 msgstr ""
+"Eğer bir uygulamayı kaldırırsanız, o uygulamaya bağlı tüm eklentiler de "
+"genellikle kaldırılır."
 
 #. type: Content of: <book><chapter><itemizedlist><listitem><para>
 #: help/C/software-center.xml:206
@@ -342,11 +353,11 @@ msgid ""
 "<guisubmenu>Preferences</guisubmenu></menuchoice>."
 msgstr ""
 "İstenmeyen öğeleri bilgisayardan kaldırmaksızın gizlemek için <guilabel>Ana "
-"Menü</guilabel> ayarlarını kullanabilirsiniz. Ubuntu'da <guilabel>Ana "
-"Menü</guilabel>yü, <menuchoice><guimenu>Sistem</guimenu> "
-"<guisubmenu>Yeğlenenler</guisubmenu></menuchoice> içinde bulabilirsin. "
-"Ubuntu Netbook Sürümü'nde ise, <menuchoice><guimenu>Ayarlar</guimenu> "
-"<guisubmenu>Yeğlenenler</guisubmenu></menuchoice> içinde bulunur."
+"Menü</guilabel> ayarlarını kullanabilirsiniz. Ubuntu'da <guilabel>Ana Menü</"
+"guilabel>yü, <menuchoice><guimenu>Sistem</guimenu> <guisubmenu>Yeğlenenler</"
+"guisubmenu></menuchoice> içinde bulabilirsin. Ubuntu Netbook Sürümü'nde ise, "
+"<menuchoice><guimenu>Ayarlar</guimenu> <guisubmenu>Yeğlenenler</guisubmenu></"
+"menuchoice> içinde bulunur."
 
 #. type: Content of: <book><chapter><itemizedlist><listitem><para>
 #: help/C/software-center.xml:226
@@ -367,6 +378,9 @@ msgid ""
 "Canonical engineers ensure that security fixes and other critical updates "
 "are provided for these programs."
 msgstr ""
+"Ubuntu için olan bazı yazılımlar Canonical tarafından sürdürülür. Canonical "
+"mühendisleri, bu programlar için güvenlik düzeltmelerinin ve diğer kritik "
+"güncelleştirmelerin karşılanmasını sağlar."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:240
@@ -403,12 +417,12 @@ msgstr ""
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:256
 msgid "Do I need to pay anything?"
-msgstr ""
+msgstr "Herhangi bir ödeme yapmam gerekiyor mu?"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:258
 msgid "Most software in Ubuntu Software Center is free of charge."
-msgstr ""
+msgstr "Ubuntu Yazılım Merkezi'ndeki çoğu yazılım ücretsizdir."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:261
@@ -417,6 +431,8 @@ msgid ""
 "of an <guilabel>Install</guilabel> button, and its price is shown on the "
 "screen for the individual item."
 msgstr ""
+"Eğer bir şey ücretliyse, <guilabel>Kur</guilabel> yerine <guilabel>Satın Al</"
+"guilabel> düğmesine sahip olur ve herbir ögenin fiyatı ekranda gösterilir."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:267
@@ -425,11 +441,14 @@ msgid ""
 "Ubuntu Single Sign On account or Launchpad account.  If you do not have an "
 "account, Ubuntu Software Center will help you register one."
 msgstr ""
+"Ticari yazılıma ödeme yapmak için internet bağlantısına ve Ubuntu Single "
+"Sign On yada Launchpad hesabına ihtiyacınız olacak. Eğer hesabınız yoksa "
+"Ubuntu Yazılım Merkezi size yardımcı olacaktır."
 
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:275
 msgid "What if I paid for software and then lost it?"
-msgstr ""
+msgstr "Ücret ödediğim bir yazılımı kaybedersem ne olur?"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:278
@@ -438,6 +457,10 @@ msgid ""
 "back, choose <menuchoice><guimenu>File</guimenu> <guimenuitem>Reinstall "
 "Previous Purchases</guimenuitem></menuchoice>."
 msgstr ""
+"Eğer satın aldığınız bir yazılımı yanlışlıkla kaldırırsanız ve sonra onu "
+"tekrar kullanmak isterseniz, <menuchoice><guimenu>Dosya</guimenu> "
+"<guimenuitem>Önceki Satın Almaları Yeniden Yükle</guimenuitem></menuchoice> "
+"seçeneğini seçin."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:284
@@ -445,11 +468,16 @@ msgid ""
 "Once you sign in to the account that you used to buy the software, Ubuntu "
 "Software Center will display your purchases for reinstalling."
 msgstr ""
+"Yazılım satın almak için kullandığınız hesapla oturum açtığınızda, Ubuntu "
+"Yazılım Merkezi satın aldığınız yazılımları tekrar kurulum için "
+"görüntüleyecek."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:288
 msgid "This works even if you have reinstalled Ubuntu on the computer."
 msgstr ""
+"Bu, Ubuntu'yu bilgisayarınıza sıfırdan tekrar kurduğunuz durumda bile "
+"geçerlidir."
 
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:293
@@ -462,8 +490,8 @@ msgid ""
 "First, check that <menuchoice><guimenu>View</guimenu> <guimenuitem>All "
 "Software</guimenuitem></menuchoice> is selected."
 msgstr ""
-"Önce <menuchoice><guimenu>Görünüm</guimenu> <guimenuitem>Tüm "
-"Yazılım</guimenuitem></menuchoice>'ın seçili olduğunu denetleyin."
+"Önce <menuchoice><guimenu>Görünüm</guimenu> <guimenuitem>Tüm Yazılım</"
+"guimenuitem></menuchoice>'ın seçili olduğunu denetleyin."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:299
@@ -506,8 +534,8 @@ msgstr ""
 msgid ""
 "If you are familiar with reporting bugs in software, you can help out by "
 "reporting the problem to the Ubuntu developers.  Most programs have a "
-"<guimenuitem>Report a Problem</guimenuitem> item in their "
-"<guimenu>Help</guimenu> menu."
+"<guimenuitem>Report a Problem</guimenuitem> item in their <guimenu>Help</"
+"guimenu> menu."
 msgstr ""
 "Eğer yazılım hataları raporlama konusunda bilgi sahibiyseniz, problemi "
 "Ubuntu geliştiricilerine raporlayarak yardımda bulunabilirsiniz. Çoğu "
@@ -519,7 +547,7 @@ msgstr ""
 msgid ""
 "Otherwise, look through Ubuntu Software Center for another program to do "
 "what you want."
-msgstr ""
+msgstr "Aksi takdirde, Ubuntu Yazılım Merkezi'nden başka yazılımlara göz atın."
 
 #. type: Content of: <book><chapter><itemizedlist><listitem><para>
 #: help/C/software-center.xml:329
@@ -629,225 +657,62 @@ msgid ""
 "<placeholder type=\"orderedlist\" id=\"0\"/>"
 msgstr ""
 "BELGE VE BELGENİN DÜZENLENEN SÜRÜMLERİ, GNU ÖZGÜR DÖKÜMANTASYON LİSANSININ "
-"KOŞULLARI ALTINDA BUNU DAHA İYİ ANLAYARAK SAĞLANIR: <placeholder "
-"type=\"orderedlist\" id=\"0\"/>"
-
-#~ msgid ""
-#~ "This manual explains how to use <application>Software Center</application>."
-#~ msgstr ""
-#~ "Bu el kitabı application>Yazılım Merkezi</application>'ni nasıl "
-#~ "kullanacağınızı açıklar."
-
-#~ msgid "What is the Ubuntu Software Center?"
-#~ msgstr "Ubuntu Yazılım Merkezi nedir?"
-
-#~ msgid "Installing a program"
-#~ msgstr "Bir program kurma"
-
-#~ msgid ""
-#~ "Click the <guilabel>Install</guilabel> button.  You may need to enter your "
-#~ "Ubuntu password before the installation can begin."
-#~ msgstr ""
-#~ "<guilabel>Kur</guilabel> düğmesine tıklayın. Kurulumun başlayabilmesi için "
-#~ "önce Ubuntu parolanızı girmeniz gerekebilir."
-
-#~ msgid ""
-#~ "Click the program in the list, and click the arrow button to go to the "
-#~ "screen for the program."
-#~ msgstr ""
-#~ "Listedeki programa tıklayın ve program için ekrana gitmekte ok düğmesine "
-#~ "tıklayın"
-
-#~ msgid ""
-#~ "If you are using Ubuntu Netbook Remix, an application appears in its "
-#~ "category on the home screen."
-#~ msgstr ""
-#~ "Eğer Ubuntu Netbook Remix kullanıyorsanız, ev ekranı üzerinde kendi "
-#~ "kategorisinde bir uygulama gözükür."
-
-#~ msgid "Removing a program"
-#~ msgstr "Bir programı kaldırmak"
-
-#~ msgid ""
-#~ "How long a program takes to install depends on how large it is, and the "
-#~ "speed of your computer and Internet connection."
-#~ msgstr ""
-#~ "Bir programın yüklenme süresi programın boyutuna ve internet bağlantınızın "
-#~ "hızına göre değişir."
-
-#~ msgid ""
-#~ "To install a program from the Software Center, you need administrator access "
-#~ "and a working Internet connection.  (If you set up Ubuntu on this computer "
-#~ "yourself, you have administrator access automatically.)"
-#~ msgstr ""
-#~ "Yazılım Merkezi'nde program kurabilmek için yönetici girişi yapmalı ve bir "
-#~ "internet bağlantısına sahip olmalısınız. (Eğer Ubuntu'yu bu bilgisayara siz "
-#~ "kurduysanız otomatikmen yönetici olarak giriş yaparsınız.)"
-
-#~ msgid ""
-#~ "The Software Center also lets you examine the applications installed on the "
-#~ "computer already, and remove those you no longer need."
-#~ msgstr ""
-#~ "Yazılım Merkezi bilgisayarınızda kurulu uygulamaları kontrol eder, ve artık "
-#~ "ihtiyacınız olmayanları kaldırır."
-
-#~ msgid ""
-#~ "You can find applications by category or by searching, and you can install "
-#~ "an application with the click of a button."
-#~ msgstr ""
-#~ "Uygulamaları kategoriden veya aramalardan bulabilir, ve tıklayarak "
-#~ "kurabilirsiniz."
+"KOŞULLARI ALTINDA BUNU DAHA İYİ ANLAYARAK SAĞLANIR: <placeholder type="
+"\"orderedlist\" id=\"0\"/>"
 
 #~ msgid ""
 #~ "Most installed applications appear in the <guimenu>Applications</guimenu> "
-#~ "menu in the corner of the screen, in the same category as they came from in "
-#~ "the Software Center."
+#~ "menu in the corner of the screen, in the same category as they came from "
+#~ "in the Software Center."
 #~ msgstr ""
-#~ "Kurulan birçok program ekranın sağ üst köşesindeki "
-#~ "<guimenu>Uygulamalar</guimenu> menüsünde, Yazılım Merkezi'ndeki "
-#~ "kategorisiyle aynı kategoride görünür."
+#~ "Kurulan birçok program ekranın sağ üst köşesindeki <guimenu>Uygulamalar</"
+#~ "guimenu> menüsünde, Yazılım Merkezi'ndeki kategorisiyle aynı kategoride "
+#~ "görünür."
 
 #~ msgid ""
-#~ "For example, if you installed a program from the <guilabel>Office</guilabel> "
-#~ "department, it will appear inside "
-#~ "<menuchoice><guimenu>Applications</guimenu> <guisubmenu>Office</guisubmenu></"
-#~ "menuchoice>."
+#~ "For example, if you installed a program from the <guilabel>Office</"
+#~ "guilabel> department, it will appear inside "
+#~ "<menuchoice><guimenu>Applications</guimenu> <guisubmenu>Office</"
+#~ "guisubmenu></menuchoice>."
 #~ msgstr ""
 #~ "Örneğin, <guilabel>Offis</guilabel> bölümünden kurduğunuz bir program "
-#~ "<menuchoice><guimenu>Uygulamalar</guimenu> "
-#~ "<guisubmenu>Offis</guisubmenu></menuchoice>.içerisinde görünür."
-
-#~ msgid ""
-#~ "Utilities for configuring the computer system may appear inside "
-#~ "<menuchoice><guimenu>System</guimenu> "
-#~ "<guisubmenu>Preferences</guisubmenu></menuchoice> or "
-#~ "<menuchoice><guimenu>System</guimenu> "
-#~ "<guisubmenu>Administration</guisubmenu></menuchoice>."
-#~ msgstr ""
-#~ "Bilgisayar sistem ayarlarını yapan araçlar "
-#~ "<menuchoice><guimenu>Sistem</guimenu> "
-#~ "<guisubmenu>Tercihler</guisubmenu></menuchoice> altında veya "
-#~ "<menuchoice><guimenu>Sistem</guimenu> "
-#~ "<guisubmenu>Yönetim</guisubmenu></menuchoice> altında görünebilir."
-
-#~ msgid ""
-#~ "To remove a program, you need administrator access.  (If you set up Ubuntu "
-#~ "on this computer yourself, you have administrator access automatically.)"
-#~ msgstr ""
-#~ "Bir program kaldırabilmek için yönetici girişi yapmalısınız.( Eğer bu "
-#~ "bilgisayara Ubuntu'yu siz kurduysanız, otomatikmen yönetici olarak giriş "
-#~ "yaparsınız.)"
-
-#~ msgid ""
-#~ "If a program is open when you remove it, usually it will stay open after it "
-#~ "is removed.  As soon as you close it, it will no longer be available."
-#~ msgstr ""
-#~ "Eğer bir program açık iken kaldırılırsa, genellikle kaldırmadan sonra açık "
-#~ "kalır. Ancak program kapatırsanız, bir daha açılmayacaktır."
-
-#~ msgid ""
-#~ "Click the <guilabel>Remove</guilabel> button.  You may need to enter your "
-#~ "Ubuntu password."
-#~ msgstr ""
-#~ "<guilabel>Kaldır</guilabel> butonuna tıklayınız. Şifrenizi girmeniz "
-#~ "gerekebilir."
-
-#~ msgid ""
-#~ "Multiple applications are sometimes provided as a single package.  If any of "
-#~ "them are installed, all of them are installed.  And if any of them are "
-#~ "removed, all of them are removed.  The Software Center cannot remove them "
-#~ "individually, because it has no instructions on how to separate them."
-#~ msgstr ""
-#~ "Birden fazla uygulama bazen tek bir paket olarak sunulmaktadır. Eğer biri "
-#~ "kurulursa, hepsi kurulur. Eğer biri kaldırılırsa hepsi kaldırılır. Yazılım "
-#~ "Merkezi onları tek tek kaldıramaz çünkü onları ayırmak için hiçbir talimat "
-#~ "yoktur."
-
-#~ msgid "Why are all the programs free?"
-#~ msgstr "Niçin tüm programlar ücretsiz?"
+#~ "<menuchoice><guimenu>Uygulamalar</guimenu> <guisubmenu>Offis</"
+#~ "guisubmenu></menuchoice>.içerisinde görünür."
 
 #~ msgid ""
 #~ "If you remove an application, any add-ons or accessories for that "
 #~ "application usually will be removed too."
 #~ msgstr ""
-#~ "Eğer bir program kaldırırsanız, beraberinde bu programın kullandığı eklenti "
-#~ "ve araçlarda kaldırılacaktır."
-
-#~ msgid ""
-#~ "Sometimes if you try to remove one program, the Software Center will warn "
-#~ "you that other programs will be removed too.  There are two main reasons "
-#~ "this happens."
-#~ msgstr ""
-#~ "Bazen bir programı kaldırmaya çalıştığınızda, Yazılım Merkezi diğer "
-#~ "programların da kaldıralacağı konusunda sizi uyarır. Bunun iki sebebi vardır."
-
-#~ msgid ""
-#~ "The Center also lets you examine the software installed on the computer "
-#~ "already, and remove anything you no longer need."
-#~ msgstr ""
-#~ "Merkez, ayrıca bilgisayarda zaten yüklü yazılımları incelemeni ve artık "
-#~ "gerek duymadıklarını kaldırmanı sağlar."
-
-#~ msgid ""
-#~ "If you are using Ubuntu Netbook Edition, an application appears in its "
-#~ "category on the home screen."
-#~ msgstr ""
-#~ "Eğer Ubuntu Netbook Sürümü kullanıyorsan, ev ekranındaki kataloğunda bir "
-#~ "uygulama gözükür."
-
-#~ msgid ""
-#~ "Utilities for changing settings may appear inside "
-#~ "<menuchoice><guimenu>System</guimenu> "
-#~ "<guisubmenu>Preferences</guisubmenu></menuchoice> or "
-#~ "<menuchoice><guimenu>System</guimenu> "
-#~ "<guisubmenu>Administration</guisubmenu></menuchoice>."
-#~ msgstr ""
-#~ "Ayarları değiştirilecek programlar, <menuchoice><guimenu>Sistem</guimenu> "
-#~ "<guisubmenu>Yeğlenenler</guisubmenu></menuchoice> veya "
-#~ "<menuchoice><guimenu>Sistem</guimenu> "
-#~ "<guisubmenu>Yönetim</guisubmenu></menuchoice> içinde gözükür."
+#~ "Eğer bir program kaldırırsanız, beraberinde bu programın kullandığı "
+#~ "eklenti ve araçlarda kaldırılacaktır."
 
 #~ msgid ""
 #~ "Most of this software is developed as <firstterm>open source</firstterm>, "
-#~ "which means anyone is allowed to alter it and redistribute it for any price. "
-#~ " Ubuntu developers, Debian developers, and others package the software "
-#~ "available in Ubuntu Software Center, and make it available to you for free."
+#~ "which means anyone is allowed to alter it and redistribute it for any "
+#~ "price.  Ubuntu developers, Debian developers, and others package the "
+#~ "software available in Ubuntu Software Center, and make it available to "
+#~ "you for free."
 #~ msgstr ""
 #~ "Bu uygulamaların çoğu, herhangi bir kimsenin onu değiştirebileceği ve onu "
 #~ "herhangi bir ücret karşılığı tekrar dağıtabileceği anlamına gelen "
 #~ "<firstterm>açık kaynak</firstterm> olarak geliştirilir. Ubuntu "
 #~ "geliştiricileri, Debian geliştiricileri ve diğerleri, Ubuntu Yazılım "
-#~ "Merkezi'nde kullanılabilir uygulamaları paketler ve onları ücretsiz olarak "
-#~ "senin kullanımına sunar."
+#~ "Merkezi'nde kullanılabilir uygulamaları paketler ve onları ücretsiz "
+#~ "olarak senin kullanımına sunar."
 
 #~ msgid ""
-#~ "In a future version of Ubuntu, the Center will also allow software purchases."
+#~ "In a future version of Ubuntu, the Center will also allow software "
+#~ "purchases."
 #~ msgstr ""
 #~ "Ubuntu'nun gelecek bir sürümünde Merkez, yazılım satışına da imkan "
 #~ "sağlayacak."
 
 #~ msgid ""
-#~ "Otherwise, look through the Center for another program to do what you want."
+#~ "Otherwise, look through the Center for another program to do what you "
+#~ "want."
 #~ msgstr ""
 #~ "Bunun dışında, Merkez'den istediğinizi gerçekleştirebilecek başka bir "
 #~ "programa göz atın."
 
 #~ msgid "Currently, all software in Ubuntu Software Center is free of charge."
 #~ msgstr "Şu an Ubuntu Yazılım Merkezi'ndeki tüm yazılımlar ücretsizdir."
-
-#~ msgid ""
-#~ "Sometimes if you try to remove one item, the Software Center will warn you "
-#~ "that other items will be removed too.  There are two main reasons this "
-#~ "happens."
-#~ msgstr ""
-#~ "Eğer bir ögeyi kaldırmayı deniyorsanız, Yazılım Merkezi diğer ögelerin de "
-#~ "kaldırılacağı hakkında sizi uyarır. Bunun olmasının iki ana nedeni vardır."
-
-#~ msgid ""
-#~ "Some of the software available in Ubuntu Software Center is maintained by "
-#~ "Canonical.  Canonical engineers ensure that security fixes and other "
-#~ "critical updates are provided for these programs."
-#~ msgstr ""
-#~ "Ubuntu Yazılım Merkezi'nde kullanılabilen yazılımlardan bazıları Canonical "
-#~ "tarafından sağlanır. Canonical mühendisleri, güvenlik ayarlarını ve diğer "
-#~ "kritik güncellemeleri, bu programlar aracılığıyla temin ederler."

@@ -6,16 +6,17 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: software-center\n"
-"Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
+"Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-07-21 17:04+0300\n"
-"PO-Revision-Date: 2011-09-18 18:36+0000\n"
-"Last-Translator: Sheki <Unknown>\n"
+"PO-Revision-Date: 2011-04-17 11:53+0000\n"
+"Last-Translator: Roman Gunko <Unknown>\n"
 "Language-Team: Ukrainian <uk@li.org>\n"
+"Language: uk\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Launchpad-Export-Date: 2011-09-19 04:44+0000\n"
-"X-Generator: Launchpad (build 13955)\n"
+"X-Launchpad-Export-Date: 2011-12-10 13:12+0000\n"
+"X-Generator: Launchpad (build 14450)\n"
 
 #. type: Attribute 'lang' of: <book>
 #: help/C/software-center.xml:18
@@ -32,7 +33,7 @@ msgstr "Центр програм Ubuntu"
 #. <year>2000</year>
 #. <holder>ME-THE-TRANSLATOR (Latin translation)</holder>
 #. </copyright>
-#. 
+#.
 #. An address can be added to the publisher information.  If a role is
 #. not specified, the publisher/author is the same for all versions of the
 #. document.
@@ -42,11 +43,11 @@ msgstr "Центр програм Ubuntu"
 #. type: Content of: <book><bookinfo>
 #: help/C/software-center.xml:34
 msgid ""
-"<publisher> <publishername>Ubuntu Documentation Project</publishername> "
-"</publisher> &legal;"
+"<publisher> <publishername>Ubuntu Documentation Project</publishername> </"
+"publisher> &legal;"
 msgstr ""
-"<publisher> <publishername>Ubuntu Documentation Project</publishername> "
-"</publisher> &legal;"
+"<publisher> <publishername>Ubuntu Documentation Project</publishername> </"
+"publisher> &legal;"
 
 #. type: Content of: <book><bookinfo><authorgroup><author><firstname>
 #: help/C/software-center.xml:43
@@ -158,20 +159,18 @@ msgstr ""
 msgid ""
 "In the <guilabel>Get Software</guilabel> section, find the thing you want to "
 "install.  If you already know its name, try typing the name in the search "
-"field.  Or try searching for the type of program you want (like "
-"&#8220;spreadsheet&#8221;).  Otherwise, browse the list of departments."
+"field.  Or try searching for the type of program you want (like &#8220;"
+"spreadsheet&#8221;).  Otherwise, browse the list of departments."
 msgstr ""
 "У вкладці <guilabel>Отримати програмне забезпечення</guilabel> знайдіть "
 "програму, яку хочете встановити. Якщо ви вже знаєте назву, введіть її у "
-"пошуковому полі. Також можна шукати програму за її типом (наприклад, "
-"&#8220;таблиця&#8221;). В іншому випадку, перегляньте список категорій."
+"пошуковому полі. Також можна шукати програму за її типом (наприклад, &#8220;"
+"таблиця&#8221;). В іншому випадку, перегляньте список категорій."
 
 #. type: Content of: <book><chapter><orderedlist><listitem><para>
 #: help/C/software-center.xml:103
-msgid ""
-"Select the item in the list, and choose <guilabel>More Info</guilabel>."
-msgstr ""
-"Виберіть пункт із списку та натисніть <guilabel>Детальніше</guilabel>."
+msgid "Select the item in the list, and choose <guilabel>More Info</guilabel>."
+msgstr "Виберіть пункт із списку та натисніть <guilabel>Детальніше</guilabel>."
 
 #. type: Content of: <book><chapter><orderedlist><listitem><para>
 #: help/C/software-center.xml:109
@@ -220,16 +219,14 @@ msgstr "Використання програм it&#8217;s , які вже вс�
 msgid ""
 "For most programs, once they are installed, you can launch them from the "
 "<guimenu>Applications</guimenu> menu.  (Utilities for changing settings may "
-"appear inside <menuchoice><guimenu>System</guimenu> "
-"<guisubmenu>Preferences</guisubmenu></menuchoice> or "
-"<menuchoice><guimenu>System</guimenu> "
+"appear inside <menuchoice><guimenu>System</guimenu> <guisubmenu>Preferences</"
+"guisubmenu></menuchoice> or <menuchoice><guimenu>System</guimenu> "
 "<guisubmenu>Administration</guisubmenu></menuchoice> instead)."
 msgstr ""
-"Більшість встановлених програм ви можете запустити з меню "
-"<guimenu>Програми</guimenu>.  (Програми для зміни налаштувань можуть бути "
-"всередині меню <menuchoice><guimenu>Система</guimenu> "
-"<guisubmenu>Параметри</guisubmenu></menuchoice> або "
-"<menuchoice><guimenu>Система</guimenu> "
+"Більшість встановлених програм ви можете запустити з меню <guimenu>Програми</"
+"guimenu>.  (Програми для зміни налаштувань можуть бути всередині меню "
+"<menuchoice><guimenu>Система</guimenu> <guisubmenu>Параметри</guisubmenu></"
+"menuchoice> або <menuchoice><guimenu>Система</guimenu> "
 "<guisubmenu>Адміністрування</guisubmenu></menuchoice>)."
 
 #. type: Content of: <book><chapter><para>
@@ -295,9 +292,8 @@ msgid ""
 "Select the item in the list, and choose <guilabel>Remove</guilabel>.  You "
 "may need to enter your Ubuntu password."
 msgstr ""
-"Виберіть потрібний елемент в списку і натисніть "
-"<guilabel>Видалити</guilabel>. Після чого вам буде запропоновано ввести Ваш "
-"пароль до Ubuntu."
+"Виберіть потрібний елемент в списку і натисніть <guilabel>Видалити</"
+"guilabel>. Після чого вам буде запропоновано ввести Ваш пароль до Ubuntu."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:181
@@ -368,8 +364,8 @@ msgstr ""
 "непотрібні пункти, не видаляючи їх з комп'ютера. В Ubuntu <guilabel>Головне "
 "меню</guilabel> розміщено у <menuchoice><guimenu>Система</guimenu> "
 "<guisubmenu>Параметри</guisubmenu></menuchoice>. В Ubuntu Netbook Edition - "
-"<menuchoice><guimenu>Налаштування</guimenu> "
-"<guisubmenu>Параметри</guisubmenu></menuchoice>."
+"<menuchoice><guimenu>Налаштування</guimenu> <guisubmenu>Параметри</"
+"guisubmenu></menuchoice>."
 
 #. type: Content of: <book><chapter><itemizedlist><listitem><para>
 #: help/C/software-center.xml:226
@@ -473,8 +469,8 @@ msgid ""
 msgstr ""
 "Якщо ви випадково видалите програму, яку ви придбали, і ви хочете її "
 "повернути, виберіть <menuchoice><guimenu>Файл</guimenu> "
-"<guimenuitem>Перевстановити попередні "
-"придбання...</guimenuitem></menuchoice>."
+"<guimenuitem>Перевстановити попередні придбання...</guimenuitem></"
+"menuchoice>."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:284
@@ -502,9 +498,8 @@ msgid ""
 "First, check that <menuchoice><guimenu>View</guimenu> <guimenuitem>All "
 "Software</guimenuitem></menuchoice> is selected."
 msgstr ""
-"Спочатку, перевірте чи обраний  пункт "
-"<menuchoice><guimenu>Перегляд</guimenu> <guimenuitem>Все програмне "
-"забезпечення</guimenuitem></menuchoice>"
+"Спочатку, перевірте чи обраний  пункт <menuchoice><guimenu>Перегляд</"
+"guimenu> <guimenuitem>Все програмне забезпечення</guimenuitem></menuchoice>"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:299
@@ -545,13 +540,13 @@ msgstr ""
 msgid ""
 "If you are familiar with reporting bugs in software, you can help out by "
 "reporting the problem to the Ubuntu developers.  Most programs have a "
-"<guimenuitem>Report a Problem</guimenuitem> item in their "
-"<guimenu>Help</guimenu> menu."
+"<guimenuitem>Report a Problem</guimenuitem> item in their <guimenu>Help</"
+"guimenu> menu."
 msgstr ""
 "Якщо ви знайомі зі звітами про помилки в програмному забезпеченні, ви можете "
 "допомогти, відправивши звіт про помилку розробникам Ubuntu. Більшість "
-"програм мають пункт <guimenuitem>Звітувати про проблему</guimenuitem> в меню "
-" <guimenu>Допомога</guimenu>"
+"програм мають пункт <guimenuitem>Звітувати про проблему</guimenuitem> в "
+"меню  <guimenu>Допомога</guimenu>"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:325
@@ -580,9 +575,9 @@ msgstr ""
 "Дозволяється копіювати, поширювати і / або модифікувати цей документ на "
 "умовах ліцензії GNU Free Documentation License (GFDL), версії 1.1 або більш "
 "пізньої версії, опублікованої Free Software Foundation, без незмінних "
-"розділів і без обкладинок. Ви можете знайти копію ліцензії <ulink "
-"type=\"help\" url=\"ghelp:fdl\"> тут </ ulink> або у файлі COPYING-DOCS, "
-"який поширюється разом з керівництвом."
+"розділів і без обкладинок. Ви можете знайти копію ліцензії <ulink type=\"help"
+"\" url=\"ghelp:fdl\"> тут </ ulink> або у файлі COPYING-DOCS, який "
+"поширюється разом з керівництвом."
 
 #. type: Content of: <legalnotice><para>
 #: help/C/legal.xml:12
@@ -627,6 +622,17 @@ msgid ""
 "ESSENTIAL PART OF THIS LICENSE. NO USE OF ANY DOCUMENT OR MODIFIED VERSION "
 "OF THE DOCUMENT IS AUTHORIZED HEREUNDER EXCEPT UNDER THIS DISCLAIMER; AND"
 msgstr ""
+"ДОКУМЕНТ НАДАЄТЬСЯ \"ЯК Є\", БЕЗ БУДЬ-ЯКИХ ГАРАНТІЙ, ЯВНИХ ЧИ НЕЯВНИХ, "
+"ВКЛЮЧАЮЧИ, АЛЕ НЕ ОБМЕЖУЮЧИСЬ, ГАРАНТІЄЮ ЩО ЦЕЙ ДОКУМЕНТ ЧИ ЗМІНЕНА ВЕРСІЯ "
+"ДОКУМЕНТА ВІЛЬНІ ВІД ДЕФЕКТІВ, ПРИДАТНІ ДО ПРОДАЖУ, ВІДПОВІДАЮТЬ ПЕВНІЙ МЕТІ "
+"АБО НЕ ПОРУШУЮТЬ ЧИЇСЬ ПРАВА. ВЕСЬ РИЗИК ЗА ЯКІСТЬ, ТОЧНІСТЬ, ТА ЧИННІСТЬ "
+"ЦЬОГО ДОКУМЕНТУ АБО ЙОГО ЗМІНЕНИХ ВЕРСІЙ ЛЕЖИТЬ НА ВАС. ЯКЩО БУДЬ-ЯКИЙ "
+"ДОКУМЕНТ ЧИ ЗМІНЕНА ВЕРСІЯ БУДУТЬ ВИЗНАНІ ДЕФЕКТНИМИ У БУДЬ-ЯКОМУ "
+"ВІДНОШЕННІ, ВИ (НЕ ПОЧАТКОВИЙ УКЛАДАЧ, АВТОР АБО БУДЬ-ЯКИЙ СПІВАВТОР) БЕРЕТЕ "
+"НА СЕБЕ ВИТРАТИ ЗА БУДЬ-ЯКЕ НЕОБХІДНЕ ОБСЛУГОВУВАННЯ, РЕМОНТ ЧИ ВИПРАВЛЕННЯ. "
+"ЦЯ ВІДМОВА ВІД ГАРАНТІЙ СКЛАДАЄ ВАЖЛИВУ ЧАСТИНУ ЦІЄЇ ЛІЦЕНЗІЇ. НЕ "
+"ДОПУСКАЄТЬСЯ ВИКОРИСТАННЯ ЦЬОГО ДОКУМЕНТУ АБО ЙОГО ЗМІНЕНОЇ ВЕРСІЇ БЕЗ "
+"ПРИЙНЯТТЯ ЦІЄЇ ВІДМОВИ; ТА"
 
 #. type: Content of: <legalnotice><para><orderedlist><listitem><para>
 #: help/C/legal.xml:55
@@ -642,6 +648,17 @@ msgid ""
 "VERSIONS OF THE DOCUMENT, EVEN IF SUCH PARTY SHALL HAVE BEEN INFORMED OF THE "
 "POSSIBILITY OF SUCH DAMAGES."
 msgstr ""
+"НІ ЗА ЯКИХ ОБСТАВИН ТА ЗА БУДЬ-ЯКОГО ЗАКОНОДАВСТВА, ЧИ ТО ГРОМАДЯНСЬКОЇ "
+"ВІДПОВІДАЛЬНОСТІ (ВКЛЮЧАЮЧИ ХАЛАТНІСТЬ), ДОГОВОРУ, ЧИ ЧОГОСЬ ІНШОГО, АВТОР, "
+"ПОЧАТКОВИЙ УКЛАДАЧ, БУДЬ-ЯКИЙ СПІВАВТОР, АБО ДИСТРИБ’ЮТОР ДОКУМЕНТУ ЧИ "
+"ЗМІНЕНОЇ ВЕРСІЇ ДОКУМЕНТУ, АБО БУДЬ-ЯКИЙ ПОСТАЧАЛЬНИК БУДЬ-ЯКОЇ З ЦИХ "
+"СТОРІН, НЕ НЕСЕ ВІДПОВІДАЛЬНІСТЬ ПЕРЕД БУДЬ-ЯКОЮ ОСОБОЮ ЗА БУДЬ-ЯКІ ПРЯМІ, "
+"НЕПРЯМІ, ОСОБЛИВІ, ВИПАДКОВІ, АБО ІСТОТНІ ЗБИТКИ БУДЬ-ЯКОГО ХАРАКТЕРУ "
+"ВКЛЮЧАЮЧИ, АЛЕ НЕ ОБМЕЖУЮЧИСЬ, ЗБИТКАМИ ВІД ВТРАТИ ПРЕСТИЖУ, ЗУПИНКИ РОБОТИ, "
+"ЗБОЇВ АБО НЕСПРАВНОСТЕЙ КОМП’ЮТЕРА, АБО БУДЬ-ЯКІ ІНШІ ЗБИТКИ АБО ВТРАТИ ЩО "
+"ВИНИКЛИ БЕЗВІДНОСНО АБО ВНАСЛІДОК ВИКОРИСТАННЯ ЦЬОГО ДОКУМЕНТУ ТА ЗМІНЕНИХ "
+"ВЕРСІЙ ЦЬОГО ДОКУМЕНТУ, НАВІТЬ ЯКЩО ЦІ СТОРОНИ, МОЖЛИВО, БУЛИ ПРОІНФОРМОВАНІ "
+"ПРО МОЖЛИВІСТЬ ТАКИХ ЗБИТКІВ."
 
 #. type: Content of: <legalnotice><para>
 #: help/C/legal.xml:29
@@ -651,5 +668,57 @@ msgid ""
 "<placeholder type=\"orderedlist\" id=\"0\"/>"
 msgstr ""
 "ДОКУМЕНТ І ЗМІНЕНІ ВЕРСІЇ ДОКУМЕНТА НАДАЮТЬСЯ У ВІДПОВІДНОСТІ ДО GNU FREE "
-"DOCUMENTATION LICENSE  З ПОДАЛЬШИМ РОЗУМІННЯМ ТОГО, ЩО: <placeholder "
-"type=\"orderedlist\" id=\"0\"/>"
+"DOCUMENTATION LICENSE  З ПОДАЛЬШИМ РОЗУМІННЯМ ТОГО, ЩО: <placeholder type="
+"\"orderedlist\" id=\"0\"/>"
+
+#~ msgid "Currently, all software in Ubuntu Software Center is free of charge."
+#~ msgstr ""
+#~ "У поточній версії Центру програм Ubuntu передбачено роботу лише з "
+#~ "безкоштовними програмами."
+
+#~ msgid ""
+#~ "Most of this software is developed as <firstterm>open source</firstterm>, "
+#~ "which means anyone is allowed to alter it and redistribute it for any "
+#~ "price.  Ubuntu developers, Debian developers, and others package the "
+#~ "software available in Ubuntu Software Center, and make it available to "
+#~ "you for free."
+#~ msgstr ""
+#~ "Більшу частину цього програмного забезпечення розроблено як "
+#~ "<firstterm>програмне забезпечення з відкритим кодом</firstterm>. Це "
+#~ "означає, що будь-хто може змінювати його і поширювати за довільно "
+#~ "встановленою ціною. Розробники Ubuntu, розробники Debian та інші "
+#~ "розробники програмного забезпечення, з яким ви маєте справу у Центрі "
+#~ "програм Ubuntu, надають вам програмне забезпечення безкоштовно."
+
+#~ msgid ""
+#~ "In a future version of Ubuntu, the Center will also allow software "
+#~ "purchases."
+#~ msgstr ""
+#~ "У майбутніх версіях Ubuntu Центром можна буде скористатися для придбання "
+#~ "програмного забезпечення."
+
+#~ msgid ""
+#~ "Most installed applications appear in the <guimenu>Applications</guimenu> "
+#~ "menu in the corner of the screen, in the same category as they came from "
+#~ "in the Software Center."
+#~ msgstr ""
+#~ "Більшість встановлених додатків з'являються в меню <guimenu>Програми</"
+#~ "guimenu> в кутку екрана, у тій самій категорії, де вони знаходилися в "
+#~ "Центрі програм."
+
+#~ msgid ""
+#~ "For example, if you installed a program from the <guilabel>Office</"
+#~ "guilabel> department, it will appear inside "
+#~ "<menuchoice><guimenu>Applications</guimenu> <guisubmenu>Office</"
+#~ "guisubmenu></menuchoice>."
+#~ msgstr ""
+#~ "Наприклад, якщо ви встановили програму з категорії <guilabel>Офіс</"
+#~ "guilabel>, вона з'явиться в <menuchoice><guimenu>Програми</guimenu> "
+#~ "<guisubmenu>Офіс</guisubmenu></menuchoice>."
+
+#~ msgid ""
+#~ "If you remove an application, any add-ons or accessories for that "
+#~ "application usually will be removed too."
+#~ msgstr ""
+#~ "Якщо ви усунли програму, будь-які аддони , плагіни або аксесуари"
+#~ "(асоціації) цієї програми зазвичай також видаляються."
