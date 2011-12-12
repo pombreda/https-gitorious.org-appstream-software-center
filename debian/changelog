@@ -8,6 +8,9 @@ software-center (5.0.3.2) UNRELEASED; urgency=low
   [ Gabor Kelemen ]
   * lp:~kelemeng/software-center/bug869935:
     - Update help translations from Launchpad (LP: #869935)
+  * lp:~kelemeng/software-center/bug880757:
+    - Mark strings containing the “ character as Unicode, to fix 
+      their translations. LP: #880757
 
  -- Gary Lasker <gary.lasker@canonical.com>  Mon, 28 Nov 2011 14:22:24 -0500
 
