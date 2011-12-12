@@ -212,8 +212,12 @@ USER_AGENT="Software Center/%s (N;) %s/%s (%s)" % (VERSION,
                                                    RELEASE,
                                                    CODENAME)
 
-# global backend switch
-USE_PACKAGEKIT_BACKEND = True
+# global backend switch, use PK if its available
+USE_PACKAGEKIT_BACKEND = False
+try:
+    from gi.repository import PackageKitGlib
+    USE_PACKAGEKIT_BACKEND = True
+except ImportError:
+    pass
 
-# history switch (useful on non apt based distros)
-USE_APT_HISTORY = False
+
