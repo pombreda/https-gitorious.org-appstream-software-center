@@ -23,18 +23,28 @@ from softwarecenter.distro import Distro
 from gettext import gettext as _
 
 class Fedora(Distro):
-    DISTROSERIES = ['Beefy Miracle', 'Verne', 'Lovelock', 'Laughlin', 'Leonidas', 'Constantine'];
+    DISTROSERIES = [
+        'Beefy Miracle', 
+        'Verne', 
+        'Lovelock', 
+        'Laughlin', 
+        'Leonidas', 
+        'Constantine',
+    ]
 
     # disable paid software
     PURCHASE_APP_URL = None
 
     # screenshot handling
-    # FIXME
+    # FIXME - fedora should get its own proxy eventually
     SCREENSHOT_THUMB_URL =  "http://screenshots.ubuntu.com/thumbnail-with-version/%(pkgname)s/%(version)s"
     SCREENSHOT_LARGE_URL = "http://screenshots.ubuntu.com/screenshot-with-version/%(pkgname)s/%(version)s"
     SCREENSHOT_JSON_URL = "http://screenshots.ubuntu.com/json/package/%s"
     
     # reviews
+    # FIXME: fedora will want to get their own review server instance at
+    #        some point I imagine :) (or a alternative backend)
+    #
     REVIEWS_SERVER = os.environ.get("SOFTWARE_CENTER_REVIEWS_HOST") or "http://reviews.ubuntu.com/reviews/api/1.0"
     REVIEWS_URL = REVIEWS_SERVER + "/reviews/filter/%(language)s/%(origin)s/%(distroseries)s/%(version)s/%(pkgname)s%(appname)s/"
 
