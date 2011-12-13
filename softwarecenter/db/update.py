@@ -153,6 +153,7 @@ class SoftwareCenterAgentParser(AppInfoParserBase):
                 'Thumbnail-Url' : 'thumbnail_url',
                 'Video-Url' :  'video_url',
                 'Icon-Url'   : 'icon_url',
+                'Support-Url'   : 'support_url',
               }
 
     # map from requested key to a static data element
@@ -710,6 +711,10 @@ def index_app_info_from_parser(parser, db, cache):
             doc.add_value(XapianValues.PRICE, price)
             # since this is a commercial app, indicate it in the component value
             doc.add_value(XapianValues.ARCHIVE_SECTION, "commercial")
+        # support url (mainly pay stuff)
+        if parser.has_option_desktop("X-AppInstall-Support-Url"):
+            url = parser.get_desktop("X-AppInstall-Support-Url")
+            doc.add_value(XapianValues.SUPPORT_SITE_URL, url)
         # icon
         if parser.has_option_desktop("Icon"):
             icon = parser.get_desktop("Icon")

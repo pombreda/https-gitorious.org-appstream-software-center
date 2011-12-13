@@ -968,7 +968,7 @@ class AppDetailsView(Viewport):
 
     def _on_homepage_clicked(self, label, link):
         import webbrowser
-        webbrowser.open_new_tab(self.app_details.website)
+        webbrowser.open_new_tab(link)
         return True
 
     def _layout_page(self):
@@ -1062,6 +1062,11 @@ class AppDetailsView(Viewport):
         self.homepage_btn = Gtk.Label()
         self.homepage_btn.set_name("subtle-label")
         self.homepage_btn.connect('activate-link', self._on_homepage_clicked)
+        
+        # support site
+        self.support_btn = Gtk.Label()
+        self.support_btn.set_name("subtle-label")
+        self.support_btn.connect('activate-link', self._on_homepage_clicked)
 
         # video
         from softwarecenter.ui.gtk3.widgets.videoplayer import VideoPlayer
@@ -1071,6 +1076,7 @@ class AppDetailsView(Viewport):
         # add the links footer to the description widget
         footer_hb = Gtk.HBox(spacing=6)
         footer_hb.pack_start(self.homepage_btn, False, False, 0)
+        footer_hb.pack_start(self.support_btn, False, False, 0)
         self.desc.pack_start(footer_hb, False, False, 0)
 
         self._hbars = [HBar(), HBar(), HBar()]
@@ -1221,6 +1227,14 @@ class AppDetailsView(Viewport):
             self.homepage_btn.set_tooltip_text(app_details.website)
         else:
             self.homepage_btn.hide()
+        # support too
+        if app_details.supportsite:
+            self.support_btn.show()
+            self.support_btn.set_markup("<a href=\"%s\">%s</a>" % (
+                    self.app_details.supportsite, _('Support Web Site')))
+            self.support_btn.set_tooltip_text(app_details.supportsite)
+        else:
+            self.support_btn.hide()
         return
 
     def _update_app_video(self, app_details):
