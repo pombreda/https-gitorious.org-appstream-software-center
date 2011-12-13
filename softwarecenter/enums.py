@@ -224,7 +224,7 @@ except ImportError:
     except ImportError:
         raise Exception("Need either aptdaemon or PackageKitGlib")
 # allow force via env (useful for testing)
-if "SOFTWARE_CENTER_FORCE_PK" in os.environ:
+if "SOFTWARE_CENTER_FORCE_PACKAGEKIT" in os.environ:
     USE_PACKAGEKIT_BACKEND = True
 
 
