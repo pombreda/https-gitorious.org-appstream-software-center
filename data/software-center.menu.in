@@ -539,4 +539,15 @@
     </Include>
   </Menu> <!-- End Packages -->
 
+  <!-- ebooks -->
+  <Menu>
+    <_Name>Books &amp; Magazines</_Name>
+    <SCIcon>application-pdf</SCIcon>
+    <Include>
+      <And>
+        <Category>X-Publication</Category>
+      </And>
+    </Include>
+  </Menu> <!-- End Office -->
+
 </Menu>
