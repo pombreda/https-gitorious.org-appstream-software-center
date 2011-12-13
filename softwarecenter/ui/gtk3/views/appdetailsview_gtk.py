@@ -1354,8 +1354,10 @@ class AppDetailsViewGtk(Viewport, AppDetailsViewBase):
     def _configure_where_is_it(self):
 
         def get_desktop_file():
+            # we should know the desktop file
             if self.app_details.desktop_file:
                 return self.app_details.desktop_file
+            # fallback mode
             pkgname = self.app_details.pkgname
             desktop_file = "/usr/share/applications/%s.desktop" % pkgname
             if not os.path.exists(desktop_file):
