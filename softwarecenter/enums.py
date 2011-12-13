@@ -130,6 +130,7 @@ class XapianValues:
     LICENSE = 194
     VIDEO_URL = 195
     DATE_PUBLISHED = 196
+    SUPPORT_SITE_URL = 197
 
 # fake channels
 PURCHASED_NEEDS_REINSTALL_MAGIC_CHANNEL_NAME = "for-pay-needs-reinstall"

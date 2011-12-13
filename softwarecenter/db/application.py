@@ -625,6 +625,11 @@ class AppDetails(GObject.GObject):
     def website(self):
         if self._pkg:
             return self._pkg.website
+
+    @property
+    def supportsite(self):
+        if self._doc:
+            return self._doc.get_value(XapianValues.SUPPORT_SITE_URL)
     
     @property
     def license_key(self):

@@ -120,6 +120,11 @@ class TestDatabase(unittest.TestCase):
                             "ARCHIVE_PPA value incorrect, got '%s'" % ppa)
             self.assertTrue(
                 doc.get_value(XapianValues.ICON).startswith("sc-agent"))
+            # check support url in the DB
+            url=doc.get_value(XapianValues.SUPPORT_SITE_URL)
+            if url:
+                self.assertTrue(url.startswith("http") or
+                                url.startswith("mailto:"))
 
     def test_license_string_data_from_software_center_agent(self):
         from softwarecenter.testutils import get_test_pkg_info
