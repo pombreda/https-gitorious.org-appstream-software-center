@@ -1233,4 +1233,3 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         self.show_available_packages(args)
 
         atexit.register(self.save_state)
-        SimpleGtkbuilderApp.run(self)
