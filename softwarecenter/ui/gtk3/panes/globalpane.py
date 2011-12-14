@@ -49,9 +49,9 @@ class GlobalPane(Gtk.Toolbar):
         self._insert_as_tool_item(self.searchentry, -1)
 
         # spinner
-        spinner = vm.get_global_spinner()
-        spinner.set_size_request(StockEms.XLARGE, StockEms.XLARGE)
-        self._insert_as_tool_item(spinner, -1)
+        self.spinner = vm.get_global_spinner()
+        self.spinner.set_size_request(StockEms.XLARGE, StockEms.XLARGE)
+        self._insert_as_tool_item(self.spinner, -1)
 
         if self.get_direction() != Gtk.TextDirection.RTL:
             _widget_set_margins(self.searchentry, right=StockEms.MEDIUM)
@@ -83,6 +83,7 @@ def get_test_window():
     p = GlobalPane(vm, datadir, db, cache, icons)
 
     win = Gtk.Window()
+    win.set_data("pane", p)
     win.connect("destroy", Gtk.main_quit)
     win.add(p)
     win.show_all()
