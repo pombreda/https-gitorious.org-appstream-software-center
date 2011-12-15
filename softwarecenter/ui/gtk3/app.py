@@ -62,6 +62,7 @@ from softwarecenter.enums import (Icons,
 from softwarecenter.utils import (clear_token_from_ubuntu_sso,
                                   get_http_proxy_string_from_gsettings,
                                   wait_for_apt_cache_ready,
+                                  ExecutionTime,
                                   is_unity_running)
 from softwarecenter.ui.gtk3.utils import (get_sc_icon_theme,
                                           init_sc_css_provider)
@@ -209,49 +210,53 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             sources = self.builder.get_object("menuitem_software_sources")
             sources.set_sensitive(False)
 
-        # a main iteration friendly apt cache
-        self.cache = get_pkg_info()
-        self.cache.open()
-        self.cache.connect("cache-broken", self._on_apt_cache_broken)
+        with ExecutionTime("opening the pkginfo"):
+            # a main iteration friendly apt cache
+            self.cache = get_pkg_info()
+            self.cache.open()
+            self.cache.connect("cache-broken", self._on_apt_cache_broken)
 
-        # xapian
-        pathname = os.path.join(xapian_base_path, "xapian")
-        self._use_axi = not options.disable_apt_xapian_index
-        try:
-            self.db = StoreDatabase(pathname, self.cache)
-            self.db.open(use_axi = self._use_axi)
-            if self.db.schema_version() != DB_SCHEMA_VERSION:
-                LOG.warn("database format '%s' expected, but got '%s'" % (
-                         DB_SCHEMA_VERSION, self.db.schema_version()))
-                if os.access(pathname, os.W_OK):
+        with ExecutionTime("opening the xapiandb"):
+            pathname = os.path.join(xapian_base_path, "xapian")
+            self._use_axi = not options.disable_apt_xapian_index
+            try:
+                self.db = StoreDatabase(pathname, self.cache)
+                self.db.open(use_axi = self._use_axi)
+                if self.db.schema_version() != DB_SCHEMA_VERSION:
+                    LOG.warn("database format '%s' expected, but got '%s'" % (
+                            DB_SCHEMA_VERSION, self.db.schema_version()))
+                    if os.access(pathname, os.W_OK):
+                        self._rebuild_and_reopen_local_db(pathname)
+            except xapian.DatabaseOpeningError:
+                # Couldn't use that folder as a database
+                # This may be because we are in a bzr checkout and that
+                #   folder is empty. If the folder is empty, and we can find the
+                # script that does population, populate a database in it.
+                if os.path.isdir(pathname) and not os.listdir(pathname):
                     self._rebuild_and_reopen_local_db(pathname)
-        except xapian.DatabaseOpeningError:
-            # Couldn't use that folder as a database
-            # This may be because we are in a bzr checkout and that
-            #   folder is empty. If the folder is empty, and we can find the
-            # script that does population, populate a database in it.
-            if os.path.isdir(pathname) and not os.listdir(pathname):
-                self._rebuild_and_reopen_local_db(pathname)
-        except xapian.DatabaseCorruptError:
-            LOG.exception("xapian open failed")
-            dialogs.error(None, 
-                          _("Sorry, can not open the software database"),
-                          _("Please re-install the 'software-center' "
-                            "package."))
-            # FIXME: force rebuild by providing a dbus service for this
-            sys.exit(1)
+            except xapian.DatabaseCorruptError:
+                LOG.exception("xapian open failed")
+                dialogs.error(None, 
+                              _("Sorry, can not open the software database"),
+                              _("Please re-install the 'software-center' "
+                                "package."))
+                # FIXME: force rebuild by providing a dbus service for this
+                sys.exit(1)
 
         # additional icons come from app-install-data
-        self.icons = get_sc_icon_theme(self.datadir)
+        with ExecutionTime("building the icon cache"):
+            self.icons = get_sc_icon_theme(self.datadir)
 
         # backend
-        self.backend = get_install_backend()
-        self.backend.ui = InstallBackendUI()
-        self.backend.connect("transaction-finished", self._on_transaction_finished)
-        self.backend.connect("channels-changed", self.on_channels_changed)
+        with ExecutionTime("creating the backend"):
+            self.backend = get_install_backend()
+            self.backend.ui = InstallBackendUI()
+            self.backend.connect("transaction-finished", self._on_transaction_finished)
+            self.backend.connect("channels-changed", self.on_channels_changed)
 
         # high level app management
-        self.app_manager = ApplicationManager(self.db, self.backend, self.icons)
+        with ExecutionTime("get the app-manager"):
+            self.app_manager = ApplicationManager(self.db, self.backend, self.icons)
 
         # misc state
         self._block_menuitem_view = False
@@ -276,43 +281,45 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
                                  datadir)
 
         # register view manager and create view panes/widgets
-        self.view_manager = ViewManager(self.notebook_view, options)
+        with ExecutionTime("ViewManager"):
+            self.view_manager = ViewManager(self.notebook_view, options)
 
-        self.global_pane = GlobalPane(self.view_manager, self.datadir, self.db, self.cache, self.icons)
-        self.vbox1.pack_start(self.global_pane, False, False, 0)
-        self.vbox1.reorder_child(self.global_pane, 1)
+        with ExecutionTime("building panes"):
+            self.global_pane = GlobalPane(self.view_manager, self.datadir, self.db, self.cache, self.icons)
+            self.vbox1.pack_start(self.global_pane, False, False, 0)
+            self.vbox1.reorder_child(self.global_pane, 1)
 
-        # available pane
-        self.available_pane = AvailablePane(self.cache,
+            # available pane
+            self.available_pane = AvailablePane(self.cache,
+                                                self.db,
+                                                self.distro,
+                                                self.icons,
+                                                self.datadir,
+                                                self.navhistory_back_action,
+                                                self.navhistory_forward_action)
+            self.available_pane.connect("available-pane-created", self.on_available_pane_created)
+            self.view_manager.register(self.available_pane, ViewPages.AVAILABLE)
+
+            # installed pane (view not fully initialized at this point)
+            self.installed_pane = InstalledPane(self.cache,
+                                                self.db, 
+                                                self.distro,
+                                                self.icons,
+                                                self.datadir)
+            #~ self.installed_pane.connect("installed-pane-created", self.on_installed_pane_created)
+            self.view_manager.register(self.installed_pane, ViewPages.INSTALLED)
+
+            # history pane (not fully loaded at this point)
+            self.history_pane = HistoryPane(self.cache,
                                             self.db,
                                             self.distro,
                                             self.icons,
-                                            self.datadir,
-                                            self.navhistory_back_action,
-                                            self.navhistory_forward_action)
-        self.available_pane.connect("available-pane-created", self.on_available_pane_created)
-        self.view_manager.register(self.available_pane, ViewPages.AVAILABLE)
-
-        # installed pane (view not fully initialized at this point)
-        self.installed_pane = InstalledPane(self.cache,
-                                            self.db, 
-                                            self.distro,
-                                            self.icons,
                                             self.datadir)
-        #~ self.installed_pane.connect("installed-pane-created", self.on_installed_pane_created)
-        self.view_manager.register(self.installed_pane, ViewPages.INSTALLED)
+            self.view_manager.register(self.history_pane, ViewPages.HISTORY)
 
-        # history pane (not fully loaded at this point)
-        self.history_pane = HistoryPane(self.cache,
-                                        self.db,
-                                        self.distro,
-                                        self.icons,
-                                        self.datadir)
-        self.view_manager.register(self.history_pane, ViewPages.HISTORY)
-
-        # pending pane
-        self.pending_pane = PendingPane(self.icons)
-        self.view_manager.register(self.pending_pane, ViewPages.PENDING)
+            # pending pane
+            self.pending_pane = PendingPane(self.icons)
+            self.view_manager.register(self.pending_pane, ViewPages.PENDING)
 
         # TRANSLATORS: this is the help menuitem label, e.g. Ubuntu Software Center _Help
         self.menuitem_help.set_label(_("%s _Help")%self.distro.get_app_name())
@@ -321,16 +328,18 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         self.window_main.set_size_request(730, 470)
 
         # reviews
-        self.review_loader = get_review_loader(self.cache, self.db)
-        # FIXME: add some kind of throttle, I-M-S here
-        self.review_loader.refresh_review_stats(self.on_review_stats_loaded)
-        #load usefulness votes from server when app starts
-        self.useful_cache = UsefulnessCache(True)
-        self.setup_database_rebuilding_listener()
+        with ExecutionTime("create review loader"):
+            self.review_loader = get_review_loader(self.cache, self.db)
+            # FIXME: add some kind of throttle, I-M-S here
+            self.review_loader.refresh_review_stats(self.on_review_stats_loaded)
+            #load usefulness votes from server when app starts
+            self.useful_cache = UsefulnessCache(True)
+            self.setup_database_rebuilding_listener()
 
-        # open plugin manager and load plugins
-        self.plugin_manager = PluginManager(self, SOFTWARE_CENTER_PLUGIN_DIRS)
-        self.plugin_manager.load_plugins()
+        with ExecutionTime("create plugin manager"):
+            # open plugin manager and load plugins
+            self.plugin_manager = PluginManager(self, SOFTWARE_CENTER_PLUGIN_DIRS)
+            self.plugin_manager.load_plugins()
 
         # setup window name and about information (needs branding)
         name = self.distro.get_app_name()
@@ -384,13 +393,14 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             if not (options.enable_lp or och):
                 file_menu.remove(self.builder.get_object("separator_login"))
         else:
-            sc_agent_update = os.path.join(
-                self.datadir, "update-software-center-agent")
-            (pid, stdin, stdout, stderr) = GObject.spawn_async(
-                [sc_agent_update, "--datadir", datadir], 
-                flags=GObject.SPAWN_DO_NOT_REAP_CHILD)
-            GObject.child_watch_add(
-                pid, self._on_update_software_center_agent_finished)
+            with ExecutionTime("run update-software-center-agent"):
+                sc_agent_update = os.path.join(
+                    self.datadir, "update-software-center-agent")
+                (pid, stdin, stdout, stderr) = GObject.spawn_async(
+                    [sc_agent_update, "--datadir", datadir], 
+                    flags=GObject.SPAWN_DO_NOT_REAP_CHILD)
+                GObject.child_watch_add(
+                    pid, self._on_update_software_center_agent_finished)
 
         # TODO: Remove the following two lines once we have remove repository
         #       support in aptdaemon (see LP: #723911)
@@ -1223,4 +1233,3 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         self.show_available_packages(args)
 
         atexit.register(self.save_state)
-        SimpleGtkbuilderApp.run(self)
