@@ -20,11 +20,13 @@
 from gi.repository import GObject
 from gi.repository import Gtk
 from gi.repository import Gdk
+from gi.repository import Pango
 import logging
 import os
 import json
 import sys
 import urllib
+import urlparse
 from gi.repository import WebKit as webkit
 session = webkit.get_default_session()
 session.set_property("ssl-ca-file", "/etc/ssl/certs/ca-certificates.crt")
@@ -55,17 +57,70 @@ class LocaleAwareWebView(webkit.WebView):
         #headers.foreach(_show_header, None)
 
 
-class ScrolledWebkitWindow(Gtk.ScrolledWindow):
+class ScrolledWebkitWindow(Gtk.VBox):
 
-    def __init__(self):
+    def __init__(self, include_progress_ui=False):
         super(ScrolledWebkitWindow, self).__init__()
+        # get webkit
         self.webkit = LocaleAwareWebView()
         settings = self.webkit.get_settings()
         settings.set_property("enable-plugins", False)
-        self.webkit.show()
+        # add progress UI if needed
+        if include_progress_ui:
+            self._add_progress_ui()
+        # create main webkitview
+        self.scroll = Gtk.ScrolledWindow()
+        self.scroll.set_policy(Gtk.PolicyType.AUTOMATIC, 
+                               Gtk.PolicyType.AUTOMATIC)
+        self.pack_start(self.scroll, True, True, 0)
         # embed the webkit view in a scrolled window
-        self.add(self.webkit)
-        self.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
+        self.scroll.add(self.webkit)
+        self.show_all()
+    def _add_progress_ui(self):
+        # create toolbar box
+        self.header = Gtk.HBox()
+        # add spinner
+        self.spinner = Gtk.Spinner()
+        self.header.pack_start(self.spinner, False, False, 6)
+        # add a url to the toolbar
+        self.url = Gtk.Label()
+        self.url.set_ellipsize(Pango.EllipsizeMode.END)
+        self.url.set_alignment(0.0, 0.5)
+        self.url.set_text("")
+        self.header.pack_start(self.url, True, True, 0)
+        # frame around the box
+        self.frame = Gtk.Frame()
+        self.frame.set_border_width(3)
+        self.frame.add(self.header)
+        self.pack_start(self.frame, False, False, 6)
+        # connect the webkit stuff
+        self.webkit.connect("notify::uri", self._on_uri_changed)
+        self.webkit.connect("notify::load-status", self._on_load_status_changed)
+    def _on_uri_changed(self, view, pspec):
+        prop = pspec.name
+        uri = view.get_property(prop)
+        # the full uri is irellevant for the purchase view, but it is
+        # interessting to know what protocol/netloc is in use so that the
+        # user can verify its https on sites he is expecting
+        scheme, netloc, path, params, query, frag = urlparse.urlparse(uri)
+        if scheme == "file" and netloc == "":
+            self.url.set_text("")
+        else:
+            self.url.set_text("%s://%s" % (scheme, netloc))
+        # start spinner when the uri changes
+        #self.spinner.start()
+    def _on_load_status_changed(self, view, pspec):
+        prop = pspec.name
+        status = view.get_property(prop)
+        #print status
+        if status == webkit.LoadStatus.PROVISIONAL:
+            self.spinner.start()
+            self.spinner.show()
+        if (status == webkit.LoadStatus.FINISHED or
+            status == webkit.LoadStatus.FAILED):
+            self.spinner.stop()
+            self.spinner.hide()
+        
 
 
 class PurchaseView(Gtk.VBox):
@@ -119,6 +174,10 @@ h1 {
          'purchase-cancelled-by-user' : (GObject.SignalFlags.RUN_LAST,
                                          None,
                                          ()),
+         'purchase-needs-spinner' : (GObject.SignalFlags.RUN_LAST,
+                                      None,
+                                     (bool, )),
+                                     
     }
 
     def __init__(self):
@@ -179,19 +238,18 @@ h1 {
         
     def _on_create_web_view(self, view, frame):
         win = Gtk.Window()
-        win.set_size_request(500, 400)
-        # set transient parent
-        parent = self
-        while parent.get_parent():
-            parent = parent.get_parent()
-        win.set_transient_for(parent)
-        # and add the webkit view
-        wk = ScrolledWebkitWindow()
+        win.set_size_request(400, 400)
+        wk = ScrolledWebkitWindow(include_progress_ui=True)
         wk.webkit.connect("close-web-view", self._on_close_web_view)
         win.add(wk)
         win.show_all()
         # make sure close will work later
         wk.webkit.set_data("win", win)
+        # find and set parent
+        w = self.wk.get_parent()
+        while w.get_parent():
+            w = w.get_parent()
+        win.set_transient_for(w)
         return wk.webkit
 
     def _on_console_message(self, view, message, line, source_id):
@@ -224,10 +282,13 @@ h1 {
         prop = view.get_property(property_spec.name)
         window = self.get_window()
         if prop == webkit.LoadStatus.PROVISIONAL:
+            self.emit("purchase-needs-spinner", True)
             if window:
                 window.set_cursor(Gdk.Cursor.new(Gdk.CursorType.WATCH))
         elif (prop == webkit.LoadStatus.FIRST_VISUALLY_NON_EMPTY_LAYOUT or
+              prop == webkit.LoadStatus.FAILED or
               prop == webkit.LoadStatus.FINISHED):
+            self.emit("purchase-needs-spinner", False)
             if window:
                 window.set_cursor(None)
 
