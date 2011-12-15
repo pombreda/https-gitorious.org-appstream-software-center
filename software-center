@@ -127,6 +127,14 @@ if __name__ == "__main__":
     # ensure we can actually run
     Gtk.init_check(sys.argv)
 
+    # set default ssl-ca-file here because it needs only be set once, but
+    # it can not be set in the global context as this will cause segfaults
+    # on exit. However its IMPORTANT to set it as libsoup is *not* secure
+    # by default (see bugzilla #666280 and #666276)
+    from gi.repository import WebKit as webkit
+    session = webkit.get_default_session()
+    session.set_property("ssl-ca-file", "/etc/ssl/certs/ca-certificates.crt")
+
     # create the app
     from softwarecenter.ui.gtk3.app import SoftwareCenterAppGtk3
     with ExecutionTime("create SoftwareCenterApp"):
