@@ -134,14 +134,21 @@ if __name__ == "__main__":
 
     # DEBUG/PROFILE mode 
     if options.measure_startup_time:
+        logger = logging.getLogger("softwarecenter.performance")
         with ExecutionTime("show() & gtk events until visible"):
             app.run(args)
+            main_visible = False
             while not (app.available_pane.cat_view and
                        app.available_pane.cat_view.get_visible()):
-                while Gtk.events_pending():
+                if Gtk.events_pending():
                     Gtk.main_iteration()
-        time_to_visible = time.time() - time_entering_main
-        print(time_to_visible)
+                if not main_visible and app.window_main.get_visible():
+                    logger.debug("** main window visible after: %s seconds" % (
+                            time.time() - time_entering_main))
+                    main_visible = True
+        time_to_ready = time.time() - time_entering_main
+        print(time_to_ready)
+        logger.debug("** main window fully ready after: %s seconds" % time_to_ready)
         sys.exit(0)
 
     # run it normally
