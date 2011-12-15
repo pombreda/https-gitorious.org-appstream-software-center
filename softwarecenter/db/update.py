@@ -23,8 +23,8 @@ import os
 import json
 import string
 import shutil
-import time
 import xapian
+import time
 
 from gi.repository import GObject
 
@@ -144,6 +144,7 @@ class SoftwareCenterAgentParser(AppInfoParserBase):
                 'Deb-Line'   : 'deb_line',
                 'Signing-Key-Id' : 'signing_key_id',
                 'License'    : 'license',
+                'Date-Published' : 'date_published',
                 'Purchased-Date' : 'purchase_date',
                 'License-Key' : 'license_key',
                 'License-Key-Path' : 'license_key_path',
@@ -153,6 +154,7 @@ class SoftwareCenterAgentParser(AppInfoParserBase):
                 'Thumbnail-Url' : 'thumbnail_url',
                 'Video-Url' :  'video_url',
                 'Icon-Url'   : 'icon_url',
+                'Support-Url'   : 'support_url',
               }
 
     # map from requested key to a static data element
@@ -544,7 +546,7 @@ def update_from_software_center_agent(db, cache, ignore_cache=False,
         try:
             # magic channel
             entry.channel = AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME
-            # icon is transmited inline
+            # icon is transmitted inline
             if hasattr(entry, "icon_data") and entry.icon_data:
                 icondata = base64.b64decode(entry.icon_data)
             elif hasattr(entry, "icon_64_data") and entry.icon_64_data:
@@ -637,9 +639,15 @@ def index_app_info_from_parser(parser, db, cache):
                 doc.add_value(axi_values["catalogedtime"], 
                               xapian.sortable_serialise(cataloged_times[pkgname]))
             else:
-                # also catalog apps not found in axi (e.g. for-purchase apps)
+                #####################################################
+                # TODO: This is just a fallback so that we keep our current
+                #       behavior of having new items for-purchase appear in
+                #       what's new...THIS SHOULD BE REMOVED after support
+                #       for date_purchased in the agent has been deployed
+                #       to the production server
                 doc.add_value(axi_values["catalogedtime"], 
                               xapian.sortable_serialise(time.time()))
+                #####################################################
         # pocket (main, restricted, ...)
         if parser.has_option_desktop("X-AppInstall-Section"):
             archive_section = parser.get_desktop("X-AppInstall-Section")
@@ -662,6 +670,23 @@ def index_app_info_from_parser(parser, db, cache):
         if parser.has_option_desktop("X-AppInstall-License"):
             license = parser.get_desktop("X-AppInstall-License")
             doc.add_value(XapianValues.LICENSE, license)
+        # date published
+        if parser.has_option_desktop("X-AppInstall-Date-Published"):
+            date_published = parser.get_desktop("X-AppInstall-Date-Published")
+            # strip the subseconds from the end of the published date string
+            date_published = str(date_published).split(".")[0]
+            doc.add_value(XapianValues.DATE_PUBLISHED,
+                          date_published)
+            # we use the date published value for the cataloged time as well
+            if "catalogedtime" in axi_values:
+                LOG.debug(
+                        ("pkgname: %s, date_published cataloged time is: %s" %
+                             (pkgname, parser.get_desktop("date_published"))))
+                date_published_sec = time.mktime(
+                                        time.strptime(date_published,
+                                                      "%Y-%m-%d  %H:%M:%S"))
+                doc.add_value(axi_values["catalogedtime"], 
+                              xapian.sortable_serialise(date_published_sec))
         # purchased date
         if parser.has_option_desktop("X-AppInstall-Purchased-Date"):
             date = parser.get_desktop("X-AppInstall-Purchased-Date")
@@ -710,6 +735,10 @@ def index_app_info_from_parser(parser, db, cache):
             doc.add_value(XapianValues.PRICE, price)
             # since this is a commercial app, indicate it in the component value
             doc.add_value(XapianValues.ARCHIVE_SECTION, "commercial")
+        # support url (mainly pay stuff)
+        if parser.has_option_desktop("X-AppInstall-Support-Url"):
+            url = parser.get_desktop("X-AppInstall-Support-Url")
+            doc.add_value(XapianValues.SUPPORT_SITE_URL, url)
         # icon
         if parser.has_option_desktop("Icon"):
             icon = parser.get_desktop("Icon")

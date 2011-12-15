@@ -1,9 +1,19 @@
 software-center (5.1.3.2) UNRELEASED; urgency=low
 
   [ Michael Vogt ]
-  * lp:~brendan-donegan/software-center/test_debfileapplication:
+  * lp:~brendan-donegan/software-center/test_debfileapplication,
+    lp:~brendan-donegan/software-center/test_debfileapplication_mkII:
     - merged with some small tweaks to do basic tests for the
-      DebFileApplication class
+      DebFileApplication class, thanks to Brendan Donegan
+  * data/software-center.menu.in:
+    - add new "Books & Magazines" Category (LP: #903775)
+  * add support for the scagent "Support Website" feature
+  * lp:~mvo/software-center/performance-probes:
+    - improve accuracy of startup time measurement and add "probe"
+      points to make profiling easier
+  * lp:~mvo/software-center/purchaseviewspinner2:
+    - add a spinner to the purchaseview both when new windows
+      are opened and in the global toolbar
   
   [ Gabor Kelemen ]
   * lp:~kelemeng/software-center/bug880757:
@@ -15,7 +25,14 @@ software-center (5.1.3.2) UNRELEASED; urgency=low
     - Add a translator comment to the 'Top Rated %s' string, name the 
      variable. LP: #868971
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 09 Dec 2011 18:26:59 +0100
+  [ Gary Lasker ]
+  * lp:~gary-lasker/software-center/catalog-published-date-lp803028:
+    - add date_published value from the software-center-agent server
+      for use with cataloged time so that for-purchase items appear
+      correctly and in the proper order in What's New; include unit
+      tests for the new functionality (LP: #803028, LP: #886698)
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 14 Dec 2011 21:53:55 -0500
 
 software-center (5.1.3.1) precise; urgency=low
 

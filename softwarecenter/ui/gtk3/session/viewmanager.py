@@ -49,6 +49,7 @@ class ViewManager(GObject.GObject):
             "right-clicked", self.on_nav_forward_clicked)
 
         self.navhistory = NavigationHistory(self.back_forward, options)
+        self.spinner = Gtk.Spinner()
 
         self.all_views = {}
         self.view_to_pane = {}
@@ -95,9 +96,22 @@ class ViewManager(GObject.GObject):
             if page_id == v:
                 return k
 
+    def set_spinner_active(self, active):
+        if active:
+            self.spinner.show()
+            self.spinner.start()
+        else:
+            self.spinner.stop()
+            self.spinner.hide()
+
     def set_active_view(self, view_id):
+        # no views yet
         if not self.all_views: 
             return
+        # if the view switches, ensure that the global spinner is hidden
+        self.spinner.hide()
+
+        # emit signal
         self.emit('view-changed', view_id)
         page_id = self.all_views[view_id]
         view_widget = self.get_view_widget(view_id)
@@ -178,6 +192,7 @@ class ViewManager(GObject.GObject):
             self.search_entry.hide()
         else:
             self.search_entry.show()
+            self.spinner.hide()
         return
 
     def nav_back(self):
@@ -194,3 +209,6 @@ class ViewManager(GObject.GObject):
 
     def get_global_backforward(self):
         return self.back_forward
+
+    def get_global_spinner(self):
+        return self.spinner

@@ -137,6 +137,7 @@ class AvailablePane(SoftwarePane):
         self.purchase_view.connect("purchase-succeeded", self.on_purchase_succeeded)
         self.purchase_view.connect("purchase-failed", self.on_purchase_failed)
         self.purchase_view.connect("purchase-cancelled-by-user", self.on_purchase_cancelled_by_user)
+        self.purchase_view.connect("purchase-needs-spinner", self.on_purchase_needs_spinner)
         # categories, appview and details into the notebook in the bottom
         self.scroll_categories = Gtk.ScrolledWindow()
         self.scroll_categories.set_policy(Gtk.PolicyType.AUTOMATIC, 
@@ -222,6 +223,10 @@ class AvailablePane(SoftwarePane):
             self, AvailablePane.Pages.PURCHASE, self.state,
             self.display_purchase)
         return
+
+    def on_purchase_needs_spinner(self, appmanager, active):
+        vm = get_viewmanager()
+        vm.set_spinner_active(active)
 
     def on_purchase_succeeded(self, widget):
         # switch to the details page to display the transaction is in progress

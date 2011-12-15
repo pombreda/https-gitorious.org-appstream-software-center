@@ -339,7 +339,7 @@ class AppDetails(GObject.GObject):
         from softwarecenter.db.history import get_pkg_history
         self._history = get_pkg_history()
         return self._history.get_installed_date(self.pkgname)
-        
+
     @property
     def purchase_date(self):
         if self._doc:
@@ -357,6 +357,11 @@ class AppDetails(GObject.GObject):
             return _(xapian_license)
         else:
             return self._distro.get_license_text(self.component)
+
+    @property
+    def date_published(self):
+        if self._doc:
+            return self._doc.get_value(XapianValues.DATE_PUBLISHED)
 
     @property
     def maintenance_status(self):
@@ -620,6 +625,11 @@ class AppDetails(GObject.GObject):
     def website(self):
         if self._pkg:
             return self._pkg.website
+
+    @property
+    def supportsite(self):
+        if self._doc:
+            return self._doc.get_value(XapianValues.SUPPORT_SITE_URL)
     
     @property
     def license_key(self):
@@ -671,6 +681,7 @@ class AppDetails(GObject.GObject):
         details.append("             license: %s" % self.license)
         details.append("         license_key: %s" % self.license_key[0:3] + len(self.license_key)*"*")
         details.append("    license_key_path: %s" % self.license_key_path)
+        details.append("      date_published: %s" % self.date_published)
         details.append("  maintenance_status: %s" % self.maintenance_status)
         details.append("           pkg_state: %s" % self.pkg_state)
         details.append("               price: %s" % self.price)
