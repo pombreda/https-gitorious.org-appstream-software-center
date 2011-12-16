@@ -582,7 +582,8 @@ class SubCategoryViewGtk(CategoriesViewGtk):
     def _update_sub_toprated_content(self, category):
         self.toprated.remove_all()
         # FIXME: should this be m = "%s %s" % (_(gettext text), header text) ??
-        m = _('Top Rated %s') % GObject.markup_escape_text(self.header)
+	# TRANSLATORS: %s is a category name, like Internet or Development Tools
+        m = _('Top Rated %(category)s') % { 'category' : GObject.markup_escape_text(self.header)}
         self.toprated_frame.set_header_label(m)
         docs = self._get_sub_toprated_content(category)
         self._add_tiles_to_flowgrid(docs, self.toprated, TOP_RATED_CAROUSEL_LIMIT)

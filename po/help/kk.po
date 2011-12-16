@@ -6,16 +6,17 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: software-center\n"
-"Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
+"Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-07-21 17:04+0300\n"
-"PO-Revision-Date: 2010-11-24 10:08+0000\n"
-"Last-Translator: jmb_kz <Unknown>\n"
+"PO-Revision-Date: 2011-07-17 10:23+0000\n"
+"Last-Translator: David Planella <david.planella@ubuntu.com>\n"
 "Language-Team: Kazakh <kk@li.org>\n"
+"Language: kk\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Launchpad-Export-Date: 2011-07-22 04:47+0000\n"
-"X-Generator: Launchpad (build 13405)\n"
+"X-Launchpad-Export-Date: 2011-12-10 13:12+0000\n"
+"X-Generator: Launchpad (build 14450)\n"
 
 #. type: Attribute 'lang' of: <book>
 #: help/C/software-center.xml:18
@@ -32,7 +33,7 @@ msgstr "Ubuntu бағдарламалар орталығы"
 #. <year>2000</year>
 #. <holder>ME-THE-TRANSLATOR (Latin translation)</holder>
 #. </copyright>
-#. 
+#.
 #. An address can be added to the publisher information.  If a role is
 #. not specified, the publisher/author is the same for all versions of the
 #. document.
@@ -42,11 +43,11 @@ msgstr "Ubuntu бағдарламалар орталығы"
 #. type: Content of: <book><bookinfo>
 #: help/C/software-center.xml:34
 msgid ""
-"<publisher> <publishername>Ubuntu Documentation Project</publishername> "
-"</publisher> &legal;"
+"<publisher> <publishername>Ubuntu Documentation Project</publishername> </"
+"publisher> &legal;"
 msgstr ""
-"<publisher> <publishername>Ubuntu құжаттама жобасы</publishername> "
-"</publisher> &legal;"
+"<publisher> <publishername>Ubuntu құжаттама жобасы</publishername> </"
+"publisher> &legal;"
 
 #. type: Content of: <book><bookinfo><authorgroup><author><firstname>
 #: help/C/software-center.xml:43
@@ -156,14 +157,13 @@ msgstr ""
 msgid ""
 "In the <guilabel>Get Software</guilabel> section, find the thing you want to "
 "install.  If you already know its name, try typing the name in the search "
-"field.  Or try searching for the type of program you want (like "
-"&#8220;spreadsheet&#8221;).  Otherwise, browse the list of departments."
+"field.  Or try searching for the type of program you want (like &#8220;"
+"spreadsheet&#8221;).  Otherwise, browse the list of departments."
 msgstr ""
 
 #. type: Content of: <book><chapter><orderedlist><listitem><para>
 #: help/C/software-center.xml:103
-msgid ""
-"Select the item in the list, and choose <guilabel>More Info</guilabel>."
+msgid "Select the item in the list, and choose <guilabel>More Info</guilabel>."
 msgstr ""
 "Тізімнен өзіңізге қажеттісін таңдап, <guilabel>Толығырақ</guilabel> "
 "батырмасын басыңыз."
@@ -213,9 +213,8 @@ msgstr "Бағдарламаны орнатылымннан кейін қолд�
 msgid ""
 "For most programs, once they are installed, you can launch them from the "
 "<guimenu>Applications</guimenu> menu.  (Utilities for changing settings may "
-"appear inside <menuchoice><guimenu>System</guimenu> "
-"<guisubmenu>Preferences</guisubmenu></menuchoice> or "
-"<menuchoice><guimenu>System</guimenu> "
+"appear inside <menuchoice><guimenu>System</guimenu> <guisubmenu>Preferences</"
+"guisubmenu></menuchoice> or <menuchoice><guimenu>System</guimenu> "
 "<guisubmenu>Administration</guisubmenu></menuchoice> instead)."
 msgstr ""
 
@@ -331,8 +330,8 @@ msgstr ""
 msgid ""
 "<ulink url=\"ghelp:user-guide?menu-editor\" >Customizing the menu bar</ulink>"
 msgstr ""
-"<ulink url=\"ghelp:user-guide?menu-editor\" >Мәзір панелін қалыпқа "
-"келтіру</ulink>"
+"<ulink url=\"ghelp:user-guide?menu-editor\" >Мәзір панелін қалыпқа келтіру</"
+"ulink>"
 
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:232
@@ -473,8 +472,8 @@ msgstr ""
 msgid ""
 "If you are familiar with reporting bugs in software, you can help out by "
 "reporting the problem to the Ubuntu developers.  Most programs have a "
-"<guimenuitem>Report a Problem</guimenuitem> item in their "
-"<guimenu>Help</guimenu> menu."
+"<guimenuitem>Report a Problem</guimenuitem> item in their <guimenu>Help</"
+"guimenu> menu."
 msgstr ""
 
 #. type: Content of: <book><chapter><para>
@@ -558,34 +557,6 @@ msgid ""
 "<placeholder type=\"orderedlist\" id=\"0\"/>"
 msgstr ""
 
-#~ msgid ""
-#~ "Utilities for changing settings may appear inside "
-#~ "<menuchoice><guimenu>System</guimenu> "
-#~ "<guisubmenu>Preferences</guisubmenu></menuchoice> or "
-#~ "<menuchoice><guimenu>System</guimenu> "
-#~ "<guisubmenu>Administration</guisubmenu></menuchoice>."
-#~ msgstr ""
-#~ "Баптауларды өзгерту бағдарламалары <menuchoice><guimenu>Жүйелік</guimenu> "
-#~ "<guisubmenu>Баптаулар</guisubmenu></menuchoice> не "
-#~ "<menuchoice><guimenu>Система</guimenu> "
-#~ "<guisubmenu>Әкімшілік</guisubmenu></menuchoice> мәзірінде пайда болады."
-
-#~ msgid ""
-#~ "If you are using Ubuntu Netbook Edition, an application appears in its "
-#~ "category on the home screen."
-#~ msgstr ""
-#~ "Егер Ubuntu Netbook Edition қолданып жүрсеңіз, бағдарлама бас экранда өз "
-#~ "тобында пайда болады."
-
-#~ msgid "Why are all the programs free?"
-#~ msgstr "Неге барлық бағдарламалар бос?"
-
 #~ msgid "Currently, all software in Ubuntu Software Center is free of charge."
-#~ msgstr "Қазір Ubuntu бағдарламалар орталығында бағдарламалардың барлығы бос."
-
-#~ msgid ""
-#~ "The Center also lets you examine the software installed on the computer "
-#~ "already, and remove anything you no longer need."
 #~ msgstr ""
-#~ "Сонымен қатар бағдарлама орталығында орнатылған бағдарламалардың бәрін да "
-#~ "таба аласыз. Олардың қажет еместерін жоя аласыз."
+#~ "Қазір Ubuntu бағдарламалар орталығында бағдарламалардың барлығы бос."

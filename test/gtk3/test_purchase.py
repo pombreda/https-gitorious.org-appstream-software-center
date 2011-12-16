@@ -1,7 +1,5 @@
 #!/usr/bin/python
 
-from gi.repository import GObject
-
 import os
 import sys
 import time
@@ -20,6 +18,7 @@ from softwarecenter.ui.gtk3.app import (
     SoftwareCenterAppGtk3)
 from softwarecenter.ui.gtk3.panes.availablepane import (
     AvailablePane)
+from softwarecenter.testutils import do_events
 
 class TestPurchase(unittest.TestCase):
 
@@ -47,6 +46,21 @@ class TestPurchase(unittest.TestCase):
         # run another one
         win.destroy()
 
+    def test_spinner_emits_signals(self):
+        from softwarecenter.ui.gtk3.views.purchaseview import get_test_window_purchaseview
+        win = get_test_window_purchaseview()
+        self._p()
+        # get the view
+        view = win.get_data("view")
+        # ensure "purchase-needs-spinner" signals are send
+        signal_mock = Mock()
+        view.connect("purchase-needs-spinner", signal_mock)
+        view.wk.webkit.load_uri("http://www.ubuntu.com/")
+        self._p()
+        self.assertTrue(signal_mock.called)
+        # run another one
+        win.destroy()
+
 
     def test_reinstall_previous_purchase_display(self):
         os.environ["PYTHONPATH"]=".."
@@ -71,11 +85,9 @@ class TestPurchase(unittest.TestCase):
             app.available_pane.get_current_page(), AvailablePane.Pages.LIST)
 
     def _p(self):
-        context = GObject.main_context_default()
         for i in range(5):
             time.sleep(0.1)
-            while context.pending():
-                context.iteration()
+            do_events()
 
 if __name__ == "__main__":
     import logging

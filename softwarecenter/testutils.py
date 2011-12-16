@@ -34,6 +34,7 @@ def start_dummy_backend():
     os.environ["SOFTWARE_CENTER_APTD_FAKE"] = bus_address
     # start fake polkit from python-aptdaemon.test
     env = { "DBUS_SESSION_BUS_ADDRESS" : bus_address,
+            "DBUS_SYSTEM_BUS_ADDRESS" : bus_address,
           }
     m_polkit = subprocess.Popen(
         ["/usr/share/aptdaemon/tests/fake-polkitd.py", 
@@ -41,7 +42,7 @@ def start_dummy_backend():
         env=env)
     # start aptd in dummy mode
     m_aptd = subprocess.Popen(
-        ["/usr/sbin/aptd","--dummy", "--session-bus", "--disable-timeout"],
+        ["/usr/sbin/aptd", "--dummy", "--session-bus", "--disable-timeout"],
         env=env)
     # the sleep here is not ideal, but we need to wait a little bit
     # to ensure that the fake daemon and fake polkit is ready

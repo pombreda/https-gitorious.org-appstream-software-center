@@ -96,4 +96,3 @@ class Fedora(Distro):
         query2 = xapian.Query("XOO"+"updates")
         return xapian.Query(xapian.Query.OP_OR, query1, query2)
 
-

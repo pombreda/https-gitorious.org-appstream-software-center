@@ -1,10 +1,85 @@
-software-center (5.1.2.2) unstable; urgency=low
+software-center (5.1.3.2) UNRELEASED; urgency=low
+
+  [ Michael Vogt ]
+  * lp:~brendan-donegan/software-center/test_debfileapplication,
+    lp:~brendan-donegan/software-center/test_debfileapplication_mkII:
+    - merged with some small tweaks to do basic tests for the
+      DebFileApplication class, thanks to Brendan Donegan
+  * data/software-center.menu.in:
+    - add new "Books & Magazines" Category (LP: #903775)
+  * add support for the scagent "Support Website" feature
+  * lp:~mvo/software-center/performance-probes:
+    - improve accuracy of startup time measurement and add "probe"
+      points to make profiling easier
+  * lp:~mvo/software-center/purchaseviewspinner2:
+    - add a spinner to the purchaseview both when new windows
+      are opened and in the global toolbar
+  * softwarecenter/ui/gtk3/dialogs/__init__.py:
+    - trivial fix to increase the size of the expanded details 
+      in the message dialog
+  
+  [ Gabor Kelemen ]
+  * lp:~kelemeng/software-center/bug880757:
+    - Mark strings containing the “ character as Unicode, to fix their 
+      translations. LP: #880757
+  * lp:~kelemeng/software-center/bug869935:
+    - Update help translations from Launchpad. LP: #869935
+  * lp:~kelemeng/software-center/bug868971:
+    - Add a translator comment to the 'Top Rated %s' string, name the 
+     variable. LP: #868971
+
+  [ Gary Lasker ]
+  * lp:~gary-lasker/software-center/catalog-published-date-lp803028:
+    - add date_published value from the software-center-agent server
+      for use with cataloged time so that for-purchase items appear
+      correctly and in the proper order in What's New; include unit
+      tests for the new functionality (LP: #803028, LP: #886698)
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 14 Dec 2011 21:53:55 -0500
+
+software-center (5.1.3.1) precise; urgency=low
+
+  * debian/control:
+    - update dependency from python-gobject-cairo to
+      python-gi-cairo
+    - update Vcs-Bzr to point to trunk
+  * lp:~gary-lasker/software-center/restore-screenshot-thumb-cursor:
+    - restore the zoom cursor when hovering over a screenshot thumbnail
+      in the details view 
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 07 Dec 2011 19:06:10 -0500
+
+software-center (5.1.3) precise; urgency=low
 
   [ Robert Roth ]
   * Show For version x string instead of for this version when the 
     app version is unknown (LP: #889080)
 
- -- Michael Vogt <michael.vogt@ubuntu.com>  Fri, 25 Nov 2011 13:00:38 +0100
+  [ Michael Vogt ]
+  * lp:~mvo/software-center/system-wide-license-key-fixes:
+    - add support for installing system-wide license keys
+      via aptdaemon
+  * lp:~mvo/software-center/appdetailsview-cleanup:
+    - lots of cleanup for the details view code, merges appdetailsview
+      and appdetailsview_gtk, increases unit test coverage
+  * debian/control:
+    - update dependency from python-gobject to python-gi
+  
+  [ Gary Lasker ]
+  * lp:~gary-lasker/software-center/launcher-integration-for-p:
+    - implement automatic adding of all newly installed applications to
+      the Unity launcher per the latest specification, this can be
+      disabled via menu item "View->Add Applications in Launcher"
+      (LP: #761851, LP: #756599, LP: #756701, LP: #773769)
+  * test/graph/gen-test-coverage-data.sh,
+    test/graph/plot-test-coverage.py:
+    - create a graph to track unit test coverage 
+  
+  [ Kiwinote ]
+  * lp:~kiwinote/software-center/fix-icon-updating:
+    - fix _update_app_icon() regression
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 01 Dec 2011 16:03:34 +0100
 
 software-center (5.1.2.1) precise; urgency=low
 
@@ -108,7 +183,23 @@ software-center (5.1.0) precise; urgency=low
 
  -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 20 Oct 2011 18:35:14 +0200
 
-software-center (5.0.3) UNRELEASED; urgency=low
+software-center (5.0.3.2) UNRELEASED; urgency=low
+
+  * lp:~gary-lasker/software-center/fix-lp891499-for-5.0:
+    - be more robust about problems reading the cataloged_times file 
+      as problems here can hang the UI (LP: #891499)
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Mon, 28 Nov 2011 14:22:24 -0500
+
+software-center (5.0.3.1) oneiric-proposed; urgency=low
+
+  * softwarecenter/ui/gtk3/views/purchaseview.py:
+    - set transient parent when creating a new webview to better
+      support PayPal (LP: #893988)
+
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Thu, 24 Nov 2011 10:10:25 +0100
+
+software-center (5.0.3) oneiric-proposed; urgency=low
 
   [ Michael Vogt ]
   * Improve icon extenstion detection, some iconnames are already
@@ -136,7 +227,16 @@ software-center (5.0.3) UNRELEASED; urgency=low
   * Display the success message properly localized. LP: #872823
   * Display failure message properly localized. LP: #872812
 
- -- Gary Lasker <gary.lasker@canonical.com>  Tue, 25 Oct 2011 14:32:59 -0400
+ -- Michael Vogt <michael.vogt@ubuntu.com>  Tue, 22 Nov 2011 17:48:56 +0100
+
+software-center (5.0.2ubuntu0.1) oneiric-security; urgency=low
+
+  * SECURITY UPDATE: MITM via incorrect ssl cert validation (LP: #874242)
+    - softwarecenter/ui/gtk3/views/purchaseview.py: Set the ssl-ca-file
+      libsoup property so ssl cert validation works.
+    - CVE-2011-3150
+
+ -- Marc Deslauriers <marc.deslauriers@ubuntu.com>  Fri, 18 Nov 2011 08:29:21 -0500
 
 software-center (5.0.2) oneiric-proposed; urgency=low
 

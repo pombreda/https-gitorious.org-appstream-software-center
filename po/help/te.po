@@ -6,16 +6,17 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: software-center\n"
-"Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
+"Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2011-07-21 17:04+0300\n"
-"PO-Revision-Date: 2011-03-30 00:03+0000\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"PO-Revision-Date: 2011-03-31 01:26+0000\n"
+"Last-Translator: Praveen Illa <mail2ipn@gmail.com>\n"
 "Language-Team: Telugu <te@li.org>\n"
+"Language: te\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Launchpad-Export-Date: 2011-07-22 04:48+0000\n"
-"X-Generator: Launchpad (build 13405)\n"
+"X-Launchpad-Export-Date: 2011-12-10 13:12+0000\n"
+"X-Generator: Launchpad (build 14450)\n"
 
 #. type: Attribute 'lang' of: <book>
 #: help/C/software-center.xml:18
@@ -32,7 +33,7 @@ msgstr "ఉబుంటు సాఫ్ట్‍వేర్ కేంద్ర�
 #. <year>2000</year>
 #. <holder>ME-THE-TRANSLATOR (Latin translation)</holder>
 #. </copyright>
-#. 
+#.
 #. An address can be added to the publisher information.  If a role is
 #. not specified, the publisher/author is the same for all versions of the
 #. document.
@@ -42,11 +43,11 @@ msgstr "ఉబుంటు సాఫ్ట్‍వేర్ కేంద్ర�
 #. type: Content of: <book><bookinfo>
 #: help/C/software-center.xml:34
 msgid ""
-"<publisher> <publishername>Ubuntu Documentation Project</publishername> "
-"</publisher> &legal;"
+"<publisher> <publishername>Ubuntu Documentation Project</publishername> </"
+"publisher> &legal;"
 msgstr ""
-"<publisher> <publishername>ఉబుంటు పత్రీకరణ ప్రోజెక్టు</publishername> "
-"</publisher> &legal;"
+"<publisher> <publishername>ఉబుంటు పత్రీకరణ ప్రోజెక్టు</publishername> </publisher> "
+"&legal;"
 
 #. type: Content of: <book><bookinfo><authorgroup><author><firstname>
 #: help/C/software-center.xml:43
@@ -114,8 +115,8 @@ msgid ""
 "Ubuntu Software Center is a virtual catalog of thousands of free "
 "applications and other software to make your Ubuntu computer more useful."
 msgstr ""
-"ఉబుంటు సాఫ్ట్‍వేర్ కేంద్రం అనేది ఉబుంటు కంప్యూటర్‌కి ఉపయోగపడే వేల ఉచిత "
-"అనువర్తనాల మరియు ఇతర సాఫ్ట్‍వేర్ల జాబితా"
+"ఉబుంటు సాఫ్ట్‍వేర్ కేంద్రం అనేది ఉబుంటు కంప్యూటర్‌కి ఉపయోగపడే వేల ఉచిత అనువర్తనాల మరియు ఇతర "
+"సాఫ్ట్‍వేర్ల జాబితా"
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:73
@@ -123,8 +124,8 @@ msgid ""
 "You can find software by category or by searching, and you can install an "
 "item with the click of a button."
 msgstr ""
-"సాఫ్ట్‍వేర్ ను జాబితా బట్టి లేక శోధన చేయడం ద్వారా మీరు కనుక్కొనవచ్చును, "
-"మరియు క్లిక్ బటన్‌తో ఒక అంశాన్ని మీరు స్థాపించవచ్చు."
+"సాఫ్ట్‍వేర్ ను జాబితా బట్టి లేక శోధన చేయడం ద్వారా మీరు కనుక్కొనవచ్చును, మరియు క్లిక్ బటన్‌తో ఒక అంశాన్ని "
+"మీరు స్థాపించవచ్చు."
 
 #. type: Content of: <book><chapter><para>
 #: help/C/software-center.xml:77
@@ -132,8 +133,8 @@ msgid ""
 "You can also examine which software is installed on the computer already, "
 "and remove anything you no longer need."
 msgstr ""
-"కంప్యూటర్ నందు ఏ సాఫ్ట్‍వేర్ స్థాపించబడిందో మీరు పరిశీలించచ్చు, మరియు ఇక ఏ "
-"మాత్రం అవసరం లేని వాటిని తొలగించవచ్చు."
+"కంప్యూటర్ నందు ఏ సాఫ్ట్‍వేర్ స్థాపించబడిందో మీరు పరిశీలించచ్చు, మరియు ఇక ఏ మాత్రం అవసరం లేని వాటిని "
+"తొలగించవచ్చు."
 
 #. type: Content of: <book><chapter><title>
 #: help/C/software-center.xml:83
@@ -147,27 +148,24 @@ msgid ""
 "access and a working Internet connection.  (If you set up Ubuntu on this "
 "computer yourself, you have administrator access automatically.)"
 msgstr ""
-"ఉబుంటు సాఫ్ట్‍వేర్ కేంద్రంతో ఏదైనా సాఫ్ట్‍వేర్‌ను స్థాపించాలనుకుంటే, మీకు "
-"నిర్వాహకుడి అనుమతి మరియు పనిచేయు అంతర్జాల అనుసంధానము అవసరమవుతాయి. (ఉబుంటూని "
-"మీ అంతట మీరే ఈ కంప్యూటర్లో స్థాపించి ఉంటే నిర్వాహక అనుమతులను స్వయంచాలకంగా "
-"కలిగిఉంటారు.)"
+"ఉబుంటు సాఫ్ట్‍వేర్ కేంద్రంతో ఏదైనా సాఫ్ట్‍వేర్‌ను స్థాపించాలనుకుంటే, మీకు నిర్వాహకుడి అనుమతి మరియు పనిచేయు "
+"అంతర్జాల అనుసంధానము అవసరమవుతాయి. (ఉబుంటూని మీ అంతట మీరే ఈ కంప్యూటర్లో స్థాపించి ఉంటే నిర్వాహక "
+"అనుమతులను స్వయంచాలకంగా కలిగిఉంటారు.)"
 
 #. type: Content of: <book><chapter><orderedlist><listitem><para>
 #: help/C/software-center.xml:93
 msgid ""
 "In the <guilabel>Get Software</guilabel> section, find the thing you want to "
 "install.  If you already know its name, try typing the name in the search "
-"field.  Or try searching for the type of program you want (like "
-"&#8220;spreadsheet&#8221;).  Otherwise, browse the list of departments."
+"field.  Or try searching for the type of program you want (like &#8220;"
+"spreadsheet&#8221;).  Otherwise, browse the list of departments."
 msgstr ""
 
 #. type: Content of: <book><chapter><orderedlist><listitem><para>
 #: help/C/software-center.xml:103
-msgid ""
-"Select the item in the list, and choose <guilabel>More Info</guilabel>."
+msgid "Select the item in the list, and choose <guilabel>More Info</guilabel>."
 msgstr ""
-"జాబితాలోని ఒక అంశాన్ని ఎంచుకోండి, మరియు <guilabel>More Info</guilabel> ను "
-"ఎన్నుకోండి."
+"జాబితాలోని ఒక అంశాన్ని ఎంచుకోండి, మరియు <guilabel>More Info</guilabel> ను ఎన్నుకోండి."
 
 #. type: Content of: <book><chapter><orderedlist><listitem><para>
 #: help/C/software-center.xml:109
@@ -210,9 +208,8 @@ msgstr ""
 msgid ""
 "For most programs, once they are installed, you can launch them from the "
 "<guimenu>Applications</guimenu> menu.  (Utilities for changing settings may "
-"appear inside <menuchoice><guimenu>System</guimenu> "
-"<guisubmenu>Preferences</guisubmenu></menuchoice> or "
-"<menuchoice><guimenu>System</guimenu> "
+"appear inside <menuchoice><guimenu>System</guimenu> <guisubmenu>Preferences</"
+"guisubmenu></menuchoice> or <menuchoice><guimenu>System</guimenu> "
 "<guisubmenu>Administration</guisubmenu></menuchoice> instead)."
 msgstr ""
 
@@ -460,8 +457,8 @@ msgstr ""
 msgid ""
 "If you are familiar with reporting bugs in software, you can help out by "
 "reporting the problem to the Ubuntu developers.  Most programs have a "
-"<guimenuitem>Report a Problem</guimenuitem> item in their "
-"<guimenu>Help</guimenu> menu."
+"<guimenuitem>Report a Problem</guimenuitem> item in their <guimenu>Help</"
+"guimenu> menu."
 msgstr ""
 
 #. type: Content of: <book><chapter><para>
