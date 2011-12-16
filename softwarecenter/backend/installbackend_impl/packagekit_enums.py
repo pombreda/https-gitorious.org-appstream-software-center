@@ -17,7 +17,6 @@
 # stolen from gnome-packagekit, which is GPL2+
 
 from gi.repository import PackageKitGlib as packagekit
-from gettext import gettext as _
 
 # this requires packagekit 0.7.2 or better
 def status_enum_to_localised_text (status):
