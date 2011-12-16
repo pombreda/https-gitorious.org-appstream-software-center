@@ -39,6 +39,13 @@ LOG = logging.getLogger(__name__)
 class LocaleAwareWebView(webkit.WebView):
     
     def __init__(self):
+        # its enough to set this globally, but if that is done it crashes
+        # on exit so we set it here as webkit is using multiple threads
+        # and when the cleanup runs no webkit is available anymore
+        session = webkit.get_default_session()
+        session.set_property(
+            "ssl-ca-file", "/etc/ssl/certs/ca-certificates.crt")
+        # actual webkit init
         webkit.WebView.__init__(self)
         self.connect("resource-request-starting", 
                      self._on_resource_request_starting)

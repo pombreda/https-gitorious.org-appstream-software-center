@@ -42,6 +42,7 @@ from softwarecenter.ui.gtk3.views.appview import AppView
 from softwarepane import SoftwarePane
 from softwarecenter.backend.oneconfhandler import get_oneconf_handler
 from softwarecenter.db.appfilter import AppFilter
+from softwarecenter.paths import APP_INSTALL_PATH
 
 LOG=logging.getLogger(__name__)
 
@@ -180,7 +181,7 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         self.app_view.set_model(self.treefilter)
         self.app_view.tree_view.connect("row-collapsed", self._on_row_collapsed)
 
-        self._all_cats = self.parse_applications_menu('/usr/share/app-install')
+        self._all_cats = self.parse_applications_menu(APP_INSTALL_PATH)
         self._all_cats = categories_sorted_by_name(self._all_cats)
         
         # we do not support the search aid feature in the installedview

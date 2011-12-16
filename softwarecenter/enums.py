@@ -214,8 +214,19 @@ USER_AGENT="Software Center/%s (N;) %s/%s (%s)" % (VERSION,
                                                    RELEASE,
                                                    CODENAME)
 
-# global backend switch
+# global backend switch, prefer aptdaemon, if that can not be found, use PK
 USE_PACKAGEKIT_BACKEND = False
+try:
+    import aptdaemon
+    USE_PACKAGEKIT_BACKEND = False
+except ImportError:
+    try:
+        from gi.repository import PackageKitGlib
+        USE_PACKAGEKIT_BACKEND = True
+    except ImportError:
+        raise Exception("Need either aptdaemon or PackageKitGlib")
+# allow force via env (useful for testing)
+if "SOFTWARE_CENTER_FORCE_PACKAGEKIT" in os.environ:
+    USE_PACKAGEKIT_BACKEND = True
 
-# history switch (useful on non apt based distros)
-USE_APT_HISTORY = True
+
