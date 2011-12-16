@@ -97,7 +97,3 @@ class Fedora(Distro):
         return xapian.Query(xapian.Query.OP_OR, query1, query2)
 
 
-if __name__ == "__main__":
-    cache = apt.Cache()
-    print(cache.get_maintenance_status(cache, "synaptic app", "synaptic", "main", None))
-    print(cache.get_maintenance_status(cache, "3dchess app", "3dchess", "universe", None))
