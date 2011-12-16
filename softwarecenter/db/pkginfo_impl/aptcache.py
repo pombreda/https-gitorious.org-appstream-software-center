@@ -198,6 +198,8 @@ class AptCache(PackageInfo):
     @property
     def ready(self):
         return self._ready
+    def get_license(self, name):
+        return None
     def open(self):
         """ (re)open the cache, this sends cache-invalid, cache-ready signals
         """

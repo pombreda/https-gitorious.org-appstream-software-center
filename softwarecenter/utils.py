@@ -276,7 +276,9 @@ def uri_to_filename(uri):
         import apt_pkg
         return apt_pkg.uri_to_filename(uri)
     except ImportError:
-        return uri
+        p1 = re.compile("http://[^/]+/")
+        uri = re.sub(p1, "", uri)
+        return uri.replace("/", "_")
 
 def human_readable_name_from_ppa_uri(ppa_uri):
     """ takes a PPA uri and returns a human readable name for it """
@@ -708,14 +710,6 @@ upstream_version_compare = lambda v1, v2: get_pkg_info().upstream_version_compar
 upstream_version = lambda v: get_pkg_info().upstream_version(v)
 version_compare = lambda v1, v2: get_pkg_info().version_compare(v1, v2)
 
-# only when needed
-try:
-    import apt_pkg
-    size_to_str = apt_pkg.size_to_str
-except ImportError:
-    def size_to_str(size):
-        return str(size)
-        
 if __name__ == "__main__":
     s = decode_xml_char_reference('Search&#x2026;')
     print(s)

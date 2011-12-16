@@ -54,7 +54,7 @@ class ChannelsManager(object):
         """
         (internal) implements 'channels()' and 'channels_installed_only()' properties
         """
-        distro_channel_name = self.distro.get_distro_channel_name()
+        distro_channel_origin = self.distro.get_distro_channel_name()
         
         # gather the set of software channels and order them
         other_channel_list = []
@@ -89,8 +89,8 @@ class ChannelsManager(object):
                                                        channel_origin,
                                                        None,
                                                        installed_only=installed_only))
-            elif channel_name == distro_channel_name:
-                dist_channel = (SoftwareChannel(distro_channel_name,
+            elif channel_origin == distro_channel_origin:
+                dist_channel = (SoftwareChannel(channel_name,
                                                 channel_origin,
                                                 None,
                                                 installed_only=installed_only))
@@ -148,7 +148,7 @@ class SoftwareChannel(object):
         # distro specific stuff
         self.distro = get_distro()
         # configure the channel
-        self._channel_display_name = self._get_display_name_for_channel(channel_name, channel_component)
+        self._channel_display_name = self._get_display_name_for_channel(channel_name, channel_origin, channel_component)
         if channel_icon is None:
             self._channel_icon = self._get_icon_for_channel(channel_name, channel_origin, channel_component)
         else:
@@ -216,12 +216,12 @@ class SoftwareChannel(object):
     # TODO:  implement __cmp__ so that sort for channels is encapsulated
     #        here as well
 
-    def _get_display_name_for_channel(self, channel_name, channel_component):
+    def _get_display_name_for_channel(self, channel_name, channel_origin, channel_component):
         if channel_component == "partner":
             channel_display_name = _("Canonical Partners")
-        elif not channel_name:
+        elif not channel_origin:
             channel_display_name = _("Unknown")
-        elif channel_name == self.distro.get_distro_channel_name():
+        elif channel_origin == self.distro.get_distro_channel_name():
             channel_display_name = self.distro.get_distro_channel_description()
         elif channel_name == "For Purchase":
             channel_display_name = _("For Purchase")
@@ -238,7 +238,7 @@ class SoftwareChannel(object):
             channel_icon = "partner"
         elif not channel_name:
             channel_icon = "unknown-channel"
-        elif channel_name == self.distro.get_distro_channel_name():
+        elif channel_origin == self.distro.get_distro_channel_name():
             channel_icon = "distributor-logo"
         elif channel_name == "Application Review Board PPA":
             channel_icon = "system-users"
@@ -295,7 +295,7 @@ class AllChannel(SoftwareChannel):
         return
 
     # overrides
-    def _get_display_name_for_channel(self, channel_name, _):
+    def _get_display_name_for_channel(self, channel_name, channel_origin, channel_component):
         return channel_name
 
     def _get_channel_query_for_channel(self, *args):

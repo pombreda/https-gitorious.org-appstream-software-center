@@ -18,20 +18,50 @@
 
 from gi.repository import PackageKitGlib as packagekit
 import logging
+import locale
+
+from gettext import gettext as _
 
 from softwarecenter.db.pkginfo import PackageInfo, _Version
 from softwarecenter.distro import get_distro
 
 LOG = logging.getLogger('softwarecenter.db.packagekit')
 
-class FakeOrigin:
-    def __init__(self, name, label = None):
-        self.origin = name
-        self.trusted = True
-        self.component = 'unknown-component'
+class PkOrigin:
+    def __init__(self, repo):
+        if repo:
+            repo_id = repo.get_property('repo-id')
+            if repo_id.endswith('-source'):
+                repo_id = repo_id[:-len('-source')]
+                self.component = 'source'
+            elif repo_id.endswith('-debuginfo'):
+                repo_id = repo_id[:-len('-debuginfo')]
+                self.component = 'debuginfo'
+            else:
+                self.component = 'main'
+
+            if repo_id == 'updates':
+                self.origin = get_distro().get_distro_channel_name()
+                self.archive = 'stable'
+            elif repo_id == 'updates-testing':
+                self.origin = get_distro().get_distro_channel_name()
+                self.archive = 'testing'
+            elif repo_id.endswith('-updates-testing'):
+                self.origin = repo_id[:-len('-updates-testing')]
+                self.archive = 'testing'
+            else:
+                self.origin = repo_id
+                self.archive = 'stable'
+
+            self.trusted = True
+            self.label = repo.get_property('description')
+        else:
+            self.origin = 'unknown'
+            self.archive = 'unknown'
+            self.trusted = False
+            self.label = _("Unknown repository")
+            self.component = 'main'
         self.site = ''
-        self.label = name.capitalize() if not label else label
-        self.archive = name
 
 class PackagekitVersion(_Version):
     def __init__(self, package, pkginfo):
@@ -64,6 +94,11 @@ class PackagekitVersion(_Version):
     def origins(self):
         return self.pkginfo.get_origins(self.package.get_name())
 
+def make_locale_string():
+    loc = locale.getlocale(locale.LC_MESSAGES)
+    if loc[1]:
+        return loc[0] + '.' + loc[1]
+    return loc[0]
 
 class PackagekitInfo(PackageInfo):
     USE_CACHE = True
@@ -71,8 +106,10 @@ class PackagekitInfo(PackageInfo):
     def __init__(self):
         super(PackagekitInfo, self).__init__()
         self.client = packagekit.Client()
+        self.client.set_locale(make_locale_string())
         self._cache = {} # temporary hack for decent testing
         self._notfound_cache = []
+        self._repocache = {}
         self.distro = get_distro()
 
     def __contains__(self, pkgname):
@@ -113,7 +150,7 @@ class PackagekitInfo(PackageInfo):
 
     def get_description(self, packageid):
         p = self._get_package_details(packageid)
-        return p.get_property('description') if p else ''
+        return p.get_property('description').replace('\n', ' ') if p else ''
 
     def get_website(self, pkgname):
         p = self._get_one_package(pkgname)
@@ -143,7 +180,29 @@ class PackagekitInfo(PackageInfo):
         return self.get_size(pkgname)
 
     def get_origins(self, pkgname):
-        return [FakeOrigin(self.distro.get_distro_channel_name(), self.distro.get_distro_channel_description())]
+        self._get_repolist()
+        pkgs = self._get_packages(pkgname, pfilter=packagekit.FilterEnum.NOT_INSTALLED)
+        out = set()
+
+        for p in pkgs:
+            repoid = p.get_data()
+            try:
+                out.add(PkOrigin(self._repocache[repoid]))
+            except KeyError:
+                # could be a removed repository
+                LOG.info('key %s not found in repocache' % repoid)
+                out.add(PkOrigin(None))
+
+        return out
+
+    def get_origin(self, pkgname):
+        p = self._get_one_package(pkgname)
+        if not p:
+            return []
+        origin = p.get_data()
+        if origin.startswith('installed:'):
+            return origin[len('installed:'):]
+        return origin
 
     def component_available(self, distro_codename, component):
         # FIXME stub
@@ -188,13 +247,25 @@ class PackagekitInfo(PackageInfo):
         with disk size in KB calculated for pkgname installation
         plus addons change.
         """
-        # FIXME implement it
-        return (0, 0)
+        # FIXME: PackageKit reports only one size at a time
+        if self.is_installed(pkgname):
+            return (0, self.get_size(pkgname))
+        else:
+            return (self.get_size(pkgname), 0)
 
     @property
     def ready(self):
         """ No PK equivalent, simply returning True """
         return True
+
+    def get_license(self, pkgname):
+        p = self._get_one_package(pkgname)
+        if not p:
+            return ""
+        details = self._get_package_details(p.get_property('package-id'))
+        if not details:
+            return ""
+        return details.get_property('license')
 
     """ private methods """
     def _get_package_details(self, packageid, cache=USE_CACHE):
@@ -209,7 +280,7 @@ class PackagekitInfo(PackageInfo):
         packageid = pkgs[0].get_property('package-id')
         self._cache[packageid] = pkgs[0]
         return pkgs[0]
-            
+ 
     def _get_one_package(self, pkgname, pfilter=packagekit.FilterEnum.NONE, cache=USE_CACHE):
         LOG.debug("package_one %s", pkgname) #, self._cache.keys()
         if (pkgname in self._cache.keys()) and cache:
@@ -234,6 +305,19 @@ class PackagekitInfo(PackageInfo):
         )
         pkgs = result.get_package_array()
         return pkgs
+
+    def _get_repolist(self, pfilter=packagekit.FilterEnum.NONE, cache=USE_CACHE):
+        """ obtain and cache a dictionary of repositories """
+        if self._repocache:
+            return self._repocache
+
+        pfilter = 1 << pfilter
+        result = self.client.get_repo_list(pfilter,
+                                           None,
+                                           self._on_progress_changed, None)
+        repos = result.get_repo_detail_array()
+        for r in repos:
+            self._repocache[r.get_property('repo-id')] = r
 
     def _reset_cache(self, name=None):
         # Clean resolved packages cache

@@ -39,6 +39,7 @@ LOG = logging.getLogger(__name__)
 class LocaleAwareWebView(webkit.WebView):
     
     def __init__(self):
+        # actual webkit init
         webkit.WebView.__init__(self)
         self.connect("resource-request-starting", 
                      self._on_resource_request_starting)

@@ -78,6 +78,10 @@ class _Package:
     def description(self):
         return self.pkginfo.get_description(self.name)
 
+    @property
+    def license(self):
+        return self.pkginfo.get_license(self.name)
+
 class PackageInfo(GObject.GObject):
     """ abstract interface for the packageinfo information """
 

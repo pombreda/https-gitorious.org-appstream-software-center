@@ -18,7 +18,9 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from gi.repository import Atk, Gtk, Gdk, GObject, GdkPixbuf, Pango
+import gi
+gi.require_version("Gtk", "3.0")
+from gi.repository import Atk, Gtk, Gdk, GLib, GObject, GdkPixbuf, Pango
 
 import datetime
 import gettext
@@ -43,7 +45,6 @@ from softwarecenter.enums import (AppActions,
 from softwarecenter.utils import (is_unity_running, 
                                   get_exec_line_from_desktop,
                                   SimpleFileDownloader,
-                                  size_to_str,
                                   utf8)
 from softwarecenter.distro import get_distro
 from softwarecenter.backend.weblive import get_weblive_backend
@@ -1447,12 +1448,14 @@ class AppDetailsView(Viewport):
     def _configure_where_is_it(self):
 
         def get_desktop_file():
-            desktop_file = None
+            # we should know the desktop file
+            if self.app_details.desktop_file:
+                return self.app_details.desktop_file
+            # fallback mode
             pkgname = self.app_details.pkgname
-            for p in [self.app_details.desktop_file,
-                      "/usr/share/applications/%s.desktop" % pkgname]:
-                if p and os.path.exists(p):
-                    desktop_file = p
+            desktop_file = "/usr/share/applications/%s.desktop" % pkgname
+            if not os.path.exists(desktop_file):
+                    return None
             return desktop_file
 
         # remove old content
@@ -1780,22 +1783,22 @@ class AppDetailsView(Viewport):
         if res==(0,0) and type(self.app)==DebFileApplication:
             total_install_size = self.app_details.installed_size
         if total_download_size > 0:
-            download_size = size_to_str(total_download_size)
-            label_string += _("%sB to download, ") % (download_size)
+            download_size = GLib.format_size(total_download_size)
+            label_string += _("%s to download, ") % (download_size)
         if total_install_size > 0:
-            install_size = size_to_str(total_install_size)
-            label_string += _("%sB when installed") % (install_size)
+            install_size = GLib.format_size(total_install_size)
+            label_string += _("%s when installed") % (install_size)
         elif (total_install_size == 0 and
               self.app_details.pkg_state == PkgStates.INSTALLED and
               not self.addons_manager.addons_to_install and
               not self.addons_manager.addons_to_remove):
             pkg = self.cache[self.app_details.pkgname].installed
-            install_size = size_to_str(pkg.installed_size)
+            install_size = GLib.format_size(pkg.installed_size)
             # FIXME: this is not really a good indication of the size on disk
-            label_string += _("%sB on disk") % (install_size)
+            label_string += _("%s on disk") % (install_size)
         elif total_install_size < 0:
-            remove_size = size_to_str(-total_install_size)
-            label_string += _("%sB to be freed") % (remove_size)
+            remove_size = GLib.format_size(-total_install_size)
+            label_string += _("%s to be freed") % (remove_size)
         
         if label_string == "":
             self.totalsize_info.set_value(_("Unknown"))
