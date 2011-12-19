@@ -28,8 +28,6 @@ import sys
 import urllib
 import urlparse
 from gi.repository import WebKit as webkit
-session = webkit.get_default_session()
-session.set_property("ssl-ca-file", "/etc/ssl/certs/ca-certificates.crt")
 
 from gettext import gettext as _
 
@@ -41,6 +39,7 @@ LOG = logging.getLogger(__name__)
 class LocaleAwareWebView(webkit.WebView):
     
     def __init__(self):
+        # actual webkit init
         webkit.WebView.__init__(self)
         self.connect("resource-request-starting", 
                      self._on_resource_request_starting)

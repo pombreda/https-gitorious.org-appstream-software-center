@@ -1,6 +1,5 @@
 #!/usr/bin/python
 
-from gi.repository import Gtk, GObject
 import sys
 import unittest
 

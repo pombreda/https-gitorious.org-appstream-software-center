@@ -16,6 +16,7 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
+from datetime import datetime
 
 import apt_pkg
 apt_pkg.init_config()
@@ -27,6 +28,8 @@ import glob
 import gzip
 import os.path
 import logging
+import string
+import re
 
 try:
     import cPickle as pickle
@@ -40,6 +43,37 @@ from softwarecenter.paths import SOFTWARE_CENTER_CACHE_DIR
 from softwarecenter.utils import ExecutionTime
 from softwarecenter.db.history import Transaction, PackageHistory
 
+def ascii_lower(key):
+    ascii_trans_table = string.maketrans(string.ascii_uppercase,
+                                        string.ascii_lowercase)
+    return key.translate(ascii_trans_table)
+
+class AptTransaction(Transaction):
+    PKGACTIONS=["Install", "Upgrade", "Downgrade", "Remove", "Purge"]
+
+    def __init__(self, sec):
+        self.start_date = datetime.strptime(sec["Start-Date"],
+                                            "%Y-%m-%d  %H:%M:%S")
+        # set the object attributes "install", "upgrade", "downgrade",
+        #                           "remove", "purge", error
+        for k in self.PKGACTIONS+["Error"]:
+            # we use ascii_lower for issues described in LP: #581207
+            attr = ascii_lower(k)
+            if k in sec:
+                value = map(self._fixup_history_item, sec[k].split("),"))
+            else:
+                value = []
+            setattr(self, attr, value)
+
+    @staticmethod
+    def _fixup_history_item(s):
+        """ strip history item string and add missing ")" if needed """
+        s=s.strip()
+        # remove the infomation about the architecture
+        s = re.sub(":\w+", "", s)
+        if "(" in s and not s.endswith(")"):
+            s+=")"
+        return s
 
 class AptHistory(PackageHistory):
 
@@ -104,7 +138,7 @@ class AptHistory(PackageHistory):
                 self.main_context.iteration()
             # ignore records with 
             try:
-                trans = Transaction(stanza)
+                trans = AptTransaction(stanza)
             except (KeyError, ValueError):
                 continue
             # ignore the ones we have already

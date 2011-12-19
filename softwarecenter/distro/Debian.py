@@ -141,7 +141,7 @@ class Debian(Distro):
                 return _("Debian provides critical updates for %s. But "
                          "updates could be delayed or skipped.") % appname
             elif pkg_archive == "unstable":
-                return _("Debian doens't provides critical updates "
+                return _("Debian does not provide critical updates "
                          "for %s") % appname
         return
 

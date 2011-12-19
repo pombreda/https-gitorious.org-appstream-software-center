@@ -40,6 +40,7 @@ from softwarecenter.utils import (wait_for_apt_cache_ready,
                                   get_file_path_from_iconname)
 from softwarecenter.db.appfilter import AppFilter
 from softwarecenter.db.database import Application
+
 from softwarecenter.ui.gtk3.views.purchaseview import PurchaseView
 
 from softwarecenter.ui.gtk3.views.catview_gtk import (LobbyViewGtk,
@@ -130,6 +131,7 @@ class AvailablePane(SoftwarePane):
             #~ self.app_view._append_appcount(appcount)
         #~ liststore.connect('appcount-changed', on_appcount_changed)
         self.app_view.set_model(liststore)
+
         # purchase view
         self.purchase_view = PurchaseView()
         app_manager = get_appmanager()
@@ -138,6 +140,7 @@ class AvailablePane(SoftwarePane):
         self.purchase_view.connect("purchase-failed", self.on_purchase_failed)
         self.purchase_view.connect("purchase-cancelled-by-user", self.on_purchase_cancelled_by_user)
         self.purchase_view.connect("purchase-needs-spinner", self.on_purchase_needs_spinner)
+
         # categories, appview and details into the notebook in the bottom
         self.scroll_categories = Gtk.ScrolledWindow()
         self.scroll_categories.set_policy(Gtk.PolicyType.AUTOMATIC, 

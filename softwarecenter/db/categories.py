@@ -100,9 +100,11 @@ class CategoriesParser(object):
         """ parse a application menu and return a list of Category objects """
         categories = []
         # we support multiple menu files and menu drop ins
-        menu_files = [datadir+"/desktop/software-center.menu"]
+        menu_files = [ datadir+"/desktop/software-center.menu" ]
         menu_files += glob.glob(datadir+"/menu.d/*.menu")
         for f in menu_files:
+            if not os.path.exists(f):
+                continue
             tree = ET.parse(f)
             root = tree.getroot()
             for child in root.getchildren():

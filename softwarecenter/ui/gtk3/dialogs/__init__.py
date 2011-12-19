@@ -68,9 +68,9 @@ class DetailsMessageDialog(Gtk.MessageDialog):
             self.format_secondary_markup(secondary)
         if details:
             textview = Gtk.TextView()
-            textview.set_size_request(500, 300)
             textview.get_buffer().set_text(details)
             scroll = Gtk.ScrolledWindow()
+            scroll.set_size_request(500, 300)
             scroll.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
             scroll.add(textview)
             expand = Gtk.Expander().new(_("Details"))

@@ -426,7 +426,14 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         """ helper that rebuilds a db and reopens it """
         from softwarecenter.db.update import rebuild_database
         LOG.info("building local database")
-        rebuild_database(pathname)
+        # debian_sources is a bit misnamed, it will look for annotated
+        # desktop files in /usr/share/app-install - enabling this on
+        # non-debian systems will do no harm
+        debian_sources = True
+        # the appstream sources, enabling this on non-appstream systems
+        # will do no harm
+        appstream_sources = True
+        rebuild_database(pathname, debian_sources, appstream_sources)
         self.db = StoreDatabase(pathname, self.cache)
         self.db.open(use_axi=self._use_axi)
 

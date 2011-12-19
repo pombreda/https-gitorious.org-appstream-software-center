@@ -1,7 +1,5 @@
 #!/usr/bin/python
 
-from gi.repository import GObject
-
 import os
 import sys
 import time
@@ -49,7 +47,6 @@ class TestPurchase(unittest.TestCase):
         win.destroy()
 
     def test_spinner_emits_signals(self):
-        import softwarecenter.ui.gtk3.views.purchaseview
         from softwarecenter.ui.gtk3.views.purchaseview import get_test_window_purchaseview
         win = get_test_window_purchaseview()
         self._p()
@@ -88,7 +85,6 @@ class TestPurchase(unittest.TestCase):
             app.available_pane.get_current_page(), AvailablePane.Pages.LIST)
 
     def _p(self):
-        context = GObject.main_context_default()
         for i in range(5):
             time.sleep(0.1)
             do_events()
