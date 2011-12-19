@@ -39,8 +39,7 @@ class MockVersion(object):
 class TestDistroUbuntu(unittest.TestCase):
 
     def setUp(self):
-        import lsb_release
-        self.distro = Ubuntu(lsb_release.get_distro_information())
+        self.distro = Ubuntu()
 
     def test_icon_download_url(self):
         mock_cache = MockCache("http://ppa.launchpad.net/mvo/ppa/ubuntu")
