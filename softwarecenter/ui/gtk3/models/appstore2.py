@@ -80,10 +80,20 @@ class _AppPropertiesHelper(GObject.GObject):
         liststore/treestore, only useful for subclassing
     """
 
+    __gsignals__ = {
+        "needs-refresh" : (GObject.SignalFlags.RUN_LAST,
+                          None, 
+                           (str, ),
+                           ),
+        }
+
+    def __init__(self):
+        GObject.GObject.__init__(self)
+
     def _download_icon_and_show_when_ready(self, url, pkgname, icon_file_name):
         LOG.debug("did not find the icon locally, must download %s" % icon_file_name)
 
-        def on_image_download_complete(downloader, image_file_path):
+        def on_image_download_complete(downloader, image_file_path, pkgname):
             LOG.debug("download for '%s' complete" % image_file_path)
             pb = GdkPixbuf.Pixbuf.new_from_file_at_size(icon_file_path,
                                                         self.icon_size,
@@ -91,11 +101,12 @@ class _AppPropertiesHelper(GObject.GObject):
             # replace the icon in the icon_cache now that we've got the real one
             icon_file = split_icon_ext(os.path.basename(image_file_path))
             self.icon_cache[icon_file] = pb
+            self.emit("needs-refresh", pkgname)
         
         if url is not None:
             icon_file_path = os.path.join(SOFTWARE_CENTER_ICON_CACHE_DIR, icon_file_name)
             image_downloader = SimpleFileDownloader()
-            image_downloader.connect('file-download-complete', on_image_download_complete)
+            image_downloader.connect('file-download-complete', on_image_download_complete, pkgname)
             image_downloader.download_file(url, icon_file_path)
 
     def update_availability(self, doc):
@@ -232,6 +243,7 @@ class _AppPropertiesHelper(GObject.GObject):
 class AppPropertiesHelper(_AppPropertiesHelper):
 
     def __init__(self, db, cache, icons, icon_size=48, global_icon_cache=False):
+        super(AppPropertiesHelper, self).__init__()
         self.db = db
         self.cache = cache
 
@@ -390,12 +402,15 @@ class AppListStore(Gtk.ListStore, AppGenericStore):
         three times faster than the AppTreeStore equivalent
     """
 
-    from gi.repository import GObject
-
     __gsignals__ = {
         "appcount-changed" : (GObject.SignalFlags.RUN_LAST,
                               None, 
                               (GObject.TYPE_PYOBJECT, ),
+                             ),
+        # meh, this is a signal from AppPropertiesHelper
+        "needs-refresh" : (GObject.SignalFlags.RUN_LAST,
+                              None, 
+                              (str, ),
                              ),
         }
 

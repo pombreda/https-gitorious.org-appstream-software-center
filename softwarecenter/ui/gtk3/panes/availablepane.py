@@ -132,6 +132,8 @@ class AvailablePane(SoftwarePane):
             #~ self.app_view._append_appcount(appcount)
         #~ liststore.connect('appcount-changed', on_appcount_changed)
         self.app_view.set_model(liststore)
+        liststore.connect(
+            "needs-refresh", lambda helper, pkgname: self.app_view.queue_draw())
 
         # purchase view
         self.purchase_view = PurchaseView()
