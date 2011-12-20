@@ -117,6 +117,9 @@ class AvailablePane(SoftwarePane):
         # setup purchase stuff
         self.app_details_view.connect("purchase-requested",
                                       self.on_purchase_requested)
+        liststore.connect(
+            "needs-refresh", lambda helper, pkgname: self.app_view.queue_draw())
+
         # purchase view
         self.purchase_view = PurchaseView()
         self.purchase_view.connect("purchase-succeeded", self.on_purchase_succeeded)
