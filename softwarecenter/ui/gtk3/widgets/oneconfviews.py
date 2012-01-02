@@ -67,6 +67,7 @@ class OneConfViews(Gtk.TreeView):
             return
         if hostid in self.hostids:
             return
+        hostid = hostid or ''  # bug 905605
         self.hostids.append(hostid)
         LOG.debug("register new computer: %s, %s" % (hostname, hostid))
         model.append([self.default_computer_icon, hostid, hostname])
