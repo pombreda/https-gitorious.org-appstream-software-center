@@ -463,7 +463,7 @@ class ThumbnailGallery(Gtk.HBox):
         # if there are multiple screenshots
         n = data.get_n_screenshots()
 
-        if n == 1:
+        if n <= 1:
             return
 
         # get a random selection of thumbnails from those avaialble
