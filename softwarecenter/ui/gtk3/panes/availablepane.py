@@ -38,6 +38,7 @@ from softwarecenter.paths import APP_INSTALL_PATH
 from softwarecenter.utils import (wait_for_apt_cache_ready,
                                   is_no_display_desktop_file,
                                   convert_desktop_file_to_installed_location,
+                                  ExecutionTime,
                                   get_file_path_from_iconname)
 from softwarecenter.db.appfilter import AppFilter
 from softwarecenter.db.database import Application
@@ -121,9 +122,6 @@ class AvailablePane(SoftwarePane):
         while Gtk.events_pending():
             Gtk.main_iteration()
 
-        # open the cache since we are initializing the UI for the first time    
-        GObject.idle_add(self.cache.open)
-        
         SoftwarePane.init_view(self)
         # set the AppTreeView model, available pane uses list models
         liststore = AppListStore(self.db, self.cache, self.icons)
