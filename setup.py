@@ -83,6 +83,7 @@ setup(name="software-center", version=VERSION,
                "utils/modify_review_gtk3.py",
                # db helpers
                "utils/update-software-center",
+               "utils/update-software-center-channels",
                "utils/update-software-center-agent",
                ] + glob.glob("utils/piston-helpers/*.py"),
       packages=['softwarecenter',

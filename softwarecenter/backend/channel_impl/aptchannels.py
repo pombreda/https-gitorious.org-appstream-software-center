@@ -21,6 +21,8 @@ import os
 import logging
 import xapian
 
+import softwarecenter.paths
+
 from gi.repository import GObject
 
 from aptsources.sourceslist import SourceEntry, SourcesList
@@ -151,37 +153,19 @@ class AptChannelsManager(ChannelsManager):
         run a background timer to see if the a-x-i data we have is 
         still fresh or if the cache has changed since
         """
-        if not self.db._aptcache.ready:
-            return True
-        # see if we need a a-x-i update
-        if self._check_for_channel_updates():
-            # this will trigger a "channels-changed" signal from
-            # the backend object once a-x-i is finished
-            self._logger.debug("running update_xapian_index")
-            self.backend.update_xapian_index()
-        return False
+        # this is expensive and does not need UI to we shove it out
+        channel_update = os.path.join(
+            softwarecenter.paths.datadir, "update-software-center-channels")
+        (pid, stdin, stdout, stderr) = GObject.spawn_async(
+            [channel_update],                     
+            flags=GObject.SPAWN_DO_NOT_REAP_CHILD)
+        GObject.child_watch_add(
+            pid, self._on_check_for_channel_updates_finished)
 
-    def _check_for_channel_updates(self):
-        """ 
-        check current set of channel origins in a-x-i and
-        compare it to the apt cache to see if 
-        anything has changed, 
-        
-        returns True is a update is needed
-        """
-        # the operation get_origins can take some time (~60s?)
-        cache_origins = set(self.db._aptcache.get_all_origins())
-        db_origins = set(self.db.get_origins_from_db())
-        # origins
-        self._logger.debug("cache_origins: %s" % cache_origins)
-        self._logger.debug("db_origins: %s" % db_origins)
-        # the db_origins will contain origins from the s-c-agent, so
-        # we don't need to rebuild if the db has more origins then
-        # the cache, but we need to rebuild if the cache has origins
-        # that a-x-i does not have
-        if not cache_origins.issubset(db_origins):
-            return True
-        return False
+    def _on_check_for_channel_updates_finished(self, pid, condition):
+        # exit status of 1 means stuff changed
+        if os.WEXITSTATUS(condition) == 1:
+            self.db.reopen()
     
     def _get_channels(self, installed_only=False):
         """
