@@ -7,6 +7,7 @@ software-center (5.1.5) UNRELEASED; urgency=low
     - ensure that hostid is always a string (as we declared) (LP: #905605)
   * softwarecenter/ui/gtk3/widgets/thumbnail.py:
     - fix IndexError in set_thumbnails_from_data (LP: #888669)
+  * grab exhibits for the current series only (LP: #899257)
 
  -- Kiwinote <kiwinote@gmail.com>  Tue, 03 Jan 2012 11:26:25 +0000
 
