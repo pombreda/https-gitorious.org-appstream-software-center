@@ -121,9 +121,6 @@ class AvailablePane(SoftwarePane):
         while Gtk.events_pending():
             Gtk.main_iteration()
 
-        # open the cache since we are initializing the UI for the first time    
-        GObject.idle_add(self.cache.open)
-        
         SoftwarePane.init_view(self)
         # set the AppTreeView model, available pane uses list models
         liststore = AppListStore(self.db, self.cache, self.icons)
