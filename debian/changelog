@@ -12,6 +12,9 @@ software-center (5.0.3.2) UNRELEASED; urgency=low
     - Mark strings containing the “ character as Unicode, to fix 
       their translations. LP: #880757
 
+  [ Michael Vogt ]
+  * fix cache opening to improve startup time 
+
  -- Gary Lasker <gary.lasker@canonical.com>  Mon, 28 Nov 2011 14:22:24 -0500
 
 software-center (5.0.3.1) oneiric-proposed; urgency=low
