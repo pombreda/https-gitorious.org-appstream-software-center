@@ -43,7 +43,7 @@ class HistoryPane(Gtk.VBox, BasePane):
     }
 
     (COL_WHEN, COL_ACTION, COL_PKG) = range(3)
-    COL_TYPES = (object, int, str)
+    COL_TYPES = (object, int, object)
 
     (ALL, INSTALLED, REMOVED, UPGRADED) = range(4)
 
