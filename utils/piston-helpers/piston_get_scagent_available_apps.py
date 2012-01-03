@@ -98,6 +98,7 @@ if __name__ == "__main__":
     # exhibits
     command = subparser.add_parser("exhibits")
     command.add_argument("lang")
+    command.add_argument("series")
     command.set_defaults(command="exhibits")
 
     args = parser.parse_args()
@@ -170,7 +171,7 @@ if __name__ == "__main__":
             sys.exit(1)
     if args.command == "exhibits":
         try:
-            piston_reply = scaclient.exhibits(lang=args.lang)
+            piston_reply = scaclient.exhibits(lang=args.lang, series=args.series)
         except:
             LOG.exception("exhibits")
             sys.exit(1)
