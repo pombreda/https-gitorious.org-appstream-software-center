@@ -22,14 +22,6 @@ import time
 time_entering_main = time.time()
 
 
-# NOTE: although Decimal is not used in this file, we need to import it here to
-#       work around bug LP: #607705
-from decimal import Decimal
-
-# thread init is also required otherwise both gst and webkit are unhappy
-
-from gi.repository import GObject
-GObject.threads_init()
 from gi.repository import Gtk
 
 import gettext
