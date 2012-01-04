@@ -394,7 +394,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
                 file_menu.remove(self.builder.get_object("separator_login"))
         else:
             # running the agent will trigger a db reload so we do it later
-            GObject.timeout_add_seconds(10, self._run_software_center_agent)
+            GObject.timeout_add_seconds(30, self._run_software_center_agent)
 
         # TODO: Remove the following two lines once we have remove repository
         #       support in aptdaemon (see LP: #723911)
