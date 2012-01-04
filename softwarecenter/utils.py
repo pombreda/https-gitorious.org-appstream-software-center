@@ -59,13 +59,16 @@ class ExecutionTime(object):
     with ExecutinTime("db flush"):
         db.flush()
     """
-    def __init__(self, info=""):
+    def __init__(self, info="", with_traceback=False):
         self.info = info
+        self.with_traceback = with_traceback
     def __enter__(self):
         self.now = time.time()
     def __exit__(self, type, value, stack):
         logger = logging.getLogger("softwarecenter.performance")
         logger.debug("%s: %s" % (self.info, time.time() - self.now))
+        if self.with_traceback:
+            log_traceback("populate model from query: '%s' (threaded: %s)")
 
 def utf8(s):
     """
