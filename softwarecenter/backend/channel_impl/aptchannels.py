@@ -258,7 +258,7 @@ class AptChannelsManager(ChannelsManager):
         
         # create a "magic" channel to display items available for purchase                                              
         for_purchase_query = xapian.Query("AH" + AVAILABLE_FOR_PURCHASE_MAGIC_CHANNEL_NAME)
-        for_purchase_channel = SoftwareChannel("For Purchase", None, None, 
+        for_purchase_channel = SoftwareChannel("For Purchase", "software-center-agent", None, 
                                                channel_icon=None,   # FIXME:  need an icon
                                                channel_query=for_purchase_query,
                                                installed_only=installed_only)
