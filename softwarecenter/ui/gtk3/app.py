@@ -393,14 +393,8 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             if not (options.enable_lp or och):
                 file_menu.remove(self.builder.get_object("separator_login"))
         else:
-            with ExecutionTime("run update-software-center-agent"):
-                sc_agent_update = os.path.join(
-                    self.datadir, "update-software-center-agent")
-                (pid, stdin, stdout, stderr) = GObject.spawn_async(
-                    [sc_agent_update, "--datadir", datadir], 
-                    flags=GObject.SPAWN_DO_NOT_REAP_CHILD)
-                GObject.child_watch_add(
-                    pid, self._on_update_software_center_agent_finished)
+            # running the agent will trigger a db reload so we do it later
+            GObject.timeout_add_seconds(10, self._run_software_center_agent)
 
         # TODO: Remove the following two lines once we have remove repository
         #       support in aptdaemon (see LP: #723911)
@@ -420,8 +414,17 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
             LOG.debug("launchpad integration error: '%s'" % e)
 
 
-
     # helper
+    def _run_software_center_agent(self):
+        """ helper that triggers the update-software-center-agent helper """
+        sc_agent_update = os.path.join(
+            self.datadir, "update-software-center-agent")
+        (pid, stdin, stdout, stderr) = GObject.spawn_async(
+            [sc_agent_update, "--datadir", datadir], 
+            flags=GObject.SPAWN_DO_NOT_REAP_CHILD)
+        GObject.child_watch_add(
+            pid, self._on_update_software_center_agent_finished)
+
     def _rebuild_and_reopen_local_db(self, pathname):
         """ helper that rebuilds a db and reopens it """
         from softwarecenter.db.update import rebuild_database
