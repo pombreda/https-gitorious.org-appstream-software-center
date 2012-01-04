@@ -93,7 +93,7 @@ if __name__ == "__main__":
 
     # statup time measure implies "performance" in debug filters
     if options.measure_startup_time:
-        options.debug_filter = "performance"
+        options.debug_filter = "performance,traceback"
     
     if options.debug_filter:
         softwarecenter.log.add_filters_from_string(options.debug_filter)
