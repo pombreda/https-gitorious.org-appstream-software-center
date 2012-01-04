@@ -10,61 +10,14 @@ import sys
 
 import piston_mini_client.auth
 
-from softwarecenter.enums import (SOFTWARE_CENTER_NAME_KEYRING,
-                                  SOFTWARE_CENTER_SSO_DESCRIPTION,
-                                  )
 from softwarecenter.paths import SOFTWARE_CENTER_CACHE_DIR
 from softwarecenter.backend.piston.scaclient import SoftwareCenterAgentAPI
-from softwarecenter.backend.login_sso import get_sso_backend
-from softwarecenter.backend.restfulclient import UbuntuSSOAPI
-from softwarecenter.utils import clear_token_from_ubuntu_sso
 
 from gettext import gettext as _
 
 LOG = logging.getLogger(__name__)
 
-class SSOLoginHelper(object):
-    def __init__(self, xid=0):
-        self.oauth = None
-        self.xid = xid
-        self.loop = GObject.MainLoop(GObject.main_context_default())
-    
-    def _login_successful(self, sso_backend, oauth_result):
-        self.oauth = oauth_result
-        # FIXME: actually verify the token against ubuntu SSO
-        self.loop.quit()
-
-    def verify_token(self, token):
-        def _whoami_done(sso, me):
-            self._whoami = me
-            self.loop.quit()
-        self._whoami = None
-        sso = UbuntuSSOAPI(token)
-        sso.connect("whoami", _whoami_done)
-        sso.connect("error", lambda sso, err: self.loop.quit())
-        sso.whoami()
-        self.loop.run()
-        # check if the token is valid
-        if self._whoami is None:
-            return False
-        else:
-            return True
-
-    def clear_token(self):
-        clear_token_from_ubuntu_sso(SOFTWARE_CENTER_NAME_KEYRING)
-
-    def get_oauth_token_sync(self):
-        self.oauth = None
-        sso = get_sso_backend(
-            self.xid, 
-            SOFTWARE_CENTER_NAME_KEYRING,
-            _(SOFTWARE_CENTER_SSO_DESCRIPTION))
-        sso.connect("login-successful", self._login_successful)
-        sso.connect("login-failed", lambda s: self.loop.quit())
-        sso.connect("login-canceled", lambda s: self.loop.quit())
-        sso.login_or_register()
-        self.loop.run()
-        return self.oauth
+from softwarecenter.backend.piston.sso_helper import SSOLoginHelper
 
 if __name__ == "__main__":
     logging.basicConfig()
@@ -115,12 +68,7 @@ if __name__ == "__main__":
     # check if auth is required
     if args.command in ("available_apps_qa", "subscriptions_for_me"):
         helper = SSOLoginHelper(args.parent_xid)
-        token = helper.get_oauth_token_sync()
-        # check if the token is valid and reset it if it is not
-        if token and not helper.verify_token(token):
-            helper.clear_token()
-            # re-trigger login
-            token = helper.get_oauth_token_sync()
+        token = helper.get_oauth_token_and_verify_sync()
         # if we don't have a token, error here
         if not token:
             sys.stderr.write("ERROR: can not obtain a oauth token\n")
