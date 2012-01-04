@@ -15,9 +15,11 @@ software-center (5.1.5) UNRELEASED; urgency=low
     (LP: #907568)
   * lp:~mvo/software-center/startup-speed2:
     - improve the startup speed by moving out the (expensive) channel
-      change test out of the main app into a spawned helper
+      change test out of the main app into a spawned helper, also
+      delays some computations and adds a cheaper way for getting the
+      appcount
 
- -- Gary Lasker <gary.lasker@canonical.com>  Tue, 03 Jan 2012 15:11:27 -0500
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 04 Jan 2012 18:26:26 -0500
 
 software-center (5.1.4) precise; urgency=low
 

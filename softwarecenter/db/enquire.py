@@ -239,6 +239,17 @@ class AppEnquire(GObject.GObject):
         self._perform_search_complete = True
         return
 
+    def get_estimated_matches_count(self, query):
+        with ExecutionTime("estimate item count for query: '%s'" % query):
+            enquire = xapian.Enquire(self.db.xapiandb)
+            enquire.set_query(query)
+            # no performance difference between the two
+            #tmp_matches = enquire.get_mset(0, 1, None, None)
+            #nr_pkgs = tmp_matches.get_matches_estimated()
+            tmp_matches = enquire.get_mset(0, len(self.db), None, None)
+            nr_pkgs = len(tmp_matches)
+        return nr_pkgs
+
     def set_query(self, search_query, 
                   limit=DEFAULT_SEARCH_LIMIT,
                   sortmode=SortMethods.UNSORTED, 
@@ -298,7 +309,7 @@ class AppEnquire(GObject.GObject):
         # if list we append them one by one
         with ExecutionTime("populate model from query: '%s' (threaded: %s)" % (
                 " ; ".join([str(q) for q in self.search_query]),
-                self.nonblocking_load)):
+                self.nonblocking_load), with_traceback=True):
             if self.nonblocking_load:
                 self._threaded_perform_search()
             else:
