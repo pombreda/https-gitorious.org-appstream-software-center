@@ -496,12 +496,7 @@ class LobbyViewGtk(CategoriesViewGtk):
         else:
             query = xapian.Query('')
 
-        enq.set_query(query,
-                      limit=0,
-                      nonapps_visible=NonAppVisibility.ALWAYS_VISIBLE,
-                      nonblocking_load=True)
-
-        length = len(enq.matches)
+        length = enq.get_estimated_matches_count(query)
         text = gettext.ngettext("%(amount)s item", "%(amount)s items", length
                                 ) % { 'amount' : length, }
         self.appcount.set_text(text)
