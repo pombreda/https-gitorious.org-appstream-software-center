@@ -19,7 +19,12 @@ software-center (5.1.5) UNRELEASED; urgency=low
       delays some computations and adds a cheaper way for getting the
       appcount
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 04 Jan 2012 18:26:26 -0500
+  [ Gary Lasker ]
+  * softwarecenter/db/update.py:
+    - remove the fallback code for what's new ordering now that we
+      are getting the date_published value from the server 
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 04 Jan 2012 18:42:22 -0500
 
 software-center (5.1.4) precise; urgency=low
 
