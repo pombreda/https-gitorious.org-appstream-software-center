@@ -8,7 +8,7 @@ from piston_mini_client.validators import (validate_pattern, validate,
 PUBLIC_API_SCHEME = 'http'
 AUTHENTICATED_API_SCHEME = 'https'
 
-class UbuntuRecommenderAPI(PistonAPI):
+class SoftwareCenterRecommenderAPI(PistonAPI):
     default_service_root = 'http://localhost:8000/api/2.0'
 
     @returns_json

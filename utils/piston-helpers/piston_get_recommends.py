@@ -17,12 +17,12 @@ import piston_mini_client.auth
 
 
 from softwarecenter.paths import SOFTWARE_CENTER_CACHE_DIR
-from softwarecenter.backend.piston.ureclient_pristine import (
-    UbuntuRecommenderAPI)
+from softwarecenter.backend.piston.sreclient_pristine import (
+    SoftwareCenterRecommenderAPI)
 
 # patch default_service_root to the one we use
 from softwarecenter.enums import RECOMMENDER_HOST
-UbuntuRecommenderAPI.default_service_root = RECOMMENDER_HOST+"/api/1.0"
+SoftwareCenterRecommenderAPI.default_service_root = RECOMMENDER_HOST+"/api/1.0"
 
 from gettext import gettext as _
 
@@ -32,7 +32,7 @@ if __name__ == "__main__":
     logging.basicConfig()
 
     # command line parser
-    parser = argparse.ArgumentParser(description="Helper for ubuntu-recommender")
+    parser = argparse.ArgumentParser(description="Helper for recommender-api")
     parser.add_argument("--debug", action="store_true", default=False,
                         help="enable debug output")
     parser.add_argument("--ignore-cache", action="store_true", default=False,
@@ -54,7 +54,7 @@ if __name__ == "__main__":
         cachedir = os.path.join(SOFTWARE_CENTER_CACHE_DIR, "uraclient")
 
 
-    urclient = UbuntuRecommenderAPI(cachedir=cachedir)
+    urclient = SoftwareCenterRecommenderAPI(cachedir=cachedir)
         
     piston_reply = None
     kwargs = {}
