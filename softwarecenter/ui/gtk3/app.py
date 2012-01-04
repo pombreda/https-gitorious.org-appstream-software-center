@@ -420,7 +420,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         sc_agent_update = os.path.join(
             self.datadir, "update-software-center-agent")
         (pid, stdin, stdout, stderr) = GObject.spawn_async(
-            [sc_agent_update, "--datadir", datadir], 
+            [sc_agent_update, "--datadir", self.datadir],
             flags=GObject.SPAWN_DO_NOT_REAP_CHILD)
         GObject.child_watch_add(
             pid, self._on_update_software_center_agent_finished)
