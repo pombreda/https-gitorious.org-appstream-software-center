@@ -19,7 +19,12 @@ software-center (5.1.5) UNRELEASED; urgency=low
       delays some computations and adds a cheaper way for getting the
       appcount
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 04 Jan 2012 18:26:26 -0500
+  [ Gary Lasker ]
+  * softwarecenter/backend/channel_impl/aptchannels.py:
+    - display the correct label text for the For Purchase menu item
+      in the toolbar (LP: #911964)
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 04 Jan 2012 18:37:19 -0500
 
 software-center (5.1.4) precise; urgency=low
 
