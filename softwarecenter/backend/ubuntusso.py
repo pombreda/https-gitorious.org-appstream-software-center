@@ -54,8 +54,8 @@ class UbuntuSSOAPI(GObject.GObject):
     def __init__(self, token):
         GObject.GObject.__init__(self)
         binary = os.path.join(
-            softwarecenter.paths.datadir, PistonHelpers.UBUNTU_SSO)
-        self.HELPER_CMD = [binary]
+            softwarecenter.paths.datadir, PistonHelpers.GENERIC_HELPER)
+        self.HELPER_CMD = [binary, "--needs-auth"]
         # FIXME: the token is not currently used as the helper will 
         #        query the keyring again
         self.token = token

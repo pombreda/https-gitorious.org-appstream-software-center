@@ -22,6 +22,7 @@ from gi.repository import GObject
 import argparse
 import logging
 import os
+import json
 import pickle
 import sys
 
@@ -35,6 +36,8 @@ import piston_mini_client.auth
 from softwarecenter.paths import SOFTWARE_CENTER_CACHE_DIR
 from softwarecenter.backend.piston.ubuntusso_pristine import (
     UbuntuSsoAPI)
+from softwarecenter.backend.piston.rnrclient import RatingsAndReviewsAPI
+
 from piston_get_scagent_available_apps import SSOLoginHelper
 
 # patch default_service_root to the one we use
@@ -49,19 +52,22 @@ if __name__ == "__main__":
     logging.basicConfig()
 
     # command line parser
-    parser = argparse.ArgumentParser(description="Helper for recommender-api")
+    parser = argparse.ArgumentParser(
+        description="Backend helper for piston-mini-client based APIs")
     parser.add_argument("--debug", action="store_true", default=False,
                         help="enable debug output")
     parser.add_argument("--ignore-cache", action="store_true", default=False,
                         help="force ignore cache")
+    parser.add_argument("--needs-auth", default=False, action="store_true",
+                        help="need oauth credentials")
+    parser.add_argument("--output", default="pickle",
+                        help="output result as [pickle|json|text]")
     parser.add_argument("--parent-xid", default=0,
                         help="xid of the parent window")
-
-    subparser = parser.add_subparsers(title="Commands")
-    # recommend_top
-    command = subparser.add_parser("whoami")
-    command.set_defaults(command="whoami")
-
+    parser.add_argument('klass', help='class to use')
+    parser.add_argument('function', help='function to call')
+    parser.add_argument('kwargs', nargs="?",
+                        help='kwargs for the function call as json')
     args = parser.parse_args()
 
     if args.debug:
@@ -71,31 +77,49 @@ if __name__ == "__main__":
         cachedir = None
     else:
         cachedir = os.path.join(SOFTWARE_CENTER_CACHE_DIR, "uraclient")
+        
+    # check what we need to call
+    klass = globals()[args.klass]
+    func = args.function
+    kwargs = json.loads(args.kwargs)
 
-    # all calls are authenticated
-    helper = SSOLoginHelper(args.parent_xid)
-    token = helper.get_oauth_token_sync()
-
-    auth = piston_mini_client.auth.OAuthAuthorizer(token["token"],
-                                                   token["token_secret"],
-                                                   token["consumer_key"],
-                                                   token["consumer_secret"])
-    urclient = UbuntuSsoAPI(cachedir=cachedir, auth=auth)
+    if args.needs_auth:
+        helper = SSOLoginHelper(args.parent_xid)
+        token = helper.get_oauth_token_sync()
+        auth = piston_mini_client.auth.OAuthAuthorizer(token["token"],
+                                                       token["token_secret"],
+                                                       token["consumer_key"],
+                                                       token["consumer_secret"])
+        api = klass(cachedir=cachedir, auth=auth)
+    else:
+        api = klass()
         
     piston_reply = None
     # handle the args
-    f = getattr(urclient, args.command)
+    f = getattr(api, func)
     try:
-        piston_reply = f()
+        piston_reply = f(**kwargs)
     except:
         LOG.exception("urclient_apps")
         sys.exit(1)
 
     # print to stdout where its consumed by the parent
-    if piston_reply is not None:
-        try:
-            print pickle.dumps(piston_reply)
-        except IOError:
-            # this can happen if the parent gets killed, no need to trigger
-            # apport for this
-            pass
+    if piston_reply is None:
+        LOG.warn("no data")
+        sys.exit(0)
+
+    # check what format to use
+    if args.output == "pickle":
+        res = pickle.dumps(piston_reply)
+    elif args.output == "json":
+        res = json.dumps(piston_reply)
+    elif args.output == "text":
+        res = piston_reply
+
+    # and output it
+    try:
+        print res
+    except IOError:
+        # this can happen if the parent gets killed, no need to trigger
+        # apport for this
+        pass
