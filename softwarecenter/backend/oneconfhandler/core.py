@@ -22,7 +22,7 @@ from oneconf.dbusconnect import DbusConnect
 from oneconf.enums import MIN_TIME_WITHOUT_ACTIVITY
 
 from softwarecenter.backend.login_sso import get_sso_backend
-from softwarecenter.backend.restfulclient import get_ubuntu_sso_backend
+from softwarecenter.backend.ubuntusso import get_ubuntu_sso_backend
 from softwarecenter.utils import clear_token_from_ubuntu_sso
 
 import datetime
@@ -172,10 +172,11 @@ class OneConfHandler(GObject.GObject):
     def _maybe_login_successful(self, sso, oauth_result):
         """ called after we have the token, then we go and figure out our name """
         logging.debug("_maybe_login_successful")
-        token = oauth_result
-        self.ssoapi = get_ubuntu_sso_backend(token)
+        self.ssoapi = get_ubuntu_sso_backend()
         self.ssoapi.connect("whoami", self._whoami_done)
         self.ssoapi.connect("error", self._whoami_error)
+        # this will automatically verify the keyring token and retrigger 
+        # login (once) if its expired
         self.ssoapi.whoami()
 
     def _whoami_done(self, ssologin, result):
@@ -184,13 +185,5 @@ class OneConfHandler(GObject.GObject):
 
     def _whoami_error(self, ssologin, e):
         logging.error("whoami error '%s'" % e)
-        # HACK: clear the token from the keyring assuming that it expired
-        #       or got deauthorized by the user on the website
-        # this really should be done by ubuntu-sso-client itself
-        import lazr.restfulclient.errors
-        errortype = lazr.restfulclient.errors.HTTPError
-        if (type(e) == errortype):
-            LOG.warn("authentication error, resetting token and retrying")
-            clear_token_from_ubuntu_sso(self.appname)
-            self._share_inventory(False)
-            return
+        self._share_inventory(False)
+        return

@@ -49,10 +49,3 @@ class LoginBackend(GObject.GObject):
         raise NotImplemented
     def cancel_login(self):
         self.emit("login-canceled")
-    @property
-    def new_account_url(self):
-        return self.NEW_ACCOUNT_URL
-    @property
-    def forgoten_password_url(self):
-        return self.FORGOT_PASSWORD_URL
-    
