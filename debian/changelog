@@ -25,12 +25,17 @@ software-center (5.1.5) UNRELEASED; urgency=low
     - fix encoding error for some debs (based on 
       lp:~roignac/software-center/bug-738771-summary-unicode), thanks
       to Vadim Rutkovsky, LP: #738771
+
+  [ Gary Lasker ]
+  * softwarecenter/backend/channel_impl/aptchannels.py:
+    - display the correct label text for the For Purchase menu item
+      in the toolbar (LP: #911964)
   
   [ Vadim Rutkovsky ]
   * lp:~roignac/software-center/bug-632773-selectable-title:
     - make the app title selectable (LP: #632773)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 04 Jan 2012 20:43:32 -0500
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 04 Jan 2012 18:37:19 -0500
 
 software-center (5.1.4) precise; urgency=low
 
