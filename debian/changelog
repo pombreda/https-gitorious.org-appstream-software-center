@@ -3,6 +3,8 @@ software-center (5.1.5) UNRELEASED; urgency=low
   [ Kiwinote ]
   * softwarecenter/ui/gtk3/panes/historypane.py:
     - change COL_PKG to an object rather than a str (LP: #905762)
+  * softwarecenter/ui/gtk3/panes/installedpane.py:
+    - fix utf8 oddness to make remote installed panes work
   * softwarecenter/ui/gtk3/widgets/oneconfviews.py:
     - ensure that hostid is always a string (as we declared) (LP: #905605)
   * softwarecenter/ui/gtk3/widgets/thumbnail.py:
@@ -37,7 +39,7 @@ software-center (5.1.5) UNRELEASED; urgency=low
   * lp:~roignac/software-center/bug-632773-selectable-title:
     - make the app title selectable (LP: #632773)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 04 Jan 2012 18:42:22 -0500
+ -- Kiwinote <kiwinote@gmail.com>  Thu, 05 Jan 2012 10:58:55 +0000
 
 software-center (5.1.4) precise; urgency=low
 

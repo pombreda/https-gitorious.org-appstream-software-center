@@ -30,7 +30,7 @@ import platform
 
 from softwarecenter.enums import (NonAppVisibility,
                                   SortMethods)
-from softwarecenter.utils import wait_for_apt_cache_ready
+from softwarecenter.utils import wait_for_apt_cache_ready, utf8
 from softwarecenter.db.categories import (CategoriesParser,
                                           categories_sorted_by_name)
 from softwarecenter.ui.gtk3.models.appstore2 import (
@@ -435,9 +435,9 @@ class InstalledPane(SoftwarePane, CategoriesParser):
             L = len(enq.matches)
 
             if L:
-                cat_title = ngettext(u'%(amount)s item on “%(machine)s” not on this computer',
-                                     u'%(amount)s items on “%(machine)s” not on this computer',
-                                     L) % { 'amount' : L, 'machine': self.current_hostname}
+                cat_title = utf8(ngettext(u'%(amount)s item on “%(machine)s” not on this computer',
+                                          u'%(amount)s items on “%(machine)s” not on this computer',
+                                          L)) % { 'amount' : L, 'machine': utf8(self.current_hostname)}
                 i += L
                 docs = enq.get_documents()
                 self.cat_docid_map["missingpkg"] = set([doc.get_docid() for doc in docs])
@@ -457,9 +457,9 @@ class InstalledPane(SoftwarePane, CategoriesParser):
 
             L = len(enq.matches)
             if L:
-                cat_title = ngettext(u'%(amount)s item on this computer not on “%(machine)s”',
-                                     u'%(amount)s items on this computer not on “%(machine)s”',
-                                     L) % { 'amount' : L, 'machine': self.current_hostname}
+                cat_title = utf8(ngettext(u'%(amount)s item on this computer not on “%(machine)s”',
+                                          '%(amount)s items on this computer not on “%(machine)s”',
+                                          L)) % { 'amount' : L, 'machine': utf8(self.current_hostname)}
                 i += L
                 docs = enq.get_documents()
                 self.cat_docid_map["additionalpkg"] = set([doc.get_docid() for doc in docs])
