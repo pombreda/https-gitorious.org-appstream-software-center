@@ -115,7 +115,7 @@ class SoftwareCenterAgent(GObject.GObject):
         spawner.connect("data-available", self._on_exhibits_data_available)
         spawner.connect("error", lambda spawner, err: self.emit("error", err))
         spawner.run_generic_piston_helper(
-            "SoftwareCenterAgentAPI", "exhiits", 
+            "SoftwareCenterAgentAPI", "exhibits", 
             lang=get_language(), series=self.distro.get_codename())
 
     def _on_exhibits_data_available(self, spawner, exhibits):
