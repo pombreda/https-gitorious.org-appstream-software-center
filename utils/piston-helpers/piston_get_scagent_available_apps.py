@@ -16,7 +16,7 @@ from softwarecenter.enums import (SOFTWARE_CENTER_NAME_KEYRING,
 from softwarecenter.paths import SOFTWARE_CENTER_CACHE_DIR
 from softwarecenter.backend.piston.scaclient import SoftwareCenterAgentAPI
 from softwarecenter.backend.login_sso import get_sso_backend
-from softwarecenter.backend.restfulclient import UbuntuSSOAPI
+from softwarecenter.backend.ubuntusso import UbuntuSSOAPI
 from softwarecenter.utils import clear_token_from_ubuntu_sso
 
 from gettext import gettext as _

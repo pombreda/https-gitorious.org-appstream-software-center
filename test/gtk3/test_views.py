@@ -13,6 +13,8 @@ TIMEOUT=300
 
 import softwarecenter.paths
 softwarecenter.paths.datadir = "../data"
+import os
+os.environ["PYTHONPATH"] = "../"
 
 class TestViews(unittest.TestCase):
 

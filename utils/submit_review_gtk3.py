@@ -50,7 +50,7 @@ except ImportError:
 from gettext import gettext as _
 from optparse import OptionParser
 
-from softwarecenter.backend.restfulclient import get_ubuntu_sso_backend
+from softwarecenter.backend.ubuntusso import get_ubuntu_sso_backend
 
 import piston_mini_client
 
@@ -503,14 +503,15 @@ class BaseApp(SimpleGtkbuilderApp):
         # HACK: clear the token from the keyring assuming that it expired
         #       or got deauthorized by the user on the website
         # this really should be done by ubuntu-sso-client itself
-        import lazr.restfulclient.errors
+        #import lazr.restfulclient.errors
         # compat  with maverick, it does not have Unauthorized yet
-        if hasattr(lazr.restfulclient.errors, "Unauthorized"):
-            errortype = lazr.restfulclient.errors.Unauthorized
-        else:
-            errortype = lazr.restfulclient.errors.HTTPError
-        if (type(e) == errortype and
-            self._whoami_token_reset_nr == 0):
+        #if hasattr(lazr.restfulclient.errors, "Unauthorized"):
+        #    errortype = lazr.restfulclient.errors.Unauthorized
+        #else:
+        #    errortype = lazr.restfulclient.errors.HTTPError
+        #if (type(e) == errortype and
+        #    self._whoami_token_reset_nr == 0):
+        if   self._whoami_token_reset_nr == 0:
             logging.warn("authentication error, reseting token and retrying")
             clear_token_from_ubuntu_sso(self.appname)
             self._whoami_token_reset_nr += 1

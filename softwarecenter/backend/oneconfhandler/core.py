@@ -187,9 +187,10 @@ class OneConfHandler(GObject.GObject):
         # HACK: clear the token from the keyring assuming that it expired
         #       or got deauthorized by the user on the website
         # this really should be done by ubuntu-sso-client itself
-        import lazr.restfulclient.errors
-        errortype = lazr.restfulclient.errors.HTTPError
-        if (type(e) == errortype):
+        #import lazr.restfulclient.errors
+        #errortype = lazr.restfulclient.errors.HTTPError
+        #if (type(e) == errortype):
+        if True:
             LOG.warn("authentication error, resetting token and retrying")
             clear_token_from_ubuntu_sso(self.appname)
             self._share_inventory(False)
