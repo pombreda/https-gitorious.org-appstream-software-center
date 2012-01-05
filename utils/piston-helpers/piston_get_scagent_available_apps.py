@@ -30,11 +30,13 @@ class SSOLoginHelper(object):
         self.loop = GObject.MainLoop(GObject.main_context_default())
     
     def _login_successful(self, sso_backend, oauth_result):
+        LOG.debug("_login_successful")
         self.oauth = oauth_result
         # FIXME: actually verify the token against ubuntu SSO
         self.loop.quit()
 
     def verify_token(self, token):
+        LOG.debug("verify_token")
         def _whoami_done(sso, me):
             self._whoami = me
             self.loop.quit()
@@ -44,6 +46,7 @@ class SSOLoginHelper(object):
         sso.connect("error", lambda sso, err: self.loop.quit())
         sso.whoami()
         self.loop.run()
+        LOG.debug("verify_token finished")
         # check if the token is valid
         if self._whoami is None:
             return False

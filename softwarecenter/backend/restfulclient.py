@@ -170,6 +170,12 @@ class UbuntuSSOAPI(GObject.GObject):
         authorizer = OAuthAuthorizer(self.token["consumer_key"],
                                      self.token["consumer_secret"],
                                      access_token=token)
+        # we need to init the GObject.init_threads()
+        #  - if we do it globally s-c will crash on exit (LP: #907568)
+        #  - if we don't do it, s-c will hang in worker_thread.start()
+        #    (even though threads_init is deprecated and according to the
+        #     docs is run automatically nowdays)
+        #  - if we do it here some apps will still crash
         self.worker_thread =  RestfulClientWorker(authorizer, self.service)
         self.worker_thread.start()
         GObject.timeout_add(200, self._monitor_thread)
@@ -191,6 +197,7 @@ class UbuntuSSOAPI(GObject.GObject):
         self._error = e
 
     def whoami(self):
+        LOG.debug("whoami called")
         self.worker_thread.queue_request("accounts.me", (), {},
                                          self._thread_whoami_done,
                                          self._thread_whoami_error)
