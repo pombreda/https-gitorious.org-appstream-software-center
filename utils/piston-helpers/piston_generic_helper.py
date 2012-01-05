@@ -33,6 +33,14 @@ if "SOFTWARE_CENTER_DEBUG_HTTP" in os.environ:
 
 import piston_mini_client.auth
 
+try:
+    import softwarecenter
+except ImportError:
+    if os.path.exists("../softwarecenter"):
+        sys.path.insert(0, "../")
+    else:
+        sys.path.insert(0, "/usr/share/software-center")
+
 import softwarecenter.paths
 from softwarecenter.paths import SOFTWARE_CENTER_CACHE_DIR
 from softwarecenter.backend.login_sso import get_sso_backend

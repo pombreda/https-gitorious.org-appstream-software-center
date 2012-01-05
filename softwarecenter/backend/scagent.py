@@ -82,14 +82,14 @@ class SoftwareCenterAgent(GObject.GObject):
             spawner.run_generic_piston_helper(
                 "SoftwareCenterAgentAPI",
                 "available_apps_qa",
-                lang=lang,
+                lang=get_langugage(),
                 series=series_name,
                 arch=arch_tag)
         else:
             spawner.run_generic_piston_helper(
                 "SoftwareCenterAgentAPI",
                 "available_apps",
-                lang=lang,
+                lang=get_language(),
                 series=series_name,
                 arch=arch_tag)
 
