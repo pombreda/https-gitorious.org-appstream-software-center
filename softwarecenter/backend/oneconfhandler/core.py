@@ -172,12 +172,11 @@ class OneConfHandler(GObject.GObject):
     def _maybe_login_successful(self, sso, oauth_result):
         """ called after we have the token, then we go and figure out our name """
         logging.debug("_maybe_login_successful")
-        token = oauth_result
-        self.ssoapi = get_ubuntu_sso_backend(token)
+        self.ssoapi = get_ubuntu_sso_backend()
         self.ssoapi.connect("whoami", self._whoami_done)
         self.ssoapi.connect("error", self._whoami_error)
-        # this will automatically verify the token and retrigger login 
-        # if its expired
+        # this will automatically verify the keyring token and retrigger 
+        # login (once) if its expired
         self.ssoapi.whoami()
 
     def _whoami_done(self, ssologin, result):

@@ -41,6 +41,7 @@ from gettext import gettext as _
 LOG = logging.getLogger(__name__)
 
 class UbuntuSSOAPI(GObject.GObject):
+    """ Ubuntu SSO interface using the oauth token from the keyring """
 
     __gsignals__ = {
         "whoami" : (GObject.SIGNAL_RUN_LAST,
@@ -54,11 +55,8 @@ class UbuntuSSOAPI(GObject.GObject):
 
         }
        
-    def __init__(self, token):
+    def __init__(self):
         GObject.GObject.__init__(self)
-        # FIXME: the token is not currently used as the helper will 
-        #        query the keyring again
-        self.token = token
         
     def _on_whoami_data(self, spawner, piston_whoami):
         self.emit("whoami", piston_whoami)
@@ -77,7 +75,7 @@ class UbuntuSSOAPI(GObject.GObject):
 
 class UbuntuSSOAPIFake(UbuntuSSOAPI):
 
-    def __init__(self, token):
+    def __init__(self):
         GObject.GObject.__init__(self)
         self._fake_settings = FakeReviewSettings()
 
@@ -103,15 +101,15 @@ class UbuntuSSOAPIFake(UbuntuSSOAPI):
     def _make_error():
         return 'HTTP Error 401: Unauthorized'
 
-def get_ubuntu_sso_backend(token):
+def get_ubuntu_sso_backend():
     """ 
     factory that returns an ubuntu sso loader singelton
     """
     if "SOFTWARE_CENTER_FAKE_REVIEW_API" in os.environ:
-        ubuntu_sso_class = UbuntuSSOAPIFake(token)
+        ubuntu_sso_class = UbuntuSSOAPIFake()
         LOG.warn('Using fake Ubuntu SSO API. Only meant for testing purposes')
     else:
-        ubuntu_sso_class = UbuntuSSOAPI(token)
+        ubuntu_sso_class = UbuntuSSOAPI()
     return ubuntu_sso_class
 
 
@@ -140,7 +138,7 @@ if __name__ == "__main__":
         Gtk.main_quit()
     def _dbus_maybe_login_successful(ssologin, oauth_result):
         print "got token, verify it now"
-        sso = UbuntuSSOAPI(oauth_result)
+        sso = UbuntuSSOAPI()
         sso.connect("whoami", _whoami)
         sso.connect("error", _error)
         sso.whoami()
