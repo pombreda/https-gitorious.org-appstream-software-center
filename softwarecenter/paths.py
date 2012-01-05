@@ -89,6 +89,7 @@ class PistonHelpers:
     GET_REVIEW_STATS = "piston_get_review_stats_helper.py"
     GET_USEFUL_VOTES = "piston_get_useful_votes_helper.py"
     SOFTWARE_CENTER_AGENT = "piston_get_scagent_available_apps.py"
+    UBUNTU_SSO = "piston_ubuntu_sso.py"
 
 X2GO_HELPER = "x2go_helper.py"
 
