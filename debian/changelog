@@ -21,6 +21,10 @@ software-center (5.1.5) UNRELEASED; urgency=low
   * lp:~mvo/software-center/icon-data:
     - remove the need for inline icon data from the agent, instead
       download icons directly using the provided URL
+  
+  [ Vadim Rutkovsky ]
+  * lp:~roignac/software-center/bug-632773-selectable-title:
+    - make the app title selectable (LP: #632773)
 
  -- Gary Lasker <gary.lasker@canonical.com>  Wed, 04 Jan 2012 20:43:32 -0500
 
