@@ -455,7 +455,7 @@ class AppListStore(Gtk.ListStore, AppGenericStore):
         db = self.db.xapiandb
         matches = self.current_matches
 
-        n_matches = len(matches)
+        n_matches = len(matches or [])
 
         start = indices[0]
         end = start + step

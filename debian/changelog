@@ -1,6 +1,8 @@
 software-center (5.1.5) UNRELEASED; urgency=low
 
   [ Kiwinote ]
+  * softwarecenter/ui/gtk3/models/appstore2.py:
+    - fix TypeError in load_range (LP: #911886)
   * softwarecenter/ui/gtk3/panes/historypane.py:
     - change COL_PKG to an object rather than a str (LP: #905762)
   * softwarecenter/ui/gtk3/panes/installedpane.py:
@@ -39,7 +41,7 @@ software-center (5.1.5) UNRELEASED; urgency=low
   * lp:~roignac/software-center/bug-632773-selectable-title:
     - make the app title selectable (LP: #632773)
 
- -- Kiwinote <kiwinote@gmail.com>  Thu, 05 Jan 2012 10:58:55 +0000
+ -- Kiwinote <kiwinote@gmail.com>  Thu, 05 Jan 2012 11:23:47 +0000
 
 software-center (5.1.4) precise; urgency=low
 
