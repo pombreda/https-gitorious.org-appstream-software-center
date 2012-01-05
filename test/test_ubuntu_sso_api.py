@@ -6,10 +6,10 @@ sys.path.insert(0,"../")
 
 import os
 import unittest
-from softwarecenter.backend.restfulclient import (UbuntuSSOAPIFake,
-                                                  UbuntuSSOAPI,
-                                                  get_ubuntu_sso_backend,
-                                                  )
+from softwarecenter.backend.ubuntusso import (UbuntuSSOAPIFake,
+                                              UbuntuSSOAPI,
+                                              get_ubuntu_sso_backend,
+                                              )
 
 class TestSSOAPI(unittest.TestCase):
     """ tests the ubuntu sso backend stuff """

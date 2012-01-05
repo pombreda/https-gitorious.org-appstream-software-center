@@ -19,6 +19,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import datetime
+import json
 import logging
 import operator
 import os
@@ -107,13 +108,10 @@ class UsefulnessCache(object):
             return False
         
         # run the command and add watcher
-        cmd = [os.path.join(
-                softwarecenter.paths.datadir, PistonHelpers.GET_USEFUL_VOTES),
-               "--username", user, 
-              ]
         spawn_helper = SpawnHelper()
         spawn_helper.connect("data-available", self._on_usefulness_data)
-        spawn_helper.run(cmd)
+        spawn_helper.run_generic_piston_helper(
+            "RatingsAndReviewsAPI", "get_usefulness", username=user)
 
     def _on_usefulness_data(self, spawn_helper, results):
         '''called if usefulness retrieved from server'''

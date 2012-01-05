@@ -44,25 +44,18 @@ class RecommenderAgent(GObject.GObject):
                   ),
         }
     
-    def __init__(self, ignore_cache=False, xid=None):
+    def __init__(self, xid=None):
         GObject.GObject.__init__(self)
-        self.ignore_cache = ignore_cache
-        binary = os.path.join(
-            softwarecenter.paths.datadir, PistonHelpers.RECOMMENDER_AGENT)
-        self.HELPER_CMD = [binary]
-        if self.ignore_cache:
-            self.HELPER_CMD.append("--ignore-cache")
-        #if xid:
-        #    self.HELPER_CMD.append("--parent-xid")
-        #    self.HELPER_CMD.append(str(xid))
 
     def query_recommend_top(self):
         # build the command
-        cmd = self.HELPER_CMD[:] + ["recommend_top"]
         spawner = SpawnHelper()
+        spawner.parent_xid = self.xid
         spawner.connect("data-available", self._on_recommend_top_data)
         spawner.connect("error", lambda spawner, err: self.emit("error", err))
-        spawner.run(cmd)
+        spawner.run_generic_piston_helper(
+            "SoftwareCenterRecommenderAPI", "recommend_top")
+
     def _on_recommend_top_data(self, spawner, piston_top_apps):
         self.emit("recommend-top", piston_top_apps)
 

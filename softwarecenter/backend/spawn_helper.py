@@ -30,6 +30,9 @@ import logging
 import os
 import json
 
+import softwarecenter.paths
+from softwarecenter.paths import PistonHelpers
+
 from gi.repository import GObject
 
 LOG = logging.getLogger(__name__)
@@ -59,6 +62,27 @@ class SpawnHelper(GObject.GObject):
         self._io_watch = None
         self._child_watch = None
         self._cmd = None
+        self.needs_auth = False
+        self.ignore_cache = False
+        self.parent_xid = None
+
+    def run_generic_piston_helper(self, klass, func, **kwargs):
+        binary = os.path.join(
+            softwarecenter.paths.datadir, PistonHelpers.GENERIC_HELPER)
+        cmd = [binary]
+        cmd += ["--datadir", softwarecenter.paths.datadir]
+        if self.needs_auth:
+            cmd.append("--needs-auth")
+        if self.ignore_cache:
+            cmd.append("--ignore-cache")
+        if self.parent_xid:
+            cmd.append("--parent-xid")
+            cmd.append(str(xid))
+        cmd += [klass, func]
+        if kwargs:
+            cmd.append(json.dumps(kwargs))
+        LOG.debug("run_generic_piston_helper()")
+        self.run(cmd)
 
     def run(self, cmd):
         self._cmd = cmd
