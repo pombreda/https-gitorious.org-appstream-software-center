@@ -133,19 +133,15 @@ class ReviewLoaderSpawningRNRClient(ReviewLoader):
         #        the old "catch-all" review-stats for now
         #origin = "any"
         #distroseries = self.distro.get_codename()
-        kwargs = {}
-        if days_delta:
-            kwargs["days"] = days_delta
-        cmd = [os.path.join(
-                softwarecenter.paths.datadir, PistonHelpers.GENERIC_HELPER),
-               "RatingsAndReviewsAPI", # klass
-               "review_stats",         # function
-               json.dumps(kwargs)      # kwargs
-              ]
         spawn_helper = SpawnHelper()
         spawn_helper.connect("data-available", self._on_review_stats_data, callback)
-        spawn_helper.run(cmd)
-
+        if days_delta:
+            spawn_helper.run_generic_piston_helper(
+                "RatingsAndReviewsAPI", "review_stats", days=days_delta)
+        else:
+            spawn_helper.run_generic_piston_helper(
+                "RatingsAndReviewsAPI", "review_stats")
+                                                              
     def _on_review_stats_data(self, spawn_helper, piston_review_stats, callback):
         """ process stdout from the helper """
         review_stats = self.REVIEW_STATS_CACHE

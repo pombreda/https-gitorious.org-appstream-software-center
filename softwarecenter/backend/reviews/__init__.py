@@ -108,17 +108,10 @@ class UsefulnessCache(object):
             return False
         
         # run the command and add watcher
-        kwargs = { 'username' : user,
-                 }
-        cmd = [os.path.join(
-                softwarecenter.paths.datadir, PistonHelpers.GENERIC_HELPER),
-               "RatingsAndReviewsAPI", # klass
-               "get_usefulness",       # func
-               json.dumps(kwargs),     # args
-              ]
         spawn_helper = SpawnHelper()
         spawn_helper.connect("data-available", self._on_usefulness_data)
-        spawn_helper.run(cmd)
+        spawn_helper.run_generic_piston_helper(
+            "RatingsAndReviewsAPI", "get_usefulness", username=user)
 
     def _on_usefulness_data(self, spawn_helper, results):
         '''called if usefulness retrieved from server'''

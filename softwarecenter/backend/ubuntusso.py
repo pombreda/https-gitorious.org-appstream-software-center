@@ -105,9 +105,6 @@ class UbuntuSSOAPI(GObject.GObject):
        
     def __init__(self, token):
         GObject.GObject.__init__(self)
-        binary = os.path.join(
-            softwarecenter.paths.datadir, PistonHelpers.GENERIC_HELPER)
-        self.HELPER_CMD = [binary, "--needs-auth"]
         # FIXME: the token is not currently used as the helper will 
         #        query the keyring again
         self.token = token
@@ -117,11 +114,11 @@ class UbuntuSSOAPI(GObject.GObject):
 
     def whoami(self):
         LOG.debug("whoami called")
-        cmd = self.HELPER_CMD[:] + ["whoami"]
         spawner = SpawnHelper()
         spawner.connect("data-available", self._on_whoami_data)
         spawner.connect("error", lambda spawner, err: self.emit("error", err))
-        spawner.run(cmd)
+        spawner.needs_auth = True
+        spawner.run_generic_piston_helper("UbuntuSsoAPI", "whoami")
 
 class UbuntuSSOAPIFake(UbuntuSSOAPI):
 
