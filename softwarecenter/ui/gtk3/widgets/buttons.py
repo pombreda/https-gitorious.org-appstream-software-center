@@ -31,13 +31,13 @@ from softwarecenter.ui.gtk3.widgets.stars import Star, StarSize
 _HAND = Gdk.Cursor.new(Gdk.CursorType.HAND2)
 
 
-def _parse_icon(icon, icon_size):
+def _update_icon(image, icon, icon_size):
     if isinstance(icon, GdkPixbuf.Pixbuf):
-        image = Gtk.Image.new_from_pixbuf(icon)
+        image = image.set_from_pixbuf(icon)
     elif isinstance(icon, Gtk.Image):
-        image = icon
+        image = image.set_from_pixbuf(icon.get_pixbuf())
     elif isinstance(icon, str):
-        image = Gtk.Image.new_from_icon_name(icon, icon_size)
+        image = image.set_from_icon_name(icon, icon_size)
     else:
         msg = "Acceptable icon values: None, GdkPixbuf, GtkImage or str"
         raise TypeError(msg)
@@ -58,7 +58,11 @@ class _Tile(object):
 
     def build_default(self, label, icon, icon_size):
         if icon is not None:
-            self.image = _parse_icon(icon, icon_size)
+            if isinstance(icon, Gtk.Image):
+                self.image = icon
+            else:
+                self.image = Gtk.Image()
+                self.image = _update_icon(icon, icon_size)
             self.box.pack_start(self.image, True, True, 0)
 
         self.label = Gtk.Label.new(label)
@@ -183,6 +187,7 @@ class FeaturedTile(TileButton):
         icon = helper.get_icon_at_size(doc, icon_size, icon_size)
         stats = helper.get_review_stats(doc)
         doc.installed = doc.available = None
+        helper.connect("needs-refresh", self._on_needs_refresh, doc, icon_size)
         self.is_installed = helper.is_installed(doc)
         self._overlay = helper.icons.load_icon(Icons.INSTALLED_OVERLAY,
                                                self.INSTALLED_OVERLAY_SIZE,
@@ -195,7 +200,8 @@ class FeaturedTile(TileButton):
         self.content_right = Gtk.Box.new(Gtk.Orientation.VERTICAL, 1)
         self.box.pack_start(self.content_left, False, False, 0)
         self.box.pack_start(self.content_right, False, False, 0)
-        self.image = _parse_icon(icon, icon_size)
+        self.image = Gtk.Image()
+        _update_icon(self.image, icon, icon_size)
         self.content_left.pack_start(self.image, False, False, 0)
 
         self.title = Gtk.Label.new(self._MARKUP % GObject.markup_escape_text(label))
@@ -270,6 +276,11 @@ class FeaturedTile(TileButton):
         self.connect("button-press-event", self.on_press)
         self.connect("button-release-event", self.on_release)
         return
+
+    def _on_needs_refresh(self, helper, pkgname, doc, icon_size):
+        icon = helper.get_icon_at_size(doc, icon_size, icon_size)
+        _update_icon(self.image, icon, icon_size)
+        
 
     def do_get_preferred_width(self):
         w = _global_featured_tile_width
