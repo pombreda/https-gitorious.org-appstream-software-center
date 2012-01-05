@@ -64,6 +64,10 @@ class UbuntuSSOAPI(GObject.GObject):
         self.emit("whoami", piston_whoami)
 
     def whoami(self):
+        """ trigger request for the getting account information, this
+            will also verify if the current token is valid and if not
+            trigger a cleanup/re-authenticate
+        """
         LOG.debug("whoami called")
         spawner = SpawnHelper()
         spawner.connect("data-available", self._on_whoami_data)

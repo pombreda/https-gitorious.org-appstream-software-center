@@ -490,6 +490,8 @@ class BaseApp(SimpleGtkbuilderApp):
         self.ssoapi = get_ubuntu_sso_backend(self.token)
         self.ssoapi.connect("whoami", self._whoami_done)
         self.ssoapi.connect("error", self._whoami_error)
+        # this will automatically verify the token and retrigger login 
+        # if its expired
         self.ssoapi.whoami()
 
     def _whoami_done(self, ssologin, result):
@@ -500,23 +502,6 @@ class BaseApp(SimpleGtkbuilderApp):
 
     def _whoami_error(self, ssologin, e):
         logging.error("whoami error '%s'" % e)
-        # HACK: clear the token from the keyring assuming that it expired
-        #       or got deauthorized by the user on the website
-        # this really should be done by ubuntu-sso-client itself
-        #import lazr.restfulclient.errors
-        # compat  with maverick, it does not have Unauthorized yet
-        #if hasattr(lazr.restfulclient.errors, "Unauthorized"):
-        #    errortype = lazr.restfulclient.errors.Unauthorized
-        #else:
-        #    errortype = lazr.restfulclient.errors.HTTPError
-        #if (type(e) == errortype and
-        #    self._whoami_token_reset_nr == 0):
-        if   self._whoami_token_reset_nr == 0:
-            logging.warn("authentication error, reseting token and retrying")
-            clear_token_from_ubuntu_sso(self.appname)
-            self._whoami_token_reset_nr += 1
-            self.login(show_register=False)
-            return
         # show error
         self.status_spinner.hide()
         self.login_status_label.set_markup('<b><big>%s</big></b>' % _("Failed to log in"))
