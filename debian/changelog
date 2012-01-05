@@ -30,12 +30,14 @@ software-center (5.1.5) UNRELEASED; urgency=low
   * softwarecenter/backend/channel_impl/aptchannels.py:
     - display the correct label text for the For Purchase menu item
       in the toolbar (LP: #911964)
+  * lp:~gary-lasker/software-center/date-published-cleanup:
+    - remove no longer needed code
   
   [ Vadim Rutkovsky ]
   * lp:~roignac/software-center/bug-632773-selectable-title:
     - make the app title selectable (LP: #632773)
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 04 Jan 2012 18:37:19 -0500
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 04 Jan 2012 18:42:22 -0500
 
 software-center (5.1.4) precise; urgency=low
 
