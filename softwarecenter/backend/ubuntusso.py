@@ -19,23 +19,75 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-import os
 
 from gi.repository import GObject
-from oauth.oauth import OAuthToken
 
 import logging
+import os
 
 import softwarecenter.paths
-from softwarecenter.paths import PistonHelpers, SOFTWARE_CENTER_CACHE_DIR
-from softwarecenter.enums import SSO_LOGIN_HOST
+from softwarecenter.paths import PistonHelpers
+from softwarecenter.backend.login_sso import get_sso_backend
 
 # mostly for testing
 from fake_review_settings import FakeReviewSettings, network_delay
 from spawn_helper import SpawnHelper
-from login import LoginBackend
+
+from softwarecenter.enums import (SOFTWARE_CENTER_NAME_KEYRING,
+                                  SOFTWARE_CENTER_SSO_DESCRIPTION,
+                                  )
+from softwarecenter.utils import clear_token_from_ubuntu_sso
+
+from gettext import gettext as _
 
 LOG = logging.getLogger(__name__)
+
+class SSOLoginHelper(object):
+    def __init__(self, xid=0):
+        self.oauth = None
+        self.xid = xid
+        self.loop = GObject.MainLoop(GObject.main_context_default())
+    
+    def _login_successful(self, sso_backend, oauth_result):
+        LOG.debug("_login_successful")
+        self.oauth = oauth_result
+        # FIXME: actually verify the token against ubuntu SSO
+        self.loop.quit()
+
+    def verify_token(self, token):
+        LOG.debug("verify_token")
+        def _whoami_done(sso, me):
+            self._whoami = me
+            self.loop.quit()
+        self._whoami = None
+        sso = UbuntuSSOAPI(token)
+        sso.connect("whoami", _whoami_done)
+        sso.connect("error", lambda sso, err: self.loop.quit())
+        sso.whoami()
+        self.loop.run()
+        LOG.debug("verify_token finished")
+        # check if the token is valid
+        if self._whoami is None:
+            return False
+        else:
+            return True
+
+    def clear_token(self):
+        clear_token_from_ubuntu_sso(SOFTWARE_CENTER_NAME_KEYRING)
+
+    def get_oauth_token_sync(self):
+        self.oauth = None
+        sso = get_sso_backend(
+            self.xid, 
+            SOFTWARE_CENTER_NAME_KEYRING,
+            _(SOFTWARE_CENTER_SSO_DESCRIPTION))
+        sso.connect("login-successful", self._login_successful)
+        sso.connect("login-failed", lambda s: self.loop.quit())
+        sso.connect("login-canceled", lambda s: self.loop.quit())
+        sso.login_or_register()
+        self.loop.run()
+        return self.oauth
+
 
 class UbuntuSSOAPI(GObject.GObject):
 
@@ -111,71 +163,6 @@ def get_ubuntu_sso_backend(token):
     return ubuntu_sso_class
 
 
-class UbuntuSSOlogin(LoginBackend):
-
-    NEW_ACCOUNT_URL = "https://login.launchpad.net/+standalone-login"
-    FORGOT_PASSWORD_URL = "https://login.ubuntu.com/+forgot_password"
-
-    SSO_AUTHENTICATE_FUNC = "authentications.authenticate"
-
-    def __init__(self):
-        LoginBackend.__init__(self)
-        self.service = UBUNTU_SSO_SERVICE
-        # we get a dict here with the following keys:
-        #  token
-        #  consumer_key (also the openid identifier)
-        #  consumer_secret
-        #  token_secret
-        #  name (that is just 'software-center')
-        self.oauth_credentials = None
-        self._oauth_credentials = None
-        self._login_failure = None
-        self.worker_thread = None
-
-    def shutdown(self):
-        self.worker_thread.shutdown()
-
-    def login(self, username=None, password=None):
-        if not username or not password:
-            self.emit("need-username-password")
-            return
-        authorizer = BasicHttpAuthorizer(username, password)
-        self.worker_thread =  RestfulClientWorker(authorizer, self.service)
-        self.worker_thread.start()
-        kwargs = { "token_name" : "software-center", 
-                 }
-        self.worker_thread.queue_request(self.SSO_AUTHENTICATE_FUNC, (), kwargs,
-                                         self._thread_authentication_done,
-                                         self._thread_authentication_error)
-        GObject.timeout_add(200, self._monitor_thread)
-
-    def _monitor_thread(self):
-        # glib bit of the threading, runs in the main thread
-        if self._oauth_credentials:
-            self.emit("login-successful", self._oauth_credentials)
-            self.oauth_credentials = self._oauth_credentials
-            self._oauth_credentials = None
-        if self._login_failure:
-            self.emit("login-failed")
-            self._login_failure = None
-        return True
-
-    def _thread_authentication_done(self, result):
-        # runs in the thread context, can not touch gui or glib
-        #print "_authentication_done", result
-        self._oauth_credentials = result
-
-    def _thread_authentication_error(self, e):
-        # runs in the thread context, can not touch gui or glib
-        #print "_authentication_error", type(e)
-        self._login_failure = e
-
-    def __del__(self):
-        #print "del"
-        if self.worker_thread:
-            self.worker_thread.shutdown()
-
-
 # test code
 def _login_success(lp, token):
     print "success", lp, token
@@ -190,11 +177,6 @@ def _login_need_user_and_password(sso):
     sys.stdout.flush()
     password = sys.stdin.readline().strip()
     sso.login(user, password)
-
-def _error(scaagent, errormsg):
-    print "_error:", errormsg
-def _whoami(sso, whoami):
-    print "whoami: ", whoami
 
 # interactive test code
 if __name__ == "__main__":
@@ -227,13 +209,6 @@ if __name__ == "__main__":
         backend.login_or_register()
         Gtk.main()
 
-    elif sys.argv[1] == "ssologin":
-        ssologin = UbuntuSSOlogin()
-        ssologin.connect("login-successful", _login_success)
-        ssologin.connect("login-failed", _login_failed)
-        ssologin.connect("need-username-password", _login_need_user_and_password)
-        ssologin.login()
-        
     else:
         print "unknown option"
         sys.exit(1)

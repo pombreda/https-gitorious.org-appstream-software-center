@@ -20,6 +20,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 from gi.repository import GObject
+import json
 import logging
 import os
 
@@ -57,13 +58,14 @@ class SoftwareCenterAgent(GObject.GObject):
         self.distro = get_distro()
         self.ignore_cache = ignore_cache
         binary = os.path.join(
-            softwarecenter.paths.datadir, PistonHelpers.SOFTWARE_CENTER_AGENT)
+            softwarecenter.paths.datadir, PistonHelpers.GENERIC_HELPER)
         self.HELPER_CMD = [binary]
         if self.ignore_cache:
             self.HELPER_CMD.append("--ignore-cache")
         if xid:
             self.HELPER_CMD.append("--parent-xid")
             self.HELPER_CMD.append(str(xid))
+        self.HELPER_CMD.append("SoftwareCenterAgentAPI") # klass
 
     def query_available(self, series_name=None, arch_tag=None):
         self._query_available(series_name, arch_tag, for_qa=False)
@@ -80,13 +82,16 @@ class SoftwareCenterAgent(GObject.GObject):
         # build the command
         cmd = self.HELPER_CMD[:]
         if for_qa:
+            cmd.append("--needs-auth")
+        if for_qa:
             cmd.append("available_apps_qa")
         else:
             cmd.append("available_apps")
-        cmd += [language,
-                series_name,
-                arch_tag,
-                ]
+        kwargs = { 'lang' : language,
+                   'series' : series_name,
+                   'arch' : arch_tag,
+                 }
+        cmd.append(json.dumps(kwargs))
         spawner = SpawnHelper()
         spawner.connect("data-available", self._on_query_available_data)
         spawner.connect("error", lambda spawner, err: self.emit("error", err))
@@ -96,6 +101,7 @@ class SoftwareCenterAgent(GObject.GObject):
 
     def query_available_for_me(self, oauth_token, openid_identifier):
         cmd = self.HELPER_CMD[:]
+        cmd.append("--needs-auth")
         cmd.append("subscriptions_for_me")
         spawner = SpawnHelper()
         spawner.connect("data-available", self._on_query_available_for_me_data)
@@ -107,8 +113,10 @@ class SoftwareCenterAgent(GObject.GObject):
     def query_exhibits(self):
         cmd = self.HELPER_CMD[:]
         cmd.append("exhibits")
-        cmd.append(get_language())
-        cmd.append(self.distro.get_codename())
+        kwargs = { "lang" : get_language(),
+                   "series" : self.distro.get_codename(),
+                 }
+        cmd.append(json.dumps(kwargs))
         spawner = SpawnHelper()
         spawner.connect("data-available", self._on_exhibits_data_available)
         spawner.connect("error", lambda spawner, err: self.emit("error", err))

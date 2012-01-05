@@ -17,8 +17,6 @@
 # this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
-from gi.repository import GObject
-
 import argparse
 import logging
 import os
@@ -34,17 +32,22 @@ if "SOFTWARE_CENTER_DEBUG_HTTP" in os.environ:
 import piston_mini_client.auth
 
 from softwarecenter.paths import SOFTWARE_CENTER_CACHE_DIR
-from softwarecenter.backend.piston.ubuntusso_pristine import (
-    UbuntuSsoAPI)
-from softwarecenter.backend.piston.rnrclient import RatingsAndReviewsAPI
 
-from piston_get_scagent_available_apps import SSOLoginHelper
+# the piston import
+from softwarecenter.backend.piston.ubuntusso_pristine import UbuntuSsoAPI
+from softwarecenter.backend.piston.rnrclient import RatingsAndReviewsAPI
+from softwarecenter.backend.piston.scaclient import SoftwareCenterAgentAPI
+
+RatingsAndReviewsAPI # pyflakes
+UbuntuSsoAPI # pyflakes
+SoftwareCenterAgentAPI # pyflakes
+
+from softwarecenter.backend.ubuntusso import SSOLoginHelper
 
 # patch default_service_root to the one we use
 from softwarecenter.enums import SSO_LOGIN_HOST
 UbuntuSsoAPI.default_service_root = SSO_LOGIN_HOST+"/api/1.0"
 
-from gettext import gettext as _
 
 LOG = logging.getLogger(__name__)
 
@@ -81,11 +84,22 @@ if __name__ == "__main__":
     # check what we need to call
     klass = globals()[args.klass]
     func = args.function
-    kwargs = json.loads(args.kwargs)
+    kwargs = json.loads(args.kwargs or '{}')
 
     if args.needs_auth:
         helper = SSOLoginHelper(args.parent_xid)
+        # FIXME: move this verification into the helper itself
         token = helper.get_oauth_token_sync()
+        # check if the token is valid and reset it if it is not
+        if token and not helper.verify_token(token):
+            helper.clear_token()
+            # re-trigger login
+            token = helper.get_oauth_token_sync()
+        # if we don't have a token, error here
+        if not token:
+            sys.stderr.write("ERROR: can not obtain a oauth token\n")
+            sys.exit(1)
+
         auth = piston_mini_client.auth.OAuthAuthorizer(token["token"],
                                                        token["token_secret"],
                                                        token["consumer_key"],

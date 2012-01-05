@@ -19,6 +19,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 import datetime
+import json
 import logging
 import operator
 import os
@@ -111,7 +112,7 @@ class UsefulnessCache(object):
                  }
         cmd = [os.path.join(
                 softwarecenter.paths.datadir, PistonHelpers.GENERIC_HELPER),
-               "RatingsAndReviewsAPI ", # klass
+               "RatingsAndReviewsAPI", # klass
                "get_usefulness",       # func
                json.dumps(kwargs),     # args
               ]
