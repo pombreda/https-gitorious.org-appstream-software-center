@@ -107,9 +107,13 @@ class UsefulnessCache(object):
             return False
         
         # run the command and add watcher
+        kwargs = { 'username' : user,
+                 }
         cmd = [os.path.join(
-                softwarecenter.paths.datadir, PistonHelpers.GET_USEFUL_VOTES),
-               "--username", user, 
+                softwarecenter.paths.datadir, PistonHelpers.GENERIC_HELPER),
+               "RatingsAndReviewsAPI ", # klass
+               "get_usefulness",       # func
+               json.dumps(kwargs),     # args
               ]
         spawn_helper = SpawnHelper()
         spawn_helper.connect("data-available", self._on_usefulness_data)
