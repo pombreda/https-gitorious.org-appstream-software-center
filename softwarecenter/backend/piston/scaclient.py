@@ -14,7 +14,7 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 #
 #
-# taken from lp:~rnr-developers/rnr-server/rnrclient and put into
+# taken from lp:~canonical-ca-hackers/software-center/scaclient 
 # and put into scaclient_pristine.py
 
 import logging

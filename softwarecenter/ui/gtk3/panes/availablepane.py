@@ -120,9 +120,6 @@ class AvailablePane(SoftwarePane):
         while Gtk.events_pending():
             Gtk.main_iteration()
 
-        # open the cache since we are initializing the UI for the first time    
-        GObject.idle_add(self.cache.open)
-        
         SoftwarePane.init_view(self)
         # set the AppTreeView model, available pane uses list models
         liststore = AppListStore(self.db, self.cache, self.icons)
@@ -131,6 +128,8 @@ class AvailablePane(SoftwarePane):
             #~ self.app_view._append_appcount(appcount)
         #~ liststore.connect('appcount-changed', on_appcount_changed)
         self.app_view.set_model(liststore)
+        liststore.connect(
+            "needs-refresh", lambda helper, pkgname: self.app_view.queue_draw())
 
         # purchase view
         self.purchase_view = PurchaseView()

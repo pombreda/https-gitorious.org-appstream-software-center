@@ -22,7 +22,6 @@
 import os
 
 from gi.repository import GObject
-GObject.threads_init()
 
 import logging
 import threading

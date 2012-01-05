@@ -25,6 +25,8 @@ import threading
 import xapian
 from softwarecenter.db.application import Application
 from softwarecenter.db.utils import get_query_for_pkgnames
+from softwarecenter.db.pkginfo import get_pkg_info
+import softwarecenter.paths
 
 from gi.repository import GObject
 
@@ -122,9 +124,13 @@ class StoreDatabase(GObject.GObject):
                               GObject.TYPE_NONE,
                               (GObject.TYPE_STRING,)),
                     }
-    def __init__(self, pathname, cache):
+    def __init__(self, pathname=None, cache=None):
         GObject.GObject.__init__(self)
+        if pathname is None:
+            pathname = softwarecenter.paths.XAPIAN_PATH
         self._db_pathname = pathname
+        if cache is None:
+            cache = get_pkg_info()
         self._aptcache = cache
         self._additional_databases = []
         # the xapian values as read from /var/lib/apt-xapian-index/values

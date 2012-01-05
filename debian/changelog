@@ -1,3 +1,29 @@
+software-center (5.1.5) UNRELEASED; urgency=low
+
+  [ Kiwinote ]
+  * softwarecenter/ui/gtk3/panes/historypane.py:
+    - change COL_PKG to an object rather than a str (LP: #905762)
+  * softwarecenter/ui/gtk3/widgets/oneconfviews.py:
+    - ensure that hostid is always a string (as we declared) (LP: #905605)
+  * softwarecenter/ui/gtk3/widgets/thumbnail.py:
+    - fix IndexError in set_thumbnails_from_data (LP: #888669)
+  * grab exhibits for the current series only (LP: #899257)
+
+  [ Michael Vogt ]
+  * Remove explicit GObject.threads_init as initializing the threads
+    explicitely causes a segfault on close but nothing more
+    (LP: #907568)
+  * lp:~mvo/software-center/startup-speed2:
+    - improve the startup speed by moving out the (expensive) channel
+      change test out of the main app into a spawned helper, also
+      delays some computations and adds a cheaper way for getting the
+      appcount
+  * lp:~mvo/software-center/icon-data:
+    - remove the need for inline icon data from the agent, instead
+      download icons directly using the provided URL
+
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 04 Jan 2012 20:43:32 -0500
+
 software-center (5.1.4) precise; urgency=low
 
   [ Michael Vogt ]
