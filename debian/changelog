@@ -18,8 +18,11 @@ software-center (5.1.5) UNRELEASED; urgency=low
       change test out of the main app into a spawned helper, also
       delays some computations and adds a cheaper way for getting the
       appcount
+  * lp:~mvo/software-center/icon-data:
+    - remove the need for inline icon data from the agent, instead
+      download icons directly using the provided URL
 
- -- Gary Lasker <gary.lasker@canonical.com>  Wed, 04 Jan 2012 18:26:26 -0500
+ -- Gary Lasker <gary.lasker@canonical.com>  Wed, 04 Jan 2012 20:43:32 -0500
 
 software-center (5.1.4) precise; urgency=low
 
