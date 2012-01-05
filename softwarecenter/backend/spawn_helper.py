@@ -70,6 +70,7 @@ class SpawnHelper(GObject.GObject):
         binary = os.path.join(
             softwarecenter.paths.datadir, PistonHelpers.GENERIC_HELPER)
         cmd = [binary]
+        cmd += ["--datadir", softwarecenter.paths.datadir]
         if self.needs_auth:
             cmd.append("--needs-auth")
         if self.ignore_cache:
@@ -80,6 +81,7 @@ class SpawnHelper(GObject.GObject):
         cmd += [klass, func]
         if kwargs:
             cmd.append(json.dumps(kwargs))
+        LOG.debug("run_generic_piston_helper()")
         self.run(cmd)
 
     def run(self, cmd):

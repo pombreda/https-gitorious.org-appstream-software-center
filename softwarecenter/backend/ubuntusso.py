@@ -27,67 +27,18 @@ import os
 
 import softwarecenter.paths
 from softwarecenter.paths import PistonHelpers
-from softwarecenter.backend.login_sso import get_sso_backend
+
+import piston_mini_client.auth
 
 # mostly for testing
 from fake_review_settings import FakeReviewSettings, network_delay
 from spawn_helper import SpawnHelper
 
-from softwarecenter.enums import (SOFTWARE_CENTER_NAME_KEYRING,
-                                  SOFTWARE_CENTER_SSO_DESCRIPTION,
-                                  )
 from softwarecenter.utils import clear_token_from_ubuntu_sso
 
 from gettext import gettext as _
 
 LOG = logging.getLogger(__name__)
-
-class SSOLoginHelper(object):
-    def __init__(self, xid=0):
-        self.oauth = None
-        self.xid = xid
-        self.loop = GObject.MainLoop(GObject.main_context_default())
-    
-    def _login_successful(self, sso_backend, oauth_result):
-        LOG.debug("_login_successful")
-        self.oauth = oauth_result
-        # FIXME: actually verify the token against ubuntu SSO
-        self.loop.quit()
-
-    def verify_token(self, token):
-        LOG.debug("verify_token")
-        def _whoami_done(sso, me):
-            self._whoami = me
-            self.loop.quit()
-        self._whoami = None
-        sso = UbuntuSSOAPI(token)
-        sso.connect("whoami", _whoami_done)
-        sso.connect("error", lambda sso, err: self.loop.quit())
-        sso.whoami()
-        self.loop.run()
-        LOG.debug("verify_token finished")
-        # check if the token is valid
-        if self._whoami is None:
-            return False
-        else:
-            return True
-
-    def clear_token(self):
-        clear_token_from_ubuntu_sso(SOFTWARE_CENTER_NAME_KEYRING)
-
-    def get_oauth_token_sync(self):
-        self.oauth = None
-        sso = get_sso_backend(
-            self.xid, 
-            SOFTWARE_CENTER_NAME_KEYRING,
-            _(SOFTWARE_CENTER_SSO_DESCRIPTION))
-        sso.connect("login-successful", self._login_successful)
-        sso.connect("login-failed", lambda s: self.loop.quit())
-        sso.connect("login-canceled", lambda s: self.loop.quit())
-        sso.login_or_register()
-        self.loop.run()
-        return self.oauth
-
 
 class UbuntuSSOAPI(GObject.GObject):
 
@@ -183,31 +134,22 @@ if __name__ == "__main__":
     def _error(sso, result):
         print "err: ", result
         Gtk.main_quit()
+    def _dbus_maybe_login_successful(ssologin, oauth_result):
+        print "got token, verify it now"
+        sso = UbuntuSSOAPI(oauth_result)
+        sso.connect("whoami", _whoami)
+        sso.connect("error", _error)
+        sso.whoami()
 
     from gi.repository import Gtk
     import sys
     logging.basicConfig(level=logging.DEBUG)
     softwarecenter.paths.datadir = "./data"
 
-    if len(sys.argv) < 2:
-        print "need an argument, one of: 'sso', 'ssologin'"
-        sys.exit(1)
-
-    elif sys.argv[1] == "sso":
-        def _dbus_maybe_login_successful(ssologin, oauth_result):
-            sso = UbuntuSSOAPI(oauth_result)
-            sso.connect("whoami", _whoami)
-            sso.connect("error", _error)
-            sso.whoami()
-            
-        from login_sso import get_sso_backend
-        backend = get_sso_backend("", "appname", "help_text")
-        backend.connect("login-successful", _dbus_maybe_login_successful)
-        backend.login_or_register()
-        Gtk.main()
-
-    else:
-        print "unknown option"
-        sys.exit(1)
+    from login_sso import get_sso_backend
+    backend = get_sso_backend("", "appname", "help_text")
+    backend.connect("login-successful", _dbus_maybe_login_successful)
+    backend.login_or_register()
+    Gtk.main()
 
 
