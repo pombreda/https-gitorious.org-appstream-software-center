@@ -21,10 +21,8 @@
 
 from gi.repository import GObject
 import logging
-import os
 
 import softwarecenter.paths
-from softwarecenter.paths import PistonHelpers
 from spawn_helper import SpawnHelper
 from softwarecenter.i18n import get_language
 from softwarecenter.distro import get_distro, get_current_arch
@@ -56,14 +54,7 @@ class SoftwareCenterAgent(GObject.GObject):
         GObject.GObject.__init__(self)
         self.distro = get_distro()
         self.ignore_cache = ignore_cache
-        binary = os.path.join(
-            softwarecenter.paths.datadir, PistonHelpers.SOFTWARE_CENTER_AGENT)
-        self.HELPER_CMD = [binary]
-        if self.ignore_cache:
-            self.HELPER_CMD.append("--ignore-cache")
-        if xid:
-            self.HELPER_CMD.append("--parent-xid")
-            self.HELPER_CMD.append(str(xid))
+        self.xid = xid
 
     def query_available(self, series_name=None, arch_tag=None):
         self._query_available(series_name, arch_tag, for_qa=False)
@@ -72,47 +63,57 @@ class SoftwareCenterAgent(GObject.GObject):
         self._query_available(series_name, arch_tag, for_qa=True)
 
     def _query_available(self, series_name, arch_tag, for_qa):
-        language = get_language()
         if not series_name:
             series_name = self.distro.get_codename()
         if not arch_tag:
             arch_tag = get_current_arch()
         # build the command
-        cmd = self.HELPER_CMD[:]
-        if for_qa:
-            cmd.append("available_apps_qa")
-        else:
-            cmd.append("available_apps")
-        cmd += [language,
-                series_name,
-                arch_tag,
-                ]
         spawner = SpawnHelper()
+        spawner.parent_xid = self.xid
+        spawner.ignore_cache = self.ignore_cache
         spawner.connect("data-available", self._on_query_available_data)
         spawner.connect("error", lambda spawner, err: self.emit("error", err))
-        spawner.run(cmd)
+        if for_qa:
+            spawner.needs_auth = True
+            spawner.run_generic_piston_helper(
+                "SoftwareCenterAgentAPI",
+                "available_apps_qa",
+                lang=get_language(),
+                series=series_name,
+                arch=arch_tag)
+        else:
+            spawner.run_generic_piston_helper(
+                "SoftwareCenterAgentAPI",
+                "available_apps",
+                lang=get_language(),
+                series=series_name,
+                arch=arch_tag)
+
     def _on_query_available_data(self, spawner, piston_available):
         self.emit("available", piston_available)
 
     def query_available_for_me(self, oauth_token, openid_identifier):
-        cmd = self.HELPER_CMD[:]
-        cmd.append("subscriptions_for_me")
         spawner = SpawnHelper()
+        spawner.parent_xid = self.xid
+        spawner.ignore_cache = self.ignore_cache
         spawner.connect("data-available", self._on_query_available_for_me_data)
         spawner.connect("error", lambda spawner, err: self.emit("error", err))
-        spawner.run(cmd)
+        spawner.needs_auth = True
+        spawner.run_generic_piston_helper(
+            "SoftwareCenterAgentAPI", "subscriptions_for_me")
     def _on_query_available_for_me_data(self, spawner, piston_available_for_me):
         self.emit("available-for-me", piston_available_for_me)
 
     def query_exhibits(self):
-        cmd = self.HELPER_CMD[:]
-        cmd.append("exhibits")
-        cmd.append(get_language())
-        cmd.append(self.distro.get_codename())
         spawner = SpawnHelper()
+        spawner.parent_xid = self.xid
+        spawner.ignore_cache = self.ignore_cache
         spawner.connect("data-available", self._on_exhibits_data_available)
         spawner.connect("error", lambda spawner, err: self.emit("error", err))
-        spawner.run(cmd)
+        spawner.run_generic_piston_helper(
+            "SoftwareCenterAgentAPI", "exhibits", 
+            lang=get_language(), series=self.distro.get_codename())
+
     def _on_exhibits_data_available(self, spawner, exhibits):
         for exhibit in exhibits:
             # special case, if there is no title provided by the server

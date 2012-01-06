@@ -128,22 +128,20 @@ class ReviewLoaderSpawningRNRClient(ReviewLoader):
         except OSError:
             days_delta = 0
         LOG.debug("refresh with days_delta: %s" % days_delta)
+        # FIXME: the server currently has bug (#757695) so we
+        #        can not turn this on just yet and need to use
+        #        the old "catch-all" review-stats for now
         #origin = "any"
         #distroseries = self.distro.get_codename()
-        cmd = [os.path.join(
-                softwarecenter.paths.datadir, PistonHelpers.GET_REVIEW_STATS),
-               # FIXME: the server currently has bug (#757695) so we
-               #        can not turn this on just yet and need to use
-               #        the old "catch-all" review-stats for now
-               #"--origin", origin, 
-               #"--distroseries", distroseries, 
-              ]
-        if days_delta:
-            cmd += ["--days-delta", str(days_delta)]
         spawn_helper = SpawnHelper()
         spawn_helper.connect("data-available", self._on_review_stats_data, callback)
-        spawn_helper.run(cmd)
-
+        if days_delta:
+            spawn_helper.run_generic_piston_helper(
+                "RatingsAndReviewsAPI", "review_stats", days=days_delta)
+        else:
+            spawn_helper.run_generic_piston_helper(
+                "RatingsAndReviewsAPI", "review_stats")
+                                                              
     def _on_review_stats_data(self, spawn_helper, piston_review_stats, callback):
         """ process stdout from the helper """
         review_stats = self.REVIEW_STATS_CACHE

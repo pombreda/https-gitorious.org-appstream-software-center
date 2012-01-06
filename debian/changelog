@@ -31,6 +31,9 @@ software-center (5.1.5) UNRELEASED; urgency=low
       to Vadim Rutkovsky, LP: #738771
   * softwarecenter/ui/gtk3/views/appdetailsview.py:
     - fix crash in test/gtk3/test_views.py
+  * lp:~mvo/software-center/replace-restfulclient-with-piston:
+    - replace lazr.restfulclient with piston-mini-client for ubuntu-sso
+      and cleanup the piston-mini-client helper code
 
   [ Gary Lasker ]
   * softwarecenter/backend/channel_impl/aptchannels.py:
@@ -38,6 +41,8 @@ software-center (5.1.5) UNRELEASED; urgency=low
       in the toolbar (LP: #911964)
   * lp:~gary-lasker/software-center/date-published-cleanup:
     - remove no longer needed code
+  * lp:~gary-lasker/software-center/replace-restfulclient-with-piston-tweaks:
+    - tweaks and fixes the branch
   
   [ Vadim Rutkovsky ]
   * lp:~roignac/software-center/bug-632773-selectable-title:

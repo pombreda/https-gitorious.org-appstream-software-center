@@ -11,6 +11,7 @@ from gi.repository import GObject
 
 import softwarecenter.paths
 softwarecenter.paths.SOFTWARE_CENTER_CACHE_DIR = tempfile.mkdtemp()
+softwarecenter.paths.datadir = "../data"
 
 from softwarecenter.backend.reviews.rnr import (
     ReviewLoaderSpawningRNRClient as ReviewLoader)
@@ -51,6 +52,6 @@ class TestReviewLoader(unittest.TestCase):
             main_loop.iteration()
 
 if __name__ == "__main__":
-    #import logging
-    #logging.basicConfig(level=logging.DEBUG)
+    import logging
+    logging.basicConfig(level=logging.DEBUG)
     unittest.main()
