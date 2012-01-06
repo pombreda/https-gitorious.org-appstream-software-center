@@ -48,6 +48,8 @@ from softwarecenter.backend.login_sso import get_sso_backend
 from softwarecenter.enums import (SOFTWARE_CENTER_NAME_KEYRING,
                                   SOFTWARE_CENTER_SSO_DESCRIPTION,
                                   )
+                                  
+from softwarecenter.utils import clear_token_from_ubuntu_sso
 
 # the piston import
 from softwarecenter.backend.piston.ubuntusso_pristine import UbuntuSsoAPI
