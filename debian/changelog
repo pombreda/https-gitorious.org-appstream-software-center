@@ -11,7 +11,10 @@ software-center (5.1.5) UNRELEASED; urgency=low
     - ensure that hostid is always a string (as we declared) (LP: #905605)
   * softwarecenter/ui/gtk3/widgets/thumbnail.py:
     - fix IndexError in set_thumbnails_from_data (LP: #888669)
+  * utils/submit_review_gtk3.py:
+    - use named argument as per (LP: #841000)
   * grab exhibits for the current series only (LP: #899257)
+  * trigger .pot file rebuild
 
   [ Michael Vogt ]
   * Remove explicit GObject.threads_init as initializing the threads
@@ -48,7 +51,7 @@ software-center (5.1.5) UNRELEASED; urgency=low
   * lp:~roignac/software-center/bug-632773-selectable-title:
     - make the app title selectable (LP: #632773)
 
- -- Kiwinote <kiwinote@gmail.com>  Thu, 05 Jan 2012 11:23:47 +0000
+ -- Kiwinote <kiwinote@gmail.com>  Thu, 05 Jan 2012 14:24:51 +0000
 
 software-center (5.1.4) precise; urgency=low
 
