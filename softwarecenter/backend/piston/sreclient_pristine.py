@@ -1,7 +1,5 @@
-from piston_mini_client import (PistonAPI, PistonResponseObject,
-    returns_list_of, returns_json)
-from piston_mini_client.validators import (validate_pattern, validate,
-    oauth_protected)
+from piston_mini_client import (PistonAPI, returns_json)
+from piston_mini_client.validators import (validate, oauth_protected)
 
 # These are factored out as constants for if you need to work against a
 # server that doesn't support both schemes (like http-only dev servers)

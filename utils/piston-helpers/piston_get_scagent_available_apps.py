@@ -1,7 +1,5 @@
 #!/usr/bin/python
 
-from gi.repository import GObject
-
 import argparse
 import logging
 import os
@@ -12,8 +10,6 @@ import piston_mini_client.auth
 
 from softwarecenter.paths import SOFTWARE_CENTER_CACHE_DIR
 from softwarecenter.backend.piston.scaclient import SoftwareCenterAgentAPI
-
-from gettext import gettext as _
 
 LOG = logging.getLogger(__name__)
 

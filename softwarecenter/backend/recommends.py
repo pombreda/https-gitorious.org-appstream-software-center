@@ -21,13 +21,9 @@
 
 from gi.repository import GObject
 import logging
-import os
 
 import softwarecenter.paths
-from softwarecenter.paths import PistonHelpers
 from spawn_helper import SpawnHelper
-from softwarecenter.i18n import get_language
-from softwarecenter.distro import get_distro, get_current_arch
 
 LOG = logging.getLogger(__name__)
 
