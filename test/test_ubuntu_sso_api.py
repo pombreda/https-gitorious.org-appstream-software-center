@@ -6,10 +6,10 @@ sys.path.insert(0,"../")
 
 import os
 import unittest
-from softwarecenter.backend.restfulclient import (UbuntuSSOAPIFake,
-                                                  UbuntuSSOAPI,
-                                                  get_ubuntu_sso_backend,
-                                                  )
+from softwarecenter.backend.ubuntusso import (UbuntuSSOAPIFake,
+                                              UbuntuSSOAPI,
+                                              get_ubuntu_sso_backend,
+                                              )
 
 class TestSSOAPI(unittest.TestCase):
     """ tests the ubuntu sso backend stuff """
@@ -24,17 +24,12 @@ class TestSSOAPI(unittest.TestCase):
             set([x for x in dir(sso_fake) if not x.startswith("_")]))
 
     def test_get_ubuntu_backend(self):
-        token = { 'token' : 'tokenvalue',
-                  'token_secret' : 'tokensecretvalue',
-                  'consumer_key' : 'consumerkeyvalue',
-                  'consumer_secret' : 'consumersecretvalue',
-                  }
         # test that we get the real one
-        self.assertEqual(type(get_ubuntu_sso_backend(token)),
+        self.assertEqual(type(get_ubuntu_sso_backend()),
                          UbuntuSSOAPI)
         # test that we get the fake one
         os.environ["SOFTWARE_CENTER_FAKE_REVIEW_API"] = "1"
-        self.assertEqual(type(get_ubuntu_sso_backend(token)),
+        self.assertEqual(type(get_ubuntu_sso_backend()),
                          UbuntuSSOAPIFake)
         # clean the environment
         del os.environ["SOFTWARE_CENTER_FAKE_REVIEW_API"]
