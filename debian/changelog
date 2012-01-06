@@ -29,6 +29,8 @@ software-center (5.1.5) UNRELEASED; urgency=low
     - fix encoding error for some debs (based on 
       lp:~roignac/software-center/bug-738771-summary-unicode), thanks
       to Vadim Rutkovsky, LP: #738771
+  * softwarecenter/ui/gtk3/views/appdetailsview.py:
+    - fix crash in test/gtk3/test_views.py
 
   [ Gary Lasker ]
   * softwarecenter/backend/channel_impl/aptchannels.py:

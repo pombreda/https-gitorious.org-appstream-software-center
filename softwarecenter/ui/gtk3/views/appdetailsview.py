@@ -699,6 +699,7 @@ class AppDetailsView(Viewport):
         self.cache = cache
         self.backend = get_install_backend()
         self.cache.connect("cache-ready", self._on_cache_ready)
+        self.connect("destroy", self._on_destroy)
         self.datadir = datadir
         self.app = None
         self.appdetails = None
@@ -761,6 +762,9 @@ class AppDetailsView(Viewport):
         self.connect('realize', self._on_realize)
         self.loaded = True
         return
+
+    def _on_destroy(self, widget):
+        self.cache.disconnect_by_func(self._on_cache_ready)
 
     def _cache_art_assets(self):
         global _asset_cache
