@@ -20,12 +20,9 @@
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
 
 from gi.repository import GObject
-import json
 import logging
-import os
 
 import softwarecenter.paths
-from softwarecenter.paths import PistonHelpers
 from spawn_helper import SpawnHelper
 from softwarecenter.i18n import get_language
 from softwarecenter.distro import get_distro, get_current_arch
@@ -66,7 +63,6 @@ class SoftwareCenterAgent(GObject.GObject):
         self._query_available(series_name, arch_tag, for_qa=True)
 
     def _query_available(self, series_name, arch_tag, for_qa):
-        language = get_language()
         if not series_name:
             series_name = self.distro.get_codename()
         if not arch_tag:
@@ -82,7 +78,7 @@ class SoftwareCenterAgent(GObject.GObject):
             spawner.run_generic_piston_helper(
                 "SoftwareCenterAgentAPI",
                 "available_apps_qa",
-                lang=get_langugage(),
+                lang=get_language(),
                 series=series_name,
                 arch=arch_tag)
         else:

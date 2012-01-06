@@ -23,7 +23,6 @@ from oneconf.enums import MIN_TIME_WITHOUT_ACTIVITY
 
 from softwarecenter.backend.login_sso import get_sso_backend
 from softwarecenter.backend.ubuntusso import get_ubuntu_sso_backend
-from softwarecenter.utils import clear_token_from_ubuntu_sso
 
 import datetime
 from gi.repository import GObject

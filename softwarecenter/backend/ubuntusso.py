@@ -26,17 +26,10 @@ import logging
 import os
 
 import softwarecenter.paths
-from softwarecenter.paths import PistonHelpers
-
-import piston_mini_client.auth
 
 # mostly for testing
 from fake_review_settings import FakeReviewSettings, network_delay
 from spawn_helper import SpawnHelper
-
-from softwarecenter.utils import clear_token_from_ubuntu_sso
-
-from gettext import gettext as _
 
 LOG = logging.getLogger(__name__)
 
@@ -144,7 +137,6 @@ if __name__ == "__main__":
         sso.whoami()
 
     from gi.repository import Gtk
-    import sys
     logging.basicConfig(level=logging.DEBUG)
     softwarecenter.paths.datadir = "./data"
 

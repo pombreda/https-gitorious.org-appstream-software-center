@@ -62,7 +62,6 @@ from softwarecenter.backend.login_sso import get_sso_backend
 from softwarecenter.backend.reviews import Review
 from softwarecenter.db.database import Application
 from softwarecenter.gwibber_helper import GwibberHelper, GwibberHelperMock
-from softwarecenter.utils import clear_token_from_ubuntu_sso
 from softwarecenter.i18n import get_language
 from softwarecenter.ui.gtk3.SimpleGtkbuilderApp import SimpleGtkbuilderApp
 from softwarecenter.ui.gtk3.dialogs import SimpleGtkbuilderDialog
