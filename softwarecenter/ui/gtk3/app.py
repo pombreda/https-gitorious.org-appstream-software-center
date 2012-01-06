@@ -213,7 +213,7 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         with ExecutionTime("opening the pkginfo"):
             # a main iteration friendly apt cache
             self.cache = get_pkg_info()
-            self.cache.open()
+            # cache is opened later in run()
             self.cache.connect("cache-broken", self._on_apt_cache_broken)
 
         with ExecutionTime("opening the xapiandb"):
@@ -1229,7 +1229,11 @@ class SoftwareCenterAppGtk3(SimpleGtkbuilderApp):
         self.config.write()
 
     def run(self, args):
+        # show window as early as possible
         self.window_main.show_all()
+
+        # delay cache open
+        GObject.timeout_add(1, self.cache.open)
 
         # support both "pkg1 pkg" and "pkg1,pkg2" (and pkg1,pkg2 pkg3)
         if args:

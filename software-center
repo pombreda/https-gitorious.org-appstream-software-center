@@ -140,7 +140,7 @@ if __name__ == "__main__":
                 """ small helper that monitors the main window appearance """
                 global main_visible
                 # useful to check how often this is run - not often :/
-                #print time.time()
+                print time.time()
                 if not main_visible and app.window_main.get_visible():
                     logger.debug("** main window visible after: %s seconds" % (
                             time.time() - time_entering_main))
