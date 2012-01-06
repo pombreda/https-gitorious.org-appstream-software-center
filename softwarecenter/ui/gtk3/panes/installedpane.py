@@ -155,8 +155,9 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         oneconftoolbar.set_orientation(Gtk.Orientation.HORIZONTAL)
         oneconfpropertymenu = Gtk.Menu()
         self.oneconfproperty = MenuButton(oneconfpropertymenu, Gtk.Image.new_from_stock(Gtk.STOCK_PROPERTIES, Gtk.IconSize.BUTTON))
-        stop_oneconf_share_menuitem = Gtk.MenuItem(label=_(u"Stop Syncing “%s”") % platform.node())
-        stop_oneconf_share_menuitem.connect("activate", self._on_stop_showing_oneconf_clicked)
+        self.stopsync_label = _(u"Stop Syncing “%s”")
+        stop_oneconf_share_menuitem = Gtk.MenuItem(label=self.stopsync_label % platform.node())
+        stop_oneconf_share_menuitem.connect("activate", self._on_stop_oneconf_hostshare_clicked)
         stop_oneconf_share_menuitem.show()
         oneconfpropertymenu.append(stop_oneconf_share_menuitem)
         self.oneconfcontrol.pack_start(oneconftoolbar, False, False, 1)
@@ -237,13 +238,17 @@ class InstalledPane(SoftwarePane, CategoriesParser):
         LOG.debug("Selected computer changed to %s (%s)" % (hostid, hostname))
         self.current_hostid = hostid
         self.current_hostname = hostname
+        menuitem = self.oneconfproperty.get_menu().get_children()[0]
         if self.current_hostid:
             (self.oneconf_additional_pkg, self.oneconf_missing_pkg) = self.oneconf_handler.oneconf.diff(self.current_hostid, '')
+            stopsync_hostname = self.current_hostname
             # FIXME for P: oneconf views don't support search
             if self.state.search_term:  
                 self._search()
         else:
+            stopsync_hostname = platform.node()
             self.searchentry.show()
+        menuitem.set_label(self.stopsync_label % stopsync_hostname.encode('utf-8'))
         self.refresh_apps()
 
     def _last_time_sync_oneconf_changed(self, oneconf_handler, msg):
@@ -258,9 +263,13 @@ class InstalledPane(SoftwarePane, CategoriesParser):
             self.oneconf_viewpickler.select_first()
             self.oneconfcontrol.hide()
 
-    def _on_stop_showing_oneconf_clicked(self, widget):
-        LOG.debug("Stop sharing the current computer inventory")
-        self.oneconf_handler.sync_between_computers(False)
+    def _on_stop_oneconf_hostshare_clicked(self, widget):
+        LOG.debug("Stop sharing inventory for %s" % self.current_hostname)
+        self.oneconf_handler.sync_between_computers(False, self.current_hostid)
+        # stop sharing another host than the local one.
+        if self.current_hostid:
+            self.oneconf_viewpickler.remove_computer(self.current_hostid)
+            self.oneconf_viewpickler.select_first()
         
     def _current_inventory_need_refresh(self, oneconfviews):
         if self.current_hostid:

@@ -50,7 +50,12 @@ software-center (5.1.5) UNRELEASED; urgency=low
   [ Vadim Rutkovsky ]
   * lp:~roignac/software-center/bug-632773-selectable-title:
     - make the app title selectable (LP: #632773)
-
+  
+  [ Didier Roche ]
+  * lp:~didrocks/software-center/oneconf-remove-computers-from-share
+    - Enable (from the new spec) removing a host which isn't the 
+      current one from the gui. 
+  
  -- Kiwinote <kiwinote@gmail.com>  Thu, 05 Jan 2012 14:24:51 +0000
 
 software-center (5.1.4) precise; urgency=low

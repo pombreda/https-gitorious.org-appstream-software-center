@@ -76,6 +76,23 @@ class OneConfViews(Gtk.TreeView):
         '''Emit a signal for refreshing the installedpane if current view is concerned'''
         if hostid == self.current_hostid:
             self.emit("current-inventory-refreshed")
+            
+    def remove_computer(self, hostid):
+        '''Remove a computer from the model'''
+        model = self.get_model()
+        if not model:
+            return
+        if hostid not in self.hostids:
+            LOG.warning("ask to remove a computer that isn't registered: %s" % hostid)
+            return
+        iter_id = model.get_iter_first()
+        while iter_id:
+            if model.get_value(iter_id, self.COL_HOSTID) == hostid:
+                model.remove(iter_id)
+                self.hostids.remove(hostid)
+                break
+            iter_id = model.iter_next(iter_id)
+        
         
     def on_cursor_changed(self, widget):
 
@@ -120,8 +137,9 @@ def get_test_window():
     # init the view
     w.register_computer("AAAAA", "NameA")
     w.register_computer("ZZZZZ", "NameZ")
+    w.register_computer("DDDDD", "NameD")
     w.register_computer("CCCCC", "NameC")
-    w.register_computer(None, "This computer should be first")
+    w.register_computer("", "This computer should be first")
     w.select_first()
     
     GObject.timeout_add_seconds(5, w.register_computer, "EEEEE", "NameE")
@@ -130,6 +148,8 @@ def get_test_window():
         print "%s selected for %s" % (hostid, hostname)
     
     w.connect("computer-changed", print_selected_hostid)
+    
+    w.remove_computer("DDDDD")
     win.show_all()
     return win
 

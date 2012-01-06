@@ -138,14 +138,20 @@ class OneConfHandler(GObject.GObject):
         self.get_latest_oneconf_sync()
         self.emit("show-oneconf-changed", share_inventory)
 
-    def sync_between_computers(self, sync_on):
-        '''toggle the sync on and off if needed between computers'''
+    def sync_between_computers(self, sync_on, hostid=None):
+        '''toggle the sync on and off if needed between computers.
+        
+        If hostid is not None, sync_between_computer can be used to stop
+        sharing for other computers'''
         LOG.debug("Toggle sync between computers: %s", sync_on)
         
         if sync_on:
             self._try_login()
         else:
-            self._share_inventory(False)
+            if hostid:
+                self.oneconf.set_share_inventory(False, hostid=hostid)
+            else: # localhost
+                self._share_inventory(False)
             
     def _on_store_packagelist_changed(self, hostid):
         '''pass the message to the view controller'''
