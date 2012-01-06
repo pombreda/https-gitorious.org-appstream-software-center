@@ -38,6 +38,10 @@ class RecommenderAgent(GObject.GObject):
                               GObject.TYPE_NONE, 
                               (GObject.TYPE_PYOBJECT,),
                              ),
+        "recommend-me" : (GObject.SIGNAL_RUN_LAST,
+                              GObject.TYPE_NONE, 
+                              (GObject.TYPE_PYOBJECT,),
+                             ),
         "error" : (GObject.SIGNAL_RUN_LAST,
                    GObject.TYPE_NONE, 
                    (str,),
@@ -46,6 +50,17 @@ class RecommenderAgent(GObject.GObject):
     
     def __init__(self, xid=None):
         GObject.GObject.__init__(self)
+        self.xid = xid
+
+    def query_recommend_me(self):
+        # build the command
+        spawner = SpawnHelper()
+        spawner.parent_xid = self.xid
+        spawner.needs_auth = True
+        spawner.connect("data-available", self._on_recommend_me_data)
+        spawner.connect("error", lambda spawner, err: self.emit("error", err))
+        spawner.run_generic_piston_helper(
+            "SoftwareCenterRecommenderAPI", "recommend_me")
 
     def query_recommend_top(self):
         # build the command
@@ -59,12 +74,17 @@ class RecommenderAgent(GObject.GObject):
     def _on_recommend_top_data(self, spawner, piston_top_apps):
         self.emit("recommend-top", piston_top_apps)
 
+    def _on_recommend_me_data(self, spawner, piston_me_apps):
+        self.emit("recommend-me", piston_me_apps)
+
    
 if __name__ == "__main__":
     from gi.repository import Gtk
 
     def _recommend_top(agent, top_apps):
         print ("_recommend_top: %s" % top_apps)
+    def _recommend_me(agent, top_apps):
+        print ("_recommend_me: %s" % top_apps)
     def _error(agent, msg):
         print ("got a error: %s" % msg)
         Gtk.main_quit()
@@ -75,8 +95,10 @@ if __name__ == "__main__":
 
     agent = RecommenderAgent()
     agent.connect("recommend-top", _recommend_top)
+    agent.connect("recommend-me", _recommend_me)
     agent.connect("error", _error)
     agent.query_recommend_top()
+    agent.query_recommend_me()
 
 
     Gtk.main()

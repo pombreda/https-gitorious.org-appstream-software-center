@@ -22,12 +22,12 @@ class SoftwareCenterRecommenderAPI(PistonAPI):
 
     @oauth_protected
     def recommend_me(self):
-        return self._get('recommended_me', scheme=PUBLIC_API_SCHEME)
+        return self._get('recommend_me', scheme=PUBLIC_API_SCHEME)
 
     @oauth_protected
     @validate('pkgname', str)
     def recommend_app(self, pkgname):
-        return self._get('recommended_app/%s/' % pkgname, 
+        return self._get('recommend_app/%s/' % pkgname, 
                          scheme=PUBLIC_API_SCHEME)
 
     @returns_json
