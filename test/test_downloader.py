@@ -32,7 +32,7 @@ class TestImageDownloader(unittest.TestCase):
         self._image_downloaded_filename = filename
 
     def test_download_unreachable(self):
-        self.downloader.download_file("http://examplex.com/not-there",
+        self.downloader.download_file("http://www.ubuntu.com/really-not-there",
                                       self.DOWNLOAD_FILENAME)
         main_loop = GObject.main_context_default()
         while self._image_is_reachable is None:
