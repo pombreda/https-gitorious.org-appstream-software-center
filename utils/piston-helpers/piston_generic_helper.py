@@ -55,14 +55,20 @@ from softwarecenter.utils import clear_token_from_ubuntu_sso
 from softwarecenter.backend.piston.ubuntusso_pristine import UbuntuSsoAPI
 from softwarecenter.backend.piston.rnrclient import RatingsAndReviewsAPI
 from softwarecenter.backend.piston.scaclient import SoftwareCenterAgentAPI
-
-RatingsAndReviewsAPI # pyflakes
-UbuntuSsoAPI # pyflakes
-SoftwareCenterAgentAPI # pyflakes
+from softwarecenter.backend.piston.sreclient_pristine import SoftwareCenterRecommenderAPI
 
 # patch default_service_root to the one we use
 from softwarecenter.enums import SSO_LOGIN_HOST
 UbuntuSsoAPI.default_service_root = SSO_LOGIN_HOST+"/api/1.0"
+
+from softwarecenter.enums import RECOMMENDER_HOST
+SoftwareCenterRecommenderAPI.default_service_root = RECOMMENDER_HOST+"/api/1.0"
+
+
+RatingsAndReviewsAPI # pyflakes
+UbuntuSsoAPI # pyflakes
+SoftwareCenterAgentAPI # pyflakes
+SoftwareCenterRecommenderAPI
 
 from gettext import gettext as _
 
